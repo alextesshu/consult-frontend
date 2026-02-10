@@ -1,28 +1,36 @@
-<template>
+﻿<template>
   <div class="page">
     <header class="topbar">
       <div class="brand">Consult</div>
       <nav class="nav">
-        <RouterLink to="/login">Login</RouterLink>
-        <RouterLink to="/cabinet">Cabinet</RouterLink>
+        <RouterLink to="/login">Вхід</RouterLink>
+        <RouterLink to="/signup">Реєстрація</RouterLink>
+        <RouterLink to="/cabinet">Кабінет</RouterLink>
+        <RouterLink to="/cabinet/profile">Профіль</RouterLink>
       </nav>
     </header>
     <section class="hero">
       <div class="hero__card">
-        <div class="badge">Therapist Workspace</div>
-        <h1 class="title">A calm, private cabinet for serious practice.</h1>
+        <div class="badge">Професійний кабінет</div>
+        <h1 class="title">Професійні інструменти. Без чужих рук у вашій роботі.</h1>
         <p class="subtitle">
-          No marketplace. No pressure. Just a focused environment for sessions,
-          clients, and groups.
+          Розклад, клієнти, сесії, нотатки та відео — у системі, що поважає межі.
         </p>
-      </div>
-      <div class="hero__card">
-        <h2 class="title" style="font-size: 24px;">Quick access</h2>
-        <p class="subtitle">Sign in to manage availability and client state.</p>
-        <div style="display: flex; gap: 12px; margin-top: 16px;">
-          <RouterLink class="btn" to="/login">Sign in</RouterLink>
-          <RouterLink class="btn btn--ghost" to="/cabinet">Open cabinet</RouterLink>
+        <div class="hero__actions">
+          <RouterLink class="btn" to="/signup">Створити кабінет</RouterLink>
+          <RouterLink class="btn btn--ghost" to="/login">Увійти</RouterLink>
         </div>
+      </div>
+      <div class="hero__scene" aria-hidden="true">
+        <div class="scene__glow"></div>
+        <div class="scene__desk"></div>
+        <div class="scene__lamp">
+          <div class="lamp__shade"></div>
+          <div class="lamp__stem"></div>
+          <div class="lamp__base"></div>
+        </div>
+        <div class="scene__chair"></div>
+        <div class="scene__notebook"></div>
       </div>
     </section>
     <main>

@@ -1,20 +1,37 @@
-<template>
+﻿<template>
   <section class="card">
-    <h1 class="title" style="font-size: 28px;">Sign in</h1>
-    <p class="muted">Email or login + password.</p>
+    <h1 class="title" style="font-size: 28px;">Вхід</h1>
     <form class="form" @submit.prevent="onSubmit">
       <label class="field">
-        <span>Email or login</span>
-        <input v-model="identifier" class="input" type="text" placeholder="you@example.com or username" />
+        <span>Ел. пошта або логін</span>
+        <input
+          v-model="identifier"
+          class="input"
+          type="text"
+          name="identifier"
+          autocomplete="username"
+          placeholder="name@example.com або логін"
+        />
       </label>
       <label class="field">
-        <span>Password</span>
-        <input v-model="password" class="input" type="password" placeholder="••••••••" />
+        <span>Пароль</span>
+        <input
+          v-model="password"
+          class="input"
+          type="password"
+          name="password"
+          autocomplete="current-password"
+          placeholder="********"
+        />
       </label>
       <p v-if="error" class="muted">{{ error }}</p>
       <button class="btn" type="submit" :disabled="loading">
-        {{ loading ? 'Signing in...' : 'Continue' }}
+        {{ loading ? 'Вхід...' : 'Продовжити' }}
       </button>
+      <p class="muted">
+        Вперше тут?
+        <RouterLink to="/signup">Створити акаунт терапевта</RouterLink>
+      </p>
     </form>
   </section>
 </template>
@@ -35,14 +52,14 @@ const { loading } = storeToRefs(auth)
 async function onSubmit() {
   error.value = ''
   if (!identifier.value || !password.value) {
-    error.value = 'Please enter credentials.'
+    error.value = 'Введіть облікові дані.'
     return
   }
   try {
     await auth.login(identifier.value.trim(), password.value)
     router.push('/cabinet')
   } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Login failed'
+    error.value = err instanceof Error ? err.message : 'Не вдалося увійти'
   }
 }
 </script>

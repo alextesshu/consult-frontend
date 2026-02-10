@@ -1,40 +1,43 @@
-<template>
+﻿<template>
   <section class="card">
-    <h1 class="title" style="font-size: 28px;">Therapist cabinet</h1>
-    <p class="muted">Private workspace. Public pages will be added later.</p>
+    <h1 class="title" style="font-size: 28px;">Кабінет терапевта</h1>
+    <p class="muted">Приватний робочий простір. Публічні сторінки з’являться пізніше.</p>
     <div v-if="me" class="dash">
       <div class="panel">
-        <div class="badge">Account</div>
+        <div class="badge">Акаунт</div>
         <h2 class="panel__title">{{ me.user.username }}</h2>
-        <div class="muted">{{ me.user.email || 'no email' }}</div>
-        <div class="muted">Roles: {{ me.user.roles.join(', ') }}</div>
+        <div class="muted">{{ me.user.email || 'немає ел. пошти' }}</div>
+        <div class="muted">Ролі: {{ me.user.roles.join(', ') }}</div>
       </div>
       <div class="panel">
-        <div class="badge">Access</div>
-        <h2 class="panel__title">{{ me.access_state || 'UNKNOWN' }}</h2>
-        <div class="muted">Plan: {{ me.effective_entitlements?.plan || 'N/A' }}</div>
+        <div class="badge">Доступ</div>
+        <h2 class="panel__title">{{ me.access_state || 'НЕВІДОМО' }}</h2>
+        <div class="muted">План: {{ me.effective_entitlements?.plan || 'Н/Д' }}</div>
       </div>
       <div class="panel">
-        <div class="badge">Clients</div>
+        <div class="badge">Клієнти</div>
         <h2 class="panel__title">{{ me.counts?.active_clients ?? 0 }}</h2>
         <div class="muted">
-          Limit: {{ me.effective_entitlements?.active_client_limit ?? 'N/A' }}
+          Ліміт: {{ me.effective_entitlements?.active_client_limit ?? 'Н/Д' }}
         </div>
         <div class="muted">
-          Prospects: {{ me.counts?.prospect_clients ?? 0 }}
+          Потенційні: {{ me.counts?.prospect_clients ?? 0 }}
         </div>
       </div>
       <div class="panel">
-        <div class="badge">Sessions</div>
+        <div class="badge">Сесії</div>
         <h2 class="panel__title">{{ me.counts?.upcoming_sessions_count ?? 0 }}</h2>
-        <div class="muted">Upcoming this week</div>
+        <div class="muted">Найближчих цього тижня</div>
       </div>
     </div>
     <div v-else class="muted" style="margin-top: 12px;">
-      Loading profile...
+      Завантаження профілю...
     </div>
-    <div style="margin-top: 16px;">
-      <button class="btn btn--ghost" type="button" @click="onLogout">Logout</button>
+    <div class="cabinet-actions">
+      <RouterLink class="btn btn--ghost" to="/cabinet/profile">
+        Редагувати профіль
+      </RouterLink>
+      <button class="btn btn--ghost" type="button" @click="onLogout">Вийти</button>
     </div>
   </section>
 </template>
@@ -70,5 +73,11 @@ function onLogout() {
   margin: 10px 0 4px;
   font-family: var(--font-serif);
   font-size: 22px;
+}
+.cabinet-actions {
+  margin-top: 16px;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 </style>

@@ -13,7 +13,9 @@ let refreshPromise: Promise<string | null> | null = null
 
 http.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   const auth = useAuthStore()
-  if (auth.accessToken) {
+  const url = config.url || ''
+  const isAuthEndpoint = url.includes('/auth/')
+  if (!isAuthEndpoint && auth.accessToken) {
     config.headers.Authorization = `Bearer ${auth.accessToken}`
   }
   return config
@@ -28,7 +30,9 @@ http.interceptors.response.use(
       return Promise.reject(error)
     }
 
-    if (error.response?.status === 401 && auth.refreshToken) {
+    const url = original?.url || ''
+    const isAuthEndpoint = url.includes('/auth/')
+    if (!isAuthEndpoint && error.response?.status === 401 && auth.refreshToken) {
       original._retry = true
       if (!refreshPromise) {
         refreshPromise = auth
