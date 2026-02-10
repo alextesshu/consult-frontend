@@ -23,7 +23,7 @@
           <div class="muted" v-if="profile.bio">{{ profile.bio }}</div>
           <div class="meta">
             <span v-if="profile.specializations">{{ profile.specializations }}</span>
-            <span v-if="profile.languages">{{ profile.languages }}</span>
+            <span v-if="languagesDisplay">{{ languagesDisplay }}</span>
             <span v-if="profile.show_location && profile.location">{{ profile.location }}</span>
           </div>
           <div class="meta">
@@ -72,18 +72,26 @@
           </label>
           <label class="field">
             Мови
-            <input
-              v-model="profile.languages"
-              class="input"
-              type="text"
-              list="languageOptions"
-              placeholder="Українська, English"
-            />
-            <datalist id="languageOptions">
-              <option v-for="language in languageOptions" :key="language" :value="language" />
-            </datalist>
+            <div class="chip-field">
+              <div class="chip" v-for="language in languageList" :key="language">
+                <span>{{ language }}</span>
+                <button type="button" class="chip-remove" @click="removeLanguage(language)">×</button>
+              </div>
+                <input
+                  v-model="languageInput"
+                  class="input chip-input"
+                  type="text"
+                  list="languageOptions"
+                  placeholder="введіть мову"
+                  @keydown.enter.prevent="addLanguage()"
+                  @keydown="onLanguageKeydown"
+                />
+              <datalist id="languageOptions">
+                <option v-for="language in languageOptions" :key="language" :value="language" />
+              </datalist>
+            </div>
             <div class="muted" style="font-size: 12px;">
-              Вводьте мови через кому. Підказки працюють за першими літерами.
+              Можна додавати скільки завгодно мов. Підказки працюють за першими літерами.
             </div>
           </label>
           <label class="field">
@@ -99,47 +107,61 @@
 
       <div class="panel">
         <div class="badge">Контакти</div>
-        <div class="form" style="margin-top: 12px;">
-          <label class="field">
-            Ел. пошта для зв’язку
-            <input v-model="profile.contact_email" class="input" type="email" />
-          </label>
-          <label class="field">
-            Телефон для зв’язку
-            <input v-model="profile.contact_phone" class="input" type="text" />
-          </label>
-          <label class="field">
-            Telegram
-            <input v-model="profile.telegram" class="input" type="text" placeholder="@username або номер" />
-          </label>
-          <label class="field">
-            Viber
-            <input v-model="profile.viber" class="input" type="text" placeholder="номер телефону" />
-          </label>
-          <label class="field">
-            WhatsApp
-            <input v-model="profile.whatsapp" class="input" type="text" placeholder="номер телефону" />
-          </label>
-          <label class="field">
-            Фото
-            <div class="file-row">
-              <input class="input input--file" type="file" accept="image/*" @change="onPhotoSelected" />
-              <span class="muted" v-if="photoUploading">Завантаження...</span>
-              <a v-if="profile.photo_url" class="btn btn--ghost" :href="profile.photo_url" target="_blank" rel="noreferrer">
-                Переглянути
-              </a>
+        <div class="contacts-grid" style="margin-top: 12px;">
+          <div class="form">
+            <label class="field">
+              Ел. пошта для зв’язку
+              <input v-model="profile.contact_email" class="input" type="email" />
+            </label>
+            <label class="field">
+              Телефон для зв’язку
+              <input v-model="profile.contact_phone" class="input" type="text" />
+            </label>
+            <label class="field">
+              Telegram
+              <input v-model="profile.telegram" class="input" type="text" placeholder="@username або номер" />
+            </label>
+            <label class="field">
+              Viber
+              <input v-model="profile.viber" class="input" type="text" placeholder="номер телефону" />
+            </label>
+            <label class="field">
+              WhatsApp
+              <input v-model="profile.whatsapp" class="input" type="text" placeholder="номер телефону" />
+            </label>
+            <label class="field">
+              Фото
+              <div class="file-row">
+                <input class="input input--file" type="file" accept="image/*" @change="onPhotoSelected" />
+                <span class="muted" v-if="photoUploading">Завантаження...</span>
+                <a v-if="profile.photo_url" class="btn btn--ghost" :href="profile.photo_url" target="_blank" rel="noreferrer">
+                  Переглянути
+                </a>
+              </div>
+            </label>
+            <label class="field">
+              Відео
+              <div class="file-row">
+                <input class="input input--file" type="file" accept="video/*" @change="onVideoSelected" />
+                <span class="muted" v-if="videoUploading">Завантаження...</span>
+                <a v-if="profile.video_url" class="btn btn--ghost" :href="profile.video_url" target="_blank" rel="noreferrer">
+                  Переглянути
+                </a>
+              </div>
+            </label>
+          </div>
+          <div class="media-preview">
+            <div class="media-card">
+              <div class="media-title">Фото превʼю</div>
+              <div class="media-frame">
+                <img v-if="profile.photo_url" :src="profile.photo_url" alt="Фото профілю" />
+                <div v-else class="media-empty">Фото ще не завантажено</div>
+              </div>
+              <div class="muted" style="font-size: 12px;">
+                Фото зʼявиться тут одразу після завантаження.
+              </div>
             </div>
-          </label>
-          <label class="field">
-            Відео
-            <div class="file-row">
-              <input class="input input--file" type="file" accept="video/*" @change="onVideoSelected" />
-              <span class="muted" v-if="videoUploading">Завантаження...</span>
-              <a v-if="profile.video_url" class="btn btn--ghost" :href="profile.video_url" target="_blank" rel="noreferrer">
-                Переглянути
-              </a>
-            </div>
-          </label>
+          </div>
         </div>
       </div>
 
@@ -256,6 +278,7 @@ const photoUploading = ref(false)
 const videoUploading = ref(false)
 const languageOptions = [
   'Українська',
+  'Російська',
   'English',
   'Polski',
   'Deutsch',
@@ -266,6 +289,10 @@ const languageOptions = [
   'Čeština',
   'Slovenčina',
 ]
+
+const languageInput = ref('')
+const languageList = ref<string[]>([])
+const disallowedLanguages = new Set(['російська', 'русский', 'russian'])
 
 const profile = reactive<TherapistProfile>({
   id: 0,
@@ -303,14 +330,18 @@ const publicUrl = computed(() => {
   return `${window.location.origin}/t/${profile.public_slug}`
 })
 
+const languagesDisplay = computed(() => languageList.value.join(', '))
+
 async function loadProfile() {
   loading.value = true
   error.value = ''
   try {
-    const data = await fetchTherapistProfile()
-    Object.assign(profile, normalizeProfile(data))
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Не вдалося завантажити профіль'
+      const data = await fetchTherapistProfile()
+      Object.assign(profile, normalizeProfile(data))
+      languageList.value = sanitizeLanguages(toList(profile.languages))
+      languageInput.value = ''
+    } catch (err) {
+      error.value = err instanceof Error ? err.message : 'Не вдалося завантажити профіль'
   } finally {
     loading.value = false
   }
@@ -324,10 +355,12 @@ async function onSave() {
     const data = await updateTherapistProfile({
       ...profile,
       specializations: toList(profile.specializations),
-      languages: toList(profile.languages),
-    })
-    Object.assign(profile, normalizeProfile(data))
-    success.value = 'Збережено.'
+      languages: languageList.value,
+      })
+      Object.assign(profile, normalizeProfile(data))
+      languageList.value = sanitizeLanguages(toList(profile.languages))
+      languageInput.value = ''
+      success.value = 'Збережено.'
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'Не вдалося зберегти'
   } finally {
@@ -420,6 +453,36 @@ function normalizeProfile(data: TherapistProfile): TherapistProfile {
   }
 }
 
+function addLanguage() {
+  const raw = languageInput.value.trim()
+  if (!raw) return
+  const cleaned = raw.replace(/,+$/, '').trim()
+  if (!cleaned) {
+    languageInput.value = ''
+    return
+  }
+  const existing = new Set(languageList.value.map((item) => item.toLowerCase()))
+    if (disallowedLanguages.has(cleaned.toLowerCase())) {
+      languageInput.value = ''
+      return
+    }
+    if (!existing.has(cleaned.toLowerCase())) {
+      languageList.value = [...languageList.value, cleaned]
+    }
+  languageInput.value = ''
+}
+
+function removeLanguage(language: string) {
+  languageList.value = languageList.value.filter((item) => item !== language)
+}
+
+function onLanguageKeydown(event: KeyboardEvent) {
+  if (event.key === ',') {
+    event.preventDefault()
+    addLanguage()
+  }
+}
+
 function toStringValue(value: string | string[] | null | undefined): string {
   if (!value) return ''
   if (Array.isArray(value)) return value.join(', ')
@@ -434,6 +497,10 @@ function toList(value: string | string[] | null | undefined): string[] {
     .split(',')
     .map((item) => item.trim())
     .filter(Boolean)
+}
+
+function sanitizeLanguages(list: string[]): string[] {
+  return list.filter((item) => !disallowedLanguages.has(item.trim().toLowerCase()))
 }
 
 onMounted(loadProfile)
@@ -528,6 +595,58 @@ onMounted(loadProfile)
   margin-top: 8px;
 }
 
+.contacts-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 260px;
+  gap: 16px;
+  align-items: start;
+}
+
+.media-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.media-card {
+  border: 1px dashed var(--line);
+  border-radius: 16px;
+  padding: 12px;
+  background: #fdfaf6;
+  display: grid;
+  gap: 10px;
+}
+
+.media-title {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.media-frame {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: #fff;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.media-frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.media-empty {
+  font-size: 12px;
+  color: var(--muted);
+  text-align: center;
+  padding: 12px;
+}
+
 .file-row {
   display: flex;
   align-items: center;
@@ -537,5 +656,44 @@ onMounted(loadProfile)
 
 .input--file {
   padding: 10px 12px;
+}
+
+.chip-field {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #f7f4ef;
+  border: 1px solid var(--line);
+  font-size: 12px;
+}
+
+.chip-remove {
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+  color: var(--muted);
+}
+
+.chip-input {
+  min-width: 220px;
+  flex: 1;
+}
+
+@media (max-width: 900px) {
+  .contacts-grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>
