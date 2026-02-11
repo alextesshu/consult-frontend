@@ -31,6 +31,7 @@ npm run dev
 * `/cabinet` — Therapist dashboard
 * `/cabinet/profile` — Profile editor + public preview
 * `/cabinet/group-events` ? Group events (list/create/delete drafts)
+* `/cabinet/slots` ? Slots (create/edit/delete)
 
 ## Auth
 

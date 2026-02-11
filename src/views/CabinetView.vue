@@ -34,6 +34,9 @@
       Завантаження профілю...
     </div>
     <div class="cabinet-actions">
+      <RouterLink class="btn btn--ghost" to="/cabinet/slots">
+        Слоти
+      </RouterLink>
       <RouterLink class="btn btn--ghost" to="/cabinet/profile">
         Редагувати профіль
       </RouterLink>

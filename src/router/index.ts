@@ -5,6 +5,7 @@ import CabinetView from '../views/CabinetView.vue'
 import GroupEventsView from '../views/GroupEventsView.vue'
 import PublicProfileView from '../views/PublicProfileView.vue'
 import TherapistProfileView from '../views/TherapistProfileView.vue'
+import SlotsView from '../views/SlotsView.vue'
 import { useAuthStore } from '../stores/auth'
 
 const routes = [
@@ -16,6 +17,12 @@ const routes = [
     path: '/cabinet/group-events',
     name: 'cabinet-group-events',
     component: GroupEventsView,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: '/cabinet/slots',
+    name: 'cabinet-slots',
+    component: SlotsView,
     meta: { requiresAuth: true },
   },
   {
