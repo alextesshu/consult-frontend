@@ -1,0 +1,125 @@
+﻿import { defineStore } from 'pinia'
+import { fetchMe, loginWithIdentifier, refreshToken, signupTherapist } from '../lib/api'
+
+type AuthUser = {
+  id: number
+  username: string
+  email: string | null
+  roles: string[]
+}
+
+type Entitlements = {
+  plan: string
+  active_client_limit: number | null
+  group_room_enabled: boolean
+  group_room_meeting_limit: number | null
+  group_room_broadcast_enabled: boolean
+  default_technical_cap: number
+}
+
+type Counts = {
+  active_clients: number
+  prospect_clients: number
+  upcoming_sessions_count: number
+}
+
+type MePayload = {
+  user: AuthUser
+  access_state: string | null
+  effective_entitlements: Entitlements | null
+  counts: Counts | null
+  server_time: string
+}
+
+export const useAuthStore = defineStore('auth', {
+  state: () => ({
+    accessToken: '' as string,
+    refreshToken: '' as string,
+    user: null as AuthUser | null,
+    me: null as MePayload | null,
+    loading: false as boolean,
+    error: '' as string,
+  }),
+  actions: {
+    initFromStorage() {
+      const token = localStorage.getItem('accessToken') || ''
+      const refresh = localStorage.getItem('refreshToken') || ''
+      if (token) {
+        this.accessToken = token
+      }
+      if (refresh) {
+        this.refreshToken = refresh
+      }
+    },
+    setToken(token: string) {
+      this.accessToken = token
+      localStorage.setItem('accessToken', token)
+    },
+    setRefreshToken(token: string) {
+      this.refreshToken = token
+      localStorage.setItem('refreshToken', token)
+    },
+    setUser(user: AuthUser | null) {
+      this.user = user
+    },
+    setMe(payload: MePayload | null) {
+      this.me = payload
+      this.user = payload ? payload.user : null
+    },
+    async login(identifier: string, password: string) {
+      this.loading = true
+      this.error = ''
+      try {
+        const tokens = await loginWithIdentifier(identifier, password)
+        this.setToken(tokens.access)
+        this.setRefreshToken(tokens.refresh)
+        const me = await fetchMe(tokens.access)
+        this.setMe(me)
+      } catch (err) {
+        this.error = err instanceof Error ? err.message : 'Не вдалося увійти'
+        throw err
+      } finally {
+        this.loading = false
+      }
+    },
+    async signup(username: string, email: string, password: string, passwordConfirm: string) {
+      this.loading = true
+      this.error = ''
+      try {
+        const tokens = await signupTherapist(username, email, password, passwordConfirm)
+        this.setToken(tokens.access)
+        this.setRefreshToken(tokens.refresh)
+        const me = await fetchMe(tokens.access)
+        this.setMe(me)
+      } catch (err) {
+        this.error = err instanceof Error ? err.message : 'Не вдалося зареєструватися'
+        throw err
+      } finally {
+        this.loading = false
+      }
+    },
+    async loadMe() {
+      if (!this.accessToken) return
+      const me = await fetchMe(this.accessToken)
+      this.setMe(me)
+    },
+    async refreshAccessToken(): Promise<string | null> {
+      if (!this.refreshToken) return null
+      try {
+        const tokens = await refreshToken(this.refreshToken)
+        this.setToken(tokens.access)
+        return tokens.access
+      } catch {
+        this.logout()
+        return null
+      }
+    },
+    logout() {
+      this.accessToken = ''
+      this.refreshToken = ''
+      this.user = null
+      localStorage.removeItem('accessToken')
+      localStorage.removeItem('refreshToken')
+    },
+  },
+})
