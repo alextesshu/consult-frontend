@@ -11,11 +11,11 @@
     <form class="slot-form" @submit.prevent="createSlot">
       <label class="field">
         Початок
-        <input v-model="newStart" class="input" type="datetime-local" required />
+        <input v-model="newStart" class="input" type="datetime-local" lang="uk" required />
       </label>
       <label class="field">
         Кінець
-        <input v-model="newEnd" class="input" type="datetime-local" required />
+        <input v-model="newEnd" class="input" type="datetime-local" lang="uk" required />
       </label>
       <button class="btn" type="submit" :disabled="loading">Створити слот</button>
     </form>
@@ -30,7 +30,7 @@
           <div class="slot-meta">
             <div class="slot-label">Початок</div>
             <template v-if="isEditing(slot.id)">
-              <input v-model="editStart" class="input input--sm" type="datetime-local" />
+              <input v-model="editStart" class="input input--sm" type="datetime-local" lang="uk" />
             </template>
             <template v-else>
               <div>{{ formatDate(slot.start_at) }}</div>
@@ -39,7 +39,7 @@
           <div class="slot-meta">
             <div class="slot-label">Кінець</div>
             <template v-if="isEditing(slot.id)">
-              <input v-model="editEnd" class="input input--sm" type="datetime-local" />
+              <input v-model="editEnd" class="input input--sm" type="datetime-local" lang="uk" />
             </template>
             <template v-else>
               <div>{{ formatDate(slot.end_at) }}</div>
@@ -119,7 +119,14 @@ const editEnd = ref('')
 function formatDate(value: string) {
   const dt = new Date(value)
   if (Number.isNaN(dt.getTime())) return value
-  return dt.toLocaleString()
+  return dt.toLocaleString('uk-UA', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  })
 }
 
 function toLocalInputValue(value: string) {
