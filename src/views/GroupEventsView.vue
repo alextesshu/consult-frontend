@@ -39,6 +39,17 @@
           {{ formatDate(event.starts_at) || 'Без розкладу' }}
           <span v-if="event.ends_at">— {{ formatDate(event.ends_at) }}</span>
         </div>
+        <div class="group-card-actions">
+          <button
+            v-if="event.state === 'DRAFT'"
+            class="btn btn--ghost btn--sm"
+            type="button"
+            @click="deleteDraft(event)"
+            :disabled="loading"
+          >
+            ????????
+          </button>
+        </div>
       </div>
     </div>
   </section>
@@ -98,6 +109,21 @@ async function createDraft(mode: GroupEvent['mode']) {
   }
 }
 
+
+async function deleteDraft(event: GroupEvent) {
+  loading.value = true
+  error.value = ''
+  try {
+    await http.delete(`/cabinet/group-events/${event.id}/`)
+    events.value = events.value.filter((item) => item.id !== event.id)
+  } catch (err: any) {
+    const data = err?.response?.data
+    error.value = data?.detail || data?.code || '?? ??????? ???????? ?????'
+  } finally {
+    loading.value = false
+  }
+}
+
 onMounted(loadEvents)
 </script>
 
@@ -139,4 +165,12 @@ onMounted(loadEvents)
   margin: 8px 0 4px;
   font-weight: 600;
 }
+.group-card-actions {
+  margin-top: 10px;
+}
+.btn--sm {
+  padding: 6px 10px;
+  font-size: 13px;
+}
+
 </style>
