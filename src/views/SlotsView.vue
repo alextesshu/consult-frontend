@@ -11,11 +11,25 @@
     <form class="slot-form" @submit.prevent="createSlot">
       <label class="field">
         Початок
-        <input v-model="newStart" class="input" type="datetime-local" lang="uk" required />
+        <input
+          v-model="newStart"
+          class="input"
+          type="datetime-local"
+          lang="uk"
+          required
+          @click="openPicker"
+        />
       </label>
       <label class="field">
         Кінець
-        <input v-model="newEnd" class="input" type="datetime-local" lang="uk" required />
+        <input
+          v-model="newEnd"
+          class="input"
+          type="datetime-local"
+          lang="uk"
+          required
+          @click="openPicker"
+        />
       </label>
       <button class="btn" type="submit" :disabled="loading">Створити слот</button>
     </form>
@@ -30,7 +44,13 @@
           <div class="slot-meta">
             <div class="slot-label">Початок</div>
             <template v-if="isEditing(slot.id)">
-              <input v-model="editStart" class="input input--sm" type="datetime-local" lang="uk" />
+              <input
+                v-model="editStart"
+                class="input input--sm"
+                type="datetime-local"
+                lang="uk"
+                @click="openPicker"
+              />
             </template>
             <template v-else>
               <div>{{ formatDate(slot.start_at) }}</div>
@@ -39,7 +59,13 @@
           <div class="slot-meta">
             <div class="slot-label">Кінець</div>
             <template v-if="isEditing(slot.id)">
-              <input v-model="editEnd" class="input input--sm" type="datetime-local" lang="uk" />
+              <input
+                v-model="editEnd"
+                class="input input--sm"
+                type="datetime-local"
+                lang="uk"
+                @click="openPicker"
+              />
             </template>
             <template v-else>
               <div>{{ formatDate(slot.end_at) }}</div>
@@ -144,6 +170,14 @@ function toIso(value: string) {
 
 function isEditing(id: number) {
   return editingId.value === id
+}
+
+function openPicker(event: Event) {
+  const target = event.target as HTMLInputElement | null
+  if (!target) return
+  if (typeof target.showPicker === 'function') {
+    target.showPicker()
+  }
 }
 
 async function loadSlots() {
