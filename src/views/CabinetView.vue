@@ -37,6 +37,9 @@
       <RouterLink class="btn btn--ghost" to="/cabinet/profile">
         Редагувати профіль
       </RouterLink>
+      <RouterLink class="btn btn--ghost" to="/cabinet/group-events">
+        Групові події
+      </RouterLink>
       <button class="btn btn--ghost" type="button" @click="onLogout">Вийти</button>
     </div>
   </section>

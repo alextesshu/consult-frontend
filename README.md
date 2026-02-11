@@ -26,6 +26,12 @@ Run dev server:
 npm run dev
 ```
 
+## Routes
+
+* `/cabinet` — Therapist dashboard
+* `/cabinet/profile` — Profile editor + public preview
+* `/cabinet/group-events` — Group events (basic list/create)
+
 ## Auth
 
 Login accepts email or username:
