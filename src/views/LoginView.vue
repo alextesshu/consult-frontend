@@ -37,7 +37,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useAuthStore } from '../stores/auth'
@@ -62,5 +62,11 @@ async function onSubmit() {
     error.value = err instanceof Error ? err.message : 'Не вдалося увійти'
   }
 }
+
+onMounted(() => {
+  if (auth.accessToken) {
+    router.replace('/cabinet')
+  }
+})
 </script>
 <style scoped></style>

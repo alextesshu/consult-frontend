@@ -86,10 +86,21 @@ export type TherapistProfile = {
   last_slug_rotated_at: string | null
   display_name: string
   bio: string
+  bio_about: string
+  bio_work: string
+  bio_approach: string
+  bio_for_whom: string
+  bio_other: string
+  show_bio_about: boolean
+  show_bio_work: boolean
+  show_bio_approach: boolean
+  show_bio_for_whom: boolean
+  show_bio_other: boolean
   specializations: string | string[]
   languages: string | string[]
   location: string
   price: string
+  price_currency: string
   contact_email: string
   contact_phone: string
   messenger: string

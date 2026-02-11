@@ -3,13 +3,18 @@
     <header class="topbar">
       <div class="brand">Consult</div>
       <nav class="nav">
-        <RouterLink to="/login">Вхід</RouterLink>
-        <RouterLink to="/signup">Реєстрація</RouterLink>
+        <template v-if="!isAuthenticated">
+          <RouterLink to="/login">Вхід</RouterLink>
+          <RouterLink to="/signup">Реєстрація</RouterLink>
+        </template>
         <RouterLink to="/cabinet">Кабінет</RouterLink>
         <RouterLink to="/cabinet/profile">Профіль</RouterLink>
+        <button v-if="isAuthenticated" class="btn btn--ghost" type="button" @click="onLogout">
+          Вийти
+        </button>
       </nav>
     </header>
-    <section class="hero">
+    <section v-if="showHero" class="hero">
       <div class="hero__card">
         <div class="badge">Професійний кабінет</div>
         <h1 class="title">Професійні інструменти. Без чужих рук у вашій роботі.</h1>
@@ -39,5 +44,22 @@
   </div>
 </template>
 
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import { computed } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useAuthStore } from './stores/auth'
+
+const route = useRoute()
+const router = useRouter()
+const auth = useAuthStore()
+const showHero = computed(() => !route.path.startsWith('/cabinet'))
+const isAuthenticated = computed(() => Boolean(auth.accessToken))
+
+function onLogout() {
+  auth.logout()
+  if (route.path.startsWith('/cabinet')) {
+    router.push('/login')
+  }
+}
+</script>
 <style scoped></style>

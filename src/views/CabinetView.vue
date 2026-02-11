@@ -71,7 +71,7 @@ function onLogout() {
 }
 .panel__title {
   margin: 10px 0 4px;
-  font-family: var(--font-serif);
+  font-family: var(--font-display);
   font-size: 22px;
 }
 .cabinet-actions {

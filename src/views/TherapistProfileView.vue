@@ -17,40 +17,74 @@
       <div class="panel preview">
         <div class="badge">Публічний перегляд</div>
         <div class="preview-card">
-          <div class="preview-title">
-            {{ profile.display_name || 'Ваше публічне ім’я' }}
-          </div>
-          <div class="muted" v-if="profile.bio">{{ profile.bio }}</div>
+          <div class="preview-content">
+            <div class="preview-info">
+              <div class="preview-title">
+                {{ profile.display_name || 'Ваше публічне ім’я' }}
+              </div>
+              <div class="preview-sections" v-if="hasAnyBioSection">
+                <div v-if="profile.show_bio_about && profile.bio_about" class="preview-section">
+                  <div class="preview-label">Про себе</div>
+                  <div class="muted preview-bio">{{ profile.bio_about }}</div>
+                </div>
+                <div v-if="profile.show_bio_work && profile.bio_work" class="preview-section">
+                  <div class="preview-label">Як я працюю</div>
+                  <div class="muted preview-bio">{{ profile.bio_work }}</div>
+                </div>
+                <div v-if="profile.show_bio_approach && profile.bio_approach" class="preview-section">
+                  <div class="preview-label">Мій підхід</div>
+                  <div class="muted preview-bio">{{ profile.bio_approach }}</div>
+                </div>
+                <div v-if="profile.show_bio_for_whom && profile.bio_for_whom" class="preview-section">
+                  <div class="preview-label">Для кого це може бути</div>
+                  <div class="muted preview-bio">{{ profile.bio_for_whom }}</div>
+                </div>
+                <div v-if="profile.show_bio_other && profile.bio_other" class="preview-section">
+                  <div class="preview-label">Інше</div>
+                  <div class="muted preview-bio">{{ profile.bio_other }}</div>
+                </div>
+              </div>
+              <div class="meta">
+                <span v-if="profile.specializations">{{ profile.specializations }}</span>
+                <span v-if="languagesDisplay">{{ languagesDisplay }}</span>
+                <span v-if="profile.show_location && profile.location">{{ profile.location }}</span>
+              </div>
           <div class="meta">
-            <span v-if="profile.specializations">{{ profile.specializations }}</span>
-            <span v-if="languagesDisplay">{{ languagesDisplay }}</span>
-            <span v-if="profile.show_location && profile.location">{{ profile.location }}</span>
+            <span v-if="profile.show_price && profile.price">{{ priceDisplay }}</span>
           </div>
-          <div class="meta">
-            <span v-if="profile.show_price && profile.price">{{ profile.price }}</span>
-          </div>
-          <div class="contact">
-            <div v-if="profile.show_email && profile.contact_email">
-              Ел. пошта: {{ profile.contact_email }}
+              <div class="contact">
+                <div v-if="profile.show_email && profile.contact_email">
+                  Ел. пошта: {{ profile.contact_email }}
+                </div>
+                <div v-if="profile.show_phone && profile.contact_phone">
+                  Телефон: {{ profile.contact_phone }}
+                </div>
+                <div v-if="profile.show_telegram && profile.telegram">
+                  Telegram: {{ profile.telegram }}
+                </div>
+                <div v-if="profile.show_viber && profile.viber">
+                  Viber: {{ profile.viber }}
+                </div>
+              </div>
+              <div class="muted" style="font-size: 12px; margin-top: 8px;">
+                {{ profile.public_profile_enabled ? 'Публічний профіль увімкнено.' : 'Публічний профіль приховано.' }}
+              </div>
             </div>
-            <div v-if="profile.show_phone && profile.contact_phone">
-              Телефон: {{ profile.contact_phone }}
+            <div class="preview-media">
+              <img
+                v-if="profile.show_photo && profile.photo_url"
+                class="preview-photo"
+                :src="profile.photo_url"
+                alt="Фото профілю"
+              />
+              <video
+                v-if="profile.show_video && profile.video_url"
+                class="preview-video"
+                :src="profile.video_url"
+                controls
+                preload="metadata"
+              ></video>
             </div>
-            <div v-if="profile.show_telegram && profile.telegram">
-              Telegram: {{ profile.telegram }}
-            </div>
-            <div v-if="profile.show_viber && profile.viber">
-              Viber: {{ profile.viber }}
-            </div>
-            <div v-if="profile.show_whatsapp && profile.whatsapp">
-              WhatsApp: {{ profile.whatsapp }}
-            </div>
-            <div v-if="profile.show_video && profile.video_url">
-              Відео: {{ profile.video_url }}
-            </div>
-          </div>
-          <div class="muted" style="font-size: 12px; margin-top: 8px;">
-            {{ profile.public_profile_enabled ? 'Публічний профіль увімкнено.' : 'Публічний профіль приховано.' }}
           </div>
         </div>
       </div>
@@ -63,8 +97,54 @@
             <input v-model="profile.display_name" class="input" type="text" />
           </label>
           <label class="field">
-            Про себе
-            <textarea v-model="profile.bio" class="input" rows="4"></textarea>
+            <div class="field-head">
+              <span>Про себе</span>
+              <label class="inline-check">
+                <input v-model="profile.show_bio_about" type="checkbox" />
+                Показувати
+              </label>
+            </div>
+            <textarea v-model="profile.bio_about" class="input" rows="4"></textarea>
+          </label>
+          <label class="field">
+            <div class="field-head">
+              <span>Як я працюю</span>
+              <label class="inline-check">
+                <input v-model="profile.show_bio_work" type="checkbox" />
+                Показувати
+              </label>
+            </div>
+            <textarea v-model="profile.bio_work" class="input" rows="4"></textarea>
+          </label>
+          <label class="field">
+            <div class="field-head">
+              <span>Мій підхід</span>
+              <label class="inline-check">
+                <input v-model="profile.show_bio_approach" type="checkbox" />
+                Показувати
+              </label>
+            </div>
+            <textarea v-model="profile.bio_approach" class="input" rows="4"></textarea>
+          </label>
+          <label class="field">
+            <div class="field-head">
+              <span>Для кого це може бути</span>
+              <label class="inline-check">
+                <input v-model="profile.show_bio_for_whom" type="checkbox" />
+                Показувати
+              </label>
+            </div>
+            <textarea v-model="profile.bio_for_whom" class="input" rows="4"></textarea>
+          </label>
+          <label class="field">
+            <div class="field-head">
+              <span>Інше</span>
+              <label class="inline-check">
+                <input v-model="profile.show_bio_other" type="checkbox" />
+                Показувати
+              </label>
+            </div>
+            <textarea v-model="profile.bio_other" class="input" rows="4"></textarea>
           </label>
           <label class="field">
             Спеціалізації
@@ -100,7 +180,14 @@
           </label>
           <label class="field">
             Ціна за одну консультацію
-            <input v-model="profile.price" class="input" type="text" />
+            <div class="field-row">
+              <input v-model="profile.price" class="input" type="text" />
+              <select v-model="profile.price_currency" class="input input--select">
+                <option value="UAH">грн</option>
+                <option value="USD">$</option>
+                <option value="EUR">€</option>
+              </select>
+            </div>
           </label>
         </div>
       </div>
@@ -117,49 +204,69 @@
               Телефон для зв’язку
               <input v-model="profile.contact_phone" class="input" type="text" />
             </label>
-            <label class="field">
-              Telegram
-              <input v-model="profile.telegram" class="input" type="text" placeholder="@username або номер" />
-            </label>
-            <label class="field">
-              Viber
-              <input v-model="profile.viber" class="input" type="text" placeholder="номер телефону" />
-            </label>
-            <label class="field">
-              WhatsApp
-              <input v-model="profile.whatsapp" class="input" type="text" placeholder="номер телефону" />
-            </label>
-            <label class="field">
-              Фото
-              <div class="file-row">
-                <input class="input input--file" type="file" accept="image/*" @change="onPhotoSelected" />
-                <span class="muted" v-if="photoUploading">Завантаження...</span>
-                <a v-if="profile.photo_url" class="btn btn--ghost" :href="profile.photo_url" target="_blank" rel="noreferrer">
-                  Переглянути
-                </a>
-              </div>
-            </label>
-            <label class="field">
-              Відео
-              <div class="file-row">
-                <input class="input input--file" type="file" accept="video/*" @change="onVideoSelected" />
-                <span class="muted" v-if="videoUploading">Завантаження...</span>
-                <a v-if="profile.video_url" class="btn btn--ghost" :href="profile.video_url" target="_blank" rel="noreferrer">
-                  Переглянути
-                </a>
-              </div>
-            </label>
+            <div class="field-row">
+              <label class="field field--half">
+                Telegram
+                <input v-model="profile.telegram" class="input" type="text" placeholder="@username або номер" />
+              </label>
+              <label class="field field--half">
+                Viber
+                <input v-model="profile.viber" class="input" type="text" placeholder="номер телефону" />
+              </label>
+            </div>
           </div>
-          <div class="media-preview">
-            <div class="media-card">
+          <div class="media-preview media-preview--side">
+            <div
+              class="media-card"
+              role="button"
+              tabindex="0"
+              @click="triggerPhotoSelect"
+              @keydown.enter.prevent="triggerPhotoSelect"
+              @keydown.space.prevent="triggerPhotoSelect"
+            >
               <div class="media-title">Фото превʼю</div>
               <div class="media-frame">
-                <img v-if="profile.photo_url" :src="profile.photo_url" alt="Фото профілю" />
+                <img
+                  v-if="photoPreviewUrl || profile.photo_url"
+                  :src="photoPreviewUrl || profile.photo_url"
+                  alt="Фото профілю"
+                />
                 <div v-else class="media-empty">Фото ще не завантажено</div>
               </div>
-              <div class="muted" style="font-size: 12px;">
-                Фото зʼявиться тут одразу після завантаження.
+              <input
+                ref="photoInput"
+                class="input input--file is-hidden"
+                type="file"
+                accept="image/*"
+                @change="onPhotoSelected"
+              />
+            </div>
+            <div
+              class="media-card"
+              role="button"
+              tabindex="0"
+              @click="triggerVideoSelect"
+              @keydown.enter.prevent="triggerVideoSelect"
+              @keydown.space.prevent="triggerVideoSelect"
+            >
+              <div class="media-title">Відео превʼю</div>
+              <div class="media-frame">
+                <video
+                  v-if="videoPreviewUrl || profile.video_url"
+                  :src="videoPreviewUrl || profile.video_url"
+                  preload="metadata"
+                  controls
+                  @click.stop
+                ></video>
+                <div v-else class="media-empty">Відео ще не завантажено</div>
               </div>
+              <input
+                ref="videoInput"
+                class="input input--file is-hidden"
+                type="file"
+                accept="video/*"
+                @change="onVideoSelected"
+              />
             </div>
           </div>
         </div>
@@ -187,10 +294,6 @@
           <label class="check">
             <input v-model="profile.show_viber" type="checkbox" />
             Показувати Viber
-          </label>
-          <label class="check">
-            <input v-model="profile.show_whatsapp" type="checkbox" />
-            Показувати WhatsApp
           </label>
           <label class="check">
             <input v-model="profile.show_video" type="checkbox" />
@@ -276,6 +379,10 @@ const success = ref('')
 const copyStatus = ref('')
 const photoUploading = ref(false)
 const videoUploading = ref(false)
+const photoPreviewUrl = ref('')
+const videoPreviewUrl = ref('')
+const photoInput = ref<HTMLInputElement | null>(null)
+const videoInput = ref<HTMLInputElement | null>(null)
 const languageOptions = [
   'Українська',
   'Російська',
@@ -294,17 +401,116 @@ const languageInput = ref('')
 const languageList = ref<string[]>([])
 const disallowedLanguages = new Set(['російська', 'русский', 'russian'])
 
+function setPreviewUrl(target: { value: string }, file?: File | null) {
+  if (target.value) {
+    URL.revokeObjectURL(target.value)
+  }
+  target.value = file ? URL.createObjectURL(file) : ''
+}
+
+function triggerPhotoSelect() {
+  photoInput.value?.click()
+}
+
+function triggerVideoSelect() {
+  videoInput.value?.click()
+}
+
+function getApiErrorMessage(err: unknown, fallback: string) {
+  if (err && typeof err === 'object') {
+    const status = (err as { response?: { status?: number } }).response?.status
+    if (status === 401) {
+      return 'Сесія завершилась. Увійдіть знову.'
+    }
+    const data = (err as { response?: { data?: unknown } }).response?.data
+    if (data && typeof data === 'object' && 'detail' in data) {
+      const detail = (data as { detail?: string }).detail
+      if (detail) return detail
+    }
+    if (typeof data === 'string' && data.trim()) {
+      const text = data.trim()
+      if (text.startsWith('<!DOCTYPE') || text.startsWith('<html')) {
+        return 'Помилка сервера. Спробуйте пізніше.'
+      }
+      return text
+    }
+    if (data && typeof data === 'object') {
+      const [field, messages] = Object.entries(data as Record<string, unknown>)[0] || []
+      if (field && Array.isArray(messages) && messages[0]) {
+        return `${field}: ${messages[0]}`
+      }
+      if (field && typeof messages === 'string') {
+        return `${field}: ${messages}`
+      }
+    }
+    const message = (err as { message?: string }).message
+    if (message) return message
+  }
+  return fallback
+}
+
+function normalizeDecimal(value: string | number | null | undefined): string | null {
+  if (value === null || value === undefined) return null
+  const text = String(value).trim()
+  return text ? text : null
+}
+
+function buildProfilePayload() {
+  return {
+    public_profile_enabled: profile.public_profile_enabled,
+    display_name: profile.display_name,
+    bio_about: profile.bio_about,
+    bio_work: profile.bio_work,
+    bio_approach: profile.bio_approach,
+    bio_for_whom: profile.bio_for_whom,
+    bio_other: profile.bio_other,
+    show_bio_about: profile.show_bio_about,
+    show_bio_work: profile.show_bio_work,
+    show_bio_approach: profile.show_bio_approach,
+    show_bio_for_whom: profile.show_bio_for_whom,
+    show_bio_other: profile.show_bio_other,
+    specializations: toList(profile.specializations),
+    languages: languageList.value,
+    location: profile.location,
+    price: normalizeDecimal(profile.price),
+    price_currency: profile.price_currency || 'UAH',
+    contact_email: profile.contact_email,
+    contact_phone: profile.contact_phone,
+    telegram: profile.telegram,
+    viber: profile.viber,
+    show_email: profile.show_email,
+    show_phone: profile.show_phone,
+    show_messenger: profile.show_messenger,
+    show_telegram: profile.show_telegram,
+    show_viber: profile.show_viber,
+    show_video: profile.show_video,
+    show_price: profile.show_price,
+    show_location: profile.show_location,
+    show_photo: profile.show_photo,
+  }
+}
+
 const profile = reactive<TherapistProfile>({
   id: 0,
   public_profile_enabled: false,
   public_slug: '',
   last_slug_rotated_at: null,
   display_name: '',
-  bio: '',
+  bio_about: '',
+  bio_work: '',
+  bio_approach: '',
+  bio_for_whom: '',
+  bio_other: '',
+  show_bio_about: true,
+  show_bio_work: true,
+  show_bio_approach: true,
+  show_bio_for_whom: true,
+  show_bio_other: true,
   specializations: '',
   languages: '',
   location: '',
   price: '',
+  price_currency: 'UAH',
   contact_email: '',
   contact_phone: '',
   messenger: '',
@@ -331,17 +537,35 @@ const publicUrl = computed(() => {
 })
 
 const languagesDisplay = computed(() => languageList.value.join(', '))
+const priceDisplay = computed(() => {
+  if (!profile.price) return ''
+  const currency = profile.price_currency || 'UAH'
+  if (currency === 'UAH') return `${profile.price} грн`
+  if (currency === 'USD') return `$${profile.price}`
+  if (currency === 'EUR') return `€${profile.price}`
+  return `${profile.price} ${currency}`
+})
+const hasAnyBioSection = computed(
+  () =>
+    (profile.show_bio_about && Boolean(profile.bio_about)) ||
+    (profile.show_bio_work && Boolean(profile.bio_work)) ||
+    (profile.show_bio_approach && Boolean(profile.bio_approach)) ||
+    (profile.show_bio_for_whom && Boolean(profile.bio_for_whom)) ||
+    (profile.show_bio_other && Boolean(profile.bio_other))
+)
 
 async function loadProfile() {
   loading.value = true
   error.value = ''
   try {
-      const data = await fetchTherapistProfile()
-      Object.assign(profile, normalizeProfile(data))
-      languageList.value = sanitizeLanguages(toList(profile.languages))
-      languageInput.value = ''
-    } catch (err) {
-      error.value = err instanceof Error ? err.message : 'Не вдалося завантажити профіль'
+    const data = await fetchTherapistProfile()
+    Object.assign(profile, normalizeProfile(data))
+    languageList.value = sanitizeLanguages(toList(profile.languages))
+    languageInput.value = ''
+    setPreviewUrl(photoPreviewUrl, null)
+    setPreviewUrl(videoPreviewUrl, null)
+  } catch (err) {
+    error.value = getApiErrorMessage(err, 'Не вдалося завантажити профіль')
   } finally {
     loading.value = false
   }
@@ -352,17 +576,13 @@ async function onSave() {
   success.value = ''
   error.value = ''
   try {
-    const data = await updateTherapistProfile({
-      ...profile,
-      specializations: toList(profile.specializations),
-      languages: languageList.value,
-      })
-      Object.assign(profile, normalizeProfile(data))
-      languageList.value = sanitizeLanguages(toList(profile.languages))
-      languageInput.value = ''
-      success.value = 'Збережено.'
+    const data = await updateTherapistProfile(buildProfilePayload())
+    Object.assign(profile, normalizeProfile(data))
+    languageList.value = sanitizeLanguages(toList(profile.languages))
+    languageInput.value = ''
+    success.value = 'Збережено.'
   } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Не вдалося зберегти'
+    error.value = getApiErrorMessage(err, 'Не вдалося зберегти')
   } finally {
     saving.value = false
   }
@@ -376,7 +596,7 @@ async function onRotateSlug() {
     Object.assign(profile, normalizeProfile(data))
     success.value = 'Публічне посилання оновлено.'
   } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Не вдалося оновити посилання'
+    error.value = getApiErrorMessage(err, 'Не вдалося оновити посилання')
   }
 }
 
@@ -398,14 +618,16 @@ async function onPhotoSelected(event: Event) {
   const input = event.target as HTMLInputElement
   const file = input.files?.[0]
   if (!file) return
+  setPreviewUrl(photoPreviewUrl, file)
   photoUploading.value = true
   error.value = ''
   try {
     const data = await uploadProfilePhoto(file)
     Object.assign(profile, normalizeProfile(data))
+    setPreviewUrl(photoPreviewUrl, null)
     success.value = 'Фото завантажено.'
   } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Не вдалося завантажити фото'
+    error.value = getApiErrorMessage(err, 'Не вдалося завантажити фото')
   } finally {
     photoUploading.value = false
     input.value = ''
@@ -416,14 +638,16 @@ async function onVideoSelected(event: Event) {
   const input = event.target as HTMLInputElement
   const file = input.files?.[0]
   if (!file) return
+  setPreviewUrl(videoPreviewUrl, file)
   videoUploading.value = true
   error.value = ''
   try {
     const data = await uploadProfileVideo(file)
     Object.assign(profile, normalizeProfile(data))
+    setPreviewUrl(videoPreviewUrl, null)
     success.value = 'Відео завантажено.'
   } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Не вдалося завантажити відео'
+    error.value = getApiErrorMessage(err, 'Не вдалося завантажити відео')
   } finally {
     videoUploading.value = false
     input.value = ''
@@ -434,11 +658,21 @@ function normalizeProfile(data: TherapistProfile): TherapistProfile {
   return {
     ...data,
     display_name: data.display_name || '',
-    bio: data.bio || '',
+    bio_about: data.bio_about || '',
+    bio_work: data.bio_work || '',
+    bio_approach: data.bio_approach || '',
+    bio_for_whom: data.bio_for_whom || '',
+    bio_other: data.bio_other || '',
+    show_bio_about: data.show_bio_about ?? true,
+    show_bio_work: data.show_bio_work ?? true,
+    show_bio_approach: data.show_bio_approach ?? true,
+    show_bio_for_whom: data.show_bio_for_whom ?? true,
+    show_bio_other: data.show_bio_other ?? true,
     specializations: toStringValue(data.specializations),
     languages: toStringValue(data.languages),
     location: data.location || '',
     price: data.price || '',
+    price_currency: data.price_currency || 'UAH',
     contact_email: data.contact_email || '',
     contact_phone: data.contact_phone || '',
     messenger: data.messenger || '',
@@ -534,9 +768,57 @@ onMounted(loadProfile)
   border: 1px solid var(--line);
 }
 
+.preview-content {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 340px);
+  gap: 16px;
+  align-items: start;
+}
+
+.preview-info {
+  display: grid;
+  gap: 10px;
+}
+
 .preview-title {
-  font-family: var(--font-serif);
+  font-family: var(--font-display);
   font-size: 22px;
+}
+
+.preview-bio {
+  white-space: pre-line;
+}
+
+.field-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.inline-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.preview-sections {
+  display: grid;
+  gap: 12px;
+}
+
+.preview-section {
+  display: grid;
+  gap: 6px;
+}
+
+.preview-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
 }
 
 .meta {
@@ -551,6 +833,34 @@ onMounted(loadProfile)
   display: grid;
   gap: 6px;
   font-size: 13px;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.preview-media {
+  display: grid;
+  gap: 10px;
+}
+
+.preview-photo {
+  width: 100%;
+  max-width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: #0f2b3a;
+  object-fit: cover;
+  display: block;
+}
+
+.preview-video {
+  width: 100%;
+  max-width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: #0f2b3a;
+  display: block;
 }
 
 .profile-header {
@@ -597,15 +907,24 @@ onMounted(loadProfile)
 
 .contacts-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 260px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 520px);
   gap: 16px;
   align-items: start;
 }
 
 .media-preview {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  display: grid;
+  gap: 16px;
+  width: 100%;
+}
+
+.media-preview--side {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: stretch;
+}
+
+.media-preview--side .media-card {
+  width: 100%;
 }
 
 .media-card {
@@ -615,6 +934,8 @@ onMounted(loadProfile)
   background: #fdfaf6;
   display: grid;
   gap: 10px;
+  grid-template-rows: auto 1fr auto;
+  min-height: 360px;
 }
 
 .media-title {
@@ -625,6 +946,7 @@ onMounted(loadProfile)
 .media-frame {
   width: 100%;
   aspect-ratio: 3 / 4;
+  height: 260px;
   border-radius: 14px;
   border: 1px solid var(--line);
   background: #fff;
@@ -638,6 +960,14 @@ onMounted(loadProfile)
   height: 100%;
   object-fit: cover;
   display: block;
+}
+
+.media-frame video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  border-radius: 12px;
 }
 
 .media-empty {
@@ -654,8 +984,26 @@ onMounted(loadProfile)
   flex-wrap: wrap;
 }
 
+.field-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.field--half {
+  margin: 0;
+}
+
 .input--file {
   padding: 10px 12px;
+}
+
+.input--select {
+  min-width: 120px;
+}
+
+.is-hidden {
+  display: none;
 }
 
 .chip-field {
@@ -693,6 +1041,18 @@ onMounted(loadProfile)
 
 @media (max-width: 900px) {
   .contacts-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .media-preview--side {
+    grid-template-columns: 1fr;
+  }
+
+  .field-row {
+    grid-template-columns: 1fr;
+  }
+
+  .preview-content {
     grid-template-columns: 1fr;
   }
 }
