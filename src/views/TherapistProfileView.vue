@@ -20,27 +20,27 @@
           <div class="preview-content">
             <div class="preview-info">
               <div class="preview-title">
-                {{ profile.display_name || '???? ???????? ????' }}
+                {{ profile.display_name || "Ваше публічне ім'я" }}
               </div>
               <div class="preview-sections" v-if="hasAnyBioSection">
                 <div v-if="profile.show_bio_about && profile.bio_about" class="preview-section">
-                  <div class="preview-label">??? ????</div>
+                  <div class="preview-label">Про себе</div>
                   <div class="muted preview-bio">{{ profile.bio_about }}</div>
                 </div>
                 <div v-if="profile.show_bio_work && profile.bio_work" class="preview-section">
-                  <div class="preview-label">?? ? ??????</div>
+                  <div class="preview-label">Як я працюю</div>
                   <div class="muted preview-bio">{{ profile.bio_work }}</div>
                 </div>
                 <div v-if="profile.show_bio_approach && profile.bio_approach" class="preview-section">
-                  <div class="preview-label">??? ??????</div>
+                  <div class="preview-label">Мій підхід</div>
                   <div class="muted preview-bio">{{ profile.bio_approach }}</div>
                 </div>
                 <div v-if="profile.show_bio_for_whom && profile.bio_for_whom" class="preview-section">
-                  <div class="preview-label">??? ???? ?? ???? ????</div>
+                  <div class="preview-label">Для кого це може бути</div>
                   <div class="muted preview-bio">{{ profile.bio_for_whom }}</div>
                 </div>
                 <div v-if="profile.show_bio_other && profile.bio_other" class="preview-section">
-                  <div class="preview-label">????</div>
+                  <div class="preview-label">Інше</div>
                   <div class="muted preview-bio">{{ profile.bio_other }}</div>
                 </div>
               </div>
@@ -54,10 +54,10 @@
               </div>
               <div class="contact">
                 <div v-if="profile.show_email && profile.contact_email">
-                  ??. ?????: {{ profile.contact_email }}
+                  Ел. пошта: {{ profile.contact_email }}
                 </div>
                 <div v-if="profile.show_phone && profile.contact_phone">
-                  ???????: {{ profile.contact_phone }}
+                  Телефон: {{ profile.contact_phone }}
                 </div>
                 <div v-if="profile.show_telegram && profile.telegram">
                   Telegram: {{ profile.telegram }}
@@ -67,7 +67,7 @@
                 </div>
               </div>
               <div class="muted" style="font-size: 12px; margin-top: 8px;">
-                {{ profile.public_profile_enabled ? '????????? ??????? ?????????.' : '????????? ??????? ?????????.' }}
+                {{ profile.public_profile_enabled ? 'Публічний профіль увімкнено.' : 'Публічний профіль вимкнено.' }}
               </div>
             </div>
 <div class="preview-media">

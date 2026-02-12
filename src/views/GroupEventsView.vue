@@ -47,7 +47,7 @@
             @click="deleteDraft(event)"
             :disabled="loading"
           >
-            ????????
+            Видалити
           </button>
         </div>
       </div>
@@ -79,7 +79,14 @@ function formatDate(value: string | null) {
   if (!value) return ''
   const dt = new Date(value)
   if (Number.isNaN(dt.getTime())) return value
-  return dt.toLocaleString()
+  return dt.toLocaleString('uk-UA', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  })
 }
 
 async function loadEvents() {
@@ -109,7 +116,6 @@ async function createDraft(mode: GroupEvent['mode']) {
   }
 }
 
-
 async function deleteDraft(event: GroupEvent) {
   loading.value = true
   error.value = ''
@@ -118,7 +124,7 @@ async function deleteDraft(event: GroupEvent) {
     events.value = events.value.filter((item) => item.id !== event.id)
   } catch (err: any) {
     const data = err?.response?.data
-    error.value = data?.detail || data?.code || '?? ??????? ???????? ?????'
+    error.value = data?.detail || data?.code || 'Не вдалося видалити подію'
   } finally {
     loading.value = false
   }
@@ -172,5 +178,4 @@ onMounted(loadEvents)
   padding: 6px 10px;
   font-size: 13px;
 }
-
 </style>
