@@ -121,6 +121,27 @@ export type TherapistProfile = {
   show_photo: boolean
 }
 
+export type PublicTherapistProfile = {
+  therapist_id: number
+  display_name: string
+  bio?: string
+  bio_about?: string
+  bio_work?: string
+  bio_approach?: string
+  bio_for_whom?: string
+  bio_other?: string
+  specializations?: string | string[]
+  languages?: string | string[]
+  location?: string
+  price?: string
+  price_currency?: string
+  contact_email?: string
+  contact_phone?: string
+  messenger?: string
+  photo_url?: string
+  video_url?: string
+}
+
 export async function uploadProfilePhoto(file: File): Promise<TherapistProfile> {
   const formData = new FormData()
   formData.append('file', file)
@@ -153,5 +174,12 @@ export async function updateTherapistProfile(
 
 export async function rotateTherapistProfileSlug(): Promise<TherapistProfile> {
   const resp = await http.post<TherapistProfile>('/cabinet/profile/rotate-slug/')
+  return resp.data
+}
+
+export async function fetchPublicTherapistProfile(
+  slug: string
+): Promise<PublicTherapistProfile> {
+  const resp = await http.get<PublicTherapistProfile>(`/public/therapists/${slug}/`)
   return resp.data
 }

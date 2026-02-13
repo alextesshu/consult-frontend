@@ -7,9 +7,11 @@ import PublicProfileView from '../views/PublicProfileView.vue'
 import TherapistProfileView from '../views/TherapistProfileView.vue'
 import SlotsView from '../views/SlotsView.vue'
 import { useAuthStore } from '../stores/auth'
+import { fetchTherapistProfile } from '../lib/api'
 
 const routes = [
   { path: '/', redirect: '/login' },
+  { path: '/public', name: 'public-redirect', component: PublicProfileView },
   { path: '/login', name: 'login', component: LoginView },
   { path: '/signup', name: 'signup', component: SignupView },
   { path: '/cabinet', name: 'cabinet', component: CabinetView, meta: { requiresAuth: true } },
@@ -52,6 +54,30 @@ router.beforeEach(async (to) => {
         return { name: 'login' }
       }
     }
+  }
+
+  if (to.name === 'public-redirect') {
+    if (!auth.accessToken) {
+      return { name: 'login' }
+    }
+    if (!auth.me) {
+      try {
+        await auth.loadMe()
+      } catch {
+        return { name: 'login' }
+      }
+    }
+    let slug = ''
+    try {
+      const profile = await fetchTherapistProfile()
+      slug = profile.public_slug || ''
+    } catch {
+      slug = ''
+    }
+    if (slug) {
+      return { name: 'public-profile', params: { slug } }
+    }
+    return { name: 'cabinet-profile' }
   }
 })
 
