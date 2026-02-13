@@ -35,8 +35,22 @@
         ></button>
 
         <div class="scene-cta">
-          <RouterLink class="btn btn--ghost btn--ghost-cta" to="/login">Увійти як терапевт</RouterLink>
-          <RouterLink class="btn btn--ghost btn--ghost-cta" to="/login">Увійти як клієнт</RouterLink>
+          <RouterLink
+            class="btn btn--ghost btn--ghost-cta"
+            to="/login"
+            @mouseenter="hoverTherapist(true)"
+            @mouseleave="hoverTherapist(false)"
+          >
+            Увійти як терапевт
+          </RouterLink>
+          <RouterLink
+            class="btn btn--ghost btn--ghost-cta"
+            to="/login"
+            @mouseenter="hoverClient(true)"
+            @mouseleave="hoverClient(false)"
+          >
+            Увійти як клієнт
+          </RouterLink>
         </div>
 
         <div v-if="hoveringTherapist" class="scene-label scene-label--therapist">Терапевт</div>
@@ -211,7 +225,7 @@ function onClientClick() {
 
 .layer--lit {
   opacity: 0;
-  transition: transform 200ms ease, opacity 0ms ease;
+  transition: transform 200ms ease, opacity 280ms ease;
 }
 
 .scene-frame.is-lit .layer--lit {
@@ -220,7 +234,7 @@ function onClientClick() {
 
 .layer--overlay-base {
   opacity: 1;
-  transition: opacity 0ms ease;
+  transition: opacity 280ms ease;
 }
 
 .scene-frame.is-lit .layer--overlay-base {

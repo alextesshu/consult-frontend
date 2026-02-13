@@ -1,12 +1,11 @@
 ﻿<template>
   <div class="shell">
     <header class="topbar">
-      <div class="brand">
+      <RouterLink class="brand" to="/">
         <div class="brand__mark">Pro Consult</div>
         <div class="brand__tagline">Therapist Workspace</div>
-      </div>
+      </RouterLink>
       <nav class="nav">
-        <RouterLink to="/">Головна</RouterLink>
         <RouterLink v-if="isTherapist" to="/public">Публічний профіль</RouterLink>
         <RouterLink v-if="isAuthenticated" :to="cabinetRoute">Кабінет</RouterLink>
         <RouterLink v-if="!isAuthenticated" to="/login">Вхід</RouterLink>
@@ -80,6 +79,7 @@ function onLogout() {
 .brand {
   display: grid;
   gap: 2px;
+  color: inherit;
 }
 
 .brand__mark {
