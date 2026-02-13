@@ -1,4 +1,4 @@
-# Consult Frontend
+# Pro Consult Frontend
 
 Vue 3 + Vite + TypeScript + Pinia + Vue Router.
 

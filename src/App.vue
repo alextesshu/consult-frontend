@@ -2,7 +2,7 @@
   <div class="shell">
     <header class="topbar">
       <div class="brand">
-        <div class="brand__mark">Consult</div>
+        <div class="brand__mark">Pro Consult</div>
         <div class="brand__tagline">Therapist Workspace</div>
       </div>
       <nav class="nav">
@@ -22,7 +22,7 @@
     </main>
 
     <footer class="footer">
-      <div>Consult · Professional therapist workspace</div>
+      <div>Pro Consult · Professional therapist workspace</div>
       <div class="footer__meta">Без комісій. Без посередників. З повагою до практики.</div>
     </footer>
   </div>
