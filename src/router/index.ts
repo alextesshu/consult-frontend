@@ -8,6 +8,7 @@ import TherapistProfileView from '../views/TherapistProfileView.vue'
 import SlotsView from '../views/SlotsView.vue'
 import HomeView from '../views/HomeView.vue'
 import ClientDashboardView from '../views/ClientDashboardView.vue'
+import ClientTherapistsView from '../views/ClientTherapistsView.vue'
 import { useAuthStore } from '../stores/auth'
 import { fetchTherapistProfile } from '../lib/api'
 
@@ -44,6 +45,12 @@ const routes = [
     path: '/client',
     name: 'client-dashboard',
     component: ClientDashboardView,
+    meta: { requiresAuth: true, requiresRole: 'CLIENT' },
+  },
+  {
+    path: '/client/therapists',
+    name: 'client-therapists',
+    component: ClientTherapistsView,
     meta: { requiresAuth: true, requiresRole: 'CLIENT' },
   },
   { path: '/t/:slug', name: 'public-profile', component: PublicProfileView },

@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <section class="public">
     <header class="public__hero">
       <div>
@@ -61,12 +61,32 @@
             <h2 class="panel__title">Найближчі дати</h2>
           </div>
         </div>
+
+        <div v-if="!isAuthenticated" class="hint">
+          Щоб забронювати сесію, увійдіть у свій акаунт клієнта.
+          <RouterLink class="btn btn--ghost" to="/login">Увійти</RouterLink>
+        </div>
+        <div v-else-if="!isClient" class="hint">Бронювання доступне лише для клієнтів.</div>
+
+        <div v-if="bookingSuccess" class="success">{{ bookingSuccess }}</div>
+        <div v-if="bookingError" class="form-error">{{ bookingError }}</div>
+
         <div v-if="slotsLoading" class="muted">Завантаження слотів…</div>
         <div v-else-if="slots.length === 0" class="muted">Наразі вільних слотів немає.</div>
         <div v-else class="slot-list">
           <div v-for="slot in slots" :key="slot.id" class="slot-card">
-            <div class="slot-time">{{ formatDate(slot.start_at) }}</div>
-            <div class="muted">{{ formatDate(slot.end_at) }}</div>
+            <div>
+              <div class="slot-time">{{ formatDate(slot.start_at) }}</div>
+              <div class="muted">{{ formatDate(slot.end_at) }}</div>
+            </div>
+            <button
+              class="btn btn--ghost"
+              type="button"
+              :disabled="!canBook || bookingSlotId === slot.id"
+              @click="bookSlot(slot.id)"
+            >
+              {{ bookingSlotId === slot.id ? 'Бронювання…' : 'Записатися' }}
+            </button>
           </div>
         </div>
       </div>
@@ -79,6 +99,7 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { http } from '../lib/http'
 import { fetchPublicTherapistProfile, type PublicTherapistProfile } from '../lib/api'
+import { useAuthStore } from '../stores/auth'
 
 type PublicSlot = {
   id: number
@@ -87,13 +108,21 @@ type PublicSlot = {
 }
 
 const route = useRoute()
+const auth = useAuthStore()
 const profile = ref<PublicTherapistProfile | null>(null)
 const slots = ref<PublicSlot[]>([])
 const loading = ref(false)
 const slotsLoading = ref(false)
 const error = ref('')
+const bookingError = ref('')
+const bookingSuccess = ref('')
+const bookingSlotId = ref<number | null>(null)
 
 const slug = computed(() => String(route.params.slug || '').trim())
+const roles = computed(() => auth.me?.user.roles ?? auth.user?.roles ?? [])
+const isAuthenticated = computed(() => Boolean(auth.accessToken))
+const isClient = computed(() => roles.value.includes('CLIENT'))
+const canBook = computed(() => isAuthenticated.value && isClient.value)
 
 const languagesDisplay = computed(() => {
   const value = profile.value?.languages
@@ -171,6 +200,25 @@ async function loadSlots() {
     slots.value = []
   } finally {
     slotsLoading.value = false
+  }
+}
+
+async function bookSlot(slotId: number) {
+  bookingError.value = ''
+  bookingSuccess.value = ''
+  if (!canBook.value) {
+    bookingError.value = 'Бронювання доступне лише для клієнтів.'
+    return
+  }
+  bookingSlotId.value = slotId
+  try {
+    await http.post('/booking/sessions/', { slot_id: slotId })
+    bookingSuccess.value = 'Сесію заброньовано. Перевірте ваш кабінет.'
+    slots.value = slots.value.filter((slot) => slot.id !== slotId)
+  } catch (err: any) {
+    bookingError.value = err?.response?.data?.detail || 'Не вдалося забронювати слот.'
+  } finally {
+    bookingSlotId.value = null
   }
 }
 
@@ -337,6 +385,10 @@ onMounted(async () => {
   border-radius: 12px;
   padding: 10px 12px;
   background: rgba(7, 47, 71, 0.04);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 .slot-time {
@@ -349,6 +401,24 @@ onMounted(async () => {
   border: 1px solid #f5c2c0;
   border-radius: 10px;
   padding: 8px 10px;
+}
+
+.success {
+  color: #0f5132;
+  background: #d1e7dd;
+  border: 1px solid #badbcc;
+  border-radius: 10px;
+  padding: 8px 10px;
+}
+
+.hint {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px dashed rgba(47, 63, 73, 0.2);
+  color: var(--muted);
+  background: rgba(7, 47, 71, 0.04);
 }
 
 @media (max-width: 960px) {

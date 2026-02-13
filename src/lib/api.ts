@@ -122,6 +122,7 @@ export type TherapistProfile = {
 }
 
 export type PublicTherapistProfile = {
+  public_slug?: string
   therapist_id: number
   display_name: string
   bio?: string
@@ -181,5 +182,12 @@ export async function fetchPublicTherapistProfile(
   slug: string
 ): Promise<PublicTherapistProfile> {
   const resp = await http.get<PublicTherapistProfile>(`/public/therapists/${slug}/`)
+  return resp.data
+}
+
+export async function fetchPublicTherapists(limit = 20): Promise<PublicTherapistProfile[]> {
+  const resp = await http.get<PublicTherapistProfile[]>('/public/therapists/', {
+    params: { limit },
+  })
   return resp.data
 }

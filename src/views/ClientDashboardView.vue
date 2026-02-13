@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <section class="client">
     <header class="client__hero card">
       <div>
@@ -8,8 +8,42 @@
           Тут зібрані всі заплановані та минулі сесії. Для нового запису відкрийте профіль терапевта.
         </p>
       </div>
-      <RouterLink class="btn" to="/">Обрати терапевта</RouterLink>
+      <RouterLink class="btn" to="/client/therapists">Обрати терапевта</RouterLink>
     </header>
+
+    <div class="card">
+      <div class="card__title">Обраний терапевт</div>
+      <div v-if="selectedTherapist" class="selected-therapist">
+        <img
+          v-if="selectedTherapist.photo_url"
+          :src="selectedTherapist.photo_url"
+          :alt="selectedTherapist.display_name"
+          class="therapist-photo"
+        />
+        <div v-else class="therapist-photo therapist-photo--empty">Фото</div>
+        <div class="therapist-info">
+          <div class="therapist-name">{{ selectedTherapist.display_name }}</div>
+          <div class="muted">
+            <span v-if="selectedTherapist.location">{{ selectedTherapist.location }}</span>
+            <span v-if="languageLabel(selectedTherapist.languages)">
+              {{ languageLabel(selectedTherapist.languages) }}
+            </span>
+          </div>
+          <div v-if="priceLabel(selectedTherapist)" class="therapist-price">
+            {{ priceLabel(selectedTherapist) }}
+          </div>
+          <div class="selected-actions">
+            <RouterLink class="btn btn--ghost" :to="`/t/${selectedTherapist.public_slug}`">
+              Відкрити профіль
+            </RouterLink>
+            <RouterLink class="btn" to="/client/therapists">Змінити терапевта</RouterLink>
+          </div>
+        </div>
+      </div>
+      <div v-else class="muted">
+        Ви ще не обрали терапевта. Натисніть “Обрати терапевта”, щоб переглянути список.
+      </div>
+    </div>
 
     <div class="client__grid">
       <div class="card">
@@ -46,7 +80,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { http } from '../lib/http'
 
 type Slot = {
@@ -60,9 +94,20 @@ type Session = {
   slot: Slot | null
 }
 
+type SelectedTherapist = {
+  public_slug: string
+  display_name: string
+  location?: string
+  languages?: string | string[]
+  price?: string
+  price_currency?: string
+  photo_url?: string
+}
+
 const upcoming = ref<Session[]>([])
 const past = ref<Session[]>([])
 const loading = ref(false)
+const selectedTherapist = ref<SelectedTherapist | null>(null)
 
 const statusMap: Record<string, string> = {
   SCHEDULED: 'Заплановано',
@@ -88,6 +133,19 @@ const formatDateTime = (value?: string | null) => {
   })
 }
 
+const languageLabel = (value?: string | string[]) => {
+  if (!value) return ''
+  if (Array.isArray(value)) return value.join(', ')
+  return value
+}
+
+const priceLabel = (therapist: SelectedTherapist) => {
+  if (!therapist.price) return ''
+  if (therapist.price_currency === 'USD') return `$${therapist.price}`
+  if (therapist.price_currency === 'EUR') return `€${therapist.price}`
+  return `${therapist.price} грн`
+}
+
 async function loadSessions() {
   loading.value = true
   try {
@@ -102,7 +160,20 @@ async function loadSessions() {
   }
 }
 
-onMounted(loadSessions)
+function loadSelectedTherapist() {
+  const raw = localStorage.getItem('selectedTherapist')
+  if (!raw) return
+  try {
+    selectedTherapist.value = JSON.parse(raw)
+  } catch {
+    selectedTherapist.value = null
+  }
+}
+
+onMounted(() => {
+  loadSessions()
+  loadSelectedTherapist()
+})
 </script>
 
 <style scoped>
@@ -129,6 +200,48 @@ onMounted(loadSessions)
   letter-spacing: 0.16em;
   font-size: 11px;
   color: var(--muted);
+}
+
+.selected-therapist {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: 140px 1fr;
+  align-items: center;
+}
+
+.therapist-photo {
+  width: 100%;
+  height: 140px;
+  border-radius: 14px;
+  object-fit: cover;
+  border: 1px solid var(--line);
+}
+
+.therapist-photo--empty {
+  display: grid;
+  place-items: center;
+  background: rgba(7, 47, 71, 0.06);
+  color: var(--muted);
+}
+
+.therapist-info {
+  display: grid;
+  gap: 6px;
+}
+
+.therapist-name {
+  font-weight: 600;
+}
+
+.therapist-price {
+  font-weight: 600;
+}
+
+.selected-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 6px;
 }
 
 .session-list {
@@ -168,6 +281,10 @@ onMounted(loadSessions)
   .client__hero {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .selected-therapist {
+    grid-template-columns: 1fr;
   }
 }
 </style>
