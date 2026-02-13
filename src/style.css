@@ -1,20 +1,20 @@
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
 
 :root {
-  --deep: #072f47;
-  --primary: #074f94;
-  --accent: #0871c9;
-  --mist: #88bbdc;
-  --stone: #72949b;
+  --deep: #2f3f49;
+  --primary: #6e8f99;
+  --accent: #9fc0c6;
+  --mist: #e7eef0;
+  --stone: #8a959a;
 
-  --bg: var(--deep);
+  --bg: #f5f7f8;
   --ink: var(--deep);
-  --paper: var(--mist);
+  --paper: #fbfcfb;
   --muted: var(--stone);
-  --card: #f7fbfe;
-  --accent-2: var(--primary);
-  --line: rgba(7, 47, 71, 0.18);
-  --shadow: 0 24px 60px rgba(7, 47, 71, 0.35);
+  --card: #ffffff;
+  --accent-2: #b8cfd4;
+  --line: rgba(47, 63, 73, 0.12);
+  --shadow: 0 20px 40px rgba(47, 63, 73, 0.12);
   --radius: 18px;
   --font-sans: "IBM Plex Sans", system-ui, sans-serif;
   --font-display: "Montserrat", "IBM Plex Sans", system-ui, sans-serif;
@@ -31,11 +31,11 @@ html, body, #app {
 body {
   margin: 0;
   background:
-    radial-gradient(800px 320px at 20% -10%, rgba(8, 113, 201, 0.18), transparent 60%),
-    radial-gradient(700px 360px at 80% 0%, rgba(7, 79, 148, 0.28), transparent 60%),
-    radial-gradient(500px 260px at 50% 100%, rgba(7, 47, 71, 0.95), transparent 60%),
+    radial-gradient(760px 320px at 15% -10%, rgba(159, 192, 198, 0.35), transparent 60%),
+    radial-gradient(700px 360px at 85% 0%, rgba(184, 207, 212, 0.35), transparent 60%),
+    radial-gradient(600px 320px at 50% 100%, rgba(231, 238, 240, 0.9), transparent 60%),
     var(--bg);
-  color: var(--paper);
+  color: var(--ink);
   font-family: var(--font-sans);
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -65,7 +65,7 @@ a {
   font-weight: 700;
   font-size: 22px;
   letter-spacing: 0.2px;
-  color: var(--paper);
+  color: var(--ink);
 }
 
 .nav {
@@ -78,11 +78,11 @@ a {
   padding: 8px 12px;
   border-radius: 999px;
   border: 1px solid transparent;
-  color: var(--paper);
+  color: var(--ink);
 }
 .nav a.router-link-active {
-  border-color: rgba(8, 113, 201, 0.4);
-  background: rgba(8, 113, 201, 0.16);
+  border-color: rgba(110, 143, 153, 0.4);
+  background: rgba(110, 143, 153, 0.16);
 }
 
 .hero {
@@ -121,7 +121,7 @@ a {
   text-transform: uppercase;
   letter-spacing: 0.12em;
   color: var(--deep);
-  background: rgba(8, 113, 201, 0.22);
+  background: rgba(110, 143, 153, 0.18);
   border-radius: 999px;
   padding: 6px 10px;
 }
@@ -162,7 +162,7 @@ a {
 .btn {
   padding: 12px 16px;
   border-radius: 12px;
-  border: 1px solid rgba(7, 47, 71, 0.7);
+  border: 1px solid rgba(47, 63, 73, 0.4);
   background: var(--primary);
   color: var(--paper);
   font-weight: 600;
@@ -172,7 +172,7 @@ a {
 .btn--ghost {
   background: transparent;
   color: var(--ink);
-  border-color: rgba(7, 47, 71, 0.2);
+  border-color: rgba(47, 63, 73, 0.2);
 }
 
 .hero__actions {
@@ -186,8 +186,8 @@ a {
   position: relative;
   min-height: 280px;
   border-radius: var(--radius);
-  background: #082a3c;
-  border: 1px solid rgba(7, 47, 71, 0.45);
+  background: #e2e8ea;
+  border: 1px solid rgba(47, 63, 73, 0.2);
   overflow: hidden;
   box-shadow: var(--shadow);
 }
@@ -198,7 +198,7 @@ a {
   right: -20px;
   width: 240px;
   height: 240px;
-  background: radial-gradient(circle, rgba(8, 113, 201, 0.45), transparent 70%);
+  background: radial-gradient(circle, rgba(159, 192, 198, 0.55), transparent 70%);
 }
 
 .scene__desk {
@@ -207,7 +207,7 @@ a {
   left: 24px;
   width: 70%;
   height: 16px;
-  background: #12384a;
+  background: #b8c6cb;
   border-radius: 999px;
 }
 
@@ -224,21 +224,21 @@ a {
   height: 48px;
   background: var(--accent);
   border-radius: 50% 50% 40% 40%;
-  box-shadow: 0 8px 20px rgba(8, 113, 201, 0.35);
+  box-shadow: 0 8px 20px rgba(159, 192, 198, 0.45);
 }
 
 .lamp__stem {
   width: 8px;
   height: 64px;
   margin: 0 auto;
-  background: #2b5f7a;
+  background: #90a4ab;
 }
 
 .lamp__base {
   width: 40px;
   height: 10px;
   margin: 0 auto;
-  background: #1f4a60;
+  background: #8ea1a7;
   border-radius: 999px;
 }
 
@@ -249,8 +249,8 @@ a {
   width: 70px;
   height: 90px;
   border-radius: 12px 12px 6px 6px;
-  background: #0f3a50;
-  box-shadow: inset 0 0 0 1px rgba(7, 47, 71, 0.35);
+  background: #b0c0c6;
+  box-shadow: inset 0 0 0 1px rgba(47, 63, 73, 0.18);
 }
 
 .scene__notebook {
@@ -259,9 +259,9 @@ a {
   left: 120px;
   width: 40px;
   height: 28px;
-  background: #14364a;
+  background: #c1cdd1;
   border-radius: 6px;
-  box-shadow: 0 0 0 1px rgba(7, 47, 71, 0.35);
+  box-shadow: 0 0 0 1px rgba(47, 63, 73, 0.18);
 }
 
 @keyframes page-in {
