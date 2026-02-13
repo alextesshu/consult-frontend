@@ -1,6 +1,6 @@
 ﻿<template>
   <div :class="['shell', { 'shell--home': isHome }]">
-    <header :class="['topbar', { 'topbar--overlay': isHome }]">
+    <header v-if="!isHome" class="topbar">
       <RouterLink class="brand" to="/">
         <div class="brand__mark">Pro Consult</div>
         <div class="brand__tagline">Therapist Workspace</div>
@@ -56,7 +56,7 @@ function onLogout() {
 
 <style scoped>
 .shell {
-  max-width: 1180px;
+  max-width: none;
   margin: 0 auto;
   padding: 0 24px 48px;
   display: grid;
@@ -67,6 +67,10 @@ function onLogout() {
   max-width: none;
   padding: 0;
   display: block;
+}
+
+.shell--home .topbar {
+  display: none;
 }
 
 .topbar {

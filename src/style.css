@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap&subset=cyrillic');
 
 :root {
   --deep: #2f3f49;
@@ -47,8 +47,9 @@ a {
 }
 
 .page {
-  max-width: 1100px;
-  margin: 0 auto;
+  max-width: none;
+  width: 100%;
+  margin: 0;
   padding: 24px 24px 48px;
   animation: page-in 420ms ease;
 }

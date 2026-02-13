@@ -23,17 +23,16 @@
             <input
               v-model="newStartDate"
               class="input"
-              type="text"
-              inputmode="numeric"
-              placeholder="ДД.ММ.РРРР"
+              type="date"
+              lang="uk"
+              @click="openPicker"
               aria-label="Дата початку"
               required
             />
             <input
               v-model="newStartTime"
               class="input"
-              type="text"
-              inputmode="numeric"
+              type="time"
               placeholder="ГГ:ХХ"
               aria-label="Час початку"
               required
@@ -46,17 +45,16 @@
             <input
               v-model="newEndDate"
               class="input"
-              type="text"
-              inputmode="numeric"
-              placeholder="ДД.ММ.РРРР"
+              type="date"
+              lang="uk"
+              @click="openPicker"
               aria-label="Дата кінця"
               required
             />
             <input
               v-model="newEndTime"
               class="input"
-              type="text"
-              inputmode="numeric"
+              type="time"
               placeholder="ГГ:ХХ"
               aria-label="Час кінця"
               required
@@ -67,195 +65,6 @@
           Створити слот
         </button>
       </form>
-    </section>
-
-    <section class="panel">
-      <div class="panel__header">
-        <div>
-          <div class="badge badge--soft">Масове заповнення</div>
-          <h2 class="panel__title">Швидкі шаблони</h2>
-        </div>
-      </div>
-      <div class="slot-bulk">
-        <div class="bulk-group">
-          <label class="field">
-            Дата для дня
-            <input v-model="fillDayDate" class="input" type="date" lang="uk" @click="openPicker" />
-          </label>
-          <button
-            class="btn btn--ghost btn--sm"
-            type="button"
-            :disabled="loading || !fillDayDate"
-            @click="fillDay"
-          >
-            Заповнити день
-          </button>
-          <div class="bulk-hint">Формат: {{ formatDateOnly(fillDayDate) }}</div>
-        </div>
-        <div class="bulk-group">
-          <label class="field">
-            Дата для тижня
-            <input v-model="fillWeekDate" class="input" type="date" lang="uk" @click="openPicker" />
-          </label>
-          <button
-            class="btn btn--ghost btn--sm"
-            type="button"
-            :disabled="loading || !fillWeekDate"
-            @click="fillWeek"
-          >
-            Заповнити тиждень (Пн–Пт)
-          </button>
-          <div class="bulk-hint">Формат: {{ formatDateOnly(fillWeekDate) }}</div>
-        </div>
-      </div>
-    </section>
-
-    <section class="panel">
-      <div class="panel__header">
-        <div>
-          <div class="badge badge--soft">Навігація</div>
-          <h2 class="panel__title">Дні та фільтри</h2>
-        </div>
-        <div class="day-nav-actions">
-          <button class="btn btn--ghost btn--sm" type="button" :disabled="dayOffset === 0" @click="shiftDays(-1)">
-            Попередні 3 дні
-          </button>
-          <button class="btn btn--ghost btn--sm" type="button" @click="shiftDays(1)">
-            Наступні 3 дні
-          </button>
-        </div>
-      </div>
-      <div class="day-list">
-        <button
-          v-for="day in dayOptions"
-          :key="day.key"
-          class="btn btn--ghost btn--sm"
-          type="button"
-          :class="{ 'btn--active': day.key === selectedDate }"
-          @click="selectDay(day.key)"
-        >
-          {{ day.label }}
-        </button>
-      </div>
-      <label class="field day-picker">
-        Обрати дату
-        <input v-model="selectedDate" class="input" type="date" lang="uk-ua" @click="openPicker" />
-        <span class="field-hint">Формат: {{ formatDateOnly(selectedDate) }}</span>
-      </label>
-      <div class="muted day-hint">Показано слоти за: {{ formatDateOnly(selectedDate) }}</div>
-    </section>
-
-    <div v-if="error" class="form-error">{{ error }}</div>
-    <div v-if="loading" class="muted" style="margin-top: 12px;">Завантаження...</div>
-
-    <section class="slot-list">
-      <div v-if="filteredSlots.length === 0" class="muted">Слотів на цей день немає.</div>
-      <article v-for="slot in filteredSlots" :key="slot.id" class="slot-card">
-        <div class="slot-row">
-          <div class="slot-meta">
-            <div class="slot-label">Початок</div>
-            <template v-if="isEditing(slot.id)">
-              <div class="datetime-field">
-                <input
-                  v-model="editStartDate"
-                  class="input input--sm"
-                  type="text"
-                  inputmode="numeric"
-                  placeholder="ДД.ММ.РРРР"
-                  aria-label="Дата початку"
-                />
-                <input
-                  v-model="editStartTime"
-                  class="input input--sm"
-                  type="text"
-                  inputmode="numeric"
-                  placeholder="ГГ:ХХ"
-                  aria-label="Час початку"
-                />
-              </div>
-            </template>
-            <template v-else>
-              <div>{{ formatDate(slot.start_at) }}</div>
-            </template>
-          </div>
-          <div class="slot-meta">
-            <div class="slot-label">Кінець</div>
-            <template v-if="isEditing(slot.id)">
-              <div class="datetime-field">
-                <input
-                  v-model="editEndDate"
-                  class="input input--sm"
-                  type="text"
-                  inputmode="numeric"
-                  placeholder="ДД.ММ.РРРР"
-                  aria-label="Дата кінця"
-                />
-                <input
-                  v-model="editEndTime"
-                  class="input input--sm"
-                  type="text"
-                  inputmode="numeric"
-                  placeholder="ГГ:ХХ"
-                  aria-label="Час кінця"
-                />
-              </div>
-            </template>
-            <template v-else>
-              <div>{{ formatDate(slot.end_at) }}</div>
-            </template>
-          </div>
-          <div class="slot-status" :class="{ 'slot-status--booked': slot.is_booked }">
-            {{ slot.is_booked ? 'Заброньовано' : 'Вільно' }}
-          </div>
-        </div>
-        <div class="slot-actions">
-          <button
-            v-if="!isEditing(slot.id)"
-            class="btn btn--ghost btn--sm"
-            type="button"
-            :disabled="slot.is_booked || loading"
-            @click="startEdit(slot)"
-          >
-            Редагувати
-          </button>
-          <button
-            v-else
-            class="btn btn--sm"
-            type="button"
-            :disabled="loading"
-            @click="saveEdit(slot.id)"
-          >
-            Зберегти
-          </button>
-          <button
-            v-if="isEditing(slot.id)"
-            class="btn btn--ghost btn--sm"
-            type="button"
-            :disabled="loading"
-            @click="cancelEdit"
-          >
-            Скасувати
-          </button>
-          <button
-            class="btn btn--ghost btn--sm"
-            type="button"
-            :disabled="slot.is_booked || loading"
-            @click="deleteSlot(slot.id)"
-          >
-            Видалити
-          </button>
-        </div>
-        <div
-          v-if="isEditing(slot.id) && editErrors[slot.id]"
-          :ref="setEditErrorRef(slot.id)"
-          class="form-error slot-error"
-        >
-          {{ editErrors[slot.id] }}
-        </div>
-        <div v-if="slot.is_booked" class="muted slot-hint">
-          Слот вже заброньовано — редагування та видалення недоступні.
-        </div>
-      </article>
     </section>
   </section>
 </template>
@@ -336,13 +145,29 @@ function formatUkTime(value: Date) {
 }
 
 function parseUkDateTime(dateStr: string, timeStr: string) {
-  const dateMatch = /^(\d{2})\.(\d{2})\.(\d{4})$/.exec(dateStr.trim())
-  const timeMatch = /^(\d{2}):(\d{2})$/.exec(timeStr.trim())
-  if (!dateMatch || !timeMatch) return null
+  const trimmedDate = dateStr.trim()
+  const trimmedTime = timeStr.trim()
+  const dateMatch = /^(\d{2})\.(\d{2})\.(\d{4})$/.exec(trimmedDate)
+  const isoMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(trimmedDate)
+  const timeMatch = /^(\d{2}):(\d{2})$/.exec(trimmedTime)
+  if (!timeMatch) return null
 
-  const day = Number(dateMatch[1])
-  const month = Number(dateMatch[2])
-  const year = Number(dateMatch[3])
+  let year: number
+  let month: number
+  let day: number
+
+  if (dateMatch) {
+    day = Number(dateMatch[1])
+    month = Number(dateMatch[2])
+    year = Number(dateMatch[3])
+  } else if (isoMatch) {
+    year = Number(isoMatch[1])
+    month = Number(isoMatch[2])
+    day = Number(isoMatch[3])
+  } else {
+    return null
+  }
+
   const hours = Number(timeMatch[1])
   const minutes = Number(timeMatch[2])
 
@@ -522,11 +347,11 @@ function startEdit(slot: Slot) {
   const start = new Date(slot.start_at)
   const end = new Date(slot.end_at)
   if (!Number.isNaN(start.getTime())) {
-    editStartDate.value = formatUkDate(start)
+    editStartDate.value = toDateInputValue(start)
     editStartTime.value = formatUkTime(start)
   }
   if (!Number.isNaN(end.getTime())) {
-    editEndDate.value = formatUkDate(end)
+    editEndDate.value = toDateInputValue(end)
     editEndTime.value = formatUkTime(end)
   }
 }

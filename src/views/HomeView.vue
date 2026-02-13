@@ -8,6 +8,10 @@
       @mouseleave="onSceneLeave"
     >
       <div class="scene-stack">
+        <div class="scene-brand">
+          <div class="scene-brand__mark">Pro Consult</div>
+          <div class="scene-brand__tagline">Therapist Workspace</div>
+        </div>
         <img v-for="layer in layers" :key="layer.src" :src="layer.src" :class="layer.class" />
 
         <button
@@ -35,23 +39,36 @@
         ></button>
 
         <div class="scene-cta">
-          <RouterLink
-            class="btn btn--ghost btn--ghost-cta"
-            to="/login"
-            @mouseenter="hoverTherapist(true)"
-            @mouseleave="hoverTherapist(false)"
-          >
-            Увійти як терапевт
-          </RouterLink>
-          <RouterLink
-            class="btn btn--ghost btn--ghost-cta"
-            to="/login"
-            @mouseenter="hoverClient(true)"
-            @mouseleave="hoverClient(false)"
-          >
-            Увійти як клієнт
-          </RouterLink>
+          <template v-if="!isAuthenticated">
+            <RouterLink
+              class="btn btn--ghost btn--ghost-cta"
+              to="/login"
+              @mouseenter="hoverTherapist(true)"
+              @mouseleave="hoverTherapist(false)"
+            >
+              Увійти як терапевт
+            </RouterLink>
+            <RouterLink
+              class="btn btn--ghost btn--ghost-cta"
+              to="/login"
+              @mouseenter="hoverClient(true)"
+              @mouseleave="hoverClient(false)"
+            >
+              Увійти як клієнт
+            </RouterLink>
+          </template>
+          <template v-else>
+            <RouterLink class="btn btn--ghost btn--ghost-cta" :to="cabinetRoute">
+              Кабінет
+            </RouterLink>
+            <button class="btn btn--ghost btn--ghost-cta" type="button" @click="onLogout">
+              Вийти
+            </button>
+          </template>
         </div>
+
+
+
 
         <div v-if="hoveringTherapist" class="scene-label scene-label--therapist">Терапевт</div>
         <div v-if="hoveringClient" class="scene-label scene-label--client">Клієнт</div>
@@ -62,6 +79,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { useAuthStore } from '../stores/auth'
 import { useRouter } from 'vue-router'
 import bgSky from '../assets/parallax/01_bg_sky.png'
 import bgVignette from '../assets/parallax/02_bg_vignette.png'
@@ -85,6 +103,14 @@ import treesNear from '../assets/parallax/96_trees_near.png'
 import forestNear from '../assets/parallax/97_forest_near.png'
 
 const router = useRouter()
+const auth = useAuthStore()
+const isAuthenticated = computed(() => Boolean(auth.accessToken))
+const roles = computed(() => auth.me?.user.roles ?? [])
+const cabinetRoute = computed(() => {
+  if (roles.value.includes('THERAPIST')) return '/cabinet'
+  if (roles.value.includes('CLIENT')) return '/client'
+  return '/login'
+})
 
 const layers = [
   { src: bgSky, class: 'layer layer--sky' },
@@ -165,6 +191,11 @@ function onTherapistClick() {
 function onClientClick() {
   router.push('/login')
 }
+
+function onLogout() {
+  auth.logout()
+  router.push('/login')
+}
 </script>
 
 <style scoped>
@@ -200,7 +231,7 @@ function onClientClick() {
 }
 
 .layer--sky {
-  z-index: 0;
+    z-index: 0;
   transform: translate(calc(var(--px) * 4px), calc(var(--py) * 4px));
 }
 
@@ -209,22 +240,22 @@ function onClientClick() {
 }
 
 .layer--mountain-far {
-  z-index: 2;
+    z-index: 3;
   transform: translate(calc(var(--px) * 6px), calc(var(--py) * 6px));
 }
 
 .layer--mountain-near {
-  z-index: 3;
+    z-index: 4;
   transform: translate(calc(var(--px) * 8px), calc(var(--py) * 8px));
 }
 
 .layer--forest-back {
-  z-index: 4;
+    z-index: 5;
   transform: translate(calc(var(--px) * 10px), calc(var(--py) * 10px));
 }
 
 .layer--ground {
-  z-index: 5;
+    z-index: 6;
   transform: translate(calc(var(--px) * 14px), calc(var(--py) * 14px));
 }
 
@@ -234,7 +265,46 @@ function onClientClick() {
 .layer--bushes,
 .layer--trees-near,
 .layer--forest-front {
+  z-index: 12;
   transform: translate(calc(var(--px) * 16px), calc(var(--py) * 16px));
+}
+
+
+.layer--tent {
+  z-index: 7;
+}
+
+.layer--lantern {
+  z-index: 8;
+}
+
+.layer--figure {
+  z-index: 9;
+}
+
+.layer--bushes {
+  z-index: 10;
+}
+
+.layer--trees-near {
+  z-index: 11;
+}
+
+.layer--forest-front {
+  z-index: 12;
+}
+
+.layer--glow {
+  z-index: 14;
+}
+
+.layer--lantern-on {
+  z-index: 15;
+}
+
+.layer--figure-therapist,
+.layer--figure-client {
+  z-index: 16;
 }
 
 .layer--lit {
@@ -247,12 +317,38 @@ function onClientClick() {
 }
 
 .layer--overlay-base {
+  z-index: 20;
   opacity: 1;
   transition: opacity 280ms ease;
 }
 
 .scene-frame.is-lit .layer--overlay-base {
   opacity: 0;
+}
+
+.scene-brand {
+  position: absolute;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  color: #f1f6f9;
+  z-index: 21;
+  pointer-events: none;
+}
+
+.scene-brand__mark {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 20px;
+  letter-spacing: 0.4px;
+}
+
+.scene-brand__tagline {
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(241, 246, 249, 0.7);
 }
 
 .scene-cta {
@@ -262,6 +358,7 @@ function onClientClick() {
   display: grid;
   gap: 10px;
   z-index: 20;
+  pointer-events: auto;
 }
 
 .btn--ghost-cta {
@@ -269,6 +366,10 @@ function onClientClick() {
   border-color: rgba(255, 255, 255, 0.28);
   color: rgba(241, 246, 249, 0.78);
   backdrop-filter: blur(6px);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1;
 }
 
 .btn--ghost-cta:hover {
