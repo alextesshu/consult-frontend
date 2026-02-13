@@ -1,21 +1,33 @@
-﻿<template>
-  <section class="card">
-    <div class="profile-header">
+<template>
+  <section class="profile">
+    <header class="profile__hero">
       <div>
-        <h1 class="title" style="font-size: 28px;">Профіль терапевта</h1>
-        <p class="muted">Керуйте профілем кабінету та тим, що видно публічно.</p>
+        <div class="badge">Профіль терапевта</div>
+        <h1 class="title profile__title">Публічний профіль</h1>
+        <p class="muted profile__subtitle">
+          Налаштовуйте видимість, тексти й контакти. Превʼю показує, як вас бачать клієнти.
+        </p>
       </div>
-      <div class="profile-actions">
+      <div class="profile__actions">
+        <div class="toggle-chip" :class="profile.public_profile_enabled ? 'toggle-chip--on' : 'toggle-chip--off'">
+          {{ profile.public_profile_enabled ? 'Публічний профіль увімкнено' : 'Публічний профіль вимкнено' }}
+        </div>
         <RouterLink class="btn btn--ghost" to="/cabinet">Назад до кабінету</RouterLink>
       </div>
-    </div>
+    </header>
 
     <div v-if="loading" class="muted" style="margin-top: 12px;">Завантаження профілю...</div>
-    <div v-else-if="error" class="muted" style="margin-top: 12px;">{{ error }}</div>
+    <div v-else-if="error" class="form-error" style="margin-top: 12px;">{{ error }}</div>
 
     <form v-else class="profile-grid" @submit.prevent="onSave">
-      <div class="panel preview">
-        <div class="badge">Публічний перегляд</div>
+      <section class="panel preview">
+        <div class="panel__header">
+          <div>
+            <div class="badge badge--soft">Публічний перегляд</div>
+            <h2 class="panel__title">Превʼю картки</h2>
+          </div>
+          <div class="panel__meta">{{ profile.public_slug || 'slug ще не створено' }}</div>
+        </div>
         <div class="preview-card">
           <div class="preview-content">
             <div class="preview-info">
@@ -66,11 +78,8 @@
                   Viber: {{ profile.viber }}
                 </div>
               </div>
-              <div class="muted" style="font-size: 12px; margin-top: 8px;">
-                {{ profile.public_profile_enabled ? 'Публічний профіль увімкнено.' : 'Публічний профіль вимкнено.' }}
-              </div>
             </div>
-<div class="preview-media">
+            <div class="preview-media">
               <img
                 v-if="profile.show_photo && profile.photo_url"
                 class="preview-photo"
@@ -87,10 +96,15 @@
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      <div class="panel">
-        <div class="badge">Профіль</div>
+      <section class="panel">
+        <div class="panel__header">
+          <div>
+            <div class="badge badge--soft">Профіль</div>
+            <h2 class="panel__title">Основні дані</h2>
+          </div>
+        </div>
         <div class="form" style="margin-top: 12px;">
           <label class="field">
             Публічне ім’я
@@ -157,15 +171,15 @@
                 <span>{{ language }}</span>
                 <button type="button" class="chip-remove" @click="removeLanguage(language)">×</button>
               </div>
-                <input
-                  v-model="languageInput"
-                  class="input chip-input"
-                  type="text"
-                  list="languageOptions"
-                  placeholder="введіть мову"
-                  @keydown.enter.prevent="addLanguage()"
-                  @keydown="onLanguageKeydown"
-                />
+              <input
+                v-model="languageInput"
+                class="input chip-input"
+                type="text"
+                list="languageOptions"
+                placeholder="введіть мову"
+                @keydown.enter.prevent="addLanguage()"
+                @keydown="onLanguageKeydown"
+              />
               <datalist id="languageOptions">
                 <option v-for="language in languageOptions" :key="language" :value="language" />
               </datalist>
@@ -190,10 +204,15 @@
             </div>
           </label>
         </div>
-      </div>
+      </section>
 
-      <div class="panel">
-        <div class="badge">Контакти</div>
+      <section class="panel">
+        <div class="panel__header">
+          <div>
+            <div class="badge badge--soft">Контакти</div>
+            <h2 class="panel__title">Звʼязок</h2>
+          </div>
+        </div>
         <div class="contacts-grid" style="margin-top: 12px;">
           <div class="form">
             <label class="field">
@@ -233,6 +252,7 @@
                 />
                 <div v-else class="media-empty">Фото ще не завантажено</div>
               </div>
+              <div class="media-status" v-if="photoUploading">Завантаження фото...</div>
               <input
                 ref="photoInput"
                 class="input input--file is-hidden"
@@ -260,6 +280,7 @@
                 ></video>
                 <div v-else class="media-empty">Відео ще не завантажено</div>
               </div>
+              <div class="media-status" v-if="videoUploading">Завантаження відео...</div>
               <input
                 ref="videoInput"
                 class="input input--file is-hidden"
@@ -270,10 +291,15 @@
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      <div class="panel">
-        <div class="badge">Видимість</div>
+      <section class="panel">
+        <div class="panel__header">
+          <div>
+            <div class="badge badge--soft">Видимість</div>
+            <h2 class="panel__title">Що показувати</h2>
+          </div>
+        </div>
         <div class="form" style="margin-top: 12px;">
           <label class="check">
             <input v-model="profile.public_profile_enabled" type="checkbox" />
@@ -312,10 +338,15 @@
             Показувати фото
           </label>
         </div>
-      </div>
+      </section>
 
-      <div class="panel">
-        <div class="badge">Публічне посилання</div>
+      <section class="panel">
+        <div class="panel__header">
+          <div>
+            <div class="badge badge--soft">Публічне посилання</div>
+            <h2 class="panel__title">URL та slug</h2>
+          </div>
+        </div>
         <div class="form" style="margin-top: 12px;">
           <div class="field">
             <div class="muted">Публічний slug</div>
@@ -326,8 +357,7 @@
               </button>
             </div>
             <div class="muted" style="font-size: 12px;">
-              Остання ротація:
-              {{ profile.last_slug_rotated_at || 'ніколи' }}
+              Остання ротація: {{ profile.last_slug_rotated_at || 'ніколи' }}
             </div>
           </div>
           <div class="field">
@@ -349,7 +379,7 @@
             Ротація slug робить старе посилання недійсним. Можна оновлювати раз на місяць.
           </p>
         </div>
-      </div>
+      </section>
 
       <div class="profile-footer">
         <button class="btn" type="submit" :disabled="saving">
@@ -696,13 +726,13 @@ function addLanguage() {
     return
   }
   const existing = new Set(languageList.value.map((item) => item.toLowerCase()))
-    if (disallowedLanguages.has(cleaned.toLowerCase())) {
-      languageInput.value = ''
-      return
-    }
-    if (!existing.has(cleaned.toLowerCase())) {
-      languageList.value = [...languageList.value, cleaned]
-    }
+  if (disallowedLanguages.has(cleaned.toLowerCase())) {
+    languageInput.value = ''
+    return
+  }
+  if (!existing.has(cleaned.toLowerCase())) {
+    languageList.value = [...languageList.value, cleaned]
+  }
   languageInput.value = ''
 }
 
@@ -741,17 +771,92 @@ onMounted(loadProfile)
 </script>
 
 <style scoped>
+.profile {
+  display: grid;
+  gap: 18px;
+}
+
+.profile__hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 20px;
+  background: linear-gradient(135deg, rgba(8, 113, 201, 0.16), rgba(7, 47, 71, 0.06));
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 22px 24px;
+  box-shadow: var(--shadow);
+}
+
+.profile__title {
+  font-size: 32px;
+}
+
+.profile__subtitle {
+  max-width: 560px;
+}
+
+.profile__actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.toggle-chip {
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.toggle-chip--on {
+  background: rgba(31, 122, 76, 0.16);
+  color: #1f7a4c;
+}
+
+.toggle-chip--off {
+  background: rgba(194, 75, 75, 0.2);
+  color: #a03838;
+}
+
 .profile-grid {
   display: grid;
   gap: 16px;
-  margin-top: 16px;
 }
 
 .panel {
   border: 1px solid var(--line);
-  border-radius: 16px;
-  padding: 16px;
+  border-radius: 18px;
+  padding: 18px;
   background: #fff;
+  display: grid;
+  gap: 14px;
+}
+
+.panel__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.panel__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 22px;
+}
+
+.panel__meta {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.badge--soft {
+  background: rgba(8, 113, 201, 0.12);
 }
 
 .preview {
@@ -863,41 +968,6 @@ onMounted(loadProfile)
   display: block;
 }
 
-.profile-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.profile-actions {
-  display: flex;
-  gap: 12px;
-}
-
-.check {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 14px;
-}
-
-.slug-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.slug {
-  display: inline-flex;
-  padding: 8px 12px;
-  border-radius: 12px;
-  background: #f7f4ef;
-  border: 1px dashed var(--line);
-  font-size: 13px;
-}
-
 .profile-footer {
   display: flex;
   align-items: center;
@@ -955,13 +1025,7 @@ onMounted(loadProfile)
   overflow: hidden;
 }
 
-.media-frame img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
+.media-frame img,
 .media-frame video {
   width: 100%;
   height: 100%;
@@ -977,11 +1041,9 @@ onMounted(loadProfile)
   padding: 12px;
 }
 
-.file-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
+.media-status {
+  font-size: 12px;
+  color: var(--muted);
 }
 
 .field-row {
@@ -1039,7 +1101,31 @@ onMounted(loadProfile)
   flex: 1;
 }
 
-@media (max-width: 900px) {
+.slug-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.slug {
+  display: inline-flex;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: #f7f4ef;
+  border: 1px dashed var(--line);
+  font-size: 13px;
+}
+
+.form-error {
+  color: #b3261e;
+  background: #fdecea;
+  border: 1px solid #f5c2c0;
+  border-radius: 10px;
+  padding: 8px 10px;
+}
+
+@media (max-width: 980px) {
   .contacts-grid {
     grid-template-columns: 1fr;
   }
@@ -1054,6 +1140,11 @@ onMounted(loadProfile)
 
   .preview-content {
     grid-template-columns: 1fr;
+  }
+
+  .profile__hero {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
 </style>
