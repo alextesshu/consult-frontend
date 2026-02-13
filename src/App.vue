@@ -1,6 +1,6 @@
 ﻿<template>
-  <div class="shell">
-    <header class="topbar">
+  <div :class="['shell', { 'shell--home': isHome }]">
+    <header :class="['topbar', { 'topbar--overlay': isHome }]">
       <RouterLink class="brand" to="/">
         <div class="brand__mark">Pro Consult</div>
         <div class="brand__tagline">Therapist Workspace</div>
@@ -16,7 +16,7 @@
       </nav>
     </header>
 
-    <main class="main">
+    <main :class="['main', { 'main--home': isHome }]">
       <RouterView />
     </main>
 
@@ -36,6 +36,7 @@ const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
 const isAuthenticated = computed(() => Boolean(auth.accessToken))
+const isHome = computed(() => route.path === '/')
 const roles = computed(() => auth.me?.user.roles ?? [])
 const isTherapist = computed(() => roles.value.includes('THERAPIST'))
 const isClient = computed(() => roles.value.includes('CLIENT'))
@@ -57,23 +58,37 @@ function onLogout() {
 .shell {
   max-width: 1180px;
   margin: 0 auto;
-  padding: 24px 24px 48px;
+  padding: 0 24px 48px;
   display: grid;
   gap: 24px;
+}
+
+.shell--home {
+  max-width: none;
+  padding: 0;
+  display: block;
 }
 
 .topbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 0;
   gap: 20px;
-  position: sticky;
-  top: 0;
+  position: relative;
   z-index: 10;
-  background: rgba(245, 247, 248, 0.85);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid rgba(47, 63, 73, 0.1);
+  background: rgba(15, 27, 43, 0.32);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  color: #f1f6f9;
+  width: 100%;
+  padding: 12px 24px;
+}
+
+.topbar--overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
 }
 
 .brand {
@@ -93,7 +108,18 @@ function onLogout() {
   font-size: 12px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: rgba(241, 246, 249, 0.7);
+}
+
+.topbar--overlay .brand {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+}
+
+.topbar--overlay .nav {
+  margin-left: auto;
 }
 
 .nav {
@@ -108,16 +134,20 @@ function onLogout() {
   padding: 8px 12px;
   border-radius: 999px;
   border: 1px solid transparent;
-  color: var(--ink);
+  color: #f1f6f9;
 }
 
 .nav a.router-link-active {
-  border-color: rgba(110, 143, 153, 0.4);
-  background: rgba(110, 143, 153, 0.16);
+  border-color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.18);
 }
 
 .main {
   min-height: 320px;
+}
+
+.main--home {
+  min-height: 100vh;
 }
 
 .footer {

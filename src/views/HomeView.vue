@@ -169,14 +169,19 @@ function onClientClick() {
 
 <style scoped>
 .scene-frame {
-  border-radius: 28px;
-  border: 1px solid rgba(47, 63, 73, 0.2);
+  border-radius: 0;
+  border: none;
   background: #0c1b2b;
   overflow: hidden;
   box-shadow: var(--shadow);
-  width: 100%;
-  min-height: calc(100vh - 160px);
+  width: 100vw;
+  min-height: 100vh;
   position: relative;
+}
+
+.home {
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
 }
 
 .scene-stack {
@@ -195,22 +200,31 @@ function onClientClick() {
 }
 
 .layer--sky {
+  z-index: 0;
   transform: translate(calc(var(--px) * 4px), calc(var(--py) * 4px));
 }
 
+.layer--stars {
+  z-index: 1;
+}
+
 .layer--mountain-far {
+  z-index: 2;
   transform: translate(calc(var(--px) * 6px), calc(var(--py) * 6px));
 }
 
 .layer--mountain-near {
+  z-index: 3;
   transform: translate(calc(var(--px) * 8px), calc(var(--py) * 8px));
 }
 
 .layer--forest-back {
+  z-index: 4;
   transform: translate(calc(var(--px) * 10px), calc(var(--py) * 10px));
 }
 
 .layer--ground {
+  z-index: 5;
   transform: translate(calc(var(--px) * 14px), calc(var(--py) * 14px));
 }
 
@@ -244,21 +258,21 @@ function onClientClick() {
 .scene-cta {
   position: absolute;
   left: 4%;
-  top: 6%;
+  top: 16%;
   display: grid;
   gap: 10px;
   z-index: 20;
 }
 
 .btn--ghost-cta {
-  background: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.4);
-  color: #f1f6f9;
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.28);
+  color: rgba(241, 246, 249, 0.78);
   backdrop-filter: blur(6px);
 }
 
 .btn--ghost-cta:hover {
-  background: rgba(255, 255, 255, 0.32);
+  background: rgba(255, 255, 255, 0.22);
 }
 
 .layer--bushes {
@@ -283,24 +297,24 @@ function onClientClick() {
 }
 
 .scene-hotspot--tent {
-  left: 33%;
-  bottom: 4%;
-  width: 30%;
-  height: 48%;
+  left: calc(29% - 10px);
+  bottom: 10%;
+  width: calc(42% - 100px);
+  height: 36%;
 }
 
 .scene-hotspot--therapist {
-  left: 38%;
-  bottom: 24%;
-  width: 6%;
-  height: 16%;
+  left: calc(36% - 70px);
+  bottom: 20%;
+  width: 12%;
+  height: 22%;
 }
 
 .scene-hotspot--client {
-  left: 45%;
-  bottom: 24%;
-  width: 6%;
-  height: 16%;
+  left: calc(49% - 60px);
+  bottom: 20%;
+  width: 12%;
+  height: 22%;
 }
 
 .scene-label {
@@ -316,13 +330,13 @@ function onClientClick() {
 }
 
 .scene-label--therapist {
-  left: 37%;
-  bottom: 42%;
+  left: calc(36% + 20px);
+  bottom: calc(46% - 30px);
 }
 
 .scene-label--client {
-  left: 45%;
-  bottom: 42%;
+  left: calc(52% - 60px);
+  bottom: calc(46% - 30px);
 }
 
 @media (max-width: 980px) {
