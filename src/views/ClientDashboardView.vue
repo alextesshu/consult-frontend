@@ -23,7 +23,7 @@
         <div v-else class="therapist-photo therapist-photo--empty">Фото</div>
         <div class="therapist-info">
           <div class="therapist-name">{{ selectedTherapist.display_name }}</div>
-          <div class="muted">
+          <div class="muted meta-line">
             <span v-if="selectedTherapist.location">{{ selectedTherapist.location }}</span>
             <span v-if="languageLabel(selectedTherapist.languages)">
               {{ languageLabel(selectedTherapist.languages) }}
@@ -37,11 +37,42 @@
               Відкрити профіль
             </RouterLink>
             <RouterLink class="btn" to="/client/therapists">Змінити терапевта</RouterLink>
+            <RouterLink class="btn btn--ghost" to="/client/therapists">Додати терапевта</RouterLink>
           </div>
         </div>
       </div>
       <div v-else class="muted">
         Ви ще не обрали терапевта. Натисніть “Обрати терапевта”, щоб переглянути список.
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card__title">Переглянуті терапевти</div>
+      <div v-if="viewedTherapists.length === 0" class="muted">
+        Ви ще не переглядали профілі терапевтів.
+      </div>
+      <div v-else class="therapist-grid" :class="{ 'therapist-grid--compact': viewedTherapists.length === 1 }">
+        <div v-for="therapist in viewedTherapists" :key="therapist.public_slug" class="therapist-card">
+          <RouterLink class="therapist-photo-link" :to="`/t/${therapist.public_slug}`">
+            <img
+              v-if="therapist.photo_url"
+              :src="therapist.photo_url"
+              :alt="therapist.display_name"
+              class="therapist-photo"
+            />
+            <div v-else class="therapist-photo therapist-photo--empty">Фото</div>
+          </RouterLink>
+          <div class="therapist-info">
+            <div class="therapist-name">{{ therapist.display_name }}</div>
+            <div class="muted meta-line">
+              <span v-if="therapist.location">{{ therapist.location }}</span>
+              <span v-if="languageLabel(therapist.languages)">
+                {{ languageLabel(therapist.languages) }}
+              </span>
+            </div>
+          <div v-if="priceLabel(therapist)" class="therapist-price">{{ priceLabel(therapist) }}</div>
+        </div>
+        </div>
       </div>
     </div>
 
@@ -53,7 +84,7 @@
         <ul v-else class="session-list">
           <li v-for="session in upcoming" :key="session.id" class="session-item">
             <div>
-              <div class="session-time">{{ formatDateTime(session.slot?.start_at) }}</div>
+              <div class="session-time">{{ formatDateTime(session.slot?.start_at || session.slot_start_at) }}</div>
               <div class="muted">Статус: {{ statusLabel(session.status) }}</div>
             </div>
             <div class="pill">{{ statusLabel(session.status) }}</div>
@@ -68,7 +99,7 @@
         <ul v-else class="session-list">
           <li v-for="session in past" :key="session.id" class="session-item">
             <div>
-              <div class="session-time">{{ formatDateTime(session.slot?.start_at) }}</div>
+              <div class="session-time">{{ formatDateTime(session.slot?.start_at || session.slot_start_at) }}</div>
               <div class="muted">Статус: {{ statusLabel(session.status) }}</div>
             </div>
             <div class="pill pill--ghost">{{ statusLabel(session.status) }}</div>
@@ -92,6 +123,8 @@ type Session = {
   id: number
   status: string
   slot: Slot | null
+  slot_start_at?: string | null
+  slot_end_at?: string | null
 }
 
 type SelectedTherapist = {
@@ -108,6 +141,7 @@ const upcoming = ref<Session[]>([])
 const past = ref<Session[]>([])
 const loading = ref(false)
 const selectedTherapist = ref<SelectedTherapist | null>(null)
+const viewedTherapists = ref<SelectedTherapist[]>([])
 
 const statusMap: Record<string, string> = {
   SCHEDULED: 'Заплановано',
@@ -170,9 +204,20 @@ function loadSelectedTherapist() {
   }
 }
 
+function loadViewedTherapists() {
+  const raw = localStorage.getItem('viewedTherapists')
+  if (!raw) return
+  try {
+    viewedTherapists.value = JSON.parse(raw)
+  } catch {
+    viewedTherapists.value = []
+  }
+}
+
 onMounted(() => {
   loadSessions()
   loadSelectedTherapist()
+  loadViewedTherapists()
 })
 </script>
 
@@ -209,9 +254,15 @@ onMounted(() => {
   align-items: center;
 }
 
+.therapist-photo-link {
+  width: 140px;
+  height: 140px;
+  display: block;
+}
+
 .therapist-photo {
   width: 100%;
-  height: 140px;
+  height: 100%;
   border-radius: 14px;
   object-fit: cover;
   border: 1px solid var(--line);
@@ -222,6 +273,8 @@ onMounted(() => {
   place-items: center;
   background: rgba(7, 47, 71, 0.06);
   color: var(--muted);
+  width: 100%;
+  height: 100%;
 }
 
 .therapist-info {
@@ -233,8 +286,23 @@ onMounted(() => {
   font-weight: 600;
 }
 
+.meta-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.meta-line span + span::before {
+  content: " · ";
+  color: var(--muted);
+}
+
 .therapist-price {
   font-weight: 600;
+}
+
+.therapist-actions {
+  margin-top: 8px;
 }
 
 .selected-actions {
@@ -242,6 +310,20 @@ onMounted(() => {
   gap: 10px;
   flex-wrap: wrap;
   margin-top: 6px;
+}
+
+.therapist-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.therapist-grid--compact {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 280px));
+}
+
+.therapist-grid--compact .therapist-card {
+  max-width: 320px;
 }
 
 .session-list {

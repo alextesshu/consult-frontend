@@ -74,18 +74,6 @@ async function loadTherapists() {
 
 function openProfile(therapist: PublicTherapistProfile) {
   if (!therapist.public_slug) return
-  localStorage.setItem(
-    'selectedTherapist',
-    JSON.stringify({
-      public_slug: therapist.public_slug,
-      display_name: therapist.display_name,
-      location: therapist.location,
-      languages: therapist.languages,
-      price: therapist.price,
-      price_currency: therapist.price_currency,
-      photo_url: therapist.photo_url,
-    })
-  )
   router.push(`/t/${therapist.public_slug}`)
 }
 

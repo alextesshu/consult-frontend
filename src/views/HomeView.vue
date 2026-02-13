@@ -34,16 +34,9 @@
           @click="onClientClick"
         ></button>
 
-        <div class="scene-overlay">
-          <div class="badge">Pro Consult</div>
-          <h1 class="title scene-title">Обери, як ти заходиш</h1>
-          <p class="muted scene-subtitle">
-            Весь екран — інтерактивна сцена. Наведи на фігури, щоб обрати роль.
-          </p>
-          <div class="scene-actions">
-            <RouterLink class="btn" to="/login">Увійти як терапевт</RouterLink>
-            <RouterLink class="btn btn--ghost" to="/login">Увійти як клієнт</RouterLink>
-          </div>
+        <div class="scene-cta">
+          <RouterLink class="btn btn--ghost btn--ghost-cta" to="/login">Увійти як терапевт</RouterLink>
+          <RouterLink class="btn btn--ghost btn--ghost-cta" to="/login">Увійти як клієнт</RouterLink>
         </div>
 
         <div v-if="hoveringTherapist" class="scene-label scene-label--therapist">Терапевт</div>
@@ -234,40 +227,24 @@ function onClientClick() {
   opacity: 0;
 }
 
-.scene-overlay {
+.scene-cta {
   position: absolute;
   left: 4%;
-  top: 5%;
-  max-width: 320px;
-  padding: 14px 16px;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.72);
-  border: 1px solid rgba(47, 63, 73, 0.12);
-  box-shadow: 0 16px 30px rgba(47, 63, 73, 0.12);
-  backdrop-filter: blur(8px);
-  z-index: 20;
-  opacity: 0.65;
-  transition: opacity 180ms ease;
-}
-
-.scene-overlay:hover {
-  opacity: 1;
-}
-
-.scene-title {
-  font-size: 24px;
-}
-
-.scene-subtitle {
-  margin-top: 6px;
-  font-size: 13px;
-}
-
-.scene-actions {
-  display: flex;
+  top: 6%;
+  display: grid;
   gap: 10px;
-  flex-wrap: wrap;
-  margin-top: 12px;
+  z-index: 20;
+}
+
+.btn--ghost-cta {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.4);
+  color: #f1f6f9;
+  backdrop-filter: blur(6px);
+}
+
+.btn--ghost-cta:hover {
+  background: rgba(255, 255, 255, 0.32);
 }
 
 .layer--bushes {

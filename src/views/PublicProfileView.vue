@@ -180,6 +180,9 @@ async function loadProfile() {
   error.value = ''
   try {
     profile.value = await fetchPublicTherapistProfile(slug.value)
+    if (profile.value) {
+      saveViewedTherapist(profile.value)
+    }
   } catch (err: any) {
     error.value = err?.response?.data?.detail || 'Профіль не знайдено.'
   } finally {
@@ -215,11 +218,44 @@ async function bookSlot(slotId: number) {
     await http.post('/booking/sessions/', { slot_id: slotId })
     bookingSuccess.value = 'Сесію заброньовано. Перевірте ваш кабінет.'
     slots.value = slots.value.filter((slot) => slot.id !== slotId)
+    if (profile.value) {
+      localStorage.setItem(
+        'selectedTherapist',
+        JSON.stringify(pickTherapist(profile.value))
+      )
+    }
   } catch (err: any) {
     bookingError.value = err?.response?.data?.detail || 'Не вдалося забронювати слот.'
   } finally {
     bookingSlotId.value = null
   }
+}
+
+function pickTherapist(data: PublicTherapistProfile) {
+  return {
+    public_slug: data.public_slug,
+    display_name: data.display_name,
+    location: data.location,
+    languages: data.languages,
+    price: data.price,
+    price_currency: data.price_currency,
+    photo_url: data.photo_url,
+  }
+}
+
+function saveViewedTherapist(data: PublicTherapistProfile) {
+  if (!data.public_slug) return
+  const raw = localStorage.getItem('viewedTherapists')
+  let items: any[] = []
+  try {
+    items = raw ? JSON.parse(raw) : []
+  } catch {
+    items = []
+  }
+  const entry = pickTherapist(data)
+  const filtered = items.filter((item) => item.public_slug !== entry.public_slug)
+  filtered.unshift(entry)
+  localStorage.setItem('viewedTherapists', JSON.stringify(filtered.slice(0, 8)))
 }
 
 watch(slug, () => {
