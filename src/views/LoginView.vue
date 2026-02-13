@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <section class="auth">
     <div class="auth__card">
       <div class="badge">Вхід</div>
@@ -74,6 +74,13 @@ const router = useRouter()
 const auth = useAuthStore()
 const { loading } = storeToRefs(auth)
 
+function defaultPath() {
+  const roles = auth.me?.user.roles ?? auth.user?.roles ?? []
+  if (roles.includes('THERAPIST')) return '/cabinet'
+  if (roles.includes('CLIENT')) return '/client'
+  return '/login'
+}
+
 async function onSubmit() {
   error.value = ''
   if (!identifier.value || !password.value) {
@@ -82,7 +89,7 @@ async function onSubmit() {
   }
   try {
     await auth.login(identifier.value.trim(), password.value)
-    router.push('/cabinet')
+    router.push(defaultPath())
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'Не вдалося увійти'
   }
@@ -90,7 +97,7 @@ async function onSubmit() {
 
 onMounted(() => {
   if (auth.accessToken) {
-    router.replace('/cabinet')
+    router.replace(defaultPath())
   }
 })
 </script>

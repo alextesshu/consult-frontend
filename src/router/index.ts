@@ -7,6 +7,7 @@ import PublicProfileView from '../views/PublicProfileView.vue'
 import TherapistProfileView from '../views/TherapistProfileView.vue'
 import SlotsView from '../views/SlotsView.vue'
 import HomeView from '../views/HomeView.vue'
+import ClientDashboardView from '../views/ClientDashboardView.vue'
 import { useAuthStore } from '../stores/auth'
 import { fetchTherapistProfile } from '../lib/api'
 
@@ -15,24 +16,35 @@ const routes = [
   { path: '/public', name: 'public-redirect', component: PublicProfileView },
   { path: '/login', name: 'login', component: LoginView },
   { path: '/signup', name: 'signup', component: SignupView },
-  { path: '/cabinet', name: 'cabinet', component: CabinetView, meta: { requiresAuth: true } },
+  {
+    path: '/cabinet',
+    name: 'cabinet',
+    component: CabinetView,
+    meta: { requiresAuth: true, requiresRole: 'THERAPIST' },
+  },
   {
     path: '/cabinet/group-events',
     name: 'cabinet-group-events',
     component: GroupEventsView,
-    meta: { requiresAuth: true },
+    meta: { requiresAuth: true, requiresRole: 'THERAPIST' },
   },
   {
     path: '/cabinet/slots',
     name: 'cabinet-slots',
     component: SlotsView,
-    meta: { requiresAuth: true },
+    meta: { requiresAuth: true, requiresRole: 'THERAPIST' },
   },
   {
     path: '/cabinet/profile',
     name: 'cabinet-profile',
     component: TherapistProfileView,
-    meta: { requiresAuth: true },
+    meta: { requiresAuth: true, requiresRole: 'THERAPIST' },
+  },
+  {
+    path: '/client',
+    name: 'client-dashboard',
+    component: ClientDashboardView,
+    meta: { requiresAuth: true, requiresRole: 'CLIENT' },
   },
   { path: '/t/:slug', name: 'public-profile', component: PublicProfileView },
 ]
@@ -44,6 +56,14 @@ const router = createRouter({
 
 router.beforeEach(async (to) => {
   const auth = useAuthStore()
+  const getRoles = () => auth.me?.user.roles ?? auth.user?.roles ?? []
+  const hasRole = (role: string) => getRoles().includes(role)
+  const defaultRoute = () => {
+    if (hasRole('THERAPIST')) return { name: 'cabinet' }
+    if (hasRole('CLIENT')) return { name: 'client-dashboard' }
+    return { name: 'login' }
+  }
+
   if (to.meta.requiresAuth) {
     if (!auth.accessToken) {
       return { name: 'login' }
@@ -54,6 +74,9 @@ router.beforeEach(async (to) => {
       } catch {
         return { name: 'login' }
       }
+    }
+    if (to.meta.requiresRole && !hasRole(String(to.meta.requiresRole))) {
+      return defaultRoute()
     }
   }
 
@@ -67,6 +90,9 @@ router.beforeEach(async (to) => {
       } catch {
         return { name: 'login' }
       }
+    }
+    if (!hasRole('THERAPIST')) {
+      return defaultRoute()
     }
     let slug = ''
     try {

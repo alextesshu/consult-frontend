@@ -1,4 +1,4 @@
-# Pro Consult Frontend
+﻿# Pro Consult Frontend
 
 Vue 3 + Vite + TypeScript + Pinia + Vue Router.
 
@@ -35,6 +35,7 @@ npm run dev
 * `/cabinet/profile` — Profile editor + public preview
 * `/cabinet/group-events` — Group events (list/create/delete drafts)
 * `/cabinet/slots` — Slots (create/edit/delete)
+* `/client` — Client dashboard
 * `/public` — Redirect to `/t/:slug` (auto via profile)
 * `/t/:slug` — Public therapist profile
 
@@ -51,6 +52,7 @@ Tokens are stored in localStorage and auto-refreshed via `/api/auth/token/refres
 
 * **HomeView**: public landing with therapist/client choice + parallax layer stack (no animation yet)
 * **CabinetView**: account/entitlements overview + quick actions
+* **ClientDashboardView**: client sessions list (upcoming + past)
 * **SlotsView**: create/edit/delete slots + fill day/week + date navigation
 * **GroupEventsView**: list drafts + create drafts + entitlement status display
 * **TherapistProfileView**: full profile editor, media upload preview, visibility toggles, public slug management

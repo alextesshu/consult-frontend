@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div class="shell">
     <header class="topbar">
       <div class="brand">
@@ -7,8 +7,8 @@
       </div>
       <nav class="nav">
         <RouterLink to="/">Головна</RouterLink>
-        <RouterLink to="/public">Публічний профіль</RouterLink>
-        <RouterLink v-if="isAuthenticated" to="/cabinet">Кабінет</RouterLink>
+        <RouterLink v-if="isTherapist" to="/public">Публічний профіль</RouterLink>
+        <RouterLink v-if="isAuthenticated" :to="cabinetRoute">Кабінет</RouterLink>
         <RouterLink v-if="!isAuthenticated" to="/login">Вхід</RouterLink>
         <RouterLink v-if="!isAuthenticated" to="/signup">Реєстрація</RouterLink>
         <button v-if="isAuthenticated" class="btn btn--ghost" type="button" @click="onLogout">
@@ -37,10 +37,18 @@ const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
 const isAuthenticated = computed(() => Boolean(auth.accessToken))
+const roles = computed(() => auth.me?.user.roles ?? [])
+const isTherapist = computed(() => roles.value.includes('THERAPIST'))
+const isClient = computed(() => roles.value.includes('CLIENT'))
+const cabinetRoute = computed(() => {
+  if (isTherapist.value) return '/cabinet'
+  if (isClient.value) return '/client'
+  return '/login'
+})
 
 function onLogout() {
   auth.logout()
-  if (route.path.startsWith('/cabinet')) {
+  if (route.path.startsWith('/cabinet') || route.path.startsWith('/client')) {
     router.push('/login')
   }
 }
@@ -108,7 +116,6 @@ function onLogout() {
   background: rgba(110, 143, 153, 0.16);
 }
 
-
 .main {
   min-height: 320px;
 }
@@ -123,5 +130,4 @@ function onLogout() {
   font-size: 12px;
   flex-wrap: wrap;
 }
-
 </style>
