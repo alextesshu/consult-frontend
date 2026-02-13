@@ -1,111 +1,129 @@
 <template>
-  <section class="card">
-    <div class="page-header">
+  <section class="slots">
+    <header class="slots__hero">
       <div>
-        <h1 class="title" style="font-size: 28px;">Слоти терапевта</h1>
-        <p class="muted">Створюйте та керуйте слотами для сесій.</p>
+        <div class="badge">Слоти терапевта</div>
+        <h1 class="title slots__title">Керуйте доступністю</h1>
+        <p class="muted slots__subtitle">
+          Створюйте часові вікна для сесій, заповнюйте день або тиждень одним кліком.
+        </p>
       </div>
       <RouterLink class="btn btn--ghost" to="/cabinet">Назад до кабінету</RouterLink>
-    </div>
+    </header>
 
-    <form class="slot-form" @submit.prevent="createSlot">
-      <label class="field">
-        Початок
-        <div class="datetime-field">
-          <input
-            v-model="newStartDate"
-            class="input"
-            type="text"
-            inputmode="numeric"
-            placeholder="ДД.ММ.РРРР"
-            aria-label="Дата початку"
-            required
-          />
-          <input
-            v-model="newStartTime"
-            class="input"
-            type="text"
-            inputmode="numeric"
-            placeholder="ГГ:ХХ"
-            aria-label="Час початку"
-            required
-          />
-        </div>
-      </label>
-      <label class="field">
-        Кінець
-        <div class="datetime-field">
-          <input
-            v-model="newEndDate"
-            class="input"
-            type="text"
-            inputmode="numeric"
-            placeholder="ДД.ММ.РРРР"
-            aria-label="Дата кінця"
-            required
-          />
-          <input
-            v-model="newEndTime"
-            class="input"
-            type="text"
-            inputmode="numeric"
-            placeholder="ГГ:ХХ"
-            aria-label="Час кінця"
-            required
-          />
-        </div>
-      </label>
-      <button class="btn" type="submit" :disabled="loading">Створити слот</button>
-    </form>
-
-    <div class="slot-bulk">
-      <div class="bulk-group">
+    <section class="panel panel--split">
+      <div>
+        <h2 class="panel__title">Новий слот</h2>
+        <p class="muted">Заповніть дату та час у форматі ДД.ММ.РРРР / ГГ:ХХ.</p>
+      </div>
+      <form class="slot-form" @submit.prevent="createSlot">
         <label class="field">
-          Дата для дня
-          <input v-model="fillDayDate" class="input" type="date" lang="uk" @click="openPicker" />
+          Початок
+          <div class="datetime-field">
+            <input
+              v-model="newStartDate"
+              class="input"
+              type="text"
+              inputmode="numeric"
+              placeholder="ДД.ММ.РРРР"
+              aria-label="Дата початку"
+              required
+            />
+            <input
+              v-model="newStartTime"
+              class="input"
+              type="text"
+              inputmode="numeric"
+              placeholder="ГГ:ХХ"
+              aria-label="Час початку"
+              required
+            />
+          </div>
         </label>
-        <div class="bulk-action">
+        <label class="field">
+          Кінець
+          <div class="datetime-field">
+            <input
+              v-model="newEndDate"
+              class="input"
+              type="text"
+              inputmode="numeric"
+              placeholder="ДД.ММ.РРРР"
+              aria-label="Дата кінця"
+              required
+            />
+            <input
+              v-model="newEndTime"
+              class="input"
+              type="text"
+              inputmode="numeric"
+              placeholder="ГГ:ХХ"
+              aria-label="Час кінця"
+              required
+            />
+          </div>
+        </label>
+        <button class="btn" type="submit" :disabled="loading">
+          Створити слот
+        </button>
+      </form>
+    </section>
+
+    <section class="panel">
+      <div class="panel__header">
+        <div>
+          <div class="badge badge--soft">Масове заповнення</div>
+          <h2 class="panel__title">Швидкі шаблони</h2>
+        </div>
+      </div>
+      <div class="slot-bulk">
+        <div class="bulk-group">
+          <label class="field">
+            Дата для дня
+            <input v-model="fillDayDate" class="input" type="date" lang="uk" @click="openPicker" />
+          </label>
           <button
             class="btn btn--ghost btn--sm"
             type="button"
             :disabled="loading || !fillDayDate"
             @click="fillDay"
           >
-            Заповнити день слотами
+            Заповнити день
           </button>
+          <div class="bulk-hint">Формат: {{ formatDateOnly(fillDayDate) }}</div>
         </div>
-        <div class="bulk-hint">Європейський формат: {{ formatDateOnly(fillDayDate) }}</div>
-      </div>
-      <div class="bulk-group">
-        <label class="field">
-          Дата для тижня
-          <input v-model="fillWeekDate" class="input" type="date" lang="uk" @click="openPicker" />
-        </label>
-        <div class="bulk-action">
+        <div class="bulk-group">
+          <label class="field">
+            Дата для тижня
+            <input v-model="fillWeekDate" class="input" type="date" lang="uk" @click="openPicker" />
+          </label>
           <button
             class="btn btn--ghost btn--sm"
             type="button"
             :disabled="loading || !fillWeekDate"
             @click="fillWeek"
           >
-            Заповнити тиждень (Пн-Пт)
+            Заповнити тиждень (Пн–Пт)
+          </button>
+          <div class="bulk-hint">Формат: {{ formatDateOnly(fillWeekDate) }}</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel__header">
+        <div>
+          <div class="badge badge--soft">Навігація</div>
+          <h2 class="panel__title">Дні та фільтри</h2>
+        </div>
+        <div class="day-nav-actions">
+          <button class="btn btn--ghost btn--sm" type="button" :disabled="dayOffset === 0" @click="shiftDays(-1)">
+            Попередні 3 дні
+          </button>
+          <button class="btn btn--ghost btn--sm" type="button" @click="shiftDays(1)">
+            Наступні 3 дні
           </button>
         </div>
-        <div class="bulk-hint">Європейський формат: {{ formatDateOnly(fillWeekDate) }}</div>
-      </div>
-    </div>
-
-    <div v-if="error" class="form-error" style="margin-top: 12px;">{{ error }}</div>
-    <div v-if="loading" class="muted" style="margin-top: 12px;">Завантаження...</div>
-
-    <div class="day-nav">
-      <div class="day-nav-actions">
-        <button class="btn btn--ghost btn--sm" type="button" :disabled="dayOffset === 0" @click="shiftDays(-1)">
-          Попередні 3 дні
-        </button>
-        <button class="btn btn--ghost btn--sm" type="button" @click="shiftDays(1)">
-          Наступні 3 дні
-        </button>
       </div>
       <div class="day-list">
         <button
@@ -122,14 +140,17 @@
       <label class="field day-picker">
         Обрати дату
         <input v-model="selectedDate" class="input" type="date" lang="uk-ua" @click="openPicker" />
-        <span class="field-hint">Європейський формат: {{ formatDateOnly(selectedDate) }}</span>
+        <span class="field-hint">Формат: {{ formatDateOnly(selectedDate) }}</span>
       </label>
       <div class="muted day-hint">Показано слоти за: {{ formatDateOnly(selectedDate) }}</div>
-    </div>
+    </section>
 
-    <div class="slot-list">
+    <div v-if="error" class="form-error">{{ error }}</div>
+    <div v-if="loading" class="muted" style="margin-top: 12px;">Завантаження...</div>
+
+    <section class="slot-list">
       <div v-if="filteredSlots.length === 0" class="muted">Слотів на цей день немає.</div>
-      <div v-for="slot in filteredSlots" :key="slot.id" class="slot-card">
+      <article v-for="slot in filteredSlots" :key="slot.id" class="slot-card">
         <div class="slot-row">
           <div class="slot-meta">
             <div class="slot-label">Початок</div>
@@ -234,8 +255,8 @@
         <div v-if="slot.is_booked" class="muted slot-hint">
           Слот вже заброньовано — редагування та видалення недоступні.
         </div>
-      </div>
-    </div>
+      </article>
+    </section>
   </section>
 </template>
 
@@ -444,7 +465,7 @@ async function createSlot() {
     const startAt = parseUkDateTime(newStartDate.value, newStartTime.value)
     const endAt = parseUkDateTime(newEndDate.value, newEndTime.value)
     if (!startAt || !endAt) {
-      error.value = 'Вкажіть дату у форматі ДД.ММ.РРРР та час у форматі ГГ:ХХ'
+      error.value = 'Вкажіть дату ДД.ММ.РРРР та час ГГ:ХХ'
       return
     }
     const payload = {
@@ -489,8 +510,7 @@ async function fillWeek() {
     })
     await loadSlots()
   } catch (err: any) {
-    error.value =
-      err?.response?.data?.detail || 'Не вдалося заповнити тиждень слотами'
+    error.value = err?.response?.data?.detail || 'Не вдалося заповнити тиждень слотами'
   } finally {
     loading.value = false
   }
@@ -541,7 +561,7 @@ async function saveEdit(slotId: number) {
     const startAt = parseUkDateTime(editStartDate.value, editStartTime.value)
     const endAt = parseUkDateTime(editEndDate.value, editEndTime.value)
     if (!startAt || !endAt) {
-      error.value = 'Вкажіть дату у форматі ДД.ММ.РРРР та час у форматі ГГ:ХХ'
+      error.value = 'Вкажіть дату ДД.ММ.РРРР та час ГГ:ХХ'
       return
     }
     const payload = {
@@ -588,71 +608,121 @@ onMounted(loadSlots)
 </script>
 
 <style scoped>
-.page-header {
+.slots {
+  display: grid;
+  gap: 18px;
+}
+
+.slots__hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 20px;
+  background: linear-gradient(135deg, rgba(8, 113, 201, 0.16), rgba(7, 47, 71, 0.06));
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 22px 24px;
+  box-shadow: var(--shadow);
+}
+
+.slots__title {
+  font-size: 32px;
+}
+
+.slots__subtitle {
+  max-width: 520px;
+}
+
+.panel {
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 18px;
+  background: #fff;
+  display: grid;
+  gap: 14px;
+}
+
+.panel--split {
+  grid-template-columns: minmax(220px, 1fr) minmax(280px, 1.2fr);
+  align-items: center;
+  gap: 20px;
+}
+
+.panel__header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
 }
+
+.panel__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 22px;
+}
+
+.badge--soft {
+  background: rgba(8, 113, 201, 0.12);
+}
+
 .slot-form {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 12px;
-  margin-top: 16px;
   align-items: end;
 }
+
 .slot-form .input,
 .slot-form .btn {
   height: 40px;
 }
-.slot-form .btn {
-  align-self: end;
-}
+
 .datetime-field {
   display: grid;
   grid-template-columns: 1fr 100px;
   gap: 8px;
   align-items: center;
 }
+
 .slot-list {
-  margin-top: 16px;
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
-.day-nav {
-  margin-top: 16px;
-  display: grid;
-  gap: 12px;
-}
+
 .day-nav-actions {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
 }
+
 .day-list {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
 }
+
 .day-picker .input {
   height: 40px;
 }
+
 .day-hint {
   font-size: 12px;
 }
+
 .btn--active {
   border-color: #0b4a7d;
   color: #0b4a7d;
   background: #eef6ff;
 }
+
 .slot-bulk {
-  margin-top: 12px;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: 16px;
   align-items: start;
 }
+
 .bulk-group {
   display: grid;
   grid-template-columns: 1fr auto;
@@ -661,53 +731,56 @@ onMounted(loadSlots)
   row-gap: 6px;
   align-items: start;
 }
+
 .bulk-group .field {
   grid-column: 1;
   grid-row: 1;
 }
-.bulk-action {
+
+.bulk-group .btn {
   grid-column: 2;
   grid-row: 1;
   align-self: end;
 }
+
 .bulk-hint {
   grid-column: 1 / -1;
   grid-row: 2;
   font-size: 12px;
   color: var(--muted);
 }
-.bulk-group .input {
-  height: 40px;
-}
-.bulk-group .btn {
-  height: 40px;
-}
+
 .slot-card {
   border: 1px solid var(--line);
-  border-radius: 14px;
-  padding: 14px;
+  border-radius: 16px;
+  padding: 16px;
   background: #fff;
 }
+
 .slot-row {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: 12px;
   align-items: center;
 }
+
 .slot-meta {
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
+
 .field-hint {
   margin-top: 4px;
   font-size: 12px;
   color: var(--muted);
 }
+
 .slot-label {
   font-size: 12px;
   color: var(--muted);
 }
+
 .slot-status {
   font-size: 13px;
   padding: 6px 10px;
@@ -716,23 +789,28 @@ onMounted(loadSlots)
   color: #0b4a7d;
   width: fit-content;
 }
+
 .slot-status--booked {
   background: #f6e9e9;
   color: #8a2c2c;
 }
+
 .slot-actions {
   margin-top: 12px;
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
 }
+
 .slot-hint {
   margin-top: 6px;
   font-size: 12px;
 }
+
 .slot-error {
   margin-top: 8px;
 }
+
 .form-error,
 .slot-error {
   color: #b3261e;
@@ -741,13 +819,26 @@ onMounted(loadSlots)
   border-radius: 10px;
   padding: 8px 10px;
 }
+
 .btn--sm {
   padding: 6px 12px;
   font-size: 13px;
   height: 40px;
 }
+
 .input--sm {
   padding: 8px 10px;
   font-size: 13px;
+}
+
+@media (max-width: 860px) {
+  .slots__hero {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .panel--split {
+    grid-template-columns: 1fr;
+  }
 }
 </style>
