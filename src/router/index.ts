@@ -6,11 +6,12 @@ import GroupEventsView from '../views/GroupEventsView.vue'
 import PublicProfileView from '../views/PublicProfileView.vue'
 import TherapistProfileView from '../views/TherapistProfileView.vue'
 import SlotsView from '../views/SlotsView.vue'
+import HomeView from '../views/HomeView.vue'
 import { useAuthStore } from '../stores/auth'
 import { fetchTherapistProfile } from '../lib/api'
 
 const routes = [
-  { path: '/', redirect: '/login' },
+  { path: '/', name: 'home', component: HomeView },
   { path: '/public', name: 'public-redirect', component: PublicProfileView },
   { path: '/login', name: 'login', component: LoginView },
   { path: '/signup', name: 'signup', component: SignupView },

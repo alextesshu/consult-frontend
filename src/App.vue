@@ -17,30 +17,6 @@
       </nav>
     </header>
 
-    <section v-if="showHero" class="hero">
-      <div class="hero__card">
-        <div class="badge">Професійний кабінет</div>
-        <h1 class="title">Терапевтична практика без хаосу</h1>
-        <p class="subtitle">
-          Розклад, сесії, клієнти й нотатки — у системі, де контроль залишається у терапевта.
-        </p>
-        <div class="hero__actions">
-          <RouterLink class="btn" to="/signup">Створити кабінет</RouterLink>
-          <RouterLink class="btn btn--ghost" to="/login">Увійти</RouterLink>
-        </div>
-      </div>
-      <div class="hero__scene" aria-hidden="true">
-        <div class="scene__glow"></div>
-        <div class="scene__panel"></div>
-        <div class="scene__lines">
-          <span></span>
-          <span></span>
-          <span></span>
-        </div>
-        <div class="scene__chip"></div>
-      </div>
-    </section>
-
     <main class="main">
       <RouterView />
     </main>
@@ -60,7 +36,6 @@ import { useAuthStore } from './stores/auth'
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
-const showHero = computed(() => route.path === '/')
 const isAuthenticated = computed(() => Boolean(auth.accessToken))
 
 function onLogout() {
@@ -133,76 +108,6 @@ function onLogout() {
   background: rgba(110, 143, 153, 0.16);
 }
 
-.hero {
-  display: grid;
-  grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
-  gap: 24px;
-}
-
-.hero__card {
-  background: var(--card);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 26px;
-  box-shadow: var(--shadow);
-  color: var(--ink);
-}
-
-.hero__scene {
-  position: relative;
-  min-height: 260px;
-  border-radius: var(--radius);
-  background: linear-gradient(140deg, #eef4f5, #dce6e8);
-  border: 1px solid rgba(47, 63, 73, 0.18);
-  overflow: hidden;
-  box-shadow: var(--shadow);
-}
-
-.scene__glow {
-  position: absolute;
-  top: -40px;
-  right: -20px;
-  width: 220px;
-  height: 220px;
-  background: radial-gradient(circle, rgba(159, 192, 198, 0.55), transparent 70%);
-}
-
-.scene__panel {
-  position: absolute;
-  bottom: 40px;
-  left: 24px;
-  width: 68%;
-  height: 14px;
-  background: #b8c6cb;
-  border-radius: 999px;
-}
-
-.scene__lines {
-  position: absolute;
-  top: 24px;
-  left: 24px;
-  display: grid;
-  gap: 10px;
-}
-
-.scene__lines span {
-  display: block;
-  width: 120px;
-  height: 10px;
-  border-radius: 999px;
-  background: rgba(47, 63, 73, 0.12);
-}
-
-.scene__chip {
-  position: absolute;
-  bottom: 56px;
-  right: 36px;
-  width: 80px;
-  height: 80px;
-  border-radius: 18px;
-  background: rgba(159, 192, 198, 0.35);
-  box-shadow: inset 0 0 0 1px rgba(47, 63, 73, 0.14);
-}
 
 .main {
   min-height: 320px;
@@ -219,9 +124,4 @@ function onLogout() {
   flex-wrap: wrap;
 }
 
-@media (max-width: 960px) {
-  .hero {
-    grid-template-columns: 1fr;
-  }
-}
 </style>
