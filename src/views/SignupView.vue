@@ -9,17 +9,6 @@
 
       <form class="form" @submit.prevent="onSubmit">
         <label class="field">
-          <span>Логін</span>
-          <input
-            v-model="username"
-            class="input"
-            type="text"
-            name="username"
-            autocomplete="username"
-            placeholder="ваш-логін"
-          />
-        </label>
-        <label class="field">
           <span>Ел. пошта</span>
           <input
             v-model="email"
@@ -88,7 +77,6 @@ import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useAuthStore } from '../stores/auth'
 
-const username = ref('')
 const email = ref('')
 const password = ref('')
 const passwordConfirm = ref('')
@@ -99,7 +87,7 @@ const { loading } = storeToRefs(auth)
 
 async function onSubmit() {
   error.value = ''
-  if (!username.value || !email.value || !password.value || !passwordConfirm.value) {
+  if (!email.value || !password.value || !passwordConfirm.value) {
     error.value = 'Заповніть усі поля.'
     return
   }
@@ -109,7 +97,6 @@ async function onSubmit() {
   }
   try {
     await auth.signup(
-      username.value.trim(),
       email.value.trim(),
       password.value,
       passwordConfirm.value

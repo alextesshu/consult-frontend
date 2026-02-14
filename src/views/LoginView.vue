@@ -145,9 +145,40 @@ onMounted(() => {
 }
 
 .aside-card--dark {
-  background: #0f2b3a;
+  background: linear-gradient(145deg, #0f2b3a 0%, #123447 45%, #0d2633 100%);
   color: #f1f6f9;
-  border-color: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.14);
+  box-shadow: 0 20px 35px rgba(7, 31, 42, 0.28);
+  padding: 20px 22px;
+  display: grid;
+  gap: 12px;
+}
+
+.aside-card--dark .aside-title {
+  color: #f4f8fb;
+  font-size: 20px;
+  letter-spacing: 0.2px;
+}
+
+.aside-card--dark .aside-text {
+  color: rgba(241, 246, 249, 0.82);
+  line-height: 1.5;
+  margin: 0;
+}
+
+.aside-card--dark .aside-list {
+  color: rgba(241, 246, 249, 0.8);
+}
+
+.aside-card--dark .btn--ghost {
+  color: #f6fbff;
+  border-color: rgba(241, 246, 249, 0.5);
+  background: rgba(241, 246, 249, 0.1);
+  box-shadow: inset 0 0 0 1px rgba(241, 246, 249, 0.08);
+}
+
+.aside-card--dark .btn--ghost:hover {
+  background: rgba(241, 246, 249, 0.2);
 }
 
 .aside-title {

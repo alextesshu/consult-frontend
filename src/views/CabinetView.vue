@@ -15,6 +15,25 @@
     </header>
 
     <div v-if="me" class="cabinet__grid">
+
+      <section class="panel panel--wide panel--actions">
+        <div class="panel__header">
+          <div class="badge badge--soft">Швидкі дії</div>
+          <div class="panel__meta">Щоденні інструменти</div>
+        </div>
+        <div class="cabinet-actions">
+          <RouterLink class="btn btn--ghost" to="/cabinet/slots">
+            Слоти
+          </RouterLink>
+          <RouterLink class="btn btn--ghost" to="/cabinet/profile">
+            Профіль терапевта
+          </RouterLink>
+          <RouterLink class="btn btn--ghost" to="/cabinet/group-events">
+            Групові події
+          </RouterLink>
+          <button class="btn btn--ghost" type="button" @click="onLogout">Вийти</button>
+        </div>
+      </section>
       <section class="panel panel--accent">
         <div class="panel__header">
           <div class="badge badge--soft">Акаунт</div>
@@ -88,25 +107,6 @@
             <div class="feature__title">Технічна місткість</div>
             <div class="feature__value">{{ technicalCapLabel }}</div>
           </div>
-        </div>
-      </section>
-
-      <section class="panel panel--wide panel--actions">
-        <div class="panel__header">
-          <div class="badge badge--soft">Швидкі дії</div>
-          <div class="panel__meta">Щоденні інструменти</div>
-        </div>
-        <div class="cabinet-actions">
-          <RouterLink class="btn btn--ghost" to="/cabinet/slots">
-            Слоти
-          </RouterLink>
-          <RouterLink class="btn btn--ghost" to="/cabinet/profile">
-            Профіль терапевта
-          </RouterLink>
-          <RouterLink class="btn btn--ghost" to="/cabinet/group-events">
-            Групові події
-          </RouterLink>
-          <button class="btn btn--ghost" type="button" @click="onLogout">Вийти</button>
         </div>
       </section>
     </div>

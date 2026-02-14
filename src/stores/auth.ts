@@ -82,11 +82,11 @@ export const useAuthStore = defineStore('auth', {
         this.loading = false
       }
     },
-    async signup(username: string, email: string, password: string, passwordConfirm: string) {
+    async signup(email: string, password: string, passwordConfirm: string) {
       this.loading = true
       this.error = ''
       try {
-        const tokens = await signupTherapist(username, email, password, passwordConfirm)
+        const tokens = await signupTherapist(email, password, passwordConfirm)
         this.setToken(tokens.access)
         this.setRefreshToken(tokens.refresh)
         const me = await fetchMe(tokens.access)

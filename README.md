@@ -42,6 +42,8 @@ npm run dev
 
 ## Auth
 
+Signup uses email + password only (username auto-generated).
+
 Login accepts email or username:
 
 * If input contains `@` -> send as `email`
@@ -52,7 +54,7 @@ Tokens are stored in localStorage and auto-refreshed via `/api/auth/token/refres
 ## Implemented UI (Frontend)
 
 * **HomeView**: public landing with therapist/client choice + parallax layer stack (no animation yet)
-* **CabinetView**: account/entitlements overview + quick actions
+* **CabinetView**: account/entitlements overview + quick actions under the hero
 * **ClientDashboardView**: client sessions list + selected therapist + viewed therapists
 * **ClientTherapistsView**: therapist list + open profile
 * **SlotsView**: create/edit/delete slots + fill day/week + date navigation
@@ -63,5 +65,6 @@ Tokens are stored in localStorage and auto-refreshed via `/api/auth/token/refres
 
 ## Notes
 
+* Non-home pages are constrained to 80% width.
 * Parallax layers live in `src/assets/parallax/`.
 * Public profile data is fetched from `/api/public/therapists/{slug}/`.

@@ -34,14 +34,12 @@ export async function loginWithIdentifier(
 }
 
 export async function signupTherapist(
-  username: string,
   email: string,
   password: string,
   passwordConfirm: string
 ): Promise<SignupResponse> {
   try {
     const resp = await http.post<SignupResponse>('/auth/signup/', {
-      username,
       email,
       password,
       password_confirm: passwordConfirm,
