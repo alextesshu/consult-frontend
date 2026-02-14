@@ -14,7 +14,6 @@
     <section class="panel panel--split">
       <div>
         <h2 class="panel__title">Новий слот</h2>
-        <p class="muted">Заповніть дату та час у форматі ДД.ММ.РРРР / ГГ:ХХ.</p>
       </div>
       <form class="slot-form" @submit.prevent="createSlot">
         <label class="field">
@@ -632,13 +631,18 @@ onMounted(loadSlots)
 .slots__hero {
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
+  align-items: center;
   gap: 20px;
   background: linear-gradient(135deg, rgba(8, 113, 201, 0.16), rgba(7, 47, 71, 0.06));
   border: 1px solid var(--line);
   border-radius: var(--radius);
   padding: 22px 24px;
   box-shadow: var(--shadow);
+}
+
+.slots__hero .btn {
+  height: 40px;
+  padding: 0 18px;
 }
 
 .slots__title {
@@ -659,9 +663,13 @@ onMounted(loadSlots)
 }
 
 .panel--split {
-  grid-template-columns: minmax(220px, 1fr) minmax(280px, 1.2fr);
+  grid-template-columns: minmax(260px, 0.9fr) minmax(460px, 1.1fr);
   align-items: center;
   gap: 20px;
+}
+
+.panel--split > div {
+  padding-right: 8px;
 }
 
 .panel__header {
@@ -683,9 +691,19 @@ onMounted(loadSlots)
 
 .slot-form {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 12px;
-  align-items: end;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 180px);
+  column-gap: 10px;
+  row-gap: 8px;
+  align-items: center;
+  width: 100%;
+  max-width: 100%;
+}
+
+.slot-form .field {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--muted);
 }
 
 .slot-form .input,
@@ -693,9 +711,28 @@ onMounted(loadSlots)
   height: 40px;
 }
 
+.slot-form .input {
+  font-size: 13px;
+  padding: 10px 12px;
+}
+
+.slot-form .btn {
+  align-self: end;
+}
+
+.slot-form .btn {
+  width: 100%;
+  min-width: 0;
+  justify-self: stretch;
+}
+
+.slot-form .input {
+  min-width: 0;
+}
+
 .datetime-field {
   display: grid;
-  grid-template-columns: 1fr 100px;
+  grid-template-columns: minmax(0, 1fr) 76px;
   gap: 8px;
   align-items: center;
 }
@@ -734,7 +771,7 @@ onMounted(loadSlots)
 
 .slot-bulk {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: 16px;
   align-items: start;
 }
@@ -744,8 +781,13 @@ onMounted(loadSlots)
   grid-template-columns: 1fr auto;
   grid-template-rows: auto auto;
   column-gap: 12px;
-  row-gap: 6px;
-  align-items: start;
+  row-gap: 8px;
+  align-items: end;
+}
+
+.bulk-group .input,
+.bulk-group .btn {
+  height: 40px;
 }
 
 .bulk-group .field {
