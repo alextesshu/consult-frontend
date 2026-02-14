@@ -87,7 +87,9 @@
               <div class="session-time">{{ formatDateTime(session.slot?.start_at || session.slot_start_at) }}</div>
               <div class="muted">Статус: {{ statusLabel(session.status) }}</div>
             </div>
-            <div class="pill">{{ statusLabel(session.status) }}</div>
+            <RouterLink class="btn btn--ghost btn--sm" :to="`/client/sessions/${session.id}`">
+              Деталі
+            </RouterLink>
           </li>
         </ul>
       </div>
@@ -102,7 +104,9 @@
               <div class="session-time">{{ formatDateTime(session.slot?.start_at || session.slot_start_at) }}</div>
               <div class="muted">Статус: {{ statusLabel(session.status) }}</div>
             </div>
-            <div class="pill pill--ghost">{{ statusLabel(session.status) }}</div>
+            <RouterLink class="btn btn--ghost btn--sm" :to="`/client/sessions/${session.id}`">
+              Деталі
+            </RouterLink>
           </li>
         </ul>
       </div>
@@ -348,15 +352,9 @@ onMounted(() => {
   font-weight: 600;
 }
 
-.pill {
+.btn--sm {
   padding: 6px 10px;
-  border-radius: 999px;
-  font-size: 12px;
-  background: rgba(111, 142, 151, 0.2);
-}
-
-.pill--ghost {
-  background: rgba(111, 142, 151, 0.12);
+  font-size: 13px;
 }
 
 @media (max-width: 860px) {

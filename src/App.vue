@@ -1,6 +1,6 @@
 ﻿<template>
   <div :class="['shell', { 'shell--home': isHome }]">
-    <header v-if="!isHome" class="topbar">
+    <header v-if="!isHome" :class="topbarClass">
       <RouterLink class="brand" to="/">
         <div class="brand__mark">Pro Consult</div>
         <div class="brand__tagline">Therapist Workspace</div>
@@ -46,6 +46,14 @@ const cabinetRoute = computed(() => {
   return '/login'
 })
 
+const topbarClass = computed(() => [
+  'topbar',
+  {
+    'topbar--therapist': isTherapist.value,
+    'topbar--client': isClient.value,
+  },
+])
+
 function onLogout() {
   auth.logout()
   if (route.path.startsWith('/cabinet') || route.path.startsWith('/client')) {
@@ -86,6 +94,16 @@ function onLogout() {
   color: #f1f6f9;
   width: 100%;
   padding: 12px 24px;
+}
+
+.topbar--therapist {
+  background: linear-gradient(120deg, rgba(9, 36, 52, 0.82), rgba(19, 60, 82, 0.7));
+  border-bottom-color: rgba(145, 190, 212, 0.28);
+}
+
+.topbar--client {
+  background: linear-gradient(120deg, rgba(42, 24, 56, 0.82), rgba(86, 41, 85, 0.7));
+  border-bottom-color: rgba(227, 176, 219, 0.28);
 }
 
 .topbar--overlay {

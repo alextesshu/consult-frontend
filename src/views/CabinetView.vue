@@ -28,6 +28,9 @@
           <RouterLink class="btn btn--ghost" to="/cabinet/sessions">
             Сесії
           </RouterLink>
+          <RouterLink class="btn btn--ghost" to="/cabinet/clients">
+            Клієнти
+          </RouterLink>
           <RouterLink class="btn btn--ghost" to="/cabinet/profile">
             Профіль терапевта
           </RouterLink>
@@ -42,7 +45,6 @@
           >
             {{ shareLoading ? 'Підготовка...' : 'Поділитись профілем' }}
           </button>
-          <button class="btn btn--ghost" type="button" @click="onLogout">Вийти</button>
         </div>
         <div v-if="shareStatus" class="muted" style="margin-top: 8px;">{{ shareStatus }}</div>
       </section>

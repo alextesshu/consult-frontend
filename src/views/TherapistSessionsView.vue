@@ -28,7 +28,7 @@
             <div class="session-time">
               {{ formatDateTime(session.slot_start_at) }} – {{ formatDateTime(session.slot_end_at) }}
             </div>
-            <div class="muted">Клієнт: #{{ session.client }}</div>
+            <div class="muted">Клієнт: {{ session.client_username || `#${session.client}` }}</div>
             <div class="status-pill" :class="statusClass(session.status)">
               {{ statusLabel(session.status) }}
             </div>
@@ -130,6 +130,50 @@
     <section class="panel">
       <div class="panel__header">
         <div>
+          <div class="badge badge--soft">Запити</div>
+          <h2 class="panel__title">Перенесення сесій</h2>
+        </div>
+      </div>
+      <div v-if="requestsLoading" class="muted">Завантаження запитів...</div>
+      <div v-else-if="rescheduleRequests.length === 0" class="muted">Немає нових запитів.</div>
+      <div v-else class="request-list">
+        <article v-for="req in rescheduleRequests" :key="req.id" class="request-card">
+          <div class="request-info">
+            <div class="request-title">Сесія #{{ req.session_id }} · {{ req.client_username || "Клієнт" }}</div>
+            <div class="muted">
+              Запитаний слот:
+              <span v-if="req.requested_slot_start_at && req.requested_slot_end_at">
+                {{ formatDateTime(req.requested_slot_start_at) }} – {{ formatDateTime(req.requested_slot_end_at) }}
+              </span>
+              <span v-else>#{{ req.requested_slot_id }}</span>
+            </div>
+            <div class="status-pill status-pill--warn">{{ req.status }}</div>
+          </div>
+          <div class="request-actions">
+            <button
+              class="btn btn--ghost btn--sm"
+              type="button"
+              :disabled="isRequestLoading(req.id)"
+              @click="approveRequest(req.id)"
+            >
+              Погодити
+            </button>
+            <button
+              class="btn btn--ghost btn--sm"
+              type="button"
+              :disabled="isRequestLoading(req.id)"
+              @click="declineRequest(req.id)"
+            >
+              Відхилити
+            </button>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel__header">
+        <div>
           <div class="badge badge--soft">Минулі</div>
           <h2 class="panel__title">Історія</h2>
         </div>
@@ -141,7 +185,7 @@
             <div class="session-time">
               {{ formatDateTime(session.slot_start_at) }} – {{ formatDateTime(session.slot_end_at) }}
             </div>
-            <div class="muted">Клієнт: #{{ session.client }}</div>
+            <div class="muted">Клієнт: {{ session.client_username || `#${session.client}` }}</div>
             <div class="status-pill" :class="statusClass(session.status)">
               {{ statusLabel(session.status) }}
             </div>
@@ -194,7 +238,9 @@ type Session = {
   id: number
   status: string
   client: number
+  client_username?: string
   therapist: number
+  therapist_username?: string
   slot: number | null
   slot_start_at: string | null
   slot_end_at: string | null
@@ -205,6 +251,18 @@ type Slot = {
   start_at: string
   end_at: string
   is_booked: boolean
+}
+
+type RescheduleRequest = {
+  id: number
+  session_id: number
+  requested_slot_id: number
+  requested_slot_start_at?: string | null
+  requested_slot_end_at?: string | null
+  client_username?: string
+  status: string
+  created_at: string
+  resolved_at: string | null
 }
 
 const upcoming = ref<Session[]>([])
@@ -219,6 +277,9 @@ const noteSessionId = ref<number | null>(null)
 const noteDraft = ref('')
 const noteLoading = ref<Set<number>>(new Set())
 const noteSaving = ref<Set<number>>(new Set())
+const rescheduleRequests = ref<RescheduleRequest[]>([])
+const requestsLoading = ref(false)
+const requestLoading = ref<Set<number>>(new Set())
 
 const statusMap: Record<string, string> = {
   SCHEDULED: 'Заплановано',
@@ -245,6 +306,7 @@ const canReschedule = (status: string) => status === 'SCHEDULED' || status === '
 const isActionLoading = (id: number) => actionLoading.value.has(id)
 const isNoteLoading = (id: number) => noteLoading.value.has(id)
 const isNoteSaving = (id: number) => noteSaving.value.has(id)
+const isRequestLoading = (id: number) => requestLoading.value.has(id)
 
 function formatDateTime(value?: string | null) {
   if (!value) return '—'
@@ -318,6 +380,16 @@ function setNoteSaving(id: number, value: boolean) {
     next.delete(id)
   }
   noteSaving.value = next
+}
+
+function setRequestLoading(id: number, value: boolean) {
+  const next = new Set(requestLoading.value)
+  if (value) {
+    next.add(id)
+  } else {
+    next.delete(id)
+  }
+  requestLoading.value = next
 }
 
 async function confirmSession(id: number) {
@@ -401,7 +473,7 @@ async function loadNote(id: number) {
     if (err?.response?.status === 404) {
       noteDraft.value = ''
     } else {
-      error.value = err?.response?.data?.detail || '???? ?????????????? ?????????????????????? ??????????????'
+    error.value = err?.response?.data?.detail || 'Не вдалося погодити запит'
     }
   } finally {
     setNoteLoading(id, false)
@@ -414,7 +486,7 @@ async function saveNote(id: number) {
   try {
     await http.put(`/cabinet/sessions/${id}/note/`, { content: noteDraft.value })
   } catch (err: any) {
-    error.value = err?.response?.data?.detail || '???? ?????????????? ???????????????? ??????????????'
+    error.value = err?.response?.data?.detail || 'Не вдалося погодити запит'
   } finally {
     setNoteSaving(id, false)
   }
@@ -435,8 +507,48 @@ function closeNote() {
   noteDraft.value = ''
 }
 
+async function loadRescheduleRequests() {
+  requestsLoading.value = true
+  try {
+    const resp = await http.get<RescheduleRequest[]>(
+      '/cabinet/sessions/reschedule-requests/'
+    )
+    rescheduleRequests.value = resp.data || []
+  } catch {
+    rescheduleRequests.value = []
+  } finally {
+    requestsLoading.value = false
+  }
+}
+
+async function approveRequest(id: number) {
+  setRequestLoading(id, true)
+  error.value = ''
+  try {
+    await http.patch(`/cabinet/sessions/reschedule-requests/${id}/approve/`)
+    await Promise.all([loadSessions(), loadSlots(), loadRescheduleRequests()])
+  } catch (err: any) {
+    error.value = err?.response?.data?.detail || 'Не вдалося погодити запит'
+  } finally {
+    setRequestLoading(id, false)
+  }
+}
+
+async function declineRequest(id: number) {
+  setRequestLoading(id, true)
+  error.value = ''
+  try {
+    await http.patch(`/cabinet/sessions/reschedule-requests/${id}/decline/`)
+    await loadRescheduleRequests()
+  } catch (err: any) {
+    error.value = err?.response?.data?.detail || 'Не вдалося відхилити запит'
+  } finally {
+    setRequestLoading(id, false)
+  }
+}
+
 onMounted(async () => {
-  await Promise.all([loadSessions(), loadSlots()])
+  await Promise.all([loadSessions(), loadSlots(), loadRescheduleRequests()])
 })
 </script>
 
@@ -594,6 +706,36 @@ onMounted(async () => {
 .note-actions {
   display: flex;
   gap: 10px;
+  flex-wrap: wrap;
+}
+
+.request-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.request-card {
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 14px;
+  background: #fff;
+  display: grid;
+  gap: 12px;
+}
+
+.request-info {
+  display: grid;
+  gap: 6px;
+}
+
+.request-title {
+  font-weight: 600;
+}
+
+.request-actions {
+  display: flex;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
