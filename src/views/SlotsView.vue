@@ -663,8 +663,8 @@ onMounted(loadSlots)
 }
 
 .panel--split {
-  grid-template-columns: minmax(260px, 0.9fr) minmax(460px, 1.1fr);
-  align-items: center;
+  grid-template-columns: minmax(240px, 0.9fr) minmax(480px, 1.1fr);
+  align-items: start;
   gap: 20px;
 }
 
@@ -694,7 +694,7 @@ onMounted(loadSlots)
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 180px);
   column-gap: 10px;
   row-gap: 8px;
-  align-items: center;
+  align-items: start;
   width: 100%;
   max-width: 100%;
 }
@@ -702,7 +702,7 @@ onMounted(loadSlots)
 .slot-form .field {
   display: grid;
   gap: 6px;
-  font-size: 13px;
+  font-size: 12px;
   color: var(--muted);
 }
 

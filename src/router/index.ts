@@ -9,6 +9,7 @@ import SlotsView from '../views/SlotsView.vue'
 import HomeView from '../views/HomeView.vue'
 import ClientDashboardView from '../views/ClientDashboardView.vue'
 import ClientTherapistsView from '../views/ClientTherapistsView.vue'
+import TherapistSessionsView from '../views/TherapistSessionsView.vue'
 import { useAuthStore } from '../stores/auth'
 import { fetchTherapistProfile } from '../lib/api'
 
@@ -33,6 +34,12 @@ const routes = [
     path: '/cabinet/slots',
     name: 'cabinet-slots',
     component: SlotsView,
+    meta: { requiresAuth: true, requiresRole: 'THERAPIST' },
+  },
+  {
+    path: '/cabinet/sessions',
+    name: 'cabinet-sessions',
+    component: TherapistSessionsView,
     meta: { requiresAuth: true, requiresRole: 'THERAPIST' },
   },
   {
