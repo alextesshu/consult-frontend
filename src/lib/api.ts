@@ -183,6 +183,29 @@ export async function fetchPublicTherapistProfile(
   return resp.data
 }
 
+export type SessionReview = {
+  id: number
+  session: number
+  rating: number
+  review_text: string
+  created_at: string
+}
+
+export async function fetchPublicTherapistReviews(
+  slug: string,
+  limit = 20
+): Promise<SessionReview[]> {
+  const resp = await http.get<SessionReview[]>(`/public/therapists/${slug}/reviews/`, {
+    params: { limit },
+  })
+  return resp.data
+}
+
+export async function createSessionReview(sessionId: number, payload: { rating: number; review_text?: string }) {
+  const resp = await http.post(`/booking/sessions/${sessionId}/review/`, payload)
+  return resp.data
+}
+
 export async function fetchPublicTherapists(
   limit = 20,
   params?: {

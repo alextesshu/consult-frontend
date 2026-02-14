@@ -90,6 +90,28 @@
           </div>
         </div>
       </div>
+
+      <div class="panel panel--reviews">
+        <div class="panel__header">
+          <div>
+            <div class="badge badge--soft">Відгуки</div>
+            <h2 class="panel__title">Оцінки клієнтів</h2>
+          </div>
+          <div v-if="averageRating" class="rating-pill">{{ averageRating }} / 5</div>
+        </div>
+
+        <div v-if="reviewsLoading" class="muted">Завантаження відгуків…</div>
+        <div v-else-if="reviews.length === 0" class="muted">Поки що немає відгуків.</div>
+        <div v-else class="review-list">
+          <article v-for="review in reviews" :key="review.id" class="review-card">
+            <div class="review-head">
+              <div class="review-rating">{{ review.rating }} / 5</div>
+              <div class="muted">{{ formatDate(review.created_at) }}</div>
+            </div>
+            <div class="review-text" v-if="review.review_text">{{ review.review_text }}</div>
+          </article>
+        </div>
+      </div>
     </section>
   </section>
 </template>
@@ -98,7 +120,12 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { http } from '../lib/http'
-import { fetchPublicTherapistProfile, type PublicTherapistProfile } from '../lib/api'
+import {
+  fetchPublicTherapistProfile,
+  fetchPublicTherapistReviews,
+  type PublicTherapistProfile,
+  type SessionReview,
+} from '../lib/api'
 import { useAuthStore } from '../stores/auth'
 
 type PublicSlot = {
@@ -117,6 +144,8 @@ const error = ref('')
 const bookingError = ref('')
 const bookingSuccess = ref('')
 const bookingSlotId = ref<number | null>(null)
+const reviews = ref<SessionReview[]>([])
+const reviewsLoading = ref(false)
 
 const slug = computed(() => String(route.params.slug || '').trim())
 const roles = computed(() => auth.me?.user.roles ?? auth.user?.roles ?? [])
@@ -151,6 +180,12 @@ const bioSections = computed(() => {
     { title: 'Інше', body: profile.value.bio_other || '' },
   ]
   return sections.filter((section) => section.body)
+})
+
+const averageRating = computed(() => {
+  if (!reviews.value.length) return ''
+  const total = reviews.value.reduce((sum, item) => sum + item.rating, 0)
+  return (total / reviews.value.length).toFixed(1)
 })
 
 function formatDate(value: string) {
@@ -203,6 +238,18 @@ async function loadSlots() {
     slots.value = []
   } finally {
     slotsLoading.value = false
+  }
+}
+
+async function loadReviews() {
+  if (!slug.value) return
+  reviewsLoading.value = true
+  try {
+    reviews.value = await fetchPublicTherapistReviews(slug.value, 20)
+  } catch {
+    reviews.value = []
+  } finally {
+    reviewsLoading.value = false
   }
 }
 
@@ -267,6 +314,7 @@ watch(slug, () => {
 onMounted(async () => {
   await loadProfile()
   await loadSlots()
+  await loadReviews()
 })
 </script>
 
@@ -416,12 +464,12 @@ onMounted(async () => {
   gap: 10px;
 }
 
-.slot-card {
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 10px 12px;
-  background: rgba(7, 47, 71, 0.04);
-  display: flex;
+  .slot-card {
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 10px 12px;
+    background: rgba(7, 47, 71, 0.04);
+    display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
@@ -447,15 +495,59 @@ onMounted(async () => {
   padding: 8px 10px;
 }
 
-.hint {
-  display: grid;
-  gap: 10px;
-  padding: 12px;
-  border-radius: 12px;
-  border: 1px dashed rgba(47, 63, 73, 0.2);
-  color: var(--muted);
-  background: rgba(7, 47, 71, 0.04);
-}
+  .hint {
+    display: grid;
+    gap: 10px;
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px dashed rgba(47, 63, 73, 0.2);
+    color: var(--muted);
+    background: rgba(7, 47, 71, 0.04);
+  }
+
+  .panel--reviews {
+    display: grid;
+    gap: 12px;
+  }
+
+  .rating-pill {
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    background: rgba(31, 122, 76, 0.16);
+    color: #1f7a4c;
+  }
+
+  .review-list {
+    display: grid;
+    gap: 10px;
+  }
+
+  .review-card {
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 10px 12px;
+    background: #fff;
+    display: grid;
+    gap: 8px;
+  }
+
+  .review-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .review-rating {
+    font-weight: 600;
+  }
+
+  .review-text {
+    color: var(--deep);
+    white-space: pre-line;
+  }
 
 @media (max-width: 960px) {
   .public__hero {
