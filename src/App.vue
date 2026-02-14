@@ -7,6 +7,7 @@
       </RouterLink>
       <nav class="nav">
         <RouterLink v-if="isTherapist" to="/public">Публічний профіль</RouterLink>
+        <RouterLink to="/public/therapists">Каталог</RouterLink>
         <RouterLink v-if="isAuthenticated" :to="cabinetRoute">Кабінет</RouterLink>
         <RouterLink v-if="!isAuthenticated" to="/login">Вхід</RouterLink>
         <RouterLink v-if="!isAuthenticated" to="/signup">Реєстрація</RouterLink>

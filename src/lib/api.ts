@@ -183,9 +183,19 @@ export async function fetchPublicTherapistProfile(
   return resp.data
 }
 
-export async function fetchPublicTherapists(limit = 20): Promise<PublicTherapistProfile[]> {
+export async function fetchPublicTherapists(
+  limit = 20,
+  params?: {
+    query?: string
+    language?: string
+    location?: string
+    price_min?: string
+    price_max?: string
+    price_currency?: string
+  }
+): Promise<PublicTherapistProfile[]> {
   const resp = await http.get<PublicTherapistProfile[]>('/public/therapists/', {
-    params: { limit },
+    params: { limit, ...params },
   })
   return resp.data
 }

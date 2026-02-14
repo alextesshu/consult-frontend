@@ -31,6 +31,9 @@
           <RouterLink class="btn btn--ghost" to="/cabinet/clients">
             Клієнти
           </RouterLink>
+          <RouterLink class="btn btn--ghost" to="/cabinet/billing">
+            Плани та доступ
+          </RouterLink>
           <RouterLink class="btn btn--ghost" to="/cabinet/profile">
             Профіль терапевта
           </RouterLink>

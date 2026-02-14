@@ -36,10 +36,13 @@ npm run dev
 * `/cabinet/group-events` — Group events (list/create/delete drafts)
 * `/cabinet/slots` — Slots (create/edit/delete)
 * `/cabinet/sessions` — Therapist sessions (in progress)
+* `/cabinet/clients` — Therapist CRM (clients + archive/restore)
+* `/cabinet/billing` — Plans & access (manual request)
 * `/client` — Client dashboard (sessions + selected/viewed therapist)
 * `/client/therapists` — Therapist list (choose + open profile)
 * `/public` — Redirect to `/t/:slug` (auto via profile)
 * `/t/:slug` — Public therapist profile + booking
+* `/public/therapists` — Public therapists catalog
 
 ## Auth
 
@@ -61,6 +64,8 @@ Tokens are stored in localStorage and auto-refreshed via `/api/auth/token/refres
 * **SlotsView**: create/edit/delete slots + fill day/week + date navigation
 * **GroupEventsView**: list drafts + create drafts + entitlement status display
 * **TherapistSessionsView**: skeleton page for therapist sessions (in progress)
+* **TherapistClientsView**: therapist CRM with archive/restore
+* **BillingView**: plans + access state + request access
 * **TherapistProfileView**: full profile editor, media upload preview, visibility toggles, public slug management
 * **PublicProfileView**: real public profile data + upcoming slots list + booking CTA
 * **LoginView / SignupView**: redesigned auth pages
