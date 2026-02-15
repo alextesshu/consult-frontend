@@ -12,7 +12,7 @@
     </header>
 
     <div v-if="error" class="form-error">{{ error }}</div>
-    <div v-if="loading" class="muted" style="margin-top: 12px;">Завантаження...</div>
+    <LoadingSkeleton v-if="loading" variant="list" :count="3" />
 
     <section class="panel">
       <div class="panel__header">
@@ -23,11 +23,11 @@
       </div>
       <EmptyState
         v-if="!loading && upcoming.length === 0"
-        title="????? ???????????? ?????"
-        description="???????? ????? ??? ?????????? ????????, ??? ??????? ????? ??????????."
-        action-text="???????? ????"
+        title="Немає запланованих сесій"
+        description="Створіть слоти або поділіться профілем, щоб клієнти могли записатися."
+        action-text="Створити слот"
         action-to="/cabinet/slots"
-        secondary-text="????????? ????????"
+        secondary-text="Керування профілем"
         secondary-to="/cabinet/profile"
       />
       <div v-else class="session-list">
@@ -51,9 +51,10 @@
               Підтвердити
             </button>
             <button
+              v-if="session.status === 'CONFIRMED'"
               class="btn btn--ghost btn--sm"
               type="button"
-              :disabled="isActionLoading(session.id) || session.status !== 'CONFIRMED'"
+              :disabled="isActionLoading(session.id)"
               @click="completeSession(session.id)"
             >
               Завершити
@@ -145,8 +146,8 @@
       <div v-if="requestsLoading" class="muted">Завантаження запитів...</div>
       <EmptyState
         v-else-if="rescheduleRequests.length === 0"
-        title="????? ????? ???????"
-        description="???? ??????? ????????? ????????? ????? ? ??? ????????? ?????."
+        title="Немає нових запитів"
+        description="Коли клієнти попросять перенести сесію — тут з’явиться запит."
       />
       <div v-else class="request-list">
         <article v-for="req in rescheduleRequests" :key="req.id" class="request-card">
@@ -192,8 +193,8 @@
       </div>
       <EmptyState
         v-if="!loading && past.length === 0"
-        title="??????? ???????"
-        description="????? ?????????? ????? ??? ????????? ???????."
+        title="Історія порожня"
+        description="Після завершених сесій тут з’явиться історія."
       />
       <div v-else class="session-list">
         <article v-for="session in past" :key="session.id" class="session-card">
@@ -249,6 +250,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { http } from '../lib/http'
+import LoadingSkeleton from '../components/LoadingSkeleton.vue'
 import EmptyState from '../components/EmptyState.vue'
 
 type Session = {

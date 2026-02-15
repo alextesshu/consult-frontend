@@ -26,6 +26,12 @@ Run dev server:
 npm run dev
 ```
 
+## Testing
+
+```bash
+npm run test
+```
+
 ## Routes (Key)
 
 * `/` — Public Home (role choice + parallax scene)
@@ -74,7 +80,7 @@ Tokens are stored in localStorage and auto-refreshed via `/api/auth/token/refres
 * **PublicProfileView**: public profile data + upcoming slots + booking + reviews
 * **PublicTherapistsView**: public catalog with server-side filters
 * **LoginView / SignupView**: redesigned auth pages
-* **System**: global toast/notification layer, 404/403 pages
+* **System**: global toast/notification layer, 404/403 pages, empty states, loading skeletons
 
 ## Not Implemented Yet (Frontend Gaps)
 

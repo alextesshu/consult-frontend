@@ -38,7 +38,7 @@
 
     <section class="card">
       <div class="card__title">Результати</div>
-      <div v-if="loading" class="muted">Завантаження...</div>
+      <LoadingSkeleton v-if="loading" variant="card" :count="6" height="140px" />
       <EmptyState
         v-else-if="therapists.length === 0"
         title="?????? ?? ????????"
@@ -91,6 +91,7 @@
 import { onMounted, ref } from 'vue'
 import { fetchPublicTherapists, type PublicTherapistProfile } from '../lib/api'
 import { useToast } from '../composables/useToast'
+import LoadingSkeleton from '../components/LoadingSkeleton.vue'
 import EmptyState from '../components/EmptyState.vue'
 
 const therapists = ref<PublicTherapistProfile[]>([])

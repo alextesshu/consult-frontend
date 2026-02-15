@@ -64,7 +64,8 @@ const priceLabel = (therapist: PublicTherapistProfile) => {
 async function loadTherapists() {
   loading.value = true
   try {
-    therapists.value = await fetchPublicTherapists(12)
+    const resp = await fetchPublicTherapists({ page: 1, page_size: 12 })
+    therapists.value = resp.results || []
   } catch {
     therapists.value = []
   } finally {
