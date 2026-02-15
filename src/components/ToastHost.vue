@@ -94,7 +94,7 @@ onBeforeUnmount(() => {
 <style scoped>
 .toast-host {
   position: fixed;
-  top: 20px;
+  bottom: 20px;
   right: 20px;
   z-index: 2000;
   display: grid;
@@ -171,7 +171,6 @@ onBeforeUnmount(() => {
 
 @media (max-width: 860px) {
   .toast-host {
-    top: auto;
     bottom: 16px;
     right: 12px;
   }
