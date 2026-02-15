@@ -21,20 +21,22 @@
         class="therapist-grid"
         :class="{ 'therapist-grid--compact': selectedTherapistsWithSessions.length === 1 }"
       >
-        <div
+        <RouterLink
           v-for="therapist in selectedTherapistsWithSessions"
           :key="therapist.public_slug"
           class="therapist-card"
+          :to="`/t/${therapist.public_slug}`"
         >
-          <RouterLink class="therapist-photo-link" :to="`/t/${therapist.public_slug}`">
+          <div class="therapist-photo-link">
             <img
               v-if="therapist.photo_url"
               :src="therapist.photo_url"
               :alt="publicName(therapist.display_name)"
+              @error="onPhotoError(therapist)"
               class="therapist-photo"
             />
             <div v-else class="therapist-photo therapist-photo--empty">Фото</div>
-          </RouterLink>
+          </div>
           <div class="therapist-info">
             <div class="therapist-name">{{ publicName(therapist.display_name) }}</div>
             <div class="muted meta-line">
@@ -58,13 +60,8 @@
                 </span>
               </div>
             </div>
-            <div class="therapist-actions">
-              <RouterLink class="btn btn--ghost btn--sm" :to="`/t/${therapist.public_slug}`">
-                Відкрити профіль
-              </RouterLink>
-            </div>
           </div>
-        </div>
+        </RouterLink>
       </div>
       <div v-if="selectedTherapists.length > 0" class="selected-actions">
         <RouterLink class="btn btn--ghost" to="/client/therapists">Додати терапевта</RouterLink>
@@ -77,16 +74,22 @@
         Ви ще не переглядали профілі терапевтів.
       </div>
       <div v-else class="therapist-grid" :class="{ 'therapist-grid--compact': viewedTherapists.length === 1 }">
-        <div v-for="therapist in viewedTherapists" :key="therapist.public_slug" class="therapist-card">
-          <RouterLink class="therapist-photo-link" :to="`/t/${therapist.public_slug}`">
+        <RouterLink
+          v-for="therapist in viewedTherapists"
+          :key="therapist.public_slug"
+          class="therapist-card"
+          :to="`/t/${therapist.public_slug}`"
+        >
+          <div class="therapist-photo-link">
             <img
               v-if="therapist.photo_url"
               :src="therapist.photo_url"
               :alt="publicName(therapist.display_name)"
+              @error="onPhotoError(therapist)"
               class="therapist-photo"
             />
             <div v-else class="therapist-photo therapist-photo--empty">Фото</div>
-          </RouterLink>
+          </div>
           <div class="therapist-info">
             <div class="therapist-name">{{ publicName(therapist.display_name) }}</div>
             <div class="muted meta-line">
@@ -97,7 +100,7 @@
             </div>
           <div v-if="priceLabel(therapist)" class="therapist-price">{{ priceLabel(therapist) }}</div>
         </div>
-        </div>
+        </RouterLink>
       </div>
     </div>
 
@@ -299,6 +302,11 @@ function loadViewedTherapists() {
   }
 }
 
+function persistTherapists() {
+  localStorage.setItem('selectedTherapists', JSON.stringify(selectedTherapists.value))
+  localStorage.setItem('viewedTherapists', JSON.stringify(viewedTherapists.value))
+}
+
 function syncSelectedTherapists() {
   const viewedBySlug = new Map(
     viewedTherapists.value.map((therapist) => [therapist.public_slug, therapist])
@@ -344,38 +352,68 @@ function syncSelectedTherapists() {
   }
 }
 
-async function hydrateTherapistIds() {
-  const missing = selectedTherapists.value.filter(
-    (therapist) => !therapist.therapist_id && therapist.public_slug
-  )
-  if (!missing.length) return
+async function hydrateTherapistProfiles() {
+  const all = [...selectedTherapists.value, ...viewedTherapists.value]
+    .filter((therapist) => therapist.public_slug)
+    .map((therapist) => therapist.public_slug)
+  const uniqueSlugs = Array.from(new Set(all))
+  if (!uniqueSlugs.length) return
 
   const responses = await Promise.allSettled(
-    missing.map((therapist) => fetchPublicTherapistProfile(therapist.public_slug))
+    uniqueSlugs.map((slug) => fetchPublicTherapistProfile(slug))
   )
-  const bySlug = new Map<string, number>()
+  const bySlug = new Map<string, SelectedTherapist>()
   responses.forEach((res, index) => {
     if (res.status !== 'fulfilled') return
-    const id = res.value?.therapist_id
-    const slug = missing[index]?.public_slug
-    if (id && slug) {
-      bySlug.set(slug, id)
-    }
+    const data = res.value
+    const slug = data.public_slug || uniqueSlugs[index]
+    if (!slug) return
+    bySlug.set(slug, {
+      therapist_id: data.therapist_id,
+      public_slug: slug,
+      display_name: data.display_name,
+      location: data.location,
+      languages: data.languages,
+      price: data.price,
+      price_currency: data.price_currency,
+      photo_url: data.photo_url || '',
+    })
   })
   if (!bySlug.size) return
 
   let changed = false
-  selectedTherapists.value = selectedTherapists.value.map((therapist) => {
-    if (therapist.therapist_id) return therapist
-    const id = bySlug.get(therapist.public_slug)
-    if (!id) return therapist
-    changed = true
-    return { ...therapist, therapist_id: id }
-  })
+  const mergeTherapist = (therapist: SelectedTherapist) => {
+    const fresh = bySlug.get(therapist.public_slug)
+    if (!fresh) return therapist
+    const merged: SelectedTherapist = {
+      ...therapist,
+      therapist_id: fresh.therapist_id ?? therapist.therapist_id,
+      display_name: fresh.display_name || therapist.display_name,
+      location: fresh.location ?? therapist.location,
+      languages: fresh.languages ?? therapist.languages,
+      price: fresh.price ?? therapist.price,
+      price_currency: fresh.price_currency ?? therapist.price_currency,
+      photo_url: fresh.photo_url || '',
+    }
+    if (JSON.stringify(merged) !== JSON.stringify(therapist)) {
+      changed = true
+      return merged
+    }
+    return therapist
+  }
+
+  selectedTherapists.value = selectedTherapists.value.map(mergeTherapist)
+  viewedTherapists.value = viewedTherapists.value.map(mergeTherapist)
 
   if (changed) {
-    localStorage.setItem('selectedTherapists', JSON.stringify(selectedTherapists.value))
+    persistTherapists()
   }
+}
+
+function onPhotoError(therapist: SelectedTherapist) {
+  if (!therapist.photo_url) return
+  therapist.photo_url = ''
+  persistTherapists()
 }
 
 onMounted(async () => {
@@ -383,7 +421,7 @@ onMounted(async () => {
   loadViewedTherapists()
   await loadSessions()
   syncSelectedTherapists()
-  await hydrateTherapistIds()
+  await hydrateTherapistProfiles()
 })
 </script>
 
@@ -423,11 +461,25 @@ onMounted(async () => {
   border: 1px solid var(--line);
   background: rgba(255, 255, 255, 0.9);
   width: 100%;
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.therapist-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 24px rgba(16, 33, 50, 0.12);
+  border-color: rgba(31, 74, 96, 0.25);
+}
+
+.therapist-card:focus-visible {
+  outline: 2px solid rgba(31, 74, 96, 0.35);
+  outline-offset: 2px;
 }
 
 .therapist-photo-link {
   width: 140px;
-  height: 140px;
+  aspect-ratio: 1 / 1;
   display: block;
 }
 

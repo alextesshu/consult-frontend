@@ -14,7 +14,12 @@
       <div v-if="loading" class="muted">Завантаження списку…</div>
       <div v-else-if="therapists.length === 0" class="muted">Поки немає публічних профілів.</div>
       <div v-else class="therapist-grid">
-        <div v-for="therapist in therapists" :key="therapist.public_slug" class="therapist-card">
+        <RouterLink
+          v-for="therapist in therapists"
+          :key="therapist.public_slug"
+          class="therapist-card"
+          :to="`/t/${therapist.public_slug}`"
+        >
           <img
             v-if="therapist.photo_url"
             :src="therapist.photo_url"
@@ -24,16 +29,13 @@
           <div v-else class="therapist-photo therapist-photo--empty">Фото</div>
           <div class="therapist-info">
             <div class="therapist-name">{{ publicName(therapist) }}</div>
-            <div class="muted">
+            <div class="muted meta-line">
               <span v-if="therapist.location">{{ therapist.location }}</span>
               <span v-if="languageLabel(therapist.languages)">{{ languageLabel(therapist.languages) }}</span>
             </div>
             <div v-if="priceLabel(therapist)" class="therapist-price">{{ priceLabel(therapist) }}</div>
           </div>
-          <button class="btn btn--ghost" type="button" @click="openProfile(therapist)">
-            Відкрити профіль
-          </button>
-        </div>
+        </RouterLink>
       </div>
     </div>
   </section>
@@ -41,12 +43,10 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
 import { fetchPublicTherapists, type PublicTherapistProfile } from '../lib/api'
 
 const therapists = ref<PublicTherapistProfile[]>([])
 const loading = ref(false)
-const router = useRouter()
 
 const languageLabel = (value?: string | string[]) => {
   if (!value) return ''
@@ -83,11 +83,6 @@ async function loadTherapists() {
   } finally {
     loading.value = false
   }
-}
-
-function openProfile(therapist: PublicTherapistProfile) {
-  if (!therapist.public_slug) return
-  router.push(`/t/${therapist.public_slug}`)
 }
 
 onMounted(loadTherapists)
@@ -127,11 +122,26 @@ onMounted(loadTherapists)
   display: grid;
   gap: 10px;
   background: rgba(7, 47, 71, 0.04);
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.therapist-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 24px rgba(16, 33, 50, 0.12);
+  border-color: rgba(31, 74, 96, 0.25);
+}
+
+.therapist-card:focus-visible {
+  outline: 2px solid rgba(31, 74, 96, 0.35);
+  outline-offset: 2px;
 }
 
 .therapist-photo {
   width: 100%;
-  height: 140px;
+  aspect-ratio: 1 / 1;
+  height: auto;
   border-radius: 14px;
   object-fit: cover;
   border: 1px solid var(--line);
@@ -142,6 +152,7 @@ onMounted(loadTherapists)
   place-items: center;
   background: rgba(7, 47, 71, 0.06);
   color: var(--muted);
+  aspect-ratio: 1 / 1;
 }
 
 .therapist-info {
@@ -151,6 +162,17 @@ onMounted(loadTherapists)
 
 .therapist-name {
   font-weight: 600;
+}
+
+.meta-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.meta-line span + span::before {
+  content: " · ";
+  color: var(--muted);
 }
 
 .therapist-price {

@@ -29,7 +29,10 @@
           <div>
             <div class="badge badge--soft">Крок 1</div>
             <h2 class="panel__title">Публічний профіль</h2>
-            <p class="panel__hint">Увімкніть профіль та скопіюйте посилання для клієнтів.</p>
+            <p class="panel__hint">
+              Якщо ви вже знайшли клієнта і хочете почати співпрацю — поділіться з ним посиланням
+              на ваш профіль. Для цього натисніть “Поділитись профілем” або скопіюйте посилання нижче.
+            </p>
           </div>
         </div>
         <div class="form" style="margin-top: 12px;">
@@ -40,7 +43,12 @@
           <div class="field">
             <div class="muted">Код посилання</div>
             <div class="slug-row">
-              <code class="slug" title="Це унікальний код для публічного посилання на ваш профіль.">{{ profile.public_slug }}</code>
+              <code
+                class="slug"
+                title="Це унікальний код, з якого формується посилання на ваш профіль. Якщо оновити код — попереднє посилання перестане працювати."
+              >
+                {{ profile.public_slug }}
+              </code>
               <button
                 class="btn btn--ghost"
                 type="button"
@@ -52,6 +60,9 @@
             </div>
             <div class="muted" style="font-size: 12px;">
               Останнє оновлення: {{ profile.last_slug_rotated_at || 'ніколи' }}
+            </div>
+            <div class="muted" style="font-size: 12px;">
+              Це службовий код. Він потрібен, щоб оновлювати публічне посилання або відкривати профіль вручну.
             </div>
           </div>
           <div class="field">
@@ -98,7 +109,36 @@
           </label>
           <label class="field">
             Спеціалізації
-            <input v-model="profile.specializations" class="input" type="text" placeholder="Напр. тривожні стани, вигорання" />
+            <div class="chip-field">
+              <div class="chip" v-for="spec in specializationList" :key="spec">
+                <span>{{ spec }}</span>
+                <button type="button" class="chip-remove" @click="removeSpecialization(spec)">×</button>
+              </div>
+              <input
+                v-model="specializationInput"
+                class="input chip-input"
+                type="text"
+                list="specializationOptions"
+                placeholder="введіть спеціалізацію"
+                @keydown.enter.prevent="addSpecialization()"
+                @keydown="onSpecializationKeydown"
+              />
+              <datalist id="specializationOptions">
+                <option v-for="option in specializationOptions" :key="option" :value="option" />
+              </datalist>
+            </div>
+            <div v-if="showOtherSpecialization" class="chip-field" style="margin-top: 8px;">
+              <input
+                v-model="otherSpecializationInput"
+                class="input chip-input"
+                type="text"
+                placeholder="Впишіть спеціалізацію"
+                @keydown.enter.prevent="addOtherSpecialization"
+              />
+              <button class="btn btn--ghost btn--sm" type="button" @click="addOtherSpecialization">
+                Додати
+              </button>
+            </div>
           </label>
           <label class="field">
             Мови
@@ -338,6 +378,13 @@
               <div v-else class="media-empty">Фото ще не завантажено</div>
             </div>
             <div class="media-status" v-if="photoUploading">Завантаження фото...</div>
+            <button
+              class="btn btn--ghost btn--sm"
+              type="button"
+              @click.stop="triggerPhotoSelect"
+            >
+              Змінити фото
+            </button>
             <input
               ref="photoInput"
               class="input input--file is-hidden"
@@ -366,6 +413,13 @@
               <div v-else class="media-empty">Відео ще не завантажено</div>
             </div>
             <div class="media-status" v-if="videoUploading">Завантаження відео...</div>
+            <button
+              class="btn btn--ghost btn--sm"
+              type="button"
+              @click.stop="triggerVideoSelect"
+            >
+              Змінити відео
+            </button>
             <input
               ref="videoInput"
               class="input input--file is-hidden"
@@ -391,8 +445,27 @@
           <div class="preview-card">
             <div class="preview-content">
               <div class="preview-info">
-                <div class="preview-title">
-                  {{ profile.display_name || "Ваше публічне ім'я" }}
+                <div class="preview-header">
+                  <div class="preview-title">
+                    {{ profile.display_name || "Ваше публічне ім'я" }}
+                  </div>
+                  <div v-if="profile.show_price && profile.price" class="preview-price">
+                    {{ priceDisplay }}
+                  </div>
+                </div>
+                <div
+                  v-if="specializationList.length || languageList.length || (profile.show_location && profile.location)"
+                  class="preview-tags"
+                >
+                  <span v-for="spec in specializationList" :key="spec" class="preview-tag">
+                    {{ spec }}
+                  </span>
+                  <span v-for="language in languageList" :key="language" class="preview-tag preview-tag--ghost">
+                    {{ language }}
+                  </span>
+                  <span v-if="profile.show_location && profile.location" class="preview-tag preview-tag--muted">
+                    {{ profile.location }}
+                  </span>
                 </div>
                 <div class="preview-sections" v-if="hasAnyBioSection">
                   <div v-if="profile.show_bio_about && profile.bio_about" class="preview-section">
@@ -416,49 +489,46 @@
                     <div class="muted preview-bio">{{ profile.bio_other }}</div>
                   </div>
                 </div>
-                <div class="meta">
-                  <span v-if="profile.specializations">{{ profile.specializations }}</span>
-                  <span v-if="languagesDisplay">{{ languagesDisplay }}</span>
-                  <span v-if="profile.show_location && profile.location">{{ profile.location }}</span>
-                </div>
-                <div class="meta">
-                  <span v-if="profile.show_price && profile.price">{{ priceDisplay }}</span>
-                </div>
-                <div class="contact">
-                  <div v-if="profile.show_email && profile.contact_email">
-                    Email: {{ profile.contact_email }}
-                  </div>
-                  <div v-if="profile.show_phone && profile.contact_phone">
-                    Телефон: {{ profile.contact_phone }}
-                  </div>
-                  <div v-if="profile.show_messenger && profile.messenger">
-                    Messenger / Signal: {{ profile.messenger }}
-                  </div>
-                  <div v-if="profile.show_telegram && profile.telegram">
-                    Telegram: {{ profile.telegram }}
-                  </div>
-                  <div v-if="profile.show_viber && profile.viber">
-                    Viber: {{ profile.viber }}
-                  </div>
-                  <div v-if="profile.show_whatsapp && profile.whatsapp">
-                    WhatsApp: {{ profile.whatsapp }}
+                <div v-if="hasAnyContact" class="preview-contact">
+                  <div class="preview-label">Контакти</div>
+                  <div class="contact">
+                    <div v-if="profile.show_email && profile.contact_email">
+                      Email: {{ profile.contact_email }}
+                    </div>
+                    <div v-if="profile.show_phone && profile.contact_phone">
+                      Телефон: {{ profile.contact_phone }}
+                    </div>
+                    <div v-if="profile.show_messenger && profile.messenger">
+                      Messenger / Signal: {{ profile.messenger }}
+                    </div>
+                    <div v-if="profile.show_telegram && profile.telegram">
+                      Telegram: {{ profile.telegram }}
+                    </div>
+                    <div v-if="profile.show_viber && profile.viber">
+                      Viber: {{ profile.viber }}
+                    </div>
+                    <div v-if="profile.show_whatsapp && profile.whatsapp">
+                      WhatsApp: {{ profile.whatsapp }}
+                    </div>
                   </div>
                 </div>
               </div>
               <div class="preview-media">
-                <img
-                  v-if="profile.show_photo && profile.photo_url"
-                  class="preview-photo"
-                  :src="profile.photo_url"
-                  alt="Фото профілю"
-                />
-                <video
-                  v-if="profile.show_video && profile.video_url"
-                  class="preview-video"
-                  :src="profile.video_url"
-                  controls
-                  preload="metadata"
-                ></video>
+                <div v-if="profile.show_photo && profile.photo_url" class="preview-media-card">
+                  <img
+                    class="preview-photo"
+                    :src="profile.photo_url"
+                    alt="Фото профілю"
+                  />
+                </div>
+                <div v-if="profile.show_video && profile.video_url" class="preview-media-card">
+                  <video
+                    class="preview-video"
+                    :src="profile.video_url"
+                    controls
+                    preload="metadata"
+                  ></video>
+                </div>
               </div>
             </div>
           </div>
@@ -473,11 +543,40 @@
       </div>
     </form>
 
+    <div v-if="cropperOpen" class="cropper-overlay">
+      <div class="cropper-modal">
+        <div class="cropper-header">
+          <div class="cropper-title">Обрізка фото</div>
+          <button class="btn btn--ghost btn--sm" type="button" @click="closeCropper">
+            Скасувати
+          </button>
+        </div>
+        <div class="cropper-body">
+          <Cropper
+            ref="cropperRef"
+            class="cropper"
+            :src="cropperSrc"
+            :stencil-props="{ aspectRatio: 1 }"
+            :auto-zoom="true"
+          />
+        </div>
+        <div class="cropper-actions">
+          <button class="btn btn--ghost" type="button" @click="closeCropper">
+            Скасувати
+          </button>
+          <button class="btn" type="button" :disabled="cropSaving" @click="applyCrop">
+            {{ cropSaving ? 'Збереження...' : 'Зберегти фото' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
   </section>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue'
+import { Cropper } from 'vue-advanced-cropper'
 import {
   fetchTherapistProfile,
   rotateTherapistProfileSlug,
@@ -500,6 +599,11 @@ const photoPreviewUrl = ref('')
 const videoPreviewUrl = ref('')
 const photoInput = ref<HTMLInputElement | null>(null)
 const videoInput = ref<HTMLInputElement | null>(null)
+const cropperOpen = ref(false)
+const cropperSrc = ref('')
+const cropperRef = ref<any>(null)
+const cropSaving = ref(false)
+const cropFileName = ref('profile-photo.jpg')
 const languageOptions = [
   'Українська',
   'Російська',
@@ -514,8 +618,28 @@ const languageOptions = [
   'Slovenčina',
 ]
 
+const specializationOptions = [
+  'Гештальт терапія',
+  'Екзистенційна терапія',
+  'Клієнт-центрована терапія',
+  'Когнітивно-поведінкова терапія',
+  'Терапія прийняття і відповідальності (ACT)',
+  'Позитивна психотерапія',
+  'Психоаналіз',
+  'Психодрама',
+  'Символдрама',
+  'Схема-терапія',
+  'Транзакційний аналіз',
+  'Арттерапія',
+  'Інше',
+]
+
 const languageInput = ref('')
 const languageList = ref<string[]>([])
+const specializationInput = ref('')
+const specializationList = ref<string[]>([])
+const showOtherSpecialization = ref(false)
+const otherSpecializationInput = ref('')
 const disallowedLanguages = new Set(['російська', 'русский', 'russian'])
 
 function setPreviewUrl(target: { value: string }, file?: File | null) {
@@ -531,6 +655,68 @@ function triggerPhotoSelect() {
 
 function triggerVideoSelect() {
   videoInput.value?.click()
+}
+
+function openCropper(file: File) {
+  if (cropperSrc.value) {
+    URL.revokeObjectURL(cropperSrc.value)
+  }
+  cropperSrc.value = URL.createObjectURL(file)
+  cropFileName.value = file.name || 'profile-photo.jpg'
+  cropperOpen.value = true
+}
+
+function closeCropper() {
+  cropperOpen.value = false
+  if (cropperSrc.value) {
+    URL.revokeObjectURL(cropperSrc.value)
+  }
+  cropperSrc.value = ''
+}
+
+function getCroppedFile(): Promise<File> {
+  const result = cropperRef.value?.getResult?.()
+  const canvas = result?.canvas
+  if (!canvas) {
+    return Promise.reject(new Error('Cropper not ready'))
+  }
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (blob: Blob | null) => {
+        if (!blob) {
+          reject(new Error('Не вдалося обрізати фото'))
+          return
+        }
+        resolve(
+          new File([blob], cropFileName.value || 'profile-photo.jpg', {
+            type: blob.type || 'image/jpeg',
+          })
+        )
+      },
+      'image/jpeg',
+      0.92
+    )
+  })
+}
+
+async function applyCrop() {
+  cropSaving.value = true
+  photoUploading.value = true
+  error.value = ''
+  try {
+    const file = await getCroppedFile()
+    setPreviewUrl(photoPreviewUrl, file)
+    const data = await uploadProfilePhoto(file)
+    Object.assign(profile, normalizeProfile(data))
+    setPreviewUrl(photoPreviewUrl, null)
+    success.value = 'Фото завантажено.'
+    closeCropper()
+  } catch (err) {
+    error.value = getApiErrorMessage(err, 'Не вдалося завантажити фото')
+  } finally {
+    cropSaving.value = false
+    photoUploading.value = false
+  }
 }
 
 function getApiErrorMessage(err: unknown, fallback: string) {
@@ -586,7 +772,7 @@ function buildProfilePayload() {
     show_bio_approach: profile.show_bio_approach,
     show_bio_for_whom: profile.show_bio_for_whom,
     show_bio_other: profile.show_bio_other,
-    specializations: toList(profile.specializations),
+    specializations: specializationList.value,
     languages: languageList.value,
     location: profile.location,
     price: normalizeDecimal(profile.price),
@@ -653,7 +839,6 @@ const publicUrl = computed(() => {
   return `${window.location.origin}/t/${profile.public_slug}`
 })
 
-const languagesDisplay = computed(() => languageList.value.join(', '))
 const priceDisplay = computed(() => {
   if (!profile.price) return ''
   const currency = profile.price_currency || 'UAH'
@@ -670,6 +855,15 @@ const hasAnyBioSection = computed(
     (profile.show_bio_for_whom && Boolean(profile.bio_for_whom)) ||
     (profile.show_bio_other && Boolean(profile.bio_other))
 )
+const hasAnyContact = computed(
+  () =>
+    (profile.show_email && Boolean(profile.contact_email)) ||
+    (profile.show_phone && Boolean(profile.contact_phone)) ||
+    (profile.show_messenger && Boolean(profile.messenger)) ||
+    (profile.show_telegram && Boolean(profile.telegram)) ||
+    (profile.show_viber && Boolean(profile.viber)) ||
+    (profile.show_whatsapp && Boolean(profile.whatsapp))
+)
 
 async function loadProfile() {
   loading.value = true
@@ -678,6 +872,10 @@ async function loadProfile() {
     const data = await fetchTherapistProfile()
     Object.assign(profile, normalizeProfile(data))
     languageList.value = sanitizeLanguages(toList(profile.languages))
+    specializationList.value = toList(profile.specializations)
+    specializationInput.value = ''
+    showOtherSpecialization.value = false
+    otherSpecializationInput.value = ''
     languageInput.value = ''
     setPreviewUrl(photoPreviewUrl, null)
     setPreviewUrl(videoPreviewUrl, null)
@@ -693,9 +891,16 @@ async function onSave() {
   success.value = ''
   error.value = ''
   try {
+    if (showOtherSpecialization.value && otherSpecializationInput.value.trim()) {
+      addOtherSpecialization()
+    }
     const data = await updateTherapistProfile(buildProfilePayload())
     Object.assign(profile, normalizeProfile(data))
     languageList.value = sanitizeLanguages(toList(profile.languages))
+    specializationList.value = toList(profile.specializations)
+    specializationInput.value = ''
+    showOtherSpecialization.value = false
+    otherSpecializationInput.value = ''
     languageInput.value = ''
     success.value = 'Збережено.'
   } catch (err) {
@@ -757,20 +962,9 @@ async function onPhotoSelected(event: Event) {
   const input = event.target as HTMLInputElement
   const file = input.files?.[0]
   if (!file) return
-  setPreviewUrl(photoPreviewUrl, file)
-  photoUploading.value = true
   error.value = ''
-  try {
-    const data = await uploadProfilePhoto(file)
-    Object.assign(profile, normalizeProfile(data))
-    setPreviewUrl(photoPreviewUrl, null)
-    success.value = 'Фото завантажено.'
-  } catch (err) {
-    error.value = getApiErrorMessage(err, 'Не вдалося завантажити фото')
-  } finally {
-    photoUploading.value = false
-    input.value = ''
-  }
+  openCropper(file)
+  input.value = ''
 }
 
 async function onVideoSelected(event: Event) {
@@ -853,6 +1047,42 @@ function onLanguageKeydown(event: KeyboardEvent) {
   if (event.key === ',') {
     event.preventDefault()
     addLanguage()
+  }
+}
+
+function addSpecialization() {
+  const value = specializationInput.value.trim()
+  if (!value) return
+  if (value.toLowerCase() === 'інше') {
+    showOtherSpecialization.value = true
+    specializationInput.value = ''
+    otherSpecializationInput.value = ''
+    return
+  }
+  if (!specializationList.value.includes(value)) {
+    specializationList.value.push(value)
+  }
+  specializationInput.value = ''
+}
+
+function addOtherSpecialization() {
+  const value = otherSpecializationInput.value.trim()
+  if (!value) return
+  if (!specializationList.value.includes(value)) {
+    specializationList.value.push(value)
+  }
+  otherSpecializationInput.value = ''
+  showOtherSpecialization.value = false
+}
+
+function removeSpecialization(spec: string) {
+  specializationList.value = specializationList.value.filter((item) => item !== spec)
+}
+
+function onSpecializationKeydown(event: KeyboardEvent) {
+  if (event.key === ',') {
+    event.preventDefault()
+    addSpecialization()
   }
 }
 
@@ -1005,34 +1235,82 @@ onMounted(loadProfile)
 }
 
 .preview {
-  background: linear-gradient(135deg, #ffffff 0%, #f5f1ea 100%);
+  background: linear-gradient(135deg, #ffffff 0%, #f1f7ff 100%);
 }
 
 .preview-card {
   margin-top: 12px;
   display: grid;
-  gap: 10px;
-  border-radius: 16px;
-  padding: 16px;
-  background: #fff;
+  gap: 16px;
+  border-radius: 18px;
+  padding: 18px 20px;
+  background: #ffffff;
   border: 1px solid var(--line);
+  box-shadow: 0 18px 40px rgba(15, 31, 38, 0.08);
 }
 
 .preview-content {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 340px);
-  gap: 16px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 320px);
+  gap: 20px;
   align-items: start;
 }
 
 .preview-info {
   display: grid;
-  gap: 10px;
+  gap: 14px;
+}
+
+.preview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 .preview-title {
   font-family: var(--font-display);
-  font-size: 22px;
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.preview-price {
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(20, 92, 140, 0.2);
+  background: rgba(20, 92, 140, 0.12);
+  color: #103247;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.preview-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.preview-tag {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: #f3f6fb;
+  border: 1px solid #e1e8f0;
+  font-size: 12px;
+  color: #405161;
+}
+
+.preview-tag--ghost {
+  background: #f7f4ef;
+  border-color: #ebe1d4;
+  color: #6a5d4f;
+}
+
+.preview-tag--muted {
+  background: #eef2f6;
+  border-color: #dde3ea;
+  color: #5b6774;
 }
 
 .preview-bio {
@@ -1062,10 +1340,14 @@ onMounted(loadProfile)
 .preview-section {
   display: grid;
   gap: 6px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid #e9eef4;
+  background: #f9fbff;
 }
 
 .preview-label {
-  font-size: 12px;
+  font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--muted);
@@ -1087,18 +1369,35 @@ onMounted(loadProfile)
   word-break: break-word;
 }
 
+.preview-contact {
+  display: grid;
+  gap: 8px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid #efe7dd;
+  background: #fdfaf6;
+}
+
 .preview-media {
   display: grid;
-  gap: 10px;
+  gap: 12px;
+}
+
+.preview-media-card {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background: #0f2b3a;
+  overflow: hidden;
+  display: block;
+  box-shadow: 0 16px 36px rgba(15, 31, 38, 0.16);
 }
 
 .preview-photo {
   width: 100%;
   max-width: 100%;
-  aspect-ratio: 1 / 1;
-  border-radius: 12px;
-  border: 1px solid var(--line);
-  background: #0f2b3a;
+  height: 100%;
   object-fit: cover;
   display: block;
 }
@@ -1106,11 +1405,9 @@ onMounted(loadProfile)
 .preview-video {
   width: 100%;
   max-width: 100%;
-  aspect-ratio: 1 / 1;
-  border-radius: 12px;
-  border: 1px solid var(--line);
-  background: #0f2b3a;
+  height: 100%;
   display: block;
+  object-fit: cover;
 }
 
 .profile-footer {
@@ -1134,8 +1431,9 @@ onMounted(loadProfile)
 }
 
 .media-preview--side {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 240px));
   align-items: stretch;
+  justify-content: start;
 }
 
 .media-preview--side .media-card {
@@ -1145,12 +1443,12 @@ onMounted(loadProfile)
 .media-card {
   border: 1px dashed var(--line);
   border-radius: 16px;
-  padding: 12px;
+  padding: 10px;
   background: #fdfaf6;
   display: grid;
   gap: 10px;
   grid-template-rows: auto 1fr auto;
-  min-height: 360px;
+  min-height: 200px;
 }
 
 .media-title {
@@ -1160,8 +1458,7 @@ onMounted(loadProfile)
 
 .media-frame {
   width: 100%;
-  aspect-ratio: 3 / 4;
-  height: 260px;
+  aspect-ratio: 1 / 1;
   border-radius: 14px;
   border: 1px solid var(--line);
   background: #fff;
@@ -1177,6 +1474,58 @@ onMounted(loadProfile)
   object-fit: cover;
   display: block;
   border-radius: 12px;
+}
+
+.cropper-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 27, 43, 0.55);
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  z-index: 80;
+}
+
+.cropper-modal {
+  width: min(720px, 92vw);
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  max-height: min(90vh, 820px);
+}
+
+.cropper-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.cropper-title {
+  font-weight: 600;
+}
+
+.cropper-body {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #f3f6f7;
+  max-height: 60vh;
+}
+
+.cropper {
+  width: 100%;
+  height: 100%;
+}
+
+.cropper-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
 }
 
 .media-empty {

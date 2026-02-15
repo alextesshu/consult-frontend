@@ -2,7 +2,7 @@
   <section class="groups">
     <header class="groups__hero">
       <div>
-        <div class="badge">Group Room</div>
+        <div class="badge">Групові події</div>
         <h1 class="title groups__title">Групові події</h1>
         <p class="muted groups__subtitle">
           Керуйте зустрічами та трансляціями. План визначає доступ і місткість.
@@ -21,15 +21,15 @@
       </div>
       <div class="access-grid">
         <div class="access-card">
-          <div class="access-title">Group Room</div>
+          <div class="access-title">Групові події</div>
           <div class="access-value">{{ groupRoomLabel }}</div>
         </div>
         <div class="access-card">
-          <div class="access-title">Meeting ліміт</div>
+          <div class="access-title">Ліміт зустрічей</div>
           <div class="access-value">{{ meetingLimitLabel }}</div>
         </div>
         <div class="access-card">
-          <div class="access-title">Broadcast</div>
+          <div class="access-title">Трансляції</div>
           <div class="access-value">{{ broadcastLabel }}</div>
         </div>
       </div>
@@ -38,45 +38,61 @@
       </div>
       <div v-else class="group-actions">
         <button class="btn" type="button" @click="createDraft('MEETING')" :disabled="createLoading">
-          Створити MEETING
+          Створити зустріч
         </button>
         <button class="btn btn--ghost" type="button" @click="createDraft('BROADCAST')" :disabled="createLoading">
-          Створити BROADCAST
+          Створити трансляцію
         </button>
       </div>
       <div v-if="groupRoomEnabled" class="group-create">
         <div class="group-create__title">Нова подія</div>
         <div class="group-create__grid">
-          <label class="field">
-            <span>Режим</span>
-            <select v-model="createForm.mode">
-              <option value="MEETING">MEETING</option>
-              <option value="BROADCAST">BROADCAST</option>
-            </select>
-          </label>
-          <label class="field">
-            <span>Початок</span>
-            <input v-model="createForm.starts_at" type="datetime-local" />
-          </label>
-          <label class="field">
-            <span>Завершення</span>
-            <input v-model="createForm.ends_at" type="datetime-local" />
-          </label>
-          <label class="field">
-            <span>Ліміт місць (MEETING)</span>
-            <input v-model="createForm.capacity_limit_snapshot" type="number" min="1" placeholder="Напр. 10" />
-          </label>
-          <label class="field">
-            <span>Технічний cap</span>
-            <input v-model="createForm.technical_cap" type="number" min="1" placeholder="Напр. 100" />
-          </label>
-          <label class="field">
-            <span>Видимість списку</span>
-            <select v-model="createForm.participant_list_visibility">
-              <option value="SHOW_NAMES">Показувати імена</option>
-              <option value="HIDDEN">Приховано</option>
-            </select>
-          </label>
+          <div class="group-create__row">
+            <label class="field">
+              <span>Режим</span>
+              <select v-model="createForm.mode">
+                <option value="MEETING">Зустріч</option>
+                <option value="BROADCAST">Трансляція</option>
+              </select>
+            </label>
+            <label class="field">
+              <span>Видимість списку</span>
+              <select v-model="createForm.participant_list_visibility">
+                <option value="SHOW_NAMES">Показувати імена</option>
+                <option value="HIDDEN">Приховано</option>
+              </select>
+            </label>
+          </div>
+          <div class="group-create__row">
+            <label class="field">
+              <span>Початок</span>
+              <input
+                v-model="createForm.starts_at"
+                type="datetime-local"
+                @click="openDatePicker"
+                @focus="openDatePicker"
+              />
+            </label>
+            <label class="field">
+              <span>Завершення</span>
+              <input
+                v-model="createForm.ends_at"
+                type="datetime-local"
+                @click="openDatePicker"
+                @focus="openDatePicker"
+              />
+            </label>
+          </div>
+          <div class="group-create__row">
+            <label class="field">
+              <span>Ліміт місць (зустріч)</span>
+              <input v-model="createForm.capacity_limit_snapshot" type="number" min="1" placeholder="Напр. 10" />
+            </label>
+            <label class="field">
+              <span>Технічний ліміт</span>
+              <input v-model="createForm.technical_cap" type="number" min="1" placeholder="Напр. 100" />
+            </label>
+          </div>
         </div>
         <div class="group-create__actions">
           <button class="btn" type="button" @click="createEvent(false)" :disabled="createLoading">
@@ -98,8 +114,8 @@
       <div v-if="events.length === 0" class="muted">Подій поки немає.</div>
       <article v-for="event in events" :key="event.id" class="group-card">
         <div class="group-card__header">
-          <div class="badge badge--soft">{{ event.mode }}</div>
-          <div class="state-pill" :class="statePillClass(event.state)">{{ event.state }}</div>
+          <div class="badge badge--soft">{{ formatMode(event.mode) }}</div>
+          <div class="state-pill" :class="statePillClass(event.state)">{{ formatState(event.state) }}</div>
         </div>
         <div class="group-title">Старт: {{ formatDate(event.starts_at) || 'Без розкладу' }}</div>
         <div class="muted">
@@ -162,13 +178,13 @@
               <div>{{ event.capacity_limit_snapshot ?? 'Н/Д' }}</div>
             </div>
             <div>
-              <div class="group-details__label">Технічний cap</div>
+              <div class="group-details__label">Технічний ліміт</div>
               <div>{{ event.technical_cap ?? 'Н/Д' }}</div>
             </div>
             <div>
-              <div class="group-details__label">Видимість списку</div>
-              <div>{{ event.participant_list_visibility }}</div>
-            </div>
+                  <div class="group-details__label">Видимість списку</div>
+                  <div>{{ formatVisibility(event.participant_list_visibility) }}</div>
+                </div>
           </div>
 
           <div class="group-details__section">
@@ -190,7 +206,7 @@
               >
                 <div>
                   <div class="participant-name">{{ participant.user_username }}</div>
-                  <div class="muted">{{ participant.role }} · {{ participant.invite_status }}</div>
+                  <div class="muted">{{ formatRole(participant.role) }} · {{ formatInviteStatus(participant.invite_status) }}</div>
                 </div>
                 <div class="participant-actions">
                   <select
@@ -198,27 +214,27 @@
                     :value="participant.role"
                     @change="updateParticipantRole(event, participant, ($event.target as HTMLSelectElement).value)"
                   >
-                    <option value="PARTICIPANT">PARTICIPANT</option>
-                    <option value="SPEAKER">SPEAKER</option>
-                    <option value="CO_HOST">CO_HOST</option>
+                    <option value="PARTICIPANT">Учасник</option>
+                    <option value="SPEAKER">Доповідач</option>
+                    <option value="CO_HOST">Співведучий</option>
                   </select>
                   <select
                     v-if="participant.role !== 'HOST'"
                     :value="participant.invite_status"
                     @change="updateParticipantStatus(event, participant, ($event.target as HTMLSelectElement).value)"
                   >
-                    <option value="PENDING" :disabled="participant.invite_status !== 'PENDING'">PENDING</option>
+                    <option value="PENDING" :disabled="participant.invite_status !== 'PENDING'">Очікує підтвердження</option>
                     <option
                       value="ACCEPTED"
                       :disabled="participant.invite_status !== 'PENDING'"
                     >
-                      ACCEPTED
+                      Підтверджено
                     </option>
                     <option
                       value="DECLINED"
                       :disabled="participant.invite_status === 'DECLINED'"
                     >
-                      DECLINED
+                      Відхилено
                     </option>
                   </select>
                   <button
@@ -245,16 +261,16 @@
               <label class="field">
                 <span>Роль</span>
                 <select v-model="participantForm.role">
-                  <option value="PARTICIPANT">PARTICIPANT</option>
-                  <option value="SPEAKER">SPEAKER</option>
-                  <option value="CO_HOST">CO_HOST</option>
+                  <option value="PARTICIPANT">Учасник</option>
+                  <option value="SPEAKER">Доповідач</option>
+                  <option value="CO_HOST">Співведучий</option>
                 </select>
               </label>
               <label class="field">
                 <span>Статус</span>
                 <select v-model="participantForm.invite_status">
-                  <option value="ACCEPTED">ACCEPTED</option>
-                  <option value="PENDING">PENDING</option>
+                  <option value="ACCEPTED">Підтверджено</option>
+                  <option value="PENDING">Очікує підтвердження</option>
                 </select>
               </label>
               <button class="btn btn--sm" type="button" @click="addParticipant(event)">
@@ -383,6 +399,13 @@ watch(error, (value) => {
   error.value = ''
 })
 
+function openDatePicker(event: Event) {
+  const input = event.target as HTMLInputElement | null
+  if (input && typeof input.showPicker === 'function') {
+    input.showPicker()
+  }
+}
+
 const groupRoomEnabled = computed(() => !!me.value?.effective_entitlements?.group_room_enabled)
 
 const meetingLimitLabel = computed(() => {
@@ -424,6 +447,42 @@ function statePillClass(state: string) {
   if (state === 'CANCELLED') return 'state-pill--cancelled'
   if (state === 'COMPLETED') return 'state-pill--completed'
   return 'state-pill--draft'
+}
+
+function formatMode(mode: GroupEvent['mode']) {
+  if (mode === 'MEETING') return 'Зустріч'
+  if (mode === 'BROADCAST') return 'Трансляція'
+  return mode
+}
+
+function formatState(state: GroupEvent['state']) {
+  if (state === 'DRAFT') return 'Чернетка'
+  if (state === 'SCHEDULED') return 'Заплановано'
+  if (state === 'LIVE') return 'Триває'
+  if (state === 'COMPLETED') return 'Завершено'
+  if (state === 'CANCELLED') return 'Скасовано'
+  return state
+}
+
+function formatVisibility(value: GroupEvent['participant_list_visibility']) {
+  if (value === 'SHOW_NAMES') return 'Показувати імена'
+  if (value === 'HIDDEN') return 'Приховано'
+  return value
+}
+
+function formatRole(role: GroupParticipant['role']) {
+  if (role === 'HOST') return 'Ведучий'
+  if (role === 'CO_HOST') return 'Співведучий'
+  if (role === 'SPEAKER') return 'Доповідач'
+  if (role === 'PARTICIPANT') return 'Учасник'
+  return role
+}
+
+function formatInviteStatus(status: GroupParticipant['invite_status']) {
+  if (status === 'PENDING') return 'Очікує підтвердження'
+  if (status === 'ACCEPTED') return 'Підтверджено'
+  if (status === 'DECLINED') return 'Відхилено'
+  return status
 }
 
 function formatDate(value: string | null) {
@@ -484,7 +543,7 @@ async function loadEvents() {
   } catch (err: any) {
     error.value = err?.response?.data?.detail || 'Не вдалося завантажити події'
   } finally {
-    setActionLoading(event.id, false)
+    loading.value = false
   }
 }
 
@@ -548,7 +607,7 @@ async function deleteDraft(event: GroupEvent) {
     const data = err?.response?.data
     error.value = data?.detail || data?.code || 'Не вдалося видалити подію'
   } finally {
-    loading.value = false
+    setActionLoading(event.id, false)
   }
 }
 
@@ -904,8 +963,14 @@ onMounted(loadEvents)
 
 .group-create__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 12px;
+}
+
+.group-create__row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  align-items: end;
 }
 
 .group-create__actions {
@@ -921,17 +986,43 @@ onMounted(loadEvents)
 
 .field {
   display: grid;
-  gap: 6px;
+  gap: 8px;
   font-size: 13px;
+  align-content: start;
+}
+
+.field span {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
 }
 
 .field input,
 .field select {
-  height: 38px;
-  border-radius: 10px;
+  min-height: 44px;
+  border-radius: 12px;
   border: 1px solid var(--line);
-  padding: 0 10px;
+  padding: 10px 12px;
   font-size: 14px;
+  font-family: var(--font-sans);
+  background: #fff;
+  line-height: 1.4;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.field input[type='number'] {
+  padding-right: 12px;
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+:deep(.field input[type='number']::-webkit-outer-spin-button),
+:deep(.field input[type='number']::-webkit-inner-spin-button) {
+  -webkit-appearance: none;
+  margin: 0;
 }
 
 .group-details {

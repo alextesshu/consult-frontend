@@ -49,8 +49,13 @@
         </template>
       </EmptyState>
       <div v-else class="therapist-grid">
-        <article v-for="therapist in therapists" :key="therapist.public_slug" class="therapist-card">
-          <RouterLink :to="`/t/${therapist.public_slug}`">
+        <RouterLink
+          v-for="therapist in therapists"
+          :key="therapist.public_slug"
+          class="therapist-card"
+          :to="`/t/${therapist.public_slug}`"
+        >
+          <div class="therapist-photo-link">
             <img
               v-if="therapist.photo_url"
               :src="therapist.photo_url"
@@ -58,17 +63,16 @@
               class="therapist-photo"
             />
             <div v-else class="therapist-photo therapist-photo--empty">Фото</div>
-          </RouterLink>
+          </div>
           <div class="therapist-info">
             <div class="therapist-name">{{ publicName(therapist) }}</div>
-            <div class="muted">
+            <div class="muted meta-line">
               <span v-if="therapist.location">{{ therapist.location }}</span>
               <span v-if="languageLabel(therapist.languages)">{{ languageLabel(therapist.languages) }}</span>
             </div>
             <div v-if="priceLabel(therapist)" class="therapist-price">{{ priceLabel(therapist) }}</div>
           </div>
-          <RouterLink class="btn btn--ghost" :to="`/t/${therapist.public_slug}`">Відкрити профіль</RouterLink>
-        </article>
+        </RouterLink>
       </div>
       <div class="pagination">
         <div class="muted">
@@ -248,11 +252,31 @@ onMounted(loadTherapists)
   display: grid;
   gap: 10px;
   background: rgba(7, 47, 71, 0.04);
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.therapist-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 24px rgba(16, 33, 50, 0.12);
+  border-color: rgba(31, 74, 96, 0.25);
+}
+
+.therapist-card:focus-visible {
+  outline: 2px solid rgba(31, 74, 96, 0.35);
+  outline-offset: 2px;
+}
+
+.therapist-photo-link {
+  width: 100%;
+  aspect-ratio: 1 / 1;
 }
 
 .therapist-photo {
   width: 100%;
-  height: 140px;
+  height: auto;
+  aspect-ratio: 1 / 1;
   border-radius: 14px;
   object-fit: cover;
   border: 1px solid var(--line);
@@ -264,9 +288,20 @@ onMounted(loadTherapists)
   background: rgba(7, 47, 71, 0.06);
   color: var(--muted);
   width: 100%;
-  height: 140px;
+  aspect-ratio: 1 / 1;
   border-radius: 14px;
   border: 1px solid var(--line);
+}
+
+.meta-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.meta-line span + span::before {
+  content: " · ";
+  color: var(--muted);
 }
 
 .therapist-info {

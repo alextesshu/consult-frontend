@@ -26,9 +26,9 @@
           <span>Статус</span>
           <select v-model="filters.status">
             <option value="">Усі</option>
-            <option value="PENDING">PENDING</option>
-            <option value="APPROVED">APPROVED</option>
-            <option value="REJECTED">REJECTED</option>
+            <option value="PENDING">Очікує</option>
+            <option value="APPROVED">Підтверджено</option>
+            <option value="REJECTED">Приховано</option>
           </select>
         </label>
         <label class="field">
@@ -68,7 +68,9 @@
           </div>
           <div class="review-meta">
             <div class="rating-chip">{{ review.rating }} / 5</div>
-            <div class="status-pill" :class="statusClass(review.status)">{{ review.status }}</div>
+            <div class="status-pill" :class="statusClass(review.status)">
+              {{ statusLabel(review.status) }}
+            </div>
           </div>
         </div>
 
@@ -154,6 +156,12 @@ function statusClass(status: Review['status']) {
   if (status === 'APPROVED') return 'status-pill--approved'
   if (status === 'REJECTED') return 'status-pill--rejected'
   return 'status-pill--pending'
+}
+
+function statusLabel(status: Review['status']) {
+  if (status === 'APPROVED') return 'Підтверджено'
+  if (status === 'REJECTED') return 'Приховано'
+  return 'Очікує'
 }
 
 function formatDate(value: string | null) {
