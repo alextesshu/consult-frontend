@@ -2,38 +2,46 @@
   <section class="public-therapists">
     <header class="public-therapists__hero card">
       <div>
-        <div class="eyebrow">Публічний каталог</div>
-        <h1 class="title">Терапевти</h1>
-        <p class="muted">Пошук та перегляд відкритих профілів.</p>
+        <div class="eyebrow">????????? ???????</div>
+        <h1 class="title">?????????</h1>
+        <p class="muted">????? ?? ???????? ????????? ????????.</p>
       </div>
-      <RouterLink class="btn btn--ghost" to="/">На головну</RouterLink>
+      <RouterLink class="btn btn--ghost" to="/">?? ???????</RouterLink>
     </header>
 
     <section class="card">
-      <div class="card__title">Пошук</div>
+      <div class="card__title">?????</div>
       <div class="filters">
-        <input v-model="query" class="input" type="text" placeholder="Ім'я, спеціалізація, локація" />
-        <input v-model="language" class="input" type="text" placeholder="Мова" />
-        <input v-model="location" class="input" type="text" placeholder="Локація" />
-        <input v-model="priceMin" class="input" type="number" min="0" placeholder="Ціна від" />
-        <input v-model="priceMax" class="input" type="number" min="0" placeholder="Ціна до" />
+        <input v-model="query" class="input" type="text" placeholder="??'?, ?????????????, ???????" />
+        <input v-model="language" class="input" type="text" placeholder="????" />
+        <input v-model="location" class="input" type="text" placeholder="???????" />
+        <input v-model="priceMin" class="input" type="number" min="0" placeholder="???? ???" />
+        <input v-model="priceMax" class="input" type="number" min="0" placeholder="???? ??" />
         <select v-model="priceCurrency" class="input input--select">
-          <option value="">Валюта</option>
-          <option value="UAH">грн</option>
+          <option value="">??????</option>
+          <option value="UAH">???</option>
           <option value="USD">$</option>
-          <option value="EUR">€</option>
+          <option value="EUR">?</option>
         </select>
-        <button class="btn btn--ghost" type="button" @click="applyFilters">Знайти</button>
-        <button class="btn btn--ghost" type="button" @click="resetFilters">Скинути</button>
+        <select v-model="sort" class="input input--select">
+          <option value="">??????????</option>
+          <option value="name_asc">??'? (A?Z)</option>
+          <option value="name_desc">??'? (Z?A)</option>
+          <option value="price_asc">???? (???????)</option>
+          <option value="price_desc">???? (???????)</option>
+          <option value="created_desc">?????? ???????</option>
+        </select>
+        <button class="btn btn--ghost" type="button" @click="applyFilters">??????</button>
+        <button class="btn btn--ghost" type="button" @click="resetFilters">???????</button>
       </div>
     </section>
 
     <section class="card">
-      <div class="card__title">Результати</div>
-      <div v-if="loading" class="muted">Завантаження...</div>
-      <div v-else-if="filtered.length === 0" class="muted">Нічого не знайдено.</div>
+      <div class="card__title">??????????</div>
+      <div v-if="loading" class="muted">????????????...</div>
+      <div v-else-if="therapists.length === 0" class="muted">?????? ?? ????????.</div>
       <div v-else class="therapist-grid">
-        <article v-for="therapist in filtered" :key="therapist.public_slug" class="therapist-card">
+        <article v-for="therapist in therapists" :key="therapist.public_slug" class="therapist-card">
           <RouterLink :to="`/t/${therapist.public_slug}`">
             <img
               v-if="therapist.photo_url"
@@ -41,7 +49,7 @@
               :alt="therapist.display_name"
               class="therapist-photo"
             />
-            <div v-else class="therapist-photo therapist-photo--empty">Фото</div>
+            <div v-else class="therapist-photo therapist-photo--empty">????</div>
           </RouterLink>
           <div class="therapist-info">
             <div class="therapist-name">{{ therapist.display_name }}</div>
@@ -51,19 +59,37 @@
             </div>
             <div v-if="priceLabel(therapist)" class="therapist-price">{{ priceLabel(therapist) }}</div>
           </div>
-          <RouterLink class="btn btn--ghost" :to="`/t/${therapist.public_slug}`">Відкрити профіль</RouterLink>
+          <RouterLink class="btn btn--ghost" :to="`/t/${therapist.public_slug}`">???????? ???????</RouterLink>
         </article>
+      </div>
+      <div class="pagination">
+        <div class="muted">
+          ???????? {{ page }} ? {{ totalPages }} ? ?????? {{ total }}
+        </div>
+        <div class="pagination__controls">
+          <button class="btn btn--ghost btn--sm" type="button" :disabled="page <= 1" @click="goPage(page - 1)">
+            ?????
+          </button>
+          <button class="btn btn--ghost btn--sm" type="button" :disabled="page >= totalPages" @click="goPage(page + 1)">
+            ????
+          </button>
+        </div>
       </div>
     </section>
   </section>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import { fetchPublicTherapists, type PublicTherapistProfile } from '../lib/api'
 
 const therapists = ref<PublicTherapistProfile[]>([])
 const loading = ref(false)
+const total = ref(0)
+const totalPages = ref(1)
+const page = ref(1)
+const pageSize = ref(12)
+const sort = ref('')
 const query = ref('')
 const language = ref('')
 const location = ref('')
@@ -77,30 +103,6 @@ const appliedPriceMin = ref('')
 const appliedPriceMax = ref('')
 const appliedPriceCurrency = ref('')
 
-const filtered = computed(() => {
-  const q = appliedQuery.value.trim().toLowerCase()
-  const l = appliedLanguage.value.trim().toLowerCase()
-  const loc = appliedLocation.value.trim().toLowerCase()
-  const min = appliedPriceMin.value ? Number(appliedPriceMin.value) : null
-  const max = appliedPriceMax.value ? Number(appliedPriceMax.value) : null
-  const cur = appliedPriceCurrency.value.trim()
-  return therapists.value.filter((t) => {
-    const name = (t.display_name || '').toLowerCase()
-    const specs = Array.isArray(t.specializations) ? t.specializations.join(',') : t.specializations || ''
-    const langs = Array.isArray(t.languages) ? t.languages.join(',') : t.languages || ''
-    const locStr = (t.location || '').toLowerCase()
-    const price = t.price ? Number(t.price) : null
-    const priceOk =
-      (min === null || (price !== null && !Number.isNaN(price) && price >= min)) &&
-      (max === null || (price !== null && !Number.isNaN(price) && price <= max)) &&
-      (!cur || t.price_currency === cur)
-    const matchQuery = !q || name.includes(q) || specs.toLowerCase().includes(q)
-    const matchLang = !l || langs.toLowerCase().includes(l)
-    const matchLoc = !loc || locStr.includes(loc)
-    return matchQuery && matchLang && matchLoc && priceOk
-  })
-})
-
 const languageLabel = (value?: string | string[]) => {
   if (!value) return ''
   if (Array.isArray(value)) return value.join(', ')
@@ -110,14 +112,17 @@ const languageLabel = (value?: string | string[]) => {
 const priceLabel = (therapist: PublicTherapistProfile) => {
   if (!therapist.price) return ''
   if (therapist.price_currency === 'USD') return `$${therapist.price}`
-  if (therapist.price_currency === 'EUR') return `€${therapist.price}`
-  return `${therapist.price} грн`
+  if (therapist.price_currency === 'EUR') return `?${therapist.price}`
+  return `${therapist.price} ???`
 }
 
 async function loadTherapists() {
   loading.value = true
   try {
-    therapists.value = await fetchPublicTherapists(24, {
+    const resp = await fetchPublicTherapists({
+      page: page.value,
+      page_size: pageSize.value,
+      sort: sort.value || undefined,
       query: appliedQuery.value || undefined,
       language: appliedLanguage.value || undefined,
       location: appliedLocation.value || undefined,
@@ -125,8 +130,13 @@ async function loadTherapists() {
       price_max: appliedPriceMax.value || undefined,
       price_currency: appliedPriceCurrency.value || undefined,
     })
+    therapists.value = resp.results || []
+    total.value = resp.total || 0
+    totalPages.value = resp.total_pages || 1
   } catch {
     therapists.value = []
+    total.value = 0
+    totalPages.value = 1
   } finally {
     loading.value = false
   }
@@ -139,6 +149,7 @@ function applyFilters() {
   appliedPriceMin.value = priceMin.value
   appliedPriceMax.value = priceMax.value
   appliedPriceCurrency.value = priceCurrency.value
+  page.value = 1
   loadTherapists()
 }
 
@@ -155,6 +166,12 @@ function resetFilters() {
   appliedPriceMin.value = ''
   appliedPriceMax.value = ''
   appliedPriceCurrency.value = ''
+  page.value = 1
+  loadTherapists()
+}
+
+function goPage(next: number) {
+  page.value = next
   loadTherapists()
 }
 
@@ -238,6 +255,24 @@ onMounted(loadTherapists)
 
 .therapist-price {
   font-weight: 600;
+}
+
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.pagination__controls {
+  display: flex;
+  gap: 8px;
+}
+
+.btn--sm {
+  padding: 6px 10px;
+  font-size: 13px;
 }
 
 @media (max-width: 860px) {

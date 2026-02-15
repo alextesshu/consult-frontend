@@ -207,8 +207,10 @@ export async function createSessionReview(sessionId: number, payload: { rating: 
 }
 
 export async function fetchPublicTherapists(
-  limit = 20,
   params?: {
+    page?: number
+    page_size?: number
+    sort?: string
     query?: string
     language?: string
     location?: string
@@ -216,9 +218,13 @@ export async function fetchPublicTherapists(
     price_max?: string
     price_currency?: string
   }
-): Promise<PublicTherapistProfile[]> {
-  const resp = await http.get<PublicTherapistProfile[]>('/public/therapists/', {
-    params: { limit, ...params },
-  })
+): Promise<{
+  results: PublicTherapistProfile[]
+  page: number
+  page_size: number
+  total: number
+  total_pages: number
+}> {
+  const resp = await http.get('/public/therapists/', { params })
   return resp.data
 }

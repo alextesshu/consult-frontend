@@ -95,7 +95,7 @@ Tokens are stored in localStorage and auto-refreshed via `/api/auth/token/refres
 * Deeper UI states for GRACE / RESTRICTED / OVER_LIMIT
 
 ### Public catalog
-* Pagination + server-side sorting
+* Фільтри за досвідом/рейтинґом (майбутнє)
 
 ### Ratings & reviews
 * Moderation-ready UI states and review editing policy
@@ -113,5 +113,4 @@ Tokens are stored in localStorage and auto-refreshed via `/api/auth/token/refres
 ## Next Focus
 
 1. Ratings & reviews (moderation UX)
-2. Public catalog pagination + sorting
-3. System UX (404/403, toasts)
+2. System UX (404/403, toasts)
