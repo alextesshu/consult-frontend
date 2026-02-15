@@ -11,6 +11,9 @@
         <RouterLink v-if="isAuthenticated" :to="cabinetRoute">Кабінет</RouterLink>
         <RouterLink v-if="!isAuthenticated" to="/login">Вхід</RouterLink>
         <RouterLink v-if="!isAuthenticated" to="/signup">Реєстрація</RouterLink>
+        <button class="btn btn--ghost btn--sm" type="button" @click="showTestToast">
+          Toast
+        </button>
         <button v-if="isAuthenticated" class="btn btn--ghost" type="button" @click="onLogout">
           Вийти
         </button>
@@ -33,11 +36,13 @@
 import { computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from './stores/auth'
+import { useToast } from './composables/useToast'
 import ToastHost from './components/ToastHost.vue'
 
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
+const toast = useToast()
 const isAuthenticated = computed(() => Boolean(auth.accessToken))
 const isHome = computed(() => route.path === '/')
 const roles = computed(() => auth.me?.user.roles ?? [])
@@ -62,6 +67,10 @@ function onLogout() {
   if (route.path.startsWith('/cabinet') || route.path.startsWith('/client')) {
     router.push('/login')
   }
+}
+
+function showTestToast() {
+  toast.info('Тестове повідомлення')
 }
 </script>
 
