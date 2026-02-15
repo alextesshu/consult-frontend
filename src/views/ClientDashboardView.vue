@@ -17,12 +17,12 @@
         <img
           v-if="selectedTherapist.photo_url"
           :src="selectedTherapist.photo_url"
-          :alt="selectedTherapist.display_name"
+          :alt="publicName(selectedTherapist.display_name)"
           class="therapist-photo"
         />
         <div v-else class="therapist-photo therapist-photo--empty">Фото</div>
         <div class="therapist-info">
-          <div class="therapist-name">{{ selectedTherapist.display_name }}</div>
+          <div class="therapist-name">{{ publicName(selectedTherapist.display_name) }}</div>
           <div class="muted meta-line">
             <span v-if="selectedTherapist.location">{{ selectedTherapist.location }}</span>
             <span v-if="languageLabel(selectedTherapist.languages)">
@@ -57,13 +57,13 @@
             <img
               v-if="therapist.photo_url"
               :src="therapist.photo_url"
-              :alt="therapist.display_name"
+              :alt="publicName(therapist.display_name)"
               class="therapist-photo"
             />
             <div v-else class="therapist-photo therapist-photo--empty">Фото</div>
           </RouterLink>
           <div class="therapist-info">
-            <div class="therapist-name">{{ therapist.display_name }}</div>
+            <div class="therapist-name">{{ publicName(therapist.display_name) }}</div>
             <div class="muted meta-line">
               <span v-if="therapist.location">{{ therapist.location }}</span>
               <span v-if="languageLabel(therapist.languages)">
@@ -182,6 +182,18 @@ const priceLabel = (therapist: SelectedTherapist) => {
   if (therapist.price_currency === 'USD') return `$${therapist.price}`
   if (therapist.price_currency === 'EUR') return `€${therapist.price}`
   return `${therapist.price} грн`
+}
+
+function publicName(value?: string) {
+  if (!value) return ''
+  const parts = value.trim().split(/\s+/).filter(Boolean)
+  if (!parts.length) return ''
+  if (parts.length === 1) return parts[0]
+  const first = parts[0]
+  const last = parts[parts.length - 1]
+  if (!last) return first
+  const initial = last.charAt(0).toUpperCase()
+  return `${first} ${initial}.`
 }
 
 async function loadSessions() {

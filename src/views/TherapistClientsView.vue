@@ -42,7 +42,9 @@
       <div v-else class="client-list">
         <article v-for="client in filteredClients" :key="client.client" class="client-card">
           <div class="client-info">
-            <div class="client-name">{{ client.client_username || `Клієнт #${client.client}` }}</div>
+            <div class="client-name">
+              {{ client.client_username || ('\u041a\u043b\u0456\u0454\u043d\u0442 #' + client.client) }}
+            </div>
             <div class="muted">Статус: {{ client.state }}</div>
             <div class="muted">Остання сесія: {{ formatDateTime(client.last_session_at) }}</div>
             <div class="muted">Заплановано: {{ client.upcoming_count ?? 0 }}</div>
@@ -76,6 +78,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { http } from '../lib/http'
+import { getApiErrorMessage } from '../lib/errors'
 
 type ClientState = {
   id: number
@@ -134,7 +137,7 @@ async function loadClients() {
     const resp = await http.get<ClientState[]>('/cabinet/clients/')
     clients.value = resp.data || []
   } catch (err: any) {
-    error.value = err?.response?.data?.detail || 'Не вдалося завантажити клієнтів'
+    error.value = getApiErrorMessage(err, '\u041d\u0435 \u0432\u0434\u0430\u043b\u043e\u0441\u044f \u0437\u0430\u0432\u0430\u043d\u0442\u0430\u0436\u0438\u0442\u0438 \u043a\u043b\u0456\u0454\u043d\u0442\u0456\u0432')
   } finally {
     loading.value = false
   }
@@ -147,7 +150,7 @@ async function archiveClient(id: number) {
     await http.patch(`/cabinet/clients/${id}/archive/`)
     await loadClients()
   } catch (err: any) {
-    error.value = err?.response?.data?.detail || 'Не вдалося архівувати клієнта'
+    error.value = getApiErrorMessage(err, '\u041d\u0435 \u0432\u0434\u0430\u043b\u043e\u0441\u044f \u0430\u0440\u0445\u0456\u0432\u0443\u0432\u0430\u0442\u0438 \u043a\u043b\u0456\u0454\u043d\u0442\u0430')
   } finally {
     setActionLoading(id, false)
   }
@@ -160,7 +163,7 @@ async function restoreClient(id: number) {
     await http.patch(`/cabinet/clients/${id}/restore/`)
     await loadClients()
   } catch (err: any) {
-    error.value = err?.response?.data?.detail || 'Не вдалося відновити клієнта'
+    error.value = getApiErrorMessage(err, '\u041d\u0435 \u0432\u0434\u0430\u043b\u043e\u0441\u044f \u0432\u0456\u0434\u043d\u043e\u0432\u0438\u0442\u0438 \u043a\u043b\u0456\u0454\u043d\u0442\u0430')
   } finally {
     setActionLoading(id, false)
   }

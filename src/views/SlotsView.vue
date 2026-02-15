@@ -262,6 +262,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref } from 'vue'
 import { http } from '../lib/http'
+import { getApiErrorMessage } from '../lib/errors'
 
 type Slot = {
   id: number
@@ -467,7 +468,7 @@ async function loadSlots() {
     const resp = await http.get<Slot[]>('/cabinet/slots/')
     slots.value = resp.data || []
   } catch (err: any) {
-    error.value = err?.response?.data?.detail || 'Не вдалося завантажити слоти'
+    error.value = getApiErrorMessage(err, '\u041d\u0435 \u0432\u0434\u0430\u043b\u043e\u0441\u044f \u0437\u0430\u0432\u0430\u043d\u0442\u0430\u0436\u0438\u0442\u0438 \u0441\u043b\u043e\u0442\u0438')
   } finally {
     loading.value = false
   }

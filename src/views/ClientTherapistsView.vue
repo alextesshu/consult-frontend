@@ -18,12 +18,12 @@
           <img
             v-if="therapist.photo_url"
             :src="therapist.photo_url"
-            :alt="therapist.display_name"
+            :alt="publicName(therapist)"
             class="therapist-photo"
           />
           <div v-else class="therapist-photo therapist-photo--empty">Фото</div>
           <div class="therapist-info">
-            <div class="therapist-name">{{ therapist.display_name }}</div>
+            <div class="therapist-name">{{ publicName(therapist) }}</div>
             <div class="muted">
               <span v-if="therapist.location">{{ therapist.location }}</span>
               <span v-if="languageLabel(therapist.languages)">{{ languageLabel(therapist.languages) }}</span>
@@ -59,6 +59,18 @@ const priceLabel = (therapist: PublicTherapistProfile) => {
   if (therapist.price_currency === 'USD') return `$${therapist.price}`
   if (therapist.price_currency === 'EUR') return `€${therapist.price}`
   return `${therapist.price} грн`
+}
+
+const publicName = (therapist: PublicTherapistProfile) => {
+  const raw = therapist.display_name || ''
+  const parts = raw.trim().split(/\s+/).filter(Boolean)
+  if (!parts.length) return ''
+  if (parts.length === 1) return parts[0]
+  const first = parts[0]
+  const last = parts[parts.length - 1]
+  if (!last) return first
+  const initial = last.charAt(0).toUpperCase()
+  return `${first} ${initial}.`
 }
 
 async function loadTherapists() {

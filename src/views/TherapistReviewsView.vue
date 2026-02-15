@@ -121,6 +121,7 @@
 import { onMounted, reactive, ref } from 'vue'
 import { http } from '../lib/http'
 import { useToast } from '../composables/useToast'
+import { getApiErrorMessage } from '../lib/errors'
 import EmptyState from '../components/EmptyState.vue'
 
 type Review = {
@@ -196,7 +197,7 @@ async function loadReviews() {
       responseDrafts[review.id] = review.therapist_response || ''
     })
   } catch (err: any) {
-    toast.error(err?.response?.data?.detail || 'Не вдалося завантажити відгуки')
+    toast.error(getApiErrorMessage(err, 'Не вдалося завантажити відгуки'))
   } finally {
     loading.value = false
   }
@@ -208,7 +209,7 @@ async function updateStatus(review: Review, status: Review['status']) {
     const resp = await http.patch<Review>(`/cabinet/reviews/${review.id}/`, { status })
     reviews.value = reviews.value.map((item) => (item.id === review.id ? resp.data : item))
   } catch (err: any) {
-    toast.error(err?.response?.data?.detail || 'Не вдалося оновити статус')
+    toast.error(getApiErrorMessage(err, 'Не вдалося оновити статус'))
   } finally {
     setActionLoading(review.id, false)
   }
@@ -222,7 +223,7 @@ async function saveResponse(review: Review) {
     })
     reviews.value = reviews.value.map((item) => (item.id === review.id ? resp.data : item))
   } catch (err: any) {
-    toast.error(err?.response?.data?.detail || 'Не вдалося зберегти відповідь')
+    toast.error(getApiErrorMessage(err, 'Не вдалося зберегти відповідь'))
   } finally {
     setActionLoading(review.id, false)
   }

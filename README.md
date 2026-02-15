@@ -72,12 +72,12 @@ Tokens are stored in localStorage and auto-refreshed via `/api/auth/token/refres
 * **ClientTherapistsView**: therapist list + open profile
 * **SlotsView**: create/edit/delete slots + fill day/week + date navigation
 * **GroupEventsView**: full group lifecycle (create/schedule/start/complete/cancel), participants (roles/status), invites
-* **TherapistSessionsView**: therapist actions + notes + reschedule requests
+* **TherapistSessionsView**: therapist actions + notes + reschedule requests (client name/email, start + duration)
 * **TherapistReviewsView**: review moderation (approve/hide/respond) + filters
 * **TherapistClientsView**: therapist CRM with archive/restore
 * **BillingView**: plans + access state + request access
 * **TherapistProfileView**: step-by-step profile editor, media upload preview, visibility toggles, public link code management
-* **PublicProfileView**: public profile data + upcoming slots + booking + reviews
+* **PublicProfileView**: public profile data + upcoming slots + booking + reviews (start + duration)
 * **PublicTherapistsView**: public catalog with server-side filters
 * **LoginView / SignupView**: redesigned auth pages
 * **System**: global toast/notification layer, 404/403 pages, empty states, loading skeletons
@@ -86,7 +86,7 @@ Tokens are stored in localStorage and auto-refreshed via `/api/auth/token/refres
 
 ### Therapist sessions
 * Session detail page for therapists
-* Filters (status/date), client name display improvements
+* Filters (status/date)
 
 ### Client session actions
 * Polished confirmation flows and status messaging
@@ -108,13 +108,14 @@ Tokens are stored in localStorage and auto-refreshed via `/api/auth/token/refres
 * Moderation-ready UI states and review editing policy
 
 ### System UX
-* Consistent empty states and loading states
+* Expand empty/loading states across remaining views
 
 ## Notes
 
 * Non-home pages are constrained to 80% width.
 * Parallax layers live in `src/assets/parallax/`.
 * Public profile data is fetched from `/api/public/therapists/{slug}/`.
+* Public-facing therapist name uses `First L.` format.
 * Keep files saved in UTF-8 to avoid broken Ukrainian text.
 
 ## Next Focus

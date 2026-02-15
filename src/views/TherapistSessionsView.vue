@@ -33,10 +33,12 @@
       <div v-else class="session-list">
         <article v-for="session in upcoming" :key="session.id" class="session-card">
           <div class="session-info">
-            <div class="session-time">
-              {{ formatDateTime(session.slot_start_at) }} – {{ formatDateTime(session.slot_end_at) }}
+            <div class="session-time">{{ formatDateTime(session.slot_start_at) }}</div>
+            <div class="muted">{{ formatDuration(session.slot_start_at, session.slot_end_at) }}</div>
+            <div class="muted">
+              Клієнт: {{ session.client_name || session.client_username || `#${session.client}` }}
             </div>
-            <div class="muted">Клієнт: {{ session.client_username || `#${session.client}` }}</div>
+            <div v-if="session.client_email" class="muted">Пошта: {{ session.client_email }}</div>
             <div class="status-pill" :class="statusClass(session.status)">
               {{ statusLabel(session.status) }}
             </div>
@@ -90,7 +92,7 @@
               <select v-model.number="rescheduleSlotId" class="input input--select">
                 <option value="">Оберіть слот</option>
                 <option v-for="slot in availableSlots" :key="slot.id" :value="slot.id">
-                  {{ formatDateTime(slot.start_at) }} – {{ formatDateTime(slot.end_at) }}
+                  {{ formatDateTime(slot.start_at) }} · {{ formatDuration(slot.start_at, slot.end_at) }}
                 </option>
               </select>
             </label>
@@ -152,11 +154,15 @@
       <div v-else class="request-list">
         <article v-for="req in rescheduleRequests" :key="req.id" class="request-card">
           <div class="request-info">
-            <div class="request-title">Сесія #{{ req.session_id }} · {{ req.client_username || "Клієнт" }}</div>
+            <div class="request-title">
+              Сесія #{{ req.session_id }} · {{ req.client_name || req.client_username || "Клієнт" }}
+            </div>
+            <div v-if="req.client_email" class="muted">Пошта: {{ req.client_email }}</div>
             <div class="muted">
               Запитаний слот:
               <span v-if="req.requested_slot_start_at && req.requested_slot_end_at">
-                {{ formatDateTime(req.requested_slot_start_at) }} – {{ formatDateTime(req.requested_slot_end_at) }}
+                {{ formatDateTime(req.requested_slot_start_at) }}
+                · {{ formatDuration(req.requested_slot_start_at, req.requested_slot_end_at) }}
               </span>
               <span v-else>#{{ req.requested_slot_id }}</span>
             </div>
@@ -199,10 +205,12 @@
       <div v-else class="session-list">
         <article v-for="session in past" :key="session.id" class="session-card">
           <div class="session-info">
-            <div class="session-time">
-              {{ formatDateTime(session.slot_start_at) }} – {{ formatDateTime(session.slot_end_at) }}
+            <div class="session-time">{{ formatDateTime(session.slot_start_at) }}</div>
+            <div class="muted">{{ formatDuration(session.slot_start_at, session.slot_end_at) }}</div>
+            <div class="muted">
+              Клієнт: {{ session.client_name || session.client_username || `#${session.client}` }}
             </div>
-            <div class="muted">Клієнт: {{ session.client_username || `#${session.client}` }}</div>
+            <div v-if="session.client_email" class="muted">Пошта: {{ session.client_email }}</div>
             <div class="status-pill" :class="statusClass(session.status)">
               {{ statusLabel(session.status) }}
             </div>
@@ -250,6 +258,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { http } from '../lib/http'
+import { getApiErrorMessage } from '../lib/errors'
 import LoadingSkeleton from '../components/LoadingSkeleton.vue'
 import EmptyState from '../components/EmptyState.vue'
 
@@ -258,6 +267,8 @@ type Session = {
   status: string
   client: number
   client_username?: string
+  client_name?: string
+  client_email?: string
   therapist: number
   therapist_username?: string
   slot: number | null
@@ -279,6 +290,8 @@ type RescheduleRequest = {
   requested_slot_start_at?: string | null
   requested_slot_end_at?: string | null
   client_username?: string
+  client_name?: string
+  client_email?: string
   status: string
   created_at: string
   resolved_at: string | null
@@ -341,6 +354,21 @@ function formatDateTime(value?: string | null) {
   })
 }
 
+function formatDuration(start?: string | null, end?: string | null) {
+  if (!start || !end) return 'Тривалість: —'
+  const startDt = new Date(start)
+  const endDt = new Date(end)
+  if (Number.isNaN(startDt.getTime()) || Number.isNaN(endDt.getTime())) return 'Тривалість: —'
+  const minutes = Math.max(0, Math.round((endDt.getTime() - startDt.getTime()) / 60000))
+  if (!minutes) return 'Тривалість: 0 хв'
+  const hours = Math.floor(minutes / 60)
+  const mins = minutes % 60
+  const parts = []
+  if (hours) parts.push(`${hours} год`)
+  if (mins) parts.push(`${mins} хв`)
+  return `Тривалість: ${parts.join(' ')}`
+}
+
 async function loadSessions() {
   loading.value = true
   error.value = ''
@@ -352,7 +380,7 @@ async function loadSessions() {
     upcoming.value = upcomingResp.data || []
     past.value = pastResp.data || []
   } catch (err: any) {
-    error.value = err?.response?.data?.detail || 'Не вдалося завантажити сесії'
+    error.value = getApiErrorMessage(err, '\u041d\u0435 \u0432\u0434\u0430\u043b\u043e\u0441\u044f \u0437\u0430\u0432\u0430\u043d\u0442\u0430\u0436\u0438\u0442\u0438 \u0441\u0435\u0441\u0456\u0457')
   } finally {
     loading.value = false
   }

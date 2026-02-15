@@ -24,8 +24,8 @@
           <div class="detail-value">{{ formatDateTime(session.slot_start_at) }}</div>
         </div>
         <div class="detail-card">
-          <div class="detail-label">Кінець</div>
-          <div class="detail-value">{{ formatDateTime(session.slot_end_at) }}</div>
+          <div class="detail-label">Тривалість</div>
+          <div class="detail-value">{{ formatDuration(session.slot_start_at, session.slot_end_at) }}</div>
         </div>
         <div class="detail-card">
           <div class="detail-label">Терапевт</div>
@@ -89,11 +89,11 @@
       <div v-else-if="availableSlots.length === 0" class="muted" style="margin-top: 10px;">
         Немає доступних слотів.
       </div>
-      <div v-else class="slot-list">
+        <div v-else class="slot-list">
         <div v-for="slot in availableSlots" :key="slot.id" class="slot-card">
           <div>
             <div class="slot-time">{{ formatDateTime(slot.start_at) }}</div>
-            <div class="muted">{{ formatDateTime(slot.end_at) }}</div>
+            <div class="muted">{{ formatDuration(slot.start_at, slot.end_at) }}</div>
           </div>
           <button
             class="btn btn--ghost btn--sm"
@@ -113,6 +113,7 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { http } from '../lib/http'
+import { getApiErrorMessage } from '../lib/errors'
 import { useToast } from '../composables/useToast'
 import { createSessionReview } from '../lib/api'
 
@@ -179,6 +180,20 @@ function formatDateTime(value?: string | null) {
   })
 }
 
+function formatDuration(start: string, end: string) {
+  const startDt = new Date(start)
+  const endDt = new Date(end)
+  if (Number.isNaN(startDt.getTime()) || Number.isNaN(endDt.getTime())) return ''
+  const minutes = Math.max(0, Math.round((endDt.getTime() - startDt.getTime()) / 60000))
+  if (!minutes) return '\u0422\u0440\u0438\u0432\u0430\u043b\u0456\u0441\u0442\u044c: 0 \u0445\u0432'
+  const hours = Math.floor(minutes / 60)
+  const mins = minutes % 60
+  const parts = []
+  if (hours) parts.push(`${hours} \u0433\u043e\u0434`)
+  if (mins) parts.push(`${mins} \u0445\u0432`)
+  return `\u0422\u0440\u0438\u0432\u0430\u043b\u0456\u0441\u0442\u044c: ${parts.join(' ')}`
+}
+
 async function loadSession() {
   if (!sessionId.value) return
   loading.value = true
@@ -187,7 +202,7 @@ async function loadSession() {
     const resp = await http.get<SessionDetail>(`/booking/sessions/${sessionId.value}/`)
     session.value = resp.data
   } catch (err: any) {
-    error.value = err?.response?.data?.detail || 'Не вдалося завантажити сесію'
+    error.value = getApiErrorMessage(err, '\u041d\u0435 \u0432\u0434\u0430\u043b\u043e\u0441\u044f \u0437\u0430\u0432\u0430\u043d\u0442\u0430\u0436\u0438\u0442\u0438 \u0441\u0435\u0441\u0456\u044e')
   } finally {
     loading.value = false
   }

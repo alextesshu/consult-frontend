@@ -3,7 +3,7 @@
     <header class="public__hero">
       <div>
         <div class="badge">Профіль терапевта</div>
-        <h1 class="title public__title">{{ profile?.display_name || 'Профіль терапевта' }}</h1>
+        <h1 class="title public__title">{{ publicName || 'Профіль терапевта' }}</h1>
         <p class="muted public__subtitle">
           {{ profile ? 'Публічна картка з описом і доступними слотами.' : 'Завантаження профілю…' }}
         </p>
@@ -29,7 +29,7 @@
             ></video>
           </div>
           <div class="profile-card__info">
-            <div class="profile-card__title">{{ profile.display_name }}</div>
+          <div class="profile-card__title">{{ publicName }}</div>
             <div class="profile-card__meta">
               <span v-if="profile.specializations">{{ profile.specializations }}</span>
               <span v-if="languagesDisplay">{{ languagesDisplay }}</span>
@@ -73,11 +73,11 @@
 
         <div v-if="slotsLoading" class="muted">Завантаження слотів…</div>
         <div v-else-if="slots.length === 0" class="muted">Наразі вільних слотів немає.</div>
-        <div v-else class="slot-list">
+          <div v-else class="slot-list">
           <div v-for="slot in slots" :key="slot.id" class="slot-card">
             <div>
               <div class="slot-time">{{ formatDate(slot.start_at) }}</div>
-              <div class="muted">{{ formatDate(slot.end_at) }}</div>
+              <div class="muted">{{ formatDuration(slot.start_at, slot.end_at) }}</div>
             </div>
             <button
               class="btn btn--ghost"
@@ -119,6 +119,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
+import { getApiErrorMessage } from '../lib/errors'
 import { http } from '../lib/http'
 import {
   fetchPublicTherapistProfile,
@@ -160,6 +161,8 @@ const languagesDisplay = computed(() => {
   return value
 })
 
+const publicName = computed(() => formatPublicName(profile.value?.display_name) || profile.value?.display_name || '')
+
 const priceDisplay = computed(() => {
   const price = profile.value?.price
   if (!price) return ''
@@ -169,6 +172,17 @@ const priceDisplay = computed(() => {
   if (currency === 'EUR') return `€${price}`
   return `${price} ${currency}`
 })
+
+function formatPublicName(value?: string) {
+  if (!value) return ''
+  const parts = value.trim().split(/\s+/).filter(Boolean)
+  if (parts.length === 1) return parts[0]
+  const first = parts[0]
+  const last = parts[parts.length - 1]
+  if (!last) return first
+  const initial = last.charAt(0).toUpperCase()
+  return `${first} ${initial}.`
+}
 
 const bioSections = computed(() => {
   if (!profile.value) return []
@@ -201,6 +215,20 @@ function formatDate(value: string) {
   })
 }
 
+function formatDuration(start: string, end: string) {
+  const startDt = new Date(start)
+  const endDt = new Date(end)
+  if (Number.isNaN(startDt.getTime()) || Number.isNaN(endDt.getTime())) return ''
+  const minutes = Math.max(0, Math.round((endDt.getTime() - startDt.getTime()) / 60000))
+  if (!minutes) return '\u0422\u0440\u0438\u0432\u0430\u043b\u0456\u0441\u0442\u044c: 0 \u0445\u0432'
+  const hours = Math.floor(minutes / 60)
+  const mins = minutes % 60
+  const parts = []
+  if (hours) parts.push(`${hours} \u0433\u043e\u0434`)
+  if (mins) parts.push(`${mins} \u0445\u0432`)
+  return `\u0422\u0440\u0438\u0432\u0430\u043b\u0456\u0441\u0442\u044c: ${parts.join(' ')}`
+}
+
 function toDateInputValue(date: Date) {
   const offset = date.getTimezoneOffset() * 60000
   return new Date(date.getTime() - offset).toISOString().slice(0, 10)
@@ -219,7 +247,7 @@ async function loadProfile() {
       saveViewedTherapist(profile.value)
     }
   } catch (err: any) {
-    error.value = err?.response?.data?.detail || 'Профіль не знайдено.'
+    error.value = getApiErrorMessage(err, '\u041f\u0440\u043e\u0444\u0456\u043b\u044c \u043d\u0435 \u0437\u043d\u0430\u0439\u0434\u0435\u043d\u043e.')
   } finally {
     loading.value = false
   }
