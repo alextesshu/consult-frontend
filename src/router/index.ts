@@ -14,6 +14,7 @@ import ClientSessionDetailView from '../views/ClientSessionDetailView.vue'
 import TherapistClientsView from '../views/TherapistClientsView.vue'
 import BillingView from '../views/BillingView.vue'
 import PublicTherapistsView from '../views/PublicTherapistsView.vue'
+import TherapistReviewsView from '../views/TherapistReviewsView.vue'
 import { useAuthStore } from '../stores/auth'
 import { fetchTherapistProfile } from '../lib/api'
 
@@ -56,6 +57,12 @@ const routes = [
     path: '/cabinet/sessions',
     name: 'cabinet-sessions',
     component: TherapistSessionsView,
+    meta: { requiresAuth: true, requiresRole: 'THERAPIST' },
+  },
+  {
+    path: '/cabinet/reviews',
+    name: 'cabinet-reviews',
+    component: TherapistReviewsView,
     meta: { requiresAuth: true, requiresRole: 'THERAPIST' },
   },
   {
