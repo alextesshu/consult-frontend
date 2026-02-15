@@ -38,12 +38,12 @@
             Плани та доступ
           </RouterLink>
           <RouterLink class="btn btn--ghost" to="/cabinet/profile">
-            Профіль терапевта
+            Керування профілем
           </RouterLink>
           <RouterLink class="btn btn--ghost" to="/cabinet/group-events">
             Групові події
           </RouterLink>
-</div>
+        </div>
 </section>
       <section class="panel panel--accent">
         <div class="panel__header">
