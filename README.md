@@ -26,13 +26,13 @@ Run dev server:
 npm run dev
 ```
 
-## Routes
+## Routes (Key)
 
 * `/` — Public Home (role choice + parallax scene)
 * `/login` — Login
 * `/signup` — Therapist signup
 * `/cabinet` — Therapist dashboard
-* `/cabinet/profile` — Profile editor + public preview
+* `/cabinet/profile` — Therapist profile management
 * `/cabinet/group-events` — Group events (full lifecycle + participants + invites)
 * `/cabinet/slots` — Slots (create/edit/delete)
 * `/cabinet/sessions` — Therapist sessions (actions + notes + reschedule requests)
@@ -109,8 +109,9 @@ Tokens are stored in localStorage and auto-refreshed via `/api/auth/token/refres
 * Non-home pages are constrained to 80% width.
 * Parallax layers live in `src/assets/parallax/`.
 * Public profile data is fetched from `/api/public/therapists/{slug}/`.
+* Keep files saved in UTF-8 to avoid broken Ukrainian text.
 
 ## Next Focus
 
 1. Ratings & reviews (moderation UX)
-2. System UX (404/403, toasts)
+2. System UX polish (empty/loading states)
