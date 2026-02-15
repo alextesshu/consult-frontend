@@ -9,8 +9,7 @@
       <RouterLink class="btn btn--ghost" to="/client">Назад до кабінету</RouterLink>
     </header>
 
-    <div v-if="error" class="form-error">{{ error }}</div>
-    <div v-if="loading" class="muted" style="margin-top: 12px;">Завантаження...</div>
+        <div v-if="loading" class="muted" style="margin-top: 12px;">Завантаження...</div>
 
     <section v-if="session" class="panel">
       <div class="panel__header">
@@ -111,9 +110,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { http } from '../lib/http'
+import { useToast } from '../composables/useToast'
 import { createSessionReview } from '../lib/api'
 
 type SessionDetail = {
@@ -137,6 +137,7 @@ const sessionId = computed(() => Number(route.params.id))
 const session = ref<SessionDetail | null>(null)
 const loading = ref(false)
 const error = ref('')
+const toast = useToast()
 const actionLoading = ref(false)
 const slotsLoading = ref(false)
 const availableSlots = ref<PublicSlot[]>([])
@@ -144,6 +145,12 @@ const reviewRating = ref(5)
 const reviewText = ref('')
 const reviewSubmitting = ref(false)
 const reviewStatus = ref('')
+
+watch(error, (value) => {
+  if (!value) return
+  toast.error(value)
+  error.value = ''
+})
 
 const statusMap: Record<string, string> = {
   SCHEDULED: 'Заплановано',
@@ -383,14 +390,6 @@ onMounted(async () => {
 .btn--sm {
   padding: 6px 10px;
   font-size: 13px;
-}
-
-.form-error {
-  color: #b3261e;
-  background: #fdecea;
-  border: 1px solid #f5c2c0;
-  border-radius: 10px;
-  padding: 8px 10px;
 }
 
 @media (max-width: 860px) {

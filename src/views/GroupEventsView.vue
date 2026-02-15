@@ -92,7 +92,6 @@
       </div>
     </section>
 
-    <div v-if="error" class="form-error">{{ error }}</div>
     <div v-if="loading" class="muted" style="margin-top: 12px;">Завантаження...</div>
 
     <section v-else class="group-list">
@@ -309,10 +308,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useAuthStore } from '../stores/auth'
 import { http } from '../lib/http'
+import { useToast } from '../composables/useToast'
 
 type GroupEvent = {
   id: number
@@ -347,6 +347,7 @@ const { me } = storeToRefs(auth)
 const events = ref<GroupEvent[]>([])
 const loading = ref(false)
 const error = ref('')
+const toast = useToast()
 const createLoading = ref(false)
 const actionLoading = ref<Record<number, boolean>>({})
 const participantViewLoading = ref<Record<number, boolean>>({})
@@ -374,6 +375,12 @@ const participantForm = reactive({
 const inviteForm = reactive({
   expires_at: '',
   max_uses: '',
+})
+
+watch(error, (value) => {
+  if (!value) return
+  toast.error(value)
+  error.value = ''
 })
 
 const groupRoomEnabled = computed(() => !!me.value?.effective_entitlements?.group_room_enabled)
@@ -1048,14 +1055,6 @@ onMounted(loadEvents)
 .btn--sm {
   padding: 6px 10px;
   font-size: 13px;
-}
-
-.form-error {
-  color: #b3261e;
-  background: #fdecea;
-  border: 1px solid #f5c2c0;
-  border-radius: 10px;
-  padding: 8px 10px;
 }
 
 @media (max-width: 860px) {
