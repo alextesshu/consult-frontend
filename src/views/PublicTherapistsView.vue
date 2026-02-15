@@ -2,44 +2,44 @@
   <section class="public-therapists">
     <header class="public-therapists__hero card">
       <div>
-        <div class="eyebrow">????????? ???????</div>
-        <h1 class="title">?????????</h1>
-        <p class="muted">????? ?? ???????? ????????? ????????.</p>
+        <div class="eyebrow">Публічний каталог</div>
+        <h1 class="title">Терапевти</h1>
+        <p class="muted">Пошук та перегляд відкритих профілів.</p>
       </div>
-      <RouterLink class="btn btn--ghost" to="/">?? ???????</RouterLink>
+      <RouterLink class="btn btn--ghost" to="/">На головну</RouterLink>
     </header>
 
     <section class="card">
-      <div class="card__title">?????</div>
+      <div class="card__title">Пошук</div>
       <div class="filters">
-        <input v-model="query" class="input" type="text" placeholder="??'?, ?????????????, ???????" />
-        <input v-model="language" class="input" type="text" placeholder="????" />
-        <input v-model="location" class="input" type="text" placeholder="???????" />
-        <input v-model="priceMin" class="input" type="number" min="0" placeholder="???? ???" />
-        <input v-model="priceMax" class="input" type="number" min="0" placeholder="???? ??" />
+        <input v-model="query" class="input" type="text" placeholder="Ім'я, спеціалізація, локація" />
+        <input v-model="language" class="input" type="text" placeholder="Мова" />
+        <input v-model="location" class="input" type="text" placeholder="Локація" />
+        <input v-model="priceMin" class="input" type="number" min="0" placeholder="Ціна від" />
+        <input v-model="priceMax" class="input" type="number" min="0" placeholder="Ціна до" />
         <select v-model="priceCurrency" class="input input--select">
-          <option value="">??????</option>
-          <option value="UAH">???</option>
+          <option value="">Валюта</option>
+          <option value="UAH">грн</option>
           <option value="USD">$</option>
-          <option value="EUR">?</option>
+          <option value="EUR">€</option>
         </select>
         <select v-model="sort" class="input input--select">
-          <option value="">??????????</option>
-          <option value="name_asc">??'? (A?Z)</option>
-          <option value="name_desc">??'? (Z?A)</option>
-          <option value="price_asc">???? (???????)</option>
-          <option value="price_desc">???? (???????)</option>
-          <option value="created_desc">?????? ???????</option>
+          <option value="">Сортування</option>
+          <option value="name_asc">Ім'я (A→Z)</option>
+          <option value="name_desc">Ім'я (Z→A)</option>
+          <option value="price_asc">Ціна (дешевші)</option>
+          <option value="price_desc">Ціна (дорожчі)</option>
+          <option value="created_desc">Новіші профілі</option>
         </select>
-        <button class="btn btn--ghost" type="button" @click="applyFilters">??????</button>
-        <button class="btn btn--ghost" type="button" @click="resetFilters">???????</button>
+        <button class="btn btn--ghost" type="button" @click="applyFilters">Знайти</button>
+        <button class="btn btn--ghost" type="button" @click="resetFilters">Скинути</button>
       </div>
     </section>
 
     <section class="card">
-      <div class="card__title">??????????</div>
-      <div v-if="loading" class="muted">????????????...</div>
-      <div v-else-if="therapists.length === 0" class="muted">?????? ?? ????????.</div>
+      <div class="card__title">Результати</div>
+      <div v-if="loading" class="muted">Завантаження...</div>
+      <div v-else-if="therapists.length === 0" class="muted">Нічого не знайдено.</div>
       <div v-else class="therapist-grid">
         <article v-for="therapist in therapists" :key="therapist.public_slug" class="therapist-card">
           <RouterLink :to="`/t/${therapist.public_slug}`">
@@ -49,7 +49,7 @@
               :alt="therapist.display_name"
               class="therapist-photo"
             />
-            <div v-else class="therapist-photo therapist-photo--empty">????</div>
+            <div v-else class="therapist-photo therapist-photo--empty">Фото</div>
           </RouterLink>
           <div class="therapist-info">
             <div class="therapist-name">{{ therapist.display_name }}</div>
@@ -59,19 +59,19 @@
             </div>
             <div v-if="priceLabel(therapist)" class="therapist-price">{{ priceLabel(therapist) }}</div>
           </div>
-          <RouterLink class="btn btn--ghost" :to="`/t/${therapist.public_slug}`">???????? ???????</RouterLink>
+          <RouterLink class="btn btn--ghost" :to="`/t/${therapist.public_slug}`">Відкрити профіль</RouterLink>
         </article>
       </div>
       <div class="pagination">
         <div class="muted">
-          ???????? {{ page }} ? {{ totalPages }} ? ?????? {{ total }}
+          Сторінка {{ page }} з {{ totalPages }} · Всього {{ total }}
         </div>
         <div class="pagination__controls">
           <button class="btn btn--ghost btn--sm" type="button" :disabled="page <= 1" @click="goPage(page - 1)">
-            ?????
+            Назад
           </button>
           <button class="btn btn--ghost btn--sm" type="button" :disabled="page >= totalPages" @click="goPage(page + 1)">
-            ????
+            Далі
           </button>
         </div>
       </div>
@@ -91,7 +91,6 @@ const totalPages = ref(1)
 const page = ref(1)
 const pageSize = ref(12)
 const sort = ref('')
-const toast = useToast()
 const query = ref('')
 const language = ref('')
 const location = ref('')
@@ -104,6 +103,7 @@ const appliedLocation = ref('')
 const appliedPriceMin = ref('')
 const appliedPriceMax = ref('')
 const appliedPriceCurrency = ref('')
+const toast = useToast()
 
 const languageLabel = (value?: string | string[]) => {
   if (!value) return ''
@@ -114,8 +114,8 @@ const languageLabel = (value?: string | string[]) => {
 const priceLabel = (therapist: PublicTherapistProfile) => {
   if (!therapist.price) return ''
   if (therapist.price_currency === 'USD') return `$${therapist.price}`
-  if (therapist.price_currency === 'EUR') return `?${therapist.price}`
-  return `${therapist.price} ???`
+  if (therapist.price_currency === 'EUR') return `€${therapist.price}`
+  return `${therapist.price} грн`
 }
 
 async function loadTherapists() {

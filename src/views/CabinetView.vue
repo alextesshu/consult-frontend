@@ -23,25 +23,25 @@
         </div>
         <div class="cabinet-actions">
           <RouterLink class="btn btn--ghost" to="/cabinet/slots">
-            ?????
+            Слоти
           </RouterLink>
           <RouterLink class="btn btn--ghost" to="/cabinet/sessions">
-            ?????
+            Сесії
           </RouterLink>
           <RouterLink class="btn btn--ghost" to="/cabinet/reviews">
-            ???????
+            Відгуки
           </RouterLink>
           <RouterLink class="btn btn--ghost" to="/cabinet/clients">
-            ???????
+            Клієнти
           </RouterLink>
           <RouterLink class="btn btn--ghost" to="/cabinet/billing">
-            ????? ?? ??????
+            Плани та доступ
           </RouterLink>
           <RouterLink class="btn btn--ghost" to="/cabinet/profile">
-            ??????? ?????????
+            Профіль терапевта
           </RouterLink>
           <RouterLink class="btn btn--ghost" to="/cabinet/group-events">
-            ??????? ?????
+            Групові події
           </RouterLink>
           <button
             class="btn btn--ghost"
@@ -49,7 +49,7 @@
             :disabled="shareLoading"
             @click="onShareProfile"
           >
-            {{ shareLoading ? '??????????...' : '?????????? ????????' }}
+            {{ shareLoading ? 'Підготовка...' : 'Поділитись профілем' }}
           </button>
         </div>
         <div v-if="shareStatus" class="muted" style="margin-top: 8px;">{{ shareStatus }}</div>
