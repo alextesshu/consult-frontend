@@ -39,7 +39,15 @@
     <section class="card">
       <div class="card__title">Результати</div>
       <div v-if="loading" class="muted">Завантаження...</div>
-      <div v-else-if="therapists.length === 0" class="muted">Нічого не знайдено.</div>
+      <EmptyState
+        v-else-if="therapists.length === 0"
+        title="?????? ?? ????????"
+        description="????????? ??????? ??????? ??? ??????? ?????."
+      >
+        <template #actions>
+          <button class="btn btn--ghost" type="button" @click="resetFilters">??????? ???????</button>
+        </template>
+      </EmptyState>
       <div v-else class="therapist-grid">
         <article v-for="therapist in therapists" :key="therapist.public_slug" class="therapist-card">
           <RouterLink :to="`/t/${therapist.public_slug}`">
@@ -83,6 +91,7 @@
 import { onMounted, ref } from 'vue'
 import { fetchPublicTherapists, type PublicTherapistProfile } from '../lib/api'
 import { useToast } from '../composables/useToast'
+import EmptyState from '../components/EmptyState.vue'
 
 const therapists = ref<PublicTherapistProfile[]>([])
 const loading = ref(false)
