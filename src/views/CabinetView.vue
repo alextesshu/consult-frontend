@@ -43,17 +43,8 @@
           <RouterLink class="btn btn--ghost" to="/cabinet/group-events">
             Групові події
           </RouterLink>
-          <button
-            class="btn btn--ghost"
-            type="button"
-            :disabled="shareLoading"
-            @click="onShareProfile"
-          >
-            {{ shareLoading ? 'Підготовка...' : 'Поділитись профілем' }}
-          </button>
-        </div>
-        <div v-if="shareStatus" class="muted" style="margin-top: 8px;">{{ shareStatus }}</div>
-      </section>
+</div>
+</section>
       <section class="panel panel--accent">
         <div class="panel__header">
           <div class="badge badge--soft">Акаунт</div>
@@ -142,13 +133,10 @@ import { computed, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useAuthStore } from '../stores/auth'
 import { useRouter } from 'vue-router'
-import { fetchTherapistProfile } from '../lib/api'
 
 const auth = useAuthStore()
 const { me } = storeToRefs(auth)
 const router = useRouter()
-const shareStatus = ref('')
-const shareLoading = ref(false)
 
 const accessLabel = computed(() => {
   const state = me.value?.access_state
@@ -233,30 +221,6 @@ function onLogout() {
   router.push('/login')
 }
 
-async function onShareProfile() {
-  shareStatus.value = ''
-  shareLoading.value = true
-  try {
-    const profile = await fetchTherapistProfile()
-    const slug = profile.public_slug || ''
-    if (!slug) {
-      shareStatus.value = 'Публічний slug ще не створено. Відкрийте профіль.'
-      return
-    }
-    const url = `${window.location.origin}/t/${slug}`
-    if (navigator.share) {
-      await navigator.share({ title: 'Профіль терапевта', url })
-      shareStatus.value = 'Посилання на профіль надіслано.'
-      return
-    }
-    await navigator.clipboard.writeText(url)
-    shareStatus.value = 'Посилання скопійовано.'
-  } catch (err) {
-    shareStatus.value = 'Не вдалося поділитися посиланням.'
-  } finally {
-    shareLoading.value = false
-  }
-}
 </script>
 
 <style scoped>

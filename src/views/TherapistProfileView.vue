@@ -374,6 +374,9 @@
             <div v-if="copyStatus" class="muted" style="font-size: 12px;">
               {{ copyStatus }}
             </div>
+            <div v-if="shareStatus" class="muted" style="font-size: 12px;">
+              {{ shareStatus }}
+            </div>
           </div>
           <p class="muted" style="font-size: 12px;">
             Ротація slug робить старе посилання недійсним. Можна оновлювати раз на місяць.
@@ -407,6 +410,8 @@ const saving = ref(false)
 const error = ref('')
 const success = ref('')
 const copyStatus = ref('')
+const shareStatus = ref('')
+const shareLoading = ref(false)
 const photoUploading = ref(false)
 const videoUploading = ref(false)
 const photoPreviewUrl = ref('')
