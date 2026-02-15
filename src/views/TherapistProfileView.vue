@@ -2,8 +2,8 @@
   <section class="profile">
     <header class="profile__hero">
       <div>
-        <div class="badge">Профіль терапевта</div>
-        <h1 class="title profile__title">Публічний профіль</h1>
+        <div class="badge">Кабінет терапевта</div>
+        <h1 class="title profile__title">Керування публічним профілем</h1>
         <p class="muted profile__subtitle">
           Налаштовуйте видимість, тексти й контакти. Прев’ю показує, як вас бачать клієнти.
         </p>

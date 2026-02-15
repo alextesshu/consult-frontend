@@ -2,8 +2,8 @@
   <section class="public">
     <header class="public__hero">
       <div>
-        <div class="badge">Публічний профіль</div>
-        <h1 class="title public__title">{{ profile?.display_name || 'Сторінка терапевта' }}</h1>
+        <div class="badge">Профіль терапевта</div>
+        <h1 class="title public__title">{{ profile?.display_name || 'Профіль терапевта' }}</h1>
         <p class="muted public__subtitle">
           {{ profile ? 'Публічна картка з описом і доступними слотами.' : 'Завантаження профілю…' }}
         </p>
