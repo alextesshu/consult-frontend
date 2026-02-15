@@ -370,6 +370,9 @@
               <a class="btn btn--ghost" :href="publicUrl" target="_blank" rel="noreferrer">
                 Відкрити
               </a>
+              <button class="btn btn--ghost" type="button" :disabled="shareLoading" @click="onShareProfile">
+                {{ shareLoading ? '??????????...' : '?????????? ????????' }}
+              </button>
             </div>
             <div v-if="copyStatus" class="muted" style="font-size: 12px;">
               {{ copyStatus }}
