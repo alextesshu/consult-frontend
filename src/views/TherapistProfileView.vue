@@ -650,6 +650,28 @@ async function onCopyLink() {
   }
 }
 
+async function onShareProfile() {
+  shareStatus.value = ''
+  if (!publicUrl.value) {
+    shareStatus.value = 'Публічного посилання ще немає.'
+    return
+  }
+  shareLoading.value = true
+  try {
+    if (navigator.share) {
+      await navigator.share({ title: 'Профіль терапевта', url: publicUrl.value })
+      shareStatus.value = 'Посилання на профіль надіслано.'
+      return
+    }
+    await navigator.clipboard.writeText(publicUrl.value)
+    shareStatus.value = 'Посилання скопійовано.'
+  } catch {
+    shareStatus.value = 'Не вдалося поділитись посиланням.'
+  } finally {
+    shareLoading.value = false
+  }
+}
+
 async function onPhotoSelected(event: Event) {
   const input = event.target as HTMLInputElement
   const file = input.files?.[0]
