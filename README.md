@@ -101,7 +101,6 @@ Tokens are stored in localStorage and auto-refreshed via `/api/auth/token/refres
 * Moderation-ready UI states and review editing policy
 
 ### System UX
-* 404 / 403 pages
 * Global toast/notification layer
 
 ## Notes

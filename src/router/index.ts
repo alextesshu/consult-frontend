@@ -15,6 +15,8 @@ import TherapistClientsView from '../views/TherapistClientsView.vue'
 import BillingView from '../views/BillingView.vue'
 import PublicTherapistsView from '../views/PublicTherapistsView.vue'
 import TherapistReviewsView from '../views/TherapistReviewsView.vue'
+import NotFoundView from '../views/NotFoundView.vue'
+import ForbiddenView from '../views/ForbiddenView.vue'
 import { useAuthStore } from '../stores/auth'
 import { fetchTherapistProfile } from '../lib/api'
 
@@ -91,6 +93,8 @@ const routes = [
   },
   { path: '/t/:slug', name: 'public-profile', component: PublicProfileView },
   { path: '/public/therapists', name: 'public-therapists', component: PublicTherapistsView },
+  { path: '/403', name: 'forbidden', component: ForbiddenView },
+  { path: '/:pathMatch(.*)*', name: 'not-found', component: NotFoundView },
 ]
 
 const router = createRouter({
@@ -120,7 +124,7 @@ router.beforeEach(async (to) => {
       }
     }
     if (to.meta.requiresRole && !hasRole(String(to.meta.requiresRole))) {
-      return defaultRoute()
+      return { name: 'forbidden' }
     }
   }
 
