@@ -194,7 +194,7 @@ function onClientClick() {
 
 function onLogout() {
   auth.logout()
-  router.push('/login')
+  router.push('/')
 }
 </script>
 

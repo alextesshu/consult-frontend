@@ -59,9 +59,7 @@ const topbarClass = computed(() => [
 
 function onLogout() {
   auth.logout()
-  if (route.path.startsWith('/cabinet') || route.path.startsWith('/client')) {
-    router.push('/login')
-  }
+  router.push('/')
 }
 
 </script>

@@ -294,10 +294,22 @@ async function bookSlot(slotId: number) {
     bookingSuccess.value = 'Сесію заброньовано. Перевірте ваш кабінет.'
     slots.value = slots.value.filter((slot) => slot.id !== slotId)
     if (profile.value) {
-      localStorage.setItem(
-        'selectedTherapist',
-        JSON.stringify(pickTherapist(profile.value))
-      )
+      const entry = pickTherapist(profile.value)
+      const raw = localStorage.getItem('selectedTherapists')
+      const legacy = localStorage.getItem('selectedTherapist')
+      let items: any[] = []
+      try {
+        if (raw) {
+          items = JSON.parse(raw)
+        } else if (legacy) {
+          items = [JSON.parse(legacy)]
+        }
+      } catch {
+        items = []
+      }
+      const filtered = items.filter((item) => item.public_slug !== entry.public_slug)
+      filtered.unshift(entry)
+      localStorage.setItem('selectedTherapists', JSON.stringify(filtered))
     }
   } catch (err: any) {
     bookingError.value = err?.response?.data?.detail || 'Не вдалося забронювати слот.'
@@ -308,6 +320,7 @@ async function bookSlot(slotId: number) {
 
 function pickTherapist(data: PublicTherapistProfile) {
   return {
+    therapist_id: data.therapist_id,
     public_slug: data.public_slug,
     display_name: data.display_name,
     location: data.location,

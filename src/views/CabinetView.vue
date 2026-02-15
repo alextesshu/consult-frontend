@@ -45,7 +45,11 @@
           </RouterLink>
         </div>
 </section>
-      <section class="panel panel--accent">
+      <RouterLink
+        class="panel panel--accent panel--clickable"
+        to="/cabinet/profile"
+        aria-label="Перейти до керування профілем"
+      >
         <div class="panel__header">
           <div class="badge badge--soft">Акаунт</div>
           <span class="status-dot" :class="statusDotClass"></span>
@@ -53,9 +57,13 @@
         <h2 class="panel__title">{{ me.user.username }}</h2>
         <div class="muted">{{ me.user.email || 'немає ел. пошти' }}</div>
         <div class="muted">Ролі: {{ me.user.roles.join(', ') }}</div>
-      </section>
+      </RouterLink>
 
-      <section class="panel">
+      <RouterLink
+        class="panel panel--clickable"
+        to="/cabinet/billing"
+        aria-label="Перейти до планів та доступу"
+      >
         <div class="panel__header">
           <div class="badge badge--soft">Доступ</div>
           <div class="access-pill" :class="accessPillClass">{{ accessLabel }}</div>
@@ -65,9 +73,13 @@
         <div v-if="showOverLimit" class="alert">
           Перевищено ліміт активних клієнтів. Нові підтвердження тимчасово заблоковані.
         </div>
-      </section>
+      </RouterLink>
 
-      <section class="panel">
+      <RouterLink
+        class="panel panel--clickable"
+        to="/cabinet/clients"
+        aria-label="Перейти до клієнтів"
+      >
         <div class="panel__header">
           <div class="badge badge--soft">Клієнти</div>
           <div class="panel__meta">
@@ -82,9 +94,13 @@
           <div class="stat__value">{{ me.counts?.prospect_clients ?? 0 }}</div>
           <div class="stat__label">Потенційні</div>
         </div>
-      </section>
+      </RouterLink>
 
-      <section class="panel">
+      <RouterLink
+        class="panel panel--clickable"
+        to="/cabinet/sessions"
+        aria-label="Перейти до сесій"
+      >
         <div class="panel__header">
           <div class="badge badge--soft">Сесії</div>
           <div class="panel__meta">Найближчі</div>
@@ -94,7 +110,7 @@
           <div class="stat__label">Заплановано</div>
         </div>
         <div class="muted">Слідкуй за завантаженням тижня.</div>
-      </section>
+      </RouterLink>
 
       <section class="panel panel--wide">
         <div class="panel__header">
@@ -218,7 +234,7 @@ const serverTimeLabel = computed(() => {
 
 function onLogout() {
   auth.logout()
-  router.push('/login')
+  router.push('/')
 }
 
 </script>
@@ -283,6 +299,24 @@ function onLogout() {
   background: #fff;
   display: grid;
   gap: 12px;
+}
+
+.panel--clickable {
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.panel--clickable:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 24px rgba(16, 33, 50, 0.12);
+  border-color: rgba(31, 74, 96, 0.25);
+}
+
+.panel--clickable:focus-visible {
+  outline: 2px solid rgba(31, 74, 96, 0.35);
+  outline-offset: 2px;
 }
 
 .panel--accent {
