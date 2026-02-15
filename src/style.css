@@ -172,11 +172,62 @@ a {
   font-weight: 600;
   cursor: pointer;
   line-height: 1;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
 
 .btn--ghost {
   background: transparent;
   color: var(--ink);
+  border-color: rgba(47, 63, 73, 0.2);
+}
+
+.btn:hover {
+  background: #5f818b;
+  border-color: rgba(47, 63, 73, 0.55);
+  box-shadow: 0 10px 20px rgba(31, 58, 74, 0.18);
+  transform: translateY(-1px);
+}
+
+.btn:active {
+  transform: translateY(0);
+  box-shadow: 0 6px 14px rgba(31, 58, 74, 0.12);
+}
+
+.btn:focus-visible {
+  outline: 2px solid rgba(31, 74, 96, 0.4);
+  outline-offset: 2px;
+}
+
+.btn--ghost:hover {
+  background: rgba(110, 143, 153, 0.14);
+  border-color: rgba(47, 63, 73, 0.35);
+  box-shadow: none;
+}
+
+.btn--ghost:active {
+  background: rgba(110, 143, 153, 0.2);
+}
+
+.btn--ghost:focus-visible {
+  outline: 2px solid rgba(31, 74, 96, 0.35);
+  outline-offset: 2px;
+}
+
+.btn:disabled,
+.btn[disabled],
+.btn[aria-disabled="true"] {
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+  background: var(--primary);
+  border-color: rgba(47, 63, 73, 0.4);
+}
+
+.btn--ghost:disabled,
+.btn--ghost[disabled],
+.btn--ghost[aria-disabled="true"] {
+  background: transparent;
   border-color: rgba(47, 63, 73, 0.2);
 }
 
