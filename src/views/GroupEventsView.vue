@@ -37,12 +37,58 @@
         Групові події недоступні на цьому плані. Підготовка можлива лише після оновлення доступу.
       </div>
       <div v-else class="group-actions">
-        <button class="btn" type="button" @click="createDraft('MEETING')" :disabled="loading">
+        <button class="btn" type="button" @click="createDraft('MEETING')" :disabled="createLoading">
           Створити MEETING
         </button>
-        <button class="btn btn--ghost" type="button" @click="createDraft('BROADCAST')" :disabled="loading">
+        <button class="btn btn--ghost" type="button" @click="createDraft('BROADCAST')" :disabled="createLoading">
           Створити BROADCAST
         </button>
+      </div>
+      <div v-if="groupRoomEnabled" class="group-create">
+        <div class="group-create__title">Нова подія</div>
+        <div class="group-create__grid">
+          <label class="field">
+            <span>Режим</span>
+            <select v-model="createForm.mode">
+              <option value="MEETING">MEETING</option>
+              <option value="BROADCAST">BROADCAST</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Початок</span>
+            <input v-model="createForm.starts_at" type="datetime-local" />
+          </label>
+          <label class="field">
+            <span>Завершення</span>
+            <input v-model="createForm.ends_at" type="datetime-local" />
+          </label>
+          <label class="field">
+            <span>Ліміт місць (MEETING)</span>
+            <input v-model="createForm.capacity_limit_snapshot" type="number" min="1" placeholder="Напр. 10" />
+          </label>
+          <label class="field">
+            <span>Технічний cap</span>
+            <input v-model="createForm.technical_cap" type="number" min="1" placeholder="Напр. 100" />
+          </label>
+          <label class="field">
+            <span>Видимість списку</span>
+            <select v-model="createForm.participant_list_visibility">
+              <option value="SHOW_NAMES">Показувати імена</option>
+              <option value="HIDDEN">Приховано</option>
+            </select>
+          </label>
+        </div>
+        <div class="group-create__actions">
+          <button class="btn" type="button" @click="createEvent(false)" :disabled="createLoading">
+            Створити чернетку
+          </button>
+          <button class="btn btn--ghost" type="button" @click="createEvent(true)" :disabled="createLoading">
+            Створити та запланувати
+          </button>
+        </div>
+        <div class="group-create__hint">
+          Запланування можливе лише якщо задані початок та завершення.
+        </div>
       </div>
     </section>
 
@@ -61,15 +107,201 @@
           Завершення: {{ formatDate(event.ends_at) || 'Не задано' }}
         </div>
         <div class="group-card-actions">
+          <button class="btn btn--ghost btn--sm" type="button" @click="toggleDetails(event.id)">
+            {{ expandedEventId === event.id ? 'Згорнути' : 'Деталі' }}
+          </button>
+          <button
+            v-if="event.state === 'DRAFT'"
+            class="btn btn--sm"
+            type="button"
+            @click="scheduleEvent(event)"
+            :disabled="isActionLoading(event.id)"
+          >
+            Запланувати
+          </button>
+          <button
+            v-if="event.state === 'SCHEDULED'"
+            class="btn btn--sm"
+            type="button"
+            @click="startEvent(event)"
+            :disabled="isActionLoading(event.id)"
+          >
+            Старт
+          </button>
+          <button
+            v-if="event.state === 'LIVE'"
+            class="btn btn--sm"
+            type="button"
+            @click="completeEvent(event)"
+            :disabled="isActionLoading(event.id)"
+          >
+            Завершити
+          </button>
+          <button
+            v-if="event.state === 'DRAFT' || event.state === 'SCHEDULED'"
+            class="btn btn--ghost btn--sm"
+            type="button"
+            @click="cancelEvent(event)"
+            :disabled="isActionLoading(event.id)"
+          >
+            Скасувати
+          </button>
           <button
             v-if="event.state === 'DRAFT'"
             class="btn btn--ghost btn--sm"
             type="button"
             @click="deleteDraft(event)"
-            :disabled="loading"
+            :disabled="isActionLoading(event.id)"
           >
             Видалити
           </button>
+        </div>
+        <div v-if="expandedEventId === event.id" class="group-details">
+          <div class="group-details__grid">
+            <div>
+              <div class="group-details__label">Ліміт місць</div>
+              <div>{{ event.capacity_limit_snapshot ?? 'Н/Д' }}</div>
+            </div>
+            <div>
+              <div class="group-details__label">Технічний cap</div>
+              <div>{{ event.technical_cap ?? 'Н/Д' }}</div>
+            </div>
+            <div>
+              <div class="group-details__label">Видимість списку</div>
+              <div>{{ event.participant_list_visibility }}</div>
+            </div>
+          </div>
+
+          <div class="group-details__section">
+            <div class="group-details__section-title">
+              Учасники (усі)
+              <button class="btn btn--ghost btn--sm" type="button" @click="loadParticipantView(event.id)">
+                Оновити
+              </button>
+            </div>
+            <div v-if="participantViewLoading[event.id]" class="muted">Завантаження...</div>
+            <div v-else-if="(participantViews[event.id] || []).length === 0" class="muted">
+              Поки що немає учасників.
+            </div>
+            <div v-else class="participant-list">
+              <div
+                v-for="participant in participantViews[event.id] || []"
+                :key="participant.id"
+                class="participant-row"
+              >
+                <div>
+                  <div class="participant-name">{{ participant.user_username }}</div>
+                  <div class="muted">{{ participant.role }} · {{ participant.invite_status }}</div>
+                </div>
+                <div class="participant-actions">
+                  <select
+                    v-if="participant.role !== 'HOST'"
+                    :value="participant.role"
+                    @change="updateParticipantRole(event, participant, ($event.target as HTMLSelectElement).value)"
+                  >
+                    <option value="PARTICIPANT">PARTICIPANT</option>
+                    <option value="SPEAKER">SPEAKER</option>
+                    <option value="CO_HOST">CO_HOST</option>
+                  </select>
+                  <select
+                    v-if="participant.role !== 'HOST'"
+                    :value="participant.invite_status"
+                    @change="updateParticipantStatus(event, participant, ($event.target as HTMLSelectElement).value)"
+                  >
+                    <option value="PENDING" :disabled="participant.invite_status !== 'PENDING'">PENDING</option>
+                    <option
+                      value="ACCEPTED"
+                      :disabled="participant.invite_status !== 'PENDING'"
+                    >
+                      ACCEPTED
+                    </option>
+                    <option
+                      value="DECLINED"
+                      :disabled="participant.invite_status === 'DECLINED'"
+                    >
+                      DECLINED
+                    </option>
+                  </select>
+                  <button
+                    v-if="participant.role !== 'HOST'"
+                    class="btn btn--ghost btn--sm"
+                    type="button"
+                    @click="removeParticipant(event, participant)"
+                    :disabled="isActionLoading(event.id)"
+                  >
+                    Видалити
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="group-details__section">
+            <div class="group-details__section-title">Додати учасника</div>
+            <div class="participant-form">
+              <label class="field">
+                <span>ID користувача</span>
+                <input v-model="participantForm.userId" type="number" min="1" placeholder="Напр. 42" />
+              </label>
+              <label class="field">
+                <span>Роль</span>
+                <select v-model="participantForm.role">
+                  <option value="PARTICIPANT">PARTICIPANT</option>
+                  <option value="SPEAKER">SPEAKER</option>
+                  <option value="CO_HOST">CO_HOST</option>
+                </select>
+              </label>
+              <label class="field">
+                <span>Статус</span>
+                <select v-model="participantForm.invite_status">
+                  <option value="ACCEPTED">ACCEPTED</option>
+                  <option value="PENDING">PENDING</option>
+                </select>
+              </label>
+              <button class="btn btn--sm" type="button" @click="addParticipant(event)">
+                Додати
+              </button>
+            </div>
+            <div v-if="participantFormHint" class="muted">{{ participantFormHint }}</div>
+          </div>
+
+          <div class="group-details__section">
+            <div class="group-details__section-title">
+              Запрошення (посилання)
+              <button class="btn btn--ghost btn--sm" type="button" @click="loadInvites(event.id)">
+                Оновити
+              </button>
+            </div>
+            <div v-if="inviteLoading[event.id]" class="muted">Завантаження...</div>
+            <div v-else-if="(invitesByEvent[event.id] || []).length === 0" class="muted">
+              Запрошень поки немає.
+            </div>
+            <div v-else class="invite-list">
+              <div v-for="invite in invitesByEvent[event.id]" :key="invite.id" class="invite-row">
+                <div>
+                  <div class="invite-token">{{ invite.token }}</div>
+                  <div class="muted">
+                    Використано: {{ invite.uses }} / {{ invite.max_uses ?? '∞' }}
+                    · Діє до: {{ invite.expires_at ? formatDate(invite.expires_at) : 'без обмежень' }}
+                  </div>
+                  <div class="muted">API: {{ inviteLink(invite.token) }}</div>
+                </div>
+              </div>
+            </div>
+            <div class="invite-form">
+              <label class="field">
+                <span>Діє до</span>
+                <input v-model="inviteForm.expires_at" type="datetime-local" />
+              </label>
+              <label class="field">
+                <span>Max uses</span>
+                <input v-model="inviteForm.max_uses" type="number" min="1" placeholder="Напр. 50" />
+              </label>
+              <button class="btn btn--sm" type="button" @click="createInvite(event)">
+                Створити запрошення
+              </button>
+            </div>
+          </div>
         </div>
       </article>
     </section>
@@ -77,7 +309,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useAuthStore } from '../stores/auth'
 import { http } from '../lib/http'
@@ -85,9 +317,29 @@ import { http } from '../lib/http'
 type GroupEvent = {
   id: number
   mode: 'MEETING' | 'BROADCAST'
-  state: string
+  state: 'DRAFT' | 'SCHEDULED' | 'LIVE' | 'COMPLETED' | 'CANCELLED'
   starts_at: string | null
   ends_at: string | null
+  capacity_limit_snapshot: number | null
+  technical_cap: number | null
+  participant_list_visibility: 'SHOW_NAMES' | 'HIDDEN'
+}
+
+type GroupParticipant = {
+  id: number
+  user: number
+  user_username: string
+  role: 'HOST' | 'CO_HOST' | 'SPEAKER' | 'PARTICIPANT'
+  invite_status: 'PENDING' | 'ACCEPTED' | 'DECLINED'
+}
+
+type GroupInvite = {
+  id: number
+  token: string
+  expires_at: string | null
+  max_uses: number | null
+  uses: number
+  created_at: string
 }
 
 const auth = useAuthStore()
@@ -95,6 +347,34 @@ const { me } = storeToRefs(auth)
 const events = ref<GroupEvent[]>([])
 const loading = ref(false)
 const error = ref('')
+const createLoading = ref(false)
+const actionLoading = ref<Record<number, boolean>>({})
+const participantViewLoading = ref<Record<number, boolean>>({})
+const inviteLoading = ref<Record<number, boolean>>({})
+const participantFormHint = ref('')
+const expandedEventId = ref<number | null>(null)
+const participantViews = ref<Record<number, GroupParticipant[]>>({})
+const invitesByEvent = ref<Record<number, GroupInvite[]>>({})
+
+const createForm = reactive({
+  mode: 'MEETING' as GroupEvent['mode'],
+  starts_at: '',
+  ends_at: '',
+  capacity_limit_snapshot: '',
+  technical_cap: '',
+  participant_list_visibility: 'SHOW_NAMES' as GroupEvent['participant_list_visibility'],
+})
+
+const participantForm = reactive({
+  userId: '',
+  role: 'PARTICIPANT' as GroupParticipant['role'],
+  invite_status: 'ACCEPTED' as GroupParticipant['invite_status'],
+})
+
+const inviteForm = reactive({
+  expires_at: '',
+  max_uses: '',
+})
 
 const groupRoomEnabled = computed(() => !!me.value?.effective_entitlements?.group_room_enabled)
 
@@ -153,6 +433,41 @@ function formatDate(value: string | null) {
   })
 }
 
+function inviteLink(token: string) {
+  return `${window.location.origin}/api/group-invites/${token}/join/`
+}
+
+function isActionLoading(eventId: number) {
+  return !!actionLoading.value[eventId]
+}
+
+function setActionLoading(eventId: number, value: boolean) {
+  actionLoading.value = { ...actionLoading.value, [eventId]: value }
+}
+
+function setParticipantViewLoading(eventId: number, value: boolean) {
+  participantViewLoading.value = { ...participantViewLoading.value, [eventId]: value }
+}
+
+function setInviteLoading(eventId: number, value: boolean) {
+  inviteLoading.value = { ...inviteLoading.value, [eventId]: value }
+}
+
+function updateEvent(updated: GroupEvent) {
+  events.value = events.value.map((item) => (item.id === updated.id ? updated : item))
+}
+
+function extractError(err: any, fallback: string) {
+  const data = err?.response?.data
+  return data?.detail || data?.code || fallback
+}
+
+function toIso(value: string) {
+  const dt = new Date(value)
+  if (Number.isNaN(dt.getTime())) return null
+  return dt.toISOString()
+}
+
 async function loadEvents() {
   loading.value = true
   error.value = ''
@@ -162,12 +477,12 @@ async function loadEvents() {
   } catch (err: any) {
     error.value = err?.response?.data?.detail || 'Не вдалося завантажити події'
   } finally {
-    loading.value = false
+    setActionLoading(event.id, false)
   }
 }
 
 async function createDraft(mode: GroupEvent['mode']) {
-  loading.value = true
+  createLoading.value = true
   error.value = ''
   try {
     const resp = await http.post<GroupEvent>('/cabinet/group-events/', { mode })
@@ -176,12 +491,48 @@ async function createDraft(mode: GroupEvent['mode']) {
     const data = err?.response?.data
     error.value = data?.detail || data?.code || 'Не вдалося створити подію'
   } finally {
-    loading.value = false
+    createLoading.value = false
+  }
+}
+
+async function createEvent(schedule: boolean) {
+  createLoading.value = true
+  error.value = ''
+  try {
+    const payload: Record<string, any> = {
+      mode: createForm.mode,
+      participant_list_visibility: createForm.participant_list_visibility,
+    }
+    if (createForm.starts_at && createForm.ends_at) {
+      payload.starts_at = toIso(createForm.starts_at)
+      payload.ends_at = toIso(createForm.ends_at)
+    }
+    if (createForm.capacity_limit_snapshot) {
+      payload.capacity_limit_snapshot = Number(createForm.capacity_limit_snapshot)
+    }
+    if (createForm.technical_cap) {
+      payload.technical_cap = Number(createForm.technical_cap)
+    }
+    const resp = await http.post<GroupEvent>('/cabinet/group-events/', payload)
+    let created = resp.data
+    if (schedule) {
+      if (!created.starts_at || !created.ends_at) {
+        error.value = 'Для запланування потрібні початок та завершення.'
+      } else {
+        const scheduled = await http.patch<GroupEvent>(`/cabinet/group-events/${created.id}/schedule/`)
+        created = scheduled.data
+      }
+    }
+    events.value = [created, ...events.value]
+  } catch (err: any) {
+    error.value = extractError(err, 'Не вдалося створити подію')
+  } finally {
+    createLoading.value = false
   }
 }
 
 async function deleteDraft(event: GroupEvent) {
-  loading.value = true
+  setActionLoading(event.id, true)
   error.value = ''
   try {
     await http.delete(`/cabinet/group-events/${event.id}/`)
@@ -191,6 +542,197 @@ async function deleteDraft(event: GroupEvent) {
     error.value = data?.detail || data?.code || 'Не вдалося видалити подію'
   } finally {
     loading.value = false
+  }
+}
+
+async function scheduleEvent(event: GroupEvent) {
+  setActionLoading(event.id, true)
+  error.value = ''
+  try {
+    const resp = await http.patch<GroupEvent>(`/cabinet/group-events/${event.id}/schedule/`)
+    updateEvent(resp.data)
+  } catch (err: any) {
+    error.value = extractError(err, 'Не вдалося запланувати подію')
+  } finally {
+    setActionLoading(event.id, false)
+  }
+}
+
+async function startEvent(event: GroupEvent) {
+  setActionLoading(event.id, true)
+  error.value = ''
+  try {
+    const resp = await http.patch<GroupEvent>(`/cabinet/group-events/${event.id}/start/`)
+    updateEvent(resp.data)
+  } catch (err: any) {
+    error.value = extractError(err, 'Не вдалося розпочати подію')
+  } finally {
+    setActionLoading(event.id, false)
+  }
+}
+
+async function completeEvent(event: GroupEvent) {
+  setActionLoading(event.id, true)
+  error.value = ''
+  try {
+    const resp = await http.patch<GroupEvent>(`/cabinet/group-events/${event.id}/complete/`)
+    updateEvent(resp.data)
+  } catch (err: any) {
+    error.value = extractError(err, 'Не вдалося завершити подію')
+  } finally {
+    setActionLoading(event.id, false)
+  }
+}
+
+async function cancelEvent(event: GroupEvent) {
+  setActionLoading(event.id, true)
+  error.value = ''
+  try {
+    const resp = await http.patch<GroupEvent>(`/cabinet/group-events/${event.id}/cancel/`)
+    updateEvent(resp.data)
+  } catch (err: any) {
+    error.value = extractError(err, 'Не вдалося скасувати подію')
+  } finally {
+    setActionLoading(event.id, false)
+  }
+}
+
+async function toggleDetails(eventId: number) {
+  if (expandedEventId.value === eventId) {
+    expandedEventId.value = null
+    return
+  }
+  expandedEventId.value = eventId
+  await Promise.all([loadParticipantView(eventId), loadInvites(eventId)])
+}
+
+async function loadParticipantView(eventId: number) {
+  setParticipantViewLoading(eventId, true)
+  participantFormHint.value = ''
+  try {
+    const resp = await http.get<GroupParticipant[]>(`/cabinet/group-events/${eventId}/participants/`)
+    participantViews.value = {
+      ...participantViews.value,
+      [eventId]: resp.data || [],
+    }
+  } catch (err: any) {
+    error.value = extractError(err, 'Не вдалося завантажити учасників')
+  } finally {
+    setParticipantViewLoading(eventId, false)
+  }
+}
+
+async function addParticipant(event: GroupEvent) {
+  participantFormHint.value = ''
+  const userId = Number(participantForm.userId)
+  if (!userId) {
+    participantFormHint.value = 'Вкажіть ID користувача.'
+    return
+  }
+  setActionLoading(event.id, true)
+  try {
+    await http.post<GroupParticipant>(`/cabinet/group-events/${event.id}/participants/`, {
+      user: userId,
+      role: participantForm.role,
+      invite_status: participantForm.invite_status,
+    })
+    participantForm.userId = ''
+    participantForm.role = 'PARTICIPANT'
+    participantForm.invite_status = 'ACCEPTED'
+    await loadParticipantView(event.id)
+  } catch (err: any) {
+    participantFormHint.value = extractError(err, 'Не вдалося додати учасника')
+  } finally {
+    setActionLoading(event.id, false)
+  }
+}
+
+async function removeParticipant(event: GroupEvent, participant: GroupParticipant) {
+  setActionLoading(event.id, true)
+  try {
+    await http.delete(`/cabinet/group-events/${event.id}/participants/${participant.id}/`)
+    await loadParticipantView(event.id)
+  } catch (err: any) {
+    error.value = extractError(err, 'Не вдалося видалити учасника')
+  } finally {
+    setActionLoading(event.id, false)
+  }
+}
+
+async function updateParticipantRole(event: GroupEvent, participant: GroupParticipant, role: string) {
+  if (participant.role === role) return
+  setActionLoading(event.id, true)
+  try {
+    const resp = await http.patch<GroupParticipant>(
+      `/cabinet/group-events/${event.id}/participants/${participant.id}/role/`,
+      { role }
+    )
+    const current = participantViews.value[event.id]
+    if (current) {
+      const updated = current.map((item) =>
+        item.id === participant.id ? { ...item, role: resp.data.role } : item
+      )
+      participantViews.value = { ...participantViews.value, [event.id]: updated }
+    }
+  } catch (err: any) {
+    error.value = extractError(err, 'Не вдалося оновити роль')
+  } finally {
+    setActionLoading(event.id, false)
+  }
+}
+
+async function updateParticipantStatus(event: GroupEvent, participant: GroupParticipant, invite_status: string) {
+  if (participant.invite_status === invite_status) return
+  setActionLoading(event.id, true)
+  try {
+    const resp = await http.patch<GroupParticipant>(
+      `/cabinet/group-events/${event.id}/participants/${participant.id}/invite-status/`,
+      { invite_status }
+    )
+    const current = participantViews.value[event.id]
+    if (current) {
+      const updated = current.map((item) =>
+        item.id === participant.id ? { ...item, invite_status: resp.data.invite_status } : item
+      )
+      participantViews.value = { ...participantViews.value, [event.id]: updated }
+    }
+  } catch (err: any) {
+    error.value = extractError(err, 'Не вдалося оновити статус')
+  } finally {
+    setActionLoading(event.id, false)
+  }
+}
+
+async function loadInvites(eventId: number) {
+  setInviteLoading(eventId, true)
+  try {
+    const resp = await http.get<GroupInvite[]>(`/cabinet/group-events/${eventId}/invites/`)
+    invitesByEvent.value = { ...invitesByEvent.value, [eventId]: resp.data || [] }
+  } catch (err: any) {
+    error.value = extractError(err, 'Не вдалося завантажити запрошення')
+  } finally {
+    setInviteLoading(eventId, false)
+  }
+}
+
+async function createInvite(event: GroupEvent) {
+  setActionLoading(event.id, true)
+  try {
+    const payload: Record<string, any> = {}
+    if (inviteForm.expires_at) {
+      payload.expires_at = toIso(inviteForm.expires_at)
+    }
+    if (inviteForm.max_uses) {
+      payload.max_uses = Number(inviteForm.max_uses)
+    }
+    await http.post(`/cabinet/group-events/${event.id}/invites/`, payload)
+    inviteForm.expires_at = ''
+    inviteForm.max_uses = ''
+    await loadInvites(event.id)
+  } catch (err: any) {
+    error.value = extractError(err, 'Не вдалося створити запрошення')
+  } finally {
+    setActionLoading(event.id, false)
   }
 }
 
@@ -335,7 +877,137 @@ onMounted(loadEvents)
 }
 
 .group-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
   margin-top: 10px;
+}
+
+.group-create {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed rgba(7, 47, 71, 0.12);
+  display: grid;
+  gap: 12px;
+}
+
+.group-create__title {
+  font-weight: 600;
+}
+
+.group-create__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.group-create__actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.group-create__hint {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.field input,
+.field select {
+  height: 38px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  padding: 0 10px;
+  font-size: 14px;
+}
+
+.group-details {
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px dashed rgba(7, 47, 71, 0.12);
+  display: grid;
+  gap: 16px;
+}
+
+.group-details__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+}
+
+.group-details__label {
+  color: var(--muted);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.group-details__section {
+  display: grid;
+  gap: 10px;
+}
+
+.group-details__section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-weight: 600;
+}
+
+.participant-list,
+.invite-list {
+  display: grid;
+  gap: 8px;
+}
+
+.participant-row,
+.invite-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(7, 47, 71, 0.12);
+  background: rgba(7, 47, 71, 0.03);
+}
+
+.participant-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.participant-actions select {
+  height: 32px;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  padding: 0 8px;
+  font-size: 12px;
+}
+
+.participant-name {
+  font-weight: 600;
+}
+
+.participant-form,
+.invite-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+  align-items: end;
+}
+
+.invite-token {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  word-break: break-all;
 }
 
 .state-pill {

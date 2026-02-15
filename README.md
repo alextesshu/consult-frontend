@@ -33,7 +33,7 @@ npm run dev
 * `/signup` — Therapist signup
 * `/cabinet` — Therapist dashboard
 * `/cabinet/profile` — Profile editor + public preview
-* `/cabinet/group-events` — Group events (list/create/delete drafts)
+* `/cabinet/group-events` — Group events (full lifecycle + participants + invites)
 * `/cabinet/slots` — Slots (create/edit/delete)
 * `/cabinet/sessions` — Therapist sessions (actions + notes + reschedule requests)
 * `/cabinet/clients` — Therapist CRM (clients + archive/restore)
@@ -64,7 +64,7 @@ Tokens are stored in localStorage and auto-refreshed via `/api/auth/token/refres
 * **ClientSessionDetailView**: client cancel + reschedule request + reviews
 * **ClientTherapistsView**: therapist list + open profile
 * **SlotsView**: create/edit/delete slots + fill day/week + date navigation
-* **GroupEventsView**: list drafts + create drafts + entitlement status display
+* **GroupEventsView**: full group lifecycle (create/schedule/start/complete/cancel), participants (roles/status), invites
 * **TherapistSessionsView**: therapist actions + notes + reschedule requests
 * **TherapistClientsView**: therapist CRM with archive/restore
 * **BillingView**: plans + access state + request access
@@ -82,11 +82,8 @@ Tokens are stored in localStorage and auto-refreshed via `/api/auth/token/refres
 ### Client session actions
 * Polished confirmation flows and status messaging
 
-### Group Room full flow
-* Group event details view
-* Schedule / start / complete / cancel
-* Participant management (add/remove/roles)
-* Invites (create / accept / decline)
+### Group Room UX
+* Participant list filtering (role/status), invite link copy, and inline moderation cues
 
 ### Therapist CRM
 * Bulk actions and richer client profile view
@@ -113,7 +110,6 @@ Tokens are stored in localStorage and auto-refreshed via `/api/auth/token/refres
 
 ## Next Focus
 
-1. Group Room full lifecycle (schedule/start/participants/invites)
-2. Ratings & reviews (moderation UX)
-3. Public catalog pagination + sorting
-4. System UX (404/403, toasts)
+1. Ratings & reviews (moderation UX)
+2. Public catalog pagination + sorting
+3. System UX (404/403, toasts)
