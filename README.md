@@ -70,10 +70,11 @@ Tokens are stored in localStorage and auto-refreshed via `/api/auth/token/refres
 * **TherapistReviewsView**: review moderation (approve/hide/respond) + filters
 * **TherapistClientsView**: therapist CRM with archive/restore
 * **BillingView**: plans + access state + request access
-* **TherapistProfileView**: full profile editor, media upload preview, visibility toggles, public slug management
+* **TherapistProfileView**: step-by-step profile editor, media upload preview, visibility toggles, public link code management
 * **PublicProfileView**: public profile data + upcoming slots + booking + reviews
 * **PublicTherapistsView**: public catalog with server-side filters
 * **LoginView / SignupView**: redesigned auth pages
+* **System**: global toast/notification layer, 404/403 pages
 
 ## Not Implemented Yet (Frontend Gaps)
 
@@ -101,7 +102,7 @@ Tokens are stored in localStorage and auto-refreshed via `/api/auth/token/refres
 * Moderation-ready UI states and review editing policy
 
 ### System UX
-* Global toast/notification layer (in progress)
+* Consistent empty states and loading states
 
 ## Notes
 

@@ -23,80 +23,45 @@
     <div v-if="loading" class="muted" style="margin-top: 12px;">Завантаження профілю...</div>
     <div v-else-if="error" class="form-error" style="margin-top: 12px;">{{ error }}</div>
 
-    <form v-else class="profile-grid" @submit.prevent="onSave">
-      <section class="panel preview">
+            <form v-else class="profile-grid" @submit.prevent="onSave">
+      <section class="panel panel--highlight">
         <div class="panel__header">
           <div>
-            <div class="badge badge--soft">Публічний перегляд</div>
-            <h2 class="panel__title">Превʼю картки</h2>
+            <div class="badge badge--soft">Крок 1</div>
+            <h2 class="panel__title">Публічний профіль</h2>
+            <p class="panel__hint">Увімкніть профіль та скопіюйте посилання для клієнтів.</p>
           </div>
-          <div class="panel__meta">{{ profile.public_slug || 'slug ще не створено' }}</div>
         </div>
-        <div class="preview-card">
-          <div class="preview-content">
-            <div class="preview-info">
-              <div class="preview-title">
-                {{ profile.display_name || "Ваше публічне ім'я" }}
-              </div>
-              <div class="preview-sections" v-if="hasAnyBioSection">
-                <div v-if="profile.show_bio_about && profile.bio_about" class="preview-section">
-                  <div class="preview-label">Про себе</div>
-                  <div class="muted preview-bio">{{ profile.bio_about }}</div>
-                </div>
-                <div v-if="profile.show_bio_work && profile.bio_work" class="preview-section">
-                  <div class="preview-label">Як я працюю</div>
-                  <div class="muted preview-bio">{{ profile.bio_work }}</div>
-                </div>
-                <div v-if="profile.show_bio_approach && profile.bio_approach" class="preview-section">
-                  <div class="preview-label">Мій підхід</div>
-                  <div class="muted preview-bio">{{ profile.bio_approach }}</div>
-                </div>
-                <div v-if="profile.show_bio_for_whom && profile.bio_for_whom" class="preview-section">
-                  <div class="preview-label">Для кого це може бути</div>
-                  <div class="muted preview-bio">{{ profile.bio_for_whom }}</div>
-                </div>
-                <div v-if="profile.show_bio_other && profile.bio_other" class="preview-section">
-                  <div class="preview-label">Інше</div>
-                  <div class="muted preview-bio">{{ profile.bio_other }}</div>
-                </div>
-              </div>
-              <div class="meta">
-                <span v-if="profile.specializations">{{ profile.specializations }}</span>
-                <span v-if="languagesDisplay">{{ languagesDisplay }}</span>
-                <span v-if="profile.show_location && profile.location">{{ profile.location }}</span>
-              </div>
-              <div class="meta">
-                <span v-if="profile.show_price && profile.price">{{ priceDisplay }}</span>
-              </div>
-              <div class="contact">
-                <div v-if="profile.show_email && profile.contact_email">
-                  Ел. пошта: {{ profile.contact_email }}
-                </div>
-                <div v-if="profile.show_phone && profile.contact_phone">
-                  Телефон: {{ profile.contact_phone }}
-                </div>
-                <div v-if="profile.show_telegram && profile.telegram">
-                  Telegram: {{ profile.telegram }}
-                </div>
-                <div v-if="profile.show_viber && profile.viber">
-                  Viber: {{ profile.viber }}
-                </div>
-              </div>
+        <div class="form" style="margin-top: 12px;">
+          <label class="check">
+            <input v-model="profile.public_profile_enabled" type="checkbox" />
+            Публічний профіль увімкнено
+          </label>
+          <div class="field">
+            <div class="muted">Код посилання</div>
+            <div class="slug-row">
+              <code class="slug">{{ profile.public_slug }}</code>
+              <button class="btn btn--ghost" type="button" @click="onRotateSlug">
+                Оновити
+              </button>
             </div>
-            <div class="preview-media">
-              <img
-                v-if="profile.show_photo && profile.photo_url"
-                class="preview-photo"
-                :src="profile.photo_url"
-                alt="Фото профілю"
-              />
-              <video
-                v-if="profile.show_video && profile.video_url"
-                class="preview-video"
-                :src="profile.video_url"
-                controls
-                preload="metadata"
-              ></video>
+            <div class="muted" style="font-size: 12px;">
+              Останнє оновлення: {{ profile.last_slug_rotated_at || 'ніколи' }}
+            </div>
+          </div>
+          <div class="field">
+            <div class="muted">Публічне посилання</div>
+            <div class="slug-row">
+              <code class="slug">{{ publicUrl }}</code>
+              <button class="btn btn--ghost" type="button" @click="onCopyLink">
+                Копіювати
+              </button>
+              <a class="btn btn--ghost" :href="publicUrl" target="_blank" rel="noreferrer">
+                Відкрити
+              </a>
+            </div>
+            <div v-if="copyStatus" class="muted" style="font-size: 12px;">
+              {{ copyStatus }}
             </div>
           </div>
         </div>
@@ -105,68 +70,19 @@
       <section class="panel">
         <div class="panel__header">
           <div>
-            <div class="badge badge--soft">Профіль</div>
+            <div class="badge badge--soft">Крок 2</div>
             <h2 class="panel__title">Основні дані</h2>
+            <p class="panel__hint">Ці поля формують перше враження в каталозі та публічному профілі.</p>
           </div>
         </div>
         <div class="form" style="margin-top: 12px;">
           <label class="field">
-            Публічне ім’я
-            <input v-model="profile.display_name" class="input" type="text" />
-          </label>
-          <label class="field">
-            <div class="field-head">
-              <span>Про себе</span>
-              <label class="inline-check">
-                <input v-model="profile.show_bio_about" type="checkbox" />
-                Показувати
-              </label>
-            </div>
-            <textarea v-model="profile.bio_about" class="input" rows="4"></textarea>
-          </label>
-          <label class="field">
-            <div class="field-head">
-              <span>Як я працюю</span>
-              <label class="inline-check">
-                <input v-model="profile.show_bio_work" type="checkbox" />
-                Показувати
-              </label>
-            </div>
-            <textarea v-model="profile.bio_work" class="input" rows="4"></textarea>
-          </label>
-          <label class="field">
-            <div class="field-head">
-              <span>Мій підхід</span>
-              <label class="inline-check">
-                <input v-model="profile.show_bio_approach" type="checkbox" />
-                Показувати
-              </label>
-            </div>
-            <textarea v-model="profile.bio_approach" class="input" rows="4"></textarea>
-          </label>
-          <label class="field">
-            <div class="field-head">
-              <span>Для кого це може бути</span>
-              <label class="inline-check">
-                <input v-model="profile.show_bio_for_whom" type="checkbox" />
-                Показувати
-              </label>
-            </div>
-            <textarea v-model="profile.bio_for_whom" class="input" rows="4"></textarea>
-          </label>
-          <label class="field">
-            <div class="field-head">
-              <span>Інше</span>
-              <label class="inline-check">
-                <input v-model="profile.show_bio_other" type="checkbox" />
-                Показувати
-              </label>
-            </div>
-            <textarea v-model="profile.bio_other" class="input" rows="4"></textarea>
+            Публічне ім'я
+            <input v-model="profile.display_name" class="input" type="text" placeholder="Напр. Олена Коваль" />
           </label>
           <label class="field">
             Спеціалізації
-            <input v-model="profile.specializations" class="input" type="text" />
+            <input v-model="profile.specializations" class="input" type="text" placeholder="Напр. тривожні стани, вигорання" />
           </label>
           <label class="field">
             Мови
@@ -194,12 +110,12 @@
           </label>
           <label class="field">
             Локація
-            <input v-model="profile.location" class="input" type="text" />
+            <input v-model="profile.location" class="input" type="text" placeholder="Місто / країна" />
           </label>
           <label class="field">
             Ціна за одну консультацію
             <div class="field-row">
-              <input v-model="profile.price" class="input" type="text" />
+              <input v-model="profile.price" class="input" type="text" placeholder="500" />
               <select v-model="profile.price_currency" class="input input--select">
                 <option value="UAH">грн</option>
                 <option value="USD">$</option>
@@ -213,86 +129,116 @@
       <section class="panel">
         <div class="panel__header">
           <div>
-            <div class="badge badge--soft">Контакти</div>
-            <h2 class="panel__title">Звʼязок</h2>
+            <div class="badge badge--soft">Крок 3</div>
+            <h2 class="panel__title">Про вас</h2>
+            <p class="panel__hint">Короткі блоки тексту. У кожного є перемикач “показувати”.</p>
           </div>
         </div>
-        <div class="contacts-grid" style="margin-top: 12px;">
-          <div class="form">
+        <div class="details-stack">
+          <details class="details" open>
+            <summary>Про себе</summary>
             <label class="field">
-              Ел. пошта для зв’язку
-              <input v-model="profile.contact_email" class="input" type="email" />
+              <div class="field-head">
+                <span>Текст</span>
+                <label class="inline-check">
+                  <input v-model="profile.show_bio_about" type="checkbox" />
+                  Показувати
+                </label>
+              </div>
+              <textarea v-model="profile.bio_about" class="input" rows="4"></textarea>
             </label>
+          </details>
+          <details class="details">
+            <summary>Як я працюю</summary>
             <label class="field">
-              Телефон для зв’язку
-              <input v-model="profile.contact_phone" class="input" type="text" />
+              <div class="field-head">
+                <span>Текст</span>
+                <label class="inline-check">
+                  <input v-model="profile.show_bio_work" type="checkbox" />
+                  Показувати
+                </label>
+              </div>
+              <textarea v-model="profile.bio_work" class="input" rows="4"></textarea>
             </label>
-            <div class="field-row">
-              <label class="field field--half">
-                Telegram
-                <input v-model="profile.telegram" class="input" type="text" placeholder="@username або номер" />
-              </label>
-              <label class="field field--half">
-                Viber
-                <input v-model="profile.viber" class="input" type="text" placeholder="номер телефону" />
-              </label>
-            </div>
+          </details>
+          <details class="details">
+            <summary>Мій підхід</summary>
+            <label class="field">
+              <div class="field-head">
+                <span>Текст</span>
+                <label class="inline-check">
+                  <input v-model="profile.show_bio_approach" type="checkbox" />
+                  Показувати
+                </label>
+              </div>
+              <textarea v-model="profile.bio_approach" class="input" rows="4"></textarea>
+            </label>
+          </details>
+          <details class="details">
+            <summary>Для кого</summary>
+            <label class="field">
+              <div class="field-head">
+                <span>Текст</span>
+                <label class="inline-check">
+                  <input v-model="profile.show_bio_for_whom" type="checkbox" />
+                  Показувати
+                </label>
+              </div>
+              <textarea v-model="profile.bio_for_whom" class="input" rows="4"></textarea>
+            </label>
+          </details>
+          <details class="details">
+            <summary>Інше</summary>
+            <label class="field">
+              <div class="field-head">
+                <span>Текст</span>
+                <label class="inline-check">
+                  <input v-model="profile.show_bio_other" type="checkbox" />
+                  Показувати
+                </label>
+              </div>
+              <textarea v-model="profile.bio_other" class="input" rows="4"></textarea>
+            </label>
+          </details>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel__header">
+          <div>
+            <div class="badge badge--soft">Крок 4</div>
+            <h2 class="panel__title">Контакти</h2>
+            <p class="panel__hint">Заповніть те, що готові показати. Видимість налаштовується нижче.</p>
           </div>
-          <div class="media-preview media-preview--side">
-            <div
-              class="media-card"
-              role="button"
-              tabindex="0"
-              @click="triggerPhotoSelect"
-              @keydown.enter.prevent="triggerPhotoSelect"
-              @keydown.space.prevent="triggerPhotoSelect"
-            >
-              <div class="media-title">Фото превʼю</div>
-              <div class="media-frame">
-                <img
-                  v-if="photoPreviewUrl || profile.photo_url"
-                  :src="photoPreviewUrl || profile.photo_url"
-                  alt="Фото профілю"
-                />
-                <div v-else class="media-empty">Фото ще не завантажено</div>
-              </div>
-              <div class="media-status" v-if="photoUploading">Завантаження фото...</div>
-              <input
-                ref="photoInput"
-                class="input input--file is-hidden"
-                type="file"
-                accept="image/*"
-                @change="onPhotoSelected"
-              />
-            </div>
-            <div
-              class="media-card"
-              role="button"
-              tabindex="0"
-              @click="triggerVideoSelect"
-              @keydown.enter.prevent="triggerVideoSelect"
-              @keydown.space.prevent="triggerVideoSelect"
-            >
-              <div class="media-title">Відео превʼю</div>
-              <div class="media-frame">
-                <video
-                  v-if="videoPreviewUrl || profile.video_url"
-                  :src="videoPreviewUrl || profile.video_url"
-                  preload="metadata"
-                  controls
-                  @click.stop
-                ></video>
-                <div v-else class="media-empty">Відео ще не завантажено</div>
-              </div>
-              <div class="media-status" v-if="videoUploading">Завантаження відео...</div>
-              <input
-                ref="videoInput"
-                class="input input--file is-hidden"
-                type="file"
-                accept="video/*"
-                @change="onVideoSelected"
-              />
-            </div>
+        </div>
+        <div class="form" style="margin-top: 12px;">
+          <label class="field">
+            Email для зв'язку
+            <input v-model="profile.contact_email" class="input" type="email" placeholder="hello@example.com" />
+          </label>
+          <label class="field">
+            Телефон для зв'язку
+            <input v-model="profile.contact_phone" class="input" type="text" placeholder="+380" />
+          </label>
+          <div class="field-row">
+            <label class="field field--half">
+              Messenger / Signal
+              <input v-model="profile.messenger" class="input" type="text" placeholder="username або посилання" />
+            </label>
+            <label class="field field--half">
+              Telegram
+              <input v-model="profile.telegram" class="input" type="text" placeholder="@username або посилання" />
+            </label>
+          </div>
+          <div class="field-row">
+            <label class="field field--half">
+              Viber
+              <input v-model="profile.viber" class="input" type="text" placeholder="номер телефону" />
+            </label>
+            <label class="field field--half">
+              WhatsApp
+              <input v-model="profile.whatsapp" class="input" type="text" placeholder="номер телефону" />
+            </label>
           </div>
         </div>
       </section>
@@ -300,22 +246,23 @@
       <section class="panel">
         <div class="panel__header">
           <div>
-            <div class="badge badge--soft">Видимість</div>
-            <h2 class="panel__title">Що показувати</h2>
+            <div class="badge badge--soft">Крок 5</div>
+            <h2 class="panel__title">Видимість</h2>
+            <p class="panel__hint">Вмикайте тільки те, що має бути видно клієнтам у публічному профілі.</p>
           </div>
         </div>
         <div class="form" style="margin-top: 12px;">
           <label class="check">
-            <input v-model="profile.public_profile_enabled" type="checkbox" />
-            Публічний профіль увімкнено
-          </label>
-          <label class="check">
             <input v-model="profile.show_email" type="checkbox" />
-            Показувати ел. пошту
+            Показувати email
           </label>
           <label class="check">
             <input v-model="profile.show_phone" type="checkbox" />
             Показувати телефон
+          </label>
+          <label class="check">
+            <input v-model="profile.show_messenger" type="checkbox" />
+            Показувати Messenger / Signal
           </label>
           <label class="check">
             <input v-model="profile.show_telegram" type="checkbox" />
@@ -324,6 +271,10 @@
           <label class="check">
             <input v-model="profile.show_viber" type="checkbox" />
             Показувати Viber
+          </label>
+          <label class="check">
+            <input v-model="profile.show_whatsapp" type="checkbox" />
+            Показувати WhatsApp
           </label>
           <label class="check">
             <input v-model="profile.show_video" type="checkbox" />
@@ -347,51 +298,165 @@
       <section class="panel">
         <div class="panel__header">
           <div>
-            <div class="badge badge--soft">Публічне посилання</div>
-            <h2 class="panel__title">URL та slug</h2>
+            <div class="badge badge--soft">Крок 6</div>
+            <h2 class="panel__title">Фото та відео</h2>
+            <p class="panel__hint">Завантажте обкладинку профілю та (за потреби) відео-прев'ю.</p>
           </div>
         </div>
-        <div class="form" style="margin-top: 12px;">
-          <div class="field">
-            <div class="muted">Публічний slug</div>
-            <div class="slug-row">
-              <code class="slug">{{ profile.public_slug }}</code>
-              <button class="btn btn--ghost" type="button" @click="onRotateSlug">
-                Оновити
-              </button>
+        <div class="media-preview media-preview--side" style="margin-top: 12px;">
+          <div
+            class="media-card"
+            role="button"
+            tabindex="0"
+            @click="triggerPhotoSelect"
+            @keydown.enter.prevent="triggerPhotoSelect"
+            @keydown.space.prevent="triggerPhotoSelect"
+          >
+            <div class="media-title">Фото прев'ю</div>
+            <div class="media-frame">
+              <img
+                v-if="photoPreviewUrl || profile.photo_url"
+                :src="photoPreviewUrl || profile.photo_url"
+                alt="Фото профілю"
+              />
+              <div v-else class="media-empty">Фото ще не завантажено</div>
             </div>
-            <div class="muted" style="font-size: 12px;">
-              Остання ротація: {{ profile.last_slug_rotated_at || 'ніколи' }}
-            </div>
+            <div class="media-status" v-if="photoUploading">Завантаження фото...</div>
+            <input
+              ref="photoInput"
+              class="input input--file is-hidden"
+              type="file"
+              accept="image/*"
+              @change="onPhotoSelected"
+            />
           </div>
-          <div class="field">
-            <div class="muted">Публічний URL</div>
-            <div class="slug-row">
-              <code class="slug">{{ publicUrl }}</code>
-              <button class="btn btn--ghost" type="button" @click="onCopyLink">
-                Копіювати
-              </button>
-              <a class="btn btn--ghost" :href="publicUrl" target="_blank" rel="noreferrer">
-                Відкрити
-              </a>
+          <div
+            class="media-card"
+            role="button"
+            tabindex="0"
+            @click="triggerVideoSelect"
+            @keydown.enter.prevent="triggerVideoSelect"
+            @keydown.space.prevent="triggerVideoSelect"
+          >
+            <div class="media-title">Відео прев'ю</div>
+            <div class="media-frame">
+              <video
+                v-if="videoPreviewUrl || profile.video_url"
+                :src="videoPreviewUrl || profile.video_url"
+                preload="metadata"
+                controls
+                @click.stop
+              ></video>
+              <div v-else class="media-empty">Відео ще не завантажено</div>
             </div>
-            <div v-if="copyStatus" class="muted" style="font-size: 12px;">
-              {{ copyStatus }}
-            </div>
+            <div class="media-status" v-if="videoUploading">Завантаження відео...</div>
+            <input
+              ref="videoInput"
+              class="input input--file is-hidden"
+              type="file"
+              accept="video/*"
+              @change="onVideoSelected"
+            />
           </div>
-          <p class="muted" style="font-size: 12px;">
-            Ротація slug робить старе посилання недійсним. Можна оновлювати раз на місяць.
-          </p>
         </div>
       </section>
 
+      <section class="panel preview">
+        <div class="panel__header">
+          <div>
+            <div class="badge badge--soft">Крок 7</div>
+            <h2 class="panel__title">Перевірте публічний вигляд</h2>
+            <p class="panel__hint">Попередній перегляд вашої картки в каталозі.</p>
+          </div>
+          <div class="panel__meta">{{ profile.public_slug || 'slug ще не створено' }}</div>
+        </div>
+        <details class="details details--preview">
+          <summary>Показати прев'ю</summary>
+          <div class="preview-card">
+            <div class="preview-content">
+              <div class="preview-info">
+                <div class="preview-title">
+                  {{ profile.display_name || "Ваше публічне ім'я" }}
+                </div>
+                <div class="preview-sections" v-if="hasAnyBioSection">
+                  <div v-if="profile.show_bio_about && profile.bio_about" class="preview-section">
+                    <div class="preview-label">Про себе</div>
+                    <div class="muted preview-bio">{{ profile.bio_about }}</div>
+                  </div>
+                  <div v-if="profile.show_bio_work && profile.bio_work" class="preview-section">
+                    <div class="preview-label">Як я працюю</div>
+                    <div class="muted preview-bio">{{ profile.bio_work }}</div>
+                  </div>
+                  <div v-if="profile.show_bio_approach && profile.bio_approach" class="preview-section">
+                    <div class="preview-label">Мій підхід</div>
+                    <div class="muted preview-bio">{{ profile.bio_approach }}</div>
+                  </div>
+                  <div v-if="profile.show_bio_for_whom && profile.bio_for_whom" class="preview-section">
+                    <div class="preview-label">Для кого це може бути</div>
+                    <div class="muted preview-bio">{{ profile.bio_for_whom }}</div>
+                  </div>
+                  <div v-if="profile.show_bio_other && profile.bio_other" class="preview-section">
+                    <div class="preview-label">Інше</div>
+                    <div class="muted preview-bio">{{ profile.bio_other }}</div>
+                  </div>
+                </div>
+                <div class="meta">
+                  <span v-if="profile.specializations">{{ profile.specializations }}</span>
+                  <span v-if="languagesDisplay">{{ languagesDisplay }}</span>
+                  <span v-if="profile.show_location && profile.location">{{ profile.location }}</span>
+                </div>
+                <div class="meta">
+                  <span v-if="profile.show_price && profile.price">{{ priceDisplay }}</span>
+                </div>
+                <div class="contact">
+                  <div v-if="profile.show_email && profile.contact_email">
+                    Email: {{ profile.contact_email }}
+                  </div>
+                  <div v-if="profile.show_phone && profile.contact_phone">
+                    Телефон: {{ profile.contact_phone }}
+                  </div>
+                  <div v-if="profile.show_messenger && profile.messenger">
+                    Messenger / Signal: {{ profile.messenger }}
+                  </div>
+                  <div v-if="profile.show_telegram && profile.telegram">
+                    Telegram: {{ profile.telegram }}
+                  </div>
+                  <div v-if="profile.show_viber && profile.viber">
+                    Viber: {{ profile.viber }}
+                  </div>
+                  <div v-if="profile.show_whatsapp && profile.whatsapp">
+                    WhatsApp: {{ profile.whatsapp }}
+                  </div>
+                </div>
+              </div>
+              <div class="preview-media">
+                <img
+                  v-if="profile.show_photo && profile.photo_url"
+                  class="preview-photo"
+                  :src="profile.photo_url"
+                  alt="Фото профілю"
+                />
+                <video
+                  v-if="profile.show_video && profile.video_url"
+                  class="preview-video"
+                  :src="profile.video_url"
+                  controls
+                  preload="metadata"
+                ></video>
+              </div>
+            </div>
+          </div>
+        </details>
+      </section>
+
       <div class="profile-footer">
-        <button class="btn" type="submit" :disabled="saving">
+        <button class="btn btn--primary" type="submit" :disabled="saving">
           {{ saving ? 'Збереження...' : 'Зберегти зміни' }}
         </button>
         <div v-if="success" class="muted">{{ success }}</div>
       </div>
     </form>
+
   </section>
 </template>
 
@@ -878,6 +943,13 @@ onMounted(loadProfile)
   font-size: 22px;
 }
 
+.panel__hint {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+  max-width: 640px;
+}
+
 .panel__meta {
   font-size: 12px;
   color: var(--muted);
@@ -885,6 +957,35 @@ onMounted(loadProfile)
 
 .badge--soft {
   background: rgba(8, 113, 201, 0.12);
+}
+
+.panel--highlight {
+  background: linear-gradient(135deg, #ffffff 0%, #f1f7ff 100%);
+}
+
+.details-stack {
+  display: grid;
+  gap: 10px;
+}
+
+.details {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: #fdfaf6;
+}
+
+.details summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.details[open] summary {
+  margin-bottom: 10px;
+}
+
+.details--preview {
+  background: #fff;
 }
 
 .preview {
