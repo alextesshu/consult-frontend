@@ -11,8 +11,12 @@
       <div class="profile__actions">
         <div class="toggle-chip" :class="profile.public_profile_enabled ? 'toggle-chip--on' : 'toggle-chip--off'">
           {{ profile.public_profile_enabled ? 'Публічний профіль увімкнено' : 'Публічний профіль вимкнено' }}
-        </div>
+                <button class="btn" type="button" :disabled="shareLoading" @click="onShareProfile">
+          {{ shareLoading ? '??????????...' : '?????????? ????????' }}
+        </button>
+</div>
         <RouterLink class="btn btn--ghost" to="/cabinet">Назад до кабінету</RouterLink>
+        <div v-if="shareStatus" class="muted" style="margin-top: 6px;">{{ shareStatus }}</div>
       </div>
     </header>
 
@@ -370,15 +374,9 @@
               <a class="btn btn--ghost" :href="publicUrl" target="_blank" rel="noreferrer">
                 Відкрити
               </a>
-              <button class="btn btn--ghost" type="button" :disabled="shareLoading" @click="onShareProfile">
-                {{ shareLoading ? '??????????...' : '?????????? ????????' }}
-              </button>
             </div>
             <div v-if="copyStatus" class="muted" style="font-size: 12px;">
               {{ copyStatus }}
-            </div>
-            <div v-if="shareStatus" class="muted" style="font-size: 12px;">
-              {{ shareStatus }}
             </div>
           </div>
           <p class="muted" style="font-size: 12px;">
