@@ -110,7 +110,8 @@ onBeforeUnmount(() => {
   padding: 12px 14px;
   border-radius: 12px;
   border: 1px solid var(--line);
-  background: #fff;
+  background: #ffffff;
+  color: #102536;
   box-shadow: var(--shadow);
   animation: toast-in 0.2s ease-out;
 }
@@ -132,30 +133,35 @@ onBeforeUnmount(() => {
   cursor: pointer;
   color: inherit;
   padding: 0;
+  opacity: 0.8;
+}
+
+.toast__close:hover {
+  opacity: 1;
 }
 
 .toast--success {
-  border-color: rgba(31, 122, 76, 0.25);
-  background: rgba(31, 122, 76, 0.08);
-  color: #1f7a4c;
+  border-color: #b7e2c9;
+  background: #e9f7ef;
+  color: #0f5a35;
 }
 
 .toast--error {
-  border-color: rgba(194, 75, 75, 0.3);
-  background: rgba(194, 75, 75, 0.12);
-  color: #a03838;
+  border-color: #f2b9b6;
+  background: #fdeceb;
+  color: #8f2d2d;
 }
 
 .toast--warning {
-  border-color: rgba(217, 164, 65, 0.3);
-  background: rgba(217, 164, 65, 0.12);
-  color: #a57011;
+  border-color: #f4d6a3;
+  background: #fff4df;
+  color: #7a5200;
 }
 
 .toast--info {
-  border-color: rgba(15, 85, 140, 0.3);
-  background: rgba(15, 85, 140, 0.12);
-  color: #0f558c;
+  border-color: #b8d6f0;
+  background: #e9f2fb;
+  color: #124b77;
 }
 
 @keyframes toast-in {

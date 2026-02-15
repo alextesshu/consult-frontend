@@ -33,15 +33,20 @@
           </div>
         </div>
         <div class="form" style="margin-top: 12px;">
-          <label class="check">
+          <label class="check" title="Якщо вимкнено — профіль не буде видно у каталозі.">
             <input v-model="profile.public_profile_enabled" type="checkbox" />
             Публічний профіль увімкнено
           </label>
           <div class="field">
             <div class="muted">Код посилання</div>
             <div class="slug-row">
-              <code class="slug">{{ profile.public_slug }}</code>
-              <button class="btn btn--ghost" type="button" @click="onRotateSlug">
+              <code class="slug" title="Це унікальний код для публічного посилання на ваш профіль.">{{ profile.public_slug }}</code>
+              <button
+                class="btn btn--ghost"
+                type="button"
+                title="Згенерувати новий код. Старе посилання стане недійсним."
+                @click="onRotateSlug"
+              >
                 Оновити
               </button>
             </div>
@@ -52,11 +57,22 @@
           <div class="field">
             <div class="muted">Публічне посилання</div>
             <div class="slug-row">
-              <code class="slug">{{ publicUrl }}</code>
-              <button class="btn btn--ghost" type="button" @click="onCopyLink">
+              <code class="slug" title="Повне посилання, яким можна ділитися з клієнтами.">{{ publicUrl }}</code>
+              <button
+                class="btn btn--ghost"
+                type="button"
+                title="Скопіювати посилання в буфер обміну."
+                @click="onCopyLink"
+              >
                 Копіювати
               </button>
-              <a class="btn btn--ghost" :href="publicUrl" target="_blank" rel="noreferrer">
+              <a
+                class="btn btn--ghost"
+                :href="publicUrl"
+                target="_blank"
+                rel="noreferrer"
+                title="Відкрити публічний профіль у новій вкладці."
+              >
                 Відкрити
               </a>
             </div>
