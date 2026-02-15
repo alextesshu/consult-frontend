@@ -48,7 +48,6 @@
       </div>
     </section>
 
-    <div v-if="error" class="form-error">{{ error }}</div>
     <div v-if="loading" class="muted" style="margin-top: 12px;">Завантаження...</div>
 
     <section v-else class="review-list">
@@ -115,6 +114,7 @@
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
 import { http } from '../lib/http'
+import { useToast } from '../composables/useToast'
 
 type Review = {
   id: number
@@ -133,9 +133,9 @@ type Review = {
 
 const reviews = ref<Review[]>([])
 const loading = ref(false)
-const error = ref('')
 const actionLoading = ref<Record<number, boolean>>({})
 const responseDrafts = reactive<Record<number, string>>({})
+const toast = useToast()
 
 const filters = reactive({
   status: '',
@@ -189,7 +189,7 @@ async function loadReviews() {
       responseDrafts[review.id] = review.therapist_response || ''
     })
   } catch (err: any) {
-    error.value = err?.response?.data?.detail || 'Не вдалося завантажити відгуки'
+    toast.error(err?.response?.data?.detail || 'Не вдалося завантажити відгуки')
   } finally {
     loading.value = false
   }
@@ -201,7 +201,7 @@ async function updateStatus(review: Review, status: Review['status']) {
     const resp = await http.patch<Review>(`/cabinet/reviews/${review.id}/`, { status })
     reviews.value = reviews.value.map((item) => (item.id === review.id ? resp.data : item))
   } catch (err: any) {
-    error.value = err?.response?.data?.detail || 'Не вдалося оновити статус'
+    toast.error(err?.response?.data?.detail || 'Не вдалося оновити статус')
   } finally {
     setActionLoading(review.id, false)
   }
@@ -215,7 +215,7 @@ async function saveResponse(review: Review) {
     })
     reviews.value = reviews.value.map((item) => (item.id === review.id ? resp.data : item))
   } catch (err: any) {
-    error.value = err?.response?.data?.detail || 'Не вдалося зберегти відповідь'
+    toast.error(err?.response?.data?.detail || 'Не вдалося зберегти відповідь')
   } finally {
     setActionLoading(review.id, false)
   }
@@ -389,13 +389,6 @@ onMounted(loadReviews)
   font-size: 13px;
 }
 
-.form-error {
-  color: #b3261e;
-  background: #fdecea;
-  border: 1px solid #f5c2c0;
-  border-radius: 10px;
-  padding: 8px 10px;
-}
 
 @media (max-width: 860px) {
   .reviews__hero {

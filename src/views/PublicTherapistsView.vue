@@ -82,6 +82,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { fetchPublicTherapists, type PublicTherapistProfile } from '../lib/api'
+import { useToast } from '../composables/useToast'
 
 const therapists = ref<PublicTherapistProfile[]>([])
 const loading = ref(false)
@@ -90,6 +91,7 @@ const totalPages = ref(1)
 const page = ref(1)
 const pageSize = ref(12)
 const sort = ref('')
+const toast = useToast()
 const query = ref('')
 const language = ref('')
 const location = ref('')
@@ -137,6 +139,7 @@ async function loadTherapists() {
     therapists.value = []
     total.value = 0
     totalPages.value = 1
+    toast.error('Не вдалося завантажити каталог')
   } finally {
     loading.value = false
   }
