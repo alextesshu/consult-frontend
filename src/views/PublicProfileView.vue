@@ -65,6 +65,23 @@
           </div>
         </div>
 
+        <div class="slot-filter">
+          <label class="slot-filter__label" for="slotDate">Оберіть дату</label>
+          <input
+            id="slotDate"
+            class="input slot-filter__input"
+            type="date"
+            v-model="selectedDate"
+            :min="todayInputValue"
+            ref="slotDateInput"
+            @click="openDatePicker"
+            @focus="openDatePicker"
+          />
+          <div class="muted slot-filter__hint">
+            Оберіть дату, щоб переглянути доступні слоти.
+          </div>
+        </div>
+
         <div v-if="!isAuthenticated" class="hint">
           Щоб забронювати сесію, увійдіть у свій акаунт клієнта.
           <RouterLink class="btn btn--ghost" to="/login">Увійти</RouterLink>
@@ -133,6 +150,7 @@ import {
   type SessionReview,
 } from '../lib/api'
 import { useAuthStore } from '../stores/auth'
+import { useToast } from '../composables/useToast'
 
 type PublicSlot = {
   id: number
@@ -142,6 +160,7 @@ type PublicSlot = {
 
 const route = useRoute()
 const auth = useAuthStore()
+const toast = useToast()
 const profile = ref<PublicTherapistProfile | null>(null)
 const slots = ref<PublicSlot[]>([])
 const loading = ref(false)
@@ -154,6 +173,8 @@ const bookingSlotId = ref<number | null>(null)
 const reviews = ref<SessionReview[]>([])
 const reviewsLoading = ref(false)
 const reviewsError = ref('')
+const selectedDate = ref('')
+const slotDateInput = ref<HTMLInputElement | null>(null)
 
 const slug = computed(() => String(route.params.slug || '').trim())
 const roles = computed(() => auth.me?.user.roles ?? auth.user?.roles ?? [])
@@ -241,6 +262,18 @@ function toDateInputValue(date: Date) {
   return new Date(date.getTime() - offset).toISOString().slice(0, 10)
 }
 
+const todayInputValue = toDateInputValue(new Date())
+
+function openDatePicker() {
+  const input = slotDateInput.value
+  if (!input) return
+  if (typeof input.showPicker === 'function') {
+    input.showPicker()
+  } else {
+    input.focus()
+  }
+}
+
 async function loadProfile() {
   if (!slug.value) {
     error.value = 'Потрібен slug профілю.'
@@ -265,7 +298,7 @@ async function loadSlots() {
   slotsLoading.value = true
   slotsError.value = ''
   try {
-    const dateFrom = toDateInputValue(new Date())
+    const dateFrom = selectedDate.value || toDateInputValue(new Date())
     const resp = await http.get<PublicSlot[]>('/booking/slots/', {
       params: { therapist_id: profile.value.therapist_id, date_from: dateFrom },
     })
@@ -310,6 +343,7 @@ async function bookSlot(slotId: number) {
   try {
     await http.post('/booking/sessions/', { slot_id: slotId })
     bookingSuccess.value = 'Сесію заброньовано. Перевірте ваш кабінет.'
+    toast.success(bookingSuccess.value)
     slots.value = slots.value.filter((slot) => slot.id !== slotId)
     if (profile.value) {
       const entry = pickTherapist(profile.value)
@@ -331,6 +365,7 @@ async function bookSlot(slotId: number) {
     }
   } catch (err: any) {
     bookingError.value = err?.response?.data?.detail || 'Не вдалося забронювати слот.'
+    toast.error(bookingError.value)
   } finally {
     bookingSlotId.value = null
   }
@@ -368,6 +403,11 @@ watch(slug, () => {
   profile.value = null
   slots.value = []
   loadProfile().then(loadSlots)
+})
+
+watch(selectedDate, () => {
+  slots.value = []
+  loadSlots()
 })
 
 onMounted(async () => {
@@ -429,6 +469,31 @@ onMounted(async () => {
   margin: 0;
   font-family: var(--font-display);
   font-size: 22px;
+}
+
+.slot-filter {
+  display: grid;
+  gap: 6px;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px dashed rgba(47, 63, 73, 0.18);
+  background: rgba(7, 47, 71, 0.03);
+}
+
+.slot-filter__label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.slot-filter__input {
+  max-width: 240px;
+}
+
+.slot-filter__hint {
+  font-size: 12px;
 }
 
 .badge--soft {

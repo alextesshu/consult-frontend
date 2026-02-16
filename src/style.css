@@ -161,6 +161,49 @@ a {
   background: #fff;
 }
 
+.input::placeholder,
+input::placeholder,
+textarea::placeholder {
+  color: rgba(47, 63, 73, 0.45);
+  transition: color 0.2s ease;
+}
+
+.input:hover::placeholder,
+.input:focus::placeholder,
+.input:focus-visible::placeholder,
+input:hover::placeholder,
+input:focus::placeholder,
+input:focus-visible::placeholder,
+textarea:hover::placeholder,
+textarea:focus::placeholder,
+textarea:focus-visible::placeholder {
+  color: rgba(47, 63, 73, 0.9);
+}
+
+input[type="date"],
+input[type="time"] {
+  color: rgba(47, 63, 73, 0.45);
+}
+
+input[type="date"]:hover,
+input[type="date"]:focus,
+input[type="time"]:hover,
+input[type="time"]:focus {
+  color: rgba(47, 63, 73, 0.9);
+}
+
+input[type="date"]::-webkit-datetime-edit,
+input[type="time"]::-webkit-datetime-edit {
+  color: rgba(47, 63, 73, 0.45);
+}
+
+input[type="date"]:hover::-webkit-datetime-edit,
+input[type="date"]:focus::-webkit-datetime-edit,
+input[type="time"]:hover::-webkit-datetime-edit,
+input[type="time"]:focus::-webkit-datetime-edit {
+  color: rgba(47, 63, 73, 0.9);
+}
+
 .btn {
   display: inline-flex;
   align-items: center;

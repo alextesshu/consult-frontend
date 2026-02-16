@@ -12,6 +12,43 @@
         <RouterLink v-if="isAuthenticated" :to="cabinetRoute">Кабінет</RouterLink>
         <RouterLink v-if="!isAuthenticated" to="/login">Вхід</RouterLink>
         <RouterLink v-if="!isAuthenticated" to="/signup">Реєстрація</RouterLink>
+        <div v-if="isAuthenticated" class="nav__notifications">
+          <button
+            ref="notificationsButtonRef"
+            class="icon-btn"
+            type="button"
+            @click="toggleNotifications"
+            aria-label="Сповіщення"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M12 22a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22zm7-6V11a7 7 0 1 0-14 0v5l-2 2v1h18v-1l-2-2z"
+                fill="currentColor"
+              />
+            </svg>
+            <span v-if="notificationCount" class="icon-btn__badge">{{ notificationCount }}</span>
+          </button>
+          <div v-if="showNotifications" ref="notificationsPanelRef" class="notif-panel">
+            <div class="notif-panel__title">Сповіщення</div>
+            <div v-if="notifications.length === 0" class="muted">Немає нових сповіщень.</div>
+            <div v-else class="notif-list">
+              <RouterLink
+                v-for="item in notifications"
+                :key="item.id"
+                class="notif-item"
+                :class="{ 'notif-item--read': readNotificationIds.has(item.id) }"
+                :to="item.to"
+                @click="markNotificationRead(item.id)"
+              >
+                <span class="notif-item__dot" :class="`notif-item__dot--${item.tone}`"></span>
+                <div>
+                  <div class="notif-item__text">{{ item.text }}</div>
+                  <div class="muted notif-item__hint">{{ item.hint }}</div>
+                </div>
+              </RouterLink>
+            </div>
+          </div>
+        </div>
         <button v-if="isAuthenticated" class="btn btn--ghost" type="button" @click="onLogout">
           Вийти
         </button>
@@ -33,7 +70,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from './stores/auth'
 import ToastHost from './components/ToastHost.vue'
@@ -60,11 +97,185 @@ const topbarClass = computed(() => [
   },
 ])
 
+const showNotifications = ref(false)
+const readNotificationIds = ref<Set<string>>(new Set())
+const notificationsButtonRef = ref<HTMLButtonElement | null>(null)
+const notificationsPanelRef = ref<HTMLDivElement | null>(null)
+const lastNotificationIds = ref<string>('') // track ids to reset read state on new events
+const refreshIntervalId = ref<number | null>(null)
+
+function loadReadNotifications() {
+  try {
+    const raw = localStorage.getItem('readNotifications')
+    if (!raw) return
+    const parsed = JSON.parse(raw)
+    if (Array.isArray(parsed)) {
+      readNotificationIds.value = new Set(parsed.filter((id) => typeof id === 'string'))
+    }
+  } catch {
+    readNotificationIds.value = new Set()
+  }
+}
+
+function persistReadNotifications() {
+  localStorage.setItem('readNotifications', JSON.stringify([...readNotificationIds.value]))
+}
+
+const notifications = computed(() => {
+  const items: Array<{ id: string; text: string; hint: string; to: string; tone: 'info' | 'warn' | 'ok' }> = []
+  const accessState = auth.me?.access_state
+  const activeCount = auth.me?.counts?.active_clients ?? 0
+  const activeLimit = auth.me?.effective_entitlements?.active_client_limit
+  if (accessState === 'GRACE') {
+    items.push({
+      id: 'access-grace',
+      text: 'Оплата потребує уваги',
+      hint: 'Доступ тимчасово збережено.',
+      to: '/cabinet/billing',
+      tone: 'warn',
+    })
+  }
+  if (accessState === 'RESTRICTED') {
+    items.push({
+      id: 'access-restricted',
+      text: 'Обмежений режим доступу',
+      hint: 'Нові дії заблоковані.',
+      to: '/cabinet/billing',
+      tone: 'warn',
+    })
+  }
+  if (typeof activeLimit === 'number' && activeCount > activeLimit) {
+      items.push({
+        id: 'over-limit',
+        text: 'Перевищено ліміт активних клієнтів',
+        hint: 'Нові підтвердження тимчасово заблоковані.',
+        to: '/cabinet/billing',
+        tone: 'warn',
+      })
+  }
+  if (isTherapist.value && (auth.me?.counts?.upcoming_sessions_count ?? 0) > 0) {
+    items.push({
+      id: 'upcoming-sessions',
+      text: 'Є заплановані сесії',
+      hint: 'Перевірте список найближчих сесій.',
+      to: '/cabinet/sessions',
+      tone: 'ok',
+    })
+  }
+  return items
+})
+
+const unreadNotifications = computed(() =>
+  notifications.value.filter((item) => !readNotificationIds.value.has(item.id))
+)
+const notificationCount = computed(() => unreadNotifications.value.length)
+
+function toggleNotifications() {
+  showNotifications.value = !showNotifications.value
+}
+
+function markNotificationRead(id: string) {
+  if (!id) return
+  const next = new Set(readNotificationIds.value)
+  next.add(id)
+  readNotificationIds.value = next
+  persistReadNotifications()
+  showNotifications.value = false
+}
+
 function onLogout() {
   auth.logout()
   router.push('/')
 }
 
+watch(
+  () => route.fullPath,
+  () => {
+    showNotifications.value = false
+  }
+)
+
+watch(showNotifications, (value) => {
+  if (value) {
+    refreshMe()
+  }
+})
+
+async function refreshMe() {
+  if (!isAuthenticated.value) return
+  try {
+    await auth.loadMe()
+  } catch {
+    // ignore refresh errors
+  }
+}
+
+function startMePolling() {
+  if (refreshIntervalId.value !== null) return
+  refreshMe()
+  refreshIntervalId.value = window.setInterval(() => {
+    refreshMe()
+  }, 60000)
+}
+
+function stopMePolling() {
+  if (refreshIntervalId.value === null) return
+  window.clearInterval(refreshIntervalId.value)
+  refreshIntervalId.value = null
+}
+
+function handleVisibilityChange() {
+  if (document.visibilityState === 'visible') {
+    refreshMe()
+  }
+}
+
+watch(
+  notifications,
+  (items) => {
+    const ids = items.map((item) => item.id).join('|')
+    if (ids && lastNotificationIds.value && ids !== lastNotificationIds.value) {
+      readNotificationIds.value = new Set()
+      persistReadNotifications()
+    }
+    lastNotificationIds.value = ids
+  },
+  { immediate: true }
+)
+
+function handleGlobalClick(event: MouseEvent) {
+  if (!showNotifications.value) return
+  const target = event.target as Node
+  const button = notificationsButtonRef.value
+  const panel = notificationsPanelRef.value
+  if (button && button.contains(target)) return
+  if (panel && panel.contains(target)) return
+  showNotifications.value = false
+}
+
+onMounted(() => {
+  if (isAuthenticated.value) {
+    startMePolling()
+  }
+  document.addEventListener('click', handleGlobalClick)
+  document.addEventListener('visibilitychange', handleVisibilityChange)
+})
+
+onBeforeUnmount(() => {
+  stopMePolling()
+  document.removeEventListener('click', handleGlobalClick)
+  document.removeEventListener('visibilitychange', handleVisibilityChange)
+})
+
+watch(isAuthenticated, (value) => {
+  if (value) {
+    startMePolling()
+  } else {
+    stopMePolling()
+  }
+})
+
+loadReadNotifications()
 </script>
 
 <style scoped>
@@ -167,6 +378,134 @@ function onLogout() {
 .nav a.router-link-active {
   border-color: rgba(255, 255, 255, 0.4);
   background: rgba(255, 255, 255, 0.18);
+}
+
+.nav__notifications {
+  position: relative;
+}
+
+.icon-btn {
+  position: relative;
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #f1f6f9;
+  background: rgba(255, 255, 255, 0.08);
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.icon-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.icon-btn:hover,
+.icon-btn:focus-visible {
+  border-color: rgba(255, 255, 255, 0.55);
+  background: rgba(255, 255, 255, 0.16);
+  box-shadow: 0 8px 16px rgba(12, 26, 36, 0.22);
+}
+
+.icon-btn__badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: #e56b6f;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  min-width: 16px;
+  height: 16px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+}
+
+.notif-panel {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  width: 280px;
+  background: #fff;
+  color: var(--ink);
+  border: 1px solid rgba(47, 63, 73, 0.2);
+  border-radius: 14px;
+  box-shadow: 0 18px 32px rgba(16, 33, 50, 0.16);
+  padding: 12px;
+  z-index: 20;
+}
+
+.notif-panel__title {
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.notif-panel .muted {
+  color: rgba(47, 63, 73, 0.7);
+}
+
+.notif-list {
+  display: grid;
+  gap: 8px;
+}
+
+.notif-item {
+  display: grid;
+  grid-template-columns: 10px 1fr;
+  gap: 10px;
+  text-decoration: none;
+  color: inherit;
+  padding: 8px;
+  border-radius: 10px;
+  background: rgba(7, 47, 71, 0.04);
+}
+
+.notif-item:hover {
+  background: rgba(7, 47, 71, 0.08);
+}
+
+.notif-item--read .notif-item__text {
+  color: rgba(47, 63, 73, 0.75);
+  font-weight: 500;
+}
+
+.notif-item--read .notif-item__dot {
+  background: rgba(47, 63, 73, 0.35);
+}
+
+.notif-item__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  margin-top: 6px;
+  background: #7a8d9c;
+}
+
+.notif-item__dot--warn {
+  background: #d9a441;
+}
+
+.notif-item__dot--ok {
+  background: #1f7a4c;
+}
+
+.notif-item__dot--info {
+  background: #3b7db6;
+}
+
+.notif-item__text {
+  font-weight: 600;
+  font-size: 13px;
+  color: #1f2a33;
+}
+
+.notif-item__hint {
+  font-size: 12px;
+  color: rgba(47, 63, 73, 0.7);
 }
 
 .main {

@@ -203,7 +203,7 @@
         </div>
         <div class="details-stack">
           <details class="details" open>
-            <summary>Про себе</summary>
+            <summary>Коротко про мене</summary>
             <label class="field">
               <div class="field-head">
                 <span>Текст</span>
@@ -216,7 +216,7 @@
             </label>
           </details>
           <details class="details">
-            <summary>Як я працюю</summary>
+            <summary>Як проходить консультація</summary>
             <label class="field">
               <div class="field-head">
                 <span>Текст</span>
@@ -229,7 +229,7 @@
             </label>
           </details>
           <details class="details">
-            <summary>Мій підхід</summary>
+            <summary>Методи та підхід</summary>
             <label class="field">
               <div class="field-head">
                 <span>Текст</span>
@@ -242,7 +242,7 @@
             </label>
           </details>
           <details class="details">
-            <summary>Для кого</summary>
+            <summary>Запити, з якими я працюю</summary>
             <label class="field">
               <div class="field-head">
                 <span>Текст</span>
@@ -255,7 +255,7 @@
             </label>
           </details>
           <details class="details">
-            <summary>Інше</summary>
+            <summary>Додаткова інформація</summary>
             <label class="field">
               <div class="field-head">
                 <span>Текст</span>
@@ -666,7 +666,7 @@ const specializationInput = ref('')
 const specializationList = ref<string[]>([])
 const showOtherSpecialization = ref(false)
 const otherSpecializationInput = ref('')
-const disallowedLanguages = new Set(['російська', 'русский', 'russian'])
+const disallowedLanguages = new Set<string>()
 
 function setPreviewUrl(target: { value: string }, file?: File | null) {
   if (target.value) {
