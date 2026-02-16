@@ -213,7 +213,8 @@ export async function fetchPublicTherapists(
     page?: number
     page_size?: number
     sort?: string
-    query?: string
+    name?: string
+    specialization?: string
     language?: string
     location?: string
     price_min?: string

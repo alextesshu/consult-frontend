@@ -14,10 +14,18 @@
       <div class="filters">
         <div class="filters__row">
           <input
-            v-model="query"
+            v-model="nameQuery"
             class="input"
             type="text"
-            placeholder="Ім'я або спеціалізація"
+            placeholder="Ім'я"
+            @input="scheduleSearch"
+            @keyup.enter="applyFilters"
+          />
+          <input
+            v-model="specialization"
+            class="input"
+            type="text"
+            placeholder="Спеціалізація"
             @input="scheduleSearch"
             @keyup.enter="applyFilters"
           />
@@ -141,13 +149,15 @@ const totalPages = ref(1)
 const page = ref(1)
 const pageSize = ref(12)
 const sort = ref('')
-const query = ref('')
+const nameQuery = ref('')
+const specialization = ref('')
 const language = ref('')
 const location = ref('')
 const priceMin = ref('')
 const priceMax = ref('')
 const priceCurrency = ref('')
-const appliedQuery = ref('')
+const appliedName = ref('')
+const appliedSpecialization = ref('')
 const appliedLanguage = ref('')
 const appliedLocation = ref('')
 const appliedPriceMin = ref('')
@@ -157,7 +167,8 @@ const toast = useToast()
 let searchTimer: number | undefined
 const hasFilters = computed(
   () =>
-    Boolean(query.value) ||
+    Boolean(nameQuery.value) ||
+    Boolean(specialization.value) ||
     Boolean(language.value) ||
     Boolean(location.value) ||
     Boolean(priceMin.value) ||
@@ -205,7 +216,8 @@ async function loadTherapists() {
       page: page.value,
       page_size: pageSize.value,
       sort: sort.value || undefined,
-      query: appliedQuery.value || undefined,
+      name: appliedName.value || undefined,
+      specialization: appliedSpecialization.value || undefined,
       language: appliedLanguage.value || undefined,
       location: appliedLocation.value || undefined,
       price_min: appliedPriceMin.value || undefined,
@@ -226,7 +238,8 @@ async function loadTherapists() {
 }
 
 function applyFilters() {
-  appliedQuery.value = query.value
+  appliedName.value = nameQuery.value
+  appliedSpecialization.value = specialization.value
   appliedLanguage.value = language.value
   appliedLocation.value = location.value
   appliedPriceMin.value = priceMin.value
@@ -246,14 +259,16 @@ function scheduleSearch() {
 }
 
 function resetFilters() {
-  query.value = ''
+  nameQuery.value = ''
+  specialization.value = ''
   language.value = ''
   location.value = ''
   priceMin.value = ''
   priceMax.value = ''
   priceCurrency.value = ''
   sort.value = ''
-  appliedQuery.value = ''
+  appliedName.value = ''
+  appliedSpecialization.value = ''
   appliedLanguage.value = ''
   appliedLocation.value = ''
   appliedPriceMin.value = ''
