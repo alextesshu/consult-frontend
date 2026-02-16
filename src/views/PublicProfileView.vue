@@ -72,6 +72,7 @@
         <div v-if="bookingError" class="form-error">{{ bookingError }}</div>
 
         <div v-if="slotsLoading" class="muted">Завантаження слотів…</div>
+        <div v-else-if="slotsError" class="form-error">{{ slotsError }}</div>
         <div v-else-if="slots.length === 0" class="muted">Наразі вільних слотів немає.</div>
           <div v-else class="slot-list">
           <div v-for="slot in slots" :key="slot.id" class="slot-card">
@@ -101,6 +102,7 @@
         </div>
 
         <div v-if="reviewsLoading" class="muted">Завантаження відгуків…</div>
+        <div v-else-if="reviewsError" class="form-error">{{ reviewsError }}</div>
         <div v-else-if="reviews.length === 0" class="muted">Поки що немає відгуків.</div>
         <div v-else class="review-list">
           <article v-for="review in reviews" :key="review.id" class="review-card">
@@ -142,11 +144,13 @@ const slots = ref<PublicSlot[]>([])
 const loading = ref(false)
 const slotsLoading = ref(false)
 const error = ref('')
+const slotsError = ref('')
 const bookingError = ref('')
 const bookingSuccess = ref('')
 const bookingSlotId = ref<number | null>(null)
 const reviews = ref<SessionReview[]>([])
 const reviewsLoading = ref(false)
+const reviewsError = ref('')
 
 const slug = computed(() => String(route.params.slug || '').trim())
 const roles = computed(() => auth.me?.user.roles ?? auth.user?.roles ?? [])
@@ -256,6 +260,7 @@ async function loadProfile() {
 async function loadSlots() {
   if (!profile.value?.therapist_id) return
   slotsLoading.value = true
+  slotsError.value = ''
   try {
     const dateFrom = toDateInputValue(new Date())
     const resp = await http.get<PublicSlot[]>('/booking/slots/', {
@@ -264,6 +269,7 @@ async function loadSlots() {
     slots.value = (resp.data || []).slice(0, 6)
   } catch {
     slots.value = []
+    slotsError.value = 'Не вдалося завантажити слоти.'
   } finally {
     slotsLoading.value = false
   }
@@ -272,10 +278,12 @@ async function loadSlots() {
 async function loadReviews() {
   if (!slug.value) return
   reviewsLoading.value = true
+  reviewsError.value = ''
   try {
     reviews.value = await fetchPublicTherapistReviews(slug.value, 20)
   } catch {
     reviews.value = []
+    reviewsError.value = 'Не вдалося завантажити відгуки.'
   } finally {
     reviewsLoading.value = false
   }

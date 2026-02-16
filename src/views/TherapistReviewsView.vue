@@ -21,6 +21,9 @@
           Скинути
         </button>
       </div>
+      <div class="muted" style="font-size: 12px;">
+        Фільтри застосовуються після натискання кнопки «Застосувати».
+      </div>
       <div class="filters">
         <label class="field">
           <span>Статус</span>
@@ -49,13 +52,31 @@
     </section>
 
     <div v-if="loading" class="muted" style="margin-top: 12px;">Завантаження...</div>
+    <div v-else-if="error" class="form-error" style="margin-top: 12px;">{{ error }}</div>
 
     <section v-else class="review-list">
+      <div v-if="reviews.length > 0" class="review-stats">
+        <div class="stat-chip">
+          Усього: <strong>{{ reviews.length }}</strong>
+        </div>
+        <div class="stat-chip stat-chip--pending">
+          Очікує: <strong>{{ pendingCount }}</strong>
+        </div>
+        <div class="stat-chip stat-chip--approved">
+          Підтверджено: <strong>{{ approvedCount }}</strong>
+        </div>
+        <div class="stat-chip stat-chip--rejected">
+          Приховано: <strong>{{ rejectedCount }}</strong>
+        </div>
+        <div class="stat-chip">
+          Середня оцінка: <strong>{{ averageRatingLabel }}</strong>
+        </div>
+      </div>
       <EmptyState
         v-if="reviews.length === 0"
-        title="???? ????? ????????"
-        description="????????? ???????? ???????? ?????? ????? ????? ? ???? ?????????? ???."
-        action-text="????????? ????????"
+        title="Поки немає відгуків"
+        description="Коли клієнти залишать відгук після сесії, він з’явиться тут для модерації."
+        action-text="Відкрити профіль"
         action-to="/cabinet/profile"
       />
       <article v-for="review in reviews" :key="review.id" class="review-card">
@@ -102,6 +123,9 @@
             <span>Відповідь терапевта</span>
             <textarea v-model="responseDrafts[review.id]" rows="3"></textarea>
           </label>
+          <div class="response__meta muted">
+            Відповідь буде видно у публічному профілі після підтвердження відгуку.
+          </div>
           <div class="response__meta" v-if="review.therapist_response_at">
             Остання відповідь: {{ formatDate(review.therapist_response_at) }}
           </div>
@@ -120,7 +144,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { http } from '../lib/http'
 import { useToast } from '../composables/useToast'
 import { getApiErrorMessage } from '../lib/errors'
@@ -143,6 +167,7 @@ type Review = {
 
 const reviews = ref<Review[]>([])
 const loading = ref(false)
+const error = ref('')
 const actionLoading = ref<Record<number, boolean>>({})
 const responseDrafts = reactive<Record<number, string>>({})
 const toast = useToast()
@@ -192,6 +217,24 @@ function resetFilters() {
   loadReviews()
 }
 
+const pendingCount = computed(
+  () => reviews.value.filter((review) => review.status === 'PENDING').length
+)
+
+const approvedCount = computed(
+  () => reviews.value.filter((review) => review.status === 'APPROVED').length
+)
+
+const rejectedCount = computed(
+  () => reviews.value.filter((review) => review.status === 'REJECTED').length
+)
+
+const averageRatingLabel = computed(() => {
+  if (reviews.value.length === 0) return '—'
+  const sum = reviews.value.reduce((acc, review) => acc + review.rating, 0)
+  return (sum / reviews.value.length).toFixed(1)
+})
+
 async function loadReviews() {
   loading.value = true
   error.value = ''
@@ -205,7 +248,9 @@ async function loadReviews() {
       responseDrafts[review.id] = review.therapist_response || ''
     })
   } catch (err: any) {
-    toast.error(getApiErrorMessage(err, 'Не вдалося завантажити відгуки'))
+    const message = getApiErrorMessage(err, 'Не вдалося завантажити відгуки')
+    error.value = message
+    toast.error(message)
   } finally {
     loading.value = false
   }
@@ -316,6 +361,35 @@ onMounted(loadReviews)
 .review-list {
   display: grid;
   gap: 12px;
+}
+
+.review-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.stat-chip {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(15, 85, 140, 0.08);
+  color: #0f558c;
+  font-size: 12px;
+}
+
+.stat-chip--pending {
+  background: rgba(217, 164, 65, 0.12);
+  color: #a57011;
+}
+
+.stat-chip--approved {
+  background: rgba(31, 122, 76, 0.12);
+  color: #1f7a4c;
+}
+
+.stat-chip--rejected {
+  background: rgba(194, 75, 75, 0.12);
+  color: #a03838;
 }
 
 .review-card {

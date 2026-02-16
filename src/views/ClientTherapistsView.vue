@@ -12,6 +12,7 @@
     <div class="card">
       <div class="card__title">Терапевти</div>
       <div v-if="loading" class="muted">Завантаження списку…</div>
+      <div v-else-if="error" class="form-error">{{ error }}</div>
       <div v-else-if="therapists.length === 0" class="muted">Поки немає публічних профілів.</div>
       <div v-else class="therapist-grid">
         <RouterLink
@@ -47,6 +48,7 @@ import { fetchPublicTherapists, type PublicTherapistProfile } from '../lib/api'
 
 const therapists = ref<PublicTherapistProfile[]>([])
 const loading = ref(false)
+const error = ref('')
 
 const languageLabel = (value?: string | string[]) => {
   if (!value) return ''
@@ -75,11 +77,13 @@ const publicName = (therapist: PublicTherapistProfile) => {
 
 async function loadTherapists() {
   loading.value = true
+  error.value = ''
   try {
     const resp = await fetchPublicTherapists({ page: 1, page_size: 12 })
     therapists.value = resp.results || []
   } catch {
     therapists.value = []
+    error.value = 'Не вдалося завантажити список терапевтів.'
   } finally {
     loading.value = false
   }
@@ -177,6 +181,15 @@ onMounted(loadTherapists)
 
 .therapist-price {
   font-weight: 600;
+}
+
+.form-error {
+  color: #b3261e;
+  background: #fdecea;
+  border: 1px solid #f5c2c0;
+  border-radius: 10px;
+  padding: 8px 10px;
+  margin-top: 8px;
 }
 
 @media (max-width: 860px) {

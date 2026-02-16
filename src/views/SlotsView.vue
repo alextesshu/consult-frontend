@@ -14,6 +14,9 @@
     <section class="panel panel--split">
       <div>
         <h2 class="panel__title">Новий слот</h2>
+        <p class="muted" style="margin: 6px 0 0;">
+          Слот — це вільне вікно для запису клієнта. Вкажіть початок і кінець, і слот з’явиться у публічному профілі.
+        </p>
       </div>
       <form class="slot-form" @submit.prevent="createSlot">
         <label class="field">

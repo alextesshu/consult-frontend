@@ -106,7 +106,9 @@
 
     <div class="card">
       <div class="card__title">Ваші групові події</div>
-      <div v-if="groupEvents.length === 0" class="muted">
+      <div v-if="groupEventsLoading" class="muted">Завантаження...</div>
+      <div v-else-if="groupEventsError" class="form-error">{{ groupEventsError }}</div>
+      <div v-else-if="groupEvents.length === 0" class="muted">
         Поки що немає групових подій.
       </div>
       <ul v-else class="session-list">
@@ -128,6 +130,7 @@
       <div class="card">
         <div class="card__title">Найближчі</div>
         <div v-if="loading" class="muted">Завантаження...</div>
+        <div v-else-if="sessionsError" class="form-error">{{ sessionsError }}</div>
         <div v-else-if="upcoming.length === 0" class="muted">Немає запланованих сесій.</div>
         <ul v-else class="session-list">
           <li v-for="session in upcoming" :key="session.id" class="session-item">
@@ -145,6 +148,7 @@
       <div class="card">
         <div class="card__title">Минулі</div>
         <div v-if="loading" class="muted">Завантаження...</div>
+        <div v-else-if="sessionsError" class="form-error">{{ sessionsError }}</div>
         <div v-else-if="past.length === 0" class="muted">Ще немає історії.</div>
         <ul v-else class="session-list">
           <li v-for="session in past" :key="session.id" class="session-item">
@@ -195,10 +199,13 @@ type SelectedTherapist = {
 const upcoming = ref<Session[]>([])
 const past = ref<Session[]>([])
 const loading = ref(false)
+const sessionsError = ref('')
 const selectedTherapists = ref<SelectedTherapist[]>([])
 const viewedTherapists = ref<SelectedTherapist[]>([])
 const activeStatuses = new Set(['SCHEDULED', 'CONFIRMED'])
 const groupEvents = ref<GroupEvent[]>([])
+const groupEventsLoading = ref(false)
+const groupEventsError = ref('')
 
 type GroupEvent = {
   id: number
@@ -295,6 +302,7 @@ function publicName(value?: string) {
 
 async function loadSessions() {
   loading.value = true
+  sessionsError.value = ''
   try {
     const [upcomingResp, pastResp] = await Promise.all([
       http.get<Session[]>('/booking/sessions/', { params: { upcoming: true } }),
@@ -302,17 +310,24 @@ async function loadSessions() {
     ])
     upcoming.value = upcomingResp.data
     past.value = pastResp.data
+  } catch {
+    sessionsError.value = 'Не вдалося завантажити сесії.'
   } finally {
     loading.value = false
   }
 }
 
 async function loadGroupEvents() {
+  groupEventsLoading.value = true
+  groupEventsError.value = ''
   try {
     const resp = await http.get<GroupEvent[]>('/booking/group-events/')
     groupEvents.value = resp.data || []
   } catch {
     groupEvents.value = []
+    groupEventsError.value = 'Не вдалося завантажити групові події.'
+  } finally {
+    groupEventsLoading.value = false
   }
 }
 
@@ -633,6 +648,15 @@ onMounted(async () => {
 
 .session-time {
   font-weight: 600;
+}
+
+.form-error {
+  color: #b3261e;
+  background: #fdecea;
+  border: 1px solid #f5c2c0;
+  border-radius: 10px;
+  padding: 8px 10px;
+  margin-top: 8px;
 }
 
 .btn--sm {
