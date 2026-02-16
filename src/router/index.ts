@@ -8,7 +8,6 @@ import TherapistProfileView from '../views/TherapistProfileView.vue'
 import SlotsView from '../views/SlotsView.vue'
 import HomeView from '../views/HomeView.vue'
 import ClientDashboardView from '../views/ClientDashboardView.vue'
-import ClientTherapistsView from '../views/ClientTherapistsView.vue'
 import TherapistSessionsView from '../views/TherapistSessionsView.vue'
 import ClientSessionDetailView from '../views/ClientSessionDetailView.vue'
 import ClientGroupEventView from '../views/ClientGroupEventView.vue'
@@ -91,7 +90,7 @@ const routes = [
   {
     path: '/client/therapists',
     name: 'client-therapists',
-    component: ClientTherapistsView,
+    redirect: { name: 'public-therapists' },
     meta: { requiresAuth: true, requiresRole: 'CLIENT' },
   },
   {

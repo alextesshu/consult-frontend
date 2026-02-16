@@ -26,6 +26,7 @@
             class="input"
             type="text"
             placeholder="Спеціалізація"
+            list="catalogSpecializationOptions"
             @input="scheduleSearch"
             @keyup.enter="applyFilters"
           />
@@ -34,6 +35,7 @@
             class="input"
             type="text"
             placeholder="Мова"
+            list="catalogLanguageOptions"
             @input="scheduleSearch"
             @keyup.enter="applyFilters"
           />
@@ -46,6 +48,12 @@
             @keyup.enter="applyFilters"
           />
         </div>
+        <datalist id="catalogSpecializationOptions">
+          <option v-for="option in specializationOptions" :key="option" :value="option" />
+        </datalist>
+        <datalist id="catalogLanguageOptions">
+          <option v-for="option in languageOptions" :key="option" :value="option" />
+        </datalist>
         <div class="filters__row">
           <input v-model="priceMin" class="input" type="number" min="0" placeholder="Ціна від" @input="scheduleSearch" />
           <input v-model="priceMax" class="input" type="number" min="0" placeholder="Ціна до" @input="scheduleSearch" />
@@ -71,7 +79,7 @@
             Скинути
           </button>
           <div class="filters__hint muted">
-            Фільтрація за ціною працює з конвертацією у гривню для правильного порядку.
+            Підказки працюють за першими літерами. Фільтрація за ціною працює з конвертацією у гривню для правильного порядку.
           </div>
         </div>
       </div>
@@ -165,6 +173,35 @@ const appliedPriceMax = ref('')
 const appliedPriceCurrency = ref('')
 const toast = useToast()
 let searchTimer: number | undefined
+const languageOptions = [
+  'Українська',
+  'Російська',
+  'English',
+  'Polski',
+  'Deutsch',
+  'Français',
+  'Español',
+  'Italiano',
+  'Português',
+  'Čeština',
+  'Slovenčina',
+]
+
+const specializationOptions = [
+  'Гештальт терапія',
+  'Екзистенційна терапія',
+  'Клієнт-центрована терапія',
+  'Когнітивно-поведінкова терапія',
+  'Терапія прийняття і відповідальності (ACT)',
+  'Позитивна психотерапія',
+  'Психоаналіз',
+  'Психодрама',
+  'Символдрама',
+  'Схема-терапія',
+  'Транзакційний аналіз',
+  'Арттерапія',
+  'Інше',
+]
 const hasFilters = computed(
   () =>
     Boolean(nameQuery.value) ||
