@@ -385,7 +385,9 @@ onMounted(loadTherapists)
 .therapist-grid {
   display: grid;
   gap: 14px;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  justify-content: start;
+  justify-items: start;
   margin-top: 12px;
 }
 
@@ -399,6 +401,8 @@ onMounted(loadTherapists)
   text-decoration: none;
   color: inherit;
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  width: 100%;
+  max-width: 280px;
 }
 
 .therapist-card:hover {
