@@ -15,6 +15,7 @@ import TherapistClientsView from '../views/TherapistClientsView.vue'
 import BillingView from '../views/BillingView.vue'
 import PublicTherapistsView from '../views/PublicTherapistsView.vue'
 import TherapistReviewsView from '../views/TherapistReviewsView.vue'
+import GroupInviteJoinView from '../views/GroupInviteJoinView.vue'
 import NotFoundView from '../views/NotFoundView.vue'
 import ForbiddenView from '../views/ForbiddenView.vue'
 import { useAuthStore } from '../stores/auth'
@@ -25,6 +26,7 @@ const routes = [
   { path: '/public', name: 'public-redirect', component: PublicProfileView },
   { path: '/login', name: 'login', component: LoginView },
   { path: '/signup', name: 'signup', component: SignupView },
+  { path: '/invite/:token', name: 'group-invite-join', component: GroupInviteJoinView },
   {
     path: '/cabinet',
     name: 'cabinet',

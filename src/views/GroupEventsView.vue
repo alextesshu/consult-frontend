@@ -194,18 +194,51 @@
                 Оновити
               </button>
             </div>
+            <div class="participant-filters">
+              <label class="field">
+                <span>Пошук</span>
+                <input
+                  v-model="participantFilters[event.id].query"
+                  type="text"
+                  placeholder="Ім'я або email"
+                />
+              </label>
+              <label class="field">
+                <span>Роль</span>
+                <select v-model="participantFilters[event.id].role">
+                  <option value="">Усі</option>
+                  <option value="HOST">Ведучий</option>
+                  <option value="CO_HOST">Співведучий</option>
+                  <option value="SPEAKER">Доповідач</option>
+                  <option value="PARTICIPANT">Учасник</option>
+                </select>
+              </label>
+              <label class="field">
+                <span>Статус</span>
+                <select v-model="participantFilters[event.id].status">
+                  <option value="">Усі</option>
+                  <option value="PENDING">Очікує підтвердження</option>
+                  <option value="ACCEPTED">Підтверджено</option>
+                  <option value="DECLINED">Відхилено</option>
+                </select>
+              </label>
+              <button class="btn btn--ghost btn--sm" type="button" @click="resetParticipantFilters(event.id)">
+                Скинути
+              </button>
+            </div>
             <div v-if="participantViewLoading[event.id]" class="muted">Завантаження...</div>
             <div v-else-if="(participantViews[event.id] || []).length === 0" class="muted">
               Поки що немає учасників.
             </div>
             <div v-else class="participant-list">
               <div
-                v-for="participant in participantViews[event.id] || []"
+                v-for="participant in filteredParticipants(event.id)"
                 :key="participant.id"
                 class="participant-row"
               >
                 <div>
                   <div class="participant-name">{{ participant.user_username }}</div>
+                  <div v-if="participant.user_email" class="muted">{{ participant.user_email }}</div>
                   <div class="muted">{{ formatRole(participant.role) }} · {{ formatInviteStatus(participant.invite_status) }}</div>
                 </div>
                 <div class="participant-actions">
@@ -255,8 +288,12 @@
             <div class="group-details__section-title">Додати учасника</div>
             <div class="participant-form">
               <label class="field">
-                <span>ID користувача</span>
-                <input v-model="participantForm.userId" type="number" min="1" placeholder="Напр. 42" />
+                <span>Email або логін</span>
+                <input
+                  v-model="participantForm.userKey"
+                  type="text"
+                  placeholder="email@domain.com або логін"
+                />
               </label>
               <label class="field">
                 <span>Роль</span>
@@ -299,17 +336,33 @@
                     Використано: {{ invite.uses }} / {{ invite.max_uses ?? '∞' }}
                     · Діє до: {{ invite.expires_at ? formatDate(invite.expires_at) : 'без обмежень' }}
                   </div>
-                  <div class="muted">API: {{ inviteLink(invite.token) }}</div>
+                  <div class="muted">Посилання: {{ inviteLink(invite.token) }}</div>
+                </div>
+                <div class="invite-actions">
+                  <button
+                    class="btn btn--ghost btn--sm"
+                    type="button"
+                    @click="copyInvite(invite.token)"
+                  >
+                    Копіювати посилання
+                  </button>
                 </div>
               </div>
             </div>
             <div class="invite-form">
+              <div class="invite-hint muted">
+                Створіть запрошення і надішліть посилання клієнтам чи колегам.
+              </div>
+              <label class="field">
+                <span>Email (необов'язково)</span>
+                <input v-model="inviteForm.email" type="email" placeholder="name@example.com" />
+              </label>
               <label class="field">
                 <span>Діє до</span>
                 <input v-model="inviteForm.expires_at" type="datetime-local" />
               </label>
               <label class="field">
-                <span>Max uses</span>
+                <span>Макс. використань</span>
                 <input v-model="inviteForm.max_uses" type="number" min="1" placeholder="Напр. 50" />
               </label>
               <button class="btn btn--sm" type="button" @click="createInvite(event)">
@@ -345,6 +398,7 @@ type GroupParticipant = {
   id: number
   user: number
   user_username: string
+  user_email: string | null
   role: 'HOST' | 'CO_HOST' | 'SPEAKER' | 'PARTICIPANT'
   invite_status: 'PENDING' | 'ACCEPTED' | 'DECLINED'
 }
@@ -372,6 +426,7 @@ const participantFormHint = ref('')
 const expandedEventId = ref<number | null>(null)
 const participantViews = ref<Record<number, GroupParticipant[]>>({})
 const invitesByEvent = ref<Record<number, GroupInvite[]>>({})
+const participantFilters = ref<Record<number, { query: string; role: string; status: string }>>({})
 
 const createForm = reactive({
   mode: 'MEETING' as GroupEvent['mode'],
@@ -383,7 +438,7 @@ const createForm = reactive({
 })
 
 const participantForm = reactive({
-  userId: '',
+  userKey: '',
   role: 'PARTICIPANT' as GroupParticipant['role'],
   invite_status: 'ACCEPTED' as GroupParticipant['invite_status'],
 })
@@ -391,6 +446,7 @@ const participantForm = reactive({
 const inviteForm = reactive({
   expires_at: '',
   max_uses: '',
+  email: '',
 })
 
 watch(error, (value) => {
@@ -500,7 +556,7 @@ function formatDate(value: string | null) {
 }
 
 function inviteLink(token: string) {
-  return `${window.location.origin}/api/group-invites/${token}/join/`
+  return `${window.location.origin}/invite/${token}`
 }
 
 function isActionLoading(eventId: number) {
@@ -669,6 +725,12 @@ async function toggleDetails(eventId: number) {
     return
   }
   expandedEventId.value = eventId
+  if (!participantFilters.value[eventId]) {
+    participantFilters.value = {
+      ...participantFilters.value,
+      [eventId]: { query: '', role: '', status: '' },
+    }
+  }
   await Promise.all([loadParticipantView(eventId), loadInvites(eventId)])
 }
 
@@ -681,6 +743,12 @@ async function loadParticipantView(eventId: number) {
       ...participantViews.value,
       [eventId]: resp.data || [],
     }
+    if (!participantFilters.value[eventId]) {
+      participantFilters.value = {
+        ...participantFilters.value,
+        [eventId]: { query: '', role: '', status: '' },
+      }
+    }
   } catch (err: any) {
     error.value = extractError(err, 'Не вдалося завантажити учасників')
   } finally {
@@ -690,19 +758,26 @@ async function loadParticipantView(eventId: number) {
 
 async function addParticipant(event: GroupEvent) {
   participantFormHint.value = ''
-  const userId = Number(participantForm.userId)
-  if (!userId) {
-    participantFormHint.value = 'Вкажіть ID користувача.'
+  const userKey = participantForm.userKey.trim()
+  if (!userKey) {
+    participantFormHint.value = 'Вкажіть email або логін.'
     return
   }
   setActionLoading(event.id, true)
   try {
-    await http.post<GroupParticipant>(`/cabinet/group-events/${event.id}/participants/`, {
-      user: userId,
+    const payload: Record<string, any> = {
       role: participantForm.role,
       invite_status: participantForm.invite_status,
+    }
+    if (userKey.includes('@')) {
+      payload.user_email = userKey
+    } else {
+      payload.user_username = userKey
+    }
+    await http.post<GroupParticipant>(`/cabinet/group-events/${event.id}/participants/`, {
+      ...payload,
     })
-    participantForm.userId = ''
+    participantForm.userKey = ''
     participantForm.role = 'PARTICIPANT'
     participantForm.invite_status = 'ACCEPTED'
     await loadParticipantView(event.id)
@@ -781,20 +856,48 @@ async function loadInvites(eventId: number) {
   }
 }
 
+async function copyInvite(token: string) {
+  const link = inviteLink(token)
+  try {
+    await navigator.clipboard.writeText(link)
+    toast.success('Посилання скопійовано.')
+  } catch {
+    toast.error('Не вдалося скопіювати посилання.')
+  }
+}
+
 async function createInvite(event: GroupEvent) {
   setActionLoading(event.id, true)
   try {
     const payload: Record<string, any> = {}
+    if (inviteForm.email) {
+      payload.email = inviteForm.email.trim()
+    }
     if (inviteForm.expires_at) {
       payload.expires_at = toIso(inviteForm.expires_at)
     }
     if (inviteForm.max_uses) {
       payload.max_uses = Number(inviteForm.max_uses)
     }
-    await http.post(`/cabinet/group-events/${event.id}/invites/`, payload)
+    const resp = await http.post<GroupInvite>(`/cabinet/group-events/${event.id}/invites/`, payload)
+    const created = resp.data
     inviteForm.expires_at = ''
     inviteForm.max_uses = ''
-    await loadInvites(event.id)
+    inviteForm.email = ''
+    const current = invitesByEvent.value[event.id] || []
+    invitesByEvent.value = {
+      ...invitesByEvent.value,
+      [event.id]: [created, ...current.filter((item) => item.id !== created.id)],
+    }
+    await copyInvite(created.token)
+    if (payload.email) {
+      const emailSent = (resp.data as any)?.email_sent
+      if (emailSent) {
+        toast.success('Запрошення надіслано на email.')
+      } else {
+        toast.error('Не вдалося надіслати email. Посилання скопійовано.')
+      }
+    }
   } catch (err: any) {
     error.value = extractError(err, 'Не вдалося створити запрошення')
   } finally {
@@ -803,6 +906,27 @@ async function createInvite(event: GroupEvent) {
 }
 
 onMounted(loadEvents)
+
+function filteredParticipants(eventId: number) {
+  const list = participantViews.value[eventId] || []
+  const filter = participantFilters.value[eventId] || { query: '', role: '', status: '' }
+  const query = filter.query.trim().toLowerCase()
+  return list.filter((participant) => {
+    if (filter.role && participant.role !== filter.role) return false
+    if (filter.status && participant.invite_status !== filter.status) return false
+    if (!query) return true
+    const username = participant.user_username.toLowerCase()
+    const email = participant.user_email?.toLowerCase() || ''
+    return username.includes(query) || email.includes(query)
+  })
+}
+
+function resetParticipantFilters(eventId: number) {
+  participantFilters.value = {
+    ...participantFilters.value,
+    [eventId]: { query: '', role: '', status: '' },
+  }
+}
 </script>
 
 <style scoped>
@@ -1100,6 +1224,18 @@ onMounted(loadEvents)
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: 10px;
   align-items: end;
+}
+
+.participant-filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+  align-items: end;
+}
+
+.invite-hint {
+  grid-column: 1 / -1;
+  font-size: 12px;
 }
 
 .invite-token {

@@ -63,7 +63,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useAuthStore } from '../stores/auth'
 
@@ -71,6 +71,7 @@ const identifier = ref('')
 const password = ref('')
 const error = ref('')
 const router = useRouter()
+const route = useRoute()
 const auth = useAuthStore()
 const { loading } = storeToRefs(auth)
 
@@ -89,7 +90,12 @@ async function onSubmit() {
   }
   try {
     await auth.login(identifier.value.trim(), password.value)
-    router.push(defaultPath())
+    const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : ''
+    if (redirect) {
+      router.push(redirect)
+    } else {
+      router.push(defaultPath())
+    }
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'Не вдалося увійти'
   }
@@ -97,7 +103,8 @@ async function onSubmit() {
 
 onMounted(() => {
   if (auth.accessToken) {
-    router.replace(defaultPath())
+    const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : ''
+    router.replace(redirect || defaultPath())
   }
 })
 </script>

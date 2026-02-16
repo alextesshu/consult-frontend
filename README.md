@@ -48,6 +48,7 @@ npm run test
 * `/client` — Client dashboard (sessions + selected/viewed therapist)
 * `/client/sessions/:id` — Client session detail (cancel/reschedule request)
 * `/client/therapists` — Therapist list (choose + open profile)
+* `/invite/:token` — Group invite join (client acceptance flow)
 * `/public` — Redirect to `/t/:slug` (auto via profile)
 * `/t/:slug` — Public therapist profile + booking
 * `/public/therapists` — Public therapists catalog
@@ -81,6 +82,7 @@ Tokens are stored in localStorage and auto-refreshed via `/api/auth/token/refres
 * **PublicTherapistsView**: public catalog with server-side filters
 * **LoginView / SignupView**: redesigned auth pages
 * **System**: global toast/notification layer, 404/403 pages, empty states, loading skeletons
+* **Invites**: group invite join page with consent + status messaging
 
 ## Not Implemented Yet (Frontend Gaps)
 
@@ -117,6 +119,14 @@ Tokens are stored in localStorage and auto-refreshed via `/api/auth/token/refres
 * Public profile data is fetched from `/api/public/therapists/{slug}/`.
 * Public-facing therapist name uses `First L.` format.
 * Keep files saved in UTF-8 to avoid broken Ukrainian text.
+
+## Group Events Value
+
+* Not just video. Full workflow: invites, roles, confirmations, limits, and history.
+* Participants are connected to CRM flows, reducing manual tracking.
+* One workspace for slots, sessions, group events, notes, and profile management.
+* Access control and plan rules keep the business model consistent.
+* Clients experience a professional, integrated journey instead of isolated links.
 
 ## Next Focus
 
