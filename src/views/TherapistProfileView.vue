@@ -164,13 +164,24 @@
               Можна додавати скільки завгодно мов. Підказки працюють за першими літерами.
             </div>
           </label>
-          <label class="field">
-            Локація
-            <input v-model="profile.location" class="input" type="text" placeholder="Місто / країна" />
-          </label>
-          <label class="field">
-            Ціна за одну консультацію
-            <div class="field-row">
+            <label class="field">
+              Локація
+              <input v-model="profile.location" class="input" type="text" placeholder="Місто / країна" />
+            </label>
+            <label class="field">
+              Досвід роботи
+              <select v-model.number="profile.experience_years" class="input input--select" required>
+                <option v-for="option in experienceOptions" :key="option.value" :value="option.value">
+                  {{ option.label }}
+                </option>
+              </select>
+              <div class="muted" style="font-size: 12px;">
+                Це поле обов’язкове і відображається у публічному профілі.
+              </div>
+            </label>
+            <label class="field">
+              Ціна за одну консультацію
+              <div class="field-row">
               <input v-model="profile.price" class="input" type="text" placeholder="500" />
               <select v-model="profile.price_currency" class="input input--select">
                 <option value="UAH">грн</option>
@@ -460,13 +471,16 @@
                   <span v-for="spec in specializationList" :key="spec" class="preview-tag">
                     {{ spec }}
                   </span>
-                  <span v-for="language in languageList" :key="language" class="preview-tag preview-tag--ghost">
-                    {{ language }}
-                  </span>
-                  <span v-if="profile.show_location && profile.location" class="preview-tag preview-tag--muted">
-                    {{ profile.location }}
-                  </span>
-                </div>
+                    <span v-for="language in languageList" :key="language" class="preview-tag preview-tag--ghost">
+                      {{ language }}
+                    </span>
+                    <span v-if="profile.show_location && profile.location" class="preview-tag preview-tag--muted">
+                      {{ profile.location }}
+                    </span>
+                    <span class="preview-tag preview-tag--muted">
+                      Досвід: {{ experienceLabel(profile.experience_years) }}
+                    </span>
+                  </div>
                 <div class="preview-sections" v-if="hasAnyBioSection">
                   <div v-if="profile.show_bio_about && profile.bio_about" class="preview-section">
                     <div class="preview-label">Про себе</div>
@@ -618,6 +632,18 @@ const languageOptions = [
   'Slovenčina',
 ]
 
+const experienceLabel = (value: number) => {
+  if (value === 0) return 'до року'
+  if (value === 1) return '1 рік'
+  if (value >= 2 && value <= 4) return `${value} роки`
+  return `${value} років`
+}
+
+const experienceOptions = Array.from({ length: 31 }, (_, value) => ({
+  value,
+  label: experienceLabel(value),
+}))
+
 const specializationOptions = [
   'Гештальт терапія',
   'Екзистенційна терапія',
@@ -768,11 +794,12 @@ function buildProfilePayload() {
     bio_for_whom: profile.bio_for_whom,
     bio_other: profile.bio_other,
     show_bio_about: profile.show_bio_about,
-    show_bio_work: profile.show_bio_work,
-    show_bio_approach: profile.show_bio_approach,
-    show_bio_for_whom: profile.show_bio_for_whom,
-    show_bio_other: profile.show_bio_other,
-    specializations: specializationList.value,
+      show_bio_work: profile.show_bio_work,
+      show_bio_approach: profile.show_bio_approach,
+      show_bio_for_whom: profile.show_bio_for_whom,
+      show_bio_other: profile.show_bio_other,
+      experience_years: profile.experience_years,
+      specializations: specializationList.value,
     languages: languageList.value,
     location: profile.location,
     price: normalizeDecimal(profile.price),
@@ -812,6 +839,7 @@ const profile = reactive<TherapistProfile>({
   specializations: '',
   languages: '',
   location: '',
+  experience_years: 0,
   price: '',
   price_currency: 'UAH',
   contact_email: '',
@@ -1004,6 +1032,7 @@ function normalizeProfile(data: TherapistProfile): TherapistProfile {
     specializations: toStringValue(data.specializations),
     languages: toStringValue(data.languages),
     location: data.location || '',
+    experience_years: typeof data.experience_years === 'number' ? data.experience_years : 0,
     price: data.price || '',
     price_currency: data.price_currency || 'UAH',
     contact_email: data.contact_email || '',

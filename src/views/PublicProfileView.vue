@@ -33,6 +33,9 @@
             <div class="profile-card__meta">
               <span v-if="profile.specializations">{{ profile.specializations }}</span>
               <span v-if="languagesDisplay">{{ languagesDisplay }}</span>
+              <span v-if="profile.experience_years !== undefined && profile.experience_years !== null">
+                Досвід: {{ formatExperience(profile.experience_years) }}
+              </span>
               <span v-if="profile.location">{{ profile.location }}</span>
             </div>
             <div class="profile-card__price" v-if="priceDisplay">
@@ -273,6 +276,13 @@ async function loadSlots() {
   } finally {
     slotsLoading.value = false
   }
+}
+
+function formatExperience(value: number) {
+  if (value === 0) return 'до року'
+  if (value === 1) return '1 рік'
+  if (value >= 2 && value <= 4) return `${value} роки`
+  return `${value} років`
 }
 
 async function loadReviews() {

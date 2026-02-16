@@ -97,6 +97,7 @@ export type TherapistProfile = {
   specializations: string | string[]
   languages: string | string[]
   location: string
+  experience_years: number
   price: string
   price_currency: string
   contact_email: string
@@ -132,6 +133,7 @@ export type PublicTherapistProfile = {
   specializations?: string | string[]
   languages?: string | string[]
   location?: string
+  experience_years?: number
   price?: string
   price_currency?: string
   contact_email?: string

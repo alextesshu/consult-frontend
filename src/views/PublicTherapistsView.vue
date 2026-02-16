@@ -69,6 +69,8 @@
             <option value="name_desc">Ім'я (Я→А)</option>
             <option value="price_asc">Ціна (дешевші)</option>
             <option value="price_desc">Ціна (дорожчі)</option>
+            <option value="experience_desc">Досвід (більше)</option>
+            <option value="experience_asc">Досвід (менше)</option>
             <option value="rating_desc">Рейтинг (високий)</option>
             <option value="created_desc">Новіші профілі</option>
           </select>
@@ -117,6 +119,9 @@
             <div class="therapist-name">{{ publicName(therapist) }}</div>
             <div v-if="therapist.review_count" class="therapist-rating">
               ⭐ {{ ratingLabel(therapist) }}
+            </div>
+            <div v-if="therapist.experience_years !== undefined && therapist.experience_years !== null" class="muted">
+              Досвід: {{ formatExperience(therapist.experience_years) }}
             </div>
             <div class="muted meta-line">
               <span v-if="therapist.location">{{ therapist.location }}</span>
@@ -244,6 +249,13 @@ const ratingLabel = (therapist: PublicTherapistProfile) => {
   const avg = Number(therapist.rating_avg || 0)
   const formatted = avg ? avg.toFixed(1) : '0.0'
   return `${formatted} (${therapist.review_count})`
+}
+
+const formatExperience = (value: number) => {
+  if (value === 0) return 'до року'
+  if (value === 1) return '1 рік'
+  if (value >= 2 && value <= 4) return `${value} роки`
+  return `${value} років`
 }
 
 async function loadTherapists() {

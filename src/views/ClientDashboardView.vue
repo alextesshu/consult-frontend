@@ -11,6 +11,24 @@
       <RouterLink class="btn" to="/public/therapists">Обрати терапевта</RouterLink>
     </header>
 
+    <div class="card tips-card">
+      <div class="card__title">Підказки</div>
+      <ul class="tips-list">
+        <li>
+          <RouterLink class="tips-link" to="/public/therapists">Обрати терапевта в каталозі</RouterLink>
+          <span class="muted">Перегляньте профіль і доступні слоти.</span>
+        </li>
+        <li>
+          <span class="tips-link">Забронювати слот</span>
+          <span class="muted">Натисніть “Записатися” у профілі терапевта.</span>
+        </li>
+        <li>
+          <span class="tips-link">Слідкувати за статусами</span>
+          <span class="muted">Підтвердження та перенесення відобразяться у списку сесій.</span>
+        </li>
+      </ul>
+    </div>
+
     <div class="card">
       <div class="card__title">Обрані терапевти</div>
       <div v-if="selectedTherapistsWithSessions.length === 0" class="muted">
@@ -511,6 +529,33 @@ onMounted(async () => {
   letter-spacing: 0.16em;
   font-size: 11px;
   color: var(--muted);
+}
+
+.tips-card {
+  display: grid;
+  gap: 10px;
+}
+
+.tips-list {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 10px;
+}
+
+.tips-list li {
+  display: grid;
+  gap: 4px;
+}
+
+.tips-link {
+  font-weight: 600;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.tips-link:hover {
+  text-decoration: underline;
 }
 
 .therapist-card {

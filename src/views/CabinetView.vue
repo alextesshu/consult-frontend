@@ -15,6 +15,30 @@
     </header>
 
     <div v-if="me" class="cabinet__grid">
+      <section class="panel panel--wide panel--tips">
+        <div class="panel__header">
+          <div class="badge badge--soft">Підказки</div>
+          <div class="panel__meta">Що зробити далі</div>
+        </div>
+        <ul class="tips-list">
+          <li>
+            <RouterLink class="tips-link" to="/cabinet/profile">Заповніть профіль і увімкніть публічність</RouterLink>
+            <span class="muted">Щоб клієнти бачили вас у каталозі.</span>
+          </li>
+          <li>
+            <RouterLink class="tips-link" to="/cabinet/slots">Створіть слоти на тиждень</RouterLink>
+            <span class="muted">Так клієнти зможуть забронювати сесію.</span>
+          </li>
+          <li>
+            <RouterLink class="tips-link" to="/cabinet/sessions">Перевіряйте запити та сесії</RouterLink>
+            <span class="muted">Підтвердження та перенесення приходять сюди.</span>
+          </li>
+          <li>
+            <RouterLink class="tips-link" to="/cabinet/profile">Поділіться публічним посиланням</RouterLink>
+            <span class="muted">Надішліть його клієнтам або колегам.</span>
+          </li>
+        </ul>
+      </section>
 
       <section class="panel panel--wide panel--actions">
         <div class="panel__header">
@@ -325,6 +349,32 @@ function onLogout() {
 
 .panel--wide {
   grid-column: 1 / -1;
+}
+
+.panel--tips {
+  background: rgba(7, 47, 71, 0.03);
+}
+
+.tips-list {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 10px;
+}
+
+.tips-list li {
+  display: grid;
+  gap: 4px;
+}
+
+.tips-link {
+  font-weight: 600;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.tips-link:hover {
+  text-decoration: underline;
 }
 
 .panel__header {
