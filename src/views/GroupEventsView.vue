@@ -54,13 +54,15 @@
                 <option value="MEETING">Зустріч</option>
                 <option value="BROADCAST">Трансляція</option>
               </select>
+              <div class="field-hint">Зустріч — інтерактивна група. Трансляція — велика подія з обмеженою взаємодією.</div>
             </label>
             <label class="field">
-              <span>Видимість списку</span>
+              <span>Видимість учасників</span>
               <select v-model="createForm.participant_list_visibility">
-                <option value="SHOW_NAMES">Показувати імена</option>
-                <option value="HIDDEN">Приховано</option>
+                <option value="SHOW_NAMES">Показувати імена учасників</option>
+                <option value="HIDDEN">Приховати імена учасників</option>
               </select>
+              <div class="field-hint">Якщо приховано — учасники не бачать список.</div>
             </label>
           </div>
           <div class="group-create__row">
@@ -85,12 +87,14 @@
           </div>
           <div class="group-create__row">
             <label class="field">
-              <span>Ліміт місць (зустріч)</span>
+              <span>Ліміт учасників (зустріч)</span>
               <input v-model="createForm.capacity_limit_snapshot" type="number" min="1" placeholder="Напр. 10" />
+              <div class="field-hint">Скільки людей можуть бути у зустрічі одночасно.</div>
             </label>
             <label class="field">
-              <span>Технічний ліміт</span>
+              <span>Ліміт підключень</span>
               <input v-model="createForm.technical_cap" type="number" min="1" placeholder="Напр. 100" />
+              <div class="field-hint">Скільки підключень може витримати подія (для великих груп).</div>
             </label>
           </div>
         </div>
@@ -174,15 +178,15 @@
         <div v-if="expandedEventId === event.id" class="group-details">
           <div class="group-details__grid">
             <div>
-              <div class="group-details__label">Ліміт місць</div>
+              <div class="group-details__label">Ліміт учасників</div>
               <div>{{ event.capacity_limit_snapshot ?? 'Н/Д' }}</div>
             </div>
             <div>
-              <div class="group-details__label">Технічний ліміт</div>
+              <div class="group-details__label">Ліміт підключень</div>
               <div>{{ event.technical_cap ?? 'Н/Д' }}</div>
             </div>
             <div>
-                  <div class="group-details__label">Видимість списку</div>
+                  <div class="group-details__label">Видимість учасників</div>
                   <div>{{ formatVisibility(event.participant_list_visibility) }}</div>
                 </div>
           </div>
@@ -324,6 +328,7 @@
                 Оновити
               </button>
             </div>
+            <div class="muted">Запрошені користувачі стануть вашими активними клієнтами після прийняття.</div>
             <div v-if="inviteLoading[event.id]" class="muted">Завантаження...</div>
             <div v-else-if="(invitesByEvent[event.id] || []).length === 0" class="muted">
               Запрошень поки немає.
@@ -1121,6 +1126,12 @@ function resetParticipantFilters(eventId: number) {
   font-size: 12px;
   letter-spacing: 0.02em;
   line-height: 1.2;
+}
+
+.field-hint {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.3;
 }
 
 .field input,
