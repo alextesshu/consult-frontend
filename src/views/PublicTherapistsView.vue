@@ -10,29 +10,46 @@
     </header>
 
     <section class="card">
-      <div class="card__title">Пошук</div>
+      <div class="card__title">Пошук і фільтри</div>
       <div class="filters">
-        <input v-model="query" class="input" type="text" placeholder="Ім'я, спеціалізація, локація" />
-        <input v-model="language" class="input" type="text" placeholder="Мова" />
-        <input v-model="location" class="input" type="text" placeholder="Локація" />
-        <input v-model="priceMin" class="input" type="number" min="0" placeholder="Ціна від" />
-        <input v-model="priceMax" class="input" type="number" min="0" placeholder="Ціна до" />
-        <select v-model="priceCurrency" class="input input--select">
-          <option value="">Валюта</option>
-          <option value="UAH">грн</option>
-          <option value="USD">$</option>
-          <option value="EUR">€</option>
-        </select>
-        <select v-model="sort" class="input input--select">
-          <option value="">Сортування</option>
-          <option value="name_asc">Ім'я (A→Z)</option>
-          <option value="name_desc">Ім'я (Z→A)</option>
-          <option value="price_asc">Ціна (дешевші)</option>
-          <option value="price_desc">Ціна (дорожчі)</option>
-          <option value="created_desc">Новіші профілі</option>
-        </select>
-        <button class="btn btn--ghost" type="button" @click="applyFilters">Знайти</button>
-        <button class="btn btn--ghost" type="button" @click="resetFilters">Скинути</button>
+        <div class="filters__row">
+          <input
+            v-model="query"
+            class="input"
+            type="text"
+            placeholder="Ім'я, спеціалізація, локація"
+            @keyup.enter="applyFilters"
+          />
+          <input v-model="language" class="input" type="text" placeholder="Мова" @keyup.enter="applyFilters" />
+          <input v-model="location" class="input" type="text" placeholder="Локація" @keyup.enter="applyFilters" />
+        </div>
+        <div class="filters__row">
+          <input v-model="priceMin" class="input" type="number" min="0" placeholder="Ціна від" />
+          <input v-model="priceMax" class="input" type="number" min="0" placeholder="Ціна до" />
+          <select v-model="priceCurrency" class="input input--select">
+            <option value="">Валюта</option>
+            <option value="UAH">грн</option>
+            <option value="USD">$</option>
+            <option value="EUR">€</option>
+          </select>
+          <select v-model="sort" class="input input--select" @change="applyFilters">
+            <option value="">Сортування</option>
+            <option value="name_asc">Ім'я (A→Z)</option>
+            <option value="name_desc">Ім'я (Z→A)</option>
+            <option value="price_asc">Ціна (дешевші)</option>
+            <option value="price_desc">Ціна (дорожчі)</option>
+            <option value="created_desc">Новіші профілі</option>
+          </select>
+        </div>
+        <div class="filters__actions">
+          <button class="btn btn--ghost" type="button" @click="applyFilters">Застосувати</button>
+          <button class="btn btn--ghost" type="button" :disabled="!hasFilters" @click="resetFilters">
+            Скинути
+          </button>
+          <div class="filters__hint muted">
+            Фільтрація за ціною працює з конвертацією у гривню для правильного порядку.
+          </div>
+        </div>
       </div>
     </section>
 
@@ -41,11 +58,11 @@
       <LoadingSkeleton v-if="loading" variant="card" :count="6" height="140px" />
       <EmptyState
         v-else-if="therapists.length === 0"
-        title="?????? ?? ????????"
-        description="????????? ??????? ??????? ??? ??????? ?????."
+        title="Поки що немає профілів"
+        description="Спробуйте змінити фільтри або поверніться трохи пізніше."
       >
         <template #actions>
-          <button class="btn btn--ghost" type="button" @click="resetFilters">??????? ???????</button>
+          <button class="btn btn--ghost" type="button" @click="resetFilters">Скинути фільтри</button>
         </template>
       </EmptyState>
       <div v-else class="therapist-grid">
@@ -92,7 +109,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { fetchPublicTherapists, type PublicTherapistProfile } from '../lib/api'
 import { useToast } from '../composables/useToast'
 import LoadingSkeleton from '../components/LoadingSkeleton.vue'
@@ -118,6 +135,16 @@ const appliedPriceMin = ref('')
 const appliedPriceMax = ref('')
 const appliedPriceCurrency = ref('')
 const toast = useToast()
+const hasFilters = computed(
+  () =>
+    Boolean(query.value) ||
+    Boolean(language.value) ||
+    Boolean(location.value) ||
+    Boolean(priceMin.value) ||
+    Boolean(priceMax.value) ||
+    Boolean(priceCurrency.value) ||
+    Boolean(sort.value)
+)
 
 const languageLabel = (value?: string | string[]) => {
   if (!value) return ''
@@ -189,6 +216,7 @@ function resetFilters() {
   priceMin.value = ''
   priceMax.value = ''
   priceCurrency.value = ''
+  sort.value = ''
   appliedQuery.value = ''
   appliedLanguage.value = ''
   appliedLocation.value = ''
@@ -229,9 +257,25 @@ onMounted(loadTherapists)
 
 .filters {
   display: grid;
+  gap: 12px;
+}
+
+.filters__row {
+  display: grid;
   gap: 10px;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   align-items: center;
+}
+
+.filters__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.filters__hint {
+  font-size: 12px;
 }
 
 .input--select {
