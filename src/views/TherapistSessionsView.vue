@@ -39,11 +39,17 @@
               Клієнт: {{ session.client_name || session.client_username || `#${session.client}` }}
             </div>
             <div v-if="session.client_email" class="muted">Пошта: {{ session.client_email }}</div>
-            <div class="status-pill" :class="statusClass(session.status)">
-              {{ statusLabel(session.status) }}
-            </div>
+          <div class="status-pill" :class="statusClass(session.status)">
+            {{ statusLabel(session.status) }}
           </div>
-          <div class="session-actions">
+          <div
+            v-if="hasPendingReschedule(session.id)"
+            class="status-pill status-pill--warn"
+          >
+            Є запит на перенос
+          </div>
+        </div>
+        <div class="session-actions">
             <button
               class="btn btn--ghost btn--sm"
               type="button"
@@ -72,7 +78,7 @@
             <button
               class="btn btn--ghost btn--sm"
               type="button"
-              :disabled="isActionLoading(session.id) || !canReschedule(session.status)"
+              :disabled="isActionLoading(session.id) || !canReschedule(session.status) || hasPendingReschedule(session.id)"
               @click="toggleReschedule(session.id)"
             >
               Перенести
@@ -166,7 +172,9 @@
               </span>
               <span v-else>#{{ req.requested_slot_id }}</span>
             </div>
-            <div class="status-pill status-pill--warn">{{ req.status }}</div>
+            <div class="status-pill" :class="requestStatusClass(req.status)">
+              {{ rescheduleStatusLabel(req.status) }}
+            </div>
           </div>
           <div class="request-actions">
             <button
@@ -256,7 +264,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { http } from '../lib/http'
 import { getApiErrorMessage } from '../lib/errors'
 import LoadingSkeleton from '../components/LoadingSkeleton.vue'
@@ -331,6 +339,36 @@ const statusClass = (status: string) => {
   if (status === 'CANCELLED' || status === 'NO_SHOW') return 'status-pill--danger'
   return 'status-pill--muted'
 }
+
+const rescheduleStatusMap: Record<string, string> = {
+  PENDING: 'Очікує підтвердження',
+  APPROVED: 'Погоджено',
+  DECLINED: 'Відхилено',
+  CANCELLED: 'Скасовано',
+}
+
+const rescheduleStatusLabel = (status: string) => rescheduleStatusMap[status] || status
+
+const requestStatusClass = (status: string) => {
+  if (status === 'PENDING') return 'status-pill--warn'
+  if (status === 'APPROVED') return 'status-pill--ok'
+  if (status === 'DECLINED') return 'status-pill--danger'
+  if (status === 'CANCELLED') return 'status-pill--muted'
+  return 'status-pill--muted'
+}
+
+const pendingRescheduleSessions = computed(() => {
+  const ids = new Set<number>()
+  rescheduleRequests.value.forEach((req) => {
+    if (req.status === 'PENDING') {
+      ids.add(req.session_id)
+    }
+  })
+  return ids
+})
+
+const hasPendingReschedule = (sessionId: number) =>
+  pendingRescheduleSessions.value.has(sessionId)
 
 const canCancel = (status: string) => status === 'SCHEDULED' || status === 'CONFIRMED'
 const canReschedule = (status: string) => status === 'SCHEDULED' || status === 'CONFIRMED'

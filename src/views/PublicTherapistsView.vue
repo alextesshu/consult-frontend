@@ -17,16 +17,31 @@
             v-model="query"
             class="input"
             type="text"
-            placeholder="Ім'я, спеціалізація, локація"
+            placeholder="Ім'я або спеціалізація"
+            @input="scheduleSearch"
             @keyup.enter="applyFilters"
           />
-          <input v-model="language" class="input" type="text" placeholder="Мова" @keyup.enter="applyFilters" />
-          <input v-model="location" class="input" type="text" placeholder="Локація" @keyup.enter="applyFilters" />
+          <input
+            v-model="language"
+            class="input"
+            type="text"
+            placeholder="Мова"
+            @input="scheduleSearch"
+            @keyup.enter="applyFilters"
+          />
+          <input
+            v-model="location"
+            class="input"
+            type="text"
+            placeholder="Місто"
+            @input="scheduleSearch"
+            @keyup.enter="applyFilters"
+          />
         </div>
         <div class="filters__row">
-          <input v-model="priceMin" class="input" type="number" min="0" placeholder="Ціна від" />
-          <input v-model="priceMax" class="input" type="number" min="0" placeholder="Ціна до" />
-          <select v-model="priceCurrency" class="input input--select">
+          <input v-model="priceMin" class="input" type="number" min="0" placeholder="Ціна від" @input="scheduleSearch" />
+          <input v-model="priceMax" class="input" type="number" min="0" placeholder="Ціна до" @input="scheduleSearch" />
+          <select v-model="priceCurrency" class="input input--select" @change="applyFilters">
             <option value="">Валюта</option>
             <option value="UAH">грн</option>
             <option value="USD">$</option>
@@ -34,8 +49,8 @@
           </select>
           <select v-model="sort" class="input input--select" @change="applyFilters">
             <option value="">Сортування</option>
-            <option value="name_asc">Ім'я (A→Z)</option>
-            <option value="name_desc">Ім'я (Z→A)</option>
+            <option value="name_asc">Ім'я (А→Я)</option>
+            <option value="name_desc">Ім'я (Я→А)</option>
             <option value="price_asc">Ціна (дешевші)</option>
             <option value="price_desc">Ціна (дорожчі)</option>
             <option value="created_desc">Новіші профілі</option>
@@ -135,6 +150,7 @@ const appliedPriceMin = ref('')
 const appliedPriceMax = ref('')
 const appliedPriceCurrency = ref('')
 const toast = useToast()
+let searchTimer: number | undefined
 const hasFilters = computed(
   () =>
     Boolean(query.value) ||
@@ -207,6 +223,15 @@ function applyFilters() {
   appliedPriceCurrency.value = priceCurrency.value
   page.value = 1
   loadTherapists()
+}
+
+function scheduleSearch() {
+  if (searchTimer) {
+    window.clearTimeout(searchTimer)
+  }
+  searchTimer = window.setTimeout(() => {
+    applyFilters()
+  }, 450)
 }
 
 function resetFilters() {
