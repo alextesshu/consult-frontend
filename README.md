@@ -83,6 +83,7 @@ Tokens are stored in localStorage and auto-refreshed via `/api/auth/token/refres
 * **TherapistProfileView**: step-by-step profile editor, media upload preview, visibility toggles, public link code management
 * **PublicProfileView**: public profile data + upcoming slots + booking + reviews (start + duration)
 * **PublicTherapistsView**: public catalog with server-side filters
+  * Sorting includes `rating_desc` (approved reviews only)
 * **LoginView / SignupView**: redesigned auth pages
 * **System**: global toast/notification layer, 404/403 pages, empty states, loading skeletons
 * **Invites**: group invite join page with consent + status messaging

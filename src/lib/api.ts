@@ -139,6 +139,8 @@ export type PublicTherapistProfile = {
   messenger?: string
   photo_url?: string
   video_url?: string
+  rating_avg?: string | number | null
+  review_count?: number
 }
 
 export async function uploadProfilePhoto(file: File): Promise<TherapistProfile> {
