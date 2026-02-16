@@ -8,13 +8,13 @@
           Тут зібрані всі заплановані та минулі сесії. Для нового запису відкрийте профіль терапевта.
         </p>
       </div>
-      <RouterLink class="btn" to="/client/therapists">Обрати терапевта</RouterLink>
+      <RouterLink class="btn" to="/public/therapists">Обрати терапевта</RouterLink>
     </header>
 
     <div class="card">
       <div class="card__title">Обрані терапевти</div>
       <div v-if="selectedTherapistsWithSessions.length === 0" class="muted">
-        Ви ще не обрали терапевтів. Натисніть “Обрати терапевта”, щоб переглянути список.
+        Ви ще не обрали терапевтів. Натисніть “Обрати терапевта”, щоб перейти в каталог.
       </div>
       <div
         v-else
@@ -64,7 +64,7 @@
         </RouterLink>
       </div>
       <div v-if="selectedTherapists.length > 0" class="selected-actions">
-        <RouterLink class="btn btn--ghost" to="/client/therapists">Додати терапевта</RouterLink>
+        <RouterLink class="btn btn--ghost" to="/public/therapists">Додати терапевта</RouterLink>
       </div>
     </div>
 
