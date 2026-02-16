@@ -48,6 +48,7 @@ npm run test
 * `/client` — Client dashboard (sessions + selected/viewed therapist)
 * `/client/sessions/:id` — Client session detail (cancel/reschedule request)
 * `/client/therapists` — Therapist list (choose + open profile)
+* `/client/group-events/:id` — Client group event detail
 * `/invite/:token` — Group invite join (client acceptance flow)
 * `/public` — Redirect to `/t/:slug` (auto via profile)
 * `/t/:slug` — Public therapist profile + booking
@@ -69,8 +70,10 @@ Tokens are stored in localStorage and auto-refreshed via `/api/auth/token/refres
 * **HomeView**: public landing with therapist/client choice + parallax layer stack (no animation yet)
 * **CabinetView**: account/entitlements overview + quick actions under the hero
 * **ClientDashboardView**: client sessions list + selected therapist + viewed therapists
+* **ClientDashboardView**: group events list (client side)
 * **ClientSessionDetailView**: client cancel + reschedule request + reviews
 * **ClientTherapistsView**: therapist list + open profile
+* **ClientGroupEventView**: client-facing group event detail
 * **SlotsView**: create/edit/delete slots + fill day/week + date navigation
 * **GroupEventsView**: full group lifecycle (create/schedule/start/complete/cancel), participants (roles/status), invites
 * **TherapistSessionsView**: therapist actions + notes + reschedule requests (client name/email, start + duration)

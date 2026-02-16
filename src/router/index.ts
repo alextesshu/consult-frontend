@@ -11,6 +11,7 @@ import ClientDashboardView from '../views/ClientDashboardView.vue'
 import ClientTherapistsView from '../views/ClientTherapistsView.vue'
 import TherapistSessionsView from '../views/TherapistSessionsView.vue'
 import ClientSessionDetailView from '../views/ClientSessionDetailView.vue'
+import ClientGroupEventView from '../views/ClientGroupEventView.vue'
 import TherapistClientsView from '../views/TherapistClientsView.vue'
 import BillingView from '../views/BillingView.vue'
 import PublicTherapistsView from '../views/PublicTherapistsView.vue'
@@ -91,6 +92,12 @@ const routes = [
     path: '/client/therapists',
     name: 'client-therapists',
     component: ClientTherapistsView,
+    meta: { requiresAuth: true, requiresRole: 'CLIENT' },
+  },
+  {
+    path: '/client/group-events/:id',
+    name: 'client-group-event',
+    component: ClientGroupEventView,
     meta: { requiresAuth: true, requiresRole: 'CLIENT' },
   },
   { path: '/t/:slug', name: 'public-profile', component: PublicProfileView },

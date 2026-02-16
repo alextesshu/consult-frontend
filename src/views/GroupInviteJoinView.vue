@@ -18,6 +18,9 @@
         <div class="invite-event__row">Статус: {{ formatState(eventInfo.state) }}</div>
         <div class="invite-event__row">Початок: {{ formatDate(eventInfo.starts_at) || 'Не задано' }}</div>
         <div class="invite-event__row">Завершення: {{ formatDate(eventInfo.ends_at) || 'Не задано' }}</div>
+        <RouterLink class="btn btn--ghost btn--sm" :to="`/client/group-events/${eventInfo.id}`">
+          Відкрити подію
+        </RouterLink>
       </div>
 
       <div class="invite-consent" v-if="!joined">
@@ -52,6 +55,7 @@ const loading = ref(false)
 const error = ref('')
 const joined = ref(false)
 const eventInfo = ref<{
+  id: number
   mode: string
   state: string
   starts_at: string | null

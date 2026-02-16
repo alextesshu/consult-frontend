@@ -104,6 +104,26 @@
       </div>
     </div>
 
+    <div class="card">
+      <div class="card__title">Ваші групові події</div>
+      <div v-if="groupEvents.length === 0" class="muted">
+        Поки що немає групових подій.
+      </div>
+      <ul v-else class="session-list">
+        <li v-for="event in groupEvents" :key="event.id" class="session-item">
+          <div>
+            <div class="session-time">
+              {{ formatDateTime(event.starts_at) }} · {{ eventModeLabel(event.mode) }}
+            </div>
+            <div class="muted">Статус: {{ statusLabel(event.state) }}</div>
+          </div>
+          <RouterLink class="btn btn--ghost btn--sm" :to="`/client/group-events/${event.id}`">
+            Деталі
+          </RouterLink>
+        </li>
+      </ul>
+    </div>
+
     <div class="client__grid">
       <div class="card">
         <div class="card__title">Найближчі</div>
@@ -178,6 +198,18 @@ const loading = ref(false)
 const selectedTherapists = ref<SelectedTherapist[]>([])
 const viewedTherapists = ref<SelectedTherapist[]>([])
 const activeStatuses = new Set(['SCHEDULED', 'CONFIRMED'])
+const groupEvents = ref<GroupEvent[]>([])
+
+type GroupEvent = {
+  id: number
+  mode: 'MEETING' | 'BROADCAST'
+  state: 'DRAFT' | 'SCHEDULED' | 'LIVE' | 'COMPLETED' | 'CANCELLED'
+  starts_at: string | null
+  ends_at: string | null
+  host_username: string | null
+  my_role: string | null
+  my_status: string | null
+}
 
 const selectedTherapistsWithSessions = computed(() =>
   selectedTherapists.value.filter((therapist) =>
@@ -199,6 +231,12 @@ const statusMap: Record<string, string> = {
 }
 
 const statusLabel = (status: string) => statusMap[status] || status
+
+const eventModeLabel = (mode: GroupEvent['mode']) => {
+  if (mode === 'MEETING') return 'Зустріч'
+  if (mode === 'BROADCAST') return 'Трансляція'
+  return mode
+}
 
 const formatDateTime = (value?: string | null) => {
   if (!value) return '—'
@@ -266,6 +304,15 @@ async function loadSessions() {
     past.value = pastResp.data
   } finally {
     loading.value = false
+  }
+}
+
+async function loadGroupEvents() {
+  try {
+    const resp = await http.get<GroupEvent[]>('/booking/group-events/')
+    groupEvents.value = resp.data || []
+  } catch {
+    groupEvents.value = []
   }
 }
 
@@ -419,7 +466,7 @@ function onPhotoError(therapist: SelectedTherapist) {
 onMounted(async () => {
   loadSelectedTherapists()
   loadViewedTherapists()
-  await loadSessions()
+  await Promise.all([loadSessions(), loadGroupEvents()])
   syncSelectedTherapists()
   await hydrateTherapistProfiles()
 })
