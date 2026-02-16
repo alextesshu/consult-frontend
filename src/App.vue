@@ -8,6 +8,7 @@
       <nav class="nav">
         <RouterLink v-if="isTherapist" to="/public">Публічний профіль</RouterLink>
         <RouterLink v-if="!isTherapist" to="/public/therapists">Каталог</RouterLink>
+        <RouterLink to="/faq">FAQ</RouterLink>
         <RouterLink v-if="isAuthenticated" :to="cabinetRoute">Кабінет</RouterLink>
         <RouterLink v-if="!isAuthenticated" to="/login">Вхід</RouterLink>
         <RouterLink v-if="!isAuthenticated" to="/signup">Реєстрація</RouterLink>
@@ -23,8 +24,10 @@
     <ToastHost />
 
     <footer class="footer">
-      <div>Pro Consult · Professional therapist workspace</div>
-      <div class="footer__meta">Без комісій. Без посередників. З повагою до практики.</div>
+      <div>Pro Consult · Professional therapist workspace · <RouterLink class="footer__link" to="/faq">FAQ</RouterLink></div>
+      <div class="footer__meta">
+        <span>Без комісій. Без посередників. З повагою до практики.</span>
+      </div>
     </footer>
   </div>
 </template>
@@ -187,5 +190,22 @@ function onLogout() {
   color: var(--muted);
   font-size: 12px;
   flex-wrap: wrap;
+}
+
+.footer__meta {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.footer__link {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-color: rgba(47, 63, 73, 0.35);
+}
+
+.footer__link:hover {
+  text-decoration-color: rgba(47, 63, 73, 0.7);
 }
 </style>

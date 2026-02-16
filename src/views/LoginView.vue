@@ -50,6 +50,13 @@
           <li>Контроль доступу на рівні системи</li>
         </ul>
       </div>
+      <div class="aside-card disclaimer">
+        <div class="aside-title">Дисклеймер</div>
+        <p class="aside-text">
+          Платформа є інструментом для організації роботи спеціаліста. Відповідальність
+          за послуги, рекомендації та результати несе сам спеціаліст.
+        </p>
+      </div>
       <div class="aside-card aside-card--dark">
         <div class="aside-title">Перший раз?</div>
         <p class="aside-text">
@@ -205,6 +212,17 @@ onMounted(() => {
 .aside-text {
   margin: 0 0 12px;
   opacity: 0.8;
+}
+
+.disclaimer {
+  background: rgba(7, 47, 71, 0.04);
+}
+
+.disclaimer .aside-text {
+  margin: 0;
+  color: var(--muted);
+  opacity: 1;
+  line-height: 1.5;
 }
 
 .form-error {

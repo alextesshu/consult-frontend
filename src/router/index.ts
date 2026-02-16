@@ -16,6 +16,7 @@ import BillingView from '../views/BillingView.vue'
 import PublicTherapistsView from '../views/PublicTherapistsView.vue'
 import TherapistReviewsView from '../views/TherapistReviewsView.vue'
 import GroupInviteJoinView from '../views/GroupInviteJoinView.vue'
+import FaqView from '../views/FaqView.vue'
 import NotFoundView from '../views/NotFoundView.vue'
 import ForbiddenView from '../views/ForbiddenView.vue'
 import { useAuthStore } from '../stores/auth'
@@ -101,6 +102,7 @@ const routes = [
   },
   { path: '/t/:slug', name: 'public-profile', component: PublicProfileView },
   { path: '/public/therapists', name: 'public-therapists', component: PublicTherapistsView },
+  { path: '/faq', name: 'faq', component: FaqView },
   { path: '/403', name: 'forbidden', component: ForbiddenView },
   { path: '/:pathMatch(.*)*', name: 'not-found', component: NotFoundView },
 ]
