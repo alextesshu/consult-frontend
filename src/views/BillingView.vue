@@ -72,7 +72,14 @@ const accessPillClass = computed(() => {
   return 'access-pill--ok'
 })
 
-const planLabel = computed(() => me.value?.effective_entitlements?.plan || 'Н/Д')
+const planLabel = computed(() => {
+  const plan = me.value?.effective_entitlements?.plan
+  if (plan === 'FREE') return 'Free'
+  if (plan === 'BASIC') return 'Basic'
+  if (plan === 'PRO') return 'Pro'
+  if (plan === 'UNLIMITED') return 'Unlimited'
+  return plan || 'Н/Д'
+})
 
 const accessHint = computed(() => {
   const state = me.value?.access_state
@@ -84,30 +91,50 @@ const accessHint = computed(() => {
 const plans = [
   {
     code: 'FREE',
-    title: 'FREE',
-    price: '0 грн/міс',
-    features: ['1 активний клієнт', 'Слоти та бронювання', 'Публічний профіль'],
-    note: 'Підходить для старту.',
+    title: 'Free',
+    price: '€0/міс',
+    features: [
+      '3 активні клієнти',
+      'Слоти та бронювання',
+      'Сесії + нотатки',
+      'Публічний профіль',
+    ],
+    note: 'Стартовий рівень.',
   },
   {
     code: 'BASIC',
-    title: 'BASIC',
-    price: '2000 грн/міс',
-    features: ['До 5 активних клієнтів', 'Групові події (add-on)', 'Розширений профіль'],
+    title: 'Basic',
+    price: '€20/міс',
+    features: [
+      '10 активних клієнтів',
+      'Участь в каталозі',
+      'Розширений профіль',
+      'Перенесення/скасування',
+    ],
     note: 'Для стабільної практики.',
   },
   {
     code: 'PRO',
-    title: 'PRO',
-    price: '3000 грн/міс',
-    features: ['До 10 активних клієнтів', 'Групові події (add-on)', 'Розширені ліміти'],
+    title: 'Pro',
+    price: '€30/міс',
+    features: [
+      '15 активних клієнтів',
+      'Групові зустрічі',
+      'Ролі учасників + запрошення',
+      'Модерація відгуків',
+    ],
     note: 'Для інтенсивної роботи.',
   },
   {
     code: 'UNLIMITED',
-    title: 'UNLIMITED',
-    price: '5000 грн/міс',
-    features: ['Без ліміту активних клієнтів', 'Group Room включено', 'Broadcast доступний'],
+    title: 'Unlimited',
+    price: '€50/міс',
+    features: [
+      'Безліміт активних клієнтів',
+      'Broadcast (трансляції)',
+      'Розширені групові ліміти',
+      'AI-інструменти (план)',
+    ],
     note: 'Для масштабування.',
   },
 ]
