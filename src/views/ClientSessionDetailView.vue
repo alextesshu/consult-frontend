@@ -29,7 +29,23 @@
         </div>
         <div class="detail-card">
           <div class="detail-label">Терапевт</div>
-          <div class="detail-value">#{{ session.therapist }}</div>
+          <div class="detail-value">
+            {{ therapistLabel(session) }}
+            <div v-if="session.therapist_email" class="muted" style="font-size: 12px;">
+              {{ session.therapist_email }}
+            </div>
+            <div class="muted" style="font-size: 12px;">
+              ID: #{{ session.therapist }}
+            </div>
+            <div v-if="session.therapist_public_slug" class="detail-actions">
+              <RouterLink class="btn btn--ghost btn--sm" :to="`/t/${session.therapist_public_slug}`">
+                Відкрити профіль
+              </RouterLink>
+              <button class="btn btn--ghost btn--sm" type="button" @click="copyTherapistLink">
+                Скопіювати посилання
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -123,6 +139,10 @@ type SessionDetail = {
   slot_start_at: string | null
   slot_end_at: string | null
   therapist: number
+  therapist_name?: string | null
+  therapist_username?: string | null
+  therapist_email?: string | null
+  therapist_public_slug?: string | null
   client: number
 }
 
@@ -165,6 +185,23 @@ const statusMap: Record<string, string> = {
 const statusLabel = (status: string) => statusMap[status] || status
 
 const canCancel = (status: string) => status === 'SCHEDULED' || status === 'CONFIRMED'
+
+function therapistLabel(detail: SessionDetail) {
+  const name = detail.therapist_name || detail.therapist_username
+  if (name) return name
+  return `#${detail.therapist}`
+}
+
+async function copyTherapistLink() {
+  if (!session.value?.therapist_public_slug) return
+  const url = `${window.location.origin}/t/${session.value.therapist_public_slug}`
+  try {
+    await navigator.clipboard.writeText(url)
+    toast.success('Посилання скопійовано.')
+  } catch {
+    toast.error('Не вдалося скопіювати посилання.')
+  }
+}
 
 function formatDateTime(value?: string | null) {
   if (!value) return '—'
@@ -368,6 +405,13 @@ onMounted(async () => {
 .detail-value {
   margin-top: 6px;
   font-weight: 600;
+}
+
+.detail-actions {
+  margin-top: 8px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .action-row {

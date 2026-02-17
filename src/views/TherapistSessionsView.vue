@@ -31,66 +31,81 @@
         secondary-to="/cabinet/profile"
       />
       <div v-else class="session-list">
-        <article v-for="session in upcoming" :key="session.id" class="session-card">
-          <div class="session-info">
-            <div class="session-time">{{ formatDateTime(session.slot_start_at) }}</div>
-            <div class="muted">{{ formatDuration(session.slot_start_at, session.slot_end_at) }}</div>
-            <div class="muted">
-              Клієнт: {{ session.client_name || session.client_username || `#${session.client}` }}
+        <article
+          v-for="session in upcoming"
+          :key="session.id"
+          class="session-card session-card--with-photo"
+        >
+          <div class="session-summary">
+            <div class="session-info">
+              <div class="session-time">{{ formatDateTime(session.slot_start_at) }}</div>
+              <div class="muted">{{ formatDuration(session.slot_start_at, session.slot_end_at) }}</div>
+              <div class="muted">
+                Клієнт: {{ session.client_name || session.client_username || `#${session.client}` }}
+              </div>
+              <div v-if="session.client_email" class="muted">Пошта: {{ session.client_email }}</div>
+              <div class="status-pill" :class="statusClass(session.status)">
+                {{ statusLabel(session.status) }}
+              </div>
+              <div
+                v-if="hasPendingReschedule(session.id)"
+                class="status-pill status-pill--warn"
+              >
+                Є запит на перенос
+              </div>
             </div>
-            <div v-if="session.client_email" class="muted">Пошта: {{ session.client_email }}</div>
-          <div class="status-pill" :class="statusClass(session.status)">
-            {{ statusLabel(session.status) }}
+            <div class="session-actions">
+              <button
+                class="btn btn--ghost btn--sm"
+                type="button"
+                :disabled="isActionLoading(session.id) || session.status !== 'SCHEDULED'"
+                @click="confirmSession(session.id)"
+              >
+                Підтвердити
+              </button>
+              <button
+                v-if="session.status === 'CONFIRMED'"
+                class="btn btn--ghost btn--sm"
+                type="button"
+                :disabled="isActionLoading(session.id)"
+                @click="completeSession(session.id)"
+              >
+                Завершити
+              </button>
+              <button
+                class="btn btn--ghost btn--sm"
+                type="button"
+                :disabled="isActionLoading(session.id) || !canCancel(session.status)"
+                @click="cancelSession(session.id)"
+              >
+                Скасувати
+              </button>
+              <button
+                class="btn btn--ghost btn--sm"
+                type="button"
+                :disabled="isActionLoading(session.id) || !canReschedule(session.status) || hasPendingReschedule(session.id)"
+                @click="toggleReschedule(session.id)"
+              >
+                Перенести
+              </button>
+              <button
+                class="btn btn--ghost btn--sm"
+                type="button"
+                :disabled="isNoteLoading(session.id)"
+                @click="toggleNote(session.id)"
+              >
+                Нотатка
+              </button>
+            </div>
           </div>
-          <div
-            v-if="hasPendingReschedule(session.id)"
-            class="status-pill status-pill--warn"
-          >
-            Є запит на перенос
-          </div>
-        </div>
-        <div class="session-actions">
-            <button
-              class="btn btn--ghost btn--sm"
-              type="button"
-              :disabled="isActionLoading(session.id) || session.status !== 'SCHEDULED'"
-              @click="confirmSession(session.id)"
-            >
-              Підтвердити
-            </button>
-            <button
-              v-if="session.status === 'CONFIRMED'"
-              class="btn btn--ghost btn--sm"
-              type="button"
-              :disabled="isActionLoading(session.id)"
-              @click="completeSession(session.id)"
-            >
-              Завершити
-            </button>
-            <button
-              class="btn btn--ghost btn--sm"
-              type="button"
-              :disabled="isActionLoading(session.id) || !canCancel(session.status)"
-              @click="cancelSession(session.id)"
-            >
-              Скасувати
-            </button>
-            <button
-              class="btn btn--ghost btn--sm"
-              type="button"
-              :disabled="isActionLoading(session.id) || !canReschedule(session.status) || hasPendingReschedule(session.id)"
-              @click="toggleReschedule(session.id)"
-            >
-              Перенести
-            </button>
-            <button
-              class="btn btn--ghost btn--sm"
-              type="button"
-              :disabled="isNoteLoading(session.id)"
-              @click="toggleNote(session.id)"
-            >
-              Нотатка
-            </button>
+          <div class="session-photo-wrap">
+            <img
+              v-if="therapistPhotoUrl"
+              :src="therapistPhotoUrl"
+              alt="Фото терапевта"
+              class="session-photo"
+            />
+            <div v-else class="session-photo session-photo--empty">Фото</div>
           </div>
           <div v-if="rescheduleSessionId === session.id" class="reschedule-panel">
             <label class="field">
@@ -98,7 +113,7 @@
               <select v-model.number="rescheduleSlotId" class="input input--select">
                 <option value="">Оберіть слот</option>
                 <option v-for="slot in availableSlots" :key="slot.id" :value="slot.id">
-                  {{ formatDateTime(slot.start_at) }} · {{ formatDuration(slot.start_at, slot.end_at) }}
+                  {{ formatDateTime(slot.start_at) }} ? {{ formatDuration(slot.start_at, slot.end_at) }}
                 </option>
               </select>
             </label>
@@ -269,6 +284,7 @@ import { http } from '../lib/http'
 import { getApiErrorMessage } from '../lib/errors'
 import LoadingSkeleton from '../components/LoadingSkeleton.vue'
 import EmptyState from '../components/EmptyState.vue'
+import { fetchTherapistProfile } from '../lib/api'
 
 type Session = {
   id: number
@@ -421,6 +437,15 @@ async function loadSessions() {
     error.value = getApiErrorMessage(err, '\u041d\u0435 \u0432\u0434\u0430\u043b\u043e\u0441\u044f \u0437\u0430\u0432\u0430\u043d\u0442\u0430\u0436\u0438\u0442\u0438 \u0441\u0435\u0441\u0456\u0457')
   } finally {
     loading.value = false
+  }
+}
+
+async function loadTherapistProfilePhoto() {
+  try {
+    const data = await fetchTherapistProfile()
+    therapistPhotoUrl.value = data?.photo_url || ''
+  } catch {
+    therapistPhotoUrl.value = ''
   }
 }
 
@@ -611,7 +636,7 @@ async function approveRequest(id: number) {
   error.value = ''
   try {
     await http.patch(`/cabinet/sessions/reschedule-requests/${id}/approve/`)
-    await Promise.all([loadSessions(), loadSlots(), loadRescheduleRequests()])
+    await Promise.all([loadSessions(), loadSlots(), loadRescheduleRequests(), loadTherapistProfilePhoto()])
   } catch (err: any) {
     error.value = err?.response?.data?.detail || 'Не вдалося погодити запит'
   } finally {
@@ -633,7 +658,7 @@ async function declineRequest(id: number) {
 }
 
 onMounted(async () => {
-  await Promise.all([loadSessions(), loadSlots(), loadRescheduleRequests()])
+  await Promise.all([loadSessions(), loadSlots(), loadRescheduleRequests(), loadTherapistProfilePhoto()])
 })
 </script>
 
@@ -704,6 +729,16 @@ onMounted(async () => {
   gap: 12px;
 }
 
+.session-card--with-photo {
+  grid-template-columns: minmax(0, 1fr) 140px;
+  align-items: start;
+}
+
+.session-summary {
+  display: grid;
+  gap: 12px;
+}
+
 .session-info {
   display: grid;
   gap: 6px;
@@ -750,6 +785,28 @@ onMounted(async () => {
   flex-wrap: wrap;
 }
 
+.session-photo-wrap {
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-start;
+}
+
+.session-photo {
+  width: 120px;
+  height: 120px;
+  border-radius: 16px;
+  object-fit: cover;
+  border: 1px solid var(--line);
+  background: rgba(7, 47, 71, 0.04);
+}
+
+.session-photo--empty {
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  color: rgba(7, 47, 71, 0.6);
+}
+
 .btn--sm {
   padding: 6px 10px;
   font-size: 13px;
@@ -762,6 +819,7 @@ onMounted(async () => {
   border-radius: 12px;
   border: 1px dashed rgba(47, 63, 73, 0.2);
   background: rgba(7, 47, 71, 0.04);
+  grid-column: 1 / -1;
 }
 
 .reschedule-actions {
@@ -781,6 +839,7 @@ onMounted(async () => {
   border-radius: 12px;
   border: 1px solid rgba(47, 63, 73, 0.12);
   background: #fbfbfb;
+  grid-column: 1 / -1;
 }
 
 .note-textarea {
@@ -836,6 +895,14 @@ onMounted(async () => {
   .sessions__hero {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .session-card--with-photo {
+    grid-template-columns: 1fr;
+  }
+
+  .session-photo-wrap {
+    justify-content: flex-start;
   }
 }
 </style>

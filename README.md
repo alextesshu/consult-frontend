@@ -72,12 +72,14 @@ Tokens are stored in localStorage and auto-refreshed via `/api/auth/token/refres
 * **ClientDashboardView**: client sessions list + selected therapist + viewed therapists
 * **ClientDashboardView**: group events list (client side)
 * **ClientSessionDetailView**: client cancel + reschedule request + reviews
+  * Shows therapist name + email + quick profile link/copy
 * **ClientTherapistsView**: therapist list + open profile
 * **ClientGroupEventView**: client-facing group event detail
 * **SlotsView**: create/edit/delete slots + fill day/week + date navigation
 * **GroupEventsView**: full group lifecycle (create/schedule/start/complete/cancel), participants (roles/status), invites
   * Email invites optional; accepted invites turn users into active clients
 * **TherapistSessionsView**: therapist actions + notes + reschedule requests (client name/email, start + duration)
+  * Shows therapist photo block in upcoming session cards
 * **TherapistReviewsView**: review moderation (approve/hide/respond) + filters
 * **TherapistClientsView**: therapist CRM with archive/restore
 * **BillingView**: plans + access state + request access
@@ -86,7 +88,7 @@ Tokens are stored in localStorage and auto-refreshed via `/api/auth/token/refres
 * **PublicTherapistsView**: public catalog with server-side filters
   * Sorting includes `rating_desc` (approved reviews only)
 * **LoginView / SignupView**: redesigned auth pages
-* **System**: global toast/notification layer, 404/403 pages, empty states, loading skeletons
+* **System**: global toast/notification layer, notification bell with unread state, 404/403 pages, empty states, loading skeletons
 * **Invites**: group invite join page with consent + status messaging
 
 ## Not Implemented Yet (Frontend Gaps)

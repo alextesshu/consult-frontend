@@ -7,7 +7,7 @@
       </RouterLink>
       <nav class="nav">
         <RouterLink v-if="isTherapist" to="/public">Публічний профіль</RouterLink>
-        <RouterLink v-if="!isTherapist" to="/public/therapists">Каталог</RouterLink>
+        <RouterLink v-if="!isTherapist" to="/public/therapists">Пошук спеціалістів</RouterLink>
         <RouterLink to="/faq">FAQ</RouterLink>
         <RouterLink v-if="isAuthenticated" :to="cabinetRoute">Кабінет</RouterLink>
         <RouterLink v-if="!isAuthenticated" to="/login">Вхід</RouterLink>
@@ -36,7 +36,7 @@
                 v-for="item in notifications"
                 :key="item.id"
                 class="notif-item"
-                :class="{ 'notif-item--read': readNotificationIds.has(item.id) }"
+                :class="{ 'notif-item--read': !item.unread }"
                 :to="item.to"
                 @click="markNotificationRead(item.id)"
               >
@@ -102,6 +102,8 @@ const readNotificationIds = ref<Set<string>>(new Set())
 const notificationsButtonRef = ref<HTMLButtonElement | null>(null)
 const notificationsPanelRef = ref<HTMLDivElement | null>(null)
 const lastNotificationIds = ref<string>('') // track ids to reset read state on new events
+const lastUpcomingCount = ref<number>(0)
+const lastReadUpcomingAt = ref<string>('')
 const refreshIntervalId = ref<number | null>(null)
 
 function loadReadNotifications() {
@@ -121,8 +123,19 @@ function persistReadNotifications() {
   localStorage.setItem('readNotifications', JSON.stringify([...readNotificationIds.value]))
 }
 
+const upcomingCount = computed(() => auth.me?.counts?.upcoming_sessions_count ?? 0)
+const latestUpcomingCreatedAt = computed(
+  () => auth.me?.counts?.latest_upcoming_session_created_at ?? null
+)
+const upcomingUnread = computed(() => {
+  const latest = latestUpcomingCreatedAt.value
+  if (!isTherapist.value || !latest) return false
+  if (!lastReadUpcomingAt.value) return true
+  return new Date(latest).getTime() > new Date(lastReadUpcomingAt.value).getTime()
+})
+
 const notifications = computed(() => {
-  const items: Array<{ id: string; text: string; hint: string; to: string; tone: 'info' | 'warn' | 'ok' }> = []
+  const items: Array<{ id: string; text: string; hint: string; to: string; tone: 'info' | 'warn' | 'ok'; unread: boolean }> = []
   const accessState = auth.me?.access_state
   const activeCount = auth.me?.counts?.active_clients ?? 0
   const activeLimit = auth.me?.effective_entitlements?.active_client_limit
@@ -133,6 +146,7 @@ const notifications = computed(() => {
       hint: 'Доступ тимчасово збережено.',
       to: '/cabinet/billing',
       tone: 'warn',
+      unread: !readNotificationIds.value.has('access-grace'),
     })
   }
   if (accessState === 'RESTRICTED') {
@@ -142,6 +156,7 @@ const notifications = computed(() => {
       hint: 'Нові дії заблоковані.',
       to: '/cabinet/billing',
       tone: 'warn',
+      unread: !readNotificationIds.value.has('access-restricted'),
     })
   }
   if (typeof activeLimit === 'number' && activeCount > activeLimit) {
@@ -151,23 +166,23 @@ const notifications = computed(() => {
         hint: 'Нові підтвердження тимчасово заблоковані.',
         to: '/cabinet/billing',
         tone: 'warn',
+        unread: !readNotificationIds.value.has('over-limit'),
       })
   }
-  if (isTherapist.value && (auth.me?.counts?.upcoming_sessions_count ?? 0) > 0) {
+  if (isTherapist.value && upcomingCount.value > 0) {
     items.push({
       id: 'upcoming-sessions',
       text: 'Є заплановані сесії',
       hint: 'Перевірте список найближчих сесій.',
       to: '/cabinet/sessions',
       tone: 'ok',
+      unread: upcomingUnread.value,
     })
   }
   return items
 })
 
-const unreadNotifications = computed(() =>
-  notifications.value.filter((item) => !readNotificationIds.value.has(item.id))
-)
+const unreadNotifications = computed(() => notifications.value.filter((item) => item.unread))
 const notificationCount = computed(() => unreadNotifications.value.length)
 
 function toggleNotifications() {
@@ -176,6 +191,11 @@ function toggleNotifications() {
 
 function markNotificationRead(id: string) {
   if (!id) return
+  if (id === 'upcoming-sessions') {
+    const latest = latestUpcomingCreatedAt.value
+    lastReadUpcomingAt.value = latest || new Date().toISOString()
+    persistUpcomingReadAt()
+  }
   const next = new Set(readNotificationIds.value)
   next.add(id)
   readNotificationIds.value = next
@@ -275,7 +295,44 @@ watch(isAuthenticated, (value) => {
   }
 })
 
+function loadUpcomingCount() {
+  const raw = localStorage.getItem('lastUpcomingSessionsCount')
+  const value = raw ? Number(raw) : 0
+  lastUpcomingCount.value = Number.isFinite(value) ? value : 0
+}
+
+function persistUpcomingCount(value: number) {
+  localStorage.setItem('lastUpcomingSessionsCount', String(value))
+}
+
+function loadUpcomingReadAt() {
+  const raw = localStorage.getItem('lastReadUpcomingSessionAt')
+  lastReadUpcomingAt.value = raw || ''
+}
+
+function persistUpcomingReadAt() {
+  localStorage.setItem('lastReadUpcomingSessionAt', lastReadUpcomingAt.value)
+}
+
+watch(
+  upcomingCount,
+  (value) => {
+    const previous = lastUpcomingCount.value
+    if (value > previous) {
+      const next = new Set(readNotificationIds.value)
+      next.delete('upcoming-sessions')
+      readNotificationIds.value = next
+      persistReadNotifications()
+    }
+    lastUpcomingCount.value = value
+    persistUpcomingCount(value)
+  },
+  { immediate: true }
+)
+
 loadReadNotifications()
+loadUpcomingCount()
+loadUpcomingReadAt()
 </script>
 
 <style scoped>

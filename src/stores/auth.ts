@@ -21,6 +21,7 @@ type Counts = {
   active_clients: number
   prospect_clients: number
   upcoming_sessions_count: number
+  latest_upcoming_session_created_at?: string | null
 }
 
 type MePayload = {

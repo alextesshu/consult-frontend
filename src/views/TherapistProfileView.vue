@@ -140,14 +140,23 @@
               </button>
             </div>
           </label>
-          <label class="field">
-            Мови
+
+          <div class="field">
+            <label for="language-input">Мови</label>
             <div class="chip-field">
-              <div class="chip" v-for="language in languageList" :key="language">
+              <div class="chip" v-for="(language, index) in languageList" :key="`${language}-${index}`">
                 <span>{{ language }}</span>
-                <button type="button" class="chip-remove" @click="removeLanguage(language)">×</button>
+                <button
+                  type="button"
+                  class="chip-remove"
+                  @mousedown.stop
+                  @click.stop="removeLanguage(language, index)"
+                >
+                  ×
+                </button>
               </div>
               <input
+                id="language-input"
                 v-model="languageInput"
                 class="input chip-input"
                 type="text"
@@ -163,7 +172,7 @@
             <div class="muted" style="font-size: 12px;">
               Можна додавати скільки завгодно мов. Підказки працюють за першими літерами.
             </div>
-          </label>
+          </div>
             <label class="field">
               Локація
               <input v-model="profile.location" class="input" type="text" placeholder="Місто / країна" />
@@ -1068,8 +1077,15 @@ function addLanguage() {
   languageInput.value = ''
 }
 
-function removeLanguage(language: string) {
-  languageList.value = languageList.value.filter((item) => item !== language)
+function removeLanguage(language: string, index: number) {
+  if (index >= 0 && index < languageList.value.length && languageList.value[index] === language) {
+    languageList.value.splice(index, 1)
+    return
+  }
+  const fallbackIndex = languageList.value.findIndex((item) => item === language)
+  if (fallbackIndex >= 0) {
+    languageList.value.splice(fallbackIndex, 1)
+  }
 }
 
 function onLanguageKeydown(event: KeyboardEvent) {

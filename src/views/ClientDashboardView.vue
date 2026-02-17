@@ -15,7 +15,7 @@
       <div class="card__title">Підказки</div>
       <ul class="tips-list">
         <li>
-          <RouterLink class="tips-link" to="/public/therapists">Обрати терапевта в каталозі</RouterLink>
+          <RouterLink class="tips-link" to="/public/therapists">Обрати спеціаліста</RouterLink>
           <span class="muted">Перегляньте профіль і доступні слоти.</span>
         </li>
         <li>
@@ -154,11 +154,21 @@
           <li v-for="session in upcoming" :key="session.id" class="session-item">
             <div>
               <div class="session-time">{{ formatDateTime(session.slot?.start_at || session.slot_start_at) }}</div>
+              <div class="muted">{{ therapistLabel(session) }}</div>
               <div class="muted">Статус: {{ statusLabel(session.status) }}</div>
             </div>
-            <RouterLink class="btn btn--ghost btn--sm" :to="`/client/sessions/${session.id}`">
-              Деталі
-            </RouterLink>
+            <div class="session-actions">
+              <RouterLink class="btn btn--ghost btn--sm" :to="`/client/sessions/${session.id}`">
+                Деталі
+              </RouterLink>
+              <RouterLink
+                v-if="session.therapist_public_slug"
+                class="btn btn--ghost btn--sm"
+                :to="`/t/${session.therapist_public_slug}`"
+              >
+                Профіль
+              </RouterLink>
+            </div>
           </li>
         </ul>
       </div>
@@ -172,11 +182,21 @@
           <li v-for="session in past" :key="session.id" class="session-item">
             <div>
               <div class="session-time">{{ formatDateTime(session.slot?.start_at || session.slot_start_at) }}</div>
+              <div class="muted">{{ therapistLabel(session) }}</div>
               <div class="muted">Статус: {{ statusLabel(session.status) }}</div>
             </div>
-            <RouterLink class="btn btn--ghost btn--sm" :to="`/client/sessions/${session.id}`">
-              Деталі
-            </RouterLink>
+            <div class="session-actions">
+              <RouterLink class="btn btn--ghost btn--sm" :to="`/client/sessions/${session.id}`">
+                Деталі
+              </RouterLink>
+              <RouterLink
+                v-if="session.therapist_public_slug"
+                class="btn btn--ghost btn--sm"
+                :to="`/t/${session.therapist_public_slug}`"
+              >
+                Профіль
+              </RouterLink>
+            </div>
           </li>
         </ul>
       </div>
@@ -198,6 +218,10 @@ type Session = {
   id: number
   status: string
   therapist?: number
+  therapist_name?: string | null
+  therapist_username?: string | null
+  therapist_email?: string | null
+  therapist_public_slug?: string | null
   slot: Slot | null
   slot_start_at?: string | null
   slot_end_at?: string | null
@@ -304,6 +328,13 @@ function nextSession(therapistId: number | undefined, status: string) {
 function formatSession(session: Session | null) {
   if (!session) return 'Немає'
   return formatDateTime(sessionStartAt(session))
+}
+
+function therapistLabel(session: Session) {
+  const name = session.therapist_name || session.therapist_username
+  if (name) return `Терапевт: ${name}`
+  if (session.therapist) return `Терапевт: #${session.therapist}`
+  return 'Терапевт: —'
 }
 
 function publicName(value?: string) {
@@ -689,6 +720,12 @@ onMounted(async () => {
   padding: 10px 12px;
   border-radius: 12px;
   background: rgba(111, 142, 151, 0.12);
+}
+
+.session-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .session-time {
