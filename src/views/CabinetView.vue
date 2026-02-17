@@ -272,7 +272,7 @@ function onLogout() {
 .cabinet__hero {
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
+  align-items: center;
   gap: 24px;
   background: linear-gradient(135deg, rgba(8, 113, 201, 0.16), rgba(7, 47, 71, 0.06));
   border: 1px solid var(--line);

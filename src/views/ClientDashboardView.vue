@@ -322,7 +322,7 @@ function nextSession(therapistId: number | undefined, status: string) {
     .map((session) => ({ session, startAt: sessionStartAt(session) }))
     .filter((item) => item.startAt)
     .sort((a, b) => new Date(a.startAt as string).getTime() - new Date(b.startAt as string).getTime())
-  return items.length ? items[0].session : null
+  return items[0]?.session ?? null
 }
 
 function formatSession(session: Session | null) {

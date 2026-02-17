@@ -101,7 +101,7 @@ const showNotifications = ref(false)
 const readNotificationIds = ref<Set<string>>(new Set())
 const notificationsButtonRef = ref<HTMLButtonElement | null>(null)
 const notificationsPanelRef = ref<HTMLDivElement | null>(null)
-const lastNotificationIds = ref<string>('') // track ids to reset read state on new events
+const lastNotificationIds = ref<Set<string>>(new Set())
 const lastUpcomingCount = ref<number>(0)
 const lastReadUpcomingAt = ref<string>('')
 const refreshIntervalId = ref<number | null>(null)
@@ -127,6 +127,7 @@ const upcomingCount = computed(() => auth.me?.counts?.upcoming_sessions_count ??
 const latestUpcomingCreatedAt = computed(
   () => auth.me?.counts?.latest_upcoming_session_created_at ?? null
 )
+const sessionEvents = computed(() => auth.me?.notifications?.session_events ?? [])
 const upcomingUnread = computed(() => {
   const latest = latestUpcomingCreatedAt.value
   if (!isTherapist.value || !latest) return false
@@ -134,8 +135,40 @@ const upcomingUnread = computed(() => {
   return new Date(latest).getTime() > new Date(lastReadUpcomingAt.value).getTime()
 })
 
+function formatDateTime(value?: string | null) {
+  if (!value) return ''
+  const dt = new Date(value)
+  if (Number.isNaN(dt.getTime())) return value
+  return dt.toLocaleString('uk-UA', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  })
+}
+
 const notifications = computed(() => {
   const items: Array<{ id: string; text: string; hint: string; to: string; tone: 'info' | 'warn' | 'ok'; unread: boolean }> = []
+  if (isTherapist.value && sessionEvents.value.length) {
+    sessionEvents.value.forEach((event) => {
+      const id = `session-event-${event.id}`
+      const name = event.client_name || `#${event.client_id}`
+      const time = formatDateTime(event.slot_start_at)
+      const email = event.client_email ? ` · ${event.client_email}` : ''
+      items.push({
+        id,
+        text: event.event === 'CANCELLED'
+          ? `Скасування сесії від ${name}`
+          : `Нове бронювання від ${name}`,
+        hint: time ? `Сесія: ${time}${email}` : `Перевірте деталі сесії${email}`,
+        to: `/cabinet/sessions#session-${event.session_id}`,
+        tone: event.event === 'CANCELLED' ? 'warn' : 'ok',
+        unread: !readNotificationIds.value.has(id),
+      })
+    })
+  }
   const accessState = auth.me?.access_state
   const activeCount = auth.me?.counts?.active_clients ?? 0
   const activeLimit = auth.me?.effective_entitlements?.active_client_limit
@@ -253,15 +286,32 @@ function handleVisibilityChange() {
 watch(
   notifications,
   (items) => {
-    const ids = items.map((item) => item.id).join('|')
-    if (ids && lastNotificationIds.value && ids !== lastNotificationIds.value) {
-      readNotificationIds.value = new Set()
+    const ids = new Set(items.map((item) => item.id))
+    if (lastNotificationIds.value.size === 0) {
+      lastNotificationIds.value = ids
+      return
+    }
+    let hasNew = false
+    ids.forEach((id) => {
+      if (!lastNotificationIds.value.has(id)) {
+        hasNew = true
+      }
+    })
+    if (hasNew) {
+      const next = new Set(readNotificationIds.value)
+      ids.forEach((id) => {
+        if (!lastNotificationIds.value.has(id)) {
+          next.delete(id)
+        }
+      })
+      readNotificationIds.value = next
       persistReadNotifications()
     }
     lastNotificationIds.value = ids
   },
   { immediate: true }
 )
+
 
 function handleGlobalClick(event: MouseEvent) {
   if (!showNotifications.value) return

@@ -34,7 +34,10 @@
         <article
           v-for="session in upcoming"
           :key="session.id"
+          :id="`session-${session.id}`"
           class="session-card session-card--with-photo"
+          :class="{ 'session-card--highlight': highlightedSessionId === session.id }"
+          @mouseenter="clearHighlight(session.id)"
         >
           <div class="session-summary">
             <div class="session-info">
@@ -226,7 +229,14 @@
         description="Після завершених сесій тут з’явиться історія."
       />
       <div v-else class="session-list">
-        <article v-for="session in past" :key="session.id" class="session-card">
+        <article
+          v-for="session in past"
+          :key="session.id"
+          :id="`session-${session.id}`"
+          class="session-card"
+          :class="{ 'session-card--highlight': highlightedSessionId === session.id }"
+          @mouseenter="clearHighlight(session.id)"
+        >
           <div class="session-info">
             <div class="session-time">{{ formatDateTime(session.slot_start_at) }}</div>
             <div class="muted">{{ formatDuration(session.slot_start_at, session.slot_end_at) }}</div>
@@ -279,7 +289,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, onBeforeUnmount, ref, watch, nextTick } from 'vue'
+import { useRoute } from 'vue-router'
 import { http } from '../lib/http'
 import { getApiErrorMessage } from '../lib/errors'
 import LoadingSkeleton from '../components/LoadingSkeleton.vue'
@@ -336,6 +347,9 @@ const noteSaving = ref<Set<number>>(new Set())
 const rescheduleRequests = ref<RescheduleRequest[]>([])
 const requestsLoading = ref(false)
 const requestLoading = ref<Set<number>>(new Set())
+const highlightedSessionId = ref<number | null>(null)
+const route = useRoute()
+const highlightTimeoutId = ref<number | null>(null)
 
 const statusMap: Record<string, string> = {
   SCHEDULED: 'Заплановано',
@@ -421,6 +435,39 @@ function formatDuration(start?: string | null, end?: string | null) {
   if (hours) parts.push(`${hours} год`)
   if (mins) parts.push(`${mins} хв`)
   return `Тривалість: ${parts.join(' ')}`
+}
+
+function parseSessionIdFromHash(hash: string): number | null {
+  if (!hash) return null
+  const match = hash.match(/session-(\d+)/)
+  if (!match) return null
+  const id = Number(match[1])
+  return Number.isFinite(id) ? id : null
+}
+
+async function scrollToHighlightedSession() {
+  const id = parseSessionIdFromHash(route.hash)
+  if (!id) return
+  highlightedSessionId.value = id
+  if (highlightTimeoutId.value !== null) {
+    window.clearTimeout(highlightTimeoutId.value)
+    highlightTimeoutId.value = null
+  }
+  await nextTick()
+  const el = document.getElementById(`session-${id}`)
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }
+  highlightTimeoutId.value = window.setTimeout(() => {
+    highlightedSessionId.value = null
+    highlightTimeoutId.value = null
+  }, 8000)
+}
+
+function clearHighlight(id: number) {
+  if (highlightedSessionId.value === id) {
+    highlightedSessionId.value = null
+  }
 }
 
 async function loadSessions() {
@@ -659,6 +706,20 @@ async function declineRequest(id: number) {
 
 onMounted(async () => {
   await Promise.all([loadSessions(), loadSlots(), loadRescheduleRequests(), loadTherapistProfilePhoto()])
+  await scrollToHighlightedSession()
+})
+
+watch(
+  () => route.hash,
+  async () => {
+    await scrollToHighlightedSession()
+  }
+)
+
+onBeforeUnmount(() => {
+  if (highlightTimeoutId.value !== null) {
+    window.clearTimeout(highlightTimeoutId.value)
+  }
 })
 </script>
 
@@ -805,6 +866,12 @@ onMounted(async () => {
   place-items: center;
   font-size: 12px;
   color: rgba(7, 47, 71, 0.6);
+}
+
+.session-card--highlight {
+  border-color: rgba(8, 113, 201, 0.55);
+  box-shadow: 0 0 0 2px rgba(8, 113, 201, 0.18);
+  background: rgba(8, 113, 201, 0.04);
 }
 
 .btn--sm {

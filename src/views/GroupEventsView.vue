@@ -115,8 +115,49 @@
     <div v-if="loading" class="muted" style="margin-top: 12px;">Завантаження...</div>
 
     <section v-else class="group-list">
-      <div v-if="events.length === 0" class="muted">Подій поки немає.</div>
-      <article v-for="event in events" :key="event.id" class="group-card">
+      <div class="group-filters">
+        <div class="group-filters__title">Пошук і фільтри</div>
+        <div class="group-filters__grid">
+          <label class="field">
+            <span>Пошук</span>
+            <input v-model="eventFilters.query" type="text" placeholder="Дата, статус або ID" />
+          </label>
+          <label class="field">
+            <span>Режим</span>
+            <select v-model="eventFilters.mode">
+              <option value="">Усі</option>
+              <option value="MEETING">Зустріч</option>
+              <option value="BROADCAST">Трансляція</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Статус</span>
+            <select v-model="eventFilters.state">
+              <option value="">Усі</option>
+              <option value="DRAFT">Чернетка</option>
+              <option value="SCHEDULED">Заплановано</option>
+              <option value="LIVE">Триває</option>
+              <option value="COMPLETED">Завершено</option>
+              <option value="CANCELLED">Скасовано</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Час</span>
+            <select v-model="eventFilters.time">
+              <option value="all">Усі</option>
+              <option value="upcoming">Майбутні</option>
+              <option value="past">Минулі</option>
+            </select>
+          </label>
+        </div>
+        <button class="btn btn--ghost btn--sm" type="button" @click="resetEventFilters" :disabled="!hasEventFilters">
+          Скинути
+        </button>
+      </div>
+      <div v-if="filteredEvents.length === 0" class="muted group-empty">
+        {{ eventsEmptyLabel }}
+      </div>
+      <article v-for="event in filteredEvents" :key="event.id" class="group-card">
         <div class="group-card__header">
           <div class="badge badge--soft">{{ formatMode(event.mode) }}</div>
           <div class="state-pill" :class="statePillClass(event.state)">{{ formatState(event.state) }}</div>
@@ -432,6 +473,12 @@ const expandedEventId = ref<number | null>(null)
 const participantViews = ref<Record<number, GroupParticipant[]>>({})
 const invitesByEvent = ref<Record<number, GroupInvite[]>>({})
 const participantFilters = ref<Record<number, { query: string; role: string; status: string }>>({})
+const eventFilters = reactive({
+  query: '',
+  mode: '',
+  state: '',
+  time: 'all' as 'all' | 'upcoming' | 'past',
+})
 
 const createForm = reactive({
   mode: 'MEETING' as GroupEvent['mode'],
@@ -452,6 +499,54 @@ const inviteForm = reactive({
   expires_at: '',
   max_uses: '',
   email: '',
+})
+
+const hasEventFilters = computed(() => {
+  return (
+    !!eventFilters.query.trim() ||
+    !!eventFilters.mode ||
+    !!eventFilters.state ||
+    eventFilters.time !== 'all'
+  )
+})
+
+const filteredEvents = computed(() => {
+  const query = eventFilters.query.trim().toLowerCase()
+  const now = Date.now()
+  return events.value.filter((event) => {
+    if (eventFilters.mode && event.mode !== eventFilters.mode) return false
+    if (eventFilters.state && event.state !== eventFilters.state) return false
+    if (eventFilters.time === 'upcoming') {
+      if (event.state === 'COMPLETED' || event.state === 'CANCELLED') return false
+      const startTs = event.starts_at ? new Date(event.starts_at).getTime() : null
+      const endTs = event.ends_at ? new Date(event.ends_at).getTime() : null
+      if (endTs && endTs < now && event.state === 'SCHEDULED') return false
+      if (startTs && startTs < now && event.state === 'SCHEDULED') return true
+    }
+    if (eventFilters.time === 'past') {
+      if (event.state === 'COMPLETED' || event.state === 'CANCELLED') return true
+      const endTs = event.ends_at ? new Date(event.ends_at).getTime() : null
+      if (endTs && endTs < now) return true
+      return false
+    }
+    if (!query) return true
+    const haystack = [
+      event.id,
+      formatMode(event.mode),
+      formatState(event.state),
+      formatDate(event.starts_at),
+      formatDate(event.ends_at),
+    ]
+      .join(' ')
+      .toLowerCase()
+    return haystack.includes(query)
+  })
+})
+
+const eventsEmptyLabel = computed(() => {
+  if (events.value.length === 0) return 'Подій поки немає.'
+  if (filteredEvents.value.length === 0) return 'Нічого не знайдено за вибраними фільтрами.'
+  return ''
 })
 
 watch(error, (value) => {
@@ -932,6 +1027,13 @@ function resetParticipantFilters(eventId: number) {
     [eventId]: { query: '', role: '', status: '' },
   }
 }
+
+function resetEventFilters() {
+  eventFilters.query = ''
+  eventFilters.mode = ''
+  eventFilters.state = ''
+  eventFilters.time = 'all'
+}
 </script>
 
 <style scoped>
@@ -1050,6 +1152,31 @@ function resetParticipantFilters(eventId: number) {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 12px;
+}
+
+.group-filters {
+  grid-column: 1 / -1;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 14px;
+  background: #fff;
+  display: grid;
+  gap: 10px;
+}
+
+.group-filters__title {
+  font-weight: 600;
+}
+
+.group-filters__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+  align-items: end;
+}
+
+.group-empty {
+  grid-column: 1 / -1;
 }
 
 .group-card {
