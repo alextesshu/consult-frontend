@@ -70,7 +70,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch, watchEffect } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from './stores/auth'
 import ToastHost from './components/ToastHost.vue'
@@ -80,6 +80,10 @@ const router = useRouter()
 const auth = useAuthStore()
 const isAuthenticated = computed(() => Boolean(auth.accessToken))
 const isHome = computed(() => route.path === '/')
+
+watchEffect(() => {
+  document.body.classList.toggle('body--home', isHome.value)
+})
 const roles = computed(() => auth.me?.user.roles ?? [])
 const isTherapist = computed(() => roles.value.includes('THERAPIST'))
 const isClient = computed(() => roles.value.includes('CLIENT'))
@@ -398,6 +402,8 @@ loadUpcomingReadAt()
   max-width: none;
   padding: 0;
   display: block;
+  height: 100vh;
+  overflow: hidden;
 }
 
 .shell--home .topbar {
@@ -625,6 +631,23 @@ loadUpcomingReadAt()
   min-height: 100vh;
   width: 100%;
   margin: 0;
+  height: 100vh;
+  overflow: hidden;
+}
+
+body.body--home .footer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin: 0;
+  padding: 10px 20px;
+  z-index: 30;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(8, 14, 24, 0.45);
+  backdrop-filter: blur(6px);
+  color: rgba(241, 246, 249, 0.8);
+  font-size: 12px;
 }
 
 .footer {

@@ -1,5 +1,5 @@
 ﻿<template>
-  <section class="home">
+  <section class="home" ref="homeRef">
     <div
       class="scene-frame"
       ref="sceneRef"
@@ -74,13 +74,6 @@
         <div v-if="hoveringTherapist" class="scene-label scene-label--therapist">Терапевт</div>
         <div v-if="hoveringClient" class="scene-label scene-label--client">Клієнт</div>
 
-        <div class="scene-mask-debug scene-mask-debug--zone-1" aria-hidden="true"></div>
-        <div class="scene-mask-debug scene-mask-debug--zone-2" aria-hidden="true"></div>
-        <div class="scene-mask-debug scene-mask-debug--zone-3" aria-hidden="true"></div>
-        <div class="scene-mask-debug scene-mask-debug--zone-4" aria-hidden="true"></div>
-        <div class="scene-mask-debug scene-mask-debug--zone-5" aria-hidden="true"></div>
-        <div class="scene-mask-debug scene-mask-debug--zone-6" aria-hidden="true"></div>
-        <div class="scene-mask-debug scene-mask-debug--zone-7" aria-hidden="true"></div>
       </div>
     </div>
   </section>
@@ -161,6 +154,7 @@ const pointerX = ref(0)
 const pointerY = ref(0)
 const scrollProgress = ref(0)
 const sceneRef = ref<HTMLElement | null>(null)
+const homeRef = ref<HTMLElement | null>(null)
 let scrollTicking = false
 
 const sceneStyle = computed(() => ({
@@ -220,13 +214,14 @@ function onLogout() {
 }
 
 function updateScroll() {
-  const scene = sceneRef.value
-  if (!scene) return
-  const rect = scene.getBoundingClientRect()
-  const sceneTop = rect.top + window.scrollY
-  const sceneHeight = Math.max(rect.height, window.innerHeight)
-  const raw = (window.scrollY - sceneTop) / sceneHeight
-  const clamped = Math.max(-0.6, Math.min(0.6, raw))
+  const home = homeRef.value
+  if (!home) return
+  const rect = home.getBoundingClientRect()
+  const top = rect.top + window.scrollY
+  const span = Math.max(1, rect.height - window.innerHeight)
+  const t = (window.scrollY - top) / span
+  const centered = t - 0.5
+  const clamped = Math.max(-0.6, Math.min(0.6, centered))
   scrollProgress.value = clamped
 }
 
@@ -258,12 +253,15 @@ onUnmounted(() => {
   box-shadow: var(--shadow);
   width: 100vw;
   min-height: 100vh;
+  height: 100vh;
   position: relative;
 }
 
 .home {
   width: 100vw;
   margin-left: calc(50% - 50vw);
+  min-height: 100vh;
+  overflow: hidden;
 }
 
 .scene-stack {
@@ -286,7 +284,7 @@ onUnmounted(() => {
     z-index: 0;
   transform: translate3d(
     calc(var(--px) * 4px),
-    calc(var(--py) * 4px + var(--sy) * 6px),
+    calc(var(--py) * 4px + var(--sy) * 20px),
     0
   );
 }
@@ -299,7 +297,7 @@ onUnmounted(() => {
   opacity: 0.55;
   transform: translate3d(
     calc(var(--px) * 5px),
-    calc(var(--py) * 5px + var(--sy) * 10px),
+    calc(var(--py) * 5px + var(--sy) * 30px),
     0
   );
   animation: starsTwinkle 9s ease-in-out infinite;
@@ -309,11 +307,11 @@ onUnmounted(() => {
   opacity: 0;
   transform: translate3d(
     calc(var(--px) * 7px),
-    calc(var(--py) * 7px + var(--sy) * 12px),
+    calc(var(--py) * 7px + var(--sy) * 36px),
     0
   );
   mix-blend-mode: screen;
-  filter: drop-shadow(0 0 12px rgba(140, 200, 255, 0.5));
+  filter: drop-shadow(0 0 4px rgba(140, 200, 255, 0.5));
   animation: starsPulse 7s ease-in-out infinite;
 }
 
@@ -324,7 +322,7 @@ onUnmounted(() => {
 .layer--stars-glow-zone {
   opacity: 0;
   mix-blend-mode: screen;
-  filter: drop-shadow(0 0 18px rgba(160, 220, 255, 0.7));
+  filter: drop-shadow(0 0 6px rgba(160, 220, 255, 0.7));
   animation: starsPulse 6.5s ease-in-out infinite;
 }
 
@@ -355,7 +353,7 @@ onUnmounted(() => {
     z-index: 3;
   transform: translate3d(
     calc(var(--px) * 6px),
-    calc(var(--py) * 6px + var(--sy) * 16px),
+    calc(var(--py) * 6px + var(--sy) * 50px),
     0
   );
 }
@@ -364,7 +362,7 @@ onUnmounted(() => {
     z-index: 4;
   transform: translate3d(
     calc(var(--px) * 8px),
-    calc(var(--py) * 8px + var(--sy) * 24px),
+    calc(var(--py) * 8px + var(--sy) * 70px),
     0
   );
 }
@@ -373,7 +371,7 @@ onUnmounted(() => {
     z-index: 5;
   transform: translate3d(
     calc(var(--px) * 10px),
-    calc(var(--py) * 10px + var(--sy) * 30px),
+    calc(var(--py) * 10px + var(--sy) * 90px),
     0
   );
 }
@@ -382,7 +380,7 @@ onUnmounted(() => {
     z-index: 6;
   transform: translate3d(
     calc(var(--px) * 14px),
-    calc(var(--py) * 14px + var(--sy) * 40px),
+    calc(var(--py) * 14px + var(--sy) * 120px),
     0
   );
 }
@@ -396,7 +394,7 @@ onUnmounted(() => {
   z-index: 12;
   transform: translate3d(
     calc(var(--px) * 16px),
-    calc(var(--py) * 16px + var(--sy) * 48px),
+    calc(var(--py) * 16px + var(--sy) * 160px),
     0
   );
 }
@@ -579,74 +577,43 @@ onUnmounted(() => {
   bottom: calc(46% - 30px);
 }
 
-.scene-mask-debug {
-  position: absolute;
-  width: var(--mask-size, 38%);
-  height: var(--mask-size, 38%);
-  border: 2px dashed rgba(255, 60, 60, 0.9);
-  border-radius: 50%;
-  box-shadow: 0 0 12px rgba(255, 60, 60, 0.35);
-  pointer-events: none;
-  z-index: 26;
-  transform: translate(-50%, -50%);
-  opacity: 0.65;
-}
-
-.scene-mask-debug--zone-1,
-.scene-mask-debug--zone-2,
-.scene-mask-debug--zone-3,
-.scene-mask-debug--zone-4,
-.scene-mask-debug--zone-5,
-.scene-mask-debug--zone-6,
-.scene-mask-debug--zone-7 {
-  left: var(--mask-x);
-  top: var(--mask-y);
-}
-
-.layer--stars-zone-1,
-.scene-mask-debug--zone-1 {
+.layer--stars-zone-1 {
   --mask-x: 13%;
   --mask-y: 45%;
   --mask-size: 5.2%;
 }
 
-.layer--stars-zone-2,
-.scene-mask-debug--zone-2 {
+.layer--stars-zone-2 {
   --mask-x: 25%;
   --mask-y: 25%;
   --mask-size: 5.2%;
 }
 
-.layer--stars-zone-3,
-.scene-mask-debug--zone-3 {
+.layer--stars-zone-3 {
   --mask-x: 87%;
   --mask-y: 28%;
   --mask-size: 5.2%;
 }
 
-.layer--stars-zone-4,
-.scene-mask-debug--zone-4 {
+.layer--stars-zone-4 {
   --mask-x: 43%;
   --mask-y: 14%;
   --mask-size: 5.2%;
 }
 
-.layer--stars-zone-5,
-.scene-mask-debug--zone-5 {
+.layer--stars-zone-5 {
   --mask-x: 40%;
   --mask-y: 30%;
   --mask-size: 5.6%;
 }
 
-.layer--stars-zone-6,
-.scene-mask-debug--zone-6 {
+.layer--stars-zone-6 {
   --mask-x: 73%;
   --mask-y: 10%;
   --mask-size: 4.8%;
 }
 
-.layer--stars-zone-7,
-.scene-mask-debug--zone-7 {
+.layer--stars-zone-7 {
   --mask-x: 82%;
   --mask-y: 15%;
   --mask-size: 5%;
