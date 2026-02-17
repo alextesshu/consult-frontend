@@ -2,6 +2,7 @@
   <section class="home">
     <div
       class="scene-frame"
+      ref="sceneRef"
       :class="sceneStateClass"
       :style="sceneStyle"
       @mousemove="onSceneMove"
@@ -72,18 +73,27 @@
 
         <div v-if="hoveringTherapist" class="scene-label scene-label--therapist">Терапевт</div>
         <div v-if="hoveringClient" class="scene-label scene-label--client">Клієнт</div>
+
+        <div class="scene-mask-debug scene-mask-debug--zone-1" aria-hidden="true"></div>
+        <div class="scene-mask-debug scene-mask-debug--zone-2" aria-hidden="true"></div>
+        <div class="scene-mask-debug scene-mask-debug--zone-3" aria-hidden="true"></div>
+        <div class="scene-mask-debug scene-mask-debug--zone-4" aria-hidden="true"></div>
+        <div class="scene-mask-debug scene-mask-debug--zone-5" aria-hidden="true"></div>
+        <div class="scene-mask-debug scene-mask-debug--zone-6" aria-hidden="true"></div>
+        <div class="scene-mask-debug scene-mask-debug--zone-7" aria-hidden="true"></div>
       </div>
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { useRouter } from 'vue-router'
 import bgSky from '../assets/parallax/01_bg_sky.png'
 import bgVignette from '../assets/parallax/02_bg_vignette.png'
-import bgStars from '../assets/parallax/03_bg_stars.png'
+import bgStarsFine from '../assets/parallax/03_bg_stars_fine.png'
+import bgStarsGlow from '../assets/parallax/03_bg_stars_glow.png'
 import mountainFar from '../assets/parallax/10_mountain_far.png'
 import mountainNear from '../assets/parallax/11_mountain_near.png'
 import forestBack from '../assets/parallax/20_forest_back.png'
@@ -114,7 +124,15 @@ const cabinetRoute = computed(() => {
 
 const layers = [
   { src: bgSky, class: 'layer layer--sky' },
-  { src: bgStars, class: 'layer layer--stars' },
+  { src: bgStarsFine, class: 'layer layer--stars layer--stars-fine' },
+  { src: bgStarsGlow, class: 'layer layer--stars layer--stars-glow' },
+  { src: bgStarsGlow, class: 'layer layer--stars layer--stars-glow layer--stars-glow-zone layer--stars-zone-1' },
+  { src: bgStarsGlow, class: 'layer layer--stars layer--stars-glow layer--stars-glow-zone layer--stars-zone-2' },
+  { src: bgStarsGlow, class: 'layer layer--stars layer--stars-glow layer--stars-glow-zone layer--stars-zone-3' },
+  { src: bgStarsGlow, class: 'layer layer--stars layer--stars-glow layer--stars-glow-zone layer--stars-zone-4' },
+  { src: bgStarsGlow, class: 'layer layer--stars layer--stars-glow layer--stars-glow-zone layer--stars-zone-5' },
+  { src: bgStarsGlow, class: 'layer layer--stars layer--stars-glow layer--stars-glow-zone layer--stars-zone-6' },
+  { src: bgStarsGlow, class: 'layer layer--stars layer--stars-glow layer--stars-glow-zone layer--stars-zone-7' },
   { src: mountainFar, class: 'layer layer--mountain-far' },
   { src: mountainNear, class: 'layer layer--mountain-near' },
   { src: forestBack, class: 'layer layer--forest-back' },
@@ -141,10 +159,14 @@ const hoveringTherapist = ref(false)
 const hoveringClient = ref(false)
 const pointerX = ref(0)
 const pointerY = ref(0)
+const scrollProgress = ref(0)
+const sceneRef = ref<HTMLElement | null>(null)
+let scrollTicking = false
 
 const sceneStyle = computed(() => ({
   '--px': `${pointerX.value}px`,
   '--py': `${pointerY.value}px`,
+  '--sy': `${scrollProgress.value}`,
 }))
 
 const sceneStateClass = computed(() => ({
@@ -196,6 +218,35 @@ function onLogout() {
   auth.logout()
   router.push('/')
 }
+
+function updateScroll() {
+  const scene = sceneRef.value
+  if (!scene) return
+  const rect = scene.getBoundingClientRect()
+  const sceneTop = rect.top + window.scrollY
+  const sceneHeight = Math.max(rect.height, window.innerHeight)
+  const raw = (window.scrollY - sceneTop) / sceneHeight
+  const clamped = Math.max(-0.6, Math.min(0.6, raw))
+  scrollProgress.value = clamped
+}
+
+function onScroll() {
+  if (scrollTicking) return
+  scrollTicking = true
+  window.requestAnimationFrame(() => {
+    updateScroll()
+    scrollTicking = false
+  })
+}
+
+onMounted(() => {
+  updateScroll()
+  window.addEventListener('scroll', onScroll, { passive: true })
+})
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', onScroll)
+})
 </script>
 
 <style scoped>
@@ -226,37 +277,114 @@ function onLogout() {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 200ms ease, opacity 200ms ease;
+  transition: transform 260ms ease, opacity 240ms ease;
   pointer-events: none;
+  will-change: transform, opacity;
 }
 
 .layer--sky {
     z-index: 0;
-  transform: translate(calc(var(--px) * 4px), calc(var(--py) * 4px));
+  transform: translate3d(
+    calc(var(--px) * 4px),
+    calc(var(--py) * 4px + var(--sy) * 6px),
+    0
+  );
 }
 
 .layer--stars {
   z-index: 1;
 }
 
+.layer--stars-fine {
+  opacity: 0.55;
+  transform: translate3d(
+    calc(var(--px) * 5px),
+    calc(var(--py) * 5px + var(--sy) * 10px),
+    0
+  );
+  animation: starsTwinkle 9s ease-in-out infinite;
+}
+
+.layer--stars-glow {
+  opacity: 0;
+  transform: translate3d(
+    calc(var(--px) * 7px),
+    calc(var(--py) * 7px + var(--sy) * 12px),
+    0
+  );
+  mix-blend-mode: screen;
+  filter: drop-shadow(0 0 12px rgba(140, 200, 255, 0.5));
+  animation: starsPulse 7s ease-in-out infinite;
+}
+
+.scene-frame.is-lit .layer--stars-glow {
+  opacity: 0.35;
+}
+
+.layer--stars-glow-zone {
+  opacity: 0;
+  mix-blend-mode: screen;
+  filter: drop-shadow(0 0 18px rgba(160, 220, 255, 0.7));
+  animation: starsPulse 6.5s ease-in-out infinite;
+}
+
+.layer--stars-glow-zone {
+  mask-image: radial-gradient(
+    circle var(--mask-size) at var(--mask-x) var(--mask-y),
+    #fff 0%,
+    rgba(255, 255, 255, 0.85) 35%,
+    rgba(255, 255, 255, 0.35) 55%,
+    transparent 75%
+  );
+  -webkit-mask-image: radial-gradient(
+    circle var(--mask-size) at var(--mask-x) var(--mask-y),
+    #fff 0%,
+    rgba(255, 255, 255, 0.85) 35%,
+    rgba(255, 255, 255, 0.35) 55%,
+    transparent 75%
+  );
+}
+
+.scene-frame.is-lit .layer--stars-glow-zone,
+.scene-frame.is-therapist .layer--stars-glow-zone,
+.scene-frame.is-client .layer--stars-glow-zone {
+  opacity: 0.9;
+}
+
 .layer--mountain-far {
     z-index: 3;
-  transform: translate(calc(var(--px) * 6px), calc(var(--py) * 6px));
+  transform: translate3d(
+    calc(var(--px) * 6px),
+    calc(var(--py) * 6px + var(--sy) * 16px),
+    0
+  );
 }
 
 .layer--mountain-near {
     z-index: 4;
-  transform: translate(calc(var(--px) * 8px), calc(var(--py) * 8px));
+  transform: translate3d(
+    calc(var(--px) * 8px),
+    calc(var(--py) * 8px + var(--sy) * 24px),
+    0
+  );
 }
 
 .layer--forest-back {
     z-index: 5;
-  transform: translate(calc(var(--px) * 10px), calc(var(--py) * 10px));
+  transform: translate3d(
+    calc(var(--px) * 10px),
+    calc(var(--py) * 10px + var(--sy) * 30px),
+    0
+  );
 }
 
 .layer--ground {
     z-index: 6;
-  transform: translate(calc(var(--px) * 14px), calc(var(--py) * 14px));
+  transform: translate3d(
+    calc(var(--px) * 14px),
+    calc(var(--py) * 14px + var(--sy) * 40px),
+    0
+  );
 }
 
 .layer--tent,
@@ -266,7 +394,11 @@ function onLogout() {
 .layer--trees-near,
 .layer--forest-front {
   z-index: 12;
-  transform: translate(calc(var(--px) * 16px), calc(var(--py) * 16px));
+  transform: translate3d(
+    calc(var(--px) * 16px),
+    calc(var(--py) * 16px + var(--sy) * 48px),
+    0
+  );
 }
 
 
@@ -376,6 +508,13 @@ function onLogout() {
   background: rgba(255, 255, 255, 0.22);
 }
 
+.scene-frame.is-therapist .scene-cta .btn--ghost-cta:first-child,
+.scene-frame.is-client .scene-cta .btn--ghost-cta:last-child {
+  box-shadow: 0 0 18px rgba(130, 190, 255, 0.45);
+  border-color: rgba(180, 220, 255, 0.55);
+  color: rgba(241, 246, 249, 0.95);
+}
+
 .layer--bushes {
   z-index: 16;
 }
@@ -438,6 +577,119 @@ function onLogout() {
 .scene-label--client {
   left: calc(52% - 60px);
   bottom: calc(46% - 30px);
+}
+
+.scene-mask-debug {
+  position: absolute;
+  width: var(--mask-size, 38%);
+  height: var(--mask-size, 38%);
+  border: 2px dashed rgba(255, 60, 60, 0.9);
+  border-radius: 50%;
+  box-shadow: 0 0 12px rgba(255, 60, 60, 0.35);
+  pointer-events: none;
+  z-index: 26;
+  transform: translate(-50%, -50%);
+  opacity: 0.65;
+}
+
+.scene-mask-debug--zone-1,
+.scene-mask-debug--zone-2,
+.scene-mask-debug--zone-3,
+.scene-mask-debug--zone-4,
+.scene-mask-debug--zone-5,
+.scene-mask-debug--zone-6,
+.scene-mask-debug--zone-7 {
+  left: var(--mask-x);
+  top: var(--mask-y);
+}
+
+.layer--stars-zone-1,
+.scene-mask-debug--zone-1 {
+  --mask-x: 13%;
+  --mask-y: 45%;
+  --mask-size: 5.2%;
+}
+
+.layer--stars-zone-2,
+.scene-mask-debug--zone-2 {
+  --mask-x: 25%;
+  --mask-y: 25%;
+  --mask-size: 5.2%;
+}
+
+.layer--stars-zone-3,
+.scene-mask-debug--zone-3 {
+  --mask-x: 87%;
+  --mask-y: 28%;
+  --mask-size: 5.2%;
+}
+
+.layer--stars-zone-4,
+.scene-mask-debug--zone-4 {
+  --mask-x: 43%;
+  --mask-y: 14%;
+  --mask-size: 5.2%;
+}
+
+.layer--stars-zone-5,
+.scene-mask-debug--zone-5 {
+  --mask-x: 40%;
+  --mask-y: 30%;
+  --mask-size: 5.6%;
+}
+
+.layer--stars-zone-6,
+.scene-mask-debug--zone-6 {
+  --mask-x: 73%;
+  --mask-y: 10%;
+  --mask-size: 4.8%;
+}
+
+.layer--stars-zone-7,
+.scene-mask-debug--zone-7 {
+  --mask-x: 82%;
+  --mask-y: 15%;
+  --mask-size: 5%;
+}
+
+
+@keyframes starsTwinkle {
+  0% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 0.75;
+  }
+  100% {
+    opacity: 0.55;
+  }
+}
+
+@keyframes starsPulse {
+  0% {
+    opacity: 0.15;
+    transform: translate3d(
+      calc(var(--px) * 7px),
+      calc(var(--py) * 7px + var(--sy) * 12px),
+      0
+    );
+  }
+  50% {
+    opacity: 0.85;
+    transform: translate3d(
+      calc(var(--px) * 8px),
+      calc(var(--py) * 8px + var(--sy) * 14px),
+      0
+    );
+  }
+  100% {
+    opacity: 0.2;
+    transform: translate3d(
+      calc(var(--px) * 7px),
+      calc(var(--py) * 7px + var(--sy) * 12px),
+      0
+    );
+  }
 }
 
 @media (max-width: 980px) {
