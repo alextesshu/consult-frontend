@@ -97,7 +97,7 @@
                 :disabled="isNoteLoading(session.id)"
                 @click="toggleNote(session.id)"
               >
-                Нотатка
+                Приватна історія клієнта
               </button>
             </div>
           </div>
@@ -136,13 +136,15 @@
           </div>
           <div v-if="noteSessionId === session.id" class="note-panel">
             <label class="field">
-              Нотатка
+              <span class="note-title">Приватна історія клієнта</span>
+              <span class="note-badge">Зашифровано</span>
               <textarea
                 v-model="noteDraft"
                 class="input note-textarea"
                 rows="5"
-                placeholder="Запишіть нотатки до сесії..."
+                placeholder="Зашифрована історія сесій з цим клієнтом. Видима лише вам."
               ></textarea>
+              <div class="note-helper muted">Інформація зашифрована. Доступ має лише терапевт.</div>
             </label>
             <div class="note-actions">
               <button
@@ -254,19 +256,21 @@
               type="button"
               :disabled="isNoteLoading(session.id)"
               @click="toggleNote(session.id)"
-            >
-              Нотатка
+              >
+                Приватна історія клієнта
             </button>
           </div>
           <div v-if="noteSessionId === session.id" class="note-panel">
             <label class="field">
-              Нотатка
+              <span class="note-title">Приватна історія клієнта</span>
+              <span class="note-badge">Зашифровано</span>
               <textarea
                 v-model="noteDraft"
                 class="input note-textarea"
                 rows="5"
-                placeholder="Запишіть нотатки до сесії..."
+                placeholder="Зашифрована історія сесій з цим клієнтом. Видима лише вам."
               ></textarea>
+              <div class="note-helper muted">Інформація зашифрована. Доступ має лише терапевт.</div>
             </label>
             <div class="note-actions">
               <button
@@ -912,6 +916,29 @@ onBeforeUnmount(() => {
 .note-textarea {
   min-height: 120px;
   resize: vertical;
+}
+
+.note-title {
+  display: inline-block;
+  margin-right: 8px;
+}
+
+.note-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(47, 63, 73, 0.08);
+  border: 1px solid rgba(47, 63, 73, 0.16);
+  color: #3b4a52;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.note-helper {
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.4;
 }
 
 .note-actions {

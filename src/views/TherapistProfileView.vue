@@ -110,9 +110,9 @@
           <label class="field">
             Спеціалізації
             <div class="chip-field">
-              <div class="chip" v-for="spec in specializationList" :key="spec">
+              <div class="chip" v-for="(spec, index) in specializationList" :key="`${spec}-${index}`">
                 <span>{{ spec }}</span>
-                <button type="button" class="chip-remove" @click="removeSpecialization(spec)">×</button>
+                <button type="button" class="chip-remove" @click.stop.prevent="removeSpecialization(index)">×</button>
               </div>
               <input
                 v-model="specializationInput"
@@ -477,7 +477,7 @@
                   v-if="specializationList.length || languageList.length || (profile.show_location && profile.location)"
                   class="preview-tags"
                 >
-                  <span v-for="spec in specializationList" :key="spec" class="preview-tag">
+                  <span v-for="(spec, index) in specializationList" :key="`${spec}-${index}`" class="preview-tag">
                     {{ spec }}
                   </span>
                     <span v-for="language in languageList" :key="language" class="preview-tag preview-tag--ghost">
@@ -1120,8 +1120,9 @@ function addOtherSpecialization() {
   showOtherSpecialization.value = false
 }
 
-function removeSpecialization(spec: string) {
-  specializationList.value = specializationList.value.filter((item) => item !== spec)
+function removeSpecialization(index: number) {
+  if (index < 0 || index >= specializationList.value.length) return
+  specializationList.value.splice(index, 1)
 }
 
 function onSpecializationKeydown(event: KeyboardEvent) {

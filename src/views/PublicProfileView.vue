@@ -8,7 +8,12 @@
           {{ profile ? 'Публічна картка з описом і доступними слотами.' : 'Завантаження профілю…' }}
         </p>
       </div>
-      <RouterLink class="btn btn--ghost" to="/">На головну</RouterLink>
+      <div class="public__actions">
+        <RouterLink v-if="canManageProfile" class="btn btn--ghost" to="/cabinet/profile">
+          Керувати профілем
+        </RouterLink>
+        <RouterLink class="btn btn--ghost" to="/">На головну</RouterLink>
+      </div>
     </header>
 
     <div v-if="loading" class="muted">Завантаження...</div>
@@ -180,6 +185,7 @@ const slug = computed(() => String(route.params.slug || '').trim())
 const roles = computed(() => auth.me?.user.roles ?? auth.user?.roles ?? [])
 const isAuthenticated = computed(() => Boolean(auth.accessToken))
 const isClient = computed(() => roles.value.includes('CLIENT'))
+const canManageProfile = computed(() => roles.value.includes('THERAPIST'))
 const canBook = computed(() => isAuthenticated.value && isClient.value)
 
 const languagesDisplay = computed(() => {
@@ -441,6 +447,14 @@ onMounted(async () => {
 
 .public__subtitle {
   max-width: 520px;
+}
+
+.public__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 .public__grid {

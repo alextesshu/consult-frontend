@@ -51,6 +51,14 @@
           </div>
           <div class="client-actions">
             <button
+              class="btn btn--ghost btn--sm"
+              type="button"
+              :disabled="isHistoryLoading(client.client)"
+              @click="toggleHistory(client.client)"
+            >
+              Приватна історія клієнта
+            </button>
+            <button
               v-if="client.state !== 'ARCHIVED'"
               class="btn btn--ghost btn--sm"
               type="button"
@@ -68,6 +76,30 @@
             >
               Відновити
             </button>
+          </div>
+          <div v-if="expandedClientId === client.client" class="client-history">
+            <div class="history-header">
+              <div>
+                <div class="history-title">Приватна історія клієнта</div>
+                <div class="muted history-subtitle">Інформація зашифрована. Доступ має лише терапевт.</div>
+              </div>
+              <span class="history-badge">Зашифровано</span>
+            </div>
+            <div v-if="isHistoryLoading(client.client)" class="muted">Завантаження історії...</div>
+            <div v-else-if="!clientHistory[client.client]?.length" class="muted">
+              Нотаток по цьому клієнту ще немає.
+            </div>
+            <div v-else class="history-list">
+              <div v-for="item in clientHistory[client.client]" :key="item.sessionId" class="history-item">
+                <div class="history-meta">
+                  <div class="history-date">{{ formatDateTime(item.slotStart) }}</div>
+                  <div class="muted">{{ formatDuration(item.slotStart, item.slotEnd) }}</div>
+                  <div class="history-status">{{ item.status }}</div>
+                </div>
+                <div class="history-note" v-if="item.note">{{ item.note }}</div>
+                <div class="muted" v-else>??????? ?? ?????.</div>
+              </div>
+            </div>
           </div>
         </article>
       </div>
@@ -89,11 +121,32 @@ type ClientState = {
   client_username?: string
 }
 
+
+type SessionItem = {
+  id: number
+  client: number
+  status: string
+  slot_start_at: string
+  slot_end_at: string
+}
+
+type HistoryItem = {
+  sessionId: number
+  slotStart: string
+  slotEnd: string
+  status: string
+  note: string
+}
+
 const clients = ref<ClientState[]>([])
 const loading = ref(false)
 const error = ref('')
 const filter = ref<'ALL' | 'ACTIVE' | 'INACTIVE' | 'ARCHIVED'>('ALL')
 const actionLoading = ref<Set<number>>(new Set())
+const expandedClientId = ref<number | null>(null)
+const historyLoading = ref<Set<number>>(new Set())
+const clientHistory = ref<Record<number, HistoryItem[]>>({})
+const sessionsCache = ref<SessionItem[] | null>(null)
 
 const filteredClients = computed(() => {
   if (filter.value === 'ALL') return clients.value
@@ -101,6 +154,7 @@ const filteredClients = computed(() => {
 })
 
 const isActionLoading = (id: number) => actionLoading.value.has(id)
+const isHistoryLoading = (id: number) => historyLoading.value.has(id)
 
 function setFilter(value: 'ALL' | 'ACTIVE' | 'INACTIVE' | 'ARCHIVED') {
   filter.value = value
@@ -128,6 +182,29 @@ function setActionLoading(id: number, value: boolean) {
     next.delete(id)
   }
   actionLoading.value = next
+
+function setHistoryLoading(id: number, value: boolean) {
+  const next = new Set(historyLoading.value)
+  if (value) {
+    next.add(id)
+  } else {
+    next.delete(id)
+  }
+  historyLoading.value = next
+}
+
+function formatDuration(start?: string | null, end?: string | null) {
+  if (!start || !end) return ''
+  const s = new Date(start)
+  const e = new Date(end)
+  if (Number.isNaN(s.getTime()) || Number.isNaN(e.getTime())) return ''
+  const minutes = Math.max(0, Math.round((e.getTime() - s.getTime()) / 60000))
+  if (minutes < 60) return `${minutes} ??`
+  const hours = Math.floor(minutes / 60)
+  const rest = minutes % 60
+  return rest ? `${hours} ??? ${rest} ??` : `${hours} ???`
+}
+
 }
 
 async function loadClients() {
@@ -166,6 +243,61 @@ async function restoreClient(id: number) {
     error.value = getApiErrorMessage(err, '\u041d\u0435 \u0432\u0434\u0430\u043b\u043e\u0441\u044f \u0432\u0456\u0434\u043d\u043e\u0432\u0438\u0442\u0438 \u043a\u043b\u0456\u0454\u043d\u0442\u0430')
   } finally {
     setActionLoading(id, false)
+  }
+}
+
+async function loadSessionsIfNeeded() {
+  if (sessionsCache.value) return sessionsCache.value
+  const resp = await http.get<SessionItem[]>('/booking/sessions/')
+  sessionsCache.value = resp.data || []
+  return sessionsCache.value
+}
+
+async function loadHistory(clientId: number) {
+  setHistoryLoading(clientId, true)
+  error.value = ''
+  try {
+    const sessions = await loadSessionsIfNeeded()
+    const items = sessions
+      .filter((item) => item.client == clientId)
+      .sort((a, b) => b.slot_start_at.localeCompare(a.slot_start_at))
+      .slice(0, 5)
+
+    const history: HistoryItem[] = []
+    for (const session of items) {
+      let note = ''
+      try {
+        const resp = await http.get(`/cabinet/sessions/${session.id}/note/`)
+        note = resp.data?.content || ''
+      } catch (err: any) {
+        if (err?.response?.status !== 404) {
+          throw err
+        }
+      }
+      history.push({
+        sessionId: session.id,
+        slotStart: session.slot_start_at,
+        slotEnd: session.slot_end_at,
+        status: session.status,
+        note,
+      })
+    }
+    clientHistory.value = { ...clientHistory.value, [clientId]: history }
+  } catch (err: any) {
+    error.value = getApiErrorMessage(err, '?? ??????? ??????????? ??????? ???????')
+  } finally {
+    setHistoryLoading(clientId, false)
+  }
+}
+
+async function toggleHistory(clientId: number) {
+  if (expandedClientId.value == clientId) {
+    expandedClientId.value = null
+    return
+  }
+  expandedClientId.value = clientId
+  if (!clientHistory.value[clientId]) {
+    await loadHistory(clientId)
   }
 }
 
@@ -264,6 +396,77 @@ onMounted(loadClients)
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+}
+.client-history {
+  border-top: 1px solid rgba(47, 63, 73, 0.12);
+  padding-top: 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.history-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.history-title {
+  font-weight: 600;
+}
+
+.history-subtitle {
+  font-size: 12px;
+}
+
+.history-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(47, 63, 73, 0.08);
+  border: 1px solid rgba(47, 63, 73, 0.16);
+  color: #3b4a52;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.history-list {
+  display: grid;
+  gap: 10px;
+}
+
+.history-item {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: #f7f8fa;
+  border: 1px solid rgba(47, 63, 73, 0.08);
+  display: grid;
+  gap: 6px;
+}
+
+.history-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-size: 12px;
+}
+
+.history-date {
+  font-weight: 600;
+}
+
+.history-status {
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 11px;
+  color: #5a6772;
+}
+
+.history-note {
+  white-space: pre-wrap;
+  line-height: 1.5;
 }
 
 .btn--sm {
