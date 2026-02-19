@@ -5,10 +5,13 @@
         <div class="badge">Профіль терапевта</div>
         <h1 class="title public__title">{{ publicName || 'Профіль терапевта' }}</h1>
         <p class="muted public__subtitle">
-          {{ profile ? 'Публічна картка з описом і доступними слотами.' : 'Завантаження профілю…' }}
+          {{ profile ? 'Публічна картка з описом і доступними віконцями.' : 'Завантаження профілю…' }}
         </p>
       </div>
       <div class="public__actions">
+        <RouterLink class="btn btn--ghost" to="/public/therapists">
+          Повернутись до списку
+        </RouterLink>
         <RouterLink v-if="canManageProfile" class="btn btn--ghost" to="/cabinet/profile">
           Керувати профілем
         </RouterLink>
@@ -65,7 +68,7 @@
       <div class="panel panel--slots">
         <div class="panel__header">
           <div>
-            <div class="badge badge--soft">Доступні слоти</div>
+            <div class="badge badge--soft">Доступні віконця</div>
             <h2 class="panel__title">Найближчі дати</h2>
           </div>
         </div>
@@ -83,7 +86,7 @@
             @focus="openDatePicker"
           />
           <div class="muted slot-filter__hint">
-            Оберіть дату, щоб переглянути доступні слоти.
+            Оберіть дату, щоб переглянути доступні віконця.
           </div>
         </div>
 
@@ -96,9 +99,9 @@
         <div v-if="bookingSuccess" class="success">{{ bookingSuccess }}</div>
         <div v-if="bookingError" class="form-error">{{ bookingError }}</div>
 
-        <div v-if="slotsLoading" class="muted">Завантаження слотів…</div>
+        <div v-if="slotsLoading" class="muted">Завантаження віконець…</div>
         <div v-else-if="slotsError" class="form-error">{{ slotsError }}</div>
-        <div v-else-if="slots.length === 0" class="muted">Наразі вільних слотів немає.</div>
+        <div v-else-if="slots.length === 0" class="muted">Наразі вільних віконець немає.</div>
           <div v-else class="slot-list">
           <div v-for="slot in slots" :key="slot.id" class="slot-card">
             <div>
@@ -311,7 +314,7 @@ async function loadSlots() {
     slots.value = (resp.data || []).slice(0, 6)
   } catch {
     slots.value = []
-    slotsError.value = 'Не вдалося завантажити слоти.'
+    slotsError.value = 'Не вдалося завантажити віконця.'
   } finally {
     slotsLoading.value = false
   }
@@ -370,7 +373,7 @@ async function bookSlot(slotId: number) {
       localStorage.setItem('selectedTherapists', JSON.stringify(filtered))
     }
   } catch (err: any) {
-    bookingError.value = err?.response?.data?.detail || 'Не вдалося забронювати слот.'
+    bookingError.value = err?.response?.data?.detail || 'Не вдалося забронювати віконце.'
     toast.error(bookingError.value)
   } finally {
     bookingSlotId.value = null

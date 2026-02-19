@@ -59,9 +59,9 @@
             </RouterLink>
           </template>
           <template v-else>
-            <RouterLink class="btn btn--ghost btn--ghost-cta" :to="cabinetRoute">
-              Кабінет
-            </RouterLink>
+          <button class="btn btn--ghost btn--ghost-cta" type="button" @click="goToCabinet">
+            Кабінет
+          </button>
             <button class="btn btn--ghost btn--ghost-cta" type="button" @click="onLogout">
               Вийти
             </button>
@@ -80,7 +80,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { useRouter } from 'vue-router'
 import bgSky from '../assets/parallax/01_bg_sky.png'
@@ -108,12 +108,29 @@ import forestNear from '../assets/parallax/97_forest_near.png'
 const router = useRouter()
 const auth = useAuthStore()
 const isAuthenticated = computed(() => Boolean(auth.accessToken))
-const roles = computed(() => auth.me?.user.roles ?? [])
-const cabinetRoute = computed(() => {
+const roles = computed(() => auth.me?.user.roles ?? auth.user?.roles ?? [])
+
+const resolveCabinetRoute = () => {
   if (roles.value.includes('THERAPIST')) return '/cabinet'
   if (roles.value.includes('CLIENT')) return '/client'
   return '/login'
-})
+}
+
+const goToCabinet = async () => {
+  if (!auth.accessToken) {
+    await router.push('/login')
+    return
+  }
+  if (!auth.me) {
+    try {
+      await auth.loadMe()
+    } catch {
+      await router.push('/login')
+      return
+    }
+  }
+  await router.push(resolveCabinetRoute())
+}
 
 const layers = [
   { src: bgSky, class: 'layer layer--sky' },
@@ -130,20 +147,20 @@ const layers = [
   { src: mountainNear, class: 'layer layer--mountain-near' },
   { src: forestBack, class: 'layer layer--forest-back' },
   { src: ground, class: 'layer layer--ground' },
-  { src: tentBase, class: 'layer layer--tent' },
-  { src: therapist, class: 'layer layer--figure' },
-  { src: client, class: 'layer layer--figure' },
+  { src: tentBase, class: 'layer layer--tent layer--tent-group' },
+  { src: therapist, class: 'layer layer--figure layer--tent-group' },
+  { src: client, class: 'layer layer--figure layer--tent-group' },
   { src: bushes, class: 'layer layer--bushes' },
   { src: treesNear, class: 'layer layer--trees-near' },
   { src: nightOverlay, class: 'layer layer--overlay layer--overlay-base' },
 
   { src: bgVignette, class: 'layer layer--vignette layer--lit' },
-  { src: tentInside, class: 'layer layer--glow layer--lit' },
-  { src: tentOuter, class: 'layer layer--glow layer--lit' },
-  { src: lanternBloom, class: 'layer layer--lantern layer--lit' },
-  { src: lanternOn, class: 'layer layer--lantern layer--lantern-on layer--lit' },
-  { src: therapistLight, class: 'layer layer--figure layer--figure-therapist layer--lit' },
-  { src: clientLight, class: 'layer layer--figure layer--figure-client layer--lit' },
+  { src: tentInside, class: 'layer layer--glow layer--lit layer--tent-group' },
+  { src: tentOuter, class: 'layer layer--glow layer--lit layer--tent-group' },
+  { src: lanternBloom, class: 'layer layer--lantern layer--lit layer--tent-group' },
+  { src: lanternOn, class: 'layer layer--lantern layer--lantern-on layer--lit layer--tent-group' },
+  { src: therapistLight, class: 'layer layer--figure layer--figure-therapist layer--lit layer--tent-group' },
+  { src: clientLight, class: 'layer layer--figure layer--figure-client layer--lit layer--tent-group' },
   { src: forestNear, class: 'layer layer--forest-front' },
 ]
 
@@ -154,12 +171,10 @@ const pointerX = ref(0)
 const pointerY = ref(0)
 const scrollProgress = ref(0)
 const sceneRef = ref<HTMLElement | null>(null)
-const homeRef = ref<HTMLElement | null>(null)
-let scrollTicking = false
 
 const sceneStyle = computed(() => ({
-  '--px': `${pointerX.value}px`,
-  '--py': `${pointerY.value}px`,
+  '--px': `${pointerX.value}`,
+  '--py': `${pointerY.value}`,
   '--sy': `${scrollProgress.value}`,
 }))
 
@@ -172,8 +187,8 @@ const sceneStateClass = computed(() => ({
 function onSceneMove(event: MouseEvent) {
   const target = event.currentTarget as HTMLElement
   const rect = target.getBoundingClientRect()
-  pointerX.value = (event.clientX - rect.left - rect.width / 2) / rect.width
-  pointerY.value = (event.clientY - rect.top - rect.height / 2) / rect.height
+  pointerX.value = (event.clientX - rect.left - rect.width / 2) / (rect.width / 2)
+  pointerY.value = (event.clientY - rect.top - rect.height / 2) / (rect.height / 2)
 }
 
 function onSceneLeave() {
@@ -213,35 +228,7 @@ function onLogout() {
   router.push('/')
 }
 
-function updateScroll() {
-  const home = homeRef.value
-  if (!home) return
-  const rect = home.getBoundingClientRect()
-  const top = rect.top + window.scrollY
-  const span = Math.max(1, rect.height - window.innerHeight)
-  const t = (window.scrollY - top) / span
-  const centered = t - 0.5
-  const clamped = Math.max(-0.6, Math.min(0.6, centered))
-  scrollProgress.value = clamped
-}
-
-function onScroll() {
-  if (scrollTicking) return
-  scrollTicking = true
-  window.requestAnimationFrame(() => {
-    updateScroll()
-    scrollTicking = false
-  })
-}
-
-onMounted(() => {
-  updateScroll()
-  window.addEventListener('scroll', onScroll, { passive: true })
-})
-
-onUnmounted(() => {
-  window.removeEventListener('scroll', onScroll)
-})
+scrollProgress.value = 0
 </script>
 
 <style scoped>
@@ -283,8 +270,8 @@ onUnmounted(() => {
 .layer--sky {
     z-index: 0;
   transform: translate3d(
-    calc(var(--px) * 4px),
-    calc(var(--py) * 4px + var(--sy) * 20px),
+    calc(var(--px) * 15px),
+    calc(var(--py) * 15px + var(--sy) * 20px),
     0
   );
 }
@@ -296,8 +283,8 @@ onUnmounted(() => {
 .layer--stars-fine {
   opacity: 0.55;
   transform: translate3d(
-    calc(var(--px) * 5px),
-    calc(var(--py) * 5px + var(--sy) * 30px),
+    calc(var(--px) * 20px),
+    calc(var(--py) * 20px + var(--sy) * 30px),
     0
   );
   animation: starsTwinkle 9s ease-in-out infinite;
@@ -306,8 +293,8 @@ onUnmounted(() => {
 .layer--stars-glow {
   opacity: 0;
   transform: translate3d(
-    calc(var(--px) * 7px),
-    calc(var(--py) * 7px + var(--sy) * 36px),
+    calc(var(--px) * 22.5px),
+    calc(var(--py) * 22.5px + var(--sy) * 36px),
     0
   );
   mix-blend-mode: screen;
@@ -352,8 +339,8 @@ onUnmounted(() => {
 .layer--mountain-far {
     z-index: 3;
   transform: translate3d(
-    calc(var(--px) * 6px),
-    calc(var(--py) * 6px + var(--sy) * 50px),
+    calc(var(--px) * 17.5px),
+    calc(var(--py) * 17.5px + var(--sy) * 50px),
     0
   );
 }
@@ -361,8 +348,8 @@ onUnmounted(() => {
 .layer--mountain-near {
     z-index: 4;
   transform: translate3d(
-    calc(var(--px) * 8px),
-    calc(var(--py) * 8px + var(--sy) * 70px),
+    calc(var(--px) * 15px),
+    calc(var(--py) * 15px + var(--sy) * 70px),
     0
   );
 }
@@ -370,8 +357,8 @@ onUnmounted(() => {
 .layer--forest-back {
     z-index: 5;
   transform: translate3d(
-    calc(var(--px) * 10px),
-    calc(var(--py) * 10px + var(--sy) * 90px),
+    calc(var(--px) * 11.25px),
+    calc(var(--py) * 11.25px + var(--sy) * 90px),
     0
   );
 }
@@ -379,22 +366,28 @@ onUnmounted(() => {
 .layer--ground {
     z-index: 6;
   transform: translate3d(
-    calc(var(--px) * 14px),
-    calc(var(--py) * 14px + var(--sy) * 120px),
+    calc(var(--px) * 4.5px),
+    calc(var(--py) * 4.5px + var(--sy) * 120px),
     0
   );
 }
 
-.layer--tent,
-.layer--lantern,
-.layer--figure,
 .layer--bushes,
 .layer--trees-near,
 .layer--forest-front {
   z-index: 12;
   transform: translate3d(
-    calc(var(--px) * 16px),
-    calc(var(--py) * 16px + var(--sy) * 160px),
+    calc(var(--px) * 3.5px),
+    calc(var(--py) * 3.5px + var(--sy) * 160px),
+    0
+  );
+}
+
+.layer--tent-group {
+  z-index: 12;
+  transform: translate3d(
+    calc(var(--px) * 3px),
+    calc(var(--py) * 3px + var(--sy) * 160px),
     0
   );
 }

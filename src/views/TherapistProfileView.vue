@@ -120,6 +120,7 @@
                 type="text"
                 list="specializationOptions"
                 placeholder="введіть спеціалізацію"
+                @input="onSpecializationInput"
                 @keydown.enter.prevent="addSpecialization()"
                 @keydown="onSpecializationKeydown"
               />
@@ -162,6 +163,7 @@
                 type="text"
                 list="languageOptions"
                 placeholder="введіть мову"
+                @input="onLanguageInput"
                 @keydown.enter.prevent="addLanguage()"
                 @keydown="onLanguageKeydown"
               />
@@ -1095,6 +1097,14 @@ function onLanguageKeydown(event: KeyboardEvent) {
   }
 }
 
+function onLanguageInput() {
+  const value = languageInput.value.trim()
+  if (!value) return
+  if (languageOptions.includes(value)) {
+    addLanguage()
+  }
+}
+
 function addSpecialization() {
   const value = specializationInput.value.trim()
   if (!value) return
@@ -1128,6 +1138,18 @@ function removeSpecialization(index: number) {
 function onSpecializationKeydown(event: KeyboardEvent) {
   if (event.key === ',') {
     event.preventDefault()
+    addSpecialization()
+  }
+}
+
+function onSpecializationInput() {
+  const value = specializationInput.value.trim()
+  if (!value) return
+  if (value.toLowerCase() === 'інше') {
+    addSpecialization()
+    return
+  }
+  if (specializationOptions.includes(value)) {
     addSpecialization()
   }
 }

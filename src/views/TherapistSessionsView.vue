@@ -24,8 +24,8 @@
       <EmptyState
         v-if="!loading && upcoming.length === 0"
         title="Немає запланованих сесій"
-        description="Створіть слоти або поділіться профілем, щоб клієнти могли записатися."
-        action-text="Створити слот"
+        description="Створіть вільні віконця або поділіться профілем, щоб клієнти могли записатися."
+        action-text="Створити віконце"
         action-to="/cabinet/slots"
         secondary-text="Керування профілем"
         secondary-to="/cabinet/profile"
@@ -112,9 +112,9 @@
           </div>
           <div v-if="rescheduleSessionId === session.id" class="reschedule-panel">
             <label class="field">
-              Новий слот
+              Нове вільне віконце
               <select v-model.number="rescheduleSlotId" class="input input--select">
-                <option value="">Оберіть слот</option>
+                <option value="">Оберіть вільне віконце</option>
                 <option v-for="slot in availableSlots" :key="slot.id" :value="slot.id">
                   {{ formatDateTime(slot.start_at) }} ? {{ formatDuration(slot.start_at, slot.end_at) }}
                 </option>
@@ -185,7 +185,7 @@
             </div>
             <div v-if="req.client_email" class="muted">Пошта: {{ req.client_email }}</div>
             <div class="muted">
-              Запитаний слот:
+              Запитане вільне віконце:
               <span v-if="req.requested_slot_start_at && req.requested_slot_end_at">
                 {{ formatDateTime(req.requested_slot_start_at) }}
                 · {{ formatDuration(req.requested_slot_start_at, req.requested_slot_end_at) }}

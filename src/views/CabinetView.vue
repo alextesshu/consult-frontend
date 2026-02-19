@@ -26,7 +26,7 @@
             <span class="muted">Щоб клієнти бачили вас у каталозі.</span>
           </li>
           <li>
-            <RouterLink class="tips-link" to="/cabinet/slots">Створіть слоти на тиждень</RouterLink>
+            <RouterLink class="tips-link" to="/cabinet/slots">Створіть вільні віконця на тиждень</RouterLink>
             <span class="muted">Так клієнти зможуть забронювати сесію.</span>
           </li>
           <li>
@@ -47,7 +47,7 @@
         </div>
         <div class="cabinet-actions">
           <RouterLink class="btn btn--ghost" to="/cabinet/slots">
-            Слоти
+            Віконця
           </RouterLink>
           <RouterLink class="btn btn--ghost" to="/cabinet/sessions">
             Сесії

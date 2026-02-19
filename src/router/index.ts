@@ -138,6 +138,17 @@ router.beforeEach(async (to) => {
     }
   }
 
+  if (to.name === 'login' && auth.accessToken) {
+    if (!auth.me) {
+      try {
+        await auth.loadMe()
+      } catch {
+        return
+      }
+    }
+    return defaultRoute()
+  }
+
   if (to.name === 'public-redirect') {
     if (!auth.accessToken) {
       return { name: 'login' }

@@ -2,7 +2,7 @@
   <section class="slots">
     <header class="slots__hero">
       <div>
-        <div class="badge">Слоти терапевта</div>
+        <div class="badge">Вільні віконця терапевта</div>
         <h1 class="title slots__title">Керуйте доступністю</h1>
         <p class="muted slots__subtitle">
           Створюйте часові вікна для сесій, заповнюйте день або тиждень одним кліком.
@@ -13,9 +13,9 @@
 
     <section class="panel panel--split">
       <div>
-        <h2 class="panel__title">Новий слот</h2>
+        <h2 class="panel__title">Нове вільне віконце</h2>
         <p class="muted" style="margin: 6px 0 0;">
-          Слот — це вільне вікно для запису клієнта. Вкажіть початок і кінець, і слот з’явиться у публічному профілі.
+          Вільне віконце — це вільний час для запису клієнта. Вкажіть початок і кінець, і віконце з’явиться у публічному профілі.
         </p>
       </div>
       <form class="slot-form" @submit.prevent="createSlot">
@@ -66,7 +66,7 @@
           </div>
         </label>
         <button class="btn" type="submit" :disabled="loading">
-          Створити слот
+          Створити віконце
         </button>
       </form>
     </section>
@@ -92,7 +92,10 @@
           >
             Заповнити день
           </button>
-          <div class="bulk-hint">Формат: {{ formatDateOnly(fillDayDate) }}</div>
+          <div class="bulk-hint">
+            Формат: {{ formatDateOnly(fillDayDate) }}
+            <span v-if="isFillDayToday" class="bulk-hint__today">· Сьогодні</span>
+          </div>
         </div>
         <div class="bulk-group">
           <label class="field">
@@ -107,7 +110,10 @@
           >
             Заповнити тиждень (Пн–Пт)
           </button>
-          <div class="bulk-hint">Формат: {{ formatDateOnly(fillWeekDate) }}</div>
+          <div class="bulk-hint">
+            Формат: {{ formatDateOnly(fillWeekDate) }}
+            <span v-if="isFillWeekToday" class="bulk-hint__today">· Сьогодні</span>
+          </div>
         </div>
       </div>
     </section>
@@ -144,14 +150,17 @@
         <input v-model="selectedDate" class="input" type="date" lang="uk-ua" @click="openPicker" />
         <span class="field-hint">Формат: {{ formatDateOnly(selectedDate) }}</span>
       </label>
-      <div class="muted day-hint">Показано слоти за: {{ formatDateOnly(selectedDate) }}</div>
+      <div class="muted day-hint">
+        Показано вільні віконця за: {{ formatDateOnly(selectedDate) }}
+        <span v-if="isSelectedToday" class="day-hint__today">· Сьогодні</span>
+      </div>
     </section>
 
     <div v-if="error" class="form-error">{{ error }}</div>
     <div v-if="loading" class="muted" style="margin-top: 12px;">Завантаження...</div>
 
     <section class="slot-list">
-      <div v-if="filteredSlots.length === 0" class="muted">Слотів на цей день немає.</div>
+      <div v-if="filteredSlots.length === 0" class="muted">Вільних віконець на цей день немає.</div>
       <article v-for="slot in filteredSlots" :key="slot.id" class="slot-card">
         <div class="slot-row">
           <div class="slot-meta">
@@ -255,7 +264,7 @@
           {{ editErrors[slot.id] }}
         </div>
         <div v-if="slot.is_booked" class="muted slot-hint">
-          Слот вже заброньовано — редагування та видалення недоступні.
+          Віконце вже заброньовано — редагування та видалення недоступні.
         </div>
       </article>
     </section>
@@ -266,6 +275,7 @@
 import { computed, nextTick, onMounted, ref } from 'vue'
 import { http } from '../lib/http'
 import { getApiErrorMessage } from '../lib/errors'
+import { useToast } from '../composables/useToast'
 
 type Slot = {
   id: number
@@ -279,15 +289,17 @@ const loading = ref(false)
 const error = ref('')
 const editErrors = ref<Record<number, string>>({})
 const editErrorRefs = ref<Record<number, HTMLElement | null>>({})
+const toast = useToast()
 
 const newStartDate = ref('')
 const newStartTime = ref('')
 const newEndDate = ref('')
 const newEndTime = ref('')
-const fillDayDate = ref(toDateInputValue(new Date()))
-const fillWeekDate = ref(toDateInputValue(new Date()))
+const todayKey = toDateInputValue(new Date())
+const fillDayDate = ref(todayKey)
+const fillWeekDate = ref(todayKey)
 const dayOffset = ref(0)
-const selectedDate = ref(toDateInputValue(new Date()))
+const selectedDate = ref(todayKey)
 
 const editingId = ref<number | null>(null)
 const editStartDate = ref('')
@@ -409,13 +421,13 @@ function normalizeError(err: any) {
 function translateError(message: string) {
   if (!message) return ''
   if (message.includes('overlaps')) {
-    return 'Слот перетинається з уже існуючим.'
+    return 'Віконце перетинається з уже існуючим.'
   }
   if (message.includes('end_at must be greater than start_at')) {
     return 'Кінець має бути пізніше за початок.'
   }
   if (message.includes('Slot not found')) {
-    return 'Слот не знайдено.'
+    return 'Віконце не знайдено.'
   }
   return message
 }
@@ -451,6 +463,10 @@ const filteredSlots = computed(() => {
     (slot) => toLocalDateKey(slot.start_at) === selectedDate.value
   )
 })
+
+const isSelectedToday = computed(() => selectedDate.value === todayKey)
+const isFillDayToday = computed(() => fillDayDate.value === todayKey)
+const isFillWeekToday = computed(() => fillWeekDate.value === todayKey)
 
 function selectDay(key: string) {
   selectedDate.value = key
@@ -499,7 +515,7 @@ async function createSlot() {
     newEndTime.value = ''
   } catch (err: any) {
     const raw = normalizeError(err)
-    error.value = translateError(raw) || 'Не вдалося створити слот'
+    error.value = translateError(raw) || 'Не вдалося створити віконце'
   } finally {
     loading.value = false
   }
@@ -513,8 +529,9 @@ async function fillDay() {
       date: fillDayDate.value,
     })
     await loadSlots()
+    toast.success(`День ${formatDateOnly(fillDayDate.value)} заповнено.`)
   } catch (err: any) {
-    error.value = err?.response?.data?.detail || 'Не вдалося заповнити день слотами'
+    error.value = err?.response?.data?.detail || 'Не вдалося заповнити день віконцями'
   } finally {
     loading.value = false
   }
@@ -528,8 +545,9 @@ async function fillWeek() {
       date: fillWeekDate.value,
     })
     await loadSlots()
+    toast.success(`Тиждень від ${formatDateOnly(fillWeekDate.value)} заповнено.`)
   } catch (err: any) {
-    error.value = err?.response?.data?.detail || 'Не вдалося заповнити тиждень слотами'
+    error.value = err?.response?.data?.detail || 'Не вдалося заповнити тиждень віконцями'
   } finally {
     loading.value = false
   }
@@ -592,7 +610,7 @@ async function saveEdit(slotId: number) {
     cancelEdit()
   } catch (err: any) {
     const raw = normalizeError(err)
-    editErrors.value[slotId] = translateError(raw) || 'Не вдалося оновити слот'
+    editErrors.value[slotId] = translateError(raw) || 'Не вдалося оновити віконце'
     await nextTick()
     const errorEl = editErrorRefs.value[slotId]
     if (errorEl) {
@@ -617,7 +635,7 @@ async function deleteSlot(slotId: number) {
     await http.delete(`/cabinet/slots/${slotId}/`)
     slots.value = slots.value.filter((slot) => slot.id !== slotId)
   } catch (err: any) {
-    error.value = err?.response?.data?.detail || 'Не вдалося видалити слот'
+    error.value = err?.response?.data?.detail || 'Не вдалося видалити віконце'
   } finally {
     loading.value = false
   }
@@ -767,6 +785,12 @@ onMounted(loadSlots)
   font-size: 12px;
 }
 
+.day-hint__today {
+  color: #0b4a7d;
+  font-weight: 600;
+  margin-left: 6px;
+}
+
 .btn--active {
   border-color: #0b4a7d;
   color: #0b4a7d;
@@ -810,6 +834,12 @@ onMounted(loadSlots)
   grid-row: 2;
   font-size: 12px;
   color: var(--muted);
+}
+
+.bulk-hint__today {
+  color: #0b4a7d;
+  font-weight: 600;
+  margin-left: 6px;
 }
 
 .slot-card {
