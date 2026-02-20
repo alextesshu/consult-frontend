@@ -1,37 +1,37 @@
-<template>
+﻿<template>
   <section class="home">
     <div class="container">
       <div class="hero">
         <div class="hero__content">
           <div class="eyebrow">Pro Consult</div>
-          <h1 class="hero__title">Pro Consult ? ??????? ??? ??????? ????????????</h1>
+          <h1 class="hero__title">Pro Consult — Простір для ведення консультацій</h1>
           <p class="hero__subtitle">
-            ???????, ???????, ???????, ?????? ?? ????????? ??????? ? ??? ? ?????? ???????? ??????????.
-            ????????? ??????? ? ??????? ???????? ?? ????????.
+            Розклад, клієнти, нотатки, запити та керування сесіями — все в одному робочому просторі.
+            Публічний профіль і каталог доступні за бажанням.
           </p>
           <div class="hero__actions">
             <RouterLink v-if="!isAuthenticated" class="btn btn--primary" to="/signup">
-              ???????? ??????? ???????????
+              Створити кабінет спеціаліста
             </RouterLink>
             <RouterLink v-if="!isAuthenticated" class="btn btn--ghost" to="/login">
-              ??????
+              Увійти
             </RouterLink>
             <button v-if="isAuthenticated" class="btn btn--primary" type="button" @click="goToCabinet">
-              ??????? ? ???????
+              Перейти в кабінет
             </button>
             <button v-if="isAuthenticated" class="btn btn--ghost" type="button" @click="onLogout">
-              ?????
+              Вийти
             </button>
           </div>
           <div class="hero__catalog">
-            <RouterLink class="link" to="/specialists">?????? ???????????</RouterLink>
+            <RouterLink class="link" to="/specialists">Шукаєте спеціаліста? → Перейти до каталогу</RouterLink>
             <div class="hint">
-              ??????? ? ????????. ?????????? ??????????? ?????? ???? ??????? ???????????.
+              Каталог — за бажанням. Спеціаліст зʼявляється там лише якщо зробить профіль публічним.
             </div>
           </div>
         </div>
         <div class="hero__panel card">
-          <div class="panel__title">???? ?? ???????????</div>
+          <div class="panel__title">Який ви спеціаліст?</div>
           <div class="chip-row">
             <button
               v-for="(item, index) in roleCards"
@@ -50,8 +50,8 @@
         </div>
       </div>
 
-      <div class="benefits">
-        <h2 class="section-title">??????? ??????????</h2>
+      <div id="features" class="benefits">
+        <h2 class="section-title">Ключові можливості</h2>
         <div class="benefits__grid">
           <div v-for="item in benefits" :key="item" class="card benefit-card">
             {{ item }}
@@ -59,15 +59,41 @@
         </div>
       </div>
 
+      <div class="how">
+        <h2 class="section-title">Як це працює</h2>
+        <div class="how__grid">
+          <div class="card how-card">
+            <div class="how-card__step">1</div>
+            <div class="how-card__title">Створіть кабінет спеціаліста</div>
+            <p class="how-card__text">Додайте базову інформацію та налаштуйте робочий простір.</p>
+          </div>
+          <div class="card how-card">
+            <div class="how-card__step">2</div>
+            <div class="how-card__title">Організуйте консультації</div>
+            <p class="how-card__text">Розклад, слоти, клієнти та нотатки — в одному місці.</p>
+          </div>
+          <div class="card how-card">
+            <div class="how-card__step">3</div>
+            <div class="how-card__title">Каталог — за бажанням</div>
+            <p class="how-card__text">
+              Зробіть профіль публічним, якщо хочете, щоб вас могли знаходити. Це опційно.
+            </p>
+            <p class="how-card__note">
+              Ми не беремо комісію та не ранжуємо спеціалістів алгоритмами.
+            </p>
+          </div>
+        </div>
+      </div>
+
       <div class="catalog card">
         <div>
-          <h2 class="section-title">??????? ? ?? ????????</h2>
+          <h2 class="section-title">Каталог — за бажанням</h2>
           <p class="muted">
-            Pro Consult ?? ? ?????????????. ?? ??????? ????????? ???????, ? ?????????? ?? ????? ?????
-            ???????? ??????? ? ?????????.
+            Pro Consult — робочий простір для спеціаліста, а каталог доступний лише за бажанням.
+            Ви керуєте видимістю профілю, а посиланням можна ділитися напряму з клієнтами.
           </p>
         </div>
-        <RouterLink class="btn btn--ghost" to="/specialists">??????? ?? ????????</RouterLink>
+        <RouterLink class="btn btn--ghost" to="/specialists">Перейти до каталогу</RouterLink>
       </div>
     </div>
   </section>
@@ -112,32 +138,32 @@ function onLogout() {
 
 const roleCards = [
   {
-    title: '???????? ????????',
-    description: '?????????? ??????? ???????, ?????? ???????? ? ??????? ??????? ? ???????? ?????.',
+    title: 'Приватна практика',
+    description: 'Налаштуйте власний розклад, ведіть клієнтів і керуйте сесіями у зручному темпі.',
   },
   {
-    title: '???? / ?????????',
-    description: '??????????? ????????, ??????? ?? ??????? ?????? ? ??? ??? ?????.',
+    title: 'Коуч / наставник',
+    description: 'Заплановані зустрічі, нотатки та історія роботи — все під рукою.',
   },
   {
-    title: '????????',
-    description: '???????? ????????????, ?????? ?????? ?? ????????? ?????????? ???? ???????? ?????.',
+    title: 'Викладач',
+    description: 'Плануйте консультації, ведіть записи та залишайте відкритими лише потрібні слоти.',
   },
   {
-    title: '???????????',
-    description: '???????????? ??????, ???????? ???????????? ?? ??????????? ??????? ????????.',
+    title: 'Консультант',
+    description: 'Структуруйте запити, плануйте навантаження та відстежуйте прогрес клієнтів.',
   },
 ]
 
 const activeRoleIndex = ref(0)
 
 const benefits = [
-  '??????? ? ?????',
-  '?????????? ???? (CRM)',
-  '??????????? ????? ?? ??????',
-  '????????? ??????? (???????)',
-  '??? ? ????????????',
-  '??????? ?? ?????',
+  'Розклад і слоти',
+  'Клієнтська база (CRM)',
+  'Заплановані сесії та запити',
+  'Публічний профіль (опційно)',
+  'Чат і повідомлення',
+  'Доступи та плани',
 ]
 </script>
 
@@ -198,23 +224,25 @@ const benefits = [
 }
 
 .link {
-  color: var(--primary);
+  color: var(--primary-hover);
   font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .hint {
-  font-size: 12px;
   color: var(--muted);
+  font-size: 13px;
 }
 
 .hero__panel {
   display: grid;
-  gap: 14px;
-  padding: 18px 20px;
+  gap: 16px;
 }
 
 .panel__title {
-  font-weight: 600;
+  font-family: var(--font-display);
+  font-size: 18px;
 }
 
 .panel__text {
@@ -225,22 +253,22 @@ const benefits = [
 .chip-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 10px;
 }
 
 .chip {
+  border-radius: 999px;
   border: 1px solid var(--line);
   background: #fff;
-  border-radius: 999px;
-  padding: 6px 12px;
+  padding: 8px 14px;
   font-size: 13px;
-  cursor: pointer;
+  font-weight: 600;
+  color: var(--ink);
 }
 
 .chip--active {
-  border-color: rgba(31, 74, 96, 0.4);
-  background: rgba(31, 74, 96, 0.08);
-  font-weight: 600;
+  border-color: var(--accent-soft);
+  background: rgba(77, 122, 157, 0.12);
 }
 
 .benefits {
@@ -250,42 +278,82 @@ const benefits = [
 
 .section-title {
   margin: 0;
-  font-size: 20px;
+  font-size: 24px;
 }
 
 .benefits__grid {
   display: grid;
-  gap: 12px;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
 }
 
 .benefit-card {
-  padding: 14px 16px;
+  padding: 16px;
   font-weight: 600;
+}
+
+.how {
+  display: grid;
+  gap: 16px;
+}
+
+.how__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.how-card {
+  padding: 16px;
+  display: grid;
+  gap: 10px;
+}
+
+.how-card__step {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(77, 122, 157, 0.12);
+  color: var(--accent);
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+}
+
+.how-card__title {
+  font-weight: 700;
+}
+
+.how-card__text {
+  margin: 0;
+  color: var(--muted);
+}
+
+.how-card__note {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
 }
 
 .catalog {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  gap: 16px;
-  padding: 20px 24px;
+  justify-content: space-between;
+  gap: 20px;
 }
 
-@media (max-width: 920px) {
+.muted {
+  color: var(--muted);
+}
+
+@media (max-width: 980px) {
   .hero {
     grid-template-columns: 1fr;
   }
-}
 
-@media (max-width: 700px) {
   .catalog {
     flex-direction: column;
     align-items: flex-start;
-  }
-  .hero__actions {
-    flex-direction: column;
-    align-items: stretch;
   }
 }
 </style>

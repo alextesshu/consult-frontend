@@ -89,7 +89,7 @@ body {
 }
 
 body.body--home {
-  overflow: hidden;
+  overflow-y: auto;
 }
 
 a {
@@ -265,7 +265,8 @@ input[type="time"]:focus::-webkit-datetime-edit {
   color: var(--surface);
   font-weight: 600;
   cursor: pointer;
-  line-height: 1;
+  line-height: 1.2;
+  min-height: 40px;
   transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
 }
 

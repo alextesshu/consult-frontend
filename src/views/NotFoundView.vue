@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <section class="status-page">
     <div class="status-card">
       <div class="badge">404</div>

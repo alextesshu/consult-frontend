@@ -182,6 +182,7 @@ function setActionLoading(id: number, value: boolean) {
     next.delete(id)
   }
   actionLoading.value = next
+}
 
 function setHistoryLoading(id: number, value: boolean) {
   const next = new Set(historyLoading.value)
@@ -199,12 +200,10 @@ function formatDuration(start?: string | null, end?: string | null) {
   const e = new Date(end)
   if (Number.isNaN(s.getTime()) || Number.isNaN(e.getTime())) return ''
   const minutes = Math.max(0, Math.round((e.getTime() - s.getTime()) / 60000))
-  if (minutes < 60) return `${minutes} ??`
+  if (minutes < 60) return `${minutes} хв`
   const hours = Math.floor(minutes / 60)
   const rest = minutes % 60
-  return rest ? `${hours} ??? ${rest} ??` : `${hours} ???`
-}
-
+  return rest ? `${hours} год ${rest} хв` : `${hours} год`
 }
 
 async function loadClients() {

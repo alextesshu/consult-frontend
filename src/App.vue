@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <div :class="['shell', { 'shell--home': isHome }]">
     <header v-if="!isHome" :class="topbarClass">
       <RouterLink class="brand" to="/">
@@ -6,8 +6,10 @@
         <div class="brand__tagline">Простір для ведення консультацій</div>
       </RouterLink>
       <nav class="nav">
+        <RouterLink to="/#features">Функції</RouterLink>
+        <RouterLink to="/cabinet/billing">Тарифи</RouterLink>
+        <RouterLink to="/specialists">Каталог</RouterLink>
         <RouterLink v-if="isTherapist" to="/public">Публічний профіль</RouterLink>
-        <RouterLink v-if="!isTherapist" to="/specialists">Пошук спеціалістів</RouterLink>
         <RouterLink to="/faq">FAQ</RouterLink>
         <RouterLink v-if="isAuthenticated" :to="cabinetRoute">Кабінет</RouterLink>
         <RouterLink v-if="!isAuthenticated" to="/login">Вхід</RouterLink>

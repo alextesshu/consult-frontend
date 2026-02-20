@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <section class="auth">
     <div class="auth__card">
       <div class="badge">Вхід</div>
@@ -38,6 +38,10 @@
           Вперше тут?
           <RouterLink to="/signup">Створити акаунт спеціаліста</RouterLink>
         </p>
+        <p class="muted auth__helper">
+          Шукаєте спеціаліста?
+          <RouterLink to="/specialists">Перейти до каталогу</RouterLink>
+        </p>
       </form>
     </div>
 
@@ -53,8 +57,8 @@
       <div class="aside-card disclaimer">
         <div class="aside-title">Дисклеймер</div>
         <p class="aside-text">
-          Платформа є інструментом для організації роботи спеціаліста. Відповідальність
-          за послуги, рекомендації та результати несе сам спеціаліст.
+          Це сервіс для організації роботи спеціаліста. Відповідальність за послуги,
+          рекомендації та результати несе сам спеціаліст.
         </p>
       </div>
       <div class="aside-card aside-card--dark">
