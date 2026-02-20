@@ -15,8 +15,9 @@ http.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   const auth = useAuthStore()
   const url = config.url || ''
   const isAuthEndpoint = url.includes('/auth/')
-  if (!isAuthEndpoint && auth.accessToken) {
-    config.headers.Authorization = `Bearer ${auth.accessToken}`
+  const token = auth.accessToken || localStorage.getItem('accessToken') || ''
+  if (!isAuthEndpoint && token) {
+    config.headers.Authorization = `Bearer ${token}`
   }
   return config
 })

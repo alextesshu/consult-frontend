@@ -15,7 +15,7 @@
       <div>
         <h2 class="panel__title">Нове вільне віконце</h2>
         <p class="muted" style="margin: 6px 0 0;">
-          Вільне віконце — це вільний час для запису клієнта. Вкажіть початок і кінець, і віконце з’явиться у публічному профілі.
+          Вільне віконце — це вільний час для запису клієнта. Вкажіть початок і тривалість, і віконце з’явиться у публічному профілі.
         </p>
       </div>
       <form class="slot-form" @submit.prevent="createSlot">
@@ -25,11 +25,12 @@
             <input
               v-model="newStartDate"
               class="input"
-              type="text"
-              inputmode="numeric"
+              type="date"
+              lang="uk"
               placeholder="ДД.ММ.РРРР"
               aria-label="Дата початку"
               required
+              @click="openPicker"
             />
             <input
               v-model="newStartTime"
@@ -38,36 +39,31 @@
               inputmode="numeric"
               placeholder="ГГ:ХХ"
               aria-label="Час початку"
+              list="time-options"
               required
             />
           </div>
         </label>
         <label class="field">
-          Кінець
-          <div class="datetime-field">
-            <input
-              v-model="newEndDate"
-              class="input"
-              type="text"
-              inputmode="numeric"
-              placeholder="ДД.ММ.РРРР"
-              aria-label="Дата кінця"
-              required
-            />
-            <input
-              v-model="newEndTime"
-              class="input"
-              type="text"
-              inputmode="numeric"
-              placeholder="ГГ:ХХ"
-              aria-label="Час кінця"
-              required
-            />
-          </div>
+          Тривалість
+          <input
+            v-model.number="newDuration"
+            class="input"
+            type="number"
+            min="15"
+            step="5"
+            placeholder="хв"
+            aria-label="Тривалість у хвилинах"
+            required
+          />
         </label>
-        <button class="btn" type="submit" :disabled="loading">
+                <datalist id="time-options">
+          <option v-for="option in timeOptions" :key="option" :value="option" />
+        </datalist>
+        <button class="btn" type="button" @click="createSlot">
           Створити віконце
         </button>
+        <div v-if="error" class="form-error form-error--inline">{{ error }}</div>
       </form>
     </section>
 
@@ -126,10 +122,10 @@
         </div>
         <div class="day-nav-actions">
           <button class="btn btn--ghost btn--sm" type="button" :disabled="dayOffset === 0" @click="shiftDays(-1)">
-            Попередні 3 дні
+            Попередні 7 днів
           </button>
           <button class="btn btn--ghost btn--sm" type="button" @click="shiftDays(1)">
-            Наступні 3 дні
+            Наступні 7 днів
           </button>
         </div>
       </div>
@@ -156,7 +152,6 @@
       </div>
     </section>
 
-    <div v-if="error" class="form-error">{{ error }}</div>
     <div v-if="loading" class="muted" style="margin-top: 12px;">Завантаження...</div>
 
     <section class="slot-list">
@@ -168,21 +163,21 @@
             <template v-if="isEditing(slot.id)">
               <div class="datetime-field">
                 <input
-                  v-model="editStartDate"
-                  class="input input--sm"
-                  type="text"
-                  inputmode="numeric"
-                  placeholder="ДД.ММ.РРРР"
-                  aria-label="Дата початку"
-                />
+                    v-model="editStartDate"
+                    class="input"
+                    type="date"
+                    lang="uk"
+                    placeholder="ДД.ММ.РРРР"
+                    @click="openPicker"
+                  />
                 <input
-                  v-model="editStartTime"
-                  class="input input--sm"
-                  type="text"
-                  inputmode="numeric"
-                  placeholder="ГГ:ХХ"
-                  aria-label="Час початку"
-                />
+                    v-model="editStartTime"
+                    class="input"
+                    type="text"
+                    inputmode="numeric"
+                    placeholder="ГГ:ХХ"
+                    list="time-options"
+                  />
               </div>
             </template>
             <template v-else>
@@ -190,29 +185,22 @@
             </template>
           </div>
           <div class="slot-meta">
-            <div class="slot-label">Кінець</div>
+            <div class="slot-label">Тривалість</div>
             <template v-if="isEditing(slot.id)">
               <div class="datetime-field">
                 <input
-                  v-model="editEndDate"
-                  class="input input--sm"
-                  type="text"
-                  inputmode="numeric"
-                  placeholder="ДД.ММ.РРРР"
-                  aria-label="Дата кінця"
-                />
-                <input
-                  v-model="editEndTime"
-                  class="input input--sm"
-                  type="text"
-                  inputmode="numeric"
-                  placeholder="ГГ:ХХ"
-                  aria-label="Час кінця"
+                  v-model.number="editDuration"
+                  class="input"
+                  type="number"
+                  min="15"
+                  step="5"
+                  placeholder="хв"
+                  aria-label="Тривалість у хвилинах"
                 />
               </div>
             </template>
             <template v-else>
-              <div>{{ formatDate(slot.end_at) }}</div>
+              <div>{{ formatDuration(slot) }}</div>
             </template>
           </div>
           <div class="slot-status" :class="{ 'slot-status--booked': slot.is_booked }">
@@ -293,8 +281,13 @@ const toast = useToast()
 
 const newStartDate = ref('')
 const newStartTime = ref('')
-const newEndDate = ref('')
-const newEndTime = ref('')
+const newDuration = ref(50)
+const timeOptions = Array.from({ length: 24 * 4 }, (_, index) => {
+  const minutes = index * 15
+  const hours = String(Math.floor(minutes / 60)).padStart(2, '0')
+  const mins = String(minutes % 60).padStart(2, '0')
+  return `${hours}:${mins}`
+})
 const todayKey = toDateInputValue(new Date())
 const fillDayDate = ref(todayKey)
 const fillWeekDate = ref(todayKey)
@@ -304,8 +297,7 @@ const selectedDate = ref(todayKey)
 const editingId = ref<number | null>(null)
 const editStartDate = ref('')
 const editStartTime = ref('')
-const editEndDate = ref('')
-const editEndTime = ref('')
+const editDuration = ref(50)
 
 function formatDate(value: string) {
   const dt = new Date(value)
@@ -318,6 +310,15 @@ function formatDate(value: string) {
     minute: '2-digit',
     hour12: false,
   })
+
+function formatDuration(slot: Slot) {
+  const start = new Date(slot.start_at)
+  const end = new Date(slot.end_at)
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return "?"
+  const minutes = Math.max(0, Math.round((end.getTime() - start.getTime()) / 60000))
+  return `${minutes} хв`
+}
+
 }
 
 function formatDateOnly(value: string) {
@@ -328,6 +329,14 @@ function formatDateOnly(value: string) {
     month: '2-digit',
     year: 'numeric',
   })
+}
+
+function formatDuration(slot: Slot) {
+  const start = new Date(slot.start_at)
+  const end = new Date(slot.end_at)
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return '—'
+  const minutes = Math.max(0, Math.round((end.getTime() - start.getTime()) / 60000))
+  return `${minutes} хв`
 }
 
 function toLocalDateKey(value: string) {
@@ -355,7 +364,7 @@ function parseUkDateTime(dateStr: string, timeStr: string) {
   const trimmedTime = timeStr.trim()
   const dateMatch = /^(\d{2})\.(\d{2})\.(\d{4})$/.exec(trimmedDate)
   const isoMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(trimmedDate)
-  const timeMatch = /^(\d{2}):(\d{2})$/.exec(trimmedTime)
+  const timeMatch = /^(\d{1,2}):(\d{1,2})$/.exec(trimmedTime)
   if (!timeMatch) return null
 
   let year: number
@@ -444,7 +453,7 @@ const dayOptions = computed(() => {
   const base = new Date()
   base.setHours(0, 0, 0, 0)
   const start = new Date(base.getTime() + dayOffset.value * 24 * 60 * 60 * 1000)
-  return Array.from({ length: 3 }, (_, idx) => {
+  return Array.from({ length: 7 }, (_, idx) => {
     const d = new Date(start.getTime() + idx * 24 * 60 * 60 * 1000)
     return {
       key: toDateInputValue(d),
@@ -473,7 +482,7 @@ function selectDay(key: string) {
 }
 
 function shiftDays(direction: number) {
-  dayOffset.value = Math.max(0, dayOffset.value + direction * 3)
+  dayOffset.value = Math.max(0, dayOffset.value + direction * 7)
   const first = dayOptions.value[0]
   if (first) {
     selectedDate.value = first.key
@@ -498,11 +507,12 @@ async function createSlot() {
   error.value = ''
   try {
     const startAt = parseUkDateTime(newStartDate.value, newStartTime.value)
-    const endAt = parseUkDateTime(newEndDate.value, newEndTime.value)
-    if (!startAt || !endAt) {
-      error.value = 'Вкажіть дату ДД.ММ.РРРР та час ГГ:ХХ'
+    const durationMinutes = Number(newDuration.value)
+    if (!startAt || !Number.isFinite(durationMinutes) || durationMinutes <= 0) {
+      error.value = 'Вкажіть дату, час і тривалість у хвилинах.'
       return
     }
+    const endAt = new Date(startAt.getTime() + durationMinutes * 60000)
     const payload = {
       start_at: startAt.toISOString(),
       end_at: endAt.toISOString(),
@@ -511,11 +521,11 @@ async function createSlot() {
     slots.value = [...slots.value, resp.data]
     newStartDate.value = ''
     newStartTime.value = ''
-    newEndDate.value = ''
-    newEndTime.value = ''
+    newDuration.value = 50
   } catch (err: any) {
     const raw = normalizeError(err)
     error.value = translateError(raw) || 'Не вдалося створити віконце'
+    newStartTime.value = ''
   } finally {
     loading.value = false
   }
@@ -563,8 +573,8 @@ function startEdit(slot: Slot) {
     editStartTime.value = formatUkTime(start)
   }
   if (!Number.isNaN(end.getTime())) {
-    editEndDate.value = toDateInputValue(end)
-    editEndTime.value = formatUkTime(end)
+    const durationMs = end.getTime() - start.getTime()
+    editDuration.value = Math.max(15, Math.round(durationMs / 60000))
   }
 }
 
@@ -575,8 +585,7 @@ function cancelEdit() {
   editingId.value = null
   editStartDate.value = ''
   editStartTime.value = ''
-  editEndDate.value = ''
-  editEndTime.value = ''
+  editDuration.value = 50
 }
 
 async function saveEdit(slotId: number) {
@@ -596,11 +605,12 @@ async function saveEdit(slotId: number) {
   bodyStyle.width = '100%'
   try {
     const startAt = parseUkDateTime(editStartDate.value, editStartTime.value)
-    const endAt = parseUkDateTime(editEndDate.value, editEndTime.value)
-    if (!startAt || !endAt) {
-      error.value = 'Вкажіть дату ДД.ММ.РРРР та час ГГ:ХХ'
+    const durationMinutes = Number(editDuration.value)
+    if (!startAt || !Number.isFinite(durationMinutes) || durationMinutes <= 0) {
+      error.value = 'Вкажіть дату, час і тривалість у хвилинах.'
       return
     }
+    const endAt = new Date(startAt.getTime() + durationMinutes * 60000)
     const payload = {
       start_at: startAt.toISOString(),
       end_at: endAt.toISOString(),
@@ -910,6 +920,10 @@ onMounted(loadSlots)
   border: 1px solid #f5c2c0;
   border-radius: 10px;
   padding: 8px 10px;
+}
+
+.form-error--inline {
+  margin-top: 8px;
 }
 
 .btn--sm {

@@ -9,7 +9,7 @@
         </p>
       </div>
       <div class="public__actions">
-        <RouterLink class="btn btn--ghost" to="/public/therapists">
+        <RouterLink class="btn btn--ghost" to="/therapists">
           Повернутись до списку
         </RouterLink>
         <RouterLink v-if="canManageProfile" class="btn btn--ghost" to="/cabinet/profile">

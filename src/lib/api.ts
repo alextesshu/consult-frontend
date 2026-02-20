@@ -233,3 +233,54 @@ export async function fetchPublicTherapists(
   const resp = await http.get('/public/therapists/', { params })
   return resp.data
 }
+
+export type ChatThread = {
+  id: number
+  therapist_id: number
+  client_id: number
+  last_message_at: string | null
+  last_message_preview: string
+  unread_count: number
+  other_user: {
+    id: number
+    role: 'THERAPIST' | 'CLIENT'
+    display_name: string
+    photo_url?: string
+  }
+}
+
+export type ChatMessage = {
+  id: number
+  thread_id: number
+  sender_id: number
+  body: string
+  created_at: string
+}
+
+export async function fetchChatThreads(): Promise<ChatThread[]> {
+  const resp = await http.get<ChatThread[]>('/chat/threads/')
+  return resp.data
+}
+
+export async function fetchChatMessages(
+  threadId: number,
+  params?: { since_id?: number; limit?: number }
+): Promise<ChatMessage[]> {
+  const resp = await http.get<ChatMessage[]>('/chat/messages/', {
+    params: { thread_id: threadId, ...params },
+  })
+  return resp.data
+}
+
+export async function sendChatMessage(threadId: number, body: string): Promise<ChatMessage> {
+  const resp = await http.post<ChatMessage>('/chat/messages/send/', {
+    thread_id: threadId,
+    body,
+  })
+  return resp.data
+}
+
+export async function fetchChatUnreadCount(): Promise<{ unread_count: number }> {
+  const resp = await http.get<{ unread_count: number }>('/chat/unread-count/')
+  return resp.data
+}

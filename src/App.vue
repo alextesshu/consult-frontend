@@ -7,11 +7,25 @@
       </RouterLink>
       <nav class="nav">
         <RouterLink v-if="isTherapist" to="/public">Публічний профіль</RouterLink>
-        <RouterLink v-if="!isTherapist" to="/public/therapists">Пошук спеціалістів</RouterLink>
+        <RouterLink v-if="!isTherapist" to="/therapists">Пошук спеціалістів</RouterLink>
         <RouterLink to="/faq">FAQ</RouterLink>
         <RouterLink v-if="isAuthenticated" :to="cabinetRoute">Кабінет</RouterLink>
         <RouterLink v-if="!isAuthenticated" to="/login">Вхід</RouterLink>
         <RouterLink v-if="!isAuthenticated" to="/signup">Реєстрація</RouterLink>
+        <RouterLink
+          v-if="isAuthenticated"
+          class="icon-btn"
+          :to="chatRoute"
+          aria-label="Чат"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              d="M4 4h16a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H8l-4 4v-4H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"
+              fill="currentColor"
+            />
+          </svg>
+          <span v-if="chatUnreadCount" class="icon-btn__badge">{{ chatUnreadCount }}</span>
+        </RouterLink>
         <div v-if="isAuthenticated" class="nav__notifications">
           <button
             ref="notificationsButtonRef"
@@ -74,6 +88,7 @@ import { computed, onBeforeUnmount, onMounted, ref, watch, watchEffect } from 'v
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from './stores/auth'
 import ToastHost from './components/ToastHost.vue'
+import { fetchChatUnreadCount } from './lib/api'
 
 const route = useRoute()
 const router = useRouter()
@@ -92,6 +107,7 @@ const cabinetRoute = computed(() => {
   if (isClient.value) return '/client'
   return '/login'
 })
+const chatRoute = computed(() => (isTherapist.value ? '/cabinet/chat' : '/client/chat'))
 
 const topbarClass = computed(() => [
   'topbar',
@@ -109,6 +125,8 @@ const lastNotificationIds = ref<Set<string>>(new Set())
 const lastUpcomingCount = ref<number>(0)
 const lastReadUpcomingAt = ref<string>('')
 const refreshIntervalId = ref<number | null>(null)
+const chatIntervalId = ref<number | null>(null)
+const chatUnreadCount = ref(0)
 
 function loadReadNotifications() {
   try {
@@ -267,6 +285,16 @@ async function refreshMe() {
   }
 }
 
+async function refreshChatUnread() {
+  if (!isAuthenticated.value) return
+  try {
+    const resp = await fetchChatUnreadCount()
+    chatUnreadCount.value = resp.unread_count ?? 0
+  } catch {
+    chatUnreadCount.value = 0
+  }
+}
+
 function startMePolling() {
   if (refreshIntervalId.value !== null) return
   refreshMe()
@@ -279,6 +307,20 @@ function stopMePolling() {
   if (refreshIntervalId.value === null) return
   window.clearInterval(refreshIntervalId.value)
   refreshIntervalId.value = null
+}
+
+function startChatPolling() {
+  if (chatIntervalId.value !== null) return
+  refreshChatUnread()
+  chatIntervalId.value = window.setInterval(() => {
+    refreshChatUnread()
+  }, 5000)
+}
+
+function stopChatPolling() {
+  if (chatIntervalId.value === null) return
+  window.clearInterval(chatIntervalId.value)
+  chatIntervalId.value = null
 }
 
 function handleVisibilityChange() {
@@ -330,6 +372,7 @@ function handleGlobalClick(event: MouseEvent) {
 onMounted(() => {
   if (isAuthenticated.value) {
     startMePolling()
+    startChatPolling()
   }
   document.addEventListener('click', handleGlobalClick)
   document.addEventListener('visibilitychange', handleVisibilityChange)
@@ -337,6 +380,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   stopMePolling()
+  stopChatPolling()
   document.removeEventListener('click', handleGlobalClick)
   document.removeEventListener('visibilitychange', handleVisibilityChange)
 })
@@ -344,8 +388,10 @@ onBeforeUnmount(() => {
 watch(isAuthenticated, (value) => {
   if (value) {
     startMePolling()
+    startChatPolling()
   } else {
     stopMePolling()
+    stopChatPolling()
   }
 })
 
@@ -486,6 +532,10 @@ loadUpcomingReadAt()
   border-radius: 999px;
   border: 1px solid transparent;
   color: #f1f6f9;
+}
+
+.nav a.icon-btn {
+  padding: 0;
 }
 
 .nav a.router-link-active {

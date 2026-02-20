@@ -8,14 +8,14 @@
           Тут зібрані всі заплановані та минулі сесії. Для нового запису відкрийте профіль терапевта.
         </p>
       </div>
-      <RouterLink class="btn" to="/public/therapists">Обрати терапевта</RouterLink>
+      <RouterLink class="btn" to="/therapists">Обрати терапевта</RouterLink>
     </header>
 
     <div class="card tips-card">
       <div class="card__title">Підказки</div>
       <ul class="tips-list">
         <li>
-          <RouterLink class="tips-link" to="/public/therapists">Обрати спеціаліста</RouterLink>
+          <RouterLink class="tips-link" to="/therapists">Обрати спеціаліста</RouterLink>
           <span class="muted">Перегляньте профіль і доступні слоти.</span>
         </li>
         <li>
@@ -82,7 +82,7 @@
         </RouterLink>
       </div>
       <div v-if="selectedTherapists.length > 0" class="selected-actions">
-        <RouterLink class="btn btn--ghost" to="/public/therapists">Додати терапевта</RouterLink>
+        <RouterLink class="btn btn--ghost" to="/therapists">Додати терапевта</RouterLink>
       </div>
     </div>
 

@@ -19,6 +19,7 @@ import GroupInviteJoinView from '../views/GroupInviteJoinView.vue'
 import FaqView from '../views/FaqView.vue'
 import NotFoundView from '../views/NotFoundView.vue'
 import ForbiddenView from '../views/ForbiddenView.vue'
+import ChatView from '../views/ChatView.vue'
 import { useAuthStore } from '../stores/auth'
 import { fetchTherapistProfile } from '../lib/api'
 
@@ -53,6 +54,12 @@ const routes = [
     meta: { requiresAuth: true, requiresRole: 'THERAPIST' },
   },
   {
+    path: '/cabinet/chat',
+    name: 'cabinet-chat',
+    component: ChatView,
+    meta: { requiresAuth: true, requiresRole: 'THERAPIST' },
+  },
+  {
     path: '/cabinet/billing',
     name: 'cabinet-billing',
     component: BillingView,
@@ -83,6 +90,12 @@ const routes = [
     meta: { requiresAuth: true, requiresRole: 'CLIENT' },
   },
   {
+    path: '/client/chat',
+    name: 'client-chat',
+    component: ChatView,
+    meta: { requiresAuth: true, requiresRole: 'CLIENT' },
+  },
+  {
     path: '/client/sessions/:id',
     name: 'client-session-detail',
     component: ClientSessionDetailView,
@@ -101,7 +114,8 @@ const routes = [
     meta: { requiresAuth: true, requiresRole: 'CLIENT' },
   },
   { path: '/t/:slug', name: 'public-profile', component: PublicProfileView },
-  { path: '/public/therapists', name: 'public-therapists', component: PublicTherapistsView },
+  { path: '/therapists', name: 'public-therapists', component: PublicTherapistsView },
+  { path: '/public/therapists', redirect: { name: 'public-therapists' } },
   { path: '/faq', name: 'faq', component: FaqView },
   { path: '/403', name: 'forbidden', component: ForbiddenView },
   { path: '/:pathMatch(.*)*', name: 'not-found', component: NotFoundView },

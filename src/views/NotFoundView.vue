@@ -9,7 +9,7 @@
       </p>
       <div class="status-actions">
         <RouterLink class="btn btn--ghost" to="/">На головну</RouterLink>
-        <RouterLink class="btn btn--ghost" to="/public/therapists">Пошук спеціалістів</RouterLink>
+        <RouterLink class="btn btn--ghost" to="/therapists">Пошук спеціалістів</RouterLink>
         <RouterLink class="btn btn--ghost" to="/login">Вхід</RouterLink>
       </div>
     </div>
