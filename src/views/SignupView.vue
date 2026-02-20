@@ -2,7 +2,7 @@
   <section class="auth">
     <div class="auth__card">
       <div class="badge">Реєстрація</div>
-      <h1 class="title auth__title">Створіть кабінет терапевта</h1>
+      <h1 class="title auth__title">Створіть кабінет спеціаліста</h1>
       <p class="muted auth__subtitle">
         Стартовий план активується одразу. Додавайте слоти та починайте роботу.
       </p>

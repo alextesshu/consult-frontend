@@ -2,14 +2,14 @@
   <section class="public">
     <header class="public__hero">
       <div>
-        <div class="badge">Профіль терапевта</div>
-        <h1 class="title public__title">{{ publicName || 'Профіль терапевта' }}</h1>
+        <div class="badge">Профіль спеціаліста</div>
+        <h1 class="title public__title">{{ publicName || 'Профіль спеціаліста' }}</h1>
         <p class="muted public__subtitle">
           {{ profile ? 'Публічна картка з описом і доступними віконцями.' : 'Завантаження профілю…' }}
         </p>
       </div>
       <div class="public__actions">
-        <RouterLink class="btn btn--ghost" to="/therapists">
+        <RouterLink class="btn btn--ghost" to="/specialists">
           Повернутись до списку
         </RouterLink>
         <RouterLink v-if="canManageProfile" class="btn btn--ghost" to="/cabinet/profile">
@@ -26,7 +26,7 @@
       <div class="panel panel--profile">
         <div class="profile-card">
           <div class="profile-card__media">
-            <img v-if="profile.photo_url" :src="profile.photo_url" alt="Фото терапевта" />
+            <img v-if="profile.photo_url" :src="profile.photo_url" alt="Фото спеціаліста" />
             <div v-else class="media-placeholder">Фото ще не додано</div>
             <video
               v-if="profile.video_url"
@@ -112,7 +112,7 @@
         <div v-if="bookingSuccess" class="success">{{ bookingSuccess }}</div>
         <div v-if="bookingError" class="form-error">{{ bookingError }}</div>
         <div v-if="upcomingConfirmed.length" class="confirmed-block">
-          <div class="confirmed-title">Підтверджені сесії з цим терапевтом</div>
+          <div class="confirmed-title">Підтверджені сесії з цим спеціалістом</div>
           <div class="confirmed-list">
             <div v-for="session in upcomingConfirmed" :key="session.id" class="confirmed-item">
               <div class="confirmed-time">{{ formatDate(session.start_at) }}</div>
@@ -175,11 +175,11 @@
         </div>
         <div class="setting-modal__body">
           <div class="setting-section" v-if="platformSettingText">
-            <div class="setting-title">Загальні правила платформи</div>
+            <div class="setting-title">Загальні правила простору</div>
             <div class="muted">{{ platformSettingText }}</div>
           </div>
           <div class="setting-section" v-if="therapistSettingText">
-            <div class="setting-title">Сетінг терапевта</div>
+            <div class="setting-title">Сетінг спеціаліста</div>
             <div class="muted">{{ therapistSettingText }}</div>
           </div>
           <div v-if="!platformSettingText && !therapistSettingText" class="muted">
@@ -250,7 +250,9 @@ const slug = computed(() => String(route.params.slug || '').trim())
 const roles = computed(() => auth.me?.user.roles ?? auth.user?.roles ?? [])
 const isAuthenticated = computed(() => Boolean(auth.accessToken))
 const isClient = computed(() => roles.value.includes('CLIENT'))
-const canManageProfile = computed(() => roles.value.includes('THERAPIST'))
+const canManageProfile = computed(
+  () => roles.value.includes('SPECIALIST') || roles.value.includes('THERAPIST')
+)
 const canBook = computed(() => isAuthenticated.value && isClient.value)
 const upcomingConfirmed = computed(() => {
   if (!profile.value) return []

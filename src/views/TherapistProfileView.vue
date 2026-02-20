@@ -2,7 +2,7 @@
   <section class="profile">
     <header class="profile__hero">
       <div>
-        <div class="badge">Кабінет терапевта</div>
+        <div class="badge">Кабінет спеціаліста</div>
         <h1 class="title profile__title">Керування публічним профілем</h1>
         <p class="muted profile__subtitle">
           Налаштовуйте видимість, тексти й контакти. Прев’ю показує, як вас бачать клієнти.
@@ -265,7 +265,7 @@
                 v-model="profile.bio_about"
                 class="input"
                 rows="4"
-                placeholder="2-3 речення про вас як терапевта."
+                placeholder="2-3 речення про вас як спеціаліста."
               ></textarea>
             </label>
           </details>
@@ -1098,7 +1098,7 @@ async function onShareProfile() {
   shareLoading.value = true
   try {
     if (navigator.share) {
-      await navigator.share({ title: 'Профіль терапевта', url: publicUrl.value })
+      await navigator.share({ title: 'Профіль спеціаліста', url: publicUrl.value })
       shareStatus.value = 'Посилання на профіль надіслано.'
       return
     }

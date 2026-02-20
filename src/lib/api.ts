@@ -192,7 +192,7 @@ export async function rotateTherapistProfileSlug(): Promise<TherapistProfile> {
 export async function fetchPublicTherapistProfile(
   slug: string
 ): Promise<PublicTherapistProfile> {
-  const resp = await http.get<PublicTherapistProfile>(`/public/therapists/${slug}/`)
+  const resp = await http.get<PublicTherapistProfile>(`/public/specialists/${slug}/`)
   return resp.data
 }
 
@@ -208,7 +208,7 @@ export async function fetchPublicTherapistReviews(
   slug: string,
   limit = 20
 ): Promise<SessionReview[]> {
-  const resp = await http.get<SessionReview[]>(`/public/therapists/${slug}/reviews/`, {
+  const resp = await http.get<SessionReview[]>(`/public/specialists/${slug}/reviews/`, {
     params: { limit },
   })
   return resp.data
@@ -239,7 +239,7 @@ export async function fetchPublicTherapists(
   total: number
   total_pages: number
 }> {
-  const resp = await http.get('/public/therapists/', { params })
+  const resp = await http.get('/public/specialists/', { params })
   return resp.data
 }
 
@@ -252,7 +252,7 @@ export type ChatThread = {
   unread_count: number
   other_user: {
     id: number
-    role: 'THERAPIST' | 'CLIENT'
+    role: 'SPECIALIST' | 'THERAPIST' | 'CLIENT'
     display_name: string
     photo_url?: string
   }

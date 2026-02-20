@@ -3,7 +3,7 @@
     <header class="clients__hero">
       <div>
         <div class="badge">Клієнти</div>
-        <h1 class="title clients__title">CRM терапевта</h1>
+        <h1 class="title clients__title">CRM спеціаліста</h1>
         <p class="muted clients__subtitle">
           Управління статусами клієнтів та доступом до активної роботи.
         </p>
@@ -81,7 +81,7 @@
             <div class="history-header">
               <div>
                 <div class="history-title">Приватна історія клієнта</div>
-                <div class="muted history-subtitle">Інформація зашифрована. Доступ має лише терапевт.</div>
+                <div class="muted history-subtitle">Інформація зашифрована. Доступ має лише спеціаліст.</div>
               </div>
               <span class="history-badge">Зашифровано</span>
             </div>

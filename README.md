@@ -47,12 +47,14 @@ npm run test
 - `/cabinet/billing` — Plans & access (manual request)
 - `/client` — Client dashboard (sessions + selected/viewed therapist)
 - `/client/sessions/:id` — Client session detail (cancel/reschedule request)
-- `/client/therapists` — Therapist list (choose + open profile)
+- `/client/specialists` — Specialist list (choose + open profile)
+- `/client/therapists` — Legacy alias for specialists list
 - `/client/group-events/:id` — Client group event detail
 - `/invite/:token` — Group invite join (client acceptance flow)
 - `/public` — Redirect to `/t/:slug` (auto via profile)
 - `/t/:slug` — Public therapist profile + booking
-- `/public/therapists` — Public therapists catalog
+- `/specialists` — Public specialists catalog
+- `/therapists` — Legacy alias for specialists catalog
 
 ## Auth
 
@@ -120,7 +122,7 @@ Tokens are stored in localStorage and auto-refreshed via `/api/auth/token/refres
 
 - Non-home pages are constrained to 80% width.
 - Parallax layers live in `src/assets/parallax/`.
-- Public profile data is fetched from `/api/public/therapists/{slug}/`.
+- Public profile data is fetched from `/api/public/specialists/{slug}/` (legacy alias: `/api/public/therapists/{slug}/`).
 - Public-facing therapist name uses `First L.` format.
 - Keep files saved in UTF-8 to avoid broken Ukrainian text.
 - Billing upgrade requests call `POST /api/cabinet/billing/request-access/` with `requested_plan`.

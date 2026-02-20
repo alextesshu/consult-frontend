@@ -120,7 +120,7 @@
 
         <div class="response">
           <label class="field">
-            <span>Відповідь терапевта</span>
+            <span>Відповідь спеціаліста</span>
             <textarea v-model="responseDrafts[review.id]" rows="3"></textarea>
           </label>
           <div class="response__meta muted">

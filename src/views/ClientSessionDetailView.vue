@@ -28,7 +28,7 @@
           <div class="detail-value">{{ formatDuration(session.slot_start_at, session.slot_end_at) }}</div>
         </div>
         <div class="detail-card">
-          <div class="detail-label">Терапевт</div>
+          <div class="detail-label">Спеціаліст</div>
           <div class="detail-value">
             {{ therapistLabel(session) }}
             <div v-if="session.therapist_email" class="muted" style="font-size: 12px;">
@@ -95,7 +95,7 @@
       </div>
       <div class="muted" style="margin-top: 6px;">
         <span v-if="session.status === 'CONFIRMED'">
-          Підтверджені сесії переносяться лише після підтвердження терапевта.
+          Підтверджені сесії переносяться лише після підтвердження спеціаліста.
         </span>
         <span v-else>
           Перенесення виконується як нове бронювання зі скасуванням попередньої сесії.

@@ -66,7 +66,7 @@ const token = computed(() => String(route.params.token || ''))
 
 function defaultPath() {
   const roles = auth.me?.user.roles ?? auth.user?.roles ?? []
-  if (roles.includes('THERAPIST')) return '/cabinet'
+  if (roles.includes('SPECIALIST') || roles.includes('THERAPIST')) return '/cabinet'
   if (roles.includes('CLIENT')) return '/client'
   return '/login'
 }

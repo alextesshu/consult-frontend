@@ -33,55 +33,55 @@ const routes = [
     path: '/cabinet',
     name: 'cabinet',
     component: CabinetView,
-    meta: { requiresAuth: true, requiresRole: 'THERAPIST' },
+    meta: { requiresAuth: true, requiresRole: 'SPECIALIST' },
   },
   {
     path: '/cabinet/group-events',
     name: 'cabinet-group-events',
     component: GroupEventsView,
-    meta: { requiresAuth: true, requiresRole: 'THERAPIST' },
+    meta: { requiresAuth: true, requiresRole: 'SPECIALIST' },
   },
   {
     path: '/cabinet/slots',
     name: 'cabinet-slots',
     component: SlotsView,
-    meta: { requiresAuth: true, requiresRole: 'THERAPIST' },
+    meta: { requiresAuth: true, requiresRole: 'SPECIALIST' },
   },
   {
     path: '/cabinet/clients',
     name: 'cabinet-clients',
     component: TherapistClientsView,
-    meta: { requiresAuth: true, requiresRole: 'THERAPIST' },
+    meta: { requiresAuth: true, requiresRole: 'SPECIALIST' },
   },
   {
     path: '/cabinet/chat',
     name: 'cabinet-chat',
     component: ChatView,
-    meta: { requiresAuth: true, requiresRole: 'THERAPIST' },
+    meta: { requiresAuth: true, requiresRole: 'SPECIALIST' },
   },
   {
     path: '/cabinet/billing',
     name: 'cabinet-billing',
     component: BillingView,
-    meta: { requiresAuth: true, requiresRole: 'THERAPIST' },
+    meta: { requiresAuth: true, requiresRole: 'SPECIALIST' },
   },
   {
     path: '/cabinet/sessions',
     name: 'cabinet-sessions',
     component: TherapistSessionsView,
-    meta: { requiresAuth: true, requiresRole: 'THERAPIST' },
+    meta: { requiresAuth: true, requiresRole: 'SPECIALIST' },
   },
   {
     path: '/cabinet/reviews',
     name: 'cabinet-reviews',
     component: TherapistReviewsView,
-    meta: { requiresAuth: true, requiresRole: 'THERAPIST' },
+    meta: { requiresAuth: true, requiresRole: 'SPECIALIST' },
   },
   {
     path: '/cabinet/profile',
     name: 'cabinet-profile',
     component: TherapistProfileView,
-    meta: { requiresAuth: true, requiresRole: 'THERAPIST' },
+    meta: { requiresAuth: true, requiresRole: 'SPECIALIST' },
   },
   {
     path: '/client',
@@ -102,9 +102,15 @@ const routes = [
     meta: { requiresAuth: true, requiresRole: 'CLIENT' },
   },
   {
+    path: '/client/specialists',
+    name: 'client-specialists',
+    redirect: { name: 'public-therapists' },
+    meta: { requiresAuth: true, requiresRole: 'CLIENT' },
+  },
+  {
     path: '/client/therapists',
     name: 'client-therapists',
-    redirect: { name: 'public-therapists' },
+    redirect: { name: 'client-specialists' },
     meta: { requiresAuth: true, requiresRole: 'CLIENT' },
   },
   {
@@ -114,7 +120,8 @@ const routes = [
     meta: { requiresAuth: true, requiresRole: 'CLIENT' },
   },
   { path: '/t/:slug', name: 'public-profile', component: PublicProfileView },
-  { path: '/therapists', name: 'public-therapists', component: PublicTherapistsView },
+  { path: '/specialists', name: 'public-therapists', component: PublicTherapistsView },
+  { path: '/therapists', redirect: { name: 'public-therapists' } },
   { path: '/public/therapists', redirect: { name: 'public-therapists' } },
   { path: '/faq', name: 'faq', component: FaqView },
   { path: '/403', name: 'forbidden', component: ForbiddenView },
@@ -130,8 +137,13 @@ router.beforeEach(async (to) => {
   const auth = useAuthStore()
   const getRoles = () => auth.me?.user.roles ?? auth.user?.roles ?? []
   const hasRole = (role: string) => getRoles().includes(role)
+  const hasSpecialistRole = () => hasRole('SPECIALIST') || hasRole('THERAPIST')
+  const roleMatches = (role: string) => {
+    if (role === 'SPECIALIST') return hasSpecialistRole()
+    return hasRole(role)
+  }
   const defaultRoute = () => {
-    if (hasRole('THERAPIST')) return { name: 'cabinet' }
+    if (hasSpecialistRole()) return { name: 'cabinet' }
     if (hasRole('CLIENT')) return { name: 'client-dashboard' }
     return { name: 'login' }
   }
@@ -147,7 +159,7 @@ router.beforeEach(async (to) => {
         return { name: 'login' }
       }
     }
-    if (to.meta.requiresRole && !hasRole(String(to.meta.requiresRole))) {
+    if (to.meta.requiresRole && !roleMatches(String(to.meta.requiresRole))) {
       return { name: 'forbidden' }
     }
   }
@@ -174,7 +186,7 @@ router.beforeEach(async (to) => {
         return { name: 'login' }
       }
     }
-    if (!hasRole('THERAPIST')) {
+    if (!hasSpecialistRole()) {
       return defaultRoute()
     }
     let slug = ''

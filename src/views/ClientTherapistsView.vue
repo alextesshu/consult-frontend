@@ -2,7 +2,7 @@
   <section class="therapists">
     <header class="therapists__hero card">
       <div>
-        <div class="eyebrow">Вибір терапевта</div>
+        <div class="eyebrow">Вибір спеціаліста</div>
         <h1 class="title">Оберіть спеціаліста</h1>
         <p class="muted">Відкрийте профіль, щоб переглянути доступні слоти.</p>
       </div>
@@ -10,7 +10,7 @@
     </header>
 
     <div class="card">
-      <div class="card__title">Терапевти</div>
+      <div class="card__title">Спеціалісти</div>
       <div v-if="loading" class="muted">Завантаження списку…</div>
       <div v-else-if="error" class="form-error">{{ error }}</div>
       <div v-else-if="therapists.length === 0" class="muted">Поки немає публічних профілів.</div>
@@ -93,7 +93,7 @@ async function loadTherapists() {
     therapists.value = resp.results || []
   } catch {
     therapists.value = []
-    error.value = 'Не вдалося завантажити список терапевтів.'
+    error.value = 'Не вдалося завантажити список спеціалістів.'
   } finally {
     loading.value = false
   }

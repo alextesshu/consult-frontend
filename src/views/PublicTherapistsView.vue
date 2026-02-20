@@ -3,7 +3,7 @@
     <header class="public-therapists__hero card">
       <div>
         <div class="eyebrow">Публічний каталог</div>
-        <h1 class="title">Терапевти</h1>
+        <h1 class="title">Спеціалісти</h1>
         <p class="muted">Пошук та перегляд відкритих профілів.</p>
       </div>
       <RouterLink class="btn btn--ghost" to="/">На головну</RouterLink>

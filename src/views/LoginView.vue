@@ -36,7 +36,7 @@
         </button>
         <p class="muted auth__footer">
           Вперше тут?
-          <RouterLink to="/signup">Створити акаунт терапевта</RouterLink>
+          <RouterLink to="/signup">Створити акаунт спеціаліста</RouterLink>
         </p>
       </form>
     </div>
@@ -45,7 +45,7 @@
       <div class="aside-card">
         <div class="aside-title">Чому це безпечно</div>
         <ul class="aside-list">
-          <li>Дані належать терапевту, не платформі</li>
+          <li>Дані належать спеціалісту, не сервісу</li>
           <li>Жодних комісій із сесій</li>
           <li>Контроль доступу на рівні системи</li>
         </ul>
@@ -84,7 +84,7 @@ const { loading } = storeToRefs(auth)
 
 function defaultPath() {
   const roles = auth.me?.user.roles ?? auth.user?.roles ?? []
-  if (roles.includes('THERAPIST')) return '/cabinet'
+  if (roles.includes('SPECIALIST') || roles.includes('THERAPIST')) return '/cabinet'
   if (roles.includes('CLIENT')) return '/client'
   return '/login'
 }

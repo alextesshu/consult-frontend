@@ -2,7 +2,7 @@
   <section class="sessions">
     <header class="sessions__hero">
       <div>
-        <div class="badge">Сесії терапевта</div>
+        <div class="badge">Сесії спеціаліста</div>
         <h1 class="title sessions__title">Керуйте сесіями</h1>
         <p class="muted sessions__subtitle">
           Список запланованих і минулих сесій. Дії доступні одразу.
@@ -105,7 +105,7 @@
             <img
               v-if="therapistPhotoUrl"
               :src="therapistPhotoUrl"
-              alt="Фото терапевта"
+              alt="Фото спеціаліста"
               class="session-photo"
             />
             <div v-else class="session-photo session-photo--empty">Фото</div>
@@ -144,7 +144,7 @@
                 rows="5"
                 placeholder="Зашифрована історія сесій з цим клієнтом. Видима лише вам."
               ></textarea>
-              <div class="note-helper muted">Інформація зашифрована. Доступ має лише терапевт.</div>
+              <div class="note-helper muted">Інформація зашифрована. Доступ має лише спеціаліст.</div>
             </label>
             <div class="note-actions">
               <button
@@ -270,7 +270,7 @@
                 rows="5"
                 placeholder="Зашифрована історія сесій з цим клієнтом. Видима лише вам."
               ></textarea>
-              <div class="note-helper muted">Інформація зашифрована. Доступ має лише терапевт.</div>
+              <div class="note-helper muted">Інформація зашифрована. Доступ має лише спеціаліст.</div>
             </label>
             <div class="note-actions">
               <button

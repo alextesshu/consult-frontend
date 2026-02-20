@@ -2,7 +2,7 @@
   <section class="slots">
     <header class="slots__hero">
       <div>
-        <div class="badge">Вільні віконця терапевта</div>
+        <div class="badge">Вільні віконця спеціаліста</div>
         <h1 class="title slots__title">Керуйте доступністю</h1>
         <p class="muted slots__subtitle">
           Створюйте часові вікна для сесій, заповнюйте день або тиждень одним кліком.

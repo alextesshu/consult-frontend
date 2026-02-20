@@ -2,7 +2,7 @@
   <section class="cabinet">
     <header class="cabinet__hero">
       <div>
-        <div class="badge">Кабінет терапевта</div>
+        <div class="badge">Кабінет спеціаліста</div>
         <h1 class="title cabinet__title">Твій робочий простір</h1>
         <p class="muted cabinet__subtitle">
           Тут зібрані доступи, активність і швидкі дії. Публічні сторінки — окремо.

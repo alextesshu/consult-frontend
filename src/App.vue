@@ -3,11 +3,11 @@
     <header v-if="!isHome" :class="topbarClass">
       <RouterLink class="brand" to="/">
         <div class="brand__mark">Pro Consult</div>
-        <div class="brand__tagline">Therapist Workspace</div>
+        <div class="brand__tagline">Простір для ведення консультацій</div>
       </RouterLink>
       <nav class="nav">
         <RouterLink v-if="isTherapist" to="/public">Публічний профіль</RouterLink>
-        <RouterLink v-if="!isTherapist" to="/therapists">Пошук спеціалістів</RouterLink>
+        <RouterLink v-if="!isTherapist" to="/specialists">Пошук спеціалістів</RouterLink>
         <RouterLink to="/faq">FAQ</RouterLink>
         <RouterLink v-if="isAuthenticated" :to="cabinetRoute">Кабінет</RouterLink>
         <RouterLink v-if="!isAuthenticated" to="/login">Вхід</RouterLink>
@@ -75,7 +75,7 @@
     <ToastHost />
 
     <footer class="footer">
-      <div>Pro Consult · Professional therapist workspace · <RouterLink class="footer__link" to="/faq">FAQ</RouterLink></div>
+      <div>Pro Consult — Простір для ведення консультацій · <RouterLink class="footer__link" to="/faq">FAQ</RouterLink></div>
       <div class="footer__meta">
         <span>Без комісій. Без посередників. З повагою до практики.</span>
       </div>
@@ -100,7 +100,7 @@ watchEffect(() => {
   document.body.classList.toggle('body--home', isHome.value)
 })
 const roles = computed(() => auth.me?.user.roles ?? [])
-const isTherapist = computed(() => roles.value.includes('THERAPIST'))
+const isTherapist = computed(() => roles.value.includes('SPECIALIST') || roles.value.includes('THERAPIST'))
 const isClient = computed(() => roles.value.includes('CLIENT'))
 watchEffect(() => {
   const path = route.path || ''
@@ -456,8 +456,8 @@ loadUpcomingReadAt()
   max-width: none;
   padding: 0;
   display: block;
-  height: 100vh;
-  overflow: hidden;
+  height: auto;
+  overflow: visible;
 }
 
 .shell--home .topbar {
@@ -689,22 +689,19 @@ loadUpcomingReadAt()
   min-height: 100vh;
   width: 100%;
   margin: 0;
-  height: 100vh;
-  overflow: hidden;
+  height: auto;
+  overflow: visible;
 }
 
 body.body--home .footer {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  position: static;
   margin: 0;
-  padding: 10px 20px;
-  z-index: 30;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(8, 14, 24, 0.45);
-  backdrop-filter: blur(6px);
-  color: rgba(241, 246, 249, 0.8);
+  padding: 12px 24px 0;
+  z-index: auto;
+  border-top: 1px solid var(--border);
+  background: transparent;
+  backdrop-filter: none;
+  color: var(--muted);
   font-size: 12px;
 }
 

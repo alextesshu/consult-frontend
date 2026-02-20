@@ -5,22 +5,22 @@
         <div class="eyebrow">Клієнтський кабінет</div>
         <h1 class="title">Ваші сесії</h1>
         <p class="muted">
-          Тут зібрані всі заплановані та минулі сесії. Для нового запису відкрийте профіль терапевта.
+          Тут зібрані всі заплановані та минулі сесії. Для нового запису відкрийте профіль спеціаліста.
         </p>
       </div>
-      <RouterLink class="btn" to="/therapists">Обрати терапевта</RouterLink>
+      <RouterLink class="btn" to="/specialists">Обрати спеціаліста</RouterLink>
     </header>
 
     <div class="card tips-card">
       <div class="card__title">Підказки</div>
       <ul class="tips-list">
         <li>
-          <RouterLink class="tips-link" to="/therapists">Обрати спеціаліста</RouterLink>
+          <RouterLink class="tips-link" to="/specialists">Обрати спеціаліста</RouterLink>
           <span class="muted">Перегляньте профіль і доступні слоти.</span>
         </li>
         <li>
           <span class="tips-link">Забронювати слот</span>
-          <span class="muted">Натисніть "Записатися" у профілі терапевта.</span>
+          <span class="muted">Натисніть "Записатися" у профілі спеціаліста.</span>
         </li>
         <li>
           <span class="tips-link">Слідкувати за статусами</span>
@@ -30,9 +30,9 @@
     </div>
 
     <div class="card">
-      <div class="card__title">Обрані терапевти</div>
+      <div class="card__title">Обрані спеціалісти</div>
       <div v-if="selectedTherapistsWithSessions.length === 0" class="muted">
-        Ви ще не обрали терапевтів. Натисніть "Обрати терапевта", щоб перейти в каталог.
+        Ви ще не обрали спеціалістів. Натисніть "Обрати спеціаліста", щоб перейти в каталог.
       </div>
       <div
         v-else
@@ -88,14 +88,14 @@
         </RouterLink>
       </div>
       <div v-if="selectedTherapists.length > 0" class="selected-actions">
-        <RouterLink class="btn btn--ghost" to="/therapists">Додати терапевта</RouterLink>
+        <RouterLink class="btn btn--ghost" to="/specialists">Додати спеціаліста</RouterLink>
       </div>
     </div>
 
     <div class="card">
-      <div class="card__title">Переглянуті терапевти</div>
+      <div class="card__title">Переглянуті спеціалісти</div>
       <div v-if="viewedTherapists.length === 0" class="muted">
-        Ви ще не переглядали профілі терапевтів.
+        Ви ще не переглядали профілі спеціалістів.
       </div>
       <div v-else class="therapist-grid" :class="{ 'therapist-grid--compact': viewedTherapists.length === 1 }">
         <RouterLink
@@ -350,9 +350,9 @@ function formatSession(session: Session | null) {
 
 function therapistLabel(session: Session) {
   const name = session.therapist_name || session.therapist_username
-  if (name) return `Терапевт: ${name}`
-  if (session.therapist) return `Терапевт: #${session.therapist}`
-  return 'Терапевт: —'
+  if (name) return `Спеціаліст: ${name}`
+  if (session.therapist) return `Спеціаліст: #${session.therapist}`
+  return 'Спеціаліст: —'
 }
 
 function publicName(value?: string) {
