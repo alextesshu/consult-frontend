@@ -151,7 +151,12 @@
         <div v-else-if="sessionsError" class="form-error">{{ sessionsError }}</div>
         <div v-else-if="upcoming.length === 0" class="muted">Немає запланованих сесій.</div>
         <ul v-else class="session-list">
-          <li v-for="session in upcoming" :key="session.id" class="session-item">
+          <li
+            v-for="session in upcoming"
+            :key="session.id"
+            class="session-item"
+            :class="{ 'session-item--confirmed': session.status === 'CONFIRMED' }"
+          >
             <div>
               <div class="session-time">{{ formatDateTime(session.slot?.start_at || session.slot_start_at) }}</div>
               <div class="muted">{{ therapistLabel(session) }}</div>
@@ -179,7 +184,12 @@
         <div v-else-if="sessionsError" class="form-error">{{ sessionsError }}</div>
         <div v-else-if="past.length === 0" class="muted">Ще немає історії.</div>
         <ul v-else class="session-list">
-          <li v-for="session in past" :key="session.id" class="session-item">
+          <li
+            v-for="session in past"
+            :key="session.id"
+            class="session-item"
+            :class="{ 'session-item--confirmed': session.status === 'CONFIRMED' }"
+          >
             <div>
               <div class="session-time">{{ formatDateTime(session.slot?.start_at || session.slot_start_at) }}</div>
               <div class="muted">{{ therapistLabel(session) }}</div>
@@ -720,6 +730,12 @@ onMounted(async () => {
   padding: 10px 12px;
   border-radius: 12px;
   background: rgba(111, 142, 151, 0.12);
+}
+
+.session-item--confirmed {
+  border: 1px solid rgba(39, 122, 82, 0.35);
+  background: linear-gradient(135deg, rgba(212, 243, 225, 0.7), rgba(247, 252, 249, 0.95));
+  box-shadow: 0 8px 18px rgba(39, 122, 82, 0.12);
 }
 
 .session-actions {

@@ -71,6 +71,15 @@
             <div class="badge badge--soft">Доступні віконця</div>
             <h2 class="panel__title">Найближчі дати</h2>
           </div>
+          <div class="setting-bar" v-if="isAuthenticated && isClient">
+            <button class="btn btn--ghost btn--sm" type="button" @click="openSettingModal">
+              Сетінг
+            </button>
+            <label class="setting-check">
+              <input type="checkbox" v-model="settingAccepted" />
+              <span>Погоджуюсь</span>
+            </label>
+          </div>
         </div>
 
         <div class="slot-filter">
@@ -98,6 +107,15 @@
 
         <div v-if="bookingSuccess" class="success">{{ bookingSuccess }}</div>
         <div v-if="bookingError" class="form-error">{{ bookingError }}</div>
+        <div v-if="upcomingConfirmed.length" class="confirmed-block">
+          <div class="confirmed-title">Підтверджені сесії з цим терапевтом</div>
+          <div class="confirmed-list">
+            <div v-for="session in upcomingConfirmed" :key="session.id" class="confirmed-item">
+              <div class="confirmed-time">{{ formatDate(session.start_at) }}</div>
+              <div class="muted">{{ formatDuration(session.start_at, session.end_at) }}</div>
+            </div>
+          </div>
+        </div>
 
         <div v-if="slotsLoading" class="muted">Завантаження віконець…</div>
         <div v-else-if="slotsError" class="form-error">{{ slotsError }}</div>
@@ -111,7 +129,7 @@
             <button
               class="btn btn--ghost"
               type="button"
-              :disabled="!canBook || bookingSlotId === slot.id"
+              :disabled="!canBook || bookingSlotId === slot.id || !settingAccepted"
               @click="bookSlot(slot.id)"
             >
               {{ bookingSlotId === slot.id ? 'Бронювання…' : 'Записатися' }}
@@ -143,6 +161,33 @@
         </div>
       </div>
     </section>
+
+    <div v-if="showSettingModal" class="setting-modal">
+      <div class="setting-modal__backdrop" @click="closeSettingModal"></div>
+      <div class="setting-modal__content">
+        <div class="setting-modal__header">
+          <h3>Сетінг</h3>
+          <button class="btn btn--ghost btn--sm" type="button" @click="closeSettingModal">Закрити</button>
+        </div>
+        <div class="setting-modal__body">
+          <div class="setting-section" v-if="platformSettingText">
+            <div class="setting-title">Загальні правила платформи</div>
+            <div class="muted">{{ platformSettingText }}</div>
+          </div>
+          <div class="setting-section" v-if="therapistSettingText">
+            <div class="setting-title">Сетінг терапевта</div>
+            <div class="muted">{{ therapistSettingText }}</div>
+          </div>
+          <div v-if="!platformSettingText && !therapistSettingText" class="muted">
+            Сетінг ще не додано.
+          </div>
+          <label class="setting-check setting-check--modal">
+            <input type="checkbox" v-model="settingAccepted" />
+            <span>Погоджуюсь з умовами</span>
+          </label>
+        </div>
+      </div>
+    </div>
   </section>
 </template>
 
@@ -166,6 +211,16 @@ type PublicSlot = {
   end_at: string
 }
 
+type ClientSession = {
+  id: number
+  status: string
+  therapist?: number
+  therapist_public_slug?: string | null
+  slot?: { start_at: string; end_at: string } | null
+  slot_start_at?: string | null
+  slot_end_at?: string | null
+}
+
 const route = useRoute()
 const auth = useAuthStore()
 const toast = useToast()
@@ -178,6 +233,9 @@ const slotsError = ref('')
 const bookingError = ref('')
 const bookingSuccess = ref('')
 const bookingSlotId = ref<number | null>(null)
+const settingAccepted = ref(false)
+const showSettingModal = ref(false)
+const clientSessions = ref<ClientSession[]>([])
 const reviews = ref<SessionReview[]>([])
 const reviewsLoading = ref(false)
 const reviewsError = ref('')
@@ -190,6 +248,35 @@ const isAuthenticated = computed(() => Boolean(auth.accessToken))
 const isClient = computed(() => roles.value.includes('CLIENT'))
 const canManageProfile = computed(() => roles.value.includes('THERAPIST'))
 const canBook = computed(() => isAuthenticated.value && isClient.value)
+const upcomingConfirmed = computed(() => {
+  if (!profile.value) return []
+  return clientSessions.value
+    .filter((session) => {
+      const status = session.status || ''
+      if (status !== 'CONFIRMED') return false
+      const therapistId = profile.value?.therapist_id
+      const sessionTherapist = session.therapist
+      if (therapistId && sessionTherapist) {
+        return therapistId === sessionTherapist
+      }
+      if (profile.value?.public_slug && session.therapist_public_slug) {
+        return profile.value.public_slug === session.therapist_public_slug
+      }
+      return false
+    })
+    .map((session) => {
+      const slot = session.slot || null
+      return {
+        id: session.id,
+        start_at: slot?.start_at || session.slot_start_at || '',
+        end_at: slot?.end_at || session.slot_end_at || '',
+      }
+    })
+    .filter((item) => item.start_at && item.end_at)
+    .sort((a, b) => new Date(a.start_at).getTime() - new Date(b.start_at).getTime())
+})
+const platformSettingText = computed(() => profile.value?.platform_setting_text || '')
+const therapistSettingText = computed(() => profile.value?.setting_text || '')
 
 const languagesDisplay = computed(() => {
   const value = profile.value?.languages
@@ -341,6 +428,18 @@ async function loadReviews() {
   }
 }
 
+async function loadClientSessions() {
+  if (!isAuthenticated.value || !isClient.value) return
+  try {
+    const resp = await http.get<ClientSession[]>('/booking/sessions/', {
+      params: { upcoming: true },
+    })
+    clientSessions.value = resp.data || []
+  } catch {
+    clientSessions.value = []
+  }
+}
+
 async function bookSlot(slotId: number) {
   bookingError.value = ''
   bookingSuccess.value = ''
@@ -348,9 +447,14 @@ async function bookSlot(slotId: number) {
     bookingError.value = 'Бронювання доступне лише для клієнтів.'
     return
   }
+  if (!settingAccepted.value) {
+    bookingError.value = 'Погодьтеся з сетінгом перед бронюванням.'
+    openSettingModal()
+    return
+  }
   bookingSlotId.value = slotId
   try {
-    await http.post('/booking/sessions/', { slot_id: slotId })
+    await http.post('/booking/sessions/', { slot_id: slotId, setting_accepted: true })
     bookingSuccess.value = 'Сесію заброньовано. Перевірте ваш кабінет.'
     toast.success(bookingSuccess.value)
     slots.value = slots.value.filter((slot) => slot.id !== slotId)
@@ -378,6 +482,14 @@ async function bookSlot(slotId: number) {
   } finally {
     bookingSlotId.value = null
   }
+}
+
+function openSettingModal() {
+  showSettingModal.value = true
+}
+
+function closeSettingModal() {
+  showSettingModal.value = false
 }
 
 function pickTherapist(data: PublicTherapistProfile) {
@@ -412,11 +524,16 @@ watch(slug, () => {
   profile.value = null
   slots.value = []
   loadProfile().then(loadSlots)
+  loadClientSessions()
 })
 
 watch(selectedDate, () => {
   slots.value = []
   loadSlots()
+})
+
+watch([isAuthenticated, isClient], () => {
+  loadClientSessions()
 })
 
 onMounted(async () => {
@@ -663,6 +780,111 @@ onMounted(async () => {
   .review-list {
     display: grid;
     gap: 10px;
+  }
+
+  .confirmed-block {
+    margin-top: 14px;
+    border: 1px dashed rgba(47, 63, 73, 0.18);
+    border-radius: 12px;
+    padding: 12px;
+    background: rgba(7, 47, 71, 0.04);
+    display: grid;
+    gap: 8px;
+  }
+
+  .confirmed-title {
+    font-weight: 600;
+    font-size: 13px;
+  }
+
+  .confirmed-list {
+    display: grid;
+    gap: 8px;
+  }
+
+  .confirmed-item {
+    display: grid;
+    gap: 2px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: #fff;
+    border: 1px solid var(--line);
+  }
+
+  .confirmed-time {
+    font-weight: 600;
+  }
+
+  .setting-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .setting-check {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .setting-check input {
+    width: 16px;
+    height: 16px;
+  }
+
+  .setting-check--modal {
+    margin-top: 16px;
+  }
+
+  .setting-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    display: grid;
+    place-items: center;
+  }
+
+  .setting-modal__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(7, 24, 33, 0.45);
+  }
+
+  .setting-modal__content {
+    position: relative;
+    z-index: 1;
+    width: min(640px, 92vw);
+    background: #fff;
+    border-radius: 16px;
+    border: 1px solid var(--line);
+    padding: 20px;
+    display: grid;
+    gap: 16px;
+    box-shadow: 0 18px 40px rgba(15, 35, 48, 0.2);
+  }
+
+  .setting-modal__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .setting-modal__body {
+    display: grid;
+    gap: 12px;
+  }
+
+  .setting-section {
+    display: grid;
+    gap: 6px;
+  }
+
+  .setting-title {
+    font-weight: 600;
   }
 
   .review-card {

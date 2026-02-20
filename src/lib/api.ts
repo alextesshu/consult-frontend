@@ -143,6 +143,8 @@ export type PublicTherapistProfile = {
   video_url?: string
   rating_avg?: string | number | null
   review_count?: number
+  platform_setting_text?: string
+  setting_text?: string
 }
 
 export async function uploadProfilePhoto(file: File): Promise<TherapistProfile> {
