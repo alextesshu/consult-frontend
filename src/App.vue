@@ -102,6 +102,14 @@ watchEffect(() => {
 const roles = computed(() => auth.me?.user.roles ?? [])
 const isTherapist = computed(() => roles.value.includes('THERAPIST'))
 const isClient = computed(() => roles.value.includes('CLIENT'))
+watchEffect(() => {
+  const path = route.path || ''
+  const role =
+    isTherapist.value && (path.startsWith('/cabinet') || path.startsWith('/public'))
+      ? 'therapist'
+      : 'client'
+  document.documentElement.setAttribute('data-role', role)
+})
 const cabinetRoute = computed(() => {
   if (isTherapist.value) return '/cabinet'
   if (isClient.value) return '/client'
@@ -463,22 +471,22 @@ loadUpcomingReadAt()
   gap: 20px;
   position: relative;
   z-index: 10;
-  background: rgba(15, 27, 43, 0.32);
+  background: var(--topbar-bg);
   backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-  color: #f1f6f9;
+  border-bottom: 1px solid var(--topbar-border);
+  color: var(--topbar-text);
   width: 100%;
   padding: 12px 24px;
 }
 
 .topbar--therapist {
-  background: linear-gradient(120deg, rgba(9, 36, 52, 0.82), rgba(19, 60, 82, 0.7));
-  border-bottom-color: rgba(145, 190, 212, 0.28);
+  background: var(--topbar-bg);
+  border-bottom-color: var(--topbar-border);
 }
 
 .topbar--client {
-  background: linear-gradient(120deg, rgba(42, 24, 56, 0.82), rgba(86, 41, 85, 0.7));
-  border-bottom-color: rgba(227, 176, 219, 0.28);
+  background: var(--topbar-bg);
+  border-bottom-color: var(--topbar-border);
 }
 
 .topbar--overlay {
@@ -505,7 +513,7 @@ loadUpcomingReadAt()
   font-size: 12px;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: rgba(241, 246, 249, 0.7);
+  color: color-mix(in srgb, var(--topbar-text) 70%, transparent);
 }
 
 .topbar--overlay .brand {
@@ -531,7 +539,7 @@ loadUpcomingReadAt()
   padding: 8px 12px;
   border-radius: 999px;
   border: 1px solid transparent;
-  color: #f1f6f9;
+  color: var(--topbar-text);
 }
 
 .nav a.icon-btn {
@@ -539,8 +547,8 @@ loadUpcomingReadAt()
 }
 
 .nav a.router-link-active {
-  border-color: rgba(255, 255, 255, 0.4);
-  background: rgba(255, 255, 255, 0.18);
+  border-color: color-mix(in srgb, var(--topbar-text) 40%, transparent);
+  background: color-mix(in srgb, var(--topbar-text) 18%, transparent);
 }
 
 .nav__notifications {
@@ -554,9 +562,9 @@ loadUpcomingReadAt()
   display: grid;
   place-items: center;
   border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.25);
-  color: #f1f6f9;
-  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid color-mix(in srgb, var(--topbar-text) 25%, transparent);
+  color: var(--topbar-text);
+  background: color-mix(in srgb, var(--topbar-text) 8%, transparent);
   cursor: pointer;
   transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
@@ -568,8 +576,8 @@ loadUpcomingReadAt()
 
 .icon-btn:hover,
 .icon-btn:focus-visible {
-  border-color: rgba(255, 255, 255, 0.55);
-  background: rgba(255, 255, 255, 0.16);
+  border-color: color-mix(in srgb, var(--topbar-text) 55%, transparent);
+  background: color-mix(in srgb, var(--topbar-text) 16%, transparent);
   box-shadow: 0 8px 16px rgba(12, 26, 36, 0.22);
 }
 
@@ -595,7 +603,7 @@ loadUpcomingReadAt()
   width: 280px;
   background: #fff;
   color: var(--ink);
-  border: 1px solid rgba(47, 63, 73, 0.2);
+  border: 1px solid var(--border);
   border-radius: 14px;
   box-shadow: 0 18px 32px rgba(16, 33, 50, 0.16);
   padding: 12px;
@@ -608,7 +616,7 @@ loadUpcomingReadAt()
 }
 
 .notif-panel .muted {
-  color: rgba(47, 63, 73, 0.7);
+  color: var(--muted);
 }
 
 .notif-list {
@@ -624,20 +632,20 @@ loadUpcomingReadAt()
   color: inherit;
   padding: 8px;
   border-radius: 10px;
-  background: rgba(7, 47, 71, 0.04);
+  background: color-mix(in srgb, var(--primary) 6%, transparent);
 }
 
 .notif-item:hover {
-  background: rgba(7, 47, 71, 0.08);
+  background: color-mix(in srgb, var(--primary) 10%, transparent);
 }
 
 .notif-item--read .notif-item__text {
-  color: rgba(47, 63, 73, 0.75);
+  color: color-mix(in srgb, var(--text) 75%, transparent);
   font-weight: 500;
 }
 
 .notif-item--read .notif-item__dot {
-  background: rgba(47, 63, 73, 0.35);
+  background: color-mix(in srgb, var(--text) 35%, transparent);
 }
 
 .notif-item__dot {
@@ -663,12 +671,12 @@ loadUpcomingReadAt()
 .notif-item__text {
   font-weight: 600;
   font-size: 13px;
-  color: #1f2a33;
+  color: var(--text);
 }
 
 .notif-item__hint {
   font-size: 12px;
-  color: rgba(47, 63, 73, 0.7);
+  color: var(--muted);
 }
 
 .main {
@@ -705,7 +713,7 @@ body.body--home .footer {
   justify-content: space-between;
   gap: 12px;
   padding-top: 12px;
-  border-top: 1px solid rgba(47, 63, 73, 0.12);
+  border-top: 1px solid var(--border);
   color: var(--muted);
   font-size: 12px;
   flex-wrap: wrap;
@@ -721,10 +729,10 @@ body.body--home .footer {
 .footer__link {
   color: inherit;
   text-decoration: underline;
-  text-decoration-color: rgba(47, 63, 73, 0.35);
+  text-decoration-color: color-mix(in srgb, var(--text) 35%, transparent);
 }
 
 .footer__link:hover {
-  text-decoration-color: rgba(47, 63, 73, 0.7);
+  text-decoration-color: color-mix(in srgb, var(--text) 70%, transparent);
 }
 </style>
