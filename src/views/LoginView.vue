@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <section class="auth">
     <div class="auth__card">
       <div class="badge">Вхід</div>

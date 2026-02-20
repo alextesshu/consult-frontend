@@ -1,4 +1,4 @@
-﻿import { http } from './http'
+import { http } from './http'
 
 type TokenResponse = {
   access: string
@@ -100,6 +100,9 @@ export type TherapistProfile = {
   experience_years: number
   price: string
   price_currency: string
+  intro_duration_minutes: number
+  intro_price: string
+  intro_price_currency: string
   contact_email: string
   contact_phone: string
   messenger: string
@@ -116,6 +119,7 @@ export type TherapistProfile = {
   show_whatsapp: boolean
   show_video: boolean
   show_price: boolean
+  show_intro_price: boolean
   show_location: boolean
   show_photo: boolean
 }
@@ -136,6 +140,9 @@ export type PublicTherapistProfile = {
   experience_years?: number
   price?: string
   price_currency?: string
+  intro_duration_minutes?: number
+  intro_price?: string
+  intro_price_currency?: string
   contact_email?: string
   contact_phone?: string
   messenger?: string

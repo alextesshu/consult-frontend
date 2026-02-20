@@ -35,6 +35,9 @@
               <span v-if="languageLabel(therapist.languages)">{{ languageLabel(therapist.languages) }}</span>
             </div>
             <div v-if="priceLabel(therapist)" class="therapist-price">{{ priceLabel(therapist) }}</div>
+            <div v-if="introPriceLabel(therapist)" class="therapist-price therapist-price--intro">
+              Ознайомча: {{ introPriceLabel(therapist) }}
+            </div>
           </div>
         </RouterLink>
       </div>
@@ -59,8 +62,15 @@ const languageLabel = (value?: string | string[]) => {
 const priceLabel = (therapist: PublicTherapistProfile) => {
   if (!therapist.price) return ''
   if (therapist.price_currency === 'USD') return `$${therapist.price}`
-  if (therapist.price_currency === 'EUR') return `€${therapist.price}`
-  return `${therapist.price} грн`
+  if (therapist.price_currency === 'EUR') return `\u20ac${therapist.price}`
+  return `${therapist.price} \u0433\u0440\u043d`
+}
+
+const introPriceLabel = (therapist: PublicTherapistProfile) => {
+  if (!therapist.intro_price) return ''
+  if (therapist.intro_price_currency === 'USD') return `$${therapist.intro_price}`
+  if (therapist.intro_price_currency === 'EUR') return `\u20ac${therapist.intro_price}`
+  return `${therapist.intro_price} \u0433\u0440\u043d`
 }
 
 const publicName = (therapist: PublicTherapistProfile) => {
@@ -181,6 +191,11 @@ onMounted(loadTherapists)
 
 .therapist-price {
   font-weight: 600;
+}
+
+.therapist-price--intro {
+  font-weight: 500;
+  color: #4c5d6b;
 }
 
 .form-error {

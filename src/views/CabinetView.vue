@@ -184,10 +184,18 @@ const accessLabel = computed(() => {
   if (state === 'OK') return 'Повний доступ'
   if (state === 'GRACE') return 'Пільговий період'
   if (state === 'RESTRICTED') return 'Обмежений режим'
+  if (state === 'SUSPENDED') return 'Призупинено'
   return state
 })
 
-const planLabel = computed(() => me.value?.effective_entitlements?.plan || 'Н/Д')
+const planLabel = computed(() => {
+  const plan = me.value?.effective_entitlements?.plan
+  if (plan === 'START') return 'Start'
+  if (plan === 'LITE') return 'Lite'
+  if (plan === 'PRACTICE') return 'Practice'
+  if (plan === 'MAXIMUM') return 'Maximum'
+  return plan || 'Н/Д'
+})
 
 const activeLimitLabel = computed(() => {
   const limit = me.value?.effective_entitlements?.active_client_limit
@@ -206,6 +214,7 @@ const accessHint = computed(() => {
   const state = me.value?.access_state
   if (state === 'GRACE') return 'Оплата потребує уваги. Доступ тимчасово збережено.'
   if (state === 'RESTRICTED') return 'Доступ лише для читання. Нові дії заблоковані.'
+  if (state === 'SUSPENDED') return 'Доступ призупинено адміністрацією.'
   if (showOverLimit.value) return 'Ліміт активних клієнтів перевищено.'
   return 'Все працює у штатному режимі.'
 })

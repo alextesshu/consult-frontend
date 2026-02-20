@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <section class="clients">
     <header class="clients__hero">
       <div>
@@ -97,7 +97,7 @@
                   <div class="history-status">{{ item.status }}</div>
                 </div>
                 <div class="history-note" v-if="item.note">{{ item.note }}</div>
-                <div class="muted" v-else>??????? ?? ?????.</div>
+                <div class="muted" v-else>Нотаток ще немає.</div>
               </div>
             </div>
           </div>
@@ -284,7 +284,7 @@ async function loadHistory(clientId: number) {
     }
     clientHistory.value = { ...clientHistory.value, [clientId]: history }
   } catch (err: any) {
-    error.value = getApiErrorMessage(err, '?? ??????? ??????????? ??????? ???????')
+    error.value = getApiErrorMessage(err, 'Не вдалося завантажити нотатки клієнта')
   } finally {
     setHistoryLoading(clientId, false)
   }

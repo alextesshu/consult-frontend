@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <section class="client">
     <header class="client__hero card">
       <div>
@@ -20,7 +20,7 @@
         </li>
         <li>
           <span class="tips-link">Забронювати слот</span>
-          <span class="muted">Натисніть “Записатися” у профілі терапевта.</span>
+          <span class="muted">Натисніть "Записатися" у профілі терапевта.</span>
         </li>
         <li>
           <span class="tips-link">Слідкувати за статусами</span>
@@ -32,7 +32,7 @@
     <div class="card">
       <div class="card__title">Обрані терапевти</div>
       <div v-if="selectedTherapistsWithSessions.length === 0" class="muted">
-        Ви ще не обрали терапевтів. Натисніть “Обрати терапевта”, щоб перейти в каталог.
+        Ви ще не обрали терапевтів. Натисніть "Обрати терапевта", щоб перейти в каталог.
       </div>
       <div
         v-else
@@ -64,6 +64,12 @@
               </span>
             </div>
             <div v-if="priceLabel(therapist)" class="therapist-price">{{ priceLabel(therapist) }}</div>
+            <div v-if="introPriceLabel(therapist)" class="therapist-price therapist-price--intro">
+              Ознайомча: {{ introPriceLabel(therapist) }}
+            </div>
+            <div v-if="introPriceLabel(therapist)" class="therapist-price therapist-price--intro">
+              Ознайомча: {{ introPriceLabel(therapist) }}
+            </div>
             <div class="therapist-sessions">
               <div>
                 <span class="session-label">Підтверджена:</span>
@@ -245,6 +251,8 @@ type SelectedTherapist = {
   languages?: string | string[]
   price?: string
   price_currency?: string
+  intro_price?: string
+  intro_price_currency?: string
   photo_url?: string
 }
 
@@ -497,6 +505,8 @@ async function hydrateTherapistProfiles() {
       languages: data.languages,
       price: data.price,
       price_currency: data.price_currency,
+      intro_price: data.intro_price,
+      intro_price_currency: data.intro_price_currency,
       photo_url: data.photo_url || '',
     })
   })
@@ -514,6 +524,8 @@ async function hydrateTherapistProfiles() {
       languages: fresh.languages ?? therapist.languages,
       price: fresh.price ?? therapist.price,
       price_currency: fresh.price_currency ?? therapist.price_currency,
+      intro_price: fresh.intro_price ?? therapist.intro_price,
+      intro_price_currency: fresh.intro_price_currency ?? therapist.intro_price_currency,
       photo_url: fresh.photo_url || '',
     }
     if (JSON.stringify(merged) !== JSON.stringify(therapist)) {
@@ -671,6 +683,11 @@ onMounted(async () => {
 
 .therapist-price {
   font-weight: 600;
+}
+
+.therapist-price--intro {
+  font-weight: 500;
+  color: #4c5d6b;
 }
 
 .therapist-actions {

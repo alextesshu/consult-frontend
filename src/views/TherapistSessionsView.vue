@@ -175,7 +175,7 @@
       <EmptyState
         v-else-if="rescheduleRequests.length === 0"
         title="Немає нових запитів"
-        description="Коли клієнти попросять перенести сесію — тут з’явиться запит."
+        description="Коли клієнти попросять перенести сесію — тут з'явиться запит."
       />
       <div v-else class="request-list">
         <article v-for="req in rescheduleRequests" :key="req.id" class="request-card">
@@ -228,7 +228,7 @@
       <EmptyState
         v-if="!loading && past.length === 0"
         title="Історія порожня"
-        description="Після завершених сесій тут з’явиться історія."
+        description="Після завершених сесій тут з'явиться історія."
       />
       <div v-else class="session-list">
         <article

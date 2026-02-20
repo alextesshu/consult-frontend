@@ -1,4 +1,4 @@
-﻿import { defineStore } from 'pinia'
+import { defineStore } from 'pinia'
 import { fetchMe, loginWithIdentifier, refreshToken, signupTherapist } from '../lib/api'
 
 type AuthUser = {
@@ -11,6 +11,7 @@ type AuthUser = {
 type Entitlements = {
   plan: string
   active_client_limit: number | null
+  pair_enabled: boolean
   group_room_enabled: boolean
   group_room_meeting_limit: number | null
   group_room_broadcast_enabled: boolean

@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <section class="profile">
     <header class="profile__hero">
       <div>
@@ -191,10 +191,48 @@
               </div>
             </label>
             <label class="field">
-              Ціна за одну консультацію
+              Ціна за одну стандартну консультацію
               <div class="field-row">
-              <input v-model="profile.price" class="input" type="text" placeholder="500" />
+              <input
+                v-model="profile.price"
+                class="input"
+                type="text"
+                inputmode="numeric"
+                pattern="^[0-9]*$"
+                placeholder="1000"
+                @input="onPriceInput"
+              />
               <select v-model="profile.price_currency" class="input input--select">
+                <option value="UAH">грн</option>
+                <option value="USD">$</option>
+                <option value="EUR">€</option>
+              </select>
+            </div>
+          </label>
+
+          <label class="field">
+            Ознайомча сесія (тривалість)
+            <select v-model.number="profile.intro_duration_minutes" class="input input--select">
+              <option :value="15">15 хв</option>
+              <option :value="30">30 хв</option>
+              <option :value="45">45 хв</option>
+              <option :value="60">60 хв</option>
+            </select>
+          </label>
+
+          <label class="field">
+            Вартість ознайомчої сесії
+            <div class="field-row">
+              <input
+                v-model="profile.intro_price"
+                class="input"
+                type="text"
+                inputmode="numeric"
+                pattern="^[0-9]*$"
+                placeholder="0"
+                @input="onIntroPriceInput"
+              />
+              <select v-model="profile.intro_price_currency" class="input input--select">
                 <option value="UAH">грн</option>
                 <option value="USD">$</option>
                 <option value="EUR">€</option>
@@ -217,65 +255,90 @@
             <summary>Коротко про мене</summary>
             <label class="field">
               <div class="field-head">
-                <span>Текст</span>
+                <span>Коротко про вас</span>
                 <label class="inline-check">
                   <input v-model="profile.show_bio_about" type="checkbox" />
                   Показувати
                 </label>
               </div>
-              <textarea v-model="profile.bio_about" class="input" rows="4"></textarea>
+              <textarea
+                v-model="profile.bio_about"
+                class="input"
+                rows="4"
+                placeholder="2-3 речення про вас як терапевта."
+              ></textarea>
             </label>
           </details>
           <details class="details">
             <summary>Як проходить консультація</summary>
             <label class="field">
               <div class="field-head">
-                <span>Текст</span>
+                <span>Формат консультації</span>
                 <label class="inline-check">
                   <input v-model="profile.show_bio_work" type="checkbox" />
                   Показувати
                 </label>
               </div>
-              <textarea v-model="profile.bio_work" class="input" rows="4"></textarea>
+              <textarea
+                v-model="profile.bio_work"
+                class="input"
+                rows="4"
+                placeholder="Як проходить сесія, тривалість, формат."
+              ></textarea>
             </label>
           </details>
           <details class="details">
             <summary>Методи та підхід</summary>
             <label class="field">
               <div class="field-head">
-                <span>Текст</span>
+                <span>Методи та підхід</span>
                 <label class="inline-check">
                   <input v-model="profile.show_bio_approach" type="checkbox" />
                   Показувати
                 </label>
               </div>
-              <textarea v-model="profile.bio_approach" class="input" rows="4"></textarea>
+              <textarea
+                v-model="profile.bio_approach"
+                class="input"
+                rows="4"
+                placeholder="Ключові методи/підходи, з якими працюєте."
+              ></textarea>
             </label>
           </details>
           <details class="details">
             <summary>Запити, з якими я працюю</summary>
             <label class="field">
               <div class="field-head">
-                <span>Текст</span>
+                <span>Запити</span>
                 <label class="inline-check">
                   <input v-model="profile.show_bio_for_whom" type="checkbox" />
                   Показувати
                 </label>
               </div>
-              <textarea v-model="profile.bio_for_whom" class="input" rows="4"></textarea>
+              <textarea
+                v-model="profile.bio_for_whom"
+                class="input"
+                rows="4"
+                placeholder="З якими запитами працюєте."
+              ></textarea>
             </label>
           </details>
           <details class="details">
             <summary>Додаткова інформація</summary>
             <label class="field">
               <div class="field-head">
-                <span>Текст</span>
+                <span>Додатково</span>
                 <label class="inline-check">
                   <input v-model="profile.show_bio_other" type="checkbox" />
                   Показувати
                 </label>
               </div>
-              <textarea v-model="profile.bio_other" class="input" rows="4"></textarea>
+              <textarea
+                v-model="profile.bio_other"
+                class="input"
+                rows="4"
+                placeholder="Додаткова інформація, якщо потрібно."
+              ></textarea>
             </label>
           </details>
         </div>
@@ -361,6 +424,10 @@
           <label class="check">
             <input v-model="profile.show_price" type="checkbox" />
             Показувати ціну
+          </label>
+          <label class="check">
+            <input v-model="profile.show_intro_price" type="checkbox" />
+            Показувати ціну ознайомчої сесії
           </label>
           <label class="check">
             <input v-model="profile.show_location" type="checkbox" />
@@ -471,8 +538,17 @@
                   <div class="preview-title">
                     {{ profile.display_name || "Ваше публічне ім'я" }}
                   </div>
-                  <div v-if="profile.show_price && profile.price" class="preview-price">
-                    {{ priceDisplay }}
+                  <div class="preview-price-group">
+                    <div v-if="profile.show_price && profile.price" class="preview-price">
+                      {{ priceDisplay }}
+                    </div>
+                    <div
+                      v-if="profile.show_intro_price && profile.intro_price"
+                      class="preview-price preview-price--intro"
+                    >
+                      Ознайомча: {{ introPriceDisplay }}
+                      <span v-if="profile.intro_duration_minutes">· {{ profile.intro_duration_minutes }} хв</span>
+                    </div>
                   </div>
                 </div>
                 <div
@@ -795,6 +871,28 @@ function normalizeDecimal(value: string | number | null | undefined): string | n
   return text ? text : null
 }
 
+function sanitizeNumericInput(value: string): string {
+  return value.replace(/\D+/g, '')
+}
+
+function onPriceInput(event: Event) {
+  const target = event.target as HTMLInputElement
+  const next = sanitizeNumericInput(target.value)
+  profile.price = next
+  if (target.value !== next) {
+    target.value = next
+  }
+}
+
+function onIntroPriceInput(event: Event) {
+  const target = event.target as HTMLInputElement
+  const next = sanitizeNumericInput(target.value)
+  profile.intro_price = next
+  if (target.value !== next) {
+    target.value = next
+  }
+}
+
 function buildProfilePayload() {
   return {
     public_profile_enabled: profile.public_profile_enabled,
@@ -805,16 +903,19 @@ function buildProfilePayload() {
     bio_for_whom: profile.bio_for_whom,
     bio_other: profile.bio_other,
     show_bio_about: profile.show_bio_about,
-      show_bio_work: profile.show_bio_work,
-      show_bio_approach: profile.show_bio_approach,
-      show_bio_for_whom: profile.show_bio_for_whom,
-      show_bio_other: profile.show_bio_other,
-      experience_years: profile.experience_years,
-      specializations: specializationList.value,
+    show_bio_work: profile.show_bio_work,
+    show_bio_approach: profile.show_bio_approach,
+    show_bio_for_whom: profile.show_bio_for_whom,
+    show_bio_other: profile.show_bio_other,
+    experience_years: profile.experience_years,
+    specializations: specializationList.value,
     languages: languageList.value,
     location: profile.location,
     price: normalizeDecimal(profile.price),
     price_currency: profile.price_currency || 'UAH',
+    intro_duration_minutes: profile.intro_duration_minutes,
+    intro_price: normalizeDecimal(profile.intro_price),
+    intro_price_currency: profile.intro_price_currency || 'UAH',
     contact_email: profile.contact_email,
     contact_phone: profile.contact_phone,
     telegram: profile.telegram,
@@ -826,6 +927,7 @@ function buildProfilePayload() {
     show_viber: profile.show_viber,
     show_video: profile.show_video,
     show_price: profile.show_price,
+    show_intro_price: profile.show_intro_price,
     show_location: profile.show_location,
     show_photo: profile.show_photo,
   }
@@ -853,6 +955,9 @@ const profile = reactive<TherapistProfile>({
   experience_years: 0,
   price: '',
   price_currency: 'UAH',
+  intro_duration_minutes: 30,
+  intro_price: '',
+  intro_price_currency: 'UAH',
   contact_email: '',
   contact_phone: '',
   messenger: '',
@@ -869,6 +974,7 @@ const profile = reactive<TherapistProfile>({
   show_whatsapp: false,
   show_video: false,
   show_price: false,
+  show_intro_price: false,
   show_location: false,
   show_photo: false,
 })
@@ -885,6 +991,14 @@ const priceDisplay = computed(() => {
   if (currency === 'USD') return `$${profile.price}`
   if (currency === 'EUR') return `€${profile.price}`
   return `${profile.price} ${currency}`
+})
+const introPriceDisplay = computed(() => {
+  if (!profile.intro_price) return ''
+  const currency = profile.intro_price_currency || 'UAH'
+  if (currency === 'UAH') return `${profile.intro_price} грн`
+  if (currency === 'USD') return `$${profile.intro_price}`
+  if (currency === 'EUR') return `€${profile.intro_price}`
+  return `${profile.intro_price} ${currency}`
 })
 const hasAnyBioSection = computed(
   () =>
@@ -1046,6 +1160,9 @@ function normalizeProfile(data: TherapistProfile): TherapistProfile {
     experience_years: typeof data.experience_years === 'number' ? data.experience_years : 0,
     price: data.price || '',
     price_currency: data.price_currency || 'UAH',
+    intro_duration_minutes: typeof data.intro_duration_minutes === 'number' ? data.intro_duration_minutes : 30,
+    intro_price: data.intro_price || '',
+    intro_price_currency: data.intro_price_currency || 'UAH',
     contact_email: data.contact_email || '',
     contact_phone: data.contact_phone || '',
     messenger: data.messenger || '',
@@ -1057,6 +1174,7 @@ function normalizeProfile(data: TherapistProfile): TherapistProfile {
     show_telegram: data.show_telegram ?? false,
     show_viber: data.show_viber ?? false,
     show_whatsapp: data.show_whatsapp ?? false,
+    show_intro_price: data.show_intro_price ?? false,
   }
 }
 
@@ -1352,6 +1470,19 @@ onMounted(loadProfile)
   font-size: 13px;
   font-weight: 600;
   white-space: nowrap;
+}
+
+.preview-price-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.preview-price--intro {
+  background: rgba(20, 92, 140, 0.08);
+  border-style: dashed;
+  font-weight: 500;
 }
 
 .preview-tags {

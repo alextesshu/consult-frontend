@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <section class="home" ref="homeRef">
     <div
       class="scene-frame"

@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <section class="public">
     <header class="public__hero">
       <div>
@@ -48,6 +48,10 @@
             </div>
             <div class="profile-card__price" v-if="priceDisplay">
               {{ priceDisplay }}
+            </div>
+            <div class="profile-card__price" v-if="introPriceDisplay">
+              Ознайомча сесія: {{ introPriceDisplay }}
+              <span v-if="introDurationLabel">· {{ introDurationLabel }}</span>
             </div>
             <div class="profile-card__contact">
               <div v-if="profile.contact_email">Ел. пошта: {{ profile.contact_email }}</div>
@@ -295,6 +299,22 @@ const priceDisplay = computed(() => {
   if (currency === 'USD') return `$${price}`
   if (currency === 'EUR') return `€${price}`
   return `${price} ${currency}`
+})
+
+const introPriceDisplay = computed(() => {
+  const price = profile.value?.intro_price
+  if (!price) return ''
+  const currency = profile.value?.intro_price_currency || 'UAH'
+  if (currency === 'UAH') return `${price} грн`
+  if (currency === 'USD') return `$${price}`
+  if (currency === 'EUR') return `€${price}`
+  return `${price} ${currency}`
+})
+
+const introDurationLabel = computed(() => {
+  const minutes = profile.value?.intro_duration_minutes
+  if (!minutes) return ''
+  return `${minutes} хв`
 })
 
 function formatPublicName(value?: string) {

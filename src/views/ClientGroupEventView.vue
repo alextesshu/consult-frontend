@@ -29,7 +29,7 @@
           <button class="btn" type="button" :disabled="event.state !== 'LIVE'">
             {{ event.state === 'LIVE' ? 'Приєднатись' : 'Очікуйте старт' }}
           </button>
-          <div class="muted">Кнопка входу зʼявиться, коли подія почнеться.</div>
+          <div class="muted">Кнопка входу з'явиться, коли подія почнеться.</div>
         </div>
 
         <div class="event-participants">

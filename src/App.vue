@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <div :class="['shell', { 'shell--home': isHome }]">
     <header v-if="!isHome" :class="topbarClass">
       <RouterLink class="brand" to="/">

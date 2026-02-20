@@ -4,7 +4,7 @@
       <div class="badge">Реєстрація</div>
       <h1 class="title auth__title">Створіть кабінет терапевта</h1>
       <p class="muted auth__subtitle">
-        Безкоштовний план активується одразу. Додавайте слоти та починайте роботу.
+        Стартовий план активується одразу. Додавайте слоти та починайте роботу.
       </p>
 
       <form class="form" @submit.prevent="onSubmit">
