@@ -15,6 +15,38 @@
     </header>
 
     <div v-if="me" class="cabinet__grid">
+      <section class="panel panel--wide panel--plan">
+        <div class="panel__header">
+          <div class="badge badge--soft">Ваш план</div>
+          <RouterLink
+            v-if="showUpgradeButton"
+            class="btn btn--ghost btn--sm"
+            to="/pricing"
+          >
+            Оновити план
+          </RouterLink>
+        </div>
+        <div class="plan-row">
+          <div class="plan-badges">
+            <span class="badge badge--outline">{{ planCodeLabel }}</span>
+            <span v-if="planCodeLabel === 'PRO'" class="badge badge--soft">Рекомендовано</span>
+          </div>
+          <div class="muted plan-hint">Підписка без комісій</div>
+        </div>
+        <div class="plan-metrics">
+          <div class="plan-metrics__line">
+            Активні клієнти: <strong>{{ activeClientsCount }}</strong> з
+            <strong>{{ activeClientLimitLabel }}</strong>
+          </div>
+          <div class="progress">
+            <div class="progress__bar" :style="{ width: `${progressPercent}%` }"></div>
+          </div>
+          <div v-if="isNearLimit" class="plan-warning">Ви наближаєтесь до ліміту плану</div>
+          <div v-if="showStartNudge" class="plan-nudge">
+            Переходьте на PRO для зростання практики
+          </div>
+        </div>
+      </section>
       <section class="panel panel--wide panel--tips">
         <div class="panel__header">
           <div class="badge badge--soft">Підказки</div>
@@ -191,11 +223,44 @@ const accessLabel = computed(() => {
 const planLabel = computed(() => {
   const plan = me.value?.effective_entitlements?.plan
   if (plan === 'START') return 'Start'
-  if (plan === 'LITE') return 'Lite'
-  if (plan === 'PRACTICE') return 'Practice'
-  if (plan === 'MAXIMUM') return 'Maximum'
+  if (plan === 'PRO') return 'Pro'
+  if (plan === 'LEADER') return 'Leader'
   return plan || 'Н/Д'
 })
+
+const PLAN_LIMITS: Record<string, number> = {
+  START: 3,
+  PRO: 20,
+  LEADER: Number.POSITIVE_INFINITY,
+}
+
+const planCodeLabel = computed(() => {
+  const raw = me.value?.effective_entitlements?.plan
+  // TODO: replace with real billing plan when backend is ready
+  return (raw && PLAN_LIMITS[raw] !== undefined ? raw : 'START') as keyof typeof PLAN_LIMITS
+})
+
+const activeClientsCount = computed(() => me.value?.counts?.active_clients ?? 0)
+
+const activeClientLimit = computed(() => PLAN_LIMITS[planCodeLabel.value] ?? 3)
+
+const activeClientLimitLabel = computed(() => {
+  return Number.isFinite(activeClientLimit.value) ? String(activeClientLimit.value) : '?'
+})
+
+const progressPercent = computed(() => {
+  if (!Number.isFinite(activeClientLimit.value) || activeClientLimit.value === 0) return 0
+  return Math.min(100, Math.round((activeClientsCount.value / activeClientLimit.value) * 100))
+})
+
+const isNearLimit = computed(() => {
+  if (!Number.isFinite(activeClientLimit.value) || activeClientLimit.value === 0) return false
+  return activeClientsCount.value / activeClientLimit.value >= 0.8
+})
+
+const showStartNudge = computed(() => planCodeLabel.value === 'START')
+
+const showUpgradeButton = computed(() => planCodeLabel.value !== 'LEADER')
 
 const activeLimitLabel = computed(() => {
   const limit = me.value?.effective_entitlements?.active_client_limit
@@ -362,6 +427,73 @@ function onLogout() {
 
 .panel--tips {
   background: rgba(7, 47, 71, 0.03);
+}
+
+.panel--plan {
+  display: grid;
+  gap: 12px;
+}
+
+.plan-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.plan-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.badge--outline {
+  border: 1px solid rgba(31, 74, 96, 0.25);
+  background: transparent;
+  color: var(--ink);
+}
+
+.plan-hint {
+  font-size: 13px;
+}
+
+.plan-metrics {
+  display: grid;
+  gap: 8px;
+}
+
+.plan-metrics__line {
+  font-size: 14px;
+}
+
+.progress {
+  width: 100%;
+  height: 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--primary) 15%, #ffffff);
+  overflow: hidden;
+}
+
+.progress__bar {
+  height: 100%;
+  border-radius: inherit;
+  background: color-mix(in srgb, var(--primary) 75%, #ffffff);
+}
+
+.plan-warning {
+  color: #8a6b2f;
+  font-size: 13px;
+}
+
+.plan-nudge {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.btn--sm {
+  padding: 6px 10px;
+  font-size: 12px;
+  border-radius: 10px;
 }
 
 .tips-list {

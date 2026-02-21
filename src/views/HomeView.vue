@@ -95,6 +95,70 @@
         </div>
         <RouterLink class="btn btn--ghost" to="/specialists">Перейти до каталогу</RouterLink>
       </div>
+
+      <div id="pricing" class="pricing">
+        <div class="pricing__header">
+          <div>
+            <h2 class="section-title">Тарифи</h2>
+            <p class="muted">Обирайте план під розмір практики. Без комісій — лише підписка.</p>
+          </div>
+          <div class="pricing__note">Оновлення плану в будь-який момент</div>
+        </div>
+
+        <div class="plan-grid">
+          <article
+            v-for="plan in pricingPlans"
+            :key="plan.code"
+            class="plan-card"
+            :class="{ 'plan-card--current': isCurrentPlan(plan.code) }"
+          >
+            <div class="plan-head">
+              <div>
+                <div class="plan-title">{{ plan.title }}</div>
+                <div v-if="plan.subtitle" class="plan-subtitle">{{ plan.subtitle }}</div>
+              </div>
+              <div class="plan-price">
+                <div class="plan-price__main">{{ plan.price }}</div>
+                <div v-if="plan.annual" class="plan-price__alt">
+                  {{ plan.annual }} <span class="plan-price__hint">{{ plan.annualHint }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="plan-badges">
+              <span class="badge badge--soft">{{ plan.badge }}</span>
+            </div>
+            <ul class="plan-list">
+              <li v-for="item in plan.features" :key="item">{{ item }}</li>
+            </ul>
+            <div class="plan-foot">
+              <div class="muted">{{ plan.note }}</div>
+              <div class="plan-action">
+                <button
+                  class="btn btn--ghost"
+                  type="button"
+                  :disabled="isAuthenticated && isCurrentPlan(plan.code)"
+                >
+                  {{ planActionLabel(plan.code) }}
+                </button>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <details class="plan-compare">
+          <summary>Порівняти плани</summary>
+          <div class="plan-compare__list">
+          <div>START: базовий робочий простір для старту практики.</div>
+          <div>PRO: основний план для розвитку практики.</div>
+          <div>LEADER: масштабування, публічні події та пріоритетна підтримка.</div>
+        </div>
+      </details>
+
+        <div class="pricing__disclaimer muted">
+          <div>Без комісій. Лише підписка.</div>
+          <div>Каталог — опційний. Спеціаліст з’являється там лише якщо зробить профіль публічним.</div>
+        </div>
+      </div>
     </div>
   </section>
 </template>
@@ -165,6 +229,73 @@ const benefits = [
   'Чат і повідомлення',
   'Доступи та плани',
 ]
+
+type PlanCode = 'START' | 'PRO' | 'LEADER'
+
+const pricingPlans = [
+  {
+    code: 'START',
+    title: 'Start',
+    subtitle: '',
+    price: '€0/міс',
+    annual: '',
+    annualHint: '',
+    badge: 'Для старту',
+    features: ['3 активні клієнти', '1:1 сесії', 'Слоти та бронювання', 'Базовий кабінет'],
+    note: 'Для старту та тестування.',
+  },
+  {
+    code: 'PRO',
+    title: 'Pro',
+    subtitle: '',
+    price: '€29 / місяць',
+    annual: 'або €290 / рік',
+    annualHint: '2 місяці безкоштовно',
+    badge: 'Рекомендовано',
+    features: [
+      '20 активних клієнтів',
+      '1:1 + парна терапія',
+      'Групові кімнати',
+      'Перенесення сесій та нагадування',
+      'Авторський журнал (Незабаром)',
+      'Розширена аналітика (Незабаром)',
+    ],
+    note: 'Для стабільної практики та зростання.',
+  },
+  {
+    code: 'LEADER',
+    title: 'Leader',
+    subtitle: '',
+    price: '€49 / місяць',
+    annual: 'або €490 / рік',
+    annualHint: '2 місяці безкоштовно',
+    badge: 'Масштабування',
+    features: [
+      'Безліміт активних клієнтів',
+      'Усе з PRO',
+      'Broadcast + публічні події',
+      'Пріоритетна підтримка',
+    ],
+    note: 'Для масштабування та публічних форматів.',
+  },
+] as const
+
+const currentPlan = computed<PlanCode | null>(() => {
+  const raw = auth.me?.effective_entitlements?.plan
+  if (!raw) return null
+  return ['START', 'PRO', 'LEADER'].includes(raw) ? (raw as PlanCode) : null
+})
+
+const isCurrentPlan = (code: PlanCode) => currentPlan.value === code
+
+const planActionLabel = (code: PlanCode) => {
+  if (!isAuthenticated.value) {
+    if (code === 'START') return 'Почати'
+    return 'Розширити практику'
+  }
+  if (isCurrentPlan(code)) return 'Поточний'
+  return 'Розширити практику'
+}
 </script>
 
 <style scoped>
@@ -346,12 +477,157 @@ const benefits = [
   color: var(--muted);
 }
 
+.pricing {
+  display: grid;
+  gap: 16px;
+}
+
+.pricing__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.pricing__note {
+  font-size: 13px;
+  color: var(--muted);
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(77, 122, 157, 0.12);
+}
+
+.plan-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.plan-card {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--card);
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: var(--shadow-1);
+}
+
+.plan-card--current {
+  background: var(--surface-2);
+  border-color: color-mix(in srgb, var(--primary) 30%, var(--border));
+}
+
+.plan-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.plan-title {
+  font-weight: 700;
+  font-size: 18px;
+}
+
+.plan-subtitle {
+  color: var(--muted);
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+.plan-price {
+  font-weight: 700;
+  font-size: 18px;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.plan-price__main {
+  font-weight: 700;
+}
+
+.plan-price__alt {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+.plan-price__hint {
+  color: #8a6b2f;
+  font-weight: 600;
+}
+
+.plan-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.badge--soft {
+  background: rgba(77, 122, 157, 0.12);
+  color: var(--ink);
+}
+
+.badge--outline {
+  border: 1px solid color-mix(in srgb, var(--primary) 35%, var(--border));
+  color: var(--ink);
+  background: transparent;
+}
+
+.plan-list {
+  display: grid;
+  gap: 8px;
+  padding-left: 16px;
+  margin: 0;
+  color: var(--muted);
+  flex: 1;
+}
+
+.plan-foot {
+  display: grid;
+  gap: 12px;
+}
+
+.plan-action .btn {
+  width: 100%;
+}
+
+.plan-compare {
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 12px 16px;
+  background: var(--surface-2);
+}
+
+.plan-compare summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.plan-compare__list {
+  display: grid;
+  gap: 6px;
+  margin-top: 10px;
+  color: var(--muted);
+}
+
+.pricing__disclaimer {
+  margin: 0;
+}
+
 @media (max-width: 980px) {
   .hero {
     grid-template-columns: 1fr;
   }
 
   .catalog {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .pricing__header {
     flex-direction: column;
     align-items: flex-start;
   }

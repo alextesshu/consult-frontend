@@ -123,6 +123,7 @@ const routes = [
   { path: '/specialists', name: 'public-therapists', component: PublicTherapistsView },
   { path: '/therapists', redirect: { name: 'public-therapists' } },
   { path: '/public/therapists', redirect: { name: 'public-therapists' } },
+  { path: '/pricing', redirect: '/#pricing' },
   { path: '/faq', name: 'faq', component: FaqView },
   { path: '/403', name: 'forbidden', component: ForbiddenView },
   { path: '/:pathMatch(.*)*', name: 'not-found', component: NotFoundView },

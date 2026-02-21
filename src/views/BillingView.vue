@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <section class="billing">
     <header class="billing__hero">
       <div>
@@ -26,7 +26,7 @@
           <strong>{{ activeLimitLabel }}</strong>
         </div>
         <div class="access-line">
-          <span class="access-label">Group Room:</span>
+          <span class="access-label">Групові кімнати:</span>
           <strong>{{ groupRoomLabel }}</strong>
         </div>
       </div>
@@ -55,11 +55,16 @@
             <div class="plan-title">{{ plan.title }}</div>
             <div class="plan-subtitle">{{ plan.subtitle }}</div>
           </div>
-          <div class="plan-price">{{ plan.price }}</div>
+          <div class="plan-price">
+            <div class="plan-price__main">{{ plan.price }}</div>
+            <div v-if="plan.annual" class="plan-price__alt">
+              {{ plan.annual }} <span class="plan-price__hint">{{ plan.annualHint }}</span>
+            </div>
+          </div>
         </div>
         <div class="plan-badges">
           <span v-if="isCurrentPlan(plan.code)" class="badge badge--soft">Поточний план</span>
-          <span v-else-if="isUpgradePlan(plan.code)" class="badge badge--outline">Апгрейд</span>
+          <span v-else-if="isUpgradePlan(plan.code)" class="badge badge--outline">Оновлення</span>
         </div>
         <ul class="plan-list">
           <li v-for="item in plan.features" :key="item">{{ item }}</li>
@@ -91,9 +96,9 @@ import { storeToRefs } from 'pinia'
 import { useAuthStore } from '../stores/auth'
 import { http } from '../lib/http'
 
-type PlanCode = 'START' | 'LITE' | 'PRACTICE' | 'MAXIMUM'
+type PlanCode = 'START' | 'PRO' | 'LEADER'
 
-const planOrder: PlanCode[] = ['START', 'LITE', 'PRACTICE', 'MAXIMUM']
+const planOrder: PlanCode[] = ['START', 'PRO', 'LEADER']
 
 const plans = [
   {
@@ -110,43 +115,36 @@ const plans = [
     note: 'Для старту та тестування.',
   },
   {
-    code: 'LITE',
-    title: 'Lite',
+    code: 'PRO',
+    title: 'Pro',
     subtitle: 'Стабільний ритм',
-    price: '€15/міс',
-    features: [
-      '8 активних клієнтів',
-      '1:1 сесії',
-      'Email-нагадування',
-      'Розширений профіль',
-    ],
-    note: 'Для регулярної індивідуальної практики.',
-  },
-  {
-    code: 'PRACTICE',
-    title: 'Practice',
-    subtitle: 'Повна практика',
-    price: '€25/міс',
+    price: '€29/місяць',
+    annual: 'або €290 / рік',
+    annualHint: '2 місяці безкоштовно',
     features: [
       '20 активних клієнтів',
       '1:1 + парна терапія',
-      'Необмежені групові кімнати',
-      'Супервізії / інтервізії',
+      'Групові кімнати',
+      'Перенесення та нагадування',
+      'Авторський журнал (Незабаром)',
+      'Розширена аналітика (Незабаром)',
     ],
-    note: 'Основний тариф для практики та груп.',
+    note: 'Основний тариф для росту практики.',
   },
   {
-    code: 'MAXIMUM',
-    title: 'Maximum',
+    code: 'LEADER',
+    title: 'Leader',
     subtitle: 'Масштабування',
-    price: '€40/міс',
+    price: '€49/місяць',
+    annual: 'або €490 / рік',
+    annualHint: '2 місяці безкоштовно',
     features: [
       'Безліміт активних клієнтів',
-      'Усе з Practice',
-      'Broadcast (трансляції)',
-      'Advanced analytics (план)',
+      'Усе з PRO',
+      'Broadcast + публічні події',
+      'Пріоритетна підтримка',
     ],
-    note: 'Для публічних подій та масштабування.',
+    note: 'Для команд і публічних форматів.',
   },
 ] as const
 
@@ -224,7 +222,7 @@ const nextPlan = computed<PlanCode | null>(() => {
 
 const upgradeButtonLabel = computed(() => {
   if (!nextPlan.value) return 'У вас максимальний план'
-  return `Запросити апгрейд до ${planTitle(nextPlan.value)}`
+  return `Розширити практику до ${planTitle(nextPlan.value)}`
 })
 
 const isRequesting = computed(() => Boolean(requestingPlan.value))
@@ -263,7 +261,7 @@ const activeLimitLabel = computed(() => {
 const groupRoomLabel = computed(() => {
   const enabled = me.value?.effective_entitlements?.group_room_enabled
   if (enabled === null || enabled === undefined) return 'Н/Д'
-  return enabled ? 'Доступний' : 'Недоступний'
+  return enabled ? 'Доступні' : 'Недоступні'
 })
 
 function planTitle(code: PlanCode) {
@@ -290,7 +288,7 @@ function canRequestPlan(code: string) {
 
 function planActionLabel(code: string) {
   if (isCurrentPlan(code)) return 'Поточний план'
-  if (isUpgradePlan(code)) return 'Запросити апгрейд'
+  if (isUpgradePlan(code)) return 'Розширити практику'
   if (isDowngradePlan(code)) return 'Нижчий план'
   return 'Недоступно'
 }
@@ -319,7 +317,7 @@ async function requestAccess(planCode: string) {
       requested_plan: target,
       note,
     })
-    requestStatus.value = `Запит на апгрейд до ${planTitle(target)} надіслано.`
+    requestStatus.value = `Запит на розширення до ${planTitle(target)} надіслано.`
   } catch (err: any) {
     requestStatus.value =
       err?.response?.data?.detail || 'Не вдалося надіслати запит.'
@@ -475,6 +473,23 @@ async function requestAccess(planCode: string) {
   font-weight: 600;
   color: var(--deep);
   white-space: nowrap;
+  text-align: right;
+  display: grid;
+  gap: 4px;
+}
+
+.plan-price__main {
+  font-size: 18px;
+}
+
+.plan-price__alt {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.plan-price__hint {
+  color: var(--primary);
+  font-weight: 600;
 }
 
 .plan-badges {
