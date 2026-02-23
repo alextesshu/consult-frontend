@@ -199,7 +199,8 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { getApiErrorMessage } from '../lib/errors'
-import { http } from '../lib/http'
+import { apiGet, apiPost } from '../lib/api'
+import { toLocalDate } from '../lib/dates'
 import {
   fetchPublicTherapistProfile,
   fetchPublicTherapistReviews,
@@ -416,11 +417,11 @@ async function loadSlots() {
   slotsLoading.value = true
   slotsError.value = ''
   try {
-    const dateFrom = selectedDate.value || toDateInputValue(new Date())
-    const resp = await http.get<PublicSlot[]>('/booking/slots/', {
+    const dateFrom = selectedDate.value || toLocalDate(new Date())
+    const resp = await apiGet<PublicSlot[]>('/booking/slots/', {
       params: { therapist_id: profile.value.therapist_id, date_from: dateFrom },
     })
-    slots.value = (resp.data || []).slice(0, 6)
+    slots.value = (resp || []).slice(0, 6)
   } catch {
     slots.value = []
     slotsError.value = 'Не вдалося завантажити віконця.'
@@ -453,10 +454,10 @@ async function loadReviews() {
 async function loadClientSessions() {
   if (!isAuthenticated.value || !isClient.value) return
   try {
-    const resp = await http.get<ClientSession[]>('/booking/sessions/', {
+    const resp = await apiGet<ClientSession[]>('/booking/sessions/', {
       params: { upcoming: true },
     })
-    clientSessions.value = resp.data || []
+    clientSessions.value = resp || []
   } catch {
     clientSessions.value = []
   }
@@ -476,7 +477,7 @@ async function bookSlot(slotId: number) {
   }
   bookingSlotId.value = slotId
   try {
-    await http.post('/booking/sessions/', { slot_id: slotId, setting_accepted: true })
+    await apiPost('/booking/sessions/', { slot_id: slotId, setting_accepted: true })
     bookingSuccess.value = 'Сесію заброньовано. Перевірте ваш кабінет.'
     toast.success(bookingSuccess.value)
     slots.value = slots.value.filter((slot) => slot.id !== slotId)

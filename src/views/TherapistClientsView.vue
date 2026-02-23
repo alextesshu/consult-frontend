@@ -109,7 +109,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import { http } from '../lib/http'
+import { apiGet, apiPatch } from '../lib/api'
 import { getApiErrorMessage } from '../lib/errors'
 
 type ClientState = {
@@ -210,8 +210,8 @@ async function loadClients() {
   loading.value = true
   error.value = ''
   try {
-    const resp = await http.get<ClientState[]>('/cabinet/clients/')
-    clients.value = resp.data || []
+    const resp = await apiGet<ClientState[]>('/cabinet/clients/')
+    clients.value = resp || []
   } catch (err: any) {
     error.value = getApiErrorMessage(err, '\u041d\u0435 \u0432\u0434\u0430\u043b\u043e\u0441\u044f \u0437\u0430\u0432\u0430\u043d\u0442\u0430\u0436\u0438\u0442\u0438 \u043a\u043b\u0456\u0454\u043d\u0442\u0456\u0432')
   } finally {
@@ -223,7 +223,7 @@ async function archiveClient(id: number) {
   setActionLoading(id, true)
   error.value = ''
   try {
-    await http.patch(`/cabinet/clients/${id}/archive/`)
+    await apiPatch(`/cabinet/clients/${id}/archive/`)
     await loadClients()
   } catch (err: any) {
     error.value = getApiErrorMessage(err, '\u041d\u0435 \u0432\u0434\u0430\u043b\u043e\u0441\u044f \u0430\u0440\u0445\u0456\u0432\u0443\u0432\u0430\u0442\u0438 \u043a\u043b\u0456\u0454\u043d\u0442\u0430')
@@ -236,7 +236,7 @@ async function restoreClient(id: number) {
   setActionLoading(id, true)
   error.value = ''
   try {
-    await http.patch(`/cabinet/clients/${id}/restore/`)
+    await apiPatch(`/cabinet/clients/${id}/restore/`)
     await loadClients()
   } catch (err: any) {
     error.value = getApiErrorMessage(err, '\u041d\u0435 \u0432\u0434\u0430\u043b\u043e\u0441\u044f \u0432\u0456\u0434\u043d\u043e\u0432\u0438\u0442\u0438 \u043a\u043b\u0456\u0454\u043d\u0442\u0430')
@@ -247,8 +247,8 @@ async function restoreClient(id: number) {
 
 async function loadSessionsIfNeeded() {
   if (sessionsCache.value) return sessionsCache.value
-  const resp = await http.get<SessionItem[]>('/booking/sessions/')
-  sessionsCache.value = resp.data || []
+  const resp = await apiGet<SessionItem[]>('/booking/sessions/')
+  sessionsCache.value = resp || []
   return sessionsCache.value
 }
 
@@ -266,8 +266,8 @@ async function loadHistory(clientId: number) {
     for (const session of items) {
       let note = ''
       try {
-        const resp = await http.get(`/cabinet/sessions/${session.id}/note/`)
-        note = resp.data?.content || ''
+        const resp = await apiGet(`/cabinet/sessions/${session.id}/note/`)
+        note = resp?.content || ''
       } catch (err: any) {
         if (err?.response?.status !== 404) {
           throw err

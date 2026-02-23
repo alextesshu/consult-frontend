@@ -125,6 +125,7 @@ Tokens are stored in localStorage and auto-refreshed via `/api/auth/token/refres
 - Public profile data is fetched from `/api/public/specialists/{slug}/` (legacy alias: `/api/public/therapists/{slug}/`).
 - Public-facing therapist name uses `First L.` format.
 - Keep files saved in UTF-8 to avoid broken Ukrainian text.
+- Backend interprets `date`, `date_from`, `date_to` filters as UTC day boundaries (send `YYYY-MM-DD` in UTC).
 - Billing upgrade requests call `POST /api/cabinet/billing/request-access/` with `requested_plan`.
 
 ## Next Focus

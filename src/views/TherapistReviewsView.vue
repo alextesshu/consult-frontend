@@ -145,7 +145,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue'
-import { http } from '../lib/http'
+import { apiGet, apiPatch } from '../lib/api'
 import { useToast } from '../composables/useToast'
 import { getApiErrorMessage } from '../lib/errors'
 import EmptyState from '../components/EmptyState.vue'
@@ -242,8 +242,8 @@ async function loadReviews() {
     const params: Record<string, string> = {}
     if (filters.status) params.status = filters.status
     if (filters.rating) params.rating = filters.rating
-    const resp = await http.get<Review[]>('/cabinet/reviews/', { params })
-    reviews.value = resp.data || []
+    const resp = await apiGet<Review[]>('/cabinet/reviews/', { params })
+    reviews.value = resp || []
     reviews.value.forEach((review) => {
       responseDrafts[review.id] = review.therapist_response || ''
     })
@@ -259,8 +259,8 @@ async function loadReviews() {
 async function updateStatus(review: Review, status: Review['status']) {
   setActionLoading(review.id, true)
   try {
-    const resp = await http.patch<Review>(`/cabinet/reviews/${review.id}/`, { status })
-    reviews.value = reviews.value.map((item) => (item.id === review.id ? resp.data : item))
+    const resp = await apiPatch<Review>(`/cabinet/reviews/${review.id}/`, { status })
+    reviews.value = reviews.value.map((item) => (item.id === review.id ? resp : item))
   } catch (err: any) {
     toast.error(getApiErrorMessage(err, 'Не вдалося оновити статус'))
   } finally {
@@ -271,10 +271,10 @@ async function updateStatus(review: Review, status: Review['status']) {
 async function saveResponse(review: Review) {
   setActionLoading(review.id, true)
   try {
-    const resp = await http.patch<Review>(`/cabinet/reviews/${review.id}/`, {
+    const resp = await apiPatch<Review>(`/cabinet/reviews/${review.id}/`, {
       therapist_response: responseDrafts[review.id] || '',
     })
-    reviews.value = reviews.value.map((item) => (item.id === review.id ? resp.data : item))
+    reviews.value = reviews.value.map((item) => (item.id === review.id ? resp : item))
   } catch (err: any) {
     toast.error(getApiErrorMessage(err, 'Не вдалося зберегти відповідь'))
   } finally {

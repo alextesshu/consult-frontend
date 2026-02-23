@@ -52,7 +52,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
-import { http } from '../lib/http'
+import { apiGet } from '../lib/api'
 
 type GroupParticipant = {
   id: number
@@ -131,8 +131,8 @@ async function loadEvent() {
   loading.value = true
   error.value = ''
   try {
-    const resp = await http.get<GroupEventView>(`/booking/group-events/${id}/`)
-    event.value = resp.data
+    const resp = await apiGet<GroupEventView>(`/booking/group-events/${id}/`)
+    event.value = resp
   } catch (err: any) {
     error.value = err?.response?.data?.detail || 'Не вдалося завантажити подію'
   } finally {

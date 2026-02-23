@@ -45,7 +45,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
-import { http } from '../lib/http'
+import { apiPost } from '../lib/api'
 
 const route = useRoute()
 const router = useRouter()
@@ -95,9 +95,11 @@ async function acceptInvite() {
   loading.value = true
   error.value = ''
   try {
-    const resp = await http.post(`/group-invites/${token.value}/join/`)
+    const resp = await apiPost<{ event?: typeof eventInfo.value }>(
+      `/group-invites/${token.value}/join/`
+    )
     joined.value = true
-    eventInfo.value = resp.data?.event || null
+    eventInfo.value = resp?.event || null
   } catch (err: any) {
     const code = err?.response?.data?.code
     if (code === 'EVENT_CANCELLED') {

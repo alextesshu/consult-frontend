@@ -94,7 +94,7 @@
 import { computed, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useAuthStore } from '../stores/auth'
-import { http } from '../lib/http'
+import { apiPost } from '../lib/api'
 
 type PlanCode = 'START' | 'PRO' | 'LEADER'
 
@@ -313,7 +313,7 @@ async function requestAccess(planCode: string) {
   persistRequestState()
   try {
     const note = currentPlan.value ? `upgrade_from:${currentPlan.value}` : undefined
-    await http.post('/cabinet/billing/request-access/', {
+    await apiPost('/cabinet/billing/request-access/', {
       requested_plan: target,
       note,
     })

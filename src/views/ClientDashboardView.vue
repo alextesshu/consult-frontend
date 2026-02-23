@@ -223,7 +223,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { fetchPublicTherapistProfile } from '../lib/api'
-import { http } from '../lib/http'
+import { apiGet } from '../lib/api'
 
 type Slot = {
   start_at: string
@@ -372,11 +372,11 @@ async function loadSessions() {
   sessionsError.value = ''
   try {
     const [upcomingResp, pastResp] = await Promise.all([
-      http.get<Session[]>('/booking/sessions/', { params: { upcoming: true } }),
-      http.get<Session[]>('/booking/sessions/', { params: { upcoming: false } }),
+      apiGet<Session[]>('/booking/sessions/', { params: { upcoming: true } }),
+      apiGet<Session[]>('/booking/sessions/', { params: { upcoming: false } }),
     ])
-    upcoming.value = upcomingResp.data
-    past.value = pastResp.data
+    upcoming.value = upcomingResp
+    past.value = pastResp
   } catch {
     sessionsError.value = 'Не вдалося завантажити сесії.'
   } finally {
@@ -388,8 +388,8 @@ async function loadGroupEvents() {
   groupEventsLoading.value = true
   groupEventsError.value = ''
   try {
-    const resp = await http.get<GroupEvent[]>('/booking/group-events/')
-    groupEvents.value = resp.data || []
+    const resp = await apiGet<GroupEvent[]>('/booking/group-events/')
+    groupEvents.value = resp || []
   } catch {
     groupEvents.value = []
     groupEventsError.value = 'Не вдалося завантажити групові події.'

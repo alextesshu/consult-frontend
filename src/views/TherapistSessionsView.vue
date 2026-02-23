@@ -295,7 +295,7 @@
 <script setup lang="ts">
 import { computed, onMounted, onBeforeUnmount, ref, watch, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
-import { http } from '../lib/http'
+import { apiGet, apiPatch, apiPut } from '../lib/api'
 import { getApiErrorMessage } from '../lib/errors'
 import LoadingSkeleton from '../components/LoadingSkeleton.vue'
 import EmptyState from '../components/EmptyState.vue'
@@ -479,11 +479,11 @@ async function loadSessions() {
   error.value = ''
   try {
     const [upcomingResp, pastResp] = await Promise.all([
-      http.get<Session[]>('/booking/sessions/', { params: { upcoming: true } }),
-      http.get<Session[]>('/booking/sessions/', { params: { upcoming: false } }),
+      apiGet<Session[]>('/booking/sessions/', { params: { upcoming: true } }),
+      apiGet<Session[]>('/booking/sessions/', { params: { upcoming: false } }),
     ])
-    upcoming.value = upcomingResp.data || []
-    past.value = pastResp.data || []
+    upcoming.value = upcomingResp || []
+    past.value = pastResp || []
   } catch (err: any) {
     error.value = getApiErrorMessage(err, '\u041d\u0435 \u0432\u0434\u0430\u043b\u043e\u0441\u044f \u0437\u0430\u0432\u0430\u043d\u0442\u0430\u0436\u0438\u0442\u0438 \u0441\u0435\u0441\u0456\u0457')
   } finally {
@@ -502,9 +502,9 @@ async function loadTherapistProfilePhoto() {
 
 async function loadSlots() {
   try {
-    const resp = await http.get<Slot[]>('/cabinet/slots/')
+    const resp = await apiGet<Slot[]>('/cabinet/slots/')
     const now = Date.now()
-    availableSlots.value = (resp.data || []).filter((slot) => {
+    availableSlots.value = (resp || []).filter((slot) => {
       const start = new Date(slot.start_at).getTime()
       return !slot.is_booked && !Number.isNaN(start) && start > now
     })
@@ -557,7 +557,7 @@ async function confirmSession(id: number) {
   setActionLoading(id, true)
   error.value = ''
   try {
-    await http.patch(`/booking/sessions/${id}/confirm/`)
+    await apiPatch(`/booking/sessions/${id}/confirm/`)
     await loadSessions()
   } catch (err: any) {
     error.value = err?.response?.data?.detail || 'Не вдалося підтвердити сесію'
@@ -570,7 +570,7 @@ async function completeSession(id: number) {
   setActionLoading(id, true)
   error.value = ''
   try {
-    await http.patch(`/booking/sessions/${id}/complete/`)
+    await apiPatch(`/booking/sessions/${id}/complete/`)
     await loadSessions()
   } catch (err: any) {
     error.value = err?.response?.data?.detail || 'Не вдалося завершити сесію'
@@ -583,7 +583,7 @@ async function cancelSession(id: number) {
   setActionLoading(id, true)
   error.value = ''
   try {
-    await http.patch(`/booking/sessions/${id}/cancel/`)
+    await apiPatch(`/booking/sessions/${id}/cancel/`)
     await loadSessions()
   } catch (err: any) {
     error.value = err?.response?.data?.detail || 'Не вдалося скасувати сесію'
@@ -611,7 +611,7 @@ async function submitReschedule(id: number) {
   setActionLoading(id, true)
   error.value = ''
   try {
-    await http.patch(`/booking/sessions/${id}/reschedule/`, {
+    await apiPatch(`/booking/sessions/${id}/reschedule/`, {
       slot_id: rescheduleSlotId.value,
     })
     closeReschedule()
@@ -628,8 +628,8 @@ async function loadNote(id: number) {
   setNoteLoading(id, true)
   error.value = ''
   try {
-    const resp = await http.get(`/cabinet/sessions/${id}/note/`)
-    noteDraft.value = resp.data?.content || ''
+    const resp = await apiGet(`/cabinet/sessions/${id}/note/`)
+    noteDraft.value = resp?.content || ''
   } catch (err: any) {
     if (err?.response?.status === 404) {
       noteDraft.value = ''
@@ -645,7 +645,7 @@ async function saveNote(id: number) {
   setNoteSaving(id, true)
   error.value = ''
   try {
-    await http.put(`/cabinet/sessions/${id}/note/`, { content: noteDraft.value })
+    await apiPut(`/cabinet/sessions/${id}/note/`, { content: noteDraft.value })
   } catch (err: any) {
     error.value = err?.response?.data?.detail || 'Не вдалося погодити запит'
   } finally {
@@ -671,10 +671,10 @@ function closeNote() {
 async function loadRescheduleRequests() {
   requestsLoading.value = true
   try {
-    const resp = await http.get<RescheduleRequest[]>(
+    const resp = await apiGet<RescheduleRequest[]>(
       '/cabinet/sessions/reschedule-requests/'
     )
-    rescheduleRequests.value = resp.data || []
+    rescheduleRequests.value = resp || []
   } catch {
     rescheduleRequests.value = []
   } finally {
@@ -686,7 +686,7 @@ async function approveRequest(id: number) {
   setRequestLoading(id, true)
   error.value = ''
   try {
-    await http.patch(`/cabinet/sessions/reschedule-requests/${id}/approve/`)
+    await apiPatch(`/cabinet/sessions/reschedule-requests/${id}/approve/`)
     await Promise.all([loadSessions(), loadSlots(), loadRescheduleRequests(), loadTherapistProfilePhoto()])
   } catch (err: any) {
     error.value = err?.response?.data?.detail || 'Не вдалося погодити запит'
@@ -699,7 +699,7 @@ async function declineRequest(id: number) {
   setRequestLoading(id, true)
   error.value = ''
   try {
-    await http.patch(`/cabinet/sessions/reschedule-requests/${id}/decline/`)
+    await apiPatch(`/cabinet/sessions/reschedule-requests/${id}/decline/`)
     await loadRescheduleRequests()
   } catch (err: any) {
     error.value = err?.response?.data?.detail || 'Не вдалося відхилити запит'

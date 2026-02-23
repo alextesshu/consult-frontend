@@ -261,7 +261,7 @@
 
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref } from 'vue'
-import { http } from '../lib/http'
+import { apiDelete, apiGet, apiPatch, apiPost } from '../lib/api'
 import { getApiErrorMessage } from '../lib/errors'
 import { useToast } from '../composables/useToast'
 
@@ -493,8 +493,8 @@ async function loadSlots() {
   loading.value = true
   error.value = ''
   try {
-    const resp = await http.get<Slot[]>('/cabinet/slots/')
-    slots.value = resp.data || []
+    const resp = await apiGet<Slot[]>('/cabinet/slots/')
+    slots.value = resp || []
   } catch (err: any) {
     error.value = getApiErrorMessage(err, '\u041d\u0435 \u0432\u0434\u0430\u043b\u043e\u0441\u044f \u0437\u0430\u0432\u0430\u043d\u0442\u0430\u0436\u0438\u0442\u0438 \u0441\u043b\u043e\u0442\u0438')
   } finally {
@@ -517,8 +517,8 @@ async function createSlot() {
       start_at: startAt.toISOString(),
       end_at: endAt.toISOString(),
     }
-    const resp = await http.post<Slot>('/cabinet/slots/', payload)
-    slots.value = [...slots.value, resp.data]
+    const resp = await apiPost<Slot>('/cabinet/slots/', payload)
+    slots.value = [...slots.value, resp]
     newStartDate.value = ''
     newStartTime.value = ''
     newDuration.value = 50
@@ -535,7 +535,7 @@ async function fillDay() {
   loading.value = true
   error.value = ''
   try {
-    await http.post('/cabinet/slots/fill-day/', {
+    await apiPost('/cabinet/slots/fill-day/', {
       date: fillDayDate.value,
     })
     await loadSlots()
@@ -551,7 +551,7 @@ async function fillWeek() {
   loading.value = true
   error.value = ''
   try {
-    await http.post('/cabinet/slots/fill-week/', {
+    await apiPost('/cabinet/slots/fill-week/', {
       date: fillWeekDate.value,
     })
     await loadSlots()
@@ -615,8 +615,8 @@ async function saveEdit(slotId: number) {
       start_at: startAt.toISOString(),
       end_at: endAt.toISOString(),
     }
-    const resp = await http.patch<Slot>(`/cabinet/slots/${slotId}/`, payload)
-    slots.value = slots.value.map((slot) => (slot.id === slotId ? resp.data : slot))
+    const resp = await apiPatch<Slot>(`/cabinet/slots/${slotId}/`, payload)
+    slots.value = slots.value.map((slot) => (slot.id === slotId ? resp : slot))
     cancelEdit()
   } catch (err: any) {
     const raw = normalizeError(err)
@@ -642,7 +642,7 @@ async function deleteSlot(slotId: number) {
   loading.value = true
   error.value = ''
   try {
-    await http.delete(`/cabinet/slots/${slotId}/`)
+    await apiDelete(`/cabinet/slots/${slotId}/`)
     slots.value = slots.value.filter((slot) => slot.id !== slotId)
   } catch (err: any) {
     error.value = err?.response?.data?.detail || 'Не вдалося видалити віконце'

@@ -1,4 +1,5 @@
 import { http } from './http'
+import type { AxiosRequestConfig } from 'axios'
 
 type TokenResponse = {
   access: string
@@ -291,5 +292,42 @@ export async function sendChatMessage(threadId: number, body: string): Promise<C
 
 export async function fetchChatUnreadCount(): Promise<{ unread_count: number }> {
   const resp = await http.get<{ unread_count: number }>('/chat/unread-count/')
+  return resp.data
+}
+
+export async function apiGet<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
+  const resp = await http.get<T>(url, config)
+  return resp.data
+}
+
+export async function apiPost<T>(
+  url: string,
+  data?: unknown,
+  config?: AxiosRequestConfig
+): Promise<T> {
+  const resp = await http.post<T>(url, data, config)
+  return resp.data
+}
+
+export async function apiPatch<T>(
+  url: string,
+  data?: unknown,
+  config?: AxiosRequestConfig
+): Promise<T> {
+  const resp = await http.patch<T>(url, data, config)
+  return resp.data
+}
+
+export async function apiPut<T>(
+  url: string,
+  data?: unknown,
+  config?: AxiosRequestConfig
+): Promise<T> {
+  const resp = await http.put<T>(url, data, config)
+  return resp.data
+}
+
+export async function apiDelete<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
+  const resp = await http.delete<T>(url, config)
   return resp.data
 }

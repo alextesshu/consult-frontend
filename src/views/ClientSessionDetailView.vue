@@ -128,7 +128,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { http } from '../lib/http'
+import { apiGet, apiPatch, apiPost } from '../lib/api'
 import { getApiErrorMessage } from '../lib/errors'
 import { useToast } from '../composables/useToast'
 import { createSessionReview } from '../lib/api'
@@ -236,8 +236,8 @@ async function loadSession() {
   loading.value = true
   error.value = ''
   try {
-    const resp = await http.get<SessionDetail>(`/booking/sessions/${sessionId.value}/`)
-    session.value = resp.data
+    const resp = await apiGet<SessionDetail>(`/booking/sessions/${sessionId.value}/`)
+    session.value = resp
   } catch (err: any) {
     error.value = getApiErrorMessage(err, '\u041d\u0435 \u0432\u0434\u0430\u043b\u043e\u0441\u044f \u0437\u0430\u0432\u0430\u043d\u0442\u0430\u0436\u0438\u0442\u0438 \u0441\u0435\u0441\u0456\u044e')
   } finally {
@@ -249,10 +249,10 @@ async function loadSlots() {
   if (!session.value) return
   slotsLoading.value = true
   try {
-    const resp = await http.get<PublicSlot[]>('/booking/slots/', {
+    const resp = await apiGet<PublicSlot[]>('/booking/slots/', {
       params: { therapist_id: session.value.therapist, date_from: new Date().toISOString().slice(0, 10) },
     })
-    availableSlots.value = (resp.data || []).filter((slot) => slot.id)
+    availableSlots.value = (resp || []).filter((slot) => slot.id)
   } catch {
     availableSlots.value = []
   } finally {
@@ -265,7 +265,7 @@ async function cancelSession() {
   actionLoading.value = true
   error.value = ''
   try {
-    await http.patch(`/booking/sessions/${session.value.id}/cancel/`)
+    await apiPatch(`/booking/sessions/${session.value.id}/cancel/`)
     await loadSession()
   } catch (err: any) {
     error.value = err?.response?.data?.detail || 'Не вдалося скасувати сесію'
@@ -279,8 +279,8 @@ async function rescheduleTo(slotId: number) {
   actionLoading.value = true
   error.value = ''
   try {
-    await http.post('/booking/sessions/', { slot_id: slotId })
-    await http.patch(`/booking/sessions/${session.value.id}/cancel/`)
+    await apiPost('/booking/sessions/', { slot_id: slotId })
+    await apiPatch(`/booking/sessions/${session.value.id}/cancel/`)
     await loadSession()
     router.push('/client')
   } catch (err: any) {
@@ -295,7 +295,7 @@ async function requestReschedule(slotId: number) {
   actionLoading.value = true
   error.value = ''
   try {
-    await http.post(`/booking/sessions/${session.value.id}/reschedule-request/`, {
+    await apiPost(`/booking/sessions/${session.value.id}/reschedule-request/`, {
       slot_id: slotId,
     })
     router.push('/client')

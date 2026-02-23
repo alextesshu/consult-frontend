@@ -426,7 +426,7 @@
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useAuthStore } from '../stores/auth'
-import { http } from '../lib/http'
+import { apiDelete, apiGet, apiPatch, apiPost } from '../lib/api'
 import { useToast } from '../composables/useToast'
 
 type GroupEvent = {
@@ -694,8 +694,8 @@ async function loadEvents() {
   loading.value = true
   error.value = ''
   try {
-    const resp = await http.get<GroupEvent[]>('/cabinet/group-events/')
-    events.value = resp.data || []
+    const resp = await apiGet<GroupEvent[]>('/cabinet/group-events/')
+    events.value = resp || []
   } catch (err: any) {
     error.value = err?.response?.data?.detail || 'Не вдалося завантажити події'
   } finally {
@@ -707,8 +707,8 @@ async function createDraft(mode: GroupEvent['mode']) {
   createLoading.value = true
   error.value = ''
   try {
-    const resp = await http.post<GroupEvent>('/cabinet/group-events/', { mode })
-    events.value = [resp.data, ...events.value]
+    const resp = await apiPost<GroupEvent>('/cabinet/group-events/', { mode })
+    events.value = [resp, ...events.value]
   } catch (err: any) {
     const data = err?.response?.data
     error.value = data?.detail || data?.code || 'Не вдалося створити подію'
@@ -735,14 +735,14 @@ async function createEvent(schedule: boolean) {
     if (createForm.technical_cap) {
       payload.technical_cap = Number(createForm.technical_cap)
     }
-    const resp = await http.post<GroupEvent>('/cabinet/group-events/', payload)
-    let created = resp.data
+    const resp = await apiPost<GroupEvent>('/cabinet/group-events/', payload)
+    let created = resp
     if (schedule) {
       if (!created.starts_at || !created.ends_at) {
         error.value = 'Для запланування потрібні початок та завершення.'
       } else {
-        const scheduled = await http.patch<GroupEvent>(`/cabinet/group-events/${created.id}/schedule/`)
-        created = scheduled.data
+        const scheduled = await apiPatch<GroupEvent>(`/cabinet/group-events/${created.id}/schedule/`)
+        created = scheduled
       }
     }
     events.value = [created, ...events.value]
@@ -757,7 +757,7 @@ async function deleteDraft(event: GroupEvent) {
   setActionLoading(event.id, true)
   error.value = ''
   try {
-    await http.delete(`/cabinet/group-events/${event.id}/`)
+    await apiDelete(`/cabinet/group-events/${event.id}/`)
     events.value = events.value.filter((item) => item.id !== event.id)
   } catch (err: any) {
     const data = err?.response?.data
@@ -771,8 +771,8 @@ async function scheduleEvent(event: GroupEvent) {
   setActionLoading(event.id, true)
   error.value = ''
   try {
-    const resp = await http.patch<GroupEvent>(`/cabinet/group-events/${event.id}/schedule/`)
-    updateEvent(resp.data)
+    const resp = await apiPatch<GroupEvent>(`/cabinet/group-events/${event.id}/schedule/`)
+    updateEvent(resp)
   } catch (err: any) {
     error.value = extractError(err, 'Не вдалося запланувати подію')
   } finally {
@@ -784,8 +784,8 @@ async function startEvent(event: GroupEvent) {
   setActionLoading(event.id, true)
   error.value = ''
   try {
-    const resp = await http.patch<GroupEvent>(`/cabinet/group-events/${event.id}/start/`)
-    updateEvent(resp.data)
+    const resp = await apiPatch<GroupEvent>(`/cabinet/group-events/${event.id}/start/`)
+    updateEvent(resp)
   } catch (err: any) {
     error.value = extractError(err, 'Не вдалося розпочати подію')
   } finally {
@@ -797,8 +797,8 @@ async function completeEvent(event: GroupEvent) {
   setActionLoading(event.id, true)
   error.value = ''
   try {
-    const resp = await http.patch<GroupEvent>(`/cabinet/group-events/${event.id}/complete/`)
-    updateEvent(resp.data)
+    const resp = await apiPatch<GroupEvent>(`/cabinet/group-events/${event.id}/complete/`)
+    updateEvent(resp)
   } catch (err: any) {
     error.value = extractError(err, 'Не вдалося завершити подію')
   } finally {
@@ -810,8 +810,8 @@ async function cancelEvent(event: GroupEvent) {
   setActionLoading(event.id, true)
   error.value = ''
   try {
-    const resp = await http.patch<GroupEvent>(`/cabinet/group-events/${event.id}/cancel/`)
-    updateEvent(resp.data)
+    const resp = await apiPatch<GroupEvent>(`/cabinet/group-events/${event.id}/cancel/`)
+    updateEvent(resp)
   } catch (err: any) {
     error.value = extractError(err, 'Не вдалося скасувати подію')
   } finally {
@@ -838,10 +838,10 @@ async function loadParticipantView(eventId: number) {
   setParticipantViewLoading(eventId, true)
   participantFormHint.value = ''
   try {
-    const resp = await http.get<GroupParticipant[]>(`/cabinet/group-events/${eventId}/participants/`)
+    const resp = await apiGet<GroupParticipant[]>(`/cabinet/group-events/${eventId}/participants/`)
     participantViews.value = {
       ...participantViews.value,
-      [eventId]: resp.data || [],
+      [eventId]: resp || [],
     }
     if (!participantFilters.value[eventId]) {
       participantFilters.value = {
@@ -874,7 +874,7 @@ async function addParticipant(event: GroupEvent) {
     } else {
       payload.user_username = userKey
     }
-    await http.post<GroupParticipant>(`/cabinet/group-events/${event.id}/participants/`, {
+    await apiPost<GroupParticipant>(`/cabinet/group-events/${event.id}/participants/`, {
       ...payload,
     })
     participantForm.userKey = ''
@@ -891,7 +891,7 @@ async function addParticipant(event: GroupEvent) {
 async function removeParticipant(event: GroupEvent, participant: GroupParticipant) {
   setActionLoading(event.id, true)
   try {
-    await http.delete(`/cabinet/group-events/${event.id}/participants/${participant.id}/`)
+    await apiDelete(`/cabinet/group-events/${event.id}/participants/${participant.id}/`)
     await loadParticipantView(event.id)
   } catch (err: any) {
     error.value = extractError(err, 'Не вдалося видалити учасника')
@@ -904,14 +904,14 @@ async function updateParticipantRole(event: GroupEvent, participant: GroupPartic
   if (participant.role === role) return
   setActionLoading(event.id, true)
   try {
-    const resp = await http.patch<GroupParticipant>(
+    const resp = await apiPatch<GroupParticipant>(
       `/cabinet/group-events/${event.id}/participants/${participant.id}/role/`,
       { role }
     )
     const current = participantViews.value[event.id]
     if (current) {
       const updated = current.map((item) =>
-        item.id === participant.id ? { ...item, role: resp.data.role } : item
+        item.id === participant.id ? { ...item, role: resp.role } : item
       )
       participantViews.value = { ...participantViews.value, [event.id]: updated }
     }
@@ -926,14 +926,14 @@ async function updateParticipantStatus(event: GroupEvent, participant: GroupPart
   if (participant.invite_status === invite_status) return
   setActionLoading(event.id, true)
   try {
-    const resp = await http.patch<GroupParticipant>(
+    const resp = await apiPatch<GroupParticipant>(
       `/cabinet/group-events/${event.id}/participants/${participant.id}/invite-status/`,
       { invite_status }
     )
     const current = participantViews.value[event.id]
     if (current) {
       const updated = current.map((item) =>
-        item.id === participant.id ? { ...item, invite_status: resp.data.invite_status } : item
+        item.id === participant.id ? { ...item, invite_status: resp.invite_status } : item
       )
       participantViews.value = { ...participantViews.value, [event.id]: updated }
     }
@@ -947,8 +947,8 @@ async function updateParticipantStatus(event: GroupEvent, participant: GroupPart
 async function loadInvites(eventId: number) {
   setInviteLoading(eventId, true)
   try {
-    const resp = await http.get<GroupInvite[]>(`/cabinet/group-events/${eventId}/invites/`)
-    invitesByEvent.value = { ...invitesByEvent.value, [eventId]: resp.data || [] }
+    const resp = await apiGet<GroupInvite[]>(`/cabinet/group-events/${eventId}/invites/`)
+    invitesByEvent.value = { ...invitesByEvent.value, [eventId]: resp || [] }
   } catch (err: any) {
     error.value = extractError(err, 'Не вдалося завантажити запрошення')
   } finally {
@@ -979,8 +979,8 @@ async function createInvite(event: GroupEvent) {
     if (inviteForm.max_uses) {
       payload.max_uses = Number(inviteForm.max_uses)
     }
-    const resp = await http.post<GroupInvite>(`/cabinet/group-events/${event.id}/invites/`, payload)
-    const created = resp.data
+    const resp = await apiPost<GroupInvite & { email_sent?: boolean }>(`/cabinet/group-events/${event.id}/invites/`, payload)
+    const created = resp
     inviteForm.expires_at = ''
     inviteForm.max_uses = ''
     inviteForm.email = ''
@@ -991,7 +991,7 @@ async function createInvite(event: GroupEvent) {
     }
     await copyInvite(created.token)
     if (payload.email) {
-      const emailSent = (resp.data as any)?.email_sent
+      const emailSent = resp?.email_sent
       if (emailSent) {
         toast.success('Запрошення надіслано на email.')
       } else {
