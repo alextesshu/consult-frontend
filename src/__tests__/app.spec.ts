@@ -7,6 +7,8 @@ function renderWithProviders(initialPath = '/') {
   const routes = [
     { path: '/', component: { template: '<div>Home</div>' } },
     { path: '/login', component: { template: '<div>Login</div>' } },
+    { path: '/faq', component: { template: '<div>Faq</div>' } },
+    { path: '/:pathMatch(.*)*', redirect: '/' },
   ]
   const router = createRouter({
     history: createWebHistory(),

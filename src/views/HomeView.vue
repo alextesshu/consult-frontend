@@ -45,7 +45,7 @@
             </button>
           </div>
           <p class="panel__text">
-            {{ roleCards[activeRoleIndex].description }}
+            {{ roleCards[activeRoleIndex]?.description || '' }}
           </p>
         </div>
       </div>

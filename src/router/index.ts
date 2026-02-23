@@ -126,7 +126,7 @@ const routes = [
   { path: '/pricing', redirect: '/#pricing' },
   { path: '/faq', name: 'faq', component: FaqView },
   { path: '/403', name: 'forbidden', component: ForbiddenView },
-  { path: '/:pathMatch(.*)*', name: 'not-found', component: NotFoundView },
+  { path: '/:pathMatch(.*)*', redirect: '/' },
 ]
 
 const router = createRouter({
