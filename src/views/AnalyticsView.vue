@@ -60,6 +60,7 @@
             <div class="kpi-label">Дохід (оцінка)</div>
             <div class="kpi-value">{{ revenueLabel }}</div>
             <div class="muted">Середній чек: {{ averageRevenueLabel }}</div>
+            <div v-if="revenueEstimated" class="muted">Оцінка на основі ціни профілю.</div>
           </div>
           <div class="kpi-card">
             <div class="kpi-label">Групові події</div>
@@ -225,6 +226,16 @@ type ClientState = {
   state: 'ACTIVE' | 'INACTIVE' | 'ARCHIVED' | 'CREATED'
 }
 
+type AnalyticsSummary = {
+  currency: string
+  total_revenue: string
+  average_revenue: string
+  sessions_total: number
+  sessions_completed: number
+  sessions_cancelled: number
+  estimated: boolean
+}
+
 const auth = useAuthStore()
 const { me } = storeToRefs(auth)
 const loading = ref(true)
@@ -234,7 +245,10 @@ const events = ref<GroupEvent[]>([])
 const clients = ref<ClientState[]>([])
 const profilePrice = ref<number | null>(null)
 const introPrice = ref<number | null>(null)
-const priceCurrency = ref<string | null>(null)
+const revenueTotal = ref<number | null>(null)
+const averageRevenue = ref<number | null>(null)
+const revenueCurrency = ref<string>('UAH')
+const revenueEstimated = ref(false)
 const rangeDays = 90
 
 const plan = computed(() => me.value?.effective_entitlements?.plan || 'START')
@@ -292,23 +306,8 @@ const priceConfigured = computed(() => profilePrice.value !== null || introPrice
 const inactiveClients = computed(() => clients.value.filter((c) => c.state === 'INACTIVE').length)
 const archivedClients = computed(() => clients.value.filter((c) => c.state === 'ARCHIVED').length)
 
-const revenueTotal = computed(() => {
-  let total = 0
-  const price = profilePrice.value ?? 0
-  const intro = introPrice.value ?? price
-  sessions.value
-    .filter((s) => s.status === 'COMPLETED')
-    .forEach((s) => {
-      total += s.is_intro ? intro : price
-    })
-  return total
-})
-
 const revenueLabel = computed(() => formatCurrency(revenueTotal.value))
-const averageRevenueLabel = computed(() => {
-  if (!completedSessions.value) return '—'
-  return formatCurrency(revenueTotal.value / completedSessions.value)
-})
+const averageRevenueLabel = computed(() => formatCurrency(averageRevenue.value))
 
 const totalEvents = computed(() => events.value.length)
 const upcomingEvents = computed(() => events.value.filter((e) => e.state === 'SCHEDULED' || e.state === 'LIVE').length)
@@ -418,12 +417,11 @@ const heatmapRows = computed(() => {
   }))
 })
 
-function formatCurrency(value: number) {
+function formatCurrency(value: number | null) {
   if (!value) return '—'
-  const currency = priceCurrency.value || 'UAH'
   return new Intl.NumberFormat('uk-UA', {
     style: 'currency',
-    currency,
+    currency: revenueCurrency.value || 'UAH',
     maximumFractionDigits: 0,
   }).format(value)
 }
@@ -441,11 +439,13 @@ async function loadData() {
       apiGet<GroupEvent[]>('/cabinet/group-events/'),
       apiGet<ClientState[]>('/cabinet/clients/'),
       fetchTherapistProfile(),
+      apiGet<AnalyticsSummary>('/cabinet/analytics/summary/', { params: range }),
     ])
     const sessionResp = results[0]
     const eventResp = results[1]
     const clientResp = results[2]
     const profileResp = results[3]
+    const summaryResp = results[4]
 
     if (sessionResp.status === 'fulfilled') {
       sessions.value = sessionResp.value || []
@@ -464,7 +464,12 @@ async function loadData() {
     if (profileResp.status === 'fulfilled') {
       profilePrice.value = profileResp.value?.price ? Number(profileResp.value.price) : null
       introPrice.value = profileResp.value?.intro_price ? Number(profileResp.value.intro_price) : null
-      priceCurrency.value = profileResp.value?.price_currency || null
+    }
+    if (summaryResp.status === 'fulfilled') {
+      revenueCurrency.value = summaryResp.value.currency || 'UAH'
+      revenueTotal.value = Number(summaryResp.value.total_revenue || 0)
+      averageRevenue.value = Number(summaryResp.value.average_revenue || 0)
+      revenueEstimated.value = Boolean(summaryResp.value.estimated)
     }
   } catch (err: any) {
     error.value = err?.message || 'Не вдалося завантажити аналітику.'
