@@ -331,6 +331,13 @@ const priceLabel = (therapist: SelectedTherapist) => {
   return `${therapist.price} грн`
 }
 
+const introPriceLabel = (therapist: SelectedTherapist) => {
+  if (!therapist.intro_price) return ''
+  if (therapist.intro_price_currency === 'USD') return `$${therapist.intro_price}`
+  if (therapist.intro_price_currency === 'EUR') return `€${therapist.intro_price}`
+  return `${therapist.intro_price} грн`
+}
+
 const sessionStartAt = (session: Session) => session.slot?.start_at || session.slot_start_at || null
 
 function nextSession(therapistId: number | undefined, status: string) {

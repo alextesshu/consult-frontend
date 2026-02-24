@@ -85,7 +85,7 @@
             Сесії
           </RouterLink>
           <RouterLink class="btn btn--ghost" to="/cabinet/analytics">
-            ??????????????????
+            Аналітика
           </RouterLink>
           <RouterLink class="btn btn--ghost" to="/cabinet/reviews">
             Відгуки

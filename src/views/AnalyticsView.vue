@@ -6,11 +6,48 @@
         <h1 class="title analytics__title">Пульс практики</h1>
         <p class="muted analytics__subtitle">
           Огляд сесій, клієнтів, доходу та групових подій. Дані оновлюються в межах
-          останніх {{ rangeDays }} днів.
+          останніх {{ rangeLabel }} днів.
         </p>
       </div>
       <RouterLink class="btn btn--ghost" to="/cabinet">Назад до кабінету</RouterLink>
     </header>
+
+    <section class="panel panel--wide analytics-filters">
+      <div class="filters-row">
+        <div class="filters-field">
+          <div class="field-label">Період</div>
+          <select v-model="rangePreset" class="input input--select" @change="applyPreset">
+            <option value="7">7 днів</option>
+            <option value="30">30 днів</option>
+            <option value="90">90 днів</option>
+            <option value="180">180 днів</option>
+            <option value="365">365 днів</option>
+            <option value="custom">Кастомний</option>
+          </select>
+        </div>
+        <div v-if="rangePreset === 'custom'" class="filters-field">
+          <div class="field-label">Від</div>
+          <input v-model="customFrom" type="date" class="input" />
+        </div>
+        <div v-if="rangePreset === 'custom'" class="filters-field">
+          <div class="field-label">До</div>
+          <input v-model="customTo" type="date" class="input" />
+        </div>
+        <div class="filters-actions">
+          <button class="btn btn--sm" type="button" :disabled="loading" @click="applyRange">
+            Застосувати
+          </button>
+          <button class="btn btn--ghost btn--sm" type="button" :disabled="loading" @click="resetRange">
+            Скинути
+          </button>
+        </div>
+      </div>
+      <div class="filters-actions">
+        <button class="btn btn--ghost btn--sm" type="button" @click="exportAnalyticsCsv">
+          Експорт CSV
+        </button>
+      </div>
+    </section>
 
     <div v-if="error" class="form-error">{{ error }}</div>
     <div v-if="loading" class="muted" style="margin-top: 12px;">Завантаження...</div>
@@ -37,7 +74,7 @@
             <div class="badge badge--soft">Огляд</div>
             <h2 class="panel__title">Ключові показники</h2>
           </div>
-          <div class="panel__meta">Останні {{ rangeDays }} днів</div>
+          <div class="panel__meta">Останні {{ rangeLabel }} днів</div>
         </div>
         <div class="kpi-grid">
           <div class="kpi-card">
@@ -60,7 +97,7 @@
             <div class="kpi-label">Дохід (оцінка)</div>
             <div class="kpi-value">{{ revenueLabel }}</div>
             <div class="muted">Середній чек: {{ averageRevenueLabel }}</div>
-            <div v-if="revenueEstimated" class="muted">Оцінка на основі ціни профілю.</div>
+            <div v-if="revenueEstimated" class="muted">Оцінка: є сесії без зафіксованої ціни.</div>
           </div>
           <div class="kpi-card">
             <div class="kpi-label">Групові події</div>
@@ -177,7 +214,7 @@
               ></span>
             </div>
           </div>
-          <div class="muted heatmap__hint">Відображає навантаження за останні {{ rangeDays }} днів.</div>
+          <div class="muted heatmap__hint">Відображає навантаження за останні {{ rangeLabel }} днів.</div>
         </div>
       </section>
 
@@ -212,6 +249,8 @@ type Session = {
   slot_start_at: string
   slot_end_at: string
   created_at: string
+  price_amount?: string | number | null
+  price_currency?: string | null
 }
 
 type GroupEvent = {
@@ -249,7 +288,20 @@ const revenueTotal = ref<number | null>(null)
 const averageRevenue = ref<number | null>(null)
 const revenueCurrency = ref<string>('UAH')
 const revenueEstimated = ref(false)
-const rangeDays = 90
+const rangeDays = ref(90)
+const rangePreset = ref<'7' | '30' | '90' | '180' | '365' | 'custom'>('90')
+const customFrom = ref('')
+const customTo = ref('')
+const rangeLabel = computed(() => {
+  if (rangePreset.value === 'custom') {
+    if (customFrom.value && customTo.value) {
+      return `${customFrom.value} – ${customTo.value}`
+    }
+    return 'кастомний період'
+  }
+  return `${rangeDays.value} днів`
+})
+const revenueCurrencyLabel = computed(() => revenueCurrency.value || 'UAH')
 
 const plan = computed(() => me.value?.effective_entitlements?.plan || 'START')
 const isLeader = computed(() => plan.value === 'LEADER')
@@ -282,7 +334,7 @@ const newClients = computed(() => {
     }
   })
   const cutoff = new Date()
-  cutoff.setDate(cutoff.getDate() - rangeDays)
+  cutoff.setDate(cutoff.getDate() - rangeDays.value)
   let count = 0
   byClient.forEach((first) => {
     if (new Date(first) >= cutoff) count += 1
@@ -376,13 +428,11 @@ const weeklySessions = computed(() => {
     const end = new Date(start)
     end.setDate(start.getDate() + 7)
     const label = `${start.getDate()}.${start.getMonth() + 1}`
-    const price = profilePrice.value ?? 0
-    const intro = introPrice.value ?? price
     const subset = sessions.value.filter((s) => {
       const dt = new Date(s.slot_start_at)
       return dt >= start && dt < end && s.status === 'COMPLETED'
     })
-    const revenue = subset.reduce((sum, s) => sum + (s.is_intro ? intro : price), 0)
+    const revenue = subset.reduce((sum, s) => sum + resolveSessionRevenue(s), 0)
     weeks.push({ label, count: subset.length, revenue })
   }
   const max = Math.max(...weeks.map((w) => w.count), 1)
@@ -421,19 +471,131 @@ function formatCurrency(value: number | null) {
   if (!value) return '—'
   return new Intl.NumberFormat('uk-UA', {
     style: 'currency',
-    currency: revenueCurrency.value || 'UAH',
+    currency: revenueCurrencyLabel.value,
     maximumFractionDigits: 0,
   }).format(value)
+}
+
+function resolveSessionRevenue(session: Session) {
+  if (session.price_amount !== null && session.price_amount !== undefined) {
+    return Number(session.price_amount) || 0
+  }
+  const price = profilePrice.value ?? 0
+  const intro = introPrice.value ?? price
+  return session.is_intro ? intro : price
+}
+
+function buildRangeParams() {
+  if (rangePreset.value === 'custom' && customFrom.value && customTo.value) {
+    return { date_from: customFrom.value, date_to: customTo.value }
+  }
+  const now = new Date()
+  const from = new Date()
+  from.setDate(now.getDate() - rangeDays.value)
+  return toUtcRange(from, now)
+}
+
+function applyPreset() {
+  if (rangePreset.value === 'custom') return
+  rangeDays.value = Number(rangePreset.value)
+  customFrom.value = ''
+  customTo.value = ''
+  loadData()
+}
+
+function applyRange() {
+  if (rangePreset.value !== 'custom') {
+    applyPreset()
+    return
+  }
+  if (!customFrom.value || !customTo.value) {
+    error.value = 'Оберіть період для фільтра.'
+    return
+  }
+  loadData()
+}
+
+function resetRange() {
+  rangePreset.value = '90'
+  rangeDays.value = 90
+  customFrom.value = ''
+  customTo.value = ''
+  loadData()
+}
+
+function escapeCsv(value: string | number | null | undefined) {
+  if (value === null || value === undefined) return ''
+  const raw = String(value)
+  if (/[",\n]/.test(raw)) {
+    return `"${raw.replace(/"/g, '""')}"`
+  }
+  return raw
+}
+
+function exportAnalyticsCsv() {
+  const lines: string[] = []
+  lines.push('Summary')
+  lines.push(`range,${escapeCsv(rangeLabel.value)}`)
+  lines.push(`sessions_total,${totalSessions.value}`)
+  lines.push(`sessions_completed,${completedSessions.value}`)
+  lines.push(`sessions_cancelled,${cancelledSessions.value}`)
+  lines.push(`active_clients,${activeClients.value}`)
+  lines.push(`revenue_total,${revenueTotal.value ?? ''}`)
+  lines.push(`revenue_currency,${escapeCsv(revenueCurrencyLabel.value)}`)
+  lines.push(`revenue_estimated,${revenueEstimated.value}`)
+  lines.push('')
+
+  lines.push('Sessions')
+  lines.push('id,slot_start_at,slot_end_at,status,is_intro,price_amount,price_currency,client')
+  sessions.value.forEach((session) => {
+    lines.push(
+      [
+        session.id,
+        session.slot_start_at,
+        session.slot_end_at,
+        session.status,
+        session.is_intro,
+        session.price_amount ?? '',
+        session.price_currency ?? '',
+        session.client,
+      ]
+        .map(escapeCsv)
+        .join(',')
+    )
+  })
+  lines.push('')
+
+  lines.push('Group events')
+  lines.push('id,state,starts_at,ends_at')
+  events.value.forEach((event) => {
+    lines.push(
+      [event.id, event.state, event.starts_at ?? '', event.ends_at ?? '']
+        .map(escapeCsv)
+        .join(',')
+    )
+  })
+  lines.push('')
+
+  lines.push('Clients')
+  lines.push('client,state')
+  clients.value.forEach((client) => {
+    lines.push([client.client, client.state].map(escapeCsv).join(','))
+  })
+
+  const blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = `analytics-${new Date().toISOString().slice(0, 10)}.csv`
+  link.click()
+  URL.revokeObjectURL(url)
 }
 
 async function loadData() {
   loading.value = true
   error.value = ''
   try {
-    const now = new Date()
-    const from = new Date()
-    from.setDate(now.getDate() - rangeDays)
-    const range = toUtcRange(from, now)
+    const range = buildRangeParams()
     const results = await Promise.allSettled([
       apiGet<Session[]>('/booking/sessions/', { params: range }),
       apiGet<GroupEvent[]>('/cabinet/group-events/'),
@@ -511,6 +673,34 @@ onMounted(() => {
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 16px;
   margin-top: 12px;
+}
+
+.analytics-filters {
+  margin-top: 12px;
+}
+
+.filters-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+
+.filters-field {
+  min-width: 160px;
+}
+
+.filters-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.field-label {
+  font-size: 12px;
+  color: #64748b;
+  margin-bottom: 4px;
 }
 
 .kpi-card {

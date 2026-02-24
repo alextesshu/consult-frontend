@@ -87,6 +87,19 @@
         </div>
 
         <div class="slot-filter">
+          <div class="slot-week">
+            <button
+              v-for="day in weekDays"
+              :key="day.date"
+              class="slot-day"
+              :class="{ 'slot-day--active': day.date === selectedDate }"
+              type="button"
+              @click="selectDay(day.date)"
+            >
+              <span class="slot-day__label">{{ day.label }}</span>
+              <span class="slot-day__date">{{ day.dateLabel }}</span>
+            </button>
+          </div>
           <label class="slot-filter__label" for="slotDate">Оберіть дату</label>
           <input
             id="slotDate"
@@ -123,7 +136,9 @@
 
         <div v-if="slotsLoading" class="muted">Завантаження віконець…</div>
         <div v-else-if="slotsError" class="form-error">{{ slotsError }}</div>
-        <div v-else-if="slots.length === 0" class="muted">Наразі вільних віконець немає.</div>
+        <div v-else-if="slots.length === 0" class="muted">
+          {{ noSlotsAvailable ? 'Наразі вільних віконець немає.' : 'На жаль, в цей день вільних віконець немає.' }}
+        </div>
           <div v-else class="slot-list">
           <div v-for="slot in slots" :key="slot.id" class="slot-card">
             <div>
@@ -235,6 +250,7 @@ const loading = ref(false)
 const slotsLoading = ref(false)
 const error = ref('')
 const slotsError = ref('')
+const noSlotsAvailable = ref(false)
 const bookingError = ref('')
 const bookingSuccess = ref('')
 const bookingSlotId = ref<number | null>(null)
@@ -281,6 +297,20 @@ const upcomingConfirmed = computed(() => {
     })
     .filter((item) => item.start_at && item.end_at)
     .sort((a, b) => new Date(a.start_at).getTime() - new Date(b.start_at).getTime())
+})
+
+const weekDays = computed(() => {
+  const base = new Date()
+  const days: Array<{ date: string; label: string; dateLabel: string }> = []
+  for (let i = 0; i < 10; i += 1) {
+    const d = new Date(base)
+    d.setDate(base.getDate() + i)
+    const date = toLocalDate(d)
+    const label = d.toLocaleDateString('uk-UA', { weekday: 'short' })
+    const dateLabel = d.toLocaleDateString('uk-UA', { day: '2-digit', month: '2-digit' })
+    days.push({ date, label, dateLabel })
+  }
+  return days
 })
 const platformSettingText = computed(() => profile.value?.platform_setting_text || '')
 const therapistSettingText = computed(() => profile.value?.setting_text || '')
@@ -393,6 +423,10 @@ function openDatePicker() {
   }
 }
 
+function selectDay(date: string) {
+  selectedDate.value = date
+}
+
 async function loadProfile() {
   if (!slug.value) {
     error.value = 'Потрібен slug профілю.'
@@ -416,12 +450,20 @@ async function loadSlots() {
   if (!profile.value?.therapist_id) return
   slotsLoading.value = true
   slotsError.value = ''
+  noSlotsAvailable.value = false
   try {
     const dateFrom = selectedDate.value || toLocalDate(new Date())
     const resp = await apiGet<PublicSlot[]>('/booking/slots/', {
-      params: { therapist_id: profile.value.therapist_id, date_from: dateFrom },
+      params: { therapist_id: profile.value.therapist_id, date: dateFrom },
     })
-    slots.value = (resp || []).slice(0, 6)
+    const list = resp || []
+    slots.value = list
+    if (!list.length) {
+      const anyResp = await apiGet<PublicSlot[]>('/booking/slots/', {
+        params: { therapist_id: profile.value.therapist_id },
+      })
+      noSlotsAvailable.value = !(anyResp && anyResp.length)
+    }
   } catch {
     slots.value = []
     slotsError.value = 'Не вдалося завантажити віконця.'
@@ -546,6 +588,7 @@ function saveViewedTherapist(data: PublicTherapistProfile) {
 watch(slug, () => {
   profile.value = null
   slots.value = []
+  selectedDate.value = toLocalDate(new Date())
   loadProfile().then(loadSlots)
   loadClientSessions()
 })
@@ -560,6 +603,9 @@ watch([isAuthenticated, isClient], () => {
 })
 
 onMounted(async () => {
+  if (!selectedDate.value) {
+    selectedDate.value = toLocalDate(new Date())
+  }
   await loadProfile()
   await loadSlots()
   await loadReviews()
@@ -620,6 +666,12 @@ onMounted(async () => {
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
+  margin-bottom: 12px;
+}
+
+.panel__header > div {
+  display: grid;
+  gap: 8px;
 }
 
 .panel__title {
@@ -635,6 +687,43 @@ onMounted(async () => {
   border-radius: 14px;
   border: 1px dashed rgba(47, 63, 73, 0.18);
   background: rgba(7, 47, 71, 0.03);
+}
+
+.slot-week {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.slot-day {
+  border: 1px solid var(--line);
+  background: #fff;
+  border-radius: 12px;
+  padding: 6px 10px;
+  display: grid;
+  gap: 2px;
+  min-width: 64px;
+  text-align: center;
+  cursor: pointer;
+  color: var(--ink);
+  font-weight: 400;
+}
+
+.slot-day__label {
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.slot-day__date {
+  font-size: 12px;
+}
+
+.slot-day--active {
+  border-color: color-mix(in srgb, var(--primary) 40%, var(--border));
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
 }
 
 .slot-filter__label {

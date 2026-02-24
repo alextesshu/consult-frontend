@@ -6,12 +6,17 @@
         <div class="brand__tagline">Простір для ведення консультацій</div>
       </RouterLink>
       <nav class="nav">
-        <RouterLink to="/#features">Функції</RouterLink>
-        <RouterLink to="/cabinet/billing">Тарифи</RouterLink>
-        <RouterLink to="/specialists">Каталог</RouterLink>
-        <RouterLink v-if="isTherapist" to="/public">Публічний профіль</RouterLink>
-        <RouterLink to="/faq">FAQ</RouterLink>
         <RouterLink v-if="isAuthenticated" :to="cabinetRoute">Кабінет</RouterLink>
+        <RouterLink to="/specialists">Каталог</RouterLink>
+        <RouterLink
+          v-if="isTherapist"
+          to="/public"
+          :class="{ 'nav-link--active': isPublicRoute }"
+        >
+          Публічний профіль
+        </RouterLink>
+        <RouterLink to="/faq">FAQ</RouterLink>
+        <RouterLink to="/cabinet/billing">Тарифи</RouterLink>
         <RouterLink v-if="!isAuthenticated" to="/login">Вхід</RouterLink>
         <RouterLink v-if="!isAuthenticated" to="/signup">Реєстрація</RouterLink>
         <RouterLink
@@ -72,7 +77,7 @@
     </header>
 
     <main :class="['main', { 'main--home': isHome }]">
-      <RouterView />
+      <RouterView :key="route.fullPath" />
     </main>
     <ToastHost />
 
@@ -118,6 +123,9 @@ const cabinetRoute = computed(() => {
   return '/login'
 })
 const chatRoute = computed(() => (isTherapist.value ? '/cabinet/chat' : '/client/chat'))
+const isPublicRoute = computed(
+  () => route.path.startsWith('/public') || route.path.startsWith('/t/')
+)
 
 const topbarClass = computed(() => [
   'topbar',
@@ -532,7 +540,7 @@ loadUpcomingReadAt()
 .nav {
   display: flex;
   gap: 12px;
-  font-weight: 500;
+  font-weight: 300;
   flex-wrap: wrap;
   justify-content: flex-end;
 }
@@ -542,6 +550,10 @@ loadUpcomingReadAt()
   border-radius: 999px;
   border: 1px solid transparent;
   color: var(--topbar-text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
 }
 
 .nav a.icon-btn {
@@ -549,6 +561,11 @@ loadUpcomingReadAt()
 }
 
 .nav a.router-link-active {
+  border-color: color-mix(in srgb, var(--topbar-text) 40%, transparent);
+  background: color-mix(in srgb, var(--topbar-text) 18%, transparent);
+}
+
+.nav :deep(a.nav-link--active) {
   border-color: color-mix(in srgb, var(--topbar-text) 40%, transparent);
   background: color-mix(in srgb, var(--topbar-text) 18%, transparent);
 }

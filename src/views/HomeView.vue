@@ -4,25 +4,15 @@
       <div class="hero">
         <div class="hero__content">
           <div class="eyebrow">Pro Consult</div>
-          <h1 class="hero__title">Pro Consult — Простір для ведення консультацій</h1>
+          <h1 class="hero__title">Pro Consult — Сервіс для ведення консультацій</h1>
           <p class="hero__subtitle">
             Розклад, клієнти, нотатки, запити та керування сесіями — все в одному робочому просторі.
             Публічний профіль і каталог доступні за бажанням.
           </p>
-          <div class="hero__actions">
-            <RouterLink v-if="!isAuthenticated" class="btn btn--primary" to="/signup">
-              Створити кабінет спеціаліста
-            </RouterLink>
-            <RouterLink v-if="!isAuthenticated" class="btn btn--ghost" to="/login">
-              Увійти
-            </RouterLink>
-            <button v-if="isAuthenticated" class="btn btn--primary" type="button" @click="goToCabinet">
-              Перейти в кабінет
-            </button>
-            <button v-if="isAuthenticated" class="btn btn--ghost" type="button" @click="onLogout">
-              Вийти
-            </button>
-          </div>
+          <p class="hero__slogan">
+            Ми організовуємо функціональний простір для безпечної та зручної взаємодії.
+            Рішення про співпрацю та вартість спеціаліст і клієнт приймають самостійно.
+          </p>
           <div class="hero__catalog">
             <RouterLink class="link" to="/specialists">Шукаєте спеціаліста? → Перейти до каталогу</RouterLink>
             <div class="hint">
@@ -47,6 +37,20 @@
           <p class="panel__text">
             {{ roleCards[activeRoleIndex]?.description || '' }}
           </p>
+          <div class="hero__panel-actions">
+            <RouterLink v-if="!isAuthenticated" class="btn btn--primary" to="/signup">
+              Створити кабінет спеціаліста
+            </RouterLink>
+            <RouterLink v-if="!isAuthenticated" class="btn btn--ghost" to="/login">
+              Увійти
+            </RouterLink>
+            <button v-if="isAuthenticated" class="btn btn--primary" type="button" @click="goToCabinet">
+              Перейти в кабінет
+            </button>
+            <button v-if="isAuthenticated" class="btn btn--ghost" type="button" @click="onLogout">
+              Вийти
+            </button>
+          </div>
         </div>
       </div>
 
@@ -206,15 +210,15 @@ const roleCards = [
     description: 'Налаштуйте власний розклад, ведіть клієнтів і керуйте сесіями у зручному темпі.',
   },
   {
-    title: 'Коуч / наставник',
+    title: 'Коучинг / Наставництво',
     description: 'Заплановані зустрічі, нотатки та історія роботи — все під рукою.',
   },
   {
-    title: 'Викладач',
+    title: 'Викладання уроків',
     description: 'Плануйте консультації, ведіть записи та залишайте відкритими лише потрібні слоти.',
   },
   {
-    title: 'Консультант',
+    title: 'Інші консультації',
     description: 'Структуруйте запити, плануйте навантаження та відстежуйте прогрес клієнтів.',
   },
 ]
@@ -301,6 +305,7 @@ const planActionLabel = (code: PlanCode) => {
 <style scoped>
 .home {
   padding: 32px 0 64px;
+  font-size: 14px;
 }
 
 .container {
@@ -326,7 +331,7 @@ const planActionLabel = (code: PlanCode) => {
 .eyebrow {
   text-transform: uppercase;
   letter-spacing: 0.24em;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--muted);
 }
 
@@ -334,6 +339,7 @@ const planActionLabel = (code: PlanCode) => {
   font-size: clamp(28px, 3.2vw, 44px);
   line-height: 1.1;
   margin: 0;
+  font-weight: 300;
 }
 
 .hero__subtitle {
@@ -342,11 +348,20 @@ const planActionLabel = (code: PlanCode) => {
   max-width: 560px;
 }
 
-.hero__actions {
+.hero__slogan {
+  margin: 0;
+  max-width: 560px;
+  color: var(--muted);
+  display: grid;
+  gap: 6px;
+}
+
+.hero__panel-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 10px;
   align-items: center;
+  margin-top: 12px;
 }
 
 .hero__catalog {
@@ -363,7 +378,7 @@ const planActionLabel = (code: PlanCode) => {
 
 .hint {
   color: var(--muted);
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .hero__panel {
@@ -392,7 +407,7 @@ const planActionLabel = (code: PlanCode) => {
   border: 1px solid var(--line);
   background: #fff;
   padding: 8px 14px;
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--ink);
 }
@@ -409,7 +424,8 @@ const planActionLabel = (code: PlanCode) => {
 
 .section-title {
   margin: 0;
-  font-size: 24px;
+  font-size: 18px;
+  font-weight: 400;
 }
 
 .benefits__grid {
@@ -420,7 +436,12 @@ const planActionLabel = (code: PlanCode) => {
 
 .benefit-card {
   padding: 16px;
-  font-weight: 600;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-height: 68px;
 }
 
 .how {
@@ -448,11 +469,11 @@ const planActionLabel = (code: PlanCode) => {
   color: var(--accent);
   display: grid;
   place-items: center;
-  font-weight: 700;
+  font-weight: 400;
 }
 
 .how-card__title {
-  font-weight: 700;
+  font-weight: 400;
 }
 
 .how-card__text {
@@ -462,7 +483,7 @@ const planActionLabel = (code: PlanCode) => {
 
 .how-card__note {
   margin: 0;
-  font-size: 13px;
+  font-size: 12px;
   color: var(--muted);
 }
 
@@ -490,7 +511,7 @@ const planActionLabel = (code: PlanCode) => {
 }
 
 .pricing__note {
-  font-size: 13px;
+  font-size: 12px;
   color: var(--muted);
   padding: 6px 12px;
   border-radius: 999px;

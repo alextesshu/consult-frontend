@@ -1,27 +1,27 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=Noto+Sans:wght@400;500;600&display=swap&subset=cyrillic,cyrillic-ext,latin');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600;700&display=swap&subset=cyrillic,cyrillic-ext,latin');
 @import 'vue-advanced-cropper/dist/style.css';
 
 :root {
   /* Core (shared) */
-  --bg: #f5f2ed;
+  --bg: #f6f2ec;
   --surface: #ffffff;
-  --surface-2: #fbfaf8;
-  --text: #2b2b2b;
-  --text-2: #6c6c6c;
-  --border: #e5dfd6;
+  --surface-2: #fbfaf7;
+  --text: #23323a;
+  --text-2: #5e6b73;
+  --border: #e3dbd1;
   --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.06);
   --shadow-2: 0 8px 20px rgba(0, 0, 0, 0.08);
   --radius: 18px;
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, "Noto Sans", "Liberation Sans", sans-serif;
-  --font-display: "Montserrat", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, "Noto Sans", "Liberation Sans", sans-serif;
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial, "Noto Sans", "Liberation Sans", sans-serif;
+  --font-display: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial, "Noto Sans", "Liberation Sans", sans-serif;
 
   /* Role defaults (client as baseline) */
-  --primary: #7a97ab;
-  --primary-hover: #68879d;
-  --primary-soft: #e9f0f4;
-  --primary-soft-2: #dfe9f0;
-  --accent: var(--primary-soft);
-  --accent-2: #b8ccd8;
+  --primary: #6aa5a9;
+  --primary-hover: #5a9498;
+  --primary-soft: #e0f0f0;
+  --primary-soft-2: #d3e7e7;
+  --accent: #7fb5c5;
+  --accent-2: #c4ddea;
 
   --success: #6d9a8c;
   --warning: #c6a75e;
@@ -38,37 +38,14 @@
   --shadow: var(--shadow-1);
 
   /* Topbar */
-  --topbar-bg: rgba(122, 151, 171, 0.85);
-  --topbar-border: rgba(122, 151, 171, 0.25);
-  --topbar-text: #f1f6f9;
+  --topbar-bg: rgba(106, 165, 169, 0.88);
+  --topbar-border: rgba(106, 165, 169, 0.25);
+  --topbar-text: #f3fbfb;
 }
 
-html[data-role="therapist"] {
-  --primary: #4f6f60;
-  --primary-hover: #3f5c50;
-  --primary-soft: #e2ece7;
-  --primary-soft-2: #d6e6df;
-  --accent: var(--primary-soft);
-  --accent-2: #cfe0d8;
-  --success: #5f8a73;
-  --warning: #c6a75e;
-  --danger: #a85b5b;
-  --topbar-bg: rgba(79, 111, 96, 0.9);
-  --topbar-border: rgba(79, 111, 96, 0.25);
-}
-
+html[data-role="therapist"],
 html[data-role="client"] {
-  --primary: #7a97ab;
-  --primary-hover: #68879d;
-  --primary-soft: #e9f0f4;
-  --primary-soft-2: #dfe9f0;
-  --accent: var(--primary-soft);
-  --accent-2: #b8ccd8;
-  --success: #6d9a8c;
-  --warning: #c6a75e;
-  --danger: #a85b5b;
-  --topbar-bg: rgba(122, 151, 171, 0.9);
-  --topbar-border: rgba(122, 151, 171, 0.25);
+  /* Unified palette: intentionally no per-role overrides */
 }
 
 * {
@@ -84,6 +61,7 @@ body {
   background: var(--bg);
   color: var(--ink);
   font-family: var(--font-sans);
+  font-weight: 200;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
 }
@@ -114,7 +92,7 @@ a {
 
 .brand {
   font-family: var(--font-display);
-  font-weight: 700;
+  font-weight: 400;
   font-size: 22px;
   letter-spacing: 0.2px;
   color: var(--ink);
@@ -123,7 +101,7 @@ a {
 .nav {
   display: flex;
   gap: 16px;
-  font-weight: 500;
+  font-weight: 300;
 }
 
 .nav a {
@@ -133,6 +111,11 @@ a {
   color: var(--ink);
 }
 .nav a.router-link-active {
+  border-color: rgba(110, 143, 153, 0.4);
+  background: rgba(110, 143, 153, 0.16);
+}
+
+.nav a.nav-link--active {
   border-color: rgba(110, 143, 153, 0.4);
   background: rgba(110, 143, 153, 0.16);
 }
@@ -158,6 +141,7 @@ a {
   font-size: 36px;
   line-height: 1.1;
   margin: 0 0 12px;
+  font-weight: 300;
 }
 
 .subtitle {
@@ -168,14 +152,31 @@ a {
 .badge {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   font-size: 12px;
+  line-height: 1;
+  white-space: nowrap;
   text-transform: uppercase;
   letter-spacing: 0.12em;
   color: var(--deep);
   background: color-mix(in srgb, var(--primary) 20%, transparent);
   border-radius: 999px;
   padding: 6px 10px;
+  font-weight: 300;
+  border: 1px solid color-mix(in srgb, var(--primary) 35%, transparent);
+}
+
+.badge + .title {
+  margin-top: 8px;
+}
+
+.badge + h1,
+.badge + h2,
+.badge + h3,
+.badge + .card__title,
+.badge + .panel__title {
+  margin-top: 8px;
 }
 
 .card {
@@ -185,6 +186,12 @@ a {
   padding: 24px;
   box-shadow: var(--shadow-1);
   color: var(--ink);
+}
+
+.card__title {
+  margin: 0 0 12px;
+  font-size: 18px;
+  font-weight: 400;
 }
 
 .muted {
@@ -263,7 +270,8 @@ input[type="time"]:focus::-webkit-datetime-edit {
   border: 1px solid color-mix(in srgb, var(--primary) 35%, var(--border));
   background: var(--primary);
   color: var(--surface);
-  font-weight: 600;
+  font-weight: 300;
+  text-align: center;
   cursor: pointer;
   line-height: 1.2;
   min-height: 40px;

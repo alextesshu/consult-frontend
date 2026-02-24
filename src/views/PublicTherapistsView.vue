@@ -2,7 +2,7 @@
   <section class="public-therapists">
     <header class="public-therapists__hero card">
       <div>
-        <div class="eyebrow">Публічний каталог</div>
+        <div class="badge badge--soft">Публічний каталог</div>
         <h1 class="title">Спеціалісти</h1>
         <p class="muted">Пошук та перегляд відкритих профілів.</p>
       </div>
@@ -356,13 +356,35 @@ onMounted(loadTherapists)
   align-items: center;
   justify-content: space-between;
   gap: 18px;
+  background: linear-gradient(135deg, rgba(8, 113, 201, 0.16), rgba(7, 47, 71, 0.06));
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: 22px 24px;
+  box-shadow: var(--shadow);
 }
 
-.eyebrow {
-  text-transform: uppercase;
-  letter-spacing: 0.16em;
-  font-size: 11px;
-  color: var(--muted);
+.public-therapists__hero > div {
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+}
+
+.public-therapists__hero .badge {
+  justify-self: start;
+}
+
+.public-therapists__hero .title {
+  margin: 0;
+}
+
+.public-therapists__hero .muted {
+  margin: 0;
+}
+
+.badge--soft {
+  background: color-mix(in srgb, var(--primary) 20%, transparent);
+  border: 1px solid color-mix(in srgb, var(--primary) 35%, transparent);
+  color: var(--deep);
 }
 
 .filters {
@@ -407,7 +429,7 @@ onMounted(loadTherapists)
   padding: 14px;
   display: grid;
   gap: 10px;
-  background: rgba(7, 47, 71, 0.04);
+  background: var(--surface);
   text-decoration: none;
   color: inherit;
   transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
