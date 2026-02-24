@@ -22,6 +22,7 @@ import NotFoundView from '../views/NotFoundView.vue'
 import ForbiddenView from '../views/ForbiddenView.vue'
 import ChatView from '../views/ChatView.vue'
 import AnalyticsView from '../views/AnalyticsView.vue'
+import ClientProfileView from '../views/ClientProfileView.vue'
 import { useAuthStore } from '../stores/auth'
 import { fetchTherapistProfile } from '../lib/api'
 
@@ -96,6 +97,12 @@ const routes = [
     path: '/client',
     name: 'client-dashboard',
     component: ClientDashboardView,
+    meta: { requiresAuth: true, requiresRole: 'CLIENT' },
+  },
+  {
+    path: '/client/profile',
+    name: 'client-profile',
+    component: ClientProfileView,
     meta: { requiresAuth: true, requiresRole: 'CLIENT' },
   },
   {

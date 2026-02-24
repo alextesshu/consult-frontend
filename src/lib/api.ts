@@ -190,6 +190,37 @@ export async function rotateTherapistProfileSlug(): Promise<TherapistProfile> {
   return resp.data
 }
 
+export type ClientProfile = {
+  id: number
+  display_name: string
+  contact_email: string
+  contact_phone: string
+  photo_url: string
+  created_at: string
+  updated_at: string
+}
+
+export async function fetchClientProfile(): Promise<ClientProfile> {
+  const resp = await http.get<ClientProfile>('/client/profile/')
+  return resp.data
+}
+
+export async function updateClientProfile(
+  payload: Partial<ClientProfile>
+): Promise<ClientProfile> {
+  const resp = await http.patch<ClientProfile>('/client/profile/', payload)
+  return resp.data
+}
+
+export async function uploadClientPhoto(file: File): Promise<ClientProfile> {
+  const formData = new FormData()
+  formData.append('file', file)
+  const resp = await http.post<ClientProfile>('/client/profile/upload-photo/', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  })
+  return resp.data
+}
+
 export async function fetchPublicTherapistProfile(
   slug: string
 ): Promise<PublicTherapistProfile> {

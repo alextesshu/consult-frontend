@@ -76,7 +76,13 @@
             <h2 class="panel__title">Найближчі дати</h2>
           </div>
           <div class="setting-bar" v-if="isAuthenticated && isClient">
-            <button class="btn btn--ghost btn--sm" type="button" @click="openSettingModal">
+            <button
+              class="btn btn--ghost btn--sm"
+              :class="{ 'btn--pulse': settingAttention }"
+              type="button"
+              ref="settingButtonRef"
+              @click="openSettingModal"
+            >
               Сетінг
             </button>
             <label class="setting-check">
@@ -147,9 +153,10 @@
             </div>
             <button
               class="btn btn--ghost"
+              :class="{ 'btn--disabled': isBookingDisabled(slot.id) }"
               type="button"
-              :disabled="!canBook || bookingSlotId === slot.id || !settingAccepted"
-              @click="bookSlot(slot.id)"
+              :aria-disabled="isBookingDisabled(slot.id)"
+              @click="handleBookingClick(slot.id)"
             >
               {{ bookingSlotId === slot.id ? 'Бронювання…' : 'Записатися' }}
             </button>
@@ -288,6 +295,9 @@ const showBookingModal = ref(false)
 const lastBookedSlot = ref<PublicSlot | null>(null)
 const settingAccepted = ref(false)
 const showSettingModal = ref(false)
+const settingAttention = ref(false)
+const settingButtonRef = ref<HTMLElement | null>(null)
+let settingAttentionTimer: number | null = null
 const clientSessions = ref<ClientSession[]>([])
 const reviews = ref<SessionReview[]>([])
 const reviewsLoading = ref(false)
@@ -303,6 +313,8 @@ const canManageProfile = computed(
   () => roles.value.includes('SPECIALIST') || roles.value.includes('THERAPIST')
 )
 const canBook = computed(() => isAuthenticated.value && isClient.value)
+const isBookingDisabled = (slotId: number) =>
+  !canBook.value || bookingSlotId.value === slotId || !settingAccepted.value
 const upcomingConfirmed = computed(() => {
   if (!profile.value) return []
   return clientSessions.value
@@ -535,6 +547,33 @@ async function loadClientSessions() {
   } catch {
     clientSessions.value = []
   }
+}
+
+function flashSettingButton() {
+  settingAttention.value = false
+  if (settingAttentionTimer) {
+    window.clearTimeout(settingAttentionTimer)
+  }
+  settingAttention.value = true
+  settingButtonRef.value?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  settingAttentionTimer = window.setTimeout(() => {
+    settingAttention.value = false
+    settingAttentionTimer = null
+  }, 900)
+}
+
+function handleBookingClick(slotId: number) {
+  if (!canBook.value) {
+    bookSlot(slotId)
+    return
+  }
+  if (bookingSlotId.value === slotId) return
+  if (!settingAccepted.value) {
+    bookingError.value = 'Погодьтеся з сетінгом перед бронюванням.'
+    flashSettingButton()
+    return
+  }
+  bookSlot(slotId)
 }
 
 async function bookSlot(slotId: number) {
@@ -988,6 +1027,36 @@ onMounted(async () => {
 
   .setting-check--modal {
     margin-top: 16px;
+  }
+
+  .btn--disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    pointer-events: auto;
+  }
+
+  .btn--disabled:hover {
+    transform: none;
+  }
+
+  .btn--pulse {
+    animation: pulse-attention 0.9s ease-in-out;
+    box-shadow: 0 0 0 0 rgba(42, 129, 168, 0.35);
+  }
+
+  @keyframes pulse-attention {
+    0% {
+      transform: scale(1);
+      box-shadow: 0 0 0 0 rgba(42, 129, 168, 0.35);
+    }
+    50% {
+      transform: scale(1.02);
+      box-shadow: 0 0 0 10px rgba(42, 129, 168, 0);
+    }
+    100% {
+      transform: scale(1);
+      box-shadow: 0 0 0 0 rgba(42, 129, 168, 0);
+    }
   }
 
   .setting-modal {

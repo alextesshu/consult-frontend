@@ -8,8 +8,21 @@
           Тут зібрані всі заплановані та минулі сесії. Для нового запису відкрийте профіль спеціаліста.
         </p>
       </div>
-      <RouterLink class="btn" to="/specialists">Обрати спеціаліста</RouterLink>
+      <div class="client-hero-actions">
+        <RouterLink class="btn" to="/specialists">Обрати спеціаліста</RouterLink>
+        <RouterLink class="btn btn--ghost" to="/client/profile">Мій профіль</RouterLink>
+      </div>
     </header>
+
+    <div class="card profile-card">
+      <div>
+        <div class="card__title">Профіль клієнта</div>
+        <p class="muted">
+          Додайте ім'я, контакти та фото, щоб спеціалістам було легше з вами працювати.
+        </p>
+      </div>
+      <RouterLink class="btn btn--ghost" to="/client/profile">Редагувати профіль</RouterLink>
+    </div>
 
     <div class="card priority-card">
       <div class="card__title">Найближча сесія</div>
@@ -645,12 +658,18 @@ onMounted(async () => {
   gap: 20px;
 }
 
-.client__hero {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 18px;
-}
+  .client__hero {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+  }
+
+  .client-hero-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
 
   .client__grid {
     display: grid;
@@ -658,10 +677,18 @@ onMounted(async () => {
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   }
 
-  .priority-card {
-    display: grid;
-    gap: 12px;
-  }
+.priority-card {
+  display: grid;
+  gap: 12px;
+}
+
+.profile-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
 
   .priority-body {
     display: flex;
