@@ -20,6 +20,7 @@ import FaqView from '../views/FaqView.vue'
 import NotFoundView from '../views/NotFoundView.vue'
 import ForbiddenView from '../views/ForbiddenView.vue'
 import ChatView from '../views/ChatView.vue'
+import AnalyticsView from '../views/AnalyticsView.vue'
 import { useAuthStore } from '../stores/auth'
 import { fetchTherapistProfile } from '../lib/api'
 
@@ -63,6 +64,12 @@ const routes = [
     path: '/cabinet/billing',
     name: 'cabinet-billing',
     component: BillingView,
+    meta: { requiresAuth: true, requiresRole: 'SPECIALIST' },
+  },
+  {
+    path: '/cabinet/analytics',
+    name: 'cabinet-analytics',
+    component: AnalyticsView,
     meta: { requiresAuth: true, requiresRole: 'SPECIALIST' },
   },
   {
