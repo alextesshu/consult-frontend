@@ -166,7 +166,7 @@
             <div>
               <div class="session-time">{{ formatDateTime(session.slot?.start_at || session.slot_start_at) }}</div>
               <div class="muted">{{ therapistLabel(session) }}</div>
-              <div class="muted">Статус: {{ statusLabel(session.status) }}</div>
+              <div class="muted">Статус: {{ sessionStatusLabel(session) }}</div>
             </div>
             <div class="session-actions">
               <RouterLink class="btn btn--ghost btn--sm" :to="`/client/sessions/${session.id}`">
@@ -199,7 +199,7 @@
             <div>
               <div class="session-time">{{ formatDateTime(session.slot?.start_at || session.slot_start_at) }}</div>
               <div class="muted">{{ therapistLabel(session) }}</div>
-              <div class="muted">Статус: {{ statusLabel(session.status) }}</div>
+              <div class="muted">Статус: {{ sessionStatusLabel(session) }}</div>
             </div>
             <div class="session-actions">
               <RouterLink class="btn btn--ghost btn--sm" :to="`/client/sessions/${session.id}`">
@@ -299,6 +299,11 @@ const statusMap: Record<string, string> = {
 
 const statusLabel = (status: string) => statusMap[status] || status
 
+const sessionStatusLabel = (session: Session) => {
+  if (isSessionInProgress(session)) return 'В процесі'
+  return statusMap[session.status] || session.status
+}
+
 const eventModeLabel = (mode: GroupEvent['mode']) => {
   if (mode === 'MEETING') return 'Зустріч'
   if (mode === 'BROADCAST') return 'Трансляція'
@@ -339,6 +344,19 @@ const introPriceLabel = (therapist: SelectedTherapist) => {
 }
 
 const sessionStartAt = (session: Session) => session.slot?.start_at || session.slot_start_at || null
+const sessionEndAt = (session: Session) => session.slot?.end_at || session.slot_end_at || null
+
+function isSessionInProgress(session: Session) {
+  if (session.status !== 'CONFIRMED') return false
+  const startRaw = sessionStartAt(session)
+  const endRaw = sessionEndAt(session)
+  if (!startRaw || !endRaw) return false
+  const start = new Date(startRaw).getTime()
+  const end = new Date(endRaw).getTime()
+  if (Number.isNaN(start) || Number.isNaN(end)) return false
+  const now = Date.now()
+  return now >= start && now <= end
+}
 
 function nextSession(therapistId: number | undefined, status: string) {
   if (!therapistId) return null

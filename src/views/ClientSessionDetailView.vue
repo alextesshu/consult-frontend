@@ -15,7 +15,7 @@
       <div class="panel__header">
         <div>
           <div class="badge badge--soft">Статус</div>
-          <h2 class="panel__title">{{ statusLabel(session.status) }}</h2>
+          <h2 class="panel__title">{{ statusLabel(session) }}</h2>
         </div>
       </div>
       <div class="detail-grid">
@@ -182,7 +182,10 @@ const statusMap: Record<string, string> = {
   DRAFT: 'Чернетка',
 }
 
-const statusLabel = (status: string) => statusMap[status] || status
+const statusLabel = (detail: SessionDetail) => {
+  if (isSessionInProgress(detail)) return 'В процесі'
+  return statusMap[detail.status] || detail.status
+}
 
 const canCancel = (status: string) => status === 'SCHEDULED' || status === 'CONFIRMED'
 
@@ -229,6 +232,16 @@ function formatDuration(start: string, end: string) {
   if (hours) parts.push(`${hours} \u0433\u043e\u0434`)
   if (mins) parts.push(`${mins} \u0445\u0432`)
   return `\u0422\u0440\u0438\u0432\u0430\u043b\u0456\u0441\u0442\u044c: ${parts.join(' ')}`
+}
+
+function isSessionInProgress(detail: SessionDetail) {
+  if (detail.status !== 'CONFIRMED') return false
+  if (!detail.slot_start_at || !detail.slot_end_at) return false
+  const start = new Date(detail.slot_start_at).getTime()
+  const end = new Date(detail.slot_end_at).getTime()
+  if (Number.isNaN(start) || Number.isNaN(end)) return false
+  const now = Date.now()
+  return now >= start && now <= end
 }
 
 async function loadSession() {

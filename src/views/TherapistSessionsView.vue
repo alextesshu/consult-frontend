@@ -47,8 +47,8 @@
                 Клієнт: {{ session.client_name || session.client_username || `#${session.client}` }}
               </div>
               <div v-if="session.client_email" class="muted">Пошта: {{ session.client_email }}</div>
-              <div class="status-pill" :class="statusClass(session.status)">
-                {{ statusLabel(session.status) }}
+              <div class="status-pill" :class="statusClass(session)">
+                {{ statusLabel(session) }}
               </div>
               <div
                 v-if="hasPendingReschedule(session.id)"
@@ -226,13 +226,13 @@
         </div>
       </div>
       <EmptyState
-        v-if="!loading && past.length === 0"
+        v-if="!loading && historySessions.length === 0"
         title="Історія порожня"
-        description="Після завершених сесій тут з'явиться історія."
+        description="Після завершених або відмінених сесій тут з'явиться історія."
       />
       <div v-else class="session-list">
         <article
-          v-for="session in past"
+          v-for="session in historySessions"
           :key="session.id"
           :id="`session-${session.id}`"
           class="session-card"
@@ -246,8 +246,8 @@
               Клієнт: {{ session.client_name || session.client_username || `#${session.client}` }}
             </div>
             <div v-if="session.client_email" class="muted">Пошта: {{ session.client_email }}</div>
-            <div class="status-pill" :class="statusClass(session.status)">
-              {{ statusLabel(session.status) }}
+            <div class="status-pill" :class="statusClass(session)">
+              {{ statusLabel(session) }}
             </div>
           </div>
           <div class="session-actions">
@@ -364,13 +364,17 @@ const statusMap: Record<string, string> = {
   DRAFT: 'Чернетка',
 }
 
-const statusLabel = (status: string) => statusMap[status] || status
+const statusLabel = (session: Session) => {
+  if (isSessionInProgress(session)) return 'В процесі'
+  return statusMap[session.status] || session.status
+}
 
-const statusClass = (status: string) => {
-  if (status === 'CONFIRMED') return 'status-pill--ok'
-  if (status === 'SCHEDULED') return 'status-pill--warn'
-  if (status === 'COMPLETED') return 'status-pill--muted'
-  if (status === 'CANCELLED' || status === 'NO_SHOW') return 'status-pill--danger'
+const statusClass = (session: Session) => {
+  if (isSessionInProgress(session)) return 'status-pill--ok'
+  if (session.status === 'CONFIRMED') return 'status-pill--ok'
+  if (session.status === 'SCHEDULED') return 'status-pill--warn'
+  if (session.status === 'COMPLETED') return 'status-pill--muted'
+  if (session.status === 'CANCELLED' || session.status === 'NO_SHOW') return 'status-pill--danger'
   return 'status-pill--muted'
 }
 
@@ -403,6 +407,20 @@ const pendingRescheduleSessions = computed(() => {
 
 const hasPendingReschedule = (sessionId: number) =>
   pendingRescheduleSessions.value.has(sessionId)
+
+const historySessions = computed(() => {
+  const ids = new Set<number>()
+  const history = [...upcoming.value, ...past.value]
+    .filter((session) =>
+      ['COMPLETED', 'CANCELLED', 'NO_SHOW'].includes(session.status)
+    )
+    .filter((session) => {
+      if (ids.has(session.id)) return false
+      ids.add(session.id)
+      return true
+    })
+  return history
+})
 
 const canCancel = (status: string) => status === 'SCHEDULED' || status === 'CONFIRMED'
 const canReschedule = (status: string) => status === 'SCHEDULED' || status === 'CONFIRMED'
@@ -439,6 +457,16 @@ function formatDuration(start?: string | null, end?: string | null) {
   if (hours) parts.push(`${hours} год`)
   if (mins) parts.push(`${mins} хв`)
   return `Тривалість: ${parts.join(' ')}`
+}
+
+function isSessionInProgress(session: Session) {
+  if (session.status !== 'CONFIRMED') return false
+  if (!session.slot_start_at || !session.slot_end_at) return false
+  const start = new Date(session.slot_start_at).getTime()
+  const end = new Date(session.slot_end_at).getTime()
+  if (Number.isNaN(start) || Number.isNaN(end)) return false
+  const now = Date.now()
+  return now >= start && now <= end
 }
 
 function parseSessionIdFromHash(hash: string): number | null {
@@ -567,10 +595,23 @@ async function confirmSession(id: number) {
 }
 
 async function completeSession(id: number) {
+  const input = window.prompt('Вкажіть фактичну тривалість (хв). Порожньо — стандартна тривалість.')
+  if (input === null) return
+
+  let payload: Record<string, number> | undefined
+  if (input.trim()) {
+    const minutes = Number(input)
+    if (!Number.isFinite(minutes) || minutes <= 0 || minutes > 480) {
+      error.value = 'Некоректна тривалість. Вкажіть 1–480 хв.'
+      return
+    }
+    payload = { actual_duration_minutes: Math.round(minutes) }
+  }
+
   setActionLoading(id, true)
   error.value = ''
   try {
-    await apiPatch(`/booking/sessions/${id}/complete/`)
+    await apiPatch(`/booking/sessions/${id}/complete/`, payload)
     await loadSessions()
   } catch (err: any) {
     error.value = err?.response?.data?.detail || 'Не вдалося завершити сесію'
