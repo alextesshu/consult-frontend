@@ -14,6 +14,43 @@
     <div v-if="error" class="form-error">{{ error }}</div>
     <div v-if="loading" class="muted" style="margin-top: 12px;">Завантаження...</div>
 
+    <section class="panel panel--reminders">
+      <div class="panel__header">
+        <div>
+          <div class="badge badge--soft">Нагадування</div>
+          <h2 class="panel__title">Сесії без коментаря</h2>
+        </div>
+      </div>
+      <div v-if="notesLoading" class="muted">Завантаження...</div>
+      <div v-else-if="pendingNotes.length === 0" class="muted">
+        Усі завершені сесії мають коментарі.
+      </div>
+      <div v-else class="history-list">
+        <div v-for="item in pendingNotes" :key="item.sessionId" class="history-item">
+          <div class="history-meta">
+            <div class="history-date">{{ formatDateTime(item.slotStart) }}</div>
+            <div class="muted">{{ formatDuration(item.slotStart, item.slotEnd) }}</div>
+            <div class="history-status">{{ item.status }}</div>
+          </div>
+          <div class="muted">
+            {{ clientLabel(item.clientId) }}
+          </div>
+          <div class="client-actions">
+            <RouterLink class="btn btn--ghost btn--sm" :to="`/cabinet/sessions#note-${item.sessionId}`">
+              Додати нотатку
+            </RouterLink>
+            <button
+              class="btn btn--ghost btn--sm"
+              type="button"
+              @click="toggleHistory(item.clientId)"
+            >
+              Відкрити клієнта
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <section class="panel">
       <div class="panel__header">
         <div>
@@ -130,6 +167,14 @@ type SessionItem = {
   slot_end_at: string
 }
 
+type PendingNoteItem = {
+  sessionId: number
+  clientId: number
+  slotStart: string
+  slotEnd: string
+  status: string
+}
+
 type HistoryItem = {
   sessionId: number
   slotStart: string
@@ -147,10 +192,20 @@ const expandedClientId = ref<number | null>(null)
 const historyLoading = ref<Set<number>>(new Set())
 const clientHistory = ref<Record<number, HistoryItem[]>>({})
 const sessionsCache = ref<SessionItem[] | null>(null)
+const notesLoading = ref(false)
+const pendingNotes = ref<PendingNoteItem[]>([])
 
 const filteredClients = computed(() => {
   if (filter.value === 'ALL') return clients.value
   return clients.value.filter((client) => client.state === filter.value)
+})
+
+const clientIndex = computed(() => {
+  const map = new Map<number, ClientState>()
+  clients.value.forEach((client) => {
+    map.set(client.client, client)
+  })
+  return map
 })
 
 const isActionLoading = (id: number) => actionLoading.value.has(id)
@@ -206,6 +261,11 @@ function formatDuration(start?: string | null, end?: string | null) {
   return rest ? `${hours} год ${rest} хв` : `${hours} год`
 }
 
+function clientLabel(clientId: number) {
+  const client = clientIndex.value.get(clientId)
+  return client?.client_username || `Клієнт #${clientId}`
+}
+
 async function loadClients() {
   loading.value = true
   error.value = ''
@@ -250,6 +310,45 @@ async function loadSessionsIfNeeded() {
   const resp = await apiGet<SessionItem[]>('/booking/sessions/')
   sessionsCache.value = resp || []
   return sessionsCache.value
+}
+
+async function loadPendingNotes() {
+  notesLoading.value = true
+  try {
+    const sessions = await loadSessionsIfNeeded()
+    const completed = sessions
+      .filter((item) => item.status === 'COMPLETED')
+      .sort((a, b) => b.slot_start_at.localeCompare(a.slot_start_at))
+      .slice(0, 20)
+
+    const missing: PendingNoteItem[] = []
+    for (const session of completed) {
+      let note = ''
+      try {
+        const resp = await apiGet(`/cabinet/sessions/${session.id}/note/`)
+        note = resp?.content || ''
+      } catch (err: any) {
+        if (err?.response?.status !== 404) {
+          throw err
+        }
+      }
+      if (!note.trim()) {
+        missing.push({
+          sessionId: session.id,
+          clientId: session.client,
+          slotStart: session.slot_start_at,
+          slotEnd: session.slot_end_at,
+          status: session.status,
+        })
+      }
+      if (missing.length >= 6) break
+    }
+    pendingNotes.value = missing
+  } catch (err: any) {
+    error.value = getApiErrorMessage(err, 'Не вдалося завантажити нагадування')
+  } finally {
+    notesLoading.value = false
+  }
 }
 
 async function loadHistory(clientId: number) {
@@ -300,7 +399,10 @@ async function toggleHistory(clientId: number) {
   }
 }
 
-onMounted(loadClients)
+onMounted(async () => {
+  await loadClients()
+  await loadPendingNotes()
+})
 </script>
 
 <style scoped>
@@ -349,6 +451,10 @@ onMounted(loadClients)
   margin: 0;
   font-family: var(--font-display);
   font-size: 22px;
+}
+
+.panel--reminders {
+  background: linear-gradient(135deg, rgba(8, 113, 201, 0.08), rgba(7, 47, 71, 0.04));
 }
 
 .badge--soft {

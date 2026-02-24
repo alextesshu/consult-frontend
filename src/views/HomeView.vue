@@ -14,9 +14,9 @@
             Рішення про співпрацю та вартість спеціаліст і клієнт приймають самостійно.
           </p>
           <div class="hero__catalog">
-            <RouterLink class="link" to="/specialists">Шукаєте спеціаліста? → Перейти до каталогу</RouterLink>
+            <RouterLink class="link" :to="catalogRoute">Шукаєте спеціаліста? → Перейти до каталогу</RouterLink>
             <div class="hint">
-              Каталог — за бажанням. Спеціаліст зʼявляється там лише якщо зробить профіль публічним.
+              Перегляд каталогу доступний лише для авторизованих клієнтів.
             </div>
           </div>
         </div>
@@ -97,7 +97,7 @@
             Ви керуєте видимістю профілю, а посиланням можна ділитися напряму з клієнтами.
           </p>
         </div>
-        <RouterLink class="btn btn--ghost" to="/specialists">Перейти до каталогу</RouterLink>
+        <RouterLink class="btn btn--ghost" :to="catalogRoute">Перейти до каталогу</RouterLink>
       </div>
 
       <div id="pricing" class="pricing">
@@ -175,7 +175,9 @@ import { useAuthStore } from '../stores/auth'
 const router = useRouter()
 const auth = useAuthStore()
 const isAuthenticated = computed(() => Boolean(auth.accessToken))
-const roles = computed(() => auth.me?.user.roles ?? auth.user?.roles ?? [])
+  const roles = computed(() => auth.me?.user.roles ?? auth.user?.roles ?? [])
+  const isClient = computed(() => roles.value.includes('CLIENT'))
+  const catalogRoute = computed(() => (isClient.value ? '/specialists' : '/signup-client'))
 
 const resolveCabinetRoute = () => {
   if (roles.value.includes('SPECIALIST') || roles.value.includes('THERAPIST')) return '/cabinet'

@@ -11,6 +11,35 @@
       <RouterLink class="btn" to="/specialists">Обрати спеціаліста</RouterLink>
     </header>
 
+    <div class="card priority-card">
+      <div class="card__title">Найближча сесія</div>
+      <div v-if="nextUpcoming" class="priority-body">
+        <div class="priority-main">
+          <div class="priority-time">{{ formatDateTime(sessionStartAt(nextUpcoming)) }}</div>
+          <div class="muted">{{ therapistLabel(nextUpcoming) }}</div>
+          <div class="status-pill" :class="{ 'status-pill--warn': nextUpcoming.status === 'SCHEDULED' }">
+            {{ sessionStatusLabel(nextUpcoming) }}
+          </div>
+          <div v-if="timeUntilLabel(nextUpcoming)" class="status-pill status-pill--warn">
+            Початок через {{ timeUntilLabel(nextUpcoming) }}
+          </div>
+        </div>
+        <div class="priority-actions">
+          <RouterLink class="btn btn--ghost" :to="`/client/sessions/${nextUpcoming.id}`">
+            Деталі
+          </RouterLink>
+          <RouterLink
+            v-if="nextUpcoming.therapist_public_slug"
+            class="btn btn--ghost"
+            :to="`/t/${nextUpcoming.therapist_public_slug}`"
+          >
+            Профіль
+          </RouterLink>
+        </div>
+      </div>
+      <div v-else class="muted">Немає майбутніх сесій.</div>
+    </div>
+
     <div class="card tips-card">
       <div class="card__title">Підказки</div>
       <ul class="tips-list">
@@ -358,6 +387,33 @@ function isSessionInProgress(session: Session) {
   return now >= start && now <= end
 }
 
+const nextUpcoming = computed(() => {
+  const items = upcoming.value
+    .filter((session) => sessionStartAt(session))
+    .slice()
+    .sort(
+      (a, b) =>
+        new Date(sessionStartAt(a) || '').getTime() -
+        new Date(sessionStartAt(b) || '').getTime()
+    )
+  return items[0] || null
+})
+
+function timeUntilLabel(session: Session) {
+  const startRaw = sessionStartAt(session)
+  if (!startRaw) return ''
+  const start = new Date(startRaw).getTime()
+  if (Number.isNaN(start)) return ''
+  const diffMs = start - Date.now()
+  if (diffMs <= 0) return ''
+  const diffMin = Math.round(diffMs / 60000)
+  if (diffMin > 120) return ''
+  if (diffMin < 60) return `${diffMin} хв`
+  const hours = Math.floor(diffMin / 60)
+  const mins = diffMin % 60
+  return mins ? `${hours} год ${mins} хв` : `${hours} год`
+}
+
 function nextSession(therapistId: number | undefined, status: string) {
   if (!therapistId) return null
   const items = upcoming.value
@@ -596,11 +652,40 @@ onMounted(async () => {
   gap: 18px;
 }
 
-.client__grid {
-  display: grid;
-  gap: 20px;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-}
+  .client__grid {
+    display: grid;
+    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+
+  .priority-card {
+    display: grid;
+    gap: 12px;
+  }
+
+  .priority-body {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .priority-main {
+    display: grid;
+    gap: 6px;
+  }
+
+  .priority-time {
+    font-family: var(--font-display);
+    font-size: 22px;
+  }
+
+  .priority-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
 
 .eyebrow {
   text-transform: uppercase;

@@ -6,10 +6,10 @@
         <div class="brand__tagline">Простір для ведення консультацій</div>
       </RouterLink>
       <nav class="nav">
-        <RouterLink v-if="isAuthenticated" :to="cabinetRoute">Кабінет</RouterLink>
-        <RouterLink to="/specialists">Каталог</RouterLink>
+        <RouterLink v-if="isAuthenticated" :to="cabinetRoute">{{ cabinetLabel }}</RouterLink>
+        <RouterLink v-if="showCatalogNav" to="/specialists">Каталог</RouterLink>
         <RouterLink
-          v-if="isTherapist"
+          v-if="isAuthenticated && isTherapist"
           to="/public"
           :class="{ 'nav-link--active': isPublicRoute }"
         >
@@ -122,6 +122,12 @@ const cabinetRoute = computed(() => {
   if (isClient.value) return '/client'
   return '/login'
 })
+const cabinetLabel = computed(() => {
+  if (isTherapist.value) return 'Мій кабінет'
+  if (isClient.value) return 'Мій щоденник'
+  return 'Кабінет'
+})
+const showCatalogNav = computed(() => isClient.value)
 const chatRoute = computed(() => (isTherapist.value ? '/cabinet/chat' : '/client/chat'))
 const isPublicRoute = computed(
   () => route.path.startsWith('/public') || route.path.startsWith('/t/')

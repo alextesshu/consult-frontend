@@ -181,6 +181,36 @@
       </div>
     </section>
 
+    <div v-if="showBookingModal" class="setting-modal">
+      <div class="setting-modal__backdrop" @click="closeBookingModal"></div>
+      <div class="setting-modal__content">
+        <div class="setting-modal__header">
+          <h3>Сесію створено</h3>
+          <button class="btn btn--ghost btn--sm" type="button" @click="closeBookingModal">
+            Закрити
+          </button>
+        </div>
+        <div class="setting-modal__body">
+          <div class="booking-checklist">
+            <div class="booking-checklist__item">1. Сесія заброньована</div>
+            <div class="booking-checklist__item">2. Спеціаліст має підтвердити</div>
+            <div class="booking-checklist__item">3. Перевіряйте статус у кабінеті</div>
+          </div>
+          <div v-if="lastBookedSlot" class="booking-slot">
+            <div class="muted">Ваш слот:</div>
+            <div class="booking-slot__time">{{ formatDate(lastBookedSlot.start_at) }}</div>
+            <div class="muted">{{ formatDuration(lastBookedSlot.start_at, lastBookedSlot.end_at) }}</div>
+          </div>
+        </div>
+        <div class="setting-modal__footer">
+          <RouterLink class="btn" to="/client">Перейти в кабінет</RouterLink>
+          <button class="btn btn--ghost" type="button" @click="closeBookingModal">
+            Закрити
+          </button>
+        </div>
+      </div>
+    </div>
+
     <div v-if="showSettingModal" class="setting-modal">
       <div class="setting-modal__backdrop" @click="closeSettingModal"></div>
       <div class="setting-modal__content">
@@ -254,6 +284,8 @@ const noSlotsAvailable = ref(false)
 const bookingError = ref('')
 const bookingSuccess = ref('')
 const bookingSlotId = ref<number | null>(null)
+const showBookingModal = ref(false)
+const lastBookedSlot = ref<PublicSlot | null>(null)
 const settingAccepted = ref(false)
 const showSettingModal = ref(false)
 const clientSessions = ref<ClientSession[]>([])
@@ -518,10 +550,13 @@ async function bookSlot(slotId: number) {
     return
   }
   bookingSlotId.value = slotId
+  const bookedSlot = slots.value.find((slot) => slot.id === slotId) || null
   try {
     await apiPost('/booking/sessions/', { slot_id: slotId, setting_accepted: true })
     bookingSuccess.value = 'Сесію заброньовано. Перевірте ваш кабінет.'
     toast.success(bookingSuccess.value)
+    lastBookedSlot.value = bookedSlot
+    showBookingModal.value = true
     slots.value = slots.value.filter((slot) => slot.id !== slotId)
     if (profile.value) {
       const entry = pickTherapist(profile.value)
@@ -547,6 +582,10 @@ async function bookSlot(slotId: number) {
   } finally {
     bookingSlotId.value = null
   }
+}
+
+function closeBookingModal() {
+  showBookingModal.value = false
 }
 
 function openSettingModal() {
@@ -988,6 +1027,32 @@ onMounted(async () => {
   .setting-modal__body {
     display: grid;
     gap: 12px;
+  }
+
+  .booking-checklist {
+    display: grid;
+    gap: 6px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: rgba(8, 113, 201, 0.08);
+    border: 1px solid var(--line);
+  }
+
+  .booking-checklist__item {
+    font-weight: 500;
+  }
+
+  .booking-slot {
+    display: grid;
+    gap: 4px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    border: 1px solid var(--line);
+    background: #fff;
+  }
+
+  .booking-slot__time {
+    font-weight: 600;
   }
 
   .setting-section {

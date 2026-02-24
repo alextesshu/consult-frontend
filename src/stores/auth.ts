@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { fetchMe, loginWithIdentifier, refreshToken, signupTherapist } from '../lib/api'
+import { fetchMe, loginWithIdentifier, refreshToken, signupClient, signupTherapist } from '../lib/api'
 
 type AuthUser = {
   id: number
@@ -116,6 +116,22 @@ export const useAuthStore = defineStore('auth', {
         this.loading = false
       }
     },
+    async signupClient(email: string, password: string, passwordConfirm: string) {
+      this.loading = true
+      this.error = ''
+      try {
+        const tokens = await signupClient(email, password, passwordConfirm)
+        this.setToken(tokens.access)
+        this.setRefreshToken(tokens.refresh)
+        const me = await fetchMe(tokens.access)
+        this.setMe(me)
+      } catch (err) {
+        this.error = err instanceof Error ? err.message : 'Не вдалося зареєструватися'
+        throw err
+      } finally {
+        this.loading = false
+      }
+    },
     async loadMe() {
       if (!this.accessToken) return
       const me = await fetchMe(this.accessToken)
@@ -136,6 +152,7 @@ export const useAuthStore = defineStore('auth', {
       this.accessToken = ''
       this.refreshToken = ''
       this.user = null
+      this.me = null
       localStorage.removeItem('accessToken')
       localStorage.removeItem('refreshToken')
     },

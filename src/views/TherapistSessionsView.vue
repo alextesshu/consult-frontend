@@ -14,6 +14,60 @@
     <div v-if="error" class="form-error">{{ error }}</div>
     <LoadingSkeleton v-if="loading" variant="list" :count="3" />
 
+    <section class="panel panel--priority">
+      <div class="panel__header">
+        <div>
+          <div class="badge badge--soft">Пріоритет</div>
+          <h2 class="panel__title">Майбутні сесії</h2>
+        </div>
+      </div>
+      <div class="priority-grid">
+        <div class="priority-card">
+          <div class="priority-title">Очікують підтвердження</div>
+          <div class="priority-value">
+            {{ needsConfirmation.length }}
+          </div>
+          <div class="muted">Підтвердьте найближчі сесії, щоб уникнути “Не відбулося”.</div>
+          <div v-if="needsConfirmation.length" class="priority-list">
+            <div
+              v-for="session in needsConfirmation.slice(0, 3)"
+              :key="session.id"
+              class="priority-item"
+            >
+              <div>
+                <div class="priority-time">{{ formatDateTime(session.slot_start_at) }}</div>
+                <div class="muted">{{ session.client_name || session.client_username || `#${session.client}` }}</div>
+              </div>
+              <button
+                class="btn btn--ghost btn--sm"
+                type="button"
+                :disabled="isActionLoading(session.id)"
+                @click="confirmSession(session.id)"
+              >
+                Підтвердити
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="priority-card">
+          <div class="priority-title">Найближча сесія</div>
+          <div v-if="nextUpcoming" class="priority-next">
+            <div class="priority-time">{{ formatDateTime(nextUpcoming.slot_start_at) }}</div>
+            <div class="muted">
+              Клієнт: {{ nextUpcoming.client_name || nextUpcoming.client_username || `#${nextUpcoming.client}` }}
+            </div>
+            <div class="status-pill" :class="statusClass(nextUpcoming)">
+              {{ statusLabel(nextUpcoming) }}
+            </div>
+            <div v-if="timeUntilLabel(nextUpcoming)" class="status-pill status-pill--warn">
+              Початок через {{ timeUntilLabel(nextUpcoming) }}
+            </div>
+          </div>
+          <div v-else class="muted">Немає майбутніх сесій.</div>
+        </div>
+      </div>
+    </section>
+
     <section class="panel">
       <div class="panel__header">
         <div>
@@ -49,6 +103,18 @@
               <div v-if="session.client_email" class="muted">Пошта: {{ session.client_email }}</div>
               <div class="status-pill" :class="statusClass(session)">
                 {{ statusLabel(session) }}
+              </div>
+              <div
+                v-if="timeUntilLabel(session)"
+                class="status-pill status-pill--warn"
+              >
+                Початок через {{ timeUntilLabel(session) }}
+              </div>
+              <div
+                v-if="session.status === 'SCHEDULED'"
+                class="status-pill status-pill--danger"
+              >
+                Потрібне підтвердження
               </div>
               <div
                 v-if="hasPendingReschedule(session.id)"
@@ -91,14 +157,6 @@
               >
                 Перенести
               </button>
-              <button
-                class="btn btn--ghost btn--sm"
-                type="button"
-                :disabled="isNoteLoading(session.id)"
-                @click="toggleNote(session.id)"
-              >
-                Приватна історія клієнта
-              </button>
             </div>
           </div>
           <div class="session-photo-wrap">
@@ -131,32 +189,6 @@
               </button>
               <button class="btn btn--ghost btn--sm" type="button" @click="closeReschedule">
                 Скасувати
-              </button>
-            </div>
-          </div>
-          <div v-if="noteSessionId === session.id" class="note-panel">
-            <label class="field">
-              <span class="note-title">Приватна історія клієнта</span>
-              <span class="note-badge">Зашифровано</span>
-              <textarea
-                v-model="noteDraft"
-                class="input note-textarea"
-                rows="5"
-                placeholder="Зашифрована історія сесій з цим клієнтом. Видима лише вам."
-              ></textarea>
-              <div class="note-helper muted">Інформація зашифрована. Доступ має лише спеціаліст.</div>
-            </label>
-            <div class="note-actions">
-              <button
-                class="btn btn--sm"
-                type="button"
-                :disabled="isNoteSaving(session.id)"
-                @click="saveNote(session.id)"
-              >
-                Зберегти
-              </button>
-              <button class="btn btn--ghost btn--sm" type="button" @click="closeNote">
-                Закрити
               </button>
             </div>
           </div>
@@ -251,44 +283,51 @@
             </div>
           </div>
           <div class="session-actions">
-            <button
-              class="btn btn--ghost btn--sm"
-              type="button"
-              :disabled="isNoteLoading(session.id)"
-              @click="toggleNote(session.id)"
-              >
-                Приватна історія клієнта
-            </button>
-          </div>
-          <div v-if="noteSessionId === session.id" class="note-panel">
-            <label class="field">
-              <span class="note-title">Приватна історія клієнта</span>
-              <span class="note-badge">Зашифровано</span>
-              <textarea
-                v-model="noteDraft"
-                class="input note-textarea"
-                rows="5"
-                placeholder="Зашифрована історія сесій з цим клієнтом. Видима лише вам."
-              ></textarea>
-              <div class="note-helper muted">Інформація зашифрована. Доступ має лише спеціаліст.</div>
-            </label>
-            <div class="note-actions">
-              <button
-                class="btn btn--sm"
-                type="button"
-                :disabled="isNoteSaving(session.id)"
-                @click="saveNote(session.id)"
-              >
-                Зберегти
-              </button>
-              <button class="btn btn--ghost btn--sm" type="button" @click="closeNote">
-                Закрити
-              </button>
-            </div>
           </div>
         </article>
       </div>
     </section>
+
+    <div v-if="noteSessionId" class="note-modal">
+      <div class="note-modal__backdrop" @click="closeNote"></div>
+      <div class="note-modal__content">
+        <div class="note-modal__header">
+          <div>
+            <div class="note-title">Коментар після сесії</div>
+            <div class="muted">Оновіть приватну історію клієнта.</div>
+          </div>
+          <button class="btn btn--ghost btn--sm" type="button" @click="closeNote">
+            Закрити
+          </button>
+        </div>
+        <div class="note-panel">
+          <label class="field">
+            <span class="note-title">Приватна історія клієнта</span>
+            <span class="note-badge">Зашифровано</span>
+            <textarea
+              v-model="noteDraft"
+              class="input note-textarea"
+              rows="5"
+              placeholder="Короткий коментар по сесії та важливі нотатки."
+            ></textarea>
+            <div class="note-helper muted">Інформація зашифрована. Доступ має лише спеціаліст.</div>
+          </label>
+          <div class="note-actions">
+            <button
+              class="btn btn--sm"
+              type="button"
+              :disabled="noteSessionId ? isNoteSaving(noteSessionId) : false"
+              @click="noteSessionId ? saveNote(noteSessionId) : null"
+            >
+              Зберегти
+            </button>
+            <button class="btn btn--ghost btn--sm" type="button" @click="closeNote">
+              Закрити
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   </section>
 </template>
 
@@ -422,6 +461,22 @@ const historySessions = computed(() => {
   return history
 })
 
+const needsConfirmation = computed(() =>
+  upcoming.value.filter((session) => session.status === 'SCHEDULED')
+)
+
+const nextUpcoming = computed(() => {
+  const items = upcoming.value
+    .filter((session) => session.slot_start_at)
+    .slice()
+    .sort(
+      (a, b) =>
+        new Date(a.slot_start_at || '').getTime() -
+        new Date(b.slot_start_at || '').getTime()
+    )
+  return items[0] || null
+})
+
 const canCancel = (status: string) => status === 'SCHEDULED' || status === 'CONFIRMED'
 const canReschedule = (status: string) => status === 'SCHEDULED' || status === 'CONFIRMED'
 
@@ -469,9 +524,31 @@ function isSessionInProgress(session: Session) {
   return now >= start && now <= end
 }
 
+function timeUntilLabel(session: Session) {
+  if (!session.slot_start_at) return ''
+  const start = new Date(session.slot_start_at).getTime()
+  if (Number.isNaN(start)) return ''
+  const diffMs = start - Date.now()
+  if (diffMs <= 0) return ''
+  const diffMin = Math.round(diffMs / 60000)
+  if (diffMin > 120) return ''
+  if (diffMin < 60) return `${diffMin} хв`
+  const hours = Math.floor(diffMin / 60)
+  const mins = diffMin % 60
+  return mins ? `${hours} год ${mins} хв` : `${hours} год`
+}
+
 function parseSessionIdFromHash(hash: string): number | null {
   if (!hash) return null
   const match = hash.match(/session-(\d+)/)
+  if (!match) return null
+  const id = Number(match[1])
+  return Number.isFinite(id) ? id : null
+}
+
+function parseNoteIdFromHash(hash: string): number | null {
+  if (!hash) return null
+  const match = hash.match(/note-(\d+)/)
   if (!match) return null
   const id = Number(match[1])
   return Number.isFinite(id) ? id : null
@@ -613,6 +690,7 @@ async function completeSession(id: number) {
   try {
     await apiPatch(`/booking/sessions/${id}/complete/`, payload)
     await loadSessions()
+    await openNoteModal(id)
   } catch (err: any) {
     error.value = err?.response?.data?.detail || 'Не вдалося завершити сесію'
   } finally {
@@ -687,6 +765,7 @@ async function saveNote(id: number) {
   error.value = ''
   try {
     await apiPut(`/cabinet/sessions/${id}/note/`, { content: noteDraft.value })
+    closeNote()
   } catch (err: any) {
     error.value = err?.response?.data?.detail || 'Не вдалося погодити запит'
   } finally {
@@ -694,11 +773,7 @@ async function saveNote(id: number) {
   }
 }
 
-async function toggleNote(id: number) {
-  if (noteSessionId.value === id) {
-    closeNote()
-    return
-  }
+async function openNoteModal(id: number) {
   noteSessionId.value = id
   noteDraft.value = ''
   await loadNote(id)
@@ -749,15 +824,23 @@ async function declineRequest(id: number) {
   }
 }
 
+async function openNoteFromHash() {
+  const id = parseNoteIdFromHash(route.hash)
+  if (!id) return
+  await openNoteModal(id)
+}
+
 onMounted(async () => {
   await Promise.all([loadSessions(), loadSlots(), loadRescheduleRequests(), loadTherapistProfilePhoto()])
   await scrollToHighlightedSession()
+  await openNoteFromHash()
 })
 
 watch(
   () => route.hash,
   async () => {
     await scrollToHighlightedSession()
+    await openNoteFromHash()
   }
 )
 
@@ -810,11 +893,63 @@ onBeforeUnmount(() => {
   gap: 16px;
 }
 
-.panel__title {
-  margin: 0;
-  font-family: var(--font-display);
-  font-size: 22px;
-}
+  .panel__title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-size: 22px;
+  }
+
+  .panel--priority {
+    background: linear-gradient(135deg, rgba(8, 113, 201, 0.08), rgba(7, 47, 71, 0.04));
+  }
+
+  .priority-grid {
+    display: grid;
+    gap: 14px;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  }
+
+  .priority-card {
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    padding: 14px;
+    background: #fff;
+    display: grid;
+    gap: 10px;
+  }
+
+  .priority-title {
+    font-weight: 600;
+  }
+
+  .priority-value {
+    font-size: 28px;
+    font-family: var(--font-display);
+  }
+
+  .priority-list {
+    display: grid;
+    gap: 8px;
+  }
+
+  .priority-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px;
+    border-radius: 12px;
+    background: rgba(8, 113, 201, 0.05);
+  }
+
+  .priority-time {
+    font-weight: 600;
+  }
+
+  .priority-next {
+    display: grid;
+    gap: 6px;
+  }
 
 .badge--soft {
   background: rgba(8, 113, 201, 0.12);
@@ -982,11 +1117,43 @@ onBeforeUnmount(() => {
   line-height: 1.4;
 }
 
-.note-actions {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
+  .note-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .note-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+  }
+
+  .note-modal__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(8, 18, 24, 0.35);
+  }
+
+  .note-modal__content {
+    position: relative;
+    max-width: 560px;
+    margin: 10vh auto 0;
+    background: #fff;
+    border-radius: 18px;
+    border: 1px solid var(--line);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.18);
+    padding: 18px;
+    display: grid;
+    gap: 12px;
+  }
+
+  .note-modal__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
 
 .request-list {
   display: grid;

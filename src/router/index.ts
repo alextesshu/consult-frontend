@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import LoginView from '../views/LoginView.vue'
 import SignupView from '../views/SignupView.vue'
+import ClientSignupView from '../views/ClientSignupView.vue'
 import CabinetView from '../views/CabinetView.vue'
 import GroupEventsView from '../views/GroupEventsView.vue'
 import PublicProfileView from '../views/PublicProfileView.vue'
@@ -29,6 +30,7 @@ const routes = [
   { path: '/public', name: 'public-redirect', component: PublicProfileView },
   { path: '/login', name: 'login', component: LoginView },
   { path: '/signup', name: 'signup', component: SignupView },
+  { path: '/signup-client', name: 'signup-client', component: ClientSignupView },
   { path: '/invite/:token', name: 'group-invite-join', component: GroupInviteJoinView },
   {
     path: '/cabinet',
@@ -127,7 +129,12 @@ const routes = [
     meta: { requiresAuth: true, requiresRole: 'CLIENT' },
   },
   { path: '/t/:slug', name: 'public-profile', component: PublicProfileView },
-  { path: '/specialists', name: 'public-therapists', component: PublicTherapistsView },
+  {
+    path: '/specialists',
+    name: 'public-therapists',
+    component: PublicTherapistsView,
+    meta: { requiresAuth: true, requiresRole: 'CLIENT' },
+  },
   { path: '/therapists', redirect: { name: 'public-therapists' } },
   { path: '/public/therapists', redirect: { name: 'public-therapists' } },
   { path: '/pricing', redirect: '/#pricing' },
@@ -158,16 +165,25 @@ router.beforeEach(async (to) => {
 
   if (to.meta.requiresAuth) {
     if (!auth.accessToken) {
+      if (to.name === 'public-therapists') {
+        return { name: 'signup-client' }
+      }
       return { name: 'login' }
     }
     if (!auth.user) {
       try {
         await auth.loadMe()
       } catch {
+        if (to.name === 'public-therapists') {
+          return { name: 'signup-client' }
+        }
         return { name: 'login' }
       }
     }
     if (to.meta.requiresRole && !roleMatches(String(to.meta.requiresRole))) {
+      if (to.name === 'public-therapists' && hasSpecialistRole()) {
+        return { name: 'cabinet' }
+      }
       return { name: 'forbidden' }
     }
   }

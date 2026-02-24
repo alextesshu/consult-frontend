@@ -295,6 +295,38 @@ export async function fetchChatUnreadCount(): Promise<{ unread_count: number }> 
   return resp.data
 }
 
+export async function signupClient(
+  email: string,
+  password: string,
+  passwordConfirm: string
+): Promise<SignupResponse> {
+  try {
+    const resp = await http.post<SignupResponse>('/auth/signup-client/', {
+      email,
+      password,
+      password_confirm: passwordConfirm,
+    })
+    return resp.data
+  } catch (err: any) {
+    const data = err?.response?.data
+    let message = data?.detail
+    if (!message && data && typeof data === 'object') {
+      const parts = Object.entries(data).map(([key, value]) => {
+        if (Array.isArray(value)) {
+          return `${key}: ${value[0]}`
+        }
+        if (typeof value === 'string') {
+          return `${key}: ${value}`
+        }
+        return `${key}: ${String(value)}`
+      })
+      message = parts.filter(Boolean).join(' ')
+    }
+    message = message || 'Не вдалося зареєструватися'
+    throw new Error(message)
+  }
+}
+
 export async function apiGet<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
   const resp = await http.get<T>(url, config)
   return resp.data
