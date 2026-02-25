@@ -127,6 +127,9 @@ Tokens are stored in localStorage and auto-refreshed via `/api/auth/token/refres
 - Keep files saved in UTF-8 to avoid broken Ukrainian text.
 - Backend interprets `date`, `date_from`, `date_to` filters as UTC day boundaries (send `YYYY-MM-DD` in UTC).
 - Billing upgrade requests call `POST /api/billing/request-access/` with `requested_plan`.
+- Client profile photos come from `/api/client/profile/` → `photo_url`.
+  - If `photo_url` is present but image is missing, check GCS config on backend.
+  - For signed URLs (`GCS_PUBLIC=false`), refresh the page to regenerate the URL.
 
 ## Next Focus
 
