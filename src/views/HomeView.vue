@@ -1,17 +1,17 @@
 ﻿<template>
   <section class="home">
     <div class="container">
-      <div class="hero">
+      <div class="hero reveal snap-section">
         <div class="hero__content">
+          <img class="hero__logo hero__logo--small" src="../assets/consult-logo_2026-02-24-2135_black.png" alt="Pro Consult" />
           <div class="eyebrow">Pro Consult</div>
-          <h1 class="hero__title">Pro Consult — Сервіс для ведення консультацій</h1>
+          <h1 class="hero__title">Простір для ведення консультацій</h1>
           <p class="hero__subtitle">
-            Розклад, клієнти, нотатки, запити та керування сесіями — все в одному робочому просторі.
-            Публічний профіль і каталог доступні за бажанням.
+            Ми створюємо сервіс для зручної та ефективної взаємодії між спеціалістом та клієнтом.
           </p>
           <p class="hero__slogan">
-            Ми організовуємо функціональний простір для безпечної та зручної взаємодії.
-            Рішення про співпрацю та вартість спеціаліст і клієнт приймають самостійно.
+            Сесії, групи, нотатки, запити та аналітика — в одному кабінеті. Рішення про співпрацю та оплату
+            приймаєте ви.
           </p>
           <div class="hero__catalog">
             <RouterLink class="link" :to="catalogRoute">Шукаєте спеціаліста? → Перейти до каталогу</RouterLink>
@@ -21,7 +21,7 @@
           </div>
         </div>
         <div class="hero__panel card">
-          <div class="panel__title">Який ви спеціаліст?</div>
+          <div class="panel__title">Оберіть тип вашої практики та створіть кабінет спеціаліста</div>
           <div class="chip-row">
             <button
               v-for="(item, index) in roleCards"
@@ -54,16 +54,39 @@
         </div>
       </div>
 
-      <div id="features" class="benefits">
-        <h2 class="section-title">Ключові можливості</h2>
-        <div class="benefits__grid">
-          <div v-for="item in benefits" :key="item" class="card benefit-card">
-            {{ item }}
+      <div class="trust reveal snap-section">
+        <h2 class="section-title">Чому це безпечно</h2>
+        <div class="trust__grid">
+          <div v-for="item in trustPoints" :key="item.title" class="card trust-card">
+            <div class="trust-card__title">{{ item.title }}</div>
+            <div class="muted">{{ item.text }}</div>
           </div>
         </div>
       </div>
 
-      <div class="how">
+      <div class="system-foundation reveal snap-section">
+        <div id="features" class="benefits">
+          <h2 class="section-title">Система для щоденної практики</h2>
+          <div class="benefits__grid">
+            <div v-for="item in benefits" :key="item" class="card benefit-card">
+              {{ item }}
+            </div>
+          </div>
+        </div>
+
+        <div class="foundation">
+          <h2 class="section-title">Міцний фундамент</h2>
+          <div class="foundation__grid">
+            <div v-for="item in foundationPoints" :key="item.title" class="card foundation-card">
+              <span class="foundation-card__badge">{{ item.badge }}</span>
+              <div class="foundation-card__title">{{ item.title }}</div>
+              <div class="muted">{{ item.text }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="how reveal snap-section">
         <h2 class="section-title">Як це працює</h2>
         <div class="how__grid">
           <div class="card how-card">
@@ -78,32 +101,31 @@
           </div>
           <div class="card how-card">
             <div class="how-card__step">3</div>
-            <div class="how-card__title">Каталог — за бажанням</div>
+            <div class="how-card__title">Проводьте сесії та приймайте запити</div>
             <p class="how-card__text">
-              Зробіть профіль публічним, якщо хочете, щоб вас могли знаходити. Це опційно.
+              Сесії фіксуються, нотатки зберігаються, а клієнти бачать статуси у своєму кабінеті.
             </p>
             <p class="how-card__note">
-              Ми не беремо комісію та не ранжуємо спеціалістів алгоритмами.
+              Каталог і публічність — опційні.
             </p>
           </div>
         </div>
       </div>
 
-      <div class="catalog card">
-        <div>
-          <h2 class="section-title">Каталог — за бажанням</h2>
-          <p class="muted">
-            Pro Consult — робочий простір для спеціаліста, а каталог доступний лише за бажанням.
-            Ви керуєте видимістю профілю, а посиланням можна ділитися напряму з клієнтами.
-          </p>
+      <div class="audience reveal snap-section">
+        <h2 class="section-title">Для кого</h2>
+        <div class="audience__grid" :class="{ 'audience__grid--four': audienceCards.length === 4 }">
+          <div v-for="item in audienceCards" :key="item.title" class="card audience-card">
+            <div class="audience-card__title">{{ item.title }}</div>
+            <div class="muted">{{ item.description }}</div>
+          </div>
         </div>
-        <RouterLink class="btn btn--ghost" :to="catalogRoute">Перейти до каталогу</RouterLink>
       </div>
 
-      <div id="pricing" class="pricing">
+      <div id="pricing" class="pricing reveal snap-section">
         <div class="pricing__header">
           <div>
-            <h2 class="section-title">Тарифи</h2>
+            <h2 class="section-title">Підписки</h2>
             <p class="muted">Обирайте план під розмір практики. Без комісій — лише підписка.</p>
           </div>
           <div class="pricing__note">Оновлення плану в будь-який момент</div>
@@ -150,7 +172,7 @@
         </div>
 
         <details class="plan-compare">
-          <summary>Порівняти плани</summary>
+          <summary>Порівняти підписки</summary>
           <div class="plan-compare__list">
           <div>START: базовий робочий простір для старту практики.</div>
           <div>PRO: основний план для розвитку практики.</div>
@@ -168,7 +190,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 
@@ -228,13 +250,51 @@ const roleCards = [
 const activeRoleIndex = ref(0)
 
 const benefits = [
-  'Розклад і слоти',
+  'Керована система сесій',
   'Клієнтська база (CRM)',
-  'Заплановані сесії та запити',
-  'Публічний профіль (опційно)',
+  'Запити на бронювання та перенессення',
+  'Ваш особистий сетінг',
+  'Аналітика вашої практики',
+  'Авторський журнал',
+  'Групові кімнати',
+  'Приватні нотатки',
   'Чат і повідомлення',
-  'Доступи та плани',
 ]
+
+const trustPoints = [
+  {
+    title: 'Дані належать спеціалісту',
+    text: 'Сервіс не втручається у стосунки з клієнтами та не впливає на рішення.',
+  },
+  {
+    title: 'Ніяких комісій',
+    text: 'Лише підписка. Оплата й умови співпраці — між вами та клієнтом.',
+  },
+  {
+    title: 'Контроль доступу',
+    text: 'Ролі, доступи, приватні нотатки й обмеження керуються вами.',
+  },
+]
+
+const foundationPoints = [
+  {
+    badge: 'ДОСТУПИ',
+    title: 'Доступи та ліміти під контролем',
+    text: 'Система чітко показує, що доступно саме вам, і не ламає вже створені сесії.',
+  },
+  {
+    badge: 'БІЛІНГ',
+    title: 'Оплати та запити працюють стабільно',
+    text: 'Платіжні події не губляться, а звернення можна повторювати без ризику.',
+  },
+  {
+    badge: 'ПОДІЇ',
+    title: 'Прозора історія дій',
+    text: 'Усі важливі зміни фіксуються, тому система поводиться передбачувано.',
+  },
+]
+
+const audienceCards = roleCards
 
 type PlanCode = 'START' | 'PRO' | 'LEADER'
 
@@ -302,6 +362,43 @@ const planActionLabel = (code: PlanCode) => {
   if (isCurrentPlan(code)) return 'Поточний'
   return 'Розширити практику'
 }
+
+let revealObserver: IntersectionObserver | null = null
+
+onMounted(() => {
+  const targets = Array.from(document.querySelectorAll<HTMLElement>('.reveal'))
+  const staggerGroups = [
+    '.trust__grid .trust-card',
+    '.benefits__grid .benefit-card',
+    '.how__grid .how-card',
+    '.foundation__grid .foundation-card',
+    '.audience__grid .audience-card',
+    '.plan-grid .plan-card',
+  ]
+  staggerGroups.forEach((selector) => {
+    document.querySelectorAll<HTMLElement>(selector).forEach((el, index) => {
+      el.style.transitionDelay = `${Math.min(index * 80, 320)}ms`
+    })
+  })
+  if (!targets.length) return
+  revealObserver = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible')
+          revealObserver?.unobserve(entry.target)
+        }
+      })
+    },
+    { threshold: 0.2, rootMargin: '0px 0px -10% 0px' }
+  )
+  targets.forEach((el) => revealObserver?.observe(el))
+})
+
+onBeforeUnmount(() => {
+  revealObserver?.disconnect()
+  revealObserver = null
+})
 </script>
 
 <style scoped>
@@ -310,24 +407,90 @@ const planActionLabel = (code: PlanCode) => {
   font-size: 14px;
 }
 
+:global(html),
+:global(body) {
+  scroll-snap-type: y proximity;
+  scroll-behavior: smooth;
+  scroll-padding-top: 72px;
+}
+
 .container {
-  max-width: 1100px;
+  width: 80%;
+  max-width: 80vw;
   margin: 0 auto;
   padding: 0 24px;
   display: grid;
-  gap: 32px;
+  gap: 0;
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.35s ease, transform 0.35s ease;
+  will-change: opacity, transform;
+}
+
+.reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.snap-section {
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  min-height: 100vh;
+}
+
+.snap-section:not(.hero) {
+  display: grid;
+  align-content: center;
+  padding: 0;
+}
+
+.reveal.is-visible .trust-card,
+.reveal.is-visible .benefit-card,
+.reveal.is-visible .how-card,
+.reveal.is-visible .foundation-card,
+.reveal.is-visible .audience-card,
+.reveal.is-visible .plan-card {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+
+  .trust-card,
+  .benefit-card,
+  .how-card,
+  .foundation-card,
+  .audience-card,
+  .plan-card {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
 }
 
 .hero {
   display: grid;
-  gap: 24px;
-  grid-template-columns: minmax(0, 1.3fr) minmax(0, 0.9fr);
-  align-items: stretch;
+  gap: 32px;
+  grid-template-columns: 1fr;
+  align-items: center;
+  justify-items: center;
+  min-height: 100vh;
 }
 
 .hero__content {
   display: grid;
   gap: 16px;
+  text-align: center;
+  justify-items: center;
+  max-width: 820px;
 }
 
 .eyebrow {
@@ -337,9 +500,19 @@ const planActionLabel = (code: PlanCode) => {
   color: var(--muted);
 }
 
+.hero__logo {
+  width: clamp(160px, 20vw, 260px);
+  height: auto;
+  margin-bottom: 10px;
+}
+
+.hero__logo--small {
+  width: clamp(80px, 10vw, 130px);
+}
+
 .hero__title {
-  font-size: clamp(28px, 3.2vw, 44px);
-  line-height: 1.1;
+  font-size: clamp(40px, 5vw, 78px);
+  line-height: 1.05;
   margin: 0;
   font-weight: 300;
 }
@@ -347,28 +520,31 @@ const planActionLabel = (code: PlanCode) => {
 .hero__subtitle {
   margin: 0;
   color: var(--muted);
-  max-width: 560px;
+  max-width: 640px;
+  font-size: clamp(16px, 1.6vw, 22px);
 }
 
 .hero__slogan {
   margin: 0;
-  max-width: 560px;
+  max-width: 640px;
   color: var(--muted);
   display: grid;
   gap: 6px;
+  font-size: clamp(15px, 1.4vw, 20px);
 }
 
 .hero__panel-actions {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
   gap: 10px;
   align-items: center;
-  margin-top: 12px;
+  justify-items: stretch;
+  margin-top: 0;
 }
 
 .hero__catalog {
   display: grid;
   gap: 6px;
+  justify-items: center;
 }
 
 .link {
@@ -386,16 +562,22 @@ const planActionLabel = (code: PlanCode) => {
 .hero__panel {
   display: grid;
   gap: 16px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 280px);
+  align-items: center;
+  width: 100%;
+  max-width: 980px;
 }
 
 .panel__title {
   font-family: var(--font-display);
-  font-size: 18px;
+  font-size: 20px;
+  text-align: left;
 }
 
 .panel__text {
   margin: 0;
   color: var(--muted);
+  text-align: left;
 }
 
 .chip-row {
@@ -408,8 +590,8 @@ const planActionLabel = (code: PlanCode) => {
   border-radius: 999px;
   border: 1px solid var(--line);
   background: #fff;
-  padding: 8px 14px;
-  font-size: 14px;
+  padding: 10px 18px;
+  font-size: 16px;
   font-weight: 600;
   color: var(--ink);
 }
@@ -421,46 +603,99 @@ const planActionLabel = (code: PlanCode) => {
 
 .benefits {
   display: grid;
-  gap: 16px;
+  gap: 20px;
+  align-content: start;
+}
+
+.system-foundation {
+  display: grid;
+  gap: 48px;
+  align-content: center;
+}
+
+.trust {
+  display: grid;
+  gap: 20px;
+  align-content: start;
+}
+
+.trust__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 22px;
+  align-items: stretch;
+  grid-auto-rows: 1fr;
+}
+
+.trust-card {
+  padding: 28px;
+  display: grid;
+  gap: 8px;
+  min-height: 260px;
+  width: 100%;
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.trust-card__title {
+  font-weight: 600;
+  font-size: 18px;
 }
 
 .section-title {
   margin: 0;
-  font-size: 18px;
-  font-weight: 400;
+  font-size: clamp(30px, 3vw, 40px);
+  font-weight: 500;
+  text-align: center;
 }
 
 .benefits__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 22px;
+  align-items: stretch;
+  grid-auto-rows: 1fr;
 }
 
 .benefit-card {
-  padding: 16px;
+  padding: 26px;
   font-weight: 500;
+  font-size: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
   text-align: center;
-  min-height: 68px;
+  min-height: 200px;
+  width: 100%;
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
 }
 
 .how {
   display: grid;
-  gap: 16px;
+  gap: 20px;
+  align-content: start;
 }
 
 .how__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 22px;
+  align-items: stretch;
+  grid-auto-rows: 1fr;
 }
 
 .how-card {
-  padding: 16px;
+  padding: 26px;
   display: grid;
   gap: 10px;
+  min-height: 260px;
+  width: 100%;
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
 }
 
 .how-card__step {
@@ -476,6 +711,7 @@ const planActionLabel = (code: PlanCode) => {
 
 .how-card__title {
   font-weight: 400;
+  font-size: 18px;
 }
 
 .how-card__text {
@@ -489,11 +725,86 @@ const planActionLabel = (code: PlanCode) => {
   color: var(--muted);
 }
 
-.catalog {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+.foundation {
+  display: grid;
   gap: 20px;
+  align-content: start;
+}
+
+.foundation__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 22px;
+  align-items: stretch;
+  grid-auto-rows: 1fr;
+}
+
+.foundation-card {
+  padding: 28px;
+  display: grid;
+  gap: 8px;
+  min-height: 260px;
+  width: 100%;
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.foundation-card__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 22px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(77, 122, 157, 0.35);
+  background: rgba(77, 122, 157, 0.12);
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  width: fit-content;
+}
+
+.foundation-card__title {
+  font-weight: 600;
+  font-size: 18px;
+}
+
+.audience {
+  display: grid;
+  gap: 20px;
+  align-content: start;
+}
+
+.audience__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 22px;
+  align-items: stretch;
+  grid-auto-rows: 1fr;
+}
+
+.audience__grid--four {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.audience-card {
+  padding: 28px;
+  display: grid;
+  gap: 8px;
+  min-height: 260px;
+  width: 100%;
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.audience-card__title {
+  font-weight: 600;
+  font-size: 18px;
 }
 
 .muted {
@@ -502,7 +813,8 @@ const planActionLabel = (code: PlanCode) => {
 
 .pricing {
   display: grid;
-  gap: 16px;
+  gap: 20px;
+  align-content: center;
 }
 
 .pricing__header {
@@ -522,19 +834,76 @@ const planActionLabel = (code: PlanCode) => {
 
 .plan-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 22px;
+  align-items: stretch;
+  grid-auto-rows: 1fr;
 }
 
 .plan-card {
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--card);
-  padding: 18px;
+  padding: 28px;
   display: flex;
   flex-direction: column;
   gap: 12px;
   box-shadow: var(--shadow-1);
+  min-height: 420px;
+  width: 100%;
+  opacity: 0;
+  transform: translateY(14px);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+}
+
+.trust-card,
+.benefit-card,
+.how-card,
+.foundation-card,
+.audience-card,
+.plan-card {
+  position: relative;
+}
+
+.trust-card:hover,
+.benefit-card:hover,
+.how-card:hover,
+.foundation-card:hover,
+.audience-card:hover,
+.plan-card:hover {
+  transform: translateY(-6px) rotate(-0.6deg) scale(1.01);
+  border-color: rgba(77, 122, 157, 0.45);
+  box-shadow: 0 20px 36px rgba(16, 33, 50, 0.18);
+  animation: card-wiggle 0.4s ease-in-out;
+}
+
+.trust-card:hover::after,
+.benefit-card:hover::after,
+.how-card:hover::after,
+.foundation-card:hover::after,
+.audience-card:hover::after,
+.plan-card:hover::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  border: 1px solid rgba(77, 122, 157, 0.35);
+  pointer-events: none;
+}
+
+@keyframes card-wiggle {
+  0% {
+    transform: translateY(-4px) rotate(0deg) scale(1.01);
+  }
+  40% {
+    transform: translateY(-7px) rotate(-0.8deg) scale(1.01);
+  }
+  70% {
+    transform: translateY(-5px) rotate(0.5deg) scale(1.01);
+  }
+  100% {
+    transform: translateY(-6px) rotate(-0.6deg) scale(1.01);
+  }
 }
 
 .plan-card--current {
@@ -645,9 +1014,17 @@ const planActionLabel = (code: PlanCode) => {
     grid-template-columns: 1fr;
   }
 
-  .catalog {
-    flex-direction: column;
-    align-items: flex-start;
+  .hero__panel {
+    grid-template-columns: 1fr;
+  }
+
+  .panel__title,
+  .panel__text {
+    text-align: center;
+  }
+
+  .hero__panel-actions {
+    justify-items: center;
   }
 
   .pricing__header {

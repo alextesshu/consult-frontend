@@ -3,12 +3,12 @@
 
 :root {
   /* Core (shared) */
-  --bg: #f6f2ec;
-  --surface: #ffffff;
-  --surface-2: #fbfaf7;
-  --text: #23323a;
-  --text-2: #5e6b73;
-  --border: #e3dbd1;
+  --bg: #ffffff;
+  --surface: #fdf0d5;
+  --surface-2: #f7ead1;
+  --text: #1c2a33;
+  --text-2: #4d5b66;
+  --border: #e7dcc5;
   --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.06);
   --shadow-2: 0 8px 20px rgba(0, 0, 0, 0.08);
   --radius: 18px;
@@ -16,16 +16,16 @@
   --font-display: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial, "Noto Sans", "Liberation Sans", sans-serif;
 
   /* Role defaults (client as baseline) */
-  --primary: #6aa5a9;
-  --primary-hover: #5a9498;
-  --primary-soft: #e0f0f0;
-  --primary-soft-2: #d3e7e7;
-  --accent: #7fb5c5;
-  --accent-2: #c4ddea;
+  --primary: #669bbc;
+  --primary-hover: #519cab;
+  --primary-soft: #c3e7f1;
+  --primary-soft-2: #d7eff7;
+  --accent: #003049;
+  --accent-2: #4f7c94;
 
-  --success: #6d9a8c;
+  --success: #4f7c94;
   --warning: #c6a75e;
-  --danger: #a85b5b;
+  --danger: #c1121f;
 
   /* Derived legacy tokens */
   --deep: var(--text);
@@ -38,8 +38,8 @@
   --shadow: var(--shadow-1);
 
   /* Topbar */
-  --topbar-bg: rgba(106, 165, 169, 0.88);
-  --topbar-border: rgba(106, 165, 169, 0.25);
+  --topbar-bg: rgba(102, 155, 188, 0.9);
+  --topbar-border: rgba(102, 155, 188, 0.25);
   --topbar-text: #f3fbfb;
 }
 
@@ -267,33 +267,46 @@ input[type="time"]:focus::-webkit-datetime-edit {
   justify-content: center;
   padding: 12px 16px;
   border-radius: 12px;
-  border: 1px solid color-mix(in srgb, var(--primary) 35%, var(--border));
-  background: var(--primary);
-  color: var(--surface);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: linear-gradient(135deg, #003049 0%, #519cab 100%);
+  color: #f1fbff;
   font-weight: 300;
   text-align: center;
   cursor: pointer;
   line-height: 1.2;
   min-height: 40px;
+  box-shadow: 0 18px 36px rgba(0, 48, 73, 0.28), inset 0 1px 1px rgba(255, 255, 255, 0.3);
   transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn::before {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  pointer-events: none;
 }
 
 .btn--ghost {
   background: transparent;
   color: var(--ink);
   border-color: color-mix(in srgb, var(--primary) 20%, var(--border));
+  box-shadow: none;
 }
 
 .btn:hover {
-  background: var(--primary-hover);
-  border-color: color-mix(in srgb, var(--primary) 55%, var(--border));
-  box-shadow: 0 10px 20px rgba(31, 58, 74, 0.16);
-  transform: translateY(-1px);
+  background: linear-gradient(135deg, #0b3f5a 0%, #5fb2c4 100%);
+  border-color: rgba(255, 255, 255, 0.3);
+  box-shadow: 0 22px 46px rgba(0, 48, 73, 0.38), inset 0 1px 1px rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
 }
 
 .btn:active {
   transform: translateY(0);
-  box-shadow: 0 6px 14px rgba(31, 58, 74, 0.12);
+  box-shadow: 0 12px 24px rgba(0, 48, 73, 0.32), inset 0 1px 1px rgba(255, 255, 255, 0.3);
 }
 
 .btn:focus-visible {
@@ -323,8 +336,8 @@ input[type="time"]:focus::-webkit-datetime-edit {
   cursor: not-allowed;
   box-shadow: none;
   transform: none;
-  background: color-mix(in srgb, var(--bg) 70%, #ffffff);
-  border-color: var(--border);
+  background: linear-gradient(135deg, #c5d5df 0%, #b6cddb 100%);
+  border-color: rgba(255, 255, 255, 0.35);
 }
 
 .btn--ghost:disabled,
