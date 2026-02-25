@@ -1,6 +1,6 @@
 ﻿<template>
   <div :class="['shell', { 'shell--home': isHome }]">
-    <header v-if="!isHome" :class="topbarClass">
+    <header :class="topbarClass">
       <RouterLink class="brand" to="/">
         <div class="brand__mark">Pro Consult</div>
         <div class="brand__tagline">Простір для ведення консультацій</div>
@@ -16,7 +16,6 @@
           Публічний профіль
         </RouterLink>
         <RouterLink to="/faq">FAQ</RouterLink>
-        <RouterLink to="/cabinet/billing">Тарифи</RouterLink>
         <RouterLink v-if="!isAuthenticated" to="/login">Вхід</RouterLink>
         <RouterLink v-if="!isAuthenticated" to="/signup">Реєстрація</RouterLink>
         <RouterLink
@@ -138,6 +137,7 @@ const topbarClass = computed(() => [
   {
     'topbar--therapist': isTherapist.value,
     'topbar--client': isClient.value,
+    'topbar--overlay': isHome.value,
   },
 ])
 
@@ -476,10 +476,6 @@ loadUpcomingReadAt()
   overflow: visible;
 }
 
-.shell--home .topbar {
-  display: none;
-}
-
 .topbar {
   display: flex;
   align-items: center;
@@ -533,14 +529,9 @@ loadUpcomingReadAt()
 }
 
 .topbar--overlay .brand {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  text-align: center;
-}
-
-.topbar--overlay .nav {
-  margin-left: auto;
+  position: static;
+  transform: none;
+  text-align: left;
 }
 
 .nav {

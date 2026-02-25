@@ -4,7 +4,7 @@
       <div class="hero reveal snap-section">
         <div class="hero__content">
           <img class="hero__logo hero__logo--small" src="../assets/consult-logo_2026-02-24-2135_black.png" alt="Pro Consult" />
-          <div class="eyebrow">Pro Consult</div>
+          <div class="eyebrow">З повагою до практики</div>
           <h1 class="hero__title">Простір для ведення консультацій</h1>
           <p class="hero__subtitle">
             Ми створюємо сервіс для зручної та ефективної взаємодії між спеціалістом та клієнтом.
@@ -19,37 +19,55 @@
               Перегляд каталогу доступний лише для авторизованих клієнтів.
             </div>
           </div>
+          <div v-if="!isAuthenticated" class="hero__notice card">
+            <div class="hero__notice-title">Стартуйте безкоштовно вже сьогодні</div>
+            <div class="muted">
+              Простір для ведення практики доступний безкоштовно. Коли будете готові масштабуватись,
+              підписка відкриє додаткові можливості та дасть відчутний буст.
+            </div>
+          </div>
         </div>
         <div class="hero__panel card">
-          <div class="panel__title">Оберіть тип вашої практики та створіть кабінет спеціаліста</div>
-          <div class="chip-row">
-            <button
-              v-for="(item, index) in roleCards"
-              :key="item.title"
-              class="chip"
-              :class="{ 'chip--active': index === activeRoleIndex }"
-              type="button"
-              @click="activeRoleIndex = index"
-            >
-              {{ item.title }}
-            </button>
+          <div class="hero__panel-copy">
+            <div class="panel__title">Потужні інструменти для ефективної практики</div>
+            <p class="panel__text">
+              Плануйте сесії, керуйте клієнтами, фіксуйте історію та бачте прогрес — усе в одному робочому просторі.
+            </p>
+            <div class="hero__panel-photo" aria-hidden="true">
+              <div class="hero__panel-photo-label">Фото буде тут</div>
+              <div class="hero__panel-photo-hint">Теплі тони · консультація зі спеціалістом</div>
+            </div>
           </div>
-          <p class="panel__text">
-            {{ roleCards[activeRoleIndex]?.description || '' }}
-          </p>
-          <div class="hero__panel-actions">
-            <RouterLink v-if="!isAuthenticated" class="btn btn--primary" to="/signup">
-              Створити кабінет спеціаліста
-            </RouterLink>
-            <RouterLink v-if="!isAuthenticated" class="btn btn--ghost" to="/login">
-              Увійти
-            </RouterLink>
-            <button v-if="isAuthenticated" class="btn btn--primary" type="button" @click="goToCabinet">
-              Перейти в кабінет
-            </button>
-            <button v-if="isAuthenticated" class="btn btn--ghost" type="button" @click="onLogout">
-              Вийти
-            </button>
+          <div class="hero__panel-actions-block">
+            <div class="chip-row">
+              <button
+                v-for="(item, index) in roleCards"
+                :key="item.title"
+                class="chip"
+                :class="{ 'chip--active': index === activeRoleIndex }"
+                type="button"
+                @click="activeRoleIndex = index"
+              >
+                {{ item.title }}
+              </button>
+            </div>
+            <p class="panel__text panel__text--muted">
+              {{ roleCards[activeRoleIndex]?.description || '' }}
+            </p>
+            <div class="hero__panel-actions">
+              <RouterLink v-if="!isAuthenticated" class="btn btn--primary" to="/signup">
+                Створити кабінет спеціаліста
+              </RouterLink>
+              <RouterLink v-if="!isAuthenticated" class="btn btn--ghost" to="/login">
+                Увійти
+              </RouterLink>
+              <button v-if="isAuthenticated" class="btn btn--primary" type="button" @click="goToCabinet">
+                Перейти в кабінет
+              </button>
+              <button v-if="isAuthenticated" class="btn btn--ghost" type="button" @click="onLogout">
+                Вийти
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -185,6 +203,16 @@
           <div>Каталог — опційний. Спеціаліст з’являється там лише якщо зробить профіль публічним.</div>
         </div>
       </div>
+
+      <footer class="home-footer">
+        <div class="home-footer__content">
+          <div class="home-footer__brand">Pro Consult</div>
+          <div class="home-footer__meta">
+            <span>© 2026</span>
+            <span>Організація консультацій без посередників</span>
+          </div>
+        </div>
+      </footer>
     </div>
   </section>
 </template>
@@ -234,7 +262,7 @@ const roleCards = [
     description: 'Налаштуйте власний розклад, ведіть клієнтів і керуйте сесіями у зручному темпі.',
   },
   {
-    title: 'Коучинг / Наставництво',
+    title: 'Коуч / Наставник',
     description: 'Заплановані зустрічі, нотатки та історія роботи — все під рукою.',
   },
   {
@@ -438,7 +466,7 @@ onBeforeUnmount(() => {
 .snap-section {
   scroll-snap-align: start;
   scroll-snap-stop: always;
-  min-height: 100vh;
+  min-height: auto;
 }
 
 .snap-section:not(.hero) {
@@ -482,7 +510,8 @@ onBeforeUnmount(() => {
   grid-template-columns: 1fr;
   align-items: center;
   justify-items: center;
-  min-height: 100vh;
+  min-height: auto;
+  padding-bottom: 0;
 }
 
 .hero__content {
@@ -491,6 +520,7 @@ onBeforeUnmount(() => {
   text-align: center;
   justify-items: center;
   max-width: 820px;
+  padding-top: 48px;
 }
 
 .eyebrow {
@@ -535,7 +565,7 @@ onBeforeUnmount(() => {
 
 .hero__panel-actions {
   display: grid;
-  gap: 10px;
+  gap: 12px;
   align-items: center;
   justify-items: stretch;
   margin-top: 0;
@@ -545,6 +575,22 @@ onBeforeUnmount(() => {
   display: grid;
   gap: 6px;
   justify-items: center;
+}
+
+.hero__notice {
+  display: grid;
+  gap: 8px;
+  text-align: center;
+  max-width: 640px;
+  padding: 18px 22px;
+  background: color-mix(in srgb, var(--surface) 60%, #ffffff);
+  border: 1px solid color-mix(in srgb, var(--border) 55%, #ffffff);
+  box-shadow: 0 16px 32px rgba(19, 32, 46, 0.1);
+}
+
+.hero__notice-title {
+  font-weight: 600;
+  font-size: 18px;
 }
 
 .link {
@@ -561,16 +607,30 @@ onBeforeUnmount(() => {
 
 .hero__panel {
   display: grid;
-  gap: 16px;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 280px);
+  gap: 20px;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
   align-items: center;
   width: 100%;
   max-width: 980px;
+  background: color-mix(in srgb, var(--surface) 75%, #ffffff);
+  border: 1px solid color-mix(in srgb, var(--border) 70%, #ffffff);
+  box-shadow: 0 18px 45px rgba(19, 32, 46, 0.12);
+  padding: 28px 32px;
+}
+
+.hero__panel-copy {
+  display: grid;
+  gap: 12px;
+}
+
+.hero__panel-actions-block {
+  display: grid;
+  gap: 14px;
 }
 
 .panel__title {
   font-family: var(--font-display);
-  font-size: 20px;
+  font-size: 22px;
   text-align: left;
 }
 
@@ -578,27 +638,58 @@ onBeforeUnmount(() => {
   margin: 0;
   color: var(--muted);
   text-align: left;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.panel__text--muted {
+  color: color-mix(in srgb, var(--muted) 85%, transparent);
+  font-size: 14px;
+}
+
+.hero__panel-photo {
+  border-radius: 18px;
+  border: 1px dashed color-mix(in srgb, var(--accent) 22%, var(--border));
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.5), rgba(253, 240, 213, 0.7));
+  min-height: 160px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: 16px;
+  color: var(--muted);
+}
+
+.hero__panel-photo-label {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.hero__panel-photo-hint {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 4px;
 }
 
 .chip-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 12px;
 }
 
 .chip {
   border-radius: 999px;
-  border: 1px solid var(--line);
-  background: #fff;
-  padding: 10px 18px;
-  font-size: 16px;
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, var(--border));
+  background: #ffffff;
+  padding: 10px 20px;
+  font-size: 15px;
   font-weight: 600;
   color: var(--ink);
+  box-shadow: 0 10px 22px rgba(19, 32, 46, 0.08);
 }
 
 .chip--active {
-  border-color: var(--accent-soft);
-  background: rgba(77, 122, 157, 0.12);
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
+  background: color-mix(in srgb, var(--primary-soft) 55%, #ffffff);
 }
 
 .benefits {
@@ -609,14 +700,16 @@ onBeforeUnmount(() => {
 
 .system-foundation {
   display: grid;
-  gap: 48px;
-  align-content: center;
+  gap: 16px;
+  align-content: start;
+  padding: 12px 0;
 }
 
 .trust {
   display: grid;
-  gap: 20px;
+  gap: 12px;
   align-content: start;
+  padding: 12px 0;
 }
 
 .trust__grid {
@@ -644,7 +737,7 @@ onBeforeUnmount(() => {
 }
 
 .section-title {
-  margin: 0;
+  margin: 22px 0;
   font-size: clamp(30px, 3vw, 40px);
   font-weight: 500;
   text-align: center;
@@ -675,8 +768,9 @@ onBeforeUnmount(() => {
 
 .how {
   display: grid;
-  gap: 20px;
+  gap: 12px;
   align-content: start;
+  padding: 12px 0;
 }
 
 .how__grid {
@@ -773,8 +867,9 @@ onBeforeUnmount(() => {
 
 .audience {
   display: grid;
-  gap: 20px;
+  gap: 12px;
   align-content: start;
+  padding: 12px 0;
 }
 
 .audience__grid {
@@ -813,15 +908,16 @@ onBeforeUnmount(() => {
 
 .pricing {
   display: grid;
-  gap: 20px;
-  align-content: center;
+  gap: 12px;
+  align-content: start;
+  padding: 12px 0;
 }
 
 .pricing__header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
+  display: grid;
+  gap: 8px;
+  justify-items: center;
+  text-align: center;
 }
 
 .pricing__note {
@@ -830,6 +926,7 @@ onBeforeUnmount(() => {
   padding: 6px 12px;
   border-radius: 999px;
   background: rgba(77, 122, 157, 0.12);
+  justify-self: center;
 }
 
 .plan-grid {
@@ -1009,6 +1106,37 @@ onBeforeUnmount(() => {
   margin: 0;
 }
 
+.home-footer {
+  margin-top: 48px;
+  padding: 18px 0 28px;
+  border-top: 1px solid rgba(0, 48, 73, 0.12);
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(6px);
+}
+
+.home-footer__content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.home-footer__brand {
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 11px;
+}
+
+.home-footer__meta {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
 @media (max-width: 980px) {
   .hero {
     grid-template-columns: 1fr;
@@ -1023,11 +1151,22 @@ onBeforeUnmount(() => {
     text-align: center;
   }
 
+  .hero__panel-copy,
+  .hero__panel-actions-block {
+    justify-items: center;
+    text-align: center;
+  }
+
   .hero__panel-actions {
     justify-items: center;
   }
 
   .pricing__header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .home-footer__content {
     flex-direction: column;
     align-items: flex-start;
   }

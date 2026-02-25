@@ -3,29 +3,32 @@
 
 :root {
   /* Core (shared) */
-  --bg: #ffffff;
-  --surface: #fdf0d5;
-  --surface-2: #f7ead1;
-  --text: #1c2a33;
-  --text-2: #4d5b66;
-  --border: #e7dcc5;
-  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.06);
-  --shadow-2: 0 8px 20px rgba(0, 0, 0, 0.08);
+  --bg: #f8f9fb;
+  --surface: #f2f3f6;
+  --surface-2: #e9ebf0;
+  --text: #0a0c12;
+  --text-2: #3f3a42;
+  --border: rgba(10, 12, 18, 0.12);
+  --shadow-1: 0 10px 30px rgba(2, 54, 97, 0.12);
+  --shadow-2: 0 18px 50px rgba(2, 54, 97, 0.18);
   --radius: 18px;
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial, "Noto Sans", "Liberation Sans", sans-serif;
   --font-display: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial, "Noto Sans", "Liberation Sans", sans-serif;
+  --sky-1: #cfe6ff;
+  --sky-2: #e7f2ff;
+  --sky-3: #f6fbff;
 
   /* Role defaults (client as baseline) */
-  --primary: #669bbc;
-  --primary-hover: #519cab;
-  --primary-soft: #c3e7f1;
-  --primary-soft-2: #d7eff7;
-  --accent: #003049;
-  --accent-2: #4f7c94;
+  --primary: #023661;
+  --primary-hover: #0a4b86;
+  --primary-soft: #d7dee6;
+  --primary-soft-2: #c7d3e0;
+  --accent: #db5227;
+  --accent-2: #76828e;
 
-  --success: #4f7c94;
-  --warning: #c6a75e;
-  --danger: #c1121f;
+  --success: #023661;
+  --warning: #db5227;
+  --danger: #db5227;
 
   /* Derived legacy tokens */
   --deep: var(--text);
@@ -38,9 +41,9 @@
   --shadow: var(--shadow-1);
 
   /* Topbar */
-  --topbar-bg: rgba(102, 155, 188, 0.9);
-  --topbar-border: rgba(102, 155, 188, 0.25);
-  --topbar-text: #f3fbfb;
+  --topbar-bg: rgba(2, 54, 97, 0.7);
+  --topbar-border: rgba(2, 54, 97, 0.2);
+  --topbar-text: #f8f9fb;
 }
 
 html[data-role="therapist"],
@@ -58,7 +61,10 @@ html, body, #app {
 
 body {
   margin: 0;
-  background: var(--bg);
+  background:
+    radial-gradient(1200px 520px at 20% -10%, rgba(2, 54, 97, 0.15), transparent 70%),
+    radial-gradient(900px 480px at 80% 0%, rgba(219, 82, 39, 0.12), transparent 70%),
+    linear-gradient(180deg, #f7f8fb 0%, var(--bg) 70%);
   color: var(--ink);
   font-family: var(--font-sans);
   font-weight: 200;
@@ -80,6 +86,7 @@ a {
   width: 100%;
   margin: 0;
   padding: 24px 24px 48px;
+  background: transparent;
   animation: page-in 420ms ease;
 }
 
@@ -87,7 +94,13 @@ a {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 18px 0;
+  backdrop-filter: blur(10px);
+  background: rgba(255, 255, 255, 0.28);
+  border: 1px solid rgba(0, 48, 73, 0.06);
+  border-radius: 18px;
+  padding: 14px 18px;
+  margin: 16px auto 0;
+  max-width: 80vw;
 }
 
 .brand {
@@ -128,11 +141,11 @@ a {
 }
 
 .hero__card {
-  background: var(--card);
-  border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--surface) 88%, #ffffff);
+  border: 1px solid color-mix(in srgb, var(--border) 80%, #ffffff);
   border-radius: var(--radius);
   padding: 24px;
-  box-shadow: var(--shadow-1);
+  box-shadow: var(--shadow-2);
   color: var(--ink);
 }
 
@@ -180,11 +193,11 @@ a {
 }
 
 .card {
-  background: var(--card);
-  border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--surface) 88%, #ffffff);
+  border: 1px solid color-mix(in srgb, var(--border) 80%, #ffffff);
   border-radius: var(--radius);
   padding: 24px;
-  box-shadow: var(--shadow-1);
+  box-shadow: var(--shadow-2);
   color: var(--ink);
 }
 
