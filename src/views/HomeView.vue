@@ -92,16 +92,6 @@
           </div>
         </div>
 
-        <div class="foundation">
-          <h2 class="section-title">Міцний фундамент</h2>
-          <div class="foundation__grid">
-            <div v-for="item in foundationPoints" :key="item.title" class="card foundation-card">
-              <span class="foundation-card__badge">{{ item.badge }}</span>
-              <div class="foundation-card__title">{{ item.title }}</div>
-              <div class="muted">{{ item.text }}</div>
-            </div>
-          </div>
-        </div>
       </div>
 
       <div class="how reveal snap-section">
@@ -144,7 +134,12 @@
         <div class="pricing__header">
           <div>
             <h2 class="section-title">Підписки</h2>
-            <p class="muted">Обирайте план під розмір практики. Без комісій — лише підписка.</p>
+            <p class="muted">
+              Обирайте план під розмір практики. Без комісій — лише підписка.
+            </p>
+            <p class="pricing__definition">
+              Активний клієнт — той, з ким у вас була сесія протягом останнього місяця.
+            </p>
           </div>
           <div class="pricing__note">Оновлення плану в будь-який момент</div>
         </div>
@@ -192,8 +187,8 @@
         <details class="plan-compare">
           <summary>Порівняти підписки</summary>
           <div class="plan-compare__list">
-          <div>START: базовий робочий простір для старту практики.</div>
-          <div>PRO: основний план для розвитку практики.</div>
+          <div>START: базові інструменти та Google Meet для старту практики.</div>
+          <div>PRO: розширені сесії та вбудоване відео для росту.</div>
           <div>LEADER: масштабування, публічні події та пріоритетна підтримка.</div>
         </div>
       </details>
@@ -304,24 +299,6 @@ const trustPoints = [
   },
 ]
 
-const foundationPoints = [
-  {
-    badge: 'ДОСТУПИ',
-    title: 'Доступи та ліміти під контролем',
-    text: 'Система чітко показує, що доступно саме вам, і не ламає вже створені сесії.',
-  },
-  {
-    badge: 'БІЛІНГ',
-    title: 'Оплати та запити працюють стабільно',
-    text: 'Платіжні події не губляться, а звернення можна повторювати без ризику.',
-  },
-  {
-    badge: 'ПОДІЇ',
-    title: 'Прозора історія дій',
-    text: 'Усі важливі зміни фіксуються, тому система поводиться передбачувано.',
-  },
-]
-
 const audienceCards = roleCards
 
 type PlanCode = 'START' | 'PRO' | 'LEADER'
@@ -331,12 +308,21 @@ const pricingPlans = [
     code: 'START',
     title: 'Start',
     subtitle: '',
-    price: '€0/міс',
+    price: '€9 / місяць',
     annual: '',
     annualHint: '',
-    badge: 'Для старту',
-    features: ['3 активні клієнти', '1:1 сесії', 'Слоти та бронювання', 'Базовий кабінет'],
-    note: 'Для старту та тестування.',
+    badge: 'Старт',
+    features: [
+      'До 5 активних клієнтів',
+      'Макс. тривалість 60 хв',
+      'Google Meet для сесій',
+      'Перенесення сесій',
+      'Чат із клієнтами',
+      'Зашифровані нотатки та журнал клієнта',
+      'Базова аналітика',
+      'Каталог спеціалістів',
+    ],
+    note: 'Найкраще для старту практики.',
   },
   {
     code: 'PRO',
@@ -347,12 +333,13 @@ const pricingPlans = [
     annualHint: '2 місяці безкоштовно',
     badge: 'Рекомендовано',
     features: [
-      '20 активних клієнтів',
-      '1:1 + парна терапія',
-      'Групові кімнати',
-      'Перенесення сесій та нагадування',
-      'Авторський журнал (Незабаром)',
-      'Розширена аналітика (Незабаром)',
+      'До 15 активних клієнтів',
+      'Макс. тривалість 90 хв',
+      'Вбудоване відео (SDK)',
+      'Парна терапія (2 клієнти)',
+      'Інтервізії / супервізії',
+      'Авторський журнал у публічному профілі',
+      'Розширена аналітика з графіками',
     ],
     note: 'Для стабільної практики та зростання.',
   },
@@ -365,9 +352,11 @@ const pricingPlans = [
     annualHint: '2 місяці безкоштовно',
     badge: 'Масштабування',
     features: [
-      'Безліміт активних клієнтів',
-      'Усе з PRO',
-      'Broadcast + публічні події',
+      'До 40 активних клієнтів',
+      'Макс. тривалість 120 хв',
+      'Вбудоване відео (SDK)',
+      'Broadcast-сесії',
+      'Публічні події',
       'Пріоритетна підтримка',
     ],
     note: 'Для масштабування та публічних форматів.',
@@ -724,7 +713,7 @@ onBeforeUnmount(() => {
   padding: 28px;
   display: grid;
   gap: 8px;
-  min-height: 260px;
+  min-height: 200px;
   width: 100%;
   opacity: 0;
   transform: translateY(14px);
@@ -759,7 +748,7 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: center;
   text-align: center;
-  min-height: 200px;
+  min-height: 150px;
   width: 100%;
   opacity: 0;
   transform: translateY(14px);
@@ -785,7 +774,7 @@ onBeforeUnmount(() => {
   padding: 26px;
   display: grid;
   gap: 10px;
-  min-height: 260px;
+  min-height: 210px;
   width: 100%;
   opacity: 0;
   transform: translateY(14px);
@@ -837,7 +826,7 @@ onBeforeUnmount(() => {
   padding: 28px;
   display: grid;
   gap: 8px;
-  min-height: 260px;
+  min-height: 210px;
   width: 100%;
   opacity: 0;
   transform: translateY(14px);
@@ -890,7 +879,7 @@ onBeforeUnmount(() => {
   padding: 28px;
   display: grid;
   gap: 8px;
-  min-height: 260px;
+  min-height: 210px;
   width: 100%;
   opacity: 0;
   transform: translateY(14px);
@@ -927,6 +916,13 @@ onBeforeUnmount(() => {
   border-radius: 999px;
   background: rgba(77, 122, 157, 0.12);
   justify-self: center;
+}
+
+.pricing__definition {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: var(--muted);
+  text-align: center;
 }
 
 .plan-grid {
