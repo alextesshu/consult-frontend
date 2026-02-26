@@ -19,7 +19,7 @@
           v-for="therapist in therapists"
           :key="therapist.public_slug"
           class="therapist-card"
-          :to="`/t/${therapist.public_slug}`"
+          :to="`/specialist/${therapist.public_slug}`"
         >
           <img
             v-if="therapist.photo_url"

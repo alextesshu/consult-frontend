@@ -38,7 +38,7 @@
               ID: #{{ session.therapist }}
             </div>
             <div v-if="session.therapist_public_slug" class="detail-actions">
-              <RouterLink class="btn btn--ghost btn--sm" :to="`/t/${session.therapist_public_slug}`">
+              <RouterLink class="btn btn--ghost btn--sm" :to="`/specialist/${session.therapist_public_slug}`">
                 Відкрити профіль
               </RouterLink>
               <button class="btn btn--ghost btn--sm" type="button" @click="copyTherapistLink">
@@ -197,7 +197,7 @@ function therapistLabel(detail: SessionDetail) {
 
 async function copyTherapistLink() {
   if (!session.value?.therapist_public_slug) return
-  const url = `${window.location.origin}/t/${session.value.therapist_public_slug}`
+  const url = `${window.location.origin}/specialist/${session.value.therapist_public_slug}`
   try {
     await navigator.clipboard.writeText(url)
     toast.success('Посилання скопійовано.')

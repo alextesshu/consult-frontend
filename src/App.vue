@@ -129,7 +129,7 @@ const cabinetLabel = computed(() => {
 const showCatalogNav = computed(() => isClient.value)
 const chatRoute = computed(() => (isTherapist.value ? '/cabinet/chat' : '/client/chat'))
 const isPublicRoute = computed(
-  () => route.path.startsWith('/public') || route.path.startsWith('/t/')
+  () => route.path.startsWith('/public') || route.path.startsWith('/specialist/')
 )
 
 const topbarClass = computed(() => [

@@ -82,6 +82,9 @@
             <div class="client-name">
               {{ client.client_username || ('\u041a\u043b\u0456\u0454\u043d\u0442 #' + client.client) }}
             </div>
+            <div v-if="client.client_code" class="muted">
+              Код клієнта: {{ client.client_code }}
+            </div>
             <div class="muted">Статус: {{ client.state }}</div>
             <div class="muted">Остання сесія: {{ formatDateTime(client.last_session_at) }}</div>
             <div class="muted">Заплановано: {{ client.upcoming_count ?? 0 }}</div>
@@ -156,6 +159,7 @@ type ClientState = {
   last_session_at: string | null
   upcoming_count: number
   client_username?: string
+  client_code?: string
 }
 
 

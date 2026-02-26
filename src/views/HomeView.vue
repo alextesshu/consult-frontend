@@ -5,10 +5,10 @@
         <div class="hero-agency__text">
           <div class="eyebrow">Pro Consult</div>
           <h1 class="hero-agency__title">
-            Простір для спеціаліста. Ваші правила, ваш дохід
+            Простір для ведення консультацій
           </h1>
           <p class="hero-agency__subtitle">
-            Усі клієнти, нотатки, календар і дохід — в одному безпечному кабінеті.
+            Для терапевтів, наставників, викладачів та консультантів
           </p>
           <p class="hero-agency__subtitle">
             Жодних комісій за сесії — лише підписка. Умови співпраці з клієнтом ви
@@ -410,6 +410,7 @@ onBeforeUnmount(() => {
 <style scoped>
 .home-agency {
   padding: 72px 0 120px;
+  font-size: 15px;
 }
 
 .container--agency {
@@ -444,7 +445,7 @@ onBeforeUnmount(() => {
 .hero-agency__subtitle {
   margin: 0 0 16px;
   color: var(--muted);
-  font-size: 17px;
+  font-size: 15px;
   line-height: 1.7;
   max-width: 52ch;
 }
@@ -454,6 +455,16 @@ onBeforeUnmount(() => {
   gap: 12px;
   flex-wrap: wrap;
   margin-top: 24px;
+}
+
+.hero-agency__actions .btn {
+  min-height: 48px;
+  padding: 12px 22px;
+  font-size: 15px;
+}
+
+.home-agency :global(.muted) {
+  font-size: 14px;
 }
 
 .media-placeholder {

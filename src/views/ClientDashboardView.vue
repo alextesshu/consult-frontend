@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <section class="client">
     <header class="client__hero card">
       <div>
@@ -9,6 +9,16 @@
         </p>
       </div>
       <div class="client-hero-actions">
+        <RouterLink
+          v-if="nextUpcoming"
+          class="btn btn--ghost"
+          :to="`/client/sessions/${nextUpcoming.id}`"
+        >
+          Найближча сесія
+        </RouterLink>
+        <button v-else class="btn btn--ghost btn--disabled" type="button" disabled>
+          Найближча сесія
+        </button>
         <RouterLink class="btn" to="/specialists">Обрати спеціаліста</RouterLink>
         <RouterLink class="btn btn--ghost" to="/client/profile">Мій профіль</RouterLink>
       </div>
@@ -44,7 +54,7 @@
           <RouterLink
             v-if="nextUpcoming.therapist_public_slug"
             class="btn btn--ghost"
-            :to="`/t/${nextUpcoming.therapist_public_slug}`"
+            :to="`/specialist/${nextUpcoming.therapist_public_slug}`"
           >
             Профіль
           </RouterLink>
@@ -85,7 +95,7 @@
           v-for="therapist in selectedTherapistsWithSessions"
           :key="therapist.public_slug"
           class="therapist-card"
-          :to="`/t/${therapist.public_slug}`"
+          :to="`/specialist/${therapist.public_slug}`"
         >
           <div class="therapist-photo-link">
             <img
@@ -109,9 +119,6 @@
             <div v-if="introPriceLabel(therapist)" class="therapist-price therapist-price--intro">
               Ознайомча: {{ introPriceLabel(therapist) }}
             </div>
-            <div v-if="introPriceLabel(therapist)" class="therapist-price therapist-price--intro">
-              Ознайомча: {{ introPriceLabel(therapist) }}
-            </div>
             <div class="therapist-sessions">
               <div>
                 <span class="session-label">Підтверджена:</span>
@@ -125,6 +132,13 @@
                   {{ formatSession(nextSession(therapist.therapist_id, 'SCHEDULED')) }}
                 </span>
               </div>
+              <button
+                class="btn btn--ghost btn--sm"
+                type="button"
+                @click.stop.prevent="stopCollaboration(therapist)"
+              >
+                Припинити співпрацю
+              </button>
             </div>
           </div>
         </RouterLink>
@@ -144,7 +158,7 @@
           v-for="therapist in viewedTherapists"
           :key="therapist.public_slug"
           class="therapist-card"
-          :to="`/t/${therapist.public_slug}`"
+          :to="`/specialist/${therapist.public_slug}`"
         >
           <div class="therapist-photo-link">
             <img
@@ -217,7 +231,7 @@
               <RouterLink
                 v-if="session.therapist_public_slug"
                 class="btn btn--ghost btn--sm"
-                :to="`/t/${session.therapist_public_slug}`"
+                :to="`/specialist/${session.therapist_public_slug}`"
               >
                 Профіль
               </RouterLink>
@@ -250,7 +264,7 @@
               <RouterLink
                 v-if="session.therapist_public_slug"
                 class="btn btn--ghost btn--sm"
-                :to="`/t/${session.therapist_public_slug}`"
+                :to="`/specialist/${session.therapist_public_slug}`"
               >
                 Профіль
               </RouterLink>
@@ -303,8 +317,8 @@ const past = ref<Session[]>([])
 const loading = ref(false)
 const sessionsError = ref('')
 const selectedTherapists = ref<SelectedTherapist[]>([])
+const stoppedTherapists = ref<string[]>([])
 const viewedTherapists = ref<SelectedTherapist[]>([])
-const activeStatuses = new Set(['SCHEDULED', 'CONFIRMED'])
 const groupEvents = ref<GroupEvent[]>([])
 const groupEventsLoading = ref(false)
 const groupEventsError = ref('')
@@ -320,13 +334,26 @@ type GroupEvent = {
   my_status: string | null
 }
 
+const recentTherapistSlugs = computed(() => {
+  const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000
+  const stopped = new Set(stoppedTherapists.value)
+  const slugs = new Set<string>()
+  for (const session of past.value) {
+    if (session.status !== 'COMPLETED') continue
+    const endRaw = sessionEndAt(session) || sessionStartAt(session)
+    if (!endRaw) continue
+    const endTs = new Date(endRaw).getTime()
+    if (Number.isNaN(endTs) || endTs < cutoff) continue
+    const slug = session.therapist_public_slug
+    if (!slug || stopped.has(slug)) continue
+    slugs.add(slug)
+  }
+  return slugs
+})
+
 const selectedTherapistsWithSessions = computed(() =>
   selectedTherapists.value.filter((therapist) =>
-    upcoming.value.some(
-      (session) =>
-        session.therapist === therapist.therapist_id &&
-        activeStatuses.has(session.status)
-    )
+    recentTherapistSlugs.value.has(therapist.public_slug)
   )
 )
 
@@ -525,6 +552,34 @@ function loadViewedTherapists() {
   }
 }
 
+
+function loadStoppedTherapists() {
+  const raw = localStorage.getItem('stoppedTherapists')
+  if (!raw) return
+  try {
+    const parsed = JSON.parse(raw)
+    if (Array.isArray(parsed)) stoppedTherapists.value = parsed
+  } catch {
+    stoppedTherapists.value = []
+  }
+}
+
+function persistStoppedTherapists() {
+  localStorage.setItem('stoppedTherapists', JSON.stringify(stoppedTherapists.value))
+}
+
+function stopCollaboration(therapist: SelectedTherapist) {
+  if (!therapist.public_slug) return
+  if (!stoppedTherapists.value.includes(therapist.public_slug)) {
+    stoppedTherapists.value.push(therapist.public_slug)
+    persistStoppedTherapists()
+  }
+  selectedTherapists.value = selectedTherapists.value.filter(
+    (item) => item.public_slug !== therapist.public_slug
+  )
+  persistTherapists()
+}
+
 function persistTherapists() {
   localStorage.setItem('selectedTherapists', JSON.stringify(selectedTherapists.value))
   localStorage.setItem('viewedTherapists', JSON.stringify(viewedTherapists.value))
@@ -534,40 +589,38 @@ function syncSelectedTherapists() {
   const viewedBySlug = new Map(
     viewedTherapists.value.map((therapist) => [therapist.public_slug, therapist])
   )
-  let changed = false
-  selectedTherapists.value = selectedTherapists.value.map((therapist) => {
-    if (therapist.therapist_id) return therapist
-    const enriched = viewedBySlug.get(therapist.public_slug)
-    if (enriched?.therapist_id) {
-      changed = true
-      return enriched
-    }
-    return therapist
-  })
+  const recentMap = new Map<string, SelectedTherapist>()
+  const stopped = new Set(stoppedTherapists.value)
+  for (const session of past.value) {
+    if (session.status !== 'COMPLETED') continue
+    const endRaw = sessionEndAt(session) || sessionStartAt(session)
+    if (!endRaw) continue
+    const endTs = new Date(endRaw).getTime()
+    if (Number.isNaN(endTs)) continue
+    const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000
+    if (endTs < cutoff) continue
+    const slug = session.therapist_public_slug
+    if (!slug || stopped.has(slug)) continue
+    if (recentMap.has(slug)) continue
+    recentMap.set(slug, {
+      therapist_id: session.therapist,
+      public_slug: slug,
+      display_name: session.therapist_name || session.therapist_username || 'Спеціаліст',
+    })
+  }
 
-  const therapistIds = new Set(
-    upcoming.value
-      .map((session) => session.therapist)
-      .filter((value): value is number => typeof value === 'number')
+  let changed = false
+  selectedTherapists.value = selectedTherapists.value.filter(
+    (therapist) => recentMap.has(therapist.public_slug) && !stopped.has(therapist.public_slug)
   )
-  if (therapistIds.size) {
-    const existingIds = new Set<number>()
-    const existingSlugs = new Set<string>()
-    for (const therapist of selectedTherapists.value) {
-      if (therapist.therapist_id) existingIds.add(therapist.therapist_id)
-      existingSlugs.add(therapist.public_slug)
-    }
-    for (const therapist of viewedTherapists.value) {
-      if (!therapist.therapist_id) continue
-      if (!therapistIds.has(therapist.therapist_id)) continue
-      if (existingIds.has(therapist.therapist_id) || existingSlugs.has(therapist.public_slug)) {
-        continue
-      }
-      selectedTherapists.value.push(therapist)
-      existingIds.add(therapist.therapist_id)
-      existingSlugs.add(therapist.public_slug)
-      changed = true
-    }
+
+  const existingSlugs = new Set(selectedTherapists.value.map((t) => t.public_slug))
+  for (const [slug, seed] of recentMap.entries()) {
+    if (existingSlugs.has(slug)) continue
+    const enriched = viewedBySlug.get(slug)
+    selectedTherapists.value.push(enriched ?? seed)
+    existingSlugs.add(slug)
+    changed = true
   }
 
   if (changed) {
@@ -644,6 +697,7 @@ function onPhotoError(therapist: SelectedTherapist) {
 }
 
 onMounted(async () => {
+  loadStoppedTherapists()
   loadSelectedTherapists()
   loadViewedTherapists()
   await Promise.all([loadSessions(), loadGroupEvents()])

@@ -135,7 +135,7 @@ const routes = [
     component: ClientGroupEventView,
     meta: { requiresAuth: true, requiresRole: 'CLIENT' },
   },
-  { path: '/t/:slug', name: 'public-profile', component: PublicProfileView },
+  { path: '/t/:slug', name: 'public-profile', component: PublicProfileView, alias: '/specialist/:slug' },
   {
     path: '/specialists',
     name: 'public-therapists',

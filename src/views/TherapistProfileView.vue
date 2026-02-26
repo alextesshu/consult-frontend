@@ -94,7 +94,7 @@
         </div>
       </section>
 
-      <section class="panel">
+      <section class="panel" id="journal">
         <div class="panel__header">
           <div>
             <div class="badge badge--soft">Крок 2</div>
@@ -1066,7 +1066,7 @@ const profile = reactive<TherapistProfile>({
 
 const publicUrl = computed(() => {
   if (!profile.public_slug) return ''
-  return `${window.location.origin}/t/${profile.public_slug}`
+  return `${window.location.origin}/specialist/${profile.public_slug}`
 })
 
 const priceDisplay = computed(() => {

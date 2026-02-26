@@ -217,6 +217,7 @@ export type ClientProfile = {
   contact_email: string
   contact_phone: string
   photo_url: string
+  client_code?: string
   created_at: string
   updated_at: string
 }
@@ -285,6 +286,8 @@ export type SessionReview = {
   session: number
   rating: number
   review_text: string
+  therapist_response?: string
+  therapist_response_at?: string | null
   created_at: string
 }
 

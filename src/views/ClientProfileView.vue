@@ -7,6 +7,9 @@
         <p class="muted profile-subtitle">
           Додайте ім'я, контакти та фото, щоб спеціалісту було зручніше з вами працювати.
         </p>
+        <div v-if="profile.client_code" class="muted profile-code">
+          {{ clientCodeLabel }}: <span class="client-code">{{ profile.client_code }}</span>
+        </div>
       </div>
       <RouterLink class="btn btn--ghost" to="/client">Назад</RouterLink>
     </header>
@@ -82,6 +85,7 @@ const photoPreview = ref('')
 const photoInput = ref<HTMLInputElement | null>(null)
 const router = useRouter()
 const toast = useToast()
+const clientCodeLabel = '\u041a\u043e\u0434 \u043a\u043b\u0456\u0454\u043d\u0442\u0430'
 
 function triggerPhotoSelect() {
   photoInput.value?.click()
@@ -174,6 +178,17 @@ onMounted(loadProfile)
   max-width: 520px;
 }
 
+
+.profile-code {
+  margin-top: 8px;
+  font-size: 13px;
+}
+
+.client-code {
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+
 .profile-card {
   border: 1px solid var(--line);
   border-radius: 18px;
@@ -220,6 +235,10 @@ onMounted(loadProfile)
 
 .profile-actions {
   margin-top: 8px;
+}
+
+.input--file.is-hidden {
+  display: none;
 }
 
 .form-error {
