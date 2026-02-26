@@ -155,6 +155,27 @@ export type PublicTherapistProfile = {
   setting_text?: string
 }
 
+export type AuthorJournalPost = {
+  id: number
+  title: string
+  summary: string
+  body: string
+  cover_image_url: string
+  is_published: boolean
+  published_at: string | null
+  created_at: string
+  updated_at: string
+}
+
+export type PublicAuthorJournalPost = {
+  id: number
+  title: string
+  summary: string
+  cover_image_url: string
+  published_at: string | null
+  created_at: string
+}
+
 export async function uploadProfilePhoto(file: File): Promise<TherapistProfile> {
   const formData = new FormData()
   formData.append('file', file)
@@ -226,6 +247,37 @@ export async function fetchPublicTherapistProfile(
 ): Promise<PublicTherapistProfile> {
   const resp = await http.get<PublicTherapistProfile>(`/public/specialists/${slug}/`)
   return resp.data
+}
+
+export async function fetchPublicAuthorJournalPosts(
+  slug: string
+): Promise<PublicAuthorJournalPost[]> {
+  const resp = await http.get<PublicAuthorJournalPost[]>(`/public/specialists/${slug}/journal/`)
+  return resp.data
+}
+
+export async function fetchAuthorJournalPosts(): Promise<AuthorJournalPost[]> {
+  const resp = await http.get<AuthorJournalPost[]>('/cabinet/journal/')
+  return resp.data
+}
+
+export async function createAuthorJournalPost(
+  payload: Partial<AuthorJournalPost>
+): Promise<AuthorJournalPost> {
+  const resp = await http.post<AuthorJournalPost>('/cabinet/journal/', payload)
+  return resp.data
+}
+
+export async function updateAuthorJournalPost(
+  postId: number,
+  payload: Partial<AuthorJournalPost>
+): Promise<AuthorJournalPost> {
+  const resp = await http.patch<AuthorJournalPost>(`/cabinet/journal/${postId}/`, payload)
+  return resp.data
+}
+
+export async function deleteAuthorJournalPost(postId: number): Promise<void> {
+  await http.delete(`/cabinet/journal/${postId}/`)
 }
 
 export type SessionReview = {

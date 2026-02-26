@@ -186,6 +186,33 @@
           </article>
         </div>
       </div>
+      <div class="panel panel--journal">
+        <div class="panel__header">
+          <div>
+            <div class="badge badge--soft">Авторський журнал</div>
+            <h2 class="panel__title">Статті спеціаліста</h2>
+          </div>
+        </div>
+
+        <div v-if="journalLoading" class="muted">Завантаження статей...</div>
+        <div v-else-if="journalError" class="form-error">{{ journalError }}</div>
+        <div v-else-if="journalPosts.length === 0" class="muted">
+          Ще немає опублікованих матеріалів.
+        </div>
+        <div v-else class="journal-list">
+          <article v-for="post in journalPosts" :key="post.id" class="journal-card">
+            <div v-if="post.cover_image_url" class="journal-cover">
+              <img :src="post.cover_image_url" alt="Обкладинка статті" />
+            </div>
+            <div class="journal-body">
+              <div class="journal-title">{{ post.title }}</div>
+              <div class="muted journal-date">{{ formatDate(post.published_at || post.created_at) }}</div>
+              <div class="journal-summary" v-if="post.summary">{{ post.summary }}</div>
+            </div>
+          </article>
+        </div>
+      </div>
+
     </section>
 
     <div v-if="showBookingModal" class="setting-modal">
@@ -255,8 +282,10 @@ import { apiGet, apiPost } from '../lib/api'
 import { toLocalDate } from '../lib/dates'
 import {
   fetchPublicTherapistProfile,
+  fetchPublicAuthorJournalPosts,
   fetchPublicTherapistReviews,
   type PublicTherapistProfile,
+  type PublicAuthorJournalPost,
   type SessionReview,
 } from '../lib/api'
 import { useAuthStore } from '../stores/auth'
@@ -302,6 +331,9 @@ const clientSessions = ref<ClientSession[]>([])
 const reviews = ref<SessionReview[]>([])
 const reviewsLoading = ref(false)
 const reviewsError = ref('')
+const journalPosts = ref<PublicAuthorJournalPost[]>([])
+const journalLoading = ref(false)
+const journalError = ref('')
 const selectedDate = ref('')
 const slotDateInput = ref<HTMLInputElement | null>(null)
 
@@ -537,6 +569,20 @@ async function loadReviews() {
   }
 }
 
+async function loadJournal() {
+  if (!slug.value) return
+  journalLoading.value = true
+  journalError.value = ''
+  try {
+    journalPosts.value = await fetchPublicAuthorJournalPosts(slug.value)
+  } catch {
+    journalPosts.value = []
+    journalError.value = 'Не вдалося завантажити авторський журнал.'
+  } finally {
+    journalLoading.value = false
+  }
+}
+
 async function loadClientSessions() {
   if (!isAuthenticated.value || !isClient.value) return
   try {
@@ -669,6 +715,8 @@ watch(slug, () => {
   selectedDate.value = toLocalDate(new Date())
   loadProfile().then(loadSlots)
   loadClientSessions()
+  loadReviews()
+  loadJournal()
 })
 
 watch(selectedDate, () => {
@@ -687,6 +735,7 @@ onMounted(async () => {
   await loadProfile()
   await loadSlots()
   await loadReviews()
+  await loadJournal()
 })
 </script>
 
@@ -956,6 +1005,45 @@ onMounted(async () => {
   .panel--reviews {
     display: grid;
     gap: 12px;
+  }
+
+  .panel--journal {
+    display: grid;
+    gap: 12px;
+  }
+
+  .journal-list {
+    display: grid;
+    gap: 12px;
+  }
+
+  .journal-card {
+    display: grid;
+    gap: 10px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 12px;
+    background: #fff;
+  }
+
+  .journal-cover img {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+    border-radius: 10px;
+  }
+
+  .journal-title {
+    font-weight: 600;
+    font-size: 16px;
+  }
+
+  .journal-date {
+    font-size: 12px;
+  }
+
+  .journal-summary {
+    color: var(--muted);
   }
 
   .rating-pill {

@@ -642,6 +642,73 @@
         </button>
         <div v-if="success" class="muted">{{ success }}</div>
       </div>
+
+      <section class="panel">
+        <div class="panel__header">
+          <div>
+            <div class="badge badge--soft">Крок 8</div>
+            <h2 class="panel__title">Авторський журнал</h2>
+            <p class="panel__hint">
+              Публікуйте короткі нотатки для профілю спеціаліста (PRO/LEADER). Опубліковані записи видимі всім.
+            </p>
+          </div>
+        </div>
+
+        <div class="form" style="margin-top: 12px;">
+          <label class="field">
+            Назва поста
+            <input v-model="journalForm.title" class="input" type="text" placeholder="Напр. Як підготуватися до першої сесії" />
+          </label>
+          <label class="field">
+            Короткий опис
+            <textarea v-model="journalForm.summary" class="input" rows="3" placeholder="2–3 речення для превʼю"></textarea>
+          </label>
+          <label class="field">
+            Текст поста
+            <textarea v-model="journalForm.body" class="input" rows="6" placeholder="Основний текст"></textarea>
+          </label>
+          <label class="field">
+            Обкладинка (URL)
+            <input v-model="journalForm.cover_image_url" class="input" type="text" placeholder="https://..." />
+          </label>
+          <label class="check">
+            <input v-model="journalForm.is_published" type="checkbox" />
+            Опублікувати
+          </label>
+          <div class="field-row">
+            <button class="btn" type="button" :disabled="journalSaving" @click="onSaveJournal">
+              {{ editingJournalId ? 'Оновити пост' : 'Створити пост' }}
+            </button>
+            <button class="btn btn--ghost" type="button" :disabled="journalSaving" @click="resetJournalForm">
+              Скасувати
+            </button>
+          </div>
+          <div v-if="journalError" class="form-error">{{ journalError }}</div>
+        </div>
+
+        <div v-if="journalLoading" class="muted">Завантаження постів...</div>
+        <div v-else-if="journalPosts.length === 0" class="muted">
+          Ще немає постів.
+        </div>
+        <div v-else class="journal-admin-list">
+          <article v-for="post in journalPosts" :key="post.id" class="journal-admin-card">
+            <div>
+              <div class="journal-admin-title">{{ post.title }}</div>
+              <div class="muted">
+                {{ post.is_published ? 'Опубліковано' : 'Чернетка' }}
+                <span v-if="post.published_at">· {{ formatJournalDate(post.published_at) }}</span>
+                <span v-else>· {{ formatJournalDate(post.created_at) }}</span>
+              </div>
+              <div class="muted" v-if="post.summary">{{ post.summary }}</div>
+            </div>
+            <div class="journal-admin-actions">
+              <button class="btn btn--ghost btn--sm" type="button" @click="onEditJournal(post)">Редагувати</button>
+              <button class="btn btn--ghost btn--sm" type="button" @click="onDeleteJournal(post)">Видалити</button>
+            </div>
+          </article>
+        </div>
+      </section>
+
     </form>
 
     <div v-if="cropperOpen" class="cropper-overlay">
@@ -679,11 +746,16 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { Cropper } from 'vue-advanced-cropper'
 import {
+  fetchAuthorJournalPosts,
+  createAuthorJournalPost,
+  updateAuthorJournalPost,
+  deleteAuthorJournalPost,
   fetchTherapistProfile,
   rotateTherapistProfileSlug,
   updateTherapistProfile,
   uploadProfilePhoto,
   uploadProfileVideo,
+  type AuthorJournalPost,
   type TherapistProfile,
 } from '../lib/api'
 
@@ -698,6 +770,19 @@ const photoUploading = ref(false)
 const videoUploading = ref(false)
 const photoPreviewUrl = ref('')
 const videoPreviewUrl = ref('')
+
+const journalLoading = ref(false)
+const journalSaving = ref(false)
+const journalError = ref('')
+const journalPosts = ref<AuthorJournalPost[]>([])
+const editingJournalId = ref<number | null>(null)
+const journalForm = reactive({
+  title: '',
+  summary: '',
+  body: '',
+  cover_image_url: '',
+  is_published: false,
+})
 const photoInput = ref<HTMLInputElement | null>(null)
 const videoInput = ref<HTMLInputElement | null>(null)
 const cropperOpen = ref(false)
@@ -1039,6 +1124,69 @@ async function loadProfile() {
   }
 }
 
+async function loadJournal() {
+  journalLoading.value = true
+  journalError.value = ''
+  try {
+    journalPosts.value = await fetchAuthorJournalPosts()
+  } catch (err) {
+    journalPosts.value = []
+    journalError.value = getApiErrorMessage(err, 'Не вдалося завантажити авторський журнал')
+  } finally {
+    journalLoading.value = false
+  }
+}
+
+function resetJournalForm() {
+  journalForm.title = ''
+  journalForm.summary = ''
+  journalForm.body = ''
+  journalForm.cover_image_url = ''
+  journalForm.is_published = false
+  editingJournalId.value = null
+}
+
+async function onSaveJournal() {
+  journalSaving.value = true
+  journalError.value = ''
+  try {
+    if (editingJournalId.value) {
+      await updateAuthorJournalPost(editingJournalId.value, { ...journalForm })
+    } else {
+      await createAuthorJournalPost({ ...journalForm })
+    }
+    await loadJournal()
+    resetJournalForm()
+  } catch (err) {
+    journalError.value = getApiErrorMessage(err, 'Не вдалося зберегти пост')
+  } finally {
+    journalSaving.value = false
+  }
+}
+
+function onEditJournal(post: AuthorJournalPost) {
+  editingJournalId.value = post.id
+  journalForm.title = post.title || ''
+  journalForm.summary = post.summary || ''
+  journalForm.body = post.body || ''
+  journalForm.cover_image_url = post.cover_image_url || ''
+  journalForm.is_published = post.is_published
+}
+
+async function onDeleteJournal(post: AuthorJournalPost) {
+  if (!confirm('Видалити цей пост?')) return
+  journalError.value = ''
+  try {
+    await deleteAuthorJournalPost(post.id)
+    await loadJournal()
+    if (editingJournalId.value === post.id) {
+      resetJournalForm()
+    }
+  } catch (err) {
+    journalError.value = getApiErrorMessage(err, 'Не вдалося зберегти пост')
+  }
+}
+
 async function onSave() {
   saving.value = true
   success.value = ''
@@ -1178,6 +1326,17 @@ function normalizeProfile(data: TherapistProfile): TherapistProfile {
   }
 }
 
+function formatJournalDate(value: string | null) {
+  if (!value) return ''
+  const dt = new Date(value)
+  if (Number.isNaN(dt.getTime())) return value
+  return dt.toLocaleDateString('uk-UA', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  })
+}
+
 function addLanguage() {
   const raw = languageInput.value.trim()
   if (!raw) return
@@ -1292,7 +1451,10 @@ function sanitizeLanguages(list: string[]): string[] {
   return list.filter((item) => !disallowedLanguages.has(item.trim().toLowerCase()))
 }
 
-onMounted(loadProfile)
+onMounted(() => {
+  loadProfile()
+  loadJournal()
+})
 </script>
 
 <style scoped>
@@ -1816,6 +1978,33 @@ onMounted(loadProfile)
   border: 1px solid #f5c2c0;
   border-radius: 10px;
   padding: 8px 10px;
+}
+
+.journal-admin-list {
+  display: grid;
+  gap: 12px;
+}
+
+.journal-admin-card {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px;
+  background: #fff;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.journal-admin-title {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.journal-admin-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 @media (max-width: 980px) {
