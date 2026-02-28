@@ -703,7 +703,7 @@
             </div>
             <div class="journal-admin-actions">
               <button class="btn btn--ghost btn--sm" type="button" @click="onEditJournal(post)">Редагувати</button>
-              <button class="btn btn--ghost btn--sm" type="button" @click="onDeleteJournal(post)">Видалити</button>
+              <button class="btn btn--ghost btn--sm" type="button" @click="requestDeleteJournal(post)">Видалити</button>
             </div>
           </article>
         </div>
@@ -739,6 +739,17 @@
       </div>
     </div>
 
+    <ConfirmModal
+      :open="journalDeleteModal.open"
+      :title="journalDeleteModal.title"
+      :message="journalDeleteModal.message"
+      :confirm-text="journalDeleteModal.confirmText"
+      :cancel-text="journalDeleteModal.cancelText"
+      :tone="journalDeleteModal.tone"
+      @confirm="journalDeleteModal.confirm"
+      @cancel="journalDeleteModal.closeConfirm"
+    />
+
   </section>
 </template>
 
@@ -758,6 +769,8 @@ import {
   type AuthorJournalPost,
   type TherapistProfile,
 } from '../lib/api'
+import ConfirmModal from '../components/ConfirmModal.vue'
+import { useConfirmModal } from '../composables/useConfirmModal'
 
 const loading = ref(true)
 const saving = ref(false)
@@ -783,6 +796,7 @@ const journalForm = reactive({
   cover_image_url: '',
   is_published: false,
 })
+const journalDeleteModal = useConfirmModal()
 const photoInput = ref<HTMLInputElement | null>(null)
 const videoInput = ref<HTMLInputElement | null>(null)
 const cropperOpen = ref(false)
@@ -1173,18 +1187,26 @@ function onEditJournal(post: AuthorJournalPost) {
   journalForm.is_published = post.is_published
 }
 
-async function onDeleteJournal(post: AuthorJournalPost) {
-  if (!confirm('Видалити цей пост?')) return
-  journalError.value = ''
-  try {
-    await deleteAuthorJournalPost(post.id)
-    await loadJournal()
-    if (editingJournalId.value === post.id) {
-      resetJournalForm()
-    }
-  } catch (err) {
-    journalError.value = getApiErrorMessage(err, 'Не вдалося зберегти пост')
-  }
+function requestDeleteJournal(post: AuthorJournalPost) {
+  journalDeleteModal.openConfirm({
+    title: 'Видалити пост?',
+    message: 'Пост зникне з публічного профілю.',
+    confirmText: 'Видалити',
+    cancelText: 'Скасувати',
+    tone: 'danger',
+    onConfirm: async () => {
+      journalError.value = ''
+      try {
+        await deleteAuthorJournalPost(post.id)
+        await loadJournal()
+        if (editingJournalId.value === post.id) {
+          resetJournalForm()
+        }
+      } catch (err) {
+        journalError.value = getApiErrorMessage(err, 'Не вдалося зберегти пост')
+      }
+    },
+  })
 }
 
 async function onSave() {

@@ -135,7 +135,7 @@
               <button
                 class="btn btn--ghost btn--sm"
                 type="button"
-                @click.stop.prevent="stopCollaboration(therapist)"
+                @click.stop.prevent="requestStopCollaboration(therapist)"
               >
                 Припинити співпрацю
               </button>
@@ -273,6 +273,17 @@
         </ul>
       </div>
     </div>
+
+    <ConfirmModal
+      :open="confirmModal.open"
+      :title="confirmModal.title"
+      :message="confirmModal.message"
+      :confirm-text="confirmModal.confirmText"
+      :cancel-text="confirmModal.cancelText"
+      :tone="confirmModal.tone"
+      @confirm="confirmModal.confirm"
+      @cancel="confirmModal.closeConfirm"
+    />
   </section>
 </template>
 
@@ -280,6 +291,8 @@
 import { computed, onMounted, ref } from 'vue'
 import { fetchPublicTherapistProfile } from '../lib/api'
 import { apiGet } from '../lib/api'
+import ConfirmModal from '../components/ConfirmModal.vue'
+import { useConfirmModal } from '../composables/useConfirmModal'
 
 type Slot = {
   start_at: string
@@ -322,6 +335,7 @@ const viewedTherapists = ref<SelectedTherapist[]>([])
 const groupEvents = ref<GroupEvent[]>([])
 const groupEventsLoading = ref(false)
 const groupEventsError = ref('')
+const confirmModal = useConfirmModal()
 
 type GroupEvent = {
   id: number
@@ -566,6 +580,21 @@ function loadStoppedTherapists() {
 
 function persistStoppedTherapists() {
   localStorage.setItem('stoppedTherapists', JSON.stringify(stoppedTherapists.value))
+}
+
+function requestStopCollaboration(therapist: SelectedTherapist) {
+  const name = therapist.display_name
+  const message = name
+    ? `Спеціаліст "${name}" зникне з обраних, але історія сесій залишиться.`
+    : 'Спеціаліст зникне з обраних, але історія сесій залишиться.'
+  confirmModal.openConfirm({
+    title: 'Припинити співпрацю?',
+    message,
+    confirmText: 'Припинити',
+    cancelText: 'Скасувати',
+    tone: 'danger',
+    onConfirm: () => stopCollaboration(therapist),
+  })
 }
 
 function stopCollaboration(therapist: SelectedTherapist) {

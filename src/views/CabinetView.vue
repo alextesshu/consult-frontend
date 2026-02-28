@@ -15,6 +15,41 @@
     </header>
 
     <div v-if="me" class="cabinet__grid">
+      <section class="panel panel--wide panel--actions">
+        <div class="panel__header">
+          <div class="badge badge--soft">Робоча панель</div>
+          <div class="panel__meta">Щоденні інструменти</div>
+        </div>
+        <div class="cabinet-actions">
+          <RouterLink class="btn btn--ghost" to="/cabinet/slots">
+            Віконця
+          </RouterLink>
+          <RouterLink class="btn btn--ghost" to="/cabinet/sessions">
+            Сесії
+          </RouterLink>
+          <RouterLink class="btn btn--ghost" to="/cabinet/analytics">
+            Аналітика
+          </RouterLink>
+          <RouterLink class="btn btn--ghost" to="/cabinet/profile#journal">
+            Авторський журнал
+          </RouterLink>
+          <RouterLink class="btn btn--ghost" to="/cabinet/reviews">
+            Відгуки
+          </RouterLink>
+          <RouterLink class="btn btn--ghost" to="/cabinet/clients">
+            Клієнти
+          </RouterLink>
+          <RouterLink class="btn btn--ghost" to="/cabinet/billing">
+            Плани та доступ
+          </RouterLink>
+          <RouterLink class="btn btn--ghost" to="/cabinet/profile">
+            Керування профілем
+          </RouterLink>
+          <RouterLink class="btn btn--ghost" to="/cabinet/group-events">
+            Групові події
+          </RouterLink>
+        </div>
+      </section>
       <section class="panel panel--wide panel--plan">
         <div class="panel__header">
           <div class="badge badge--soft">Ваш план</div>
@@ -72,41 +107,7 @@
         </ul>
       </section>
 
-      <section class="panel panel--wide panel--actions">
-        <div class="panel__header">
-          <div class="badge badge--soft">Швидкі дії</div>
-          <div class="panel__meta">Щоденні інструменти</div>
-        </div>
-        <div class="cabinet-actions">
-          <RouterLink class="btn btn--ghost" to="/cabinet/slots">
-            Віконця
-          </RouterLink>
-          <RouterLink class="btn btn--ghost" to="/cabinet/sessions">
-            Сесії
-          </RouterLink>
-          <RouterLink class="btn btn--ghost" to="/cabinet/analytics">
-            Аналітика
-          </RouterLink>
-          <RouterLink class="btn btn--ghost" to="/cabinet/profile#journal">
-            Авторський журнал
-          </RouterLink>
-          <RouterLink class="btn btn--ghost" to="/cabinet/reviews">
-            Відгуки
-          </RouterLink>
-          <RouterLink class="btn btn--ghost" to="/cabinet/clients">
-            Клієнти
-          </RouterLink>
-          <RouterLink class="btn btn--ghost" to="/cabinet/billing">
-            Плани та доступ
-          </RouterLink>
-          <RouterLink class="btn btn--ghost" to="/cabinet/profile">
-            Керування профілем
-          </RouterLink>
-          <RouterLink class="btn btn--ghost" to="/cabinet/group-events">
-            Групові події
-          </RouterLink>
-        </div>
-</section>
+      
       <RouterLink
         class="panel panel--accent panel--clickable"
         to="/cabinet/profile"

@@ -411,6 +411,26 @@ onBeforeUnmount(() => {
 .home-agency {
   padding: 72px 0 120px;
   font-size: 15px;
+  position: relative;
+  isolation: isolate;
+}
+
+.home-agency::before {
+  content: "";
+  position: absolute;
+  inset: -160px 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(1100px 520px at 12% 38%, rgba(2, 54, 97, 0.12), transparent 72%),
+    radial-gradient(980px 520px at 88% 42%, rgba(219, 82, 39, 0.12), transparent 72%),
+    linear-gradient(
+      180deg,
+      rgba(247, 248, 251, 0.8) 0%,
+      rgba(248, 249, 251, 0.92) 28%,
+      rgba(248, 249, 251, 0.92) 72%,
+      rgba(247, 248, 251, 0.8) 100%
+    );
 }
 
 .container--agency {

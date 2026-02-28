@@ -239,7 +239,7 @@
             class="btn btn--ghost btn--sm"
             type="button"
             :disabled="slot.is_booked || loading"
-            @click="deleteSlot(slot.id)"
+            @click="requestDeleteSlot(slot.id)"
           >
             Видалити
           </button>
@@ -256,6 +256,16 @@
         </div>
       </article>
     </section>
+    <ConfirmModal
+      :open="confirmModal.open"
+      :title="confirmModal.title"
+      :message="confirmModal.message"
+      :confirm-text="confirmModal.confirmText"
+      :cancel-text="confirmModal.cancelText"
+      :tone="confirmModal.tone"
+      @confirm="confirmModal.confirm"
+      @cancel="confirmModal.closeConfirm"
+    />
   </section>
 </template>
 
@@ -264,6 +274,8 @@ import { computed, nextTick, onMounted, ref } from 'vue'
 import { apiDelete, apiGet, apiPatch, apiPost } from '../lib/api'
 import { getApiErrorMessage } from '../lib/errors'
 import { useToast } from '../composables/useToast'
+import ConfirmModal from '../components/ConfirmModal.vue'
+import { useConfirmModal } from '../composables/useConfirmModal'
 
 type Slot = {
   id: number
@@ -278,6 +290,7 @@ const error = ref('')
 const editErrors = ref<Record<number, string>>({})
 const editErrorRefs = ref<Record<number, HTMLElement | null>>({})
 const toast = useToast()
+const confirmModal = useConfirmModal()
 
 const newStartDate = ref('')
 const newStartTime = ref('')
@@ -649,6 +662,17 @@ async function deleteSlot(slotId: number) {
   } finally {
     loading.value = false
   }
+}
+
+function requestDeleteSlot(slotId: number) {
+  confirmModal.openConfirm({
+    title: 'Видалити віконце?',
+    message: 'Воно зникне з публічного профілю.',
+    confirmText: 'Видалити',
+    cancelText: 'Скасувати',
+    tone: 'danger',
+    onConfirm: () => deleteSlot(slotId),
+  })
 }
 
 onMounted(loadSlots)

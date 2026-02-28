@@ -42,16 +42,6 @@
         <div class="card__title">Переписка</div>
         <div v-if="!activeThread" class="muted">Оберіть чат, щоб побачити повідомлення.</div>
         <div v-else class="chat__window">
-          <div ref="messagesRef" class="chat__messages-list">
-            <div
-              v-for="message in messages"
-              :key="message.id"
-              :class="['chat-message', { 'chat-message--me': isMine(message) }]"
-            >
-              <div class="chat-message__bubble">{{ message.body }}</div>
-              <div class="chat-message__time muted">{{ formatTime(message.created_at) }}</div>
-            </div>
-          </div>
           <form class="chat__composer" @submit.prevent="sendMessage">
             <input
               v-model="draft"
@@ -64,6 +54,16 @@
               Надіслати
             </button>
           </form>
+          <div ref="messagesRef" class="chat__messages-list">
+            <div
+              v-for="message in messages"
+              :key="message.id"
+              :class="['chat-message', { 'chat-message--me': isMine(message) }]"
+            >
+              <div class="chat-message__bubble">{{ message.body }}</div>
+              <div class="chat-message__time muted">{{ formatTime(message.created_at) }}</div>
+            </div>
+          </div>
         </div>
       </section>
     </div>

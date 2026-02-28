@@ -3,9 +3,9 @@
     <header class="reviews__hero">
       <div>
         <div class="badge">Відгуки</div>
-        <h1 class="title reviews__title">Модерація відгуків</h1>
+        <h1 class="title reviews__title">Огляд відгуків</h1>
         <p class="muted reviews__subtitle">
-          Підтверджуй або приховуй відгуки, відповідай клієнтам та керуй якістю публічного профілю.
+          Переглядай відгуки клієнтів та їхню оцінку після сесій.
         </p>
       </div>
       <RouterLink class="btn btn--ghost" to="/cabinet">Назад до кабінету</RouterLink>
@@ -25,15 +25,6 @@
         Фільтри застосовуються після натискання кнопки «Застосувати».
       </div>
       <div class="filters">
-        <label class="field">
-          <span>Статус</span>
-          <select v-model="filters.status">
-            <option value="">Усі</option>
-            <option value="PENDING">Очікує</option>
-            <option value="APPROVED">Підтверджено</option>
-            <option value="REJECTED">Приховано</option>
-          </select>
-        </label>
         <label class="field">
           <span>Оцінка</span>
           <select v-model="filters.rating">
@@ -59,15 +50,6 @@
         <div class="stat-chip">
           Усього: <strong>{{ reviews.length }}</strong>
         </div>
-        <div class="stat-chip stat-chip--pending">
-          Очікує: <strong>{{ pendingCount }}</strong>
-        </div>
-        <div class="stat-chip stat-chip--approved">
-          Підтверджено: <strong>{{ approvedCount }}</strong>
-        </div>
-        <div class="stat-chip stat-chip--rejected">
-          Приховано: <strong>{{ rejectedCount }}</strong>
-        </div>
         <div class="stat-chip">
           Середня оцінка: <strong>{{ averageRatingLabel }}</strong>
         </div>
@@ -89,9 +71,6 @@
           </div>
           <div class="review-meta">
             <div class="rating-chip">{{ review.rating }} / 5</div>
-            <div class="status-pill" :class="statusClass(review.status)">
-              {{ statusLabel(review.status) }}
-            </div>
           </div>
         </div>
 
@@ -99,33 +78,11 @@
           {{ review.review_text ? review.review_text : 'Без тексту відгуку.' }}
         </div>
 
-        <div class="review-actions">
-          <button
-            class="btn btn--sm"
-            type="button"
-            :disabled="isActionLoading(review.id) || review.status === 'APPROVED'"
-            @click="updateStatus(review, 'APPROVED')"
-          >
-            Підтвердити
-          </button>
-          <button
-            class="btn btn--ghost btn--sm"
-            type="button"
-            :disabled="isActionLoading(review.id) || review.status === 'REJECTED'"
-            @click="updateStatus(review, 'REJECTED')"
-          >
-            Приховати
-          </button>
-        </div>
-
         <div class="response">
           <label class="field">
             <span>Відповідь спеціаліста</span>
             <textarea v-model="responseDrafts[review.id]" rows="3"></textarea>
           </label>
-          <div class="response__meta muted">
-            Відповідь буде видно у публічному профілі після підтвердження відгуку.
-          </div>
           <div class="response__meta" v-if="review.therapist_response_at">
             Остання відповідь: {{ formatDate(review.therapist_response_at) }}
           </div>
@@ -173,21 +130,8 @@ const responseDrafts = reactive<Record<number, string>>({})
 const toast = useToast()
 
 const filters = reactive({
-  status: '',
   rating: '',
 })
-
-function statusClass(status: Review['status']) {
-  if (status === 'APPROVED') return 'status-pill--approved'
-  if (status === 'REJECTED') return 'status-pill--rejected'
-  return 'status-pill--pending'
-}
-
-function statusLabel(status: Review['status']) {
-  if (status === 'APPROVED') return 'Підтверджено'
-  if (status === 'REJECTED') return 'Приховано'
-  return 'Очікує'
-}
 
 function formatDate(value: string | null) {
   if (!value) return ''
@@ -203,6 +147,11 @@ function formatDate(value: string | null) {
   })
 }
 
+function resetFilters() {
+  filters.rating = ''
+  loadReviews()
+}
+
 function isActionLoading(reviewId: number) {
   return !!actionLoading.value[reviewId]
 }
@@ -210,24 +159,6 @@ function isActionLoading(reviewId: number) {
 function setActionLoading(reviewId: number, value: boolean) {
   actionLoading.value = { ...actionLoading.value, [reviewId]: value }
 }
-
-function resetFilters() {
-  filters.status = ''
-  filters.rating = ''
-  loadReviews()
-}
-
-const pendingCount = computed(
-  () => reviews.value.filter((review) => review.status === 'PENDING').length
-)
-
-const approvedCount = computed(
-  () => reviews.value.filter((review) => review.status === 'APPROVED').length
-)
-
-const rejectedCount = computed(
-  () => reviews.value.filter((review) => review.status === 'REJECTED').length
-)
 
 const averageRatingLabel = computed(() => {
   if (reviews.value.length === 0) return '—'
@@ -240,7 +171,6 @@ async function loadReviews() {
   error.value = ''
   try {
     const params: Record<string, string> = {}
-    if (filters.status) params.status = filters.status
     if (filters.rating) params.rating = filters.rating
     const resp = await apiGet<Review[]>('/cabinet/reviews/', { params })
     reviews.value = resp || []
@@ -253,18 +183,6 @@ async function loadReviews() {
     toast.error(message)
   } finally {
     loading.value = false
-  }
-}
-
-async function updateStatus(review: Review, status: Review['status']) {
-  setActionLoading(review.id, true)
-  try {
-    const resp = await apiPatch<Review>(`/cabinet/reviews/${review.id}/`, { status })
-    reviews.value = reviews.value.map((item) => (item.id === review.id ? resp : item))
-  } catch (err: any) {
-    toast.error(getApiErrorMessage(err, 'Не вдалося оновити статус'))
-  } finally {
-    setActionLoading(review.id, false)
   }
 }
 
@@ -377,20 +295,6 @@ onMounted(loadReviews)
   font-size: 12px;
 }
 
-.stat-chip--pending {
-  background: rgba(217, 164, 65, 0.12);
-  color: #a57011;
-}
-
-.stat-chip--approved {
-  background: rgba(31, 122, 76, 0.12);
-  color: #1f7a4c;
-}
-
-.stat-chip--rejected {
-  background: rgba(194, 75, 75, 0.12);
-  color: #a03838;
-}
 
 .review-card {
   border: 1px solid var(--line);
@@ -426,37 +330,8 @@ onMounted(loadReviews)
   font-weight: 600;
 }
 
-.status-pill {
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  padding: 6px 10px;
-  border-radius: 999px;
-}
-
-.status-pill--pending {
-  background: rgba(217, 164, 65, 0.18);
-  color: #a57011;
-}
-
-.status-pill--approved {
-  background: rgba(31, 122, 76, 0.18);
-  color: #1f7a4c;
-}
-
-.status-pill--rejected {
-  background: rgba(194, 75, 75, 0.18);
-  color: #a03838;
-}
-
 .review-text {
   line-height: 1.5;
-}
-
-.review-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
 }
 
 .response {

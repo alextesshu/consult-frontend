@@ -70,6 +70,26 @@ body {
   font-weight: 200;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
+  position: relative;
+  isolation: isolate;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: -160px 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(1100px 520px at 12% 38%, rgba(2, 54, 97, 0.12), transparent 72%),
+    radial-gradient(980px 520px at 88% 42%, rgba(219, 82, 39, 0.12), transparent 72%),
+    linear-gradient(
+      180deg,
+      rgba(247, 248, 251, 0.8) 0%,
+      rgba(248, 249, 251, 0.92) 28%,
+      rgba(248, 249, 251, 0.92) 72%,
+      rgba(247, 248, 251, 0.8) 100%
+    );
 }
 
 body.body--home {
@@ -308,6 +328,27 @@ input[type="time"]:focus::-webkit-datetime-edit {
   color: var(--ink);
   border-color: color-mix(in srgb, var(--primary) 20%, var(--border));
   box-shadow: none;
+}
+
+.btn--danger {
+  background: linear-gradient(135deg, #7a1f1f 0%, #c24b4b 100%);
+  border-color: rgba(255, 255, 255, 0.22);
+  color: #fff;
+}
+
+.btn--danger:hover {
+  background: linear-gradient(135deg, #8a2a2a 0%, #d25b5b 100%);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.btn--danger:active {
+  transform: translateY(0);
+  box-shadow: 0 12px 24px rgba(120, 30, 30, 0.28), inset 0 1px 1px rgba(255, 255, 255, 0.3);
+}
+
+.btn--danger:focus-visible {
+  outline: 2px solid rgba(194, 75, 75, 0.45);
+  outline-offset: 2px;
 }
 
 .btn:hover {

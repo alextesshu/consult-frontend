@@ -210,7 +210,7 @@
             v-if="event.state === 'DRAFT'"
             class="btn btn--ghost btn--sm"
             type="button"
-            @click="deleteDraft(event)"
+            @click="requestDeleteDraft(event)"
             :disabled="isActionLoading(event.id)"
           >
             Видалити
@@ -319,7 +319,7 @@
                     v-if="participant.role !== 'HOST'"
                     class="btn btn--ghost btn--sm"
                     type="button"
-                    @click="removeParticipant(event, participant)"
+                    @click="requestRemoveParticipant(event, participant)"
                     :disabled="isActionLoading(event.id)"
                   >
                     Видалити
@@ -419,6 +419,17 @@
         </div>
       </article>
     </section>
+
+    <ConfirmModal
+      :open="confirmModal.open"
+      :title="confirmModal.title"
+      :message="confirmModal.message"
+      :confirm-text="confirmModal.confirmText"
+      :cancel-text="confirmModal.cancelText"
+      :tone="confirmModal.tone"
+      @confirm="confirmModal.confirm"
+      @cancel="confirmModal.closeConfirm"
+    />
   </section>
 </template>
 
@@ -428,6 +439,8 @@ import { storeToRefs } from 'pinia'
 import { useAuthStore } from '../stores/auth'
 import { apiDelete, apiGet, apiPatch, apiPost } from '../lib/api'
 import { useToast } from '../composables/useToast'
+import ConfirmModal from '../components/ConfirmModal.vue'
+import { useConfirmModal } from '../composables/useConfirmModal'
 
 type GroupEvent = {
   id: number
@@ -479,6 +492,7 @@ const eventFilters = reactive({
   state: '',
   time: 'all' as 'all' | 'upcoming' | 'past',
 })
+const confirmModal = useConfirmModal()
 
 const createForm = reactive({
   mode: 'MEETING' as GroupEvent['mode'],
@@ -898,6 +912,29 @@ async function removeParticipant(event: GroupEvent, participant: GroupParticipan
   } finally {
     setActionLoading(event.id, false)
   }
+}
+
+function requestDeleteDraft(event: GroupEvent) {
+  confirmModal.openConfirm({
+    title: 'Видалити подію?',
+    message: 'Чернетка буде втрачена.',
+    confirmText: 'Видалити',
+    cancelText: 'Скасувати',
+    tone: 'danger',
+    onConfirm: () => deleteDraft(event),
+  })
+}
+
+function requestRemoveParticipant(event: GroupEvent, participant: GroupParticipant) {
+  const participantLabel = participant.user_username || participant.user_email || 'цього учасника'
+  confirmModal.openConfirm({
+    title: 'Видалити учасника?',
+    message: `Учасник ${participantLabel} втратить доступ до події.`,
+    confirmText: 'Видалити',
+    cancelText: 'Скасувати',
+    tone: 'danger',
+    onConfirm: () => removeParticipant(event, participant),
+  })
 }
 
 async function updateParticipantRole(event: GroupEvent, participant: GroupParticipant, role: string) {
