@@ -30,7 +30,7 @@
         <div class="detail-card">
           <div class="detail-label">Спеціаліст</div>
           <div class="detail-value">
-            {{ therapistLabel(session) }}
+            {{ specialistLabel(session) }}
             <div v-if="session.therapist_email" class="muted" style="font-size: 12px;">
               {{ session.therapist_email }}
             </div>
@@ -160,7 +160,7 @@ const statusLabel = (detail: SessionDetail) => {
 
 const canCancel = (status: string) => status === 'SCHEDULED' || status === 'CONFIRMED'
 
-function therapistLabel(detail: SessionDetail) {
+function specialistLabel(detail: SessionDetail) {
   const name = detail.therapist_name || detail.therapist_username
   if (name) return name
   return `#${detail.therapist}`

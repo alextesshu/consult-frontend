@@ -767,7 +767,7 @@ import {
   uploadProfilePhoto,
   uploadProfileVideo,
   type AuthorJournalPost,
-  type TherapistProfile,
+  type SpecialistProfile,
 } from '../lib/api'
 import ConfirmModal from '../components/ConfirmModal.vue'
 import { useConfirmModal } from '../composables/useConfirmModal'
@@ -1032,7 +1032,7 @@ function buildProfilePayload() {
   }
 }
 
-const profile = reactive<TherapistProfile>({
+const profile = reactive<SpecialistProfile>({
   id: 0,
   public_profile_enabled: false,
   public_slug: '',
@@ -1310,7 +1310,7 @@ async function onVideoSelected(event: Event) {
   }
 }
 
-function normalizeProfile(data: TherapistProfile): TherapistProfile {
+function normalizeProfile(data: SpecialistProfile): SpecialistProfile {
   return {
     ...data,
     display_name: data.display_name || '',

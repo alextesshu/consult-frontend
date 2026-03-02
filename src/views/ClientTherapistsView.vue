@@ -2,18 +2,18 @@
   <section class="therapists">
     <header class="therapists__hero card">
       <div>
-        <div class="eyebrow">Вибір спеціаліста</div>
-        <h1 class="title">Оберіть спеціаліста</h1>
-        <p class="muted">Відкрийте профіль, щоб переглянути доступні слоти.</p>
+        <div class="eyebrow">????? ???????????</div>
+        <h1 class="title">??????? ???????????</h1>
+        <p class="muted">????????? ???????, ??? ??????????? ???????? ?????.</p>
       </div>
-      <RouterLink class="btn btn--ghost" to="/client">Назад до кабінету</RouterLink>
+      <RouterLink class="btn btn--ghost" to="/client">????? ?? ????????</RouterLink>
     </header>
 
     <div class="card">
-      <div class="card__title">Спеціалісти</div>
-      <div v-if="loading" class="muted">Завантаження списку…</div>
+      <div class="card__title">???????????</div>
+      <div v-if="loading" class="muted">???????????? ???????</div>
       <div v-else-if="error" class="form-error">{{ error }}</div>
-      <div v-else-if="therapists.length === 0" class="muted">Поки немає публічних профілів.</div>
+      <div v-else-if="therapists.length === 0" class="muted">???? ????? ????????? ????????.</div>
       <div v-else class="therapist-grid">
         <RouterLink
           v-for="therapist in therapists"
@@ -27,7 +27,7 @@
             :alt="publicName(therapist)"
             class="therapist-photo"
           />
-          <div v-else class="therapist-photo therapist-photo--empty">Фото</div>
+          <div v-else class="therapist-photo therapist-photo--empty">????</div>
           <div class="therapist-info">
             <div class="therapist-name">{{ publicName(therapist) }}</div>
             <div class="muted meta-line">
@@ -36,7 +36,7 @@
             </div>
             <div v-if="priceLabel(therapist)" class="therapist-price">{{ priceLabel(therapist) }}</div>
             <div v-if="introPriceLabel(therapist)" class="therapist-price therapist-price--intro">
-              Ознайомча: {{ introPriceLabel(therapist) }}
+              ?????????: {{ introPriceLabel(therapist) }}
             </div>
           </div>
         </RouterLink>
@@ -47,9 +47,9 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import { fetchPublicTherapists, type PublicTherapistProfile } from '../lib/api'
+import { fetchPublicTherapists, type PublicSpecialistProfile } from '../lib/api'
 
-const therapists = ref<PublicTherapistProfile[]>([])
+const therapists = ref<PublicSpecialistProfile[]>([])
 const loading = ref(false)
 const error = ref('')
 
@@ -59,21 +59,21 @@ const languageLabel = (value?: string | string[]) => {
   return value
 }
 
-const priceLabel = (therapist: PublicTherapistProfile) => {
+const priceLabel = (therapist: PublicSpecialistProfile) => {
   if (!therapist.price) return ''
   if (therapist.price_currency === 'USD') return `$${therapist.price}`
-  if (therapist.price_currency === 'EUR') return `\u20ac${therapist.price}`
-  return `${therapist.price} \u0433\u0440\u043d`
+  if (therapist.price_currency === 'EUR') return `?${therapist.price}`
+  return `${therapist.price} ???`
 }
 
-const introPriceLabel = (therapist: PublicTherapistProfile) => {
+const introPriceLabel = (therapist: PublicSpecialistProfile) => {
   if (!therapist.intro_price) return ''
   if (therapist.intro_price_currency === 'USD') return `$${therapist.intro_price}`
-  if (therapist.intro_price_currency === 'EUR') return `\u20ac${therapist.intro_price}`
-  return `${therapist.intro_price} \u0433\u0440\u043d`
+  if (therapist.intro_price_currency === 'EUR') return `?${therapist.intro_price}`
+  return `${therapist.intro_price} ???`
 }
 
-const publicName = (therapist: PublicTherapistProfile) => {
+const publicName = (therapist: PublicSpecialistProfile) => {
   const raw = therapist.display_name || ''
   const parts = raw.trim().split(/\s+/).filter(Boolean)
   if (!parts.length) return ''
@@ -93,7 +93,7 @@ async function loadTherapists() {
     therapists.value = resp.results || []
   } catch {
     therapists.value = []
-    error.value = 'Не вдалося завантажити список спеціалістів.'
+    error.value = '?? ??????? ??????????? ?????? ????????????.'
   } finally {
     loading.value = false
   }
@@ -185,7 +185,7 @@ onMounted(loadTherapists)
 }
 
 .meta-line span + span::before {
-  content: " · ";
+  content: " ?? ";
   color: var(--muted);
 }
 

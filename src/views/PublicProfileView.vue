@@ -10,6 +10,12 @@
       </div>
       <div class="public__actions">
         <a class="btn btn--ghost" href="#journal">Авторський журнал</a>
+        <RouterLink class="btn" :to="feedbackLink">
+          Відгуки
+          <span v-if="isAuthenticated && isClient && canLeaveFeedback" class="badge badge--soft">
+            Доступно
+          </span>
+        </RouterLink>
         <RouterLink class="btn btn--ghost" to="/specialists">
           Повернутись до списку
         </RouterLink>
@@ -262,7 +268,7 @@ import { toLocalDate } from '../lib/dates'
 import {
   fetchPublicTherapistProfile,
   fetchPublicAuthorJournalPosts,
-  type PublicTherapistProfile,
+  type PublicSpecialistProfile,
   type PublicAuthorJournalPost,
 } from '../lib/api'
 import { useAuthStore } from '../stores/auth'
@@ -287,7 +293,7 @@ type ClientSession = {
 const route = useRoute()
 const auth = useAuthStore()
 const toast = useToast()
-const profile = ref<PublicTherapistProfile | null>(null)
+const profile = ref<PublicSpecialistProfile | null>(null)
 const slots = ref<PublicSlot[]>([])
 const loading = ref(false)
 const slotsLoading = ref(false)
@@ -349,6 +355,17 @@ const upcomingConfirmed = computed(() => {
     .filter((item) => item.start_at && item.end_at)
     .sort((a, b) => new Date(a.start_at).getTime() - new Date(b.start_at).getTime())
 })
+const canLeaveFeedback = computed(() => {
+  if (!isAuthenticated.value || !isClient.value || !profile.value) return false
+  const therapistId = profile.value.therapist_id
+  const slugValue = profile.value.public_slug
+  const matchesTherapist = (session: ClientSession) => {
+    if (therapistId && session.therapist) return therapistId === session.therapist
+    if (slugValue && session.therapist_public_slug) return slugValue === session.therapist_public_slug
+    return false
+  }
+  return clientSessions.value.some(matchesTherapist) || pastClientSessions.value.some(matchesTherapist)
+})
 
 const weekDays = computed(() => {
   const base = new Date()
@@ -374,6 +391,10 @@ const languagesDisplay = computed(() => {
 })
 
 const publicName = computed(() => formatPublicName(profile.value?.display_name) || profile.value?.display_name || '')
+const feedbackLink = computed(() => ({
+  name: 'specialist-feedback',
+  params: { slug: profile.value?.public_slug || slug.value },
+}))
 
 const priceDisplay = computed(() => {
   const price = profile.value?.price
@@ -664,7 +685,7 @@ function closeSettingModal() {
   showSettingModal.value = false
 }
 
-function pickTherapist(data: PublicTherapistProfile) {
+function pickTherapist(data: PublicSpecialistProfile) {
   return {
     therapist_id: data.therapist_id,
     public_slug: data.public_slug,
@@ -677,7 +698,7 @@ function pickTherapist(data: PublicTherapistProfile) {
   }
 }
 
-function saveViewedTherapist(data: PublicTherapistProfile) {
+function saveViewedTherapist(data: PublicSpecialistProfile) {
   if (!data.public_slug) return
   const raw = localStorage.getItem('viewedTherapists')
   let items: any[] = []

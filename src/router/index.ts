@@ -18,6 +18,8 @@ import PublicTherapistsView from '../views/PublicTherapistsView.vue'
 import TherapistReviewsView from '../views/TherapistReviewsView.vue'
 import GroupInviteJoinView from '../views/GroupInviteJoinView.vue'
 import FaqView from '../views/FaqView.vue'
+import FeedbackPolicyView from '../views/FeedbackPolicyView.vue'
+import ClientFeedbackView from '../views/ClientFeedbackView.vue'
 import NotFoundView from '../views/NotFoundView.vue'
 import ForbiddenView from '../views/ForbiddenView.vue'
 import ChatView from '../views/ChatView.vue'
@@ -135,6 +137,12 @@ const routes = [
     component: ClientGroupEventView,
     meta: { requiresAuth: true, requiresRole: 'CLIENT' },
   },
+  {
+    path: '/specialist/:slug/feedback',
+    name: 'specialist-feedback',
+    component: ClientFeedbackView,
+    meta: {},
+  },
   { path: '/t/:slug', name: 'public-profile', component: PublicProfileView, alias: '/specialist/:slug' },
   {
     path: '/specialists',
@@ -146,6 +154,7 @@ const routes = [
   { path: '/public/therapists', redirect: { name: 'public-therapists' } },
   { path: '/pricing', redirect: '/#pricing' },
   { path: '/faq', name: 'faq', component: FaqView },
+  { path: '/policy/feedback', name: 'feedback-policy', component: FeedbackPolicyView },
   { path: '/403', name: 'forbidden', component: ForbiddenView },
   { path: '/:pathMatch(.*)*', redirect: '/' },
 ]

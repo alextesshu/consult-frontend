@@ -237,7 +237,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useAuthStore } from '../stores/auth'
-import { apiGet, fetchTherapistProfile } from '../lib/api'
+import { apiGet, fetchTherapistProfile, type SpecialistProfile } from '../lib/api'
 import { toUtcRange } from '../lib/dates'
 
 type Session = {
@@ -606,7 +606,7 @@ async function loadData() {
     const sessionResp = results[0]
     const eventResp = results[1]
     const clientResp = results[2]
-    const profileResp = results[3]
+    const profileResp = results[3] as PromiseSettledResult<SpecialistProfile>
     const summaryResp = results[4]
 
     if (sessionResp.status === 'fulfilled') {

@@ -334,11 +334,10 @@
 <script setup lang="ts">
 import { computed, onMounted, onBeforeUnmount, ref, watch, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
-import { apiGet, apiPatch, apiPut } from '../lib/api'
+import { apiGet, apiPatch, apiPut, fetchTherapistProfile, type SpecialistProfile } from '../lib/api'
 import { getApiErrorMessage } from '../lib/errors'
 import LoadingSkeleton from '../components/LoadingSkeleton.vue'
 import EmptyState from '../components/EmptyState.vue'
-import { fetchTherapistProfile } from '../lib/api'
 
 type Session = {
   id: number
@@ -598,7 +597,7 @@ async function loadSessions() {
 
 async function loadTherapistProfilePhoto() {
   try {
-    const data = await fetchTherapistProfile()
+    const data: SpecialistProfile | null = await fetchTherapistProfile()
     therapistPhotoUrl.value = data?.photo_url || ''
   } catch {
     therapistPhotoUrl.value = ''

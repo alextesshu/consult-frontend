@@ -125,6 +125,8 @@ export type TherapistProfile = {
   show_photo: boolean
 }
 
+export type SpecialistProfile = TherapistProfile
+
 export type PublicTherapistProfile = {
   public_slug?: string
   therapist_id: number
@@ -152,6 +154,8 @@ export type PublicTherapistProfile = {
   platform_setting_text?: string
   setting_text?: string
 }
+
+export type PublicSpecialistProfile = PublicTherapistProfile
 
 export type AuthorJournalPost = {
   id: number
@@ -252,6 +256,16 @@ export async function fetchPublicAuthorJournalPosts(
   slug: string
 ): Promise<PublicAuthorJournalPost[]> {
   const resp = await http.get<PublicAuthorJournalPost[]>(`/public/specialists/${slug}/journal/`)
+  return resp.data
+}
+
+export async function createPracticeReview(
+  specialistId: number,
+  reviewText: string
+): Promise<{ id: number }> {
+  const resp = await http.post<{ id: number }>(`/practice/specialists/${specialistId}/reviews/`, {
+    review_text: reviewText,
+  })
   return resp.data
 }
 

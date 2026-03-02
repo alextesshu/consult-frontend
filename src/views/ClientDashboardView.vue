@@ -39,7 +39,7 @@
       <div v-if="nextUpcoming" class="priority-body">
         <div class="priority-main">
           <div class="priority-time">{{ formatDateTime(sessionStartAt(nextUpcoming)) }}</div>
-          <div class="muted">{{ therapistLabel(nextUpcoming) }}</div>
+          <div class="muted">{{ specialistLabel(nextUpcoming) }}</div>
           <div class="status-pill" :class="{ 'status-pill--warn': nextUpcoming.status === 'SCHEDULED' }">
             {{ sessionStatusLabel(nextUpcoming) }}
           </div>
@@ -56,7 +56,7 @@
             class="btn btn--ghost"
             :to="`/specialist/${nextUpcoming.therapist_public_slug}`"
           >
-            Профіль
+            Профіль спеціаліста
           </RouterLink>
         </div>
       </div>
@@ -83,16 +83,16 @@
 
     <div class="card">
       <div class="card__title">Обрані спеціалісти</div>
-      <div v-if="selectedTherapistsWithSessions.length === 0" class="muted">
+      <div v-if="selectedSpecialistsWithSessions.length === 0" class="muted">
         Ви ще не обрали спеціалістів. Натисніть "Обрати спеціаліста", щоб перейти в каталог.
       </div>
       <div
         v-else
         class="therapist-grid"
-        :class="{ 'therapist-grid--compact': selectedTherapistsWithSessions.length === 1 }"
+        :class="{ 'therapist-grid--compact': selectedSpecialistsWithSessions.length === 1 }"
       >
         <RouterLink
-          v-for="therapist in selectedTherapistsWithSessions"
+          v-for="therapist in selectedSpecialistsWithSessions"
           :key="therapist.public_slug"
           class="therapist-card"
           :to="`/specialist/${therapist.public_slug}`"
@@ -143,19 +143,19 @@
           </div>
         </RouterLink>
       </div>
-      <div v-if="selectedTherapists.length > 0" class="selected-actions">
+      <div v-if="selectedSpecialists.length > 0" class="selected-actions">
         <RouterLink class="btn btn--ghost" to="/specialists">Додати спеціаліста</RouterLink>
       </div>
     </div>
 
     <div class="card">
       <div class="card__title">Переглянуті спеціалісти</div>
-      <div v-if="viewedTherapists.length === 0" class="muted">
+      <div v-if="viewedSpecialists.length === 0" class="muted">
         Ви ще не переглядали профілі спеціалістів.
       </div>
-      <div v-else class="therapist-grid" :class="{ 'therapist-grid--compact': viewedTherapists.length === 1 }">
+      <div v-else class="therapist-grid" :class="{ 'therapist-grid--compact': viewedSpecialists.length === 1 }">
         <RouterLink
-          v-for="therapist in viewedTherapists"
+          v-for="therapist in viewedSpecialists"
           :key="therapist.public_slug"
           class="therapist-card"
           :to="`/specialist/${therapist.public_slug}`"
@@ -221,7 +221,7 @@
           >
             <div>
               <div class="session-time">{{ formatDateTime(session.slot?.start_at || session.slot_start_at) }}</div>
-              <div class="muted">{{ therapistLabel(session) }}</div>
+              <div class="muted">{{ specialistLabel(session) }}</div>
               <div class="muted">Статус: {{ sessionStatusLabel(session) }}</div>
             </div>
             <div class="session-actions">
@@ -254,7 +254,7 @@
           >
             <div>
               <div class="session-time">{{ formatDateTime(session.slot?.start_at || session.slot_start_at) }}</div>
-              <div class="muted">{{ therapistLabel(session) }}</div>
+              <div class="muted">{{ specialistLabel(session) }}</div>
               <div class="muted">Статус: {{ sessionStatusLabel(session) }}</div>
             </div>
             <div class="session-actions">
@@ -289,7 +289,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import { fetchPublicTherapistProfile } from '../lib/api'
+import { fetchPublicTherapistProfile, type PublicSpecialistProfile } from '../lib/api'
 import { apiGet } from '../lib/api'
 import ConfirmModal from '../components/ConfirmModal.vue'
 import { useConfirmModal } from '../composables/useConfirmModal'
@@ -302,7 +302,7 @@ type Slot = {
 type Session = {
   id: number
   status: string
-  therapist?: number
+  specialist?: number
   therapist_name?: string | null
   therapist_username?: string | null
   therapist_email?: string | null
@@ -312,7 +312,7 @@ type Session = {
   slot_end_at?: string | null
 }
 
-type SelectedTherapist = {
+type SelectedSpecialist = {
   therapist_id?: number
   public_slug: string
   display_name: string
@@ -329,9 +329,9 @@ const upcoming = ref<Session[]>([])
 const past = ref<Session[]>([])
 const loading = ref(false)
 const sessionsError = ref('')
-const selectedTherapists = ref<SelectedTherapist[]>([])
-const stoppedTherapists = ref<string[]>([])
-const viewedTherapists = ref<SelectedTherapist[]>([])
+const selectedSpecialists = ref<SelectedSpecialist[]>([])
+const stoppedSpecialists = ref<string[]>([])
+const viewedSpecialists = ref<SelectedSpecialist[]>([])
 const groupEvents = ref<GroupEvent[]>([])
 const groupEventsLoading = ref(false)
 const groupEventsError = ref('')
@@ -348,9 +348,9 @@ type GroupEvent = {
   my_status: string | null
 }
 
-const recentTherapistSlugs = computed(() => {
+const recentSpecialistSlugs = computed(() => {
   const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000
-  const stopped = new Set(stoppedTherapists.value)
+  const stopped = new Set(stoppedSpecialists.value)
   const slugs = new Set<string>()
   for (const session of past.value) {
     if (session.status !== 'COMPLETED') continue
@@ -365,9 +365,9 @@ const recentTherapistSlugs = computed(() => {
   return slugs
 })
 
-const selectedTherapistsWithSessions = computed(() =>
-  selectedTherapists.value.filter((therapist) =>
-    recentTherapistSlugs.value.has(therapist.public_slug)
+const selectedSpecialistsWithSessions = computed(() =>
+  selectedSpecialists.value.filter((specialist) =>
+    recentSpecialistSlugs.value.has(specialist.public_slug)
   )
 )
 
@@ -412,18 +412,18 @@ const languageLabel = (value?: string | string[]) => {
   return value
 }
 
-const priceLabel = (therapist: SelectedTherapist) => {
-  if (!therapist.price) return ''
-  if (therapist.price_currency === 'USD') return `$${therapist.price}`
-  if (therapist.price_currency === 'EUR') return `€${therapist.price}`
-  return `${therapist.price} грн`
+const priceLabel = (specialist: SelectedSpecialist) => {
+  if (!specialist.price) return ''
+  if (specialist.price_currency === 'USD') return `$${specialist.price}`
+  if (specialist.price_currency === 'EUR') return `€${specialist.price}`
+  return `${specialist.price} грн`
 }
 
-const introPriceLabel = (therapist: SelectedTherapist) => {
-  if (!therapist.intro_price) return ''
-  if (therapist.intro_price_currency === 'USD') return `$${therapist.intro_price}`
-  if (therapist.intro_price_currency === 'EUR') return `€${therapist.intro_price}`
-  return `${therapist.intro_price} грн`
+const introPriceLabel = (specialist: SelectedSpecialist) => {
+  if (!specialist.intro_price) return ''
+  if (specialist.intro_price_currency === 'USD') return `$${specialist.intro_price}`
+  if (specialist.intro_price_currency === 'EUR') return `€${specialist.intro_price}`
+  return `${specialist.intro_price} грн`
 }
 
 const sessionStartAt = (session: Session) => session.slot?.start_at || session.slot_start_at || null
@@ -471,7 +471,7 @@ function timeUntilLabel(session: Session) {
 function nextSession(therapistId: number | undefined, status: string) {
   if (!therapistId) return null
   const items = upcoming.value
-    .filter((session) => session.therapist === therapistId && session.status === status)
+    .filter((session) => session.specialist === therapistId && session.status === status)
     .map((session) => ({ session, startAt: sessionStartAt(session) }))
     .filter((item) => item.startAt)
     .sort((a, b) => new Date(a.startAt as string).getTime() - new Date(b.startAt as string).getTime())
@@ -483,10 +483,10 @@ function formatSession(session: Session | null) {
   return formatDateTime(sessionStartAt(session))
 }
 
-function therapistLabel(session: Session) {
+function specialistLabel(session: Session) {
   const name = session.therapist_name || session.therapist_username
   if (name) return `Спеціаліст: ${name}`
-  if (session.therapist) return `Спеціаліст: #${session.therapist}`
+  if (session.specialist) return `Спеціаліст: #${session.specialist}`
   return 'Спеціаліст: —'
 }
 
@@ -533,14 +533,14 @@ async function loadGroupEvents() {
   }
 }
 
-function loadSelectedTherapists() {
-  const rawList = localStorage.getItem('selectedTherapists')
+function loadSelectedSpecialists() {
+  const rawList = localStorage.getItem('selectedSpecialists')
   if (rawList) {
     try {
-      selectedTherapists.value = JSON.parse(rawList)
+      selectedSpecialists.value = JSON.parse(rawList)
       return
     } catch {
-      selectedTherapists.value = []
+      selectedSpecialists.value = []
     }
   }
   const legacy = localStorage.getItem('selectedTherapist')
@@ -548,42 +548,42 @@ function loadSelectedTherapists() {
   try {
     const parsed = JSON.parse(legacy)
     if (parsed?.public_slug) {
-      selectedTherapists.value = [parsed]
-      localStorage.setItem('selectedTherapists', JSON.stringify(selectedTherapists.value))
+      selectedSpecialists.value = [parsed]
+      localStorage.setItem('selectedSpecialists', JSON.stringify(selectedSpecialists.value))
     }
   } catch {
-    selectedTherapists.value = []
+    selectedSpecialists.value = []
   }
 }
 
-function loadViewedTherapists() {
-  const raw = localStorage.getItem('viewedTherapists')
+function loadViewedSpecialists() {
+  const raw = localStorage.getItem('viewedSpecialists')
   if (!raw) return
   try {
-    viewedTherapists.value = JSON.parse(raw)
+    viewedSpecialists.value = JSON.parse(raw)
   } catch {
-    viewedTherapists.value = []
+    viewedSpecialists.value = []
   }
 }
 
 
-function loadStoppedTherapists() {
-  const raw = localStorage.getItem('stoppedTherapists')
+function loadStoppedSpecialists() {
+  const raw = localStorage.getItem('stoppedSpecialists')
   if (!raw) return
   try {
     const parsed = JSON.parse(raw)
-    if (Array.isArray(parsed)) stoppedTherapists.value = parsed
+    if (Array.isArray(parsed)) stoppedSpecialists.value = parsed
   } catch {
-    stoppedTherapists.value = []
+    stoppedSpecialists.value = []
   }
 }
 
 function persistStoppedTherapists() {
-  localStorage.setItem('stoppedTherapists', JSON.stringify(stoppedTherapists.value))
+  localStorage.setItem('stoppedSpecialists', JSON.stringify(stoppedSpecialists.value))
 }
 
-function requestStopCollaboration(therapist: SelectedTherapist) {
-  const name = therapist.display_name
+function requestStopCollaboration(specialist: SelectedSpecialist) {
+  const name = specialist.display_name
   const message = name
     ? `Спеціаліст "${name}" зникне з обраних, але історія сесій залишиться.`
     : 'Спеціаліст зникне з обраних, але історія сесій залишиться.'
@@ -593,33 +593,33 @@ function requestStopCollaboration(therapist: SelectedTherapist) {
     confirmText: 'Припинити',
     cancelText: 'Скасувати',
     tone: 'danger',
-    onConfirm: () => stopCollaboration(therapist),
+    onConfirm: () => stopCollaboration(specialist),
   })
 }
 
-function stopCollaboration(therapist: SelectedTherapist) {
-  if (!therapist.public_slug) return
-  if (!stoppedTherapists.value.includes(therapist.public_slug)) {
-    stoppedTherapists.value.push(therapist.public_slug)
+function stopCollaboration(specialist: SelectedSpecialist) {
+  if (!specialist.public_slug) return
+  if (!stoppedSpecialists.value.includes(specialist.public_slug)) {
+    stoppedSpecialists.value.push(specialist.public_slug)
     persistStoppedTherapists()
   }
-  selectedTherapists.value = selectedTherapists.value.filter(
-    (item) => item.public_slug !== therapist.public_slug
+  selectedSpecialists.value = selectedSpecialists.value.filter(
+    (item) => item.public_slug !== specialist.public_slug
   )
-  persistTherapists()
+  persistSpecialists()
 }
 
-function persistTherapists() {
-  localStorage.setItem('selectedTherapists', JSON.stringify(selectedTherapists.value))
-  localStorage.setItem('viewedTherapists', JSON.stringify(viewedTherapists.value))
+function persistSpecialists() {
+  localStorage.setItem('selectedSpecialists', JSON.stringify(selectedSpecialists.value))
+  localStorage.setItem('viewedSpecialists', JSON.stringify(viewedSpecialists.value))
 }
 
-function syncSelectedTherapists() {
+function syncSelectedSpecialists() {
   const viewedBySlug = new Map(
-    viewedTherapists.value.map((therapist) => [therapist.public_slug, therapist])
+    viewedSpecialists.value.map((specialist) => [specialist.public_slug, specialist])
   )
-  const recentMap = new Map<string, SelectedTherapist>()
-  const stopped = new Set(stoppedTherapists.value)
+  const recentMap = new Map<string, SelectedSpecialist>()
+  const stopped = new Set(stoppedSpecialists.value)
   for (const session of past.value) {
     if (session.status !== 'COMPLETED') continue
     const endRaw = sessionEndAt(session) || sessionStartAt(session)
@@ -632,42 +632,42 @@ function syncSelectedTherapists() {
     if (!slug || stopped.has(slug)) continue
     if (recentMap.has(slug)) continue
     recentMap.set(slug, {
-      therapist_id: session.therapist,
+      therapist_id: session.specialist,
       public_slug: slug,
       display_name: session.therapist_name || session.therapist_username || 'Спеціаліст',
     })
   }
 
   let changed = false
-  selectedTherapists.value = selectedTherapists.value.filter(
-    (therapist) => recentMap.has(therapist.public_slug) && !stopped.has(therapist.public_slug)
+  selectedSpecialists.value = selectedSpecialists.value.filter(
+    (specialist) => recentMap.has(specialist.public_slug) && !stopped.has(specialist.public_slug)
   )
 
-  const existingSlugs = new Set(selectedTherapists.value.map((t) => t.public_slug))
+  const existingSlugs = new Set(selectedSpecialists.value.map((t) => t.public_slug))
   for (const [slug, seed] of recentMap.entries()) {
     if (existingSlugs.has(slug)) continue
     const enriched = viewedBySlug.get(slug)
-    selectedTherapists.value.push(enriched ?? seed)
+    selectedSpecialists.value.push(enriched ?? seed)
     existingSlugs.add(slug)
     changed = true
   }
 
   if (changed) {
-    localStorage.setItem('selectedTherapists', JSON.stringify(selectedTherapists.value))
+    localStorage.setItem('selectedSpecialists', JSON.stringify(selectedSpecialists.value))
   }
 }
 
-async function hydrateTherapistProfiles() {
-  const all = [...selectedTherapists.value, ...viewedTherapists.value]
-    .filter((therapist) => therapist.public_slug)
-    .map((therapist) => therapist.public_slug)
+async function hydrateSpecialistProfiles() {
+  const all = [...selectedSpecialists.value, ...viewedSpecialists.value]
+    .filter((specialist) => specialist.public_slug)
+    .map((specialist) => specialist.public_slug)
   const uniqueSlugs = Array.from(new Set(all))
   if (!uniqueSlugs.length) return
 
-  const responses = await Promise.allSettled(
+  const responses = (await Promise.allSettled(
     uniqueSlugs.map((slug) => fetchPublicTherapistProfile(slug))
-  )
-  const bySlug = new Map<string, SelectedTherapist>()
+  )) as PromiseSettledResult<PublicSpecialistProfile>[]
+  const bySlug = new Map<string, SelectedSpecialist>()
   responses.forEach((res, index) => {
     if (res.status !== 'fulfilled') return
     const data = res.value
@@ -689,49 +689,49 @@ async function hydrateTherapistProfiles() {
   if (!bySlug.size) return
 
   let changed = false
-  const mergeTherapist = (therapist: SelectedTherapist) => {
-    const fresh = bySlug.get(therapist.public_slug)
-    if (!fresh) return therapist
-    const merged: SelectedTherapist = {
-      ...therapist,
-      therapist_id: fresh.therapist_id ?? therapist.therapist_id,
-      display_name: fresh.display_name || therapist.display_name,
-      location: fresh.location ?? therapist.location,
-      languages: fresh.languages ?? therapist.languages,
-      price: fresh.price ?? therapist.price,
-      price_currency: fresh.price_currency ?? therapist.price_currency,
-      intro_price: fresh.intro_price ?? therapist.intro_price,
-      intro_price_currency: fresh.intro_price_currency ?? therapist.intro_price_currency,
+  const mergeSpecialist = (specialist: SelectedSpecialist) => {
+    const fresh = bySlug.get(specialist.public_slug)
+    if (!fresh) return specialist
+    const merged: SelectedSpecialist = {
+      ...specialist,
+      therapist_id: fresh.therapist_id ?? specialist.therapist_id,
+      display_name: fresh.display_name || specialist.display_name,
+      location: fresh.location ?? specialist.location,
+      languages: fresh.languages ?? specialist.languages,
+      price: fresh.price ?? specialist.price,
+      price_currency: fresh.price_currency ?? specialist.price_currency,
+      intro_price: fresh.intro_price ?? specialist.intro_price,
+      intro_price_currency: fresh.intro_price_currency ?? specialist.intro_price_currency,
       photo_url: fresh.photo_url || '',
     }
-    if (JSON.stringify(merged) !== JSON.stringify(therapist)) {
+    if (JSON.stringify(merged) !== JSON.stringify(specialist)) {
       changed = true
       return merged
     }
-    return therapist
+    return specialist
   }
 
-  selectedTherapists.value = selectedTherapists.value.map(mergeTherapist)
-  viewedTherapists.value = viewedTherapists.value.map(mergeTherapist)
+  selectedSpecialists.value = selectedSpecialists.value.map(mergeSpecialist)
+  viewedSpecialists.value = viewedSpecialists.value.map(mergeSpecialist)
 
   if (changed) {
-    persistTherapists()
+    persistSpecialists()
   }
 }
 
-function onPhotoError(therapist: SelectedTherapist) {
-  if (!therapist.photo_url) return
-  therapist.photo_url = ''
-  persistTherapists()
+function onPhotoError(specialist: SelectedSpecialist) {
+  if (!specialist.photo_url) return
+  specialist.photo_url = ''
+  persistSpecialists()
 }
 
 onMounted(async () => {
-  loadStoppedTherapists()
-  loadSelectedTherapists()
-  loadViewedTherapists()
+  loadStoppedSpecialists()
+  loadSelectedSpecialists()
+  loadViewedSpecialists()
   await Promise.all([loadSessions(), loadGroupEvents()])
-  syncSelectedTherapists()
-  await hydrateTherapistProfiles()
+  syncSelectedSpecialists()
+  await hydrateSpecialistProfiles()
 })
 </script>
 

@@ -2,22 +2,22 @@
   <section class="public-therapists">
     <header class="public-therapists__hero card">
       <div>
-        <div class="badge badge--soft">Публічний каталог</div>
-        <h1 class="title">Спеціалісти</h1>
-        <p class="muted">Пошук та перегляд відкритих профілів.</p>
+        <div class="badge badge--soft">????????? ???????</div>
+        <h1 class="title">???????????</h1>
+        <p class="muted">????? ?? ???????? ????????? ????????.</p>
       </div>
-      <RouterLink class="btn btn--ghost" to="/">На головну</RouterLink>
+      <RouterLink class="btn btn--ghost" to="/">?? ???????</RouterLink>
     </header>
 
     <section class="card">
-      <div class="card__title">Пошук і фільтри</div>
+      <div class="card__title">????? ? ???????</div>
       <div class="filters">
         <div class="filters__row">
           <input
             v-model="nameQuery"
             class="input"
             type="text"
-            placeholder="Ім'я"
+            placeholder="??'?"
             @input="scheduleSearch"
             @keyup.enter="applyFilters"
           />
@@ -25,7 +25,7 @@
             v-model="specialization"
             class="input"
             type="text"
-            placeholder="Спеціалізація"
+            placeholder="?????????????"
             list="catalogSpecializationOptions"
             @input="scheduleSearch"
             @keyup.enter="applyFilters"
@@ -34,7 +34,7 @@
             v-model="language"
             class="input"
             type="text"
-            placeholder="Мова"
+            placeholder="????"
             list="catalogLanguageOptions"
             @input="scheduleSearch"
             @keyup.enter="applyFilters"
@@ -43,7 +43,7 @@
             v-model="location"
             class="input"
             type="text"
-            placeholder="Місто"
+            placeholder="?????"
             @input="scheduleSearch"
             @keyup.enter="applyFilters"
           />
@@ -55,47 +55,47 @@
           <option v-for="option in languageOptions" :key="option" :value="option" />
         </datalist>
         <div class="filters__row">
-          <input v-model="priceMin" class="input" type="number" min="0" placeholder="Ціна від" @input="scheduleSearch" />
-          <input v-model="priceMax" class="input" type="number" min="0" placeholder="Ціна до" @input="scheduleSearch" />
+          <input v-model="priceMin" class="input" type="number" min="0" placeholder="???? ???" @input="scheduleSearch" />
+          <input v-model="priceMax" class="input" type="number" min="0" placeholder="???? ??" @input="scheduleSearch" />
           <select v-model="priceCurrency" class="input input--select" @change="applyFilters">
-            <option value="">Валюта</option>
-            <option value="UAH">грн</option>
+            <option value="">??????</option>
+            <option value="UAH">???</option>
             <option value="USD">$</option>
-            <option value="EUR">€</option>
+            <option value="EUR">?</option>
           </select>
           <select v-model="sort" class="input input--select" @change="applyFilters">
-            <option value="">Сортування</option>
-            <option value="name_asc">Ім'я (А→Я)</option>
-            <option value="name_desc">Ім'я (Я→А)</option>
-            <option value="price_asc">Ціна (дешевші)</option>
-            <option value="price_desc">Ціна (дорожчі)</option>
-            <option value="experience_desc">Досвід (більше)</option>
-            <option value="experience_asc">Досвід (менше)</option>
-            <option value="created_desc">Новіші профілі</option>
+            <option value="">??????????</option>
+            <option value="name_asc">??'? (???)</option>
+            <option value="name_desc">??'? (???)</option>
+            <option value="price_asc">???? (???????)</option>
+            <option value="price_desc">???? (???????)</option>
+            <option value="experience_desc">?????? (??????)</option>
+            <option value="experience_asc">?????? (?????)</option>
+            <option value="created_desc">?????? ???????</option>
           </select>
         </div>
         <div class="filters__actions">
-          <button class="btn btn--ghost" type="button" @click="applyFilters">Застосувати</button>
+          <button class="btn btn--ghost" type="button" @click="applyFilters">???????????</button>
           <button class="btn btn--ghost" type="button" :disabled="!hasFilters" @click="resetFilters">
-            Скинути
+            ???????
           </button>
           <div class="filters__hint muted">
-            Підказки працюють за першими літерами. Фільтрація за ціною працює з конвертацією у гривню для правильного порядку.
+            ???????? ???????? ?? ??????? ????????. ?????????? ?? ????? ?????? ? ???????????? ? ?????? ??? ??????????? ???????.
           </div>
         </div>
       </div>
     </section>
 
     <section class="card">
-      <div class="card__title">Результати</div>
+      <div class="card__title">??????????</div>
       <LoadingSkeleton v-if="loading" variant="card" :count="6" height="140px" />
       <EmptyState
         v-else-if="therapists.length === 0"
-        title="Поки що немає профілів"
-        description="Спробуйте змінити фільтри або поверніться трохи пізніше."
+        title="???? ?? ????? ????????"
+        description="????????? ??????? ??????? ??? ??????????? ????? ???????."
       >
         <template #actions>
-          <button class="btn btn--ghost" type="button" @click="resetFilters">Скинути фільтри</button>
+          <button class="btn btn--ghost" type="button" @click="resetFilters">??????? ???????</button>
         </template>
       </EmptyState>
       <div v-else class="therapist-grid">
@@ -112,12 +112,12 @@
               :alt="publicName(therapist)"
               class="therapist-photo"
             />
-            <div v-else class="therapist-photo therapist-photo--empty">Фото</div>
+            <div v-else class="therapist-photo therapist-photo--empty">????</div>
           </div>
           <div class="therapist-info">
             <div class="therapist-name">{{ publicName(therapist) }}</div>
             <div v-if="therapist.experience_years !== undefined && therapist.experience_years !== null" class="muted">
-              Досвід: {{ formatExperience(therapist.experience_years) }}
+              ??????: {{ formatExperience(therapist.experience_years) }}
             </div>
             <div class="muted meta-line">
               <span v-if="therapist.location">{{ therapist.location }}</span>
@@ -125,21 +125,21 @@
             </div>
             <div v-if="priceLabel(therapist)" class="therapist-price">{{ priceLabel(therapist) }}</div>
             <div v-if="introPriceLabel(therapist)" class="therapist-price therapist-price--intro">
-              Ознайомча: {{ introPriceLabel(therapist) }}
+              ?????????: {{ introPriceLabel(therapist) }}
             </div>
           </div>
         </RouterLink>
       </div>
       <div class="pagination">
         <div class="muted">
-          Сторінка {{ page }} з {{ totalPages }} · Всього {{ total }}
+          ???????? {{ page }} ? {{ totalPages }} ? ?????? {{ total }}
         </div>
         <div class="pagination__controls">
           <button class="btn btn--ghost btn--sm" type="button" :disabled="page <= 1" @click="goPage(page - 1)">
-            Назад
+            ?????
           </button>
           <button class="btn btn--ghost btn--sm" type="button" :disabled="page >= totalPages" @click="goPage(page + 1)">
-            Далі
+            ????
           </button>
         </div>
       </div>
@@ -149,12 +149,12 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import { fetchPublicTherapists, type PublicTherapistProfile } from '../lib/api'
+import { fetchPublicTherapists, type PublicSpecialistProfile } from '../lib/api'
 import { useToast } from '../composables/useToast'
 import LoadingSkeleton from '../components/LoadingSkeleton.vue'
 import EmptyState from '../components/EmptyState.vue'
 
-const therapists = ref<PublicTherapistProfile[]>([])
+const therapists = ref<PublicSpecialistProfile[]>([])
 const loading = ref(false)
 const total = ref(0)
 const totalPages = ref(1)
@@ -178,33 +178,33 @@ const appliedPriceCurrency = ref('')
 const toast = useToast()
 let searchTimer: number | undefined
 const languageOptions = [
-  'Українська',
-  'Російська',
+  '??????????',
+  '?????????',
   'English',
   'Polski',
   'Deutsch',
-  'Français',
-  'Español',
+  'Fran?ais',
+  'Espa?ol',
   'Italiano',
-  'Português',
-  'Čeština',
-  'Slovenčina',
+  'Portugu?s',
+  '?e?tina',
+  'Sloven?ina',
 ]
 
 const specializationOptions = [
-  'Гештальт терапія',
-  'Екзистенційна терапія',
-  'Клієнт-центрована терапія',
-  'Когнітивно-поведінкова терапія',
-  'Терапія прийняття і відповідальності (ACT)',
-  'Позитивна психотерапія',
-  'Психоаналіз',
-  'Психодрама',
-  'Символдрама',
-  'Схема-терапія',
-  'Транзакційний аналіз',
-  'Арттерапія',
-  'Інше',
+  '???????? ???????',
+  '????????????? ???????',
+  '??????-?????????? ???????',
+  '??????????-??????????? ???????',
+  '??????? ????????? ? ???????????????? (ACT)',
+  '????????? ????????????',
+  '???????????',
+  '??????????',
+  '???????????',
+  '?????-???????',
+  '????????????? ??????',
+  '??????????',
+  '????',
 ]
 const hasFilters = computed(
   () =>
@@ -224,21 +224,21 @@ const languageLabel = (value?: string | string[]) => {
   return value
 }
 
-const priceLabel = (therapist: PublicTherapistProfile) => {
+const priceLabel = (therapist: PublicSpecialistProfile) => {
   if (!therapist.price) return ''
   if (therapist.price_currency === 'USD') return `$${therapist.price}`
-  if (therapist.price_currency === 'EUR') return `\u20ac${therapist.price}`
-  return `${therapist.price} \u0433\u0440\u043d`
+  if (therapist.price_currency === 'EUR') return `?${therapist.price}`
+  return `${therapist.price} ???`
 }
 
-const introPriceLabel = (therapist: PublicTherapistProfile) => {
+const introPriceLabel = (therapist: PublicSpecialistProfile) => {
   if (!therapist.intro_price) return ''
   if (therapist.intro_price_currency === 'USD') return `$${therapist.intro_price}`
-  if (therapist.intro_price_currency === 'EUR') return `\u20ac${therapist.intro_price}`
-  return `${therapist.intro_price} \u0433\u0440\u043d`
+  if (therapist.intro_price_currency === 'EUR') return `?${therapist.intro_price}`
+  return `${therapist.intro_price} ???`
 }
 
-const publicName = (therapist: PublicTherapistProfile) => {
+const publicName = (therapist: PublicSpecialistProfile) => {
   const raw = therapist.display_name || ''
   const parts = raw.trim().split(/\s+/).filter(Boolean)
   if (!parts.length) return ''
@@ -251,10 +251,10 @@ const publicName = (therapist: PublicTherapistProfile) => {
 }
 
 const formatExperience = (value: number) => {
-  if (value === 0) return 'до року'
-  if (value === 1) return '1 рік'
-  if (value >= 2 && value <= 4) return `${value} роки`
-  return `${value} років`
+  if (value === 0) return '?? ????'
+  if (value === 1) return '1 ???'
+  if (value >= 2 && value <= 4) return `${value} ????`
+  return `${value} ?????`
 }
 
 async function loadTherapists() {
@@ -279,7 +279,7 @@ async function loadTherapists() {
     therapists.value = []
     total.value = 0
     totalPages.value = 1
-    toast.error('Не вдалося завантажити каталог')
+    toast.error('?? ??????? ??????????? ???????')
   } finally {
     loading.value = false
   }
@@ -469,7 +469,7 @@ onMounted(loadTherapists)
 }
 
 .meta-line span + span::before {
-  content: " · ";
+  content: " ?? ";
   color: var(--muted);
 }
 
@@ -481,7 +481,6 @@ onMounted(loadTherapists)
 .therapist-name {
   font-weight: 600;
 }
-
 
 .therapist-price {
   font-weight: 600;
