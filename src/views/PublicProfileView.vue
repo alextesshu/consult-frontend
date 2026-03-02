@@ -165,49 +165,6 @@
         <div v-else class="muted">Поки що немає опису.</div>
       </div>
 
-      <div class="panel panel--reviews">
-        <div class="panel__header">
-          <div>
-            <div class="badge badge--soft">Відгуки</div>
-            <h2 class="panel__title">Оцінки клієнтів</h2>
-          </div>
-          <div class="panel__header-actions">
-            <button class="btn btn--ghost btn--sm" type="button" @click="shareProfile">
-              Поділитись профілем
-            </button>
-            <button
-              class="btn btn--ghost btn--sm"
-              type="button"
-              :disabled="!canLeaveReview"
-              @click="openReviewModal"
-            >
-              Додати відгук
-            </button>
-            <div v-if="averageRating" class="rating-pill">{{ averageRating }} / 5</div>
-          </div>
-        </div>
-
-        <div v-if="reviewsLoading" class="muted">Завантажуємо відгуки</div>
-        <div v-else-if="reviewsError" class="form-error">{{ reviewsError }}</div>
-        <div v-else-if="reviews.length === 0" class="muted">Поки що немає відгуків.</div>
-        <div v-else class="review-list">
-          <article v-for="review in reviews" :key="review.id" class="review-card">
-            <div class="review-head">
-              <div class="review-rating">{{ review.rating }} / 5</div>
-              <div class="muted">{{ formatDate(review.created_at) }}</div>
-            </div>
-            <div class="review-text" v-if="review.review_text">{{ review.review_text }}</div>
-            <div v-if="review.therapist_response" class="review-response">
-              <div class="review-response__label">Відповідь спеціаліста</div>
-              <div class="review-response__text">{{ review.therapist_response }}</div>
-              <div v-if="review.therapist_response_at" class="muted review-response__date">
-                {{ formatDate(review.therapist_response_at) }}
-              </div>
-            </div>
-          </article>
-        </div>
-      </div>
-
       <div class="panel panel--journal" id="journal">
         <div class="panel__header">
           <div>
@@ -236,54 +193,6 @@
       </div>
 
     </section>
-
-    <div v-if="showReviewModal" class="setting-modal">
-      <div class="setting-modal__backdrop" @click="closeReviewModal"></div>
-      <div class="setting-modal__content">
-        <div class="setting-modal__header">
-          <h3>Додати відгук</h3>
-          <button class="btn btn--ghost btn--sm" type="button" @click="closeReviewModal">
-            Закрити
-          </button>
-        </div>
-        <div class="setting-modal__body">
-          <label class="setting-label">
-            Рейтинг
-            <select v-model.number="reviewRating" class="input">
-              <option :value="5">5 — Відмінно</option>
-              <option :value="4">4 — Добре</option>
-              <option :value="3">3 — Нормально</option>
-              <option :value="2">2 — Погано</option>
-              <option :value="1">1 — Дуже погано</option>
-            </select>
-          </label>
-          <label class="setting-label" v-if="eligibleReviewSessions.length > 1">
-            Сесія
-            <select v-model.number="reviewSessionId" class="input">
-              <option v-for="session in eligibleReviewSessions" :key="session.id" :value="session.id">
-                {{ formatDate(session.start_at) }}
-              </option>
-            </select>
-          </label>
-          <label class="setting-label">
-            Коментар
-            <textarea
-              v-model.trim="reviewText"
-              class="input"
-              rows="4"
-              placeholder="Коротко опишіть ваш досвід"
-            ></textarea>
-          </label>
-          <div v-if="reviewError" class="form-error">{{ reviewError }}</div>
-        </div>
-        <div class="setting-modal__footer">
-          <button class="btn" type="button" :disabled="reviewSubmitting" @click="submitReview">
-            {{ reviewSubmitting ? 'Надсилаємо...' : 'Опублікувати відгук' }}
-          </button>
-          <button class="btn btn--ghost" type="button" @click="closeReviewModal">Скасувати</button>
-        </div>
-      </div>
-    </div>
 
     <div v-if="showBookingModal" class="setting-modal">
       <div class="setting-modal__backdrop" @click="closeBookingModal"></div>
@@ -353,11 +262,8 @@ import { toLocalDate } from '../lib/dates'
 import {
   fetchPublicTherapistProfile,
   fetchPublicAuthorJournalPosts,
-  fetchPublicTherapistReviews,
-  createSessionReview,
   type PublicTherapistProfile,
   type PublicAuthorJournalPost,
-  type SessionReview,
 } from '../lib/api'
 import { useAuthStore } from '../stores/auth'
 import { useToast } from '../composables/useToast'
@@ -400,20 +306,11 @@ const settingButtonRef = ref<HTMLElement | null>(null)
 let settingAttentionTimer: number | null = null
 const clientSessions = ref<ClientSession[]>([])
 const pastClientSessions = ref<ClientSession[]>([])
-const reviews = ref<SessionReview[]>([])
-const reviewsLoading = ref(false)
-const reviewsError = ref('')
 const journalPosts = ref<PublicAuthorJournalPost[]>([])
 const journalLoading = ref(false)
 const journalError = ref('')
 const selectedDate = ref('')
 const slotDateInput = ref<HTMLInputElement | null>(null)
-const showReviewModal = ref(false)
-const reviewRating = ref(5)
-const reviewText = ref('')
-const reviewSubmitting = ref(false)
-const reviewError = ref('')
-const reviewSessionId = ref<number | null>(null)
 
 const slug = computed(() => String(route.params.slug || '').trim())
 const roles = computed(() => auth.me?.user.roles ?? auth.user?.roles ?? [])
@@ -452,32 +349,6 @@ const upcomingConfirmed = computed(() => {
     .filter((item) => item.start_at && item.end_at)
     .sort((a, b) => new Date(a.start_at).getTime() - new Date(b.start_at).getTime())
 })
-
-const eligibleReviewSessions = computed(() => {
-  if (!profile.value) return []
-  return pastClientSessions.value
-    .filter((session) => {
-      if (session.status !== 'COMPLETED') return false
-      const therapistId = profile.value?.therapist_id
-      const sessionTherapist = session.therapist
-      if (therapistId && sessionTherapist) {
-        return therapistId === sessionTherapist
-      }
-      if (profile.value?.public_slug && session.therapist_public_slug) {
-        return profile.value.public_slug === session.therapist_public_slug
-      }
-      return false
-    })
-    .map((session) => ({
-      id: session.id,
-      start_at: session.slot?.start_at || session.slot_start_at || '',
-      end_at: session.slot?.end_at || session.slot_end_at || '',
-    }))
-    .filter((item) => item.start_at)
-    .sort((a, b) => new Date(b.start_at).getTime() - new Date(a.start_at).getTime())
-})
-
-const canLeaveReview = computed(() => isAuthenticated.value && isClient.value && eligibleReviewSessions.value.length > 0)
 
 const weekDays = computed(() => {
   const base = new Date()
@@ -551,12 +422,6 @@ const bioSections = computed(() => {
     { title: 'Інше', body: profile.value.bio_other || '' },
   ]
   return sections.filter((section) => section.body)
-})
-
-const averageRating = computed(() => {
-  if (!reviews.value.length) return ''
-  const total = reviews.value.reduce((sum, item) => sum + item.rating, 0)
-  return (total / reviews.value.length).toFixed(1)
 })
 
 function formatDate(value: string) {
@@ -659,20 +524,6 @@ function formatExperience(value: number) {
   return `${value} років`
 }
 
-async function loadReviews() {
-  if (!slug.value) return
-  reviewsLoading.value = true
-  reviewsError.value = ''
-  try {
-    reviews.value = await fetchPublicTherapistReviews(slug.value, 20)
-  } catch {
-    reviews.value = []
-    reviewsError.value = 'Не вдалося завантажити відгуки.'
-  } finally {
-    reviewsLoading.value = false
-  }
-}
-
 async function loadJournal() {
   if (!slug.value) return
   journalLoading.value = true
@@ -704,44 +555,6 @@ async function loadClientSessions() {
   }
 }
 
-
-function openReviewModal() {
-  if (!canLeaveReview.value) {
-    reviewError.value = 'Відгук можна залишити після завершеної сесії.'
-    return
-  }
-  reviewError.value = ''
-  reviewRating.value = 5
-  reviewText.value = ''
-  reviewSessionId.value = eligibleReviewSessions.value[0]?.id ?? null
-  showReviewModal.value = true
-}
-
-function closeReviewModal() {
-  showReviewModal.value = false
-}
-
-async function submitReview() {
-  if (!reviewSessionId.value) {
-    reviewError.value = 'Оберіть сесію для відгуку.'
-    return
-  }
-  reviewSubmitting.value = true
-  reviewError.value = ''
-  try {
-    await createSessionReview(reviewSessionId.value, {
-      rating: reviewRating.value,
-      review_text: reviewText.value || undefined,
-    })
-    toast.success('Дякуємо за відгук!')
-    showReviewModal.value = false
-    await loadReviews()
-  } catch (err: any) {
-    reviewError.value = err?.response?.data?.detail || 'Не вдалося зберегти відгук.'
-  } finally {
-    reviewSubmitting.value = false
-  }
-}
 
 async function shareProfile() {
   if (!profile.value?.public_slug) return
@@ -885,7 +698,6 @@ watch(slug, () => {
   selectedDate.value = toLocalDate(new Date())
   loadProfile().then(loadSlots)
   loadClientSessions()
-  loadReviews()
   loadJournal()
 })
 
@@ -905,7 +717,6 @@ onMounted(async () => {
   await loadProfile()
   await loadSlots()
   await loadClientSessions()
-  await loadReviews()
   await loadJournal()
 })
 </script>
@@ -957,10 +768,6 @@ onMounted(async () => {
 
 .panel--profile {
   grid-column: 1;
-}
-
-.panel--reviews {
-  grid-column: 2;
 }
 
 .panel--journal {
@@ -1197,11 +1004,6 @@ onMounted(async () => {
     background: rgba(7, 47, 71, 0.04);
   }
 
-  .panel--reviews {
-    display: grid;
-    gap: 12px;
-  }
-
   .panel--journal {
     display: grid;
     gap: 12px;
@@ -1248,11 +1050,6 @@ onMounted(async () => {
     font-weight: 600;
     background: rgba(31, 122, 76, 0.16);
     color: #1f7a4c;
-  }
-
-  .review-list {
-    display: grid;
-    gap: 10px;
   }
 
   .confirmed-block {
@@ -1421,57 +1218,6 @@ onMounted(async () => {
     gap: 6px;
     font-size: 13px;
     color: var(--muted);
-  }
-
-  .review-card {
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    padding: 10px 12px;
-    background: #fff;
-    display: grid;
-    gap: 8px;
-  }
-
-  .review-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-  }
-
-  .review-rating {
-    font-weight: 600;
-  }
-
-  .review-text {
-    color: var(--deep);
-    white-space: pre-line;
-  }
-
-  .review-response {
-    margin-top: 4px;
-    border-radius: 10px;
-    border: 1px dashed var(--line);
-    padding: 8px 10px;
-    background: #f8fbff;
-    display: grid;
-    gap: 4px;
-  }
-
-  .review-response__label {
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--muted);
-  }
-
-  .review-response__text {
-    color: var(--deep);
-    white-space: pre-line;
-  }
-
-  .review-response__date {
-    font-size: 12px;
   }
 
 @media (max-width: 960px) {

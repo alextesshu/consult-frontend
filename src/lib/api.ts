@@ -149,8 +149,6 @@ export type PublicTherapistProfile = {
   messenger?: string
   photo_url?: string
   video_url?: string
-  rating_avg?: string | number | null
-  review_count?: number
   platform_setting_text?: string
   setting_text?: string
 }
@@ -279,31 +277,6 @@ export async function updateAuthorJournalPost(
 
 export async function deleteAuthorJournalPost(postId: number): Promise<void> {
   await http.delete(`/cabinet/journal/${postId}/`)
-}
-
-export type SessionReview = {
-  id: number
-  session: number
-  rating: number
-  review_text: string
-  therapist_response?: string
-  therapist_response_at?: string | null
-  created_at: string
-}
-
-export async function fetchPublicTherapistReviews(
-  slug: string,
-  limit = 20
-): Promise<SessionReview[]> {
-  const resp = await http.get<SessionReview[]>(`/public/specialists/${slug}/reviews/`, {
-    params: { limit },
-  })
-  return resp.data
-}
-
-export async function createSessionReview(sessionId: number, payload: { rating: number; review_text?: string }) {
-  const resp = await http.post(`/booking/sessions/${sessionId}/review/`, payload)
-  return resp.data
 }
 
 export async function fetchPublicTherapists(

@@ -71,7 +71,6 @@
             <option value="price_desc">Ціна (дорожчі)</option>
             <option value="experience_desc">Досвід (більше)</option>
             <option value="experience_asc">Досвід (менше)</option>
-            <option value="rating_desc">Рейтинг (високий)</option>
             <option value="created_desc">Новіші профілі</option>
           </select>
         </div>
@@ -117,9 +116,6 @@
           </div>
           <div class="therapist-info">
             <div class="therapist-name">{{ publicName(therapist) }}</div>
-            <div v-if="therapist.review_count" class="therapist-rating">
-              ⭐ {{ ratingLabel(therapist) }}
-            </div>
             <div v-if="therapist.experience_years !== undefined && therapist.experience_years !== null" class="muted">
               Досвід: {{ formatExperience(therapist.experience_years) }}
             </div>
@@ -252,13 +248,6 @@ const publicName = (therapist: PublicTherapistProfile) => {
   if (!last) return first
   const initial = last.charAt(0).toUpperCase()
   return `${first} ${initial}.`
-}
-
-const ratingLabel = (therapist: PublicTherapistProfile) => {
-  if (!therapist.review_count) return ''
-  const avg = Number(therapist.rating_avg || 0)
-  const formatted = avg ? avg.toFixed(1) : '0.0'
-  return `${formatted} (${therapist.review_count})`
 }
 
 const formatExperience = (value: number) => {
@@ -493,11 +482,6 @@ onMounted(loadTherapists)
   font-weight: 600;
 }
 
-.therapist-rating {
-  font-size: 13px;
-  color: #a57011;
-  font-weight: 600;
-}
 
 .therapist-price {
   font-weight: 600;

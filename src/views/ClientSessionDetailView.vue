@@ -61,30 +61,7 @@
       </div>
     </section>
 
-    <section v-if="session && session.status === 'COMPLETED'" class="panel">
-      <div class="panel__header">
-        <div>
-          <div class="badge badge--soft">Відгук</div>
-          <h2 class="panel__title">Оцініть сесію</h2>
-        </div>
-      </div>
-      <div v-if="reviewStatus" class="muted">{{ reviewStatus }}</div>
-      <div class="review-form">
-        <label class="field">
-          Рейтинг (1–5)
-          <select v-model.number="reviewRating" class="input input--select">
-            <option v-for="n in 5" :key="n" :value="n">{{ n }}</option>
-          </select>
-        </label>
-        <label class="field">
-          Відгук
-          <textarea v-model="reviewText" class="input" rows="4" placeholder="Поділіться враженнями"></textarea>
-        </label>
-        <button class="btn" type="button" :disabled="reviewSubmitting" @click="submitReview">
-          {{ reviewSubmitting ? 'Надсилання...' : 'Надіслати відгук' }}
-        </button>
-      </div>
-    </section>
+    
 
     <section v-if="session" class="panel">
       <div class="panel__header">
@@ -131,8 +108,6 @@ import { useRoute, useRouter } from 'vue-router'
 import { apiGet, apiPatch, apiPost } from '../lib/api'
 import { getApiErrorMessage } from '../lib/errors'
 import { useToast } from '../composables/useToast'
-import { createSessionReview } from '../lib/api'
-
 type SessionDetail = {
   id: number
   status: string
@@ -162,10 +137,6 @@ const toast = useToast()
 const actionLoading = ref(false)
 const slotsLoading = ref(false)
 const availableSlots = ref<PublicSlot[]>([])
-const reviewRating = ref(5)
-const reviewText = ref('')
-const reviewSubmitting = ref(false)
-const reviewStatus = ref('')
 
 watch(error, (value) => {
   if (!value) return
@@ -319,24 +290,6 @@ async function requestReschedule(slotId: number) {
   }
 }
 
-async function submitReview() {
-  if (!session.value) return
-  reviewSubmitting.value = true
-  reviewStatus.value = ''
-  try {
-    await createSessionReview(session.value.id, {
-      rating: reviewRating.value,
-      review_text: reviewText.value,
-    })
-    reviewStatus.value = 'Дякуємо за відгук!'
-    reviewText.value = ''
-  } catch (err: any) {
-    reviewStatus.value = err?.response?.data?.detail || 'Не вдалося надіслати відгук'
-  } finally {
-    reviewSubmitting.value = false
-  }
-}
-
 onMounted(async () => {
   await loadSession()
   await loadSlots()
@@ -452,11 +405,6 @@ onMounted(async () => {
 
 .slot-time {
   font-weight: 600;
-}
-
-.review-form {
-  display: grid;
-  gap: 12px;
 }
 
 .btn--sm {
