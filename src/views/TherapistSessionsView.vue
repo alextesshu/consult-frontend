@@ -334,7 +334,7 @@
 <script setup lang="ts">
 import { computed, onMounted, onBeforeUnmount, ref, watch, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
-import { apiGet, apiPatch, apiPut, fetchTherapistProfile, type SpecialistProfile } from '../lib/api'
+import { apiGet, apiPatch, apiPut, fetchSpecialistProfile, type SpecialistProfile } from '../lib/api'
 import { getApiErrorMessage } from '../lib/errors'
 import LoadingSkeleton from '../components/LoadingSkeleton.vue'
 import EmptyState from '../components/EmptyState.vue'
@@ -597,7 +597,7 @@ async function loadSessions() {
 
 async function loadTherapistProfilePhoto() {
   try {
-    const data: SpecialistProfile | null = await fetchTherapistProfile()
+    const data: SpecialistProfile | null = await fetchSpecialistProfile()
     therapistPhotoUrl.value = data?.photo_url || ''
   } catch {
     therapistPhotoUrl.value = ''

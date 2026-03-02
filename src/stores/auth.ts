@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { fetchMe, loginWithIdentifier, refreshToken, signupClient, signupTherapist } from '../lib/api'
+import { fetchMe, loginWithIdentifier, refreshToken, signupClient, signupSpecialist } from '../lib/api'
 
 type AuthUser = {
   id: number
@@ -104,7 +104,7 @@ export const useAuthStore = defineStore('auth', {
       this.loading = true
       this.error = ''
       try {
-        const tokens = await signupTherapist(email, password, passwordConfirm)
+        const tokens = await signupSpecialist(email, password, passwordConfirm)
         this.setToken(tokens.access)
         this.setRefreshToken(tokens.refresh)
         const me = await fetchMe(tokens.access)

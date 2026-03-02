@@ -93,11 +93,11 @@ const threadPollId = ref<number | null>(null)
 const lastMessageId = ref<number | null>(null)
 const messagesRef = ref<HTMLDivElement | null>(null)
 
-const isTherapist = computed(() => {
+const isSpecialist = computed(() => {
   const roles = auth.me?.user.roles ?? []
   return roles.includes('SPECIALIST') || roles.includes('THERAPIST')
 })
-const backRoute = computed(() => (isTherapist.value ? '/cabinet' : '/client'))
+const backRoute = computed(() => (isSpecialist.value ? '/cabinet' : '/client'))
 
 const activeThread = computed(() =>
   threads.value.find((thread) => thread.id === activeThreadId.value) || null

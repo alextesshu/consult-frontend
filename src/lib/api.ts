@@ -66,6 +66,14 @@ export async function signupTherapist(
   }
 }
 
+export async function signupSpecialist(
+  email: string,
+  password: string,
+  passwordConfirm: string
+): Promise<SignupResponse> {
+  return signupTherapist(email, password, passwordConfirm)
+}
+
 export async function fetchMe(accessToken: string) {
   const resp = await http.get('/me/', {
     headers: { Authorization: `Bearer ${accessToken}` },
@@ -201,6 +209,10 @@ export async function fetchTherapistProfile(): Promise<TherapistProfile> {
   return resp.data
 }
 
+export async function fetchSpecialistProfile(): Promise<SpecialistProfile> {
+  return fetchTherapistProfile()
+}
+
 export async function updateTherapistProfile(
   payload: Partial<TherapistProfile>
 ): Promise<TherapistProfile> {
@@ -208,9 +220,19 @@ export async function updateTherapistProfile(
   return resp.data
 }
 
+export async function updateSpecialistProfile(
+  payload: Partial<SpecialistProfile>
+): Promise<SpecialistProfile> {
+  return updateTherapistProfile(payload)
+}
+
 export async function rotateTherapistProfileSlug(): Promise<TherapistProfile> {
   const resp = await http.post<TherapistProfile>('/cabinet/profile/rotate-slug/')
   return resp.data
+}
+
+export async function rotateSpecialistProfileSlug(): Promise<SpecialistProfile> {
+  return rotateTherapistProfileSlug()
 }
 
 export type ClientProfile = {
@@ -250,6 +272,12 @@ export async function fetchPublicTherapistProfile(
 ): Promise<PublicTherapistProfile> {
   const resp = await http.get<PublicTherapistProfile>(`/public/specialists/${slug}/`)
   return resp.data
+}
+
+export async function fetchPublicSpecialistProfile(
+  slug: string
+): Promise<PublicSpecialistProfile> {
+  return fetchPublicTherapistProfile(slug)
 }
 
 export async function fetchPublicAuthorJournalPosts(
@@ -315,6 +343,29 @@ export async function fetchPublicTherapists(
 }> {
   const resp = await http.get('/public/specialists/', { params })
   return resp.data
+}
+
+export async function fetchPublicSpecialists(
+  params?: {
+    page?: number
+    page_size?: number
+    sort?: string
+    name?: string
+    specialization?: string
+    language?: string
+    location?: string
+    price_min?: string
+    price_max?: string
+    price_currency?: string
+  }
+): Promise<{
+  results: PublicSpecialistProfile[]
+  page: number
+  page_size: number
+  total: number
+  total_pages: number
+}> {
+  return fetchPublicTherapists(params)
 }
 
 export type ChatThread = {

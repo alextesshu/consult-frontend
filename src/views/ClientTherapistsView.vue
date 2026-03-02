@@ -49,7 +49,7 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import { fetchPublicTherapists, type PublicSpecialistProfile } from '../lib/api'
+import { fetchPublicSpecialists, type PublicSpecialistProfile } from '../lib/api'
 
 const therapists = ref<PublicSpecialistProfile[]>([])
 const loading = ref(false)
@@ -91,7 +91,7 @@ async function loadTherapists() {
   loading.value = true
   error.value = ''
   try {
-    const resp = await fetchPublicTherapists({ page: 1, page_size: 12 })
+    const resp = await fetchPublicSpecialists({ page: 1, page_size: 12 })
     therapists.value = resp.results || []
   } catch {
     therapists.value = []

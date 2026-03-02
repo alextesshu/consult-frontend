@@ -289,7 +289,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import { fetchPublicTherapistProfile, type PublicSpecialistProfile } from '../lib/api'
+import { fetchPublicSpecialistProfile, type PublicSpecialistProfile } from '../lib/api'
 import { apiGet } from '../lib/api'
 import ConfirmModal from '../components/ConfirmModal.vue'
 import { useConfirmModal } from '../composables/useConfirmModal'
@@ -543,13 +543,23 @@ function loadSelectedSpecialists() {
       selectedSpecialists.value = []
     }
   }
-  const legacy = localStorage.getItem('selectedTherapist')
-  if (!legacy) return
+  const legacyList = localStorage.getItem('selectedTherapists')
+  if (legacyList) {
+    try {
+      selectedSpecialists.value = JSON.parse(legacyList)
+      persistSpecialists()
+      return
+    } catch {
+      selectedSpecialists.value = []
+    }
+  }
+  const legacySingle = localStorage.getItem('selectedTherapist')
+  if (!legacySingle) return
   try {
-    const parsed = JSON.parse(legacy)
+    const parsed = JSON.parse(legacySingle)
     if (parsed?.public_slug) {
       selectedSpecialists.value = [parsed]
-      localStorage.setItem('selectedSpecialists', JSON.stringify(selectedSpecialists.value))
+      persistSpecialists()
     }
   } catch {
     selectedSpecialists.value = []
@@ -561,6 +571,15 @@ function loadViewedSpecialists() {
   if (!raw) return
   try {
     viewedSpecialists.value = JSON.parse(raw)
+  } catch {
+    viewedSpecialists.value = []
+  }
+  if (viewedSpecialists.value.length) return
+  const legacy = localStorage.getItem('viewedTherapists')
+  if (!legacy) return
+  try {
+    viewedSpecialists.value = JSON.parse(legacy)
+    persistSpecialists()
   } catch {
     viewedSpecialists.value = []
   }
@@ -578,7 +597,7 @@ function loadStoppedSpecialists() {
   }
 }
 
-function persistStoppedTherapists() {
+function persistStoppedSpecialists() {
   localStorage.setItem('stoppedSpecialists', JSON.stringify(stoppedSpecialists.value))
 }
 
@@ -601,7 +620,7 @@ function stopCollaboration(specialist: SelectedSpecialist) {
   if (!specialist.public_slug) return
   if (!stoppedSpecialists.value.includes(specialist.public_slug)) {
     stoppedSpecialists.value.push(specialist.public_slug)
-    persistStoppedTherapists()
+    persistStoppedSpecialists()
   }
   selectedSpecialists.value = selectedSpecialists.value.filter(
     (item) => item.public_slug !== specialist.public_slug
@@ -611,7 +630,15 @@ function stopCollaboration(specialist: SelectedSpecialist) {
 
 function persistSpecialists() {
   localStorage.setItem('selectedSpecialists', JSON.stringify(selectedSpecialists.value))
+  localStorage.setItem('selectedTherapists', JSON.stringify(selectedSpecialists.value))
+  const first = selectedSpecialists.value[0] ?? null
+  if (first) {
+    localStorage.setItem('selectedTherapist', JSON.stringify(first))
+  } else {
+    localStorage.removeItem('selectedTherapist')
+  }
   localStorage.setItem('viewedSpecialists', JSON.stringify(viewedSpecialists.value))
+  localStorage.setItem('viewedTherapists', JSON.stringify(viewedSpecialists.value))
 }
 
 function syncSelectedSpecialists() {
@@ -653,7 +680,7 @@ function syncSelectedSpecialists() {
   }
 
   if (changed) {
-    localStorage.setItem('selectedSpecialists', JSON.stringify(selectedSpecialists.value))
+    persistSpecialists()
   }
 }
 
@@ -665,7 +692,7 @@ async function hydrateSpecialistProfiles() {
   if (!uniqueSlugs.length) return
 
   const responses = (await Promise.allSettled(
-    uniqueSlugs.map((slug) => fetchPublicTherapistProfile(slug))
+    uniqueSlugs.map((slug) => fetchPublicSpecialistProfile(slug))
   )) as PromiseSettledResult<PublicSpecialistProfile>[]
   const bySlug = new Map<string, SelectedSpecialist>()
   responses.forEach((res, index) => {

@@ -266,7 +266,7 @@ import { getApiErrorMessage } from '../lib/errors'
 import { apiGet, apiPost } from '../lib/api'
 import { toLocalDate } from '../lib/dates'
 import {
-  fetchPublicTherapistProfile,
+  fetchPublicSpecialistProfile,
   fetchPublicAuthorJournalPosts,
   type PublicSpecialistProfile,
   type PublicAuthorJournalPost,
@@ -334,10 +334,10 @@ const upcomingConfirmed = computed(() => {
     .filter((session) => {
       const status = session.status || ''
       if (status !== 'CONFIRMED') return false
-      const therapistId = profile.value?.therapist_id
-      const sessionTherapist = session.therapist
-      if (therapistId && sessionTherapist) {
-        return therapistId === sessionTherapist
+      const specialistId = profile.value?.therapist_id
+      const sessionSpecialist = session.therapist
+      if (specialistId && sessionSpecialist) {
+        return specialistId === sessionSpecialist
       }
       if (profile.value?.public_slug && session.therapist_public_slug) {
         return profile.value.public_slug === session.therapist_public_slug
@@ -357,14 +357,14 @@ const upcomingConfirmed = computed(() => {
 })
 const canLeaveFeedback = computed(() => {
   if (!isAuthenticated.value || !isClient.value || !profile.value) return false
-  const therapistId = profile.value.therapist_id
+  const specialistId = profile.value.therapist_id
   const slugValue = profile.value.public_slug
-  const matchesTherapist = (session: ClientSession) => {
-    if (therapistId && session.therapist) return therapistId === session.therapist
+  const matchesSpecialist = (session: ClientSession) => {
+    if (specialistId && session.therapist) return specialistId === session.therapist
     if (slugValue && session.therapist_public_slug) return slugValue === session.therapist_public_slug
     return false
   }
-  return clientSessions.value.some(matchesTherapist) || pastClientSessions.value.some(matchesTherapist)
+  return clientSessions.value.some(matchesSpecialist) || pastClientSessions.value.some(matchesSpecialist)
 })
 
 const weekDays = computed(() => {
@@ -501,9 +501,9 @@ async function loadProfile() {
   loading.value = true
   error.value = ''
   try {
-    profile.value = await fetchPublicTherapistProfile(slug.value)
+    profile.value = await fetchPublicSpecialistProfile(slug.value)
     if (profile.value) {
-      saveViewedTherapist(profile.value)
+      saveViewedSpecialist(profile.value)
     }
   } catch (err: any) {
     error.value = getApiErrorMessage(err, '\u041f\u0440\u043e\u0444\u0456\u043b\u044c \u043d\u0435 \u0437\u043d\u0430\u0439\u0434\u0435\u043d\u043e.')
@@ -648,22 +648,11 @@ async function bookSlot(slotId: number) {
     showBookingModal.value = true
     slots.value = slots.value.filter((slot) => slot.id !== slotId)
     if (profile.value) {
-      const entry = pickTherapist(profile.value)
-      const raw = localStorage.getItem('selectedTherapists')
-      const legacy = localStorage.getItem('selectedTherapist')
-      let items: any[] = []
-      try {
-        if (raw) {
-          items = JSON.parse(raw)
-        } else if (legacy) {
-          items = [JSON.parse(legacy)]
-        }
-      } catch {
-        items = []
-      }
+      const entry = pickSpecialist(profile.value)
+      const items = getStoredSelectedSpecialists()
       const filtered = items.filter((item) => item.public_slug !== entry.public_slug)
       filtered.unshift(entry)
-      localStorage.setItem('selectedTherapists', JSON.stringify(filtered))
+      persistSelectedSpecialists(filtered)
     }
   } catch (err: any) {
     bookingError.value = err?.response?.data?.detail || 'Не вдалося забронювати віконце.'
@@ -685,7 +674,7 @@ function closeSettingModal() {
   showSettingModal.value = false
 }
 
-function pickTherapist(data: PublicSpecialistProfile) {
+function pickSpecialist(data: PublicSpecialistProfile) {
   return {
     therapist_id: data.therapist_id,
     public_slug: data.public_slug,
@@ -698,19 +687,51 @@ function pickTherapist(data: PublicSpecialistProfile) {
   }
 }
 
-function saveViewedTherapist(data: PublicSpecialistProfile) {
-  if (!data.public_slug) return
-  const raw = localStorage.getItem('viewedTherapists')
-  let items: any[] = []
+function getStoredSelectedSpecialists() {
+  const raw =
+    localStorage.getItem('selectedSpecialists') || localStorage.getItem('selectedTherapists')
+  const legacy = localStorage.getItem('selectedTherapist')
   try {
-    items = raw ? JSON.parse(raw) : []
+    if (raw) return JSON.parse(raw)
+    if (legacy) return [JSON.parse(legacy)]
   } catch {
-    items = []
+    return []
   }
-  const entry = pickTherapist(data)
+  return []
+}
+
+function persistSelectedSpecialists(items: any[]) {
+  localStorage.setItem('selectedSpecialists', JSON.stringify(items))
+  localStorage.setItem('selectedTherapists', JSON.stringify(items))
+  const first = items[0] ?? null
+  if (first) {
+    localStorage.setItem('selectedTherapist', JSON.stringify(first))
+  } else {
+    localStorage.removeItem('selectedTherapist')
+  }
+}
+
+function getStoredViewedSpecialists() {
+  const raw = localStorage.getItem('viewedSpecialists') || localStorage.getItem('viewedTherapists')
+  try {
+    return raw ? JSON.parse(raw) : []
+  } catch {
+    return []
+  }
+}
+
+function persistViewedSpecialists(items: any[]) {
+  localStorage.setItem('viewedSpecialists', JSON.stringify(items))
+  localStorage.setItem('viewedTherapists', JSON.stringify(items))
+}
+
+function saveViewedSpecialist(data: PublicSpecialistProfile) {
+  if (!data.public_slug) return
+  const items = getStoredViewedSpecialists()
+  const entry = pickSpecialist(data)
   const filtered = items.filter((item) => item.public_slug !== entry.public_slug)
   filtered.unshift(entry)
-  localStorage.setItem('viewedTherapists', JSON.stringify(filtered.slice(0, 8)))
+  persistViewedSpecialists(filtered.slice(0, 8))
 }
 
 watch(slug, () => {

@@ -91,7 +91,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
-import { createPracticeReview, fetchPublicTherapistProfile, type PublicSpecialistProfile } from '../lib/api'
+import { createPracticeReview, fetchPublicSpecialistProfile, type PublicSpecialistProfile } from '../lib/api'
 import { getApiErrorMessage } from '../lib/errors'
 import { apiGet } from '../lib/api'
 import { useAuthStore } from '../stores/auth'
@@ -143,7 +143,7 @@ async function loadProfile() {
   loading.value = true
   error.value = ''
   try {
-    profile.value = await fetchPublicTherapistProfile(slug.value)
+    profile.value = await fetchPublicSpecialistProfile(slug.value)
   } catch (err: any) {
     error.value = getApiErrorMessage(err, 'Профіль спеціаліста не знайдено.')
   } finally {

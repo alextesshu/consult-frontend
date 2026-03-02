@@ -5,17 +5,17 @@ import ClientSignupView from '../views/ClientSignupView.vue'
 import CabinetView from '../views/CabinetView.vue'
 import GroupEventsView from '../views/GroupEventsView.vue'
 import PublicProfileView from '../views/PublicProfileView.vue'
-import TherapistProfileView from '../views/TherapistProfileView.vue'
+import SpecialistProfileView from '../views/TherapistProfileView.vue'
 import SlotsView from '../views/SlotsView.vue'
 import HomeView from '../views/HomeView.vue'
 import ClientDashboardView from '../views/ClientDashboardView.vue'
-import TherapistSessionsView from '../views/TherapistSessionsView.vue'
+import SpecialistSessionsView from '../views/TherapistSessionsView.vue'
 import ClientSessionDetailView from '../views/ClientSessionDetailView.vue'
 import ClientGroupEventView from '../views/ClientGroupEventView.vue'
-import TherapistClientsView from '../views/TherapistClientsView.vue'
+import SpecialistClientsView from '../views/TherapistClientsView.vue'
 import BillingView from '../views/BillingView.vue'
-import PublicTherapistsView from '../views/PublicTherapistsView.vue'
-import TherapistReviewsView from '../views/TherapistReviewsView.vue'
+import PublicSpecialistsView from '../views/PublicTherapistsView.vue'
+import SpecialistReviewsView from '../views/TherapistReviewsView.vue'
 import GroupInviteJoinView from '../views/GroupInviteJoinView.vue'
 import FaqView from '../views/FaqView.vue'
 import FeedbackPolicyView from '../views/FeedbackPolicyView.vue'
@@ -26,7 +26,7 @@ import ChatView from '../views/ChatView.vue'
 import AnalyticsView from '../views/AnalyticsView.vue'
 import ClientProfileView from '../views/ClientProfileView.vue'
 import { useAuthStore } from '../stores/auth'
-import { fetchTherapistProfile } from '../lib/api'
+import { fetchSpecialistProfile } from '../lib/api'
 
 const routes = [
   { path: '/', name: 'home', component: HomeView },
@@ -56,7 +56,7 @@ const routes = [
   {
     path: '/cabinet/clients',
     name: 'cabinet-clients',
-    component: TherapistClientsView,
+    component: SpecialistClientsView,
     meta: { requiresAuth: true, requiresRole: 'SPECIALIST' },
   },
   {
@@ -80,19 +80,19 @@ const routes = [
   {
     path: '/cabinet/sessions',
     name: 'cabinet-sessions',
-    component: TherapistSessionsView,
+    component: SpecialistSessionsView,
     meta: { requiresAuth: true, requiresRole: 'SPECIALIST' },
   },
   {
     path: '/cabinet/reviews',
     name: 'cabinet-reviews',
-    component: TherapistReviewsView,
+    component: SpecialistReviewsView,
     meta: { requiresAuth: true, requiresRole: 'SPECIALIST' },
   },
   {
     path: '/cabinet/profile',
     name: 'cabinet-profile',
-    component: TherapistProfileView,
+    component: SpecialistProfileView,
     meta: { requiresAuth: true, requiresRole: 'SPECIALIST' },
   },
   {
@@ -122,7 +122,7 @@ const routes = [
   {
     path: '/client/specialists',
     name: 'client-specialists',
-    redirect: { name: 'public-therapists' },
+    redirect: { name: 'public-specialists' },
     meta: { requiresAuth: true, requiresRole: 'CLIENT' },
   },
   {
@@ -146,12 +146,13 @@ const routes = [
   { path: '/t/:slug', name: 'public-profile', component: PublicProfileView, alias: '/specialist/:slug' },
   {
     path: '/specialists',
-    name: 'public-therapists',
-    component: PublicTherapistsView,
+    name: 'public-specialists',
+    component: PublicSpecialistsView,
     meta: { requiresAuth: true, requiresRole: 'CLIENT' },
   },
-  { path: '/therapists', redirect: { name: 'public-therapists' } },
-  { path: '/public/therapists', redirect: { name: 'public-therapists' } },
+  { path: '/therapists', redirect: { name: 'public-specialists' } },
+  { path: '/public/therapists', redirect: { name: 'public-specialists' } },
+  { path: '/public/specialists', redirect: { name: 'public-specialists' } },
   { path: '/pricing', redirect: '/#pricing' },
   { path: '/faq', name: 'faq', component: FaqView },
   { path: '/policy/feedback', name: 'feedback-policy', component: FeedbackPolicyView },
@@ -181,7 +182,7 @@ router.beforeEach(async (to) => {
 
   if (to.meta.requiresAuth) {
     if (!auth.accessToken) {
-      if (to.name === 'public-therapists') {
+      if (to.name === 'public-specialists') {
         return { name: 'signup-client' }
       }
       return { name: 'login' }
@@ -190,14 +191,14 @@ router.beforeEach(async (to) => {
       try {
         await auth.loadMe()
       } catch {
-        if (to.name === 'public-therapists') {
+        if (to.name === 'public-specialists') {
           return { name: 'signup-client' }
         }
         return { name: 'login' }
       }
     }
     if (to.meta.requiresRole && !roleMatches(String(to.meta.requiresRole))) {
-      if (to.name === 'public-therapists' && hasSpecialistRole()) {
+      if (to.name === 'public-specialists' && hasSpecialistRole()) {
         return { name: 'cabinet' }
       }
       return { name: 'forbidden' }
@@ -231,7 +232,7 @@ router.beforeEach(async (to) => {
     }
     let slug = ''
     try {
-      const profile = await fetchTherapistProfile()
+      const profile = await fetchSpecialistProfile()
       slug = profile.public_slug || ''
     } catch {
       slug = ''

@@ -1,6 +1,6 @@
 ﻿<template>
-  <section class="public-therapists">
-    <header class="public-therapists__hero card">
+  <section class="public-specialists">
+    <header class="public-specialists__hero card">
       <div>
         <div class="badge badge--soft">Каталог спеціалістів</div>
         <h1 class="title">Знайдіть спеціаліста</h1>
@@ -142,7 +142,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import { fetchPublicTherapists, type PublicSpecialistProfile } from '../lib/api'
+import { fetchPublicSpecialists, type PublicSpecialistProfile } from '../lib/api'
 import { useToast } from '../composables/useToast'
 import LoadingSkeleton from '../components/LoadingSkeleton.vue'
 import EmptyState from '../components/EmptyState.vue'
@@ -253,7 +253,7 @@ const formatExperience = (value: number) => {
 async function loadTherapists() {
   loading.value = true
   try {
-    const resp = await fetchPublicTherapists({
+    const resp = await fetchPublicSpecialists({
       page: page.value,
       page_size: pageSize.value,
       sort: sort.value || undefined,
@@ -328,12 +328,12 @@ onMounted(loadTherapists)
 </script>
 
 <style scoped>
-.public-therapists {
+.public-specialists {
   display: grid;
   gap: 20px;
 }
 
-.public-therapists__hero {
+.public-specialists__hero {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -345,23 +345,23 @@ onMounted(loadTherapists)
   box-shadow: var(--shadow);
 }
 
-.public-therapists__hero > div {
+.public-specialists__hero > div {
   display: grid;
   gap: 8px;
   justify-items: start;
 }
 
-.public-therapists__hero .badge {
+.public-specialists__hero .badge {
   text-transform: uppercase;
   letter-spacing: 0.18em;
   font-size: 11px;
 }
 
-.public-therapists__hero .title {
+.public-specialists__hero .title {
   font-size: 32px;
 }
 
-.public-therapists__hero .muted {
+.public-specialists__hero .muted {
   max-width: 520px;
 }
 
@@ -468,7 +468,7 @@ onMounted(loadTherapists)
 }
 
 @media (max-width: 900px) {
-  .public-therapists__hero {
+  .public-specialists__hero {
     flex-direction: column;
     align-items: flex-start;
   }

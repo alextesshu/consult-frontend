@@ -237,7 +237,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useAuthStore } from '../stores/auth'
-import { apiGet, fetchTherapistProfile, type SpecialistProfile } from '../lib/api'
+import { apiGet, fetchSpecialistProfile, type SpecialistProfile } from '../lib/api'
 import { toUtcRange } from '../lib/dates'
 
 type Session = {
@@ -600,7 +600,7 @@ async function loadData() {
       apiGet<Session[]>('/booking/sessions/', { params: range }),
       apiGet<GroupEvent[]>('/cabinet/group-events/'),
       apiGet<ClientState[]>('/cabinet/clients/'),
-      fetchTherapistProfile(),
+      fetchSpecialistProfile(),
       apiGet<AnalyticsSummary>('/cabinet/analytics/summary/', { params: range }),
     ])
     const sessionResp = results[0]

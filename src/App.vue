@@ -9,7 +9,7 @@
         <RouterLink v-if="isAuthenticated" :to="cabinetRoute">{{ cabinetLabel }}</RouterLink>
         <RouterLink v-if="showCatalogNav" to="/specialists">Каталог</RouterLink>
         <RouterLink
-          v-if="isAuthenticated && isTherapist"
+          v-if="isAuthenticated && isSpecialist"
           to="/public"
           :class="{ 'nav-link--active': isPublicRoute }"
         >
@@ -106,28 +106,28 @@ watchEffect(() => {
   document.body.classList.toggle('body--home', isHome.value)
 })
 const roles = computed(() => auth.me?.user.roles ?? [])
-const isTherapist = computed(() => roles.value.includes('SPECIALIST') || roles.value.includes('THERAPIST'))
+const isSpecialist = computed(() => roles.value.includes('SPECIALIST') || roles.value.includes('THERAPIST'))
 const isClient = computed(() => roles.value.includes('CLIENT'))
 watchEffect(() => {
   const path = route.path || ''
   const role =
-    isTherapist.value && (path.startsWith('/cabinet') || path.startsWith('/public'))
-      ? 'therapist'
+    isSpecialist.value && (path.startsWith('/cabinet') || path.startsWith('/public'))
+      ? 'specialist'
       : 'client'
   document.documentElement.setAttribute('data-role', role)
 })
 const cabinetRoute = computed(() => {
-  if (isTherapist.value) return '/cabinet'
+  if (isSpecialist.value) return '/cabinet'
   if (isClient.value) return '/client'
   return '/login'
 })
 const cabinetLabel = computed(() => {
-  if (isTherapist.value) return 'Мій кабінет'
+  if (isSpecialist.value) return 'Мій кабінет'
   if (isClient.value) return 'Мій щоденник'
   return 'Кабінет'
 })
 const showCatalogNav = computed(() => isClient.value)
-const chatRoute = computed(() => (isTherapist.value ? '/cabinet/chat' : '/client/chat'))
+const chatRoute = computed(() => (isSpecialist.value ? '/cabinet/chat' : '/client/chat'))
 const isPublicRoute = computed(
   () => route.path.startsWith('/public') || route.path.startsWith('/specialist/')
 )
@@ -135,7 +135,7 @@ const isPublicRoute = computed(
 const topbarClass = computed(() => [
   'topbar',
   {
-    'topbar--therapist': isTherapist.value,
+    'topbar--specialist': isSpecialist.value,
     'topbar--client': isClient.value,
     'topbar--overlay': isHome.value,
   },
@@ -176,7 +176,7 @@ const latestUpcomingCreatedAt = computed(
 const sessionEvents = computed(() => auth.me?.notifications?.session_events ?? [])
 const upcomingUnread = computed(() => {
   const latest = latestUpcomingCreatedAt.value
-  if (!isTherapist.value || !latest) return false
+  if (!isSpecialist.value || !latest) return false
   if (!lastReadUpcomingAt.value) return true
   return new Date(latest).getTime() > new Date(lastReadUpcomingAt.value).getTime()
 })
@@ -197,7 +197,7 @@ function formatDateTime(value?: string | null) {
 
 const notifications = computed(() => {
   const items: Array<{ id: string; text: string; hint: string; to: string; tone: 'info' | 'warn' | 'ok'; unread: boolean }> = []
-  if (isTherapist.value && sessionEvents.value.length) {
+  if (isSpecialist.value && sessionEvents.value.length) {
     sessionEvents.value.forEach((event) => {
       const id = `session-event-${event.id}`
       const name = event.client_name || `#${event.client_id}`
@@ -248,7 +248,7 @@ const notifications = computed(() => {
         unread: !readNotificationIds.value.has('over-limit'),
       })
   }
-  if (isTherapist.value && upcomingCount.value > 0) {
+  if (isSpecialist.value && upcomingCount.value > 0) {
     items.push({
       id: 'upcoming-sessions',
       text: 'Є заплановані сесії',
@@ -491,6 +491,7 @@ loadUpcomingReadAt()
   padding: 12px 24px;
 }
 
+.topbar--specialist,
 .topbar--therapist {
   background: var(--topbar-bg);
   border-bottom-color: var(--topbar-border);

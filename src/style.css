@@ -46,6 +46,7 @@
   --topbar-text: #f8f9fb;
 }
 
+html[data-role="specialist"],
 html[data-role="therapist"],
 html[data-role="client"] {
   /* Unified palette: intentionally no per-role overrides */

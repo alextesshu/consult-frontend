@@ -41,7 +41,7 @@
               <RouterLink class="btn btn--ghost btn--sm" :to="`/specialist/${session.therapist_public_slug}`">
                 Відкрити профіль
               </RouterLink>
-              <button class="btn btn--ghost btn--sm" type="button" @click="copyTherapistLink">
+              <button class="btn btn--ghost btn--sm" type="button" @click="copySpecialistLink">
                 Скопіювати посилання
               </button>
             </div>
@@ -166,7 +166,7 @@ function specialistLabel(detail: SessionDetail) {
   return `#${detail.therapist}`
 }
 
-async function copyTherapistLink() {
+async function copySpecialistLink() {
   if (!session.value?.therapist_public_slug) return
   const url = `${window.location.origin}/specialist/${session.value.therapist_public_slug}`
   try {

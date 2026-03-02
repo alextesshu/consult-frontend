@@ -761,9 +761,9 @@ import {
   createAuthorJournalPost,
   updateAuthorJournalPost,
   deleteAuthorJournalPost,
-  fetchTherapistProfile,
-  rotateTherapistProfileSlug,
-  updateTherapistProfile,
+  fetchSpecialistProfile,
+  rotateSpecialistProfileSlug,
+  updateSpecialistProfile,
   uploadProfilePhoto,
   uploadProfileVideo,
   type AuthorJournalPost,
@@ -1121,7 +1121,7 @@ async function loadProfile() {
   loading.value = true
   error.value = ''
   try {
-    const data = await fetchTherapistProfile()
+    const data = await fetchSpecialistProfile()
     Object.assign(profile, normalizeProfile(data))
     languageList.value = sanitizeLanguages(toList(profile.languages))
     specializationList.value = toList(profile.specializations)
@@ -1217,7 +1217,7 @@ async function onSave() {
     if (showOtherSpecialization.value && otherSpecializationInput.value.trim()) {
       addOtherSpecialization()
     }
-    const data = await updateTherapistProfile(buildProfilePayload())
+    const data = await updateSpecialistProfile(buildProfilePayload())
     Object.assign(profile, normalizeProfile(data))
     languageList.value = sanitizeLanguages(toList(profile.languages))
     specializationList.value = toList(profile.specializations)
@@ -1237,7 +1237,7 @@ async function onRotateSlug() {
   error.value = ''
   success.value = ''
   try {
-    const data = await rotateTherapistProfileSlug()
+    const data = await rotateSpecialistProfileSlug()
     Object.assign(profile, normalizeProfile(data))
     success.value = 'Публічне посилання оновлено.'
   } catch (err) {
