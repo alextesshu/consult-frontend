@@ -27,8 +27,8 @@
           </div>
         </div>
         <div class="hero-agency__media">
-          <div class="media-placeholder">
-            <span>Фото консультації або робочого кабінету</span>
+          <div class="media-frame">
+            <img :src="heroImage" alt="Консультація" />
           </div>
         </div>
       </section>
@@ -60,8 +60,8 @@
 
       <section class="split-block reveal">
         <div class="split-block__media">
-          <div class="media-placeholder media-placeholder--tall">
-            <span>Фото спеціаліста або інтерфейсу</span>
+          <div class="media-frame media-frame--tall">
+            <img :src="workflowImage" alt="Робочий процес спеціаліста" />
           </div>
         </div>
         <div class="split-block__content">
@@ -160,8 +160,8 @@
           </div>
         </div>
         <div class="split-block__media">
-          <div class="media-placeholder media-placeholder--tall">
-            <span>Фото команди / інтерфейсу</span>
+          <div class="media-frame media-frame--tall">
+            <img :src="valuesImage" alt="Командна робота" />
           </div>
         </div>
       </section>
@@ -205,6 +205,10 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
+
+const heroImage = new URL('../assets/therapy/47b34bc8-1ce4-4ee3-92ff-41c3a0c14f6b.jpg', import.meta.url).href
+const workflowImage = new URL('../assets/therapy/84f4d9fb-6e66-4b3b-bce9-caa039d081a0.jpg', import.meta.url).href
+const valuesImage = new URL('../assets/therapy/f066edb1-65e7-419d-8a0d-0940a3526583.jpg', import.meta.url).href
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -262,14 +266,13 @@ const roleCards = [
 const activeRoleIndex = ref(0)
 
 const benefits = [
-  'Керована система сесій',
+  'Керування сесіями й слотами',
   'Клієнтська база (CRM)',
-  'Запити на бронювання та перенессення',
-  'Ваш особистий сетінг',
-  'Аналітика вашої практики',
-  'Авторський журнал',
-  'Групові кімнати',
+  'Бронювання та перенесення',
+  'Групові події й кімнати',
   'Приватні нотатки',
+  'Аналітика практики',
+  'Авторський журнал',
   'Чат і повідомлення',
 ]
 
@@ -487,21 +490,27 @@ onBeforeUnmount(() => {
   font-size: 14px;
 }
 
-.media-placeholder {
+.media-frame {
   border-radius: 24px;
-  border: 1px dashed color-mix(in srgb, var(--accent) 18%, var(--border));
+  border: 1px solid color-mix(in srgb, var(--accent) 12%, var(--border));
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.7), rgba(118, 130, 142, 0.12));
-  min-height: 320px;
-  display: grid;
-  place-items: center;
-  color: var(--muted);
-  font-size: 13px;
-  text-align: center;
-  padding: 16px;
+  aspect-ratio: 16 / 9;
+  max-width: 560px;
+  width: 100%;
+  overflow: hidden;
+  box-shadow: var(--shadow);
 }
 
-.media-placeholder--tall {
-  min-height: 420px;
+.media-frame img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.media-frame--tall {
+  aspect-ratio: 16 / 9;
+  max-width: 520px;
 }
 
 .brand-strip {
@@ -566,14 +575,20 @@ onBeforeUnmount(() => {
 
 .split-block {
   display: grid;
-  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 64px;
-  align-items: center;
+  align-items: stretch;
 }
 
 .split-block__content {
   display: grid;
   gap: 16px;
+}
+
+.split-block__media {
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-end;
 }
 
 .how-list {
