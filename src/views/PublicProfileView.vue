@@ -774,7 +774,11 @@ onMounted(async () => {
   justify-content: space-between;
   align-items: flex-end;
   gap: 20px;
-  background: linear-gradient(135deg, rgba(8, 113, 201, 0.16), rgba(7, 47, 71, 0.06));
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--color-primary-100) 70%, #ffffff),
+    color-mix(in srgb, var(--color-neutral-100) 60%, #ffffff)
+  );
   border: 1px solid var(--line);
   border-radius: var(--radius);
   padding: 22px 24px;
@@ -796,6 +800,20 @@ onMounted(async () => {
   justify-content: flex-end;
   gap: 12px;
   flex-wrap: wrap;
+}
+
+.public__actions .btn--ghost {
+  background: rgba(255, 255, 255, 0.78);
+  border-color: var(--color-neutral-200);
+  color: var(--color-neutral-800);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
+}
+
+.public__actions .btn--ghost:hover,
+.public__actions .btn--ghost:focus-visible {
+  background: #ffffff;
+  border-color: color-mix(in srgb, var(--color-neutral-500) 45%, transparent);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.12);
 }
 
 .public__grid {

@@ -62,7 +62,7 @@
           <RouterLink class="btn btn--ghost btn--sm" to="/cabinet/billing">Плани та доступ</RouterLink>
         </div>
         <div class="muted">
-          <span v-if="isLeader">Leader відкриває глибоку аналітику та прогнози.</span>
+          <span v-if="isLeader">Leader відкриває розширені показники та прогнози.</span>
           <span v-else-if="isPro">Pro — повний набір базових метрик.</span>
           <span v-else>Аналітика доступна на тарифах Pro та Leader.</span>
         </div>
@@ -107,7 +107,7 @@
           <div class="kpi-card">
             <div class="kpi-label">Повторні клієнти</div>
             <div class="kpi-value">{{ repeatClients }}</div>
-            <div class="muted">Конверсія інтрo: {{ introConversionLabel }}</div>
+            <div class="muted">Інтро стали регулярними: {{ introConversionLabel }}</div>
           </div>
         </div>
         <div v-if="!priceConfigured" class="plan-warning">
@@ -168,34 +168,34 @@
         <div class="panel__header">
           <div>
             <div class="badge badge--soft">Leader Lab</div>
-            <h2 class="panel__title">Глибокі інсайти</h2>
+            <h2 class="panel__title">Додаткові показники</h2>
           </div>
-          <div class="panel__meta">Вау-аналітика</div>
+          <div class="panel__meta">Просто про дані</div>
         </div>
         <div class="leader-grid">
           <div class="leader-card">
-            <div class="leader-label">Прогноз на 30 днів</div>
+            <div class="leader-label">Прогноз на місяць</div>
             <div class="leader-value">{{ forecastLabel }}</div>
-            <div class="muted">На базі середнього тижня</div>
+            <div class="muted">Рахуємо по середньому тижню</div>
           </div>
           <div class="leader-card">
-            <div class="leader-label">Retенція</div>
+            <div class="leader-label">Повертаються знову</div>
             <div class="leader-value">{{ retentionLabel }}</div>
-            <div class="muted">Клієнтів з 2+ сесіями</div>
+            <div class="muted">Клієнти з 2+ сесіями</div>
           </div>
           <div class="leader-card">
-            <div class="leader-label">Конверсія інтрo</div>
+            <div class="leader-label">Інтро стали регулярними</div>
             <div class="leader-value">{{ introConversionLabel }}</div>
-            <div class="muted">Інтрo → регулярні</div>
+            <div class="muted">Інтро → постійні</div>
           </div>
           <div class="leader-card">
-            <div class="leader-label">Середній інтервал</div>
+            <div class="leader-label">Пауза між сесіями</div>
             <div class="leader-value">{{ cadenceLabel }}</div>
-            <div class="muted">Між сесіями з клієнтом</div>
+            <div class="muted">Скільки днів між сесіями</div>
           </div>
         </div>
         <div class="heatmap">
-          <div class="heatmap__title">Пікові години</div>
+          <div class="heatmap__title">Найактивніші години</div>
           <div class="heatmap__grid">
             <div class="heatmap__row heatmap__head">
               <span></span>
@@ -214,7 +214,7 @@
               ></span>
             </div>
           </div>
-          <div class="muted heatmap__hint">Відображає навантаження за останні {{ rangeLabel }} днів.</div>
+          <div class="muted heatmap__hint">Показує активність за останні {{ rangeLabel }} днів.</div>
         </div>
       </section>
 
@@ -223,7 +223,7 @@
           <div>
             <h2 class="panel__title">Розблокуйте аналітику</h2>
             <p class="muted">
-              На тарифі Pro доступні всі базові метрики, а Leader додає глибокі інсайти та прогнозування.
+              На тарифі Pro доступні всі базові метрики, а Leader додає розширені показники та прогнозування.
             </p>
           </div>
           <RouterLink class="btn" to="/cabinet/billing">Перейти до планів</RouterLink>

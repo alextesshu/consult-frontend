@@ -546,12 +546,14 @@ loadUpcomingReadAt()
 .nav a {
   padding: 8px 12px;
   border-radius: 999px;
-  border: 1px solid transparent;
+  border: 1px solid color-mix(in srgb, var(--topbar-text) 22%, transparent);
   color: var(--topbar-text);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   line-height: 1;
+  background: color-mix(in srgb, var(--topbar-text) 6%, transparent);
+  transition: border-color 0.2s ease, background 0.2s ease;
 }
 
 .nav a.icon-btn {
@@ -559,13 +561,18 @@ loadUpcomingReadAt()
 }
 
 .nav a.router-link-active {
-  border-color: color-mix(in srgb, var(--topbar-text) 40%, transparent);
-  background: color-mix(in srgb, var(--topbar-text) 18%, transparent);
+  border-color: color-mix(in srgb, var(--topbar-text) 48%, transparent);
+  background: color-mix(in srgb, var(--topbar-text) 20%, transparent);
 }
 
 .nav :deep(a.nav-link--active) {
-  border-color: color-mix(in srgb, var(--topbar-text) 40%, transparent);
-  background: color-mix(in srgb, var(--topbar-text) 18%, transparent);
+  border-color: color-mix(in srgb, var(--topbar-text) 48%, transparent);
+  background: color-mix(in srgb, var(--topbar-text) 20%, transparent);
+}
+
+.nav a:hover {
+  border-color: color-mix(in srgb, var(--topbar-text) 55%, transparent);
+  background: color-mix(in srgb, var(--topbar-text) 24%, transparent);
 }
 
 .nav__notifications {
@@ -611,6 +618,22 @@ loadUpcomingReadAt()
   display: grid;
   place-items: center;
   border-radius: 999px;
+}
+
+.topbar .btn--ghost {
+  color: var(--topbar-text);
+  border-color: color-mix(in srgb, var(--topbar-text) 35%, transparent);
+  background: color-mix(in srgb, var(--topbar-text) 10%, transparent);
+}
+
+.topbar .btn--ghost:hover,
+.topbar .btn--ghost:focus-visible {
+  border-color: color-mix(in srgb, var(--topbar-text) 55%, transparent);
+  background: color-mix(in srgb, var(--topbar-text) 18%, transparent);
+}
+
+.topbar .btn--ghost:active {
+  background: color-mix(in srgb, var(--topbar-text) 24%, transparent);
 }
 
 .notif-panel {

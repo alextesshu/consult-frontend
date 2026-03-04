@@ -206,8 +206,8 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 
-const heroImage = new URL('../assets/therapy/47b34bc8-1ce4-4ee3-92ff-41c3a0c14f6b.jpg', import.meta.url).href
-const workflowImage = new URL('../assets/therapy/84f4d9fb-6e66-4b3b-bce9-caa039d081a0.jpg', import.meta.url).href
+const heroImage = new URL('../assets/therapy/84f4d9fb-6e66-4b3b-bce9-caa039d081a0.jpg', import.meta.url).href
+const workflowImage = new URL('../assets/therapy/47b34bc8-1ce4-4ee3-92ff-41c3a0c14f6b.jpg', import.meta.url).href
 const valuesImage = new URL('../assets/therapy/f066edb1-65e7-419d-8a0d-0940a3526583.jpg', import.meta.url).href
 
 const router = useRouter()
