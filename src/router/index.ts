@@ -16,6 +16,7 @@ import SpecialistClientsView from '../views/TherapistClientsView.vue'
 import BillingView from '../views/BillingView.vue'
 import PublicSpecialistsView from '../views/PublicTherapistsView.vue'
 import SpecialistReviewsView from '../views/TherapistReviewsView.vue'
+import AuthorJournalView from '../views/AuthorJournalView.vue'
 import GroupInviteJoinView from '../views/GroupInviteJoinView.vue'
 import FaqView from '../views/FaqView.vue'
 import FeedbackPolicyView from '../views/FeedbackPolicyView.vue'
@@ -93,6 +94,12 @@ const routes = [
     path: '/cabinet/profile',
     name: 'cabinet-profile',
     component: SpecialistProfileView,
+    meta: { requiresAuth: true, requiresRole: 'SPECIALIST' },
+  },
+  {
+    path: '/cabinet/journal',
+    name: 'cabinet-journal',
+    component: AuthorJournalView,
     meta: { requiresAuth: true, requiresRole: 'SPECIALIST' },
   },
   {

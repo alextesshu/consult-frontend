@@ -193,6 +193,17 @@
               <div class="journal-title">{{ post.title }}</div>
               <div class="muted journal-date">{{ formatDate(post.published_at || post.created_at) }}</div>
               <div class="journal-summary" v-if="post.summary">{{ post.summary }}</div>
+              <div v-if="openJournalPostId === post.id" class="journal-full">
+                {{ post.body }}
+              </div>
+              <button
+                v-if="post.body"
+                class="btn btn--ghost btn--sm journal-readmore"
+                type="button"
+                @click="toggleJournalPost(post.id)"
+              >
+                {{ openJournalPostId === post.id ? 'Згорнути' : 'Читати повністю' }}
+              </button>
             </div>
           </article>
         </div>
@@ -315,6 +326,7 @@ const pastClientSessions = ref<ClientSession[]>([])
 const journalPosts = ref<PublicAuthorJournalPost[]>([])
 const journalLoading = ref(false)
 const journalError = ref('')
+const openJournalPostId = ref<number | null>(null)
 const selectedDate = ref('')
 const slotDateInput = ref<HTMLInputElement | null>(null)
 
@@ -557,6 +569,10 @@ async function loadJournal() {
   } finally {
     journalLoading.value = false
   }
+}
+
+function toggleJournalPost(postId: number) {
+  openJournalPostId.value = openJournalPostId.value === postId ? null : postId
 }
 
 async function loadClientSessions() {
@@ -1101,6 +1117,17 @@ onMounted(async () => {
 
   .journal-summary {
     color: var(--muted);
+  }
+
+  .journal-full {
+    margin-top: 10px;
+    white-space: pre-wrap;
+    color: var(--color-neutral-800);
+  }
+
+  .journal-readmore {
+    margin-top: 10px;
+    align-self: flex-start;
   }
 
   .rating-pill {

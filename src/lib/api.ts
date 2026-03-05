@@ -16,6 +16,23 @@ type SignupResponse = TokenResponse & {
   }
 }
 
+export function getApiErrorMessage(err: unknown, fallback: string): string {
+  const anyErr = err as any
+  const detail = anyErr?.response?.data?.detail
+  if (typeof detail === 'string' && detail.trim()) return detail
+  const data = anyErr?.response?.data
+  if (data && typeof data === 'object') {
+    const parts: string[] = []
+    for (const [key, value] of Object.entries(data)) {
+      if (typeof value === 'string') parts.push(`${key}: ${value}`)
+      else if (Array.isArray(value) && value[0]) parts.push(`${key}: ${value[0]}`)
+    }
+    if (parts.length) return parts.join(' · ')
+  }
+  if (typeof anyErr?.message === 'string' && anyErr.message.trim()) return anyErr.message
+  return fallback
+}
+
 export async function loginWithIdentifier(
   identifier: string,
   password: string
@@ -29,8 +46,7 @@ export async function loginWithIdentifier(
     const resp = await http.post<TokenResponse>('/auth/token/', payload)
     return resp.data
   } catch (err: any) {
-    const message = err?.response?.data?.detail || 'Не вдалося увійти'
-    throw new Error(message)
+    throw new Error(getApiErrorMessage(err, 'Не вдалося увійти'))
   }
 }
 
@@ -47,22 +63,7 @@ export async function signupTherapist(
     })
     return resp.data
   } catch (err: any) {
-    const data = err?.response?.data
-    let message = data?.detail
-    if (!message && data && typeof data === 'object') {
-      const parts = Object.entries(data).map(([key, value]) => {
-        if (Array.isArray(value)) {
-          return `${key}: ${value[0]}`
-        }
-        if (typeof value === 'string') {
-          return `${key}: ${value}`
-        }
-        return `${key}: ${String(value)}`
-      })
-      message = parts.filter(Boolean).join(' ')
-    }
-    message = message || 'Не вдалося зареєструватися'
-    throw new Error(message)
+    throw new Error(getApiErrorMessage(err, 'Не вдалося зареєструватися'))
   }
 }
 
@@ -181,6 +182,7 @@ export type PublicAuthorJournalPost = {
   id: number
   title: string
   summary: string
+  body: string
   cover_image_url: string
   published_at: string | null
   created_at: string
@@ -321,6 +323,21 @@ export async function deleteAuthorJournalPost(postId: number): Promise<void> {
   await http.delete(`/cabinet/journal/${postId}/`)
 }
 
+export async function uploadAuthorJournalCover(
+  file: File
+): Promise<{ blob_name: string; preview_url: string }> {
+  const formData = new FormData()
+  formData.append('file', file)
+  const resp = await http.post<{ blob_name: string; preview_url: string }>(
+    '/cabinet/journal/upload-cover/',
+    formData,
+    {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }
+  )
+  return resp.data
+}
+
 export async function fetchPublicTherapists(
   params?: {
     page?: number
@@ -432,22 +449,7 @@ export async function signupClient(
     })
     return resp.data
   } catch (err: any) {
-    const data = err?.response?.data
-    let message = data?.detail
-    if (!message && data && typeof data === 'object') {
-      const parts = Object.entries(data).map(([key, value]) => {
-        if (Array.isArray(value)) {
-          return `${key}: ${value[0]}`
-        }
-        if (typeof value === 'string') {
-          return `${key}: ${value}`
-        }
-        return `${key}: ${String(value)}`
-      })
-      message = parts.filter(Boolean).join(' ')
-    }
-    message = message || 'Не вдалося зареєструватися'
-    throw new Error(message)
+    throw new Error(getApiErrorMessage(err, 'Не вдалося зареєструватися'))
   }
 }
 

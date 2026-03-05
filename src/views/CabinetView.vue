@@ -30,7 +30,7 @@
           <RouterLink class="btn btn--ghost" to="/cabinet/analytics">
             Аналітика
           </RouterLink>
-          <RouterLink class="btn btn--ghost" to="/cabinet/profile#journal">
+          <RouterLink class="btn btn--ghost" to="/cabinet/journal">
             Авторський журнал
           </RouterLink>
           <RouterLink class="btn btn--ghost" to="/cabinet/reviews">
