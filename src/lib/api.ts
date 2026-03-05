@@ -168,6 +168,9 @@ export type PublicSpecialistProfile = PublicTherapistProfile
 
 export type AuthorJournalPost = {
   id: number
+  category?: 'TIP' | 'EXPLAIN' | 'FAQ' | 'RESEARCH' | 'PRACTICE'
+  is_featured: boolean
+  featured_order: number
   title: string
   summary: string
   body: string
@@ -180,6 +183,9 @@ export type AuthorJournalPost = {
 
 export type PublicAuthorJournalPost = {
   id: number
+  category?: 'TIP' | 'EXPLAIN' | 'FAQ' | 'RESEARCH' | 'PRACTICE'
+  is_featured: boolean
+  featured_order: number
   title: string
   summary: string
   body: string
