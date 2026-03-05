@@ -486,6 +486,57 @@ onBeforeUnmount(() => {
   font-size: 15px;
 }
 
+.hero-agency__actions .btn.btn--primary {
+  --paper-base: #eadfbe;
+  --paper-dark: #d9c79a;
+  --paper-ink: #3b3327;
+  color: var(--paper-ink);
+  border-color: #c9b585;
+  background:
+    radial-gradient(140% 140% at 8% 12%, rgba(255, 255, 255, 0.45), transparent 60%),
+    radial-gradient(120% 140% at 92% 78%, rgba(177, 146, 96, 0.22), transparent 70%),
+    repeating-linear-gradient(0deg, rgba(120, 92, 58, 0.04) 0 2px, rgba(255, 255, 255, 0) 2px 6px),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.12) 0 1px, rgba(120, 92, 58, 0.03) 1px 4px),
+    linear-gradient(180deg, #f1e8c9 0%, var(--paper-base) 60%, var(--paper-dark) 100%);
+  background-blend-mode: screen, multiply, multiply, multiply, normal;
+  box-shadow: 0 12px 24px rgba(72, 56, 30, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.45);
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.35);
+}
+
+.hero-agency__actions .btn.btn--primary::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 11px;
+  background-image:
+    repeating-radial-gradient(circle at 10% 20%, rgba(106, 82, 48, 0.06) 0 0.6px, transparent 0.7px 3px),
+    repeating-radial-gradient(circle at 70% 60%, rgba(255, 255, 255, 0.16) 0 0.6px, transparent 0.7px 3px);
+  opacity: 0.45;
+  mix-blend-mode: multiply;
+  pointer-events: none;
+}
+
+.hero-agency__actions .btn.btn--primary:hover {
+  background:
+    radial-gradient(140% 140% at 12% 16%, rgba(255, 255, 255, 0.55), transparent 58%),
+    radial-gradient(120% 140% at 92% 78%, rgba(162, 128, 82, 0.28), transparent 70%),
+    repeating-linear-gradient(0deg, rgba(120, 92, 58, 0.05) 0 2px, rgba(255, 255, 255, 0) 2px 6px),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.14) 0 1px, rgba(120, 92, 58, 0.04) 1px 4px),
+    linear-gradient(180deg, #f4ecd1 0%, #eadfbe 55%, #d8c490 100%);
+  border-color: #c0a979;
+  box-shadow: 0 16px 30px rgba(72, 56, 30, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.55);
+}
+
+.hero-agency__actions .btn.btn--primary:active {
+  background:
+    radial-gradient(140% 140% at 12% 16%, rgba(255, 255, 255, 0.45), transparent 58%),
+    radial-gradient(120% 140% at 92% 78%, rgba(150, 118, 75, 0.28), transparent 70%),
+    repeating-linear-gradient(0deg, rgba(120, 92, 58, 0.05) 0 2px, rgba(255, 255, 255, 0) 2px 6px),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.12) 0 1px, rgba(120, 92, 58, 0.04) 1px 4px),
+    linear-gradient(180deg, #efe2c1 0%, #e0d1a8 60%, #cfba86 100%);
+  box-shadow: 0 10px 20px rgba(72, 56, 30, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
 .home-agency :global(.muted) {
   font-size: 14px;
 }
