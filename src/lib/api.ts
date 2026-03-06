@@ -187,6 +187,20 @@ export type PublicAuthorJournalPost = {
   is_featured: boolean
   featured_order: number
   title: string
+  slug: string
+  summary: string
+  cover_image_url: string
+  published_at: string | null
+  created_at: string
+}
+
+export type PublicAuthorJournalPostDetail = {
+  id: number
+  category?: 'TIP' | 'EXPLAIN' | 'FAQ' | 'RESEARCH' | 'PRACTICE'
+  is_featured: boolean
+  featured_order: number
+  title: string
+  slug: string
   summary: string
   body: string
   cover_image_url: string
@@ -292,6 +306,16 @@ export async function fetchPublicAuthorJournalPosts(
   slug: string
 ): Promise<PublicAuthorJournalPost[]> {
   const resp = await http.get<PublicAuthorJournalPost[]>(`/public/specialists/${slug}/journal/`)
+  return resp.data
+}
+
+export async function fetchPublicAuthorJournalPostDetail(
+  slug: string,
+  postSlug: string
+): Promise<PublicAuthorJournalPostDetail> {
+  const resp = await http.get<PublicAuthorJournalPostDetail>(
+    `/public/specialists/${slug}/journal/${postSlug}/`
+  )
   return resp.data
 }
 

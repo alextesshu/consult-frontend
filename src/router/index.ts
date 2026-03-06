@@ -5,6 +5,8 @@ import ClientSignupView from '../views/ClientSignupView.vue'
 import CabinetView from '../views/CabinetView.vue'
 import GroupEventsView from '../views/GroupEventsView.vue'
 import PublicProfileView from '../views/PublicProfileView.vue'
+import PublicJournalView from '../views/PublicJournalView.vue'
+import PublicJournalPostView from '../views/PublicJournalPostView.vue'
 import SpecialistProfileView from '../views/TherapistProfileView.vue'
 import SlotsView from '../views/SlotsView.vue'
 import HomeView from '../views/HomeView.vue'
@@ -151,6 +153,18 @@ const routes = [
     meta: {},
   },
   { path: '/t/:slug', name: 'public-profile', component: PublicProfileView, alias: '/specialist/:slug' },
+  {
+    path: '/t/:slug/journal',
+    name: 'public-journal',
+    component: PublicJournalView,
+    alias: '/specialist/:slug/journal',
+  },
+  {
+    path: '/:slug/journal/:postSlug',
+    name: 'public-journal-post',
+    component: PublicJournalPostView,
+    alias: ['/t/:slug/journal/:postSlug', '/specialist/:slug/journal/:postSlug'],
+  },
   {
     path: '/specialists',
     name: 'public-specialists',

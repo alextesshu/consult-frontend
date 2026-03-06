@@ -10,6 +10,13 @@
       </div>
       <div class="public__actions">
         <a class="btn btn--ghost" href="#journal">Авторський журнал</a>
+        <RouterLink
+          v-if="canManageProfile"
+          class="btn btn--ghost"
+          to="/cabinet/journal"
+        >
+          Мій журнал
+        </RouterLink>
         <RouterLink class="btn" :to="feedbackLink">
           Відгуки
           <span v-if="isAuthenticated && isClient && canLeaveFeedback" class="badge badge--soft">
@@ -177,6 +184,11 @@
             <div class="badge badge--soft">Авторський журнал</div>
             <h2 class="panel__title">Статті спеціаліста</h2>
           </div>
+          <div class="panel__header-actions">
+            <RouterLink class="btn btn--ghost btn--sm" :to="`/t/${slug}/journal`">
+              Всі статті
+            </RouterLink>
+          </div>
         </div>
 
         <div v-if="journalLoading" class="muted">Завантажуємо журнал...</div>
@@ -211,9 +223,9 @@
             ]"
             role="button"
             tabindex="0"
-            @click="openPostModal(featuredPost.id)"
-            @keydown.enter="openPostModal(featuredPost.id)"
-            @keydown.space.prevent="openPostModal(featuredPost.id)"
+            @click="navigateToPost(featuredPost)"
+            @keydown.enter="navigateToPost(featuredPost)"
+            @keydown.space.prevent="navigateToPost(featuredPost)"
           >
             <div class="journal-body">
               <span class="post-tag" :style="{ '--cat': categoryColor(featuredPost.category) }">
@@ -223,17 +235,12 @@
               <div class="journal-title">{{ featuredPost.title }}</div>
               <div class="journal-meta">
                 {{ formatDate(featuredPost.published_at || featuredPost.created_at) }}
-                · {{ readingTime(featuredPost.body || featuredPost.summary) }} хв читання
+                · {{ readingTime(featuredPost.summary) }} хв читання
               </div>
               <div class="journal-summary" v-if="featuredPost.summary" v-html="renderMarkdown(featuredPost.summary)"></div>
-              <button
-                v-if="featuredPost.body"
-                class="read-more"
-                type="button"
-                @click.stop="openPostModal(featuredPost.id)"
-              >
+              <RouterLink class="read-more" :to="`/${slug}/journal/${featuredPost.slug}`" @click.stop>
                 Читати статтю →
-              </button>
+              </RouterLink>
             </div>
             <div v-if="featuredPost.cover_image_url" class="journal-cover">
               <img :src="featuredPost.cover_image_url" alt="Обкладинка статті" />
@@ -251,9 +258,9 @@
               ]"
               role="button"
               tabindex="0"
-              @click="openPostModal(post.id)"
-              @keydown.enter="openPostModal(post.id)"
-              @keydown.space.prevent="openPostModal(post.id)"
+              @click="navigateToPost(post)"
+              @keydown.enter="navigateToPost(post)"
+              @keydown.space.prevent="navigateToPost(post)"
             >
               <div class="journal-body">
                 <span class="post-tag" :style="{ '--cat': categoryColor(post.category) }">
@@ -263,21 +270,16 @@
                 <div class="journal-title">{{ post.title }}</div>
                 <div class="journal-meta">
                   {{ formatDate(post.published_at || post.created_at) }}
-                  · {{ readingTime(post.body || post.summary) }} хв читання
+                  · {{ readingTime(post.summary) }} хв читання
                 </div>
                 <div
                   class="journal-summary"
                   v-if="post.summary"
                   v-html="renderMarkdown(post.summary)"
                 ></div>
-                <button
-                  v-if="post.body"
-                  class="read-more"
-                  type="button"
-                  @click.stop="openPostModal(post.id)"
-                >
+                <RouterLink class="read-more" :to="`/${slug}/journal/${post.slug}`" @click.stop>
                   Читати статтю →
-                </button>
+                </RouterLink>
               </div>
               <div v-if="post.cover_image_url" class="journal-cover">
                 <img :src="post.cover_image_url" alt="Обкладинка статті" />
@@ -286,31 +288,6 @@
           </div>
         </div>
       </div>
-
-      <div v-if="modalPost" class="journal-modal">
-        <div class="journal-modal__backdrop" @click="closePostModal"></div>
-        <div class="journal-modal__content" role="dialog" aria-modal="true">
-          <div class="journal-modal__header">
-            <div class="journal-modal__title">
-              {{ modalPost.title }}
-            </div>
-            <button class="btn btn--ghost btn--sm" type="button" @click="closePostModal">
-              Закрити
-            </button>
-          </div>
-          <div class="journal-modal__meta">
-            {{ formatDate(modalPost.published_at || modalPost.created_at) }}
-            · {{ readingTime(modalPost.body || modalPost.summary) }} хв читання
-          </div>
-          <div class="journal-modal__contentGrid">
-            <div class="journal-modal__body" v-html="renderMarkdown(modalPost.body)"></div>
-            <div v-if="modalPost.cover_image_url" class="journal-modal__cover">
-              <img :src="modalPost.cover_image_url" alt="Обкладинка статті" />
-            </div>
-          </div>
-        </div>
-      </div>
-
     </section>
 
     <div v-if="showBookingModal" class="setting-modal">
@@ -376,7 +353,7 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import DOMPurify from 'dompurify'
 import { marked } from 'marked'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { getApiErrorMessage } from '../lib/errors'
 import { apiGet, apiPost } from '../lib/api'
 import { toLocalDate } from '../lib/dates'
@@ -406,6 +383,7 @@ type ClientSession = {
 }
 
 const route = useRoute()
+const router = useRouter()
 const auth = useAuthStore()
 const toast = useToast()
 const profile = ref<PublicSpecialistProfile | null>(null)
@@ -430,7 +408,6 @@ const pastClientSessions = ref<ClientSession[]>([])
 const journalPosts = ref<PublicAuthorJournalPost[]>([])
 const journalLoading = ref(false)
 const journalError = ref('')
-const modalPostId = ref<number | null>(null)
 type JournalCategory = 'ALL' | 'TIP' | 'EXPLAIN' | 'FAQ' | 'RESEARCH' | 'PRACTICE'
 const activeCategory = ref<JournalCategory>('ALL')
 const categoryOptions: { key: JournalCategory; label: string }[] = [
@@ -685,14 +662,6 @@ async function loadJournal() {
   }
 }
 
-function openPostModal(postId: number) {
-  modalPostId.value = postId
-}
-
-function closePostModal() {
-  modalPostId.value = null
-}
-
 function postCategory(post: PublicAuthorJournalPost): Exclude<JournalCategory, 'ALL'> | null {
   const v = (post as { category?: string })?.category
   if (v === 'TIP' || v === 'EXPLAIN' || v === 'FAQ' || v === 'RESEARCH' || v === 'PRACTICE') return v
@@ -752,16 +721,25 @@ const filteredJournalPosts = computed(() => {
 })
 
 const featuredPost = computed(() => filteredJournalPosts.value.find((p) => p.is_featured) || null)
+
+function navigateToPost(post: PublicAuthorJournalPost) {
+  if (!slug.value || !post.slug) return
+  router.push({
+    name: 'public-journal-post',
+    params: { slug: slug.value, postSlug: post.slug },
+    query: {
+      from: 'profile',
+      cat: activeCategory.value,
+      open: String(post.id),
+    },
+  })
+}
+
 const gridPosts = computed(() =>
   featuredPost.value
     ? filteredJournalPosts.value.filter((p) => p.id !== featuredPost.value?.id)
     : filteredJournalPosts.value
 )
-
-const modalPost = computed(() => {
-  const list = filteredJournalPosts.value
-  return list.find((p) => p.id === modalPostId.value) || null
-})
 
 async function loadClientSessions() {
   if (!isAuthenticated.value || !isClient.value) return
@@ -779,7 +757,6 @@ async function loadClientSessions() {
     pastClientSessions.value = []
   }
 }
-
 
 async function shareProfile() {
   if (!profile.value?.public_slug) return
@@ -956,6 +933,17 @@ watch([isAuthenticated, isClient], () => {
   loadClientSessions()
 })
 
+watch(
+  () => route.query.cat,
+  (value) => {
+    const key = String(value || 'ALL')
+    if (['ALL', 'TIP', 'EXPLAIN', 'FAQ', 'RESEARCH', 'PRACTICE'].includes(key)) {
+      activeCategory.value = key as JournalCategory
+    }
+  },
+  { immediate: true }
+)
+
 onMounted(async () => {
   if (!selectedDate.value) {
     selectedDate.value = toLocalDate(new Date())
@@ -996,7 +984,6 @@ onMounted(async () => {
   .public__subtitle {
     max-width: 520px;
   }
-
 
 .public__actions {
   display: flex;
@@ -1787,91 +1774,6 @@ onMounted(async () => {
 
   .setting-title {
     font-weight: 600;
-  }
-
-  .journal-modal {
-    position: fixed;
-    inset: 0;
-    z-index: 70;
-    display: grid;
-    place-items: center;
-  }
-
-  .journal-modal__backdrop {
-    position: absolute;
-    inset: 0;
-    background: rgba(7, 24, 33, 0.55);
-  }
-
-  .journal-modal__content {
-    position: relative;
-    z-index: 1;
-    width: min(900px, 92vw);
-    max-height: 86vh;
-    overflow: auto;
-    background: #fff;
-    border-radius: 18px;
-    border: 1px solid var(--line);
-    padding: 24px;
-    display: grid;
-    gap: 12px;
-    box-shadow: 0 20px 50px rgba(15, 35, 48, 0.25);
-  }
-
-  .journal-modal__header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 12px;
-  }
-
-  .journal-modal__title {
-    font-family: var(--font-display);
-    font-size: 28px;
-    line-height: 1.25;
-    font-weight: 700;
-    color: var(--ink);
-  }
-
-  .journal-modal__meta {
-    font-size: 14px;
-    color: #8a8a8a;
-  }
-
-  .journal-modal__cover {
-    border-radius: 16px;
-    overflow: hidden;
-    background: var(--color-neutral-50, #f7f8f9);
-    align-self: start;
-  }
-
-  .journal-modal__cover img {
-    width: 100%;
-    display: block;
-    object-fit: contain;
-  }
-
-  .journal-modal__body {
-    color: var(--color-neutral-800, #1e2124);
-    font-size: 16px;
-    line-height: 1.7;
-  }
-
-  .journal-modal__contentGrid {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 280px;
-    gap: 20px;
-    align-items: start;
-  }
-
-  .journal-modal__cover img {
-    max-height: 360px;
-  }
-
-  @media (max-width: 900px) {
-    .journal-modal__contentGrid {
-      grid-template-columns: 1fr;
-    }
   }
 
   .setting-label {
