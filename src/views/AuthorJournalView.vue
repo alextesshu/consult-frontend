@@ -412,13 +412,24 @@
       </div>
 
       <div v-if="activeTab === 'collections'">
+        <p class="collections-hint">
+          Об’єднуйте записи в серії, щоб клієнтам було легше читати матеріали по порядку.
+        </p>
+
         <div class="collections-actions">
           <button class="btn" type="button" @click="createCollectionOpen = !createCollectionOpen">
-            {{ createCollectionOpen ? 'Скасувати' : '+ Нова добірка' }}
+            {{ createCollectionOpen ? 'Скасувати' : 'Створити серію' }}
           </button>
         </div>
 
         <form v-if="createCollectionOpen" class="form collection-form" @submit.prevent="onCreateCollection">
+          <div class="collection-form__head">
+            <h3 class="collection-form__title">Створити серію</h3>
+            <p class="collection-form__subtitle">
+              Об’єднайте кілька записів у спільну тему. Після створення серії ви зможете додати до неї потрібні записи.
+            </p>
+          </div>
+
           <div class="form-grid">
             <label class="field">
               <span class="label">Назва</span>
@@ -438,7 +449,7 @@
 
           <div class="actions">
             <button class="btn" type="submit" :disabled="collectionSubmitting">
-              Створити добірку
+              Створити серію
             </button>
             <span v-if="collectionSubmitting" class="muted">Збереження…</span>
           </div>
@@ -449,7 +460,8 @@
         <div v-if="collectionsLoading">Завантаження...</div>
 
         <div v-else-if="!collections.length">
-          Поки що немає жодної добірки.
+          <strong>У вас ще немає добірок</strong><br />
+          Створіть першу серію та додайте до неї потрібні записи.
         </div>
 
         <div v-else class="journal-collections-list">
@@ -1257,8 +1269,31 @@ onMounted(() => {
   margin-bottom: 12px;
 }
 
+.collections-hint {
+  margin: 0 0 10px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
 .collection-form {
   margin-bottom: 12px;
+}
+
+.collection-form__head {
+  margin-bottom: 10px;
+}
+
+.collection-form__title {
+  margin: 0 0 4px;
+  font-size: 18px;
+}
+
+.collection-form__subtitle {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
 }
 
 .journal-collection-row {
