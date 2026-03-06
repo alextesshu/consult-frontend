@@ -416,103 +416,116 @@
           Об’єднуйте записи в серії, щоб клієнтам було легше читати матеріали по порядку.
         </p>
 
-        <div class="collections-actions">
-          <button class="btn" type="button" @click="createCollectionOpen = !createCollectionOpen">
-            {{ createCollectionOpen ? 'Скасувати' : 'Створити серію' }}
-          </button>
-        </div>
-
-        <form v-if="createCollectionOpen" class="form collection-form" @submit.prevent="onCreateCollection">
-          <div class="collection-form__head">
-            <h3 class="collection-form__title">Створити серію</h3>
-            <p class="collection-form__subtitle">
-              Об’єднайте кілька записів у спільну тему. Після створення серії ви зможете додати до неї потрібні записи.
-            </p>
+        <section class="collections-section">
+          <div class="collections-section__head">
+            <h3 class="collections-section__title">Ваші серії</h3>
           </div>
 
-          <div class="form-grid">
-            <label class="field">
-              <span class="label">Назва серії</span>
-              <input v-model.trim="collectionForm.title" class="input" type="text" required />
-            </label>
+          <div v-if="collectionError" class="form-error" role="alert">{{ collectionError }}</div>
+          <p v-if="collectionSuccessMessage" class="journal-success-message">
+            {{ collectionSuccessMessage }}
+          </p>
 
-            <label class="field field--full">
-              <span class="label">Опис серії</span>
-              <textarea v-model.trim="collectionForm.description" class="input" rows="3" />
-            </label>
+          <div v-if="collectionsLoading">Завантаження...</div>
 
-            <label class="check field--full">
-              <input v-model="collectionForm.is_published" type="checkbox" />
-              <span>Публічно</span>
-            </label>
+          <div v-else-if="!collections.length" class="collections-empty">
+            <strong>У вас ще немає добірок</strong><br />
+            Створіть першу серію та додайте до неї потрібні записи.
           </div>
 
-          <div class="actions">
-            <button class="btn" type="submit" :disabled="collectionSubmitting">
-              Створити серію
+          <div v-else class="journal-collections-list">
+            <article
+              v-for="collection in collections"
+              :key="collection.id"
+              class="journal-collection-row"
+            >
+              <div class="journal-collection-row__top">
+                <div class="journal-collection-row__content">
+                  <div class="journal-collection-row__title">{{ collection.title }}</div>
+                  <div class="journal-collection-row__meta">{{ collection.posts_count }} постів</div>
+                  <div v-if="collection.description" class="journal-collection-row__description">
+                    {{ collection.description }}
+                  </div>
+                </div>
+                <button class="btn btn--ghost btn--sm" type="button" @click="toggleManageCollection(collection.id)">
+                  {{ managingCollectionId === collection.id ? 'Сховати' : 'Керувати постами' }}
+                </button>
+              </div>
+
+              <div v-if="managingCollectionId === collection.id" class="collection-manage">
+                <div v-if="collectionDetailsLoadingId === collection.id" class="muted">
+                  Завантаження складу добірки...
+                </div>
+                <div v-else-if="!journalPosts.length" class="muted">
+                  Немає постів для додавання.
+                </div>
+                <div v-else class="collection-posts-list">
+                  <article v-for="post in journalPosts" :key="post.id" class="collection-post-row">
+                    <div class="collection-post-row__title">{{ post.title }}</div>
+                    <button
+                      class="btn btn--ghost btn--sm"
+                      type="button"
+                      :disabled="isPostInCollection(collection.id, post.id) || collectionAddingKey === `${collection.id}:${post.id}`"
+                      @click="addPostToCollection(collection.id, post.id)"
+                    >
+                      {{
+                        isPostInCollection(collection.id, post.id)
+                          ? 'Додано'
+                          : collectionAddingKey === `${collection.id}:${post.id}`
+                            ? 'Додаємо...'
+                            : 'Додати'
+                      }}
+                    </button>
+                  </article>
+                </div>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="collections-section collections-create">
+          <div class="collections-section__head">
+            <h3 class="collections-section__title">Нова серія</h3>
+          </div>
+          <div class="collections-actions">
+            <button class="btn" type="button" @click="createCollectionOpen = !createCollectionOpen">
+              {{ createCollectionOpen ? 'Скасувати' : '+ Створити серію' }}
             </button>
-            <span v-if="collectionSubmitting" class="muted">Збереження…</span>
           </div>
-        </form>
 
-        <div v-if="collectionError" class="form-error" role="alert">{{ collectionError }}</div>
-        <p v-if="collectionSuccessMessage" class="journal-success-message">
-          {{ collectionSuccessMessage }}
-        </p>
+          <form v-if="createCollectionOpen" class="form collection-form" @submit.prevent="onCreateCollection">
+            <div class="collection-form__head">
+              <h4 class="collection-form__title">Створити серію</h4>
+              <p class="collection-form__subtitle">
+                Об’єднайте кілька записів у спільну тему. Після створення серії ви зможете додати до неї потрібні записи.
+              </p>
+            </div>
 
-        <div v-if="collectionsLoading">Завантаження...</div>
+            <div class="form-grid">
+              <label class="field">
+                <span class="label">Назва серії</span>
+                <input v-model.trim="collectionForm.title" class="input" type="text" required />
+              </label>
 
-        <div v-else-if="!collections.length">
-          <strong>У вас ще немає добірок</strong><br />
-          Створіть першу серію та додайте до неї потрібні записи.
-        </div>
+              <label class="field field--full">
+                <span class="label">Опис серії</span>
+                <textarea v-model.trim="collectionForm.description" class="input" rows="3" />
+              </label>
 
-        <div v-else class="journal-collections-list">
-          <article
-            v-for="collection in collections"
-            :key="collection.id"
-            class="journal-collection-row"
-          >
-            <div class="journal-collection-row__top">
-              <div>
-                <div>{{ collection.title }}</div>
-                <div>{{ collection.posts_count }} постів</div>
-                <div v-if="collection.description">{{ collection.description }}</div>
-              </div>
-              <button class="btn btn--ghost btn--sm" type="button" @click="toggleManageCollection(collection.id)">
-                {{ managingCollectionId === collection.id ? 'Сховати' : 'Керувати постами' }}
+              <label class="check field--full">
+                <input v-model="collectionForm.is_published" type="checkbox" />
+                <span>Публічно</span>
+              </label>
+            </div>
+
+            <div class="actions">
+              <button class="btn" type="submit" :disabled="collectionSubmitting">
+                Створити серію
               </button>
+              <span v-if="collectionSubmitting" class="muted">Збереження…</span>
             </div>
-
-            <div v-if="managingCollectionId === collection.id" class="collection-manage">
-              <div v-if="collectionDetailsLoadingId === collection.id" class="muted">
-                Завантаження складу добірки...
-              </div>
-              <div v-else-if="!journalPosts.length" class="muted">
-                Немає постів для додавання.
-              </div>
-              <div v-else class="collection-posts-list">
-                <article v-for="post in journalPosts" :key="post.id" class="collection-post-row">
-                  <div class="collection-post-row__title">{{ post.title }}</div>
-                  <button
-                    class="btn btn--ghost btn--sm"
-                    type="button"
-                    :disabled="isPostInCollection(collection.id, post.id) || collectionAddingKey === `${collection.id}:${post.id}`"
-                    @click="addPostToCollection(collection.id, post.id)"
-                  >
-                    {{
-                      isPostInCollection(collection.id, post.id)
-                        ? 'Додано'
-                        : collectionAddingKey === `${collection.id}:${post.id}`
-                          ? 'Додаємо...'
-                          : 'Додати'
-                    }}
-                  </button>
-                </article>
-              </div>
-            </div>
-          </article>
-        </div>
+          </form>
+        </section>
       </div>
     </section>
 
@@ -1273,8 +1286,34 @@ onMounted(() => {
   gap: 10px;
 }
 
+.collections-section {
+  display: grid;
+  gap: 10px;
+}
+
+.collections-create {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.collections-section__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.collections-section__title {
+  margin: 0;
+  font-size: 20px;
+}
+
+.collections-empty {
+  margin: 0 0 4px;
+}
+
 .collections-actions {
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .collections-hint {
@@ -1323,6 +1362,27 @@ onMounted(() => {
   justify-content: space-between;
   align-items: flex-start;
   gap: 12px;
+}
+
+.journal-collection-row__content {
+  display: grid;
+  gap: 4px;
+}
+
+.journal-collection-row__title {
+  font-size: 18px;
+  line-height: 1.3;
+  font-weight: 600;
+}
+
+.journal-collection-row__meta {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.journal-collection-row__description {
+  font-size: 14px;
+  color: var(--muted);
 }
 
 .collection-manage {
