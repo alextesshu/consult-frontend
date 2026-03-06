@@ -194,11 +194,30 @@
         </div>
       </div>
 
-      <div v-if="journalLoading" class="muted">Завантаження постів...</div>
-      <div v-else-if="journalPosts.length === 0" class="muted">
-        Ще немає постів.
+      <div class="journal-tabs">
+        <button
+          class="journal-tab"
+          :class="{ active: activeTab === 'posts' }"
+          @click="activeTab = 'posts'"
+        >
+          Записи
+        </button>
+
+        <button
+          class="journal-tab"
+          :class="{ active: activeTab === 'collections' }"
+          @click="activeTab = 'collections'"
+        >
+          Добірки
+        </button>
       </div>
-      <div v-else class="journal-admin-list">
+
+      <div v-if="activeTab === 'posts'">
+        <div v-if="journalLoading" class="muted">Завантаження постів...</div>
+        <div v-else-if="journalPosts.length === 0" class="muted">
+          Ще немає постів.
+        </div>
+        <div v-else class="journal-admin-list">
         <article v-for="post in journalPosts" :key="post.id" class="journal-admin-card">
           <template v-if="editingPostId === post.id">
             <div class="inline-edit">
@@ -389,6 +408,7 @@
             </div>
           </template>
         </article>
+        </div>
       </div>
     </section>
 
@@ -440,6 +460,7 @@ const editCoverUploading = ref(false)
 const bodyInput = ref<HTMLTextAreaElement | null>(null)
 const summaryInput = ref<HTMLTextAreaElement | null>(null)
 const router = useRouter()
+const activeTab = ref<'posts' | 'collections'>('posts')
 const activeMdField = ref<'summary' | 'body'>('body')
 const coverInput = ref<HTMLInputElement | null>(null)
 const coverPreviewUrl = ref('')
@@ -990,6 +1011,32 @@ onMounted(() => {
 
 .badge--soft {
   background: rgba(22, 175, 142, 0.16);
+}
+
+.journal-tabs {
+  display: inline-flex;
+  gap: 8px;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(246, 248, 250, 0.8);
+}
+
+.journal-tab {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.journal-tab.active {
+  background: #fff;
+  color: var(--text);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
 }
 
 .journal-admin-list {
