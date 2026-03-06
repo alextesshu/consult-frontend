@@ -28,7 +28,40 @@
 
     </header>
 
+    <section v-if="displayedCollections.length" class="journal-collections">
+      <div class="journal-collections__head">
+        <h2 class="journal-collections__title">Добірки</h2>
+        <p class="journal-collections__subtitle">Серії матеріалів, зібрані в одному місці</p>
+      </div>
 
+      <div class="journal-collections__grid">
+        <RouterLink
+          v-for="collection in displayedCollections"
+          :key="collection.slug"
+          :to="`/${slug}/journal/collections/${collection.slug}`"
+          class="journal-collection-card"
+        >
+          <div class="journal-collection-card__cover">
+            <img v-if="collection.cover_image_url" :src="collection.cover_image_url" :alt="collection.title" />
+            <div v-else class="journal-collection-card__placeholder">
+              <span>Collection</span>
+            </div>
+          </div>
+
+          <div class="journal-collection-card__body">
+            <div class="journal-collection-card__meta">
+              {{ collection.posts_count }} {{ collection.posts_count === 1 ? 'article' : 'articles' }}
+            </div>
+
+            <h3 class="journal-collection-card__title">{{ collection.title }}</h3>
+
+            <p v-if="collection.description" class="journal-collection-card__description">
+              {{ collection.description }}
+            </p>
+          </div>
+        </RouterLink>
+      </div>
+    </section>
 
     <div v-if="journalLoading" class="muted">Завантажуємо журнал...</div>
 
@@ -239,10 +272,12 @@ import { getApiErrorMessage } from '../lib/errors'
 import {
 
   fetchPublicAuthorJournalPosts,
+  fetchPublicJournalCollections,
 
   fetchPublicSpecialistProfile,
 
   type PublicAuthorJournalPost,
+  type PublicJournalCollectionListItem,
 
 } from '../lib/api'
 
@@ -257,6 +292,7 @@ const slug = computed(() => String(route.params.slug || '').trim())
 
 
 const journalPosts = ref<PublicAuthorJournalPost[]>([])
+const collections = ref<PublicJournalCollectionListItem[]>([])
 
 const journalLoading = ref(false)
 
@@ -411,6 +447,7 @@ const filteredJournalPosts = computed(() => {
 
 
 const featuredPost = computed(() => filteredJournalPosts.value.find((p) => p.is_featured) || null)
+const displayedCollections = computed(() => collections.value.slice(0, 3))
 
 
 
@@ -475,10 +512,12 @@ async function loadJournal() {
   try {
 
     journalPosts.value = await fetchPublicAuthorJournalPosts(slug.value)
+    collections.value = await fetchPublicJournalCollections(slug.value)
 
   } catch (err) {
 
     journalPosts.value = []
+    collections.value = []
 
     journalError.value = getApiErrorMessage(err, 'Не вдалося завантажити авторський журнал.')
 
@@ -566,6 +605,104 @@ onMounted(async () => {
 
   flex-wrap: wrap;
 
+}
+
+.journal-collections {
+  margin: 0 0 10px;
+}
+
+.journal-collections__head {
+  margin-bottom: 20px;
+}
+
+.journal-collections__title {
+  margin: 0 0 6px;
+  font-size: 28px;
+  line-height: 1.15;
+  font-weight: 700;
+}
+
+.journal-collections__subtitle {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--color-text-muted, #6c7279);
+}
+
+.journal-collections__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.journal-collection-card {
+  display: block;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: var(--color-surface, #fff);
+  text-decoration: none;
+  color: inherit;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.journal-collection-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--color-border-strong, #949aa1);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+.journal-collection-card__cover {
+  aspect-ratio: 16 / 10;
+  background: var(--color-surface-soft, #f3f5f7);
+  overflow: hidden;
+}
+
+.journal-collection-card__cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.journal-collection-card__placeholder {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-muted, #6c7279);
+}
+
+.journal-collection-card__body {
+  padding: 16px 16px 18px;
+}
+
+.journal-collection-card__meta {
+  margin-bottom: 8px;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--color-text-muted, #6c7279);
+}
+
+.journal-collection-card__title {
+  margin: 0 0 8px;
+  font-size: 20px;
+  line-height: 1.25;
+  font-weight: 700;
+}
+
+.journal-collection-card__description {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.55;
+  color: var(--color-text-muted, #6c7279);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 
@@ -1104,6 +1241,10 @@ onMounted(async () => {
 
   }
 
+  .journal-collections__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
 
 
   .journal-grid .journal-card {
@@ -1130,6 +1271,12 @@ onMounted(async () => {
 
   }
 
+}
+
+@media (max-width: 640px) {
+  .journal-collections__grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 
