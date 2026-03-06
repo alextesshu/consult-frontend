@@ -441,15 +441,48 @@
             >
               <div class="journal-collection-row__top">
                 <div class="journal-collection-row__content">
+                  <div class="journal-collection-row__status">
+                    <span
+                      class="collection-status-badge"
+                      :class="collection.is_published ? 'is-public' : 'is-draft'"
+                    >
+                      {{ collection.is_published ? 'Публічна' : 'Чернетка' }}
+                    </span>
+                  </div>
                   <div class="journal-collection-row__title">{{ collection.title }}</div>
                   <div class="journal-collection-row__meta">{{ collection.posts_count }} постів</div>
                   <div v-if="collection.description" class="journal-collection-row__description">
                     {{ collection.description }}
                   </div>
+                  <ul v-if="collectionPreviewTitles(collection).length" class="journal-collection-row__preview">
+                    <li
+                      v-for="title in collectionPreviewTitles(collection)"
+                      :key="`${collection.id}-${title}`"
+                    >
+                      {{ title }}
+                    </li>
+                  </ul>
                 </div>
-                <button class="btn btn--ghost btn--sm" type="button" @click="toggleManageCollection(collection.id)">
-                  {{ managingCollectionId === collection.id ? 'Сховати' : 'Керувати постами' }}
-                </button>
+                <div class="journal-collection-row__actions">
+                  <RouterLink
+                    v-if="profileSlug"
+                    class="btn btn--ghost btn--sm"
+                    :to="`/${profileSlug}/journal/collections/${collection.slug}`"
+                  >
+                    Переглянути серію
+                  </RouterLink>
+                  <button
+                    v-else
+                    class="btn btn--ghost btn--sm"
+                    type="button"
+                    disabled
+                  >
+                    Переглянути серію
+                  </button>
+                  <button class="btn btn--ghost btn--sm" type="button" @click="toggleManageCollection(collection.id)">
+                    {{ managingCollectionId === collection.id ? 'Сховати' : 'Керувати постами' }}
+                  </button>
+                </div>
               </div>
 
               <div v-if="managingCollectionId === collection.id" class="collection-manage">
@@ -643,6 +676,7 @@ async function loadCollections() {
   collectionError.value = ''
   try {
     collections.value = await fetchCabinetJournalCollections()
+    void prefetchCollectionDetails()
   } catch (err) {
     collections.value = []
     collectionError.value = getApiErrorMessage(err, 'Не вдалося завантажити добірки')
@@ -713,10 +747,32 @@ async function onCreateCollection() {
   }
 }
 
+async function prefetchCollectionDetails() {
+  const missing = collections.value.filter((collection) => !collectionDetailsById.value[collection.id])
+  if (!missing.length) return
+  const detailResults = await Promise.allSettled(
+    missing.map((collection) => fetchCabinetJournalCollectionDetail(collection.id))
+  )
+  detailResults.forEach((result, index) => {
+    if (result.status === 'fulfilled') {
+      collectionDetailsById.value[missing[index].id] = result.value
+    }
+  })
+}
+
 function isPostInCollection(collectionId: number, postId: number): boolean {
   const detail = collectionDetailsById.value[collectionId]
   if (!detail) return false
   return detail.items.some((item) => item.post === postId)
+}
+
+function collectionPreviewTitles(collection: CabinetJournalCollection): string[] {
+  const detail = collectionDetailsById.value[collection.id]
+  if (!detail) return []
+  return detail.items
+    .slice(0, 3)
+    .map((item) => journalPosts.value.find((post) => post.id === item.post)?.title)
+    .filter((title): title is string => Boolean(title))
 }
 
 async function loadCollectionDetail(collectionId: number) {
@@ -1369,6 +1425,33 @@ onMounted(() => {
   gap: 4px;
 }
 
+.journal-collection-row__status {
+  margin-bottom: 2px;
+}
+
+.collection-status-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.collection-status-badge.is-public {
+  color: #1f5f56;
+  background: rgba(43, 122, 111, 0.12);
+  border: 1px solid rgba(43, 122, 111, 0.28);
+}
+
+.collection-status-badge.is-draft {
+  color: #6a4f1e;
+  background: rgba(156, 107, 47, 0.12);
+  border: 1px solid rgba(156, 107, 47, 0.28);
+}
+
 .journal-collection-row__title {
   font-size: 18px;
   line-height: 1.3;
@@ -1383,6 +1466,21 @@ onMounted(() => {
 .journal-collection-row__description {
   font-size: 14px;
   color: var(--muted);
+}
+
+.journal-collection-row__preview {
+  margin: 2px 0 0;
+  padding: 0 0 0 18px;
+  color: #5c636a;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.journal-collection-row__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
 }
 
 .collection-manage {
