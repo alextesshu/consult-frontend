@@ -667,7 +667,7 @@ function slugify(value: string): string {
     .trim()
     .replace(/['’"]/g, '')
     .replace(/\s+/g, '-')
-    .replace(/[^a-z0-9-_а-яіїєґ]/gi, '-')
+    .replace(/[^a-z0-9-_]/g, '-')
     .replace(/-+/g, '-')
     .replace(/^-|-$/g, '')
 }
