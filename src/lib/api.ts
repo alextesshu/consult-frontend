@@ -222,6 +222,23 @@ export type PublicAuthorJournalPostDetail = {
   } | null
 }
 
+export type PublicJournalCollectionDetail = {
+  id: number
+  title: string
+  slug: string
+  description: string
+  cover_image_url: string
+  published_at: string | null
+  items: Array<{
+    post_slug: string
+    post_title: string
+    summary: string
+    cover_image_url: string
+    reading_time: number
+    sort_order: number
+  }>
+}
+
 export async function uploadProfilePhoto(file: File): Promise<TherapistProfile> {
   const formData = new FormData()
   formData.append('file', file)
@@ -329,6 +346,16 @@ export async function fetchPublicAuthorJournalPostDetail(
 ): Promise<PublicAuthorJournalPostDetail> {
   const resp = await http.get<PublicAuthorJournalPostDetail>(
     `/public/specialists/${slug}/journal/${postSlug}/`
+  )
+  return resp.data
+}
+
+export async function fetchPublicJournalCollectionDetail(
+  slug: string,
+  collectionSlug: string
+): Promise<PublicJournalCollectionDetail> {
+  const resp = await http.get<PublicJournalCollectionDetail>(
+    `/public/${slug}/journal/collections/${collectionSlug}/`
   )
   return resp.data
 }

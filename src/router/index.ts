@@ -7,6 +7,7 @@ import GroupEventsView from '../views/GroupEventsView.vue'
 import PublicProfileView from '../views/PublicProfileView.vue'
 import PublicJournalView from '../views/PublicJournalView.vue'
 import PublicJournalPostView from '../views/PublicJournalPostView.vue'
+import PublicJournalCollectionView from '../views/PublicJournalCollectionView.vue'
 import SpecialistProfileView from '../views/TherapistProfileView.vue'
 import SlotsView from '../views/SlotsView.vue'
 import HomeView from '../views/HomeView.vue'
@@ -164,6 +165,16 @@ const routes = [
     name: 'public-journal-post',
     component: PublicJournalPostView,
     alias: ['/t/:slug/journal/:postSlug', '/specialist/:slug/journal/:postSlug'],
+  },
+  {
+    path: '/:specialist_slug/journal/collections/:collection_slug',
+    name: 'public-journal-collection',
+    component: PublicJournalCollectionView,
+    alias: [
+      '/:slug/journal/collections/:collectionSlug',
+      '/t/:slug/journal/collections/:collectionSlug',
+      '/specialist/:slug/journal/collections/:collectionSlug',
+    ],
   },
   {
     path: '/specialists',

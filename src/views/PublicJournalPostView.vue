@@ -47,7 +47,14 @@
             <div class="collection-card__eyebrow">Part of collection</div>
             <div class="collection-card__head">
               <div>
-                <h2 class="collection-card__title">{{ post.collection.title }}</h2>
+                <h2 class="collection-card__title">
+                  <RouterLink
+                    class="collection-card__title-link"
+                    :to="`/${slug}/journal/collections/${post.collection.slug}?current=${post.slug}`"
+                  >
+                    {{ post.collection.title }}
+                  </RouterLink>
+                </h2>
                 <p v-if="post.collection.description" class="collection-card__description">
                   {{ post.collection.description }}
                 </p>
@@ -407,6 +414,15 @@ onMounted(load)
   margin: 0;
   font-size: 20px;
   line-height: 1.25;
+}
+
+.collection-card__title-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.collection-card__title-link:hover {
+  color: #2b7a6f;
 }
 
 .collection-card__description {
