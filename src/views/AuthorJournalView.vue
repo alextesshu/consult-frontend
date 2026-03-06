@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <section class="journal-page">
     <header class="journal-hero">
       <div>
@@ -230,7 +230,55 @@
 
               <label class="field">
                 <span class="label">Текст поста</span>
-                <textarea v-model.trim="editForm.body" class="input input--area" rows="8" />
+                <div class="md-toolbar" role="toolbar" aria-label="Форматування тексту">
+                  <button
+                    class="md-btn"
+                    type="button"
+                    title="Жирний"
+                    @mousedown.prevent="prepareEditSelection"
+                    @click="mdWrapEdit('**', '**')"
+                  >
+                    <b>B</b>
+                  </button>
+                  <button
+                    class="md-btn"
+                    type="button"
+                    title="Курсив"
+                    @mousedown.prevent="prepareEditSelection"
+                    @click="mdWrapEdit('_', '_')"
+                  >
+                    <i>I</i>
+                  </button>
+                  <button
+                    class="md-btn"
+                    type="button"
+                    title="Посилання"
+                    @mousedown.prevent="prepareEditSelection"
+                    @click="mdLinkEdit()"
+                  >
+                    🔗
+                  </button>
+                  <button
+                    class="md-btn"
+                    type="button"
+                    title="Список"
+                    @mousedown.prevent="prepareEditSelection"
+                    @click="mdListEdit()"
+                  >
+                    •
+                  </button>
+                </div>
+                <textarea
+                  :ref="setEditBodyInput"
+                  v-model="editForm.body"
+                  class="input input--area"
+                  rows="10"
+                  placeholder="Основний текст"
+                  @focus="updateEditSelection"
+                  @select="updateEditSelection"
+                  @keyup="updateEditSelection"
+                  @mouseup="updateEditSelection"
+                />
               </label>
 
               <div class="field">
@@ -281,57 +329,64 @@
 
           <template v-else>
             <div class="journal-admin-main">
+              <div class="journal-admin-content">
+                <div class="journal-admin-badges">
+                  <span class="post-tag" :style="{ '--cat': categoryColor(post.category) }">
+                    {{ categoryLabel(post.category) }}
+                  </span>
+                  <span v-if="post.is_featured" class="pin-badge">Закріплено</span>
+                </div>
+
+                <div class="journal-admin-title">{{ post.title }}</div>
+
+                <div class="journal-meta">
+                  {{ post.is_published ? 'Опубліковано' : 'Чернетка' }}
+                  - {{ formatJournalDate(post.published_at || post.created_at) }}
+                  - {{ readingTime(post.body || post.summary) }} хв читання
+                </div>
+
+                <div v-if="post.summary" class="journal-summary" v-html="renderMarkdown(post.summary)"></div>
+
+                <div class="journal-admin-actions-inline">
+                  <button class="btn btn--sm btn--primary-soft" type="button" @click="startInlineEdit(post)">
+                    Редагувати
+                  </button>
+
+                  <button class="btn btn--ghost btn--sm" type="button" @click="previewPost(post)">
+                    Переглянути
+                  </button>
+
+                  <button
+                    v-if="!post.is_featured"
+                    class="btn btn--ghost btn--sm"
+                    type="button"
+                    @click="pinPost(post)"
+                  >
+                    Закріпити
+                  </button>
+
+                  <button
+                    v-else
+                    class="btn btn--ghost btn--sm"
+                    type="button"
+                    @click="unpinPost(post)"
+                  >
+                    Відкріпити
+                  </button>
+
+                  <button class="btn btn--ghost btn--sm btn--danger-soft" type="button" @click="requestDeleteJournal(post)">
+                    Видалити
+                  </button>
+                </div>
+              </div>
+
               <div v-if="post.cover_image_url" class="journal-admin-cover">
                 <img :src="post.cover_image_url" alt="Обкладинка поста" />
               </div>
-            <div class="journal-admin-title">{{ post.title }}</div>
-            <div class="journal-meta">
-              <div v-if="post.is_featured" class="pin-badge">Закріплено</div>
-              {{ post.is_published ? 'Опубліковано' : 'Чернетка' }}
-              <span v-if="post.published_at">· {{ formatJournalDate(post.published_at) }}</span>
-              <span v-else>· {{ formatJournalDate(post.created_at) }}</span>
-              · {{ readingTime(post.body) }} хв читання
+              <div v-else class="journal-admin-cover journal-admin-cover--fallback">
+                <span class="cover-fallback-icon">*</span>
+              </div>
             </div>
-            <div
-              class="muted"
-              v-if="post.summary"
-              v-html="renderMarkdown(post.summary)"
-            ></div>
-            <div
-              v-if="openPostId === post.id"
-              class="journal-admin-body"
-              v-html="renderMarkdown(post.body)"
-            ></div>
-          </div>
-          <div class="journal-admin-actions">
-            <button class="btn btn--ghost btn--sm" type="button" @click="togglePostPreview(post.id)">
-              {{ openPostId === post.id ? 'Згорнути' : 'Переглянути' }}
-            </button>
-            <button class="btn btn--ghost btn--sm" type="button" @click="startInlineEdit(post)">
-              Редагувати
-            </button>
-            <button
-              v-if="!post.is_featured"
-              class="btn btn--ghost btn--sm"
-              type="button"
-              title="Закріпити пост"
-              @click="pinPost(post)"
-            >
-              📌 Закріпити
-            </button>
-            <button
-              v-else
-              class="btn btn--ghost btn--sm"
-              type="button"
-              title="Відкріпити пост"
-              @click="unpinPost(post)"
-            >
-              📍 Відкріпити
-            </button>
-            <button class="btn btn--ghost btn--sm" type="button" @click="requestDeleteJournal(post)">
-              Видалити
-            </button>
-          </div>
           </template>
         </article>
       </div>
@@ -352,10 +407,12 @@
 
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import DOMPurify from 'dompurify'
 import { marked } from 'marked'
 import {
   fetchAuthorJournalPosts,
+  fetchSpecialistProfile,
   createAuthorJournalPost,
   updateAuthorJournalPost,
   deleteAuthorJournalPost,
@@ -370,14 +427,19 @@ const journalLoading = ref(false)
 const journalSaving = ref(false)
 const journalError = ref('')
 const journalPosts = ref<AuthorJournalPost[]>([])
+const profileSlug = ref('')
 const createOpen = ref(false)
 const editingPostId = ref<number | null>(null)
 const openPostId = ref<number | null>(null)
 const editSaving = ref(false)
 const editCoverInput = ref<HTMLInputElement | null>(null)
+const editBodyInput = ref<HTMLTextAreaElement | null>(null)
+const editSelStart = ref(0)
+const editSelEnd = ref(0)
 const editCoverUploading = ref(false)
 const bodyInput = ref<HTMLTextAreaElement | null>(null)
 const summaryInput = ref<HTMLTextAreaElement | null>(null)
+const router = useRouter()
 const activeMdField = ref<'summary' | 'body'>('body')
 const coverInput = ref<HTMLInputElement | null>(null)
 const coverPreviewUrl = ref('')
@@ -416,6 +478,16 @@ async function loadJournal() {
     journalLoading.value = false
   }
 }
+
+async function loadProfileSlug() {
+  try {
+    const profile = await fetchSpecialistProfile()
+    profileSlug.value = profile.public_slug || ''
+  } catch {
+    profileSlug.value = ''
+  }
+}
+
 
 function resetJournalForm() {
   journalForm.category = 'EXPLAIN'
@@ -564,6 +636,12 @@ function clearEditCover() {
   editForm.coverChanged = true
 }
 
+function previewPost(post: AuthorJournalPost) {
+  const specialistSlug = profileSlug.value
+  if (!specialistSlug || !post.slug) return
+  router.push(`/${specialistSlug}/journal/${post.slug}`)
+}
+
 function requestDeleteJournal(post: AuthorJournalPost) {
   journalDeleteModal.openConfirm({
     title: 'Видалити пост?',
@@ -604,10 +682,127 @@ function readingTime(text: string | null | undefined): number {
   return Math.max(1, minutes)
 }
 
+function categoryLabel(cat?: string) {
+  switch (cat) {
+    case 'TIP':
+      return 'Порада'
+    case 'EXPLAIN':
+      return 'Пояснення'
+    case 'FAQ':
+      return 'FAQ'
+    case 'RESEARCH':
+      return 'Дослідження'
+    case 'PRACTICE':
+      return 'Практика'
+    default:
+      return 'Порада'
+  }
+}
+
+function categoryColor(cat?: string) {
+  switch (cat) {
+    case 'TIP':
+      return '#2b7a6f'
+    case 'EXPLAIN':
+      return '#355c7d'
+    case 'FAQ':
+      return '#6b5b95'
+    case 'RESEARCH':
+      return '#9c6b2f'
+    case 'PRACTICE':
+      return '#2f6f9c'
+    default:
+      return '#2b7a6f'
+  }
+}
+
 function renderMarkdown(text?: string | null) {
   if (!text) return ''
   const raw = marked.parse(text, { breaks: true }) as string
   return DOMPurify.sanitize(raw)
+}
+
+function updateEditSelection() {
+  const el = editBodyInput.value
+  if (!el) return
+  editSelStart.value = el.selectionStart ?? 0
+  editSelEnd.value = el.selectionEnd ?? editSelStart.value
+}
+
+function setEditBodyInput(el: HTMLTextAreaElement | null) {
+  if (el) {
+    editBodyInput.value = el
+  }
+}
+
+function prepareEditSelection() {
+  // Capture selection before toolbar click steals focus
+  const el = editBodyInput.value
+  if (!el) return
+  editSelStart.value = el.selectionStart ?? editSelStart.value
+  editSelEnd.value = el.selectionEnd ?? editSelEnd.value
+}
+
+function mdWrapEdit(left: string, right: string) {
+  const el = editBodyInput.value
+  if (!el) return
+
+  const value = editForm.body || ''
+  const start = (el.selectionStart ?? 0) || editSelStart.value
+  const end = (el.selectionEnd ?? 0) || editSelEnd.value || start
+  const selected = value.slice(start, end) || (start !== end ? '' : 'текст')
+
+  editForm.body = value.slice(0, start) + left + selected + right + value.slice(end)
+
+  requestAnimationFrame(() => {
+    el.focus()
+    const selStart = start + left.length
+    const selEnd = selStart + selected.length
+    el.setSelectionRange(selStart, selEnd)
+  })
+}
+
+function mdLinkEdit() {
+  const el = editBodyInput.value
+  if (!el) return
+
+  const value = editForm.body || ''
+  const start = (el.selectionStart ?? 0) || editSelStart.value
+  const end = (el.selectionEnd ?? 0) || editSelEnd.value || start
+  const selected = value.slice(start, end) || (start !== end ? '' : 'посилання')
+  const url = 'https://'
+
+  const snippet = `[${selected}](${url})`
+  editForm.body = value.slice(0, start) + snippet + value.slice(end)
+
+  requestAnimationFrame(() => {
+    el.focus()
+    const urlStart = start + 1 + selected.length + 2
+    const urlEnd = urlStart + url.length
+    el.setSelectionRange(urlStart, urlEnd)
+  })
+}
+
+function mdListEdit() {
+  const el = editBodyInput.value
+  if (!el) return
+
+  const value = editForm.body || ''
+  const start = (el.selectionStart ?? 0) || editSelStart.value
+  const end = (el.selectionEnd ?? 0) || editSelEnd.value || start
+  const selected = value.slice(start, end)
+
+  const lines = (selected || 'пункт 1\nпункт 2')
+    .split('\n')
+    .map((l) => (l.trim().startsWith('- ') ? l : `- ${l}`))
+    .join('\n')
+
+  editForm.body = value.slice(0, start) + lines + value.slice(end)
+
+  requestAnimationFrame(() => {
+    el.focus()
+    el.setSelectionRange(start, start + lines.length)
+  })
 }
 
 function mdWrap(left: string, right: string) {
@@ -714,6 +909,7 @@ function clearCover() {
 
 onMounted(() => {
   loadJournal()
+  loadProfileSlug()
 })
 </script>
 
@@ -806,44 +1002,93 @@ onMounted(() => {
   border-radius: 12px;
   padding: 12px;
   background: #fff;
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
+  display: block;
 }
 
 .journal-admin-main {
   display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 200px);
+  gap: 24px;
+  align-items: start;
+}
+
+.journal-admin-content {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+}
+
+.journal-admin-badges,
+.inline-edit__badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.post-tag {
+  --cat: #2b7a6f;
+  display: inline-flex;
+  align-items: center;
   gap: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  color: var(--cat);
+  width: fit-content;
+  line-height: 1;
+}
+
+.post-tag::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: 0.9;
 }
 
 .journal-admin-cover {
-  width: 160px;
-  max-width: 100%;
-  border-radius: 10px;
+  width: 100%;
+  max-width: 200px;
+  aspect-ratio: 1 / 1;
+  border-radius: 14px;
   overflow: hidden;
   border: 1px solid var(--line);
-  background: #fff;
+  background: #f7f3e8;
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  justify-self: end;
 }
 
 .journal-admin-cover img {
   width: 100%;
+  height: 100%;
   display: block;
-  object-fit: cover;
+  object-fit: contain;
+  object-position: 50% 50%;
+  border-radius: 10px;
 }
 
 .journal-admin-title {
+  font-size: 20px;
+  line-height: 1.35;
   font-weight: 600;
-  margin-bottom: 4px;
+  color: var(--color-neutral-900, #111315);
+  margin-top: 2px;
 }
 
 .journal-meta {
   font-size: 14px;
   color: #8a8a8a;
-  margin-bottom: 6px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
 }
 
 .pin-badge {
@@ -860,6 +1105,44 @@ onMounted(() => {
   border: 1px solid rgba(43, 122, 111, 0.25);
   color: #2b7a6f;
   width: fit-content;
+  line-height: 1;
+}
+
+.journal-summary {
+  font-size: 15px;
+  line-height: 1.65;
+  color: #5c636a;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  max-width: 720px;
+}
+
+.btn--primary-soft {
+  background: rgba(43, 122, 111, 0.12);
+  border: 1px solid rgba(43, 122, 111, 0.28);
+  color: #1f5f56;
+}
+
+.btn--primary-soft:hover {
+  background: rgba(43, 122, 111, 0.18);
+}
+
+.btn--danger-soft {
+  border-color: rgba(181, 82, 74, 0.25);
+  color: #8a3c34;
+}
+
+.btn--danger-soft:hover {
+  background: rgba(181, 82, 74, 0.08);
+}
+
+.journal-admin-actions-inline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 8px;
 }
 
 .journal-admin-body {
@@ -867,11 +1150,6 @@ onMounted(() => {
   color: var(--color-neutral-800, #1e2124);
 }
 
-.journal-admin-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
 
 .cover-row {
   display: flex;
