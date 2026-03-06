@@ -425,11 +425,6 @@
               <input v-model.trim="collectionForm.title" class="input" type="text" required />
             </label>
 
-            <label class="field">
-              <span class="label">Slug</span>
-              <input v-model.trim="collectionForm.slug" class="input" type="text" required />
-            </label>
-
             <label class="field field--full">
               <span class="label">Опис</span>
               <textarea v-model.trim="collectionForm.description" class="input" rows="3" />
@@ -585,7 +580,6 @@ const journalForm = reactive({
 })
 const collectionForm = reactive({
   title: '',
-  slug: '',
   description: '',
   is_published: false,
 })
@@ -651,9 +645,19 @@ function resetJournalForm() {
 
 function resetCollectionForm() {
   collectionForm.title = ''
-  collectionForm.slug = ''
   collectionForm.description = ''
   collectionForm.is_published = false
+}
+
+function slugify(value: string): string {
+  return value
+    .toLowerCase()
+    .trim()
+    .replace(/['’"]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-_а-яіїєґ]/gi, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
 }
 
 async function onCreateCollection() {
@@ -662,7 +666,7 @@ async function onCreateCollection() {
   try {
     await createCabinetJournalCollection({
       title: collectionForm.title,
-      slug: collectionForm.slug,
+      slug: slugify(collectionForm.title),
       description: collectionForm.description,
       is_published: collectionForm.is_published,
     })
