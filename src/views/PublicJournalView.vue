@@ -653,7 +653,7 @@ onMounted(async () => {
 }
 
 .journal-collection-card__cover {
-  aspect-ratio: 16 / 10;
+  aspect-ratio: 16 / 8;
   background: var(--color-surface-soft, #f3f5f7);
   overflow: hidden;
 }
@@ -677,19 +677,19 @@ onMounted(async () => {
 }
 
 .journal-collection-card__body {
-  padding: 16px 16px 18px;
+  padding: 14px 14px 16px;
 }
 
 .journal-collection-card__meta {
-  margin-bottom: 8px;
-  font-size: 13px;
+  margin-bottom: 6px;
+  font-size: 12px;
   line-height: 1.4;
   color: var(--color-text-muted, #6c7279);
 }
 
 .journal-collection-card__title {
-  margin: 0 0 8px;
-  font-size: 20px;
+  margin: 0 0 6px;
+  font-size: 19px;
   line-height: 1.25;
   font-weight: 700;
 }
@@ -700,7 +700,7 @@ onMounted(async () => {
   line-height: 1.55;
   color: var(--color-text-muted, #6c7279);
   display: -webkit-box;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
