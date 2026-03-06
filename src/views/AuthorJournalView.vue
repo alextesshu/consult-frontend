@@ -412,6 +412,45 @@
       </div>
 
       <div v-if="activeTab === 'collections'">
+        <div class="collections-actions">
+          <button class="btn" type="button" @click="createCollectionOpen = !createCollectionOpen">
+            {{ createCollectionOpen ? 'Скасувати' : '+ Нова добірка' }}
+          </button>
+        </div>
+
+        <form v-if="createCollectionOpen" class="form collection-form" @submit.prevent="onCreateCollection">
+          <div class="form-grid">
+            <label class="field">
+              <span class="label">Назва</span>
+              <input v-model.trim="collectionForm.title" class="input" type="text" required />
+            </label>
+
+            <label class="field">
+              <span class="label">Slug</span>
+              <input v-model.trim="collectionForm.slug" class="input" type="text" required />
+            </label>
+
+            <label class="field field--full">
+              <span class="label">Опис</span>
+              <textarea v-model.trim="collectionForm.description" class="input" rows="3" />
+            </label>
+
+            <label class="check field--full">
+              <input v-model="collectionForm.is_published" type="checkbox" />
+              <span>Опублікувати</span>
+            </label>
+          </div>
+
+          <div class="actions">
+            <button class="btn" type="submit" :disabled="collectionSubmitting">
+              Створити добірку
+            </button>
+            <span v-if="collectionSubmitting" class="muted">Збереження…</span>
+          </div>
+        </form>
+
+        <div v-if="collectionError" class="form-error" role="alert">{{ collectionError }}</div>
+
         <div v-if="collectionsLoading">Завантаження...</div>
 
         <div v-else-if="!collections.length">
@@ -455,6 +494,7 @@ import { marked } from 'marked'
 import {
   fetchAuthorJournalPosts,
   fetchCabinetJournalCollections,
+  createCabinetJournalCollection,
   fetchSpecialistProfile,
   createAuthorJournalPost,
   updateAuthorJournalPost,
@@ -469,8 +509,10 @@ import { useConfirmModal } from '../composables/useConfirmModal'
 
 const journalLoading = ref(false)
 const collectionsLoading = ref(false)
+const collectionSubmitting = ref(false)
 const journalSaving = ref(false)
 const journalError = ref('')
+const collectionError = ref('')
 const journalPosts = ref<AuthorJournalPost[]>([])
 const collections = ref<CabinetJournalCollection[]>([])
 const profileSlug = ref('')
@@ -487,6 +529,7 @@ const bodyInput = ref<HTMLTextAreaElement | null>(null)
 const summaryInput = ref<HTMLTextAreaElement | null>(null)
 const router = useRouter()
 const activeTab = ref<'posts' | 'collections'>('posts')
+const createCollectionOpen = ref(false)
 const activeMdField = ref<'summary' | 'body'>('body')
 const coverInput = ref<HTMLInputElement | null>(null)
 const coverPreviewUrl = ref('')
@@ -498,6 +541,12 @@ const journalForm = reactive({
   summary: '',
   body: '',
   cover_image_url: '',
+  is_published: false,
+})
+const collectionForm = reactive({
+  title: '',
+  slug: '',
+  description: '',
   is_published: false,
 })
 
@@ -528,8 +577,12 @@ async function loadJournal() {
 
 async function loadCollections() {
   collectionsLoading.value = true
+  collectionError.value = ''
   try {
     collections.value = await fetchCabinetJournalCollections()
+  } catch (err) {
+    collections.value = []
+    collectionError.value = getApiErrorMessage(err, 'Не вдалося завантажити добірки')
   } finally {
     collectionsLoading.value = false
   }
@@ -554,6 +607,33 @@ function resetJournalForm() {
   journalForm.is_published = false
   coverPreviewUrl.value = ''
   coverChanged.value = false
+}
+
+function resetCollectionForm() {
+  collectionForm.title = ''
+  collectionForm.slug = ''
+  collectionForm.description = ''
+  collectionForm.is_published = false
+}
+
+async function onCreateCollection() {
+  collectionSubmitting.value = true
+  collectionError.value = ''
+  try {
+    await createCabinetJournalCollection({
+      title: collectionForm.title,
+      slug: collectionForm.slug,
+      description: collectionForm.description,
+      is_published: collectionForm.is_published,
+    })
+    await loadCollections()
+    resetCollectionForm()
+    createCollectionOpen.value = false
+  } catch (err) {
+    collectionError.value = getApiErrorMessage(err, 'Не вдалося створити добірку')
+  } finally {
+    collectionSubmitting.value = false
+  }
 }
 
 async function onSaveJournal() {
@@ -1083,6 +1163,14 @@ onMounted(() => {
 .journal-collections-list {
   display: grid;
   gap: 10px;
+}
+
+.collections-actions {
+  margin-bottom: 12px;
+}
+
+.collection-form {
+  margin-bottom: 12px;
 }
 
 .journal-collection-row {

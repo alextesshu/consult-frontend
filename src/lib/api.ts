@@ -409,6 +409,16 @@ export async function fetchCabinetJournalCollections(): Promise<CabinetJournalCo
   return resp.data
 }
 
+export async function createCabinetJournalCollection(payload: {
+  title: string
+  slug: string
+  description: string
+  is_published: boolean
+}): Promise<CabinetJournalCollection> {
+  const resp = await http.post<CabinetJournalCollection>('/cabinet/journal/collections/', payload)
+  return resp.data
+}
+
 export async function createAuthorJournalPost(
   payload: Partial<AuthorJournalPost>
 ): Promise<AuthorJournalPost> {
