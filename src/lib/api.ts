@@ -181,6 +181,18 @@ export type AuthorJournalPost = {
   updated_at: string
 }
 
+export type CabinetJournalCollection = {
+  id: number
+  title: string
+  slug: string
+  description: string
+  cover_image_url: string
+  is_published: boolean
+  published_at: string | null
+  created_at: string
+  posts_count: number
+}
+
 export type PublicAuthorJournalPost = {
   id: number
   category?: 'TIP' | 'EXPLAIN' | 'FAQ' | 'RESEARCH' | 'PRACTICE'
@@ -389,6 +401,11 @@ export async function createPracticeReview(
 
 export async function fetchAuthorJournalPosts(): Promise<AuthorJournalPost[]> {
   const resp = await http.get<AuthorJournalPost[]>('/cabinet/journal/')
+  return resp.data
+}
+
+export async function fetchCabinetJournalCollections(): Promise<CabinetJournalCollection[]> {
+  const resp = await http.get<CabinetJournalCollection[]>('/cabinet/journal/collections/')
   return resp.data
 }
 

@@ -410,6 +410,28 @@
         </article>
         </div>
       </div>
+
+      <div v-if="activeTab === 'collections'">
+        <div v-if="collectionsLoading">Завантаження...</div>
+
+        <div v-else-if="!collections.length">
+          Поки що немає жодної добірки.
+        </div>
+
+        <div v-else class="journal-collections-list">
+          <article
+            v-for="collection in collections"
+            :key="collection.id"
+            class="journal-collection-row"
+          >
+            <div>
+              <div>{{ collection.title }}</div>
+              <div>{{ collection.posts_count }} постів</div>
+              <div v-if="collection.description">{{ collection.description }}</div>
+            </div>
+          </article>
+        </div>
+      </div>
     </section>
 
     <ConfirmModal
@@ -432,6 +454,7 @@ import DOMPurify from 'dompurify'
 import { marked } from 'marked'
 import {
   fetchAuthorJournalPosts,
+  fetchCabinetJournalCollections,
   fetchSpecialistProfile,
   createAuthorJournalPost,
   updateAuthorJournalPost,
@@ -439,14 +462,17 @@ import {
   uploadAuthorJournalCover,
   getApiErrorMessage,
   type AuthorJournalPost,
+  type CabinetJournalCollection,
 } from '../lib/api'
 import ConfirmModal from '../components/ConfirmModal.vue'
 import { useConfirmModal } from '../composables/useConfirmModal'
 
 const journalLoading = ref(false)
+const collectionsLoading = ref(false)
 const journalSaving = ref(false)
 const journalError = ref('')
 const journalPosts = ref<AuthorJournalPost[]>([])
+const collections = ref<CabinetJournalCollection[]>([])
 const profileSlug = ref('')
 const createOpen = ref(false)
 const editingPostId = ref<number | null>(null)
@@ -497,6 +523,15 @@ async function loadJournal() {
     journalError.value = getApiErrorMessage(err, 'Не вдалося завантажити авторський журнал')
   } finally {
     journalLoading.value = false
+  }
+}
+
+async function loadCollections() {
+  collectionsLoading.value = true
+  try {
+    collections.value = await fetchCabinetJournalCollections()
+  } finally {
+    collectionsLoading.value = false
   }
 }
 
@@ -930,6 +965,7 @@ function clearCover() {
 
 onMounted(() => {
   loadJournal()
+  loadCollections()
   loadProfileSlug()
 })
 </script>
@@ -1042,6 +1078,18 @@ onMounted(() => {
 .journal-admin-list {
   display: grid;
   gap: 12px;
+}
+
+.journal-collections-list {
+  display: grid;
+  gap: 10px;
+}
+
+.journal-collection-row {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px 14px;
+  background: #fff;
 }
 
 .journal-admin-card {
