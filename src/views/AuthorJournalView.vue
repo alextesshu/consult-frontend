@@ -463,10 +463,43 @@
             :key="collection.id"
             class="journal-collection-row"
           >
-            <div>
-              <div>{{ collection.title }}</div>
-              <div>{{ collection.posts_count }} постів</div>
-              <div v-if="collection.description">{{ collection.description }}</div>
+            <div class="journal-collection-row__top">
+              <div>
+                <div>{{ collection.title }}</div>
+                <div>{{ collection.posts_count }} постів</div>
+                <div v-if="collection.description">{{ collection.description }}</div>
+              </div>
+              <button class="btn btn--ghost btn--sm" type="button" @click="toggleManageCollection(collection.id)">
+                {{ managingCollectionId === collection.id ? 'Сховати' : 'Керувати постами' }}
+              </button>
+            </div>
+
+            <div v-if="managingCollectionId === collection.id" class="collection-manage">
+              <div v-if="collectionDetailsLoadingId === collection.id" class="muted">
+                Завантаження складу добірки...
+              </div>
+              <div v-else-if="!journalPosts.length" class="muted">
+                Немає постів для додавання.
+              </div>
+              <div v-else class="collection-posts-list">
+                <article v-for="post in journalPosts" :key="post.id" class="collection-post-row">
+                  <div class="collection-post-row__title">{{ post.title }}</div>
+                  <button
+                    class="btn btn--ghost btn--sm"
+                    type="button"
+                    :disabled="isPostInCollection(collection.id, post.id) || collectionAddingKey === `${collection.id}:${post.id}`"
+                    @click="addPostToCollection(collection.id, post.id)"
+                  >
+                    {{
+                      isPostInCollection(collection.id, post.id)
+                        ? 'Додано'
+                        : collectionAddingKey === `${collection.id}:${post.id}`
+                          ? 'Додаємо...'
+                          : 'Додати'
+                    }}
+                  </button>
+                </article>
+              </div>
             </div>
           </article>
         </div>
@@ -495,6 +528,8 @@ import {
   fetchAuthorJournalPosts,
   fetchCabinetJournalCollections,
   createCabinetJournalCollection,
+  fetchCabinetJournalCollectionDetail,
+  createCabinetJournalCollectionItem,
   fetchSpecialistProfile,
   createAuthorJournalPost,
   updateAuthorJournalPost,
@@ -503,6 +538,7 @@ import {
   getApiErrorMessage,
   type AuthorJournalPost,
   type CabinetJournalCollection,
+  type CabinetJournalCollectionDetail,
 } from '../lib/api'
 import ConfirmModal from '../components/ConfirmModal.vue'
 import { useConfirmModal } from '../composables/useConfirmModal'
@@ -510,6 +546,8 @@ import { useConfirmModal } from '../composables/useConfirmModal'
 const journalLoading = ref(false)
 const collectionsLoading = ref(false)
 const collectionSubmitting = ref(false)
+const collectionDetailsLoadingId = ref<number | null>(null)
+const collectionAddingKey = ref('')
 const journalSaving = ref(false)
 const journalError = ref('')
 const collectionError = ref('')
@@ -530,6 +568,8 @@ const summaryInput = ref<HTMLTextAreaElement | null>(null)
 const router = useRouter()
 const activeTab = ref<'posts' | 'collections'>('posts')
 const createCollectionOpen = ref(false)
+const managingCollectionId = ref<number | null>(null)
+const collectionDetailsById = ref<Record<number, CabinetJournalCollectionDetail>>({})
 const activeMdField = ref<'summary' | 'body'>('body')
 const coverInput = ref<HTMLInputElement | null>(null)
 const coverPreviewUrl = ref('')
@@ -633,6 +673,50 @@ async function onCreateCollection() {
     collectionError.value = getApiErrorMessage(err, 'Не вдалося створити добірку')
   } finally {
     collectionSubmitting.value = false
+  }
+}
+
+function isPostInCollection(collectionId: number, postId: number): boolean {
+  const detail = collectionDetailsById.value[collectionId]
+  if (!detail) return false
+  return detail.items.some((item) => item.post === postId)
+}
+
+async function loadCollectionDetail(collectionId: number) {
+  collectionDetailsLoadingId.value = collectionId
+  collectionError.value = ''
+  try {
+    const detail = await fetchCabinetJournalCollectionDetail(collectionId)
+    collectionDetailsById.value[collectionId] = detail
+  } catch (err) {
+    collectionError.value = getApiErrorMessage(err, 'Не вдалося завантажити склад добірки')
+  } finally {
+    collectionDetailsLoadingId.value = null
+  }
+}
+
+async function toggleManageCollection(collectionId: number) {
+  if (managingCollectionId.value === collectionId) {
+    managingCollectionId.value = null
+    return
+  }
+  managingCollectionId.value = collectionId
+  await loadCollectionDetail(collectionId)
+}
+
+async function addPostToCollection(collectionId: number, postId: number) {
+  if (isPostInCollection(collectionId, postId)) return
+  const addKey = `${collectionId}:${postId}`
+  collectionAddingKey.value = addKey
+  collectionError.value = ''
+  try {
+    const detail = await createCabinetJournalCollectionItem(collectionId, { post: postId })
+    collectionDetailsById.value[collectionId] = detail
+    await loadCollections()
+  } catch (err) {
+    collectionError.value = getApiErrorMessage(err, 'Не вдалося додати пост у добірку')
+  } finally {
+    collectionAddingKey.value = ''
   }
 }
 
@@ -1178,6 +1262,39 @@ onMounted(() => {
   border-radius: 12px;
   padding: 12px 14px;
   background: #fff;
+}
+
+.journal-collection-row__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.collection-manage {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.collection-posts-list {
+  display: grid;
+  gap: 8px;
+}
+
+.collection-post-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 8px 10px;
+  background: #fff;
+}
+
+.collection-post-row__title {
+  font-size: 14px;
 }
 
 .journal-admin-card {

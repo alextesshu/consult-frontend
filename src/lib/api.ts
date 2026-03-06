@@ -193,6 +193,15 @@ export type CabinetJournalCollection = {
   posts_count: number
 }
 
+export type CabinetJournalCollectionItem = {
+  post: number
+  sort_order: number
+}
+
+export type CabinetJournalCollectionDetail = CabinetJournalCollection & {
+  items: CabinetJournalCollectionItem[]
+}
+
 export type PublicAuthorJournalPost = {
   id: number
   category?: 'TIP' | 'EXPLAIN' | 'FAQ' | 'RESEARCH' | 'PRACTICE'
@@ -416,6 +425,26 @@ export async function createCabinetJournalCollection(payload: {
   is_published: boolean
 }): Promise<CabinetJournalCollection> {
   const resp = await http.post<CabinetJournalCollection>('/cabinet/journal/collections/', payload)
+  return resp.data
+}
+
+export async function fetchCabinetJournalCollectionDetail(
+  collectionId: number
+): Promise<CabinetJournalCollectionDetail> {
+  const resp = await http.get<CabinetJournalCollectionDetail>(
+    `/cabinet/journal/collections/${collectionId}/`
+  )
+  return resp.data
+}
+
+export async function createCabinetJournalCollectionItem(
+  collectionId: number,
+  payload: { post: number; sort_order?: number }
+): Promise<CabinetJournalCollectionDetail> {
+  const resp = await http.post<CabinetJournalCollectionDetail>(
+    `/cabinet/journal/collections/${collectionId}/items/`,
+    payload
+  )
   return resp.data
 }
 
