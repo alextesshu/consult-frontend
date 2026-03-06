@@ -432,18 +432,18 @@
 
           <div class="form-grid">
             <label class="field">
-              <span class="label">Назва</span>
+              <span class="label">Назва серії</span>
               <input v-model.trim="collectionForm.title" class="input" type="text" required />
             </label>
 
             <label class="field field--full">
-              <span class="label">Опис</span>
+              <span class="label">Опис серії</span>
               <textarea v-model.trim="collectionForm.description" class="input" rows="3" />
             </label>
 
             <label class="check field--full">
               <input v-model="collectionForm.is_published" type="checkbox" />
-              <span>Опублікувати</span>
+              <span>Публічно</span>
             </label>
           </div>
 
