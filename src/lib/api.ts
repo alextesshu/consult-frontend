@@ -206,6 +206,20 @@ export type PublicAuthorJournalPostDetail = {
   cover_image_url: string
   published_at: string | null
   created_at: string
+  collection: {
+    id: number
+    title: string
+    slug: string
+    description: string
+    items: Array<{
+      post: {
+        slug: string
+        title: string
+      }
+      sort_order: number
+    }>
+    current_post_index: number | null
+  } | null
 }
 
 export async function uploadProfilePhoto(file: File): Promise<TherapistProfile> {

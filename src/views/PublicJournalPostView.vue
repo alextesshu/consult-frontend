@@ -38,6 +38,48 @@
         <div class="post-card__body">
           <p v-if="post.summary" class="post-summary" v-html="renderMarkdown(post.summary)"></p>
           <div class="post-body" v-html="renderMarkdown(post.body)"></div>
+
+          <section
+            v-if="post.collection && post.collection.items.length > 1"
+            class="collection-card"
+            aria-label="Part of collection"
+          >
+            <div class="collection-card__eyebrow">Part of collection</div>
+            <div class="collection-card__head">
+              <div>
+                <h2 class="collection-card__title">{{ post.collection.title }}</h2>
+                <p v-if="post.collection.description" class="collection-card__description">
+                  {{ post.collection.description }}
+                </p>
+              </div>
+              <div v-if="post.collection.current_post_index" class="collection-card__index">
+                Article {{ post.collection.current_post_index }} of {{ post.collection.items.length }}
+              </div>
+            </div>
+
+            <ol class="collection-list">
+              <li
+                v-for="(item, index) in post.collection.items"
+                :key="`${item.post.slug}-${item.sort_order}`"
+                :class="[
+                  'collection-list__item',
+                  item.post.slug === post.slug ? 'collection-list__item--current' : '',
+                ]"
+              >
+                <span class="collection-list__order">{{ index + 1 }}</span>
+                <RouterLink
+                  v-if="item.post.slug !== post.slug"
+                  class="collection-list__link"
+                  :to="`/${slug}/journal/${item.post.slug}`"
+                >
+                  {{ item.post.title }}
+                </RouterLink>
+                <span v-else class="collection-list__current">
+                  {{ item.post.title }}
+                </span>
+              </li>
+            </ol>
+          </section>
         </div>
 
         <div v-if="post.cover_image_url" class="post-cover">
@@ -334,6 +376,100 @@ onMounted(load)
   color: var(--color-neutral-800, #1e2124);
 }
 
+.collection-card {
+  display: grid;
+  gap: 14px;
+  margin-top: 12px;
+  padding: 18px;
+  border-radius: 16px;
+  border: 1px solid rgba(43, 122, 111, 0.18);
+  background:
+    linear-gradient(180deg, rgba(43, 122, 111, 0.07), rgba(43, 122, 111, 0.02)),
+    #fcfffd;
+}
+
+.collection-card__eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #2b7a6f;
+}
+
+.collection-card__head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.collection-card__title {
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.25;
+}
+
+.collection-card__description {
+  margin: 6px 0 0;
+  color: var(--color-neutral-700, #4b4f54);
+}
+
+.collection-card__index {
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 600;
+  color: #2b7a6f;
+}
+
+.collection-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.collection-list__item {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.collection-list__item--current {
+  border-color: rgba(43, 122, 111, 0.35);
+  background: rgba(43, 122, 111, 0.08);
+}
+
+.collection-list__order {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: rgba(43, 122, 111, 0.12);
+  color: #2b7a6f;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.collection-list__link,
+.collection-list__current {
+  min-width: 0;
+  font-weight: 600;
+  color: var(--color-neutral-900, #14171a);
+  text-decoration: none;
+}
+
+.collection-list__link:hover {
+  color: #2b7a6f;
+}
+
 .post-cover {
   border-radius: 16px;
   overflow: hidden;
@@ -405,6 +541,10 @@ onMounted(load)
 
   .post-card__grid {
     grid-template-columns: 1fr;
+  }
+
+  .collection-card__head {
+    flex-direction: column;
   }
 
   .post-cover img {
