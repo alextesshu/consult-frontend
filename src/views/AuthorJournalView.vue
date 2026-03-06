@@ -456,6 +456,9 @@
         </form>
 
         <div v-if="collectionError" class="form-error" role="alert">{{ collectionError }}</div>
+        <p v-if="collectionSuccessMessage" class="journal-success-message">
+          {{ collectionSuccessMessage }}
+        </p>
 
         <div v-if="collectionsLoading">Завантаження...</div>
 
@@ -558,6 +561,7 @@ const collectionAddingKey = ref('')
 const journalSaving = ref(false)
 const journalError = ref('')
 const collectionError = ref('')
+const collectionSuccessMessage = ref('')
 const journalPosts = ref<AuthorJournalPost[]>([])
 const collections = ref<CabinetJournalCollection[]>([])
 const profileSlug = ref('')
@@ -685,6 +689,10 @@ async function onCreateCollection() {
     await loadCollections()
     resetCollectionForm()
     createCollectionOpen.value = false
+    collectionSuccessMessage.value = 'Серію створено.'
+    setTimeout(() => {
+      collectionSuccessMessage.value = ''
+    }, 3000)
   } catch (err) {
     collectionError.value = getApiErrorMessage(err, 'Не вдалося створити добірку')
   } finally {
@@ -1294,6 +1302,13 @@ onMounted(() => {
   color: var(--muted);
   font-size: 14px;
   line-height: 1.5;
+}
+
+.journal-success-message {
+  margin: 0 0 10px;
+  color: #1f5f56;
+  font-size: 14px;
+  font-weight: 600;
 }
 
 .journal-collection-row {
