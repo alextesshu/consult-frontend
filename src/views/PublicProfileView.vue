@@ -193,98 +193,120 @@
 
         <div v-if="journalLoading" class="muted">Завантажуємо журнал...</div>
         <div v-else-if="journalError" class="form-error">{{ journalError }}</div>
-        <div v-else-if="filteredJournalPosts.length === 0" class="empty">
-          <div class="empty-title">Немає статей у цій категорії</div>
-          <div class="muted">Спробуйте інший фільтр або поверніться до всіх статей.</div>
-          <button class="btn btn--ghost btn--sm" type="button" @click="activeCategory = 'ALL'">
-            Повернути всі статті
-          </button>
-        </div>
-        <div v-else class="journal-list">
-          <div class="journal-filters" role="tablist" aria-label="Фільтр статей">
-            <button
-              v-for="opt in categoryOptions"
-              :key="opt.key"
-              type="button"
-              class="filter-chip"
-              :class="{ 'is-active': activeCategory === opt.key }"
-              @click="activeCategory = opt.key"
-            >
-              {{ opt.label }}
-            </button>
-          </div>
-          <article
-            v-if="featuredPost"
-            :class="[
-              'journal-card',
-              'journal-card--feature',
-              featuredPost.is_featured ? 'journal-card--pinned' : '',
-              'journal-card--closed',
-            ]"
-            role="button"
-            tabindex="0"
-            @click="navigateToPost(featuredPost)"
-            @keydown.enter="navigateToPost(featuredPost)"
-            @keydown.space.prevent="navigateToPost(featuredPost)"
-          >
-            <div class="journal-body">
-              <span class="post-tag" :style="{ '--cat': categoryColor(featuredPost.category) }">
-                {{ categoryLabel(featuredPost.category) }}
-              </span>
-              <span v-if="featuredPost.is_featured" class="pin-badge">Закріплено</span>
-              <div class="journal-title">{{ featuredPost.title }}</div>
-              <div class="journal-meta">
-                {{ formatDate(featuredPost.published_at || featuredPost.created_at) }}
-                · {{ readingTime(featuredPost.summary) }} хв читання
-              </div>
-              <div class="journal-summary" v-if="featuredPost.summary" v-html="renderMarkdown(featuredPost.summary)"></div>
-              <RouterLink class="read-more" :to="`/${slug}/journal/${featuredPost.slug}`" @click.stop>
-                Читати статтю →
+        <div v-else>
+          <section v-if="previewCollections.length" class="profile-collections">
+            <div class="profile-collections__head">
+              <div class="profile-collections__title">Добірки</div>
+              <RouterLink class="btn btn--ghost btn--sm" :to="`/${slug}/journal`">
+                Переглянути всі
               </RouterLink>
             </div>
-            <div v-if="featuredPost.cover_image_url" class="journal-cover">
-              <img :src="featuredPost.cover_image_url" alt="Обкладинка статті" />
+            <div class="profile-collections__list">
+              <RouterLink
+                v-for="collection in previewCollections"
+                :key="collection.slug"
+                class="profile-collection-item"
+                :to="`/${slug}/journal/collections/${collection.slug}`"
+              >
+                <span class="profile-collection-item__name">{{ collection.title }}</span>
+                <span class="profile-collection-item__meta">{{ collection.posts_count }} статті</span>
+              </RouterLink>
             </div>
-          </article>
+          </section>
 
-          <div class="journal-grid">
+          <div v-if="filteredJournalPosts.length === 0" class="empty">
+            <div class="empty-title">Немає статей у цій категорії</div>
+            <div class="muted">Спробуйте інший фільтр або поверніться до всіх статей.</div>
+            <button class="btn btn--ghost btn--sm" type="button" @click="activeCategory = 'ALL'">
+              Повернути всі статті
+            </button>
+          </div>
+          <div v-else class="journal-list">
+            <div class="journal-filters" role="tablist" aria-label="Фільтр статей">
+              <button
+                v-for="opt in categoryOptions"
+                :key="opt.key"
+                type="button"
+                class="filter-chip"
+                :class="{ 'is-active': activeCategory === opt.key }"
+                @click="activeCategory = opt.key"
+              >
+                {{ opt.label }}
+              </button>
+            </div>
             <article
-              v-for="post in gridPosts"
-              :key="post.id"
+              v-if="featuredPost"
               :class="[
                 'journal-card',
-                post.is_featured ? 'journal-card--pinned' : '',
+                'journal-card--feature',
+                featuredPost.is_featured ? 'journal-card--pinned' : '',
                 'journal-card--closed',
               ]"
               role="button"
               tabindex="0"
-              @click="navigateToPost(post)"
-              @keydown.enter="navigateToPost(post)"
-              @keydown.space.prevent="navigateToPost(post)"
+              @click="navigateToPost(featuredPost)"
+              @keydown.enter="navigateToPost(featuredPost)"
+              @keydown.space.prevent="navigateToPost(featuredPost)"
             >
               <div class="journal-body">
-                <span class="post-tag" :style="{ '--cat': categoryColor(post.category) }">
-                  {{ categoryLabel(post.category) }}
+                <span class="post-tag" :style="{ '--cat': categoryColor(featuredPost.category) }">
+                  {{ categoryLabel(featuredPost.category) }}
                 </span>
-                <span v-if="post.is_featured" class="pin-badge">Закріплено</span>
-                <div class="journal-title">{{ post.title }}</div>
+                <span v-if="featuredPost.is_featured" class="pin-badge">Закріплено</span>
+                <div class="journal-title">{{ featuredPost.title }}</div>
                 <div class="journal-meta">
-                  {{ formatDate(post.published_at || post.created_at) }}
-                  · {{ readingTime(post.summary) }} хв читання
+                  {{ formatDate(featuredPost.published_at || featuredPost.created_at) }}
+                  · {{ readingTime(featuredPost.summary) }} хв читання
                 </div>
-                <div
-                  class="journal-summary"
-                  v-if="post.summary"
-                  v-html="renderMarkdown(post.summary)"
-                ></div>
-                <RouterLink class="read-more" :to="`/${slug}/journal/${post.slug}`" @click.stop>
+                <div class="journal-summary" v-if="featuredPost.summary" v-html="renderMarkdown(featuredPost.summary)"></div>
+                <RouterLink class="read-more" :to="`/${slug}/journal/${featuredPost.slug}`" @click.stop>
                   Читати статтю →
                 </RouterLink>
               </div>
-              <div v-if="post.cover_image_url" class="journal-cover">
-                <img :src="post.cover_image_url" alt="Обкладинка статті" />
+              <div v-if="featuredPost.cover_image_url" class="journal-cover">
+                <img :src="featuredPost.cover_image_url" alt="Обкладинка статті" />
               </div>
             </article>
+
+            <div class="journal-grid">
+              <article
+                v-for="post in gridPosts"
+                :key="post.id"
+                :class="[
+                  'journal-card',
+                  post.is_featured ? 'journal-card--pinned' : '',
+                  'journal-card--closed',
+                ]"
+                role="button"
+                tabindex="0"
+                @click="navigateToPost(post)"
+                @keydown.enter="navigateToPost(post)"
+                @keydown.space.prevent="navigateToPost(post)"
+              >
+                <div class="journal-body">
+                  <span class="post-tag" :style="{ '--cat': categoryColor(post.category) }">
+                    {{ categoryLabel(post.category) }}
+                  </span>
+                  <span v-if="post.is_featured" class="pin-badge">Закріплено</span>
+                  <div class="journal-title">{{ post.title }}</div>
+                  <div class="journal-meta">
+                    {{ formatDate(post.published_at || post.created_at) }}
+                    · {{ readingTime(post.summary) }} хв читання
+                  </div>
+                  <div
+                    class="journal-summary"
+                    v-if="post.summary"
+                    v-html="renderMarkdown(post.summary)"
+                  ></div>
+                  <RouterLink class="read-more" :to="`/${slug}/journal/${post.slug}`" @click.stop>
+                    Читати статтю →
+                  </RouterLink>
+                </div>
+                <div v-if="post.cover_image_url" class="journal-cover">
+                  <img :src="post.cover_image_url" alt="Обкладинка статті" />
+                </div>
+              </article>
+            </div>
           </div>
         </div>
       </div>
@@ -360,8 +382,10 @@ import { toLocalDate } from '../lib/dates'
 import {
   fetchPublicSpecialistProfile,
   fetchPublicAuthorJournalPosts,
+  fetchPublicJournalCollections,
   type PublicSpecialistProfile,
   type PublicAuthorJournalPost,
+  type PublicJournalCollectionListItem,
 } from '../lib/api'
 import { useAuthStore } from '../stores/auth'
 import { useToast } from '../composables/useToast'
@@ -406,6 +430,7 @@ let settingAttentionTimer: number | null = null
 const clientSessions = ref<ClientSession[]>([])
 const pastClientSessions = ref<ClientSession[]>([])
 const journalPosts = ref<PublicAuthorJournalPost[]>([])
+const journalCollections = ref<PublicJournalCollectionListItem[]>([])
 const journalLoading = ref(false)
 const journalError = ref('')
 type JournalCategory = 'ALL' | 'TIP' | 'EXPLAIN' | 'FAQ' | 'RESEARCH' | 'PRACTICE'
@@ -653,9 +678,15 @@ async function loadJournal() {
   journalLoading.value = true
   journalError.value = ''
   try {
-    journalPosts.value = await fetchPublicAuthorJournalPosts(slug.value)
+    const [posts, collections] = await Promise.all([
+      fetchPublicAuthorJournalPosts(slug.value),
+      fetchPublicJournalCollections(slug.value),
+    ])
+    journalPosts.value = posts
+    journalCollections.value = collections
   } catch {
     journalPosts.value = []
+    journalCollections.value = []
     journalError.value = 'Не вдалося завантажити авторський журнал.'
   } finally {
     journalLoading.value = false
@@ -740,6 +771,7 @@ const gridPosts = computed(() =>
     ? filteredJournalPosts.value.filter((p) => p.id !== featuredPost.value?.id)
     : filteredJournalPosts.value
 )
+const previewCollections = computed(() => journalCollections.value.slice(0, 3))
 
 async function loadClientSessions() {
   if (!isAuthenticated.value || !isClient.value) return
@@ -1258,6 +1290,61 @@ onMounted(async () => {
   .panel--journal {
     display: grid;
     gap: 12px;
+  }
+
+  .profile-collections {
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 10px 12px;
+    background: #fff;
+    display: grid;
+    gap: 10px;
+  }
+
+  .profile-collections__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .profile-collections__title {
+    font-size: 16px;
+    font-weight: 700;
+  }
+
+  .profile-collections__list {
+    display: grid;
+    gap: 8px;
+  }
+
+  .profile-collection-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 8px 10px;
+    color: inherit;
+    text-decoration: none;
+    background: rgba(255, 255, 255, 0.85);
+  }
+
+  .profile-collection-item:hover {
+    border-color: rgba(43, 122, 111, 0.35);
+    background: rgba(43, 122, 111, 0.06);
+  }
+
+  .profile-collection-item__name {
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .profile-collection-item__meta {
+    font-size: 12px;
+    color: var(--muted);
+    white-space: nowrap;
   }
 
   .journal-list {
