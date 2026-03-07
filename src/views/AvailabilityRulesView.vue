@@ -16,6 +16,9 @@
         <div>
           <div class="badge badge--soft">Нове правило</div>
           <h2 class="panel__title">Додати правило</h2>
+          <p class="muted generation__subtitle">
+            Доступні інтервали впродовж дня. Щоб додати перерву, створіть два інтервали на один день.
+          </p>
         </div>
       </div>
 
