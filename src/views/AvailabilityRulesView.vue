@@ -53,7 +53,7 @@
           </label>
 
           <label class="field">
-            Буфер (хв)
+            Пауза після сесії (хв)
             <input
               v-model.number="createForm.buffer_minutes"
               class="input"
@@ -62,6 +62,7 @@
               step="5"
               required
             />
+            <span class="field__hint">Перерва між двома сесіями.</span>
           </label>
 
           <label class="field rule-form__active">
@@ -127,7 +128,7 @@
                 </label>
 
                 <label class="field">
-                  Буфер (хв)
+                  Пауза після сесії (хв)
                   <input
                     v-model.number="editForm.buffer_minutes"
                     class="input"
@@ -136,6 +137,7 @@
                     step="5"
                     required
                   />
+                  <span class="field__hint">Перерва між двома сесіями.</span>
                 </label>
 
                 <label class="field rule-form__active">
@@ -512,6 +514,12 @@ onMounted(loadRules)
   display: grid;
   gap: 6px;
   font-size: 12px;
+  color: var(--muted);
+}
+
+.field__hint {
+  font-size: 11px;
+  line-height: 1.3;
   color: var(--muted);
 }
 
