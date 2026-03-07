@@ -481,10 +481,10 @@ onBeforeUnmount(() => {
 }
 
 .hero-agency__actions .btn {
-  min-height: 38px;
-  padding: 8px 14px;
+  min-height: 41px;
+  padding: 0 18px;
   font-size: 14px;
-  border-radius: var(--radius-md);
+  border-radius: 10px;
 }
 
 .hero-agency__actions .btn--primary {

@@ -550,16 +550,16 @@ loadUpcomingReadAt()
 
 .nav {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   font-weight: 300;
   flex-wrap: wrap;
   justify-content: flex-end;
 }
 
 .nav a {
-  padding: 3px 9px;
-  min-height: 28px;
-  border-radius: 6px;
+  padding: 4px 12px;
+  min-height: 32px;
+  border-radius: 8px;
   border: 1px solid color-mix(in srgb, var(--topbar-text) 22%, transparent);
   color: var(--topbar-text);
   display: inline-flex;
@@ -595,11 +595,11 @@ loadUpcomingReadAt()
 
 .icon-btn {
   position: relative;
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   display: grid;
   place-items: center;
-  border-radius: 6px;
+  border-radius: 8px;
   border: 1px solid color-mix(in srgb, var(--topbar-text) 25%, transparent);
   color: var(--topbar-text);
   background: color-mix(in srgb, var(--topbar-text) 8%, transparent);
@@ -608,8 +608,8 @@ loadUpcomingReadAt()
 }
 
 .icon-btn svg {
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
 }
 
 .icon-btn:hover,
@@ -635,9 +635,9 @@ loadUpcomingReadAt()
 }
 
 .topbar .btn--ghost {
-  min-height: 28px;
-  padding: 3px 9px;
-  border-radius: 6px;
+  min-height: 32px;
+  padding: 4px 12px;
+  border-radius: 8px;
   color: var(--topbar-text);
   border-color: color-mix(in srgb, var(--topbar-text) 35%, transparent);
   background: color-mix(in srgb, var(--topbar-text) 10%, transparent);
