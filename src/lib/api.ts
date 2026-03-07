@@ -194,6 +194,7 @@ export type CabinetJournalCollection = {
 }
 
 export type CabinetJournalCollectionItem = {
+  id: number
   post: number
   sort_order: number
 }
@@ -451,6 +452,28 @@ export async function createCabinetJournalCollectionItem(
   const resp = await http.post<CabinetJournalCollectionDetail>(
     `/cabinet/journal/collections/${collectionId}/items/`,
     payload
+  )
+  return resp.data
+}
+
+export async function updateCabinetJournalCollectionItem(
+  collectionId: number,
+  itemId: number,
+  payload: { sort_order: number }
+): Promise<CabinetJournalCollectionDetail> {
+  const resp = await http.patch<CabinetJournalCollectionDetail>(
+    `/cabinet/journal/collections/${collectionId}/items/${itemId}/`,
+    payload
+  )
+  return resp.data
+}
+
+export async function deleteCabinetJournalCollectionItem(
+  collectionId: number,
+  itemId: number
+): Promise<CabinetJournalCollectionDetail> {
+  const resp = await http.delete<CabinetJournalCollectionDetail>(
+    `/cabinet/journal/collections/${collectionId}/items/${itemId}/`
   )
   return resp.data
 }

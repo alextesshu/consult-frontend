@@ -485,35 +485,83 @@
                 </div>
               </div>
 
-              <div v-if="managingCollectionId === collection.id" class="collection-manage">
-                <div v-if="collectionDetailsLoadingId === collection.id" class="muted">
-                  Завантаження складу добірки...
-                </div>
-                <div v-else-if="!journalPosts.length" class="muted">
-                  Немає постів для додавання.
-                </div>
-                <div v-else class="collection-posts-list">
-                  <article v-for="post in journalPosts" :key="post.id" class="collection-post-row">
-                    <div class="collection-post-row__title">{{ post.title }}</div>
-                    <button
-                      class="btn btn--ghost btn--sm"
-                      type="button"
-                      :disabled="isPostInCollection(collection.id, post.id) || collectionAddingKey === `${collection.id}:${post.id}`"
-                      @click="addPostToCollection(collection.id, post.id)"
+            <div v-if="managingCollectionId === collection.id" class="collection-manage">
+              <div v-if="collectionDetailsLoadingId === collection.id" class="muted">
+                Завантаження складу добірки...
+              </div>
+              <div v-else class="collection-manage__content">
+                <div class="collection-manage__section">
+                  <div class="collection-manage__section-title">У серії</div>
+                  <div v-if="!getCollectionItems(collection.id).length" class="muted">
+                    Поки що в серії немає записів.
+                  </div>
+                  <div v-else class="collection-posts-list">
+                    <article
+                      v-for="(item, index) in getCollectionItems(collection.id)"
+                      :key="item.id"
+                      class="collection-post-row"
                     >
-                      {{
-                        isPostInCollection(collection.id, post.id)
-                          ? 'Додано'
-                          : collectionAddingKey === `${collection.id}:${post.id}`
-                            ? 'Додаємо...'
-                            : 'Додати'
-                      }}
-                    </button>
-                  </article>
+                      <div class="collection-post-row__title">{{ getPostTitle(item.post) }}</div>
+                      <div class="collection-post-row__actions">
+                        <button
+                          class="btn btn--ghost btn--sm"
+                          type="button"
+                          :disabled="index === 0 || collectionItemsBusyKey === `${collection.id}:${item.id}:up`"
+                          @click="moveCollectionItem(collection.id, item.id, 'up')"
+                        >
+                          Вище
+                        </button>
+                        <button
+                          class="btn btn--ghost btn--sm"
+                          type="button"
+                          :disabled="index === getCollectionItems(collection.id).length - 1 || collectionItemsBusyKey === `${collection.id}:${item.id}:down`"
+                          @click="moveCollectionItem(collection.id, item.id, 'down')"
+                        >
+                          Нижче
+                        </button>
+                        <button
+                          class="btn btn--ghost btn--sm btn--danger-soft"
+                          type="button"
+                          :disabled="collectionItemsBusyKey === `${collection.id}:${item.id}:remove`"
+                          @click="removeCollectionItem(collection.id, item.id)"
+                        >
+                          Прибрати
+                        </button>
+                      </div>
+                    </article>
+                  </div>
+                </div>
+
+                <div class="collection-manage__section">
+                  <div class="collection-manage__section-title">Додати записи</div>
+                  <div v-if="!journalPosts.length" class="muted">
+                    Немає постів для додавання.
+                  </div>
+                  <div v-else-if="!getAvailablePostsForCollection(collection.id).length" class="muted">
+                    Усі записи вже додані в серію.
+                  </div>
+                  <div v-else class="collection-posts-list">
+                    <article
+                      v-for="post in getAvailablePostsForCollection(collection.id)"
+                      :key="post.id"
+                      class="collection-post-row"
+                    >
+                      <div class="collection-post-row__title">{{ post.title }}</div>
+                      <button
+                        class="btn btn--ghost btn--sm"
+                        type="button"
+                        :disabled="collectionAddingKey === `${collection.id}:${post.id}`"
+                        @click="addPostToCollection(collection.id, post.id)"
+                      >
+                        {{ collectionAddingKey === `${collection.id}:${post.id}` ? 'Додаємо...' : 'Додати' }}
+                      </button>
+                    </article>
+                  </div>
                 </div>
               </div>
-            </article>
-          </div>
+            </div>
+          </article>
+        </div>
         </section>
 
         <section class="collections-section collections-create">
@@ -586,6 +634,8 @@ import {
   createCabinetJournalCollection,
   fetchCabinetJournalCollectionDetail,
   createCabinetJournalCollectionItem,
+  updateCabinetJournalCollectionItem,
+  deleteCabinetJournalCollectionItem,
   fetchSpecialistProfile,
   createAuthorJournalPost,
   updateAuthorJournalPost,
@@ -604,6 +654,7 @@ const collectionsLoading = ref(false)
 const collectionSubmitting = ref(false)
 const collectionDetailsLoadingId = ref<number | null>(null)
 const collectionAddingKey = ref('')
+const collectionItemsBusyKey = ref('')
 const journalSaving = ref(false)
 const journalError = ref('')
 const collectionError = ref('')
@@ -810,6 +861,62 @@ async function addPostToCollection(collectionId: number, postId: number) {
     collectionError.value = getApiErrorMessage(err, 'Не вдалося додати пост у добірку')
   } finally {
     collectionAddingKey.value = ''
+  }
+}
+
+function getCollectionItems(collectionId: number) {
+  const detail = collectionDetailsById.value[collectionId]
+  return detail?.items || []
+}
+
+function getPostTitle(postId: number): string {
+  return journalPosts.value.find((post) => post.id === postId)?.title || `Post #${postId}`
+}
+
+function getAvailablePostsForCollection(collectionId: number) {
+  return journalPosts.value.filter((post) => !isPostInCollection(collectionId, post.id))
+}
+
+async function moveCollectionItem(collectionId: number, itemId: number, direction: 'up' | 'down') {
+  const items = getCollectionItems(collectionId)
+  const index = items.findIndex((item) => item.id === itemId)
+  if (index < 0) return
+  const swapIndex = direction === 'up' ? index - 1 : index + 1
+  if (swapIndex < 0 || swapIndex >= items.length) return
+
+  const current = items[index]
+  const target = items[swapIndex]
+  const busyKey = `${collectionId}:${itemId}:${direction}`
+  collectionItemsBusyKey.value = busyKey
+  collectionError.value = ''
+  try {
+    await updateCabinetJournalCollectionItem(collectionId, current.id, {
+      sort_order: target.sort_order,
+    })
+    const detail = await updateCabinetJournalCollectionItem(collectionId, target.id, {
+      sort_order: current.sort_order,
+    })
+    collectionDetailsById.value[collectionId] = detail
+    await loadCollections()
+  } catch (err) {
+    collectionError.value = getApiErrorMessage(err, 'Не вдалося змінити порядок у добірці')
+  } finally {
+    collectionItemsBusyKey.value = ''
+  }
+}
+
+async function removeCollectionItem(collectionId: number, itemId: number) {
+  const busyKey = `${collectionId}:${itemId}:remove`
+  collectionItemsBusyKey.value = busyKey
+  collectionError.value = ''
+  try {
+    const detail = await deleteCabinetJournalCollectionItem(collectionId, itemId)
+    collectionDetailsById.value[collectionId] = detail
+    await loadCollections()
+  } catch (err) {
+    collectionError.value = getApiErrorMessage(err, 'Не вдалося прибрати пост із добірки')
+  } finally {
+    collectionItemsBusyKey.value = ''
   }
 }
 
@@ -1489,6 +1596,24 @@ onMounted(() => {
   border-top: 1px solid var(--line);
 }
 
+.collection-manage__content {
+  display: grid;
+  gap: 14px;
+}
+
+.collection-manage__section {
+  display: grid;
+  gap: 8px;
+}
+
+.collection-manage__section-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
 .collection-posts-list {
   display: grid;
   gap: 8px;
@@ -1507,6 +1632,13 @@ onMounted(() => {
 
 .collection-post-row__title {
   font-size: 14px;
+}
+
+.collection-post-row__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
 }
 
 .journal-admin-card {
