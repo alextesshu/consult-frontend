@@ -482,7 +482,7 @@
                   <button
                     class="btn btn--ghost btn--sm"
                     type="button"
-                    @click="editingCollectionId = editingCollectionId === collection.id ? null : collection.id"
+                    @click="startCollectionEdit(collection)"
                   >
                     Редагувати серію
                   </button>
@@ -491,6 +491,39 @@
                   </button>
                 </div>
               </div>
+
+              <form
+                v-if="editingCollectionId === collection.id"
+                class="collection-edit-form"
+                @submit.prevent="onSaveCollectionEdit(collection.id)"
+              >
+                <div class="form-grid">
+                  <label class="field">
+                    <span class="label">Назва серії</span>
+                    <input v-model.trim="collectionEditForm.title" class="input" type="text" required />
+                  </label>
+
+                  <label class="field field--full">
+                    <span class="label">Опис серії</span>
+                    <textarea v-model.trim="collectionEditForm.description" class="input" rows="3" />
+                  </label>
+
+                  <label class="check field--full">
+                    <input v-model="collectionEditForm.is_published" type="checkbox" />
+                    <span>Публічно</span>
+                  </label>
+                </div>
+
+                <div class="actions">
+                  <button class="btn" type="submit" :disabled="collectionEditSubmitting">
+                    Зберегти
+                  </button>
+                  <button class="btn btn--ghost" type="button" :disabled="collectionEditSubmitting" @click="cancelCollectionEdit">
+                    Скасувати
+                  </button>
+                  <span v-if="collectionEditSubmitting" class="muted">Збереження…</span>
+                </div>
+              </form>
 
             <div v-if="managingCollectionId === collection.id" class="collection-manage">
               <div v-if="collectionDetailsLoadingId === collection.id" class="muted">
@@ -679,6 +712,7 @@ import {
   fetchAuthorJournalPosts,
   fetchCabinetJournalCollections,
   createCabinetJournalCollection,
+  updateCabinetJournalCollection,
   fetchCabinetJournalCollectionDetail,
   createCabinetJournalCollectionItem,
   updateCabinetJournalCollectionItem,
@@ -699,6 +733,7 @@ import { useConfirmModal } from '../composables/useConfirmModal'
 const journalLoading = ref(false)
 const collectionsLoading = ref(false)
 const collectionSubmitting = ref(false)
+const collectionEditSubmitting = ref(false)
 const collectionDetailsLoadingId = ref<number | null>(null)
 const collectionAddingKey = ref('')
 const collectionItemsBusyKey = ref('')
@@ -740,6 +775,11 @@ const journalForm = reactive({
   is_published: false,
 })
 const collectionForm = reactive({
+  title: '',
+  description: '',
+  is_published: false,
+})
+const collectionEditForm = reactive({
   title: '',
   description: '',
   is_published: false,
@@ -843,6 +883,47 @@ async function onCreateCollection() {
     collectionError.value = getApiErrorMessage(err, 'Не вдалося створити добірку')
   } finally {
     collectionSubmitting.value = false
+  }
+}
+
+function startCollectionEdit(collection: CabinetJournalCollection) {
+  if (editingCollectionId.value === collection.id) {
+    cancelCollectionEdit()
+    return
+  }
+  editingCollectionId.value = collection.id
+  collectionEditForm.title = collection.title || ''
+  collectionEditForm.description = collection.description || ''
+  collectionEditForm.is_published = collection.is_published
+  collectionError.value = ''
+}
+
+function cancelCollectionEdit() {
+  editingCollectionId.value = null
+  collectionEditForm.title = ''
+  collectionEditForm.description = ''
+  collectionEditForm.is_published = false
+}
+
+async function onSaveCollectionEdit(collectionId: number) {
+  collectionEditSubmitting.value = true
+  collectionError.value = ''
+  try {
+    await updateCabinetJournalCollection(collectionId, {
+      title: collectionEditForm.title,
+      description: collectionEditForm.description,
+      is_published: collectionEditForm.is_published,
+    })
+    await loadCollections()
+    cancelCollectionEdit()
+    collectionSuccessMessage.value = 'Серію оновлено.'
+    setTimeout(() => {
+      collectionSuccessMessage.value = ''
+    }, 3000)
+  } catch (err) {
+    collectionError.value = getApiErrorMessage(err, 'Не вдалося оновити серію')
+  } finally {
+    collectionEditSubmitting.value = false
   }
 }
 
@@ -1640,6 +1721,12 @@ onMounted(() => {
   flex-wrap: wrap;
   gap: 8px;
   justify-content: flex-end;
+}
+
+.collection-edit-form {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--line);
 }
 
 .collection-manage {

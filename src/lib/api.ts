@@ -436,6 +436,21 @@ export async function createCabinetJournalCollection(payload: {
   return resp.data
 }
 
+export async function updateCabinetJournalCollection(
+  collectionId: number,
+  payload: {
+    title: string
+    description: string
+    is_published: boolean
+  }
+): Promise<CabinetJournalCollectionDetail> {
+  const resp = await http.patch<CabinetJournalCollectionDetail>(
+    `/cabinet/journal/collections/${collectionId}/`,
+    payload
+  )
+  return resp.data
+}
+
 export async function fetchCabinetJournalCollectionDetail(
   collectionId: number
 ): Promise<CabinetJournalCollectionDetail> {
