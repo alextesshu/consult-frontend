@@ -75,8 +75,16 @@
           <h2 class="panel__title">Заплановані сесії</h2>
         </div>
       </div>
+      <div v-if="needsConfirmation.length" class="new-bookings-banner">
+        <div>
+          Нові бронювання: <strong>{{ needsConfirmation.length }}</strong>
+        </div>
+        <button class="btn btn--ghost btn--sm" type="button" @click="focusSession(needsConfirmation[0].id)">
+          Перейти до першого
+        </button>
+      </div>
       <EmptyState
-        v-if="!loading && upcoming.length === 0"
+        v-if="!loading && upcomingSorted.length === 0"
         title="Немає запланованих сесій"
         description="Створіть вільні віконця або поділіться профілем, щоб клієнти могли записатися."
         action-text="Створити віконце"
@@ -86,7 +94,7 @@
       />
       <div v-else class="session-list">
         <article
-          v-for="session in upcoming"
+          v-for="session in upcomingSorted"
           :key="session.id"
           :id="`session-${session.id}`"
           class="session-card session-card--with-photo"
@@ -115,6 +123,12 @@
                 class="status-pill status-pill--danger"
               >
                 Потрібне підтвердження
+              </div>
+              <div
+                v-if="session.status === 'SCHEDULED'"
+                class="status-pill status-pill--new"
+              >
+                Нова заявка
               </div>
               <div
                 v-if="hasPendingReschedule(session.id)"
@@ -463,12 +477,25 @@ const historySessions = computed(() => {
   return history
 })
 
+const upcomingSorted = computed(() => {
+  return upcoming.value
+    .slice()
+    .sort((a, b) => {
+      const aPriority = a.status === 'SCHEDULED' ? 0 : 1
+      const bPriority = b.status === 'SCHEDULED' ? 0 : 1
+      if (aPriority !== bPriority) return aPriority - bPriority
+      const aStart = new Date(a.slot_start_at || '').getTime()
+      const bStart = new Date(b.slot_start_at || '').getTime()
+      return aStart - bStart
+    })
+})
+
 const needsConfirmation = computed(() =>
-  upcoming.value.filter((session) => session.status === 'SCHEDULED')
+  upcomingSorted.value.filter((session) => session.status === 'SCHEDULED')
 )
 
 const nextUpcoming = computed(() => {
-  const items = upcoming.value
+  const items = upcomingSorted.value
     .filter((session) => session.slot_start_at)
     .slice()
     .sort(
@@ -578,6 +605,15 @@ async function scrollToHighlightedSession() {
 function clearHighlight(id: number) {
   if (highlightedSessionId.value === id) {
     highlightedSessionId.value = null
+  }
+}
+
+async function focusSession(id: number) {
+  highlightedSessionId.value = id
+  await nextTick()
+  const el = document.getElementById(`session-${id}`)
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }
 }
 
@@ -1029,6 +1065,23 @@ onBeforeUnmount(() => {
   color: #a03838;
 }
 
+.status-pill--new {
+  background: rgba(8, 113, 201, 0.16);
+  color: #0c4c77;
+}
+
+.new-bookings-banner {
+  margin-top: 6px;
+  padding: 10px 12px;
+  border: 1px solid rgba(8, 113, 201, 0.3);
+  border-radius: 12px;
+  background: rgba(8, 113, 201, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
 .session-actions {
   display: flex;
   gap: 8px;
@@ -1204,6 +1257,11 @@ onBeforeUnmount(() => {
 
 @media (max-width: 860px) {
   .sessions__hero {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .new-bookings-banner {
     flex-direction: column;
     align-items: flex-start;
   }
