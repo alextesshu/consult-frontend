@@ -74,12 +74,11 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import {
-  ChatMessage,
-  ChatThread,
   fetchChatMessages,
   fetchChatThreads,
   sendChatMessage,
 } from '../lib/api'
+import type { ChatMessage, ChatThread } from '../lib/api'
 
 const auth = useAuthStore()
 const threads = ref<ChatThread[]>([])

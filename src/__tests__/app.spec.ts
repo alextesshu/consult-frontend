@@ -28,6 +28,6 @@ function renderWithProviders(initialPath = '/') {
 describe('App shell', () => {
   it('renders footer text', async () => {
     await renderWithProviders('/')
-    expect(screen.getByText(/Pro Consult/i)).toBeInTheDocument()
+    expect(screen.getByText(/Без комісій\. Без посередників\./i)).toBeInTheDocument()
   })
 })
