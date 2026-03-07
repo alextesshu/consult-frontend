@@ -35,12 +35,26 @@
 
           <label class="field">
             Початок
-            <input v-model="createForm.start_time" class="input" type="time" required />
+            <input
+              ref="ruleCreateStartTimeRef"
+              v-model="createForm.start_time"
+              class="input"
+              type="time"
+              required
+              @click.stop="openDateTimePicker(ruleCreateStartTimeRef)"
+            />
           </label>
 
           <label class="field">
             Кінець
-            <input v-model="createForm.end_time" class="input" type="time" required />
+            <input
+              ref="ruleCreateEndTimeRef"
+              v-model="createForm.end_time"
+              class="input"
+              type="time"
+              required
+              @click.stop="openDateTimePicker(ruleCreateEndTimeRef)"
+            />
           </label>
 
           <label class="field">
@@ -109,12 +123,26 @@
 
                 <label class="field">
                   Початок
-                  <input v-model="editForm.start_time" class="input" type="time" required />
+                  <input
+                    ref="ruleEditStartTimeRef"
+                    v-model="editForm.start_time"
+                    class="input"
+                    type="time"
+                    required
+                    @click.stop="openDateTimePicker(ruleEditStartTimeRef)"
+                  />
                 </label>
 
                 <label class="field">
                   Кінець
-                  <input v-model="editForm.end_time" class="input" type="time" required />
+                  <input
+                    ref="ruleEditEndTimeRef"
+                    v-model="editForm.end_time"
+                    class="input"
+                    type="time"
+                    required
+                    @click.stop="openDateTimePicker(ruleEditEndTimeRef)"
+                  />
                 </label>
 
                 <label class="field">
@@ -480,6 +508,10 @@ const confirmModal = useConfirmModal()
 const exceptions = ref<AvailabilityException[]>([])
 const exceptionsLoading = ref(false)
 const exceptionError = ref('')
+const ruleCreateStartTimeRef = ref<HTMLInputElement | null>(null)
+const ruleCreateEndTimeRef = ref<HTMLInputElement | null>(null)
+const ruleEditStartTimeRef = ref<HTMLInputElement | null>(null)
+const ruleEditEndTimeRef = ref<HTMLInputElement | null>(null)
 const exceptionStartsAtRef = ref<HTMLInputElement | null>(null)
 const exceptionEndsAtRef = ref<HTMLInputElement | null>(null)
 const exceptionEditStartsAtRef = ref<HTMLInputElement | null>(null)
