@@ -481,9 +481,10 @@ onBeforeUnmount(() => {
 }
 
 .hero-agency__actions .btn {
-  min-height: 48px;
-  padding: 12px 22px;
-  font-size: 15px;
+  min-height: 42px;
+  padding: 10px 18px;
+  font-size: 14px;
+  border-radius: var(--radius-md);
 }
 
 
@@ -492,7 +493,7 @@ onBeforeUnmount(() => {
 }
 
 .media-frame {
-  border-radius: 24px;
+  border-radius: var(--radius-lg);
   border: 1px solid color-mix(in srgb, var(--accent) 12%, var(--border));
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.7), rgba(118, 130, 142, 0.12));
   aspect-ratio: 16 / 9;

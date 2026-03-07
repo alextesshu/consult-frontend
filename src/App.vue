@@ -557,7 +557,8 @@ loadUpcomingReadAt()
 }
 
 .nav a {
-  padding: 8px 12px;
+  padding: 6px 11px;
+  min-height: 34px;
   border-radius: var(--radius-md);
   border: 1px solid color-mix(in srgb, var(--topbar-text) 22%, transparent);
   color: var(--topbar-text);
@@ -594,8 +595,8 @@ loadUpcomingReadAt()
 
 .icon-btn {
   position: relative;
-  width: 38px;
-  height: 38px;
+  width: 34px;
+  height: 34px;
   display: grid;
   place-items: center;
   border-radius: var(--radius-sm);
@@ -634,6 +635,9 @@ loadUpcomingReadAt()
 }
 
 .topbar .btn--ghost {
+  min-height: 34px;
+  padding: 6px 12px;
+  border-radius: var(--radius-md);
   color: var(--topbar-text);
   border-color: color-mix(in srgb, var(--topbar-text) 35%, transparent);
   background: color-mix(in srgb, var(--topbar-text) 10%, transparent);
