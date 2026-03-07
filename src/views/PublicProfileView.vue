@@ -185,7 +185,7 @@
             <h2 class="panel__title">Статті спеціаліста</h2>
           </div>
           <div class="panel__header-actions">
-            <RouterLink class="btn btn--ghost btn--sm" :to="`/t/${slug}/journal`">
+            <RouterLink class="btn btn--ghost btn--sm" :to="{ name: 'public-journal', params: { slug } }">
               Всі статті
             </RouterLink>
           </div>
@@ -197,7 +197,7 @@
           <section v-if="previewCollections.length" class="profile-collections">
             <div class="profile-collections__head">
               <div class="profile-collections__title">Серії</div>
-              <RouterLink class="btn btn--ghost btn--sm" :to="`/t/${slug}/journal`">
+              <RouterLink class="btn btn--ghost btn--sm" :to="{ name: 'public-journal', params: { slug } }">
                 Переглянути всі
               </RouterLink>
             </div>
@@ -206,7 +206,10 @@
                 v-for="collection in previewCollections"
                 :key="collection.slug"
                 class="profile-collection-item"
-                :to="`/t/${slug}/journal/collections/${collection.slug}`"
+                :to="{
+                  name: 'public-journal-collection',
+                  params: { specialist_slug: slug, collection_slug: collection.slug },
+                }"
               >
                 <div class="profile-collection-item__left">
                   <div v-if="collectionCoverUrl(collection)" class="profile-collection-item__cover">
@@ -264,7 +267,11 @@
                   · {{ readingTime(featuredPost.summary) }} хв читання
                 </div>
                 <div class="journal-summary" v-if="featuredPost.summary" v-html="renderMarkdown(featuredPost.summary)"></div>
-                <RouterLink class="read-more" :to="`/${slug}/journal/${featuredPost.slug}`" @click.stop>
+                <RouterLink
+                  class="read-more"
+                  :to="{ name: 'public-journal-post', params: { slug, postSlug: featuredPost.slug } }"
+                  @click.stop
+                >
                   Читати статтю →
                 </RouterLink>
               </div>
@@ -303,7 +310,11 @@
                     v-if="post.summary"
                     v-html="renderMarkdown(post.summary)"
                   ></div>
-                  <RouterLink class="read-more" :to="`/${slug}/journal/${post.slug}`" @click.stop>
+                  <RouterLink
+                    class="read-more"
+                    :to="{ name: 'public-journal-post', params: { slug, postSlug: post.slug } }"
+                    @click.stop
+                  >
                     Читати статтю →
                   </RouterLink>
                 </div>
