@@ -498,12 +498,12 @@ onMounted(loadRules)
 .rule-form__grid {
   display: grid;
   grid-template-columns:
-    minmax(160px, 1.1fr)
-    minmax(150px, 1fr)
-    minmax(150px, 1fr)
-    minmax(120px, 0.75fr)
-    minmax(120px, 0.75fr)
-    max-content;
+    minmax(180px, 1fr)
+    minmax(180px, 1fr)
+    minmax(180px, 1fr)
+    auto
+    auto
+    auto;
   gap: 10px;
   align-items: end;
 }
@@ -520,9 +520,9 @@ onMounted(loadRules)
   align-items: center;
   justify-content: flex-start;
   gap: 8px;
-  min-height: 40px;
+  min-height: 42px;
   white-space: nowrap;
-  padding-bottom: 10px;
+  padding-bottom: 0;
 }
 
 .rule-form__submit {
