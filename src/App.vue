@@ -559,7 +559,7 @@ loadUpcomingReadAt()
 .nav a {
   padding: 6px 11px;
   min-height: 34px;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   border: 1px solid color-mix(in srgb, var(--topbar-text) 22%, transparent);
   color: var(--topbar-text);
   display: inline-flex;
@@ -595,8 +595,8 @@ loadUpcomingReadAt()
 
 .icon-btn {
   position: relative;
-  width: 34px;
-  height: 34px;
+  width: 32px;
+  height: 32px;
   display: grid;
   place-items: center;
   border-radius: var(--radius-sm);
@@ -608,8 +608,8 @@ loadUpcomingReadAt()
 }
 
 .icon-btn svg {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
 }
 
 .icon-btn:hover,
@@ -637,7 +637,7 @@ loadUpcomingReadAt()
 .topbar .btn--ghost {
   min-height: 34px;
   padding: 6px 12px;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   color: var(--topbar-text);
   border-color: color-mix(in srgb, var(--topbar-text) 35%, transparent);
   background: color-mix(in srgb, var(--topbar-text) 10%, transparent);
