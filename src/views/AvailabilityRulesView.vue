@@ -497,7 +497,13 @@ onMounted(loadRules)
 
 .rule-form__grid {
   display: grid;
-  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-columns:
+    minmax(160px, 1.1fr)
+    minmax(150px, 1fr)
+    minmax(150px, 1fr)
+    minmax(120px, 0.75fr)
+    minmax(120px, 0.75fr)
+    max-content;
   gap: 10px;
   align-items: end;
 }
@@ -512,10 +518,11 @@ onMounted(loadRules)
 .rule-form__active {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: flex-start;
   gap: 8px;
   min-height: 40px;
   white-space: nowrap;
+  padding-bottom: 10px;
 }
 
 .rule-form__submit {
@@ -606,6 +613,17 @@ onMounted(loadRules)
 }
 
 @media (max-width: 860px) {
+  .availability-rules__hero {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .rule-form__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 680px) {
   .availability-rules__hero {
     flex-direction: column;
     align-items: flex-start;
