@@ -1011,25 +1011,29 @@ function getAvailablePostsForCollection(collectionId: number) {
 }
 
 async function moveCollectionItem(collectionId: number, itemId: number, direction: 'up' | 'down') {
-  const items = getCollectionItems(collectionId)
+  const items = [...getCollectionItems(collectionId)]
   const index = items.findIndex((item) => item.id === itemId)
   if (index < 0) return
   const swapIndex = direction === 'up' ? index - 1 : index + 1
   if (swapIndex < 0 || swapIndex >= items.length) return
 
-  const current = items[index]
-  const target = items[swapIndex]
+  const reordered = [...items]
+  const [moved] = reordered.splice(index, 1)
+  reordered.splice(swapIndex, 0, moved)
+
   const busyKey = `${collectionId}:${itemId}:${direction}`
   collectionItemsBusyKey.value = busyKey
   collectionError.value = ''
   try {
-    await updateCabinetJournalCollectionItem(collectionId, current.id, {
-      sort_order: target.sort_order,
-    })
-    const detail = await updateCabinetJournalCollectionItem(collectionId, target.id, {
-      sort_order: current.sort_order,
-    })
-    collectionDetailsById.value[collectionId] = detail
+    let updatedDetail: CabinetJournalCollectionDetail | null = null
+    for (const [orderIndex, item] of reordered.entries()) {
+      updatedDetail = await updateCabinetJournalCollectionItem(collectionId, item.id, {
+        sort_order: (orderIndex + 1) * 10,
+      })
+    }
+    if (updatedDetail) {
+      collectionDetailsById.value[collectionId] = updatedDetail
+    }
     await loadCollections()
   } catch (err) {
     collectionError.value = getApiErrorMessage(err, 'Не вдалося змінити порядок у добірці')
