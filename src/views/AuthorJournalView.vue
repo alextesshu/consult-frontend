@@ -479,6 +479,13 @@
                   >
                     Переглянути серію
                   </button>
+                  <button
+                    class="btn btn--ghost btn--sm"
+                    type="button"
+                    @click="editingCollectionId = editingCollectionId === collection.id ? null : collection.id"
+                  >
+                    Редагувати серію
+                  </button>
                   <button class="btn btn--ghost btn--sm" type="button" @click="toggleManageCollection(collection.id)">
                     {{ managingCollectionId === collection.id ? 'Сховати' : 'Керувати постами' }}
                   </button>
@@ -717,6 +724,7 @@ const router = useRouter()
 const activeTab = ref<'posts' | 'collections'>('posts')
 const createCollectionOpen = ref(false)
 const managingCollectionId = ref<number | null>(null)
+const editingCollectionId = ref<number | null>(null)
 const collectionDetailsById = ref<Record<number, CabinetJournalCollectionDetail>>({})
 const activeMdField = ref<'summary' | 'body'>('body')
 const coverInput = ref<HTMLInputElement | null>(null)
