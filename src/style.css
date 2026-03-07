@@ -149,7 +149,7 @@ a {
   backdrop-filter: blur(8px);
   background: color-mix(in srgb, var(--topbar-bg) 86%, transparent);
   border: 1px solid color-mix(in srgb, var(--topbar-border) 70%, transparent);
-  border-radius: var(--radius-lg);
+  border-radius: 8px;
   padding: 11px 14px;
   margin: 12px auto 0;
   max-width: 80vw;

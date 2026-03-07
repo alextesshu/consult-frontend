@@ -557,9 +557,9 @@ loadUpcomingReadAt()
 }
 
 .nav a {
-  padding: 5px 10px;
-  min-height: 32px;
-  border-radius: var(--radius-sm);
+  padding: 3px 9px;
+  min-height: 28px;
+  border-radius: 6px;
   border: 1px solid color-mix(in srgb, var(--topbar-text) 22%, transparent);
   color: var(--topbar-text);
   display: inline-flex;
@@ -595,11 +595,11 @@ loadUpcomingReadAt()
 
 .icon-btn {
   position: relative;
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   display: grid;
   place-items: center;
-  border-radius: var(--radius-sm);
+  border-radius: 6px;
   border: 1px solid color-mix(in srgb, var(--topbar-text) 25%, transparent);
   color: var(--topbar-text);
   background: color-mix(in srgb, var(--topbar-text) 8%, transparent);
@@ -608,8 +608,8 @@ loadUpcomingReadAt()
 }
 
 .icon-btn svg {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
 }
 
 .icon-btn:hover,
@@ -635,9 +635,9 @@ loadUpcomingReadAt()
 }
 
 .topbar .btn--ghost {
-  min-height: 32px;
-  padding: 5px 10px;
-  border-radius: var(--radius-sm);
+  min-height: 28px;
+  padding: 3px 9px;
+  border-radius: 6px;
   color: var(--topbar-text);
   border-color: color-mix(in srgb, var(--topbar-text) 35%, transparent);
   background: color-mix(in srgb, var(--topbar-text) 10%, transparent);

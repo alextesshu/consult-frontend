@@ -487,6 +487,19 @@ onBeforeUnmount(() => {
   border-radius: var(--radius-md);
 }
 
+.hero-agency__actions .btn--primary {
+  border-radius: 10px;
+  box-shadow: none;
+  background: #114036;
+  border-color: color-mix(in srgb, #114036 65%, transparent);
+}
+
+.hero-agency__actions .btn--primary:hover,
+.hero-agency__actions .btn--primary:focus-visible {
+  background: color-mix(in srgb, #114036 88%, #000000);
+  box-shadow: none;
+}
+
 
 .home-agency :global(.muted) {
   font-size: 14px;
