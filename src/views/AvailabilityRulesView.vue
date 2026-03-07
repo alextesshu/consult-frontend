@@ -181,6 +181,107 @@
     <section class="panel">
       <div class="panel__header">
         <div>
+          <div class="badge badge--soft">Періоди недоступності</div>
+          <h2 class="panel__title">Time Off / Винятки доступності</h2>
+          <p class="muted generation__subtitle">
+            Ці періоди перекривають регулярні правила та блокують генерацію нових слотів.
+          </p>
+        </div>
+      </div>
+
+      <form class="rule-form" @submit.prevent="onCreateException">
+        <div class="rule-form__grid">
+          <label class="field">
+            Початок
+            <input v-model="exceptionForm.starts_at" class="input" type="datetime-local" required />
+          </label>
+          <label class="field">
+            Кінець
+            <input v-model="exceptionForm.ends_at" class="input" type="datetime-local" required />
+          </label>
+          <label class="field rule-form__active">
+            <span>Весь день</span>
+            <input v-model="exceptionForm.is_all_day" type="checkbox" />
+          </label>
+          <label class="field">
+            Примітка
+            <input v-model="exceptionForm.note" class="input" type="text" />
+          </label>
+          <label class="field rule-form__active">
+            <span>Активне</span>
+            <input v-model="exceptionForm.is_active" type="checkbox" />
+          </label>
+        </div>
+        <button class="btn rule-form__submit" type="submit" :disabled="exceptionSubmitting">
+          Додати період
+        </button>
+      </form>
+      <div v-if="exceptionError" class="form-error">{{ exceptionError }}</div>
+
+      <div v-if="exceptionsLoading && !exceptions.length" class="muted">Завантаження...</div>
+      <div v-else-if="!exceptions.length" class="muted">
+        Поки що немає періодів недоступності.
+      </div>
+      <div v-else class="rules-list">
+        <article v-for="item in exceptions" :key="item.id" class="rule-card">
+          <template v-if="editingExceptionId === item.id">
+            <form class="rule-form" @submit.prevent="onUpdateException(item.id)">
+              <div class="rule-form__grid">
+                <label class="field">
+                  Початок
+                  <input v-model="exceptionEditForm.starts_at" class="input" type="datetime-local" required />
+                </label>
+                <label class="field">
+                  Кінець
+                  <input v-model="exceptionEditForm.ends_at" class="input" type="datetime-local" required />
+                </label>
+                <label class="field rule-form__active">
+                  <span>Весь день</span>
+                  <input v-model="exceptionEditForm.is_all_day" type="checkbox" />
+                </label>
+                <label class="field">
+                  Примітка
+                  <input v-model="exceptionEditForm.note" class="input" type="text" />
+                </label>
+                <label class="field rule-form__active">
+                  <span>Активне</span>
+                  <input v-model="exceptionEditForm.is_active" type="checkbox" />
+                </label>
+              </div>
+              <div class="rule-form__actions">
+                <button class="btn btn--sm" type="submit" :disabled="exceptionSubmitting">Зберегти</button>
+                <button class="btn btn--ghost btn--sm" type="button" :disabled="exceptionSubmitting" @click="cancelEditException">
+                  Скасувати
+                </button>
+              </div>
+            </form>
+          </template>
+          <template v-else>
+            <div class="rule-card__row">
+              <div class="rule-card__title">
+                {{ formatSlotExample(item.starts_at, item.ends_at) }}
+              </div>
+              <div class="rule-card__meta" v-if="item.note">{{ item.note }}</div>
+              <div class="rule-card__status">
+                {{ item.is_active ? 'Активне' : 'Неактивне' }}
+              </div>
+            </div>
+            <div class="rule-card__actions">
+              <button class="btn btn--ghost btn--sm" type="button" :disabled="exceptionSubmitting" @click="startEditException(item)">
+                Редагувати
+              </button>
+              <button class="btn btn--ghost btn--sm" type="button" :disabled="exceptionSubmitting" @click="onDeleteException(item.id)">
+                Видалити
+              </button>
+            </div>
+          </template>
+        </article>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel__header">
+        <div>
           <div class="badge badge--soft">Генерація</div>
           <h2 class="panel__title">Згенерувати слоти</h2>
           <p class="muted generation__subtitle">
@@ -208,14 +309,35 @@
       <p v-if="generationSuccess" class="generation__success">{{ generationSuccess }}</p>
 
       <div v-if="previewResult" class="generation__result">
+        <p v-if="previewResult.to_delete_count > 0" class="generation__warning">
+          Під час застосування система оновить розклад і може видалити частину вільних слотів. Заброньовані слоти не видаляються автоматично.
+        </p>
+        <p v-if="previewResult.booked_conflicts_count > 0" class="generation__warning generation__warning--strong">
+          У вибраному діапазоні є вже заброньовані сесії, які потребують окремої уваги.
+        </p>
         <div class="generation__stats">
           <div>Буде створено: <strong>{{ previewResult.to_create_count }}</strong></div>
           <div>Вже існує: <strong>{{ previewResult.existing_count }}</strong></div>
+          <div>Буде видалено (вільні): <strong>{{ previewResult.to_delete_count }}</strong></div>
+          <div>Заброньовані конфлікти: <strong>{{ previewResult.booked_conflicts_count }}</strong></div>
           <div>Буде пропущено: <strong>{{ previewResult.skipped_duplicate_or_conflict_count }}</strong></div>
         </div>
-        <ul v-if="previewResult.examples?.length" class="generation__examples">
-          <li v-for="example in previewResult.examples.slice(0, 10)" :key="example.start_at">
+
+        <ul v-if="previewResult.examples_to_create?.length" class="generation__examples">
+          <li v-for="example in previewResult.examples_to_create.slice(0, 10)" :key="`create-${example.start_at}`">
             {{ formatSlotExample(example.start_at, example.end_at) }}
+          </li>
+        </ul>
+
+        <ul v-if="previewResult.examples_to_delete?.length" class="generation__examples">
+          <li v-for="example in previewResult.examples_to_delete.slice(0, 10)" :key="`delete-${example.start_at}`">
+            Видалення: {{ formatSlotExample(example.start_at, example.end_at) }}
+          </li>
+        </ul>
+
+        <ul v-if="previewResult.booked_conflict_examples?.length" class="generation__examples">
+          <li v-for="example in previewResult.booked_conflict_examples.slice(0, 10)" :key="`conflict-${example.start_at}`">
+            Конфлікт бронювання: {{ formatSlotExample(example.start_at, example.end_at) }}
           </li>
         </ul>
         <RouterLink class="btn btn--ghost btn--sm" to="/cabinet/slots">Перейти до слотів</RouterLink>
@@ -252,8 +374,18 @@ type AvailabilityGenerationPreview = {
   total_candidate_slots: number
   to_create_count: number
   existing_count: number
+  to_delete_count: number
   skipped_duplicate_or_conflict_count: number
-  examples: Array<{
+  booked_conflicts_count: number
+  examples_to_create: Array<{
+    start_at: string
+    end_at: string
+  }>
+  examples_to_delete: Array<{
+    start_at: string
+    end_at: string
+  }>
+  booked_conflict_examples: Array<{
     start_at: string
     end_at: string
   }>
@@ -268,6 +400,19 @@ type AvailabilityGenerationApply = {
   created_count: number
   deleted_count: number
   existing_count: number
+  booked_conflicts_count: number
+}
+
+type AvailabilityException = {
+  id: number
+  specialist_id: number
+  starts_at: string
+  ends_at: string
+  is_all_day: boolean
+  note: string
+  is_active: boolean
+  created_at: string
+  updated_at: string
 }
 
 const weekdayOptions = [
@@ -287,6 +432,11 @@ const generationLoading = ref(false)
 const generationError = ref('')
 const generationSuccess = ref('')
 const previewResult = ref<AvailabilityGenerationPreview | null>(null)
+const exceptions = ref<AvailabilityException[]>([])
+const exceptionsLoading = ref(false)
+const exceptionError = ref('')
+const editingExceptionId = ref<number | null>(null)
+const exceptionSubmitting = ref(false)
 
 const createForm = reactive({
   weekday: 0,
@@ -307,6 +457,22 @@ const editForm = reactive({
   is_active: true,
 })
 
+const exceptionForm = reactive({
+  starts_at: '',
+  ends_at: '',
+  is_all_day: true,
+  note: '',
+  is_active: true,
+})
+
+const exceptionEditForm = reactive({
+  starts_at: '',
+  ends_at: '',
+  is_all_day: true,
+  note: '',
+  is_active: true,
+})
+
 const hasActiveRules = computed(() => rules.value.some((rule) => rule.is_active))
 
 function weekdayLabel(value: number): string {
@@ -322,6 +488,112 @@ async function loadRules() {
     error.value = getApiErrorMessage(err, 'Не вдалося завантажити правила доступності.')
   } finally {
     loading.value = false
+  }
+}
+
+async function loadExceptions() {
+  exceptionsLoading.value = true
+  exceptionError.value = ''
+  try {
+    exceptions.value = await apiGet<AvailabilityException[]>('/cabinet/availability-exceptions/')
+  } catch (err) {
+    exceptionError.value = getApiErrorMessage(err, 'Не вдалося завантажити періоди недоступності.')
+  } finally {
+    exceptionsLoading.value = false
+  }
+}
+
+function toInputDateTime(iso: string): string {
+  const date = new Date(iso)
+  if (Number.isNaN(date.getTime())) return ''
+  const yyyy = date.getFullYear()
+  const mm = String(date.getMonth() + 1).padStart(2, '0')
+  const dd = String(date.getDate()).padStart(2, '0')
+  const hh = String(date.getHours()).padStart(2, '0')
+  const mi = String(date.getMinutes()).padStart(2, '0')
+  return `${yyyy}-${mm}-${dd}T${hh}:${mi}`
+}
+
+function inputToIso(value: string): string {
+  return new Date(value).toISOString()
+}
+
+function resetExceptionForm() {
+  exceptionForm.starts_at = ''
+  exceptionForm.ends_at = ''
+  exceptionForm.is_all_day = true
+  exceptionForm.note = ''
+  exceptionForm.is_active = true
+}
+
+function startEditException(item: AvailabilityException) {
+  editingExceptionId.value = item.id
+  exceptionEditForm.starts_at = toInputDateTime(item.starts_at)
+  exceptionEditForm.ends_at = toInputDateTime(item.ends_at)
+  exceptionEditForm.is_all_day = item.is_all_day
+  exceptionEditForm.note = item.note || ''
+  exceptionEditForm.is_active = item.is_active
+}
+
+function cancelEditException() {
+  editingExceptionId.value = null
+}
+
+async function onCreateException() {
+  exceptionSubmitting.value = true
+  exceptionError.value = ''
+  try {
+    await apiPost<AvailabilityException>('/cabinet/availability-exceptions/', {
+      starts_at: inputToIso(exceptionForm.starts_at),
+      ends_at: inputToIso(exceptionForm.ends_at),
+      is_all_day: exceptionForm.is_all_day,
+      note: exceptionForm.note,
+      is_active: exceptionForm.is_active,
+    })
+    resetExceptionForm()
+    await loadExceptions()
+    generationSuccess.value = ''
+  } catch (err) {
+    exceptionError.value = getApiErrorMessage(err, 'Не вдалося створити період недоступності.')
+  } finally {
+    exceptionSubmitting.value = false
+  }
+}
+
+async function onUpdateException(id: number) {
+  exceptionSubmitting.value = true
+  exceptionError.value = ''
+  try {
+    await apiPatch<AvailabilityException>(`/cabinet/availability-exceptions/${id}/`, {
+      starts_at: inputToIso(exceptionEditForm.starts_at),
+      ends_at: inputToIso(exceptionEditForm.ends_at),
+      is_all_day: exceptionEditForm.is_all_day,
+      note: exceptionEditForm.note,
+      is_active: exceptionEditForm.is_active,
+    })
+    cancelEditException()
+    await loadExceptions()
+    generationSuccess.value = ''
+  } catch (err) {
+    exceptionError.value = getApiErrorMessage(err, 'Не вдалося оновити період недоступності.')
+  } finally {
+    exceptionSubmitting.value = false
+  }
+}
+
+async function onDeleteException(id: number) {
+  if (!window.confirm('Видалити період недоступності?')) return
+  exceptionSubmitting.value = true
+  exceptionError.value = ''
+  try {
+    await apiDelete(`/cabinet/availability-exceptions/${id}/`)
+    if (editingExceptionId.value === id) cancelEditException()
+    await loadExceptions()
+    generationSuccess.value = ''
+  } catch (err) {
+    exceptionError.value = getApiErrorMessage(err, 'Не вдалося видалити період недоступності.')
+  } finally {
+    exceptionSubmitting.value = false
   }
 }
 
@@ -422,6 +694,12 @@ async function onPreviewGeneration() {
 
 async function onApplyGeneration() {
   if (!previewResult.value) return
+  if (previewResult.value.to_delete_count > 0) {
+    const confirmed = window.confirm(
+      'Під час застосування система оновить розклад і може видалити частину вільних слотів. Заброньовані слоти не видаляються автоматично. Продовжити?'
+    )
+    if (!confirmed) return
+  }
   generationLoading.value = true
   generationError.value = ''
   generationSuccess.value = ''
@@ -430,7 +708,7 @@ async function onApplyGeneration() {
       days_ahead: 30,
     })
     generationSuccess.value = `Створено ${result.created_count} слотів.`
-    await loadRules()
+    await Promise.all([loadRules(), loadExceptions()])
     previewResult.value = null
   } catch (err) {
     generationError.value = getApiErrorMessage(err, 'Не вдалося застосувати генерацію.')
@@ -439,7 +717,9 @@ async function onApplyGeneration() {
   }
 }
 
-onMounted(loadRules)
+onMounted(async () => {
+  await Promise.all([loadRules(), loadExceptions()])
+})
 </script>
 
 <style scoped>
@@ -610,6 +890,21 @@ onMounted(loadRules)
 .generation__success {
   color: #1f7a4c;
   font-weight: 600;
+}
+
+.generation__warning {
+  margin: 0;
+  color: #8a4c13;
+  background: #fff7e6;
+  border: 1px solid #f3ddb8;
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+.generation__warning--strong {
+  color: #8b2b2b;
+  background: #fff1f1;
+  border-color: #efcaca;
 }
 
 @media (max-width: 860px) {

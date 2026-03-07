@@ -276,6 +276,167 @@ export type PublicJournalCollectionDetail = {
   }>
 }
 
+export type AvailabilityRule = {
+  id: number
+  specialist_id: number
+  weekday: number
+  start_time: string
+  end_time: string
+  session_duration_minutes: number
+  buffer_minutes: number
+  is_active: boolean
+  needs_regeneration: boolean
+  created_at: string
+  updated_at: string
+}
+
+export type AvailabilityException = {
+  id: number
+  specialist_id: number
+  starts_at: string
+  ends_at: string
+  is_all_day: boolean
+  note: string
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+export type AvailabilityGenerationPreview = {
+  date_range: {
+    date_from: string
+    date_to: string
+  }
+  days_covered: number
+  total_candidate_slots: number
+  to_create_count: number
+  existing_count: number
+  to_delete_count: number
+  skipped_duplicate_or_conflict_count: number
+  booked_conflicts_count: number
+  examples_to_create: Array<{
+    start_at: string
+    end_at: string
+  }>
+  examples_to_delete: Array<{
+    start_at: string
+    end_at: string
+  }>
+  booked_conflict_examples: Array<{
+    start_at: string
+    end_at: string
+  }>
+}
+
+export type AvailabilityGenerationApply = {
+  date_range: {
+    date_from: string
+    date_to: string
+  }
+  days_covered: number
+  created_count: number
+  deleted_count: number
+  existing_count: number
+  booked_conflicts_count: number
+}
+
+export async function fetchAvailabilityRules(): Promise<AvailabilityRule[]> {
+  const resp = await http.get<AvailabilityRule[]>('/cabinet/availability-rules/')
+  return resp.data
+}
+
+export async function createAvailabilityRule(payload: {
+  weekday: number
+  start_time: string
+  end_time: string
+  session_duration_minutes: number
+  buffer_minutes: number
+  is_active: boolean
+}): Promise<AvailabilityRule> {
+  const resp = await http.post<AvailabilityRule>('/cabinet/availability-rules/', payload)
+  return resp.data
+}
+
+export async function updateAvailabilityRule(
+  id: number,
+  payload: Partial<{
+    weekday: number
+    start_time: string
+    end_time: string
+    session_duration_minutes: number
+    buffer_minutes: number
+    is_active: boolean
+  }>
+): Promise<AvailabilityRule> {
+  const resp = await http.patch<AvailabilityRule>(`/cabinet/availability-rules/${id}/`, payload)
+  return resp.data
+}
+
+export async function deleteAvailabilityRule(id: number): Promise<void> {
+  await http.delete(`/cabinet/availability-rules/${id}/`)
+}
+
+export async function fetchAvailabilityExceptions(): Promise<AvailabilityException[]> {
+  const resp = await http.get<AvailabilityException[]>('/cabinet/availability-exceptions/')
+  return resp.data
+}
+
+export async function createAvailabilityException(payload: {
+  starts_at: string
+  ends_at: string
+  is_all_day: boolean
+  note: string
+  is_active: boolean
+}): Promise<AvailabilityException> {
+  const resp = await http.post<AvailabilityException>('/cabinet/availability-exceptions/', payload)
+  return resp.data
+}
+
+export async function updateAvailabilityException(
+  id: number,
+  payload: Partial<{
+    starts_at: string
+    ends_at: string
+    is_all_day: boolean
+    note: string
+    is_active: boolean
+  }>
+): Promise<AvailabilityException> {
+  const resp = await http.patch<AvailabilityException>(
+    `/cabinet/availability-exceptions/${id}/`,
+    payload
+  )
+  return resp.data
+}
+
+export async function deleteAvailabilityException(id: number): Promise<void> {
+  await http.delete(`/cabinet/availability-exceptions/${id}/`)
+}
+
+export async function previewAvailabilityGeneration(payload: {
+  days_ahead?: number
+  date_from?: string
+  date_to?: string
+}): Promise<AvailabilityGenerationPreview> {
+  const resp = await http.post<AvailabilityGenerationPreview>(
+    '/cabinet/availability-rules/preview-generation/',
+    payload
+  )
+  return resp.data
+}
+
+export async function applyAvailabilityGeneration(payload: {
+  days_ahead?: number
+  date_from?: string
+  date_to?: string
+}): Promise<AvailabilityGenerationApply> {
+  const resp = await http.post<AvailabilityGenerationApply>(
+    '/cabinet/availability-rules/apply-generation/',
+    payload
+  )
+  return resp.data
+}
+
 export async function uploadProfilePhoto(file: File): Promise<TherapistProfile> {
   const formData = new FormData()
   formData.append('file', file)
