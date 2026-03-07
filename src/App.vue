@@ -550,15 +550,15 @@ loadUpcomingReadAt()
 
 .nav {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   font-weight: 300;
   flex-wrap: wrap;
   justify-content: flex-end;
 }
 
 .nav a {
-  padding: 6px 11px;
-  min-height: 34px;
+  padding: 5px 10px;
+  min-height: 32px;
   border-radius: var(--radius-sm);
   border: 1px solid color-mix(in srgb, var(--topbar-text) 22%, transparent);
   color: var(--topbar-text);
@@ -616,7 +616,7 @@ loadUpcomingReadAt()
 .icon-btn:focus-visible {
   border-color: color-mix(in srgb, var(--topbar-text) 55%, transparent);
   background: color-mix(in srgb, var(--topbar-text) 16%, transparent);
-  box-shadow: 0 8px 16px rgba(12, 26, 36, 0.22);
+  box-shadow: 0 6px 12px rgba(12, 26, 36, 0.18);
 }
 
 .icon-btn__badge {
@@ -635,8 +635,8 @@ loadUpcomingReadAt()
 }
 
 .topbar .btn--ghost {
-  min-height: 34px;
-  padding: 6px 12px;
+  min-height: 32px;
+  padding: 5px 10px;
   border-radius: var(--radius-sm);
   color: var(--topbar-text);
   border-color: color-mix(in srgb, var(--topbar-text) 35%, transparent);
@@ -657,13 +657,13 @@ loadUpcomingReadAt()
   position: absolute;
   right: 0;
   top: calc(100% + 8px);
-  width: 280px;
+  width: 270px;
   background: #fff;
   color: var(--ink);
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   box-shadow: 0 18px 32px rgba(16, 33, 50, 0.16);
-  padding: 12px;
+  padding: 10px;
   z-index: 20;
 }
 
