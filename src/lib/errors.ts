@@ -3,8 +3,11 @@ export function getApiErrorMessage(err: unknown, fallback: string) {
     const mapped: Record<string, string> = {
       'Authentication required.': 'Потрібна авторизація.',
       'Session not found.': 'Сесію не знайдено.',
+      'Session context required.': 'Контекст сесії відсутній.',
       'Slot not found.': 'Вільне вікно не знайдено.',
       'Slot already booked.': 'Це вільне вікно вже зайняте.',
+      'Slot already booked and cannot be changed.':
+        'Це вільне вікно вже заброньоване і не може бути змінене.',
       'Slot is in the past.': 'Неможливо обрати вікно в минулому.',
       'Slot belongs to a different specialist.': 'Вільне вікно належить іншому спеціалісту.',
       'Invalid status transition.': 'Цю дію неможливо виконати для поточного статусу сесії.',
@@ -17,6 +20,10 @@ export function getApiErrorMessage(err: unknown, fallback: string) {
       'Reschedule request already pending.': 'Запит на перенесення вже очікує підтвердження.',
       'Request not found.': 'Запит не знайдено.',
       'Request is not pending.': 'Цей запит вже оброблено.',
+      'Note not found.': 'Нотатку не знайдено.',
+      'Review not found.': 'Відгук не знайдено.',
+      'Invalid status.': 'Некоректний статус.',
+      'No fields to update.': 'Немає полів для оновлення.',
       'Invalid session status.': 'Для цього статусу сесії дія недоступна.',
       'Reschedule requests are allowed only for confirmed sessions.':
         'Запит на перенесення доступний лише для підтверджених сесій.',
