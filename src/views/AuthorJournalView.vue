@@ -208,7 +208,7 @@
           :class="{ active: activeTab === 'collections' }"
           @click="activeTab = 'collections'"
         >
-          Добірки
+          Серії
         </button>
       </div>
 
@@ -429,7 +429,7 @@
           <div v-if="collectionsLoading">Завантаження...</div>
 
           <div v-else-if="!collections.length" class="collections-empty">
-            <strong>У вас ще немає добірок</strong><br />
+            <strong>У вас ще немає серій</strong><br />
             Створіть першу серію та додайте до неї потрібні записи.
           </div>
 
@@ -537,7 +537,7 @@
 
             <div v-if="managingCollectionId === collection.id" class="collection-manage">
               <div v-if="collectionDetailsLoadingId === collection.id" class="muted">
-                Завантаження складу добірки...
+                Завантаження складу серії...
               </div>
               <div v-else class="collection-manage__content">
                 <div class="collection-manage__section">
@@ -832,7 +832,7 @@ async function loadCollections() {
     void prefetchCollectionDetails()
   } catch (err) {
     collections.value = []
-    collectionError.value = getApiErrorMessage(err, 'Не вдалося завантажити добірки')
+    collectionError.value = getApiErrorMessage(err, 'Не вдалося завантажити серії')
   } finally {
     collectionsLoading.value = false
   }
@@ -910,7 +910,7 @@ async function onCreateCollection() {
     createCollectionOpen.value = false
     showCollectionSuccess('Серію створено.')
   } catch (err) {
-    collectionError.value = getApiErrorMessage(err, 'Не вдалося створити добірку')
+    collectionError.value = getApiErrorMessage(err, 'Не вдалося створити серію')
   } finally {
     collectionSubmitting.value = false
   }
@@ -1016,7 +1016,7 @@ async function loadCollectionDetail(collectionId: number) {
     const detail = await fetchCabinetJournalCollectionDetail(collectionId)
     collectionDetailsById.value[collectionId] = detail
   } catch (err) {
-    collectionError.value = getApiErrorMessage(err, 'Не вдалося завантажити склад добірки')
+    collectionError.value = getApiErrorMessage(err, 'Не вдалося завантажити склад серії')
   } finally {
     collectionDetailsLoadingId.value = null
   }
@@ -1041,7 +1041,7 @@ async function addPostToCollection(collectionId: number, postId: number) {
     collectionDetailsById.value[collectionId] = detail
     await loadCollections()
   } catch (err) {
-    collectionError.value = getApiErrorMessage(err, 'Не вдалося додати пост у добірку')
+    collectionError.value = getApiErrorMessage(err, 'Не вдалося додати пост у серію')
   } finally {
     collectionAddingKey.value = ''
   }
@@ -1090,7 +1090,7 @@ async function moveCollectionItem(collectionId: number, itemId: number, directio
     }
     await loadCollections()
   } catch (err) {
-    collectionError.value = getApiErrorMessage(err, 'Не вдалося змінити порядок у добірці')
+    collectionError.value = getApiErrorMessage(err, 'Не вдалося змінити порядок у серії')
   } finally {
     collectionItemsBusyKey.value = ''
   }
@@ -1105,7 +1105,7 @@ async function removeCollectionItem(collectionId: number, itemId: number) {
     collectionDetailsById.value[collectionId] = detail
     await loadCollections()
   } catch (err) {
-    collectionError.value = getApiErrorMessage(err, 'Не вдалося прибрати пост із добірки')
+    collectionError.value = getApiErrorMessage(err, 'Не вдалося прибрати пост із серії')
   } finally {
     collectionItemsBusyKey.value = ''
   }
