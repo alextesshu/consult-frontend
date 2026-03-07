@@ -252,7 +252,7 @@ async function cancelSession() {
     await apiPatch(`/booking/sessions/${session.value.id}/cancel/`)
     await loadSession()
   } catch (err: any) {
-    error.value = err?.response?.data?.detail || 'Не вдалося скасувати сесію'
+    error.value = getApiErrorMessage(err, 'Не вдалося скасувати сесію.')
   } finally {
     actionLoading.value = false
   }
@@ -268,7 +268,7 @@ async function rescheduleTo(slotId: number) {
     await loadSession()
     router.push('/client')
   } catch (err: any) {
-    error.value = err?.response?.data?.detail || 'Не вдалося перенести сесію'
+    error.value = getApiErrorMessage(err, 'Не вдалося перенести сесію.')
   } finally {
     actionLoading.value = false
   }
@@ -284,7 +284,7 @@ async function requestReschedule(slotId: number) {
     })
     router.push('/client')
   } catch (err: any) {
-    error.value = err?.response?.data?.detail || 'Не вдалося надіслати запит на перенос'
+    error.value = getApiErrorMessage(err, 'Не вдалося надіслати запит на перенесення.')
   } finally {
     actionLoading.value = false
   }

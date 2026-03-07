@@ -891,7 +891,7 @@ async function bookSlot(slotId: number) {
       persistSelectedSpecialists(filtered)
     }
   } catch (err: any) {
-    bookingError.value = err?.response?.data?.detail || 'Не вдалося забронювати віконце.'
+    bookingError.value = getApiErrorMessage(err, 'Не вдалося забронювати вільне вікно.')
     toast.error(bookingError.value)
   } finally {
     bookingSlotId.value = null

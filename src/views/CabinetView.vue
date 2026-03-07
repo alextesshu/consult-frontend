@@ -29,7 +29,7 @@
               <RouterLink class="btn btn--ghost" to="/cabinet/sessions">Сесії</RouterLink>
               <RouterLink class="btn btn--ghost" to="/cabinet/clients">Клієнти</RouterLink>
               <RouterLink class="btn btn--ghost" to="/cabinet/reviews">Відгуки</RouterLink>
-              <RouterLink class="btn btn--ghost" to="/cabinet/slots">Віконця</RouterLink>
+              <RouterLink class="btn btn--ghost" to="/cabinet/slots">Вільні вікна</RouterLink>
             </div>
           </section>
 
@@ -97,10 +97,10 @@
         <ul class="tips-list">
           <li>
             <RouterLink class="tips-link" to="/cabinet/availability-rules">Налаштуйте доступні інтервали</RouterLink>
-            <span class="muted">Після цього згенеруйте вільні віконця на 30 днів.</span>
+            <span class="muted">Після цього згенеруйте вільні вікна на 30 днів.</span>
           </li>
           <li>
-            <RouterLink class="tips-link" to="/cabinet/slots">Створіть вільні віконця на тиждень</RouterLink>
+            <RouterLink class="tips-link" to="/cabinet/slots">Створіть вільні вікна на тиждень</RouterLink>
             <span class="muted">Так клієнти зможуть забронювати сесію.</span>
           </li>
           <li>

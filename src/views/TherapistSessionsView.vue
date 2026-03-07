@@ -664,7 +664,7 @@ async function confirmSession(id: number) {
     await apiPatch(`/booking/sessions/${id}/confirm/`)
     await loadSessions()
   } catch (err: any) {
-    error.value = err?.response?.data?.detail || 'Не вдалося підтвердити сесію'
+    error.value = getApiErrorMessage(err, 'Не вдалося підтвердити сесію.')
   } finally {
     setActionLoading(id, false)
   }
@@ -691,7 +691,7 @@ async function completeSession(id: number) {
     await loadSessions()
     await openNoteModal(id)
   } catch (err: any) {
-    error.value = err?.response?.data?.detail || 'Не вдалося завершити сесію'
+    error.value = getApiErrorMessage(err, 'Не вдалося завершити сесію.')
   } finally {
     setActionLoading(id, false)
   }
@@ -704,7 +704,7 @@ async function cancelSession(id: number) {
     await apiPatch(`/booking/sessions/${id}/cancel/`)
     await loadSessions()
   } catch (err: any) {
-    error.value = err?.response?.data?.detail || 'Не вдалося скасувати сесію'
+    error.value = getApiErrorMessage(err, 'Не вдалося скасувати сесію.')
   } finally {
     setActionLoading(id, false)
   }
@@ -735,7 +735,7 @@ async function submitReschedule(id: number) {
     closeReschedule()
     await Promise.all([loadSessions(), loadSlots()])
   } catch (err: any) {
-    error.value = err?.response?.data?.detail || 'Не вдалося перенести сесію'
+    error.value = getApiErrorMessage(err, 'Не вдалося перенести сесію.')
   } finally {
     setActionLoading(id, false)
   }
@@ -752,7 +752,7 @@ async function loadNote(id: number) {
     if (err?.response?.status === 404) {
       noteDraft.value = ''
     } else {
-    error.value = err?.response?.data?.detail || 'Не вдалося погодити запит'
+      error.value = getApiErrorMessage(err, 'Не вдалося завантажити нотатку.')
     }
   } finally {
     setNoteLoading(id, false)
@@ -766,7 +766,7 @@ async function saveNote(id: number) {
     await apiPut(`/cabinet/sessions/${id}/note/`, { content: noteDraft.value })
     closeNote()
   } catch (err: any) {
-    error.value = err?.response?.data?.detail || 'Не вдалося погодити запит'
+    error.value = getApiErrorMessage(err, 'Не вдалося зберегти нотатку.')
   } finally {
     setNoteSaving(id, false)
   }
@@ -804,7 +804,7 @@ async function approveRequest(id: number) {
     await apiPatch(`/cabinet/sessions/reschedule-requests/${id}/approve/`)
     await Promise.all([loadSessions(), loadSlots(), loadRescheduleRequests(), loadTherapistProfilePhoto()])
   } catch (err: any) {
-    error.value = err?.response?.data?.detail || 'Не вдалося погодити запит'
+    error.value = getApiErrorMessage(err, 'Не вдалося погодити запит.')
   } finally {
     setRequestLoading(id, false)
   }
@@ -817,7 +817,7 @@ async function declineRequest(id: number) {
     await apiPatch(`/cabinet/sessions/reschedule-requests/${id}/decline/`)
     await loadRescheduleRequests()
   } catch (err: any) {
-    error.value = err?.response?.data?.detail || 'Не вдалося відхилити запит'
+    error.value = getApiErrorMessage(err, 'Не вдалося відхилити запит.')
   } finally {
     setRequestLoading(id, false)
   }
