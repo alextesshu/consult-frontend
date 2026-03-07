@@ -20,55 +20,57 @@
       </div>
 
       <form class="rule-form" @submit.prevent="onCreateRule">
-        <label class="field">
-          День тижня
-          <select v-model.number="createForm.weekday" class="input">
-            <option v-for="opt in weekdayOptions" :key="opt.value" :value="opt.value">
-              {{ opt.label }}
-            </option>
-          </select>
-        </label>
+        <div class="rule-form__grid">
+          <label class="field">
+            День тижня
+            <select v-model.number="createForm.weekday" class="input">
+              <option v-for="opt in weekdayOptions" :key="opt.value" :value="opt.value">
+                {{ opt.label }}
+              </option>
+            </select>
+          </label>
 
-        <label class="field">
-          Початок
-          <input v-model="createForm.start_time" class="input" type="time" required />
-        </label>
+          <label class="field">
+            Початок
+            <input v-model="createForm.start_time" class="input" type="time" required />
+          </label>
 
-        <label class="field">
-          Кінець
-          <input v-model="createForm.end_time" class="input" type="time" required />
-        </label>
+          <label class="field">
+            Кінець
+            <input v-model="createForm.end_time" class="input" type="time" required />
+          </label>
 
-        <label class="field">
-          Тривалість сесії (хв)
-          <input
-            v-model.number="createForm.session_duration_minutes"
-            class="input"
-            type="number"
-            min="5"
-            step="5"
-            required
-          />
-        </label>
+          <label class="field">
+            Тривалість сесії (хв)
+            <input
+              v-model.number="createForm.session_duration_minutes"
+              class="input"
+              type="number"
+              min="5"
+              step="5"
+              required
+            />
+          </label>
 
-        <label class="field">
-          Буфер (хв)
-          <input
-            v-model.number="createForm.buffer_minutes"
-            class="input"
-            type="number"
-            min="0"
-            step="5"
-            required
-          />
-        </label>
+          <label class="field">
+            Буфер (хв)
+            <input
+              v-model.number="createForm.buffer_minutes"
+              class="input"
+              type="number"
+              min="0"
+              step="5"
+              required
+            />
+          </label>
 
-        <label class="field rule-form__active">
-          <span>Активне</span>
-          <input v-model="createForm.is_active" type="checkbox" />
-        </label>
+          <label class="field rule-form__active">
+            <span>Активне</span>
+            <input v-model="createForm.is_active" type="checkbox" />
+          </label>
+        </div>
 
-        <button class="btn" type="submit" :disabled="loading">
+        <button class="btn rule-form__submit" type="submit" :disabled="loading">
           Додати правило
         </button>
       </form>
@@ -92,58 +94,62 @@
         <article v-for="rule in rules" :key="rule.id" class="rule-card">
           <template v-if="editingRuleId === rule.id">
             <form class="rule-form" @submit.prevent="onSaveRule(rule.id)">
-              <label class="field">
-                День тижня
-                <select v-model.number="editForm.weekday" class="input">
-                  <option v-for="opt in weekdayOptions" :key="opt.value" :value="opt.value">
-                    {{ opt.label }}
-                  </option>
-                </select>
-              </label>
+              <div class="rule-form__grid">
+                <label class="field">
+                  День тижня
+                  <select v-model.number="editForm.weekday" class="input">
+                    <option v-for="opt in weekdayOptions" :key="opt.value" :value="opt.value">
+                      {{ opt.label }}
+                    </option>
+                  </select>
+                </label>
 
-              <label class="field">
-                Початок
-                <input v-model="editForm.start_time" class="input" type="time" required />
-              </label>
+                <label class="field">
+                  Початок
+                  <input v-model="editForm.start_time" class="input" type="time" required />
+                </label>
 
-              <label class="field">
-                Кінець
-                <input v-model="editForm.end_time" class="input" type="time" required />
-              </label>
+                <label class="field">
+                  Кінець
+                  <input v-model="editForm.end_time" class="input" type="time" required />
+                </label>
 
-              <label class="field">
-                Тривалість сесії (хв)
-                <input
-                  v-model.number="editForm.session_duration_minutes"
-                  class="input"
-                  type="number"
-                  min="5"
-                  step="5"
-                  required
-                />
-              </label>
+                <label class="field">
+                  Тривалість сесії (хв)
+                  <input
+                    v-model.number="editForm.session_duration_minutes"
+                    class="input"
+                    type="number"
+                    min="5"
+                    step="5"
+                    required
+                  />
+                </label>
 
-              <label class="field">
-                Буфер (хв)
-                <input
-                  v-model.number="editForm.buffer_minutes"
-                  class="input"
-                  type="number"
-                  min="0"
-                  step="5"
-                  required
-                />
-              </label>
+                <label class="field">
+                  Буфер (хв)
+                  <input
+                    v-model.number="editForm.buffer_minutes"
+                    class="input"
+                    type="number"
+                    min="0"
+                    step="5"
+                    required
+                  />
+                </label>
 
-              <label class="field rule-form__active">
-                <span>Активне</span>
-                <input v-model="editForm.is_active" type="checkbox" />
-              </label>
+                <label class="field rule-form__active">
+                  <span>Активне</span>
+                  <input v-model="editForm.is_active" type="checkbox" />
+                </label>
+              </div>
 
-              <button class="btn btn--sm" type="submit" :disabled="loading">Зберегти</button>
-              <button class="btn btn--ghost btn--sm" type="button" :disabled="loading" @click="cancelEdit">
-                Скасувати
-              </button>
+              <div class="rule-form__actions">
+                <button class="btn btn--sm" type="submit" :disabled="loading">Зберегти</button>
+                <button class="btn btn--ghost btn--sm" type="button" :disabled="loading" @click="cancelEdit">
+                  Скасувати
+                </button>
+              </div>
             </form>
           </template>
 
@@ -486,7 +492,12 @@ onMounted(loadRules)
 
 .rule-form {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 10px;
+}
+
+.rule-form__grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 10px;
   align-items: end;
 }
@@ -501,8 +512,20 @@ onMounted(loadRules)
 .rule-form__active {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 8px;
-  padding-bottom: 10px;
+  min-height: 40px;
+  white-space: nowrap;
+}
+
+.rule-form__submit {
+  justify-self: start;
+}
+
+.rule-form__actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .rules-list {
@@ -586,6 +609,14 @@ onMounted(loadRules)
   .availability-rules__hero {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .rule-form__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .rule-form__active {
+    justify-content: flex-start;
   }
 }
 </style>
