@@ -15,6 +15,9 @@
         >
           Публічний профіль
         </RouterLink>
+        <RouterLink v-if="isAuthenticated && isSpecialist" to="/cabinet/settings">
+          Налаштування
+        </RouterLink>
         <RouterLink to="/faq">FAQ</RouterLink>
         <RouterLink v-if="!isAuthenticated" to="/login">Вхід</RouterLink>
         <RouterLink v-if="!isAuthenticated" to="/signup">Реєстрація</RouterLink>

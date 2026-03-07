@@ -107,6 +107,12 @@ const routes = [
     meta: { requiresAuth: true, requiresRole: 'SPECIALIST' },
   },
   {
+    path: '/cabinet/settings',
+    name: 'cabinet-settings',
+    redirect: { name: 'cabinet-profile' },
+    meta: { requiresAuth: true, requiresRole: 'SPECIALIST' },
+  },
+  {
     path: '/cabinet/journal',
     name: 'cabinet-journal',
     component: AuthorJournalView,

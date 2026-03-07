@@ -17,40 +17,44 @@
     <div v-if="me" class="cabinet__grid">
       <section class="panel panel--wide panel--actions">
         <div class="panel__header">
-          <div class="badge badge--soft">Робоча панель</div>
-          <div class="panel__meta">Щоденні інструменти</div>
+          <div>
+            <div class="badge badge--soft">Робоча панель</div>
+            <div class="panel__meta">Щоденні інструменти та конфігурація практики</div>
+          </div>
         </div>
         <div class="cabinet-actions">
-          <RouterLink class="btn btn--ghost" to="/cabinet/slots">
-            Віконця
-          </RouterLink>
-          <RouterLink class="btn btn--ghost" to="/cabinet/availability-rules">
-            Доступність
-          </RouterLink>
-          <RouterLink class="btn btn--ghost" to="/cabinet/sessions">
-            Сесії
-          </RouterLink>
-          <RouterLink class="btn btn--ghost" to="/cabinet/analytics">
-            Аналітика
-          </RouterLink>
-          <RouterLink class="btn btn--ghost" to="/cabinet/journal">
-            Авторський журнал
-          </RouterLink>
-          <RouterLink class="btn btn--ghost" to="/cabinet/reviews">
-            Відгуки
-          </RouterLink>
-          <RouterLink class="btn btn--ghost" to="/cabinet/clients">
-            Клієнти
-          </RouterLink>
-          <RouterLink class="btn btn--ghost" to="/cabinet/billing">
-            Плани та доступ
-          </RouterLink>
-          <RouterLink class="btn btn--ghost" to="/cabinet/profile">
-            Керування профілем
-          </RouterLink>
-          <RouterLink class="btn btn--ghost" to="/cabinet/group-events">
-            Групові події
-          </RouterLink>
+          <section class="action-group">
+            <h3 class="action-group__title">Щоденна робота</h3>
+            <div class="action-group__items">
+              <RouterLink class="btn btn--ghost" to="/cabinet/sessions">Сесії</RouterLink>
+              <RouterLink class="btn btn--ghost" to="/cabinet/clients">Клієнти</RouterLink>
+              <RouterLink class="btn btn--ghost" to="/cabinet/reviews">Відгуки</RouterLink>
+              <RouterLink class="btn btn--ghost" to="/cabinet/slots">Віконця</RouterLink>
+            </div>
+          </section>
+
+          <section class="action-group">
+            <h3 class="action-group__title">Планування</h3>
+            <div class="action-group__items">
+              <RouterLink class="btn btn--ghost" to="/cabinet/availability-rules">Доступність</RouterLink>
+              <RouterLink class="btn btn--ghost" to="/cabinet/group-events">Групові події</RouterLink>
+            </div>
+          </section>
+
+          <section class="action-group">
+            <h3 class="action-group__title">Контент</h3>
+            <div class="action-group__items">
+              <RouterLink class="btn btn--ghost" to="/cabinet/journal">Авторський журнал</RouterLink>
+            </div>
+          </section>
+
+          <section class="action-group">
+            <h3 class="action-group__title">Бізнес</h3>
+            <div class="action-group__items">
+              <RouterLink class="btn btn--ghost" to="/cabinet/analytics">Аналітика</RouterLink>
+              <RouterLink class="btn btn--ghost" to="/cabinet/billing">Плани та доступ</RouterLink>
+            </div>
+          </section>
         </div>
       </section>
       <section class="panel panel--wide panel--plan">
@@ -92,8 +96,8 @@
         </div>
         <ul class="tips-list">
           <li>
-            <RouterLink class="tips-link" to="/cabinet/profile">Заповніть профіль і увімкніть публічність</RouterLink>
-            <span class="muted">Щоб клієнти бачили вас у каталозі.</span>
+            <RouterLink class="tips-link" to="/cabinet/availability-rules">Налаштуйте доступні інтервали</RouterLink>
+            <span class="muted">Після цього згенеруйте вільні віконця на 30 днів.</span>
           </li>
           <li>
             <RouterLink class="tips-link" to="/cabinet/slots">Створіть вільні віконця на тиждень</RouterLink>
@@ -104,26 +108,11 @@
             <span class="muted">Підтвердження та перенесення приходять сюди.</span>
           </li>
           <li>
-            <RouterLink class="tips-link" to="/cabinet/profile">Поділіться публічним посиланням</RouterLink>
-            <span class="muted">Надішліть його клієнтам або колегам.</span>
+            <RouterLink class="tips-link" to="/cabinet/journal">Підготуйте серії в авторському журналі</RouterLink>
+            <span class="muted">Це допоможе клієнтам проходити матеріали поетапно.</span>
           </li>
         </ul>
       </section>
-
-      
-      <RouterLink
-        class="panel panel--accent panel--clickable"
-        to="/cabinet/profile"
-        aria-label="Перейти до керування профілем"
-      >
-        <div class="panel__header">
-          <div class="badge badge--soft">Акаунт</div>
-          <span class="status-dot" :class="statusDotClass"></span>
-        </div>
-        <h2 class="panel__title">{{ me.user.username }}</h2>
-        <div class="muted">{{ me.user.email || 'немає ел. пошти' }}</div>
-        <div class="muted">Ролі: {{ me.user.roles.join(', ') }}</div>
-      </RouterLink>
 
       <RouterLink
         class="panel panel--clickable"
@@ -214,11 +203,9 @@
 import { computed, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useAuthStore } from '../stores/auth'
-import { useRouter } from 'vue-router'
 
 const auth = useAuthStore()
 const { me } = storeToRefs(auth)
-const router = useRouter()
 
 const accessLabel = computed(() => {
   const state = me.value?.access_state
@@ -325,13 +312,6 @@ const accessPillClass = computed(() => {
   return 'access-pill--ok'
 })
 
-const statusDotClass = computed(() => {
-  const state = me.value?.access_state
-  if (state === 'GRACE') return 'status-dot--warn'
-  if (state === 'RESTRICTED') return 'status-dot--danger'
-  return 'status-dot--ok'
-})
-
 const serverTimeLabel = computed(() => {
   const raw = me.value?.server_time
   if (!raw) return '—'
@@ -339,12 +319,6 @@ const serverTimeLabel = computed(() => {
   if (Number.isNaN(parsed.getTime())) return raw
   return parsed.toLocaleString()
 })
-
-function onLogout() {
-  auth.logout()
-  router.push('/')
-}
-
 </script>
 
 <style scoped>
@@ -645,8 +619,29 @@ function onLogout() {
 }
 
 .cabinet-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.action-group {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 12px;
+  display: grid;
+  gap: 10px;
+  background: rgba(7, 47, 71, 0.02);
+}
+
+.action-group__title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.action-group__items {
   display: flex;
-  gap: 12px;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
@@ -663,6 +658,10 @@ function onLogout() {
 
   .hero-chip {
     width: 100%;
+  }
+
+  .cabinet-actions {
+    grid-template-columns: 1fr;
   }
 }
 </style>
