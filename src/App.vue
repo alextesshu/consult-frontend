@@ -559,7 +559,7 @@ loadUpcomingReadAt()
 .nav a {
   padding: 4px 12px;
   min-height: 32px;
-  border-radius: 8px;
+  border-radius: 6px;
   border: 1px solid color-mix(in srgb, var(--topbar-text) 22%, transparent);
   color: var(--topbar-text);
   display: inline-flex;
@@ -599,7 +599,7 @@ loadUpcomingReadAt()
   height: 32px;
   display: grid;
   place-items: center;
-  border-radius: 8px;
+  border-radius: 6px;
   border: 1px solid color-mix(in srgb, var(--topbar-text) 25%, transparent);
   color: var(--topbar-text);
   background: color-mix(in srgb, var(--topbar-text) 8%, transparent);
@@ -637,7 +637,7 @@ loadUpcomingReadAt()
 .topbar .btn--ghost {
   min-height: 32px;
   padding: 4px 12px;
-  border-radius: 8px;
+  border-radius: 6px;
   color: var(--topbar-text);
   border-color: color-mix(in srgb, var(--topbar-text) 35%, transparent);
   background: color-mix(in srgb, var(--topbar-text) 10%, transparent);
