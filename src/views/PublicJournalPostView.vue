@@ -87,6 +87,30 @@
               </li>
             </ol>
           </section>
+
+          <nav
+            v-if="collectionNav"
+            class="collection-nav"
+            aria-label="Навігація по серії"
+          >
+            <RouterLink
+              v-if="collectionNav.prev"
+              class="collection-nav__link"
+              :to="`/${slug}/journal/${collectionNav.prev.slug}`"
+            >
+              ← Попередня в серії
+            </RouterLink>
+            <span v-else class="collection-nav__spacer"></span>
+
+            <RouterLink
+              v-if="collectionNav.next"
+              class="collection-nav__link collection-nav__link--next"
+              :to="`/${slug}/journal/${collectionNav.next.slug}`"
+            >
+              Наступна в серії →
+            </RouterLink>
+            <span v-else class="collection-nav__spacer"></span>
+          </nav>
         </div>
 
         <div v-if="post.cover_image_url" class="post-cover">
@@ -125,6 +149,18 @@ const post = ref<PublicAuthorJournalPostDetail | null>(null)
 const shareBusy = ref(false)
 const shareDone = ref(false)
 const shareError = ref('')
+
+const collectionNav = computed(() => {
+  const currentPost = post.value
+  if (!currentPost?.collection || currentPost.collection.items.length < 2) return null
+  const items = currentPost.collection.items
+  const currentIndex = items.findIndex((item) => item.post.slug === currentPost.slug)
+  if (currentIndex < 0) return null
+  return {
+    prev: currentIndex > 0 ? items[currentIndex - 1]?.post ?? null : null,
+    next: currentIndex < items.length - 1 ? items[currentIndex + 1]?.post ?? null : null,
+  }
+})
 
 function renderMarkdown(text?: string | null) {
   if (!text) return ''
@@ -486,6 +522,38 @@ onMounted(load)
   color: #2b7a6f;
 }
 
+.collection-nav {
+  margin-top: 4px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.collection-nav__link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid rgba(43, 122, 111, 0.22);
+  border-radius: 12px;
+  color: #1f5f56;
+  text-decoration: none;
+  font-weight: 600;
+  background: rgba(43, 122, 111, 0.05);
+}
+
+.collection-nav__link:hover {
+  background: rgba(43, 122, 111, 0.1);
+}
+
+.collection-nav__link--next {
+  justify-content: flex-end;
+}
+
+.collection-nav__spacer {
+  min-height: 40px;
+}
+
 .post-cover {
   border-radius: 16px;
   overflow: hidden;
@@ -561,6 +629,10 @@ onMounted(load)
 
   .collection-card__head {
     flex-direction: column;
+  }
+
+  .collection-nav {
+    grid-template-columns: 1fr;
   }
 
   .post-cover img {
