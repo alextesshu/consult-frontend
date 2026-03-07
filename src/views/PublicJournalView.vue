@@ -30,7 +30,7 @@
 
     <section v-if="displayedCollections.length" class="journal-collections">
       <div class="journal-collections__head">
-        <h2 class="journal-collections__title">Добірки</h2>
+        <h2 class="journal-collections__title">Серії</h2>
         <p class="journal-collections__subtitle">Серії матеріалів, зібрані в одному місці</p>
       </div>
 

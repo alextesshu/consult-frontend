@@ -42,9 +42,9 @@
           <section
             v-if="post.collection && post.collection.items.length > 1"
             class="collection-card"
-            aria-label="Part of collection"
+            aria-label="Частина серії"
           >
-            <div class="collection-card__eyebrow">Part of collection</div>
+            <div class="collection-card__eyebrow">Частина серії</div>
             <div class="collection-card__head">
               <div>
                 <h2 class="collection-card__title">
@@ -60,7 +60,7 @@
                 </p>
               </div>
               <div v-if="post.collection.current_post_index" class="collection-card__index">
-                Article {{ post.collection.current_post_index }} of {{ post.collection.items.length }}
+                Запис {{ post.collection.current_post_index }} з {{ post.collection.items.length }}
               </div>
             </div>
 

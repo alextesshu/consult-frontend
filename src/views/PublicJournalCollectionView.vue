@@ -5,7 +5,7 @@
         <img :src="collectionHeroCoverUrl" :alt="collection.title" />
       </div>
       <div class="collection-head">
-        <div class="badge badge--soft">Part of journal</div>
+        <div class="badge badge--soft">Серія журналу</div>
         <h1 class="title collection-title">{{ collection.title }}</h1>
         <p v-if="collection.description" class="muted collection-description">
           {{ collection.description }}
@@ -13,7 +13,7 @@
       </div>
     </header>
 
-    <div v-if="loading" class="muted">Loading collection...</div>
+    <div v-if="loading" class="muted">Завантажуємо серію...</div>
     <div v-else-if="error" class="form-error">{{ error }}</div>
 
     <ol v-else-if="items.length" class="items-list">
@@ -36,7 +36,7 @@
       </li>
     </ol>
 
-    <div v-else class="muted">No published posts in this collection yet.</div>
+    <div v-else class="muted">У цій серії ще немає опублікованих записів.</div>
   </section>
 </template>
 
@@ -89,7 +89,7 @@ function upsertCanonical(href: string) {
 function applySeo(data: PublicJournalCollectionDetail) {
   document.title = data.title
   const summary = (data.description || '').replace(/\s+/g, ' ').trim().slice(0, 160)
-  upsertMeta('description', summary || 'Collection of specialist journal articles.')
+  upsertMeta('description', summary || 'Серія записів із журналу спеціаліста.')
   upsertCanonical(window.location.origin + window.location.pathname)
 }
 
@@ -102,7 +102,7 @@ async function load() {
     applySeo(collection.value)
   } catch (err) {
     collection.value = null
-    error.value = getApiErrorMessage(err, 'Failed to load collection.')
+    error.value = getApiErrorMessage(err, 'Не вдалося завантажити серію.')
   } finally {
     loading.value = false
   }
