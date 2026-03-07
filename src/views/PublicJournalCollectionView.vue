@@ -1,8 +1,8 @@
 <template>
   <section class="collection-page">
     <header v-if="collection" class="collection-hero">
-      <div v-if="collection.cover_image_url" class="collection-cover">
-        <img :src="collection.cover_image_url" :alt="collection.title" />
+      <div v-if="collectionHeroCoverUrl" class="collection-cover">
+        <img :src="collectionHeroCoverUrl" :alt="collection.title" />
       </div>
       <div class="collection-head">
         <div class="badge badge--soft">Part of journal</div>
@@ -59,6 +59,11 @@ const error = ref('')
 const collection = ref<PublicJournalCollectionDetail | null>(null)
 
 const items = computed(() => collection.value?.items || [])
+const collectionHeroCoverUrl = computed(() => {
+  if (!collection.value) return ''
+  if (collection.value.cover_image_url) return collection.value.cover_image_url
+  return collection.value.items?.[0]?.cover_image_url || ''
+})
 
 function upsertMeta(name: string, content: string) {
   if (!content) return

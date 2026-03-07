@@ -208,7 +208,12 @@
                 class="profile-collection-item"
                 :to="`/${slug}/journal/collections/${collection.slug}`"
               >
-                <span class="profile-collection-item__name">{{ collection.title }}</span>
+                <div class="profile-collection-item__left">
+                  <div v-if="collectionCoverUrl(collection)" class="profile-collection-item__cover">
+                    <img :src="collectionCoverUrl(collection)" :alt="collection.title" />
+                  </div>
+                  <span class="profile-collection-item__name">{{ collection.title }}</span>
+                </div>
                 <span class="profile-collection-item__meta">{{ collection.posts_count }} статті</span>
               </RouterLink>
             </div>
@@ -773,6 +778,13 @@ const gridPosts = computed(() =>
 )
 const previewCollections = computed(() => journalCollections.value.slice(0, 3))
 
+function collectionCoverUrl(collection: PublicJournalCollectionListItem): string {
+  if (collection.cover_image_url) return collection.cover_image_url
+  const firstPreviewSlug = collection.preview_posts?.[0]?.slug
+  if (!firstPreviewSlug) return ''
+  return journalPosts.value.find((post) => post.slug === firstPreviewSlug)?.cover_image_url || ''
+}
+
 async function loadClientSessions() {
   if (!isAuthenticated.value || !isClient.value) return
   try {
@@ -1331,6 +1343,30 @@ onMounted(async () => {
     background: rgba(255, 255, 255, 0.85);
   }
 
+  .profile-collection-item__left {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+  }
+
+  .profile-collection-item__cover {
+    width: 42px;
+    height: 30px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    background: var(--color-neutral-50, #f7f8f9);
+    flex-shrink: 0;
+  }
+
+  .profile-collection-item__cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
   .profile-collection-item:hover {
     border-color: rgba(43, 122, 111, 0.35);
     background: rgba(43, 122, 111, 0.06);
@@ -1339,6 +1375,10 @@ onMounted(async () => {
   .profile-collection-item__name {
     font-size: 14px;
     font-weight: 600;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .profile-collection-item__meta {
