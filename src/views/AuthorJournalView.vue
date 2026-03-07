@@ -501,7 +501,27 @@
                       :key="item.id"
                       class="collection-post-row"
                     >
-                      <div class="collection-post-row__title">{{ getPostTitle(item.post) }}</div>
+                      <div class="collection-post-row__title-wrap">
+                        <RouterLink
+                          v-if="getPostById(item.post)?.slug && profileSlug"
+                          class="collection-post-row__title-link"
+                          :to="`/${profileSlug}/journal/${getPostById(item.post)?.slug}`"
+                          :title="`Відкрити статтю: ${getPostById(item.post)?.title || ''}`"
+                        >
+                          {{ getPostTitle(item.post) }}
+                        </RouterLink>
+                        <span v-else class="collection-post-row__title">{{ getPostTitle(item.post) }}</span>
+                        <a
+                          v-if="getPostById(item.post)?.slug && profileSlug"
+                          class="collection-post-row__open-new"
+                          :href="`/${profileSlug}/journal/${getPostById(item.post)?.slug}`"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title="Відкрити в новій вкладці"
+                        >
+                          ↗
+                        </a>
+                      </div>
                       <div class="collection-post-row__actions">
                         <button
                           class="btn btn--ghost btn--sm"
@@ -546,7 +566,27 @@
                       :key="post.id"
                       class="collection-post-row"
                     >
-                      <div class="collection-post-row__title">{{ post.title }}</div>
+                      <div class="collection-post-row__title-wrap">
+                        <RouterLink
+                          v-if="post.slug && profileSlug"
+                          class="collection-post-row__title-link"
+                          :to="`/${profileSlug}/journal/${post.slug}`"
+                          :title="`Відкрити статтю: ${post.title}`"
+                        >
+                          {{ post.title }}
+                        </RouterLink>
+                        <span v-else class="collection-post-row__title">{{ post.title }}</span>
+                        <a
+                          v-if="post.slug && profileSlug"
+                          class="collection-post-row__open-new"
+                          :href="`/${profileSlug}/journal/${post.slug}`"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title="Відкрити в новій вкладці"
+                        >
+                          ↗
+                        </a>
+                      </div>
                       <button
                         class="btn btn--ghost btn--sm"
                         type="button"
@@ -871,6 +911,10 @@ function getCollectionItems(collectionId: number) {
 
 function getPostTitle(postId: number): string {
   return journalPosts.value.find((post) => post.id === postId)?.title || `Post #${postId}`
+}
+
+function getPostById(postId: number): AuthorJournalPost | undefined {
+  return journalPosts.value.find((post) => post.id === postId)
 }
 
 function getAvailablePostsForCollection(collectionId: number) {
@@ -1632,6 +1676,45 @@ onMounted(() => {
 
 .collection-post-row__title {
   font-size: 14px;
+}
+
+.collection-post-row__title-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.collection-post-row__title-link {
+  font-size: 14px;
+  color: #1f5f56;
+  text-decoration: none;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.collection-post-row__title-link:hover {
+  text-decoration: underline;
+}
+
+.collection-post-row__open-new {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  font-size: 13px;
+  color: var(--muted);
+  text-decoration: none;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+.collection-post-row__open-new:hover {
+  color: #1f5f56;
+  border-color: rgba(43, 122, 111, 0.35);
 }
 
 .collection-post-row__actions {
