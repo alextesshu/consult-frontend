@@ -789,4 +789,36 @@ body.body--home .footer {
 .footer__link:hover {
   text-decoration-color: color-mix(in srgb, var(--text) 70%, transparent);
 }
+
+@media (max-width: 1024px) {
+  .topbar {
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .nav {
+    gap: 10px;
+  }
+}
+
+@media (max-width: 640px) {
+  .topbar {
+    padding: 10px 12px;
+  }
+
+  .brand__mark {
+    font-size: 20px;
+  }
+
+  .brand__tagline {
+    font-size: 11px;
+    letter-spacing: 0.14em;
+  }
+
+  .nav {
+    width: 100%;
+    justify-content: flex-start;
+    gap: 8px;
+  }
+}
 </style>
