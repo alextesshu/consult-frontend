@@ -10,6 +10,7 @@ import PublicJournalPostView from '../views/PublicJournalPostView.vue'
 import PublicJournalCollectionView from '../views/PublicJournalCollectionView.vue'
 import SpecialistProfileView from '../views/TherapistProfileView.vue'
 import SlotsView from '../views/SlotsView.vue'
+import AvailabilityRulesView from '../views/AvailabilityRulesView.vue'
 import HomeView from '../views/HomeView.vue'
 import ClientDashboardView from '../views/ClientDashboardView.vue'
 import SpecialistSessionsView from '../views/TherapistSessionsView.vue'
@@ -55,6 +56,12 @@ const routes = [
     path: '/cabinet/slots',
     name: 'cabinet-slots',
     component: SlotsView,
+    meta: { requiresAuth: true, requiresRole: 'SPECIALIST' },
+  },
+  {
+    path: '/cabinet/availability-rules',
+    name: 'cabinet-availability-rules',
+    component: AvailabilityRulesView,
     meta: { requiresAuth: true, requiresRole: 'SPECIALIST' },
   },
   {

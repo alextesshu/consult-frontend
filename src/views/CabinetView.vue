@@ -24,6 +24,9 @@
           <RouterLink class="btn btn--ghost" to="/cabinet/slots">
             Віконця
           </RouterLink>
+          <RouterLink class="btn btn--ghost" to="/cabinet/availability-rules">
+            Доступність
+          </RouterLink>
           <RouterLink class="btn btn--ghost" to="/cabinet/sessions">
             Сесії
           </RouterLink>
