@@ -11,7 +11,13 @@
   --border: #e4d8b3;
   --shadow-1: 0 10px 30px rgba(17, 64, 54, 0.12);
   --shadow-2: 0 18px 50px rgba(17, 64, 54, 0.18);
-  --radius: 18px;
+  --radius-xs: 8px;
+  --radius-sm: 12px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 24px;
+  --radius-pill: 999px;
+  --radius: var(--radius-lg);
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial, "Noto Sans", "Liberation Sans", sans-serif;
   --font-display: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial, "Noto Sans", "Liberation Sans", sans-serif;
   --sky-1: #f9f3d9;
@@ -143,7 +149,7 @@ a {
   backdrop-filter: blur(10px);
   background: color-mix(in srgb, var(--topbar-bg) 86%, transparent);
   border: 1px solid color-mix(in srgb, var(--topbar-border) 70%, transparent);
-  border-radius: 18px;
+  border-radius: var(--radius-lg);
   padding: 14px 18px;
   margin: 16px auto 0;
   max-width: 80vw;
@@ -165,7 +171,7 @@ a {
 
 .nav a {
   padding: 8px 12px;
-  border-radius: 999px;
+  border-radius: var(--radius-md);
   border: 1px solid transparent;
   color: var(--topbar-text);
 }
@@ -189,7 +195,7 @@ a {
 .hero__card {
   background: color-mix(in srgb, var(--surface) 88%, #ffffff);
   border: 1px solid color-mix(in srgb, var(--border) 80%, #ffffff);
-  border-radius: var(--radius);
+  border-radius: var(--radius-lg);
   padding: 24px;
   box-shadow: var(--shadow-2);
   color: var(--ink);
@@ -220,7 +226,7 @@ a {
   letter-spacing: 0.12em;
   color: var(--deep);
   background: color-mix(in srgb, var(--primary) 20%, transparent);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   padding: 6px 10px;
   font-weight: 300;
   border: 1px solid color-mix(in srgb, var(--primary) 35%, transparent);
@@ -241,7 +247,7 @@ a {
 .card {
   background: color-mix(in srgb, var(--surface) 88%, #ffffff);
   border: 1px solid color-mix(in srgb, var(--border) 80%, #ffffff);
-  border-radius: var(--radius);
+  border-radius: var(--radius-lg);
   padding: 24px;
   box-shadow: var(--shadow-2);
   color: var(--ink);
@@ -270,7 +276,7 @@ a {
 
 .input {
   padding: 12px 14px;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   border: 1px solid var(--line);
   font-family: var(--font-sans);
   font-size: 14px;
@@ -325,7 +331,7 @@ input[type="time"]:focus::-webkit-datetime-edit {
   align-items: center;
   justify-content: center;
   padding: 12px 16px;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   border: 1px solid color-mix(in srgb, var(--color-primary-600) 55%, transparent);
   background:
     radial-gradient(140% 140% at 8% 12%, rgba(255, 255, 255, 0.35), transparent 60%),
@@ -347,7 +353,7 @@ input[type="time"]:focus::-webkit-datetime-edit {
   content: "";
   position: absolute;
   inset: 2px;
-  border-radius: 10px;
+  border-radius: calc(var(--radius-md) - 2px);
   border: 1px solid rgba(255, 255, 255, 0.08);
   pointer-events: none;
 }
@@ -448,7 +454,7 @@ input[type="time"]:focus::-webkit-datetime-edit {
 .hero__scene {
   position: relative;
   min-height: 280px;
-  border-radius: var(--radius);
+  border-radius: var(--radius-lg);
   background: var(--surface-2);
   border: 1px solid var(--border);
   overflow: hidden;
@@ -471,7 +477,7 @@ input[type="time"]:focus::-webkit-datetime-edit {
   width: 70%;
   height: 16px;
   background: color-mix(in srgb, var(--primary) 25%, var(--border));
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
 }
 
 .scene__lamp {
@@ -502,7 +508,7 @@ input[type="time"]:focus::-webkit-datetime-edit {
   height: 10px;
   margin: 0 auto;
   background: color-mix(in srgb, var(--primary) 35%, var(--border));
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
 }
 
 .scene__chair {

@@ -3,7 +3,7 @@
     <header :class="topbarClass">
       <RouterLink class="brand" to="/">
         <div class="brand__mark">Pro Consult</div>
-        <div class="brand__tagline">Простір для ведення консультацій</div>
+        <div class="brand__tagline">Простір для спеціалістів</div>
       </RouterLink>
       <nav class="nav">
         <RouterLink v-if="isAuthenticated" :to="cabinetRoute">{{ cabinetLabel }}</RouterLink>
@@ -94,7 +94,7 @@
     <ToastHost />
 
     <footer class="footer">
-      <div>Pro Consult — Простір для ведення консультацій · <RouterLink class="footer__link" to="/faq">FAQ</RouterLink></div>
+      <div>Pro Consult — Простір для спеціалістів · <RouterLink class="footer__link" to="/faq">FAQ</RouterLink></div>
       <div class="footer__meta">
         <span>Без комісій. Без посередників. З повагою до практики.</span>
       </div>
@@ -558,7 +558,7 @@ loadUpcomingReadAt()
 
 .nav a {
   padding: 8px 12px;
-  border-radius: 999px;
+  border-radius: var(--radius-md);
   border: 1px solid color-mix(in srgb, var(--topbar-text) 22%, transparent);
   color: var(--topbar-text);
   display: inline-flex;
@@ -598,7 +598,7 @@ loadUpcomingReadAt()
   height: 38px;
   display: grid;
   place-items: center;
-  border-radius: 999px;
+  border-radius: var(--radius-sm);
   border: 1px solid color-mix(in srgb, var(--topbar-text) 25%, transparent);
   color: var(--topbar-text);
   background: color-mix(in srgb, var(--topbar-text) 8%, transparent);
@@ -630,7 +630,7 @@ loadUpcomingReadAt()
   height: 16px;
   display: grid;
   place-items: center;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
 }
 
 .topbar .btn--ghost {
@@ -657,7 +657,7 @@ loadUpcomingReadAt()
   background: #fff;
   color: var(--ink);
   border: 1px solid var(--border);
-  border-radius: 14px;
+  border-radius: var(--radius-md);
   box-shadow: 0 18px 32px rgba(16, 33, 50, 0.16);
   padding: 12px;
   z-index: 20;
@@ -684,7 +684,7 @@ loadUpcomingReadAt()
   text-decoration: none;
   color: inherit;
   padding: 8px;
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   background: color-mix(in srgb, var(--primary) 6%, transparent);
 }
 
@@ -704,7 +704,7 @@ loadUpcomingReadAt()
 .notif-item__dot {
   width: 8px;
   height: 8px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   margin-top: 6px;
   background: #7a8d9c;
 }

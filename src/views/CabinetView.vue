@@ -334,7 +334,7 @@ const serverTimeLabel = computed(() => {
   gap: 24px;
   background: linear-gradient(135deg, rgba(8, 113, 201, 0.16), rgba(7, 47, 71, 0.06));
   border: 1px solid var(--line);
-  border-radius: var(--radius);
+  border-radius: var(--radius-lg);
   padding: 22px 24px;
   box-shadow: var(--shadow);
 }
@@ -350,7 +350,7 @@ const serverTimeLabel = computed(() => {
 .hero-chip {
   background: #0b2230;
   color: #f1f6f9;
-  border-radius: 16px;
+  border-radius: var(--radius-md);
   padding: 14px 18px;
   min-width: 220px;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
@@ -376,7 +376,7 @@ const serverTimeLabel = computed(() => {
 
 .panel {
   border: 1px solid var(--line);
-  border-radius: 18px;
+  border-radius: var(--radius-lg);
   padding: 18px;
   background: #fff;
   display: grid;
@@ -453,7 +453,7 @@ const serverTimeLabel = computed(() => {
 .progress {
   width: 100%;
   height: 8px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: color-mix(in srgb, var(--primary) 15%, #ffffff);
   overflow: hidden;
 }
@@ -477,7 +477,7 @@ const serverTimeLabel = computed(() => {
 .btn--sm {
   padding: 6px 10px;
   font-size: 12px;
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
 }
 
 .tips-list {
@@ -527,7 +527,7 @@ const serverTimeLabel = computed(() => {
 .status-dot {
   width: 10px;
   height: 10px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: #1f4a60;
 }
 
@@ -545,7 +545,7 @@ const serverTimeLabel = computed(() => {
 
 .access-pill {
   padding: 6px 12px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.04em;
@@ -592,7 +592,7 @@ const serverTimeLabel = computed(() => {
 
 .feature {
   padding: 12px 14px;
-  border-radius: 14px;
+  border-radius: var(--radius-md);
   background: rgba(7, 47, 71, 0.04);
   border: 1px solid rgba(7, 47, 71, 0.08);
 }
@@ -612,7 +612,7 @@ const serverTimeLabel = computed(() => {
 .alert {
   margin-top: 8px;
   padding: 10px 12px;
-  border-radius: 12px;
+  border-radius: var(--radius-sm);
   background: rgba(194, 75, 75, 0.1);
   color: #8b3030;
   font-size: 13px;
@@ -626,7 +626,7 @@ const serverTimeLabel = computed(() => {
 
 .action-group {
   border: 1px solid var(--line);
-  border-radius: 14px;
+  border-radius: var(--radius-md);
   padding: 12px;
   display: grid;
   gap: 10px;
