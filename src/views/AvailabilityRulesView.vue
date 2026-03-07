@@ -196,11 +196,25 @@
         <div class="rule-form__grid">
           <label class="field">
             Початок
-            <input v-model="exceptionForm.starts_at" class="input" type="datetime-local" required />
+            <input
+              ref="exceptionStartsAtRef"
+              v-model="exceptionForm.starts_at"
+              class="input"
+              type="datetime-local"
+              required
+              @click.stop="openDateTimePicker(exceptionStartsAtRef)"
+            />
           </label>
           <label class="field">
             Кінець
-            <input v-model="exceptionForm.ends_at" class="input" type="datetime-local" required />
+            <input
+              ref="exceptionEndsAtRef"
+              v-model="exceptionForm.ends_at"
+              class="input"
+              type="datetime-local"
+              required
+              @click.stop="openDateTimePicker(exceptionEndsAtRef)"
+            />
           </label>
           <label class="field rule-form__active">
             <span>Весь день</span>
@@ -232,11 +246,25 @@
               <div class="rule-form__grid">
                 <label class="field">
                   Початок
-                  <input v-model="exceptionEditForm.starts_at" class="input" type="datetime-local" required />
+                  <input
+                    ref="exceptionEditStartsAtRef"
+                    v-model="exceptionEditForm.starts_at"
+                    class="input"
+                    type="datetime-local"
+                    required
+                    @click.stop="openDateTimePicker(exceptionEditStartsAtRef)"
+                  />
                 </label>
                 <label class="field">
                   Кінець
-                  <input v-model="exceptionEditForm.ends_at" class="input" type="datetime-local" required />
+                  <input
+                    ref="exceptionEditEndsAtRef"
+                    v-model="exceptionEditForm.ends_at"
+                    class="input"
+                    type="datetime-local"
+                    required
+                    @click.stop="openDateTimePicker(exceptionEditEndsAtRef)"
+                  />
                 </label>
                 <label class="field rule-form__active">
                   <span>Весь день</span>
@@ -452,6 +480,10 @@ const confirmModal = useConfirmModal()
 const exceptions = ref<AvailabilityException[]>([])
 const exceptionsLoading = ref(false)
 const exceptionError = ref('')
+const exceptionStartsAtRef = ref<HTMLInputElement | null>(null)
+const exceptionEndsAtRef = ref<HTMLInputElement | null>(null)
+const exceptionEditStartsAtRef = ref<HTMLInputElement | null>(null)
+const exceptionEditEndsAtRef = ref<HTMLInputElement | null>(null)
 const editingExceptionId = ref<number | null>(null)
 const exceptionSubmitting = ref(false)
 
@@ -492,6 +524,31 @@ const exceptionEditForm = reactive({
 
 const hasActiveRules = computed(() => rules.value.some((rule) => rule.is_active))
 
+function openDateTimePicker(inputRef: { value: HTMLInputElement | null }) {
+  const input = inputRef.value
+  if (!input) return
+  input.focus()
+  const picker = input as HTMLInputElement & { showPicker?: () => void }
+  if (typeof picker.showPicker === 'function') {
+    try {
+      picker.showPicker()
+    } catch {
+      // no-op: browser may block showPicker in some contexts
+    }
+  }
+}
+
+function exceptionApiError(err: unknown, fallback: string): string {
+  const status = (err as { response?: { status?: number } })?.response?.status
+  if (status === 404) {
+    return 'Періоди недоступності поки недоступні на сервері. Оновіть бекенд або перевірте маршрут API.'
+  }
+  if (status && status >= 500) {
+    return 'Сервер тимчасово не може обробити періоди недоступності. Спробуйте ще раз або перевірте логи бекенду.'
+  }
+  return getApiErrorMessage(err, fallback)
+}
+
 function weekdayLabel(value: number): string {
   return weekdayOptions.find((opt) => opt.value === value)?.label || String(value)
 }
@@ -514,7 +571,7 @@ async function loadExceptions() {
   try {
     exceptions.value = await apiGet<AvailabilityException[]>('/cabinet/availability-exceptions/')
   } catch (err) {
-    exceptionError.value = getApiErrorMessage(err, 'Не вдалося завантажити періоди недоступності.')
+    exceptionError.value = exceptionApiError(err, 'Не вдалося завантажити періоди недоступності.')
   } finally {
     exceptionsLoading.value = false
   }
@@ -571,7 +628,7 @@ async function onCreateException() {
     await loadExceptions()
     generationSuccess.value = ''
   } catch (err) {
-    exceptionError.value = getApiErrorMessage(err, 'Не вдалося створити період недоступності.')
+    exceptionError.value = exceptionApiError(err, 'Не вдалося створити період недоступності.')
   } finally {
     exceptionSubmitting.value = false
   }
@@ -592,7 +649,7 @@ async function onUpdateException(id: number) {
     await loadExceptions()
     generationSuccess.value = ''
   } catch (err) {
-    exceptionError.value = getApiErrorMessage(err, 'Не вдалося оновити період недоступності.')
+    exceptionError.value = exceptionApiError(err, 'Не вдалося оновити період недоступності.')
   } finally {
     exceptionSubmitting.value = false
   }
@@ -613,7 +670,7 @@ async function onDeleteException(id: number) {
         await loadExceptions()
         generationSuccess.value = ''
       } catch (err) {
-        exceptionError.value = getApiErrorMessage(err, 'Не вдалося видалити період недоступності.')
+        exceptionError.value = exceptionApiError(err, 'Не вдалося видалити період недоступності.')
       } finally {
         exceptionSubmitting.value = false
       }
