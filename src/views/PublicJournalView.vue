@@ -41,11 +41,11 @@
           :to="`/${slug}/journal/collections/${collection.slug}`"
           class="journal-collection-card"
         >
-          <div class="journal-collection-card__cover">
-            <img v-if="collection.cover_image_url" :src="collection.cover_image_url" :alt="collection.title" />
-            <div v-else class="journal-collection-card__placeholder">
-              <span>Collection</span>
-            </div>
+          <div
+            v-if="collection.cover_image_url"
+            class="journal-collection-card__cover"
+          >
+            <img :src="collection.cover_image_url" :alt="collection.title" />
           </div>
 
           <div class="journal-collection-card__body">
@@ -68,9 +68,11 @@
                 :key="post.slug"
                 class="journal-collection-card__preview-item"
               >
-                {{ post.title }}
+                — {{ post.title }}
               </li>
             </ul>
+
+            <div class="journal-collection-card__cta">Відкрити серію →</div>
           </div>
         </RouterLink>
       </div>
@@ -670,7 +672,7 @@ onMounted(async () => {
 .journal-collection-card:hover {
   transform: translateY(-2px);
   border-color: var(--color-border-strong, #949aa1);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.06);
 }
 
 .journal-collection-card__cover {
@@ -686,39 +688,28 @@ onMounted(async () => {
   display: block;
 }
 
-.journal-collection-card__placeholder {
-  width: 100%;
-  height: 100%;
-  display: grid;
-  place-items: center;
-  font-size: 13px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--color-text-muted, #6c7279);
-}
-
 .journal-collection-card__body {
-  padding: 14px 14px 16px;
+  padding: 16px;
 }
 
 .journal-collection-card__meta {
-  margin-bottom: 6px;
-  font-size: 12px;
+  margin-bottom: 8px;
+  font-size: 13px;
   line-height: 1.4;
   color: var(--color-text-muted, #6c7279);
 }
 
 .journal-collection-card__title {
-  margin: 0 0 6px;
-  font-size: 19px;
+  margin: 0 0 8px;
+  font-size: 20px;
   line-height: 1.25;
   font-weight: 700;
 }
 
 .journal-collection-card__description {
-  margin: 0;
+  margin: 0 0 10px;
   font-size: 14px;
-  line-height: 1.55;
+  line-height: 1.5;
   color: var(--color-text-muted, #6c7279);
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -743,6 +734,12 @@ onMounted(async () => {
 
 .journal-collection-card__preview-item + .journal-collection-card__preview-item {
   margin-top: 6px;
+}
+
+.journal-collection-card__cta {
+  margin-top: 12px;
+  font-size: 14px;
+  font-weight: 600;
 }
 
 
