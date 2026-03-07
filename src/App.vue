@@ -15,9 +15,6 @@
         >
           Публічний профіль
         </RouterLink>
-        <RouterLink v-if="isAuthenticated && isSpecialist" to="/cabinet/settings">
-          Налаштування
-        </RouterLink>
         <RouterLink to="/faq">FAQ</RouterLink>
         <RouterLink v-if="!isAuthenticated" to="/login">Вхід</RouterLink>
         <RouterLink v-if="!isAuthenticated" to="/signup">Реєстрація</RouterLink>
@@ -34,6 +31,19 @@
             />
           </svg>
           <span v-if="chatUnreadCount" class="icon-btn__badge">{{ chatUnreadCount }}</span>
+        </RouterLink>
+        <RouterLink
+          v-if="isAuthenticated && isSpecialist"
+          class="icon-btn"
+          to="/cabinet/settings"
+          aria-label="Налаштування"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              d="M19.14 12.94a7.9 7.9 0 0 0 .06-.94 7.9 7.9 0 0 0-.06-.94l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.6-.22l-2.39.96a7.2 7.2 0 0 0-1.63-.94L14.4 2.8a.5.5 0 0 0-.5-.4h-3.8a.5.5 0 0 0-.5.4L9.25 5.32a7.2 7.2 0 0 0-1.63.94l-2.39-.96a.5.5 0 0 0-.6.22L2.71 8.84a.5.5 0 0 0 .12.64l2.03 1.58a7.9 7.9 0 0 0-.06.94 7.9 7.9 0 0 0 .06.94L2.83 14.52a.5.5 0 0 0-.12.64l1.92 3.32c.13.22.39.31.6.22l2.39-.96c.5.39 1.05.7 1.63.94l.35 2.52c.04.24.25.4.5.4h3.8c.25 0 .46-.16.5-.4l.35-2.52c.58-.24 1.13-.55 1.63-.94l2.39.96c.22.09.47 0 .6-.22l1.92-3.32a.5.5 0 0 0-.12-.64l-2.03-1.58zM12 15.5A3.5 3.5 0 1 1 12 8.5a3.5 3.5 0 0 1 0 7z"
+              fill="currentColor"
+            />
+          </svg>
         </RouterLink>
         <div v-if="isAuthenticated" class="nav__notifications">
           <button
