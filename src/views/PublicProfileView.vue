@@ -196,8 +196,8 @@
         <div v-else>
           <section v-if="previewCollections.length" class="profile-collections">
             <div class="profile-collections__head">
-              <div class="profile-collections__title">Добірки</div>
-              <RouterLink class="btn btn--ghost btn--sm" :to="`/${slug}/journal`">
+              <div class="profile-collections__title">Серії</div>
+              <RouterLink class="btn btn--ghost btn--sm" :to="`/t/${slug}/journal`">
                 Переглянути всі
               </RouterLink>
             </div>
@@ -206,7 +206,7 @@
                 v-for="collection in previewCollections"
                 :key="collection.slug"
                 class="profile-collection-item"
-                :to="`/${slug}/journal/collections/${collection.slug}`"
+                :to="`/t/${slug}/journal/collections/${collection.slug}`"
               >
                 <div class="profile-collection-item__left">
                   <div v-if="collectionCoverUrl(collection)" class="profile-collection-item__cover">
