@@ -24,7 +24,7 @@
 
       <form class="rule-form" @submit.prevent="onCreateRule">
         <div class="rule-form__grid">
-          <label class="field">
+          <label class="field field--picker" @click="openDateTimePicker(ruleCreateStartTimeRef)">
             День тижня
             <select v-model.number="createForm.weekday" class="input">
               <option v-for="opt in weekdayOptions" :key="opt.value" :value="opt.value">
@@ -42,10 +42,11 @@
               type="time"
               required
               @click.stop="openDateTimePicker(ruleCreateStartTimeRef)"
+              @focus="openDateTimePicker(ruleCreateStartTimeRef)"
             />
           </label>
 
-          <label class="field">
+          <label class="field field--picker" @click="openDateTimePicker(ruleCreateEndTimeRef)">
             Кінець
             <input
               ref="ruleCreateEndTimeRef"
@@ -54,6 +55,7 @@
               type="time"
               required
               @click.stop="openDateTimePicker(ruleCreateEndTimeRef)"
+              @focus="openDateTimePicker(ruleCreateEndTimeRef)"
             />
           </label>
 
@@ -112,7 +114,7 @@
           <template v-if="editingRuleId === rule.id">
             <form class="rule-form" @submit.prevent="onSaveRule(rule.id)">
               <div class="rule-form__grid">
-                <label class="field">
+                <label class="field field--picker" @click="openDateTimePicker(ruleEditStartTimeRef)">
                   День тижня
                   <select v-model.number="editForm.weekday" class="input">
                     <option v-for="opt in weekdayOptions" :key="opt.value" :value="opt.value">
@@ -130,10 +132,11 @@
                     type="time"
                     required
                     @click.stop="openDateTimePicker(ruleEditStartTimeRef)"
+                    @focus="openDateTimePicker(ruleEditStartTimeRef)"
                   />
                 </label>
 
-                <label class="field">
+                <label class="field field--picker" @click="openDateTimePicker(ruleEditEndTimeRef)">
                   Кінець
                   <input
                     ref="ruleEditEndTimeRef"
@@ -142,6 +145,7 @@
                     type="time"
                     required
                     @click.stop="openDateTimePicker(ruleEditEndTimeRef)"
+                    @focus="openDateTimePicker(ruleEditEndTimeRef)"
                   />
                 </label>
 
@@ -222,7 +226,7 @@
 
       <form class="rule-form" @submit.prevent="onCreateException">
         <div class="rule-form__grid">
-          <label class="field">
+          <label class="field field--picker" @click="openDateTimePicker(exceptionStartsAtRef)">
             Початок
             <input
               ref="exceptionStartsAtRef"
@@ -231,9 +235,10 @@
               type="datetime-local"
               required
               @click.stop="openDateTimePicker(exceptionStartsAtRef)"
+              @focus="openDateTimePicker(exceptionStartsAtRef)"
             />
           </label>
-          <label class="field">
+          <label class="field field--picker" @click="openDateTimePicker(exceptionEndsAtRef)">
             Кінець
             <input
               ref="exceptionEndsAtRef"
@@ -242,6 +247,7 @@
               type="datetime-local"
               required
               @click.stop="openDateTimePicker(exceptionEndsAtRef)"
+              @focus="openDateTimePicker(exceptionEndsAtRef)"
             />
           </label>
           <label class="field rule-form__active">
@@ -272,7 +278,7 @@
           <template v-if="editingExceptionId === item.id">
             <form class="rule-form" @submit.prevent="onUpdateException(item.id)">
               <div class="rule-form__grid">
-                <label class="field">
+                <label class="field field--picker" @click="openDateTimePicker(exceptionEditStartsAtRef)">
                   Початок
                   <input
                     ref="exceptionEditStartsAtRef"
@@ -281,9 +287,10 @@
                     type="datetime-local"
                     required
                     @click.stop="openDateTimePicker(exceptionEditStartsAtRef)"
+                    @focus="openDateTimePicker(exceptionEditStartsAtRef)"
                   />
                 </label>
-                <label class="field">
+                <label class="field field--picker" @click="openDateTimePicker(exceptionEditEndsAtRef)">
                   Кінець
                   <input
                     ref="exceptionEditEndsAtRef"
@@ -292,6 +299,7 @@
                     type="datetime-local"
                     required
                     @click.stop="openDateTimePicker(exceptionEditEndsAtRef)"
+                    @focus="openDateTimePicker(exceptionEditEndsAtRef)"
                   />
                 </label>
                 <label class="field rule-form__active">
@@ -924,6 +932,10 @@ onMounted(async () => {
   gap: 6px;
   font-size: 12px;
   color: var(--muted);
+}
+
+.field--picker {
+  cursor: pointer;
 }
 
 .rule-form__active {
