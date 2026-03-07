@@ -486,6 +486,13 @@
                   >
                     Редагувати серію
                   </button>
+                  <button
+                    class="btn btn--ghost btn--sm btn--danger-soft"
+                    type="button"
+                    @click="requestDeleteCollection(collection)"
+                  >
+                    Видалити серію
+                  </button>
                   <button class="btn btn--ghost btn--sm" type="button" @click="toggleManageCollection(collection.id)">
                     {{ managingCollectionId === collection.id ? 'Сховати' : 'Керувати постами' }}
                   </button>
@@ -713,6 +720,7 @@ import {
   fetchCabinetJournalCollections,
   createCabinetJournalCollection,
   updateCabinetJournalCollection,
+  deleteCabinetJournalCollection,
   fetchCabinetJournalCollectionDetail,
   createCabinetJournalCollectionItem,
   updateCabinetJournalCollectionItem,
@@ -925,6 +933,36 @@ async function onSaveCollectionEdit(collectionId: number) {
   } finally {
     collectionEditSubmitting.value = false
   }
+}
+
+function requestDeleteCollection(collection: CabinetJournalCollection) {
+  journalDeleteModal.openConfirm({
+    title: 'Видалити серію?',
+    message: 'Серія буде видалена. Записи залишаться у журналі.',
+    confirmText: 'Видалити',
+    cancelText: 'Скасувати',
+    tone: 'danger',
+    onConfirm: async () => {
+      collectionError.value = ''
+      try {
+        await deleteCabinetJournalCollection(collection.id)
+        await loadCollections()
+        delete collectionDetailsById.value[collection.id]
+        if (editingCollectionId.value === collection.id) {
+          cancelCollectionEdit()
+        }
+        if (managingCollectionId.value === collection.id) {
+          managingCollectionId.value = null
+        }
+        collectionSuccessMessage.value = 'Серію видалено.'
+        setTimeout(() => {
+          collectionSuccessMessage.value = ''
+        }, 3000)
+      } catch (err) {
+        collectionError.value = getApiErrorMessage(err, 'Не вдалося видалити серію')
+      }
+    },
+  })
 }
 
 async function prefetchCollectionDetails() {

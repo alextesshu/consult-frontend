@@ -451,6 +451,10 @@ export async function updateCabinetJournalCollection(
   return resp.data
 }
 
+export async function deleteCabinetJournalCollection(collectionId: number): Promise<void> {
+  await http.delete(`/cabinet/journal/collections/${collectionId}/`)
+}
+
 export async function fetchCabinetJournalCollectionDetail(
   collectionId: number
 ): Promise<CabinetJournalCollectionDetail> {
