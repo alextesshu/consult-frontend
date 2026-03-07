@@ -346,12 +346,25 @@
         <RouterLink class="btn btn--ghost btn--sm" to="/cabinet/slots">Перейти до слотів</RouterLink>
       </div>
     </section>
+
+    <ConfirmModal
+      :open="confirmModal.open"
+      :title="confirmModal.title"
+      :message="confirmModal.message"
+      :confirm-text="confirmModal.confirmText"
+      :cancel-text="confirmModal.cancelText"
+      :tone="confirmModal.tone"
+      @confirm="confirmModal.confirm"
+      @cancel="confirmModal.closeConfirm"
+    />
   </section>
 </template>
 
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue'
 import { apiDelete, apiGet, apiPatch, apiPost } from '../lib/api'
+import ConfirmModal from '../components/ConfirmModal.vue'
+import { useConfirmModal } from '../composables/useConfirmModal'
 import { getApiErrorMessage } from '../lib/errors'
 
 type AvailabilityRule = {
@@ -435,6 +448,7 @@ const generationLoading = ref(false)
 const generationError = ref('')
 const generationSuccess = ref('')
 const previewResult = ref<AvailabilityGenerationPreview | null>(null)
+const confirmModal = useConfirmModal()
 const exceptions = ref<AvailabilityException[]>([])
 const exceptionsLoading = ref(false)
 const exceptionError = ref('')
@@ -585,19 +599,26 @@ async function onUpdateException(id: number) {
 }
 
 async function onDeleteException(id: number) {
-  if (!window.confirm('Видалити період недоступності?')) return
-  exceptionSubmitting.value = true
-  exceptionError.value = ''
-  try {
-    await apiDelete(`/cabinet/availability-exceptions/${id}/`)
-    if (editingExceptionId.value === id) cancelEditException()
-    await loadExceptions()
-    generationSuccess.value = ''
-  } catch (err) {
-    exceptionError.value = getApiErrorMessage(err, 'Не вдалося видалити період недоступності.')
-  } finally {
-    exceptionSubmitting.value = false
-  }
+  confirmModal.openConfirm({
+    title: 'Видалити період недоступності?',
+    message: 'Період буде видалено з розкладу. Заброньовані сесії автоматично не скасовуються.',
+    confirmText: 'Видалити',
+    tone: 'danger',
+    onConfirm: async () => {
+      exceptionSubmitting.value = true
+      exceptionError.value = ''
+      try {
+        await apiDelete(`/cabinet/availability-exceptions/${id}/`)
+        if (editingExceptionId.value === id) cancelEditException()
+        await loadExceptions()
+        generationSuccess.value = ''
+      } catch (err) {
+        exceptionError.value = getApiErrorMessage(err, 'Не вдалося видалити період недоступності.')
+      } finally {
+        exceptionSubmitting.value = false
+      }
+    },
+  })
 }
 
 function resetCreateForm() {
@@ -654,21 +675,28 @@ async function onSaveRule(ruleId: number) {
 }
 
 async function onDeleteRule(ruleId: number) {
-  if (!window.confirm('Видалити правило доступності?')) return
-  loading.value = true
-  error.value = ''
-  try {
-    await apiDelete(`/cabinet/availability-rules/${ruleId}/`)
-    rules.value = rules.value.filter((rule) => rule.id !== ruleId)
-    if (editingRuleId.value === ruleId) {
-      cancelEdit()
-    }
-    generationSuccess.value = ''
-  } catch (err) {
-    error.value = getApiErrorMessage(err, 'Не вдалося видалити правило.')
-  } finally {
-    loading.value = false
-  }
+  confirmModal.openConfirm({
+    title: 'Видалити правило доступності?',
+    message: 'Правило буде видалено з шаблону доступності. Застосуйте генерацію, щоб оновити вільні слоти.',
+    confirmText: 'Видалити',
+    tone: 'danger',
+    onConfirm: async () => {
+      loading.value = true
+      error.value = ''
+      try {
+        await apiDelete(`/cabinet/availability-rules/${ruleId}/`)
+        rules.value = rules.value.filter((rule) => rule.id !== ruleId)
+        if (editingRuleId.value === ruleId) {
+          cancelEdit()
+        }
+        generationSuccess.value = ''
+      } catch (err) {
+        error.value = getApiErrorMessage(err, 'Не вдалося видалити правило.')
+      } finally {
+        loading.value = false
+      }
+    },
+  })
 }
 
 function formatSlotExample(startAt: string, endAt: string): string {
@@ -698,11 +726,22 @@ async function onPreviewGeneration() {
 async function onApplyGeneration() {
   if (!previewResult.value) return
   if (previewResult.value.to_delete_count > 0) {
-    const confirmed = window.confirm(
-      'Під час застосування система оновить розклад і може видалити частину вільних слотів. Заброньовані слоти не видаляються автоматично. Продовжити?'
-    )
-    if (!confirmed) return
+    confirmModal.openConfirm({
+      title: 'Застосувати генерацію слотів?',
+      message:
+        'Під час застосування система оновить розклад і може видалити частину вільних слотів. Заброньовані слоти не видаляються автоматично.',
+      confirmText: 'Застосувати',
+      tone: 'danger',
+      onConfirm: async () => {
+        await applyGeneration()
+      },
+    })
+    return
   }
+  await applyGeneration()
+}
+
+async function applyGeneration() {
   generationLoading.value = true
   generationError.value = ''
   generationSuccess.value = ''
