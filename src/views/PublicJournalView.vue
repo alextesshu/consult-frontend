@@ -42,10 +42,10 @@
           class="journal-collection-card"
         >
           <div
-            v-if="collection.cover_image_url"
+            v-if="collectionCoverUrl(collection)"
             class="journal-collection-card__cover"
           >
-            <img :src="collection.cover_image_url" :alt="collection.title" />
+            <img :src="collectionCoverUrl(collection)" :alt="collection.title" />
           </div>
 
           <div class="journal-collection-card__body">
@@ -473,6 +473,13 @@ function articleWord(count: number): string {
 }
 
 
+
+function collectionCoverUrl(collection: PublicJournalCollectionListItem): string {
+  if (collection.cover_image_url) return collection.cover_image_url
+  const firstPreviewSlug = collection.preview_posts?.[0]?.slug
+  if (!firstPreviewSlug) return ''
+  return journalPosts.value.find((post) => post.slug === firstPreviewSlug)?.cover_image_url || ''
+}
 
 function navigateToPost(post: PublicAuthorJournalPost) {
   if (!slug.value || !post.slug) return
