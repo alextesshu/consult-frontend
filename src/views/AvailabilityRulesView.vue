@@ -171,11 +171,55 @@
         </article>
       </div>
     </section>
+
+    <section class="panel">
+      <div class="panel__header">
+        <div>
+          <div class="badge badge--soft">Генерація</div>
+          <h2 class="panel__title">Згенерувати слоти</h2>
+          <p class="muted generation__subtitle">
+            На основі активних правил система може створити вільні вікна на найближчі 30 днів.
+          </p>
+        </div>
+      </div>
+
+      <div class="generation__actions">
+        <button class="btn" type="button" :disabled="!hasActiveRules || generationLoading" @click="onPreviewGeneration">
+          Переглянути генерацію на 30 днів
+        </button>
+        <button
+          class="btn btn--ghost"
+          type="button"
+          :disabled="!previewResult || generationLoading"
+          @click="onApplyGeneration"
+        >
+          Застосувати
+        </button>
+      </div>
+
+      <p v-if="!hasActiveRules" class="muted">Додайте хоча б одне активне правило, щоб запустити preview.</p>
+      <div v-if="generationError" class="form-error">{{ generationError }}</div>
+      <p v-if="generationSuccess" class="generation__success">{{ generationSuccess }}</p>
+
+      <div v-if="previewResult" class="generation__result">
+        <div class="generation__stats">
+          <div>Буде створено: <strong>{{ previewResult.to_create_count }}</strong></div>
+          <div>Вже існує: <strong>{{ previewResult.existing_count }}</strong></div>
+          <div>Буде пропущено: <strong>{{ previewResult.skipped_duplicate_or_conflict_count }}</strong></div>
+        </div>
+        <ul v-if="previewResult.examples?.length" class="generation__examples">
+          <li v-for="example in previewResult.examples.slice(0, 10)" :key="example.start_at">
+            {{ formatSlotExample(example.start_at, example.end_at) }}
+          </li>
+        </ul>
+        <RouterLink class="btn btn--ghost btn--sm" to="/cabinet/slots">Перейти до слотів</RouterLink>
+      </div>
+    </section>
   </section>
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { apiDelete, apiGet, apiPatch, apiPost } from '../lib/api'
 import { getApiErrorMessage } from '../lib/errors'
 
@@ -193,6 +237,33 @@ type AvailabilityRule = {
   updated_at: string
 }
 
+type AvailabilityGenerationPreview = {
+  date_range: {
+    date_from: string
+    date_to: string
+  }
+  days_covered: number
+  total_candidate_slots: number
+  to_create_count: number
+  existing_count: number
+  skipped_duplicate_or_conflict_count: number
+  examples: Array<{
+    start_at: string
+    end_at: string
+  }>
+}
+
+type AvailabilityGenerationApply = {
+  date_range: {
+    date_from: string
+    date_to: string
+  }
+  days_covered: number
+  created_count: number
+  deleted_count: number
+  existing_count: number
+}
+
 const weekdayOptions = [
   { value: 0, label: 'Понеділок' },
   { value: 1, label: 'Вівторок' },
@@ -206,6 +277,10 @@ const weekdayOptions = [
 const rules = ref<AvailabilityRule[]>([])
 const loading = ref(false)
 const error = ref('')
+const generationLoading = ref(false)
+const generationError = ref('')
+const generationSuccess = ref('')
+const previewResult = ref<AvailabilityGenerationPreview | null>(null)
 
 const createForm = reactive({
   weekday: 0,
@@ -225,6 +300,8 @@ const editForm = reactive({
   buffer_minutes: 10,
   is_active: true,
 })
+
+const hasActiveRules = computed(() => rules.value.some((rule) => rule.is_active))
 
 function weekdayLabel(value: number): string {
   return weekdayOptions.find((opt) => opt.value === value)?.label || String(value)
@@ -258,6 +335,7 @@ async function onCreateRule() {
     const created = await apiPost<AvailabilityRule>('/cabinet/availability-rules/', createForm)
     rules.value = [...rules.value, created].sort((a, b) => a.id - b.id)
     resetCreateForm()
+    generationSuccess.value = ''
   } catch (err) {
     error.value = getApiErrorMessage(err, 'Не вдалося створити правило.')
   } finally {
@@ -286,6 +364,7 @@ async function onSaveRule(ruleId: number) {
     const updated = await apiPatch<AvailabilityRule>(`/cabinet/availability-rules/${ruleId}/`, editForm)
     rules.value = rules.value.map((rule) => (rule.id === ruleId ? updated : rule))
     cancelEdit()
+    generationSuccess.value = ''
   } catch (err) {
     error.value = getApiErrorMessage(err, 'Не вдалося оновити правило.')
   } finally {
@@ -303,10 +382,54 @@ async function onDeleteRule(ruleId: number) {
     if (editingRuleId.value === ruleId) {
       cancelEdit()
     }
+    generationSuccess.value = ''
   } catch (err) {
     error.value = getApiErrorMessage(err, 'Не вдалося видалити правило.')
   } finally {
     loading.value = false
+  }
+}
+
+function formatSlotExample(startAt: string, endAt: string): string {
+  const start = new Date(startAt)
+  const end = new Date(endAt)
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return `${startAt} – ${endAt}`
+  return `${start.toLocaleString('uk-UA')} – ${end.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' })}`
+}
+
+async function onPreviewGeneration() {
+  if (!hasActiveRules.value) return
+  generationLoading.value = true
+  generationError.value = ''
+  generationSuccess.value = ''
+  try {
+    previewResult.value = await apiPost<AvailabilityGenerationPreview>(
+      '/cabinet/availability-rules/preview-generation/',
+      { days_ahead: 30 }
+    )
+  } catch (err) {
+    generationError.value = getApiErrorMessage(err, 'Не вдалося виконати preview генерації.')
+  } finally {
+    generationLoading.value = false
+  }
+}
+
+async function onApplyGeneration() {
+  if (!previewResult.value) return
+  generationLoading.value = true
+  generationError.value = ''
+  generationSuccess.value = ''
+  try {
+    const result = await apiPost<AvailabilityGenerationApply>('/cabinet/availability-rules/apply-generation/', {
+      days_ahead: 30,
+    })
+    generationSuccess.value = `Створено ${result.created_count} слотів.`
+    await loadRules()
+    previewResult.value = null
+  } catch (err) {
+    generationError.value = getApiErrorMessage(err, 'Не вдалося застосувати генерацію.')
+  } finally {
+    generationLoading.value = false
   }
 }
 
@@ -422,6 +545,41 @@ onMounted(loadRules)
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+.generation__subtitle {
+  margin: 6px 0 0;
+}
+
+.generation__actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.generation__result {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.generation__stats {
+  display: grid;
+  gap: 4px;
+}
+
+.generation__examples {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 4px;
+}
+
+.generation__success {
+  color: #1f7a4c;
+  font-weight: 600;
 }
 
 @media (max-width: 860px) {
