@@ -215,12 +215,19 @@ export type PublicAuthorJournalPost = {
   created_at: string
 }
 
+export type PublicJournalCollectionPreviewPost = {
+  title: string
+  slug: string
+}
+
 export type PublicJournalCollectionListItem = {
+  id: number
   title: string
   slug: string
   cover_image_url: string
   description: string
   posts_count: number
+  preview_posts: PublicJournalCollectionPreviewPost[]
 }
 
 export type PublicAuthorJournalPostDetail = {

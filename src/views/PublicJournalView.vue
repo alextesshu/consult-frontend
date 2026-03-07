@@ -50,7 +50,7 @@
 
           <div class="journal-collection-card__body">
             <div class="journal-collection-card__meta">
-              {{ collection.posts_count }} {{ collection.posts_count === 1 ? 'article' : 'articles' }}
+              {{ collection.posts_count }} {{ articleWord(collection.posts_count) }}
             </div>
 
             <h3 class="journal-collection-card__title">{{ collection.title }}</h3>
@@ -58,6 +58,19 @@
             <p v-if="collection.description" class="journal-collection-card__description">
               {{ collection.description }}
             </p>
+
+            <ul
+              v-if="collection.preview_posts?.length"
+              class="journal-collection-card__preview"
+            >
+              <li
+                v-for="post in collection.preview_posts"
+                :key="post.slug"
+                class="journal-collection-card__preview-item"
+              >
+                {{ post.title }}
+              </li>
+            </ul>
           </div>
         </RouterLink>
       </div>
@@ -449,6 +462,14 @@ const filteredJournalPosts = computed(() => {
 const featuredPost = computed(() => filteredJournalPosts.value.find((p) => p.is_featured) || null)
 const displayedCollections = computed(() => collections.value.slice(0, 3))
 
+function articleWord(count: number): string {
+  if (count % 10 === 1 && count % 100 !== 11) return 'стаття'
+  if ([2, 3, 4].includes(count % 10) && ![12, 13, 14].includes(count % 100)) {
+    return 'статті'
+  }
+  return 'статей'
+}
+
 
 
 function navigateToPost(post: PublicAuthorJournalPost) {
@@ -703,6 +724,25 @@ onMounted(async () => {
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+.journal-collection-card__preview {
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.journal-collection-card__preview-item {
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--color-text-muted, #6c7279);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.journal-collection-card__preview-item + .journal-collection-card__preview-item {
+  margin-top: 6px;
 }
 
 
