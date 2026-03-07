@@ -450,9 +450,12 @@
                     </span>
                   </div>
                   <div class="journal-collection-row__title">{{ collection.title }}</div>
-                  <div class="journal-collection-row__meta">{{ collection.posts_count }} постів</div>
+                  <div class="journal-collection-row__meta">{{ collection.posts_count }} {{ recordWord(collection.posts_count) }}</div>
                   <div v-if="collection.description" class="journal-collection-row__description">
                     {{ collection.description }}
+                  </div>
+                  <div v-if="!collection.is_published" class="journal-collection-row__draft-note">
+                    Серію знято з публікації. У публічному профілі її не видно.
                   </div>
                   <ul v-if="collectionPreviewTitles(collection).length" class="journal-collection-row__preview">
                     <li
@@ -540,7 +543,7 @@
                 <div class="collection-manage__section">
                   <div class="collection-manage__section-title">У серії</div>
                   <div v-if="!getCollectionItems(collection.id).length" class="muted">
-                    Поки що в серії немає записів.
+                    Серія порожня. Додайте перший запис нижче.
                   </div>
                   <div v-else class="collection-posts-list">
                     <article
@@ -602,7 +605,7 @@
                 <div class="collection-manage__section">
                   <div class="collection-manage__section-title">Додати записи</div>
                   <div v-if="!journalPosts.length" class="muted">
-                    Немає постів для додавання.
+                    У вас ще немає записів для додавання. Спершу створіть запис у вкладці «Записи».
                   </div>
                   <div v-else-if="!getAvailablePostsForCollection(collection.id).length" class="muted">
                     Усі записи вже додані в серію.
@@ -737,6 +740,7 @@ import {
 } from '../lib/api'
 import ConfirmModal from '../components/ConfirmModal.vue'
 import { useConfirmModal } from '../composables/useConfirmModal'
+import { useToast } from '../composables/useToast'
 
 const journalLoading = ref(false)
 const collectionsLoading = ref(false)
@@ -764,6 +768,7 @@ const editCoverUploading = ref(false)
 const bodyInput = ref<HTMLTextAreaElement | null>(null)
 const summaryInput = ref<HTMLTextAreaElement | null>(null)
 const router = useRouter()
+const toast = useToast()
 const activeTab = ref<'posts' | 'collections'>('posts')
 const createCollectionOpen = ref(false)
 const managingCollectionId = ref<number | null>(null)
@@ -804,6 +809,7 @@ const editForm = reactive({
   coverChanged: false,
 })
 const journalDeleteModal = useConfirmModal()
+let collectionSuccessTimer: number | null = null
 
 async function loadJournal() {
   journalLoading.value = true
@@ -870,6 +876,25 @@ function slugify(value: string): string {
     .replace(/^-|-$/g, '')
 }
 
+function recordWord(count: number): string {
+  if (count % 10 === 1 && count % 100 !== 11) return 'запис'
+  if ([2, 3, 4].includes(count % 10) && ![12, 13, 14].includes(count % 100)) {
+    return 'записи'
+  }
+  return 'записів'
+}
+
+function showCollectionSuccess(message: string) {
+  collectionSuccessMessage.value = message
+  toast.success(message)
+  if (collectionSuccessTimer) {
+    window.clearTimeout(collectionSuccessTimer)
+  }
+  collectionSuccessTimer = window.setTimeout(() => {
+    collectionSuccessMessage.value = ''
+  }, 3000)
+}
+
 async function onCreateCollection() {
   collectionSubmitting.value = true
   collectionError.value = ''
@@ -883,10 +908,7 @@ async function onCreateCollection() {
     await loadCollections()
     resetCollectionForm()
     createCollectionOpen.value = false
-    collectionSuccessMessage.value = 'Серію створено.'
-    setTimeout(() => {
-      collectionSuccessMessage.value = ''
-    }, 3000)
+    showCollectionSuccess('Серію створено.')
   } catch (err) {
     collectionError.value = getApiErrorMessage(err, 'Не вдалося створити добірку')
   } finally {
@@ -924,10 +946,7 @@ async function onSaveCollectionEdit(collectionId: number) {
     })
     await loadCollections()
     cancelCollectionEdit()
-    collectionSuccessMessage.value = 'Серію оновлено.'
-    setTimeout(() => {
-      collectionSuccessMessage.value = ''
-    }, 3000)
+    showCollectionSuccess('Серію оновлено.')
   } catch (err) {
     collectionError.value = getApiErrorMessage(err, 'Не вдалося оновити серію')
   } finally {
@@ -954,10 +973,7 @@ function requestDeleteCollection(collection: CabinetJournalCollection) {
         if (managingCollectionId.value === collection.id) {
           managingCollectionId.value = null
         }
-        collectionSuccessMessage.value = 'Серію видалено.'
-        setTimeout(() => {
-          collectionSuccessMessage.value = ''
-        }, 3000)
+        showCollectionSuccess('Серію видалено.')
       } catch (err) {
         collectionError.value = getApiErrorMessage(err, 'Не вдалося видалити серію')
       }
@@ -1750,6 +1766,11 @@ onMounted(() => {
   color: var(--muted);
 }
 
+.journal-collection-row__draft-note {
+  font-size: 13px;
+  color: #8a3c34;
+}
+
 .journal-collection-row__preview {
   margin: 2px 0 0;
   padding: 0 0 0 18px;
@@ -2093,6 +2114,38 @@ onMounted(() => {
   .journal-hero {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .journal-collection-row {
+    padding: 10px 12px;
+  }
+
+  .journal-collection-row__top {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .journal-collection-row__actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .collection-edit-form .form-grid {
+    gap: 10px;
+  }
+
+  .collection-post-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .collection-post-row__title-wrap {
+    width: 100%;
+  }
+
+  .collection-post-row__actions {
+    width: 100%;
+    justify-content: flex-start;
   }
 }
 </style>
