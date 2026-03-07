@@ -336,6 +336,8 @@ import { computed, onMounted, onBeforeUnmount, ref, watch, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { apiGet, apiPatch, apiPut, fetchSpecialistProfile, type SpecialistProfile } from '../lib/api'
 import { getApiErrorMessage } from '../lib/errors'
+import { BOOKING_ERROR_FALLBACKS, BOOKING_SUCCESS_MESSAGES, BOOKING_UI_MESSAGES } from '../lib/bookingCopy'
+import { useToast } from '../composables/useToast'
 import LoadingSkeleton from '../components/LoadingSkeleton.vue'
 import EmptyState from '../components/EmptyState.vue'
 
@@ -391,6 +393,7 @@ const requestsLoading = ref(false)
 const requestLoading = ref<Set<number>>(new Set())
 const highlightedSessionId = ref<number | null>(null)
 const route = useRoute()
+const toast = useToast()
 const highlightTimeoutId = ref<number | null>(null)
 
 const statusMap: Record<string, string> = {
@@ -589,7 +592,7 @@ async function loadSessions() {
     upcoming.value = upcomingResp || []
     past.value = pastResp || []
   } catch (err: any) {
-    error.value = getApiErrorMessage(err, '\u041d\u0435 \u0432\u0434\u0430\u043b\u043e\u0441\u044f \u0437\u0430\u0432\u0430\u043d\u0442\u0430\u0436\u0438\u0442\u0438 \u0441\u0435\u0441\u0456\u0457')
+    error.value = getApiErrorMessage(err, BOOKING_ERROR_FALLBACKS.loadSessions)
   } finally {
     loading.value = false
   }
@@ -663,8 +666,9 @@ async function confirmSession(id: number) {
   try {
     await apiPatch(`/booking/sessions/${id}/confirm/`)
     await loadSessions()
+    toast.success(BOOKING_SUCCESS_MESSAGES.sessionConfirmed)
   } catch (err: any) {
-    error.value = getApiErrorMessage(err, 'Не вдалося підтвердити сесію.')
+    error.value = getApiErrorMessage(err, BOOKING_ERROR_FALLBACKS.confirmSession)
   } finally {
     setActionLoading(id, false)
   }
@@ -678,7 +682,7 @@ async function completeSession(id: number) {
   if (input.trim()) {
     const minutes = Number(input)
     if (!Number.isFinite(minutes) || minutes <= 0 || minutes > 480) {
-      error.value = 'Некоректна тривалість. Вкажіть 1–480 хв.'
+      error.value = BOOKING_UI_MESSAGES.invalidDuration
       return
     }
     payload = { actual_duration_minutes: Math.round(minutes) }
@@ -690,8 +694,9 @@ async function completeSession(id: number) {
     await apiPatch(`/booking/sessions/${id}/complete/`, payload)
     await loadSessions()
     await openNoteModal(id)
+    toast.success(BOOKING_SUCCESS_MESSAGES.sessionCompleted)
   } catch (err: any) {
-    error.value = getApiErrorMessage(err, 'Не вдалося завершити сесію.')
+    error.value = getApiErrorMessage(err, BOOKING_ERROR_FALLBACKS.completeSession)
   } finally {
     setActionLoading(id, false)
   }
@@ -703,8 +708,9 @@ async function cancelSession(id: number) {
   try {
     await apiPatch(`/booking/sessions/${id}/cancel/`)
     await loadSessions()
+    toast.success(BOOKING_SUCCESS_MESSAGES.sessionCancelled)
   } catch (err: any) {
-    error.value = getApiErrorMessage(err, 'Не вдалося скасувати сесію.')
+    error.value = getApiErrorMessage(err, BOOKING_ERROR_FALLBACKS.cancelSession)
   } finally {
     setActionLoading(id, false)
   }
@@ -734,8 +740,9 @@ async function submitReschedule(id: number) {
     })
     closeReschedule()
     await Promise.all([loadSessions(), loadSlots()])
+    toast.success(BOOKING_SUCCESS_MESSAGES.sessionRescheduled)
   } catch (err: any) {
-    error.value = getApiErrorMessage(err, 'Не вдалося перенести сесію.')
+    error.value = getApiErrorMessage(err, BOOKING_ERROR_FALLBACKS.rescheduleSession)
   } finally {
     setActionLoading(id, false)
   }
@@ -752,7 +759,7 @@ async function loadNote(id: number) {
     if (err?.response?.status === 404) {
       noteDraft.value = ''
     } else {
-      error.value = getApiErrorMessage(err, 'Не вдалося завантажити нотатку.')
+      error.value = getApiErrorMessage(err, BOOKING_ERROR_FALLBACKS.loadSessionNote)
     }
   } finally {
     setNoteLoading(id, false)
@@ -765,8 +772,9 @@ async function saveNote(id: number) {
   try {
     await apiPut(`/cabinet/sessions/${id}/note/`, { content: noteDraft.value })
     closeNote()
+    toast.success(BOOKING_SUCCESS_MESSAGES.noteSaved)
   } catch (err: any) {
-    error.value = getApiErrorMessage(err, 'Не вдалося зберегти нотатку.')
+    error.value = getApiErrorMessage(err, BOOKING_ERROR_FALLBACKS.saveSessionNote)
   } finally {
     setNoteSaving(id, false)
   }
@@ -803,8 +811,9 @@ async function approveRequest(id: number) {
   try {
     await apiPatch(`/cabinet/sessions/reschedule-requests/${id}/approve/`)
     await Promise.all([loadSessions(), loadSlots(), loadRescheduleRequests(), loadTherapistProfilePhoto()])
+    toast.success(BOOKING_SUCCESS_MESSAGES.rescheduleRequestApproved)
   } catch (err: any) {
-    error.value = getApiErrorMessage(err, 'Не вдалося погодити запит.')
+    error.value = getApiErrorMessage(err, BOOKING_ERROR_FALLBACKS.approveRescheduleRequest)
   } finally {
     setRequestLoading(id, false)
   }
@@ -816,8 +825,9 @@ async function declineRequest(id: number) {
   try {
     await apiPatch(`/cabinet/sessions/reschedule-requests/${id}/decline/`)
     await loadRescheduleRequests()
+    toast.success(BOOKING_SUCCESS_MESSAGES.rescheduleRequestDeclined)
   } catch (err: any) {
-    error.value = getApiErrorMessage(err, 'Не вдалося відхилити запит.')
+    error.value = getApiErrorMessage(err, BOOKING_ERROR_FALLBACKS.declineRescheduleRequest)
   } finally {
     setRequestLoading(id, false)
   }

@@ -393,6 +393,7 @@ import DOMPurify from 'dompurify'
 import { marked } from 'marked'
 import { useRoute, useRouter } from 'vue-router'
 import { getApiErrorMessage } from '../lib/errors'
+import { BOOKING_ERROR_FALLBACKS, BOOKING_SUCCESS_MESSAGES, BOOKING_UI_MESSAGES } from '../lib/bookingCopy'
 import { apiGet, apiPost } from '../lib/api'
 import { toLocalDate } from '../lib/dates'
 import {
@@ -855,7 +856,7 @@ function handleBookingClick(slotId: number) {
   }
   if (bookingSlotId.value === slotId) return
   if (!settingAccepted.value) {
-    bookingError.value = 'Погодьтеся з сетінгом перед бронюванням.'
+    bookingError.value = BOOKING_UI_MESSAGES.acceptSettingBeforeBooking
     flashSettingButton()
     return
   }
@@ -866,11 +867,11 @@ async function bookSlot(slotId: number) {
   bookingError.value = ''
   bookingSuccess.value = ''
   if (!canBook.value) {
-    bookingError.value = 'Бронювання доступне лише для клієнтів.'
+    bookingError.value = BOOKING_UI_MESSAGES.onlyClientsCanBook
     return
   }
   if (!settingAccepted.value) {
-    bookingError.value = 'Погодьтеся з сетінгом перед бронюванням.'
+    bookingError.value = BOOKING_UI_MESSAGES.acceptSettingBeforeBooking
     openSettingModal()
     return
   }
@@ -878,7 +879,7 @@ async function bookSlot(slotId: number) {
   const bookedSlot = slots.value.find((slot) => slot.id === slotId) || null
   try {
     await apiPost('/booking/sessions/', { slot_id: slotId, setting_accepted: true })
-    bookingSuccess.value = 'Сесію заброньовано. Перевірте ваш кабінет.'
+    bookingSuccess.value = BOOKING_SUCCESS_MESSAGES.sessionBooked
     toast.success(bookingSuccess.value)
     lastBookedSlot.value = bookedSlot
     showBookingModal.value = true
@@ -891,7 +892,7 @@ async function bookSlot(slotId: number) {
       persistSelectedSpecialists(filtered)
     }
   } catch (err: any) {
-    bookingError.value = getApiErrorMessage(err, 'Не вдалося забронювати вільне вікно.')
+    bookingError.value = getApiErrorMessage(err, BOOKING_ERROR_FALLBACKS.bookSlot)
     toast.error(bookingError.value)
   } finally {
     bookingSlotId.value = null

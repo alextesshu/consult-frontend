@@ -107,6 +107,7 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { apiGet, apiPatch, apiPost } from '../lib/api'
 import { getApiErrorMessage } from '../lib/errors'
+import { BOOKING_ERROR_FALLBACKS, BOOKING_SUCCESS_MESSAGES } from '../lib/bookingCopy'
 import { useToast } from '../composables/useToast'
 type SessionDetail = {
   id: number
@@ -223,7 +224,7 @@ async function loadSession() {
     const resp = await apiGet<SessionDetail>(`/booking/sessions/${sessionId.value}/`)
     session.value = resp
   } catch (err: any) {
-    error.value = getApiErrorMessage(err, '\u041d\u0435 \u0432\u0434\u0430\u043b\u043e\u0441\u044f \u0437\u0430\u0432\u0430\u043d\u0442\u0430\u0436\u0438\u0442\u0438 \u0441\u0435\u0441\u0456\u044e')
+    error.value = getApiErrorMessage(err, BOOKING_ERROR_FALLBACKS.loadSession)
   } finally {
     loading.value = false
   }
@@ -252,10 +253,12 @@ async function cancelSession() {
     await apiPatch(`/booking/sessions/${session.value.id}/cancel/`)
     await loadSession()
   } catch (err: any) {
-    error.value = getApiErrorMessage(err, 'Не вдалося скасувати сесію.')
+    error.value = getApiErrorMessage(err, BOOKING_ERROR_FALLBACKS.cancelSession)
+    return
   } finally {
     actionLoading.value = false
   }
+  toast.success(BOOKING_SUCCESS_MESSAGES.sessionCancelled)
 }
 
 async function rescheduleTo(slotId: number) {
@@ -265,10 +268,11 @@ async function rescheduleTo(slotId: number) {
   try {
     await apiPost('/booking/sessions/', { slot_id: slotId })
     await apiPatch(`/booking/sessions/${session.value.id}/cancel/`)
+    toast.success(BOOKING_SUCCESS_MESSAGES.sessionRescheduled)
     await loadSession()
     router.push('/client')
   } catch (err: any) {
-    error.value = getApiErrorMessage(err, 'Не вдалося перенести сесію.')
+    error.value = getApiErrorMessage(err, BOOKING_ERROR_FALLBACKS.rescheduleSession)
   } finally {
     actionLoading.value = false
   }
@@ -282,9 +286,10 @@ async function requestReschedule(slotId: number) {
     await apiPost(`/booking/sessions/${session.value.id}/reschedule-request/`, {
       slot_id: slotId,
     })
+    toast.success(BOOKING_SUCCESS_MESSAGES.rescheduleRequestSent)
     router.push('/client')
   } catch (err: any) {
-    error.value = getApiErrorMessage(err, 'Не вдалося надіслати запит на перенесення.')
+    error.value = getApiErrorMessage(err, BOOKING_ERROR_FALLBACKS.sendRescheduleRequest)
   } finally {
     actionLoading.value = false
   }
