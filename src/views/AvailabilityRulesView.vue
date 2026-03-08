@@ -228,25 +228,16 @@
         <div class="rule-form__grid">
           <label class="field field--picker" @click="openDateTimePicker(exceptionStartDateRef)">
             Початок
-            <div class="date-proxy">
-              <input
-                v-model="exceptionForm.start_date_display"
-                class="input"
-                type="text"
-                placeholder="дд.мм.рррр"
-                readonly
-                @click.stop="openDateTimePicker(exceptionStartDateRef)"
-              />
-              <input
-                ref="exceptionStartDateRef"
-                v-model="exceptionForm.start_date"
-                class="date-proxy__native"
-                type="date"
-                lang="uk"
-                required
-                @change="syncUkDateDisplay(exceptionForm, 'start_date', 'start_date_display')"
-              />
-            </div>
+            <input
+              ref="exceptionStartDateRef"
+              v-model="exceptionForm.start_date"
+              class="input"
+              type="date"
+              lang="uk"
+              required
+              @click.stop="openDateTimePicker(exceptionStartDateRef)"
+              @focus="openDateTimePicker(exceptionStartDateRef)"
+            />
             <input
               ref="exceptionStartTimeRef"
               v-model="exceptionForm.start_time"
@@ -260,25 +251,16 @@
           </label>
           <label class="field field--picker" @click="openDateTimePicker(exceptionEndDateRef)">
             Кінець
-            <div class="date-proxy">
-              <input
-                v-model="exceptionForm.end_date_display"
-                class="input"
-                type="text"
-                placeholder="дд.мм.рррр"
-                readonly
-                @click.stop="openDateTimePicker(exceptionEndDateRef)"
-              />
-              <input
-                ref="exceptionEndDateRef"
-                v-model="exceptionForm.end_date"
-                class="date-proxy__native"
-                type="date"
-                lang="uk"
-                required
-                @change="syncUkDateDisplay(exceptionForm, 'end_date', 'end_date_display')"
-              />
-            </div>
+            <input
+              ref="exceptionEndDateRef"
+              v-model="exceptionForm.end_date"
+              class="input"
+              type="date"
+              lang="uk"
+              required
+              @click.stop="openDateTimePicker(exceptionEndDateRef)"
+              @focus="openDateTimePicker(exceptionEndDateRef)"
+            />
             <input
               ref="exceptionEndTimeRef"
               v-model="exceptionForm.end_time"
@@ -321,25 +303,16 @@
               <div class="rule-form__grid">
                 <label class="field field--picker" @click="openDateTimePicker(exceptionEditStartDateRef)">
                   Початок
-                  <div class="date-proxy">
-                    <input
-                      v-model="exceptionEditForm.start_date_display"
-                      class="input"
-                      type="text"
-                      placeholder="дд.мм.рррр"
-                      readonly
-                      @click.stop="openDateTimePicker(exceptionEditStartDateRef)"
-                    />
-                    <input
-                      ref="exceptionEditStartDateRef"
-                      v-model="exceptionEditForm.start_date"
-                      class="date-proxy__native"
-                      type="date"
-                      lang="uk"
-                      required
-                      @change="syncUkDateDisplay(exceptionEditForm, 'start_date', 'start_date_display')"
-                    />
-                  </div>
+                  <input
+                    ref="exceptionEditStartDateRef"
+                    v-model="exceptionEditForm.start_date"
+                    class="input"
+                    type="date"
+                    lang="uk"
+                    required
+                    @click.stop="openDateTimePicker(exceptionEditStartDateRef)"
+                    @focus="openDateTimePicker(exceptionEditStartDateRef)"
+                  />
                   <input
                     ref="exceptionEditStartTimeRef"
                     v-model="exceptionEditForm.start_time"
