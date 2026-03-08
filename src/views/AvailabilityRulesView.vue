@@ -633,7 +633,6 @@ const hasActiveRules = computed(() => rules.value.some((rule) => rule.is_active)
 function openDateTimePicker(inputRef: { value: HTMLInputElement | null }) {
   const input = inputRef.value
   if (!input) return
-  input.focus()
   const picker = input as HTMLInputElement & { showPicker?: () => void }
   if (typeof picker.showPicker === 'function') {
     try {
@@ -643,18 +642,7 @@ function openDateTimePicker(inputRef: { value: HTMLInputElement | null }) {
       // no-op: browser may block showPicker in some contexts
     }
   }
-  // Fallback for browsers with limited showPicker support.
-  if (input.dataset.pickerFallback === '1') return
-  try {
-    input.dataset.pickerFallback = '1'
-    input.click()
-  } catch {
-    // no-op
-  } finally {
-    window.setTimeout(() => {
-      delete input.dataset.pickerFallback
-    }, 0)
-  }
+  input.focus()
 }
 
 function exceptionApiError(err: unknown, fallback: string): string {
