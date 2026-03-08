@@ -226,7 +226,7 @@
 
       <form class="rule-form" @submit.prevent="onCreateException">
         <div class="rule-form__grid">
-          <label class="field field--picker" @click="openDateTimePicker(exceptionStartDateRef)">
+          <label class="field">
             Початок
             <input
               ref="exceptionStartDateRef"
@@ -235,21 +235,20 @@
               type="date"
               lang="uk"
               required
-              @click.stop="openDateTimePicker(exceptionStartDateRef)"
-              @focus="openDateTimePicker(exceptionStartDateRef)"
+              @click="openPicker"
             />
             <input
               ref="exceptionStartTimeRef"
               v-model="exceptionForm.start_time"
               class="input"
-              type="time"
-              lang="uk"
+              type="text"
+              inputmode="numeric"
+              placeholder="ГГ:ХХ"
+              list="availability-time-options"
               required
-              @click.stop="openDateTimePicker(exceptionStartTimeRef)"
-              @focus="openDateTimePicker(exceptionStartTimeRef)"
             />
           </label>
-          <label class="field field--picker" @click="openDateTimePicker(exceptionEndDateRef)">
+          <label class="field">
             Кінець
             <input
               ref="exceptionEndDateRef"
@@ -258,18 +257,17 @@
               type="date"
               lang="uk"
               required
-              @click.stop="openDateTimePicker(exceptionEndDateRef)"
-              @focus="openDateTimePicker(exceptionEndDateRef)"
+              @click="openPicker"
             />
             <input
               ref="exceptionEndTimeRef"
               v-model="exceptionForm.end_time"
               class="input"
-              type="time"
-              lang="uk"
+              type="text"
+              inputmode="numeric"
+              placeholder="ГГ:ХХ"
+              list="availability-time-options"
               required
-              @click.stop="openDateTimePicker(exceptionEndTimeRef)"
-              @focus="openDateTimePicker(exceptionEndTimeRef)"
             />
           </label>
           <label class="field rule-form__active">
@@ -301,7 +299,7 @@
           <template v-if="editingExceptionId === item.id">
             <form class="rule-form" @submit.prevent="onUpdateException(item.id)">
               <div class="rule-form__grid">
-                <label class="field field--picker" @click="openDateTimePicker(exceptionEditStartDateRef)">
+                <label class="field">
                   Початок
                   <input
                     ref="exceptionEditStartDateRef"
@@ -310,50 +308,39 @@
                     type="date"
                     lang="uk"
                     required
-                    @click.stop="openDateTimePicker(exceptionEditStartDateRef)"
-                    @focus="openDateTimePicker(exceptionEditStartDateRef)"
+                    @click="openPicker"
                   />
                   <input
                     ref="exceptionEditStartTimeRef"
                     v-model="exceptionEditForm.start_time"
                     class="input"
-                    type="time"
-                    lang="uk"
+                    type="text"
+                    inputmode="numeric"
+                    placeholder="ГГ:ХХ"
+                    list="availability-time-options"
                     required
-                    @click.stop="openDateTimePicker(exceptionEditStartTimeRef)"
-                    @focus="openDateTimePicker(exceptionEditStartTimeRef)"
                   />
                 </label>
-                <label class="field field--picker" @click="openDateTimePicker(exceptionEditEndDateRef)">
+                <label class="field">
                   Кінець
-                  <div class="date-proxy">
                     <input
-                      v-model="exceptionEditForm.end_date_display"
-                      class="input"
-                      type="text"
-                      placeholder="РґРґ.РјРј.СЂСЂСЂСЂ"
-                      readonly
-                      @click.stop="openDateTimePicker(exceptionEditEndDateRef)"
-                    />
-                    <input
-                      ref="exceptionEditEndDateRef"
                       v-model="exceptionEditForm.end_date"
-                      class="date-proxy__native"
+                      class="input"
                       type="date"
                       lang="uk"
+                      placeholder="РґРґ.РјРј.СЂСЂСЂСЂ"
                       required
-                      @change="syncUkDateDisplay(exceptionEditForm, 'end_date', 'end_date_display')"
+                      @click="openPicker"
                     />
-                  </div>
                   <input
                     ref="exceptionEditEndTimeRef"
                     v-model="exceptionEditForm.end_time"
                     class="input"
-                    type="time"
-                    lang="uk"
+                    type="text"
+                    inputmode="numeric"
+                    placeholder="ГГ:ХХ"
+                    list="availability-time-options"
                     required
-                    @click.stop="openDateTimePicker(exceptionEditEndTimeRef)"
-                    @focus="openDateTimePicker(exceptionEditEndTimeRef)"
                   />
                 </label>
                 <label class="field rule-form__active">
@@ -398,6 +385,9 @@
           </template>
         </article>
       </div>
+      <datalist id="availability-time-options">
+        <option v-for="option in timeOptions" :key="option" :value="option" />
+      </datalist>
     </section>
 
     <section class="panel">
@@ -580,7 +570,6 @@ const exceptionEndDateRef = ref<HTMLInputElement | null>(null)
 const exceptionEndTimeRef = ref<HTMLInputElement | null>(null)
 const exceptionEditStartDateRef = ref<HTMLInputElement | null>(null)
 const exceptionEditStartTimeRef = ref<HTMLInputElement | null>(null)
-const exceptionEditEndDateRef = ref<HTMLInputElement | null>(null)
 const exceptionEditEndTimeRef = ref<HTMLInputElement | null>(null)
 const editingExceptionId = ref<number | null>(null)
 const exceptionSubmitting = ref(false)
@@ -604,12 +593,17 @@ const editForm = reactive({
   is_active: true,
 })
 
+const timeOptions = Array.from({ length: 24 * 4 }, (_, index) => {
+  const minutes = index * 15
+  const hours = String(Math.floor(minutes / 60)).padStart(2, '0')
+  const mins = String(minutes % 60).padStart(2, '0')
+  return `${hours}:${mins}`
+})
+
 const exceptionForm = reactive({
   start_date: '',
-  start_date_display: '',
   start_time: '',
   end_date: '',
-  end_date_display: '',
   end_time: '',
   is_all_day: true,
   note: '',
@@ -618,10 +612,8 @@ const exceptionForm = reactive({
 
 const exceptionEditForm = reactive({
   start_date: '',
-  start_date_display: '',
   start_time: '',
   end_date: '',
-  end_date_display: '',
   end_time: '',
   is_all_day: true,
   note: '',
@@ -643,6 +635,20 @@ function openDateTimePicker(inputRef: { value: HTMLInputElement | null }) {
     }
   }
   input.focus()
+}
+
+function openPicker(event: Event) {
+  const target = event.target as HTMLInputElement | null
+  if (!target) return
+  if (typeof target.showPicker === 'function') {
+    try {
+      target.showPicker()
+    } catch {
+      target.focus()
+    }
+    return
+  }
+  target.focus()
 }
 
 function exceptionApiError(err: unknown, fallback: string): string {
@@ -710,28 +716,10 @@ function combineDateTimeToIso(dateValue: string, timeValue: string): string | nu
   return parsed.toISOString()
 }
 
-function formatUkDateFromIsoDate(dateValue: string): string {
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateValue)
-  if (!match) return ''
-  return `${match[3]}.${match[2]}.${match[1]}`
-}
-
-function syncUkDateDisplay<
-  T extends {
-    [key: string]: string | boolean
-  },
->(form: T, isoField: keyof T, displayField: keyof T) {
-  const isoValue = form[isoField]
-  if (typeof isoValue !== 'string') return
-  form[displayField] = formatUkDateFromIsoDate(isoValue) as T[keyof T]
-}
-
 function resetExceptionForm() {
   exceptionForm.start_date = ''
-  exceptionForm.start_date_display = ''
   exceptionForm.start_time = ''
   exceptionForm.end_date = ''
-  exceptionForm.end_date_display = ''
   exceptionForm.end_time = ''
   exceptionForm.is_all_day = true
   exceptionForm.note = ''
@@ -743,10 +731,8 @@ function startEditException(item: AvailabilityException) {
   const start = splitIsoToDateTimeParts(item.starts_at)
   const end = splitIsoToDateTimeParts(item.ends_at)
   exceptionEditForm.start_date = start.date
-  exceptionEditForm.start_date_display = formatUkDateFromIsoDate(start.date)
   exceptionEditForm.start_time = start.time
   exceptionEditForm.end_date = end.date
-  exceptionEditForm.end_date_display = formatUkDateFromIsoDate(end.date)
   exceptionEditForm.end_time = end.time
   exceptionEditForm.is_all_day = item.is_all_day
   exceptionEditForm.note = item.note || ''
@@ -1061,17 +1047,6 @@ onMounted(async () => {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(110px, 130px);
   gap: 8px;
-}
-
-.date-proxy {
-  position: relative;
-}
-
-.date-proxy__native {
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  pointer-events: none;
 }
 
 .rule-form__active {
