@@ -24,7 +24,7 @@
 
       <form class="rule-form" @submit.prevent="onCreateRule">
         <div class="rule-form__grid">
-          <label class="field field--picker" @click="openDateTimePicker(ruleCreateStartTimeRef)">
+          <label class="field">
             День тижня
             <select v-model.number="createForm.weekday" class="input">
               <option v-for="opt in weekdayOptions" :key="opt.value" :value="opt.value">
@@ -114,7 +114,7 @@
           <template v-if="editingRuleId === rule.id">
             <form class="rule-form" @submit.prevent="onSaveRule(rule.id)">
               <div class="rule-form__grid">
-                <label class="field field--picker" @click="openDateTimePicker(ruleEditStartTimeRef)">
+                <label class="field">
                   День тижня
                   <select v-model.number="editForm.weekday" class="input">
                     <option v-for="opt in weekdayOptions" :key="opt.value" :value="opt.value">
@@ -572,9 +572,22 @@ function openDateTimePicker(inputRef: { value: HTMLInputElement | null }) {
   if (typeof picker.showPicker === 'function') {
     try {
       picker.showPicker()
+      return
     } catch {
       // no-op: browser may block showPicker in some contexts
     }
+  }
+  // Fallback for browsers with limited showPicker support.
+  if (input.dataset.pickerFallback === '1') return
+  try {
+    input.dataset.pickerFallback = '1'
+    input.click()
+  } catch {
+    // no-op
+  } finally {
+    window.setTimeout(() => {
+      delete input.dataset.pickerFallback
+    }, 0)
   }
 }
 
