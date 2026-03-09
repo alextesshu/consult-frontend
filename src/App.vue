@@ -6,21 +6,22 @@
         <div class="brand__tagline">Простір для спеціалістів</div>
       </RouterLink>
       <nav class="nav">
-        <RouterLink v-if="isAuthenticated" :to="cabinetRoute">{{ cabinetLabel }}</RouterLink>
-        <RouterLink v-if="showCatalogNav" to="/specialists">Каталог</RouterLink>
+        <RouterLink v-if="isAuthenticated" class="nav__primary-action" :to="cabinetRoute">{{ cabinetLabel }}</RouterLink>
+        <RouterLink v-if="showCatalogNav" class="nav__desktop-only" to="/specialists">Каталог</RouterLink>
         <RouterLink
           v-if="isAuthenticated && isSpecialist"
+          class="nav__desktop-only"
           to="/public"
           :class="{ 'nav-link--active': isPublicRoute }"
         >
           Публічний профіль
         </RouterLink>
-        <RouterLink to="/faq">FAQ</RouterLink>
+        <RouterLink class="nav__desktop-only" to="/faq">FAQ</RouterLink>
         <RouterLink v-if="!isAuthenticated" to="/login">Вхід</RouterLink>
         <RouterLink v-if="!isAuthenticated" to="/signup">Реєстрація</RouterLink>
         <RouterLink
           v-if="isAuthenticated"
-          class="icon-btn"
+          class="icon-btn nav__desktop-only"
           :to="chatRoute"
           aria-label="Чат"
         >
@@ -32,7 +33,7 @@
           </svg>
           <span v-if="chatUnreadCount" class="icon-btn__badge">{{ chatUnreadCount }}</span>
         </RouterLink>
-        <div v-if="isAuthenticated && isSpecialist" class="nav__settings">
+        <div v-if="isAuthenticated && isSpecialist" class="nav__settings nav__desktop-only">
           <button
             ref="settingsButtonRef"
             class="icon-btn"
@@ -105,10 +106,67 @@
             </div>
           </div>
         </div>
-        <button v-if="isAuthenticated" class="btn btn--ghost" type="button" @click="onLogout">
+        <button
+          v-if="isAuthenticated"
+          ref="mobileMenuButtonRef"
+          class="icon-btn nav__mobile-only"
+          type="button"
+          aria-label="Меню"
+          aria-haspopup="menu"
+          :aria-expanded="showMobileMenu ? 'true' : 'false'"
+          @click="toggleMobileMenu"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              d="M4 7h16M4 12h16M4 17h16"
+              fill="none"
+              stroke="currentColor"
+              stroke-linecap="round"
+              stroke-width="2"
+            />
+          </svg>
+        </button>
+        <button v-if="isAuthenticated" class="btn btn--ghost nav__desktop-only" type="button" @click="onLogout">
           Вийти
         </button>
+        <div v-if="isAuthenticated && showMobileMenu" ref="mobileMenuPanelRef" class="mobile-menu" role="menu">
+          <RouterLink class="mobile-menu__item" :to="cabinetRoute" @click="closeMobileMenu">{{ cabinetLabel }}</RouterLink>
+          <RouterLink v-if="isSpecialist" class="mobile-menu__item" to="/public" @click="closeMobileMenu">
+            Публічний профіль
+          </RouterLink>
+          <RouterLink class="mobile-menu__item" to="/faq" @click="closeMobileMenu">FAQ</RouterLink>
+          <button
+            v-if="isSpecialist"
+            type="button"
+            class="mobile-menu__item mobile-menu__item--button"
+            @click="openSettingsSheetFromMenu"
+          >
+            Налаштування
+          </button>
+          <RouterLink class="mobile-menu__item" :to="chatRoute" @click="closeMobileMenu">Чат</RouterLink>
+          <button type="button" class="mobile-menu__item mobile-menu__item--button" @click="onLogoutFromMenu">
+            Вийти
+          </button>
+        </div>
       </nav>
+      <div
+        v-if="isAuthenticated && isSpecialist && showSettings"
+        ref="settingsSheetRef"
+        class="settings-sheet nav__mobile-only"
+      >
+        <RouterLink class="settings-sheet__item" to="/cabinet/settings" @click="showSettings = false">
+          Усі налаштування
+        </RouterLink>
+        <RouterLink class="settings-sheet__item" to="/cabinet/profile" @click="showSettings = false">
+          Профіль
+        </RouterLink>
+        <RouterLink class="settings-sheet__item" to="/cabinet/settings/notifications" @click="showSettings = false">
+          Сповіщення
+        </RouterLink>
+        <RouterLink class="settings-sheet__item" to="/cabinet/billing" @click="showSettings = false">
+          Плани та доступ
+        </RouterLink>
+      </div>
     </header>
 
     <main :class="['main', { 'main--home': isHome }]">
@@ -179,11 +237,15 @@ const topbarClass = computed(() => [
 
 const showNotifications = ref(false)
 const showSettings = ref(false)
+const showMobileMenu = ref(false)
 const readNotificationIds = ref<Set<string>>(new Set())
 const notificationsButtonRef = ref<HTMLButtonElement | null>(null)
 const notificationsPanelRef = ref<HTMLDivElement | null>(null)
 const settingsButtonRef = ref<HTMLButtonElement | null>(null)
 const settingsPanelRef = ref<HTMLDivElement | null>(null)
+const settingsSheetRef = ref<HTMLDivElement | null>(null)
+const mobileMenuButtonRef = ref<HTMLButtonElement | null>(null)
+const mobileMenuPanelRef = ref<HTMLDivElement | null>(null)
 const lastNotificationIds = ref<Set<string>>(new Set())
 const lastUpcomingCount = ref<number>(0)
 const lastReadUpcomingAt = ref<string>('')
@@ -328,12 +390,34 @@ const notificationCount = computed(() => unreadNotifications.value.length)
 
 function toggleNotifications() {
   showSettings.value = false
+  showMobileMenu.value = false
   showNotifications.value = !showNotifications.value
 }
 
 function toggleSettings() {
   showNotifications.value = false
+  showMobileMenu.value = false
   showSettings.value = !showSettings.value
+}
+
+function toggleMobileMenu() {
+  showNotifications.value = false
+  showSettings.value = false
+  showMobileMenu.value = !showMobileMenu.value
+}
+
+function closeMobileMenu() {
+  showMobileMenu.value = false
+}
+
+function openSettingsSheetFromMenu() {
+  showMobileMenu.value = false
+  showSettings.value = true
+}
+
+function onLogoutFromMenu() {
+  closeMobileMenu()
+  onLogout()
 }
 
 function markNotificationRead(id: string) {
@@ -360,6 +444,7 @@ watch(
   () => {
     showNotifications.value = false
     showSettings.value = false
+    showMobileMenu.value = false
   }
 )
 
@@ -464,10 +549,26 @@ function handleGlobalClick(event: MouseEvent) {
   if (showSettings.value) {
     const button = settingsButtonRef.value
     const panel = settingsPanelRef.value
+    const sheet = settingsSheetRef.value
     if (button && button.contains(target)) return
     if (panel && panel.contains(target)) return
+    if (sheet && sheet.contains(target)) return
     showSettings.value = false
   }
+  if (showMobileMenu.value) {
+    const button = mobileMenuButtonRef.value
+    const panel = mobileMenuPanelRef.value
+    if (button && button.contains(target)) return
+    if (panel && panel.contains(target)) return
+    showMobileMenu.value = false
+  }
+}
+
+function handleGlobalKeydown(event: KeyboardEvent) {
+  if (event.key !== 'Escape') return
+  showNotifications.value = false
+  showSettings.value = false
+  showMobileMenu.value = false
 }
 
 onMounted(() => {
@@ -476,6 +577,7 @@ onMounted(() => {
     startChatPolling()
   }
   document.addEventListener('click', handleGlobalClick)
+  document.addEventListener('keydown', handleGlobalKeydown)
   document.addEventListener('visibilitychange', handleVisibilityChange)
 })
 
@@ -483,6 +585,7 @@ onBeforeUnmount(() => {
   stopMePolling()
   stopChatPolling()
   document.removeEventListener('click', handleGlobalClick)
+  document.removeEventListener('keydown', handleGlobalKeydown)
   document.removeEventListener('visibilitychange', handleVisibilityChange)
 })
 
@@ -620,6 +723,18 @@ loadUpcomingReadAt()
   justify-content: flex-end;
 }
 
+.nav__primary-action {
+  font-weight: 500;
+}
+
+.nav__desktop-only {
+  display: inline-flex;
+}
+
+.nav__mobile-only {
+  display: none;
+}
+
 .nav a {
   padding: 4px 12px;
   min-height: 32px;
@@ -659,6 +774,10 @@ loadUpcomingReadAt()
 
 .nav__settings {
   position: relative;
+}
+
+.mobile-menu {
+  display: none;
 }
 
 .icon-btn {
@@ -760,7 +879,23 @@ loadUpcomingReadAt()
   border: 1px solid transparent;
 }
 
+.nav .settings-menu__item {
+  min-height: auto;
+  justify-content: flex-start;
+  font-weight: 500;
+  color: var(--text);
+  background: #fff;
+  border: 1px solid transparent;
+  padding: 8px 10px;
+}
+
 .settings-menu__item:hover {
+  background: color-mix(in srgb, var(--primary) 8%, transparent);
+  border-color: color-mix(in srgb, var(--primary) 24%, transparent);
+}
+
+.nav .settings-menu__item:hover {
+  color: var(--text);
   background: color-mix(in srgb, var(--primary) 8%, transparent);
   border-color: color-mix(in srgb, var(--primary) 24%, transparent);
 }
@@ -768,6 +903,14 @@ loadUpcomingReadAt()
 .settings-menu__item.router-link-active {
   background: color-mix(in srgb, var(--primary) 12%, transparent);
   border-color: color-mix(in srgb, var(--primary) 30%, transparent);
+}
+
+.nav .settings-menu__item.router-link-active {
+  color: var(--text);
+}
+
+.settings-sheet {
+  display: none;
 }
 
 .notif-panel__title {
@@ -906,6 +1049,22 @@ body.body--home .footer {
 
 @media (max-width: 640px) {
   .topbar {
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    position: sticky;
+    top: 0;
+  }
+
+  .nav__desktop-only {
+    display: none !important;
+  }
+
+  .nav__mobile-only {
+    display: inline-flex;
+  }
+
+  .topbar {
     padding: 10px 12px;
   }
 
@@ -919,9 +1078,99 @@ body.body--home .footer {
   }
 
   .nav {
-    width: 100%;
-    justify-content: flex-start;
+    margin-left: auto;
+    width: auto;
+    justify-content: flex-end;
     gap: 8px;
+    flex-wrap: nowrap;
+    align-items: center;
+  }
+
+  .nav a.nav__primary-action {
+    max-width: 124px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mobile-menu {
+    display: grid;
+    position: absolute;
+    right: 12px;
+    top: calc(100% + 8px);
+    width: min(280px, calc(100vw - 24px));
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    box-shadow: 0 18px 32px rgba(16, 33, 50, 0.18);
+    padding: 6px;
+    z-index: 24;
+  }
+
+  .mobile-menu__item {
+    text-decoration: none;
+    color: var(--text);
+    border: 1px solid transparent;
+    border-radius: 8px;
+    padding: 8px 10px;
+    text-align: left;
+    background: #fff;
+    font: inherit;
+    cursor: pointer;
+  }
+
+  .nav .mobile-menu__item {
+    min-height: auto;
+    justify-content: flex-start;
+    color: var(--text);
+    background: #fff;
+    border: 1px solid transparent;
+    padding: 8px 10px;
+    font-weight: 500;
+  }
+
+  .mobile-menu__item:hover {
+    background: color-mix(in srgb, var(--primary) 8%, transparent);
+    border-color: color-mix(in srgb, var(--primary) 24%, transparent);
+  }
+
+  .nav .mobile-menu__item:hover {
+    color: var(--text);
+    background: color-mix(in srgb, var(--primary) 8%, transparent);
+    border-color: color-mix(in srgb, var(--primary) 24%, transparent);
+  }
+
+  .nav .mobile-menu__item.router-link-active {
+    color: var(--text);
+    background: color-mix(in srgb, var(--primary) 10%, transparent);
+    border-color: color-mix(in srgb, var(--primary) 26%, transparent);
+  }
+
+  .settings-sheet {
+    display: grid;
+    gap: 4px;
+    margin-top: 6px;
+    width: 100%;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 14px 26px rgba(16, 33, 50, 0.14);
+    padding: 8px;
+  }
+
+  .settings-sheet__item {
+    text-decoration: none;
+    color: var(--text);
+    border: 1px solid transparent;
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-weight: 500;
+    background: #fff;
+  }
+
+  .settings-sheet__item:hover {
+    background: color-mix(in srgb, var(--primary) 8%, transparent);
+    border-color: color-mix(in srgb, var(--primary) 24%, transparent);
   }
 }
 </style>
