@@ -735,6 +735,10 @@ loadUpcomingReadAt()
   display: none;
 }
 
+.icon-btn.nav__mobile-only {
+  display: none;
+}
+
 .nav a {
   padding: 4px 12px;
   min-height: 32px;
@@ -1061,6 +1065,10 @@ body.body--home .footer {
   }
 
   .nav__mobile-only {
+    display: inline-flex;
+  }
+
+  .icon-btn.nav__mobile-only {
     display: inline-flex;
   }
 
