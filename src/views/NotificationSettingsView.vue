@@ -4,6 +4,7 @@
       <div class="badge badge--soft">Налаштування</div>
       <h1 class="title">Сповіщення</h1>
       <p class="muted">Оберіть, які події показувати вам у застосунку.</p>
+      <SettingsSubnav active="notifications" />
     </header>
 
     <section class="panel">
@@ -44,7 +45,6 @@
         <button class="btn" type="button" :disabled="saving || loading" @click="save">
           {{ saving ? 'Зберігаємо...' : 'Зберегти' }}
         </button>
-        <RouterLink class="btn btn--ghost" to="/cabinet">Назад</RouterLink>
       </div>
     </section>
   </section>
@@ -55,6 +55,7 @@ import { onMounted, ref } from 'vue'
 import { fetchNotificationSettings, updateNotificationSettings, type NotificationSettings } from '../lib/api'
 import { getApiErrorMessage } from '../lib/errors'
 import { useToast } from '../composables/useToast'
+import SettingsSubnav from '../components/SettingsSubnav.vue'
 
 const toast = useToast()
 const loading = ref(true)

@@ -10,6 +10,7 @@
       </div>
       <RouterLink class="btn btn--ghost" to="/cabinet">Назад до кабінету</RouterLink>
     </header>
+    <SettingsSubnav active="billing" />
 
     <section class="panel panel--access">
       <div class="panel__header">
@@ -95,6 +96,7 @@ import { computed, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useAuthStore } from '../stores/auth'
 import { apiPost } from '../lib/api'
+import SettingsSubnav from '../components/SettingsSubnav.vue'
 
 type PlanCode = 'START' | 'PRO' | 'LEADER'
 

@@ -32,19 +32,42 @@
           </svg>
           <span v-if="chatUnreadCount" class="icon-btn__badge">{{ chatUnreadCount }}</span>
         </RouterLink>
-        <RouterLink
-          v-if="isAuthenticated && isSpecialist"
-          class="icon-btn"
-          to="/cabinet/settings"
-          aria-label="Налаштування"
-        >
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <path
-              d="M19.14 12.94a7.9 7.9 0 0 0 .06-.94 7.9 7.9 0 0 0-.06-.94l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.6-.22l-2.39.96a7.2 7.2 0 0 0-1.63-.94L14.4 2.8a.5.5 0 0 0-.5-.4h-3.8a.5.5 0 0 0-.5.4L9.25 5.32a7.2 7.2 0 0 0-1.63.94l-2.39-.96a.5.5 0 0 0-.6.22L2.71 8.84a.5.5 0 0 0 .12.64l2.03 1.58a7.9 7.9 0 0 0-.06.94 7.9 7.9 0 0 0 .06.94L2.83 14.52a.5.5 0 0 0-.12.64l1.92 3.32c.13.22.39.31.6.22l2.39-.96c.5.39 1.05.7 1.63.94l.35 2.52c.04.24.25.4.5.4h3.8c.25 0 .46-.16.5-.4l.35-2.52c.58-.24 1.13-.55 1.63-.94l2.39.96c.22.09.47 0 .6-.22l1.92-3.32a.5.5 0 0 0-.12-.64l-2.03-1.58zM12 15.5A3.5 3.5 0 1 1 12 8.5a3.5 3.5 0 0 1 0 7z"
-              fill="currentColor"
-            />
-          </svg>
-        </RouterLink>
+        <div v-if="isAuthenticated && isSpecialist" class="nav__settings">
+          <button
+            ref="settingsButtonRef"
+            class="icon-btn"
+            type="button"
+            aria-label="Налаштування"
+            aria-haspopup="menu"
+            :aria-expanded="showSettings ? 'true' : 'false'"
+            @click="toggleSettings"
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path
+                d="M19.14 12.94a7.9 7.9 0 0 0 .06-.94 7.9 7.9 0 0 0-.06-.94l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.6-.22l-2.39.96a7.2 7.2 0 0 0-1.63-.94L14.4 2.8a.5.5 0 0 0-.5-.4h-3.8a.5.5 0 0 0-.5.4L9.25 5.32a7.2 7.2 0 0 0-1.63.94l-2.39-.96a.5.5 0 0 0-.6.22L2.71 8.84a.5.5 0 0 0 .12.64l2.03 1.58a7.9 7.9 0 0 0-.06.94 7.9 7.9 0 0 0 .06.94L2.83 14.52a.5.5 0 0 0-.12.64l1.92 3.32c.13.22.39.31.6.22l2.39-.96c.5.39 1.05.7 1.63.94l.35 2.52c.04.24.25.4.5.4h3.8c.25 0 .46-.16.5-.4l.35-2.52c.58-.24 1.13-.55 1.63-.94l2.39.96c.22.09.47 0 .6-.22l1.92-3.32a.5.5 0 0 0-.12-.64l-2.03-1.58zM12 15.5A3.5 3.5 0 1 1 12 8.5a3.5 3.5 0 0 1 0 7z"
+                fill="currentColor"
+              />
+            </svg>
+          </button>
+          <div v-if="showSettings" ref="settingsPanelRef" class="settings-menu" role="menu">
+            <RouterLink class="settings-menu__item" to="/cabinet/settings" @click="showSettings = false">
+              Усі налаштування
+            </RouterLink>
+            <RouterLink class="settings-menu__item" to="/cabinet/profile" @click="showSettings = false">
+              Профіль
+            </RouterLink>
+            <RouterLink
+              class="settings-menu__item"
+              to="/cabinet/settings/notifications"
+              @click="showSettings = false"
+            >
+              Сповіщення
+            </RouterLink>
+            <RouterLink class="settings-menu__item" to="/cabinet/billing" @click="showSettings = false">
+              Плани та доступ
+            </RouterLink>
+          </div>
+        </div>
         <div v-if="isAuthenticated" class="nav__notifications">
           <button
             ref="notificationsButtonRef"
@@ -155,9 +178,12 @@ const topbarClass = computed(() => [
 ])
 
 const showNotifications = ref(false)
+const showSettings = ref(false)
 const readNotificationIds = ref<Set<string>>(new Set())
 const notificationsButtonRef = ref<HTMLButtonElement | null>(null)
 const notificationsPanelRef = ref<HTMLDivElement | null>(null)
+const settingsButtonRef = ref<HTMLButtonElement | null>(null)
+const settingsPanelRef = ref<HTMLDivElement | null>(null)
 const lastNotificationIds = ref<Set<string>>(new Set())
 const lastUpcomingCount = ref<number>(0)
 const lastReadUpcomingAt = ref<string>('')
@@ -301,7 +327,13 @@ const unreadNotifications = computed(() => notifications.value.filter((item) => 
 const notificationCount = computed(() => unreadNotifications.value.length)
 
 function toggleNotifications() {
+  showSettings.value = false
   showNotifications.value = !showNotifications.value
+}
+
+function toggleSettings() {
+  showNotifications.value = false
+  showSettings.value = !showSettings.value
 }
 
 function markNotificationRead(id: string) {
@@ -327,6 +359,7 @@ watch(
   () => route.fullPath,
   () => {
     showNotifications.value = false
+    showSettings.value = false
   }
 )
 
@@ -420,13 +453,21 @@ watch(
 
 
 function handleGlobalClick(event: MouseEvent) {
-  if (!showNotifications.value) return
   const target = event.target as Node
-  const button = notificationsButtonRef.value
-  const panel = notificationsPanelRef.value
-  if (button && button.contains(target)) return
-  if (panel && panel.contains(target)) return
-  showNotifications.value = false
+  if (showNotifications.value) {
+    const button = notificationsButtonRef.value
+    const panel = notificationsPanelRef.value
+    if (button && button.contains(target)) return
+    if (panel && panel.contains(target)) return
+    showNotifications.value = false
+  }
+  if (showSettings.value) {
+    const button = settingsButtonRef.value
+    const panel = settingsPanelRef.value
+    if (button && button.contains(target)) return
+    if (panel && panel.contains(target)) return
+    showSettings.value = false
+  }
 }
 
 onMounted(() => {
@@ -616,6 +657,10 @@ loadUpcomingReadAt()
   position: relative;
 }
 
+.nav__settings {
+  position: relative;
+}
+
 .icon-btn {
   position: relative;
   width: 32px;
@@ -688,6 +733,41 @@ loadUpcomingReadAt()
   box-shadow: 0 18px 32px rgba(16, 33, 50, 0.16);
   padding: 10px;
   z-index: 20;
+}
+
+.settings-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  width: 210px;
+  background: #fff;
+  color: var(--ink);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 18px 32px rgba(16, 33, 50, 0.16);
+  padding: 6px;
+  z-index: 20;
+  display: grid;
+  gap: 2px;
+}
+
+.settings-menu__item {
+  display: block;
+  border-radius: 8px;
+  padding: 8px 10px;
+  text-decoration: none;
+  color: var(--text);
+  border: 1px solid transparent;
+}
+
+.settings-menu__item:hover {
+  background: color-mix(in srgb, var(--primary) 8%, transparent);
+  border-color: color-mix(in srgb, var(--primary) 24%, transparent);
+}
+
+.settings-menu__item.router-link-active {
+  background: color-mix(in srgb, var(--primary) 12%, transparent);
+  border-color: color-mix(in srgb, var(--primary) 30%, transparent);
 }
 
 .notif-panel__title {

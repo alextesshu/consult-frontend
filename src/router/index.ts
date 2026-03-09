@@ -30,6 +30,7 @@ import ChatView from '../views/ChatView.vue'
 import AnalyticsView from '../views/AnalyticsView.vue'
 import ClientProfileView from '../views/ClientProfileView.vue'
 import NotificationSettingsView from '../views/NotificationSettingsView.vue'
+import SettingsHubView from '../views/SettingsHubView.vue'
 import { useAuthStore } from '../stores/auth'
 import { fetchSpecialistProfile } from '../lib/api'
 
@@ -109,7 +110,7 @@ const routes = [
   {
     path: '/cabinet/settings',
     name: 'cabinet-settings',
-    redirect: { name: 'cabinet-settings-notifications' },
+    component: SettingsHubView,
     meta: { requiresAuth: true, requiresRole: 'SPECIALIST' },
   },
   {

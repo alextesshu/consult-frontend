@@ -19,6 +19,7 @@
         <div v-if="shareStatus" class="muted" style="margin-top: 6px;">{{ shareStatus }}</div>
       </div>
     </header>
+    <SettingsSubnav active="profile" />
 
     <div v-if="loading" class="muted" style="margin-top: 12px;">Завантаження профілю...</div>
     <div v-else-if="error" class="form-error" style="margin-top: 12px;">{{ error }}</div>
@@ -687,6 +688,7 @@ import {
   uploadProfileVideo,
   type SpecialistProfile,
 } from '../lib/api'
+import SettingsSubnav from '../components/SettingsSubnav.vue'
 
 const loading = ref(true)
 const saving = ref(false)
