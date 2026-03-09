@@ -2,6 +2,8 @@
 
 Vue 3 + Vite + TypeScript + Pinia + Vue Router.
 
+![Frontend CI](https://github.com/alextesshu/consult-frontend/actions/workflows/ci.yml/badge.svg?branch=dev)
+
 ## Requirements
 
 - Node.js 20.9+ (Vite 5)
@@ -30,6 +32,14 @@ npm run dev
 
 ```bash
 npm run test
+```
+
+Quality gate for PRs to `dev`/`main`:
+
+```bash
+npm run typecheck
+npm run build
+npm run test:run
 ```
 
 ## Routes (Key)
@@ -127,7 +137,7 @@ Tokens are stored in localStorage and auto-refreshed via `/api/auth/token/refres
 - Keep files saved in UTF-8 to avoid broken Ukrainian text.
 - Backend interprets `date`, `date_from`, `date_to` filters as UTC day boundaries (send `YYYY-MM-DD` in UTC).
 - Billing upgrade requests call `POST /api/billing/request-access/` with `requested_plan`.
-- Client profile photos come from `/api/client/profile/` → `photo_url`.
+- Client profile photos come from `/api/client/profile/` > `photo_url`.
   - If `photo_url` is present but image is missing, check GCS config on backend.
   - For signed URLs (`GCS_PUBLIC=false`), refresh the page to regenerate the URL.
 
@@ -135,3 +145,6 @@ Tokens are stored in localStorage and auto-refreshed via `/api/auth/token/refres
 
 1. Ratings & reviews (moderation UX)
 2. System UX polish (empty/loading states)
+
+
+
