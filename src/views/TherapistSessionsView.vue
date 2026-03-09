@@ -171,6 +171,15 @@
               >
                 Перенести
               </button>
+              <button
+                v-if="canShowRecurringAction(session)"
+                class="btn btn--ghost btn--sm"
+                type="button"
+                :disabled="isActionLoading(session.id)"
+                @click="toggleRecurring(session.id)"
+              >
+                Повторювати щотижня
+              </button>
             </div>
           </div>
           <div class="session-photo-wrap">
@@ -192,6 +201,29 @@
                 </option>
               </select>
             </label>
+            <div class="suggestions-block">
+              <div class="muted suggestions-title">Рекомендовані варіанти перенесення</div>
+              <div v-if="isSuggestionsLoading(session.id)" class="muted">
+                Завантаження рекомендацій...
+              </div>
+              <div v-else-if="(rescheduleSuggestions[session.id] || []).length === 0" class="muted">
+                Не вдалося знайти відповідні варіанти перенесення
+              </div>
+              <div v-else class="suggestions-list">
+                <button
+                  v-for="item in (rescheduleSuggestions[session.id] || []).slice(0, 5)"
+                  :key="item.slot_id"
+                  class="btn btn--ghost btn--sm"
+                  type="button"
+                  @click="selectSuggestedSlot(item.slot_id)"
+                >
+                  {{ formatDateTime(item.start_at) }} · {{ formatDuration(item.start_at, item.end_at) }}
+                </button>
+              </div>
+              <div class="muted">
+                Найближчі доступні вікна для цієї сесії
+              </div>
+            </div>
             <div class="reschedule-actions">
               <button
                 class="btn btn--sm"
@@ -204,6 +236,72 @@
               <button class="btn btn--ghost btn--sm" type="button" @click="closeReschedule">
                 Скасувати
               </button>
+            </div>
+          </div>
+          <div v-if="recurringSessionId === session.id" class="recurring-panel">
+            <label class="field">
+              Кількість повторів
+              <select v-model="recurringPreset" class="input input--select">
+                <option :value="4">4 тижні</option>
+                <option :value="8">8 тижнів</option>
+                <option :value="12">12 тижнів</option>
+                <option value="custom">Власне число</option>
+              </select>
+            </label>
+            <label v-if="recurringPreset === 'custom'" class="field">
+              Вкажіть кількість (1-52)
+              <input
+                v-model.number="recurringCustomOccurrences"
+                type="number"
+                min="1"
+                max="52"
+                step="1"
+                class="input"
+                placeholder="Наприклад, 6"
+              />
+            </label>
+            <div class="recurring-actions">
+              <button
+                class="btn btn--sm"
+                type="button"
+                :disabled="isActionLoading(session.id)"
+                @click="submitRecurring(session.id)"
+              >
+                Створити серію
+              </button>
+              <button class="btn btn--ghost btn--sm" type="button" @click="closeRecurring">
+                Скасувати
+              </button>
+            </div>
+
+            <div v-if="recurringResult[session.id]" class="recurring-result">
+              <div class="status-pill status-pill--ok">
+                Створено {{ recurringResult[session.id].created_count }} сесій
+              </div>
+              <div
+                v-if="recurringResult[session.id].skipped_count > 0"
+                class="status-pill status-pill--warn"
+              >
+                Пропущено {{ recurringResult[session.id].skipped_count }} через конфлікти
+              </div>
+
+              <div v-if="recurringResult[session.id].created_dates.length" class="recurring-list">
+                <div class="muted">Створені дати:</div>
+                <ul class="recurring-ul">
+                  <li v-for="date in recurringResult[session.id].created_dates" :key="date">
+                    {{ formatDateTime(date) }}
+                  </li>
+                </ul>
+              </div>
+
+              <div v-if="recurringResult[session.id].skipped.length" class="recurring-list">
+                <div class="muted">Пропущені дати:</div>
+                <ul class="recurring-ul">
+                  <li v-for="item in recurringResult[session.id].skipped" :key="`${item.start_at}-${item.reason}`">
+                    {{ formatDateTime(item.start_at) }} - {{ recurringReasonLabel(item.reason) }}
+                  </li>
+                </ul>
+              </div>
             </div>
           </div>
         </article>
@@ -348,7 +446,7 @@
 <script setup lang="ts">
 import { computed, onMounted, onBeforeUnmount, ref, watch, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
-import { apiGet, apiPatch, apiPut, fetchSpecialistProfile, type SpecialistProfile } from '../lib/api'
+import { apiGet, apiPatch, apiPost, apiPut, fetchSpecialistProfile, type SpecialistProfile } from '../lib/api'
 import { getApiErrorMessage } from '../lib/errors'
 import { BOOKING_ERROR_FALLBACKS, BOOKING_SUCCESS_MESSAGES, BOOKING_UI_MESSAGES } from '../lib/bookingCopy'
 import { useToast } from '../composables/useToast'
@@ -390,6 +488,27 @@ type RescheduleRequest = {
   resolved_at: string | null
 }
 
+type RecurringSkippedItem = {
+  start_at: string
+  reason: string
+}
+
+type RecurringSummary = {
+  created_count: number
+  skipped_count: number
+  created_dates: string[]
+  skipped_reasons: Array<{ reason: string; count: number }>
+  skipped: RecurringSkippedItem[]
+}
+
+type RescheduleSuggestion = {
+  slot_id: number
+  start_at: string
+  end_at: string
+  label: string
+  reason_tag: string
+}
+
 const upcoming = ref<Session[]>([])
 const past = ref<Session[]>([])
 const availableSlots = ref<Slot[]>([])
@@ -398,10 +517,17 @@ const error = ref('')
 const actionLoading = ref<Set<number>>(new Set())
 const rescheduleSessionId = ref<number | null>(null)
 const rescheduleSlotId = ref<number | ''>('')
+const rescheduleSuggestions = ref<Record<number, RescheduleSuggestion[]>>({})
+const suggestionsLoading = ref<Set<number>>(new Set())
+const recurringSessionId = ref<number | null>(null)
+const recurringPreset = ref<number | 'custom'>(4)
+const recurringCustomOccurrences = ref<number | ''>('')
+const recurringResult = ref<Record<number, RecurringSummary>>({})
 const noteSessionId = ref<number | null>(null)
 const noteDraft = ref('')
 const noteLoading = ref<Set<number>>(new Set())
 const noteSaving = ref<Set<number>>(new Set())
+const therapistPhotoUrl = ref('')
 const rescheduleRequests = ref<RescheduleRequest[]>([])
 const requestsLoading = ref(false)
 const requestLoading = ref<Set<number>>(new Set())
@@ -509,10 +635,30 @@ const nextUpcoming = computed(() => {
 const canCancel = (status: string) => status === 'SCHEDULED' || status === 'CONFIRMED'
 const canReschedule = (status: string) => status === 'SCHEDULED' || status === 'CONFIRMED'
 
+const canShowRecurringAction = (session: Session) => {
+  if (!canReschedule(session.status)) return false
+  if (hasPendingReschedule(session.id)) return false
+  if (!session.slot_start_at) return false
+  const start = new Date(session.slot_start_at).getTime()
+  if (Number.isNaN(start)) return false
+  return start - Date.now() >= 24 * 60 * 60 * 1000
+}
+
+const recurringReasonLabelMap: Record<string, string> = {
+  SLOT_UNAVAILABLE: 'На цю дату вже немає вільного вікна',
+  SLOT_ALREADY_BOOKED: 'Це вікно вже зайняте',
+  CLIENT_TIME_CONFLICT: 'У клієнта вже є інша сесія на цей час',
+}
+
+function recurringReasonLabel(reason: string) {
+  return recurringReasonLabelMap[reason] || reason
+}
+
 const isActionLoading = (id: number) => actionLoading.value.has(id)
 const isNoteLoading = (id: number) => noteLoading.value.has(id)
 const isNoteSaving = (id: number) => noteSaving.value.has(id)
 const isRequestLoading = (id: number) => requestLoading.value.has(id)
+const isSuggestionsLoading = (id: number) => suggestionsLoading.value.has(id)
 
 function formatDateTime(value?: string | null) {
   if (!value) return '—'
@@ -696,6 +842,16 @@ function setRequestLoading(id: number, value: boolean) {
   requestLoading.value = next
 }
 
+function setSuggestionsLoading(id: number, value: boolean) {
+  const next = new Set(suggestionsLoading.value)
+  if (value) {
+    next.add(id)
+  } else {
+    next.delete(id)
+  }
+  suggestionsLoading.value = next
+}
+
 async function confirmSession(id: number) {
   setActionLoading(id, true)
   error.value = ''
@@ -752,18 +908,70 @@ async function cancelSession(id: number) {
   }
 }
 
-function toggleReschedule(id: number) {
+async function loadRescheduleSuggestions(id: number) {
+  setSuggestionsLoading(id, true)
+  try {
+    const resp = await apiGet<{ suggestions?: RescheduleSuggestion[] }>(
+      `/booking/sessions/${id}/reschedule-suggestions/`
+    )
+    rescheduleSuggestions.value = {
+      ...rescheduleSuggestions.value,
+      [id]: resp?.suggestions || [],
+    }
+  } catch {
+    rescheduleSuggestions.value = {
+      ...rescheduleSuggestions.value,
+      [id]: [],
+    }
+  } finally {
+    setSuggestionsLoading(id, false)
+  }
+}
+
+async function toggleReschedule(id: number) {
   if (rescheduleSessionId.value === id) {
     closeReschedule()
     return
   }
   rescheduleSessionId.value = id
   rescheduleSlotId.value = ''
+  recurringSessionId.value = null
+  await loadRescheduleSuggestions(id)
 }
 
 function closeReschedule() {
   rescheduleSessionId.value = null
   rescheduleSlotId.value = ''
+}
+
+function selectSuggestedSlot(slotId: number) {
+  rescheduleSlotId.value = slotId
+}
+
+function toggleRecurring(id: number) {
+  if (recurringSessionId.value === id) {
+    closeRecurring()
+    return
+  }
+  recurringSessionId.value = id
+  recurringPreset.value = 4
+  recurringCustomOccurrences.value = ''
+  rescheduleSessionId.value = null
+}
+
+function closeRecurring() {
+  recurringSessionId.value = null
+}
+
+function recurringOccurrencesValue() {
+  if (recurringPreset.value === 'custom') {
+    const customValue = Number(recurringCustomOccurrences.value)
+    if (!Number.isInteger(customValue) || customValue < 1 || customValue > 52) {
+      return null
+    }
+    return customValue
+  }
+  return recurringPreset.value
 }
 
 async function submitReschedule(id: number) {
@@ -779,6 +987,38 @@ async function submitReschedule(id: number) {
     toast.success(BOOKING_SUCCESS_MESSAGES.sessionRescheduled)
   } catch (err: any) {
     error.value = getApiErrorMessage(err, BOOKING_ERROR_FALLBACKS.rescheduleSession)
+  } finally {
+    setActionLoading(id, false)
+  }
+}
+
+async function submitRecurring(id: number) {
+  const occurrences = recurringOccurrencesValue()
+  if (!occurrences) {
+    error.value = 'Вкажіть кількість повторів від 1 до 52.'
+    return
+  }
+  setActionLoading(id, true)
+  error.value = ''
+  try {
+    const resp = await apiPost<RecurringSummary>(`/booking/sessions/${id}/create-recurring/`, {
+      frequency: 'weekly',
+      occurrences,
+    })
+    recurringResult.value = {
+      ...recurringResult.value,
+      [id]: resp,
+    }
+    await Promise.all([loadSessions(), loadSlots()])
+    const skipped = resp?.skipped_count || 0
+    const created = resp?.created_count || 0
+    if (skipped > 0) {
+      toast.success(`Створено ${created} сесій, пропущено ${skipped}.`)
+    } else {
+      toast.success(BOOKING_SUCCESS_MESSAGES.recurringSeriesCreated)
+    }
+  } catch (err: any) {
+    error.value = getApiErrorMessage(err, BOOKING_ERROR_FALLBACKS.createRecurringSession)
   } finally {
     setActionLoading(id, false)
   }
@@ -1135,6 +1375,58 @@ onBeforeUnmount(() => {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
+}
+
+.suggestions-block {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(7, 47, 71, 0.12);
+  background: rgba(7, 47, 71, 0.03);
+}
+
+.suggestions-title {
+  font-weight: 600;
+}
+
+.suggestions-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.recurring-panel {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px dashed rgba(8, 113, 201, 0.35);
+  background: rgba(8, 113, 201, 0.05);
+  grid-column: 1 / -1;
+}
+
+.recurring-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.recurring-result {
+  display: grid;
+  gap: 8px;
+}
+
+.recurring-list {
+  display: grid;
+  gap: 4px;
+}
+
+.recurring-ul {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 4px;
 }
 
 .input--select {
