@@ -220,8 +220,8 @@ const notifications = computed(() => {
       items.push({
         id,
         text: event.event === 'CANCELLED'
-          ? `Скасування сесії від ${name}`
-          : `Нове бронювання від ${name}`,
+          ? `Бронювання: скасування сесії від ${name}`
+          : `Бронювання: нова сесія від ${name}`,
         hint: time ? `Сесія: ${time}${email}` : `Перевірте деталі сесії${email}`,
         to: `/cabinet/sessions#session-${event.session_id}`,
         tone: event.event === 'CANCELLED' ? 'warn' : 'ok',
@@ -236,8 +236,8 @@ const notifications = computed(() => {
       const time = formatDateTime(event.slot_start_at)
       const text =
         event.event_type === 'session_starts_1h'
-          ? `Сесія з ${name} починається за 1 годину`
-          : `Сесія з ${name} починається за 24 години`
+          ? `Нагадування: сесія з ${name} починається за 1 годину`
+          : `Нагадування: сесія з ${name} починається за 24 години`
       items.push({
         id,
         text,
