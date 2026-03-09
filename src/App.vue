@@ -187,6 +187,7 @@ const latestUpcomingCreatedAt = computed(
   () => auth.me?.counts?.latest_upcoming_session_created_at ?? null
 )
 const sessionEvents = computed(() => auth.me?.notifications?.session_events ?? [])
+const reminderEvents = computed(() => auth.me?.notifications?.reminder_events ?? [])
 const upcomingUnread = computed(() => {
   const latest = latestUpcomingCreatedAt.value
   if (!isSpecialist.value || !latest) return false
@@ -224,6 +225,25 @@ const notifications = computed(() => {
         hint: time ? `Сесія: ${time}${email}` : `Перевірте деталі сесії${email}`,
         to: `/cabinet/sessions#session-${event.session_id}`,
         tone: event.event === 'CANCELLED' ? 'warn' : 'ok',
+        unread: !readNotificationIds.value.has(id),
+      })
+    })
+  }
+  if (isSpecialist.value && reminderEvents.value.length) {
+    reminderEvents.value.forEach((event) => {
+      const id = `reminder-event-${event.id}`
+      const name = event.client_name || `#${event.client_id}`
+      const time = formatDateTime(event.slot_start_at)
+      const text =
+        event.event_type === 'session_starts_1h'
+          ? `Сесія з ${name} починається за 1 годину`
+          : `Сесія з ${name} починається за 24 години`
+      items.push({
+        id,
+        text,
+        hint: time ? `Час сесії: ${time}` : 'Перевірте деталі сесії',
+        to: `/cabinet/sessions#session-${event.session_id}`,
+        tone: 'info',
         unread: !readNotificationIds.value.has(id),
       })
     })

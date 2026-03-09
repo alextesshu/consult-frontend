@@ -36,8 +36,20 @@ type SessionNotification = {
   created_at: string
 }
 
+type ReminderNotification = {
+  id: number
+  event_type: 'session_starts_24h' | 'session_starts_1h' | string
+  session_id: number
+  client_id: number
+  client_name: string
+  slot_start_at: string | null
+  scheduled_for: string
+  delivered_at: string | null
+}
+
 type NotificationsPayload = {
   session_events?: SessionNotification[]
+  reminder_events?: ReminderNotification[]
 }
 
 type MePayload = {
