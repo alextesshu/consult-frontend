@@ -213,11 +213,12 @@
                 <button
                   v-for="item in (rescheduleSuggestions[session.id] || []).slice(0, 5)"
                   :key="item.slot_id"
-                  class="btn btn--ghost btn--sm"
+                  class="btn btn--ghost btn--sm suggestion-btn"
                   type="button"
                   @click="selectSuggestedSlot(item.slot_id)"
                 >
-                  {{ formatDateTime(item.start_at) }} · {{ formatDuration(item.start_at, item.end_at) }}
+                  <span>{{ formatDateTime(item.start_at) }} · {{ formatDuration(item.start_at, item.end_at) }}</span>
+                  <span class="muted suggestion-meta">{{ suggestionReasonLabel(item.reason_tag) }}</span>
                 </button>
               </div>
               <div class="muted">
@@ -1394,6 +1395,16 @@ onBeforeUnmount(() => {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+.suggestion-btn {
+  display: grid;
+  gap: 2px;
+  text-align: left;
+}
+
+.suggestion-meta {
+  font-size: 11px;
 }
 
 .recurring-panel {

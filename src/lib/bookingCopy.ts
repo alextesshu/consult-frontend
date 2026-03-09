@@ -32,3 +32,15 @@ export const BOOKING_UI_MESSAGES = {
   acceptSettingBeforeBooking: 'Підтвердьте правила перед бронюванням.',
   invalidDuration: 'Некоректна тривалість. Вкажіть 1–480 хв.',
 } as const
+
+export const BOOKING_RESCHEDULE_SUGGESTION_REASON_LABELS = {
+  nearby_days: 'Найближчі дні',
+  same_time_next_days: 'Той самий час у найближчі дні',
+  same_weekday_next_week: 'Той самий день тижня наступного тижня',
+  nearest_available: 'Найближче доступне вікно',
+} as const
+
+export function getSuggestionReasonLabel(reasonTag?: string | null) {
+  if (!reasonTag) return ''
+  return BOOKING_RESCHEDULE_SUGGESTION_REASON_LABELS[reasonTag as keyof typeof BOOKING_RESCHEDULE_SUGGESTION_REASON_LABELS] || reasonTag
+}

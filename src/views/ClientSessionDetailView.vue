@@ -78,6 +78,36 @@
           Перенесення виконується як нове бронювання зі скасуванням попередньої сесії.
         </span>
       </div>
+      <div class="suggestions-block" style="margin-top: 12px;">
+        <div class="muted suggestions-title">Рекомендовані варіанти перенесення</div>
+        <div v-if="suggestionsLoading" class="muted">Завантаження рекомендацій...</div>
+        <div v-else-if="rescheduleSuggestions.length === 0" class="muted">
+          Для цієї сесії зараз немає зручних варіантів перенесення
+        </div>
+        <div v-else class="suggestions-list">
+          <button
+            v-for="item in rescheduleSuggestions.slice(0, 5)"
+            :key="item.slot_id"
+            class="btn btn--ghost btn--sm suggestion-btn"
+            :class="{ 'suggestion-btn--active': selectedSuggestionSlotId === item.slot_id }"
+            type="button"
+            :disabled="actionLoading"
+            @click="selectSuggestedSlot(item.slot_id)"
+          >
+            <span>{{ formatDateTime(item.start_at) }} · {{ formatDuration(item.start_at, item.end_at) }}</span>
+            <span class="muted suggestion-meta">{{ suggestionReasonLabel(item.reason_tag) }}</span>
+          </button>
+        </div>
+        <button
+          v-if="selectedSuggestionSlotId"
+          class="btn btn--sm"
+          type="button"
+          :disabled="actionLoading"
+          @click="applySelectedSuggestion"
+        >
+          {{ session.status === 'CONFIRMED' ? 'Запросити перенос для обраного варіанта' : 'Перенести на обраний варіант' }}
+        </button>
+      </div>
       <div v-if="slotsLoading" class="muted" style="margin-top: 10px;">Завантаження слотів...</div>
       <div v-else-if="availableSlots.length === 0" class="muted" style="margin-top: 10px;">
         Немає доступних слотів.
@@ -107,7 +137,7 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { apiGet, apiPatch, apiPost } from '../lib/api'
 import { getApiErrorMessage } from '../lib/errors'
-import { BOOKING_ERROR_FALLBACKS, BOOKING_SUCCESS_MESSAGES } from '../lib/bookingCopy'
+import { BOOKING_ERROR_FALLBACKS, BOOKING_SUCCESS_MESSAGES, getSuggestionReasonLabel } from '../lib/bookingCopy'
 import { useToast } from '../composables/useToast'
 type SessionDetail = {
   id: number
@@ -128,6 +158,14 @@ type PublicSlot = {
   end_at: string
 }
 
+type RescheduleSuggestion = {
+  slot_id: number
+  start_at: string
+  end_at: string
+  label: string
+  reason_tag: string
+}
+
 const route = useRoute()
 const router = useRouter()
 const sessionId = computed(() => Number(route.params.id))
@@ -138,6 +176,9 @@ const toast = useToast()
 const actionLoading = ref(false)
 const slotsLoading = ref(false)
 const availableSlots = ref<PublicSlot[]>([])
+const suggestionsLoading = ref(false)
+const rescheduleSuggestions = ref<RescheduleSuggestion[]>([])
+const selectedSuggestionSlotId = ref<number | null>(null)
 
 watch(error, (value) => {
   if (!value) return
@@ -160,6 +201,10 @@ const statusLabel = (detail: SessionDetail) => {
 }
 
 const canCancel = (status: string) => status === 'SCHEDULED' || status === 'CONFIRMED'
+
+function suggestionReasonLabel(reasonTag: string) {
+  return getSuggestionReasonLabel(reasonTag)
+}
 
 function specialistLabel(detail: SessionDetail) {
   const name = detail.therapist_name || detail.therapist_username
@@ -245,6 +290,21 @@ async function loadSlots() {
   }
 }
 
+async function loadRescheduleSuggestions() {
+  if (!session.value) return
+  suggestionsLoading.value = true
+  try {
+    const resp = await apiGet<{ suggestions?: RescheduleSuggestion[] }>(
+      `/booking/sessions/${session.value.id}/reschedule-suggestions/`
+    )
+    rescheduleSuggestions.value = resp?.suggestions || []
+  } catch {
+    rescheduleSuggestions.value = []
+  } finally {
+    suggestionsLoading.value = false
+  }
+}
+
 async function cancelSession() {
   if (!session.value) return
   actionLoading.value = true
@@ -295,9 +355,22 @@ async function requestReschedule(slotId: number) {
   }
 }
 
+function selectSuggestedSlot(slotId: number) {
+  selectedSuggestionSlotId.value = slotId
+}
+
+async function applySelectedSuggestion() {
+  if (!session.value || !selectedSuggestionSlotId.value) return
+  if (session.value.status === 'CONFIRMED') {
+    await requestReschedule(selectedSuggestionSlotId.value)
+    return
+  }
+  await rescheduleTo(selectedSuggestionSlotId.value)
+}
+
 onMounted(async () => {
   await loadSession()
-  await loadSlots()
+  await Promise.all([loadSlots(), loadRescheduleSuggestions()])
 })
 </script>
 
@@ -389,6 +462,39 @@ onMounted(async () => {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
+}
+
+.suggestions-block {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(7, 47, 71, 0.12);
+  background: rgba(7, 47, 71, 0.03);
+}
+
+.suggestions-title {
+  font-weight: 600;
+}
+
+.suggestions-list {
+  display: grid;
+  gap: 8px;
+}
+
+.suggestion-btn {
+  display: grid;
+  gap: 2px;
+  text-align: left;
+}
+
+.suggestion-btn--active {
+  border-color: rgba(8, 113, 201, 0.45);
+  background: rgba(8, 113, 201, 0.08);
+}
+
+.suggestion-meta {
+  font-size: 11px;
 }
 
 .slot-list {
