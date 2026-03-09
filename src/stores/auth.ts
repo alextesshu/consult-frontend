@@ -27,7 +27,7 @@ type Counts = {
 
 type SessionNotification = {
   id: number
-  event: 'BOOKED' | 'CANCELLED'
+  event: 'BOOKED' | 'CONFIRMED' | 'CANCELLED'
   session_id: number
   client_id: number
   client_name: string

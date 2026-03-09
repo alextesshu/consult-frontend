@@ -136,6 +136,13 @@ export type TherapistProfile = {
 
 export type SpecialistProfile = TherapistProfile
 
+export type NotificationSettings = {
+  notify_session_booked_in_app: boolean
+  notify_session_confirmed_in_app: boolean
+  notify_session_starts_24h_in_app: boolean
+  notify_session_starts_1h_in_app: boolean
+}
+
 export type PublicTherapistProfile = {
   public_slug?: string
   therapist_id: number
@@ -485,6 +492,18 @@ export async function rotateTherapistProfileSlug(): Promise<TherapistProfile> {
 
 export async function rotateSpecialistProfileSlug(): Promise<SpecialistProfile> {
   return rotateTherapistProfileSlug()
+}
+
+export async function fetchNotificationSettings(): Promise<NotificationSettings> {
+  const resp = await http.get<NotificationSettings>('/cabinet/settings/notifications/')
+  return resp.data
+}
+
+export async function updateNotificationSettings(
+  payload: Partial<NotificationSettings>
+): Promise<NotificationSettings> {
+  const resp = await http.patch<NotificationSettings>('/cabinet/settings/notifications/', payload)
+  return resp.data
 }
 
 export type ClientProfile = {

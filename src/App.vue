@@ -219,12 +219,15 @@ const notifications = computed(() => {
       const email = event.client_email ? ` · ${event.client_email}` : ''
       items.push({
         id,
-        text: event.event === 'CANCELLED'
-          ? `Бронювання: скасування сесії від ${name}`
-          : `Бронювання: нова сесія від ${name}`,
+        text:
+          event.event === 'CANCELLED'
+            ? `Бронювання: скасування сесії від ${name}`
+            : event.event === 'CONFIRMED'
+              ? `Бронювання: сесію з ${name} підтверджено`
+              : `Бронювання: нова сесія від ${name}`,
         hint: time ? `Сесія: ${time}${email}` : `Перевірте деталі сесії${email}`,
         to: `/cabinet/sessions#session-${event.session_id}`,
-        tone: event.event === 'CANCELLED' ? 'warn' : 'ok',
+        tone: event.event === 'CANCELLED' ? 'warn' : event.event === 'CONFIRMED' ? 'info' : 'ok',
         unread: !readNotificationIds.value.has(id),
       })
     })

@@ -29,6 +29,7 @@ import ForbiddenView from '../views/ForbiddenView.vue'
 import ChatView from '../views/ChatView.vue'
 import AnalyticsView from '../views/AnalyticsView.vue'
 import ClientProfileView from '../views/ClientProfileView.vue'
+import NotificationSettingsView from '../views/NotificationSettingsView.vue'
 import { useAuthStore } from '../stores/auth'
 import { fetchSpecialistProfile } from '../lib/api'
 
@@ -108,7 +109,13 @@ const routes = [
   {
     path: '/cabinet/settings',
     name: 'cabinet-settings',
-    redirect: { name: 'cabinet-profile' },
+    redirect: { name: 'cabinet-settings-notifications' },
+    meta: { requiresAuth: true, requiresRole: 'SPECIALIST' },
+  },
+  {
+    path: '/cabinet/settings/notifications',
+    name: 'cabinet-settings-notifications',
+    component: NotificationSettingsView,
     meta: { requiresAuth: true, requiresRole: 'SPECIALIST' },
   },
   {
@@ -183,9 +190,8 @@ const routes = [
     name: 'public-journal-collection',
     component: PublicJournalCollectionView,
     alias: [
-      '/:slug/journal/collections/:collectionSlug',
-      '/t/:slug/journal/collections/:collectionSlug',
-      '/specialist/:slug/journal/collections/:collectionSlug',
+      '/t/:specialist_slug/journal/collections/:collection_slug',
+      '/specialist/:specialist_slug/journal/collections/:collection_slug',
     ],
   },
   {
