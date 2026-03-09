@@ -5,7 +5,7 @@
         <div class="badge">Профіль спеціаліста</div>
         <h1 class="title public__title">{{ publicName || 'Профіль спеціаліста' }}</h1>
         <p class="muted public__subtitle">
-          {{ profile ? 'Публічна картка з описом і доступними віконцями.' : 'Завантаження профілю' }}
+          {{ profile ? 'Публічна картка з описом і доступними вільними вікнами.' : 'Завантаження профілю' }}
         </p>
       </div>
       <div class="public__actions">
@@ -40,7 +40,7 @@
       <div class="panel panel--slots">
         <div class="panel__header">
           <div>
-            <div class="badge badge--soft">Доступні віконця</div>
+            <div class="badge badge--soft">Доступні вільні вікна</div>
             <h2 class="panel__title">Найближчі дати</h2>
           </div>
           <div class="setting-bar" v-if="isAuthenticated && isClient">
@@ -86,7 +86,7 @@
             @focus="openDatePicker"
           />
           <div class="muted slot-filter__hint">
-            Оберіть дату, щоб переглянути доступні віконця.
+            Оберіть дату, щоб переглянути доступні вільні вікна.
           </div>
         </div>
 
@@ -108,7 +108,7 @@
           </div>
         </div>
 
-        <div v-if="slotsLoading" class="muted">Завантажуємо віконця</div>
+        <div v-if="slotsLoading" class="muted">Завантажуємо вільні вікна</div>
         <div v-else-if="slotsError" class="form-error">{{ slotsError }}</div>
         <div v-else-if="slots.length === 0" class="muted">
           {{ noSlotsAvailable ? 'Наразі вільних віконець немає.' : 'На жаль, у цей день вільних віконець немає.' }}
@@ -677,7 +677,7 @@ async function loadSlots() {
     }
   } catch {
     slots.value = []
-    slotsError.value = 'Не вдалося завантажити віконця.'
+    slotsError.value = 'Не вдалося завантажити вільні вікна.'
   } finally {
     slotsLoading.value = false
   }
