@@ -229,7 +229,6 @@
           <label class="field">
             Початок
             <input
-              ref="exceptionStartDateRef"
               v-model="exceptionForm.start_date"
               class="input"
               type="date"
@@ -238,7 +237,6 @@
               @click="openPicker"
             />
             <input
-              ref="exceptionStartTimeRef"
               v-model="exceptionForm.start_time"
               class="input"
               type="text"
@@ -251,7 +249,6 @@
           <label class="field">
             Кінець
             <input
-              ref="exceptionEndDateRef"
               v-model="exceptionForm.end_date"
               class="input"
               type="date"
@@ -260,7 +257,6 @@
               @click="openPicker"
             />
             <input
-              ref="exceptionEndTimeRef"
               v-model="exceptionForm.end_time"
               class="input"
               type="text"
@@ -302,7 +298,6 @@
                 <label class="field">
                   Початок
                   <input
-                    ref="exceptionEditStartDateRef"
                     v-model="exceptionEditForm.start_date"
                     class="input"
                     type="date"
@@ -311,7 +306,6 @@
                     @click="openPicker"
                   />
                   <input
-                    ref="exceptionEditStartTimeRef"
                     v-model="exceptionEditForm.start_time"
                     class="input"
                     type="text"
@@ -333,7 +327,6 @@
                       @click="openPicker"
                     />
                   <input
-                    ref="exceptionEditEndTimeRef"
                     v-model="exceptionEditForm.end_time"
                     class="input"
                     type="text"
@@ -564,13 +557,6 @@ const ruleCreateStartTimeRef = ref<HTMLInputElement | null>(null)
 const ruleCreateEndTimeRef = ref<HTMLInputElement | null>(null)
 const ruleEditStartTimeRef = ref<HTMLInputElement | null>(null)
 const ruleEditEndTimeRef = ref<HTMLInputElement | null>(null)
-const exceptionStartDateRef = ref<HTMLInputElement | null>(null)
-const exceptionStartTimeRef = ref<HTMLInputElement | null>(null)
-const exceptionEndDateRef = ref<HTMLInputElement | null>(null)
-const exceptionEndTimeRef = ref<HTMLInputElement | null>(null)
-const exceptionEditStartDateRef = ref<HTMLInputElement | null>(null)
-const exceptionEditStartTimeRef = ref<HTMLInputElement | null>(null)
-const exceptionEditEndTimeRef = ref<HTMLInputElement | null>(null)
 const editingExceptionId = ref<number | null>(null)
 const exceptionSubmitting = ref(false)
 
@@ -622,8 +608,7 @@ const exceptionEditForm = reactive({
 
 const hasActiveRules = computed(() => rules.value.some((rule) => rule.is_active))
 
-function openDateTimePicker(inputRef: { value: HTMLInputElement | null }) {
-  const input = inputRef.value
+function openDateTimePicker(input: HTMLInputElement | null) {
   if (!input) return
   const picker = input as HTMLInputElement & { showPicker?: () => void }
   if (typeof picker.showPicker === 'function') {
@@ -704,7 +689,7 @@ function toInputDateTime(iso: string): string {
 function splitIsoToDateTimeParts(iso: string): { date: string; time: string } {
   const value = toInputDateTime(iso)
   if (!value.includes('T')) return { date: '', time: '' }
-  const [date, time] = value.split('T')
+  const [date = '', time = ''] = value.split('T')
   return { date, time: time.slice(0, 5) }
 }
 

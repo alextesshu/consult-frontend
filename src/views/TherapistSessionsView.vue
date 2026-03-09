@@ -79,7 +79,7 @@
         <div>
           Нові бронювання: <strong>{{ needsConfirmation.length }}</strong>
         </div>
-        <button class="btn btn--ghost btn--sm" type="button" @click="focusSession(needsConfirmation[0].id)">
+        <button class="btn btn--ghost btn--sm" type="button" @click="needsConfirmation[0] && focusSession(needsConfirmation[0].id)">
           Перейти до першого
         </button>
       </div>
@@ -277,28 +277,28 @@
 
             <div v-if="recurringResult[session.id]" class="recurring-result">
               <div class="status-pill status-pill--ok">
-                Створено {{ recurringResult[session.id].created_count }} сесій
+                Створено {{ recurringResult[session.id]?.created_count ?? 0 }} сесій
               </div>
               <div
-                v-if="recurringResult[session.id].skipped_count > 0"
+                v-if="(recurringResult[session.id]?.skipped_count ?? 0) > 0"
                 class="status-pill status-pill--warn"
               >
-                Пропущено {{ recurringResult[session.id].skipped_count }} через конфлікти
+                Пропущено {{ recurringResult[session.id]?.skipped_count ?? 0 }} через конфлікти
               </div>
 
-              <div v-if="recurringResult[session.id].created_dates.length" class="recurring-list">
+              <div v-if="(recurringResult[session.id]?.created_dates || []).length" class="recurring-list">
                 <div class="muted">Створені дати:</div>
                 <ul class="recurring-ul">
-                  <li v-for="date in recurringResult[session.id].created_dates" :key="date">
+                  <li v-for="date in (recurringResult[session.id]?.created_dates || [])" :key="date">
                     {{ formatDateTime(date) }}
                   </li>
                 </ul>
               </div>
 
-              <div v-if="recurringResult[session.id].skipped.length" class="recurring-list">
+              <div v-if="(recurringResult[session.id]?.skipped || []).length" class="recurring-list">
                 <div class="muted">Пропущені дати:</div>
                 <ul class="recurring-ul">
-                  <li v-for="item in recurringResult[session.id].skipped" :key="`${item.start_at}-${item.reason}`">
+                  <li v-for="item in (recurringResult[session.id]?.skipped || [])" :key="`${item.start_at}-${item.reason}`">
                     {{ formatDateTime(item.start_at) }} - {{ recurringReasonLabel(item.reason) }}
                   </li>
                 </ul>
@@ -449,7 +449,7 @@ import { computed, onMounted, onBeforeUnmount, ref, watch, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { apiGet, apiPatch, apiPost, apiPut, fetchSpecialistProfile, type SpecialistProfile } from '../lib/api'
 import { getApiErrorMessage } from '../lib/errors'
-import { BOOKING_ERROR_FALLBACKS, BOOKING_SUCCESS_MESSAGES, BOOKING_UI_MESSAGES } from '../lib/bookingCopy'
+import { BOOKING_ERROR_FALLBACKS, BOOKING_SUCCESS_MESSAGES, BOOKING_UI_MESSAGES, getSuggestionReasonLabel } from '../lib/bookingCopy'
 import { useToast } from '../composables/useToast'
 import LoadingSkeleton from '../components/LoadingSkeleton.vue'
 import EmptyState from '../components/EmptyState.vue'
@@ -500,6 +500,10 @@ type RecurringSummary = {
   created_dates: string[]
   skipped_reasons: Array<{ reason: string; count: number }>
   skipped: RecurringSkippedItem[]
+}
+
+type SessionNotePayload = {
+  content?: string
 }
 
 type RescheduleSuggestion = {
@@ -655,8 +659,11 @@ function recurringReasonLabel(reason: string) {
   return recurringReasonLabelMap[reason] || reason
 }
 
+function suggestionReasonLabel(reasonTag: string) {
+  return getSuggestionReasonLabel(reasonTag)
+}
+
 const isActionLoading = (id: number) => actionLoading.value.has(id)
-const isNoteLoading = (id: number) => noteLoading.value.has(id)
 const isNoteSaving = (id: number) => noteSaving.value.has(id)
 const isRequestLoading = (id: number) => requestLoading.value.has(id)
 const isSuggestionsLoading = (id: number) => suggestionsLoading.value.has(id)
@@ -1030,7 +1037,7 @@ async function loadNote(id: number) {
   setNoteLoading(id, true)
   error.value = ''
   try {
-    const resp = await apiGet(`/cabinet/sessions/${id}/note/`)
+    const resp = await apiGet<SessionNotePayload | null>(`/cabinet/sessions/${id}/note/`)
     noteDraft.value = resp?.content || ''
   } catch (err: any) {
     if (err?.response?.status === 404) {

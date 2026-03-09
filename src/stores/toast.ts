@@ -19,13 +19,13 @@ export const useToastStore = defineStore('toast', {
     items: [] as ToastItem[],
   }),
   actions: {
-    addToast(payload: Omit<ToastItem, 'id' | 'createdAt'>) {
+    addToast(payload: Omit<ToastItem, 'id' | 'createdAt' | 'duration'> & { duration?: number }) {
       const id = `${Date.now()}-${Math.random().toString(16).slice(2)}`
       const toast: ToastItem = {
         id,
         createdAt: Date.now(),
-        duration: payload.duration ?? DEFAULT_DURATION,
         ...payload,
+        duration: payload.duration ?? DEFAULT_DURATION,
       }
       this.items = [toast, ...this.items].slice(0, MAX_TOASTS)
       return toast.id

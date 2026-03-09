@@ -323,15 +323,6 @@ function formatDate(value: string) {
     minute: '2-digit',
     hour12: false,
   })
-
-function formatDuration(slot: Slot) {
-  const start = new Date(slot.start_at)
-  const end = new Date(slot.end_at)
-  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return "?"
-  const minutes = Math.max(0, Math.round((end.getTime() - start.getTime()) / 60000))
-  return `${minutes} хв`
-}
-
 }
 
 function formatDateOnly(value: string) {
@@ -357,13 +348,6 @@ function toLocalDateKey(value: string) {
   if (Number.isNaN(dt.getTime())) return value
   const offset = dt.getTimezoneOffset() * 60000
   return new Date(dt.getTime() - offset).toISOString().slice(0, 10)
-}
-
-function formatUkDate(value: Date) {
-  const day = String(value.getDate()).padStart(2, '0')
-  const month = String(value.getMonth() + 1).padStart(2, '0')
-  const year = value.getFullYear()
-  return `${day}.${month}.${year}`
 }
 
 function formatUkTime(value: Date) {
@@ -423,8 +407,9 @@ function isEditing(id: number) {
 }
 
 function setEditErrorRef(id: number) {
-  return (el: Element | null) => {
-    editErrorRefs.value[id] = el as HTMLElement | null
+  return (el: Element | { $el?: Element } | null) => {
+    const element = el && '$el' in el ? el.$el ?? null : el
+    editErrorRefs.value[id] = element as HTMLElement | null
   }
 }
 

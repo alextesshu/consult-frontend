@@ -18,7 +18,7 @@ export function useConfirmModal() {
   const confirmText = ref('Підтвердити')
   const cancelText = ref('Скасувати')
   const tone = ref<ConfirmTone>('neutral')
-  let confirmHandler: ConfirmOptions['onConfirm'] = null
+  let confirmHandler: ConfirmOptions['onConfirm'] | null = null
 
   function openConfirm(options: ConfirmOptions) {
     title.value = options.title

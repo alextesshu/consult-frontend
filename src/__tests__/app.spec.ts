@@ -1,6 +1,7 @@
 import { render, screen } from '@testing-library/vue'
 import { createRouter, createWebHistory } from 'vue-router'
 import { createPinia } from 'pinia'
+import { describe, expect, it } from 'vitest'
 import App from '../App.vue'
 
 function renderWithProviders(initialPath = '/') {

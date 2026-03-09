@@ -243,14 +243,14 @@
               <label class="field">
                 <span>Пошук</span>
                 <input
-                  v-model="participantFilters[event.id].query"
+                  v-model="participantFilterModel(event.id).query"
                   type="text"
                   placeholder="Ім'я або email"
                 />
               </label>
               <label class="field">
                 <span>Роль</span>
-                <select v-model="participantFilters[event.id].role">
+                <select v-model="participantFilterModel(event.id).role">
                   <option value="">Усі</option>
                   <option value="HOST">Ведучий</option>
                   <option value="CO_HOST">Співведучий</option>
@@ -260,7 +260,7 @@
               </label>
               <label class="field">
                 <span>Статус</span>
-                <select v-model="participantFilters[event.id].status">
+                <select v-model="participantFilterModel(event.id).status">
                   <option value="">Усі</option>
                   <option value="PENDING">Очікує підтвердження</option>
                   <option value="ACCEPTED">Підтверджено</option>
@@ -1046,7 +1046,7 @@ onMounted(loadEvents)
 
 function filteredParticipants(eventId: number) {
   const list = participantViews.value[eventId] || []
-  const filter = participantFilters.value[eventId] || { query: '', role: '', status: '' }
+  const filter = participantFilterModel(eventId)
   const query = filter.query.trim().toLowerCase()
   return list.filter((participant) => {
     if (filter.role && participant.role !== filter.role) return false
@@ -1056,6 +1056,16 @@ function filteredParticipants(eventId: number) {
     const email = participant.user_email?.toLowerCase() || ''
     return username.includes(query) || email.includes(query)
   })
+}
+
+function participantFilterModel(eventId: number) {
+  if (!participantFilters.value[eventId]) {
+    participantFilters.value = {
+      ...participantFilters.value,
+      [eventId]: { query: '', role: '', status: '' },
+    }
+  }
+  return participantFilters.value[eventId] as { query: string; role: string; status: string }
 }
 
 function resetParticipantFilters(eventId: number) {

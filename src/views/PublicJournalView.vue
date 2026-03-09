@@ -274,7 +274,7 @@
 
 <script setup lang="ts">
 
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 
 import { useRoute, useRouter } from 'vue-router'
 
@@ -569,7 +569,7 @@ async function loadProfileTitle() {
 
     const profile = await fetchPublicSpecialistProfile(slug.value)
 
-    publicName.value = profile.display_name || profile.public_profile_name || profile.public_slug || ''
+    publicName.value = profile.display_name || profile.public_slug || ''
 
   } catch {
 

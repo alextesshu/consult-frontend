@@ -230,14 +230,6 @@ async function load() {
   }
 }
 
-async function copyLink() {
-  try {
-    await navigator.clipboard.writeText(window.location.href)
-  } catch {
-    // ignore
-  }
-}
-
 async function onShare() {
   if (shareBusy.value) return
   shareBusy.value = true

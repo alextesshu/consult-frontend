@@ -758,7 +758,6 @@ const collections = ref<CabinetJournalCollection[]>([])
 const profileSlug = ref('')
 const createOpen = ref(false)
 const editingPostId = ref<number | null>(null)
-const openPostId = ref<number | null>(null)
 const editSaving = ref(false)
 const editCoverInput = ref<HTMLInputElement | null>(null)
 const editBodyInput = ref<HTMLTextAreaElement | null>(null)
@@ -988,8 +987,10 @@ async function prefetchCollectionDetails() {
     missing.map((collection) => fetchCabinetJournalCollectionDetail(collection.id))
   )
   detailResults.forEach((result, index) => {
+    const missingItem = missing[index]
+    if (!missingItem) return
     if (result.status === 'fulfilled') {
-      collectionDetailsById.value[missing[index].id] = result.value
+      collectionDetailsById.value[missingItem.id] = result.value
     }
   })
 }
@@ -1073,6 +1074,7 @@ async function moveCollectionItem(collectionId: number, itemId: number, directio
 
   const reordered = [...items]
   const [moved] = reordered.splice(index, 1)
+  if (!moved) return
   reordered.splice(swapIndex, 0, moved)
 
   const busyKey = `${collectionId}:${itemId}:${direction}`
@@ -1159,10 +1161,6 @@ function cancelInlineEdit() {
   editForm.cover_image_url = ''
   editForm.coverPreviewUrl = ''
   editForm.coverChanged = false
-}
-
-function togglePostPreview(postId: number) {
-  openPostId.value = openPostId.value === postId ? null : postId
 }
 
 async function saveInlineEdit(postId: number) {
@@ -1340,9 +1338,11 @@ function updateEditSelection() {
   editSelEnd.value = el.selectionEnd ?? editSelStart.value
 }
 
-function setEditBodyInput(el: HTMLTextAreaElement | null) {
-  if (el) {
-    editBodyInput.value = el
+function setEditBodyInput(el: Element | { $el?: Element } | null) {
+  if (!el) return
+  const target = '$el' in el ? el.$el : el
+  if (target instanceof HTMLTextAreaElement) {
+    editBodyInput.value = target
   }
 }
 

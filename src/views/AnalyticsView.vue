@@ -410,7 +410,10 @@ const cadenceLabel = computed(() => {
   byClient.forEach((dates) => {
     dates.sort((a, b) => a.getTime() - b.getTime())
     for (let i = 1; i < dates.length; i += 1) {
-      total += Math.abs(dates[i].getTime() - dates[i - 1].getTime())
+      const current = dates[i]
+      const previous = dates[i - 1]
+      if (!current || !previous) continue
+      total += Math.abs(current.getTime() - previous.getTime())
       count += 1
     }
   })
@@ -454,15 +457,16 @@ const heatmapRows = computed(() => {
       const day = (dt.getDay() + 6) % 7
       const hour = dt.getHours()
       const segment = segments.findIndex((seg) => hour >= seg.start && hour < seg.end)
-      if (segment >= 0) counts[day][segment] += 1
+      const row = counts[day]
+      if (segment >= 0 && row && row[segment] !== undefined) row[segment] += 1
     })
   const max = Math.max(1, ...counts.flat())
   return days.map((day, idx) => ({
     day,
-    cells: counts[idx].map((value, segIndex) => ({
+    cells: (counts[idx] || [0, 0, 0]).map((value, segIndex) => ({
       key: `${day}-${segIndex}`,
       intensity: (value / max).toFixed(2),
-      label: `${day} · ${segments[segIndex].label}: ${value}`,
+      label: `${day} · ${segments[segIndex]?.label || ''}: ${value}`,
     })),
   }))
 })
@@ -523,7 +527,7 @@ function resetRange() {
   loadData()
 }
 
-function escapeCsv(value: string | number | null | undefined) {
+function escapeCsv(value: string | number | boolean | null | undefined) {
   if (value === null || value === undefined) return ''
   const raw = String(value)
   if (/[",\n]/.test(raw)) {

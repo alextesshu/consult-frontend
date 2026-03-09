@@ -171,6 +171,10 @@ type SessionItem = {
   slot_end_at: string
 }
 
+type SessionNotePayload = {
+  content?: string
+}
+
 type PendingNoteItem = {
   sessionId: number
   clientId: number
@@ -329,7 +333,7 @@ async function loadPendingNotes() {
     for (const session of completed) {
       let note = ''
       try {
-        const resp = await apiGet(`/cabinet/sessions/${session.id}/note/`)
+        const resp = await apiGet<SessionNotePayload | null>(`/cabinet/sessions/${session.id}/note/`)
         note = resp?.content || ''
       } catch (err: any) {
         if (err?.response?.status !== 404) {
@@ -369,7 +373,7 @@ async function loadHistory(clientId: number) {
     for (const session of items) {
       let note = ''
       try {
-        const resp = await apiGet(`/cabinet/sessions/${session.id}/note/`)
+        const resp = await apiGet<SessionNotePayload | null>(`/cabinet/sessions/${session.id}/note/`)
         note = resp?.content || ''
       } catch (err: any) {
         if (err?.response?.status !== 404) {

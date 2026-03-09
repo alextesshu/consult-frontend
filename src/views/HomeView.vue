@@ -202,7 +202,7 @@
 
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 
@@ -214,8 +214,6 @@ const router = useRouter()
 const auth = useAuthStore()
 const isAuthenticated = computed(() => Boolean(auth.accessToken))
   const roles = computed(() => auth.me?.user.roles ?? auth.user?.roles ?? [])
-  const isClient = computed(() => roles.value.includes('CLIENT'))
-  const catalogRoute = computed(() => (isClient.value ? '/specialists' : '/signup-client'))
 
 const resolveCabinetRoute = () => {
   if (roles.value.includes('SPECIALIST') || roles.value.includes('THERAPIST')) return '/cabinet'
@@ -239,31 +237,6 @@ const goToCabinet = async () => {
   await router.push(resolveCabinetRoute())
 }
 
-function onLogout() {
-  auth.logout()
-  router.push('/')
-}
-
-const roleCards = [
-  {
-    title: 'Приватна практика',
-    description: 'Налаштуйте власний розклад, ведіть клієнтів і керуйте сесіями у зручному темпі.',
-  },
-  {
-    title: 'Коуч / Наставник',
-    description: 'Заплановані зустрічі, нотатки та історія роботи — все під рукою.',
-  },
-  {
-    title: 'Викладання уроків',
-    description: 'Плануйте консультації, ведіть записи та залишайте відкритими лише потрібні слоти.',
-  },
-  {
-    title: 'Інші консультації',
-    description: 'Структуруйте запити, плануйте навантаження та відстежуйте прогрес клієнтів.',
-  },
-]
-
-const activeRoleIndex = ref(0)
 
 const benefits = [
   'Керування сесіями й слотами',
@@ -276,22 +249,6 @@ const benefits = [
   'Чат і повідомлення',
 ]
 
-const trustPoints = [
-  {
-    title: 'Дані належать спеціалісту',
-    text: 'Сервіс не втручається у стосунки з клієнтами та не впливає на рішення.',
-  },
-  {
-    title: 'Ніяких комісій',
-    text: 'Лише підписка. Оплата й умови співпраці — між вами та клієнтом.',
-  },
-  {
-    title: 'Контроль доступу',
-    text: 'Ролі, доступи, приватні нотатки й обмеження керуються вами.',
-  },
-]
-
-const audienceCards = roleCards
 
 type PlanCode = 'START' | 'PRO' | 'LEADER'
 

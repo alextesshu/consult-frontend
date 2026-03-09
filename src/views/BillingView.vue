@@ -57,8 +57,8 @@
           </div>
           <div class="plan-price">
             <div class="plan-price__main">{{ plan.price }}</div>
-            <div v-if="plan.annual" class="plan-price__alt">
-              {{ plan.annual }} <span class="plan-price__hint">{{ plan.annualHint }}</span>
+            <div v-if="'annual' in plan && plan.annual" class="plan-price__alt">
+              {{ plan.annual }} <span class="plan-price__hint">{{ 'annualHint' in plan ? plan.annualHint : '' }}</span>
             </div>
           </div>
         </div>

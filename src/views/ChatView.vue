@@ -105,8 +105,12 @@ const activeThread = computed(() =>
 function initials(value: string) {
   const parts = value.trim().split(/\s+/).filter(Boolean)
   if (!parts.length) return '...'
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
-  return `${parts[0][0]}${parts[1][0]}`.toUpperCase()
+  const first = parts[0]
+  if (!first) return '...'
+  if (parts.length === 1) return first.slice(0, 2).toUpperCase()
+  const second = parts[1]
+  if (!second) return first.slice(0, 2).toUpperCase()
+  return `${first[0]}${second[0]}`.toUpperCase()
 }
 
 function isMine(message: ChatMessage) {
@@ -130,7 +134,10 @@ async function loadThreads() {
     const data = await fetchChatThreads()
     threads.value = data
     if (!activeThreadId.value && data.length > 0) {
-      await selectThread(data[0].id)
+      const firstThread = data[0]
+      if (firstThread) {
+        await selectThread(firstThread.id)
+      }
     }
   } catch {
     threads.value = []
@@ -151,7 +158,10 @@ async function loadMessages(options?: { since?: number | null }) {
     messages.value = data
   }
   if (data.length) {
-    lastMessageId.value = data[data.length - 1].id
+    const last = data[data.length - 1]
+    if (last) {
+      lastMessageId.value = last.id
+    }
   }
   await nextTick()
   scrollToBottom()

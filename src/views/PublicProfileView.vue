@@ -814,28 +814,6 @@ async function loadClientSessions() {
   }
 }
 
-async function shareProfile() {
-  if (!profile.value?.public_slug) return
-  const url = `${window.location.origin}/specialist/${profile.value.public_slug}`
-  const title = publicName.value || 'Профіль спеціаліста'
-  const text = `Профіль спеціаліста ${title}`
-  try {
-    if (navigator.share) {
-      await navigator.share({ title, text, url })
-      toast.success('Профіль надіслано.')
-      return
-    }
-  } catch {
-    // ignore and fallback
-  }
-  try {
-    await navigator.clipboard.writeText(url)
-    toast.success('Посилання скопійовано.')
-  } catch {
-    toast.error('Не вдалося скопіювати посилання.')
-  }
-}
-
 function flashSettingButton() {
   settingAttention.value = false
   if (settingAttentionTimer) {
@@ -887,7 +865,7 @@ async function bookSlot(slotId: number) {
     if (profile.value) {
       const entry = pickSpecialist(profile.value)
       const items = getStoredSelectedSpecialists()
-      const filtered = items.filter((item) => item.public_slug !== entry.public_slug)
+      const filtered = items.filter((item: any) => item.public_slug !== entry.public_slug)
       filtered.unshift(entry)
       persistSelectedSpecialists(filtered)
     }
@@ -966,7 +944,7 @@ function saveViewedSpecialist(data: PublicSpecialistProfile) {
   if (!data.public_slug) return
   const items = getStoredViewedSpecialists()
   const entry = pickSpecialist(data)
-  const filtered = items.filter((item) => item.public_slug !== entry.public_slug)
+  const filtered = items.filter((item: any) => item.public_slug !== entry.public_slug)
   filtered.unshift(entry)
   persistViewedSpecialists(filtered.slice(0, 8))
 }

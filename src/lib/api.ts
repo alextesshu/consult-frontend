@@ -93,7 +93,7 @@ export type TherapistProfile = {
   public_slug: string
   last_slug_rotated_at: string | null
   display_name: string
-  bio: string
+  bio?: string
   bio_about: string
   bio_work: string
   bio_approach: string
@@ -108,10 +108,10 @@ export type TherapistProfile = {
   languages: string | string[]
   location: string
   experience_years: number
-  price: string
+  price: string | null
   price_currency: string
   intro_duration_minutes: number
-  intro_price: string
+  intro_price: string | null
   intro_price_currency: string
   contact_email: string
   contact_phone: string
@@ -172,6 +172,7 @@ export type AuthorJournalPost = {
   is_featured: boolean
   featured_order: number
   title: string
+  slug?: string
   summary: string
   body: string
   cover_image_url: string

@@ -237,7 +237,8 @@ function formatDateTime(value?: string | null) {
   })
 }
 
-function formatDuration(start: string, end: string) {
+function formatDuration(start: string | null, end: string | null) {
+  if (!start || !end) return ''
   const startDt = new Date(start)
   const endDt = new Date(end)
   if (Number.isNaN(startDt.getTime()) || Number.isNaN(endDt.getTime())) return ''
