@@ -116,4 +116,30 @@ describe('AnalyticsView conditional premium rendering', () => {
       expect(screen.queryByText('Менш завантажені години')).not.toBeInTheDocument()
     })
   })
+
+  it('shows leader empty state when leader insights are not yet available', async () => {
+    const overview = makeOverview('leader')
+    overview.insights = {
+      underused_weekdays: [],
+      underused_hours: [],
+      reschedule_hotspots: [],
+      cancellation_hotspots: [],
+      recommendations: [],
+    }
+    overview.metrics.bookings_count = 10
+    mockedApiGet.mockResolvedValue(overview)
+
+    renderView()
+
+    expect(await screen.findByText('Інсайти з’являться трохи пізніше')).toBeInTheDocument()
+    expect(screen.queryByText('Розширена аналітика')).not.toBeInTheDocument()
+
+    await waitFor(() => {
+      expect(screen.queryByText('Рекомендації')).not.toBeInTheDocument()
+      expect(screen.queryByText('Часті перенесення')).not.toBeInTheDocument()
+      expect(screen.queryByText('Часті скасування')).not.toBeInTheDocument()
+      expect(screen.queryByText('Менш завантажені дні')).not.toBeInTheDocument()
+      expect(screen.queryByText('Менш завантажені години')).not.toBeInTheDocument()
+    })
+  })
 })
