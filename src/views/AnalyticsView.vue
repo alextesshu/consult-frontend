@@ -128,6 +128,21 @@
             </ul>
           </section>
         </section>
+
+        <section v-if="isLeaderAnalytics && leaderRecommendations.length" class="panel panel--wide">
+          <div class="panel__header">
+            <div>
+              <div class="badge badge--soft">Leader</div>
+              <h2 class="panel__title">Рекомендації</h2>
+            </div>
+          </div>
+
+          <ul class="top-list">
+            <li v-for="item in leaderRecommendations" :key="item.code">
+              <span>{{ item.message }}</span>
+            </li>
+          </ul>
+        </section>
       </template>
     </template>
   </section>
@@ -141,6 +156,7 @@ type RateValue = number | null
 
 type AnalyticsOverview = {
   range: '7d' | '30d' | '90d'
+  analytics_level: string
   date_from: string
   date_to: string
   metrics: {
@@ -158,6 +174,13 @@ type AnalyticsOverview = {
   bookings_by_day: Array<{ date: string; count: number }>
   top_weekdays: Array<{ weekday: string; count: number }>
   top_hours: Array<{ hour: string; count: number }>
+  insights: {
+    underused_weekdays: Array<{ weekday: string; count: number }>
+    underused_hours: Array<{ hour: string; count: number }>
+    reschedule_hotspots: Array<{ weekday: string; hour: string; count: number }>
+    cancellation_hotspots: Array<{ weekday: string; hour: string; count: number }>
+    recommendations: Array<{ code: string; message: string }>
+  }
 }
 
 const rangeOptions = [
@@ -187,6 +210,8 @@ const metrics = computed(
 )
 
 const isEmpty = computed(() => metrics.value.bookings_count === 0)
+const isLeaderAnalytics = computed(() => overview.value?.analytics_level === 'leader')
+const leaderRecommendations = computed(() => overview.value?.insights?.recommendations ?? [])
 
 const visibleSeries = computed(() => {
   const rows = overview.value?.sessions_by_day ?? []
