@@ -5,7 +5,8 @@
         <div class="badge">Плани</div>
         <h1 class="title billing__title">Доступ та тарифи</h1>
         <p class="muted billing__subtitle">
-          Показуємо поточний доступ і можливості. Оплата зараз у ручному режимі.
+          Оберіть план, перейдіть до оплати, і після підтвердження провайдера доступ
+          активується автоматично.
         </p>
       </div>
       <RouterLink class="btn btn--ghost" to="/cabinet">Назад до кабінету</RouterLink>
@@ -35,12 +36,24 @@
         <button
           class="btn"
           type="button"
-          :disabled="!nextPlan || isRequesting || hasPendingRequest"
-          @click="requestUpgrade"
+          :disabled="!nextPlan || isRequesting"
+          @click="startSelfServeUpgrade"
         >
           {{ upgradeButtonLabel }}
         </button>
-        <div v-if="requestStatus" class="muted">{{ requestStatus }}</div>
+        <button
+          v-if="nextPlan"
+          class="btn btn--ghost"
+          type="button"
+          :disabled="isRequesting"
+          @click="requestAccess(nextPlan)"
+        >
+          Запросити індивідуальні умови
+        </button>
+        <button class="btn btn--ghost" type="button" :disabled="isRefreshing" @click="refreshBillingState">
+          {{ isRefreshing ? 'Оновлюємо…' : 'Оновити стан плану' }}
+        </button>
+        <div v-if="primaryStatus" class="muted">{{ primaryStatus }}</div>
       </div>
     </section>
 
@@ -74,12 +87,21 @@
           <div class="muted">{{ plan.note }}</div>
           <div class="plan-action">
             <button
-              class="btn btn--ghost"
+              class="btn"
               type="button"
-              :disabled="!canRequestPlan(plan.code) || isRequesting"
-              @click="requestAccess(plan.code)"
+              :disabled="!canSelfServePlan(plan.code) || isRequesting"
+              @click="startSelfServeCheckout(plan.code)"
             >
               {{ planActionLabel(plan.code) }}
+            </button>
+            <button
+              v-if="canSelfServePlan(plan.code)"
+              class="btn btn--ghost"
+              type="button"
+              :disabled="isRequesting"
+              @click="requestAccess(plan.code)"
+            >
+              Індивідуальні умови
             </button>
             <div v-if="requestMessageFor(plan.code)" class="muted">
               {{ requestMessageFor(plan.code) }}
@@ -96,6 +118,7 @@ import { computed, onMounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useAuthStore } from '../stores/auth'
 import {
+  createBillingCheckoutSession,
   createBillingAccessRequest,
   fetchBillingAccessRequestState,
   getApiErrorMessage,
@@ -169,9 +192,12 @@ const auth = useAuthStore()
 const { me } = storeToRefs(auth)
 
 const requestingPlan = ref<PlanCode | null>(null)
+const isRefreshing = ref(false)
 const requestState = ref<BillingAccessRequestState | null>(null)
 const requestFeedback = ref('')
 const requestFeedbackPlan = ref<PlanCode | null>(null)
+const checkoutFeedback = ref('')
+const checkoutFeedbackPlan = ref<PlanCode | null>(null)
 
 const currentPlan = computed<PlanCode | null>(() => {
   const raw = me.value?.effective_entitlements?.plan
@@ -199,9 +225,8 @@ const activeRequest = computed(() => requestState.value?.active_request)
 const latestRequest = computed(() => requestState.value?.latest_request)
 
 const upgradeButtonLabel = computed(() => {
-  if (hasPendingRequest.value) return 'Заявка вже на розгляді'
   if (!nextPlan.value) return 'У вас максимальний план'
-  return `Розширити практику до ${planTitle(nextPlan.value)}`
+  return `Перейти на ${planTitle(nextPlan.value)}`
 })
 
 const isRequesting = computed(() => Boolean(requestingPlan.value))
@@ -209,6 +234,7 @@ const requestStatus = computed(() => {
   if (requestFeedback.value) return requestFeedback.value
   return requestMessage(activeRequest.value || latestRequest.value || null)
 })
+const primaryStatus = computed(() => checkoutFeedback.value || requestStatus.value)
 
 const accessLabel = computed(() => {
   const state = me.value?.access_state
@@ -265,18 +291,21 @@ function isDowngradePlan(code: string) {
   return planOrder.indexOf(code as PlanCode) < currentIndex.value
 }
 
-function canRequestPlan(code: string) {
-  return isUpgradePlan(code) && !hasPendingRequest.value
+function canSelfServePlan(code: string) {
+  return isUpgradePlan(code)
 }
 
 function planActionLabel(code: string) {
   if (isCurrentPlan(code)) return 'Поточний план'
-  if (isUpgradePlan(code)) return 'Розширити практику'
+  if (isUpgradePlan(code)) return `Перейти на ${planTitle(code as PlanCode)}`
   if (isDowngradePlan(code)) return 'Нижчий план'
   return 'Недоступно'
 }
 
 function requestMessageFor(code: string) {
+  if (checkoutFeedbackPlan.value === code && checkoutFeedback.value) {
+    return checkoutFeedback.value
+  }
   if (requestFeedbackPlan.value === code && requestFeedback.value) {
     return requestFeedback.value
   }
@@ -300,6 +329,17 @@ function requestMessage(request: BillingAccessRequest | null) {
   return ''
 }
 
+async function refreshBillingState() {
+  if (isRefreshing.value) return
+  isRefreshing.value = true
+  try {
+    await auth.loadMe()
+    await loadRequestState()
+  } finally {
+    isRefreshing.value = false
+  }
+}
+
 async function loadRequestState() {
   try {
     requestState.value = await fetchBillingAccessRequestState()
@@ -309,9 +349,39 @@ async function loadRequestState() {
   }
 }
 
-async function requestUpgrade() {
+async function startSelfServeUpgrade() {
   if (!nextPlan.value) return
-  await requestAccess(nextPlan.value)
+  await startSelfServeCheckout(nextPlan.value)
+}
+
+async function startSelfServeCheckout(planCode: string) {
+  if (!planOrder.includes(planCode as PlanCode)) return
+  if (!canSelfServePlan(planCode)) return
+  if (requestingPlan.value) return
+  const target = planCode as PlanCode
+  requestingPlan.value = target
+  checkoutFeedbackPlan.value = target
+  checkoutFeedback.value = ''
+  try {
+    const response = await createBillingCheckoutSession({
+      plan: target === 'LEADER' ? 'LEADER' : 'PRO',
+      billing_cycle: 'monthly',
+    })
+    checkoutFeedback.value = response.message
+    if (response.checkout_url) {
+      window.open(response.checkout_url, '_blank', 'noopener,noreferrer')
+      checkoutFeedback.value =
+        'Переходимо до оплати. Після підтвердження оплати план активується автоматично.'
+    }
+    await refreshBillingState()
+  } catch (err: any) {
+    checkoutFeedback.value = getApiErrorMessage(
+      err,
+      'Не вдалося створити checkout-сесію. Спробуйте ще раз.'
+    )
+  } finally {
+    requestingPlan.value = null
+  }
 }
 
 async function requestAccess(planCode: string) {
@@ -329,6 +399,8 @@ async function requestAccess(planCode: string) {
   requestingPlan.value = target
   requestFeedbackPlan.value = target
   requestFeedback.value = ''
+  checkoutFeedback.value = ''
+  checkoutFeedbackPlan.value = null
   try {
     const note = currentPlan.value ? `upgrade_from:${currentPlan.value}` : undefined
     const result = await createBillingAccessRequest({
@@ -364,7 +436,7 @@ async function requestAccess(planCode: string) {
 }
 
 onMounted(() => {
-  loadRequestState()
+  refreshBillingState()
 })
 </script>
 

@@ -164,6 +164,15 @@ export type BillingAccessRequestState = {
   latest_request: BillingAccessRequest | null
 }
 
+export type BillingCheckoutSession = {
+  plan: 'PRO' | 'LEADER'
+  billing_cycle: 'monthly' | 'annual'
+  checkout_url: string | null
+  activation_source: 'VERIFIED_BILLING_WEBHOOK'
+  fallback_available: boolean
+  message: string
+}
+
 export type PublicTherapistProfile = {
   public_slug?: string
   therapist_id: number
@@ -543,6 +552,14 @@ export async function createBillingAccessRequest(payload: {
     request: BillingAccessRequest
     has_pending_request: boolean
   }>('/billing/request-access/', payload)
+  return resp.data
+}
+
+export async function createBillingCheckoutSession(payload: {
+  plan: 'PRO' | 'LEADER'
+  billing_cycle?: 'monthly' | 'annual'
+}): Promise<BillingCheckoutSession> {
+  const resp = await http.post<BillingCheckoutSession>('/billing/checkout-session/', payload)
   return resp.data
 }
 
