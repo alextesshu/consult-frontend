@@ -210,6 +210,19 @@
             </ul>
           </section>
         </section>
+
+        <section v-if="showLeaderTeaser" class="panel panel--wide">
+          <div class="panel__header">
+            <div>
+              <div class="badge badge--soft">Leader</div>
+              <h2 class="panel__title">Розширена аналітика</h2>
+            </div>
+          </div>
+
+          <p class="muted">
+            На рівні Leader доступні рекомендації, точки ризику та підказки для покращення розкладу.
+          </p>
+        </section>
       </template>
     </template>
   </section>
@@ -293,6 +306,7 @@ const hasLeaderOpportunities = computed(
     isLeaderAnalytics.value &&
     (underusedWeekdays.value.length > 0 || underusedHours.value.length > 0)
 )
+const showLeaderTeaser = computed(() => !isLeaderAnalytics.value && !isEmpty.value)
 
 const visibleSeries = computed(() => {
   const rows = overview.value?.sessions_by_day ?? []
