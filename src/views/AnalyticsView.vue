@@ -143,6 +143,41 @@
             </li>
           </ul>
         </section>
+
+        <section v-if="hasLeaderHotspots" class="analytics__bottom">
+          <section v-if="rescheduleHotspots.length" class="panel">
+            <div class="panel__header">
+              <div>
+                <div class="badge badge--soft">Leader</div>
+                <h2 class="panel__title">Часті перенесення</h2>
+              </div>
+            </div>
+            <ul class="top-list">
+              <li v-for="item in rescheduleHotspots" :key="`reschedule-${item.weekday}-${item.hour}`">
+                <span>{{ weekdayLabel(item.weekday) }}, {{ item.hour }}</span>
+                <strong>{{ item.count }}</strong>
+              </li>
+            </ul>
+          </section>
+
+          <section v-if="cancellationHotspots.length" class="panel">
+            <div class="panel__header">
+              <div>
+                <div class="badge badge--soft">Leader</div>
+                <h2 class="panel__title">Часті скасування</h2>
+              </div>
+            </div>
+            <ul class="top-list">
+              <li
+                v-for="item in cancellationHotspots"
+                :key="`cancellation-${item.weekday}-${item.hour}`"
+              >
+                <span>{{ weekdayLabel(item.weekday) }}, {{ item.hour }}</span>
+                <strong>{{ item.count }}</strong>
+              </li>
+            </ul>
+          </section>
+        </section>
       </template>
     </template>
   </section>
@@ -212,6 +247,13 @@ const metrics = computed(
 const isEmpty = computed(() => metrics.value.bookings_count === 0)
 const isLeaderAnalytics = computed(() => overview.value?.analytics_level === 'leader')
 const leaderRecommendations = computed(() => overview.value?.insights?.recommendations ?? [])
+const rescheduleHotspots = computed(() => overview.value?.insights?.reschedule_hotspots ?? [])
+const cancellationHotspots = computed(() => overview.value?.insights?.cancellation_hotspots ?? [])
+const hasLeaderHotspots = computed(
+  () =>
+    isLeaderAnalytics.value &&
+    (rescheduleHotspots.value.length > 0 || cancellationHotspots.value.length > 0)
+)
 
 const visibleSeries = computed(() => {
   const rows = overview.value?.sessions_by_day ?? []
