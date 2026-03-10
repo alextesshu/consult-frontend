@@ -2,20 +2,22 @@
   <section class="slots">
     <header class="slots__hero">
       <div>
-        <div class="badge">Вільні віконця спеціаліста</div>
-        <h1 class="title slots__title">Керуйте доступністю</h1>
+        <div class="badge">Розклад</div>
+        <h1 class="title slots__title">Вільні вікна</h1>
         <p class="muted slots__subtitle">
-          Створюйте часові вікна для сесій, заповнюйте день або тиждень одним кліком.
+          Переглядайте та оновлюйте вільні вікна, які доступні клієнтам для запису.
         </p>
       </div>
       <RouterLink class="btn btn--ghost" to="/cabinet">Назад до кабінету</RouterLink>
     </header>
 
+    <ScheduleSubnav active="slots" />
+
     <section class="panel panel--split">
       <div>
-        <h2 class="panel__title">Нове вільне віконце</h2>
+        <h2 class="panel__title">Нове вільне вікно</h2>
         <p class="muted" style="margin: 6px 0 0;">
-          Вільне віконце — це вільний час для запису клієнта. Вкажіть початок і тривалість, і віконце з'явиться у публічному профілі.
+          Вільне вікно — це вільний час для запису клієнта. Вкажіть початок і тривалість, і воно з'явиться у публічному профілі.
         </p>
       </div>
       <form class="slot-form" @submit.prevent="createSlot">
@@ -61,7 +63,7 @@
           <option v-for="option in timeOptions" :key="option" :value="option" />
         </datalist>
         <button class="btn" type="button" @click="createSlot">
-          Створити віконце
+          Створити вільне вікно
         </button>
         <div v-if="error" class="form-error form-error--inline">{{ error }}</div>
       </form>
@@ -147,7 +149,7 @@
         <span class="field-hint">Формат: {{ formatDateOnly(selectedDate) }}</span>
       </label>
       <div class="muted day-hint">
-        Показано вільні віконця за: {{ formatDateOnly(selectedDate) }}
+        Показано вільні вікна за: {{ formatDateOnly(selectedDate) }}
         <span v-if="isSelectedToday" class="day-hint__today">· Сьогодні</span>
       </div>
     </section>
@@ -155,7 +157,7 @@
     <div v-if="loading" class="muted" style="margin-top: 12px;">Завантаження...</div>
 
     <section class="slot-list">
-      <div v-if="filteredSlots.length === 0" class="muted">Вільних віконець на цей день немає.</div>
+      <div v-if="filteredSlots.length === 0" class="muted">Вільних вікон на цей день немає.</div>
       <article v-for="slot in filteredSlots" :key="slot.id" class="slot-card">
         <div class="slot-row">
           <div class="slot-meta">
@@ -252,7 +254,7 @@
           {{ editErrors[slot.id] }}
         </div>
         <div v-if="slot.is_booked" class="muted slot-hint">
-          Віконце вже заброньовано — редагування та видалення недоступні.
+          Це вікно вже заброньовано — редагування та видалення недоступні.
         </div>
       </article>
     </section>
@@ -275,6 +277,7 @@ import { apiDelete, apiGet, apiPatch, apiPost } from '../lib/api'
 import { getApiErrorMessage } from '../lib/errors'
 import { useToast } from '../composables/useToast'
 import ConfirmModal from '../components/ConfirmModal.vue'
+import ScheduleSubnav from '../components/ScheduleSubnav.vue'
 import { useConfirmModal } from '../composables/useConfirmModal'
 
 type Slot = {
@@ -522,7 +525,7 @@ async function createSlot() {
     newDuration.value = 50
   } catch (err: any) {
     const raw = normalizeError(err)
-    error.value = translateError(raw) || 'Не вдалося створити віконце'
+    error.value = translateError(raw) || 'Не вдалося створити вільне вікно'
     newStartTime.value = ''
   } finally {
     loading.value = false
@@ -539,7 +542,7 @@ async function fillDay() {
     await loadSlots()
     toast.success(`День ${formatDateOnly(fillDayDate.value)} заповнено.`)
   } catch (err: any) {
-    error.value = err?.response?.data?.detail || 'Не вдалося заповнити день віконцями'
+    error.value = err?.response?.data?.detail || 'Не вдалося заповнити день вільними вікнами'
   } finally {
     loading.value = false
   }
@@ -555,7 +558,7 @@ async function fillWeek() {
     await loadSlots()
     toast.success(`Тиждень від ${formatDateOnly(fillWeekDate.value)} заповнено.`)
   } catch (err: any) {
-    error.value = err?.response?.data?.detail || 'Не вдалося заповнити тиждень віконцями'
+    error.value = err?.response?.data?.detail || 'Не вдалося заповнити тиждень вільними вікнами'
   } finally {
     loading.value = false
   }
@@ -618,7 +621,7 @@ async function saveEdit(slotId: number) {
     cancelEdit()
   } catch (err: any) {
     const raw = normalizeError(err)
-    editErrors.value[slotId] = translateError(raw) || 'Не вдалося оновити віконце'
+    editErrors.value[slotId] = translateError(raw) || 'Не вдалося оновити вільне вікно'
     await nextTick()
     const errorEl = editErrorRefs.value[slotId]
     if (errorEl) {
@@ -643,7 +646,7 @@ async function deleteSlot(slotId: number) {
     await apiDelete(`/cabinet/slots/${slotId}/`)
     slots.value = slots.value.filter((slot) => slot.id !== slotId)
   } catch (err: any) {
-    error.value = err?.response?.data?.detail || 'Не вдалося видалити віконце'
+    error.value = err?.response?.data?.detail || 'Не вдалося видалити вільне вікно'
   } finally {
     loading.value = false
   }
@@ -651,7 +654,7 @@ async function deleteSlot(slotId: number) {
 
 function requestDeleteSlot(slotId: number) {
   confirmModal.openConfirm({
-    title: 'Видалити віконце?',
+    title: 'Видалити вільне вікно?',
     message: 'Воно зникне з публічного профілю.',
     confirmText: 'Видалити',
     cancelText: 'Скасувати',

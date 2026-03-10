@@ -29,14 +29,13 @@
               <RouterLink class="btn btn--ghost" to="/cabinet/sessions">Сесії</RouterLink>
               <RouterLink class="btn btn--ghost" to="/cabinet/clients">Клієнти</RouterLink>
               <RouterLink class="btn btn--ghost" to="/cabinet/reviews">Відгуки</RouterLink>
-              <RouterLink class="btn btn--ghost" to="/cabinet/slots">Вільні вікна</RouterLink>
             </div>
           </section>
 
           <section class="action-group">
             <h3 class="action-group__title">Планування</h3>
             <div class="action-group__items">
-              <RouterLink class="btn btn--ghost" to="/cabinet/availability-rules">Доступність</RouterLink>
+              <RouterLink class="btn btn--ghost" to="/cabinet/schedule">Розклад</RouterLink>
               <RouterLink class="btn btn--ghost" to="/cabinet/group-events">Групові події</RouterLink>
             </div>
           </section>
@@ -96,12 +95,12 @@
         </div>
         <ul class="tips-list">
           <li>
-            <RouterLink class="tips-link" to="/cabinet/availability-rules">Налаштуйте доступні інтервали</RouterLink>
+            <RouterLink class="tips-link" to="/cabinet/schedule">Налаштуйте правила розкладу</RouterLink>
             <span class="muted">Після цього згенеруйте вільні вікна на 30 днів.</span>
           </li>
           <li>
-            <RouterLink class="tips-link" to="/cabinet/slots">Створіть вільні вікна на тиждень</RouterLink>
-            <span class="muted">Так клієнти зможуть забронювати сесію.</span>
+            <RouterLink class="tips-link" to="/cabinet/slots">Перегляньте вільні вікна</RouterLink>
+            <span class="muted">Тут ви керуєте тим, що клієнти бачать для запису.</span>
           </li>
           <li>
             <RouterLink class="tips-link" to="/cabinet/sessions">Перевіряйте запити та сесії</RouterLink>

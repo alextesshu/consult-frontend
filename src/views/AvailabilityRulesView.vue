@@ -2,22 +2,28 @@
   <section class="availability-rules">
     <header class="availability-rules__hero">
       <div>
-        <div class="badge">Доступність</div>
-        <h1 class="title availability-rules__title">Правила доступності</h1>
+        <div class="badge">Розклад</div>
+        <h1 class="title availability-rules__title">{{ isVacationView ? 'Відпустка' : 'Правила розкладу' }}</h1>
         <p class="muted availability-rules__subtitle">
-          Налаштуйте шаблон робочих годин: день, час, тривалість сесії та буфер.
+          {{
+            isVacationView
+              ? 'Додавайте паузи й періоди недоступності у своєму розкладі.'
+              : 'Налаштуйте, коли ви зазвичай доступні для запису: день, час, тривалість сесії та перерва.'
+          }}
         </p>
       </div>
       <RouterLink class="btn btn--ghost" to="/cabinet">Назад до кабінету</RouterLink>
     </header>
 
-    <section class="panel">
+    <ScheduleSubnav :active="isVacationView ? 'vacation' : 'rules'" />
+
+    <section v-if="!isVacationView" class="panel">
       <div class="panel__header">
         <div>
-          <div class="badge badge--soft">Нове правило</div>
-          <h2 class="panel__title">Додати правило</h2>
+          <div class="badge badge--soft">Правила</div>
+          <h2 class="panel__title">Додати правило розкладу</h2>
           <p class="muted generation__subtitle">
-            Доступні інтервали впродовж дня. Щоб додати перерву, створіть два інтервали на один день.
+            Правило визначає, коли ви зазвичай працюєте в цей день. Щоб зробити перерву, створіть два окремі інтервали.
           </p>
         </div>
       </div>
@@ -96,17 +102,17 @@
       <div v-if="error" class="form-error">{{ error }}</div>
     </section>
 
-    <section class="panel">
+    <section v-if="!isVacationView" class="panel">
       <div class="panel__header">
         <div>
           <div class="badge badge--soft">Список</div>
-          <h2 class="panel__title">Ваші правила</h2>
+          <h2 class="panel__title">Правила розкладу</h2>
         </div>
       </div>
 
       <div v-if="loading && !rules.length" class="muted">Завантаження...</div>
       <div v-else-if="!rules.length" class="muted">
-        Поки що немає правил доступності.
+        У вас ще немає правил розкладу.
       </div>
 
       <div v-else class="rules-list">
@@ -213,13 +219,13 @@
       </div>
     </section>
 
-    <section class="panel">
+    <section v-if="isVacationView" class="panel">
       <div class="panel__header">
         <div>
-          <div class="badge badge--soft">Періоди недоступності</div>
-          <h2 class="panel__title">Time Off / Винятки доступності</h2>
+          <div class="badge badge--soft">Відпустка</div>
+          <h2 class="panel__title">Періоди недоступності</h2>
           <p class="muted generation__subtitle">
-            Ці періоди перекривають регулярні правила та блокують генерацію нових слотів.
+            Такі періоди перекривають звичайні правила розкладу і не дозволяють створювати нові вільні вікна у цей час.
           </p>
         </div>
       </div>
@@ -281,7 +287,7 @@
         </div>
         <div class="muted">Формат: дд.мм.рррр · гг:хх</div>
         <button class="btn rule-form__submit" type="submit" :disabled="exceptionSubmitting">
-          Додати період
+          Додати період недоступності
         </button>
       </form>
       <div v-if="exceptionError" class="form-error">{{ exceptionError }}</div>
@@ -383,13 +389,13 @@
       </datalist>
     </section>
 
-    <section class="panel">
+    <section v-if="!isVacationView" class="panel">
       <div class="panel__header">
         <div>
-          <div class="badge badge--soft">Генерація</div>
-          <h2 class="panel__title">Згенерувати слоти</h2>
+          <div class="badge badge--soft">Вільні вікна</div>
+          <h2 class="panel__title">Згенерувати вільні вікна</h2>
           <p class="muted generation__subtitle">
-            На основі активних правил система може створити вільні вікна на найближчі 30 днів.
+            Система може створити вільні вікна на основі ваших активних правил розкладу.
           </p>
         </div>
       </div>
@@ -414,7 +420,7 @@
 
       <div v-if="previewResult" class="generation__result">
         <p v-if="previewResult.to_delete_count > 0" class="generation__warning">
-          Під час застосування система оновить розклад і може видалити частину вільних слотів. Заброньовані слоти не видаляються автоматично.
+          Під час застосування система оновить розклад і може видалити частину вільних вікон. Заброньовані сесії не видаляються автоматично.
         </p>
         <p v-if="previewResult.booked_conflicts_count > 0" class="generation__warning generation__warning--strong">
           У вибраному діапазоні є вже заброньовані сесії, які потребують окремої уваги.
@@ -444,7 +450,7 @@
             Конфлікт бронювання: {{ formatSlotExample(example.start_at, example.end_at) }}
           </li>
         </ul>
-        <RouterLink class="btn btn--ghost btn--sm" to="/cabinet/slots">Перейти до слотів</RouterLink>
+        <RouterLink class="btn btn--ghost btn--sm" to="/cabinet/slots">Перейти до вільних вікон</RouterLink>
       </div>
     </section>
 
@@ -462,9 +468,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { apiDelete, apiGet, apiPatch, apiPost } from '../lib/api'
 import ConfirmModal from '../components/ConfirmModal.vue'
+import ScheduleSubnav from '../components/ScheduleSubnav.vue'
 import { useConfirmModal } from '../composables/useConfirmModal'
 import { getApiErrorMessage } from '../lib/errors'
 
@@ -550,6 +558,7 @@ const generationError = ref('')
 const generationSuccess = ref('')
 const previewResult = ref<AvailabilityGenerationPreview | null>(null)
 const confirmModal = useConfirmModal()
+const route = useRoute()
 const exceptions = ref<AvailabilityException[]>([])
 const exceptionsLoading = ref(false)
 const exceptionError = ref('')
@@ -607,6 +616,7 @@ const exceptionEditForm = reactive({
 })
 
 const hasActiveRules = computed(() => rules.value.some((rule) => rule.is_active))
+const isVacationView = computed(() => route.name === 'cabinet-schedule-vacation')
 
 function openDateTimePicker(input: HTMLInputElement | null) {
   if (!input) return
@@ -657,7 +667,7 @@ async function loadRules() {
   try {
     rules.value = await apiGet<AvailabilityRule[]>('/cabinet/availability-rules/')
   } catch (err) {
-    error.value = getApiErrorMessage(err, 'Не вдалося завантажити правила доступності.')
+    error.value = getApiErrorMessage(err, 'Не вдалося завантажити правила розкладу.')
   } finally {
     loading.value = false
   }
@@ -863,8 +873,8 @@ async function onSaveRule(ruleId: number) {
 
 async function onDeleteRule(ruleId: number) {
   confirmModal.openConfirm({
-    title: 'Видалити правило доступності?',
-    message: 'Правило буде видалено з шаблону доступності. Застосуйте генерацію, щоб оновити вільні слоти.',
+    title: 'Видалити правило розкладу?',
+    message: 'Правило буде видалено зі звичного ритму роботи. Застосуйте генерацію, щоб оновити вільні вікна.',
     confirmText: 'Видалити',
     tone: 'danger',
     onConfirm: async () => {
@@ -914,9 +924,9 @@ async function onApplyGeneration() {
   if (!previewResult.value) return
   if (previewResult.value.to_delete_count > 0) {
     confirmModal.openConfirm({
-      title: 'Застосувати генерацію слотів?',
+      title: 'Застосувати генерацію вільних вікон?',
       message:
-        'Під час застосування система оновить розклад і може видалити частину вільних слотів. Заброньовані слоти не видаляються автоматично.',
+        'Під час застосування система оновить розклад і може видалити частину вільних вікон. Заброньовані сесії не видаляються автоматично.',
       confirmText: 'Застосувати',
       tone: 'danger',
       onConfirm: async () => {
@@ -936,8 +946,8 @@ async function applyGeneration() {
     const result = await apiPost<AvailabilityGenerationApply>('/cabinet/availability-rules/apply-generation/', {
       days_ahead: 30,
     })
-    generationSuccess.value = `Створено ${result.created_count} слотів.`
-    await Promise.all([loadRules(), loadExceptions()])
+    generationSuccess.value = `Створено ${result.created_count} вільних вікон.`
+    await loadRules()
     previewResult.value = null
   } catch (err) {
     generationError.value = getApiErrorMessage(err, 'Не вдалося застосувати генерацію.')
@@ -946,9 +956,23 @@ async function applyGeneration() {
   }
 }
 
-onMounted(async () => {
-  await Promise.all([loadRules(), loadExceptions()])
-})
+async function loadScheduleContext() {
+  if (isVacationView.value) {
+    await loadExceptions()
+    return
+  }
+  await loadRules()
+}
+
+watch(
+  () => route.name,
+  async (nextName, prevName) => {
+    if (nextName === prevName) return
+    await loadScheduleContext()
+  }
+)
+
+onMounted(loadScheduleContext)
 </script>
 
 <style scoped>

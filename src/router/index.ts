@@ -54,6 +54,12 @@ const routes = [
     meta: { requiresAuth: true, requiresRole: 'SPECIALIST' },
   },
   {
+    path: '/cabinet/schedule',
+    name: 'cabinet-schedule',
+    redirect: { name: 'cabinet-availability-rules' },
+    meta: { requiresAuth: true, requiresRole: 'SPECIALIST' },
+  },
+  {
     path: '/cabinet/slots',
     name: 'cabinet-slots',
     component: SlotsView,
@@ -62,6 +68,12 @@ const routes = [
   {
     path: '/cabinet/availability-rules',
     name: 'cabinet-availability-rules',
+    component: AvailabilityRulesView,
+    meta: { requiresAuth: true, requiresRole: 'SPECIALIST' },
+  },
+  {
+    path: '/cabinet/availability-exceptions',
+    name: 'cabinet-schedule-vacation',
     component: AvailabilityRulesView,
     meta: { requiresAuth: true, requiresRole: 'SPECIALIST' },
   },
