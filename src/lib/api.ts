@@ -143,6 +143,27 @@ export type NotificationSettings = {
   notify_session_starts_1h_in_app: boolean
 }
 
+export type BillingAccessRequestStatus = 'PENDING' | 'APPROVED' | 'REJECTED'
+
+export type BillingAccessRequest = {
+  id: number
+  therapist: number
+  requested_plan: 'START' | 'PRO' | 'LEADER'
+  status: BillingAccessRequestStatus
+  note: string
+  admin_note: string
+  created_at: string
+  updated_at: string
+  decided_at: string | null
+  decided_by: number | null
+}
+
+export type BillingAccessRequestState = {
+  has_pending_request: boolean
+  active_request: BillingAccessRequest | null
+  latest_request: BillingAccessRequest | null
+}
+
 export type PublicTherapistProfile = {
   public_slug?: string
   therapist_id: number
@@ -503,6 +524,25 @@ export async function updateNotificationSettings(
   payload: Partial<NotificationSettings>
 ): Promise<NotificationSettings> {
   const resp = await http.patch<NotificationSettings>('/cabinet/settings/notifications/', payload)
+  return resp.data
+}
+
+export async function fetchBillingAccessRequestState(): Promise<BillingAccessRequestState> {
+  const resp = await http.get<BillingAccessRequestState>('/billing/request-access/')
+  return resp.data
+}
+
+export async function createBillingAccessRequest(payload: {
+  requested_plan: 'START' | 'PRO' | 'LEADER'
+  note?: string
+}): Promise<{
+  request: BillingAccessRequest
+  has_pending_request: boolean
+}> {
+  const resp = await http.post<{
+    request: BillingAccessRequest
+    has_pending_request: boolean
+  }>('/billing/request-access/', payload)
   return resp.data
 }
 

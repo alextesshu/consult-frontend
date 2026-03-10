@@ -35,7 +35,7 @@
         <button
           class="btn"
           type="button"
-          :disabled="!nextPlan || isRequesting"
+          :disabled="!nextPlan || isRequesting || hasPendingRequest"
           @click="requestUpgrade"
         >
           {{ upgradeButtonLabel }}
@@ -92,10 +92,16 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useAuthStore } from '../stores/auth'
-import { apiPost } from '../lib/api'
+import {
+  createBillingAccessRequest,
+  fetchBillingAccessRequestState,
+  getApiErrorMessage,
+  type BillingAccessRequest,
+  type BillingAccessRequestState,
+} from '../lib/api'
 import SettingsSubnav from '../components/SettingsSubnav.vue'
 
 type PlanCode = 'START' | 'PRO' | 'LEADER'
@@ -163,50 +169,9 @@ const auth = useAuthStore()
 const { me } = storeToRefs(auth)
 
 const requestingPlan = ref<PlanCode | null>(null)
-const requestedPlan = ref<PlanCode | null>(null)
-const requestStatus = ref('')
-
-const STORAGE_STATUS_KEY = 'billing_request_status'
-const STORAGE_PLAN_KEY = 'billing_request_plan'
-const STORAGE_TS_KEY = 'billing_request_timestamp'
-const REQUEST_TTL_MS = 7 * 24 * 60 * 60 * 1000
-
-function loadRequestState() {
-  const storedStatus = localStorage.getItem(STORAGE_STATUS_KEY) || ''
-  const storedPlan = localStorage.getItem(STORAGE_PLAN_KEY) || ''
-  const storedTsRaw = localStorage.getItem(STORAGE_TS_KEY)
-  const storedTs = storedTsRaw ? Number(storedTsRaw) : 0
-  const isExpired = storedTs && Date.now() - storedTs > REQUEST_TTL_MS
-  if (isExpired) {
-    localStorage.removeItem(STORAGE_STATUS_KEY)
-    localStorage.removeItem(STORAGE_PLAN_KEY)
-    localStorage.removeItem(STORAGE_TS_KEY)
-    return
-  }
-  if (storedStatus) {
-    requestStatus.value = storedStatus
-  }
-  if (planOrder.includes(storedPlan as PlanCode)) {
-    requestedPlan.value = storedPlan as PlanCode
-  }
-}
-
-function persistRequestState() {
-  if (requestStatus.value) {
-    localStorage.setItem(STORAGE_STATUS_KEY, requestStatus.value)
-    localStorage.setItem(STORAGE_TS_KEY, String(Date.now()))
-  } else {
-    localStorage.removeItem(STORAGE_STATUS_KEY)
-    localStorage.removeItem(STORAGE_TS_KEY)
-  }
-  if (requestedPlan.value) {
-    localStorage.setItem(STORAGE_PLAN_KEY, requestedPlan.value)
-  } else {
-    localStorage.removeItem(STORAGE_PLAN_KEY)
-  }
-}
-
-loadRequestState()
+const requestState = ref<BillingAccessRequestState | null>(null)
+const requestFeedback = ref('')
+const requestFeedbackPlan = ref<PlanCode | null>(null)
 
 const currentPlan = computed<PlanCode | null>(() => {
   const raw = me.value?.effective_entitlements?.plan
@@ -229,12 +194,21 @@ const nextPlan = computed<PlanCode | null>(() => {
   return planOrder[currentIndex.value + 1] || null
 })
 
+const hasPendingRequest = computed(() => requestState.value?.has_pending_request ?? false)
+const activeRequest = computed(() => requestState.value?.active_request)
+const latestRequest = computed(() => requestState.value?.latest_request)
+
 const upgradeButtonLabel = computed(() => {
+  if (hasPendingRequest.value) return 'Заявка вже на розгляді'
   if (!nextPlan.value) return 'У вас максимальний план'
   return `Розширити практику до ${planTitle(nextPlan.value)}`
 })
 
 const isRequesting = computed(() => Boolean(requestingPlan.value))
+const requestStatus = computed(() => {
+  if (requestFeedback.value) return requestFeedback.value
+  return requestMessage(activeRequest.value || latestRequest.value || null)
+})
 
 const accessLabel = computed(() => {
   const state = me.value?.access_state
@@ -292,7 +266,7 @@ function isDowngradePlan(code: string) {
 }
 
 function canRequestPlan(code: string) {
-  return isUpgradePlan(code)
+  return isUpgradePlan(code) && !hasPendingRequest.value
 }
 
 function planActionLabel(code: string) {
@@ -303,8 +277,36 @@ function planActionLabel(code: string) {
 }
 
 function requestMessageFor(code: string) {
-  if (!requestStatus.value) return ''
-  return requestedPlan.value === code ? requestStatus.value : ''
+  if (requestFeedbackPlan.value === code && requestFeedback.value) {
+    return requestFeedback.value
+  }
+  const base = activeRequest.value || latestRequest.value
+  if (!base || base.requested_plan !== code) return ''
+  return requestMessage(base)
+}
+
+function requestMessage(request: BillingAccessRequest | null) {
+  if (!request) return ''
+  const plan = planTitle(request.requested_plan as PlanCode)
+  if (request.status === 'PENDING') {
+    return `Заявку на перехід на план ${plan} надіслано.`
+  }
+  if (request.status === 'APPROVED') {
+    return `Заявку на перехід на план ${plan} схвалено.`
+  }
+  if (request.status === 'REJECTED') {
+    return `Заявку на перехід на план ${plan} відхилено.`
+  }
+  return ''
+}
+
+async function loadRequestState() {
+  try {
+    requestState.value = await fetchBillingAccessRequestState()
+  } catch {
+    // Keep UI usable even if request state fails to load.
+    requestState.value = null
+  }
 }
 
 async function requestUpgrade() {
@@ -315,26 +317,55 @@ async function requestUpgrade() {
 async function requestAccess(planCode: string) {
   if (!planOrder.includes(planCode as PlanCode)) return
   if (requestingPlan.value) return
+  if (hasPendingRequest.value) {
+    const pendingPlan = activeRequest.value?.requested_plan
+    requestFeedbackPlan.value = planOrder.includes(pendingPlan as PlanCode)
+      ? (pendingPlan as PlanCode)
+      : null
+    requestFeedback.value = 'Ви вже маєте активну заявку на цей план.'
+    return
+  }
   const target = planCode as PlanCode
   requestingPlan.value = target
-  requestedPlan.value = target
-  requestStatus.value = ''
-  persistRequestState()
+  requestFeedbackPlan.value = target
+  requestFeedback.value = ''
   try {
     const note = currentPlan.value ? `upgrade_from:${currentPlan.value}` : undefined
-    await apiPost('/billing/request-access/', {
+    const result = await createBillingAccessRequest({
       requested_plan: target,
       note,
     })
-    requestStatus.value = `Запит на розширення до ${planTitle(target)} надіслано.`
+    requestState.value = {
+      has_pending_request: result.has_pending_request,
+      active_request: result.request,
+      latest_request: result.request,
+    }
+    requestFeedback.value = ''
   } catch (err: any) {
-    requestStatus.value =
-      err?.response?.data?.detail || 'Не вдалося надіслати запит.'
+    const existingRequest = err?.response?.data?.active_request as
+      | BillingAccessRequest
+      | undefined
+    if (err?.response?.status === 409 && existingRequest) {
+      requestState.value = {
+        has_pending_request: true,
+        active_request: existingRequest,
+        latest_request: existingRequest,
+      }
+      requestFeedback.value = 'Ви вже маєте активну заявку на цей план.'
+    } else {
+      requestFeedback.value = getApiErrorMessage(
+        err,
+        'Не вдалося надіслати заявку. Спробуйте ще раз.'
+      )
+    }
   } finally {
     requestingPlan.value = null
-    persistRequestState()
   }
 }
+
+onMounted(() => {
+  loadRequestState()
+})
 </script>
 
 <style scoped>
