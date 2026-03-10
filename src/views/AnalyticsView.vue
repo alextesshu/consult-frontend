@@ -178,6 +178,38 @@
             </ul>
           </section>
         </section>
+
+        <section v-if="hasLeaderOpportunities" class="analytics__bottom">
+          <section v-if="underusedWeekdays.length" class="panel">
+            <div class="panel__header">
+              <div>
+                <div class="badge badge--soft">Leader</div>
+                <h2 class="panel__title">Менш завантажені дні</h2>
+              </div>
+            </div>
+            <ul class="top-list">
+              <li v-for="item in underusedWeekdays" :key="`weekday-${item.weekday}`">
+                <span>{{ weekdayLabel(item.weekday) }}</span>
+                <strong>{{ item.count }}</strong>
+              </li>
+            </ul>
+          </section>
+
+          <section v-if="underusedHours.length" class="panel">
+            <div class="panel__header">
+              <div>
+                <div class="badge badge--soft">Leader</div>
+                <h2 class="panel__title">Менш завантажені години</h2>
+              </div>
+            </div>
+            <ul class="top-list">
+              <li v-for="item in underusedHours" :key="`hour-${item.hour}`">
+                <span>{{ item.hour }}</span>
+                <strong>{{ item.count }}</strong>
+              </li>
+            </ul>
+          </section>
+        </section>
       </template>
     </template>
   </section>
@@ -253,6 +285,13 @@ const hasLeaderHotspots = computed(
   () =>
     isLeaderAnalytics.value &&
     (rescheduleHotspots.value.length > 0 || cancellationHotspots.value.length > 0)
+)
+const underusedWeekdays = computed(() => overview.value?.insights?.underused_weekdays ?? [])
+const underusedHours = computed(() => overview.value?.insights?.underused_hours ?? [])
+const hasLeaderOpportunities = computed(
+  () =>
+    isLeaderAnalytics.value &&
+    (underusedWeekdays.value.length > 0 || underusedHours.value.length > 0)
 )
 
 const visibleSeries = computed(() => {
