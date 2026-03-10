@@ -220,7 +220,7 @@
           </div>
 
           <p class="muted">
-            Поки що недостатньо даних, щоб показати рекомендації, точки ризику або можливості для розкладу.
+            Інсайти з’являться після щонайменше {{ overview?.leader_insights_min_bookings ?? 3 }} записів.
           </p>
         </section>
 
@@ -244,37 +244,11 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { apiGet } from '../lib/api'
-
-type RateValue = number | null
-
-type AnalyticsOverview = {
-  range: '7d' | '30d' | '90d'
-  analytics_level: string
-  date_from: string
-  date_to: string
-  metrics: {
-    bookings_count: number
-    scheduled_count: number
-    confirmed_count: number
-    completed_count: number
-    cancelled_count: number
-    rescheduled_count: number
-    confirmation_rate: RateValue
-    completion_rate: RateValue
-    cancellation_rate: RateValue
-  }
-  sessions_by_day: Array<{ date: string; count: number }>
-  bookings_by_day: Array<{ date: string; count: number }>
-  top_weekdays: Array<{ weekday: string; count: number }>
-  top_hours: Array<{ hour: string; count: number }>
-  insights: {
-    underused_weekdays: Array<{ weekday: string; count: number }>
-    underused_hours: Array<{ hour: string; count: number }>
-    reschedule_hotspots: Array<{ weekday: string; hour: string; count: number }>
-    cancellation_hotspots: Array<{ weekday: string; hour: string; count: number }>
-    recommendations: Array<{ code: string; message: string }>
-  }
-}
+import {
+  type AnalyticsOverview,
+  type AnalyticsRange,
+  isLeaderAnalyticsLevel,
+} from '../lib/analytics'
 
 const rangeOptions = [
   { value: '7d', label: '7 днів' },
@@ -282,7 +256,7 @@ const rangeOptions = [
   { value: '90d', label: '90 днів' },
 ] as const
 
-const range = ref<'7d' | '30d' | '90d'>('30d')
+const range = ref<AnalyticsRange>('30d')
 const loading = ref(true)
 const error = ref('')
 const overview = ref<AnalyticsOverview | null>(null)
@@ -303,7 +277,7 @@ const metrics = computed(
 )
 
 const isEmpty = computed(() => metrics.value.bookings_count === 0)
-const isLeaderAnalytics = computed(() => overview.value?.analytics_level === 'leader')
+const isLeaderAnalytics = computed(() => isLeaderAnalyticsLevel(overview.value?.analytics_level))
 const leaderRecommendations = computed(() => overview.value?.insights?.recommendations ?? [])
 const rescheduleHotspots = computed(() => overview.value?.insights?.reschedule_hotspots ?? [])
 const cancellationHotspots = computed(() => overview.value?.insights?.cancellation_hotspots ?? [])
@@ -343,7 +317,7 @@ function barWidth(count: number) {
   return Math.round((count / maxSeriesCount.value) * 100)
 }
 
-function formatRate(value: RateValue) {
+function formatRate(value: number | null) {
   if (value === null || value === undefined) return '—'
   return `${Math.round(value * 100)}%`
 }
@@ -384,7 +358,7 @@ async function loadOverview() {
   }
 }
 
-function setRange(nextRange: '7d' | '30d' | '90d') {
+function setRange(nextRange: AnalyticsRange) {
   if (range.value === nextRange) return
   range.value = nextRange
   loadOverview()

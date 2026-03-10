@@ -2,48 +2,19 @@ import { render, screen, waitFor } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import AnalyticsView from './AnalyticsView.vue'
 import { apiGet } from '../lib/api'
+import { type AnalyticsLevel, type AnalyticsOverview } from '../lib/analytics'
 
 vi.mock('../lib/api', () => ({
   apiGet: vi.fn(),
 }))
 
-type RateValue = number | null
-
-type MockOverview = {
-  range: '7d' | '30d' | '90d'
-  analytics_level: string
-  date_from: string
-  date_to: string
-  metrics: {
-    bookings_count: number
-    scheduled_count: number
-    confirmed_count: number
-    completed_count: number
-    cancelled_count: number
-    rescheduled_count: number
-    confirmation_rate: RateValue
-    completion_rate: RateValue
-    cancellation_rate: RateValue
-  }
-  sessions_by_day: Array<{ date: string; count: number }>
-  bookings_by_day: Array<{ date: string; count: number }>
-  top_weekdays: Array<{ weekday: string; count: number }>
-  top_hours: Array<{ hour: string; count: number }>
-  insights: {
-    underused_weekdays: Array<{ weekday: string; count: number }>
-    underused_hours: Array<{ hour: string; count: number }>
-    reschedule_hotspots: Array<{ weekday: string; hour: string; count: number }>
-    cancellation_hotspots: Array<{ weekday: string; hour: string; count: number }>
-    recommendations: Array<{ code: string; message: string }>
-  }
-}
-
 const mockedApiGet = vi.mocked(apiGet)
 
-function makeOverview(analyticsLevel: string): MockOverview {
+function makeOverview(analyticsLevel: AnalyticsLevel): AnalyticsOverview {
   return {
     range: '30d',
     analytics_level: analyticsLevel,
+    leader_insights_min_bookings: 3,
     date_from: '2026-02-01',
     date_to: '2026-03-01',
     metrics: {
@@ -89,7 +60,7 @@ describe('AnalyticsView conditional premium rendering', () => {
   })
 
   it('shows all leader analytics blocks for leader level', async () => {
-    mockedApiGet.mockResolvedValue(makeOverview('leader'))
+    mockedApiGet.mockResolvedValue(makeOverview('LEADER'))
 
     renderView()
 
@@ -102,7 +73,7 @@ describe('AnalyticsView conditional premium rendering', () => {
   })
 
   it('shows teaser and hides leader blocks for non-leader', async () => {
-    mockedApiGet.mockResolvedValue(makeOverview('basic'))
+    mockedApiGet.mockResolvedValue(makeOverview('ADVANCED'))
 
     renderView()
 
@@ -117,8 +88,19 @@ describe('AnalyticsView conditional premium rendering', () => {
     })
   })
 
-  it('shows leader empty state when leader insights are not yet available', async () => {
-    const overview = makeOverview('leader')
+  it('shows empty state without teaser for non-leader when there is no data', async () => {
+    const overview = makeOverview('ADVANCED')
+    overview.metrics.bookings_count = 0
+    mockedApiGet.mockResolvedValue(overview)
+
+    renderView()
+
+    expect(await screen.findByText('Поки що недостатньо даних для аналітики')).toBeInTheDocument()
+    expect(screen.queryByText('Розширена аналітика')).not.toBeInTheDocument()
+  })
+
+  it('shows leader empty state threshold text when leader insights are not yet available', async () => {
+    const overview = makeOverview('LEADER')
     overview.insights = {
       underused_weekdays: [],
       underused_hours: [],
@@ -126,12 +108,13 @@ describe('AnalyticsView conditional premium rendering', () => {
       cancellation_hotspots: [],
       recommendations: [],
     }
-    overview.metrics.bookings_count = 10
+    overview.leader_insights_min_bookings = 3
+    overview.metrics.bookings_count = 2
     mockedApiGet.mockResolvedValue(overview)
 
     renderView()
 
-    expect(await screen.findByText('Інсайти з’являться трохи пізніше')).toBeInTheDocument()
+    expect(await screen.findByText('Інсайти з’являться після щонайменше 3 записів.')).toBeInTheDocument()
     expect(screen.queryByText('Розширена аналітика')).not.toBeInTheDocument()
 
     await waitFor(() => {
