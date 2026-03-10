@@ -93,12 +93,28 @@
       </section>
 
       <section class="section-block reveal" id="pricing">
-        <div class="section-head">
-          <h2 class="section-title">Підписки</h2>
-          <p class="muted">Без комісій за сесії. Лише прозора підписка.</p>
-          <p class="pricing__definition">
-            Активний клієнт — той, з ким у вас була завершена сесія протягом останніх 30 днів.
-          </p>
+        <div class="section-head section-head--center">
+          <h2 class="section-title">Оберіть план під свою практику</h2>
+          <p class="muted">Без комісій за сесії. Ви самі встановлюєте умови співпраці з клієнтами.</p>
+          <p class="pricing__definition">Усі плани включають публічний профіль, запис через вільні вікна та базове керування сесіями.</p>
+          <div class="pricing-toggle" role="group" aria-label="Режим оплати">
+            <button
+              type="button"
+              class="pricing-toggle__btn"
+              :class="{ 'is-active': billingCycle === 'monthly' }"
+              @click="billingCycle = 'monthly'"
+            >
+              Щомісяця
+            </button>
+            <button
+              type="button"
+              class="pricing-toggle__btn"
+              :class="{ 'is-active': billingCycle === 'annual' }"
+              @click="billingCycle = 'annual'"
+            >
+              Щороку
+            </button>
+          </div>
         </div>
         <div class="plan-grid plan-grid--editorial">
           <article
@@ -113,9 +129,15 @@
                 <div v-if="plan.subtitle" class="plan-subtitle">{{ plan.subtitle }}</div>
               </div>
               <div class="plan-price">
-                <div class="plan-price__main">{{ plan.price }}</div>
-                <div v-if="plan.annual" class="plan-price__alt">
-                  {{ plan.annual }} <span class="plan-price__hint">{{ plan.annualHint }}</span>
+                <div class="plan-price__main">{{ planDisplayPrice(plan) }}</div>
+                <div v-if="billingCycle === 'annual' && plan.annual_monthly_price" class="plan-price__alt">
+                  {{ plan.annual_one_shot }} <span class="plan-price__hint">{{ plan.annual_hint }}</span>
+                </div>
+                <div v-else-if="billingCycle === 'annual'" class="plan-price__alt">
+                  {{ plan.annual_fallback_note }}
+                </div>
+                <div v-else-if="plan.annual_monthly_price" class="plan-price__alt">
+                  Або {{ plan.annual_monthly_price }} при оплаті за рік
                 </div>
               </div>
             </div>
@@ -181,8 +203,8 @@
             <div class="muted">Це клієнт із завершеною сесією за останні 30 днів.</div>
           </div>
           <div class="card faq-card">
-            <div class="faq-card__title">Чи можна почати безкоштовно?</div>
-            <div class="muted">Так. План START дозволяє стартувати практику вже сьогодні.</div>
+            <div class="faq-card__title">Чи є річна оплата для Start?</div>
+            <div class="muted">Ні. Start доступний лише у щомісячному форматі.</div>
           </div>
         </div>
       </section>
@@ -202,7 +224,7 @@
 
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 
@@ -251,66 +273,89 @@ const benefits = [
 
 
 type PlanCode = 'START' | 'PRO' | 'LEADER'
+type BillingCycle = 'monthly' | 'annual'
+type PricingPlan = {
+  code: PlanCode
+  title: string
+  subtitle: string
+  monthly_price: string
+  annual_monthly_price: string | null
+  annual_one_shot: string | null
+  annual_hint: string | null
+  annual_fallback_note: string | null
+  badge: string
+  features: string[]
+  note: string
+}
 
-const pricingPlans = [
+const billingCycle = ref<BillingCycle>('monthly')
+
+const pricingPlans: PricingPlan[] = [
   {
     code: 'START',
     title: 'Start',
-    subtitle: '',
-    price: '€9 / місяць',
-    annual: '',
-    annualHint: '',
+    subtitle: 'Для старту практики',
+    monthly_price: '€10 / міс',
+    annual_monthly_price: null,
+    annual_one_shot: null,
+    annual_hint: null,
+    annual_fallback_note: 'Лише щомісячна оплата',
     badge: 'Старт',
     features: [
       'До 5 активних клієнтів',
-      'Макс. тривалість 60 хв',
-      'Google Meet для сесій',
-      'Перенесення сесій',
-      'Чат із клієнтами',
-      'Зашифровані нотатки та журнал клієнта',
-      'Базова аналітика',
-      'Каталог спеціалістів',
+      'Публічний профіль specialist-а',
+      'Запис через вільні вікна',
+      'Базові сесії, доступність і Time Off',
+      'Базові нагадування та сповіщення',
+      'Зовнішнє посилання на відеозустріч',
+      'Без комісій за сесії',
     ],
-    note: 'Найкраще для старту практики.',
+    note: 'Підійде, якщо ви тільки починаєте і хочете приймати перших клієнтів онлайн.',
   },
   {
     code: 'PRO',
     title: 'Pro',
-    subtitle: '',
-    price: '€29 / місяць',
-    annual: 'або €290 / рік',
-    annualHint: '2 місяці безкоштовно',
+    subtitle: 'Найкращий вибір для стабільної практики',
+    monthly_price: '€24 / міс',
+    annual_monthly_price: '€20 / міс',
+    annual_one_shot: 'Оплата за рік — €240 одним платежем',
+    annual_hint: '2 місяці безкоштовно',
+    annual_fallback_note: null,
     badge: 'Рекомендовано',
     features: [
-      'До 15 активних клієнтів',
-      'Макс. тривалість 90 хв',
-      'Вбудоване відео (SDK)',
-      'Парна терапія (2 клієнти)',
-      'Інтервізії / супервізії',
-      'Авторський журнал у публічному профілі',
-      'Розширена аналітика з графіками',
+      'До 20 активних клієнтів',
+      'Recurring sessions',
+      'Smart reschedule suggestions',
+      'Повний модуль нагадувань і сповіщень',
+      'Авторський журнал / Серії',
+      'Групові події та group room',
+      'Базова аналітика',
+      'Вбудоване відео — скоро',
     ],
-    note: 'Для стабільної практики та зростання.',
+    note: 'Усе, що потрібно для регулярної роботи з клієнтами, сесіями, перенесеннями та матеріалами.',
   },
   {
     code: 'LEADER',
     title: 'Leader',
-    subtitle: '',
-    price: '€49 / місяць',
-    annual: 'або €490 / рік',
-    annualHint: '2 місяці безкоштовно',
+    subtitle: 'Для зростання, масштабу і максимуму можливостей',
+    monthly_price: '€59 / міс',
+    annual_monthly_price: '€49 / міс',
+    annual_one_shot: 'Оплата за рік — €590 одним платежем',
+    annual_hint: '2 місяці безкоштовно',
+    annual_fallback_note: null,
     badge: 'Масштабування',
     features: [
-      'До 40 активних клієнтів',
-      'Макс. тривалість 120 хв',
-      'Вбудоване відео (SDK)',
-      'Broadcast-сесії',
-      'Публічні події',
-      'Пріоритетна підтримка',
+      'До 60 активних клієнтів',
+      'Усе з Pro',
+      'Розширена аналітика',
+      'Аналітика з порадами — скоро',
+      'Анонси подій у стрічці — скоро',
+      'Пріоритетна підтримка — скоро',
+      'Ранній доступ до нових можливостей',
     ],
-    note: 'Для масштабування та публічних форматів.',
+    note: 'Для specialist-ів, яким потрібні масштаб, інсайти та преміальні можливості.',
   },
-] as const
+]
 
 const currentPlan = computed<PlanCode | null>(() => {
   const raw = auth.me?.effective_entitlements?.plan
@@ -320,13 +365,23 @@ const currentPlan = computed<PlanCode | null>(() => {
 
 const isCurrentPlan = (code: PlanCode) => currentPlan.value === code
 
+const planDisplayPrice = (plan: PricingPlan) => {
+  if (billingCycle.value === 'annual' && plan.annual_monthly_price) {
+    return plan.annual_monthly_price
+  }
+  return plan.monthly_price
+}
+
 const planActionLabel = (code: PlanCode) => {
   if (!isAuthenticated.value) {
     if (code === 'START') return 'Почати'
-    return 'Розширити практику'
+    if (code === 'PRO') return 'Обрати Pro'
+    return 'Перейти на Leader'
   }
   if (isCurrentPlan(code)) return 'Поточний'
-  return 'Розширити практику'
+  if (code === 'PRO') return 'Обрати Pro'
+  if (code === 'LEADER') return 'Перейти на Leader'
+  return 'Почати'
 }
 
 let revealObserver: IntersectionObserver | null = null
@@ -596,6 +651,37 @@ onBeforeUnmount(() => {
   margin: 0;
   font-size: 13px;
   color: var(--muted);
+}
+
+.section-head--center {
+  text-align: center;
+}
+
+.pricing-toggle {
+  margin: 10px auto 0;
+  display: inline-flex;
+  gap: 6px;
+  padding: 4px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: #fff;
+  width: fit-content;
+}
+
+.pricing-toggle__btn {
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 13px;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.pricing-toggle__btn.is-active {
+  border-color: color-mix(in srgb, var(--primary) 35%, var(--border));
+  background: color-mix(in srgb, var(--primary) 10%, transparent);
+  font-weight: 600;
 }
 
 .plan-grid {

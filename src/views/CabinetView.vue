@@ -225,24 +225,22 @@ const planLabel = computed(() => {
   return plan || 'Н/Д'
 })
 
-const PLAN_LIMITS: Record<string, number> = {
-  START: 3,
-  PRO: 20,
-  LEADER: Number.POSITIVE_INFINITY,
-}
-
 const planCodeLabel = computed(() => {
   const raw = me.value?.effective_entitlements?.plan
-  // TODO: replace with real billing plan when backend is ready
-  return (raw && PLAN_LIMITS[raw] !== undefined ? raw : 'START') as keyof typeof PLAN_LIMITS
+  if (raw === 'START' || raw === 'PRO' || raw === 'LEADER') return raw
+  return 'START'
 })
 
 const activeClientsCount = computed(() => me.value?.counts?.active_clients ?? 0)
 
-const activeClientLimit = computed(() => PLAN_LIMITS[planCodeLabel.value] ?? 3)
+const activeClientLimit = computed(() => {
+  const limit = me.value?.effective_entitlements?.active_client_limit
+  if (typeof limit === 'number') return limit
+  return 5
+})
 
 const activeClientLimitLabel = computed(() => {
-  return Number.isFinite(activeClientLimit.value) ? String(activeClientLimit.value) : '?'
+  return Number.isFinite(activeClientLimit.value) ? String(activeClientLimit.value) : '∞'
 })
 
 const progressPercent = computed(() => {
