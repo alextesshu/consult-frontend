@@ -90,6 +90,33 @@
           </div>
         </div>
 
+        <div class="first-session-flow">
+          <article class="flow-card">
+            <div class="flow-card__title">Як проходить перша сесія</div>
+            <ul class="flow-card__list">
+              <li>Коротке знайомство та уточнення вашого запиту.</li>
+              <li>Спокійна розмова у вашому темпі без тиску.</li>
+              <li>Узгодження наступних кроків наприкінці зустрічі.</li>
+            </ul>
+          </article>
+          <article class="flow-card">
+            <div class="flow-card__title">Як підготуватись</div>
+            <ul class="flow-card__list">
+              <li>Достатньо тихого місця й стабільного інтернету.</li>
+              <li>Не потрібно готуватись “ідеально” чи щось доводити.</li>
+              <li>Можна заздалегідь подумати, що зараз для вас найважливіше.</li>
+            </ul>
+          </article>
+          <article class="flow-card">
+            <div class="flow-card__title">Що буде після запису</div>
+            <ul class="flow-card__list">
+              <li>Сесія з'явиться у вашому кабінеті клієнта.</li>
+              <li>Після підтвердження спеціаліста ви отримаєте нагадування.</li>
+              <li>За потреби зможете перенести або скасувати запис у кабінеті.</li>
+            </ul>
+          </article>
+        </div>
+
         <div v-if="!isAuthenticated" class="hint">
           Щоб забронювати час, увійдіть у свій кабінет клієнта.
           <RouterLink class="btn btn--ghost" to="/login">Увійти</RouterLink>
@@ -332,21 +359,25 @@
       <div class="setting-modal__backdrop" @click="closeBookingModal"></div>
       <div class="setting-modal__content">
         <div class="setting-modal__header">
-          <h3>Сесію створено</h3>
+          <h3>Ви успішно записалися</h3>
           <button class="btn btn--ghost btn--sm" type="button" @click="closeBookingModal">
             Закрити
           </button>
         </div>
         <div class="setting-modal__body">
-          <div class="booking-checklist">
-            <div class="booking-checklist__item">1. Сесія заброньована</div>
-            <div class="booking-checklist__item">2. Спеціаліст має підтвердити</div>
-            <div class="booking-checklist__item">3. Перевіряйте статус у кабінеті</div>
+          <div class="booking-confirm">
+            Слот заброньовано. Спеціаліст має підтвердити сесію, після цього статус оновиться у вашому кабінеті.
           </div>
           <div v-if="lastBookedSlot" class="booking-slot">
-            <div class="muted">Ваш слот:</div>
+            <div class="muted">Дата і час сесії</div>
             <div class="booking-slot__time">{{ formatDate(lastBookedSlot.start_at) }}</div>
             <div class="muted">{{ formatDuration(lastBookedSlot.start_at, lastBookedSlot.end_at) }}</div>
+          </div>
+          <div class="booking-next">
+            <div class="booking-next__title">Що далі</div>
+            <div class="booking-next__item">• Перевіряйте статус і деталі у кабінеті клієнта.</div>
+            <div class="booking-next__item">• Після підтвердження сесії сервіс нагадає про зустріч.</div>
+            <div class="booking-next__item">• Якщо плани зміняться, ви можете перенести або скасувати запис у деталях сесії.</div>
           </div>
         </div>
         <div class="setting-modal__footer">
@@ -1156,6 +1187,35 @@ onMounted(async () => {
   font-size: 12px;
 }
 
+.first-session-flow {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.flow-card {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(7, 47, 71, 0.02), #fff);
+  padding: 12px;
+  display: grid;
+  gap: 8px;
+}
+
+.flow-card__title {
+  font-weight: 600;
+  color: var(--deep);
+}
+
+.flow-card__list {
+  margin: 0;
+  padding-left: 16px;
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
 .badge--soft {
   background: rgba(8, 113, 201, 0.12);
 }
@@ -1871,6 +1931,15 @@ onMounted(async () => {
     font-weight: 500;
   }
 
+  .booking-confirm {
+    color: var(--ink);
+    font-weight: 500;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: rgba(8, 113, 201, 0.08);
+    border: 1px solid var(--line);
+  }
+
   .booking-slot {
     display: grid;
     gap: 4px;
@@ -1882,6 +1951,25 @@ onMounted(async () => {
 
   .booking-slot__time {
     font-weight: 600;
+  }
+
+  .booking-next {
+    display: grid;
+    gap: 6px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: rgba(7, 47, 71, 0.04);
+    border: 1px dashed rgba(47, 63, 73, 0.2);
+  }
+
+  .booking-next__title {
+    font-weight: 600;
+    color: var(--deep);
+  }
+
+  .booking-next__item {
+    color: var(--muted);
+    font-size: 13px;
   }
 
   .setting-section {
@@ -1923,6 +2011,10 @@ onMounted(async () => {
 
   .profile-video {
     max-width: 100%;
+  }
+
+  .first-session-flow {
+    grid-template-columns: 1fr;
   }
 }
 </style>

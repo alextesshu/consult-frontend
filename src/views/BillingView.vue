@@ -62,21 +62,25 @@
         v-for="plan in plans"
         :key="plan.code"
         class="plan-card"
-        :class="{ 'plan-card--current': isCurrentPlan(plan.code) }"
+        :class="{
+          'plan-card--current': isCurrentPlan(plan.code),
+          'plan-card--pro': plan.code === 'PRO',
+        }"
       >
         <div class="plan-head">
-          <div>
+          <div class="plan-meta">
             <div class="plan-title">{{ plan.title }}</div>
             <div class="plan-subtitle">{{ plan.subtitle }}</div>
           </div>
           <div class="plan-price">
             <div class="plan-price__main">{{ plan.price }}</div>
-            <div v-if="'annual' in plan && plan.annual" class="plan-price__alt">
-              {{ plan.annual }} <span class="plan-price__hint">{{ 'annualHint' in plan ? plan.annualHint : '' }}</span>
-            </div>
+          </div>
+          <div class="plan-price__alt">
+            <span class="plan-price__hint">{{ planAnnualHint(plan.code) }}</span>
           </div>
         </div>
         <div class="plan-badges">
+          <span v-if="plan.code === 'PRO'" class="badge badge--pro">Рекомендовано</span>
           <span v-if="isCurrentPlan(plan.code)" class="badge badge--soft">Поточний план</span>
           <span v-else-if="isUpgradePlan(plan.code)" class="badge badge--outline">Оновлення</span>
         </div>
@@ -136,7 +140,7 @@ const plans = [
     code: 'START',
     title: 'Start',
     subtitle: 'Для старту практики',
-    price: '€10/місяць',
+    price: '€10 / місяць',
     features: [
       'До 5 активних клієнтів',
       'Публічний профіль та запис через вільні вікна',
@@ -151,9 +155,7 @@ const plans = [
     code: 'PRO',
     title: 'Pro',
     subtitle: 'Найкращий вибір для стабільної практики',
-    price: '€24/місяць',
-    annual: '€20 / міс',
-    annualHint: 'Оплата за рік — €240 одним платежем',
+    price: '€24 / місяць',
     features: [
       '20 активних клієнтів',
       'Recurring sessions',
@@ -170,9 +172,7 @@ const plans = [
     code: 'LEADER',
     title: 'Leader',
     subtitle: 'Для зростання, масштабу і максимуму можливостей',
-    price: '€59/місяць',
-    annual: '€49 / міс',
-    annualHint: 'Оплата за рік — €590 одним платежем',
+    price: '€59 / місяць',
     features: [
       'До 60 активних клієнтів',
       'Усе з PRO',
@@ -187,6 +187,11 @@ const plans = [
 ] as const
 
 const planByCode = new Map(plans.map((plan) => [plan.code, plan]))
+const annualCopyByPlan: Record<PlanCode, string> = {
+  START: 'Лише щомісячна оплата',
+  PRO: 'Або €20 / міс, оплата за рік — €240 одним платежем',
+  LEADER: 'Або €49 / міс, оплата за рік — €590 одним платежем',
+}
 
 const auth = useAuthStore()
 const { me } = storeToRefs(auth)
@@ -275,6 +280,10 @@ const groupRoomLabel = computed(() => {
 
 function planTitle(code: PlanCode) {
   return planByCode.get(code)?.title || code
+}
+
+function planAnnualHint(code: string) {
+  return annualCopyByPlan[code as PlanCode] || ''
 }
 
 function isCurrentPlan(code: string) {
@@ -551,11 +560,40 @@ onMounted(() => {
 .plan-card {
   border: 1px solid var(--line);
   border-radius: 16px;
-  padding: 16px;
+  padding: 18px;
   background: #fff;
   display: grid;
   gap: 10px;
   position: relative;
+  min-height: 500px;
+  overflow: hidden;
+  transform-origin: center top;
+  transition:
+    transform 220ms ease,
+    box-shadow 260ms ease,
+    border-color 220ms ease,
+    background 260ms ease;
+}
+
+.plan-card::before {
+  content: '';
+  position: absolute;
+  inset: -120% 35% auto -35%;
+  height: 210%;
+  background: linear-gradient(
+    115deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.45) 45%,
+    rgba(255, 255, 255, 0) 70%
+  );
+  transform: translateX(-35%) rotate(5deg);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.plan-card > * {
+  position: relative;
+  z-index: 1;
 }
 
 .plan-card--current {
@@ -563,25 +601,47 @@ onMounted(() => {
   box-shadow: 0 10px 24px rgba(31, 74, 96, 0.12);
 }
 
+.plan-card--pro {
+  border-color: color-mix(in srgb, var(--primary) 72%, #8db69f);
+  background:
+    radial-gradient(circle at 85% -10%, rgba(255, 225, 133, 0.42), rgba(255, 225, 133, 0) 45%),
+    linear-gradient(180deg, rgba(31, 140, 93, 0.12), rgba(255, 255, 255, 0.96));
+  box-shadow:
+    0 20px 40px rgba(31, 74, 96, 0.22),
+    0 0 0 1px rgba(31, 138, 93, 0.22);
+  transform: translateY(-10px) scale(1.02);
+  z-index: 1;
+}
+
 .plan-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas:
+    'meta price'
+    'annual annual';
   gap: 10px;
+}
+
+.plan-meta {
+  grid-area: meta;
 }
 
 .plan-title {
   font-weight: 700;
   font-family: var(--font-display);
+  font-size: 22px;
 }
 
 .plan-subtitle {
+  min-height: 66px;
   margin-top: 4px;
   color: var(--muted);
   font-size: 13px;
+  line-height: 1.35;
 }
 
 .plan-price {
+  grid-area: price;
   font-weight: 600;
   color: var(--deep);
   white-space: nowrap;
@@ -591,17 +651,29 @@ onMounted(() => {
 }
 
 .plan-price__main {
-  font-size: 18px;
+  font-size: 34px;
 }
 
 .plan-price__alt {
-  font-size: 12px;
+  grid-area: annual;
+  min-height: 22px;
+  font-size: 13px;
   color: var(--muted);
+  border-top: 1px dashed rgba(31, 74, 96, 0.18);
+  padding-top: 8px;
+  margin-top: 2px;
 }
 
 .plan-price__hint {
-  color: var(--primary);
+  color: color-mix(in srgb, var(--primary) 92%, #31543f);
   font-weight: 600;
+}
+
+.badge--pro {
+  background: linear-gradient(90deg, #12563b, #1f8a5d 62%, #36a77b);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 8px 18px rgba(31, 138, 93, 0.3);
 }
 
 .plan-badges {
@@ -620,7 +692,7 @@ onMounted(() => {
 }
 
 .plan-foot {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--muted);
   display: grid;
   gap: 10px;
@@ -633,10 +705,72 @@ onMounted(() => {
   flex-wrap: wrap;
 }
 
+.plan-card .badge {
+  transition: transform 180ms ease, box-shadow 220ms ease;
+}
+
+.plan-card .btn {
+  transition:
+    transform 180ms ease,
+    box-shadow 220ms ease,
+    background-color 180ms ease;
+}
+
+@media (hover: hover) {
+  .plan-card:hover {
+    transform: translateY(-10px);
+    border-color: color-mix(in srgb, var(--primary) 42%, var(--line));
+    box-shadow: 0 20px 36px rgba(31, 74, 96, 0.2);
+  }
+
+  .plan-card:hover::before {
+    opacity: 1;
+    animation: plan-shimmer 900ms ease;
+  }
+
+  .plan-card--pro:hover {
+    transform: translateY(-14px) scale(1.025);
+    box-shadow:
+      0 28px 52px rgba(31, 74, 96, 0.28),
+      0 0 0 1px rgba(31, 138, 93, 0.34),
+      0 0 28px rgba(49, 173, 119, 0.25);
+  }
+
+  .plan-card:hover .badge {
+    transform: translateY(-1px);
+  }
+
+  .plan-card:hover .plan-title {
+    color: color-mix(in srgb, var(--deep) 78%, #0f5c3f);
+  }
+
+  .plan-card:hover .btn {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 20px rgba(31, 74, 96, 0.14);
+  }
+}
+
+@keyframes plan-shimmer {
+  0% {
+    transform: translateX(-35%) rotate(5deg);
+  }
+  100% {
+    transform: translateX(45%) rotate(5deg);
+  }
+}
+
 @media (max-width: 860px) {
   .billing__hero {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .plan-card--pro {
+    transform: none;
+  }
+
+  .plan-card {
+    min-height: auto;
   }
 }
 </style>
