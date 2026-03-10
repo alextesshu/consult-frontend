@@ -211,6 +211,19 @@
           </section>
         </section>
 
+        <section v-if="showLeaderInsightsEmptyState" class="panel panel--wide">
+          <div class="panel__header">
+            <div>
+              <div class="badge badge--soft">Leader</div>
+              <h2 class="panel__title">Інсайти з’являться трохи пізніше</h2>
+            </div>
+          </div>
+
+          <p class="muted">
+            Поки що недостатньо даних, щоб показати рекомендації, точки ризику або можливості для розкладу.
+          </p>
+        </section>
+
         <section v-if="showLeaderTeaser" class="panel panel--wide">
           <div class="panel__header">
             <div>
@@ -305,6 +318,15 @@ const hasLeaderOpportunities = computed(
   () =>
     isLeaderAnalytics.value &&
     (underusedWeekdays.value.length > 0 || underusedHours.value.length > 0)
+)
+const hasLeaderRecommendations = computed(() => leaderRecommendations.value.length > 0)
+const showLeaderInsightsEmptyState = computed(
+  () =>
+    isLeaderAnalytics.value &&
+    !isEmpty.value &&
+    !hasLeaderRecommendations.value &&
+    !hasLeaderHotspots.value &&
+    !hasLeaderOpportunities.value
 )
 const showLeaderTeaser = computed(() => !isLeaderAnalytics.value && !isEmpty.value)
 
