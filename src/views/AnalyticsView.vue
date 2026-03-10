@@ -247,6 +247,7 @@ import { apiGet } from '../lib/api'
 import {
   type AnalyticsOverview,
   type AnalyticsRange,
+  getDefaultAnalyticsMetrics,
   isLeaderAnalyticsLevel,
 } from '../lib/analytics'
 
@@ -261,20 +262,7 @@ const loading = ref(true)
 const error = ref('')
 const overview = ref<AnalyticsOverview | null>(null)
 
-const metrics = computed(
-  () =>
-    overview.value?.metrics ?? {
-      bookings_count: 0,
-      scheduled_count: 0,
-      confirmed_count: 0,
-      completed_count: 0,
-      cancelled_count: 0,
-      rescheduled_count: 0,
-      confirmation_rate: null,
-      completion_rate: null,
-      cancellation_rate: null,
-    }
-)
+const metrics = computed(() => overview.value?.metrics ?? getDefaultAnalyticsMetrics())
 
 const isEmpty = computed(() => metrics.value.bookings_count === 0)
 const isLeaderAnalytics = computed(() => isLeaderAnalyticsLevel(overview.value?.analytics_level))

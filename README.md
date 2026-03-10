@@ -49,6 +49,7 @@ npm run test:run
 - `/signup` — Specialist signup
 - `/cabinet` — Specialist dashboard
 - `/cabinet/profile` — Specialist profile management
+- `/cabinet/analytics` — Specialist analytics overview (Leader-gated insights)
 - `/cabinet/group-events` — Group events (full lifecycle + participants + invites)
 - `/cabinet/slots` — Slots (create/edit/delete)
 - `/cabinet/sessions` — Specialist sessions (actions + notes + reschedule requests)
@@ -135,6 +136,7 @@ Tokens are stored in localStorage and auto-refreshed via `/api/auth/token/refres
 - Public profile data is fetched from `/api/public/specialists/{slug}/` (legacy alias: `/api/public/therapists/{slug}/`).
 - Public-facing specialist name uses `First L.` format.
 - Keep files saved in UTF-8 to avoid broken Ukrainian text.
+- Analytics contract for the cabinet view is centralized in `src/lib/analytics.ts`.
 - Backend interprets `date`, `date_from`, `date_to` filters as UTC day boundaries (send `YYYY-MM-DD` in UTC).
 - Billing upgrade requests call `POST /api/billing/request-access/` with `requested_plan`.
 - Client profile photos come from `/api/client/profile/` > `photo_url`.

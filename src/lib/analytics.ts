@@ -16,22 +16,38 @@ export type AnalyticsOverview = {
   leader_insights_min_bookings: number
   date_from: string
   date_to: string
-  metrics: {
-    bookings_count: number
-    scheduled_count: number
-    confirmed_count: number
-    completed_count: number
-    cancelled_count: number
-    rescheduled_count: number
-    confirmation_rate: number | null
-    completion_rate: number | null
-    cancellation_rate: number | null
-  }
+  metrics: AnalyticsMetrics
   sessions_by_day: Array<{ date: string; count: number }>
   bookings_by_day: Array<{ date: string; count: number }>
   top_weekdays: Array<{ weekday: string; count: number }>
   top_hours: Array<{ hour: string; count: number }>
   insights: AnalyticsInsights
+}
+
+export type AnalyticsMetrics = {
+  bookings_count: number
+  scheduled_count: number
+  confirmed_count: number
+  completed_count: number
+  cancelled_count: number
+  rescheduled_count: number
+  confirmation_rate: number | null
+  completion_rate: number | null
+  cancellation_rate: number | null
+}
+
+export function getDefaultAnalyticsMetrics(): AnalyticsMetrics {
+  return {
+    bookings_count: 0,
+    scheduled_count: 0,
+    confirmed_count: 0,
+    completed_count: 0,
+    cancelled_count: 0,
+    rescheduled_count: 0,
+    confirmation_rate: null,
+    completion_rate: null,
+    cancellation_rate: null,
+  }
 }
 
 export function isLeaderAnalyticsLevel(value: string | null | undefined): boolean {
