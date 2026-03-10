@@ -64,17 +64,20 @@
             v-model="reviewText"
             rows="6"
             placeholder="Опишіть свій досвід співпраці."
-            :disabled="!isAuthenticated || submitLoading"
+            :disabled="!isAuthenticated || submitLoading || reviewLocked"
           ></textarea>
         </label>
 
         <div class="field__hint">Текст бачить лише спеціаліст. Ім’я не передається.</div>
+        <div v-if="reviewLocked" class="hint">
+          Ви вже залишили відгук для цього спеціаліста.
+        </div>
 
         <div class="actions">
           <button
             class="btn"
             type="button"
-            :disabled="submitLoading || !isAuthenticated"
+            :disabled="submitLoading || !isAuthenticated || reviewLocked"
             @click="submitReview"
           >
             {{ submitLoading ? 'Надсилаємо...' : 'Надіслати відгук' }}
@@ -106,6 +109,7 @@ const reviewText = ref('')
 const submitLoading = ref(false)
 const submitError = ref('')
 const submitSuccess = ref('')
+const reviewLocked = ref(false)
 const reviews = ref<Array<{ id: number; review_text: string; created_at: string }>>([])
 const reviewsLoading = ref(false)
 const reviewsError = ref('')
@@ -170,6 +174,10 @@ async function loadReviews() {
 async function submitReview() {
   submitError.value = ''
   submitSuccess.value = ''
+  if (reviewLocked.value) {
+    submitError.value = 'Ви вже залишили відгук для цього спеціаліста.'
+    return
+  }
   if (!isAuthenticated.value) {
     submitError.value = 'Увійдіть, щоб залишити відгук.'
     return
@@ -190,9 +198,15 @@ async function submitReview() {
     reviewText.value = ''
   } catch (err: any) {
     const status = err?.response?.status
+    const backendDetail = String(err?.response?.data?.detail || '')
+    const duplicateReview =
+      backendDetail === 'You already left a review for this specialist.'
     if (status === 403) {
       submitError.value =
         'Відгук можна залишити лише спеціалісту, з яким ви працюєте або працювали.'
+    } else if (duplicateReview) {
+      reviewLocked.value = true
+      submitError.value = 'Ви вже залишили відгук для цього спеціаліста.'
     } else {
       submitError.value = getApiErrorMessage(err, 'Не вдалося надіслати відгук.')
     }

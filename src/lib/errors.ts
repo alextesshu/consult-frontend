@@ -45,6 +45,8 @@ export function getApiErrorMessage(err: unknown, fallback: string) {
         'Відгук можна залишити лише після завершеної сесії.',
       'Review already exists.': 'Відгук для цієї сесії вже існує.',
       'Review text is required.': 'Текст відгуку є обовʼязковим.',
+      'You already left a review for this specialist.':
+        'Ви вже залишили відгук для цього спеціаліста.',
     }
     return mapped[detail] || detail
   }
