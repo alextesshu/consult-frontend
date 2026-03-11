@@ -1,6 +1,7 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/vue'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { apiGet, apiPatch, apiPost } from '../lib/api'
+import { BOOKING_SUCCESS_MESSAGES } from '../lib/bookingCopy'
 import TherapistSessionDetailView from './TherapistSessionDetailView.vue'
 
 const mockRoute = {
@@ -89,6 +90,8 @@ function buildRequest(overrides: Record<string, unknown> = {}) {
     ...overrides,
   }
 }
+
+type DetailRequest = ReturnType<typeof buildRequest>
 
 function mockDetailContext(
   getSession: () => Record<string, unknown>,
@@ -292,6 +295,99 @@ describe('TherapistSessionDetailView', () => {
     expect(endpointCalls('/booking/sessions/42/')).toBe(2)
   })
 
+  it('completes a confirmed session, refreshes the detail context, and reloads the private note', async () => {
+    let sessionDetail = buildSession({ status: 'CONFIRMED' })
+    let noteContent = 'Completed session note'
+    const promptSpy = vi.spyOn(window, 'prompt').mockReturnValue('50')
+
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === `/booking/sessions/${mockRoute.params.id}/`) {
+        return sessionDetail
+      }
+
+      if (url === '/cabinet/slots/') {
+        return [buildSlot()]
+      }
+
+      if (url === `/booking/sessions/${mockRoute.params.id}/reschedule-suggestions/`) {
+        return {
+          suggestions: [buildSuggestion()],
+        }
+      }
+
+      if (url === `/cabinet/sessions/${mockRoute.params.id}/note/`) {
+        return {
+          content: noteContent,
+        }
+      }
+
+      if (url === '/cabinet/sessions/reschedule-requests/') {
+        return []
+      }
+
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    mockedApiPatch.mockImplementation(async (url, payload) => {
+      if (url === '/booking/sessions/42/complete/') {
+        expect(payload).toEqual({ actual_duration_minutes: 50 })
+        sessionDetail = {
+          ...sessionDetail,
+          status: 'COMPLETED',
+        }
+        noteContent = 'Completed session note (reloaded)'
+        return {}
+      }
+
+      throw new Error(`Unexpected apiPatch call: ${url}`)
+    })
+
+    try {
+      renderView()
+
+      expect(await screen.findByText('client@example.com')).toBeInTheDocument()
+      expect(await screen.findByDisplayValue('Completed session note')).toBeInTheDocument()
+
+      const statusPanel = screen.getByText(/ID: #77/).closest('section')
+      expect(statusPanel).not.toBeNull()
+      const completionButton = within(statusPanel as HTMLElement)
+        .getAllByRole('button')
+        .find((button) => button.textContent?.includes('Завершити'))
+      if (!completionButton) {
+        throw new Error('Complete button not found')
+      }
+      await fireEvent.click(completionButton)
+
+      await waitFor(() => {
+        expect(mockedApiPatch).toHaveBeenCalledWith('/booking/sessions/42/complete/', {
+          actual_duration_minutes: 50,
+        })
+        expect(mockToast.success).toHaveBeenCalledWith(BOOKING_SUCCESS_MESSAGES.sessionCompleted)
+      })
+
+      expect(promptSpy).toHaveBeenCalledTimes(1)
+      const updatedStatusPanel = screen.getByText(/ID: #77/).closest('section')
+      expect(updatedStatusPanel).not.toBeNull()
+      const remainingActionButtons = within(updatedStatusPanel as HTMLElement).queryAllByRole('button')
+      expect(remainingActionButtons).toHaveLength(3)
+      expect(remainingActionButtons.every((button) => button.hasAttribute('disabled'))).toBe(true)
+      expect((updatedStatusPanel as HTMLElement).querySelector('.status-pill--muted')).not.toBeNull()
+      expect(
+        within(updatedStatusPanel as HTMLElement)
+          .queryAllByRole('button')
+          .some((button) => button.textContent?.includes('Завершити'))
+      ).toBe(false)
+      expect(await screen.findByDisplayValue('Completed session note (reloaded)')).toBeInTheDocument()
+      expect(endpointCalls('/booking/sessions/42/')).toBe(2)
+      expect(endpointCalls('/cabinet/slots/')).toBe(2)
+      expect(endpointCalls('/booking/sessions/42/reschedule-suggestions/')).toBe(2)
+      expect(endpointCalls('/cabinet/sessions/reschedule-requests/')).toBe(2)
+      expect(endpointCalls('/cabinet/sessions/42/note/')).toBe(2)
+    } finally {
+      promptSpy.mockRestore()
+    }
+  })
+
   it('keeps confirm, cancel, and reschedule guarded for non-actionable statuses', async () => {
     let sessionDetail = buildSession({ status: 'COMPLETED' })
     mockDetailContext(() => sessionDetail, {
@@ -326,6 +422,117 @@ describe('TherapistSessionDetailView', () => {
     await waitFor(() => {
       expect(screen.queryByText('Новий слот для сесії')).not.toBeInTheDocument()
     })
+  })
+
+  it('approves and declines reschedule requests from the detail view with the expected refresh behavior', async () => {
+    let sessionDetail = buildSession({ status: 'CONFIRMED' })
+    let requests: [DetailRequest, DetailRequest] = [
+      buildRequest({
+        id: 15,
+        client_email: 'approve-request@example.com',
+        status: 'PENDING',
+      }),
+      buildRequest({
+        id: 16,
+        requested_slot_id: 10,
+        requested_slot_start_at: '2099-06-18T10:00:00Z',
+        requested_slot_end_at: '2099-06-18T11:00:00Z',
+        client_email: 'decline-request@example.com',
+        status: 'PENDING',
+      }),
+    ]
+
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === `/booking/sessions/${mockRoute.params.id}/`) {
+        return sessionDetail
+      }
+
+      if (url === '/cabinet/slots/') {
+        return [buildSlot()]
+      }
+
+      if (url === `/booking/sessions/${mockRoute.params.id}/reschedule-suggestions/`) {
+        return {
+          suggestions: [buildSuggestion()],
+        }
+      }
+
+      if (url === `/cabinet/sessions/${mockRoute.params.id}/note/`) {
+        return {
+          content: 'Progress note',
+        }
+      }
+
+      if (url === '/cabinet/sessions/reschedule-requests/') {
+        return requests.map((request) => ({ ...request }))
+      }
+
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    mockedApiPatch.mockImplementation(async (url) => {
+      if (url === '/cabinet/sessions/reschedule-requests/15/approve/') {
+        const [approveRequest, declineRequest] = requests
+        requests = [
+          {
+            ...approveRequest,
+            status: 'APPROVED',
+          },
+          declineRequest,
+        ]
+        return {}
+      }
+
+      if (url === '/cabinet/sessions/reschedule-requests/16/decline/') {
+        const [approveRequest, declineRequest] = requests
+        requests = [
+          approveRequest,
+          {
+            ...declineRequest,
+            status: 'DECLINED',
+          },
+        ]
+        return {}
+      }
+
+      throw new Error(`Unexpected apiPatch call: ${url}`)
+    })
+
+    renderView()
+
+    expect(await screen.findByText('approve-request@example.com')).toBeInTheDocument()
+
+    const approveCard = screen.getByText('approve-request@example.com').closest('article')
+    expect(approveCard).not.toBeNull()
+    await fireEvent.click((approveCard as HTMLElement).querySelectorAll('button')[0] as HTMLButtonElement)
+
+    await waitFor(() => {
+      expect(mockedApiPatch).toHaveBeenCalledWith('/cabinet/sessions/reschedule-requests/15/approve/')
+      expect(mockToast.success).toHaveBeenCalledWith(BOOKING_SUCCESS_MESSAGES.rescheduleRequestApproved)
+    })
+
+    await waitFor(() => {
+      expect((screen.getByText('approve-request@example.com').closest('article') as HTMLElement).querySelectorAll('button')).toHaveLength(0)
+    })
+
+    const declineCard = screen.getByText('decline-request@example.com').closest('article')
+    expect(declineCard).not.toBeNull()
+    await fireEvent.click((declineCard as HTMLElement).querySelectorAll('button')[1] as HTMLButtonElement)
+
+    await waitFor(() => {
+      expect(mockedApiPatch).toHaveBeenCalledWith('/cabinet/sessions/reschedule-requests/16/decline/')
+      expect(mockToast.success).toHaveBeenCalledWith(BOOKING_SUCCESS_MESSAGES.rescheduleRequestDeclined)
+    })
+
+    await waitFor(() => {
+      expect((screen.getByText('decline-request@example.com').closest('article') as HTMLElement).querySelectorAll('button')).toHaveLength(0)
+    })
+
+    expect(endpointCalls('/booking/sessions/42/')).toBe(2)
+    expect(endpointCalls('/cabinet/slots/')).toBe(2)
+    expect(endpointCalls('/booking/sessions/42/reschedule-suggestions/')).toBe(2)
+    expect(endpointCalls('/cabinet/sessions/reschedule-requests/')).toBe(3)
+    expect(endpointCalls('/cabinet/sessions/42/note/')).toBe(1)
   })
 
   it('shows recurring controls for eligible sessions and blocks invalid custom occurrences client-side', async () => {

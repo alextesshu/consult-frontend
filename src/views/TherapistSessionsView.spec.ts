@@ -1,13 +1,18 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/vue'
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { apiGet, fetchSpecialistProfile } from '../lib/api'
+import { BOOKING_SUCCESS_MESSAGES } from '../lib/bookingCopy'
 import {
+  approveSpecialistRescheduleRequest,
   cancelSpecialistSession,
+  completeSpecialistSession,
   confirmSpecialistSession,
   createRecurringSpecialistSessions,
+  declineSpecialistRescheduleRequest,
   fetchSpecialistAvailableSlots,
   fetchSpecialistRescheduleRequests,
   fetchSpecialistRescheduleSuggestions,
+  fetchSpecialistSessionNoteContent,
   formatSessionDateTime,
   rescheduleSpecialistSession,
 } from '../lib/specialistSessions'
@@ -65,12 +70,16 @@ vi.mock('../lib/specialistSessions', async () => {
 
 const mockedApiGet = vi.mocked(apiGet)
 const mockedFetchSpecialistProfile = vi.mocked(fetchSpecialistProfile)
+const mockedApproveSpecialistRescheduleRequest = vi.mocked(approveSpecialistRescheduleRequest)
 const mockedCancelSpecialistSession = vi.mocked(cancelSpecialistSession)
+const mockedCompleteSpecialistSession = vi.mocked(completeSpecialistSession)
 const mockedConfirmSpecialistSession = vi.mocked(confirmSpecialistSession)
 const mockedCreateRecurringSpecialistSessions = vi.mocked(createRecurringSpecialistSessions)
+const mockedDeclineSpecialistRescheduleRequest = vi.mocked(declineSpecialistRescheduleRequest)
 const mockedFetchSpecialistAvailableSlots = vi.mocked(fetchSpecialistAvailableSlots)
 const mockedFetchSpecialistRescheduleRequests = vi.mocked(fetchSpecialistRescheduleRequests)
 const mockedFetchSpecialistRescheduleSuggestions = vi.mocked(fetchSpecialistRescheduleSuggestions)
+const mockedFetchSpecialistSessionNoteContent = vi.mocked(fetchSpecialistSessionNoteContent)
 const mockedRescheduleSpecialistSession = vi.mocked(rescheduleSpecialistSession)
 
 function buildSession(overrides: Record<string, unknown> = {}) {
@@ -132,12 +141,16 @@ describe('TherapistSessionsView', () => {
     mockRoute.hash = ''
     mockedApiGet.mockReset()
     mockedFetchSpecialistProfile.mockReset()
+    mockedApproveSpecialistRescheduleRequest.mockReset()
     mockedCancelSpecialistSession.mockReset()
+    mockedCompleteSpecialistSession.mockReset()
     mockedConfirmSpecialistSession.mockReset()
     mockedCreateRecurringSpecialistSessions.mockReset()
+    mockedDeclineSpecialistRescheduleRequest.mockReset()
     mockedFetchSpecialistAvailableSlots.mockReset()
     mockedFetchSpecialistRescheduleRequests.mockReset()
     mockedFetchSpecialistRescheduleSuggestions.mockReset()
+    mockedFetchSpecialistSessionNoteContent.mockReset()
     mockedRescheduleSpecialistSession.mockReset()
     mockToast.show.mockReset()
     mockToast.success.mockReset()
@@ -152,6 +165,7 @@ describe('TherapistSessionsView', () => {
     mockedFetchSpecialistAvailableSlots.mockResolvedValue([])
     mockedFetchSpecialistRescheduleRequests.mockResolvedValue([])
     mockedFetchSpecialistRescheduleSuggestions.mockResolvedValue([])
+    mockedFetchSpecialistSessionNoteContent.mockResolvedValue('')
   })
 
   it('renders the list-level session surface with filters and pending request context', async () => {
@@ -327,6 +341,86 @@ describe('TherapistSessionsView', () => {
     expect(mockedApiGet).toHaveBeenCalledTimes(6)
   })
 
+  it('completes a confirmed session, reloads the list, and opens the note modal with refreshed content', async () => {
+    const confirmedSession = buildSession({
+      id: 15,
+      status: 'CONFIRMED',
+      client: 105,
+      client_name: 'Р›С–Р»С–СЏ',
+      client_email: 'completed@example.com',
+      slot: 205,
+      slot_start_at: '2099-06-19T08:00:00Z',
+      slot_end_at: '2099-06-19T08:50:00Z',
+    })
+
+    let upcomingSessions = [confirmedSession]
+    const promptSpy = vi.spyOn(window, 'prompt').mockReturnValue('55')
+
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/booking/sessions/' && (config as { params?: { upcoming?: boolean } } | undefined)?.params?.upcoming) {
+        return upcomingSessions
+      }
+
+      if (url === '/booking/sessions/' && (config as { params?: { upcoming?: boolean } } | undefined)?.params?.upcoming === false) {
+        return []
+      }
+
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    mockedCompleteSpecialistSession.mockImplementation(async (sessionId, payload) => {
+      expect(sessionId).toBe(15)
+      expect(payload).toEqual({ actual_duration_minutes: 55 })
+      upcomingSessions = [
+        {
+          ...confirmedSession,
+          status: 'COMPLETED',
+        },
+      ]
+    })
+    mockedFetchSpecialistSessionNoteContent.mockImplementation(async (sessionId) => {
+      expect(sessionId).toBe(15)
+      return 'Updated completion note'
+    })
+
+    try {
+      renderView()
+
+      expect(await screen.findByText(/completed@example\.com/)).toBeInTheDocument()
+
+      const sessionCard = screen.getByText(/completed@example\.com/).closest('article')
+      expect(sessionCard).not.toBeNull()
+      const completionButton = within(sessionCard as HTMLElement)
+        .getAllByRole('button')
+        .find((button) => button.textContent?.includes('Завершити'))
+      if (!completionButton) {
+        throw new Error('Complete button not found')
+      }
+      await fireEvent.click(completionButton)
+
+      await waitFor(() => {
+        expect(mockedCompleteSpecialistSession).toHaveBeenCalledWith(15, { actual_duration_minutes: 55 })
+        expect(mockToast.success).toHaveBeenCalledWith(BOOKING_SUCCESS_MESSAGES.sessionCompleted)
+      })
+
+      expect(promptSpy).toHaveBeenCalledTimes(1)
+      expect(mockedFetchSpecialistSessionNoteContent).toHaveBeenCalledWith(15)
+      expect(await screen.findByDisplayValue('Updated completion note')).toBeInTheDocument()
+
+      const updatedCard = screen.getAllByText(/completed@example\.com/)[0]?.closest('article')
+      expect(updatedCard).not.toBeNull()
+      expect((updatedCard as HTMLElement).querySelector('.status-pill--muted')).not.toBeNull()
+      expect(
+        within(updatedCard as HTMLElement)
+          .queryAllByRole('button')
+          .some((button) => button.textContent?.includes('Завершити'))
+      ).toBe(false)
+      expect(mockedApiGet).toHaveBeenCalledTimes(4)
+    } finally {
+      promptSpy.mockRestore()
+    }
+  })
+
   it('submits a reschedule request from the list and closes the inline panel after reload', async () => {
     const rescheduledSession = buildSession({
       id: 13,
@@ -405,6 +499,105 @@ describe('TherapistSessionsView', () => {
     })
     expect(screen.getAllByText(formatSessionDateTime(nextSlot.start_at))).toHaveLength(2)
     expect(mockedFetchSpecialistAvailableSlots).toHaveBeenCalledTimes(2)
+    expect(mockedApiGet).toHaveBeenCalledTimes(4)
+  })
+
+  it('approves and declines reschedule requests with the expected cross-view reload behavior', async () => {
+    const pendingSession = buildSession({
+      id: 12,
+      status: 'CONFIRMED',
+      client: 102,
+      client_name: 'Марія',
+      client_email: 'maria@example.com',
+      slot: 202,
+      slot_start_at: '2099-06-16T12:00:00Z',
+      slot_end_at: '2099-06-16T12:50:00Z',
+    })
+    const approvedRequest = buildRescheduleRequest({
+      id: 51,
+      session_id: 12,
+      client_name: 'Марія',
+      client_email: 'maria-request@example.com',
+      status: 'APPROVED',
+    })
+    const pendingDeclineRequest = buildRescheduleRequest({
+      id: 52,
+      session_id: 12,
+      requested_slot_id: 302,
+      requested_slot_start_at: '2099-06-18T13:00:00Z',
+      requested_slot_end_at: '2099-06-18T13:50:00Z',
+      client_name: 'Олена',
+      client_email: 'olena-request@example.com',
+      status: 'PENDING',
+    })
+    const declinedRequest = {
+      ...pendingDeclineRequest,
+      status: 'DECLINED',
+    }
+
+    let requests = [buildRescheduleRequest(), pendingDeclineRequest]
+
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/booking/sessions/' && (config as { params?: { upcoming?: boolean } } | undefined)?.params?.upcoming) {
+        return [pendingSession]
+      }
+
+      if (url === '/booking/sessions/' && (config as { params?: { upcoming?: boolean } } | undefined)?.params?.upcoming === false) {
+        return []
+      }
+
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    mockedFetchSpecialistRescheduleRequests.mockImplementation(async () => requests)
+    mockedApproveSpecialistRescheduleRequest.mockImplementation(async (requestId) => {
+      expect(requestId).toBe(51)
+      requests = [approvedRequest, pendingDeclineRequest]
+    })
+    mockedDeclineSpecialistRescheduleRequest.mockImplementation(async (requestId) => {
+      expect(requestId).toBe(52)
+      requests = [approvedRequest, declinedRequest]
+    })
+
+    renderView()
+
+    expect(await screen.findByText(/maria-request@example\.com/)).toBeInTheDocument()
+
+    const approveCard = screen.getByText(/maria-request@example\.com/).closest('article')
+    expect(approveCard).not.toBeNull()
+    const approveButtons = within(approveCard as HTMLElement).getAllByRole('button')
+    const approveButton = approveButtons[0]
+    if (!approveButton) {
+      throw new Error('Approve button not found')
+    }
+    await fireEvent.click(approveButton)
+
+    await waitFor(() => {
+      expect(mockedApproveSpecialistRescheduleRequest).toHaveBeenCalledWith(51)
+      expect(mockToast.success).toHaveBeenCalledWith(BOOKING_SUCCESS_MESSAGES.rescheduleRequestApproved)
+    })
+
+    expect(within(screen.getByText(/maria-request@example\.com/).closest('article') as HTMLElement).getByText('Погоджено')).toBeInTheDocument()
+
+    const declineCard = screen.getByText(/olena-request@example\.com/).closest('article')
+    expect(declineCard).not.toBeNull()
+    const declineButtons = within(declineCard as HTMLElement).getAllByRole('button')
+    const declineButton = declineButtons[1]
+    if (!declineButton) {
+      throw new Error('Decline button not found')
+    }
+    await fireEvent.click(declineButton)
+
+    await waitFor(() => {
+      expect(mockedDeclineSpecialistRescheduleRequest).toHaveBeenCalledWith(52)
+      expect(mockToast.success).toHaveBeenCalledWith(BOOKING_SUCCESS_MESSAGES.rescheduleRequestDeclined)
+    })
+
+    expect(within(screen.getByText(/olena-request@example\.com/).closest('article') as HTMLElement).getByText('Відхилено')).toBeInTheDocument()
+
+    expect(mockedFetchSpecialistRescheduleRequests).toHaveBeenCalledTimes(3)
+    expect(mockedFetchSpecialistAvailableSlots).toHaveBeenCalledTimes(2)
+    expect(mockedFetchSpecialistProfile).toHaveBeenCalledTimes(2)
     expect(mockedApiGet).toHaveBeenCalledTimes(4)
   })
 
