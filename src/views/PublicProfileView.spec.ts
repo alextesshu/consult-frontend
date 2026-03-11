@@ -448,7 +448,7 @@ describe('PublicProfileView', () => {
     expect(await screen.findByText('Чи можна коротко уточнити формат роботи?')).toBeInTheDocument()
   })
 
-  it('renders existing inquiry history with a calm follow-up state', async () => {
+  it('renders the post-follow-up inquiry state as open while waiting for the final specialist reply', async () => {
     mockAuth.accessToken = 'token'
     mockAuth.me = { user: { id: 7, roles: ['CLIENT'] } }
 
@@ -472,8 +472,22 @@ describe('PublicProfileView', () => {
         id: 301,
         thread_id: 91,
         sender_id: 7,
-        body: 'Маю одне коротке уточнення.',
+        body: 'Чи працюєте ви з тривогою?',
         created_at: '2026-03-11T10:00:00Z',
+      },
+      {
+        id: 302,
+        thread_id: 91,
+        sender_id: 12,
+        body: 'Так, працюю з такими запитами.',
+        created_at: '2026-03-11T10:10:00Z',
+      },
+      {
+        id: 303,
+        thread_id: 91,
+        sender_id: 7,
+        body: 'Маю одне коротке уточнення.',
+        created_at: '2026-03-11T10:20:00Z',
       },
     ])
     mockClientPageData()
@@ -481,9 +495,8 @@ describe('PublicProfileView', () => {
     renderView()
 
     expect(await screen.findByText('Маю одне коротке уточнення.')).toBeInTheDocument()
-    expect(
-      screen.getByText('Ви вже надіслали стартове запитання. Наступне уточнення стане доступним після відповіді спеціаліста.')
-    ).toBeInTheDocument()
+    expect(screen.getByText('Уточнення надіслано')).toBeInTheDocument()
+    expect(screen.getByText('Ваше уточнення надіслано. Очікуйте відповіді спеціаліста.')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Надіслати уточнення' })).not.toBeInTheDocument()
   })
 

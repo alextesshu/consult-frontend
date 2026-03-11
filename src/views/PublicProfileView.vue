@@ -978,9 +978,27 @@ const inquiryLeadCopy = computed(() => {
     ? state.can_client_send
       ? null
       : state.client_send_reason_code
-    : state.can_create_inquiry
-      ? null
-      : state.create_reason_code
+      : state.can_create_inquiry
+        ? null
+        : state.create_reason_code
+
+  if (
+    state.inquiry_exists &&
+    state.inquiry_status === 'OPEN' &&
+    state.can_client_send === false &&
+    state.client_send_reason_code === 'FOLLOW_UP_REQUIRES_SPECIALIST_REPLY'
+  ) {
+    const hasSpecialistReply = inquiryMessages.value.some((message) => !isMyInquiryMessage(message.sender_id))
+    const lastMessage = inquiryMessages.value[inquiryMessages.value.length - 1] || null
+
+    if (hasSpecialistReply && lastMessage && isMyInquiryMessage(lastMessage.sender_id)) {
+      return {
+        title: 'Уточнення надіслано',
+        body: 'Ваше уточнення надіслано. Очікуйте відповіді спеціаліста.',
+        tone: 'info' as const,
+      }
+    }
+  }
 
   return mapInquiryStateToUi({
     status: state.inquiry_status,
