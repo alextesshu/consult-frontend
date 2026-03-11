@@ -35,6 +35,7 @@ Before making non-trivial UI changes, inspect relevant docs in `docs/` when appl
 Priority references:
 
 - `docs/UI\_SHAPE\_STANDARD.md`
+- `docs/HANDOFF.md`
 
 If the task affects shared layout, forms, profile presentation, landing structure, or dashboard UX, inspect the relevant UI guidance first.
 
