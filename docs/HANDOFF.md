@@ -4,7 +4,7 @@ Last updated: 2026-03-12
 Owner: agent-maintained
 Primary use: persistent project handoff for agent-led work
 Update trigger: after each meaningful completed task
-Last agent task: extend shared specialist session regression coverage to API wrappers and fetch fallbacks
+Last agent task: add list-view stale confirm regression coverage for specialist sessions
 
 Update rule:
 
@@ -35,13 +35,15 @@ Update rule:
 - `TherapistSessionsView` now has focused list-level regression coverage for mount loading, list rendering, pending reschedule context, filter reset behavior, and empty states.
 - `TherapistSessionsView` now also has focused mutation regression coverage for confirm, cancel, inline reschedule, recurring-series flows, and specialist-side reschedule request approve/decline flows, including reload/toast expectations.
 - `TherapistSessionsView` now also covers specialist-side completion flow, including actual-duration prompt payload, post-complete list reload, and note-modal opening with refreshed note content.
+- `TherapistSessionsView.spec.ts` now also covers stale specialist-side confirm rejection, including inline error rendering and the no-reload behavior expected for an invalid status transition.
 - `TherapistSessionsView.spec.ts` now derives formatted date expectations via shared session formatting helpers instead of hardcoded local-hour strings, which removes timezone-sensitive suite failures in CI/local runs.
 - `TherapistSessionDetailView` exists at `/cabinet/sessions/:id` with status actions, request context, recurring creation, private notes, and focused mutation regression coverage for confirm/cancel happy paths, specialist-side reschedule request approve/decline flows, stale confirm rejection, reschedule panel guards, recurring input guard, and invalid/stale routes.
 - `TherapistSessionDetailView.spec.ts` now also covers specialist-side completion flow, including actual-duration prompt payload, refreshed session context, and note reload after completion.
 - Shared specialist session formatting, action guards, input parsing, note loading/saving, and booking action requests are centralized in `src/lib/specialistSessions.ts` and reused by `TherapistSessionsView` and `TherapistSessionDetailView`.
 - `src/lib/specialistSessions.spec.ts` now adds focused helper-level regression coverage for shared session timing, duration parsing, recurring guards, in-progress status labeling, slot filtering, note fallback handling, and specialist session API wrapper endpoint/payload contracts.
+- `src/router/index.spec.ts` now adds router-level regression coverage for the specialist session list/detail paths, including the numeric `:id(\\d+)` guard on `/cabinet/sessions/:id`, unauthenticated redirect-to-login behavior, and successful specialist access to the detail route.
 - `ClientSessionDetailView` now shows clearer inline guidance for confirmed vs scheduled sessions and keeps reschedule actions disabled for non-active statuses.
-- `ClientSessionDetailView` now has view-level regression coverage for confirmed/request-based and scheduled/direct-reschedule messaging flows.
+- `ClientSessionDetailView` now has view-level regression coverage for confirmed/request-based, scheduled/direct-reschedule, and completed/cancelled disabled-action messaging flows.
 - `PublicProfileView` now switches primary CTA from intro-booking to internal chat for clients who already have an active chat thread with that specialist, instead of falling back to external `mailto` / messenger links.
 - `ChatView` now supports query-driven preselect by `therapist_id` or `thread_id`, so profile-driven chat entrypoints can open the intended thread directly.
 - `PublicProfileView` and `ChatView` now have focused regression coverage for active-client chat surfacing and thread preselection.
@@ -54,7 +56,7 @@ Update rule:
 
 ## Changed files
 
-- `src/lib/specialistSessions.spec.ts`
+- `src/views/TherapistSessionsView.spec.ts`
 - `docs/HANDOFF.md`
 
 ## Validation
@@ -62,11 +64,11 @@ Update rule:
 Current task validation:
 
 ```powershell
-npm run test:run -- src/lib/specialistSessions.spec.ts
+npm run test:run -- src/views/TherapistSessionsView.spec.ts
 npm run typecheck
 ```
 
-Current task validation passed: the expanded shared specialist-session spec and `npm run typecheck` succeeded after adding API-wrapper and fetch-fallback regression coverage.
+Current task validation passed: the expanded therapist-sessions list spec and `npm run typecheck` succeeded after adding stale confirm regression coverage.
 
 ## Remaining work
 
@@ -79,11 +81,9 @@ Current task validation passed: the expanded shared specialist-session spec and 
 
 ## Risks / open questions
 
-- Session coverage is still view-level; there is no dedicated router-spec assertion for the numeric session route regex itself.
 - Specialist-session approve/decline behavior is now covered in both list and detail views, but there is still no higher-level integration spec asserting end-to-end parity between them.
 - Completion flow is now covered at the view level in both list and detail surfaces, but there is still no router/integration-level assertion covering a real multi-step specialist session lifecycle.
 - Shared specialist-session helper and API wrapper coverage now exists, but there is still no integration-level assertion proving that list/detail surfaces stay aligned against the same backend lifecycle.
-- Client session messaging coverage focuses on `SCHEDULED` and `CONFIRMED`; completed/cancelled rendering is improved in-view but not directly asserted in tests.
 - Public-profile chat surfacing currently infers message availability from existing chat threads; if backend relation rules change, a dedicated capability flag may still be worth adding later.
 - Inquiry messaging is intentionally bounded and non-realtime: no attachments, no dashboard card surfacing, and no unified inbox with full chat.
 - The new post-follow-up copy is derived in `PublicProfileView` from thread message history plus backend flags; if backend later exposes a dedicated reason/state for this step, the UI logic should be simplified to consume that directly.

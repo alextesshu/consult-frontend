@@ -197,4 +197,80 @@ describe('ClientSessionDetailView', () => {
     ).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Перенести сюди' })).toBeInTheDocument()
   })
+
+  it('shows completed and cancelled guidance while keeping follow-up actions disabled', async () => {
+    let sessionStatus = 'COMPLETED'
+
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/sessions/55/') {
+        return makeSession(sessionStatus)
+      }
+
+      if (url === '/booking/slots/') {
+        return [
+          {
+            id: 303,
+            start_at: '2099-06-20T09:00:00Z',
+            end_at: '2099-06-20T09:50:00Z',
+          },
+        ]
+      }
+
+      if (url === '/booking/sessions/55/reschedule-suggestions/') {
+        return {
+          suggestions: [
+            {
+              slot_id: 303,
+              start_at: '2099-06-20T09:00:00Z',
+              end_at: '2099-06-20T09:50:00Z',
+              label: 'Suggested',
+              reason_tag: 'nearest_available',
+            },
+          ],
+        }
+      }
+
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    const firstView = renderView()
+
+    expect(
+      await screen.findByText(
+        'Сесію завершено. Для наступної зустрічі оберіть новий вільний слот у профілі спеціаліста.'
+      )
+    ).toBeInTheDocument()
+    expect(screen.getByText('Завершено')).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        'Перенесення доступне лише для активних сесій зі статусом "Заплановано" або "Підтверджено".'
+      )
+    ).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Скасувати сесію' })).toBeDisabled()
+    expect(screen.queryByRole('button', { name: 'Перенести на обраний варіант' })).not.toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Перенести сюди' })).toBeDisabled()
+    })
+
+    sessionStatus = 'CANCELLED'
+    firstView.unmount()
+    renderView()
+
+    expect(
+      await screen.findByText(
+        'Сесію скасовано. Якщо потрібна нова зустріч, оберіть інший доступний слот у профілі спеціаліста.'
+      )
+    ).toBeInTheDocument()
+    expect(screen.getByText('Скасовано')).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        'Перенесення доступне лише для активних сесій зі статусом "Заплановано" або "Підтверджено".'
+      )
+    ).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Скасувати сесію' })).toBeDisabled()
+    expect(screen.queryByRole('button', { name: 'Перенести на обраний варіант' })).not.toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Перенести сюди' })).toBeDisabled()
+    })
+  })
 })

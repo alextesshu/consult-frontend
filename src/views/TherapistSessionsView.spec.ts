@@ -341,6 +341,52 @@ describe('TherapistSessionsView', () => {
     expect(mockedApiGet).toHaveBeenCalledTimes(6)
   })
 
+  it('surfaces a stale confirm target error without reloading the list context', async () => {
+    const scheduledSession = buildSession()
+
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/booking/sessions/' && (config as { params?: { upcoming?: boolean } } | undefined)?.params?.upcoming) {
+        return [scheduledSession]
+      }
+
+      if (url === '/booking/sessions/' && (config as { params?: { upcoming?: boolean } } | undefined)?.params?.upcoming === false) {
+        return []
+      }
+
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    mockedConfirmSpecialistSession.mockRejectedValue({
+      response: {
+        status: 409,
+        data: {
+          detail: 'Invalid status transition.',
+        },
+      },
+    })
+
+    renderView()
+
+    expect(await screen.findByText(/anna@example\.com/)).toBeInTheDocument()
+
+    const scheduledCard = screen.getByText(/anna@example\.com/).closest('article')
+    expect(scheduledCard).not.toBeNull()
+    const actionButtons = within(scheduledCard as HTMLElement).getAllByRole('button')
+    const confirmButton = actionButtons[0]
+    if (!confirmButton) {
+      throw new Error('Confirm button not found')
+    }
+    await fireEvent.click(confirmButton)
+
+    await waitFor(() => {
+      expect(mockedConfirmSpecialistSession).toHaveBeenCalledWith(11)
+    })
+
+    expect(screen.getByText('Цю дію неможливо виконати для поточного статусу сесії.')).toBeInTheDocument()
+    expect(confirmButton).not.toBeDisabled()
+    expect(mockedApiGet).toHaveBeenCalledTimes(2)
+  })
+
   it('completes a confirmed session, reloads the list, and opens the note modal with refreshed content', async () => {
     const confirmedSession = buildSession({
       id: 15,
