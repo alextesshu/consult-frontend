@@ -195,6 +195,9 @@ export type PublicTherapistProfile = {
   contact_email?: string
   contact_phone?: string
   messenger?: string
+  telegram?: string
+  viber?: string
+  whatsapp?: string
   photo_url?: string
   video_url?: string
   platform_setting_text?: string

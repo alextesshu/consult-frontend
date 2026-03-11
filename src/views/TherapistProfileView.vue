@@ -5,7 +5,7 @@
         <div class="badge">Кабінет спеціаліста</div>
         <h1 class="title profile__title">Керування публічним профілем</h1>
         <p class="muted profile__subtitle">
-          Налаштовуйте видимість, тексти й контакти. Прев’ю показує, як вас бачать клієнти.
+          Збирайте свою публічну сторінку як міні-сайт: офер, довіра, контент, контакти й медіа.
         </p>
       </div>
       <div class="profile__actions">
@@ -530,8 +530,8 @@
           </div>
           <div class="panel__meta">{{ profile.public_slug || 'slug ще не створено' }}</div>
         </div>
-        <details class="details details--preview">
-          <summary>Показати прев'ю</summary>
+        <details class="details details--preview" open>
+          <summary>Live preview публічної сторінки</summary>
           <div class="preview-card">
             <div class="preview-content">
               <div class="preview-info">
@@ -921,13 +921,16 @@ function buildProfilePayload() {
     intro_price_currency: profile.intro_price_currency || 'UAH',
     contact_email: profile.contact_email,
     contact_phone: profile.contact_phone,
+    messenger: profile.messenger,
     telegram: profile.telegram,
     viber: profile.viber,
+    whatsapp: profile.whatsapp,
     show_email: profile.show_email,
     show_phone: profile.show_phone,
     show_messenger: profile.show_messenger,
     show_telegram: profile.show_telegram,
     show_viber: profile.show_viber,
+    show_whatsapp: profile.show_whatsapp,
     show_video: profile.show_video,
     show_price: profile.show_price,
     show_intro_price: profile.show_intro_price,
@@ -987,21 +990,28 @@ const publicUrl = computed(() => {
   return `${window.location.origin}/specialist/${profile.public_slug}`
 })
 
+function formatPriceAmount(value: string | number | null | undefined): string {
+  if (value === null || value === undefined) return ''
+  const raw = String(value).trim()
+  if (!raw) return ''
+  return raw.replace(/([.,])00$/, '')
+}
+
+function formatPriceDisplay(value: string | number | null | undefined, currency?: string | null): string {
+  const amount = formatPriceAmount(value)
+  if (!amount) return ''
+  const code = (currency || 'UAH').toUpperCase()
+  if (code === 'UAH') return `${amount} грн`
+  if (code === 'USD') return `$${amount}`
+  if (code === 'EUR') return `€${amount}`
+  return `${amount} ${code}`
+}
+
 const priceDisplay = computed(() => {
-  if (!profile.price) return ''
-  const currency = profile.price_currency || 'UAH'
-  if (currency === 'UAH') return `${profile.price} грн`
-  if (currency === 'USD') return `$${profile.price}`
-  if (currency === 'EUR') return `€${profile.price}`
-  return `${profile.price} ${currency}`
+  return formatPriceDisplay(profile.price, profile.price_currency)
 })
 const introPriceDisplay = computed(() => {
-  if (!profile.intro_price) return ''
-  const currency = profile.intro_price_currency || 'UAH'
-  if (currency === 'UAH') return `${profile.intro_price} грн`
-  if (currency === 'USD') return `$${profile.intro_price}`
-  if (currency === 'EUR') return `€${profile.intro_price}`
-  return `${profile.intro_price} ${currency}`
+  return formatPriceDisplay(profile.intro_price, profile.intro_price_currency)
 })
 const hasAnyBioSection = computed(
   () =>

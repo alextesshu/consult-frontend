@@ -1,43 +1,76 @@
 ﻿<template>
   <section class="public">
     <header class="public__hero">
-      <div>
+      <div class="hero-media" v-if="profile">
+        <img
+          v-if="profile.photo_url"
+          class="hero-photo"
+          :src="profile.photo_url"
+          alt="Фото спеціаліста"
+        />
+        <div v-else class="hero-photo-placeholder">Фото спеціаліста</div>
+        <video
+          v-if="profile.video_url"
+          class="hero-video"
+          :src="profile.video_url"
+          controls
+          preload="metadata"
+        ></video>
+      </div>
+      <div class="hero-main">
         <div class="badge">Профіль спеціаліста</div>
         <h1 class="title public__title">{{ publicName || 'Профіль спеціаліста' }}</h1>
         <p class="muted public__subtitle">
-          {{ profile ? 'Публічна картка з описом і доступними вільними вікнами.' : 'Завантаження профілю' }}
+          {{ profile ? 'Безпечний простір для першої розмови у вашому темпі.' : 'Завантаження профілю' }}
         </p>
-      </div>
-      <div class="public__actions">
-        <a class="btn btn--ghost" href="#journal">Авторський журнал</a>
-        <RouterLink
-          v-if="canManageProfile"
-          class="btn btn--ghost"
-          to="/cabinet/journal"
-        >
-          Мій журнал
-        </RouterLink>
-        <RouterLink class="btn" :to="feedbackLink">
-          Відгуки
-          <span v-if="isAuthenticated && isClient && canLeaveFeedback" class="badge badge--soft">
-            Доступно
+        <div v-if="profile" class="hero-trust">
+          <span v-if="profile.specializations">{{ profile.specializations }}</span>
+          <span v-if="languagesDisplay">{{ languagesDisplay }}</span>
+          <span v-if="profile.experience_years !== undefined && profile.experience_years !== null">
+            Досвід: {{ formatExperience(profile.experience_years) }}
           </span>
-        </RouterLink>
-        <RouterLink class="btn btn--ghost" to="/specialists">
-          Повернутись до списку
-        </RouterLink>
-        <RouterLink v-if="canManageProfile" class="btn btn--ghost" to="/cabinet/profile">
-          Керувати профілем
-        </RouterLink>
-        <RouterLink class="btn btn--ghost" to="/">На головну</RouterLink>
+          <span v-if="profile.location">{{ profile.location }}</span>
+        </div>
       </div>
+      <aside class="hero-cta" v-if="profile">
+        <div class="hero-cta__prices">
+          <div v-if="introPriceDisplay" class="hero-cta__price hero-cta__price--intro">
+            Ознайомча сесія: {{ introPriceDisplay }}
+            <span v-if="introDurationLabel">· {{ introDurationLabel }}</span>
+          </div>
+          <div v-if="priceDisplay" class="hero-cta__price">
+            Консультація: {{ priceDisplay }}
+            <span> · {{ standardSessionDurationLabel }}</span>
+          </div>
+        </div>
+        <div class="hero-cta__actions">
+          <a class="btn btn--primary" href="#slots">Записатися на ознайомчу сесію</a>
+          <a class="btn btn--ghost" href="#slots">Переглянути вільні вікна</a>
+          <RouterLink class="btn btn--ghost" :to="feedbackLink">Відгуки</RouterLink>
+        </div>
+      </aside>
     </header>
 
     <div v-if="loading" class="muted">Завантаження...</div>
     <div v-else-if="error" class="form-error">{{ error }}</div>
 
     <section v-else-if="profile" class="public__grid">
-      <div class="panel panel--slots">
+      <section class="panel panel--trust" v-if="trustItems.length">
+        <div class="panel__header">
+          <div>
+            <div class="badge badge--soft">Що важливо знати</div>
+            <h2 class="panel__title">Довіра і формат</h2>
+          </div>
+        </div>
+        <div class="trust-grid">
+          <article v-for="item in trustItems" :key="item.label" class="trust-card">
+            <div class="trust-card__label">{{ item.label }}</div>
+            <div class="trust-card__value">{{ item.value }}</div>
+          </article>
+        </div>
+      </section>
+
+      <div class="panel panel--slots" id="slots">
         <div class="panel__header">
           <div>
             <div class="badge badge--soft">Доступні вільні вікна</div>
@@ -141,7 +174,7 @@
           {{ noSlotsAvailable ? 'Наразі вільних віконець немає.' : 'На жаль, у цей день вільних віконець немає.' }}
         </div>
         <div v-else class="slot-list">
-          <div v-for="slot in slots" :key="slot.id" class="slot-card">
+          <div v-for="slot in visibleSlots" :key="slot.id" class="slot-card">
             <div>
               <div class="slot-time">{{ formatDate(slot.start_at) }}</div>
               <div class="muted">{{ formatDuration(slot.start_at, slot.end_at) }}</div>
@@ -156,54 +189,93 @@
               {{ bookingSlotId === slot.id ? 'Бронюємо...' : 'Записатися' }}
             </button>
           </div>
+          <button
+            v-if="hasMoreSlots"
+            class="btn btn--ghost slot-list__toggle"
+            type="button"
+            @click="showAllSlots = !showAllSlots"
+          >
+            {{ showAllSlots ? 'Показати менше' : `Показати весь розклад (${slots.length})` }}
+          </button>
         </div>
       </div>
 
-      <div class="panel panel--profile">
-        <div class="profile-card">
-          <div class="profile-card__media">
-            <img v-if="profile.photo_url" :src="profile.photo_url" alt="Фото спеціаліста" />
-            <div v-else class="media-placeholder">Фото ще не додано</div>
-            <video
-              v-if="profile.video_url"
-              class="profile-video"
-              :src="profile.video_url"
-              controls
-              preload="metadata"
-            ></video>
-          </div>
-          <div class="profile-card__info">
-            <div class="profile-card__title">{{ publicName }}</div>
-            <div class="profile-card__meta">
-              <span v-if="profile.specializations">{{ profile.specializations }}</span>
-              <span v-if="languagesDisplay">{{ languagesDisplay }}</span>
-              <span v-if="profile.experience_years !== undefined && profile.experience_years !== null">
-                Досвід: {{ formatExperience(profile.experience_years) }}
-              </span>
-              <span v-if="profile.location">{{ profile.location }}</span>
-            </div>
-            <div class="profile-card__price" v-if="priceDisplay">
-              {{ priceDisplay }}
-            </div>
-            <div class="profile-card__price" v-if="introPriceDisplay">
-              Пробна сесія: {{ introPriceDisplay }}
-              <span v-if="introDurationLabel">• {{ introDurationLabel }}</span>
-            </div>
-            <div class="profile-card__contact">
-              <div v-if="profile.contact_email">Ел. пошта: {{ profile.contact_email }}</div>
-              <div v-if="profile.contact_phone">Телефон: {{ profile.contact_phone }}</div>
-              <div v-if="profile.messenger">Messenger: {{ profile.messenger }}</div>
-            </div>
+      <section class="panel panel--work-format">
+        <div class="panel__header">
+          <div>
+            <div class="badge badge--soft">Формат</div>
+            <h2 class="panel__title">Формат роботи</h2>
           </div>
         </div>
-        <div class="profile-bio" v-if="bioSections.length">
-          <div v-for="section in bioSections" :key="section.title" class="bio-section">
+        <div class="work-format-grid">
+          <div v-if="introDurationLabel" class="profile-summary__item">
+            Тривалість ознайомчої сесії: {{ introDurationLabel }}
+          </div>
+          <div v-if="introPriceDisplay" class="profile-summary__item">
+            Вартість ознайомчої сесії: {{ introPriceDisplay }}
+          </div>
+          <div v-if="profile.location" class="profile-summary__item">
+            Локація: {{ profile.location }}
+          </div>
+          <div v-if="priceDisplay" class="profile-summary__item">
+            Консультація: {{ priceDisplay }} · {{ standardSessionDurationLabel }}
+          </div>
+          <div class="profile-summary__item">
+            Що буде після запису: сесія з’явиться в кабінеті, після підтвердження надійде нагадування.
+          </div>
+        </div>
+      </section>
+
+      <section class="panel panel--about" v-if="aboutSections.length">
+        <div class="panel__header">
+          <div>
+            <div class="badge badge--soft">Про спеціаліста</div>
+            <h2 class="panel__title">Про спеціаліста</h2>
+          </div>
+        </div>
+        <div class="about-grid">
+          <article v-for="section in aboutSections" :key="section.title" class="bio-section">
             <div class="bio-title">{{ section.title }}</div>
             <div class="muted">{{ section.body }}</div>
+          </article>
+        </div>
+      </section>
+
+      <section class="panel panel--who" v-if="whoThisIsForText">
+        <div class="panel__header">
+          <div>
+            <div class="badge badge--soft">Кому підійде</div>
+            <h2 class="panel__title">З якими запитами я працюю</h2>
           </div>
         </div>
-        <div v-else class="muted">Поки що немає опису.</div>
-      </div>
+        <div class="muted who-lead">Цей формат може підійти вам, якщо...</div>
+        <div class="who-text">{{ whoThisIsForText }}</div>
+        <div v-if="specializationChips.length" class="hero-trust">
+          <span v-for="(chip, index) in specializationChips" :key="`${chip}-${index}`">{{ chip }}</span>
+        </div>
+      </section>
+
+      <section class="panel panel--contacts" v-if="contactActions.length">
+        <div class="panel__header">
+          <div>
+            <div class="badge badge--soft">Зв’язок</div>
+            <h2 class="panel__title">Зв’язок зі спеціалістом</h2>
+          </div>
+        </div>
+        <div class="contact-actions">
+          <a
+            v-for="item in contactActions"
+            :key="item.label"
+            class="contact-action"
+            :href="item.href"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <span class="contact-action__label">{{ item.label }}</span>
+            <span class="contact-action__value">{{ item.value }}</span>
+          </a>
+        </div>
+      </section>
 
       <div class="panel panel--journal" id="journal">
         <div class="panel__header">
@@ -353,6 +425,46 @@
           </div>
         </div>
       </div>
+
+      <section class="panel panel--reviews" v-if="reviews.length">
+        <div class="panel__header">
+          <div>
+            <div class="badge badge--soft">Відгуки</div>
+            <h2 class="panel__title">Що кажуть клієнти</h2>
+          </div>
+          <RouterLink class="btn btn--ghost btn--sm" :to="feedbackLink">Усі відгуки</RouterLink>
+        </div>
+        <div class="reviews-list">
+          <article v-for="review in reviews" :key="review.id" class="review-card">
+            <div class="review-card__text">{{ review.review_text }}</div>
+            <div class="review-card__meta">{{ formatDate(review.created_at) }}</div>
+          </article>
+        </div>
+      </section>
+
+      <section class="panel panel--footer-cta">
+        <div class="footer-cta">
+          <div class="footer-cta__info">
+            <div class="footer-cta__name">{{ publicName || 'Спеціаліст' }}</div>
+            <div class="muted">Ознайомча сесія — без поспіху, у вашому темпі.</div>
+            <div v-if="introPriceDisplay" class="footer-cta__price">
+              Ознайомча сесія: {{ introPriceDisplay }}<span v-if="introDurationLabel"> · {{ introDurationLabel }}</span>
+            </div>
+          </div>
+          <div class="footer-cta__actions">
+            <a class="btn btn--primary" href="#slots">Записатися на ознайомчу сесію</a>
+            <a
+              v-if="primaryContactHref"
+              class="btn btn--ghost"
+              :href="primaryContactHref"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Написати спеціалісту
+            </a>
+          </div>
+        </div>
+      </section>
     </section>
 
     <div v-if="showBookingModal" class="setting-modal">
@@ -454,6 +566,12 @@ type ClientSession = {
   slot_end_at?: string | null
 }
 
+type PublicReview = {
+  id: number
+  review_text: string
+  created_at: string
+}
+
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
@@ -481,6 +599,7 @@ const journalPosts = ref<PublicAuthorJournalPost[]>([])
 const journalCollections = ref<PublicJournalCollectionListItem[]>([])
 const journalLoading = ref(false)
 const journalError = ref('')
+const reviews = ref<PublicReview[]>([])
 type JournalCategory = 'ALL' | 'TIP' | 'EXPLAIN' | 'FAQ' | 'RESEARCH' | 'PRACTICE'
 const activeCategory = ref<JournalCategory>('ALL')
 const categoryOptions: { key: JournalCategory; label: string }[] = [
@@ -493,17 +612,18 @@ const categoryOptions: { key: JournalCategory; label: string }[] = [
 ]
 const selectedDate = ref('')
 const slotDateInput = ref<HTMLInputElement | null>(null)
+const showAllSlots = ref(false)
+const slotsPreviewLimit = 5
 
 const slug = computed(() => String(route.params.slug || '').trim())
 const roles = computed(() => auth.me?.user.roles ?? auth.user?.roles ?? [])
 const isAuthenticated = computed(() => Boolean(auth.accessToken))
 const isClient = computed(() => roles.value.includes('CLIENT'))
-const canManageProfile = computed(
-  () => roles.value.includes('SPECIALIST') || roles.value.includes('THERAPIST')
-)
 const canBook = computed(() => isAuthenticated.value && isClient.value)
 const isBookingDisabled = (slotId: number) =>
   !canBook.value || bookingSlotId.value === slotId || !settingAccepted.value
+const visibleSlots = computed(() => (showAllSlots.value ? slots.value : slots.value.slice(0, slotsPreviewLimit)))
+const hasMoreSlots = computed(() => slots.value.length > slotsPreviewLimit)
 const upcomingConfirmed = computed(() => {
   if (!profile.value) return []
   return clientSessions.value
@@ -531,18 +651,6 @@ const upcomingConfirmed = computed(() => {
     .filter((item) => item.start_at && item.end_at)
     .sort((a, b) => new Date(a.start_at).getTime() - new Date(b.start_at).getTime())
 })
-const canLeaveFeedback = computed(() => {
-  if (!isAuthenticated.value || !isClient.value || !profile.value) return false
-  const specialistId = profile.value.therapist_id
-  const slugValue = profile.value.public_slug
-  const matchesSpecialist = (session: ClientSession) => {
-    if (specialistId && session.therapist) return specialistId === session.therapist
-    if (slugValue && session.therapist_public_slug) return slugValue === session.therapist_public_slug
-    return false
-  }
-  return clientSessions.value.some(matchesSpecialist) || pastClientSessions.value.some(matchesSpecialist)
-})
-
 const weekDays = computed(() => {
   const base = new Date()
   const days: Array<{ date: string; label: string; dateLabel: string }> = []
@@ -566,30 +674,46 @@ const languagesDisplay = computed(() => {
   return value
 })
 
+function toTextList(value: unknown): string[] {
+  if (!value) return []
+  if (Array.isArray(value)) return value.map((item) => String(item).trim()).filter(Boolean)
+  return String(value)
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean)
+}
+
+const specializationChips = computed(() => toTextList(profile.value?.specializations))
+
 const publicName = computed(() => formatPublicName(profile.value?.display_name) || profile.value?.display_name || '')
 const feedbackLink = computed(() => ({
   name: 'specialist-feedback',
   params: { slug: profile.value?.public_slug || slug.value },
 }))
 
+function formatPriceAmount(value: string | number | null | undefined): string {
+  if (value === null || value === undefined) return ''
+  const raw = String(value).trim()
+  if (!raw) return ''
+  return raw.replace(/([.,])00$/, '')
+}
+
+function formatPriceDisplay(value: string | number | null | undefined, currency?: string | null): string {
+  const amount = formatPriceAmount(value)
+  if (!amount) return ''
+  const code = (currency || 'UAH').toUpperCase()
+  if (code === 'UAH') return `${amount} грн`
+  if (code === 'USD') return `$${amount}`
+  if (code === 'EUR') return `€${amount}`
+  return `${amount} ${code}`
+}
+
 const priceDisplay = computed(() => {
-  const price = profile.value?.price
-  if (!price) return ''
-  const currency = profile.value?.price_currency || 'UAH'
-  if (currency === 'UAH') return `${price} грн`
-  if (currency === 'USD') return `$${price}`
-  if (currency === 'EUR') return `€${price}`
-  return `${price} ${currency}`
+  return formatPriceDisplay(profile.value?.price, profile.value?.price_currency)
 })
 
 const introPriceDisplay = computed(() => {
-  const price = profile.value?.intro_price
-  if (!price) return ''
-  const currency = profile.value?.intro_price_currency || 'UAH'
-  if (currency === 'UAH') return `${price} грн`
-  if (currency === 'USD') return `$${price}`
-  if (currency === 'EUR') return `€${price}`
-  return `${price} ${currency}`
+  return formatPriceDisplay(profile.value?.intro_price, profile.value?.intro_price_currency)
 })
 
 const introDurationLabel = computed(() => {
@@ -597,6 +721,134 @@ const introDurationLabel = computed(() => {
   if (!minutes) return ''
   return `${minutes} хв`
 })
+
+const aboutSections = computed(() => {
+  if (!profile.value) return []
+  return [
+    { title: 'Про мене', body: profile.value.bio_about || profile.value.bio || '' },
+    { title: 'Як я працюю', body: profile.value.bio_work || '' },
+    { title: 'Мій підхід', body: profile.value.bio_approach || '' },
+  ].filter((section) => section.body)
+})
+
+const whoThisIsForText = computed(() => profile.value?.bio_for_whom || '')
+
+const trustItems = computed(() => {
+  if (!profile.value) return []
+  const items: Array<{ label: string; value: string }> = []
+  if (profile.value.experience_years !== undefined && profile.value.experience_years !== null) {
+    items.push({ label: 'Досвід', value: formatExperience(profile.value.experience_years) })
+  }
+  if (languagesDisplay.value) items.push({ label: 'Мови', value: languagesDisplay.value })
+  if (profile.value.location) items.push({ label: 'Локація', value: profile.value.location })
+  if (introDurationLabel.value) items.push({ label: 'Ознайомча сесія', value: introDurationLabel.value })
+  if (standardSessionDurationLabel.value) {
+    items.push({ label: 'Стандартна сесія', value: standardSessionDurationLabel.value })
+  }
+  return items
+})
+
+function normalizeTelegramHref(value: string) {
+  const trimmed = value.trim()
+  if (!trimmed) return ''
+  if (/^https?:\/\//i.test(trimmed)) return trimmed
+  return `https://t.me/${trimmed.replace(/^@/, '')}`
+}
+
+function normalizeWhatsAppHref(value: string) {
+  const digits = value.replace(/[^\d+]/g, '')
+  if (!digits) return ''
+  if (/^https?:\/\//i.test(value.trim())) return value.trim()
+  return `https://wa.me/${digits.replace('+', '')}`
+}
+
+function normalizeViberHref(value: string) {
+  const trimmed = value.trim()
+  if (!trimmed) return ''
+  if (/^https?:\/\//i.test(trimmed)) return trimmed
+  return `viber://chat?number=${trimmed.replace(/[^\d+]/g, '')}`
+}
+
+const contactActions = computed(() => {
+  if (!profile.value) return []
+  const items: Array<{ label: string; value: string; href: string }> = []
+  if (profile.value.contact_email) {
+    items.push({
+      label: 'Email',
+      value: profile.value.contact_email,
+      href: `mailto:${profile.value.contact_email}`,
+    })
+  }
+  if (profile.value.contact_phone) {
+    const phone = profile.value.contact_phone
+    items.push({
+      label: 'Телефон',
+      value: phone,
+      href: `tel:${phone.replace(/[^\d+]/g, '')}`,
+    })
+  }
+  if (profile.value.telegram) {
+    items.push({
+      label: 'Telegram',
+      value: profile.value.telegram,
+      href: normalizeTelegramHref(profile.value.telegram),
+    })
+  }
+  if (profile.value.whatsapp) {
+    items.push({
+      label: 'WhatsApp',
+      value: profile.value.whatsapp,
+      href: normalizeWhatsAppHref(profile.value.whatsapp),
+    })
+  }
+  if (profile.value.viber) {
+    items.push({
+      label: 'Viber',
+      value: profile.value.viber,
+      href: normalizeViberHref(profile.value.viber),
+    })
+  }
+  if (profile.value.messenger) {
+    const messenger = profile.value.messenger
+    items.push({
+      label: 'Messenger / Signal',
+      value: messenger,
+      href: /^https?:\/\//i.test(messenger) ? messenger : `https://m.me/${messenger.replace(/^@/, '')}`,
+    })
+  }
+  return items.filter((item) => Boolean(item.href))
+})
+
+const primaryContactHref = computed(() => contactActions.value[0]?.href || '')
+
+const standardSessionDurationMinutes = computed(() => {
+  const durations = slots.value
+    .map((slot) => {
+      const start = new Date(slot.start_at).getTime()
+      const end = new Date(slot.end_at).getTime()
+      if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) return 0
+      return Math.round((end - start) / 60000)
+    })
+    .filter((minutes) => minutes > 0 && minutes <= 300)
+
+  if (!durations.length) return 50
+
+  const freq = new Map<number, number>()
+  for (const minutes of durations) {
+    freq.set(minutes, (freq.get(minutes) || 0) + 1)
+  }
+  let winner = durations[0] ?? 50
+  let maxCount = 0
+  for (const [minutes, count] of freq.entries()) {
+    if (count > maxCount || (count === maxCount && minutes < winner)) {
+      winner = minutes
+      maxCount = count
+    }
+  }
+  return winner
+})
+
+const standardSessionDurationLabel = computed(() => `${standardSessionDurationMinutes.value} хв`)
 
 function formatPublicName(value?: string) {
   if (!value) return ''
@@ -608,18 +860,6 @@ function formatPublicName(value?: string) {
   const initial = last.charAt(0).toUpperCase()
   return `${first} ${initial}.`
 }
-
-const bioSections = computed(() => {
-  if (!profile.value) return []
-  const sections = [
-    { title: 'Про себе', body: profile.value.bio_about || profile.value.bio || '' },
-    { title: 'Як я працюю', body: profile.value.bio_work || '' },
-    { title: 'Мій підхід', body: profile.value.bio_approach || '' },
-    { title: 'Для кого це може бути', body: profile.value.bio_for_whom || '' },
-    { title: 'Інше', body: profile.value.bio_other || '' },
-  ]
-  return sections.filter((section) => section.body)
-})
 
 function formatDate(value: string) {
   const dt = new Date(value)
@@ -667,6 +907,7 @@ function openDatePicker() {
 
 function selectDay(date: string) {
   selectedDate.value = date
+  showAllSlots.value = false
 }
 
 async function loadProfile() {
@@ -738,6 +979,18 @@ async function loadJournal() {
     journalError.value = 'Не вдалося завантажити авторський журнал.'
   } finally {
     journalLoading.value = false
+  }
+}
+
+async function loadReviews() {
+  if (!slug.value) return
+  try {
+    const resp = await apiGet<PublicReview[]>(`/public/specialists/${slug.value}/reviews/`, {
+      params: { limit: 4 },
+    })
+    reviews.value = resp || []
+  } catch {
+    reviews.value = []
   }
 }
 
@@ -983,14 +1236,17 @@ function saveViewedSpecialist(data: PublicSpecialistProfile) {
 watch(slug, () => {
   profile.value = null
   slots.value = []
+  showAllSlots.value = false
   selectedDate.value = toLocalDate(new Date())
   loadProfile().then(loadSlots)
   loadClientSessions()
   loadJournal()
+  loadReviews()
 })
 
 watch(selectedDate, () => {
   slots.value = []
+  showAllSlots.value = false
   loadSlots()
 })
 
@@ -1017,6 +1273,7 @@ onMounted(async () => {
   await loadSlots()
   await loadClientSessions()
   await loadJournal()
+  await loadReviews()
 })
 </script>
 
@@ -1027,10 +1284,10 @@ onMounted(async () => {
 }
 
 .public__hero {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  gap: 20px;
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr) 360px;
+  align-items: start;
+  gap: 22px;
   background: linear-gradient(
     135deg,
     color-mix(in srgb, var(--color-primary-100) 70%, #ffffff),
@@ -1042,34 +1299,103 @@ onMounted(async () => {
   box-shadow: var(--shadow);
 }
 
+.hero-media {
+  width: 260px;
+  display: grid;
+  gap: 10px;
+  align-content: start;
+}
+
+.hero-photo {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: #fff;
+}
+
+.hero-photo-placeholder {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 16px;
+  border: 1px dashed var(--line);
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.65);
+}
+
+.hero-video {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: #0f2b3a;
+}
+
 .public__title {
   font-size: 32px;
 }
 
-  .public__subtitle {
-    max-width: 520px;
-  }
+.public__subtitle {
+  max-width: 520px;
+}
 
-.public__actions {
+.hero-main {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+  min-width: 0;
+}
+
+.hero-trust {
   display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 12px;
   flex-wrap: wrap;
+  gap: 8px;
 }
 
-.public__actions .btn--ghost {
+.hero-trust span {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid var(--line);
+  font-size: 12px;
+}
+
+.hero-cta {
+  width: 360px;
+  min-width: 360px;
+  max-width: 360px;
+  display: grid;
+  gap: 12px;
+  border: 1px solid color-mix(in srgb, var(--line) 70%, #fff);
   background: rgba(255, 255, 255, 0.78);
-  border-color: var(--color-neutral-200);
-  color: var(--color-neutral-800);
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
+  border-radius: 14px;
+  padding: 14px;
 }
 
-.public__actions .btn--ghost:hover,
-.public__actions .btn--ghost:focus-visible {
-  background: #ffffff;
-  border-color: color-mix(in srgb, var(--color-neutral-500) 45%, transparent);
-  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.12);
+.hero-cta__prices {
+  display: grid;
+  gap: 8px;
+}
+
+.hero-cta__price {
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: #fff;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.hero-cta__price--intro {
+  border-color: color-mix(in srgb, var(--color-primary-500) 20%, var(--line));
+}
+
+.hero-cta__actions {
+  display: grid;
+  gap: 8px;
 }
 
 .public__grid {
@@ -1087,6 +1413,16 @@ onMounted(async () => {
 }
 
 .panel--journal {
+  grid-column: 1 / -1;
+}
+
+.panel--trust,
+.panel--work-format,
+.panel--about,
+.panel--who,
+.panel--contacts,
+.panel--reviews,
+.panel--footer-cta {
   grid-column: 1 / -1;
 }
 
@@ -1220,69 +1556,167 @@ onMounted(async () => {
   background: rgba(8, 113, 201, 0.12);
 }
 
-.profile-card {
+.profile-summary {
   display: grid;
-  grid-template-columns: 120px 1fr;
-  gap: 16px;
-  align-items: start;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
 }
 
-.profile-card__media img {
-  width: 100%;
-  max-width: 180px;
-  height: 180px;
-  border-radius: 18px;
-  border: 1px solid var(--line);
-  object-fit: cover;
-}
-
-.profile-video {
-  width: 100%;
-  max-width: 240px;
-  margin-top: 12px;
-  border-radius: 14px;
-  border: 1px solid var(--line);
-  background: #0f2b3a;
-  display: block;
-}
-
-.media-placeholder {
-  width: 180px;
-  height: 180px;
-  border-radius: 14px;
-  border: 1px dashed rgba(47, 63, 73, 0.2);
+.work-format-grid {
   display: grid;
-  place-items: center;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.profile-summary__item {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: #f8fafc;
+  font-size: 13px;
+}
+
+.profile-contact {
+  display: grid;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px;
+  background: #fff;
+}
+
+.profile-contact__list {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.about-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.who-lead {
+  margin-top: -4px;
+}
+
+.who-text {
+  white-space: pre-line;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--deep);
+}
+
+.trust-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.trust-card {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: #f8fafc;
+  display: grid;
+  gap: 4px;
+}
+
+.trust-card__label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.trust-card__value {
+  font-weight: 600;
+}
+
+.contact-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.contact-action {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 10px 12px;
+  display: grid;
+  gap: 4px;
+  text-decoration: none;
+  color: inherit;
+  background: #fff;
+}
+
+.contact-action:hover {
+  border-color: color-mix(in srgb, var(--primary) 32%, var(--line));
+  background: #f8fbfd;
+}
+
+.contact-action__label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.contact-action__value {
+  font-weight: 600;
+}
+
+.reviews-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.review-card {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px;
+  background: #fff;
+  display: grid;
+  gap: 10px;
+}
+
+.review-card__text {
+  line-height: 1.5;
+}
+
+.review-card__meta {
   color: var(--muted);
   font-size: 12px;
 }
 
-.profile-card__title {
+.footer-cta {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: center;
+}
+
+.footer-cta__info {
+  display: grid;
+  gap: 6px;
+}
+
+.footer-cta__name {
   font-family: var(--font-display);
-  font-size: 22px;
-  color: var(--ink);
-  font-weight: 700;
-}
-
-.profile-card__meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  font-size: 13px;
-  color: var(--muted);
-}
-
-.profile-card__price {
-  margin-top: 8px;
+  font-size: 28px;
   font-weight: 600;
 }
 
-.profile-card__contact {
-  margin-top: 10px;
+.footer-cta__price {
+  font-weight: 600;
+}
+
+.footer-cta__actions {
   display: grid;
-  gap: 6px;
-  font-size: 13px;
-  color: var(--muted);
+  gap: 8px;
+  min-width: 320px;
 }
 
 .profile-bio {
@@ -1306,6 +1740,10 @@ onMounted(async () => {
 .slot-list {
   display: grid;
   gap: 10px;
+}
+
+.slot-list__toggle {
+  justify-self: start;
 }
 
   .slot-card {
@@ -1990,27 +2428,47 @@ onMounted(async () => {
 
 @media (max-width: 960px) {
   .public__hero {
-    flex-direction: column;
-    align-items: flex-start;
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .hero-media {
+    width: 100%;
+    max-width: 320px;
+  }
+
+  .hero-main {
+    width: 100%;
+  }
+
+  .hero-cta {
+    width: 100%;
+    min-width: 100%;
+    max-width: 100%;
   }
 
   .public__grid {
     grid-template-columns: 1fr;
   }
 
-  .profile-card {
+  .profile-summary {
     grid-template-columns: 1fr;
   }
 
-  .profile-card__media img,
-  .media-placeholder {
-    width: 100%;
-    max-width: 240px;
-    height: 240px;
+  .work-format-grid {
+    grid-template-columns: 1fr;
   }
 
-  .profile-video {
-    max-width: 100%;
+  .about-grid,
+  .trust-grid,
+  .contact-actions,
+  .reviews-list,
+  .footer-cta {
+    grid-template-columns: 1fr;
+  }
+
+  .footer-cta__actions {
+    min-width: 0;
   }
 
   .first-session-flow {
