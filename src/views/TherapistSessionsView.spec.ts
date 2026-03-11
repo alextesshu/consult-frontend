@@ -2,8 +2,13 @@ import { fireEvent, render, screen, waitFor, within } from '@testing-library/vue
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { apiGet, fetchSpecialistProfile } from '../lib/api'
 import {
+  cancelSpecialistSession,
+  confirmSpecialistSession,
+  createRecurringSpecialistSessions,
   fetchSpecialistAvailableSlots,
   fetchSpecialistRescheduleRequests,
+  fetchSpecialistRescheduleSuggestions,
+  rescheduleSpecialistSession,
 } from '../lib/specialistSessions'
 import TherapistSessionsView from './TherapistSessionsView.vue'
 
@@ -59,8 +64,13 @@ vi.mock('../lib/specialistSessions', async () => {
 
 const mockedApiGet = vi.mocked(apiGet)
 const mockedFetchSpecialistProfile = vi.mocked(fetchSpecialistProfile)
+const mockedCancelSpecialistSession = vi.mocked(cancelSpecialistSession)
+const mockedConfirmSpecialistSession = vi.mocked(confirmSpecialistSession)
+const mockedCreateRecurringSpecialistSessions = vi.mocked(createRecurringSpecialistSessions)
 const mockedFetchSpecialistAvailableSlots = vi.mocked(fetchSpecialistAvailableSlots)
 const mockedFetchSpecialistRescheduleRequests = vi.mocked(fetchSpecialistRescheduleRequests)
+const mockedFetchSpecialistRescheduleSuggestions = vi.mocked(fetchSpecialistRescheduleSuggestions)
+const mockedRescheduleSpecialistSession = vi.mocked(rescheduleSpecialistSession)
 
 function buildSession(overrides: Record<string, unknown> = {}) {
   return {
@@ -121,8 +131,13 @@ describe('TherapistSessionsView', () => {
     mockRoute.hash = ''
     mockedApiGet.mockReset()
     mockedFetchSpecialistProfile.mockReset()
+    mockedCancelSpecialistSession.mockReset()
+    mockedConfirmSpecialistSession.mockReset()
+    mockedCreateRecurringSpecialistSessions.mockReset()
     mockedFetchSpecialistAvailableSlots.mockReset()
     mockedFetchSpecialistRescheduleRequests.mockReset()
+    mockedFetchSpecialistRescheduleSuggestions.mockReset()
+    mockedRescheduleSpecialistSession.mockReset()
     mockToast.show.mockReset()
     mockToast.success.mockReset()
     mockToast.error.mockReset()
@@ -135,6 +150,7 @@ describe('TherapistSessionsView', () => {
     } as Awaited<ReturnType<typeof fetchSpecialistProfile>>)
     mockedFetchSpecialistAvailableSlots.mockResolvedValue([])
     mockedFetchSpecialistRescheduleRequests.mockResolvedValue([])
+    mockedFetchSpecialistRescheduleSuggestions.mockResolvedValue([])
   })
 
   it('renders the list-level session surface with filters and pending request context', async () => {
@@ -234,5 +250,220 @@ describe('TherapistSessionsView', () => {
     expect(screen.getByText('Немає нових запитів')).toBeInTheDocument()
     expect(screen.getByText('Історія порожня')).toBeInTheDocument()
     expect(screen.queryByText(/Нові бронювання:/)).not.toBeInTheDocument()
+  })
+
+  it('confirms and cancels sessions with a list reload after each mutation', async () => {
+    const scheduledSession = buildSession()
+    const confirmedSession = buildSession({
+      id: 12,
+      status: 'CONFIRMED',
+      client: 102,
+      client_name: 'Марія',
+      client_email: 'maria@example.com',
+      slot: 202,
+      slot_start_at: '2099-06-16T12:00:00Z',
+      slot_end_at: '2099-06-16T12:50:00Z',
+    })
+    const cancelledSession = {
+      ...confirmedSession,
+      status: 'CANCELLED',
+    }
+
+    let upcomingSessions = [scheduledSession, confirmedSession]
+
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/booking/sessions/' && (config as { params?: { upcoming?: boolean } } | undefined)?.params?.upcoming) {
+        return upcomingSessions
+      }
+
+      if (url === '/booking/sessions/' && (config as { params?: { upcoming?: boolean } } | undefined)?.params?.upcoming === false) {
+        return []
+      }
+
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    mockedConfirmSpecialistSession.mockImplementation(async (sessionId) => {
+      expect(sessionId).toBe(11)
+      upcomingSessions = [{ ...scheduledSession, status: 'CONFIRMED' }, confirmedSession]
+    })
+
+    mockedCancelSpecialistSession.mockImplementation(async (sessionId) => {
+      expect(sessionId).toBe(12)
+      upcomingSessions = [{ ...scheduledSession, status: 'CONFIRMED' }, cancelledSession]
+    })
+
+    renderView()
+
+    expect(await screen.findByText(/anna@example\.com/)).toBeInTheDocument()
+
+    const scheduledCard = screen.getByText(/anna@example\.com/).closest('article')
+    expect(scheduledCard).not.toBeNull()
+    await fireEvent.click(within(scheduledCard as HTMLElement).getByRole('button', { name: 'Підтвердити' }))
+
+    await waitFor(() => {
+      expect(mockedConfirmSpecialistSession).toHaveBeenCalledWith(11)
+      expect(mockToast.success).toHaveBeenCalledWith('Сесію підтверджено.')
+    })
+
+    const updatedScheduledCard = screen.getByText(/anna@example\.com/).closest('article')
+    expect(updatedScheduledCard).not.toBeNull()
+    expect(within(updatedScheduledCard as HTMLElement).getByRole('button', { name: 'Підтвердити' })).toBeDisabled()
+
+    const confirmedCard = screen.getByText(/maria@example\.com/).closest('article')
+    expect(confirmedCard).not.toBeNull()
+    await fireEvent.click(within(confirmedCard as HTMLElement).getByRole('button', { name: 'Скасувати' }))
+
+    await waitFor(() => {
+      expect(mockedCancelSpecialistSession).toHaveBeenCalledWith(12)
+      expect(mockToast.success).toHaveBeenCalledWith('Сесію скасовано.')
+    })
+
+    const updatedConfirmedCard = screen.getAllByText(/maria@example\.com/)[0]?.closest('article')
+    expect(updatedConfirmedCard).not.toBeNull()
+    expect(within(updatedConfirmedCard as HTMLElement).getByText('Скасовано')).toBeInTheDocument()
+    expect(within(updatedConfirmedCard as HTMLElement).getByRole('button', { name: 'Скасувати' })).toBeDisabled()
+    expect(mockedApiGet).toHaveBeenCalledTimes(6)
+  })
+
+  it('submits a reschedule request from the list and closes the inline panel after reload', async () => {
+    const rescheduledSession = buildSession({
+      id: 13,
+      status: 'CONFIRMED',
+      client: 103,
+      client_name: 'Олена',
+      client_email: 'reschedule@example.com',
+      slot: 203,
+      slot_start_at: '2099-06-18T09:00:00Z',
+      slot_end_at: '2099-06-18T09:50:00Z',
+    })
+    const nextSlot = {
+      id: 401,
+      start_at: '2099-06-20T11:00:00Z',
+      end_at: '2099-06-20T11:50:00Z',
+      is_booked: false,
+    }
+    const suggestedSlot = {
+      slot_id: 401,
+      start_at: '2099-06-20T11:00:00Z',
+      end_at: '2099-06-20T11:50:00Z',
+      label: 'Nearest available',
+      reason_tag: 'nearest_available',
+    }
+
+    let upcomingSessions = [rescheduledSession]
+
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/booking/sessions/' && (config as { params?: { upcoming?: boolean } } | undefined)?.params?.upcoming) {
+        return upcomingSessions
+      }
+
+      if (url === '/booking/sessions/' && (config as { params?: { upcoming?: boolean } } | undefined)?.params?.upcoming === false) {
+        return []
+      }
+
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    mockedFetchSpecialistAvailableSlots.mockResolvedValue([nextSlot])
+    mockedFetchSpecialistRescheduleSuggestions.mockResolvedValue([suggestedSlot])
+    mockedRescheduleSpecialistSession.mockImplementation(async (sessionId, slotId) => {
+      expect(sessionId).toBe(13)
+      expect(slotId).toBe(401)
+      upcomingSessions = [
+        {
+          ...rescheduledSession,
+          slot: 401,
+          slot_start_at: nextSlot.start_at,
+          slot_end_at: nextSlot.end_at,
+        },
+      ]
+    })
+
+    renderView()
+
+    expect(await screen.findByText(/reschedule@example\.com/)).toBeInTheDocument()
+
+    const sessionCard = screen.getByText(/reschedule@example\.com/).closest('article')
+    expect(sessionCard).not.toBeNull()
+    await fireEvent.click(within(sessionCard as HTMLElement).getByRole('button', { name: 'Перенести' }))
+
+    expect(await screen.findByText('Рекомендовані варіанти перенесення')).toBeInTheDocument()
+    expect(mockedFetchSpecialistRescheduleSuggestions).toHaveBeenCalledWith(13)
+
+    await fireEvent.update(screen.getByLabelText('Нове вільне віконце'), '401')
+    await fireEvent.click(screen.getByRole('button', { name: 'Підтвердити перенос' }))
+
+    await waitFor(() => {
+      expect(mockedRescheduleSpecialistSession).toHaveBeenCalledWith(13, 401)
+      expect(mockToast.success).toHaveBeenCalledWith('Сесію перенесено.')
+    })
+
+    await waitFor(() => {
+      expect(screen.queryByText('Рекомендовані варіанти перенесення')).not.toBeInTheDocument()
+    })
+    expect(screen.getAllByText('20.06.2099, 14:00')).toHaveLength(2)
+    expect(mockedFetchSpecialistAvailableSlots).toHaveBeenCalledTimes(2)
+    expect(mockedApiGet).toHaveBeenCalledTimes(4)
+  })
+
+  it('creates a recurring series from the list and renders the returned summary', async () => {
+    const recurringSession = buildSession({
+      id: 14,
+      status: 'CONFIRMED',
+      client: 104,
+      client_name: 'Ірина',
+      client_email: 'recurring@example.com',
+      slot: 204,
+      slot_start_at: '2099-07-01T08:00:00Z',
+      slot_end_at: '2099-07-01T08:50:00Z',
+    })
+
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/booking/sessions/' && (config as { params?: { upcoming?: boolean } } | undefined)?.params?.upcoming) {
+        return [recurringSession]
+      }
+
+      if (url === '/booking/sessions/' && (config as { params?: { upcoming?: boolean } } | undefined)?.params?.upcoming === false) {
+        return []
+      }
+
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    mockedCreateRecurringSpecialistSessions.mockResolvedValue({
+      created_count: 3,
+      skipped_count: 1,
+      created_dates: [
+        '2099-07-08T08:00:00Z',
+        '2099-07-15T08:00:00Z',
+        '2099-07-22T08:00:00Z',
+      ],
+      skipped_reasons: [{ reason: 'SLOT_UNAVAILABLE', count: 1 }],
+      skipped: [{ start_at: '2099-07-29T08:00:00Z', reason: 'SLOT_UNAVAILABLE' }],
+    })
+
+    renderView()
+
+    expect(await screen.findByText(/recurring@example\.com/)).toBeInTheDocument()
+
+    const sessionCard = screen.getByText(/recurring@example\.com/).closest('article')
+    expect(sessionCard).not.toBeNull()
+    await fireEvent.click(within(sessionCard as HTMLElement).getByRole('button', { name: 'Повторювати щотижня' }))
+
+    expect(await screen.findByText('Кількість повторів')).toBeInTheDocument()
+    await fireEvent.click(screen.getByRole('button', { name: 'Створити серію' }))
+
+    await waitFor(() => {
+      expect(mockedCreateRecurringSpecialistSessions).toHaveBeenCalledWith(14, 4)
+      expect(mockToast.success).toHaveBeenCalledWith('Створено 3 сесій, пропущено 1.')
+    })
+
+    expect(await screen.findByText('Створено 3 сесій')).toBeInTheDocument()
+    expect(screen.getByText('Пропущено 1 через конфлікти')).toBeInTheDocument()
+    expect(screen.getByText('08.07.2099, 11:00')).toBeInTheDocument()
+    expect(screen.getByText('29.07.2099, 11:00 - На цю дату вже немає вільного вікна')).toBeInTheDocument()
+    expect(mockedFetchSpecialistAvailableSlots).toHaveBeenCalledTimes(2)
+    expect(mockedApiGet).toHaveBeenCalledTimes(4)
   })
 })
