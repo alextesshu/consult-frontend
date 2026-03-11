@@ -2,6 +2,7 @@ import { fireEvent, render, screen, waitFor, within } from '@testing-library/vue
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { apiGet, apiPatch, apiPost } from '../lib/api'
 import { BOOKING_SUCCESS_MESSAGES } from '../lib/bookingCopy'
+import { formatSessionDateTime } from '../lib/specialistSessions'
 import TherapistSessionDetailView from './TherapistSessionDetailView.vue'
 
 const mockRoute = {
@@ -422,6 +423,108 @@ describe('TherapistSessionDetailView', () => {
     await waitFor(() => {
       expect(screen.queryByText('Новий слот для сесії')).not.toBeInTheDocument()
     })
+  })
+
+  it('reschedules a confirmed session from detail suggestions and refreshes the session context', async () => {
+    const updatedSlot = buildSlot({
+      id: 10,
+      start_at: '2099-06-18T10:00:00Z',
+      end_at: '2099-06-18T11:00:00Z',
+    })
+    const updatedSuggestion = buildSuggestion({
+      slot_id: updatedSlot.id,
+      start_at: updatedSlot.start_at,
+      end_at: updatedSlot.end_at,
+    })
+    let sessionDetail = buildSession({ status: 'CONFIRMED' })
+
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === `/booking/sessions/${mockRoute.params.id}/`) {
+        return sessionDetail
+      }
+
+      if (url === '/cabinet/slots/') {
+        return [updatedSlot]
+      }
+
+      if (url === `/booking/sessions/${mockRoute.params.id}/reschedule-suggestions/`) {
+        return {
+          suggestions: [updatedSuggestion],
+        }
+      }
+
+      if (url === `/cabinet/sessions/${mockRoute.params.id}/note/`) {
+        return {
+          content: 'Progress note',
+        }
+      }
+
+      if (url === '/cabinet/sessions/reschedule-requests/') {
+        return []
+      }
+
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    mockedApiPatch.mockImplementation(async (url, payload) => {
+      if (url === '/booking/sessions/42/reschedule/') {
+        expect(payload).toEqual({ slot_id: 10 })
+        sessionDetail = {
+          ...sessionDetail,
+          slot_start_at: updatedSlot.start_at,
+          slot_end_at: updatedSlot.end_at,
+        }
+        return {}
+      }
+
+      throw new Error(`Unexpected apiPatch call: ${url}`)
+    })
+
+    renderView()
+
+    expect(await screen.findByText('client@example.com')).toBeInTheDocument()
+
+    const statusPanel = screen.getByText(/ID: #77/).closest('section')
+    expect(statusPanel).not.toBeNull()
+    const summaryButtons = within(statusPanel as HTMLElement).getAllByRole('button')
+    const rescheduleButton = summaryButtons[3]
+    if (!rescheduleButton) {
+      throw new Error('Reschedule button not found')
+    }
+
+    await fireEvent.click(rescheduleButton)
+    await waitFor(() => {
+      expect(document.querySelector('.slot-list')).not.toBeNull()
+    })
+    const reschedulePanel = document.querySelector('.slot-list')?.closest('section')
+    expect(reschedulePanel).not.toBeNull()
+
+    const panelButtons = within(reschedulePanel as HTMLElement).getAllByRole('button')
+    const suggestionButton = panelButtons[0]
+    if (!suggestionButton) {
+      throw new Error('Suggestion button not found')
+    }
+    await fireEvent.click(suggestionButton)
+
+    const confirmRescheduleButton = within(reschedulePanel as HTMLElement).getAllByRole('button')[1]
+    if (!confirmRescheduleButton) {
+      throw new Error('Confirm reschedule button not found')
+    }
+    await fireEvent.click(confirmRescheduleButton)
+
+    await waitFor(() => {
+      expect(mockedApiPatch).toHaveBeenCalledWith('/booking/sessions/42/reschedule/', {
+        slot_id: 10,
+      })
+      expect(mockToast.success).toHaveBeenCalledWith(BOOKING_SUCCESS_MESSAGES.sessionRescheduled)
+    })
+
+    expect(screen.getAllByText(formatSessionDateTime(updatedSlot.start_at))).not.toHaveLength(0)
+    expect(endpointCalls('/booking/sessions/42/')).toBe(2)
+    expect(endpointCalls('/cabinet/slots/')).toBe(2)
+    expect(endpointCalls('/booking/sessions/42/reschedule-suggestions/')).toBe(2)
+    expect(endpointCalls('/cabinet/sessions/reschedule-requests/')).toBe(2)
+    expect(endpointCalls('/cabinet/sessions/42/note/')).toBe(1)
   })
 
   it('approves and declines reschedule requests from the detail view with the expected refresh behavior', async () => {

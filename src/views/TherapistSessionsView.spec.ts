@@ -392,7 +392,7 @@ describe('TherapistSessionsView', () => {
       id: 15,
       status: 'CONFIRMED',
       client: 105,
-      client_name: 'Р›С–Р»С–СЏ',
+      client_name: 'Liliia',
       client_email: 'completed@example.com',
       slot: 205,
       slot_start_at: '2099-06-19T08:00:00Z',
@@ -462,6 +462,69 @@ describe('TherapistSessionsView', () => {
           .some((button) => button.textContent?.includes('Завершити'))
       ).toBe(false)
       expect(mockedApiGet).toHaveBeenCalledTimes(4)
+    } finally {
+      promptSpy.mockRestore()
+    }
+  })
+
+  it('surfaces a stale complete target error without reloading the list or opening the note modal', async () => {
+    const confirmedSession = buildSession({
+      id: 16,
+      status: 'CONFIRMED',
+      client: 106,
+      client_name: 'Solomiia',
+      client_email: 'stale-complete@example.com',
+      slot: 206,
+      slot_start_at: '2099-06-20T08:00:00Z',
+      slot_end_at: '2099-06-20T08:50:00Z',
+    })
+    const promptSpy = vi.spyOn(window, 'prompt').mockReturnValue('50')
+
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/booking/sessions/' && (config as { params?: { upcoming?: boolean } } | undefined)?.params?.upcoming) {
+        return [confirmedSession]
+      }
+
+      if (url === '/booking/sessions/' && (config as { params?: { upcoming?: boolean } } | undefined)?.params?.upcoming === false) {
+        return []
+      }
+
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    mockedCompleteSpecialistSession.mockRejectedValue({
+      response: {
+        status: 409,
+        data: {
+          detail: 'Invalid status transition.',
+        },
+      },
+    })
+
+    try {
+      renderView()
+
+      expect(await screen.findByText(/stale-complete@example\.com/)).toBeInTheDocument()
+
+      const sessionCard = screen.getByText(/stale-complete@example\.com/).closest('article')
+      expect(sessionCard).not.toBeNull()
+      const completionButton = within(sessionCard as HTMLElement).getAllByRole('button')[1]
+      if (!completionButton) {
+        throw new Error('Complete button not found')
+      }
+      await fireEvent.click(completionButton)
+
+      await waitFor(() => {
+        expect(mockedCompleteSpecialistSession).toHaveBeenCalledWith(16, {
+          actual_duration_minutes: 50,
+        })
+      })
+
+      expect(promptSpy).toHaveBeenCalledTimes(1)
+      expect(document.querySelector('.form-error')).not.toBeNull()
+      expect(mockedFetchSpecialistSessionNoteContent).not.toHaveBeenCalled()
+      expect(completionButton).not.toBeDisabled()
+      expect(mockedApiGet).toHaveBeenCalledTimes(2)
     } finally {
       promptSpy.mockRestore()
     }

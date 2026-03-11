@@ -4,7 +4,7 @@ Last updated: 2026-03-12
 Owner: agent-maintained
 Primary use: persistent project handoff for agent-led work
 Update trigger: after each meaningful completed task
-Last agent task: add list-view stale confirm regression coverage for specialist sessions
+Last agent task: add list-view stale completion regression coverage
 
 Update rule:
 
@@ -35,9 +35,11 @@ Update rule:
 - `TherapistSessionsView` now has focused list-level regression coverage for mount loading, list rendering, pending reschedule context, filter reset behavior, and empty states.
 - `TherapistSessionsView` now also has focused mutation regression coverage for confirm, cancel, inline reschedule, recurring-series flows, and specialist-side reschedule request approve/decline flows, including reload/toast expectations.
 - `TherapistSessionsView` now also covers specialist-side completion flow, including actual-duration prompt payload, post-complete list reload, and note-modal opening with refreshed note content.
+- `TherapistSessionsView.spec.ts` now also covers stale specialist-side completion rejection, including inline error rendering and the expected no-reload / no-note-fetch behavior for an invalid status transition.
 - `TherapistSessionsView.spec.ts` now also covers stale specialist-side confirm rejection, including inline error rendering and the no-reload behavior expected for an invalid status transition.
 - `TherapistSessionsView.spec.ts` now derives formatted date expectations via shared session formatting helpers instead of hardcoded local-hour strings, which removes timezone-sensitive suite failures in CI/local runs.
 - `TherapistSessionDetailView` exists at `/cabinet/sessions/:id` with status actions, request context, recurring creation, private notes, and focused mutation regression coverage for confirm/cancel happy paths, specialist-side reschedule request approve/decline flows, stale confirm rejection, reschedule panel guards, recurring input guard, and invalid/stale routes.
+- `TherapistSessionDetailView.spec.ts` now also covers specialist-side detail reschedule submission from a suggested slot, including the expected mutation payload, refreshed session timing, and post-mutation context reloads.
 - `TherapistSessionDetailView.spec.ts` now also covers specialist-side completion flow, including actual-duration prompt payload, refreshed session context, and note reload after completion.
 - Shared specialist session formatting, action guards, input parsing, note loading/saving, and booking action requests are centralized in `src/lib/specialistSessions.ts` and reused by `TherapistSessionsView` and `TherapistSessionDetailView`.
 - `src/lib/specialistSessions.spec.ts` now adds focused helper-level regression coverage for shared session timing, duration parsing, recurring guards, in-progress status labeling, slot filtering, note fallback handling, and specialist session API wrapper endpoint/payload contracts.
@@ -57,6 +59,7 @@ Update rule:
 ## Changed files
 
 - `src/views/TherapistSessionsView.spec.ts`
+- `src/views/TherapistSessionsView.spec.ts`
 - `docs/HANDOFF.md`
 
 ## Validation
@@ -68,7 +71,7 @@ npm run test:run -- src/views/TherapistSessionsView.spec.ts
 npm run typecheck
 ```
 
-Current task validation passed: the expanded therapist-sessions list spec and `npm run typecheck` succeeded after adding stale confirm regression coverage.
+Current task validation passed: the expanded therapist-sessions list spec and `npm run typecheck` succeeded after adding stale completion regression coverage.
 
 ## Remaining work
 
@@ -76,13 +79,14 @@ Current task validation passed: the expanded therapist-sessions list spec and `n
 - Expand system-level empty/loading/error states across remaining views.
 - Clarify future billing and entitlements states if backend support for live billing is introduced.
 - Inquiry MVP does not yet have dedicated client dashboard discoverability outside the public specialist profile.
-- Broaden specialist-session regression coverage toward cross-view parity and higher-level multi-step integration if those paths keep changing.
+- Broaden specialist-session regression coverage toward higher-level multi-step integration if those paths keep changing.
 - Decide whether some remaining view-only time/status assertions should be replaced with helper-spec coverage as shared session rules evolve.
 
 ## Risks / open questions
 
-- Specialist-session approve/decline behavior is now covered in both list and detail views, but there is still no higher-level integration spec asserting end-to-end parity between them.
+- Specialist-session list/detail mutation parity is stronger now, but there is still no higher-level integration spec asserting end-to-end parity between them.
 - Completion flow is now covered at the view level in both list and detail surfaces, but there is still no router/integration-level assertion covering a real multi-step specialist session lifecycle.
+- Completion flow is now stronger at the list/detail view level, but detail-side stale completion rejection still has no dedicated regression spec.
 - Shared specialist-session helper and API wrapper coverage now exists, but there is still no integration-level assertion proving that list/detail surfaces stay aligned against the same backend lifecycle.
 - Public-profile chat surfacing currently infers message availability from existing chat threads; if backend relation rules change, a dedicated capability flag may still be worth adding later.
 - Inquiry messaging is intentionally bounded and non-realtime: no attachments, no dashboard card surfacing, and no unified inbox with full chat.
