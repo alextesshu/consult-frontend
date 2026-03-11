@@ -4,7 +4,7 @@ Last updated: 2026-03-11
 Owner: agent-maintained
 Primary use: persistent project handoff for agent-led work
 Update trigger: after each meaningful completed task
-Last agent task: add TherapistSessionDetailView regression coverage for happy path and invalid/stale session routes
+Last agent task: strengthen profile/session regression coverage, centralize specialist session view logic, and polish client session status messaging
 
 Update rule:
 
@@ -19,7 +19,7 @@ Update rule:
 - Repository role: frontend for Consult.
 - Main stack: Vue 3, Vite, TypeScript, Pinia, Vue Router, Vitest.
 - Primary product areas already present in routing: specialist cabinet, client dashboard, public specialist profile, public catalog, billing access request flow, analytics, slots, sessions, reviews, group events, journal.
-- Current source-of-truth docs are `README.md`, `docs/UI_SHAPE_STANDARD.md`, and recent git history. This file is now the persistent project handoff.
+- Current source-of-truth docs are `README.md`, `docs/UI_SHAPE_STANDARD.md`, and recent git history. This file is the persistent project handoff.
 - `README.md` was synced with this handoff on 2026-03-11 to reduce documentation drift.
 
 ## Done
@@ -27,50 +27,50 @@ Update rule:
 - Analytics MVP for `/cabinet/analytics` is implemented with leader-gated insights, teaser state for non-leader users, and empty-state coverage.
 - Analytics contract and fallback metrics are centralized in `src/lib/analytics.ts`.
 - Analytics rendering behavior is covered in `src/views/AnalyticsView.spec.ts` and `src/lib/analytics.spec.ts`.
-- Public specialist profile was recently refactored into a landing-style flow with booking, trust/about/contact blocks, reviews link, and journal preview.
+- Public specialist profile exists as a landing-style flow with booking, trust/about/contact blocks, reviews link, and journal preview.
 - Specialist public profile editor is aligned with the current public profile structure, including visibility toggles, pricing, contacts, media, and share flow.
-- Core routes listed in `README.md` are present in `src/router/index.ts`.
-- Marketing copy in `HomeView` and `BillingView` now reflects shipped leader insights and public profile video support instead of marking them as upcoming.
-- Specialist sessions now support client-side status/date filtering in `TherapistSessionsView`.
-- `TherapistSessionDetailView` now exists at `/cabinet/sessions/:id` with status actions, request context, recurring creation, and private notes.
-- `/cabinet/sessions/:id` is constrained to numeric ids only.
-- Invalid or stale specialist session links now render a visible inline empty/error state instead of degrading to an almost blank page.
-- `TherapistSessionDetailView` now has view-level regression coverage for the happy path plus invalid/stale route handling.
-- The specialist sessions flow is closer to closed, but shared action logic still exists in both list and detail views.
-- Schedule copy now uses `Налаштування розкладу` / `Робочі години` terminology instead of ambiguous `правило` wording in the main specialist schedule settings flow.
-- Schedule hero blocks now use a consistent minimum height across `AvailabilityRulesView` and `SlotsView`, so switching schedule tabs does not visually jump.
-- Notifications bell/feed in `App.vue` now uses `/api/notifications/`, `/api/notifications/read/`, and `/api/notifications/read-all/` as the primary source of runtime notifications.
+- `PublicProfileView` now has focused regression coverage for loaded-state rendering and booking gating before setting acceptance.
+- `TherapistProfileView` now has focused regression coverage for loaded-state rendering and normalized save payload behavior.
+- Specialist sessions support client-side status/date filtering in `TherapistSessionsView`.
+- `TherapistSessionDetailView` exists at `/cabinet/sessions/:id` with status actions, request context, recurring creation, private notes, and view-level regression coverage for happy-path plus invalid/stale routes.
+- Shared specialist session formatting, action guards, input parsing, note loading/saving, and booking action requests are centralized in `src/lib/specialistSessions.ts` and reused by `TherapistSessionsView` and `TherapistSessionDetailView`.
+- `ClientSessionDetailView` now shows clearer inline guidance for confirmed vs scheduled sessions and keeps reschedule actions disabled for non-active statuses.
+- `ClientSessionDetailView` now has view-level regression coverage for confirmed/request-based and scheduled/direct-reschedule messaging flows.
+- Notifications bell/feed in `App.vue` uses `/api/notifications/`, `/api/notifications/read/`, and `/api/notifications/read-all/` as the primary runtime notification source.
 
 ## Changed files
 
-- `src/views/TherapistSessionDetailView.spec.ts`
+- `src/lib/specialistSessions.ts`
+- `src/views/PublicProfileView.spec.ts`
+- `src/views/TherapistProfileView.spec.ts`
+- `src/views/ClientSessionDetailView.vue`
+- `src/views/ClientSessionDetailView.spec.ts`
+- `src/views/TherapistSessionDetailView.vue`
+- `src/views/TherapistSessionsView.vue`
 - `docs/HANDOFF.md`
 
 ## Validation
 
-Current status snapshot was derived from:
+Current task validation:
 
 ```powershell
-npm run test:run -- src/views/TherapistSessionDetailView.spec.ts
-git diff -- src/views/TherapistSessionDetailView.spec.ts docs\HANDOFF.md
+npm run test:run -- src/views/PublicProfileView.spec.ts src/views/TherapistProfileView.spec.ts src/views/TherapistSessionDetailView.spec.ts src/views/ClientSessionDetailView.spec.ts
+npm run typecheck
 ```
 
-Focused validation for this task is the targeted Vitest spec covering the specialist session detail view.
+The targeted Vitest suite passed and repository typecheck passed after the shared specialist session refactor.
 
 ## Remaining work
 
-- Improve client session confirmation and status messaging polish.
 - Add richer CRM workflows: bulk actions and a deeper client profile view.
-- Add stronger regression coverage for large public-profile surfaces, especially `PublicProfileView` and `TherapistProfileView`.
 - Expand system-level empty/loading/error states across remaining views.
-- Clarify future billing/entitlements states if backend support for live billing is introduced.
+- Clarify future billing and entitlements states if backend support for live billing is introduced.
+- Consider dedicated list-view regression coverage for `TherapistSessionsView`.
 
 ## Risks / open questions
 
-- Specialist session actions now exist in both list and detail views, so future booking behavior changes must keep both surfaces aligned.
-- Shared session action logic between `TherapistSessionsView` and `TherapistSessionDetailView` is still duplicated and should be treated as explicit technical debt.
-- The new coverage is view-level and does not add a dedicated router-spec assertion for the numeric route regex itself.
-- `/api/me` is still used for supplemental notification hints (`access_state`, entitlements, counts), but no longer as the primary notification feed.
-- There was no existing dedicated handoff document before this file, so earlier task state had to be reconstructed from README and git history.
-- Public profile and profile editor are large, high-risk surfaces with limited view-level test coverage.
-- Some files display encoding issues when viewed through the current shell output, so text integrity should be checked in-editor before making copy-heavy changes.
+- Session coverage is still view-level; there is no dedicated router-spec assertion for the numeric session route regex itself.
+- `TherapistSessionsView` was refactored onto shared helpers, but list-level actions and filter interactions still lack their own regression spec.
+- Client session messaging coverage focuses on `SCHEDULED` and `CONFIRMED`; completed/cancelled rendering is improved in-view but not directly asserted in tests.
+- `/api/me` is still used for supplemental notification hints (`access_state`, entitlements, counts), but not as the primary notification feed.
+- Some files display encoding issues in the current shell output, so copy-heavy changes should still be checked in-editor.

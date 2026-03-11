@@ -48,6 +48,9 @@
           </div>
         </div>
       </div>
+      <div v-if="statusGuidance" class="detail-notice">
+        {{ statusGuidance }}
+      </div>
 
       <div class="action-row">
         <button
@@ -70,13 +73,8 @@
           <h2 class="panel__title">Обрати новий слот</h2>
         </div>
       </div>
-      <div class="muted" style="margin-top: 6px;">
-        <span v-if="session.status === 'CONFIRMED'">
-          Підтверджені сесії переносяться лише після підтвердження спеціаліста.
-        </span>
-        <span v-else>
-          Перенесення виконується як нове бронювання зі скасуванням попередньої сесії.
-        </span>
+      <div class="detail-notice detail-notice--soft" style="margin-top: 6px;">
+        {{ rescheduleGuidance }}
       </div>
       <div class="suggestions-block" style="margin-top: 12px;">
         <div class="muted suggestions-title">Рекомендовані варіанти перенесення</div>
@@ -102,7 +100,7 @@
           v-if="selectedSuggestionSlotId"
           class="btn btn--sm"
           type="button"
-          :disabled="actionLoading"
+          :disabled="actionLoading || !canReschedule(session.status)"
           @click="applySelectedSuggestion"
         >
           {{ session.status === 'CONFIRMED' ? 'Запросити перенос для обраного варіанта' : 'Перенести на обраний варіант' }}
@@ -121,7 +119,7 @@
           <button
             class="btn btn--ghost btn--sm"
             type="button"
-            :disabled="actionLoading"
+            :disabled="actionLoading || !canReschedule(session.status)"
             @click="session.status === 'CONFIRMED' ? requestReschedule(slot.id) : rescheduleTo(slot.id)"
           >
             {{ session.status === 'CONFIRMED' ? 'Запросити перенос' : 'Перенести сюди' }}
@@ -179,6 +177,35 @@ const availableSlots = ref<PublicSlot[]>([])
 const suggestionsLoading = ref(false)
 const rescheduleSuggestions = ref<RescheduleSuggestion[]>([])
 const selectedSuggestionSlotId = ref<number | null>(null)
+const canReschedule = (status: string) => status === 'SCHEDULED' || status === 'CONFIRMED'
+
+const statusGuidance = computed(() => {
+  if (!session.value) return ''
+  if (session.value.status === 'CONFIRMED') {
+    return 'Сесію вже підтверджено спеціалістом. Якщо плани зміняться, завчасно надішліть запит на перенесення або скасуйте запис.'
+  }
+  if (session.value.status === 'SCHEDULED') {
+    return 'Сесія ще очікує підтвердження спеціаліста. До підтвердження ви можете одразу перенести запис на інший слот або скасувати його.'
+  }
+  if (session.value.status === 'COMPLETED') {
+    return 'Сесію завершено. Для наступної зустрічі оберіть новий вільний слот у профілі спеціаліста.'
+  }
+  if (session.value.status === 'CANCELLED') {
+    return 'Сесію скасовано. Якщо потрібна нова зустріч, оберіть інший доступний слот у профілі спеціаліста.'
+  }
+  return ''
+})
+
+const rescheduleGuidance = computed(() => {
+  if (!session.value) return ''
+  if (session.value.status === 'CONFIRMED') {
+    return 'Для підтвердженої сесії перенесення оформлюється як запит до спеціаліста. Поточний час залишиться чинним, доки запит не погодять.'
+  }
+  if (session.value.status === 'SCHEDULED') {
+    return 'Для непідтвердженої сесії перенесення виконується одразу: новий слот бронюється, а поточний запис скасовується автоматично.'
+  }
+  return 'Перенесення доступне лише для активних сесій зі статусом "Заплановано" або "Підтверджено".'
+})
 
 watch(error, (value) => {
   if (!value) return
@@ -463,6 +490,19 @@ onMounted(async () => {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
+}
+
+.detail-notice {
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(8, 113, 201, 0.18);
+  background: rgba(8, 113, 201, 0.08);
+  color: var(--text);
+}
+
+.detail-notice--soft {
+  border-color: rgba(7, 47, 71, 0.1);
+  background: rgba(7, 47, 71, 0.04);
 }
 
 .suggestions-block {

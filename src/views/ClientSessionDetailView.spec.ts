@@ -1,0 +1,200 @@
+import { fireEvent, render, screen, waitFor } from '@testing-library/vue'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { apiGet } from '../lib/api'
+import ClientSessionDetailView from './ClientSessionDetailView.vue'
+
+const mockRoute = {
+  params: {
+    id: '55',
+  },
+}
+
+const mockRouter = {
+  push: vi.fn(),
+}
+
+const mockToast = {
+  show: vi.fn(),
+  success: vi.fn(),
+  error: vi.fn(),
+  warning: vi.fn(),
+  info: vi.fn(),
+}
+
+vi.mock('vue-router', async () => {
+  const actual = await vi.importActual<typeof import('vue-router')>('vue-router')
+
+  return {
+    ...actual,
+    useRoute: () => mockRoute,
+    useRouter: () => mockRouter,
+  }
+})
+
+vi.mock('../composables/useToast', () => ({
+  useToast: () => mockToast,
+}))
+
+vi.mock('../lib/api', () => ({
+  apiGet: vi.fn(),
+  apiPatch: vi.fn(),
+  apiPost: vi.fn(),
+}))
+
+const mockedApiGet = vi.mocked(apiGet)
+
+function makeSession(status: string) {
+  return {
+    id: 55,
+    status,
+    slot_start_at: '2099-06-15T10:00:00Z',
+    slot_end_at: '2099-06-15T10:50:00Z',
+    therapist: 8,
+    therapist_name: 'Олена',
+    therapist_email: 'therapist@example.com',
+    therapist_public_slug: 'olena',
+    client: 21,
+  }
+}
+
+function renderView() {
+  return render(ClientSessionDetailView, {
+    global: {
+      stubs: {
+        RouterLink: {
+          props: ['to'],
+          template: '<a :href="typeof to === \'string\' ? to : \'\'"><slot /></a>',
+        },
+      },
+    },
+  })
+}
+
+describe('ClientSessionDetailView', () => {
+  beforeEach(() => {
+    mockRoute.params.id = '55'
+    mockRouter.push.mockReset()
+    mockToast.show.mockReset()
+    mockToast.success.mockReset()
+    mockToast.error.mockReset()
+    mockToast.warning.mockReset()
+    mockToast.info.mockReset()
+    mockedApiGet.mockReset()
+  })
+
+  it('shows confirmed-session guidance and request-based reschedule copy', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/sessions/55/') {
+        return makeSession('CONFIRMED')
+      }
+
+      if (url === '/booking/slots/') {
+        return [
+          {
+            id: 101,
+            start_at: '2099-06-16T10:00:00Z',
+            end_at: '2099-06-16T10:50:00Z',
+          },
+        ]
+      }
+
+      if (url === '/booking/sessions/55/reschedule-suggestions/') {
+        return {
+          suggestions: [
+            {
+              slot_id: 101,
+              start_at: '2099-06-16T10:00:00Z',
+              end_at: '2099-06-16T10:50:00Z',
+              label: 'Suggested',
+              reason_tag: 'nearest_available',
+            },
+          ],
+        }
+      }
+
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    expect(
+      await screen.findByText(
+        'Сесію вже підтверджено спеціалістом. Якщо плани зміняться, завчасно надішліть запит на перенесення або скасуйте запис.'
+      )
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        'Для підтвердженої сесії перенесення оформлюється як запит до спеціаліста. Поточний час залишиться чинним, доки запит не погодять.'
+      )
+    ).toBeInTheDocument()
+
+    const confirmedSuggestionReason = (await screen.findAllByText('Найближче доступне вікно'))[0]
+    expect(confirmedSuggestionReason).toBeTruthy()
+    await fireEvent.click(confirmedSuggestionReason!.closest('button') as HTMLButtonElement)
+
+    expect(
+      await screen.findByRole('button', { name: 'Запросити перенос для обраного варіанта' })
+    ).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Запросити перенос' })).toBeInTheDocument()
+  })
+
+  it('shows scheduled-session guidance and direct reschedule copy', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/sessions/55/') {
+        return makeSession('SCHEDULED')
+      }
+
+      if (url === '/booking/slots/') {
+        return [
+          {
+            id: 202,
+            start_at: '2099-06-18T09:00:00Z',
+            end_at: '2099-06-18T09:50:00Z',
+          },
+        ]
+      }
+
+      if (url === '/booking/sessions/55/reschedule-suggestions/') {
+        return {
+          suggestions: [
+            {
+              slot_id: 202,
+              start_at: '2099-06-18T09:00:00Z',
+              end_at: '2099-06-18T09:50:00Z',
+              label: 'Suggested',
+              reason_tag: 'nearest_available',
+            },
+          ],
+        }
+      }
+
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    expect(
+      await screen.findByText(
+        'Сесія ще очікує підтвердження спеціаліста. До підтвердження ви можете одразу перенести запис на інший слот або скасувати його.'
+      )
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        'Для непідтвердженої сесії перенесення виконується одразу: новий слот бронюється, а поточний запис скасовується автоматично.'
+      )
+    ).toBeInTheDocument()
+
+    await waitFor(() => {
+      expect(mockedApiGet).toHaveBeenCalledTimes(3)
+    })
+
+    const scheduledSuggestionReason = (await screen.findAllByText('Найближче доступне вікно'))[0]
+    expect(scheduledSuggestionReason).toBeTruthy()
+    await fireEvent.click(scheduledSuggestionReason!.closest('button') as HTMLButtonElement)
+
+    expect(
+      await screen.findByRole('button', { name: 'Перенести на обраний варіант' })
+    ).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Перенести сюди' })).toBeInTheDocument()
+  })
+})

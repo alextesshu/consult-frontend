@@ -494,9 +494,41 @@
 <script setup lang="ts">
 import { computed, onMounted, onBeforeUnmount, ref, watch, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
-import { apiGet, apiPatch, apiPost, apiPut, fetchSpecialistProfile, type SpecialistProfile } from '../lib/api'
+import { apiGet, fetchSpecialistProfile, type SpecialistProfile } from '../lib/api'
 import { getApiErrorMessage } from '../lib/errors'
-import { BOOKING_ERROR_FALLBACKS, BOOKING_SUCCESS_MESSAGES, BOOKING_UI_MESSAGES, getSuggestionReasonLabel } from '../lib/bookingCopy'
+import { BOOKING_ERROR_FALLBACKS, BOOKING_SUCCESS_MESSAGES } from '../lib/bookingCopy'
+import {
+  approveSpecialistRescheduleRequest as approveSpecialistRescheduleRequestAction,
+  canCancel as sharedCanCancel,
+  canReschedule as sharedCanReschedule,
+  canShowRecurringAction as sharedCanShowRecurringAction,
+  cancelSpecialistSession as cancelSpecialistSessionAction,
+  completeSpecialistSession as completeSpecialistSessionAction,
+  confirmSpecialistSession as confirmSpecialistSessionAction,
+  createRecurringSpecialistSessions as createRecurringSpecialistSessionsAction,
+  declineSpecialistRescheduleRequest as declineSpecialistRescheduleRequestAction,
+  fetchSpecialistAvailableSlots as fetchSpecialistAvailableSlotsData,
+  fetchSpecialistRescheduleRequests as fetchSpecialistRescheduleRequestsData,
+  fetchSpecialistRescheduleSuggestions as fetchSpecialistRescheduleSuggestionsData,
+  fetchSpecialistSessionNoteContent as fetchSpecialistSessionNoteContentData,
+  formatSessionDateTime as sharedFormatSessionDateTime,
+  formatSessionDuration as sharedFormatSessionDuration,
+  parseActualDurationInput as getActualDurationPayload,
+  parseRecurringOccurrences as getRecurringOccurrences,
+  requestStatusClass as getRequestStatusClass,
+  rescheduleSpecialistSession as rescheduleSpecialistSessionAction,
+  rescheduleStatusLabel as getRescheduleStatusLabel,
+  saveSpecialistSessionNote as saveSpecialistSessionNoteAction,
+  statusClass as getStatusClass,
+  statusLabel as getStatusLabel,
+  suggestionReasonLabel as getSuggestionReasonLabel,
+  timeUntilLabel as getTimeUntilLabel,
+  type SpecialistRecurringSummary,
+  type SpecialistRescheduleRequest,
+  type SpecialistRescheduleSuggestion,
+  type SpecialistSessionLike,
+  type SpecialistSlot,
+} from '../lib/specialistSessions'
 import { useToast } from '../composables/useToast'
 import LoadingSkeleton from '../components/LoadingSkeleton.vue'
 import EmptyState from '../components/EmptyState.vue'
@@ -515,51 +547,10 @@ type Session = {
   slot_end_at: string | null
 }
 
-type Slot = {
-  id: number
-  start_at: string
-  end_at: string
-  is_booked: boolean
-}
-
-type RescheduleRequest = {
-  id: number
-  session_id: number
-  requested_slot_id: number
-  requested_slot_start_at?: string | null
-  requested_slot_end_at?: string | null
-  client_username?: string
-  client_name?: string
-  client_email?: string
-  status: string
-  created_at: string
-  resolved_at: string | null
-}
-
-type RecurringSkippedItem = {
-  start_at: string
-  reason: string
-}
-
-type RecurringSummary = {
-  created_count: number
-  skipped_count: number
-  created_dates: string[]
-  skipped_reasons: Array<{ reason: string; count: number }>
-  skipped: RecurringSkippedItem[]
-}
-
-type SessionNotePayload = {
-  content?: string
-}
-
-type RescheduleSuggestion = {
-  slot_id: number
-  start_at: string
-  end_at: string
-  label: string
-  reason_tag: string
-}
+type Slot = SpecialistSlot
+type RescheduleRequest = SpecialistRescheduleRequest
+type RecurringSummary = SpecialistRecurringSummary
+type RescheduleSuggestion = SpecialistRescheduleSuggestion
 
 type SessionStatusFilter =
   | 'ALL'
@@ -607,44 +598,18 @@ const route = useRoute()
 const toast = useToast()
 const highlightTimeoutId = ref<number | null>(null)
 
-const statusMap: Record<string, string> = {
-  SCHEDULED: 'Заплановано',
-  CONFIRMED: 'Підтверджено',
-  COMPLETED: 'Завершено',
-  CANCELLED: 'Скасовано',
-  NO_SHOW: 'Не відбулося',
-  DRAFT: 'Чернетка',
-}
-
 const statusLabel = (session: Session) => {
-  if (isSessionInProgress(session)) return 'В процесі'
-  return statusMap[session.status] || session.status
+  return getStatusLabel(session as SpecialistSessionLike)
 }
 
 const statusClass = (session: Session) => {
-  if (isSessionInProgress(session)) return 'status-pill--ok'
-  if (session.status === 'CONFIRMED') return 'status-pill--ok'
-  if (session.status === 'SCHEDULED') return 'status-pill--warn'
-  if (session.status === 'COMPLETED') return 'status-pill--muted'
-  if (session.status === 'CANCELLED' || session.status === 'NO_SHOW') return 'status-pill--danger'
-  return 'status-pill--muted'
+  return getStatusClass(session as SpecialistSessionLike)
 }
 
-const rescheduleStatusMap: Record<string, string> = {
-  PENDING: 'Очікує підтвердження',
-  APPROVED: 'Погоджено',
-  DECLINED: 'Відхилено',
-  CANCELLED: 'Скасовано',
-}
-
-const rescheduleStatusLabel = (status: string) => rescheduleStatusMap[status] || status
+const rescheduleStatusLabel = (status: string) => getRescheduleStatusLabel(status)
 
 const requestStatusClass = (status: string) => {
-  if (status === 'PENDING') return 'status-pill--warn'
-  if (status === 'APPROVED') return 'status-pill--ok'
-  if (status === 'DECLINED') return 'status-pill--danger'
-  if (status === 'CANCELLED') return 'status-pill--muted'
-  return 'status-pill--muted'
+  return getRequestStatusClass(status)
 }
 
 const pendingRescheduleSessions = computed(() => {
@@ -730,16 +695,11 @@ const nextUpcoming = computed(() => {
   return items[0] || null
 })
 
-const canCancel = (status: string) => status === 'SCHEDULED' || status === 'CONFIRMED'
-const canReschedule = (status: string) => status === 'SCHEDULED' || status === 'CONFIRMED'
+const canCancel = (status: string) => sharedCanCancel(status)
+const canReschedule = (status: string) => sharedCanReschedule(status)
 
 const canShowRecurringAction = (session: Session) => {
-  if (!canReschedule(session.status)) return false
-  if (hasPendingReschedule(session.id)) return false
-  if (!session.slot_start_at) return false
-  const start = new Date(session.slot_start_at).getTime()
-  if (Number.isNaN(start)) return false
-  return start - Date.now() >= 24 * 60 * 60 * 1000
+  return sharedCanShowRecurringAction(session as SpecialistSessionLike, hasPendingReschedule(session.id))
 }
 
 const recurringReasonLabelMap: Record<string, string> = {
@@ -762,56 +722,18 @@ const isRequestLoading = (id: number) => requestLoading.value.has(id)
 const isSuggestionsLoading = (id: number) => suggestionsLoading.value.has(id)
 
 function formatDateTime(value?: string | null) {
-  if (!value) return '—'
-  const dt = new Date(value)
-  if (Number.isNaN(dt.getTime())) return value
-  return dt.toLocaleString('uk-UA', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  })
+  return sharedFormatSessionDateTime(value)
 }
 
 function formatDuration(start?: string | null, end?: string | null) {
-  if (!start || !end) return 'Тривалість: —'
-  const startDt = new Date(start)
-  const endDt = new Date(end)
-  if (Number.isNaN(startDt.getTime()) || Number.isNaN(endDt.getTime())) return 'Тривалість: —'
-  const minutes = Math.max(0, Math.round((endDt.getTime() - startDt.getTime()) / 60000))
-  if (!minutes) return 'Тривалість: 0 хв'
-  const hours = Math.floor(minutes / 60)
-  const mins = minutes % 60
-  const parts = []
-  if (hours) parts.push(`${hours} год`)
-  if (mins) parts.push(`${mins} хв`)
-  return `Тривалість: ${parts.join(' ')}`
-}
-
-function isSessionInProgress(session: Session) {
-  if (session.status !== 'CONFIRMED') return false
-  if (!session.slot_start_at || !session.slot_end_at) return false
-  const start = new Date(session.slot_start_at).getTime()
-  const end = new Date(session.slot_end_at).getTime()
-  if (Number.isNaN(start) || Number.isNaN(end)) return false
-  const now = Date.now()
-  return now >= start && now <= end
+  return sharedFormatSessionDuration(start, end, {
+    empty: 'Тривалість: —',
+    prefix: 'Тривалість: ',
+  })
 }
 
 function timeUntilLabel(session: Session) {
-  if (!session.slot_start_at) return ''
-  const start = new Date(session.slot_start_at).getTime()
-  if (Number.isNaN(start)) return ''
-  const diffMs = start - Date.now()
-  if (diffMs <= 0) return ''
-  const diffMin = Math.round(diffMs / 60000)
-  if (diffMin > 120) return ''
-  if (diffMin < 60) return `${diffMin} хв`
-  const hours = Math.floor(diffMin / 60)
-  const mins = diffMin % 60
-  return mins ? `${hours} год ${mins} хв` : `${hours} год`
+  return getTimeUntilLabel(session as SpecialistSessionLike)
 }
 
 function parseSessionIdFromHash(hash: string): number | null {
@@ -897,12 +819,7 @@ async function loadTherapistProfilePhoto() {
 
 async function loadSlots() {
   try {
-    const resp = await apiGet<Slot[]>('/cabinet/slots/')
-    const now = Date.now()
-    availableSlots.value = (resp || []).filter((slot) => {
-      const start = new Date(slot.start_at).getTime()
-      return !slot.is_booked && !Number.isNaN(start) && start > now
-    })
+    availableSlots.value = await fetchSpecialistAvailableSlotsData()
   } catch {
     availableSlots.value = []
   }
@@ -962,7 +879,7 @@ async function confirmSession(id: number) {
   setActionLoading(id, true)
   error.value = ''
   try {
-    await apiPatch(`/booking/sessions/${id}/confirm/`)
+    await confirmSpecialistSessionAction(id)
     await loadSessions()
     toast.success(BOOKING_SUCCESS_MESSAGES.sessionConfirmed)
   } catch (err: any) {
@@ -976,20 +893,16 @@ async function completeSession(id: number) {
   const input = window.prompt('Вкажіть фактичну тривалість (хв). Порожньо — стандартна тривалість.')
   if (input === null) return
 
-  let payload: Record<string, number> | undefined
-  if (input.trim()) {
-    const minutes = Number(input)
-    if (!Number.isFinite(minutes) || minutes <= 0 || minutes > 480) {
-      error.value = BOOKING_UI_MESSAGES.invalidDuration
-      return
-    }
-    payload = { actual_duration_minutes: Math.round(minutes) }
+  const { payload, error: durationError } = getActualDurationPayload(input)
+  if (durationError) {
+    error.value = durationError
+    return
   }
 
   setActionLoading(id, true)
   error.value = ''
   try {
-    await apiPatch(`/booking/sessions/${id}/complete/`, payload)
+    await completeSpecialistSessionAction(id, payload)
     await loadSessions()
     await openNoteModal(id)
     toast.success(BOOKING_SUCCESS_MESSAGES.sessionCompleted)
@@ -1004,7 +917,7 @@ async function cancelSession(id: number) {
   setActionLoading(id, true)
   error.value = ''
   try {
-    await apiPatch(`/booking/sessions/${id}/cancel/`)
+    await cancelSpecialistSessionAction(id)
     await loadSessions()
     toast.success(BOOKING_SUCCESS_MESSAGES.sessionCancelled)
   } catch (err: any) {
@@ -1017,12 +930,9 @@ async function cancelSession(id: number) {
 async function loadRescheduleSuggestions(id: number) {
   setSuggestionsLoading(id, true)
   try {
-    const resp = await apiGet<{ suggestions?: RescheduleSuggestion[] }>(
-      `/booking/sessions/${id}/reschedule-suggestions/`
-    )
     rescheduleSuggestions.value = {
       ...rescheduleSuggestions.value,
-      [id]: resp?.suggestions || [],
+      [id]: await fetchSpecialistRescheduleSuggestionsData(id),
     }
   } catch {
     rescheduleSuggestions.value = {
@@ -1070,14 +980,7 @@ function closeRecurring() {
 }
 
 function recurringOccurrencesValue() {
-  if (recurringPreset.value === 'custom') {
-    const customValue = Number(recurringCustomOccurrences.value)
-    if (!Number.isInteger(customValue) || customValue < 1 || customValue > 52) {
-      return null
-    }
-    return customValue
-  }
-  return recurringPreset.value
+  return getRecurringOccurrences(recurringPreset.value, recurringCustomOccurrences.value)
 }
 
 async function submitReschedule(id: number) {
@@ -1085,9 +988,7 @@ async function submitReschedule(id: number) {
   setActionLoading(id, true)
   error.value = ''
   try {
-    await apiPatch(`/booking/sessions/${id}/reschedule/`, {
-      slot_id: rescheduleSlotId.value,
-    })
+    await rescheduleSpecialistSessionAction(id, Number(rescheduleSlotId.value))
     closeReschedule()
     await Promise.all([loadSessions(), loadSlots()])
     toast.success(BOOKING_SUCCESS_MESSAGES.sessionRescheduled)
@@ -1107,10 +1008,7 @@ async function submitRecurring(id: number) {
   setActionLoading(id, true)
   error.value = ''
   try {
-    const resp = await apiPost<RecurringSummary>(`/booking/sessions/${id}/create-recurring/`, {
-      frequency: 'weekly',
-      occurrences,
-    })
+    const resp = await createRecurringSpecialistSessionsAction(id, occurrences)
     recurringResult.value = {
       ...recurringResult.value,
       [id]: resp,
@@ -1135,14 +1033,9 @@ async function loadNote(id: number) {
   setNoteLoading(id, true)
   error.value = ''
   try {
-    const resp = await apiGet<SessionNotePayload | null>(`/cabinet/sessions/${id}/note/`)
-    noteDraft.value = resp?.content || ''
+    noteDraft.value = await fetchSpecialistSessionNoteContentData(id)
   } catch (err: any) {
-    if (err?.response?.status === 404) {
-      noteDraft.value = ''
-    } else {
-      error.value = getApiErrorMessage(err, BOOKING_ERROR_FALLBACKS.loadSessionNote)
-    }
+    error.value = getApiErrorMessage(err, BOOKING_ERROR_FALLBACKS.loadSessionNote)
   } finally {
     setNoteLoading(id, false)
   }
@@ -1152,7 +1045,7 @@ async function saveNote(id: number) {
   setNoteSaving(id, true)
   error.value = ''
   try {
-    await apiPut(`/cabinet/sessions/${id}/note/`, { content: noteDraft.value })
+    await saveSpecialistSessionNoteAction(id, noteDraft.value)
     closeNote()
     toast.success(BOOKING_SUCCESS_MESSAGES.noteSaved)
   } catch (err: any) {
@@ -1176,10 +1069,7 @@ function closeNote() {
 async function loadRescheduleRequests() {
   requestsLoading.value = true
   try {
-    const resp = await apiGet<RescheduleRequest[]>(
-      '/cabinet/sessions/reschedule-requests/'
-    )
-    rescheduleRequests.value = resp || []
+    rescheduleRequests.value = await fetchSpecialistRescheduleRequestsData()
   } catch {
     rescheduleRequests.value = []
   } finally {
@@ -1191,7 +1081,7 @@ async function approveRequest(id: number) {
   setRequestLoading(id, true)
   error.value = ''
   try {
-    await apiPatch(`/cabinet/sessions/reschedule-requests/${id}/approve/`)
+    await approveSpecialistRescheduleRequestAction(id)
     await Promise.all([loadSessions(), loadSlots(), loadRescheduleRequests(), loadTherapistProfilePhoto()])
     toast.success(BOOKING_SUCCESS_MESSAGES.rescheduleRequestApproved)
   } catch (err: any) {
@@ -1205,7 +1095,7 @@ async function declineRequest(id: number) {
   setRequestLoading(id, true)
   error.value = ''
   try {
-    await apiPatch(`/cabinet/sessions/reschedule-requests/${id}/decline/`)
+    await declineSpecialistRescheduleRequestAction(id)
     await loadRescheduleRequests()
     toast.success(BOOKING_SUCCESS_MESSAGES.rescheduleRequestDeclined)
   } catch (err: any) {
