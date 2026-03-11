@@ -14,6 +14,7 @@ import AvailabilityRulesView from '../views/AvailabilityRulesView.vue'
 import HomeView from '../views/HomeView.vue'
 import ClientDashboardView from '../views/ClientDashboardView.vue'
 import SpecialistSessionsView from '../views/TherapistSessionsView.vue'
+import SpecialistSessionDetailView from '../views/TherapistSessionDetailView.vue'
 import ClientSessionDetailView from '../views/ClientSessionDetailView.vue'
 import ClientGroupEventView from '../views/ClientGroupEventView.vue'
 import SpecialistClientsView from '../views/TherapistClientsView.vue'
@@ -105,6 +106,12 @@ const routes = [
     path: '/cabinet/sessions',
     name: 'cabinet-sessions',
     component: SpecialistSessionsView,
+    meta: { requiresAuth: true, requiresRole: 'SPECIALIST' },
+  },
+  {
+    path: '/cabinet/sessions/:id(\\d+)',
+    name: 'cabinet-session-detail',
+    component: SpecialistSessionDetailView,
     meta: { requiresAuth: true, requiresRole: 'SPECIALIST' },
   },
   {

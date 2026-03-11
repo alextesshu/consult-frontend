@@ -341,7 +341,7 @@ function notificationHint(item: NotificationFeedItem) {
 }
 
 function notificationTarget(item: NotificationFeedItem) {
-  return item.session_id ? `/cabinet/sessions#session-${item.session_id}` : '/cabinet/sessions'
+  return item.session_id ? `/cabinet/sessions/${item.session_id}` : '/cabinet/sessions'
 }
 
 const serverNotifications = computed<BellNotification[]>(() =>
@@ -966,8 +966,25 @@ watch(isAuthenticated, (value) => {
   margin-bottom: 8px;
 }
 
-.notif-panel__action {
+.notif-panel .notif-panel__action.btn--ghost {
   flex-shrink: 0;
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--primary) 22%, var(--border));
+  background: color-mix(in srgb, var(--primary) 6%, #ffffff);
+}
+
+.notif-panel .notif-panel__action.btn--ghost:hover,
+.notif-panel .notif-panel__action.btn--ghost:focus-visible {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--primary) 38%, var(--border));
+  background: color-mix(in srgb, var(--primary) 12%, #ffffff);
+}
+
+.notif-panel .notif-panel__action.btn--ghost:disabled,
+.notif-panel .notif-panel__action.btn--ghost[disabled] {
+  color: var(--muted);
+  border-color: var(--border);
+  background: color-mix(in srgb, var(--surface) 85%, #ffffff);
 }
 
 .notif-panel .muted {

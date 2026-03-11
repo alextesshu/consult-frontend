@@ -53,6 +53,7 @@ npm run test:run
 - `/cabinet/group-events` — Group events (full lifecycle + participants + invites)
 - `/cabinet/slots` — Slots (create/edit/delete)
 - `/cabinet/sessions` — Specialist sessions (actions + notes + reschedule requests)
+- `/cabinet/sessions/:id` — Specialist session detail
 - `/cabinet/reviews` — Specialist reviews moderation
 - `/cabinet/clients` — Specialist CRM (clients + archive/restore)
 - `/cabinet/billing` — Plans & access (manual request)
@@ -89,6 +90,7 @@ Tokens are stored in localStorage and auto-refreshed via `/api/auth/token/refres
 - **SlotsView**: create/edit/delete slots + fill day/week + date navigation
 - **GroupEventsView**: full group lifecycle (create/schedule/start/complete/cancel), participants (roles/status), invites
 - **TherapistSessionsView**: specialist actions + notes + reschedule requests + status/date filters
+- **TherapistSessionDetailView**: specialist session detail with status actions, recurring flow, request context, and private note
 - **TherapistReviewsView**: specialist review moderation (approve/hide/respond) + filters
 - **TherapistClientsView**: specialist CRM with archive/restore
 - **BillingView**: plans + access state + per-plan upgrade request (manual billing)
@@ -102,9 +104,6 @@ Tokens are stored in localStorage and auto-refreshed via `/api/auth/token/refres
 - **Invites**: group invite join page with consent + status messaging
 
 ## Not Implemented Yet (Frontend Gaps)
-
-### Specialist sessions
-- Session detail page for specialists
 
 ### Client session actions
 - Polished confirmation flows and status messaging
@@ -142,8 +141,8 @@ Tokens are stored in localStorage and auto-refreshed via `/api/auth/token/refres
 
 ## Next Focus
 
-1. Specialist session detail page
-2. Public profile regression coverage (`PublicProfileView`, `TherapistProfileView`)
+1. Public profile regression coverage (`PublicProfileView`, `TherapistProfileView`)
+2. Client session confirmation and status messaging polish
 3. System and product copy polish (empty/loading/error states, README and marketing consistency)
 
 

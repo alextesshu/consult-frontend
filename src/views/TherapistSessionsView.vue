@@ -62,6 +62,9 @@
             <div v-if="timeUntilLabel(nextUpcoming)" class="status-pill status-pill--warn">
               Початок через {{ timeUntilLabel(nextUpcoming) }}
             </div>
+            <RouterLink class="btn btn--ghost btn--sm" :to="`/cabinet/sessions/${nextUpcoming.id}`">
+              Деталі сесії
+            </RouterLink>
           </div>
           <div v-else class="muted">Немає майбутніх сесій.</div>
         </div>
@@ -173,6 +176,9 @@
               </div>
             </div>
             <div class="session-actions">
+              <RouterLink class="btn btn--ghost btn--sm" :to="`/cabinet/sessions/${session.id}`">
+                Деталі
+              </RouterLink>
               <button
                 class="btn btn--ghost btn--sm"
                 type="button"
@@ -377,6 +383,9 @@
             </div>
           </div>
           <div class="request-actions">
+            <RouterLink class="btn btn--ghost btn--sm" :to="`/cabinet/sessions/${req.session_id}`">
+              Деталі сесії
+            </RouterLink>
             <button
               class="btn btn--ghost btn--sm"
               type="button"
@@ -431,6 +440,9 @@
             </div>
           </div>
           <div class="session-actions">
+            <RouterLink class="btn btn--ghost btn--sm" :to="`/cabinet/sessions/${session.id}`">
+              Деталі
+            </RouterLink>
           </div>
         </article>
       </div>
