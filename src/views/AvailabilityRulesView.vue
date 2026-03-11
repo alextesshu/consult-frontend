@@ -3,7 +3,7 @@
     <header class="availability-rules__hero">
       <div>
         <div class="badge">Розклад</div>
-        <h1 class="title availability-rules__title">{{ isVacationView ? 'Відпустка' : 'Правила розкладу' }}</h1>
+        <h1 class="title availability-rules__title">{{ isVacationView ? 'Відпустка' : 'Налаштування розкладу' }}</h1>
         <p class="muted availability-rules__subtitle">
           {{
             isVacationView
@@ -20,10 +20,10 @@
     <section v-if="!isVacationView" class="panel">
       <div class="panel__header">
         <div>
-          <div class="badge badge--soft">Правила</div>
-          <h2 class="panel__title">Додати правило розкладу</h2>
+          <div class="badge badge--soft">Налаштування</div>
+          <h2 class="panel__title">Додати робочі години</h2>
           <p class="muted generation__subtitle">
-            Правило визначає, коли ви зазвичай працюєте в цей день. Щоб зробити перерву, створіть два окремі інтервали.
+            Робочі години визначають, коли ви зазвичай доступні в цей день. Щоб зробити перерву, створіть два окремі записи.
           </p>
         </div>
       </div>
@@ -96,7 +96,7 @@
         </div>
 
         <button class="btn rule-form__submit" type="submit" :disabled="loading">
-          Додати правило
+          Додати робочі години
         </button>
       </form>
       <div v-if="error" class="form-error">{{ error }}</div>
@@ -106,13 +106,13 @@
       <div class="panel__header">
         <div>
           <div class="badge badge--soft">Список</div>
-          <h2 class="panel__title">Правила розкладу</h2>
+          <h2 class="panel__title">Налаштовані робочі години</h2>
         </div>
       </div>
 
       <div v-if="loading && !rules.length" class="muted">Завантаження...</div>
       <div v-else-if="!rules.length" class="muted">
-        У вас ще немає правил розкладу.
+        У вас ще немає налаштованих робочих годин.
       </div>
 
       <div v-else class="rules-list">
@@ -225,7 +225,7 @@
           <div class="badge badge--soft">Відпустка</div>
           <h2 class="panel__title">Періоди недоступності</h2>
           <p class="muted generation__subtitle">
-            Такі періоди перекривають звичайні правила розкладу і не дозволяють створювати нові вільні вікна у цей час.
+            Такі періоди перекривають ваш звичний розклад і не дозволяють створювати нові вільні вікна у цей час.
           </p>
         </div>
       </div>
@@ -395,7 +395,7 @@
           <div class="badge badge--soft">Вільні вікна</div>
           <h2 class="panel__title">Згенерувати вільні вікна</h2>
           <p class="muted generation__subtitle">
-            Система може створити вільні вікна на основі ваших активних правил розкладу.
+            Система може створити вільні вікна на основі ваших активних робочих годин.
           </p>
         </div>
       </div>
@@ -414,7 +414,7 @@
         </button>
       </div>
 
-      <p v-if="!hasActiveRules" class="muted">Додайте хоча б одне активне правило, щоб запустити preview.</p>
+      <p v-if="!hasActiveRules" class="muted">Додайте активні робочі години, щоб запустити preview.</p>
       <div v-if="generationError" class="form-error">{{ generationError }}</div>
       <p v-if="generationSuccess" class="generation__success">{{ generationSuccess }}</p>
 
@@ -667,7 +667,7 @@ async function loadRules() {
   try {
     rules.value = await apiGet<AvailabilityRule[]>('/cabinet/availability-rules/')
   } catch (err) {
-    error.value = getApiErrorMessage(err, 'Не вдалося завантажити правила розкладу.')
+    error.value = getApiErrorMessage(err, 'Не вдалося завантажити налаштування розкладу.')
   } finally {
     loading.value = false
   }
@@ -836,7 +836,7 @@ async function onCreateRule() {
     resetCreateForm()
     generationSuccess.value = ''
   } catch (err) {
-    error.value = getApiErrorMessage(err, 'Не вдалося створити правило.')
+    error.value = getApiErrorMessage(err, 'Не вдалося зберегти робочі години.')
   } finally {
     loading.value = false
   }
@@ -865,7 +865,7 @@ async function onSaveRule(ruleId: number) {
     cancelEdit()
     generationSuccess.value = ''
   } catch (err) {
-    error.value = getApiErrorMessage(err, 'Не вдалося оновити правило.')
+    error.value = getApiErrorMessage(err, 'Не вдалося оновити робочі години.')
   } finally {
     loading.value = false
   }
@@ -873,8 +873,8 @@ async function onSaveRule(ruleId: number) {
 
 async function onDeleteRule(ruleId: number) {
   confirmModal.openConfirm({
-    title: 'Видалити правило розкладу?',
-    message: 'Правило буде видалено зі звичного ритму роботи. Застосуйте генерацію, щоб оновити вільні вікна.',
+    title: 'Видалити робочі години?',
+    message: 'Ці робочі години буде видалено зі звичного розкладу. Застосуйте генерацію, щоб оновити вільні вікна.',
     confirmText: 'Видалити',
     tone: 'danger',
     onConfirm: async () => {
@@ -888,7 +888,7 @@ async function onDeleteRule(ruleId: number) {
         }
         generationSuccess.value = ''
       } catch (err) {
-        error.value = getApiErrorMessage(err, 'Не вдалося видалити правило.')
+        error.value = getApiErrorMessage(err, 'Не вдалося видалити робочі години.')
       } finally {
         loading.value = false
       }
@@ -986,6 +986,7 @@ onMounted(loadScheduleContext)
   justify-content: space-between;
   align-items: center;
   gap: 20px;
+  min-height: 172px;
   background: linear-gradient(135deg, rgba(8, 113, 201, 0.16), rgba(7, 47, 71, 0.06));
   border: 1px solid var(--line);
   border-radius: var(--radius);

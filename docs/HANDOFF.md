@@ -4,7 +4,7 @@ Last updated: 2026-03-11
 Owner: agent-maintained
 Primary use: persistent project handoff for agent-led work
 Update trigger: after each meaningful completed task
-Last agent task: migrate the notifications bell/feed to the dedicated notifications API
+Last agent task: sync handoff with the specialist session detail route hardening and current sessions technical debt
 
 Update rule:
 
@@ -32,12 +32,24 @@ Update rule:
 - Core routes listed in `README.md` are present in `src/router/index.ts`.
 - Marketing copy in `HomeView` and `BillingView` now reflects shipped leader insights and public profile video support instead of marking them as upcoming.
 - Specialist sessions now support client-side status/date filtering in `TherapistSessionsView`.
+- `TherapistSessionDetailView` now exists at `/cabinet/sessions/:id` with status actions, request context, recurring creation, and private notes.
+- `/cabinet/sessions/:id` is constrained to numeric ids only.
+- Invalid or stale specialist session links now render a visible inline empty/error state instead of degrading to an almost blank page.
+- The specialist sessions flow is closer to closed, but shared action logic still exists in both list and detail views.
+- Schedule copy now uses `Налаштування розкладу` / `Робочі години` terminology instead of ambiguous `правило` wording in the main specialist schedule settings flow.
+- Schedule hero blocks now use a consistent minimum height across `AvailabilityRulesView` and `SlotsView`, so switching schedule tabs does not visually jump.
 - Notifications bell/feed in `App.vue` now uses `/api/notifications/`, `/api/notifications/read/`, and `/api/notifications/read-all/` as the primary source of runtime notifications.
 
 ## Changed files
 
-- `src/lib/api.ts`
+- `src/views/SlotsView.vue`
+- `src/components/ScheduleSubnav.vue`
+- `src/views/AvailabilityRulesView.vue`
+- `src/router/index.ts`
+- `src/views/TherapistSessionsView.vue`
+- `src/views/TherapistSessionDetailView.vue`
 - `src/App.vue`
+- `README.md`
 - `docs/HANDOFF.md`
 
 ## Validation
@@ -45,22 +57,20 @@ Update rule:
 Current status snapshot was derived from:
 
 ```powershell
-rg --files docs
-git log --oneline -n 12
-Get-Content README.md
+Get-Content docs\HANDOFF.md
 Get-Content docs\UI_SHAPE_STANDARD.md
-Get-Content src\router\index.ts
-rg --files src -g "*.spec.ts" -g "*.test.ts"
-rg -n "fetchNotifications|markNotificationRead|markAllNotificationsRead|notificationsFeed|read_at|supplementalNotifications" src\App.vue src\lib\api.ts
-npm run typecheck
-git diff -- src\App.vue src\lib\api.ts docs\HANDOFF.md
+Get-Content src\views\SlotsView.vue
+Get-Content src\views\AvailabilityRulesView.vue
+rg -n "min-height: 172px|availability-rules__hero|slots__hero" src\views\SlotsView.vue src\views\AvailabilityRulesView.vue
+npm run build
+git diff -- src\views\SlotsView.vue src\views\AvailabilityRulesView.vue docs\HANDOFF.md
 ```
 
-Type-check is the minimum required validation for this notifications migration.
+Build is the minimum required validation for this focused schedule layout stabilization.
 
 ## Remaining work
 
-- Add a specialist session detail page.
+- Add view-level regression coverage for `TherapistSessionDetailView`, including invalid/stale route handling.
 - Improve client session confirmation and status messaging polish.
 - Add richer CRM workflows: bulk actions and a deeper client profile view.
 - Add stronger regression coverage for large public-profile surfaces, especially `PublicProfileView` and `TherapistProfileView`.
@@ -69,7 +79,8 @@ Type-check is the minimum required validation for this notifications migration.
 
 ## Risks / open questions
 
-- Specialist session detail still does not exist yet, so the sessions workflow is only partially closed.
+- Specialist session actions now exist in both list and detail views, so future booking behavior changes must keep both surfaces aligned.
+- Shared session action logic between `TherapistSessionsView` and `TherapistSessionDetailView` is still duplicated and should be treated as explicit technical debt.
 - `/api/me` is still used for supplemental notification hints (`access_state`, entitlements, counts), but no longer as the primary notification feed.
 - There was no existing dedicated handoff document before this file, so earlier task state had to be reconstructed from README and git history.
 - Public profile and profile editor are large, high-risk surfaces with limited view-level test coverage.
