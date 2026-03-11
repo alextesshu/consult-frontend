@@ -32,6 +32,7 @@ import AnalyticsView from '../views/AnalyticsView.vue'
 import ClientProfileView from '../views/ClientProfileView.vue'
 import NotificationSettingsView from '../views/NotificationSettingsView.vue'
 import SettingsHubView from '../views/SettingsHubView.vue'
+import SpecialistInquiriesView from '../views/SpecialistInquiriesView.vue'
 import { useAuthStore } from '../stores/auth'
 import { fetchSpecialistProfile } from '../lib/api'
 
@@ -88,6 +89,12 @@ const routes = [
     path: '/cabinet/chat',
     name: 'cabinet-chat',
     component: ChatView,
+    meta: { requiresAuth: true, requiresRole: 'SPECIALIST' },
+  },
+  {
+    path: '/cabinet/inquiries',
+    name: 'cabinet-inquiries',
+    component: SpecialistInquiriesView,
     meta: { requiresAuth: true, requiresRole: 'SPECIALIST' },
   },
   {

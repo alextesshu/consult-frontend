@@ -44,8 +44,17 @@
           </div>
         </div>
         <div class="hero-cta__actions">
-          <a class="btn btn--primary" href="#slots">Записатися на ознайомчу сесію</a>
-          <a class="btn btn--ghost" href="#slots">Переглянути вільні вікна</a>
+          <button class="btn btn--primary" type="button" @click="handleHeroPrimaryAction">
+            {{ heroPrimaryLabel }}
+          </button>
+          <RouterLink
+            v-if="showClientSessionsCta"
+            class="btn btn--ghost"
+            to="/client"
+          >
+            Мої сесії
+          </RouterLink>
+          <a v-else class="btn btn--ghost" href="#slots">Переглянути вільні вікна</a>
           <RouterLink class="btn btn--ghost" :to="feedbackLink">Відгуки</RouterLink>
         </div>
       </aside>
@@ -68,6 +77,65 @@
             <div class="trust-card__value">{{ item.value }}</div>
           </article>
         </div>
+      </section>
+
+      <section v-if="showInquiryPanel" class="panel panel--inquiry" id="inquiry">
+        <div class="panel__header">
+          <div>
+            <div class="badge badge--soft">До бронювання</div>
+            <h2 class="panel__title">{{ inquiryLeadCopy.title }}</h2>
+          </div>
+        </div>
+
+        <div class="inquiry-state" :class="`inquiry-state--${inquiryLeadCopy.tone}`">
+          {{ inquiryLeadCopy.body }}
+        </div>
+
+        <div v-if="inquiryLoading" class="muted">Завантажуємо запит...</div>
+        <div v-else-if="inquiryError" class="form-error">{{ inquiryError }}</div>
+        <template v-else>
+          <div v-if="inquiryMessages.length" class="inquiry-thread">
+            <article
+              v-for="message in inquiryMessages"
+              :key="message.id"
+              class="inquiry-message"
+              :class="{ 'inquiry-message--mine': isMyInquiryMessage(message.sender_id) }"
+            >
+              <div class="inquiry-message__author">
+                {{ isMyInquiryMessage(message.sender_id) ? 'Ви' : publicName || 'Спеціаліст' }}
+              </div>
+              <div class="inquiry-message__body">{{ message.body }}</div>
+              <div class="inquiry-message__time muted">{{ formatDate(message.created_at) }}</div>
+            </article>
+          </div>
+
+          <form
+            v-if="showInquiryComposer"
+            class="inquiry-composer"
+            @submit.prevent="submitInquiryMessage"
+          >
+            <label class="slot-filter__label" for="inquiryBody">Ваше повідомлення</label>
+            <textarea
+              id="inquiryBody"
+              v-model="inquiryDraft"
+              class="input inquiry-composer__textarea"
+              rows="4"
+              placeholder="Коротко опишіть, що хочете уточнити перед бронюванням."
+              :disabled="inquirySubmitting"
+            ></textarea>
+            <div class="muted inquiry-composer__hint">
+              Короткий запит без вкладень і термінових звернень. Це не повноцінний чат.
+            </div>
+            <div v-if="inquirySubmitError" class="form-error">{{ inquirySubmitError }}</div>
+            <button
+              class="btn btn--primary"
+              type="submit"
+              :disabled="inquirySubmitting || !inquiryDraft.trim()"
+            >
+              {{ inquirySubmitLabel }}
+            </button>
+          </form>
+        </template>
       </section>
 
       <div class="panel panel--slots" id="slots">
@@ -255,7 +323,7 @@
         </div>
       </section>
 
-      <section class="panel panel--contacts" v-if="contactActions.length">
+      <section class="panel panel--contacts" v-if="showDirectContactActions">
         <div class="panel__header">
           <div>
             <div class="badge badge--soft">Зв’язок</div>
@@ -452,9 +520,26 @@
             </div>
           </div>
           <div class="footer-cta__actions">
-            <a class="btn btn--primary" href="#slots">Записатися на ознайомчу сесію</a>
+            <button class="btn btn--primary" type="button" @click="handleHeroPrimaryAction">
+              {{ heroPrimaryLabel }}
+            </button>
+            <RouterLink
+              v-if="showClientSessionsCta"
+              class="btn btn--ghost"
+              to="/client"
+            >
+              Мої сесії
+            </RouterLink>
+            <button
+              v-else-if="showInquiryEntry"
+              class="btn btn--ghost"
+              type="button"
+              @click="scrollToSlots"
+            >
+              Записатися на ознайомчу сесію
+            </button>
             <a
-              v-if="primaryContactHref"
+              v-else-if="primaryContactHref"
               class="btn btn--ghost"
               :href="primaryContactHref"
               target="_blank"
@@ -537,12 +622,24 @@ import { marked } from 'marked'
 import { useRoute, useRouter } from 'vue-router'
 import { getApiErrorMessage } from '../lib/errors'
 import { BOOKING_ERROR_FALLBACKS, BOOKING_SUCCESS_MESSAGES, BOOKING_UI_MESSAGES } from '../lib/bookingCopy'
-import { apiGet, apiPost } from '../lib/api'
+import { getInquiryActionErrorMessage, mapInquiryStateToUi } from '../lib/inquiryCopy'
+import {
+  apiGet,
+  apiPost,
+  createInquiryThread,
+  fetchChatThreads,
+  fetchInquiryMessages,
+  fetchInquiryState,
+  sendInquiryMessage,
+} from '../lib/api'
 import { toLocalDate } from '../lib/dates'
 import {
   fetchPublicSpecialistProfile,
   fetchPublicAuthorJournalPosts,
   fetchPublicJournalCollections,
+  type ChatThread,
+  type InquiryMessage,
+  type InquiryState,
   type PublicSpecialistProfile,
   type PublicAuthorJournalPost,
   type PublicJournalCollectionListItem,
@@ -595,6 +692,14 @@ const settingButtonRef = ref<HTMLElement | null>(null)
 let settingAttentionTimer: number | null = null
 const clientSessions = ref<ClientSession[]>([])
 const pastClientSessions = ref<ClientSession[]>([])
+const chatThreads = ref<ChatThread[]>([])
+const inquiryState = ref<InquiryState | null>(null)
+const inquiryMessages = ref<InquiryMessage[]>([])
+const inquiryLoading = ref(false)
+const inquiryError = ref('')
+const inquiryDraft = ref('')
+const inquirySubmitError = ref('')
+const inquirySubmitting = ref(false)
 const journalPosts = ref<PublicAuthorJournalPost[]>([])
 const journalCollections = ref<PublicJournalCollectionListItem[]>([])
 const journalLoading = ref(false)
@@ -624,22 +729,23 @@ const isBookingDisabled = (slotId: number) =>
   !canBook.value || bookingSlotId.value === slotId || !settingAccepted.value
 const visibleSlots = computed(() => (showAllSlots.value ? slots.value : slots.value.slice(0, slotsPreviewLimit)))
 const hasMoreSlots = computed(() => slots.value.length > slotsPreviewLimit)
+const matchesProfileSession = (session: ClientSession) => {
+  if (!profile.value) return false
+  const specialistId = profile.value.therapist_id
+  const sessionSpecialist = session.therapist
+  if (specialistId && sessionSpecialist) {
+    return specialistId === sessionSpecialist
+  }
+  if (profile.value.public_slug && session.therapist_public_slug) {
+    return profile.value.public_slug === session.therapist_public_slug
+  }
+  return false
+}
+const relatedUpcomingSessions = computed(() => clientSessions.value.filter((session) => matchesProfileSession(session)))
+const relatedPastSessions = computed(() => pastClientSessions.value.filter((session) => matchesProfileSession(session)))
 const upcomingConfirmed = computed(() => {
-  if (!profile.value) return []
-  return clientSessions.value
-    .filter((session) => {
-      const status = session.status || ''
-      if (status !== 'CONFIRMED') return false
-      const specialistId = profile.value?.therapist_id
-      const sessionSpecialist = session.therapist
-      if (specialistId && sessionSpecialist) {
-        return specialistId === sessionSpecialist
-      }
-      if (profile.value?.public_slug && session.therapist_public_slug) {
-        return profile.value.public_slug === session.therapist_public_slug
-      }
-      return false
-    })
+  return relatedUpcomingSessions.value
+    .filter((session) => (session.status || '') === 'CONFIRMED')
     .map((session) => {
       const slot = session.slot || null
       return {
@@ -650,6 +756,30 @@ const upcomingConfirmed = computed(() => {
     })
     .filter((item) => item.start_at && item.end_at)
     .sort((a, b) => new Date(a.start_at).getTime() - new Date(b.start_at).getTime())
+})
+const profileChatThread = computed(() => {
+  if (!profile.value?.therapist_id) return null
+  return chatThreads.value.find((thread) => thread.therapist_id === profile.value?.therapist_id) || null
+})
+const hasActiveClientRelation = computed(() => {
+  if (!isClient.value || !isAuthenticated.value) return false
+  return inquiryState.value?.inquiry_status === 'ACTIVE_CLIENT' || Boolean(profileChatThread.value)
+})
+const canMessageSpecialist = computed(() => Boolean(isClient.value && isAuthenticated.value && hasActiveClientRelation.value))
+const hasClientHistoryWithSpecialist = computed(
+  () => relatedUpcomingSessions.value.length > 0 || relatedPastSessions.value.length > 0
+)
+const showClientSessionsCta = computed(
+  () => Boolean(isClient.value && isAuthenticated.value && hasClientHistoryWithSpecialist.value)
+)
+const showInquiryEntry = computed(() => {
+  if (!isAuthenticated.value || !isClient.value || !profile.value || !inquiryState.value) return false
+  return inquiryState.value.inquiry_status !== 'ACTIVE_CLIENT'
+})
+const showInquiryPanel = computed(() => {
+  if (!isAuthenticated.value || !isClient.value || !profile.value) return false
+  if (hasActiveClientRelation.value) return false
+  return inquiryLoading.value || Boolean(inquiryState.value)
 })
 const weekDays = computed(() => {
   const base = new Date()
@@ -690,6 +820,13 @@ const feedbackLink = computed(() => ({
   name: 'specialist-feedback',
   params: { slug: profile.value?.public_slug || slug.value },
 }))
+const heroPrimaryLabel = computed(() => {
+  if (canMessageSpecialist.value) return 'Написати повідомлення'
+  if (showInquiryEntry.value) {
+    return inquiryState.value?.inquiry_exists ? 'Уточнити деталі' : 'Поставити запитання'
+  }
+  return 'Записатися на ознайомчу сесію'
+})
 
 function formatPriceAmount(value: string | number | null | undefined): string {
   if (value === null || value === undefined) return ''
@@ -819,7 +956,50 @@ const contactActions = computed(() => {
   return items.filter((item) => Boolean(item.href))
 })
 
-const primaryContactHref = computed(() => contactActions.value[0]?.href || '')
+const showDirectContactActions = computed(() => Boolean(contactActions.value.length && !isClient.value))
+
+const primaryContactHref = computed(() =>
+  !canMessageSpecialist.value && !showInquiryEntry.value && showDirectContactActions.value
+    ? contactActions.value[0]?.href || ''
+    : ''
+)
+
+const inquiryLeadCopy = computed(() => {
+  const state = inquiryState.value
+  if (!state) {
+    return mapInquiryStateToUi({
+      status: 'NOT_CREATED',
+      actor: 'client',
+      mode: 'entry',
+    })
+  }
+
+  const reasonCode = state.inquiry_exists
+    ? state.can_client_send
+      ? null
+      : state.client_send_reason_code
+    : state.can_create_inquiry
+      ? null
+      : state.create_reason_code
+
+  return mapInquiryStateToUi({
+    status: state.inquiry_status,
+    reasonCode,
+    actor: 'client',
+    mode: state.inquiry_exists ? 'thread' : 'entry',
+  })
+})
+
+const showInquiryComposer = computed(() => {
+  if (!inquiryState.value) return false
+  if (inquiryState.value.can_create_inquiry) return true
+  return Boolean(inquiryState.value.inquiry_exists && inquiryState.value.can_client_send)
+})
+
+const inquirySubmitLabel = computed(() => {
+  if (inquiryState.value?.can_create_inquiry) return 'Надіслати запит'
+  return 'Надіслати уточнення'
+})
 
 const standardSessionDurationMinutes = computed(() => {
   const durations = slots.value
@@ -908,6 +1088,40 @@ function openDatePicker() {
 function selectDay(date: string) {
   selectedDate.value = date
   showAllSlots.value = false
+}
+
+function scrollToSlots() {
+  window.location.hash = '#slots'
+  document.getElementById('slots')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
+
+function scrollToInquiry() {
+  window.location.hash = '#inquiry'
+  document.getElementById('inquiry')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
+
+function openClientChat() {
+  if (!profile.value?.therapist_id) return
+  router.push({
+    name: 'client-chat',
+    query: { therapist_id: String(profile.value.therapist_id) },
+  })
+}
+
+function handleHeroPrimaryAction() {
+  if (canMessageSpecialist.value) {
+    openClientChat()
+    return
+  }
+  if (showInquiryEntry.value) {
+    scrollToInquiry()
+    return
+  }
+  scrollToSlots()
+}
+
+function isMyInquiryMessage(senderId: number) {
+  return senderId === auth.me?.user.id
 }
 
 async function loadProfile() {
@@ -1082,7 +1296,11 @@ function collectionCoverUrl(collection: PublicJournalCollectionListItem): string
 }
 
 async function loadClientSessions() {
-  if (!isAuthenticated.value || !isClient.value) return
+  if (!isAuthenticated.value || !isClient.value) {
+    clientSessions.value = []
+    pastClientSessions.value = []
+    return
+  }
   try {
     const resp = await apiGet<ClientSession[]>('/booking/sessions/', {
       params: { upcoming: true },
@@ -1095,6 +1313,94 @@ async function loadClientSessions() {
   } catch {
     clientSessions.value = []
     pastClientSessions.value = []
+  }
+}
+
+async function loadChatThreads() {
+  if (!isAuthenticated.value || !isClient.value) {
+    chatThreads.value = []
+    return
+  }
+  try {
+    chatThreads.value = await fetchChatThreads()
+  } catch {
+    chatThreads.value = []
+  }
+}
+
+async function loadInquiryMessages() {
+  if (!inquiryState.value?.inquiry_id) {
+    inquiryMessages.value = []
+    return
+  }
+  try {
+    inquiryMessages.value = await fetchInquiryMessages(inquiryState.value.inquiry_id, { limit: 50 })
+  } catch {
+    inquiryMessages.value = []
+    inquiryError.value = 'Не вдалося завантажити історію запиту.'
+  }
+}
+
+async function loadInquiryState() {
+  if (!isAuthenticated.value || !isClient.value || !profile.value?.therapist_id) {
+    inquiryLoading.value = false
+    inquiryState.value = null
+    inquiryMessages.value = []
+    inquiryDraft.value = ''
+    inquiryError.value = ''
+    inquirySubmitError.value = ''
+    return
+  }
+
+  inquiryLoading.value = true
+  inquiryError.value = ''
+  try {
+    inquiryState.value = await fetchInquiryState(profile.value.therapist_id)
+    inquirySubmitError.value = ''
+    if (inquiryState.value.inquiry_exists && inquiryState.value.inquiry_id) {
+      await loadInquiryMessages()
+    } else {
+      inquiryMessages.value = []
+    }
+  } catch (err: any) {
+    inquiryState.value = null
+    inquiryMessages.value = []
+    inquiryError.value = getInquiryActionErrorMessage(err, 'client', 'Не вдалося завантажити запит до бронювання.')
+  } finally {
+    inquiryLoading.value = false
+  }
+}
+
+async function submitInquiryMessage() {
+  const body = inquiryDraft.value.trim()
+  if (!body || !profile.value?.therapist_id || !inquiryState.value) return
+
+  inquirySubmitting.value = true
+  inquirySubmitError.value = ''
+  try {
+    if (inquiryState.value.can_create_inquiry) {
+      await createInquiryThread({
+        specialist_id: profile.value.therapist_id,
+        body,
+      })
+      toast.success('Запит надіслано.')
+    } else if (inquiryState.value.inquiry_id && inquiryState.value.can_client_send) {
+      await sendInquiryMessage(inquiryState.value.inquiry_id, body)
+      toast.success('Уточнення надіслано.')
+    } else {
+      inquirySubmitError.value = inquiryLeadCopy.value.body
+      return
+    }
+    inquiryDraft.value = ''
+    await loadInquiryState()
+  } catch (err: any) {
+    inquirySubmitError.value = getInquiryActionErrorMessage(
+      err,
+      'client',
+      'Не вдалося надіслати запит до бронювання.'
+    )
+  } finally {
+    inquirySubmitting.value = false
   }
 }
 
@@ -1238,8 +1544,17 @@ watch(slug, () => {
   slots.value = []
   showAllSlots.value = false
   selectedDate.value = toLocalDate(new Date())
-  loadProfile().then(loadSlots)
+  inquiryState.value = null
+  inquiryMessages.value = []
+  inquiryDraft.value = ''
+  inquiryError.value = ''
+  inquirySubmitError.value = ''
+  loadProfile().then(async () => {
+    await loadSlots()
+    await loadInquiryState()
+  })
   loadClientSessions()
+  loadChatThreads()
   loadJournal()
   loadReviews()
 })
@@ -1252,6 +1567,8 @@ watch(selectedDate, () => {
 
 watch([isAuthenticated, isClient], () => {
   loadClientSessions()
+  loadChatThreads()
+  loadInquiryState()
 })
 
 watch(
@@ -1272,6 +1589,8 @@ onMounted(async () => {
   await loadProfile()
   await loadSlots()
   await loadClientSessions()
+  await loadChatThreads()
+  await loadInquiryState()
   await loadJournal()
   await loadReviews()
 })
@@ -1416,6 +1735,7 @@ onMounted(async () => {
   grid-column: 1 / -1;
 }
 
+.panel--inquiry,
 .panel--trust,
 .panel--work-format,
 .panel--about,
@@ -1527,6 +1847,74 @@ onMounted(async () => {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
+}
+
+.inquiry-state {
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  font-size: 14px;
+}
+
+.inquiry-state--info {
+  background: rgba(8, 113, 201, 0.08);
+}
+
+.inquiry-state--warning {
+  background: rgba(194, 75, 75, 0.08);
+}
+
+.inquiry-state--neutral {
+  background: rgba(7, 47, 71, 0.04);
+}
+
+.inquiry-thread {
+  display: grid;
+  gap: 10px;
+}
+
+.inquiry-message {
+  display: grid;
+  gap: 6px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: #fff;
+}
+
+.inquiry-message--mine {
+  background: rgba(8, 113, 201, 0.06);
+}
+
+.inquiry-message__author {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.inquiry-message__body {
+  white-space: pre-line;
+  line-height: 1.5;
+}
+
+.inquiry-message__time {
+  font-size: 12px;
+}
+
+.inquiry-composer {
+  display: grid;
+  gap: 10px;
+}
+
+.inquiry-composer__textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.inquiry-composer__hint {
+  font-size: 12px;
 }
 
 .flow-card {

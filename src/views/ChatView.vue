@@ -72,6 +72,7 @@
 
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import {
   fetchChatMessages,
@@ -80,6 +81,7 @@ import {
 } from '../lib/api'
 import type { ChatMessage, ChatThread } from '../lib/api'
 
+const route = useRoute()
 const auth = useAuthStore()
 const threads = ref<ChatThread[]>([])
 const threadsLoading = ref(false)
@@ -101,6 +103,14 @@ const backRoute = computed(() => (isSpecialist.value ? '/cabinet' : '/client'))
 const activeThread = computed(() =>
   threads.value.find((thread) => thread.id === activeThreadId.value) || null
 )
+const preferredThreadId = computed(() => {
+  const raw = Number(route.query.thread_id)
+  return Number.isInteger(raw) && raw > 0 ? raw : null
+})
+const preferredTherapistId = computed(() => {
+  const raw = Number(route.query.therapist_id)
+  return Number.isInteger(raw) && raw > 0 ? raw : null
+})
 
 function initials(value: string) {
   const parts = value.trim().split(/\s+/).filter(Boolean)
@@ -128,11 +138,28 @@ function formatTime(value: string) {
   })
 }
 
+function resolvePreferredThreadId(data: ChatThread[]) {
+  if (preferredThreadId.value) {
+    const direct = data.find((thread) => thread.id === preferredThreadId.value)
+    if (direct) return direct.id
+  }
+  if (preferredTherapistId.value) {
+    const byTherapist = data.find((thread) => thread.therapist_id === preferredTherapistId.value)
+    if (byTherapist) return byTherapist.id
+  }
+  return null
+}
+
 async function loadThreads() {
   threadsLoading.value = true
   try {
     const data = await fetchChatThreads()
     threads.value = data
+    const preferredId = resolvePreferredThreadId(data)
+    if (preferredId && preferredId !== activeThreadId.value) {
+      await selectThread(preferredId)
+      return
+    }
     if (!activeThreadId.value && data.length > 0) {
       const firstThread = data[0]
       if (firstThread) {
@@ -236,6 +263,13 @@ watch(activeThreadId, () => {
   if (activeThreadId.value) {
     startPolling()
   }
+})
+
+watch([preferredThreadId, preferredTherapistId], async () => {
+  if (!threads.value.length) return
+  const preferredId = resolvePreferredThreadId(threads.value)
+  if (!preferredId || preferredId === activeThreadId.value) return
+  await selectThread(preferredId)
 })
 
 onMounted(async () => {

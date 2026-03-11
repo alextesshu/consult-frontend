@@ -4,7 +4,7 @@ Last updated: 2026-03-11
 Owner: agent-maintained
 Primary use: persistent project handoff for agent-led work
 Update trigger: after each meaningful completed task
-Last agent task: strengthen profile/session regression coverage, centralize specialist session view logic, and polish client session status messaging
+Last agent task: add a bounded pre-booking inquiry MVP on the public specialist profile plus a minimal specialist inquiry inbox
 
 Update rule:
 
@@ -32,21 +32,39 @@ Update rule:
 - `PublicProfileView` now has focused regression coverage for loaded-state rendering and booking gating before setting acceptance.
 - `TherapistProfileView` now has focused regression coverage for loaded-state rendering and normalized save payload behavior.
 - Specialist sessions support client-side status/date filtering in `TherapistSessionsView`.
+- `TherapistSessionsView` now has focused list-level regression coverage for mount loading, list rendering, pending reschedule context, filter reset behavior, and empty states.
 - `TherapistSessionDetailView` exists at `/cabinet/sessions/:id` with status actions, request context, recurring creation, private notes, and view-level regression coverage for happy-path plus invalid/stale routes.
 - Shared specialist session formatting, action guards, input parsing, note loading/saving, and booking action requests are centralized in `src/lib/specialistSessions.ts` and reused by `TherapistSessionsView` and `TherapistSessionDetailView`.
 - `ClientSessionDetailView` now shows clearer inline guidance for confirmed vs scheduled sessions and keeps reschedule actions disabled for non-active statuses.
 - `ClientSessionDetailView` now has view-level regression coverage for confirmed/request-based and scheduled/direct-reschedule messaging flows.
+- `PublicProfileView` now switches primary CTA from intro-booking to internal chat for clients who already have an active chat thread with that specialist, instead of falling back to external `mailto` / messenger links.
+- `ChatView` now supports query-driven preselect by `therapist_id` or `thread_id`, so profile-driven chat entrypoints can open the intended thread directly.
+- `PublicProfileView` and `ChatView` now have focused regression coverage for active-client chat surfacing and thread preselection.
+- A separate pre-booking inquiry flow is now surfaced on `PublicProfileView` for non-active clients through `/api/inquiries/state/`, `/api/inquiries/threads/`, and `/api/inquiries/messages/`.
+- Inquiry UI intentionally avoids chat wording: client CTA is `Поставити запитання` / `Уточнити деталі`, thread history stays inline on the profile, and blocked/closed states render calm explanatory copy via `src/lib/inquiryCopy.ts`.
+- Active-client behavior remains unchanged: `ACTIVE_CLIENT` inquiry state still routes users to the existing full chat path instead of exposing inquiry actions.
+- Specialist handling for this MVP lives in a small dedicated `/cabinet/inquiries` surface, not a broader inbox redesign.
 - Notifications bell/feed in `App.vue` uses `/api/notifications/`, `/api/notifications/read/`, and `/api/notifications/read-all/` as the primary runtime notification source.
 
 ## Changed files
 
 - `src/lib/specialistSessions.ts`
+- `src/lib/inquiryCopy.ts`
+- `src/views/ChatView.vue`
+- `src/views/ChatView.spec.ts`
 - `src/views/PublicProfileView.spec.ts`
+- `src/views/PublicProfileView.vue`
+- `src/views/SpecialistInquiriesView.vue`
+- `src/views/SpecialistInquiriesView.spec.ts`
 - `src/views/TherapistProfileView.spec.ts`
 - `src/views/ClientSessionDetailView.vue`
 - `src/views/ClientSessionDetailView.spec.ts`
 - `src/views/TherapistSessionDetailView.vue`
+- `src/views/TherapistSessionsView.spec.ts`
 - `src/views/TherapistSessionsView.vue`
+- `src/views/CabinetView.vue`
+- `src/router/index.ts`
+- `src/lib/api.ts`
 - `docs/HANDOFF.md`
 
 ## Validation
@@ -54,23 +72,25 @@ Update rule:
 Current task validation:
 
 ```powershell
-npm run test:run -- src/views/PublicProfileView.spec.ts src/views/TherapistProfileView.spec.ts src/views/TherapistSessionDetailView.spec.ts src/views/ClientSessionDetailView.spec.ts
-npm run typecheck
+npm run test:run -- src/views/TherapistSessionsView.spec.ts
 ```
 
-The targeted Vitest suite passed and repository typecheck passed after the shared specialist session refactor.
+The targeted Vitest suite passed for the new `TherapistSessionsView` list-level regression coverage.
 
 ## Remaining work
 
 - Add richer CRM workflows: bulk actions and a deeper client profile view.
 - Expand system-level empty/loading/error states across remaining views.
 - Clarify future billing and entitlements states if backend support for live billing is introduced.
-- Consider dedicated list-view regression coverage for `TherapistSessionsView`.
+- Inquiry MVP does not yet have dedicated client dashboard discoverability outside the public specialist profile.
 
 ## Risks / open questions
 
 - Session coverage is still view-level; there is no dedicated router-spec assertion for the numeric session route regex itself.
-- `TherapistSessionsView` was refactored onto shared helpers, but list-level actions and filter interactions still lack their own regression spec.
+- `TherapistSessionsView` now has list-level rendering coverage, but mutation-heavy actions like confirm/cancel/reschedule/recurring are still not directly asserted there.
 - Client session messaging coverage focuses on `SCHEDULED` and `CONFIRMED`; completed/cancelled rendering is improved in-view but not directly asserted in tests.
+- Public-profile chat surfacing currently infers message availability from existing chat threads; if backend relation rules change, a dedicated capability flag may still be worth adding later.
+- Inquiry messaging is intentionally bounded and non-realtime: no attachments, no dashboard card surfacing, and no unified inbox with full chat.
+- Authenticated clients are now steered away from raw external contact links on the public profile; public and non-client visitors still see direct contacts if the specialist exposed them.
 - `/api/me` is still used for supplemental notification hints (`access_state`, entitlements, counts), but not as the primary notification feed.
 - Some files display encoding issues in the current shell output, so copy-heavy changes should still be checked in-editor.

@@ -896,6 +896,73 @@ export type ChatMessage = {
   created_at: string
 }
 
+export type InquiryStatus =
+  | 'NOT_CREATED'
+  | 'OPEN'
+  | 'CLOSED'
+  | 'ACTIVE_CLIENT'
+  | 'BLOCKED'
+  | 'ARCHIVED'
+
+export type InquiryReasonCode =
+  | 'ACTIVE_CLIENT_USE_CHAT'
+  | 'INQUIRY_ALREADY_EXISTS'
+  | 'RELATION_BLOCKED'
+  | 'RELATION_ARCHIVED'
+  | 'THREAD_CLOSED'
+  | 'INQUIRY_NOT_FOUND'
+  | 'FOLLOW_UP_REQUIRES_SPECIALIST_REPLY'
+  | 'CLIENT_MESSAGE_LIMIT_REACHED'
+  | 'REPLY_REQUIRES_CLIENT_MESSAGE'
+  | 'WAIT_FOR_CLIENT_MESSAGE'
+  | 'ONLY_CLIENT_CAN_CREATE'
+  | 'SPECIALIST_NOT_FOUND'
+  | 'ACCESS_DENIED'
+  | 'EMPTY_BODY'
+
+export type InquiryState = {
+  specialist_id: number
+  inquiry_id: number | null
+  inquiry_exists: boolean
+  inquiry_status: InquiryStatus
+  can_create_inquiry: boolean
+  create_reason_code: InquiryReasonCode | string | null
+  can_client_send: boolean
+  client_send_reason_code: InquiryReasonCode | string | null
+  can_specialist_reply: boolean
+  specialist_reply_reason_code: InquiryReasonCode | string | null
+}
+
+export type InquiryThread = {
+  id: number
+  specialist_id: number
+  client_id: number
+  created_at: string
+  last_message_at: string | null
+  inquiry_status: InquiryStatus
+  closed_reason: string | null
+  other_user: {
+    id: number
+    role: 'SPECIALIST' | 'THERAPIST' | 'CLIENT'
+    display_name: string
+    photo_url?: string
+  }
+  last_message_preview: string
+  unread_count: number
+  can_client_send: boolean
+  client_send_reason_code: InquiryReasonCode | string | null
+  can_specialist_reply: boolean
+  specialist_reply_reason_code: InquiryReasonCode | string | null
+}
+
+export type InquiryMessage = {
+  id: number
+  thread_id: number
+  sender_id: number
+  body: string
+  created_at: string
+}
+
 export async function fetchChatThreads(): Promise<ChatThread[]> {
   const resp = await http.get<ChatThread[]>('/chat/threads/')
   return resp.data
@@ -921,6 +988,44 @@ export async function sendChatMessage(threadId: number, body: string): Promise<C
 
 export async function fetchChatUnreadCount(): Promise<{ unread_count: number }> {
   const resp = await http.get<{ unread_count: number }>('/chat/unread-count/')
+  return resp.data
+}
+
+export async function fetchInquiryState(specialistId: number): Promise<InquiryState> {
+  const resp = await http.get<InquiryState>('/inquiries/state/', {
+    params: { specialist_id: specialistId },
+  })
+  return resp.data
+}
+
+export async function fetchInquiryThreads(): Promise<InquiryThread[]> {
+  const resp = await http.get<InquiryThread[]>('/inquiries/threads/')
+  return resp.data
+}
+
+export async function createInquiryThread(payload: {
+  specialist_id: number
+  body: string
+}): Promise<InquiryThread> {
+  const resp = await http.post<InquiryThread>('/inquiries/threads/', payload)
+  return resp.data
+}
+
+export async function fetchInquiryMessages(
+  threadId: number,
+  params?: { since_id?: number; limit?: number }
+): Promise<InquiryMessage[]> {
+  const resp = await http.get<InquiryMessage[]>('/inquiries/messages/', {
+    params: { thread_id: threadId, ...params },
+  })
+  return resp.data
+}
+
+export async function sendInquiryMessage(threadId: number, body: string): Promise<InquiryMessage> {
+  const resp = await http.post<InquiryMessage>('/inquiries/messages/send/', {
+    thread_id: threadId,
+    body,
+  })
   return resp.data
 }
 
