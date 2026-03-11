@@ -8,6 +8,7 @@ import {
   fetchSpecialistAvailableSlots,
   fetchSpecialistRescheduleRequests,
   fetchSpecialistRescheduleSuggestions,
+  formatSessionDateTime,
   rescheduleSpecialistSession,
 } from '../lib/specialistSessions'
 import TherapistSessionsView from './TherapistSessionsView.vue'
@@ -402,7 +403,7 @@ describe('TherapistSessionsView', () => {
     await waitFor(() => {
       expect(screen.queryByText('Рекомендовані варіанти перенесення')).not.toBeInTheDocument()
     })
-    expect(screen.getAllByText('20.06.2099, 14:00')).toHaveLength(2)
+    expect(screen.getAllByText(formatSessionDateTime(nextSlot.start_at))).toHaveLength(2)
     expect(mockedFetchSpecialistAvailableSlots).toHaveBeenCalledTimes(2)
     expect(mockedApiGet).toHaveBeenCalledTimes(4)
   })
@@ -461,8 +462,12 @@ describe('TherapistSessionsView', () => {
 
     expect(await screen.findByText('Створено 3 сесій')).toBeInTheDocument()
     expect(screen.getByText('Пропущено 1 через конфлікти')).toBeInTheDocument()
-    expect(screen.getByText('08.07.2099, 11:00')).toBeInTheDocument()
-    expect(screen.getByText('29.07.2099, 11:00 - На цю дату вже немає вільного вікна')).toBeInTheDocument()
+    expect(screen.getByText(formatSessionDateTime('2099-07-08T08:00:00Z'))).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        `${formatSessionDateTime('2099-07-29T08:00:00Z')} - На цю дату вже немає вільного вікна`
+      )
+    ).toBeInTheDocument()
     expect(mockedFetchSpecialistAvailableSlots).toHaveBeenCalledTimes(2)
     expect(mockedApiGet).toHaveBeenCalledTimes(4)
   })
