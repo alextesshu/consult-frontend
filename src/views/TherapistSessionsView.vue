@@ -71,6 +71,41 @@
     <section class="panel">
       <div class="panel__header">
         <div>
+          <div class="badge badge--soft">Фільтри</div>
+          <h2 class="panel__title">Пошук потрібних сесій</h2>
+        </div>
+        <button
+          v-if="hasActiveSessionFilters"
+          class="btn btn--ghost btn--sm"
+          type="button"
+          @click="clearSessionFilters"
+        >
+          Скинути фільтри
+        </button>
+      </div>
+      <div class="session-filters">
+        <label class="field session-filters__field">
+          <span class="muted">Статус</span>
+          <select v-model="statusFilter" class="input input--select">
+            <option
+              v-for="option in sessionStatusFilterOptions"
+              :key="option.value"
+              :value="option.value"
+            >
+              {{ option.label }}
+            </option>
+          </select>
+        </label>
+        <label class="field session-filters__field">
+          <span class="muted">Дата</span>
+          <input v-model="dateFilter" class="input" type="date" />
+        </label>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel__header">
+        <div>
           <div class="badge badge--soft">Найближчі</div>
           <h2 class="panel__title">Заплановані сесії</h2>
         </div>
@@ -84,7 +119,7 @@
         </button>
       </div>
       <EmptyState
-        v-if="!loading && upcomingSorted.length === 0"
+        v-if="!loading && filteredUpcomingSessions.length === 0"
         title="Немає запланованих сесій"
         description="Створіть вільні віконця або поділіться профілем, щоб клієнти могли записатися."
         action-text="Створити віконце"
@@ -94,7 +129,7 @@
       />
       <div v-else class="session-list">
         <article
-          v-for="session in upcomingSorted"
+          v-for="session in filteredUpcomingSessions"
           :key="session.id"
           :id="`session-${session.id}`"
           class="session-card session-card--with-photo"
@@ -371,13 +406,13 @@
         </div>
       </div>
       <EmptyState
-        v-if="!loading && historySessions.length === 0"
+        v-if="!loading && filteredHistorySessions.length === 0"
         title="Історія порожня"
         description="Після завершених або відмінених сесій тут з'явиться історія."
       />
       <div v-else class="session-list">
         <article
-          v-for="session in historySessions"
+          v-for="session in filteredHistorySessions"
           :key="session.id"
           :id="`session-${session.id}`"
           class="session-card"
@@ -514,6 +549,23 @@ type RescheduleSuggestion = {
   reason_tag: string
 }
 
+type SessionStatusFilter =
+  | 'ALL'
+  | 'SCHEDULED'
+  | 'CONFIRMED'
+  | 'COMPLETED'
+  | 'CANCELLED'
+  | 'NO_SHOW'
+
+const sessionStatusFilterOptions: Array<{ value: SessionStatusFilter; label: string }> = [
+  { value: 'ALL', label: 'Усі статуси' },
+  { value: 'SCHEDULED', label: 'Заплановано' },
+  { value: 'CONFIRMED', label: 'Підтверджено' },
+  { value: 'COMPLETED', label: 'Завершено' },
+  { value: 'CANCELLED', label: 'Скасовано' },
+  { value: 'NO_SHOW', label: 'Не відбулося' },
+]
+
 const upcoming = ref<Session[]>([])
 const past = ref<Session[]>([])
 const availableSlots = ref<Slot[]>([])
@@ -537,6 +589,8 @@ const rescheduleRequests = ref<RescheduleRequest[]>([])
 const requestsLoading = ref(false)
 const requestLoading = ref<Set<number>>(new Set())
 const highlightedSessionId = ref<number | null>(null)
+const statusFilter = ref<SessionStatusFilter>('ALL')
+const dateFilter = ref('')
 const route = useRoute()
 const toast = useToast()
 const highlightTimeoutId = ref<number | null>(null)
@@ -594,6 +648,10 @@ const pendingRescheduleSessions = computed(() => {
 const hasPendingReschedule = (sessionId: number) =>
   pendingRescheduleSessions.value.has(sessionId)
 
+const hasActiveSessionFilters = computed(
+  () => statusFilter.value !== 'ALL' || Boolean(dateFilter.value)
+)
+
 const historySessions = computed(() => {
   const ids = new Set<number>()
   const history = [...upcoming.value, ...past.value]
@@ -620,6 +678,29 @@ const upcomingSorted = computed(() => {
       return aStart - bStart
     })
 })
+
+function sessionDateValue(session: Session) {
+  if (!session.slot_start_at) return ''
+  return session.slot_start_at.slice(0, 10)
+}
+
+function matchesSessionFilters(session: Session) {
+  if (statusFilter.value !== 'ALL' && session.status !== statusFilter.value) {
+    return false
+  }
+  if (dateFilter.value && sessionDateValue(session) !== dateFilter.value) {
+    return false
+  }
+  return true
+}
+
+const filteredUpcomingSessions = computed(() =>
+  upcomingSorted.value.filter((session) => matchesSessionFilters(session))
+)
+
+const filteredHistorySessions = computed(() =>
+  historySessions.value.filter((session) => matchesSessionFilters(session))
+)
 
 const needsConfirmation = computed(() =>
   upcomingSorted.value.filter((session) => session.status === 'SCHEDULED')
@@ -769,6 +850,11 @@ async function focusSession(id: number) {
   if (el) {
     el.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }
+}
+
+function clearSessionFilters() {
+  statusFilter.value = 'ALL'
+  dateFilter.value = ''
 }
 
 async function loadSessions() {
@@ -1239,10 +1325,21 @@ onBeforeUnmount(() => {
     font-weight: 600;
   }
 
-  .priority-next {
-    display: grid;
-    gap: 6px;
-  }
+.priority-next {
+  display: grid;
+  gap: 6px;
+}
+
+.session-filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  align-items: end;
+}
+
+.session-filters__field {
+  margin: 0;
+}
 
 .badge--soft {
   background: rgba(8, 113, 201, 0.12);

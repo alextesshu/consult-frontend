@@ -88,14 +88,14 @@ Tokens are stored in localStorage and auto-refreshed via `/api/auth/token/refres
 - **ClientGroupEventView**: client-facing group event detail
 - **SlotsView**: create/edit/delete slots + fill day/week + date navigation
 - **GroupEventsView**: full group lifecycle (create/schedule/start/complete/cancel), participants (roles/status), invites
-- **TherapistSessionsView**: specialist actions + notes + reschedule requests
+- **TherapistSessionsView**: specialist actions + notes + reschedule requests + status/date filters
 - **TherapistReviewsView**: specialist review moderation (approve/hide/respond) + filters
 - **TherapistClientsView**: specialist CRM with archive/restore
 - **BillingView**: plans + access state + per-plan upgrade request (manual billing)
 - **TherapistProfileView**: step-by-step profile editor, media upload preview, visibility toggles, public link
   - standard price + intro price (duration + currency)
   - visibility toggles: `show_price`, `show_intro_price`
-- **PublicProfileView**: public profile + upcoming slots + booking
+- **PublicProfileView**: landing-style public profile + booking + trust/about/contact blocks + journal preview
 - **PublicTherapistsView**: public specialists catalog with server-side filters + intro price in cards
 - **LoginView / SignupView**: redesigned auth pages
 - **System**: global toast/notification layer, notification bell with unread state, 404/403 pages, empty states, loading skeletons
@@ -105,12 +105,11 @@ Tokens are stored in localStorage and auto-refreshed via `/api/auth/token/refres
 
 ### Specialist sessions
 - Session detail page for specialists
-- Filters (status/date)
 
 ### Client session actions
 - Polished confirmation flows and status messaging
 
-### Group Room UX
+### Group events UX
 - Participant list filtering (role/status), invite link copy, and inline moderation cues
 
 ### Specialist CRM
@@ -120,14 +119,11 @@ Tokens are stored in localStorage and auto-refreshed via `/api/auth/token/refres
 - Auto-billing integration (Stripe/Paddle) with live status updates
 - Deeper UI states for GRACE / RESTRICTED / OVER_LIMIT
 
-### Public catalog
-- Filters by rating/experience (future)
-
-### Ratings & reviews
-- Moderation-ready UI states and review editing policy
-
 ### System UX
-- Expand empty/loading states across remaining views
+- Expand empty/loading/error states across remaining views
+
+### Quality / regression coverage
+- View-level regression tests for large public-profile surfaces (`PublicProfileView`, `TherapistProfileView`)
 
 ## Notes
 
@@ -142,11 +138,13 @@ Tokens are stored in localStorage and auto-refreshed via `/api/auth/token/refres
 - Client profile photos come from `/api/client/profile/` > `photo_url`.
   - If `photo_url` is present but image is missing, check GCS config on backend.
   - For signed URLs (`GCS_PUBLIC=false`), refresh the page to regenerate the URL.
+- Persistent project handoff lives in `docs/HANDOFF.md` and is maintained as the current agent-facing status file.
 
 ## Next Focus
 
-1. Ratings & reviews (moderation UX)
-2. System UX polish (empty/loading states)
+1. Specialist session detail page
+2. Public profile regression coverage (`PublicProfileView`, `TherapistProfileView`)
+3. System and product copy polish (empty/loading/error states, README and marketing consistency)
 
 
 
