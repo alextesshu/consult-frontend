@@ -4,7 +4,7 @@ Last updated: 2026-03-11
 Owner: agent-maintained
 Primary use: persistent project handoff for agent-led work
 Update trigger: after each meaningful completed task
-Last agent task: sync handoff with the specialist session detail route hardening and current sessions technical debt
+Last agent task: add TherapistSessionDetailView regression coverage for happy path and invalid/stale session routes
 
 Update rule:
 
@@ -35,6 +35,7 @@ Update rule:
 - `TherapistSessionDetailView` now exists at `/cabinet/sessions/:id` with status actions, request context, recurring creation, and private notes.
 - `/cabinet/sessions/:id` is constrained to numeric ids only.
 - Invalid or stale specialist session links now render a visible inline empty/error state instead of degrading to an almost blank page.
+- `TherapistSessionDetailView` now has view-level regression coverage for the happy path plus invalid/stale route handling.
 - The specialist sessions flow is closer to closed, but shared action logic still exists in both list and detail views.
 - Schedule copy now uses `Налаштування розкладу` / `Робочі години` terminology instead of ambiguous `правило` wording in the main specialist schedule settings flow.
 - Schedule hero blocks now use a consistent minimum height across `AvailabilityRulesView` and `SlotsView`, so switching schedule tabs does not visually jump.
@@ -42,14 +43,7 @@ Update rule:
 
 ## Changed files
 
-- `src/views/SlotsView.vue`
-- `src/components/ScheduleSubnav.vue`
-- `src/views/AvailabilityRulesView.vue`
-- `src/router/index.ts`
-- `src/views/TherapistSessionsView.vue`
-- `src/views/TherapistSessionDetailView.vue`
-- `src/App.vue`
-- `README.md`
+- `src/views/TherapistSessionDetailView.spec.ts`
 - `docs/HANDOFF.md`
 
 ## Validation
@@ -57,20 +51,14 @@ Update rule:
 Current status snapshot was derived from:
 
 ```powershell
-Get-Content docs\HANDOFF.md
-Get-Content docs\UI_SHAPE_STANDARD.md
-Get-Content src\views\SlotsView.vue
-Get-Content src\views\AvailabilityRulesView.vue
-rg -n "min-height: 172px|availability-rules__hero|slots__hero" src\views\SlotsView.vue src\views\AvailabilityRulesView.vue
-npm run build
-git diff -- src\views\SlotsView.vue src\views\AvailabilityRulesView.vue docs\HANDOFF.md
+npm run test:run -- src/views/TherapistSessionDetailView.spec.ts
+git diff -- src/views/TherapistSessionDetailView.spec.ts docs\HANDOFF.md
 ```
 
-Build is the minimum required validation for this focused schedule layout stabilization.
+Focused validation for this task is the targeted Vitest spec covering the specialist session detail view.
 
 ## Remaining work
 
-- Add view-level regression coverage for `TherapistSessionDetailView`, including invalid/stale route handling.
 - Improve client session confirmation and status messaging polish.
 - Add richer CRM workflows: bulk actions and a deeper client profile view.
 - Add stronger regression coverage for large public-profile surfaces, especially `PublicProfileView` and `TherapistProfileView`.
@@ -81,6 +69,7 @@ Build is the minimum required validation for this focused schedule layout stabil
 
 - Specialist session actions now exist in both list and detail views, so future booking behavior changes must keep both surfaces aligned.
 - Shared session action logic between `TherapistSessionsView` and `TherapistSessionDetailView` is still duplicated and should be treated as explicit technical debt.
+- The new coverage is view-level and does not add a dedicated router-spec assertion for the numeric route regex itself.
 - `/api/me` is still used for supplemental notification hints (`access_state`, entitlements, counts), but no longer as the primary notification feed.
 - There was no existing dedicated handoff document before this file, so earlier task state had to be reconstructed from README and git history.
 - Public profile and profile editor are large, high-risk surfaces with limited view-level test coverage.
