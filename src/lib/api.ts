@@ -143,6 +143,40 @@ export type NotificationSettings = {
   notify_session_starts_1h_in_app: boolean
 }
 
+export type NotificationFeedItem = {
+  id: string
+  kind: 'session_event' | 'reminder_event'
+  source_kind: 'session_event' | 'reminder_delivery'
+  source_id: number
+  code: string
+  session_id: number | null
+  client_id: number | null
+  client_name: string | null
+  client_email: string | null
+  slot_start_at: string | null
+  created_at: string
+  scheduled_for: string | null
+  delivered_at: string | null
+  read_at: string | null
+}
+
+export type NotificationFeedResponse = {
+  count: number
+  results: NotificationFeedItem[]
+}
+
+export type NotificationReadResponse = {
+  ok: true
+  source_kind: string
+  source_id: number
+  read_at: string
+}
+
+export type NotificationReadAllResponse = {
+  ok: true
+  marked_count: number
+}
+
 export type BillingAccessRequestStatus = 'PENDING' | 'APPROVED' | 'REJECTED'
 
 export type BillingAccessRequest = {
@@ -536,6 +570,26 @@ export async function updateNotificationSettings(
   payload: Partial<NotificationSettings>
 ): Promise<NotificationSettings> {
   const resp = await http.patch<NotificationSettings>('/cabinet/settings/notifications/', payload)
+  return resp.data
+}
+
+export async function fetchNotifications(params?: {
+  limit?: number
+}): Promise<NotificationFeedResponse> {
+  const resp = await http.get<NotificationFeedResponse>('/notifications/', { params })
+  return resp.data
+}
+
+export async function markNotificationRead(payload: {
+  source_kind: string
+  source_id: number
+}): Promise<NotificationReadResponse> {
+  const resp = await http.post<NotificationReadResponse>('/notifications/read/', payload)
+  return resp.data
+}
+
+export async function markAllNotificationsRead(): Promise<NotificationReadAllResponse> {
+  const resp = await http.post<NotificationReadAllResponse>('/notifications/read-all/', {})
   return resp.data
 }
 

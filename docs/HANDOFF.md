@@ -4,9 +4,10 @@ Last updated: 2026-03-11
 Owner: agent-maintained
 Primary use: persistent project handoff for agent-led work
 Update trigger: after each meaningful completed task
-Last agent task: add status/date filters to specialist sessions and sync docs
+Last agent task: migrate the notifications bell/feed to the dedicated notifications API
 
 Update rule:
+
 - Refresh this file after each meaningful task completion.
 - Keep sections short and factual.
 - Update `Done`, `Changed files`, `Validation`, `Remaining work`, and `Risks / open questions` together.
@@ -31,11 +32,12 @@ Update rule:
 - Core routes listed in `README.md` are present in `src/router/index.ts`.
 - Marketing copy in `HomeView` and `BillingView` now reflects shipped leader insights and public profile video support instead of marking them as upcoming.
 - Specialist sessions now support client-side status/date filtering in `TherapistSessionsView`.
+- Notifications bell/feed in `App.vue` now uses `/api/notifications/`, `/api/notifications/read/`, and `/api/notifications/read-all/` as the primary source of runtime notifications.
 
 ## Changed files
 
-- `src/views/TherapistSessionsView.vue`
-- `README.md`
+- `src/lib/api.ts`
+- `src/App.vue`
 - `docs/HANDOFF.md`
 
 ## Validation
@@ -49,11 +51,12 @@ Get-Content README.md
 Get-Content docs\UI_SHAPE_STANDARD.md
 Get-Content src\router\index.ts
 rg --files src -g "*.spec.ts" -g "*.test.ts"
-rg -n "session-filters|statusFilter|dateFilter|filteredUpcomingSessions|filteredHistorySessions" src\views\TherapistSessionsView.vue
-git diff -- src\views\TherapistSessionsView.vue README.md docs\HANDOFF.md
+rg -n "fetchNotifications|markNotificationRead|markAllNotificationsRead|notificationsFeed|read_at|supplementalNotifications" src\App.vue src\lib\api.ts
+npm run typecheck
+git diff -- src\App.vue src\lib\api.ts docs\HANDOFF.md
 ```
 
-No build, test, or lint command was run for this sessions-filter and docs update.
+Type-check is the minimum required validation for this notifications migration.
 
 ## Remaining work
 
@@ -67,6 +70,7 @@ No build, test, or lint command was run for this sessions-filter and docs update
 ## Risks / open questions
 
 - Specialist session detail still does not exist yet, so the sessions workflow is only partially closed.
+- `/api/me` is still used for supplemental notification hints (`access_state`, entitlements, counts), but no longer as the primary notification feed.
 - There was no existing dedicated handoff document before this file, so earlier task state had to be reconstructed from README and git history.
 - Public profile and profile editor are large, high-risk surfaces with limited view-level test coverage.
 - Some files display encoding issues when viewed through the current shell output, so text integrity should be checked in-editor before making copy-heavy changes.

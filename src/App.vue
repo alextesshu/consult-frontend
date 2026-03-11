@@ -86,8 +86,20 @@
             <span v-if="notificationCount" class="icon-btn__badge">{{ notificationCount }}</span>
           </button>
           <div v-if="showNotifications" ref="notificationsPanelRef" class="notif-panel">
-            <div class="notif-panel__title">Сповіщення</div>
-            <div v-if="notifications.length === 0" class="muted">Немає нових сповіщень.</div>
+            <div class="notif-panel__header">
+              <div class="notif-panel__title">Сповіщення</div>
+              <button
+                v-if="notificationCount"
+                class="btn btn--ghost btn--sm notif-panel__action"
+                type="button"
+                :disabled="notificationsReadAllPending"
+                @click="markAllNotificationsRead"
+              >
+                {{ notificationsReadAllPending ? 'Оновлюємо...' : 'Прочитати все' }}
+              </button>
+            </div>
+            <div v-if="notificationsLoading && !notificationsLoaded" class="muted">Завантаження...</div>
+            <div v-else-if="notifications.length === 0" class="muted">Немає нових сповіщень.</div>
             <div v-else class="notif-list">
               <RouterLink
                 v-for="item in notifications"
@@ -95,7 +107,7 @@
                 class="notif-item"
                 :class="{ 'notif-item--read': !item.unread }"
                 :to="item.to"
-                @click="markNotificationRead(item.id)"
+                @click="markNotificationRead(item)"
               >
                 <span class="notif-item__dot" :class="`notif-item__dot--${item.tone}`"></span>
                 <div>
@@ -188,7 +200,14 @@ import { computed, onBeforeUnmount, onMounted, ref, watch, watchEffect } from 'v
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from './stores/auth'
 import ToastHost from './components/ToastHost.vue'
-import { fetchChatUnreadCount } from './lib/api'
+import {
+  fetchChatUnreadCount,
+  fetchNotifications,
+  markAllNotificationsRead as markAllNotificationsReadApi,
+  markNotificationRead as markNotificationReadApi,
+  type NotificationFeedItem,
+} from './lib/api'
+import { useToast } from './composables/useToast'
 
 const route = useRoute()
 const router = useRouter()
@@ -235,10 +254,20 @@ const topbarClass = computed(() => [
   },
 ])
 
+type BellNotification = {
+  id: string
+  text: string
+  hint: string
+  to: string
+  tone: 'info' | 'warn' | 'ok'
+  unread: boolean
+  source_kind: string | null
+  source_id: number | null
+}
+
 const showNotifications = ref(false)
 const showSettings = ref(false)
 const showMobileMenu = ref(false)
-const readNotificationIds = ref<Set<string>>(new Set())
 const notificationsButtonRef = ref<HTMLButtonElement | null>(null)
 const notificationsPanelRef = ref<HTMLDivElement | null>(null)
 const settingsButtonRef = ref<HTMLButtonElement | null>(null)
@@ -246,42 +275,18 @@ const settingsPanelRef = ref<HTMLDivElement | null>(null)
 const settingsSheetRef = ref<HTMLDivElement | null>(null)
 const mobileMenuButtonRef = ref<HTMLButtonElement | null>(null)
 const mobileMenuPanelRef = ref<HTMLDivElement | null>(null)
-const lastNotificationIds = ref<Set<string>>(new Set())
-const lastUpcomingCount = ref<number>(0)
-const lastReadUpcomingAt = ref<string>('')
+const notificationsFeed = ref<NotificationFeedItem[]>([])
+const notificationsLoaded = ref(false)
+const notificationsLoading = ref(false)
+const notificationsReadAllPending = ref(false)
+const notificationsPendingIds = ref<Set<string>>(new Set())
 const refreshIntervalId = ref<number | null>(null)
+const notificationsIntervalId = ref<number | null>(null)
 const chatIntervalId = ref<number | null>(null)
 const chatUnreadCount = ref(0)
-
-function loadReadNotifications() {
-  try {
-    const raw = localStorage.getItem('readNotifications')
-    if (!raw) return
-    const parsed = JSON.parse(raw)
-    if (Array.isArray(parsed)) {
-      readNotificationIds.value = new Set(parsed.filter((id) => typeof id === 'string'))
-    }
-  } catch {
-    readNotificationIds.value = new Set()
-  }
-}
-
-function persistReadNotifications() {
-  localStorage.setItem('readNotifications', JSON.stringify([...readNotificationIds.value]))
-}
+const toast = useToast()
 
 const upcomingCount = computed(() => auth.me?.counts?.upcoming_sessions_count ?? 0)
-const latestUpcomingCreatedAt = computed(
-  () => auth.me?.counts?.latest_upcoming_session_created_at ?? null
-)
-const sessionEvents = computed(() => auth.me?.notifications?.session_events ?? [])
-const reminderEvents = computed(() => auth.me?.notifications?.reminder_events ?? [])
-const upcomingUnread = computed(() => {
-  const latest = latestUpcomingCreatedAt.value
-  if (!isSpecialist.value || !latest) return false
-  if (!lastReadUpcomingAt.value) return true
-  return new Date(latest).getTime() > new Date(lastReadUpcomingAt.value).getTime()
-})
 
 function formatDateTime(value?: string | null) {
   if (!value) return ''
@@ -297,95 +302,121 @@ function formatDateTime(value?: string | null) {
   })
 }
 
-const notifications = computed(() => {
-  const items: Array<{ id: string; text: string; hint: string; to: string; tone: 'info' | 'warn' | 'ok'; unread: boolean }> = []
-  if (isSpecialist.value && sessionEvents.value.length) {
-    sessionEvents.value.forEach((event) => {
-      const id = `session-event-${event.id}`
-      const name = event.client_name || `#${event.client_id}`
-      const time = formatDateTime(event.slot_start_at)
-      const email = event.client_email ? ` · ${event.client_email}` : ''
-      items.push({
-        id,
-        text:
-          event.event === 'CANCELLED'
-            ? `Бронювання: скасування сесії від ${name}`
-            : event.event === 'CONFIRMED'
-              ? `Бронювання: сесію з ${name} підтверджено`
-              : `Бронювання: нова сесія від ${name}`,
-        hint: time ? `Сесія: ${time}${email}` : `Перевірте деталі сесії${email}`,
-        to: `/cabinet/sessions#session-${event.session_id}`,
-        tone: event.event === 'CANCELLED' ? 'warn' : event.event === 'CONFIRMED' ? 'info' : 'ok',
-        unread: !readNotificationIds.value.has(id),
-      })
-    })
+function notificationClientLabel(item: NotificationFeedItem) {
+  if (item.client_name) return item.client_name
+  if (item.client_id !== null && item.client_id !== undefined) return `#${item.client_id}`
+  return 'клієнта'
+}
+
+function notificationTone(item: NotificationFeedItem): BellNotification['tone'] {
+  if (item.source_kind === 'session_event' && item.code === 'CANCELLED') return 'warn'
+  if (item.source_kind === 'session_event' && item.code === 'BOOKED') return 'ok'
+  return 'info'
+}
+
+function notificationText(item: NotificationFeedItem) {
+  const clientLabel = notificationClientLabel(item)
+  if (item.source_kind === 'session_event') {
+    if (item.code === 'CANCELLED') return `Бронювання: скасування сесії від ${clientLabel}`
+    if (item.code === 'CONFIRMED') return `Бронювання: сесію з ${clientLabel} підтверджено`
+    if (item.code === 'BOOKED') return `Бронювання: нова сесія від ${clientLabel}`
+    return `Оновлення по сесії від ${clientLabel}`
   }
-  if (isSpecialist.value && reminderEvents.value.length) {
-    reminderEvents.value.forEach((event) => {
-      const id = `reminder-event-${event.id}`
-      const name = event.client_name || `#${event.client_id}`
-      const time = formatDateTime(event.slot_start_at)
-      const text =
-        event.event_type === 'session_starts_1h'
-          ? `Нагадування: сесія з ${name} починається за 1 годину`
-          : `Нагадування: сесія з ${name} починається за 24 години`
-      items.push({
-        id,
-        text,
-        hint: time ? `Час сесії: ${time}` : 'Перевірте деталі сесії',
-        to: `/cabinet/sessions#session-${event.session_id}`,
-        tone: 'info',
-        unread: !readNotificationIds.value.has(id),
-      })
-    })
+  if (item.code === 'session_starts_1h') {
+    return `Нагадування: сесія з ${clientLabel} починається за 1 годину`
   }
+  if (item.code === 'session_starts_24h') {
+    return `Нагадування: сесія з ${clientLabel} починається за 24 години`
+  }
+  return `Нагадування про сесію з ${clientLabel}`
+}
+
+function notificationHint(item: NotificationFeedItem) {
+  const email = item.client_email ? ` · ${item.client_email}` : ''
+  const time = formatDateTime(item.slot_start_at)
+  if (item.source_kind === 'session_event') {
+    return time ? `Сесія: ${time}${email}` : `Перевірте деталі сесії${email}`
+  }
+  return time ? `Час сесії: ${time}${email}` : `Перевірте деталі сесії${email}`
+}
+
+function notificationTarget(item: NotificationFeedItem) {
+  return item.session_id ? `/cabinet/sessions#session-${item.session_id}` : '/cabinet/sessions'
+}
+
+const serverNotifications = computed<BellNotification[]>(() =>
+  notificationsFeed.value.map((item) => ({
+    id: item.id,
+    text: notificationText(item),
+    hint: notificationHint(item),
+    to: notificationTarget(item),
+    tone: notificationTone(item),
+    unread: !item.read_at,
+    source_kind: item.source_kind,
+    source_id: item.source_id,
+  }))
+)
+
+// Transitional behavior: until backend emits these as dedicated notifications,
+// entitlement and counts-based hints still come from /api/me.
+const supplementalNotifications = computed<BellNotification[]>(() => {
+  const items: BellNotification[] = []
   const accessState = auth.me?.access_state
   const activeCount = auth.me?.counts?.active_clients ?? 0
   const activeLimit = auth.me?.effective_entitlements?.active_client_limit
   if (accessState === 'GRACE') {
     items.push({
-      id: 'access-grace',
+      id: 'hint-access-grace',
       text: 'Оплата потребує уваги',
       hint: 'Доступ тимчасово збережено.',
       to: '/cabinet/billing',
       tone: 'warn',
-      unread: !readNotificationIds.value.has('access-grace'),
+      unread: false,
+      source_kind: null,
+      source_id: null,
     })
   }
   if (accessState === 'RESTRICTED') {
     items.push({
-      id: 'access-restricted',
+      id: 'hint-access-restricted',
       text: 'Обмежений режим доступу',
       hint: 'Нові дії заблоковані.',
       to: '/cabinet/billing',
       tone: 'warn',
-      unread: !readNotificationIds.value.has('access-restricted'),
+      unread: false,
+      source_kind: null,
+      source_id: null,
     })
   }
   if (typeof activeLimit === 'number' && activeCount > activeLimit) {
-      items.push({
-        id: 'over-limit',
-        text: 'Перевищено ліміт активних клієнтів',
-        hint: 'Нові підтвердження тимчасово заблоковані.',
-        to: '/cabinet/billing',
-        tone: 'warn',
-        unread: !readNotificationIds.value.has('over-limit'),
-      })
+    items.push({
+      id: 'hint-over-limit',
+      text: 'Перевищено ліміт активних клієнтів',
+      hint: 'Нові підтвердження тимчасово заблоковані.',
+      to: '/cabinet/billing',
+      tone: 'warn',
+      unread: false,
+      source_kind: null,
+      source_id: null,
+    })
   }
   if (isSpecialist.value && upcomingCount.value > 0) {
     items.push({
-      id: 'upcoming-sessions',
+      id: 'hint-upcoming-sessions',
       text: 'Є заплановані сесії',
       hint: 'Перевірте список найближчих сесій.',
       to: '/cabinet/sessions',
       tone: 'ok',
-      unread: upcomingUnread.value,
+      unread: false,
+      source_kind: null,
+      source_id: null,
     })
   }
   return items
 })
 
-const unreadNotifications = computed(() => notifications.value.filter((item) => item.unread))
+const notifications = computed(() => [...serverNotifications.value, ...supplementalNotifications.value])
+const unreadNotifications = computed(() => serverNotifications.value.filter((item) => item.unread))
 const notificationCount = computed(() => unreadNotifications.value.length)
 
 function toggleNotifications() {
@@ -420,18 +451,54 @@ function onLogoutFromMenu() {
   onLogout()
 }
 
-function markNotificationRead(id: string) {
-  if (!id) return
-  if (id === 'upcoming-sessions') {
-    const latest = latestUpcomingCreatedAt.value
-    lastReadUpcomingAt.value = latest || new Date().toISOString()
-    persistUpcomingReadAt()
+async function markNotificationRead(item: BellNotification) {
+  if (!item.source_kind || item.source_id === null) {
+    showNotifications.value = false
+    return
   }
-  const next = new Set(readNotificationIds.value)
-  next.add(id)
-  readNotificationIds.value = next
-  persistReadNotifications()
+  if (notificationsPendingIds.value.has(item.id)) return
+  notificationsFeed.value = notificationsFeed.value.map((entry) =>
+    entry.id === item.id ? { ...entry, read_at: entry.read_at || new Date().toISOString() } : entry
+  )
+  notificationsPendingIds.value = new Set(notificationsPendingIds.value).add(item.id)
   showNotifications.value = false
+  try {
+    const resp = await markNotificationReadApi({
+      source_kind: item.source_kind,
+      source_id: item.source_id,
+    })
+    notificationsFeed.value = notificationsFeed.value.map((entry) =>
+      entry.source_kind === resp.source_kind && entry.source_id === resp.source_id
+        ? { ...entry, read_at: resp.read_at }
+        : entry
+    )
+  } catch {
+    await refreshNotifications()
+    toast.error('Не вдалося позначити сповіщення як прочитане.')
+  } finally {
+    const next = new Set(notificationsPendingIds.value)
+    next.delete(item.id)
+    notificationsPendingIds.value = next
+  }
+}
+
+async function markAllNotificationsRead() {
+  if (!notificationCount.value || notificationsReadAllPending.value) return
+  notificationsReadAllPending.value = true
+  const optimisticReadAt = new Date().toISOString()
+  notificationsFeed.value = notificationsFeed.value.map((entry) => ({
+    ...entry,
+    read_at: entry.read_at || optimisticReadAt,
+  }))
+  try {
+    await markAllNotificationsReadApi()
+    await refreshNotifications()
+  } catch {
+    await refreshNotifications()
+    toast.error('Не вдалося позначити всі сповіщення як прочитані.')
+  } finally {
+    notificationsReadAllPending.value = false
+  }
 }
 
 function onLogout() {
@@ -451,6 +518,7 @@ watch(
 watch(showNotifications, (value) => {
   if (value) {
     refreshMe()
+    refreshNotifications()
   }
 })
 
@@ -460,6 +528,22 @@ async function refreshMe() {
     await auth.loadMe()
   } catch {
     // ignore refresh errors
+  }
+}
+
+async function refreshNotifications() {
+  if (!isAuthenticated.value) return
+  notificationsLoading.value = true
+  try {
+    const resp = await fetchNotifications({ limit: 20 })
+    notificationsFeed.value = resp.results || []
+    notificationsLoaded.value = true
+  } catch {
+    if (!notificationsLoaded.value) {
+      notificationsFeed.value = []
+    }
+  } finally {
+    notificationsLoading.value = false
   }
 }
 
@@ -487,6 +571,20 @@ function stopMePolling() {
   refreshIntervalId.value = null
 }
 
+function startNotificationsPolling() {
+  if (notificationsIntervalId.value !== null) return
+  refreshNotifications()
+  notificationsIntervalId.value = window.setInterval(() => {
+    refreshNotifications()
+  }, 60000)
+}
+
+function stopNotificationsPolling() {
+  if (notificationsIntervalId.value === null) return
+  window.clearInterval(notificationsIntervalId.value)
+  notificationsIntervalId.value = null
+}
+
 function startChatPolling() {
   if (chatIntervalId.value !== null) return
   refreshChatUnread()
@@ -504,37 +602,9 @@ function stopChatPolling() {
 function handleVisibilityChange() {
   if (document.visibilityState === 'visible') {
     refreshMe()
+    refreshNotifications()
   }
 }
-
-watch(
-  notifications,
-  (items) => {
-    const ids = new Set(items.map((item) => item.id))
-    if (lastNotificationIds.value.size === 0) {
-      lastNotificationIds.value = ids
-      return
-    }
-    let hasNew = false
-    ids.forEach((id) => {
-      if (!lastNotificationIds.value.has(id)) {
-        hasNew = true
-      }
-    })
-    if (hasNew) {
-      const next = new Set(readNotificationIds.value)
-      ids.forEach((id) => {
-        if (!lastNotificationIds.value.has(id)) {
-          next.delete(id)
-        }
-      })
-      readNotificationIds.value = next
-      persistReadNotifications()
-    }
-    lastNotificationIds.value = ids
-  },
-  { immediate: true }
-)
 
 
 function handleGlobalClick(event: MouseEvent) {
@@ -574,6 +644,7 @@ function handleGlobalKeydown(event: KeyboardEvent) {
 onMounted(() => {
   if (isAuthenticated.value) {
     startMePolling()
+    startNotificationsPolling()
     startChatPolling()
   }
   document.addEventListener('click', handleGlobalClick)
@@ -583,6 +654,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   stopMePolling()
+  stopNotificationsPolling()
   stopChatPolling()
   document.removeEventListener('click', handleGlobalClick)
   document.removeEventListener('keydown', handleGlobalKeydown)
@@ -592,51 +664,16 @@ onBeforeUnmount(() => {
 watch(isAuthenticated, (value) => {
   if (value) {
     startMePolling()
+    startNotificationsPolling()
     startChatPolling()
   } else {
     stopMePolling()
+    stopNotificationsPolling()
     stopChatPolling()
+    notificationsFeed.value = []
+    notificationsLoaded.value = false
   }
 })
-
-function loadUpcomingCount() {
-  const raw = localStorage.getItem('lastUpcomingSessionsCount')
-  const value = raw ? Number(raw) : 0
-  lastUpcomingCount.value = Number.isFinite(value) ? value : 0
-}
-
-function persistUpcomingCount(value: number) {
-  localStorage.setItem('lastUpcomingSessionsCount', String(value))
-}
-
-function loadUpcomingReadAt() {
-  const raw = localStorage.getItem('lastReadUpcomingSessionAt')
-  lastReadUpcomingAt.value = raw || ''
-}
-
-function persistUpcomingReadAt() {
-  localStorage.setItem('lastReadUpcomingSessionAt', lastReadUpcomingAt.value)
-}
-
-watch(
-  upcomingCount,
-  (value) => {
-    const previous = lastUpcomingCount.value
-    if (value > previous) {
-      const next = new Set(readNotificationIds.value)
-      next.delete('upcoming-sessions')
-      readNotificationIds.value = next
-      persistReadNotifications()
-    }
-    lastUpcomingCount.value = value
-    persistUpcomingCount(value)
-  },
-  { immediate: true }
-)
-
-loadReadNotifications()
-loadUpcomingCount()
-loadUpcomingReadAt()
 </script>
 
 <style scoped>
@@ -919,7 +956,18 @@ loadUpcomingReadAt()
 
 .notif-panel__title {
   font-weight: 600;
+}
+
+.notif-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   margin-bottom: 8px;
+}
+
+.notif-panel__action {
+  flex-shrink: 0;
 }
 
 .notif-panel .muted {
