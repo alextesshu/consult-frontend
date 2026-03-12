@@ -72,15 +72,17 @@
 
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
+import { formatUkDateTime } from '../lib/dateTime'
 import {
-  ChatMessage,
-  ChatThread,
   fetchChatMessages,
   fetchChatThreads,
   sendChatMessage,
 } from '../lib/api'
+import type { ChatMessage, ChatThread } from '../lib/api'
 
+const route = useRoute()
 const auth = useAuthStore()
 const threads = ref<ChatThread[]>([])
 const threadsLoading = ref(false)
@@ -93,21 +95,33 @@ const threadPollId = ref<number | null>(null)
 const lastMessageId = ref<number | null>(null)
 const messagesRef = ref<HTMLDivElement | null>(null)
 
-const isTherapist = computed(() => {
+const isSpecialist = computed(() => {
   const roles = auth.me?.user.roles ?? []
   return roles.includes('SPECIALIST') || roles.includes('THERAPIST')
 })
-const backRoute = computed(() => (isTherapist.value ? '/cabinet' : '/client'))
+const backRoute = computed(() => (isSpecialist.value ? '/cabinet' : '/client'))
 
 const activeThread = computed(() =>
   threads.value.find((thread) => thread.id === activeThreadId.value) || null
 )
+const preferredThreadId = computed(() => {
+  const raw = Number(route.query.thread_id)
+  return Number.isInteger(raw) && raw > 0 ? raw : null
+})
+const preferredTherapistId = computed(() => {
+  const raw = Number(route.query.therapist_id)
+  return Number.isInteger(raw) && raw > 0 ? raw : null
+})
 
 function initials(value: string) {
   const parts = value.trim().split(/\s+/).filter(Boolean)
   if (!parts.length) return '...'
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
-  return `${parts[0][0]}${parts[1][0]}`.toUpperCase()
+  const first = parts[0]
+  if (!first) return '...'
+  if (parts.length === 1) return first.slice(0, 2).toUpperCase()
+  const second = parts[1]
+  if (!second) return first.slice(0, 2).toUpperCase()
+  return `${first[0]}${second[0]}`.toUpperCase()
 }
 
 function isMine(message: ChatMessage) {
@@ -115,14 +129,24 @@ function isMine(message: ChatMessage) {
 }
 
 function formatTime(value: string) {
-  const dt = new Date(value)
-  if (Number.isNaN(dt.getTime())) return value
-  return dt.toLocaleString('uk-UA', {
+  return formatUkDateTime(value, {
     day: '2-digit',
     month: '2-digit',
     hour: '2-digit',
     minute: '2-digit',
-  })
+  }, value)
+}
+
+function resolvePreferredThreadId(data: ChatThread[]) {
+  if (preferredThreadId.value) {
+    const direct = data.find((thread) => thread.id === preferredThreadId.value)
+    if (direct) return direct.id
+  }
+  if (preferredTherapistId.value) {
+    const byTherapist = data.find((thread) => thread.therapist_id === preferredTherapistId.value)
+    if (byTherapist) return byTherapist.id
+  }
+  return null
 }
 
 async function loadThreads() {
@@ -130,8 +154,16 @@ async function loadThreads() {
   try {
     const data = await fetchChatThreads()
     threads.value = data
+    const preferredId = resolvePreferredThreadId(data)
+    if (preferredId && preferredId !== activeThreadId.value) {
+      await selectThread(preferredId)
+      return
+    }
     if (!activeThreadId.value && data.length > 0) {
-      await selectThread(data[0].id)
+      const firstThread = data[0]
+      if (firstThread) {
+        await selectThread(firstThread.id)
+      }
     }
   } catch {
     threads.value = []
@@ -152,7 +184,10 @@ async function loadMessages(options?: { since?: number | null }) {
     messages.value = data
   }
   if (data.length) {
-    lastMessageId.value = data[data.length - 1].id
+    const last = data[data.length - 1]
+    if (last) {
+      lastMessageId.value = last.id
+    }
   }
   await nextTick()
   scrollToBottom()
@@ -227,6 +262,13 @@ watch(activeThreadId, () => {
   if (activeThreadId.value) {
     startPolling()
   }
+})
+
+watch([preferredThreadId, preferredTherapistId], async () => {
+  if (!threads.value.length) return
+  const preferredId = resolvePreferredThreadId(threads.value)
+  if (!preferredId || preferredId === activeThreadId.value) return
+  await selectThread(preferredId)
 })
 
 onMounted(async () => {

@@ -53,6 +53,7 @@
 import { onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { apiGet } from '../lib/api'
+import { formatUkDateTimeCompact } from '../lib/dateTime'
 
 type GroupParticipant = {
   id: number
@@ -78,17 +79,7 @@ const error = ref('')
 const event = ref<GroupEventView | null>(null)
 
 function formatDate(value: string | null) {
-  if (!value) return ''
-  const dt = new Date(value)
-  if (Number.isNaN(dt.getTime())) return value
-  return dt.toLocaleString('uk-UA', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  })
+  return formatUkDateTimeCompact(value, '')
 }
 
 function formatMode(mode: GroupEventView['mode']) {

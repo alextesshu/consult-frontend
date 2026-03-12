@@ -62,9 +62,47 @@
             <div v-if="timeUntilLabel(nextUpcoming)" class="status-pill status-pill--warn">
               Початок через {{ timeUntilLabel(nextUpcoming) }}
             </div>
+            <RouterLink class="btn btn--ghost btn--sm" :to="`/cabinet/sessions/${nextUpcoming.id}`">
+              Деталі сесії
+            </RouterLink>
           </div>
           <div v-else class="muted">Немає майбутніх сесій.</div>
         </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel__header">
+        <div>
+          <div class="badge badge--soft">Фільтри</div>
+          <h2 class="panel__title">Пошук потрібних сесій</h2>
+        </div>
+        <button
+          v-if="hasActiveSessionFilters"
+          class="btn btn--ghost btn--sm"
+          type="button"
+          @click="clearSessionFilters"
+        >
+          Скинути фільтри
+        </button>
+      </div>
+      <div class="session-filters">
+        <label class="field session-filters__field">
+          <span class="muted">Статус</span>
+          <select v-model="statusFilter" class="input input--select">
+            <option
+              v-for="option in sessionStatusFilterOptions"
+              :key="option.value"
+              :value="option.value"
+            >
+              {{ option.label }}
+            </option>
+          </select>
+        </label>
+        <label class="field session-filters__field">
+          <span class="muted">Дата</span>
+          <input v-model="dateFilter" class="input" type="date" />
+        </label>
       </div>
     </section>
 
@@ -75,8 +113,16 @@
           <h2 class="panel__title">Заплановані сесії</h2>
         </div>
       </div>
+      <div v-if="needsConfirmation.length" class="new-bookings-banner">
+        <div>
+          Нові бронювання: <strong>{{ needsConfirmation.length }}</strong>
+        </div>
+        <button class="btn btn--ghost btn--sm" type="button" @click="needsConfirmation[0] && focusSession(needsConfirmation[0].id)">
+          Перейти до першого
+        </button>
+      </div>
       <EmptyState
-        v-if="!loading && upcoming.length === 0"
+        v-if="!loading && filteredUpcomingSessions.length === 0"
         title="Немає запланованих сесій"
         description="Створіть вільні віконця або поділіться профілем, щоб клієнти могли записатися."
         action-text="Створити віконце"
@@ -86,7 +132,7 @@
       />
       <div v-else class="session-list">
         <article
-          v-for="session in upcoming"
+          v-for="session in filteredUpcomingSessions"
           :key="session.id"
           :id="`session-${session.id}`"
           class="session-card session-card--with-photo"
@@ -117,6 +163,12 @@
                 Потрібне підтвердження
               </div>
               <div
+                v-if="session.status === 'SCHEDULED'"
+                class="status-pill status-pill--new"
+              >
+                Нова заявка
+              </div>
+              <div
                 v-if="hasPendingReschedule(session.id)"
                 class="status-pill status-pill--warn"
               >
@@ -124,6 +176,9 @@
               </div>
             </div>
             <div class="session-actions">
+              <RouterLink class="btn btn--ghost btn--sm" :to="`/cabinet/sessions/${session.id}`">
+                Деталі
+              </RouterLink>
               <button
                 class="btn btn--ghost btn--sm"
                 type="button"
@@ -157,6 +212,15 @@
               >
                 Перенести
               </button>
+              <button
+                v-if="canShowRecurringAction(session)"
+                class="btn btn--ghost btn--sm"
+                type="button"
+                :disabled="isActionLoading(session.id)"
+                @click="toggleRecurring(session.id)"
+              >
+                Повторювати щотижня
+              </button>
             </div>
           </div>
           <div class="session-photo-wrap">
@@ -178,6 +242,30 @@
                 </option>
               </select>
             </label>
+            <div class="suggestions-block">
+              <div class="muted suggestions-title">Рекомендовані варіанти перенесення</div>
+              <div v-if="isSuggestionsLoading(session.id)" class="muted">
+                Завантаження рекомендацій...
+              </div>
+              <div v-else-if="(rescheduleSuggestions[session.id] || []).length === 0" class="muted">
+                Не вдалося знайти відповідні варіанти перенесення
+              </div>
+              <div v-else class="suggestions-list">
+                <button
+                  v-for="item in (rescheduleSuggestions[session.id] || []).slice(0, 5)"
+                  :key="item.slot_id"
+                  class="btn btn--ghost btn--sm suggestion-btn"
+                  type="button"
+                  @click="selectSuggestedSlot(item.slot_id)"
+                >
+                  <span>{{ formatDateTime(item.start_at) }} · {{ formatDuration(item.start_at, item.end_at) }}</span>
+                  <span class="muted suggestion-meta">{{ suggestionReasonLabel(item.reason_tag) }}</span>
+                </button>
+              </div>
+              <div class="muted">
+                Найближчі доступні вікна для цієї сесії
+              </div>
+            </div>
             <div class="reschedule-actions">
               <button
                 class="btn btn--sm"
@@ -190,6 +278,72 @@
               <button class="btn btn--ghost btn--sm" type="button" @click="closeReschedule">
                 Скасувати
               </button>
+            </div>
+          </div>
+          <div v-if="recurringSessionId === session.id" class="recurring-panel">
+            <label class="field">
+              Кількість повторів
+              <select v-model="recurringPreset" class="input input--select">
+                <option :value="4">4 тижні</option>
+                <option :value="8">8 тижнів</option>
+                <option :value="12">12 тижнів</option>
+                <option value="custom">Власне число</option>
+              </select>
+            </label>
+            <label v-if="recurringPreset === 'custom'" class="field">
+              Вкажіть кількість (1-52)
+              <input
+                v-model.number="recurringCustomOccurrences"
+                type="number"
+                min="1"
+                max="52"
+                step="1"
+                class="input"
+                placeholder="Наприклад, 6"
+              />
+            </label>
+            <div class="recurring-actions">
+              <button
+                class="btn btn--sm"
+                type="button"
+                :disabled="isActionLoading(session.id)"
+                @click="submitRecurring(session.id)"
+              >
+                Створити серію
+              </button>
+              <button class="btn btn--ghost btn--sm" type="button" @click="closeRecurring">
+                Скасувати
+              </button>
+            </div>
+
+            <div v-if="recurringResult[session.id]" class="recurring-result">
+              <div class="status-pill status-pill--ok">
+                Створено {{ recurringResult[session.id]?.created_count ?? 0 }} сесій
+              </div>
+              <div
+                v-if="(recurringResult[session.id]?.skipped_count ?? 0) > 0"
+                class="status-pill status-pill--warn"
+              >
+                Пропущено {{ recurringResult[session.id]?.skipped_count ?? 0 }} через конфлікти
+              </div>
+
+              <div v-if="(recurringResult[session.id]?.created_dates || []).length" class="recurring-list">
+                <div class="muted">Створені дати:</div>
+                <ul class="recurring-ul">
+                  <li v-for="date in (recurringResult[session.id]?.created_dates || [])" :key="date">
+                    {{ formatDateTime(date) }}
+                  </li>
+                </ul>
+              </div>
+
+              <div v-if="(recurringResult[session.id]?.skipped || []).length" class="recurring-list">
+                <div class="muted">Пропущені дати:</div>
+                <ul class="recurring-ul">
+                  <li v-for="item in (recurringResult[session.id]?.skipped || [])" :key="`${item.start_at}-${item.reason}`">
+                    {{ formatDateTime(item.start_at) }} - {{ recurringReasonLabel(item.reason) }}
+                  </li>
+                </ul>
+              </div>
             </div>
           </div>
         </article>
@@ -229,7 +383,11 @@
             </div>
           </div>
           <div class="request-actions">
+            <RouterLink class="btn btn--ghost btn--sm" :to="`/cabinet/sessions/${req.session_id}`">
+              Деталі сесії
+            </RouterLink>
             <button
+              v-if="req.status === 'PENDING'"
               class="btn btn--ghost btn--sm"
               type="button"
               :disabled="isRequestLoading(req.id)"
@@ -238,6 +396,7 @@
               Погодити
             </button>
             <button
+              v-if="req.status === 'PENDING'"
               class="btn btn--ghost btn--sm"
               type="button"
               :disabled="isRequestLoading(req.id)"
@@ -258,13 +417,13 @@
         </div>
       </div>
       <EmptyState
-        v-if="!loading && historySessions.length === 0"
+        v-if="!loading && filteredHistorySessions.length === 0"
         title="Історія порожня"
         description="Після завершених або відмінених сесій тут з'явиться історія."
       />
       <div v-else class="session-list">
         <article
-          v-for="session in historySessions"
+          v-for="session in filteredHistorySessions"
           :key="session.id"
           :id="`session-${session.id}`"
           class="session-card"
@@ -283,6 +442,9 @@
             </div>
           </div>
           <div class="session-actions">
+            <RouterLink class="btn btn--ghost btn--sm" :to="`/cabinet/sessions/${session.id}`">
+              Деталі
+            </RouterLink>
           </div>
         </article>
       </div>
@@ -334,11 +496,47 @@
 <script setup lang="ts">
 import { computed, onMounted, onBeforeUnmount, ref, watch, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
-import { apiGet, apiPatch, apiPut } from '../lib/api'
-import { getApiErrorMessage } from '../lib/errors'
+import { apiGet, fetchSpecialistProfile, type SpecialistProfile } from '../lib/api'
+import {
+  BOOKING_ERROR_FALLBACKS,
+  BOOKING_SUCCESS_MESSAGES,
+  getBookingErrorMessage,
+} from '../lib/bookingCopy'
+import {
+  approveSpecialistRescheduleRequest as approveSpecialistRescheduleRequestAction,
+  canCancel as sharedCanCancel,
+  canReschedule as sharedCanReschedule,
+  canShowRecurringAction as sharedCanShowRecurringAction,
+  cancelSpecialistSession as cancelSpecialistSessionAction,
+  completeSpecialistSession as completeSpecialistSessionAction,
+  confirmSpecialistSession as confirmSpecialistSessionAction,
+  createRecurringSpecialistSessions as createRecurringSpecialistSessionsAction,
+  declineSpecialistRescheduleRequest as declineSpecialistRescheduleRequestAction,
+  fetchSpecialistAvailableSlots as fetchSpecialistAvailableSlotsData,
+  fetchSpecialistRescheduleRequests as fetchSpecialistRescheduleRequestsData,
+  fetchSpecialistRescheduleSuggestions as fetchSpecialistRescheduleSuggestionsData,
+  fetchSpecialistSessionNoteContent as fetchSpecialistSessionNoteContentData,
+  formatSessionDateTime as sharedFormatSessionDateTime,
+  formatSessionDuration as sharedFormatSessionDuration,
+  parseActualDurationInput as getActualDurationPayload,
+  parseRecurringOccurrences as getRecurringOccurrences,
+  requestStatusClass as getRequestStatusClass,
+  rescheduleSpecialistSession as rescheduleSpecialistSessionAction,
+  rescheduleStatusLabel as getRescheduleStatusLabel,
+  saveSpecialistSessionNote as saveSpecialistSessionNoteAction,
+  statusClass as getStatusClass,
+  statusLabel as getStatusLabel,
+  suggestionReasonLabel as getSuggestionReasonLabel,
+  timeUntilLabel as getTimeUntilLabel,
+  type SpecialistRecurringSummary,
+  type SpecialistRescheduleRequest,
+  type SpecialistRescheduleSuggestion,
+  type SpecialistSessionLike,
+  type SpecialistSlot,
+} from '../lib/specialistSessions'
+import { useToast } from '../composables/useToast'
 import LoadingSkeleton from '../components/LoadingSkeleton.vue'
 import EmptyState from '../components/EmptyState.vue'
-import { fetchTherapistProfile } from '../lib/api'
 
 type Session = {
   id: number
@@ -354,26 +552,27 @@ type Session = {
   slot_end_at: string | null
 }
 
-type Slot = {
-  id: number
-  start_at: string
-  end_at: string
-  is_booked: boolean
-}
+type Slot = SpecialistSlot
+type RescheduleRequest = SpecialistRescheduleRequest
+type RecurringSummary = SpecialistRecurringSummary
+type RescheduleSuggestion = SpecialistRescheduleSuggestion
 
-type RescheduleRequest = {
-  id: number
-  session_id: number
-  requested_slot_id: number
-  requested_slot_start_at?: string | null
-  requested_slot_end_at?: string | null
-  client_username?: string
-  client_name?: string
-  client_email?: string
-  status: string
-  created_at: string
-  resolved_at: string | null
-}
+type SessionStatusFilter =
+  | 'ALL'
+  | 'SCHEDULED'
+  | 'CONFIRMED'
+  | 'COMPLETED'
+  | 'CANCELLED'
+  | 'NO_SHOW'
+
+const sessionStatusFilterOptions: Array<{ value: SessionStatusFilter; label: string }> = [
+  { value: 'ALL', label: 'Усі статуси' },
+  { value: 'SCHEDULED', label: 'Заплановано' },
+  { value: 'CONFIRMED', label: 'Підтверджено' },
+  { value: 'COMPLETED', label: 'Завершено' },
+  { value: 'CANCELLED', label: 'Скасовано' },
+  { value: 'NO_SHOW', label: 'Не відбулося' },
+]
 
 const upcoming = ref<Session[]>([])
 const past = ref<Session[]>([])
@@ -383,55 +582,39 @@ const error = ref('')
 const actionLoading = ref<Set<number>>(new Set())
 const rescheduleSessionId = ref<number | null>(null)
 const rescheduleSlotId = ref<number | ''>('')
+const rescheduleSuggestions = ref<Record<number, RescheduleSuggestion[]>>({})
+const suggestionsLoading = ref<Set<number>>(new Set())
+const recurringSessionId = ref<number | null>(null)
+const recurringPreset = ref<number | 'custom'>(4)
+const recurringCustomOccurrences = ref<number | ''>('')
+const recurringResult = ref<Record<number, RecurringSummary>>({})
 const noteSessionId = ref<number | null>(null)
 const noteDraft = ref('')
 const noteLoading = ref<Set<number>>(new Set())
 const noteSaving = ref<Set<number>>(new Set())
+const therapistPhotoUrl = ref('')
 const rescheduleRequests = ref<RescheduleRequest[]>([])
 const requestsLoading = ref(false)
 const requestLoading = ref<Set<number>>(new Set())
 const highlightedSessionId = ref<number | null>(null)
+const statusFilter = ref<SessionStatusFilter>('ALL')
+const dateFilter = ref('')
 const route = useRoute()
+const toast = useToast()
 const highlightTimeoutId = ref<number | null>(null)
 
-const statusMap: Record<string, string> = {
-  SCHEDULED: 'Заплановано',
-  CONFIRMED: 'Підтверджено',
-  COMPLETED: 'Завершено',
-  CANCELLED: 'Скасовано',
-  NO_SHOW: 'Не відбулося',
-  DRAFT: 'Чернетка',
-}
-
 const statusLabel = (session: Session) => {
-  if (isSessionInProgress(session)) return 'В процесі'
-  return statusMap[session.status] || session.status
+  return getStatusLabel(session as SpecialistSessionLike)
 }
 
 const statusClass = (session: Session) => {
-  if (isSessionInProgress(session)) return 'status-pill--ok'
-  if (session.status === 'CONFIRMED') return 'status-pill--ok'
-  if (session.status === 'SCHEDULED') return 'status-pill--warn'
-  if (session.status === 'COMPLETED') return 'status-pill--muted'
-  if (session.status === 'CANCELLED' || session.status === 'NO_SHOW') return 'status-pill--danger'
-  return 'status-pill--muted'
+  return getStatusClass(session as SpecialistSessionLike)
 }
 
-const rescheduleStatusMap: Record<string, string> = {
-  PENDING: 'Очікує підтвердження',
-  APPROVED: 'Погоджено',
-  DECLINED: 'Відхилено',
-  CANCELLED: 'Скасовано',
-}
-
-const rescheduleStatusLabel = (status: string) => rescheduleStatusMap[status] || status
+const rescheduleStatusLabel = (status: string) => getRescheduleStatusLabel(status)
 
 const requestStatusClass = (status: string) => {
-  if (status === 'PENDING') return 'status-pill--warn'
-  if (status === 'APPROVED') return 'status-pill--ok'
-  if (status === 'DECLINED') return 'status-pill--danger'
-  if (status === 'CANCELLED') return 'status-pill--muted'
-  return 'status-pill--muted'
+  return getRequestStatusClass(status)
 }
 
 const pendingRescheduleSessions = computed(() => {
@@ -447,6 +630,10 @@ const pendingRescheduleSessions = computed(() => {
 const hasPendingReschedule = (sessionId: number) =>
   pendingRescheduleSessions.value.has(sessionId)
 
+const hasActiveSessionFilters = computed(
+  () => statusFilter.value !== 'ALL' || Boolean(dateFilter.value)
+)
+
 const historySessions = computed(() => {
   const ids = new Set<number>()
   const history = [...upcoming.value, ...past.value]
@@ -461,12 +648,48 @@ const historySessions = computed(() => {
   return history
 })
 
+const upcomingSorted = computed(() => {
+  return upcoming.value
+    .slice()
+    .sort((a, b) => {
+      const aPriority = a.status === 'SCHEDULED' ? 0 : 1
+      const bPriority = b.status === 'SCHEDULED' ? 0 : 1
+      if (aPriority !== bPriority) return aPriority - bPriority
+      const aStart = new Date(a.slot_start_at || '').getTime()
+      const bStart = new Date(b.slot_start_at || '').getTime()
+      return aStart - bStart
+    })
+})
+
+function sessionDateValue(session: Session) {
+  if (!session.slot_start_at) return ''
+  return session.slot_start_at.slice(0, 10)
+}
+
+function matchesSessionFilters(session: Session) {
+  if (statusFilter.value !== 'ALL' && session.status !== statusFilter.value) {
+    return false
+  }
+  if (dateFilter.value && sessionDateValue(session) !== dateFilter.value) {
+    return false
+  }
+  return true
+}
+
+const filteredUpcomingSessions = computed(() =>
+  upcomingSorted.value.filter((session) => matchesSessionFilters(session))
+)
+
+const filteredHistorySessions = computed(() =>
+  historySessions.value.filter((session) => matchesSessionFilters(session))
+)
+
 const needsConfirmation = computed(() =>
-  upcoming.value.filter((session) => session.status === 'SCHEDULED')
+  upcomingSorted.value.filter((session) => session.status === 'SCHEDULED')
 )
 
 const nextUpcoming = computed(() => {
-  const items = upcoming.value
+  const items = upcomingSorted.value
     .filter((session) => session.slot_start_at)
     .slice()
     .sort(
@@ -477,65 +700,45 @@ const nextUpcoming = computed(() => {
   return items[0] || null
 })
 
-const canCancel = (status: string) => status === 'SCHEDULED' || status === 'CONFIRMED'
-const canReschedule = (status: string) => status === 'SCHEDULED' || status === 'CONFIRMED'
+const canCancel = (status: string) => sharedCanCancel(status)
+const canReschedule = (status: string) => sharedCanReschedule(status)
+
+const canShowRecurringAction = (session: Session) => {
+  return sharedCanShowRecurringAction(session as SpecialistSessionLike, hasPendingReschedule(session.id))
+}
+
+const recurringReasonLabelMap: Record<string, string> = {
+  SLOT_UNAVAILABLE: 'На цю дату вже немає вільного вікна',
+  SLOT_ALREADY_BOOKED: 'Це вікно вже зайняте',
+  CLIENT_TIME_CONFLICT: 'У клієнта вже є інша сесія на цей час',
+}
+
+function recurringReasonLabel(reason: string) {
+  return recurringReasonLabelMap[reason] || reason
+}
+
+function suggestionReasonLabel(reasonTag: string) {
+  return getSuggestionReasonLabel(reasonTag)
+}
 
 const isActionLoading = (id: number) => actionLoading.value.has(id)
-const isNoteLoading = (id: number) => noteLoading.value.has(id)
 const isNoteSaving = (id: number) => noteSaving.value.has(id)
 const isRequestLoading = (id: number) => requestLoading.value.has(id)
+const isSuggestionsLoading = (id: number) => suggestionsLoading.value.has(id)
 
 function formatDateTime(value?: string | null) {
-  if (!value) return '—'
-  const dt = new Date(value)
-  if (Number.isNaN(dt.getTime())) return value
-  return dt.toLocaleString('uk-UA', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  })
+  return sharedFormatSessionDateTime(value)
 }
 
 function formatDuration(start?: string | null, end?: string | null) {
-  if (!start || !end) return 'Тривалість: —'
-  const startDt = new Date(start)
-  const endDt = new Date(end)
-  if (Number.isNaN(startDt.getTime()) || Number.isNaN(endDt.getTime())) return 'Тривалість: —'
-  const minutes = Math.max(0, Math.round((endDt.getTime() - startDt.getTime()) / 60000))
-  if (!minutes) return 'Тривалість: 0 хв'
-  const hours = Math.floor(minutes / 60)
-  const mins = minutes % 60
-  const parts = []
-  if (hours) parts.push(`${hours} год`)
-  if (mins) parts.push(`${mins} хв`)
-  return `Тривалість: ${parts.join(' ')}`
-}
-
-function isSessionInProgress(session: Session) {
-  if (session.status !== 'CONFIRMED') return false
-  if (!session.slot_start_at || !session.slot_end_at) return false
-  const start = new Date(session.slot_start_at).getTime()
-  const end = new Date(session.slot_end_at).getTime()
-  if (Number.isNaN(start) || Number.isNaN(end)) return false
-  const now = Date.now()
-  return now >= start && now <= end
+  return sharedFormatSessionDuration(start, end, {
+    empty: 'Тривалість: —',
+    prefix: 'Тривалість: ',
+  })
 }
 
 function timeUntilLabel(session: Session) {
-  if (!session.slot_start_at) return ''
-  const start = new Date(session.slot_start_at).getTime()
-  if (Number.isNaN(start)) return ''
-  const diffMs = start - Date.now()
-  if (diffMs <= 0) return ''
-  const diffMin = Math.round(diffMs / 60000)
-  if (diffMin > 120) return ''
-  if (diffMin < 60) return `${diffMin} хв`
-  const hours = Math.floor(diffMin / 60)
-  const mins = diffMin % 60
-  return mins ? `${hours} год ${mins} хв` : `${hours} год`
+  return getTimeUntilLabel(session as SpecialistSessionLike)
 }
 
 function parseSessionIdFromHash(hash: string): number | null {
@@ -579,6 +782,20 @@ function clearHighlight(id: number) {
   }
 }
 
+async function focusSession(id: number) {
+  highlightedSessionId.value = id
+  await nextTick()
+  const el = document.getElementById(`session-${id}`)
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }
+}
+
+function clearSessionFilters() {
+  statusFilter.value = 'ALL'
+  dateFilter.value = ''
+}
+
 async function loadSessions() {
   loading.value = true
   error.value = ''
@@ -590,7 +807,7 @@ async function loadSessions() {
     upcoming.value = upcomingResp || []
     past.value = pastResp || []
   } catch (err: any) {
-    error.value = getApiErrorMessage(err, '\u041d\u0435 \u0432\u0434\u0430\u043b\u043e\u0441\u044f \u0437\u0430\u0432\u0430\u043d\u0442\u0430\u0436\u0438\u0442\u0438 \u0441\u0435\u0441\u0456\u0457')
+    error.value = getBookingErrorMessage(err, BOOKING_ERROR_FALLBACKS.loadSessions)
   } finally {
     loading.value = false
   }
@@ -598,7 +815,7 @@ async function loadSessions() {
 
 async function loadTherapistProfilePhoto() {
   try {
-    const data = await fetchTherapistProfile()
+    const data: SpecialistProfile | null = await fetchSpecialistProfile()
     therapistPhotoUrl.value = data?.photo_url || ''
   } catch {
     therapistPhotoUrl.value = ''
@@ -607,12 +824,7 @@ async function loadTherapistProfilePhoto() {
 
 async function loadSlots() {
   try {
-    const resp = await apiGet<Slot[]>('/cabinet/slots/')
-    const now = Date.now()
-    availableSlots.value = (resp || []).filter((slot) => {
-      const start = new Date(slot.start_at).getTime()
-      return !slot.is_booked && !Number.isNaN(start) && start > now
-    })
+    availableSlots.value = await fetchSpecialistAvailableSlotsData()
   } catch {
     availableSlots.value = []
   }
@@ -658,14 +870,25 @@ function setRequestLoading(id: number, value: boolean) {
   requestLoading.value = next
 }
 
+function setSuggestionsLoading(id: number, value: boolean) {
+  const next = new Set(suggestionsLoading.value)
+  if (value) {
+    next.add(id)
+  } else {
+    next.delete(id)
+  }
+  suggestionsLoading.value = next
+}
+
 async function confirmSession(id: number) {
   setActionLoading(id, true)
   error.value = ''
   try {
-    await apiPatch(`/booking/sessions/${id}/confirm/`)
+    await confirmSpecialistSessionAction(id)
     await loadSessions()
+    toast.success(BOOKING_SUCCESS_MESSAGES.sessionConfirmed)
   } catch (err: any) {
-    error.value = err?.response?.data?.detail || 'Не вдалося підтвердити сесію'
+    error.value = getBookingErrorMessage(err, BOOKING_ERROR_FALLBACKS.confirmSession)
   } finally {
     setActionLoading(id, false)
   }
@@ -675,24 +898,21 @@ async function completeSession(id: number) {
   const input = window.prompt('Вкажіть фактичну тривалість (хв). Порожньо — стандартна тривалість.')
   if (input === null) return
 
-  let payload: Record<string, number> | undefined
-  if (input.trim()) {
-    const minutes = Number(input)
-    if (!Number.isFinite(minutes) || minutes <= 0 || minutes > 480) {
-      error.value = 'Некоректна тривалість. Вкажіть 1–480 хв.'
-      return
-    }
-    payload = { actual_duration_minutes: Math.round(minutes) }
+  const { payload, error: durationError } = getActualDurationPayload(input)
+  if (durationError) {
+    error.value = durationError
+    return
   }
 
   setActionLoading(id, true)
   error.value = ''
   try {
-    await apiPatch(`/booking/sessions/${id}/complete/`, payload)
+    await completeSpecialistSessionAction(id, payload)
     await loadSessions()
     await openNoteModal(id)
+    toast.success(BOOKING_SUCCESS_MESSAGES.sessionCompleted)
   } catch (err: any) {
-    error.value = err?.response?.data?.detail || 'Не вдалося завершити сесію'
+    error.value = getBookingErrorMessage(err, BOOKING_ERROR_FALLBACKS.completeSession)
   } finally {
     setActionLoading(id, false)
   }
@@ -702,22 +922,42 @@ async function cancelSession(id: number) {
   setActionLoading(id, true)
   error.value = ''
   try {
-    await apiPatch(`/booking/sessions/${id}/cancel/`)
+    await cancelSpecialistSessionAction(id)
     await loadSessions()
+    toast.success(BOOKING_SUCCESS_MESSAGES.sessionCancelled)
   } catch (err: any) {
-    error.value = err?.response?.data?.detail || 'Не вдалося скасувати сесію'
+    error.value = getBookingErrorMessage(err, BOOKING_ERROR_FALLBACKS.cancelSession)
   } finally {
     setActionLoading(id, false)
   }
 }
 
-function toggleReschedule(id: number) {
+async function loadRescheduleSuggestions(id: number) {
+  setSuggestionsLoading(id, true)
+  try {
+    rescheduleSuggestions.value = {
+      ...rescheduleSuggestions.value,
+      [id]: await fetchSpecialistRescheduleSuggestionsData(id),
+    }
+  } catch {
+    rescheduleSuggestions.value = {
+      ...rescheduleSuggestions.value,
+      [id]: [],
+    }
+  } finally {
+    setSuggestionsLoading(id, false)
+  }
+}
+
+async function toggleReschedule(id: number) {
   if (rescheduleSessionId.value === id) {
     closeReschedule()
     return
   }
   rescheduleSessionId.value = id
   rescheduleSlotId.value = ''
+  recurringSessionId.value = null
+  await loadRescheduleSuggestions(id)
 }
 
 function closeReschedule() {
@@ -725,18 +965,69 @@ function closeReschedule() {
   rescheduleSlotId.value = ''
 }
 
+function selectSuggestedSlot(slotId: number) {
+  rescheduleSlotId.value = slotId
+}
+
+function toggleRecurring(id: number) {
+  if (recurringSessionId.value === id) {
+    closeRecurring()
+    return
+  }
+  recurringSessionId.value = id
+  recurringPreset.value = 4
+  recurringCustomOccurrences.value = ''
+  rescheduleSessionId.value = null
+}
+
+function closeRecurring() {
+  recurringSessionId.value = null
+}
+
+function recurringOccurrencesValue() {
+  return getRecurringOccurrences(recurringPreset.value, recurringCustomOccurrences.value)
+}
+
 async function submitReschedule(id: number) {
   if (!rescheduleSlotId.value) return
   setActionLoading(id, true)
   error.value = ''
   try {
-    await apiPatch(`/booking/sessions/${id}/reschedule/`, {
-      slot_id: rescheduleSlotId.value,
-    })
+    await rescheduleSpecialistSessionAction(id, Number(rescheduleSlotId.value))
     closeReschedule()
     await Promise.all([loadSessions(), loadSlots()])
+    toast.success(BOOKING_SUCCESS_MESSAGES.sessionRescheduled)
   } catch (err: any) {
-    error.value = err?.response?.data?.detail || 'Не вдалося перенести сесію'
+    error.value = getBookingErrorMessage(err, BOOKING_ERROR_FALLBACKS.rescheduleSession)
+  } finally {
+    setActionLoading(id, false)
+  }
+}
+
+async function submitRecurring(id: number) {
+  const occurrences = recurringOccurrencesValue()
+  if (!occurrences) {
+    error.value = 'Вкажіть кількість повторів від 1 до 52.'
+    return
+  }
+  setActionLoading(id, true)
+  error.value = ''
+  try {
+    const resp = await createRecurringSpecialistSessionsAction(id, occurrences)
+    recurringResult.value = {
+      ...recurringResult.value,
+      [id]: resp,
+    }
+    await Promise.all([loadSessions(), loadSlots()])
+    const skipped = resp?.skipped_count || 0
+    const created = resp?.created_count || 0
+    if (skipped > 0) {
+      toast.success(`Створено ${created} сесій, пропущено ${skipped}.`)
+    } else {
+      toast.success(BOOKING_SUCCESS_MESSAGES.recurringSeriesCreated)
+    }
+  } catch (err: any) {
+    error.value = getBookingErrorMessage(err, BOOKING_ERROR_FALLBACKS.createRecurringSession)
   } finally {
     setActionLoading(id, false)
   }
@@ -747,14 +1038,9 @@ async function loadNote(id: number) {
   setNoteLoading(id, true)
   error.value = ''
   try {
-    const resp = await apiGet(`/cabinet/sessions/${id}/note/`)
-    noteDraft.value = resp?.content || ''
+    noteDraft.value = await fetchSpecialistSessionNoteContentData(id)
   } catch (err: any) {
-    if (err?.response?.status === 404) {
-      noteDraft.value = ''
-    } else {
-    error.value = err?.response?.data?.detail || 'Не вдалося погодити запит'
-    }
+    error.value = getBookingErrorMessage(err, BOOKING_ERROR_FALLBACKS.loadSessionNote)
   } finally {
     setNoteLoading(id, false)
   }
@@ -764,10 +1050,11 @@ async function saveNote(id: number) {
   setNoteSaving(id, true)
   error.value = ''
   try {
-    await apiPut(`/cabinet/sessions/${id}/note/`, { content: noteDraft.value })
+    await saveSpecialistSessionNoteAction(id, noteDraft.value)
     closeNote()
+    toast.success(BOOKING_SUCCESS_MESSAGES.noteSaved)
   } catch (err: any) {
-    error.value = err?.response?.data?.detail || 'Не вдалося погодити запит'
+    error.value = getBookingErrorMessage(err, BOOKING_ERROR_FALLBACKS.saveSessionNote)
   } finally {
     setNoteSaving(id, false)
   }
@@ -787,10 +1074,7 @@ function closeNote() {
 async function loadRescheduleRequests() {
   requestsLoading.value = true
   try {
-    const resp = await apiGet<RescheduleRequest[]>(
-      '/cabinet/sessions/reschedule-requests/'
-    )
-    rescheduleRequests.value = resp || []
+    rescheduleRequests.value = await fetchSpecialistRescheduleRequestsData()
   } catch {
     rescheduleRequests.value = []
   } finally {
@@ -802,10 +1086,11 @@ async function approveRequest(id: number) {
   setRequestLoading(id, true)
   error.value = ''
   try {
-    await apiPatch(`/cabinet/sessions/reschedule-requests/${id}/approve/`)
+    await approveSpecialistRescheduleRequestAction(id)
     await Promise.all([loadSessions(), loadSlots(), loadRescheduleRequests(), loadTherapistProfilePhoto()])
+    toast.success(BOOKING_SUCCESS_MESSAGES.rescheduleRequestApproved)
   } catch (err: any) {
-    error.value = err?.response?.data?.detail || 'Не вдалося погодити запит'
+    error.value = getBookingErrorMessage(err, BOOKING_ERROR_FALLBACKS.approveRescheduleRequest)
   } finally {
     setRequestLoading(id, false)
   }
@@ -815,10 +1100,11 @@ async function declineRequest(id: number) {
   setRequestLoading(id, true)
   error.value = ''
   try {
-    await apiPatch(`/cabinet/sessions/reschedule-requests/${id}/decline/`)
+    await declineSpecialistRescheduleRequestAction(id)
     await loadRescheduleRequests()
+    toast.success(BOOKING_SUCCESS_MESSAGES.rescheduleRequestDeclined)
   } catch (err: any) {
-    error.value = err?.response?.data?.detail || 'Не вдалося відхилити запит'
+    error.value = getBookingErrorMessage(err, BOOKING_ERROR_FALLBACKS.declineRescheduleRequest)
   } finally {
     setRequestLoading(id, false)
   }
@@ -946,10 +1232,21 @@ onBeforeUnmount(() => {
     font-weight: 600;
   }
 
-  .priority-next {
-    display: grid;
-    gap: 6px;
-  }
+.priority-next {
+  display: grid;
+  gap: 6px;
+}
+
+.session-filters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+  align-items: end;
+}
+
+.session-filters__field {
+  margin: 0;
+}
 
 .badge--soft {
   background: rgba(8, 113, 201, 0.12);
@@ -1020,6 +1317,23 @@ onBeforeUnmount(() => {
   color: #a03838;
 }
 
+.status-pill--new {
+  background: rgba(8, 113, 201, 0.16);
+  color: #0c4c77;
+}
+
+.new-bookings-banner {
+  margin-top: 6px;
+  padding: 10px 12px;
+  border: 1px solid rgba(8, 113, 201, 0.3);
+  border-radius: 12px;
+  background: rgba(8, 113, 201, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
 .session-actions {
   display: flex;
   gap: 8px;
@@ -1073,6 +1387,68 @@ onBeforeUnmount(() => {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
+}
+
+.suggestions-block {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(7, 47, 71, 0.12);
+  background: rgba(7, 47, 71, 0.03);
+}
+
+.suggestions-title {
+  font-weight: 600;
+}
+
+.suggestions-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.suggestion-btn {
+  display: grid;
+  gap: 2px;
+  text-align: left;
+}
+
+.suggestion-meta {
+  font-size: 11px;
+}
+
+.recurring-panel {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px dashed rgba(8, 113, 201, 0.35);
+  background: rgba(8, 113, 201, 0.05);
+  grid-column: 1 / -1;
+}
+
+.recurring-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.recurring-result {
+  display: grid;
+  gap: 8px;
+}
+
+.recurring-list {
+  display: grid;
+  gap: 4px;
+}
+
+.recurring-ul {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 4px;
 }
 
 .input--select {
@@ -1195,6 +1571,11 @@ onBeforeUnmount(() => {
 
 @media (max-width: 860px) {
   .sessions__hero {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .new-bookings-banner {
     flex-direction: column;
     align-items: flex-start;
   }

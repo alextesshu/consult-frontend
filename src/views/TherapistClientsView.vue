@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <section class="clients">
     <header class="clients__hero">
       <div>
@@ -150,6 +150,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { apiGet, apiPatch } from '../lib/api'
+import { formatUkDateTimeCompact } from '../lib/dateTime'
 import { getApiErrorMessage } from '../lib/errors'
 
 type ClientState = {
@@ -169,6 +170,10 @@ type SessionItem = {
   status: string
   slot_start_at: string
   slot_end_at: string
+}
+
+type SessionNotePayload = {
+  content?: string
 }
 
 type PendingNoteItem = {
@@ -220,17 +225,7 @@ function setFilter(value: 'ALL' | 'ACTIVE' | 'INACTIVE' | 'ARCHIVED') {
 }
 
 function formatDateTime(value?: string | null) {
-  if (!value) return '—'
-  const dt = new Date(value)
-  if (Number.isNaN(dt.getTime())) return value
-  return dt.toLocaleString('uk-UA', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  })
+  return formatUkDateTimeCompact(value)
 }
 
 function setActionLoading(id: number, value: boolean) {
@@ -329,7 +324,7 @@ async function loadPendingNotes() {
     for (const session of completed) {
       let note = ''
       try {
-        const resp = await apiGet(`/cabinet/sessions/${session.id}/note/`)
+        const resp = await apiGet<SessionNotePayload | null>(`/cabinet/sessions/${session.id}/note/`)
         note = resp?.content || ''
       } catch (err: any) {
         if (err?.response?.status !== 404) {
@@ -369,7 +364,7 @@ async function loadHistory(clientId: number) {
     for (const session of items) {
       let note = ''
       try {
-        const resp = await apiGet(`/cabinet/sessions/${session.id}/note/`)
+        const resp = await apiGet<SessionNotePayload | null>(`/cabinet/sessions/${session.id}/note/`)
         note = resp?.content || ''
       } catch (err: any) {
         if (err?.response?.status !== 404) {

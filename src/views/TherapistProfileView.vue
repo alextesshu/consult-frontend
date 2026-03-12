@@ -5,7 +5,7 @@
         <div class="badge">Кабінет спеціаліста</div>
         <h1 class="title profile__title">Керування публічним профілем</h1>
         <p class="muted profile__subtitle">
-          Налаштовуйте видимість, тексти й контакти. Прев’ю показує, як вас бачать клієнти.
+          Збирайте свою публічну сторінку як міні-сайт: офер, довіра, контент, контакти й медіа.
         </p>
       </div>
       <div class="profile__actions">
@@ -19,6 +19,7 @@
         <div v-if="shareStatus" class="muted" style="margin-top: 6px;">{{ shareStatus }}</div>
       </div>
     </header>
+    <SettingsSubnav active="profile" />
 
     <div v-if="loading" class="muted" style="margin-top: 12px;">Завантаження профілю...</div>
     <div v-else-if="error" class="form-error" style="margin-top: 12px;">{{ error }}</div>
@@ -529,8 +530,8 @@
           </div>
           <div class="panel__meta">{{ profile.public_slug || 'slug ще не створено' }}</div>
         </div>
-        <details class="details details--preview">
-          <summary>Показати прев'ю</summary>
+        <details class="details details--preview" open>
+          <summary>Live preview публічної сторінки</summary>
           <div class="preview-card">
             <div class="preview-content">
               <div class="preview-info">
@@ -643,72 +644,6 @@
         <div v-if="success" class="muted">{{ success }}</div>
       </div>
 
-      <section class="panel">
-        <div class="panel__header">
-          <div>
-            <div class="badge badge--soft">Крок 8</div>
-            <h2 class="panel__title">Авторський журнал</h2>
-            <p class="panel__hint">
-              Публікуйте короткі нотатки для профілю спеціаліста (PRO/LEADER). Опубліковані записи видимі всім.
-            </p>
-          </div>
-        </div>
-
-        <div class="form" style="margin-top: 12px;">
-          <label class="field">
-            Назва поста
-            <input v-model="journalForm.title" class="input" type="text" placeholder="Напр. Як підготуватися до першої сесії" />
-          </label>
-          <label class="field">
-            Короткий опис
-            <textarea v-model="journalForm.summary" class="input" rows="3" placeholder="2–3 речення для превʼю"></textarea>
-          </label>
-          <label class="field">
-            Текст поста
-            <textarea v-model="journalForm.body" class="input" rows="6" placeholder="Основний текст"></textarea>
-          </label>
-          <label class="field">
-            Обкладинка (URL)
-            <input v-model="journalForm.cover_image_url" class="input" type="text" placeholder="https://..." />
-          </label>
-          <label class="check">
-            <input v-model="journalForm.is_published" type="checkbox" />
-            Опублікувати
-          </label>
-          <div class="field-row">
-            <button class="btn" type="button" :disabled="journalSaving" @click="onSaveJournal">
-              {{ editingJournalId ? 'Оновити пост' : 'Створити пост' }}
-            </button>
-            <button class="btn btn--ghost" type="button" :disabled="journalSaving" @click="resetJournalForm">
-              Скасувати
-            </button>
-          </div>
-          <div v-if="journalError" class="form-error">{{ journalError }}</div>
-        </div>
-
-        <div v-if="journalLoading" class="muted">Завантаження постів...</div>
-        <div v-else-if="journalPosts.length === 0" class="muted">
-          Ще немає постів.
-        </div>
-        <div v-else class="journal-admin-list">
-          <article v-for="post in journalPosts" :key="post.id" class="journal-admin-card">
-            <div>
-              <div class="journal-admin-title">{{ post.title }}</div>
-              <div class="muted">
-                {{ post.is_published ? 'Опубліковано' : 'Чернетка' }}
-                <span v-if="post.published_at">· {{ formatJournalDate(post.published_at) }}</span>
-                <span v-else>· {{ formatJournalDate(post.created_at) }}</span>
-              </div>
-              <div class="muted" v-if="post.summary">{{ post.summary }}</div>
-            </div>
-            <div class="journal-admin-actions">
-              <button class="btn btn--ghost btn--sm" type="button" @click="onEditJournal(post)">Редагувати</button>
-              <button class="btn btn--ghost btn--sm" type="button" @click="requestDeleteJournal(post)">Видалити</button>
-            </div>
-          </article>
-        </div>
-      </section>
-
     </form>
 
     <div v-if="cropperOpen" class="cropper-overlay">
@@ -739,17 +674,6 @@
       </div>
     </div>
 
-    <ConfirmModal
-      :open="journalDeleteModal.open"
-      :title="journalDeleteModal.title"
-      :message="journalDeleteModal.message"
-      :confirm-text="journalDeleteModal.confirmText"
-      :cancel-text="journalDeleteModal.cancelText"
-      :tone="journalDeleteModal.tone"
-      @confirm="journalDeleteModal.confirm"
-      @cancel="journalDeleteModal.closeConfirm"
-    />
-
   </section>
 </template>
 
@@ -757,20 +681,14 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { Cropper } from 'vue-advanced-cropper'
 import {
-  fetchAuthorJournalPosts,
-  createAuthorJournalPost,
-  updateAuthorJournalPost,
-  deleteAuthorJournalPost,
-  fetchTherapistProfile,
-  rotateTherapistProfileSlug,
-  updateTherapistProfile,
+  fetchSpecialistProfile,
+  rotateSpecialistProfileSlug,
+  updateSpecialistProfile,
   uploadProfilePhoto,
   uploadProfileVideo,
-  type AuthorJournalPost,
-  type TherapistProfile,
+  type SpecialistProfile,
 } from '../lib/api'
-import ConfirmModal from '../components/ConfirmModal.vue'
-import { useConfirmModal } from '../composables/useConfirmModal'
+import SettingsSubnav from '../components/SettingsSubnav.vue'
 
 const loading = ref(true)
 const saving = ref(false)
@@ -783,20 +701,6 @@ const photoUploading = ref(false)
 const videoUploading = ref(false)
 const photoPreviewUrl = ref('')
 const videoPreviewUrl = ref('')
-
-const journalLoading = ref(false)
-const journalSaving = ref(false)
-const journalError = ref('')
-const journalPosts = ref<AuthorJournalPost[]>([])
-const editingJournalId = ref<number | null>(null)
-const journalForm = reactive({
-  title: '',
-  summary: '',
-  body: '',
-  cover_image_url: '',
-  is_published: false,
-})
-const journalDeleteModal = useConfirmModal()
 const photoInput = ref<HTMLInputElement | null>(null)
 const videoInput = ref<HTMLInputElement | null>(null)
 const cropperOpen = ref(false)
@@ -1017,13 +921,16 @@ function buildProfilePayload() {
     intro_price_currency: profile.intro_price_currency || 'UAH',
     contact_email: profile.contact_email,
     contact_phone: profile.contact_phone,
+    messenger: profile.messenger,
     telegram: profile.telegram,
     viber: profile.viber,
+    whatsapp: profile.whatsapp,
     show_email: profile.show_email,
     show_phone: profile.show_phone,
     show_messenger: profile.show_messenger,
     show_telegram: profile.show_telegram,
     show_viber: profile.show_viber,
+    show_whatsapp: profile.show_whatsapp,
     show_video: profile.show_video,
     show_price: profile.show_price,
     show_intro_price: profile.show_intro_price,
@@ -1032,7 +939,7 @@ function buildProfilePayload() {
   }
 }
 
-const profile = reactive<TherapistProfile>({
+const profile = reactive<SpecialistProfile>({
   id: 0,
   public_profile_enabled: false,
   public_slug: '',
@@ -1083,21 +990,28 @@ const publicUrl = computed(() => {
   return `${window.location.origin}/specialist/${profile.public_slug}`
 })
 
+function formatPriceAmount(value: string | number | null | undefined): string {
+  if (value === null || value === undefined) return ''
+  const raw = String(value).trim()
+  if (!raw) return ''
+  return raw.replace(/([.,])00$/, '')
+}
+
+function formatPriceDisplay(value: string | number | null | undefined, currency?: string | null): string {
+  const amount = formatPriceAmount(value)
+  if (!amount) return ''
+  const code = (currency || 'UAH').toUpperCase()
+  if (code === 'UAH') return `${amount} грн`
+  if (code === 'USD') return `$${amount}`
+  if (code === 'EUR') return `€${amount}`
+  return `${amount} ${code}`
+}
+
 const priceDisplay = computed(() => {
-  if (!profile.price) return ''
-  const currency = profile.price_currency || 'UAH'
-  if (currency === 'UAH') return `${profile.price} грн`
-  if (currency === 'USD') return `$${profile.price}`
-  if (currency === 'EUR') return `€${profile.price}`
-  return `${profile.price} ${currency}`
+  return formatPriceDisplay(profile.price, profile.price_currency)
 })
 const introPriceDisplay = computed(() => {
-  if (!profile.intro_price) return ''
-  const currency = profile.intro_price_currency || 'UAH'
-  if (currency === 'UAH') return `${profile.intro_price} грн`
-  if (currency === 'USD') return `$${profile.intro_price}`
-  if (currency === 'EUR') return `€${profile.intro_price}`
-  return `${profile.intro_price} ${currency}`
+  return formatPriceDisplay(profile.intro_price, profile.intro_price_currency)
 })
 const hasAnyBioSection = computed(
   () =>
@@ -1121,7 +1035,7 @@ async function loadProfile() {
   loading.value = true
   error.value = ''
   try {
-    const data = await fetchTherapistProfile()
+    const data = await fetchSpecialistProfile()
     Object.assign(profile, normalizeProfile(data))
     languageList.value = sanitizeLanguages(toList(profile.languages))
     specializationList.value = toList(profile.specializations)
@@ -1138,77 +1052,6 @@ async function loadProfile() {
   }
 }
 
-async function loadJournal() {
-  journalLoading.value = true
-  journalError.value = ''
-  try {
-    journalPosts.value = await fetchAuthorJournalPosts()
-  } catch (err) {
-    journalPosts.value = []
-    journalError.value = getApiErrorMessage(err, 'Не вдалося завантажити авторський журнал')
-  } finally {
-    journalLoading.value = false
-  }
-}
-
-function resetJournalForm() {
-  journalForm.title = ''
-  journalForm.summary = ''
-  journalForm.body = ''
-  journalForm.cover_image_url = ''
-  journalForm.is_published = false
-  editingJournalId.value = null
-}
-
-async function onSaveJournal() {
-  journalSaving.value = true
-  journalError.value = ''
-  try {
-    if (editingJournalId.value) {
-      await updateAuthorJournalPost(editingJournalId.value, { ...journalForm })
-    } else {
-      await createAuthorJournalPost({ ...journalForm })
-    }
-    await loadJournal()
-    resetJournalForm()
-  } catch (err) {
-    journalError.value = getApiErrorMessage(err, 'Не вдалося зберегти пост')
-  } finally {
-    journalSaving.value = false
-  }
-}
-
-function onEditJournal(post: AuthorJournalPost) {
-  editingJournalId.value = post.id
-  journalForm.title = post.title || ''
-  journalForm.summary = post.summary || ''
-  journalForm.body = post.body || ''
-  journalForm.cover_image_url = post.cover_image_url || ''
-  journalForm.is_published = post.is_published
-}
-
-function requestDeleteJournal(post: AuthorJournalPost) {
-  journalDeleteModal.openConfirm({
-    title: 'Видалити пост?',
-    message: 'Пост зникне з публічного профілю.',
-    confirmText: 'Видалити',
-    cancelText: 'Скасувати',
-    tone: 'danger',
-    onConfirm: async () => {
-      journalError.value = ''
-      try {
-        await deleteAuthorJournalPost(post.id)
-        await loadJournal()
-        if (editingJournalId.value === post.id) {
-          resetJournalForm()
-        }
-      } catch (err) {
-        journalError.value = getApiErrorMessage(err, 'Не вдалося зберегти пост')
-      }
-    },
-  })
-}
-
 async function onSave() {
   saving.value = true
   success.value = ''
@@ -1217,7 +1060,7 @@ async function onSave() {
     if (showOtherSpecialization.value && otherSpecializationInput.value.trim()) {
       addOtherSpecialization()
     }
-    const data = await updateTherapistProfile(buildProfilePayload())
+    const data = await updateSpecialistProfile(buildProfilePayload())
     Object.assign(profile, normalizeProfile(data))
     languageList.value = sanitizeLanguages(toList(profile.languages))
     specializationList.value = toList(profile.specializations)
@@ -1237,7 +1080,7 @@ async function onRotateSlug() {
   error.value = ''
   success.value = ''
   try {
-    const data = await rotateTherapistProfileSlug()
+    const data = await rotateSpecialistProfileSlug()
     Object.assign(profile, normalizeProfile(data))
     success.value = 'Публічне посилання оновлено.'
   } catch (err) {
@@ -1310,7 +1153,7 @@ async function onVideoSelected(event: Event) {
   }
 }
 
-function normalizeProfile(data: TherapistProfile): TherapistProfile {
+function normalizeProfile(data: SpecialistProfile): SpecialistProfile {
   return {
     ...data,
     display_name: data.display_name || '',
@@ -1346,17 +1189,6 @@ function normalizeProfile(data: TherapistProfile): TherapistProfile {
     show_whatsapp: data.show_whatsapp ?? false,
     show_intro_price: data.show_intro_price ?? false,
   }
-}
-
-function formatJournalDate(value: string | null) {
-  if (!value) return ''
-  const dt = new Date(value)
-  if (Number.isNaN(dt.getTime())) return value
-  return dt.toLocaleDateString('uk-UA', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  })
 }
 
 function addLanguage() {
@@ -1475,7 +1307,6 @@ function sanitizeLanguages(list: string[]): string[] {
 
 onMounted(() => {
   loadProfile()
-  loadJournal()
 })
 </script>
 
@@ -2000,33 +1831,6 @@ onMounted(() => {
   border: 1px solid #f5c2c0;
   border-radius: 10px;
   padding: 8px 10px;
-}
-
-.journal-admin-list {
-  display: grid;
-  gap: 12px;
-}
-
-.journal-admin-card {
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 12px;
-  background: #fff;
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.journal-admin-title {
-  font-weight: 600;
-  margin-bottom: 4px;
-}
-
-.journal-admin-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
 }
 
 @media (max-width: 980px) {

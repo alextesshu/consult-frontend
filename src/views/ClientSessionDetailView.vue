@@ -30,7 +30,7 @@
         <div class="detail-card">
           <div class="detail-label">Спеціаліст</div>
           <div class="detail-value">
-            {{ therapistLabel(session) }}
+            {{ specialistLabel(session) }}
             <div v-if="session.therapist_email" class="muted" style="font-size: 12px;">
               {{ session.therapist_email }}
             </div>
@@ -41,12 +41,15 @@
               <RouterLink class="btn btn--ghost btn--sm" :to="`/specialist/${session.therapist_public_slug}`">
                 Відкрити профіль
               </RouterLink>
-              <button class="btn btn--ghost btn--sm" type="button" @click="copyTherapistLink">
+              <button class="btn btn--ghost btn--sm" type="button" @click="copySpecialistLink">
                 Скопіювати посилання
               </button>
             </div>
           </div>
         </div>
+      </div>
+      <div v-if="statusGuidance" class="detail-notice">
+        {{ statusGuidance }}
       </div>
 
       <div class="action-row">
@@ -61,30 +64,7 @@
       </div>
     </section>
 
-    <section v-if="session && session.status === 'COMPLETED'" class="panel">
-      <div class="panel__header">
-        <div>
-          <div class="badge badge--soft">Відгук</div>
-          <h2 class="panel__title">Оцініть сесію</h2>
-        </div>
-      </div>
-      <div v-if="reviewStatus" class="muted">{{ reviewStatus }}</div>
-      <div class="review-form">
-        <label class="field">
-          Рейтинг (1–5)
-          <select v-model.number="reviewRating" class="input input--select">
-            <option v-for="n in 5" :key="n" :value="n">{{ n }}</option>
-          </select>
-        </label>
-        <label class="field">
-          Відгук
-          <textarea v-model="reviewText" class="input" rows="4" placeholder="Поділіться враженнями"></textarea>
-        </label>
-        <button class="btn" type="button" :disabled="reviewSubmitting" @click="submitReview">
-          {{ reviewSubmitting ? 'Надсилання...' : 'Надіслати відгук' }}
-        </button>
-      </div>
-    </section>
+    
 
     <section v-if="session" class="panel">
       <div class="panel__header">
@@ -93,13 +73,38 @@
           <h2 class="panel__title">Обрати новий слот</h2>
         </div>
       </div>
-      <div class="muted" style="margin-top: 6px;">
-        <span v-if="session.status === 'CONFIRMED'">
-          Підтверджені сесії переносяться лише після підтвердження спеціаліста.
-        </span>
-        <span v-else>
-          Перенесення виконується як нове бронювання зі скасуванням попередньої сесії.
-        </span>
+      <div class="detail-notice detail-notice--soft" style="margin-top: 6px;">
+        {{ rescheduleGuidance }}
+      </div>
+      <div class="suggestions-block" style="margin-top: 12px;">
+        <div class="muted suggestions-title">Рекомендовані варіанти перенесення</div>
+        <div v-if="suggestionsLoading" class="muted">Завантаження рекомендацій...</div>
+        <div v-else-if="rescheduleSuggestions.length === 0" class="muted">
+          Для цієї сесії зараз немає зручних варіантів перенесення
+        </div>
+        <div v-else class="suggestions-list">
+          <button
+            v-for="item in rescheduleSuggestions.slice(0, 5)"
+            :key="item.slot_id"
+            class="btn btn--ghost btn--sm suggestion-btn"
+            :class="{ 'suggestion-btn--active': selectedSuggestionSlotId === item.slot_id }"
+            type="button"
+            :disabled="actionLoading"
+            @click="selectSuggestedSlot(item.slot_id)"
+          >
+            <span>{{ formatDateTime(item.start_at) }} · {{ formatDuration(item.start_at, item.end_at) }}</span>
+            <span class="muted suggestion-meta">{{ suggestionReasonLabel(item.reason_tag) }}</span>
+          </button>
+        </div>
+        <button
+          v-if="selectedSuggestionSlotId"
+          class="btn btn--sm"
+          type="button"
+          :disabled="actionLoading || !canReschedule(session.status)"
+          @click="applySelectedSuggestion"
+        >
+          {{ session.status === 'CONFIRMED' ? 'Запросити перенос для обраного варіанта' : 'Перенести на обраний варіант' }}
+        </button>
       </div>
       <div v-if="slotsLoading" class="muted" style="margin-top: 10px;">Завантаження слотів...</div>
       <div v-else-if="availableSlots.length === 0" class="muted" style="margin-top: 10px;">
@@ -114,7 +119,7 @@
           <button
             class="btn btn--ghost btn--sm"
             type="button"
-            :disabled="actionLoading"
+            :disabled="actionLoading || !canReschedule(session.status)"
             @click="session.status === 'CONFIRMED' ? requestReschedule(slot.id) : rescheduleTo(slot.id)"
           >
             {{ session.status === 'CONFIRMED' ? 'Запросити перенос' : 'Перенести сюди' }}
@@ -129,10 +134,14 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { apiGet, apiPatch, apiPost } from '../lib/api'
-import { getApiErrorMessage } from '../lib/errors'
+import {
+  BOOKING_ERROR_FALLBACKS,
+  BOOKING_SUCCESS_MESSAGES,
+  getBookingErrorMessage,
+  getSuggestionReasonLabel,
+} from '../lib/bookingCopy'
+import { formatUkDateTimeCompact } from '../lib/dateTime'
 import { useToast } from '../composables/useToast'
-import { createSessionReview } from '../lib/api'
-
 type SessionDetail = {
   id: number
   status: string
@@ -152,6 +161,14 @@ type PublicSlot = {
   end_at: string
 }
 
+type RescheduleSuggestion = {
+  slot_id: number
+  start_at: string
+  end_at: string
+  label: string
+  reason_tag: string
+}
+
 const route = useRoute()
 const router = useRouter()
 const sessionId = computed(() => Number(route.params.id))
@@ -162,10 +179,38 @@ const toast = useToast()
 const actionLoading = ref(false)
 const slotsLoading = ref(false)
 const availableSlots = ref<PublicSlot[]>([])
-const reviewRating = ref(5)
-const reviewText = ref('')
-const reviewSubmitting = ref(false)
-const reviewStatus = ref('')
+const suggestionsLoading = ref(false)
+const rescheduleSuggestions = ref<RescheduleSuggestion[]>([])
+const selectedSuggestionSlotId = ref<number | null>(null)
+const canReschedule = (status: string) => status === 'SCHEDULED' || status === 'CONFIRMED'
+
+const statusGuidance = computed(() => {
+  if (!session.value) return ''
+  if (session.value.status === 'CONFIRMED') {
+    return 'Сесію вже підтверджено спеціалістом. Якщо плани зміняться, завчасно надішліть запит на перенесення або скасуйте запис.'
+  }
+  if (session.value.status === 'SCHEDULED') {
+    return 'Сесія ще очікує підтвердження спеціаліста. До підтвердження ви можете одразу перенести запис на інший слот або скасувати його.'
+  }
+  if (session.value.status === 'COMPLETED') {
+    return 'Сесію завершено. Для наступної зустрічі оберіть новий вільний слот у профілі спеціаліста.'
+  }
+  if (session.value.status === 'CANCELLED') {
+    return 'Сесію скасовано. Якщо потрібна нова зустріч, оберіть інший доступний слот у профілі спеціаліста.'
+  }
+  return ''
+})
+
+const rescheduleGuidance = computed(() => {
+  if (!session.value) return ''
+  if (session.value.status === 'CONFIRMED') {
+    return 'Для підтвердженої сесії перенесення оформлюється як запит до спеціаліста. Поточний час залишиться чинним, доки запит не погодять.'
+  }
+  if (session.value.status === 'SCHEDULED') {
+    return 'Для непідтвердженої сесії перенесення виконується одразу: новий слот бронюється, а поточний запис скасовується автоматично.'
+  }
+  return 'Перенесення доступне лише для активних сесій зі статусом "Заплановано" або "Підтверджено".'
+})
 
 watch(error, (value) => {
   if (!value) return
@@ -189,13 +234,17 @@ const statusLabel = (detail: SessionDetail) => {
 
 const canCancel = (status: string) => status === 'SCHEDULED' || status === 'CONFIRMED'
 
-function therapistLabel(detail: SessionDetail) {
+function suggestionReasonLabel(reasonTag: string) {
+  return getSuggestionReasonLabel(reasonTag)
+}
+
+function specialistLabel(detail: SessionDetail) {
   const name = detail.therapist_name || detail.therapist_username
   if (name) return name
   return `#${detail.therapist}`
 }
 
-async function copyTherapistLink() {
+async function copySpecialistLink() {
   if (!session.value?.therapist_public_slug) return
   const url = `${window.location.origin}/specialist/${session.value.therapist_public_slug}`
   try {
@@ -207,20 +256,11 @@ async function copyTherapistLink() {
 }
 
 function formatDateTime(value?: string | null) {
-  if (!value) return '—'
-  const dt = new Date(value)
-  if (Number.isNaN(dt.getTime())) return value
-  return dt.toLocaleString('uk-UA', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  })
+  return formatUkDateTimeCompact(value)
 }
 
-function formatDuration(start: string, end: string) {
+function formatDuration(start: string | null, end: string | null) {
+  if (!start || !end) return ''
   const startDt = new Date(start)
   const endDt = new Date(end)
   if (Number.isNaN(startDt.getTime()) || Number.isNaN(endDt.getTime())) return ''
@@ -252,7 +292,7 @@ async function loadSession() {
     const resp = await apiGet<SessionDetail>(`/booking/sessions/${sessionId.value}/`)
     session.value = resp
   } catch (err: any) {
-    error.value = getApiErrorMessage(err, '\u041d\u0435 \u0432\u0434\u0430\u043b\u043e\u0441\u044f \u0437\u0430\u0432\u0430\u043d\u0442\u0430\u0436\u0438\u0442\u0438 \u0441\u0435\u0441\u0456\u044e')
+    error.value = getBookingErrorMessage(err, BOOKING_ERROR_FALLBACKS.loadSession)
   } finally {
     loading.value = false
   }
@@ -273,6 +313,21 @@ async function loadSlots() {
   }
 }
 
+async function loadRescheduleSuggestions() {
+  if (!session.value) return
+  suggestionsLoading.value = true
+  try {
+    const resp = await apiGet<{ suggestions?: RescheduleSuggestion[] }>(
+      `/booking/sessions/${session.value.id}/reschedule-suggestions/`
+    )
+    rescheduleSuggestions.value = resp?.suggestions || []
+  } catch {
+    rescheduleSuggestions.value = []
+  } finally {
+    suggestionsLoading.value = false
+  }
+}
+
 async function cancelSession() {
   if (!session.value) return
   actionLoading.value = true
@@ -281,10 +336,12 @@ async function cancelSession() {
     await apiPatch(`/booking/sessions/${session.value.id}/cancel/`)
     await loadSession()
   } catch (err: any) {
-    error.value = err?.response?.data?.detail || 'Не вдалося скасувати сесію'
+    error.value = getBookingErrorMessage(err, BOOKING_ERROR_FALLBACKS.cancelSession)
+    return
   } finally {
     actionLoading.value = false
   }
+  toast.success(BOOKING_SUCCESS_MESSAGES.sessionCancelled)
 }
 
 async function rescheduleTo(slotId: number) {
@@ -294,10 +351,11 @@ async function rescheduleTo(slotId: number) {
   try {
     await apiPost('/booking/sessions/', { slot_id: slotId })
     await apiPatch(`/booking/sessions/${session.value.id}/cancel/`)
+    toast.success(BOOKING_SUCCESS_MESSAGES.sessionRescheduled)
     await loadSession()
     router.push('/client')
   } catch (err: any) {
-    error.value = err?.response?.data?.detail || 'Не вдалося перенести сесію'
+    error.value = getBookingErrorMessage(err, BOOKING_ERROR_FALLBACKS.rescheduleSession)
   } finally {
     actionLoading.value = false
   }
@@ -311,35 +369,31 @@ async function requestReschedule(slotId: number) {
     await apiPost(`/booking/sessions/${session.value.id}/reschedule-request/`, {
       slot_id: slotId,
     })
+    toast.success(BOOKING_SUCCESS_MESSAGES.rescheduleRequestSent)
     router.push('/client')
   } catch (err: any) {
-    error.value = err?.response?.data?.detail || 'Не вдалося надіслати запит на перенос'
+    error.value = getBookingErrorMessage(err, BOOKING_ERROR_FALLBACKS.sendRescheduleRequest)
   } finally {
     actionLoading.value = false
   }
 }
 
-async function submitReview() {
-  if (!session.value) return
-  reviewSubmitting.value = true
-  reviewStatus.value = ''
-  try {
-    await createSessionReview(session.value.id, {
-      rating: reviewRating.value,
-      review_text: reviewText.value,
-    })
-    reviewStatus.value = 'Дякуємо за відгук!'
-    reviewText.value = ''
-  } catch (err: any) {
-    reviewStatus.value = err?.response?.data?.detail || 'Не вдалося надіслати відгук'
-  } finally {
-    reviewSubmitting.value = false
+function selectSuggestedSlot(slotId: number) {
+  selectedSuggestionSlotId.value = slotId
+}
+
+async function applySelectedSuggestion() {
+  if (!session.value || !selectedSuggestionSlotId.value) return
+  if (session.value.status === 'CONFIRMED') {
+    await requestReschedule(selectedSuggestionSlotId.value)
+    return
   }
+  await rescheduleTo(selectedSuggestionSlotId.value)
 }
 
 onMounted(async () => {
   await loadSession()
-  await loadSlots()
+  await Promise.all([loadSlots(), loadRescheduleSuggestions()])
 })
 </script>
 
@@ -433,6 +487,52 @@ onMounted(async () => {
   flex-wrap: wrap;
 }
 
+.detail-notice {
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(8, 113, 201, 0.18);
+  background: rgba(8, 113, 201, 0.08);
+  color: var(--text);
+}
+
+.detail-notice--soft {
+  border-color: rgba(7, 47, 71, 0.1);
+  background: rgba(7, 47, 71, 0.04);
+}
+
+.suggestions-block {
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(7, 47, 71, 0.12);
+  background: rgba(7, 47, 71, 0.03);
+}
+
+.suggestions-title {
+  font-weight: 600;
+}
+
+.suggestions-list {
+  display: grid;
+  gap: 8px;
+}
+
+.suggestion-btn {
+  display: grid;
+  gap: 2px;
+  text-align: left;
+}
+
+.suggestion-btn--active {
+  border-color: rgba(8, 113, 201, 0.45);
+  background: rgba(8, 113, 201, 0.08);
+}
+
+.suggestion-meta {
+  font-size: 11px;
+}
+
 .slot-list {
   display: grid;
   gap: 10px;
@@ -454,11 +554,6 @@ onMounted(async () => {
   font-weight: 600;
 }
 
-.review-form {
-  display: grid;
-  gap: 12px;
-}
-
 .btn--sm {
   padding: 6px 10px;
   font-size: 13px;
@@ -471,3 +566,5 @@ onMounted(async () => {
   }
 }
 </style>
+
+

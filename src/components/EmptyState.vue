@@ -16,7 +16,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, useSlots } from 'vue'
 
 const props = defineProps<{
   title: string
@@ -28,8 +28,13 @@ const props = defineProps<{
   badge?: string
 }>()
 
+const slots = useSlots()
+
 const hasActions = computed(
-  () => Boolean(props.actionTo && props.actionText) || Boolean(props.secondaryTo && props.secondaryText)
+  () =>
+    Boolean(props.actionTo && props.actionText) ||
+    Boolean(props.secondaryTo && props.secondaryText) ||
+    Boolean(slots.actions)
 )
 </script>
 

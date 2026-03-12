@@ -1,23 +1,23 @@
-<template>
-  <section class="public-therapists">
-    <header class="public-therapists__hero card">
+﻿<template>
+  <section class="public-specialists">
+    <header class="public-specialists__hero card">
       <div>
-        <div class="badge badge--soft">Публічний каталог</div>
-        <h1 class="title">Спеціалісти</h1>
-        <p class="muted">Пошук та перегляд відкритих профілів.</p>
+        <div class="badge badge--soft">Каталог спеціалістів</div>
+        <h1 class="title">Знайдіть спеціаліста</h1>
+        <p class="muted">Обирайте спеціаліста і бронюйте першу сесію.</p>
       </div>
       <RouterLink class="btn btn--ghost" to="/">На головну</RouterLink>
     </header>
 
     <section class="card">
-      <div class="card__title">Пошук і фільтри</div>
+      <div class="card__title">Пошук та фільтри</div>
       <div class="filters">
         <div class="filters__row">
           <input
             v-model="nameQuery"
             class="input"
             type="text"
-            placeholder="Ім'я"
+            placeholder="Ім'я або прізвище"
             @input="scheduleSearch"
             @keyup.enter="applyFilters"
           />
@@ -65,35 +65,42 @@
           </select>
           <select v-model="sort" class="input input--select" @change="applyFilters">
             <option value="">Сортування</option>
-            <option value="name_asc">Ім'я (А→Я)</option>
-            <option value="name_desc">Ім'я (Я→А)</option>
-            <option value="price_asc">Ціна (дешевші)</option>
-            <option value="price_desc">Ціна (дорожчі)</option>
-            <option value="experience_desc">Досвід (більше)</option>
-            <option value="experience_asc">Досвід (менше)</option>
-            <option value="rating_desc">Рейтинг (високий)</option>
-            <option value="created_desc">Новіші профілі</option>
+            <option value="name_asc">Ім'я (А-Я)</option>
+            <option value="name_desc">Ім'я (Я-А)</option>
+            <option value="price_asc">Ціна (зростання)</option>
+            <option value="price_desc">Ціна (спадання)</option>
+            <option value="experience_desc">Досвід (спадання)</option>
+            <option value="experience_asc">Досвід (зростання)</option>
+            <option value="created_desc">Новіші спочатку</option>
           </select>
         </div>
         <div class="filters__actions">
           <button class="btn btn--ghost" type="button" @click="applyFilters">Застосувати</button>
-          <button class="btn btn--ghost" type="button" :disabled="!hasFilters" @click="resetFilters">
-            Скинути
-          </button>
+          <button class="btn btn--ghost" type="button" :disabled="!hasFilters" @click="resetFilters">Скинути</button>
           <div class="filters__hint muted">
-            Підказки працюють за першими літерами. Фільтрація за ціною працює з конвертацією у гривню для правильного порядку.
+            Почніть із пошуку по імені спеціаліста. Рекомендуємо не вводити одразу всі параметри — так
+            легше знайти потрібного спеціаліста.
           </div>
         </div>
       </div>
     </section>
 
     <section class="card">
-      <div class="card__title">Результати</div>
+      <div class="card__title">Спеціалісти</div>
       <LoadingSkeleton v-if="loading" variant="card" :count="6" height="140px" />
       <EmptyState
+        v-else-if="error"
+        title="Не вдалося завантажити каталог"
+        description="Спробуйте оновити список ще раз. Поточні фільтри залишилися без змін."
+      >
+        <template #actions>
+          <button class="btn btn--ghost" type="button" @click="loadTherapists">Спробувати ще раз</button>
+        </template>
+      </EmptyState>
+      <EmptyState
         v-else-if="therapists.length === 0"
-        title="Поки що немає профілів"
-        description="Спробуйте змінити фільтри або поверніться трохи пізніше."
+        title="Нічого не знайдено"
+        description="Спробуйте змінити фільтри або очистити пошук."
       >
         <template #actions>
           <button class="btn btn--ghost" type="button" @click="resetFilters">Скинути фільтри</button>
@@ -117,9 +124,6 @@
           </div>
           <div class="therapist-info">
             <div class="therapist-name">{{ publicName(therapist) }}</div>
-            <div v-if="therapist.review_count" class="therapist-rating">
-              ⭐ {{ ratingLabel(therapist) }}
-            </div>
             <div v-if="therapist.experience_years !== undefined && therapist.experience_years !== null" class="muted">
               Досвід: {{ formatExperience(therapist.experience_years) }}
             </div>
@@ -134,17 +138,11 @@
           </div>
         </RouterLink>
       </div>
-      <div class="pagination">
-        <div class="muted">
-          Сторінка {{ page }} з {{ totalPages }} · Всього {{ total }}
-        </div>
+      <div v-if="!error && therapists.length > 0" class="pagination">
+        <div class="muted">Сторінка {{ page }} з {{ totalPages }} · Всього {{ total }}</div>
         <div class="pagination__controls">
-          <button class="btn btn--ghost btn--sm" type="button" :disabled="page <= 1" @click="goPage(page - 1)">
-            Назад
-          </button>
-          <button class="btn btn--ghost btn--sm" type="button" :disabled="page >= totalPages" @click="goPage(page + 1)">
-            Далі
-          </button>
+          <button class="btn btn--ghost btn--sm" type="button" :disabled="page <= 1" @click="goPage(page - 1)">Назад</button>
+          <button class="btn btn--ghost btn--sm" type="button" :disabled="page >= totalPages" @click="goPage(page + 1)">Далі</button>
         </div>
       </div>
     </section>
@@ -153,13 +151,13 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
-import { fetchPublicTherapists, type PublicTherapistProfile } from '../lib/api'
-import { useToast } from '../composables/useToast'
+import { fetchPublicSpecialists, type PublicSpecialistProfile } from '../lib/api'
 import LoadingSkeleton from '../components/LoadingSkeleton.vue'
 import EmptyState from '../components/EmptyState.vue'
 
-const therapists = ref<PublicTherapistProfile[]>([])
+const therapists = ref<PublicSpecialistProfile[]>([])
 const loading = ref(false)
+const error = ref(false)
 const total = ref(0)
 const totalPages = ref(1)
 const page = ref(1)
@@ -179,7 +177,6 @@ const appliedLocation = ref('')
 const appliedPriceMin = ref('')
 const appliedPriceMax = ref('')
 const appliedPriceCurrency = ref('')
-const toast = useToast()
 let searchTimer: number | undefined
 const languageOptions = [
   'Українська',
@@ -196,18 +193,18 @@ const languageOptions = [
 ]
 
 const specializationOptions = [
+  'Сімейна терапія',
   'Гештальт терапія',
-  'Екзистенційна терапія',
   'Клієнт-центрована терапія',
   'Когнітивно-поведінкова терапія',
   'Терапія прийняття і відповідальності (ACT)',
-  'Позитивна психотерапія',
-  'Психоаналіз',
+  'Психоаналітична терапія',
+  'Психотерапія',
+  'Коучинг',
+  'Психіатрія',
+  'Арт-терапія',
+  'Екзистенційна терапія',
   'Психодрама',
-  'Символдрама',
-  'Схема-терапія',
-  'Транзакційний аналіз',
-  'Арттерапія',
   'Інше',
 ]
 const hasFilters = computed(
@@ -228,21 +225,21 @@ const languageLabel = (value?: string | string[]) => {
   return value
 }
 
-const priceLabel = (therapist: PublicTherapistProfile) => {
+const priceLabel = (therapist: PublicSpecialistProfile) => {
   if (!therapist.price) return ''
   if (therapist.price_currency === 'USD') return `$${therapist.price}`
-  if (therapist.price_currency === 'EUR') return `\u20ac${therapist.price}`
-  return `${therapist.price} \u0433\u0440\u043d`
+  if (therapist.price_currency === 'EUR') return `€${therapist.price}`
+  return `${therapist.price} грн`
 }
 
-const introPriceLabel = (therapist: PublicTherapistProfile) => {
+const introPriceLabel = (therapist: PublicSpecialistProfile) => {
   if (!therapist.intro_price) return ''
   if (therapist.intro_price_currency === 'USD') return `$${therapist.intro_price}`
-  if (therapist.intro_price_currency === 'EUR') return `\u20ac${therapist.intro_price}`
-  return `${therapist.intro_price} \u0433\u0440\u043d`
+  if (therapist.intro_price_currency === 'EUR') return `€${therapist.intro_price}`
+  return `${therapist.intro_price} грн`
 }
 
-const publicName = (therapist: PublicTherapistProfile) => {
+const publicName = (therapist: PublicSpecialistProfile) => {
   const raw = therapist.display_name || ''
   const parts = raw.trim().split(/\s+/).filter(Boolean)
   if (!parts.length) return ''
@@ -254,15 +251,8 @@ const publicName = (therapist: PublicTherapistProfile) => {
   return `${first} ${initial}.`
 }
 
-const ratingLabel = (therapist: PublicTherapistProfile) => {
-  if (!therapist.review_count) return ''
-  const avg = Number(therapist.rating_avg || 0)
-  const formatted = avg ? avg.toFixed(1) : '0.0'
-  return `${formatted} (${therapist.review_count})`
-}
-
 const formatExperience = (value: number) => {
-  if (value === 0) return 'до року'
+  if (value === 0) return '0 років'
   if (value === 1) return '1 рік'
   if (value >= 2 && value <= 4) return `${value} роки`
   return `${value} років`
@@ -270,8 +260,9 @@ const formatExperience = (value: number) => {
 
 async function loadTherapists() {
   loading.value = true
+  error.value = false
   try {
-    const resp = await fetchPublicTherapists({
+    const resp = await fetchPublicSpecialists({
       page: page.value,
       page_size: pageSize.value,
       sort: sort.value || undefined,
@@ -290,7 +281,7 @@ async function loadTherapists() {
     therapists.value = []
     total.value = 0
     totalPages.value = 1
-    toast.error('Не вдалося завантажити каталог')
+    error.value = true
   } finally {
     loading.value = false
   }
@@ -346,12 +337,12 @@ onMounted(loadTherapists)
 </script>
 
 <style scoped>
-.public-therapists {
+.public-specialists {
   display: grid;
   gap: 20px;
 }
 
-.public-therapists__hero {
+.public-specialists__hero {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -363,28 +354,24 @@ onMounted(loadTherapists)
   box-shadow: var(--shadow);
 }
 
-.public-therapists__hero > div {
+.public-specialists__hero > div {
   display: grid;
   gap: 8px;
   justify-items: start;
 }
 
-.public-therapists__hero .badge {
-  justify-self: start;
+.public-specialists__hero .badge {
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-size: 11px;
 }
 
-.public-therapists__hero .title {
-  margin: 0;
+.public-specialists__hero .title {
+  font-size: 32px;
 }
 
-.public-therapists__hero .muted {
-  margin: 0;
-}
-
-.badge--soft {
-  background: color-mix(in srgb, var(--primary) 20%, transparent);
-  border: 1px solid color-mix(in srgb, var(--primary) 35%, transparent);
-  color: var(--deep);
+.public-specialists__hero .muted {
+  max-width: 520px;
 }
 
 .filters {
@@ -395,92 +382,61 @@ onMounted(loadTherapists)
 .filters__row {
   display: grid;
   gap: 10px;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  align-items: center;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
 }
 
 .filters__actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
+  display: grid;
   gap: 10px;
 }
 
 .filters__hint {
-  font-size: 12px;
-}
-
-.input--select {
-  min-width: 160px;
+  font-size: 13px;
 }
 
 .therapist-grid {
   display: grid;
   gap: 14px;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  justify-content: start;
-  justify-items: start;
-  margin-top: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
 }
 
 .therapist-card {
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  padding: 14px;
   display: grid;
-  gap: 10px;
-  background: var(--surface);
+  gap: 12px;
+  padding: 14px;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: #fff;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
   text-decoration: none;
   color: inherit;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
-  width: 100%;
-  max-width: 280px;
 }
 
 .therapist-card:hover {
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.1);
   transform: translateY(-2px);
-  box-shadow: 0 16px 24px rgba(16, 33, 50, 0.12);
-  border-color: rgba(31, 74, 96, 0.25);
 }
 
 .therapist-card:focus-visible {
-  outline: 2px solid rgba(31, 74, 96, 0.35);
+  outline: 2px solid rgba(15, 118, 110, 0.6);
   outline-offset: 2px;
 }
 
 .therapist-photo-link {
-  width: 100%;
-  aspect-ratio: 1 / 1;
+  display: grid;
 }
 
 .therapist-photo {
   width: 100%;
-  height: auto;
-  aspect-ratio: 1 / 1;
-  border-radius: 14px;
+  height: 150px;
   object-fit: cover;
-  border: 1px solid var(--line);
+  border-radius: 14px;
 }
 
 .therapist-photo--empty {
   display: grid;
   place-items: center;
-  background: rgba(7, 47, 71, 0.06);
-  color: var(--muted);
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  border-radius: 14px;
-  border: 1px solid var(--line);
-}
-
-.meta-line {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.meta-line span + span::before {
-  content: " · ";
+  background: rgba(15, 23, 42, 0.06);
   color: var(--muted);
 }
 
@@ -493,27 +449,26 @@ onMounted(loadTherapists)
   font-weight: 600;
 }
 
-.therapist-rating {
-  font-size: 13px;
-  color: #a57011;
-  font-weight: 600;
-}
-
 .therapist-price {
   font-weight: 600;
 }
 
 .therapist-price--intro {
-  font-weight: 500;
-  color: #4c5d6b;
+  color: var(--muted);
+}
+
+.meta-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .pagination {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  gap: 12px;
-  margin-top: 16px;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 12px;
 }
 
 .pagination__controls {
@@ -521,13 +476,12 @@ onMounted(loadTherapists)
   gap: 8px;
 }
 
-.btn--sm {
-  padding: 6px 10px;
-  font-size: 13px;
-}
-
-@media (max-width: 860px) {
-  .public-therapists__hero {
+@media (max-width: 900px) {
+  .public-specialists__hero {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .pagination {
     flex-direction: column;
     align-items: flex-start;
   }

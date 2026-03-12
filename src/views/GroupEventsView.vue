@@ -243,14 +243,14 @@
               <label class="field">
                 <span>Пошук</span>
                 <input
-                  v-model="participantFilters[event.id].query"
+                  v-model="participantFilterModel(event.id).query"
                   type="text"
                   placeholder="Ім'я або email"
                 />
               </label>
               <label class="field">
                 <span>Роль</span>
-                <select v-model="participantFilters[event.id].role">
+                <select v-model="participantFilterModel(event.id).role">
                   <option value="">Усі</option>
                   <option value="HOST">Ведучий</option>
                   <option value="CO_HOST">Співведучий</option>
@@ -260,7 +260,7 @@
               </label>
               <label class="field">
                 <span>Статус</span>
-                <select v-model="participantFilters[event.id].status">
+                <select v-model="participantFilterModel(event.id).status">
                   <option value="">Усі</option>
                   <option value="PENDING">Очікує підтвердження</option>
                   <option value="ACCEPTED">Підтверджено</option>
@@ -438,6 +438,7 @@ import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useAuthStore } from '../stores/auth'
 import { apiDelete, apiGet, apiPatch, apiPost } from '../lib/api'
+import { formatUkDateTimeCompact } from '../lib/dateTime'
 import { useToast } from '../composables/useToast'
 import ConfirmModal from '../components/ConfirmModal.vue'
 import { useConfirmModal } from '../composables/useConfirmModal'
@@ -656,17 +657,7 @@ function formatInviteStatus(status: GroupParticipant['invite_status']) {
 }
 
 function formatDate(value: string | null) {
-  if (!value) return ''
-  const dt = new Date(value)
-  if (Number.isNaN(dt.getTime())) return value
-  return dt.toLocaleString('uk-UA', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  })
+  return formatUkDateTimeCompact(value, '')
 }
 
 function inviteLink(token: string) {
@@ -1046,7 +1037,7 @@ onMounted(loadEvents)
 
 function filteredParticipants(eventId: number) {
   const list = participantViews.value[eventId] || []
-  const filter = participantFilters.value[eventId] || { query: '', role: '', status: '' }
+  const filter = participantFilterModel(eventId)
   const query = filter.query.trim().toLowerCase()
   return list.filter((participant) => {
     if (filter.role && participant.role !== filter.role) return false
@@ -1056,6 +1047,16 @@ function filteredParticipants(eventId: number) {
     const email = participant.user_email?.toLowerCase() || ''
     return username.includes(query) || email.includes(query)
   })
+}
+
+function participantFilterModel(eventId: number) {
+  if (!participantFilters.value[eventId]) {
+    participantFilters.value = {
+      ...participantFilters.value,
+      [eventId]: { query: '', role: '', status: '' },
+    }
+  }
+  return participantFilters.value[eventId] as { query: string; role: string; status: string }
 }
 
 function resetParticipantFilters(eventId: number) {

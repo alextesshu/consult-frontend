@@ -5,10 +5,10 @@
         <div class="hero-agency__text">
           <div class="eyebrow">Pro Consult</div>
           <h1 class="hero-agency__title">
-            Простір для ведення консультацій
+            Все для власної практики і професійних зустрічей
           </h1>
           <p class="hero-agency__subtitle">
-            Для терапевтів, наставників, викладачів та консультантів
+            Для психологів, коучів, наставників, викладачів та консультантів. Запис, сесії, доступність, матеріали й робота з клієнтами — в одному місці.
           </p>
           <p class="hero-agency__subtitle">
             Жодних комісій за сесії — лише підписка. Умови співпраці з клієнтом ви
@@ -27,8 +27,8 @@
           </div>
         </div>
         <div class="hero-agency__media">
-          <div class="media-placeholder">
-            <span>Фото консультації або робочого кабінету</span>
+          <div class="media-frame">
+            <img :src="heroImage" alt="Консультація" />
           </div>
         </div>
       </section>
@@ -60,8 +60,8 @@
 
       <section class="split-block reveal">
         <div class="split-block__media">
-          <div class="media-placeholder media-placeholder--tall">
-            <span>Фото спеціаліста або інтерфейсу</span>
+          <div class="media-frame media-frame--tall">
+            <img :src="workflowImage" alt="Робочий процес спеціаліста" />
           </div>
         </div>
         <div class="split-block__content">
@@ -93,12 +93,28 @@
       </section>
 
       <section class="section-block reveal" id="pricing">
-        <div class="section-head">
-          <h2 class="section-title">Підписки</h2>
-          <p class="muted">Без комісій за сесії. Лише прозора підписка.</p>
-          <p class="pricing__definition">
-            Активний клієнт — той, з ким у вас була завершена сесія протягом останніх 30 днів.
-          </p>
+        <div class="section-head section-head--center">
+          <h2 class="section-title">Оберіть план під свою практику</h2>
+          <p class="muted">Без комісій за сесії. Ви самі встановлюєте умови співпраці з клієнтами.</p>
+          <p class="pricing__definition">Усі плани включають публічний профіль, запис через вільні вікна та базове керування сесіями.</p>
+          <div class="pricing-toggle" role="group" aria-label="Режим оплати">
+            <button
+              type="button"
+              class="pricing-toggle__btn"
+              :class="{ 'is-active': billingCycle === 'monthly' }"
+              @click="billingCycle = 'monthly'"
+            >
+              Щомісяця
+            </button>
+            <button
+              type="button"
+              class="pricing-toggle__btn"
+              :class="{ 'is-active': billingCycle === 'annual' }"
+              @click="billingCycle = 'annual'"
+            >
+              Щороку
+            </button>
+          </div>
         </div>
         <div class="plan-grid plan-grid--editorial">
           <article
@@ -113,9 +129,15 @@
                 <div v-if="plan.subtitle" class="plan-subtitle">{{ plan.subtitle }}</div>
               </div>
               <div class="plan-price">
-                <div class="plan-price__main">{{ plan.price }}</div>
-                <div v-if="plan.annual" class="plan-price__alt">
-                  {{ plan.annual }} <span class="plan-price__hint">{{ plan.annualHint }}</span>
+                <div class="plan-price__main">{{ planDisplayPrice(plan) }}</div>
+                <div v-if="billingCycle === 'annual' && plan.annual_monthly_price" class="plan-price__alt">
+                  {{ plan.annual_one_shot }} <span class="plan-price__hint">{{ plan.annual_hint }}</span>
+                </div>
+                <div v-else-if="billingCycle === 'annual'" class="plan-price__alt">
+                  {{ plan.annual_fallback_note }}
+                </div>
+                <div v-else-if="plan.annual_monthly_price" class="plan-price__alt">
+                  Або {{ plan.annual_monthly_price }} при оплаті за рік
                 </div>
               </div>
             </div>
@@ -160,8 +182,8 @@
           </div>
         </div>
         <div class="split-block__media">
-          <div class="media-placeholder media-placeholder--tall">
-            <span>Фото команди / інтерфейсу</span>
+          <div class="media-frame media-frame--tall">
+            <img :src="valuesImage" alt="Командна робота" />
           </div>
         </div>
       </section>
@@ -181,8 +203,8 @@
             <div class="muted">Це клієнт із завершеною сесією за останні 30 днів.</div>
           </div>
           <div class="card faq-card">
-            <div class="faq-card__title">Чи можна почати безкоштовно?</div>
-            <div class="muted">Так. План START дозволяє стартувати практику вже сьогодні.</div>
+            <div class="faq-card__title">Чи є річна оплата для Start?</div>
+            <div class="muted">Ні. Start доступний лише у щомісячному форматі.</div>
           </div>
         </div>
       </section>
@@ -206,12 +228,14 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 
+const heroImage = new URL('../assets/therapy/84f4d9fb-6e66-4b3b-bce9-caa039d081a0.jpg', import.meta.url).href
+const workflowImage = new URL('../assets/therapy/47b34bc8-1ce4-4ee3-92ff-41c3a0c14f6b.jpg', import.meta.url).href
+const valuesImage = new URL('../assets/therapy/f066edb1-65e7-419d-8a0d-0940a3526583.jpg', import.meta.url).href
+
 const router = useRouter()
 const auth = useAuthStore()
 const isAuthenticated = computed(() => Boolean(auth.accessToken))
   const roles = computed(() => auth.me?.user.roles ?? auth.user?.roles ?? [])
-  const isClient = computed(() => roles.value.includes('CLIENT'))
-  const catalogRoute = computed(() => (isClient.value ? '/specialists' : '/signup-client'))
 
 const resolveCabinetRoute = () => {
   if (roles.value.includes('SPECIALIST') || roles.value.includes('THERAPIST')) return '/cabinet'
@@ -235,122 +259,103 @@ const goToCabinet = async () => {
   await router.push(resolveCabinetRoute())
 }
 
-function onLogout() {
-  auth.logout()
-  router.push('/')
-}
-
-const roleCards = [
-  {
-    title: 'Приватна практика',
-    description: 'Налаштуйте власний розклад, ведіть клієнтів і керуйте сесіями у зручному темпі.',
-  },
-  {
-    title: 'Коуч / Наставник',
-    description: 'Заплановані зустрічі, нотатки та історія роботи — все під рукою.',
-  },
-  {
-    title: 'Викладання уроків',
-    description: 'Плануйте консультації, ведіть записи та залишайте відкритими лише потрібні слоти.',
-  },
-  {
-    title: 'Інші консультації',
-    description: 'Структуруйте запити, плануйте навантаження та відстежуйте прогрес клієнтів.',
-  },
-]
-
-const activeRoleIndex = ref(0)
 
 const benefits = [
-  'Керована система сесій',
+  'Керування сесіями й слотами',
   'Клієнтська база (CRM)',
-  'Запити на бронювання та перенессення',
-  'Ваш особистий сетінг',
-  'Аналітика вашої практики',
-  'Авторський журнал',
-  'Групові кімнати',
+  'Бронювання та перенесення',
+  'Групові події й кімнати',
   'Приватні нотатки',
+  'Аналітика практики',
+  'Авторський журнал',
   'Чат і повідомлення',
 ]
 
-const trustPoints = [
-  {
-    title: 'Дані належать спеціалісту',
-    text: 'Сервіс не втручається у стосунки з клієнтами та не впливає на рішення.',
-  },
-  {
-    title: 'Ніяких комісій',
-    text: 'Лише підписка. Оплата й умови співпраці — між вами та клієнтом.',
-  },
-  {
-    title: 'Контроль доступу',
-    text: 'Ролі, доступи, приватні нотатки й обмеження керуються вами.',
-  },
-]
-
-const audienceCards = roleCards
 
 type PlanCode = 'START' | 'PRO' | 'LEADER'
+type BillingCycle = 'monthly' | 'annual'
+type PricingPlan = {
+  code: PlanCode
+  title: string
+  subtitle: string
+  monthly_price: string
+  annual_monthly_price: string | null
+  annual_one_shot: string | null
+  annual_hint: string | null
+  annual_fallback_note: string | null
+  badge: string
+  features: string[]
+  note: string
+}
 
-const pricingPlans = [
+const billingCycle = ref<BillingCycle>('monthly')
+
+const pricingPlans: PricingPlan[] = [
   {
     code: 'START',
     title: 'Start',
-    subtitle: '',
-    price: '€9 / місяць',
-    annual: '',
-    annualHint: '',
+    subtitle: 'Для старту практики',
+    monthly_price: '€10 / міс',
+    annual_monthly_price: null,
+    annual_one_shot: null,
+    annual_hint: null,
+    annual_fallback_note: 'Лише щомісячна оплата',
     badge: 'Старт',
     features: [
       'До 5 активних клієнтів',
-      'Макс. тривалість 60 хв',
-      'Google Meet для сесій',
-      'Перенесення сесій',
-      'Чат із клієнтами',
-      'Зашифровані нотатки та журнал клієнта',
-      'Базова аналітика',
-      'Каталог спеціалістів',
+      'Публічний профіль specialist-а',
+      'Запис через вільні вікна',
+      'Базові сесії, доступність і Time Off',
+      'Базові нагадування та сповіщення',
+      'Зовнішнє посилання на відеозустріч',
+      'Без комісій за сесії',
     ],
-    note: 'Найкраще для старту практики.',
+    note: 'Підійде, якщо ви тільки починаєте і хочете приймати перших клієнтів онлайн.',
   },
   {
     code: 'PRO',
     title: 'Pro',
-    subtitle: '',
-    price: '€29 / місяць',
-    annual: 'або €290 / рік',
-    annualHint: '2 місяці безкоштовно',
+    subtitle: 'Найкращий вибір для стабільної практики',
+    monthly_price: '€24 / міс',
+    annual_monthly_price: '€20 / міс',
+    annual_one_shot: 'Оплата за рік — €240 одним платежем',
+    annual_hint: '2 місяці безкоштовно',
+    annual_fallback_note: null,
     badge: 'Рекомендовано',
     features: [
-      'До 15 активних клієнтів',
-      'Макс. тривалість 90 хв',
-      'Вбудоване відео (SDK)',
-      'Парна терапія (2 клієнти)',
-      'Інтервізії / супервізії',
-      'Авторський журнал у публічному профілі',
-      'Розширена аналітика з графіками',
+      'До 20 активних клієнтів',
+      'Recurring sessions',
+      'Smart reschedule suggestions',
+      'Повний модуль нагадувань і сповіщень',
+      'Авторський журнал / Серії',
+      'Групові події та group room',
+      'Базова аналітика',
+      'Відео у публічному профілі',
     ],
-    note: 'Для стабільної практики та зростання.',
+    note: 'Усе, що потрібно для регулярної роботи з клієнтами, сесіями, перенесеннями та матеріалами.',
   },
   {
     code: 'LEADER',
     title: 'Leader',
-    subtitle: '',
-    price: '€49 / місяць',
-    annual: 'або €490 / рік',
-    annualHint: '2 місяці безкоштовно',
+    subtitle: 'Для зростання, масштабу і максимуму можливостей',
+    monthly_price: '€59 / міс',
+    annual_monthly_price: '€49 / міс',
+    annual_one_shot: 'Оплата за рік — €590 одним платежем',
+    annual_hint: '2 місяці безкоштовно',
+    annual_fallback_note: null,
     badge: 'Масштабування',
     features: [
-      'До 40 активних клієнтів',
-      'Макс. тривалість 120 хв',
-      'Вбудоване відео (SDK)',
-      'Broadcast-сесії',
-      'Публічні події',
-      'Пріоритетна підтримка',
+      'До 60 активних клієнтів',
+      'Усе з Pro',
+      'Розширена аналітика',
+      'Leader-інсайти та рекомендації',
+      'Анонси подій у стрічці — скоро',
+      'Пріоритетна підтримка — скоро',
+      'Ранній доступ до нових можливостей',
     ],
-    note: 'Для масштабування та публічних форматів.',
+    note: 'Для specialist-ів, яким потрібні масштаб, інсайти та преміальні можливості.',
   },
-] as const
+]
 
 const currentPlan = computed<PlanCode | null>(() => {
   const raw = auth.me?.effective_entitlements?.plan
@@ -360,13 +365,23 @@ const currentPlan = computed<PlanCode | null>(() => {
 
 const isCurrentPlan = (code: PlanCode) => currentPlan.value === code
 
+const planDisplayPrice = (plan: PricingPlan) => {
+  if (billingCycle.value === 'annual' && plan.annual_monthly_price) {
+    return plan.annual_monthly_price
+  }
+  return plan.monthly_price
+}
+
 const planActionLabel = (code: PlanCode) => {
   if (!isAuthenticated.value) {
     if (code === 'START') return 'Почати'
-    return 'Розширити практику'
+    if (code === 'PRO') return 'Обрати Pro'
+    return 'Перейти на Leader'
   }
   if (isCurrentPlan(code)) return 'Поточний'
-  return 'Розширити практику'
+  if (code === 'PRO') return 'Обрати Pro'
+  if (code === 'LEADER') return 'Перейти на Leader'
+  return 'Почати'
 }
 
 let revealObserver: IntersectionObserver | null = null
@@ -478,30 +493,51 @@ onBeforeUnmount(() => {
 }
 
 .hero-agency__actions .btn {
-  min-height: 48px;
-  padding: 12px 22px;
-  font-size: 15px;
+  min-height: 41px;
+  padding: 0 18px;
+  font-size: 14px;
+  border-radius: 10px;
 }
+
+.hero-agency__actions .btn--primary {
+  border-radius: 10px;
+  box-shadow: none;
+  background: #114036;
+  border-color: color-mix(in srgb, #114036 65%, transparent);
+}
+
+.hero-agency__actions .btn--primary:hover,
+.hero-agency__actions .btn--primary:focus-visible {
+  background: color-mix(in srgb, #114036 88%, #000000);
+  box-shadow: none;
+}
+
 
 .home-agency :global(.muted) {
   font-size: 14px;
 }
 
-.media-placeholder {
-  border-radius: 24px;
-  border: 1px dashed color-mix(in srgb, var(--accent) 18%, var(--border));
+.media-frame {
+  border-radius: var(--radius-lg);
+  border: 1px solid color-mix(in srgb, var(--accent) 12%, var(--border));
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.7), rgba(118, 130, 142, 0.12));
-  min-height: 320px;
-  display: grid;
-  place-items: center;
-  color: var(--muted);
-  font-size: 13px;
-  text-align: center;
-  padding: 16px;
+  aspect-ratio: 16 / 9;
+  max-width: 560px;
+  width: 100%;
+  overflow: hidden;
+  box-shadow: var(--shadow);
 }
 
-.media-placeholder--tall {
-  min-height: 420px;
+.media-frame img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.media-frame--tall {
+  aspect-ratio: 16 / 9;
+  max-width: 520px;
 }
 
 .brand-strip {
@@ -566,14 +602,20 @@ onBeforeUnmount(() => {
 
 .split-block {
   display: grid;
-  grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 64px;
-  align-items: center;
+  align-items: stretch;
 }
 
 .split-block__content {
   display: grid;
   gap: 16px;
+}
+
+.split-block__media {
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-end;
 }
 
 .how-list {
@@ -609,6 +651,37 @@ onBeforeUnmount(() => {
   margin: 0;
   font-size: 13px;
   color: var(--muted);
+}
+
+.section-head--center {
+  text-align: center;
+}
+
+.pricing-toggle {
+  margin: 10px auto 0;
+  display: inline-flex;
+  gap: 6px;
+  padding: 4px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: #fff;
+  width: fit-content;
+}
+
+.pricing-toggle__btn {
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 13px;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.pricing-toggle__btn.is-active {
+  border-color: color-mix(in srgb, var(--primary) 35%, var(--border));
+  background: color-mix(in srgb, var(--primary) 10%, transparent);
+  font-weight: 600;
 }
 
 .plan-grid {
@@ -740,4 +813,3 @@ onBeforeUnmount(() => {
   }
 }
 </style>
-

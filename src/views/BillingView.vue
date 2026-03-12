@@ -5,11 +5,13 @@
         <div class="badge">Плани</div>
         <h1 class="title billing__title">Доступ та тарифи</h1>
         <p class="muted billing__subtitle">
-          Показуємо поточний доступ і можливості. Оплата зараз у ручному режимі.
+          Оберіть план, перейдіть до оплати, і після підтвердження провайдера доступ
+          активується автоматично.
         </p>
       </div>
       <RouterLink class="btn btn--ghost" to="/cabinet">Назад до кабінету</RouterLink>
     </header>
+    <SettingsSubnav active="billing" />
 
     <section class="panel panel--access">
       <div class="panel__header">
@@ -35,11 +37,23 @@
           class="btn"
           type="button"
           :disabled="!nextPlan || isRequesting"
-          @click="requestUpgrade"
+          @click="startSelfServeUpgrade"
         >
           {{ upgradeButtonLabel }}
         </button>
-        <div v-if="requestStatus" class="muted">{{ requestStatus }}</div>
+        <button
+          v-if="nextPlan"
+          class="btn btn--ghost"
+          type="button"
+          :disabled="isRequesting"
+          @click="requestAccess(nextPlan)"
+        >
+          Запросити індивідуальні умови
+        </button>
+        <button class="btn btn--ghost" type="button" :disabled="isRefreshing" @click="refreshBillingState">
+          {{ isRefreshing ? 'Оновлюємо…' : 'Оновити стан плану' }}
+        </button>
+        <div v-if="primaryStatus" class="muted">{{ primaryStatus }}</div>
       </div>
     </section>
 
@@ -48,21 +62,25 @@
         v-for="plan in plans"
         :key="plan.code"
         class="plan-card"
-        :class="{ 'plan-card--current': isCurrentPlan(plan.code) }"
+        :class="{
+          'plan-card--current': isCurrentPlan(plan.code),
+          'plan-card--pro': plan.code === 'PRO',
+        }"
       >
         <div class="plan-head">
-          <div>
+          <div class="plan-meta">
             <div class="plan-title">{{ plan.title }}</div>
             <div class="plan-subtitle">{{ plan.subtitle }}</div>
           </div>
           <div class="plan-price">
             <div class="plan-price__main">{{ plan.price }}</div>
-            <div v-if="plan.annual" class="plan-price__alt">
-              {{ plan.annual }} <span class="plan-price__hint">{{ plan.annualHint }}</span>
-            </div>
+          </div>
+          <div class="plan-price__alt">
+            <span class="plan-price__hint">{{ planAnnualHint(plan.code) }}</span>
           </div>
         </div>
         <div class="plan-badges">
+          <span v-if="plan.code === 'PRO'" class="badge badge--pro">Рекомендовано</span>
           <span v-if="isCurrentPlan(plan.code)" class="badge badge--soft">Поточний план</span>
           <span v-else-if="isUpgradePlan(plan.code)" class="badge badge--outline">Оновлення</span>
         </div>
@@ -73,12 +91,21 @@
           <div class="muted">{{ plan.note }}</div>
           <div class="plan-action">
             <button
-              class="btn btn--ghost"
+              class="btn"
               type="button"
-              :disabled="!canRequestPlan(plan.code) || isRequesting"
-              @click="requestAccess(plan.code)"
+              :disabled="!canSelfServePlan(plan.code) || isRequesting"
+              @click="startSelfServeCheckout(plan.code)"
             >
               {{ planActionLabel(plan.code) }}
+            </button>
+            <button
+              v-if="canSelfServePlan(plan.code)"
+              class="btn btn--ghost"
+              type="button"
+              :disabled="isRequesting"
+              @click="requestAccess(plan.code)"
+            >
+              Індивідуальні умови
             </button>
             <div v-if="requestMessageFor(plan.code)" class="muted">
               {{ requestMessageFor(plan.code) }}
@@ -91,10 +118,18 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useAuthStore } from '../stores/auth'
-import { apiPost } from '../lib/api'
+import {
+  createBillingCheckoutSession,
+  createBillingAccessRequest,
+  fetchBillingAccessRequestState,
+  getApiErrorMessage,
+  type BillingAccessRequest,
+  type BillingAccessRequestState,
+} from '../lib/api'
+import SettingsSubnav from '../components/SettingsSubnav.vue'
 
 type PlanCode = 'START' | 'PRO' | 'LEADER'
 
@@ -104,100 +139,70 @@ const plans = [
   {
     code: 'START',
     title: 'Start',
-    subtitle: 'Перші клієнти',
-    price: '€0/міс',
+    subtitle: 'Для старту практики',
+    price: '€10 / місяць',
     features: [
-      '3 активні клієнти',
-      '1:1 сесії',
-      'Слоти та бронювання',
-      'Базовий кабінет',
+      'До 5 активних клієнтів',
+      'Публічний профіль та запис через вільні вікна',
+      'Базові сесії, доступність і Time Off',
+      'Базові нагадування та сповіщення',
+      'Зовнішнє посилання на відеозустріч',
+      'Без комісій за сесії',
     ],
-    note: 'Для старту та тестування.',
+    note: 'Лише щомісячна оплата.',
   },
   {
     code: 'PRO',
     title: 'Pro',
-    subtitle: 'Стабільний ритм',
-    price: '€29/місяць',
-    annual: 'або €290 / рік',
-    annualHint: '2 місяці безкоштовно',
+    subtitle: 'Найкращий вибір для стабільної практики',
+    price: '€24 / місяць',
     features: [
       '20 активних клієнтів',
-      '1:1 + парна терапія',
-      'Групові кімнати',
-      'Перенесення та нагадування',
-      'Авторський журнал (Незабаром)',
-      'Розширена аналітика (Незабаром)',
+      'Recurring sessions',
+      'Smart reschedule suggestions',
+      'Повний модуль нагадувань і сповіщень',
+      'Авторський журнал / Серії',
+      'Групові події та group room',
+      'Базова аналітика',
+      'Відео у публічному профілі',
     ],
-    note: 'Основний тариф для росту практики.',
+    note: 'Основний повний стек для регулярної роботи.',
   },
   {
     code: 'LEADER',
     title: 'Leader',
-    subtitle: 'Масштабування',
-    price: '€49/місяць',
-    annual: 'або €490 / рік',
-    annualHint: '2 місяці безкоштовно',
+    subtitle: 'Для зростання, масштабу і максимуму можливостей',
+    price: '€59 / місяць',
     features: [
-      'Безліміт активних клієнтів',
+      'До 60 активних клієнтів',
       'Усе з PRO',
-      'Broadcast + публічні події',
-      'Пріоритетна підтримка',
+      'Розширена аналітика',
+      'Leader-інсайти та рекомендації',
+      'Анонси подій у стрічці — скоро',
+      'Пріоритетна підтримка — скоро',
+      'Ранній доступ до нових можливостей',
     ],
-    note: 'Для команд і публічних форматів.',
+    note: 'Преміальний план для масштабу, видимості та інсайтів.',
   },
 ] as const
 
 const planByCode = new Map(plans.map((plan) => [plan.code, plan]))
+const annualCopyByPlan: Record<PlanCode, string> = {
+  START: 'Лише щомісячна оплата',
+  PRO: 'Або €20 / міс, оплата за рік — €240 одним платежем',
+  LEADER: 'Або €49 / міс, оплата за рік — €590 одним платежем',
+}
 
 const auth = useAuthStore()
 const { me } = storeToRefs(auth)
 
 const requestingPlan = ref<PlanCode | null>(null)
-const requestedPlan = ref<PlanCode | null>(null)
-const requestStatus = ref('')
-
-const STORAGE_STATUS_KEY = 'billing_request_status'
-const STORAGE_PLAN_KEY = 'billing_request_plan'
-const STORAGE_TS_KEY = 'billing_request_timestamp'
-const REQUEST_TTL_MS = 7 * 24 * 60 * 60 * 1000
-
-function loadRequestState() {
-  const storedStatus = localStorage.getItem(STORAGE_STATUS_KEY) || ''
-  const storedPlan = localStorage.getItem(STORAGE_PLAN_KEY) || ''
-  const storedTsRaw = localStorage.getItem(STORAGE_TS_KEY)
-  const storedTs = storedTsRaw ? Number(storedTsRaw) : 0
-  const isExpired = storedTs && Date.now() - storedTs > REQUEST_TTL_MS
-  if (isExpired) {
-    localStorage.removeItem(STORAGE_STATUS_KEY)
-    localStorage.removeItem(STORAGE_PLAN_KEY)
-    localStorage.removeItem(STORAGE_TS_KEY)
-    return
-  }
-  if (storedStatus) {
-    requestStatus.value = storedStatus
-  }
-  if (planOrder.includes(storedPlan as PlanCode)) {
-    requestedPlan.value = storedPlan as PlanCode
-  }
-}
-
-function persistRequestState() {
-  if (requestStatus.value) {
-    localStorage.setItem(STORAGE_STATUS_KEY, requestStatus.value)
-    localStorage.setItem(STORAGE_TS_KEY, String(Date.now()))
-  } else {
-    localStorage.removeItem(STORAGE_STATUS_KEY)
-    localStorage.removeItem(STORAGE_TS_KEY)
-  }
-  if (requestedPlan.value) {
-    localStorage.setItem(STORAGE_PLAN_KEY, requestedPlan.value)
-  } else {
-    localStorage.removeItem(STORAGE_PLAN_KEY)
-  }
-}
-
-loadRequestState()
+const isRefreshing = ref(false)
+const requestState = ref<BillingAccessRequestState | null>(null)
+const requestFeedback = ref('')
+const requestFeedbackPlan = ref<PlanCode | null>(null)
+const checkoutFeedback = ref('')
+const checkoutFeedbackPlan = ref<PlanCode | null>(null)
 
 const currentPlan = computed<PlanCode | null>(() => {
   const raw = me.value?.effective_entitlements?.plan
@@ -220,12 +225,21 @@ const nextPlan = computed<PlanCode | null>(() => {
   return planOrder[currentIndex.value + 1] || null
 })
 
+const hasPendingRequest = computed(() => requestState.value?.has_pending_request ?? false)
+const activeRequest = computed(() => requestState.value?.active_request)
+const latestRequest = computed(() => requestState.value?.latest_request)
+
 const upgradeButtonLabel = computed(() => {
   if (!nextPlan.value) return 'У вас максимальний план'
-  return `Розширити практику до ${planTitle(nextPlan.value)}`
+  return `Перейти на ${planTitle(nextPlan.value)}`
 })
 
 const isRequesting = computed(() => Boolean(requestingPlan.value))
+const requestStatus = computed(() => {
+  if (requestFeedback.value) return requestFeedback.value
+  return requestMessage(activeRequest.value || latestRequest.value || null)
+})
+const primaryStatus = computed(() => checkoutFeedback.value || requestStatus.value)
 
 const accessLabel = computed(() => {
   const state = me.value?.access_state
@@ -268,6 +282,10 @@ function planTitle(code: PlanCode) {
   return planByCode.get(code)?.title || code
 }
 
+function planAnnualHint(code: string) {
+  return annualCopyByPlan[code as PlanCode] || ''
+}
+
 function isCurrentPlan(code: string) {
   return currentPlan.value === code
 }
@@ -282,50 +300,153 @@ function isDowngradePlan(code: string) {
   return planOrder.indexOf(code as PlanCode) < currentIndex.value
 }
 
-function canRequestPlan(code: string) {
+function canSelfServePlan(code: string) {
   return isUpgradePlan(code)
 }
 
 function planActionLabel(code: string) {
   if (isCurrentPlan(code)) return 'Поточний план'
-  if (isUpgradePlan(code)) return 'Розширити практику'
+  if (isUpgradePlan(code)) return `Перейти на ${planTitle(code as PlanCode)}`
   if (isDowngradePlan(code)) return 'Нижчий план'
   return 'Недоступно'
 }
 
 function requestMessageFor(code: string) {
-  if (!requestStatus.value) return ''
-  return requestedPlan.value === code ? requestStatus.value : ''
+  if (checkoutFeedbackPlan.value === code && checkoutFeedback.value) {
+    return checkoutFeedback.value
+  }
+  if (requestFeedbackPlan.value === code && requestFeedback.value) {
+    return requestFeedback.value
+  }
+  const base = activeRequest.value || latestRequest.value
+  if (!base || base.requested_plan !== code) return ''
+  return requestMessage(base)
 }
 
-async function requestUpgrade() {
+function requestMessage(request: BillingAccessRequest | null) {
+  if (!request) return ''
+  const plan = planTitle(request.requested_plan as PlanCode)
+  if (request.status === 'PENDING') {
+    return `Заявку на перехід на план ${plan} надіслано.`
+  }
+  if (request.status === 'APPROVED') {
+    return `Заявку на перехід на план ${plan} схвалено.`
+  }
+  if (request.status === 'REJECTED') {
+    return `Заявку на перехід на план ${plan} відхилено.`
+  }
+  return ''
+}
+
+async function refreshBillingState() {
+  if (isRefreshing.value) return
+  isRefreshing.value = true
+  try {
+    await auth.loadMe()
+    await loadRequestState()
+  } finally {
+    isRefreshing.value = false
+  }
+}
+
+async function loadRequestState() {
+  try {
+    requestState.value = await fetchBillingAccessRequestState()
+  } catch {
+    // Keep UI usable even if request state fails to load.
+    requestState.value = null
+  }
+}
+
+async function startSelfServeUpgrade() {
   if (!nextPlan.value) return
-  await requestAccess(nextPlan.value)
+  await startSelfServeCheckout(nextPlan.value)
+}
+
+async function startSelfServeCheckout(planCode: string) {
+  if (!planOrder.includes(planCode as PlanCode)) return
+  if (!canSelfServePlan(planCode)) return
+  if (requestingPlan.value) return
+  const target = planCode as PlanCode
+  requestingPlan.value = target
+  checkoutFeedbackPlan.value = target
+  checkoutFeedback.value = ''
+  try {
+    const response = await createBillingCheckoutSession({
+      plan: target === 'LEADER' ? 'LEADER' : 'PRO',
+      billing_cycle: 'monthly',
+    })
+    checkoutFeedback.value = response.message
+    if (response.checkout_url) {
+      window.open(response.checkout_url, '_blank', 'noopener,noreferrer')
+      checkoutFeedback.value =
+        'Переходимо до оплати. Після підтвердження оплати план активується автоматично.'
+    }
+    await refreshBillingState()
+  } catch (err: any) {
+    checkoutFeedback.value = getApiErrorMessage(
+      err,
+      'Не вдалося створити checkout-сесію. Спробуйте ще раз.'
+    )
+  } finally {
+    requestingPlan.value = null
+  }
 }
 
 async function requestAccess(planCode: string) {
   if (!planOrder.includes(planCode as PlanCode)) return
   if (requestingPlan.value) return
+  if (hasPendingRequest.value) {
+    const pendingPlan = activeRequest.value?.requested_plan
+    requestFeedbackPlan.value = planOrder.includes(pendingPlan as PlanCode)
+      ? (pendingPlan as PlanCode)
+      : null
+    requestFeedback.value = 'Ви вже маєте активну заявку на цей план.'
+    return
+  }
   const target = planCode as PlanCode
   requestingPlan.value = target
-  requestedPlan.value = target
-  requestStatus.value = ''
-  persistRequestState()
+  requestFeedbackPlan.value = target
+  requestFeedback.value = ''
+  checkoutFeedback.value = ''
+  checkoutFeedbackPlan.value = null
   try {
     const note = currentPlan.value ? `upgrade_from:${currentPlan.value}` : undefined
-    await apiPost('/cabinet/billing/request-access/', {
+    const result = await createBillingAccessRequest({
       requested_plan: target,
       note,
     })
-    requestStatus.value = `Запит на розширення до ${planTitle(target)} надіслано.`
+    requestState.value = {
+      has_pending_request: result.has_pending_request,
+      active_request: result.request,
+      latest_request: result.request,
+    }
+    requestFeedback.value = ''
   } catch (err: any) {
-    requestStatus.value =
-      err?.response?.data?.detail || 'Не вдалося надіслати запит.'
+    const existingRequest = err?.response?.data?.active_request as
+      | BillingAccessRequest
+      | undefined
+    if (err?.response?.status === 409 && existingRequest) {
+      requestState.value = {
+        has_pending_request: true,
+        active_request: existingRequest,
+        latest_request: existingRequest,
+      }
+      requestFeedback.value = 'Ви вже маєте активну заявку на цей план.'
+    } else {
+      requestFeedback.value = getApiErrorMessage(
+        err,
+        'Не вдалося надіслати заявку. Спробуйте ще раз.'
+      )
+    }
   } finally {
     requestingPlan.value = null
-    persistRequestState()
   }
 }
+
+onMounted(() => {
+  refreshBillingState()
+})
 </script>
 
 <style scoped>
@@ -439,11 +560,40 @@ async function requestAccess(planCode: string) {
 .plan-card {
   border: 1px solid var(--line);
   border-radius: 16px;
-  padding: 16px;
+  padding: 18px;
   background: #fff;
   display: grid;
   gap: 10px;
   position: relative;
+  min-height: 500px;
+  overflow: hidden;
+  transform-origin: center top;
+  transition:
+    transform 220ms ease,
+    box-shadow 260ms ease,
+    border-color 220ms ease,
+    background 260ms ease;
+}
+
+.plan-card::before {
+  content: '';
+  position: absolute;
+  inset: -120% 35% auto -35%;
+  height: 210%;
+  background: linear-gradient(
+    115deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.45) 45%,
+    rgba(255, 255, 255, 0) 70%
+  );
+  transform: translateX(-35%) rotate(5deg);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.plan-card > * {
+  position: relative;
+  z-index: 1;
 }
 
 .plan-card--current {
@@ -451,25 +601,47 @@ async function requestAccess(planCode: string) {
   box-shadow: 0 10px 24px rgba(31, 74, 96, 0.12);
 }
 
+.plan-card--pro {
+  border-color: color-mix(in srgb, var(--primary) 72%, #8db69f);
+  background:
+    radial-gradient(circle at 85% -10%, rgba(255, 225, 133, 0.42), rgba(255, 225, 133, 0) 45%),
+    linear-gradient(180deg, rgba(31, 140, 93, 0.12), rgba(255, 255, 255, 0.96));
+  box-shadow:
+    0 20px 40px rgba(31, 74, 96, 0.22),
+    0 0 0 1px rgba(31, 138, 93, 0.22);
+  transform: translateY(-10px) scale(1.02);
+  z-index: 1;
+}
+
 .plan-head {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas:
+    'meta price'
+    'annual annual';
   gap: 10px;
+}
+
+.plan-meta {
+  grid-area: meta;
 }
 
 .plan-title {
   font-weight: 700;
   font-family: var(--font-display);
+  font-size: 22px;
 }
 
 .plan-subtitle {
+  min-height: 66px;
   margin-top: 4px;
   color: var(--muted);
   font-size: 13px;
+  line-height: 1.35;
 }
 
 .plan-price {
+  grid-area: price;
   font-weight: 600;
   color: var(--deep);
   white-space: nowrap;
@@ -479,17 +651,29 @@ async function requestAccess(planCode: string) {
 }
 
 .plan-price__main {
-  font-size: 18px;
+  font-size: 34px;
 }
 
 .plan-price__alt {
-  font-size: 12px;
+  grid-area: annual;
+  min-height: 22px;
+  font-size: 13px;
   color: var(--muted);
+  border-top: 1px dashed rgba(31, 74, 96, 0.18);
+  padding-top: 8px;
+  margin-top: 2px;
 }
 
 .plan-price__hint {
-  color: var(--primary);
+  color: color-mix(in srgb, var(--primary) 92%, #31543f);
   font-weight: 600;
+}
+
+.badge--pro {
+  background: linear-gradient(90deg, #12563b, #1f8a5d 62%, #36a77b);
+  color: #fff;
+  border-color: transparent;
+  box-shadow: 0 8px 18px rgba(31, 138, 93, 0.3);
 }
 
 .plan-badges {
@@ -508,7 +692,7 @@ async function requestAccess(planCode: string) {
 }
 
 .plan-foot {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--muted);
   display: grid;
   gap: 10px;
@@ -521,10 +705,72 @@ async function requestAccess(planCode: string) {
   flex-wrap: wrap;
 }
 
+.plan-card .badge {
+  transition: transform 180ms ease, box-shadow 220ms ease;
+}
+
+.plan-card .btn {
+  transition:
+    transform 180ms ease,
+    box-shadow 220ms ease,
+    background-color 180ms ease;
+}
+
+@media (hover: hover) {
+  .plan-card:hover {
+    transform: translateY(-10px);
+    border-color: color-mix(in srgb, var(--primary) 42%, var(--line));
+    box-shadow: 0 20px 36px rgba(31, 74, 96, 0.2);
+  }
+
+  .plan-card:hover::before {
+    opacity: 1;
+    animation: plan-shimmer 900ms ease;
+  }
+
+  .plan-card--pro:hover {
+    transform: translateY(-14px) scale(1.025);
+    box-shadow:
+      0 28px 52px rgba(31, 74, 96, 0.28),
+      0 0 0 1px rgba(31, 138, 93, 0.34),
+      0 0 28px rgba(49, 173, 119, 0.25);
+  }
+
+  .plan-card:hover .badge {
+    transform: translateY(-1px);
+  }
+
+  .plan-card:hover .plan-title {
+    color: color-mix(in srgb, var(--deep) 78%, #0f5c3f);
+  }
+
+  .plan-card:hover .btn {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 20px rgba(31, 74, 96, 0.14);
+  }
+}
+
+@keyframes plan-shimmer {
+  0% {
+    transform: translateX(-35%) rotate(5deg);
+  }
+  100% {
+    transform: translateX(45%) rotate(5deg);
+  }
+}
+
 @media (max-width: 860px) {
   .billing__hero {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .plan-card--pro {
+    transform: none;
+  }
+
+  .plan-card {
+    min-height: auto;
   }
 }
 </style>

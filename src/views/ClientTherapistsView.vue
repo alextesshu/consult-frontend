@@ -1,19 +1,35 @@
-<template>
+﻿<template>
   <section class="therapists">
     <header class="therapists__hero card">
       <div>
-        <div class="eyebrow">Вибір спеціаліста</div>
-        <h1 class="title">Оберіть спеціаліста</h1>
-        <p class="muted">Відкрийте профіль, щоб переглянути доступні слоти.</p>
+        <div class="eyebrow">Ваші спеціалісти</div>
+        <h1 class="title">Спеціалісти, з якими ви працюєте</h1>
+        <p class="muted">Переглядайте контакти, щоб планувати наступні сесії.</p>
       </div>
       <RouterLink class="btn btn--ghost" to="/client">Назад до кабінету</RouterLink>
     </header>
 
     <div class="card">
-      <div class="card__title">Спеціалісти</div>
-      <div v-if="loading" class="muted">Завантаження списку…</div>
-      <div v-else-if="error" class="form-error">{{ error }}</div>
-      <div v-else-if="therapists.length === 0" class="muted">Поки немає публічних профілів.</div>
+      <div class="card__title">Список спеціалістів</div>
+      <LoadingSkeleton v-if="loading" variant="card" :count="4" height="140px" />
+      <EmptyState
+        v-else-if="error"
+        title="Не вдалося завантажити список спеціалістів"
+        :description="error"
+        action-text="Відкрити каталог"
+        action-to="/specialists"
+      >
+        <template #actions>
+          <button class="btn btn--ghost" type="button" @click="loadTherapists">Спробувати ще раз</button>
+        </template>
+      </EmptyState>
+      <EmptyState
+        v-else-if="therapists.length === 0"
+        title="Ще немає активних спеціалістів"
+        description="Коли у вас з'являться активні спеціалісти, вони відобразяться тут."
+        action-text="Відкрити каталог"
+        action-to="/specialists"
+      />
       <div v-else class="therapist-grid">
         <RouterLink
           v-for="therapist in therapists"
@@ -47,9 +63,11 @@
 
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import { fetchPublicTherapists, type PublicTherapistProfile } from '../lib/api'
+import { fetchPublicSpecialists, type PublicSpecialistProfile } from '../lib/api'
+import EmptyState from '../components/EmptyState.vue'
+import LoadingSkeleton from '../components/LoadingSkeleton.vue'
 
-const therapists = ref<PublicTherapistProfile[]>([])
+const therapists = ref<PublicSpecialistProfile[]>([])
 const loading = ref(false)
 const error = ref('')
 
@@ -59,21 +77,21 @@ const languageLabel = (value?: string | string[]) => {
   return value
 }
 
-const priceLabel = (therapist: PublicTherapistProfile) => {
+const priceLabel = (therapist: PublicSpecialistProfile) => {
   if (!therapist.price) return ''
   if (therapist.price_currency === 'USD') return `$${therapist.price}`
-  if (therapist.price_currency === 'EUR') return `\u20ac${therapist.price}`
-  return `${therapist.price} \u0433\u0440\u043d`
+  if (therapist.price_currency === 'EUR') return `€${therapist.price}`
+  return `${therapist.price} грн`
 }
 
-const introPriceLabel = (therapist: PublicTherapistProfile) => {
+const introPriceLabel = (therapist: PublicSpecialistProfile) => {
   if (!therapist.intro_price) return ''
   if (therapist.intro_price_currency === 'USD') return `$${therapist.intro_price}`
-  if (therapist.intro_price_currency === 'EUR') return `\u20ac${therapist.intro_price}`
-  return `${therapist.intro_price} \u0433\u0440\u043d`
+  if (therapist.intro_price_currency === 'EUR') return `€${therapist.intro_price}`
+  return `${therapist.intro_price} грн`
 }
 
-const publicName = (therapist: PublicTherapistProfile) => {
+const publicName = (therapist: PublicSpecialistProfile) => {
   const raw = therapist.display_name || ''
   const parts = raw.trim().split(/\s+/).filter(Boolean)
   if (!parts.length) return ''
@@ -89,11 +107,11 @@ async function loadTherapists() {
   loading.value = true
   error.value = ''
   try {
-    const resp = await fetchPublicTherapists({ page: 1, page_size: 12 })
+    const resp = await fetchPublicSpecialists({ page: 1, page_size: 12 })
     therapists.value = resp.results || []
   } catch {
     therapists.value = []
-    error.value = 'Не вдалося завантажити список спеціалістів.'
+    error.value = 'Спробуйте ще раз або відкрийте загальний каталог спеціалістів.'
   } finally {
     loading.value = false
   }
@@ -118,7 +136,7 @@ onMounted(loadTherapists)
 .eyebrow {
   text-transform: uppercase;
   letter-spacing: 0.16em;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--muted);
 }
 
@@ -126,47 +144,42 @@ onMounted(loadTherapists)
   display: grid;
   gap: 14px;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  margin-top: 12px;
 }
 
 .therapist-card {
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  padding: 14px;
   display: grid;
-  gap: 10px;
-  background: rgba(7, 47, 71, 0.04);
+  gap: 12px;
+  padding: 14px;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: #fff;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
   text-decoration: none;
   color: inherit;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
 }
 
 .therapist-card:hover {
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.1);
   transform: translateY(-2px);
-  box-shadow: 0 16px 24px rgba(16, 33, 50, 0.12);
-  border-color: rgba(31, 74, 96, 0.25);
 }
 
 .therapist-card:focus-visible {
-  outline: 2px solid rgba(31, 74, 96, 0.35);
+  outline: 2px solid rgba(15, 118, 110, 0.6);
   outline-offset: 2px;
 }
 
 .therapist-photo {
   width: 100%;
-  aspect-ratio: 1 / 1;
-  height: auto;
-  border-radius: 14px;
+  height: 140px;
   object-fit: cover;
-  border: 1px solid var(--line);
+  border-radius: 14px;
 }
 
 .therapist-photo--empty {
   display: grid;
   place-items: center;
-  background: rgba(7, 47, 71, 0.06);
+  background: rgba(15, 23, 42, 0.06);
   color: var(--muted);
-  aspect-ratio: 1 / 1;
 }
 
 .therapist-info {
@@ -178,36 +191,21 @@ onMounted(loadTherapists)
   font-weight: 600;
 }
 
-.meta-line {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.meta-line span + span::before {
-  content: " · ";
-  color: var(--muted);
-}
-
 .therapist-price {
   font-weight: 600;
 }
 
 .therapist-price--intro {
-  font-weight: 500;
-  color: #4c5d6b;
+  color: var(--muted);
 }
 
-.form-error {
-  color: #b3261e;
-  background: #fdecea;
-  border: 1px solid #f5c2c0;
-  border-radius: 10px;
-  padding: 8px 10px;
-  margin-top: 8px;
+.meta-line {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
-@media (max-width: 860px) {
+@media (max-width: 900px) {
   .therapists__hero {
     flex-direction: column;
     align-items: flex-start;

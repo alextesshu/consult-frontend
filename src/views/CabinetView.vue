@@ -17,37 +17,44 @@
     <div v-if="me" class="cabinet__grid">
       <section class="panel panel--wide panel--actions">
         <div class="panel__header">
-          <div class="badge badge--soft">Робоча панель</div>
-          <div class="panel__meta">Щоденні інструменти</div>
+          <div>
+            <div class="badge badge--soft">Робоча панель</div>
+            <div class="panel__meta">Щоденні інструменти та конфігурація практики</div>
+          </div>
         </div>
         <div class="cabinet-actions">
-          <RouterLink class="btn btn--ghost" to="/cabinet/slots">
-            Віконця
-          </RouterLink>
-          <RouterLink class="btn btn--ghost" to="/cabinet/sessions">
-            Сесії
-          </RouterLink>
-          <RouterLink class="btn btn--ghost" to="/cabinet/analytics">
-            Аналітика
-          </RouterLink>
-          <RouterLink class="btn btn--ghost" to="/cabinet/profile#journal">
-            Авторський журнал
-          </RouterLink>
-          <RouterLink class="btn btn--ghost" to="/cabinet/reviews">
-            Відгуки
-          </RouterLink>
-          <RouterLink class="btn btn--ghost" to="/cabinet/clients">
-            Клієнти
-          </RouterLink>
-          <RouterLink class="btn btn--ghost" to="/cabinet/billing">
-            Плани та доступ
-          </RouterLink>
-          <RouterLink class="btn btn--ghost" to="/cabinet/profile">
-            Керування профілем
-          </RouterLink>
-          <RouterLink class="btn btn--ghost" to="/cabinet/group-events">
-            Групові події
-          </RouterLink>
+          <section class="action-group">
+            <h3 class="action-group__title">Щоденна робота</h3>
+            <div class="action-group__items">
+              <RouterLink class="btn btn--ghost" to="/cabinet/sessions">Сесії</RouterLink>
+              <RouterLink class="btn btn--ghost" to="/cabinet/clients">Клієнти</RouterLink>
+              <RouterLink class="btn btn--ghost" to="/cabinet/inquiries">Запити до бронювання</RouterLink>
+              <RouterLink class="btn btn--ghost" to="/cabinet/reviews">Відгуки</RouterLink>
+            </div>
+          </section>
+
+          <section class="action-group">
+            <h3 class="action-group__title">Планування</h3>
+            <div class="action-group__items">
+              <RouterLink class="btn btn--ghost" to="/cabinet/schedule">Розклад</RouterLink>
+              <RouterLink class="btn btn--ghost" to="/cabinet/group-events">Групові події</RouterLink>
+            </div>
+          </section>
+
+          <section class="action-group">
+            <h3 class="action-group__title">Контент</h3>
+            <div class="action-group__items">
+              <RouterLink class="btn btn--ghost" to="/cabinet/journal">Авторський журнал</RouterLink>
+            </div>
+          </section>
+
+          <section class="action-group">
+            <h3 class="action-group__title">Бізнес</h3>
+            <div class="action-group__items">
+              <RouterLink class="btn btn--ghost" to="/cabinet/analytics">Аналітика</RouterLink>
+              <RouterLink class="btn btn--ghost" to="/cabinet/billing">Плани та доступ</RouterLink>
+            </div>
+          </section>
         </div>
       </section>
       <section class="panel panel--wide panel--plan">
@@ -89,38 +96,23 @@
         </div>
         <ul class="tips-list">
           <li>
-            <RouterLink class="tips-link" to="/cabinet/profile">Заповніть профіль і увімкніть публічність</RouterLink>
-            <span class="muted">Щоб клієнти бачили вас у каталозі.</span>
+            <RouterLink class="tips-link" to="/cabinet/schedule">Налаштуйте правила розкладу</RouterLink>
+            <span class="muted">Після цього згенеруйте вільні вікна на 30 днів.</span>
           </li>
           <li>
-            <RouterLink class="tips-link" to="/cabinet/slots">Створіть вільні віконця на тиждень</RouterLink>
-            <span class="muted">Так клієнти зможуть забронювати сесію.</span>
+            <RouterLink class="tips-link" to="/cabinet/slots">Перегляньте вільні вікна</RouterLink>
+            <span class="muted">Тут ви керуєте тим, що клієнти бачать для запису.</span>
           </li>
           <li>
             <RouterLink class="tips-link" to="/cabinet/sessions">Перевіряйте запити та сесії</RouterLink>
             <span class="muted">Підтвердження та перенесення приходять сюди.</span>
           </li>
           <li>
-            <RouterLink class="tips-link" to="/cabinet/profile">Поділіться публічним посиланням</RouterLink>
-            <span class="muted">Надішліть його клієнтам або колегам.</span>
+            <RouterLink class="tips-link" to="/cabinet/journal">Підготуйте серії в авторському журналі</RouterLink>
+            <span class="muted">Це допоможе клієнтам проходити матеріали поетапно.</span>
           </li>
         </ul>
       </section>
-
-      
-      <RouterLink
-        class="panel panel--accent panel--clickable"
-        to="/cabinet/profile"
-        aria-label="Перейти до керування профілем"
-      >
-        <div class="panel__header">
-          <div class="badge badge--soft">Акаунт</div>
-          <span class="status-dot" :class="statusDotClass"></span>
-        </div>
-        <h2 class="panel__title">{{ me.user.username }}</h2>
-        <div class="muted">{{ me.user.email || 'немає ел. пошти' }}</div>
-        <div class="muted">Ролі: {{ me.user.roles.join(', ') }}</div>
-      </RouterLink>
 
       <RouterLink
         class="panel panel--clickable"
@@ -208,14 +200,13 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
+import { formatUkDateTimeCompact } from '../lib/dateTime'
 import { useAuthStore } from '../stores/auth'
-import { useRouter } from 'vue-router'
 
 const auth = useAuthStore()
 const { me } = storeToRefs(auth)
-const router = useRouter()
 
 const accessLabel = computed(() => {
   const state = me.value?.access_state
@@ -235,24 +226,22 @@ const planLabel = computed(() => {
   return plan || 'Н/Д'
 })
 
-const PLAN_LIMITS: Record<string, number> = {
-  START: 3,
-  PRO: 20,
-  LEADER: Number.POSITIVE_INFINITY,
-}
-
 const planCodeLabel = computed(() => {
   const raw = me.value?.effective_entitlements?.plan
-  // TODO: replace with real billing plan when backend is ready
-  return (raw && PLAN_LIMITS[raw] !== undefined ? raw : 'START') as keyof typeof PLAN_LIMITS
+  if (raw === 'START' || raw === 'PRO' || raw === 'LEADER') return raw
+  return 'START'
 })
 
 const activeClientsCount = computed(() => me.value?.counts?.active_clients ?? 0)
 
-const activeClientLimit = computed(() => PLAN_LIMITS[planCodeLabel.value] ?? 3)
+const activeClientLimit = computed(() => {
+  const limit = me.value?.effective_entitlements?.active_client_limit
+  if (typeof limit === 'number') return limit
+  return 5
+})
 
 const activeClientLimitLabel = computed(() => {
-  return Number.isFinite(activeClientLimit.value) ? String(activeClientLimit.value) : '?'
+  return Number.isFinite(activeClientLimit.value) ? String(activeClientLimit.value) : '∞'
 })
 
 const progressPercent = computed(() => {
@@ -322,26 +311,13 @@ const accessPillClass = computed(() => {
   return 'access-pill--ok'
 })
 
-const statusDotClass = computed(() => {
-  const state = me.value?.access_state
-  if (state === 'GRACE') return 'status-dot--warn'
-  if (state === 'RESTRICTED') return 'status-dot--danger'
-  return 'status-dot--ok'
-})
-
 const serverTimeLabel = computed(() => {
   const raw = me.value?.server_time
   if (!raw) return '—'
   const parsed = new Date(raw)
   if (Number.isNaN(parsed.getTime())) return raw
-  return parsed.toLocaleString()
+  return formatUkDateTimeCompact(raw, raw)
 })
-
-function onLogout() {
-  auth.logout()
-  router.push('/')
-}
-
 </script>
 
 <style scoped>
@@ -357,7 +333,7 @@ function onLogout() {
   gap: 24px;
   background: linear-gradient(135deg, rgba(8, 113, 201, 0.16), rgba(7, 47, 71, 0.06));
   border: 1px solid var(--line);
-  border-radius: var(--radius);
+  border-radius: var(--radius-lg);
   padding: 22px 24px;
   box-shadow: var(--shadow);
 }
@@ -373,7 +349,7 @@ function onLogout() {
 .hero-chip {
   background: #0b2230;
   color: #f1f6f9;
-  border-radius: 16px;
+  border-radius: var(--radius-md);
   padding: 14px 18px;
   min-width: 220px;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
@@ -399,7 +375,7 @@ function onLogout() {
 
 .panel {
   border: 1px solid var(--line);
-  border-radius: 18px;
+  border-radius: var(--radius-lg);
   padding: 18px;
   background: #fff;
   display: grid;
@@ -476,7 +452,7 @@ function onLogout() {
 .progress {
   width: 100%;
   height: 8px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: color-mix(in srgb, var(--primary) 15%, #ffffff);
   overflow: hidden;
 }
@@ -500,7 +476,7 @@ function onLogout() {
 .btn--sm {
   padding: 6px 10px;
   font-size: 12px;
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
 }
 
 .tips-list {
@@ -550,7 +526,7 @@ function onLogout() {
 .status-dot {
   width: 10px;
   height: 10px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: #1f4a60;
 }
 
@@ -568,7 +544,7 @@ function onLogout() {
 
 .access-pill {
   padding: 6px 12px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.04em;
@@ -615,7 +591,7 @@ function onLogout() {
 
 .feature {
   padding: 12px 14px;
-  border-radius: 14px;
+  border-radius: var(--radius-md);
   background: rgba(7, 47, 71, 0.04);
   border: 1px solid rgba(7, 47, 71, 0.08);
 }
@@ -635,15 +611,36 @@ function onLogout() {
 .alert {
   margin-top: 8px;
   padding: 10px 12px;
-  border-radius: 12px;
+  border-radius: var(--radius-sm);
   background: rgba(194, 75, 75, 0.1);
   color: #8b3030;
   font-size: 13px;
 }
 
 .cabinet-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.action-group {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  display: grid;
+  gap: 10px;
+  background: rgba(7, 47, 71, 0.02);
+}
+
+.action-group__title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.action-group__items {
   display: flex;
-  gap: 12px;
+  gap: 8px;
   flex-wrap: wrap;
 }
 
@@ -661,5 +658,10 @@ function onLogout() {
   .hero-chip {
     width: 100%;
   }
+
+  .cabinet-actions {
+    grid-template-columns: 1fr;
+  }
 }
 </style>
+

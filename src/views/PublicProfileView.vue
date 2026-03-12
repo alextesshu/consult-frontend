@@ -1,49 +1,148 @@
-﻿<template>
+<template>
   <section class="public">
     <header class="public__hero">
-      <div>
+      <div class="hero-media" v-if="profile">
+        <img
+          v-if="profile.photo_url"
+          class="hero-photo"
+          :src="profile.photo_url"
+          alt="Фото спеціаліста"
+        />
+        <div v-else class="hero-photo-placeholder">Фото спеціаліста</div>
+        <video
+          v-if="profile.video_url"
+          class="hero-video"
+          :src="profile.video_url"
+          controls
+          preload="metadata"
+        ></video>
+      </div>
+      <div class="hero-main">
         <div class="badge">Профіль спеціаліста</div>
         <h1 class="title public__title">{{ publicName || 'Профіль спеціаліста' }}</h1>
         <p class="muted public__subtitle">
-          {{ profile ? 'Публічна картка з описом і доступними віконцями.' : 'Завантаження профілю' }}
+          {{ profile ? 'Безпечний простір для першої розмови у вашому темпі.' : 'Завантаження профілю' }}
         </p>
+        <div v-if="profile" class="hero-trust">
+          <span v-if="profile.specializations">{{ profile.specializations }}</span>
+          <span v-if="languagesDisplay">{{ languagesDisplay }}</span>
+          <span v-if="profile.experience_years !== undefined && profile.experience_years !== null">
+            Досвід: {{ formatExperience(profile.experience_years) }}
+          </span>
+          <span v-if="profile.location">{{ profile.location }}</span>
+        </div>
       </div>
-      <div class="public__actions">
-        <a class="btn btn--ghost" href="#journal">Авторський журнал</a>
-        <RouterLink class="btn btn--ghost" to="/specialists">
-          Повернутись до списку
-        </RouterLink>
-        <RouterLink v-if="canManageProfile" class="btn btn--ghost" to="/cabinet/profile">
-          Керувати профілем
-        </RouterLink>
-        <RouterLink class="btn btn--ghost" to="/">На головну</RouterLink>
-      </div>
+      <aside class="hero-cta" v-if="profile">
+        <div class="hero-cta__prices">
+          <div v-if="introPriceDisplay" class="hero-cta__price hero-cta__price--intro">
+            Ознайомча сесія: {{ introPriceDisplay }}
+            <span v-if="introDurationLabel">· {{ introDurationLabel }}</span>
+          </div>
+          <div v-if="priceDisplay" class="hero-cta__price">
+            Консультація: {{ priceDisplay }}
+            <span> · {{ standardSessionDurationLabel }}</span>
+          </div>
+        </div>
+        <div class="hero-cta__actions">
+          <button class="btn btn--primary" type="button" @click="handleHeroPrimaryAction">
+            {{ heroPrimaryLabel }}
+          </button>
+          <RouterLink
+            v-if="showClientSessionsCta"
+            class="btn btn--ghost"
+            to="/client"
+          >
+            Мої сесії
+          </RouterLink>
+          <a v-else class="btn btn--ghost" href="#slots">Переглянути вільні вікна</a>
+          <RouterLink class="btn btn--ghost" :to="feedbackLink">Відгуки</RouterLink>
+        </div>
+      </aside>
     </header>
 
     <div v-if="loading" class="muted">Завантаження...</div>
     <div v-else-if="error" class="form-error">{{ error }}</div>
 
     <section v-else-if="profile" class="public__grid">
-      <div class="panel panel--slots">
+      <section class="panel panel--trust" v-if="trustItems.length">
         <div class="panel__header">
           <div>
-            <div class="badge badge--soft">Доступні віконця</div>
-            <h2 class="panel__title">Найближчі дати</h2>
+            <div class="badge badge--soft">Що важливо знати</div>
+            <h2 class="panel__title">Довіра і формат</h2>
           </div>
-          <div class="setting-bar" v-if="isAuthenticated && isClient">
-            <button
-              class="btn btn--ghost btn--sm"
-              :class="{ 'btn--pulse': settingAttention }"
-              type="button"
-              ref="settingButtonRef"
-              @click="openSettingModal"
+        </div>
+        <div class="trust-grid">
+          <article v-for="item in trustItems" :key="item.label" class="trust-card">
+            <div class="trust-card__label">{{ item.label }}</div>
+            <div class="trust-card__value">{{ item.value }}</div>
+          </article>
+        </div>
+      </section>
+
+      <section v-if="showInquiryPanel" class="panel panel--inquiry" id="inquiry">
+        <div class="panel__header">
+          <div>
+            <div class="badge badge--soft">До бронювання</div>
+            <h2 class="panel__title">{{ inquiryLeadCopy.title }}</h2>
+          </div>
+        </div>
+
+        <div class="inquiry-state" :class="`inquiry-state--${inquiryLeadCopy.tone}`">
+          {{ inquiryLeadCopy.body }}
+        </div>
+
+        <div v-if="inquiryLoading" class="muted">Завантажуємо запит...</div>
+        <div v-else-if="inquiryError" class="form-error">{{ inquiryError }}</div>
+        <template v-else>
+          <div v-if="inquiryMessages.length" class="inquiry-thread">
+            <article
+              v-for="message in inquiryMessages"
+              :key="message.id"
+              class="inquiry-message"
+              :class="{ 'inquiry-message--mine': isMyInquiryMessage(message.sender_id) }"
             >
-              Сетінг
+              <div class="inquiry-message__author">
+                {{ isMyInquiryMessage(message.sender_id) ? 'Ви' : publicName || 'Спеціаліст' }}
+              </div>
+              <div class="inquiry-message__body">{{ message.body }}</div>
+              <div class="inquiry-message__time muted">{{ formatDate(message.created_at) }}</div>
+            </article>
+          </div>
+
+          <form
+            v-if="showInquiryComposer"
+            class="inquiry-composer"
+            @submit.prevent="submitInquiryMessage"
+          >
+            <label class="slot-filter__label" for="inquiryBody">Ваше повідомлення</label>
+            <textarea
+              id="inquiryBody"
+              v-model="inquiryDraft"
+              class="input inquiry-composer__textarea"
+              rows="4"
+              placeholder="Коротко опишіть, що хочете уточнити перед бронюванням."
+              :disabled="inquirySubmitting"
+            ></textarea>
+            <div class="muted inquiry-composer__hint">
+              Короткий запит без вкладень і термінових звернень. Це не повноцінний чат.
+            </div>
+            <div v-if="inquirySubmitError" class="form-error">{{ inquirySubmitError }}</div>
+            <button
+              class="btn btn--primary"
+              type="submit"
+              :disabled="inquirySubmitting || !inquiryDraft.trim()"
+            >
+              {{ inquirySubmitLabel }}
             </button>
-            <label class="setting-check">
-              <input type="checkbox" v-model="settingAccepted" />
-              <span>Погоджуюсь</span>
-            </label>
+          </form>
+        </template>
+      </section>
+
+      <div class="panel panel--slots" id="slots">
+        <div class="panel__header">
+          <div>
+            <div class="badge badge--soft">Доступні вільні вікна</div>
+            <h2 class="panel__title">Найближчі дати</h2>
           </div>
         </div>
 
@@ -73,9 +172,77 @@
             @focus="openDatePicker"
           />
           <div class="muted slot-filter__hint">
-            Оберіть дату, щоб переглянути доступні віконця.
+            Оберіть дату, щоб переглянути доступні вільні вікна.
           </div>
         </div>
+
+        <div class="first-session-flow">
+          <article class="flow-card">
+            <div class="flow-card__title">Як проходить перша сесія</div>
+            <ul class="flow-card__list">
+              <li>Коротке знайомство та уточнення вашого запиту.</li>
+              <li>Спокійна розмова у вашому темпі без тиску.</li>
+              <li>Узгодження наступних кроків наприкінці зустрічі.</li>
+            </ul>
+          </article>
+          <article class="flow-card">
+            <div class="flow-card__title">Як підготуватись</div>
+            <ul class="flow-card__list">
+              <li>Достатньо тихого місця й стабільного інтернету.</li>
+              <li>Не потрібно готуватись “ідеально” чи щось доводити.</li>
+              <li>Можна заздалегідь подумати, що зараз для вас найважливіше.</li>
+            </ul>
+          </article>
+          <article class="flow-card">
+            <div class="flow-card__title">Що буде після запису</div>
+            <ul class="flow-card__list">
+              <li>Сесія з'явиться у вашому кабінеті клієнта.</li>
+              <li>Після підтвердження спеціаліста ви отримаєте нагадування.</li>
+              <li>За потреби зможете перенести або скасувати запис у кабінеті.</li>
+            </ul>
+          </article>
+        </div>
+
+        <section
+          v-if="isAuthenticated && isClient"
+          class="booking-gate"
+          :class="{
+            'booking-gate--pending': !settingAccepted,
+            'booking-gate--ready': settingAccepted,
+            'booking-gate--attention': settingAttention,
+          }"
+          aria-label="Підтвердження правил перед бронюванням"
+        >
+          <div class="booking-gate__content">
+            <div>
+              <div class="booking-gate__title">Перед записом підтвердьте сетінг</div>
+              <p class="booking-gate__text">
+                Відкрийте правила спеціаліста, ознайомтеся з умовами і підтвердьте згоду. Після цього можна
+                натискати «Записатися» у слотах нижче.
+              </p>
+            </div>
+            <button
+              class="btn btn--ghost btn--sm booking-gate__button"
+              :class="{ 'btn--pulse': settingAttention }"
+              type="button"
+              ref="settingButtonRef"
+              @click="openSettingModal"
+            >
+              {{ settingAccepted ? 'Переглянути сетінг ще раз' : 'Відкрити сетінг і правила' }}
+            </button>
+          </div>
+          <label class="setting-check booking-gate__check">
+            <input type="checkbox" v-model="settingAccepted" />
+            <span>Я ознайомився(-лась) і погоджуюсь з умовами бронювання</span>
+          </label>
+          <div class="booking-gate__hint">
+            {{
+              settingAccepted
+                ? 'Правила підтверджено. Оберіть час і натисніть «Записатися».'
+                : 'Без цього підтвердження кнопки бронювання нижче не спрацюють.'
+            }}
+          </div>
+        </section>
 
         <div v-if="!isAuthenticated" class="hint">
           Щоб забронювати час, увійдіть у свій кабінет клієнта.
@@ -95,13 +262,13 @@
           </div>
         </div>
 
-        <div v-if="slotsLoading" class="muted">Завантажуємо віконця</div>
+        <div v-if="slotsLoading" class="muted">Завантажуємо вільні вікна</div>
         <div v-else-if="slotsError" class="form-error">{{ slotsError }}</div>
         <div v-else-if="slots.length === 0" class="muted">
           {{ noSlotsAvailable ? 'Наразі вільних віконець немає.' : 'На жаль, у цей день вільних віконець немає.' }}
         </div>
         <div v-else class="slot-list">
-          <div v-for="slot in slots" :key="slot.id" class="slot-card">
+          <div v-for="slot in visibleSlots" :key="slot.id" class="slot-card">
             <div>
               <div class="slot-time">{{ formatDate(slot.start_at) }}</div>
               <div class="muted">{{ formatDuration(slot.start_at, slot.end_at) }}</div>
@@ -116,97 +283,93 @@
               {{ bookingSlotId === slot.id ? 'Бронюємо...' : 'Записатися' }}
             </button>
           </div>
+          <button
+            v-if="hasMoreSlots"
+            class="btn btn--ghost slot-list__toggle"
+            type="button"
+            @click="showAllSlots = !showAllSlots"
+          >
+            {{ showAllSlots ? 'Показати менше' : `Показати весь розклад (${slots.length})` }}
+          </button>
         </div>
       </div>
 
-      <div class="panel panel--profile">
-        <div class="profile-card">
-          <div class="profile-card__media">
-            <img v-if="profile.photo_url" :src="profile.photo_url" alt="Фото спеціаліста" />
-            <div v-else class="media-placeholder">Фото ще не додано</div>
-            <video
-              v-if="profile.video_url"
-              class="profile-video"
-              :src="profile.video_url"
-              controls
-              preload="metadata"
-            ></video>
-          </div>
-          <div class="profile-card__info">
-            <div class="profile-card__title">{{ publicName }}</div>
-            <div class="profile-card__meta">
-              <span v-if="profile.specializations">{{ profile.specializations }}</span>
-              <span v-if="languagesDisplay">{{ languagesDisplay }}</span>
-              <span v-if="profile.experience_years !== undefined && profile.experience_years !== null">
-                Досвід: {{ formatExperience(profile.experience_years) }}
-              </span>
-              <span v-if="profile.location">{{ profile.location }}</span>
-            </div>
-            <div class="profile-card__price" v-if="priceDisplay">
-              {{ priceDisplay }}
-            </div>
-            <div class="profile-card__price" v-if="introPriceDisplay">
-              Пробна сесія: {{ introPriceDisplay }}
-              <span v-if="introDurationLabel">• {{ introDurationLabel }}</span>
-            </div>
-            <div class="profile-card__contact">
-              <div v-if="profile.contact_email">Ел. пошта: {{ profile.contact_email }}</div>
-              <div v-if="profile.contact_phone">Телефон: {{ profile.contact_phone }}</div>
-              <div v-if="profile.messenger">Messenger: {{ profile.messenger }}</div>
-            </div>
-          </div>
-        </div>
-        <div class="profile-bio" v-if="bioSections.length">
-          <div v-for="section in bioSections" :key="section.title" class="bio-section">
-            <div class="bio-title">{{ section.title }}</div>
-            <div class="muted">{{ section.body }}</div>
-          </div>
-        </div>
-        <div v-else class="muted">Поки що немає опису.</div>
-      </div>
-
-      <div class="panel panel--reviews">
+      <section class="panel panel--work-format">
         <div class="panel__header">
           <div>
-            <div class="badge badge--soft">Відгуки</div>
-            <h2 class="panel__title">Оцінки клієнтів</h2>
-          </div>
-          <div class="panel__header-actions">
-            <button class="btn btn--ghost btn--sm" type="button" @click="shareProfile">
-              Поділитись профілем
-            </button>
-            <button
-              class="btn btn--ghost btn--sm"
-              type="button"
-              :disabled="!canLeaveReview"
-              @click="openReviewModal"
-            >
-              Додати відгук
-            </button>
-            <div v-if="averageRating" class="rating-pill">{{ averageRating }} / 5</div>
+            <div class="badge badge--soft">Формат</div>
+            <h2 class="panel__title">Формат роботи</h2>
           </div>
         </div>
+        <div class="work-format-grid">
+          <div v-if="introDurationLabel" class="profile-summary__item">
+            Тривалість ознайомчої сесії: {{ introDurationLabel }}
+          </div>
+          <div v-if="introPriceDisplay" class="profile-summary__item">
+            Вартість ознайомчої сесії: {{ introPriceDisplay }}
+          </div>
+          <div v-if="profile.location" class="profile-summary__item">
+            Локація: {{ profile.location }}
+          </div>
+          <div v-if="priceDisplay" class="profile-summary__item">
+            Консультація: {{ priceDisplay }} · {{ standardSessionDurationLabel }}
+          </div>
+          <div class="profile-summary__item">
+            Що буде після запису: сесія з’явиться в кабінеті, після підтвердження надійде нагадування.
+          </div>
+        </div>
+      </section>
 
-        <div v-if="reviewsLoading" class="muted">Завантажуємо відгуки</div>
-        <div v-else-if="reviewsError" class="form-error">{{ reviewsError }}</div>
-        <div v-else-if="reviews.length === 0" class="muted">Поки що немає відгуків.</div>
-        <div v-else class="review-list">
-          <article v-for="review in reviews" :key="review.id" class="review-card">
-            <div class="review-head">
-              <div class="review-rating">{{ review.rating }} / 5</div>
-              <div class="muted">{{ formatDate(review.created_at) }}</div>
-            </div>
-            <div class="review-text" v-if="review.review_text">{{ review.review_text }}</div>
-            <div v-if="review.therapist_response" class="review-response">
-              <div class="review-response__label">Відповідь спеціаліста</div>
-              <div class="review-response__text">{{ review.therapist_response }}</div>
-              <div v-if="review.therapist_response_at" class="muted review-response__date">
-                {{ formatDate(review.therapist_response_at) }}
-              </div>
-            </div>
+      <section class="panel panel--about" v-if="aboutSections.length">
+        <div class="panel__header">
+          <div>
+            <div class="badge badge--soft">Про спеціаліста</div>
+            <h2 class="panel__title">Про спеціаліста</h2>
+          </div>
+        </div>
+        <div class="about-grid">
+          <article v-for="section in aboutSections" :key="section.title" class="bio-section">
+            <div class="bio-title">{{ section.title }}</div>
+            <div class="muted">{{ section.body }}</div>
           </article>
         </div>
-      </div>
+      </section>
+
+      <section class="panel panel--who" v-if="whoThisIsForText">
+        <div class="panel__header">
+          <div>
+            <div class="badge badge--soft">Кому підійде</div>
+            <h2 class="panel__title">З якими запитами я працюю</h2>
+          </div>
+        </div>
+        <div class="muted who-lead">Цей формат може підійти вам, якщо...</div>
+        <div class="who-text">{{ whoThisIsForText }}</div>
+        <div v-if="specializationChips.length" class="hero-trust">
+          <span v-for="(chip, index) in specializationChips" :key="`${chip}-${index}`">{{ chip }}</span>
+        </div>
+      </section>
+
+      <section class="panel panel--contacts" v-if="showDirectContactActions">
+        <div class="panel__header">
+          <div>
+            <div class="badge badge--soft">Зв’язок</div>
+            <h2 class="panel__title">Зв’язок зі спеціалістом</h2>
+          </div>
+        </div>
+        <div class="contact-actions">
+          <a
+            v-for="item in contactActions"
+            :key="item.label"
+            class="contact-action"
+            :href="item.href"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <span class="contact-action__label">{{ item.label }}</span>
+            <span class="contact-action__value">{{ item.value }}</span>
+          </a>
+        </div>
+      </section>
 
       <div class="panel panel--journal" id="journal">
         <div class="panel__header">
@@ -214,96 +377,230 @@
             <div class="badge badge--soft">Авторський журнал</div>
             <h2 class="panel__title">Статті спеціаліста</h2>
           </div>
+          <div class="panel__header-actions">
+            <RouterLink class="btn btn--ghost btn--sm" :to="{ name: 'public-journal', params: { slug } }">
+              Всі статті
+            </RouterLink>
+          </div>
         </div>
 
         <div v-if="journalLoading" class="muted">Завантажуємо журнал...</div>
         <div v-else-if="journalError" class="form-error">{{ journalError }}</div>
-        <div v-else-if="journalPosts.length === 0" class="muted">
-          Ще немає опублікованих матеріалів.
+        <div v-else>
+          <section v-if="previewCollections.length" class="profile-collections">
+            <div class="profile-collections__head">
+              <div class="profile-collections__title">Серії</div>
+              <RouterLink class="btn btn--ghost btn--sm" :to="{ name: 'public-journal', params: { slug } }">
+                Переглянути всі
+              </RouterLink>
+            </div>
+            <div class="profile-collections__list">
+              <RouterLink
+                v-for="collection in previewCollections"
+                :key="collection.slug"
+                class="profile-collection-item"
+                :to="{
+                  name: 'public-journal-collection',
+                  params: { specialist_slug: slug, collection_slug: collection.slug },
+                }"
+              >
+                <div class="profile-collection-item__left">
+                  <div v-if="collectionCoverUrl(collection)" class="profile-collection-item__cover">
+                    <img :src="collectionCoverUrl(collection)" :alt="collection.title" />
+                  </div>
+                  <span class="profile-collection-item__name">{{ collection.title }}</span>
+                </div>
+                <span class="profile-collection-item__meta">{{ collection.posts_count }} статті</span>
+              </RouterLink>
+            </div>
+          </section>
+
+          <div v-if="filteredJournalPosts.length === 0" class="empty">
+            <div class="empty-title">Немає статей у цій категорії</div>
+            <div class="muted">Спробуйте інший фільтр або поверніться до всіх статей.</div>
+            <button class="btn btn--ghost btn--sm" type="button" @click="activeCategory = 'ALL'">
+              Повернути всі статті
+            </button>
+          </div>
+          <div v-else class="journal-list">
+            <div class="journal-filters" role="tablist" aria-label="Фільтр статей">
+              <button
+                v-for="opt in categoryOptions"
+                :key="opt.key"
+                type="button"
+                class="filter-chip"
+                :class="{ 'is-active': activeCategory === opt.key }"
+                @click="activeCategory = opt.key"
+              >
+                {{ opt.label }}
+              </button>
+            </div>
+            <article
+              v-if="featuredPost"
+              :class="[
+                'journal-card',
+                'journal-card--feature',
+                featuredPost.is_featured ? 'journal-card--pinned' : '',
+                'journal-card--closed',
+              ]"
+              role="button"
+              tabindex="0"
+              @click="navigateToPost(featuredPost)"
+              @keydown.enter="navigateToPost(featuredPost)"
+              @keydown.space.prevent="navigateToPost(featuredPost)"
+            >
+              <div class="journal-body">
+                <span class="post-tag" :style="{ '--cat': categoryColor(featuredPost.category) }">
+                  {{ categoryLabel(featuredPost.category) }}
+                </span>
+                <span v-if="featuredPost.is_featured" class="pin-badge">Закріплено</span>
+                <div class="journal-title">{{ featuredPost.title }}</div>
+                <div class="journal-meta">
+                  {{ formatDate(featuredPost.published_at || featuredPost.created_at) }}
+                  · {{ readingTime(featuredPost.summary) }} хв читання
+                </div>
+                <div class="journal-summary" v-if="featuredPost.summary" v-html="renderMarkdown(featuredPost.summary)"></div>
+                <RouterLink
+                  class="read-more"
+                  :to="{ name: 'public-journal-post', params: { slug, postSlug: featuredPost.slug } }"
+                  @click.stop
+                >
+                  Читати статтю →
+                </RouterLink>
+              </div>
+              <div v-if="featuredPost.cover_image_url" class="journal-cover">
+                <img :src="featuredPost.cover_image_url" alt="Обкладинка статті" />
+              </div>
+            </article>
+
+            <div class="journal-grid">
+              <article
+                v-for="post in gridPosts"
+                :key="post.id"
+                :class="[
+                  'journal-card',
+                  post.is_featured ? 'journal-card--pinned' : '',
+                  'journal-card--closed',
+                ]"
+                role="button"
+                tabindex="0"
+                @click="navigateToPost(post)"
+                @keydown.enter="navigateToPost(post)"
+                @keydown.space.prevent="navigateToPost(post)"
+              >
+                <div class="journal-body">
+                  <span class="post-tag" :style="{ '--cat': categoryColor(post.category) }">
+                    {{ categoryLabel(post.category) }}
+                  </span>
+                  <span v-if="post.is_featured" class="pin-badge">Закріплено</span>
+                  <div class="journal-title">{{ post.title }}</div>
+                  <div class="journal-meta">
+                    {{ formatDate(post.published_at || post.created_at) }}
+                    · {{ readingTime(post.summary) }} хв читання
+                  </div>
+                  <div
+                    class="journal-summary"
+                    v-if="post.summary"
+                    v-html="renderMarkdown(post.summary)"
+                  ></div>
+                  <RouterLink
+                    class="read-more"
+                    :to="{ name: 'public-journal-post', params: { slug, postSlug: post.slug } }"
+                    @click.stop
+                  >
+                    Читати статтю →
+                  </RouterLink>
+                </div>
+                <div v-if="post.cover_image_url" class="journal-cover">
+                  <img :src="post.cover_image_url" alt="Обкладинка статті" />
+                </div>
+              </article>
+            </div>
+          </div>
         </div>
-        <div v-else class="journal-list">
-          <article v-for="post in journalPosts" :key="post.id" class="journal-card">
-            <div v-if="post.cover_image_url" class="journal-cover">
-              <img :src="post.cover_image_url" alt="Обкладинка статті" />
-            </div>
-            <div class="journal-body">
-              <div class="journal-title">{{ post.title }}</div>
-              <div class="muted journal-date">{{ formatDate(post.published_at || post.created_at) }}</div>
-              <div class="journal-summary" v-if="post.summary">{{ post.summary }}</div>
-            </div>
+      </div>
+
+      <section class="panel panel--reviews" v-if="reviews.length">
+        <div class="panel__header">
+          <div>
+            <div class="badge badge--soft">Відгуки</div>
+            <h2 class="panel__title">Що кажуть клієнти</h2>
+          </div>
+          <RouterLink class="btn btn--ghost btn--sm" :to="feedbackLink">Усі відгуки</RouterLink>
+        </div>
+        <div class="reviews-list">
+          <article v-for="review in reviews" :key="review.id" class="review-card">
+            <div class="review-card__text">{{ review.review_text }}</div>
+            <div class="review-card__meta">{{ formatDate(review.created_at) }}</div>
           </article>
         </div>
-      </div>
+      </section>
 
+      <section class="panel panel--footer-cta">
+        <div class="footer-cta">
+          <div class="footer-cta__info">
+            <div class="footer-cta__name">{{ publicName || 'Спеціаліст' }}</div>
+            <div class="muted">Ознайомча сесія — без поспіху, у вашому темпі.</div>
+            <div v-if="introPriceDisplay" class="footer-cta__price">
+              Ознайомча сесія: {{ introPriceDisplay }}<span v-if="introDurationLabel"> · {{ introDurationLabel }}</span>
+            </div>
+          </div>
+          <div class="footer-cta__actions">
+            <button class="btn btn--primary" type="button" @click="handleHeroPrimaryAction">
+              {{ heroPrimaryLabel }}
+            </button>
+            <RouterLink
+              v-if="showClientSessionsCta"
+              class="btn btn--ghost"
+              to="/client"
+            >
+              Мої сесії
+            </RouterLink>
+            <button
+              v-else-if="showInquiryEntry"
+              class="btn btn--ghost"
+              type="button"
+              @click="scrollToSlots"
+            >
+              Записатися на ознайомчу сесію
+            </button>
+            <a
+              v-else-if="primaryContactHref"
+              class="btn btn--ghost"
+              :href="primaryContactHref"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Написати спеціалісту
+            </a>
+          </div>
+        </div>
+      </section>
     </section>
-
-    <div v-if="showReviewModal" class="setting-modal">
-      <div class="setting-modal__backdrop" @click="closeReviewModal"></div>
-      <div class="setting-modal__content">
-        <div class="setting-modal__header">
-          <h3>Додати відгук</h3>
-          <button class="btn btn--ghost btn--sm" type="button" @click="closeReviewModal">
-            Закрити
-          </button>
-        </div>
-        <div class="setting-modal__body">
-          <label class="setting-label">
-            Рейтинг
-            <select v-model.number="reviewRating" class="input">
-              <option :value="5">5 — Відмінно</option>
-              <option :value="4">4 — Добре</option>
-              <option :value="3">3 — Нормально</option>
-              <option :value="2">2 — Погано</option>
-              <option :value="1">1 — Дуже погано</option>
-            </select>
-          </label>
-          <label class="setting-label" v-if="eligibleReviewSessions.length > 1">
-            Сесія
-            <select v-model.number="reviewSessionId" class="input">
-              <option v-for="session in eligibleReviewSessions" :key="session.id" :value="session.id">
-                {{ formatDate(session.start_at) }}
-              </option>
-            </select>
-          </label>
-          <label class="setting-label">
-            Коментар
-            <textarea
-              v-model.trim="reviewText"
-              class="input"
-              rows="4"
-              placeholder="Коротко опишіть ваш досвід"
-            ></textarea>
-          </label>
-          <div v-if="reviewError" class="form-error">{{ reviewError }}</div>
-        </div>
-        <div class="setting-modal__footer">
-          <button class="btn" type="button" :disabled="reviewSubmitting" @click="submitReview">
-            {{ reviewSubmitting ? 'Надсилаємо...' : 'Опублікувати відгук' }}
-          </button>
-          <button class="btn btn--ghost" type="button" @click="closeReviewModal">Скасувати</button>
-        </div>
-      </div>
-    </div>
 
     <div v-if="showBookingModal" class="setting-modal">
       <div class="setting-modal__backdrop" @click="closeBookingModal"></div>
       <div class="setting-modal__content">
         <div class="setting-modal__header">
-          <h3>Сесію створено</h3>
+          <h3>Ви успішно записалися</h3>
           <button class="btn btn--ghost btn--sm" type="button" @click="closeBookingModal">
             Закрити
           </button>
         </div>
         <div class="setting-modal__body">
-          <div class="booking-checklist">
-            <div class="booking-checklist__item">1. Сесія заброньована</div>
-            <div class="booking-checklist__item">2. Спеціаліст має підтвердити</div>
-            <div class="booking-checklist__item">3. Перевіряйте статус у кабінеті</div>
+          <div class="booking-confirm">
+            Слот заброньовано. Спеціаліст має підтвердити сесію, після цього статус оновиться у вашому кабінеті.
           </div>
           <div v-if="lastBookedSlot" class="booking-slot">
-            <div class="muted">Ваш слот:</div>
+            <div class="muted">Дата і час сесії</div>
             <div class="booking-slot__time">{{ formatDate(lastBookedSlot.start_at) }}</div>
             <div class="muted">{{ formatDuration(lastBookedSlot.start_at, lastBookedSlot.end_at) }}</div>
+          </div>
+          <div class="booking-next">
+            <div class="booking-next__title">Що далі</div>
+            <div class="booking-next__item">• Перевіряйте статус і деталі у кабінеті клієнта.</div>
+            <div class="booking-next__item">• Після підтвердження сесії сервіс нагадає про зустріч.</div>
+            <div class="booking-next__item">• Якщо плани зміняться, ви можете перенести або скасувати запис у деталях сесії.</div>
           </div>
         </div>
         <div class="setting-modal__footer">
@@ -345,19 +642,39 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import DOMPurify from 'dompurify'
+import { marked } from 'marked'
+import { useRoute, useRouter } from 'vue-router'
 import { getApiErrorMessage } from '../lib/errors'
-import { apiGet, apiPost } from '../lib/api'
-import { toLocalDate } from '../lib/dates'
 import {
-  fetchPublicTherapistProfile,
+  BOOKING_ERROR_FALLBACKS,
+  BOOKING_SUCCESS_MESSAGES,
+  BOOKING_UI_MESSAGES,
+  getBookingErrorMessage,
+} from '../lib/bookingCopy'
+import { getInquiryActionErrorMessage, mapInquiryStateToUi } from '../lib/inquiryCopy'
+import {
+  apiGet,
+  apiPost,
+  createInquiryThread,
+  fetchChatThreads,
+  fetchInquiryMessages,
+  fetchInquiryState,
+  sendInquiryMessage,
+} from '../lib/api'
+import { toLocalDate, toUtcRange } from '../lib/dates'
+import { formatUkDateTimeCompact, formatUkDayMonth, formatUkWeekdayShort } from '../lib/dateTime'
+import {
+  fetchPublicSpecialistProfile,
   fetchPublicAuthorJournalPosts,
-  fetchPublicTherapistReviews,
-  createSessionReview,
-  type PublicTherapistProfile,
+  fetchPublicJournalCollections,
+  type ChatThread,
+  type InquiryMessage,
+  type InquiryState,
+  type PublicSpecialistProfile,
   type PublicAuthorJournalPost,
-  type SessionReview,
+  type PublicJournalCollectionListItem,
 } from '../lib/api'
 import { useAuthStore } from '../stores/auth'
 import { useToast } from '../composables/useToast'
@@ -378,10 +695,17 @@ type ClientSession = {
   slot_end_at?: string | null
 }
 
+type PublicReview = {
+  id: number
+  review_text: string
+  created_at: string
+}
+
 const route = useRoute()
+const router = useRouter()
 const auth = useAuthStore()
 const toast = useToast()
-const profile = ref<PublicTherapistProfile | null>(null)
+const profile = ref<PublicSpecialistProfile | null>(null)
 const slots = ref<PublicSlot[]>([])
 const loading = ref(false)
 const slotsLoading = ref(false)
@@ -400,47 +724,60 @@ const settingButtonRef = ref<HTMLElement | null>(null)
 let settingAttentionTimer: number | null = null
 const clientSessions = ref<ClientSession[]>([])
 const pastClientSessions = ref<ClientSession[]>([])
-const reviews = ref<SessionReview[]>([])
-const reviewsLoading = ref(false)
-const reviewsError = ref('')
+const chatThreads = ref<ChatThread[]>([])
+const inquiryState = ref<InquiryState | null>(null)
+const inquiryMessages = ref<InquiryMessage[]>([])
+const inquiryLoading = ref(false)
+const inquiryError = ref('')
+const inquiryDraft = ref('')
+const inquirySubmitError = ref('')
+const inquirySubmitting = ref(false)
 const journalPosts = ref<PublicAuthorJournalPost[]>([])
+const journalCollections = ref<PublicJournalCollectionListItem[]>([])
 const journalLoading = ref(false)
 const journalError = ref('')
+const reviews = ref<PublicReview[]>([])
+type JournalCategory = 'ALL' | 'TIP' | 'EXPLAIN' | 'FAQ' | 'RESEARCH' | 'PRACTICE'
+const activeCategory = ref<JournalCategory>('ALL')
+const categoryOptions: { key: JournalCategory; label: string }[] = [
+  { key: 'ALL', label: 'Усі' },
+  { key: 'TIP', label: 'Порада' },
+  { key: 'EXPLAIN', label: 'Пояснення' },
+  { key: 'PRACTICE', label: 'Практика' },
+  { key: 'RESEARCH', label: 'Дослідження' },
+  { key: 'FAQ', label: 'FAQ' },
+]
 const selectedDate = ref('')
 const slotDateInput = ref<HTMLInputElement | null>(null)
-const showReviewModal = ref(false)
-const reviewRating = ref(5)
-const reviewText = ref('')
-const reviewSubmitting = ref(false)
-const reviewError = ref('')
-const reviewSessionId = ref<number | null>(null)
+const showAllSlots = ref(false)
+const slotsPreviewLimit = 5
 
 const slug = computed(() => String(route.params.slug || '').trim())
 const roles = computed(() => auth.me?.user.roles ?? auth.user?.roles ?? [])
 const isAuthenticated = computed(() => Boolean(auth.accessToken))
 const isClient = computed(() => roles.value.includes('CLIENT'))
-const canManageProfile = computed(
-  () => roles.value.includes('SPECIALIST') || roles.value.includes('THERAPIST')
-)
 const canBook = computed(() => isAuthenticated.value && isClient.value)
 const isBookingDisabled = (slotId: number) =>
   !canBook.value || bookingSlotId.value === slotId || !settingAccepted.value
+const visibleSlots = computed(() => (showAllSlots.value ? slots.value : slots.value.slice(0, slotsPreviewLimit)))
+const hasMoreSlots = computed(() => slots.value.length > slotsPreviewLimit)
+const matchesProfileSession = (session: ClientSession) => {
+  if (!profile.value) return false
+  const specialistId = profile.value.therapist_id
+  const sessionSpecialist = session.therapist
+  if (specialistId && sessionSpecialist) {
+    return specialistId === sessionSpecialist
+  }
+  if (profile.value.public_slug && session.therapist_public_slug) {
+    return profile.value.public_slug === session.therapist_public_slug
+  }
+  return false
+}
+const relatedUpcomingSessions = computed(() => clientSessions.value.filter((session) => matchesProfileSession(session)))
+const relatedPastSessions = computed(() => pastClientSessions.value.filter((session) => matchesProfileSession(session)))
 const upcomingConfirmed = computed(() => {
-  if (!profile.value) return []
-  return clientSessions.value
-    .filter((session) => {
-      const status = session.status || ''
-      if (status !== 'CONFIRMED') return false
-      const therapistId = profile.value?.therapist_id
-      const sessionTherapist = session.therapist
-      if (therapistId && sessionTherapist) {
-        return therapistId === sessionTherapist
-      }
-      if (profile.value?.public_slug && session.therapist_public_slug) {
-        return profile.value.public_slug === session.therapist_public_slug
-      }
-      return false
-    })
+  return relatedUpcomingSessions.value
+    .filter((session) => (session.status || '') === 'CONFIRMED')
     .map((session) => {
       const slot = session.slot || null
       return {
@@ -452,33 +789,30 @@ const upcomingConfirmed = computed(() => {
     .filter((item) => item.start_at && item.end_at)
     .sort((a, b) => new Date(a.start_at).getTime() - new Date(b.start_at).getTime())
 })
-
-const eligibleReviewSessions = computed(() => {
-  if (!profile.value) return []
-  return pastClientSessions.value
-    .filter((session) => {
-      if (session.status !== 'COMPLETED') return false
-      const therapistId = profile.value?.therapist_id
-      const sessionTherapist = session.therapist
-      if (therapistId && sessionTherapist) {
-        return therapistId === sessionTherapist
-      }
-      if (profile.value?.public_slug && session.therapist_public_slug) {
-        return profile.value.public_slug === session.therapist_public_slug
-      }
-      return false
-    })
-    .map((session) => ({
-      id: session.id,
-      start_at: session.slot?.start_at || session.slot_start_at || '',
-      end_at: session.slot?.end_at || session.slot_end_at || '',
-    }))
-    .filter((item) => item.start_at)
-    .sort((a, b) => new Date(b.start_at).getTime() - new Date(a.start_at).getTime())
+const profileChatThread = computed(() => {
+  if (!profile.value?.therapist_id) return null
+  return chatThreads.value.find((thread) => thread.therapist_id === profile.value?.therapist_id) || null
 })
-
-const canLeaveReview = computed(() => isAuthenticated.value && isClient.value && eligibleReviewSessions.value.length > 0)
-
+const hasActiveClientRelation = computed(() => {
+  if (!isClient.value || !isAuthenticated.value) return false
+  return inquiryState.value?.inquiry_status === 'ACTIVE_CLIENT' || Boolean(profileChatThread.value)
+})
+const canMessageSpecialist = computed(() => Boolean(isClient.value && isAuthenticated.value && hasActiveClientRelation.value))
+const hasClientHistoryWithSpecialist = computed(
+  () => relatedUpcomingSessions.value.length > 0 || relatedPastSessions.value.length > 0
+)
+const showClientSessionsCta = computed(
+  () => Boolean(isClient.value && isAuthenticated.value && hasClientHistoryWithSpecialist.value)
+)
+const showInquiryEntry = computed(() => {
+  if (!isAuthenticated.value || !isClient.value || !profile.value || !inquiryState.value) return false
+  return inquiryState.value.inquiry_status !== 'ACTIVE_CLIENT'
+})
+const showInquiryPanel = computed(() => {
+  if (!isAuthenticated.value || !isClient.value || !profile.value) return false
+  if (hasActiveClientRelation.value) return false
+  return inquiryLoading.value || Boolean(inquiryState.value)
+})
 const weekDays = computed(() => {
   const base = new Date()
   const days: Array<{ date: string; label: string; dateLabel: string }> = []
@@ -486,8 +820,8 @@ const weekDays = computed(() => {
     const d = new Date(base)
     d.setDate(base.getDate() + i)
     const date = toLocalDate(d)
-    const label = d.toLocaleDateString('uk-UA', { weekday: 'short' })
-    const dateLabel = d.toLocaleDateString('uk-UA', { day: '2-digit', month: '2-digit' })
+    const label = formatUkWeekdayShort(d)
+    const dateLabel = formatUkDayMonth(d)
     days.push({ date, label, dateLabel })
   }
   return days
@@ -502,26 +836,53 @@ const languagesDisplay = computed(() => {
   return value
 })
 
+function toTextList(value: unknown): string[] {
+  if (!value) return []
+  if (Array.isArray(value)) return value.map((item) => String(item).trim()).filter(Boolean)
+  return String(value)
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean)
+}
+
+const specializationChips = computed(() => toTextList(profile.value?.specializations))
+
 const publicName = computed(() => formatPublicName(profile.value?.display_name) || profile.value?.display_name || '')
+const feedbackLink = computed(() => ({
+  name: 'specialist-feedback',
+  params: { slug: profile.value?.public_slug || slug.value },
+}))
+const heroPrimaryLabel = computed(() => {
+  if (canMessageSpecialist.value) return 'Написати повідомлення'
+  if (showInquiryEntry.value) {
+    return inquiryState.value?.inquiry_exists ? 'Уточнити деталі' : 'Поставити запитання'
+  }
+  return 'Записатися на ознайомчу сесію'
+})
+
+function formatPriceAmount(value: string | number | null | undefined): string {
+  if (value === null || value === undefined) return ''
+  const raw = String(value).trim()
+  if (!raw) return ''
+  return raw.replace(/([.,])00$/, '')
+}
+
+function formatPriceDisplay(value: string | number | null | undefined, currency?: string | null): string {
+  const amount = formatPriceAmount(value)
+  if (!amount) return ''
+  const code = (currency || 'UAH').toUpperCase()
+  if (code === 'UAH') return `${amount} грн`
+  if (code === 'USD') return `$${amount}`
+  if (code === 'EUR') return `€${amount}`
+  return `${amount} ${code}`
+}
 
 const priceDisplay = computed(() => {
-  const price = profile.value?.price
-  if (!price) return ''
-  const currency = profile.value?.price_currency || 'UAH'
-  if (currency === 'UAH') return `${price} грн`
-  if (currency === 'USD') return `$${price}`
-  if (currency === 'EUR') return `€${price}`
-  return `${price} ${currency}`
+  return formatPriceDisplay(profile.value?.price, profile.value?.price_currency)
 })
 
 const introPriceDisplay = computed(() => {
-  const price = profile.value?.intro_price
-  if (!price) return ''
-  const currency = profile.value?.intro_price_currency || 'UAH'
-  if (currency === 'UAH') return `${price} грн`
-  if (currency === 'USD') return `$${price}`
-  if (currency === 'EUR') return `€${price}`
-  return `${price} ${currency}`
+  return formatPriceDisplay(profile.value?.intro_price, profile.value?.intro_price_currency)
 })
 
 const introDurationLabel = computed(() => {
@@ -529,6 +890,195 @@ const introDurationLabel = computed(() => {
   if (!minutes) return ''
   return `${minutes} хв`
 })
+
+const aboutSections = computed(() => {
+  if (!profile.value) return []
+  return [
+    { title: 'Про мене', body: profile.value.bio_about || profile.value.bio || '' },
+    { title: 'Як я працюю', body: profile.value.bio_work || '' },
+    { title: 'Мій підхід', body: profile.value.bio_approach || '' },
+  ].filter((section) => section.body)
+})
+
+const whoThisIsForText = computed(() => profile.value?.bio_for_whom || '')
+
+const trustItems = computed(() => {
+  if (!profile.value) return []
+  const items: Array<{ label: string; value: string }> = []
+  if (profile.value.experience_years !== undefined && profile.value.experience_years !== null) {
+    items.push({ label: 'Досвід', value: formatExperience(profile.value.experience_years) })
+  }
+  if (languagesDisplay.value) items.push({ label: 'Мови', value: languagesDisplay.value })
+  if (profile.value.location) items.push({ label: 'Локація', value: profile.value.location })
+  if (introDurationLabel.value) items.push({ label: 'Ознайомча сесія', value: introDurationLabel.value })
+  if (standardSessionDurationLabel.value) {
+    items.push({ label: 'Стандартна сесія', value: standardSessionDurationLabel.value })
+  }
+  return items
+})
+
+function normalizeTelegramHref(value: string) {
+  const trimmed = value.trim()
+  if (!trimmed) return ''
+  if (/^https?:\/\//i.test(trimmed)) return trimmed
+  return `https://t.me/${trimmed.replace(/^@/, '')}`
+}
+
+function normalizeWhatsAppHref(value: string) {
+  const digits = value.replace(/[^\d+]/g, '')
+  if (!digits) return ''
+  if (/^https?:\/\//i.test(value.trim())) return value.trim()
+  return `https://wa.me/${digits.replace('+', '')}`
+}
+
+function normalizeViberHref(value: string) {
+  const trimmed = value.trim()
+  if (!trimmed) return ''
+  if (/^https?:\/\//i.test(trimmed)) return trimmed
+  return `viber://chat?number=${trimmed.replace(/[^\d+]/g, '')}`
+}
+
+const contactActions = computed(() => {
+  if (!profile.value) return []
+  const items: Array<{ label: string; value: string; href: string }> = []
+  if (profile.value.contact_email) {
+    items.push({
+      label: 'Email',
+      value: profile.value.contact_email,
+      href: `mailto:${profile.value.contact_email}`,
+    })
+  }
+  if (profile.value.contact_phone) {
+    const phone = profile.value.contact_phone
+    items.push({
+      label: 'Телефон',
+      value: phone,
+      href: `tel:${phone.replace(/[^\d+]/g, '')}`,
+    })
+  }
+  if (profile.value.telegram) {
+    items.push({
+      label: 'Telegram',
+      value: profile.value.telegram,
+      href: normalizeTelegramHref(profile.value.telegram),
+    })
+  }
+  if (profile.value.whatsapp) {
+    items.push({
+      label: 'WhatsApp',
+      value: profile.value.whatsapp,
+      href: normalizeWhatsAppHref(profile.value.whatsapp),
+    })
+  }
+  if (profile.value.viber) {
+    items.push({
+      label: 'Viber',
+      value: profile.value.viber,
+      href: normalizeViberHref(profile.value.viber),
+    })
+  }
+  if (profile.value.messenger) {
+    const messenger = profile.value.messenger
+    items.push({
+      label: 'Messenger / Signal',
+      value: messenger,
+      href: /^https?:\/\//i.test(messenger) ? messenger : `https://m.me/${messenger.replace(/^@/, '')}`,
+    })
+  }
+  return items.filter((item) => Boolean(item.href))
+})
+
+const showDirectContactActions = computed(() => Boolean(contactActions.value.length && !isClient.value))
+
+const primaryContactHref = computed(() =>
+  !canMessageSpecialist.value && !showInquiryEntry.value && showDirectContactActions.value
+    ? contactActions.value[0]?.href || ''
+    : ''
+)
+
+const inquiryLeadCopy = computed(() => {
+  const state = inquiryState.value
+  if (!state) {
+    return mapInquiryStateToUi({
+      status: 'NOT_CREATED',
+      actor: 'client',
+      mode: 'entry',
+    })
+  }
+
+  const reasonCode = state.inquiry_exists
+    ? state.can_client_send
+      ? null
+      : state.client_send_reason_code
+      : state.can_create_inquiry
+        ? null
+        : state.create_reason_code
+
+  if (
+    state.inquiry_exists &&
+    state.inquiry_status === 'OPEN' &&
+    state.can_client_send === false &&
+    state.client_send_reason_code === 'FOLLOW_UP_REQUIRES_SPECIALIST_REPLY'
+  ) {
+    const hasSpecialistReply = inquiryMessages.value.some((message) => !isMyInquiryMessage(message.sender_id))
+    const lastMessage = inquiryMessages.value[inquiryMessages.value.length - 1] || null
+
+    if (hasSpecialistReply && lastMessage && isMyInquiryMessage(lastMessage.sender_id)) {
+      return {
+        title: 'Уточнення надіслано',
+        body: 'Ваше уточнення надіслано. Очікуйте відповіді спеціаліста.',
+        tone: 'info' as const,
+      }
+    }
+  }
+
+  return mapInquiryStateToUi({
+    status: state.inquiry_status,
+    reasonCode,
+    actor: 'client',
+    mode: state.inquiry_exists ? 'thread' : 'entry',
+  })
+})
+
+const showInquiryComposer = computed(() => {
+  if (!inquiryState.value) return false
+  if (inquiryState.value.can_create_inquiry) return true
+  return Boolean(inquiryState.value.inquiry_exists && inquiryState.value.can_client_send)
+})
+
+const inquirySubmitLabel = computed(() => {
+  if (inquiryState.value?.can_create_inquiry) return 'Надіслати запит'
+  return 'Надіслати уточнення'
+})
+
+const standardSessionDurationMinutes = computed(() => {
+  const durations = slots.value
+    .map((slot) => {
+      const start = new Date(slot.start_at).getTime()
+      const end = new Date(slot.end_at).getTime()
+      if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) return 0
+      return Math.round((end - start) / 60000)
+    })
+    .filter((minutes) => minutes > 0 && minutes <= 300)
+
+  if (!durations.length) return 50
+
+  const freq = new Map<number, number>()
+  for (const minutes of durations) {
+    freq.set(minutes, (freq.get(minutes) || 0) + 1)
+  }
+  let winner = durations[0] ?? 50
+  let maxCount = 0
+  for (const [minutes, count] of freq.entries()) {
+    if (count > maxCount || (count === maxCount && minutes < winner)) {
+      winner = minutes
+      maxCount = count
+    }
+  }
+  return winner
+})
+
+const standardSessionDurationLabel = computed(() => `${standardSessionDurationMinutes.value} хв`)
 
 function formatPublicName(value?: string) {
   if (!value) return ''
@@ -541,35 +1091,8 @@ function formatPublicName(value?: string) {
   return `${first} ${initial}.`
 }
 
-const bioSections = computed(() => {
-  if (!profile.value) return []
-  const sections = [
-    { title: 'Про себе', body: profile.value.bio_about || profile.value.bio || '' },
-    { title: 'Як я працюю', body: profile.value.bio_work || '' },
-    { title: 'Мій підхід', body: profile.value.bio_approach || '' },
-    { title: 'Для кого це може бути', body: profile.value.bio_for_whom || '' },
-    { title: 'Інше', body: profile.value.bio_other || '' },
-  ]
-  return sections.filter((section) => section.body)
-})
-
-const averageRating = computed(() => {
-  if (!reviews.value.length) return ''
-  const total = reviews.value.reduce((sum, item) => sum + item.rating, 0)
-  return (total / reviews.value.length).toFixed(1)
-})
-
 function formatDate(value: string) {
-  const dt = new Date(value)
-  if (Number.isNaN(dt.getTime())) return value
-  return dt.toLocaleString('uk-UA', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  })
+  return formatUkDateTimeCompact(value, value)
 }
 
 function formatDuration(start: string, end: string) {
@@ -584,6 +1107,16 @@ function formatDuration(start: string, end: string) {
   if (hours) parts.push(`${hours} \u0433\u043e\u0434`)
   if (mins) parts.push(`${mins} \u0445\u0432`)
   return `\u0422\u0440\u0438\u0432\u0430\u043b\u0456\u0441\u0442\u044c: ${parts.join(' ')}`
+}
+
+function slotMatchesLocalDate(slot: PublicSlot, date: string) {
+  return toLocalDate(new Date(slot.start_at)) === date
+}
+
+function toUtcDayRangeForLocalDate(date: string) {
+  const localStart = new Date(`${date}T00:00:00`)
+  const localEnd = new Date(`${date}T23:59:59.999`)
+  return toUtcRange(localStart, localEnd)
 }
 
 function toDateInputValue(date: Date) {
@@ -605,6 +1138,45 @@ function openDatePicker() {
 
 function selectDay(date: string) {
   selectedDate.value = date
+  showAllSlots.value = false
+}
+
+function scrollToSlots() {
+  window.location.hash = '#slots'
+  document.getElementById('slots')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
+
+function scrollToInquiry() {
+  window.location.hash = '#inquiry'
+  focusInquirySection()
+}
+
+function focusInquirySection() {
+  document.getElementById('inquiry')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
+
+function openClientChat() {
+  if (!profile.value?.therapist_id) return
+  router.push({
+    name: 'client-chat',
+    query: { therapist_id: String(profile.value.therapist_id) },
+  })
+}
+
+function handleHeroPrimaryAction() {
+  if (canMessageSpecialist.value) {
+    openClientChat()
+    return
+  }
+  if (showInquiryEntry.value) {
+    scrollToInquiry()
+    return
+  }
+  scrollToSlots()
+}
+
+function isMyInquiryMessage(senderId: number) {
+  return senderId === auth.me?.user.id
 }
 
 async function loadProfile() {
@@ -615,9 +1187,9 @@ async function loadProfile() {
   loading.value = true
   error.value = ''
   try {
-    profile.value = await fetchPublicTherapistProfile(slug.value)
+    profile.value = await fetchPublicSpecialistProfile(slug.value)
     if (profile.value) {
-      saveViewedTherapist(profile.value)
+      saveViewedSpecialist(profile.value)
     }
   } catch (err: any) {
     error.value = getApiErrorMessage(err, '\u041f\u0440\u043e\u0444\u0456\u043b\u044c \u043d\u0435 \u0437\u043d\u0430\u0439\u0434\u0435\u043d\u043e.')
@@ -632,11 +1204,16 @@ async function loadSlots() {
   slotsError.value = ''
   noSlotsAvailable.value = false
   try {
-    const dateFrom = selectedDate.value || toLocalDate(new Date())
+    const selectedLocalDate = selectedDate.value || toLocalDate(new Date())
+    const utcDayRange = toUtcDayRangeForLocalDate(selectedLocalDate)
     const resp = await apiGet<PublicSlot[]>('/booking/slots/', {
-      params: { therapist_id: profile.value.therapist_id, date: dateFrom },
+      params: {
+        therapist_id: profile.value.therapist_id,
+        date_from: utcDayRange.date_from,
+        date_to: utcDayRange.date_to,
+      },
     })
-    const list = resp || []
+    const list = (resp || []).filter((slot) => slotMatchesLocalDate(slot, selectedLocalDate))
     slots.value = list
     if (!list.length) {
       const anyResp = await apiGet<PublicSlot[]>('/booking/slots/', {
@@ -646,7 +1223,7 @@ async function loadSlots() {
     }
   } catch {
     slots.value = []
-    slotsError.value = 'Не вдалося завантажити віконця.'
+    slotsError.value = 'Не вдалося завантажити вільні вікна.'
   } finally {
     slotsLoading.value = false
   }
@@ -659,36 +1236,131 @@ function formatExperience(value: number) {
   return `${value} років`
 }
 
-async function loadReviews() {
-  if (!slug.value) return
-  reviewsLoading.value = true
-  reviewsError.value = ''
-  try {
-    reviews.value = await fetchPublicTherapistReviews(slug.value, 20)
-  } catch {
-    reviews.value = []
-    reviewsError.value = 'Не вдалося завантажити відгуки.'
-  } finally {
-    reviewsLoading.value = false
-  }
-}
-
 async function loadJournal() {
   if (!slug.value) return
   journalLoading.value = true
   journalError.value = ''
   try {
-    journalPosts.value = await fetchPublicAuthorJournalPosts(slug.value)
+    const [posts, collections] = await Promise.all([
+      fetchPublicAuthorJournalPosts(slug.value),
+      fetchPublicJournalCollections(slug.value),
+    ])
+    journalPosts.value = posts
+    journalCollections.value = collections
   } catch {
     journalPosts.value = []
+    journalCollections.value = []
     journalError.value = 'Не вдалося завантажити авторський журнал.'
   } finally {
     journalLoading.value = false
   }
 }
 
+async function loadReviews() {
+  if (!slug.value) return
+  try {
+    const resp = await apiGet<PublicReview[]>(`/public/specialists/${slug.value}/reviews/`, {
+      params: { limit: 4 },
+    })
+    reviews.value = resp || []
+  } catch {
+    reviews.value = []
+  }
+}
+
+function postCategory(post: PublicAuthorJournalPost): Exclude<JournalCategory, 'ALL'> | null {
+  const v = (post as { category?: string })?.category
+  if (v === 'TIP' || v === 'EXPLAIN' || v === 'FAQ' || v === 'RESEARCH' || v === 'PRACTICE') return v
+  return null
+}
+
+function categoryLabel(cat?: string) {
+  switch (cat) {
+    case 'TIP':
+      return 'Порада'
+    case 'EXPLAIN':
+      return 'Пояснення'
+    case 'FAQ':
+      return 'FAQ'
+    case 'RESEARCH':
+      return 'Дослідження'
+    case 'PRACTICE':
+      return 'Практика'
+    default:
+      return 'Порада'
+  }
+}
+
+function categoryColor(cat?: string) {
+  switch (cat) {
+    case 'TIP':
+      return '#2b7a6f'
+    case 'EXPLAIN':
+      return '#355c7d'
+    case 'FAQ':
+      return '#6b5b95'
+    case 'RESEARCH':
+      return '#9c6b2f'
+    case 'PRACTICE':
+      return '#2f6f9c'
+    default:
+      return '#2b7a6f'
+  }
+}
+
+function readingTime(text: string | null | undefined): number {
+  if (!text) return 1
+  const words = text.trim().split(/\s+/).length
+  const minutes = Math.ceil(words / 200)
+  return Math.max(1, minutes)
+}
+
+function renderMarkdown(text?: string | null) {
+  if (!text) return ''
+  const raw = marked.parse(text, { breaks: true }) as string
+  return DOMPurify.sanitize(raw)
+}
+
+const filteredJournalPosts = computed(() => {
+  if (activeCategory.value === 'ALL') return journalPosts.value
+  return journalPosts.value.filter((p) => postCategory(p) === activeCategory.value)
+})
+
+const featuredPost = computed(() => filteredJournalPosts.value.find((p) => p.is_featured) || null)
+
+function navigateToPost(post: PublicAuthorJournalPost) {
+  if (!slug.value || !post.slug) return
+  router.push({
+    name: 'public-journal-post',
+    params: { slug: slug.value, postSlug: post.slug },
+    query: {
+      from: 'profile',
+      cat: activeCategory.value,
+      open: String(post.id),
+    },
+  })
+}
+
+const gridPosts = computed(() =>
+  featuredPost.value
+    ? filteredJournalPosts.value.filter((p) => p.id !== featuredPost.value?.id)
+    : filteredJournalPosts.value
+)
+const previewCollections = computed(() => journalCollections.value.slice(0, 3))
+
+function collectionCoverUrl(collection: PublicJournalCollectionListItem): string {
+  if (collection.cover_image_url) return collection.cover_image_url
+  const firstPreviewSlug = collection.preview_posts?.[0]?.slug
+  if (!firstPreviewSlug) return ''
+  return journalPosts.value.find((post) => post.slug === firstPreviewSlug)?.cover_image_url || ''
+}
+
 async function loadClientSessions() {
-  if (!isAuthenticated.value || !isClient.value) return
+  if (!isAuthenticated.value || !isClient.value) {
+    clientSessions.value = []
+    pastClientSessions.value = []
+    return
+  }
   try {
     const resp = await apiGet<ClientSession[]>('/booking/sessions/', {
       params: { upcoming: true },
@@ -704,64 +1376,91 @@ async function loadClientSessions() {
   }
 }
 
-
-function openReviewModal() {
-  if (!canLeaveReview.value) {
-    reviewError.value = 'Відгук можна залишити після завершеної сесії.'
+async function loadChatThreads() {
+  if (!isAuthenticated.value || !isClient.value) {
+    chatThreads.value = []
     return
   }
-  reviewError.value = ''
-  reviewRating.value = 5
-  reviewText.value = ''
-  reviewSessionId.value = eligibleReviewSessions.value[0]?.id ?? null
-  showReviewModal.value = true
-}
-
-function closeReviewModal() {
-  showReviewModal.value = false
-}
-
-async function submitReview() {
-  if (!reviewSessionId.value) {
-    reviewError.value = 'Оберіть сесію для відгуку.'
-    return
-  }
-  reviewSubmitting.value = true
-  reviewError.value = ''
   try {
-    await createSessionReview(reviewSessionId.value, {
-      rating: reviewRating.value,
-      review_text: reviewText.value || undefined,
-    })
-    toast.success('Дякуємо за відгук!')
-    showReviewModal.value = false
-    await loadReviews()
+    chatThreads.value = await fetchChatThreads()
+  } catch {
+    chatThreads.value = []
+  }
+}
+
+async function loadInquiryMessages() {
+  if (!inquiryState.value?.inquiry_id) {
+    inquiryMessages.value = []
+    return
+  }
+  try {
+    inquiryMessages.value = await fetchInquiryMessages(inquiryState.value.inquiry_id, { limit: 50 })
+  } catch {
+    inquiryMessages.value = []
+    inquiryError.value = 'Не вдалося завантажити історію запиту.'
+  }
+}
+
+async function loadInquiryState() {
+  if (!isAuthenticated.value || !isClient.value || !profile.value?.therapist_id) {
+    inquiryLoading.value = false
+    inquiryState.value = null
+    inquiryMessages.value = []
+    inquiryDraft.value = ''
+    inquiryError.value = ''
+    inquirySubmitError.value = ''
+    return
+  }
+
+  inquiryLoading.value = true
+  inquiryError.value = ''
+  try {
+    inquiryState.value = await fetchInquiryState(profile.value.therapist_id)
+    inquirySubmitError.value = ''
+    if (inquiryState.value.inquiry_exists && inquiryState.value.inquiry_id) {
+      await loadInquiryMessages()
+    } else {
+      inquiryMessages.value = []
+    }
   } catch (err: any) {
-    reviewError.value = err?.response?.data?.detail || 'Не вдалося зберегти відгук.'
+    inquiryState.value = null
+    inquiryMessages.value = []
+    inquiryError.value = getInquiryActionErrorMessage(err, 'client', 'Не вдалося завантажити запит до бронювання.')
   } finally {
-    reviewSubmitting.value = false
+    inquiryLoading.value = false
   }
 }
 
-async function shareProfile() {
-  if (!profile.value?.public_slug) return
-  const url = `${window.location.origin}/specialist/${profile.value.public_slug}`
-  const title = publicName.value || 'Профіль спеціаліста'
-  const text = `Профіль спеціаліста ${title}`
+async function submitInquiryMessage() {
+  const body = inquiryDraft.value.trim()
+  if (!body || !profile.value?.therapist_id || !inquiryState.value) return
+
+  inquirySubmitting.value = true
+  inquirySubmitError.value = ''
   try {
-    if (navigator.share) {
-      await navigator.share({ title, text, url })
-      toast.success('Профіль надіслано.')
+    if (inquiryState.value.can_create_inquiry) {
+      await createInquiryThread({
+        specialist_id: profile.value.therapist_id,
+        body,
+      })
+      toast.success('Запит надіслано.')
+    } else if (inquiryState.value.inquiry_id && inquiryState.value.can_client_send) {
+      await sendInquiryMessage(inquiryState.value.inquiry_id, body)
+      toast.success('Уточнення надіслано.')
+    } else {
+      inquirySubmitError.value = inquiryLeadCopy.value.body
       return
     }
-  } catch {
-    // ignore and fallback
-  }
-  try {
-    await navigator.clipboard.writeText(url)
-    toast.success('Посилання скопійовано.')
-  } catch {
-    toast.error('Не вдалося скопіювати посилання.')
+    inquiryDraft.value = ''
+    await loadInquiryState()
+  } catch (err: any) {
+    inquirySubmitError.value = getInquiryActionErrorMessage(
+      err,
+      'client',
+      'Не вдалося надіслати запит до бронювання.'
+    )
+  } finally {
+    inquirySubmitting.value = false
   }
 }
 
@@ -785,7 +1484,7 @@ function handleBookingClick(slotId: number) {
   }
   if (bookingSlotId.value === slotId) return
   if (!settingAccepted.value) {
-    bookingError.value = 'Погодьтеся з сетінгом перед бронюванням.'
+    bookingError.value = BOOKING_UI_MESSAGES.acceptSettingBeforeBooking
     flashSettingButton()
     return
   }
@@ -796,11 +1495,11 @@ async function bookSlot(slotId: number) {
   bookingError.value = ''
   bookingSuccess.value = ''
   if (!canBook.value) {
-    bookingError.value = 'Бронювання доступне лише для клієнтів.'
+    bookingError.value = BOOKING_UI_MESSAGES.onlyClientsCanBook
     return
   }
   if (!settingAccepted.value) {
-    bookingError.value = 'Погодьтеся з сетінгом перед бронюванням.'
+    bookingError.value = BOOKING_UI_MESSAGES.acceptSettingBeforeBooking
     openSettingModal()
     return
   }
@@ -808,31 +1507,20 @@ async function bookSlot(slotId: number) {
   const bookedSlot = slots.value.find((slot) => slot.id === slotId) || null
   try {
     await apiPost('/booking/sessions/', { slot_id: slotId, setting_accepted: true })
-    bookingSuccess.value = 'Сесію заброньовано. Перевірте ваш кабінет.'
+    bookingSuccess.value = BOOKING_SUCCESS_MESSAGES.sessionBooked
     toast.success(bookingSuccess.value)
     lastBookedSlot.value = bookedSlot
     showBookingModal.value = true
     slots.value = slots.value.filter((slot) => slot.id !== slotId)
     if (profile.value) {
-      const entry = pickTherapist(profile.value)
-      const raw = localStorage.getItem('selectedTherapists')
-      const legacy = localStorage.getItem('selectedTherapist')
-      let items: any[] = []
-      try {
-        if (raw) {
-          items = JSON.parse(raw)
-        } else if (legacy) {
-          items = [JSON.parse(legacy)]
-        }
-      } catch {
-        items = []
-      }
-      const filtered = items.filter((item) => item.public_slug !== entry.public_slug)
+      const entry = pickSpecialist(profile.value)
+      const items = getStoredSelectedSpecialists()
+      const filtered = items.filter((item: any) => item.public_slug !== entry.public_slug)
       filtered.unshift(entry)
-      localStorage.setItem('selectedTherapists', JSON.stringify(filtered))
+      persistSelectedSpecialists(filtered)
     }
   } catch (err: any) {
-    bookingError.value = err?.response?.data?.detail || 'Не вдалося забронювати віконце.'
+    bookingError.value = getBookingErrorMessage(err, BOOKING_ERROR_FALLBACKS.bookSlot)
     toast.error(bookingError.value)
   } finally {
     bookingSlotId.value = null
@@ -851,7 +1539,7 @@ function closeSettingModal() {
   showSettingModal.value = false
 }
 
-function pickTherapist(data: PublicTherapistProfile) {
+function pickSpecialist(data: PublicSpecialistProfile) {
   return {
     therapist_id: data.therapist_id,
     public_slug: data.public_slug,
@@ -864,39 +1552,105 @@ function pickTherapist(data: PublicTherapistProfile) {
   }
 }
 
-function saveViewedTherapist(data: PublicTherapistProfile) {
-  if (!data.public_slug) return
-  const raw = localStorage.getItem('viewedTherapists')
-  let items: any[] = []
+function getStoredSelectedSpecialists() {
+  const raw =
+    localStorage.getItem('selectedSpecialists') || localStorage.getItem('selectedTherapists')
+  const legacy = localStorage.getItem('selectedTherapist')
   try {
-    items = raw ? JSON.parse(raw) : []
+    if (raw) return JSON.parse(raw)
+    if (legacy) return [JSON.parse(legacy)]
   } catch {
-    items = []
+    return []
   }
-  const entry = pickTherapist(data)
-  const filtered = items.filter((item) => item.public_slug !== entry.public_slug)
+  return []
+}
+
+function persistSelectedSpecialists(items: any[]) {
+  localStorage.setItem('selectedSpecialists', JSON.stringify(items))
+  localStorage.setItem('selectedTherapists', JSON.stringify(items))
+  const first = items[0] ?? null
+  if (first) {
+    localStorage.setItem('selectedTherapist', JSON.stringify(first))
+  } else {
+    localStorage.removeItem('selectedTherapist')
+  }
+}
+
+function getStoredViewedSpecialists() {
+  const raw = localStorage.getItem('viewedSpecialists') || localStorage.getItem('viewedTherapists')
+  try {
+    return raw ? JSON.parse(raw) : []
+  } catch {
+    return []
+  }
+}
+
+function persistViewedSpecialists(items: any[]) {
+  localStorage.setItem('viewedSpecialists', JSON.stringify(items))
+  localStorage.setItem('viewedTherapists', JSON.stringify(items))
+}
+
+function saveViewedSpecialist(data: PublicSpecialistProfile) {
+  if (!data.public_slug) return
+  const items = getStoredViewedSpecialists()
+  const entry = pickSpecialist(data)
+  const filtered = items.filter((item: any) => item.public_slug !== entry.public_slug)
   filtered.unshift(entry)
-  localStorage.setItem('viewedTherapists', JSON.stringify(filtered.slice(0, 8)))
+  persistViewedSpecialists(filtered.slice(0, 8))
 }
 
 watch(slug, () => {
   profile.value = null
   slots.value = []
+  showAllSlots.value = false
   selectedDate.value = toLocalDate(new Date())
-  loadProfile().then(loadSlots)
+  inquiryState.value = null
+  inquiryMessages.value = []
+  inquiryDraft.value = ''
+  inquiryError.value = ''
+  inquirySubmitError.value = ''
+  loadProfile().then(async () => {
+    await loadSlots()
+    await loadInquiryState()
+  })
   loadClientSessions()
-  loadReviews()
+  loadChatThreads()
   loadJournal()
+  loadReviews()
 })
 
 watch(selectedDate, () => {
   slots.value = []
+  showAllSlots.value = false
   loadSlots()
 })
 
 watch([isAuthenticated, isClient], () => {
   loadClientSessions()
+  loadChatThreads()
+  loadInquiryState()
 })
+
+watch(
+  [() => route.hash, showInquiryPanel],
+  async ([hash, canShowInquiry]) => {
+    if (hash !== '#inquiry' || !canShowInquiry) return
+    await nextTick()
+    focusInquirySection()
+  },
+  { immediate: true }
+)
+
+watch(
+  () => route.query.cat,
+  (value) => {
+    const key = String(value || 'ALL')
+    if (['ALL', 'TIP', 'EXPLAIN', 'FAQ', 'RESEARCH', 'PRACTICE'].includes(key)) {
+      activeCategory.value = key as JournalCategory
+    }
+  },
+  { immediate: true }
+)
 
 onMounted(async () => {
   if (!selectedDate.value) {
@@ -905,8 +1659,10 @@ onMounted(async () => {
   await loadProfile()
   await loadSlots()
   await loadClientSessions()
-  await loadReviews()
+  await loadChatThreads()
+  await loadInquiryState()
   await loadJournal()
+  await loadReviews()
 })
 </script>
 
@@ -917,32 +1673,118 @@ onMounted(async () => {
 }
 
 .public__hero {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  gap: 20px;
-  background: linear-gradient(135deg, rgba(8, 113, 201, 0.16), rgba(7, 47, 71, 0.06));
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr) 360px;
+  align-items: start;
+  gap: 22px;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--color-primary-100) 70%, #ffffff),
+    color-mix(in srgb, var(--color-neutral-100) 60%, #ffffff)
+  );
   border: 1px solid var(--line);
   border-radius: var(--radius);
   padding: 22px 24px;
   box-shadow: var(--shadow);
 }
 
+.hero-media {
+  width: 260px;
+  display: grid;
+  gap: 10px;
+  align-content: start;
+}
+
+.hero-photo {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: #fff;
+}
+
+.hero-photo-placeholder {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 16px;
+  border: 1px dashed var(--line);
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.65);
+}
+
+.hero-video {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: #0f2b3a;
+}
+
 .public__title {
   font-size: 32px;
 }
 
-  .public__subtitle {
-    max-width: 520px;
-  }
+.public__subtitle {
+  max-width: 520px;
+}
 
+.hero-main {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+  min-width: 0;
+}
 
-.public__actions {
+.hero-trust {
   display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 12px;
   flex-wrap: wrap;
+  gap: 8px;
+}
+
+.hero-trust span {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid var(--line);
+  font-size: 12px;
+}
+
+.hero-cta {
+  width: 360px;
+  min-width: 360px;
+  max-width: 360px;
+  display: grid;
+  gap: 12px;
+  border: 1px solid color-mix(in srgb, var(--line) 70%, #fff);
+  background: rgba(255, 255, 255, 0.78);
+  border-radius: 14px;
+  padding: 14px;
+}
+
+.hero-cta__prices {
+  display: grid;
+  gap: 8px;
+}
+
+.hero-cta__price {
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: #fff;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.hero-cta__price--intro {
+  border-color: color-mix(in srgb, var(--color-primary-500) 20%, var(--line));
+}
+
+.hero-cta__actions {
+  display: grid;
+  gap: 8px;
 }
 
 .public__grid {
@@ -959,11 +1801,18 @@ onMounted(async () => {
   grid-column: 1;
 }
 
-.panel--reviews {
-  grid-column: 2;
+.panel--journal {
+  grid-column: 1 / -1;
 }
 
-.panel--journal {
+.panel--inquiry,
+.panel--trust,
+.panel--work-format,
+.panel--about,
+.panel--who,
+.panel--contacts,
+.panel--reviews,
+.panel--footer-cta {
   grid-column: 1 / -1;
 }
 
@@ -1064,73 +1913,268 @@ onMounted(async () => {
   font-size: 12px;
 }
 
+.first-session-flow {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.inquiry-state {
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  font-size: 14px;
+}
+
+.inquiry-state--info {
+  background: rgba(8, 113, 201, 0.08);
+}
+
+.inquiry-state--warning {
+  background: rgba(194, 75, 75, 0.08);
+}
+
+.inquiry-state--neutral {
+  background: rgba(7, 47, 71, 0.04);
+}
+
+.inquiry-thread {
+  display: grid;
+  gap: 10px;
+}
+
+.inquiry-message {
+  display: grid;
+  gap: 6px;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  background: #fff;
+}
+
+.inquiry-message--mine {
+  background: rgba(8, 113, 201, 0.06);
+}
+
+.inquiry-message__author {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.inquiry-message__body {
+  white-space: pre-line;
+  line-height: 1.5;
+}
+
+.inquiry-message__time {
+  font-size: 12px;
+}
+
+.inquiry-composer {
+  display: grid;
+  gap: 10px;
+}
+
+.inquiry-composer__textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.inquiry-composer__hint {
+  font-size: 12px;
+}
+
+.flow-card {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: linear-gradient(180deg, rgba(7, 47, 71, 0.02), #fff);
+  padding: 12px;
+  display: grid;
+  gap: 8px;
+}
+
+.flow-card__title {
+  font-weight: 600;
+  color: var(--deep);
+}
+
+.flow-card__list {
+  margin: 0;
+  padding-left: 16px;
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
 .badge--soft {
   background: rgba(8, 113, 201, 0.12);
 }
 
-.profile-card {
+.profile-summary {
   display: grid;
-  grid-template-columns: 120px 1fr;
-  gap: 16px;
-  align-items: start;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
 }
 
-.profile-card__media img {
-  width: 100%;
-  max-width: 180px;
-  height: 180px;
-  border-radius: 18px;
-  border: 1px solid var(--line);
-  object-fit: cover;
-}
-
-.profile-video {
-  width: 100%;
-  max-width: 240px;
-  margin-top: 12px;
-  border-radius: 14px;
-  border: 1px solid var(--line);
-  background: #0f2b3a;
-  display: block;
-}
-
-.media-placeholder {
-  width: 180px;
-  height: 180px;
-  border-radius: 14px;
-  border: 1px dashed rgba(47, 63, 73, 0.2);
+.work-format-grid {
   display: grid;
-  place-items: center;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.profile-summary__item {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: #f8fafc;
+  font-size: 13px;
+}
+
+.profile-contact {
+  display: grid;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px;
+  background: #fff;
+}
+
+.profile-contact__list {
+  display: grid;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.about-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.who-lead {
+  margin-top: -4px;
+}
+
+.who-text {
+  white-space: pre-line;
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--deep);
+}
+
+.trust-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.trust-card {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: #f8fafc;
+  display: grid;
+  gap: 4px;
+}
+
+.trust-card__label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.trust-card__value {
+  font-weight: 600;
+}
+
+.contact-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.contact-action {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 10px 12px;
+  display: grid;
+  gap: 4px;
+  text-decoration: none;
+  color: inherit;
+  background: #fff;
+}
+
+.contact-action:hover {
+  border-color: color-mix(in srgb, var(--primary) 32%, var(--line));
+  background: #f8fbfd;
+}
+
+.contact-action__label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.contact-action__value {
+  font-weight: 600;
+}
+
+.reviews-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.review-card {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 12px;
+  background: #fff;
+  display: grid;
+  gap: 10px;
+}
+
+.review-card__text {
+  line-height: 1.5;
+}
+
+.review-card__meta {
   color: var(--muted);
   font-size: 12px;
 }
 
-.profile-card__title {
+.footer-cta {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: center;
+}
+
+.footer-cta__info {
+  display: grid;
+  gap: 6px;
+}
+
+.footer-cta__name {
   font-family: var(--font-display);
-  font-size: 22px;
-  color: var(--ink);
-  font-weight: 700;
-}
-
-.profile-card__meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  font-size: 13px;
-  color: var(--muted);
-}
-
-.profile-card__price {
-  margin-top: 8px;
+  font-size: 28px;
   font-weight: 600;
 }
 
-.profile-card__contact {
-  margin-top: 10px;
+.footer-cta__price {
+  font-weight: 600;
+}
+
+.footer-cta__actions {
   display: grid;
-  gap: 6px;
-  font-size: 13px;
-  color: var(--muted);
+  gap: 8px;
+  min-width: 320px;
 }
 
 .profile-bio {
@@ -1154,6 +2198,10 @@ onMounted(async () => {
 .slot-list {
   display: grid;
   gap: 10px;
+}
+
+.slot-list__toggle {
+  justify-self: start;
 }
 
   .slot-card {
@@ -1197,48 +2245,438 @@ onMounted(async () => {
     background: rgba(7, 47, 71, 0.04);
   }
 
-  .panel--reviews {
-    display: grid;
-    gap: 12px;
-  }
-
   .panel--journal {
     display: grid;
     gap: 12px;
   }
 
+  .profile-collections {
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 10px 12px;
+    background: #fff;
+    display: grid;
+    gap: 10px;
+  }
+
+  .profile-collections__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .profile-collections__title {
+    font-size: 16px;
+    font-weight: 700;
+  }
+
+  .profile-collections__list {
+    display: grid;
+    gap: 8px;
+  }
+
+  .profile-collection-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 8px 10px;
+    color: inherit;
+    text-decoration: none;
+    background: rgba(255, 255, 255, 0.85);
+  }
+
+  .profile-collection-item__left {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 0;
+  }
+
+  .profile-collection-item__cover {
+    width: 42px;
+    height: 30px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    background: var(--color-neutral-50, #f7f8f9);
+    flex-shrink: 0;
+  }
+
+  .profile-collection-item__cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .profile-collection-item:hover {
+    border-color: rgba(43, 122, 111, 0.35);
+    background: rgba(43, 122, 111, 0.06);
+  }
+
+  .profile-collection-item__name {
+    font-size: 14px;
+    font-weight: 600;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .profile-collection-item__meta {
+    font-size: 12px;
+    color: var(--muted);
+    white-space: nowrap;
+  }
+
   .journal-list {
     display: grid;
     gap: 12px;
+    grid-template-columns: 1fr;
+  }
+
+  .journal-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+    align-items: start;
+    grid-auto-rows: 1fr;
+  }
+
+  .journal-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 6px 0 14px;
+  }
+
+  .filter-chip {
+    border: 1px solid var(--line);
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    border-radius: 999px;
+    padding: 8px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+  }
+
+  .filter-chip:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.06);
+  }
+
+  .filter-chip.is-active {
+    background: rgba(43, 122, 111, 0.12);
+    border-color: rgba(43, 122, 111, 0.35);
+  }
+
+  .empty {
+    display: grid;
+    gap: 10px;
+    padding: 16px 18px;
+    border-radius: 12px;
+    border: 1px dashed var(--line);
+    background: #fff;
+  }
+
+  .empty-title {
+    font-weight: 600;
+  }
+
+  .post-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.85);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    backdrop-filter: blur(8px);
+    color: var(--cat, #2b7a6f);
+  }
+
+  .post-tag::before {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: currentColor;
+    opacity: 0.9;
+  }
+
+  .pin-badge {
+    display: inline-flex;
+    align-items: center;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: rgba(43, 122, 111, 0.12);
+    border: 1px solid rgba(43, 122, 111, 0.25);
+    color: #2b7a6f;
+    width: fit-content;
+    margin-top: 8px;
+  }
+
+  .journal-card--pinned {
+    border-color: rgba(43, 122, 111, 0.35);
+    box-shadow: 0 10px 30px rgba(43, 122, 111, 0.1);
   }
 
   .journal-card {
     display: grid;
-    gap: 10px;
     border: 1px solid var(--line);
-    border-radius: 12px;
-    padding: 12px;
+    border-radius: 14px;
+    padding: 24px;
     background: #fff;
+    overflow: hidden;
+    gap: 24px;
+    border-left: 4px solid #9ad7c8;
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+    height: auto;
+    align-items: start;
+    animation: journalFade 0.35s ease;
+  }
+
+  .journal-card:hover {
+    transform: translateY(-4px);
+    border-color: #2b7a6f;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06), 0 2px 6px rgba(0, 0, 0, 0.04);
+  }
+
+  .journal-card--feature {
+    grid-template-columns: 1fr 360px;
+    padding: 34px 34px 34px 28px;
+    border-left-width: 6px;
+    grid-column: 1 / -1;
+  }
+
+  .journal-card--feature .journal-cover img {
+    max-height: none;
+  }
+
+  .journal-card--feature .journal-title {
+    font-size: 30px;
+    line-height: 1.25;
+  }
+
+  .journal-card--feature .journal-summary {
+    font-size: 17px;
+    -webkit-line-clamp: 3;
+  }
+
+  .journal-cover {
+    background: var(--color-neutral-50, #f7f8f9);
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 12px;
+    border-radius: 12px;
+    position: relative;
+    aspect-ratio: 3 / 2;
+    overflow: hidden;
   }
 
   .journal-cover img {
     width: 100%;
-    height: 160px;
+    height: auto;
+    display: block;
+    height: 100%;
     object-fit: cover;
-    border-radius: 10px;
+    object-position: 50% 35%;
+    transition: transform 0.4s ease;
+  }
+
+  .journal-card:hover .journal-cover img {
+    transform: scale(1.04);
+  }
+
+  .journal-body {
+    display: grid;
+    gap: 10px;
+    padding: 0;
   }
 
   .journal-title {
     font-weight: 600;
-    font-size: 16px;
+    font-size: 22px;
+    line-height: 1.35;
   }
 
-  .journal-date {
-    font-size: 12px;
+  .journal-meta {
+    font-size: 14px;
+    color: #8a8a8a;
   }
 
   .journal-summary {
-    color: var(--muted);
+    font-size: 16px;
+    line-height: 1.6;
+    color: #555;
+    max-width: 540px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .journal-full {
+    margin-top: 10px;
+    white-space: pre-wrap;
+    color: var(--color-neutral-800);
+  }
+
+  .read-more {
+    margin-top: 10px;
+    align-self: flex-start;
+    font-size: 15px;
+    font-weight: 500;
+    color: #2b7a6f;
+    background: transparent;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+  }
+
+  .read-more:hover {
+    text-decoration: underline;
+  }
+
+  .journal-card--closed {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .journal-card--closed .journal-cover {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .journal-card--closed .journal-body {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .journal-card--closed .journal-cover img {
+    max-height: none;
+  }
+
+  .journal-card--open {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .journal-grid .journal-card {
+    grid-template-columns: 1fr 180px;
+    padding: 18px 18px 18px 16px;
+    height: 100%;
+    align-content: start;
+  }
+
+  .journal-grid .journal-cover {
+    height: 100%;
+    align-items: center;
+    aspect-ratio: auto;
+  }
+
+  .journal-grid .journal-cover img {
+    height: 100%;
+    object-fit: contain;
+  }
+
+  .journal-grid .journal-cover img {
+    max-height: 140px;
+  }
+
+  .journal-grid .journal-title {
+    font-size: 20px;
+    line-height: 1.3;
+  }
+
+  .journal-grid .journal-summary {
+    -webkit-line-clamp: 2;
+  }
+
+  .journal-card--open .journal-cover {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .journal-card--open .journal-body {
+    grid-column: 1;
+    grid-row: 1;
+    padding-right: 6px;
+  }
+
+  .journal-card--open .journal-cover {
+    aspect-ratio: auto;
+    align-items: flex-start;
+  }
+
+  .journal-card--open .journal-cover img {
+    height: auto;
+    max-height: 600px;
+    object-fit: contain;
+  }
+
+  .journal-card--open .journal-body {
+    padding-right: 18px;
+  }
+
+  .journal-card--open .journal-readmore {
+    margin-top: 16px;
+  }
+
+  @media (max-width: 900px) {
+    .journal-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .journal-grid .journal-card {
+      grid-template-columns: 1fr;
+    }
+
+    .journal-grid .journal-cover img {
+      max-height: 200px;
+    }
+
+    .journal-card--open,
+    .journal-card--closed,
+    .journal-card--feature {
+      grid-template-columns: 1fr;
+      padding: 18px;
+    }
+
+    .journal-card--open .journal-cover,
+    .journal-card--closed .journal-cover {
+      padding: 10px 12px;
+    }
+
+    .journal-card--feature .journal-cover img {
+      max-height: 220px;
+    }
+  }
+
+  @keyframes journalFade {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 
   .rating-pill {
@@ -1248,11 +2686,6 @@ onMounted(async () => {
     font-weight: 600;
     background: rgba(31, 122, 76, 0.16);
     color: #1f7a4c;
-  }
-
-  .review-list {
-    display: grid;
-    gap: 10px;
   }
 
   .confirmed-block {
@@ -1288,11 +2721,54 @@ onMounted(async () => {
     font-weight: 600;
   }
 
-  .setting-bar {
+  .booking-gate {
+    display: grid;
+    gap: 12px;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+    border-radius: 12px;
+    border: 1px solid color-mix(in srgb, var(--primary) 18%, var(--line));
+    background: color-mix(in srgb, var(--primary) 6%, #ffffff);
+  }
+
+  .booking-gate--pending {
+    border-color: color-mix(in srgb, #d9a441 40%, var(--line));
+    background: color-mix(in srgb, #f4e2ae 18%, #ffffff);
+  }
+
+  .booking-gate--ready {
+    border-color: color-mix(in srgb, #1f7a4c 30%, var(--line));
+    background: color-mix(in srgb, #1f7a4c 8%, #ffffff);
+  }
+
+  .booking-gate--attention {
+    box-shadow: 0 0 0 3px rgba(42, 129, 168, 0.12);
+  }
+
+  .booking-gate__content {
     display: flex;
-    align-items: center;
-    gap: 10px;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
     flex-wrap: wrap;
+  }
+
+  .booking-gate__title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .booking-gate__text {
+    margin: 0;
+    max-width: 720px;
+    color: var(--muted);
+    line-height: 1.45;
+  }
+
+  .booking-gate__button {
+    flex-shrink: 0;
   }
 
   .setting-check {
@@ -1303,9 +2779,19 @@ onMounted(async () => {
     color: var(--muted);
   }
 
+  .booking-gate__check {
+    font-size: 14px;
+    color: var(--text);
+  }
+
   .setting-check input {
     width: 16px;
     height: 16px;
+  }
+
+  .booking-gate__hint {
+    font-size: 13px;
+    color: var(--muted);
   }
 
   .setting-check--modal {
@@ -1348,6 +2834,20 @@ onMounted(async () => {
     z-index: 60;
     display: grid;
     place-items: center;
+  }
+
+  @media (max-width: 640px) {
+    .booking-gate {
+      padding: 12px;
+    }
+
+    .booking-gate__content {
+      align-items: stretch;
+    }
+
+    .booking-gate__button {
+      width: 100%;
+    }
   }
 
   .setting-modal__backdrop {
@@ -1394,6 +2894,15 @@ onMounted(async () => {
     font-weight: 500;
   }
 
+  .booking-confirm {
+    color: var(--ink);
+    font-weight: 500;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: rgba(8, 113, 201, 0.08);
+    border: 1px solid var(--line);
+  }
+
   .booking-slot {
     display: grid;
     gap: 4px;
@@ -1405,6 +2914,25 @@ onMounted(async () => {
 
   .booking-slot__time {
     font-weight: 600;
+  }
+
+  .booking-next {
+    display: grid;
+    gap: 6px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: rgba(7, 47, 71, 0.04);
+    border: 1px dashed rgba(47, 63, 73, 0.2);
+  }
+
+  .booking-next__title {
+    font-weight: 600;
+    color: var(--deep);
+  }
+
+  .booking-next__item {
+    color: var(--muted);
+    font-size: 13px;
   }
 
   .setting-section {
@@ -1423,80 +2951,53 @@ onMounted(async () => {
     color: var(--muted);
   }
 
-  .review-card {
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    padding: 10px 12px;
-    background: #fff;
-    display: grid;
-    gap: 8px;
-  }
-
-  .review-head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-  }
-
-  .review-rating {
-    font-weight: 600;
-  }
-
-  .review-text {
-    color: var(--deep);
-    white-space: pre-line;
-  }
-
-  .review-response {
-    margin-top: 4px;
-    border-radius: 10px;
-    border: 1px dashed var(--line);
-    padding: 8px 10px;
-    background: #f8fbff;
-    display: grid;
-    gap: 4px;
-  }
-
-  .review-response__label {
-    font-size: 12px;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: var(--muted);
-  }
-
-  .review-response__text {
-    color: var(--deep);
-    white-space: pre-line;
-  }
-
-  .review-response__date {
-    font-size: 12px;
-  }
-
 @media (max-width: 960px) {
   .public__hero {
-    flex-direction: column;
-    align-items: flex-start;
+    grid-template-columns: 1fr;
+    gap: 14px;
+  }
+
+  .hero-media {
+    width: 100%;
+    max-width: 320px;
+  }
+
+  .hero-main {
+    width: 100%;
+  }
+
+  .hero-cta {
+    width: 100%;
+    min-width: 100%;
+    max-width: 100%;
   }
 
   .public__grid {
     grid-template-columns: 1fr;
   }
 
-  .profile-card {
+  .profile-summary {
     grid-template-columns: 1fr;
   }
 
-  .profile-card__media img,
-  .media-placeholder {
-    width: 100%;
-    max-width: 240px;
-    height: 240px;
+  .work-format-grid {
+    grid-template-columns: 1fr;
   }
 
-  .profile-video {
-    max-width: 100%;
+  .about-grid,
+  .trust-grid,
+  .contact-actions,
+  .reviews-list,
+  .footer-cta {
+    grid-template-columns: 1fr;
+  }
+
+  .footer-cta__actions {
+    min-width: 0;
+  }
+
+  .first-session-flow {
+    grid-template-columns: 1fr;
   }
 }
 </style>

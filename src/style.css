@@ -3,49 +3,81 @@
 
 :root {
   /* Core (shared) */
-  --bg: #f8f9fb;
-  --surface: #f2f3f6;
-  --surface-2: #e9ebf0;
-  --text: #0a0c12;
-  --text-2: #3f3a42;
-  --border: rgba(10, 12, 18, 0.12);
-  --shadow-1: 0 10px 30px rgba(2, 54, 97, 0.12);
-  --shadow-2: 0 18px 50px rgba(2, 54, 97, 0.18);
-  --radius: 18px;
+  --bg: #f9f3d9;
+  --surface: #fff8e6;
+  --surface-2: #f2ecd1;
+  --text: #191919;
+  --text-2: #1f2a26;
+  --border: #e4d8b3;
+  --shadow-1: 0 6px 18px rgba(17, 64, 54, 0.1);
+  --shadow-2: 0 12px 30px rgba(17, 64, 54, 0.14);
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-pill: 999px;
+  --radius: var(--radius-lg);
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial, "Noto Sans", "Liberation Sans", sans-serif;
   --font-display: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Arial, "Noto Sans", "Liberation Sans", sans-serif;
-  --sky-1: #cfe6ff;
-  --sky-2: #e7f2ff;
-  --sky-3: #f6fbff;
+  --sky-1: #f9f3d9;
+  --sky-2: #f2ecd1;
+  --sky-3: #fff8e6;
+
+  /* Design system palette */
+  --color-primary-500: #16af8e;
+  --color-primary-600: #114036;
+  --color-primary-700: #191919;
+  --color-primary-100: #d8efe8;
+
+  --color-neutral-900: #191919;
+  --color-neutral-800: #1f2a26;
+  --color-neutral-700: #114036;
+  --color-neutral-600: #2b3f3a;
+  --color-neutral-500: #4a5b55;
+  --color-neutral-200: #e4d8b3;
+  --color-neutral-100: #f2ecd1;
+  --color-neutral-50: #fff8e6;
+
+  --color-success-500: #16af8e;
+  --color-success-100: #d8efe8;
+  --color-warning-500: #f9b73f;
+  --color-warning-100: #f9f3d9;
+  --color-error-500: #8f3a2a;
+  --color-error-100: #f3e1d8;
+  --color-info-500: #114036;
+  --color-info-100: #e3efe9;
 
   /* Role defaults (client as baseline) */
-  --primary: #023661;
-  --primary-hover: #0a4b86;
-  --primary-soft: #d7dee6;
-  --primary-soft-2: #c7d3e0;
-  --accent: #db5227;
-  --accent-2: #76828e;
+  --primary: var(--color-primary-500);
+  --primary-hover: color-mix(in srgb, var(--color-primary-500) 78%, var(--color-primary-600));
+  --primary-soft: var(--color-primary-100);
+  --primary-soft-2: var(--color-neutral-100);
+  --accent: #f9b73f;
+  --accent-2: var(--color-neutral-600);
 
-  --success: #023661;
-  --warning: #db5227;
-  --danger: #db5227;
+  --success: var(--color-success-500);
+  --warning: var(--color-warning-500);
+  --danger: var(--color-error-500);
 
   /* Derived legacy tokens */
   --deep: var(--text);
   --ink: var(--text);
   --paper: var(--surface);
-  --muted: var(--text-2);
+  --muted: var(--color-neutral-500);
   --card: var(--surface);
   --mist: var(--primary-soft);
   --line: var(--border);
   --shadow: var(--shadow-1);
 
   /* Topbar */
-  --topbar-bg: rgba(2, 54, 97, 0.7);
-  --topbar-border: rgba(2, 54, 97, 0.2);
-  --topbar-text: #f8f9fb;
+  --topbar-bg: #114036;
+  --topbar-border: #114036;
+  --topbar-text: #f9f3d9;
+  --topbar-icon: #f9f3d9;
 }
 
+html[data-role="specialist"],
 html[data-role="therapist"],
 html[data-role="client"] {
   /* Unified palette: intentionally no per-role overrides */
@@ -62,9 +94,9 @@ html, body, #app {
 body {
   margin: 0;
   background:
-    radial-gradient(1200px 520px at 20% -10%, rgba(2, 54, 97, 0.15), transparent 70%),
-    radial-gradient(900px 480px at 80% 0%, rgba(219, 82, 39, 0.12), transparent 70%),
-    linear-gradient(180deg, #f7f8fb 0%, var(--bg) 70%);
+    radial-gradient(1200px 520px at 18% -12%, rgba(22, 175, 142, 0.18), transparent 70%),
+    radial-gradient(900px 480px at 82% 0%, rgba(249, 183, 63, 0.16), transparent 70%),
+    linear-gradient(180deg, #f9f3d9 0%, var(--bg) 70%);
   color: var(--ink);
   font-family: var(--font-sans);
   font-weight: 200;
@@ -81,14 +113,14 @@ body::before {
   z-index: -1;
   pointer-events: none;
   background:
-    radial-gradient(1100px 520px at 12% 38%, rgba(2, 54, 97, 0.12), transparent 72%),
-    radial-gradient(980px 520px at 88% 42%, rgba(219, 82, 39, 0.12), transparent 72%),
+    radial-gradient(1100px 520px at 12% 38%, rgba(22, 175, 142, 0.12), transparent 72%),
+    radial-gradient(980px 520px at 88% 42%, rgba(249, 183, 63, 0.12), transparent 72%),
     linear-gradient(
       180deg,
-      rgba(247, 248, 251, 0.8) 0%,
-      rgba(248, 249, 251, 0.92) 28%,
-      rgba(248, 249, 251, 0.92) 72%,
-      rgba(247, 248, 251, 0.8) 100%
+      rgba(249, 243, 217, 0.8) 0%,
+      rgba(255, 248, 230, 0.92) 28%,
+      rgba(255, 248, 230, 0.92) 72%,
+      rgba(249, 243, 217, 0.8) 100%
     );
 }
 
@@ -114,12 +146,12 @@ a {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  backdrop-filter: blur(10px);
-  background: rgba(255, 255, 255, 0.28);
-  border: 1px solid rgba(0, 48, 73, 0.06);
-  border-radius: 18px;
-  padding: 14px 18px;
-  margin: 16px auto 0;
+  backdrop-filter: blur(8px);
+  background: color-mix(in srgb, var(--topbar-bg) 86%, transparent);
+  border: 1px solid color-mix(in srgb, var(--topbar-border) 70%, transparent);
+  border-radius: 10px;
+  padding: 11px 14px;
+  margin: 12px auto 0;
   max-width: 80vw;
 }
 
@@ -128,43 +160,43 @@ a {
   font-weight: 400;
   font-size: 22px;
   letter-spacing: 0.2px;
-  color: var(--ink);
+  color: var(--topbar-text);
 }
 
 .nav {
   display: flex;
-  gap: 16px;
+  gap: 10px;
   font-weight: 300;
 }
 
 .nav a {
   padding: 8px 12px;
-  border-radius: 999px;
+  border-radius: var(--radius-md);
   border: 1px solid transparent;
-  color: var(--ink);
+  color: var(--topbar-text);
 }
 .nav a.router-link-active {
-  border-color: rgba(110, 143, 153, 0.4);
-  background: rgba(110, 143, 153, 0.16);
+  border-color: color-mix(in srgb, var(--primary) 45%, transparent);
+  background: color-mix(in srgb, var(--primary) 18%, transparent);
 }
 
 .nav a.nav-link--active {
-  border-color: rgba(110, 143, 153, 0.4);
-  background: rgba(110, 143, 153, 0.16);
+  border-color: color-mix(in srgb, var(--primary) 45%, transparent);
+  background: color-mix(in srgb, var(--primary) 18%, transparent);
 }
 
 .hero {
   display: grid;
   grid-template-columns: 1.2fr 0.8fr;
-  gap: 24px;
-  margin: 24px 0 32px;
+  gap: 20px;
+  margin: 20px 0 28px;
 }
 
 .hero__card {
   background: color-mix(in srgb, var(--surface) 88%, #ffffff);
   border: 1px solid color-mix(in srgb, var(--border) 80%, #ffffff);
-  border-radius: var(--radius);
-  padding: 24px;
+  border-radius: var(--radius-lg);
+  padding: 20px;
   box-shadow: var(--shadow-2);
   color: var(--ink);
 }
@@ -187,15 +219,15 @@ a {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  font-size: 12px;
+  font-size: 11px;
   line-height: 1;
   white-space: nowrap;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
   color: var(--deep);
   background: color-mix(in srgb, var(--primary) 20%, transparent);
-  border-radius: 999px;
-  padding: 6px 10px;
+  border-radius: var(--radius-pill);
+  padding: 5px 8px;
   font-weight: 300;
   border: 1px solid color-mix(in srgb, var(--primary) 35%, transparent);
 }
@@ -215,8 +247,8 @@ a {
 .card {
   background: color-mix(in srgb, var(--surface) 88%, #ffffff);
   border: 1px solid color-mix(in srgb, var(--border) 80%, #ffffff);
-  border-radius: var(--radius);
-  padding: 24px;
+  border-radius: var(--radius-lg);
+  padding: 20px;
   box-shadow: var(--shadow-2);
   color: var(--ink);
 }
@@ -243,8 +275,8 @@ a {
 }
 
 .input {
-  padding: 12px 14px;
-  border-radius: 12px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
   border: 1px solid var(--line);
   font-family: var(--font-sans);
   font-size: 14px;
@@ -298,17 +330,20 @@ input[type="time"]:focus::-webkit-datetime-edit {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 12px 16px;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  background: linear-gradient(135deg, #003049 0%, #519cab 100%);
-  color: #f1fbff;
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid color-mix(in srgb, var(--color-primary-600) 55%, transparent);
+  background:
+    radial-gradient(140% 140% at 8% 12%, rgba(255, 255, 255, 0.35), transparent 60%),
+    radial-gradient(120% 140% at 92% 78%, rgba(17, 64, 54, 0.22), transparent 70%),
+    linear-gradient(135deg, var(--color-primary-600) 0%, var(--color-primary-500) 100%);
+  color: #f9f3d9;
   font-weight: 300;
   text-align: center;
   cursor: pointer;
   line-height: 1.2;
-  min-height: 40px;
-  box-shadow: 0 18px 36px rgba(0, 48, 73, 0.28), inset 0 1px 1px rgba(255, 255, 255, 0.3);
+  min-height: 36px;
+  box-shadow: 0 8px 18px rgba(17, 64, 54, 0.16), inset 0 1px 1px rgba(255, 255, 255, 0.18);
   transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
   position: relative;
   overflow: hidden;
@@ -317,65 +352,72 @@ input[type="time"]:focus::-webkit-datetime-edit {
 .btn::before {
   content: "";
   position: absolute;
-  inset: 2px;
-  border-radius: 10px;
+  inset: 1px;
+  border-radius: calc(var(--radius-md) - 2px);
   border: 1px solid rgba(255, 255, 255, 0.08);
   pointer-events: none;
 }
 
 .btn--ghost {
   background: transparent;
-  color: var(--ink);
-  border-color: color-mix(in srgb, var(--primary) 20%, var(--border));
+  color: var(--color-neutral-700);
+  border-color: var(--border);
   box-shadow: none;
 }
 
 .btn--danger {
-  background: linear-gradient(135deg, #7a1f1f 0%, #c24b4b 100%);
-  border-color: rgba(255, 255, 255, 0.22);
+  background: var(--color-error-500);
+  border-color: color-mix(in srgb, var(--color-error-500) 35%, transparent);
   color: #fff;
 }
 
 .btn--danger:hover {
-  background: linear-gradient(135deg, #8a2a2a 0%, #d25b5b 100%);
-  border-color: rgba(255, 255, 255, 0.3);
+  background: color-mix(in srgb, var(--color-error-500) 88%, #000000);
+  border-color: color-mix(in srgb, var(--color-error-500) 45%, transparent);
 }
 
 .btn--danger:active {
   transform: translateY(0);
-  box-shadow: 0 12px 24px rgba(120, 30, 30, 0.28), inset 0 1px 1px rgba(255, 255, 255, 0.3);
+  box-shadow: 0 12px 24px rgba(181, 82, 74, 0.28), inset 0 1px 1px rgba(255, 255, 255, 0.3);
 }
 
 .btn--danger:focus-visible {
-  outline: 2px solid rgba(194, 75, 75, 0.45);
+  outline: 2px solid color-mix(in srgb, var(--color-error-500) 55%, transparent);
   outline-offset: 2px;
 }
 
 .btn:hover {
-  background: linear-gradient(135deg, #0b3f5a 0%, #5fb2c4 100%);
-  border-color: rgba(255, 255, 255, 0.3);
-  box-shadow: 0 22px 46px rgba(0, 48, 73, 0.38), inset 0 1px 1px rgba(255, 255, 255, 0.3);
+  background:
+    radial-gradient(140% 140% at 12% 16%, rgba(255, 255, 255, 0.45), transparent 58%),
+    radial-gradient(120% 140% at 92% 78%, rgba(17, 64, 54, 0.28), transparent 70%),
+    linear-gradient(135deg, var(--color-primary-600) 0%, var(--color-primary-500) 100%);
+  border-color: color-mix(in srgb, var(--color-primary-600) 70%, transparent);
+  box-shadow: 0 10px 20px rgba(17, 64, 54, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.22);
   transform: translateY(-2px);
 }
 
 .btn:active {
   transform: translateY(0);
-  box-shadow: 0 12px 24px rgba(0, 48, 73, 0.32), inset 0 1px 1px rgba(255, 255, 255, 0.3);
+  box-shadow: 0 6px 14px rgba(17, 64, 54, 0.18), inset 0 1px 1px rgba(255, 255, 255, 0.2);
+  background:
+    radial-gradient(140% 140% at 12% 16%, rgba(255, 255, 255, 0.32), transparent 58%),
+    radial-gradient(120% 140% at 92% 78%, rgba(17, 64, 54, 0.28), transparent 70%),
+    linear-gradient(135deg, var(--color-primary-700) 0%, var(--color-primary-600) 100%);
 }
 
 .btn:focus-visible {
-  outline: 2px solid color-mix(in srgb, var(--primary) 35%, transparent);
+  outline: 2px solid color-mix(in srgb, var(--primary) 45%, transparent);
   outline-offset: 2px;
 }
 
 .btn--ghost:hover {
-  background: color-mix(in srgb, var(--primary) 12%, transparent);
-  border-color: color-mix(in srgb, var(--primary) 35%, var(--border));
+  background: var(--color-neutral-100);
+  border-color: var(--color-neutral-200);
   box-shadow: none;
 }
 
 .btn--ghost:active {
-  background: color-mix(in srgb, var(--primary) 18%, transparent);
+  background: var(--color-neutral-200);
 }
 
 .btn--ghost:focus-visible {
@@ -390,8 +432,9 @@ input[type="time"]:focus::-webkit-datetime-edit {
   cursor: not-allowed;
   box-shadow: none;
   transform: none;
-  background: linear-gradient(135deg, #c5d5df 0%, #b6cddb 100%);
-  border-color: rgba(255, 255, 255, 0.35);
+  background: var(--color-neutral-100);
+  border-color: var(--color-neutral-200);
+  color: var(--color-neutral-500);
 }
 
 .btn--ghost:disabled,
@@ -404,14 +447,14 @@ input[type="time"]:focus::-webkit-datetime-edit {
 .hero__actions {
   margin-top: 18px;
   display: flex;
-  gap: 12px;
+  gap: 10px;
   flex-wrap: wrap;
 }
 
 .hero__scene {
   position: relative;
   min-height: 280px;
-  border-radius: var(--radius);
+  border-radius: var(--radius-lg);
   background: var(--surface-2);
   border: 1px solid var(--border);
   overflow: hidden;
@@ -434,7 +477,7 @@ input[type="time"]:focus::-webkit-datetime-edit {
   width: 70%;
   height: 16px;
   background: color-mix(in srgb, var(--primary) 25%, var(--border));
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
 }
 
 .scene__lamp {
@@ -448,9 +491,9 @@ input[type="time"]:focus::-webkit-datetime-edit {
 .lamp__shade {
   width: 90px;
   height: 48px;
-  background: var(--accent);
+  background: var(--primary);
   border-radius: 50% 50% 40% 40%;
-  box-shadow: 0 8px 20px rgba(159, 192, 198, 0.45);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
 }
 
 .lamp__stem {
@@ -465,7 +508,7 @@ input[type="time"]:focus::-webkit-datetime-edit {
   height: 10px;
   margin: 0 auto;
   background: color-mix(in srgb, var(--primary) 35%, var(--border));
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
 }
 
 .scene__chair {
