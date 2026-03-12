@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <section class="public">
     <header class="public__hero">
       <div class="hero-media" v-if="profile">
@@ -632,7 +632,8 @@ import {
   fetchInquiryState,
   sendInquiryMessage,
 } from '../lib/api'
-import { toLocalDate } from '../lib/dates'
+import { toLocalDate, toUtcRange } from '../lib/dates'
+import { formatUkDateTimeCompact, formatUkDayMonth, formatUkWeekdayShort } from '../lib/dateTime'
 import {
   fetchPublicSpecialistProfile,
   fetchPublicAuthorJournalPosts,
@@ -788,8 +789,8 @@ const weekDays = computed(() => {
     const d = new Date(base)
     d.setDate(base.getDate() + i)
     const date = toLocalDate(d)
-    const label = d.toLocaleDateString('uk-UA', { weekday: 'short' })
-    const dateLabel = d.toLocaleDateString('uk-UA', { day: '2-digit', month: '2-digit' })
+    const label = formatUkWeekdayShort(d)
+    const dateLabel = formatUkDayMonth(d)
     days.push({ date, label, dateLabel })
   }
   return days
@@ -1060,16 +1061,7 @@ function formatPublicName(value?: string) {
 }
 
 function formatDate(value: string) {
-  const dt = new Date(value)
-  if (Number.isNaN(dt.getTime())) return value
-  return dt.toLocaleString('uk-UA', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  })
+  return formatUkDateTimeCompact(value, value)
 }
 
 function formatDuration(start: string, end: string) {
@@ -1084,6 +1076,16 @@ function formatDuration(start: string, end: string) {
   if (hours) parts.push(`${hours} \u0433\u043e\u0434`)
   if (mins) parts.push(`${mins} \u0445\u0432`)
   return `\u0422\u0440\u0438\u0432\u0430\u043b\u0456\u0441\u0442\u044c: ${parts.join(' ')}`
+}
+
+function slotMatchesLocalDate(slot: PublicSlot, date: string) {
+  return toLocalDate(new Date(slot.start_at)) === date
+}
+
+function toUtcDayRangeForLocalDate(date: string) {
+  const localStart = new Date(`${date}T00:00:00`)
+  const localEnd = new Date(`${date}T23:59:59.999`)
+  return toUtcRange(localStart, localEnd)
 }
 
 function toDateInputValue(date: Date) {
@@ -1167,11 +1169,16 @@ async function loadSlots() {
   slotsError.value = ''
   noSlotsAvailable.value = false
   try {
-    const dateFrom = selectedDate.value || toLocalDate(new Date())
+    const selectedLocalDate = selectedDate.value || toLocalDate(new Date())
+    const utcDayRange = toUtcDayRangeForLocalDate(selectedLocalDate)
     const resp = await apiGet<PublicSlot[]>('/booking/slots/', {
-      params: { therapist_id: profile.value.therapist_id, date: dateFrom },
+      params: {
+        therapist_id: profile.value.therapist_id,
+        date_from: utcDayRange.date_from,
+        date_to: utcDayRange.date_to,
+      },
     })
-    const list = resp || []
+    const list = (resp || []).filter((slot) => slotMatchesLocalDate(slot, selectedLocalDate))
     slots.value = list
     if (!list.length) {
       const anyResp = await apiGet<PublicSlot[]>('/booking/slots/', {

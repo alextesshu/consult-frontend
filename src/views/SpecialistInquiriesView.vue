@@ -94,6 +94,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
+import { formatUkDateTime } from '../lib/dateTime'
 import { useAuthStore } from '../stores/auth'
 import {
   fetchInquiryMessages,
@@ -138,14 +139,12 @@ function initials(value: string) {
 }
 
 function formatTime(value: string) {
-  const dt = new Date(value)
-  if (Number.isNaN(dt.getTime())) return value
-  return dt.toLocaleString('uk-UA', {
+  return formatUkDateTime(value, {
     day: '2-digit',
     month: '2-digit',
     hour: '2-digit',
     minute: '2-digit',
-  })
+  }, value)
 }
 
 function isMine(senderId: number) {
@@ -377,3 +376,5 @@ onMounted(async () => {
   }
 }
 </style>
+
+

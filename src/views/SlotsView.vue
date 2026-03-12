@@ -19,6 +19,11 @@
         <p class="muted" style="margin: 6px 0 0;">
           Вільне вікно — це вільний час для запису клієнта. Вкажіть початок і тривалість, і воно з'явиться у публічному профілі.
         </p>
+        <p class="slot-note">
+          Робочі години не створюють вільні вікна автоматично. Після зміни розкладу використайте
+          <RouterLink class="slot-note__link" to="/cabinet/availability-rules">генерацію у налаштуваннях розкладу</RouterLink>
+          або масове заповнення нижче.
+        </p>
       </div>
       <form class="slot-form" @submit.prevent="createSlot">
         <label class="field">
@@ -114,6 +119,9 @@
           </div>
         </div>
       </div>
+      <p class="slot-note">
+        Якщо обрана дата — сьогодні, система пропускає години, що вже минули. Нічні вікна можна створити лише для майбутнього часу або майбутньої дати.
+      </p>
     </section>
 
     <section class="panel">
@@ -152,6 +160,17 @@
         Показано вільні вікна за: {{ formatDateOnly(selectedDate) }}
         <span v-if="isSelectedToday" class="day-hint__today">· Сьогодні</span>
       </div>
+      <button
+        v-if="hasPastSlotsOnSelectedDate"
+        class="btn btn--ghost btn--sm slot-toggle"
+        type="button"
+        @click="showPastSlots = !showPastSlots"
+      >
+        {{ showPastSlots ? 'Сховати минулі вікна' : `Показати минулі вікна (${hiddenPastSlotsCount})` }}
+      </button>
+      <p v-if="isSelectedToday" class="slot-note">
+        Якщо нічний час для сьогодні вже минув, він не з'явиться у списку. Для перевірки нового нічного розкладу оберіть майбутню дату.
+      </p>
     </section>
 
     <div v-if="loading" class="muted" style="margin-top: 12px;">Завантаження...</div>
@@ -279,12 +298,19 @@ import { useToast } from '../composables/useToast'
 import ConfirmModal from '../components/ConfirmModal.vue'
 import ScheduleSubnav from '../components/ScheduleSubnav.vue'
 import { useConfirmModal } from '../composables/useConfirmModal'
+import { formatUkDateCompact, formatUkDateTime, formatUkDateTimeCompact } from '../lib/dateTime'
 
 type Slot = {
   id: number
   start_at: string
   end_at: string
   is_booked: boolean
+}
+
+type SlotConflict = {
+  slot_id?: number
+  start_at?: string
+  end_at?: string
 }
 
 const slots = ref<Slot[]>([])
@@ -309,6 +335,8 @@ const fillDayDate = ref(todayKey)
 const fillWeekDate = ref(todayKey)
 const dayOffset = ref(0)
 const selectedDate = ref(todayKey)
+const showPastSlots = ref(false)
+const pastSlotMessage = 'Неможливо створити вікно в минулому. Для нічного часу оберіть майбутню дату або майбутній час.'
 
 const editingId = ref<number | null>(null)
 const editStartDate = ref('')
@@ -316,26 +344,11 @@ const editStartTime = ref('')
 const editDuration = ref(50)
 
 function formatDate(value: string) {
-  const dt = new Date(value)
-  if (Number.isNaN(dt.getTime())) return value
-  return dt.toLocaleString('uk-UA', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  })
+  return formatUkDateTimeCompact(value, value)
 }
 
 function formatDateOnly(value: string) {
-  const dt = new Date(value)
-  if (Number.isNaN(dt.getTime())) return value
-  return dt.toLocaleDateString('uk-UA', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  })
+  return formatUkDateCompact(value, value)
 }
 
 function formatDuration(slot: Slot) {
@@ -351,6 +364,22 @@ function toLocalDateKey(value: string) {
   if (Number.isNaN(dt.getTime())) return value
   const offset = dt.getTimezoneOffset() * 60000
   return new Date(dt.getTime() - offset).toISOString().slice(0, 10)
+}
+
+function isFutureSlot(slot: Slot) {
+  const start = new Date(slot.start_at).getTime()
+  return !Number.isNaN(start) && start > Date.now()
+}
+
+function getSlotsForDate(dateKey: string) {
+  return slots.value.filter((slot) => toLocalDateKey(slot.start_at) === dateKey)
+}
+
+function getHiddenPastSlotsCount(dateKey: string, excludedSlotId?: number) {
+  return getSlotsForDate(dateKey).filter((slot) => {
+    if (excludedSlotId !== undefined && slot.id === excludedSlotId) return false
+    return !isFutureSlot(slot)
+  }).length
 }
 
 function formatUkTime(value: Date) {
@@ -428,9 +457,59 @@ function normalizeError(err: any) {
   return ''
 }
 
-function translateError(message: string) {
+function normalizeConflict(err: any): SlotConflict | null {
+  const conflict = err?.response?.data?.conflict
+  if (!conflict || typeof conflict !== 'object') return null
+
+  const normalized: SlotConflict = {}
+  if (typeof conflict.slot_id === 'number') normalized.slot_id = conflict.slot_id
+  if (typeof conflict.start_at === 'string' && conflict.start_at.trim()) normalized.start_at = conflict.start_at
+  if (typeof conflict.end_at === 'string' && conflict.end_at.trim()) normalized.end_at = conflict.end_at
+
+  return normalized.slot_id || normalized.start_at || normalized.end_at ? normalized : null
+}
+
+function formatConflictRange(conflict: SlotConflict) {
+  if (conflict.start_at && conflict.end_at) {
+    const startLabel = formatUkDateTimeCompact(conflict.start_at, '')
+    const sameDay = toLocalDateKey(conflict.start_at) === toLocalDateKey(conflict.end_at)
+    const endDate = new Date(conflict.end_at)
+    if (sameDay && !Number.isNaN(endDate.getTime())) {
+      return `${startLabel}-${formatUkTime(endDate)}`
+    }
+    return `${startLabel} - ${formatUkDateTimeCompact(conflict.end_at, '')}`
+  }
+
+  if (conflict.start_at) {
+    return formatUkDateTimeCompact(conflict.start_at, '')
+  }
+
+  if (typeof conflict.slot_id === 'number') {
+    return `ID ${conflict.slot_id}`
+  }
+
+  return ''
+}
+
+function isPastConflict(conflict: SlotConflict | null) {
+  if (!conflict?.end_at) return false
+  const end = new Date(conflict.end_at).getTime()
+  return !Number.isNaN(end) && end <= Date.now()
+}
+
+function translateError(
+  message: string,
+  options?: { conflict?: SlotConflict | null }
+) {
   if (!message) return ''
   if (message.includes('overlaps')) {
+    const conflictRange = options?.conflict ? formatConflictRange(options.conflict) : ''
+    if (conflictRange && isPastConflict(options?.conflict || null)) {
+      return `Віконце перетинається з уже існуючим: ${conflictRange}. Це вікно вже в минулому, тому не показується у списку за замовчуванням.`
+    }
+    if (conflictRange) {
+      return `Віконце перетинається з уже існуючим: ${conflictRange}.`
+    }
     return 'Віконце перетинається з уже існуючим.'
   }
   if (message.includes('end_at must be greater than start_at')) {
@@ -458,21 +537,29 @@ const dayOptions = computed(() => {
     const d = new Date(start.getTime() + idx * 24 * 60 * 60 * 1000)
     return {
       key: toDateInputValue(d),
-      label: d.toLocaleDateString('uk-UA', {
+      label: formatUkDateTime(d, {
         weekday: 'short',
         day: '2-digit',
         month: '2-digit',
-      }),
+      }, ''),
     }
   })
 })
 
 const filteredSlots = computed(() => {
-  if (!selectedDate.value) return slots.value
-  return slots.value.filter(
-    (slot) => toLocalDateKey(slot.start_at) === selectedDate.value
-  )
+  if (!selectedDate.value) {
+    return showPastSlots.value ? slots.value : slots.value.filter(isFutureSlot)
+  }
+  const slotsForDate = getSlotsForDate(selectedDate.value)
+  return showPastSlots.value ? slotsForDate : slotsForDate.filter(isFutureSlot)
 })
+
+const hiddenPastSlotsCount = computed(() => {
+  if (!selectedDate.value) return 0
+  return getHiddenPastSlotsCount(selectedDate.value)
+})
+
+const hasPastSlotsOnSelectedDate = computed(() => hiddenPastSlotsCount.value > 0)
 
 const isSelectedToday = computed(() => selectedDate.value === todayKey)
 const isFillDayToday = computed(() => fillDayDate.value === todayKey)
@@ -480,6 +567,7 @@ const isFillWeekToday = computed(() => fillWeekDate.value === todayKey)
 
 function selectDay(key: string) {
   selectedDate.value = key
+  showPastSlots.value = false
 }
 
 function shiftDays(direction: number) {
@@ -496,6 +584,9 @@ async function loadSlots() {
   try {
     const resp = await apiGet<Slot[]>('/cabinet/slots/')
     slots.value = resp || []
+    if (selectedDate.value && getHiddenPastSlotsCount(selectedDate.value) === 0) {
+      showPastSlots.value = false
+    }
   } catch (err: any) {
     error.value = getApiErrorMessage(err, '\u041d\u0435 \u0432\u0434\u0430\u043b\u043e\u0441\u044f \u0437\u0430\u0432\u0430\u043d\u0442\u0430\u0436\u0438\u0442\u0438 \u0441\u043b\u043e\u0442\u0438')
   } finally {
@@ -513,19 +604,27 @@ async function createSlot() {
       error.value = 'Вкажіть дату, час і тривалість у хвилинах.'
       return
     }
+    if (startAt.getTime() < Date.now()) {
+      error.value = pastSlotMessage
+      return
+    }
     const endAt = new Date(startAt.getTime() + durationMinutes * 60000)
     const payload = {
       start_at: startAt.toISOString(),
       end_at: endAt.toISOString(),
     }
-    const resp = await apiPost<Slot>('/cabinet/slots/', payload)
-    slots.value = [...slots.value, resp]
+    await apiPost<Slot>('/cabinet/slots/', payload)
+    selectedDate.value = toDateInputValue(startAt)
+    showPastSlots.value = false
+    await loadSlots()
     newStartDate.value = ''
     newStartTime.value = ''
     newDuration.value = 50
+    toast.success(`Вільне вікно на ${formatUkDateTimeCompact(startAt, '')} створено.`)
   } catch (err: any) {
     const raw = normalizeError(err)
-    error.value = translateError(raw) || 'Не вдалося створити вільне вікно'
+    const conflict = normalizeConflict(err)
+    error.value = translateError(raw, { conflict }) || 'Не вдалося створити вільне вікно'
     newStartTime.value = ''
   } finally {
     loading.value = false
@@ -539,8 +638,14 @@ async function fillDay() {
     await apiPost('/cabinet/slots/fill-day/', {
       date: fillDayDate.value,
     })
+    selectedDate.value = fillDayDate.value
+    showPastSlots.value = false
     await loadSlots()
-    toast.success(`День ${formatDateOnly(fillDayDate.value)} заповнено.`)
+    toast.success(
+      isFillDayToday.value
+        ? `День ${formatDateOnly(fillDayDate.value)} заповнено. Додано лише майбутні вікна.`
+        : `День ${formatDateOnly(fillDayDate.value)} заповнено.`,
+    )
   } catch (err: any) {
     error.value = err?.response?.data?.detail || 'Не вдалося заповнити день вільними вікнами'
   } finally {
@@ -555,8 +660,14 @@ async function fillWeek() {
     await apiPost('/cabinet/slots/fill-week/', {
       date: fillWeekDate.value,
     })
+    selectedDate.value = fillWeekDate.value
+    showPastSlots.value = false
     await loadSlots()
-    toast.success(`Тиждень від ${formatDateOnly(fillWeekDate.value)} заповнено.`)
+    toast.success(
+      isFillWeekToday.value
+        ? `Тиждень від ${formatDateOnly(fillWeekDate.value)} заповнено. Для сьогодні додано лише майбутні вікна.`
+        : `Тиждень від ${formatDateOnly(fillWeekDate.value)} заповнено.`,
+    )
   } catch (err: any) {
     error.value = err?.response?.data?.detail || 'Не вдалося заповнити тиждень вільними вікнами'
   } finally {
@@ -611,6 +722,15 @@ async function saveEdit(slotId: number) {
       error.value = 'Вкажіть дату, час і тривалість у хвилинах.'
       return
     }
+    if (startAt.getTime() < Date.now()) {
+      editErrors.value[slotId] = pastSlotMessage
+      await nextTick()
+      const errorEl = editErrorRefs.value[slotId]
+      if (errorEl) {
+        errorEl.scrollIntoView({ block: 'nearest' })
+      }
+      return
+    }
     const endAt = new Date(startAt.getTime() + durationMinutes * 60000)
     const payload = {
       start_at: startAt.toISOString(),
@@ -621,7 +741,9 @@ async function saveEdit(slotId: number) {
     cancelEdit()
   } catch (err: any) {
     const raw = normalizeError(err)
-    editErrors.value[slotId] = translateError(raw) || 'Не вдалося оновити вільне вікно'
+    const conflict = normalizeConflict(err)
+    editErrors.value[slotId] =
+      translateError(raw, { conflict }) || 'Не вдалося оновити вільне вікно'
     await nextTick()
     const errorEl = editErrorRefs.value[slotId]
     if (errorEl) {
@@ -814,6 +936,27 @@ onMounted(loadSlots)
   margin-left: 6px;
 }
 
+.slot-toggle {
+  width: fit-content;
+}
+
+.slot-note {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.slot-note__link {
+  color: #0b4a7d;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.slot-note__link:hover,
+.slot-note__link:focus-visible {
+  text-decoration: underline;
+}
+
 .btn--active {
   border-color: #0b4a7d;
   color: #0b4a7d;
@@ -961,3 +1104,5 @@ onMounted(loadSlots)
   }
 }
 </style>
+
+

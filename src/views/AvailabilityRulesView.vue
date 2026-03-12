@@ -41,28 +41,20 @@
 
           <label class="field">
             Початок
-            <input
-              ref="ruleCreateStartTimeRef"
-              v-model="createForm.start_time"
-              class="input"
-              type="time"
-              required
-              @click.stop="openDateTimePicker(ruleCreateStartTimeRef)"
-              @focus="openDateTimePicker(ruleCreateStartTimeRef)"
-            />
+            <select v-model="createForm.start_time" class="input" required>
+              <option v-for="option in timeOptions" :key="option" :value="option">
+                {{ option }}
+              </option>
+            </select>
           </label>
 
-          <label class="field field--picker" @click="openDateTimePicker(ruleCreateEndTimeRef)">
+          <label class="field">
             Кінець
-            <input
-              ref="ruleCreateEndTimeRef"
-              v-model="createForm.end_time"
-              class="input"
-              type="time"
-              required
-              @click.stop="openDateTimePicker(ruleCreateEndTimeRef)"
-              @focus="openDateTimePicker(ruleCreateEndTimeRef)"
-            />
+            <select v-model="createForm.end_time" class="input" required>
+              <option v-for="option in timeOptions" :key="option" :value="option">
+                {{ option }}
+              </option>
+            </select>
           </label>
 
           <label class="field">
@@ -131,28 +123,20 @@
 
                 <label class="field">
                   Початок
-                  <input
-                    ref="ruleEditStartTimeRef"
-                    v-model="editForm.start_time"
-                    class="input"
-                    type="time"
-                    required
-                    @click.stop="openDateTimePicker(ruleEditStartTimeRef)"
-                    @focus="openDateTimePicker(ruleEditStartTimeRef)"
-                  />
+                  <select v-model="editForm.start_time" class="input" required>
+                    <option v-for="option in timeOptions" :key="option" :value="option">
+                      {{ option }}
+                    </option>
+                  </select>
                 </label>
 
-                <label class="field field--picker" @click="openDateTimePicker(ruleEditEndTimeRef)">
+                <label class="field">
                   Кінець
-                  <input
-                    ref="ruleEditEndTimeRef"
-                    v-model="editForm.end_time"
-                    class="input"
-                    type="time"
-                    required
-                    @click.stop="openDateTimePicker(ruleEditEndTimeRef)"
-                    @focus="openDateTimePicker(ruleEditEndTimeRef)"
-                  />
+                  <select v-model="editForm.end_time" class="input" required>
+                    <option v-for="option in timeOptions" :key="option" :value="option">
+                      {{ option }}
+                    </option>
+                  </select>
                 </label>
 
                 <label class="field">
@@ -474,6 +458,7 @@ import { apiDelete, apiGet, apiPatch, apiPost } from '../lib/api'
 import ConfirmModal from '../components/ConfirmModal.vue'
 import ScheduleSubnav from '../components/ScheduleSubnav.vue'
 import { useConfirmModal } from '../composables/useConfirmModal'
+import { formatUkDateTimeCompact, formatUkTime } from '../lib/dateTime'
 import { getApiErrorMessage } from '../lib/errors'
 
 type AvailabilityRule = {
@@ -562,10 +547,6 @@ const route = useRoute()
 const exceptions = ref<AvailabilityException[]>([])
 const exceptionsLoading = ref(false)
 const exceptionError = ref('')
-const ruleCreateStartTimeRef = ref<HTMLInputElement | null>(null)
-const ruleCreateEndTimeRef = ref<HTMLInputElement | null>(null)
-const ruleEditStartTimeRef = ref<HTMLInputElement | null>(null)
-const ruleEditEndTimeRef = ref<HTMLInputElement | null>(null)
 const editingExceptionId = ref<number | null>(null)
 const exceptionSubmitting = ref(false)
 
@@ -618,20 +599,6 @@ const exceptionEditForm = reactive({
 const hasActiveRules = computed(() => rules.value.some((rule) => rule.is_active))
 const isVacationView = computed(() => route.name === 'cabinet-schedule-vacation')
 
-function openDateTimePicker(input: HTMLInputElement | null) {
-  if (!input) return
-  const picker = input as HTMLInputElement & { showPicker?: () => void }
-  if (typeof picker.showPicker === 'function') {
-    try {
-      picker.showPicker()
-      return
-    } catch {
-      // no-op: browser may block showPicker in some contexts
-    }
-  }
-  input.focus()
-}
-
 function openPicker(event: Event) {
   const target = event.target as HTMLInputElement | null
   if (!target) return
@@ -661,11 +628,28 @@ function weekdayLabel(value: number): string {
   return weekdayOptions.find((opt) => opt.value === value)?.label || String(value)
 }
 
+function normalizeRuleTime(value: string): string {
+  const trimmed = String(value || '').trim()
+  const match = /^(\d{1,2}):(\d{2})(?::\d{2})?$/.exec(trimmed)
+  if (!match) return trimmed
+  const hours = String(Number(match[1])).padStart(2, '0')
+  return `${hours}:${match[2]}`
+}
+
+function normalizeRule(rule: AvailabilityRule): AvailabilityRule {
+  return {
+    ...rule,
+    start_time: normalizeRuleTime(rule.start_time),
+    end_time: normalizeRuleTime(rule.end_time),
+  }
+}
+
 async function loadRules() {
   loading.value = true
   error.value = ''
   try {
-    rules.value = await apiGet<AvailabilityRule[]>('/cabinet/availability-rules/')
+    const response = await apiGet<AvailabilityRule[]>('/cabinet/availability-rules/')
+    rules.value = (response || []).map(normalizeRule)
   } catch (err) {
     error.value = getApiErrorMessage(err, 'Не вдалося завантажити налаштування розкладу.')
   } finally {
@@ -831,7 +815,9 @@ async function onCreateRule() {
   loading.value = true
   error.value = ''
   try {
-    const created = await apiPost<AvailabilityRule>('/cabinet/availability-rules/', createForm)
+    const created = normalizeRule(
+      await apiPost<AvailabilityRule>('/cabinet/availability-rules/', createForm)
+    )
     rules.value = [...rules.value, created].sort((a, b) => a.id - b.id)
     resetCreateForm()
     generationSuccess.value = ''
@@ -845,8 +831,8 @@ async function onCreateRule() {
 function startEdit(rule: AvailabilityRule) {
   editingRuleId.value = rule.id
   editForm.weekday = rule.weekday
-  editForm.start_time = rule.start_time
-  editForm.end_time = rule.end_time
+  editForm.start_time = normalizeRuleTime(rule.start_time)
+  editForm.end_time = normalizeRuleTime(rule.end_time)
   editForm.session_duration_minutes = rule.session_duration_minutes
   editForm.buffer_minutes = rule.buffer_minutes
   editForm.is_active = rule.is_active
@@ -860,7 +846,9 @@ async function onSaveRule(ruleId: number) {
   loading.value = true
   error.value = ''
   try {
-    const updated = await apiPatch<AvailabilityRule>(`/cabinet/availability-rules/${ruleId}/`, editForm)
+    const updated = normalizeRule(
+      await apiPatch<AvailabilityRule>(`/cabinet/availability-rules/${ruleId}/`, editForm)
+    )
     rules.value = rules.value.map((rule) => (rule.id === ruleId ? updated : rule))
     cancelEdit()
     generationSuccess.value = ''
@@ -899,8 +887,8 @@ async function onDeleteRule(ruleId: number) {
 function formatSlotExample(startAt: string, endAt: string): string {
   const start = new Date(startAt)
   const end = new Date(endAt)
-  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return `${startAt} – ${endAt}`
-  return `${start.toLocaleString('uk-UA')} – ${end.toLocaleTimeString('uk-UA', { hour: '2-digit', minute: '2-digit' })}`
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return `${startAt} - ${endAt}`
+  return `${formatUkDateTimeCompact(startAt, startAt)} - ${formatUkTime(endAt, endAt)}`
 }
 
 async function onPreviewGeneration() {
@@ -1197,3 +1185,4 @@ onMounted(loadScheduleContext)
   }
 }
 </style>
+

@@ -1,5 +1,6 @@
 import { apiGet, apiPatch, apiPost, apiPut } from './api'
 import { BOOKING_UI_MESSAGES, getSuggestionReasonLabel } from './bookingCopy'
+import { formatUkDateTimeCompact } from './dateTime'
 
 type SessionSlot = {
   start_at?: string | null
@@ -90,17 +91,7 @@ export function sessionEndAt(detail: Pick<SpecialistSessionLike, 'slot' | 'slot_
 }
 
 export function formatSessionDateTime(value?: string | null) {
-  if (!value) return '—'
-  const dt = new Date(value)
-  if (Number.isNaN(dt.getTime())) return value
-  return dt.toLocaleString('uk-UA', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  })
+  return formatUkDateTimeCompact(value)
 }
 
 export function formatSessionDuration(
@@ -308,3 +299,4 @@ export async function approveSpecialistRescheduleRequest(requestId: number) {
 export async function declineSpecialistRescheduleRequest(requestId: number) {
   return apiPatch(`/cabinet/sessions/reschedule-requests/${requestId}/decline/`)
 }
+

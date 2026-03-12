@@ -136,6 +136,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { apiGet, apiPatch, apiPost } from '../lib/api'
 import { getApiErrorMessage } from '../lib/errors'
 import { BOOKING_ERROR_FALLBACKS, BOOKING_SUCCESS_MESSAGES, getSuggestionReasonLabel } from '../lib/bookingCopy'
+import { formatUkDateTimeCompact } from '../lib/dateTime'
 import { useToast } from '../composables/useToast'
 type SessionDetail = {
   id: number
@@ -251,17 +252,7 @@ async function copySpecialistLink() {
 }
 
 function formatDateTime(value?: string | null) {
-  if (!value) return '—'
-  const dt = new Date(value)
-  if (Number.isNaN(dt.getTime())) return value
-  return dt.toLocaleString('uk-UA', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  })
+  return formatUkDateTimeCompact(value)
 }
 
 function formatDuration(start: string | null, end: string | null) {
@@ -571,3 +562,5 @@ onMounted(async () => {
   }
 }
 </style>
+
+

@@ -33,6 +33,7 @@
 
 <script setup lang="ts">
 import EmptyState from './EmptyState.vue'
+import { formatUkDateTimeCompact } from '../lib/dateTime'
 
 type ReviewItem = {
   id: number
@@ -62,16 +63,7 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 function formatDate(value: string) {
-  const dt = new Date(value)
-  if (Number.isNaN(dt.getTime())) return value
-  return dt.toLocaleString('uk-UA', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  })
+  return formatUkDateTimeCompact(value, value)
 }
 </script>
 

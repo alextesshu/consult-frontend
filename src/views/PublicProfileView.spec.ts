@@ -2,6 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/vue'
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import PublicProfileView from './PublicProfileView.vue'
 import { BOOKING_UI_MESSAGES } from '../lib/bookingCopy'
+import { toUtcRange } from '../lib/dates'
 import {
   apiGet,
   apiPost,
@@ -124,6 +125,20 @@ function buildInquiryState(overrides: Partial<InquiryState> = {}): InquiryState 
   }
 }
 
+function buildTodayLocalSlot(overrides: Record<string, unknown> = {}) {
+  const start = new Date()
+  start.setHours(12, 0, 0, 0)
+  const end = new Date(start)
+  end.setMinutes(end.getMinutes() + 50)
+
+  return {
+    id: 100,
+    start_at: start.toISOString(),
+    end_at: end.toISOString(),
+    ...overrides,
+  }
+}
+
 function mockCommonPublicData() {
   mockedFetchPublicSpecialistProfile.mockResolvedValue(buildProfile())
   mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
@@ -217,13 +232,7 @@ describe('PublicProfileView', () => {
     mockedFetchChatThreads.mockResolvedValue([])
     mockedApiGet.mockImplementation(async (url) => {
       if (url === '/booking/slots/') {
-        return [
-          {
-            id: 100,
-            start_at: '2099-06-15T10:00:00Z',
-            end_at: '2099-06-15T10:50:00Z',
-          },
-        ]
+        return [buildTodayLocalSlot()]
       }
 
       if (url === '/public/specialists/olena/reviews/') {
@@ -259,13 +268,7 @@ describe('PublicProfileView', () => {
     mockedFetchInquiryState.mockResolvedValue(buildInquiryState())
     mockedApiGet.mockImplementation(async (url, config) => {
       if (url === '/booking/slots/') {
-        return [
-          {
-            id: 100,
-            start_at: '2099-06-15T10:00:00Z',
-            end_at: '2099-06-15T10:50:00Z',
-          },
-        ]
+        return [buildTodayLocalSlot()]
       }
 
       if (url === '/booking/sessions/') {
@@ -287,6 +290,60 @@ describe('PublicProfileView', () => {
 
     expect(await screen.findByText(BOOKING_UI_MESSAGES.acceptSettingBeforeBooking)).toBeInTheDocument()
     expect(mockedApiPost).not.toHaveBeenCalled()
+  })
+
+  it('shows slots for the selected local day even when the slot starts on the previous UTC date', async () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-03-12T10:00:00+02:00'))
+
+    mockCommonPublicData()
+    mockedFetchChatThreads.mockResolvedValue([])
+
+    const utcRange = toUtcRange(new Date('2026-03-12T00:00:00+02:00'), new Date('2026-03-12T23:59:59+02:00'))
+
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/booking/slots/') {
+        const params = (config as { params?: Record<string, unknown> } | undefined)?.params || {}
+
+        if (params.date_from === utcRange.date_from && params.date_to === utcRange.date_to) {
+          return [
+            {
+              id: 100,
+              start_at: '2026-03-11T22:30:00Z',
+              end_at: '2026-03-11T23:20:00Z',
+            },
+          ]
+        }
+
+        if (params.therapist_id === 12 && !params.date_from && !params.date_to) {
+          return [
+            {
+              id: 100,
+              start_at: '2026-03-11T22:30:00Z',
+              end_at: '2026-03-11T23:20:00Z',
+            },
+          ]
+        }
+
+        return []
+      }
+
+      if (url === '/public/specialists/olena/reviews/') return []
+
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    try {
+      renderView()
+
+      const dateInput = await screen.findByLabelText('Оберіть дату')
+      await fireEvent.update(dateInput, '2026-03-12')
+
+      expect(await screen.findByText('12.03.2026, 00:30')).toBeInTheDocument()
+      expect(screen.queryByText('На жаль, у цей день вільних віконець немає.')).not.toBeInTheDocument()
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   it('switches public profile CTA to internal chat for an active client relation', async () => {
@@ -319,13 +376,7 @@ describe('PublicProfileView', () => {
     )
     mockedApiGet.mockImplementation(async (url, config) => {
       if (url === '/booking/slots/') {
-        return [
-          {
-            id: 100,
-            start_at: '2099-06-15T10:00:00Z',
-            end_at: '2099-06-15T10:50:00Z',
-          },
-        ]
+        return [buildTodayLocalSlot()]
       }
 
       if (url === '/booking/sessions/') {

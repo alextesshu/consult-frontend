@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <section class="client">
     <header class="client__hero card">
       <div>
@@ -293,6 +293,7 @@ import { fetchPublicSpecialistProfile, type PublicSpecialistProfile } from '../l
 import { apiGet } from '../lib/api'
 import ConfirmModal from '../components/ConfirmModal.vue'
 import { useConfirmModal } from '../composables/useConfirmModal'
+import { formatUkDateTimeCompact } from '../lib/dateTime'
 
 type Slot = {
   start_at: string
@@ -394,16 +395,7 @@ const eventModeLabel = (mode: GroupEvent['mode']) => {
 }
 
 const formatDateTime = (value?: string | null) => {
-  if (!value) return '—'
-  const dt = new Date(value)
-  if (Number.isNaN(dt.getTime())) return value
-  return dt.toLocaleString('uk-UA', {
-    year: 'numeric',
-    month: 'short',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
+  return formatUkDateTimeCompact(value)
 }
 
 const languageLabel = (value?: string | string[]) => {

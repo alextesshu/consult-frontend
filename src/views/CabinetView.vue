@@ -202,6 +202,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
+import { formatUkDateTimeCompact } from '../lib/dateTime'
 import { useAuthStore } from '../stores/auth'
 
 const auth = useAuthStore()
@@ -315,7 +316,7 @@ const serverTimeLabel = computed(() => {
   if (!raw) return '—'
   const parsed = new Date(raw)
   if (Number.isNaN(parsed.getTime())) return raw
-  return parsed.toLocaleString()
+  return formatUkDateTimeCompact(raw, raw)
 })
 </script>
 
@@ -663,3 +664,4 @@ const serverTimeLabel = computed(() => {
   }
 }
 </style>
+

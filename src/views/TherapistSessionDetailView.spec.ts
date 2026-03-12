@@ -27,7 +27,6 @@ vi.mock('vue-router', async () => {
     useRoute: () => mockRoute,
   }
 })
-
 vi.mock('../composables/useToast', () => ({
   useToast: () => mockToast,
 }))
@@ -389,6 +388,56 @@ describe('TherapistSessionDetailView', () => {
     }
   })
 
+  it('keeps stale complete rejection inline without reloading detail context or note', async () => {
+    let sessionDetail = buildSession({ status: 'CONFIRMED' })
+    const promptSpy = vi.spyOn(window, 'prompt').mockReturnValue('50')
+    mockDetailContext(() => sessionDetail, {
+      requests: [],
+    })
+
+    mockedApiPatch.mockRejectedValue({
+      response: {
+        status: 409,
+        data: {
+          detail: 'Invalid status transition.',
+        },
+      },
+    })
+
+    try {
+      renderView()
+
+      expect(await screen.findByText('client@example.com')).toBeInTheDocument()
+      expect(await screen.findByDisplayValue('Progress note')).toBeInTheDocument()
+
+      const statusPanel = screen.getByText(/ID: #77/).closest('section')
+      expect(statusPanel).not.toBeNull()
+      const completionButton = within(statusPanel as HTMLElement).getAllByRole('button')[1]
+      if (!completionButton) {
+        throw new Error('Complete button not found')
+      }
+      await fireEvent.click(completionButton)
+
+      await waitFor(() => {
+        expect(mockedApiPatch).toHaveBeenCalledWith('/booking/sessions/42/complete/', {
+          actual_duration_minutes: 50,
+        })
+        expect(mockToast.error).toHaveBeenCalledTimes(1)
+      })
+
+      expect(promptSpy).toHaveBeenCalledTimes(1)
+      expect(completionButton).not.toBeDisabled()
+      expect(await screen.findByDisplayValue('Progress note')).toBeInTheDocument()
+      expect(endpointCalls('/booking/sessions/42/')).toBe(1)
+      expect(endpointCalls('/cabinet/slots/')).toBe(1)
+      expect(endpointCalls('/booking/sessions/42/reschedule-suggestions/')).toBe(1)
+      expect(endpointCalls('/cabinet/sessions/reschedule-requests/')).toBe(1)
+      expect(endpointCalls('/cabinet/sessions/42/note/')).toBe(1)
+    } finally {
+      promptSpy.mockRestore()
+    }
+  })
+
   it('keeps confirm, cancel, and reschedule guarded for non-actionable statuses', async () => {
     let sessionDetail = buildSession({ status: 'COMPLETED' })
     mockDetailContext(() => sessionDetail, {
@@ -706,3 +755,4 @@ describe('TherapistSessionDetailView', () => {
     expect(mockedApiGet).toHaveBeenCalledWith('/booking/sessions/42/')
   })
 })
+
