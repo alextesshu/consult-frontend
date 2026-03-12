@@ -57,6 +57,7 @@ Update rule:
 - `src/views/SlotsView.spec.ts` now covers both the exact-conflict metadata path, including past-slot hidden-by-default messaging, and the generic fallback path for overlap errors.
 - `SlotsView` create success flow now reloads `/cabinet/slots/`, syncs the selected date to the created slot, and shows a success toast instead of relying on the raw POST response to update local state.
 - `src/views/SlotsView.spec.ts` now also covers the create-success regression where a newly created slot must appear immediately without a manual page refresh.
+- Vitest test setup now pins `process.env.TZ = 'Europe/Kiev'` so timezone-sensitive frontend specs behave consistently between local runs and Ubuntu CI.
 - Shared specialist session formatting, action guards, input parsing, note loading/saving, and booking action requests are centralized in `src/lib/specialistSessions.ts` and reused by `TherapistSessionsView` and `TherapistSessionDetailView`.
 - `src/lib/specialistSessions.spec.ts` now adds focused helper-level regression coverage for shared session timing, duration parsing, recurring guards, in-progress status labeling, slot filtering, note fallback handling, and specialist session API wrapper endpoint/payload contracts.
 - `src/router/index.spec.ts` now adds router-level regression coverage for the specialist session list/detail paths, including the numeric `:id(\\d+)` guard on `/cabinet/sessions/:id`, unauthenticated redirect-to-login behavior, and successful specialist access to the detail route.
@@ -119,6 +120,13 @@ Past-slot visibility follow-up validation:
 
 ```powershell
 npm run test:run -- src/views/SlotsView.spec.ts
+npm run typecheck
+```
+
+CI timezone follow-up validation:
+
+```powershell
+$env:TZ='UTC'; npm run test:run
 npm run typecheck
 ```
 
