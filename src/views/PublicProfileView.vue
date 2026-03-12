@@ -647,7 +647,12 @@ import DOMPurify from 'dompurify'
 import { marked } from 'marked'
 import { useRoute, useRouter } from 'vue-router'
 import { getApiErrorMessage } from '../lib/errors'
-import { BOOKING_ERROR_FALLBACKS, BOOKING_SUCCESS_MESSAGES, BOOKING_UI_MESSAGES } from '../lib/bookingCopy'
+import {
+  BOOKING_ERROR_FALLBACKS,
+  BOOKING_SUCCESS_MESSAGES,
+  BOOKING_UI_MESSAGES,
+  getBookingErrorMessage,
+} from '../lib/bookingCopy'
 import { getInquiryActionErrorMessage, mapInquiryStateToUi } from '../lib/inquiryCopy'
 import {
   apiGet,
@@ -1515,7 +1520,7 @@ async function bookSlot(slotId: number) {
       persistSelectedSpecialists(filtered)
     }
   } catch (err: any) {
-    bookingError.value = getApiErrorMessage(err, BOOKING_ERROR_FALLBACKS.bookSlot)
+    bookingError.value = getBookingErrorMessage(err, BOOKING_ERROR_FALLBACKS.bookSlot)
     toast.error(bookingError.value)
   } finally {
     bookingSlotId.value = null

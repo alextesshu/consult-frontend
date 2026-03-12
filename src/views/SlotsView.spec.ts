@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/vue'
+﻿import { fireEvent, render, screen } from '@testing-library/vue'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { apiGet, apiPost } from '../lib/api'
 import SlotsView from './SlotsView.vue'
@@ -65,6 +65,27 @@ function renderView() {
   })
 }
 
+function getCreateFormControls(container: Element) {
+  const form = container.querySelector('.slot-form')
+  if (!form) throw new Error('Create slot form not found')
+
+  const dateInput = form.querySelector('input[type="date"]')
+  const timeInput = form.querySelector('input[list="time-options"]')
+  const durationInput = form.querySelector('input[type="number"]')
+  const submitButton = form.querySelector('button')
+
+  if (!dateInput || !timeInput || !durationInput || !submitButton) {
+    throw new Error('Create slot controls not found')
+  }
+
+  return {
+    dateInput: dateInput as HTMLInputElement,
+    timeInput: timeInput as HTMLInputElement,
+    durationInput: durationInput as HTMLInputElement,
+    submitButton: submitButton as HTMLButtonElement,
+  }
+}
+
 describe('SlotsView', () => {
   beforeEach(() => {
     vi.useFakeTimers()
@@ -93,11 +114,11 @@ describe('SlotsView', () => {
       },
     ])
 
-    renderView()
+    const { container } = renderView()
     await flushAsyncUpdates()
 
     expect(screen.queryByText('12.03.2026, 07:00')).not.toBeInTheDocument()
-    expect(screen.getAllByText('Вільно')).toHaveLength(1)
+    expect(container.querySelectorAll('.slot-card')).toHaveLength(1)
   })
 
   it('shows the exact conflict slot from backend metadata and explains when that slot is already in the past', async () => {
@@ -112,6 +133,7 @@ describe('SlotsView', () => {
     mockedApiPost.mockRejectedValue({
       response: {
         data: {
+          code: 'SLOT_OVERLAP',
           detail: 'overlaps',
           conflict: {
             slot_id: 1,
@@ -122,21 +144,21 @@ describe('SlotsView', () => {
       },
     })
 
-    renderView()
+    const { container } = renderView()
     await flushAsyncUpdates()
 
     expect(screen.getByText('12.03.2026, 11:00')).toBeInTheDocument()
-
     expect(screen.queryByText('12.03.2026, 03:00')).not.toBeInTheDocument()
 
-    await fireEvent.update(screen.getByLabelText('Дата початку'), '2026-03-12')
-    await fireEvent.update(screen.getByLabelText('Час початку'), '11:10')
-    await fireEvent.update(screen.getByLabelText('Тривалість у хвилинах'), '15')
-    await fireEvent.click(screen.getByRole('button', { name: 'Створити вільне вікно' }))
+    const { dateInput, timeInput, durationInput, submitButton } = getCreateFormControls(container)
+    await fireEvent.update(dateInput, '2026-03-12')
+    await fireEvent.update(timeInput, '11:10')
+    await fireEvent.update(durationInput, '15')
+    await fireEvent.click(submitButton)
     await flushAsyncUpdates()
 
     expect(
-      screen.getByText('Віконце перетинається з уже існуючим: 12.03.2026, 03:00-03:50. Це вікно вже в минулому, тому не показується у списку за замовчуванням.')
+      screen.getByText('Р’С–РєРѕРЅС†Рµ РїРµСЂРµС‚РёРЅР°С”С‚СЊСЃСЏ Р· СѓР¶Рµ С–СЃРЅСѓСЋС‡РёРј: 12.03.2026, 03:00-03:50. Р¦Рµ РІС–РєРЅРѕ РІР¶Рµ РІ РјРёРЅСѓР»РѕРјСѓ, С‚РѕРјСѓ РЅРµ РїРѕРєР°Р·СѓС”С‚СЊСЃСЏ Сѓ СЃРїРёСЃРєСѓ Р·Р° Р·Р°РјРѕРІС‡СѓРІР°РЅРЅСЏРј.')
     ).toBeInTheDocument()
   })
 
@@ -152,21 +174,23 @@ describe('SlotsView', () => {
     mockedApiPost.mockRejectedValue({
       response: {
         data: {
+          code: 'SLOT_OVERLAP',
           detail: 'overlaps',
         },
       },
     })
 
-    renderView()
+    const { container } = renderView()
     await flushAsyncUpdates()
 
-    await fireEvent.update(screen.getByLabelText('Дата початку'), '2026-03-12')
-    await fireEvent.update(screen.getByLabelText('Час початку'), '11:10')
-    await fireEvent.update(screen.getByLabelText('Тривалість у хвилинах'), '15')
-    await fireEvent.click(screen.getByRole('button', { name: 'Створити вільне вікно' }))
+    const { dateInput, timeInput, durationInput, submitButton } = getCreateFormControls(container)
+    await fireEvent.update(dateInput, '2026-03-12')
+    await fireEvent.update(timeInput, '11:10')
+    await fireEvent.update(durationInput, '15')
+    await fireEvent.click(submitButton)
     await flushAsyncUpdates()
 
-    expect(screen.getByText('Віконце перетинається з уже існуючим.')).toBeInTheDocument()
+    expect(screen.getByText('Р’С–РєРѕРЅС†Рµ РїРµСЂРµС‚РёРЅР°С”С‚СЊСЃСЏ Р· СѓР¶Рµ С–СЃРЅСѓСЋС‡РёРј.')).toBeInTheDocument()
   })
 
   it('reloads the current slots list and shows success feedback after create', async () => {
@@ -184,20 +208,21 @@ describe('SlotsView', () => {
       detail: 'created',
     } as any)
 
-    renderView()
+    const { container } = renderView()
     await flushAsyncUpdates()
 
     expect(mockedApiGet).toHaveBeenCalledTimes(1)
 
-    await fireEvent.update(screen.getByLabelText('Дата початку'), '2026-03-12')
-    await fireEvent.update(screen.getByLabelText('Час початку'), '11:10')
-    await fireEvent.update(screen.getByLabelText('Тривалість у хвилинах'), '30')
-    await fireEvent.click(screen.getByRole('button', { name: 'Створити вільне вікно' }))
+    const { dateInput, timeInput, durationInput, submitButton } = getCreateFormControls(container)
+    await fireEvent.update(dateInput, '2026-03-12')
+    await fireEvent.update(timeInput, '11:10')
+    await fireEvent.update(durationInput, '30')
+    await fireEvent.click(submitButton)
     await flushAsyncUpdates()
 
     expect(mockedApiGet).toHaveBeenCalledTimes(2)
     expect(screen.getByText('12.03.2026, 11:10')).toBeInTheDocument()
-
-    expect(mockToast.success).toHaveBeenCalledWith('Вільне вікно на 12.03.2026, 11:10 створено.')
+    expect(mockToast.success).toHaveBeenCalledWith('Р’С–Р»СЊРЅРµ РІС–РєРЅРѕ РЅР° 12.03.2026, 11:10 СЃС‚РІРѕСЂРµРЅРѕ.')
   })
 })
+

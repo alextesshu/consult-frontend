@@ -1,6 +1,6 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/vue'
+﻿import { fireEvent, render, screen, waitFor } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { apiGet } from '../lib/api'
+import { apiGet, apiPost } from '../lib/api'
 import ClientSessionDetailView from './ClientSessionDetailView.vue'
 
 const mockRoute = {
@@ -42,6 +42,7 @@ vi.mock('../lib/api', () => ({
 }))
 
 const mockedApiGet = vi.mocked(apiGet)
+const mockedApiPost = vi.mocked(apiPost)
 
 function makeSession(status: string) {
   return {
@@ -80,6 +81,7 @@ describe('ClientSessionDetailView', () => {
     mockToast.warning.mockReset()
     mockToast.info.mockReset()
     mockedApiGet.mockReset()
+    mockedApiPost.mockReset()
   })
 
   it('shows confirmed-session guidance and request-based reschedule copy', async () => {
@@ -271,6 +273,67 @@ describe('ClientSessionDetailView', () => {
     expect(screen.queryByRole('button', { name: 'Перенести на обраний варіант' })).not.toBeInTheDocument()
     await waitFor(() => {
       expect(screen.getByRole('button', { name: 'Перенести сюди' })).toBeDisabled()
+    })
+  })
+
+  it('surfaces backend reason_code copy when a confirmed-session reschedule request is rejected', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/sessions/55/') {
+        return makeSession('CONFIRMED')
+      }
+
+      if (url === '/booking/slots/') {
+        return [
+          {
+            id: 101,
+            start_at: '2099-06-16T10:00:00Z',
+            end_at: '2099-06-16T10:50:00Z',
+          },
+        ]
+      }
+
+      if (url === '/booking/sessions/55/reschedule-suggestions/') {
+        return {
+          suggestions: [
+            {
+              slot_id: 101,
+              start_at: '2099-06-16T10:00:00Z',
+              end_at: '2099-06-16T10:50:00Z',
+              label: 'Suggested',
+              reason_tag: 'nearest_available',
+            },
+          ],
+        }
+      }
+
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedApiPost.mockRejectedValue({
+      response: {
+        status: 409,
+        data: {
+          code: 'STATE_TRANSITION_INVALID',
+          reason_code: 'REQUEST_NOT_PENDING',
+          detail: 'Request already processed.',
+        },
+      },
+    })
+
+    const { container } = renderView()
+
+    await waitFor(() => {
+      expect(container.querySelector('.suggestions-list .suggestion-btn')).not.toBeNull()
+    })
+    await fireEvent.click(container.querySelector('.suggestions-list .suggestion-btn') as HTMLButtonElement)
+
+    await waitFor(() => {
+      expect(container.querySelector('.suggestions-block > .btn.btn--sm')).not.toBeNull()
+    })
+    await fireEvent.click(container.querySelector('.suggestions-block > .btn.btn--sm') as HTMLButtonElement)
+
+    await waitFor(() => {
+      expect(mockedApiPost).toHaveBeenCalledWith('/booking/sessions/55/reschedule-request/', { slot_id: 101 })
+      expect(mockToast.error).toHaveBeenCalledWith('Цей запит вже оброблено.')
     })
   })
 })

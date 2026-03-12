@@ -134,8 +134,12 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { apiGet, apiPatch, apiPost } from '../lib/api'
-import { getApiErrorMessage } from '../lib/errors'
-import { BOOKING_ERROR_FALLBACKS, BOOKING_SUCCESS_MESSAGES, getSuggestionReasonLabel } from '../lib/bookingCopy'
+import {
+  BOOKING_ERROR_FALLBACKS,
+  BOOKING_SUCCESS_MESSAGES,
+  getBookingErrorMessage,
+  getSuggestionReasonLabel,
+} from '../lib/bookingCopy'
 import { formatUkDateTimeCompact } from '../lib/dateTime'
 import { useToast } from '../composables/useToast'
 type SessionDetail = {
@@ -288,7 +292,7 @@ async function loadSession() {
     const resp = await apiGet<SessionDetail>(`/booking/sessions/${sessionId.value}/`)
     session.value = resp
   } catch (err: any) {
-    error.value = getApiErrorMessage(err, BOOKING_ERROR_FALLBACKS.loadSession)
+    error.value = getBookingErrorMessage(err, BOOKING_ERROR_FALLBACKS.loadSession)
   } finally {
     loading.value = false
   }
@@ -332,7 +336,7 @@ async function cancelSession() {
     await apiPatch(`/booking/sessions/${session.value.id}/cancel/`)
     await loadSession()
   } catch (err: any) {
-    error.value = getApiErrorMessage(err, BOOKING_ERROR_FALLBACKS.cancelSession)
+    error.value = getBookingErrorMessage(err, BOOKING_ERROR_FALLBACKS.cancelSession)
     return
   } finally {
     actionLoading.value = false
@@ -351,7 +355,7 @@ async function rescheduleTo(slotId: number) {
     await loadSession()
     router.push('/client')
   } catch (err: any) {
-    error.value = getApiErrorMessage(err, BOOKING_ERROR_FALLBACKS.rescheduleSession)
+    error.value = getBookingErrorMessage(err, BOOKING_ERROR_FALLBACKS.rescheduleSession)
   } finally {
     actionLoading.value = false
   }
@@ -368,7 +372,7 @@ async function requestReschedule(slotId: number) {
     toast.success(BOOKING_SUCCESS_MESSAGES.rescheduleRequestSent)
     router.push('/client')
   } catch (err: any) {
-    error.value = getApiErrorMessage(err, BOOKING_ERROR_FALLBACKS.sendRescheduleRequest)
+    error.value = getBookingErrorMessage(err, BOOKING_ERROR_FALLBACKS.sendRescheduleRequest)
   } finally {
     actionLoading.value = false
   }

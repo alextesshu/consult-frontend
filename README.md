@@ -101,6 +101,7 @@ Tokens are stored in localStorage and auto-refreshed via `/api/auth/token/refres
   - visibility toggles: `show_price`, `show_intro_price`
 - **PublicProfileView**: landing-style public profile + booking + trust/about/contact blocks + journal preview
   - setting acceptance is surfaced as an explicit booking gate directly above slot actions
+- **Booking/session error contract**: prepared frontend booking/session surfaces now consume backend `code` / `reason_code` first and keep `detail` only as a fallback
 - **PublicTherapistsView**: public specialists catalog with server-side filters + intro price in cards + explicit in-view load/error/empty branches
 - **LoginView / SignupView**: redesigned auth pages
 - **System**: global toast/notification layer, notification bell with unread state, explicit reschedule notification copy, canonical inquiry notification copy, role-aware session/inquiry routing, 404/403 pages, empty states, loading skeletons
@@ -128,7 +129,6 @@ Tokens are stored in localStorage and auto-refreshed via `/api/auth/token/refres
 ### System UX
 
 - Finish the broader empty/loading/error pass across remaining views
-- Wire backend booking/session error codes into the prepared state surfaces after the canonical error dictionary is committed
 
 ### Quality / regression coverage
 
@@ -152,6 +152,6 @@ Tokens are stored in localStorage and auto-refreshed via `/api/auth/token/refres
 
 ## Next Focus
 
-1. Wire backend booking/session error dictionary into the prepared explicit-state surfaces
-2. Specialist CRM depth: bulk actions and richer client profile view
-3. Inquiry MVP discoverability outside the public specialist profile
+1. Specialist CRM depth: bulk actions and richer client profile view
+2. Inquiry MVP discoverability outside the public specialist profile
+3. Broader empty/loading/error normalization for remaining non-booking views

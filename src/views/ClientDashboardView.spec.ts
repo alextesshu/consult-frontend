@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/vue'
+﻿import { render, screen } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { apiGet, fetchPublicSpecialistProfile } from '../lib/api'
 import ClientDashboardView from './ClientDashboardView.vue'
@@ -81,5 +81,33 @@ describe('ClientDashboardView', () => {
     expect(screen.getByText('Запланованих сесій поки немає')).toBeInTheDocument()
     expect(screen.getByText('Історія сесій поки порожня')).toBeInTheDocument()
     expect(screen.getByText('Групових подій поки немає')).toBeInTheDocument()
+  })
+
+  it('renders the backend-mapped sessions error description from code fields', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/sessions/') {
+        throw {
+          response: {
+            status: 403,
+            data: {
+              code: 'OVER_LIMIT',
+              detail: 'Action unavailable due to plan limits.',
+            },
+          },
+        }
+      }
+
+      if (url === '/booking/group-events/') {
+        return []
+      }
+
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    expect(
+      await screen.findAllByText('Дія недоступна через обмеження плану. Перевірте доступ у Billing.')
+    ).toHaveLength(3)
   })
 })

@@ -4,7 +4,7 @@ Last updated: 2026-03-12
 Owner: agent-maintained
 Primary use: persistent project handoff for agent-led work
 Update trigger: after each meaningful completed task
-Last agent task: prepare explicit empty/loading/error state surfaces for high-traffic client/public views without speculative backend error-code mapping
+Last agent task: wire backend booking/session `code` and `reason_code` into the already-prepared frontend explicit-state booking/session surfaces
 
 Update rule:
 
@@ -90,16 +90,26 @@ Update rule:
 - `ClientDashboardView` now prevents misleading “no upcoming sessions” messaging while booking/session data is still loading or failed to load; the priority card, upcoming/past sections, and group-events block each have distinct retryable state branches.
 - Focused regression coverage for this prep slice now exists in `src/views/PublicTherapistsView.spec.ts`, `src/views/ClientTherapistsView.spec.ts`, and `src/views/ClientDashboardView.spec.ts`.
 - `CabinetView` was audited in this pass but intentionally left runtime-stable; broader access/billing/error-state normalization there is still better deferred until the backend booking/session error dictionary and related access semantics are documented.
+- `src/lib/bookingCopy.ts` now centralizes the finalized backend booking/session error contract on the frontend: `reason_code` takes precedence over `code`, and free-form `detail` remains only a fallback.
+- Prepared booking/session surfaces now consume that mapping instead of guessing from `detail`: `PublicProfileView`, the sessions branch of `ClientDashboardView`, `ClientSessionDetailView`, `SlotsView`, `TherapistSessionsView`, and `TherapistSessionDetailView`.
+- `SlotsView` keeps the explicit overlap/conflict rendering path, but now keys it off backend `code = SLOT_OVERLAP` first and falls back to overlap `detail` only when needed.
+- Focused booking/session regression coverage now includes coded stale-transition/session-not-found cases in specialist detail/list views, coded overlap payloads in `SlotsView`, a coded sessions-error branch in `ClientDashboardView`, and a coded reschedule-request rejection in `ClientSessionDetailView`.
 
 ## Changed files
 
-- `src/components/EmptyState.vue`
-- `src/views/PublicTherapistsView.vue`
-- `src/views/PublicTherapistsView.spec.ts`
-- `src/views/ClientTherapistsView.vue`
-- `src/views/ClientTherapistsView.spec.ts`
+- `src/lib/bookingCopy.ts`
+- `src/test/bookingCopy.test.ts`
+- `src/views/PublicProfileView.vue`
 - `src/views/ClientDashboardView.vue`
 - `src/views/ClientDashboardView.spec.ts`
+- `src/views/ClientSessionDetailView.vue`
+- `src/views/ClientSessionDetailView.spec.ts`
+- `src/views/SlotsView.vue`
+- `src/views/SlotsView.spec.ts`
+- `src/views/TherapistSessionsView.vue`
+- `src/views/TherapistSessionsView.spec.ts`
+- `src/views/TherapistSessionDetailView.vue`
+- `src/views/TherapistSessionDetailView.spec.ts`
 - `README.md`
 - `docs/HANDOFF.md`
 
@@ -108,19 +118,22 @@ Update rule:
 Latest task validation:
 
 ```powershell
-npm run test:run -- src/views/PublicTherapistsView.spec.ts
-npm run test:run -- src/views/ClientTherapistsView.spec.ts
+npm run test:run -- src/test/bookingCopy.test.ts
+npm run test:run -- src/views/SlotsView.spec.ts
 npm run test:run -- src/views/ClientDashboardView.spec.ts
+npm run test:run -- src/views/ClientSessionDetailView.spec.ts
+npm run test:run -- src/views/TherapistSessionsView.spec.ts
+npm run test:run -- src/views/TherapistSessionDetailView.spec.ts
 npm run typecheck
 ```
 
 ## Remaining work
 
 - Add richer CRM workflows: bulk actions and a deeper client profile view.
-- After backend commits the booking/session error dictionary, wire code-based error mapping into the prepared `ClientDashboardView`, `ClientTherapistsView`, `PublicTherapistsView`, and remaining high-traffic views.
 - Expand system-level empty/loading/error states across remaining views, including `CabinetView`, once the backend contract for error semantics is stable enough to avoid frontend-only taxonomies.
 - Clarify future billing and entitlements states if backend support for live billing is introduced.
 - Inquiry MVP does not yet have dedicated client dashboard discoverability outside the public specialist profile.
+- Booking/session-adjacent areas that still do not consume this contract remain intentionally deferred in this patch: group-event error normalization, notes/reviews-specific errors, and detail-based validation for some filter params.
 
 ## Risks / open questions
 
@@ -134,7 +147,6 @@ npm run typecheck
 - `/api/me` is still used for supplemental notification hints (`access_state`, entitlements, counts), but not as the primary notification feed.
 - Notification read state is now broader than session events, but bell `read_at` intentionally remains decoupled from inquiry thread message state.
 - Reschedule and inquiry notifications now read more clearly and route by role, but stronger visual differentiation than copy-only treatment may still be worth a later UX pass.
-- This prep slice intentionally does not map backend booking/session error codes yet; current error copy stays generic until the canonical backend dictionary is committed and documented.
 - `CabinetView` still uses simpler auth/bootstrap heuristics (`v-if="me"` plus entitlements/access hints), so any deeper empty/error-state pass there should be coordinated with backend access-state semantics rather than guessed locally.
 - The full Vitest suite (`npm run test:run`) was not rerun in this follow-up; validation here is targeted explicit-state coverage plus `vue-tsc -b`.
 - Some files display encoding issues in the current shell output, so copy-heavy changes should still be checked in-editor.

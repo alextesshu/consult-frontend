@@ -497,8 +497,11 @@
 import { computed, onMounted, onBeforeUnmount, ref, watch, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import { apiGet, fetchSpecialistProfile, type SpecialistProfile } from '../lib/api'
-import { getApiErrorMessage } from '../lib/errors'
-import { BOOKING_ERROR_FALLBACKS, BOOKING_SUCCESS_MESSAGES } from '../lib/bookingCopy'
+import {
+  BOOKING_ERROR_FALLBACKS,
+  BOOKING_SUCCESS_MESSAGES,
+  getBookingErrorMessage,
+} from '../lib/bookingCopy'
 import {
   approveSpecialistRescheduleRequest as approveSpecialistRescheduleRequestAction,
   canCancel as sharedCanCancel,
@@ -804,7 +807,7 @@ async function loadSessions() {
     upcoming.value = upcomingResp || []
     past.value = pastResp || []
   } catch (err: any) {
-    error.value = getApiErrorMessage(err, BOOKING_ERROR_FALLBACKS.loadSessions)
+    error.value = getBookingErrorMessage(err, BOOKING_ERROR_FALLBACKS.loadSessions)
   } finally {
     loading.value = false
   }
@@ -885,7 +888,7 @@ async function confirmSession(id: number) {
     await loadSessions()
     toast.success(BOOKING_SUCCESS_MESSAGES.sessionConfirmed)
   } catch (err: any) {
-    error.value = getApiErrorMessage(err, BOOKING_ERROR_FALLBACKS.confirmSession)
+    error.value = getBookingErrorMessage(err, BOOKING_ERROR_FALLBACKS.confirmSession)
   } finally {
     setActionLoading(id, false)
   }
@@ -909,7 +912,7 @@ async function completeSession(id: number) {
     await openNoteModal(id)
     toast.success(BOOKING_SUCCESS_MESSAGES.sessionCompleted)
   } catch (err: any) {
-    error.value = getApiErrorMessage(err, BOOKING_ERROR_FALLBACKS.completeSession)
+    error.value = getBookingErrorMessage(err, BOOKING_ERROR_FALLBACKS.completeSession)
   } finally {
     setActionLoading(id, false)
   }
@@ -923,7 +926,7 @@ async function cancelSession(id: number) {
     await loadSessions()
     toast.success(BOOKING_SUCCESS_MESSAGES.sessionCancelled)
   } catch (err: any) {
-    error.value = getApiErrorMessage(err, BOOKING_ERROR_FALLBACKS.cancelSession)
+    error.value = getBookingErrorMessage(err, BOOKING_ERROR_FALLBACKS.cancelSession)
   } finally {
     setActionLoading(id, false)
   }
@@ -995,7 +998,7 @@ async function submitReschedule(id: number) {
     await Promise.all([loadSessions(), loadSlots()])
     toast.success(BOOKING_SUCCESS_MESSAGES.sessionRescheduled)
   } catch (err: any) {
-    error.value = getApiErrorMessage(err, BOOKING_ERROR_FALLBACKS.rescheduleSession)
+    error.value = getBookingErrorMessage(err, BOOKING_ERROR_FALLBACKS.rescheduleSession)
   } finally {
     setActionLoading(id, false)
   }
@@ -1024,7 +1027,7 @@ async function submitRecurring(id: number) {
       toast.success(BOOKING_SUCCESS_MESSAGES.recurringSeriesCreated)
     }
   } catch (err: any) {
-    error.value = getApiErrorMessage(err, BOOKING_ERROR_FALLBACKS.createRecurringSession)
+    error.value = getBookingErrorMessage(err, BOOKING_ERROR_FALLBACKS.createRecurringSession)
   } finally {
     setActionLoading(id, false)
   }
@@ -1037,7 +1040,7 @@ async function loadNote(id: number) {
   try {
     noteDraft.value = await fetchSpecialistSessionNoteContentData(id)
   } catch (err: any) {
-    error.value = getApiErrorMessage(err, BOOKING_ERROR_FALLBACKS.loadSessionNote)
+    error.value = getBookingErrorMessage(err, BOOKING_ERROR_FALLBACKS.loadSessionNote)
   } finally {
     setNoteLoading(id, false)
   }
@@ -1051,7 +1054,7 @@ async function saveNote(id: number) {
     closeNote()
     toast.success(BOOKING_SUCCESS_MESSAGES.noteSaved)
   } catch (err: any) {
-    error.value = getApiErrorMessage(err, BOOKING_ERROR_FALLBACKS.saveSessionNote)
+    error.value = getBookingErrorMessage(err, BOOKING_ERROR_FALLBACKS.saveSessionNote)
   } finally {
     setNoteSaving(id, false)
   }
@@ -1087,7 +1090,7 @@ async function approveRequest(id: number) {
     await Promise.all([loadSessions(), loadSlots(), loadRescheduleRequests(), loadTherapistProfilePhoto()])
     toast.success(BOOKING_SUCCESS_MESSAGES.rescheduleRequestApproved)
   } catch (err: any) {
-    error.value = getApiErrorMessage(err, BOOKING_ERROR_FALLBACKS.approveRescheduleRequest)
+    error.value = getBookingErrorMessage(err, BOOKING_ERROR_FALLBACKS.approveRescheduleRequest)
   } finally {
     setRequestLoading(id, false)
   }
@@ -1101,7 +1104,7 @@ async function declineRequest(id: number) {
     await loadRescheduleRequests()
     toast.success(BOOKING_SUCCESS_MESSAGES.rescheduleRequestDeclined)
   } catch (err: any) {
-    error.value = getApiErrorMessage(err, BOOKING_ERROR_FALLBACKS.declineRescheduleRequest)
+    error.value = getBookingErrorMessage(err, BOOKING_ERROR_FALLBACKS.declineRescheduleRequest)
   } finally {
     setRequestLoading(id, false)
   }

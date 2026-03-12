@@ -1,41 +1,41 @@
-<template>
+﻿<template>
   <section class="slots">
     <header class="slots__hero">
       <div>
-        <div class="badge">Розклад</div>
-        <h1 class="title slots__title">Вільні вікна</h1>
+        <div class="badge">Р РѕР·РєР»Р°Рґ</div>
+        <h1 class="title slots__title">Р’С–Р»СЊРЅС– РІС–РєРЅР°</h1>
         <p class="muted slots__subtitle">
-          Переглядайте та оновлюйте вільні вікна, які доступні клієнтам для запису.
+          РџРµСЂРµРіР»СЏРґР°Р№С‚Рµ С‚Р° РѕРЅРѕРІР»СЋР№С‚Рµ РІС–Р»СЊРЅС– РІС–РєРЅР°, СЏРєС– РґРѕСЃС‚СѓРїРЅС– РєР»С–С”РЅС‚Р°Рј РґР»СЏ Р·Р°РїРёСЃСѓ.
         </p>
       </div>
-      <RouterLink class="btn btn--ghost" to="/cabinet">Назад до кабінету</RouterLink>
+      <RouterLink class="btn btn--ghost" to="/cabinet">РќР°Р·Р°Рґ РґРѕ РєР°Р±С–РЅРµС‚Сѓ</RouterLink>
     </header>
 
     <ScheduleSubnav active="slots" />
 
     <section class="panel panel--split">
       <div>
-        <h2 class="panel__title">Нове вільне вікно</h2>
+        <h2 class="panel__title">РќРѕРІРµ РІС–Р»СЊРЅРµ РІС–РєРЅРѕ</h2>
         <p class="muted" style="margin: 6px 0 0;">
-          Вільне вікно — це вільний час для запису клієнта. Вкажіть початок і тривалість, і воно з'явиться у публічному профілі.
+          Р’С–Р»СЊРЅРµ РІС–РєРЅРѕ вЂ” С†Рµ РІС–Р»СЊРЅРёР№ С‡Р°СЃ РґР»СЏ Р·Р°РїРёСЃСѓ РєР»С–С”РЅС‚Р°. Р’РєР°Р¶С–С‚СЊ РїРѕС‡Р°С‚РѕРє С– С‚СЂРёРІР°Р»С–СЃС‚СЊ, С– РІРѕРЅРѕ Р·'СЏРІРёС‚СЊСЃСЏ Сѓ РїСѓР±Р»С–С‡РЅРѕРјСѓ РїСЂРѕС„С–Р»С–.
         </p>
         <p class="slot-note">
-          Робочі години не створюють вільні вікна автоматично. Після зміни розкладу використайте
-          <RouterLink class="slot-note__link" to="/cabinet/availability-rules">генерацію у налаштуваннях розкладу</RouterLink>
-          або масове заповнення нижче.
+          Р РѕР±РѕС‡С– РіРѕРґРёРЅРё РЅРµ СЃС‚РІРѕСЂСЋСЋС‚СЊ РІС–Р»СЊРЅС– РІС–РєРЅР° Р°РІС‚РѕРјР°С‚РёС‡РЅРѕ. РџС–СЃР»СЏ Р·РјС–РЅРё СЂРѕР·РєР»Р°РґСѓ РІРёРєРѕСЂРёСЃС‚Р°Р№С‚Рµ
+          <RouterLink class="slot-note__link" to="/cabinet/availability-rules">РіРµРЅРµСЂР°С†С–СЋ Сѓ РЅР°Р»Р°С€С‚СѓРІР°РЅРЅСЏС… СЂРѕР·РєР»Р°РґСѓ</RouterLink>
+          Р°Р±Рѕ РјР°СЃРѕРІРµ Р·Р°РїРѕРІРЅРµРЅРЅСЏ РЅРёР¶С‡Рµ.
         </p>
       </div>
       <form class="slot-form" @submit.prevent="createSlot">
         <label class="field">
-          Початок
+          РџРѕС‡Р°С‚РѕРє
           <div class="datetime-field">
             <input
               v-model="newStartDate"
               class="input"
               type="date"
               lang="uk"
-              placeholder="ДД.ММ.РРРР"
-              aria-label="Дата початку"
+              placeholder="Р”Р”.РњРњ.Р Р Р Р "
+              aria-label="Р”Р°С‚Р° РїРѕС‡Р°С‚РєСѓ"
               required
               @click="openPicker"
             />
@@ -44,23 +44,23 @@
               class="input"
               type="text"
               inputmode="numeric"
-              placeholder="ГГ:ХХ"
-              aria-label="Час початку"
+              placeholder="Р“Р“:РҐРҐ"
+              aria-label="Р§Р°СЃ РїРѕС‡Р°С‚РєСѓ"
               list="time-options"
               required
             />
           </div>
         </label>
         <label class="field">
-          Тривалість
+          РўСЂРёРІР°Р»С–СЃС‚СЊ
           <input
             v-model.number="newDuration"
             class="input"
             type="number"
             min="15"
             step="5"
-            placeholder="хв"
-            aria-label="Тривалість у хвилинах"
+            placeholder="С…РІ"
+            aria-label="РўСЂРёРІР°Р»С–СЃС‚СЊ Сѓ С…РІРёР»РёРЅР°С…"
             required
           />
         </label>
@@ -68,7 +68,7 @@
           <option v-for="option in timeOptions" :key="option" :value="option" />
         </datalist>
         <button class="btn" type="button" @click="createSlot">
-          Створити вільне вікно
+          РЎС‚РІРѕСЂРёС‚Рё РІС–Р»СЊРЅРµ РІС–РєРЅРѕ
         </button>
         <div v-if="error" class="form-error form-error--inline">{{ error }}</div>
       </form>
@@ -77,14 +77,14 @@
     <section class="panel">
       <div class="panel__header">
         <div>
-          <div class="badge badge--soft">Масове заповнення</div>
-          <h2 class="panel__title">Швидкі шаблони</h2>
+          <div class="badge badge--soft">РњР°СЃРѕРІРµ Р·Р°РїРѕРІРЅРµРЅРЅСЏ</div>
+          <h2 class="panel__title">РЁРІРёРґРєС– С€Р°Р±Р»РѕРЅРё</h2>
         </div>
       </div>
       <div class="slot-bulk">
         <div class="bulk-group">
           <label class="field">
-            Дата для дня
+            Р”Р°С‚Р° РґР»СЏ РґРЅСЏ
             <input v-model="fillDayDate" class="input" type="date" lang="uk" @click="openPicker" />
           </label>
           <button
@@ -93,16 +93,16 @@
             :disabled="loading || !fillDayDate"
             @click="fillDay"
           >
-            Заповнити день
+            Р—Р°РїРѕРІРЅРёС‚Рё РґРµРЅСЊ
           </button>
           <div class="bulk-hint">
-            Формат: {{ formatDateOnly(fillDayDate) }}
-            <span v-if="isFillDayToday" class="bulk-hint__today">· Сьогодні</span>
+            Р¤РѕСЂРјР°С‚: {{ formatDateOnly(fillDayDate) }}
+            <span v-if="isFillDayToday" class="bulk-hint__today">В· РЎСЊРѕРіРѕРґРЅС–</span>
           </div>
         </div>
         <div class="bulk-group">
           <label class="field">
-            Дата для тижня
+            Р”Р°С‚Р° РґР»СЏ С‚РёР¶РЅСЏ
             <input v-model="fillWeekDate" class="input" type="date" lang="uk" @click="openPicker" />
           </label>
           <button
@@ -111,31 +111,31 @@
             :disabled="loading || !fillWeekDate"
             @click="fillWeek"
           >
-            Заповнити тиждень (Пн–Пт)
+            Р—Р°РїРѕРІРЅРёС‚Рё С‚РёР¶РґРµРЅСЊ (РџРЅвЂ“РџС‚)
           </button>
           <div class="bulk-hint">
-            Формат: {{ formatDateOnly(fillWeekDate) }}
-            <span v-if="isFillWeekToday" class="bulk-hint__today">· Сьогодні</span>
+            Р¤РѕСЂРјР°С‚: {{ formatDateOnly(fillWeekDate) }}
+            <span v-if="isFillWeekToday" class="bulk-hint__today">В· РЎСЊРѕРіРѕРґРЅС–</span>
           </div>
         </div>
       </div>
       <p class="slot-note">
-        Якщо обрана дата — сьогодні, система пропускає години, що вже минули. Нічні вікна можна створити лише для майбутнього часу або майбутньої дати.
+        РЇРєС‰Рѕ РѕР±СЂР°РЅР° РґР°С‚Р° вЂ” СЃСЊРѕРіРѕРґРЅС–, СЃРёСЃС‚РµРјР° РїСЂРѕРїСѓСЃРєР°С” РіРѕРґРёРЅРё, С‰Рѕ РІР¶Рµ РјРёРЅСѓР»Рё. РќС–С‡РЅС– РІС–РєРЅР° РјРѕР¶РЅР° СЃС‚РІРѕСЂРёС‚Рё Р»РёС€Рµ РґР»СЏ РјР°Р№Р±СѓС‚РЅСЊРѕРіРѕ С‡Р°СЃСѓ Р°Р±Рѕ РјР°Р№Р±СѓС‚РЅСЊРѕС— РґР°С‚Рё.
       </p>
     </section>
 
     <section class="panel">
       <div class="panel__header">
         <div>
-          <div class="badge badge--soft">Навігація</div>
-          <h2 class="panel__title">Дні та фільтри</h2>
+          <div class="badge badge--soft">РќР°РІС–РіР°С†С–СЏ</div>
+          <h2 class="panel__title">Р”РЅС– С‚Р° С„С–Р»СЊС‚СЂРё</h2>
         </div>
         <div class="day-nav-actions">
           <button class="btn btn--ghost btn--sm" type="button" :disabled="dayOffset === 0" @click="shiftDays(-1)">
-            Попередні 7 днів
+            РџРѕРїРµСЂРµРґРЅС– 7 РґРЅС–РІ
           </button>
           <button class="btn btn--ghost btn--sm" type="button" @click="shiftDays(1)">
-            Наступні 7 днів
+            РќР°СЃС‚СѓРїРЅС– 7 РґРЅС–РІ
           </button>
         </div>
       </div>
@@ -152,13 +152,13 @@
         </button>
       </div>
       <label class="field day-picker">
-        Обрати дату
+        РћР±СЂР°С‚Рё РґР°С‚Сѓ
         <input v-model="selectedDate" class="input" type="date" lang="uk-ua" @click="openPicker" />
-        <span class="field-hint">Формат: {{ formatDateOnly(selectedDate) }}</span>
+        <span class="field-hint">Р¤РѕСЂРјР°С‚: {{ formatDateOnly(selectedDate) }}</span>
       </label>
       <div class="muted day-hint">
-        Показано вільні вікна за: {{ formatDateOnly(selectedDate) }}
-        <span v-if="isSelectedToday" class="day-hint__today">· Сьогодні</span>
+        РџРѕРєР°Р·Р°РЅРѕ РІС–Р»СЊРЅС– РІС–РєРЅР° Р·Р°: {{ formatDateOnly(selectedDate) }}
+        <span v-if="isSelectedToday" class="day-hint__today">В· РЎСЊРѕРіРѕРґРЅС–</span>
       </div>
       <button
         v-if="hasPastSlotsOnSelectedDate"
@@ -166,21 +166,21 @@
         type="button"
         @click="showPastSlots = !showPastSlots"
       >
-        {{ showPastSlots ? 'Сховати минулі вікна' : `Показати минулі вікна (${hiddenPastSlotsCount})` }}
+        {{ showPastSlots ? 'РЎС…РѕРІР°С‚Рё РјРёРЅСѓР»С– РІС–РєРЅР°' : `РџРѕРєР°Р·Р°С‚Рё РјРёРЅСѓР»С– РІС–РєРЅР° (${hiddenPastSlotsCount})` }}
       </button>
       <p v-if="isSelectedToday" class="slot-note">
-        Якщо нічний час для сьогодні вже минув, він не з'явиться у списку. Для перевірки нового нічного розкладу оберіть майбутню дату.
+        РЇРєС‰Рѕ РЅС–С‡РЅРёР№ С‡Р°СЃ РґР»СЏ СЃСЊРѕРіРѕРґРЅС– РІР¶Рµ РјРёРЅСѓРІ, РІС–РЅ РЅРµ Р·'СЏРІРёС‚СЊСЃСЏ Сѓ СЃРїРёСЃРєСѓ. Р”Р»СЏ РїРµСЂРµРІС–СЂРєРё РЅРѕРІРѕРіРѕ РЅС–С‡РЅРѕРіРѕ СЂРѕР·РєР»Р°РґСѓ РѕР±РµСЂС–С‚СЊ РјР°Р№Р±СѓС‚РЅСЋ РґР°С‚Сѓ.
       </p>
     </section>
 
-    <div v-if="loading" class="muted" style="margin-top: 12px;">Завантаження...</div>
+    <div v-if="loading" class="muted" style="margin-top: 12px;">Р—Р°РІР°РЅС‚Р°Р¶РµРЅРЅСЏ...</div>
 
     <section class="slot-list">
-      <div v-if="filteredSlots.length === 0" class="muted">Вільних вікон на цей день немає.</div>
+      <div v-if="filteredSlots.length === 0" class="muted">Р’С–Р»СЊРЅРёС… РІС–РєРѕРЅ РЅР° С†РµР№ РґРµРЅСЊ РЅРµРјР°С”.</div>
       <article v-for="slot in filteredSlots" :key="slot.id" class="slot-card">
         <div class="slot-row">
           <div class="slot-meta">
-            <div class="slot-label">Початок</div>
+            <div class="slot-label">РџРѕС‡Р°С‚РѕРє</div>
             <template v-if="isEditing(slot.id)">
               <div class="datetime-field">
                 <input
@@ -188,7 +188,7 @@
                     class="input"
                     type="date"
                     lang="uk"
-                    placeholder="ДД.ММ.РРРР"
+                    placeholder="Р”Р”.РњРњ.Р Р Р Р "
                     @click="openPicker"
                   />
                 <input
@@ -196,7 +196,7 @@
                     class="input"
                     type="text"
                     inputmode="numeric"
-                    placeholder="ГГ:ХХ"
+                    placeholder="Р“Р“:РҐРҐ"
                     list="time-options"
                   />
               </div>
@@ -206,7 +206,7 @@
             </template>
           </div>
           <div class="slot-meta">
-            <div class="slot-label">Тривалість</div>
+            <div class="slot-label">РўСЂРёРІР°Р»С–СЃС‚СЊ</div>
             <template v-if="isEditing(slot.id)">
               <div class="datetime-field">
                 <input
@@ -215,8 +215,8 @@
                   type="number"
                   min="15"
                   step="5"
-                  placeholder="хв"
-                  aria-label="Тривалість у хвилинах"
+                  placeholder="С…РІ"
+                  aria-label="РўСЂРёРІР°Р»С–СЃС‚СЊ Сѓ С…РІРёР»РёРЅР°С…"
                 />
               </div>
             </template>
@@ -225,7 +225,7 @@
             </template>
           </div>
           <div class="slot-status" :class="{ 'slot-status--booked': slot.is_booked }">
-            {{ slot.is_booked ? 'Заброньовано' : 'Вільно' }}
+            {{ slot.is_booked ? 'Р—Р°Р±СЂРѕРЅСЊРѕРІР°РЅРѕ' : 'Р’С–Р»СЊРЅРѕ' }}
           </div>
         </div>
         <div class="slot-actions">
@@ -236,7 +236,7 @@
             :disabled="slot.is_booked || loading"
             @click="startEdit(slot)"
           >
-            Редагувати
+            Р РµРґР°РіСѓРІР°С‚Рё
           </button>
           <button
             v-else
@@ -245,7 +245,7 @@
             :disabled="loading"
             @click="saveEdit(slot.id)"
           >
-            Зберегти
+            Р—Р±РµСЂРµРіС‚Рё
           </button>
           <button
             v-if="isEditing(slot.id)"
@@ -254,7 +254,7 @@
             :disabled="loading"
             @click="cancelEdit"
           >
-            Скасувати
+            РЎРєР°СЃСѓРІР°С‚Рё
           </button>
           <button
             class="btn btn--ghost btn--sm"
@@ -262,7 +262,7 @@
             :disabled="slot.is_booked || loading"
             @click="requestDeleteSlot(slot.id)"
           >
-            Видалити
+            Р’РёРґР°Р»РёС‚Рё
           </button>
         </div>
         <div
@@ -273,7 +273,7 @@
           {{ editErrors[slot.id] }}
         </div>
         <div v-if="slot.is_booked" class="muted slot-hint">
-          Це вікно вже заброньовано — редагування та видалення недоступні.
+          Р¦Рµ РІС–РєРЅРѕ РІР¶Рµ Р·Р°Р±СЂРѕРЅСЊРѕРІР°РЅРѕ вЂ” СЂРµРґР°РіСѓРІР°РЅРЅСЏ С‚Р° РІРёРґР°Р»РµРЅРЅСЏ РЅРµРґРѕСЃС‚СѓРїРЅС–.
         </div>
       </article>
     </section>
@@ -293,7 +293,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref } from 'vue'
 import { apiDelete, apiGet, apiPatch, apiPost } from '../lib/api'
-import { getApiErrorMessage } from '../lib/errors'
+import { getBookingErrorCode, getBookingErrorMessage } from '../lib/bookingCopy'
 import { useToast } from '../composables/useToast'
 import ConfirmModal from '../components/ConfirmModal.vue'
 import ScheduleSubnav from '../components/ScheduleSubnav.vue'
@@ -336,7 +336,7 @@ const fillWeekDate = ref(todayKey)
 const dayOffset = ref(0)
 const selectedDate = ref(todayKey)
 const showPastSlots = ref(false)
-const pastSlotMessage = 'Неможливо створити вікно в минулому. Для нічного часу оберіть майбутню дату або майбутній час.'
+const pastSlotMessage = 'РќРµРјРѕР¶Р»РёРІРѕ СЃС‚РІРѕСЂРёС‚Рё РІС–РєРЅРѕ РІ РјРёРЅСѓР»РѕРјСѓ. Р”Р»СЏ РЅС–С‡РЅРѕРіРѕ С‡Р°СЃСѓ РѕР±РµСЂС–С‚СЊ РјР°Р№Р±СѓС‚РЅСЋ РґР°С‚Сѓ Р°Р±Рѕ РјР°Р№Р±СѓС‚РЅС–Р№ С‡Р°СЃ.'
 
 const editingId = ref<number | null>(null)
 const editStartDate = ref('')
@@ -354,9 +354,9 @@ function formatDateOnly(value: string) {
 function formatDuration(slot: Slot) {
   const start = new Date(slot.start_at)
   const end = new Date(slot.end_at)
-  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return '—'
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return 'вЂ”'
   const minutes = Math.max(0, Math.round((end.getTime() - start.getTime()) / 60000))
-  return `${minutes} хв`
+  return `${minutes} С…РІ`
 }
 
 function toLocalDateKey(value: string) {
@@ -499,26 +499,35 @@ function isPastConflict(conflict: SlotConflict | null) {
 
 function translateError(
   message: string,
-  options?: { conflict?: SlotConflict | null }
+  options?: { code?: string | null; conflict?: SlotConflict | null }
 ) {
-  if (!message) return ''
-  if (message.includes('overlaps')) {
+  if (!message && options?.code !== 'SLOT_OVERLAP') return ''
+  if (options?.code === 'SLOT_OVERLAP' || message.includes('overlaps')) {
     const conflictRange = options?.conflict ? formatConflictRange(options.conflict) : ''
     if (conflictRange && isPastConflict(options?.conflict || null)) {
-      return `Віконце перетинається з уже існуючим: ${conflictRange}. Це вікно вже в минулому, тому не показується у списку за замовчуванням.`
+      return `Р’С–РєРѕРЅС†Рµ РїРµСЂРµС‚РёРЅР°С”С‚СЊСЃСЏ Р· СѓР¶Рµ С–СЃРЅСѓСЋС‡РёРј: ${conflictRange}. Р¦Рµ РІС–РєРЅРѕ РІР¶Рµ РІ РјРёРЅСѓР»РѕРјСѓ, С‚РѕРјСѓ РЅРµ РїРѕРєР°Р·СѓС”С‚СЊСЃСЏ Сѓ СЃРїРёСЃРєСѓ Р·Р° Р·Р°РјРѕРІС‡СѓРІР°РЅРЅСЏРј.`
     }
     if (conflictRange) {
-      return `Віконце перетинається з уже існуючим: ${conflictRange}.`
+      return `Р’С–РєРѕРЅС†Рµ РїРµСЂРµС‚РёРЅР°С”С‚СЊСЃСЏ Р· СѓР¶Рµ С–СЃРЅСѓСЋС‡РёРј: ${conflictRange}.`
     }
-    return 'Віконце перетинається з уже існуючим.'
+    return 'Р’С–РєРѕРЅС†Рµ РїРµСЂРµС‚РёРЅР°С”С‚СЊСЃСЏ Р· СѓР¶Рµ С–СЃРЅСѓСЋС‡РёРј.'
   }
   if (message.includes('end_at must be greater than start_at')) {
-    return 'Кінець має бути пізніше за початок.'
+    return 'РљС–РЅРµС†СЊ РјР°С” Р±СѓС‚Рё РїС–Р·РЅС–С€Рµ Р·Р° РїРѕС‡Р°С‚РѕРє.'
   }
   if (message.includes('Slot not found')) {
-    return 'Віконце не знайдено.'
+    return 'Р’С–РєРѕРЅС†Рµ РЅРµ Р·РЅР°Р№РґРµРЅРѕ.'
   }
   return message
+}
+
+function getSlotErrorMessage(err: unknown, fallback: string) {
+  const code = getBookingErrorCode(err)
+  const raw = normalizeError(err)
+  const conflict = normalizeConflict(err)
+  const translated = translateError(raw, { code, conflict })
+  if (translated) return translated
+  return getBookingErrorMessage(err, fallback)
 }
 
 function openPicker(event: Event) {
@@ -588,7 +597,7 @@ async function loadSlots() {
       showPastSlots.value = false
     }
   } catch (err: any) {
-    error.value = getApiErrorMessage(err, '\u041d\u0435 \u0432\u0434\u0430\u043b\u043e\u0441\u044f \u0437\u0430\u0432\u0430\u043d\u0442\u0430\u0436\u0438\u0442\u0438 \u0441\u043b\u043e\u0442\u0438')
+    error.value = getBookingErrorMessage(err, '\u041d\u0435 \u0432\u0434\u0430\u043b\u043e\u0441\u044f \u0437\u0430\u0432\u0430\u043d\u0442\u0430\u0436\u0438\u0442\u0438 \u0441\u043b\u043e\u0442\u0438')
   } finally {
     loading.value = false
   }
@@ -601,7 +610,7 @@ async function createSlot() {
     const startAt = parseUkDateTime(newStartDate.value, newStartTime.value)
     const durationMinutes = Number(newDuration.value)
     if (!startAt || !Number.isFinite(durationMinutes) || durationMinutes <= 0) {
-      error.value = 'Вкажіть дату, час і тривалість у хвилинах.'
+      error.value = 'Р’РєР°Р¶С–С‚СЊ РґР°С‚Сѓ, С‡Р°СЃ С– С‚СЂРёРІР°Р»С–СЃС‚СЊ Сѓ С…РІРёР»РёРЅР°С….'
       return
     }
     if (startAt.getTime() < Date.now()) {
@@ -620,11 +629,9 @@ async function createSlot() {
     newStartDate.value = ''
     newStartTime.value = ''
     newDuration.value = 50
-    toast.success(`Вільне вікно на ${formatUkDateTimeCompact(startAt, '')} створено.`)
+    toast.success(`Р’С–Р»СЊРЅРµ РІС–РєРЅРѕ РЅР° ${formatUkDateTimeCompact(startAt, '')} СЃС‚РІРѕСЂРµРЅРѕ.`)
   } catch (err: any) {
-    const raw = normalizeError(err)
-    const conflict = normalizeConflict(err)
-    error.value = translateError(raw, { conflict }) || 'Не вдалося створити вільне вікно'
+    error.value = getSlotErrorMessage(err, '\u041d\u0435 \u0432\u0434\u0430\u043b\u043e\u0441\u044f \u0441\u0442\u0432\u043e\u0440\u0438\u0442\u0438 \u0432\u0456\u043b\u044c\u043d\u0435 \u0432\u0456\u043a\u043d\u043e')
     newStartTime.value = ''
   } finally {
     loading.value = false
@@ -643,11 +650,11 @@ async function fillDay() {
     await loadSlots()
     toast.success(
       isFillDayToday.value
-        ? `День ${formatDateOnly(fillDayDate.value)} заповнено. Додано лише майбутні вікна.`
-        : `День ${formatDateOnly(fillDayDate.value)} заповнено.`,
+        ? `Р”РµРЅСЊ ${formatDateOnly(fillDayDate.value)} Р·Р°РїРѕРІРЅРµРЅРѕ. Р”РѕРґР°РЅРѕ Р»РёС€Рµ РјР°Р№Р±СѓС‚РЅС– РІС–РєРЅР°.`
+        : `Р”РµРЅСЊ ${formatDateOnly(fillDayDate.value)} Р·Р°РїРѕРІРЅРµРЅРѕ.`,
     )
   } catch (err: any) {
-    error.value = err?.response?.data?.detail || 'Не вдалося заповнити день вільними вікнами'
+    error.value = getBookingErrorMessage(err, '\u041d\u0435 \u0432\u0434\u0430\u043b\u043e\u0441\u044f \u0437\u0430\u043f\u043e\u0432\u043d\u0438\u0442\u0438 \u0434\u0435\u043d\u044c \u0432\u0456\u043b\u044c\u043d\u0438\u043c\u0438 \u0432\u0456\u043a\u043d\u0430\u043c\u0438')
   } finally {
     loading.value = false
   }
@@ -665,11 +672,11 @@ async function fillWeek() {
     await loadSlots()
     toast.success(
       isFillWeekToday.value
-        ? `Тиждень від ${formatDateOnly(fillWeekDate.value)} заповнено. Для сьогодні додано лише майбутні вікна.`
-        : `Тиждень від ${formatDateOnly(fillWeekDate.value)} заповнено.`,
+        ? `РўРёР¶РґРµРЅСЊ РІС–Рґ ${formatDateOnly(fillWeekDate.value)} Р·Р°РїРѕРІРЅРµРЅРѕ. Р”Р»СЏ СЃСЊРѕРіРѕРґРЅС– РґРѕРґР°РЅРѕ Р»РёС€Рµ РјР°Р№Р±СѓС‚РЅС– РІС–РєРЅР°.`
+        : `РўРёР¶РґРµРЅСЊ РІС–Рґ ${formatDateOnly(fillWeekDate.value)} Р·Р°РїРѕРІРЅРµРЅРѕ.`,
     )
   } catch (err: any) {
-    error.value = err?.response?.data?.detail || 'Не вдалося заповнити тиждень вільними вікнами'
+    error.value = getBookingErrorMessage(err, '\u041d\u0435 \u0432\u0434\u0430\u043b\u043e\u0441\u044f \u0437\u0430\u043f\u043e\u0432\u043d\u0438\u0442\u0438 \u0442\u0438\u0436\u0434\u0435\u043d\u044c \u0432\u0456\u043b\u044c\u043d\u0438\u043c\u0438 \u0432\u0456\u043a\u043d\u0430\u043c\u0438')
   } finally {
     loading.value = false
   }
@@ -719,7 +726,7 @@ async function saveEdit(slotId: number) {
     const startAt = parseUkDateTime(editStartDate.value, editStartTime.value)
     const durationMinutes = Number(editDuration.value)
     if (!startAt || !Number.isFinite(durationMinutes) || durationMinutes <= 0) {
-      error.value = 'Вкажіть дату, час і тривалість у хвилинах.'
+      error.value = 'Р’РєР°Р¶С–С‚СЊ РґР°С‚Сѓ, С‡Р°СЃ С– С‚СЂРёРІР°Р»С–СЃС‚СЊ Сѓ С…РІРёР»РёРЅР°С….'
       return
     }
     if (startAt.getTime() < Date.now()) {
@@ -740,10 +747,8 @@ async function saveEdit(slotId: number) {
     slots.value = slots.value.map((slot) => (slot.id === slotId ? resp : slot))
     cancelEdit()
   } catch (err: any) {
-    const raw = normalizeError(err)
-    const conflict = normalizeConflict(err)
     editErrors.value[slotId] =
-      translateError(raw, { conflict }) || 'Не вдалося оновити вільне вікно'
+      getSlotErrorMessage(err, '\u041d\u0435 \u0432\u0434\u0430\u043b\u043e\u0441\u044f \u043e\u043d\u043e\u0432\u0438\u0442\u0438 \u0432\u0456\u043b\u044c\u043d\u0435 \u0432\u0456\u043a\u043d\u043e')
     await nextTick()
     const errorEl = editErrorRefs.value[slotId]
     if (errorEl) {
@@ -768,7 +773,7 @@ async function deleteSlot(slotId: number) {
     await apiDelete(`/cabinet/slots/${slotId}/`)
     slots.value = slots.value.filter((slot) => slot.id !== slotId)
   } catch (err: any) {
-    error.value = err?.response?.data?.detail || 'Не вдалося видалити вільне вікно'
+    error.value = getBookingErrorMessage(err, '\u041d\u0435 \u0432\u0434\u0430\u043b\u043e\u0441\u044f \u0432\u0438\u0434\u0430\u043b\u0438\u0442\u0438 \u0432\u0456\u043b\u044c\u043d\u0435 \u0432\u0456\u043a\u043d\u043e')
   } finally {
     loading.value = false
   }
@@ -776,10 +781,10 @@ async function deleteSlot(slotId: number) {
 
 function requestDeleteSlot(slotId: number) {
   confirmModal.openConfirm({
-    title: 'Видалити вільне вікно?',
-    message: 'Воно зникне з публічного профілю.',
-    confirmText: 'Видалити',
-    cancelText: 'Скасувати',
+    title: 'Р’РёРґР°Р»РёС‚Рё РІС–Р»СЊРЅРµ РІС–РєРЅРѕ?',
+    message: 'Р’РѕРЅРѕ Р·РЅРёРєРЅРµ Р· РїСѓР±Р»С–С‡РЅРѕРіРѕ РїСЂРѕС„С–Р»СЋ.',
+    confirmText: 'Р’РёРґР°Р»РёС‚Рё',
+    cancelText: 'РЎРєР°СЃСѓРІР°С‚Рё',
     tone: 'danger',
     onConfirm: () => deleteSlot(slotId),
   })
@@ -1104,5 +1109,7 @@ onMounted(loadSlots)
   }
 }
 </style>
+
+
 
 

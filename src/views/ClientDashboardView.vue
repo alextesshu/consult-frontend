@@ -341,6 +341,7 @@
 import { computed, onMounted, ref } from 'vue'
 import { fetchPublicSpecialistProfile, type PublicSpecialistProfile } from '../lib/api'
 import { apiGet } from '../lib/api'
+import { BOOKING_ERROR_FALLBACKS, getBookingErrorMessage } from '../lib/bookingCopy'
 import EmptyState from '../components/EmptyState.vue'
 import ConfirmModal from '../components/ConfirmModal.vue'
 import LoadingSkeleton from '../components/LoadingSkeleton.vue'
@@ -556,8 +557,8 @@ async function loadSessions() {
     ])
     upcoming.value = upcomingResp
     past.value = pastResp
-  } catch {
-    sessionsError.value = 'Не вдалося завантажити сесії.'
+  } catch (err: any) {
+    sessionsError.value = getBookingErrorMessage(err, BOOKING_ERROR_FALLBACKS.loadSessions)
   } finally {
     loading.value = false
   }

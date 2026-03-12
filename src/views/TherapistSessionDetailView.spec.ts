@@ -237,6 +237,8 @@ describe('TherapistSessionDetailView', () => {
       response: {
         status: 409,
         data: {
+          code: 'STATE_TRANSITION_INVALID',
+          reason_code: 'SESSION_STATUS_INVALID',
           detail: 'Invalid status transition.',
         },
       },
@@ -399,6 +401,8 @@ describe('TherapistSessionDetailView', () => {
       response: {
         status: 409,
         data: {
+          code: 'STATE_TRANSITION_INVALID',
+          reason_code: 'SESSION_STATUS_INVALID',
           detail: 'Invalid status transition.',
         },
       },
@@ -735,6 +739,7 @@ describe('TherapistSessionDetailView', () => {
           response: {
             status: 404,
             data: {
+              code: 'SESSION_NOT_FOUND',
               detail: 'Session missing.',
             },
           },
@@ -750,7 +755,7 @@ describe('TherapistSessionDetailView', () => {
       expect(container.querySelector('.empty-state')).toBeInTheDocument()
     })
 
-    expect(container).toHaveTextContent('Session missing.')
+    expect(container).toHaveTextContent('Сесію не знайдено.')
     expect(mockedApiGet).toHaveBeenCalledTimes(1)
     expect(mockedApiGet).toHaveBeenCalledWith('/booking/sessions/42/')
   })

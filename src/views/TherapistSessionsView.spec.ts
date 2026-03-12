@@ -360,6 +360,8 @@ describe('TherapistSessionsView', () => {
       response: {
         status: 409,
         data: {
+          code: 'STATE_TRANSITION_INVALID',
+          reason_code: 'SESSION_STATUS_INVALID',
           detail: 'Invalid status transition.',
         },
       },
@@ -496,6 +498,8 @@ describe('TherapistSessionsView', () => {
       response: {
         status: 409,
         data: {
+          code: 'STATE_TRANSITION_INVALID',
+          reason_code: 'SESSION_STATUS_INVALID',
           detail: 'Invalid status transition.',
         },
       },
