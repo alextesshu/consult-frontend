@@ -11,11 +11,25 @@
 
     <div class="card">
       <div class="card__title">Список спеціалістів</div>
-      <div v-if="loading" class="muted">Завантаження списку...</div>
-      <div v-else-if="error" class="form-error">{{ error }}</div>
-      <div v-else-if="therapists.length === 0" class="muted">
-        Поки немає активних спеціалістів. Перейдіть у каталог, щоб знайти потрібного.
-      </div>
+      <LoadingSkeleton v-if="loading" variant="card" :count="4" height="140px" />
+      <EmptyState
+        v-else-if="error"
+        title="Не вдалося завантажити список спеціалістів"
+        :description="error"
+        action-text="Відкрити каталог"
+        action-to="/specialists"
+      >
+        <template #actions>
+          <button class="btn btn--ghost" type="button" @click="loadTherapists">Спробувати ще раз</button>
+        </template>
+      </EmptyState>
+      <EmptyState
+        v-else-if="therapists.length === 0"
+        title="Ще немає активних спеціалістів"
+        description="Коли у вас з'являться активні спеціалісти, вони відобразяться тут."
+        action-text="Відкрити каталог"
+        action-to="/specialists"
+      />
       <div v-else class="therapist-grid">
         <RouterLink
           v-for="therapist in therapists"
@@ -50,6 +64,8 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import { fetchPublicSpecialists, type PublicSpecialistProfile } from '../lib/api'
+import EmptyState from '../components/EmptyState.vue'
+import LoadingSkeleton from '../components/LoadingSkeleton.vue'
 
 const therapists = ref<PublicSpecialistProfile[]>([])
 const loading = ref(false)
@@ -95,7 +111,7 @@ async function loadTherapists() {
     therapists.value = resp.results || []
   } catch {
     therapists.value = []
-    error.value = 'Не вдалося завантажити список спеціалістів.'
+    error.value = 'Спробуйте ще раз або відкрийте загальний каталог спеціалістів.'
   } finally {
     loading.value = false
   }

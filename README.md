@@ -58,6 +58,7 @@ npm run test:run
 - `/cabinet/clients` — Specialist CRM (clients + archive/restore)
 - `/cabinet/billing` — Plans & access (manual request)
 - `/client` — Client dashboard (sessions + selected/viewed specialist)
+- `/client/inquiries/:specialistId` — Client inquiry redirect to the public specialist inquiry surface
 - `/client/sessions/:id` — Client session detail (cancel/reschedule request)
 - `/client/specialists` — Specialist list (choose + open profile)
 - `/client/therapists` — Legacy alias for specialists list
@@ -84,8 +85,9 @@ Tokens are stored in localStorage and auto-refreshed via `/api/auth/token/refres
 - **HomeView**: public landing with specialist/client choice + parallax layer stack
 - **CabinetView**: account/entitlements overview + quick actions
 - **ClientDashboardView**: client sessions list + selected/viewed specialists + intro price in cards
+- **ClientDashboardView**: client sessions list + selected/viewed specialists + explicit loading/error/empty prep for priority, upcoming/past sessions, and group events
 - **ClientSessionDetailView**: client cancel + reschedule request + reviews
-- **ClientTherapistsView**: specialist list + open profile + intro price in cards
+- **ClientTherapistsView**: specialist list + open profile + intro price in cards + explicit empty/error states
 - **ClientGroupEventView**: client-facing group event detail
 - **SlotsView**: create/edit/delete slots + fill day/week + date navigation
 - **GroupEventsView**: full group lifecycle (create/schedule/start/complete/cancel), participants (roles/status), invites
@@ -99,9 +101,9 @@ Tokens are stored in localStorage and auto-refreshed via `/api/auth/token/refres
   - visibility toggles: `show_price`, `show_intro_price`
 - **PublicProfileView**: landing-style public profile + booking + trust/about/contact blocks + journal preview
   - setting acceptance is surfaced as an explicit booking gate directly above slot actions
-- **PublicTherapistsView**: public specialists catalog with server-side filters + intro price in cards
+- **PublicTherapistsView**: public specialists catalog with server-side filters + intro price in cards + explicit in-view load/error/empty branches
 - **LoginView / SignupView**: redesigned auth pages
-- **System**: global toast/notification layer, notification bell with unread state, explicit reschedule notification copy, role-aware session routing, 404/403 pages, empty states, loading skeletons
+- **System**: global toast/notification layer, notification bell with unread state, explicit reschedule notification copy, canonical inquiry notification copy, role-aware session/inquiry routing, 404/403 pages, empty states, loading skeletons
 - **Invites**: group invite join page with consent + status messaging
 
 ## Not Implemented Yet (Frontend Gaps)
@@ -125,11 +127,13 @@ Tokens are stored in localStorage and auto-refreshed via `/api/auth/token/refres
 
 ### System UX
 
-- Expand empty/loading/error states across remaining views
+- Finish the broader empty/loading/error pass across remaining views
+- Wire backend booking/session error codes into the prepared state surfaces after the canonical error dictionary is committed
 
 ### Quality / regression coverage
 
-- Broader integration matrix for specialist session list/detail parity is still incomplete
+- Specialist session list/detail parity now covers confirm -> detail -> cancel -> back, detail reschedule, approve/decline request parity, stale confirm/complete rejection, and complete -> back
+- Broader matrix expansion is only still needed if new lifecycle branches are added, such as stale cancel or future backend-only transitions
 
 ## Notes
 
@@ -148,6 +152,6 @@ Tokens are stored in localStorage and auto-refreshed via `/api/auth/token/refres
 
 ## Next Focus
 
-1. Expand specialist session parity coverage for remaining stale/decline branches
-2. System-level empty/loading/error states across remaining high-traffic views
-3. Specialist CRM depth: bulk actions and richer client profile view
+1. Wire backend booking/session error dictionary into the prepared explicit-state surfaces
+2. Specialist CRM depth: bulk actions and richer client profile view
+3. Inquiry MVP discoverability outside the public specialist profile

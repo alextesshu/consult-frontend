@@ -4,7 +4,7 @@ Last updated: 2026-03-12
 Owner: agent-maintained
 Primary use: persistent project handoff for agent-led work
 Update trigger: after each meaningful completed task
-Last agent task: clarify booking gate placement and role-aware reschedule notifications
+Last agent task: prepare explicit empty/loading/error state surfaces for high-traffic client/public views without speculative backend error-code mapping
 
 Update rule:
 
@@ -42,7 +42,7 @@ Update rule:
 - `TherapistSessionDetailView.spec.ts` now also covers specialist-side detail reschedule submission from a suggested slot, including the expected mutation payload, refreshed session timing, and post-mutation context reloads.
 - `TherapistSessionDetailView.spec.ts` now also covers specialist-side completion flow, including actual-duration prompt payload, refreshed session context, note reload after completion, and stale completion rejection without detail reloads.
 - `SpecialistSessionsFlow.spec.ts` now adds a router-driven multi-step regression over the specialist session lifecycle, covering `list -> detail -> complete -> back to list` with shared backend state expectations across both surfaces.
-- `SpecialistSessionsFlow.spec.ts` now also covers broader list/detail lifecycle parity for specialist flows: `confirm -> detail -> cancel -> back`, stale confirm rejection, detail reschedule, approve-request parity, stale complete rejection, and complete -> back.
+- `SpecialistSessionsFlow.spec.ts` now also covers broader list/detail lifecycle parity for specialist flows: `confirm -> detail -> cancel -> back`, stale confirm rejection, detail reschedule, approve-request parity, decline-request parity, stale complete rejection, and `complete -> back`.
 - `TherapistSessionsView` reschedule-request cards now show `Погодити` / `Відхилити` actions only for `PENDING` requests, matching the detail surface.
 - `PublicProfileView` now maps a selected local calendar day to the backend UTC date-range contract for `/booking/slots/`, then filters the returned slots back to the selected local day before rendering.
 - `PublicProfileView.spec.ts` now covers the UTC/local boundary regression where a slot starts on the previous UTC date but still belongs to the selected local day.
@@ -76,16 +76,30 @@ Update rule:
 - Specialist handling for this MVP lives in a small dedicated `/cabinet/inquiries` surface, not a broader inbox redesign.
 - Notifications bell/feed in `App.vue` uses `/api/notifications/`, `/api/notifications/read/`, and `/api/notifications/read-all/` as the primary runtime notification source.
 - Notifications bell/feed now renders explicit reschedule copy for `RESCHEDULE_REQUESTED` / `RESCHEDULED` and routes session notifications by role: specialist -> `/cabinet/sessions/:id`, client -> `/client/sessions/:id`.
+- Notifications bell/feed now also supports canonical inquiry notifications from `/api/notifications/*` with `source_kind = inquiry_message` and stable bounded copy for `INQUIRY_CREATED`, `INQUIRY_REPLIED`, and `INQUIRY_FOLLOWED_UP`.
+- Inquiry notifications keep bell `read_at` / `read-all` semantics separate from inquiry thread read-state; the feed does not infer inquiry-thread unread/read from notification flags.
+- Specialist inquiry notifications now route into `/cabinet/inquiries?thread_id=...`, and `SpecialistInquiriesView` honors `thread_id` query preselection when present.
+- Client inquiry notifications now route through `/client/inquiries/:specialistId` to the existing public specialist inquiry surface, resolving the public slug before redirecting to `#inquiry`.
+- `src/__tests__/app.spec.ts` now covers specialist `INQUIRY_CREATED`, client `INQUIRY_REPLIED`, specialist `INQUIRY_FOLLOWED_UP`, mixed read/read-all behavior, and the existing reschedule notification slice.
+- `src/views/ClientInquiryRedirectView.spec.ts` now covers both the happy-path redirect to the public inquiry surface and the fallback state when a specialist slug cannot be resolved.
+- `src/views/SpecialistInquiriesView.spec.ts` now covers query-driven `thread_id` preselection for notification entrypoints.
+- `EmptyState.vue` now renders slot-only actions correctly, which unblocks shared empty/error surfaces from exposing retry or escape-hatch buttons without fake prop actions.
+- `PublicTherapistsView`, `ClientTherapistsView`, and the high-traffic session/group-event sections of `ClientDashboardView` now use clearer explicit `loading / error / empty` branches via existing `LoadingSkeleton` and `EmptyState` patterns instead of mixing skeletons, muted strings, and toast-only failures.
+- `PublicTherapistsView` now keeps catalog failures inside the view with a retry action and no longer collapses load failures into the same visual state as “nothing found”.
+- `ClientTherapistsView` now exposes explicit empty and error states with a clear catalog fallback path, instead of raw inline muted/error copy.
+- `ClientDashboardView` now prevents misleading “no upcoming sessions” messaging while booking/session data is still loading or failed to load; the priority card, upcoming/past sections, and group-events block each have distinct retryable state branches.
+- Focused regression coverage for this prep slice now exists in `src/views/PublicTherapistsView.spec.ts`, `src/views/ClientTherapistsView.spec.ts`, and `src/views/ClientDashboardView.spec.ts`.
+- `CabinetView` was audited in this pass but intentionally left runtime-stable; broader access/billing/error-state normalization there is still better deferred until the backend booking/session error dictionary and related access semantics are documented.
 
 ## Changed files
 
-- `src/App.vue`
-- `src/__tests__/app.spec.ts`
-- `src/lib/api.ts`
-- `src/views/PublicProfileView.vue`
-- `src/views/PublicProfileView.spec.ts`
-- `src/views/SpecialistSessionsFlow.spec.ts`
-- `src/views/TherapistSessionsView.vue`
+- `src/components/EmptyState.vue`
+- `src/views/PublicTherapistsView.vue`
+- `src/views/PublicTherapistsView.spec.ts`
+- `src/views/ClientTherapistsView.vue`
+- `src/views/ClientTherapistsView.spec.ts`
+- `src/views/ClientDashboardView.vue`
+- `src/views/ClientDashboardView.spec.ts`
 - `README.md`
 - `docs/HANDOFF.md`
 
@@ -94,29 +108,33 @@ Update rule:
 Latest task validation:
 
 ```powershell
-npm run test:run -- src/views/SpecialistSessionsFlow.spec.ts
-npm run test:run -- src/views/PublicProfileView.spec.ts
-npm run test:run -- src/__tests__/app.spec.ts
+npm run test:run -- src/views/PublicTherapistsView.spec.ts
+npm run test:run -- src/views/ClientTherapistsView.spec.ts
+npm run test:run -- src/views/ClientDashboardView.spec.ts
 npm run typecheck
 ```
 
 ## Remaining work
 
 - Add richer CRM workflows: bulk actions and a deeper client profile view.
-- Expand system-level empty/loading/error states across remaining views.
+- After backend commits the booking/session error dictionary, wire code-based error mapping into the prepared `ClientDashboardView`, `ClientTherapistsView`, `PublicTherapistsView`, and remaining high-traffic views.
+- Expand system-level empty/loading/error states across remaining views, including `CabinetView`, once the backend contract for error semantics is stable enough to avoid frontend-only taxonomies.
 - Clarify future billing and entitlements states if backend support for live billing is introduced.
 - Inquiry MVP does not yet have dedicated client dashboard discoverability outside the public specialist profile.
-- Broaden specialist session parity coverage further for decline-request and stale-cancel style paths if the lifecycle surface keeps changing.
 
 ## Risks / open questions
 
-- Specialist-session list/detail parity is substantially stronger now, but the router-driven matrix still does not cover every stale/decline branch.
+- Specialist-session list/detail parity now covers the active confirm/cancel/reschedule/approve/decline/complete branches plus stale confirm/complete rejection, but stale-cancel or future backend-only lifecycle branches would still need new matrix coverage if introduced.
 - Public slot browsing now aligns selected local days with the backend UTC-boundary contract, but any future backend timezone/locale parameter would still be cleaner than frontend range translation.
 - Public-profile chat surfacing currently infers message availability from existing chat threads; if backend relation rules change, a dedicated capability flag may still be worth adding later.
 - Inquiry messaging is intentionally bounded and non-realtime: no attachments, no dashboard card surfacing, and no unified inbox with full chat.
+- Client inquiry notification deep-links currently resolve `specialist_id -> public_slug` through the public specialists catalog on demand; if catalog visibility rules or pagination assumptions change, that redirect path may need a dedicated backend resolver later.
 - The new post-follow-up copy is derived in `PublicProfileView` from thread message history plus backend flags; if backend later exposes a dedicated reason/state for this step, the UI logic should be simplified to consume that directly.
 - Authenticated clients are now steered away from raw external contact links on the public profile; public and non-client visitors still see direct contacts if the specialist exposed them.
 - `/api/me` is still used for supplemental notification hints (`access_state`, entitlements, counts), but not as the primary notification feed.
-- Reschedule notifications now read more clearly and route by role, but stronger visual differentiation than copy-only treatment may still be worth a later UX pass.
-- The full Vitest suite (`npm run test:run`) was not rerun in this follow-up; validation here is targeted session/profile/app coverage plus `vue-tsc -b`.
+- Notification read state is now broader than session events, but bell `read_at` intentionally remains decoupled from inquiry thread message state.
+- Reschedule and inquiry notifications now read more clearly and route by role, but stronger visual differentiation than copy-only treatment may still be worth a later UX pass.
+- This prep slice intentionally does not map backend booking/session error codes yet; current error copy stays generic until the canonical backend dictionary is committed and documented.
+- `CabinetView` still uses simpler auth/bootstrap heuristics (`v-if="me"` plus entitlements/access hints), so any deeper empty/error-state pass there should be coordinated with backend access-state semantics rather than guessed locally.
+- The full Vitest suite (`npm run test:run`) was not rerun in this follow-up; validation here is targeted explicit-state coverage plus `vue-tsc -b`.
 - Some files display encoding issues in the current shell output, so copy-heavy changes should still be checked in-editor.

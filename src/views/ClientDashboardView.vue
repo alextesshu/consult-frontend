@@ -36,7 +36,17 @@
 
     <div class="card priority-card">
       <div class="card__title">Найближча сесія</div>
-      <div v-if="nextUpcoming" class="priority-body">
+      <LoadingSkeleton v-if="loading" variant="card" :count="1" height="112px" />
+      <EmptyState
+        v-else-if="sessionsError"
+        title="Не вдалося завантажити найближчу сесію"
+        :description="sessionsError"
+      >
+        <template #actions>
+          <button class="btn btn--ghost" type="button" @click="loadSessions">Спробувати ще раз</button>
+        </template>
+      </EmptyState>
+      <div v-else-if="nextUpcoming" class="priority-body">
         <div class="priority-main">
           <div class="priority-time">{{ formatDateTime(sessionStartAt(nextUpcoming)) }}</div>
           <div class="muted">{{ specialistLabel(nextUpcoming) }}</div>
@@ -60,7 +70,13 @@
           </RouterLink>
         </div>
       </div>
-      <div v-else class="muted">Немає майбутніх сесій.</div>
+      <EmptyState
+        v-else
+        title="Майбутніх сесій поки немає"
+        description="Коли у вас з'явиться нова сесія, вона відобразиться тут."
+        action-text="Обрати спеціаліста"
+        action-to="/specialists"
+      />
     </div>
 
     <div class="card tips-card">
@@ -186,11 +202,21 @@
 
     <div class="card">
       <div class="card__title">Ваші групові події</div>
-      <div v-if="groupEventsLoading" class="muted">Завантаження...</div>
-      <div v-else-if="groupEventsError" class="form-error">{{ groupEventsError }}</div>
-      <div v-else-if="groupEvents.length === 0" class="muted">
-        Поки що немає групових подій.
-      </div>
+      <LoadingSkeleton v-if="groupEventsLoading" variant="list" :count="2" />
+      <EmptyState
+        v-else-if="groupEventsError"
+        title="Не вдалося завантажити групові події"
+        :description="groupEventsError"
+      >
+        <template #actions>
+          <button class="btn btn--ghost" type="button" @click="loadGroupEvents">Спробувати ще раз</button>
+        </template>
+      </EmptyState>
+      <EmptyState
+        v-else-if="groupEvents.length === 0"
+        title="Групових подій поки немає"
+        description="Коли ви приєднаєтесь до групової події, вона з'явиться тут."
+      />
       <ul v-else class="session-list">
         <li v-for="event in groupEvents" :key="event.id" class="session-item">
           <div>
@@ -209,9 +235,21 @@
     <div class="client__grid">
       <div class="card">
         <div class="card__title">Найближчі</div>
-        <div v-if="loading" class="muted">Завантаження...</div>
-        <div v-else-if="sessionsError" class="form-error">{{ sessionsError }}</div>
-        <div v-else-if="upcoming.length === 0" class="muted">Немає запланованих сесій.</div>
+        <LoadingSkeleton v-if="loading" variant="list" :count="2" />
+        <EmptyState
+          v-else-if="sessionsError"
+          title="Не вдалося завантажити заплановані сесії"
+          :description="sessionsError"
+        >
+          <template #actions>
+            <button class="btn btn--ghost" type="button" @click="loadSessions">Спробувати ще раз</button>
+          </template>
+        </EmptyState>
+        <EmptyState
+          v-else-if="upcoming.length === 0"
+          title="Запланованих сесій поки немає"
+          description="Коли запис буде створено або підтверджено, він з'явиться тут."
+        />
         <ul v-else class="session-list">
           <li
             v-for="session in upcoming"
@@ -242,9 +280,21 @@
 
       <div class="card">
         <div class="card__title">Минулі</div>
-        <div v-if="loading" class="muted">Завантаження...</div>
-        <div v-else-if="sessionsError" class="form-error">{{ sessionsError }}</div>
-        <div v-else-if="past.length === 0" class="muted">Ще немає історії.</div>
+        <LoadingSkeleton v-if="loading" variant="list" :count="2" />
+        <EmptyState
+          v-else-if="sessionsError"
+          title="Не вдалося завантажити історію сесій"
+          :description="sessionsError"
+        >
+          <template #actions>
+            <button class="btn btn--ghost" type="button" @click="loadSessions">Спробувати ще раз</button>
+          </template>
+        </EmptyState>
+        <EmptyState
+          v-else-if="past.length === 0"
+          title="Історія сесій поки порожня"
+          description="Після завершених або скасованих сесій історія з'явиться тут."
+        />
         <ul v-else class="session-list">
           <li
             v-for="session in past"
@@ -291,7 +341,9 @@
 import { computed, onMounted, ref } from 'vue'
 import { fetchPublicSpecialistProfile, type PublicSpecialistProfile } from '../lib/api'
 import { apiGet } from '../lib/api'
+import EmptyState from '../components/EmptyState.vue'
 import ConfirmModal from '../components/ConfirmModal.vue'
+import LoadingSkeleton from '../components/LoadingSkeleton.vue'
 import { useConfirmModal } from '../composables/useConfirmModal'
 import { formatUkDateTimeCompact } from '../lib/dateTime'
 

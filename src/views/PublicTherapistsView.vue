@@ -89,6 +89,15 @@
       <div class="card__title">Спеціалісти</div>
       <LoadingSkeleton v-if="loading" variant="card" :count="6" height="140px" />
       <EmptyState
+        v-else-if="error"
+        title="Не вдалося завантажити каталог"
+        description="Спробуйте оновити список ще раз. Поточні фільтри залишилися без змін."
+      >
+        <template #actions>
+          <button class="btn btn--ghost" type="button" @click="loadTherapists">Спробувати ще раз</button>
+        </template>
+      </EmptyState>
+      <EmptyState
         v-else-if="therapists.length === 0"
         title="Нічого не знайдено"
         description="Спробуйте змінити фільтри або очистити пошук."
@@ -129,7 +138,7 @@
           </div>
         </RouterLink>
       </div>
-      <div class="pagination">
+      <div v-if="!error && therapists.length > 0" class="pagination">
         <div class="muted">Сторінка {{ page }} з {{ totalPages }} · Всього {{ total }}</div>
         <div class="pagination__controls">
           <button class="btn btn--ghost btn--sm" type="button" :disabled="page <= 1" @click="goPage(page - 1)">Назад</button>
@@ -143,12 +152,12 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { fetchPublicSpecialists, type PublicSpecialistProfile } from '../lib/api'
-import { useToast } from '../composables/useToast'
 import LoadingSkeleton from '../components/LoadingSkeleton.vue'
 import EmptyState from '../components/EmptyState.vue'
 
 const therapists = ref<PublicSpecialistProfile[]>([])
 const loading = ref(false)
+const error = ref(false)
 const total = ref(0)
 const totalPages = ref(1)
 const page = ref(1)
@@ -168,7 +177,6 @@ const appliedLocation = ref('')
 const appliedPriceMin = ref('')
 const appliedPriceMax = ref('')
 const appliedPriceCurrency = ref('')
-const toast = useToast()
 let searchTimer: number | undefined
 const languageOptions = [
   'Українська',
@@ -252,6 +260,7 @@ const formatExperience = (value: number) => {
 
 async function loadTherapists() {
   loading.value = true
+  error.value = false
   try {
     const resp = await fetchPublicSpecialists({
       page: page.value,
@@ -272,7 +281,7 @@ async function loadTherapists() {
     therapists.value = []
     total.value = 0
     totalPages.value = 1
-    toast.error('Не вдалося завантажити список спеціалістів')
+    error.value = true
   } finally {
     loading.value = false
   }
