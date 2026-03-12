@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/vue'
+import { fireEvent, render, screen } from '@testing-library/vue'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { apiGet, apiPost } from '../lib/api'
 import SlotsView from './SlotsView.vue'
@@ -40,6 +40,12 @@ vi.mock('../composables/useConfirmModal', () => ({
 
 const mockedApiGet = vi.mocked(apiGet)
 const mockedApiPost = vi.mocked(apiPost)
+
+async function flushAsyncUpdates() {
+  await Promise.resolve()
+  await Promise.resolve()
+  await Promise.resolve()
+}
 
 function renderView() {
   return render(SlotsView, {
@@ -88,10 +94,7 @@ describe('SlotsView', () => {
     ])
 
     renderView()
-
-    await waitFor(() => {
-      expect(screen.getByText('12.03.2026, 11:00')).toBeInTheDocument()
-    })
+    await flushAsyncUpdates()
 
     expect(screen.queryByText('12.03.2026, 07:00')).not.toBeInTheDocument()
     expect(screen.getAllByText('Вільно')).toHaveLength(1)
@@ -120,7 +123,7 @@ describe('SlotsView', () => {
     })
 
     renderView()
-    await vi.advanceTimersByTimeAsync(0)
+    await flushAsyncUpdates()
 
     expect(screen.getByText('12.03.2026, 11:00')).toBeInTheDocument()
 
@@ -130,7 +133,7 @@ describe('SlotsView', () => {
     await fireEvent.update(screen.getByLabelText('Час початку'), '11:10')
     await fireEvent.update(screen.getByLabelText('Тривалість у хвилинах'), '15')
     await fireEvent.click(screen.getByRole('button', { name: 'Створити вільне вікно' }))
-    await vi.advanceTimersByTimeAsync(0)
+    await flushAsyncUpdates()
 
     expect(
       screen.getByText('Віконце перетинається з уже існуючим: 12.03.2026, 03:00-03:50. Це вікно вже в минулому, тому не показується у списку за замовчуванням.')
@@ -155,19 +158,15 @@ describe('SlotsView', () => {
     })
 
     renderView()
-
-    await waitFor(() => {
-      expect(screen.getByText('12.03.2026, 11:00')).toBeInTheDocument()
-    })
+    await flushAsyncUpdates()
 
     await fireEvent.update(screen.getByLabelText('Дата початку'), '2026-03-12')
     await fireEvent.update(screen.getByLabelText('Час початку'), '11:10')
     await fireEvent.update(screen.getByLabelText('Тривалість у хвилинах'), '15')
     await fireEvent.click(screen.getByRole('button', { name: 'Створити вільне вікно' }))
+    await flushAsyncUpdates()
 
-    await waitFor(() => {
-      expect(screen.getByText('Віконце перетинається з уже існуючим.')).toBeInTheDocument()
-    })
+    expect(screen.getByText('Віконце перетинається з уже існуючим.')).toBeInTheDocument()
   })
 
   it('reloads the current slots list and shows success feedback after create', async () => {
@@ -186,20 +185,18 @@ describe('SlotsView', () => {
     } as any)
 
     renderView()
+    await flushAsyncUpdates()
 
-    await waitFor(() => {
-      expect(mockedApiGet).toHaveBeenCalledTimes(1)
-    })
+    expect(mockedApiGet).toHaveBeenCalledTimes(1)
 
     await fireEvent.update(screen.getByLabelText('Дата початку'), '2026-03-12')
     await fireEvent.update(screen.getByLabelText('Час початку'), '11:10')
     await fireEvent.update(screen.getByLabelText('Тривалість у хвилинах'), '30')
     await fireEvent.click(screen.getByRole('button', { name: 'Створити вільне вікно' }))
+    await flushAsyncUpdates()
 
-    await waitFor(() => {
-      expect(mockedApiGet).toHaveBeenCalledTimes(2)
-      expect(screen.getByText('12.03.2026, 11:10')).toBeInTheDocument()
-    })
+    expect(mockedApiGet).toHaveBeenCalledTimes(2)
+    expect(screen.getByText('12.03.2026, 11:10')).toBeInTheDocument()
 
     expect(mockToast.success).toHaveBeenCalledWith('Вільне вікно на 12.03.2026, 11:10 створено.')
   })

@@ -82,6 +82,12 @@ const mockedFetchPublicAuthorJournalPosts = vi.mocked(fetchPublicAuthorJournalPo
 const mockedFetchPublicJournalCollections = vi.mocked(fetchPublicJournalCollections)
 const mockedSendInquiryMessage = vi.mocked(sendInquiryMessage)
 
+async function flushAsyncUpdates() {
+  await Promise.resolve()
+  await Promise.resolve()
+  await Promise.resolve()
+}
+
 function buildProfile() {
   return {
     therapist_id: 12,
@@ -335,11 +341,13 @@ describe('PublicProfileView', () => {
 
     try {
       renderView()
+      await flushAsyncUpdates()
 
-      const dateInput = await screen.findByLabelText('Оберіть дату')
+      const dateInput = screen.getByLabelText('Оберіть дату')
       await fireEvent.update(dateInput, '2026-03-12')
+      await flushAsyncUpdates()
 
-      expect(await screen.findByText('12.03.2026, 00:30')).toBeInTheDocument()
+      expect(screen.getByText('12.03.2026, 00:30')).toBeInTheDocument()
       expect(screen.queryByText('На жаль, у цей день вільних віконець немає.')).not.toBeInTheDocument()
     } finally {
       vi.useRealTimers()
