@@ -300,6 +300,8 @@ function notificationClientLabel(item: NotificationFeedItem) {
 }
 
 function notificationTone(item: NotificationFeedItem): BellNotification['tone'] {
+  if (item.source_kind === 'reschedule_request' || item.code === 'RESCHEDULE_REQUESTED') return 'warn'
+  if (item.source_kind === 'session_event' && item.code === 'RESCHEDULED') return 'ok'
   if (item.source_kind === 'session_event' && item.code === 'CANCELLED') return 'warn'
   if (item.source_kind === 'session_event' && item.code === 'BOOKED') return 'ok'
   return 'info'
@@ -307,10 +309,14 @@ function notificationTone(item: NotificationFeedItem): BellNotification['tone'] 
 
 function notificationText(item: NotificationFeedItem) {
   const clientLabel = notificationClientLabel(item)
+  if (item.source_kind === 'reschedule_request' || item.code === 'RESCHEDULE_REQUESTED') {
+    return `Перенесення: ${clientLabel} просить змінити час сесії`
+  }
   if (item.source_kind === 'session_event') {
     if (item.code === 'CANCELLED') return `Бронювання: скасування сесії від ${clientLabel}`
     if (item.code === 'CONFIRMED') return `Бронювання: сесію з ${clientLabel} підтверджено`
     if (item.code === 'BOOKED') return `Бронювання: нова сесія від ${clientLabel}`
+    if (item.code === 'RESCHEDULED') return 'Перенесення: новий час сесії підтверджено'
     return `Оновлення по сесії від ${clientLabel}`
   }
   if (item.code === 'session_starts_1h') {
@@ -325,6 +331,12 @@ function notificationText(item: NotificationFeedItem) {
 function notificationHint(item: NotificationFeedItem) {
   const email = item.client_email ? ` · ${item.client_email}` : ''
   const time = formatDateTime(item.slot_start_at)
+  if (item.source_kind === 'reschedule_request' || item.code === 'RESCHEDULE_REQUESTED') {
+    return time ? `Запитаний час: ${time}${email}` : `Перевірте деталі запиту на перенесення${email}`
+  }
+  if (item.source_kind === 'session_event' && item.code === 'RESCHEDULED') {
+    return time ? `Новий час: ${time}${email}` : `Перевірте оновлений час сесії${email}`
+  }
   if (item.source_kind === 'session_event') {
     return time ? `Сесія: ${time}${email}` : `Перевірте деталі сесії${email}`
   }
@@ -332,6 +344,9 @@ function notificationHint(item: NotificationFeedItem) {
 }
 
 function notificationTarget(item: NotificationFeedItem) {
+  if (isClient.value) {
+    return item.session_id ? `/client/sessions/${item.session_id}` : '/client'
+  }
   return item.session_id ? `/cabinet/sessions/${item.session_id}` : '/cabinet/sessions'
 }
 

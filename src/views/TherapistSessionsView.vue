@@ -387,6 +387,7 @@
               Деталі сесії
             </RouterLink>
             <button
+              v-if="req.status === 'PENDING'"
               class="btn btn--ghost btn--sm"
               type="button"
               :disabled="isRequestLoading(req.id)"
@@ -395,6 +396,7 @@
               Погодити
             </button>
             <button
+              v-if="req.status === 'PENDING'"
               class="btn btn--ghost btn--sm"
               type="button"
               :disabled="isRequestLoading(req.id)"

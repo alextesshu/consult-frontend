@@ -144,21 +144,6 @@
             <div class="badge badge--soft">Доступні вільні вікна</div>
             <h2 class="panel__title">Найближчі дати</h2>
           </div>
-          <div class="setting-bar" v-if="isAuthenticated && isClient">
-            <button
-              class="btn btn--ghost btn--sm"
-              :class="{ 'btn--pulse': settingAttention }"
-              type="button"
-              ref="settingButtonRef"
-              @click="openSettingModal"
-            >
-              Сетінг
-            </button>
-            <label class="setting-check">
-              <input type="checkbox" v-model="settingAccepted" />
-              <span>Погоджуюсь</span>
-            </label>
-          </div>
         </div>
 
         <div class="slot-filter">
@@ -217,6 +202,47 @@
             </ul>
           </article>
         </div>
+
+        <section
+          v-if="isAuthenticated && isClient"
+          class="booking-gate"
+          :class="{
+            'booking-gate--pending': !settingAccepted,
+            'booking-gate--ready': settingAccepted,
+            'booking-gate--attention': settingAttention,
+          }"
+          aria-label="Підтвердження правил перед бронюванням"
+        >
+          <div class="booking-gate__content">
+            <div>
+              <div class="booking-gate__title">Перед записом підтвердьте сетінг</div>
+              <p class="booking-gate__text">
+                Відкрийте правила спеціаліста, ознайомтеся з умовами і підтвердьте згоду. Після цього можна
+                натискати «Записатися» у слотах нижче.
+              </p>
+            </div>
+            <button
+              class="btn btn--ghost btn--sm booking-gate__button"
+              :class="{ 'btn--pulse': settingAttention }"
+              type="button"
+              ref="settingButtonRef"
+              @click="openSettingModal"
+            >
+              {{ settingAccepted ? 'Переглянути сетінг ще раз' : 'Відкрити сетінг і правила' }}
+            </button>
+          </div>
+          <label class="setting-check booking-gate__check">
+            <input type="checkbox" v-model="settingAccepted" />
+            <span>Я ознайомився(-лась) і погоджуюсь з умовами бронювання</span>
+          </label>
+          <div class="booking-gate__hint">
+            {{
+              settingAccepted
+                ? 'Правила підтверджено. Оберіть час і натисніть «Записатися».'
+                : 'Без цього підтвердження кнопки бронювання нижче не спрацюють.'
+            }}
+          </div>
+        </section>
 
         <div v-if="!isAuthenticated" class="hint">
           Щоб забронювати час, увійдіть у свій кабінет клієнта.
@@ -2676,11 +2702,54 @@ onMounted(async () => {
     font-weight: 600;
   }
 
-  .setting-bar {
+  .booking-gate {
+    display: grid;
+    gap: 12px;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+    border-radius: 12px;
+    border: 1px solid color-mix(in srgb, var(--primary) 18%, var(--line));
+    background: color-mix(in srgb, var(--primary) 6%, #ffffff);
+  }
+
+  .booking-gate--pending {
+    border-color: color-mix(in srgb, #d9a441 40%, var(--line));
+    background: color-mix(in srgb, #f4e2ae 18%, #ffffff);
+  }
+
+  .booking-gate--ready {
+    border-color: color-mix(in srgb, #1f7a4c 30%, var(--line));
+    background: color-mix(in srgb, #1f7a4c 8%, #ffffff);
+  }
+
+  .booking-gate--attention {
+    box-shadow: 0 0 0 3px rgba(42, 129, 168, 0.12);
+  }
+
+  .booking-gate__content {
     display: flex;
-    align-items: center;
-    gap: 10px;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
     flex-wrap: wrap;
+  }
+
+  .booking-gate__title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .booking-gate__text {
+    margin: 0;
+    max-width: 720px;
+    color: var(--muted);
+    line-height: 1.45;
+  }
+
+  .booking-gate__button {
+    flex-shrink: 0;
   }
 
   .setting-check {
@@ -2691,9 +2760,19 @@ onMounted(async () => {
     color: var(--muted);
   }
 
+  .booking-gate__check {
+    font-size: 14px;
+    color: var(--text);
+  }
+
   .setting-check input {
     width: 16px;
     height: 16px;
+  }
+
+  .booking-gate__hint {
+    font-size: 13px;
+    color: var(--muted);
   }
 
   .setting-check--modal {
@@ -2736,6 +2815,20 @@ onMounted(async () => {
     z-index: 60;
     display: grid;
     place-items: center;
+  }
+
+  @media (max-width: 640px) {
+    .booking-gate {
+      padding: 12px;
+    }
+
+    .booking-gate__content {
+      align-items: stretch;
+    }
+
+    .booking-gate__button {
+      width: 100%;
+    }
   }
 
   .setting-modal__backdrop {

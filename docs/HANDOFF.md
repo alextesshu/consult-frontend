@@ -4,7 +4,7 @@ Last updated: 2026-03-12
 Owner: agent-maintained
 Primary use: persistent project handoff for agent-led work
 Update trigger: after each meaningful completed task
-Last agent task: normalize Ukrainian date/time presentation to 24-hour format
+Last agent task: clarify booking gate placement and role-aware reschedule notifications
 
 Update rule:
 
@@ -42,8 +42,11 @@ Update rule:
 - `TherapistSessionDetailView.spec.ts` now also covers specialist-side detail reschedule submission from a suggested slot, including the expected mutation payload, refreshed session timing, and post-mutation context reloads.
 - `TherapistSessionDetailView.spec.ts` now also covers specialist-side completion flow, including actual-duration prompt payload, refreshed session context, note reload after completion, and stale completion rejection without detail reloads.
 - `SpecialistSessionsFlow.spec.ts` now adds a router-driven multi-step regression over the specialist session lifecycle, covering `list -> detail -> complete -> back to list` with shared backend state expectations across both surfaces.
+- `SpecialistSessionsFlow.spec.ts` now also covers broader list/detail lifecycle parity for specialist flows: `confirm -> detail -> cancel -> back`, stale confirm rejection, detail reschedule, approve-request parity, stale complete rejection, and complete -> back.
+- `TherapistSessionsView` reschedule-request cards now show `Погодити` / `Відхилити` actions only for `PENDING` requests, matching the detail surface.
 - `PublicProfileView` now maps a selected local calendar day to the backend UTC date-range contract for `/booking/slots/`, then filters the returned slots back to the selected local day before rendering.
 - `PublicProfileView.spec.ts` now covers the UTC/local boundary regression where a slot starts on the previous UTC date but still belongs to the selected local day.
+- `PublicProfileView` now surfaces setting acceptance as an explicit booking gate directly above the slot list, with clearer required-action copy next to the `Записатися` flow.
 - Shared `src/lib/dateTime.ts` now centralizes user-facing `uk-UA` date/time formatting and forces 24-hour output for any formatter that includes time parts.
 - `src/lib/dateTime.spec.ts` now locks the canonical no-AM/PM behavior for shared Ukrainian date/time formatting helpers.
 - User-facing time rendering across notifications, chat, specialist sessions, client session detail, public booking/profile, specialist/client CRM views, availability preview, group events, and invite surfaces now routes through shared Ukrainian formatting helpers instead of local `toLocaleString(...)` calls.
@@ -72,61 +75,28 @@ Update rule:
 - Active-client behavior remains unchanged: `ACTIVE_CLIENT` inquiry state still routes users to the existing full chat path instead of exposing inquiry actions.
 - Specialist handling for this MVP lives in a small dedicated `/cabinet/inquiries` surface, not a broader inbox redesign.
 - Notifications bell/feed in `App.vue` uses `/api/notifications/`, `/api/notifications/read/`, and `/api/notifications/read-all/` as the primary runtime notification source.
+- Notifications bell/feed now renders explicit reschedule copy for `RESCHEDULE_REQUESTED` / `RESCHEDULED` and routes session notifications by role: specialist -> `/cabinet/sessions/:id`, client -> `/client/sessions/:id`.
 
 ## Changed files
 
-- `src/lib/dateTime.ts`
-- `src/lib/dateTime.spec.ts`
-- `src/lib/specialistSessions.ts`
 - `src/App.vue`
-- `src/components/AnonymousReviewList.vue`
-- `src/views/AvailabilityRulesView.vue`
-- `src/views/CabinetView.vue`
-- `src/views/ChatView.vue`
-- `src/views/ClientDashboardView.vue`
-- `src/views/ClientGroupEventView.vue`
-- `src/views/ClientSessionDetailView.vue`
-- `src/views/GroupEventsView.vue`
-- `src/views/GroupInviteJoinView.vue`
+- `src/__tests__/app.spec.ts`
+- `src/lib/api.ts`
 - `src/views/PublicProfileView.vue`
-- `src/views/SlotsView.vue`
-- `src/views/SpecialistInquiriesView.vue`
-- `src/views/TherapistClientsView.vue`
+- `src/views/PublicProfileView.spec.ts`
+- `src/views/SpecialistSessionsFlow.spec.ts`
+- `src/views/TherapistSessionsView.vue`
+- `README.md`
 - `docs/HANDOFF.md`
 
 ## Validation
 
-Current task validation:
+Latest task validation:
 
 ```powershell
-npm run test:run -- src/lib/dateTime.spec.ts
+npm run test:run -- src/views/SpecialistSessionsFlow.spec.ts
 npm run test:run -- src/views/PublicProfileView.spec.ts
-npm run typecheck
-```
-
-Availability-rules follow-up validation:
-
-```powershell
-npm run typecheck
-```
-
-Slots UX follow-up validation:
-
-```powershell
-npm run typecheck
-```
-
-Past-slot visibility follow-up validation:
-
-```powershell
-npm run test:run -- src/views/SlotsView.spec.ts
-npm run typecheck
-```
-
-CI timezone follow-up validation:
-
-```powershell
-$env:TZ='UTC'; npm run test:run
+npm run test:run -- src/__tests__/app.spec.ts
 npm run typecheck
 ```
 
@@ -136,19 +106,17 @@ npm run typecheck
 - Expand system-level empty/loading/error states across remaining views.
 - Clarify future billing and entitlements states if backend support for live billing is introduced.
 - Inquiry MVP does not yet have dedicated client dashboard discoverability outside the public specialist profile.
-- Decide whether remaining date-only view formatters should also be folded into `src/lib/dateTime.ts` for full localization centralization.
-- Add focused component coverage for `AvailabilityRulesView` if schedule form regressions start recurring.
+- Broaden specialist session parity coverage further for decline-request and stale-cancel style paths if the lifecycle surface keeps changing.
 
 ## Risks / open questions
 
-- Specialist-session list/detail mutation parity is stronger now, including one router-driven multi-step lifecycle path, but there is still no broader matrix covering confirm/cancel/reschedule parity across both surfaces.
-- Shared specialist-session helper and API wrapper coverage now exists, but there is still no integration-level assertion proving that list/detail surfaces stay aligned against the same backend lifecycle.
+- Specialist-session list/detail parity is substantially stronger now, but the router-driven matrix still does not cover every stale/decline branch.
 - Public slot browsing now aligns selected local days with the backend UTC-boundary contract, but any future backend timezone/locale parameter would still be cleaner than frontend range translation.
 - Public-profile chat surfacing currently infers message availability from existing chat threads; if backend relation rules change, a dedicated capability flag may still be worth adding later.
 - Inquiry messaging is intentionally bounded and non-realtime: no attachments, no dashboard card surfacing, and no unified inbox with full chat.
 - The new post-follow-up copy is derived in `PublicProfileView` from thread message history plus backend flags; if backend later exposes a dedicated reason/state for this step, the UI logic should be simplified to consume that directly.
 - Authenticated clients are now steered away from raw external contact links on the public profile; public and non-client visitors still see direct contacts if the specialist exposed them.
 - `/api/me` is still used for supplemental notification hints (`access_state`, entitlements, counts), but not as the primary notification feed.
-- Time-bearing Ukrainian formatters are now centralized, but several long/semantic date-only presentations still remain view-local because they do not affect AM/PM behavior.
-- The full Vitest suite (`npm run test:run`) was not rerun in this formatting follow-up; validation here is targeted helper/profile coverage plus `vue-tsc -b`.
+- Reschedule notifications now read more clearly and route by role, but stronger visual differentiation than copy-only treatment may still be worth a later UX pass.
+- The full Vitest suite (`npm run test:run`) was not rerun in this follow-up; validation here is targeted session/profile/app coverage plus `vue-tsc -b`.
 - Some files display encoding issues in the current shell output, so copy-heavy changes should still be checked in-editor.

@@ -291,6 +291,12 @@ describe('PublicProfileView', () => {
 
     renderView()
 
+    expect(await screen.findByText('Перед записом підтвердьте сетінг')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Відкрити сетінг і правила' })).toBeInTheDocument()
+    expect(
+      screen.getByText('Без цього підтвердження кнопки бронювання нижче не спрацюють.')
+    ).toBeInTheDocument()
+
     const bookButton = await screen.findByRole('button', { name: 'Записатися' })
     await fireEvent.click(bookButton)
 

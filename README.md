@@ -98,31 +98,38 @@ Tokens are stored in localStorage and auto-refreshed via `/api/auth/token/refres
   - standard price + intro price (duration + currency)
   - visibility toggles: `show_price`, `show_intro_price`
 - **PublicProfileView**: landing-style public profile + booking + trust/about/contact blocks + journal preview
+  - setting acceptance is surfaced as an explicit booking gate directly above slot actions
 - **PublicTherapistsView**: public specialists catalog with server-side filters + intro price in cards
 - **LoginView / SignupView**: redesigned auth pages
-- **System**: global toast/notification layer, notification bell with unread state, 404/403 pages, empty states, loading skeletons
+- **System**: global toast/notification layer, notification bell with unread state, explicit reschedule notification copy, role-aware session routing, 404/403 pages, empty states, loading skeletons
 - **Invites**: group invite join page with consent + status messaging
 
 ## Not Implemented Yet (Frontend Gaps)
 
 ### Client session actions
+
 - Polished confirmation flows and status messaging
 
 ### Group events UX
+
 - Participant list filtering (role/status), invite link copy, and inline moderation cues
 
 ### Specialist CRM
+
 - Bulk actions and richer client profile view
 
 ### Billing / Entitlements UX
+
 - Auto-billing integration (Stripe/Paddle) with live status updates
 - Deeper UI states for GRACE / RESTRICTED / OVER_LIMIT
 
 ### System UX
+
 - Expand empty/loading/error states across remaining views
 
 ### Quality / regression coverage
-- View-level regression tests for large public-profile surfaces (`PublicProfileView`, `TherapistProfileView`)
+
+- Broader integration matrix for specialist session list/detail parity is still incomplete
 
 ## Notes
 
@@ -141,9 +148,6 @@ Tokens are stored in localStorage and auto-refreshed via `/api/auth/token/refres
 
 ## Next Focus
 
-1. Public profile regression coverage (`PublicProfileView`, `TherapistProfileView`)
-2. Client session confirmation and status messaging polish
-3. System and product copy polish (empty/loading/error states, README and marketing consistency)
-
-
-
+1. Expand specialist session parity coverage for remaining stale/decline branches
+2. System-level empty/loading/error states across remaining high-traffic views
+3. Specialist CRM depth: bulk actions and richer client profile view
