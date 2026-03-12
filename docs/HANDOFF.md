@@ -4,7 +4,7 @@ Last updated: 2026-03-12
 Owner: agent-maintained
 Primary use: persistent project handoff for agent-led work
 Update trigger: after each meaningful completed task
-Last agent task: wire backend booking/session `code` and `reason_code` into the already-prepared frontend explicit-state booking/session surfaces
+Last agent task: phase-close audit, final validation, and merge-readiness check for the current frontend slice
 
 Update rule:
 
@@ -24,6 +24,8 @@ Update rule:
 
 ## Done
 
+- Phase-close audit confirmed local `dev` was clean and matched `origin/dev` before validation (`git rev-list --left-right --count origin/dev...HEAD` -> `0 0`).
+- Phase-close audit rechecked `README.md` and this handoff against the latest committed slice set (`0372ed1`, `be7a4fb`, `bb42f71`, `5c3fe2e`) with no runtime-doc drift requiring README changes.
 - Analytics MVP for `/cabinet/analytics` is implemented with leader-gated insights, teaser state for non-leader users, and empty-state coverage.
 - Analytics contract and fallback metrics are centralized in `src/lib/analytics.ts`.
 - Analytics rendering behavior is covered in `src/views/AnalyticsView.spec.ts` and `src/lib/analytics.spec.ts`.
@@ -97,20 +99,6 @@ Update rule:
 
 ## Changed files
 
-- `src/lib/bookingCopy.ts`
-- `src/test/bookingCopy.test.ts`
-- `src/views/PublicProfileView.vue`
-- `src/views/ClientDashboardView.vue`
-- `src/views/ClientDashboardView.spec.ts`
-- `src/views/ClientSessionDetailView.vue`
-- `src/views/ClientSessionDetailView.spec.ts`
-- `src/views/SlotsView.vue`
-- `src/views/SlotsView.spec.ts`
-- `src/views/TherapistSessionsView.vue`
-- `src/views/TherapistSessionsView.spec.ts`
-- `src/views/TherapistSessionDetailView.vue`
-- `src/views/TherapistSessionDetailView.spec.ts`
-- `README.md`
 - `docs/HANDOFF.md`
 
 ## Validation
@@ -118,12 +106,7 @@ Update rule:
 Latest task validation:
 
 ```powershell
-npm run test:run -- src/test/bookingCopy.test.ts
-npm run test:run -- src/views/SlotsView.spec.ts
-npm run test:run -- src/views/ClientDashboardView.spec.ts
-npm run test:run -- src/views/ClientSessionDetailView.spec.ts
-npm run test:run -- src/views/TherapistSessionsView.spec.ts
-npm run test:run -- src/views/TherapistSessionDetailView.spec.ts
+npm run test:run
 npm run typecheck
 ```
 
@@ -148,5 +131,4 @@ npm run typecheck
 - Notification read state is now broader than session events, but bell `read_at` intentionally remains decoupled from inquiry thread message state.
 - Reschedule and inquiry notifications now read more clearly and route by role, but stronger visual differentiation than copy-only treatment may still be worth a later UX pass.
 - `CabinetView` still uses simpler auth/bootstrap heuristics (`v-if="me"` plus entitlements/access hints), so any deeper empty/error-state pass there should be coordinated with backend access-state semantics rather than guessed locally.
-- The full Vitest suite (`npm run test:run`) was not rerun in this follow-up; validation here is targeted explicit-state coverage plus `vue-tsc -b`.
 - Some files display encoding issues in the current shell output, so copy-heavy changes should still be checked in-editor.
