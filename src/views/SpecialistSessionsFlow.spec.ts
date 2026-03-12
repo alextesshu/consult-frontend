@@ -334,6 +334,18 @@ describe('specialist sessions flow', () => {
         return {}
       }
 
+      if (url === '/cabinet/sessions/reschedule-requests/16/decline/') {
+        requestsState = requestsState.map((request) =>
+          request.id === 16
+            ? {
+                ...request,
+                status: 'DECLINED',
+              }
+            : request
+        )
+        return {}
+      }
+
       throw new Error(`Unexpected apiPatch call: ${url}`)
     })
   })
@@ -572,6 +584,67 @@ describe('specialist sessions flow', () => {
     const updatedListRequestCard = screen.getByText(/request@example\.com/).closest('article')
     expect(updatedListRequestCard).not.toBeNull()
     expect(within(updatedListRequestCard as HTMLElement).getByText('Погоджено')).toBeInTheDocument()
+    expect(within(updatedListRequestCard as HTMLElement).queryByRole('button', { name: 'Погодити' })).toBeNull()
+    expect(within(updatedListRequestCard as HTMLElement).queryByRole('button', { name: 'Відхилити' })).toBeNull()
+  })
+
+  it('keeps detail and list aligned after declining a reschedule request from detail', async () => {
+    requestsState = [
+      buildRequest({
+        id: 16,
+        client_email: 'decline-request@example.com',
+      }),
+    ]
+
+    const { router } = await renderFlow()
+
+    expect(await screen.findByText(/flow@example\.com/)).toBeInTheDocument()
+    expect(screen.getByText(/decline-request@example\.com/)).toBeInTheDocument()
+
+    const listCard = screen.getByText(/flow@example\.com/).closest('article')
+    expect(listCard).not.toBeNull()
+    expect(within(listCard as HTMLElement).getByText('Є запит на перенос')).toBeInTheDocument()
+
+    await fireEvent.click(within(listCard as HTMLElement).getByRole('link', { name: 'Деталі' }))
+
+    await waitFor(() => {
+      expect(router.currentRoute.value.path).toBe('/cabinet/sessions/42')
+    })
+
+    expect(await screen.findByText(/decline-request@example\.com/)).toBeInTheDocument()
+
+    const requestCard = screen.getByText(/decline-request@example\.com/).closest('article')
+    expect(requestCard).not.toBeNull()
+    await fireEvent.click(within(requestCard as HTMLElement).getByRole('button', { name: 'Відхилити' }))
+
+    await waitFor(() => {
+      expect(mockedApiPatch).toHaveBeenCalledWith('/cabinet/sessions/reschedule-requests/16/decline/')
+      expect(mockToast.success).toHaveBeenCalledWith(BOOKING_SUCCESS_MESSAGES.rescheduleRequestDeclined)
+    })
+
+    const updatedDetailRequestCard = screen.getByText(/decline-request@example\.com/).closest('article')
+    expect(updatedDetailRequestCard).not.toBeNull()
+    expect(within(updatedDetailRequestCard as HTMLElement).getByText('Відхилено')).toBeInTheDocument()
+    expect(within(updatedDetailRequestCard as HTMLElement).queryAllByRole('button')).toHaveLength(0)
+
+    const backLink = document.querySelector('a[href="/cabinet/sessions"]') as HTMLAnchorElement | null
+    expect(backLink).not.toBeNull()
+    await fireEvent.click(backLink as HTMLAnchorElement)
+
+    await waitFor(() => {
+      expect(router.currentRoute.value.path).toBe('/cabinet/sessions')
+    })
+
+    expect(await screen.findByText(/flow@example\.com/)).toBeInTheDocument()
+    expect(screen.getByText(/decline-request@example\.com/)).toBeInTheDocument()
+
+    const refreshedListCard = screen.getByText(/flow@example\.com/).closest('article')
+    expect(refreshedListCard).not.toBeNull()
+    expect(within(refreshedListCard as HTMLElement).queryByText('Є запит на перенос')).toBeNull()
+
+    const updatedListRequestCard = screen.getByText(/decline-request@example\.com/).closest('article')
+    expect(updatedListRequestCard).not.toBeNull()
+    expect(within(updatedListRequestCard as HTMLElement).getByText('Відхилено')).toBeInTheDocument()
     expect(within(updatedListRequestCard as HTMLElement).queryByRole('button', { name: 'Погодити' })).toBeNull()
     expect(within(updatedListRequestCard as HTMLElement).queryByRole('button', { name: 'Відхилити' })).toBeNull()
   })

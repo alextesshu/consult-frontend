@@ -145,14 +145,21 @@ export type NotificationSettings = {
 
 export type NotificationFeedItem = {
   id: string
-  kind: 'session_event' | 'reminder_event' | 'reschedule_request'
-  source_kind: 'session_event' | 'reminder_delivery' | 'reschedule_request'
+  kind: 'session_event' | 'reminder_event' | 'reschedule_request' | 'inquiry_message'
+  source_kind: 'session_event' | 'reminder_delivery' | 'reschedule_request' | 'inquiry_message'
   source_id: number
   code: string
   session_id: number | null
   client_id: number | null
   client_name: string | null
   client_email: string | null
+  specialist_id?: number | null
+  specialist_name?: string | null
+  counterparty_id?: number | null
+  counterparty_name?: string | null
+  thread_id?: number | null
+  message_id?: number | null
+  preview?: string | null
   slot_start_at: string | null
   created_at: string
   scheduled_for: string | null

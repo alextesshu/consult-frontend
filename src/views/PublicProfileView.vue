@@ -642,7 +642,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import DOMPurify from 'dompurify'
 import { marked } from 'marked'
 import { useRoute, useRouter } from 'vue-router'
@@ -1143,6 +1143,10 @@ function scrollToSlots() {
 
 function scrollToInquiry() {
   window.location.hash = '#inquiry'
+  focusInquirySection()
+}
+
+function focusInquirySection() {
   document.getElementById('inquiry')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
@@ -1621,6 +1625,16 @@ watch([isAuthenticated, isClient], () => {
   loadChatThreads()
   loadInquiryState()
 })
+
+watch(
+  [() => route.hash, showInquiryPanel],
+  async ([hash, canShowInquiry]) => {
+    if (hash !== '#inquiry' || !canShowInquiry) return
+    await nextTick()
+    focusInquirySection()
+  },
+  { immediate: true }
+)
 
 watch(
   () => route.query.cat,

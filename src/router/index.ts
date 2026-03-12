@@ -33,6 +33,7 @@ import ClientProfileView from '../views/ClientProfileView.vue'
 import NotificationSettingsView from '../views/NotificationSettingsView.vue'
 import SettingsHubView from '../views/SettingsHubView.vue'
 import SpecialistInquiriesView from '../views/SpecialistInquiriesView.vue'
+import ClientInquiryRedirectView from '../views/ClientInquiryRedirectView.vue'
 import { useAuthStore } from '../stores/auth'
 import { fetchSpecialistProfile } from '../lib/api'
 
@@ -167,6 +168,12 @@ const routes = [
     path: '/client/chat',
     name: 'client-chat',
     component: ChatView,
+    meta: { requiresAuth: true, requiresRole: 'CLIENT' },
+  },
+  {
+    path: '/client/inquiries/:specialistId(\\d+)',
+    name: 'client-inquiry-redirect',
+    component: ClientInquiryRedirectView,
     meta: { requiresAuth: true, requiresRole: 'CLIENT' },
   },
   {

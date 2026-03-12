@@ -299,7 +299,21 @@ function notificationClientLabel(item: NotificationFeedItem) {
   return 'клієнта'
 }
 
+function notificationCounterpartyLabel(item: NotificationFeedItem) {
+  if (item.counterparty_name) return item.counterparty_name
+  if (item.counterparty_id !== null && item.counterparty_id !== undefined) return `#${item.counterparty_id}`
+  if (item.specialist_name) return item.specialist_name
+  if (item.client_name) return item.client_name
+  return isClient.value ? 'спеціаліста' : 'клієнта'
+}
+
+function notificationPreview(item: NotificationFeedItem) {
+  const preview = item.preview?.trim()
+  return preview || 'Відкрийте запит, щоб переглянути деталі.'
+}
+
 function notificationTone(item: NotificationFeedItem): BellNotification['tone'] {
+  if (item.source_kind === 'inquiry_message') return 'info'
   if (item.source_kind === 'reschedule_request' || item.code === 'RESCHEDULE_REQUESTED') return 'warn'
   if (item.source_kind === 'session_event' && item.code === 'RESCHEDULED') return 'ok'
   if (item.source_kind === 'session_event' && item.code === 'CANCELLED') return 'warn'
@@ -309,6 +323,13 @@ function notificationTone(item: NotificationFeedItem): BellNotification['tone'] 
 
 function notificationText(item: NotificationFeedItem) {
   const clientLabel = notificationClientLabel(item)
+  const counterpartyLabel = notificationCounterpartyLabel(item)
+  if (item.source_kind === 'inquiry_message') {
+    if (item.code === 'INQUIRY_CREATED') return `Запит до бронювання від ${counterpartyLabel}`
+    if (item.code === 'INQUIRY_REPLIED') return `Відповідь на запит від ${counterpartyLabel}`
+    if (item.code === 'INQUIRY_FOLLOWED_UP') return `Уточнення до запиту від ${counterpartyLabel}`
+    return `Оновлення запиту до бронювання від ${counterpartyLabel}`
+  }
   if (item.source_kind === 'reschedule_request' || item.code === 'RESCHEDULE_REQUESTED') {
     return `Перенесення: ${clientLabel} просить змінити час сесії`
   }
@@ -331,6 +352,9 @@ function notificationText(item: NotificationFeedItem) {
 function notificationHint(item: NotificationFeedItem) {
   const email = item.client_email ? ` · ${item.client_email}` : ''
   const time = formatDateTime(item.slot_start_at)
+  if (item.source_kind === 'inquiry_message') {
+    return notificationPreview(item)
+  }
   if (item.source_kind === 'reschedule_request' || item.code === 'RESCHEDULE_REQUESTED') {
     return time ? `Запитаний час: ${time}${email}` : `Перевірте деталі запиту на перенесення${email}`
   }
@@ -344,6 +368,13 @@ function notificationHint(item: NotificationFeedItem) {
 }
 
 function notificationTarget(item: NotificationFeedItem) {
+  if (item.source_kind === 'inquiry_message') {
+    if (isClient.value) {
+      return item.specialist_id ? `/client/inquiries/${item.specialist_id}` : '/specialists'
+    }
+    const query = item.thread_id ? `?thread_id=${item.thread_id}` : ''
+    return `/cabinet/inquiries${query}`
+  }
   if (isClient.value) {
     return item.session_id ? `/client/sessions/${item.session_id}` : '/client'
   }

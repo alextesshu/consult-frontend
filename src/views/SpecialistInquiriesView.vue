@@ -93,7 +93,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { formatUkDateTime } from '../lib/dateTime'
 import { useAuthStore } from '../stores/auth'
 import {
@@ -105,6 +106,7 @@ import {
 } from '../lib/api'
 import { getInquiryActionErrorMessage, mapInquiryStateToUi } from '../lib/inquiryCopy'
 
+const route = useRoute()
 const auth = useAuthStore()
 const threads = ref<InquiryThread[]>([])
 const threadsLoading = ref(false)
@@ -131,6 +133,13 @@ const replyStateCopy = computed(() =>
   })
 )
 
+function preferredThreadIdFromRoute() {
+  const raw = Array.isArray(route.query.thread_id) ? route.query.thread_id[0] : route.query.thread_id
+  const parsed = Number(raw)
+  if (!Number.isInteger(parsed) || parsed <= 0) return null
+  return parsed
+}
+
 function initials(value: string) {
   const parts = value.trim().split(/\s+/).filter(Boolean)
   if (!parts.length) return '..'
@@ -155,7 +164,15 @@ async function loadThreads() {
   threadsLoading.value = true
   try {
     threads.value = await fetchInquiryThreads()
-    if (!activeThreadId.value && threads.value.length > 0) {
+    const preferredThreadId = preferredThreadIdFromRoute()
+    const preferredThread = preferredThreadId
+      ? threads.value.find((thread) => thread.id === preferredThreadId)
+      : null
+    const activeThreadStillExists = threads.value.some((thread) => thread.id === activeThreadId.value)
+
+    if (preferredThread && preferredThread.id !== activeThreadId.value) {
+      await selectThread(preferredThread.id)
+    } else if (!activeThreadStillExists && threads.value.length > 0) {
       const firstThread = threads.value[0]
       if (firstThread) {
         await selectThread(firstThread.id)
@@ -224,6 +241,16 @@ async function submitReply() {
 onMounted(async () => {
   await loadThreads()
 })
+
+watch(
+  () => route.query.thread_id,
+  async () => {
+    const preferredThreadId = preferredThreadIdFromRoute()
+    if (!preferredThreadId || preferredThreadId === activeThreadId.value) return
+    if (!threads.value.some((thread) => thread.id === preferredThreadId)) return
+    await selectThread(preferredThreadId)
+  }
+)
 </script>
 
 <style scoped>
