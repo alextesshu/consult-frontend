@@ -86,13 +86,14 @@ Tokens are stored in localStorage and auto-refreshed via `/api/auth/token/refres
 - **CabinetView**: account/entitlements overview + quick actions
 - **ClientDashboardView**: client sessions list + selected/viewed specialists + intro price in cards
 - **ClientDashboardView**: client sessions list + selected/viewed specialists + explicit loading/error/empty prep for priority, upcoming/past sessions, and group events
-- **ClientSessionDetailView**: client cancel + reschedule request + reviews
+- **ClientDashboardView**: upcoming online sessions now surface external meeting badges and `Приєднатися` CTA when backend payload includes `meeting_url`
+- **ClientSessionDetailView**: client cancel + reschedule request + reviews + external join CTA/copy link + follow-up booking CTA after completed/cancelled sessions
 - **ClientTherapistsView**: specialist list + open profile + intro price in cards + explicit empty/error states
 - **ClientGroupEventView**: client-facing group event detail
 - **SlotsView**: create/edit/delete slots + fill day/week + date navigation
 - **GroupEventsView**: full group lifecycle (create/schedule/start/complete/cancel), participants (roles/status), invites
 - **TherapistSessionsView**: specialist actions + notes + reschedule requests + status/date filters
-- **TherapistSessionDetailView**: specialist session detail with status actions, recurring flow, request context, and private note
+- **TherapistSessionDetailView**: specialist session detail with status actions, recurring flow, request context, private note, and external meeting-link context
 - **TherapistReviewsView**: specialist review moderation (approve/hide/respond) + filters
 - **TherapistClientsView**: specialist CRM with archive/restore
 - **BillingView**: plans + access state + per-plan upgrade request (manual billing)
@@ -104,7 +105,7 @@ Tokens are stored in localStorage and auto-refreshed via `/api/auth/token/refres
 - **Booking/session error contract**: prepared frontend booking/session surfaces now consume backend `code` / `reason_code` first and keep `detail` only as a fallback
 - **PublicTherapistsView**: public specialists catalog with server-side filters + intro price in cards + explicit in-view load/error/empty branches
 - **LoginView / SignupView**: redesigned auth pages
-- **System**: global toast/notification layer, notification bell with unread state, explicit reschedule notification copy, canonical inquiry notification copy, role-aware session/inquiry routing, 404/403 pages, empty states, loading skeletons
+- **System**: global toast/notification layer, notification bell with unread state, explicit reschedule notification copy, canonical inquiry notification copy, reminder-driven external join CTA when payload includes `meeting_url`, role-aware session/inquiry routing, 404/403 pages, empty states, loading skeletons
 - **Invites**: group invite join page with consent + status messaging
 
 ## Not Implemented Yet (Frontend Gaps)
@@ -149,9 +150,10 @@ Tokens are stored in localStorage and auto-refreshed via `/api/auth/token/refres
   - If `photo_url` is present but image is missing, check GCS config on backend.
   - For signed URLs (`GCS_PUBLIC=false`), refresh the page to regenerate the URL.
 - Persistent project handoff lives in `docs/HANDOFF.md` and is maintained as the current agent-facing status file.
+- Online session execution in this MVP uses backend-provided external `meeting_url` plus optional `meeting_provider`; built-in video rooms are not part of the frontend runtime.
 
 ## Next Focus
 
-1. Specialist CRM depth: bulk actions and richer client profile view
-2. Inquiry MVP discoverability outside the public specialist profile
+1. Backend-confirmed specialist-side meeting-link editing if and when a canonical mutation contract is exposed
+2. Specialist CRM depth: bulk actions and richer client profile view
 3. Broader empty/loading/error normalization for remaining non-booking views

@@ -292,6 +292,13 @@ export async function createRecurringSpecialistSessions(sessionId: number, occur
   })
 }
 
+export async function updateSpecialistSession(
+  sessionId: number,
+  payload: { meeting_url?: string }
+) {
+  return apiPatch(`/booking/sessions/${sessionId}/`, payload)
+}
+
 export async function approveSpecialistRescheduleRequest(requestId: number) {
   return apiPatch(`/cabinet/sessions/reschedule-requests/${requestId}/approve/`)
 }

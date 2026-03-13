@@ -161,6 +161,8 @@ export type NotificationFeedItem = {
   message_id?: number | null
   preview?: string | null
   slot_start_at: string | null
+  meeting_url?: string | null
+  meeting_provider?: string | null
   created_at: string
   scheduled_for: string | null
   delivered_at: string | null

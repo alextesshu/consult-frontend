@@ -174,11 +174,11 @@
         </div>
         <div class="feature-grid">
           <div class="feature">
-            <div class="feature__title">Group Room</div>
+            <div class="feature__title">Групові онлайн-події</div>
             <div class="feature__value">{{ groupRoomLabel }}</div>
           </div>
           <div class="feature">
-            <div class="feature__title">Meeting ліміт</div>
+            <div class="feature__title">Ліміт подій</div>
             <div class="feature__value">{{ meetingLimitLabel }}</div>
           </div>
           <div class="feature">
@@ -664,4 +664,3 @@ const serverTimeLabel = computed(() => {
   }
 }
 </style>
-

@@ -101,20 +101,35 @@
             <div v-if="notificationsLoading && !notificationsLoaded" class="muted">Завантаження...</div>
             <div v-else-if="notifications.length === 0" class="muted">Немає нових сповіщень.</div>
             <div v-else class="notif-list">
-              <RouterLink
+              <article
                 v-for="item in notifications"
                 :key="item.id"
-                class="notif-item"
-                :class="{ 'notif-item--read': !item.unread }"
-                :to="item.to"
-                @click="markNotificationRead(item)"
+                class="notif-item-shell"
               >
-                <span class="notif-item__dot" :class="`notif-item__dot--${item.tone}`"></span>
-                <div>
-                  <div class="notif-item__text">{{ item.text }}</div>
-                  <div class="muted notif-item__hint">{{ item.hint }}</div>
+                <RouterLink
+                  class="notif-item"
+                  :class="{ 'notif-item--read': !item.unread }"
+                  :to="item.to"
+                  @click="markNotificationRead(item)"
+                >
+                  <span class="notif-item__dot" :class="`notif-item__dot--${item.tone}`"></span>
+                  <div>
+                    <div class="notif-item__text">{{ item.text }}</div>
+                    <div class="muted notif-item__hint">{{ item.hint }}</div>
+                  </div>
+                </RouterLink>
+                <div v-if="item.join_url" class="notif-item__actions">
+                  <a
+                    class="btn btn--ghost btn--sm"
+                    :href="item.join_url"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    @click.stop="markNotificationRead(item)"
+                  >
+                    Приєднатися
+                  </a>
                 </div>
-              </RouterLink>
+              </article>
             </div>
           </div>
         </div>
@@ -208,6 +223,7 @@ import {
   type NotificationFeedItem,
 } from './lib/api'
 import { formatUkDateTimeCompact } from './lib/dateTime'
+import { normalizeMeetingUrl } from './lib/sessionExecution'
 import { useToast } from './composables/useToast'
 
 const route = useRoute()
@@ -260,6 +276,7 @@ type BellNotification = {
   text: string
   hint: string
   to: string
+  join_url: string | null
   tone: 'info' | 'warn' | 'ok'
   unread: boolean
   source_kind: string | null
@@ -312,6 +329,14 @@ function notificationPreview(item: NotificationFeedItem) {
   return preview || 'Відкрийте запит, щоб переглянути деталі.'
 }
 
+function notificationJoinUrl(item: NotificationFeedItem) {
+  const url = normalizeMeetingUrl(item.meeting_url)
+  if (!url) return null
+  if (item.source_kind === 'inquiry_message' || item.source_kind === 'reschedule_request') return null
+  if (item.source_kind === 'session_event' && item.code === 'CANCELLED') return null
+  return url
+}
+
 function notificationTone(item: NotificationFeedItem): BellNotification['tone'] {
   if (item.source_kind === 'inquiry_message') return 'info'
   if (item.source_kind === 'reschedule_request' || item.code === 'RESCHEDULE_REQUESTED') return 'warn'
@@ -341,9 +366,15 @@ function notificationText(item: NotificationFeedItem) {
     return `Оновлення по сесії від ${clientLabel}`
   }
   if (item.code === 'session_starts_1h') {
+    if (notificationJoinUrl(item)) {
+      return `РќР°РіР°РґСѓРІР°РЅРЅСЏ: РѕРЅР»Р°Р№РЅ-Р·СѓСЃС‚СЂС–С‡ Р· ${clientLabel} РїРѕС‡РёРЅР°С”С‚СЊСЃСЏ Р·Р° 1 РіРѕРґРёРЅСѓ`
+    }
     return `Нагадування: сесія з ${clientLabel} починається за 1 годину`
   }
   if (item.code === 'session_starts_24h') {
+    if (notificationJoinUrl(item)) {
+      return `РќР°РіР°РґСѓРІР°РЅРЅСЏ: РѕРЅР»Р°Р№РЅ-Р·СѓСЃС‚СЂС–С‡ Р· ${clientLabel} РїРѕС‡РёРЅР°С”С‚СЊСЃСЏ Р·Р° 24 РіРѕРґРёРЅРё`
+    }
     return `Нагадування: сесія з ${clientLabel} починається за 24 години`
   }
   return `Нагадування про сесію з ${clientLabel}`
@@ -387,6 +418,7 @@ const serverNotifications = computed<BellNotification[]>(() =>
     text: notificationText(item),
     hint: notificationHint(item),
     to: notificationTarget(item),
+    join_url: notificationJoinUrl(item),
     tone: notificationTone(item),
     unread: !item.read_at,
     source_kind: item.source_kind,
@@ -407,6 +439,7 @@ const supplementalNotifications = computed<BellNotification[]>(() => {
       text: 'Оплата потребує уваги',
       hint: 'Доступ тимчасово збережено.',
       to: '/cabinet/billing',
+      join_url: null,
       tone: 'warn',
       unread: false,
       source_kind: null,
@@ -419,6 +452,7 @@ const supplementalNotifications = computed<BellNotification[]>(() => {
       text: 'Обмежений режим доступу',
       hint: 'Нові дії заблоковані.',
       to: '/cabinet/billing',
+      join_url: null,
       tone: 'warn',
       unread: false,
       source_kind: null,
@@ -431,6 +465,7 @@ const supplementalNotifications = computed<BellNotification[]>(() => {
       text: 'Перевищено ліміт активних клієнтів',
       hint: 'Нові підтвердження тимчасово заблоковані.',
       to: '/cabinet/billing',
+      join_url: null,
       tone: 'warn',
       unread: false,
       source_kind: null,
@@ -443,6 +478,7 @@ const supplementalNotifications = computed<BellNotification[]>(() => {
       text: 'Є заплановані сесії',
       hint: 'Перевірте список найближчих сесій.',
       to: '/cabinet/sessions',
+      join_url: null,
       tone: 'ok',
       unread: false,
       source_kind: null,
@@ -1033,6 +1069,11 @@ watch(isAuthenticated, (value) => {
   gap: 8px;
 }
 
+.notif-item-shell {
+  display: grid;
+  gap: 6px;
+}
+
 .notif-item {
   display: grid;
   grid-template-columns: 10px 1fr;
@@ -1086,6 +1127,11 @@ watch(isAuthenticated, (value) => {
 .notif-item__hint {
   font-size: 12px;
   color: var(--muted);
+}
+
+.notif-item__actions {
+  display: flex;
+  justify-content: flex-end;
 }
 
 .main {

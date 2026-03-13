@@ -44,7 +44,7 @@ vi.mock('../lib/api', () => ({
 const mockedApiGet = vi.mocked(apiGet)
 const mockedApiPost = vi.mocked(apiPost)
 
-function makeSession(status: string) {
+function makeSession(status: string, overrides: Record<string, unknown> = {}) {
   return {
     id: 55,
     status,
@@ -54,7 +54,10 @@ function makeSession(status: string) {
     therapist_name: 'Олена',
     therapist_email: 'therapist@example.com',
     therapist_public_slug: 'olena',
+    meeting_url: 'https://meet.google.com/abc-defg-hij',
+    meeting_provider: 'google_meet',
     client: 21,
+    ...overrides,
   }
 }
 
@@ -129,6 +132,11 @@ describe('ClientSessionDetailView', () => {
         'Для підтвердженої сесії перенесення оформлюється як запит до спеціаліста. Поточний час залишиться чинним, доки запит не погодять.'
       )
     ).toBeInTheDocument()
+    expect(screen.getByText('Google Meet')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Приєднатися' })).toHaveAttribute(
+      'href',
+      'https://meet.google.com/abc-defg-hij'
+    )
 
     const confirmedSuggestionReason = (await screen.findAllByText('Найближче доступне вікно'))[0]
     expect(confirmedSuggestionReason).toBeTruthy()
@@ -242,6 +250,10 @@ describe('ClientSessionDetailView', () => {
         'Сесію завершено. Для наступної зустрічі оберіть новий вільний слот у профілі спеціаліста.'
       )
     ).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Записатися повторно' })).toHaveAttribute(
+      'href',
+      '/specialist/olena'
+    )
     expect(screen.getByText('Завершено')).toBeInTheDocument()
     expect(
       screen.getByText(
@@ -263,6 +275,10 @@ describe('ClientSessionDetailView', () => {
         'Сесію скасовано. Якщо потрібна нова зустріч, оберіть інший доступний слот у профілі спеціаліста.'
       )
     ).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Обрати новий слот' })).toHaveAttribute(
+      'href',
+      '/specialist/olena'
+    )
     expect(screen.getByText('Скасовано')).toBeInTheDocument()
     expect(
       screen.getByText(

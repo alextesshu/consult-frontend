@@ -158,7 +158,7 @@ describe('SlotsView', () => {
     await flushAsyncUpdates()
 
     expect(
-      screen.getByText('Р’С–РєРѕРЅС†Рµ РїРµСЂРµС‚РёРЅР°С”С‚СЊСЃСЏ Р· СѓР¶Рµ С–СЃРЅСѓСЋС‡РёРј: 12.03.2026, 03:00-03:50. Р¦Рµ РІС–РєРЅРѕ РІР¶Рµ РІ РјРёРЅСѓР»РѕРјСѓ, С‚РѕРјСѓ РЅРµ РїРѕРєР°Р·СѓС”С‚СЊСЃСЏ Сѓ СЃРїРёСЃРєСѓ Р·Р° Р·Р°РјРѕРІС‡СѓРІР°РЅРЅСЏРј.')
+      screen.getByText('Віконце перетинається з уже існуючим: 12.03.2026, 03:00-03:50. Це вікно вже в минулому, тому не показується у списку за замовчуванням.')
     ).toBeInTheDocument()
   })
 
@@ -190,7 +190,7 @@ describe('SlotsView', () => {
     await fireEvent.click(submitButton)
     await flushAsyncUpdates()
 
-    expect(screen.getByText('Р’С–РєРѕРЅС†Рµ РїРµСЂРµС‚РёРЅР°С”С‚СЊСЃСЏ Р· СѓР¶Рµ С–СЃРЅСѓСЋС‡РёРј.')).toBeInTheDocument()
+    expect(screen.getByText('Віконце перетинається з уже існуючим.')).toBeInTheDocument()
   })
 
   it('reloads the current slots list and shows success feedback after create', async () => {
@@ -222,7 +222,6 @@ describe('SlotsView', () => {
 
     expect(mockedApiGet).toHaveBeenCalledTimes(2)
     expect(screen.getByText('12.03.2026, 11:10')).toBeInTheDocument()
-    expect(mockToast.success).toHaveBeenCalledWith('Р’С–Р»СЊРЅРµ РІС–РєРЅРѕ РЅР° 12.03.2026, 11:10 СЃС‚РІРѕСЂРµРЅРѕ.')
+    expect(mockToast.success).toHaveBeenCalledWith('Вільне вікно на 12.03.2026, 11:10 створено.')
   })
 })
-

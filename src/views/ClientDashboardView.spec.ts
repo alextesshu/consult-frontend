@@ -50,6 +50,43 @@ describe('ClientDashboardView', () => {
     localStorage.clear()
   })
 
+  it('shows join actions for upcoming online sessions when the payload has an external meeting link', async () => {
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/booking/sessions/' && config?.params?.upcoming === true) {
+        return [
+          {
+            id: 88,
+            status: 'CONFIRMED',
+            specialist: 14,
+            therapist_name: 'Олена',
+            therapist_public_slug: 'olena',
+            meeting_url: 'https://meet.google.com/room-123',
+            meeting_provider: 'google_meet',
+            slot: null,
+            slot_start_at: '2099-06-15T10:00:00Z',
+            slot_end_at: '2099-06-15T11:00:00Z',
+          },
+        ]
+      }
+      if (url === '/booking/sessions/' && config?.params?.upcoming === false) {
+        return []
+      }
+      if (url === '/booking/group-events/') {
+        return []
+      }
+      throw new Error(`Unexpected apiGet call: ${url} ${JSON.stringify(config)}`)
+    })
+
+    renderView()
+
+    expect(await screen.findAllByText('Онлайн-зустріч: Google Meet')).not.toHaveLength(0)
+    expect(screen.getAllByRole('link', { name: 'Приєднатися' })).toHaveLength(2)
+    expect(screen.getAllByRole('link', { name: 'Приєднатися' })[0]).toHaveAttribute(
+      'href',
+      'https://meet.google.com/room-123'
+    )
+  })
+
   it('renders explicit error states for the priority, sessions, and group-events sections', async () => {
     mockedApiGet.mockRejectedValue(new Error('dashboard failed'))
 

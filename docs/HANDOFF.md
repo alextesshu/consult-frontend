@@ -4,7 +4,7 @@ Last updated: 2026-03-12
 Owner: agent-maintained
 Primary use: persistent project handoff for agent-led work
 Update trigger: after each meaningful completed task
-Last agent task: phase-close audit, final validation, and merge-readiness check for the current frontend slice
+Last agent task: implement the frontend session execution MVP around external meeting links, join actions, reminder entrypoints, after-session follow-up copy, and doc sync
 
 Update rule:
 
@@ -21,9 +21,19 @@ Update rule:
 - Primary product areas already present in routing: specialist cabinet, client dashboard, public specialist profile, public catalog, billing access request flow, analytics, slots, sessions, reviews, group events, journal.
 - Current source-of-truth docs are `README.md`, `docs/UI_SHAPE_STANDARD.md`, and recent git history. This file is the persistent project handoff.
 - `README.md` was synced with this handoff on 2026-03-11 to reduce documentation drift.
+- Full phase-close write-up for the current slice lives in `docs/PHASE_CLOSE_SUMMARY.md`.
 
 ## Done
 
+- Frontend session execution MVP now treats online sessions as backend-provided external meeting links only; built-in video room assumptions were removed from pricing/plan/session copy touched in this slice.
+- Added shared external meeting helpers in `src/lib/sessionExecution.ts` for safe `meeting_url` normalization, join gating, provider labeling, and session-time hint copy.
+- `ClientSessionDetailView` now shows external meeting context, `Приєднатися`, copy-link action, and follow-up booking CTA for completed/cancelled flows when the specialist public slug is available.
+- `ClientDashboardView` now surfaces online meeting badges and join CTA on the priority upcoming session and the upcoming sessions list when backend payload includes a valid `meeting_url`.
+- `TherapistSessionDetailView` now shows the same external meeting context for specialist-side detail review without inventing new edit mutations.
+- Notification bell reminders in `App.vue` now expose a direct external `Приєднатися` action when notification payload includes `meeting_url` and the event is still actionable.
+- Added focused regression coverage for shared meeting helpers, client dashboard join CTA, specialist session detail join CTA, client session detail follow-up/join CTA, and reminder join action in the bell feed.
+- `README.md` is synced with this slice and now states that online session execution relies on external `meeting_url` / optional `meeting_provider`, not built-in video rooms.
+- Added a standalone phase-close summary in `docs/PHASE_CLOSE_SUMMARY.md` for merge-prep / handoff use.
 - Phase-close audit confirmed local `dev` was clean and matched `origin/dev` before validation (`git rev-list --left-right --count origin/dev...HEAD` -> `0 0`).
 - Phase-close audit rechecked `README.md` and this handoff against the latest committed slice set (`0372ed1`, `be7a4fb`, `bb42f71`, `5c3fe2e`) with no runtime-doc drift requiring README changes.
 - Analytics MVP for `/cabinet/analytics` is implemented with leader-gated insights, teaser state for non-leader users, and empty-state coverage.
@@ -99,19 +109,38 @@ Update rule:
 
 ## Changed files
 
+- `src/lib/api.ts`
+- `src/lib/sessionExecution.ts`
+- `src/lib/sessionExecution.spec.ts`
+- `src/views/ClientDashboardView.vue`
+- `src/views/ClientDashboardView.spec.ts`
+- `src/views/ClientSessionDetailView.vue`
+- `src/views/ClientSessionDetailView.spec.ts`
+- `src/views/TherapistSessionDetailView.vue`
+- `src/views/TherapistSessionDetailView.spec.ts`
+- `src/App.vue`
+- `src/__tests__/app.spec.ts`
+- `src/views/BillingView.vue`
+- `src/views/HomeView.vue`
+- `src/views/CabinetView.vue`
+- `README.md`
 - `docs/HANDOFF.md`
+- `docs/PHASE_CLOSE_SUMMARY.md`
 
 ## Validation
 
 Latest task validation:
 
 ```powershell
+npm run test:run -- src/lib/sessionExecution.spec.ts src/views/ClientSessionDetailView.spec.ts src/views/ClientDashboardView.spec.ts src/views/TherapistSessionDetailView.spec.ts src/__tests__/app.spec.ts
 npm run test:run
 npm run typecheck
 ```
 
 ## Remaining work
 
+- Backend-confirmed specialist-side editing for `meeting_url` / `meeting_provider` is still deferred until a canonical mutation endpoint and ownership rules are exposed to the frontend.
+- Reminder surfaces beyond the bell feed should only be expanded if backend adds more stable join-enabled payloads; this slice intentionally avoided inventing reminder entrypoints.
 - Add richer CRM workflows: bulk actions and a deeper client profile view.
 - Expand system-level empty/loading/error states across remaining views, including `CabinetView`, once the backend contract for error semantics is stable enough to avoid frontend-only taxonomies.
 - Clarify future billing and entitlements states if backend support for live billing is introduced.
@@ -120,6 +149,9 @@ npm run typecheck
 
 ## Risks / open questions
 
+- The frontend now consumes `meeting_url` / optional `meeting_provider` on session and notification payloads, but specialist-side editing is intentionally not wired until backend exposes a canonical write contract.
+- Join CTA visibility is intentionally narrow: only actionable session statuses with a valid external URL render `Приєднатися`; if backend adds time-window or role-specific gating later, the shared helper should absorb it.
+- Reminder join CTA currently ships through the existing notification bell/feed only; if product later needs dedicated reminder pages or push payload deep-links, those should follow the same backend gating contract instead of duplicating rules.
 - Specialist-session list/detail parity now covers the active confirm/cancel/reschedule/approve/decline/complete branches plus stale confirm/complete rejection, but stale-cancel or future backend-only lifecycle branches would still need new matrix coverage if introduced.
 - Public slot browsing now aligns selected local days with the backend UTC-boundary contract, but any future backend timezone/locale parameter would still be cleaner than frontend range translation.
 - Public-profile chat surfacing currently infers message availability from existing chat threads; if backend relation rules change, a dedicated capability flag may still be worth adding later.

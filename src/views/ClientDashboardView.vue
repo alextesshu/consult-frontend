@@ -50,6 +50,7 @@
         <div class="priority-main">
           <div class="priority-time">{{ formatDateTime(sessionStartAt(nextUpcoming)) }}</div>
           <div class="muted">{{ specialistLabel(nextUpcoming) }}</div>
+          <div v-if="meetingBadge(nextUpcoming)" class="muted">{{ meetingBadge(nextUpcoming) }}</div>
           <div class="status-pill" :class="{ 'status-pill--warn': nextUpcoming.status === 'SCHEDULED' }">
             {{ sessionStatusLabel(nextUpcoming) }}
           </div>
@@ -58,13 +59,22 @@
           </div>
         </div>
         <div class="priority-actions">
+          <a
+            v-if="canJoinMeeting(nextUpcoming)"
+            class="btn"
+            :href="meetingUrl(nextUpcoming)"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Приєднатися
+          </a>
           <RouterLink class="btn btn--ghost" :to="`/client/sessions/${nextUpcoming.id}`">
             Деталі
           </RouterLink>
           <RouterLink
-            v-if="nextUpcoming.therapist_public_slug"
+            v-if="nextUpcoming.specialist_public_slug"
             class="btn btn--ghost"
-            :to="`/specialist/${nextUpcoming.therapist_public_slug}`"
+            :to="`/specialist/${nextUpcoming.specialist_public_slug}`"
           >
             Профіль спеціаліста
           </RouterLink>
@@ -93,6 +103,10 @@
         <li>
           <span class="tips-link">Слідкувати за статусами</span>
           <span class="muted">Підтвердження та перенесення відобразяться у списку сесій.</span>
+        </li>
+        <li>
+          <span class="tips-link">Приєднатися до онлайн-зустрічі</span>
+          <span class="muted">Кнопка з'явиться в деталях сесії, на дашборді та в нагадуванні, коли спеціаліст додасть зовнішнє посилання.</span>
         </li>
       </ul>
     </div>
@@ -139,13 +153,13 @@
               <div>
                 <span class="session-label">Підтверджена:</span>
                 <span class="session-value">
-                  {{ formatSession(nextSession(therapist.therapist_id, 'CONFIRMED')) }}
+                  {{ formatSession(nextSession(therapist.therapist_id, 'CONFIRMED') || nextSession(therapist.therapist_id, 'CONFIRMED')) }}
                 </span>
               </div>
               <div>
                 <span class="session-label">Запланована:</span>
                 <span class="session-value">
-                  {{ formatSession(nextSession(therapist.therapist_id, 'SCHEDULED')) }}
+                  {{ formatSession(nextSession(therapist.therapist_id, 'SCHEDULED') || nextSession(therapist.therapist_id, 'SCHEDULED')) }}
                 </span>
               </div>
               <button
@@ -260,16 +274,26 @@
             <div>
               <div class="session-time">{{ formatDateTime(session.slot?.start_at || session.slot_start_at) }}</div>
               <div class="muted">{{ specialistLabel(session) }}</div>
+              <div v-if="meetingBadge(session)" class="muted">{{ meetingBadge(session) }}</div>
               <div class="muted">Статус: {{ sessionStatusLabel(session) }}</div>
             </div>
             <div class="session-actions">
+              <a
+                v-if="canJoinMeeting(session)"
+                class="btn btn--sm"
+                :href="meetingUrl(session)"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Приєднатися
+              </a>
               <RouterLink class="btn btn--ghost btn--sm" :to="`/client/sessions/${session.id}`">
                 Деталі
               </RouterLink>
               <RouterLink
-                v-if="session.therapist_public_slug"
+                v-if="session.specialist_public_slug"
                 class="btn btn--ghost btn--sm"
-                :to="`/specialist/${session.therapist_public_slug}`"
+                :to="`/specialist/${session.specialist_public_slug}`"
               >
                 Профіль
               </RouterLink>
@@ -312,9 +336,9 @@
                 Деталі
               </RouterLink>
               <RouterLink
-                v-if="session.therapist_public_slug"
+                v-if="session.specialist_public_slug"
                 class="btn btn--ghost btn--sm"
-                :to="`/specialist/${session.therapist_public_slug}`"
+                :to="`/specialist/${session.specialist_public_slug}`"
               >
                 Профіль
               </RouterLink>
@@ -347,6 +371,11 @@ import ConfirmModal from '../components/ConfirmModal.vue'
 import LoadingSkeleton from '../components/LoadingSkeleton.vue'
 import { useConfirmModal } from '../composables/useConfirmModal'
 import { formatUkDateTimeCompact } from '../lib/dateTime'
+import {
+  canJoinExternalMeeting,
+  externalMeetingProviderLabel,
+  normalizeMeetingUrl,
+} from '../lib/sessionExecution'
 
 type Slot = {
   start_at: string
@@ -356,11 +385,15 @@ type Slot = {
 type Session = {
   id: number
   status: string
-  specialist?: number
-  therapist_name?: string | null
-  therapist_username?: string | null
-  therapist_email?: string | null
-  therapist_public_slug?: string | null
+  specialist?: number | any
+  specialist_id?: number
+  specialist_name?: string | null
+  specialist_username?: string | null
+  specialist_email?: string | null
+  specialist_public_slug?: string | null
+  meeting_url?: string | null
+  meeting_provider?: string | null
+  join_available?: boolean
   slot: Slot | null
   slot_start_at?: string | null
   slot_end_at?: string | null
@@ -412,7 +445,7 @@ const recentSpecialistSlugs = computed(() => {
     if (!endRaw) continue
     const endTs = new Date(endRaw).getTime()
     if (Number.isNaN(endTs) || endTs < cutoff) continue
-    const slug = session.therapist_public_slug
+    const slug = session.specialist_public_slug
     if (!slug || stopped.has(slug)) continue
     slugs.add(slug)
   }
@@ -476,6 +509,7 @@ const sessionEndAt = (session: Session) => session.slot?.end_at || session.slot_
 
 function isSessionInProgress(session: Session) {
   if (session.status !== 'CONFIRMED') return false
+  if (session.join_available) return true
   const startRaw = sessionStartAt(session)
   const endRaw = sessionEndAt(session)
   if (!startRaw || !endRaw) return false
@@ -516,7 +550,8 @@ function timeUntilLabel(session: Session) {
 function nextSession(therapistId: number | undefined, status: string) {
   if (!therapistId) return null
   const items = upcoming.value
-    .filter((session) => session.specialist === therapistId && session.status === status)
+    // Check both specialist (legacy/object) and specialist_id (from serializer)
+    .filter((session) => (session.specialist_id === therapistId || session.specialist === therapistId) && session.status === status)
     .map((session) => ({ session, startAt: sessionStartAt(session) }))
     .filter((item) => item.startAt)
     .sort((a, b) => new Date(a.startAt as string).getTime() - new Date(b.startAt as string).getTime())
@@ -529,10 +564,24 @@ function formatSession(session: Session | null) {
 }
 
 function specialistLabel(session: Session) {
-  const name = session.therapist_name || session.therapist_username
+  const name = session.specialist_name || session.specialist_username
   if (name) return `Спеціаліст: ${name}`
-  if (session.specialist) return `Спеціаліст: #${session.specialist}`
+  if (session.specialist_id) return `Спеціаліст: #${session.specialist_id}`
   return 'Спеціаліст: —'
+}
+
+function meetingUrl(session: Session) {
+  return normalizeMeetingUrl(session.meeting_url)
+}
+
+function canJoinMeeting(session: Session) {
+  return canJoinExternalMeeting(session)
+}
+
+function meetingBadge(session: Session) {
+  const url = meetingUrl(session)
+  if (!url) return ''
+  return `Онлайн-зустріч: ${externalMeetingProviderLabel(session.meeting_provider, url)}`
 }
 
 function publicName(value?: string) {
@@ -700,13 +749,13 @@ function syncSelectedSpecialists() {
     if (Number.isNaN(endTs)) continue
     const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000
     if (endTs < cutoff) continue
-    const slug = session.therapist_public_slug
+    const slug = session.specialist_public_slug
     if (!slug || stopped.has(slug)) continue
     if (recentMap.has(slug)) continue
     recentMap.set(slug, {
-      therapist_id: session.specialist,
+      therapist_id: session.specialist_id,
       public_slug: slug,
-      display_name: session.therapist_name || session.therapist_username || 'Спеціаліст',
+      display_name: session.specialist_name || session.specialist_username || 'Спеціаліст',
     })
   }
 

@@ -96,6 +96,59 @@
             </div>
           </div>
         </div>
+        <div v-if="meetingUrl || isEditingMeetingLink" class="meeting-card">
+          <div v-if="!isEditingMeetingLink">
+            <div class="detail-label">Онлайн-зустріч</div>
+            <div class="detail-value">{{ meetingProvider }}</div>
+            <div class="muted detail-meta">{{ meetingHint }}</div>
+          </div>
+          <div v-else class="field" style="width: 100%">
+            <label for="meeting-link-input" class="detail-label">Посилання на онлайн-зустріч</label>
+            <input id="meeting-link-input" v-model="meetingLinkDraft" class="input" />
+          </div>
+          <div class="meeting-card__actions">
+            <template v-if="!isEditingMeetingLink">
+              <a
+                v-if="canJoinMeeting"
+                class="btn btn--sm"
+                :href="meetingUrl"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Приєднатися
+              </a>
+              <button class="btn btn--ghost btn--sm" type="button" @click="copyMeetingLink">
+                Скопіювати посилання
+              </button>
+              <button
+                v-if="session && ['SCHEDULED', 'CONFIRMED'].includes(session.status)"
+                class="btn btn--ghost btn--sm"
+                type="button"
+                @click="toggleEditMeetingLink"
+              >
+                Редагувати
+              </button>
+            </template>
+            <template v-else>
+              <button
+                class="btn btn--sm"
+                type="button"
+                :disabled="actionLoading"
+                @click="saveMeetingLink"
+              >
+                Зберегти
+              </button>
+              <button
+                class="btn btn--ghost btn--sm"
+                type="button"
+                :disabled="actionLoading"
+                @click="toggleEditMeetingLink"
+              >
+                Скасувати
+              </button>
+            </template>
+          </div>
+        </div>
       </section>
 
       <section v-if="sessionRequests.length" class="panel">
@@ -342,7 +395,14 @@ import {
   type SpecialistRescheduleRequest,
   type SpecialistRescheduleSuggestion,
   type SpecialistSlot,
+  updateSpecialistSession as updateSpecialistSessionAction,
 } from '../lib/specialistSessions'
+import {
+  canJoinExternalMeeting,
+  externalMeetingHint,
+  externalMeetingProviderLabel,
+  normalizeMeetingUrl,
+} from '../lib/sessionExecution'
 import { useToast } from '../composables/useToast'
 import EmptyState from '../components/EmptyState.vue'
 import LoadingSkeleton from '../components/LoadingSkeleton.vue'
@@ -361,6 +421,8 @@ type SessionDetail = {
   client_email?: string | null
   therapist: number
   therapist_username?: string | null
+  meeting_url?: string | null
+  meeting_provider?: string | null
   slot?: SessionSlot | number | null
   slot_start_at?: string | null
   slot_end_at?: string | null
@@ -391,6 +453,20 @@ const showRecurringPanel = ref(false)
 const recurringPreset = ref<number | 'custom'>(4)
 const recurringCustomOccurrences = ref<number | ''>('')
 const recurringResult = ref<SpecialistRecurringSummary | null>(null)
+const isEditingMeetingLink = ref(false)
+const meetingLinkDraft = ref('')
+
+const meetingUrl = computed(() => normalizeMeetingUrl(session.value?.meeting_url))
+const canJoinMeeting = computed(() =>
+  session.value ? canJoinExternalMeeting(session.value) : false
+)
+const meetingProvider = computed(() =>
+  externalMeetingProviderLabel(session.value?.meeting_provider, meetingUrl.value)
+)
+const meetingHint = computed(() => {
+  if (!session.value || !meetingUrl.value) return ''
+  return externalMeetingHint(session.value)
+})
 
 const sessionRequests = computed(() =>
   session.value ? rescheduleRequests.value.filter((item) => item.session_id === session.value?.id) : []
@@ -458,6 +534,16 @@ function canReschedule(status: string) {
 
 function canShowRecurringAction(detail: SessionDetail) {
   return sharedCanShowRecurringAction(detail)
+}
+
+async function copyMeetingLink() {
+  if (!meetingUrl.value) return
+  try {
+    await navigator.clipboard.writeText(meetingUrl.value)
+    toast.success('Посилання на зустріч скопійовано.')
+  } catch {
+    toast.error('Не вдалося скопіювати посилання на зустріч.')
+  }
 }
 
 function recurringOccurrencesValue() {
@@ -713,6 +799,31 @@ async function declineRequest(id: number) {
   }
 }
 
+function toggleEditMeetingLink() {
+  isEditingMeetingLink.value = !isEditingMeetingLink.value
+  if (isEditingMeetingLink.value) {
+    meetingLinkDraft.value = session.value?.meeting_url || ''
+  }
+}
+
+async function saveMeetingLink() {
+  if (!session.value) return
+  actionLoading.value = true
+  error.value = ''
+  try {
+    await updateSpecialistSessionAction(session.value.id, {
+      meeting_url: meetingLinkDraft.value,
+    })
+    await loadSession()
+    toast.success('Посилання на зустріч оновлено.')
+    isEditingMeetingLink.value = false
+  } catch (err: any) {
+    error.value = getBookingErrorMessage(err, 'Не вдалося оновити посилання на зустріч.')
+  } finally {
+    actionLoading.value = false
+  }
+}
+
 watch(
   sessionId,
   async () => {
@@ -816,6 +927,24 @@ watch(
 .detail-meta {
   font-size: 12px;
   font-weight: 400;
+}
+
+.meeting-card {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(31, 122, 76, 0.22);
+  background: rgba(31, 122, 76, 0.08);
+}
+
+.meeting-card__actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .status-pill {

@@ -264,6 +264,36 @@ describe('App shell', () => {
     })
   })
 
+  it('shows a join button for reminder notifications with an external meeting link', async () => {
+    await renderWithProviders({
+      initialPath: '/client',
+      roles: ['CLIENT'],
+      notifications: [
+        buildNotification({
+          id: 'session_reminder:41',
+          code: 'session_starts_1h',
+          session_id: 41,
+          meeting_url: 'https://meet.google.com/abc-defg-hij',
+          meeting_provider: 'google_meet',
+        }),
+      ],
+    })
+
+    await fireEvent.click(screen.getByRole('button', { name: /Сповіщення/i }))
+
+    const joinLink = await screen.findByRole('link', { name: 'Приєднатися' })
+    expect(joinLink).toHaveAttribute('href', 'https://meet.google.com/abc-defg-hij')
+
+    await fireEvent.click(joinLink)
+
+    await waitFor(() => {
+      expect(mockedMarkNotificationRead).toHaveBeenCalledWith({
+        source_kind: 'session_event',
+        source_id: 1,
+      })
+    })
+  })
+
   it('routes specialist inquiry created notifications to the specialist inquiry surface', async () => {
     const { router } = await renderWithProviders({
       initialPath: '/cabinet',

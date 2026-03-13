@@ -31,14 +31,14 @@
           <div class="detail-label">Спеціаліст</div>
           <div class="detail-value">
             {{ specialistLabel(session) }}
-            <div v-if="session.therapist_email" class="muted" style="font-size: 12px;">
-              {{ session.therapist_email }}
+            <div v-if="session.specialist_email" class="muted" style="font-size: 12px;">
+              {{ session.specialist_email }}
             </div>
             <div class="muted" style="font-size: 12px;">
-              ID: #{{ session.therapist }}
+              ID: #{{ session.specialist_id }}
             </div>
-            <div v-if="session.therapist_public_slug" class="detail-actions">
-              <RouterLink class="btn btn--ghost btn--sm" :to="`/specialist/${session.therapist_public_slug}`">
+            <div v-if="session.specialist_public_slug" class="detail-actions">
+              <RouterLink class="btn btn--ghost btn--sm" :to="`/specialist/${session.specialist_public_slug}`">
                 Відкрити профіль
               </RouterLink>
               <button class="btn btn--ghost btn--sm" type="button" @click="copySpecialistLink">
@@ -52,7 +52,38 @@
         {{ statusGuidance }}
       </div>
 
+      <div v-if="meetingUrl" class="detail-notice detail-notice--meeting">
+        <div class="meeting-row">
+          <div>
+            <div class="detail-label">Онлайн-зустріч</div>
+            <div class="detail-value">{{ meetingProvider }}</div>
+            <div class="muted meeting-hint">{{ meetingHint }}</div>
+          </div>
+          <div class="meeting-actions">
+            <a
+              v-if="canJoinMeeting"
+              class="btn btn--sm"
+              :href="meetingUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Приєднатися
+            </a>
+            <button class="btn btn--ghost btn--sm" type="button" @click="copyMeetingLink">
+              Скопіювати посилання
+            </button>
+          </div>
+        </div>
+      </div>
+
       <div class="action-row">
+        <RouterLink
+          v-if="followUpBookingLabel && session.specialist_public_slug"
+          class="btn"
+          :to="`/specialist/${session.specialist_public_slug}`"
+        >
+          {{ followUpBookingLabel }}
+        </RouterLink>
         <button
           class="btn btn--ghost"
           type="button"
@@ -141,17 +172,26 @@ import {
   getSuggestionReasonLabel,
 } from '../lib/bookingCopy'
 import { formatUkDateTimeCompact } from '../lib/dateTime'
+import {
+  canJoinExternalMeeting,
+  externalMeetingHint,
+  externalMeetingProviderLabel,
+  normalizeMeetingUrl,
+} from '../lib/sessionExecution'
 import { useToast } from '../composables/useToast'
 type SessionDetail = {
   id: number
   status: string
   slot_start_at: string | null
   slot_end_at: string | null
-  therapist: number
-  therapist_name?: string | null
-  therapist_username?: string | null
-  therapist_email?: string | null
-  therapist_public_slug?: string | null
+  specialist_id: number
+  specialist_name?: string | null
+  specialist_username?: string | null
+  specialist_email?: string | null
+  specialist_public_slug?: string | null
+  meeting_url?: string | null
+  meeting_provider?: string | null
+  join_available?: boolean
   client: number
 }
 
@@ -183,6 +223,25 @@ const suggestionsLoading = ref(false)
 const rescheduleSuggestions = ref<RescheduleSuggestion[]>([])
 const selectedSuggestionSlotId = ref<number | null>(null)
 const canReschedule = (status: string) => status === 'SCHEDULED' || status === 'CONFIRMED'
+const meetingUrl = computed(() => normalizeMeetingUrl(session.value?.meeting_url))
+const canJoinMeeting = computed(() =>
+  session.value ? canJoinExternalMeeting(session.value) : false
+)
+const meetingProvider = computed(() =>
+  externalMeetingProviderLabel(session.value?.meeting_provider, meetingUrl.value)
+)
+const meetingHint = computed(() => {
+  if (!session.value || !meetingUrl.value) return ''
+  return externalMeetingHint(session.value)
+})
+const followUpBookingLabel = computed(() => {
+  if (!session.value?.specialist_public_slug) return ''
+  if (session.value.status === 'COMPLETED') return 'Записатися повторно'
+  if (session.value.status === 'CANCELLED' || session.value.status === 'NO_SHOW') {
+    return 'Обрати новий слот'
+  }
+  return ''
+})
 
 const statusGuidance = computed(() => {
   if (!session.value) return ''
@@ -239,19 +298,29 @@ function suggestionReasonLabel(reasonTag: string) {
 }
 
 function specialistLabel(detail: SessionDetail) {
-  const name = detail.therapist_name || detail.therapist_username
+  const name = detail.specialist_name || detail.specialist_username
   if (name) return name
-  return `#${detail.therapist}`
+  return `#${detail.specialist_id}`
 }
 
 async function copySpecialistLink() {
-  if (!session.value?.therapist_public_slug) return
-  const url = `${window.location.origin}/specialist/${session.value.therapist_public_slug}`
+  if (!session.value?.specialist_public_slug) return
+  const url = `${window.location.origin}/specialist/${session.value.specialist_public_slug}`
   try {
     await navigator.clipboard.writeText(url)
     toast.success('Посилання скопійовано.')
   } catch {
     toast.error('Не вдалося скопіювати посилання.')
+  }
+}
+
+async function copyMeetingLink() {
+  if (!meetingUrl.value) return
+  try {
+    await navigator.clipboard.writeText(meetingUrl.value)
+    toast.success('Посилання на зустріч скопійовано.')
+  } catch {
+    toast.error('Не вдалося скопіювати посилання на зустріч.')
   }
 }
 
@@ -276,6 +345,7 @@ function formatDuration(start: string | null, end: string | null) {
 
 function isSessionInProgress(detail: SessionDetail) {
   if (detail.status !== 'CONFIRMED') return false
+  if (detail.join_available) return true
   if (!detail.slot_start_at || !detail.slot_end_at) return false
   const start = new Date(detail.slot_start_at).getTime()
   const end = new Date(detail.slot_end_at).getTime()
@@ -303,7 +373,7 @@ async function loadSlots() {
   slotsLoading.value = true
   try {
     const resp = await apiGet<PublicSlot[]>('/booking/slots/', {
-      params: { therapist_id: session.value.therapist, date_from: new Date().toISOString().slice(0, 10) },
+      params: { therapist_id: session.value.specialist_id, date_from: new Date().toISOString().slice(0, 10) },
     })
     availableSlots.value = (resp || []).filter((slot) => slot.id)
   } catch {
@@ -487,6 +557,24 @@ onMounted(async () => {
   flex-wrap: wrap;
 }
 
+.meeting-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.meeting-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.meeting-hint {
+  margin-top: 4px;
+}
+
 .detail-notice {
   padding: 12px 14px;
   border-radius: 14px;
@@ -498,6 +586,11 @@ onMounted(async () => {
 .detail-notice--soft {
   border-color: rgba(7, 47, 71, 0.1);
   background: rgba(7, 47, 71, 0.04);
+}
+
+.detail-notice--meeting {
+  border-color: rgba(31, 122, 76, 0.22);
+  background: rgba(31, 122, 76, 0.08);
 }
 
 .suggestions-block {
@@ -566,5 +659,3 @@ onMounted(async () => {
   }
 }
 </style>
-
-

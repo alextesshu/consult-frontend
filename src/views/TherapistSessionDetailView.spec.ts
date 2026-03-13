@@ -169,7 +169,10 @@ describe('TherapistSessionDetailView', () => {
   })
 
   it('renders the session detail happy path with related context', async () => {
-    let sessionDetail = buildSession()
+    let sessionDetail = buildSession({
+      meeting_url: 'https://meet.google.com/therapist-room',
+      meeting_provider: 'google_meet',
+    })
     mockDetailContext(() => sessionDetail)
 
     const { container } = renderView()
@@ -189,6 +192,11 @@ describe('TherapistSessionDetailView', () => {
     expect(mockedApiGet).toHaveBeenCalledWith('/cabinet/sessions/42/note/')
     expect(mockedApiGet).toHaveBeenCalledWith('/cabinet/sessions/reschedule-requests/')
     expect(container.querySelector('.empty-state')).not.toBeInTheDocument()
+    expect(screen.getByText('Google Meet')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Приєднатися' })).toHaveAttribute(
+      'href',
+      'https://meet.google.com/therapist-room'
+    )
     expect(sessionDetail.status).toBe('SCHEDULED')
   })
 
@@ -759,5 +767,49 @@ describe('TherapistSessionDetailView', () => {
     expect(mockedApiGet).toHaveBeenCalledTimes(1)
     expect(mockedApiGet).toHaveBeenCalledWith('/booking/sessions/42/')
   })
-})
 
+  it('allows editing the meeting link and reloads the session on success', async () => {
+    const oldUrl = 'https://meet.example.com/old-link'
+    const newUrl = 'https://meet.example.com/new-link'
+    let sessionDetail = buildSession({ status: 'CONFIRMED', meeting_url: oldUrl })
+    mockDetailContext(() => sessionDetail)
+
+    mockedApiPatch.mockImplementation(async (url) => {
+      if (url === '/booking/sessions/42/') {
+        sessionDetail = { ...sessionDetail, meeting_url: newUrl }
+        return {}
+      }
+      throw new Error(`Unexpected apiPatch call: ${url}`)
+    })
+
+    renderView()
+
+    const meetingCard = (await screen.findByText('Приєднатися')).closest('.meeting-card')
+    expect(meetingCard).toBeInTheDocument()
+
+    const editButton = within(meetingCard as HTMLElement).getByRole('button', { name: 'Редагувати' })
+    await fireEvent.click(editButton)
+
+    const input = (await within(meetingCard as HTMLElement).findByLabelText(
+      'Посилання на онлайн-зустріч'
+    )) as HTMLInputElement
+    expect(input).toBeInTheDocument()
+    expect(input.value).toBe(oldUrl)
+
+    await fireEvent.update(input, newUrl)
+
+    const saveButton = within(meetingCard as HTMLElement).getByRole('button', { name: 'Зберегти' })
+    await fireEvent.click(saveButton)
+
+    await waitFor(() => {
+      expect(mockedApiPatch).toHaveBeenCalledWith('/booking/sessions/42/', { meeting_url: newUrl })
+    })
+
+    await waitFor(() => {
+      expect(mockToast.success).toHaveBeenCalledWith('Посилання на зустріч оновлено.')
+    })
+
+    // Initial load (5) + reload (1)
+    expect(endpointCalls('/booking/sessions/42/')).toBe(2)
+  })
+})
