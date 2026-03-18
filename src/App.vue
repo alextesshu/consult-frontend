@@ -253,7 +253,7 @@ const cabinetRoute = computed(() => {
 })
 const cabinetLabel = computed(() => {
   if (isSpecialist.value) return 'Мій кабінет'
-  if (isClient.value) return 'Мій щоденник'
+  if (isClient.value) return 'Кабінет'
   return 'Кабінет'
 })
 const showCatalogNav = computed(() => isClient.value)
