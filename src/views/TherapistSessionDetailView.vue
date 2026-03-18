@@ -96,7 +96,10 @@
             </div>
           </div>
         </div>
-        <div v-if="meetingUrl || isEditingMeetingLink" class="meeting-card">
+        <div
+          v-if="meetingUrl || isEditingMeetingLink || ['SCHEDULED', 'CONFIRMED'].includes(session.status)"
+          class="meeting-card"
+        >
           <div v-if="!isEditingMeetingLink">
             <div class="detail-label">Онлайн-зустріч</div>
             <div class="detail-value">{{ meetingProvider }}</div>
