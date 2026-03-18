@@ -1,10 +1,10 @@
 # Handoff
 
-Last updated: 2026-03-18
+Last updated: 2026-03-19
 Owner: agent-maintained
 Primary use: persistent project handoff for agent-led work
 Update trigger: after each meaningful completed task
-Last agent task: restore visible live-session marker in specialist/client dashboards for in-progress `SCHEDULED` and `CONFIRMED` sessions, then re-run targeted + full frontend tests
+Last agent task: fix pre-start live-status regressions across client/specialist surfaces, align client dashboard CTA copy/layout, and refresh handoff notes
 
 Update rule:
 
@@ -23,8 +23,60 @@ Update rule:
 - `README.md` was synced with this handoff on 2026-03-11 to reduce documentation drift.
 - Full phase-close write-up for the current slice lives in `docs/PHASE_CLOSE_SUMMARY.md`.
 
+## Product decision: session execution and meeting links
+
+Canonical MVP policy:
+
+- The platform supports external meeting links for online sessions.
+- Built-in video calling is not part of the current MVP.
+- The canonical flow is: specialist adds an external meeting link, client joins through the platform Join button, reminders and after-session flow work around that link.
+
+Current scope:
+
+- Supported: manual external meeting links (Google Meet, Zoom, other valid URLs).
+- Supported: role-aware Join access, dashboard/session detail join entrypoints, reminder/bell join entrypoints.
+- Not in scope: embedded calls, room tokens, WebRTC, Daily/Twilio/Zoom SDK.
+
+Google Meet auto-creation:
+
+- Automatic Meet creation is not considered the canonical product path.
+- Any service-account-based Meet auto-creation must remain optional/flagged and not redefine the core product behavior.
+
+Future direction:
+
+- If automatic meeting creation becomes strategically important later, the preferred long-term approach is specialist-owned Google OAuth integration, not centralized platform-owned meeting creation.
+
 ## Done
 
+Latest increment (2026-03-19):
+
+- Fixed Django migration graph crash in backend by correcting dependency app label in `sessions/migrations/0014_clientjournal.py` (`sessions` -> `consult_sessions`).
+- Client dashboard UX was simplified:
+  - moved `Обрані спеціалісти` section above other content;
+  - removed separate profile card from dashboard surface;
+  - hero actions now use clearer CTAs: `Додати спеціаліста` and `Мій профіль`;
+  - tips now include explicit `Каталог спеціалістів` guidance.
+- Fixed false-positive live markers (`Сесія триває`) before actual start:
+  - `ClientDashboardView` now prioritizes real slot window (`slot_start_at/slot_end_at`) over join window;
+  - `CabinetView` hero live card now uses the same slot-first rule;
+  - `TherapistSessionsView` priority card now shows `Заплановано` before start, even if join window is already open.
+- Added/updated focused regression tests for all above UI fixes.
+
+- Backend MVP: session confirmation now can auto-attach an online meeting link via `maybe_create_confirm_meeting_link(...)` inside `confirm_session(...)` when the feature flag is enabled.
+- Added a dedicated backend service `sessions/services/meeting_autocreate.py` for Google Meet auto-creation flow (config-driven, safe fallback to no-link when integration is not configured).
+- Added backend feature flags in settings/env:
+  - `SESSION_AUTO_CREATE_MEETING_ON_CONFIRM`
+  - `SESSION_AUTO_MEETING_PROVIDER`
+  - `SESSION_CLIENT_CAN_VIEW_MEETING_URL_AFTER_CONFIRM`
+  - `GOOGLE_MEET_SERVICE_ACCOUNT_FILE`
+  - `GOOGLE_MEET_DELEGATED_USER`
+  - `GOOGLE_MEET_CALENDAR_ID`
+- Client meeting-link visibility policy is now explicit and configurable in backend access logic:
+  - default behavior remains join-window only,
+  - optional immediate visibility after confirm is controlled by `SESSION_CLIENT_CAN_VIEW_MEETING_URL_AFTER_CONFIRM`.
+- Added backend regression tests for:
+  - auto-link creation on confirm with feature flag enabled,
+  - client visibility toggle behavior for meeting URL after confirm.
 - `CabinetView` and `ClientDashboardView` live-session detection now treats in-window `SCHEDULED` sessions as live alongside `CONFIRMED`, so the `Сесія триває` marker does not disappear when confirmation lag exists.
 - Direct join CTA rules remain unchanged: join link is still shown only when `join_available` and a valid external `meeting_url` are present.
 - Added focused regression coverage for scheduled in-progress live markers in `CabinetView.spec.ts` and `ClientDashboardView.spec.ts`.
@@ -118,6 +170,18 @@ Update rule:
 
 ## Changed files
 
+Latest increment (2026-03-19):
+
+- `../backend/sessions/migrations/0014_clientjournal.py`
+- `src/views/ClientDashboardView.vue`
+- `src/views/ClientDashboardView.spec.ts`
+- `src/App.vue`
+- `src/views/CabinetView.vue`
+- `src/views/CabinetView.spec.ts`
+- `src/views/TherapistSessionsView.vue`
+- `src/views/TherapistSessionsView.spec.ts`
+- `docs/HANDOFF.md`
+
 - `src/lib/api.ts`
 - `src/lib/sessionExecution.ts`
 - `src/lib/sessionExecution.spec.ts`
@@ -133,6 +197,12 @@ Update rule:
 - `src/views/HomeView.vue`
 - `src/views/CabinetView.vue`
 - `src/views/CabinetView.spec.ts`
+- `../backend/config/settings.py`
+- `../backend/sessions/api_views.py`
+- `../backend/sessions/services/access.py`
+- `../backend/sessions/services/meeting_autocreate.py`
+- `../backend/sessions/tests/test_auto_meeting_confirm.py`
+- `../backend/.env.example`
 - `README.md`
 - `docs/HANDOFF.md`
 - `docs/PHASE_CLOSE_SUMMARY.md`
@@ -142,9 +212,25 @@ Update rule:
 Latest task validation:
 
 ```powershell
+cd ../backend
+.\.venv\Scripts\python.exe manage.py showmigrations consult_sessions
+.\.venv\Scripts\python.exe manage.py check
+cd ../backend
+poetry run pytest sessions/tests/test_auto_meeting_confirm.py sessions/tests/test_session_access_gate.py -q
+cd ../frontend
 npm run test:run -- src/views/CabinetView.spec.ts src/views/ClientDashboardView.spec.ts
 npm run test:run -- src/views/TherapistSessionDetailView.spec.ts
 npm run test:run
+```
+
+Additional focused checks run in this increment:
+
+```powershell
+cd ../frontend
+npm run test:run -- src/views/ClientDashboardView.spec.ts
+npm run test:run -- src/__tests__/app.spec.ts
+npm run test:run -- src/views/CabinetView.spec.ts
+npm run test:run -- src/views/TherapistSessionsView.spec.ts
 ```
 
 Previous slice validation:
@@ -158,6 +244,9 @@ npm run typecheck
 ## Remaining work
 
 - No open work from this handoff update; all current frontend tests pass locally.
+- Run full frontend suite once before release commit (only focused suites were rerun in the latest increment).
+- Complete and validate the in-progress backend `ClientJournal` slice end-to-end (API wiring/tests/migration apply) before merging backend branch.
+- Google Meet auto-creation requires valid Google credentials/config (`service account` + delegated user) to produce real links in runtime; otherwise feature degrades safely to no auto-link.
 - Backend-confirmed specialist-side editing for `meeting_url` / `meeting_provider` is still deferred until a canonical mutation endpoint and ownership rules are exposed to the frontend.
 - Reminder surfaces beyond the bell feed should only be expanded if backend adds more stable join-enabled payloads; this slice intentionally avoided inventing reminder entrypoints.
 - Add richer CRM workflows: bulk actions and a deeper client profile view.
@@ -168,6 +257,8 @@ npm run typecheck
 
 ## Risks / open questions
 
+- There are pre-existing local backend changes beyond the migration fix in this increment (`sessions/api_views.py`, `sessions/models.py`, `sessions/serializers.py`, `booking/urls.py`, `config/settings.py`, etc.); these need a clean scoped review before commit.
+- There is also an unrelated modified frontend file (`src/views/FeedbackPolicyView.vue`) in local working tree; confirm whether it belongs to this slice before final commit.
 - The recent fix set intentionally included existing local edits in `src/lib/api.ts` and `src/views/TherapistSessionDetailView.vue` in commit `21573ad`; this should be considered when cherry-picking only spec changes.
 - The frontend now consumes `meeting_url` / optional `meeting_provider` on session and notification payloads, but specialist-side editing is intentionally not wired until backend exposes a canonical write contract.
 - Join CTA visibility is intentionally narrow: only actionable session statuses with a valid external URL render `Приєднатися`; if backend adds time-window or role-specific gating later, the shared helper should absorb it.
@@ -184,3 +275,4 @@ npm run typecheck
 - Reschedule and inquiry notifications now read more clearly and route by role, but stronger visual differentiation than copy-only treatment may still be worth a later UX pass.
 - `CabinetView` still uses simpler auth/bootstrap heuristics (`v-if="me"` plus entitlements/access hints), so any deeper empty/error-state pass there should be coordinated with backend access-state semantics rather than guessed locally.
 - Some files display encoding issues in the current shell output, so copy-heavy changes should still be checked in-editor.
+- Google Meet API quotas/permissions and Workspace delegation rules can block runtime link generation; with current MVP this failure path is intentionally non-blocking and does not break confirmation.

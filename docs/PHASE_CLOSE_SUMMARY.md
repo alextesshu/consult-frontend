@@ -1,6 +1,6 @@
 # Phase Close Summary
 
-Last updated: 2026-03-12
+Last updated: 2026-03-19
 Phase: current frontend stabilization / merge-prep slice
 
 ## Context
@@ -9,7 +9,45 @@ Phase: current frontend stabilization / merge-prep slice
 - The main focus was backend-contract alignment for booking/session flows, explicit state handling on high-traffic surfaces, specialist session parity, and inquiry notification routing.
 - The goal of the closeout was merge readiness for `dev -> main`.
 
+## Product decision: session execution and meeting links
+
+Canonical MVP policy:
+
+- The platform supports external meeting links for online sessions.
+- Built-in video calling is not part of the current MVP.
+- The canonical flow is: specialist adds an external meeting link, client joins through the platform Join button, reminders and after-session flow work around that link.
+
+Current scope:
+
+- Supported: manual external meeting links (Google Meet, Zoom, other valid URLs).
+- Supported: role-aware Join access, dashboard/session detail join entrypoints, reminder/bell join entrypoints.
+- Not in scope: embedded calls, room tokens, WebRTC, Daily/Twilio/Zoom SDK.
+
+Google Meet auto-creation:
+
+- Automatic Meet creation is not considered the canonical product path.
+- Any service-account-based Meet auto-creation must remain optional/flagged and not redefine the core product behavior.
+
+Future direction:
+
+- If automatic meeting creation becomes strategically important later, the preferred long-term approach is specialist-owned Google OAuth integration, not centralized platform-owned meeting creation.
+
 ## Done in this phase
+
+Latest addendum (2026-03-19):
+
+- Fixed specialist/client pre-start live-status regressions: `Сесія триває` now depends on factual session slot window, not join-window opening.
+- Applied the same slot-first live rule in:
+  - `ClientDashboardView`,
+  - specialist `CabinetView` hero,
+  - `TherapistSessionsView` priority block.
+- Simplified client dashboard CTA hierarchy:
+  - promoted `Обрані спеціалісти` section higher,
+  - removed separate dashboard profile card,
+  - normalized top CTAs to `Додати спеціаліста` and `Мій профіль`,
+  - added explicit `Каталог спеціалістів` hint.
+- Fixed backend migration dependency label mismatch for `consult_sessions.0014_clientjournal`.
+- Added/updated focused tests for all above UI behavior changes and reran targeted specs.
 
 - Mapped backend booking/session `code` and `reason_code` on the frontend, with `detail` kept only as a fallback.
 - Updated prepared booking/session surfaces to consume the shared error mapping: `PublicProfileView`, `ClientDashboardView`, `ClientSessionDetailView`, `SlotsView`, `TherapistSessionsView`, and `TherapistSessionDetailView`.
