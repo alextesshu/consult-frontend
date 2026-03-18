@@ -41,6 +41,8 @@ Google Meet auto-creation:
 
 - Automatic Meet creation is not considered the canonical product path.
 - Any service-account-based Meet auto-creation must remain optional/flagged and not redefine the core product behavior.
+- Current backend implementation is feature-flagged and must stay disabled by default (`SESSION_AUTO_CREATE_MEETING_ON_CONFIRM=0`).
+- Canonical dev/prod flow remains manual external meeting link management by specialist.
 
 Future direction:
 

@@ -27,6 +27,8 @@ Google Meet auto-creation:
 
 - Automatic Meet creation is not considered the canonical product path.
 - Any service-account-based Meet auto-creation must remain optional/flagged and not redefine the core product behavior.
+- Implemented code path is treated as optional experiment only (feature flag, default OFF).
+- Canonical product flow remains manual external link from specialist.
 
 Future direction:
 
