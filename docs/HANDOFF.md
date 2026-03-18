@@ -1,10 +1,10 @@
 # Handoff
 
-Last updated: 2026-03-12
+Last updated: 2026-03-18
 Owner: agent-maintained
 Primary use: persistent project handoff for agent-led work
 Update trigger: after each meaningful completed task
-Last agent task: implement the frontend session execution MVP around external meeting links, join actions, reminder entrypoints, after-session follow-up copy, and doc sync
+Last agent task: align session-detail specs with current meeting access contract, fix full-suite regression in client follow-up CTA expectations, and push `dev`
 
 Update rule:
 
@@ -25,6 +25,12 @@ Update rule:
 
 ## Done
 
+- Updated `TherapistSessionDetailView.spec.ts` to align with current backend meeting-access contract:
+  - happy-path join assertions now use a `CONFIRMED` session with `join_available = true`;
+  - meeting-link edit assertions now validate `updateSpecialistSessionMeeting(...)` instead of raw `apiPatch(...)`.
+- Fixed one full-suite regression in `ClientSessionDetailView.spec.ts` by adding `specialist_public_slug` to the session factory used by completed/cancelled follow-up CTA checks.
+- Full frontend Vitest suite is green after these updates (`22/22` files, `108/108` tests).
+- Changes were committed and pushed to `origin/dev` as `21573ad`.
 - Frontend session execution MVP now treats online sessions as backend-provided external meeting links only; built-in video room assumptions were removed from pricing/plan/session copy touched in this slice.
 - Added shared external meeting helpers in `src/lib/sessionExecution.ts` for safe `meeting_url` normalization, join gating, provider labeling, and session-time hint copy.
 - `ClientSessionDetailView` now shows external meeting context, `Приєднатися`, copy-link action, and follow-up booking CTA for completed/cancelled flows when the specialist public slug is available.
@@ -132,6 +138,13 @@ Update rule:
 Latest task validation:
 
 ```powershell
+npm run test:run -- src/views/TherapistSessionDetailView.spec.ts
+npm run test:run
+```
+
+Previous slice validation:
+
+```powershell
 npm run test:run -- src/lib/sessionExecution.spec.ts src/views/ClientSessionDetailView.spec.ts src/views/ClientDashboardView.spec.ts src/views/TherapistSessionDetailView.spec.ts src/__tests__/app.spec.ts
 npm run test:run
 npm run typecheck
@@ -139,6 +152,7 @@ npm run typecheck
 
 ## Remaining work
 
+- No open work from this handoff update; all current frontend tests pass locally.
 - Backend-confirmed specialist-side editing for `meeting_url` / `meeting_provider` is still deferred until a canonical mutation endpoint and ownership rules are exposed to the frontend.
 - Reminder surfaces beyond the bell feed should only be expanded if backend adds more stable join-enabled payloads; this slice intentionally avoided inventing reminder entrypoints.
 - Add richer CRM workflows: bulk actions and a deeper client profile view.
@@ -149,6 +163,7 @@ npm run typecheck
 
 ## Risks / open questions
 
+- The recent fix set intentionally included existing local edits in `src/lib/api.ts` and `src/views/TherapistSessionDetailView.vue` in commit `21573ad`; this should be considered when cherry-picking only spec changes.
 - The frontend now consumes `meeting_url` / optional `meeting_provider` on session and notification payloads, but specialist-side editing is intentionally not wired until backend exposes a canonical write contract.
 - Join CTA visibility is intentionally narrow: only actionable session statuses with a valid external URL render `Приєднатися`; if backend adds time-window or role-specific gating later, the shared helper should absorb it.
 - Reminder join CTA currently ships through the existing notification bell/feed only; if product later needs dedicated reminder pages or push payload deep-links, those should follow the same backend gating contract instead of duplicating rules.
