@@ -4,7 +4,7 @@ Last updated: 2026-03-18
 Owner: agent-maintained
 Primary use: persistent project handoff for agent-led work
 Update trigger: after each meaningful completed task
-Last agent task: align session-detail specs with current meeting access contract, fix full-suite regression in client follow-up CTA expectations, and push `dev`
+Last agent task: restore visible live-session marker in specialist/client dashboards for in-progress `SCHEDULED` and `CONFIRMED` sessions, then re-run targeted + full frontend tests
 
 Update rule:
 
@@ -25,6 +25,9 @@ Update rule:
 
 ## Done
 
+- `CabinetView` and `ClientDashboardView` live-session detection now treats in-window `SCHEDULED` sessions as live alongside `CONFIRMED`, so the `Сесія триває` marker does not disappear when confirmation lag exists.
+- Direct join CTA rules remain unchanged: join link is still shown only when `join_available` and a valid external `meeting_url` are present.
+- Added focused regression coverage for scheduled in-progress live markers in `CabinetView.spec.ts` and `ClientDashboardView.spec.ts`.
 - Updated `TherapistSessionDetailView.spec.ts` to align with current backend meeting-access contract:
   - happy-path join assertions now use a `CONFIRMED` session with `join_available = true`;
   - meeting-link edit assertions now validate `updateSpecialistSessionMeeting(...)` instead of raw `apiPatch(...)`.
@@ -129,6 +132,7 @@ Update rule:
 - `src/views/BillingView.vue`
 - `src/views/HomeView.vue`
 - `src/views/CabinetView.vue`
+- `src/views/CabinetView.spec.ts`
 - `README.md`
 - `docs/HANDOFF.md`
 - `docs/PHASE_CLOSE_SUMMARY.md`
@@ -138,6 +142,7 @@ Update rule:
 Latest task validation:
 
 ```powershell
+npm run test:run -- src/views/CabinetView.spec.ts src/views/ClientDashboardView.spec.ts
 npm run test:run -- src/views/TherapistSessionDetailView.spec.ts
 npm run test:run
 ```

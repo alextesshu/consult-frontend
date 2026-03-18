@@ -243,6 +243,51 @@ describe('TherapistSessionsView', () => {
     expect(await screen.findByText(/anna@example\.com/)).toBeInTheDocument()
   })
 
+  it('prioritizes live session in the top card and exposes direct join CTA', async () => {
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/booking/sessions/' && (config as { params?: { upcoming?: boolean } } | undefined)?.params?.upcoming) {
+        return [
+          buildSession({
+            id: 31,
+            status: 'CONFIRMED',
+            meeting_url: 'https://meet.google.com/live-specialist-room',
+            join_available: true,
+            join_starts_at: '2000-01-01T00:00:00Z',
+            join_ends_at: '2100-01-01T00:00:00Z',
+          }),
+          buildSession({
+            id: 32,
+            status: 'SCHEDULED',
+            slot_start_at: '2099-06-16T10:00:00Z',
+            slot_end_at: '2099-06-16T10:50:00Z',
+          }),
+        ]
+      }
+
+      if (url === '/booking/sessions/' && (config as { params?: { upcoming?: boolean } } | undefined)?.params?.upcoming === false) {
+        return []
+      }
+
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    const view = renderView()
+    await screen.findByText('Керуйте сесіями')
+
+    await waitFor(() => {
+      const priorityMain = view.container.querySelector('.priority-next__main') as HTMLAnchorElement | null
+      expect(priorityMain).not.toBeNull()
+      expect(priorityMain?.getAttribute('href')).toBe('/cabinet/sessions/31')
+    })
+
+    await waitFor(() => {
+      const joinLink = view.container.querySelector(
+        '.priority-next__actions a[href=\"https://meet.google.com/live-specialist-room\"]'
+      ) as HTMLAnchorElement | null
+      expect(joinLink).not.toBeNull()
+    })
+  })
+
   it('shows empty states when there are no sessions or transfer requests', async () => {
     mockedApiGet.mockImplementation(async (url) => {
       if (url === '/booking/sessions/') {

@@ -50,21 +50,32 @@
           </div>
         </div>
         <div class="priority-card">
-          <div class="priority-title">Найближча сесія</div>
-          <div v-if="nextUpcoming" class="priority-next">
-            <div class="priority-time">{{ formatDateTime(nextUpcoming.slot_start_at) }}</div>
+          <div class="priority-title">{{ isPriorityLive ? 'Сесія триває' : 'Найближча сесія' }}</div>
+          <div v-if="prioritySession" class="priority-next">
+            <RouterLink class="priority-next__main" :to="`/cabinet/sessions/${prioritySession.id}`">
+            <div class="priority-time">{{ formatDateTime(prioritySession.slot_start_at) }}</div>
             <div class="muted">
-              Клієнт: {{ nextUpcoming.client_name || nextUpcoming.client_username || `#${nextUpcoming.client}` }}
+              Клієнт: {{ prioritySession.client_name || prioritySession.client_username || `#${prioritySession.client}` }}
             </div>
-            <div class="status-pill" :class="statusClass(nextUpcoming)">
-              {{ statusLabel(nextUpcoming) }}
+            <div v-if="isPriorityLive" class="status-pill status-pill--danger">Сесія триває</div>
+            <div v-else class="status-pill" :class="statusClass(prioritySession)">
+              {{ statusLabel(prioritySession) }}
             </div>
-            <div v-if="timeUntilLabel(nextUpcoming)" class="status-pill status-pill--warn">
-              Початок через {{ timeUntilLabel(nextUpcoming) }}
+            <div v-if="timeUntilLabel(prioritySession)" class="status-pill status-pill--warn">
+              Початок через {{ timeUntilLabel(prioritySession) }}
             </div>
-            <RouterLink class="btn btn--ghost btn--sm" :to="`/cabinet/sessions/${nextUpcoming.id}`">
-              Деталі сесії
             </RouterLink>
+            <div class="priority-next__actions">
+              <a
+                v-if="canJoinMeeting(prioritySession)"
+                class="btn btn--sm"
+                :href="meetingUrl(prioritySession)"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Приєднатися
+              </a>
+            </div>
           </div>
           <div v-else class="muted">Немає майбутніх сесій.</div>
         </div>
@@ -534,6 +545,7 @@ import {
   type SpecialistSessionLike,
   type SpecialistSlot,
 } from '../lib/specialistSessions'
+import { canJoinExternalMeeting, normalizeMeetingUrl } from '../lib/sessionExecution'
 import { useToast } from '../composables/useToast'
 import LoadingSkeleton from '../components/LoadingSkeleton.vue'
 import EmptyState from '../components/EmptyState.vue'
@@ -550,6 +562,10 @@ type Session = {
   slot: number | null
   slot_start_at: string | null
   slot_end_at: string | null
+  meeting_url?: string | null
+  join_available?: boolean
+  join_starts_at?: string | null
+  join_ends_at?: string | null
 }
 
 type Slot = SpecialistSlot
@@ -700,6 +716,23 @@ const nextUpcoming = computed(() => {
   return items[0] || null
 })
 
+const livePrioritySession = computed(() => {
+  const items = upcomingSorted.value
+    .filter((session) => isSessionInProgress(session))
+    .slice()
+    .sort(
+      (a, b) =>
+        new Date(a.slot_start_at || '').getTime() -
+        new Date(b.slot_start_at || '').getTime()
+    )
+  return items[0] || null
+})
+
+const prioritySession = computed(() => livePrioritySession.value || nextUpcoming.value)
+const isPriorityLive = computed(() =>
+  prioritySession.value ? isSessionInProgress(prioritySession.value) : false
+)
+
 const canCancel = (status: string) => sharedCanCancel(status)
 const canReschedule = (status: string) => sharedCanReschedule(status)
 
@@ -739,6 +772,39 @@ function formatDuration(start?: string | null, end?: string | null) {
 
 function timeUntilLabel(session: Session) {
   return getTimeUntilLabel(session as SpecialistSessionLike)
+}
+
+function sessionJoinStartAt(session: Session) {
+  return session.join_starts_at || session.slot_start_at
+}
+
+function sessionJoinEndAt(session: Session) {
+  return session.join_ends_at || session.slot_end_at
+}
+
+function isSessionInProgress(session: Session) {
+  if (session.status !== 'CONFIRMED') return false
+  const startRaw = sessionJoinStartAt(session)
+  const endRaw = sessionJoinEndAt(session)
+  if (!startRaw || !endRaw) return false
+  const start = new Date(startRaw).getTime()
+  const end = new Date(endRaw).getTime()
+  if (Number.isNaN(start) || Number.isNaN(end)) return false
+  const now = Date.now()
+  return now >= start && now <= end
+}
+
+function meetingUrl(session: Session) {
+  return normalizeMeetingUrl(session.meeting_url)
+}
+
+function canJoinMeeting(session: Session) {
+  if (!session.join_available) return false
+  if (!isSessionInProgress(session)) return false
+  return canJoinExternalMeeting({
+    status: session.status,
+    meeting_url: session.meeting_url,
+  })
 }
 
 function parseSessionIdFromHash(hash: string): number | null {
@@ -1235,6 +1301,30 @@ onBeforeUnmount(() => {
 .priority-next {
   display: grid;
   gap: 6px;
+}
+
+.priority-next__main {
+  display: grid;
+  gap: 6px;
+  color: inherit;
+  text-decoration: none;
+  border-radius: 10px;
+  padding: 2px;
+}
+
+.priority-next__main:hover {
+  background: rgba(8, 113, 201, 0.05);
+}
+
+.priority-next__main:focus-visible {
+  outline: 2px solid rgba(31, 74, 96, 0.35);
+  outline-offset: 2px;
+}
+
+.priority-next__actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .session-filters {

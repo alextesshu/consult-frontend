@@ -8,6 +8,22 @@
           Тут зібрані доступи, активність і швидкі дії. Публічні сторінки — окремо.
         </p>
       </div>
+      <RouterLink v-if="liveSession" class="hero-live" :to="`/cabinet/sessions/${liveSession.id}`">
+        <div class="hero-live__title">Сесія триває</div>
+        <div class="hero-live__meta">
+          {{ liveSession.client_name || liveSession.client_username || `Клієнт #${liveSession.client}` }}
+        </div>
+        <a
+          v-if="liveMeetingUrl && liveSession.join_available"
+          class="btn btn--sm hero-live__join"
+          :href="liveMeetingUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+          @click.stop
+        >
+          Приєднатися
+        </a>
+      </RouterLink>
       <div class="hero-chip">
         <div class="hero-chip__label">Серверний час</div>
         <div class="hero-chip__value">{{ serverTimeLabel }}</div>
@@ -200,13 +216,31 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
+import { apiGet } from '../lib/api'
 import { formatUkDateTimeCompact } from '../lib/dateTime'
+import { normalizeMeetingUrl } from '../lib/sessionExecution'
 import { useAuthStore } from '../stores/auth'
 
 const auth = useAuthStore()
 const { me } = storeToRefs(auth)
+
+type CabinetSession = {
+  id: number
+  status: string
+  client: number
+  client_name?: string | null
+  client_username?: string | null
+  meeting_url?: string | null
+  join_available?: boolean
+  join_starts_at?: string | null
+  join_ends_at?: string | null
+  slot_start_at?: string | null
+  slot_end_at?: string | null
+}
+
+const allSessions = ref<CabinetSession[]>([])
 
 const accessLabel = computed(() => {
   const state = me.value?.access_state
@@ -311,12 +345,67 @@ const accessPillClass = computed(() => {
   return 'access-pill--ok'
 })
 
+function sessionJoinStartAt(session: CabinetSession) {
+  return session.join_starts_at || session.slot_start_at || null
+}
+
+function sessionJoinEndAt(session: CabinetSession) {
+  return session.join_ends_at || session.slot_end_at || null
+}
+
+function isSessionInProgress(session: CabinetSession) {
+  if (!['SCHEDULED', 'CONFIRMED'].includes(session.status)) return false
+  const startRaw = sessionJoinStartAt(session)
+  const endRaw = sessionJoinEndAt(session)
+  if (!startRaw || !endRaw) return false
+  const start = new Date(startRaw).getTime()
+  const end = new Date(endRaw).getTime()
+  if (Number.isNaN(start) || Number.isNaN(end)) return false
+  const now = Date.now()
+  return now >= start && now <= end
+}
+
+const liveSession = computed(() => {
+  const items = allSessions.value
+    .filter((session) => isSessionInProgress(session))
+    .slice()
+    .sort(
+      (a, b) =>
+        new Date(sessionJoinStartAt(a) || '').getTime() -
+        new Date(sessionJoinStartAt(b) || '').getTime()
+    )
+  return items[0] || null
+})
+
+const liveMeetingUrl = computed(() => {
+  if (!liveSession.value) return ''
+  return normalizeMeetingUrl(liveSession.value.meeting_url)
+})
+
+async function loadSessionsForHero() {
+  try {
+    const [upcomingResp, pastResp] = await Promise.all([
+      apiGet<CabinetSession[]>('/booking/sessions/', { params: { upcoming: true } }),
+      apiGet<CabinetSession[]>('/booking/sessions/', { params: { upcoming: false } }),
+    ])
+    const upcoming = Array.isArray(upcomingResp) ? upcomingResp : []
+    const past = Array.isArray(pastResp) ? pastResp : []
+    allSessions.value = [...upcoming, ...past]
+  } catch {
+    allSessions.value = []
+  }
+}
+
 const serverTimeLabel = computed(() => {
   const raw = me.value?.server_time
   if (!raw) return '—'
   const parsed = new Date(raw)
   if (Number.isNaN(parsed.getTime())) return raw
   return formatUkDateTimeCompact(raw, raw)
+})
+
+onMounted(async () => {
+  await loadSessionsForHero()
 })
 </script>
 
@@ -365,6 +454,34 @@ const serverTimeLabel = computed(() => {
 .hero-chip__value {
   margin-top: 8px;
   font-weight: 600;
+}
+
+.hero-live {
+  min-width: 260px;
+  border: 1px solid rgba(194, 75, 75, 0.55);
+  background: linear-gradient(135deg, rgba(194, 75, 75, 0.12), rgba(255, 255, 255, 0.95));
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  display: grid;
+  gap: 8px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.hero-live__title {
+  color: #9d2f2f;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: 12px;
+}
+
+.hero-live__meta {
+  font-weight: 600;
+}
+
+.hero-live__join {
+  width: fit-content;
 }
 
 .cabinet__grid {

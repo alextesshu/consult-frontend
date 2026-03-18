@@ -1,4 +1,4 @@
-﻿import { render, screen } from '@testing-library/vue'
+﻿import { render, screen, within } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { apiGet, fetchPublicSpecialistProfile } from '../lib/api'
 import ClientDashboardView from './ClientDashboardView.vue'
@@ -77,13 +77,155 @@ describe('ClientDashboardView', () => {
       throw new Error(`Unexpected apiGet call: ${url} ${JSON.stringify(config)}`)
     })
 
-    renderView()
+    const view = renderView()
 
     expect(await screen.findAllByText('Онлайн-зустріч: Google Meet')).not.toHaveLength(0)
     expect(screen.getAllByRole('link', { name: 'Приєднатися' })).toHaveLength(2)
     expect(screen.getAllByRole('link', { name: 'Приєднатися' })[0]).toHaveAttribute(
       'href',
       'https://meet.google.com/room-123'
+    )
+  })
+
+  it('prioritizes a live session card and keeps direct join as primary CTA', async () => {
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/booking/sessions/' && config?.params?.upcoming === true) {
+        return [
+          {
+            id: 101,
+            status: 'CONFIRMED',
+            specialist: 14,
+            specialist_name: 'Олена',
+            specialist_public_slug: 'olena',
+            meeting_url: 'https://meet.google.com/live-room',
+            meeting_provider: 'google_meet',
+            join_available: true,
+            join_starts_at: '2000-01-01T00:00:00Z',
+            join_ends_at: '2100-01-01T00:00:00Z',
+            slot: null,
+            slot_start_at: '2099-06-15T10:00:00Z',
+            slot_end_at: '2099-06-15T11:00:00Z',
+          },
+          {
+            id: 102,
+            status: 'CONFIRMED',
+            specialist: 15,
+            specialist_name: 'Іван',
+            specialist_public_slug: 'ivan',
+            meeting_url: 'https://meet.google.com/next-room',
+            meeting_provider: 'google_meet',
+            join_available: true,
+            join_starts_at: '2099-06-16T09:00:00Z',
+            join_ends_at: '2099-06-16T10:00:00Z',
+            slot: null,
+            slot_start_at: '2099-06-16T09:00:00Z',
+            slot_end_at: '2099-06-16T10:00:00Z',
+          },
+        ]
+      }
+      if (url === '/booking/sessions/' && config?.params?.upcoming === false) {
+        return []
+      }
+      if (url === '/booking/group-events/') {
+        return []
+      }
+      throw new Error(`Unexpected apiGet call: ${url} ${JSON.stringify(config)}`)
+    })
+
+    const view = renderView()
+
+    expect(await screen.findByRole('link', { name: 'Сесія триває' })).toHaveAttribute(
+      'href',
+      '/client/sessions/101'
+    )
+
+    const priorityCard = view.container.querySelector('.priority-card')
+    expect(priorityCard).toBeInTheDocument()
+    expect(within(priorityCard as HTMLElement).getByRole('link', { name: 'Приєднатися' })).toHaveAttribute(
+      'href',
+      'https://meet.google.com/live-room'
+    )
+    expect(within(priorityCard as HTMLElement).getByRole('link', { name: 'Профіль спеціаліста' })).toHaveAttribute(
+      'href',
+      '/specialist/olena'
+    )
+  })
+
+  it('keeps live marker when active confirmed session is returned in past list', async () => {
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/booking/sessions/' && config?.params?.upcoming === true) {
+        return []
+      }
+      if (url === '/booking/sessions/' && config?.params?.upcoming === false) {
+        return [
+          {
+            id: 201,
+            status: 'CONFIRMED',
+            specialist: 14,
+            specialist_name: 'Олена',
+            specialist_public_slug: 'olena',
+            meeting_url: 'https://meet.google.com/live-from-past',
+            meeting_provider: 'google_meet',
+            join_available: true,
+            join_starts_at: '2000-01-01T00:00:00Z',
+            join_ends_at: '2100-01-01T00:00:00Z',
+            slot: null,
+            slot_start_at: '2099-06-15T10:00:00Z',
+            slot_end_at: '2099-06-15T11:00:00Z',
+          },
+        ]
+      }
+      if (url === '/booking/group-events/') {
+        return []
+      }
+      throw new Error(`Unexpected apiGet call: ${url} ${JSON.stringify(config)}`)
+    })
+
+    renderView()
+
+    expect(await screen.findByRole('link', { name: 'Сесія триває' })).toHaveAttribute(
+      'href',
+      '/client/sessions/201'
+    )
+    expect(screen.getByRole('link', { name: 'Приєднатися' })).toHaveAttribute(
+      'href',
+      'https://meet.google.com/live-from-past'
+    )
+  })
+
+  it('shows live marker for scheduled in-progress session', async () => {
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/booking/sessions/' && config?.params?.upcoming === true) {
+        return []
+      }
+      if (url === '/booking/sessions/' && config?.params?.upcoming === false) {
+        return [
+          {
+            id: 202,
+            status: 'SCHEDULED',
+            specialist: 14,
+            specialist_name: 'Олена',
+            specialist_public_slug: 'olena',
+            meeting_url: null,
+            meeting_provider: null,
+            join_available: false,
+            slot: null,
+            slot_start_at: '2000-01-01T00:00:00Z',
+            slot_end_at: '2100-01-01T00:00:00Z',
+          },
+        ]
+      }
+      if (url === '/booking/group-events/') {
+        return []
+      }
+      throw new Error(`Unexpected apiGet call: ${url} ${JSON.stringify(config)}`)
+    })
+
+    renderView()
+
+    expect(await screen.findByRole('link', { name: 'Сесія триває' })).toHaveAttribute(
+      'href',
+      '/client/sessions/202'
     )
   })
 
@@ -148,3 +290,5 @@ describe('ClientDashboardView', () => {
     ).toHaveLength(3)
   })
 })
+
+

@@ -10,11 +10,11 @@
       </div>
       <div class="client-hero-actions">
         <RouterLink
-          v-if="nextUpcoming"
+          v-if="prioritySession"
           class="btn btn--ghost"
-          :to="`/client/sessions/${nextUpcoming.id}`"
+          :to="`/client/sessions/${prioritySession.id}`"
         >
-          Найближча сесія
+          {{ isPriorityLive ? 'Сесія триває' : 'Найближча сесія' }}
         </RouterLink>
         <button v-else class="btn btn--ghost btn--disabled" type="button" disabled>
           Найближча сесія
@@ -35,7 +35,7 @@
     </div>
 
     <div class="card priority-card">
-      <div class="card__title">Найближча сесія</div>
+      <div class="card__title">{{ isPriorityLive ? 'Сесія триває' : 'Найближча сесія' }}</div>
       <LoadingSkeleton v-if="loading" variant="card" :count="1" height="112px" />
       <EmptyState
         v-else-if="sessionsError"
@@ -46,35 +46,37 @@
           <button class="btn btn--ghost" type="button" @click="loadSessions">Спробувати ще раз</button>
         </template>
       </EmptyState>
-      <div v-else-if="nextUpcoming" class="priority-body">
-        <div class="priority-main">
-          <div class="priority-time">{{ formatDateTime(sessionStartAt(nextUpcoming)) }}</div>
-          <div class="muted">{{ specialistLabel(nextUpcoming) }}</div>
-          <div v-if="meetingBadge(nextUpcoming)" class="muted">{{ meetingBadge(nextUpcoming) }}</div>
-          <div class="status-pill" :class="{ 'status-pill--warn': nextUpcoming.status === 'SCHEDULED' }">
-            {{ sessionStatusLabel(nextUpcoming) }}
+      <div v-else-if="prioritySession" class="priority-body">
+        <RouterLink class="priority-main priority-main--clickable" :to="`/client/sessions/${prioritySession.id}`">
+          <div class="priority-time">{{ formatDateTime(sessionStartAt(prioritySession)) }}</div>
+          <div class="muted">{{ specialistLabel(prioritySession) }}</div>
+          <div v-if="meetingBadge(prioritySession)" class="muted">{{ meetingBadge(prioritySession) }}</div>
+          <div v-if="isPriorityLive" class="status-pill status-pill--danger">Сесія триває</div>
+          <div
+            v-else
+            class="status-pill"
+            :class="{ 'status-pill--warn': prioritySession.status === 'SCHEDULED' }"
+          >
+            {{ sessionStatusLabel(prioritySession) }}
           </div>
-          <div v-if="timeUntilLabel(nextUpcoming)" class="status-pill status-pill--warn">
-            Початок через {{ timeUntilLabel(nextUpcoming) }}
+          <div v-if="timeUntilLabel(prioritySession)" class="status-pill status-pill--warn">
+            Початок через {{ timeUntilLabel(prioritySession) }}
           </div>
-        </div>
+        </RouterLink>
         <div class="priority-actions">
           <a
-            v-if="canJoinMeeting(nextUpcoming)"
+            v-if="canJoinMeeting(prioritySession)"
             class="btn"
-            :href="meetingUrl(nextUpcoming)"
+            :href="meetingUrl(prioritySession)"
             target="_blank"
             rel="noopener noreferrer"
           >
             Приєднатися
           </a>
-          <RouterLink class="btn btn--ghost" :to="`/client/sessions/${nextUpcoming.id}`">
-            Деталі
-          </RouterLink>
           <RouterLink
-            v-if="nextUpcoming.specialist_public_slug"
+            v-if="prioritySession.specialist_public_slug"
             class="btn btn--ghost"
-            :to="`/specialist/${nextUpcoming.specialist_public_slug}`"
+            :to="`/specialist/${prioritySession.specialist_public_slug}`"
           >
             Профіль спеціаліста
           </RouterLink>
@@ -394,6 +396,8 @@ type Session = {
   meeting_url?: string | null
   meeting_provider?: string | null
   join_available?: boolean
+  join_starts_at?: string | null
+  join_ends_at?: string | null
   slot: Slot | null
   slot_start_at?: string | null
   slot_end_at?: string | null
@@ -508,10 +512,9 @@ const sessionStartAt = (session: Session) => session.slot?.start_at || session.s
 const sessionEndAt = (session: Session) => session.slot?.end_at || session.slot_end_at || null
 
 function isSessionInProgress(session: Session) {
-  if (session.status !== 'CONFIRMED') return false
-  if (session.join_available) return true
-  const startRaw = sessionStartAt(session)
-  const endRaw = sessionEndAt(session)
+  if (!['SCHEDULED', 'CONFIRMED'].includes(session.status)) return false
+  const startRaw = session.join_starts_at || sessionStartAt(session)
+  const endRaw = session.join_ends_at || sessionEndAt(session)
   if (!startRaw || !endRaw) return false
   const start = new Date(startRaw).getTime()
   const end = new Date(endRaw).getTime()
@@ -531,6 +534,24 @@ const nextUpcoming = computed(() => {
     )
   return items[0] || null
 })
+
+const livePrioritySession = computed(() => {
+  const items = [...upcoming.value, ...past.value]
+    .filter((session, index, arr) => arr.findIndex((other) => other.id === session.id) === index)
+    .filter((session) => isSessionInProgress(session))
+    .slice()
+    .sort(
+      (a, b) =>
+        new Date(sessionStartAt(a) || '').getTime() -
+        new Date(sessionStartAt(b) || '').getTime()
+    )
+  return items[0] || null
+})
+
+const prioritySession = computed(() => livePrioritySession.value || nextUpcoming.value)
+const isPriorityLive = computed(() =>
+  prioritySession.value ? isSessionInProgress(prioritySession.value) : false
+)
 
 function timeUntilLabel(session: Session) {
   const startRaw = sessionStartAt(session)
@@ -905,6 +926,22 @@ onMounted(async () => {
   .priority-main {
     display: grid;
     gap: 6px;
+  }
+
+  .priority-main--clickable {
+    color: inherit;
+    text-decoration: none;
+    border-radius: 10px;
+    padding: 2px;
+  }
+
+  .priority-main--clickable:hover {
+    background: rgba(8, 113, 201, 0.05);
+  }
+
+  .priority-main--clickable:focus-visible {
+    outline: 2px solid rgba(31, 74, 96, 0.35);
+    outline-offset: 2px;
   }
 
   .priority-time {
