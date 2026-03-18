@@ -11,7 +11,8 @@
       <div class="client-hero-actions">
         <RouterLink
           v-if="prioritySession"
-          class="btn btn--ghost"
+          class="btn"
+          :class="isPriorityLive ? 'btn--live' : 'btn--ghost'"
           :to="`/client/sessions/${prioritySession.id}`"
         >
           {{ isPriorityLive ? 'Сесія триває' : 'Найближча сесія' }}
@@ -19,19 +20,76 @@
         <button v-else class="btn btn--ghost btn--disabled" type="button" disabled>
           Найближча сесія
         </button>
-        <RouterLink class="btn" to="/specialists">Обрати спеціаліста</RouterLink>
+        <RouterLink class="btn" to="/specialists">Додати спеціаліста</RouterLink>
         <RouterLink class="btn btn--ghost" to="/client/profile">Мій профіль</RouterLink>
       </div>
     </header>
 
-    <div class="card profile-card">
-      <div>
-        <div class="card__title">Профіль клієнта</div>
-        <p class="muted">
-          Додайте ім'я, контакти та фото, щоб спеціалістам було легше з вами працювати.
-        </p>
+    <div id="selected-specialists" class="card">
+      <div class="card__title">Обрані спеціалісти</div>
+      <div v-if="selectedSpecialistsWithSessions.length === 0" class="muted">
+        Ви ще не обрали спеціалістів. Натисніть "Обрати спеціаліста", щоб перейти в каталог.
       </div>
-      <RouterLink class="btn btn--ghost" to="/client/profile">Редагувати профіль</RouterLink>
+      <div
+        v-else
+        class="therapist-grid"
+        :class="{ 'therapist-grid--compact': selectedSpecialistsWithSessions.length === 1 }"
+      >
+        <RouterLink
+          v-for="therapist in selectedSpecialistsWithSessions"
+          :key="therapist.public_slug"
+          class="therapist-card"
+          :to="`/specialist/${therapist.public_slug}`"
+        >
+          <div class="therapist-photo-link">
+            <img
+              v-if="therapist.photo_url"
+              :src="therapist.photo_url"
+              :alt="publicName(therapist.display_name)"
+              @error="onPhotoError(therapist)"
+              class="therapist-photo"
+            />
+            <div v-else class="therapist-photo therapist-photo--empty">Фото</div>
+          </div>
+          <div class="therapist-info">
+            <div class="therapist-name">{{ publicName(therapist.display_name) }}</div>
+            <div class="muted meta-line">
+              <span v-if="therapist.location">{{ therapist.location }}</span>
+              <span v-if="languageLabel(therapist.languages)">
+                {{ languageLabel(therapist.languages) }}
+              </span>
+            </div>
+            <div v-if="priceLabel(therapist)" class="therapist-price">{{ priceLabel(therapist) }}</div>
+            <div v-if="introPriceLabel(therapist)" class="therapist-price therapist-price--intro">
+              Ознайомча: {{ introPriceLabel(therapist) }}
+            </div>
+            <div class="therapist-sessions">
+              <div>
+                <span class="session-label">Підтверджена:</span>
+                <span class="session-value">
+                  {{ formatSession(nextSession(therapist.therapist_id, 'CONFIRMED') || nextSession(therapist.therapist_id, 'CONFIRMED')) }}
+                </span>
+              </div>
+              <div>
+                <span class="session-label">Запланована:</span>
+                <span class="session-value">
+                  {{ formatSession(nextSession(therapist.therapist_id, 'SCHEDULED') || nextSession(therapist.therapist_id, 'SCHEDULED')) }}
+                </span>
+              </div>
+              <button
+                class="btn btn--ghost btn--sm"
+                type="button"
+                @click.stop.prevent="requestStopCollaboration(therapist)"
+              >
+                Припинити співпрацю
+              </button>
+            </div>
+          </div>
+        </RouterLink>
+      </div>
+      <div v-if="selectedSpecialists.length > 0" class="selected-actions">
+        <RouterLink class="btn btn--ghost" to="/specialists">Додати спеціаліста</RouterLink>
+      </div>
     </div>
 
     <div class="card priority-card">
@@ -99,6 +157,10 @@
           <span class="muted">Перегляньте профіль і доступні слоти.</span>
         </li>
         <li>
+          <RouterLink class="tips-link" to="/specialists">Каталог спеціалістів</RouterLink>
+          <span class="muted">Щоб знайти інших спеціалістів, відкрийте меню "Каталог".</span>
+        </li>
+        <li>
           <span class="tips-link">Забронювати слот</span>
           <span class="muted">Натисніть "Записатися" у профілі спеціаліста.</span>
         </li>
@@ -111,73 +173,6 @@
           <span class="muted">Кнопка з'явиться в деталях сесії, на дашборді та в нагадуванні, коли спеціаліст додасть зовнішнє посилання.</span>
         </li>
       </ul>
-    </div>
-
-    <div class="card">
-      <div class="card__title">Обрані спеціалісти</div>
-      <div v-if="selectedSpecialistsWithSessions.length === 0" class="muted">
-        Ви ще не обрали спеціалістів. Натисніть "Обрати спеціаліста", щоб перейти в каталог.
-      </div>
-      <div
-        v-else
-        class="therapist-grid"
-        :class="{ 'therapist-grid--compact': selectedSpecialistsWithSessions.length === 1 }"
-      >
-        <RouterLink
-          v-for="therapist in selectedSpecialistsWithSessions"
-          :key="therapist.public_slug"
-          class="therapist-card"
-          :to="`/specialist/${therapist.public_slug}`"
-        >
-          <div class="therapist-photo-link">
-            <img
-              v-if="therapist.photo_url"
-              :src="therapist.photo_url"
-              :alt="publicName(therapist.display_name)"
-              @error="onPhotoError(therapist)"
-              class="therapist-photo"
-            />
-            <div v-else class="therapist-photo therapist-photo--empty">Фото</div>
-          </div>
-          <div class="therapist-info">
-            <div class="therapist-name">{{ publicName(therapist.display_name) }}</div>
-            <div class="muted meta-line">
-              <span v-if="therapist.location">{{ therapist.location }}</span>
-              <span v-if="languageLabel(therapist.languages)">
-                {{ languageLabel(therapist.languages) }}
-              </span>
-            </div>
-            <div v-if="priceLabel(therapist)" class="therapist-price">{{ priceLabel(therapist) }}</div>
-            <div v-if="introPriceLabel(therapist)" class="therapist-price therapist-price--intro">
-              Ознайомча: {{ introPriceLabel(therapist) }}
-            </div>
-            <div class="therapist-sessions">
-              <div>
-                <span class="session-label">Підтверджена:</span>
-                <span class="session-value">
-                  {{ formatSession(nextSession(therapist.therapist_id, 'CONFIRMED') || nextSession(therapist.therapist_id, 'CONFIRMED')) }}
-                </span>
-              </div>
-              <div>
-                <span class="session-label">Запланована:</span>
-                <span class="session-value">
-                  {{ formatSession(nextSession(therapist.therapist_id, 'SCHEDULED') || nextSession(therapist.therapist_id, 'SCHEDULED')) }}
-                </span>
-              </div>
-              <button
-                class="btn btn--ghost btn--sm"
-                type="button"
-                @click.stop.prevent="requestStopCollaboration(therapist)"
-              >
-                Припинити співпрацю
-              </button>
-            </div>
-          </div>
-        </RouterLink>
-      </div>
-      <div v-if="selectedSpecialists.length > 0" class="selected-actions">
-        <RouterLink class="btn btn--ghost" to="/specialists">Додати спеціаліста</RouterLink>
-      </div>
     </div>
 
     <div class="card">
@@ -364,7 +359,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { fetchPublicSpecialistProfile, type PublicSpecialistProfile } from '../lib/api'
 import { apiGet } from '../lib/api'
 import { BOOKING_ERROR_FALLBACKS, getBookingErrorMessage } from '../lib/bookingCopy'
@@ -427,6 +422,9 @@ const groupEvents = ref<GroupEvent[]>([])
 const groupEventsLoading = ref(false)
 const groupEventsError = ref('')
 const confirmModal = useConfirmModal()
+const nowTs = ref(Date.now())
+const LIVE_STATUS_REFRESH_MS = 30 * 1000
+let nowIntervalId: number | null = null
 
 type GroupEvent = {
   id: number
@@ -439,28 +437,7 @@ type GroupEvent = {
   my_status: string | null
 }
 
-const recentSpecialistSlugs = computed(() => {
-  const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000
-  const stopped = new Set(stoppedSpecialists.value)
-  const slugs = new Set<string>()
-  for (const session of past.value) {
-    if (session.status !== 'COMPLETED') continue
-    const endRaw = sessionEndAt(session) || sessionStartAt(session)
-    if (!endRaw) continue
-    const endTs = new Date(endRaw).getTime()
-    if (Number.isNaN(endTs) || endTs < cutoff) continue
-    const slug = session.specialist_public_slug
-    if (!slug || stopped.has(slug)) continue
-    slugs.add(slug)
-  }
-  return slugs
-})
-
-const selectedSpecialistsWithSessions = computed(() =>
-  selectedSpecialists.value.filter((specialist) =>
-    recentSpecialistSlugs.value.has(specialist.public_slug)
-  )
-)
+const selectedSpecialistsWithSessions = computed(() => selectedSpecialists.value)
 
 const statusMap: Record<string, string> = {
   SCHEDULED: 'Заплановано',
@@ -513,13 +490,13 @@ const sessionEndAt = (session: Session) => session.slot?.end_at || session.slot_
 
 function isSessionInProgress(session: Session) {
   if (!['SCHEDULED', 'CONFIRMED'].includes(session.status)) return false
-  const startRaw = session.join_starts_at || sessionStartAt(session)
-  const endRaw = session.join_ends_at || sessionEndAt(session)
+  const startRaw = sessionStartAt(session) || session.join_starts_at
+  const endRaw = sessionEndAt(session) || session.join_ends_at
   if (!startRaw || !endRaw) return false
   const start = new Date(startRaw).getTime()
   const end = new Date(endRaw).getTime()
   if (Number.isNaN(start) || Number.isNaN(end)) return false
-  const now = Date.now()
+  const now = nowTs.value
   return now >= start && now <= end
 }
 
@@ -558,7 +535,7 @@ function timeUntilLabel(session: Session) {
   if (!startRaw) return ''
   const start = new Date(startRaw).getTime()
   if (Number.isNaN(start)) return ''
-  const diffMs = start - Date.now()
+  const diffMs = start - nowTs.value
   if (diffMs <= 0) return ''
   const diffMin = Math.round(diffMs / 60000)
   if (diffMin > 120) return ''
@@ -781,9 +758,11 @@ function syncSelectedSpecialists() {
   }
 
   let changed = false
-  selectedSpecialists.value = selectedSpecialists.value.filter(
-    (specialist) => recentMap.has(specialist.public_slug) && !stopped.has(specialist.public_slug)
-  )
+  const filtered = selectedSpecialists.value.filter((specialist) => !stopped.has(specialist.public_slug))
+  if (filtered.length !== selectedSpecialists.value.length) {
+    selectedSpecialists.value = filtered
+    changed = true
+  }
 
   const existingSlugs = new Set(selectedSpecialists.value.map((t) => t.public_slug))
   for (const [slug, seed] of recentMap.entries()) {
@@ -874,6 +853,16 @@ onMounted(async () => {
   await Promise.all([loadSessions(), loadGroupEvents()])
   syncSelectedSpecialists()
   await hydrateSpecialistProfiles()
+  nowIntervalId = window.setInterval(() => {
+    nowTs.value = Date.now()
+  }, LIVE_STATUS_REFRESH_MS)
+})
+
+onBeforeUnmount(() => {
+  if (nowIntervalId !== null) {
+    window.clearInterval(nowIntervalId)
+    nowIntervalId = null
+  }
 })
 </script>
 
@@ -905,14 +894,6 @@ onMounted(async () => {
 .priority-card {
   display: grid;
   gap: 12px;
-}
-
-.profile-card {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
 }
 
   .priority-body {
@@ -955,6 +936,29 @@ onMounted(async () => {
     flex-wrap: wrap;
   }
 
+.status-pill {
+  width: fit-content;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  background: rgba(7, 47, 71, 0.08);
+  color: #13455e;
+}
+
+.status-pill--warn {
+  background: rgba(217, 164, 65, 0.18);
+  color: #a57011;
+}
+
+.status-pill--danger {
+  background: linear-gradient(135deg, #ea3e3e, #c01717);
+  color: #fff;
+  border: 1px solid rgba(154, 9, 9, 0.7);
+  box-shadow: 0 6px 14px rgba(194, 23, 23, 0.26);
+}
+
 .eyebrow {
   text-transform: uppercase;
   letter-spacing: 0.16em;
@@ -984,6 +988,7 @@ onMounted(async () => {
   color: var(--ink);
   text-decoration: none;
 }
+
 
 .tips-link:hover {
   text-decoration: underline;
@@ -1155,6 +1160,17 @@ onMounted(async () => {
 .btn--sm {
   padding: 6px 10px;
   font-size: 13px;
+}
+
+.btn--live {
+  background: linear-gradient(135deg, #ea3e3e, #c01717);
+  border-color: rgba(154, 9, 9, 0.7);
+  color: #fff;
+  box-shadow: 0 8px 16px rgba(194, 23, 23, 0.26);
+}
+
+.btn--live:hover {
+  filter: brightness(1.05);
 }
 
 @media (max-width: 860px) {

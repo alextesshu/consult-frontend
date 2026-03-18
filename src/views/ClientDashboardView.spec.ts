@@ -103,8 +103,8 @@ describe('ClientDashboardView', () => {
             join_starts_at: '2000-01-01T00:00:00Z',
             join_ends_at: '2100-01-01T00:00:00Z',
             slot: null,
-            slot_start_at: '2099-06-15T10:00:00Z',
-            slot_end_at: '2099-06-15T11:00:00Z',
+            slot_start_at: '2000-01-01T00:00:00Z',
+            slot_end_at: '2100-01-01T00:00:00Z',
           },
           {
             id: 102,
@@ -170,8 +170,8 @@ describe('ClientDashboardView', () => {
             join_starts_at: '2000-01-01T00:00:00Z',
             join_ends_at: '2100-01-01T00:00:00Z',
             slot: null,
-            slot_start_at: '2099-06-15T10:00:00Z',
-            slot_end_at: '2099-06-15T11:00:00Z',
+            slot_start_at: '2000-01-01T00:00:00Z',
+            slot_end_at: '2100-01-01T00:00:00Z',
           },
         ]
       }
@@ -227,6 +227,45 @@ describe('ClientDashboardView', () => {
       'href',
       '/client/sessions/202'
     )
+  })
+
+  it('does not mark session as live before actual start even when join window is open', async () => {
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/booking/sessions/' && config?.params?.upcoming === true) {
+        return [
+          {
+            id: 203,
+            status: 'CONFIRMED',
+            specialist: 14,
+            specialist_name: 'Олена',
+            specialist_public_slug: 'olena',
+            meeting_url: 'https://meet.google.com/wait-room',
+            meeting_provider: 'google_meet',
+            join_available: true,
+            join_starts_at: '2000-01-01T00:00:00Z',
+            join_ends_at: '2100-01-01T00:00:00Z',
+            slot: null,
+            slot_start_at: '2099-06-16T09:00:00Z',
+            slot_end_at: '2099-06-16T10:00:00Z',
+          },
+        ]
+      }
+      if (url === '/booking/sessions/' && config?.params?.upcoming === false) {
+        return []
+      }
+      if (url === '/booking/group-events/') {
+        return []
+      }
+      throw new Error(`Unexpected apiGet call: ${url} ${JSON.stringify(config)}`)
+    })
+
+    renderView()
+
+    expect(await screen.findByRole('link', { name: 'Найближча сесія' })).toHaveAttribute(
+      'href',
+      '/client/sessions/203'
+    )
+    expect(screen.queryByRole('link', { name: 'Сесія триває' })).not.toBeInTheDocument()
   })
 
   it('renders explicit error states for the priority, sessions, and group-events sections', async () => {
@@ -288,6 +327,65 @@ describe('ClientDashboardView', () => {
     expect(
       await screen.findAllByText('Дія недоступна через обмеження плану. Перевірте доступ у Billing.')
     ).toHaveLength(3)
+  })
+
+  it('keeps clear hero/tips CTAs when specialists are already selected', async () => {
+    localStorage.setItem(
+      'selectedSpecialists',
+      JSON.stringify([
+        {
+          therapist_id: 14,
+          public_slug: 'olena',
+          display_name: 'Олена',
+        },
+      ])
+    )
+
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/sessions/') return []
+      if (url === '/booking/group-events/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedFetchPublicSpecialistProfile.mockResolvedValue({
+      therapist_id: 14,
+      public_slug: 'olena',
+      display_name: 'Олена',
+      location: '',
+      languages: [],
+      photo_url: '',
+      price: '',
+      price_currency: 'UAH',
+      intro_price: '',
+      intro_price_currency: 'UAH',
+    } as any)
+
+    const view = renderView()
+    await flushPromises()
+    await flushPromises()
+
+    const heroActions = view.container.querySelector('.client-hero-actions') as HTMLElement
+    expect(within(heroActions).getByRole('link', { name: 'Додати спеціаліста' })).toHaveAttribute(
+      'href',
+      '/specialists'
+    )
+    expect(within(heroActions).getByRole('link', { name: 'Мій профіль' })).toHaveAttribute(
+      'href',
+      '/client/profile'
+    )
+    expect(within(heroActions).queryByRole('button', { name: 'Мої спеціалісти' })).not.toBeInTheDocument()
+
+    const tipsCard = view.container.querySelector('.tips-card') as HTMLElement
+    expect(within(tipsCard).getByRole('link', { name: 'Обрати спеціаліста' })).toHaveAttribute(
+      'href',
+      '/specialists'
+    )
+    expect(within(tipsCard).getByRole('link', { name: 'Каталог спеціалістів' })).toHaveAttribute(
+      'href',
+      '/specialists'
+    )
+    expect(
+      within(tipsCard).getByText('Щоб знайти інших спеціалістів, відкрийте меню "Каталог".')
+    ).toBeInTheDocument()
   })
 })
 

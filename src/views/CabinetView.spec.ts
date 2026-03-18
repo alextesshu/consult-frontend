@@ -118,4 +118,37 @@ describe('CabinetView', () => {
       expect(view.container.querySelector('a.hero-live[href="/cabinet/sessions/78"]')).toBeInTheDocument()
     })
   })
+
+  it('does not show live marker before actual slot start even if join window already opened', async () => {
+    mockedApiGet.mockImplementation(async (_url, config) => {
+      if (config?.params?.upcoming === true) {
+        return [
+          {
+            id: 79,
+            status: 'CONFIRMED',
+            client: 44,
+            client_name: 'Future Client',
+            meeting_url: 'https://meet.google.com/wait-room',
+            join_available: true,
+            join_starts_at: '2000-01-01T00:00:00Z',
+            join_ends_at: '2100-01-01T00:00:00Z',
+            slot_start_at: '2099-01-01T10:00:00Z',
+            slot_end_at: '2099-01-01T11:00:00Z',
+          },
+        ] as any
+      }
+      if (config?.params?.upcoming === false) return []
+      return []
+    })
+
+    const view = renderView()
+
+    await waitFor(() => {
+      expect(mockedApiGet).toHaveBeenCalledWith('/booking/sessions/', { params: { upcoming: true } })
+      expect(mockedApiGet).toHaveBeenCalledWith('/booking/sessions/', { params: { upcoming: false } })
+    })
+
+    expect(view.container.querySelector('a.hero-live')).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: /Сесія триває/i })).not.toBeInTheDocument()
+  })
 })

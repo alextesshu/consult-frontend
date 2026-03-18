@@ -254,6 +254,8 @@ describe('TherapistSessionsView', () => {
             join_available: true,
             join_starts_at: '2000-01-01T00:00:00Z',
             join_ends_at: '2100-01-01T00:00:00Z',
+            slot_start_at: '2000-01-01T00:00:00Z',
+            slot_end_at: '2100-01-01T00:00:00Z',
           }),
           buildSession({
             id: 32,
@@ -286,6 +288,79 @@ describe('TherapistSessionsView', () => {
       ) as HTMLAnchorElement | null
       expect(joinLink).not.toBeNull()
     })
+  })
+
+  it('shows scheduled status before start even if join window is already open', async () => {
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/booking/sessions/' && (config as { params?: { upcoming?: boolean } } | undefined)?.params?.upcoming) {
+        return [
+          buildSession({
+            id: 33,
+            status: 'CONFIRMED',
+            meeting_url: 'https://meet.google.com/wait-room',
+            join_available: true,
+            join_starts_at: '2000-01-01T00:00:00Z',
+            join_ends_at: '2100-01-01T00:00:00Z',
+            slot_start_at: '2099-06-16T10:00:00Z',
+            slot_end_at: '2099-06-16T10:50:00Z',
+          }),
+          buildSession({
+            id: 34,
+            status: 'SCHEDULED',
+            slot_start_at: '2099-06-16T09:00:00Z',
+            slot_end_at: '2099-06-16T09:50:00Z',
+          }),
+        ]
+      }
+      if (url === '/booking/sessions/' && (config as { params?: { upcoming?: boolean } } | undefined)?.params?.upcoming === false) {
+        return []
+      }
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    const view = renderView()
+    await screen.findByText('Керуйте сесіями')
+
+    await waitFor(() => {
+      const priorityMain = view.container.querySelector('.priority-next__main') as HTMLAnchorElement | null
+      expect(priorityMain).not.toBeNull()
+      expect(priorityMain?.getAttribute('href')).toBe('/cabinet/sessions/34')
+    })
+
+    const priorityCards = view.container.querySelectorAll('.priority-card')
+    const nextSessionCard = priorityCards[1] as HTMLElement
+    expect(within(nextSessionCard).queryByText('Сесія триває')).not.toBeInTheDocument()
+    expect(within(nextSessionCard).getByText('Заплановано')).toBeInTheDocument()
+  })
+
+  it('shows past confirmed session in history with complete action', async () => {
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/booking/sessions/' && (config as { params?: { upcoming?: boolean } } | undefined)?.params?.upcoming) {
+        return []
+      }
+
+      if (url === '/booking/sessions/' && (config as { params?: { upcoming?: boolean } } | undefined)?.params?.upcoming === false) {
+        return [
+          buildSession({
+            id: 41,
+            status: 'CONFIRMED',
+            client: 120,
+            client_name: 'Past Confirmed',
+            client_email: 'past-confirmed@example.com',
+            slot_start_at: '2000-01-01T10:00:00Z',
+            slot_end_at: '2000-01-01T10:50:00Z',
+          }),
+        ]
+      }
+
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    expect(await screen.findByText(/past-confirmed@example\.com/)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Завершити' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Деталі' })).toHaveAttribute('href', '/cabinet/sessions/41')
   })
 
   it('shows empty states when there are no sessions or transfer requests', async () => {

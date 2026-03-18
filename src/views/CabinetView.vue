@@ -216,7 +216,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { apiGet } from '../lib/api'
 import { formatUkDateTimeCompact } from '../lib/dateTime'
@@ -241,6 +241,9 @@ type CabinetSession = {
 }
 
 const allSessions = ref<CabinetSession[]>([])
+const nowTs = ref(Date.now())
+const LIVE_STATUS_REFRESH_MS = 30 * 1000
+let nowIntervalId: number | null = null
 
 const accessLabel = computed(() => {
   const state = me.value?.access_state
@@ -346,11 +349,11 @@ const accessPillClass = computed(() => {
 })
 
 function sessionJoinStartAt(session: CabinetSession) {
-  return session.join_starts_at || session.slot_start_at || null
+  return session.slot_start_at || session.join_starts_at || null
 }
 
 function sessionJoinEndAt(session: CabinetSession) {
-  return session.join_ends_at || session.slot_end_at || null
+  return session.slot_end_at || session.join_ends_at || null
 }
 
 function isSessionInProgress(session: CabinetSession) {
@@ -361,7 +364,7 @@ function isSessionInProgress(session: CabinetSession) {
   const start = new Date(startRaw).getTime()
   const end = new Date(endRaw).getTime()
   if (Number.isNaN(start) || Number.isNaN(end)) return false
-  const now = Date.now()
+  const now = nowTs.value
   return now >= start && now <= end
 }
 
@@ -406,6 +409,16 @@ const serverTimeLabel = computed(() => {
 
 onMounted(async () => {
   await loadSessionsForHero()
+  nowIntervalId = window.setInterval(() => {
+    nowTs.value = Date.now()
+  }, LIVE_STATUS_REFRESH_MS)
+})
+
+onBeforeUnmount(() => {
+  if (nowIntervalId !== null) {
+    window.clearInterval(nowIntervalId)
+    nowIntervalId = null
+  }
 })
 </script>
 
@@ -458,18 +471,19 @@ onMounted(async () => {
 
 .hero-live {
   min-width: 260px;
-  border: 1px solid rgba(194, 75, 75, 0.55);
-  background: linear-gradient(135deg, rgba(194, 75, 75, 0.12), rgba(255, 255, 255, 0.95));
+  border: 1px solid rgba(154, 9, 9, 0.7);
+  background: linear-gradient(135deg, #ea3e3e, #c01717);
   border-radius: var(--radius-md);
   padding: 12px 14px;
   display: grid;
   gap: 8px;
-  color: inherit;
+  color: #fff;
   text-decoration: none;
+  box-shadow: 0 8px 16px rgba(194, 23, 23, 0.26);
 }
 
 .hero-live__title {
-  color: #9d2f2f;
+  color: #fff;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
@@ -478,6 +492,7 @@ onMounted(async () => {
 
 .hero-live__meta {
   font-weight: 600;
+  opacity: 0.95;
 }
 
 .hero-live__join {

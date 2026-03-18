@@ -453,6 +453,15 @@
             </div>
           </div>
           <div class="session-actions">
+            <button
+              v-if="session.status === 'CONFIRMED'"
+              class="btn btn--ghost btn--sm"
+              type="button"
+              :disabled="isActionLoading(session.id)"
+              @click="completeSession(session.id)"
+            >
+              Завершити
+            </button>
             <RouterLink class="btn btn--ghost btn--sm" :to="`/cabinet/sessions/${session.id}`">
               Деталі
             </RouterLink>
@@ -618,6 +627,9 @@ const dateFilter = ref('')
 const route = useRoute()
 const toast = useToast()
 const highlightTimeoutId = ref<number | null>(null)
+const nowTs = ref(Date.now())
+const LIVE_STATUS_REFRESH_MS = 30 * 1000
+let nowIntervalId: number | null = null
 
 const statusLabel = (session: Session) => {
   return getStatusLabel(session as SpecialistSessionLike)
@@ -653,9 +665,13 @@ const hasActiveSessionFilters = computed(
 const historySessions = computed(() => {
   const ids = new Set<number>()
   const history = [...upcoming.value, ...past.value]
-    .filter((session) =>
-      ['COMPLETED', 'CANCELLED', 'NO_SHOW'].includes(session.status)
-    )
+    .filter((session) => {
+      if (['COMPLETED', 'CANCELLED', 'NO_SHOW'].includes(session.status)) return true
+      if (session.status !== 'CONFIRMED') return false
+      const end = new Date(session.slot_end_at || '').getTime()
+      if (Number.isNaN(end)) return false
+      return end < nowTs.value
+    })
     .filter((session) => {
       if (ids.has(session.id)) return false
       ids.add(session.id)
@@ -775,11 +791,11 @@ function timeUntilLabel(session: Session) {
 }
 
 function sessionJoinStartAt(session: Session) {
-  return session.join_starts_at || session.slot_start_at
+  return session.slot_start_at || session.join_starts_at
 }
 
 function sessionJoinEndAt(session: Session) {
-  return session.join_ends_at || session.slot_end_at
+  return session.slot_end_at || session.join_ends_at
 }
 
 function isSessionInProgress(session: Session) {
@@ -790,7 +806,7 @@ function isSessionInProgress(session: Session) {
   const start = new Date(startRaw).getTime()
   const end = new Date(endRaw).getTime()
   if (Number.isNaN(start) || Number.isNaN(end)) return false
-  const now = Date.now()
+  const now = nowTs.value
   return now >= start && now <= end
 }
 
@@ -1186,6 +1202,9 @@ onMounted(async () => {
   await Promise.all([loadSessions(), loadSlots(), loadRescheduleRequests(), loadTherapistProfilePhoto()])
   await scrollToHighlightedSession()
   await openNoteFromHash()
+  nowIntervalId = window.setInterval(() => {
+    nowTs.value = Date.now()
+  }, LIVE_STATUS_REFRESH_MS)
 })
 
 watch(
@@ -1199,6 +1218,10 @@ watch(
 onBeforeUnmount(() => {
   if (highlightTimeoutId.value !== null) {
     window.clearTimeout(highlightTimeoutId.value)
+  }
+  if (nowIntervalId !== null) {
+    window.clearInterval(nowIntervalId)
+    nowIntervalId = null
   }
 })
 </script>
@@ -1403,8 +1426,10 @@ onBeforeUnmount(() => {
 }
 
 .status-pill--danger {
-  background: rgba(194, 75, 75, 0.18);
-  color: #a03838;
+  background: linear-gradient(135deg, #ea3e3e, #c01717);
+  color: #fff;
+  border: 1px solid rgba(154, 9, 9, 0.7);
+  box-shadow: 0 6px 14px rgba(194, 23, 23, 0.26);
 }
 
 .status-pill--new {
