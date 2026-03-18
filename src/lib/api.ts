@@ -1091,3 +1091,31 @@ export async function apiDelete<T>(url: string, config?: AxiosRequestConfig): Pr
   const resp = await http.delete<T>(url, config)
   return resp.data
 }
+
+export type SessionMeetingMode = 'ONLINE' | 'OFFLINE'
+
+export type SessionMeetingAccess = {
+  meeting_mode: SessionMeetingMode
+  meeting_url: string | null
+  meeting_provider: 'GOOGLE_MEET' | 'ZOOM' | 'EXTERNAL' | null
+  meeting_link_ready: boolean
+  join_available: boolean
+  join_starts_at: string | null
+  join_ends_at: string | null
+}
+
+export type UpdateSessionMeetingPayload = {
+  meeting_mode: SessionMeetingMode
+  meeting_url: string | null
+}
+
+export async function updateSpecialistSessionMeeting(
+  sessionId: number,
+  payload: UpdateSessionMeetingPayload
+): Promise<SessionMeetingAccess> {
+  const resp = await http.patch<SessionMeetingAccess>(
+    `/cabinet/sessions/${sessionId}/meeting/`,
+    payload
+  )
+  return resp.data
+}

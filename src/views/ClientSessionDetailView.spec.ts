@@ -54,6 +54,7 @@ function makeSession(status: string, overrides: Record<string, unknown> = {}) {
     therapist_name: 'Олена',
     therapist_email: 'therapist@example.com',
     therapist_public_slug: 'olena',
+    specialist_public_slug: 'olena',
     meeting_url: 'https://meet.google.com/abc-defg-hij',
     meeting_provider: 'google_meet',
     client: 21,

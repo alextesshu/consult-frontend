@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { apiGet, apiPatch, apiPost } from '../lib/api'
+import { apiGet, apiPatch, apiPost, updateSpecialistSessionMeeting } from '../lib/api'
 import { BOOKING_SUCCESS_MESSAGES } from '../lib/bookingCopy'
 import { formatSessionDateTime } from '../lib/specialistSessions'
 import TherapistSessionDetailView from './TherapistSessionDetailView.vue'
@@ -36,11 +36,13 @@ vi.mock('../lib/api', () => ({
   apiPatch: vi.fn(),
   apiPost: vi.fn(),
   apiPut: vi.fn(),
+  updateSpecialistSessionMeeting: vi.fn(),
 }))
 
 const mockedApiGet = vi.mocked(apiGet)
 const mockedApiPatch = vi.mocked(apiPatch)
 const mockedApiPost = vi.mocked(apiPost)
+const mockedUpdateSpecialistSessionMeeting = vi.mocked(updateSpecialistSessionMeeting)
 
 function buildSession(overrides: Record<string, unknown> = {}) {
   return {
@@ -161,6 +163,7 @@ describe('TherapistSessionDetailView', () => {
     mockedApiGet.mockReset()
     mockedApiPatch.mockReset()
     mockedApiPost.mockReset()
+    mockedUpdateSpecialistSessionMeeting.mockReset()
     mockToast.show.mockReset()
     mockToast.success.mockReset()
     mockToast.error.mockReset()
@@ -170,8 +173,14 @@ describe('TherapistSessionDetailView', () => {
 
   it('renders the session detail happy path with related context', async () => {
     let sessionDetail = buildSession({
+      status: 'CONFIRMED',
+      meeting_mode: 'ONLINE',
       meeting_url: 'https://meet.google.com/therapist-room',
       meeting_provider: 'google_meet',
+      meeting_link_ready: true,
+      join_available: true,
+      join_starts_at: '2099-06-14T10:00:00Z',
+      join_ends_at: '2099-06-15T11:30:00Z',
     })
     mockDetailContext(() => sessionDetail)
 
@@ -197,7 +206,7 @@ describe('TherapistSessionDetailView', () => {
       'href',
       'https://meet.google.com/therapist-room'
     )
-    expect(sessionDetail.status).toBe('SCHEDULED')
+    expect(sessionDetail.status).toBe('CONFIRMED')
   })
 
   it('confirms a scheduled session and refreshes the detail context', async () => {
@@ -771,15 +780,35 @@ describe('TherapistSessionDetailView', () => {
   it('allows editing the meeting link and reloads the session on success', async () => {
     const oldUrl = 'https://meet.example.com/old-link'
     const newUrl = 'https://meet.example.com/new-link'
-    let sessionDetail = buildSession({ status: 'CONFIRMED', meeting_url: oldUrl })
+    let sessionDetail: Record<string, unknown> = buildSession({
+      status: 'CONFIRMED',
+      meeting_mode: 'ONLINE',
+      meeting_url: oldUrl,
+      meeting_provider: 'GOOGLE_MEET',
+      meeting_link_ready: true,
+      join_available: true,
+      join_starts_at: '2099-06-14T10:00:00Z',
+      join_ends_at: '2099-06-15T11:30:00Z',
+    })
     mockDetailContext(() => sessionDetail)
 
-    mockedApiPatch.mockImplementation(async (url) => {
-      if (url === '/booking/sessions/42/') {
-        sessionDetail = { ...sessionDetail, meeting_url: newUrl }
-        return {}
+    mockedUpdateSpecialistSessionMeeting.mockImplementation(async (_sessionId, payload) => {
+      expect(_sessionId).toBe(42)
+      expect(payload).toEqual({
+        meeting_mode: 'ONLINE',
+        meeting_url: newUrl,
+      })
+
+      sessionDetail = {
+        ...sessionDetail,
+        meeting_mode: 'ONLINE',
+        meeting_url: newUrl,
+        meeting_provider: 'EXTERNAL',
+        meeting_link_ready: true,
+        join_available: true,
       }
-      throw new Error(`Unexpected apiPatch call: ${url}`)
+
+      return sessionDetail as any
     })
 
     renderView()
@@ -802,14 +831,16 @@ describe('TherapistSessionDetailView', () => {
     await fireEvent.click(saveButton)
 
     await waitFor(() => {
-      expect(mockedApiPatch).toHaveBeenCalledWith('/booking/sessions/42/', { meeting_url: newUrl })
+      expect(mockedUpdateSpecialistSessionMeeting).toHaveBeenCalledWith(42, {
+        meeting_mode: 'ONLINE',
+        meeting_url: newUrl,
+      })
     })
 
     await waitFor(() => {
       expect(mockToast.success).toHaveBeenCalledWith('Посилання на зустріч оновлено.')
     })
 
-    // Initial load (5) + reload (1)
     expect(endpointCalls('/booking/sessions/42/')).toBe(2)
   })
 })

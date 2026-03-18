@@ -356,7 +356,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { apiGet } from '../lib/api'
+import { apiGet, updateSpecialistSessionMeeting } from '../lib/api'
 import {
   BOOKING_ERROR_FALLBACKS,
   BOOKING_SUCCESS_MESSAGES,
@@ -394,11 +394,8 @@ import {
   type SpecialistRecurringSummary,
   type SpecialistRescheduleRequest,
   type SpecialistRescheduleSuggestion,
-  type SpecialistSlot,
-  updateSpecialistSession as updateSpecialistSessionAction,
-} from '../lib/specialistSessions'
+  type SpecialistSlot } from '../lib/specialistSessions'
 import {
-  canJoinExternalMeeting,
   externalMeetingHint,
   externalMeetingProviderLabel,
   normalizeMeetingUrl,
@@ -421,8 +418,13 @@ type SessionDetail = {
   client_email?: string | null
   therapist: number
   therapist_username?: string | null
+  meeting_mode?: 'ONLINE' | 'OFFLINE'
   meeting_url?: string | null
   meeting_provider?: string | null
+  meeting_link_ready?: boolean
+  join_available?: boolean
+  join_starts_at?: string | null
+  join_ends_at?: string | null
   slot?: SessionSlot | number | null
   slot_start_at?: string | null
   slot_end_at?: string | null
@@ -458,7 +460,7 @@ const meetingLinkDraft = ref('')
 
 const meetingUrl = computed(() => normalizeMeetingUrl(session.value?.meeting_url))
 const canJoinMeeting = computed(() =>
-  session.value ? canJoinExternalMeeting(session.value) : false
+  Boolean(session.value?.join_available && meetingUrl.value)
 )
 const meetingProvider = computed(() =>
   externalMeetingProviderLabel(session.value?.meeting_provider, meetingUrl.value)
@@ -803,20 +805,28 @@ function toggleEditMeetingLink() {
   isEditingMeetingLink.value = !isEditingMeetingLink.value
   if (isEditingMeetingLink.value) {
     meetingLinkDraft.value = session.value?.meeting_url || ''
+  } else {
+    meetingLinkDraft.value = ''
   }
 }
 
 async function saveMeetingLink() {
   if (!session.value) return
+
+  const normalized = meetingLinkDraft.value.trim()
+
   actionLoading.value = true
   error.value = ''
+
   try {
-    await updateSpecialistSessionAction(session.value.id, {
-      meeting_url: meetingLinkDraft.value,
+    await updateSpecialistSessionMeeting(session.value.id, {
+      meeting_mode: normalized ? 'ONLINE' : 'OFFLINE',
+      meeting_url: normalized || null,
     })
     await loadSession()
     toast.success('Посилання на зустріч оновлено.')
     isEditingMeetingLink.value = false
+    meetingLinkDraft.value = ''
   } catch (err: any) {
     error.value = getBookingErrorMessage(err, 'Не вдалося оновити посилання на зустріч.')
   } finally {
