@@ -4,7 +4,7 @@ Last updated: 2026-03-21
 Owner: agent-maintained
 Primary use: persistent project handoff for agent-led work
 Update trigger: after each meaningful completed task
-Last agent task: add client-dashboard inquiry discoverability entrypoint (role-safe states, no inquiry/chat mixing) and sync handoff
+Last agent task: extend CabinetView explicit-state handling to secondary me snapshot data (access/billing widgets), add focused retries/tests, and sync handoff
 
 Update rule:
 
@@ -57,8 +57,17 @@ Future direction:
 
 ## Done
 
-Latest increment (2026-03-19):
+Latest increment (2026-03-21):
 
+- `CabinetView` now includes explicit `loading / error / retry` handling for the secondary cabinet snapshot derived from `/me/` (`effective_entitlements + counts`) used by access/billing and related widgets.
+- Main cabinet grid now renders only after this snapshot is ready; incomplete payloads no longer silently degrade into mixed `Н/Д`/default fallbacks for those widgets.
+- Added a dedicated retry branch for this snapshot (`auth.loadMe()`), with explicit inline error state when snapshot fields remain missing after refresh.
+- Existing explicit states for hero session-source and profile bootstrap remain unchanged and continue to use their own retry paths.
+- Added focused regression coverage for:
+  - snapshot error-state rendering when secondary `/me/` fields stay missing;
+  - successful recovery after retry to a complete snapshot.
+
+Latest increment (2026-03-19):
 - Client dashboard now has a dedicated `Запити до бронювання` discoverability card for inquiry entrypoints (client side).
 - Dashboard inquiry card explicitly supports 4 role-safe states without mixing inquiry and chat semantics:
   - not started (`can_create_inquiry = true`) -> `Поставити запитання`;
@@ -70,7 +79,7 @@ Latest increment (2026-03-19):
   - specialist -> `/cabinet/sessions/:id`;
   - client -> `/client/sessions/:id`.
 - Reminder CTA model now supports optional secondary `Приєднатися` action when `meeting_url` is valid and `join_available !== false`; otherwise only detail navigation is shown.
-- Current dedupe strategy is session-scoped in `sessionStorage` and intentionally suppresses repeated reminders in the same browser session for the same role/session pair.
+- Current dedupe strategy uses `pre_session_toast:{role}:{sessionId}:{startAt}` in `sessionStorage`, suppressing repeated reminders while still allowing a fresh reminder after reschedule with unchanged `sessionId`.
 - `TherapistSessionsView` post-completion modal is now split into two parallel sections:
   - `Нотатки після сесії` (session-scoped note, saved to `/cabinet/sessions/{id}/note/`);
   - `Робочий зошит` (persistent role-scoped workbook, currently saved from specialist flow to `/cabinet/clients/{client_id}/journal/`).
@@ -202,127 +211,32 @@ Latest increment (2026-03-19):
 
 Latest task file list:
 
-- `src/views/ClientDashboardView.vue`
-- `src/views/ClientDashboardView.spec.ts`
-- `docs/HANDOFF.md`
-- `src/App.vue`
-- `src/stores/toast.ts`
-- `src/composables/useToast.ts`
-- `src/components/ToastHost.vue`
-- `src/__tests__/app.spec.ts`
-- `docs/HANDOFF.md`
-- `src/lib/specialistSessions.ts`
-- `src/views/TherapistSessionsView.vue`
-- `src/views/TherapistSessionsView.spec.ts`
-- `../backend/sessions/migrations/0014_clientjournal.py`
-- `src/views/ClientDashboardView.vue`
-- `src/views/ClientDashboardView.spec.ts`
-- `src/App.vue`
 - `src/views/CabinetView.vue`
 - `src/views/CabinetView.spec.ts`
-- `src/views/TherapistSessionsView.vue`
-- `src/views/TherapistSessionsView.spec.ts`
 - `docs/HANDOFF.md`
-
-- `src/lib/api.ts`
-- `src/lib/sessionExecution.ts`
-- `src/lib/sessionExecution.spec.ts`
-- `src/views/ClientDashboardView.vue`
-- `src/views/ClientDashboardView.spec.ts`
-- `src/views/ClientSessionDetailView.vue`
-- `src/views/ClientSessionDetailView.spec.ts`
-- `src/views/TherapistSessionDetailView.vue`
-- `src/views/TherapistSessionDetailView.spec.ts`
-- `src/App.vue`
-- `src/__tests__/app.spec.ts`
-- `src/views/BillingView.vue`
-- `src/views/HomeView.vue`
-- `src/views/CabinetView.vue`
-- `src/views/CabinetView.spec.ts`
-- `../backend/config/settings.py`
-- `../backend/sessions/api_views.py`
-- `../backend/sessions/services/access.py`
-- `../backend/sessions/services/meeting_autocreate.py`
-- `../backend/sessions/tests/test_auto_meeting_confirm.py`
-- `../backend/.env.example`
-- `README.md`
-- `docs/HANDOFF.md`
-- `docs/PHASE_CLOSE_SUMMARY.md`
 
 ## Validation
 
 Latest task validation:
 
 ```powershell
-cd ../backend
-.\.venv\Scripts\python.exe manage.py showmigrations consult_sessions
-.\.venv\Scripts\python.exe manage.py check
-cd ../backend
-poetry run pytest sessions/tests/test_auto_meeting_confirm.py sessions/tests/test_session_access_gate.py -q
-cd ../frontend
-npm run test:run -- src/views/CabinetView.spec.ts src/views/ClientDashboardView.spec.ts
-npm run test:run -- src/views/TherapistSessionDetailView.spec.ts
-npm run test:run
-```
-
-Latest dashboard inquiry discoverability validation:
-
-```powershell
-cd ../frontend
-npm run test:run -- src/views/ClientDashboardView.spec.ts
-```
-
-Additional focused checks run in this increment:
-
-```powershell
-cd ../frontend
-npm run test:run -- src/views/ClientDashboardView.spec.ts
-npm run test:run -- src/__tests__/app.spec.ts
 npm run test:run -- src/views/CabinetView.spec.ts
-npm run test:run -- src/views/TherapistSessionsView.spec.ts
 ```
 
-Previous slice validation:
+Result:
 
-```powershell
-npm run test:run -- src/lib/sessionExecution.spec.ts src/views/ClientSessionDetailView.spec.ts src/views/ClientDashboardView.spec.ts src/views/TherapistSessionDetailView.spec.ts src/__tests__/app.spec.ts
-npm run test:run
-npm run typecheck
-```
+- `1` test file passed (`src/views/CabinetView.spec.ts`)
+- `9` tests passed
 
 ## Remaining work
 
-- No open work from this handoff update; all current frontend tests pass locally.
-- Run full frontend suite once before release commit (only focused suites were rerun in the latest increment).
-- Complete and validate the in-progress backend workbook slice end-to-end (API wiring/tests/migration apply) before merging backend branch; current endpoint naming still uses `journal` as a legacy contract detail.
-- Finalize UX naming to avoid ambiguity between public specialist content and private client notes (current working labels are functional but still under product discussion).
-- Google Meet auto-creation requires valid Google credentials/config (`service account` + delegated user) to produce real links in runtime; otherwise feature degrades safely to no auto-link.
-- Backend-confirmed specialist-side editing for `meeting_url` / `meeting_provider` is still deferred until a canonical mutation endpoint and ownership rules are exposed to the frontend.
-- Reminder surfaces beyond the bell feed should only be expanded if backend adds more stable join-enabled payloads; this slice intentionally avoided inventing reminder entrypoints.
-- Add richer CRM workflows: bulk actions and a deeper client profile view.
-- Expand system-level empty/loading/error states across remaining views, including `CabinetView`, once the backend contract for error semantics is stable enough to avoid frontend-only taxonomies.
-- Clarify future billing and entitlements states if backend support for live billing is introduced.
-- Booking/session-adjacent areas that still do not consume this contract remain intentionally deferred in this patch: group-event error normalization, notes/reviews-specific errors, and detail-based validation for some filter params.
+- `CabinetView` explicit-state normalization is completed for hero session-source.
+- `CabinetView` explicit-state normalization is completed for profile bootstrap (`me`).
+- `CabinetView` explicit-state normalization is completed for secondary `/me/` snapshot fields (`effective_entitlements + counts`) used by access/billing widgets.
+- No additional `CabinetView` data-source normalization is planned in this focused line unless new backend sources are added.
 
 ## Risks / open questions
 
-- There are pre-existing local backend changes beyond the migration fix in this increment (`sessions/api_views.py`, `sessions/models.py`, `sessions/serializers.py`, `booking/urls.py`, `config/settings.py`, etc.); these need a clean scoped review before commit.
-- There is also an unrelated modified frontend file (`src/views/FeedbackPolicyView.vue`) in local working tree; confirm whether it belongs to this slice before final commit.
-- The recent fix set intentionally included existing local edits in `src/lib/api.ts` and `src/views/TherapistSessionDetailView.vue` in commit `21573ad`; this should be considered when cherry-picking only spec changes.
-- The frontend now consumes `meeting_url` / optional `meeting_provider` on session and notification payloads, but specialist-side editing is intentionally not wired until backend exposes a canonical write contract.
-- Join CTA visibility is intentionally narrow: only actionable session statuses with a valid external URL render `Приєднатися`; if backend adds time-window or role-specific gating later, the shared helper should absorb it.
-- Reminder join CTA currently ships through the existing notification bell/feed only; if product later needs dedicated reminder pages or push payload deep-links, those should follow the same backend gating contract instead of duplicating rules.
-- Pre-session toast dedupe now keys by `pre_session_toast:{role}:{sessionId}:{startAt}`, which keeps reloads non-spammy while allowing a fresh reminder after reschedule with unchanged `sessionId`.
-- Specialist-session list/detail parity now covers the active confirm/cancel/reschedule/approve/decline/complete branches plus stale confirm/complete rejection, but stale-cancel or future backend-only lifecycle branches would still need new matrix coverage if introduced.
-- Public slot browsing now aligns selected local days with the backend UTC-boundary contract, but any future backend timezone/locale parameter would still be cleaner than frontend range translation.
-- Public-profile chat surfacing currently infers message availability from existing chat threads; if backend relation rules change, a dedicated capability flag may still be worth adding later.
-- Inquiry messaging is intentionally bounded and non-realtime: no attachments and no unified inbox with full chat; the dashboard card is discoverability-only and not a thread surface.
-- Client inquiry notification deep-links currently resolve `specialist_id -> public_slug` through the public specialists catalog on demand; if catalog visibility rules or pagination assumptions change, that redirect path may need a dedicated backend resolver later.
-- The new post-follow-up copy is derived in `PublicProfileView` from thread message history plus backend flags; if backend later exposes a dedicated reason/state for this step, the UI logic should be simplified to consume that directly.
-- Authenticated clients are now steered away from raw external contact links on the public profile; public and non-client visitors still see direct contacts if the specialist exposed them.
-- `/api/me` is still used for supplemental notification hints (`access_state`, entitlements, counts), but not as the primary notification feed.
-- Notification read state is now broader than session events, but bell `read_at` intentionally remains decoupled from inquiry thread message state.
-- Reschedule and inquiry notifications now read more clearly and route by role, but stronger visual differentiation than copy-only treatment may still be worth a later UX pass.
-- `CabinetView` still uses simpler auth/bootstrap heuristics (`v-if="me"` plus entitlements/access hints), so any deeper empty/error-state pass there should be coordinated with backend access-state semantics rather than guessed locally.
-- Some files display encoding issues in the current shell output, so copy-heavy changes should still be checked in-editor.
-- Google Meet API quotas/permissions and Workspace delegation rules can block runtime link generation; with current MVP this failure path is intentionally non-blocking and does not break confirmation.
+- When backend keeps returning incomplete `/me/` snapshot fields, cabinet now stays in explicit error/retry state for access widgets instead of rendering partial fallback values.
+- Invalid token or auth bootstrap failure is intentionally surfaced as profile error state in CabinetView; this slice does not auto-recover auth and relies on existing auth refresh/re-login flow.
+

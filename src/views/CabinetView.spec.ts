@@ -1,27 +1,32 @@
-import { render, screen, waitFor } from '@testing-library/vue'
+import { fireEvent, render, waitFor } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ref } from 'vue'
 import { apiGet } from '../lib/api'
 import CabinetView from './CabinetView.vue'
 
-const mockMe = ref({
-  access_state: 'OK',
-  effective_entitlements: {
-    plan: 'START',
-    active_client_limit: 5,
-    pair_enabled: true,
-    group_room_enabled: false,
-    group_room_meeting_limit: null,
-    group_room_broadcast_enabled: false,
-    default_technical_cap: 5,
-  },
-  counts: {
-    active_clients: 1,
-    prospect_clients: 0,
-    upcoming_sessions_count: 1,
-  },
-  server_time: '2026-03-18T12:00:00Z',
-})
+function createMePayload() {
+  return {
+    access_state: 'OK',
+    effective_entitlements: {
+      plan: 'START',
+      active_client_limit: 5,
+      pair_enabled: true,
+      group_room_enabled: false,
+      group_room_meeting_limit: null,
+      group_room_broadcast_enabled: false,
+      default_technical_cap: 5,
+    },
+    counts: {
+      active_clients: 1,
+      prospect_clients: 0,
+      upcoming_sessions_count: 1,
+    },
+    server_time: '2026-03-18T12:00:00Z',
+  }
+}
+
+const mockMe = ref(createMePayload())
+const mockLoadMe = vi.fn()
 
 vi.mock('pinia', () => ({
   storeToRefs: (store: any) => store,
@@ -30,6 +35,8 @@ vi.mock('pinia', () => ({
 vi.mock('../stores/auth', () => ({
   useAuthStore: () => ({
     me: mockMe,
+    loadMe: mockLoadMe,
+    accessToken: 'mock-access-token',
   }),
 }))
 
@@ -55,6 +62,149 @@ function renderView() {
 describe('CabinetView', () => {
   beforeEach(() => {
     mockedApiGet.mockReset()
+    mockLoadMe.mockReset()
+    mockLoadMe.mockResolvedValue(undefined)
+    mockMe.value = createMePayload()
+  })
+
+  it('shows explicit profile error state with retry when cabinet profile bootstrap fails', async () => {
+    mockMe.value = null as any
+    mockLoadMe.mockRejectedValue(new Error('profile bootstrap failed'))
+    mockedApiGet.mockResolvedValue([])
+
+    const view = renderView()
+
+    await waitFor(() => {
+      expect(view.container.querySelector('.cabinet__loading--error')).toBeInTheDocument()
+    })
+    expect(view.container.querySelector('button.cabinet__loading-action')).toBeInTheDocument()
+  })
+
+  it('retries cabinet profile bootstrap and renders grid after success', async () => {
+    mockMe.value = null as any
+    let shouldFail = true
+    mockLoadMe.mockImplementation(async () => {
+      if (shouldFail) {
+        throw new Error('profile bootstrap failed')
+      }
+      mockMe.value = createMePayload()
+    })
+    mockedApiGet.mockResolvedValue([])
+
+    const view = renderView()
+    await waitFor(() => {
+      expect(view.container.querySelector('.cabinet__loading--error')).toBeInTheDocument()
+    })
+
+    shouldFail = false
+    const retryButton = view.container.querySelector('button.cabinet__loading-action')
+    expect(retryButton).toBeInTheDocument()
+    await fireEvent.click(retryButton as HTMLButtonElement)
+
+    await waitFor(() => {
+      expect(view.container.querySelector('.cabinet__grid')).toBeInTheDocument()
+    })
+    expect(mockLoadMe).toHaveBeenCalledTimes(2)
+    expect(view.container.querySelector('.cabinet__loading--error')).not.toBeInTheDocument()
+  })
+
+  it('shows explicit cabinet access snapshot error state with retry when secondary me fields stay missing', async () => {
+    mockMe.value = {
+      ...createMePayload(),
+      counts: null,
+      effective_entitlements: null,
+    } as any
+    mockLoadMe.mockResolvedValue(undefined)
+    mockedApiGet.mockResolvedValue([])
+
+    const view = renderView()
+
+    await waitFor(() => {
+      expect(view.container.querySelector('.cabinet__details-state--error')).toBeInTheDocument()
+    })
+    expect(view.container.querySelector('button.cabinet__details-action')).toBeInTheDocument()
+  })
+
+  it('retries cabinet access snapshot bootstrap and renders grid after success', async () => {
+    mockMe.value = {
+      ...createMePayload(),
+      counts: null,
+      effective_entitlements: null,
+    } as any
+    let shouldStayIncomplete = true
+    mockLoadMe.mockImplementation(async () => {
+      if (shouldStayIncomplete) return
+      mockMe.value = createMePayload()
+    })
+    mockedApiGet.mockResolvedValue([])
+
+    const view = renderView()
+    await waitFor(() => {
+      expect(view.container.querySelector('.cabinet__details-state--error')).toBeInTheDocument()
+    })
+
+    shouldStayIncomplete = false
+    const retryButton = view.container.querySelector('button.cabinet__details-action')
+    expect(retryButton).toBeInTheDocument()
+    await fireEvent.click(retryButton as HTMLButtonElement)
+
+    await waitFor(() => {
+      expect(view.container.querySelector('.cabinet__grid')).toBeInTheDocument()
+    })
+    expect(mockLoadMe).toHaveBeenCalledTimes(2)
+    expect(view.container.querySelector('.cabinet__details-state--error')).not.toBeInTheDocument()
+  })
+
+  it('shows explicit hero error state with retry when sessions fetch fails', async () => {
+    mockedApiGet.mockRejectedValue(new Error('hero sessions failed'))
+
+    const view = renderView()
+
+    await waitFor(() => {
+      expect(view.container.querySelector('.hero-status--error')).toBeInTheDocument()
+    })
+    expect(view.container.querySelector('.hero-status--error button')).toBeInTheDocument()
+    expect(view.container.querySelector('a.hero-live')).not.toBeInTheDocument()
+  })
+
+  it('retries hero sessions fetch and clears the error state', async () => {
+    let shouldFail = true
+    mockedApiGet.mockImplementation(async (_url, config) => {
+      if (shouldFail) {
+        throw new Error('hero sessions failed')
+      }
+      if (config?.params?.upcoming === true) {
+        return [
+          {
+            id: 88,
+            status: 'CONFIRMED',
+            client: 52,
+            client_name: 'Retry Client',
+            meeting_url: 'https://meet.google.com/retry-room',
+            join_available: true,
+            slot_start_at: '2000-01-01T00:00:00Z',
+            slot_end_at: '2100-01-01T00:00:00Z',
+          },
+        ] as any
+      }
+      if (config?.params?.upcoming === false) return []
+      return []
+    })
+
+    const view = renderView()
+    await waitFor(() => {
+      expect(view.container.querySelector('.hero-status--error')).toBeInTheDocument()
+    })
+
+    shouldFail = false
+    const retryButton = view.container.querySelector('.hero-status--error button')
+    expect(retryButton).toBeInTheDocument()
+    await fireEvent.click(retryButton as HTMLButtonElement)
+
+    await waitFor(() => {
+      expect(view.container.querySelector('a.hero-live[href="/cabinet/sessions/88"]')).toBeInTheDocument()
+    })
+    expect(view.container.querySelector('.hero-status--error')).not.toBeInTheDocument()
   })
 
   it('shows live session marker and direct join in hero', async () => {
@@ -77,19 +227,17 @@ describe('CabinetView', () => {
       return []
     })
 
-    renderView()
+    const view = renderView()
 
     await waitFor(() => {
       expect(mockedApiGet).toHaveBeenCalledWith('/booking/sessions/', { params: { upcoming: true } })
       expect(mockedApiGet).toHaveBeenCalledWith('/booking/sessions/', { params: { upcoming: false } })
     })
 
-    const heroLink = await screen.findByRole('link', { name: /Сесія триває/i })
-    expect(heroLink).toHaveAttribute('href', '/cabinet/sessions/77')
-    expect(screen.getByRole('link', { name: 'Приєднатися' })).toHaveAttribute(
-      'href',
-      'https://meet.google.com/live-hero-room'
-    )
+    await waitFor(() => {
+      expect(view.container.querySelector('a.hero-live[href="/cabinet/sessions/77"]')).toBeInTheDocument()
+    })
+    expect(view.container.querySelector('a.hero-live__join[href="https://meet.google.com/live-hero-room"]')).toBeInTheDocument()
   })
 
   it('shows live session marker for scheduled in-progress session', async () => {
@@ -149,6 +297,6 @@ describe('CabinetView', () => {
     })
 
     expect(view.container.querySelector('a.hero-live')).not.toBeInTheDocument()
-    expect(screen.queryByRole('link', { name: /Сесія триває/i })).not.toBeInTheDocument()
+    expect(view.container.querySelector('a.hero-live__join')).not.toBeInTheDocument()
   })
 })

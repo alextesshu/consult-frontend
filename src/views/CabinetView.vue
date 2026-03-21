@@ -24,13 +24,22 @@
           Приєднатися
         </a>
       </RouterLink>
+      <div v-else-if="heroSessionsLoading" class="hero-status hero-status--loading">
+        Завантажуємо статус найближчої сесії...
+      </div>
+      <div v-else-if="heroSessionsError" class="hero-status hero-status--error">
+        <span>{{ heroSessionsError }}</span>
+        <button class="btn btn--ghost btn--sm" type="button" :disabled="heroSessionsLoading" @click="retryHeroSessionsLoad">
+          Повторити
+        </button>
+      </div>
       <div class="hero-chip">
         <div class="hero-chip__label">Серверний час</div>
         <div class="hero-chip__value">{{ serverTimeLabel }}</div>
       </div>
     </header>
 
-    <div v-if="me" class="cabinet__grid">
+    <div v-if="me && hasCabinetDataSnapshot" class="cabinet__grid">
       <section class="panel panel--wide panel--actions">
         <div class="panel__header">
           <div>
@@ -209,8 +218,42 @@
       </section>
     </div>
 
-    <div v-else class="card cabinet__loading">
+    <div v-else-if="me && cabinetDataLoading" class="card cabinet__loading cabinet__details-state">
+      Завантаження даних доступу...
+    </div>
+    <div
+      v-else-if="me && cabinetDataError"
+      class="card cabinet__loading cabinet__loading--error cabinet__details-state cabinet__details-state--error"
+    >
+      <p>{{ cabinetDataError }}</p>
+      <button
+        class="btn btn--ghost btn--sm cabinet__loading-action cabinet__details-action"
+        type="button"
+        :disabled="cabinetDataLoading"
+        @click="retryCabinetDataLoad"
+      >
+        Повторити
+      </button>
+    </div>
+    <div v-else-if="me" class="card cabinet__loading cabinet__details-state">
+      Дані доступу кабінету тимчасово недоступні.
+    </div>
+    <div v-else-if="profileLoading" class="card cabinet__loading">
       Завантаження профілю...
+    </div>
+    <div v-else-if="profileError" class="card cabinet__loading cabinet__loading--error">
+      <p>{{ profileError }}</p>
+      <button
+        class="btn btn--ghost btn--sm cabinet__loading-action"
+        type="button"
+        :disabled="profileLoading"
+        @click="retryCabinetProfileLoad"
+      >
+        Повторити
+      </button>
+    </div>
+    <div v-else class="card cabinet__loading">
+      Профіль кабінету тимчасово недоступний.
     </div>
   </section>
 </template>
@@ -241,9 +284,20 @@ type CabinetSession = {
 }
 
 const allSessions = ref<CabinetSession[]>([])
+const heroSessionsLoading = ref(false)
+const heroSessionsError = ref('')
+const profileLoading = ref(false)
+const profileError = ref('')
+const cabinetDataLoading = ref(false)
+const cabinetDataError = ref('')
 const nowTs = ref(Date.now())
 const LIVE_STATUS_REFRESH_MS = 30 * 1000
 let nowIntervalId: number | null = null
+const CABINET_DATA_LOAD_ERROR = 'Не вдалося завантажити дані доступу кабінету.'
+
+const hasCabinetDataSnapshot = computed(() => {
+  return Boolean(me.value?.effective_entitlements && me.value?.counts)
+})
 
 const accessLabel = computed(() => {
   const state = me.value?.access_state
@@ -386,6 +440,8 @@ const liveMeetingUrl = computed(() => {
 })
 
 async function loadSessionsForHero() {
+  heroSessionsLoading.value = true
+  heroSessionsError.value = ''
   try {
     const [upcomingResp, pastResp] = await Promise.all([
       apiGet<CabinetSession[]>('/booking/sessions/', { params: { upcoming: true } }),
@@ -396,7 +452,54 @@ async function loadSessionsForHero() {
     allSessions.value = [...upcoming, ...past]
   } catch {
     allSessions.value = []
+    heroSessionsError.value = 'Не вдалося завантажити статус найближчої сесії.'
+  } finally {
+    heroSessionsLoading.value = false
   }
+}
+
+function retryHeroSessionsLoad() {
+  void loadSessionsForHero()
+}
+
+async function ensureCabinetProfile() {
+  if (me.value || !auth.accessToken) return
+  profileLoading.value = true
+  profileError.value = ''
+  try {
+    await auth.loadMe()
+    if (!me.value) {
+      profileError.value = 'Профіль кабінету тимчасово недоступний.'
+    }
+  } catch {
+    profileError.value = 'Не вдалося завантажити профіль кабінету.'
+  } finally {
+    profileLoading.value = false
+  }
+}
+
+function retryCabinetProfileLoad() {
+  void ensureCabinetProfile().then(() => ensureCabinetData())
+}
+
+async function ensureCabinetData() {
+  if (!me.value || !auth.accessToken || hasCabinetDataSnapshot.value) return
+  cabinetDataLoading.value = true
+  cabinetDataError.value = ''
+  try {
+    await auth.loadMe()
+    if (!hasCabinetDataSnapshot.value) {
+      cabinetDataError.value = CABINET_DATA_LOAD_ERROR
+    }
+  } catch {
+    cabinetDataError.value = CABINET_DATA_LOAD_ERROR
+  } finally {
+    cabinetDataLoading.value = false
+  }
+}
+
+function retryCabinetDataLoad() {
+  void ensureCabinetData()
 }
 
 const serverTimeLabel = computed(() => {
@@ -408,7 +511,8 @@ const serverTimeLabel = computed(() => {
 })
 
 onMounted(async () => {
-  await loadSessionsForHero()
+  await Promise.all([ensureCabinetProfile(), loadSessionsForHero()])
+  await ensureCabinetData()
   nowIntervalId = window.setInterval(() => {
     nowTs.value = Date.now()
   }, LIVE_STATUS_REFRESH_MS)
@@ -497,6 +601,26 @@ onBeforeUnmount(() => {
 
 .hero-live__join {
   width: fit-content;
+}
+
+.hero-status {
+  min-width: 260px;
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  display: grid;
+  gap: 10px;
+}
+
+.hero-status--loading {
+  border: 1px solid var(--line);
+  background: rgba(8, 113, 201, 0.08);
+  color: #11445d;
+}
+
+.hero-status--error {
+  border: 1px solid rgba(179, 29, 29, 0.35);
+  background: rgba(250, 232, 232, 0.9);
+  color: #7d1f1f;
 }
 
 .cabinet__grid {
@@ -779,6 +903,19 @@ onBeforeUnmount(() => {
 .cabinet__loading {
   text-align: center;
   padding: 32px;
+}
+
+.cabinet__loading--error {
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+  color: #7d1f1f;
+  border-color: rgba(179, 29, 29, 0.35);
+  background: rgba(250, 232, 232, 0.9);
+}
+
+.cabinet__loading-action {
+  justify-self: center;
 }
 
 @media (max-width: 780px) {
