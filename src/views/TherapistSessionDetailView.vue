@@ -23,7 +23,7 @@
           </div>
           <div class="summary-actions">
             <button
-              class="btn btn--ghost btn--sm"
+              class="btn btn--sm"
               type="button"
               :disabled="actionLoading || session.status !== 'SCHEDULED'"
               @click="confirmSession"
