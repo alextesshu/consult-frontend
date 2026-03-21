@@ -16,6 +16,7 @@ export const BOOKING_SUCCESS_MESSAGES = {
 export const BOOKING_ERROR_FALLBACKS = {
   loadSession: 'Не вдалося завантажити сесію.',
   loadSessions: 'Не вдалося завантажити сесії.',
+  loadGroupEvents: 'Не вдалося завантажити групові події.',
   bookSlot: 'Не вдалося забронювати вільне вікно.',
   confirmSession: 'Не вдалося підтвердити сесію.',
   completeSession: 'Не вдалося завершити сесію.',

@@ -4,7 +4,7 @@ Last updated: 2026-03-21
 Owner: agent-maintained
 Primary use: persistent project handoff for agent-led work
 Update trigger: after each meaningful completed task
-Last agent task: extend CabinetView explicit-state handling to secondary me snapshot data (access/billing widgets), add focused retries/tests, and sync handoff
+Last agent task: normalize ClientDashboard group-events error handling with shared booking code/reason mapping, add focused regression, and sync handoff
 
 Update rule:
 
@@ -58,6 +58,13 @@ Future direction:
 ## Done
 
 Latest increment (2026-03-21):
+
+- `ClientDashboardView` group-events source now uses shared booking error normalization (`reason_code` -> `code` -> `detail`) via `getBookingErrorMessage(...)` instead of a hardcoded fallback-only branch.
+- Added `BOOKING_ERROR_FALLBACKS.loadGroupEvents` to keep group-events fallback copy centralized in `src/lib/bookingCopy.ts`.
+- Group-events error surface now aligns with sessions behavior in the same dashboard: backend coded errors (for example `OVER_LIMIT`) render canonical mapped copy.
+- Added focused regression coverage for group-events coded error mapping in `ClientDashboardView.spec.ts`.
+
+Previous increment (2026-03-21):
 
 - `CabinetView` now includes explicit `loading / error / retry` handling for the secondary cabinet snapshot derived from `/me/` (`effective_entitlements + counts`) used by access/billing and related widgets.
 - Main cabinet grid now renders only after this snapshot is ready; incomplete payloads no longer silently degrade into mixed `Н/Д`/default fallbacks for those widgets.
@@ -211,8 +218,9 @@ Latest increment (2026-03-19):
 
 Latest task file list:
 
-- `src/views/CabinetView.vue`
-- `src/views/CabinetView.spec.ts`
+- `src/lib/bookingCopy.ts`
+- `src/views/ClientDashboardView.vue`
+- `src/views/ClientDashboardView.spec.ts`
 - `docs/HANDOFF.md`
 
 ## Validation
@@ -220,23 +228,21 @@ Latest task file list:
 Latest task validation:
 
 ```powershell
-npm run test:run -- src/views/CabinetView.spec.ts
+npm run test:run -- src/views/ClientDashboardView.spec.ts
 ```
 
 Result:
 
-- `1` test file passed (`src/views/CabinetView.spec.ts`)
-- `9` tests passed
+- `1` test file passed (`src/views/ClientDashboardView.spec.ts`)
+- `14` tests passed
 
 ## Remaining work
 
-- `CabinetView` explicit-state normalization is completed for hero session-source.
-- `CabinetView` explicit-state normalization is completed for profile bootstrap (`me`).
-- `CabinetView` explicit-state normalization is completed for secondary `/me/` snapshot fields (`effective_entitlements + counts`) used by access/billing widgets.
-- No additional `CabinetView` data-source normalization is planned in this focused line unless new backend sources are added.
+- `ClientDashboardView` group-events source now consumes shared booking error mapping; this deferred normalization slice is completed.
+- Remaining deferred error-normalization areas are still outside this patch scope (for example notes/reviews-adjacent surfaces and filter/detail validation branches that still rely on local handling).
 
 ## Risks / open questions
 
-- When backend keeps returning incomplete `/me/` snapshot fields, cabinet now stays in explicit error/retry state for access widgets instead of rendering partial fallback values.
-- Invalid token or auth bootstrap failure is intentionally surfaced as profile error state in CabinetView; this slice does not auto-recover auth and relies on existing auth refresh/re-login flow.
+- Group-events now use the same booking error dictionary as sessions; if backend introduces group-event-specific `code`/`reason_code` values not covered by the current dictionary, UI will fall back to backend `detail` or the localized fallback message.
+- Broader normalization for other deferred zones remains pending by design to keep this increment narrow.
 

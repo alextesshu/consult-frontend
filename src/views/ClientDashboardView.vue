@@ -812,9 +812,9 @@ async function loadGroupEvents() {
   try {
     const resp = await apiGet<GroupEvent[]>('/booking/group-events/')
     groupEvents.value = resp || []
-  } catch {
+  } catch (err: any) {
     groupEvents.value = []
-    groupEventsError.value = 'Не вдалося завантажити групові події.'
+    groupEventsError.value = getBookingErrorMessage(err, BOOKING_ERROR_FALLBACKS.loadGroupEvents)
   } finally {
     groupEventsLoading.value = false
   }

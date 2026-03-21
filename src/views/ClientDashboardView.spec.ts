@@ -548,6 +548,35 @@ describe('ClientDashboardView', () => {
     ).toHaveLength(3)
   })
 
+  it('renders the backend-mapped group-events error description from code fields', async () => {
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/booking/sessions/' && config?.params?.upcoming === true) {
+        return []
+      }
+      if (url === '/booking/sessions/' && config?.params?.upcoming === false) {
+        return []
+      }
+      if (url === '/booking/group-events/') {
+        throw {
+          response: {
+            status: 403,
+            data: {
+              code: 'OVER_LIMIT',
+              detail: 'Action unavailable due to plan limits.',
+            },
+          },
+        }
+      }
+      throw new Error(`Unexpected apiGet call: ${url} ${JSON.stringify(config)}`)
+    })
+
+    renderView()
+
+    expect(
+      await screen.findByText('Дія недоступна через обмеження плану. Перевірте доступ у Billing.')
+    ).toBeInTheDocument()
+  })
+
   it('keeps clear hero/tips CTAs when specialists are already selected', async () => {
     localStorage.setItem(
       'selectedSpecialists',
