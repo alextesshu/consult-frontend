@@ -170,11 +170,59 @@
         </li>
         <li>
           <span class="tips-link">Приєднатися до онлайн-зустрічі</span>
-          <span class="muted">Кнопка з'явиться в деталях сесії, на дашборді та в нагадуванні, коли спеціаліст додасть зовнішнє посилання.</span>
+          <span class="muted">
+            Кнопка з'явиться в деталях сесії, на дашборді та в нагадуванні, коли спеціаліст додасть зовнішнє
+            посилання.
+          </span>
         </li>
       </ul>
     </div>
 
+    <div class="card inquiry-card">
+      <div class="card__title">Запити до бронювання</div>
+      <LoadingSkeleton v-if="inquiryLoading" variant="list" :count="2" />
+      <EmptyState
+        v-else-if="inquiryError"
+        title="Не вдалося завантажити запити до бронювання"
+        :description="inquiryError"
+      >
+        <template #actions>
+          <button class="btn btn--ghost" type="button" @click="loadInquiryDiscoverability">
+            Спробувати ще раз
+          </button>
+        </template>
+      </EmptyState>
+      <EmptyState
+        v-else-if="inquiryEntries.length === 0"
+        title="Запити до бронювання поки недоступні"
+        description="Оберіть спеціаліста, щоб поставити коротке уточнювальне запитання перед бронюванням."
+        action-text="Каталог спеціалістів"
+        action-to="/specialists"
+      />
+      <ul v-else class="session-list">
+        <li
+          v-for="entry in inquiryEntries"
+          :key="entry.specialist_id"
+          class="session-item"
+          :class="`inquiry-item--${entry.tone}`"
+        >
+          <div>
+            <div class="session-time">{{ entry.specialist_name }}</div>
+            <div class="muted">{{ entry.status_label }}</div>
+            <div class="muted">{{ entry.description }}</div>
+          </div>
+          <div class="session-actions">
+            <RouterLink
+              v-if="entry.action_to && entry.action_label"
+              class="btn btn--ghost btn--sm"
+              :to="entry.action_to"
+            >
+              {{ entry.action_label }}
+            </RouterLink>
+          </div>
+        </li>
+      </ul>
+    </div>
     <div class="card">
       <div class="card__title">Переглянуті спеціалісти</div>
       <div v-if="viewedSpecialists.length === 0" class="muted">
@@ -360,14 +408,20 @@
 
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
-import { fetchPublicSpecialistProfile, type PublicSpecialistProfile } from '../lib/api'
-import { apiGet } from '../lib/api'
+import {
+  apiGet,
+  fetchInquiryState,
+  fetchPublicSpecialistProfile,
+  type InquiryState,
+  type PublicSpecialistProfile,
+} from '../lib/api'
 import { BOOKING_ERROR_FALLBACKS, getBookingErrorMessage } from '../lib/bookingCopy'
 import EmptyState from '../components/EmptyState.vue'
 import ConfirmModal from '../components/ConfirmModal.vue'
 import LoadingSkeleton from '../components/LoadingSkeleton.vue'
 import { useConfirmModal } from '../composables/useConfirmModal'
 import { formatUkDateTimeCompact } from '../lib/dateTime'
+import { mapInquiryStateToUi, type InquiryUiTone } from '../lib/inquiryCopy'
 import {
   canJoinExternalMeeting,
   externalMeetingProviderLabel,
@@ -411,6 +465,21 @@ type SelectedSpecialist = {
   photo_url?: string
 }
 
+type InquiryCandidate = {
+  specialist_id: number
+  specialist_name: string
+}
+
+type InquiryDashboardEntry = {
+  specialist_id: number
+  specialist_name: string
+  status_label: string
+  description: string
+  tone: InquiryUiTone
+  action_label: string | null
+  action_to: string | null
+}
+
 const upcoming = ref<Session[]>([])
 const past = ref<Session[]>([])
 const loading = ref(false)
@@ -418,6 +487,9 @@ const sessionsError = ref('')
 const selectedSpecialists = ref<SelectedSpecialist[]>([])
 const stoppedSpecialists = ref<string[]>([])
 const viewedSpecialists = ref<SelectedSpecialist[]>([])
+const inquiryEntries = ref<InquiryDashboardEntry[]>([])
+const inquiryLoading = ref(false)
+const inquiryError = ref('')
 const groupEvents = ref<GroupEvent[]>([])
 const groupEventsLoading = ref(false)
 const groupEventsError = ref('')
@@ -573,13 +645,96 @@ function meetingUrl(session: Session) {
 }
 
 function canJoinMeeting(session: Session) {
-  return canJoinExternalMeeting(session)
+  return canJoinExternalMeeting(session) && session.join_available !== false
 }
 
 function meetingBadge(session: Session) {
   const url = meetingUrl(session)
-  if (!url) return ''
-  return `Онлайн-зустріч: ${externalMeetingProviderLabel(session.meeting_provider, url)}`
+  if (!url) {
+    if (['SCHEDULED', 'CONFIRMED'].includes(session.status)) {
+      return 'Онлайн-зустріч: посилання ще не додано'
+    }
+    return ''
+  }
+  const provider = externalMeetingProviderLabel(session.meeting_provider, url)
+  if (['SCHEDULED', 'CONFIRMED'].includes(session.status) && session.join_available === false) {
+    return `Онлайн-зустріч: ${provider} · приєднання стане доступним ближче до часу сесії`
+  }
+  return `Онлайн-зустріч: ${provider}`
+}
+
+
+function inquiryReasonCode(state: InquiryState) {
+  if (state.inquiry_exists) {
+    return state.can_client_send ? null : state.client_send_reason_code
+  }
+  return state.can_create_inquiry ? null : state.create_reason_code
+}
+
+function inquiryCandidates(): InquiryCandidate[] {
+  const merged = [...selectedSpecialists.value, ...viewedSpecialists.value]
+  const byId = new Map<number, InquiryCandidate>()
+  for (const specialist of merged) {
+    const specialistId = Number(specialist.therapist_id)
+    if (!Number.isInteger(specialistId) || specialistId <= 0) continue
+    if (byId.has(specialistId)) continue
+    byId.set(specialistId, {
+      specialist_id: specialistId,
+      specialist_name: publicName(specialist.display_name) || `Спеціаліст #${specialistId}`,
+    })
+  }
+  return Array.from(byId.values()).slice(0, 6)
+}
+
+function mapInquiryEntry(candidate: InquiryCandidate, state: InquiryState): InquiryDashboardEntry {
+  const uiCopy = mapInquiryStateToUi({
+    status: state.inquiry_status,
+    reasonCode: inquiryReasonCode(state),
+    actor: 'client',
+    mode: state.inquiry_exists ? 'thread' : 'entry',
+  })
+
+  if (state.inquiry_status === 'ACTIVE_CLIENT') {
+    return {
+      ...candidate,
+      status_label: 'Доступний повний чат',
+      description: uiCopy.body,
+      tone: uiCopy.tone,
+      action_label: 'Відкрити повний чат',
+      action_to: `/client/chat?therapist_id=${candidate.specialist_id}`,
+    }
+  }
+
+  if (state.inquiry_exists) {
+    return {
+      ...candidate,
+      status_label: 'Запит уже створено',
+      description: uiCopy.body,
+      tone: uiCopy.tone,
+      action_label: 'Відкрити запит',
+      action_to: `/client/inquiries/${candidate.specialist_id}`,
+    }
+  }
+
+  if (state.can_create_inquiry) {
+    return {
+      ...candidate,
+      status_label: 'Запит доступний',
+      description: uiCopy.body,
+      tone: uiCopy.tone,
+      action_label: 'Поставити запитання',
+      action_to: `/client/inquiries/${candidate.specialist_id}`,
+    }
+  }
+
+  return {
+    ...candidate,
+    status_label: 'Запит недоступний',
+    description: uiCopy.body,
+    tone: uiCopy.tone,
+    action_label: null,
+    action_to: null,
+  }
 }
 
 function publicName(value?: string) {
@@ -592,6 +747,46 @@ function publicName(value?: string) {
   if (!last) return first
   const initial = last.charAt(0).toUpperCase()
   return `${first} ${initial}.`
+}
+
+
+async function loadInquiryDiscoverability() {
+  inquiryLoading.value = true
+  inquiryError.value = ''
+  try {
+    const candidates = inquiryCandidates()
+    if (!candidates.length) {
+      inquiryEntries.value = []
+      return
+    }
+
+    const settled = await Promise.allSettled(
+      candidates.map(async (candidate) => {
+        const state = await fetchInquiryState(candidate.specialist_id)
+        return mapInquiryEntry(candidate, state)
+      })
+    )
+
+    const loaded: InquiryDashboardEntry[] = []
+    let failed = 0
+    for (const item of settled) {
+      if (item.status === 'fulfilled') {
+        loaded.push(item.value)
+      } else {
+        failed += 1
+      }
+    }
+
+    inquiryEntries.value = loaded
+    if (failed > 0 && loaded.length === 0) {
+      inquiryError.value = 'Не вдалося завантажити стан запитів до бронювання.'
+    }
+  } catch {
+    inquiryEntries.value = []
+    inquiryError.value = 'Не вдалося завантажити стан запитів до бронювання.'
+  } finally {
+    inquiryLoading.value = false
+  }
 }
 
 async function loadSessions() {
@@ -718,6 +913,7 @@ function stopCollaboration(specialist: SelectedSpecialist) {
     (item) => item.public_slug !== specialist.public_slug
   )
   persistSpecialists()
+  void loadInquiryDiscoverability()
 }
 
 function persistSpecialists() {
@@ -853,6 +1049,7 @@ onMounted(async () => {
   await Promise.all([loadSessions(), loadGroupEvents()])
   syncSelectedSpecialists()
   await hydrateSpecialistProfiles()
+  await loadInquiryDiscoverability()
   nowIntervalId = window.setInterval(() => {
     nowTs.value = Date.now()
   }, LIVE_STATUS_REFRESH_MS)
@@ -1130,6 +1327,15 @@ onBeforeUnmount(() => {
   padding: 10px 12px;
   border-radius: 12px;
   background: rgba(111, 142, 151, 0.12);
+}
+
+.inquiry-item--info {
+  border: 1px solid rgba(29, 91, 138, 0.24);
+}
+
+.inquiry-item--warning {
+  border: 1px solid rgba(186, 121, 27, 0.3);
+  background: rgba(255, 244, 223, 0.55);
 }
 
 .session-item--confirmed {

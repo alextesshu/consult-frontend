@@ -103,11 +103,19 @@
           <div v-if="!isEditingMeetingLink">
             <div class="detail-label">Онлайн-зустріч</div>
             <div class="detail-value">{{ meetingProvider }}</div>
-            <div class="muted detail-meta">{{ meetingHint }}</div>
+            <div class="muted detail-meta">{{ meetingSetupHint }}</div>
           </div>
           <div v-else class="field" style="width: 100%">
             <label for="meeting-link-input" class="detail-label">Посилання на онлайн-зустріч</label>
-            <input id="meeting-link-input" v-model="meetingLinkDraft" class="input" />
+            <input
+              id="meeting-link-input"
+              v-model="meetingLinkDraft"
+              class="input"
+              placeholder="https://meet.google.com/... або https://zoom.us/..."
+            />
+            <div class="muted detail-meta">
+              Вставте повне посилання на зустріч. Після збереження клієнт побачить кнопку «Приєднатися».
+            </div>
           </div>
           <div class="meeting-card__actions">
             <template v-if="!isEditingMeetingLink">
@@ -120,7 +128,7 @@
               >
                 Приєднатися
               </a>
-              <button class="btn btn--ghost btn--sm" type="button" @click="copyMeetingLink">
+              <button v-if="meetingUrl" class="btn btn--ghost btn--sm" type="button" @click="copyMeetingLink">
                 Скопіювати посилання
               </button>
               <button
@@ -129,7 +137,7 @@
                 type="button"
                 @click="toggleEditMeetingLink"
               >
-                Редагувати
+                {{ meetingUrl ? 'Змінити посилання' : 'Додати посилання' }}
               </button>
             </template>
             <template v-else>
@@ -471,6 +479,10 @@ const meetingProvider = computed(() =>
 const meetingHint = computed(() => {
   if (!session.value || !meetingUrl.value) return ''
   return externalMeetingHint(session.value)
+})
+const meetingSetupHint = computed(() => {
+  if (meetingHint.value) return meetingHint.value
+  return 'Додайте посилання на Google Meet, Zoom або іншу платформу для онлайн-зустрічі.'
 })
 
 const sessionRequests = computed(() =>

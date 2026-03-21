@@ -1,4 +1,4 @@
-﻿import { fireEvent, render, screen, waitFor } from '@testing-library/vue'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { apiGet, apiPost } from '../lib/api'
 import ClientSessionDetailView from './ClientSessionDetailView.vue'
@@ -125,7 +125,7 @@ describe('ClientSessionDetailView', () => {
 
     expect(
       await screen.findByText(
-        'Сесію вже підтверджено спеціалістом. Якщо плани зміняться, завчасно надішліть запит на перенесення або скасуйте запис.'
+        'Сесію вже підтверджено спеціалістом. Якщо плани зміняться, завчасно надішліть запит на перенесення або скасуйте запис. Для входу в онлайн-зустріч відкрийте блок «Онлайн-зустріч» на цій сторінці та натисніть «Приєднатися».'
       )
     ).toBeInTheDocument()
     expect(
@@ -186,7 +186,7 @@ describe('ClientSessionDetailView', () => {
 
     expect(
       await screen.findByText(
-        'Сесія ще очікує підтвердження спеціаліста. До підтвердження ви можете одразу перенести запис на інший слот або скасувати його.'
+        'Сесія ще очікує підтвердження спеціаліста. До підтвердження ви можете одразу перенести запис на інший слот або скасувати його. Коли спеціаліст додасть посилання, воно з’явиться в блоці «Онлайн-зустріч» на цій сторінці.'
       )
     ).toBeInTheDocument()
     expect(
@@ -291,6 +291,77 @@ describe('ClientSessionDetailView', () => {
     await waitFor(() => {
       expect(screen.getByRole('button', { name: 'Перенести сюди' })).toBeDisabled()
     })
+  })
+
+  it('shows online-meeting empty state when specialist has not added a link yet', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/sessions/55/') {
+        return makeSession('SCHEDULED', {
+          meeting_url: null,
+          meeting_provider: null,
+          join_available: false,
+        })
+      }
+
+      if (url === '/booking/slots/') {
+        return []
+      }
+
+      if (url === '/booking/sessions/55/reschedule-suggestions/') {
+        return { suggestions: [] }
+      }
+
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    expect(await screen.findByText('Онлайн-зустріч')).toBeInTheDocument()
+    expect(screen.getByText('Посилання ще не додано')).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        'Посилання на онлайн-зустріч ще не додано. Коли спеціаліст додасть посилання, тут з’явиться кнопка «Приєднатися».'
+      )
+    ).toBeInTheDocument()
+    const meetingBlock = screen.getByText('Онлайн-зустріч').closest('.detail-notice--meeting')
+    expect(meetingBlock).not.toBeNull()
+    expect(within(meetingBlock as HTMLElement).queryByRole('link', { name: 'Приєднатися' })).not.toBeInTheDocument()
+    expect(
+      within(meetingBlock as HTMLElement).queryByRole('button', { name: 'Скопіювати посилання' })
+    ).not.toBeInTheDocument()
+  })
+
+  it('explains waiting state when link exists but join is not available yet', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/sessions/55/') {
+        return makeSession('CONFIRMED', {
+          meeting_url: 'https://meet.google.com/locked-room',
+          meeting_provider: 'google_meet',
+          join_available: false,
+        })
+      }
+
+      if (url === '/booking/slots/') {
+        return []
+      }
+
+      if (url === '/booking/sessions/55/reschedule-suggestions/') {
+        return { suggestions: [] }
+      }
+
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    expect(await screen.findByText('Google Meet')).toBeInTheDocument()
+    expect(screen.getByText(/Приєднання стане доступним ближче до часу сесії\./)).toBeInTheDocument()
+    const meetingBlock = screen.getByText('Онлайн-зустріч').closest('.detail-notice--meeting')
+    expect(meetingBlock).not.toBeNull()
+    expect(within(meetingBlock as HTMLElement).queryByRole('link', { name: 'Приєднатися' })).not.toBeInTheDocument()
+    expect(
+      within(meetingBlock as HTMLElement).getByRole('button', { name: 'Скопіювати посилання' })
+    ).toBeInTheDocument()
   })
 
   it('surfaces backend reason_code copy when a confirmed-session reschedule request is rejected', async () => {

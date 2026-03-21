@@ -266,6 +266,22 @@ export async function saveSpecialistSessionNote(sessionId: number, content: stri
   return apiPut(`/cabinet/sessions/${sessionId}/note/`, { content })
 }
 
+export async function fetchSpecialistClientJournalContent(clientId: number) {
+  try {
+    const resp = await apiGet<{ content?: string } | null>(`/cabinet/clients/${clientId}/journal/`)
+    return resp?.content || ''
+  } catch (err: any) {
+    if (err?.response?.status === 404) {
+      return ''
+    }
+    throw err
+  }
+}
+
+export async function saveSpecialistClientJournal(clientId: number, content: string) {
+  return apiPut(`/cabinet/clients/${clientId}/journal/`, { content })
+}
+
 export async function confirmSpecialistSession(sessionId: number) {
   return apiPatch(`/booking/sessions/${sessionId}/confirm/`)
 }
@@ -306,4 +322,3 @@ export async function approveSpecialistRescheduleRequest(requestId: number) {
 export async function declineSpecialistRescheduleRequest(requestId: number) {
   return apiPatch(`/cabinet/sessions/reschedule-requests/${requestId}/decline/`)
 }
-

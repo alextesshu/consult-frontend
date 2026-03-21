@@ -816,7 +816,7 @@ describe('TherapistSessionDetailView', () => {
     const meetingCard = (await screen.findByText('Приєднатися')).closest('.meeting-card')
     expect(meetingCard).toBeInTheDocument()
 
-    const editButton = within(meetingCard as HTMLElement).getByRole('button', { name: 'Редагувати' })
+    const editButton = within(meetingCard as HTMLElement).getByRole('button', { name: 'Змінити посилання' })
     await fireEvent.click(editButton)
 
     const input = (await within(meetingCard as HTMLElement).findByLabelText(

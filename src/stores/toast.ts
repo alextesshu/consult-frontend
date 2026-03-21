@@ -2,11 +2,19 @@ import { defineStore } from 'pinia'
 
 export type ToastType = 'success' | 'error' | 'warning' | 'info'
 
+export type ToastAction = {
+  label: string
+  to?: string
+  href?: string
+  target?: '_self' | '_blank'
+}
+
 export type ToastItem = {
   id: string
   type: ToastType
   message: string
   title?: string
+  actions?: ToastAction[]
   duration: number
   createdAt: number
 }

@@ -475,38 +475,66 @@
       <div class="note-modal__content">
         <div class="note-modal__header">
           <div>
-            <div class="note-title">Коментар після сесії</div>
-            <div class="muted">Оновіть приватну історію клієнта.</div>
+            <div class="note-title">Нотатки після сесії</div>
+            <div class="muted">Окремо ведіть нотатку по сесії та робочий зошит.</div>
           </div>
           <button class="btn btn--ghost btn--sm" type="button" @click="closeNote">
             Закрити
           </button>
         </div>
-        <div class="note-panel">
-          <label class="field">
-            <span class="note-title">Приватна історія клієнта</span>
-            <span class="note-badge">Зашифровано</span>
-            <textarea
-              v-model="noteDraft"
-              class="input note-textarea"
-              rows="5"
-              placeholder="Короткий коментар по сесії та важливі нотатки."
-            ></textarea>
-            <div class="note-helper muted">Інформація зашифрована. Доступ має лише спеціаліст.</div>
-          </label>
-          <div class="note-actions">
-            <button
-              class="btn btn--sm"
-              type="button"
-              :disabled="noteSessionId ? isNoteSaving(noteSessionId) : false"
-              @click="noteSessionId ? saveNote(noteSessionId) : null"
-            >
-              Зберегти
-            </button>
-            <button class="btn btn--ghost btn--sm" type="button" @click="closeNote">
-              Закрити
-            </button>
+        <div class="note-grid">
+          <div class="note-panel">
+            <label class="field">
+              <span class="note-title">Нотатка після сесії</span>
+              <span class="note-badge">Сесія</span>
+              <textarea
+                v-model="noteDraft"
+                class="input note-textarea"
+                rows="5"
+                placeholder="Короткий коментар по сесії та ключові спостереження."
+              ></textarea>
+              <div class="note-helper muted">Окрема нотатка саме для цієї сесії.</div>
+            </label>
+            <div class="note-actions">
+              <button
+                class="btn btn--sm"
+                type="button"
+                :disabled="noteSessionId ? isNoteSaving(noteSessionId) : false"
+                @click="noteSessionId ? saveNote(noteSessionId) : null"
+              >
+                Зберегти нотатку
+              </button>
+            </div>
           </div>
+          <div class="note-panel">
+            <label class="field">
+              <span class="note-title">Робочий зошит</span>
+              <span class="note-badge">Внутрішній</span>
+              <textarea
+                v-model="journalDraft"
+                class="input note-textarea"
+                rows="5"
+                placeholder="Довгостроковий контекст, динаміка, спостереження та план подальшої роботи."
+                :disabled="journalLoading || !journalClientId"
+              ></textarea>
+              <div class="note-helper muted">Внутрішній розділ спеціаліста, не видимий клієнту.</div>
+            </label>
+            <div class="note-actions">
+              <button
+                class="btn btn--sm"
+                type="button"
+                :disabled="journalSaving || journalLoading || !journalClientId"
+                @click="journalClientId ? saveClientJournal(journalClientId) : null"
+              >
+                Зберегти зошит
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="note-actions">
+          <button class="btn btn--ghost btn--sm" type="button" @click="closeNote">
+            Закрити
+          </button>
         </div>
       </div>
     </div>
@@ -535,6 +563,7 @@ import {
   fetchSpecialistAvailableSlots as fetchSpecialistAvailableSlotsData,
   fetchSpecialistRescheduleRequests as fetchSpecialistRescheduleRequestsData,
   fetchSpecialistRescheduleSuggestions as fetchSpecialistRescheduleSuggestionsData,
+  fetchSpecialistClientJournalContent as fetchSpecialistClientJournalContentData,
   fetchSpecialistSessionNoteContent as fetchSpecialistSessionNoteContentData,
   formatSessionDateTime as sharedFormatSessionDateTime,
   formatSessionDuration as sharedFormatSessionDuration,
@@ -544,6 +573,7 @@ import {
   rescheduleSpecialistSession as rescheduleSpecialistSessionAction,
   rescheduleStatusLabel as getRescheduleStatusLabel,
   saveSpecialistSessionNote as saveSpecialistSessionNoteAction,
+  saveSpecialistClientJournal as saveSpecialistClientJournalAction,
   statusClass as getStatusClass,
   statusLabel as getStatusLabel,
   suggestionReasonLabel as getSuggestionReasonLabel,
@@ -617,6 +647,10 @@ const noteSessionId = ref<number | null>(null)
 const noteDraft = ref('')
 const noteLoading = ref<Set<number>>(new Set())
 const noteSaving = ref<Set<number>>(new Set())
+const journalClientId = ref<number | null>(null)
+const journalDraft = ref('')
+const journalLoading = ref(false)
+const journalSaving = ref(false)
 const therapistPhotoUrl = ref('')
 const rescheduleRequests = ref<RescheduleRequest[]>([])
 const requestsLoading = ref(false)
@@ -837,6 +871,10 @@ function parseNoteIdFromHash(hash: string): number | null {
   if (!match) return null
   const id = Number(match[1])
   return Number.isFinite(id) ? id : null
+}
+
+function findSessionById(id: number): Session | null {
+  return upcoming.value.find((session) => session.id === id) || past.value.find((session) => session.id === id) || null
 }
 
 async function scrollToHighlightedSession() {
@@ -1128,6 +1166,18 @@ async function loadNote(id: number) {
   }
 }
 
+async function loadClientJournal(clientId: number) {
+  journalLoading.value = true
+  error.value = ''
+  try {
+    journalDraft.value = await fetchSpecialistClientJournalContentData(clientId)
+  } catch (err: any) {
+    error.value = getBookingErrorMessage(err, BOOKING_ERROR_FALLBACKS.loadSessionNote)
+  } finally {
+    journalLoading.value = false
+  }
+}
+
 async function saveNote(id: number) {
   setNoteSaving(id, true)
   error.value = ''
@@ -1142,15 +1192,37 @@ async function saveNote(id: number) {
   }
 }
 
+async function saveClientJournal(clientId: number) {
+  journalSaving.value = true
+  error.value = ''
+  try {
+    await saveSpecialistClientJournalAction(clientId, journalDraft.value)
+    toast.success(BOOKING_SUCCESS_MESSAGES.noteSaved)
+  } catch (err: any) {
+    error.value = getBookingErrorMessage(err, BOOKING_ERROR_FALLBACKS.saveSessionNote)
+  } finally {
+    journalSaving.value = false
+  }
+}
+
 async function openNoteModal(id: number) {
   noteSessionId.value = id
   noteDraft.value = ''
+  journalDraft.value = ''
+  const session = findSessionById(id)
+  journalClientId.value = session?.client || null
+  if (journalClientId.value) {
+    await Promise.all([loadNote(id), loadClientJournal(journalClientId.value)])
+    return
+  }
   await loadNote(id)
 }
 
 function closeNote() {
   noteSessionId.value = null
   noteDraft.value = ''
+  journalClientId.value = null
+  journalDraft.value = ''
 }
 
 async function loadRescheduleRequests() {
@@ -1578,6 +1650,12 @@ onBeforeUnmount(() => {
   border: 1px solid rgba(47, 63, 73, 0.12);
   background: #fbfbfb;
   grid-column: 1 / -1;
+}
+
+.note-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
 }
 
 .note-textarea {

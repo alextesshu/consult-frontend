@@ -1,10 +1,10 @@
 # Handoff
 
-Last updated: 2026-03-19
+Last updated: 2026-03-21
 Owner: agent-maintained
 Primary use: persistent project handoff for agent-led work
 Update trigger: after each meaningful completed task
-Last agent task: fix pre-start live-status regressions across client/specialist surfaces, align client dashboard CTA copy/layout, and refresh handoff notes
+Last agent task: add client-dashboard inquiry discoverability entrypoint (role-safe states, no inquiry/chat mixing) and sync handoff
 
 Update rule:
 
@@ -22,6 +22,13 @@ Update rule:
 - Current source-of-truth docs are `README.md`, `docs/UI_SHAPE_STANDARD.md`, and recent git history. This file is the persistent project handoff.
 - `README.md` was synced with this handoff on 2026-03-11 to reduce documentation drift.
 - Full phase-close write-up for the current slice lives in `docs/PHASE_CLOSE_SUMMARY.md`.
+
+Current terminology note:
+
+- UI/product term: `Робочий зошит`.
+- Current technical contract still uses legacy `journal` naming in code and endpoint paths.
+- Current backend model covers specialist-side private workbook only (`therapist + client` scoped record).
+- Client-owned workbook / fully role-separated dual-workbook model is not implemented yet and must not be assumed by future changes.
 
 ## Product decision: session execution and meeting links
 
@@ -52,6 +59,27 @@ Future direction:
 
 Latest increment (2026-03-19):
 
+- Client dashboard now has a dedicated `Запити до бронювання` discoverability card for inquiry entrypoints (client side).
+- Dashboard inquiry card explicitly supports 4 role-safe states without mixing inquiry and chat semantics:
+  - not started (`can_create_inquiry = true`) -> `Поставити запитання`;
+  - existing inquiry (`inquiry_exists = true`) -> `Відкрити запит`;
+  - unavailable/blocked state -> explanatory status without action CTA;
+  - `ACTIVE_CLIENT` -> `Відкрити повний чат` (`/client/chat?therapist_id=...`) instead of inquiry CTA.
+- Scope guardrail: this slice is a dashboard discoverability layer only; canonical inquiry flow remains in `/client/inquiries/:specialistId` and on the public specialist inquiry surface (`/specialist/:slug#inquiry` via redirect), with no inquiry contract changes.
+- Added in-app 5-minute pre-session toast reminders for both roles with role-aware primary CTA routing:
+  - specialist -> `/cabinet/sessions/:id`;
+  - client -> `/client/sessions/:id`.
+- Reminder CTA model now supports optional secondary `Приєднатися` action when `meeting_url` is valid and `join_available !== false`; otherwise only detail navigation is shown.
+- Current dedupe strategy is session-scoped in `sessionStorage` and intentionally suppresses repeated reminders in the same browser session for the same role/session pair.
+- `TherapistSessionsView` post-completion modal is now split into two parallel sections:
+  - `Нотатки після сесії` (session-scoped note, saved to `/cabinet/sessions/{id}/note/`);
+  - `Робочий зошит` (persistent role-scoped workbook, currently saved from specialist flow to `/cabinet/clients/{client_id}/journal/`).
+- `Робочий зошит` is a long-term private working document of one interaction side. The UI term is shared for both roles, but data must stay owner-scoped and role-separated by default.
+- Product guardrail: do not treat workbook data as a single shared note for a specialist-client pair. Preferred backend modeling is owner-separated records/fields (or explicit `author_role` + `visibility`) to prevent accidental cross-role exposure.
+- UI copy in the modal now consistently uses this split: session-scoped notes remain local to a specific session, while `Робочий зошит` is a long-lived private workbook of the current role/side and must not be treated as a shared document between specialist and client.
+- `TherapistSessionsView.spec.ts` now asserts the visible modal labels (`Нотатки після сесії`, `Робочий зошит`) after completion flow.
+- Added dedicated frontend API wrappers for workbook load/save in `src/lib/specialistSessions.ts` (technical endpoint remains `/cabinet/clients/{client_id}/journal/` in current contract).
+- Updated specialist sessions regression tests to assert both note sources are loaded in the post-complete modal.
 - Fixed Django migration graph crash in backend by correcting dependency app label in `sessions/migrations/0014_clientjournal.py` (`sessions` -> `consult_sessions`).
 - Client dashboard UX was simplified:
   - moved `Обрані спеціалісти` section above other content;
@@ -172,8 +200,20 @@ Latest increment (2026-03-19):
 
 ## Changed files
 
-Latest increment (2026-03-19):
+Latest task file list:
 
+- `src/views/ClientDashboardView.vue`
+- `src/views/ClientDashboardView.spec.ts`
+- `docs/HANDOFF.md`
+- `src/App.vue`
+- `src/stores/toast.ts`
+- `src/composables/useToast.ts`
+- `src/components/ToastHost.vue`
+- `src/__tests__/app.spec.ts`
+- `docs/HANDOFF.md`
+- `src/lib/specialistSessions.ts`
+- `src/views/TherapistSessionsView.vue`
+- `src/views/TherapistSessionsView.spec.ts`
 - `../backend/sessions/migrations/0014_clientjournal.py`
 - `src/views/ClientDashboardView.vue`
 - `src/views/ClientDashboardView.spec.ts`
@@ -225,6 +265,13 @@ npm run test:run -- src/views/TherapistSessionDetailView.spec.ts
 npm run test:run
 ```
 
+Latest dashboard inquiry discoverability validation:
+
+```powershell
+cd ../frontend
+npm run test:run -- src/views/ClientDashboardView.spec.ts
+```
+
 Additional focused checks run in this increment:
 
 ```powershell
@@ -247,14 +294,14 @@ npm run typecheck
 
 - No open work from this handoff update; all current frontend tests pass locally.
 - Run full frontend suite once before release commit (only focused suites were rerun in the latest increment).
-- Complete and validate the in-progress backend `ClientJournal` slice end-to-end (API wiring/tests/migration apply) before merging backend branch.
+- Complete and validate the in-progress backend workbook slice end-to-end (API wiring/tests/migration apply) before merging backend branch; current endpoint naming still uses `journal` as a legacy contract detail.
+- Finalize UX naming to avoid ambiguity between public specialist content and private client notes (current working labels are functional but still under product discussion).
 - Google Meet auto-creation requires valid Google credentials/config (`service account` + delegated user) to produce real links in runtime; otherwise feature degrades safely to no auto-link.
 - Backend-confirmed specialist-side editing for `meeting_url` / `meeting_provider` is still deferred until a canonical mutation endpoint and ownership rules are exposed to the frontend.
 - Reminder surfaces beyond the bell feed should only be expanded if backend adds more stable join-enabled payloads; this slice intentionally avoided inventing reminder entrypoints.
 - Add richer CRM workflows: bulk actions and a deeper client profile view.
 - Expand system-level empty/loading/error states across remaining views, including `CabinetView`, once the backend contract for error semantics is stable enough to avoid frontend-only taxonomies.
 - Clarify future billing and entitlements states if backend support for live billing is introduced.
-- Inquiry MVP does not yet have dedicated client dashboard discoverability outside the public specialist profile.
 - Booking/session-adjacent areas that still do not consume this contract remain intentionally deferred in this patch: group-event error normalization, notes/reviews-specific errors, and detail-based validation for some filter params.
 
 ## Risks / open questions
@@ -265,10 +312,11 @@ npm run typecheck
 - The frontend now consumes `meeting_url` / optional `meeting_provider` on session and notification payloads, but specialist-side editing is intentionally not wired until backend exposes a canonical write contract.
 - Join CTA visibility is intentionally narrow: only actionable session statuses with a valid external URL render `Приєднатися`; if backend adds time-window or role-specific gating later, the shared helper should absorb it.
 - Reminder join CTA currently ships through the existing notification bell/feed only; if product later needs dedicated reminder pages or push payload deep-links, those should follow the same backend gating contract instead of duplicating rules.
+- Pre-session toast dedupe now keys by `pre_session_toast:{role}:{sessionId}:{startAt}`, which keeps reloads non-spammy while allowing a fresh reminder after reschedule with unchanged `sessionId`.
 - Specialist-session list/detail parity now covers the active confirm/cancel/reschedule/approve/decline/complete branches plus stale confirm/complete rejection, but stale-cancel or future backend-only lifecycle branches would still need new matrix coverage if introduced.
 - Public slot browsing now aligns selected local days with the backend UTC-boundary contract, but any future backend timezone/locale parameter would still be cleaner than frontend range translation.
 - Public-profile chat surfacing currently infers message availability from existing chat threads; if backend relation rules change, a dedicated capability flag may still be worth adding later.
-- Inquiry messaging is intentionally bounded and non-realtime: no attachments, no dashboard card surfacing, and no unified inbox with full chat.
+- Inquiry messaging is intentionally bounded and non-realtime: no attachments and no unified inbox with full chat; the dashboard card is discoverability-only and not a thread surface.
 - Client inquiry notification deep-links currently resolve `specialist_id -> public_slug` through the public specialists catalog on demand; if catalog visibility rules or pagination assumptions change, that redirect path may need a dedicated backend resolver later.
 - The new post-follow-up copy is derived in `PublicProfileView` from thread message history plus backend flags; if backend later exposes a dedicated reason/state for this step, the UI logic should be simplified to consume that directly.
 - Authenticated clients are now steered away from raw external contact links on the public profile; public and non-client visitors still see direct contacts if the specialist exposed them.

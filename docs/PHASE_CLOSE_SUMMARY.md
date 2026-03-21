@@ -38,6 +38,9 @@ Future direction:
 
 Latest addendum (2026-03-19):
 
+- Specialist post-session modal now uses two separate note tracks:
+  - session-level `Підсумок/Нотатка після сесії`,
+  - persistent specialist private notes per client (`/cabinet/clients/{client_id}/journal/`).
 - Fixed specialist/client pre-start live-status regressions: `Сесія триває` now depends on factual session slot window, not join-window opening.
 - Applied the same slot-first live rule in:
   - `ClientDashboardView`,

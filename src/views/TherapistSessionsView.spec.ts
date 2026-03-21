@@ -10,11 +10,13 @@ import {
   createRecurringSpecialistSessions,
   declineSpecialistRescheduleRequest,
   fetchSpecialistAvailableSlots,
+  fetchSpecialistClientJournalContent,
   fetchSpecialistRescheduleRequests,
   fetchSpecialistRescheduleSuggestions,
   fetchSpecialistSessionNoteContent,
   formatSessionDateTime,
   rescheduleSpecialistSession,
+  saveSpecialistClientJournal,
 } from '../lib/specialistSessions'
 import TherapistSessionsView from './TherapistSessionsView.vue'
 
@@ -60,10 +62,12 @@ vi.mock('../lib/specialistSessions', async () => {
     createRecurringSpecialistSessions: vi.fn(),
     declineSpecialistRescheduleRequest: vi.fn(),
     fetchSpecialistAvailableSlots: vi.fn(),
+    fetchSpecialistClientJournalContent: vi.fn(),
     fetchSpecialistRescheduleRequests: vi.fn(),
     fetchSpecialistRescheduleSuggestions: vi.fn(),
     fetchSpecialistSessionNoteContent: vi.fn(),
     rescheduleSpecialistSession: vi.fn(),
+    saveSpecialistClientJournal: vi.fn(),
     saveSpecialistSessionNote: vi.fn(),
   }
 })
@@ -77,10 +81,12 @@ const mockedConfirmSpecialistSession = vi.mocked(confirmSpecialistSession)
 const mockedCreateRecurringSpecialistSessions = vi.mocked(createRecurringSpecialistSessions)
 const mockedDeclineSpecialistRescheduleRequest = vi.mocked(declineSpecialistRescheduleRequest)
 const mockedFetchSpecialistAvailableSlots = vi.mocked(fetchSpecialistAvailableSlots)
+const mockedFetchSpecialistClientJournalContent = vi.mocked(fetchSpecialistClientJournalContent)
 const mockedFetchSpecialistRescheduleRequests = vi.mocked(fetchSpecialistRescheduleRequests)
 const mockedFetchSpecialistRescheduleSuggestions = vi.mocked(fetchSpecialistRescheduleSuggestions)
 const mockedFetchSpecialistSessionNoteContent = vi.mocked(fetchSpecialistSessionNoteContent)
 const mockedRescheduleSpecialistSession = vi.mocked(rescheduleSpecialistSession)
+const mockedSaveSpecialistClientJournal = vi.mocked(saveSpecialistClientJournal)
 
 function buildSession(overrides: Record<string, unknown> = {}) {
   return {
@@ -148,10 +154,12 @@ describe('TherapistSessionsView', () => {
     mockedCreateRecurringSpecialistSessions.mockReset()
     mockedDeclineSpecialistRescheduleRequest.mockReset()
     mockedFetchSpecialistAvailableSlots.mockReset()
+    mockedFetchSpecialistClientJournalContent.mockReset()
     mockedFetchSpecialistRescheduleRequests.mockReset()
     mockedFetchSpecialistRescheduleSuggestions.mockReset()
     mockedFetchSpecialistSessionNoteContent.mockReset()
     mockedRescheduleSpecialistSession.mockReset()
+    mockedSaveSpecialistClientJournal.mockReset()
     mockToast.show.mockReset()
     mockToast.success.mockReset()
     mockToast.error.mockReset()
@@ -163,6 +171,7 @@ describe('TherapistSessionsView', () => {
       photo_url: 'https://example.com/photo.jpg',
     } as Awaited<ReturnType<typeof fetchSpecialistProfile>>)
     mockedFetchSpecialistAvailableSlots.mockResolvedValue([])
+    mockedFetchSpecialistClientJournalContent.mockResolvedValue('')
     mockedFetchSpecialistRescheduleRequests.mockResolvedValue([])
     mockedFetchSpecialistRescheduleSuggestions.mockResolvedValue([])
     mockedFetchSpecialistSessionNoteContent.mockResolvedValue('')
@@ -550,6 +559,10 @@ describe('TherapistSessionsView', () => {
       expect(sessionId).toBe(15)
       return 'Updated completion note'
     })
+    mockedFetchSpecialistClientJournalContent.mockImplementation(async (clientId) => {
+      expect(clientId).toBe(105)
+      return 'Client journal note'
+    })
 
     try {
       renderView()
@@ -573,7 +586,11 @@ describe('TherapistSessionsView', () => {
 
       expect(promptSpy).toHaveBeenCalledTimes(1)
       expect(mockedFetchSpecialistSessionNoteContent).toHaveBeenCalledWith(15)
+      expect(mockedFetchSpecialistClientJournalContent).toHaveBeenCalledWith(105)
       expect(await screen.findByDisplayValue('Updated completion note')).toBeInTheDocument()
+      expect(await screen.findByDisplayValue('Client journal note')).toBeInTheDocument()
+      expect(screen.getByText('Нотатки після сесії')).toBeInTheDocument()
+      expect(screen.getByText('Робочий зошит')).toBeInTheDocument()
 
       const updatedCard = screen.getAllByText(/completed@example\.com/)[0]?.closest('article')
       expect(updatedCard).not.toBeNull()
@@ -647,6 +664,7 @@ describe('TherapistSessionsView', () => {
       expect(promptSpy).toHaveBeenCalledTimes(1)
       expect(document.querySelector('.form-error')).not.toBeNull()
       expect(mockedFetchSpecialistSessionNoteContent).not.toHaveBeenCalled()
+      expect(mockedFetchSpecialistClientJournalContent).not.toHaveBeenCalled()
       expect(completionButton).not.toBeDisabled()
       expect(mockedApiGet).toHaveBeenCalledTimes(2)
     } finally {

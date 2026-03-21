@@ -216,6 +216,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from './stores/auth'
 import ToastHost from './components/ToastHost.vue'
 import {
+  apiGet,
   fetchChatUnreadCount,
   fetchNotifications,
   markAllNotificationsRead as markAllNotificationsReadApi,
@@ -223,7 +224,7 @@ import {
   type NotificationFeedItem,
 } from './lib/api'
 import { formatUkDateTimeCompact } from './lib/dateTime'
-import { normalizeMeetingUrl } from './lib/sessionExecution'
+import { canJoinExternalMeeting, normalizeMeetingUrl } from './lib/sessionExecution'
 import { useToast } from './composables/useToast'
 
 const route = useRoute()
@@ -283,6 +284,19 @@ type BellNotification = {
   source_id: number | null
 }
 
+type UpcomingSessionReminder = {
+  id: number
+  status: string
+  meeting_url?: string | null
+  join_available?: boolean
+  slot?: { start_at?: string | null } | number | null
+  slot_start_at?: string | null
+}
+
+const PRE_SESSION_TOAST_WINDOW_MS = 5 * 60 * 1000
+const PRE_SESSION_TOAST_POLL_MS = 60 * 1000
+const PRE_SESSION_TOAST_STORAGE_KEY = 'consult.pre_session_toast_shown.v1'
+
 const showNotifications = ref(false)
 const showSettings = ref(false)
 const showMobileMenu = ref(false)
@@ -301,10 +315,132 @@ const notificationsPendingIds = ref<Set<string>>(new Set())
 const refreshIntervalId = ref<number | null>(null)
 const notificationsIntervalId = ref<number | null>(null)
 const chatIntervalId = ref<number | null>(null)
+const preSessionToastIntervalId = ref<number | null>(null)
 const chatUnreadCount = ref(0)
 const toast = useToast()
+const shownPreSessionToastKeys = ref<Set<string>>(loadShownPreSessionToastKeys())
 
 const upcomingCount = computed(() => auth.me?.counts?.upcoming_sessions_count ?? 0)
+
+function loadShownPreSessionToastKeys() {
+  try {
+    const raw = sessionStorage.getItem(PRE_SESSION_TOAST_STORAGE_KEY)
+    if (!raw) return new Set<string>()
+    const parsed = JSON.parse(raw)
+    if (!Array.isArray(parsed)) return new Set<string>()
+    return new Set(parsed.filter((item): item is string => typeof item === 'string'))
+  } catch {
+    return new Set<string>()
+  }
+}
+
+function saveShownPreSessionToastKeys(next: Set<string>) {
+  try {
+    sessionStorage.setItem(PRE_SESSION_TOAST_STORAGE_KEY, JSON.stringify(Array.from(next)))
+  } catch {
+    // ignore storage errors
+  }
+}
+
+function reminderSessionStartAt(session: UpcomingSessionReminder) {
+  if (session.slot && typeof session.slot === 'object') {
+    return session.slot.start_at || session.slot_start_at || null
+  }
+  return session.slot_start_at || null
+}
+
+function reminderKey(session: UpcomingSessionReminder) {
+  const rolePrefix = isSpecialist.value ? 'specialist' : isClient.value ? 'client' : 'user'
+  const startRaw = reminderSessionStartAt(session)
+  const startTimestamp = startRaw ? new Date(startRaw).getTime() : Number.NaN
+  const startPart =
+    Number.isFinite(startTimestamp) && !Number.isNaN(startTimestamp)
+      ? String(startTimestamp)
+      : startRaw || 'no-start'
+  return `${rolePrefix}:${session.id}:${startPart}`
+}
+
+function reminderDetailsRoute(sessionId: number) {
+  if (isSpecialist.value) return `/cabinet/sessions/${sessionId}`
+  return `/client/sessions/${sessionId}`
+}
+
+function reminderMessage() {
+  if (isSpecialist.value) return 'За 5 хвилин починається сесія з клієнтом.'
+  return 'За 5 хвилин починається ваша сесія.'
+}
+
+function reminderJoinAction(session: UpcomingSessionReminder) {
+  const url = normalizeMeetingUrl(session.meeting_url)
+  if (!url) return null
+  if (session.join_available === false) return null
+  if (!canJoinExternalMeeting({ status: session.status, meeting_url: url })) return null
+  return {
+    label: 'Приєднатися',
+    href: url,
+    target: '_blank' as const,
+  }
+}
+
+function shouldShowSessionReminder(session: UpcomingSessionReminder, now: number) {
+  if (!['SCHEDULED', 'CONFIRMED'].includes(session.status)) return false
+  const startRaw = reminderSessionStartAt(session)
+  if (!startRaw) return false
+  const start = new Date(startRaw).getTime()
+  if (Number.isNaN(start)) return false
+  const diff = start - now
+  return diff > 0 && diff <= PRE_SESSION_TOAST_WINDOW_MS
+}
+
+async function checkUpcomingSessionReminders() {
+  if (!isAuthenticated.value) return
+  if (!isSpecialist.value && !isClient.value) return
+
+  try {
+    const sessions = await apiGet<UpcomingSessionReminder[]>('/booking/sessions/', {
+      params: { upcoming: true },
+    })
+    const now = Date.now()
+    const eligible = (sessions || [])
+      .filter((session) => shouldShowSessionReminder(session, now))
+      .sort((a, b) => {
+        const aStart = new Date(reminderSessionStartAt(a) || '').getTime()
+        const bStart = new Date(reminderSessionStartAt(b) || '').getTime()
+        return aStart - bStart
+      })
+
+    eligible.forEach((session) => {
+      const key = reminderKey(session)
+      if (shownPreSessionToastKeys.value.has(key)) return
+
+      const actions = [
+        {
+          label: 'Відкрити деталі',
+          to: reminderDetailsRoute(session.id),
+        },
+      ]
+      const joinAction = reminderJoinAction(session)
+      if (joinAction) {
+        actions.push(joinAction)
+      }
+
+      toast.show({
+        type: 'info',
+        title: 'Нагадування',
+        message: reminderMessage(),
+        actions,
+        duration: 10000,
+      })
+
+      const next = new Set(shownPreSessionToastKeys.value)
+      next.add(key)
+      shownPreSessionToastKeys.value = next
+      saveShownPreSessionToastKeys(next)
+    })
+  } catch {
+    // silent: reminder polling should not block shell behavior
+  }
+}
 
 function formatDateTime(value?: string | null) {
   return formatUkDateTimeCompact(value, '')
@@ -672,10 +808,25 @@ function stopChatPolling() {
   chatIntervalId.value = null
 }
 
+function startPreSessionToastPolling() {
+  if (preSessionToastIntervalId.value !== null) return
+  checkUpcomingSessionReminders()
+  preSessionToastIntervalId.value = window.setInterval(() => {
+    checkUpcomingSessionReminders()
+  }, PRE_SESSION_TOAST_POLL_MS)
+}
+
+function stopPreSessionToastPolling() {
+  if (preSessionToastIntervalId.value === null) return
+  window.clearInterval(preSessionToastIntervalId.value)
+  preSessionToastIntervalId.value = null
+}
+
 function handleVisibilityChange() {
   if (document.visibilityState === 'visible') {
     refreshMe()
     refreshNotifications()
+    checkUpcomingSessionReminders()
   }
 }
 
@@ -719,6 +870,7 @@ onMounted(() => {
     startMePolling()
     startNotificationsPolling()
     startChatPolling()
+    startPreSessionToastPolling()
   }
   document.addEventListener('click', handleGlobalClick)
   document.addEventListener('keydown', handleGlobalKeydown)
@@ -729,6 +881,7 @@ onBeforeUnmount(() => {
   stopMePolling()
   stopNotificationsPolling()
   stopChatPolling()
+  stopPreSessionToastPolling()
   document.removeEventListener('click', handleGlobalClick)
   document.removeEventListener('keydown', handleGlobalKeydown)
   document.removeEventListener('visibilitychange', handleVisibilityChange)
@@ -739,10 +892,12 @@ watch(isAuthenticated, (value) => {
     startMePolling()
     startNotificationsPolling()
     startChatPolling()
+    startPreSessionToastPolling()
   } else {
     stopMePolling()
     stopNotificationsPolling()
     stopChatPolling()
+    stopPreSessionToastPolling()
     notificationsFeed.value = []
     notificationsLoaded.value = false
   }

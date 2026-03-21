@@ -52,11 +52,11 @@
         {{ statusGuidance }}
       </div>
 
-      <div v-if="meetingUrl" class="detail-notice detail-notice--meeting">
+      <div v-if="showMeetingSection" class="detail-notice detail-notice--meeting">
         <div class="meeting-row">
           <div>
             <div class="detail-label">Онлайн-зустріч</div>
-            <div class="detail-value">{{ meetingProvider }}</div>
+            <div class="detail-value">{{ meetingTitle }}</div>
             <div class="muted meeting-hint">{{ meetingHint }}</div>
           </div>
           <div class="meeting-actions">
@@ -69,7 +69,7 @@
             >
               Приєднатися
             </a>
-            <button class="btn btn--ghost btn--sm" type="button" @click="copyMeetingLink">
+            <button v-if="meetingUrl" class="btn btn--ghost btn--sm" type="button" @click="copyMeetingLink">
               Скопіювати посилання
             </button>
           </div>
@@ -224,15 +224,34 @@ const rescheduleSuggestions = ref<RescheduleSuggestion[]>([])
 const selectedSuggestionSlotId = ref<number | null>(null)
 const canReschedule = (status: string) => status === 'SCHEDULED' || status === 'CONFIRMED'
 const meetingUrl = computed(() => normalizeMeetingUrl(session.value?.meeting_url))
+const isActiveSession = computed(() =>
+  session.value ? ['SCHEDULED', 'CONFIRMED'].includes(session.value.status) : false
+)
+const showMeetingSection = computed(() =>
+  Boolean(session.value && (meetingUrl.value || isActiveSession.value))
+)
+const isJoinUnavailableYet = computed(() =>
+  Boolean(session.value && meetingUrl.value && isActiveSession.value && session.value.join_available === false)
+)
 const canJoinMeeting = computed(() =>
-  session.value ? canJoinExternalMeeting(session.value) : false
+  session.value ? canJoinExternalMeeting(session.value) && session.value.join_available !== false : false
 )
 const meetingProvider = computed(() =>
   externalMeetingProviderLabel(session.value?.meeting_provider, meetingUrl.value)
 )
+const meetingTitle = computed(() => {
+  if (!meetingUrl.value) return 'Посилання ще не додано'
+  return meetingProvider.value
+})
 const meetingHint = computed(() => {
-  if (!session.value || !meetingUrl.value) return ''
-  return externalMeetingHint(session.value)
+  if (!session.value || !meetingUrl.value) {
+    return 'Посилання на онлайн-зустріч ще не додано. Коли спеціаліст додасть посилання, тут з’явиться кнопка «Приєднатися».'
+  }
+  const baseHint = externalMeetingHint(session.value)
+  if (isJoinUnavailableYet.value) {
+    return `${baseHint} Приєднання стане доступним ближче до часу сесії.`
+  }
+  return baseHint
 })
 const followUpBookingLabel = computed(() => {
   if (!session.value?.specialist_public_slug) return ''
@@ -246,10 +265,10 @@ const followUpBookingLabel = computed(() => {
 const statusGuidance = computed(() => {
   if (!session.value) return ''
   if (session.value.status === 'CONFIRMED') {
-    return 'Сесію вже підтверджено спеціалістом. Якщо плани зміняться, завчасно надішліть запит на перенесення або скасуйте запис.'
+    return 'Сесію вже підтверджено спеціалістом. Якщо плани зміняться, завчасно надішліть запит на перенесення або скасуйте запис. Для входу в онлайн-зустріч відкрийте блок «Онлайн-зустріч» на цій сторінці та натисніть «Приєднатися».'
   }
   if (session.value.status === 'SCHEDULED') {
-    return 'Сесія ще очікує підтвердження спеціаліста. До підтвердження ви можете одразу перенести запис на інший слот або скасувати його.'
+    return 'Сесія ще очікує підтвердження спеціаліста. До підтвердження ви можете одразу перенести запис на інший слот або скасувати його. Коли спеціаліст додасть посилання, воно з’явиться в блоці «Онлайн-зустріч» на цій сторінці.'
   }
   if (session.value.status === 'COMPLETED') {
     return 'Сесію завершено. Для наступної зустрічі оберіть новий вільний слот у профілі спеціаліста.'
