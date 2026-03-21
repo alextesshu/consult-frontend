@@ -85,6 +85,21 @@
           {{ followUpBookingLabel }}
         </RouterLink>
         <button
+          v-if="canRequestMeetingLink"
+          class="btn btn--ghost"
+          type="button"
+          :disabled="meetingLinkRequestSending || meetingLinkRequestSent"
+          @click="requestMeetingLinkFromSpecialist"
+        >
+          {{
+            meetingLinkRequestSent
+              ? 'Запит надіслано'
+              : meetingLinkRequestSending
+                ? 'Надсилаємо...'
+                : 'Попросити лінк зустрічі'
+          }}
+        </button>
+        <button
           class="btn btn--ghost"
           type="button"
           :disabled="actionLoading || !canCancel(session.status)"
@@ -164,7 +179,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { apiGet, apiPatch, apiPost } from '../lib/api'
+import { apiGet, apiPatch, apiPost, fetchChatThreads, sendChatMessage } from '../lib/api'
 import {
   BOOKING_ERROR_FALLBACKS,
   BOOKING_SUCCESS_MESSAGES,
@@ -172,6 +187,7 @@ import {
   getSuggestionReasonLabel,
 } from '../lib/bookingCopy'
 import { formatUkDateTimeCompact } from '../lib/dateTime'
+import { getApiErrorMessage } from '../lib/errors'
 import {
   canJoinExternalMeeting,
   externalMeetingHint,
@@ -222,6 +238,8 @@ const availableSlots = ref<PublicSlot[]>([])
 const suggestionsLoading = ref(false)
 const rescheduleSuggestions = ref<RescheduleSuggestion[]>([])
 const selectedSuggestionSlotId = ref<number | null>(null)
+const meetingLinkRequestSending = ref(false)
+const meetingLinkRequestSent = ref(false)
 const canReschedule = (status: string) => status === 'SCHEDULED' || status === 'CONFIRMED'
 const meetingUrl = computed(() => normalizeMeetingUrl(session.value?.meeting_url))
 const isActiveSession = computed(() =>
@@ -260,6 +278,10 @@ const followUpBookingLabel = computed(() => {
     return 'Обрати новий слот'
   }
   return ''
+})
+const canRequestMeetingLink = computed(() => {
+  if (!session.value || meetingUrl.value || !isActiveSession.value) return false
+  return Number.isInteger(session.value.specialist_id) && session.value.specialist_id > 0
 })
 
 const statusGuidance = computed(() => {
@@ -343,6 +365,31 @@ async function copyMeetingLink() {
   }
 }
 
+async function requestMeetingLinkFromSpecialist() {
+  if (!session.value || !canRequestMeetingLink.value || meetingLinkRequestSending.value) return
+  meetingLinkRequestSending.value = true
+  error.value = ''
+  try {
+    const threads = await fetchChatThreads()
+    const thread = threads.find((item) => item.therapist_id === session.value?.specialist_id)
+    if (!thread) {
+      error.value = 'Не вдалося надіслати запит: активний чат зі спеціалістом не знайдено.'
+      return
+    }
+    const dateLabel = formatDateTime(session.value.slot_start_at)
+    const message = dateLabel
+      ? `Будь ласка, надішліть посилання на онлайн-зустріч для сесії ${dateLabel}.`
+      : 'Будь ласка, надішліть посилання на онлайн-зустріч для нашої сесії.'
+    await sendChatMessage(thread.id, message)
+    meetingLinkRequestSent.value = true
+    toast.success('Запит на посилання надіслано спеціалісту.')
+  } catch (err: any) {
+    error.value = getApiErrorMessage(err, 'Не вдалося надіслати запит на посилання. Спробуйте ще раз.')
+  } finally {
+    meetingLinkRequestSending.value = false
+  }
+}
+
 function formatDateTime(value?: string | null) {
   return formatUkDateTimeCompact(value)
 }
@@ -380,6 +427,9 @@ async function loadSession() {
   try {
     const resp = await apiGet<SessionDetail>(`/booking/sessions/${sessionId.value}/`)
     session.value = resp
+    if (meetingUrl.value) {
+      meetingLinkRequestSent.value = false
+    }
   } catch (err: any) {
     error.value = getBookingErrorMessage(err, BOOKING_ERROR_FALLBACKS.loadSession)
   } finally {

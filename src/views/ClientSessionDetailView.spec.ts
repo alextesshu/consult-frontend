@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { apiGet, apiPost } from '../lib/api'
+import { apiGet, apiPost, fetchChatThreads, sendChatMessage } from '../lib/api'
 import ClientSessionDetailView from './ClientSessionDetailView.vue'
 
 const mockRoute = {
@@ -39,10 +39,14 @@ vi.mock('../lib/api', () => ({
   apiGet: vi.fn(),
   apiPatch: vi.fn(),
   apiPost: vi.fn(),
+  fetchChatThreads: vi.fn(),
+  sendChatMessage: vi.fn(),
 }))
 
 const mockedApiGet = vi.mocked(apiGet)
 const mockedApiPost = vi.mocked(apiPost)
+const mockedFetchChatThreads = vi.mocked(fetchChatThreads)
+const mockedSendChatMessage = vi.mocked(sendChatMessage)
 
 function makeSession(status: string, overrides: Record<string, unknown> = {}) {
   return {
@@ -50,6 +54,9 @@ function makeSession(status: string, overrides: Record<string, unknown> = {}) {
     status,
     slot_start_at: '2099-06-15T10:00:00Z',
     slot_end_at: '2099-06-15T10:50:00Z',
+    specialist_id: 8,
+    specialist_name: 'Олена',
+    specialist_email: 'therapist@example.com',
     therapist: 8,
     therapist_name: 'Олена',
     therapist_email: 'therapist@example.com',
@@ -86,6 +93,8 @@ describe('ClientSessionDetailView', () => {
     mockToast.info.mockReset()
     mockedApiGet.mockReset()
     mockedApiPost.mockReset()
+    mockedFetchChatThreads.mockReset()
+    mockedSendChatMessage.mockReset()
   })
 
   it('shows confirmed-session guidance and request-based reschedule copy', async () => {
@@ -329,6 +338,68 @@ describe('ClientSessionDetailView', () => {
     expect(
       within(meetingBlock as HTMLElement).queryByRole('button', { name: 'Скопіювати посилання' })
     ).not.toBeInTheDocument()
+  })
+
+  it('sends a chat request to specialist for adding meeting link', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/sessions/55/') {
+        return makeSession('CONFIRMED', {
+          specialist_id: 8,
+          meeting_url: null,
+          meeting_provider: null,
+          join_available: false,
+        })
+      }
+
+      if (url === '/booking/slots/') {
+        return []
+      }
+
+      if (url === '/booking/sessions/55/reschedule-suggestions/') {
+        return { suggestions: [] }
+      }
+
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedFetchChatThreads.mockResolvedValue([
+      {
+        id: 901,
+        therapist_id: 8,
+        client_id: 21,
+        last_message_at: '2099-06-14T09:00:00Z',
+        last_message_preview: '',
+        unread_count: 0,
+        other_user: {
+          id: 8,
+          role: 'SPECIALIST',
+          display_name: 'Олена',
+          photo_url: '',
+        },
+      },
+    ] as any)
+    mockedSendChatMessage.mockResolvedValue({
+      id: 1001,
+      thread_id: 901,
+      sender_id: 21,
+      body: 'request',
+      created_at: '2099-06-14T09:01:00Z',
+    } as any)
+
+    renderView()
+
+    const requestButton = await screen.findByRole('button', { name: 'Попросити лінк зустрічі' })
+    await fireEvent.click(requestButton)
+
+    await waitFor(() => {
+      expect(mockedFetchChatThreads).toHaveBeenCalledTimes(1)
+      expect(mockedSendChatMessage).toHaveBeenCalledWith(
+        901,
+        expect.stringContaining('Будь ласка, надішліть посилання на онлайн-зустріч')
+      )
+      expect(mockToast.success).toHaveBeenCalledWith('Запит на посилання надіслано спеціалісту.')
+    })
+
+    expect(await screen.findByRole('button', { name: 'Запит надіслано' })).toBeDisabled()
   })
 
   it('explains waiting state when link exists but join is not available yet', async () => {

@@ -4,7 +4,7 @@ Last updated: 2026-03-21
 Owner: agent-maintained
 Primary use: persistent project handoff for agent-led work
 Update trigger: after each meaningful completed task
-Last agent task: normalize ClientDashboard group-events error handling with shared booking code/reason mapping, add focused regression, and sync handoff
+Last agent task: add client-side meeting-link request CTA in ClientSessionDetailView via existing chat thread flow, validate, and sync handoff
 
 Update rule:
 
@@ -59,12 +59,24 @@ Future direction:
 
 Latest increment (2026-03-21):
 
+- `ClientSessionDetailView` now shows `Попросити лінк зустрічі` for active sessions (`SCHEDULED` / `CONFIRMED`) when `meeting_url` is still missing.
+- The CTA uses existing chat contract only: it resolves the specialist thread via `fetchChatThreads()` and sends a templated request via `sendChatMessage(...)`.
+- Added explicit CTA state handling (`Надсилаємо...`, `Запит надіслано`) with disabled repeat-send and toast-based error/success feedback.
+- Added focused regression in `ClientSessionDetailView.spec.ts` for the full request flow (thread lookup, message send, success state).
+
+Previous increment (2026-03-21):
+
+- `TherapistSessionDetailView` summary action `Підтвердити` is now rendered as the primary button style (`btn`) instead of ghost style.
+- This keeps current status-action logic unchanged while improving visual hierarchy so the main confirmation CTA does not get lost among secondary actions.
+- No API or state-flow behavior changed in this tweak; only action prominence in UI.
+- Focused regression suite for specialist session detail remains green after the visual update.
+
+Earlier increment (2026-03-21):
+
 - `ClientDashboardView` group-events source now uses shared booking error normalization (`reason_code` -> `code` -> `detail`) via `getBookingErrorMessage(...)` instead of a hardcoded fallback-only branch.
 - Added `BOOKING_ERROR_FALLBACKS.loadGroupEvents` to keep group-events fallback copy centralized in `src/lib/bookingCopy.ts`.
 - Group-events error surface now aligns with sessions behavior in the same dashboard: backend coded errors (for example `OVER_LIMIT`) render canonical mapped copy.
 - Added focused regression coverage for group-events coded error mapping in `ClientDashboardView.spec.ts`.
-
-Previous increment (2026-03-21):
 
 - `CabinetView` now includes explicit `loading / error / retry` handling for the secondary cabinet snapshot derived from `/me/` (`effective_entitlements + counts`) used by access/billing and related widgets.
 - Main cabinet grid now renders only after this snapshot is ready; incomplete payloads no longer silently degrade into mixed `Н/Д`/default fallbacks for those widgets.
@@ -218,9 +230,8 @@ Latest increment (2026-03-19):
 
 Latest task file list:
 
-- `src/lib/bookingCopy.ts`
-- `src/views/ClientDashboardView.vue`
-- `src/views/ClientDashboardView.spec.ts`
+- `src/views/ClientSessionDetailView.vue`
+- `src/views/ClientSessionDetailView.spec.ts`
 - `docs/HANDOFF.md`
 
 ## Validation
@@ -228,21 +239,21 @@ Latest task file list:
 Latest task validation:
 
 ```powershell
-npm run test:run -- src/views/ClientDashboardView.spec.ts
+npm run test:run -- src/views/ClientSessionDetailView.spec.ts src/views/TherapistSessionDetailView.spec.ts
 ```
 
 Result:
 
-- `1` test file passed (`src/views/ClientDashboardView.spec.ts`)
-- `14` tests passed
+- `2` test files passed (`src/views/ClientSessionDetailView.spec.ts`, `src/views/TherapistSessionDetailView.spec.ts`)
+- `21` tests passed
 
 ## Remaining work
 
-- `ClientDashboardView` group-events source now consumes shared booking error mapping; this deferred normalization slice is completed.
-- Remaining deferred error-normalization areas are still outside this patch scope (for example notes/reviews-adjacent surfaces and filter/detail validation branches that still rely on local handling).
+- Meeting-link request CTA for client session detail is now implemented without changing backend contracts.
+- Remaining deferred error-normalization areas stay unchanged and are outside this patch scope.
 
 ## Risks / open questions
 
-- Group-events now use the same booking error dictionary as sessions; if backend introduces group-event-specific `code`/`reason_code` values not covered by the current dictionary, UI will fall back to backend `detail` or the localized fallback message.
-- Broader normalization for other deferred zones remains pending by design to keep this increment narrow.
+- CTA relies on existing chat thread availability between client and specialist; if no thread exists, the UI shows an explicit send-failure path and cannot auto-create a new thread in this slice.
+- Broader normalization for deferred error zones remains pending by design and unaffected by this patch.
 
