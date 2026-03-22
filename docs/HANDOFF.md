@@ -4,7 +4,7 @@ Last updated: 2026-03-21
 Owner: agent-maintained
 Primary use: persistent project handoff for agent-led work
 Update trigger: after each meaningful completed task
-Last agent task: add client-side meeting-link request CTA in ClientSessionDetailView via existing chat thread flow, validate, and sync handoff
+Last agent task: add explicit loading/error/empty/retry states for TherapistClientsView reminders surface, extend focused specs, and sync handoff
 
 Update rule:
 
@@ -58,13 +58,23 @@ Future direction:
 ## Done
 
 Latest increment (2026-03-21):
+- TherapistClientsView reminders surface (sessions without note) now has explicit states: loading / error / empty / retry.
+- Reminder load failures are now scoped to a dedicated remindersError state with in-panel retry instead of leaking into shared top-level error.
+- Empty reminders state now uses EmptyState, aligned with the same UI pattern as the CRM clients list section.
+- Focused regression set in TherapistClientsView.spec.ts was extended for reminders error+retry and reminders empty-state branches.
+Previous increment (2026-03-21):
+- TherapistClientsView client-list surface now has explicit states: loading / error / empty / retry.
+- List rendering now uses existing shared UI patterns (LoadingSkeleton + EmptyState) instead of mixed muted strings.
+- Retry action for list loading is explicit in-view and scoped to /cabinet/clients/ fetch.
+- Added focused regression coverage in TherapistClientsView.spec.ts for loading state, explicit error with retry, and empty state.
+Earlier increment (2026-03-21):
 
 - `ClientSessionDetailView` now shows `Попросити лінк зустрічі` for active sessions (`SCHEDULED` / `CONFIRMED`) when `meeting_url` is still missing.
 - The CTA uses existing chat contract only: it resolves the specialist thread via `fetchChatThreads()` and sends a templated request via `sendChatMessage(...)`.
 - Added explicit CTA state handling (`Надсилаємо...`, `Запит надіслано`) with disabled repeat-send and toast-based error/success feedback.
 - Added focused regression in `ClientSessionDetailView.spec.ts` for the full request flow (thread lookup, message send, success state).
 
-Previous increment (2026-03-21):
+Earlier increment (2026-03-21):
 
 - `TherapistSessionDetailView` summary action `Підтвердити` is now rendered as the primary button style (`btn`) instead of ghost style.
 - This keeps current status-action logic unchanged while improving visual hierarchy so the main confirmation CTA does not get lost among secondary actions.
@@ -230,8 +240,8 @@ Latest increment (2026-03-19):
 
 Latest task file list:
 
-- `src/views/ClientSessionDetailView.vue`
-- `src/views/ClientSessionDetailView.spec.ts`
+- `src/views/TherapistClientsView.vue`
+- `src/views/TherapistClientsView.spec.ts`
 - `docs/HANDOFF.md`
 
 ## Validation
@@ -239,21 +249,18 @@ Latest task file list:
 Latest task validation:
 
 ```powershell
-npm run test:run -- src/views/ClientSessionDetailView.spec.ts src/views/TherapistSessionDetailView.spec.ts
+npm run test:run -- src/views/TherapistClientsView.spec.ts
 ```
 
 Result:
 
-- `2` test files passed (`src/views/ClientSessionDetailView.spec.ts`, `src/views/TherapistSessionDetailView.spec.ts`)
-- `21` tests passed
+- `1` test file passed (`src/views/TherapistClientsView.spec.ts`)
+- `5` tests passed
 
 ## Remaining work
-
-- Meeting-link request CTA for client session detail is now implemented without changing backend contracts.
-- Remaining deferred error-normalization areas stay unchanged and are outside this patch scope.
+- CRM clients list and reminders surfaces in TherapistClientsView are now aligned to explicit-state standard.
+- Next narrow CRM slice is history explicit-state normalization in the same view.
 
 ## Risks / open questions
-
-- CTA relies on existing chat thread availability between client and specialist; if no thread exists, the UI shows an explicit send-failure path and cannot auto-create a new thread in this slice.
-- Broader normalization for deferred error zones remains pending by design and unaffected by this patch.
-
+- Reminders now use local error handling, but history still reports via shared top-level error, so UX parity inside TherapistClientsView is not fully complete yet.
+- Broader deferred error-normalization zones remain pending by design and unaffected by this CRM slice.
