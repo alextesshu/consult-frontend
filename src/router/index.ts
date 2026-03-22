@@ -26,6 +26,10 @@ import GroupInviteJoinView from '../views/GroupInviteJoinView.vue'
 import FaqView from '../views/FaqView.vue'
 import FeedbackPolicyView from '../views/FeedbackPolicyView.vue'
 import ClientFeedbackView from '../views/ClientFeedbackView.vue'
+import TermsView from '../views/TermsView.vue'
+import PrivacyView from '../views/PrivacyView.vue'
+import DisclaimerView from '../views/DisclaimerView.vue'
+import SupportAndDataRequestsView from '../views/SupportAndDataRequestsView.vue'
 import ForbiddenView from '../views/ForbiddenView.vue'
 import ChatView from '../views/ChatView.vue'
 import AnalyticsView from '../views/AnalyticsView.vue'
@@ -239,6 +243,15 @@ const routes = [
   { path: '/public/specialists', redirect: { name: 'public-specialists' } },
   { path: '/pricing', redirect: '/#pricing' },
   { path: '/faq', name: 'faq', component: FaqView },
+  { path: '/terms', name: 'terms', component: TermsView, meta: {} },
+  { path: '/privacy', name: 'privacy', component: PrivacyView, meta: {} },
+  { path: '/disclaimer', name: 'disclaimer', component: DisclaimerView, meta: {} },
+  {
+    path: '/support-and-data-requests',
+    name: 'support-and-data-requests',
+    component: SupportAndDataRequestsView,
+    meta: {},
+  },
   { path: '/policy/feedback', name: 'feedback-policy', component: FeedbackPolicyView },
   { path: '/403', name: 'forbidden', component: ForbiddenView },
   { path: '/:pathMatch(.*)*', redirect: '/' },

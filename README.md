@@ -150,6 +150,7 @@ Tokens are stored in localStorage and auto-refreshed via `/api/auth/token/refres
   - If `photo_url` is present but image is missing, check GCS config on backend.
   - For signed URLs (`GCS_PUBLIC=false`), refresh the page to regenerate the URL.
 - Persistent project handoff lives in `docs/HANDOFF.md` and is maintained as the current agent-facing status file.
+- Handoff governance rules live in `docs/HANDOFF_RULES.md`; closed-phase history is archived in `docs/PHASE_CLOSE_SUMMARIES.md`.
 - Online session execution in this MVP uses backend-provided external `meeting_url` plus optional `meeting_provider`; built-in video rooms are not part of the frontend runtime.
 
 ## Next Focus

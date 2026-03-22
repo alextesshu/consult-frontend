@@ -49,6 +49,12 @@
           Вже маєте акаунт?
           <RouterLink to="/login">Увійти</RouterLink>
         </p>
+        <p class="muted auth__legal">
+          Продовжуючи, ви погоджуєтеся з
+          <RouterLink to="/terms">Умовами користування</RouterLink>
+          та
+          <RouterLink to="/privacy">Політикою конфіденційності</RouterLink>.
+        </p>
       </form>
     </div>
 
@@ -142,6 +148,11 @@ async function onSubmit() {
 
 .auth__footer {
   margin-top: 12px;
+}
+
+.auth__legal {
+  margin-top: 8px;
+  font-size: 13px;
 }
 
 .auth__aside {

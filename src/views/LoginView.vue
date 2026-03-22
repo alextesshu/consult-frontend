@@ -38,6 +38,12 @@
           Вперше тут?
           <RouterLink to="/signup">Створити акаунт спеціаліста</RouterLink>
         </p>
+        <p class="muted auth__legal">
+          Продовжуючи, ви погоджуєтеся з
+          <RouterLink to="/terms">Умовами користування</RouterLink>
+          та
+          <RouterLink to="/privacy">Політикою конфіденційності</RouterLink>.
+        </p>
         <p class="muted auth__helper">
           Шукаєте спеціаліста?
           <RouterLink to="/specialists">Перейти до каталогу</RouterLink>
@@ -147,6 +153,11 @@ onMounted(() => {
 
 .auth__footer {
   margin-top: 12px;
+}
+
+.auth__legal {
+  margin-top: 8px;
+  font-size: 13px;
 }
 
 .auth__aside {

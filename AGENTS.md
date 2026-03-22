@@ -36,6 +36,8 @@ Priority references:
 
 - `docs/UI\_SHAPE\_STANDARD.md`
 - `docs/HANDOFF.md`
+- `docs/HANDOFF_RULES.md`
+- `docs/PHASE_CLOSE_SUMMARIES.md`
 
 If the task affects shared layout, forms, profile presentation, landing structure, or dashboard UX, inspect the relevant UI guidance first.
 

@@ -209,15 +209,6 @@
         </div>
       </section>
 
-      <footer class="home-footer home-footer--editorial">
-        <div class="home-footer__content">
-          <div class="home-footer__brand">Pro Consult</div>
-          <div class="home-footer__meta">
-            <span>© 2026</span>
-            <span>З повагою до практики.</span>
-          </div>
-        </div>
-      </footer>
     </div>
   </section>
 </template>
@@ -798,12 +789,6 @@ onBeforeUnmount(() => {
 .faq-card__title {
   font-weight: 600;
   margin-bottom: 6px;
-}
-
-.home-footer--editorial {
-  margin-top: 32px;
-  border-top: 1px solid var(--border);
-  padding-top: 16px;
 }
 
 @media (max-width: 960px) {

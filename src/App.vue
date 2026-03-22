@@ -200,11 +200,19 @@
       <RouterView :key="route.fullPath" />
     </main>
     <ToastHost />
-
     <footer class="footer">
-      <div>Pro Consult — Простір для спеціалістів · <RouterLink class="footer__link" to="/faq">FAQ</RouterLink></div>
+      <div class="footer__brand">
+        <span>Pro Consult — Простір для спеціалістів</span>
+        <RouterLink class="footer__link" to="/faq">FAQ</RouterLink>
+      </div>
       <div class="footer__meta">
         <span>Без комісій. Без посередників. З повагою до практики.</span>
+      </div>
+      <div class="footer__legal">
+        <RouterLink class="footer__link" to="/terms">Умови користування</RouterLink>
+        <RouterLink class="footer__link" to="/privacy">Політика конфіденційності</RouterLink>
+        <RouterLink class="footer__link" to="/disclaimer">Дисклеймер</RouterLink>
+        <RouterLink class="footer__link" to="/support-and-data-requests">Підтримка та запити щодо даних</RouterLink>
       </div>
     </footer>
   </div>
@@ -1311,8 +1319,10 @@ body.body--home .footer {
   border-top: 1px solid var(--border);
   background: transparent;
   backdrop-filter: none;
-  color: var(--muted);
-  font-size: 12px;
+  color: var(--text-2);
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.45;
 }
 
 .footer {
@@ -1321,8 +1331,17 @@ body.body--home .footer {
   gap: 12px;
   padding-top: 12px;
   border-top: 1px solid var(--border);
-  color: var(--muted);
-  font-size: 12px;
+  color: var(--text-2);
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.45;
+  flex-wrap: wrap;
+}
+
+.footer__brand {
+  display: flex;
+  gap: 10px;
+  align-items: center;
   flex-wrap: wrap;
 }
 
@@ -1333,14 +1352,22 @@ body.body--home .footer {
   flex-wrap: wrap;
 }
 
+.footer__legal {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
 .footer__link {
-  color: inherit;
+  color: var(--text);
+  font-weight: 500;
   text-decoration: underline;
-  text-decoration-color: color-mix(in srgb, var(--text) 35%, transparent);
+  text-decoration-color: color-mix(in srgb, var(--text) 55%, transparent);
+  text-underline-offset: 2px;
 }
 
 .footer__link:hover {
-  text-decoration-color: color-mix(in srgb, var(--text) 70%, transparent);
+  text-decoration-color: color-mix(in srgb, var(--text) 80%, transparent);
 }
 
 @media (max-width: 1024px) {
@@ -1485,3 +1512,4 @@ body.body--home .footer {
   }
 }
 </style>
+
