@@ -4,8 +4,8 @@ import TherapistProfileView from './TherapistProfileView.vue'
 import {
   createProfileDocument,
   deleteProfileDocument,
-  fetchSpecialistProfile,
   fetchProfileDocuments,
+  fetchSpecialistProfile,
   rotateSpecialistProfileSlug,
   updateProfileDocument,
   updateSpecialistProfile,
@@ -135,7 +135,28 @@ describe('TherapistProfileView', () => {
     expect(screen.getByText(`${window.location.origin}/specialist/specialist-anna`)).toBeInTheDocument()
   })
 
-  it('saves a normalized payload based on the current form state', async () => {
+  it('keeps sticky save bar hidden on pristine form', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValue(makeProfile())
+
+    renderView()
+
+    expect(await screen.findByDisplayValue('Анна')).toBeInTheDocument()
+    expect(screen.queryByTestId('profile-sticky-save-bar')).not.toBeInTheDocument()
+  })
+
+  it('shows sticky save bar after field change', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValue(makeProfile())
+
+    renderView()
+
+    const nameInput = (await screen.findByDisplayValue('Анна')) as HTMLInputElement
+    await fireEvent.update(nameInput, 'Анна Нова')
+
+    expect(await screen.findByTestId('profile-sticky-save-bar')).toBeInTheDocument()
+    expect(screen.getByText('Є незбережені зміни')).toBeInTheDocument()
+  })
+
+  it('saves a normalized payload via sticky save action and hides sticky bar after success', async () => {
     const profile = makeProfile()
     mockedFetchSpecialistProfile.mockResolvedValue(profile)
     mockedUpdateSpecialistProfile.mockResolvedValue(profile)
@@ -148,8 +169,8 @@ describe('TherapistProfileView', () => {
     const introPriceInput = screen.getByDisplayValue('600') as HTMLInputElement
     await fireEvent.update(introPriceInput, '')
 
-    const saveButton = screen.getByRole('button', { name: 'Зберегти зміни' })
-    await fireEvent.click(saveButton)
+    expect(await screen.findByTestId('profile-sticky-save-bar')).toBeInTheDocument()
+    await fireEvent.click(screen.getByRole('button', { name: 'Зберегти' }))
 
     await waitFor(() => {
       expect(mockedUpdateSpecialistProfile).toHaveBeenCalledTimes(1)
@@ -174,9 +195,29 @@ describe('TherapistProfileView', () => {
       })
     )
     expect(await screen.findByText('Збережено.')).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.queryByTestId('profile-sticky-save-bar')).not.toBeInTheDocument()
+    })
   })
 
-  it('blocks save when both online and offline options are disabled', async () => {
+  it('restores last saved values on cancel and hides sticky bar', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValue(makeProfile())
+
+    renderView()
+
+    const nameInput = (await screen.findByDisplayValue('Анна')) as HTMLInputElement
+    await fireEvent.update(nameInput, 'Тест зміна')
+
+    expect(await screen.findByTestId('profile-sticky-save-bar')).toBeInTheDocument()
+    await fireEvent.click(screen.getByRole('button', { name: 'Скасувати' }))
+
+    await waitFor(() => {
+      expect((screen.getByDisplayValue('Анна') as HTMLInputElement).value).toBe('Анна')
+      expect(screen.queryByTestId('profile-sticky-save-bar')).not.toBeInTheDocument()
+    })
+  })
+
+  it('keeps existing validation flow when both online and offline options are disabled', async () => {
     mockedFetchSpecialistProfile.mockResolvedValue(makeProfile())
 
     renderView()
@@ -186,10 +227,17 @@ describe('TherapistProfileView', () => {
     if (online.checked) await fireEvent.click(online)
     if (offline.checked) await fireEvent.click(offline)
 
-    await fireEvent.click(screen.getByRole('button', { name: 'Зберегти зміни' }))
+    const stickyBar = await screen.findByTestId('profile-sticky-save-bar')
+    expect(stickyBar).toBeInTheDocument()
+    await fireEvent.click(screen.getByRole('button', { name: 'Зберегти' }))
 
     expect(mockedUpdateSpecialistProfile).not.toHaveBeenCalled()
-    expect(await screen.findByText('Оберіть щонайменше один формат консультацій: онлайн або офлайн.')).toBeInTheDocument()
+    const validationError = await screen.findByText('Оберіть щонайменше один формат консультацій: онлайн або офлайн.')
+    expect(validationError).toBeInTheDocument()
+    expect(screen.getByTestId('profile-sticky-save-bar')).toHaveTextContent(
+      'Оберіть щонайменше один формат консультацій: онлайн або офлайн.'
+    )
+    expect(screen.getByDisplayValue('Анна')).toBeInTheDocument()
   })
 
   it('hides and shows offline location field based on offline availability', async () => {
@@ -209,3 +257,4 @@ describe('TherapistProfileView', () => {
     expect(await screen.findByLabelText('Локація для офлайн-зустрічей')).toBeInTheDocument()
   })
 })
+

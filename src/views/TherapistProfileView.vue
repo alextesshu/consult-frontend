@@ -22,9 +22,10 @@
     <SettingsSubnav active="profile" />
 
     <div v-if="loading" class="muted" style="margin-top: 12px;">Завантаження профілю...</div>
-    <div v-else-if="error" class="form-error" style="margin-top: 12px;">{{ error }}</div>
+    <div v-else-if="error && !profileLoaded" class="form-error" style="margin-top: 12px;">{{ error }}</div>
 
             <form v-else class="profile-grid" @submit.prevent="onSave">
+      <div v-if="error && !isDirty" class="form-error">{{ error }}</div>
       <section class="panel panel--highlight">
         <div class="panel__header">
           <div>
@@ -799,8 +800,18 @@
         </div>
       </section>
 
+      <StickySaveBar
+        v-if="isDirty"
+        data-testid="profile-sticky-save-bar"
+        :message="stickySaveMessage"
+        :error="Boolean(error)"
+        :saving="saving"
+        @cancel="onCancelChanges"
+        @save="onSave"
+      />
+
       <div class="profile-footer">
-        <button class="btn btn--primary" type="submit" :disabled="saving">
+        <button v-if="!isDirty" class="btn btn--primary" type="submit" :disabled="saving">
           {{ saving ? 'Збереження...' : 'Зберегти зміни' }}
         </button>
         <div v-if="success" class="muted">{{ success }}</div>
@@ -856,8 +867,11 @@ import {
   type SpecialistProfile,
 } from '../lib/api'
 import SettingsSubnav from '../components/SettingsSubnav.vue'
+import StickySaveBar from '../components/StickySaveBar.vue'
+import { useDirtySnapshot } from '../composables/useDirtySnapshot'
 
 const loading = ref(true)
+const profileLoaded = ref(false)
 const saving = ref(false)
 const error = ref('')
 const success = ref('')
@@ -1357,6 +1371,124 @@ const hasAnyContact = computed(
     (profile.show_viber && Boolean(profile.viber)) ||
     (profile.show_whatsapp && Boolean(profile.whatsapp))
 )
+type ProfileFormSnapshot = {
+  public_profile_enabled: boolean
+  display_name: string
+  bio_about: string
+  bio_work: string
+  bio_approach: string
+  bio_for_whom: string
+  bio_other: string
+  show_bio_about: boolean
+  show_bio_work: boolean
+  show_bio_approach: boolean
+  show_bio_for_whom: boolean
+  show_bio_other: boolean
+  offers_online: boolean
+  offers_offline: boolean
+  offline_location: string
+  experience_years: number
+  specializations: string[]
+  languages: string[]
+  location: string
+  price: string
+  price_currency: string
+  intro_duration_minutes: number
+  intro_price: string
+  intro_price_currency: string
+  contact_email: string
+  contact_phone: string
+  messenger: string
+  telegram: string
+  viber: string
+  whatsapp: string
+  show_email: boolean
+  show_phone: boolean
+  show_messenger: boolean
+  show_telegram: boolean
+  show_viber: boolean
+  show_whatsapp: boolean
+  show_video: boolean
+  show_price: boolean
+  show_intro_price: boolean
+  show_location: boolean
+  show_photo: boolean
+}
+
+function createProfileFormSnapshot(): ProfileFormSnapshot {
+  return {
+    public_profile_enabled: profile.public_profile_enabled,
+    display_name: profile.display_name || '',
+    bio_about: profile.bio_about || '',
+    bio_work: profile.bio_work || '',
+    bio_approach: profile.bio_approach || '',
+    bio_for_whom: profile.bio_for_whom || '',
+    bio_other: profile.bio_other || '',
+    show_bio_about: profile.show_bio_about,
+    show_bio_work: profile.show_bio_work,
+    show_bio_approach: profile.show_bio_approach,
+    show_bio_for_whom: profile.show_bio_for_whom,
+    show_bio_other: profile.show_bio_other,
+    offers_online: profile.offers_online,
+    offers_offline: profile.offers_offline,
+    offline_location: profile.offline_location || '',
+    experience_years: profile.experience_years,
+    specializations: [...specializationList.value],
+    languages: [...languageList.value],
+    location: profile.location || '',
+    price: profile.price || '',
+    price_currency: profile.price_currency || 'UAH',
+    intro_duration_minutes: profile.intro_duration_minutes,
+    intro_price: profile.intro_price || '',
+    intro_price_currency: profile.intro_price_currency || 'UAH',
+    contact_email: profile.contact_email || '',
+    contact_phone: profile.contact_phone || '',
+    messenger: profile.messenger || '',
+    telegram: profile.telegram || '',
+    viber: profile.viber || '',
+    whatsapp: profile.whatsapp || '',
+    show_email: profile.show_email,
+    show_phone: profile.show_phone,
+    show_messenger: profile.show_messenger,
+    show_telegram: profile.show_telegram,
+    show_viber: profile.show_viber,
+    show_whatsapp: profile.show_whatsapp,
+    show_video: profile.show_video,
+    show_price: profile.show_price,
+    show_intro_price: profile.show_intro_price,
+    show_location: profile.show_location,
+    show_photo: profile.show_photo,
+  }
+}
+
+const dirtySnapshot = useDirtySnapshot<ProfileFormSnapshot>(createProfileFormSnapshot)
+
+function applyProfileFormSnapshot(snapshot: ProfileFormSnapshot) {
+  Object.assign(profile, {
+    ...snapshot,
+    specializations: [...snapshot.specializations],
+    languages: [...snapshot.languages],
+  })
+  specializationList.value = [...snapshot.specializations]
+  languageList.value = [...snapshot.languages]
+  specializationInput.value = ''
+  showOtherSpecialization.value = false
+  otherSpecializationInput.value = ''
+  languageInput.value = ''
+}
+
+const isDirty = computed(() => dirtySnapshot.hasSavedSnapshot.value && dirtySnapshot.isDirty.value)
+
+const stickySaveMessage = computed(() => error.value || 'Є незбережені зміни')
+
+function onCancelChanges() {
+  if (saving.value) return
+  const savedSnapshot = dirtySnapshot.getSavedSnapshot()
+  if (!savedSnapshot) return
+  applyProfileFormSnapshot(savedSnapshot)
+  error.value = ''
+  success.value = ''
+}
 
 async function loadProfile() {
   loading.value = true
@@ -1366,6 +1498,7 @@ async function loadProfile() {
   documentsError.value = ''
   try {
     const profileData = await fetchSpecialistProfile()
+    profileLoaded.value = true
     Object.assign(profile, normalizeProfile(profileData))
     languageList.value = sanitizeLanguages(toList(profile.languages))
     specializationList.value = toList(profile.specializations)
@@ -1373,10 +1506,12 @@ async function loadProfile() {
     showOtherSpecialization.value = false
     otherSpecializationInput.value = ''
     languageInput.value = ''
+    dirtySnapshot.markSaved()
     setPreviewUrl(photoPreviewUrl, null)
     setPreviewUrl(videoPreviewUrl, null)
     resetDocumentForm()
   } catch (err) {
+    profileLoaded.value = false
     error.value = getApiErrorMessage(err, 'Не вдалося завантажити профіль')
   } finally {
     loading.value = false
@@ -1420,6 +1555,7 @@ async function onSave() {
     showOtherSpecialization.value = false
     otherSpecializationInput.value = ''
     languageInput.value = ''
+    dirtySnapshot.markSaved()
     success.value = 'Збережено.'
   } catch (err) {
     error.value = getApiErrorMessage(err, 'Не вдалося зберегти')
@@ -2324,5 +2460,6 @@ onMounted(() => {
     flex-direction: column;
     align-items: flex-start;
   }
+
 }
 </style>
