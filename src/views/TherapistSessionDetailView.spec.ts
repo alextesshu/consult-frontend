@@ -54,6 +54,8 @@ function buildSession(overrides: Record<string, unknown> = {}) {
     therapist: 3,
     slot_start_at: '2099-06-15T10:00:00Z',
     slot_end_at: '2099-06-15T11:00:00Z',
+    session_format: 'online',
+    offline_location: null,
     ...overrides,
   }
 }
@@ -202,6 +204,7 @@ describe('TherapistSessionDetailView', () => {
     expect(mockedApiGet).toHaveBeenCalledWith('/cabinet/sessions/reschedule-requests/')
     expect(container.querySelector('.empty-state')).not.toBeInTheDocument()
     expect(screen.getByText('Google Meet')).toBeInTheDocument()
+    expect(screen.getByText('Формат: Онлайн')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Приєднатися' })).toHaveAttribute(
       'href',
       'https://meet.google.com/therapist-room'
@@ -244,6 +247,29 @@ describe('TherapistSessionDetailView', () => {
     expect(endpointCalls('/cabinet/slots/')).toBe(2)
     expect(endpointCalls('/booking/sessions/42/reschedule-suggestions/')).toBe(2)
     expect(endpointCalls('/cabinet/sessions/reschedule-requests/')).toBe(2)
+  })
+
+  it('renders offline session format and hides online join controls', async () => {
+    const sessionDetail = buildSession({
+      status: 'CONFIRMED',
+      session_format: 'offline',
+      meeting_mode: 'OFFLINE',
+      offline_location: 'Київ, офіс 12',
+      meeting_url: 'https://meet.google.com/should-not-be-used',
+      join_available: true,
+    })
+    mockDetailContext(() => sessionDetail)
+
+    renderView()
+
+    expect(await screen.findByText('Формат: Офлайн')).toBeInTheDocument()
+    expect(screen.getByText('Локація: Київ, офіс 12')).toBeInTheDocument()
+    expect(screen.getByText('Офлайн-сесія')).toBeInTheDocument()
+    expect(
+      screen.getByText('Для офлайн-формату посилання для приєднання не використовується.')
+    ).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Приєднатися' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Змінити посилання' })).not.toBeInTheDocument()
   })
 
   it('surfaces a stale confirm target error without reloading the page context', async () => {

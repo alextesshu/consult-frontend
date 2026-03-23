@@ -243,6 +243,40 @@
             <div class="muted slot-filter__hint">
               Оберіть дату, щоб переглянути доступні вільні вікна.
             </div>
+            <div class="slot-format">
+              <div class="slot-filter__label">Формат сесії</div>
+              <div
+                v-if="needsSessionFormatChoice"
+                class="slot-format__options"
+                role="radiogroup"
+                aria-label="Формат сесії"
+              >
+                <label class="slot-format__option">
+                  <input
+                    v-model="bookingSessionFormat"
+                    type="radio"
+                    name="sessionFormat"
+                    value="online"
+                  />
+                  <span>Онлайн</span>
+                </label>
+                <label class="slot-format__option">
+                  <input
+                    v-model="bookingSessionFormat"
+                    type="radio"
+                    name="sessionFormat"
+                    value="offline"
+                  />
+                  <span>Офлайн</span>
+                </label>
+              </div>
+              <div v-else class="slot-format__fixed">
+                Формат визначено профілем: {{ sessionFormatLabelForBooking || '—' }}
+              </div>
+              <div v-if="bookingOfflineLocationHint" class="muted slot-format__hint">
+                Локація офлайн-сесій: {{ bookingOfflineLocationHint }}
+              </div>
+            </div>
           </div>
 
           <aside class="slot-info" aria-label="Умови бронювання">
@@ -749,6 +783,8 @@ import { getInquiryActionErrorMessage, mapInquiryStateToUi } from '../lib/inquir
 import {
   apiGet,
   apiPost,
+  type BookingSessionCreatePayload,
+  type SessionFormat,
   createInquiryThread,
   fetchChatThreads,
   fetchInquiryMessages,
@@ -845,12 +881,33 @@ const selectedDate = ref('')
 const slotDateInput = ref<HTMLInputElement | null>(null)
 const showAllSlots = ref(false)
 const slotsPreviewLimit = 5
+const bookingSessionFormat = ref<SessionFormat>('online')
 
 const slug = computed(() => String(route.params.slug || '').trim())
 const roles = computed(() => auth.me?.user.roles ?? auth.user?.roles ?? [])
 const isAuthenticated = computed(() => Boolean(auth.accessToken))
 const isClient = computed(() => roles.value.includes('CLIENT'))
 const canBook = computed(() => isAuthenticated.value && isClient.value)
+const hasOnlineBooking = computed(() => Boolean(profile.value?.offers_online))
+const hasOfflineBooking = computed(() => Boolean(profile.value?.offers_offline))
+const needsSessionFormatChoice = computed(
+  () => hasOnlineBooking.value && hasOfflineBooking.value
+)
+const resolvedSessionFormat = computed<SessionFormat | null>(() => {
+  if (needsSessionFormatChoice.value) return bookingSessionFormat.value
+  if (hasOnlineBooking.value && !hasOfflineBooking.value) return 'online'
+  if (!hasOnlineBooking.value && hasOfflineBooking.value) return 'offline'
+  return null
+})
+const sessionFormatLabelForBooking = computed(() => {
+  if (resolvedSessionFormat.value === 'online') return 'Онлайн'
+  if (resolvedSessionFormat.value === 'offline') return 'Офлайн'
+  return ''
+})
+const bookingOfflineLocationHint = computed(() => {
+  if (resolvedSessionFormat.value !== 'offline') return ''
+  return offlineMeetingLocation.value
+})
 const isBookingDisabled = (slotId: number) =>
   !canBook.value || bookingSlotId.value === slotId || !settingAccepted.value
 const visibleSlots = computed(() => (showAllSlots.value ? slots.value : slots.value.slice(0, slotsPreviewLimit)))
@@ -1772,7 +1829,14 @@ async function bookSlot(slotId: number) {
   bookingSlotId.value = slotId
   const bookedSlot = slots.value.find((slot) => slot.id === slotId) || null
   try {
-    await apiPost('/booking/sessions/', { slot_id: slotId, setting_accepted: true })
+    const payload: BookingSessionCreatePayload = {
+      slot_id: slotId,
+      setting_accepted: true,
+    }
+    if (resolvedSessionFormat.value) {
+      payload.session_format = resolvedSessionFormat.value
+    }
+    await apiPost('/booking/sessions/', payload)
     bookingSuccess.value = BOOKING_SUCCESS_MESSAGES.sessionBooked
     toast.success(bookingSuccess.value)
     lastBookedSlot.value = bookedSlot
@@ -1864,6 +1928,24 @@ function saveViewedSpecialist(data: PublicSpecialistProfile) {
   filtered.unshift(entry)
   persistViewedSpecialists(filtered.slice(0, 8))
 }
+
+watch(
+  [hasOnlineBooking, hasOfflineBooking],
+  ([hasOnline, hasOffline]) => {
+    if (hasOnline && !hasOffline) {
+      bookingSessionFormat.value = 'online'
+      return
+    }
+    if (!hasOnline && hasOffline) {
+      bookingSessionFormat.value = 'offline'
+      return
+    }
+    if (hasOnline && hasOffline && !['online', 'offline'].includes(bookingSessionFormat.value)) {
+      bookingSessionFormat.value = 'online'
+    }
+  },
+  { immediate: true }
+)
 
 watch(slug, () => {
   profile.value = null
@@ -2282,6 +2364,43 @@ onMounted(async () => {
 
 .slot-filter__hint {
   font-size: 11px;
+}
+
+.slot-format {
+  display: grid;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.slot-format__options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.slot-format__option {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 9px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--ink);
+  font-size: 13px;
+}
+
+.slot-format__option input {
+  margin: 0;
+}
+
+.slot-format__fixed {
+  font-size: 13px;
+  color: var(--ink);
+}
+
+.slot-format__hint {
+  font-size: 12px;
 }
 
 .slot-info {

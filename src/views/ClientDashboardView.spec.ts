@@ -106,6 +106,43 @@ describe('ClientDashboardView', () => {
     )
   })
 
+  it('shows offline format badge and hides join action for offline sessions', async () => {
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/booking/sessions/' && config?.params?.upcoming === true) {
+        return [
+          {
+            id: 188,
+            status: 'CONFIRMED',
+            specialist: 14,
+            specialist_name: 'Олена',
+            specialist_public_slug: 'olena',
+            session_format: 'offline',
+            offline_location: 'Львів, кабінет 7',
+            meeting_url: 'https://meet.google.com/offline-ignored',
+            meeting_provider: 'google_meet',
+            join_available: true,
+            slot: null,
+            slot_start_at: '2099-06-15T10:00:00Z',
+            slot_end_at: '2099-06-15T11:00:00Z',
+          },
+        ]
+      }
+      if (url === '/booking/sessions/' && config?.params?.upcoming === false) {
+        return []
+      }
+      if (url === '/booking/group-events/') {
+        return []
+      }
+      throw new Error(`Unexpected apiGet call: ${url} ${JSON.stringify(config)}`)
+    })
+
+    renderView()
+
+    expect(await screen.findAllByText('Формат: Офлайн')).not.toHaveLength(0)
+    expect(screen.getAllByText('Офлайн-сесія: Львів, кабінет 7')).not.toHaveLength(0)
+    expect(screen.queryByRole('link', { name: 'Приєднатися' })).not.toBeInTheDocument()
+  })
+
   it('shows explicit no-link state for active sessions without meeting_url', async () => {
     mockedApiGet.mockImplementation(async (url, config) => {
       if (url === '/booking/sessions/' && config?.params?.upcoming === true) {

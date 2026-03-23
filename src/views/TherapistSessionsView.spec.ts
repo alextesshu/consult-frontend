@@ -299,6 +299,39 @@ describe('TherapistSessionsView', () => {
     })
   })
 
+  it('shows offline format badge and does not render join CTA for offline sessions', async () => {
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/booking/sessions/' && (config as { params?: { upcoming?: boolean } } | undefined)?.params?.upcoming) {
+        return [
+          buildSession({
+            id: 36,
+            status: 'CONFIRMED',
+            session_format: 'offline',
+            offline_location: 'Київ, офіс 12',
+            meeting_url: 'https://meet.google.com/offline-ignored',
+            join_available: true,
+            join_starts_at: '2000-01-01T00:00:00Z',
+            join_ends_at: '2100-01-01T00:00:00Z',
+            slot_start_at: '2000-01-01T00:00:00Z',
+            slot_end_at: '2100-01-01T00:00:00Z',
+          }),
+        ]
+      }
+
+      if (url === '/booking/sessions/' && (config as { params?: { upcoming?: boolean } } | undefined)?.params?.upcoming === false) {
+        return []
+      }
+
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+    await screen.findByText('Керуйте сесіями')
+
+    expect(await screen.findAllByText('Формат: Офлайн')).not.toHaveLength(0)
+    expect(screen.queryByRole('link', { name: 'Приєднатися' })).not.toBeInTheDocument()
+  })
+
   it('shows scheduled status before start even if join window is already open', async () => {
     mockedApiGet.mockImplementation(async (url, config) => {
       if (url === '/booking/sessions/' && (config as { params?: { upcoming?: boolean } } | undefined)?.params?.upcoming) {

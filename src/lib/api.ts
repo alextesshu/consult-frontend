@@ -277,6 +277,14 @@ export type PublicTherapistProfile = {
 
 export type PublicSpecialistProfile = PublicTherapistProfile
 
+export type SessionFormat = 'online' | 'offline'
+
+export type BookingSessionCreatePayload = {
+  slot_id: number
+  setting_accepted?: boolean
+  session_format?: SessionFormat
+}
+
 export type AuthorJournalPost = {
   id: number
   category?: 'TIP' | 'EXPLAIN' | 'FAQ' | 'RESEARCH' | 'PRACTICE'

@@ -62,6 +62,8 @@ function makeSession(status: string, overrides: Record<string, unknown> = {}) {
     therapist_email: 'therapist@example.com',
     therapist_public_slug: 'olena',
     specialist_public_slug: 'olena',
+    session_format: 'online',
+    offline_location: null,
     meeting_url: 'https://meet.google.com/abc-defg-hij',
     meeting_provider: 'google_meet',
     client: 21,
@@ -143,6 +145,7 @@ describe('ClientSessionDetailView', () => {
       )
     ).toBeInTheDocument()
     expect(screen.getByText('Google Meet')).toBeInTheDocument()
+    expect(screen.getByText('Формат: Онлайн')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Приєднатися' })).toHaveAttribute(
       'href',
       'https://meet.google.com/abc-defg-hij'
@@ -338,6 +341,35 @@ describe('ClientSessionDetailView', () => {
     expect(
       within(meetingBlock as HTMLElement).queryByRole('button', { name: 'Скопіювати посилання' })
     ).not.toBeInTheDocument()
+  })
+
+  it('renders offline session format, shows location, and hides join actions', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/sessions/55/') {
+        return makeSession('CONFIRMED', {
+          session_format: 'offline',
+          offline_location: 'Львів, кабінет 7',
+          meeting_url: 'https://meet.google.com/should-not-be-used',
+          meeting_provider: 'google_meet',
+          join_available: true,
+        })
+      }
+
+      if (url === '/booking/slots/') return []
+      if (url === '/booking/sessions/55/reschedule-suggestions/') return { suggestions: [] }
+
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    expect(await screen.findByText('Формат: Офлайн')).toBeInTheDocument()
+    expect(screen.getByText('Локація: Львів, кабінет 7')).toBeInTheDocument()
+    expect(screen.getByText('Офлайн-сесія')).toBeInTheDocument()
+    expect(
+      screen.getByText('Це офлайн-формат, посилання для приєднання не потрібне.')
+    ).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Приєднатися' })).not.toBeInTheDocument()
   })
 
   it('sends a chat request to specialist for adding meeting link', async () => {

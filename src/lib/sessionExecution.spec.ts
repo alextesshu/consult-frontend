@@ -35,6 +35,14 @@ describe('sessionExecution', () => {
         meeting_url: 'https://meet.google.com/test-room',
       })
     ).toBe(false)
+
+    expect(
+      canJoinExternalMeeting({
+        status: 'CONFIRMED',
+        session_format: 'offline',
+        meeting_url: 'https://meet.google.com/test-room',
+      })
+    ).toBe(false)
   })
 
   it('builds a human hint for external meeting links', () => {

@@ -108,6 +108,7 @@
         <RouterLink class="priority-main priority-main--clickable" :to="`/client/sessions/${prioritySession.id}`">
           <div class="priority-time">{{ formatDateTime(sessionStartAt(prioritySession)) }}</div>
           <div class="muted">{{ specialistLabel(prioritySession) }}</div>
+          <div class="muted">{{ sessionFormatBadge(prioritySession) }}</div>
           <div v-if="meetingBadge(prioritySession)" class="muted">{{ meetingBadge(prioritySession) }}</div>
           <div v-if="isPriorityLive" class="status-pill status-pill--danger">Сесія триває</div>
           <div
@@ -319,6 +320,7 @@
             <div>
               <div class="session-time">{{ formatDateTime(session.slot?.start_at || session.slot_start_at) }}</div>
               <div class="muted">{{ specialistLabel(session) }}</div>
+              <div class="muted">{{ sessionFormatBadge(session) }}</div>
               <div v-if="meetingBadge(session)" class="muted">{{ meetingBadge(session) }}</div>
               <div class="muted">Статус: {{ sessionStatusLabel(session) }}</div>
             </div>
@@ -374,6 +376,7 @@
             <div>
               <div class="session-time">{{ formatDateTime(session.slot?.start_at || session.slot_start_at) }}</div>
               <div class="muted">{{ specialistLabel(session) }}</div>
+              <div class="muted">{{ sessionFormatBadge(session) }}</div>
               <div class="muted">Статус: {{ sessionStatusLabel(session) }}</div>
             </div>
             <div class="session-actions">
@@ -414,6 +417,7 @@ import {
   fetchPublicSpecialistProfile,
   type InquiryState,
   type PublicSpecialistProfile,
+  type SessionFormat,
 } from '../lib/api'
 import { BOOKING_ERROR_FALLBACKS, getBookingErrorMessage } from '../lib/bookingCopy'
 import EmptyState from '../components/EmptyState.vue'
@@ -442,6 +446,9 @@ type Session = {
   specialist_username?: string | null
   specialist_email?: string | null
   specialist_public_slug?: string | null
+  session_format?: SessionFormat | null
+  meeting_mode?: 'ONLINE' | 'OFFLINE' | null
+  offline_location?: string | null
   meeting_url?: string | null
   meeting_provider?: string | null
   join_available?: boolean
@@ -640,15 +647,37 @@ function specialistLabel(session: Session) {
   return 'Спеціаліст: —'
 }
 
+function resolveSessionFormat(session: Session): SessionFormat {
+  if (session.session_format === 'offline') return 'offline'
+  if (session.session_format === 'online') return 'online'
+  if (session.meeting_mode === 'OFFLINE') return 'offline'
+  return 'online'
+}
+
+function isOfflineSession(session: Session) {
+  return resolveSessionFormat(session) === 'offline'
+}
+
+function sessionFormatBadge(session: Session) {
+  return `Формат: ${isOfflineSession(session) ? 'Офлайн' : 'Онлайн'}`
+}
+
 function meetingUrl(session: Session) {
   return normalizeMeetingUrl(session.meeting_url)
 }
 
 function canJoinMeeting(session: Session) {
+  if (isOfflineSession(session)) return false
   return canJoinExternalMeeting(session) && session.join_available !== false
 }
 
 function meetingBadge(session: Session) {
+  if (isOfflineSession(session)) {
+    if (session.offline_location) {
+      return `Офлайн-сесія: ${session.offline_location}`
+    }
+    return ''
+  }
   const url = meetingUrl(session)
   if (!url) {
     if (['SCHEDULED', 'CONFIRMED'].includes(session.status)) {

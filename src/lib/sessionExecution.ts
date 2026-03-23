@@ -1,4 +1,5 @@
 import { formatUkTime } from './dateTime'
+import type { SessionFormat } from './api'
 
 type SessionSlot = {
   start_at?: string | null
@@ -10,6 +11,9 @@ export type SessionExecutionLike = {
   slot?: SessionSlot | number | null
   slot_start_at?: string | null
   slot_end_at?: string | null
+  session_format?: SessionFormat | null
+  meeting_mode?: 'ONLINE' | 'OFFLINE' | null
+  offline_location?: string | null
   meeting_url?: string | null
   meeting_provider?: string | null
 }
@@ -42,9 +46,17 @@ export function hasExternalMeetingLink(session: Pick<SessionExecutionLike, 'meet
   return Boolean(normalizeMeetingUrl(session.meeting_url))
 }
 
-export function canJoinExternalMeeting(
-  session: Pick<SessionExecutionLike, 'status' | 'meeting_url'>
+function isOfflineSession(
+  session: Pick<SessionExecutionLike, 'session_format' | 'meeting_mode'>
 ) {
+  if (session.session_format === 'offline') return true
+  return session.meeting_mode === 'OFFLINE'
+}
+
+export function canJoinExternalMeeting(
+  session: Pick<SessionExecutionLike, 'status' | 'meeting_url' | 'session_format' | 'meeting_mode'>
+) {
+  if (isOfflineSession(session)) return false
   return ACTIVE_SESSION_STATUSES.has(session.status) && hasExternalMeetingLink(session)
 }
 

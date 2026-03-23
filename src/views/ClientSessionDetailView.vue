@@ -28,6 +28,13 @@
           <div class="detail-value">{{ formatDuration(session.slot_start_at, session.slot_end_at) }}</div>
         </div>
         <div class="detail-card">
+          <div class="detail-label">Формат</div>
+          <div class="detail-value">Формат: {{ sessionFormatLabel }}</div>
+          <div v-if="offlineLocation" class="muted" style="font-size: 12px;">
+            Локація: {{ offlineLocation }}
+          </div>
+        </div>
+        <div class="detail-card">
           <div class="detail-label">Спеціаліст</div>
           <div class="detail-value">
             {{ specialistLabel(session) }}
@@ -50,6 +57,18 @@
       </div>
       <div v-if="statusGuidance" class="detail-notice">
         {{ statusGuidance }}
+      </div>
+
+      <div v-if="isOfflineSession" class="detail-notice detail-notice--meeting">
+        <div class="meeting-row">
+          <div>
+            <div class="detail-label">Офлайн-сесія</div>
+            <div class="detail-value">
+              {{ offlineLocation || 'Локацію спеціаліст повідомить додатково.' }}
+            </div>
+            <div class="muted meeting-hint">Це офлайн-формат, посилання для приєднання не потрібне.</div>
+          </div>
+        </div>
       </div>
 
       <div v-if="showMeetingSection" class="detail-notice detail-notice--meeting">
@@ -179,7 +198,15 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { apiGet, apiPatch, apiPost, fetchChatThreads, sendChatMessage } from '../lib/api'
+import {
+  apiGet,
+  apiPatch,
+  apiPost,
+  fetchChatThreads,
+  sendChatMessage,
+  type BookingSessionCreatePayload,
+  type SessionFormat,
+} from '../lib/api'
 import {
   BOOKING_ERROR_FALLBACKS,
   BOOKING_SUCCESS_MESSAGES,
@@ -205,6 +232,9 @@ type SessionDetail = {
   specialist_username?: string | null
   specialist_email?: string | null
   specialist_public_slug?: string | null
+  session_format?: SessionFormat | null
+  meeting_mode?: 'ONLINE' | 'OFFLINE' | null
+  offline_location?: string | null
   meeting_url?: string | null
   meeting_provider?: string | null
   join_available?: boolean
@@ -241,18 +271,44 @@ const selectedSuggestionSlotId = ref<number | null>(null)
 const meetingLinkRequestSending = ref(false)
 const meetingLinkRequestSent = ref(false)
 const canReschedule = (status: string) => status === 'SCHEDULED' || status === 'CONFIRMED'
+
+function normalizeSessionFormat(detail: SessionDetail | null): SessionFormat {
+  if (!detail) return 'online'
+  if (detail.session_format === 'offline') return 'offline'
+  if (detail.session_format === 'online') return 'online'
+  if (detail.meeting_mode === 'OFFLINE') return 'offline'
+  return 'online'
+}
+
+const sessionFormat = computed<SessionFormat>(() => normalizeSessionFormat(session.value))
+const isOfflineSession = computed(() => sessionFormat.value === 'offline')
+const sessionFormatLabel = computed(() => (isOfflineSession.value ? 'Офлайн' : 'Онлайн'))
+const offlineLocation = computed(() => {
+  if (!isOfflineSession.value) return ''
+  return (session.value?.offline_location || '').trim()
+})
 const meetingUrl = computed(() => normalizeMeetingUrl(session.value?.meeting_url))
 const isActiveSession = computed(() =>
   session.value ? ['SCHEDULED', 'CONFIRMED'].includes(session.value.status) : false
 )
 const showMeetingSection = computed(() =>
-  Boolean(session.value && (meetingUrl.value || isActiveSession.value))
+  Boolean(session.value && !isOfflineSession.value && (meetingUrl.value || isActiveSession.value))
 )
 const isJoinUnavailableYet = computed(() =>
-  Boolean(session.value && meetingUrl.value && isActiveSession.value && session.value.join_available === false)
+  Boolean(
+    session.value &&
+      !isOfflineSession.value &&
+      meetingUrl.value &&
+      isActiveSession.value &&
+      session.value.join_available === false
+  )
 )
 const canJoinMeeting = computed(() =>
-  session.value ? canJoinExternalMeeting(session.value) && session.value.join_available !== false : false
+  session.value
+    ? !isOfflineSession.value &&
+      canJoinExternalMeeting(session.value) &&
+      session.value.join_available !== false
+    : false
 )
 const meetingProvider = computed(() =>
   externalMeetingProviderLabel(session.value?.meeting_provider, meetingUrl.value)
@@ -280,16 +336,22 @@ const followUpBookingLabel = computed(() => {
   return ''
 })
 const canRequestMeetingLink = computed(() => {
-  if (!session.value || meetingUrl.value || !isActiveSession.value) return false
+  if (!session.value || isOfflineSession.value || meetingUrl.value || !isActiveSession.value) return false
   return Number.isInteger(session.value.specialist_id) && session.value.specialist_id > 0
 })
 
 const statusGuidance = computed(() => {
   if (!session.value) return ''
   if (session.value.status === 'CONFIRMED') {
+    if (isOfflineSession.value) {
+      return 'Сесію вже підтверджено спеціалістом. Якщо плани зміняться, завчасно надішліть запит на перенесення або скасуйте запис.'
+    }
     return 'Сесію вже підтверджено спеціалістом. Якщо плани зміняться, завчасно надішліть запит на перенесення або скасуйте запис. Для входу в онлайн-зустріч відкрийте блок «Онлайн-зустріч» на цій сторінці та натисніть «Приєднатися».'
   }
   if (session.value.status === 'SCHEDULED') {
+    if (isOfflineSession.value) {
+      return 'Сесія ще очікує підтвердження спеціаліста. До підтвердження ви можете одразу перенести запис на інший слот або скасувати його.'
+    }
     return 'Сесія ще очікує підтвердження спеціаліста. До підтвердження ви можете одразу перенести запис на інший слот або скасувати його. Коли спеціаліст додасть посилання, воно з’явиться в блоці «Онлайн-зустріч» на цій сторінці.'
   }
   if (session.value.status === 'COMPLETED') {
@@ -488,7 +550,11 @@ async function rescheduleTo(slotId: number) {
   actionLoading.value = true
   error.value = ''
   try {
-    await apiPost('/booking/sessions/', { slot_id: slotId })
+    const payload: BookingSessionCreatePayload = {
+      slot_id: slotId,
+      session_format: sessionFormat.value,
+    }
+    await apiPost('/booking/sessions/', payload)
     await apiPatch(`/booking/sessions/${session.value.id}/cancel/`)
     toast.success(BOOKING_SUCCESS_MESSAGES.sessionRescheduled)
     await loadSession()

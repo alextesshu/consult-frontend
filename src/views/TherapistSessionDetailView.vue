@@ -77,6 +77,11 @@
             <div class="detail-value">{{ formatDuration(sessionStartAt(session), sessionEndAt(session)) }}</div>
           </div>
           <div class="detail-card">
+            <div class="detail-label">Формат</div>
+            <div class="detail-value">Формат: {{ sessionFormatLabel }}</div>
+            <div v-if="offlineLocation" class="muted detail-meta">Локація: {{ offlineLocation }}</div>
+          </div>
+          <div class="detail-card">
             <div class="detail-label">Клієнт</div>
             <div class="detail-value">
               {{ clientLabel(session) }}
@@ -97,7 +102,7 @@
           </div>
         </div>
         <div
-          v-if="meetingUrl || isEditingMeetingLink || ['SCHEDULED', 'CONFIRMED'].includes(session.status)"
+          v-if="!isOfflineSession && (meetingUrl || isEditingMeetingLink || ['SCHEDULED', 'CONFIRMED'].includes(session.status))"
           class="meeting-card"
         >
           <div v-if="!isEditingMeetingLink">
@@ -158,6 +163,13 @@
                 Скасувати
               </button>
             </template>
+          </div>
+        </div>
+        <div v-else-if="isOfflineSession" class="meeting-card">
+          <div>
+            <div class="detail-label">Офлайн-сесія</div>
+            <div class="detail-value">{{ offlineLocation || 'Локацію узгоджено зі спеціалістом.' }}</div>
+            <div class="muted detail-meta">Для офлайн-формату посилання для приєднання не використовується.</div>
           </div>
         </div>
       </section>
@@ -367,7 +379,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { apiGet, updateSpecialistSessionMeeting } from '../lib/api'
+import { apiGet, updateSpecialistSessionMeeting, type SessionFormat } from '../lib/api'
 import {
   BOOKING_ERROR_FALLBACKS,
   BOOKING_SUCCESS_MESSAGES,
@@ -428,6 +440,8 @@ type SessionDetail = {
   client_name?: string | null
   client_email?: string | null
   therapist: number
+  session_format?: SessionFormat | null
+  offline_location?: string | null
   therapist_username?: string | null
   meeting_mode?: 'ONLINE' | 'OFFLINE'
   meeting_url?: string | null
@@ -469,9 +483,24 @@ const recurringResult = ref<SpecialistRecurringSummary | null>(null)
 const isEditingMeetingLink = ref(false)
 const meetingLinkDraft = ref('')
 
+function normalizeSessionFormat(detail: SessionDetail | null): SessionFormat {
+  if (!detail) return 'online'
+  if (detail.session_format === 'offline') return 'offline'
+  if (detail.session_format === 'online') return 'online'
+  if (detail.meeting_mode === 'OFFLINE') return 'offline'
+  return 'online'
+}
+
+const sessionFormat = computed<SessionFormat>(() => normalizeSessionFormat(session.value))
+const isOfflineSession = computed(() => sessionFormat.value === 'offline')
+const sessionFormatLabel = computed(() => (isOfflineSession.value ? 'Офлайн' : 'Онлайн'))
+const offlineLocation = computed(() => {
+  if (!isOfflineSession.value) return ''
+  return (session.value?.offline_location || '').trim()
+})
 const meetingUrl = computed(() => normalizeMeetingUrl(session.value?.meeting_url))
 const canJoinMeeting = computed(() =>
-  Boolean(session.value?.join_available && meetingUrl.value)
+  Boolean(!isOfflineSession.value && session.value?.join_available && meetingUrl.value)
 )
 const meetingProvider = computed(() =>
   externalMeetingProviderLabel(session.value?.meeting_provider, meetingUrl.value)

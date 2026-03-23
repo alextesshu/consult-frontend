@@ -57,6 +57,7 @@
             <div class="muted">
               Клієнт: {{ prioritySession.client_name || prioritySession.client_username || `#${prioritySession.client}` }}
             </div>
+            <div class="muted">{{ sessionFormatBadge(prioritySession) }}</div>
             <div v-if="isPriorityLive" class="status-pill status-pill--danger">Сесія триває</div>
             <div v-else class="status-pill" :class="statusClass(prioritySession)">
               {{ statusLabel(prioritySession) }}
@@ -157,6 +158,7 @@
               <div class="muted">
                 Клієнт: {{ session.client_name || session.client_username || `#${session.client}` }}
               </div>
+              <div class="muted">{{ sessionFormatBadge(session) }}</div>
               <div v-if="session.client_email" class="muted">Пошта: {{ session.client_email }}</div>
               <div class="status-pill" :class="statusClass(session)">
                 {{ statusLabel(session) }}
@@ -447,6 +449,7 @@
             <div class="muted">
               Клієнт: {{ session.client_name || session.client_username || `#${session.client}` }}
             </div>
+            <div class="muted">{{ sessionFormatBadge(session) }}</div>
             <div v-if="session.client_email" class="muted">Пошта: {{ session.client_email }}</div>
             <div class="status-pill" :class="statusClass(session)">
               {{ statusLabel(session) }}
@@ -544,7 +547,7 @@
 <script setup lang="ts">
 import { computed, onMounted, onBeforeUnmount, ref, watch, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
-import { apiGet, fetchSpecialistProfile, type SpecialistProfile } from '../lib/api'
+import { apiGet, fetchSpecialistProfile, type SessionFormat, type SpecialistProfile } from '../lib/api'
 import {
   BOOKING_ERROR_FALLBACKS,
   BOOKING_SUCCESS_MESSAGES,
@@ -601,6 +604,9 @@ type Session = {
   slot: number | null
   slot_start_at: string | null
   slot_end_at: string | null
+  session_format?: SessionFormat | null
+  meeting_mode?: 'ONLINE' | 'OFFLINE' | null
+  offline_location?: string | null
   meeting_url?: string | null
   join_available?: boolean
   join_starts_at?: string | null
@@ -848,11 +854,29 @@ function meetingUrl(session: Session) {
   return normalizeMeetingUrl(session.meeting_url)
 }
 
+function resolveSessionFormat(session: Session): SessionFormat {
+  if (session.session_format === 'offline') return 'offline'
+  if (session.session_format === 'online') return 'online'
+  if (session.meeting_mode === 'OFFLINE') return 'offline'
+  return 'online'
+}
+
+function isOfflineSession(session: Session) {
+  return resolveSessionFormat(session) === 'offline'
+}
+
+function sessionFormatBadge(session: Session) {
+  return `Формат: ${isOfflineSession(session) ? 'Офлайн' : 'Онлайн'}`
+}
+
 function canJoinMeeting(session: Session) {
+  if (isOfflineSession(session)) return false
   if (!session.join_available) return false
   if (!isSessionInProgress(session)) return false
   return canJoinExternalMeeting({
     status: session.status,
+    session_format: session.session_format,
+    meeting_mode: session.meeting_mode,
     meeting_url: session.meeting_url,
   })
 }

@@ -16,6 +16,7 @@ Frontend legal minimum baseline for controlled beta is now integrated:
 - public specialist profile polish pass: done (landing-style hero, clearer booking CTA hierarchy, improved about/materials readability)
 - specialist profile documents MVP: done (cabinet document management + public profile documents section with non-verification disclaimer)
 - profile capability fields: done (online/offline availability + offline location + completed sessions bucket display wired across cabinet/public/catalog)
+- booking/session format slice: done (booking create uses `session_format`, public booking chooser by specialist capabilities, offline sessions avoid join-link UX, format badges shown across key session surfaces)
 - next functional slice remains CRM history explicit-state normalization
 
 ## System State
@@ -38,6 +39,10 @@ Frontend legal minimum baseline for controlled beta is now integrated:
   - cabinet profile supports `offers_online`, `offers_offline`, and conditional `offline_location`
   - public specialist profile renders meeting format and conditional offline location
   - public catalog supports online/offline filters and format badges on cards
+- Session format behavior is now wired end-to-end on frontend:
+  - public booking sends normalized `session_format` (`online`/`offline`) based on specialist capability configuration
+  - when specialist supports both formats, booking shows an explicit format chooser
+  - client/specialist session details and lists expose format labels, and offline sessions do not expose misleading join-link actions
 - Current high-priority references for UI work:
   - `docs/UI_SHAPE_STANDARD.md`
   - `docs/HANDOFF.md`

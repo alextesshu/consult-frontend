@@ -180,6 +180,22 @@ function mockClientPageData() {
   })
 }
 
+function mockBookingPageDataWithSingleSlot() {
+  mockedApiGet.mockImplementation(async (url, config) => {
+    if (url === '/booking/slots/') {
+      return [buildTodayLocalSlot()]
+    }
+    if (url === '/booking/sessions/') {
+      if ((config as { params?: { upcoming?: boolean } } | undefined)?.params?.upcoming === true) {
+        return []
+      }
+      return []
+    }
+    if (url === '/public/specialists/olena/reviews/') return []
+    throw new Error(`Unexpected apiGet call: ${url}`)
+  })
+}
+
 function renderView() {
   return render(PublicProfileView, {
     global: {
@@ -419,6 +435,177 @@ describe('PublicProfileView', () => {
 
     expect(await screen.findByText(BOOKING_UI_MESSAGES.acceptSettingBeforeBooking)).toBeInTheDocument()
     expect(mockedApiPost).not.toHaveBeenCalled()
+  })
+
+  it('hides format chooser for online-only specialist and sends online session_format', async () => {
+    mockAuth.accessToken = 'token'
+    mockAuth.me = { user: { id: 7, roles: ['CLIENT'] } }
+
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(
+      buildProfile({ offers_online: true, offers_offline: false })
+    )
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedFetchInquiryState.mockResolvedValue(buildInquiryState())
+    mockBookingPageDataWithSingleSlot()
+    mockedApiPost.mockResolvedValue({})
+
+    renderView()
+
+    expect(await screen.findByText('Формат визначено профілем: Онлайн')).toBeInTheDocument()
+    expect(screen.queryByLabelText('Онлайн')).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('Офлайн')).not.toBeInTheDocument()
+
+    const bookingAgreement = screen.getAllByRole('checkbox')[0]!
+    await fireEvent.click(bookingAgreement)
+    await fireEvent.click(screen.getByRole('button', { name: 'Записатися' }))
+
+    expect(mockedApiPost).toHaveBeenCalledWith(
+      '/booking/sessions/',
+      expect.objectContaining({
+        slot_id: 100,
+        setting_accepted: true,
+        session_format: 'online',
+      })
+    )
+  })
+
+  it('hides format chooser for offline-only specialist and sends offline session_format', async () => {
+    mockAuth.accessToken = 'token'
+    mockAuth.me = { user: { id: 7, roles: ['CLIENT'] } }
+
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(
+      buildProfile({
+        offers_online: false,
+        offers_offline: true,
+        offline_location: 'Львів, кабінет 7',
+      })
+    )
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedFetchInquiryState.mockResolvedValue(buildInquiryState())
+    mockBookingPageDataWithSingleSlot()
+    mockedApiPost.mockResolvedValue({})
+
+    renderView()
+
+    expect(await screen.findByText('Формат визначено профілем: Офлайн')).toBeInTheDocument()
+    expect(screen.getByText('Локація офлайн-сесій: Львів, кабінет 7')).toBeInTheDocument()
+    expect(screen.queryByLabelText('Онлайн')).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('Офлайн')).not.toBeInTheDocument()
+
+    const bookingAgreement = screen.getAllByRole('checkbox')[0]!
+    await fireEvent.click(bookingAgreement)
+    await fireEvent.click(screen.getByRole('button', { name: 'Записатися' }))
+
+    expect(mockedApiPost).toHaveBeenCalledWith(
+      '/booking/sessions/',
+      expect.objectContaining({
+        slot_id: 100,
+        setting_accepted: true,
+        session_format: 'offline',
+      })
+    )
+  })
+
+  it('shows session format chooser when specialist supports both formats', async () => {
+    mockAuth.accessToken = 'token'
+    mockAuth.me = { user: { id: 7, roles: ['CLIENT'] } }
+
+    mockCommonPublicData()
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedFetchInquiryState.mockResolvedValue(buildInquiryState())
+    mockBookingPageDataWithSingleSlot()
+
+    renderView()
+
+    expect(await screen.findByLabelText('Онлайн')).toBeInTheDocument()
+    expect(screen.getByLabelText('Офлайн')).toBeInTheDocument()
+    expect(screen.queryByText(/Формат визначено профілем:/)).not.toBeInTheDocument()
+  })
+
+  it('sends online session_format when online option is selected for dual-format specialist', async () => {
+    mockAuth.accessToken = 'token'
+    mockAuth.me = { user: { id: 7, roles: ['CLIENT'] } }
+
+    mockCommonPublicData()
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedFetchInquiryState.mockResolvedValue(buildInquiryState())
+    mockBookingPageDataWithSingleSlot()
+    mockedApiPost.mockResolvedValue({})
+
+    renderView()
+
+    const onlineOption = await screen.findByLabelText('Онлайн')
+    await fireEvent.click(onlineOption)
+    const bookingAgreement = screen.getAllByRole('checkbox')[0]!
+    await fireEvent.click(bookingAgreement)
+    await fireEvent.click(screen.getByRole('button', { name: 'Записатися' }))
+
+    expect(mockedApiPost).toHaveBeenCalledWith(
+      '/booking/sessions/',
+      expect.objectContaining({
+        slot_id: 100,
+        setting_accepted: true,
+        session_format: 'online',
+      })
+    )
+  })
+
+  it('sends offline session_format when offline option is selected for dual-format specialist', async () => {
+    mockAuth.accessToken = 'token'
+    mockAuth.me = { user: { id: 7, roles: ['CLIENT'] } }
+
+    mockCommonPublicData()
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedFetchInquiryState.mockResolvedValue(buildInquiryState())
+    mockBookingPageDataWithSingleSlot()
+    mockedApiPost.mockResolvedValue({})
+
+    renderView()
+
+    const offlineOption = await screen.findByLabelText('Офлайн')
+    await fireEvent.click(offlineOption)
+    const bookingAgreement = screen.getAllByRole('checkbox')[0]!
+    await fireEvent.click(bookingAgreement)
+    await fireEvent.click(screen.getByRole('button', { name: 'Записатися' }))
+
+    expect(mockedApiPost).toHaveBeenCalledWith(
+      '/booking/sessions/',
+      expect.objectContaining({
+        slot_id: 100,
+        setting_accepted: true,
+        session_format: 'offline',
+      })
+    )
+  })
+
+  it('shows mapped backend validation message for session format errors', async () => {
+    mockAuth.accessToken = 'token'
+    mockAuth.me = { user: { id: 7, roles: ['CLIENT'] } }
+
+    mockCommonPublicData()
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedFetchInquiryState.mockResolvedValue(buildInquiryState())
+    mockBookingPageDataWithSingleSlot()
+    mockedApiPost.mockRejectedValue({
+      response: {
+        data: {
+          code: 'SESSION_FORMAT_REQUIRED',
+        },
+      },
+    })
+
+    renderView()
+
+    await screen.findByText('Довіра і формат')
+    const bookingAgreement = screen.getAllByRole('checkbox')[0]!
+    await fireEvent.click(bookingAgreement)
+    await fireEvent.click(await screen.findByRole('button', { name: 'Записатися' }))
+
+    expect(await screen.findByText('Оберіть формат сесії перед бронюванням.')).toBeInTheDocument()
   })
 
   it('shows slots for the selected local day even when the slot starts on the previous UTC date', async () => {
