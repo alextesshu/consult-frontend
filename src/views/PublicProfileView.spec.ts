@@ -88,11 +88,14 @@ async function flushAsyncUpdates() {
   await Promise.resolve()
 }
 
-function buildProfile() {
+function buildProfile(overrides: Record<string, unknown> = {}) {
   return {
     therapist_id: 12,
     public_slug: 'olena',
     display_name: 'Олена',
+    offers_online: true,
+    offers_offline: true,
+    offline_location: 'Київ, кабінет 14',
     bio_about: 'Працюю з тривогою.',
     bio_work: 'Онлайн у вашому темпі.',
     bio_approach: 'CBT та ACT.',
@@ -110,8 +113,20 @@ function buildProfile() {
     telegram: '@olena_help',
     photo_url: 'https://example.com/photo.jpg',
     video_url: 'https://example.com/video.mp4',
+    profile_documents: [
+      {
+        id: 41,
+        title: 'Сертифікат CBT',
+        file_url: 'https://example.com/cbt.pdf',
+        document_kind: 'CERTIFICATE',
+        uploaded_at: '2026-03-05T09:00:00Z',
+        source: 'uploaded_by_specialist',
+      },
+    ],
+    completed_sessions_count: 100,
     platform_setting_text: 'Platform setting',
     setting_text: 'Therapist setting',
+    ...overrides,
   }
 }
 
@@ -257,12 +272,114 @@ describe('PublicProfileView', () => {
     const { container } = renderView()
 
     expect(await screen.findByText('Довіра і формат')).toBeInTheDocument()
+    expect(screen.getByText('Документи та сертифікати')).toBeInTheDocument()
+    expect(screen.getByText('Сертифікат CBT')).toBeInTheDocument()
     expect(screen.getByText('Зв’язок зі спеціалістом')).toBeInTheDocument()
     expect(screen.getByText('hello@example.com')).toBeInTheDocument()
     expect(await screen.findByText('Профілактика вигорання')).toBeInTheDocument()
     expect(await screen.findByText('Що кажуть клієнти')).toBeInTheDocument()
     expect(screen.getByText('Щоб забронювати час, увійдіть у свій кабінет клієнта.')).toBeInTheDocument()
     expect(container).toHaveTextContent('Дуже уважний підхід.')
+  })
+
+  it('shows completed sessions line in the public hero only from 50+ bucket', async () => {
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(buildProfile({ completed_sessions_count: 120 }))
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/slots/') return [buildTodayLocalSlot()]
+      if (url === '/public/specialists/olena/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    expect(await screen.findByText('Проведено сесій: 100+')).toBeInTheDocument()
+  })
+
+  it('does not show completed sessions line when count is below threshold', async () => {
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(buildProfile({ completed_sessions_count: 34 }))
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/slots/') return [buildTodayLocalSlot()]
+      if (url === '/public/specialists/olena/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    await screen.findByText('Довіра і формат')
+    expect(screen.queryByText(/Проведено сесій:/i)).not.toBeInTheDocument()
+  })
+
+  it('renders online-only format in public profile', async () => {
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(
+      buildProfile({
+        offers_online: true,
+        offers_offline: false,
+        offline_location: 'Київ, кабінет 14',
+      })
+    )
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/slots/') return [buildTodayLocalSlot()]
+      if (url === '/public/specialists/olena/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    expect(await screen.findByText('Формат зустрічей: Онлайн')).toBeInTheDocument()
+    expect(screen.queryByText(/Локація офлайн-зустрічей:/i)).not.toBeInTheDocument()
+  })
+
+  it('renders offline-only format with offline location in public profile', async () => {
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(
+      buildProfile({
+        offers_online: false,
+        offers_offline: true,
+        offline_location: 'Львів, кабінет 7',
+      })
+    )
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/slots/') return [buildTodayLocalSlot()]
+      if (url === '/public/specialists/olena/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    expect(await screen.findByText('Формат зустрічей: Офлайн')).toBeInTheDocument()
+    expect(screen.getByText('Локація офлайн-зустрічей: Львів, кабінет 7')).toBeInTheDocument()
+  })
+
+  it('renders combined online and offline format in public profile', async () => {
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(
+      buildProfile({
+        offers_online: true,
+        offers_offline: true,
+      })
+    )
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/slots/') return [buildTodayLocalSlot()]
+      if (url === '/public/specialists/olena/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    expect(await screen.findByText('Формат зустрічей: Онлайн та офлайн')).toBeInTheDocument()
   })
 
   it('blocks booking for a client until setting acceptance is confirmed', async () => {
@@ -417,12 +534,13 @@ describe('PublicProfileView', () => {
 
     renderView()
 
-    const chatButtons = await screen.findAllByRole('button', { name: 'Написати повідомлення' })
-    expect(chatButtons).toHaveLength(2)
+    const chatButton = await screen.findByRole('button', { name: 'Написати повідомлення' })
+    expect(chatButton).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Написати спеціалісту' })).toBeInTheDocument()
     expect(screen.getAllByText('Мої сесії')).toHaveLength(2)
     expect(screen.queryByText('Поставити запитання')).not.toBeInTheDocument()
 
-    await fireEvent.click(chatButtons[0] as HTMLButtonElement)
+    await fireEvent.click(chatButton as HTMLButtonElement)
 
     expect(mockRouter.push).toHaveBeenCalledWith({
       name: 'client-chat',

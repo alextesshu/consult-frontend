@@ -92,6 +92,9 @@ export type TherapistProfile = {
   public_profile_enabled: boolean
   public_slug: string
   last_slug_rotated_at: string | null
+  offers_online: boolean
+  offers_offline: boolean
+  offline_location: string
   display_name: string
   bio?: string
   bio_about: string
@@ -216,10 +219,34 @@ export type BillingCheckoutSession = {
   message: string
 }
 
+export type SpecialistProfileDocument = {
+  id: number
+  title: string
+  file_url: string
+  document_kind: string
+  is_public: boolean
+  sort_order: number
+  uploaded_at: string
+  source: string
+}
+
+export type PublicSpecialistProfileDocument = {
+  id: number
+  title: string
+  file_url: string
+  document_kind: string
+  uploaded_at: string
+  source: string
+}
+
 export type PublicTherapistProfile = {
   public_slug?: string
   therapist_id: number
   display_name: string
+  completed_sessions_count?: number
+  offers_online?: boolean
+  offers_offline?: boolean
+  offline_location?: string
   bio?: string
   bio_about?: string
   bio_work?: string
@@ -245,6 +272,7 @@ export type PublicTherapistProfile = {
   video_url?: string
   platform_setting_text?: string
   setting_text?: string
+  profile_documents?: PublicSpecialistProfileDocument[]
 }
 
 export type PublicSpecialistProfile = PublicTherapistProfile
@@ -561,6 +589,56 @@ export async function updateSpecialistProfile(
   return updateTherapistProfile(payload)
 }
 
+export async function fetchProfileDocuments(): Promise<SpecialistProfileDocument[]> {
+  const resp = await http.get<SpecialistProfileDocument[]>('/cabinet/profile/documents/')
+  return resp.data
+}
+
+export async function createProfileDocument(payload: {
+  file: File
+  title: string
+  document_kind?: string
+  is_public?: boolean
+  sort_order?: number
+}): Promise<SpecialistProfileDocument> {
+  const formData = new FormData()
+  formData.append('file', payload.file)
+  formData.append('title', payload.title)
+  if (payload.document_kind) {
+    formData.append('document_kind', payload.document_kind)
+  }
+  if (typeof payload.is_public === 'boolean') {
+    formData.append('is_public', String(payload.is_public))
+  }
+  if (typeof payload.sort_order === 'number') {
+    formData.append('sort_order', String(payload.sort_order))
+  }
+  const resp = await http.post<SpecialistProfileDocument>('/cabinet/profile/documents/', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  })
+  return resp.data
+}
+
+export async function updateProfileDocument(
+  documentId: number,
+  payload: Partial<{
+    title: string
+    document_kind: string
+    is_public: boolean
+    sort_order: number
+  }>
+): Promise<SpecialistProfileDocument> {
+  const resp = await http.patch<SpecialistProfileDocument>(
+    `/cabinet/profile/documents/${documentId}/`,
+    payload
+  )
+  return resp.data
+}
+
+export async function deleteProfileDocument(documentId: number): Promise<void> {
+  await http.delete(`/cabinet/profile/documents/${documentId}/`)
+}
+
 export async function rotateTherapistProfileSlug(): Promise<TherapistProfile> {
   const resp = await http.post<TherapistProfile>('/cabinet/profile/rotate-slug/')
   return resp.data
@@ -847,6 +925,8 @@ export async function fetchPublicTherapists(
     price_min?: string
     price_max?: string
     price_currency?: string
+    offers_online?: '1'
+    offers_offline?: '1'
   }
 ): Promise<{
   results: PublicTherapistProfile[]
@@ -871,6 +951,8 @@ export async function fetchPublicSpecialists(
     price_min?: string
     price_max?: string
     price_currency?: string
+    offers_online?: '1'
+    offers_offline?: '1'
   }
 ): Promise<{
   results: PublicSpecialistProfile[]

@@ -180,6 +180,31 @@
               Локація
               <input v-model="profile.location" class="input" type="text" placeholder="Місто / країна" />
             </label>
+            <div class="field">
+              <span>Формат консультацій</span>
+              <div class="meeting-format-controls">
+                <label class="check">
+                  <input v-model="profile.offers_online" type="checkbox" />
+                  Доступно онлайн
+                </label>
+                <label class="check">
+                  <input v-model="profile.offers_offline" type="checkbox" />
+                  Доступно офлайн
+                </label>
+              </div>
+              <div class="muted" style="font-size: 12px;">
+                Оберіть щонайменше один формат.
+              </div>
+            </div>
+            <label v-if="profile.offers_offline" class="field">
+              Локація для офлайн-зустрічей
+              <input
+                v-model="profile.offline_location"
+                class="input"
+                type="text"
+                placeholder="Напр. Київ, вул. ... або назва кабінету"
+              />
+            </label>
             <label class="field">
               Досвід роботи
               <select v-model.number="profile.experience_years" class="input input--select" required>
@@ -198,8 +223,8 @@
                 v-model="profile.price"
                 class="input"
                 type="text"
-                inputmode="numeric"
-                pattern="^[0-9]*$"
+                inputmode="decimal"
+                pattern="^[0-9]*([.,][0-9]{0,2})?$"
                 placeholder="1000"
                 @input="onPriceInput"
               />
@@ -228,8 +253,8 @@
                 v-model="profile.intro_price"
                 class="input"
                 type="text"
-                inputmode="numeric"
-                pattern="^[0-9]*$"
+                inputmode="decimal"
+                pattern="^[0-9]*([.,][0-9]{0,2})?$"
                 placeholder="0"
                 @input="onIntroPriceInput"
               />
@@ -637,6 +662,143 @@
         </details>
       </section>
 
+      <section class="panel">
+        <div class="panel__header">
+          <div>
+            <div class="badge badge--soft">Крок 8</div>
+            <h2 class="panel__title">Документи та сертифікати</h2>
+            <p class="panel__hint">
+              Завантажуйте документи, які допомагають клієнтам краще зрозуміти ваш професійний шлях.
+              Ви самі вирішуєте, які з них показувати у публічному профілі.
+            </p>
+          </div>
+        </div>
+
+        <div class="documents-uploader">
+          <div class="documents-uploader__grid">
+            <label class="field">
+              Назва документа
+              <input
+                v-model="newDocumentTitle"
+                class="input"
+                type="text"
+                placeholder="Напр. Сертифікат CBT"
+              />
+            </label>
+            <label class="field">
+              Тип
+              <select v-model="newDocumentKind" class="input input--select">
+                <option v-for="kind in documentKindOptions" :key="kind.value" :value="kind.value">
+                  {{ kind.label }}
+                </option>
+              </select>
+            </label>
+            <label class="field">
+              Порядок відображення
+              <input
+                v-model="newDocumentSortOrder"
+                class="input"
+                type="number"
+                min="0"
+                step="1"
+                placeholder="0"
+              />
+            </label>
+            <label class="field">
+              Файл (PDF або зображення)
+              <input
+                ref="documentFileInput"
+                class="input input--file"
+                type="file"
+                accept="application/pdf,image/*"
+                @change="onDocumentFileSelected"
+              />
+            </label>
+          </div>
+
+          <label class="check">
+            <input v-model="newDocumentIsPublic" type="checkbox" />
+            Показувати у публічному профілі
+          </label>
+
+          <div class="documents-uploader__actions">
+            <button
+              class="btn"
+              type="button"
+              :disabled="documentUploading || !newDocumentTitle.trim() || !newDocumentFile"
+              @click="onUploadDocument"
+            >
+              {{ documentUploading ? 'Завантаження...' : 'Завантажити документ' }}
+            </button>
+            <span v-if="newDocumentFile" class="muted">Обрано: {{ newDocumentFile.name }}</span>
+          </div>
+        </div>
+
+        <div v-if="documentsNotice" class="muted">{{ documentsNotice }}</div>
+        <div v-if="documentsError" class="form-error">{{ documentsError }}</div>
+        <div v-if="documentsLoading" class="muted">Завантаження документів...</div>
+        <div v-else-if="!documents.length" class="documents-empty">
+          Документи ще не додані. Завантажте перший файл, щоб клієнти могли ознайомитися з вашим професійним профілем.
+        </div>
+        <div v-else class="documents-list">
+          <article v-for="document in documents" :key="document.id" class="documents-item">
+            <div class="documents-item__header">
+              <div class="documents-item__meta">
+                <span class="documents-kind">{{ documentKindLabel(document.document_kind) }}</span>
+                <span
+                  class="documents-visibility"
+                  :class="document.is_public ? 'documents-visibility--public' : 'documents-visibility--private'"
+                >
+                  {{ document.is_public ? 'Публічний' : 'Приватний' }}
+                </span>
+              </div>
+              <a
+                class="btn btn--ghost"
+                :href="document.file_url"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Відкрити
+              </a>
+            </div>
+
+            <div class="documents-item__grid">
+              <label class="field">
+                Назва
+                <input v-model="document.title" class="input" type="text" />
+              </label>
+              <label class="field">
+                Порядок
+                <input v-model.number="document.sort_order" class="input" type="number" min="0" step="1" />
+              </label>
+              <label class="check">
+                <input v-model="document.is_public" type="checkbox" />
+                Показувати у публічному профілі
+              </label>
+            </div>
+
+            <div class="documents-item__actions">
+              <button
+                class="btn btn--ghost"
+                type="button"
+                :disabled="updatingDocumentId === document.id || deletingDocumentId === document.id"
+                @click="onUpdateDocument(document)"
+              >
+                {{ updatingDocumentId === document.id ? 'Збереження...' : 'Зберегти' }}
+              </button>
+              <button
+                class="btn btn--danger"
+                type="button"
+                :disabled="updatingDocumentId === document.id || deletingDocumentId === document.id"
+                @click="onDeleteDocument(document.id)"
+              >
+                {{ deletingDocumentId === document.id ? 'Видалення...' : 'Видалити' }}
+              </button>
+            </div>
+          </article>
+        </div>
+      </section>
+
       <div class="profile-footer">
         <button class="btn btn--primary" type="submit" :disabled="saving">
           {{ saving ? 'Збереження...' : 'Зберегти зміни' }}
@@ -681,11 +843,16 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 import { Cropper } from 'vue-advanced-cropper'
 import {
+  createProfileDocument,
+  deleteProfileDocument,
   fetchSpecialistProfile,
+  fetchProfileDocuments,
   rotateSpecialistProfileSlug,
+  updateProfileDocument,
   updateSpecialistProfile,
   uploadProfilePhoto,
   uploadProfileVideo,
+  type SpecialistProfileDocument,
   type SpecialistProfile,
 } from '../lib/api'
 import SettingsSubnav from '../components/SettingsSubnav.vue'
@@ -708,6 +875,19 @@ const cropperSrc = ref('')
 const cropperRef = ref<any>(null)
 const cropSaving = ref(false)
 const cropFileName = ref('profile-photo.jpg')
+const documents = ref<SpecialistProfileDocument[]>([])
+const documentsLoading = ref(false)
+const documentsError = ref('')
+const documentsNotice = ref('')
+const documentUploading = ref(false)
+const updatingDocumentId = ref<number | null>(null)
+const deletingDocumentId = ref<number | null>(null)
+const documentFileInput = ref<HTMLInputElement | null>(null)
+const newDocumentTitle = ref('')
+const newDocumentKind = ref('CERTIFICATE')
+const newDocumentIsPublic = ref(true)
+const newDocumentSortOrder = ref('')
+const newDocumentFile = ref<File | null>(null)
 const languageOptions = [
   'Українська',
   'Російська',
@@ -757,6 +937,12 @@ const specializationList = ref<string[]>([])
 const showOtherSpecialization = ref(false)
 const otherSpecializationInput = ref('')
 const disallowedLanguages = new Set<string>()
+const documentKindOptions = [
+  { value: 'CERTIFICATE', label: 'Сертифікат' },
+  { value: 'DIPLOMA', label: 'Диплом' },
+  { value: 'LICENSE', label: 'Ліцензія' },
+  { value: 'OTHER', label: 'Інший документ' },
+]
 
 function setPreviewUrl(target: { value: string }, file?: File | null) {
   if (target.value) {
@@ -868,14 +1054,149 @@ function getApiErrorMessage(err: unknown, fallback: string) {
   return fallback
 }
 
+function documentKindLabel(kind: string): string {
+  const normalized = (kind || '').toUpperCase()
+  const option = documentKindOptions.find((item) => item.value === normalized)
+  if (option) return option.label
+  return normalized || 'Документ'
+}
+
+function normalizeDocument(document: SpecialistProfileDocument): SpecialistProfileDocument {
+  const parsedSortOrder = Number(document.sort_order)
+  return {
+    ...document,
+    title: (document.title || '').trim() || 'Без назви',
+    file_url: document.file_url || '',
+    document_kind: (document.document_kind || 'OTHER').toUpperCase(),
+    is_public: Boolean(document.is_public),
+    sort_order: Number.isFinite(parsedSortOrder) ? Math.max(0, Math.trunc(parsedSortOrder)) : 0,
+    uploaded_at: document.uploaded_at || '',
+    source: document.source || '',
+  }
+}
+
+function sortProfileDocuments(list: SpecialistProfileDocument[]): SpecialistProfileDocument[] {
+  return [...list].sort((a, b) => {
+    if (a.sort_order !== b.sort_order) return a.sort_order - b.sort_order
+    return new Date(b.uploaded_at || '').getTime() - new Date(a.uploaded_at || '').getTime()
+  })
+}
+
+function parseSortOrder(value: unknown): number | undefined {
+  const raw = typeof value === 'string' ? value.trim() : String(value ?? '').trim()
+  if (!raw) return undefined
+  const parsed = Number(raw)
+  if (!Number.isFinite(parsed)) return undefined
+  return Math.max(0, Math.trunc(parsed))
+}
+
+function resetDocumentForm() {
+  newDocumentTitle.value = ''
+  newDocumentKind.value = 'CERTIFICATE'
+  newDocumentIsPublic.value = true
+  newDocumentSortOrder.value = ''
+  newDocumentFile.value = null
+  if (documentFileInput.value) {
+    documentFileInput.value.value = ''
+  }
+}
+
+function onDocumentFileSelected(event: Event) {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0] || null
+  newDocumentFile.value = file
+  if (file && !newDocumentTitle.value.trim()) {
+    const fileNameWithoutExt = file.name.replace(/\.[^.]+$/, '').trim()
+    if (fileNameWithoutExt) {
+      newDocumentTitle.value = fileNameWithoutExt
+    }
+  }
+}
+
+async function onUploadDocument() {
+  const normalizedTitle = String(newDocumentTitle.value ?? '').trim()
+  if (!newDocumentFile.value || !normalizedTitle) {
+    documentsError.value = 'Додайте назву та файл документа.'
+    return
+  }
+  documentUploading.value = true
+  documentsError.value = ''
+  documentsNotice.value = ''
+  try {
+    const created = await createProfileDocument({
+      file: newDocumentFile.value,
+      title: normalizedTitle,
+      document_kind: newDocumentKind.value,
+      is_public: newDocumentIsPublic.value,
+      sort_order: parseSortOrder(newDocumentSortOrder.value),
+    })
+    documents.value = sortProfileDocuments([...documents.value, normalizeDocument(created)])
+    documentsNotice.value = 'Документ завантажено.'
+    resetDocumentForm()
+  } catch (err) {
+    documentsError.value = getApiErrorMessage(err, 'Не вдалося завантажити документ.')
+  } finally {
+    documentUploading.value = false
+  }
+}
+
+async function onUpdateDocument(document: SpecialistProfileDocument) {
+  updatingDocumentId.value = document.id
+  documentsError.value = ''
+  documentsNotice.value = ''
+  try {
+    const updated = await updateProfileDocument(document.id, {
+      title: String(document.title ?? '').trim(),
+      is_public: document.is_public,
+      sort_order: Math.max(0, Math.trunc(Number(document.sort_order) || 0)),
+    })
+    documents.value = sortProfileDocuments(
+      documents.value.map((item) => (item.id === document.id ? normalizeDocument(updated) : item))
+    )
+    documentsNotice.value = 'Документ оновлено.'
+  } catch (err) {
+    documentsError.value = getApiErrorMessage(err, 'Не вдалося оновити документ.')
+  } finally {
+    updatingDocumentId.value = null
+  }
+}
+
+async function onDeleteDocument(documentId: number) {
+  deletingDocumentId.value = documentId
+  documentsError.value = ''
+  documentsNotice.value = ''
+  try {
+    await deleteProfileDocument(documentId)
+    documents.value = documents.value.filter((item) => item.id !== documentId)
+    documentsNotice.value = 'Документ видалено.'
+  } catch (err) {
+    documentsError.value = getApiErrorMessage(err, 'Не вдалося видалити документ.')
+  } finally {
+    deletingDocumentId.value = null
+  }
+}
+
 function normalizeDecimal(value: string | number | null | undefined): string | null {
   if (value === null || value === undefined) return null
-  const text = String(value).trim()
-  return text ? text : null
+  const normalized = String(value).trim().replace(',', '.')
+  if (!normalized) return null
+  if (normalized === '.') return null
+  return normalized.endsWith('.') ? normalized.slice(0, -1) || null : normalized
 }
 
 function sanitizeNumericInput(value: string): string {
-  return value.replace(/\D+/g, '')
+  const normalized = value.replace(',', '.').replace(/[^\d.]/g, '')
+  const firstDotIndex = normalized.indexOf('.')
+  if (firstDotIndex < 0) return normalized
+
+  const integerPartRaw = normalized.slice(0, firstDotIndex)
+  const fractionalRaw = normalized.slice(firstDotIndex + 1).replace(/\./g, '')
+  const integerPart = integerPartRaw || '0'
+  const fractionalPart = fractionalRaw.slice(0, 2)
+  if (!fractionalRaw && normalized.endsWith('.')) {
+    return `${integerPart}.`
+  }
+  return fractionalPart ? `${integerPart}.${fractionalPart}` : integerPart
 }
 
 function onPriceInput(event: Event) {
@@ -910,6 +1231,9 @@ function buildProfilePayload() {
     show_bio_approach: profile.show_bio_approach,
     show_bio_for_whom: profile.show_bio_for_whom,
     show_bio_other: profile.show_bio_other,
+    offers_online: profile.offers_online,
+    offers_offline: profile.offers_offline,
+    offline_location: profile.offers_offline ? profile.offline_location.trim() : '',
     experience_years: profile.experience_years,
     specializations: specializationList.value,
     languages: languageList.value,
@@ -944,6 +1268,9 @@ const profile = reactive<SpecialistProfile>({
   public_profile_enabled: false,
   public_slug: '',
   last_slug_rotated_at: null,
+  offers_online: true,
+  offers_offline: false,
+  offline_location: '',
   display_name: '',
   bio_about: '',
   bio_work: '',
@@ -1033,10 +1360,13 @@ const hasAnyContact = computed(
 
 async function loadProfile() {
   loading.value = true
+  documentsLoading.value = true
   error.value = ''
+  documentsNotice.value = ''
+  documentsError.value = ''
   try {
-    const data = await fetchSpecialistProfile()
-    Object.assign(profile, normalizeProfile(data))
+    const profileData = await fetchSpecialistProfile()
+    Object.assign(profile, normalizeProfile(profileData))
     languageList.value = sanitizeLanguages(toList(profile.languages))
     specializationList.value = toList(profile.specializations)
     specializationInput.value = ''
@@ -1045,10 +1375,27 @@ async function loadProfile() {
     languageInput.value = ''
     setPreviewUrl(photoPreviewUrl, null)
     setPreviewUrl(videoPreviewUrl, null)
+    resetDocumentForm()
   } catch (err) {
     error.value = getApiErrorMessage(err, 'Не вдалося завантажити профіль')
   } finally {
     loading.value = false
+  }
+
+  if (error.value) {
+    documents.value = []
+    documentsLoading.value = false
+    return
+  }
+
+  try {
+    const documentData = await fetchProfileDocuments()
+    documents.value = sortProfileDocuments(documentData.map(normalizeDocument))
+  } catch (err) {
+    documents.value = []
+    documentsError.value = getApiErrorMessage(err, 'Не вдалося завантажити документи.')
+  } finally {
+    documentsLoading.value = false
   }
 }
 
@@ -1056,6 +1403,11 @@ async function onSave() {
   saving.value = true
   success.value = ''
   error.value = ''
+  if (!profile.offers_online && !profile.offers_offline) {
+    error.value = 'Оберіть щонайменше один формат консультацій: онлайн або офлайн.'
+    saving.value = false
+    return
+  }
   try {
     if (showOtherSpecialization.value && otherSpecializationInput.value.trim()) {
       addOtherSpecialization()
@@ -1156,6 +1508,9 @@ async function onVideoSelected(event: Event) {
 function normalizeProfile(data: SpecialistProfile): SpecialistProfile {
   return {
     ...data,
+    offers_online: typeof data.offers_online === 'boolean' ? data.offers_online : true,
+    offers_offline: typeof data.offers_offline === 'boolean' ? data.offers_offline : false,
+    offline_location: data.offline_location || '',
     display_name: data.display_name || '',
     bio_about: data.bio_about || '',
     bio_work: data.bio_work || '',
@@ -1760,6 +2115,13 @@ onMounted(() => {
   gap: 12px;
 }
 
+.meeting-format-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 6px 0;
+}
+
 .field--half {
   margin: 0;
 }
@@ -1770,6 +2132,109 @@ onMounted(() => {
 
 .input--select {
   min-width: 120px;
+}
+
+.documents-uploader {
+  display: grid;
+  gap: 10px;
+  border: 1px dashed var(--line);
+  border-radius: 14px;
+  padding: 12px;
+  background: #fdfaf6;
+}
+
+.documents-uploader__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.documents-uploader__actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.documents-empty {
+  border: 1px dashed var(--line);
+  border-radius: 12px;
+  padding: 12px;
+  color: var(--muted);
+  background: #fff;
+}
+
+.documents-list {
+  display: grid;
+  gap: 12px;
+}
+
+.documents-item {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 12px;
+  background: #fff;
+  display: grid;
+  gap: 10px;
+}
+
+.documents-item__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.documents-item__meta {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.documents-kind {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: #f3efe6;
+  border: 1px solid #e8dfd1;
+  font-size: 12px;
+  color: #5f5345;
+}
+
+.documents-visibility {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  border: 1px solid transparent;
+}
+
+.documents-visibility--public {
+  background: rgba(31, 122, 76, 0.12);
+  border-color: rgba(31, 122, 76, 0.22);
+  color: #1f7a4c;
+}
+
+.documents-visibility--private {
+  background: rgba(97, 102, 110, 0.12);
+  border-color: rgba(97, 102, 110, 0.2);
+  color: #4f5861;
+}
+
+.documents-item__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.documents-item__actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .is-hidden {
@@ -1843,6 +2308,11 @@ onMounted(() => {
   }
 
   .field-row {
+    grid-template-columns: 1fr;
+  }
+
+  .documents-uploader__grid,
+  .documents-item__grid {
     grid-template-columns: 1fr;
   }
 

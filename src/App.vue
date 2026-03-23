@@ -16,7 +16,12 @@
         >
           Публічний профіль
         </RouterLink>
-        <RouterLink class="nav__desktop-only" to="/faq">FAQ</RouterLink>
+        <RouterLink v-if="!isAuthenticated" class="nav__desktop-only" :to="{ path: '/', hash: '#features' }">
+          Можливості
+        </RouterLink>
+        <RouterLink v-if="!isAuthenticated" class="nav__desktop-only" :to="{ path: '/', hash: '#pricing' }">
+          Тарифи
+        </RouterLink>
         <RouterLink v-if="!isAuthenticated" to="/login">Вхід</RouterLink>
         <RouterLink v-if="!isAuthenticated" to="/signup">Реєстрація</RouterLink>
         <RouterLink
@@ -161,7 +166,6 @@
           <RouterLink v-if="isSpecialist" class="mobile-menu__item" to="/public" @click="closeMobileMenu">
             Публічний профіль
           </RouterLink>
-          <RouterLink class="mobile-menu__item" to="/faq" @click="closeMobileMenu">FAQ</RouterLink>
           <button
             v-if="isSpecialist"
             type="button"
