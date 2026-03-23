@@ -50,21 +50,33 @@
           </div>
         </div>
         <div class="priority-card">
-          <div class="priority-title">Найближча сесія</div>
-          <div v-if="nextUpcoming" class="priority-next">
-            <div class="priority-time">{{ formatDateTime(nextUpcoming.slot_start_at) }}</div>
+          <div class="priority-title">{{ isPriorityLive ? 'Сесія триває' : 'Найближча сесія' }}</div>
+          <div v-if="prioritySession" class="priority-next">
+            <RouterLink class="priority-next__main" :to="`/cabinet/sessions/${prioritySession.id}`">
+            <div class="priority-time">{{ formatDateTime(prioritySession.slot_start_at) }}</div>
             <div class="muted">
-              Клієнт: {{ nextUpcoming.client_name || nextUpcoming.client_username || `#${nextUpcoming.client}` }}
+              Клієнт: {{ prioritySession.client_name || prioritySession.client_username || `#${prioritySession.client}` }}
             </div>
-            <div class="status-pill" :class="statusClass(nextUpcoming)">
-              {{ statusLabel(nextUpcoming) }}
+            <div class="muted">{{ sessionFormatBadge(prioritySession) }}</div>
+            <div v-if="isPriorityLive" class="status-pill status-pill--danger">Сесія триває</div>
+            <div v-else class="status-pill" :class="statusClass(prioritySession)">
+              {{ statusLabel(prioritySession) }}
             </div>
-            <div v-if="timeUntilLabel(nextUpcoming)" class="status-pill status-pill--warn">
-              Початок через {{ timeUntilLabel(nextUpcoming) }}
+            <div v-if="timeUntilLabel(prioritySession)" class="status-pill status-pill--warn">
+              Початок через {{ timeUntilLabel(prioritySession) }}
             </div>
-            <RouterLink class="btn btn--ghost btn--sm" :to="`/cabinet/sessions/${nextUpcoming.id}`">
-              Деталі сесії
             </RouterLink>
+            <div class="priority-next__actions">
+              <a
+                v-if="canJoinMeeting(prioritySession)"
+                class="btn btn--sm"
+                :href="meetingUrl(prioritySession)"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Приєднатися
+              </a>
+            </div>
           </div>
           <div v-else class="muted">Немає майбутніх сесій.</div>
         </div>
@@ -146,6 +158,7 @@
               <div class="muted">
                 Клієнт: {{ session.client_name || session.client_username || `#${session.client}` }}
               </div>
+              <div class="muted">{{ sessionFormatBadge(session) }}</div>
               <div v-if="session.client_email" class="muted">Пошта: {{ session.client_email }}</div>
               <div class="status-pill" :class="statusClass(session)">
                 {{ statusLabel(session) }}
@@ -436,12 +449,22 @@
             <div class="muted">
               Клієнт: {{ session.client_name || session.client_username || `#${session.client}` }}
             </div>
+            <div class="muted">{{ sessionFormatBadge(session) }}</div>
             <div v-if="session.client_email" class="muted">Пошта: {{ session.client_email }}</div>
             <div class="status-pill" :class="statusClass(session)">
               {{ statusLabel(session) }}
             </div>
           </div>
           <div class="session-actions">
+            <button
+              v-if="session.status === 'CONFIRMED'"
+              class="btn btn--ghost btn--sm"
+              type="button"
+              :disabled="isActionLoading(session.id)"
+              @click="completeSession(session.id)"
+            >
+              Завершити
+            </button>
             <RouterLink class="btn btn--ghost btn--sm" :to="`/cabinet/sessions/${session.id}`">
               Деталі
             </RouterLink>
@@ -455,38 +478,66 @@
       <div class="note-modal__content">
         <div class="note-modal__header">
           <div>
-            <div class="note-title">Коментар після сесії</div>
-            <div class="muted">Оновіть приватну історію клієнта.</div>
+            <div class="note-title">Нотатки після сесії</div>
+            <div class="muted">Окремо ведіть нотатку по сесії та робочий зошит.</div>
           </div>
           <button class="btn btn--ghost btn--sm" type="button" @click="closeNote">
             Закрити
           </button>
         </div>
-        <div class="note-panel">
-          <label class="field">
-            <span class="note-title">Приватна історія клієнта</span>
-            <span class="note-badge">Зашифровано</span>
-            <textarea
-              v-model="noteDraft"
-              class="input note-textarea"
-              rows="5"
-              placeholder="Короткий коментар по сесії та важливі нотатки."
-            ></textarea>
-            <div class="note-helper muted">Інформація зашифрована. Доступ має лише спеціаліст.</div>
-          </label>
-          <div class="note-actions">
-            <button
-              class="btn btn--sm"
-              type="button"
-              :disabled="noteSessionId ? isNoteSaving(noteSessionId) : false"
-              @click="noteSessionId ? saveNote(noteSessionId) : null"
-            >
-              Зберегти
-            </button>
-            <button class="btn btn--ghost btn--sm" type="button" @click="closeNote">
-              Закрити
-            </button>
+        <div class="note-grid">
+          <div class="note-panel">
+            <label class="field">
+              <span class="note-title">Нотатка після сесії</span>
+              <span class="note-badge">Сесія</span>
+              <textarea
+                v-model="noteDraft"
+                class="input note-textarea"
+                rows="5"
+                placeholder="Короткий коментар по сесії та ключові спостереження."
+              ></textarea>
+              <div class="note-helper muted">Окрема нотатка саме для цієї сесії.</div>
+            </label>
+            <div class="note-actions">
+              <button
+                class="btn btn--sm"
+                type="button"
+                :disabled="noteSessionId ? isNoteSaving(noteSessionId) : false"
+                @click="noteSessionId ? saveNote(noteSessionId) : null"
+              >
+                Зберегти нотатку
+              </button>
+            </div>
           </div>
+          <div class="note-panel">
+            <label class="field">
+              <span class="note-title">Робочий зошит</span>
+              <span class="note-badge">Внутрішній</span>
+              <textarea
+                v-model="journalDraft"
+                class="input note-textarea"
+                rows="5"
+                placeholder="Довгостроковий контекст, динаміка, спостереження та план подальшої роботи."
+                :disabled="journalLoading || !journalClientId"
+              ></textarea>
+              <div class="note-helper muted">Внутрішній розділ спеціаліста, не видимий клієнту.</div>
+            </label>
+            <div class="note-actions">
+              <button
+                class="btn btn--sm"
+                type="button"
+                :disabled="journalSaving || journalLoading || !journalClientId"
+                @click="journalClientId ? saveClientJournal(journalClientId) : null"
+              >
+                Зберегти зошит
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="note-actions">
+          <button class="btn btn--ghost btn--sm" type="button" @click="closeNote">
+            Закрити
+          </button>
         </div>
       </div>
     </div>
@@ -496,7 +547,7 @@
 <script setup lang="ts">
 import { computed, onMounted, onBeforeUnmount, ref, watch, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
-import { apiGet, fetchSpecialistProfile, type SpecialistProfile } from '../lib/api'
+import { apiGet, fetchSpecialistProfile, type SessionFormat, type SpecialistProfile } from '../lib/api'
 import {
   BOOKING_ERROR_FALLBACKS,
   BOOKING_SUCCESS_MESSAGES,
@@ -515,6 +566,7 @@ import {
   fetchSpecialistAvailableSlots as fetchSpecialistAvailableSlotsData,
   fetchSpecialistRescheduleRequests as fetchSpecialistRescheduleRequestsData,
   fetchSpecialistRescheduleSuggestions as fetchSpecialistRescheduleSuggestionsData,
+  fetchSpecialistClientJournalContent as fetchSpecialistClientJournalContentData,
   fetchSpecialistSessionNoteContent as fetchSpecialistSessionNoteContentData,
   formatSessionDateTime as sharedFormatSessionDateTime,
   formatSessionDuration as sharedFormatSessionDuration,
@@ -524,6 +576,7 @@ import {
   rescheduleSpecialistSession as rescheduleSpecialistSessionAction,
   rescheduleStatusLabel as getRescheduleStatusLabel,
   saveSpecialistSessionNote as saveSpecialistSessionNoteAction,
+  saveSpecialistClientJournal as saveSpecialistClientJournalAction,
   statusClass as getStatusClass,
   statusLabel as getStatusLabel,
   suggestionReasonLabel as getSuggestionReasonLabel,
@@ -534,6 +587,7 @@ import {
   type SpecialistSessionLike,
   type SpecialistSlot,
 } from '../lib/specialistSessions'
+import { canJoinExternalMeeting, normalizeMeetingUrl } from '../lib/sessionExecution'
 import { useToast } from '../composables/useToast'
 import LoadingSkeleton from '../components/LoadingSkeleton.vue'
 import EmptyState from '../components/EmptyState.vue'
@@ -550,6 +604,13 @@ type Session = {
   slot: number | null
   slot_start_at: string | null
   slot_end_at: string | null
+  session_format?: SessionFormat | null
+  meeting_mode?: 'ONLINE' | 'OFFLINE' | null
+  offline_location?: string | null
+  meeting_url?: string | null
+  join_available?: boolean
+  join_starts_at?: string | null
+  join_ends_at?: string | null
 }
 
 type Slot = SpecialistSlot
@@ -592,6 +653,10 @@ const noteSessionId = ref<number | null>(null)
 const noteDraft = ref('')
 const noteLoading = ref<Set<number>>(new Set())
 const noteSaving = ref<Set<number>>(new Set())
+const journalClientId = ref<number | null>(null)
+const journalDraft = ref('')
+const journalLoading = ref(false)
+const journalSaving = ref(false)
 const therapistPhotoUrl = ref('')
 const rescheduleRequests = ref<RescheduleRequest[]>([])
 const requestsLoading = ref(false)
@@ -602,6 +667,9 @@ const dateFilter = ref('')
 const route = useRoute()
 const toast = useToast()
 const highlightTimeoutId = ref<number | null>(null)
+const nowTs = ref(Date.now())
+const LIVE_STATUS_REFRESH_MS = 30 * 1000
+let nowIntervalId: number | null = null
 
 const statusLabel = (session: Session) => {
   return getStatusLabel(session as SpecialistSessionLike)
@@ -637,9 +705,13 @@ const hasActiveSessionFilters = computed(
 const historySessions = computed(() => {
   const ids = new Set<number>()
   const history = [...upcoming.value, ...past.value]
-    .filter((session) =>
-      ['COMPLETED', 'CANCELLED', 'NO_SHOW'].includes(session.status)
-    )
+    .filter((session) => {
+      if (['COMPLETED', 'CANCELLED', 'NO_SHOW'].includes(session.status)) return true
+      if (session.status !== 'CONFIRMED') return false
+      const end = new Date(session.slot_end_at || '').getTime()
+      if (Number.isNaN(end)) return false
+      return end < nowTs.value
+    })
     .filter((session) => {
       if (ids.has(session.id)) return false
       ids.add(session.id)
@@ -700,6 +772,23 @@ const nextUpcoming = computed(() => {
   return items[0] || null
 })
 
+const livePrioritySession = computed(() => {
+  const items = upcomingSorted.value
+    .filter((session) => isSessionInProgress(session))
+    .slice()
+    .sort(
+      (a, b) =>
+        new Date(a.slot_start_at || '').getTime() -
+        new Date(b.slot_start_at || '').getTime()
+    )
+  return items[0] || null
+})
+
+const prioritySession = computed(() => livePrioritySession.value || nextUpcoming.value)
+const isPriorityLive = computed(() =>
+  prioritySession.value ? isSessionInProgress(prioritySession.value) : false
+)
+
 const canCancel = (status: string) => sharedCanCancel(status)
 const canReschedule = (status: string) => sharedCanReschedule(status)
 
@@ -741,6 +830,57 @@ function timeUntilLabel(session: Session) {
   return getTimeUntilLabel(session as SpecialistSessionLike)
 }
 
+function sessionJoinStartAt(session: Session) {
+  return session.slot_start_at || session.join_starts_at
+}
+
+function sessionJoinEndAt(session: Session) {
+  return session.slot_end_at || session.join_ends_at
+}
+
+function isSessionInProgress(session: Session) {
+  if (session.status !== 'CONFIRMED') return false
+  const startRaw = sessionJoinStartAt(session)
+  const endRaw = sessionJoinEndAt(session)
+  if (!startRaw || !endRaw) return false
+  const start = new Date(startRaw).getTime()
+  const end = new Date(endRaw).getTime()
+  if (Number.isNaN(start) || Number.isNaN(end)) return false
+  const now = nowTs.value
+  return now >= start && now <= end
+}
+
+function meetingUrl(session: Session) {
+  return normalizeMeetingUrl(session.meeting_url)
+}
+
+function resolveSessionFormat(session: Session): SessionFormat {
+  if (session.session_format === 'offline') return 'offline'
+  if (session.session_format === 'online') return 'online'
+  if (session.meeting_mode === 'OFFLINE') return 'offline'
+  return 'online'
+}
+
+function isOfflineSession(session: Session) {
+  return resolveSessionFormat(session) === 'offline'
+}
+
+function sessionFormatBadge(session: Session) {
+  return `Формат: ${isOfflineSession(session) ? 'Офлайн' : 'Онлайн'}`
+}
+
+function canJoinMeeting(session: Session) {
+  if (isOfflineSession(session)) return false
+  if (!session.join_available) return false
+  if (!isSessionInProgress(session)) return false
+  return canJoinExternalMeeting({
+    status: session.status,
+    session_format: session.session_format,
+    meeting_mode: session.meeting_mode,
+    meeting_url: session.meeting_url,
+  })
+}
+
 function parseSessionIdFromHash(hash: string): number | null {
   if (!hash) return null
   const match = hash.match(/session-(\d+)/)
@@ -755,6 +895,10 @@ function parseNoteIdFromHash(hash: string): number | null {
   if (!match) return null
   const id = Number(match[1])
   return Number.isFinite(id) ? id : null
+}
+
+function findSessionById(id: number): Session | null {
+  return upcoming.value.find((session) => session.id === id) || past.value.find((session) => session.id === id) || null
 }
 
 async function scrollToHighlightedSession() {
@@ -1046,6 +1190,18 @@ async function loadNote(id: number) {
   }
 }
 
+async function loadClientJournal(clientId: number) {
+  journalLoading.value = true
+  error.value = ''
+  try {
+    journalDraft.value = await fetchSpecialistClientJournalContentData(clientId)
+  } catch (err: any) {
+    error.value = getBookingErrorMessage(err, BOOKING_ERROR_FALLBACKS.loadSessionNote)
+  } finally {
+    journalLoading.value = false
+  }
+}
+
 async function saveNote(id: number) {
   setNoteSaving(id, true)
   error.value = ''
@@ -1060,15 +1216,37 @@ async function saveNote(id: number) {
   }
 }
 
+async function saveClientJournal(clientId: number) {
+  journalSaving.value = true
+  error.value = ''
+  try {
+    await saveSpecialistClientJournalAction(clientId, journalDraft.value)
+    toast.success(BOOKING_SUCCESS_MESSAGES.noteSaved)
+  } catch (err: any) {
+    error.value = getBookingErrorMessage(err, BOOKING_ERROR_FALLBACKS.saveSessionNote)
+  } finally {
+    journalSaving.value = false
+  }
+}
+
 async function openNoteModal(id: number) {
   noteSessionId.value = id
   noteDraft.value = ''
+  journalDraft.value = ''
+  const session = findSessionById(id)
+  journalClientId.value = session?.client || null
+  if (journalClientId.value) {
+    await Promise.all([loadNote(id), loadClientJournal(journalClientId.value)])
+    return
+  }
   await loadNote(id)
 }
 
 function closeNote() {
   noteSessionId.value = null
   noteDraft.value = ''
+  journalClientId.value = null
+  journalDraft.value = ''
 }
 
 async function loadRescheduleRequests() {
@@ -1120,6 +1298,9 @@ onMounted(async () => {
   await Promise.all([loadSessions(), loadSlots(), loadRescheduleRequests(), loadTherapistProfilePhoto()])
   await scrollToHighlightedSession()
   await openNoteFromHash()
+  nowIntervalId = window.setInterval(() => {
+    nowTs.value = Date.now()
+  }, LIVE_STATUS_REFRESH_MS)
 })
 
 watch(
@@ -1133,6 +1314,10 @@ watch(
 onBeforeUnmount(() => {
   if (highlightTimeoutId.value !== null) {
     window.clearTimeout(highlightTimeoutId.value)
+  }
+  if (nowIntervalId !== null) {
+    window.clearInterval(nowIntervalId)
+    nowIntervalId = null
   }
 })
 </script>
@@ -1237,6 +1422,30 @@ onBeforeUnmount(() => {
   gap: 6px;
 }
 
+.priority-next__main {
+  display: grid;
+  gap: 6px;
+  color: inherit;
+  text-decoration: none;
+  border-radius: 10px;
+  padding: 2px;
+}
+
+.priority-next__main:hover {
+  background: rgba(8, 113, 201, 0.05);
+}
+
+.priority-next__main:focus-visible {
+  outline: 2px solid rgba(31, 74, 96, 0.35);
+  outline-offset: 2px;
+}
+
+.priority-next__actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .session-filters {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -1313,8 +1522,10 @@ onBeforeUnmount(() => {
 }
 
 .status-pill--danger {
-  background: rgba(194, 75, 75, 0.18);
-  color: #a03838;
+  background: linear-gradient(135deg, #ea3e3e, #c01717);
+  color: #fff;
+  border: 1px solid rgba(154, 9, 9, 0.7);
+  box-shadow: 0 6px 14px rgba(194, 23, 23, 0.26);
 }
 
 .status-pill--new {
@@ -1463,6 +1674,12 @@ onBeforeUnmount(() => {
   border: 1px solid rgba(47, 63, 73, 0.12);
   background: #fbfbfb;
   grid-column: 1 / -1;
+}
+
+.note-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
 }
 
 .note-textarea {

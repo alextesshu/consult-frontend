@@ -10,6 +10,11 @@ export type AnalyticsInsights = {
   recommendations: Array<{ code: string; message: string }>
 }
 
+export type AnalyticsOfflineLocation = {
+  location: string
+  sessions_count: number
+}
+
 export type AnalyticsOverview = {
   range: AnalyticsRange
   analytics_level: AnalyticsLevel | string
@@ -19,6 +24,7 @@ export type AnalyticsOverview = {
   metrics: AnalyticsMetrics
   sessions_by_day: Array<{ date: string; count: number }>
   bookings_by_day: Array<{ date: string; count: number }>
+  sessions_by_offline_location: AnalyticsOfflineLocation[]
   top_weekdays: Array<{ weekday: string; count: number }>
   top_hours: Array<{ hour: string; count: number }>
   insights: AnalyticsInsights
@@ -31,6 +37,10 @@ export type AnalyticsMetrics = {
   completed_count: number
   cancelled_count: number
   rescheduled_count: number
+  online_sessions_count: number
+  offline_sessions_count: number
+  completed_online_sessions_count: number
+  completed_offline_sessions_count: number
   confirmation_rate: number | null
   completion_rate: number | null
   cancellation_rate: number | null
@@ -44,6 +54,10 @@ export function getDefaultAnalyticsMetrics(): AnalyticsMetrics {
     completed_count: 0,
     cancelled_count: 0,
     rescheduled_count: 0,
+    online_sessions_count: 0,
+    offline_sessions_count: 0,
+    completed_online_sessions_count: 0,
+    completed_offline_sessions_count: 0,
     confirmation_rate: null,
     completion_rate: null,
     cancellation_rate: null,

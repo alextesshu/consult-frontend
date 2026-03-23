@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import App from '../App.vue'
 import ClientInquiryRedirectView from '../views/ClientInquiryRedirectView.vue'
 import {
+  apiGet,
   fetchChatUnreadCount,
   fetchMe,
   fetchNotifications,
@@ -15,14 +16,16 @@ import {
 } from '../lib/api'
 import { useAuthStore } from '../stores/auth'
 
+const mockToast = {
+  show: vi.fn(),
+  success: vi.fn(),
+  error: vi.fn(),
+  warning: vi.fn(),
+  info: vi.fn(),
+}
+
 vi.mock('../composables/useToast', () => ({
-  useToast: () => ({
-    show: vi.fn(),
-    success: vi.fn(),
-    error: vi.fn(),
-    warning: vi.fn(),
-    info: vi.fn(),
-  }),
+  useToast: () => mockToast,
 }))
 
 vi.mock('../lib/api', async () => {
@@ -30,6 +33,7 @@ vi.mock('../lib/api', async () => {
 
   return {
     ...actual,
+    apiGet: vi.fn(),
     fetchChatUnreadCount: vi.fn(),
     fetchMe: vi.fn(),
     fetchNotifications: vi.fn(),
@@ -39,6 +43,7 @@ vi.mock('../lib/api', async () => {
   }
 })
 
+const mockedApiGet = vi.mocked(apiGet)
 const mockedFetchChatUnreadCount = vi.mocked(fetchChatUnreadCount)
 const mockedFetchMe = vi.mocked(fetchMe)
 const mockedFetchNotifications = vi.mocked(fetchNotifications)
@@ -87,11 +92,16 @@ async function renderWithProviders(options?: {
   roles?: string[]
   notifications?: NotificationFeedItem[]
   notificationsState?: { current: NotificationFeedItem[] }
+  upcomingSessions?: any[]
 }) {
   const routes = [
     { path: '/', component: { template: '<div>Home</div>' } },
     { path: '/login', component: { template: '<div>Login</div>' } },
     { path: '/faq', component: { template: '<div>Faq</div>' } },
+    { path: '/terms', component: { template: '<div>Terms</div>' } },
+    { path: '/privacy', component: { template: '<div>Privacy</div>' } },
+    { path: '/disclaimer', component: { template: '<div>Disclaimer</div>' } },
+    { path: '/support-and-data-requests', component: { template: '<div>Support</div>' } },
     { path: '/cabinet', component: { template: '<div>Cabinet</div>' } },
     { path: '/client', component: { template: '<div>Client</div>' } },
     { path: '/cabinet/inquiries', component: { template: '<div>Cabinet Inquiries</div>' } },
@@ -143,6 +153,12 @@ async function renderWithProviders(options?: {
     ok: true,
     marked_count: notificationsState.current.filter((item) => !item.read_at).length,
   })
+  mockedApiGet.mockImplementation(async (url, config) => {
+    if (url === '/booking/sessions/' && (config as { params?: { upcoming?: boolean } } | undefined)?.params?.upcoming) {
+      return options?.upcomingSessions ?? []
+    }
+    return []
+  })
 
   const auth = useAuthStore()
   if (roles.length) {
@@ -168,6 +184,12 @@ async function renderWithProviders(options?: {
 describe('App shell', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    sessionStorage.clear()
+    mockToast.show.mockReset()
+    mockToast.success.mockReset()
+    mockToast.error.mockReset()
+    mockToast.warning.mockReset()
+    mockToast.info.mockReset()
   })
 
   it('renders footer text', async () => {
@@ -262,6 +284,158 @@ describe('App shell', () => {
     await waitFor(() => {
       expect(router.currentRoute.value.fullPath).toBe('/client/sessions/41')
     })
+  })
+
+  it('shows a join button for reminder notifications with an external meeting link', async () => {
+    await renderWithProviders({
+      initialPath: '/client',
+      roles: ['CLIENT'],
+      notifications: [
+        buildNotification({
+          id: 'session_reminder:41',
+          code: 'session_starts_1h',
+          session_id: 41,
+          meeting_url: 'https://meet.google.com/abc-defg-hij',
+          meeting_provider: 'google_meet',
+        }),
+      ],
+    })
+
+    await fireEvent.click(screen.getByRole('button', { name: /Сповіщення/i }))
+
+    const joinLink = await screen.findByRole('link', { name: 'Приєднатися' })
+    expect(joinLink).toHaveAttribute('href', 'https://meet.google.com/abc-defg-hij')
+
+    await fireEvent.click(joinLink)
+
+    await waitFor(() => {
+      expect(mockedMarkNotificationRead).toHaveBeenCalledWith({
+        source_kind: 'session_event',
+        source_id: 1,
+      })
+    })
+  })
+
+  it('shows a 5-minute specialist pre-session toast with details and join actions', async () => {
+    const startAt = new Date(Date.now() + 4 * 60 * 1000).toISOString()
+
+    await renderWithProviders({
+      initialPath: '/cabinet',
+      roles: ['SPECIALIST'],
+      upcomingSessions: [
+        {
+          id: 77,
+          status: 'CONFIRMED',
+          slot_start_at: startAt,
+          meeting_url: 'https://meet.google.com/reminder-room',
+          join_available: true,
+        },
+      ],
+    })
+
+    await waitFor(() => {
+      expect(mockToast.show).toHaveBeenCalledTimes(1)
+    })
+
+    const payload = mockToast.show.mock.calls[0]?.[0]
+    expect(payload).toMatchObject({
+      type: 'info',
+      title: 'Нагадування',
+      message: 'За 5 хвилин починається сесія з клієнтом.',
+    })
+    expect(payload.actions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ label: 'Відкрити деталі', to: '/cabinet/sessions/77' }),
+        expect.objectContaining({
+          label: 'Приєднатися',
+          href: 'https://meet.google.com/reminder-room',
+          target: '_blank',
+        }),
+      ])
+    )
+  })
+
+  it('does not duplicate the same pre-session toast after reload in one browser session', async () => {
+    const startAt = new Date(Date.now() + 3 * 60 * 1000).toISOString()
+    const options = {
+      initialPath: '/client',
+      roles: ['CLIENT'],
+      upcomingSessions: [
+        {
+          id: 55,
+          status: 'CONFIRMED',
+          slot_start_at: startAt,
+          meeting_url: 'https://meet.google.com/client-room',
+          join_available: false,
+        },
+      ],
+    }
+
+    const firstRender = await renderWithProviders(options)
+    await waitFor(() => {
+      expect(mockToast.show).toHaveBeenCalledTimes(1)
+    })
+
+    firstRender.unmount()
+    await renderWithProviders(options)
+    await waitFor(() => {
+      expect(mockedApiGet).toHaveBeenCalled()
+    })
+
+    expect(mockToast.show).toHaveBeenCalledTimes(1)
+    const payload = mockToast.show.mock.calls[0]?.[0]
+    expect(payload).toMatchObject({
+      message: 'За 5 хвилин починається ваша сесія.',
+    })
+    expect(payload.actions).toEqual([
+      expect.objectContaining({ label: 'Відкрити деталі', to: '/client/sessions/55' }),
+    ])
+  })
+
+  it('shows a new pre-session toast after reschedule with the same session id', async () => {
+    const firstStartAt = new Date(Date.now() + 2 * 60 * 1000).toISOString()
+    const rescheduledStartAt = new Date(Date.now() + 4 * 60 * 1000).toISOString()
+
+    const firstRender = await renderWithProviders({
+      initialPath: '/client',
+      roles: ['CLIENT'],
+      upcomingSessions: [
+        {
+          id: 56,
+          status: 'CONFIRMED',
+          slot_start_at: firstStartAt,
+          meeting_url: 'https://meet.google.com/client-room',
+          join_available: false,
+        },
+      ],
+    })
+    await waitFor(() => {
+      expect(mockToast.show).toHaveBeenCalledTimes(1)
+    })
+
+    firstRender.unmount()
+    await renderWithProviders({
+      initialPath: '/client',
+      roles: ['CLIENT'],
+      upcomingSessions: [
+        {
+          id: 56,
+          status: 'CONFIRMED',
+          slot_start_at: rescheduledStartAt,
+          meeting_url: 'https://meet.google.com/client-room',
+          join_available: false,
+        },
+      ],
+    })
+
+    await waitFor(() => {
+      expect(mockToast.show).toHaveBeenCalledTimes(2)
+    })
+
+    const secondPayload = mockToast.show.mock.calls[1]?.[0]
+    expect(secondPayload.actions).toEqual([
+      expect.objectContaining({ to: '/client/sessions/56' }),
+    ])
   })
 
   it('routes specialist inquiry created notifications to the specialist inquiry surface', async () => {

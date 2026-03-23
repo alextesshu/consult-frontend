@@ -1,9 +1,10 @@
-import { useToastStore, type ToastType } from '../stores/toast'
+import { useToastStore, type ToastAction, type ToastType } from '../stores/toast'
 
 type ToastPayload = {
   type: ToastType
   message: string
   title?: string
+  actions?: ToastAction[]
   duration?: number
 }
 
@@ -15,6 +16,7 @@ export function useToast() {
       type: payload.type,
       message: payload.message,
       title: payload.title,
+      actions: payload.actions,
       duration: payload.duration ?? (payload.type === 'error' ? 8000 : 5000),
     })
   }

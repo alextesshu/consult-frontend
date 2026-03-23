@@ -11,6 +11,28 @@
       <div class="toast__content">
         <div v-if="toast.title" class="toast__title">{{ toast.title }}</div>
         <div class="toast__message">{{ toast.message }}</div>
+        <div v-if="toast.actions?.length" class="toast__actions">
+          <template v-for="action in toast.actions" :key="`${toast.id}-${action.label}`">
+            <RouterLink
+              v-if="action.to"
+              class="toast__action btn btn--ghost btn--sm"
+              :to="action.to"
+              @click="close(toast.id)"
+            >
+              {{ action.label }}
+            </RouterLink>
+            <a
+              v-else-if="action.href"
+              class="toast__action btn btn--ghost btn--sm"
+              :href="action.href"
+              :target="action.target || '_self'"
+              :rel="action.target === '_blank' ? 'noopener noreferrer' : undefined"
+              @click="close(toast.id)"
+            >
+              {{ action.label }}
+            </a>
+          </template>
+        </div>
       </div>
       <button class="toast__close" type="button" @click="close(toast.id)">×</button>
     </div>
@@ -123,6 +145,17 @@ onBeforeUnmount(() => {
 
 .toast__message {
   line-height: 1.4;
+}
+
+.toast__actions {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.toast__action {
+  text-decoration: none;
 }
 
 .toast__close {

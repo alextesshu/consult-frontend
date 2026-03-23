@@ -10,94 +10,22 @@
       </div>
       <div class="client-hero-actions">
         <RouterLink
-          v-if="nextUpcoming"
-          class="btn btn--ghost"
-          :to="`/client/sessions/${nextUpcoming.id}`"
+          v-if="prioritySession"
+          class="btn"
+          :class="isPriorityLive ? 'btn--live' : 'btn--ghost'"
+          :to="`/client/sessions/${prioritySession.id}`"
         >
-          Найближча сесія
+          {{ isPriorityLive ? 'Сесія триває' : 'Найближча сесія' }}
         </RouterLink>
         <button v-else class="btn btn--ghost btn--disabled" type="button" disabled>
           Найближча сесія
         </button>
-        <RouterLink class="btn" to="/specialists">Обрати спеціаліста</RouterLink>
+        <RouterLink class="btn" to="/specialists">Додати спеціаліста</RouterLink>
         <RouterLink class="btn btn--ghost" to="/client/profile">Мій профіль</RouterLink>
       </div>
     </header>
 
-    <div class="card profile-card">
-      <div>
-        <div class="card__title">Профіль клієнта</div>
-        <p class="muted">
-          Додайте ім'я, контакти та фото, щоб спеціалістам було легше з вами працювати.
-        </p>
-      </div>
-      <RouterLink class="btn btn--ghost" to="/client/profile">Редагувати профіль</RouterLink>
-    </div>
-
-    <div class="card priority-card">
-      <div class="card__title">Найближча сесія</div>
-      <LoadingSkeleton v-if="loading" variant="card" :count="1" height="112px" />
-      <EmptyState
-        v-else-if="sessionsError"
-        title="Не вдалося завантажити найближчу сесію"
-        :description="sessionsError"
-      >
-        <template #actions>
-          <button class="btn btn--ghost" type="button" @click="loadSessions">Спробувати ще раз</button>
-        </template>
-      </EmptyState>
-      <div v-else-if="nextUpcoming" class="priority-body">
-        <div class="priority-main">
-          <div class="priority-time">{{ formatDateTime(sessionStartAt(nextUpcoming)) }}</div>
-          <div class="muted">{{ specialistLabel(nextUpcoming) }}</div>
-          <div class="status-pill" :class="{ 'status-pill--warn': nextUpcoming.status === 'SCHEDULED' }">
-            {{ sessionStatusLabel(nextUpcoming) }}
-          </div>
-          <div v-if="timeUntilLabel(nextUpcoming)" class="status-pill status-pill--warn">
-            Початок через {{ timeUntilLabel(nextUpcoming) }}
-          </div>
-        </div>
-        <div class="priority-actions">
-          <RouterLink class="btn btn--ghost" :to="`/client/sessions/${nextUpcoming.id}`">
-            Деталі
-          </RouterLink>
-          <RouterLink
-            v-if="nextUpcoming.therapist_public_slug"
-            class="btn btn--ghost"
-            :to="`/specialist/${nextUpcoming.therapist_public_slug}`"
-          >
-            Профіль спеціаліста
-          </RouterLink>
-        </div>
-      </div>
-      <EmptyState
-        v-else
-        title="Майбутніх сесій поки немає"
-        description="Коли у вас з'явиться нова сесія, вона відобразиться тут."
-        action-text="Обрати спеціаліста"
-        action-to="/specialists"
-      />
-    </div>
-
-    <div class="card tips-card">
-      <div class="card__title">Підказки</div>
-      <ul class="tips-list">
-        <li>
-          <RouterLink class="tips-link" to="/specialists">Обрати спеціаліста</RouterLink>
-          <span class="muted">Перегляньте профіль і доступні слоти.</span>
-        </li>
-        <li>
-          <span class="tips-link">Забронювати слот</span>
-          <span class="muted">Натисніть "Записатися" у профілі спеціаліста.</span>
-        </li>
-        <li>
-          <span class="tips-link">Слідкувати за статусами</span>
-          <span class="muted">Підтвердження та перенесення відобразяться у списку сесій.</span>
-        </li>
-      </ul>
-    </div>
-
-    <div class="card">
+    <div id="selected-specialists" class="card">
       <div class="card__title">Обрані спеціалісти</div>
       <div v-if="selectedSpecialistsWithSessions.length === 0" class="muted">
         Ви ще не обрали спеціалістів. Натисніть "Обрати спеціаліста", щоб перейти в каталог.
@@ -139,13 +67,13 @@
               <div>
                 <span class="session-label">Підтверджена:</span>
                 <span class="session-value">
-                  {{ formatSession(nextSession(therapist.therapist_id, 'CONFIRMED')) }}
+                  {{ formatSession(nextSession(therapist.therapist_id, 'CONFIRMED') || nextSession(therapist.therapist_id, 'CONFIRMED')) }}
                 </span>
               </div>
               <div>
                 <span class="session-label">Запланована:</span>
                 <span class="session-value">
-                  {{ formatSession(nextSession(therapist.therapist_id, 'SCHEDULED')) }}
+                  {{ formatSession(nextSession(therapist.therapist_id, 'SCHEDULED') || nextSession(therapist.therapist_id, 'SCHEDULED')) }}
                 </span>
               </div>
               <button
@@ -164,6 +92,138 @@
       </div>
     </div>
 
+    <div class="card priority-card">
+      <div class="card__title">{{ isPriorityLive ? 'Сесія триває' : 'Найближча сесія' }}</div>
+      <LoadingSkeleton v-if="loading" variant="card" :count="1" height="112px" />
+      <EmptyState
+        v-else-if="sessionsError"
+        title="Не вдалося завантажити найближчу сесію"
+        :description="sessionsError"
+      >
+        <template #actions>
+          <button class="btn btn--ghost" type="button" @click="loadSessions">Спробувати ще раз</button>
+        </template>
+      </EmptyState>
+      <div v-else-if="prioritySession" class="priority-body">
+        <RouterLink class="priority-main priority-main--clickable" :to="`/client/sessions/${prioritySession.id}`">
+          <div class="priority-time">{{ formatDateTime(sessionStartAt(prioritySession)) }}</div>
+          <div class="muted">{{ specialistLabel(prioritySession) }}</div>
+          <div class="muted">{{ sessionFormatBadge(prioritySession) }}</div>
+          <div v-if="meetingBadge(prioritySession)" class="muted">{{ meetingBadge(prioritySession) }}</div>
+          <div v-if="isPriorityLive" class="status-pill status-pill--danger">Сесія триває</div>
+          <div
+            v-else
+            class="status-pill"
+            :class="{ 'status-pill--warn': prioritySession.status === 'SCHEDULED' }"
+          >
+            {{ sessionStatusLabel(prioritySession) }}
+          </div>
+          <div v-if="timeUntilLabel(prioritySession)" class="status-pill status-pill--warn">
+            Початок через {{ timeUntilLabel(prioritySession) }}
+          </div>
+        </RouterLink>
+        <div class="priority-actions">
+          <a
+            v-if="canJoinMeeting(prioritySession)"
+            class="btn"
+            :href="meetingUrl(prioritySession)"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Приєднатися
+          </a>
+          <RouterLink
+            v-if="prioritySession.specialist_public_slug"
+            class="btn btn--ghost"
+            :to="`/specialist/${prioritySession.specialist_public_slug}`"
+          >
+            Профіль спеціаліста
+          </RouterLink>
+        </div>
+      </div>
+      <EmptyState
+        v-else
+        title="Майбутніх сесій поки немає"
+        description="Коли у вас з'явиться нова сесія, вона відобразиться тут."
+        action-text="Обрати спеціаліста"
+        action-to="/specialists"
+      />
+    </div>
+
+    <div class="card tips-card">
+      <div class="card__title">Підказки</div>
+      <ul class="tips-list">
+        <li>
+          <RouterLink class="tips-link" to="/specialists">Обрати спеціаліста</RouterLink>
+          <span class="muted">Перегляньте профіль і доступні слоти.</span>
+        </li>
+        <li>
+          <RouterLink class="tips-link" to="/specialists">Каталог спеціалістів</RouterLink>
+          <span class="muted">Щоб знайти інших спеціалістів, відкрийте меню "Каталог".</span>
+        </li>
+        <li>
+          <span class="tips-link">Забронювати слот</span>
+          <span class="muted">Натисніть "Записатися" у профілі спеціаліста.</span>
+        </li>
+        <li>
+          <span class="tips-link">Слідкувати за статусами</span>
+          <span class="muted">Підтвердження та перенесення відобразяться у списку сесій.</span>
+        </li>
+        <li>
+          <span class="tips-link">Приєднатися до онлайн-зустрічі</span>
+          <span class="muted">
+            Кнопка з'явиться в деталях сесії, на дашборді та в нагадуванні, коли спеціаліст додасть зовнішнє
+            посилання.
+          </span>
+        </li>
+      </ul>
+    </div>
+
+    <div class="card inquiry-card">
+      <div class="card__title">Запити до бронювання</div>
+      <LoadingSkeleton v-if="inquiryLoading" variant="list" :count="2" />
+      <EmptyState
+        v-else-if="inquiryError"
+        title="Не вдалося завантажити запити до бронювання"
+        :description="inquiryError"
+      >
+        <template #actions>
+          <button class="btn btn--ghost" type="button" @click="loadInquiryDiscoverability">
+            Спробувати ще раз
+          </button>
+        </template>
+      </EmptyState>
+      <EmptyState
+        v-else-if="inquiryEntries.length === 0"
+        title="Запити до бронювання поки недоступні"
+        description="Оберіть спеціаліста, щоб поставити коротке уточнювальне запитання перед бронюванням."
+        action-text="Каталог спеціалістів"
+        action-to="/specialists"
+      />
+      <ul v-else class="session-list">
+        <li
+          v-for="entry in inquiryEntries"
+          :key="entry.specialist_id"
+          class="session-item"
+          :class="`inquiry-item--${entry.tone}`"
+        >
+          <div>
+            <div class="session-time">{{ entry.specialist_name }}</div>
+            <div class="muted">{{ entry.status_label }}</div>
+            <div class="muted">{{ entry.description }}</div>
+          </div>
+          <div class="session-actions">
+            <RouterLink
+              v-if="entry.action_to && entry.action_label"
+              class="btn btn--ghost btn--sm"
+              :to="entry.action_to"
+            >
+              {{ entry.action_label }}
+            </RouterLink>
+          </div>
+        </li>
+      </ul>
+    </div>
     <div class="card">
       <div class="card__title">Переглянуті спеціалісти</div>
       <div v-if="viewedSpecialists.length === 0" class="muted">
@@ -260,16 +320,27 @@
             <div>
               <div class="session-time">{{ formatDateTime(session.slot?.start_at || session.slot_start_at) }}</div>
               <div class="muted">{{ specialistLabel(session) }}</div>
+              <div class="muted">{{ sessionFormatBadge(session) }}</div>
+              <div v-if="meetingBadge(session)" class="muted">{{ meetingBadge(session) }}</div>
               <div class="muted">Статус: {{ sessionStatusLabel(session) }}</div>
             </div>
             <div class="session-actions">
+              <a
+                v-if="canJoinMeeting(session)"
+                class="btn btn--sm"
+                :href="meetingUrl(session)"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Приєднатися
+              </a>
               <RouterLink class="btn btn--ghost btn--sm" :to="`/client/sessions/${session.id}`">
                 Деталі
               </RouterLink>
               <RouterLink
-                v-if="session.therapist_public_slug"
+                v-if="session.specialist_public_slug"
                 class="btn btn--ghost btn--sm"
-                :to="`/specialist/${session.therapist_public_slug}`"
+                :to="`/specialist/${session.specialist_public_slug}`"
               >
                 Профіль
               </RouterLink>
@@ -305,6 +376,7 @@
             <div>
               <div class="session-time">{{ formatDateTime(session.slot?.start_at || session.slot_start_at) }}</div>
               <div class="muted">{{ specialistLabel(session) }}</div>
+              <div class="muted">{{ sessionFormatBadge(session) }}</div>
               <div class="muted">Статус: {{ sessionStatusLabel(session) }}</div>
             </div>
             <div class="session-actions">
@@ -312,9 +384,9 @@
                 Деталі
               </RouterLink>
               <RouterLink
-                v-if="session.therapist_public_slug"
+                v-if="session.specialist_public_slug"
                 class="btn btn--ghost btn--sm"
-                :to="`/specialist/${session.therapist_public_slug}`"
+                :to="`/specialist/${session.specialist_public_slug}`"
               >
                 Профіль
               </RouterLink>
@@ -338,15 +410,27 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
-import { fetchPublicSpecialistProfile, type PublicSpecialistProfile } from '../lib/api'
-import { apiGet } from '../lib/api'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import {
+  apiGet,
+  fetchInquiryState,
+  fetchPublicSpecialistProfile,
+  type InquiryState,
+  type PublicSpecialistProfile,
+  type SessionFormat,
+} from '../lib/api'
 import { BOOKING_ERROR_FALLBACKS, getBookingErrorMessage } from '../lib/bookingCopy'
 import EmptyState from '../components/EmptyState.vue'
 import ConfirmModal from '../components/ConfirmModal.vue'
 import LoadingSkeleton from '../components/LoadingSkeleton.vue'
 import { useConfirmModal } from '../composables/useConfirmModal'
 import { formatUkDateTimeCompact } from '../lib/dateTime'
+import { mapInquiryStateToUi, type InquiryUiTone } from '../lib/inquiryCopy'
+import {
+  canJoinExternalMeeting,
+  externalMeetingProviderLabel,
+  normalizeMeetingUrl,
+} from '../lib/sessionExecution'
 
 type Slot = {
   start_at: string
@@ -356,11 +440,20 @@ type Slot = {
 type Session = {
   id: number
   status: string
-  specialist?: number
-  therapist_name?: string | null
-  therapist_username?: string | null
-  therapist_email?: string | null
-  therapist_public_slug?: string | null
+  specialist?: number | any
+  specialist_id?: number
+  specialist_name?: string | null
+  specialist_username?: string | null
+  specialist_email?: string | null
+  specialist_public_slug?: string | null
+  session_format?: SessionFormat | null
+  meeting_mode?: 'ONLINE' | 'OFFLINE' | null
+  offline_location?: string | null
+  meeting_url?: string | null
+  meeting_provider?: string | null
+  join_available?: boolean
+  join_starts_at?: string | null
+  join_ends_at?: string | null
   slot: Slot | null
   slot_start_at?: string | null
   slot_end_at?: string | null
@@ -379,6 +472,21 @@ type SelectedSpecialist = {
   photo_url?: string
 }
 
+type InquiryCandidate = {
+  specialist_id: number
+  specialist_name: string
+}
+
+type InquiryDashboardEntry = {
+  specialist_id: number
+  specialist_name: string
+  status_label: string
+  description: string
+  tone: InquiryUiTone
+  action_label: string | null
+  action_to: string | null
+}
+
 const upcoming = ref<Session[]>([])
 const past = ref<Session[]>([])
 const loading = ref(false)
@@ -386,10 +494,16 @@ const sessionsError = ref('')
 const selectedSpecialists = ref<SelectedSpecialist[]>([])
 const stoppedSpecialists = ref<string[]>([])
 const viewedSpecialists = ref<SelectedSpecialist[]>([])
+const inquiryEntries = ref<InquiryDashboardEntry[]>([])
+const inquiryLoading = ref(false)
+const inquiryError = ref('')
 const groupEvents = ref<GroupEvent[]>([])
 const groupEventsLoading = ref(false)
 const groupEventsError = ref('')
 const confirmModal = useConfirmModal()
+const nowTs = ref(Date.now())
+const LIVE_STATUS_REFRESH_MS = 30 * 1000
+let nowIntervalId: number | null = null
 
 type GroupEvent = {
   id: number
@@ -402,28 +516,7 @@ type GroupEvent = {
   my_status: string | null
 }
 
-const recentSpecialistSlugs = computed(() => {
-  const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000
-  const stopped = new Set(stoppedSpecialists.value)
-  const slugs = new Set<string>()
-  for (const session of past.value) {
-    if (session.status !== 'COMPLETED') continue
-    const endRaw = sessionEndAt(session) || sessionStartAt(session)
-    if (!endRaw) continue
-    const endTs = new Date(endRaw).getTime()
-    if (Number.isNaN(endTs) || endTs < cutoff) continue
-    const slug = session.therapist_public_slug
-    if (!slug || stopped.has(slug)) continue
-    slugs.add(slug)
-  }
-  return slugs
-})
-
-const selectedSpecialistsWithSessions = computed(() =>
-  selectedSpecialists.value.filter((specialist) =>
-    recentSpecialistSlugs.value.has(specialist.public_slug)
-  )
-)
+const selectedSpecialistsWithSessions = computed(() => selectedSpecialists.value)
 
 const statusMap: Record<string, string> = {
   SCHEDULED: 'Заплановано',
@@ -475,14 +568,14 @@ const sessionStartAt = (session: Session) => session.slot?.start_at || session.s
 const sessionEndAt = (session: Session) => session.slot?.end_at || session.slot_end_at || null
 
 function isSessionInProgress(session: Session) {
-  if (session.status !== 'CONFIRMED') return false
-  const startRaw = sessionStartAt(session)
-  const endRaw = sessionEndAt(session)
+  if (!['SCHEDULED', 'CONFIRMED'].includes(session.status)) return false
+  const startRaw = sessionStartAt(session) || session.join_starts_at
+  const endRaw = sessionEndAt(session) || session.join_ends_at
   if (!startRaw || !endRaw) return false
   const start = new Date(startRaw).getTime()
   const end = new Date(endRaw).getTime()
   if (Number.isNaN(start) || Number.isNaN(end)) return false
-  const now = Date.now()
+  const now = nowTs.value
   return now >= start && now <= end
 }
 
@@ -498,12 +591,30 @@ const nextUpcoming = computed(() => {
   return items[0] || null
 })
 
+const livePrioritySession = computed(() => {
+  const items = [...upcoming.value, ...past.value]
+    .filter((session, index, arr) => arr.findIndex((other) => other.id === session.id) === index)
+    .filter((session) => isSessionInProgress(session))
+    .slice()
+    .sort(
+      (a, b) =>
+        new Date(sessionStartAt(a) || '').getTime() -
+        new Date(sessionStartAt(b) || '').getTime()
+    )
+  return items[0] || null
+})
+
+const prioritySession = computed(() => livePrioritySession.value || nextUpcoming.value)
+const isPriorityLive = computed(() =>
+  prioritySession.value ? isSessionInProgress(prioritySession.value) : false
+)
+
 function timeUntilLabel(session: Session) {
   const startRaw = sessionStartAt(session)
   if (!startRaw) return ''
   const start = new Date(startRaw).getTime()
   if (Number.isNaN(start)) return ''
-  const diffMs = start - Date.now()
+  const diffMs = start - nowTs.value
   if (diffMs <= 0) return ''
   const diffMin = Math.round(diffMs / 60000)
   if (diffMin > 120) return ''
@@ -516,7 +627,8 @@ function timeUntilLabel(session: Session) {
 function nextSession(therapistId: number | undefined, status: string) {
   if (!therapistId) return null
   const items = upcoming.value
-    .filter((session) => session.specialist === therapistId && session.status === status)
+    // Check both specialist (legacy/object) and specialist_id (from serializer)
+    .filter((session) => (session.specialist_id === therapistId || session.specialist === therapistId) && session.status === status)
     .map((session) => ({ session, startAt: sessionStartAt(session) }))
     .filter((item) => item.startAt)
     .sort((a, b) => new Date(a.startAt as string).getTime() - new Date(b.startAt as string).getTime())
@@ -529,10 +641,129 @@ function formatSession(session: Session | null) {
 }
 
 function specialistLabel(session: Session) {
-  const name = session.therapist_name || session.therapist_username
+  const name = session.specialist_name || session.specialist_username
   if (name) return `Спеціаліст: ${name}`
-  if (session.specialist) return `Спеціаліст: #${session.specialist}`
+  if (session.specialist_id) return `Спеціаліст: #${session.specialist_id}`
   return 'Спеціаліст: —'
+}
+
+function resolveSessionFormat(session: Session): SessionFormat {
+  if (session.session_format === 'offline') return 'offline'
+  if (session.session_format === 'online') return 'online'
+  if (session.meeting_mode === 'OFFLINE') return 'offline'
+  return 'online'
+}
+
+function isOfflineSession(session: Session) {
+  return resolveSessionFormat(session) === 'offline'
+}
+
+function sessionFormatBadge(session: Session) {
+  return `Формат: ${isOfflineSession(session) ? 'Офлайн' : 'Онлайн'}`
+}
+
+function meetingUrl(session: Session) {
+  return normalizeMeetingUrl(session.meeting_url)
+}
+
+function canJoinMeeting(session: Session) {
+  if (isOfflineSession(session)) return false
+  return canJoinExternalMeeting(session) && session.join_available !== false
+}
+
+function meetingBadge(session: Session) {
+  if (isOfflineSession(session)) {
+    if (session.offline_location) {
+      return `Офлайн-сесія: ${session.offline_location}`
+    }
+    return ''
+  }
+  const url = meetingUrl(session)
+  if (!url) {
+    if (['SCHEDULED', 'CONFIRMED'].includes(session.status)) {
+      return 'Онлайн-зустріч: посилання ще не додано'
+    }
+    return ''
+  }
+  const provider = externalMeetingProviderLabel(session.meeting_provider, url)
+  if (['SCHEDULED', 'CONFIRMED'].includes(session.status) && session.join_available === false) {
+    return `Онлайн-зустріч: ${provider} · приєднання стане доступним ближче до часу сесії`
+  }
+  return `Онлайн-зустріч: ${provider}`
+}
+
+
+function inquiryReasonCode(state: InquiryState) {
+  if (state.inquiry_exists) {
+    return state.can_client_send ? null : state.client_send_reason_code
+  }
+  return state.can_create_inquiry ? null : state.create_reason_code
+}
+
+function inquiryCandidates(): InquiryCandidate[] {
+  const merged = [...selectedSpecialists.value, ...viewedSpecialists.value]
+  const byId = new Map<number, InquiryCandidate>()
+  for (const specialist of merged) {
+    const specialistId = Number(specialist.therapist_id)
+    if (!Number.isInteger(specialistId) || specialistId <= 0) continue
+    if (byId.has(specialistId)) continue
+    byId.set(specialistId, {
+      specialist_id: specialistId,
+      specialist_name: publicName(specialist.display_name) || `Спеціаліст #${specialistId}`,
+    })
+  }
+  return Array.from(byId.values()).slice(0, 6)
+}
+
+function mapInquiryEntry(candidate: InquiryCandidate, state: InquiryState): InquiryDashboardEntry {
+  const uiCopy = mapInquiryStateToUi({
+    status: state.inquiry_status,
+    reasonCode: inquiryReasonCode(state),
+    actor: 'client',
+    mode: state.inquiry_exists ? 'thread' : 'entry',
+  })
+
+  if (state.inquiry_status === 'ACTIVE_CLIENT') {
+    return {
+      ...candidate,
+      status_label: 'Доступний повний чат',
+      description: uiCopy.body,
+      tone: uiCopy.tone,
+      action_label: 'Відкрити повний чат',
+      action_to: `/client/chat?therapist_id=${candidate.specialist_id}`,
+    }
+  }
+
+  if (state.inquiry_exists) {
+    return {
+      ...candidate,
+      status_label: 'Запит уже створено',
+      description: uiCopy.body,
+      tone: uiCopy.tone,
+      action_label: 'Відкрити запит',
+      action_to: `/client/inquiries/${candidate.specialist_id}`,
+    }
+  }
+
+  if (state.can_create_inquiry) {
+    return {
+      ...candidate,
+      status_label: 'Запит доступний',
+      description: uiCopy.body,
+      tone: uiCopy.tone,
+      action_label: 'Поставити запитання',
+      action_to: `/client/inquiries/${candidate.specialist_id}`,
+    }
+  }
+
+  return {
+    ...candidate,
+    status_label: 'Запит недоступний',
+    description: uiCopy.body,
+    tone: uiCopy.tone,
+    action_label: null,
+    action_to: null,
+  }
 }
 
 function publicName(value?: string) {
@@ -545,6 +776,46 @@ function publicName(value?: string) {
   if (!last) return first
   const initial = last.charAt(0).toUpperCase()
   return `${first} ${initial}.`
+}
+
+
+async function loadInquiryDiscoverability() {
+  inquiryLoading.value = true
+  inquiryError.value = ''
+  try {
+    const candidates = inquiryCandidates()
+    if (!candidates.length) {
+      inquiryEntries.value = []
+      return
+    }
+
+    const settled = await Promise.allSettled(
+      candidates.map(async (candidate) => {
+        const state = await fetchInquiryState(candidate.specialist_id)
+        return mapInquiryEntry(candidate, state)
+      })
+    )
+
+    const loaded: InquiryDashboardEntry[] = []
+    let failed = 0
+    for (const item of settled) {
+      if (item.status === 'fulfilled') {
+        loaded.push(item.value)
+      } else {
+        failed += 1
+      }
+    }
+
+    inquiryEntries.value = loaded
+    if (failed > 0 && loaded.length === 0) {
+      inquiryError.value = 'Не вдалося завантажити стан запитів до бронювання.'
+    }
+  } catch {
+    inquiryEntries.value = []
+    inquiryError.value = 'Не вдалося завантажити стан запитів до бронювання.'
+  } finally {
+    inquiryLoading.value = false
+  }
 }
 
 async function loadSessions() {
@@ -570,9 +841,9 @@ async function loadGroupEvents() {
   try {
     const resp = await apiGet<GroupEvent[]>('/booking/group-events/')
     groupEvents.value = resp || []
-  } catch {
+  } catch (err: any) {
     groupEvents.value = []
-    groupEventsError.value = 'Не вдалося завантажити групові події.'
+    groupEventsError.value = getBookingErrorMessage(err, BOOKING_ERROR_FALLBACKS.loadGroupEvents)
   } finally {
     groupEventsLoading.value = false
   }
@@ -671,6 +942,7 @@ function stopCollaboration(specialist: SelectedSpecialist) {
     (item) => item.public_slug !== specialist.public_slug
   )
   persistSpecialists()
+  void loadInquiryDiscoverability()
 }
 
 function persistSpecialists() {
@@ -700,20 +972,22 @@ function syncSelectedSpecialists() {
     if (Number.isNaN(endTs)) continue
     const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000
     if (endTs < cutoff) continue
-    const slug = session.therapist_public_slug
+    const slug = session.specialist_public_slug
     if (!slug || stopped.has(slug)) continue
     if (recentMap.has(slug)) continue
     recentMap.set(slug, {
-      therapist_id: session.specialist,
+      therapist_id: session.specialist_id,
       public_slug: slug,
-      display_name: session.therapist_name || session.therapist_username || 'Спеціаліст',
+      display_name: session.specialist_name || session.specialist_username || 'Спеціаліст',
     })
   }
 
   let changed = false
-  selectedSpecialists.value = selectedSpecialists.value.filter(
-    (specialist) => recentMap.has(specialist.public_slug) && !stopped.has(specialist.public_slug)
-  )
+  const filtered = selectedSpecialists.value.filter((specialist) => !stopped.has(specialist.public_slug))
+  if (filtered.length !== selectedSpecialists.value.length) {
+    selectedSpecialists.value = filtered
+    changed = true
+  }
 
   const existingSlugs = new Set(selectedSpecialists.value.map((t) => t.public_slug))
   for (const [slug, seed] of recentMap.entries()) {
@@ -804,6 +1078,17 @@ onMounted(async () => {
   await Promise.all([loadSessions(), loadGroupEvents()])
   syncSelectedSpecialists()
   await hydrateSpecialistProfiles()
+  await loadInquiryDiscoverability()
+  nowIntervalId = window.setInterval(() => {
+    nowTs.value = Date.now()
+  }, LIVE_STATUS_REFRESH_MS)
+})
+
+onBeforeUnmount(() => {
+  if (nowIntervalId !== null) {
+    window.clearInterval(nowIntervalId)
+    nowIntervalId = null
+  }
 })
 </script>
 
@@ -837,14 +1122,6 @@ onMounted(async () => {
   gap: 12px;
 }
 
-.profile-card {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-
   .priority-body {
     display: flex;
     align-items: center;
@@ -858,6 +1135,22 @@ onMounted(async () => {
     gap: 6px;
   }
 
+  .priority-main--clickable {
+    color: inherit;
+    text-decoration: none;
+    border-radius: 10px;
+    padding: 2px;
+  }
+
+  .priority-main--clickable:hover {
+    background: rgba(8, 113, 201, 0.05);
+  }
+
+  .priority-main--clickable:focus-visible {
+    outline: 2px solid rgba(31, 74, 96, 0.35);
+    outline-offset: 2px;
+  }
+
   .priority-time {
     font-family: var(--font-display);
     font-size: 22px;
@@ -868,6 +1161,29 @@ onMounted(async () => {
     gap: 10px;
     flex-wrap: wrap;
   }
+
+.status-pill {
+  width: fit-content;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  background: rgba(7, 47, 71, 0.08);
+  color: #13455e;
+}
+
+.status-pill--warn {
+  background: rgba(217, 164, 65, 0.18);
+  color: #a57011;
+}
+
+.status-pill--danger {
+  background: linear-gradient(135deg, #ea3e3e, #c01717);
+  color: #fff;
+  border: 1px solid rgba(154, 9, 9, 0.7);
+  box-shadow: 0 6px 14px rgba(194, 23, 23, 0.26);
+}
 
 .eyebrow {
   text-transform: uppercase;
@@ -898,6 +1214,7 @@ onMounted(async () => {
   color: var(--ink);
   text-decoration: none;
 }
+
 
 .tips-link:hover {
   text-decoration: underline;
@@ -1041,6 +1358,15 @@ onMounted(async () => {
   background: rgba(111, 142, 151, 0.12);
 }
 
+.inquiry-item--info {
+  border: 1px solid rgba(29, 91, 138, 0.24);
+}
+
+.inquiry-item--warning {
+  border: 1px solid rgba(186, 121, 27, 0.3);
+  background: rgba(255, 244, 223, 0.55);
+}
+
 .session-item--confirmed {
   border: 1px solid rgba(39, 122, 82, 0.35);
   background: linear-gradient(135deg, rgba(212, 243, 225, 0.7), rgba(247, 252, 249, 0.95));
@@ -1069,6 +1395,17 @@ onMounted(async () => {
 .btn--sm {
   padding: 6px 10px;
   font-size: 13px;
+}
+
+.btn--live {
+  background: linear-gradient(135deg, #ea3e3e, #c01717);
+  border-color: rgba(154, 9, 9, 0.7);
+  color: #fff;
+  box-shadow: 0 8px 16px rgba(194, 23, 23, 0.26);
+}
+
+.btn--live:hover {
+  filter: brightness(1.05);
 }
 
 @media (max-width: 860px) {

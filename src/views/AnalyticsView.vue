@@ -70,6 +70,34 @@
         </div>
       </section>
 
+      <section class="panel panel--wide">
+        <div class="panel__header">
+          <div>
+            <div class="badge badge--soft">Формати</div>
+            <h2 class="panel__title">Сесії за форматом</h2>
+          </div>
+        </div>
+
+        <div class="metrics-grid metrics-grid--formats">
+          <article class="metric-card">
+            <div class="metric-card__label">Онлайн сесії</div>
+            <div class="metric-card__value">{{ metrics.online_sessions_count }}</div>
+          </article>
+          <article class="metric-card">
+            <div class="metric-card__label">Офлайн сесії</div>
+            <div class="metric-card__value">{{ metrics.offline_sessions_count }}</div>
+          </article>
+          <article class="metric-card">
+            <div class="metric-card__label">Завершені онлайн</div>
+            <div class="metric-card__value">{{ metrics.completed_online_sessions_count }}</div>
+          </article>
+          <article class="metric-card">
+            <div class="metric-card__label">Завершені офлайн</div>
+            <div class="metric-card__value">{{ metrics.completed_offline_sessions_count }}</div>
+          </article>
+        </div>
+      </section>
+
       <section v-if="isEmpty" class="panel panel--wide empty-state">
         <h2 class="panel__title">Поки що недостатньо даних для аналітики</h2>
         <p class="muted">
@@ -126,6 +154,24 @@
                 <strong>{{ item.count }}</strong>
               </li>
             </ul>
+          </section>
+
+          <section class="panel">
+            <div class="panel__header">
+              <div>
+                <div class="badge badge--soft">Офлайн</div>
+                <h2 class="panel__title">Офлайн-локації</h2>
+              </div>
+            </div>
+            <ul v-if="topOfflineLocations.length" class="top-list">
+              <li v-for="item in topOfflineLocations" :key="`offline-location-${item.location}`">
+                <span>{{ item.location || 'Локація не вказана' }}</span>
+                <strong>{{ item.sessions_count }}</strong>
+              </li>
+            </ul>
+            <div v-else class="muted locations-empty">
+              Немає офлайн-сесій за цей період.
+            </div>
           </section>
         </section>
 
@@ -263,6 +309,8 @@ const error = ref('')
 const overview = ref<AnalyticsOverview | null>(null)
 
 const metrics = computed(() => overview.value?.metrics ?? getDefaultAnalyticsMetrics())
+const sessionsByOfflineLocation = computed(() => overview.value?.sessions_by_offline_location ?? [])
+const topOfflineLocations = computed(() => sessionsByOfflineLocation.value.slice(0, 6))
 
 const isEmpty = computed(() => metrics.value.bookings_count === 0)
 const isLeaderAnalytics = computed(() => isLeaderAnalyticsLevel(overview.value?.analytics_level))
@@ -432,6 +480,10 @@ onMounted(loadOverview)
   gap: 10px;
 }
 
+.metrics-grid--formats {
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+}
+
 .metric-card {
   border: 1px solid var(--line);
   border-radius: 14px;
@@ -517,6 +569,10 @@ onMounted(loadOverview)
 .top-list li:last-child {
   border-bottom: none;
   padding-bottom: 0;
+}
+
+.locations-empty {
+  padding: 6px 0;
 }
 
 .form-error {

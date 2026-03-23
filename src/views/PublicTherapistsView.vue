@@ -74,6 +74,16 @@
             <option value="created_desc">Новіші спочатку</option>
           </select>
         </div>
+        <div class="filters__format">
+          <label class="filters__check">
+            <input v-model="offersOnline" type="checkbox" @change="applyFilters" />
+            Онлайн
+          </label>
+          <label class="filters__check">
+            <input v-model="offersOffline" type="checkbox" @change="applyFilters" />
+            Офлайн
+          </label>
+        </div>
         <div class="filters__actions">
           <button class="btn btn--ghost" type="button" @click="applyFilters">Застосувати</button>
           <button class="btn btn--ghost" type="button" :disabled="!hasFilters" @click="resetFilters">Скинути</button>
@@ -124,6 +134,11 @@
           </div>
           <div class="therapist-info">
             <div class="therapist-name">{{ publicName(therapist) }}</div>
+            <div v-if="completedSessionsLabel(therapist)" class="therapist-sessions-badge">{{ completedSessionsLabel(therapist) }}</div>
+            <div v-if="therapist.offers_online || therapist.offers_offline" class="therapist-format-row">
+              <span v-if="therapist.offers_online" class="therapist-format-badge">Онлайн</span>
+              <span v-if="therapist.offers_offline" class="therapist-format-badge">Офлайн</span>
+            </div>
             <div v-if="therapist.experience_years !== undefined && therapist.experience_years !== null" class="muted">
               Досвід: {{ formatExperience(therapist.experience_years) }}
             </div>
@@ -152,6 +167,7 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { fetchPublicSpecialists, type PublicSpecialistProfile } from '../lib/api'
+import { getCompletedSessionsBadge } from '../lib/completedSessionsBadge'
 import LoadingSkeleton from '../components/LoadingSkeleton.vue'
 import EmptyState from '../components/EmptyState.vue'
 
@@ -170,6 +186,8 @@ const location = ref('')
 const priceMin = ref('')
 const priceMax = ref('')
 const priceCurrency = ref('')
+const offersOnline = ref(false)
+const offersOffline = ref(false)
 const appliedName = ref('')
 const appliedSpecialization = ref('')
 const appliedLanguage = ref('')
@@ -177,6 +195,8 @@ const appliedLocation = ref('')
 const appliedPriceMin = ref('')
 const appliedPriceMax = ref('')
 const appliedPriceCurrency = ref('')
+const appliedOffersOnline = ref(false)
+const appliedOffersOffline = ref(false)
 let searchTimer: number | undefined
 const languageOptions = [
   'Українська',
@@ -216,6 +236,8 @@ const hasFilters = computed(
     Boolean(priceMin.value) ||
     Boolean(priceMax.value) ||
     Boolean(priceCurrency.value) ||
+    offersOnline.value ||
+    offersOffline.value ||
     Boolean(sort.value)
 )
 
@@ -237,6 +259,11 @@ const introPriceLabel = (therapist: PublicSpecialistProfile) => {
   if (therapist.intro_price_currency === 'USD') return `$${therapist.intro_price}`
   if (therapist.intro_price_currency === 'EUR') return `€${therapist.intro_price}`
   return `${therapist.intro_price} грн`
+}
+
+const completedSessionsLabel = (therapist: PublicSpecialistProfile) => {
+  const bucket = getCompletedSessionsBadge(therapist.completed_sessions_count)
+  return bucket ? `${bucket} сесій` : ''
 }
 
 const publicName = (therapist: PublicSpecialistProfile) => {
@@ -273,6 +300,8 @@ async function loadTherapists() {
       price_min: appliedPriceMin.value || undefined,
       price_max: appliedPriceMax.value || undefined,
       price_currency: appliedPriceCurrency.value || undefined,
+      offers_online: appliedOffersOnline.value ? '1' : undefined,
+      offers_offline: appliedOffersOffline.value ? '1' : undefined,
     })
     therapists.value = resp.results || []
     total.value = resp.total || 0
@@ -295,6 +324,8 @@ function applyFilters() {
   appliedPriceMin.value = priceMin.value
   appliedPriceMax.value = priceMax.value
   appliedPriceCurrency.value = priceCurrency.value
+  appliedOffersOnline.value = offersOnline.value
+  appliedOffersOffline.value = offersOffline.value
   page.value = 1
   loadTherapists()
 }
@@ -316,6 +347,8 @@ function resetFilters() {
   priceMin.value = ''
   priceMax.value = ''
   priceCurrency.value = ''
+  offersOnline.value = false
+  offersOffline.value = false
   sort.value = ''
   appliedName.value = ''
   appliedSpecialization.value = ''
@@ -324,6 +357,8 @@ function resetFilters() {
   appliedPriceMin.value = ''
   appliedPriceMax.value = ''
   appliedPriceCurrency.value = ''
+  appliedOffersOnline.value = false
+  appliedOffersOffline.value = false
   page.value = 1
   loadTherapists()
 }
@@ -390,6 +425,20 @@ onMounted(loadTherapists)
   gap: 10px;
 }
 
+.filters__format {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.filters__check {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text);
+}
+
 .filters__hint {
   font-size: 13px;
 }
@@ -447,6 +496,33 @@ onMounted(loadTherapists)
 
 .therapist-name {
   font-weight: 600;
+}
+
+.therapist-sessions-badge {
+  width: fit-content;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #2b6b60;
+  border: 1px solid color-mix(in srgb, #2b6b60 32%, var(--line));
+  background: color-mix(in srgb, #e8f1e8 68%, #ffffff);
+}
+
+.therapist-format-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.therapist-format-badge {
+  width: fit-content;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 12px;
+  color: #5f5345;
+  border: 1px solid #e2d4bf;
+  background: #f4ede0;
 }
 
 .therapist-price {

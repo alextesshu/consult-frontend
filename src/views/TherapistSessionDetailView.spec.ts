@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { apiGet, apiPatch, apiPost } from '../lib/api'
+import { apiGet, apiPatch, apiPost, updateSpecialistSessionMeeting } from '../lib/api'
 import { BOOKING_SUCCESS_MESSAGES } from '../lib/bookingCopy'
 import { formatSessionDateTime } from '../lib/specialistSessions'
 import TherapistSessionDetailView from './TherapistSessionDetailView.vue'
@@ -36,11 +36,13 @@ vi.mock('../lib/api', () => ({
   apiPatch: vi.fn(),
   apiPost: vi.fn(),
   apiPut: vi.fn(),
+  updateSpecialistSessionMeeting: vi.fn(),
 }))
 
 const mockedApiGet = vi.mocked(apiGet)
 const mockedApiPatch = vi.mocked(apiPatch)
 const mockedApiPost = vi.mocked(apiPost)
+const mockedUpdateSpecialistSessionMeeting = vi.mocked(updateSpecialistSessionMeeting)
 
 function buildSession(overrides: Record<string, unknown> = {}) {
   return {
@@ -52,6 +54,8 @@ function buildSession(overrides: Record<string, unknown> = {}) {
     therapist: 3,
     slot_start_at: '2099-06-15T10:00:00Z',
     slot_end_at: '2099-06-15T11:00:00Z',
+    session_format: 'online',
+    offline_location: null,
     ...overrides,
   }
 }
@@ -161,6 +165,7 @@ describe('TherapistSessionDetailView', () => {
     mockedApiGet.mockReset()
     mockedApiPatch.mockReset()
     mockedApiPost.mockReset()
+    mockedUpdateSpecialistSessionMeeting.mockReset()
     mockToast.show.mockReset()
     mockToast.success.mockReset()
     mockToast.error.mockReset()
@@ -169,7 +174,16 @@ describe('TherapistSessionDetailView', () => {
   })
 
   it('renders the session detail happy path with related context', async () => {
-    let sessionDetail = buildSession()
+    let sessionDetail = buildSession({
+      status: 'CONFIRMED',
+      meeting_mode: 'ONLINE',
+      meeting_url: 'https://meet.google.com/therapist-room',
+      meeting_provider: 'google_meet',
+      meeting_link_ready: true,
+      join_available: true,
+      join_starts_at: '2099-06-14T10:00:00Z',
+      join_ends_at: '2099-06-15T11:30:00Z',
+    })
     mockDetailContext(() => sessionDetail)
 
     const { container } = renderView()
@@ -189,7 +203,13 @@ describe('TherapistSessionDetailView', () => {
     expect(mockedApiGet).toHaveBeenCalledWith('/cabinet/sessions/42/note/')
     expect(mockedApiGet).toHaveBeenCalledWith('/cabinet/sessions/reschedule-requests/')
     expect(container.querySelector('.empty-state')).not.toBeInTheDocument()
-    expect(sessionDetail.status).toBe('SCHEDULED')
+    expect(screen.getByText('Google Meet')).toBeInTheDocument()
+    expect(screen.getByText('Формат: Онлайн')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Приєднатися' })).toHaveAttribute(
+      'href',
+      'https://meet.google.com/therapist-room'
+    )
+    expect(sessionDetail.status).toBe('CONFIRMED')
   })
 
   it('confirms a scheduled session and refreshes the detail context', async () => {
@@ -227,6 +247,29 @@ describe('TherapistSessionDetailView', () => {
     expect(endpointCalls('/cabinet/slots/')).toBe(2)
     expect(endpointCalls('/booking/sessions/42/reschedule-suggestions/')).toBe(2)
     expect(endpointCalls('/cabinet/sessions/reschedule-requests/')).toBe(2)
+  })
+
+  it('renders offline session format and hides online join controls', async () => {
+    const sessionDetail = buildSession({
+      status: 'CONFIRMED',
+      session_format: 'offline',
+      meeting_mode: 'OFFLINE',
+      offline_location: 'Київ, офіс 12',
+      meeting_url: 'https://meet.google.com/should-not-be-used',
+      join_available: true,
+    })
+    mockDetailContext(() => sessionDetail)
+
+    renderView()
+
+    expect(await screen.findByText('Формат: Офлайн')).toBeInTheDocument()
+    expect(screen.getByText('Локація: Київ, офіс 12')).toBeInTheDocument()
+    expect(screen.getByText('Офлайн-сесія')).toBeInTheDocument()
+    expect(
+      screen.getByText('Для офлайн-формату посилання для приєднання не використовується.')
+    ).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Приєднатися' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Змінити посилання' })).not.toBeInTheDocument()
   })
 
   it('surfaces a stale confirm target error without reloading the page context', async () => {
@@ -759,5 +802,71 @@ describe('TherapistSessionDetailView', () => {
     expect(mockedApiGet).toHaveBeenCalledTimes(1)
     expect(mockedApiGet).toHaveBeenCalledWith('/booking/sessions/42/')
   })
-})
 
+  it('allows editing the meeting link and reloads the session on success', async () => {
+    const oldUrl = 'https://meet.example.com/old-link'
+    const newUrl = 'https://meet.example.com/new-link'
+    let sessionDetail: Record<string, unknown> = buildSession({
+      status: 'CONFIRMED',
+      meeting_mode: 'ONLINE',
+      meeting_url: oldUrl,
+      meeting_provider: 'GOOGLE_MEET',
+      meeting_link_ready: true,
+      join_available: true,
+      join_starts_at: '2099-06-14T10:00:00Z',
+      join_ends_at: '2099-06-15T11:30:00Z',
+    })
+    mockDetailContext(() => sessionDetail)
+
+    mockedUpdateSpecialistSessionMeeting.mockImplementation(async (_sessionId, payload) => {
+      expect(_sessionId).toBe(42)
+      expect(payload).toEqual({
+        meeting_mode: 'ONLINE',
+        meeting_url: newUrl,
+      })
+
+      sessionDetail = {
+        ...sessionDetail,
+        meeting_mode: 'ONLINE',
+        meeting_url: newUrl,
+        meeting_provider: 'EXTERNAL',
+        meeting_link_ready: true,
+        join_available: true,
+      }
+
+      return sessionDetail as any
+    })
+
+    renderView()
+
+    const meetingCard = (await screen.findByText('Приєднатися')).closest('.meeting-card')
+    expect(meetingCard).toBeInTheDocument()
+
+    const editButton = within(meetingCard as HTMLElement).getByRole('button', { name: 'Змінити посилання' })
+    await fireEvent.click(editButton)
+
+    const input = (await within(meetingCard as HTMLElement).findByLabelText(
+      'Посилання на онлайн-зустріч'
+    )) as HTMLInputElement
+    expect(input).toBeInTheDocument()
+    expect(input.value).toBe(oldUrl)
+
+    await fireEvent.update(input, newUrl)
+
+    const saveButton = within(meetingCard as HTMLElement).getByRole('button', { name: 'Зберегти' })
+    await fireEvent.click(saveButton)
+
+    await waitFor(() => {
+      expect(mockedUpdateSpecialistSessionMeeting).toHaveBeenCalledWith(42, {
+        meeting_mode: 'ONLINE',
+        meeting_url: newUrl,
+      })
+    })
+
+    await waitFor(() => {
+      expect(mockToast.success).toHaveBeenCalledWith('Посилання на зустріч оновлено.')
+    })
+
+    expect(endpointCalls('/booking/sessions/42/')).toBe(2)
+  })
+})

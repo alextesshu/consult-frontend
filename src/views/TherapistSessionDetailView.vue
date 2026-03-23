@@ -23,7 +23,7 @@
           </div>
           <div class="summary-actions">
             <button
-              class="btn btn--ghost btn--sm"
+              class="btn btn--sm"
               type="button"
               :disabled="actionLoading || session.status !== 'SCHEDULED'"
               @click="confirmSession"
@@ -77,6 +77,11 @@
             <div class="detail-value">{{ formatDuration(sessionStartAt(session), sessionEndAt(session)) }}</div>
           </div>
           <div class="detail-card">
+            <div class="detail-label">Формат</div>
+            <div class="detail-value">Формат: {{ sessionFormatLabel }}</div>
+            <div v-if="offlineLocation" class="muted detail-meta">Локація: {{ offlineLocation }}</div>
+          </div>
+          <div class="detail-card">
             <div class="detail-label">Клієнт</div>
             <div class="detail-value">
               {{ clientLabel(session) }}
@@ -94,6 +99,77 @@
                 Початок через {{ timeUntilLabel(session) }}
               </div>
             </div>
+          </div>
+        </div>
+        <div
+          v-if="!isOfflineSession && (meetingUrl || isEditingMeetingLink || ['SCHEDULED', 'CONFIRMED'].includes(session.status))"
+          class="meeting-card"
+        >
+          <div v-if="!isEditingMeetingLink">
+            <div class="detail-label">Онлайн-зустріч</div>
+            <div class="detail-value">{{ meetingProvider }}</div>
+            <div class="muted detail-meta">{{ meetingSetupHint }}</div>
+          </div>
+          <div v-else class="field" style="width: 100%">
+            <label for="meeting-link-input" class="detail-label">Посилання на онлайн-зустріч</label>
+            <input
+              id="meeting-link-input"
+              v-model="meetingLinkDraft"
+              class="input"
+              placeholder="https://meet.google.com/... або https://zoom.us/..."
+            />
+            <div class="muted detail-meta">
+              Вставте повне посилання на зустріч. Після збереження клієнт побачить кнопку «Приєднатися».
+            </div>
+          </div>
+          <div class="meeting-card__actions">
+            <template v-if="!isEditingMeetingLink">
+              <a
+                v-if="canJoinMeeting"
+                class="btn btn--sm"
+                :href="meetingUrl"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Приєднатися
+              </a>
+              <button v-if="meetingUrl" class="btn btn--ghost btn--sm" type="button" @click="copyMeetingLink">
+                Скопіювати посилання
+              </button>
+              <button
+                v-if="session && ['SCHEDULED', 'CONFIRMED'].includes(session.status)"
+                class="btn btn--ghost btn--sm"
+                type="button"
+                @click="toggleEditMeetingLink"
+              >
+                {{ meetingUrl ? 'Змінити посилання' : 'Додати посилання' }}
+              </button>
+            </template>
+            <template v-else>
+              <button
+                class="btn btn--sm"
+                type="button"
+                :disabled="actionLoading"
+                @click="saveMeetingLink"
+              >
+                Зберегти
+              </button>
+              <button
+                class="btn btn--ghost btn--sm"
+                type="button"
+                :disabled="actionLoading"
+                @click="toggleEditMeetingLink"
+              >
+                Скасувати
+              </button>
+            </template>
+          </div>
+        </div>
+        <div v-else-if="isOfflineSession" class="meeting-card">
+          <div>
+            <div class="detail-label">Офлайн-сесія</div>
+            <div class="detail-value">{{ offlineLocation || 'Локацію узгоджено зі спеціалістом.' }}</div>
+            <div class="muted detail-meta">Для офлайн-формату посилання для приєднання не використовується.</div>
           </div>
         </div>
       </section>
@@ -303,7 +379,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { apiGet } from '../lib/api'
+import { apiGet, updateSpecialistSessionMeeting, type SessionFormat } from '../lib/api'
 import {
   BOOKING_ERROR_FALLBACKS,
   BOOKING_SUCCESS_MESSAGES,
@@ -341,8 +417,12 @@ import {
   type SpecialistRecurringSummary,
   type SpecialistRescheduleRequest,
   type SpecialistRescheduleSuggestion,
-  type SpecialistSlot,
-} from '../lib/specialistSessions'
+  type SpecialistSlot } from '../lib/specialistSessions'
+import {
+  externalMeetingHint,
+  externalMeetingProviderLabel,
+  normalizeMeetingUrl,
+} from '../lib/sessionExecution'
 import { useToast } from '../composables/useToast'
 import EmptyState from '../components/EmptyState.vue'
 import LoadingSkeleton from '../components/LoadingSkeleton.vue'
@@ -360,7 +440,16 @@ type SessionDetail = {
   client_name?: string | null
   client_email?: string | null
   therapist: number
+  session_format?: SessionFormat | null
+  offline_location?: string | null
   therapist_username?: string | null
+  meeting_mode?: 'ONLINE' | 'OFFLINE'
+  meeting_url?: string | null
+  meeting_provider?: string | null
+  meeting_link_ready?: boolean
+  join_available?: boolean
+  join_starts_at?: string | null
+  join_ends_at?: string | null
   slot?: SessionSlot | number | null
   slot_start_at?: string | null
   slot_end_at?: string | null
@@ -391,6 +480,39 @@ const showRecurringPanel = ref(false)
 const recurringPreset = ref<number | 'custom'>(4)
 const recurringCustomOccurrences = ref<number | ''>('')
 const recurringResult = ref<SpecialistRecurringSummary | null>(null)
+const isEditingMeetingLink = ref(false)
+const meetingLinkDraft = ref('')
+
+function normalizeSessionFormat(detail: SessionDetail | null): SessionFormat {
+  if (!detail) return 'online'
+  if (detail.session_format === 'offline') return 'offline'
+  if (detail.session_format === 'online') return 'online'
+  if (detail.meeting_mode === 'OFFLINE') return 'offline'
+  return 'online'
+}
+
+const sessionFormat = computed<SessionFormat>(() => normalizeSessionFormat(session.value))
+const isOfflineSession = computed(() => sessionFormat.value === 'offline')
+const sessionFormatLabel = computed(() => (isOfflineSession.value ? 'Офлайн' : 'Онлайн'))
+const offlineLocation = computed(() => {
+  if (!isOfflineSession.value) return ''
+  return (session.value?.offline_location || '').trim()
+})
+const meetingUrl = computed(() => normalizeMeetingUrl(session.value?.meeting_url))
+const canJoinMeeting = computed(() =>
+  Boolean(!isOfflineSession.value && session.value?.join_available && meetingUrl.value)
+)
+const meetingProvider = computed(() =>
+  externalMeetingProviderLabel(session.value?.meeting_provider, meetingUrl.value)
+)
+const meetingHint = computed(() => {
+  if (!session.value || !meetingUrl.value) return ''
+  return externalMeetingHint(session.value)
+})
+const meetingSetupHint = computed(() => {
+  if (meetingHint.value) return meetingHint.value
+  return 'Додайте посилання на Google Meet, Zoom або іншу платформу для онлайн-зустрічі.'
+})
 
 const sessionRequests = computed(() =>
   session.value ? rescheduleRequests.value.filter((item) => item.session_id === session.value?.id) : []
@@ -458,6 +580,16 @@ function canReschedule(status: string) {
 
 function canShowRecurringAction(detail: SessionDetail) {
   return sharedCanShowRecurringAction(detail)
+}
+
+async function copyMeetingLink() {
+  if (!meetingUrl.value) return
+  try {
+    await navigator.clipboard.writeText(meetingUrl.value)
+    toast.success('Посилання на зустріч скопійовано.')
+  } catch {
+    toast.error('Не вдалося скопіювати посилання на зустріч.')
+  }
 }
 
 function recurringOccurrencesValue() {
@@ -713,6 +845,39 @@ async function declineRequest(id: number) {
   }
 }
 
+function toggleEditMeetingLink() {
+  isEditingMeetingLink.value = !isEditingMeetingLink.value
+  if (isEditingMeetingLink.value) {
+    meetingLinkDraft.value = session.value?.meeting_url || ''
+  } else {
+    meetingLinkDraft.value = ''
+  }
+}
+
+async function saveMeetingLink() {
+  if (!session.value) return
+
+  const normalized = meetingLinkDraft.value.trim()
+
+  actionLoading.value = true
+  error.value = ''
+
+  try {
+    await updateSpecialistSessionMeeting(session.value.id, {
+      meeting_mode: normalized ? 'ONLINE' : 'OFFLINE',
+      meeting_url: normalized || null,
+    })
+    await loadSession()
+    toast.success('Посилання на зустріч оновлено.')
+    isEditingMeetingLink.value = false
+    meetingLinkDraft.value = ''
+  } catch (err: any) {
+    error.value = getBookingErrorMessage(err, 'Не вдалося оновити посилання на зустріч.')
+  } finally {
+    actionLoading.value = false
+  }
+}
+
 watch(
   sessionId,
   async () => {
@@ -816,6 +981,24 @@ watch(
 .detail-meta {
   font-size: 12px;
   font-weight: 400;
+}
+
+.meeting-card {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: center;
+  flex-wrap: wrap;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(31, 122, 76, 0.22);
+  background: rgba(31, 122, 76, 0.08);
+}
+
+.meeting-card__actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .status-pill {

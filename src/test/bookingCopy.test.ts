@@ -55,6 +55,47 @@ describe('booking copy helpers', () => {
     ).toBe('Дія недоступна через обмеження плану. Перевірте доступ у Billing.')
   })
 
+  it('maps session format booking validation codes', () => {
+    expect(
+      getBookingErrorMessage(
+        {
+          response: {
+            data: {
+              code: 'SESSION_FORMAT_REQUIRED',
+            },
+          },
+        },
+        'fallback'
+      )
+    ).toBe('Оберіть формат сесії перед бронюванням.')
+
+    expect(
+      getBookingErrorMessage(
+        {
+          response: {
+            data: {
+              code: 'SESSION_FORMAT_INVALID',
+            },
+          },
+        },
+        'fallback'
+      )
+    ).toBe('Обраний формат сесії недоступний для цього спеціаліста.')
+
+    expect(
+      getBookingErrorMessage(
+        {
+          response: {
+            data: {
+              code: 'SPECIALIST_PROFILE_INVALID',
+            },
+          },
+        },
+        'fallback'
+      )
+    ).toBe('Профіль спеціаліста налаштовано некоректно. Спробуйте інший слот або запишіться пізніше.')
+  })
+
   it('keeps detail fallback for uncoded payloads', () => {
     expect(
       getBookingErrorMessage(

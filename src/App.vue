@@ -16,7 +16,12 @@
         >
           Публічний профіль
         </RouterLink>
-        <RouterLink class="nav__desktop-only" to="/faq">FAQ</RouterLink>
+        <RouterLink v-if="!isAuthenticated" class="nav__desktop-only" :to="{ path: '/', hash: '#features' }">
+          Можливості
+        </RouterLink>
+        <RouterLink v-if="!isAuthenticated" class="nav__desktop-only" :to="{ path: '/', hash: '#pricing' }">
+          Тарифи
+        </RouterLink>
         <RouterLink v-if="!isAuthenticated" to="/login">Вхід</RouterLink>
         <RouterLink v-if="!isAuthenticated" to="/signup">Реєстрація</RouterLink>
         <RouterLink
@@ -101,20 +106,35 @@
             <div v-if="notificationsLoading && !notificationsLoaded" class="muted">Завантаження...</div>
             <div v-else-if="notifications.length === 0" class="muted">Немає нових сповіщень.</div>
             <div v-else class="notif-list">
-              <RouterLink
+              <article
                 v-for="item in notifications"
                 :key="item.id"
-                class="notif-item"
-                :class="{ 'notif-item--read': !item.unread }"
-                :to="item.to"
-                @click="markNotificationRead(item)"
+                class="notif-item-shell"
               >
-                <span class="notif-item__dot" :class="`notif-item__dot--${item.tone}`"></span>
-                <div>
-                  <div class="notif-item__text">{{ item.text }}</div>
-                  <div class="muted notif-item__hint">{{ item.hint }}</div>
+                <RouterLink
+                  class="notif-item"
+                  :class="{ 'notif-item--read': !item.unread }"
+                  :to="item.to"
+                  @click="markNotificationRead(item)"
+                >
+                  <span class="notif-item__dot" :class="`notif-item__dot--${item.tone}`"></span>
+                  <div>
+                    <div class="notif-item__text">{{ item.text }}</div>
+                    <div class="muted notif-item__hint">{{ item.hint }}</div>
+                  </div>
+                </RouterLink>
+                <div v-if="item.join_url" class="notif-item__actions">
+                  <a
+                    class="btn btn--ghost btn--sm"
+                    :href="item.join_url"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    @click.stop="markNotificationRead(item)"
+                  >
+                    Приєднатися
+                  </a>
                 </div>
-              </RouterLink>
+              </article>
             </div>
           </div>
         </div>
@@ -146,7 +166,6 @@
           <RouterLink v-if="isSpecialist" class="mobile-menu__item" to="/public" @click="closeMobileMenu">
             Публічний профіль
           </RouterLink>
-          <RouterLink class="mobile-menu__item" to="/faq" @click="closeMobileMenu">FAQ</RouterLink>
           <button
             v-if="isSpecialist"
             type="button"
@@ -185,11 +204,19 @@
       <RouterView :key="route.fullPath" />
     </main>
     <ToastHost />
-
     <footer class="footer">
-      <div>Pro Consult — Простір для спеціалістів · <RouterLink class="footer__link" to="/faq">FAQ</RouterLink></div>
+      <div class="footer__brand">
+        <span>Pro Consult — Простір для спеціалістів</span>
+        <RouterLink class="footer__link" to="/faq">FAQ</RouterLink>
+      </div>
       <div class="footer__meta">
         <span>Без комісій. Без посередників. З повагою до практики.</span>
+      </div>
+      <div class="footer__legal">
+        <RouterLink class="footer__link" to="/terms">Умови користування</RouterLink>
+        <RouterLink class="footer__link" to="/privacy">Політика конфіденційності</RouterLink>
+        <RouterLink class="footer__link" to="/disclaimer">Дисклеймер</RouterLink>
+        <RouterLink class="footer__link" to="/support-and-data-requests">Підтримка та запити щодо даних</RouterLink>
       </div>
     </footer>
   </div>
@@ -201,6 +228,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from './stores/auth'
 import ToastHost from './components/ToastHost.vue'
 import {
+  apiGet,
   fetchChatUnreadCount,
   fetchNotifications,
   markAllNotificationsRead as markAllNotificationsReadApi,
@@ -208,7 +236,9 @@ import {
   type NotificationFeedItem,
 } from './lib/api'
 import { formatUkDateTimeCompact } from './lib/dateTime'
+import { canJoinExternalMeeting, normalizeMeetingUrl } from './lib/sessionExecution'
 import { useToast } from './composables/useToast'
+import type { ToastAction } from './stores/toast'
 
 const route = useRoute()
 const router = useRouter()
@@ -237,7 +267,7 @@ const cabinetRoute = computed(() => {
 })
 const cabinetLabel = computed(() => {
   if (isSpecialist.value) return 'Мій кабінет'
-  if (isClient.value) return 'Мій щоденник'
+  if (isClient.value) return 'Кабінет'
   return 'Кабінет'
 })
 const showCatalogNav = computed(() => isClient.value)
@@ -260,11 +290,25 @@ type BellNotification = {
   text: string
   hint: string
   to: string
+  join_url: string | null
   tone: 'info' | 'warn' | 'ok'
   unread: boolean
   source_kind: string | null
   source_id: number | null
 }
+
+type UpcomingSessionReminder = {
+  id: number
+  status: string
+  meeting_url?: string | null
+  join_available?: boolean
+  slot?: { start_at?: string | null } | number | null
+  slot_start_at?: string | null
+}
+
+const PRE_SESSION_TOAST_WINDOW_MS = 5 * 60 * 1000
+const PRE_SESSION_TOAST_POLL_MS = 60 * 1000
+const PRE_SESSION_TOAST_STORAGE_KEY = 'consult.pre_session_toast_shown.v1'
 
 const showNotifications = ref(false)
 const showSettings = ref(false)
@@ -284,10 +328,132 @@ const notificationsPendingIds = ref<Set<string>>(new Set())
 const refreshIntervalId = ref<number | null>(null)
 const notificationsIntervalId = ref<number | null>(null)
 const chatIntervalId = ref<number | null>(null)
+const preSessionToastIntervalId = ref<number | null>(null)
 const chatUnreadCount = ref(0)
 const toast = useToast()
+const shownPreSessionToastKeys = ref<Set<string>>(loadShownPreSessionToastKeys())
 
 const upcomingCount = computed(() => auth.me?.counts?.upcoming_sessions_count ?? 0)
+
+function loadShownPreSessionToastKeys() {
+  try {
+    const raw = sessionStorage.getItem(PRE_SESSION_TOAST_STORAGE_KEY)
+    if (!raw) return new Set<string>()
+    const parsed = JSON.parse(raw)
+    if (!Array.isArray(parsed)) return new Set<string>()
+    return new Set(parsed.filter((item): item is string => typeof item === 'string'))
+  } catch {
+    return new Set<string>()
+  }
+}
+
+function saveShownPreSessionToastKeys(next: Set<string>) {
+  try {
+    sessionStorage.setItem(PRE_SESSION_TOAST_STORAGE_KEY, JSON.stringify(Array.from(next)))
+  } catch {
+    // ignore storage errors
+  }
+}
+
+function reminderSessionStartAt(session: UpcomingSessionReminder) {
+  if (session.slot && typeof session.slot === 'object') {
+    return session.slot.start_at || session.slot_start_at || null
+  }
+  return session.slot_start_at || null
+}
+
+function reminderKey(session: UpcomingSessionReminder) {
+  const rolePrefix = isSpecialist.value ? 'specialist' : isClient.value ? 'client' : 'user'
+  const startRaw = reminderSessionStartAt(session)
+  const startTimestamp = startRaw ? new Date(startRaw).getTime() : Number.NaN
+  const startPart =
+    Number.isFinite(startTimestamp) && !Number.isNaN(startTimestamp)
+      ? String(startTimestamp)
+      : startRaw || 'no-start'
+  return `${rolePrefix}:${session.id}:${startPart}`
+}
+
+function reminderDetailsRoute(sessionId: number) {
+  if (isSpecialist.value) return `/cabinet/sessions/${sessionId}`
+  return `/client/sessions/${sessionId}`
+}
+
+function reminderMessage() {
+  if (isSpecialist.value) return 'За 5 хвилин починається сесія з клієнтом.'
+  return 'За 5 хвилин починається ваша сесія.'
+}
+
+function reminderJoinAction(session: UpcomingSessionReminder) {
+  const url = normalizeMeetingUrl(session.meeting_url)
+  if (!url) return null
+  if (session.join_available === false) return null
+  if (!canJoinExternalMeeting({ status: session.status, meeting_url: url })) return null
+  return {
+    label: 'Приєднатися',
+    href: url,
+    target: '_blank' as const,
+  }
+}
+
+function shouldShowSessionReminder(session: UpcomingSessionReminder, now: number) {
+  if (!['SCHEDULED', 'CONFIRMED'].includes(session.status)) return false
+  const startRaw = reminderSessionStartAt(session)
+  if (!startRaw) return false
+  const start = new Date(startRaw).getTime()
+  if (Number.isNaN(start)) return false
+  const diff = start - now
+  return diff > 0 && diff <= PRE_SESSION_TOAST_WINDOW_MS
+}
+
+async function checkUpcomingSessionReminders() {
+  if (!isAuthenticated.value) return
+  if (!isSpecialist.value && !isClient.value) return
+
+  try {
+    const sessions = await apiGet<UpcomingSessionReminder[]>('/booking/sessions/', {
+      params: { upcoming: true },
+    })
+    const now = Date.now()
+    const eligible = (sessions || [])
+      .filter((session) => shouldShowSessionReminder(session, now))
+      .sort((a, b) => {
+        const aStart = new Date(reminderSessionStartAt(a) || '').getTime()
+        const bStart = new Date(reminderSessionStartAt(b) || '').getTime()
+        return aStart - bStart
+      })
+
+    eligible.forEach((session) => {
+      const key = reminderKey(session)
+      if (shownPreSessionToastKeys.value.has(key)) return
+
+      const actions: ToastAction[] = [
+        {
+          label: 'Відкрити деталі',
+          to: reminderDetailsRoute(session.id),
+        },
+      ]
+      const joinAction = reminderJoinAction(session)
+      if (joinAction) {
+        actions.push(joinAction)
+      }
+
+      toast.show({
+        type: 'info',
+        title: 'Нагадування',
+        message: reminderMessage(),
+        actions,
+        duration: 10000,
+      })
+
+      const next = new Set(shownPreSessionToastKeys.value)
+      next.add(key)
+      shownPreSessionToastKeys.value = next
+      saveShownPreSessionToastKeys(next)
+    })
+  } catch {
+    // silent: reminder polling should not block shell behavior
+  }
+}
 
 function formatDateTime(value?: string | null) {
   return formatUkDateTimeCompact(value, '')
@@ -310,6 +476,14 @@ function notificationCounterpartyLabel(item: NotificationFeedItem) {
 function notificationPreview(item: NotificationFeedItem) {
   const preview = item.preview?.trim()
   return preview || 'Відкрийте запит, щоб переглянути деталі.'
+}
+
+function notificationJoinUrl(item: NotificationFeedItem) {
+  const url = normalizeMeetingUrl(item.meeting_url)
+  if (!url) return null
+  if (item.source_kind === 'inquiry_message' || item.source_kind === 'reschedule_request') return null
+  if (item.source_kind === 'session_event' && item.code === 'CANCELLED') return null
+  return url
 }
 
 function notificationTone(item: NotificationFeedItem): BellNotification['tone'] {
@@ -341,9 +515,15 @@ function notificationText(item: NotificationFeedItem) {
     return `Оновлення по сесії від ${clientLabel}`
   }
   if (item.code === 'session_starts_1h') {
+    if (notificationJoinUrl(item)) {
+      return `РќР°РіР°РґСѓРІР°РЅРЅСЏ: РѕРЅР»Р°Р№РЅ-Р·СѓСЃС‚СЂС–С‡ Р· ${clientLabel} РїРѕС‡РёРЅР°С”С‚СЊСЃСЏ Р·Р° 1 РіРѕРґРёРЅСѓ`
+    }
     return `Нагадування: сесія з ${clientLabel} починається за 1 годину`
   }
   if (item.code === 'session_starts_24h') {
+    if (notificationJoinUrl(item)) {
+      return `РќР°РіР°РґСѓРІР°РЅРЅСЏ: РѕРЅР»Р°Р№РЅ-Р·СѓСЃС‚СЂС–С‡ Р· ${clientLabel} РїРѕС‡РёРЅР°С”С‚СЊСЃСЏ Р·Р° 24 РіРѕРґРёРЅРё`
+    }
     return `Нагадування: сесія з ${clientLabel} починається за 24 години`
   }
   return `Нагадування про сесію з ${clientLabel}`
@@ -387,6 +567,7 @@ const serverNotifications = computed<BellNotification[]>(() =>
     text: notificationText(item),
     hint: notificationHint(item),
     to: notificationTarget(item),
+    join_url: notificationJoinUrl(item),
     tone: notificationTone(item),
     unread: !item.read_at,
     source_kind: item.source_kind,
@@ -407,6 +588,7 @@ const supplementalNotifications = computed<BellNotification[]>(() => {
       text: 'Оплата потребує уваги',
       hint: 'Доступ тимчасово збережено.',
       to: '/cabinet/billing',
+      join_url: null,
       tone: 'warn',
       unread: false,
       source_kind: null,
@@ -419,6 +601,7 @@ const supplementalNotifications = computed<BellNotification[]>(() => {
       text: 'Обмежений режим доступу',
       hint: 'Нові дії заблоковані.',
       to: '/cabinet/billing',
+      join_url: null,
       tone: 'warn',
       unread: false,
       source_kind: null,
@@ -431,6 +614,7 @@ const supplementalNotifications = computed<BellNotification[]>(() => {
       text: 'Перевищено ліміт активних клієнтів',
       hint: 'Нові підтвердження тимчасово заблоковані.',
       to: '/cabinet/billing',
+      join_url: null,
       tone: 'warn',
       unread: false,
       source_kind: null,
@@ -443,6 +627,7 @@ const supplementalNotifications = computed<BellNotification[]>(() => {
       text: 'Є заплановані сесії',
       hint: 'Перевірте список найближчих сесій.',
       to: '/cabinet/sessions',
+      join_url: null,
       tone: 'ok',
       unread: false,
       source_kind: null,
@@ -636,10 +821,25 @@ function stopChatPolling() {
   chatIntervalId.value = null
 }
 
+function startPreSessionToastPolling() {
+  if (preSessionToastIntervalId.value !== null) return
+  checkUpcomingSessionReminders()
+  preSessionToastIntervalId.value = window.setInterval(() => {
+    checkUpcomingSessionReminders()
+  }, PRE_SESSION_TOAST_POLL_MS)
+}
+
+function stopPreSessionToastPolling() {
+  if (preSessionToastIntervalId.value === null) return
+  window.clearInterval(preSessionToastIntervalId.value)
+  preSessionToastIntervalId.value = null
+}
+
 function handleVisibilityChange() {
   if (document.visibilityState === 'visible') {
     refreshMe()
     refreshNotifications()
+    checkUpcomingSessionReminders()
   }
 }
 
@@ -683,6 +883,7 @@ onMounted(() => {
     startMePolling()
     startNotificationsPolling()
     startChatPolling()
+    startPreSessionToastPolling()
   }
   document.addEventListener('click', handleGlobalClick)
   document.addEventListener('keydown', handleGlobalKeydown)
@@ -693,6 +894,7 @@ onBeforeUnmount(() => {
   stopMePolling()
   stopNotificationsPolling()
   stopChatPolling()
+  stopPreSessionToastPolling()
   document.removeEventListener('click', handleGlobalClick)
   document.removeEventListener('keydown', handleGlobalKeydown)
   document.removeEventListener('visibilitychange', handleVisibilityChange)
@@ -703,10 +905,12 @@ watch(isAuthenticated, (value) => {
     startMePolling()
     startNotificationsPolling()
     startChatPolling()
+    startPreSessionToastPolling()
   } else {
     stopMePolling()
     stopNotificationsPolling()
     stopChatPolling()
+    stopPreSessionToastPolling()
     notificationsFeed.value = []
     notificationsLoaded.value = false
   }
@@ -1033,6 +1237,11 @@ watch(isAuthenticated, (value) => {
   gap: 8px;
 }
 
+.notif-item-shell {
+  display: grid;
+  gap: 6px;
+}
+
 .notif-item {
   display: grid;
   grid-template-columns: 10px 1fr;
@@ -1088,6 +1297,11 @@ watch(isAuthenticated, (value) => {
   color: var(--muted);
 }
 
+.notif-item__actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
 .main {
   min-height: 320px;
   width: 80%;
@@ -1110,8 +1324,10 @@ body.body--home .footer {
   border-top: 1px solid var(--border);
   background: transparent;
   backdrop-filter: none;
-  color: var(--muted);
-  font-size: 12px;
+  color: var(--text-2);
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.45;
 }
 
 .footer {
@@ -1120,8 +1336,17 @@ body.body--home .footer {
   gap: 12px;
   padding-top: 12px;
   border-top: 1px solid var(--border);
-  color: var(--muted);
-  font-size: 12px;
+  color: var(--text-2);
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.45;
+  flex-wrap: wrap;
+}
+
+.footer__brand {
+  display: flex;
+  gap: 10px;
+  align-items: center;
   flex-wrap: wrap;
 }
 
@@ -1132,14 +1357,22 @@ body.body--home .footer {
   flex-wrap: wrap;
 }
 
+.footer__legal {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
 .footer__link {
-  color: inherit;
+  color: var(--text);
+  font-weight: 500;
   text-decoration: underline;
-  text-decoration-color: color-mix(in srgb, var(--text) 35%, transparent);
+  text-decoration-color: color-mix(in srgb, var(--text) 55%, transparent);
+  text-underline-offset: 2px;
 }
 
 .footer__link:hover {
-  text-decoration-color: color-mix(in srgb, var(--text) 70%, transparent);
+  text-decoration-color: color-mix(in srgb, var(--text) 80%, transparent);
 }
 
 @media (max-width: 1024px) {
@@ -1284,3 +1517,4 @@ body.body--home .footer {
   }
 }
 </style>
+

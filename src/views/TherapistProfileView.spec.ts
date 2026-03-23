@@ -2,8 +2,12 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import TherapistProfileView from './TherapistProfileView.vue'
 import {
+  createProfileDocument,
+  deleteProfileDocument,
   fetchSpecialistProfile,
+  fetchProfileDocuments,
   rotateSpecialistProfileSlug,
+  updateProfileDocument,
   updateSpecialistProfile,
   uploadProfilePhoto,
   uploadProfileVideo,
@@ -16,15 +20,23 @@ vi.mock('vue-advanced-cropper', () => ({
 }))
 
 vi.mock('../lib/api', () => ({
+  createProfileDocument: vi.fn(),
+  deleteProfileDocument: vi.fn(),
   fetchSpecialistProfile: vi.fn(),
+  fetchProfileDocuments: vi.fn(),
   rotateSpecialistProfileSlug: vi.fn(),
+  updateProfileDocument: vi.fn(),
   updateSpecialistProfile: vi.fn(),
   uploadProfilePhoto: vi.fn(),
   uploadProfileVideo: vi.fn(),
 }))
 
+const mockedCreateProfileDocument = vi.mocked(createProfileDocument)
+const mockedDeleteProfileDocument = vi.mocked(deleteProfileDocument)
 const mockedFetchSpecialistProfile = vi.mocked(fetchSpecialistProfile)
+const mockedFetchProfileDocuments = vi.mocked(fetchProfileDocuments)
 const mockedRotateSpecialistProfileSlug = vi.mocked(rotateSpecialistProfileSlug)
+const mockedUpdateProfileDocument = vi.mocked(updateProfileDocument)
 const mockedUpdateSpecialistProfile = vi.mocked(updateSpecialistProfile)
 const mockedUploadProfilePhoto = vi.mocked(uploadProfilePhoto)
 const mockedUploadProfileVideo = vi.mocked(uploadProfileVideo)
@@ -35,6 +47,9 @@ function makeProfile() {
     public_profile_enabled: true,
     public_slug: 'specialist-anna',
     last_slug_rotated_at: '2026-03-10T09:00:00Z',
+    offers_online: true,
+    offers_offline: true,
+    offline_location: 'Львів, офіс 12',
     display_name: 'Анна',
     bio_about: 'Працюю дбайливо.',
     bio_work: 'Онлайн консультації.',
@@ -91,11 +106,16 @@ function renderView() {
 
 describe('TherapistProfileView', () => {
   beforeEach(() => {
+    mockedCreateProfileDocument.mockReset()
+    mockedDeleteProfileDocument.mockReset()
     mockedFetchSpecialistProfile.mockReset()
+    mockedFetchProfileDocuments.mockReset()
     mockedRotateSpecialistProfileSlug.mockReset()
+    mockedUpdateProfileDocument.mockReset()
     mockedUpdateSpecialistProfile.mockReset()
     mockedUploadProfilePhoto.mockReset()
     mockedUploadProfileVideo.mockReset()
+    mockedFetchProfileDocuments.mockResolvedValue([])
   })
 
   it('renders the loaded public profile data and live preview', async () => {
@@ -109,6 +129,9 @@ describe('TherapistProfileView', () => {
     expect(container).toHaveTextContent('Анна')
     expect(screen.getByText('Ознайомча: 600 грн')).toBeInTheDocument()
     expect(screen.getByText('Досвід: 6 років')).toBeInTheDocument()
+    expect(screen.getByLabelText('Доступно онлайн')).toBeChecked()
+    expect(screen.getByLabelText('Доступно офлайн')).toBeChecked()
+    expect(screen.getByDisplayValue('Львів, офіс 12')).toBeInTheDocument()
     expect(screen.getByText(`${window.location.origin}/specialist/specialist-anna`)).toBeInTheDocument()
   })
 
@@ -135,6 +158,9 @@ describe('TherapistProfileView', () => {
     expect(mockedUpdateSpecialistProfile).toHaveBeenCalledWith(
       expect.objectContaining({
         public_profile_enabled: true,
+        offers_online: true,
+        offers_offline: true,
+        offline_location: 'Львів, офіс 12',
         display_name: 'Анна',
         specializations: ['CBT', 'ACT'],
         languages: ['Українська', 'English'],
@@ -148,5 +174,38 @@ describe('TherapistProfileView', () => {
       })
     )
     expect(await screen.findByText('Збережено.')).toBeInTheDocument()
+  })
+
+  it('blocks save when both online and offline options are disabled', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValue(makeProfile())
+
+    renderView()
+
+    const online = (await screen.findByLabelText('Доступно онлайн')) as HTMLInputElement
+    const offline = screen.getByLabelText('Доступно офлайн') as HTMLInputElement
+    if (online.checked) await fireEvent.click(online)
+    if (offline.checked) await fireEvent.click(offline)
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Зберегти зміни' }))
+
+    expect(mockedUpdateSpecialistProfile).not.toHaveBeenCalled()
+    expect(await screen.findByText('Оберіть щонайменше один формат консультацій: онлайн або офлайн.')).toBeInTheDocument()
+  })
+
+  it('hides and shows offline location field based on offline availability', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValue(makeProfile())
+
+    renderView()
+
+    expect(await screen.findByLabelText('Локація для офлайн-зустрічей')).toBeInTheDocument()
+
+    const offline = screen.getByLabelText('Доступно офлайн') as HTMLInputElement
+    await fireEvent.click(offline)
+    await waitFor(() => {
+      expect(screen.queryByLabelText('Локація для офлайн-зустрічей')).not.toBeInTheDocument()
+    })
+
+    await fireEvent.click(offline)
+    expect(await screen.findByLabelText('Локація для офлайн-зустрічей')).toBeInTheDocument()
   })
 })

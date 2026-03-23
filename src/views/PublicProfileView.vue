@@ -1,38 +1,55 @@
 <template>
   <section class="public">
     <header class="public__hero">
-      <div class="hero-media" v-if="profile">
-        <img
-          v-if="profile.photo_url"
-          class="hero-photo"
-          :src="profile.photo_url"
-          alt="Фото спеціаліста"
-        />
-        <div v-else class="hero-photo-placeholder">Фото спеціаліста</div>
-        <video
-          v-if="profile.video_url"
-          class="hero-video"
-          :src="profile.video_url"
-          controls
-          preload="metadata"
-        ></video>
-      </div>
-      <div class="hero-main">
-        <div class="badge">Профіль спеціаліста</div>
-        <h1 class="title public__title">{{ publicName || 'Профіль спеціаліста' }}</h1>
-        <p class="muted public__subtitle">
-          {{ profile ? 'Безпечний простір для першої розмови у вашому темпі.' : 'Завантаження профілю' }}
-        </p>
-        <div v-if="profile" class="hero-trust">
-          <span v-if="profile.specializations">{{ profile.specializations }}</span>
-          <span v-if="languagesDisplay">{{ languagesDisplay }}</span>
-          <span v-if="profile.experience_years !== undefined && profile.experience_years !== null">
-            Досвід: {{ formatExperience(profile.experience_years) }}
-          </span>
-          <span v-if="profile.location">{{ profile.location }}</span>
+      <div class="hero-profile">
+        <div class="hero-media" v-if="profile">
+          <img
+            v-if="profile.photo_url"
+            class="hero-photo"
+            :src="profile.photo_url"
+            alt="Фото спеціаліста"
+          />
+          <div v-else class="hero-photo-placeholder">Фото спеціаліста</div>
+          <video
+            v-if="profile.video_url"
+            class="hero-video"
+            :src="profile.video_url"
+            controls
+            preload="metadata"
+          ></video>
+        </div>
+
+        <div class="hero-main">
+          <div class="badge">Профіль спеціаліста</div>
+          <h1 class="title public__title">{{ publicName || 'Профіль спеціаліста' }}</h1>
+          <p v-if="profile && heroRoleLine" class="hero-main__role">{{ heroRoleLine }}</p>
+          <p class="hero-main__lead">{{ profile ? heroLeadText : 'Завантаження профілю' }}</p>
+          <p v-if="profile && heroSupportText" class="hero-main__support">{{ heroSupportText }}</p>
+          <p v-if="profile && completedSessionsBadge" class="hero-main__sessions">
+            Проведено сесій: {{ completedSessionsBadge }}
+          </p>
+
+          <div v-if="profile && heroMetaHighlights.length" class="hero-main__meta">
+            <article v-for="item in heroMetaHighlights" :key="item.label" class="hero-meta-card">
+              <div class="hero-meta-card__label">{{ item.label }}</div>
+              <div class="hero-meta-card__value">{{ item.value }}</div>
+            </article>
+          </div>
+
+          <div v-if="profile && displaySpecializationChips.length" class="hero-trust">
+            <span v-for="(chip, index) in displaySpecializationChips" :key="`${chip}-${index}`">{{ chip }}</span>
+          </div>
         </div>
       </div>
+
       <aside class="hero-cta" v-if="profile">
+        <div class="hero-cta__head">
+          <div class="badge badge--soft">Наступний крок</div>
+          <h2 class="hero-cta__title">Запишіться на консультацію</h2>
+          <p class="hero-cta__hint">
+            Оберіть зручний формат знайомства і переходьте до бронювання без зайвих кроків.
+          </p>
+        </div>
         <div class="hero-cta__prices">
           <div v-if="introPriceDisplay" class="hero-cta__price hero-cta__price--intro">
             Ознайомча сесія: {{ introPriceDisplay }}
@@ -69,12 +86,63 @@
           <div>
             <div class="badge badge--soft">Що важливо знати</div>
             <h2 class="panel__title">Довіра і формат</h2>
+            <p class="panel__lead">Ключова інформація для спокійного рішення перед першим записом.</p>
           </div>
         </div>
         <div class="trust-grid">
           <article v-for="item in trustItems" :key="item.label" class="trust-card">
             <div class="trust-card__label">{{ item.label }}</div>
             <div class="trust-card__value">{{ item.value }}</div>
+          </article>
+        </div>
+      </section>
+
+      <section class="panel panel--documents" v-if="publicDocuments.length">
+        <div class="panel__header">
+          <div>
+            <div class="badge badge--soft">Документи</div>
+            <h2 class="panel__title">Документи та сертифікати</h2>
+            <p class="panel__lead">
+              Матеріали, завантажені спеціалістом для ознайомлення. PRO CONSULT не здійснює автоматичної
+              верифікації їх змісту, якщо інше прямо не зазначено.
+            </p>
+          </div>
+        </div>
+        <div class="documents-grid">
+          <article
+            v-for="document in publicDocuments"
+            :key="document.id"
+            class="document-card"
+            :class="{ 'document-card--file': !isImageDocument(document) }"
+          >
+            <div v-if="isImageDocument(document)" class="document-card__preview">
+              <img
+                :src="document.file_url"
+                :alt="document.title"
+                loading="lazy"
+              />
+            </div>
+            <div v-else class="document-card__file-top">
+              <div class="document-card__file-badge">
+                {{ isPdfDocument(document) ? 'PDF' : 'DOC' }}
+              </div>
+              <div class="document-card__kind document-card__kind--file">{{ documentKindLabel(document.document_kind) }}</div>
+            </div>
+            <div class="document-card__body">
+              <div v-if="isImageDocument(document)" class="document-card__kind">{{ documentKindLabel(document.document_kind) }}</div>
+              <h3 class="document-card__title">{{ document.title }}</h3>
+              <div v-if="document.uploaded_at" class="document-card__meta">
+                Додано: {{ formatDate(document.uploaded_at) }}
+              </div>
+            </div>
+            <a
+              class="btn btn--ghost document-card__action"
+              :href="document.file_url"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {{ isPdfDocument(document) ? 'Відкрити документ' : 'Відкрити' }}
+            </a>
           </article>
         </div>
       </section>
@@ -146,61 +214,84 @@
           </div>
         </div>
 
-        <div class="slot-filter">
-          <div class="slot-week">
-            <button
-              v-for="day in weekDays"
-              :key="day.date"
-              class="slot-day"
-              :class="{ 'slot-day--active': day.date === selectedDate }"
-              type="button"
-              @click="selectDay(day.date)"
-            >
-              <span class="slot-day__label">{{ day.label }}</span>
-              <span class="slot-day__date">{{ day.dateLabel }}</span>
-            </button>
+        <div class="slot-top">
+          <div class="slot-filter">
+            <div class="slot-week">
+              <button
+                v-for="day in weekDays"
+                :key="day.date"
+                class="slot-day"
+                :class="{ 'slot-day--active': day.date === selectedDate }"
+                type="button"
+                @click="selectDay(day.date)"
+              >
+                <span class="slot-day__label">{{ day.label }}</span>
+                <span class="slot-day__date">{{ day.dateLabel }}</span>
+              </button>
+            </div>
+            <label class="slot-filter__label" for="slotDate">Оберіть дату</label>
+            <input
+              id="slotDate"
+              class="input slot-filter__input"
+              type="date"
+              v-model="selectedDate"
+              :min="todayInputValue"
+              ref="slotDateInput"
+              @click="openDatePicker"
+              @focus="openDatePicker"
+            />
+            <div class="muted slot-filter__hint">
+              Оберіть дату, щоб переглянути доступні вільні вікна.
+            </div>
+            <div class="slot-format">
+              <div class="slot-filter__label">Формат сесії</div>
+              <div
+                v-if="needsSessionFormatChoice"
+                class="slot-format__options"
+                role="radiogroup"
+                aria-label="Формат сесії"
+              >
+                <label class="slot-format__option">
+                  <input
+                    v-model="bookingSessionFormat"
+                    type="radio"
+                    name="sessionFormat"
+                    value="online"
+                  />
+                  <span>Онлайн</span>
+                </label>
+                <label class="slot-format__option">
+                  <input
+                    v-model="bookingSessionFormat"
+                    type="radio"
+                    name="sessionFormat"
+                    value="offline"
+                  />
+                  <span>Офлайн</span>
+                </label>
+              </div>
+              <div v-else class="slot-format__fixed">
+                Формат визначено профілем: {{ sessionFormatLabelForBooking || '—' }}
+              </div>
+              <div v-if="bookingOfflineLocationHint" class="muted slot-format__hint">
+                Локація офлайн-сесій: {{ bookingOfflineLocationHint }}
+              </div>
+            </div>
           </div>
-          <label class="slot-filter__label" for="slotDate">Оберіть дату</label>
-          <input
-            id="slotDate"
-            class="input slot-filter__input"
-            type="date"
-            v-model="selectedDate"
-            :min="todayInputValue"
-            ref="slotDateInput"
-            @click="openDatePicker"
-            @focus="openDatePicker"
-          />
-          <div class="muted slot-filter__hint">
-            Оберіть дату, щоб переглянути доступні вільні вікна.
-          </div>
-        </div>
 
-        <div class="first-session-flow">
-          <article class="flow-card">
-            <div class="flow-card__title">Як проходить перша сесія</div>
-            <ul class="flow-card__list">
-              <li>Коротке знайомство та уточнення вашого запиту.</li>
-              <li>Спокійна розмова у вашому темпі без тиску.</li>
-              <li>Узгодження наступних кроків наприкінці зустрічі.</li>
+          <aside class="slot-info" aria-label="Умови бронювання">
+            <div class="slot-info__title">Перед записом</div>
+            <ul class="slot-info__list">
+              <li v-if="!isAuthenticated">Щоб забронювати час, увійдіть у свій кабінет клієнта.</li>
+              <li v-else-if="!isClient">Бронювання доступне лише для клієнтів.</li>
+              <li v-else>Бронювання доступне в кабінеті клієнта.</li>
+              <li>Спеціаліст підтверджує сесію після запису.</li>
+              <li>Нагадування надходять після підтвердження.</li>
             </ul>
-          </article>
-          <article class="flow-card">
-            <div class="flow-card__title">Як підготуватись</div>
-            <ul class="flow-card__list">
-              <li>Достатньо тихого місця й стабільного інтернету.</li>
-              <li>Не потрібно готуватись “ідеально” чи щось доводити.</li>
-              <li>Можна заздалегідь подумати, що зараз для вас найважливіше.</li>
-            </ul>
-          </article>
-          <article class="flow-card">
-            <div class="flow-card__title">Що буде після запису</div>
-            <ul class="flow-card__list">
-              <li>Сесія з'явиться у вашому кабінеті клієнта.</li>
-              <li>Після підтвердження спеціаліста ви отримаєте нагадування.</li>
-              <li>За потреби зможете перенести або скасувати запис у кабінеті.</li>
-            </ul>
-          </article>
+            <RouterLink v-if="!isAuthenticated" class="btn btn--ghost btn--sm slot-info__action" to="/login">
+              Увійти
+            </RouterLink>
+          </aside>
         </div>
 
         <section
@@ -244,23 +335,19 @@
           </div>
         </section>
 
-        <div v-if="!isAuthenticated" class="hint">
-          Щоб забронювати час, увійдіть у свій кабінет клієнта.
-          <RouterLink class="btn btn--ghost" to="/login">Увійти</RouterLink>
-        </div>
-        <div v-else-if="!isClient" class="hint">Бронювання доступне лише для клієнтів.</div>
-
         <div v-if="bookingSuccess" class="success">{{ bookingSuccess }}</div>
         <div v-if="bookingError" class="form-error">{{ bookingError }}</div>
         <div v-if="upcomingConfirmed.length" class="confirmed-block">
           <div class="confirmed-title">Підтверджені сесії у вас заплановані</div>
           <div class="confirmed-list">
             <div v-for="session in upcomingConfirmed" :key="session.id" class="confirmed-item">
-              <div class="confirmed-time">{{ formatDate(session.start_at) }}</div>
+            <div class="confirmed-time">{{ formatDate(session.start_at) }}</div>
               <div class="muted">{{ formatDuration(session.start_at, session.end_at) }}</div>
             </div>
           </div>
         </div>
+
+        <div class="slot-list-heading">Вільні вікна на обрану дату</div>
 
         <div v-if="slotsLoading" class="muted">Завантажуємо вільні вікна</div>
         <div v-else-if="slotsError" class="form-error">{{ slotsError }}</div>
@@ -292,6 +379,33 @@
             {{ showAllSlots ? 'Показати менше' : `Показати весь розклад (${slots.length})` }}
           </button>
         </div>
+
+        <div class="first-session-flow">
+          <article class="flow-card">
+            <div class="flow-card__title">Як проходить перша сесія</div>
+            <ul class="flow-card__list">
+              <li>Коротке знайомство та уточнення вашого запиту.</li>
+              <li>Спокійна розмова у вашому темпі без тиску.</li>
+              <li>Узгодження наступних кроків наприкінці зустрічі.</li>
+            </ul>
+          </article>
+          <article class="flow-card">
+            <div class="flow-card__title">Як підготуватись</div>
+            <ul class="flow-card__list">
+              <li>Достатньо тихого місця й стабільного інтернету.</li>
+              <li>Не потрібно готуватись “ідеально” чи щось доводити.</li>
+              <li>Можна заздалегідь подумати, що зараз для вас найважливіше.</li>
+            </ul>
+          </article>
+          <article class="flow-card">
+            <div class="flow-card__title">Що буде після запису</div>
+            <ul class="flow-card__list">
+              <li>Сесія з'явиться у вашому кабінеті клієнта.</li>
+              <li>Після підтвердження спеціаліста ви отримаєте нагадування.</li>
+              <li>За потреби зможете перенести або скасувати запис у кабінеті.</li>
+            </ul>
+          </article>
+        </div>
       </div>
 
       <section class="panel panel--work-format">
@@ -302,13 +416,19 @@
           </div>
         </div>
         <div class="work-format-grid">
+          <div v-if="meetingFormatLabel" class="profile-summary__item">
+            Формат зустрічей: {{ meetingFormatLabel }}
+          </div>
           <div v-if="introDurationLabel" class="profile-summary__item">
             Тривалість ознайомчої сесії: {{ introDurationLabel }}
           </div>
           <div v-if="introPriceDisplay" class="profile-summary__item">
             Вартість ознайомчої сесії: {{ introPriceDisplay }}
           </div>
-          <div v-if="profile.location" class="profile-summary__item">
+          <div v-if="offlineMeetingLocation" class="profile-summary__item">
+            Локація офлайн-зустрічей: {{ offlineMeetingLocation }}
+          </div>
+          <div v-else-if="profile.location" class="profile-summary__item">
             Локація: {{ profile.location }}
           </div>
           <div v-if="priceDisplay" class="profile-summary__item">
@@ -325,12 +445,13 @@
           <div>
             <div class="badge badge--soft">Про спеціаліста</div>
             <h2 class="panel__title">Про спеціаліста</h2>
+            <p class="panel__lead">Познайомтеся з підходом та стилем роботи перед першою консультацією.</p>
           </div>
         </div>
         <div class="about-grid">
           <article v-for="section in aboutSections" :key="section.title" class="bio-section">
             <div class="bio-title">{{ section.title }}</div>
-            <div class="muted">{{ section.body }}</div>
+            <div class="bio-copy">{{ section.body }}</div>
           </article>
         </div>
       </section>
@@ -375,7 +496,8 @@
         <div class="panel__header">
           <div>
             <div class="badge badge--soft">Авторський журнал</div>
-            <h2 class="panel__title">Статті спеціаліста</h2>
+            <h2 class="panel__title">Статті та матеріали спеціаліста</h2>
+            <p class="panel__lead">Матеріали допоможуть краще відчути стиль роботи і теми спеціаліста.</p>
           </div>
           <div class="panel__header-actions">
             <RouterLink class="btn btn--ghost btn--sm" :to="{ name: 'public-journal', params: { slug } }">
@@ -537,35 +659,39 @@
       </section>
 
       <section class="panel panel--footer-cta">
-        <div class="footer-cta">
-          <div class="footer-cta__info">
-            <div class="footer-cta__name">{{ publicName || 'Спеціаліст' }}</div>
-            <div class="muted">Ознайомча сесія — без поспіху, у вашому темпі.</div>
-            <div v-if="introPriceDisplay" class="footer-cta__price">
-              Ознайомча сесія: {{ introPriceDisplay }}<span v-if="introDurationLabel"> · {{ introDurationLabel }}</span>
-            </div>
+        <div class="closing-cta">
+          <div class="closing-cta__copy">
+            <h2 class="closing-cta__title">Готові зробити перший крок?</h2>
+            <p class="closing-cta__subtitle">{{ closingCtaSupportLine }}</p>
           </div>
-          <div class="footer-cta__actions">
-            <button class="btn btn--primary" type="button" @click="handleHeroPrimaryAction">
-              {{ heroPrimaryLabel }}
+          <div class="closing-cta__actions">
+            <button class="btn btn--primary" type="button" @click="handleClosingPrimaryAction">
+              {{ closingPrimaryLabel }}
             </button>
             <RouterLink
-              v-if="showClientSessionsCta"
+              v-if="closingSecondaryKind === 'sessions'"
               class="btn btn--ghost"
               to="/client"
             >
               Мої сесії
             </RouterLink>
+            <RouterLink
+              v-else-if="closingSecondaryKind === 'reviews'"
+              class="btn btn--ghost"
+              :to="feedbackLink"
+            >
+              Відгуки
+            </RouterLink>
             <button
-              v-else-if="showInquiryEntry"
+              v-else-if="closingSecondaryKind === 'slots'"
               class="btn btn--ghost"
               type="button"
               @click="scrollToSlots"
             >
-              Записатися на ознайомчу сесію
+              Переглянути вільні вікна
             </button>
             <a
-              v-else-if="primaryContactHref"
+              v-else-if="closingSecondaryKind === 'contact'"
               class="btn btn--ghost"
               :href="primaryContactHref"
               target="_blank"
@@ -657,6 +783,8 @@ import { getInquiryActionErrorMessage, mapInquiryStateToUi } from '../lib/inquir
 import {
   apiGet,
   apiPost,
+  type BookingSessionCreatePayload,
+  type SessionFormat,
   createInquiryThread,
   fetchChatThreads,
   fetchInquiryMessages,
@@ -673,9 +801,11 @@ import {
   type InquiryMessage,
   type InquiryState,
   type PublicSpecialistProfile,
+  type PublicSpecialistProfileDocument,
   type PublicAuthorJournalPost,
   type PublicJournalCollectionListItem,
 } from '../lib/api'
+import { getCompletedSessionsBadge } from '../lib/completedSessionsBadge'
 import { useAuthStore } from '../stores/auth'
 import { useToast } from '../composables/useToast'
 
@@ -751,12 +881,33 @@ const selectedDate = ref('')
 const slotDateInput = ref<HTMLInputElement | null>(null)
 const showAllSlots = ref(false)
 const slotsPreviewLimit = 5
+const bookingSessionFormat = ref<SessionFormat>('online')
 
 const slug = computed(() => String(route.params.slug || '').trim())
 const roles = computed(() => auth.me?.user.roles ?? auth.user?.roles ?? [])
 const isAuthenticated = computed(() => Boolean(auth.accessToken))
 const isClient = computed(() => roles.value.includes('CLIENT'))
 const canBook = computed(() => isAuthenticated.value && isClient.value)
+const hasOnlineBooking = computed(() => Boolean(profile.value?.offers_online))
+const hasOfflineBooking = computed(() => Boolean(profile.value?.offers_offline))
+const needsSessionFormatChoice = computed(
+  () => hasOnlineBooking.value && hasOfflineBooking.value
+)
+const resolvedSessionFormat = computed<SessionFormat | null>(() => {
+  if (needsSessionFormatChoice.value) return bookingSessionFormat.value
+  if (hasOnlineBooking.value && !hasOfflineBooking.value) return 'online'
+  if (!hasOnlineBooking.value && hasOfflineBooking.value) return 'offline'
+  return null
+})
+const sessionFormatLabelForBooking = computed(() => {
+  if (resolvedSessionFormat.value === 'online') return 'Онлайн'
+  if (resolvedSessionFormat.value === 'offline') return 'Офлайн'
+  return ''
+})
+const bookingOfflineLocationHint = computed(() => {
+  if (resolvedSessionFormat.value !== 'offline') return ''
+  return offlineMeetingLocation.value
+})
 const isBookingDisabled = (slotId: number) =>
   !canBook.value || bookingSlotId.value === slotId || !settingAccepted.value
 const visibleSlots = computed(() => (showAllSlots.value ? slots.value : slots.value.slice(0, slotsPreviewLimit)))
@@ -846,8 +997,86 @@ function toTextList(value: unknown): string[] {
 }
 
 const specializationChips = computed(() => toTextList(profile.value?.specializations))
+const displaySpecializationChips = computed(() => specializationChips.value.slice(0, 6))
 
 const publicName = computed(() => formatPublicName(profile.value?.display_name) || profile.value?.display_name || '')
+
+function firstFilledText(...values: Array<string | null | undefined>) {
+  return values
+    .map((value) => (value || '').replace(/\s+/g, ' ').trim())
+    .find(Boolean) || ''
+}
+
+function toSnippet(value: string, maxLength = 220) {
+  const normalized = value.replace(/\s+/g, ' ').trim()
+  if (!normalized) return ''
+  if (normalized.length <= maxLength) return normalized
+  return `${normalized.slice(0, maxLength - 1).trimEnd()}…`
+}
+
+const heroRoleLine = computed(() => {
+  if (!profile.value) return ''
+  const parts: string[] = []
+  const specializationLine = displaySpecializationChips.value.slice(0, 2).join(', ')
+  if (specializationLine) parts.push(specializationLine)
+  if (profile.value.location) parts.push(profile.value.location)
+  return parts.join(' · ')
+})
+
+const heroLeadText = computed(() => {
+  const source = firstFilledText(profile.value?.bio_about, profile.value?.bio, profile.value?.bio_work)
+  if (!source) return 'Спеціаліст описує формат роботи та допомагає зробити перший крок у зручному для вас темпі.'
+  return toSnippet(source, 250)
+})
+
+const heroSupportText = computed(() => {
+  const source = firstFilledText(profile.value?.bio_approach, profile.value?.bio_work, profile.value?.bio_for_whom)
+  if (!source) return ''
+  const lead = heroLeadText.value
+  const normalizedSource = toSnippet(source, 180)
+  if (normalizedSource === lead) return ''
+  return normalizedSource
+})
+
+const completedSessionsBadge = computed(() => {
+  return getCompletedSessionsBadge(profile.value?.completed_sessions_count)
+})
+
+const meetingFormatLabel = computed(() => {
+  if (!profile.value) return ''
+  const hasOnline = Boolean(profile.value.offers_online)
+  const hasOffline = Boolean(profile.value.offers_offline)
+  if (hasOnline && hasOffline) return 'Онлайн та офлайн'
+  if (hasOnline) return 'Онлайн'
+  if (hasOffline) return 'Офлайн'
+  return ''
+})
+
+const offlineMeetingLocation = computed(() => {
+  if (!profile.value?.offers_offline) return ''
+  return (profile.value.offline_location || '').trim()
+})
+
+const heroMetaHighlights = computed(() => {
+  if (!profile.value) return []
+  const items: Array<{ label: string; value: string }> = []
+  if (profile.value.experience_years !== undefined && profile.value.experience_years !== null) {
+    items.push({ label: 'Досвід', value: formatExperience(profile.value.experience_years) })
+  }
+  if (languagesDisplay.value) {
+    items.push({ label: 'Мови', value: languagesDisplay.value })
+  }
+  if (introDurationLabel.value) {
+    items.push({ label: 'Ознайомча сесія', value: introDurationLabel.value })
+  }
+  if (introPriceDisplay.value) {
+    items.push({ label: 'Вартість старту', value: introPriceDisplay.value })
+  } else if (priceDisplay.value) {
+    items.push({ label: 'Консультація', value: priceDisplay.value })
+  }
+  return items.slice(0, 4)
+})
+
 const feedbackLink = computed(() => ({
   name: 'specialist-feedback',
   params: { slug: profile.value?.public_slug || slug.value },
@@ -858,6 +1087,38 @@ const heroPrimaryLabel = computed(() => {
     return inquiryState.value?.inquiry_exists ? 'Уточнити деталі' : 'Поставити запитання'
   }
   return 'Записатися на ознайомчу сесію'
+})
+
+const closingPrimaryLabel = computed(() => {
+  if (canMessageSpecialist.value) return 'Написати спеціалісту'
+  if (showInquiryEntry.value) {
+    return inquiryState.value?.inquiry_exists ? 'Уточнити деталі' : 'Поставити запитання'
+  }
+  return 'Записатися на ознайомчу сесію'
+})
+
+const closingCtaSupportLine = computed(() => {
+  if (introDurationLabel.value && introPriceDisplay.value) {
+    return `Ознайомча сесія: ${introDurationLabel.value} · ${introPriceDisplay.value}`
+  }
+  if (introPriceDisplay.value) {
+    return `Ознайомча сесія: ${introPriceDisplay.value}`
+  }
+  if (introDurationLabel.value) {
+    return `Ознайомча сесія: ${introDurationLabel.value}`
+  }
+  if (priceDisplay.value) {
+    return `Консультація: ${priceDisplay.value} · ${standardSessionDurationLabel.value}`
+  }
+  return 'Оберіть зручний формат і час для першого знайомства.'
+})
+
+const closingSecondaryKind = computed<'sessions' | 'reviews' | 'slots' | 'contact'>(() => {
+  if (showClientSessionsCta.value) return 'sessions'
+  if (canMessageSpecialist.value) return 'reviews'
+  if (showInquiryEntry.value) return 'slots'
+  if (primaryContactHref.value) return 'contact'
+  return 'reviews'
 })
 
 function formatPriceAmount(value: string | number | null | undefined): string {
@@ -905,17 +1166,67 @@ const whoThisIsForText = computed(() => profile.value?.bio_for_whom || '')
 const trustItems = computed(() => {
   if (!profile.value) return []
   const items: Array<{ label: string; value: string }> = []
+  if (meetingFormatLabel.value) {
+    items.push({ label: 'Формат зустрічей', value: meetingFormatLabel.value })
+  }
   if (profile.value.experience_years !== undefined && profile.value.experience_years !== null) {
     items.push({ label: 'Досвід', value: formatExperience(profile.value.experience_years) })
   }
   if (languagesDisplay.value) items.push({ label: 'Мови', value: languagesDisplay.value })
-  if (profile.value.location) items.push({ label: 'Локація', value: profile.value.location })
+  if (offlineMeetingLocation.value) {
+    items.push({ label: 'Офлайн локація', value: offlineMeetingLocation.value })
+  } else if (profile.value.location) {
+    items.push({ label: 'Локація', value: profile.value.location })
+  }
   if (introDurationLabel.value) items.push({ label: 'Ознайомча сесія', value: introDurationLabel.value })
   if (standardSessionDurationLabel.value) {
     items.push({ label: 'Стандартна сесія', value: standardSessionDurationLabel.value })
   }
   return items
 })
+
+const publicDocuments = computed<PublicSpecialistProfileDocument[]>(() => {
+  const documents = profile.value?.profile_documents || []
+  return documents
+    .filter((item) => Boolean(item?.file_url && item?.title))
+    .map((item) => ({
+      ...item,
+      title: item.title.trim(),
+      document_kind: (item.document_kind || 'OTHER').toUpperCase(),
+    }))
+    .sort((a, b) => new Date(b.uploaded_at || '').getTime() - new Date(a.uploaded_at || '').getTime())
+})
+
+function documentKindLabel(kind: string): string {
+  switch ((kind || '').toUpperCase()) {
+    case 'CERTIFICATE':
+      return 'Сертифікат'
+    case 'DIPLOMA':
+      return 'Диплом'
+    case 'LICENSE':
+      return 'Ліцензія'
+    default:
+      return 'Документ'
+  }
+}
+
+function documentFileExtension(fileUrl: string): string {
+  const beforeHash = (fileUrl || '').split('#')[0] ?? ''
+  const cleanUrl = beforeHash.split('?')[0] ?? ''
+  const dotIndex = cleanUrl.lastIndexOf('.')
+  if (dotIndex < 0) return ''
+  return cleanUrl.slice(dotIndex + 1).toLowerCase()
+}
+
+function isPdfDocument(document: PublicSpecialistProfileDocument): boolean {
+  if ((document.document_kind || '').toUpperCase() === 'PDF') return true
+  return documentFileExtension(document.file_url) === 'pdf'
+}
+
+function isImageDocument(document: PublicSpecialistProfileDocument): boolean {
+  const extension = documentFileExtension(document.file_url)
+  return ['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp', 'svg', 'avif'].includes(extension)
+}
 
 function normalizeTelegramHref(value: string) {
   const trimmed = value.trim()
@@ -1164,6 +1475,18 @@ function openClientChat() {
 }
 
 function handleHeroPrimaryAction() {
+  if (canMessageSpecialist.value) {
+    openClientChat()
+    return
+  }
+  if (showInquiryEntry.value) {
+    scrollToInquiry()
+    return
+  }
+  scrollToSlots()
+}
+
+function handleClosingPrimaryAction() {
   if (canMessageSpecialist.value) {
     openClientChat()
     return
@@ -1506,7 +1829,14 @@ async function bookSlot(slotId: number) {
   bookingSlotId.value = slotId
   const bookedSlot = slots.value.find((slot) => slot.id === slotId) || null
   try {
-    await apiPost('/booking/sessions/', { slot_id: slotId, setting_accepted: true })
+    const payload: BookingSessionCreatePayload = {
+      slot_id: slotId,
+      setting_accepted: true,
+    }
+    if (resolvedSessionFormat.value) {
+      payload.session_format = resolvedSessionFormat.value
+    }
+    await apiPost('/booking/sessions/', payload)
     bookingSuccess.value = BOOKING_SUCCESS_MESSAGES.sessionBooked
     toast.success(bookingSuccess.value)
     lastBookedSlot.value = bookedSlot
@@ -1599,6 +1929,24 @@ function saveViewedSpecialist(data: PublicSpecialistProfile) {
   persistViewedSpecialists(filtered.slice(0, 8))
 }
 
+watch(
+  [hasOnlineBooking, hasOfflineBooking],
+  ([hasOnline, hasOffline]) => {
+    if (hasOnline && !hasOffline) {
+      bookingSessionFormat.value = 'online'
+      return
+    }
+    if (!hasOnline && hasOffline) {
+      bookingSessionFormat.value = 'offline'
+      return
+    }
+    if (hasOnline && hasOffline && !['online', 'offline'].includes(bookingSessionFormat.value)) {
+      bookingSessionFormat.value = 'online'
+    }
+  },
+  { immediate: true }
+)
+
 watch(slug, () => {
   profile.value = null
   slots.value = []
@@ -1674,22 +2022,30 @@ onMounted(async () => {
 
 .public__hero {
   display: grid;
-  grid-template-columns: 260px minmax(0, 1fr) 360px;
+  grid-template-columns: minmax(0, 1fr) 350px;
   align-items: start;
-  gap: 22px;
+  gap: 18px;
   background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--color-primary-100) 70%, #ffffff),
-    color-mix(in srgb, var(--color-neutral-100) 60%, #ffffff)
+    140deg,
+    color-mix(in srgb, var(--color-primary-100) 65%, #ffffff),
+    color-mix(in srgb, var(--color-neutral-100) 52%, #ffffff)
   );
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  padding: 22px 24px;
+  padding: 20px 22px;
   box-shadow: var(--shadow);
 }
 
+.hero-profile {
+  display: grid;
+  grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+  gap: 18px;
+  min-width: 0;
+}
+
 .hero-media {
-  width: 260px;
+  width: 100%;
+  max-width: 280px;
   display: grid;
   gap: 10px;
   align-content: start;
@@ -1724,18 +2080,72 @@ onMounted(async () => {
 }
 
 .public__title {
-  font-size: 32px;
-}
-
-.public__subtitle {
-  max-width: 520px;
+  font-size: clamp(30px, 4vw, 40px);
+  line-height: 1.15;
 }
 
 .hero-main {
   display: grid;
-  gap: 10px;
+  gap: 12px;
   align-content: start;
   min-width: 0;
+}
+
+.hero-main__role {
+  margin: -2px 0 0;
+  font-size: 14px;
+  color: color-mix(in srgb, var(--text) 72%, var(--muted));
+  font-weight: 600;
+}
+
+.hero-main__lead {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.66;
+  color: var(--deep);
+  max-width: 66ch;
+}
+
+.hero-main__support {
+  margin: -4px 0 0;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+.hero-main__sessions {
+  margin: -2px 0 0;
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 600;
+  color: color-mix(in srgb, var(--text) 86%, var(--muted));
+}
+
+.hero-main__meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.hero-meta-card {
+  border: 1px solid color-mix(in srgb, var(--line) 86%, #ffffff);
+  border-radius: var(--radius-sm);
+  padding: 9px 10px;
+  background: color-mix(in srgb, #ffffff 80%, var(--surface));
+  display: grid;
+  gap: 2px;
+}
+
+.hero-meta-card__label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--muted);
+}
+
+.hero-meta-card__value {
+  font-weight: 600;
+  color: var(--ink);
 }
 
 .hero-trust {
@@ -1746,22 +2156,40 @@ onMounted(async () => {
 
 .hero-trust span {
   padding: 6px 10px;
-  border-radius: 999px;
+  border-radius: 10px;
   background: rgba(255, 255, 255, 0.82);
   border: 1px solid var(--line);
   font-size: 12px;
 }
 
 .hero-cta {
-  width: 360px;
-  min-width: 360px;
-  max-width: 360px;
+  width: 100%;
+  min-width: 0;
+  max-width: 350px;
   display: grid;
   gap: 12px;
-  border: 1px solid color-mix(in srgb, var(--line) 70%, #fff);
-  background: rgba(255, 255, 255, 0.78);
-  border-radius: 14px;
-  padding: 14px;
+  border: 1px solid color-mix(in srgb, var(--line) 64%, #fff);
+  background: rgba(255, 255, 255, 0.9);
+  border-radius: var(--radius-md);
+  padding: 14px 14px 15px;
+}
+
+.hero-cta__head {
+  display: grid;
+  gap: 6px;
+}
+
+.hero-cta__title {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.25;
+}
+
+.hero-cta__hint {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--muted);
 }
 
 .hero-cta__prices {
@@ -1787,9 +2215,13 @@ onMounted(async () => {
   gap: 8px;
 }
 
+.hero-cta__actions .btn {
+  width: 100%;
+}
+
 .public__grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: 16px;
 }
 
@@ -1807,6 +2239,7 @@ onMounted(async () => {
 
 .panel--inquiry,
 .panel--trust,
+.panel--documents,
 .panel--work-format,
 .panel--about,
 .panel--who,
@@ -1818,31 +2251,36 @@ onMounted(async () => {
 
 .panel {
   border: 1px solid var(--line);
-  border-radius: 18px;
-  padding: 18px;
-  background: #fff;
+  border-radius: var(--radius-lg);
+  padding: 18px 18px 20px;
+  background: color-mix(in srgb, #ffffff 90%, var(--surface));
   display: grid;
   gap: 14px;
 }
 
-  .panel__header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 16px;
-    margin-bottom: 12px;
-  }
+.panel--footer-cta {
+  padding: 12px;
+  gap: 8px;
+}
 
-  .panel__header-actions {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    flex-wrap: wrap;
-  }
+.panel__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 6px;
+}
+
+.panel__header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
 
 .panel__header > div {
   display: grid;
-  gap: 8px;
+  gap: 6px;
 }
 
 .panel__title {
@@ -1851,30 +2289,45 @@ onMounted(async () => {
   font-size: 22px;
 }
 
+.panel__lead {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.55;
+  max-width: 78ch;
+}
+
 .slot-filter {
   display: grid;
-  gap: 6px;
-  padding: 12px;
-  border-radius: 14px;
-  border: 1px dashed rgba(47, 63, 73, 0.18);
-  background: rgba(7, 47, 71, 0.03);
+  gap: 5px;
+  padding: 10px;
+  border-radius: 12px;
+  border: 1px dashed color-mix(in srgb, var(--line) 84%, #d5ccb8);
+  background: color-mix(in srgb, #f8f4ec 78%, #ffffff);
+}
+
+.slot-top {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 320px);
+  gap: 10px;
+  align-items: start;
 }
 
 .slot-week {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 8px;
+  gap: 6px;
+  margin-bottom: 4px;
 }
 
 .slot-day {
   border: 1px solid var(--line);
   background: #fff;
-  border-radius: 12px;
-  padding: 6px 10px;
+  border-radius: 10px;
+  padding: 5px 8px;
   display: grid;
   gap: 2px;
-  min-width: 64px;
+  min-width: 58px;
   text-align: center;
   cursor: pointer;
   color: var(--ink);
@@ -1883,13 +2336,13 @@ onMounted(async () => {
 
 .slot-day__label {
   text-transform: uppercase;
-  font-size: 10px;
+  font-size: 9px;
   letter-spacing: 0.08em;
   color: var(--muted);
 }
 
 .slot-day__date {
-  font-size: 12px;
+  font-size: 11px;
 }
 
 .slot-day--active {
@@ -1906,11 +2359,77 @@ onMounted(async () => {
 }
 
 .slot-filter__input {
-  max-width: 240px;
+  max-width: 220px;
 }
 
 .slot-filter__hint {
+  font-size: 11px;
+}
+
+.slot-format {
+  display: grid;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.slot-format__options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.slot-format__option {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 9px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--ink);
+  font-size: 13px;
+}
+
+.slot-format__option input {
+  margin: 0;
+}
+
+.slot-format__fixed {
+  font-size: 13px;
+  color: var(--ink);
+}
+
+.slot-format__hint {
   font-size: 12px;
+}
+
+.slot-info {
+  border: 1px solid color-mix(in srgb, var(--line) 84%, #d5ccb8);
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: color-mix(in srgb, #f4efe3 46%, #ffffff);
+  display: grid;
+  gap: 8px;
+}
+
+.slot-info__title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--deep);
+}
+
+.slot-info__list {
+  margin: 0;
+  padding-left: 16px;
+  display: grid;
+  gap: 4px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.slot-info__action {
+  justify-self: start;
 }
 
 .first-session-flow {
@@ -1927,7 +2446,7 @@ onMounted(async () => {
 }
 
 .inquiry-state--info {
-  background: rgba(8, 113, 201, 0.08);
+  background: color-mix(in srgb, #2f6b4f 12%, #ffffff);
 }
 
 .inquiry-state--warning {
@@ -1935,7 +2454,7 @@ onMounted(async () => {
 }
 
 .inquiry-state--neutral {
-  background: rgba(7, 47, 71, 0.04);
+  background: color-mix(in srgb, #e9e3d7 45%, #ffffff);
 }
 
 .inquiry-thread {
@@ -1953,7 +2472,7 @@ onMounted(async () => {
 }
 
 .inquiry-message--mine {
-  background: rgba(8, 113, 201, 0.06);
+  background: color-mix(in srgb, #dbeadf 50%, #ffffff);
 }
 
 .inquiry-message__author {
@@ -1990,7 +2509,7 @@ onMounted(async () => {
 .flow-card {
   border: 1px solid var(--line);
   border-radius: 12px;
-  background: linear-gradient(180deg, rgba(7, 47, 71, 0.02), #fff);
+  background: linear-gradient(180deg, color-mix(in srgb, #f5f0e4 55%, #ffffff), #fff);
   padding: 12px;
   display: grid;
   gap: 8px;
@@ -2011,7 +2530,9 @@ onMounted(async () => {
 }
 
 .badge--soft {
-  background: rgba(8, 113, 201, 0.12);
+  background: color-mix(in srgb, #e4e9dc 62%, #f8f3e9);
+  border-color: color-mix(in srgb, #6f8b73 26%, var(--line));
+  color: color-mix(in srgb, #3f5945 82%, var(--text));
 }
 
 .profile-summary {
@@ -2030,7 +2551,7 @@ onMounted(async () => {
   border: 1px solid var(--line);
   border-radius: 12px;
   padding: 10px 12px;
-  background: #f8fafc;
+  background: color-mix(in srgb, #f8f3e8 58%, #ffffff);
   font-size: 13px;
 }
 
@@ -2051,7 +2572,7 @@ onMounted(async () => {
 
 .about-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 12px;
 }
 
@@ -2068,7 +2589,7 @@ onMounted(async () => {
 
 .trust-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 10px;
 }
 
@@ -2076,7 +2597,7 @@ onMounted(async () => {
   border: 1px solid var(--line);
   border-radius: 12px;
   padding: 10px 12px;
-  background: #f8fafc;
+  background: color-mix(in srgb, var(--color-primary-100) 22%, #ffffff);
   display: grid;
   gap: 4px;
 }
@@ -2092,9 +2613,107 @@ onMounted(async () => {
   font-weight: 600;
 }
 
+.documents-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.document-card {
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 12px;
+  background: #fff;
+  display: grid;
+  gap: 10px;
+}
+
+.document-card--file {
+  gap: 8px;
+  background: color-mix(in srgb, #f8f3e8 38%, #ffffff);
+}
+
+.document-card__preview {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  overflow: hidden;
+  background: color-mix(in srgb, #f4efe2 58%, #ffffff);
+  display: grid;
+  place-items: center;
+}
+
+.document-card__preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.document-card__file-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.document-card__file-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 44px;
+  height: 26px;
+  padding: 0 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6a573f;
+  border: 1px solid #dccdb4;
+  background: color-mix(in srgb, #efe1c9 76%, #ffffff);
+}
+
+.document-card__body {
+  display: grid;
+  gap: 4px;
+}
+
+.document-card__kind {
+  width: fit-content;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #5f5345;
+  border: 1px solid #e6dccb;
+  background: #f5efe3;
+}
+
+.document-card__title {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.35;
+}
+
+.document-card__meta {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.document-card__kind--file {
+  margin: 0;
+}
+
+.document-card__action {
+  justify-self: start;
+}
+
 .contact-actions {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 10px;
 }
 
@@ -2111,7 +2730,7 @@ onMounted(async () => {
 
 .contact-action:hover {
   border-color: color-mix(in srgb, var(--primary) 32%, var(--line));
-  background: #f8fbfd;
+  background: color-mix(in srgb, #eef2e8 56%, #ffffff);
 }
 
 .contact-action__label {
@@ -2127,7 +2746,7 @@ onMounted(async () => {
 
 .reviews-list {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
   gap: 12px;
 }
 
@@ -2149,32 +2768,44 @@ onMounted(async () => {
   font-size: 12px;
 }
 
-.footer-cta {
+.closing-cta {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  gap: 16px;
+  gap: 14px;
   align-items: center;
+  border: 1px solid color-mix(in srgb, var(--primary) 24%, var(--line));
+  border-radius: var(--radius-md);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, #f7f2e7 76%, #ffffff),
+    color-mix(in srgb, #f2eee2 64%, #ffffff)
+  );
+  padding: 14px 16px;
 }
 
-.footer-cta__info {
+.closing-cta__copy {
   display: grid;
-  gap: 6px;
+  gap: 4px;
 }
 
-.footer-cta__name {
+.closing-cta__title {
+  margin: 0;
+  font-size: 24px;
+  line-height: 1.22;
   font-family: var(--font-display);
-  font-size: 28px;
-  font-weight: 600;
 }
 
-.footer-cta__price {
-  font-weight: 600;
+.closing-cta__subtitle {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
 }
 
-.footer-cta__actions {
+.closing-cta__actions {
   display: grid;
   gap: 8px;
-  min-width: 320px;
+  min-width: 280px;
 }
 
 .profile-bio {
@@ -2184,7 +2815,11 @@ onMounted(async () => {
 
 .bio-section {
   display: grid;
-  gap: 6px;
+  gap: 8px;
+  border: 1px solid color-mix(in srgb, var(--line) 84%, #ffffff);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  background: color-mix(in srgb, #ffffff 78%, var(--surface));
 }
 
 .bio-title {
@@ -2195,28 +2830,47 @@ onMounted(async () => {
   font-weight: 600;
 }
 
+.bio-copy {
+  color: color-mix(in srgb, var(--text) 88%, var(--muted));
+  line-height: 1.72;
+  white-space: pre-line;
+}
+
 .slot-list {
   display: grid;
-  gap: 10px;
+  gap: 8px;
+}
+
+.slot-list-heading {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  color: var(--muted);
+  margin-top: 2px;
 }
 
 .slot-list__toggle {
   justify-self: start;
 }
 
-  .slot-card {
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    padding: 10px 12px;
-    background: rgba(7, 47, 71, 0.04);
-    display: flex;
+.slot-card {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 8px 10px;
+  background: color-mix(in srgb, #f5f0e4 38%, #ffffff);
+  display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 10px;
 }
 
 .slot-time {
   font-weight: 600;
+}
+
+.first-session-flow {
+  margin-top: 8px;
 }
 
 .form-error {
@@ -2235,246 +2889,247 @@ onMounted(async () => {
   padding: 8px 10px;
 }
 
-  .hint {
-    display: grid;
-    gap: 10px;
-    padding: 12px;
-    border-radius: 12px;
-    border: 1px dashed rgba(47, 63, 73, 0.2);
-    color: var(--muted);
-    background: rgba(7, 47, 71, 0.04);
-  }
+.hint {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px dashed color-mix(in srgb, var(--line) 82%, #d0c6b2);
+  color: var(--muted);
+  background: color-mix(in srgb, #f4efe3 44%, #ffffff);
+}
 
-  .panel--journal {
-    display: grid;
-    gap: 12px;
-  }
+.panel--journal {
+  display: grid;
+  gap: 12px;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, #f8f2e6 58%, #ffffff),
+    color-mix(in srgb, #f4eee1 35%, #ffffff)
+  );
+}
 
-  .profile-collections {
-    border: 1px solid var(--line);
-    border-radius: 12px;
-    padding: 10px 12px;
-    background: #fff;
-    display: grid;
-    gap: 10px;
-  }
+.profile-collections {
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: #fff;
+  display: grid;
+  gap: 10px;
+}
 
-  .profile-collections__head {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-  }
+.profile-collections__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
 
-  .profile-collections__title {
-    font-size: 16px;
-    font-weight: 700;
-  }
+.profile-collections__title {
+  font-size: 16px;
+  font-weight: 700;
+}
 
-  .profile-collections__list {
-    display: grid;
-    gap: 8px;
-  }
+.profile-collections__list {
+  display: grid;
+  gap: 8px;
+}
 
-  .profile-collection-item {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 8px;
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    padding: 8px 10px;
-    color: inherit;
-    text-decoration: none;
-    background: rgba(255, 255, 255, 0.85);
-  }
+.profile-collection-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 8px 10px;
+  color: inherit;
+  text-decoration: none;
+  background: rgba(255, 255, 255, 0.85);
+}
 
-  .profile-collection-item__left {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    min-width: 0;
-  }
+.profile-collection-item__left {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
 
-  .profile-collection-item__cover {
-    width: 42px;
-    height: 30px;
-    border-radius: 8px;
-    overflow: hidden;
-    border: 1px solid var(--line);
-    background: var(--color-neutral-50, #f7f8f9);
-    flex-shrink: 0;
-  }
+.profile-collection-item__cover {
+  width: 42px;
+  height: 30px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  background: var(--color-neutral-50, #f7f8f9);
+  flex-shrink: 0;
+}
 
-  .profile-collection-item__cover img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-  }
+.profile-collection-item__cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
 
-  .profile-collection-item:hover {
-    border-color: rgba(43, 122, 111, 0.35);
-    background: rgba(43, 122, 111, 0.06);
-  }
+.profile-collection-item:hover {
+  border-color: rgba(43, 122, 111, 0.35);
+  background: rgba(43, 122, 111, 0.06);
+}
 
-  .profile-collection-item__name {
-    font-size: 14px;
-    font-weight: 600;
-    min-width: 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
+.profile-collection-item__name {
+  font-size: 14px;
+  font-weight: 600;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 
-  .profile-collection-item__meta {
-    font-size: 12px;
-    color: var(--muted);
-    white-space: nowrap;
-  }
+.profile-collection-item__meta {
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+}
 
-  .journal-list {
-    display: grid;
-    gap: 12px;
-    grid-template-columns: 1fr;
-  }
+.journal-list {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: 1fr;
+}
 
-  .journal-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 14px;
-    align-items: start;
-    grid-auto-rows: 1fr;
-  }
+.journal-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  align-items: start;
+  grid-auto-rows: 1fr;
+}
 
-  .journal-filters {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
-    margin: 6px 0 14px;
-  }
+.journal-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 2px 0 12px;
+}
 
-  .filter-chip {
-    border: 1px solid var(--line);
-    background: rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(10px);
-    border-radius: 999px;
-    padding: 8px 12px;
-    font-size: 13px;
-    cursor: pointer;
-    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
-  }
+.filter-chip {
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.75);
+  border-radius: 10px;
+  padding: 7px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
 
-  .filter-chip:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.06);
-  }
+.filter-chip:hover {
+  border-color: color-mix(in srgb, var(--primary) 34%, var(--line));
+  box-shadow: 0 8px 18px rgba(16, 33, 50, 0.08);
+}
 
-  .filter-chip.is-active {
-    background: rgba(43, 122, 111, 0.12);
-    border-color: rgba(43, 122, 111, 0.35);
-  }
+.filter-chip.is-active {
+  background: rgba(43, 122, 111, 0.12);
+  border-color: rgba(43, 122, 111, 0.35);
+}
 
-  .empty {
-    display: grid;
-    gap: 10px;
-    padding: 16px 18px;
-    border-radius: 12px;
-    border: 1px dashed var(--line);
-    background: #fff;
-  }
+.empty {
+  display: grid;
+  gap: 10px;
+  padding: 16px 18px;
+  border-radius: 12px;
+  border: 1px dashed var(--line);
+  background: #fff;
+}
 
-  .empty-title {
-    font-weight: 600;
-  }
+.empty-title {
+  font-weight: 600;
+}
 
-  .post-tag {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    padding: 6px 10px;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.85);
-    border: 1px solid rgba(0, 0, 0, 0.06);
-    backdrop-filter: blur(8px);
-    color: var(--cat, #2b7a6f);
-  }
+.post-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  backdrop-filter: blur(8px);
+  color: var(--cat, #2b7a6f);
+}
 
-  .post-tag::before {
-    content: '';
-    width: 8px;
-    height: 8px;
-    border-radius: 999px;
-    background: currentColor;
-    opacity: 0.9;
-  }
+.post-tag::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: 0.9;
+}
 
-  .pin-badge {
-    display: inline-flex;
-    align-items: center;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    padding: 6px 10px;
-    border-radius: 999px;
-    background: rgba(43, 122, 111, 0.12);
-    border: 1px solid rgba(43, 122, 111, 0.25);
-    color: #2b7a6f;
-    width: fit-content;
-    margin-top: 8px;
-  }
+.pin-badge {
+  display: inline-flex;
+  align-items: center;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(43, 122, 111, 0.12);
+  border: 1px solid rgba(43, 122, 111, 0.25);
+  color: #2b7a6f;
+  width: fit-content;
+  margin-top: 8px;
+}
 
-  .journal-card--pinned {
-    border-color: rgba(43, 122, 111, 0.35);
-    box-shadow: 0 10px 30px rgba(43, 122, 111, 0.1);
-  }
+.journal-card--pinned {
+  border-color: rgba(43, 122, 111, 0.35);
+  box-shadow: 0 8px 20px rgba(43, 122, 111, 0.08);
+}
 
-  .journal-card {
-    display: grid;
-    border: 1px solid var(--line);
-    border-radius: 14px;
-    padding: 24px;
-    background: #fff;
-    overflow: hidden;
-    gap: 24px;
-    border-left: 4px solid #9ad7c8;
-    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
-    height: auto;
-    align-items: start;
-    animation: journalFade 0.35s ease;
-  }
+.journal-card {
+  display: grid;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 20px;
+  background: #fff;
+  overflow: hidden;
+  gap: 18px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  height: auto;
+  align-items: start;
+  animation: journalFade 0.35s ease;
+}
 
-  .journal-card:hover {
-    transform: translateY(-4px);
-    border-color: #2b7a6f;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06), 0 2px 6px rgba(0, 0, 0, 0.04);
-  }
+.journal-card:hover {
+  border-color: color-mix(in srgb, var(--primary) 40%, var(--line));
+  box-shadow: 0 8px 22px rgba(16, 33, 50, 0.1);
+}
 
-  .journal-card--feature {
-    grid-template-columns: 1fr 360px;
-    padding: 34px 34px 34px 28px;
-    border-left-width: 6px;
-    grid-column: 1 / -1;
-  }
+.journal-card--feature {
+  grid-template-columns: 1fr minmax(240px, 320px);
+  padding: 24px;
+  grid-column: 1 / -1;
+}
 
   .journal-card--feature .journal-cover img {
     max-height: none;
   }
 
-  .journal-card--feature .journal-title {
-    font-size: 30px;
-    line-height: 1.25;
-  }
+.journal-card--feature .journal-title {
+  font-size: 28px;
+  line-height: 1.25;
+}
 
-  .journal-card--feature .journal-summary {
-    font-size: 17px;
-    -webkit-line-clamp: 3;
-  }
+.journal-card--feature .journal-summary {
+  font-size: 16px;
+  -webkit-line-clamp: 3;
+}
 
   .journal-cover {
     background: var(--color-neutral-50, #f7f8f9);
@@ -2498,9 +3153,9 @@ onMounted(async () => {
     transition: transform 0.4s ease;
   }
 
-  .journal-card:hover .journal-cover img {
-    transform: scale(1.04);
-  }
+.journal-card:hover .journal-cover img {
+  transform: scale(1.03);
+}
 
   .journal-body {
     display: grid;
@@ -2508,27 +3163,27 @@ onMounted(async () => {
     padding: 0;
   }
 
-  .journal-title {
-    font-weight: 600;
-    font-size: 22px;
-    line-height: 1.35;
-  }
+.journal-title {
+  font-weight: 600;
+  font-size: 22px;
+  line-height: 1.33;
+}
 
   .journal-meta {
     font-size: 14px;
     color: #8a8a8a;
   }
 
-  .journal-summary {
-    font-size: 16px;
-    line-height: 1.6;
-    color: #555;
-    max-width: 540px;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
+.journal-summary {
+  font-size: 15px;
+  line-height: 1.6;
+  color: #555;
+  max-width: 560px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
 
   .journal-full {
     margin-top: 10px;
@@ -2536,21 +3191,21 @@ onMounted(async () => {
     color: var(--color-neutral-800);
   }
 
-  .read-more {
-    margin-top: 10px;
-    align-self: flex-start;
-    font-size: 15px;
-    font-weight: 500;
-    color: #2b7a6f;
-    background: transparent;
-    border: none;
-    padding: 0;
-    cursor: pointer;
-  }
+.read-more {
+  margin-top: 6px;
+  align-self: flex-start;
+  font-size: 14px;
+  font-weight: 600;
+  color: #2b7a6f;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
 
-  .read-more:hover {
-    text-decoration: underline;
-  }
+.read-more:hover {
+  text-decoration: underline;
+}
 
   .journal-card--closed {
     grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
@@ -2690,10 +3345,10 @@ onMounted(async () => {
 
   .confirmed-block {
     margin-top: 14px;
-    border: 1px dashed rgba(47, 63, 73, 0.18);
+    border: 1px dashed color-mix(in srgb, var(--line) 82%, #d4cab8);
     border-radius: 12px;
     padding: 12px;
-    background: rgba(7, 47, 71, 0.04);
+    background: color-mix(in srgb, #f3ede0 42%, #ffffff);
     display: grid;
     gap: 8px;
   }
@@ -2741,9 +3396,9 @@ onMounted(async () => {
     background: color-mix(in srgb, #1f7a4c 8%, #ffffff);
   }
 
-  .booking-gate--attention {
-    box-shadow: 0 0 0 3px rgba(42, 129, 168, 0.12);
-  }
+.booking-gate--attention {
+  box-shadow: 0 0 0 3px rgba(85, 132, 102, 0.16);
+}
 
   .booking-gate__content {
     display: flex;
@@ -2808,23 +3463,23 @@ onMounted(async () => {
     transform: none;
   }
 
-  .btn--pulse {
-    animation: pulse-attention 0.9s ease-in-out;
-    box-shadow: 0 0 0 0 rgba(42, 129, 168, 0.35);
-  }
+.btn--pulse {
+  animation: pulse-attention 0.9s ease-in-out;
+  box-shadow: 0 0 0 0 rgba(85, 132, 102, 0.28);
+}
 
   @keyframes pulse-attention {
     0% {
       transform: scale(1);
-      box-shadow: 0 0 0 0 rgba(42, 129, 168, 0.35);
+      box-shadow: 0 0 0 0 rgba(85, 132, 102, 0.28);
     }
     50% {
       transform: scale(1.02);
-      box-shadow: 0 0 0 10px rgba(42, 129, 168, 0);
+      box-shadow: 0 0 0 10px rgba(85, 132, 102, 0);
     }
     100% {
       transform: scale(1);
-      box-shadow: 0 0 0 0 rgba(42, 129, 168, 0);
+      box-shadow: 0 0 0 0 rgba(85, 132, 102, 0);
     }
   }
 
@@ -2886,7 +3541,7 @@ onMounted(async () => {
     gap: 6px;
     padding: 10px 12px;
     border-radius: 12px;
-    background: rgba(8, 113, 201, 0.08);
+    background: color-mix(in srgb, #dfeadd 48%, #ffffff);
     border: 1px solid var(--line);
   }
 
@@ -2899,7 +3554,7 @@ onMounted(async () => {
     font-weight: 500;
     padding: 10px 12px;
     border-radius: 12px;
-    background: rgba(8, 113, 201, 0.08);
+    background: color-mix(in srgb, #e5efdf 52%, #ffffff);
     border: 1px solid var(--line);
   }
 
@@ -2921,8 +3576,8 @@ onMounted(async () => {
     gap: 6px;
     padding: 10px 12px;
     border-radius: 12px;
-    background: rgba(7, 47, 71, 0.04);
-    border: 1px dashed rgba(47, 63, 73, 0.2);
+    background: color-mix(in srgb, #f3ede1 42%, #ffffff);
+    border: 1px dashed color-mix(in srgb, var(--line) 82%, #d1c7b4);
   }
 
   .booking-next__title {
@@ -2957,6 +3612,10 @@ onMounted(async () => {
     gap: 14px;
   }
 
+  .hero-profile {
+    grid-template-columns: 1fr;
+  }
+
   .hero-media {
     width: 100%;
     max-width: 320px;
@@ -2966,9 +3625,12 @@ onMounted(async () => {
     width: 100%;
   }
 
+  .hero-main__meta {
+    grid-template-columns: 1fr;
+  }
+
   .hero-cta {
     width: 100%;
-    min-width: 100%;
     max-width: 100%;
   }
 
@@ -2984,15 +3646,23 @@ onMounted(async () => {
     grid-template-columns: 1fr;
   }
 
-  .about-grid,
-  .trust-grid,
-  .contact-actions,
-  .reviews-list,
-  .footer-cta {
+  .slot-top {
     grid-template-columns: 1fr;
   }
 
-  .footer-cta__actions {
+  .about-grid,
+  .trust-grid,
+  .documents-grid,
+  .contact-actions,
+  .reviews-list {
+    grid-template-columns: 1fr;
+  }
+
+  .closing-cta {
+    grid-template-columns: 1fr;
+  }
+
+  .closing-cta__actions {
     min-width: 0;
   }
 

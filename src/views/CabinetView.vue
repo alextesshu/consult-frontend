@@ -8,13 +8,38 @@
           Тут зібрані доступи, активність і швидкі дії. Публічні сторінки — окремо.
         </p>
       </div>
+      <RouterLink v-if="liveSession" class="hero-live" :to="`/cabinet/sessions/${liveSession.id}`">
+        <div class="hero-live__title">Сесія триває</div>
+        <div class="hero-live__meta">
+          {{ liveSession.client_name || liveSession.client_username || `Клієнт #${liveSession.client}` }}
+        </div>
+        <a
+          v-if="liveMeetingUrl && liveSession.join_available"
+          class="btn btn--sm hero-live__join"
+          :href="liveMeetingUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+          @click.stop
+        >
+          Приєднатися
+        </a>
+      </RouterLink>
+      <div v-else-if="heroSessionsLoading" class="hero-status hero-status--loading">
+        Завантажуємо статус найближчої сесії...
+      </div>
+      <div v-else-if="heroSessionsError" class="hero-status hero-status--error">
+        <span>{{ heroSessionsError }}</span>
+        <button class="btn btn--ghost btn--sm" type="button" :disabled="heroSessionsLoading" @click="retryHeroSessionsLoad">
+          Повторити
+        </button>
+      </div>
       <div class="hero-chip">
         <div class="hero-chip__label">Серверний час</div>
         <div class="hero-chip__value">{{ serverTimeLabel }}</div>
       </div>
     </header>
 
-    <div v-if="me" class="cabinet__grid">
+    <div v-if="me && hasCabinetDataSnapshot" class="cabinet__grid">
       <section class="panel panel--wide panel--actions">
         <div class="panel__header">
           <div>
@@ -174,11 +199,11 @@
         </div>
         <div class="feature-grid">
           <div class="feature">
-            <div class="feature__title">Group Room</div>
+            <div class="feature__title">Групові онлайн-події</div>
             <div class="feature__value">{{ groupRoomLabel }}</div>
           </div>
           <div class="feature">
-            <div class="feature__title">Meeting ліміт</div>
+            <div class="feature__title">Ліміт подій</div>
             <div class="feature__value">{{ meetingLimitLabel }}</div>
           </div>
           <div class="feature">
@@ -193,20 +218,86 @@
       </section>
     </div>
 
-    <div v-else class="card cabinet__loading">
+    <div v-else-if="me && cabinetDataLoading" class="card cabinet__loading cabinet__details-state">
+      Завантаження даних доступу...
+    </div>
+    <div
+      v-else-if="me && cabinetDataError"
+      class="card cabinet__loading cabinet__loading--error cabinet__details-state cabinet__details-state--error"
+    >
+      <p>{{ cabinetDataError }}</p>
+      <button
+        class="btn btn--ghost btn--sm cabinet__loading-action cabinet__details-action"
+        type="button"
+        :disabled="cabinetDataLoading"
+        @click="retryCabinetDataLoad"
+      >
+        Повторити
+      </button>
+    </div>
+    <div v-else-if="me" class="card cabinet__loading cabinet__details-state">
+      Дані доступу кабінету тимчасово недоступні.
+    </div>
+    <div v-else-if="profileLoading" class="card cabinet__loading">
       Завантаження профілю...
+    </div>
+    <div v-else-if="profileError" class="card cabinet__loading cabinet__loading--error">
+      <p>{{ profileError }}</p>
+      <button
+        class="btn btn--ghost btn--sm cabinet__loading-action"
+        type="button"
+        :disabled="profileLoading"
+        @click="retryCabinetProfileLoad"
+      >
+        Повторити
+      </button>
+    </div>
+    <div v-else class="card cabinet__loading">
+      Профіль кабінету тимчасово недоступний.
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
+import { apiGet } from '../lib/api'
 import { formatUkDateTimeCompact } from '../lib/dateTime'
+import { normalizeMeetingUrl } from '../lib/sessionExecution'
 import { useAuthStore } from '../stores/auth'
 
 const auth = useAuthStore()
 const { me } = storeToRefs(auth)
+
+type CabinetSession = {
+  id: number
+  status: string
+  client: number
+  client_name?: string | null
+  client_username?: string | null
+  meeting_url?: string | null
+  join_available?: boolean
+  join_starts_at?: string | null
+  join_ends_at?: string | null
+  slot_start_at?: string | null
+  slot_end_at?: string | null
+}
+
+const allSessions = ref<CabinetSession[]>([])
+const heroSessionsLoading = ref(false)
+const heroSessionsError = ref('')
+const profileLoading = ref(false)
+const profileError = ref('')
+const cabinetDataLoading = ref(false)
+const cabinetDataError = ref('')
+const nowTs = ref(Date.now())
+const LIVE_STATUS_REFRESH_MS = 30 * 1000
+let nowIntervalId: number | null = null
+const CABINET_DATA_LOAD_ERROR = 'Не вдалося завантажити дані доступу кабінету.'
+
+const hasCabinetDataSnapshot = computed(() => {
+  return Boolean(me.value?.effective_entitlements && me.value?.counts)
+})
 
 const accessLabel = computed(() => {
   const state = me.value?.access_state
@@ -311,12 +402,127 @@ const accessPillClass = computed(() => {
   return 'access-pill--ok'
 })
 
+function sessionJoinStartAt(session: CabinetSession) {
+  return session.slot_start_at || session.join_starts_at || null
+}
+
+function sessionJoinEndAt(session: CabinetSession) {
+  return session.slot_end_at || session.join_ends_at || null
+}
+
+function isSessionInProgress(session: CabinetSession) {
+  if (!['SCHEDULED', 'CONFIRMED'].includes(session.status)) return false
+  const startRaw = sessionJoinStartAt(session)
+  const endRaw = sessionJoinEndAt(session)
+  if (!startRaw || !endRaw) return false
+  const start = new Date(startRaw).getTime()
+  const end = new Date(endRaw).getTime()
+  if (Number.isNaN(start) || Number.isNaN(end)) return false
+  const now = nowTs.value
+  return now >= start && now <= end
+}
+
+const liveSession = computed(() => {
+  const items = allSessions.value
+    .filter((session) => isSessionInProgress(session))
+    .slice()
+    .sort(
+      (a, b) =>
+        new Date(sessionJoinStartAt(a) || '').getTime() -
+        new Date(sessionJoinStartAt(b) || '').getTime()
+    )
+  return items[0] || null
+})
+
+const liveMeetingUrl = computed(() => {
+  if (!liveSession.value) return ''
+  return normalizeMeetingUrl(liveSession.value.meeting_url)
+})
+
+async function loadSessionsForHero() {
+  heroSessionsLoading.value = true
+  heroSessionsError.value = ''
+  try {
+    const [upcomingResp, pastResp] = await Promise.all([
+      apiGet<CabinetSession[]>('/booking/sessions/', { params: { upcoming: true } }),
+      apiGet<CabinetSession[]>('/booking/sessions/', { params: { upcoming: false } }),
+    ])
+    const upcoming = Array.isArray(upcomingResp) ? upcomingResp : []
+    const past = Array.isArray(pastResp) ? pastResp : []
+    allSessions.value = [...upcoming, ...past]
+  } catch {
+    allSessions.value = []
+    heroSessionsError.value = 'Не вдалося завантажити статус найближчої сесії.'
+  } finally {
+    heroSessionsLoading.value = false
+  }
+}
+
+function retryHeroSessionsLoad() {
+  void loadSessionsForHero()
+}
+
+async function ensureCabinetProfile() {
+  if (me.value || !auth.accessToken) return
+  profileLoading.value = true
+  profileError.value = ''
+  try {
+    await auth.loadMe()
+    if (!me.value) {
+      profileError.value = 'Профіль кабінету тимчасово недоступний.'
+    }
+  } catch {
+    profileError.value = 'Не вдалося завантажити профіль кабінету.'
+  } finally {
+    profileLoading.value = false
+  }
+}
+
+function retryCabinetProfileLoad() {
+  void ensureCabinetProfile().then(() => ensureCabinetData())
+}
+
+async function ensureCabinetData() {
+  if (!me.value || !auth.accessToken || hasCabinetDataSnapshot.value) return
+  cabinetDataLoading.value = true
+  cabinetDataError.value = ''
+  try {
+    await auth.loadMe()
+    if (!hasCabinetDataSnapshot.value) {
+      cabinetDataError.value = CABINET_DATA_LOAD_ERROR
+    }
+  } catch {
+    cabinetDataError.value = CABINET_DATA_LOAD_ERROR
+  } finally {
+    cabinetDataLoading.value = false
+  }
+}
+
+function retryCabinetDataLoad() {
+  void ensureCabinetData()
+}
+
 const serverTimeLabel = computed(() => {
   const raw = me.value?.server_time
   if (!raw) return '—'
   const parsed = new Date(raw)
   if (Number.isNaN(parsed.getTime())) return raw
   return formatUkDateTimeCompact(raw, raw)
+})
+
+onMounted(async () => {
+  await Promise.all([ensureCabinetProfile(), loadSessionsForHero()])
+  await ensureCabinetData()
+  nowIntervalId = window.setInterval(() => {
+    nowTs.value = Date.now()
+  }, LIVE_STATUS_REFRESH_MS)
+})
+
+onBeforeUnmount(() => {
+  if (nowIntervalId !== null) {
+    window.clearInterval(nowIntervalId)
+    nowIntervalId = null
+  }
 })
 </script>
 
@@ -365,6 +571,56 @@ const serverTimeLabel = computed(() => {
 .hero-chip__value {
   margin-top: 8px;
   font-weight: 600;
+}
+
+.hero-live {
+  min-width: 260px;
+  border: 1px solid rgba(154, 9, 9, 0.7);
+  background: linear-gradient(135deg, #ea3e3e, #c01717);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  display: grid;
+  gap: 8px;
+  color: #fff;
+  text-decoration: none;
+  box-shadow: 0 8px 16px rgba(194, 23, 23, 0.26);
+}
+
+.hero-live__title {
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: 12px;
+}
+
+.hero-live__meta {
+  font-weight: 600;
+  opacity: 0.95;
+}
+
+.hero-live__join {
+  width: fit-content;
+}
+
+.hero-status {
+  min-width: 260px;
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  display: grid;
+  gap: 10px;
+}
+
+.hero-status--loading {
+  border: 1px solid var(--line);
+  background: rgba(8, 113, 201, 0.08);
+  color: #11445d;
+}
+
+.hero-status--error {
+  border: 1px solid rgba(179, 29, 29, 0.35);
+  background: rgba(250, 232, 232, 0.9);
+  color: #7d1f1f;
 }
 
 .cabinet__grid {
@@ -649,6 +905,19 @@ const serverTimeLabel = computed(() => {
   padding: 32px;
 }
 
+.cabinet__loading--error {
+  display: grid;
+  gap: 10px;
+  justify-items: center;
+  color: #7d1f1f;
+  border-color: rgba(179, 29, 29, 0.35);
+  background: rgba(250, 232, 232, 0.9);
+}
+
+.cabinet__loading-action {
+  justify-self: center;
+}
+
 @media (max-width: 780px) {
   .cabinet__hero {
     flex-direction: column;
@@ -664,4 +933,3 @@ const serverTimeLabel = computed(() => {
   }
 }
 </style>
-

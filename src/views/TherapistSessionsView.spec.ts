@@ -10,11 +10,13 @@ import {
   createRecurringSpecialistSessions,
   declineSpecialistRescheduleRequest,
   fetchSpecialistAvailableSlots,
+  fetchSpecialistClientJournalContent,
   fetchSpecialistRescheduleRequests,
   fetchSpecialistRescheduleSuggestions,
   fetchSpecialistSessionNoteContent,
   formatSessionDateTime,
   rescheduleSpecialistSession,
+  saveSpecialistClientJournal,
 } from '../lib/specialistSessions'
 import TherapistSessionsView from './TherapistSessionsView.vue'
 
@@ -60,10 +62,12 @@ vi.mock('../lib/specialistSessions', async () => {
     createRecurringSpecialistSessions: vi.fn(),
     declineSpecialistRescheduleRequest: vi.fn(),
     fetchSpecialistAvailableSlots: vi.fn(),
+    fetchSpecialistClientJournalContent: vi.fn(),
     fetchSpecialistRescheduleRequests: vi.fn(),
     fetchSpecialistRescheduleSuggestions: vi.fn(),
     fetchSpecialistSessionNoteContent: vi.fn(),
     rescheduleSpecialistSession: vi.fn(),
+    saveSpecialistClientJournal: vi.fn(),
     saveSpecialistSessionNote: vi.fn(),
   }
 })
@@ -77,10 +81,12 @@ const mockedConfirmSpecialistSession = vi.mocked(confirmSpecialistSession)
 const mockedCreateRecurringSpecialistSessions = vi.mocked(createRecurringSpecialistSessions)
 const mockedDeclineSpecialistRescheduleRequest = vi.mocked(declineSpecialistRescheduleRequest)
 const mockedFetchSpecialistAvailableSlots = vi.mocked(fetchSpecialistAvailableSlots)
+const mockedFetchSpecialistClientJournalContent = vi.mocked(fetchSpecialistClientJournalContent)
 const mockedFetchSpecialistRescheduleRequests = vi.mocked(fetchSpecialistRescheduleRequests)
 const mockedFetchSpecialistRescheduleSuggestions = vi.mocked(fetchSpecialistRescheduleSuggestions)
 const mockedFetchSpecialistSessionNoteContent = vi.mocked(fetchSpecialistSessionNoteContent)
 const mockedRescheduleSpecialistSession = vi.mocked(rescheduleSpecialistSession)
+const mockedSaveSpecialistClientJournal = vi.mocked(saveSpecialistClientJournal)
 
 function buildSession(overrides: Record<string, unknown> = {}) {
   return {
@@ -148,10 +154,12 @@ describe('TherapistSessionsView', () => {
     mockedCreateRecurringSpecialistSessions.mockReset()
     mockedDeclineSpecialistRescheduleRequest.mockReset()
     mockedFetchSpecialistAvailableSlots.mockReset()
+    mockedFetchSpecialistClientJournalContent.mockReset()
     mockedFetchSpecialistRescheduleRequests.mockReset()
     mockedFetchSpecialistRescheduleSuggestions.mockReset()
     mockedFetchSpecialistSessionNoteContent.mockReset()
     mockedRescheduleSpecialistSession.mockReset()
+    mockedSaveSpecialistClientJournal.mockReset()
     mockToast.show.mockReset()
     mockToast.success.mockReset()
     mockToast.error.mockReset()
@@ -163,6 +171,7 @@ describe('TherapistSessionsView', () => {
       photo_url: 'https://example.com/photo.jpg',
     } as Awaited<ReturnType<typeof fetchSpecialistProfile>>)
     mockedFetchSpecialistAvailableSlots.mockResolvedValue([])
+    mockedFetchSpecialistClientJournalContent.mockResolvedValue('')
     mockedFetchSpecialistRescheduleRequests.mockResolvedValue([])
     mockedFetchSpecialistRescheduleSuggestions.mockResolvedValue([])
     mockedFetchSpecialistSessionNoteContent.mockResolvedValue('')
@@ -241,6 +250,159 @@ describe('TherapistSessionsView', () => {
     await fireEvent.click(screen.getByRole('button', { name: 'Скинути фільтри' }))
 
     expect(await screen.findByText(/anna@example\.com/)).toBeInTheDocument()
+  })
+
+  it('prioritizes live session in the top card and exposes direct join CTA', async () => {
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/booking/sessions/' && (config as { params?: { upcoming?: boolean } } | undefined)?.params?.upcoming) {
+        return [
+          buildSession({
+            id: 31,
+            status: 'CONFIRMED',
+            meeting_url: 'https://meet.google.com/live-specialist-room',
+            join_available: true,
+            join_starts_at: '2000-01-01T00:00:00Z',
+            join_ends_at: '2100-01-01T00:00:00Z',
+            slot_start_at: '2000-01-01T00:00:00Z',
+            slot_end_at: '2100-01-01T00:00:00Z',
+          }),
+          buildSession({
+            id: 32,
+            status: 'SCHEDULED',
+            slot_start_at: '2099-06-16T10:00:00Z',
+            slot_end_at: '2099-06-16T10:50:00Z',
+          }),
+        ]
+      }
+
+      if (url === '/booking/sessions/' && (config as { params?: { upcoming?: boolean } } | undefined)?.params?.upcoming === false) {
+        return []
+      }
+
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    const view = renderView()
+    await screen.findByText('Керуйте сесіями')
+
+    await waitFor(() => {
+      const priorityMain = view.container.querySelector('.priority-next__main') as HTMLAnchorElement | null
+      expect(priorityMain).not.toBeNull()
+      expect(priorityMain?.getAttribute('href')).toBe('/cabinet/sessions/31')
+    })
+
+    await waitFor(() => {
+      const joinLink = view.container.querySelector(
+        '.priority-next__actions a[href=\"https://meet.google.com/live-specialist-room\"]'
+      ) as HTMLAnchorElement | null
+      expect(joinLink).not.toBeNull()
+    })
+  })
+
+  it('shows offline format badge and does not render join CTA for offline sessions', async () => {
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/booking/sessions/' && (config as { params?: { upcoming?: boolean } } | undefined)?.params?.upcoming) {
+        return [
+          buildSession({
+            id: 36,
+            status: 'CONFIRMED',
+            session_format: 'offline',
+            offline_location: 'Київ, офіс 12',
+            meeting_url: 'https://meet.google.com/offline-ignored',
+            join_available: true,
+            join_starts_at: '2000-01-01T00:00:00Z',
+            join_ends_at: '2100-01-01T00:00:00Z',
+            slot_start_at: '2000-01-01T00:00:00Z',
+            slot_end_at: '2100-01-01T00:00:00Z',
+          }),
+        ]
+      }
+
+      if (url === '/booking/sessions/' && (config as { params?: { upcoming?: boolean } } | undefined)?.params?.upcoming === false) {
+        return []
+      }
+
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+    await screen.findByText('Керуйте сесіями')
+
+    expect(await screen.findAllByText('Формат: Офлайн')).not.toHaveLength(0)
+    expect(screen.queryByRole('link', { name: 'Приєднатися' })).not.toBeInTheDocument()
+  })
+
+  it('shows scheduled status before start even if join window is already open', async () => {
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/booking/sessions/' && (config as { params?: { upcoming?: boolean } } | undefined)?.params?.upcoming) {
+        return [
+          buildSession({
+            id: 33,
+            status: 'CONFIRMED',
+            meeting_url: 'https://meet.google.com/wait-room',
+            join_available: true,
+            join_starts_at: '2000-01-01T00:00:00Z',
+            join_ends_at: '2100-01-01T00:00:00Z',
+            slot_start_at: '2099-06-16T10:00:00Z',
+            slot_end_at: '2099-06-16T10:50:00Z',
+          }),
+          buildSession({
+            id: 34,
+            status: 'SCHEDULED',
+            slot_start_at: '2099-06-16T09:00:00Z',
+            slot_end_at: '2099-06-16T09:50:00Z',
+          }),
+        ]
+      }
+      if (url === '/booking/sessions/' && (config as { params?: { upcoming?: boolean } } | undefined)?.params?.upcoming === false) {
+        return []
+      }
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    const view = renderView()
+    await screen.findByText('Керуйте сесіями')
+
+    await waitFor(() => {
+      const priorityMain = view.container.querySelector('.priority-next__main') as HTMLAnchorElement | null
+      expect(priorityMain).not.toBeNull()
+      expect(priorityMain?.getAttribute('href')).toBe('/cabinet/sessions/34')
+    })
+
+    const priorityCards = view.container.querySelectorAll('.priority-card')
+    const nextSessionCard = priorityCards[1] as HTMLElement
+    expect(within(nextSessionCard).queryByText('Сесія триває')).not.toBeInTheDocument()
+    expect(within(nextSessionCard).getByText('Заплановано')).toBeInTheDocument()
+  })
+
+  it('shows past confirmed session in history with complete action', async () => {
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/booking/sessions/' && (config as { params?: { upcoming?: boolean } } | undefined)?.params?.upcoming) {
+        return []
+      }
+
+      if (url === '/booking/sessions/' && (config as { params?: { upcoming?: boolean } } | undefined)?.params?.upcoming === false) {
+        return [
+          buildSession({
+            id: 41,
+            status: 'CONFIRMED',
+            client: 120,
+            client_name: 'Past Confirmed',
+            client_email: 'past-confirmed@example.com',
+            slot_start_at: '2000-01-01T10:00:00Z',
+            slot_end_at: '2000-01-01T10:50:00Z',
+          }),
+        ]
+      }
+
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    expect(await screen.findByText(/past-confirmed@example\.com/)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Завершити' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Деталі' })).toHaveAttribute('href', '/cabinet/sessions/41')
   })
 
   it('shows empty states when there are no sessions or transfer requests', async () => {
@@ -430,6 +592,10 @@ describe('TherapistSessionsView', () => {
       expect(sessionId).toBe(15)
       return 'Updated completion note'
     })
+    mockedFetchSpecialistClientJournalContent.mockImplementation(async (clientId) => {
+      expect(clientId).toBe(105)
+      return 'Client journal note'
+    })
 
     try {
       renderView()
@@ -453,7 +619,11 @@ describe('TherapistSessionsView', () => {
 
       expect(promptSpy).toHaveBeenCalledTimes(1)
       expect(mockedFetchSpecialistSessionNoteContent).toHaveBeenCalledWith(15)
+      expect(mockedFetchSpecialistClientJournalContent).toHaveBeenCalledWith(105)
       expect(await screen.findByDisplayValue('Updated completion note')).toBeInTheDocument()
+      expect(await screen.findByDisplayValue('Client journal note')).toBeInTheDocument()
+      expect(screen.getByText('Нотатки після сесії')).toBeInTheDocument()
+      expect(screen.getByText('Робочий зошит')).toBeInTheDocument()
 
       const updatedCard = screen.getAllByText(/completed@example\.com/)[0]?.closest('article')
       expect(updatedCard).not.toBeNull()
@@ -527,6 +697,7 @@ describe('TherapistSessionsView', () => {
       expect(promptSpy).toHaveBeenCalledTimes(1)
       expect(document.querySelector('.form-error')).not.toBeNull()
       expect(mockedFetchSpecialistSessionNoteContent).not.toHaveBeenCalled()
+      expect(mockedFetchSpecialistClientJournalContent).not.toHaveBeenCalled()
       expect(completionButton).not.toBeDisabled()
       expect(mockedApiGet).toHaveBeenCalledTimes(2)
     } finally {
