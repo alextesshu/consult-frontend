@@ -17,6 +17,7 @@ Frontend legal minimum baseline for controlled beta is now integrated:
 - specialist profile documents MVP: done (cabinet document management + public profile documents section with non-verification disclaimer)
 - profile capability fields: done (online/offline availability + offline location + completed sessions bucket display wired across cabinet/public/catalog)
 - booking/session format slice: done (booking create uses `session_format`, public booking chooser by specialist capabilities, offline sessions avoid join-link UX, format badges shown across key session surfaces)
+- analytics session-format slice: done (overview now renders online/offline session metrics and offline-location distribution by selected range)
 - next functional slice remains CRM history explicit-state normalization
 
 ## System State
@@ -43,6 +44,10 @@ Frontend legal minimum baseline for controlled beta is now integrated:
   - public booking sends normalized `session_format` (`online`/`offline`) based on specialist capability configuration
   - when specialist supports both formats, booking shows an explicit format chooser
   - client/specialist session details and lists expose format labels, and offline sessions do not expose misleading join-link actions
+- Specialist analytics overview now includes format and offline location visibility:
+  - metrics include online/offline totals and completed online/offline totals
+  - offline location distribution list is rendered with empty-state handling
+  - values refresh together with existing analytics blocks on range switch (`7d`/`30d`/`90d`)
 - Current high-priority references for UI work:
   - `docs/UI_SHAPE_STANDARD.md`
   - `docs/HANDOFF.md`
