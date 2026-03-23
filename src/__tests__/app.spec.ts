@@ -369,7 +369,7 @@ describe('App shell', () => {
           join_available: false,
         },
       ],
-    } as const
+    }
 
     const firstRender = await renderWithProviders(options)
     await waitFor(() => {

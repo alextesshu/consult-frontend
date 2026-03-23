@@ -85,7 +85,7 @@ function renderView() {
 function metricValueByLabel(label: string): string {
   const labelNode = screen.getByText(label)
   const card = labelNode.closest('.metric-card')
-  if (!card) return ''
+  if (!(card instanceof HTMLElement)) return ''
   const valueNode = within(card).queryByText(/^\d+$/)
   return valueNode?.textContent || ''
 }

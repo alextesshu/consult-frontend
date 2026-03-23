@@ -238,6 +238,7 @@ import {
 import { formatUkDateTimeCompact } from './lib/dateTime'
 import { canJoinExternalMeeting, normalizeMeetingUrl } from './lib/sessionExecution'
 import { useToast } from './composables/useToast'
+import type { ToastAction } from './stores/toast'
 
 const route = useRoute()
 const router = useRouter()
@@ -425,7 +426,7 @@ async function checkUpcomingSessionReminders() {
       const key = reminderKey(session)
       if (shownPreSessionToastKeys.value.has(key)) return
 
-      const actions = [
+      const actions: ToastAction[] = [
         {
           label: 'Відкрити деталі',
           to: reminderDetailsRoute(session.id),

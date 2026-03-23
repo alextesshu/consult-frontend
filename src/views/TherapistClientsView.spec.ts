@@ -32,10 +32,17 @@ function deferred<T>() {
   return { promise, resolve }
 }
 
-function getPanels(container: HTMLElement) {
-  const remindersPanel = container.querySelector('.panel--reminders') as HTMLElement
+function requireHTMLElement(node: Element | null, selector: string): HTMLElement {
+  if (!(node instanceof HTMLElement)) {
+    throw new Error(`Expected HTMLElement for selector: ${selector}`)
+  }
+  return node
+}
+
+function getPanels(container: Element) {
+  const remindersPanel = requireHTMLElement(container.querySelector('.panel--reminders'), '.panel--reminders')
   const panelList = container.querySelectorAll('.panel')
-  const clientsPanel = panelList[1] as HTMLElement
+  const clientsPanel = requireHTMLElement(panelList.item(1), '.panel:nth-of-type(2)')
   return { remindersPanel, clientsPanel }
 }
 
@@ -90,13 +97,13 @@ describe('TherapistClientsView', () => {
     const { container } = renderView()
     const { clientsPanel } = getPanels(container)
 
-    let retryButton: HTMLButtonElement | null = null
-    await waitFor(() => {
-      retryButton = clientsPanel.querySelector('.empty-state .btn') as HTMLButtonElement | null
-      expect(retryButton).toBeTruthy()
+    const retryButton = await waitFor(() => {
+      const button = clientsPanel.querySelector('.empty-state .btn')
+      expect(button).toBeInstanceOf(HTMLButtonElement)
+      return button as HTMLButtonElement
     })
 
-    await fireEvent.click(retryButton as HTMLButtonElement)
+    await fireEvent.click(retryButton)
 
     await waitFor(() => {
       expect(within(clientsPanel).getByText('Olena')).toBeInTheDocument()
@@ -134,13 +141,13 @@ describe('TherapistClientsView', () => {
     const { container } = renderView()
     const { remindersPanel } = getPanels(container)
 
-    let retryButton: HTMLButtonElement | null = null
-    await waitFor(() => {
-      retryButton = remindersPanel.querySelector('.empty-state .btn') as HTMLButtonElement | null
-      expect(retryButton).toBeTruthy()
+    const retryButton = await waitFor(() => {
+      const button = remindersPanel.querySelector('.empty-state .btn')
+      expect(button).toBeInstanceOf(HTMLButtonElement)
+      return button as HTMLButtonElement
     })
 
-    await fireEvent.click(retryButton as HTMLButtonElement)
+    await fireEvent.click(retryButton)
 
     await waitFor(() => {
       expect(remindersPanel.querySelector('.empty-state .btn')).toBeFalsy()

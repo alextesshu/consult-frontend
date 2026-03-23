@@ -96,7 +96,7 @@ describe('ClientDashboardView', () => {
       throw new Error(`Unexpected apiGet call: ${url} ${JSON.stringify(config)}`)
     })
 
-    const view = renderView()
+    renderView()
 
     expect(await screen.findAllByText('Онлайн-зустріч: Google Meet')).not.toHaveLength(0)
     expect(screen.getAllByRole('link', { name: 'Приєднатися' })).toHaveLength(2)
@@ -454,7 +454,7 @@ describe('ClientDashboardView', () => {
       })
     })
 
-    const view = renderView()
+    renderView()
     await flushPromises()
     await flushPromises()
 
