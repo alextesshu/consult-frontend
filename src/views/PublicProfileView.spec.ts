@@ -424,10 +424,10 @@ describe('PublicProfileView', () => {
 
     renderView()
 
-    expect(await screen.findByText('Перед записом підтвердьте сетінг')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Відкрити сетінг і правила' })).toBeInTheDocument()
+    expect(await screen.findByText('Для запису потрібно підтвердити умови спеціаліста')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Відкрити умови' })).toBeInTheDocument()
     expect(
-      screen.getByText('Без цього підтвердження кнопки бронювання нижче не спрацюють.')
+      screen.getByText('Без цього підтвердження кнопки бронювання залишаються недоступними.')
     ).toBeInTheDocument()
 
     const bookButton = await screen.findByRole('button', { name: 'Записатися' })
@@ -459,6 +459,8 @@ describe('PublicProfileView', () => {
 
     const bookingAgreement = screen.getAllByRole('checkbox')[0]!
     await fireEvent.click(bookingAgreement)
+    expect(screen.getByText('Умови бронювання підтверджено')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Переглянути умови' })).toBeInTheDocument()
     await fireEvent.click(screen.getByRole('button', { name: 'Записатися' }))
 
     expect(mockedApiPost).toHaveBeenCalledWith(

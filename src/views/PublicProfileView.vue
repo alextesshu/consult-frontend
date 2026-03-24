@@ -294,47 +294,6 @@
           </aside>
         </div>
 
-        <section
-          v-if="isAuthenticated && isClient"
-          class="booking-gate"
-          :class="{
-            'booking-gate--pending': !settingAccepted,
-            'booking-gate--ready': settingAccepted,
-            'booking-gate--attention': settingAttention,
-          }"
-          aria-label="Підтвердження правил перед бронюванням"
-        >
-          <div class="booking-gate__content">
-            <div>
-              <div class="booking-gate__title">Перед записом підтвердьте сетінг</div>
-              <p class="booking-gate__text">
-                Відкрийте правила спеціаліста, ознайомтеся з умовами і підтвердьте згоду. Після цього можна
-                натискати «Записатися» у слотах нижче.
-              </p>
-            </div>
-            <button
-              class="btn btn--ghost btn--sm booking-gate__button"
-              :class="{ 'btn--pulse': settingAttention }"
-              type="button"
-              ref="settingButtonRef"
-              @click="openSettingModal"
-            >
-              {{ settingAccepted ? 'Переглянути сетінг ще раз' : 'Відкрити сетінг і правила' }}
-            </button>
-          </div>
-          <label class="setting-check booking-gate__check">
-            <input type="checkbox" v-model="settingAccepted" />
-            <span>Я ознайомився(-лась) і погоджуюсь з умовами бронювання</span>
-          </label>
-          <div class="booking-gate__hint">
-            {{
-              settingAccepted
-                ? 'Правила підтверджено. Оберіть час і натисніть «Записатися».'
-                : 'Без цього підтвердження кнопки бронювання нижче не спрацюють.'
-            }}
-          </div>
-        </section>
-
         <div v-if="bookingSuccess" class="success">{{ bookingSuccess }}</div>
         <div v-if="bookingError" class="form-error">{{ bookingError }}</div>
         <div v-if="upcomingConfirmed.length" class="confirmed-block">
@@ -379,6 +338,44 @@
             {{ showAllSlots ? 'Показати менше' : `Показати весь розклад (${slots.length})` }}
           </button>
         </div>
+
+        <section
+          v-if="isAuthenticated && isClient"
+          class="booking-gate"
+          :class="{
+            'booking-gate--pending': !settingAccepted,
+            'booking-gate--ready': settingAccepted,
+            'booking-gate--attention': settingAttention,
+          }"
+          aria-label="Підтвердження правил перед бронюванням"
+        >
+          <div class="booking-gate__content">
+            <div>
+              <div class="booking-gate__title">
+                {{ settingAccepted ? 'Умови бронювання підтверджено' : 'Для запису потрібно підтвердити умови спеціаліста' }}
+              </div>
+              <p v-if="!settingAccepted" class="booking-gate__text">
+                Ознайомтеся з правилами бронювання перед вибором слота.
+              </p>
+            </div>
+            <button
+              class="btn btn--ghost btn--sm booking-gate__button"
+              :class="{ 'btn--pulse': settingAttention }"
+              type="button"
+              ref="settingButtonRef"
+              @click="openSettingModal"
+            >
+              {{ settingAccepted ? 'Переглянути умови' : 'Відкрити умови' }}
+            </button>
+          </div>
+          <label v-if="!settingAccepted" class="setting-check booking-gate__check">
+            <input type="checkbox" v-model="settingAccepted" />
+            <span>Я ознайомився(-лась) і погоджуюсь з умовами бронювання</span>
+          </label>
+          <div v-if="!settingAccepted" class="booking-gate__hint">
+            Без цього підтвердження кнопки бронювання залишаються недоступними.
+          </div>
+        </section>
 
         <div class="first-session-flow">
           <article class="flow-card">
@@ -2316,7 +2313,7 @@ onMounted(async () => {
 .slot-top {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(260px, 320px);
-  gap: 10px;
+  gap: 8px;
   align-items: start;
 }
 
@@ -3385,22 +3382,22 @@ onMounted(async () => {
 
   .booking-gate {
     display: grid;
-    gap: 12px;
-    padding: 14px 16px;
-    margin-bottom: 16px;
+    gap: 8px;
+    padding: 10px 12px;
+    margin-top: 6px;
     border-radius: 12px;
-    border: 1px solid color-mix(in srgb, var(--primary) 18%, var(--line));
-    background: color-mix(in srgb, var(--primary) 6%, #ffffff);
+    border: 1px solid color-mix(in srgb, var(--line) 88%, var(--primary));
+    background: color-mix(in srgb, #ffffff 92%, var(--surface));
   }
 
   .booking-gate--pending {
-    border-color: color-mix(in srgb, #d9a441 40%, var(--line));
-    background: color-mix(in srgb, #f4e2ae 18%, #ffffff);
+    border-color: color-mix(in srgb, #d9a441 30%, var(--line));
+    background: color-mix(in srgb, #f4e2ae 10%, #ffffff);
   }
 
   .booking-gate--ready {
-    border-color: color-mix(in srgb, #1f7a4c 30%, var(--line));
-    background: color-mix(in srgb, #1f7a4c 8%, #ffffff);
+    border-color: color-mix(in srgb, #1f7a4c 24%, var(--line));
+    background: color-mix(in srgb, #1f7a4c 6%, #ffffff);
   }
 
 .booking-gate--attention {
@@ -3416,17 +3413,17 @@ onMounted(async () => {
   }
 
   .booking-gate__title {
-    font-size: 16px;
+    font-size: 14px;
     font-weight: 700;
     color: var(--text);
-    margin-bottom: 4px;
   }
 
   .booking-gate__text {
     margin: 0;
-    max-width: 720px;
+    max-width: 620px;
     color: var(--muted);
-    line-height: 1.45;
+    line-height: 1.4;
+    font-size: 13px;
   }
 
   .booking-gate__button {
@@ -3442,7 +3439,7 @@ onMounted(async () => {
   }
 
   .booking-gate__check {
-    font-size: 14px;
+    font-size: 13px;
     color: var(--text);
   }
 
@@ -3452,7 +3449,7 @@ onMounted(async () => {
   }
 
   .booking-gate__hint {
-    font-size: 13px;
+    font-size: 12px;
     color: var(--muted);
   }
 
