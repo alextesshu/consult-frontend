@@ -352,15 +352,14 @@
             <h2 class="panel__title">Приватна історія по сесії</h2>
           </div>
           <div class="note-header-actions">
-            <RouterLink
+            <button
               v-if="session.client"
               class="btn btn--ghost btn--sm"
-              :to="`/cabinet/clients/${session.client}/workbook`"
-              target="_blank"
-              rel="noopener noreferrer"
+              type="button"
+              @click="openWorkbookWindow(session.client)"
             >
-              Робочий зошит клієнта
-            </RouterLink>
+              &#1042;&#1110;&#1076;&#1082;&#1088;&#1080;&#1090;&#1080;&#32;&#1074;&#32;&#1086;&#1082;&#1088;&#1077;&#1084;&#1086;&#1084;&#1091;&#32;&#1074;&#1110;&#1082;&#1085;&#1110;
+            </button>
           </div>
         </div>
         <div v-if="noteLoading" class="muted">Завантаження нотатки...</div>
@@ -448,6 +447,7 @@ import {
   externalMeetingProviderLabel,
   normalizeMeetingUrl,
 } from '../lib/sessionExecution'
+import { openClientWorkbookWindow } from '../lib/workbookWindow'
 import { useToast } from '../composables/useToast'
 import EmptyState from '../components/EmptyState.vue'
 import LoadingSkeleton from '../components/LoadingSkeleton.vue'
@@ -552,6 +552,10 @@ watch(error, (value) => {
   toast.error(value)
   error.value = ''
 })
+
+function openWorkbookWindow(clientId: number) {
+  openClientWorkbookWindow(clientId)
+}
 
 function sessionStartAt(detail: SessionDetail) {
   return getSessionStartAt(detail)

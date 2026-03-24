@@ -150,14 +150,13 @@
               <div class="workbook-block__header">
                 <div class="workbook-block__title">Робочий зошит клієнта</div>
                 <div class="workbook-block__controls">
-                  <RouterLink
+                  <button
                     class="btn btn--ghost btn--sm"
-                    :to="{ name: 'cabinet-client-workbook', params: { clientId: relationClientId(client) } }"
-                    target="_blank"
-                    rel="noopener noreferrer"
+                    type="button"
+                    @click="openWorkbookWindow(relationClientId(client))"
                   >
-                    Окреме вікно
-                  </RouterLink>
+                    Відкрити в окремому вікні
+                  </button>
                   <button class="btn btn--ghost btn--sm" type="button" @click="toggleWorkbook(relationClientId(client))">
                     {{ isWorkbookExpanded(relationClientId(client)) ? 'Згорнути зошит' : 'Розгорнути зошит' }}
                   </button>
@@ -219,6 +218,7 @@ import EmptyState from '../components/EmptyState.vue'
 import LoadingSkeleton from '../components/LoadingSkeleton.vue'
 import { formatUkDateTimeCompact } from '../lib/dateTime'
 import { getApiErrorMessage } from '../lib/errors'
+import { openClientWorkbookWindow } from '../lib/workbookWindow'
 import {
   fetchSpecialistClientJournalContent as fetchSpecialistClientJournalContentData,
   saveSpecialistClientJournal as saveSpecialistClientJournalAction,
@@ -392,6 +392,10 @@ function toggleWorkbook(clientId: number) {
     ...workbookSavedMessage.value,
     [clientId]: '',
   }
+}
+
+function openWorkbookWindow(clientId: number) {
+  openClientWorkbookWindow(clientId)
 }
 
 function formatDuration(start?: string | null, end?: string | null) {

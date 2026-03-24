@@ -228,7 +228,7 @@ describe('TherapistSessionDetailView', () => {
     expect(mockedApiGet).toHaveBeenCalledWith('/booking/sessions/42/reschedule-suggestions/')
     expect(mockedApiGet).toHaveBeenCalledWith('/cabinet/sessions/42/note/')
     expect(mockedApiGet).toHaveBeenCalledWith('/cabinet/sessions/reschedule-requests/')
-    expect(container.querySelector('a[href="/cabinet/clients/77/workbook"]')).toBeInTheDocument()
+    expect(container.querySelector('.note-header-actions button.btn')).toBeInTheDocument()
     expect(container.querySelector('.empty-state')).not.toBeInTheDocument()
     expect(screen.getByText('Google Meet')).toBeInTheDocument()
     expect(screen.getByText('Формат: Онлайн')).toBeInTheDocument()
@@ -239,7 +239,7 @@ describe('TherapistSessionDetailView', () => {
     expect(sessionDetail.status).toBe('CONFIRMED')
   })
 
-  it('renders a quick link to the client workbook on the session page', async () => {
+  it('opens the client workbook popup from the session page', async () => {
     const sessionDetail = buildSession({
       status: 'CONFIRMED',
       client: 77,
@@ -247,9 +247,14 @@ describe('TherapistSessionDetailView', () => {
     mockDetailContext(() => sessionDetail)
 
     const { container } = renderView()
+    const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null as any)
 
     expect(await screen.findByText('client@example.com')).toBeInTheDocument()
-    expect(container.querySelector('a[href="/cabinet/clients/77/workbook"]')).toBeInTheDocument()
+    const button = container.querySelector('.note-header-actions button.btn') as HTMLButtonElement | null
+    expect(button).toBeInTheDocument()
+    await fireEvent.click(button as HTMLButtonElement)
+    expect(openSpy).toHaveBeenCalled()
+    openSpy.mockRestore()
   })
 
   it('requests payment proof from specialist block and refreshes payment-proof state', async () => {
