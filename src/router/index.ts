@@ -18,6 +18,7 @@ import SpecialistSessionDetailView from '../views/TherapistSessionDetailView.vue
 import ClientSessionDetailView from '../views/ClientSessionDetailView.vue'
 import ClientGroupEventView from '../views/ClientGroupEventView.vue'
 import SpecialistClientsView from '../views/TherapistClientsView.vue'
+import SpecialistClientWorkbookView from '../views/TherapistClientWorkbookView.vue'
 import BillingView from '../views/BillingView.vue'
 import PublicSpecialistsView from '../views/PublicTherapistsView.vue'
 import SpecialistReviewsView from '../views/TherapistReviewsView.vue'
@@ -88,6 +89,12 @@ const routes = [
     path: '/cabinet/clients',
     name: 'cabinet-clients',
     component: SpecialistClientsView,
+    meta: { requiresAuth: true, requiresRole: 'SPECIALIST' },
+  },
+  {
+    path: '/cabinet/clients/:clientId(\\d+)/workbook',
+    name: 'cabinet-client-workbook',
+    component: SpecialistClientWorkbookView,
     meta: { requiresAuth: true, requiresRole: 'SPECIALIST' },
   },
   {

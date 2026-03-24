@@ -351,6 +351,17 @@
             <div class="badge badge--soft">Нотатки</div>
             <h2 class="panel__title">Приватна історія по сесії</h2>
           </div>
+          <div class="note-header-actions">
+            <RouterLink
+              v-if="session.client"
+              class="btn btn--ghost btn--sm"
+              :to="`/cabinet/clients/${session.client}/workbook`"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Робочий зошит клієнта
+            </RouterLink>
+          </div>
         </div>
         <div v-if="noteLoading" class="muted">Завантаження нотатки...</div>
         <div v-else class="note-panel">
@@ -968,6 +979,13 @@ watch(
 }
 
 .summary-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.note-header-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;

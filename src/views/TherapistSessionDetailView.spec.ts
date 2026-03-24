@@ -228,6 +228,7 @@ describe('TherapistSessionDetailView', () => {
     expect(mockedApiGet).toHaveBeenCalledWith('/booking/sessions/42/reschedule-suggestions/')
     expect(mockedApiGet).toHaveBeenCalledWith('/cabinet/sessions/42/note/')
     expect(mockedApiGet).toHaveBeenCalledWith('/cabinet/sessions/reschedule-requests/')
+    expect(container.querySelector('a[href="/cabinet/clients/77/workbook"]')).toBeInTheDocument()
     expect(container.querySelector('.empty-state')).not.toBeInTheDocument()
     expect(screen.getByText('Google Meet')).toBeInTheDocument()
     expect(screen.getByText('Формат: Онлайн')).toBeInTheDocument()
@@ -236,6 +237,19 @@ describe('TherapistSessionDetailView', () => {
       'https://meet.google.com/therapist-room'
     )
     expect(sessionDetail.status).toBe('CONFIRMED')
+  })
+
+  it('renders a quick link to the client workbook on the session page', async () => {
+    const sessionDetail = buildSession({
+      status: 'CONFIRMED',
+      client: 77,
+    })
+    mockDetailContext(() => sessionDetail)
+
+    const { container } = renderView()
+
+    expect(await screen.findByText('client@example.com')).toBeInTheDocument()
+    expect(container.querySelector('a[href="/cabinet/clients/77/workbook"]')).toBeInTheDocument()
   })
 
   it('requests payment proof from specialist block and refreshes payment-proof state', async () => {

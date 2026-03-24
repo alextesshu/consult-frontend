@@ -51,4 +51,12 @@ describe('router specialist session routes', () => {
     expect(router.currentRoute.value.name).toBe('cabinet-session-detail')
     expect(router.currentRoute.value.params).toEqual({ id: '42' })
   })
+
+  it('matches the specialist client workbook route for numeric ids', () => {
+    const resolved = router.resolve('/cabinet/clients/44/workbook')
+
+    expect(resolved.name).toBe('cabinet-client-workbook')
+    expect(resolved.params).toEqual({ clientId: '44' })
+    expect(resolved.matched.at(-1)?.path).toBe('/cabinet/clients/:clientId(\\d+)/workbook')
+  })
 })

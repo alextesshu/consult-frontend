@@ -238,7 +238,11 @@ describe('TherapistClientsView', () => {
 
     const historyButton = await waitFor(() => getByRole('button', { name: 'Приватна історія клієнта' }))
     await fireEvent.click(historyButton)
-    const expandButton = await waitFor(() => container.querySelector('.workbook-block .btn--ghost'))
+    const expandButton = await waitFor(() =>
+      Array.from(container.querySelectorAll('.workbook-block button.btn--ghost')).find(
+        (button) => button.textContent?.includes('Розгорнути зошит')
+      )
+    )
     await fireEvent.click(expandButton as Element)
 
     await waitFor(() => {

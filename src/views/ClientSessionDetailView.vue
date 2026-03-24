@@ -172,7 +172,7 @@
           v-if="selectedSuggestionSlotId"
           class="btn btn--sm"
           type="button"
-          :disabled="actionLoading || !canReschedule(session.status)"
+          :disabled="actionLoading || !canReschedule(session.status) || rescheduleBlockedByStartedSession"
           @click="applySelectedSuggestion"
         >
           {{ session.status === 'CONFIRMED' ? 'Запросити перенос для обраного варіанта' : 'Перенести на обраний варіант' }}
@@ -191,7 +191,7 @@
           <button
             class="btn btn--ghost btn--sm"
             type="button"
-            :disabled="actionLoading || !canReschedule(session.status)"
+            :disabled="actionLoading || !canReschedule(session.status) || rescheduleBlockedByStartedSession"
             @click="session.status === 'CONFIRMED' ? requestReschedule(slot.id) : rescheduleTo(slot.id)"
           >
             {{ session.status === 'CONFIRMED' ? 'Запросити перенос' : 'Перенести сюди' }}
@@ -348,6 +348,12 @@ const followUpBookingLabel = computed(() => {
 const canRequestMeetingLink = computed(() => {
   if (!session.value || isOfflineSession.value || meetingUrl.value || !isActiveSession.value) return false
   return Number.isInteger(session.value.specialist_id) && session.value.specialist_id > 0
+})
+const rescheduleBlockedByStartedSession = computed(() => {
+  if (!session.value || session.value.status !== 'CONFIRMED' || !session.value.slot_start_at) return false
+  const start = new Date(session.value.slot_start_at).getTime()
+  if (Number.isNaN(start)) return false
+  return Date.now() >= start
 })
 
 const statusGuidance = computed(() => {

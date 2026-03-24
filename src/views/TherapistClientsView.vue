@@ -149,9 +149,19 @@
             <div class="workbook-block">
               <div class="workbook-block__header">
                 <div class="workbook-block__title">Робочий зошит клієнта</div>
-                <button class="btn btn--ghost btn--sm" type="button" @click="toggleWorkbook(relationClientId(client))">
-                  {{ isWorkbookExpanded(relationClientId(client)) ? 'Згорнути зошит' : 'Розгорнути зошит' }}
-                </button>
+                <div class="workbook-block__controls">
+                  <RouterLink
+                    class="btn btn--ghost btn--sm"
+                    :to="{ name: 'cabinet-client-workbook', params: { clientId: relationClientId(client) } }"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Окреме вікно
+                  </RouterLink>
+                  <button class="btn btn--ghost btn--sm" type="button" @click="toggleWorkbook(relationClientId(client))">
+                    {{ isWorkbookExpanded(relationClientId(client)) ? 'Згорнути зошит' : 'Розгорнути зошит' }}
+                  </button>
+                </div>
               </div>
               <div v-if="workbookSavedMessage[relationClientId(client)]" class="workbook-success">
                 {{ workbookSavedMessage[relationClientId(client)] }}
@@ -771,10 +781,18 @@ onMounted(async () => {
   align-items: center;
   justify-content: space-between;
   gap: 10px;
+  flex-wrap: wrap;
 }
 
 .workbook-block__title {
   font-weight: 600;
+}
+
+.workbook-block__controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .workbook-actions {

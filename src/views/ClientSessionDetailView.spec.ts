@@ -246,6 +246,45 @@ describe('ClientSessionDetailView', () => {
     expect(screen.getByRole('button', { name: 'Перенести сюди' })).toBeInTheDocument()
   })
 
+  it('disables reschedule actions when a confirmed session has already started', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/sessions/55/') {
+        return makeSession('CONFIRMED', {
+          slot_start_at: '2000-01-01T10:00:00Z',
+          slot_end_at: '2000-01-01T10:50:00Z',
+        })
+      }
+
+      if (url === '/booking/slots/') {
+        return [
+          {
+            id: 101,
+            start_at: '2099-06-16T10:00:00Z',
+            end_at: '2099-06-16T10:50:00Z',
+          },
+        ]
+      }
+
+      if (url === '/booking/sessions/55/reschedule-suggestions/') {
+        return { suggestions: [] }
+      }
+
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    const { container } = renderView()
+
+    await waitFor(() => {
+      expect(container.querySelector('.slot-list .btn.btn--ghost.btn--sm')).not.toBeNull()
+    })
+
+    const requestButton = container.querySelector('.slot-list .btn.btn--ghost.btn--sm') as HTMLButtonElement | null
+    expect(requestButton).not.toBeNull()
+    expect(requestButton).toBeDisabled()
+
+    expect(mockedApiPost).not.toHaveBeenCalled()
+  })
+
   it('uploads payment proof from client block and refreshes payment-proof state', async () => {
     mockedApiGet.mockImplementation(async (url) => {
       if (url === '/booking/sessions/55/') {
