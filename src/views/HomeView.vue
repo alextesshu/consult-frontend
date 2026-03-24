@@ -3,13 +3,12 @@
     <div class="container container--agency">
       <section class="hero-agency reveal">
         <div class="hero-agency__text">
-          <div class="eyebrow">PRO CONSULT</div>
           <h1 class="hero-agency__title">
-            Керування практикою. Простір, що працює на вас
+            Керування приватною практикою на власних умовах
           </h1>
           <p class="hero-agency__subtitle">
-            Для психологів, коучів, консультантів, наставників і викладачів, які хочуть вести практику системно,
-            красиво представляти себе онлайн і працювати без комісії за сесію.
+            Для спеціалістів приватної практики, які хочуть системно вести свою справу, професійно представляти себе
+            онлайн і працювати на власних умовах — без комісії за сесію.
           </p>
           <div class="hero-agency__actions">
             <button v-if="isAuthenticated" class="btn btn--primary" type="button" @click="goToCabinet">
@@ -31,20 +30,34 @@
       </section>
 
       <section class="value-strip reveal" aria-label="Ключова цінність PRO CONSULT">
-        <div class="value-strip__item">Без комісії за сесію</div>
-        <div class="value-strip__item">Ваші правила роботи</div>
-        <div class="value-strip__item">Публічний профіль для клієнтів</div>
-        <div class="value-strip__item">Сесії, матеріали й нотатки в одному місці</div>
+        <article v-for="card in heroValueCards" :key="card.title" class="value-strip__item">
+          <h3 class="value-strip__title">{{ card.title }}</h3>
+          <p class="value-strip__copy">{{ card.copy }}</p>
+        </article>
       </section>
 
       <section class="section-block section-block--compact reveal" id="for-whom">
-        <div class="section-head">
-          <h2 class="section-title section-title--mid">
-            Для спеціалістів, яким важливо не лише працювати системно, а й бути впізнаваними
-          </h2>
-        </div>
-        <div class="role-list">
-          <span v-for="role in specialistRoles" :key="role" class="role-list__item">{{ role }}</span>
+        <div class="for-whom-layout">
+          <div class="for-whom-layout__main">
+            <div class="section-head">
+              <h2 class="section-title section-title--mid">
+                Для спеціалістів, яким важливо не лише працювати системно, а й бути впізнаваними
+              </h2>
+              <p class="muted">
+                PRO CONSULT допомагає тримати практику в порядку й водночас професійно представляти себе для нових
+                клієнтів.
+              </p>
+            </div>
+            <div class="role-list">
+              <span v-for="role in specialistRoles" :key="role" class="role-list__item">{{ role }}</span>
+            </div>
+          </div>
+          <div class="for-whom-support">
+            <article v-for="item in forWhomSupportCards" :key="item.title" class="card for-whom-support__item">
+              <h3 class="for-whom-support__title">{{ item.title }}</h3>
+              <p class="muted">{{ item.copy }}</p>
+            </article>
+          </div>
         </div>
       </section>
 
@@ -59,31 +72,31 @@
             Ваш публічний профіль — не просто анкета, а простір для знайомства з вами
           </h2>
           <p class="profile-showcase__text">
-            Описуйте свій підхід, показуйте формат роботи, діліться матеріалами й давайте клієнтам зрозумілий спосіб
+            Розкажіть про свій підхід, покажіть формат роботи, додайте матеріали й дайте клієнтам зрозумілий спосіб
             записатися.
           </p>
           <div class="profile-points">
             <div class="profile-point">
-              <div class="profile-point__title">Власна подача</div>
-              <div class="muted">Покажіть досвід, стиль роботи й ключові напрямки в єдиній структурі.</div>
+              <div class="profile-point__title">Професійне представлення</div>
+              <div class="muted">Покажіть свій досвід, підхід до роботи й ключові напрями в одній зрозумілій структурі.</div>
             </div>
             <div class="profile-point">
               <div class="profile-point__title">Посилання, яким можна ділитися</div>
-              <div class="muted">Надсилайте один лінк у месенджері, соцмережах або на сайті.</div>
+              <div class="muted">Надсилайте один лінк у месенджерах, соцмережах або на сайті.</div>
             </div>
             <div class="profile-point">
-              <div class="profile-point__title">Запис без зайвого тертя</div>
-              <div class="muted">Клієнт одразу бачить формат, умови та вільні вікна для запису.</div>
+              <div class="profile-point__title">Запис без зайвих кроків</div>
+              <div class="muted">Клієнт одразу бачить формат роботи, умови та доступні варіанти для запису.</div>
             </div>
           </div>
         </div>
       </section>
 
       <section class="section-block reveal" id="features">
-        <div class="section-head">
+        <div class="section-head section-head--center">
           <h2 class="section-title">Можливості, що тримають практику в системі</h2>
           <p class="muted">
-            Усі ключові інструменти PRO CONSULT зібрані в одному робочому потоці без дублювання між сервісами.
+            Усе важливе для щоденної практики зібрано в PRO CONSULT — від запису до системного супроводу клієнта.
           </p>
         </div>
         <div class="pillar-grid">
@@ -99,31 +112,63 @@
           <h2 class="section-title section-title--left">Як це працює</h2>
           <div class="how-list">
             <div class="how-item">
-              <span class="how-item__num">1</span>
-              <div>
+              <span class="how-item__num">01</span>
+              <div class="how-item__body">
                 <div class="how-item__title">Створіть профіль і налаштуйте практику</div>
                 <div class="muted">Додайте формат роботи, графік, правила запису й умови співпраці.</div>
               </div>
             </div>
             <div class="how-item">
-              <span class="how-item__num">2</span>
-              <div>
+              <span class="how-item__num">02</span>
+              <div class="how-item__body">
                 <div class="how-item__title">Діліться профілем і приймайте записи</div>
                 <div class="muted">Публічне посилання допомагає клієнтам швидко зрозуміти ваш підхід і записатися.</div>
               </div>
             </div>
             <div class="how-item">
-              <span class="how-item__num">3</span>
-              <div>
-                <div class="how-item__title">Ведіть сесії, матеріали й розвиток системно</div>
-                <div class="muted">Працюйте з історією взаємодії, нотатками та аналітикою в одному кабінеті.</div>
+              <span class="how-item__num">03</span>
+              <div class="how-item__body">
+                <div class="how-item__title">Ведіть практику системно</div>
+                <div class="muted">Працюйте з історією взаємодії, нотатками, матеріалами й динамікою практики в одному кабінеті.</div>
               </div>
             </div>
           </div>
         </div>
         <div class="split-block__media">
-          <div class="media-frame media-frame--tall">
-            <img :src="workflowImage" alt="Системний супровід практики" />
+          <div class="process-preview" aria-label="Попередній перегляд інтерфейсу PRO CONSULT">
+            <div class="process-preview__top">
+              <div class="process-preview__dots">
+                <span></span><span></span><span></span>
+              </div>
+              <div class="process-preview__label">PRO CONSULT · Кабінет</div>
+            </div>
+            <div class="process-preview__body">
+              <section class="process-preview__panel">
+                <div class="process-preview__panel-title">Профіль і доступність</div>
+                <div class="process-preview__line process-preview__line--strong"></div>
+                <div class="process-preview__line"></div>
+                <div class="process-preview__line process-preview__line--short"></div>
+              </section>
+              <section class="process-preview__panel">
+                <div class="process-preview__panel-title">Запис і сесії</div>
+                <div class="process-preview__chip-row">
+                  <span class="process-preview__chip">Онлайн</span>
+                  <span class="process-preview__chip">Офлайн</span>
+                </div>
+                <div class="process-preview__line"></div>
+                <div class="process-preview__line process-preview__line--short"></div>
+              </section>
+              <section class="process-preview__panel process-preview__panel--metrics">
+                <div class="process-preview__metric">
+                  <span class="process-preview__metric-value">24</span>
+                  <span class="process-preview__metric-label">активні клієнти</span>
+                </div>
+                <div class="process-preview__metric">
+                  <span class="process-preview__metric-value">86%</span>
+                  <span class="process-preview__metric-label">підтверджених записів</span>
+                </div>
+              </section>
+            </div>
           </div>
         </div>
       </section>
@@ -233,7 +278,6 @@ import { useAuthStore } from '../stores/auth'
 
 const heroImage = new URL('../assets/therapy/84f4d9fb-6e66-4b3b-bce9-caa039d081a0.jpg', import.meta.url).href
 const profileImage = new URL('../assets/therapy/f066edb1-65e7-419d-8a0d-0940a3526583.jpg', import.meta.url).href
-const workflowImage = new URL('../assets/therapy/47b34bc8-1ce4-4ee3-92ff-41c3a0c14f6b.jpg', import.meta.url).href
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -241,6 +285,40 @@ const isAuthenticated = computed(() => Boolean(auth.accessToken))
 const roles = computed(() => auth.me?.user.roles ?? auth.user?.roles ?? [])
 
 const specialistRoles = ['психологи', 'коучі', 'консультанти', 'наставники', 'викладачі']
+
+const heroValueCards = [
+  {
+    title: 'Без комісії за сесію',
+    copy: 'Ви самі визначаєте умови роботи без відрахувань із кожної зустрічі.',
+  },
+  {
+    title: 'Ваші правила роботи',
+    copy: 'Формати, вартість і доступність консультацій ви налаштовуєте самостійно.',
+  },
+  {
+    title: 'Публічний профіль для клієнтів',
+    copy: 'Представляйте себе професійно й зручно для першого контакту.',
+  },
+  {
+    title: 'Сесії, матеріали й нотатки в одному місці',
+    copy: 'Усе важливе для роботи з клієнтами — в єдиному просторі.',
+  },
+]
+
+const forWhomSupportCards = [
+  {
+    title: 'Різні формати практики',
+    copy: 'Індивідуальна робота, консультації, супровід і навчання — в одному професійному просторі.',
+  },
+  {
+    title: 'Різні стилі роботи',
+    copy: 'Онлайн, офлайн або гібридно — із власними правилами, вартістю й робочим ритмом.',
+  },
+  {
+    title: 'Власний підхід до роботи',
+    copy: 'Межі, формат взаємодії та робочий процес ви визначаєте відповідно до своєї практики.',
+  },
+]
 
 const valuePillars = [
   {
@@ -252,16 +330,16 @@ const valuePillars = [
     copy: 'Керуйте розкладом, вільними вікнами, перенесеннями і правилами доступності без ручного хаосу.',
   },
   {
-    title: 'Клієнти й історія роботи',
-    copy: 'Тримайте в одному місці історію взаємодії, поточний статус і домовленості по кожному клієнту.',
+    title: 'Робота з клієнтами',
+    copy: 'Зберігайте історію взаємодії, поточний статус і домовленості по кожному клієнту в єдиній системі.',
   },
   {
     title: 'Нотатки та матеріали',
     copy: 'Структуруйте післясесійні нотатки і діліться потрібними матеріалами в межах робочого процесу.',
   },
   {
-    title: 'Аналітика практики',
-    copy: 'Відстежуйте динаміку завантаження, стабільність практики та точки росту без сторонніх таблиць.',
+    title: 'Динаміка практики',
+    copy: 'Відстежуйте завантаження, стабільність практики й точки росту без сторонніх таблиць.',
   },
 ]
 
@@ -396,6 +474,7 @@ onMounted(() => {
   const staggerGroups = [
     '.value-strip .value-strip__item',
     '.role-list .role-list__item',
+    '.for-whom-support .for-whom-support__item',
     '.profile-points .profile-point',
     '.pillar-grid .pillar-card',
     '.how-list .how-item',
@@ -462,13 +541,6 @@ onBeforeUnmount(() => {
   margin: 0 auto;
   display: grid;
   gap: 84px;
-}
-
-.eyebrow {
-  text-transform: uppercase;
-  letter-spacing: 0.28em;
-  font-size: 11px;
-  color: var(--muted);
 }
 
 .hero-agency {
@@ -561,21 +633,41 @@ onBeforeUnmount(() => {
 
 .value-strip {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 12px;
-  margin-top: -22px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: -18px;
 }
 
 .value-strip__item {
-  border: 1px solid color-mix(in srgb, var(--primary) 20%, var(--border));
-  background: color-mix(in srgb, #ffffff 75%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--primary) 16%, var(--border));
+  background:
+    linear-gradient(
+      165deg,
+      color-mix(in srgb, #ffffff 84%, var(--surface)) 0%,
+      color-mix(in srgb, #fffbf3 78%, var(--surface)) 100%
+    );
   border-radius: var(--radius-sm);
-  padding: 12px 14px;
-  font-size: 13px;
-  font-weight: 600;
+  padding: 16px 16px 15px;
+  min-height: 124px;
+  display: grid;
+  gap: 8px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.64),
+    0 10px 20px rgba(17, 64, 54, 0.06);
+}
+
+.value-strip__title {
+  margin: 0;
+  font-size: 16px;
   line-height: 1.35;
-  letter-spacing: 0.02em;
-  color: color-mix(in srgb, var(--text) 88%, #0f2f28);
+  letter-spacing: -0.01em;
+}
+
+.value-strip__copy {
+  margin: 0;
+  color: color-mix(in srgb, var(--text) 62%, #4f616a);
+  font-size: 14px;
+  line-height: 1.58;
 }
 
 .section-block {
@@ -608,6 +700,44 @@ onBeforeUnmount(() => {
 
 .section-head--center {
   text-align: center;
+}
+
+.section-head--center .muted {
+  margin-inline: auto;
+  max-width: 68ch;
+}
+
+.for-whom-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+  gap: 26px;
+  align-items: start;
+}
+
+.for-whom-layout__main {
+  display: grid;
+  gap: 16px;
+  align-content: start;
+}
+
+.for-whom-support {
+  display: grid;
+  gap: 10px;
+}
+
+.for-whom-support__item {
+  border: 1px solid color-mix(in srgb, var(--primary) 16%, var(--border));
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, #ffffff 76%, var(--surface));
+  padding: 14px 15px;
+  display: grid;
+  gap: 6px;
+}
+
+.for-whom-support__title {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.32;
 }
 
 .role-list {
@@ -681,7 +811,10 @@ onBeforeUnmount(() => {
 
 .pillar-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-template-areas:
+    'one one two two three three'
+    '. four four five five .';
   gap: 16px;
 }
 
@@ -693,6 +826,26 @@ onBeforeUnmount(() => {
   border-radius: var(--radius-md);
 }
 
+.pillar-card:nth-child(1) {
+  grid-area: one;
+}
+
+.pillar-card:nth-child(2) {
+  grid-area: two;
+}
+
+.pillar-card:nth-child(3) {
+  grid-area: three;
+}
+
+.pillar-card:nth-child(4) {
+  grid-area: four;
+}
+
+.pillar-card:nth-child(5) {
+  grid-area: five;
+}
+
 .pillar-card__title {
   margin: 0;
   font-size: 18px;
@@ -702,51 +855,197 @@ onBeforeUnmount(() => {
 .split-block {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 60px;
+  gap: 56px;
   align-items: stretch;
 }
 
 .split-block__content {
   display: grid;
-  gap: 14px;
+  gap: 16px;
+  align-content: start;
 }
 
 .split-block__media {
   display: flex;
   justify-content: flex-end;
-  align-items: flex-end;
+  align-items: stretch;
 }
 
 .how-list {
   display: grid;
-  gap: 16px;
+  gap: 0;
+  border-top: 1px solid color-mix(in srgb, var(--primary) 18%, var(--border));
+  border-bottom: 1px solid color-mix(in srgb, var(--primary) 18%, var(--border));
 }
 
 .how-item {
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  padding: 12px;
+  padding: 16px 2px;
   display: grid;
-  grid-template-columns: 30px 1fr;
-  gap: 12px;
+  grid-template-columns: 46px 1fr;
+  gap: 14px;
   align-items: start;
-  background: color-mix(in srgb, #ffffff 70%, var(--surface));
+  background: transparent;
+}
+
+.how-item + .how-item {
+  border-top: 1px solid color-mix(in srgb, var(--primary) 16%, var(--border));
 }
 
 .how-item__num {
-  width: 30px;
-  height: 30px;
-  border-radius: var(--radius-xs);
-  background: color-mix(in srgb, var(--primary) 20%, transparent);
-  display: grid;
-  place-items: center;
+  display: inline-block;
   font-weight: 700;
-  font-size: 13px;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  color: color-mix(in srgb, var(--primary) 78%, #1f442f);
+  margin-top: 4px;
+}
+
+.how-item__body {
+  min-width: 0;
 }
 
 .how-item__title {
   font-weight: 700;
-  margin-bottom: 4px;
+  font-size: 20px;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  margin-bottom: 6px;
+}
+
+.how-item .muted {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.process-preview {
+  width: min(520px, 100%);
+  border: 1px solid color-mix(in srgb, var(--primary) 20%, var(--border));
+  border-radius: var(--radius-lg);
+  background:
+    linear-gradient(
+      165deg,
+      color-mix(in srgb, #ffffff 86%, var(--surface)) 0%,
+      color-mix(in srgb, #fffaf0 78%, var(--surface)) 100%
+    );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.68),
+    0 12px 24px rgba(17, 64, 54, 0.08);
+  overflow: hidden;
+}
+
+.process-preview__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 12px 14px;
+  border-bottom: 1px solid color-mix(in srgb, var(--primary) 16%, var(--border));
+  background: color-mix(in srgb, #ffffff 72%, var(--surface));
+}
+
+.process-preview__dots {
+  display: flex;
+  gap: 5px;
+}
+
+.process-preview__dots span {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--primary) 30%, var(--border));
+}
+
+.process-preview__label {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--text) 60%, #4f616a);
+}
+
+.process-preview__body {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+}
+
+.process-preview__panel {
+  border: 1px solid color-mix(in srgb, var(--primary) 16%, var(--border));
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, #ffffff 76%, var(--surface));
+  padding: 10px 11px;
+  display: grid;
+  gap: 7px;
+}
+
+.process-preview__panel--metrics {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.process-preview__panel-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: color-mix(in srgb, var(--text) 88%, #1f442f);
+}
+
+.process-preview__line {
+  height: 7px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--primary) 12%, var(--border));
+}
+
+.process-preview__line--strong {
+  width: 84%;
+}
+
+.process-preview__line--short {
+  width: 62%;
+}
+
+.process-preview__chip-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.process-preview__chip {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 8px;
+  border-radius: var(--radius-xs);
+  font-size: 11px;
+  letter-spacing: 0.03em;
+  border: 1px solid color-mix(in srgb, var(--primary) 24%, var(--border));
+  color: color-mix(in srgb, var(--text) 78%, #1f442f);
+  background: color-mix(in srgb, #ffffff 85%, var(--surface));
+}
+
+.process-preview__metric {
+  border: 1px solid color-mix(in srgb, var(--primary) 14%, var(--border));
+  border-radius: var(--radius-xs);
+  background: color-mix(in srgb, #ffffff 82%, var(--surface));
+  padding: 9px 8px;
+  display: grid;
+  gap: 3px;
+}
+
+.process-preview__metric-value {
+  font-size: 19px;
+  font-weight: 700;
+  line-height: 1;
+  color: color-mix(in srgb, var(--text) 88%, #1f442f);
+}
+
+.process-preview__metric-label {
+  font-size: 11px;
+  line-height: 1.35;
+  color: color-mix(in srgb, var(--text) 62%, #4f616a);
+}
+
+.split-block + #pricing {
+  margin-top: 26px;
 }
 
 .pricing__definition {
@@ -931,7 +1230,8 @@ onBeforeUnmount(() => {
 @media (max-width: 960px) {
   .hero-agency,
   .profile-showcase,
-  .split-block {
+  .split-block,
+  .for-whom-layout {
     grid-template-columns: 1fr;
     gap: 26px;
   }
@@ -941,7 +1241,17 @@ onBeforeUnmount(() => {
   }
 
   .value-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     margin-top: -10px;
+  }
+
+  .pillar-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-areas: none;
+  }
+
+  .pillar-card:nth-child(n) {
+    grid-area: auto;
   }
 }
 
@@ -960,6 +1270,15 @@ onBeforeUnmount(() => {
 
   .plan-price__main {
     font-size: 28px;
+  }
+
+  .value-strip {
+    grid-template-columns: 1fr;
+    margin-top: -6px;
+  }
+
+  .pillar-grid {
+    grid-template-columns: 1fr;
   }
 }
 </style>
