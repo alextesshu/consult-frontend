@@ -104,85 +104,87 @@
             <p class="panel__hint">Ці поля формують перше враження в каталозі та публічному профілі.</p>
           </div>
         </div>
-        <div class="form" style="margin-top: 12px;">
-          <label class="field">
-            Публічне ім'я
-            <input v-model="profile.display_name" class="input" type="text" placeholder="Напр. Олена Коваль" />
-          </label>
-          <label class="field">
-            Спеціалізації
-            <div class="chip-field">
-              <div class="chip" v-for="(spec, index) in specializationList" :key="`${spec}-${index}`">
-                <span>{{ spec }}</span>
-                <button type="button" class="chip-remove" @click.stop.prevent="removeSpecialization(index)">×</button>
+        <div class="form form--profile-basics" style="margin-top: 12px;">
+          <div class="form-group">
+            <label class="field">
+              <span class="field-label">Публічне ім'я</span>
+              <input v-model="profile.display_name" class="input" type="text" placeholder="Напр. Олена Коваль" />
+            </label>
+            <label class="field">
+              <span class="field-label">Спеціалізації</span>
+              <div class="chip-field">
+                <div class="chip" v-for="(spec, index) in specializationList" :key="`${spec}-${index}`">
+                  <span>{{ spec }}</span>
+                  <button type="button" class="chip-remove" @click.stop.prevent="removeSpecialization(index)">×</button>
+                </div>
+                <input
+                  v-model="specializationInput"
+                  class="input chip-input"
+                  type="text"
+                  list="specializationOptions"
+                  placeholder="введіть спеціалізацію"
+                  @input="onSpecializationInput"
+                  @keydown.enter.prevent="addSpecialization()"
+                  @keydown="onSpecializationKeydown"
+                />
+                <datalist id="specializationOptions">
+                  <option v-for="option in specializationOptions" :key="option" :value="option" />
+                </datalist>
               </div>
-              <input
-                v-model="specializationInput"
-                class="input chip-input"
-                type="text"
-                list="specializationOptions"
-                placeholder="введіть спеціалізацію"
-                @input="onSpecializationInput"
-                @keydown.enter.prevent="addSpecialization()"
-                @keydown="onSpecializationKeydown"
-              />
-              <datalist id="specializationOptions">
-                <option v-for="option in specializationOptions" :key="option" :value="option" />
-              </datalist>
-            </div>
-            <div v-if="showOtherSpecialization" class="chip-field" style="margin-top: 8px;">
-              <input
-                v-model="otherSpecializationInput"
-                class="input chip-input"
-                type="text"
-                placeholder="Впишіть спеціалізацію"
-                @keydown.enter.prevent="addOtherSpecialization"
-              />
-              <button class="btn btn--ghost btn--sm" type="button" @click="addOtherSpecialization">
-                Додати
-              </button>
-            </div>
-          </label>
-
-          <div class="field">
-            <label for="language-input">Мови</label>
-            <div class="chip-field">
-              <div class="chip" v-for="(language, index) in languageList" :key="`${language}-${index}`">
-                <span>{{ language }}</span>
-                <button
-                  type="button"
-                  class="chip-remove"
-                  @mousedown.stop
-                  @click.stop="removeLanguage(language, index)"
-                >
-                  ×
+              <div v-if="showOtherSpecialization" class="chip-field" style="margin-top: 8px;">
+                <input
+                  v-model="otherSpecializationInput"
+                  class="input chip-input"
+                  type="text"
+                  placeholder="Впишіть спеціалізацію"
+                  @keydown.enter.prevent="addOtherSpecialization"
+                />
+                <button class="btn btn--ghost btn--sm" type="button" @click="addOtherSpecialization">
+                  Додати
                 </button>
               </div>
-              <input
-                id="language-input"
-                v-model="languageInput"
-                class="input chip-input"
-                type="text"
-                list="languageOptions"
-                placeholder="введіть мову"
-                @input="onLanguageInput"
-                @keydown.enter.prevent="addLanguage()"
-                @keydown="onLanguageKeydown"
-              />
-              <datalist id="languageOptions">
-                <option v-for="language in languageOptions" :key="language" :value="language" />
-              </datalist>
-            </div>
-            <div class="muted" style="font-size: 12px;">
-              Можна додавати скільки завгодно мов. Підказки працюють за першими літерами.
-            </div>
-          </div>
-            <label class="field">
-              Локація
-              <input v-model="profile.location" class="input" type="text" placeholder="Місто / країна" />
             </label>
             <div class="field">
-              <span>Формат консультацій</span>
+              <label class="field-label" for="language-input">Мови</label>
+              <div class="chip-field">
+                <div class="chip" v-for="(language, index) in languageList" :key="`${language}-${index}`">
+                  <span>{{ language }}</span>
+                  <button
+                    type="button"
+                    class="chip-remove"
+                    @mousedown.stop
+                    @click.stop="removeLanguage(language, index)"
+                  >
+                    ×
+                  </button>
+                </div>
+                <input
+                  id="language-input"
+                  v-model="languageInput"
+                  class="input chip-input"
+                  type="text"
+                  list="languageOptions"
+                  placeholder="введіть мову"
+                  @input="onLanguageInput"
+                  @keydown.enter.prevent="addLanguage()"
+                  @keydown="onLanguageKeydown"
+                />
+                <datalist id="languageOptions">
+                  <option v-for="language in languageOptions" :key="language" :value="language" />
+                </datalist>
+              </div>
+              <div class="field-help">
+                Можна додавати скільки завгодно мов. Підказки працюють за першими літерами.
+              </div>
+            </div>
+            <label class="field">
+              <span class="field-label">Локація</span>
+              <input v-model="profile.location" class="input" type="text" placeholder="Місто / країна" />
+            </label>
+          </div>
+          <div class="form-group">
+            <div class="field field--format">
+              <span class="field-label field-label--section">Формат консультацій</span>
               <div class="meeting-format-controls">
                 <label class="check">
                   <input v-model="profile.offers_online" type="checkbox" />
@@ -193,12 +195,12 @@
                   Доступно офлайн
                 </label>
               </div>
-              <div class="muted" style="font-size: 12px;">
+              <div class="field-help">
                 Оберіть щонайменше один формат.
               </div>
             </div>
             <label v-if="profile.offers_offline" class="field">
-              Локація для офлайн-зустрічей
+              <span class="field-label">Локація для офлайн-зустрічей</span>
               <input
                 v-model="profile.offline_location"
                 class="input"
@@ -207,65 +209,66 @@
               />
             </label>
             <label class="field">
-              Досвід роботи
+              <span class="field-label">Досвід роботи</span>
               <select v-model.number="profile.experience_years" class="input input--select" required>
                 <option v-for="option in experienceOptions" :key="option.value" :value="option.value">
                   {{ option.label }}
                 </option>
               </select>
-              <div class="muted" style="font-size: 12px;">
+              <div class="field-help">
                 Це поле обов’язкове і відображається у публічному профілі.
               </div>
             </label>
+          </div>
+          <div class="form-group">
             <label class="field">
-              Ціна за одну стандартну консультацію
+              <span class="field-label">Ціна за одну стандартну консультацію</span>
               <div class="field-row">
-              <input
-                v-model="profile.price"
-                class="input"
-                type="text"
-                inputmode="decimal"
-                pattern="^[0-9]*([.,][0-9]{0,2})?$"
-                placeholder="1000"
-                @input="onPriceInput"
-              />
-              <select v-model="profile.price_currency" class="input input--select">
-                <option value="UAH">грн</option>
-                <option value="USD">$</option>
-                <option value="EUR">€</option>
+                <input
+                  v-model="profile.price"
+                  class="input"
+                  type="text"
+                  inputmode="decimal"
+                  pattern="^[0-9]*([.,][0-9]{0,2})?$"
+                  placeholder="1000"
+                  @input="onPriceInput"
+                />
+                <select v-model="profile.price_currency" class="input input--select">
+                  <option value="UAH">грн</option>
+                  <option value="USD">$</option>
+                  <option value="EUR">€</option>
+                </select>
+              </div>
+            </label>
+            <label class="field">
+              <span class="field-label">Ознайомча сесія (тривалість)</span>
+              <select v-model.number="profile.intro_duration_minutes" class="input input--select">
+                <option :value="15">15 хв</option>
+                <option :value="30">30 хв</option>
+                <option :value="45">45 хв</option>
+                <option :value="60">60 хв</option>
               </select>
-            </div>
-          </label>
-
-          <label class="field">
-            Ознайомча сесія (тривалість)
-            <select v-model.number="profile.intro_duration_minutes" class="input input--select">
-              <option :value="15">15 хв</option>
-              <option :value="30">30 хв</option>
-              <option :value="45">45 хв</option>
-              <option :value="60">60 хв</option>
-            </select>
-          </label>
-
-          <label class="field">
-            Вартість ознайомчої сесії
-            <div class="field-row">
-              <input
-                v-model="profile.intro_price"
-                class="input"
-                type="text"
-                inputmode="decimal"
-                pattern="^[0-9]*([.,][0-9]{0,2})?$"
-                placeholder="0"
-                @input="onIntroPriceInput"
-              />
-              <select v-model="profile.intro_price_currency" class="input input--select">
-                <option value="UAH">грн</option>
-                <option value="USD">$</option>
-                <option value="EUR">€</option>
-              </select>
-            </div>
-          </label>
+            </label>
+            <label class="field">
+              <span class="field-label">Вартість ознайомчої сесії</span>
+              <div class="field-row">
+                <input
+                  v-model="profile.intro_price"
+                  class="input"
+                  type="text"
+                  inputmode="decimal"
+                  pattern="^[0-9]*([.,][0-9]{0,2})?$"
+                  placeholder="0"
+                  @input="onIntroPriceInput"
+                />
+                <select v-model="profile.intro_price_currency" class="input input--select">
+                  <option value="UAH">грн</option>
+                  <option value="USD">$</option>
+                  <option value="EUR">€</option>
+                </select>
+              </div>
+            </label>
+          </div>
         </div>
       </section>
 
@@ -670,7 +673,7 @@
             <h2 class="panel__title">Документи та сертифікати</h2>
             <p class="panel__hint">
               Завантажуйте документи, які допомагають клієнтам краще зрозуміти ваш професійний шлях.
-              Ви самі вирішуєте, які з них показувати у публічному профілі.
+              Ви самі вирішуєте, які з них показувати у публічному профілі. Нові документи автоматично показуються першими.
             </p>
           </div>
         </div>
@@ -693,17 +696,6 @@
                   {{ kind.label }}
                 </option>
               </select>
-            </label>
-            <label class="field">
-              Порядок відображення
-              <input
-                v-model="newDocumentSortOrder"
-                class="input"
-                type="number"
-                min="0"
-                step="1"
-                placeholder="0"
-              />
             </label>
             <label class="field">
               Файл (PDF або зображення)
@@ -767,10 +759,6 @@
               <label class="field">
                 Назва
                 <input v-model="document.title" class="input" type="text" />
-              </label>
-              <label class="field">
-                Порядок
-                <input v-model.number="document.sort_order" class="input" type="number" min="0" step="1" />
               </label>
               <label class="check">
                 <input v-model="document.is_public" type="checkbox" />
@@ -900,7 +888,6 @@ const documentFileInput = ref<HTMLInputElement | null>(null)
 const newDocumentTitle = ref('')
 const newDocumentKind = ref('CERTIFICATE')
 const newDocumentIsPublic = ref(true)
-const newDocumentSortOrder = ref('')
 const newDocumentFile = ref<File | null>(null)
 const languageOptions = [
   'Українська',
@@ -951,12 +938,63 @@ const specializationList = ref<string[]>([])
 const showOtherSpecialization = ref(false)
 const otherSpecializationInput = ref('')
 const disallowedLanguages = new Set<string>()
+
+function normalizeDocumentKind(value: string | null | undefined): string {
+  const normalized = String(value ?? '').trim().toUpperCase()
+  if (!normalized) return 'OTHER'
+  if (normalized === 'LICENSE') return 'LICENCE'
+  return normalized
+}
+
 const documentKindOptions = [
   { value: 'CERTIFICATE', label: 'Сертифікат' },
   { value: 'DIPLOMA', label: 'Диплом' },
-  { value: 'LICENSE', label: 'Ліцензія' },
+  { value: 'LICENCE', label: 'Ліцензія' },
   { value: 'OTHER', label: 'Інший документ' },
 ]
+
+function getCreateApiDocumentKind(kind: string): string | undefined {
+  const normalized = normalizeDocumentKind(kind)
+  if (normalized === 'LICENCE') return 'OTHER'
+  if (normalized === 'OTHER') return 'OTHER'
+  return normalized || undefined
+}
+
+function isInvalidDocumentKindError(err: unknown): boolean {
+  const data = (err as { response?: { data?: unknown } })?.response?.data
+  if (!data || typeof data !== 'object' || !('document_kind' in data)) return false
+  const message = (data as { document_kind?: unknown }).document_kind
+  if (Array.isArray(message)) {
+    return message.some((item) => String(item).toLowerCase().includes('valid choice'))
+  }
+  return String(message ?? '').toLowerCase().includes('valid choice')
+}
+
+async function createDocumentWithKindFallback(payload: {
+  file: File
+  title: string
+  document_kind: string
+  is_public: boolean
+}) {
+  const apiKind = getCreateApiDocumentKind(payload.document_kind)
+  try {
+    return await createProfileDocument({
+      file: payload.file,
+      title: payload.title,
+      document_kind: apiKind,
+      is_public: payload.is_public,
+    })
+  } catch (err) {
+    if (!isInvalidDocumentKindError(err)) {
+      throw err
+    }
+    return await createProfileDocument({
+      file: payload.file,
+      title: payload.title,
+      is_public: payload.is_public,
+    })
+  }
+}
 
 function setPreviewUrl(target: { value: string }, file?: File | null) {
   if (target.value) {
@@ -1069,7 +1107,7 @@ function getApiErrorMessage(err: unknown, fallback: string) {
 }
 
 function documentKindLabel(kind: string): string {
-  const normalized = (kind || '').toUpperCase()
+  const normalized = normalizeDocumentKind(kind)
   const option = documentKindOptions.find((item) => item.value === normalized)
   if (option) return option.label
   return normalized || 'Документ'
@@ -1081,7 +1119,7 @@ function normalizeDocument(document: SpecialistProfileDocument): SpecialistProfi
     ...document,
     title: (document.title || '').trim() || 'Без назви',
     file_url: document.file_url || '',
-    document_kind: (document.document_kind || 'OTHER').toUpperCase(),
+    document_kind: normalizeDocumentKind(document.document_kind),
     is_public: Boolean(document.is_public),
     sort_order: Number.isFinite(parsedSortOrder) ? Math.max(0, Math.trunc(parsedSortOrder)) : 0,
     uploaded_at: document.uploaded_at || '',
@@ -1091,24 +1129,17 @@ function normalizeDocument(document: SpecialistProfileDocument): SpecialistProfi
 
 function sortProfileDocuments(list: SpecialistProfileDocument[]): SpecialistProfileDocument[] {
   return [...list].sort((a, b) => {
-    if (a.sort_order !== b.sort_order) return a.sort_order - b.sort_order
-    return new Date(b.uploaded_at || '').getTime() - new Date(a.uploaded_at || '').getTime()
+    const aTime = new Date(a.uploaded_at || '').getTime()
+    const bTime = new Date(b.uploaded_at || '').getTime()
+    if (aTime !== bTime) return bTime - aTime
+    return b.id - a.id
   })
-}
-
-function parseSortOrder(value: unknown): number | undefined {
-  const raw = typeof value === 'string' ? value.trim() : String(value ?? '').trim()
-  if (!raw) return undefined
-  const parsed = Number(raw)
-  if (!Number.isFinite(parsed)) return undefined
-  return Math.max(0, Math.trunc(parsed))
 }
 
 function resetDocumentForm() {
   newDocumentTitle.value = ''
   newDocumentKind.value = 'CERTIFICATE'
   newDocumentIsPublic.value = true
-  newDocumentSortOrder.value = ''
   newDocumentFile.value = null
   if (documentFileInput.value) {
     documentFileInput.value.value = ''
@@ -1137,15 +1168,19 @@ async function onUploadDocument() {
   documentsError.value = ''
   documentsNotice.value = ''
   try {
-    const created = await createProfileDocument({
+    const selectedKind = normalizeDocumentKind(newDocumentKind.value)
+    const created = await createDocumentWithKindFallback({
       file: newDocumentFile.value,
       title: normalizedTitle,
-      document_kind: newDocumentKind.value,
+      document_kind: selectedKind,
       is_public: newDocumentIsPublic.value,
-      sort_order: parseSortOrder(newDocumentSortOrder.value),
     })
     documents.value = sortProfileDocuments([...documents.value, normalizeDocument(created)])
-    documentsNotice.value = 'Документ завантажено.'
+    const savedKind = normalizeDocumentKind(created.document_kind)
+    documentsNotice.value =
+      savedKind === selectedKind
+        ? 'Документ завантажено.'
+        : 'Документ завантажено. Тип документа автоматично узгоджено з API.'
     resetDocumentForm()
   } catch (err) {
     documentsError.value = getApiErrorMessage(err, 'Не вдалося завантажити документ.')
@@ -1162,7 +1197,6 @@ async function onUpdateDocument(document: SpecialistProfileDocument) {
     const updated = await updateProfileDocument(document.id, {
       title: String(document.title ?? '').trim(),
       is_public: document.is_public,
-      sort_order: Math.max(0, Math.trunc(Number(document.sort_order) || 0)),
     })
     documents.value = sortProfileDocuments(
       documents.value.map((item) => (item.id === document.id ? normalizeDocument(updated) : item))
@@ -1879,12 +1913,15 @@ onMounted(() => {
   margin: 0;
   font-family: var(--font-display);
   font-size: 22px;
+  font-weight: 500;
+  color: color-mix(in srgb, var(--text-2) 92%, #ffffff);
 }
 
 .panel__hint {
   margin: 6px 0 0;
   font-size: 13px;
-  color: var(--muted);
+  line-height: 1.45;
+  color: color-mix(in srgb, var(--muted) 88%, #5e6b74);
   max-width: 640px;
 }
 
@@ -2245,17 +2282,72 @@ onMounted(() => {
   color: var(--muted);
 }
 
+.form--profile-basics {
+  gap: 14px;
+}
+
+.form-group {
+  display: grid;
+  gap: 12px;
+}
+
+.form-group + .form-group {
+  margin-top: 2px;
+  padding-top: 14px;
+  border-top: 1px solid color-mix(in srgb, var(--line) 72%, #ffffff);
+}
+
+.field-label {
+  display: inline-block;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: color-mix(in srgb, var(--text-2) 90%, #ffffff);
+}
+
+.field-label--section {
+  margin-bottom: 1px;
+}
+
+.field-help {
+  font-size: 12px;
+  line-height: 1.5;
+  color: color-mix(in srgb, var(--muted) 85%, #667580);
+}
+
+.check {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  line-height: 1.35;
+  color: color-mix(in srgb, var(--text-2) 82%, #ffffff);
+}
+
+.check input[type="checkbox"] {
+  margin: 0;
+  accent-color: color-mix(in srgb, var(--primary) 78%, #124a66);
+}
+
+.form--profile-basics .input::placeholder {
+  color: color-mix(in srgb, var(--muted) 62%, #ffffff);
+}
+
 .field-row {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
 }
 
+.field--format {
+  gap: 7px;
+}
+
 .meeting-format-controls {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  margin: 6px 0;
+  margin: 4px 0 2px;
 }
 
 .field--half {

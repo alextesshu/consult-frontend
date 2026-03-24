@@ -1,11 +1,12 @@
 <template>
   <div :class="['shell', { 'shell--home': isHome }]">
     <header :class="topbarClass">
-      <RouterLink class="brand" to="/">
-        <div class="brand__mark">Pro Consult</div>
-        <div class="brand__tagline">Простір для спеціалістів</div>
-      </RouterLink>
-      <nav class="nav">
+      <div class="topbar__inner">
+        <RouterLink class="brand" to="/">
+          <div class="brand__mark">Pro Consult</div>
+          <div class="brand__tagline">Простір для вашої справи</div>
+        </RouterLink>
+        <nav class="nav">
         <RouterLink v-if="isAuthenticated" class="nav__primary-action" :to="cabinetRoute">{{ cabinetLabel }}</RouterLink>
         <RouterLink v-if="showCatalogNav" class="nav__desktop-only" to="/specialists">Каталог</RouterLink>
         <RouterLink
@@ -179,24 +180,25 @@
             Вийти
           </button>
         </div>
-      </nav>
-      <div
-        v-if="isAuthenticated && isSpecialist && showSettings"
-        ref="settingsSheetRef"
-        class="settings-sheet nav__mobile-only"
-      >
-        <RouterLink class="settings-sheet__item" to="/cabinet/settings" @click="showSettings = false">
-          Усі налаштування
-        </RouterLink>
-        <RouterLink class="settings-sheet__item" to="/cabinet/profile" @click="showSettings = false">
-          Профіль
-        </RouterLink>
-        <RouterLink class="settings-sheet__item" to="/cabinet/settings/notifications" @click="showSettings = false">
-          Сповіщення
-        </RouterLink>
-        <RouterLink class="settings-sheet__item" to="/cabinet/billing" @click="showSettings = false">
-          Плани та доступ
-        </RouterLink>
+        </nav>
+        <div
+          v-if="isAuthenticated && isSpecialist && showSettings"
+          ref="settingsSheetRef"
+          class="settings-sheet nav__mobile-only"
+        >
+          <RouterLink class="settings-sheet__item" to="/cabinet/settings" @click="showSettings = false">
+            Усі налаштування
+          </RouterLink>
+          <RouterLink class="settings-sheet__item" to="/cabinet/profile" @click="showSettings = false">
+            Профіль
+          </RouterLink>
+          <RouterLink class="settings-sheet__item" to="/cabinet/settings/notifications" @click="showSettings = false">
+            Сповіщення
+          </RouterLink>
+          <RouterLink class="settings-sheet__item" to="/cabinet/billing" @click="showSettings = false">
+            Плани та доступ
+          </RouterLink>
+        </div>
       </div>
     </header>
 
@@ -206,7 +208,7 @@
     <ToastHost />
     <footer class="footer">
       <div class="footer__brand">
-        <span>Pro Consult — Простір для спеціалістів</span>
+        <span>Pro Consult — Простір для вашої справи</span>
         <RouterLink class="footer__link" to="/faq">FAQ</RouterLink>
       </div>
       <div class="footer__meta">
@@ -935,18 +937,53 @@ watch(isAuthenticated, (value) => {
 }
 
 .topbar {
+  position: relative;
+  isolation: isolate;
+  z-index: 10;
+  background:
+    radial-gradient(120% 140% at 50% -30%, rgba(255, 255, 255, 0.09), transparent 65%),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--topbar-bg) 94%, #1d5a4c) 0%,
+      color-mix(in srgb, var(--topbar-bg) 98%, #0c2f28) 100%
+    );
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid color-mix(in srgb, var(--topbar-text) 16%, transparent);
+  color: var(--topbar-text);
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  border-radius: 0;
+  padding: 0;
+  box-shadow: 0 10px 24px rgba(8, 24, 20, 0.14);
+}
+
+.topbar::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--topbar-text) 0%, transparent) 0%,
+    color-mix(in srgb, var(--topbar-text) 26%, transparent) 50%,
+    color-mix(in srgb, var(--topbar-text) 0%, transparent) 100%
+  );
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.topbar__inner {
+  width: 80vw;
+  margin: 0 auto;
+  min-height: 66px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 20px;
-  position: relative;
-  z-index: 10;
-  background: var(--topbar-bg);
-  backdrop-filter: blur(10px);
-  border-bottom: 1px solid var(--topbar-border);
-  color: var(--topbar-text);
-  width: 100%;
-  padding: 12px 24px;
+  gap: 24px;
+  padding: 13px 0;
 }
 
 .topbar--specialist,
@@ -967,24 +1004,31 @@ watch(isAuthenticated, (value) => {
   right: 0;
 }
 
+.topbar--overlay .topbar__inner {
+  width: min(1200px, 92vw);
+}
+
 .brand {
   display: grid;
-  gap: 2px;
+  gap: 3px;
   color: inherit;
 }
 
 .brand__mark {
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: 22px;
-  letter-spacing: 0.4px;
+  font-size: 23px;
+  letter-spacing: 0.35px;
+  line-height: 1;
 }
 
 .brand__tagline {
-  font-size: 12px;
-  letter-spacing: 0.18em;
+  font-size: 11.5px;
+  letter-spacing: 0.16em;
+  font-weight: 500;
   text-transform: uppercase;
-  color: color-mix(in srgb, var(--topbar-text) 70%, transparent);
+  color: color-mix(in srgb, var(--topbar-text) 76%, transparent);
+  line-height: 1.2;
 }
 
 .topbar--overlay .brand {
@@ -995,14 +1039,14 @@ watch(isAuthenticated, (value) => {
 
 .nav {
   display: flex;
-  gap: 12px;
+  gap: 10px;
   font-weight: 300;
   flex-wrap: wrap;
   justify-content: flex-end;
 }
 
 .nav__primary-action {
-  font-weight: 500;
+  font-weight: 540;
 }
 
 .nav__desktop-only {
@@ -1018,17 +1062,23 @@ watch(isAuthenticated, (value) => {
 }
 
 .nav a {
-  padding: 4px 12px;
+  padding: 4px 11px;
   min-height: 32px;
   border-radius: 6px;
-  border: 1px solid color-mix(in srgb, var(--topbar-text) 22%, transparent);
+  border: 1px solid color-mix(in srgb, var(--topbar-text) 24%, transparent);
   color: var(--topbar-text);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   line-height: 1;
-  background: color-mix(in srgb, var(--topbar-text) 6%, transparent);
-  transition: border-color 0.2s ease, background 0.2s ease;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--topbar-text) 8%, transparent) 0%,
+      color-mix(in srgb, var(--topbar-text) 4%, transparent) 100%
+    );
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 }
 
 .nav a.icon-btn {
@@ -1036,18 +1086,32 @@ watch(isAuthenticated, (value) => {
 }
 
 .nav a.router-link-active {
-  border-color: color-mix(in srgb, var(--topbar-text) 48%, transparent);
-  background: color-mix(in srgb, var(--topbar-text) 20%, transparent);
+  border-color: color-mix(in srgb, var(--topbar-text) 42%, transparent);
+  background: color-mix(in srgb, var(--topbar-text) 17%, transparent);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.11),
+    0 6px 12px rgba(9, 24, 20, 0.16);
 }
 
 .nav :deep(a.nav-link--active) {
-  border-color: color-mix(in srgb, var(--topbar-text) 48%, transparent);
-  background: color-mix(in srgb, var(--topbar-text) 20%, transparent);
+  border-color: color-mix(in srgb, var(--topbar-text) 42%, transparent);
+  background: color-mix(in srgb, var(--topbar-text) 17%, transparent);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.11),
+    0 6px 12px rgba(9, 24, 20, 0.16);
 }
 
 .nav a:hover {
-  border-color: color-mix(in srgb, var(--topbar-text) 55%, transparent);
-  background: color-mix(in srgb, var(--topbar-text) 24%, transparent);
+  border-color: color-mix(in srgb, var(--topbar-text) 52%, transparent);
+  background: color-mix(in srgb, var(--topbar-text) 21%, transparent);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 6px 12px rgba(9, 24, 20, 0.16);
+}
+
+.nav a:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--topbar-text) 45%, transparent);
+  outline-offset: 2px;
 }
 
 .nav__notifications {
@@ -1069,11 +1133,17 @@ watch(isAuthenticated, (value) => {
   display: grid;
   place-items: center;
   border-radius: 6px;
-  border: 1px solid color-mix(in srgb, var(--topbar-text) 25%, transparent);
+  border: 1px solid color-mix(in srgb, var(--topbar-text) 26%, transparent);
   color: var(--topbar-text);
-  background: color-mix(in srgb, var(--topbar-text) 8%, transparent);
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--topbar-text) 8%, transparent) 0%,
+      color-mix(in srgb, var(--topbar-text) 4%, transparent) 100%
+    );
   cursor: pointer;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, transform 0.2s ease;
 }
 
 .icon-btn svg {
@@ -1083,9 +1153,11 @@ watch(isAuthenticated, (value) => {
 
 .icon-btn:hover,
 .icon-btn:focus-visible {
-  border-color: color-mix(in srgb, var(--topbar-text) 55%, transparent);
-  background: color-mix(in srgb, var(--topbar-text) 16%, transparent);
-  box-shadow: 0 6px 12px rgba(12, 26, 36, 0.18);
+  border-color: color-mix(in srgb, var(--topbar-text) 50%, transparent);
+  background: color-mix(in srgb, var(--topbar-text) 15%, transparent);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 6px 12px rgba(12, 26, 36, 0.18);
 }
 
 .icon-btn__badge {
@@ -1108,14 +1180,23 @@ watch(isAuthenticated, (value) => {
   padding: 4px 12px;
   border-radius: 6px;
   color: var(--topbar-text);
-  border-color: color-mix(in srgb, var(--topbar-text) 35%, transparent);
-  background: color-mix(in srgb, var(--topbar-text) 10%, transparent);
+  border-color: color-mix(in srgb, var(--topbar-text) 30%, transparent);
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--topbar-text) 10%, transparent) 0%,
+      color-mix(in srgb, var(--topbar-text) 5%, transparent) 100%
+    );
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
 .topbar .btn--ghost:hover,
 .topbar .btn--ghost:focus-visible {
-  border-color: color-mix(in srgb, var(--topbar-text) 55%, transparent);
-  background: color-mix(in srgb, var(--topbar-text) 18%, transparent);
+  border-color: color-mix(in srgb, var(--topbar-text) 50%, transparent);
+  background: color-mix(in srgb, var(--topbar-text) 16%, transparent);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 6px 12px rgba(9, 24, 20, 0.14);
 }
 
 .topbar .btn--ghost:active {
@@ -1376,9 +1457,10 @@ body.body--home .footer {
 }
 
 @media (max-width: 1024px) {
-  .topbar {
+  .topbar__inner {
     align-items: flex-start;
     gap: 10px;
+    padding: 12px 0;
   }
 
   .nav {
@@ -1388,11 +1470,16 @@ body.body--home .footer {
 
 @media (max-width: 640px) {
   .topbar {
+    position: sticky;
+    top: 0;
+  }
+
+  .topbar__inner {
     align-items: center;
     flex-wrap: wrap;
     gap: 8px;
-    position: sticky;
-    top: 0;
+    min-height: auto;
+    padding: 10px 0 9px;
   }
 
   .nav__desktop-only {
@@ -1405,10 +1492,6 @@ body.body--home .footer {
 
   .icon-btn.nav__mobile-only {
     display: inline-flex;
-  }
-
-  .topbar {
-    padding: 10px 12px;
   }
 
   .brand__mark {
@@ -1517,4 +1600,3 @@ body.body--home .footer {
   }
 }
 </style>
-

@@ -1192,18 +1192,25 @@ const publicDocuments = computed<PublicSpecialistProfileDocument[]>(() => {
     .map((item) => ({
       ...item,
       title: item.title.trim(),
-      document_kind: (item.document_kind || 'OTHER').toUpperCase(),
+      document_kind: normalizeDocumentKind(item.document_kind),
     }))
     .sort((a, b) => new Date(b.uploaded_at || '').getTime() - new Date(a.uploaded_at || '').getTime())
 })
 
+function normalizeDocumentKind(kind: string | null | undefined): string {
+  const normalized = String(kind ?? '').trim().toUpperCase()
+  if (!normalized) return 'OTHER'
+  if (normalized === 'LICENSE') return 'LICENCE'
+  return normalized
+}
+
 function documentKindLabel(kind: string): string {
-  switch ((kind || '').toUpperCase()) {
+  switch (normalizeDocumentKind(kind)) {
     case 'CERTIFICATE':
       return 'Сертифікат'
     case 'DIPLOMA':
       return 'Диплом'
-    case 'LICENSE':
+    case 'LICENCE':
       return 'Ліцензія'
     default:
       return 'Документ'
@@ -2635,20 +2642,20 @@ onMounted(async () => {
 
 .document-card__preview {
   width: 100%;
-  aspect-ratio: 4 / 3;
+  height: clamp(160px, 24vw, 240px);
   border-radius: 12px;
   border: 1px solid var(--line);
   overflow: hidden;
   background: color-mix(in srgb, #f4efe2 58%, #ffffff);
-  display: grid;
-  place-items: center;
+  padding: 8px;
 }
 
 .document-card__preview img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   display: block;
+  border-radius: 8px;
 }
 
 .document-card__file-top {
