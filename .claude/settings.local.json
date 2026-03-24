@@ -7,7 +7,8 @@
       "mcp__consult-knowledge__fetch",
       "Bash(find /c/Users/admin/dev/portfolio/consult/frontend/src -name *.ts -path */types/* -o -name types.ts -o -name types.d.ts)",
       "Bash(npx tsc:*)",
-      "Bash(npx vue-tsc:*)"
+      "Bash(npx vue-tsc:*)",
+      "Bash(xargs grep:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

@@ -387,19 +387,21 @@ onBeforeUnmount(() => {
   height: 440px;
   overflow-y: auto;
   display: grid;
-  gap: 10px;
+  gap: 6px;
   padding-right: 8px;
 }
 
 .chat-message {
   max-width: 72%;
-  display: grid;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
   gap: 4px;
 }
 
 .chat-message--me {
   justify-self: end;
-  text-align: right;
+  align-items: flex-end;
 }
 
 .chat-message__bubble {
