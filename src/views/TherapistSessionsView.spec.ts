@@ -17,6 +17,7 @@ import {
   formatSessionDateTime,
   rescheduleSpecialistSession,
   saveSpecialistClientJournal,
+  saveSpecialistSessionNote,
 } from '../lib/specialistSessions'
 import TherapistSessionsView from './TherapistSessionsView.vue'
 
@@ -87,6 +88,7 @@ const mockedFetchSpecialistRescheduleSuggestions = vi.mocked(fetchSpecialistResc
 const mockedFetchSpecialistSessionNoteContent = vi.mocked(fetchSpecialistSessionNoteContent)
 const mockedRescheduleSpecialistSession = vi.mocked(rescheduleSpecialistSession)
 const mockedSaveSpecialistClientJournal = vi.mocked(saveSpecialistClientJournal)
+const mockedSaveSpecialistSessionNote = vi.mocked(saveSpecialistSessionNote)
 
 function buildSession(overrides: Record<string, unknown> = {}) {
   return {
@@ -160,6 +162,7 @@ describe('TherapistSessionsView', () => {
     mockedFetchSpecialistSessionNoteContent.mockReset()
     mockedRescheduleSpecialistSession.mockReset()
     mockedSaveSpecialistClientJournal.mockReset()
+    mockedSaveSpecialistSessionNote.mockReset()
     mockToast.show.mockReset()
     mockToast.success.mockReset()
     mockToast.error.mockReset()
@@ -175,6 +178,7 @@ describe('TherapistSessionsView', () => {
     mockedFetchSpecialistRescheduleRequests.mockResolvedValue([])
     mockedFetchSpecialistRescheduleSuggestions.mockResolvedValue([])
     mockedFetchSpecialistSessionNoteContent.mockResolvedValue('')
+    mockedSaveSpecialistSessionNote.mockResolvedValue(undefined)
   })
 
   it('renders the list-level session surface with filters and pending request context', async () => {
@@ -700,6 +704,62 @@ describe('TherapistSessionsView', () => {
       expect(mockedFetchSpecialistClientJournalContent).not.toHaveBeenCalled()
       expect(completionButton).not.toBeDisabled()
       expect(mockedApiGet).toHaveBeenCalledTimes(2)
+    } finally {
+      promptSpy.mockRestore()
+    }
+  })
+
+  it('keeps completion note modal open after saving session note', async () => {
+    const confirmedSession = buildSession({
+      id: 17,
+      status: 'CONFIRMED',
+      client: 107,
+      client_name: 'Iryna',
+      client_email: 'keep-open@example.com',
+      slot: 207,
+      slot_start_at: '2099-06-21T08:00:00Z',
+      slot_end_at: '2099-06-21T08:50:00Z',
+    })
+    const promptSpy = vi.spyOn(window, 'prompt').mockReturnValue('50')
+
+    let upcomingSessions = [confirmedSession]
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/booking/sessions/' && (config as { params?: { upcoming?: boolean } } | undefined)?.params?.upcoming) {
+        return upcomingSessions
+      }
+      if (url === '/booking/sessions/' && (config as { params?: { upcoming?: boolean } } | undefined)?.params?.upcoming === false) {
+        return []
+      }
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedCompleteSpecialistSession.mockImplementation(async () => {
+      upcomingSessions = [{ ...confirmedSession, status: 'COMPLETED' }]
+    })
+    mockedFetchSpecialistSessionNoteContent.mockResolvedValue('Initial note')
+    mockedFetchSpecialistClientJournalContent.mockResolvedValue('Initial workbook')
+
+    try {
+      renderView()
+
+      expect(await screen.findByText(/keep-open@example\.com/)).toBeInTheDocument()
+      const sessionCard = screen.getByText(/keep-open@example\.com/).closest('article')
+      expect(sessionCard).not.toBeNull()
+      const completionButton = within(sessionCard as HTMLElement).getAllByRole('button')[1]
+      expect(completionButton).toBeTruthy()
+      await fireEvent.click(completionButton)
+
+      expect(await screen.findByDisplayValue('Initial note')).toBeInTheDocument()
+      await fireEvent.update(screen.getByDisplayValue('Initial note'), 'Updated note')
+      const saveSessionNoteButton = document.querySelector(
+        '.note-panel .note-actions .btn--sm',
+      ) as HTMLButtonElement | null
+      expect(saveSessionNoteButton).not.toBeNull()
+      await fireEvent.click(saveSessionNoteButton as HTMLButtonElement)
+
+      await waitFor(() => {
+        expect(mockedSaveSpecialistSessionNote).toHaveBeenCalledWith(17, 'Updated note')
+      })
+      expect(screen.getByDisplayValue('Updated note')).toBeInTheDocument()
     } finally {
       promptSpy.mockRestore()
     }

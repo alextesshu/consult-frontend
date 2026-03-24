@@ -1207,7 +1207,6 @@ async function saveNote(id: number) {
   error.value = ''
   try {
     await saveSpecialistSessionNoteAction(id, noteDraft.value)
-    closeNote()
     toast.success(BOOKING_SUCCESS_MESSAGES.noteSaved)
   } catch (err: any) {
     error.value = getBookingErrorMessage(err, BOOKING_ERROR_FALLBACKS.saveSessionNote)
