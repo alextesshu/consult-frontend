@@ -209,6 +209,7 @@ describe('TherapistClientsView', () => {
             last_session_at: null,
             upcoming_count: 0,
             client_name: 'Test Client',
+            client_journal_content: 'journal-44',
           },
         ]
       if (url === '/booking/sessions/')
@@ -233,14 +234,18 @@ describe('TherapistClientsView', () => {
       throw new Error(`Unexpected apiGet call: ${url}`)
     })
 
-    const { getByRole, queryByText } = renderView()
+    const { getByRole, queryByText, container } = renderView()
 
     const historyButton = await waitFor(() => getByRole('button', { name: 'Приватна історія клієнта' }))
     await fireEvent.click(historyButton)
+    const expandButton = await waitFor(() => container.querySelector('.workbook-block .btn--ghost'))
+    await fireEvent.click(expandButton as Element)
 
     await waitFor(() => {
+      expect(container.querySelector('textarea.workbook-textarea')).toHaveValue('journal-44')
       expect(queryByText('note-44')).toBeInTheDocument()
       expect(queryByText('note-99')).not.toBeInTheDocument()
     })
+    expect(mockedApiGet).not.toHaveBeenCalledWith('/cabinet/clients/44/journal/')
   })
 })

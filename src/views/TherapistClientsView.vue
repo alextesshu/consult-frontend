@@ -62,7 +62,7 @@
       </div>
     </section>
 
-    <section class="panel">
+    <section class="panel panel--clients">
       <div class="panel__header">
         <div>
           <div class="badge badge--soft">Список</div>
@@ -146,6 +146,40 @@
               </div>
               <span class="history-badge">Зашифровано</span>
             </div>
+            <div class="workbook-block">
+              <div class="workbook-block__header">
+                <div class="workbook-block__title">Робочий зошит клієнта</div>
+                <button class="btn btn--ghost btn--sm" type="button" @click="toggleWorkbook(relationClientId(client))">
+                  {{ isWorkbookExpanded(relationClientId(client)) ? 'Згорнути зошит' : 'Розгорнути зошит' }}
+                </button>
+              </div>
+              <div v-if="workbookSavedMessage[relationClientId(client)]" class="workbook-success">
+                {{ workbookSavedMessage[relationClientId(client)] }}
+              </div>
+              <div v-if="isJournalLoading(relationClientId(client))" class="muted">Завантаження робочого зошита...</div>
+              <div v-else-if="!isWorkbookExpanded(relationClientId(client))" class="muted">
+                Зошит згорнуто для конфіденційності.
+              </div>
+              <template v-else>
+                <textarea
+                  v-model="clientJournalDrafts[relationClientId(client)]"
+                  class="input workbook-textarea"
+                  rows="10"
+                  placeholder="Основні спостереження, динаміка, плани та робочі гіпотези по клієнту."
+                ></textarea>
+                <div class="workbook-actions">
+                  <button
+                    class="btn btn--sm"
+                    type="button"
+                    :disabled="isJournalSaving(relationClientId(client))"
+                    @click="saveClientJournal(relationClientId(client))"
+                  >
+                    Зберегти робочий зошит
+                  </button>
+                </div>
+              </template>
+            </div>
+            <div class="history-list-title">Нотатки по сесіях</div>
             <div v-if="isHistoryLoading(relationClientId(client))" class="muted">Завантаження історії...</div>
             <div v-else-if="!clientHistory[relationClientId(client)]?.length" class="muted">
               Нотаток по цьому клієнту ще немає.
@@ -175,6 +209,10 @@ import EmptyState from '../components/EmptyState.vue'
 import LoadingSkeleton from '../components/LoadingSkeleton.vue'
 import { formatUkDateTimeCompact } from '../lib/dateTime'
 import { getApiErrorMessage } from '../lib/errors'
+import {
+  fetchSpecialistClientJournalContent as fetchSpecialistClientJournalContentData,
+  saveSpecialistClientJournal as saveSpecialistClientJournalAction,
+} from '../lib/specialistSessions'
 
 type ClientState = {
   id: number
@@ -186,6 +224,9 @@ type ClientState = {
   client_name?: string
   client_username?: string
   client_code?: string
+  client_journal_content?: string
+  client_journal_updated_at?: string | null
+  has_client_journal_content?: boolean
 }
 
 
@@ -231,7 +272,12 @@ const actionLoading = ref<Set<number>>(new Set())
 const expandedClientId = ref<number | null>(null)
 const historyLoading = ref<Set<number>>(new Set())
 const clientHistory = ref<Record<number, HistoryItem[]>>({})
+const clientJournalDrafts = ref<Record<number, string>>({})
+const workbookExpanded = ref<Record<number, boolean>>({})
+const workbookSavedMessage = ref<Record<number, string>>({})
 const sessionsCache = ref<SessionItem[] | null>(null)
+const journalLoading = ref<Set<number>>(new Set())
+const journalSaving = ref<Set<number>>(new Set())
 const notesLoading = ref(false)
 const remindersError = ref('')
 const pendingNotes = ref<PendingNoteItem[]>([])
@@ -256,6 +302,9 @@ const clientIndex = computed(() => {
 
 const isActionLoading = (id: number) => actionLoading.value.has(id)
 const isHistoryLoading = (id: number) => historyLoading.value.has(id)
+const isJournalLoading = (id: number) => journalLoading.value.has(id)
+const isJournalSaving = (id: number) => journalSaving.value.has(id)
+const isWorkbookExpanded = (id: number) => Boolean(workbookExpanded.value[id])
 function relationClientId(client: Pick<ClientState, 'client' | 'client_id'>) {
   return Number(client.client ?? client.client_id ?? 0)
 }
@@ -304,6 +353,37 @@ function setHistoryLoading(id: number, value: boolean) {
   historyLoading.value = next
 }
 
+function setJournalLoading(id: number, value: boolean) {
+  const next = new Set(journalLoading.value)
+  if (value) {
+    next.add(id)
+  } else {
+    next.delete(id)
+  }
+  journalLoading.value = next
+}
+
+function setJournalSaving(id: number, value: boolean) {
+  const next = new Set(journalSaving.value)
+  if (value) {
+    next.add(id)
+  } else {
+    next.delete(id)
+  }
+  journalSaving.value = next
+}
+
+function toggleWorkbook(clientId: number) {
+  workbookExpanded.value = {
+    ...workbookExpanded.value,
+    [clientId]: !isWorkbookExpanded(clientId),
+  }
+  workbookSavedMessage.value = {
+    ...workbookSavedMessage.value,
+    [clientId]: '',
+  }
+}
+
 function formatDuration(start?: string | null, end?: string | null) {
   if (!start || !end) return ''
   const s = new Date(start)
@@ -343,6 +423,14 @@ async function loadClients() {
   try {
     const resp = await apiGet<ClientState[]>('/cabinet/clients/')
     clients.value = resp || []
+    const seededDrafts: Record<number, string> = { ...clientJournalDrafts.value }
+    for (const item of clients.value) {
+      const id = relationClientId(item)
+      if (!id) continue
+      if (seededDrafts[id] !== undefined) continue
+      seededDrafts[id] = item.client_journal_content || ''
+    }
+    clientJournalDrafts.value = seededDrafts
   } catch (err: any) {
     clients.value = []
     clientsError.value = getApiErrorMessage(err, 'Спробуйте ще раз або оновіть сторінку.')
@@ -437,8 +525,16 @@ async function loadPendingNotes() {
 
 async function loadHistory(clientId: number) {
   setHistoryLoading(clientId, true)
+  setJournalLoading(clientId, true)
   error.value = ''
   try {
+    const fromClientsList = clientIndex.value.get(clientId)?.client_journal_content
+    const hasListValue = typeof fromClientsList === 'string'
+    const journalContent = hasListValue
+      ? fromClientsList || ''
+      : await fetchSpecialistClientJournalContentData(clientId)
+    clientJournalDrafts.value = { ...clientJournalDrafts.value, [clientId]: journalContent }
+
     const sessions = await loadSessionsIfNeeded()
     const items = sessions
       .filter((item) => relationSessionClientId(item) === clientId)
@@ -468,7 +564,29 @@ async function loadHistory(clientId: number) {
   } catch (err: any) {
     error.value = getApiErrorMessage(err, 'Не вдалося завантажити нотатки клієнта')
   } finally {
+    setJournalLoading(clientId, false)
     setHistoryLoading(clientId, false)
+  }
+}
+
+async function saveClientJournal(clientId: number) {
+  if (!clientId) return
+  setJournalSaving(clientId, true)
+  error.value = ''
+  try {
+    await saveSpecialistClientJournalAction(clientId, clientJournalDrafts.value[clientId] || '')
+    workbookExpanded.value = {
+      ...workbookExpanded.value,
+      [clientId]: false,
+    }
+    workbookSavedMessage.value = {
+      ...workbookSavedMessage.value,
+      [clientId]: 'Дані збережено.',
+    }
+  } catch (err: any) {
+    error.value = getApiErrorMessage(err, 'Не вдалося зберегти робочий зошит клієнта')
+  } finally {
+    setJournalSaving(clientId, false)
   }
 }
 
@@ -501,19 +619,21 @@ onMounted(async () => {
   justify-content: space-between;
   align-items: center;
   gap: 20px;
-  background: linear-gradient(135deg, rgba(8, 113, 201, 0.16), rgba(7, 47, 71, 0.06));
+  order: 0;
+  background: linear-gradient(135deg, rgba(8, 113, 201, 0.1), rgba(7, 47, 71, 0.03));
   border: 1px solid var(--line);
   border-radius: var(--radius);
-  padding: 22px 24px;
-  box-shadow: var(--shadow);
+  padding: 14px 16px;
 }
 
 .clients__title {
-  font-size: 32px;
+  font-size: 26px;
+  margin-bottom: 4px;
 }
 
 .clients__subtitle {
-  max-width: 520px;
+  max-width: 640px;
+  font-size: 15px;
 }
 
 .panel {
@@ -539,7 +659,12 @@ onMounted(async () => {
 }
 
 .panel--reminders {
-  background: linear-gradient(135deg, rgba(8, 113, 201, 0.08), rgba(7, 47, 71, 0.04));
+  order: 2;
+  background: linear-gradient(135deg, rgba(8, 113, 201, 0.05), rgba(7, 47, 71, 0.02));
+}
+
+.panel--clients {
+  order: 1;
 }
 
 .badge--soft {
@@ -625,6 +750,48 @@ onMounted(async () => {
 .history-list {
   display: grid;
   gap: 10px;
+}
+
+.history-list-title {
+  font-weight: 600;
+  margin-top: 2px;
+}
+
+.workbook-block {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(7, 47, 71, 0.12);
+  background: rgba(7, 47, 71, 0.03);
+}
+
+.workbook-block__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.workbook-block__title {
+  font-weight: 600;
+}
+
+.workbook-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.workbook-success {
+  color: #1f6f52;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.workbook-textarea {
+  min-height: 220px;
+  resize: vertical;
 }
 
 .history-item {
