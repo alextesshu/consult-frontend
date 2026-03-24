@@ -98,13 +98,13 @@
                 v-if="notificationCount"
                 class="btn btn--ghost btn--sm notif-panel__action"
                 type="button"
-                :disabled="notificationsReadAllPending"
-                @click="markAllNotificationsRead"
+                :disabled="notifs.readAllPending.value"
+                @click="notifs.markAllRead"
               >
-                {{ notificationsReadAllPending ? 'Оновлюємо...' : 'Прочитати все' }}
+                {{ notifs.readAllPending.value ? 'Оновлюємо...' : 'Прочитати все' }}
               </button>
             </div>
-            <div v-if="notificationsLoading && !notificationsLoaded" class="muted">Завантаження...</div>
+            <div v-if="notifs.loading.value && !notifs.loaded.value" class="muted">Завантаження...</div>
             <div v-else-if="notifications.length === 0" class="muted">Немає нових сповіщень.</div>
             <div v-else class="notif-list">
               <article
@@ -116,7 +116,7 @@
                   class="notif-item"
                   :class="{ 'notif-item--read': !item.unread }"
                   :to="item.to"
-                  @click="markNotificationRead(item)"
+                  @click="onMarkNotificationRead(item)"
                 >
                   <span class="notif-item__dot" :class="`notif-item__dot--${item.tone}`"></span>
                   <div>
@@ -130,7 +130,7 @@
                     :href="item.join_url"
                     target="_blank"
                     rel="noopener noreferrer"
-                    @click.stop="markNotificationRead(item)"
+                    @click.stop="onMarkNotificationRead(item)"
                   >
                     Приєднатися
                   </a>
@@ -229,17 +229,10 @@ import { computed, onBeforeUnmount, onMounted, ref, watch, watchEffect } from 'v
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from './stores/auth'
 import ToastHost from './components/ToastHost.vue'
-import {
-  apiGet,
-  fetchChatUnreadCount,
-  fetchNotifications,
-  markAllNotificationsRead as markAllNotificationsReadApi,
-  markNotificationRead as markNotificationReadApi,
-  type NotificationFeedItem,
-} from './lib/api'
-import { formatUkDateTimeCompact } from './lib/dateTime'
-import { canJoinExternalMeeting, normalizeMeetingUrl } from './lib/sessionExecution'
+import { apiGet, fetchChatUnreadCount } from './lib/api'
+import { normalizeMeetingUrl, canJoinExternalMeeting } from './lib/sessionExecution'
 import { useToast } from './composables/useToast'
+import { useNotifications, type BellNotification } from './composables/useNotifications'
 import type { ToastAction } from './stores/toast'
 
 const route = useRoute()
@@ -287,18 +280,6 @@ const topbarClass = computed(() => [
   },
 ])
 
-type BellNotification = {
-  id: string
-  text: string
-  hint: string
-  to: string
-  join_url: string | null
-  tone: 'info' | 'warn' | 'ok'
-  unread: boolean
-  source_kind: string | null
-  source_id: number | null
-}
-
 type UpcomingSessionReminder = {
   id: number
   status: string
@@ -322,17 +303,12 @@ const settingsPanelRef = ref<HTMLDivElement | null>(null)
 const settingsSheetRef = ref<HTMLDivElement | null>(null)
 const mobileMenuButtonRef = ref<HTMLButtonElement | null>(null)
 const mobileMenuPanelRef = ref<HTMLDivElement | null>(null)
-const notificationsFeed = ref<NotificationFeedItem[]>([])
-const notificationsLoaded = ref(false)
-const notificationsLoading = ref(false)
-const notificationsReadAllPending = ref(false)
-const notificationsPendingIds = ref<Set<string>>(new Set())
 const refreshIntervalId = ref<number | null>(null)
-const notificationsIntervalId = ref<number | null>(null)
 const chatIntervalId = ref<number | null>(null)
 const preSessionToastIntervalId = ref<number | null>(null)
 const chatUnreadCount = ref(0)
 const toast = useToast()
+const notifs = useNotifications({ isClient, isSpecialist })
 const shownPreSessionToastKeys = ref<Set<string>>(loadShownPreSessionToastKeys())
 
 const upcomingCount = computed(() => auth.me?.counts?.upcoming_sessions_count ?? 0)
@@ -457,126 +433,6 @@ async function checkUpcomingSessionReminders() {
   }
 }
 
-function formatDateTime(value?: string | null) {
-  return formatUkDateTimeCompact(value, '')
-}
-
-function notificationClientLabel(item: NotificationFeedItem) {
-  if (item.client_name) return item.client_name
-  if (item.client_id !== null && item.client_id !== undefined) return `#${item.client_id}`
-  return 'клієнта'
-}
-
-function notificationCounterpartyLabel(item: NotificationFeedItem) {
-  if (item.counterparty_name) return item.counterparty_name
-  if (item.counterparty_id !== null && item.counterparty_id !== undefined) return `#${item.counterparty_id}`
-  if (item.specialist_name) return item.specialist_name
-  if (item.client_name) return item.client_name
-  return isClient.value ? 'спеціаліста' : 'клієнта'
-}
-
-function notificationPreview(item: NotificationFeedItem) {
-  const preview = item.preview?.trim()
-  return preview || 'Відкрийте запит, щоб переглянути деталі.'
-}
-
-function notificationJoinUrl(item: NotificationFeedItem) {
-  const url = normalizeMeetingUrl(item.meeting_url)
-  if (!url) return null
-  if (item.source_kind === 'inquiry_message' || item.source_kind === 'reschedule_request') return null
-  if (item.source_kind === 'session_event' && item.code === 'CANCELLED') return null
-  return url
-}
-
-function notificationTone(item: NotificationFeedItem): BellNotification['tone'] {
-  if (item.source_kind === 'inquiry_message') return 'info'
-  if (item.source_kind === 'reschedule_request' || item.code === 'RESCHEDULE_REQUESTED') return 'warn'
-  if (item.source_kind === 'session_event' && item.code === 'RESCHEDULED') return 'ok'
-  if (item.source_kind === 'session_event' && item.code === 'CANCELLED') return 'warn'
-  if (item.source_kind === 'session_event' && item.code === 'BOOKED') return 'ok'
-  return 'info'
-}
-
-function notificationText(item: NotificationFeedItem) {
-  const clientLabel = notificationClientLabel(item)
-  const counterpartyLabel = notificationCounterpartyLabel(item)
-  if (item.source_kind === 'inquiry_message') {
-    if (item.code === 'INQUIRY_CREATED') return `Запит до бронювання від ${counterpartyLabel}`
-    if (item.code === 'INQUIRY_REPLIED') return `Відповідь на запит від ${counterpartyLabel}`
-    if (item.code === 'INQUIRY_FOLLOWED_UP') return `Уточнення до запиту від ${counterpartyLabel}`
-    return `Оновлення запиту до бронювання від ${counterpartyLabel}`
-  }
-  if (item.source_kind === 'reschedule_request' || item.code === 'RESCHEDULE_REQUESTED') {
-    return `Перенесення: ${clientLabel} просить змінити час сесії`
-  }
-  if (item.source_kind === 'session_event') {
-    if (item.code === 'CANCELLED') return `Бронювання: скасування сесії від ${clientLabel}`
-    if (item.code === 'CONFIRMED') return `Бронювання: сесію з ${clientLabel} підтверджено`
-    if (item.code === 'BOOKED') return `Бронювання: нова сесія від ${clientLabel}`
-    if (item.code === 'RESCHEDULED') return 'Перенесення: новий час сесії підтверджено'
-    return `Оновлення по сесії від ${clientLabel}`
-  }
-  if (item.code === 'session_starts_1h') {
-    if (notificationJoinUrl(item)) {
-      return `РќР°РіР°РґСѓРІР°РЅРЅСЏ: РѕРЅР»Р°Р№РЅ-Р·СѓСЃС‚СЂС–С‡ Р· ${clientLabel} РїРѕС‡РёРЅР°С”С‚СЊСЃСЏ Р·Р° 1 РіРѕРґРёРЅСѓ`
-    }
-    return `Нагадування: сесія з ${clientLabel} починається за 1 годину`
-  }
-  if (item.code === 'session_starts_24h') {
-    if (notificationJoinUrl(item)) {
-      return `РќР°РіР°РґСѓРІР°РЅРЅСЏ: РѕРЅР»Р°Р№РЅ-Р·СѓСЃС‚СЂС–С‡ Р· ${clientLabel} РїРѕС‡РёРЅР°С”С‚СЊСЃСЏ Р·Р° 24 РіРѕРґРёРЅРё`
-    }
-    return `Нагадування: сесія з ${clientLabel} починається за 24 години`
-  }
-  return `Нагадування про сесію з ${clientLabel}`
-}
-
-function notificationHint(item: NotificationFeedItem) {
-  const email = item.client_email ? ` · ${item.client_email}` : ''
-  const time = formatDateTime(item.slot_start_at)
-  if (item.source_kind === 'inquiry_message') {
-    return notificationPreview(item)
-  }
-  if (item.source_kind === 'reschedule_request' || item.code === 'RESCHEDULE_REQUESTED') {
-    return time ? `Запитаний час: ${time}${email}` : `Перевірте деталі запиту на перенесення${email}`
-  }
-  if (item.source_kind === 'session_event' && item.code === 'RESCHEDULED') {
-    return time ? `Новий час: ${time}${email}` : `Перевірте оновлений час сесії${email}`
-  }
-  if (item.source_kind === 'session_event') {
-    return time ? `Сесія: ${time}${email}` : `Перевірте деталі сесії${email}`
-  }
-  return time ? `Час сесії: ${time}${email}` : `Перевірте деталі сесії${email}`
-}
-
-function notificationTarget(item: NotificationFeedItem) {
-  if (item.source_kind === 'inquiry_message') {
-    if (isClient.value) {
-      return item.specialist_id ? `/client/inquiries/${item.specialist_id}` : '/specialists'
-    }
-    const query = item.thread_id ? `?thread_id=${item.thread_id}` : ''
-    return `/cabinet/inquiries${query}`
-  }
-  if (isClient.value) {
-    return item.session_id ? `/client/sessions/${item.session_id}` : '/client'
-  }
-  return item.session_id ? `/cabinet/sessions/${item.session_id}` : '/cabinet/sessions'
-}
-
-const serverNotifications = computed<BellNotification[]>(() =>
-  notificationsFeed.value.map((item) => ({
-    id: item.id,
-    text: notificationText(item),
-    hint: notificationHint(item),
-    to: notificationTarget(item),
-    join_url: notificationJoinUrl(item),
-    tone: notificationTone(item),
-    unread: !item.read_at,
-    source_kind: item.source_kind,
-    source_id: item.source_id,
-  }))
-)
-
 // Transitional behavior: until backend emits these as dedicated notifications,
 // entitlement and counts-based hints still come from /api/me.
 const supplementalNotifications = computed<BellNotification[]>(() => {
@@ -639,9 +495,11 @@ const supplementalNotifications = computed<BellNotification[]>(() => {
   return items
 })
 
-const notifications = computed(() => [...serverNotifications.value, ...supplementalNotifications.value])
-const unreadNotifications = computed(() => serverNotifications.value.filter((item) => item.unread))
-const notificationCount = computed(() => unreadNotifications.value.length)
+const notifications = computed(() => [
+  ...notifs.items.value.filter((item) => item.unread),
+  ...supplementalNotifications.value,
+])
+const notificationCount = notifs.unreadCount
 
 function toggleNotifications() {
   showSettings.value = false
@@ -675,54 +533,9 @@ function onLogoutFromMenu() {
   onLogout()
 }
 
-async function markNotificationRead(item: BellNotification) {
-  if (!item.source_kind || item.source_id === null) {
-    showNotifications.value = false
-    return
-  }
-  if (notificationsPendingIds.value.has(item.id)) return
-  notificationsFeed.value = notificationsFeed.value.map((entry) =>
-    entry.id === item.id ? { ...entry, read_at: entry.read_at || new Date().toISOString() } : entry
-  )
-  notificationsPendingIds.value = new Set(notificationsPendingIds.value).add(item.id)
+function onMarkNotificationRead(item: BellNotification) {
   showNotifications.value = false
-  try {
-    const resp = await markNotificationReadApi({
-      source_kind: item.source_kind,
-      source_id: item.source_id,
-    })
-    notificationsFeed.value = notificationsFeed.value.map((entry) =>
-      entry.source_kind === resp.source_kind && entry.source_id === resp.source_id
-        ? { ...entry, read_at: resp.read_at }
-        : entry
-    )
-  } catch {
-    await refreshNotifications()
-    toast.error('Не вдалося позначити сповіщення як прочитане.')
-  } finally {
-    const next = new Set(notificationsPendingIds.value)
-    next.delete(item.id)
-    notificationsPendingIds.value = next
-  }
-}
-
-async function markAllNotificationsRead() {
-  if (!notificationCount.value || notificationsReadAllPending.value) return
-  notificationsReadAllPending.value = true
-  const optimisticReadAt = new Date().toISOString()
-  notificationsFeed.value = notificationsFeed.value.map((entry) => ({
-    ...entry,
-    read_at: entry.read_at || optimisticReadAt,
-  }))
-  try {
-    await markAllNotificationsReadApi()
-    await refreshNotifications()
-  } catch {
-    await refreshNotifications()
-    toast.error('Не вдалося позначити всі сповіщення як прочитані.')
-  } finally {
-    notificationsReadAllPending.value = false
-  }
+  notifs.markRead(item)
 }
 
 function onLogout() {
@@ -742,7 +555,7 @@ watch(
 watch(showNotifications, (value) => {
   if (value) {
     refreshMe()
-    refreshNotifications()
+    notifs.refresh()
   }
 })
 
@@ -752,22 +565,6 @@ async function refreshMe() {
     await auth.loadMe()
   } catch {
     // ignore refresh errors
-  }
-}
-
-async function refreshNotifications() {
-  if (!isAuthenticated.value) return
-  notificationsLoading.value = true
-  try {
-    const resp = await fetchNotifications({ limit: 20 })
-    notificationsFeed.value = resp.results || []
-    notificationsLoaded.value = true
-  } catch {
-    if (!notificationsLoaded.value) {
-      notificationsFeed.value = []
-    }
-  } finally {
-    notificationsLoading.value = false
   }
 }
 
@@ -793,20 +590,6 @@ function stopMePolling() {
   if (refreshIntervalId.value === null) return
   window.clearInterval(refreshIntervalId.value)
   refreshIntervalId.value = null
-}
-
-function startNotificationsPolling() {
-  if (notificationsIntervalId.value !== null) return
-  refreshNotifications()
-  notificationsIntervalId.value = window.setInterval(() => {
-    refreshNotifications()
-  }, 60000)
-}
-
-function stopNotificationsPolling() {
-  if (notificationsIntervalId.value === null) return
-  window.clearInterval(notificationsIntervalId.value)
-  notificationsIntervalId.value = null
 }
 
 function startChatPolling() {
@@ -840,7 +623,7 @@ function stopPreSessionToastPolling() {
 function handleVisibilityChange() {
   if (document.visibilityState === 'visible') {
     refreshMe()
-    refreshNotifications()
+    notifs.refresh()
     checkUpcomingSessionReminders()
   }
 }
@@ -883,7 +666,7 @@ function handleGlobalKeydown(event: KeyboardEvent) {
 onMounted(() => {
   if (isAuthenticated.value) {
     startMePolling()
-    startNotificationsPolling()
+    notifs.startPolling()
     startChatPolling()
     startPreSessionToastPolling()
   }
@@ -894,7 +677,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   stopMePolling()
-  stopNotificationsPolling()
+  notifs.stopPolling()
   stopChatPolling()
   stopPreSessionToastPolling()
   document.removeEventListener('click', handleGlobalClick)
@@ -905,16 +688,15 @@ onBeforeUnmount(() => {
 watch(isAuthenticated, (value) => {
   if (value) {
     startMePolling()
-    startNotificationsPolling()
+    notifs.startPolling()
     startChatPolling()
     startPreSessionToastPolling()
   } else {
     stopMePolling()
-    stopNotificationsPolling()
+    notifs.stopPolling()
     stopChatPolling()
     stopPreSessionToastPolling()
-    notificationsFeed.value = []
-    notificationsLoaded.value = false
+    notifs.reset()
   }
 })
 </script>
@@ -1381,6 +1163,19 @@ watch(isAuthenticated, (value) => {
 .notif-item__actions {
   display: flex;
   justify-content: flex-end;
+}
+
+.notif-panel .notif-item__actions .btn--ghost {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--primary) 22%, var(--border));
+  background: color-mix(in srgb, var(--primary) 6%, #ffffff);
+}
+
+.notif-panel .notif-item__actions .btn--ghost:hover,
+.notif-panel .notif-item__actions .btn--ghost:focus-visible {
+  color: var(--text);
+  border-color: color-mix(in srgb, var(--primary) 38%, var(--border));
+  background: color-mix(in srgb, var(--primary) 12%, #ffffff);
 }
 
 .main {

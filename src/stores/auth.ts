@@ -25,39 +25,11 @@ type Counts = {
   latest_upcoming_session_created_at?: string | null
 }
 
-type SessionNotification = {
-  id: number
-  event: 'BOOKED' | 'CONFIRMED' | 'CANCELLED'
-  session_id: number
-  client_id: number
-  client_name: string
-  client_email: string | null
-  slot_start_at: string | null
-  created_at: string
-}
-
-type ReminderNotification = {
-  id: number
-  event_type: 'session_starts_24h' | 'session_starts_1h' | string
-  session_id: number
-  client_id: number
-  client_name: string
-  slot_start_at: string | null
-  scheduled_for: string
-  delivered_at: string | null
-}
-
-type NotificationsPayload = {
-  session_events?: SessionNotification[]
-  reminder_events?: ReminderNotification[]
-}
-
 type MePayload = {
   user: AuthUser
   access_state: string | null
   effective_entitlements: Entitlements | null
   counts: Counts | null
-  notifications?: NotificationsPayload | null
   server_time: string
 }
 
