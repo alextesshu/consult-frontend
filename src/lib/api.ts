@@ -1182,6 +1182,80 @@ export async function apiDelete<T>(url: string, config?: AxiosRequestConfig): Pr
   return resp.data
 }
 
+export type SessionPaymentProofStatus =
+  | 'NOT_REQUESTED'
+  | 'REQUESTED'
+  | 'PROOF_SUBMITTED'
+  | 'MARKED_PAID'
+  | 'REQUIRES_CLARIFICATION'
+  | string
+
+export type SessionPaymentProof = {
+  status: SessionPaymentProofStatus
+  image_url: string | null
+  requested_by_specialist_at: string | null
+  submitted_by_client_at: string | null
+  reviewed_by_specialist_at: string | null
+  marked_paid_at: string | null
+  clarification_requested_at: string | null
+  specialist_note: string
+  client_can_upload_now: boolean
+  specialist_can_mark_paid_now: boolean
+  specialist_can_request_clarification_now: boolean
+  specialist_can_request_proof_now: boolean
+}
+
+export async function fetchSessionPaymentProof(sessionId: number): Promise<SessionPaymentProof> {
+  const resp = await http.get<SessionPaymentProof>(`/booking/sessions/${sessionId}/payment-proof/`)
+  return resp.data
+}
+
+export async function requestSessionPaymentProof(
+  sessionId: number,
+  payload?: { specialist_note?: string }
+): Promise<SessionPaymentProof> {
+  const resp = await http.post<SessionPaymentProof>(
+    `/booking/sessions/${sessionId}/payment-proof/request/`,
+    payload ?? {}
+  )
+  return resp.data
+}
+
+export async function uploadSessionPaymentProof(
+  sessionId: number,
+  file: File
+): Promise<SessionPaymentProof> {
+  const formData = new FormData()
+  formData.append('file', file)
+  const resp = await http.post<SessionPaymentProof>(
+    `/booking/sessions/${sessionId}/payment-proof/upload/`,
+    formData
+  )
+  return resp.data
+}
+
+export async function markSessionPaymentProofPaid(
+  sessionId: number,
+  payload?: { specialist_note?: string }
+): Promise<SessionPaymentProof> {
+  const resp = await http.post<SessionPaymentProof>(
+    `/booking/sessions/${sessionId}/payment-proof/mark-paid/`,
+    payload ?? {}
+  )
+  return resp.data
+}
+
+export async function requestSessionPaymentProofClarification(
+  sessionId: number,
+  payload?: { specialist_note?: string }
+): Promise<SessionPaymentProof> {
+  const resp = await http.post<SessionPaymentProof>(
+    `/booking/sessions/${sessionId}/payment-proof/request-clarification/`,
+    payload ?? {}
+  )
+  return resp.data
+}
+
 export type SessionMeetingMode = 'ONLINE' | 'OFFLINE'
 
 export type SessionMeetingAccess = {

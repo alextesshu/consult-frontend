@@ -12,6 +12,16 @@ export const http = axios.create({
 let refreshPromise: Promise<string | null> | null = null
 
 http.interceptors.request.use((config: InternalAxiosRequestConfig) => {
+  if (config.data instanceof FormData) {
+    const headers = config.headers as any
+    if (headers && typeof headers.delete === 'function') {
+      headers.delete('Content-Type')
+    } else if (headers) {
+      delete headers['Content-Type']
+      delete headers['content-type']
+    }
+  }
+
   const auth = useAuthStore()
   const url = config.url || ''
   const isAuthEndpoint = url.includes('/auth/')

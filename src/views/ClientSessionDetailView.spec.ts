@@ -1,6 +1,16 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { apiGet, apiPost, fetchChatThreads, sendChatMessage } from '../lib/api'
+import {
+  apiGet,
+  apiPost,
+  fetchChatThreads,
+  sendChatMessage,
+  fetchSessionPaymentProof,
+  requestSessionPaymentProof,
+  markSessionPaymentProofPaid,
+  requestSessionPaymentProofClarification,
+  uploadSessionPaymentProof,
+} from '../lib/api'
 import ClientSessionDetailView from './ClientSessionDetailView.vue'
 
 const mockRoute = {
@@ -41,12 +51,22 @@ vi.mock('../lib/api', () => ({
   apiPost: vi.fn(),
   fetchChatThreads: vi.fn(),
   sendChatMessage: vi.fn(),
+  fetchSessionPaymentProof: vi.fn(),
+  requestSessionPaymentProof: vi.fn(),
+  markSessionPaymentProofPaid: vi.fn(),
+  requestSessionPaymentProofClarification: vi.fn(),
+  uploadSessionPaymentProof: vi.fn(),
 }))
 
 const mockedApiGet = vi.mocked(apiGet)
 const mockedApiPost = vi.mocked(apiPost)
 const mockedFetchChatThreads = vi.mocked(fetchChatThreads)
 const mockedSendChatMessage = vi.mocked(sendChatMessage)
+const mockedFetchSessionPaymentProof = vi.mocked(fetchSessionPaymentProof)
+const mockedRequestSessionPaymentProof = vi.mocked(requestSessionPaymentProof)
+const mockedMarkSessionPaymentProofPaid = vi.mocked(markSessionPaymentProofPaid)
+const mockedRequestSessionPaymentProofClarification = vi.mocked(requestSessionPaymentProofClarification)
+const mockedUploadSessionPaymentProof = vi.mocked(uploadSessionPaymentProof)
 
 function makeSession(status: string, overrides: Record<string, unknown> = {}) {
   return {
@@ -97,6 +117,11 @@ describe('ClientSessionDetailView', () => {
     mockedApiPost.mockReset()
     mockedFetchChatThreads.mockReset()
     mockedSendChatMessage.mockReset()
+    mockedFetchSessionPaymentProof.mockReset()
+    mockedRequestSessionPaymentProof.mockReset()
+    mockedMarkSessionPaymentProofPaid.mockReset()
+    mockedRequestSessionPaymentProofClarification.mockReset()
+    mockedUploadSessionPaymentProof.mockReset()
   })
 
   it('shows confirmed-session guidance and request-based reschedule copy', async () => {
@@ -219,6 +244,70 @@ describe('ClientSessionDetailView', () => {
       await screen.findByRole('button', { name: 'Перенести на обраний варіант' })
     ).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Перенести сюди' })).toBeInTheDocument()
+  })
+
+  it('uploads payment proof from client block and refreshes payment-proof state', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/sessions/55/') {
+        return makeSession('CONFIRMED', {
+          payment_proof: {
+            status: 'REQUESTED',
+            image_url: null,
+            requested_by_specialist_at: '2099-06-15T08:00:00Z',
+            submitted_by_client_at: null,
+            reviewed_by_specialist_at: null,
+            marked_paid_at: null,
+            clarification_requested_at: null,
+            specialist_note: '',
+            client_can_upload_now: true,
+            specialist_can_mark_paid_now: false,
+            specialist_can_request_clarification_now: false,
+            specialist_can_request_proof_now: false,
+          },
+        })
+      }
+
+      if (url === '/booking/slots/') return []
+      if (url === '/booking/sessions/55/reschedule-suggestions/') return { suggestions: [] }
+
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    mockedUploadSessionPaymentProof.mockResolvedValue({ status: 'PROOF_SUBMITTED' } as any)
+    mockedFetchSessionPaymentProof.mockResolvedValue({
+      status: 'PROOF_SUBMITTED',
+      image_url: 'https://cdn.example.com/proof.webp',
+      requested_by_specialist_at: '2099-06-15T08:00:00Z',
+      submitted_by_client_at: '2099-06-15T08:15:00Z',
+      reviewed_by_specialist_at: null,
+      marked_paid_at: null,
+      clarification_requested_at: null,
+      specialist_note: '',
+      client_can_upload_now: true,
+      specialist_can_mark_paid_now: false,
+      specialist_can_request_clarification_now: false,
+      specialist_can_request_proof_now: false,
+    } as any)
+
+    renderView()
+
+    expect(await screen.findByText('Спеціаліст запросив підтвердження оплати')).toBeInTheDocument()
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Надіслати підтвердження оплати' }))
+    const input = screen.getByLabelText('Upload payment proof image') as HTMLInputElement
+    const file = new File(['proof-bytes'], 'proof.jpg', { type: 'image/jpeg' })
+    await fireEvent.change(input, { target: { files: [file] } })
+
+    await waitFor(() => {
+      expect(mockedUploadSessionPaymentProof).toHaveBeenCalledWith(55, file)
+      expect(mockedFetchSessionPaymentProof).toHaveBeenCalledWith(55)
+      expect(mockToast.success).toHaveBeenCalledWith('Підтвердження оплати надіслано.')
+    })
+
+    expect(await screen.findByText('Підтвердження оплати надіслано')).toBeInTheDocument()
+    expect(
+      screen.getByText('Платформа не перевіряє оплату автоматично. Спеціаліст переглядає підтвердження вручну.')
+    ).toBeInTheDocument()
   })
 
   it('shows completed and cancelled guidance while keeping follow-up actions disabled', async () => {

@@ -174,6 +174,15 @@
         </div>
       </section>
 
+      <section class="panel">
+        <SessionPaymentProofBlock
+          :session-id="session.id"
+          role="specialist"
+          :payment-proof="session.payment_proof"
+          @updated="onPaymentProofUpdated"
+        />
+      </section>
+
       <section v-if="sessionRequests.length" class="panel">
         <div class="panel__header">
           <div>
@@ -379,7 +388,12 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { apiGet, updateSpecialistSessionMeeting, type SessionFormat } from '../lib/api'
+import {
+  apiGet,
+  updateSpecialistSessionMeeting,
+  type SessionFormat,
+  type SessionPaymentProof,
+} from '../lib/api'
 import {
   BOOKING_ERROR_FALLBACKS,
   BOOKING_SUCCESS_MESSAGES,
@@ -426,6 +440,7 @@ import {
 import { useToast } from '../composables/useToast'
 import EmptyState from '../components/EmptyState.vue'
 import LoadingSkeleton from '../components/LoadingSkeleton.vue'
+import SessionPaymentProofBlock from '../components/SessionPaymentProofBlock.vue'
 
 type SessionSlot = {
   start_at?: string | null
@@ -453,6 +468,7 @@ type SessionDetail = {
   slot?: SessionSlot | number | null
   slot_start_at?: string | null
   slot_end_at?: string | null
+  payment_proof?: SessionPaymentProof | null
 }
 
 const route = useRoute()
@@ -601,6 +617,14 @@ function setRequestLoading(id: number, value: boolean) {
   if (value) next.add(id)
   else next.delete(id)
   requestLoading.value = next
+}
+
+function onPaymentProofUpdated(nextPaymentProof: SessionPaymentProof) {
+  if (!session.value) return
+  session.value = {
+    ...session.value,
+    payment_proof: nextPaymentProof,
+  }
 }
 
 async function loadSession() {

@@ -129,7 +129,14 @@
       </div>
     </section>
 
-    
+    <section v-if="session" class="panel">
+      <SessionPaymentProofBlock
+        :session-id="session.id"
+        role="client"
+        :payment-proof="session.payment_proof"
+        @updated="onPaymentProofUpdated"
+      />
+    </section>
 
     <section v-if="session" class="panel">
       <div class="panel__header">
@@ -204,6 +211,7 @@ import {
   apiPost,
   fetchChatThreads,
   sendChatMessage,
+  type SessionPaymentProof,
   type BookingSessionCreatePayload,
   type SessionFormat,
 } from '../lib/api'
@@ -222,6 +230,7 @@ import {
   normalizeMeetingUrl,
 } from '../lib/sessionExecution'
 import { useToast } from '../composables/useToast'
+import SessionPaymentProofBlock from '../components/SessionPaymentProofBlock.vue'
 type SessionDetail = {
   id: number
   status: string
@@ -239,6 +248,7 @@ type SessionDetail = {
   meeting_provider?: string | null
   join_available?: boolean
   client: number
+  payment_proof?: SessionPaymentProof | null
 }
 
 type PublicSlot = {
@@ -404,6 +414,14 @@ function specialistLabel(detail: SessionDetail) {
   const name = detail.specialist_name || detail.specialist_username
   if (name) return name
   return `#${detail.specialist_id}`
+}
+
+function onPaymentProofUpdated(nextPaymentProof: SessionPaymentProof) {
+  if (!session.value) return
+  session.value = {
+    ...session.value,
+    payment_proof: nextPaymentProof,
+  }
 }
 
 async function copySpecialistLink() {

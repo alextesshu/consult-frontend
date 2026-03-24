@@ -1,6 +1,16 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { apiGet, apiPatch, apiPost, updateSpecialistSessionMeeting } from '../lib/api'
+import {
+  apiGet,
+  apiPatch,
+  apiPost,
+  fetchSessionPaymentProof,
+  requestSessionPaymentProof,
+  markSessionPaymentProofPaid,
+  requestSessionPaymentProofClarification,
+  uploadSessionPaymentProof,
+  updateSpecialistSessionMeeting,
+} from '../lib/api'
 import { BOOKING_SUCCESS_MESSAGES } from '../lib/bookingCopy'
 import { formatSessionDateTime } from '../lib/specialistSessions'
 import TherapistSessionDetailView from './TherapistSessionDetailView.vue'
@@ -36,12 +46,22 @@ vi.mock('../lib/api', () => ({
   apiPatch: vi.fn(),
   apiPost: vi.fn(),
   apiPut: vi.fn(),
+  fetchSessionPaymentProof: vi.fn(),
+  requestSessionPaymentProof: vi.fn(),
+  markSessionPaymentProofPaid: vi.fn(),
+  requestSessionPaymentProofClarification: vi.fn(),
+  uploadSessionPaymentProof: vi.fn(),
   updateSpecialistSessionMeeting: vi.fn(),
 }))
 
 const mockedApiGet = vi.mocked(apiGet)
 const mockedApiPatch = vi.mocked(apiPatch)
 const mockedApiPost = vi.mocked(apiPost)
+const mockedFetchSessionPaymentProof = vi.mocked(fetchSessionPaymentProof)
+const mockedRequestSessionPaymentProof = vi.mocked(requestSessionPaymentProof)
+const mockedMarkSessionPaymentProofPaid = vi.mocked(markSessionPaymentProofPaid)
+const mockedRequestSessionPaymentProofClarification = vi.mocked(requestSessionPaymentProofClarification)
+const mockedUploadSessionPaymentProof = vi.mocked(uploadSessionPaymentProof)
 const mockedUpdateSpecialistSessionMeeting = vi.mocked(updateSpecialistSessionMeeting)
 
 function buildSession(overrides: Record<string, unknown> = {}) {
@@ -56,6 +76,7 @@ function buildSession(overrides: Record<string, unknown> = {}) {
     slot_end_at: '2099-06-15T11:00:00Z',
     session_format: 'online',
     offline_location: null,
+    payment_proof: null,
     ...overrides,
   }
 }
@@ -165,6 +186,11 @@ describe('TherapistSessionDetailView', () => {
     mockedApiGet.mockReset()
     mockedApiPatch.mockReset()
     mockedApiPost.mockReset()
+    mockedFetchSessionPaymentProof.mockReset()
+    mockedRequestSessionPaymentProof.mockReset()
+    mockedMarkSessionPaymentProofPaid.mockReset()
+    mockedRequestSessionPaymentProofClarification.mockReset()
+    mockedUploadSessionPaymentProof.mockReset()
     mockedUpdateSpecialistSessionMeeting.mockReset()
     mockToast.show.mockReset()
     mockToast.success.mockReset()
@@ -210,6 +236,55 @@ describe('TherapistSessionDetailView', () => {
       'https://meet.google.com/therapist-room'
     )
     expect(sessionDetail.status).toBe('CONFIRMED')
+  })
+
+  it('requests payment proof from specialist block and refreshes payment-proof state', async () => {
+    const initialPaymentProof = {
+      status: 'NOT_REQUESTED',
+      image_url: null,
+      requested_by_specialist_at: null,
+      submitted_by_client_at: null,
+      reviewed_by_specialist_at: null,
+      marked_paid_at: null,
+      clarification_requested_at: null,
+      specialist_note: '',
+      client_can_upload_now: false,
+      specialist_can_mark_paid_now: false,
+      specialist_can_request_clarification_now: false,
+      specialist_can_request_proof_now: true,
+    }
+    const sessionDetail = buildSession({
+      status: 'SCHEDULED',
+      payment_proof: initialPaymentProof,
+    })
+    mockDetailContext(() => sessionDetail, { requests: [] })
+
+    mockedRequestSessionPaymentProof.mockResolvedValue({
+      ...initialPaymentProof,
+      status: 'REQUESTED',
+      specialist_can_request_proof_now: true,
+    } as any)
+    mockedFetchSessionPaymentProof.mockResolvedValue({
+      ...initialPaymentProof,
+      status: 'REQUESTED',
+      specialist_can_request_proof_now: true,
+    } as any)
+
+    renderView()
+
+    expect(await screen.findByText('Оплату не запитано')).toBeInTheDocument()
+    await fireEvent.click(screen.getByRole('button', { name: 'Запросити оплату' }))
+
+    await waitFor(() => {
+      expect(mockedRequestSessionPaymentProof).toHaveBeenCalledWith(42)
+      expect(mockedFetchSessionPaymentProof).toHaveBeenCalledWith(42)
+      expect(mockToast.success).toHaveBeenCalledWith('Запит на підтвердження оплати надіслано.')
+    })
+
+    expect(await screen.findByText('Очікується підтвердження оплати')).toBeInTheDocument()
+    expect(
+      screen.getByText('Підтвердження оплати надсилається клієнтом і перевіряється вами вручну.')
+    ).toBeInTheDocument()
   })
 
   it('confirms a scheduled session and refreshes the detail context', async () => {
