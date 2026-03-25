@@ -529,35 +529,36 @@ onBeforeUnmount(() => {
 <style scoped>
 .cabinet {
   display: grid;
-  gap: 20px;
+  gap: 16px;
 }
 
 .cabinet__hero {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  gap: 24px;
-  background: linear-gradient(135deg, rgba(8, 113, 201, 0.16), rgba(7, 47, 71, 0.06));
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
-  padding: 22px 24px;
-  box-shadow: var(--shadow);
+  align-items: flex-start;
+  gap: 12px;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  padding: 2px 2px 0;
+  box-shadow: none;
 }
 
 .cabinet__title {
-  font-size: 34px;
+  font-size: 30px;
 }
 
 .cabinet__subtitle {
   max-width: 480px;
+  font-size: 17px;
 }
 
 .hero-chip {
   background: #0b2230;
   color: #f1f6f9;
   border-radius: var(--radius-md);
-  padding: 14px 18px;
-  min-width: 220px;
+  padding: 12px 14px;
+  min-width: 200px;
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
 
@@ -626,16 +627,16 @@ onBeforeUnmount(() => {
 .cabinet__grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 16px;
+  gap: 14px;
 }
 
 .panel {
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
-  padding: 18px;
+  padding: 14px;
   background: #fff;
   display: grid;
-  gap: 12px;
+  gap: 10px;
 }
 
 .panel--clickable {
@@ -677,13 +678,13 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 10px;
 }
 
 .plan-badges {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
 }
 
 .badge--outline {
@@ -739,7 +740,7 @@ onBeforeUnmount(() => {
   margin: 0;
   padding-left: 18px;
   display: grid;
-  gap: 10px;
+  gap: 8px;
 }
 
 .tips-list li {
@@ -761,13 +762,13 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 10px;
 }
 
 .panel__title {
   margin: 0;
   font-family: var(--font-display);
-  font-size: 22px;
+  font-size: 20px;
 }
 
 .panel__meta {
@@ -842,11 +843,11 @@ onBeforeUnmount(() => {
 .feature-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 12px;
+  gap: 10px;
 }
 
 .feature {
-  padding: 12px 14px;
+  padding: 10px 12px;
   border-radius: var(--radius-md);
   background: rgba(7, 47, 71, 0.04);
   border: 1px solid rgba(7, 47, 71, 0.08);
@@ -876,28 +877,33 @@ onBeforeUnmount(() => {
 .cabinet-actions {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
+  gap: 10px;
 }
 
 .action-group {
   border: 1px solid var(--line);
   border-radius: var(--radius-md);
-  padding: 12px;
+  padding: 10px;
   display: grid;
-  gap: 10px;
+  gap: 8px;
   background: rgba(7, 47, 71, 0.02);
 }
 
 .action-group__title {
   margin: 0;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 700;
 }
 
 .action-group__items {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   flex-wrap: wrap;
+}
+
+.action-group__items .btn {
+  height: 38px;
+  padding: 0 14px;
 }
 
 .cabinet__loading {
