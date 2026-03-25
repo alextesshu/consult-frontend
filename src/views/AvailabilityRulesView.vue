@@ -1,6 +1,6 @@
 <template>
   <section class="availability-rules">
-    <header class="availability-rules__hero">
+    <header class="availability-rules__header">
       <div>
         <div class="badge">Розклад</div>
         <h1 class="title availability-rules__title">{{ isVacationView ? 'Відпустка' : 'Налаштування розкладу' }}</h1>
@@ -15,21 +15,23 @@
       <RouterLink class="btn btn--ghost" to="/cabinet">Назад до кабінету</RouterLink>
     </header>
 
-    <ScheduleSubnav :active="isVacationView ? 'vacation' : 'rules'" />
+    <div class="availability-rules__subnav">
+      <ScheduleSubnav :active="isVacationView ? 'vacation' : 'rules'" />
+    </div>
 
-    <section v-if="!isVacationView" class="panel">
+    <section v-if="!isVacationView" class="panel panel--control">
       <div class="panel__header">
         <div>
           <div class="badge badge--soft">Налаштування</div>
           <h2 class="panel__title">Додати робочі години</h2>
-          <p class="muted generation__subtitle">
+          <p class="muted generation__subtitle generation__subtitle--quiet">
             Робочі години визначають, коли ви зазвичай доступні в цей день. Щоб зробити перерву, створіть два окремі записи.
           </p>
         </div>
       </div>
 
-      <form class="rule-form" @submit.prevent="onCreateRule">
-        <div class="rule-form__grid">
+      <form class="rule-form rule-form--compact" @submit.prevent="onCreateRule">
+        <div class="rule-form__grid rule-form__grid--compact">
           <label class="field">
             День тижня
             <select v-model.number="createForm.weekday" class="input">
@@ -102,11 +104,11 @@
         У вас ще немає налаштованих робочих годин.
       </div>
 
-      <div v-else class="rules-list">
+      <div v-else class="rules-list rules-list--compact">
         <article v-for="rule in rules" :key="rule.id" class="rule-card">
           <template v-if="editingRuleId === rule.id">
-            <form class="rule-form" @submit.prevent="onSaveRule(rule.id)">
-              <div class="rule-form__grid">
+            <form class="rule-form rule-form--compact" @submit.prevent="onSaveRule(rule.id)">
+              <div class="rule-form__grid rule-form__grid--compact">
                 <label class="field">
                   День тижня
                   <select v-model.number="editForm.weekday" class="input">
@@ -208,19 +210,19 @@
       </div>
     </section>
 
-    <section v-if="isVacationView" class="panel">
+    <section v-if="isVacationView" class="panel panel--control">
       <div class="panel__header">
         <div>
           <div class="badge badge--soft">Відпустка</div>
           <h2 class="panel__title">Періоди недоступності</h2>
-          <p class="muted generation__subtitle">
+          <p class="muted generation__subtitle generation__subtitle--quiet">
             Такі періоди перекривають ваш звичний розклад і не дозволяють створювати нові вільні вікна у цей час.
           </p>
         </div>
       </div>
 
-      <form class="rule-form" @submit.prevent="onCreateException">
-        <div class="rule-form__grid">
+      <form class="rule-form rule-form--compact" @submit.prevent="onCreateException">
+        <div class="rule-form__grid rule-form__grid--compact">
           <label class="field">
             Початок
             <input
@@ -285,11 +287,11 @@
       <div v-else-if="!exceptions.length" class="muted">
         Поки що немає періодів недоступності.
       </div>
-      <div v-else class="rules-list">
+      <div v-else class="rules-list rules-list--compact">
         <article v-for="item in exceptions" :key="item.id" class="rule-card">
           <template v-if="editingExceptionId === item.id">
-            <form class="rule-form" @submit.prevent="onUpdateException(item.id)">
-              <div class="rule-form__grid">
+            <form class="rule-form rule-form--compact" @submit.prevent="onUpdateException(item.id)">
+              <div class="rule-form__grid rule-form__grid--compact">
                 <label class="field">
                   Початок
                   <input
@@ -996,17 +998,16 @@ onMounted(loadScheduleContext)
   gap: 18px;
 }
 
-.availability-rules__hero {
+.availability-rules__header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  gap: 20px;
-  min-height: 172px;
-  background: linear-gradient(135deg, rgba(8, 113, 201, 0.16), rgba(7, 47, 71, 0.06));
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 22px 24px;
-  box-shadow: var(--shadow);
+  align-items: flex-start;
+  gap: 10px;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  padding: 2px 2px 0;
+  box-shadow: none;
 }
 
 .availability-rules__title {
@@ -1015,6 +1016,11 @@ onMounted(loadScheduleContext)
 
 .availability-rules__subtitle {
   max-width: 560px;
+  font-size: 17px;
+}
+
+.availability-rules__subnav {
+  margin-top: -2px;
 }
 
 .panel {
@@ -1024,6 +1030,10 @@ onMounted(loadScheduleContext)
   background: #fff;
   display: grid;
   gap: 14px;
+}
+
+.panel--control {
+  gap: 8px;
 }
 
 .panel__header {
@@ -1044,6 +1054,10 @@ onMounted(loadScheduleContext)
   gap: 10px;
 }
 
+.rule-form--compact {
+  gap: 8px;
+}
+
 .rule-form__grid {
   display: grid;
   grid-template-columns:
@@ -1055,6 +1069,11 @@ onMounted(loadScheduleContext)
     auto;
   gap: 10px;
   align-items: end;
+}
+
+.rule-form__grid--compact {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 8px;
 }
 
 .field {
@@ -1099,12 +1118,17 @@ onMounted(loadScheduleContext)
   gap: 10px;
 }
 
+.rules-list--compact {
+  grid-template-columns: 1fr;
+  gap: 8px;
+}
+
 .rule-card {
   border: 1px solid var(--line);
   border-radius: 14px;
-  padding: 14px;
+  padding: 12px;
   display: grid;
-  gap: 10px;
+  gap: 8px;
 }
 
 .rule-card__row {
@@ -1168,6 +1192,11 @@ onMounted(loadScheduleContext)
   margin: 6px 0 0;
 }
 
+.generation__subtitle--quiet {
+  font-size: 13px;
+  opacity: 0.9;
+}
+
 .generation__actions {
   display: flex;
   gap: 8px;
@@ -1215,7 +1244,7 @@ onMounted(loadScheduleContext)
 }
 
 @media (max-width: 860px) {
-  .availability-rules__hero {
+  .availability-rules__header {
     flex-direction: column;
     align-items: flex-start;
   }
@@ -1226,7 +1255,7 @@ onMounted(loadScheduleContext)
 }
 
 @media (max-width: 680px) {
-  .availability-rules__hero {
+  .availability-rules__header {
     flex-direction: column;
     align-items: flex-start;
   }
@@ -1237,6 +1266,18 @@ onMounted(loadScheduleContext)
 
   .rule-form__active {
     justify-content: flex-start;
+  }
+}
+
+@media (min-width: 900px) {
+  .rules-list--compact {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1320px) {
+  .rules-list--compact {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 </style>
