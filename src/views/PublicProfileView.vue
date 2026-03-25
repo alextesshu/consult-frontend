@@ -315,12 +315,12 @@
         </div>
         <div v-else class="slot-list">
           <div v-for="slot in visibleSlots" :key="slot.id" class="slot-card">
-            <div>
-              <div class="slot-time">{{ formatDate(slot.start_at) }}</div>
-              <div class="muted">{{ formatDuration(slot.start_at, slot.end_at) }}</div>
+            <div class="slot-card__main">
+              <div class="slot-time">{{ formatSlotTime(slot.start_at) }}</div>
+              <div class="muted slot-card__meta">{{ formatDuration(slot.start_at, slot.end_at) }}</div>
             </div>
             <button
-              class="btn btn--ghost"
+              class="btn btn--ghost btn--sm slot-card__action"
               :class="{ 'btn--disabled': isBookingDisabled(slot.id) }"
               type="button"
               :aria-disabled="isBookingDisabled(slot.id)"
@@ -789,7 +789,7 @@ import {
   sendInquiryMessage,
 } from '../lib/api'
 import { toLocalDate } from '../lib/dates'
-import { formatUkDateTimeCompact, formatUkDayMonth, formatUkWeekdayShort } from '../lib/dateTime'
+import { formatUkDateTimeCompact, formatUkDayMonth, formatUkTime, formatUkWeekdayShort } from '../lib/dateTime'
 import {
   fetchPublicSpecialistProfile,
   fetchPublicAuthorJournalPosts,
@@ -1408,6 +1408,10 @@ function formatPublicName(value?: string) {
 
 function formatDate(value: string) {
   return formatUkDateTimeCompact(value, value)
+}
+
+function formatSlotTime(value: string) {
+  return formatUkTime(value)
 }
 
 function formatDuration(start: string, end: string) {
@@ -2843,6 +2847,7 @@ onMounted(async () => {
 
 .slot-list {
   display: grid;
+  grid-template-columns: repeat(1, minmax(0, 1fr));
   gap: 8px;
 }
 
@@ -2857,21 +2862,39 @@ onMounted(async () => {
 
 .slot-list__toggle {
   justify-self: start;
+  grid-column: 1 / -1;
 }
 
 .slot-card {
   border: 1px solid var(--line);
   border-radius: 10px;
-  padding: 8px 10px;
+  padding: 10px;
   background: color-mix(in srgb, #f5f0e4 38%, #ffffff);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
+  display: grid;
+  gap: 8px;
+}
+
+.slot-card__main {
+  display: grid;
+  gap: 3px;
+}
+
+.slot-card__meta {
+  font-size: 12px;
+  line-height: 1.25;
+}
+
+.slot-card__action {
+  justify-self: start;
+  width: 100%;
+  min-height: 34px;
 }
 
 .slot-time {
-  font-weight: 600;
+  font-size: 24px;
+  line-height: 1;
+  font-weight: 700;
+  color: var(--text);
 }
 
 .first-session-flow {
@@ -3655,6 +3678,10 @@ onMounted(async () => {
     grid-template-columns: 1fr;
   }
 
+  .slot-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .about-grid,
   .trust-grid,
   .documents-grid,
@@ -3672,6 +3699,24 @@ onMounted(async () => {
   }
 
   .first-session-flow {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (min-width: 900px) {
+  .slot-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1280px) {
+  .slot-list {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .slot-list {
     grid-template-columns: 1fr;
   }
 }

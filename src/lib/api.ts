@@ -979,6 +979,8 @@ export type ChatThread = {
   last_message_at: string | null
   last_message_preview: string
   unread_count: number
+  is_archived?: boolean
+  archived_at?: string | null
   other_user: {
     id: number
     role: 'SPECIALIST' | 'THERAPIST' | 'CLIENT'
@@ -993,6 +995,8 @@ export type ChatMessage = {
   sender_id: number
   body: string
   created_at: string
+  is_deleted?: boolean
+  deleted_at?: string | null
 }
 
 export type InquiryStatus =
@@ -1083,6 +1087,18 @@ export async function sendChatMessage(threadId: number, body: string): Promise<C
     body,
   })
   return resp.data
+}
+
+export async function deleteChatMessage(messageId: number): Promise<void> {
+  await http.post(`/chat/messages/${messageId}/delete/`)
+}
+
+export async function archiveChatThread(threadId: number): Promise<void> {
+  await http.post(`/chat/threads/${threadId}/archive/`)
+}
+
+export async function unarchiveChatThread(threadId: number): Promise<void> {
+  await http.post(`/chat/threads/${threadId}/unarchive/`)
 }
 
 export async function fetchChatUnreadCount(): Promise<{ unread_count: number }> {

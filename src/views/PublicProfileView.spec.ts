@@ -658,7 +658,7 @@ describe('PublicProfileView', () => {
       await fireEvent.update(dateInput, '2026-03-12')
       await flushAsyncUpdates()
 
-      expect(screen.getByText('12.03.2026, 00:30')).toBeInTheDocument()
+      expect(screen.getByText('00:30')).toBeInTheDocument()
       expect(screen.queryByText('На жаль, у цей день вільних віконець немає.')).not.toBeInTheDocument()
     } finally {
       vi.useRealTimers()
