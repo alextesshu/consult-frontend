@@ -16,83 +16,85 @@
     </div>
 
     <section class="panel">
-      <div class="panel__header">
+      <div class="filters-toolbar__row filters-toolbar__row--header">
         <div>
           <div class="badge badge--soft">Навігація</div>
           <h2 class="panel__title">Дні та фільтри</h2>
         </div>
-      </div>
-      <div class="filters-toolbar">
-        <div class="filters-toolbar__primary">
-          <div class="day-list">
-            <button
-              v-for="day in dayOptions"
-              :key="day.key"
-              class="btn btn--ghost btn--sm"
-              type="button"
-              :class="{ 'btn--active': day.key === selectedDate }"
-              @click="selectDay(day.key)"
-            >
-              {{ day.label }}
-            </button>
-          </div>
-          <div class="slot-filter" role="group" aria-label="Фільтр за статусом вікон">
-            <button
-              class="btn btn--ghost btn--sm"
-              type="button"
-              :class="{ 'btn--active': slotStatusFilter === 'ALL' }"
-              @click="slotStatusFilter = 'ALL'"
-            >
-              Усі
-            </button>
-            <button
-              class="btn btn--ghost btn--sm"
-              type="button"
-              :class="{ 'btn--active': slotStatusFilter === 'FREE' }"
-              @click="slotStatusFilter = 'FREE'"
-            >
-              Вільні
-            </button>
-            <button
-              class="btn btn--ghost btn--sm"
-              type="button"
-              :class="{ 'btn--active': slotStatusFilter === 'BOOKED' }"
-              @click="slotStatusFilter = 'BOOKED'"
-            >
-              Заброньовані
-            </button>
-          </div>
-        </div>
-        <div class="filters-toolbar__secondary">
-          <div class="day-nav-actions">
-            <button class="btn btn--ghost btn--sm" type="button" :disabled="dayOffset === 0" @click="shiftDays(-1)">
-              Попередні 7 днів
-            </button>
-            <button class="btn btn--ghost btn--sm" type="button" @click="shiftDays(1)">
-              Наступні 7 днів
-            </button>
-          </div>
-          <label class="field day-picker day-picker--compact">
-            Дата
-            <input v-model="selectedDate" class="input" type="date" lang="uk-ua" @click="openPicker" />
-          </label>
-          <div class="muted day-hint">
-            Показано за: {{ formatDateOnly(selectedDate) }}
-            <span v-if="isSelectedToday" class="day-hint__today">· Сьогодні</span>
-          </div>
-          <div class="muted slot-summary">
-            {{ slotsForSelectedDay.length }} слотів · {{ selectedDayStatusSummary.free }} вільних · {{ selectedDayStatusSummary.booked }} заброньовані
-          </div>
-          <button
-            v-if="hasPastSlotsOnSelectedDate"
-            class="btn btn--ghost btn--sm slot-toggle"
-            type="button"
-            @click="showPastSlots = !showPastSlots"
-          >
-            {{ showPastSlots ? 'Сховати минулі вікна' : `Показати минулі вікна (${hiddenPastSlotsCount})` }}
+        <div class="day-nav-actions">
+          <button class="btn btn--ghost btn--sm" type="button" :disabled="dayOffset === 0" @click="shiftDays(-1)">
+            Попередні 7 днів
+          </button>
+          <button class="btn btn--ghost btn--sm" type="button" @click="shiftDays(1)">
+            Наступні 7 днів
           </button>
         </div>
       </div>
+
+      <div class="day-list">
+        <button
+          v-for="day in dayOptions"
+          :key="day.key"
+          class="btn btn--ghost btn--sm"
+          type="button"
+          :class="{ 'btn--active': day.key === selectedDate }"
+          @click="selectDay(day.key)"
+        >
+          {{ day.label }}
+        </button>
+      </div>
+
+      <div class="filters-toolbar__row filters-toolbar__row--controls">
+        <div class="slot-filter" role="group" aria-label="Фільтр за статусом вікон">
+          <button
+            class="btn btn--ghost btn--sm"
+            type="button"
+            :class="{ 'btn--active': slotStatusFilter === 'ALL' }"
+            @click="slotStatusFilter = 'ALL'"
+          >
+            Усі
+          </button>
+          <button
+            class="btn btn--ghost btn--sm"
+            type="button"
+            :class="{ 'btn--active': slotStatusFilter === 'FREE' }"
+            @click="slotStatusFilter = 'FREE'"
+          >
+            Вільні
+          </button>
+          <button
+            class="btn btn--ghost btn--sm"
+            type="button"
+            :class="{ 'btn--active': slotStatusFilter === 'BOOKED' }"
+            @click="slotStatusFilter = 'BOOKED'"
+          >
+            Заброньовані
+          </button>
+        </div>
+        <label class="field day-picker day-picker--compact">
+          Дата
+          <input v-model="selectedDate" class="input" type="date" lang="uk-ua" @click="openPicker" />
+        </label>
+      </div>
+
+      <div class="filters-toolbar__row filters-toolbar__row--meta">
+        <div class="muted day-hint">
+          Показано за: {{ formatDateOnly(selectedDate) }}
+          <span v-if="isSelectedToday" class="day-hint__today">· Сьогодні</span>
+        </div>
+        <div class="muted slot-summary">
+          {{ slotsForSelectedDay.length }} слотів · {{ selectedDayStatusSummary.free }} вільних · {{ selectedDayStatusSummary.booked }} заброньовані
+        </div>
+        <button
+          v-if="hasPastSlotsOnSelectedDate"
+          class="btn btn--ghost btn--sm slot-toggle"
+          type="button"
+          @click="showPastSlots = !showPastSlots"
+        >
+          {{ showPastSlots ? 'Сховати минулі вікна' : `Показати минулі вікна (${hiddenPastSlotsCount})` }}
+        </button>
+      </div>
+
       <p v-if="isSelectedToday" class="slot-note slot-note--quiet">
         Якщо нічний час для сьогодні вже минув, він не з'явиться у списку. Для перевірки нового нічного розкладу оберіть майбутню дату.
       </p>
@@ -879,26 +881,27 @@ onMounted(loadSlots)
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 14px;
-  background: #fff;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  padding: 16px 18px;
-  box-shadow: var(--shadow);
+  gap: 10px;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  padding: 2px 2px 0;
+  box-shadow: none;
 }
 
 .slots__header .btn {
-  height: 36px;
-  padding: 0 14px;
+  height: 34px;
+  padding: 0 12px;
 }
 
 .slots__title {
-  font-size: 28px;
-  margin-bottom: 4px;
+  font-size: 26px;
+  margin-bottom: 2px;
 }
 
 .slots__subtitle {
-  max-width: 560px;
+  max-width: 600px;
+  font-size: 14px;
 }
 
 .slots__subnav {
@@ -1003,6 +1006,7 @@ onMounted(loadSlots)
   display: flex;
   gap: 6px;
   flex-wrap: wrap;
+  justify-content: flex-end;
 }
 
 .day-list {
@@ -1017,27 +1021,27 @@ onMounted(loadSlots)
   flex-wrap: wrap;
 }
 
-.filters-toolbar {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
-  gap: 12px;
-  align-items: start;
-}
-
-.filters-toolbar__primary {
-  display: grid;
+.filters-toolbar__row {
+  display: flex;
   gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
 }
 
-.filters-toolbar__secondary {
-  display: grid;
-  gap: 6px;
-  justify-items: end;
+.filters-toolbar__row--controls {
+  justify-content: flex-start;
+  gap: 10px;
+}
+
+.filters-toolbar__row--meta {
+  justify-content: flex-start;
+  gap: 10px;
 }
 
 .day-picker {
   display: grid;
-  gap: 4px;
+  gap: 2px;
   font-size: 12px;
   color: var(--muted);
 }
@@ -1047,13 +1051,9 @@ onMounted(loadSlots)
   width: 220px;
 }
 
-.filters-toolbar__secondary .slot-toggle {
-  margin-top: 2px;
-}
-
 .day-hint {
   font-size: 12px;
-  text-align: right;
+  text-align: left;
 }
 
 .day-hint__today {
@@ -1074,7 +1074,7 @@ onMounted(loadSlots)
 
 .slot-note--quiet {
   font-size: 11px;
-  opacity: 0.88;
+  opacity: 0.8;
 }
 
 .slot-note__link {
@@ -1266,12 +1266,8 @@ onMounted(loadSlots)
     grid-template-columns: 1fr;
   }
 
-  .filters-toolbar {
-    grid-template-columns: 1fr;
-  }
-
-  .filters-toolbar__secondary {
-    justify-items: start;
+  .filters-toolbar__row {
+    align-items: flex-start;
   }
 
   .day-picker--compact .input {
@@ -1279,8 +1275,8 @@ onMounted(loadSlots)
     max-width: 260px;
   }
 
-  .day-hint {
-    text-align: left;
+  .filters-toolbar__row--meta {
+    gap: 6px;
   }
 
   .slot-card__edit {
