@@ -2,7 +2,6 @@ import { fireEvent, render, screen } from '@testing-library/vue'
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import PublicProfileView from './PublicProfileView.vue'
 import { BOOKING_UI_MESSAGES } from '../lib/bookingCopy'
-import { toUtcRange } from '../lib/dates'
 import {
   apiGet,
   apiPost,
@@ -617,13 +616,13 @@ describe('PublicProfileView', () => {
     mockCommonPublicData()
     mockedFetchChatThreads.mockResolvedValue([])
 
-    const utcRange = toUtcRange(new Date('2026-03-12T00:00:00+02:00'), new Date('2026-03-12T23:59:59+02:00'))
+    const selectedLocalDate = '2026-03-12'
 
     mockedApiGet.mockImplementation(async (url, config) => {
       if (url === '/booking/slots/') {
         const params = (config as { params?: Record<string, unknown> } | undefined)?.params || {}
 
-        if (params.date_from === utcRange.date_from && params.date_to === utcRange.date_to) {
+        if (params.date_from === selectedLocalDate && params.date_to === selectedLocalDate) {
           return [
             {
               id: 100,

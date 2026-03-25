@@ -224,4 +224,29 @@ describe('SlotsView', () => {
     expect(screen.getByText('12.03.2026, 11:10')).toBeInTheDocument()
     expect(mockToast.success).toHaveBeenCalledWith('Вільне вікно на 12.03.2026, 11:10 створено.')
   })
+
+  it('switches to the nearest future date after fill-week when selected day has no future slots', async () => {
+    mockedApiGet
+      .mockResolvedValueOnce([])
+      .mockResolvedValueOnce([
+        {
+          id: 9,
+          start_at: '2026-03-13T09:00:00Z',
+          end_at: '2026-03-13T09:50:00Z',
+          is_booked: false,
+        },
+      ])
+    mockedApiPost.mockResolvedValue({ ok: true } as any)
+
+    renderView()
+    await flushAsyncUpdates()
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Заповнити тиждень (Пн-Пт)' }))
+    await flushAsyncUpdates()
+
+    expect(screen.getByText('13.03.2026, 11:00')).toBeInTheDocument()
+    expect(mockToast.info).toHaveBeenCalledWith(
+      'За 12.03.2026 немає майбутніх вікон. Показано найближчу дату: 13.03.2026.'
+    )
+  })
 })

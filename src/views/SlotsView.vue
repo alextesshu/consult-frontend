@@ -375,6 +375,26 @@ function getSlotsForDate(dateKey: string) {
   return slots.value.filter((slot) => toLocalDateKey(slot.start_at) === dateKey)
 }
 
+function getNearestFutureDateKey(fromDateKey: string) {
+  const nearest = slots.value
+    .filter((slot) => isFutureSlot(slot))
+    .map((slot) => toLocalDateKey(slot.start_at))
+    .filter((dateKey) => dateKey >= fromDateKey)
+    .sort()[0]
+  return nearest || ''
+}
+
+function switchToNearestFutureDateIfNeeded() {
+  if (!selectedDate.value || showPastSlots.value || filteredSlots.value.length > 0) return
+  const nearestDateKey = getNearestFutureDateKey(selectedDate.value)
+  if (!nearestDateKey || nearestDateKey === selectedDate.value) return
+  const previousDateKey = selectedDate.value
+  selectedDate.value = nearestDateKey
+  toast.info(
+    `За ${formatDateOnly(previousDateKey)} немає майбутніх вікон. Показано найближчу дату: ${formatDateOnly(nearestDateKey)}.`
+  )
+}
+
 function getHiddenPastSlotsCount(dateKey: string, excludedSlotId?: number) {
   return getSlotsForDate(dateKey).filter((slot) => {
     if (excludedSlotId !== undefined && slot.id === excludedSlotId) return false
@@ -593,6 +613,7 @@ async function loadSlots() {
   try {
     const resp = await apiGet<Slot[]>('/cabinet/slots/')
     slots.value = resp || []
+    switchToNearestFutureDateIfNeeded()
     if (selectedDate.value && getHiddenPastSlotsCount(selectedDate.value) === 0) {
       showPastSlots.value = false
     }

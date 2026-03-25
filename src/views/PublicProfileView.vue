@@ -788,7 +788,7 @@ import {
   fetchInquiryState,
   sendInquiryMessage,
 } from '../lib/api'
-import { toLocalDate, toUtcRange } from '../lib/dates'
+import { toLocalDate } from '../lib/dates'
 import { formatUkDateTimeCompact, formatUkDayMonth, formatUkWeekdayShort } from '../lib/dateTime'
 import {
   fetchPublicSpecialistProfile,
@@ -1428,10 +1428,11 @@ function slotMatchesLocalDate(slot: PublicSlot, date: string) {
   return toLocalDate(new Date(slot.start_at)) === date
 }
 
-function toUtcDayRangeForLocalDate(date: string) {
-  const localStart = new Date(`${date}T00:00:00`)
-  const localEnd = new Date(`${date}T23:59:59.999`)
-  return toUtcRange(localStart, localEnd)
+function toApiDayRangeForLocalDate(date: string) {
+  return {
+    date_from: date,
+    date_to: date,
+  }
 }
 
 function toDateInputValue(date: Date) {
@@ -1532,12 +1533,12 @@ async function loadSlots() {
   noSlotsAvailable.value = false
   try {
     const selectedLocalDate = selectedDate.value || toLocalDate(new Date())
-    const utcDayRange = toUtcDayRangeForLocalDate(selectedLocalDate)
+    const localDayRange = toApiDayRangeForLocalDate(selectedLocalDate)
     const resp = await apiGet<PublicSlot[]>('/booking/slots/', {
       params: {
         therapist_id: profile.value.therapist_id,
-        date_from: utcDayRange.date_from,
-        date_to: utcDayRange.date_to,
+        date_from: localDayRange.date_from,
+        date_to: localDayRange.date_to,
       },
     })
     const list = (resp || []).filter((slot) => slotMatchesLocalDate(slot, selectedLocalDate))
