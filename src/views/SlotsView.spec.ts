@@ -117,7 +117,7 @@ describe('SlotsView', () => {
     const { container } = renderView()
     await flushAsyncUpdates()
 
-    expect(screen.queryByText('12.03.2026, 07:00')).not.toBeInTheDocument()
+    expect(screen.queryByText('07:00')).not.toBeInTheDocument()
     expect(container.querySelectorAll('.slot-card')).toHaveLength(1)
   })
 
@@ -147,8 +147,8 @@ describe('SlotsView', () => {
     const { container } = renderView()
     await flushAsyncUpdates()
 
-    expect(screen.getByText('12.03.2026, 11:00')).toBeInTheDocument()
-    expect(screen.queryByText('12.03.2026, 03:00')).not.toBeInTheDocument()
+    expect(screen.getByText('11:00')).toBeInTheDocument()
+    expect(screen.queryByText('03:00')).not.toBeInTheDocument()
 
     const { dateInput, timeInput, durationInput, submitButton } = getCreateFormControls(container)
     await fireEvent.update(dateInput, '2026-03-12')
@@ -221,7 +221,7 @@ describe('SlotsView', () => {
     await flushAsyncUpdates()
 
     expect(mockedApiGet).toHaveBeenCalledTimes(2)
-    expect(screen.getByText('12.03.2026, 11:10')).toBeInTheDocument()
+    expect(screen.getByText('11:10')).toBeInTheDocument()
     expect(mockToast.success).toHaveBeenCalledWith('Вільне вікно на 12.03.2026, 11:10 створено.')
   })
 
@@ -244,7 +244,7 @@ describe('SlotsView', () => {
     await fireEvent.click(screen.getByRole('button', { name: 'Заповнити тиждень (Пн-Пт)' }))
     await flushAsyncUpdates()
 
-    expect(screen.getByText('13.03.2026, 11:00')).toBeInTheDocument()
+    expect(screen.getByText('11:00')).toBeInTheDocument()
     expect(mockToast.info).toHaveBeenCalledWith(
       'За 12.03.2026 немає майбутніх вікон. Показано найближчу дату: 13.03.2026.'
     )

@@ -15,202 +15,119 @@
       <ScheduleSubnav active="slots" />
     </div>
 
-    <section class="panel panel--split slots-panel slots-panel--new">
-      <div>
-        <h2 class="panel__title">Нове вільне вікно</h2>
-        <p class="muted" style="margin: 6px 0 0;">
-          Вільне вікно - це вільний час для запису клієнта. Вкажіть початок і тривалість, і воно з'явиться у публічному профілі.
-        </p>
-        <p class="slot-note">
-          Робочі години не створюють вільні вікна автоматично. Після зміни розкладу використайте
-          <RouterLink class="slot-note__link" to="/cabinet/availability-rules">генерацію у налаштуваннях розкладу</RouterLink>
-          або масове заповнення нижче.
-        </p>
-      </div>
-      <form class="slot-form" @submit.prevent="createSlot">
-        <label class="field">
-          Початок
-          <div class="datetime-field">
-            <input
-              v-model="newStartDate"
-              class="input"
-              type="date"
-              lang="uk"
-              placeholder="ДД.ММ.РРРР"
-              aria-label="Дата початку"
-              required
-              @click="openPicker"
-            />
-            <input
-              v-model="newStartTime"
-              class="input"
-              type="text"
-              inputmode="numeric"
-              placeholder="ГГ:ХХ"
-              aria-label="Час початку"
-              list="time-options"
-              required
-            />
-          </div>
-        </label>
-        <label class="field">
-          Тривалість
-          <input
-            v-model.number="newDuration"
-            class="input"
-            type="number"
-            min="15"
-            step="5"
-            placeholder="хв"
-            aria-label="Тривалість у хвилинах"
-            required
-          />
-        </label>
-                <datalist id="time-options">
-          <option v-for="option in timeOptions" :key="option" :value="option" />
-        </datalist>
-        <button class="btn" type="button" @click="createSlot">
-          Створити вільне вікно
-        </button>
-        <div v-if="error" class="form-error form-error--inline">{{ error }}</div>
-      </form>
-    </section>
-
-    <section class="panel slots-panel slots-panel--bulk">
-      <div class="panel__header">
-        <div>
-          <div class="badge badge--soft">Масове заповнення</div>
-          <h2 class="panel__title">Швидкі шаблони</h2>
-        </div>
-      </div>
-      <div class="slot-bulk">
-        <div class="bulk-group">
-          <label class="field">
-            Дата для дня
-            <input v-model="fillDayDate" class="input" type="date" lang="uk" @click="openPicker" />
-          </label>
-          <button
-            class="btn btn--ghost btn--sm"
-            type="button"
-            :disabled="loading || !fillDayDate"
-            @click="fillDay"
-          >
-            Заповнити день
-          </button>
-          <div class="bulk-hint">
-            Формат: {{ formatDateOnly(fillDayDate) }}
-            <span v-if="isFillDayToday" class="bulk-hint__today">· Сьогодні</span>
-          </div>
-        </div>
-        <div class="bulk-group">
-          <label class="field">
-            Дата для тижня
-            <input v-model="fillWeekDate" class="input" type="date" lang="uk" @click="openPicker" />
-          </label>
-          <button
-            class="btn btn--ghost btn--sm"
-            type="button"
-            :disabled="loading || !fillWeekDate"
-            @click="fillWeek"
-          >
-            Заповнити тиждень (Пн-Пт)
-          </button>
-          <div class="bulk-hint">
-            Формат: {{ formatDateOnly(fillWeekDate) }}
-            <span v-if="isFillWeekToday" class="bulk-hint__today">· Сьогодні</span>
-          </div>
-        </div>
-      </div>
-      <p class="slot-note">
-        Якщо обрана дата - сьогодні, система пропускає години, що вже минули. Нічні вікна можна створити лише для майбутнього часу або майбутньої дати.
-      </p>
-    </section>
-
-    <section class="panel slots-panel slots-panel--filters">
+    <section class="panel">
       <div class="panel__header">
         <div>
           <div class="badge badge--soft">Навігація</div>
           <h2 class="panel__title">Дні та фільтри</h2>
         </div>
-        <div class="day-nav-actions">
-          <button class="btn btn--ghost btn--sm" type="button" :disabled="dayOffset === 0" @click="shiftDays(-1)">
-            Попередні 7 днів
-          </button>
-          <button class="btn btn--ghost btn--sm" type="button" @click="shiftDays(1)">
-            Наступні 7 днів
+      </div>
+      <div class="filters-toolbar">
+        <div class="filters-toolbar__primary">
+          <div class="day-list">
+            <button
+              v-for="day in dayOptions"
+              :key="day.key"
+              class="btn btn--ghost btn--sm"
+              type="button"
+              :class="{ 'btn--active': day.key === selectedDate }"
+              @click="selectDay(day.key)"
+            >
+              {{ day.label }}
+            </button>
+          </div>
+          <div class="slot-filter" role="group" aria-label="Фільтр за статусом вікон">
+            <button
+              class="btn btn--ghost btn--sm"
+              type="button"
+              :class="{ 'btn--active': slotStatusFilter === 'ALL' }"
+              @click="slotStatusFilter = 'ALL'"
+            >
+              Усі
+            </button>
+            <button
+              class="btn btn--ghost btn--sm"
+              type="button"
+              :class="{ 'btn--active': slotStatusFilter === 'FREE' }"
+              @click="slotStatusFilter = 'FREE'"
+            >
+              Вільні
+            </button>
+            <button
+              class="btn btn--ghost btn--sm"
+              type="button"
+              :class="{ 'btn--active': slotStatusFilter === 'BOOKED' }"
+              @click="slotStatusFilter = 'BOOKED'"
+            >
+              Заброньовані
+            </button>
+          </div>
+        </div>
+        <div class="filters-toolbar__secondary">
+          <div class="day-nav-actions">
+            <button class="btn btn--ghost btn--sm" type="button" :disabled="dayOffset === 0" @click="shiftDays(-1)">
+              Попередні 7 днів
+            </button>
+            <button class="btn btn--ghost btn--sm" type="button" @click="shiftDays(1)">
+              Наступні 7 днів
+            </button>
+          </div>
+          <label class="field day-picker day-picker--compact">
+            Дата
+            <input v-model="selectedDate" class="input" type="date" lang="uk-ua" @click="openPicker" />
+          </label>
+          <div class="muted day-hint">
+            Показано за: {{ formatDateOnly(selectedDate) }}
+            <span v-if="isSelectedToday" class="day-hint__today">· Сьогодні</span>
+          </div>
+          <div class="muted slot-summary">
+            {{ slotsForSelectedDay.length }} слотів · {{ selectedDayStatusSummary.free }} вільних · {{ selectedDayStatusSummary.booked }} заброньовані
+          </div>
+          <button
+            v-if="hasPastSlotsOnSelectedDate"
+            class="btn btn--ghost btn--sm slot-toggle"
+            type="button"
+            @click="showPastSlots = !showPastSlots"
+          >
+            {{ showPastSlots ? 'Сховати минулі вікна' : `Показати минулі вікна (${hiddenPastSlotsCount})` }}
           </button>
         </div>
       </div>
-      <div class="day-list">
-        <button
-          v-for="day in dayOptions"
-          :key="day.key"
-          class="btn btn--ghost btn--sm"
-          type="button"
-          :class="{ 'btn--active': day.key === selectedDate }"
-          @click="selectDay(day.key)"
-        >
-          {{ day.label }}
-        </button>
-      </div>
-      <label class="field day-picker">
-        Обрати дату
-        <input v-model="selectedDate" class="input" type="date" lang="uk-ua" @click="openPicker" />
-        <span class="field-hint">Формат: {{ formatDateOnly(selectedDate) }}</span>
-      </label>
-      <div class="muted day-hint">
-        Показано вільні вікна за: {{ formatDateOnly(selectedDate) }}
-        <span v-if="isSelectedToday" class="day-hint__today">· Сьогодні</span>
-      </div>
-      <button
-        v-if="hasPastSlotsOnSelectedDate"
-        class="btn btn--ghost btn--sm slot-toggle"
-        type="button"
-        @click="showPastSlots = !showPastSlots"
-      >
-        {{ showPastSlots ? 'Сховати минулі вікна' : `Показати минулі вікна (${hiddenPastSlotsCount})` }}
-      </button>
-      <p v-if="isSelectedToday" class="slot-note">
+      <p v-if="isSelectedToday" class="slot-note slot-note--quiet">
         Якщо нічний час для сьогодні вже минув, він не з'явиться у списку. Для перевірки нового нічного розкладу оберіть майбутню дату.
       </p>
     </section>
 
-    <div v-if="loading" class="muted slots-loading" style="margin-top: 12px;">Завантаження...</div>
+    <div v-if="loading" class="muted" style="margin-top: 8px;">Завантаження...</div>
 
-    <section class="slot-list slots-panel slots-panel--list">
+    <section class="slot-list">
       <div v-if="filteredSlots.length === 0" class="muted">Вільних вікон на цей день немає.</div>
-      <article v-for="slot in filteredSlots" :key="slot.id" class="slot-card">
-        <div class="slot-row">
-          <div class="slot-meta">
-            <div class="slot-label">Початок</div>
+      <article
+        v-for="slot in filteredSlots"
+        :key="slot.id"
+        class="slot-card"
+        :class="{ 'slot-card--editing': isEditing(slot.id), 'slot-card--booked': slot.is_booked }"
+      >
+        <div class="slot-card__top">
+          <div class="slot-card__main">
             <template v-if="isEditing(slot.id)">
-              <div class="datetime-field">
+              <div class="slot-card__edit">
                 <input
-                    v-model="editStartDate"
-                    class="input"
-                    type="date"
-                    lang="uk"
-                    placeholder="ДД.ММ.РРРР"
-                    @click="openPicker"
-                  />
+                  v-model="editStartDate"
+                  class="input"
+                  type="date"
+                  lang="uk"
+                  placeholder="ДД.ММ.РРРР"
+                  @click="openPicker"
+                />
                 <input
-                    v-model="editStartTime"
-                    class="input"
-                    type="text"
-                    inputmode="numeric"
-                    placeholder="ГГ:ХХ"
-                    list="time-options"
-                  />
-              </div>
-            </template>
-            <template v-else>
-              <div>{{ formatDate(slot.start_at) }}</div>
-            </template>
-          </div>
-          <div class="slot-meta">
-            <div class="slot-label">Тривалість</div>
-            <template v-if="isEditing(slot.id)">
-              <div class="datetime-field">
+                  v-model="editStartTime"
+                  class="input"
+                  type="text"
+                  inputmode="numeric"
+                  placeholder="ГГ:ХХ"
+                  list="time-options"
+                />
                 <input
                   v-model.number="editDuration"
                   class="input"
@@ -223,7 +140,8 @@
               </div>
             </template>
             <template v-else>
-              <div>{{ formatDuration(slot) }}</div>
+              <div class="slot-card__time">{{ formatDate(slot.start_at) }}</div>
+              <div class="slot-card__meta">{{ formatDuration(slot) }}</div>
             </template>
           </div>
           <div class="slot-status" :class="{ 'slot-status--booked': slot.is_booked }">
@@ -278,6 +196,117 @@
           Це вікно вже заброньовано - редагування та видалення недоступні.
         </div>
       </article>
+    </section>
+
+    <section class="panel panel--split">
+      <div>
+        <h2 class="panel__title">Нове вільне вікно</h2>
+        <p class="muted" style="margin: 6px 0 0;">
+          Вільне вікно - це вільний час для запису клієнта. Вкажіть початок і тривалість, і воно з'явиться у публічному профілі.
+        </p>
+        <p class="slot-note">
+          Робочі години не створюють вільні вікна автоматично. Після зміни розкладу використайте
+          <RouterLink class="slot-note__link" to="/cabinet/availability-rules">генерацію у налаштуваннях розкладу</RouterLink>
+          або масове заповнення нижче.
+        </p>
+      </div>
+      <form class="slot-form" @submit.prevent="createSlot">
+        <label class="field">
+          Початок
+          <div class="datetime-field">
+            <input
+              v-model="newStartDate"
+              class="input"
+              type="date"
+              lang="uk"
+              placeholder="ДД.ММ.РРРР"
+              aria-label="Дата початку"
+              required
+              @click="openPicker"
+            />
+            <input
+              v-model="newStartTime"
+              class="input"
+              type="text"
+              inputmode="numeric"
+              placeholder="ГГ:ХХ"
+              aria-label="Час початку"
+              list="time-options"
+              required
+            />
+          </div>
+        </label>
+        <label class="field">
+          Тривалість
+          <input
+            v-model.number="newDuration"
+            class="input"
+            type="number"
+            min="15"
+            step="5"
+            placeholder="хв"
+            aria-label="Тривалість у хвилинах"
+            required
+          />
+        </label>
+        <datalist id="time-options">
+          <option v-for="option in timeOptions" :key="option" :value="option" />
+        </datalist>
+        <button class="btn" type="button" @click="createSlot">
+          Створити вільне вікно
+        </button>
+        <div v-if="error" class="form-error form-error--inline">{{ error }}</div>
+      </form>
+    </section>
+
+    <section class="panel">
+      <div class="panel__header">
+        <div>
+          <div class="badge badge--soft">Масове заповнення</div>
+          <h2 class="panel__title">Швидкі шаблони</h2>
+        </div>
+      </div>
+      <div class="slot-bulk">
+        <div class="bulk-group">
+          <label class="field">
+            Дата для дня
+            <input v-model="fillDayDate" class="input" type="date" lang="uk" @click="openPicker" />
+          </label>
+          <button
+            class="btn btn--ghost btn--sm"
+            type="button"
+            :disabled="loading || !fillDayDate"
+            @click="fillDay"
+          >
+            Заповнити день
+          </button>
+          <div class="bulk-hint">
+            Формат: {{ formatDateOnly(fillDayDate) }}
+            <span v-if="isFillDayToday" class="bulk-hint__today">· Сьогодні</span>
+          </div>
+        </div>
+        <div class="bulk-group">
+          <label class="field">
+            Дата для тижня
+            <input v-model="fillWeekDate" class="input" type="date" lang="uk" @click="openPicker" />
+          </label>
+          <button
+            class="btn btn--ghost btn--sm"
+            type="button"
+            :disabled="loading || !fillWeekDate"
+            @click="fillWeek"
+          >
+            Заповнити тиждень (Пн-Пт)
+          </button>
+          <div class="bulk-hint">
+            Формат: {{ formatDateOnly(fillWeekDate) }}
+            <span v-if="isFillWeekToday" class="bulk-hint__today">· Сьогодні</span>
+          </div>
+        </div>
+      </div>
+      <p class="slot-note">
+        Якщо обрана дата - сьогодні, система пропускає години, що вже минули. Нічні вікна можна створити лише для майбутнього часу або майбутньої дати.
+      </p>
     </section>
     <ConfirmModal
       :open="confirmModal.open"
@@ -338,6 +367,7 @@ const fillWeekDate = ref(todayKey)
 const dayOffset = ref(0)
 const selectedDate = ref(todayKey)
 const showPastSlots = ref(false)
+const slotStatusFilter = ref<'ALL' | 'FREE' | 'BOOKED'>('ALL')
 const pastSlotMessage = 'Неможливо створити вікно в минулому. Для нічного часу оберіть майбутню дату або майбутній час.'
 
 const editingId = ref<number | null>(null)
@@ -346,7 +376,11 @@ const editStartTime = ref('')
 const editDuration = ref(50)
 
 function formatDate(value: string) {
-  return formatUkDateTimeCompact(value, value)
+  return formatUkDateTime(value, {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }, '')
 }
 
 function formatDateOnly(value: string) {
@@ -577,12 +611,30 @@ const dayOptions = computed(() => {
   })
 })
 
-const filteredSlots = computed(() => {
+const slotsForSelectedDay = computed(() => {
   if (!selectedDate.value) {
     return showPastSlots.value ? slots.value : slots.value.filter(isFutureSlot)
   }
   const slotsForDate = getSlotsForDate(selectedDate.value)
   return showPastSlots.value ? slotsForDate : slotsForDate.filter(isFutureSlot)
+})
+
+const selectedDayStatusSummary = computed(() => {
+  const free = slotsForSelectedDay.value.filter((slot) => !slot.is_booked).length
+  return {
+    free,
+    booked: slotsForSelectedDay.value.length - free,
+  }
+})
+
+const filteredSlots = computed(() => {
+  if (slotStatusFilter.value === 'FREE') {
+    return slotsForSelectedDay.value.filter((slot) => !slot.is_booked)
+  }
+  if (slotStatusFilter.value === 'BOOKED') {
+    return slotsForSelectedDay.value.filter((slot) => slot.is_booked)
+  }
+  return slotsForSelectedDay.value
 })
 
 const hiddenPastSlotsCount = computed(() => {
@@ -833,7 +885,6 @@ onMounted(loadSlots)
   border-radius: 14px;
   padding: 16px 18px;
   box-shadow: var(--shadow);
-  order: 1;
 }
 
 .slots__header .btn {
@@ -851,27 +902,7 @@ onMounted(loadSlots)
 }
 
 .slots__subnav {
-  order: 2;
-}
-
-.slots-panel--filters {
-  order: 3;
-}
-
-.slots-loading {
-  order: 4;
-}
-
-.slots-panel--list {
-  order: 5;
-}
-
-.slots-panel--new {
-  order: 6;
-}
-
-.slots-panel--bulk {
-  order: 7;
+  margin-top: -2px;
 }
 
 .panel {
@@ -880,7 +911,7 @@ onMounted(loadSlots)
   padding: 14px;
   background: #fff;
   display: grid;
-  gap: 10px;
+  gap: 8px;
 }
 
 .panel--split {
@@ -959,29 +990,70 @@ onMounted(loadSlots)
 }
 
 .slot-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.slot-summary {
+  font-size: 12px;
 }
 
 .day-nav-actions {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   flex-wrap: wrap;
 }
 
 .day-list {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   flex-wrap: wrap;
 }
 
-.day-picker .input {
-  height: 40px;
+.slot-filter {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.filters-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
+  gap: 12px;
+  align-items: start;
+}
+
+.filters-toolbar__primary {
+  display: grid;
+  gap: 8px;
+}
+
+.filters-toolbar__secondary {
+  display: grid;
+  gap: 6px;
+  justify-items: end;
+}
+
+.day-picker {
+  display: grid;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.day-picker--compact .input {
+  height: 36px;
+  width: 220px;
+}
+
+.filters-toolbar__secondary .slot-toggle {
+  margin-top: 2px;
 }
 
 .day-hint {
   font-size: 12px;
+  text-align: right;
 }
 
 .day-hint__today {
@@ -996,8 +1068,13 @@ onMounted(loadSlots)
 
 .slot-note {
   margin: 0;
-  font-size: 13px;
+  font-size: 12px;
   color: var(--muted);
+}
+
+.slot-note--quiet {
+  font-size: 11px;
+  opacity: 0.88;
 }
 
 .slot-note__link {
@@ -1067,28 +1144,60 @@ onMounted(loadSlots)
   border-radius: 12px;
   padding: 12px;
   background: #fff;
-}
-
-.slot-row {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 8px;
-  align-items: center;
 }
 
-.slot-meta {
+.slot-card--editing {
+  grid-column: 1 / -1;
+}
+
+.slot-card--booked {
+  background: #faf7f6;
+  border-color: #e6dad7;
+}
+
+.slot-card--booked .slot-card__time {
+  color: #564943;
+}
+
+.slot-card--booked .slot-card__meta {
+  color: #7b6b64;
+}
+
+.slot-card__top {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
 }
 
-.field-hint {
-  margin-top: 4px;
+.slot-card__main {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.slot-card__time {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.slot-card__meta {
   font-size: 12px;
   color: var(--muted);
 }
 
-.slot-label {
+.slot-card__edit {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 76px 80px;
+  gap: 6px;
+  align-items: center;
+}
+
+.field-hint {
+  margin-top: 4px;
   font-size: 12px;
   color: var(--muted);
 }
@@ -1108,7 +1217,7 @@ onMounted(loadSlots)
 }
 
 .slot-actions {
-  margin-top: 8px;
+  margin-top: 0;
   display: flex;
   gap: 6px;
   flex-wrap: wrap;
@@ -1155,6 +1264,45 @@ onMounted(loadSlots)
 
   .panel--split {
     grid-template-columns: 1fr;
+  }
+
+  .filters-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .filters-toolbar__secondary {
+    justify-items: start;
+  }
+
+  .day-picker--compact .input {
+    width: 100%;
+    max-width: 260px;
+  }
+
+  .day-hint {
+    text-align: left;
+  }
+
+  .slot-card__edit {
+    grid-template-columns: minmax(0, 1fr) 84px;
+  }
+}
+
+@media (min-width: 720px) {
+  .slot-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1100px) {
+  .slot-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1500px) {
+  .slot-list {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
 </style>
