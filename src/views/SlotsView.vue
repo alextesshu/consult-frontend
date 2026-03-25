@@ -1,6 +1,6 @@
 ﻿<template>
   <section class="slots">
-    <header class="slots__hero">
+    <header class="slots__header">
       <div>
         <div class="badge">Розклад</div>
         <h1 class="title slots__title">Вільні вікна</h1>
@@ -11,9 +11,11 @@
       <RouterLink class="btn btn--ghost" to="/cabinet">Назад до кабінету</RouterLink>
     </header>
 
-    <ScheduleSubnav active="slots" />
+    <div class="slots__subnav">
+      <ScheduleSubnav active="slots" />
+    </div>
 
-    <section class="panel panel--split">
+    <section class="panel panel--split slots-panel slots-panel--new">
       <div>
         <h2 class="panel__title">Нове вільне вікно</h2>
         <p class="muted" style="margin: 6px 0 0;">
@@ -74,7 +76,7 @@
       </form>
     </section>
 
-    <section class="panel">
+    <section class="panel slots-panel slots-panel--bulk">
       <div class="panel__header">
         <div>
           <div class="badge badge--soft">Масове заповнення</div>
@@ -124,7 +126,7 @@
       </p>
     </section>
 
-    <section class="panel">
+    <section class="panel slots-panel slots-panel--filters">
       <div class="panel__header">
         <div>
           <div class="badge badge--soft">Навігація</div>
@@ -173,9 +175,9 @@
       </p>
     </section>
 
-    <div v-if="loading" class="muted" style="margin-top: 12px;">Завантаження...</div>
+    <div v-if="loading" class="muted slots-loading" style="margin-top: 12px;">Завантаження...</div>
 
-    <section class="slot-list">
+    <section class="slot-list slots-panel slots-panel--list">
       <div v-if="filteredSlots.length === 0" class="muted">Вільних вікон на цей день немає.</div>
       <article v-for="slot in filteredSlots" :key="slot.id" class="slot-card">
         <div class="slot-row">
@@ -816,43 +818,69 @@ onMounted(loadSlots)
 
 <style scoped>
 .slots {
-  display: grid;
-  gap: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 
-.slots__hero {
+.slots__header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  gap: 20px;
-  min-height: 172px;
-  background: linear-gradient(135deg, rgba(8, 113, 201, 0.16), rgba(7, 47, 71, 0.06));
+  align-items: flex-start;
+  gap: 14px;
+  background: #fff;
   border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 22px 24px;
+  border-radius: 14px;
+  padding: 16px 18px;
   box-shadow: var(--shadow);
+  order: 1;
 }
 
-.slots__hero .btn {
-  height: 40px;
-  padding: 0 18px;
+.slots__header .btn {
+  height: 36px;
+  padding: 0 14px;
 }
 
 .slots__title {
-  font-size: 32px;
+  font-size: 28px;
+  margin-bottom: 4px;
 }
 
 .slots__subtitle {
-  max-width: 520px;
+  max-width: 560px;
+}
+
+.slots__subnav {
+  order: 2;
+}
+
+.slots-panel--filters {
+  order: 3;
+}
+
+.slots-loading {
+  order: 4;
+}
+
+.slots-panel--list {
+  order: 5;
+}
+
+.slots-panel--new {
+  order: 6;
+}
+
+.slots-panel--bulk {
+  order: 7;
 }
 
 .panel {
   border: 1px solid var(--line);
-  border-radius: 18px;
-  padding: 18px;
+  border-radius: 14px;
+  padding: 14px;
   background: #fff;
   display: grid;
-  gap: 14px;
+  gap: 10px;
 }
 
 .panel--split {
@@ -933,7 +961,7 @@ onMounted(loadSlots)
 .slot-list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
 
 .day-nav-actions {
@@ -1036,22 +1064,22 @@ onMounted(loadSlots)
 
 .slot-card {
   border: 1px solid var(--line);
-  border-radius: 16px;
-  padding: 16px;
+  border-radius: 12px;
+  padding: 12px;
   background: #fff;
 }
 
 .slot-row {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 8px;
   align-items: center;
 }
 
 .slot-meta {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 
 .field-hint {
@@ -1066,8 +1094,8 @@ onMounted(loadSlots)
 }
 
 .slot-status {
-  font-size: 13px;
-  padding: 6px 10px;
+  font-size: 12px;
+  padding: 4px 8px;
   border-radius: 999px;
   background: #eef6ff;
   color: #0b4a7d;
@@ -1080,9 +1108,9 @@ onMounted(loadSlots)
 }
 
 .slot-actions {
-  margin-top: 12px;
+  margin-top: 8px;
   display: flex;
-  gap: 8px;
+  gap: 6px;
   flex-wrap: wrap;
 }
 
@@ -1120,7 +1148,7 @@ onMounted(loadSlots)
 }
 
 @media (max-width: 860px) {
-  .slots__hero {
+  .slots__header {
     flex-direction: column;
     align-items: flex-start;
   }
