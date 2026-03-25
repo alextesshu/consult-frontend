@@ -995,7 +995,7 @@ onMounted(loadSlots)
 .slot-list {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 10px;
+  gap: 8px;
 }
 
 .slot-summary {
@@ -1142,10 +1142,10 @@ onMounted(loadSlots)
 .slot-card {
   border: 1px solid var(--line);
   border-radius: 12px;
-  padding: 12px;
+  padding: 10px;
   background: #fff;
   display: grid;
-  gap: 8px;
+  gap: 6px;
 }
 
 .slot-card--editing {
@@ -1179,7 +1179,7 @@ onMounted(loadSlots)
 }
 
 .slot-card__time {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
   line-height: 1.2;
 }
@@ -1221,6 +1221,12 @@ onMounted(loadSlots)
   display: flex;
   gap: 6px;
   flex-wrap: wrap;
+}
+
+.slot-actions .btn--sm {
+  height: 34px;
+  padding: 5px 10px;
+  font-size: 12px;
 }
 
 .slot-hint {
@@ -1284,19 +1290,19 @@ onMounted(loadSlots)
   }
 }
 
-@media (min-width: 720px) {
+@media (min-width: 680px) {
   .slot-list {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-@media (min-width: 1100px) {
+@media (min-width: 980px) {
   .slot-list {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
-@media (min-width: 1500px) {
+@media (min-width: 1260px) {
   .slot-list {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }

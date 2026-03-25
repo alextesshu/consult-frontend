@@ -80,11 +80,6 @@
               required
             />
           </label>
-
-          <label class="field rule-form__active">
-            <span>Активне</span>
-            <input v-model="createForm.is_active" type="checkbox" />
-          </label>
         </div>
 
         <button class="btn rule-form__submit" type="submit" :disabled="loading">
@@ -186,9 +181,19 @@
               <div class="rule-card__meta">
                 {{ rule.session_duration_minutes }} хв · буфер {{ rule.buffer_minutes }} хв
               </div>
-              <div class="rule-card__status">
+              <button
+                class="rule-card__status rule-card__status--toggle"
+                :class="{
+                  'rule-card__status--inactive': !rule.is_active,
+                  'rule-card__status--pending': togglingRuleId === rule.id,
+                }"
+                type="button"
+                :disabled="loading || togglingRuleId === rule.id"
+                title="Натисніть, щоб змінити статус правила"
+                @click="onToggleRuleStatus(rule)"
+              >
                 {{ rule.is_active ? 'Активне' : 'Неактивне' }}
-              </div>
+              </button>
             </div>
             <div class="rule-card__actions">
               <button class="btn btn--ghost btn--sm" type="button" :disabled="loading" @click="startEdit(rule)">
@@ -560,6 +565,7 @@ const createForm = reactive({
 })
 
 const editingRuleId = ref<number | null>(null)
+const togglingRuleId = ref<number | null>(null)
 const editForm = reactive({
   weekday: 0,
   start_time: '09:00',
@@ -842,6 +848,27 @@ function cancelEdit() {
   editingRuleId.value = null
 }
 
+async function onToggleRuleStatus(rule: AvailabilityRule) {
+  if (loading.value || togglingRuleId.value !== null) return
+  togglingRuleId.value = rule.id
+  error.value = ''
+  try {
+    const updated = normalizeRule(
+      await apiPatch<AvailabilityRule>(`/cabinet/availability-rules/${rule.id}/`, {
+        is_active: !rule.is_active,
+      })
+    )
+    rules.value = rules.value.map((item) => (item.id === rule.id ? updated : item))
+    if (editingRuleId.value === rule.id) {
+      editForm.is_active = updated.is_active
+    }
+  } catch (err) {
+    error.value = getApiErrorMessage(err, 'Не вдалося змінити статус правила.')
+  } finally {
+    togglingRuleId.value = null
+  }
+}
+
 async function onSaveRule(ruleId: number) {
   loading.value = true
   error.value = ''
@@ -1103,6 +1130,34 @@ onMounted(loadScheduleContext)
   padding: 5px 10px;
 }
 
+.rule-card__status--toggle {
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background-color 120ms ease, border-color 120ms ease, color 120ms ease, opacity 120ms ease;
+}
+
+.rule-card__status--toggle:hover {
+  background: rgba(8, 113, 201, 0.18);
+}
+
+.rule-card__status--toggle:focus-visible {
+  outline: none;
+  border-color: rgba(8, 113, 201, 0.45);
+}
+
+.rule-card__status--toggle:disabled {
+  cursor: not-allowed;
+}
+
+.rule-card__status--inactive {
+  background: rgba(117, 131, 145, 0.16);
+  color: #4d5a66;
+}
+
+.rule-card__status--pending {
+  opacity: 0.72;
+}
+
 .rule-card__actions {
   display: flex;
   gap: 8px;
@@ -1185,4 +1240,3 @@ onMounted(loadScheduleContext)
   }
 }
 </style>
-
