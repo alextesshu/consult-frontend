@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { fetchMe, loginWithIdentifier, refreshToken, signupClient, signupSpecialist } from '../lib/api'
+import { fetchMe, loginWithIdentifier, logoutSession, refreshToken, signupClient, signupSpecialist } from '../lib/api'
 
 type AuthUser = {
   id: number
@@ -36,30 +36,33 @@ type MePayload = {
 export const useAuthStore = defineStore('auth', {
   state: () => ({
     accessToken: '' as string,
-    refreshToken: '' as string,
     user: null as AuthUser | null,
     me: null as MePayload | null,
     loading: false as boolean,
     error: '' as string,
+    authEpoch: 0 as number,
   }),
   actions: {
+    beginAuthEpoch() {
+      this.authEpoch += 1
+      return this.authEpoch
+    },
+    isEpochActive(epoch: number) {
+      return epoch === this.authEpoch
+    },
+    clearAuthState() {
+      this.accessToken = ''
+      this.user = null
+      this.me = null
+    },
     initFromStorage() {
-      const token = localStorage.getItem('accessToken') || ''
-      const refresh = localStorage.getItem('refreshToken') || ''
-      if (token) {
-        this.accessToken = token
-      }
-      if (refresh) {
-        this.refreshToken = refresh
-      }
+      // Security hardening: do not restore tokens from localStorage.
+      // Keep cleanup for legacy keys left by older builds.
+      localStorage.removeItem('accessToken')
+      localStorage.removeItem('refreshToken')
     },
     setToken(token: string) {
       this.accessToken = token
-      localStorage.setItem('accessToken', token)
-    },
-    setRefreshToken(token: string) {
-      this.refreshToken = token
-      localStorage.setItem('refreshToken', token)
     },
     setUser(user: AuthUser | null) {
       this.user = user
@@ -69,50 +72,65 @@ export const useAuthStore = defineStore('auth', {
       this.user = payload ? payload.user : null
     },
     async login(identifier: string, password: string) {
+      const epoch = this.beginAuthEpoch()
       this.loading = true
       this.error = ''
+      this.clearAuthState()
       try {
         const tokens = await loginWithIdentifier(identifier, password)
+        if (!this.isEpochActive(epoch)) return
         this.setToken(tokens.access)
-        this.setRefreshToken(tokens.refresh)
         const me = await fetchMe(tokens.access)
+        if (!this.isEpochActive(epoch)) return
         this.setMe(me)
       } catch (err) {
+        if (!this.isEpochActive(epoch)) return
         this.error = err instanceof Error ? err.message : 'Не вдалося увійти'
         throw err
       } finally {
+        if (!this.isEpochActive(epoch)) return
         this.loading = false
       }
     },
     async signup(email: string, password: string, passwordConfirm: string) {
+      const epoch = this.beginAuthEpoch()
       this.loading = true
       this.error = ''
+      this.clearAuthState()
       try {
         const tokens = await signupSpecialist(email, password, passwordConfirm)
+        if (!this.isEpochActive(epoch)) return
         this.setToken(tokens.access)
-        this.setRefreshToken(tokens.refresh)
         const me = await fetchMe(tokens.access)
+        if (!this.isEpochActive(epoch)) return
         this.setMe(me)
       } catch (err) {
+        if (!this.isEpochActive(epoch)) return
         this.error = err instanceof Error ? err.message : 'Не вдалося зареєструватися'
         throw err
       } finally {
+        if (!this.isEpochActive(epoch)) return
         this.loading = false
       }
     },
     async signupClient(email: string, password: string, passwordConfirm: string) {
+      const epoch = this.beginAuthEpoch()
       this.loading = true
       this.error = ''
+      this.clearAuthState()
       try {
         const tokens = await signupClient(email, password, passwordConfirm)
+        if (!this.isEpochActive(epoch)) return
         this.setToken(tokens.access)
-        this.setRefreshToken(tokens.refresh)
         const me = await fetchMe(tokens.access)
+        if (!this.isEpochActive(epoch)) return
         this.setMe(me)
       } catch (err) {
+        if (!this.isEpochActive(epoch)) return
         this.error = err instanceof Error ? err.message : 'Не вдалося зареєструватися'
         throw err
       } finally {
+        if (!this.isEpochActive(epoch)) return
         this.loading = false
       }
     },
@@ -121,22 +139,38 @@ export const useAuthStore = defineStore('auth', {
       const me = await fetchMe(this.accessToken)
       this.setMe(me)
     },
-    async refreshAccessToken(): Promise<string | null> {
-      if (!this.refreshToken) return null
+    async refreshAccessToken(epoch: number = this.authEpoch): Promise<string | null> {
       try {
-        const tokens = await refreshToken(this.refreshToken)
+        const tokens = await refreshToken()
+        if (!this.isEpochActive(epoch)) return null
         this.setToken(tokens.access)
         return tokens.access
       } catch {
+        if (!this.isEpochActive(epoch)) return null
         this.logout()
         return null
       }
     },
+    async restoreSession(): Promise<boolean> {
+      const epoch = this.beginAuthEpoch()
+      const access = await this.refreshAccessToken(epoch)
+      if (!access) return false
+      if (!this.isEpochActive(epoch)) return false
+      const me = await fetchMe(access)
+      if (!this.isEpochActive(epoch)) return false
+      this.setMe(me)
+      return true
+    },
+    async logoutWithServer() {
+      try {
+        await logoutSession()
+      } finally {
+        this.logout()
+      }
+    },
     logout() {
-      this.accessToken = ''
-      this.refreshToken = ''
-      this.user = null
-      this.me = null
+      this.beginAuthEpoch()
+      this.clearAuthState()
       localStorage.removeItem('accessToken')
       localStorage.removeItem('refreshToken')
     },

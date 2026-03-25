@@ -3,7 +3,7 @@ import type { AxiosRequestConfig } from 'axios'
 
 type TokenResponse = {
   access: string
-  refresh: string
+  refresh?: string
 }
 
 type SignupResponse = TokenResponse & {
@@ -82,9 +82,13 @@ export async function fetchMe(accessToken: string) {
   return resp.data
 }
 
-export async function refreshToken(refresh: string): Promise<TokenResponse> {
-  const resp = await http.post<TokenResponse>('/auth/token/refresh/', { refresh })
+export async function refreshToken(): Promise<TokenResponse> {
+  const resp = await http.post<TokenResponse>('/auth/token/refresh/', {})
   return resp.data
+}
+
+export async function logoutSession(): Promise<void> {
+  await http.post('/auth/logout/', {})
 }
 
 export type TherapistProfile = {

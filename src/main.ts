@@ -12,6 +12,6 @@ app.use(router)
 
 const authStore = useAuthStore(pinia)
 authStore.initFromStorage()
-authStore.loadMe().catch(() => {})
+authStore.restoreSession().catch(() => {})
 
 app.mount('#app')

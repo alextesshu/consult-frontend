@@ -2,11 +2,22 @@ import axios from 'axios'
 import type { InternalAxiosRequestConfig } from 'axios'
 import { useAuthStore } from '../stores/auth'
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api'
+function resolveApiBaseUrl() {
+  const value = String(import.meta.env.VITE_API_BASE_URL || '').trim()
+  if (!value) {
+    throw new Error(
+      '[config] Missing VITE_API_BASE_URL. Set it explicitly (example: http://localhost:8000/api).'
+    )
+  }
+  return value
+}
+
+const API_BASE_URL = resolveApiBaseUrl()
 
 export const http = axios.create({
   baseURL: API_BASE_URL,
   headers: { 'Content-Type': 'application/json' },
+  withCredentials: true,
 })
 
 let refreshPromise: Promise<string | null> | null = null
@@ -25,7 +36,7 @@ http.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   const auth = useAuthStore()
   const url = config.url || ''
   const isAuthEndpoint = url.includes('/auth/')
-  const token = auth.accessToken || localStorage.getItem('accessToken') || ''
+  const token = auth.accessToken || ''
   if (!isAuthEndpoint && token) {
     config.headers.Authorization = `Bearer ${token}`
   }
@@ -43,7 +54,7 @@ http.interceptors.response.use(
 
     const url = original?.url || ''
     const isAuthEndpoint = url.includes('/auth/')
-    if (!isAuthEndpoint && error.response?.status === 401 && auth.refreshToken) {
+    if (!isAuthEndpoint && error.response?.status === 401) {
       original._retry = true
       if (!refreshPromise) {
         refreshPromise = auth

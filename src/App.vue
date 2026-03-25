@@ -530,7 +530,7 @@ function openSettingsSheetFromMenu() {
 
 function onLogoutFromMenu() {
   closeMobileMenu()
-  onLogout()
+  void onLogout()
 }
 
 function onMarkNotificationRead(item: BellNotification) {
@@ -538,8 +538,8 @@ function onMarkNotificationRead(item: BellNotification) {
   notifs.markRead(item)
 }
 
-function onLogout() {
-  auth.logout()
+async function onLogout() {
+  await auth.logoutWithServer()
   router.push('/')
 }
 
