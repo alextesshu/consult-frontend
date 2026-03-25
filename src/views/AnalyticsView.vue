@@ -1,6 +1,6 @@
 <template>
   <section class="analytics">
-    <header class="analytics__hero">
+    <header class="analytics__header">
       <div>
         <div class="badge">Аналітика</div>
         <h1 class="title analytics__title">Аналітика</h1>
@@ -406,40 +406,41 @@ onMounted(loadOverview)
 <style scoped>
 .analytics {
   display: grid;
-  gap: 16px;
+  gap: 14px;
 }
 
-.analytics__hero {
+.analytics__header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  gap: 20px;
-  background: linear-gradient(135deg, rgba(8, 113, 201, 0.16), rgba(7, 47, 71, 0.06));
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 22px 24px;
-  box-shadow: var(--shadow);
+  align-items: flex-start;
+  gap: 10px;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  padding: 2px 2px 0;
+  box-shadow: none;
 }
 
 .analytics__title {
-  font-size: 30px;
+  font-size: 28px;
 }
 
 .analytics__subtitle {
   max-width: 560px;
+  font-size: 17px;
 }
 
 .panel {
   border: 1px solid var(--line);
   border-radius: 16px;
-  padding: 16px;
+  padding: 14px;
   background: #fff;
   display: grid;
-  gap: 12px;
+  gap: 10px;
 }
 
 .panel--wide {
-  gap: 14px;
+  gap: 12px;
 }
 
 .panel__header {
@@ -452,19 +453,19 @@ onMounted(loadOverview)
 .panel__title {
   margin: 0;
   font-family: var(--font-display);
-  font-size: 22px;
+  font-size: 20px;
 }
 
 .analytics__range {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
 .range-switch {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   flex-wrap: wrap;
 }
 
@@ -476,30 +477,30 @@ onMounted(loadOverview)
 
 .metrics-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 8px;
 }
 
 .metrics-grid--formats {
-  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
 }
 
 .metric-card {
   border: 1px solid var(--line);
-  border-radius: 14px;
-  padding: 12px;
+  border-radius: 12px;
+  padding: 10px;
   display: grid;
-  gap: 6px;
+  gap: 4px;
 }
 
 .metric-card__label {
   color: var(--muted);
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .metric-card__value {
   font-family: var(--font-display);
-  font-size: 32px;
+  font-size: 30px;
   font-weight: 700;
 }
 
@@ -510,13 +511,13 @@ onMounted(loadOverview)
 
 .series-list {
   display: grid;
-  gap: 8px;
+  gap: 6px;
 }
 
 .series-row {
   display: grid;
-  grid-template-columns: 64px 1fr 32px;
-  gap: 10px;
+  grid-template-columns: 58px 1fr 28px;
+  gap: 8px;
   align-items: center;
 }
 
@@ -546,8 +547,8 @@ onMounted(loadOverview)
 
 .analytics__bottom {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 10px;
 }
 
 .top-list {
@@ -555,7 +556,7 @@ onMounted(loadOverview)
   padding: 0;
   list-style: none;
   display: grid;
-  gap: 8px;
+  gap: 6px;
 }
 
 .top-list li {
@@ -563,7 +564,7 @@ onMounted(loadOverview)
   justify-content: space-between;
   gap: 12px;
   border-bottom: 1px dashed var(--line);
-  padding-bottom: 8px;
+  padding-bottom: 6px;
 }
 
 .top-list li:last-child {
@@ -584,7 +585,7 @@ onMounted(loadOverview)
 }
 
 @media (max-width: 860px) {
-  .analytics__hero {
+  .analytics__header {
     flex-direction: column;
     align-items: flex-start;
   }
