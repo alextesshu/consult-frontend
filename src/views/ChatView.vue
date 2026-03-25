@@ -113,34 +113,24 @@
           <div v-if="activeThreadArchived" class="muted">Цей чат в архіві. Надсилання повідомлень недоступне.</div>
           <div ref="messagesRef" class="chat__messages-list">
             <div
-              v-for="message in messages"
+              v-for="message in orderedMessages"
               :key="message.id"
               :class="['chat-message', { 'chat-message--me': isMine(message) }]"
             >
-              <div class="chat-message__row">
+              <div class="chat-message__bubble-wrap">
+                <div class="chat-message__bubble" :class="{ 'chat-message__bubble--deleted': isMessageDeleted(message) }">
+                  {{ isMessageDeleted(message) ? 'Повідомлення видалено' : message.body }}
+                </div>
                 <button
                   v-if="canDeleteMessage(message)"
-                  class="btn btn--ghost btn--sm message-menu__trigger"
+                  class="message-delete-btn"
                   type="button"
-                  :aria-label="`Дії повідомлення ${message.id}`"
-                  @click.stop="toggleMessageMenu(message.id)"
+                  :aria-label="`Видалити повідомлення ${message.id}`"
+                  :disabled="deletingMessageId === message.id"
+                  @click.stop="requestDeleteMessage(message)"
                 >
-                  ⋯
+                  ×
                 </button>
-                <div v-if="openMessageMenuId === message.id" class="chat-menu" role="menu">
-                  <button
-                    class="chat-menu__item"
-                    type="button"
-                    role="menuitem"
-                    :disabled="deletingMessageId === message.id"
-                    @click="requestDeleteMessage(message)"
-                  >
-                    Видалити
-                  </button>
-                </div>
-              </div>
-              <div class="chat-message__bubble" :class="{ 'chat-message__bubble--deleted': isMessageDeleted(message) }">
-                {{ isMessageDeleted(message) ? 'Повідомлення видалено' : message.body }}
               </div>
               <div class="chat-message__time muted">{{ formatTime(message.created_at) }}</div>
             </div>
@@ -199,7 +189,6 @@ const threadPollId = ref<number | null>(null)
 const lastMessageId = ref<number | null>(null)
 const messagesRef = ref<HTMLDivElement | null>(null)
 const threadTab = ref<ThreadTab>('active')
-const openMessageMenuId = ref<number | null>(null)
 const openThreadMenuId = ref<number | null>(null)
 const localDeletedMessageIds = ref<Set<number>>(new Set())
 const localArchivedThreadIds = ref<Set<number>>(new Set())
@@ -230,6 +219,7 @@ const allThreads = computed(() => {
 const activeThreads = computed(() => allThreads.value.filter((thread) => !isThreadArchived(thread)))
 const archivedThreads = computed(() => allThreads.value.filter((thread) => isThreadArchived(thread)))
 const visibleThreads = computed(() => (threadTab.value === 'active' ? activeThreads.value : archivedThreads.value))
+const orderedMessages = computed(() => [...messages.value].reverse())
 
 const activeThread = computed(() => allThreads.value.find((thread) => thread.id === activeThreadId.value) || null)
 const activeThreadArchived = computed(() => (activeThread.value ? isThreadArchived(activeThread.value) : false))
@@ -318,18 +308,11 @@ function resolvePreferredThreadId(data: ChatThread[]) {
   return null
 }
 
-function toggleMessageMenu(messageId: number) {
-  openMessageMenuId.value = openMessageMenuId.value === messageId ? null : messageId
-  openThreadMenuId.value = null
-}
-
 function toggleThreadMenu(threadId: number) {
   openThreadMenuId.value = openThreadMenuId.value === threadId ? null : threadId
-  openMessageMenuId.value = null
 }
 
 function requestDeleteMessage(message: ChatMessage) {
-  openMessageMenuId.value = null
   confirmRequest.value = { kind: 'delete_message', messageId: message.id }
 }
 
@@ -458,13 +441,13 @@ async function loadMessages(options?: { since?: number | null }) {
     }
   }
   await nextTick()
-  scrollToBottom()
+  scrollToTop()
 }
 
-function scrollToBottom() {
+function scrollToTop() {
   const el = messagesRef.value
   if (!el) return
-  el.scrollTop = el.scrollHeight
+  el.scrollTop = 0
 }
 
 async function selectThread(threadId: number) {
@@ -472,7 +455,6 @@ async function selectThread(threadId: number) {
   activeThreadId.value = threadId
   messages.value = []
   lastMessageId.value = null
-  openMessageMenuId.value = null
   await loadMessages()
   markThreadRead(threadId)
 }
@@ -494,7 +476,7 @@ async function sendMessage() {
     draft.value = ''
     markThreadRead(activeThreadId.value)
     await nextTick()
-    scrollToBottom()
+    scrollToTop()
   } finally {
     sending.value = false
   }
@@ -716,8 +698,9 @@ onBeforeUnmount(() => {
 .chat__messages-list {
   height: 440px;
   overflow-y: auto;
-  display: grid;
-  gap: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
   padding-right: 8px;
 }
 
@@ -726,7 +709,7 @@ onBeforeUnmount(() => {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 4px;
+  gap: 2px;
 }
 
 .chat-message--me {
@@ -734,21 +717,9 @@ onBeforeUnmount(() => {
   align-items: flex-end;
 }
 
-.chat-message__row {
-  min-height: 24px;
+.chat-message__bubble-wrap {
   position: relative;
-}
-
-.message-menu__trigger {
-  opacity: 0;
-  min-width: 30px;
-  padding: 0 8px;
-  transition: opacity 0.18s ease;
-}
-
-.chat-message:hover .message-menu__trigger,
-.chat-message:focus-within .message-menu__trigger {
-  opacity: 1;
+  display: inline-flex;
 }
 
 .chat-message__bubble {
@@ -756,6 +727,42 @@ onBeforeUnmount(() => {
   border-radius: 14px;
   background: rgba(7, 47, 71, 0.08);
   color: var(--ink);
+}
+
+.message-delete-btn {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.chat-message__bubble-wrap:hover .message-delete-btn,
+.chat-message__bubble-wrap:focus-within .message-delete-btn,
+.message-delete-btn:focus-visible {
+  opacity: 1;
+}
+
+.message-delete-btn:hover {
+  color: #a33939;
+  border-color: #d4aaaa;
+}
+
+.message-delete-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .chat-message__bubble--deleted {
@@ -773,7 +780,8 @@ onBeforeUnmount(() => {
 }
 
 .chat-message__time {
-  font-size: 11px;
+  font-size: 10px;
+  line-height: 1.2;
 }
 
 .chat__composer {

@@ -151,16 +151,15 @@ describe('ChatView', () => {
     renderView()
 
     await screen.findByText('Моє повідомлення')
-    expect(screen.getByLabelText('Дії повідомлення 101')).toBeInTheDocument()
-    expect(screen.queryByLabelText('Дії повідомлення 102')).not.toBeInTheDocument()
+    expect(screen.getByLabelText('Видалити повідомлення 101')).toBeInTheDocument()
+    expect(screen.queryByLabelText('Видалити повідомлення 102')).not.toBeInTheDocument()
   })
 
   it('renders deleted message placeholder after delete success', async () => {
     renderView()
 
     await screen.findByText('Моє повідомлення')
-    await fireEvent.click(screen.getByLabelText('Дії повідомлення 101'))
-    await fireEvent.click(screen.getByRole('menuitem', { name: 'Видалити' }))
+    await fireEvent.click(screen.getByLabelText('Видалити повідомлення 101'))
 
     expect(await screen.findByText('Видалити повідомлення?')).toBeInTheDocument()
     await fireEvent.click(screen.getByRole('button', { name: 'Видалити' }))
