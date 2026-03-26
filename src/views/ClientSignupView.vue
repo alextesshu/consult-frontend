@@ -49,6 +49,10 @@
           Вже маєте акаунт?
           <RouterLink to="/login">Увійти</RouterLink>
         </p>
+        <p class="muted auth__footer">
+          Потрібен акаунт спеціаліста?
+          <RouterLink to="/signup">Реєстрація спеціаліста</RouterLink>
+        </p>
         <p class="muted auth__legal">
           Продовжуючи, ви погоджуєтеся з
           <RouterLink to="/terms">Умовами користування</RouterLink>

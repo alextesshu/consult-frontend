@@ -24,7 +24,8 @@
           Тарифи
         </RouterLink>
         <RouterLink v-if="!isAuthenticated" to="/login">Вхід</RouterLink>
-        <RouterLink v-if="!isAuthenticated" to="/signup">Реєстрація</RouterLink>
+        <RouterLink v-if="!isAuthenticated" to="/signup-client">Реєстрація клієнта</RouterLink>
+        <RouterLink v-if="!isAuthenticated" to="/signup">Реєстрація спеціаліста</RouterLink>
         <RouterLink
           v-if="isAuthenticated"
           class="icon-btn nav__desktop-only"

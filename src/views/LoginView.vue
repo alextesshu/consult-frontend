@@ -38,6 +38,10 @@
           Вперше тут?
           <RouterLink to="/signup">Створити акаунт спеціаліста</RouterLink>
         </p>
+        <p class="muted auth__helper">
+          Потрібен акаунт клієнта?
+          <RouterLink to="/signup-client">Створити акаунт клієнта</RouterLink>
+        </p>
         <p class="muted auth__legal">
           Продовжуючи, ви погоджуєтеся з
           <RouterLink to="/terms">Умовами користування</RouterLink>
