@@ -78,7 +78,9 @@ Login accepts email or username:
 - If input contains `@` -> send as `email`
 - Else -> send as `username`
 
-Tokens are stored in localStorage and auto-refreshed via `/api/auth/token/refresh/`.
+Access token is stored **in memory only** (Pinia store). Refresh token is delivered as an `httpOnly` cookie and never exposed to JS.
+
+Session is silently restored on page reload via cookie-based refresh (`/api/auth/token/refresh/`). No tokens in localStorage — legacy keys are actively cleaned on startup.
 
 ## Implemented UI (Frontend)
 
@@ -153,8 +155,19 @@ Tokens are stored in localStorage and auto-refreshed via `/api/auth/token/refres
 - Handoff governance rules live in `docs/HANDOFF_RULES.md`; closed-phase history is archived in `docs/PHASE_CLOSE_SUMMARIES.md`.
 - Online session execution in this MVP uses backend-provided external `meeting_url` plus optional `meeting_provider`; built-in video rooms are not part of the frontend runtime.
 
+## Deployment (Production)
+
+Build image with API URL baked in:
+
+```bash
+docker build --build-arg VITE_API_BASE_URL=https://proconsult.space/api -t proconsult-frontend .
+```
+
+Served via `nginx` on port 80. All routes return `index.html` for Vue Router.
+Full stack: see `docker-compose.prod.yml` in backend repo.
+
 ## Next Focus
 
-1. Backend-confirmed specialist-side meeting-link editing if and when a canonical mutation contract is exposed
-2. Specialist CRM depth: bulk actions and richer client profile view
-3. Broader empty/loading/error normalization for remaining non-booking views
+1. Specialist CRM depth: bulk actions and richer client profile view
+2. Broader empty/loading/error normalization for remaining non-booking views
+3. TypeScript warnings cleanup (4 non-blocking warnings in useNotifications.ts and TherapistSessionsView.spec.ts)

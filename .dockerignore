@@ -1,0 +1,14 @@
+node_modules/
+dist/
+
+.env.local
+.env.production
+.env.*.local
+
+.git/
+.github/
+
+# Test files are not needed in the production image
+src/**/*.spec.ts
+src/**/*.test.ts
+src/test/
