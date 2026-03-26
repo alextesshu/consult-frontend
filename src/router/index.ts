@@ -301,10 +301,13 @@ router.beforeEach(async (to) => {
 
   if (to.meta.requiresAuth) {
     if (!auth.accessToken) {
-      if (to.name === 'public-specialists') {
-        return { name: 'signup-client' }
+      const restored = await auth.restoreSession().catch(() => false)
+      if (!restored) {
+        if (to.name === 'public-specialists') {
+          return { name: 'signup-client' }
+        }
+        return { name: 'login' }
       }
-      return { name: 'login' }
     }
     if (!auth.user) {
       try {

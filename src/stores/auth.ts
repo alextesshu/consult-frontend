@@ -139,18 +139,20 @@ export const useAuthStore = defineStore('auth', {
       const me = await fetchMe(this.accessToken)
       this.setMe(me)
     },
-    async refreshAccessToken(epoch: number = this.authEpoch): Promise<string | null> {
+    async refreshAccessToken(epoch?: number): Promise<string | null> {
+      const effectiveEpoch = epoch ?? this.authEpoch
       try {
         const tokens = await refreshToken()
-        if (!this.isEpochActive(epoch)) return null
+        if (!this.isEpochActive(effectiveEpoch)) return null
         this.setToken(tokens.access)
         return tokens.access
       } catch {
-        if (!this.isEpochActive(epoch)) return null
+        if (!this.isEpochActive(effectiveEpoch)) return null
         this.logout()
         return null
       }
     },
+
     async restoreSession(): Promise<boolean> {
       const epoch = this.beginAuthEpoch()
       const access = await this.refreshAccessToken(epoch)
