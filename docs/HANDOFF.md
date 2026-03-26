@@ -1,6 +1,6 @@
 # Handoff
 
-Last updated: 2026-03-23  
+Last updated: 2026-03-26  
 Owner: agent-maintained  
 Canonical file: `docs/HANDOFF.md`  
 Governance: `docs/HANDOFF_RULES.md`  
@@ -8,7 +8,12 @@ Phase archive: `docs/PHASE_CLOSE_SUMMARIES.md`
 
 ## Current Phase
 
-Frontend legal minimum baseline for controlled beta is now integrated:
+Frontend production-readiness slice is now integrated:
+- cookie-based auth hardening: done (refresh token only in httpOnly cookie, silent restore, no token persistence in localStorage)
+- production container baseline: done (Docker multi-stage build + nginx SPA routing)
+- production API wiring: done (`VITE_API_BASE_URL` build-time injection for deploy artifacts)
+- release docs sync for production infra/auth slice: done
+- legal minimum baseline: done
 - legal pages: done (`/terms`, `/privacy`, `/disclaimer`, `/support-and-data-requests`)
 - footer legal links: done
 - auth legal notice (Terms + Privacy): done
@@ -24,7 +29,14 @@ Frontend legal minimum baseline for controlled beta is now integrated:
 
 - Repository: Consult frontend (`Vue 3`, `Vite`, `TypeScript`, `Pinia`, `Vue Router`, `Vitest`).
 - Canonical persistent handoff file is this document.
+- Auth runtime contract:
+  - access token is memory-only
+  - refresh token is cookie-only (`httpOnly`) and never exposed to JS storage
+  - axios requests run with credentials
 - Public session execution contract is external meeting-link based (`meeting_url`/`meeting_provider`), no built-in video runtime.
+- Production deployment baseline:
+  - frontend is served from nginx container
+  - runtime assumes same-domain reverse-proxy routing with backend API under `/api`
 - Legal minimum pages are statically served via frontend routes and integrated into global footer/auth entrypoints.
 - Public homepage now follows the PRO CONSULT two-core promise:
   - structured practice management for specialists
@@ -55,6 +67,10 @@ Frontend legal minimum baseline for controlled beta is now integrated:
 
 ## Stable Areas
 
+- Auth transport and restore flow:
+  - no refresh token in frontend storage
+  - silent restore via cookie refresh endpoint
+  - legacy token keys are cleaned on startup
 - `TherapistClientsView` has isolated explicit-state handling for:
   - clients list (`loading/error/empty/retry`)
   - reminders (`loading/error/empty/retry`)
@@ -76,6 +92,7 @@ Frontend legal minimum baseline for controlled beta is now integrated:
 - Next target: history surface explicit-state normalization (`loading/error/empty/retry`) with local retry scoped to history source.
 - Preserve already-stabilized clients-list/reminders branches unchanged.
 - Keep homepage copy consistency aligned with billing/product terminology (Ukrainian-first, no mixed-language feature labels).
+- Keep deployment docs and runtime assumptions synchronized with backend production routing/email contracts.
 
 ## Immediate Next Step
 
@@ -89,6 +106,7 @@ Implement and validate one focused `TherapistClientsView` history-state slice:
 - Do not invent API fields or change contracts without explicit backend confirmation.
 - Keep UI states explicit and scoped per data source; avoid shared top-level error leakage.
 - Reuse existing shared UI/state patterns (`LoadingSkeleton`, `EmptyState`, existing composables/stores).
+- Preserve cookie-only refresh model; do not reintroduce localStorage token persistence.
 - Keep handoff governance aligned with `docs/HANDOFF_RULES.md`:
   - `HANDOFF.md` = compact current snapshot
   - `PHASE_CLOSE_SUMMARIES.md` = append-only historical phase archive
