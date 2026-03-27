@@ -481,6 +481,7 @@
         <div class="media-preview media-preview--side" style="margin-top: 12px;">
           <div
             class="media-card"
+            data-testid="media-card-photo"
             role="button"
             tabindex="0"
             @click="triggerPhotoSelect"
@@ -488,15 +489,34 @@
             @keydown.space.prevent="triggerPhotoSelect"
           >
             <div class="media-title">Фото прев'ю</div>
+            <div class="media-hint">JPG, PNG, WEBP • до 5 МБ</div>
             <div class="media-frame">
+              <button
+                v-if="photoPreviewUrl || profile.photo_url"
+                class="media-remove-btn"
+                :class="{ 'is-visible': photoDeleteHoverVisible }"
+                data-testid="remove-photo-button"
+                type="button"
+                :disabled="photoDeleting || photoUploading"
+                aria-label="Видалити фото профілю"
+                @click.stop="onDeletePhoto"
+              >
+                ×
+              </button>
               <img
                 v-if="photoPreviewUrl || profile.photo_url"
                 :src="photoPreviewUrl || profile.photo_url"
                 alt="Фото профілю"
+                @mouseenter="photoDeleteHoverVisible = true"
+                @mouseleave="photoDeleteHoverVisible = false"
+                @focus="photoDeleteHoverVisible = true"
+                @blur="photoDeleteHoverVisible = false"
               />
               <div v-else class="media-empty">Фото ще не завантажено</div>
             </div>
             <div class="media-status" v-if="photoUploading">Завантаження фото...</div>
+            <div class="media-status" v-if="photoDeleting">Видалення фото...</div>
+            <div class="media-status media-status--error" v-if="photoMediaError">{{ photoMediaError }}</div>
             <button
               class="btn btn--ghost btn--sm"
               type="button"
@@ -514,6 +534,7 @@
           </div>
           <div
             class="media-card"
+            data-testid="media-card-video"
             role="button"
             tabindex="0"
             @click="triggerVideoSelect"
@@ -521,17 +542,39 @@
             @keydown.space.prevent="triggerVideoSelect"
           >
             <div class="media-title">Відео прев'ю</div>
+            <div class="media-hint">MP4, MOV, WEBM • до 1 хв • до 100 МБ</div>
+            <div class="media-hint media-hint--note">
+              Рекомендовано: знімати у 720p або 1080p, з хорошим освітленням і чітким звуком.
+            </div>
             <div class="media-frame">
+              <button
+                v-if="videoPreviewUrl || profile.video_url"
+                class="media-remove-btn"
+                :class="{ 'is-visible': videoDeleteHoverVisible }"
+                data-testid="remove-video-button"
+                type="button"
+                :disabled="videoDeleting || videoUploading"
+                aria-label="Видалити відео профілю"
+                @click.stop="onDeleteVideo"
+              >
+                ×
+              </button>
               <video
                 v-if="videoPreviewUrl || profile.video_url"
                 :src="videoPreviewUrl || profile.video_url"
                 preload="metadata"
                 controls
                 @click.stop
+                @mouseenter="videoDeleteHoverVisible = true"
+                @mouseleave="videoDeleteHoverVisible = false"
+                @focus="videoDeleteHoverVisible = true"
+                @blur="videoDeleteHoverVisible = false"
               ></video>
               <div v-else class="media-empty">Відео ще не завантажено</div>
             </div>
             <div class="media-status" v-if="videoUploading">Завантаження відео...</div>
+            <div class="media-status" v-if="videoDeleting">Видалення відео...</div>
+            <div class="media-status media-status--error" v-if="videoMediaError">{{ videoMediaError }}</div>
             <button
               class="btn btn--ghost btn--sm"
               type="button"
@@ -877,6 +920,12 @@ const cropperSrc = ref('')
 const cropperRef = ref<any>(null)
 const cropSaving = ref(false)
 const cropFileName = ref('profile-photo.jpg')
+const photoDeleteHoverVisible = ref(false)
+const videoDeleteHoverVisible = ref(false)
+const photoDeleting = ref(false)
+const videoDeleting = ref(false)
+const photoMediaError = ref('')
+const videoMediaError = ref('')
 const documents = ref<SpecialistProfileDocument[]>([])
 const documentsLoading = ref(false)
 const documentsError = ref('')
@@ -889,6 +938,12 @@ const newDocumentTitle = ref('')
 const newDocumentKind = ref('CERTIFICATE')
 const newDocumentIsPublic = ref(true)
 const newDocumentFile = ref<File | null>(null)
+const MAX_PHOTO_BYTES = 5 * 1024 * 1024
+const MAX_VIDEO_BYTES = 100 * 1024 * 1024
+const ALLOWED_PHOTO_MIME = new Set(['image/jpeg', 'image/png', 'image/webp'])
+const ALLOWED_PHOTO_EXT = new Set(['jpg', 'jpeg', 'png', 'webp'])
+const ALLOWED_VIDEO_MIME = new Set(['video/mp4', 'video/quicktime', 'video/webm'])
+const ALLOWED_VIDEO_EXT = new Set(['mp4', 'mov', 'webm'])
 const languageOptions = [
   'Українська',
   'Російська',
@@ -1026,6 +1081,7 @@ function closeCropper() {
     URL.revokeObjectURL(cropperSrc.value)
   }
   cropperSrc.value = ''
+  cropFileName.value = 'profile-photo.jpg'
 }
 
 function getCroppedFile(): Promise<File> {
@@ -1061,10 +1117,12 @@ async function applyCrop() {
     const file = await getCroppedFile()
     setPreviewUrl(photoPreviewUrl, file)
     const data = await uploadProfilePhoto(file)
-    Object.assign(profile, normalizeProfile(data))
-    setPreviewUrl(photoPreviewUrl, null)
-    success.value = 'Фото завантажено.'
     closeCropper()
+    if (data && typeof data === 'object') {
+      Object.assign(profile, normalizeProfile(data))
+      setPreviewUrl(photoPreviewUrl, null)
+    }
+    success.value = 'Фото завантажено.'
   } catch (err) {
     error.value = getApiErrorMessage(err, 'Не вдалося завантажити фото')
   } finally {
@@ -1651,6 +1709,17 @@ async function onPhotoSelected(event: Event) {
   const file = input.files?.[0]
   if (!file) return
   error.value = ''
+  photoMediaError.value = ''
+  if (!isAllowedFileType(file, ALLOWED_PHOTO_MIME, ALLOWED_PHOTO_EXT)) {
+    photoMediaError.value = 'Підтримуються формати JPG, PNG, WEBP.'
+    input.value = ''
+    return
+  }
+  if (file.size > MAX_PHOTO_BYTES) {
+    photoMediaError.value = 'Фото перевищує допустимий розмір 5 МБ.'
+    input.value = ''
+    return
+  }
   openCropper(file)
   input.value = ''
 }
@@ -1659,6 +1728,17 @@ async function onVideoSelected(event: Event) {
   const input = event.target as HTMLInputElement
   const file = input.files?.[0]
   if (!file) return
+  videoMediaError.value = ''
+  if (!isAllowedFileType(file, ALLOWED_VIDEO_MIME, ALLOWED_VIDEO_EXT)) {
+    videoMediaError.value = 'Підтримуються формати MP4, MOV, WEBM.'
+    input.value = ''
+    return
+  }
+  if (file.size > MAX_VIDEO_BYTES) {
+    videoMediaError.value = 'Відео перевищує допустимий розмір 100 МБ.'
+    input.value = ''
+    return
+  }
   setPreviewUrl(videoPreviewUrl, file)
   videoUploading.value = true
   error.value = ''
@@ -1672,6 +1752,44 @@ async function onVideoSelected(event: Event) {
   } finally {
     videoUploading.value = false
     input.value = ''
+  }
+}
+
+async function onDeletePhoto() {
+  if (photoDeleting.value || photoUploading.value) return
+  error.value = ''
+  photoMediaError.value = ''
+  success.value = ''
+  photoDeleting.value = true
+  try {
+    const data = await updateSpecialistProfile({ photo_url: '' })
+    Object.assign(profile, normalizeProfile(data))
+    setPreviewUrl(photoPreviewUrl, null)
+    photoDeleteHoverVisible.value = false
+    success.value = 'Фото видалено.'
+  } catch (err) {
+    error.value = getApiErrorMessage(err, 'Не вдалося видалити фото')
+  } finally {
+    photoDeleting.value = false
+  }
+}
+
+async function onDeleteVideo() {
+  if (videoDeleting.value || videoUploading.value) return
+  error.value = ''
+  videoMediaError.value = ''
+  success.value = ''
+  videoDeleting.value = true
+  try {
+    const data = await updateSpecialistProfile({ video_url: '' })
+    Object.assign(profile, normalizeProfile(data))
+    setPreviewUrl(videoPreviewUrl, null)
+    videoDeleteHoverVisible.value = false
+    success.value = 'Відео видалено.'
+  } catch (err) {
+    error.value = getApiErrorMessage(err, 'Не вдалося видалити відео')
+  } finally {
+    videoDeleting.value = false
   }
 }
 
@@ -1759,6 +1877,20 @@ function onLanguageInput() {
   if (languageOptions.includes(value)) {
     addLanguage()
   }
+}
+
+function getFileExtension(fileName: string) {
+  const normalized = fileName.trim().toLowerCase()
+  const idx = normalized.lastIndexOf('.')
+  if (idx === -1 || idx === normalized.length - 1) return ''
+  return normalized.slice(idx + 1)
+}
+
+function isAllowedFileType(file: File, allowedMime: Set<string>, allowedExt: Set<string>) {
+  const mime = (file.type || '').toLowerCase()
+  if (mime && allowedMime.has(mime)) return true
+  const extension = getFileExtension(file.name)
+  return Boolean(extension && allowedExt.has(extension))
 }
 
 function addSpecialization() {
@@ -2198,7 +2330,17 @@ onMounted(() => {
   color: var(--muted);
 }
 
+.media-hint {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.media-hint--note {
+  margin-top: -6px;
+}
+
 .media-frame {
+  position: relative;
   width: 100%;
   aspect-ratio: 1 / 1;
   border-radius: 14px;
@@ -2216,6 +2358,53 @@ onMounted(() => {
   object-fit: cover;
   display: block;
   border-radius: 12px;
+}
+
+.media-remove-btn {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  background: rgba(15, 43, 58, 0.8);
+  color: #fff;
+  font-size: 18px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+  z-index: 3;
+}
+
+.media-remove-btn:hover {
+  background: rgba(15, 43, 58, 0.95);
+}
+
+.media-remove-btn:focus-visible {
+  opacity: 1;
+  pointer-events: auto;
+  outline: 2px solid #fff;
+  outline-offset: 1px;
+}
+
+.media-card:hover .media-remove-btn,
+.media-card:focus-within .media-remove-btn,
+.media-remove-btn.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+@media (hover: none) {
+  .media-remove-btn {
+    opacity: 1;
+    pointer-events: auto;
+  }
 }
 
 .cropper-overlay {
@@ -2280,6 +2469,10 @@ onMounted(() => {
 .media-status {
   font-size: 12px;
   color: var(--muted);
+}
+
+.media-status--error {
+  color: #a63535;
 }
 
 .form--profile-basics {

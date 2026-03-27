@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { defineComponent, h } from 'vue'
 import TherapistProfileView from './TherapistProfileView.vue'
 import {
   createProfileDocument,
@@ -14,9 +15,21 @@ import {
 } from '../lib/api'
 
 vi.mock('vue-advanced-cropper', () => ({
-  Cropper: {
-    template: '<div data-testid="cropper-stub"></div>',
-  },
+  Cropper: defineComponent({
+    name: 'CropperStub',
+    setup(_, { expose }) {
+      expose({
+        getResult: () => ({
+          canvas: {
+            toBlob: (callback: (blob: Blob | null) => void) => {
+              callback(new Blob(['photo'], { type: 'image/jpeg' }))
+            },
+          },
+        }),
+      })
+      return () => h('div', { 'data-testid': 'cropper-stub' })
+    },
+  }),
 }))
 
 vi.mock('../lib/api', () => ({
@@ -102,6 +115,14 @@ function renderView() {
       },
     },
   })
+}
+
+function createFile(name: string, type: string, sizeOverride?: number) {
+  const file = new File(['x'], name, { type })
+  if (typeof sizeOverride === 'number') {
+    Object.defineProperty(file, 'size', { value: sizeOverride, configurable: true })
+  }
+  return file
 }
 
 describe('TherapistProfileView', () => {
@@ -256,5 +277,230 @@ describe('TherapistProfileView', () => {
     await fireEvent.click(offline)
     expect(await screen.findByLabelText('Локація для офлайн-зустрічей')).toBeInTheDocument()
   })
-})
 
+  it('shows upload hints in media step', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValue(makeProfile())
+    renderView()
+
+    expect(await screen.findByText('JPG, PNG, WEBP • до 5 МБ')).toBeInTheDocument()
+    expect(screen.getByText('MP4, MOV, WEBM • до 1 хв • до 100 МБ')).toBeInTheDocument()
+    expect(
+      screen.getByText('Рекомендовано: знімати у 720p або 1080p, з хорошим освітленням і чітким звуком.')
+    ).toBeInTheDocument()
+  })
+
+  it('blocks oversized photo on client side', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValue(makeProfile())
+    const { container } = renderView()
+    await screen.findByText('JPG, PNG, WEBP • до 5 МБ')
+
+    const photoInput = container.querySelector('input[type="file"][accept="image/*"]') as HTMLInputElement | null
+    expect(photoInput).not.toBeNull()
+    const tooLargePhoto = createFile('too-large.jpg', 'image/jpeg', 5 * 1024 * 1024 + 1)
+    await fireEvent.change(photoInput as HTMLInputElement, { target: { files: [tooLargePhoto] } })
+
+    expect(mockedUploadProfilePhoto).not.toHaveBeenCalled()
+    expect(screen.getByText('Фото перевищує допустимий розмір 5 МБ.')).toBeInTheDocument()
+    expect(screen.queryByTestId('cropper-stub')).not.toBeInTheDocument()
+  })
+
+  it('blocks invalid photo type on client side', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValue(makeProfile())
+    const { container } = renderView()
+    await screen.findByText('JPG, PNG, WEBP • до 5 МБ')
+
+    const photoInput = container.querySelector('input[type="file"][accept="image/*"]') as HTMLInputElement | null
+    expect(photoInput).not.toBeNull()
+    const invalidPhoto = createFile('avatar.gif', 'image/gif')
+    await fireEvent.change(photoInput as HTMLInputElement, { target: { files: [invalidPhoto] } })
+
+    expect(mockedUploadProfilePhoto).not.toHaveBeenCalled()
+    expect(screen.getByText('Підтримуються формати JPG, PNG, WEBP.')).toBeInTheDocument()
+    expect(screen.queryByTestId('cropper-stub')).not.toBeInTheDocument()
+  })
+
+  it('blocks oversized video on client side', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValue(makeProfile())
+    const { container } = renderView()
+    await screen.findByText('MP4, MOV, WEBM • до 1 хв • до 100 МБ')
+
+    const videoInput = container.querySelector('input[type="file"][accept="video/*"]') as HTMLInputElement | null
+    expect(videoInput).not.toBeNull()
+    const tooLargeVideo = createFile('preview.mp4', 'video/mp4', 100 * 1024 * 1024 + 1)
+    await fireEvent.change(videoInput as HTMLInputElement, { target: { files: [tooLargeVideo] } })
+
+    expect(mockedUploadProfileVideo).not.toHaveBeenCalled()
+    expect(screen.getByText('Відео перевищує допустимий розмір 100 МБ.')).toBeInTheDocument()
+  })
+
+  it('blocks invalid video type on client side', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValue(makeProfile())
+    const { container } = renderView()
+    await screen.findByText('MP4, MOV, WEBM • до 1 хв • до 100 МБ')
+
+    const videoInput = container.querySelector('input[type="file"][accept="video/*"]') as HTMLInputElement | null
+    expect(videoInput).not.toBeNull()
+    const invalidVideo = createFile('preview.avi', 'video/x-msvideo')
+    await fireEvent.change(videoInput as HTMLInputElement, { target: { files: [invalidVideo] } })
+
+    expect(mockedUploadProfileVideo).not.toHaveBeenCalled()
+    expect(screen.getByText('Підтримуються формати MP4, MOV, WEBM.')).toBeInTheDocument()
+  })
+
+  it('valid video flow still uploads', async () => {
+    const profile = makeProfile()
+    mockedFetchSpecialistProfile.mockResolvedValue(profile)
+    mockedUploadProfileVideo.mockResolvedValue({
+      ...profile,
+      video_url: 'https://example.com/video-updated.mp4',
+    })
+    const urlWithObjectUrl = URL as unknown as {
+      createObjectURL?: (object: Blob | MediaSource) => string
+      revokeObjectURL?: (url: string) => void
+    }
+    const originalCreateObjectUrl = urlWithObjectUrl.createObjectURL
+    const originalRevokeObjectUrl = urlWithObjectUrl.revokeObjectURL
+    urlWithObjectUrl.createObjectURL = vi.fn(() => 'blob:video-preview')
+    urlWithObjectUrl.revokeObjectURL = vi.fn()
+
+    const { container } = renderView()
+    await screen.findByText('MP4, MOV, WEBM • до 1 хв • до 100 МБ')
+
+    const videoInput = container.querySelector('input[type="file"][accept="video/*"]') as HTMLInputElement | null
+    expect(videoInput).not.toBeNull()
+    const videoFile = createFile('preview.mp4', 'video/mp4')
+    await fireEvent.change(videoInput as HTMLInputElement, { target: { files: [videoFile] } })
+
+    await waitFor(() => {
+      expect(mockedUploadProfileVideo).toHaveBeenCalledTimes(1)
+    })
+
+    urlWithObjectUrl.createObjectURL = originalCreateObjectUrl
+    urlWithObjectUrl.revokeObjectURL = originalRevokeObjectUrl
+  })
+
+  it('closes crop modal and keeps updated preview visible after successful photo save', async () => {
+    const profile = makeProfile()
+    mockedFetchSpecialistProfile.mockResolvedValue(profile)
+    mockedUploadProfilePhoto.mockResolvedValue({
+      ...profile,
+      photo_url: 'https://example.com/photo-updated.jpg',
+    })
+
+    const urlWithObjectUrl = URL as unknown as {
+      createObjectURL?: (object: Blob | MediaSource) => string
+      revokeObjectURL?: (url: string) => void
+    }
+    const originalCreateObjectUrl = urlWithObjectUrl.createObjectURL
+    const originalRevokeObjectUrl = urlWithObjectUrl.revokeObjectURL
+    const createObjectUrlMock = vi.fn(() => 'blob:photo-preview')
+    const revokeObjectUrlMock = vi.fn()
+    urlWithObjectUrl.createObjectURL = createObjectUrlMock
+    urlWithObjectUrl.revokeObjectURL = revokeObjectUrlMock
+
+    const { container } = renderView()
+    await screen.findByDisplayValue(profile.display_name)
+
+    const photoInput = container.querySelector('input[type="file"][accept="image/*"]') as HTMLInputElement | null
+    expect(photoInput).not.toBeNull()
+
+    const file = new File(['photo'], 'profile.jpg', { type: 'image/jpeg' })
+    await fireEvent.change(photoInput as HTMLInputElement, { target: { files: [file] } })
+
+    expect(await screen.findByTestId('cropper-stub')).toBeInTheDocument()
+
+    const saveCropButton = container.querySelector('.cropper-actions .btn:last-child') as HTMLButtonElement | null
+    expect(saveCropButton).not.toBeNull()
+    await fireEvent.click(saveCropButton as HTMLButtonElement)
+
+    await waitFor(() => {
+      expect(mockedUploadProfilePhoto).toHaveBeenCalledTimes(1)
+    })
+
+    await waitFor(() => {
+      expect(screen.queryByTestId('cropper-stub')).not.toBeInTheDocument()
+    })
+
+    const previewImage = container.querySelector('.media-frame img') as HTMLImageElement | null
+    expect(previewImage).not.toBeNull()
+    expect((previewImage as HTMLImageElement).src).toContain('https://example.com/photo-updated.jpg')
+    expect(revokeObjectUrlMock).toHaveBeenCalledWith('blob:photo-preview')
+
+    urlWithObjectUrl.createObjectURL = originalCreateObjectUrl
+    urlWithObjectUrl.revokeObjectURL = originalRevokeObjectUrl
+  })
+
+  it('shows delete controls on hover for media cards', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValue(makeProfile())
+
+    const { container } = renderView()
+    await screen.findByTestId('remove-photo-button')
+    await screen.findByTestId('remove-video-button')
+
+    const photoButton = screen.getByTestId('remove-photo-button')
+    const videoButton = screen.getByTestId('remove-video-button')
+    expect(photoButton).not.toHaveClass('is-visible')
+    expect(videoButton).not.toHaveClass('is-visible')
+
+    const photoImage = container.querySelector('[data-testid="media-card-photo"] .media-frame img') as HTMLElement | null
+    const videoElement = container.querySelector('[data-testid="media-card-video"] .media-frame video') as HTMLElement | null
+    expect(photoImage).not.toBeNull()
+    expect(videoElement).not.toBeNull()
+
+    await fireEvent.mouseEnter(photoImage as HTMLElement)
+    await fireEvent.mouseEnter(videoElement as HTMLElement)
+    expect(photoButton).toHaveClass('is-visible')
+    expect(videoButton).toHaveClass('is-visible')
+
+    await fireEvent.mouseLeave(photoImage as HTMLElement)
+    await fireEvent.mouseLeave(videoElement as HTMLElement)
+    expect(photoButton).not.toHaveClass('is-visible')
+    expect(videoButton).not.toHaveClass('is-visible')
+  })
+
+  it('deletes profile photo and removes preview after success', async () => {
+    const profile = makeProfile()
+    mockedFetchSpecialistProfile.mockResolvedValue(profile)
+    mockedUpdateSpecialistProfile.mockResolvedValue({
+      ...profile,
+      photo_url: '',
+    })
+
+    const { container } = renderView()
+    await screen.findByTestId('remove-photo-button')
+
+    await fireEvent.click(screen.getByTestId('remove-photo-button'))
+
+    await waitFor(() => {
+      expect(mockedUpdateSpecialistProfile).toHaveBeenCalledWith({ photo_url: '' })
+    })
+
+    await waitFor(() => {
+      const photoImage = container.querySelector('[data-testid="media-card-photo"] .media-frame img')
+      expect(photoImage).not.toBeInTheDocument()
+    })
+  })
+
+  it('deletes profile video and removes preview after success', async () => {
+    const profile = makeProfile()
+    mockedFetchSpecialistProfile.mockResolvedValue(profile)
+    mockedUpdateSpecialistProfile.mockResolvedValue({
+      ...profile,
+      video_url: '',
+    })
+
+    const { container } = renderView()
+    await screen.findByTestId('remove-video-button')
+
+    await fireEvent.click(screen.getByTestId('remove-video-button'))
+
+    await waitFor(() => {
+      expect(mockedUpdateSpecialistProfile).toHaveBeenCalledWith({ video_url: '' })
+    })
+
+    await waitFor(() => {
+      const video = container.querySelector('[data-testid="media-card-video"] .media-frame video')
+      expect(video).not.toBeInTheDocument()
+    })
+  })
+})
