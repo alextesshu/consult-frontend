@@ -7,7 +7,13 @@
           <div class="brand__tagline">Простір для вашої справи</div>
         </RouterLink>
         <nav class="nav">
-        <RouterLink v-if="isAuthenticated" class="nav__primary-action" :to="cabinetRoute">{{ cabinetLabel }}</RouterLink>
+        <RouterLink
+          v-if="isAuthenticated && hasSupportedCabinetRole"
+          class="nav__primary-action"
+          :to="cabinetRoute"
+        >
+          {{ cabinetLabel }}
+        </RouterLink>
         <RouterLink v-if="showCatalogNav" class="nav__desktop-only" to="/specialists">Каталог</RouterLink>
         <RouterLink
           v-if="isAuthenticated && isSpecialist"
@@ -164,7 +170,14 @@
           Вийти
         </button>
         <div v-if="isAuthenticated && showMobileMenu" ref="mobileMenuPanelRef" class="mobile-menu" role="menu">
-          <RouterLink class="mobile-menu__item" :to="cabinetRoute" @click="closeMobileMenu">{{ cabinetLabel }}</RouterLink>
+          <RouterLink
+            v-if="hasSupportedCabinetRole"
+            class="mobile-menu__item"
+            :to="cabinetRoute"
+            @click="closeMobileMenu"
+          >
+            {{ cabinetLabel }}
+          </RouterLink>
           <RouterLink v-if="isSpecialist" class="mobile-menu__item" to="/public" @click="closeMobileMenu">
             Публічний профіль
           </RouterLink>
@@ -252,6 +265,7 @@ const roles = computed(() => {
 })
 const isSpecialist = computed(() => roles.value.includes('SPECIALIST') || roles.value.includes('THERAPIST'))
 const isClient = computed(() => roles.value.includes('CLIENT'))
+const hasSupportedCabinetRole = computed(() => isSpecialist.value || isClient.value)
 const isChatCapable = computed(() => isSpecialist.value || isClient.value)
 watchEffect(() => {
   const path = route.path || ''
