@@ -64,6 +64,7 @@ Frontend production-readiness slice is now integrated:
   - `docs/UI_SHAPE_STANDARD.md`
   - `docs/HANDOFF.md`
   - `docs/HANDOFF_RULES.md`
+  - `docs/BETA_FRONTEND_READINESS_PLAN.md`
 
 ## Stable Areas
 
