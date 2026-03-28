@@ -1463,7 +1463,7 @@ function selectDay(date: string) {
 
 function scrollToSlots() {
   window.location.hash = '#slots'
-  document.getElementById('slots')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  focusSlotsSection()
 }
 
 function scrollToInquiry() {
@@ -1473,6 +1473,10 @@ function scrollToInquiry() {
 
 function focusInquirySection() {
   document.getElementById('inquiry')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
+
+function focusSlotsSection() {
+  document.getElementById('slots')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
 function openClientChat() {
@@ -1994,6 +1998,16 @@ watch(
     if (hash !== '#inquiry' || !canShowInquiry) return
     await nextTick()
     focusInquirySection()
+  },
+  { immediate: true }
+)
+
+watch(
+  [() => route.hash, loading, profile],
+  async ([hash, isLoading, currentProfile]) => {
+    if (hash !== '#slots' || isLoading || !currentProfile) return
+    await nextTick()
+    focusSlotsSection()
   },
   { immediate: true }
 )
