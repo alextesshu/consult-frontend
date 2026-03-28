@@ -100,7 +100,14 @@ function defaultPath() {
   const roles = auth.me?.user.roles ?? auth.user?.roles ?? []
   if (roles.includes('SPECIALIST') || roles.includes('THERAPIST')) return '/cabinet'
   if (roles.includes('CLIENT')) return '/client'
-  return '/login'
+  return '/403'
+}
+
+function resolvePostLoginPath() {
+  const redirect = typeof route.query.redirect === 'string' ? route.query.redirect.trim() : ''
+  if (!redirect) return defaultPath()
+  if (redirect === '/login' || redirect.startsWith('/login?')) return defaultPath()
+  return redirect
 }
 
 async function onSubmit() {
@@ -111,12 +118,7 @@ async function onSubmit() {
   }
   try {
     await auth.login(identifier.value.trim(), password.value)
-    const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : ''
-    if (redirect) {
-      router.push(redirect)
-    } else {
-      router.push(defaultPath())
-    }
+    router.push(resolvePostLoginPath())
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'Не вдалося увійти'
   }
@@ -124,8 +126,7 @@ async function onSubmit() {
 
 onMounted(() => {
   if (auth.accessToken) {
-    const redirect = typeof route.query.redirect === 'string' ? route.query.redirect : ''
-    router.replace(redirect || defaultPath())
+    router.replace(resolvePostLoginPath())
   }
 })
 </script>

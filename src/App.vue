@@ -27,7 +27,7 @@
         <RouterLink v-if="!isAuthenticated" to="/signup-client">Реєстрація клієнта</RouterLink>
         <RouterLink v-if="!isAuthenticated" to="/signup">Реєстрація спеціаліста</RouterLink>
         <RouterLink
-          v-if="isAuthenticated"
+          v-if="isAuthenticated && isChatCapable"
           class="icon-btn nav__desktop-only"
           :to="chatRoute"
           aria-label="Чат"
@@ -176,7 +176,7 @@
           >
             Налаштування
           </button>
-          <RouterLink class="mobile-menu__item" :to="chatRoute" @click="closeMobileMenu">Чат</RouterLink>
+          <RouterLink v-if="isChatCapable" class="mobile-menu__item" :to="chatRoute" @click="closeMobileMenu">Чат</RouterLink>
           <button type="button" class="mobile-menu__item mobile-menu__item--button" @click="onLogoutFromMenu">
             Вийти
           </button>
@@ -245,9 +245,14 @@ const isHome = computed(() => route.path === '/')
 watchEffect(() => {
   document.body.classList.toggle('body--home', isHome.value)
 })
-const roles = computed(() => auth.me?.user.roles ?? [])
+const roles = computed(() => {
+  const rawRoles = auth.me?.user.roles ?? auth.user?.roles ?? []
+  if (!Array.isArray(rawRoles)) return []
+  return rawRoles.map((role) => String(role).toUpperCase())
+})
 const isSpecialist = computed(() => roles.value.includes('SPECIALIST') || roles.value.includes('THERAPIST'))
 const isClient = computed(() => roles.value.includes('CLIENT'))
+const isChatCapable = computed(() => isSpecialist.value || isClient.value)
 watchEffect(() => {
   const path = route.path || ''
   const role =
@@ -259,7 +264,7 @@ watchEffect(() => {
 const cabinetRoute = computed(() => {
   if (isSpecialist.value) return '/cabinet'
   if (isClient.value) return '/client'
-  return '/login'
+  return '/403'
 })
 const cabinetLabel = computed(() => {
   if (isSpecialist.value) return 'Мій кабінет'
@@ -570,7 +575,10 @@ async function refreshMe() {
 }
 
 async function refreshChatUnread() {
-  if (!isAuthenticated.value) return
+  if (!isAuthenticated.value || !isChatCapable.value) {
+    chatUnreadCount.value = 0
+    return
+  }
   try {
     const resp = await fetchChatUnreadCount()
     chatUnreadCount.value = resp.unread_count ?? 0
@@ -595,6 +603,10 @@ function stopMePolling() {
 
 function startChatPolling() {
   if (chatIntervalId.value !== null) return
+  if (!isChatCapable.value) {
+    chatUnreadCount.value = 0
+    return
+  }
   refreshChatUnread()
   chatIntervalId.value = window.setInterval(() => {
     refreshChatUnread()
@@ -699,6 +711,15 @@ watch(isAuthenticated, (value) => {
     stopPreSessionToastPolling()
     notifs.reset()
   }
+})
+
+watch(isChatCapable, (value) => {
+  if (value && isAuthenticated.value) {
+    startChatPolling()
+    return
+  }
+  stopChatPolling()
+  chatUnreadCount.value = 0
 })
 </script>
 
