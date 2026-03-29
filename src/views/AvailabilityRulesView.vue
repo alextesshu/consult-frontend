@@ -488,7 +488,6 @@ import { apiDelete, apiGet, apiPatch, apiPost } from '../lib/api'
 import ConfirmModal from '../components/ConfirmModal.vue'
 import ScheduleSubnav from '../components/ScheduleSubnav.vue'
 import { useConfirmModal } from '../composables/useConfirmModal'
-import { formatUkDateTimeCompact, formatUkTime } from '../lib/dateTime'
 import { getApiErrorMessage } from '../lib/errors'
 
 type AvailabilityRule = {
@@ -940,7 +939,19 @@ function formatSlotExample(startAt: string, endAt: string): string {
   const start = new Date(startAt)
   const end = new Date(endAt)
   if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return `${startAt} - ${endAt}`
-  return `${formatUkDateTimeCompact(startAt, startAt)} - ${formatUkTime(endAt, endAt)}`
+  return `${formatScheduleDateTime(start)} - ${formatScheduleTime(end)}`
+}
+
+function pad2(value: number) {
+  return String(value).padStart(2, '0')
+}
+
+function formatScheduleDateTime(date: Date) {
+  return `${pad2(date.getDate())}.${pad2(date.getMonth() + 1)}.${date.getFullYear()} ${formatScheduleTime(date)}`
+}
+
+function formatScheduleTime(date: Date) {
+  return `${pad2(date.getHours())}:${pad2(date.getMinutes())}`
 }
 
 function slotsWord(count: number): string {

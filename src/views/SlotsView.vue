@@ -331,7 +331,6 @@ import { useToast } from '../composables/useToast'
 import ConfirmModal from '../components/ConfirmModal.vue'
 import ScheduleSubnav from '../components/ScheduleSubnav.vue'
 import { useConfirmModal } from '../composables/useConfirmModal'
-import { formatUkDateCompact, formatUkDateTime, formatUkDateTimeCompact } from '../lib/dateTime'
 
 type Slot = {
   id: number
@@ -376,17 +375,64 @@ const editingId = ref<number | null>(null)
 const editStartDate = ref('')
 const editStartTime = ref('')
 const editDuration = ref(50)
+const WEEKDAY_SHORT_UK = ['нд', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб']
+
+function parseDateLike(value: string | Date): Date | null {
+  if (value instanceof Date) {
+    return Number.isNaN(value.getTime()) ? null : value
+  }
+  const raw = String(value || '').trim()
+  const isoDate = /^(\d{4})-(\d{2})-(\d{2})$/.exec(raw)
+  if (isoDate) {
+    const year = Number(isoDate[1])
+    const month = Number(isoDate[2])
+    const day = Number(isoDate[3])
+    const date = new Date(year, month - 1, day, 0, 0, 0, 0)
+    if (
+      date.getFullYear() === year &&
+      date.getMonth() === month - 1 &&
+      date.getDate() === day
+    ) {
+      return date
+    }
+  }
+  const parsed = new Date(raw)
+  return Number.isNaN(parsed.getTime()) ? null : parsed
+}
+
+function pad2(value: number) {
+  return String(value).padStart(2, '0')
+}
+
+function formatDateParts(date: Date) {
+  return `${pad2(date.getDate())}.${pad2(date.getMonth() + 1)}.${date.getFullYear()}`
+}
+
+function formatTimeParts(date: Date) {
+  return `${pad2(date.getHours())}:${pad2(date.getMinutes())}`
+}
+
+function formatDayOptionLabel(date: Date) {
+  const weekday = WEEKDAY_SHORT_UK[date.getDay()] || ''
+  return `${weekday}, ${pad2(date.getDate())}.${pad2(date.getMonth() + 1)}`
+}
 
 function formatDate(value: string) {
-  return formatUkDateTime(value, {
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  }, '')
+  const parsed = parseDateLike(value)
+  if (!parsed) return value
+  return formatTimeParts(parsed)
+}
+
+function formatDateTime(value: string | Date) {
+  const parsed = parseDateLike(value)
+  if (!parsed) return String(value)
+  return `${formatDateParts(parsed)}, ${formatTimeParts(parsed)}`
 }
 
 function formatDateOnly(value: string) {
-  return formatUkDateCompact(value, value)
+  const parsed = parseDateLike(value)
+  if (!parsed) return value
+  return formatDateParts(parsed)
 }
 
 function formatDuration(slot: Slot) {
@@ -441,9 +487,7 @@ function getHiddenPastSlotsCount(dateKey: string, excludedSlotId?: number) {
 }
 
 function formatUkTime(value: Date) {
-  const hours = String(value.getHours()).padStart(2, '0')
-  const minutes = String(value.getMinutes()).padStart(2, '0')
-  return `${hours}:${minutes}`
+  return formatTimeParts(value)
 }
 
 function parseUkDateTime(dateStr: string, timeStr: string) {
@@ -529,17 +573,17 @@ function normalizeConflict(err: any): SlotConflict | null {
 
 function formatConflictRange(conflict: SlotConflict) {
   if (conflict.start_at && conflict.end_at) {
-    const startLabel = formatUkDateTimeCompact(conflict.start_at, '')
+    const startLabel = formatDateTime(conflict.start_at)
     const sameDay = toLocalDateKey(conflict.start_at) === toLocalDateKey(conflict.end_at)
     const endDate = new Date(conflict.end_at)
     if (sameDay && !Number.isNaN(endDate.getTime())) {
       return `${startLabel}-${formatUkTime(endDate)}`
     }
-    return `${startLabel} - ${formatUkDateTimeCompact(conflict.end_at, '')}`
+    return `${startLabel} - ${formatDateTime(conflict.end_at)}`
   }
 
   if (conflict.start_at) {
-    return formatUkDateTimeCompact(conflict.start_at, '')
+    return formatDateTime(conflict.start_at)
   }
 
   if (typeof conflict.slot_id === 'number') {
@@ -604,11 +648,7 @@ const dayOptions = computed(() => {
     const d = new Date(start.getTime() + idx * 24 * 60 * 60 * 1000)
     return {
       key: toDateInputValue(d),
-      label: formatUkDateTime(d, {
-        weekday: 'short',
-        day: '2-digit',
-        month: '2-digit',
-      }, ''),
+      label: formatDayOptionLabel(d),
     }
   })
 })
@@ -706,7 +746,7 @@ async function createSlot() {
     newStartDate.value = ''
     newStartTime.value = ''
     newDuration.value = 50
-    toast.success(`Вільне вікно на ${formatUkDateTimeCompact(startAt, '')} створено.`)
+    toast.success(`Вільне вікно на ${formatDateTime(startAt)} створено.`)
   } catch (err: any) {
     error.value = getSlotErrorMessage(err, '\u041d\u0435 \u0432\u0434\u0430\u043b\u043e\u0441\u044f \u0441\u0442\u0432\u043e\u0440\u0438\u0442\u0438 \u0432\u0456\u043b\u044c\u043d\u0435 \u0432\u0456\u043a\u043d\u043e')
     newStartTime.value = ''
