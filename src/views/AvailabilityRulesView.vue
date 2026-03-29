@@ -23,9 +23,12 @@
       <div class="panel__header">
         <div>
           <div class="badge badge--soft">Налаштування</div>
-          <h2 class="panel__title">Додати робочі години</h2>
+          <h2 class="panel__title">Крок 1: Налаштуйте робочі години</h2>
           <p class="muted generation__subtitle generation__subtitle--quiet">
             Робочі години визначають, коли ви зазвичай доступні в цей день. Щоб зробити перерву, створіть два окремі записи.
+          </p>
+          <p class="muted generation__subtitle generation__subtitle--quiet">
+            Це лише шаблон розкладу. Самі правила не публікують вільні вікна для запису клієнтів.
           </p>
         </div>
       </div>
@@ -384,16 +387,19 @@
       <div class="panel__header">
         <div>
           <div class="badge badge--soft">Вільні вікна</div>
-          <h2 class="panel__title">Згенерувати вільні вікна</h2>
+          <h2 class="panel__title">Крок 2: Згенеруйте вільні вікна</h2>
           <p class="muted generation__subtitle">
-            Система може створити вільні вікна на основі ваших активних робочих годин.
+            Система створить вільні вікна на основі ваших активних робочих годин.
+          </p>
+          <p class="muted generation__subtitle generation__subtitle--quiet">
+            Лише після кроку «Створити вільні вікна» вони стануть доступними для запису у публічному профілі.
           </p>
         </div>
       </div>
 
       <div class="generation__actions">
         <button class="btn" type="button" :disabled="!hasActiveRules || generationLoading" @click="onPreviewGeneration">
-          Переглянути генерацію на 30 днів
+          Переглянути результат на 30 днів
         </button>
         <button
           class="btn btn--ghost"
@@ -401,7 +407,7 @@
           :disabled="!previewResult || generationLoading"
           @click="onApplyGeneration"
         >
-          Застосувати
+          Створити вільні вікна
         </button>
       </div>
 
@@ -416,31 +422,48 @@
         <p v-if="previewResult.booked_conflicts_count > 0" class="generation__warning generation__warning--strong">
           У вибраному діапазоні є вже заброньовані сесії, які потребують окремої уваги.
         </p>
-        <div class="generation__stats">
-          <div>Буде створено: <strong>{{ previewResult.to_create_count }}</strong></div>
-          <div>Вже існує: <strong>{{ previewResult.existing_count }}</strong></div>
-          <div>Буде видалено (вільні): <strong>{{ previewResult.to_delete_count }}</strong></div>
-          <div>Заброньовані конфлікти: <strong>{{ previewResult.booked_conflicts_count }}</strong></div>
-          <div>Буде пропущено: <strong>{{ previewResult.skipped_duplicate_or_conflict_count }}</strong></div>
+        <div class="generation__summary">
+          <p class="generation__summaryItem">
+            Створимо <strong>{{ previewResult.to_create_count }}</strong>
+            {{ slotsWord(previewResult.to_create_count) }} на <strong>{{ previewResult.days_covered }}</strong> днів.
+          </p>
+          <p class="generation__summaryItem">
+            Пропустимо <strong>{{ previewResult.skipped_duplicate_or_conflict_count }}</strong>
+            {{ intervalsWord(previewResult.skipped_duplicate_or_conflict_count) }} через дублікати або конфлікти.
+          </p>
+          <p v-if="previewResult.existing_count > 0" class="generation__summaryItem">
+            Без змін залишиться <strong>{{ previewResult.existing_count }}</strong>
+            {{ slotsWord(previewResult.existing_count) }}, що вже існують.
+          </p>
         </div>
 
-        <ul v-if="previewResult.examples_to_create?.length" class="generation__examples">
-          <li v-for="example in previewResult.examples_to_create.slice(0, 10)" :key="`create-${example.start_at}`">
-            {{ formatSlotExample(example.start_at, example.end_at) }}
-          </li>
-        </ul>
+        <details class="generation__details">
+          <summary>Показати деталі</summary>
+          <div class="generation__stats">
+            <div>Вже існує: <strong>{{ previewResult.existing_count }}</strong></div>
+            <div>Буде видалено (вільні): <strong>{{ previewResult.to_delete_count }}</strong></div>
+            <div>Заброньовані конфлікти: <strong>{{ previewResult.booked_conflicts_count }}</strong></div>
+            <div>Буде пропущено: <strong>{{ previewResult.skipped_duplicate_or_conflict_count }}</strong></div>
+          </div>
 
-        <ul v-if="previewResult.examples_to_delete?.length" class="generation__examples">
-          <li v-for="example in previewResult.examples_to_delete.slice(0, 10)" :key="`delete-${example.start_at}`">
-            Видалення: {{ formatSlotExample(example.start_at, example.end_at) }}
-          </li>
-        </ul>
+          <ul v-if="previewResult.examples_to_create?.length" class="generation__examples">
+            <li v-for="example in previewResult.examples_to_create.slice(0, 10)" :key="`create-${example.start_at}`">
+              {{ formatSlotExample(example.start_at, example.end_at) }}
+            </li>
+          </ul>
 
-        <ul v-if="previewResult.booked_conflict_examples?.length" class="generation__examples">
-          <li v-for="example in previewResult.booked_conflict_examples.slice(0, 10)" :key="`conflict-${example.start_at}`">
-            Конфлікт бронювання: {{ formatSlotExample(example.start_at, example.end_at) }}
-          </li>
-        </ul>
+          <ul v-if="previewResult.examples_to_delete?.length" class="generation__examples">
+            <li v-for="example in previewResult.examples_to_delete.slice(0, 10)" :key="`delete-${example.start_at}`">
+              Видалення: {{ formatSlotExample(example.start_at, example.end_at) }}
+            </li>
+          </ul>
+
+          <ul v-if="previewResult.booked_conflict_examples?.length" class="generation__examples">
+            <li v-for="example in previewResult.booked_conflict_examples.slice(0, 10)" :key="`conflict-${example.start_at}`">
+              Конфлікт бронювання: {{ formatSlotExample(example.start_at, example.end_at) }}
+            </li>
+          </ul>
+        </details>
         <RouterLink class="btn btn--ghost btn--sm" to="/cabinet/slots">Перейти до вільних вікон</RouterLink>
       </div>
     </section>
@@ -920,6 +943,24 @@ function formatSlotExample(startAt: string, endAt: string): string {
   return `${formatUkDateTimeCompact(startAt, startAt)} - ${formatUkTime(endAt, endAt)}`
 }
 
+function slotsWord(count: number): string {
+  const n = Math.abs(count) % 100
+  const n1 = n % 10
+  if (n > 10 && n < 20) return 'вікон'
+  if (n1 > 1 && n1 < 5) return 'вікна'
+  if (n1 === 1) return 'вікно'
+  return 'вікон'
+}
+
+function intervalsWord(count: number): string {
+  const n = Math.abs(count) % 100
+  const n1 = n % 10
+  if (n > 10 && n < 20) return 'проміжків'
+  if (n1 > 1 && n1 < 5) return 'проміжки'
+  if (n1 === 1) return 'проміжок'
+  return 'проміжків'
+}
+
 async function onPreviewGeneration() {
   if (!hasActiveRules.value) return
   generationLoading.value = true
@@ -1214,6 +1255,27 @@ onMounted(loadScheduleContext)
 .generation__stats {
   display: grid;
   gap: 4px;
+}
+
+.generation__summary {
+  display: grid;
+  gap: 6px;
+}
+
+.generation__summaryItem {
+  margin: 0;
+}
+
+.generation__details {
+  border-top: 1px dashed var(--line);
+  padding-top: 8px;
+  display: grid;
+  gap: 8px;
+}
+
+.generation__details summary {
+  cursor: pointer;
+  font-weight: 600;
 }
 
 .generation__examples {
