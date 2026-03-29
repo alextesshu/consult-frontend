@@ -21,23 +21,35 @@
             <span class="pill pill--neutral">Створення</span>
           </div>
           <h2 class="panel__title">Новий запис</h2>
-          <p class="panel__hint">
+          <p v-if="isAuthorJournalEnabled" class="panel__hint">
             Чернетки видно лише вам. Опубліковані записи зʼявляються у публічному профілі.
+          </p>
+          <p v-else class="panel__hint">
+            На плані Start авторський журнал недоступний. Щоб створювати й публікувати записи, перейдіть на
+            Pro або Leader.
           </p>
         </div>
 
         <div class="panel__headerActions">
           <button
+            v-if="isAuthorJournalEnabled"
             class="btn"
             type="button"
             @click="createOpen = !createOpen; if (createOpen) cancelInlineEdit()"
           >
             {{ createOpen ? 'Згорнути' : '+ Новий пост' }}
           </button>
+          <RouterLink v-else class="btn btn--ghost btn--sm" to="/cabinet/billing">Тарифи</RouterLink>
         </div>
       </div>
 
-      <div v-if="createOpen" class="collapse">
+      <div v-if="!isAuthorJournalEnabled" class="journal-locked" role="status" aria-live="polite">
+        <div class="journal-locked__title">Створення постів наразі недоступне</div>
+        <p class="muted">
+          Після переходу на Pro або Leader ви зможете створювати чернетки та публікувати записи в профілі.
+        </p>
+      </div>
+      <div v-else-if="createOpen" class="collapse">
         <form class="form" @submit.prevent="onSaveJournal">
         <div class="form-grid">
           <label class="field">
@@ -714,7 +726,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import DOMPurify from 'dompurify'
 import { marked } from 'marked'
@@ -741,6 +753,7 @@ import {
 import ConfirmModal from '../components/ConfirmModal.vue'
 import { useConfirmModal } from '../composables/useConfirmModal'
 import { useToast } from '../composables/useToast'
+import { useAuthStore } from '../stores/auth'
 
 const journalLoading = ref(false)
 const collectionsLoading = ref(false)
@@ -768,6 +781,7 @@ const bodyInput = ref<HTMLTextAreaElement | null>(null)
 const summaryInput = ref<HTMLTextAreaElement | null>(null)
 const router = useRouter()
 const toast = useToast()
+const auth = useAuthStore()
 const activeTab = ref<'posts' | 'collections'>('posts')
 const createCollectionOpen = ref(false)
 const managingCollectionId = ref<number | null>(null)
@@ -809,6 +823,20 @@ const editForm = reactive({
 })
 const journalDeleteModal = useConfirmModal()
 let collectionSuccessTimer: number | null = null
+const AUTHOR_JOURNAL_ENTITLEMENT_MESSAGE =
+  'Авторський журнал недоступний на вашому тарифі. Перейдіть на Pro або Leader, щоб створювати записи.'
+type PlanCode = 'START' | 'PRO' | 'LEADER'
+
+const planCode = computed<PlanCode | null>(() => {
+  const raw = auth.me?.effective_entitlements?.plan
+  if (raw === 'START' || raw === 'PRO' || raw === 'LEADER') return raw
+  return null
+})
+
+const isAuthorJournalEnabled = computed(() => {
+  if (!planCode.value) return true
+  return planCode.value !== 'START'
+})
 
 async function loadJournal() {
   journalLoading.value = true
@@ -1114,6 +1142,10 @@ async function removeCollectionItem(collectionId: number, itemId: number) {
 }
 
 async function onSaveJournal() {
+  if (!isAuthorJournalEnabled.value) {
+    journalError.value = AUTHOR_JOURNAL_ENTITLEMENT_MESSAGE
+    return
+  }
   journalSaving.value = true
   journalError.value = ''
   try {
@@ -1132,10 +1164,22 @@ async function onSaveJournal() {
     resetJournalForm()
     createOpen.value = false
   } catch (err) {
-    journalError.value = getApiErrorMessage(err, 'Не вдалося зберегти пост')
+    if (isAuthorJournalEntitlementError(err)) {
+      journalError.value = AUTHOR_JOURNAL_ENTITLEMENT_MESSAGE
+    } else {
+      journalError.value = getApiErrorMessage(err, 'Не вдалося зберегти пост')
+    }
   } finally {
     journalSaving.value = false
   }
+}
+
+function isAuthorJournalEntitlementError(err: unknown): boolean {
+  const data = (err as any)?.response?.data
+  const detail = data?.detail
+  if (typeof detail !== 'string') return false
+  const normalized = detail.toLowerCase()
+  return normalized.includes('author journal') && normalized.includes('not enabled')
 }
 
 function startInlineEdit(post: AuthorJournalPost) {
@@ -1585,6 +1629,20 @@ onMounted(() => {
   margin-top: 12px;
   padding-top: 12px;
   border-top: 1px solid var(--line);
+}
+
+.journal-locked {
+  margin-top: 12px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(246, 248, 250, 0.9);
+  display: grid;
+  gap: 8px;
+}
+
+.journal-locked__title {
+  font-weight: 700;
 }
 
 .panel__title {
