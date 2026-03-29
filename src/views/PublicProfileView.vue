@@ -489,7 +489,7 @@
         </div>
       </section>
 
-      <div class="panel panel--journal" id="journal">
+      <div v-if="hasPublicJournalPosts" class="panel panel--journal" id="journal">
         <div class="panel__header">
           <div>
             <div class="badge badge--soft">Авторський журнал</div>
@@ -909,6 +909,7 @@ const isBookingDisabled = (slotId: number) =>
   !canBook.value || bookingSlotId.value === slotId || !settingAccepted.value
 const visibleSlots = computed(() => (showAllSlots.value ? slots.value : slots.value.slice(0, slotsPreviewLimit)))
 const hasMoreSlots = computed(() => slots.value.length > slotsPreviewLimit)
+const hasPublicJournalPosts = computed(() => journalPosts.value.length > 0)
 const matchesProfileSession = (session: ClientSession) => {
   if (!profile.value) return false
   const specialistId = profile.value.therapist_id
