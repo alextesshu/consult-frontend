@@ -1405,15 +1405,12 @@ function mdWrapEdit(left: string, right: string) {
   const value = editForm.body || ''
   const start = (el.selectionStart ?? 0) || editSelStart.value
   const end = (el.selectionEnd ?? 0) || editSelEnd.value || start
-  const selected = value.slice(start, end) || (start !== end ? '' : 'текст')
-
-  editForm.body = value.slice(0, start) + left + selected + right + value.slice(end)
+  const wrapped = wrapWithEdgeWhitespace(value, start, end, left, right, 'текст')
+  editForm.body = wrapped.next
 
   requestAnimationFrame(() => {
     el.focus()
-    const selStart = start + left.length
-    const selEnd = selStart + selected.length
-    el.setSelectionRange(selStart, selEnd)
+    el.setSelectionRange(wrapped.selStart, wrapped.selEnd)
   })
 }
 
@@ -1467,20 +1464,39 @@ function mdWrap(left: string, right: string) {
   const value = activeMdField.value === 'summary' ? journalForm.summary || '' : journalForm.body || ''
   const start = el.selectionStart ?? 0
   const end = el.selectionEnd ?? 0
-  const selected = value.slice(start, end) || 'текст'
-  const next = value.slice(0, start) + left + selected + right + value.slice(end)
+  const wrapped = wrapWithEdgeWhitespace(value, start, end, left, right, 'текст')
   if (activeMdField.value === 'summary') {
-    journalForm.summary = next
+    journalForm.summary = wrapped.next
   } else {
-    journalForm.body = next
+    journalForm.body = wrapped.next
   }
 
   requestAnimationFrame(() => {
     el.focus()
-    const selStart = start + left.length
-    const selEnd = selStart + selected.length
-    el.setSelectionRange(selStart, selEnd)
+    el.setSelectionRange(wrapped.selStart, wrapped.selEnd)
   })
+}
+
+function wrapWithEdgeWhitespace(
+  value: string,
+  start: number,
+  end: number,
+  left: string,
+  right: string,
+  fallback: string
+) {
+  const hasSelection = end > start
+  const rawSelected = hasSelection ? value.slice(start, end) : fallback
+  const leading = rawSelected.match(/^\s*/)?.[0] || ''
+  const trailing = rawSelected.match(/\s*$/)?.[0] || ''
+  const core = rawSelected.slice(leading.length, rawSelected.length - trailing.length) || fallback
+
+  const wrapped = `${leading}${left}${core}${right}${trailing}`
+  const next = value.slice(0, start) + wrapped + value.slice(end)
+
+  const selStart = start + leading.length + left.length
+  const selEnd = selStart + core.length
+  return { next, selStart, selEnd }
 }
 
 function mdLink() {
