@@ -2,10 +2,10 @@
   <section class="feedback">
     <header class="feedback__hero">
       <div>
-        <div class="badge">Відгук клієнта</div>
-        <h1 class="title feedback__title">Залишити відгук</h1>
+        <div class="badge">{{ heroBadgeLabel }}</div>
+        <h1 class="title feedback__title">{{ heroTitle }}</h1>
         <p class="muted feedback__subtitle">
-          {{ profile ? `Для спеціаліста ${publicName}` : 'Завантаження профілю спеціаліста...' }}
+          {{ heroSubtitle }}
         </p>
       </div>
       <div class="feedback__actions">
@@ -125,6 +125,7 @@ const roles = computed(() => auth.me?.user.roles ?? auth.user?.roles ?? [])
 const isAuthenticated = computed(() => Boolean(auth.accessToken))
 const isSpecialist = computed(() => roles.value.includes('SPECIALIST') || roles.value.includes('THERAPIST'))
 const isOwner = computed(() => Boolean(profile.value?.therapist_id && auth.user?.id === profile.value?.therapist_id))
+const isSpecialistOwnerView = computed(() => isSpecialist.value && isOwner.value)
 
 function formatPublicName(value?: string) {
   if (!value) return ''
@@ -138,6 +139,15 @@ function formatPublicName(value?: string) {
 }
 
 const publicNameShort = computed(() => formatPublicName(profile.value?.display_name) || publicName.value)
+const heroBadgeLabel = computed(() => (isSpecialistOwnerView.value ? 'Відгуки клієнтів' : 'Відгук клієнта'))
+const heroTitle = computed(() => (isSpecialistOwnerView.value ? 'Огляд відгуків' : 'Залишити відгук'))
+const heroSubtitle = computed(() => {
+  if (!profile.value) return 'Завантаження профілю спеціаліста...'
+  if (isSpecialistOwnerView.value) {
+    return 'Приватні анонімні відгуки від клієнтів. Тут немає публічного рейтингу.'
+  }
+  return `Для спеціаліста ${publicName.value}`
+})
 
 async function loadProfile() {
   if (!slug.value) {
