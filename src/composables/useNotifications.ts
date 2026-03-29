@@ -7,7 +7,7 @@ import {
   type NotificationFeedItem,
 } from '../lib/api'
 import { formatUkDateTimeCompact } from '../lib/dateTime'
-import { canJoinExternalMeeting, normalizeMeetingUrl } from '../lib/sessionExecution'
+import { normalizeMeetingUrl } from '../lib/sessionExecution'
 import { useToast } from './useToast'
 
 export type BellNotification = {
@@ -24,7 +24,6 @@ export type BellNotification = {
 
 export function useNotifications({
   isClient,
-  isSpecialist,
 }: {
   isClient: ComputedRef<boolean>
   isSpecialist: ComputedRef<boolean>

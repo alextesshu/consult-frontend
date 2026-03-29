@@ -744,7 +744,7 @@ describe('TherapistSessionsView', () => {
       expect(await screen.findByText(/keep-open@example\.com/)).toBeInTheDocument()
       const sessionCard = screen.getByText(/keep-open@example\.com/).closest('article')
       expect(sessionCard).not.toBeNull()
-      const completionButton = within(sessionCard as HTMLElement).getAllByRole('button')[1]
+      const completionButton = within(sessionCard as HTMLElement).getAllByRole('button')[1] as HTMLButtonElement
       expect(completionButton).toBeTruthy()
       await fireEvent.click(completionButton)
 
