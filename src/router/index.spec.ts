@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import router from './index'
 import { useAuthStore } from '../stores/auth'
@@ -50,6 +50,17 @@ describe('router specialist session routes', () => {
 
     expect(router.currentRoute.value.name).toBe('cabinet-session-detail')
     expect(router.currentRoute.value.params).toEqual({ id: '42' })
+  })
+
+  it('does not force redirect to login on transient me bootstrap failure when token exists', async () => {
+    const auth = useAuthStore()
+    auth.setToken('test-token')
+    const loadMeSpy = vi.spyOn(auth, 'loadMe').mockRejectedValueOnce(new Error('transient me failure'))
+
+    await router.push('/cabinet/sessions/42')
+
+    expect(router.currentRoute.value.name).toBe('cabinet-session-detail')
+    expect(loadMeSpy).toHaveBeenCalledTimes(1)
   })
 
   it('matches the specialist client workbook route for numeric ids', () => {

@@ -33,6 +33,21 @@ type MePayload = {
   server_time: string
 }
 
+let refreshInFlight: Promise<string | null> | null = null
+let restoreInFlight: Promise<boolean> | null = null
+const AUTH_REFRESH_RETRY_ATTEMPTS = 2
+const AUTH_ME_RETRY_ATTEMPTS = 2
+const AUTH_RETRY_DELAY_MS = 150
+
+function sleep(ms: number) {
+  return new Promise<void>((resolve) => window.setTimeout(resolve, ms))
+}
+
+function isTerminalRefreshFailure(err: unknown) {
+  const status = (err as any)?.response?.status
+  return status === 401 || status === 403
+}
+
 export const useAuthStore = defineStore('auth', {
   state: () => ({
     accessToken: '' as string,
@@ -140,28 +155,69 @@ export const useAuthStore = defineStore('auth', {
       this.setMe(me)
     },
     async refreshAccessToken(epoch?: number): Promise<string | null> {
-      const effectiveEpoch = epoch ?? this.authEpoch
-      try {
-        const tokens = await refreshToken()
-        if (!this.isEpochActive(effectiveEpoch)) return null
-        this.setToken(tokens.access)
-        return tokens.access
-      } catch {
-        if (!this.isEpochActive(effectiveEpoch)) return null
-        this.logout()
-        return null
+      if (refreshInFlight) {
+        return refreshInFlight
       }
+
+      const effectiveEpoch = epoch ?? this.authEpoch
+      refreshInFlight = (async () => {
+        try {
+          const tokens = await refreshToken()
+          if (!this.isEpochActive(effectiveEpoch)) return null
+          this.setToken(tokens.access)
+          return tokens.access
+        } catch (err) {
+          if (!this.isEpochActive(effectiveEpoch)) return null
+          if (isTerminalRefreshFailure(err)) {
+            this.logout()
+          }
+          return null
+        }
+      })().finally(() => {
+        refreshInFlight = null
+      })
+
+      return refreshInFlight
     },
 
     async restoreSession(): Promise<boolean> {
-      const epoch = this.beginAuthEpoch()
-      const access = await this.refreshAccessToken(epoch)
-      if (!access) return false
-      if (!this.isEpochActive(epoch)) return false
-      const me = await fetchMe(access)
-      if (!this.isEpochActive(epoch)) return false
-      this.setMe(me)
-      return true
+      if (restoreInFlight) {
+        return restoreInFlight
+      }
+
+      restoreInFlight = (async () => {
+        const epoch = this.beginAuthEpoch()
+        let access: string | null = null
+        for (let attempt = 0; attempt < AUTH_REFRESH_RETRY_ATTEMPTS; attempt += 1) {
+          access = await this.refreshAccessToken(epoch)
+          if (access) break
+          if (!this.isEpochActive(epoch)) return false
+          if (attempt < AUTH_REFRESH_RETRY_ATTEMPTS - 1) {
+            await sleep(AUTH_RETRY_DELAY_MS)
+          }
+        }
+        if (!access) return false
+        if (!this.isEpochActive(epoch)) return false
+
+        for (let attempt = 0; attempt < AUTH_ME_RETRY_ATTEMPTS; attempt += 1) {
+          try {
+            const me = await fetchMe(access)
+            if (!this.isEpochActive(epoch)) return false
+            this.setMe(me)
+            return true
+          } catch {
+            if (!this.isEpochActive(epoch)) return false
+            if (attempt < AUTH_ME_RETRY_ATTEMPTS - 1) {
+              await sleep(AUTH_RETRY_DELAY_MS)
+            }
+          }
+        }
+        return false
+      })().finally(() => {
+        restoreInFlight = null
+      })
+
+      return restoreInFlight
     },
     async logoutWithServer() {
       try {

@@ -296,7 +296,7 @@ router.beforeEach(async (to) => {
   const defaultRoute = () => {
     if (hasSpecialistRole()) return { name: 'cabinet' }
     if (hasRole('CLIENT')) return { name: 'client-dashboard' }
-    return { name: 'login' }
+    return { name: 'forbidden' }
   }
 
   if (to.meta.requiresAuth) {
@@ -313,13 +313,16 @@ router.beforeEach(async (to) => {
       try {
         await auth.loadMe()
       } catch {
+        if (auth.accessToken) {
+          return
+        }
         if (to.name === 'public-specialists') {
           return { name: 'signup-client' }
         }
         return { name: 'login' }
       }
     }
-    if (to.meta.requiresRole && !roleMatches(String(to.meta.requiresRole))) {
+    if (to.meta.requiresRole && auth.user && !roleMatches(String(to.meta.requiresRole))) {
       if (to.name === 'public-specialists' && hasSpecialistRole()) {
         return { name: 'cabinet' }
       }

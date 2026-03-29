@@ -68,9 +68,13 @@ http.interceptors.response.use(
         original.headers.Authorization = `Bearer ${newToken}`
         return http(original)
       }
-      auth.logout()
+      if (!auth.accessToken) {
+        auth.logout()
+      }
     } else if (!isAuthEndpoint && error.response?.status === 401) {
-      auth.logout()
+      if (!auth.accessToken) {
+        auth.logout()
+      }
     }
 
     return Promise.reject(error)

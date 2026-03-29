@@ -130,4 +130,71 @@ describe('auth store cookie-based flow', () => {
     expect(auth.user?.username).toBe('new-user')
     expect(auth.user?.username).not.toBe('superadmin')
   })
+
+  it('deduplicates concurrent restoreSession calls into a single refresh request', async () => {
+    const auth = useAuthStore()
+    const refreshDeferred = deferred<{ access: string }>()
+
+    mockedRefreshToken.mockImplementationOnce(() => refreshDeferred.promise)
+    mockedFetchMe.mockResolvedValue({
+      user: { id: 11, username: 'restored-user', email: 'restored@example.com', roles: ['SPECIALIST'] },
+      access_state: null,
+      effective_entitlements: null,
+      counts: null,
+      server_time: '2026-03-25T10:00:00Z',
+    })
+
+    const restoreA = auth.restoreSession()
+    const restoreB = auth.restoreSession()
+    refreshDeferred.resolve({ access: 'restored-access' })
+
+    const [resultA, resultB] = await Promise.all([restoreA, restoreB])
+
+    expect(resultA).toBe(true)
+    expect(resultB).toBe(true)
+    expect(mockedRefreshToken).toHaveBeenCalledTimes(1)
+    expect(auth.accessToken).toBe('restored-access')
+    expect(auth.user?.username).toBe('restored-user')
+  })
+
+  it('keeps auth state on transient refresh failure', async () => {
+    const auth = useAuthStore()
+    auth.setToken('still-valid-in-memory')
+    auth.setUser({
+      id: 5,
+      username: 'specialist',
+      email: 's@example.com',
+      roles: ['SPECIALIST'],
+    })
+
+    mockedRefreshToken.mockRejectedValueOnce(new Error('network down'))
+
+    const refreshed = await auth.refreshAccessToken()
+
+    expect(refreshed).toBeNull()
+    expect(auth.accessToken).toBe('still-valid-in-memory')
+    expect(auth.user?.username).toBe('specialist')
+  })
+
+  it('logs out on terminal refresh failure (401)', async () => {
+    const auth = useAuthStore()
+    auth.setToken('expired-token')
+    auth.setUser({
+      id: 9,
+      username: 'client',
+      email: 'c@example.com',
+      roles: ['CLIENT'],
+    })
+
+    mockedRefreshToken.mockRejectedValueOnce({
+      response: { status: 401 },
+    })
+
+    const refreshed = await auth.refreshAccessToken()
+
+    expect(refreshed).toBeNull()
+    expect(auth.accessToken).toBe('')
+    expect(auth.user).toBeNull()
+    expect(auth.me).toBeNull()
+  })
 })
