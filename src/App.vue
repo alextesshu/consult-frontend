@@ -270,7 +270,10 @@ const runtimeBundleBuildId = (() => {
   const match = script.src.match(/\/assets\/index-([A-Za-z0-9_-]+)\.js/)
   return match?.[1] || ''
 })()
-const buildShaShort = computed(() => (buildSha ? buildSha.slice(0, 8) : runtimeBundleBuildId || 'unknown'))
+const buildShaShort = computed(() => {
+  if (buildSha && buildSha.toLowerCase() !== 'unknown') return buildSha.slice(0, 8)
+  return runtimeBundleBuildId || 'unknown'
+})
 const showStagingDeployMarker = computed(
   () =>
     deployEnv === 'staging' ||
