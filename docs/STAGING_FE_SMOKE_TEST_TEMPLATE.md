@@ -1,15 +1,26 @@
-# Staging FE Smoke Test Template (Beta Pass)
+# Staging FE Smoke Test Template (PRO CONSULT)
 
-Last updated: 2026-03-27  
+Last updated: 2026-03-30  
 Environment:
 - Frontend: `https://staging.proconsult.space`
 - API: `https://staging-api.proconsult.space`
+- Branch mapping: `dev -> staging`, `main -> production`
 
 Tester:
 Date:
 Build/commit:
 
-## 1) Smoke Checklist (Beta)
+## 1) Deploy Preflight (Canonical)
+
+- [ ] Trigger deploy only via backend canonical deploy script for staging (no ad-hoc/manual remembered commands).
+- [ ] Confirm deploy target is `dev` branch for staging.
+- [ ] Open `https://staging.proconsult.space` after deploy completes.
+- [ ] Verify footer deploy marker is visible:
+  - env label: `Staging`
+  - FE build marker: short commit SHA/version
+- [ ] Record the same marker in `Build/commit` above before running smoke.
+
+## 2) Smoke Checklist (Beta)
 
 ### Auth
 - [ ] Signup (specialist) works, success path clear.
@@ -61,7 +72,7 @@ Build/commit:
 - [ ] Notifications page
 - [ ] Each screen has explicit and non-broken loading/empty/error behavior.
 
-## 2) Defect Log Template
+## 3) Defect Log Template
 
 Use one row per issue.
 
@@ -79,7 +90,7 @@ Severity guide:
 Status values:
 - `Open`, `In Progress`, `Fixed`, `Verified`, `Won't Fix (beta)`.
 
-## 3) Triage Outcome
+## 4) Triage Outcome
 
 ### Beta Must-Have Fix Criteria
 - Breaks core auth/session flow.

@@ -228,6 +228,10 @@
       <div class="footer__meta">
         <span>Без комісій. Без посередників. З повагою до практики.</span>
       </div>
+      <div v-if="showStagingDeployMarker" class="footer__deploy" aria-label="staging-deploy-marker">
+        <span class="footer__deploy-env">Staging</span>
+        <span class="footer__deploy-build">FE {{ buildMarkerText }}</span>
+      </div>
       <div class="footer__legal">
         <RouterLink class="footer__link" to="/terms">Умови користування</RouterLink>
         <RouterLink class="footer__link" to="/privacy">Політика конфіденційності</RouterLink>
@@ -254,6 +258,22 @@ const router = useRouter()
 const auth = useAuthStore()
 const isAuthenticated = computed(() => Boolean(auth.accessToken))
 const isHome = computed(() => route.path === '/')
+const runtimeHost = typeof window !== 'undefined' ? window.location.hostname.toLowerCase() : ''
+const deployEnv = String(import.meta.env.VITE_DEPLOY_ENV || '').trim().toLowerCase()
+const apiBaseUrl = String(import.meta.env.VITE_API_BASE_URL || '').trim().toLowerCase()
+const buildSha = String(import.meta.env.VITE_BUILD_SHA || '').trim()
+const buildVersion = String(import.meta.env.VITE_BUILD_VERSION || '').trim()
+const buildShaShort = computed(() => (buildSha ? buildSha.slice(0, 8) : 'unknown'))
+const showStagingDeployMarker = computed(
+  () =>
+    deployEnv === 'staging' ||
+    runtimeHost === 'staging.proconsult.space' ||
+    apiBaseUrl.includes('staging-api.proconsult.space')
+)
+const buildMarkerText = computed(() => {
+  if (buildVersion) return `v${buildVersion} (${buildShaShort.value})`
+  return buildShaShort.value
+})
 
 watchEffect(() => {
   document.body.classList.toggle('body--home', isHome.value)
@@ -1267,6 +1287,30 @@ body.body--home .footer {
   gap: 12px;
   align-items: center;
   flex-wrap: wrap;
+}
+
+.footer__deploy {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 10px;
+  border: 1px solid color-mix(in srgb, var(--text) 18%, transparent);
+  border-radius: var(--radius-pill);
+  font-size: 11px;
+  line-height: 1.2;
+  color: color-mix(in srgb, var(--text) 75%, #50606a);
+  background: color-mix(in srgb, var(--surface) 80%, #f4f7f8);
+}
+
+.footer__deploy-env {
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.footer__deploy-build {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+  font-weight: 600;
 }
 
 .footer__legal {
