@@ -178,7 +178,8 @@
           <h2 class="section-title">Тарифи для різних етапів практики</h2>
           <p class="muted">Без комісії за сесію. Спеціаліст сам визначає умови роботи з клієнтами.</p>
           <p class="pricing__definition">
-            У кожному плані: публічний профіль, запис через вільні вікна та базове керування сесіями.
+            У кожному плані — публічний профіль, яким можна ділитися, гнучкий функціонал запису та бронювання й
+            робота без комісії за сесії.
           </p>
           <div class="pricing-toggle" role="group" aria-label="Режим оплати">
             <button
@@ -234,7 +235,6 @@
               <li v-for="item in plan.features" :key="item">{{ item }}</li>
             </ul>
             <div class="plan-foot">
-              <div class="muted">{{ plan.note }}</div>
               <button
                 class="btn"
                 type="button"
@@ -378,7 +378,6 @@ type PricingPlan = {
   annual_fallback_note: string | null
   badge: string
   features: string[]
-  note: string
 }
 
 const billingCycle = ref<BillingCycle>('monthly')
@@ -397,17 +396,14 @@ const pricingPlans: PricingPlan[] = [
     badge: 'Базовий',
     features: [
       'До 5 активних клієнтів',
-      'Публічний профіль із записом через вільні вікна',
-      'Базове керування сесіями та доступністю',
-      'Нотатки до сесій і матеріали для клієнтів',
-      'Без комісії за сесію',
+      'Публічний профіль і запис',
+      'Для старту практики',
     ],
-    note: 'Добрий вибір для запуску практики й перших стабільних записів.',
   },
   {
     code: 'PRO',
     title: 'Pro',
-    subtitle: 'Для стабільної та зростаючої практики',
+    subtitle: 'Для регулярної роботи з клієнтами',
     monthly_price: '€24',
     annual_monthly_price: '€20',
     annual_one_shot: 'Оплата за рік — €240 одним платежем',
@@ -415,13 +411,11 @@ const pricingPlans: PricingPlan[] = [
     annual_fallback_note: null,
     badge: 'Популярний',
     features: [
+      'Усе зі Start',
       'До 20 активних клієнтів',
-      'Повторювані сесії та гнучкі перенесення',
-      'Розширені нагадування й підтвердження',
-      'Відео та матеріали в публічному профілі',
-      'Базова аналітика практики',
+      'Публікації у профілі',
+      'Розширена аналітика',
     ],
-    note: 'Оптимальний баланс інструментів для регулярної роботи з клієнтами.',
   },
   {
     code: 'LEADER',
@@ -434,13 +428,10 @@ const pricingPlans: PricingPlan[] = [
     annual_fallback_note: null,
     badge: 'Розширений',
     features: [
+      'Усе з Pro',
       'До 60 активних клієнтів',
-      'Усе з плану Pro',
-      'Поглиблена аналітика практики',
-      'Пріоритетна підтримка',
-      'Ранній доступ до нових можливостей',
+      'Найглибша аналітика',
     ],
-    note: 'План для спеціалістів, які масштабують практику і командні процеси.',
   },
 ]
 
@@ -1185,8 +1176,10 @@ onBeforeUnmount(() => {
   margin: 0;
   padding: 0;
   display: grid;
-  gap: 6px;
-  color: var(--muted);
+  gap: 8px;
+  color: color-mix(in srgb, var(--text) 76%, #4f616a);
+  font-size: 14px;
+  line-height: 1.35;
 }
 
 .plan-list li {
@@ -1203,7 +1196,7 @@ onBeforeUnmount(() => {
 
 .plan-foot {
   display: grid;
-  gap: 10px;
+  gap: 0;
 }
 
 .plan-foot .btn {
