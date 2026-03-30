@@ -263,7 +263,14 @@ const deployEnv = String(import.meta.env.VITE_DEPLOY_ENV || '').trim().toLowerCa
 const apiBaseUrl = String(import.meta.env.VITE_API_BASE_URL || '').trim().toLowerCase()
 const buildSha = String(import.meta.env.VITE_BUILD_SHA || '').trim()
 const buildVersion = String(import.meta.env.VITE_BUILD_VERSION || '').trim()
-const buildShaShort = computed(() => (buildSha ? buildSha.slice(0, 8) : 'unknown'))
+const runtimeBundleBuildId = (() => {
+  if (typeof document === 'undefined') return ''
+  const script = document.querySelector<HTMLScriptElement>('script[src*="/assets/index-"]')
+  if (!script?.src) return ''
+  const match = script.src.match(/\/assets\/index-([A-Za-z0-9_-]+)\.js/)
+  return match?.[1] || ''
+})()
+const buildShaShort = computed(() => (buildSha ? buildSha.slice(0, 8) : runtimeBundleBuildId || 'unknown'))
 const showStagingDeployMarker = computed(
   () =>
     deployEnv === 'staging' ||
