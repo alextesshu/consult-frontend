@@ -91,6 +91,7 @@
           <div class="muted">{{ plan.note }}</div>
           <div class="plan-action">
             <button
+              v-if="isUpgradePlan(plan.code)"
               class="btn"
               type="button"
               :disabled="!canSelfServePlan(plan.code) || isRequesting"
@@ -99,7 +100,7 @@
               {{ planActionLabel(plan.code) }}
             </button>
             <button
-              v-if="canSelfServePlan(plan.code)"
+              v-if="isUpgradePlan(plan.code)"
               class="btn btn--ghost"
               type="button"
               :disabled="isRequesting"
@@ -107,6 +108,10 @@
             >
               Індивідуальні умови
             </button>
+            <div v-else-if="isCurrentPlan(plan.code)" class="plan-action__state">Поточний план</div>
+            <div v-else-if="isDowngradePlan(plan.code)" class="plan-action__note">
+              Перехід на нижчий план зараз оформлюється через підтримку.
+            </div>
             <div v-if="requestMessageFor(plan.code)" class="muted">
               {{ requestMessageFor(plan.code) }}
             </div>
@@ -307,7 +312,6 @@ function canSelfServePlan(code: string) {
 function planActionLabel(code: string) {
   if (isCurrentPlan(code)) return 'Поточний план'
   if (isUpgradePlan(code)) return `Перейти на ${planTitle(code as PlanCode)}`
-  if (isDowngradePlan(code)) return 'Нижчий план'
   return 'Недоступно'
 }
 
@@ -703,6 +707,17 @@ onMounted(() => {
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
+}
+
+.plan-action__state {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--deep);
+}
+
+.plan-action__note {
+  font-size: 13px;
+  color: var(--muted);
 }
 
 .plan-card .badge {
