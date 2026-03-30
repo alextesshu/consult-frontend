@@ -82,7 +82,7 @@ describe('BillingView downgrade semantics', () => {
     })
 
     expect(screen.queryByText('Нижчий план')).not.toBeInTheDocument()
-    expect(screen.getAllByText('Перехід на нижчий план зараз оформлюється через підтримку.')).toHaveLength(2)
+    expect(screen.getAllByText('Перехід на нижчий план зараз оформлюється через підтримку.')).toHaveLength(1)
   })
 
   it('shows downgrade note once for PRO and keeps upgrade path to LEADER', async () => {

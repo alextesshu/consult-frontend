@@ -27,10 +27,6 @@
           <span class="access-label">Ліміт активних клієнтів:</span>
           <strong>{{ activeLimitLabel }}</strong>
         </div>
-        <div class="access-line">
-          <span class="access-label">Групові онлайн-події:</span>
-          <strong>{{ groupRoomLabel }}</strong>
-        </div>
       </div>
       <div class="request-row">
         <button
@@ -57,6 +53,32 @@
       </div>
     </section>
 
+    <p class="muted billing__shared-value">
+      У кожному плані — публічний профіль, яким можна ділитися, гнучкий функціонал запису та бронювання й
+      робота без комісії за сесії.
+    </p>
+    <div class="billing__cycle-toggle" role="group" aria-label="Режим оплати">
+      <button
+        type="button"
+        class="billing__cycle-btn"
+        :class="{ 'is-active': billingCycle === 'monthly' }"
+        @click="billingCycle = 'monthly'"
+      >
+        Щомісяця
+      </button>
+      <button
+        type="button"
+        class="billing__cycle-btn"
+        :class="{ 'is-active': billingCycle === 'annual' }"
+        @click="billingCycle = 'annual'"
+      >
+        Щороку
+      </button>
+    </div>
+    <p class="muted billing__cycle-note">
+      Режим оплати застосовується до нового апгрейду і не відображає поточний цикл підписки.
+    </p>
+
     <section class="plan-grid">
       <article
         v-for="plan in plans"
@@ -64,31 +86,29 @@
         class="plan-card"
         :class="{
           'plan-card--current': isCurrentPlan(plan.code),
-          'plan-card--pro': plan.code === 'PRO',
+          'plan-card--highlight': plan.code === 'PRO',
         }"
       >
         <div class="plan-head">
-          <div class="plan-meta">
+          <div>
             <div class="plan-title">{{ plan.title }}</div>
             <div class="plan-subtitle">{{ plan.subtitle }}</div>
           </div>
           <div class="plan-price">
-            <div class="plan-price__main">{{ plan.price }}</div>
-          </div>
-          <div class="plan-price__alt">
-            <span class="plan-price__hint">{{ planAnnualHint(plan.code) }}</span>
+            <div class="plan-price__main">{{ planDisplayPrice(plan.code) }}</div>
+            <div class="plan-price__period">{{ billingCycleLabel }}</div>
           </div>
         </div>
-        <div class="plan-badges">
-          <span v-if="plan.code === 'PRO'" class="badge badge--pro">Рекомендовано</span>
-          <span v-if="isCurrentPlan(plan.code)" class="badge badge--soft">Поточний план</span>
-          <span v-else-if="isUpgradePlan(plan.code)" class="badge badge--outline">Оновлення</span>
+        <div class="plan-price__alt">
+          <span class="plan-price__hint">{{ planSecondaryPriceHint(plan.code) }}</span>
+        </div>
+        <div v-if="plan.badge" class="plan-badges">
+          <span v-if="plan.badge" class="plan-chip">{{ plan.badge }}</span>
         </div>
         <ul class="plan-list">
           <li v-for="item in plan.features" :key="item">{{ item }}</li>
         </ul>
         <div class="plan-foot">
-          <div class="muted">{{ plan.note }}</div>
           <div class="plan-action">
             <button
               v-if="isUpgradePlan(plan.code)"
@@ -101,7 +121,7 @@
             </button>
             <button
               v-if="isUpgradePlan(plan.code)"
-              class="btn btn--ghost"
+              class="btn btn--ghost plan-action__secondary"
               type="button"
               :disabled="isRequesting"
               @click="requestAccess(plan.code)"
@@ -109,9 +129,6 @@
               Індивідуальні умови
             </button>
             <div v-else-if="isCurrentPlan(plan.code)" class="plan-action__state">Поточний план</div>
-            <div v-else-if="isDowngradePlan(plan.code)" class="plan-action__note">
-              Перехід на нижчий план зараз оформлюється через підтримку.
-            </div>
             <div v-if="requestMessageFor(plan.code)" class="muted">
               {{ requestMessageFor(plan.code) }}
             </div>
@@ -119,11 +136,15 @@
         </div>
       </article>
     </section>
+
+    <p v-if="hasDowngradePlans" class="muted billing__downgrade-note">
+      Перехід на нижчий план зараз оформлюється через підтримку.
+    </p>
   </section>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useAuthStore } from '../stores/auth'
 import {
@@ -137,6 +158,9 @@ import {
 import SettingsSubnav from '../components/SettingsSubnav.vue'
 
 type PlanCode = 'START' | 'PRO' | 'LEADER'
+type BillingCycle = 'monthly' | 'annual'
+const ACTIVATION_POLL_INTERVAL_MS = 5000
+const ACTIVATION_MAX_ATTEMPTS = 12
 
 const planOrder: PlanCode[] = ['START', 'PRO', 'LEADER']
 
@@ -145,57 +169,56 @@ const plans = [
     code: 'START',
     title: 'Start',
     subtitle: 'Для старту практики',
-    price: '€10 / місяць',
+    price: '€10',
+    badge: 'Базовий',
     features: [
       'До 5 активних клієнтів',
-      'Публічний профіль та запис через вільні вікна',
-      'Базові сесії, доступність і Time Off',
-      'Базові нагадування та сповіщення',
-      'Зовнішнє посилання на онлайн-зустріч',
-      'Без комісій за сесії',
+      'Публічний профіль і запис',
+      'Для старту практики',
     ],
-    note: 'Лише щомісячна оплата.',
   },
   {
     code: 'PRO',
     title: 'Pro',
-    subtitle: 'Найкращий вибір для стабільної практики',
-    price: '€24 / місяць',
+    subtitle: 'Для регулярної роботи з клієнтами',
+    price: '€24',
+    badge: 'Популярний',
     features: [
-      '20 активних клієнтів',
-      'Recurring sessions',
-      'Smart reschedule suggestions',
-      'Повний модуль нагадувань і сповіщень',
-      'Авторський журнал / Серії',
-      'Групові онлайн-події',
-      'Базова аналітика',
-      'Відео у публічному профілі',
+      'Усе зі Start',
+      'До 20 активних клієнтів',
+      'Публікації у профілі',
+      'Розширена аналітика',
     ],
-    note: 'Основний повний стек для регулярної роботи.',
   },
   {
     code: 'LEADER',
     title: 'Leader',
     subtitle: 'Для зростання, масштабу і максимуму можливостей',
-    price: '€59 / місяць',
+    price: '€59',
+    badge: '',
     features: [
+      'Усе з Pro',
       'До 60 активних клієнтів',
-      'Усе з PRO',
-      'Розширена аналітика',
-      'Leader-інсайти та рекомендації',
-      'Анонси подій у стрічці — скоро',
-      'Пріоритетна підтримка — скоро',
-      'Ранній доступ до нових можливостей',
+      'Найглибша аналітика',
     ],
-    note: 'Преміальний план для масштабу, видимості та інсайтів.',
   },
 ] as const
 
 const planByCode = new Map(plans.map((plan) => [plan.code, plan]))
 const annualCopyByPlan: Record<PlanCode, string> = {
   START: 'Лише щомісячна оплата',
-  PRO: 'Або €20 / міс, оплата за рік — €240 одним платежем',
-  LEADER: 'Або €49 / міс, оплата за рік — €590 одним платежем',
+  PRO: '€240 / рік одним платежем',
+  LEADER: '€590 / рік одним платежем',
+}
+const annualMonthlyPriceByPlan: Record<PlanCode, string | null> = {
+  START: null,
+  PRO: '€20',
+  LEADER: '€49',
+}
+const annualOneShotByPlan: Record<PlanCode, string | null> = {
+  START: null,
+  PRO: '€240 / рік одним платежем',
+  LEADER: '€590 / рік одним платежем',
 }
 
 const auth = useAuthStore()
@@ -208,6 +231,11 @@ const requestFeedback = ref('')
 const requestFeedbackPlan = ref<PlanCode | null>(null)
 const checkoutFeedback = ref('')
 const checkoutFeedbackPlan = ref<PlanCode | null>(null)
+const billingCycle = ref<BillingCycle>('monthly')
+const activationPendingPlan = ref<PlanCode | null>(null)
+const isActivationPolling = ref(false)
+const activationPollAttempts = ref(0)
+let activationPollTimer: ReturnType<typeof setTimeout> | null = null
 
 const currentPlan = computed<PlanCode | null>(() => {
   const raw = me.value?.effective_entitlements?.plan
@@ -224,6 +252,8 @@ const currentIndex = computed(() => {
   if (!currentPlan.value) return -1
   return planOrder.indexOf(currentPlan.value)
 })
+
+const hasDowngradePlans = computed(() => currentIndex.value > 0)
 
 const nextPlan = computed<PlanCode | null>(() => {
   if (currentIndex.value === -1) return null
@@ -245,6 +275,9 @@ const requestStatus = computed(() => {
   return requestMessage(activeRequest.value || latestRequest.value || null)
 })
 const primaryStatus = computed(() => checkoutFeedback.value || requestStatus.value)
+const billingCycleLabel = computed(() =>
+  billingCycle.value === 'annual' ? 'за місяць при оплаті за рік' : 'за місяць'
+)
 
 const accessLabel = computed(() => {
   const state = me.value?.access_state
@@ -277,18 +310,45 @@ const activeLimitLabel = computed(() => {
   return Number.isFinite(limit) ? String(limit) : '∞'
 })
 
-const groupRoomLabel = computed(() => {
-  const enabled = me.value?.effective_entitlements?.group_room_enabled
-  if (enabled === null || enabled === undefined) return 'Н/Д'
-  return enabled ? 'Доступні' : 'Недоступні'
-})
-
 function planTitle(code: PlanCode) {
   return planByCode.get(code)?.title || code
 }
 
-function planAnnualHint(code: string) {
-  return annualCopyByPlan[code as PlanCode] || ''
+function clearActivationPolling() {
+  if (activationPollTimer) {
+    clearTimeout(activationPollTimer)
+    activationPollTimer = null
+  }
+  isActivationPolling.value = false
+  activationPollAttempts.value = 0
+}
+
+function isPlanReached(target: PlanCode) {
+  if (currentIndex.value === -1) return false
+  return currentIndex.value >= planOrder.indexOf(target)
+}
+
+function planDisplayPrice(code: string) {
+  const typedCode = code as PlanCode
+  if (billingCycle.value === 'annual' && annualMonthlyPriceByPlan[typedCode]) {
+    return annualMonthlyPriceByPlan[typedCode] as string
+  }
+  return planByCode.get(typedCode)?.price || ''
+}
+
+function planSecondaryPriceHint(code: string) {
+  const typedCode = code as PlanCode
+  if (billingCycle.value === 'annual') {
+    return annualOneShotByPlan[typedCode] || 'Лише щомісячна оплата'
+  }
+  return annualCopyByPlan[typedCode] || ''
+}
+
+function checkoutCycleForPlan(code: PlanCode): BillingCycle {
+  if (billingCycle.value === 'annual' && annualMonthlyPriceByPlan[code]) {
+    return 'annual'
+  }
+  return 'monthly'
 }
 
 function isCurrentPlan(code: string) {
@@ -298,11 +358,6 @@ function isCurrentPlan(code: string) {
 function isUpgradePlan(code: string) {
   if (currentIndex.value === -1) return false
   return planOrder.indexOf(code as PlanCode) > currentIndex.value
-}
-
-function isDowngradePlan(code: string) {
-  if (currentIndex.value === -1) return false
-  return planOrder.indexOf(code as PlanCode) < currentIndex.value
 }
 
 function canSelfServePlan(code: string) {
@@ -316,6 +371,12 @@ function planActionLabel(code: string) {
 }
 
 function requestMessageFor(code: string) {
+  if (activationPendingPlan.value === code) {
+    if (isActivationPolling.value) {
+      return 'Активація в процесі. Підтверджуємо оплату та оновлюємо план.'
+    }
+    return 'Очікуємо підтвердження оплати. Після webhook-підтвердження план оновиться автоматично.'
+  }
   if (checkoutFeedbackPlan.value === code && checkoutFeedback.value) {
     return checkoutFeedback.value
   }
@@ -348,9 +409,56 @@ async function refreshBillingState() {
   try {
     await auth.loadMe()
     await loadRequestState()
+    if (activationPendingPlan.value && isPlanReached(activationPendingPlan.value)) {
+      const activatedPlan = activationPendingPlan.value
+      clearActivationPolling()
+      activationPendingPlan.value = null
+      checkoutFeedbackPlan.value = activatedPlan
+      checkoutFeedback.value = `План ${planTitle(activatedPlan)} активовано.`
+    }
   } finally {
     isRefreshing.value = false
   }
+}
+
+async function pollPlanActivation(target: PlanCode) {
+  clearActivationPolling()
+  activationPendingPlan.value = target
+  isActivationPolling.value = true
+  activationPollAttempts.value = 0
+  checkoutFeedbackPlan.value = target
+  checkoutFeedback.value =
+    'Активація в процесі. Після підтвердження оплати план оновиться автоматично.'
+
+  const tick = async () => {
+    if (!isActivationPolling.value) return
+    activationPollAttempts.value += 1
+    try {
+      await auth.loadMe()
+      if (isPlanReached(target)) {
+        clearActivationPolling()
+        activationPendingPlan.value = null
+        checkoutFeedbackPlan.value = target
+        checkoutFeedback.value = `План ${planTitle(target)} активовано.`
+        await loadRequestState()
+        return
+      }
+    } catch {
+      // Keep calm UX: polling can continue even on transient errors.
+    }
+
+    if (activationPollAttempts.value >= ACTIVATION_MAX_ATTEMPTS) {
+      clearActivationPolling()
+      checkoutFeedbackPlan.value = target
+      checkoutFeedback.value =
+        'Оплату обробляємо. Це може тривати кілька хвилин. Натисніть «Оновити стан плану» трохи пізніше.'
+      return
+    }
+
+    activationPollTimer = setTimeout(tick, ACTIVATION_POLL_INTERVAL_MS)
+  }
+
+  activationPollTimer = setTimeout(tick, ACTIVATION_POLL_INTERVAL_MS)
 }
 
 async function loadRequestState() {
@@ -375,17 +483,28 @@ async function startSelfServeCheckout(planCode: string) {
   requestingPlan.value = target
   checkoutFeedbackPlan.value = target
   checkoutFeedback.value = ''
+  clearActivationPolling()
+  activationPendingPlan.value = null
   try {
     const response = await createBillingCheckoutSession({
       plan: target === 'LEADER' ? 'LEADER' : 'PRO',
-      billing_cycle: 'monthly',
+      billing_cycle: checkoutCycleForPlan(target),
     })
-    checkoutFeedback.value = response.message
     if (response.checkout_url) {
-      window.open(response.checkout_url, '_blank', 'noopener,noreferrer')
+      const checkoutWindow = window.open(response.checkout_url, '_blank', 'noopener,noreferrer')
+      if (!checkoutWindow) {
+        checkoutFeedback.value =
+          'Не вдалося відкрити сторінку оплати. Дозвольте pop-up або скористайтеся «Індивідуальні умови».'
+        return
+      }
       checkoutFeedback.value =
         'Переходимо до оплати. Після підтвердження оплати план активується автоматично.'
+      await pollPlanActivation(target)
+      return
     }
+    checkoutFeedback.value =
+      response.message?.trim() ||
+      'Checkout тимчасово недоступний. Скористайтеся кнопкою «Індивідуальні умови».'
     await refreshBillingState()
   } catch (err: any) {
     checkoutFeedback.value = getApiErrorMessage(
@@ -451,6 +570,10 @@ async function requestAccess(planCode: string) {
 onMounted(() => {
   refreshBillingState()
 })
+
+onBeforeUnmount(() => {
+  clearActivationPolling()
+})
 </script>
 
 <style scoped>
@@ -477,6 +600,48 @@ onMounted(() => {
 
 .billing__subtitle {
   max-width: 520px;
+}
+
+.billing__shared-value {
+  margin: 0;
+}
+
+.billing__cycle-toggle {
+  width: fit-content;
+  margin: 0 auto;
+  display: inline-grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 4px;
+  background: #fff;
+}
+
+.billing__cycle-btn {
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: var(--radius-xs);
+  padding: 6px 14px;
+  font-size: 13px;
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.billing__cycle-btn.is-active {
+  border-color: color-mix(in srgb, var(--primary) 35%, var(--border));
+  background: color-mix(in srgb, var(--primary) 10%, transparent);
+  font-weight: 700;
+}
+
+.billing__downgrade-note {
+  margin: -2px 0 0;
+}
+
+.billing__cycle-note {
+  margin: -8px 0 0;
+  text-align: center;
+  font-size: 12px;
 }
 
 .panel {
@@ -563,71 +728,32 @@ onMounted(() => {
 
 .plan-card {
   border: 1px solid var(--line);
-  border-radius: 16px;
-  padding: 18px;
+  border-radius: var(--radius-lg);
+  padding: 20px;
   background: #fff;
   display: grid;
-  gap: 10px;
-  position: relative;
-  min-height: 500px;
-  overflow: hidden;
-  transform-origin: center top;
-  transition:
-    transform 220ms ease,
-    box-shadow 260ms ease,
-    border-color 220ms ease,
-    background 260ms ease;
-}
-
-.plan-card::before {
-  content: '';
-  position: absolute;
-  inset: -120% 35% auto -35%;
-  height: 210%;
-  background: linear-gradient(
-    115deg,
-    rgba(255, 255, 255, 0) 0%,
-    rgba(255, 255, 255, 0.45) 45%,
-    rgba(255, 255, 255, 0) 70%
-  );
-  transform: translateX(-35%) rotate(5deg);
-  opacity: 0;
-  pointer-events: none;
-}
-
-.plan-card > * {
-  position: relative;
-  z-index: 1;
+  gap: 8px;
+  transition: border-color 180ms ease, box-shadow 180ms ease;
 }
 
 .plan-card--current {
   border-color: color-mix(in srgb, var(--primary) 35%, var(--line));
-  box-shadow: 0 10px 24px rgba(31, 74, 96, 0.12);
+  box-shadow: 0 6px 14px rgba(31, 74, 96, 0.1);
 }
 
-.plan-card--pro {
-  border-color: color-mix(in srgb, var(--primary) 72%, #8db69f);
+.plan-card--highlight {
+  border-color: color-mix(in srgb, var(--primary) 66%, #8db69f);
   background:
-    radial-gradient(circle at 85% -10%, rgba(255, 225, 133, 0.42), rgba(255, 225, 133, 0) 45%),
-    linear-gradient(180deg, rgba(31, 140, 93, 0.12), rgba(255, 255, 255, 0.96));
-  box-shadow:
-    0 20px 40px rgba(31, 74, 96, 0.22),
-    0 0 0 1px rgba(31, 138, 93, 0.22);
-  transform: translateY(-10px) scale(1.02);
-  z-index: 1;
+    radial-gradient(circle at 100% -10%, rgba(255, 225, 133, 0.3), rgba(255, 225, 133, 0) 46%),
+    linear-gradient(180deg, rgba(31, 140, 93, 0.09), rgba(255, 255, 255, 0.98));
 }
 
 .plan-head {
   display: grid;
-  grid-template-columns: 1fr auto;
-  grid-template-areas:
-    'meta price'
-    'annual annual';
-  gap: 10px;
-}
-
-.plan-meta {
-  grid-area: meta;
+  grid-template-columns: 1fr;
+  gap: 6px;
+  align-items: center;
+  text-align: center;
 }
 
 .plan-title {
@@ -637,53 +763,74 @@ onMounted(() => {
 }
 
 .plan-subtitle {
-  min-height: 66px;
-  margin-top: 4px;
+  margin-top: 0;
   color: var(--muted);
   font-size: 13px;
-  line-height: 1.35;
+  line-height: 1.3;
+  min-height: 0;
 }
 
 .plan-price {
-  grid-area: price;
-  font-weight: 600;
-  color: var(--deep);
+  text-align: center;
   white-space: nowrap;
-  text-align: right;
-  display: grid;
-  gap: 4px;
-}
-
-.plan-price__main {
-  font-size: 34px;
-}
-
-.plan-price__alt {
-  grid-area: annual;
-  min-height: 22px;
-  font-size: 13px;
-  color: var(--muted);
-  border-top: 1px dashed rgba(31, 74, 96, 0.18);
-  padding-top: 8px;
   margin-top: 2px;
 }
 
+.plan-price__main {
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.plan-price__period {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.plan-price__alt {
+  font-size: 12px;
+  color: var(--muted);
+  border-top: 1px dashed rgba(31, 74, 96, 0.2);
+  padding-top: 8px;
+  min-height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
 .plan-price__hint {
-  color: color-mix(in srgb, var(--primary) 92%, #31543f);
+  color: color-mix(in srgb, var(--primary) 86%, #31543f);
   font-weight: 600;
 }
 
-.badge--pro {
-  background: linear-gradient(90deg, #12563b, #1f8a5d 62%, #36a77b);
-  color: #fff;
-  border-color: transparent;
-  box-shadow: 0 8px 18px rgba(31, 138, 93, 0.3);
+.plan-badges {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  min-height: 32px;
+  padding: 0;
 }
 
-.plan-badges {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
+.plan-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--primary) 35%, var(--line));
+  background: color-mix(in srgb, var(--primary) 14%, transparent);
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  line-height: 1.2;
+  white-space: nowrap;
+  width: 100%;
 }
 
 .plan-list {
@@ -691,101 +838,65 @@ onMounted(() => {
   padding: 0;
   margin: 0;
   display: grid;
-  gap: 6px;
-  color: var(--muted);
+  gap: 8px;
+  color: color-mix(in srgb, var(--text) 76%, #4f616a);
+  font-size: 14px;
+  line-height: 1.35;
+}
+
+.plan-list li {
+  position: relative;
+  padding-left: 14px;
+}
+
+.plan-list li::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+  color: color-mix(in srgb, var(--primary) 65%, #346449);
 }
 
 .plan-foot {
-  font-size: 13px;
-  color: var(--muted);
   display: grid;
-  gap: 10px;
+  gap: 0;
 }
 
 .plan-action {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
+  display: grid;
+  gap: 8px;
+  justify-items: center;
+}
+
+.plan-action .btn {
+  width: 100%;
+}
+
+.plan-action__secondary {
+  justify-content: center;
 }
 
 .plan-action__state {
-  font-size: 13px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 34px;
+  padding: 6px 12px;
+  border: 1px solid color-mix(in srgb, var(--primary) 35%, var(--line));
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--primary) 14%, transparent);
+  font-size: 12px;
   font-weight: 600;
-  color: var(--deep);
-}
-
-.plan-action__note {
-  font-size: 13px;
-  color: var(--muted);
-}
-
-.plan-card .badge {
-  transition: transform 180ms ease, box-shadow 220ms ease;
-}
-
-.plan-card .btn {
-  transition:
-    transform 180ms ease,
-    box-shadow 220ms ease,
-    background-color 180ms ease;
-}
-
-@media (hover: hover) {
-  .plan-card:hover {
-    transform: translateY(-10px);
-    border-color: color-mix(in srgb, var(--primary) 42%, var(--line));
-    box-shadow: 0 20px 36px rgba(31, 74, 96, 0.2);
-  }
-
-  .plan-card:hover::before {
-    opacity: 1;
-    animation: plan-shimmer 900ms ease;
-  }
-
-  .plan-card--pro:hover {
-    transform: translateY(-14px) scale(1.025);
-    box-shadow:
-      0 28px 52px rgba(31, 74, 96, 0.28),
-      0 0 0 1px rgba(31, 138, 93, 0.34),
-      0 0 28px rgba(49, 173, 119, 0.25);
-  }
-
-  .plan-card:hover .badge {
-    transform: translateY(-1px);
-  }
-
-  .plan-card:hover .plan-title {
-    color: color-mix(in srgb, var(--deep) 78%, #0f5c3f);
-  }
-
-  .plan-card:hover .btn {
-    transform: translateY(-1px);
-    box-shadow: 0 10px 20px rgba(31, 74, 96, 0.14);
-  }
-}
-
-@keyframes plan-shimmer {
-  0% {
-    transform: translateX(-35%) rotate(5deg);
-  }
-  100% {
-    transform: translateX(45%) rotate(5deg);
-  }
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink);
+  line-height: 1.2;
 }
 
 @media (max-width: 860px) {
   .billing__hero {
     flex-direction: column;
     align-items: flex-start;
-  }
-
-  .plan-card--pro {
-    transform: none;
-  }
-
-  .plan-card {
-    min-height: auto;
   }
 }
 </style>
