@@ -21,6 +21,15 @@
     </header>
     <SettingsSubnav active="profile" />
 
+    <div v-if="showPublicProfileNotPublishedHint" class="profile-notice" role="status">
+      <p class="profile-notice__text">
+        Публічний профіль ще не опубліковано. Заповніть профіль і увімкніть його для перегляду.
+      </p>
+      <RouterLink class="btn btn--ghost btn--sm" to="/cabinet/profile">
+        Перейти до налаштувань профілю
+      </RouterLink>
+    </div>
+
     <div v-if="loading" class="muted" style="margin-top: 12px;">Завантаження профілю...</div>
     <div v-else-if="error && !profileLoaded" class="form-error" style="margin-top: 12px;">{{ error }}</div>
 
@@ -80,6 +89,7 @@
                 Копіювати
               </button>
               <a
+                v-if="isPublicProfilePublished"
                 class="btn btn--ghost"
                 :href="publicUrl"
                 target="_blank"
@@ -88,6 +98,12 @@
               >
                 Відкрити
               </a>
+              <RouterLink v-else class="btn btn--ghost" to="/cabinet/profile">
+                Увімкнути публічний профіль
+              </RouterLink>
+            </div>
+            <div v-if="!profile.public_profile_enabled" class="muted" style="font-size: 12px;">
+              Публічний профіль ще не опубліковано.
             </div>
             <div v-if="copyStatus" class="muted" style="font-size: 12px;">
               {{ copyStatus }}
@@ -883,6 +899,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref } from 'vue'
+import { useRoute } from 'vue-router'
 import { Cropper } from 'vue-advanced-cropper'
 import {
   createProfileDocument,
@@ -902,6 +919,7 @@ import StickySaveBar from '../components/StickySaveBar.vue'
 import { useDirtySnapshot } from '../composables/useDirtySnapshot'
 
 const loading = ref(true)
+const route = useRoute()
 const profileLoaded = ref(false)
 const saving = ref(false)
 const error = ref('')
@@ -1423,6 +1441,11 @@ const publicUrl = computed(() => {
   return `${window.location.origin}/specialist/${profile.public_slug}`
 })
 
+const isPublicProfilePublished = computed(() => Boolean(profile.public_profile_enabled && publicUrl.value))
+const showPublicProfileNotPublishedHint = computed(
+  () => route.query.public_profile === 'unpublished' && !profile.public_profile_enabled
+)
+
 function formatPriceAmount(value: string | number | null | undefined): string {
   if (value === null || value === undefined) return ''
   const raw = String(value).trim()
@@ -1670,6 +1693,10 @@ async function onRotateSlug() {
 
 async function onCopyLink() {
   copyStatus.value = ''
+  if (!profile.public_profile_enabled) {
+    copyStatus.value = 'Публічний профіль ще не опубліковано. Увімкніть його в налаштуваннях.'
+    return
+  }
   if (!publicUrl.value) {
     copyStatus.value = 'Публічного посилання ще немає.'
     return
@@ -1684,6 +1711,10 @@ async function onCopyLink() {
 
 async function onShareProfile() {
   shareStatus.value = ''
+  if (!profile.public_profile_enabled) {
+    shareStatus.value = 'Публічний профіль ще не опубліковано. Увімкніть його в налаштуваннях.'
+    return
+  }
   if (!publicUrl.value) {
     shareStatus.value = 'Публічного посилання ще немає.'
     return
@@ -1971,6 +2002,20 @@ onMounted(() => {
 .profile {
   display: grid;
   gap: 18px;
+}
+
+.profile-notice {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid color-mix(in srgb, var(--primary) 20%, var(--border));
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--primary) 6%, #ffffff);
+}
+
+.profile-notice__text {
+  margin: 0;
+  color: var(--text);
 }
 
 .profile__hero {

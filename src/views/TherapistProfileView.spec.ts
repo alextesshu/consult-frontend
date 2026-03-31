@@ -14,6 +14,18 @@ import {
   uploadProfileVideo,
 } from '../lib/api'
 
+const mockRoute = {
+  query: {} as Record<string, string>,
+}
+
+vi.mock('vue-router', async () => {
+  const actual = await vi.importActual<typeof import('vue-router')>('vue-router')
+  return {
+    ...actual,
+    useRoute: () => mockRoute,
+  }
+})
+
 vi.mock('vue-advanced-cropper', () => ({
   Cropper: defineComponent({
     name: 'CropperStub',
@@ -127,6 +139,7 @@ function createFile(name: string, type: string, sizeOverride?: number) {
 
 describe('TherapistProfileView', () => {
   beforeEach(() => {
+    mockRoute.query = {}
     mockedCreateProfileDocument.mockReset()
     mockedDeleteProfileDocument.mockReset()
     mockedFetchSpecialistProfile.mockReset()
@@ -154,6 +167,22 @@ describe('TherapistProfileView', () => {
     expect(screen.getByLabelText('Доступно офлайн')).toBeChecked()
     expect(screen.getByDisplayValue('Львів, офіс 12')).toBeInTheDocument()
     expect(screen.getByText(`${window.location.origin}/specialist/specialist-anna`)).toBeInTheDocument()
+  })
+
+  it('shows owner guidance when redirected from /public with unpublished profile', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValue({
+      ...makeProfile(),
+      public_profile_enabled: false,
+    })
+    mockRoute.query = { public_profile: 'unpublished' }
+
+    renderView()
+
+    expect(
+      await screen.findByText('Публічний профіль ще не опубліковано. Заповніть профіль і увімкніть його для перегляду.')
+    ).toBeInTheDocument()
+    expect(screen.getByText('Перейти до налаштувань профілю')).toBeInTheDocument()
+    expect(screen.queryByText('Profile not found.')).not.toBeInTheDocument()
   })
 
   it('keeps sticky save bar hidden on pristine form', async () => {

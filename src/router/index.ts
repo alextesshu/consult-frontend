@@ -356,14 +356,20 @@ router.beforeEach(async (to) => {
       return defaultRoute()
     }
     let slug = ''
+    let publicProfileEnabled = false
     try {
       const profile = await fetchSpecialistProfile()
       slug = profile.public_slug || ''
+      publicProfileEnabled = Boolean(profile.public_profile_enabled)
     } catch {
       slug = ''
+      publicProfileEnabled = false
     }
-    if (slug) {
+    if (slug && publicProfileEnabled) {
       return { name: 'public-profile', params: { slug } }
+    }
+    if (slug && !publicProfileEnabled) {
+      return { name: 'cabinet-profile', query: { public_profile: 'unpublished' } }
     }
     return { name: 'cabinet-profile' }
   }

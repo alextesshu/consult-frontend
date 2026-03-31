@@ -2,6 +2,17 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import router from './index'
 import { useAuthStore } from '../stores/auth'
+import { fetchSpecialistProfile } from '../lib/api'
+
+vi.mock('../lib/api', async () => {
+  const actual = await vi.importActual<typeof import('../lib/api')>('../lib/api')
+  return {
+    ...actual,
+    fetchSpecialistProfile: vi.fn(),
+  }
+})
+
+const mockedFetchSpecialistProfile = vi.mocked(fetchSpecialistProfile)
 
 describe('router specialist session routes', () => {
   beforeEach(async () => {
@@ -9,6 +20,7 @@ describe('router specialist session routes', () => {
     const auth = useAuthStore()
     auth.$reset()
     localStorage.clear()
+    mockedFetchSpecialistProfile.mockReset()
     await router.push('/')
   })
 
@@ -69,5 +81,57 @@ describe('router specialist session routes', () => {
     expect(resolved.name).toBe('cabinet-client-workbook')
     expect(resolved.params).toEqual({ clientId: '44' })
     expect(resolved.matched.at(-1)?.path).toBe('/cabinet/clients/:clientId(\\d+)/workbook')
+  })
+
+  it('redirects specialist to public profile when profile is published', async () => {
+    const auth = useAuthStore()
+    auth.setToken('test-token')
+    auth.setMe({
+      user: {
+        id: 1,
+        username: 'specialist',
+        email: 'specialist@example.com',
+        roles: ['SPECIALIST'],
+      },
+      access_state: null,
+      effective_entitlements: null,
+      counts: null,
+      server_time: '2026-03-31T00:00:00Z',
+    })
+    mockedFetchSpecialistProfile.mockResolvedValue({
+      public_slug: 'olena',
+      public_profile_enabled: true,
+    } as Awaited<ReturnType<typeof fetchSpecialistProfile>>)
+
+    await router.push('/public')
+
+    expect(router.currentRoute.value.name).toBe('public-profile')
+    expect(router.currentRoute.value.params).toEqual({ slug: 'olena' })
+  })
+
+  it('keeps specialist in cabinet profile when public profile is not published', async () => {
+    const auth = useAuthStore()
+    auth.setToken('test-token')
+    auth.setMe({
+      user: {
+        id: 1,
+        username: 'specialist',
+        email: 'specialist@example.com',
+        roles: ['SPECIALIST'],
+      },
+      access_state: null,
+      effective_entitlements: null,
+      counts: null,
+      server_time: '2026-03-31T00:00:00Z',
+    })
+    mockedFetchSpecialistProfile.mockResolvedValue({
+      public_slug: 'olena',
+      public_profile_enabled: false,
+    } as Awaited<ReturnType<typeof fetchSpecialistProfile>>)
+
+    await router.push('/public')
+
+    expect(router.currentRoute.value.name).toBe('cabinet-profile')
+    expect(router.currentRoute.value.query).toEqual({ public_profile: 'unpublished' })
   })
 })
