@@ -15,6 +15,9 @@
           {{ cabinetLabel }}
         </RouterLink>
         <RouterLink v-if="showCatalogNav" class="nav__desktop-only" to="/specialists">Каталог</RouterLink>
+        <RouterLink v-if="isAuthenticated && isClient && !isSpecialist" class="nav__desktop-only" to="/signup">
+          Стати спеціалістом
+        </RouterLink>
         <RouterLink
           v-if="isAuthenticated && isSpecialist"
           class="nav__desktop-only"
@@ -180,6 +183,14 @@
           </RouterLink>
           <RouterLink v-if="isSpecialist" class="mobile-menu__item" to="/public" @click="closeMobileMenu">
             Публічний профіль
+          </RouterLink>
+          <RouterLink
+            v-if="isClient && !isSpecialist"
+            class="mobile-menu__item"
+            to="/signup"
+            @click="closeMobileMenu"
+          >
+            Стати спеціалістом
           </RouterLink>
           <button
             v-if="isSpecialist"
