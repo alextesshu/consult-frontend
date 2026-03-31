@@ -180,8 +180,8 @@ describe('BillingView downgrade semantics', () => {
       })
     })
 
-    expect(
-      screen.getAllByText('Запит надіслано. Ми зв’яжемося з вами щодо індивідуальних умов.').length
-    ).toBeGreaterThan(0)
+    expect(screen.getAllByText('Запит зафіксовано. Команда обробить його вручну.').length).toBeGreaterThan(
+      0
+    )
   })
 })
