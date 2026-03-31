@@ -12,6 +12,7 @@ import {
   fetchPublicAuthorJournalPosts,
   fetchPublicJournalCollections,
   fetchPublicSpecialistProfile,
+  fetchSpecialistProfile,
   sendInquiryMessage,
   type InquiryState,
 } from '../lib/api'
@@ -65,6 +66,7 @@ vi.mock('../lib/api', () => ({
   fetchInquiryMessages: vi.fn(),
   fetchInquiryState: vi.fn(),
   fetchPublicSpecialistProfile: vi.fn(),
+  fetchSpecialistProfile: vi.fn(),
   fetchPublicAuthorJournalPosts: vi.fn(),
   fetchPublicJournalCollections: vi.fn(),
   sendInquiryMessage: vi.fn(),
@@ -77,6 +79,7 @@ const mockedFetchChatThreads = vi.mocked(fetchChatThreads)
 const mockedFetchInquiryMessages = vi.mocked(fetchInquiryMessages)
 const mockedFetchInquiryState = vi.mocked(fetchInquiryState)
 const mockedFetchPublicSpecialistProfile = vi.mocked(fetchPublicSpecialistProfile)
+const mockedFetchSpecialistProfile = vi.mocked(fetchSpecialistProfile)
 const mockedFetchPublicAuthorJournalPosts = vi.mocked(fetchPublicAuthorJournalPosts)
 const mockedFetchPublicJournalCollections = vi.mocked(fetchPublicJournalCollections)
 const mockedSendInquiryMessage = vi.mocked(sendInquiryMessage)
@@ -232,6 +235,7 @@ describe('PublicProfileView', () => {
     mockedFetchInquiryMessages.mockReset()
     mockedFetchInquiryState.mockReset()
     mockedFetchPublicSpecialistProfile.mockReset()
+    mockedFetchSpecialistProfile.mockReset()
     mockedFetchPublicAuthorJournalPosts.mockReset()
     mockedFetchPublicJournalCollections.mockReset()
     mockedSendInquiryMessage.mockReset()
@@ -295,6 +299,29 @@ describe('PublicProfileView', () => {
     expect(await screen.findByText('Що кажуть клієнти')).toBeInTheDocument()
     expect(screen.getByText('Щоб забронювати час, увійдіть у свій кабінет клієнта.')).toBeInTheDocument()
     expect(container).toHaveTextContent('Дуже уважний підхід.')
+  })
+
+  it('shows owner unpublished-profile state instead of raw not-found copy for own slug', async () => {
+    mockAuth.accessToken = 'token'
+    mockAuth.user = { roles: ['SPECIALIST'] }
+    mockAuth.me = { user: { id: 5, roles: ['SPECIALIST'] } }
+
+    mockedFetchPublicSpecialistProfile.mockRejectedValue({
+      response: { status: 404, data: { detail: 'Profile not found.' } },
+    })
+    mockedFetchSpecialistProfile.mockResolvedValue({
+      public_slug: 'olena',
+      public_profile_enabled: false,
+    } as any)
+
+    renderView()
+
+    expect(await screen.findByText('Профіль ще не опубліковано')).toBeInTheDocument()
+    expect(
+      screen.getByText('Публічний профіль ще не опубліковано. Заповніть профіль і увімкніть його для перегляду.')
+    ).toBeInTheDocument()
+    expect(screen.getByText('Перейти до налаштувань профілю')).toBeInTheDocument()
+    expect(screen.queryByText('Profile not found.')).not.toBeInTheDocument()
   })
 
   it('shows completed sessions line in the public hero only from 50+ bucket', async () => {

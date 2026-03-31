@@ -78,6 +78,21 @@
     </header>
 
     <div v-if="loading" class="muted">Завантаження...</div>
+    <section v-else-if="ownerUnpublishedProfile" class="panel panel--owner-unpublished">
+      <div class="panel__header">
+        <div>
+          <div class="badge badge--soft">Публічний профіль</div>
+          <h2 class="panel__title">Профіль ще не опубліковано</h2>
+          <p class="panel__lead">
+            Публічний профіль ще не опубліковано. Заповніть профіль і увімкніть його для перегляду.
+          </p>
+        </div>
+      </div>
+      <div class="hero-cta__actions">
+        <RouterLink class="btn btn--primary" to="/cabinet/profile">Перейти до налаштувань профілю</RouterLink>
+        <RouterLink class="btn btn--ghost" to="/cabinet">Назад до кабінету</RouterLink>
+      </div>
+    </section>
     <div v-else-if="error" class="form-error">{{ error }}</div>
 
     <section v-else-if="profile" class="public__grid">
@@ -792,6 +807,7 @@ import { toLocalDate } from '../lib/dates'
 import { formatUkDateTimeCompact, formatUkDayMonth, formatUkTime, formatUkWeekdayShort } from '../lib/dateTime'
 import {
   fetchPublicSpecialistProfile,
+  fetchSpecialistProfile,
   fetchPublicAuthorJournalPosts,
   fetchPublicJournalCollections,
   type ChatThread,
@@ -837,6 +853,7 @@ const slots = ref<PublicSlot[]>([])
 const loading = ref(false)
 const slotsLoading = ref(false)
 const error = ref('')
+const ownerUnpublishedProfile = ref(false)
 const slotsError = ref('')
 const noSlotsAvailable = ref(false)
 const bookingError = ref('')
@@ -1523,12 +1540,32 @@ async function loadProfile() {
   }
   loading.value = true
   error.value = ''
+  ownerUnpublishedProfile.value = false
   try {
     profile.value = await fetchPublicSpecialistProfile(slug.value)
     if (profile.value) {
       saveViewedSpecialist(profile.value)
     }
   } catch (err: any) {
+    const status = Number((err as { response?: { status?: number } })?.response?.status || 0)
+    if (status === 404) {
+      const hasOwnerRole = (auth.me?.user.roles || auth.user?.roles || []).some((role) =>
+        ['SPECIALIST', 'THERAPIST'].includes(String(role).toUpperCase())
+      )
+      if (auth.accessToken && hasOwnerRole) {
+        try {
+          const ownProfile = await fetchSpecialistProfile()
+          if (ownProfile?.public_slug === slug.value && ownProfile?.public_profile_enabled === false) {
+            ownerUnpublishedProfile.value = true
+            profile.value = null
+            error.value = ''
+            return
+          }
+        } catch {
+          // keep generic public error branch
+        }
+      }
+    }
     error.value = getApiErrorMessage(err, '\u041f\u0440\u043e\u0444\u0456\u043b\u044c \u043d\u0435 \u0437\u043d\u0430\u0439\u0434\u0435\u043d\u043e.')
   } finally {
     loading.value = false
