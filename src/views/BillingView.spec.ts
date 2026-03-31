@@ -146,4 +146,42 @@ describe('BillingView downgrade semantics', () => {
       screen.queryByText('Checkout URL не налаштований. Використайте fallback запит.')
     ).not.toBeInTheDocument()
   })
+
+  it('shows visible success feedback after requesting individual terms', async () => {
+    setCurrentPlan('START')
+    mockedCreateBillingAccessRequest.mockResolvedValue({
+      has_pending_request: true,
+      request: {
+        id: 101,
+        therapist: 77,
+        requested_plan: 'PRO',
+        status: 'PENDING',
+        note: 'upgrade_from:START',
+        admin_note: '',
+        created_at: '2026-03-31T10:00:00Z',
+        updated_at: '2026-03-31T10:00:00Z',
+        decided_at: null,
+        decided_by: null,
+      },
+    })
+    renderView()
+
+    await waitFor(() => {
+      expect(mockedFetchBillingAccessRequestState).toHaveBeenCalled()
+    })
+
+    const requestButtons = screen.getAllByRole('button', { name: 'Запросити індивідуальні умови' })
+    await fireEvent.click(requestButtons[0]!)
+
+    await waitFor(() => {
+      expect(mockedCreateBillingAccessRequest).toHaveBeenCalledWith({
+        requested_plan: 'PRO',
+        note: 'upgrade_from:START',
+      })
+    })
+
+    expect(
+      screen.getAllByText('Запит надіслано. Ми зв’яжемося з вами щодо індивідуальних умов.').length
+    ).toBeGreaterThan(0)
+  })
 })

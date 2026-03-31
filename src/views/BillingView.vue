@@ -548,7 +548,7 @@ async function requestAccess(planCode: string) {
       active_request: result.request,
       latest_request: result.request,
     }
-    requestFeedback.value = ''
+    requestFeedback.value = 'Запит надіслано. Ми зв’яжемося з вами щодо індивідуальних умов.'
   } catch (err: any) {
     const existingRequest = err?.response?.data?.active_request as
       | BillingAccessRequest
