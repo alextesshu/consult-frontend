@@ -9,9 +9,9 @@ RUN npm ci
 COPY . .
 
 # VITE_API_BASE_URL is injected at build time (becomes part of compiled JS).
-# Fallback to /api so production does not break if build arg or env files are missing.
-ARG VITE_API_BASE_URL=/api
-RUN VITE_API_BASE_URL="$VITE_API_BASE_URL" npm run build
+# Fallback to /api when build arg is missing or empty.
+ARG VITE_API_BASE_URL
+RUN VITE_API_BASE_URL="${VITE_API_BASE_URL:-/api}" npm run build
 
 # Stage 2 — Serve the compiled app with nginx
 FROM nginx:stable-alpine
