@@ -7,7 +7,20 @@
         Стартовий план активується одразу. Додавайте слоти та починайте роботу.
       </p>
 
-      <form class="form" @submit.prevent="onSubmit">
+      <div v-if="isClientOnly" class="form">
+        <p class="muted auth__subtitle">
+          Ви вже маєте акаунт клієнта. Увімкніть роль спеціаліста для цього ж акаунта без повторної реєстрації.
+        </p>
+        <p v-if="dualRoleError" class="form-error">{{ dualRoleError }}</p>
+        <button class="btn" type="button" :disabled="dualRoleLoading" @click="onEnableSpecialist">
+          {{ dualRoleLoading ? 'Оновлюємо доступ...' : 'Увімкнути кабінет спеціаліста' }}
+        </button>
+        <p class="muted auth__footer">
+          Після активації відкриється кабінет спеціаліста, акаунт клієнта залишиться доступним.
+        </p>
+      </div>
+
+      <form v-else class="form" @submit.prevent="onSubmit">
         <label class="field">
           <span>Ел. пошта</span>
           <input
@@ -89,18 +102,42 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useAuthStore } from '../stores/auth'
+import { enableSpecialist, getApiErrorMessage } from '../lib/api'
 
 const email = ref('')
 const password = ref('')
 const passwordConfirm = ref('')
 const error = ref('')
+const dualRoleError = ref('')
+const dualRoleLoading = ref(false)
 const router = useRouter()
 const auth = useAuthStore()
 const { loading } = storeToRefs(auth)
+const roles = computed(() => auth.me?.user.roles ?? auth.user?.roles ?? [])
+const isClientOnly = computed(
+  () => roles.value.includes('CLIENT') && !roles.value.includes('SPECIALIST') && !roles.value.includes('THERAPIST')
+)
+
+async function onEnableSpecialist() {
+  dualRoleError.value = ''
+  dualRoleLoading.value = true
+  try {
+    await enableSpecialist()
+    await auth.loadMe()
+    router.push('/cabinet')
+  } catch (err) {
+    dualRoleError.value = getApiErrorMessage(
+      err,
+      'Не вдалося увімкнути роль спеціаліста. Спробуйте ще раз або зверніться в підтримку.'
+    )
+  } finally {
+    dualRoleLoading.value = false
+  }
+}
 
 async function onSubmit() {
   error.value = ''

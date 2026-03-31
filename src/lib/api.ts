@@ -91,6 +91,10 @@ export async function logoutSession(): Promise<void> {
   await http.post('/auth/logout/', {})
 }
 
+export async function enableSpecialist(): Promise<void> {
+  await http.post('/auth/enable-specialist/', {})
+}
+
 export type TherapistProfile = {
   id: number
   public_profile_enabled: boolean
