@@ -220,6 +220,10 @@ const annualOneShotByPlan: Record<PlanCode, string | null> = {
   PRO: '€240 / рік одним платежем',
   LEADER: '€590 / рік одним платежем',
 }
+const checkoutFallbackMessage =
+  'Онлайн-оплата для цього плану зараз недоступна. Ви можете залишити запит на індивідуальні умови.'
+const checkoutUnavailableMessage =
+  'Онлайн-оплата для цього плану зараз недоступна. Спробуйте пізніше або скористайтеся «Індивідуальні умови».'
 
 const auth = useAuthStore()
 const { me } = storeToRefs(auth)
@@ -502,9 +506,9 @@ async function startSelfServeCheckout(planCode: string) {
       await pollPlanActivation(target)
       return
     }
-    checkoutFeedback.value =
-      response.message?.trim() ||
-      'Checkout тимчасово недоступний. Скористайтеся кнопкою «Індивідуальні умови».'
+    checkoutFeedback.value = response.fallback_available
+      ? checkoutFallbackMessage
+      : checkoutUnavailableMessage
     await refreshBillingState()
   } catch (err: any) {
     checkoutFeedback.value = getApiErrorMessage(

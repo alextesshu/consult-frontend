@@ -1,4 +1,4 @@
-﻿import { render, screen, waitFor } from '@testing-library/vue'
+﻿import { fireEvent, render, screen, waitFor } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ref } from 'vue'
 import BillingView from './BillingView.vue'
@@ -109,5 +109,41 @@ describe('BillingView downgrade semantics', () => {
     expect(screen.queryByText('Нижчий план')).not.toBeInTheDocument()
     expect(screen.queryByText('Перехід на нижчий план зараз оформлюється через підтримку.')).not.toBeInTheDocument()
     expect(screen.getAllByRole('button', { name: 'Перейти на Pro' }).length).toBeGreaterThan(0)
+  })
+
+  it('shows calm fallback copy instead of raw checkout backend message', async () => {
+    setCurrentPlan('START')
+    mockedCreateBillingCheckoutSession.mockResolvedValue({
+      plan: 'PRO',
+      billing_cycle: 'monthly',
+      checkout_url: null,
+      activation_source: 'VERIFIED_BILLING_WEBHOOK',
+      fallback_available: true,
+      message: 'Checkout URL не налаштований. Використайте fallback запит.',
+    })
+    renderView()
+
+    await waitFor(() => {
+      expect(mockedFetchBillingAccessRequestState).toHaveBeenCalled()
+    })
+
+    const upgradeButton = screen.getAllByRole('button', { name: 'Перейти на Pro' })[0]!
+    await fireEvent.click(upgradeButton)
+
+    await waitFor(() => {
+      expect(mockedCreateBillingCheckoutSession).toHaveBeenCalledWith({
+        plan: 'PRO',
+        billing_cycle: 'monthly',
+      })
+    })
+
+    expect(
+      screen.getAllByText(
+        'Онлайн-оплата для цього плану зараз недоступна. Ви можете залишити запит на індивідуальні умови.'
+      ).length
+    ).toBeGreaterThan(0)
+    expect(
+      screen.queryByText('Checkout URL не налаштований. Використайте fallback запит.')
+    ).not.toBeInTheDocument()
   })
 })
