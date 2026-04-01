@@ -75,6 +75,110 @@ describe('router specialist session routes', () => {
     expect(loadMeSpy).toHaveBeenCalledTimes(1)
   })
 
+  it('triggers one-shot me reconcile on critical specialist routes', async () => {
+    const auth = useAuthStore()
+    auth.setToken('test-token')
+    auth.setMe({
+      user: {
+        id: 1,
+        username: 'specialist',
+        email: 'specialist@example.com',
+        roles: ['SPECIALIST'],
+      },
+      access_state: null,
+      effective_entitlements: null,
+      counts: null,
+      server_time: '2026-03-31T00:00:00Z',
+    })
+    const loadMeSpy = vi.spyOn(auth, 'loadMe').mockResolvedValue(undefined)
+
+    await router.push('/cabinet')
+
+    expect(router.currentRoute.value.name).toBe('cabinet')
+    expect(loadMeSpy).toHaveBeenCalledTimes(1)
+  })
+
+  it('applies cooldown for rapid critical-route reconcile calls', async () => {
+    vi.useFakeTimers()
+    try {
+      vi.setSystemTime(new Date('2035-03-31T10:00:00Z'))
+
+      const auth = useAuthStore()
+      auth.setToken('test-token')
+      auth.setMe({
+        user: {
+          id: 1,
+          username: 'specialist',
+          email: 'specialist@example.com',
+          roles: ['SPECIALIST'],
+        },
+        access_state: null,
+        effective_entitlements: null,
+        counts: null,
+        server_time: '2026-03-31T00:00:00Z',
+      })
+      const loadMeSpy = vi.spyOn(auth, 'loadMe').mockResolvedValue(undefined)
+
+      await router.push('/cabinet')
+      await router.push('/cabinet/billing')
+
+      expect(loadMeSpy).toHaveBeenCalledTimes(1)
+
+      vi.setSystemTime(new Date('2035-03-31T10:00:20Z'))
+      await router.push('/cabinet/group-events')
+
+      expect(loadMeSpy).toHaveBeenCalledTimes(2)
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('does not run specialist reconcile on non-critical routes', async () => {
+    const auth = useAuthStore()
+    auth.setToken('test-token')
+    auth.setMe({
+      user: {
+        id: 1,
+        username: 'specialist',
+        email: 'specialist@example.com',
+        roles: ['SPECIALIST'],
+      },
+      access_state: null,
+      effective_entitlements: null,
+      counts: null,
+      server_time: '2026-03-31T00:00:00Z',
+    })
+    const loadMeSpy = vi.spyOn(auth, 'loadMe').mockResolvedValue(undefined)
+
+    await router.push('/cabinet/sessions')
+
+    expect(router.currentRoute.value.name).toBe('cabinet-sessions')
+    expect(loadMeSpy).not.toHaveBeenCalled()
+  })
+
+  it('does not run specialist reconcile for non-specialist users', async () => {
+    const auth = useAuthStore()
+    auth.setToken('test-token')
+    auth.setMe({
+      user: {
+        id: 2,
+        username: 'client',
+        email: 'client@example.com',
+        roles: ['CLIENT'],
+      },
+      access_state: null,
+      effective_entitlements: null,
+      counts: null,
+      server_time: '2026-03-31T00:00:00Z',
+    })
+    const loadMeSpy = vi.spyOn(auth, 'loadMe').mockResolvedValue(undefined)
+
+    await router.push('/client')
+
+    expect(router.currentRoute.value.name).toBe('client-dashboard')
+    expect(loadMeSpy).not.toHaveBeenCalled()
+  })
+
   it('matches the specialist client workbook route for numeric ids', () => {
     const resolved = router.resolve('/cabinet/clients/44/workbook')
 

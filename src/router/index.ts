@@ -41,6 +41,7 @@ import SpecialistInquiriesView from '../views/SpecialistInquiriesView.vue'
 import ClientInquiryRedirectView from '../views/ClientInquiryRedirectView.vue'
 import { useAuthStore } from '../stores/auth'
 import { fetchSpecialistProfile } from '../lib/api'
+import { hasSpecialistRole, isSpecialistCriticalReconcileRoute } from '../lib/entitlementReconcile'
 
 const routes = [
   { path: '/', name: 'home', component: HomeView },
@@ -284,6 +285,25 @@ const router = createRouter({
   },
 })
 
+const SPECIALIST_ROUTE_RECONCILE_COOLDOWN_MS = 15_000
+let lastSpecialistRouteReconcileAt = 0
+
+async function maybeReconcileSpecialistMeOnRoute(auth: ReturnType<typeof useAuthStore>, path: string) {
+  if (!auth.accessToken) return
+  if (!isSpecialistCriticalReconcileRoute(path)) return
+  if (!hasSpecialistRole(auth.me?.user.roles ?? auth.user?.roles ?? [])) return
+
+  const now = Date.now()
+  if (now - lastSpecialistRouteReconcileAt < SPECIALIST_ROUTE_RECONCILE_COOLDOWN_MS) return
+
+  lastSpecialistRouteReconcileAt = now
+  try {
+    await auth.loadMe()
+  } catch {
+    // silent reconcile: best effort only
+  }
+}
+
 router.beforeEach(async (to) => {
   const auth = useAuthStore()
   const getRoles = () => auth.me?.user.roles ?? auth.user?.roles ?? []
@@ -298,6 +318,7 @@ router.beforeEach(async (to) => {
     if (hasRole('CLIENT')) return { name: 'client-dashboard' }
     return { name: 'forbidden' }
   }
+  let loadedMeInGuard = false
 
   if (to.meta.requiresAuth) {
     if (!auth.accessToken) {
@@ -312,6 +333,7 @@ router.beforeEach(async (to) => {
     if (!auth.user) {
       try {
         await auth.loadMe()
+        loadedMeInGuard = true
       } catch {
         if (auth.accessToken) {
           return
@@ -328,6 +350,10 @@ router.beforeEach(async (to) => {
       }
       return { name: 'forbidden' }
     }
+  }
+
+  if (!loadedMeInGuard) {
+    await maybeReconcileSpecialistMeOnRoute(auth, to.path)
   }
 
   if (to.name === 'login' && auth.accessToken) {

@@ -197,6 +197,28 @@ describe('App shell', () => {
     expect(screen.getByText(/Без комісій\. Без посередників\./i)).toBeInTheDocument()
   })
 
+  it('refreshes me on visibilitychange when specialist tab becomes visible', async () => {
+    await renderWithProviders({
+      initialPath: '/cabinet',
+      roles: ['SPECIALIST'],
+    })
+
+    await waitFor(() => {
+      expect(mockedFetchMe.mock.calls.length).toBeGreaterThan(0)
+    })
+    const callsBefore = mockedFetchMe.mock.calls.length
+
+    Object.defineProperty(document, 'visibilityState', {
+      configurable: true,
+      value: 'visible',
+    })
+    document.dispatchEvent(new Event('visibilitychange'))
+
+    await waitFor(() => {
+      expect(mockedFetchMe.mock.calls.length).toBeGreaterThan(callsBefore)
+    })
+  })
+
   it('renders explicit reschedule notification copy in the bell feed', async () => {
     await renderWithProviders({
       initialPath: '/cabinet',
