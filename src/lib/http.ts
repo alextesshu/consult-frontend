@@ -1,6 +1,7 @@
 import axios from 'axios'
 import type { InternalAxiosRequestConfig } from 'axios'
 import { useAuthStore } from '../stores/auth'
+import { hasSpecialistRole, isEntitlementOrCapabilityDeny } from './entitlementReconcile'
 
 function resolveApiBaseUrl() {
   const value = String(import.meta.env.VITE_API_BASE_URL || '').trim()
@@ -25,6 +26,31 @@ export const http = axios.create({
 })
 
 let refreshPromise: Promise<string | null> | null = null
+let entitlementReconcilePromise: Promise<void> | null = null
+let lastEntitlementReconcileAt = 0
+const ENTITLEMENT_RECONCILE_COOLDOWN_MS = 10_000
+
+function maybeRefreshMeAfterEntitlementDeny(error: unknown) {
+  const auth = useAuthStore()
+  if (!auth.accessToken) return
+  if (!hasSpecialistRole(auth.me?.user.roles ?? auth.user?.roles ?? [])) return
+  if (!isEntitlementOrCapabilityDeny(error)) return
+
+  const url = String((error as { config?: { url?: string } })?.config?.url || '')
+  if (url.includes('/me/')) return
+
+  const now = Date.now()
+  if (now - lastEntitlementReconcileAt < ENTITLEMENT_RECONCILE_COOLDOWN_MS) return
+  if (entitlementReconcilePromise) return
+
+  lastEntitlementReconcileAt = now
+  entitlementReconcilePromise = auth
+    .loadMe()
+    .catch(() => {})
+    .finally(() => {
+      entitlementReconcilePromise = null
+    })
+}
 
 http.interceptors.request.use((config: InternalAxiosRequestConfig) => {
   if (config.data instanceof FormData) {
@@ -79,6 +105,10 @@ http.interceptors.response.use(
       if (!auth.accessToken) {
         auth.logout()
       }
+    }
+
+    if (!isAuthEndpoint) {
+      maybeRefreshMeAfterEntitlementDeny(error)
     }
 
     return Promise.reject(error)
