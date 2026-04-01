@@ -599,7 +599,7 @@ const groupRoomLabel = computed(() => {
 const accessLabel = computed(() => {
   const state = me.value?.access_state
   if (!state) return 'Невідомо'
-  if (state === 'OK') return 'Повний доступ'
+  if (state === 'OK') return 'Доступ активний'
   if (state === 'GRACE') return 'Пільговий доступ'
   if (state === 'RESTRICTED') return 'Обмежений режим'
   return state

@@ -111,6 +111,18 @@ describe('BillingView downgrade semantics', () => {
     expect(screen.getAllByRole('button', { name: 'Перейти на Pro' }).length).toBeGreaterThan(0)
   })
 
+  it('uses neutral active-access label for OK state', async () => {
+    setCurrentPlan('START')
+    renderView()
+
+    await waitFor(() => {
+      expect(mockedFetchBillingAccessRequestState).toHaveBeenCalled()
+    })
+
+    expect(screen.getByText('Доступ активний')).toBeInTheDocument()
+    expect(screen.queryByText('Повний доступ')).not.toBeInTheDocument()
+  })
+
   it('shows calm fallback copy instead of raw checkout backend message', async () => {
     setCurrentPlan('START')
     mockedCreateBillingCheckoutSession.mockResolvedValue({
