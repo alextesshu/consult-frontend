@@ -14,7 +14,7 @@
     <div v-else-if="invite" class="panel">
       <h1 class="title">Доступ до зовнішньої сесії</h1>
       <p class="muted">
-        {{ invite.instructions || 'Ваш спеціаліст запросив вас на сесію. Це обмежене посилання лише для цієї зустрічі без реєстрації.' }}
+        {{ inviteIntroText }}
       </p>
 
       <div class="details">
@@ -67,6 +67,9 @@ const errorState = ref<GuestErrorState>(null)
 const offlineInfoVisible = ref(false)
 
 const isOffline = computed(() => invite.value?.session_format === 'offline')
+const defaultGuestIntroText =
+  'Ваш спеціаліст запросив вас на сесію. Це обмежене посилання лише для цієї зустрічі без реєстрації.'
+const inviteIntroText = computed(() => localizeGuestInstruction(invite.value?.instructions))
 
 const errorTitle = computed(() => {
   if (errorState.value === 'invalid') return 'Лінк недійсний'
@@ -107,6 +110,15 @@ function classifyResolvedStatus(statusRaw: string | null | undefined): GuestErro
   if (status.includes('EXPIRED')) return 'expired'
   if (status.includes('UNAVAILABLE')) return 'unavailable'
   return null
+}
+
+function localizeGuestInstruction(value: string | null | undefined) {
+  const trimmed = String(value || '').trim()
+  if (!trimmed) return defaultGuestIntroText
+  if (trimmed === 'Your specialist invited you to an external session.') {
+    return defaultGuestIntroText
+  }
+  return trimmed
 }
 
 function normalizeResolvedInvite(
