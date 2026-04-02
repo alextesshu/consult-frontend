@@ -78,9 +78,9 @@ describe('ExternalSessionsView', () => {
   it('renders only external sessions list surface', async () => {
     renderView()
 
-    expect(await screen.findByText('Ваші external sessions')).toBeInTheDocument()
+    expect(await screen.findByText('Ваші зовнішні сесії')).toBeInTheDocument()
     const detailLink = await screen.findByRole('link', { name: 'Деталі' })
-    expect(screen.getAllByText('External Sessions').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Зовнішні сесії').length).toBeGreaterThan(0)
     expect(detailLink).toHaveAttribute('href', '/cabinet/external-sessions/8')
     expect(screen.queryByText('Заплановані сесії')).not.toBeInTheDocument()
   })
@@ -103,13 +103,13 @@ describe('ExternalSessionsView', () => {
     } as any)
 
     renderView()
-    await screen.findByText('Нова external session')
+    await screen.findByText('Нова зовнішня сесія')
 
     await fireEvent.update(screen.getByLabelText('Початок'), '2099-06-16T12:30')
-    await fireEvent.update(screen.getByLabelText('Meeting URL'), 'https://meet.google.com/new-room')
-    await fireEvent.update(screen.getByLabelText('Guest name (опційно)'), 'Guest Name')
-    await fireEvent.update(screen.getByLabelText('Guest email (опційно)'), 'guest@example.com')
-    await fireEvent.click(screen.getByRole('button', { name: 'Створити external session' }))
+    await fireEvent.update(screen.getByLabelText('Посилання на зустріч'), 'https://meet.google.com/new-room')
+    await fireEvent.update(screen.getByLabelText("Ім'я гостя (опційно)"), 'Guest Name')
+    await fireEvent.update(screen.getByLabelText('Email гостя (опційно)'), 'guest@example.com')
+    await fireEvent.click(screen.getByRole('button', { name: 'Створити зовнішню сесію' }))
 
     await waitFor(() => {
       expect(mockedCreateExternalSession).toHaveBeenCalledTimes(1)
@@ -140,12 +140,12 @@ describe('ExternalSessionsView', () => {
     } as any)
 
     renderView()
-    await screen.findByText('Нова external session')
+    await screen.findByText('Нова зовнішня сесія')
 
     await fireEvent.update(screen.getByLabelText('Формат'), 'offline')
     await fireEvent.update(screen.getByLabelText('Початок'), '2099-06-16T12:30')
     await fireEvent.update(screen.getByLabelText('Локація'), 'Kyiv office')
-    await fireEvent.click(screen.getByRole('button', { name: 'Створити external session' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Створити зовнішню сесію' }))
 
     await waitFor(() => {
       expect(mockedCreateExternalSession).toHaveBeenCalledTimes(1)

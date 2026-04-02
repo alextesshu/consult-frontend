@@ -49,7 +49,7 @@ describe('ExternalGuestSessionInviteView', () => {
   it('renders public resolve state without auth-only UI dependencies', async () => {
     renderView()
 
-    expect(await screen.findByText(/Specialist:/)).toBeInTheDocument()
+    expect(await screen.findByText(/Спеціаліст:/)).toBeInTheDocument()
     expect(screen.getByText(/Specialist User/)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Приєднатися до сесії/i })).toBeInTheDocument()
   })

@@ -2,27 +2,27 @@
   <section class="external-session-detail">
     <header class="detail-hero">
       <div>
-        <div class="badge">External Session</div>
-        <h1 class="title detail-title">Деталі external session</h1>
+        <div class="badge">Зовнішня сесія</div>
+        <h1 class="title detail-title">Деталі зовнішньої сесії</h1>
         <p class="muted detail-subtitle">
-          Редагування bounded полів, скасування і керування guest access для зовнішнього клієнта.
+          Редагування доступних полів, скасування і керування гостьовим доступом для зовнішнього клієнта.
         </p>
       </div>
       <RouterLink class="btn btn--ghost" to="/cabinet/external-sessions">Назад до списку</RouterLink>
     </header>
 
     <div v-if="loadError" class="form-error">{{ loadError }}</div>
-    <div v-if="loading" class="muted">Завантаження external session…</div>
+    <div v-if="loading" class="muted">Завантаження зовнішньої сесії…</div>
 
     <template v-else-if="session">
       <section class="panel">
         <div class="panel__header">
           <div>
-            <div class="badge badge--soft">Summary</div>
-            <h2 class="panel__title">External session #{{ session.id }}</h2>
+            <div class="badge badge--soft">Зведення</div>
+            <h2 class="panel__title">Зовнішня сесія #{{ session.id }}</h2>
           </div>
           <div class="status-pill" :class="session.status === 'CANCELLED' ? 'status-pill--danger' : 'status-pill--ok'">
-            {{ session.status === 'CANCELLED' ? 'CANCELLED' : 'SCHEDULED' }}
+            {{ session.status === 'CANCELLED' ? 'Скасовано' : 'Заплановано' }}
           </div>
         </div>
 
@@ -40,7 +40,7 @@
             <div>{{ session.session_format === 'offline' ? 'Офлайн' : 'Онлайн' }}</div>
           </div>
           <div>
-            <div class="muted">Guest</div>
+            <div class="muted">Гість</div>
             <div>{{ session.guest_name || '—' }} <span v-if="session.guest_email">({{ session.guest_email }})</span></div>
           </div>
         </div>
@@ -83,7 +83,7 @@
           </label>
 
           <label v-if="isEditOnline" class="field">
-            <span>Meeting URL</span>
+            <span>Посилання на зустріч</span>
             <input
               v-model="editDraft.meeting_url"
               class="input"
@@ -105,12 +105,12 @@
           </label>
 
           <label class="field">
-            <span>Guest name (опційно)</span>
+            <span>Ім'я гостя (опційно)</span>
             <input v-model="editDraft.guest_name" class="input" type="text" maxlength="120" :disabled="isCancelled || savePending" />
           </label>
 
           <label class="field">
-            <span>Guest email (опційно)</span>
+            <span>Email гостя (опційно)</span>
             <input
               v-model="editDraft.guest_email"
               class="input"
@@ -130,21 +130,21 @@
           </button>
         </div>
 
-        <p v-if="isCancelled" class="muted">Сесію скасовано. Редагування та активні invite actions вимкнено.</p>
+        <p v-if="isCancelled" class="muted">Сесію скасовано. Редагування та активні дії з запрошенням вимкнено.</p>
       </section>
 
       <section class="panel">
         <div class="panel__header">
           <div>
-            <div class="badge badge--soft">Guest access</div>
-            <h2 class="panel__title">Guest access</h2>
+            <div class="badge badge--soft">Гостьовий доступ</div>
+            <h2 class="panel__title">Гостьовий доступ</h2>
           </div>
         </div>
         <p class="muted">
-          Створіть окремий лінк для гостя, щоб він міг відкрити деталі цієї external session без реєстрації.
+          Створіть окреме посилання для гостя, щоб він міг відкрити деталі цієї зовнішньої сесії без реєстрації.
         </p>
 
-        <div v-if="inviteLoading" class="muted">Завантаження invite status…</div>
+        <div v-if="inviteLoading" class="muted">Завантаження статусу запрошення…</div>
         <div v-else>
           <div v-if="inviteError" class="form-error">{{ inviteError }}</div>
 
@@ -186,15 +186,15 @@
             </div>
 
             <p v-if="invitePrimaryStatus === 'active' && !inviteUrl" class="muted">
-              Після reload URL не зберігається в state. Щоб отримати новий copyable лінк, натисніть «Перевидати».
+              Після перезавантаження посилання не зберігається у стані сторінки. Щоб отримати нове посилання для копіювання, натисніть «Перевидати».
             </p>
           </template>
 
           <template v-else>
-            <div class="muted">Активний invite ще не створено.</div>
+            <div class="muted">Активне запрошення ще не створено.</div>
             <div class="actions-row">
               <button class="btn" type="button" :disabled="inviteActionPending || isCancelled" @click="createInvite">
-                {{ inviteAction === 'create' ? 'Створюємо…' : 'Створити invite' }}
+                {{ inviteAction === 'create' ? 'Створюємо…' : 'Створити запрошення' }}
               </button>
             </div>
           </template>
@@ -262,7 +262,7 @@ const inviteError = ref('')
 const invite = ref<ExternalSessionInvite | null>(null)
 const inviteUrl = ref('')
 const inviteAction = ref<InviteAction>(null)
-const copyLabel = ref('Скопіювати лінк')
+const copyLabel = ref('Скопіювати посилання')
 
 const isCancelled = computed(() => session.value?.status === 'CANCELLED')
 const isEditOnline = computed(() => editDraft.value.session_format === 'online')
@@ -326,7 +326,7 @@ function syncEditDraft(next: ExternalSessionRecord) {
 async function loadSession() {
   if (!Number.isInteger(sessionId.value) || sessionId.value <= 0) {
     session.value = null
-    loadError.value = 'Некоректний ідентифікатор external session.'
+    loadError.value = 'Некоректний ідентифікатор зовнішньої сесії.'
     return
   }
   loading.value = true
@@ -337,7 +337,7 @@ async function loadSession() {
     syncEditDraft(payload)
   } catch (err) {
     session.value = null
-    loadError.value = getApiErrorMessage(err, 'Не вдалося завантажити external session.')
+    loadError.value = getApiErrorMessage(err, 'Не вдалося завантажити зовнішню сесію.')
   } finally {
     loading.value = false
   }
@@ -357,7 +357,7 @@ async function loadInvite() {
       return
     }
     invite.value = null
-    inviteError.value = getApiErrorMessage(err, 'Не вдалося завантажити invite status.')
+    inviteError.value = getApiErrorMessage(err, 'Не вдалося завантажити статус запрошення.')
   } finally {
     inviteLoading.value = false
   }
@@ -370,7 +370,7 @@ function validateEditDraft() {
     return 'Вкажіть коректну тривалість.'
   }
   if (isEditOnline.value && !editDraft.value.meeting_url.trim()) {
-    return 'Для онлайн-сесії додайте meeting URL.'
+    return 'Для онлайн-сесії додайте посилання на зустріч.'
   }
   if (!isEditOnline.value && !editDraft.value.offline_location_snapshot.trim()) {
     return 'Для офлайн-сесії вкажіть локацію.'
@@ -403,9 +403,9 @@ async function submitSave() {
     const updated = await updateExternalSession(session.value.id, payload)
     session.value = updated
     syncEditDraft(updated)
-    toast.success('External session оновлено.')
+    toast.success('Зовнішню сесію оновлено.')
   } catch (err) {
-    saveError.value = getApiErrorMessage(err, 'Не вдалося оновити external session.')
+    saveError.value = getApiErrorMessage(err, 'Не вдалося оновити зовнішню сесію.')
   } finally {
     savePending.value = false
   }
@@ -420,9 +420,9 @@ async function submitCancel() {
     session.value = updated
     syncEditDraft(updated)
     await loadInvite()
-    toast.success('External session скасовано.')
+    toast.success('Зовнішню сесію скасовано.')
   } catch (err) {
-    saveError.value = getApiErrorMessage(err, 'Не вдалося скасувати external session.')
+    saveError.value = getApiErrorMessage(err, 'Не вдалося скасувати зовнішню сесію.')
   } finally {
     cancelPending.value = false
   }
@@ -436,9 +436,9 @@ async function createInvite() {
     const payload = await createExternalSessionInvite(session.value.id)
     invite.value = payload.invite
     inviteUrl.value = payload.invite_url || ''
-    toast.success('Guest invite створено.')
+    toast.success('Гостьове запрошення створено.')
   } catch (err) {
-    inviteError.value = getApiErrorMessage(err, 'Не вдалося створити guest invite.')
+    inviteError.value = getApiErrorMessage(err, 'Не вдалося створити гостьове запрошення.')
   } finally {
     inviteAction.value = null
   }
@@ -452,9 +452,9 @@ async function revokeInvite() {
     const payload = await revokeExternalSessionInvite(session.value.id)
     invite.value = payload
     inviteUrl.value = ''
-    toast.success('Guest invite відкликано.')
+    toast.success('Гостьове запрошення відкликано.')
   } catch (err) {
-    inviteError.value = getApiErrorMessage(err, 'Не вдалося відкликати guest invite.')
+    inviteError.value = getApiErrorMessage(err, 'Не вдалося відкликати гостьове запрошення.')
   } finally {
     inviteAction.value = null
   }
@@ -468,9 +468,9 @@ async function regenerateInvite() {
     const payload = await regenerateExternalSessionInvite(session.value.id)
     invite.value = payload.invite
     inviteUrl.value = payload.invite_url || ''
-    toast.success('Guest invite перевидано.')
+    toast.success('Гостьове запрошення перевидано.')
   } catch (err) {
-    inviteError.value = getApiErrorMessage(err, 'Не вдалося перевидати guest invite.')
+    inviteError.value = getApiErrorMessage(err, 'Не вдалося перевидати гостьове запрошення.')
   } finally {
     inviteAction.value = null
   }
@@ -482,10 +482,10 @@ async function copyInviteLink() {
     await navigator.clipboard.writeText(inviteUrl.value)
     copyLabel.value = 'Скопійовано'
     window.setTimeout(() => {
-      copyLabel.value = 'Скопіювати лінк'
+      copyLabel.value = 'Скопіювати посилання'
     }, 1700)
   } catch {
-    inviteError.value = 'Не вдалося скопіювати invite URL.'
+    inviteError.value = 'Не вдалося скопіювати URL запрошення.'
   }
 }
 

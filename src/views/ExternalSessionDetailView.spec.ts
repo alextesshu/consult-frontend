@@ -103,8 +103,8 @@ describe('ExternalSessionDetailView', () => {
   it('renders empty invite state when invite does not exist', async () => {
     renderView()
 
-    expect(await screen.findByText('Деталі external session')).toBeInTheDocument()
-    expect(await screen.findByText('Активний invite ще не створено.')).toBeInTheDocument()
+    expect(await screen.findByText('Деталі зовнішньої сесії')).toBeInTheDocument()
+    expect(await screen.findByText('Активне запрошення ще не створено.')).toBeInTheDocument()
     expect(mockedFetchExternalSessionDetail).toHaveBeenCalledWith(21)
     expect(mockedFetchExternalSessionInvite).toHaveBeenCalledWith(21)
   })
@@ -131,17 +131,17 @@ describe('ExternalSessionDetailView', () => {
     } as any)
 
     renderView()
-    await screen.findByText('Активний invite ще не створено.')
+    await screen.findByText('Активне запрошення ще не створено.')
 
-    const createInviteButton = await screen.findByRole('button', { name: 'Створити invite' })
+    const createInviteButton = await screen.findByRole('button', { name: 'Створити запрошення' })
     await fireEvent.click(createInviteButton)
 
     await waitFor(() => {
       expect(mockedCreateExternalSessionInvite).toHaveBeenCalledWith(21)
-      expect(toast.success).toHaveBeenCalledWith('Guest invite створено.')
+      expect(toast.success).toHaveBeenCalledWith('Гостьове запрошення створено.')
     })
 
-    await fireEvent.click(screen.getByRole('button', { name: 'Скопіювати лінк' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Скопіювати посилання' }))
 
     await waitFor(() => {
       expect(clipboardWrite).toHaveBeenCalledWith('https://proconsult.space/guest/external-session/new-token')
@@ -165,7 +165,7 @@ describe('ExternalSessionDetailView', () => {
     } as any)
 
     renderView()
-    await screen.findByText('CANCELLED')
+    await screen.findByText('Скасовано')
 
     expect(screen.getByRole('button', { name: 'Зберегти' })).toBeDisabled()
     expect(screen.getByRole('button', { name: 'Скасувати сесію' })).toBeDisabled()
@@ -184,13 +184,13 @@ describe('ExternalSessionDetailView', () => {
       .mockRejectedValueOnce({ response: { status: 404, data: { code: 'NOT_FOUND' } } })
 
     renderView()
-    await screen.findByText('Деталі external session')
+    await screen.findByText('Деталі зовнішньої сесії')
 
     await fireEvent.click(screen.getByRole('button', { name: 'Скасувати сесію' }))
 
     await waitFor(() => {
       expect(mockedCancelExternalSession).toHaveBeenCalledWith(21)
-      expect(toast.success).toHaveBeenCalledWith('External session скасовано.')
+      expect(toast.success).toHaveBeenCalledWith('Зовнішню сесію скасовано.')
     })
   })
 
@@ -234,7 +234,7 @@ describe('ExternalSessionDetailView', () => {
     } as any)
 
     renderView()
-    await screen.findByText('Деталі external session')
+    await screen.findByText('Деталі зовнішньої сесії')
 
     await fireEvent.click(screen.getByRole('button', { name: 'Зберегти' }))
     await waitFor(() => {

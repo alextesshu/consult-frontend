@@ -2,10 +2,10 @@
   <section class="external-sessions">
     <header class="external-sessions__hero">
       <div>
-        <div class="badge">External Sessions</div>
-        <h1 class="title external-sessions__title">External Sessions</h1>
+        <div class="badge">Зовнішні сесії</div>
+        <h1 class="title external-sessions__title">Зовнішні сесії</h1>
         <p class="muted external-sessions__subtitle">
-          Окремий bounded розділ для сесій із зовнішніми гостями без змішування з canonical booking flow.
+          Окремий розділ для сесій із зовнішніми гостями без змішування з основним сценарієм бронювання.
         </p>
       </div>
       <RouterLink class="btn btn--ghost" to="/cabinet">Назад до кабінету</RouterLink>
@@ -15,7 +15,7 @@
       <div class="panel__header">
         <div>
           <div class="badge badge--soft">Створення</div>
-          <h2 class="panel__title">Нова external session</h2>
+          <h2 class="panel__title">Нова зовнішня сесія</h2>
         </div>
       </div>
 
@@ -41,7 +41,7 @@
         </label>
 
         <label v-if="isCreateOnline" class="field">
-          <span>Meeting URL</span>
+          <span>Посилання на зустріч</span>
           <input v-model="createDraft.meeting_url" class="input" type="url" placeholder="https://meet.google.com/..." />
         </label>
 
@@ -56,19 +56,19 @@
         </label>
 
         <label class="field">
-          <span>Guest name (опційно)</span>
+          <span>Ім'я гостя (опційно)</span>
           <input v-model="createDraft.guest_name" class="input" type="text" maxlength="120" />
         </label>
 
         <label class="field">
-          <span>Guest email (опційно)</span>
+          <span>Email гостя (опційно)</span>
           <input v-model="createDraft.guest_email" class="input" type="email" maxlength="255" />
         </label>
       </div>
 
       <div class="actions-row">
         <button class="btn" type="button" :disabled="createPending" @click="submitCreate">
-          {{ createPending ? 'Створюємо…' : 'Створити external session' }}
+          {{ createPending ? 'Створюємо…' : 'Створити зовнішню сесію' }}
         </button>
       </div>
     </section>
@@ -77,13 +77,13 @@
       <div class="panel__header">
         <div>
           <div class="badge badge--soft">Список</div>
-          <h2 class="panel__title">Ваші external sessions</h2>
+          <h2 class="panel__title">Ваші зовнішні сесії</h2>
         </div>
       </div>
 
       <div v-if="listError" class="form-error">{{ listError }}</div>
-      <div v-else-if="listLoading" class="muted">Завантаження external sessions…</div>
-      <div v-else-if="sessions.length === 0" class="muted">Немає external sessions. Створіть першу сесію вище.</div>
+      <div v-else-if="listLoading" class="muted">Завантаження зовнішніх сесій…</div>
+      <div v-else-if="sessions.length === 0" class="muted">Немає зовнішніх сесій. Створіть першу сесію вище.</div>
 
       <div v-else class="list-grid">
         <article v-for="session in sessions" :key="session.id" class="session-card">
@@ -92,10 +92,10 @@
             <div class="muted">Тривалість: {{ session.duration_minutes }} хв</div>
             <div class="muted">Формат: {{ session.session_format === 'offline' ? 'Офлайн' : 'Онлайн' }}</div>
             <div v-if="session.guest_name || session.guest_email" class="muted">
-              Guest: {{ session.guest_name || '—' }} <span v-if="session.guest_email">({{ session.guest_email }})</span>
+              Гість: {{ session.guest_name || '—' }} <span v-if="session.guest_email">({{ session.guest_email }})</span>
             </div>
             <div class="status-pill" :class="session.status === 'CANCELLED' ? 'status-pill--danger' : 'status-pill--ok'">
-              {{ session.status === 'CANCELLED' ? 'CANCELLED' : 'SCHEDULED' }}
+              {{ session.status === 'CANCELLED' ? 'Скасовано' : 'Заплановано' }}
             </div>
           </div>
           <RouterLink class="btn btn--ghost btn--sm" :to="`/cabinet/external-sessions/${session.id}`">Деталі</RouterLink>
@@ -169,7 +169,7 @@ async function loadSessions() {
       .slice()
       .sort((a, b) => new Date(b.starts_at).getTime() - new Date(a.starts_at).getTime())
   } catch (err) {
-    listError.value = getApiErrorMessage(err, 'Не вдалося завантажити external sessions.')
+    listError.value = getApiErrorMessage(err, 'Не вдалося завантажити зовнішні сесії.')
     sessions.value = []
   } finally {
     listLoading.value = false
@@ -183,7 +183,7 @@ function validateCreateDraft() {
     return 'Вкажіть коректну тривалість.'
   }
   if (isCreateOnline.value && !createDraft.value.meeting_url.trim()) {
-    return 'Для онлайн-сесії додайте meeting URL.'
+    return 'Для онлайн-сесії додайте посилання на зустріч.'
   }
   if (!isCreateOnline.value && !createDraft.value.offline_location_snapshot.trim()) {
     return 'Для офлайн-сесії вкажіть локацію.'
@@ -214,11 +214,11 @@ async function submitCreate() {
     }
 
     const created = await createExternalSession(payload)
-    toast.success('External session створено.')
+    toast.success('Зовнішню сесію створено.')
     await loadSessions()
     await router.push(`/cabinet/external-sessions/${created.id}`)
   } catch (err) {
-    createError.value = getApiErrorMessage(err, 'Не вдалося створити external session.')
+    createError.value = getApiErrorMessage(err, 'Не вдалося створити зовнішню сесію.')
   } finally {
     createPending.value = false
   }

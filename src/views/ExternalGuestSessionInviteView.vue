@@ -1,28 +1,28 @@
 ﻿<template>
   <section class="guest-external-session">
     <div v-if="loading" class="panel">
-      <h1 class="title">Доступ до external session</h1>
+      <h1 class="title">Доступ до зовнішньої сесії</h1>
       <p class="muted">Завантажуємо запрошення…</p>
     </div>
 
     <div v-else-if="errorState" class="panel">
-      <h1 class="title">Доступ до external session</h1>
+      <h1 class="title">Доступ до зовнішньої сесії</h1>
       <p class="muted">{{ errorTitle }}</p>
       <p class="muted">{{ errorDescription }}</p>
     </div>
 
     <div v-else-if="invite" class="panel">
-      <h1 class="title">Доступ до external session</h1>
+      <h1 class="title">Доступ до зовнішньої сесії</h1>
       <p class="muted">
-        Ваш specialist запросив вас на сесію. Це обмежений лінк лише для цієї external session без реєстрації.
+        Ваш спеціаліст запросив вас на сесію. Це обмежене посилання лише для цієї зустрічі без реєстрації.
       </p>
 
       <div class="details">
-        <div><strong>Specialist:</strong> {{ invite.specialist_name || '—' }}</div>
+        <div><strong>Спеціаліст:</strong> {{ invite.specialist_name || '—' }}</div>
         <div><strong>Початок:</strong> {{ formatDateTime(invite.starts_at) }}</div>
         <div v-if="invite.ends_at"><strong>Завершення:</strong> {{ formatDateTime(invite.ends_at) }}</div>
         <div><strong>Формат:</strong> {{ isOffline ? 'Офлайн' : 'Онлайн' }}</div>
-        <div v-if="isOffline"><strong>Локація:</strong> {{ invite.offline_location_snapshot || 'Уточніть у specialist' }}</div>
+        <div v-if="isOffline"><strong>Локація:</strong> {{ invite.offline_location_snapshot || 'Уточніть у спеціаліста' }}</div>
       </div>
 
       <div v-if="joinError" class="form-error">{{ joinError }}</div>
@@ -77,9 +77,9 @@ const errorTitle = computed(() => {
 })
 
 const errorDescription = computed(() => {
-  if (errorState.value === 'invalid') return 'Перевірте посилання або попросіть specialist надіслати новий лінк.'
-  if (errorState.value === 'expired') return 'Попросіть specialist створити новий invite лінк для цієї сесії.'
-  if (errorState.value === 'revoked') return 'Specialist відкликав цей invite лінк.'
+  if (errorState.value === 'invalid') return 'Перевірте посилання або попросіть спеціаліста надіслати нове.'
+  if (errorState.value === 'expired') return 'Попросіть спеціаліста створити нове гостьове посилання для цієї сесії.'
+  if (errorState.value === 'revoked') return 'Спеціаліст відкликав це гостьове посилання.'
   if (errorState.value === 'unavailable') return 'Ця сесія зараз недоступна за цим запрошенням.'
   return 'Спробуйте відкрити лінк трохи пізніше.'
 })
