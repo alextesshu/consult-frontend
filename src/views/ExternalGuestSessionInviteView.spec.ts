@@ -37,21 +37,29 @@ describe('ExternalGuestSessionInviteView', () => {
     vi.clearAllMocks()
     routeParams.token = 'valid-token'
     mockedFetchPublicExternalSessionInvite.mockResolvedValue({
-      status: 'ACTIVE',
-      specialist_name: 'Specialist User',
-      starts_at: '2099-06-15T10:00:00Z',
-      ends_at: '2099-06-15T11:00:00Z',
-      session_format: 'online',
-      offline_location_snapshot: null,
+      guest_session: {
+        status: 'ACTIVE',
+        specialist_name: 'Specialist User',
+        starts_at: '2099-06-15T10:00:00Z',
+        ends_at: '2099-06-15T11:00:00Z',
+        session_format: 'online',
+        offline_location: null,
+        instructions: 'Custom instruction',
+        can_join: true,
+      },
     } as any)
   })
 
-  it('renders public resolve state without auth-only UI dependencies', async () => {
-    renderView()
+  it('maps guest_session payload for online state and does not render offline helper text', async () => {
+    const { container } = renderView()
 
-    expect(await screen.findByText(/Спеціаліст:/)).toBeInTheDocument()
-    expect(screen.getByText(/Specialist User/)).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /Приєднатися до сесії/i })).toBeInTheDocument()
+    expect(await screen.findByText(/Specialist User/)).toBeInTheDocument()
+    expect(container.textContent).toContain('Custom instruction')
+    expect(container.textContent).toContain('Спеціаліст:')
+    expect(container.textContent).toContain('Початок:')
+    expect(container.textContent).toContain('Формат:')
+    expect(container.textContent).toContain('Онлайн')
+    expect(container.textContent).not.toContain('Це офлайн-зустріч')
   })
 
   it('joins online invite via public join endpoint', async () => {
@@ -62,25 +70,35 @@ describe('ExternalGuestSessionInviteView', () => {
       offline_location_snapshot: null,
     } as any)
 
-    renderView()
-    await screen.findByRole('button', { name: /Приєднатися до сесії/i })
+    const { container } = renderView()
+    await screen.findByText(/Specialist User/)
 
-    await fireEvent.click(screen.getByRole('button', { name: /Приєднатися до сесії/i }))
+    const joinButton = Array.from(container.querySelectorAll('button')).find(
+      (button) => button.textContent?.includes('Приєднатися до сесії')
+    )
+    if (!joinButton) {
+      throw new Error('Join button is missing')
+    }
+    await fireEvent.click(joinButton)
 
     await waitFor(() => {
       expect(mockedJoinPublicExternalSessionInvite).toHaveBeenCalledWith('valid-token')
     })
-    expect(screen.queryByText('Це офлайн-зустріч. Приходьте у погоджений час за вказаною локацією.')).not.toBeInTheDocument()
+    expect(container.textContent).not.toContain('Це офлайн-зустріч')
   })
 
-  it('renders offline info state after join for offline session', async () => {
+  it('renders offline details from guest_session payload and shows offline helper only after join', async () => {
     mockedFetchPublicExternalSessionInvite.mockResolvedValue({
-      status: 'ACTIVE',
-      specialist_name: 'Specialist User',
-      starts_at: '2099-06-15T10:00:00Z',
-      ends_at: '2099-06-15T11:00:00Z',
-      session_format: 'offline',
-      offline_location_snapshot: 'Kyiv office',
+      guest_session: {
+        status: 'ACTIVE',
+        specialist_name: 'Specialist User',
+        starts_at: '2099-06-15T10:00:00Z',
+        ends_at: '2099-06-15T11:00:00Z',
+        session_format: 'offline',
+        offline_location: 'Kyiv office',
+        instructions: 'Offline instruction',
+        can_join: true,
+      },
     } as any)
     mockedJoinPublicExternalSessionInvite.mockResolvedValue({
       status: 'JOINED',
@@ -89,9 +107,22 @@ describe('ExternalGuestSessionInviteView', () => {
       offline_location_snapshot: 'Kyiv office',
     } as any)
 
-    renderView()
-    await screen.findByText('Локація:')
-    await fireEvent.click(screen.getByRole('button', { name: 'Переглянути деталі зустрічі' }))
+    const { container } = renderView()
+    await screen.findByText(/Specialist User/)
+
+    expect(container.textContent).toContain('Формат:')
+    expect(container.textContent).toContain('Офлайн')
+    expect(container.textContent).toContain('Локація:')
+    expect(container.textContent).toContain('Kyiv office')
+    expect(container.textContent).not.toContain('Це офлайн-зустріч')
+
+    const offlineButton = Array.from(container.querySelectorAll('button')).find(
+      (button) => button.textContent?.includes('Переглянути деталі зустрічі')
+    )
+    if (!offlineButton) {
+      throw new Error('Offline details button is missing')
+    }
+    await fireEvent.click(offlineButton)
 
     expect(await screen.findByText('Це офлайн-зустріч. Приходьте у погоджений час за вказаною локацією.')).toBeInTheDocument()
   })

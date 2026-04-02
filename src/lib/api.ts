@@ -1355,7 +1355,13 @@ export type PublicExternalSessionInviteResolved = {
   starts_at: string | null
   ends_at: string | null
   session_format: SessionFormat | null
-  offline_location_snapshot: string | null
+  offline_location: string | null
+  instructions: string | null
+  can_join: boolean
+}
+
+type PublicExternalSessionInviteResolvedResponse = {
+  guest_session: PublicExternalSessionInviteResolved | null
 }
 
 export type PublicExternalSessionInviteJoinResponse = {
@@ -1458,10 +1464,24 @@ export async function regenerateExternalSessionInvite(
 export async function fetchPublicExternalSessionInvite(
   token: string
 ): Promise<PublicExternalSessionInviteResolved> {
-  const resp = await http.get<PublicExternalSessionInviteResolved>(
+  const resp = await http.get<PublicExternalSessionInviteResolved | PublicExternalSessionInviteResolvedResponse>(
     `/public/external-session-invites/${token}/`
   )
-  return resp.data
+  const payload = resp.data as PublicExternalSessionInviteResolved | PublicExternalSessionInviteResolvedResponse | null
+  const source =
+    payload && typeof payload === 'object' && 'guest_session' in payload
+      ? payload.guest_session
+      : payload
+  return {
+    status: source?.status || 'EXPIRED',
+    specialist_name: source?.specialist_name || null,
+    starts_at: source?.starts_at || null,
+    ends_at: source?.ends_at || null,
+    session_format: source?.session_format || null,
+    offline_location: source?.offline_location || null,
+    instructions: source?.instructions || null,
+    can_join: Boolean(source?.can_join),
+  }
 }
 
 export async function joinPublicExternalSessionInvite(

@@ -14,7 +14,7 @@
     <div v-else-if="invite" class="panel">
       <h1 class="title">Доступ до зовнішньої сесії</h1>
       <p class="muted">
-        Ваш спеціаліст запросив вас на сесію. Це обмежене посилання лише для цієї зустрічі без реєстрації.
+        {{ invite.instructions || 'Ваш спеціаліст запросив вас на сесію. Це обмежене посилання лише для цієї зустрічі без реєстрації.' }}
       </p>
 
       <div class="details">
@@ -22,16 +22,16 @@
         <div><strong>Початок:</strong> {{ formatDateTime(invite.starts_at) }}</div>
         <div v-if="invite.ends_at"><strong>Завершення:</strong> {{ formatDateTime(invite.ends_at) }}</div>
         <div><strong>Формат:</strong> {{ isOffline ? 'Офлайн' : 'Онлайн' }}</div>
-        <div v-if="isOffline"><strong>Локація:</strong> {{ invite.offline_location_snapshot || 'Уточніть у спеціаліста' }}</div>
+        <div v-if="isOffline"><strong>Локація:</strong> {{ invite.offline_location || 'Уточніть у спеціаліста' }}</div>
       </div>
 
       <div v-if="joinError" class="form-error">{{ joinError }}</div>
 
       <div class="actions">
-        <button v-if="!isOffline" class="btn" type="button" :disabled="joinPending" @click="joinInvite">
+        <button v-if="!isOffline" class="btn" type="button" :disabled="joinPending || !invite.can_join" @click="joinInvite">
           {{ joinPending ? 'Підключаємо…' : 'Приєднатися до сесії' }}
         </button>
-        <button v-else class="btn" type="button" :disabled="joinPending" @click="joinInvite">
+        <button v-else class="btn" type="button" :disabled="joinPending || !invite.can_join" @click="joinInvite">
           {{ joinPending ? 'Оновлюємо…' : 'Переглянути деталі зустрічі' }}
         </button>
       </div>
@@ -109,6 +109,14 @@ function classifyResolvedStatus(statusRaw: string | null | undefined): GuestErro
   return null
 }
 
+function normalizeResolvedInvite(
+  payload: PublicExternalSessionInviteResolved | { guest_session?: PublicExternalSessionInviteResolved | null } | null
+): PublicExternalSessionInviteResolved | null {
+  if (!payload || typeof payload !== 'object') return null
+  if ('guest_session' in payload) return payload.guest_session || null
+  return payload as PublicExternalSessionInviteResolved
+}
+
 async function loadInvite() {
   if (!token.value) {
     invite.value = null
@@ -122,14 +130,20 @@ async function loadInvite() {
 
   try {
     const payload = await fetchPublicExternalSessionInvite(token.value)
-    const resolvedError = classifyResolvedStatus(payload.status)
+    const normalized = normalizeResolvedInvite(payload as any)
+    if (!normalized) {
+      invite.value = null
+      errorState.value = 'invalid'
+      return
+    }
+    const resolvedError = classifyResolvedStatus(normalized.status)
     if (resolvedError) {
       invite.value = null
       errorState.value = resolvedError
       return
     }
 
-    invite.value = payload
+    invite.value = normalized
     errorState.value = null
   } catch (err) {
     invite.value = null
