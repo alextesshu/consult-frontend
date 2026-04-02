@@ -79,6 +79,7 @@
               inputmode="numeric"
               maxlength="5"
               placeholder="ГГ:ХХ"
+              list="external-session-edit-time-options"
               :disabled="isCancelled || savePending"
               @blur="normalizeEditStartTime"
             />
@@ -151,6 +152,9 @@
             {{ cancelPending ? 'Скасовуємо…' : 'Скасувати сесію' }}
           </button>
         </div>
+        <datalist id="external-session-edit-time-options">
+          <option v-for="option in timeOptions" :key="option" :value="option" />
+        </datalist>
 
         <p v-if="isCancelled" class="muted">Сесію скасовано. Редагування та активні дії з запрошенням вимкнено.</p>
       </section>
@@ -291,6 +295,12 @@ const copyLabel = ref('Скопіювати посилання')
 const isCancelled = computed(() => session.value?.status === 'CANCELLED')
 const isEditOnline = computed(() => editDraft.value.session_format === 'online')
 const inviteActionPending = computed(() => inviteAction.value !== null)
+const timeOptions = Array.from({ length: 24 * 4 }, (_, index) => {
+  const minutes = index * 15
+  const hours = String(Math.floor(minutes / 60)).padStart(2, '0')
+  const mins = String(minutes % 60).padStart(2, '0')
+  return `${hours}:${mins}`
+})
 
 const invitePrimaryStatus = computed<'active' | 'expired' | 'revoked'>(() => {
   if (!invite.value) return 'expired'

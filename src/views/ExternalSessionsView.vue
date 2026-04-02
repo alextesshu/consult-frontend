@@ -43,6 +43,7 @@
             inputmode="numeric"
             maxlength="5"
             placeholder="ГГ:ХХ"
+            list="external-session-time-options"
             @blur="normalizeCreateStartTime"
           />
         </label>
@@ -91,6 +92,9 @@
           {{ createPending ? 'Створюємо…' : 'Створити зовнішню сесію' }}
         </button>
       </div>
+      <datalist id="external-session-time-options">
+        <option v-for="option in timeOptions" :key="option" :value="option" />
+      </datalist>
     </section>
 
     <section class="panel">
@@ -170,6 +174,12 @@ const createDraft = ref<CreateDraft>({
 })
 
 const isCreateOnline = computed(() => createDraft.value.session_format === 'online')
+const timeOptions = Array.from({ length: 24 * 4 }, (_, index) => {
+  const minutes = index * 15
+  const hours = String(Math.floor(minutes / 60)).padStart(2, '0')
+  const mins = String(minutes % 60).padStart(2, '0')
+  return `${hours}:${mins}`
+})
 
 function formatDateTime(value: string | null | undefined) {
   return formatUkDateTimeCompact(value)
