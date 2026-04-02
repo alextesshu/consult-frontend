@@ -211,9 +211,10 @@
 
             <div class="actions-row">
               <button
+                v-if="inviteUrl"
                 class="btn btn--ghost btn--sm"
                 type="button"
-                :disabled="!inviteUrl || inviteActionPending || isCancelled || invitePrimaryStatus !== 'active'"
+                :disabled="inviteActionPending || isCancelled || invitePrimaryStatus !== 'active'"
                 @click="copyInviteLink"
               >
                 {{ copyLabel }}
@@ -354,6 +355,11 @@ const inviteStatusClass = computed(() => {
 
 function formatDateTime(value: string | null | undefined) {
   return formatUkDateTimeCompact(value)
+}
+
+function isConflictError(err: unknown) {
+  const status = (err as { response?: { status?: number } })?.response?.status
+  return status === 409
 }
 
 function openDatePicker(event: Event) {
@@ -573,6 +579,11 @@ async function revokeInvite() {
     inviteUrl.value = ''
     toast.success('Гостьове запрошення відкликано.')
   } catch (err) {
+    if (isConflictError(err)) {
+      await loadInvite()
+      inviteError.value = ''
+      return
+    }
     inviteError.value = getApiErrorMessage(err, 'Не вдалося відкликати гостьове запрошення.')
   } finally {
     inviteAction.value = null
@@ -589,6 +600,11 @@ async function regenerateInvite() {
     inviteUrl.value = payload.invite_url || ''
     toast.success('Гостьове запрошення перевидано.')
   } catch (err) {
+    if (isConflictError(err)) {
+      await loadInvite()
+      inviteError.value = ''
+      return
+    }
     inviteError.value = getApiErrorMessage(err, 'Не вдалося перевидати гостьове запрошення.')
   } finally {
     inviteAction.value = null

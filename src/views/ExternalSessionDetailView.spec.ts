@@ -188,6 +188,41 @@ describe('ExternalSessionDetailView', () => {
     })
   })
 
+  it('renders empty invite state when status endpoint returns invite: null payload', async () => {
+    mockedFetchExternalSessionInvite.mockResolvedValueOnce(null as any)
+
+    renderView()
+    await screen.findByText('Деталі зовнішньої сесії')
+
+    expect(screen.getByText('Активне запрошення ще не створено.')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Створити запрошення' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Перевидати' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Відкликати' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Скопіювати посилання' })).not.toBeInTheDocument()
+  })
+
+  it('renders active invite controls and hides copy button when no invite URL in page state', async () => {
+    mockedFetchExternalSessionInvite.mockReset()
+    mockedFetchExternalSessionInvite.mockResolvedValue({
+      id: 77,
+      external_session_id: 21,
+      status: 'ACTIVE',
+      expires_at: '2099-06-16T10:00:00Z',
+      opened_at: null,
+      last_opened_at: null,
+      joined_at: null,
+      created_at: null,
+      updated_at: null,
+    } as any)
+
+    renderView()
+    await screen.findByText('Деталі зовнішньої сесії')
+
+    expect(await screen.findByRole('button', { name: 'Перевидати' })).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: 'Відкликати' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Скопіювати посилання' })).not.toBeInTheDocument()
+  })
+
   it('disables edit and invite actions for cancelled session', async () => {
     mockedFetchExternalSessionDetail.mockResolvedValue(
       baseSession({ status: 'CANCELLED', cancelled_at: '2099-06-12T10:00:00Z' }) as any
@@ -291,5 +326,79 @@ describe('ExternalSessionDetailView', () => {
     await waitFor(() => {
       expect(mockedRegenerateExternalSessionInvite).toHaveBeenCalledWith(21)
     })
+  })
+
+  it('reloads invite state after 409 on regenerate and removes stale active controls', async () => {
+    mockedFetchExternalSessionInvite.mockReset()
+    let inviteStatusCall = 0
+    mockedFetchExternalSessionInvite.mockImplementation(async () => {
+      inviteStatusCall += 1
+      if (inviteStatusCall >= 2) return null as any
+      return {
+        id: 90,
+        external_session_id: 21,
+        status: 'ACTIVE',
+        expires_at: '2099-06-16T10:00:00Z',
+        opened_at: null,
+        last_opened_at: null,
+        joined_at: null,
+        created_at: null,
+        updated_at: null,
+      } as any
+    })
+    mockedRegenerateExternalSessionInvite.mockRejectedValue({
+      response: { status: 409, data: { code: 'EXTERNAL_GUEST_INVITE_STATE_CONFLICT' } },
+    })
+
+    renderView()
+    await screen.findByText('Деталі зовнішньої сесії')
+
+    const regenerateButton = await screen.findByRole('button', { name: 'Перевидати' })
+    await fireEvent.click(regenerateButton)
+
+    await waitFor(() => {
+      expect(mockedRegenerateExternalSessionInvite).toHaveBeenCalledWith(21)
+      expect(mockedFetchExternalSessionInvite).toHaveBeenCalledTimes(2)
+    })
+    expect(screen.getByText('Активне запрошення ще не створено.')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Перевидати' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Відкликати' })).not.toBeInTheDocument()
+  })
+
+  it('reloads invite state after 409 on revoke and removes stale active controls', async () => {
+    mockedFetchExternalSessionInvite.mockReset()
+    let inviteStatusCall = 0
+    mockedFetchExternalSessionInvite.mockImplementation(async () => {
+      inviteStatusCall += 1
+      if (inviteStatusCall >= 2) return null as any
+      return {
+        id: 91,
+        external_session_id: 21,
+        status: 'ACTIVE',
+        expires_at: '2099-06-16T10:00:00Z',
+        opened_at: null,
+        last_opened_at: null,
+        joined_at: null,
+        created_at: null,
+        updated_at: null,
+      } as any
+    })
+    mockedRevokeExternalSessionInvite.mockRejectedValue({
+      response: { status: 409, data: { code: 'EXTERNAL_GUEST_INVITE_STATE_CONFLICT' } },
+    })
+
+    renderView()
+    await screen.findByText('Деталі зовнішньої сесії')
+
+    const revokeButton = await screen.findByRole('button', { name: 'Відкликати' })
+    await fireEvent.click(revokeButton)
+
+    await waitFor(() => {
+      expect(mockedRevokeExternalSessionInvite).toHaveBeenCalledWith(21)
+      expect(mockedFetchExternalSessionInvite).toHaveBeenCalledTimes(2)
+    })
+    expect(screen.getByText('Активне запрошення ще не створено.')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Перевидати' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Відкликати' })).not.toBeInTheDocument()
   })
 })
