@@ -58,8 +58,30 @@
 
         <div class="form-grid">
           <label class="field">
-            <span>Початок</span>
-            <input v-model="editDraft.starts_at" class="input" type="datetime-local" :disabled="isCancelled || savePending" />
+            <span>Дата початку</span>
+            <input
+              v-model="editDraft.start_date"
+              class="input"
+              type="date"
+              lang="uk"
+              :disabled="isCancelled || savePending"
+              @click="openDatePicker"
+              @focus="openDatePicker"
+            />
+          </label>
+
+          <label class="field">
+            <span>Час початку</span>
+            <input
+              v-model="editDraft.start_time"
+              class="input"
+              type="text"
+              inputmode="numeric"
+              maxlength="5"
+              placeholder="ГГ:ХХ"
+              :disabled="isCancelled || savePending"
+              @blur="normalizeEditStartTime"
+            />
           </label>
 
           <label class="field">
@@ -224,7 +246,8 @@ import {
 import { formatUkDateTimeCompact } from '../lib/dateTime'
 
 type EditDraft = {
-  starts_at: string
+  start_date: string
+  start_time: string
   duration_minutes: number
   session_format: SessionFormat
   meeting_url: string
@@ -248,7 +271,8 @@ const saveError = ref('')
 
 const session = ref<ExternalSessionRecord | null>(null)
 const editDraft = ref<EditDraft>({
-  starts_at: '',
+  start_date: '',
+  start_time: '',
   duration_minutes: 60,
   session_format: 'online',
   meeting_url: '',
@@ -296,24 +320,70 @@ function formatDateTime(value: string | null | undefined) {
   return formatUkDateTimeCompact(value)
 }
 
-function toIsoFromLocalDateTime(value: string) {
-  if (!value) return ''
-  const parsed = new Date(value)
+function openDatePicker(event: Event) {
+  const target = event.target as HTMLInputElement | null
+  if (!target) return
+  if (typeof target.showPicker === 'function') {
+    try {
+      target.showPicker()
+    } catch {
+      target.focus()
+    }
+    return
+  }
+  target.focus()
+}
+
+function normalizeTimeValue(value: string) {
+  const trimmed = String(value || '').trim()
+  const match = /^(\d{1,2}):(\d{2})$/.exec(trimmed)
+  if (!match) return trimmed
+  const hours = Number(match[1])
+  const minutes = Number(match[2])
+  if (!Number.isInteger(hours) || !Number.isInteger(minutes) || hours > 23 || minutes > 59) return trimmed
+  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`
+}
+
+function normalizeEditStartTime() {
+  editDraft.value.start_time = normalizeTimeValue(editDraft.value.start_time)
+}
+
+function combineDateTimeToIso(dateValue: string, timeValue: string) {
+  if (!dateValue || !timeValue) return ''
+  const normalizedTime = normalizeTimeValue(timeValue)
+  if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(normalizedTime)) return ''
+  const parsed = new Date(`${dateValue}T${normalizedTime}`)
   if (Number.isNaN(parsed.getTime())) return ''
   return parsed.toISOString()
 }
 
-function toLocalDateTimeInputValue(value: string | null | undefined) {
-  if (!value) return ''
+function splitIsoToDateTimeParts(value: string | null | undefined) {
+  if (!value) {
+    return {
+      date: '',
+      time: '',
+    }
+  }
   const parsed = new Date(value)
-  if (Number.isNaN(parsed.getTime())) return ''
+  if (Number.isNaN(parsed.getTime())) {
+    return {
+      date: '',
+      time: '',
+    }
+  }
   const local = new Date(parsed.getTime() - parsed.getTimezoneOffset() * 60_000)
-  return local.toISOString().slice(0, 16)
+  const [date = '', time = ''] = local.toISOString().slice(0, 16).split('T')
+  return {
+    date,
+    time,
+  }
 }
 
 function syncEditDraft(next: ExternalSessionRecord) {
+  const start = splitIsoToDateTimeParts(next.starts_at)
   editDraft.value = {
-    starts_at: toLocalDateTimeInputValue(next.starts_at),
+    start_date: start.date,
+    start_time: start.time,
     duration_minutes: next.duration_minutes,
     session_format: next.session_format === 'offline' ? 'offline' : 'online',
     meeting_url: next.meeting_url || '',
@@ -364,7 +434,7 @@ async function loadInvite() {
 }
 
 function validateEditDraft() {
-  const startsAtIso = toIsoFromLocalDateTime(editDraft.value.starts_at)
+  const startsAtIso = combineDateTimeToIso(editDraft.value.start_date, editDraft.value.start_time)
   if (!startsAtIso) return 'Вкажіть коректний час початку.'
   if (!Number.isFinite(editDraft.value.duration_minutes) || editDraft.value.duration_minutes < 1) {
     return 'Вкажіть коректну тривалість.'
@@ -390,7 +460,7 @@ async function submitSave() {
   savePending.value = true
   try {
     const payload = {
-      starts_at: toIsoFromLocalDateTime(editDraft.value.starts_at),
+      starts_at: combineDateTimeToIso(editDraft.value.start_date, editDraft.value.start_time),
       duration_minutes: editDraft.value.duration_minutes,
       session_format: editDraft.value.session_format,
       meeting_url: isEditOnline.value ? editDraft.value.meeting_url.trim() || null : null,

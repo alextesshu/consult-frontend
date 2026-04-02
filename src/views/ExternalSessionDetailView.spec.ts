@@ -101,10 +101,13 @@ describe('ExternalSessionDetailView', () => {
   })
 
   it('renders empty invite state when invite does not exist', async () => {
-    renderView()
+    const { container } = renderView()
 
     expect(await screen.findByText('Деталі зовнішньої сесії')).toBeInTheDocument()
     expect(await screen.findByText('Активне запрошення ще не створено.')).toBeInTheDocument()
+    expect(container.querySelector('input[type="datetime-local"]')).not.toBeInTheDocument()
+    expect(container.querySelector('input[type="date"]')).toBeInTheDocument()
+    expect(container.querySelector('input[inputmode="numeric"]')).toBeInTheDocument()
     expect(mockedFetchExternalSessionDetail).toHaveBeenCalledWith(21)
     expect(mockedFetchExternalSessionInvite).toHaveBeenCalledWith(21)
   })

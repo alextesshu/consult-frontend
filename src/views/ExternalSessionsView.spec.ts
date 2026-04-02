@@ -76,10 +76,13 @@ describe('ExternalSessionsView', () => {
   })
 
   it('renders only external sessions list surface', async () => {
-    renderView()
+    const { container } = renderView()
 
     expect(await screen.findByText('Ваші зовнішні сесії')).toBeInTheDocument()
     const detailLink = await screen.findByRole('link', { name: 'Деталі' })
+    expect(container.querySelector('input[type="datetime-local"]')).not.toBeInTheDocument()
+    expect(container.querySelector('input[type="date"]')).toBeInTheDocument()
+    expect(container.querySelector('input[inputmode="numeric"]')).toBeInTheDocument()
     expect(screen.getAllByText('Зовнішні сесії').length).toBeGreaterThan(0)
     expect(detailLink).toHaveAttribute('href', '/cabinet/external-sessions/8')
     expect(screen.queryByText('Заплановані сесії')).not.toBeInTheDocument()
@@ -102,10 +105,17 @@ describe('ExternalSessionsView', () => {
       updated_at: '2099-06-01T00:00:00Z',
     } as any)
 
-    renderView()
+    const { container } = renderView()
     await screen.findByText('Нова зовнішня сесія')
 
-    await fireEvent.update(screen.getByLabelText('Початок'), '2099-06-16T12:30')
+    const dateInput = container.querySelector('input[type="date"]')
+    const timeInput = container.querySelector('input[inputmode="numeric"]')
+    if (!dateInput || !timeInput) {
+      throw new Error('Missing start date/time fields')
+    }
+
+    await fireEvent.update(dateInput, '2099-06-16')
+    await fireEvent.update(timeInput, '12:30')
     await fireEvent.update(screen.getByLabelText('Посилання на зустріч'), 'https://meet.google.com/new-room')
     await fireEvent.update(screen.getByLabelText("Ім'я гостя (опційно)"), 'Guest Name')
     await fireEvent.update(screen.getByLabelText('Email гостя (опційно)'), 'guest@example.com')
@@ -139,11 +149,18 @@ describe('ExternalSessionsView', () => {
       updated_at: '2099-06-01T00:00:00Z',
     } as any)
 
-    renderView()
+    const { container } = renderView()
     await screen.findByText('Нова зовнішня сесія')
 
+    const dateInput = container.querySelector('input[type="date"]')
+    const timeInput = container.querySelector('input[inputmode="numeric"]')
+    if (!dateInput || !timeInput) {
+      throw new Error('Missing start date/time fields')
+    }
+
     await fireEvent.update(screen.getByLabelText('Формат'), 'offline')
-    await fireEvent.update(screen.getByLabelText('Початок'), '2099-06-16T12:30')
+    await fireEvent.update(dateInput, '2099-06-16')
+    await fireEvent.update(timeInput, '12:30')
     await fireEvent.update(screen.getByLabelText('Локація'), 'Kyiv office')
     await fireEvent.click(screen.getByRole('button', { name: 'Створити зовнішню сесію' }))
 
