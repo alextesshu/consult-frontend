@@ -42,8 +42,25 @@ describe('router specialist session routes', () => {
     expect(invalidDetail.matched.some((record) => record.name === 'cabinet-session-detail')).toBe(false)
   })
 
+  it('matches external sessions routes and rejects non-numeric detail id', () => {
+    const list = router.resolve('/cabinet/external-sessions')
+    const detail = router.resolve('/cabinet/external-sessions/21')
+    const invalidDetail = router.resolve('/cabinet/external-sessions/not-a-number')
+
+    expect(list.name).toBe('cabinet-external-sessions')
+    expect(detail.name).toBe('cabinet-external-session-detail')
+    expect(detail.params).toEqual({ id: '21' })
+    expect(invalidDetail.name).not.toBe('cabinet-external-session-detail')
+  })
+
   it('redirects unauthenticated users away from specialist session routes', async () => {
     await router.push('/cabinet/sessions/42')
+
+    expect(router.currentRoute.value.name).toBe('login')
+  })
+
+  it('redirects unauthenticated users away from external specialist routes', async () => {
+    await router.push('/cabinet/external-sessions/21')
 
     expect(router.currentRoute.value.name).toBe('login')
   })
@@ -62,6 +79,29 @@ describe('router specialist session routes', () => {
 
     expect(router.currentRoute.value.name).toBe('cabinet-session-detail')
     expect(router.currentRoute.value.params).toEqual({ id: '42' })
+  })
+
+  it('allows authenticated specialists to open the external session detail route', async () => {
+    const auth = useAuthStore()
+    auth.setToken('test-token')
+    auth.setUser({
+      id: 1,
+      username: 'specialist',
+      email: 'specialist@example.com',
+      roles: ['SPECIALIST'],
+    })
+
+    await router.push('/cabinet/external-sessions/21')
+
+    expect(router.currentRoute.value.name).toBe('cabinet-external-session-detail')
+    expect(router.currentRoute.value.params).toEqual({ id: '21' })
+  })
+
+  it('allows unauthenticated access to public external guest session route', async () => {
+    await router.push('/guest/external-session/test-token')
+
+    expect(router.currentRoute.value.name).toBe('guest-external-session')
+    expect(router.currentRoute.value.params).toEqual({ token: 'test-token' })
   })
 
   it('does not force redirect to login on transient me bootstrap failure when token exists', async () => {

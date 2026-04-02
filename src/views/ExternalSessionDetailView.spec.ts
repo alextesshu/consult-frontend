@@ -1,0 +1,254 @@
+import { fireEvent, render, screen, waitFor } from '@testing-library/vue'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import ExternalSessionDetailView from './ExternalSessionDetailView.vue'
+import {
+  cancelExternalSession,
+  createExternalSessionInvite,
+  fetchExternalSessionDetail,
+  fetchExternalSessionInvite,
+  regenerateExternalSessionInvite,
+  revokeExternalSessionInvite,
+  updateExternalSession,
+} from '../lib/api'
+
+const routeParams = { id: '21' }
+
+vi.mock('vue-router', async () => {
+  const actual = await vi.importActual<typeof import('vue-router')>('vue-router')
+  return {
+    ...actual,
+    useRoute: () => ({
+      params: routeParams,
+    }),
+  }
+})
+
+const toast = {
+  success: vi.fn(),
+  error: vi.fn(),
+  warning: vi.fn(),
+  info: vi.fn(),
+  show: vi.fn(),
+}
+
+vi.mock('../composables/useToast', () => ({
+  useToast: () => toast,
+}))
+
+vi.mock('../lib/api', async () => {
+  const actual = await vi.importActual<typeof import('../lib/api')>('../lib/api')
+  return {
+    ...actual,
+    fetchExternalSessionDetail: vi.fn(),
+    updateExternalSession: vi.fn(),
+    cancelExternalSession: vi.fn(),
+    fetchExternalSessionInvite: vi.fn(),
+    createExternalSessionInvite: vi.fn(),
+    revokeExternalSessionInvite: vi.fn(),
+    regenerateExternalSessionInvite: vi.fn(),
+    getApiErrorMessage: vi.fn((_error: unknown, fallback: string) => fallback),
+  }
+})
+
+const mockedFetchExternalSessionDetail = vi.mocked(fetchExternalSessionDetail)
+const mockedUpdateExternalSession = vi.mocked(updateExternalSession)
+const mockedCancelExternalSession = vi.mocked(cancelExternalSession)
+const mockedFetchExternalSessionInvite = vi.mocked(fetchExternalSessionInvite)
+const mockedCreateExternalSessionInvite = vi.mocked(createExternalSessionInvite)
+const mockedRevokeExternalSessionInvite = vi.mocked(revokeExternalSessionInvite)
+const mockedRegenerateExternalSessionInvite = vi.mocked(regenerateExternalSessionInvite)
+
+function baseSession(overrides: Record<string, unknown> = {}) {
+  return {
+    id: 21,
+    starts_at: '2099-06-15T10:00:00Z',
+    ends_at: '2099-06-15T11:00:00Z',
+    duration_minutes: 60,
+    session_format: 'online',
+    meeting_url: 'https://meet.google.com/demo',
+    offline_location_snapshot: null,
+    guest_name: 'Guest User',
+    guest_email: 'guest@example.com',
+    status: 'SCHEDULED',
+    cancelled_at: null,
+    created_at: '2099-06-01T00:00:00Z',
+    updated_at: '2099-06-01T00:00:00Z',
+    ...overrides,
+  }
+}
+
+function renderView() {
+  return render(ExternalSessionDetailView, {
+    global: {
+      stubs: {
+        RouterLink: {
+          props: ['to'],
+          template: '<a :href="typeof to === \'string\' ? to : \'\'"><slot /></a>',
+        },
+      },
+    },
+  })
+}
+
+describe('ExternalSessionDetailView', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    routeParams.id = '21'
+    mockedFetchExternalSessionDetail.mockResolvedValue(baseSession() as any)
+    mockedFetchExternalSessionInvite.mockRejectedValue({
+      response: { status: 404, data: { code: 'NOT_FOUND' } },
+    })
+  })
+
+  it('renders empty invite state when invite does not exist', async () => {
+    renderView()
+
+    expect(await screen.findByText('Деталі external session')).toBeInTheDocument()
+    expect(await screen.findByText('Активний invite ще не створено.')).toBeInTheDocument()
+    expect(mockedFetchExternalSessionDetail).toHaveBeenCalledWith(21)
+    expect(mockedFetchExternalSessionInvite).toHaveBeenCalledWith(21)
+  })
+
+  it('creates invite and allows copying invite link from page state', async () => {
+    const clipboardWrite = vi.fn().mockResolvedValue(undefined)
+    vi.stubGlobal('navigator', {
+      clipboard: { writeText: clipboardWrite },
+    })
+
+    mockedCreateExternalSessionInvite.mockResolvedValue({
+      invite: {
+        id: 11,
+        external_session_id: 21,
+        status: 'ACTIVE',
+        expires_at: '2099-06-16T10:00:00Z',
+        opened_at: null,
+        last_opened_at: null,
+        joined_at: null,
+        created_at: null,
+        updated_at: null,
+      },
+      invite_url: 'https://proconsult.space/guest/external-session/new-token',
+    } as any)
+
+    renderView()
+    await screen.findByText('Активний invite ще не створено.')
+
+    const createInviteButton = await screen.findByRole('button', { name: 'Створити invite' })
+    await fireEvent.click(createInviteButton)
+
+    await waitFor(() => {
+      expect(mockedCreateExternalSessionInvite).toHaveBeenCalledWith(21)
+      expect(toast.success).toHaveBeenCalledWith('Guest invite створено.')
+    })
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Скопіювати лінк' }))
+
+    await waitFor(() => {
+      expect(clipboardWrite).toHaveBeenCalledWith('https://proconsult.space/guest/external-session/new-token')
+    })
+  })
+
+  it('disables edit and invite actions for cancelled session', async () => {
+    mockedFetchExternalSessionDetail.mockResolvedValue(
+      baseSession({ status: 'CANCELLED', cancelled_at: '2099-06-12T10:00:00Z' }) as any
+    )
+    mockedFetchExternalSessionInvite.mockResolvedValue({
+      id: 14,
+      external_session_id: 21,
+      status: 'ACTIVE',
+      expires_at: '2099-06-16T10:00:00Z',
+      opened_at: null,
+      last_opened_at: null,
+      joined_at: null,
+      created_at: null,
+      updated_at: null,
+    } as any)
+
+    renderView()
+    await screen.findByText('CANCELLED')
+
+    expect(screen.getByRole('button', { name: 'Зберегти' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Скасувати сесію' })).toBeDisabled()
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Перевидати' })).toBeDisabled()
+      expect(screen.getByRole('button', { name: 'Відкликати' })).toBeDisabled()
+    })
+  })
+
+  it('cancels active session and reloads invite state', async () => {
+    mockedCancelExternalSession.mockResolvedValue(
+      baseSession({ status: 'CANCELLED', cancelled_at: '2099-06-12T10:00:00Z' }) as any
+    )
+    mockedFetchExternalSessionInvite
+      .mockRejectedValueOnce({ response: { status: 404, data: { code: 'NOT_FOUND' } } })
+      .mockRejectedValueOnce({ response: { status: 404, data: { code: 'NOT_FOUND' } } })
+
+    renderView()
+    await screen.findByText('Деталі external session')
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Скасувати сесію' }))
+
+    await waitFor(() => {
+      expect(mockedCancelExternalSession).toHaveBeenCalledWith(21)
+      expect(toast.success).toHaveBeenCalledWith('External session скасовано.')
+    })
+  })
+
+  it('keeps existing action methods wired (no accidental regressions)', async () => {
+    mockedFetchExternalSessionInvite.mockResolvedValue({
+      id: 14,
+      external_session_id: 21,
+      status: 'ACTIVE',
+      expires_at: '2099-06-16T10:00:00Z',
+      opened_at: null,
+      last_opened_at: null,
+      joined_at: null,
+      created_at: null,
+      updated_at: null,
+    } as any)
+    mockedUpdateExternalSession.mockResolvedValue(baseSession() as any)
+    mockedRevokeExternalSessionInvite.mockResolvedValue({
+      id: 14,
+      external_session_id: 21,
+      status: 'REVOKED',
+      expires_at: '2099-06-16T10:00:00Z',
+      opened_at: null,
+      last_opened_at: null,
+      joined_at: null,
+      created_at: null,
+      updated_at: null,
+    } as any)
+    mockedRegenerateExternalSessionInvite.mockResolvedValue({
+      invite: {
+        id: 15,
+        external_session_id: 21,
+        status: 'ACTIVE',
+        expires_at: '2099-06-17T10:00:00Z',
+        opened_at: null,
+        last_opened_at: null,
+        joined_at: null,
+        created_at: null,
+        updated_at: null,
+      },
+      invite_url: 'https://proconsult.space/guest/external-session/regenerated',
+    } as any)
+
+    renderView()
+    await screen.findByText('Деталі external session')
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Зберегти' }))
+    await waitFor(() => {
+      expect(mockedUpdateExternalSession).toHaveBeenCalledTimes(1)
+    })
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Відкликати' }))
+    await waitFor(() => {
+      expect(mockedRevokeExternalSessionInvite).toHaveBeenCalledWith(21)
+    })
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Перевидати' }))
+    await waitFor(() => {
+      expect(mockedRegenerateExternalSessionInvite).toHaveBeenCalledWith(21)
+    })
+  })
+})
