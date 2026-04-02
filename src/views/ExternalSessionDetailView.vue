@@ -225,7 +225,15 @@
                 :disabled="inviteActionPending || isCancelled"
                 @click="regenerateInvite"
               >
-                {{ inviteAction === 'regenerate' ? 'Перевидання…' : 'Перевидати' }}
+                {{
+                  inviteAction === 'regenerate'
+                    ? shouldShowGetNewInviteUrlAction
+                      ? 'Отримуємо нове посилання…'
+                      : 'Перевидання…'
+                    : shouldShowGetNewInviteUrlAction
+                      ? 'Отримати нове посилання'
+                      : 'Перевидати'
+                }}
               </button>
               <button
                 class="btn btn--ghost btn--sm"
@@ -238,7 +246,7 @@
             </div>
 
             <p v-if="invitePrimaryStatus === 'active' && !inviteUrl" class="muted">
-              Після перезавантаження посилання не зберігається у стані сторінки. Щоб отримати нове посилання для копіювання, натисніть «Перевидати».
+              Щоб поділитися актуальним лінком, натисніть «Отримати нове посилання».
             </p>
           </template>
 
@@ -322,6 +330,9 @@ const copyLabel = ref('Скопіювати посилання')
 const isCancelled = computed(() => session.value?.status === 'CANCELLED')
 const isEditOnline = computed(() => editDraft.value.session_format === 'online')
 const inviteActionPending = computed(() => inviteAction.value !== null)
+const shouldShowGetNewInviteUrlAction = computed(
+  () => invitePrimaryStatus.value === 'active' && !inviteUrl.value
+)
 const timeOptions = Array.from({ length: 24 * 4 }, (_, index) => {
   const minutes = index * 15
   const hours = String(Math.floor(minutes / 60)).padStart(2, '0')
@@ -594,11 +605,12 @@ async function regenerateInvite() {
   if (!session.value || isCancelled.value) return
   inviteAction.value = 'regenerate'
   inviteError.value = ''
+  const shouldShowReadyCopyMessage = invitePrimaryStatus.value === 'active' && !inviteUrl.value
   try {
     const payload = await regenerateExternalSessionInvite(session.value.id)
     invite.value = payload.invite
     inviteUrl.value = payload.invite_url || ''
-    toast.success('Гостьове запрошення перевидано.')
+    toast.success(shouldShowReadyCopyMessage ? 'Нове посилання готове.' : 'Гостьове запрошення перевидано.')
   } catch (err) {
     if (isConflictError(err)) {
       await loadInvite()

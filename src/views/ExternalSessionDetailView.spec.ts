@@ -201,7 +201,7 @@ describe('ExternalSessionDetailView', () => {
     expect(screen.queryByRole('button', { name: 'Скопіювати посилання' })).not.toBeInTheDocument()
   })
 
-  it('renders active invite controls and hides copy button when no invite URL in page state', async () => {
+  it('renders explicit get new link action when active invite has no invite URL in page state', async () => {
     mockedFetchExternalSessionInvite.mockReset()
     mockedFetchExternalSessionInvite.mockResolvedValue({
       id: 77,
@@ -218,9 +218,58 @@ describe('ExternalSessionDetailView', () => {
     renderView()
     await screen.findByText('Деталі зовнішньої сесії')
 
-    expect(await screen.findByRole('button', { name: 'Перевидати' })).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: 'Отримати нове посилання' })).toBeInTheDocument()
     expect(await screen.findByRole('button', { name: 'Відкликати' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Скопіювати посилання' })).not.toBeInTheDocument()
+  })
+
+  it('gets new link for active invite and then shows copy action', async () => {
+    const clipboardWrite = vi.fn().mockResolvedValue(undefined)
+    vi.stubGlobal('navigator', {
+      clipboard: { writeText: clipboardWrite },
+    })
+
+    mockedFetchExternalSessionInvite.mockReset()
+    mockedFetchExternalSessionInvite.mockResolvedValue({
+      id: 78,
+      external_session_id: 21,
+      status: 'ACTIVE',
+      expires_at: '2099-06-16T10:00:00Z',
+      opened_at: null,
+      last_opened_at: null,
+      joined_at: null,
+      created_at: null,
+      updated_at: null,
+    } as any)
+    mockedRegenerateExternalSessionInvite.mockResolvedValue({
+      invite: {
+        id: 79,
+        external_session_id: 21,
+        status: 'ACTIVE',
+        expires_at: '2099-06-17T10:00:00Z',
+        opened_at: null,
+        last_opened_at: null,
+        joined_at: null,
+        created_at: null,
+        updated_at: null,
+      },
+      invite_url: 'https://proconsult.space/guest/external-session/new-from-regenerate',
+    } as any)
+
+    renderView()
+    await screen.findByText('Деталі зовнішньої сесії')
+
+    await fireEvent.click(await screen.findByRole('button', { name: 'Отримати нове посилання' }))
+
+    await waitFor(() => {
+      expect(mockedRegenerateExternalSessionInvite).toHaveBeenCalledWith(21)
+      expect(toast.success).toHaveBeenCalledWith('Нове посилання готове.')
+    })
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Скопіювати посилання' }))
+    await waitFor(() => {
+      expect(clipboardWrite).toHaveBeenCalledWith('https://proconsult.space/guest/external-session/new-from-regenerate')
+    })
   })
 
   it('disables edit and invite actions for cancelled session', async () => {
@@ -244,7 +293,7 @@ describe('ExternalSessionDetailView', () => {
 
     expect(screen.queryByRole('button', { name: 'Редагувати' })).not.toBeInTheDocument()
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'Перевидати' })).toBeDisabled()
+      expect(screen.getByRole('button', { name: 'Отримати нове посилання' })).toBeDisabled()
       expect(screen.getByRole('button', { name: 'Відкликати' })).toBeDisabled()
     })
   })
@@ -328,7 +377,7 @@ describe('ExternalSessionDetailView', () => {
     })
   })
 
-  it('reloads invite state after 409 on regenerate and removes stale active controls', async () => {
+  it('reloads invite state after 409 on get new link action and removes stale active controls', async () => {
     mockedFetchExternalSessionInvite.mockReset()
     let inviteStatusCall = 0
     mockedFetchExternalSessionInvite.mockImplementation(async () => {
@@ -353,7 +402,7 @@ describe('ExternalSessionDetailView', () => {
     renderView()
     await screen.findByText('Деталі зовнішньої сесії')
 
-    const regenerateButton = await screen.findByRole('button', { name: 'Перевидати' })
+    const regenerateButton = await screen.findByRole('button', { name: 'Отримати нове посилання' })
     await fireEvent.click(regenerateButton)
 
     await waitFor(() => {
