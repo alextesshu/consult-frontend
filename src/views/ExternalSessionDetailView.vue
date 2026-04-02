@@ -199,14 +199,14 @@
         <div v-else>
           <div v-if="inviteError" class="form-error">{{ inviteError }}</div>
 
-          <template v-if="invite">
+          <template v-if="hasInviteState">
             <div class="invite-row">
-              <span class="status-pill" :class="inviteStatusClass">{{ inviteStatusLabel }}</span>
-              <span v-if="invite.expires_at" class="muted">Діє до: {{ formatDateTime(invite.expires_at) }}</span>
-              <span v-if="invite.last_opened_at || invite.opened_at" class="muted">
+              <span v-if="invite" class="status-pill" :class="inviteStatusClass">{{ inviteStatusLabel }}</span>
+              <span v-if="invite?.expires_at" class="muted">Діє до: {{ formatDateTime(invite.expires_at) }}</span>
+              <span v-if="invite && (invite.last_opened_at || invite.opened_at)" class="muted">
                 Лінк відкривали: {{ formatDateTime(invite.last_opened_at || invite.opened_at) }}
               </span>
-              <span v-if="invite.joined_at" class="muted">За лінком приєдналися: {{ formatDateTime(invite.joined_at) }}</span>
+              <span v-if="invite?.joined_at" class="muted">За лінком приєдналися: {{ formatDateTime(invite.joined_at) }}</span>
             </div>
 
             <div class="actions-row">
@@ -220,6 +220,7 @@
                 {{ copyLabel }}
               </button>
               <button
+                v-if="invite"
                 class="btn btn--ghost btn--sm"
                 type="button"
                 :disabled="inviteActionPending || isCancelled"
@@ -236,6 +237,7 @@
                 }}
               </button>
               <button
+                v-if="invite"
                 class="btn btn--ghost btn--sm"
                 type="button"
                 :disabled="inviteActionPending || isCancelled || invitePrimaryStatus !== 'active'"
@@ -250,7 +252,7 @@
               <a :href="inviteUrl" class="invite-link-value" target="_blank" rel="noopener noreferrer">{{ inviteUrl }}</a>
             </div>
 
-            <p v-if="invitePrimaryStatus === 'active' && !inviteUrl" class="muted">
+            <p v-if="invite && invitePrimaryStatus === 'active' && !inviteUrl" class="muted">
               Щоб поділитися актуальним лінком, натисніть «Отримати нове посилання».
             </p>
           </template>
@@ -335,6 +337,7 @@ const copyLabel = ref('Скопіювати посилання')
 const isCancelled = computed(() => session.value?.status === 'CANCELLED')
 const isEditOnline = computed(() => editDraft.value.session_format === 'online')
 const inviteActionPending = computed(() => inviteAction.value !== null)
+const hasInviteState = computed(() => Boolean(invite.value || inviteUrl.value))
 const shouldShowGetNewInviteUrlAction = computed(
   () => invitePrimaryStatus.value === 'active' && !inviteUrl.value
 )

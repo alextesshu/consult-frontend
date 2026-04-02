@@ -189,6 +189,40 @@ describe('ExternalSessionDetailView', () => {
     expect(screen.getByRole('button', { name: /Скопіювати посилання|Скопійовано/ })).toBeInTheDocument()
   })
 
+  it('renders invite URL and copy action when create response has invite_url without invite object', async () => {
+    const clipboardWrite = vi.fn().mockResolvedValue(undefined)
+    vi.stubGlobal('navigator', {
+      clipboard: { writeText: clipboardWrite },
+    })
+
+    mockedCreateExternalSessionInvite.mockResolvedValue({
+      invite: null,
+      invite_url: 'https://proconsult.space/guest/external-session/url-only-create',
+    } as any)
+
+    const { container } = renderView()
+    let createInviteButton: HTMLButtonElement | null = null
+    await waitFor(() => {
+      createInviteButton = container.querySelector('.actions-row .btn') as HTMLButtonElement | null
+      expect(createInviteButton).not.toBeNull()
+    })
+    if (!createInviteButton) {
+      throw new Error('Create invite button is missing')
+    }
+    await fireEvent.click(createInviteButton)
+
+    await waitFor(() => {
+      expect(mockedCreateExternalSessionInvite).toHaveBeenCalledWith(21)
+      expect(clipboardWrite).toHaveBeenCalledWith('https://proconsult.space/guest/external-session/url-only-create')
+    })
+
+    expect(
+      screen.getByRole('link', { name: 'https://proconsult.space/guest/external-session/url-only-create' })
+    ).toBeInTheDocument()
+    expect(container.querySelector('.invite-link-block')).not.toBeNull()
+    expect(container.querySelector('.actions-row .btn--sm')).not.toBeNull()
+  })
+
   it('renders empty invite state when status endpoint returns invite: null payload', async () => {
     mockedFetchExternalSessionInvite.mockResolvedValueOnce(null as any)
 
