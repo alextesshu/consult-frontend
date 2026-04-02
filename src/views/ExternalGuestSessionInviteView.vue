@@ -128,6 +128,18 @@ function normalizeResolvedInvite(
   return payload as PublicExternalSessionInviteResolved
 }
 
+function resolveJoinMeetingUrl(payload: unknown) {
+  const source = payload as
+    | { meeting_url?: string | null; join?: { meeting_url?: string | null } | null }
+    | null
+    | undefined
+  const nested = source?.join?.meeting_url
+  if (typeof nested === 'string' && nested.trim()) return nested
+  const topLevel = source?.meeting_url
+  if (typeof topLevel === 'string' && topLevel.trim()) return topLevel
+  return ''
+}
+
 async function loadInvite() {
   if (!token.value) {
     invite.value = null
@@ -170,11 +182,12 @@ async function joinInvite() {
   try {
     const payload = await joinPublicExternalSessionInvite(token.value)
     if (invite.value.session_format === 'online') {
-      if (!payload.meeting_url) {
+      const meetingUrl = resolveJoinMeetingUrl(payload)
+      if (!meetingUrl) {
         joinError.value = 'Не вдалося отримати посилання на онлайн-зустріч.'
         return
       }
-      window.open(payload.meeting_url, '_blank', 'noopener,noreferrer')
+      window.open(meetingUrl, '_blank', 'noopener,noreferrer')
       return
     }
   } catch (err) {

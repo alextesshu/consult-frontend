@@ -1371,6 +1371,16 @@ export type PublicExternalSessionInviteJoinResponse = {
   offline_location_snapshot: string | null
 }
 
+type PublicExternalSessionInviteJoinNestedResponse = {
+  join: {
+    status: ExternalInviteStatus
+    session_format: SessionFormat | null
+    meeting_url: string | null
+    offline_location_snapshot: string | null
+    joined_at?: string | null
+  } | null
+}
+
 export async function fetchExternalSessions(): Promise<ExternalSessionRecord[]> {
   const resp = await http.get<ExternalSessionRecord[]>('/cabinet/external-sessions/')
   return resp.data
@@ -1487,9 +1497,22 @@ export async function fetchPublicExternalSessionInvite(
 export async function joinPublicExternalSessionInvite(
   token: string
 ): Promise<PublicExternalSessionInviteJoinResponse> {
-  const resp = await http.post<PublicExternalSessionInviteJoinResponse>(
+  const resp = await http.post<
+    PublicExternalSessionInviteJoinResponse | PublicExternalSessionInviteJoinNestedResponse
+  >(
     `/public/external-session-invites/${token}/join/`,
     {}
   )
-  return resp.data
+  const payload = resp.data as
+    | PublicExternalSessionInviteJoinResponse
+    | PublicExternalSessionInviteJoinNestedResponse
+    | null
+  const source =
+    payload && typeof payload === 'object' && 'join' in payload ? payload.join : payload
+  return {
+    status: source?.status || 'EXPIRED',
+    session_format: source?.session_format || null,
+    meeting_url: source?.meeting_url || null,
+    offline_location_snapshot: source?.offline_location_snapshot || null,
+  }
 }

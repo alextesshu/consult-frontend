@@ -87,13 +87,15 @@ describe('ExternalGuestSessionInviteView', () => {
     expect(container.textContent).toContain('Це офлайн-зустріч')
   })
 
-  it('opens online meeting URL in a new tab and does not replace current page', async () => {
+  it('opens online meeting URL from nested join payload in a new tab', async () => {
     const openSpy = vi.spyOn(window, 'open').mockReturnValue(null)
     mockedJoinPublicExternalSessionInvite.mockResolvedValue({
-      status: 'JOINED',
-      session_format: 'online',
-      meeting_url: 'https://meet.google.com/external-room',
-      offline_location_snapshot: null,
+      join: {
+        status: 'JOINED',
+        session_format: 'online',
+        meeting_url: 'https://meet.google.com/external-room',
+        offline_location_snapshot: null,
+      },
     } as any)
 
     renderView()
@@ -108,6 +110,57 @@ describe('ExternalGuestSessionInviteView', () => {
         'noopener,noreferrer'
       )
     })
+  })
+
+  it('supports fallback top-level meeting_url for compatibility', async () => {
+    const openSpy = vi.spyOn(window, 'open').mockReturnValue(null)
+    mockedJoinPublicExternalSessionInvite.mockResolvedValue({
+      status: 'JOINED',
+      session_format: 'online',
+      meeting_url: 'https://meet.google.com/top-level-room',
+      offline_location_snapshot: null,
+    } as any)
+
+    const { container } = renderView()
+    await waitFor(() => {
+      expect(container.querySelector('.actions button')).not.toBeNull()
+    })
+    const joinButton = container.querySelector('.actions button') as HTMLButtonElement | null
+    if (!joinButton) {
+      throw new Error('Join button is missing')
+    }
+    await fireEvent.click(joinButton)
+
+    await waitFor(() => {
+      expect(openSpy).toHaveBeenCalledWith(
+        'https://meet.google.com/top-level-room',
+        '_blank',
+        'noopener,noreferrer'
+      )
+    })
+  })
+
+  it('shows error when online join response has no valid meeting_url', async () => {
+    mockedJoinPublicExternalSessionInvite.mockResolvedValue({
+      join: {
+        status: 'JOINED',
+        session_format: 'online',
+        meeting_url: null,
+        offline_location_snapshot: null,
+      },
+    } as any)
+
+    const { container } = renderView()
+    await waitFor(() => {
+      expect(container.querySelector('.actions button')).not.toBeNull()
+    })
+    const joinButton = container.querySelector('.actions button') as HTMLButtonElement | null
+    if (!joinButton) {
+      throw new Error('Join button is missing')
+    }
+    await fireEvent.click(joinButton)
+
+    expect(container.textContent).toContain('онлайн-зустріч')
   })
 
   it('does not force offline helper for online session when optional fields are missing and keeps can_join mapping', async () => {
