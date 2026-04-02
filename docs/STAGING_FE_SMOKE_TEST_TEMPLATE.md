@@ -10,6 +10,20 @@ Tester:
 Date:
 Build/commit:
 
+## 0) Fast Deploy Verification (Required Before Full Smoke)
+
+- [ ] Hard refresh `https://staging.proconsult.space` (`Ctrl+Shift+R`) after deploy.
+- [ ] Confirm build marker is visible:
+  - regular shell routes: footer marker `Staging | FE <version/sha>`
+  - minimal shell routes (public guest): fixed marker in bottom-right with the same `FE <version/sha>`
+- [ ] Confirm technical probe exists on page:
+  - open DevTools Console and run:
+  - `document.querySelector('#fe-build-probe')?.dataset`
+- [ ] Record `buildMarker` from probe/footer in `Build/commit` above.
+- [ ] Open the two critical routes and confirm the same marker/build:
+  - public guest: `https://staging.proconsult.space/guest/external-session/<token>`
+  - specialist cabinet external sessions: `https://staging.proconsult.space/cabinet/external-sessions`
+
 ## 1) Deploy Preflight (Canonical)
 
 - [ ] Trigger deploy only via backend canonical deploy script for staging (no ad-hoc/manual remembered commands).
@@ -19,8 +33,15 @@ Build/commit:
   - env label: `Staging`
   - FE build marker: short commit SHA/version
 - [ ] Record the same marker in `Build/commit` above before running smoke.
+- [ ] If marker did not change after deploy, clear browser cache for site data and repeat the check.
 
 ## 2) Smoke Checklist (Beta)
+
+### Deploy Hygiene / Build Freshness
+- [ ] Marker/build id is the same across home, public guest route, and cabinet external sessions route.
+- [ ] Public external guest route loads current build (no stale shell artifacts).
+- [ ] Specialist cabinet external sessions route loads current build (no stale shell artifacts).
+- [ ] No broken-looking generic error/empty placeholders on first paint that could be mistaken for failed deploy.
 
 ### Auth
 - [ ] Signup (specialist) works, success path clear.

@@ -37,6 +37,10 @@ Frontend production-readiness slice is now integrated:
 - Production deployment baseline:
   - frontend is served from nginx container
   - runtime assumes same-domain reverse-proxy routing with backend API under `/api`
+  - staging build verification is available through:
+    - visible deploy marker in footer (regular shell routes)
+    - visible deploy marker in bottom-right for minimal-shell routes
+    - technical probe element `#fe-build-probe` with `data-build-marker` for route-level verification
 - Legal minimum pages are statically served via frontend routes and integrated into global footer/auth entrypoints.
 - Public homepage now follows the PRO CONSULT two-core promise:
   - structured practice management for specialists

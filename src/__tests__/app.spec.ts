@@ -202,6 +202,14 @@ describe('App shell', () => {
     expect(screen.getByText(/Без комісій\. Без посередників\./i)).toBeInTheDocument()
   })
 
+  it('renders technical build probe for deploy verification', async () => {
+    await renderWithProviders()
+    const probe = document.querySelector('#fe-build-probe') as HTMLDivElement | null
+    expect(probe).not.toBeNull()
+    expect(probe?.dataset.buildMarker).toBeTruthy()
+    expect(probe?.dataset.deployEnv).toBeTruthy()
+  })
+
   it('hides topbar and footer on minimal shell routes', async () => {
     await renderWithProviders({
       initialPath: '/guest/external-session/test-token',
