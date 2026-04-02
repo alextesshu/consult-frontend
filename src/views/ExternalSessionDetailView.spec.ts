@@ -104,11 +104,28 @@ describe('ExternalSessionDetailView', () => {
     const { container } = renderView()
 
     expect(await screen.findByText('Деталі зовнішньої сесії')).toBeInTheDocument()
+    expect(screen.getByText('Зведення')).toBeInTheDocument()
+    expect(screen.getAllByText('Гостьовий доступ').length).toBeGreaterThan(0)
+    expect(screen.getByRole('button', { name: 'Редагувати' })).toBeInTheDocument()
     expect(await screen.findByText('Активне запрошення ще не створено.')).toBeInTheDocument()
     expect(container.querySelector('input[type="datetime-local"]')).not.toBeInTheDocument()
-    expect(container.querySelector('input[type="date"]')).toBeInTheDocument()
-    const timeInput = container.querySelector('input[inputmode="numeric"]')
-    expect(timeInput).toBeInTheDocument()
+    expect(container.querySelector('input[type="date"]')).not.toBeInTheDocument()
+    expect(container.querySelector('input[inputmode="numeric"]')).not.toBeInTheDocument()
+    expect(mockedFetchExternalSessionDetail).toHaveBeenCalledWith(21)
+    expect(mockedFetchExternalSessionInvite).toHaveBeenCalledWith(21)
+  })
+
+  it('opens edit mode and closes with cancel while resetting local draft', async () => {
+    const { container } = renderView()
+    await screen.findByText('Деталі зовнішньої сесії')
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Редагувати' }))
+    const dateInput = container.querySelector('input[type="date"]') as HTMLInputElement | null
+    const timeInput = container.querySelector('input[inputmode="numeric"]') as HTMLInputElement | null
+    if (!dateInput || !timeInput) {
+      throw new Error('Edit inputs are missing')
+    }
+
     expect(timeInput).toHaveAttribute('list', 'external-session-edit-time-options')
     const options = Array.from(
       container.querySelectorAll('datalist#external-session-edit-time-options option')
@@ -116,8 +133,20 @@ describe('ExternalSessionDetailView', () => {
     expect(options[0]).toBe('00:00')
     expect(options[1]).toBe('00:15')
     expect(options[95]).toBe('23:45')
-    expect(mockedFetchExternalSessionDetail).toHaveBeenCalledWith(21)
-    expect(mockedFetchExternalSessionInvite).toHaveBeenCalledWith(21)
+
+    await fireEvent.update(dateInput, '2099-06-20')
+    await fireEvent.update(timeInput, '11:45')
+    await fireEvent.click(screen.getByRole('button', { name: 'Скасувати' }))
+
+    expect(screen.getByRole('button', { name: 'Редагувати' })).toBeInTheDocument()
+    expect(container.querySelector('input[type="date"]')).not.toBeInTheDocument()
+    expect(container.querySelector('input[inputmode="numeric"]')).not.toBeInTheDocument()
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Редагувати' }))
+    const resetDateInput = container.querySelector('input[type="date"]') as HTMLInputElement | null
+    const resetTimeInput = container.querySelector('input[inputmode="numeric"]') as HTMLInputElement | null
+    expect(resetDateInput?.value).toBe('2099-06-15')
+    expect(resetTimeInput?.value).toBe('13:00')
   })
 
   it('creates invite and allows copying invite link from page state', async () => {
@@ -178,8 +207,7 @@ describe('ExternalSessionDetailView', () => {
     renderView()
     await screen.findByText('Скасовано')
 
-    expect(screen.getByRole('button', { name: 'Зберегти' })).toBeDisabled()
-    expect(screen.getByRole('button', { name: 'Скасувати сесію' })).toBeDisabled()
+    expect(screen.queryByRole('button', { name: 'Редагувати' })).not.toBeInTheDocument()
     await waitFor(() => {
       expect(screen.getByRole('button', { name: 'Перевидати' })).toBeDisabled()
       expect(screen.getByRole('button', { name: 'Відкликати' })).toBeDisabled()
@@ -197,6 +225,7 @@ describe('ExternalSessionDetailView', () => {
     renderView()
     await screen.findByText('Деталі зовнішньої сесії')
 
+    await fireEvent.click(screen.getByRole('button', { name: 'Редагувати' }))
     await fireEvent.click(screen.getByRole('button', { name: 'Скасувати сесію' }))
 
     await waitFor(() => {
@@ -247,6 +276,7 @@ describe('ExternalSessionDetailView', () => {
     renderView()
     await screen.findByText('Деталі зовнішньої сесії')
 
+    await fireEvent.click(screen.getByRole('button', { name: 'Редагувати' }))
     await fireEvent.click(screen.getByRole('button', { name: 'Зберегти' }))
     await waitFor(() => {
       expect(mockedUpdateExternalSession).toHaveBeenCalledTimes(1)

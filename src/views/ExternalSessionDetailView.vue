@@ -52,109 +52,134 @@
             <div class="badge badge--soft">Редагування</div>
             <h2 class="panel__title">Параметри сесії</h2>
           </div>
-        </div>
-
-        <div v-if="saveError" class="form-error">{{ saveError }}</div>
-
-        <div class="form-grid">
-          <label class="field">
-            <span>Дата початку</span>
-            <input
-              v-model="editDraft.start_date"
-              class="input"
-              type="date"
-              lang="uk"
-              :disabled="isCancelled || savePending"
-              @click="openDatePicker"
-              @focus="openDatePicker"
-            />
-          </label>
-
-          <label class="field">
-            <span>Час початку</span>
-            <input
-              v-model="editDraft.start_time"
-              class="input"
-              type="text"
-              inputmode="numeric"
-              maxlength="5"
-              placeholder="ГГ:ХХ"
-              list="external-session-edit-time-options"
-              :disabled="isCancelled || savePending"
-              @blur="normalizeEditStartTime"
-            />
-          </label>
-
-          <label class="field">
-            <span>Тривалість (хв)</span>
-            <input
-              v-model.number="editDraft.duration_minutes"
-              class="input"
-              type="number"
-              min="1"
-              max="480"
-              :disabled="isCancelled || savePending"
-            />
-          </label>
-
-          <label class="field">
-            <span>Формат</span>
-            <select v-model="editDraft.session_format" class="input input--select" :disabled="isCancelled || savePending">
-              <option value="online">Онлайн</option>
-              <option value="offline">Офлайн</option>
-            </select>
-          </label>
-
-          <label v-if="isEditOnline" class="field">
-            <span>Посилання на зустріч</span>
-            <input
-              v-model="editDraft.meeting_url"
-              class="input"
-              type="url"
-              placeholder="https://meet.google.com/..."
-              :disabled="isCancelled || savePending"
-            />
-          </label>
-
-          <label v-else class="field">
-            <span>Локація</span>
-            <input
-              v-model="editDraft.offline_location_snapshot"
-              class="input"
-              type="text"
-              placeholder="Київ, вул. ..."
-              :disabled="isCancelled || savePending"
-            />
-          </label>
-
-          <label class="field">
-            <span>Ім'я гостя (опційно)</span>
-            <input v-model="editDraft.guest_name" class="input" type="text" maxlength="120" :disabled="isCancelled || savePending" />
-          </label>
-
-          <label class="field">
-            <span>Email гостя (опційно)</span>
-            <input
-              v-model="editDraft.guest_email"
-              class="input"
-              type="email"
-              maxlength="255"
-              :disabled="isCancelled || savePending"
-            />
-          </label>
-        </div>
-
-        <div class="actions-row">
-          <button class="btn" type="button" :disabled="isCancelled || savePending" @click="submitSave">
-            {{ savePending ? 'Зберігаємо…' : 'Зберегти' }}
-          </button>
-          <button class="btn btn--ghost" type="button" :disabled="isCancelled || cancelPending" @click="submitCancel">
-            {{ cancelPending ? 'Скасовуємо…' : 'Скасувати сесію' }}
+          <button
+            v-if="!isEditMode && !isCancelled"
+            class="btn btn--ghost btn--sm"
+            type="button"
+            :disabled="savePending || cancelPending"
+            @click="openEditMode"
+          >
+            Редагувати
           </button>
         </div>
-        <datalist id="external-session-edit-time-options">
-          <option v-for="option in timeOptions" :key="option" :value="option" />
-        </datalist>
+
+        <template v-if="isEditMode">
+          <div v-if="saveError" class="form-error">{{ saveError }}</div>
+
+          <div class="form-grid">
+            <label class="field">
+              <span>Дата початку</span>
+              <input
+                v-model="editDraft.start_date"
+                class="input"
+                type="date"
+                lang="uk"
+                :disabled="isCancelled || savePending"
+                @click="openDatePicker"
+                @focus="openDatePicker"
+              />
+            </label>
+
+            <label class="field">
+              <span>Час початку</span>
+              <input
+                v-model="editDraft.start_time"
+                class="input"
+                type="text"
+                inputmode="numeric"
+                maxlength="5"
+                placeholder="ГГ:ХХ"
+                list="external-session-edit-time-options"
+                :disabled="isCancelled || savePending"
+                @blur="normalizeEditStartTime"
+              />
+            </label>
+
+            <label class="field">
+              <span>Тривалість (хв)</span>
+              <input
+                v-model.number="editDraft.duration_minutes"
+                class="input"
+                type="number"
+                min="1"
+                max="480"
+                :disabled="isCancelled || savePending"
+              />
+            </label>
+
+            <label class="field">
+              <span>Формат</span>
+              <select v-model="editDraft.session_format" class="input input--select" :disabled="isCancelled || savePending">
+                <option value="online">Онлайн</option>
+                <option value="offline">Офлайн</option>
+              </select>
+            </label>
+
+            <label v-if="isEditOnline" class="field">
+              <span>Посилання на зустріч</span>
+              <input
+                v-model="editDraft.meeting_url"
+                class="input"
+                type="url"
+                placeholder="https://meet.google.com/..."
+                :disabled="isCancelled || savePending"
+              />
+            </label>
+
+            <label v-else class="field">
+              <span>Локація</span>
+              <input
+                v-model="editDraft.offline_location_snapshot"
+                class="input"
+                type="text"
+                placeholder="Київ, вул. ..."
+                :disabled="isCancelled || savePending"
+              />
+            </label>
+
+            <label class="field">
+              <span>Ім'я гостя (опційно)</span>
+              <input
+                v-model="editDraft.guest_name"
+                class="input"
+                type="text"
+                maxlength="120"
+                :disabled="isCancelled || savePending"
+              />
+            </label>
+
+            <label class="field">
+              <span>Email гостя (опційно)</span>
+              <input
+                v-model="editDraft.guest_email"
+                class="input"
+                type="email"
+                maxlength="255"
+                :disabled="isCancelled || savePending"
+              />
+            </label>
+          </div>
+
+          <div class="actions-row">
+            <button class="btn" type="button" :disabled="isCancelled || savePending" @click="submitSave">
+              {{ savePending ? 'Зберігаємо…' : 'Зберегти' }}
+            </button>
+            <button
+              class="btn btn--ghost"
+              type="button"
+              :disabled="isCancelled || savePending || cancelPending"
+              @click="cancelEditMode"
+            >
+              Скасувати
+            </button>
+            <button class="btn btn--ghost" type="button" :disabled="isCancelled || cancelPending" @click="submitCancel">
+              {{ cancelPending ? 'Скасовуємо…' : 'Скасувати сесію' }}
+            </button>
+          </div>
+          <datalist id="external-session-edit-time-options">
+            <option v-for="option in timeOptions" :key="option" :value="option" />
+          </datalist>
+        </template>
 
         <p v-if="isCancelled" class="muted">Сесію скасовано. Редагування та активні дії з запрошенням вимкнено.</p>
       </section>
@@ -272,6 +297,7 @@ const loadError = ref('')
 const savePending = ref(false)
 const cancelPending = ref(false)
 const saveError = ref('')
+const isEditMode = ref(false)
 
 const session = ref<ExternalSessionRecord | null>(null)
 const editDraft = ref<EditDraft>({
@@ -403,6 +429,18 @@ function syncEditDraft(next: ExternalSessionRecord) {
   }
 }
 
+function openEditMode() {
+  if (isCancelled.value) return
+  isEditMode.value = true
+}
+
+function cancelEditMode() {
+  if (!session.value) return
+  syncEditDraft(session.value)
+  saveError.value = ''
+  isEditMode.value = false
+}
+
 async function loadSession() {
   if (!Number.isInteger(sessionId.value) || sessionId.value <= 0) {
     session.value = null
@@ -499,6 +537,7 @@ async function submitCancel() {
     const updated = await cancelExternalSession(session.value.id)
     session.value = updated
     syncEditDraft(updated)
+    isEditMode.value = false
     await loadInvite()
     toast.success('Зовнішню сесію скасовано.')
   } catch (err) {
@@ -570,6 +609,7 @@ async function copyInviteLink() {
 }
 
 async function loadPage() {
+  isEditMode.value = false
   await loadSession()
   if (!session.value) return
   await loadInvite()
