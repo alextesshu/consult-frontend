@@ -149,7 +149,7 @@ describe('ExternalSessionDetailView', () => {
     expect(resetTimeInput?.value).toBe('13:00')
   })
 
-  it('creates invite and allows copying invite link from page state', async () => {
+  it('stores and renders invite URL after create success', async () => {
     const clipboardWrite = vi.fn().mockResolvedValue(undefined)
     vi.stubGlobal('navigator', {
       clipboard: { writeText: clipboardWrite },
@@ -178,14 +178,15 @@ describe('ExternalSessionDetailView', () => {
 
     await waitFor(() => {
       expect(mockedCreateExternalSessionInvite).toHaveBeenCalledWith(21)
-      expect(toast.success).toHaveBeenCalledWith('Гостьове запрошення створено.')
+      expect(toast.success).toHaveBeenCalledWith('Посилання запрошення скопійовано.')
     })
-
-    await fireEvent.click(screen.getByRole('button', { name: 'Скопіювати посилання' }))
 
     await waitFor(() => {
       expect(clipboardWrite).toHaveBeenCalledWith('https://proconsult.space/guest/external-session/new-token')
     })
+    expect(screen.getByText('Нове посилання для гостя')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'https://proconsult.space/guest/external-session/new-token' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Скопіювати посилання|Скопійовано/ })).toBeInTheDocument()
   })
 
   it('renders empty invite state when status endpoint returns invite: null payload', async () => {
@@ -223,7 +224,7 @@ describe('ExternalSessionDetailView', () => {
     expect(screen.queryByRole('button', { name: 'Скопіювати посилання' })).not.toBeInTheDocument()
   })
 
-  it('gets new link for active invite and then shows copy action', async () => {
+  it('gets new link for active invite and then shows visible URL with copy action', async () => {
     const clipboardWrite = vi.fn().mockResolvedValue(undefined)
     vi.stubGlobal('navigator', {
       clipboard: { writeText: clipboardWrite },
@@ -263,13 +264,52 @@ describe('ExternalSessionDetailView', () => {
 
     await waitFor(() => {
       expect(mockedRegenerateExternalSessionInvite).toHaveBeenCalledWith(21)
-      expect(toast.success).toHaveBeenCalledWith('Нове посилання готове.')
+      expect(toast.success).toHaveBeenCalledWith('Нове посилання скопійовано.')
     })
 
-    await fireEvent.click(screen.getByRole('button', { name: 'Скопіювати посилання' }))
+    expect(screen.getByText('Нове посилання для гостя')).toBeInTheDocument()
+    expect(
+      screen.getByRole('link', { name: 'https://proconsult.space/guest/external-session/new-from-regenerate' })
+    ).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Скопіювати посилання|Скопійовано/ })).toBeInTheDocument()
+    await fireEvent.click(screen.getByRole('button', { name: /Скопіювати посилання|Скопійовано/ }))
     await waitFor(() => {
       expect(clipboardWrite).toHaveBeenCalledWith('https://proconsult.space/guest/external-session/new-from-regenerate')
     })
+  })
+
+  it('keeps visible URL and copy action when clipboard auto-copy fails', async () => {
+    const clipboardWrite = vi.fn().mockRejectedValue(new Error('clipboard blocked'))
+    vi.stubGlobal('navigator', {
+      clipboard: { writeText: clipboardWrite },
+    })
+
+    mockedCreateExternalSessionInvite.mockResolvedValue({
+      invite: {
+        id: 120,
+        external_session_id: 21,
+        status: 'ACTIVE',
+        expires_at: '2099-06-16T10:00:00Z',
+        opened_at: null,
+        last_opened_at: null,
+        joined_at: null,
+        created_at: null,
+        updated_at: null,
+      },
+      invite_url: 'https://proconsult.space/guest/external-session/fallback-url',
+    } as any)
+
+    renderView()
+    await screen.findByText('Деталі зовнішньої сесії')
+
+    await fireEvent.click(await screen.findByRole('button', { name: 'Створити запрошення' }))
+
+    await waitFor(() => {
+      expect(toast.success).toHaveBeenCalledWith('Посилання запрошення готове до копіювання.')
+    })
+    expect(screen.getByText('Нове посилання для гостя')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Скопіювати посилання|Скопійовано/ })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'https://proconsult.space/guest/external-session/fallback-url' })).toBeInTheDocument()
   })
 
   it('disables edit and invite actions for cancelled session', async () => {

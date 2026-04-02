@@ -245,6 +245,11 @@
               </button>
             </div>
 
+            <div v-if="inviteUrl" class="invite-link-block">
+              <div class="muted">Нове посилання для гостя</div>
+              <a :href="inviteUrl" class="invite-link-value" target="_blank" rel="noopener noreferrer">{{ inviteUrl }}</a>
+            </div>
+
             <p v-if="invitePrimaryStatus === 'active' && !inviteUrl" class="muted">
               Щоб поділитися актуальним лінком, натисніть «Отримати нове посилання».
             </p>
@@ -572,7 +577,12 @@ async function createInvite() {
     const payload = await createExternalSessionInvite(session.value.id)
     invite.value = payload.invite
     inviteUrl.value = payload.invite_url || ''
-    toast.success('Гостьове запрошення створено.')
+    if (!inviteUrl.value) {
+      toast.success('Гостьове запрошення створено.')
+      return
+    }
+    const copied = await tryCopyInviteLink(inviteUrl.value)
+    toast.success(copied ? 'Посилання запрошення скопійовано.' : 'Посилання запрошення готове до копіювання.')
   } catch (err) {
     inviteError.value = getApiErrorMessage(err, 'Не вдалося створити гостьове запрошення.')
   } finally {
@@ -610,7 +620,16 @@ async function regenerateInvite() {
     const payload = await regenerateExternalSessionInvite(session.value.id)
     invite.value = payload.invite
     inviteUrl.value = payload.invite_url || ''
-    toast.success(shouldShowReadyCopyMessage ? 'Нове посилання готове.' : 'Гостьове запрошення перевидано.')
+    if (!inviteUrl.value) {
+      toast.success(shouldShowReadyCopyMessage ? 'Нове посилання готове.' : 'Гостьове запрошення перевидано.')
+      return
+    }
+    const copied = await tryCopyInviteLink(inviteUrl.value)
+    if (copied) {
+      toast.success('Нове посилання скопійовано.')
+    } else {
+      toast.success('Нове посилання готове до копіювання.')
+    }
   } catch (err) {
     if (isConflictError(err)) {
       await loadInvite()
@@ -623,15 +642,23 @@ async function regenerateInvite() {
   }
 }
 
-async function copyInviteLink() {
-  if (!inviteUrl.value) return
+async function tryCopyInviteLink(value: string) {
   try {
-    await navigator.clipboard.writeText(inviteUrl.value)
+    await navigator.clipboard.writeText(value)
     copyLabel.value = 'Скопійовано'
     window.setTimeout(() => {
       copyLabel.value = 'Скопіювати посилання'
     }, 1700)
+    return true
   } catch {
+    return false
+  }
+}
+
+async function copyInviteLink() {
+  if (!inviteUrl.value) return
+  const copied = await tryCopyInviteLink(inviteUrl.value)
+  if (!copied) {
     inviteError.value = 'Не вдалося скопіювати URL запрошення.'
   }
 }
@@ -717,6 +744,18 @@ watch(
   gap: 8px;
   flex-wrap: wrap;
   align-items: center;
+}
+
+.invite-link-block {
+  display: grid;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.invite-link-value {
+  font-size: 13px;
+  color: #0b5cad;
+  word-break: break-all;
 }
 
 .status-pill {
