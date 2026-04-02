@@ -166,8 +166,8 @@ describe('ExternalSessionDetailView', () => {
         joined_at: null,
         created_at: null,
         updated_at: null,
+        invite_url: 'https://proconsult.space/guest/external-session/new-token',
       },
-      invite_url: 'https://proconsult.space/guest/external-session/new-token',
     } as any)
 
     renderView()
@@ -287,8 +287,8 @@ describe('ExternalSessionDetailView', () => {
         joined_at: null,
         created_at: null,
         updated_at: null,
+        invite_url: 'https://proconsult.space/guest/external-session/new-from-regenerate',
       },
-      invite_url: 'https://proconsult.space/guest/external-session/new-from-regenerate',
     } as any)
 
     renderView()

@@ -1337,11 +1337,12 @@ export type ExternalSessionInvite = {
   joined_at: string | null
   created_at: string | null
   updated_at: string | null
+  invite_url?: string | null
 }
 
 export type ExternalSessionInviteCreateResponse = {
-  invite: ExternalSessionInvite
-  invite_url: string
+  invite: ExternalSessionInvite | null
+  invite_url?: string | null
 }
 
 export type ExternalSessionInviteStatusResponse = {

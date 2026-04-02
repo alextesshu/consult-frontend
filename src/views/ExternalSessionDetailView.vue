@@ -372,6 +372,14 @@ const inviteStatusClass = computed(() => {
   return 'status-pill--warn'
 })
 
+function resolveInviteUrl(payload: { invite?: ExternalSessionInvite | null; invite_url?: string | null }) {
+  const nestedInviteUrl = payload.invite?.invite_url
+  if (typeof nestedInviteUrl === 'string' && nestedInviteUrl.trim()) return nestedInviteUrl
+  const topLevelInviteUrl = payload.invite_url
+  if (typeof topLevelInviteUrl === 'string' && topLevelInviteUrl.trim()) return topLevelInviteUrl
+  return ''
+}
+
 function formatDateTime(value: string | null | undefined) {
   return formatUkDateTimeCompact(value)
 }
@@ -579,7 +587,7 @@ async function createInvite() {
   try {
     const payload = await createExternalSessionInvite(session.value.id)
     invite.value = payload.invite
-    inviteUrl.value = payload.invite_url || ''
+    inviteUrl.value = resolveInviteUrl(payload)
     if (!inviteUrl.value) {
       toast.success('Гостьове запрошення створено.')
       return
@@ -622,7 +630,7 @@ async function regenerateInvite() {
   try {
     const payload = await regenerateExternalSessionInvite(session.value.id)
     invite.value = payload.invite
-    inviteUrl.value = payload.invite_url || ''
+    inviteUrl.value = resolveInviteUrl(payload)
     if (!inviteUrl.value) {
       toast.success(shouldShowReadyCopyMessage ? 'Нове посилання готове.' : 'Гостьове запрошення перевидано.')
       return
