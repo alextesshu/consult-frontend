@@ -102,6 +102,7 @@ async function renderWithProviders(options?: {
     { path: '/privacy', component: { template: '<div>Privacy</div>' } },
     { path: '/disclaimer', component: { template: '<div>Disclaimer</div>' } },
     { path: '/support-and-data-requests', component: { template: '<div>Support</div>' } },
+    { path: '/guest/session/:token', component: { template: '<div>Guest Session</div>' }, meta: { minimalShell: true } },
     { path: '/cabinet', component: { template: '<div>Cabinet</div>' } },
     { path: '/client', component: { template: '<div>Client</div>' } },
     { path: '/cabinet/inquiries', component: { template: '<div>Cabinet Inquiries</div>' } },
@@ -195,6 +196,17 @@ describe('App shell', () => {
   it('renders footer text', async () => {
     await renderWithProviders()
     expect(screen.getByText(/Без комісій\. Без посередників\./i)).toBeInTheDocument()
+  })
+
+  it('hides broad app shell on guest session route', async () => {
+    const { container } = await renderWithProviders({
+      initialPath: '/guest/session/token-1',
+      roles: [],
+    })
+
+    expect(await screen.findByText('Guest Session')).toBeInTheDocument()
+    expect(container.querySelector('header.topbar')).not.toBeInTheDocument()
+    expect(container.querySelector('footer.footer')).not.toBeInTheDocument()
   })
 
   it('refreshes me on visibilitychange when specialist tab becomes visible', async () => {

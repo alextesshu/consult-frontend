@@ -4,9 +4,13 @@ import {
   apiGet,
   apiPatch,
   apiPost,
+  createSpecialistGuestSessionInvite,
   fetchSessionPaymentProof,
+  fetchSpecialistGuestSessionInviteStatus,
   requestSessionPaymentProof,
   markSessionPaymentProofPaid,
+  regenerateSpecialistGuestSessionInvite,
+  revokeSpecialistGuestSessionInvite,
   requestSessionPaymentProofClarification,
   uploadSessionPaymentProof,
   updateSpecialistSessionMeeting,
@@ -46,6 +50,11 @@ vi.mock('../lib/api', () => ({
   apiPatch: vi.fn(),
   apiPost: vi.fn(),
   apiPut: vi.fn(),
+  getApiErrorMessage: vi.fn((_err: unknown, fallback: string) => fallback),
+  createSpecialistGuestSessionInvite: vi.fn(),
+  fetchSpecialistGuestSessionInviteStatus: vi.fn(),
+  revokeSpecialistGuestSessionInvite: vi.fn(),
+  regenerateSpecialistGuestSessionInvite: vi.fn(),
   fetchSessionPaymentProof: vi.fn(),
   requestSessionPaymentProof: vi.fn(),
   markSessionPaymentProofPaid: vi.fn(),
@@ -57,6 +66,10 @@ vi.mock('../lib/api', () => ({
 const mockedApiGet = vi.mocked(apiGet)
 const mockedApiPatch = vi.mocked(apiPatch)
 const mockedApiPost = vi.mocked(apiPost)
+const mockedCreateSpecialistGuestSessionInvite = vi.mocked(createSpecialistGuestSessionInvite)
+const mockedFetchSpecialistGuestSessionInviteStatus = vi.mocked(fetchSpecialistGuestSessionInviteStatus)
+const mockedRevokeSpecialistGuestSessionInvite = vi.mocked(revokeSpecialistGuestSessionInvite)
+const mockedRegenerateSpecialistGuestSessionInvite = vi.mocked(regenerateSpecialistGuestSessionInvite)
 const mockedFetchSessionPaymentProof = vi.mocked(fetchSessionPaymentProof)
 const mockedRequestSessionPaymentProof = vi.mocked(requestSessionPaymentProof)
 const mockedMarkSessionPaymentProofPaid = vi.mocked(markSessionPaymentProofPaid)
@@ -116,6 +129,23 @@ function buildRequest(overrides: Record<string, unknown> = {}) {
   }
 }
 
+function buildGuestInvite(overrides: Record<string, unknown> = {}) {
+  return {
+    id: 501,
+    session_id: 42,
+    status: 'ACTIVE',
+    client_name: null,
+    client_email: null,
+    expires_at: '2099-06-20T10:00:00Z',
+    opened_at: null,
+    last_opened_at: null,
+    joined_at: null,
+    created_at: '2099-06-15T10:00:00Z',
+    updated_at: '2099-06-15T10:00:00Z',
+    ...overrides,
+  }
+}
+
 type DetailRequest = ReturnType<typeof buildRequest>
 
 function mockDetailContext(
@@ -125,6 +155,7 @@ function mockDetailContext(
     suggestions?: Record<string, unknown>[]
     note?: string
     requests?: Record<string, unknown>[]
+    guestInviteStatus?: Record<string, unknown> | null
   } = {}
 ) {
   const {
@@ -132,6 +163,7 @@ function mockDetailContext(
     suggestions = [buildSuggestion()],
     note = 'Progress note',
     requests = [buildRequest()],
+    guestInviteStatus = null,
   } = options
 
   mockedApiGet.mockImplementation(async (url) => {
@@ -161,6 +193,15 @@ function mockDetailContext(
 
     throw new Error(`Unexpected apiGet call: ${url}`)
   })
+
+  mockedFetchSpecialistGuestSessionInviteStatus.mockImplementation(async () => {
+    if (guestInviteStatus) return guestInviteStatus as any
+    throw {
+      response: {
+        status: 404,
+      },
+    }
+  })
 }
 
 function endpointCalls(url: string) {
@@ -186,6 +227,10 @@ describe('TherapistSessionDetailView', () => {
     mockedApiGet.mockReset()
     mockedApiPatch.mockReset()
     mockedApiPost.mockReset()
+    mockedCreateSpecialistGuestSessionInvite.mockReset()
+    mockedFetchSpecialistGuestSessionInviteStatus.mockReset()
+    mockedRevokeSpecialistGuestSessionInvite.mockReset()
+    mockedRegenerateSpecialistGuestSessionInvite.mockReset()
     mockedFetchSessionPaymentProof.mockReset()
     mockedRequestSessionPaymentProof.mockReset()
     mockedMarkSessionPaymentProofPaid.mockReset()
@@ -255,6 +300,68 @@ describe('TherapistSessionDetailView', () => {
     await fireEvent.click(button as HTMLButtonElement)
     expect(openSpy).toHaveBeenCalled()
     openSpy.mockRestore()
+  })
+
+  it('creates guest invite and keeps copyable link in specialist block', async () => {
+    const sessionDetail = buildSession({ status: 'CONFIRMED' })
+    mockDetailContext(() => sessionDetail, { requests: [], guestInviteStatus: null })
+
+    mockedCreateSpecialistGuestSessionInvite.mockResolvedValue({
+      invite: buildGuestInvite(),
+      invite_url: 'https://proconsult.space/guest/session/token-123',
+    } as any)
+
+    renderView()
+
+    expect(await screen.findByRole('heading', { name: 'Guest access' })).toBeInTheDocument()
+    await fireEvent.click(await screen.findByRole('button', { name: 'Створити guest link' }))
+
+    await waitFor(() => {
+      expect(mockedCreateSpecialistGuestSessionInvite).toHaveBeenCalledWith(42, {})
+      expect(mockToast.success).toHaveBeenCalledWith('Guest лінк створено.')
+    })
+
+    expect(screen.getByText('Активне')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Скопіювати лінк' })).toBeEnabled()
+  })
+
+  it('renders active guest invite metadata and supports revoke / regenerate', async () => {
+    const sessionDetail = buildSession({ status: 'CONFIRMED' })
+    mockDetailContext(() => sessionDetail, {
+      requests: [],
+      guestInviteStatus: buildGuestInvite({
+        last_opened_at: '2099-06-18T11:30:00Z',
+        joined_at: '2099-06-18T11:35:00Z',
+      }),
+    })
+
+    mockedRevokeSpecialistGuestSessionInvite.mockResolvedValue(
+      buildGuestInvite({ status: 'REVOKED', expires_at: null }) as any
+    )
+    mockedRegenerateSpecialistGuestSessionInvite.mockResolvedValue({
+      invite: buildGuestInvite({ id: 777, status: 'ACTIVE' }),
+      invite_url: 'https://proconsult.space/guest/session/token-777',
+    } as any)
+
+    renderView()
+
+    expect(await screen.findByText(/Лінк відкривали:/)).toBeInTheDocument()
+    expect(screen.getByText(/За лінком приєдналися:/)).toBeInTheDocument()
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Відкликати' }))
+
+    await waitFor(() => {
+      expect(mockedRevokeSpecialistGuestSessionInvite).toHaveBeenCalledWith(42)
+      expect(mockToast.success).toHaveBeenCalledWith('Guest лінк відкликано.')
+    })
+    expect(screen.getByText('Відкликане')).toBeInTheDocument()
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Створити новий лінк' }))
+    await waitFor(() => {
+      expect(mockedRegenerateSpecialistGuestSessionInvite).toHaveBeenCalledWith(42)
+      expect(mockToast.success).toHaveBeenCalledWith('Guest лінк перевидано.')
+    })
+    expect(screen.getByText('Активне')).toBeInTheDocument()
   })
 
   it('requests payment proof from specialist block and refreshes payment-proof state', async () => {
@@ -964,3 +1071,5 @@ describe('TherapistSessionDetailView', () => {
     expect(endpointCalls('/booking/sessions/42/')).toBe(2)
   })
 })
+
+

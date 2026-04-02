@@ -1,6 +1,6 @@
 <template>
-  <div :class="['shell', { 'shell--home': isHome }]">
-    <header :class="topbarClass">
+  <div :class="['shell', { 'shell--home': isHome, 'shell--minimal': useMinimalShell }]">
+    <header v-if="!useMinimalShell" :class="topbarClass">
       <div class="topbar__inner">
         <RouterLink class="brand" to="/">
           <div class="brand__mark">Pro Consult</div>
@@ -231,7 +231,7 @@
       <RouterView :key="route.fullPath" />
     </main>
     <ToastHost />
-    <footer class="footer">
+    <footer v-if="!useMinimalShell" class="footer">
       <div class="footer__brand">
         <span>Pro Consult — Простір для вашої справи</span>
         <RouterLink class="footer__link" to="/faq">FAQ</RouterLink>
@@ -269,6 +269,7 @@ const router = useRouter()
 const auth = useAuthStore()
 const isAuthenticated = computed(() => Boolean(auth.accessToken))
 const isHome = computed(() => route.path === '/')
+const useMinimalShell = computed(() => Boolean(route.meta?.minimalShell))
 const runtimeHost = typeof window !== 'undefined' ? window.location.hostname.toLowerCase() : ''
 const deployEnv = String(import.meta.env.VITE_DEPLOY_ENV || '').trim().toLowerCase()
 const apiBaseUrl = String(import.meta.env.VITE_API_BASE_URL || '').trim().toLowerCase()
@@ -793,6 +794,12 @@ watch(isChatCapable, (value) => {
   display: block;
   height: auto;
   overflow: visible;
+}
+
+.shell--minimal {
+  max-width: none;
+  padding: 0;
+  display: block;
 }
 
 .topbar {

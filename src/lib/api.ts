@@ -1297,6 +1297,96 @@ export type UpdateSessionMeetingPayload = {
   meeting_url: string | null
 }
 
+export type GuestInviteStatus = 'ACTIVE' | 'EXPIRED' | 'REVOKED' | 'OPENED' | 'JOINED' | string
+
+export type SpecialistGuestSessionInvite = {
+  id: number
+  session_id: number
+  status: GuestInviteStatus
+  client_name: string | null
+  client_email: string | null
+  expires_at: string | null
+  opened_at: string | null
+  last_opened_at: string | null
+  joined_at: string | null
+  created_at: string | null
+  updated_at: string | null
+}
+
+export type SpecialistGuestSessionInviteCreateResponse = {
+  invite: SpecialistGuestSessionInvite
+  invite_url: string
+}
+
+export type PublicGuestSessionInviteResolved = {
+  status: GuestInviteStatus
+  specialist_name: string | null
+  slot_start_at: string | null
+  slot_end_at: string | null
+  session_format: SessionFormat | null
+  offline_location: string | null
+}
+
+export type PublicGuestSessionInviteJoinResponse = {
+  status: GuestInviteStatus
+  session_format: SessionFormat | null
+  meeting_url: string | null
+  offline_location: string | null
+}
+
+export async function fetchSpecialistGuestSessionInviteStatus(
+  sessionId: number
+): Promise<SpecialistGuestSessionInvite> {
+  const resp = await http.get<SpecialistGuestSessionInvite>(`/booking/sessions/${sessionId}/guest-invite/`)
+  return resp.data
+}
+
+export async function createSpecialistGuestSessionInvite(
+  sessionId: number,
+  payload?: { client_name?: string; client_email?: string }
+): Promise<SpecialistGuestSessionInviteCreateResponse> {
+  const resp = await http.post<SpecialistGuestSessionInviteCreateResponse>(
+    `/booking/sessions/${sessionId}/guest-invite/`,
+    payload ?? {}
+  )
+  return resp.data
+}
+
+export async function revokeSpecialistGuestSessionInvite(
+  sessionId: number
+): Promise<SpecialistGuestSessionInvite> {
+  const resp = await http.post<SpecialistGuestSessionInvite>(
+    `/booking/sessions/${sessionId}/guest-invite/revoke/`,
+    {}
+  )
+  return resp.data
+}
+
+export async function regenerateSpecialistGuestSessionInvite(
+  sessionId: number
+): Promise<SpecialistGuestSessionInviteCreateResponse> {
+  const resp = await http.post<SpecialistGuestSessionInviteCreateResponse>(
+    `/booking/sessions/${sessionId}/guest-invite/regenerate/`,
+    {}
+  )
+  return resp.data
+}
+
+export async function fetchPublicGuestSessionInvite(token: string): Promise<PublicGuestSessionInviteResolved> {
+  const resp = await http.get<PublicGuestSessionInviteResolved>(`/public/guest-session-invites/${token}/`)
+  return resp.data
+}
+
+export async function joinPublicGuestSessionInvite(
+  token: string
+): Promise<PublicGuestSessionInviteJoinResponse> {
+  const resp = await http.post<PublicGuestSessionInviteJoinResponse>(
+    `/public/guest-session-invites/${token}/join/`,
+    {}
+  )
+  return resp.data
+}
+
 export async function updateSpecialistSessionMeeting(
   sessionId: number,
   payload: UpdateSessionMeetingPayload

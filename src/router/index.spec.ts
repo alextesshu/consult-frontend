@@ -48,6 +48,13 @@ describe('router specialist session routes', () => {
     expect(router.currentRoute.value.name).toBe('login')
   })
 
+  it('allows unauthenticated access to public guest session route', async () => {
+    await router.push('/guest/session/test-token')
+
+    expect(router.currentRoute.value.name).toBe('guest-session')
+    expect(router.currentRoute.value.params).toEqual({ token: 'test-token' })
+  })
+
   it('allows authenticated specialists to open the session detail route', async () => {
     const auth = useAuthStore()
     auth.setToken('test-token')

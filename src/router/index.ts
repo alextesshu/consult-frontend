@@ -39,6 +39,7 @@ import NotificationSettingsView from '../views/NotificationSettingsView.vue'
 import SettingsHubView from '../views/SettingsHubView.vue'
 import SpecialistInquiriesView from '../views/SpecialistInquiriesView.vue'
 import ClientInquiryRedirectView from '../views/ClientInquiryRedirectView.vue'
+import GuestSessionInviteView from '../views/GuestSessionInviteView.vue'
 import { useAuthStore } from '../stores/auth'
 import { fetchSpecialistProfile } from '../lib/api'
 import { hasSpecialistRole, isSpecialistCriticalReconcileRoute } from '../lib/entitlementReconcile'
@@ -50,6 +51,12 @@ const routes = [
   { path: '/signup', name: 'signup', component: SignupView },
   { path: '/signup-client', name: 'signup-client', component: ClientSignupView },
   { path: '/invite/:token', name: 'group-invite-join', component: GroupInviteJoinView },
+  {
+    path: '/guest/session/:token',
+    name: 'guest-session',
+    component: GuestSessionInviteView,
+    meta: { minimalShell: true },
+  },
   {
     path: '/cabinet',
     name: 'cabinet',

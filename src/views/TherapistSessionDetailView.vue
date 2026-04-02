@@ -174,6 +174,94 @@
         </div>
       </section>
 
+      <section class="panel guest-invite-panel">
+        <div class="panel__header">
+          <div>
+            <div class="badge badge--soft">Guest access</div>
+            <h2 class="panel__title">Guest access</h2>
+          </div>
+        </div>
+        <p class="muted guest-invite-intro">
+          Створіть окремий лінк для клієнта, щоб він міг приєднатися до цієї сесії без реєстрації.
+        </p>
+
+        <div v-if="guestInviteLoading" class="muted">Завантажуємо стан guest доступу…</div>
+        <div v-else>
+          <div v-if="guestInviteError" class="form-error">{{ guestInviteError }}</div>
+
+          <template v-if="guestInvite">
+            <div class="guest-invite-status-row">
+              <span class="status-pill" :class="guestInviteStatusClass">{{ guestInviteStatusLabel }}</span>
+              <span v-if="guestInviteExpiresLabel" class="muted">Діє до: {{ guestInviteExpiresLabel }}</span>
+              <span v-if="guestInviteLastOpenedLabel" class="muted">Лінк відкривали: {{ guestInviteLastOpenedLabel }}</span>
+              <span v-if="guestInviteJoinedLabel" class="muted">За лінком приєдналися: {{ guestInviteJoinedLabel }}</span>
+            </div>
+            <div v-if="guestInvitePrimaryStatus === 'active'" class="guest-invite-actions">
+              <button
+                class="btn btn--ghost btn--sm"
+                type="button"
+                :disabled="guestInviteAction !== null || !guestInviteUrl"
+                @click="copyGuestInviteLink"
+              >
+                {{ guestInviteCopyFeedback || 'Скопіювати лінк' }}
+              </button>
+              <button
+                class="btn btn--ghost btn--sm"
+                type="button"
+                :disabled="guestInviteAction !== null"
+                @click="regenerateGuestInvite"
+              >
+                {{ guestInviteAction === 'regenerate' ? 'Перевидання…' : 'Перевидати' }}
+              </button>
+              <button
+                class="btn btn--ghost btn--sm"
+                type="button"
+                :disabled="guestInviteAction !== null"
+                @click="revokeGuestInvite"
+              >
+                {{ guestInviteAction === 'revoke' ? 'Відкликаємо…' : 'Відкликати' }}
+              </button>
+            </div>
+            <div v-else class="guest-invite-actions">
+              <button
+                class="btn btn--sm"
+                type="button"
+                :disabled="guestInviteAction !== null"
+                @click="regenerateGuestInvite"
+              >
+                {{ guestInviteAction === 'regenerate' ? 'Створюємо…' : 'Створити новий лінк' }}
+              </button>
+            </div>
+            <p v-if="guestInvitePrimaryStatus === 'active' && !guestInviteUrl" class="muted">
+              Щоб отримати актуальний лінк для копіювання, натисніть «Перевидати».
+            </p>
+          </template>
+
+          <template v-else>
+            <div class="guest-invite-form">
+              <label class="field">
+                <span>Ім’я клієнта (опційно)</span>
+                <input v-model="guestClientNameDraft" class="input" maxlength="120" />
+              </label>
+              <label class="field">
+                <span>Email клієнта (опційно)</span>
+                <input v-model="guestClientEmailDraft" class="input" type="email" maxlength="255" />
+              </label>
+            </div>
+            <div class="guest-invite-actions">
+              <button
+                class="btn"
+                type="button"
+                :disabled="guestInviteAction !== null"
+                @click="createGuestInvite"
+              >
+                {{ guestInviteAction === 'create' ? 'Створюємо…' : 'Створити guest link' }}
+              </button>
+            </div>
+          </template>
+        </div>
+      </section>
+
       <section class="panel">
         <SessionPaymentProofBlock
           :session-id="session.id"
@@ -400,7 +488,13 @@ import { computed, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import {
   apiGet,
+  createSpecialistGuestSessionInvite,
+  fetchSpecialistGuestSessionInviteStatus,
+  getApiErrorMessage,
+  regenerateSpecialistGuestSessionInvite,
+  revokeSpecialistGuestSessionInvite,
   updateSpecialistSessionMeeting,
+  type SpecialistGuestSessionInvite,
   type SessionFormat,
   type SessionPaymentProof,
 } from '../lib/api'
@@ -509,6 +603,15 @@ const recurringCustomOccurrences = ref<number | ''>('')
 const recurringResult = ref<SpecialistRecurringSummary | null>(null)
 const isEditingMeetingLink = ref(false)
 const meetingLinkDraft = ref('')
+const guestInviteLoading = ref(false)
+const guestInviteError = ref('')
+const guestInviteAction = ref<'create' | 'revoke' | 'regenerate' | null>(null)
+const guestInviteCopyFeedback = ref('')
+const guestInvite = ref<SpecialistGuestSessionInvite | null>(null)
+const guestInviteUrl = ref('')
+const guestClientNameDraft = ref('')
+const guestClientEmailDraft = ref('')
+const GUEST_INVITE_COPY_KEY_PREFIX = 'consult.guest_invite_url.v1'
 
 function normalizeSessionFormat(detail: SessionDetail | null): SessionFormat {
   if (!detail) return 'online'
@@ -543,6 +646,40 @@ const meetingSetupHint = computed(() => {
 
 const sessionRequests = computed(() =>
   session.value ? rescheduleRequests.value.filter((item) => item.session_id === session.value?.id) : []
+)
+
+const guestInvitePrimaryStatus = computed<'active' | 'expired' | 'revoked'>(() => {
+  const current = guestInvite.value
+  if (!current) return 'expired'
+  const status = String(current.status || '').toUpperCase()
+  if (status.includes('REVOKED')) return 'revoked'
+  if (status.includes('EXPIRED')) return 'expired'
+  const expiresAt = current.expires_at ? new Date(current.expires_at).getTime() : Number.NaN
+  if (Number.isFinite(expiresAt) && !Number.isNaN(expiresAt) && expiresAt < Date.now()) return 'expired'
+  return 'active'
+})
+
+const guestInviteStatusLabel = computed(() => {
+  if (guestInvitePrimaryStatus.value === 'active') return 'Активне'
+  if (guestInvitePrimaryStatus.value === 'revoked') return 'Відкликане'
+  return 'Прострочене'
+})
+
+const guestInviteStatusClass = computed(() => {
+  if (guestInvitePrimaryStatus.value === 'active') return 'status-pill--ok'
+  if (guestInvitePrimaryStatus.value === 'revoked') return 'status-pill--danger'
+  return 'status-pill--warn'
+})
+
+const guestInviteExpiresLabel = computed(() =>
+  guestInvite.value?.expires_at ? formatDateTime(guestInvite.value.expires_at) : ''
+)
+const guestInviteLastOpenedLabel = computed(() => {
+  const value = guestInvite.value?.last_opened_at || guestInvite.value?.opened_at
+  return value ? formatDateTime(value) : ''
+})
+const guestInviteJoinedLabel = computed(() =>
+  guestInvite.value?.joined_at ? formatDateTime(guestInvite.value.joined_at) : ''
 )
 
 const isRequestLoading = (id: number) => requestLoading.value.has(id)
@@ -634,6 +771,153 @@ function setRequestLoading(id: number, value: boolean) {
   requestLoading.value = next
 }
 
+function guestInviteStorageKey(sessionValue: number, inviteId: number) {
+  return `${GUEST_INVITE_COPY_KEY_PREFIX}:${sessionValue}:${inviteId}`
+}
+
+function clearCachedGuestInviteLinksForSession(sessionValue: number) {
+  for (let index = sessionStorage.length - 1; index >= 0; index -= 1) {
+    const key = sessionStorage.key(index)
+    if (!key) continue
+    if (!key.startsWith(`${GUEST_INVITE_COPY_KEY_PREFIX}:${sessionValue}:`)) continue
+    sessionStorage.removeItem(key)
+  }
+}
+
+function getGuestInviteErrorMessage(err: unknown, fallback: string) {
+  const code = String((err as { response?: { data?: { code?: string; reason_code?: string } } })?.response?.data?.code || '').toUpperCase()
+  const reasonCode = String(
+    (err as { response?: { data?: { code?: string; reason_code?: string } } })?.response?.data?.reason_code || ''
+  ).toUpperCase()
+  const normalized = code || reasonCode
+  if (normalized === 'ACTIVE_INVITE_EXISTS') return 'Активний guest лінк вже існує для цієї сесії.'
+  if (normalized === 'NO_ACTIVE_INVITE') return 'Активний guest лінк не знайдено.'
+  if (normalized === 'SESSION_NOT_ELIGIBLE') return 'Для цієї сесії guest доступ недоступний.'
+  return getApiErrorMessage(err, fallback)
+}
+
+function restoreCachedGuestInviteUrl(nextInvite: SpecialistGuestSessionInvite | null) {
+  if (!nextInvite || !sessionId.value) {
+    guestInviteUrl.value = ''
+    return
+  }
+  const key = guestInviteStorageKey(sessionId.value, nextInvite.id)
+  const raw = sessionStorage.getItem(key)
+  guestInviteUrl.value = raw || ''
+}
+
+function setGuestInviteState(nextInvite: SpecialistGuestSessionInvite | null, inviteUrl?: string) {
+  guestInvite.value = nextInvite
+  guestInviteError.value = ''
+  guestInviteCopyFeedback.value = ''
+
+  if (!nextInvite) {
+    guestInviteUrl.value = ''
+    if (sessionId.value) {
+      clearCachedGuestInviteLinksForSession(sessionId.value)
+    }
+    return
+  }
+
+  if (inviteUrl) {
+    guestInviteUrl.value = inviteUrl
+    if (sessionId.value) {
+      clearCachedGuestInviteLinksForSession(sessionId.value)
+      sessionStorage.setItem(guestInviteStorageKey(sessionId.value, nextInvite.id), inviteUrl)
+    }
+    return
+  }
+
+  if (guestInvitePrimaryStatus.value === 'active') {
+    restoreCachedGuestInviteUrl(nextInvite)
+    return
+  }
+
+  guestInviteUrl.value = ''
+}
+
+async function loadGuestInviteStatus() {
+  if (!sessionId.value) return
+  guestInviteLoading.value = true
+  guestInviteError.value = ''
+  try {
+    const payload = await fetchSpecialistGuestSessionInviteStatus(sessionId.value)
+    setGuestInviteState(payload)
+  } catch (err: any) {
+    if (err?.response?.status === 404) {
+      setGuestInviteState(null)
+      return
+    }
+    guestInvite.value = null
+    guestInviteError.value = getGuestInviteErrorMessage(err, 'Не вдалося завантажити guest доступ.')
+  } finally {
+    guestInviteLoading.value = false
+  }
+}
+
+async function createGuestInvite() {
+  if (!session.value) return
+  guestInviteAction.value = 'create'
+  guestInviteError.value = ''
+  try {
+    const payload: { client_name?: string; client_email?: string } = {}
+    const name = guestClientNameDraft.value.trim()
+    const email = guestClientEmailDraft.value.trim()
+    if (name) payload.client_name = name
+    if (email) payload.client_email = email
+    const resp = await createSpecialistGuestSessionInvite(session.value.id, payload)
+    setGuestInviteState(resp.invite, resp.invite_url)
+    toast.success('Guest лінк створено.')
+  } catch (err) {
+    guestInviteError.value = getGuestInviteErrorMessage(err, 'Не вдалося створити guest лінк.')
+  } finally {
+    guestInviteAction.value = null
+  }
+}
+
+async function revokeGuestInvite() {
+  if (!session.value) return
+  guestInviteAction.value = 'revoke'
+  guestInviteError.value = ''
+  try {
+    const payload = await revokeSpecialistGuestSessionInvite(session.value.id)
+    setGuestInviteState(payload)
+    toast.success('Guest лінк відкликано.')
+  } catch (err) {
+    guestInviteError.value = getGuestInviteErrorMessage(err, 'Не вдалося відкликати guest лінк.')
+  } finally {
+    guestInviteAction.value = null
+  }
+}
+
+async function regenerateGuestInvite() {
+  if (!session.value) return
+  guestInviteAction.value = 'regenerate'
+  guestInviteError.value = ''
+  try {
+    const resp = await regenerateSpecialistGuestSessionInvite(session.value.id)
+    setGuestInviteState(resp.invite, resp.invite_url)
+    toast.success('Guest лінк перевидано.')
+  } catch (err) {
+    guestInviteError.value = getGuestInviteErrorMessage(err, 'Не вдалося перевидати guest лінк.')
+  } finally {
+    guestInviteAction.value = null
+  }
+}
+
+async function copyGuestInviteLink() {
+  if (!guestInviteUrl.value) return
+  try {
+    await navigator.clipboard.writeText(guestInviteUrl.value)
+    guestInviteCopyFeedback.value = 'Скопійовано'
+    window.setTimeout(() => {
+      guestInviteCopyFeedback.value = ''
+    }, 1800)
+  } catch {
+    guestInviteError.value = 'Не вдалося скопіювати guest лінк.'
+  }
+}
+
 function onPaymentProofUpdated(nextPaymentProof: SessionPaymentProof) {
   if (!session.value) return
   session.value = {
@@ -645,6 +929,8 @@ function onPaymentProofUpdated(nextPaymentProof: SessionPaymentProof) {
 async function loadSession() {
   if (!hasValidSessionId.value) {
     session.value = null
+    guestInvite.value = null
+    guestInviteUrl.value = ''
     pageError.value = 'Некоректний ідентифікатор сесії.'
     return
   }
@@ -655,6 +941,8 @@ async function loadSession() {
     session.value = await apiGet<SessionDetail>(`/booking/sessions/${sessionId.value}/`)
   } catch (err: any) {
     session.value = null
+    guestInvite.value = null
+    guestInviteUrl.value = ''
     pageError.value = getBookingErrorMessage(err, BOOKING_ERROR_FALLBACKS.loadSession)
   } finally {
     loading.value = false
@@ -715,11 +1003,11 @@ async function loadPage() {
   showRecurringPanel.value = false
   await loadSession()
   if (!session.value) return
-  await Promise.all([loadSlots(), loadRescheduleSuggestions(), loadNote(), loadRescheduleRequests()])
+  await Promise.all([loadSlots(), loadRescheduleSuggestions(), loadNote(), loadRescheduleRequests(), loadGuestInviteStatus()])
 }
 
 async function refreshSessionContext() {
-  await Promise.all([loadSession(), loadSlots(), loadRescheduleSuggestions(), loadRescheduleRequests()])
+  await Promise.all([loadSession(), loadSlots(), loadRescheduleSuggestions(), loadRescheduleRequests(), loadGuestInviteStatus()])
 }
 
 async function confirmSession() {
@@ -1107,6 +1395,33 @@ watch(
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+.guest-invite-panel {
+  gap: 12px;
+}
+
+.guest-invite-intro {
+  margin: 0;
+}
+
+.guest-invite-form {
+  display: grid;
+  gap: 12px;
+}
+
+.guest-invite-status-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.guest-invite-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
 }
 
 .suggestions-block,
