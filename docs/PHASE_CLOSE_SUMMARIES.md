@@ -10,6 +10,41 @@ Usage:
 
 ---
 
+## 2026-04-02 - External Guest Session FE Mapping Stabilization
+
+### Context
+- Phase focused on external guest public flow consistency for PRO CONSULT after backend contract confirmation.
+- Scope was limited to frontend mapping/branching fixes, without backend contract changes.
+
+### Done
+- Fixed public resolve mapping to consistently read fields from `guest_session.*`.
+- Enforced strict online/offline render branching on external guest page:
+  - offline helper/location render only for offline format
+  - online state does not show offline helper copy
+- Fixed online join mapping to read URL from nested payload path `join.meeting_url`.
+- Kept backward-compatible fallback to top-level `meeting_url` for compatibility.
+- Ensured online join opens meeting in a new browser tab (`_blank`, `noopener,noreferrer`).
+- Localized default external guest instruction copy to Ukrainian.
+
+### Validation
+- `npm run test:run -- src/views/ExternalGuestSessionInviteView.spec.ts`
+- `npm run typecheck`
+
+### Deferred / Not in Scope
+- Backend endpoint contract changes
+- Broad route/layout refactor
+- New guest auth/account flows
+
+### Key Commits
+- `181259e` fix: localize default external guest invite instruction
+- `45a1064` fix: enforce online/offline branching on external guest page
+- `9c9c694` fix: map external guest join url from nested payload
+
+### Merge Readiness
+- `dev` includes external guest public mapping fixes and is ready for staging smoke validation.
+
+---
+
 ## 2026-03-26 - Auth Hardening + Production Deployment Baseline
 
 ### Context
