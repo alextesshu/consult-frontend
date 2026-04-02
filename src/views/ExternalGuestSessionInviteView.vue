@@ -36,7 +36,7 @@
         </button>
       </div>
 
-      <p v-if="offlineInfoVisible" class="muted">
+      <p v-if="isOffline" class="muted">
         Це офлайн-зустріч. Приходьте у погоджений час за вказаною локацією.
       </p>
     </div>
@@ -64,7 +64,6 @@ const joinPending = ref(false)
 const joinError = ref('')
 const invite = ref<PublicExternalSessionInviteResolved | null>(null)
 const errorState = ref<GuestErrorState>(null)
-const offlineInfoVisible = ref(false)
 
 const isOffline = computed(() => invite.value?.session_format === 'offline')
 const defaultGuestIntroText =
@@ -138,7 +137,6 @@ async function loadInvite() {
 
   loading.value = true
   joinError.value = ''
-  offlineInfoVisible.value = false
 
   try {
     const payload = await fetchPublicExternalSessionInvite(token.value)
@@ -166,16 +164,19 @@ async function loadInvite() {
 }
 
 async function joinInvite() {
-  if (!token.value) return
+  if (!token.value || !invite.value) return
   joinPending.value = true
   joinError.value = ''
   try {
     const payload = await joinPublicExternalSessionInvite(token.value)
-    if (payload.session_format === 'online' && payload.meeting_url) {
-      window.location.assign(payload.meeting_url)
+    if (invite.value.session_format === 'online') {
+      if (!payload.meeting_url) {
+        joinError.value = 'Не вдалося отримати посилання на онлайн-зустріч.'
+        return
+      }
+      window.open(payload.meeting_url, '_blank', 'noopener,noreferrer')
       return
     }
-    offlineInfoVisible.value = true
   } catch (err) {
     joinError.value = getApiErrorMessage(err, 'Не вдалося виконати приєднання до сесії.')
   } finally {

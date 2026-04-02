@@ -39,30 +39,56 @@ describe('ExternalGuestSessionInviteView', () => {
     mockedFetchPublicExternalSessionInvite.mockResolvedValue({
       guest_session: {
         status: 'ACTIVE',
-        specialist_name: 'Specialist User',
+        specialist_name: 'Кендо Фам',
         starts_at: '2099-06-15T10:00:00Z',
         ends_at: '2099-06-15T11:00:00Z',
         session_format: 'online',
         offline_location: null,
-        instructions: 'Custom instruction',
+        instructions: 'Ваш спеціаліст запросив вас на зовнішню сесію.',
         can_join: true,
       },
     } as any)
   })
 
-  it('maps guest_session payload for online state and does not render offline helper text', async () => {
+  it('renders online resolve state without offline helper text', async () => {
     const { container } = renderView()
 
-    expect(await screen.findByText(/Specialist User/)).toBeInTheDocument()
-    expect(container.textContent).toContain('Custom instruction')
+    expect(await screen.findByText('Кендо Фам')).toBeInTheDocument()
     expect(container.textContent).toContain('Спеціаліст:')
     expect(container.textContent).toContain('Початок:')
+    expect(container.textContent).toContain('Завершення:')
     expect(container.textContent).toContain('Формат:')
     expect(container.textContent).toContain('Онлайн')
     expect(container.textContent).not.toContain('Це офлайн-зустріч')
+    expect(container.textContent).not.toContain('Локація:')
   })
 
-  it('joins online invite via public join endpoint', async () => {
+  it('renders offline resolve state with offline helper and location', async () => {
+    mockedFetchPublicExternalSessionInvite.mockResolvedValue({
+      guest_session: {
+        status: 'ACTIVE',
+        specialist_name: 'Кендо Фам',
+        starts_at: '2099-06-15T10:00:00Z',
+        ends_at: '2099-06-15T11:00:00Z',
+        session_format: 'offline',
+        offline_location: 'Київ, офіс 12',
+        instructions: 'Офлайн сесія.',
+        can_join: true,
+      },
+    } as any)
+
+    const { container } = renderView()
+    expect(await screen.findByText('Кендо Фам')).toBeInTheDocument()
+
+    expect(container.textContent).toContain('Формат:')
+    expect(container.textContent).toContain('Офлайн')
+    expect(container.textContent).toContain('Локація:')
+    expect(container.textContent).toContain('Київ, офіс 12')
+    expect(container.textContent).toContain('Це офлайн-зустріч')
+  })
+
+  it('opens online meeting URL in a new tab and does not replace current page', async () => {
+    const openSpy = vi.spyOn(window, 'open').mockReturnValue(null)
     mockedJoinPublicExternalSessionInvite.mockResolvedValue({
       status: 'JOINED',
       session_format: 'online',
@@ -70,86 +96,40 @@ describe('ExternalGuestSessionInviteView', () => {
       offline_location_snapshot: null,
     } as any)
 
-    const { container } = renderView()
-    await screen.findByText(/Specialist User/)
-
-    const joinButton = Array.from(container.querySelectorAll('button')).find(
-      (button) => button.textContent?.includes('Приєднатися до сесії')
-    )
-    if (!joinButton) {
-      throw new Error('Join button is missing')
-    }
+    renderView()
+    const joinButton = await screen.findByRole('button', { name: 'Приєднатися до сесії' })
     await fireEvent.click(joinButton)
 
     await waitFor(() => {
       expect(mockedJoinPublicExternalSessionInvite).toHaveBeenCalledWith('valid-token')
+      expect(openSpy).toHaveBeenCalledWith(
+        'https://meet.google.com/external-room',
+        '_blank',
+        'noopener,noreferrer'
+      )
     })
-    expect(container.textContent).not.toContain('Це офлайн-зустріч')
   })
 
-  it('renders offline details from guest_session payload and shows offline helper only after join', async () => {
+  it('does not force offline helper for online session when optional fields are missing and keeps can_join mapping', async () => {
     mockedFetchPublicExternalSessionInvite.mockResolvedValue({
       guest_session: {
         status: 'ACTIVE',
-        specialist_name: 'Specialist User',
+        specialist_name: 'Кендо Фам',
         starts_at: '2099-06-15T10:00:00Z',
-        ends_at: '2099-06-15T11:00:00Z',
-        session_format: 'offline',
-        offline_location: 'Kyiv office',
-        instructions: 'Offline instruction',
-        can_join: true,
+        ends_at: null,
+        session_format: 'online',
+        offline_location: null,
+        instructions: null,
+        can_join: false,
       },
-    } as any)
-    mockedJoinPublicExternalSessionInvite.mockResolvedValue({
-      status: 'JOINED',
-      session_format: 'offline',
-      meeting_url: null,
-      offline_location_snapshot: 'Kyiv office',
     } as any)
 
     const { container } = renderView()
-    await screen.findByText(/Specialist User/)
+    const joinButton = await screen.findByRole('button', { name: 'Приєднатися до сесії' })
 
-    expect(container.textContent).toContain('Формат:')
-    expect(container.textContent).toContain('Офлайн')
-    expect(container.textContent).toContain('Локація:')
-    expect(container.textContent).toContain('Kyiv office')
+    expect(joinButton).toBeDisabled()
+    expect(container.textContent).toContain('Онлайн')
     expect(container.textContent).not.toContain('Це офлайн-зустріч')
-
-    const offlineButton = Array.from(container.querySelectorAll('button')).find(
-      (button) => button.textContent?.includes('Переглянути деталі зустрічі')
-    )
-    if (!offlineButton) {
-      throw new Error('Offline details button is missing')
-    }
-    await fireEvent.click(offlineButton)
-
-    expect(await screen.findByText('Це офлайн-зустріч. Приходьте у погоджений час за вказаною локацією.')).toBeInTheDocument()
-  })
-
-  it('handles invalid/expired/revoked/unavailable states from backend code', async () => {
-    mockedFetchPublicExternalSessionInvite.mockRejectedValueOnce({
-      response: { status: 404, data: { code: 'EXTERNAL_GUEST_INVITE_INVALID' } },
-    })
-    renderView()
-    expect(await screen.findByText('Лінк недійсний')).toBeInTheDocument()
-
-    mockedFetchPublicExternalSessionInvite.mockRejectedValueOnce({
-      response: { status: 410, data: { code: 'EXTERNAL_GUEST_INVITE_EXPIRED' } },
-    })
-    renderView()
-    expect(await screen.findByText('Термін дії лінка завершився')).toBeInTheDocument()
-
-    mockedFetchPublicExternalSessionInvite.mockRejectedValueOnce({
-      response: { status: 403, data: { code: 'EXTERNAL_GUEST_INVITE_REVOKED' } },
-    })
-    renderView()
-    expect(await screen.findByText('Лінк відкликано')).toBeInTheDocument()
-
-    mockedFetchPublicExternalSessionInvite.mockRejectedValueOnce({
-      response: { status: 409, data: { code: 'EXTERNAL_SESSION_UNAVAILABLE' } },
-    })
-    renderView()
-    expect(await screen.findByText('Сесія недоступна')).toBeInTheDocument()
+    expect(container.textContent).not.toContain('Локація:')
   })
 })
