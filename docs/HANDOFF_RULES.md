@@ -47,3 +47,5 @@ Each phase entry should be brief and operational:
 
 - Keep `README.md` and `docs/HANDOFF.md` consistent on canonical handoff references.
 - Prefer small, factual updates over broad documentation rewrites.
+- For public API integrations with nested payloads, document the exact frontend mapping paths in handoff notes (example: `join.meeting_url`) to prevent response-shape regressions.
+- When deploy verification UX changes (marker/probe/smoke flow), update `docs/STAGING_FE_SMOKE_TEST_TEMPLATE.md` in the same change-set.

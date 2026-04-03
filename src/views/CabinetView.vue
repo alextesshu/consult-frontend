@@ -52,6 +52,7 @@
             <h3 class="action-group__title">Щоденна робота</h3>
             <div class="action-group__items">
               <RouterLink class="btn btn--ghost" to="/cabinet/sessions">Сесії</RouterLink>
+              <RouterLink class="btn btn--ghost" to="/cabinet/external-sessions">Зовнішні сесії</RouterLink>
               <RouterLink class="btn btn--ghost" to="/cabinet/clients">Клієнти</RouterLink>
               <RouterLink class="btn btn--ghost" to="/cabinet/inquiries">Запити до бронювання</RouterLink>
               <RouterLink class="btn btn--ghost" to="/cabinet/reviews">Відгуки</RouterLink>
@@ -302,7 +303,7 @@ const hasCabinetDataSnapshot = computed(() => {
 const accessLabel = computed(() => {
   const state = me.value?.access_state
   if (!state) return 'Невідомо'
-  if (state === 'OK') return 'Повний доступ'
+  if (state === 'OK') return 'Доступ активний'
   if (state === 'GRACE') return 'Пільговий період'
   if (state === 'RESTRICTED') return 'Обмежений режим'
   if (state === 'SUSPENDED') return 'Призупинено'

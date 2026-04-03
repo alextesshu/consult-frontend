@@ -102,6 +102,11 @@ async function renderWithProviders(options?: {
     { path: '/privacy', component: { template: '<div>Privacy</div>' } },
     { path: '/disclaimer', component: { template: '<div>Disclaimer</div>' } },
     { path: '/support-and-data-requests', component: { template: '<div>Support</div>' } },
+    {
+      path: '/guest/external-session/:token',
+      component: { template: '<div>External Guest Session</div>' },
+      meta: { minimalShell: true },
+    },
     { path: '/cabinet', component: { template: '<div>Cabinet</div>' } },
     { path: '/client', component: { template: '<div>Client</div>' } },
     { path: '/cabinet/inquiries', component: { template: '<div>Cabinet Inquiries</div>' } },
@@ -197,6 +202,23 @@ describe('App shell', () => {
     expect(screen.getByText(/Без комісій\. Без посередників\./i)).toBeInTheDocument()
   })
 
+  it('renders technical build probe for deploy verification', async () => {
+    await renderWithProviders()
+    const probe = document.querySelector('#fe-build-probe') as HTMLDivElement | null
+    expect(probe).not.toBeNull()
+    expect(probe?.dataset.buildMarker).toBeTruthy()
+    expect(probe?.dataset.deployEnv).toBeTruthy()
+  })
+
+  it('hides topbar and footer on minimal shell routes', async () => {
+    await renderWithProviders({
+      initialPath: '/guest/external-session/test-token',
+    })
+
+    expect(document.querySelector('header.topbar')).not.toBeInTheDocument()
+    expect(document.querySelector('footer.footer')).not.toBeInTheDocument()
+    expect(screen.getByText('External Guest Session')).toBeInTheDocument()
+  })
   it('refreshes me on visibilitychange when specialist tab becomes visible', async () => {
     await renderWithProviders({
       initialPath: '/cabinet',

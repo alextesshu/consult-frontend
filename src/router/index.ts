@@ -39,6 +39,9 @@ import NotificationSettingsView from '../views/NotificationSettingsView.vue'
 import SettingsHubView from '../views/SettingsHubView.vue'
 import SpecialistInquiriesView from '../views/SpecialistInquiriesView.vue'
 import ClientInquiryRedirectView from '../views/ClientInquiryRedirectView.vue'
+import ExternalSessionsView from '../views/ExternalSessionsView.vue'
+import ExternalSessionDetailView from '../views/ExternalSessionDetailView.vue'
+import ExternalGuestSessionInviteView from '../views/ExternalGuestSessionInviteView.vue'
 import { useAuthStore } from '../stores/auth'
 import { fetchSpecialistProfile } from '../lib/api'
 import { hasSpecialistRole, isSpecialistCriticalReconcileRoute } from '../lib/entitlementReconcile'
@@ -50,6 +53,12 @@ const routes = [
   { path: '/signup', name: 'signup', component: SignupView },
   { path: '/signup-client', name: 'signup-client', component: ClientSignupView },
   { path: '/invite/:token', name: 'group-invite-join', component: GroupInviteJoinView },
+  {
+    path: '/guest/external-session/:token',
+    name: 'guest-external-session',
+    component: ExternalGuestSessionInviteView,
+    meta: { minimalShell: true },
+  },
   {
     path: '/cabinet',
     name: 'cabinet',
@@ -126,6 +135,18 @@ const routes = [
     path: '/cabinet/sessions',
     name: 'cabinet-sessions',
     component: SpecialistSessionsView,
+    meta: { requiresAuth: true, requiresRole: 'SPECIALIST' },
+  },
+  {
+    path: '/cabinet/external-sessions',
+    name: 'cabinet-external-sessions',
+    component: ExternalSessionsView,
+    meta: { requiresAuth: true, requiresRole: 'SPECIALIST' },
+  },
+  {
+    path: '/cabinet/external-sessions/:id(\\d+)',
+    name: 'cabinet-external-session-detail',
+    component: ExternalSessionDetailView,
     meta: { requiresAuth: true, requiresRole: 'SPECIALIST' },
   },
   {

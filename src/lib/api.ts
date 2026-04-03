@@ -1307,3 +1307,212 @@ export async function updateSpecialistSessionMeeting(
   )
   return resp.data
 }
+
+export type ExternalSessionStatus = 'SCHEDULED' | 'CANCELLED' | string
+export type ExternalInviteStatus = 'ACTIVE' | 'EXPIRED' | 'REVOKED' | 'OPENED' | 'JOINED' | string
+
+export type ExternalSessionRecord = {
+  id: number
+  starts_at: string
+  ends_at: string | null
+  duration_minutes: number
+  session_format: SessionFormat
+  meeting_url: string | null
+  offline_location_snapshot: string | null
+  guest_name: string | null
+  guest_email: string | null
+  status: ExternalSessionStatus
+  cancelled_at: string | null
+  created_at: string | null
+  updated_at: string | null
+}
+
+export type ExternalSessionInvite = {
+  id: number
+  external_session_id: number
+  status: ExternalInviteStatus
+  expires_at: string | null
+  opened_at: string | null
+  last_opened_at: string | null
+  joined_at: string | null
+  created_at: string | null
+  updated_at: string | null
+  invite_url?: string | null
+}
+
+export type ExternalSessionInviteCreateResponse = {
+  invite: ExternalSessionInvite | null
+  invite_url?: string | null
+}
+
+export type ExternalSessionInviteStatusResponse = {
+  invite: ExternalSessionInvite | null
+}
+
+export type PublicExternalSessionInviteResolved = {
+  status: ExternalInviteStatus
+  specialist_name: string | null
+  starts_at: string | null
+  ends_at: string | null
+  session_format: SessionFormat | null
+  offline_location: string | null
+  instructions: string | null
+  can_join: boolean
+}
+
+type PublicExternalSessionInviteResolvedResponse = {
+  guest_session: PublicExternalSessionInviteResolved | null
+}
+
+export type PublicExternalSessionInviteJoinResponse = {
+  status: ExternalInviteStatus
+  session_format: SessionFormat | null
+  meeting_url: string | null
+  offline_location_snapshot: string | null
+}
+
+type PublicExternalSessionInviteJoinNestedResponse = {
+  join: {
+    status: ExternalInviteStatus
+    session_format: SessionFormat | null
+    meeting_url: string | null
+    offline_location_snapshot: string | null
+    joined_at?: string | null
+  } | null
+}
+
+export async function fetchExternalSessions(): Promise<ExternalSessionRecord[]> {
+  const resp = await http.get<ExternalSessionRecord[]>('/cabinet/external-sessions/')
+  return resp.data
+}
+
+export async function createExternalSession(payload: {
+  starts_at: string
+  duration_minutes: number
+  session_format: SessionFormat
+  meeting_url?: string | null
+  offline_location_snapshot?: string | null
+  guest_name?: string | null
+  guest_email?: string | null
+}): Promise<ExternalSessionRecord> {
+  const resp = await http.post<ExternalSessionRecord>('/cabinet/external-sessions/', payload)
+  return resp.data
+}
+
+export async function fetchExternalSessionDetail(sessionId: number): Promise<ExternalSessionRecord> {
+  const resp = await http.get<ExternalSessionRecord>(`/cabinet/external-sessions/${sessionId}/`)
+  return resp.data
+}
+
+export async function updateExternalSession(
+  sessionId: number,
+  payload: Partial<{
+    starts_at: string
+    duration_minutes: number
+    session_format: SessionFormat
+    meeting_url: string | null
+    offline_location_snapshot: string | null
+    guest_name: string | null
+    guest_email: string | null
+  }>
+): Promise<ExternalSessionRecord> {
+  const resp = await http.patch<ExternalSessionRecord>(
+    `/cabinet/external-sessions/${sessionId}/`,
+    payload
+  )
+  return resp.data
+}
+
+export async function cancelExternalSession(sessionId: number): Promise<ExternalSessionRecord> {
+  const resp = await http.post<ExternalSessionRecord>(
+    `/cabinet/external-sessions/${sessionId}/cancel/`,
+    {}
+  )
+  return resp.data
+}
+
+export async function fetchExternalSessionInvite(sessionId: number): Promise<ExternalSessionInvite | null> {
+  const resp = await http.get<ExternalSessionInvite | ExternalSessionInviteStatusResponse>(
+    `/cabinet/external-sessions/${sessionId}/invite/`
+  )
+  const payload = resp.data as ExternalSessionInvite | ExternalSessionInviteStatusResponse | null
+  if (!payload) return null
+  if (typeof payload === 'object' && 'invite' in payload) {
+    return payload.invite || null
+  }
+  return payload
+}
+
+export async function createExternalSessionInvite(
+  sessionId: number
+): Promise<ExternalSessionInviteCreateResponse> {
+  const resp = await http.post<ExternalSessionInviteCreateResponse>(
+    `/cabinet/external-sessions/${sessionId}/invite/`,
+    {}
+  )
+  return resp.data
+}
+
+export async function revokeExternalSessionInvite(sessionId: number): Promise<ExternalSessionInvite> {
+  const resp = await http.post<ExternalSessionInvite>(
+    `/cabinet/external-sessions/${sessionId}/invite/revoke/`,
+    {}
+  )
+  return resp.data
+}
+
+export async function regenerateExternalSessionInvite(
+  sessionId: number
+): Promise<ExternalSessionInviteCreateResponse> {
+  const resp = await http.post<ExternalSessionInviteCreateResponse>(
+    `/cabinet/external-sessions/${sessionId}/invite/regenerate/`,
+    {}
+  )
+  return resp.data
+}
+
+export async function fetchPublicExternalSessionInvite(
+  token: string
+): Promise<PublicExternalSessionInviteResolved> {
+  const resp = await http.get<PublicExternalSessionInviteResolved | PublicExternalSessionInviteResolvedResponse>(
+    `/public/external-session-invites/${token}/`
+  )
+  const payload = resp.data as PublicExternalSessionInviteResolved | PublicExternalSessionInviteResolvedResponse | null
+  const source =
+    payload && typeof payload === 'object' && 'guest_session' in payload
+      ? payload.guest_session
+      : payload
+  return {
+    status: source?.status || 'EXPIRED',
+    specialist_name: source?.specialist_name || null,
+    starts_at: source?.starts_at || null,
+    ends_at: source?.ends_at || null,
+    session_format: source?.session_format || null,
+    offline_location: source?.offline_location || null,
+    instructions: source?.instructions || null,
+    can_join: Boolean(source?.can_join),
+  }
+}
+
+export async function joinPublicExternalSessionInvite(
+  token: string
+): Promise<PublicExternalSessionInviteJoinResponse> {
+  const resp = await http.post<
+    PublicExternalSessionInviteJoinResponse | PublicExternalSessionInviteJoinNestedResponse
+  >(
+    `/public/external-session-invites/${token}/join/`,
+    {}
+  )
+  const payload = resp.data as
+    | PublicExternalSessionInviteJoinResponse
+    | PublicExternalSessionInviteJoinNestedResponse
+    | null
+  const source =
+    payload && typeof payload === 'object' && 'join' in payload ? payload.join : payload
+  return {
+    status: source?.status || 'EXPIRED',
+    session_format: source?.session_format || null,
+    meeting_url: source?.meeting_url || null,
+    offline_location_snapshot: source?.offline_location_snapshot || null,
+  }
+}

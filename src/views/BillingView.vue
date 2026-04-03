@@ -286,7 +286,7 @@ const billingCycleLabel = computed(() =>
 const accessLabel = computed(() => {
   const state = me.value?.access_state
   if (!state) return 'Невідомо'
-  if (state === 'OK') return 'Повний доступ'
+  if (state === 'OK') return 'Доступ активний'
   if (state === 'GRACE') return 'Пільговий період'
   if (state === 'RESTRICTED') return 'Обмежений режим'
   if (state === 'SUSPENDED') return 'Призупинено'
@@ -904,3 +904,4 @@ onBeforeUnmount(() => {
   }
 }
 </style>
+

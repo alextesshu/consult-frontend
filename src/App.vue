@@ -1,6 +1,6 @@
 <template>
-  <div :class="['shell', { 'shell--home': isHome }]">
-    <header :class="topbarClass">
+  <div :class="['shell', { 'shell--home': isHome, 'shell--minimal': useMinimalShell }]">
+    <header v-if="!useMinimalShell" :class="topbarClass">
       <div class="topbar__inner">
         <RouterLink class="brand" to="/">
           <div class="brand__mark">Pro Consult</div>
@@ -231,7 +231,7 @@
       <RouterView :key="route.fullPath" />
     </main>
     <ToastHost />
-    <footer class="footer">
+    <footer v-if="!useMinimalShell" class="footer">
       <div class="footer__brand">
         <span>Pro Consult — Простір для вашої справи</span>
         <RouterLink class="footer__link" to="/faq">FAQ</RouterLink>
@@ -250,6 +250,21 @@
         <RouterLink class="footer__link" to="/support-and-data-requests">Підтримка та запити щодо даних</RouterLink>
       </div>
     </footer>
+    <div
+      v-if="showMinimalShellDeployMarker"
+      class="deploy-marker deploy-marker--minimal"
+      aria-label="staging-deploy-marker"
+    >
+      <span class="deploy-marker__env">Staging</span>
+      <span class="deploy-marker__build">FE {{ buildMarkerText }}</span>
+    </div>
+    <div
+      id="fe-build-probe"
+      aria-hidden="true"
+      :data-build-marker="buildMarkerText"
+      :data-deploy-env="deployEnv || 'unknown'"
+      :data-runtime-host="runtimeHost || 'unknown'"
+    ></div>
   </div>
 </template>
 
@@ -269,6 +284,7 @@ const router = useRouter()
 const auth = useAuthStore()
 const isAuthenticated = computed(() => Boolean(auth.accessToken))
 const isHome = computed(() => route.path === '/')
+const useMinimalShell = computed(() => Boolean(route.meta?.minimalShell))
 const runtimeHost = typeof window !== 'undefined' ? window.location.hostname.toLowerCase() : ''
 const deployEnv = String(import.meta.env.VITE_DEPLOY_ENV || '').trim().toLowerCase()
 const apiBaseUrl = String(import.meta.env.VITE_API_BASE_URL || '').trim().toLowerCase()
@@ -295,6 +311,9 @@ const buildMarkerText = computed(() => {
   if (buildVersion) return `v${buildVersion} (${buildShaShort.value})`
   return buildShaShort.value
 })
+const showMinimalShellDeployMarker = computed(
+  () => showStagingDeployMarker.value && useMinimalShell.value
+)
 
 watchEffect(() => {
   document.body.classList.toggle('body--home', isHome.value)
@@ -795,6 +814,11 @@ watch(isChatCapable, (value) => {
   overflow: visible;
 }
 
+.shell--minimal {
+  padding: 0;
+  display: block;
+}
+
 .topbar {
   position: relative;
   isolation: isolate;
@@ -1269,6 +1293,10 @@ watch(isChatCapable, (value) => {
   overflow: visible;
 }
 
+.shell--minimal .main {
+  width: 100%;
+}
+
 body.body--home .footer {
   position: static;
   margin: 0;
@@ -1332,6 +1360,49 @@ body.body--home .footer {
 .footer__deploy-build {
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
   font-weight: 600;
+}
+
+.deploy-marker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 2px 10px;
+  border: 1px solid color-mix(in srgb, var(--text) 18%, transparent);
+  border-radius: var(--radius-pill);
+  font-size: 11px;
+  line-height: 1.2;
+  color: color-mix(in srgb, var(--text) 75%, #50606a);
+  background: color-mix(in srgb, var(--surface) 80%, #f4f7f8);
+  pointer-events: none;
+}
+
+.deploy-marker__env {
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.deploy-marker__build {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+  font-weight: 600;
+}
+
+.deploy-marker--minimal {
+  position: fixed;
+  right: 12px;
+  bottom: 12px;
+  z-index: 40;
+  box-shadow: 0 4px 12px rgb(15 23 42 / 14%);
+  opacity: 0.92;
+}
+
+#fe-build-probe {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 .footer__legal {
@@ -1493,6 +1564,12 @@ body.body--home .footer {
   .settings-sheet__item:hover {
     background: color-mix(in srgb, var(--primary) 8%, transparent);
     border-color: color-mix(in srgb, var(--primary) 24%, transparent);
+  }
+
+  .deploy-marker--minimal {
+    right: 8px;
+    bottom: 8px;
+    max-width: calc(100vw - 16px);
   }
 }
 </style>

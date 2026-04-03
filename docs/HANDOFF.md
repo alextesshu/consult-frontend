@@ -37,6 +37,10 @@ Frontend production-readiness slice is now integrated:
 - Production deployment baseline:
   - frontend is served from nginx container
   - runtime assumes same-domain reverse-proxy routing with backend API under `/api`
+  - staging build verification is available through:
+    - visible deploy marker in footer (regular shell routes)
+    - visible deploy marker in bottom-right for minimal-shell routes
+    - technical probe element `#fe-build-probe` with `data-build-marker` for route-level verification
 - Legal minimum pages are statically served via frontend routes and integrated into global footer/auth entrypoints.
 - Public homepage now follows the PRO CONSULT two-core promise:
   - structured practice management for specialists
@@ -56,6 +60,10 @@ Frontend production-readiness slice is now integrated:
   - public booking sends normalized `session_format` (`online`/`offline`) based on specialist capability configuration
   - when specialist supports both formats, booking shows an explicit format chooser
   - client/specialist session details and lists expose format labels, and offline sessions do not expose misleading join-link actions
+- External public guest session flow is now aligned with backend nested join payload:
+  - online join reads meeting URL from `join.meeting_url`
+  - backward-compatible fallback to top-level `meeting_url` is preserved
+  - online meeting opens in a new browser tab and does not replace the guest page
 - Specialist analytics overview now includes format and offline location visibility:
   - metrics include online/offline totals and completed online/offline totals
   - offline location distribution list is rendered with empty-state handling
@@ -86,6 +94,10 @@ Frontend production-readiness slice is now integrated:
   - landing sections emphasize profile visibility, focused value pillars, and cleaner pricing copy
 - Public profile presentation is now less dashboard-like and more specialist landing oriented, while preserving current booking/inquiry/journal behavior.
 - Specialist-uploaded profile documents are visible in cabinet management and in public profile (when provided by backend), without implying platform verification.
+- Public external guest page render/join mapping is stabilized for:
+  - `guest_session.*` resolve payload rendering
+  - strict online/offline branching
+  - nested join payload mapping for `meeting_url`
 
 ## Active Work
 
