@@ -1,7 +1,7 @@
 import { fireEvent, render, waitFor } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ref } from 'vue'
-import { apiGet } from '../lib/api'
+import { apiGet, fetchSpecialistOnboardingState } from '../lib/api'
 import CabinetView from './CabinetView.vue'
 
 function createMePayload() {
@@ -42,9 +42,11 @@ vi.mock('../stores/auth', () => ({
 
 vi.mock('../lib/api', () => ({
   apiGet: vi.fn(),
+  fetchSpecialistOnboardingState: vi.fn(),
 }))
 
 const mockedApiGet = vi.mocked(apiGet)
+const mockedFetchSpecialistOnboardingState = vi.mocked(fetchSpecialistOnboardingState)
 
 function renderView() {
   return render(CabinetView, {
@@ -62,9 +64,18 @@ function renderView() {
 describe('CabinetView', () => {
   beforeEach(() => {
     mockedApiGet.mockReset()
+    mockedFetchSpecialistOnboardingState.mockReset()
     mockLoadMe.mockReset()
     mockLoadMe.mockResolvedValue(undefined)
     mockMe.value = createMePayload()
+    mockedFetchSpecialistOnboardingState.mockResolvedValue({
+      readiness: true,
+      missing_items: [],
+      warnings: [],
+      next_actions: [],
+      primary_cta_code: null,
+      cta_target: null,
+    } as any)
   })
 
   it('shows explicit profile error state with retry when cabinet profile bootstrap fails', async () => {
@@ -299,4 +310,75 @@ describe('CabinetView', () => {
     expect(view.container.querySelector('a.hero-live')).not.toBeInTheDocument()
     expect(view.container.querySelector('a.hero-live__join')).not.toBeInTheDocument()
   })
+
+  it('renders onboarding readiness with pending steps and primary cta from backend enums', async () => {
+    mockedApiGet.mockResolvedValue([])
+    mockedFetchSpecialistOnboardingState.mockResolvedValue({
+      readiness: false,
+      missing_items: [{ code: 'PROFILE_CORE_INCOMPLETE' }, { code: 'PUBLIC_PROFILE_DISABLED' }],
+      warnings: [{ code: 'PUBLIC_MEDIA_VISIBILITY_INCONSISTENT' }],
+      next_actions: [{ cta_code: 'CONFIGURE_AVAILABILITY', cta_target: 'CABINET_AVAILABILITY_RULES' }],
+      primary_cta_code: 'COMPLETE_PROFILE_CORE',
+      cta_target: 'CABINET_PROFILE',
+    } as any)
+
+    const view = renderView()
+
+    await waitFor(() => {
+      expect(view.container.querySelector('.panel--onboarding')).toBeInTheDocument()
+      expect(view.container.querySelector('a[href="/cabinet/profile"]')).toBeInTheDocument()
+    })
+    expect(view.container.querySelector('.onboarding-step--pending')).toBeInTheDocument()
+    expect((view.container.querySelector('a[href="/cabinet/profile"]')?.textContent || '').trim().length).toBeGreaterThan(0)
+  })
+
+  it('uses onboarding_summary only as initial shell before canonical onboarding-state arrives', async () => {
+    mockedApiGet.mockResolvedValue([])
+    let resolveCanonical: (value: unknown) => void = () => {}
+    mockedFetchSpecialistOnboardingState.mockReturnValue(
+      new Promise((resolve) => {
+        resolveCanonical = resolve
+      }) as any
+    )
+    mockMe.value = {
+      ...createMePayload(),
+      onboarding_summary: {
+        readiness: false,
+        missing_items: [{ code: 'PROFILE_CORE_INCOMPLETE' }],
+        warnings: [],
+        next_actions: [],
+        primary_cta_code: 'COMPLETE_PROFILE_CORE',
+        cta_target: 'CABINET_PROFILE',
+      },
+    } as any
+
+    const view = renderView()
+    let shellText = ''
+
+    await waitFor(() => {
+      expect(view.container.querySelector('a[href="/cabinet/profile"]')).toBeInTheDocument()
+      const list = view.container.querySelector('.onboarding-list')
+      expect(list).toBeInTheDocument()
+      shellText = list?.textContent || ''
+      expect(shellText.length).toBeGreaterThan(0)
+    })
+
+    resolveCanonical({
+      readiness: false,
+      missing_items: [{ code: 'PUBLIC_PROFILE_DISABLED' }],
+      warnings: [],
+      next_actions: [],
+      primary_cta_code: 'ENABLE_PUBLIC_PROFILE',
+      cta_target: 'CABINET_PROFILE',
+    })
+
+    await waitFor(() => {
+      const list = view.container.querySelector('.onboarding-list')
+      expect(list).toBeInTheDocument()
+      expect((list?.textContent || '').length).toBeGreaterThan(0)
+      expect(list?.textContent).not.toBe(shellText)
+    })
+  })
 })
+
+

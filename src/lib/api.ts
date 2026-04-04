@@ -82,6 +82,37 @@ export async function fetchMe(accessToken: string) {
   return resp.data
 }
 
+export type OnboardingMissingItem = {
+  code: string
+  default_message?: string | null
+}
+
+export type OnboardingWarning = {
+  code: string
+  default_message?: string | null
+}
+
+export type OnboardingNextAction = {
+  cta_code?: string | null
+  cta_target?: string | null
+  default_message?: string | null
+}
+
+export type SpecialistOnboardingState = {
+  readiness?: boolean | null
+  is_ready?: boolean | null
+  missing_items?: Array<OnboardingMissingItem | string> | null
+  warnings?: Array<OnboardingWarning | string> | null
+  next_actions?: OnboardingNextAction[] | null
+  primary_cta_code?: string | null
+  cta_target?: string | null
+}
+
+export async function fetchSpecialistOnboardingState(): Promise<SpecialistOnboardingState> {
+  const resp = await http.get<SpecialistOnboardingState>('/cabinet/onboarding-state/')
+  return resp.data
+}
+
 export async function refreshToken(): Promise<TokenResponse> {
   const resp = await http.post<TokenResponse>('/auth/token/refresh/', {})
   return resp.data

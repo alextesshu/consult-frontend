@@ -30,6 +30,7 @@ type MePayload = {
   access_state: string | null
   effective_entitlements: Entitlements | null
   counts: Counts | null
+  onboarding_summary?: unknown
   server_time: string
 }
 

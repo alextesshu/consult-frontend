@@ -115,6 +115,74 @@
           </div>
         </div>
       </section>
+      <section class="panel panel--wide panel--onboarding">
+        <div class="panel__header">
+          <div>
+            <div class="badge badge--soft">Onboarding readiness</div>
+            <div class="panel__meta">PRO CONSULT specialist flow</div>
+          </div>
+          <div class="onboarding-status" :class="onboardingReady ? 'onboarding-status--ready' : 'onboarding-status--pending'">
+            {{ onboardingReady ? 'Ready' : 'Action required' }}
+          </div>
+        </div>
+
+        <div v-if="onboardingLoading && !onboardingViewModel" class="onboarding-loading">
+          Loading onboarding state...
+        </div>
+
+        <div v-else-if="onboardingViewModel" class="onboarding-layout">
+          <ol class="onboarding-steps">
+            <li
+              v-for="step in onboardingViewModel.steps"
+              :key="step.key"
+              class="onboarding-step"
+              :class="step.done ? 'onboarding-step--done' : 'onboarding-step--pending'"
+            >
+              <div class="onboarding-step__title">{{ step.title }}</div>
+              <div class="onboarding-step__hint">{{ step.hint }}</div>
+            </li>
+          </ol>
+
+          <div v-if="onboardingViewModel.missingItems.length > 0" class="onboarding-list-wrap">
+            <h3 class="onboarding-list-title">Missing items</h3>
+            <ul class="onboarding-list">
+              <li v-for="item in onboardingViewModel.missingItems" :key="item">{{ item }}</li>
+            </ul>
+          </div>
+
+          <div v-if="onboardingViewModel.warnings.length > 0" class="onboarding-list-wrap onboarding-list-wrap--warning">
+            <h3 class="onboarding-list-title">Warnings</h3>
+            <ul class="onboarding-list">
+              <li v-for="item in onboardingViewModel.warnings" :key="item">{{ item }}</li>
+            </ul>
+          </div>
+
+          <div class="onboarding-actions">
+            <RouterLink
+              v-if="onboardingViewModel.primaryCta"
+              class="btn"
+              :to="onboardingViewModel.primaryCta.to"
+            >
+              {{ onboardingViewModel.primaryCta.label }}
+            </RouterLink>
+            <RouterLink
+              v-for="action in onboardingViewModel.nextActions"
+              :key="`${action.code}-${action.to}`"
+              class="btn btn--ghost btn--sm"
+              :to="action.to"
+            >
+              {{ action.label }}
+            </RouterLink>
+          </div>
+        </div>
+
+        <div v-else-if="onboardingLoadError" class="onboarding-error">
+          <span>{{ onboardingLoadError }}</span>
+          <button class="btn btn--ghost btn--sm" type="button" :disabled="onboardingLoading" @click="retryOnboardingStateLoad">
+            Retry
+          </button>
+        </div>
+      </section>
       <section class="panel panel--wide panel--tips">
         <div class="panel__header">
           <div class="badge badge--soft">Підказки</div>
@@ -262,9 +330,14 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
-import { apiGet } from '../lib/api'
+import { apiGet, fetchSpecialistOnboardingState } from '../lib/api'
 import { formatUkDateTimeCompact } from '../lib/dateTime'
 import { normalizeMeetingUrl } from '../lib/sessionExecution'
+import {
+  buildSpecialistOnboardingViewModel,
+  normalizeOnboardingState,
+  type SpecialistOnboardingViewModel,
+} from '../lib/specialistOnboarding'
 import { useAuthStore } from '../stores/auth'
 
 const auth = useAuthStore()
@@ -295,10 +368,46 @@ const nowTs = ref(Date.now())
 const LIVE_STATUS_REFRESH_MS = 30 * 1000
 let nowIntervalId: number | null = null
 const CABINET_DATA_LOAD_ERROR = 'Не вдалося завантажити дані доступу кабінету.'
+const ONBOARDING_LOAD_ERROR = 'Failed to load onboarding state.'
+
+const onboardingState = ref<unknown | null>(null)
+const onboardingLoading = ref(false)
+const onboardingLoadError = ref('')
+const onboardingCanonicalLoaded = ref(false)
+
+type MeWithOnboardingSummary = {
+  onboarding_summary?: unknown
+}
 
 const hasCabinetDataSnapshot = computed(() => {
   return Boolean(me.value?.effective_entitlements && me.value?.counts)
 })
+
+const onboardingSummaryFallback = computed(() => {
+  const summary = (me.value as MeWithOnboardingSummary | null)?.onboarding_summary
+  return normalizeOnboardingState(summary ?? null)
+})
+
+const normalizedCanonicalOnboardingState = computed(() => {
+  return normalizeOnboardingState(onboardingState.value)
+})
+
+const onboardingShellState = computed(() => {
+  if (onboardingCanonicalLoaded.value) return null
+  return onboardingSummaryFallback.value
+})
+
+const onboardingRenderableState = computed(() => {
+  if (normalizedCanonicalOnboardingState.value) return normalizedCanonicalOnboardingState.value
+  return onboardingShellState.value
+})
+
+const onboardingViewModel = computed<SpecialistOnboardingViewModel | null>(() => {
+  if (!onboardingRenderableState.value) return null
+  return buildSpecialistOnboardingViewModel(onboardingRenderableState.value)
+})
+
+const onboardingReady = computed(() => onboardingViewModel.value?.readiness ?? false)
 
 const accessLabel = computed(() => {
   const state = me.value?.access_state
@@ -503,6 +612,25 @@ function retryCabinetDataLoad() {
   void ensureCabinetData()
 }
 
+async function loadOnboardingState() {
+  if (!auth.accessToken) return
+  onboardingLoading.value = true
+  onboardingLoadError.value = ''
+  try {
+    onboardingState.value = await fetchSpecialistOnboardingState()
+  } catch {
+    onboardingLoadError.value = ONBOARDING_LOAD_ERROR
+    onboardingState.value = null
+  } finally {
+    onboardingCanonicalLoaded.value = true
+    onboardingLoading.value = false
+  }
+}
+
+function retryOnboardingStateLoad() {
+  void loadOnboardingState()
+}
+
 const serverTimeLabel = computed(() => {
   const raw = me.value?.server_time
   if (!raw) return '—'
@@ -513,7 +641,7 @@ const serverTimeLabel = computed(() => {
 
 onMounted(async () => {
   await Promise.all([ensureCabinetProfile(), loadSessionsForHero()])
-  await ensureCabinetData()
+  await Promise.all([ensureCabinetData(), loadOnboardingState()])
   nowIntervalId = window.setInterval(() => {
     nowTs.value = Date.now()
   }, LIVE_STATUS_REFRESH_MS)
@@ -673,6 +801,111 @@ onBeforeUnmount(() => {
 .panel--plan {
   display: grid;
   gap: 12px;
+}
+
+.panel--onboarding {
+  display: grid;
+  gap: 12px;
+}
+
+.onboarding-status {
+  padding: 6px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.onboarding-status--ready {
+  background: rgba(31, 122, 76, 0.14);
+  color: #1f7a4c;
+}
+
+.onboarding-status--pending {
+  background: rgba(217, 164, 65, 0.2);
+  color: #9b6c0b;
+}
+
+.onboarding-loading {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.onboarding-layout {
+  display: grid;
+  gap: 12px;
+}
+
+.onboarding-steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.onboarding-step {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+}
+
+.onboarding-step--done {
+  border-color: rgba(31, 122, 76, 0.28);
+  background: rgba(31, 122, 76, 0.06);
+}
+
+.onboarding-step--pending {
+  border-color: rgba(217, 164, 65, 0.35);
+  background: rgba(217, 164, 65, 0.09);
+}
+
+.onboarding-step__title {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.onboarding-step__hint {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.onboarding-list-wrap {
+  display: grid;
+  gap: 8px;
+}
+
+.onboarding-list-wrap--warning {
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(179, 29, 29, 0.24);
+  background: rgba(250, 232, 232, 0.6);
+}
+
+.onboarding-list-title {
+  margin: 0;
+  font-size: 14px;
+}
+
+.onboarding-list {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 5px;
+}
+
+.onboarding-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.onboarding-error {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #7d1f1f;
 }
 
 .plan-row {
