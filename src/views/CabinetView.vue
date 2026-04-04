@@ -118,16 +118,16 @@
       <section class="panel panel--wide panel--onboarding">
         <div class="panel__header">
           <div>
-            <div class="badge badge--soft">Onboarding readiness</div>
-            <div class="panel__meta">PRO CONSULT specialist flow</div>
+            <div class="badge badge--soft">Готовність онбордингу</div>
+            <div class="panel__meta">Шлях спеціаліста PRO CONSULT</div>
           </div>
           <div class="onboarding-status" :class="onboardingReady ? 'onboarding-status--ready' : 'onboarding-status--pending'">
-            {{ onboardingReady ? 'Ready' : 'Action required' }}
+            {{ onboardingReady ? 'Готово' : 'Потрібні дії' }}
           </div>
         </div>
 
         <div v-if="onboardingLoading && !onboardingViewModel" class="onboarding-loading">
-          Loading onboarding state...
+          Завантаження стану онбордингу...
         </div>
 
         <div v-else-if="onboardingViewModel" class="onboarding-layout">
@@ -144,14 +144,14 @@
           </ol>
 
           <div v-if="onboardingViewModel.missingItems.length > 0" class="onboarding-list-wrap">
-            <h3 class="onboarding-list-title">Missing items</h3>
+            <h3 class="onboarding-list-title">Що потрібно заповнити</h3>
             <ul class="onboarding-list">
               <li v-for="item in onboardingViewModel.missingItems" :key="item">{{ item }}</li>
             </ul>
           </div>
 
           <div v-if="onboardingViewModel.warnings.length > 0" class="onboarding-list-wrap onboarding-list-wrap--warning">
-            <h3 class="onboarding-list-title">Warnings</h3>
+            <h3 class="onboarding-list-title">Попередження</h3>
             <ul class="onboarding-list">
               <li v-for="item in onboardingViewModel.warnings" :key="item">{{ item }}</li>
             </ul>
@@ -179,7 +179,7 @@
         <div v-else-if="onboardingLoadError" class="onboarding-error">
           <span>{{ onboardingLoadError }}</span>
           <button class="btn btn--ghost btn--sm" type="button" :disabled="onboardingLoading" @click="retryOnboardingStateLoad">
-            Retry
+            Повторити
           </button>
         </div>
       </section>
@@ -368,7 +368,7 @@ const nowTs = ref(Date.now())
 const LIVE_STATUS_REFRESH_MS = 30 * 1000
 let nowIntervalId: number | null = null
 const CABINET_DATA_LOAD_ERROR = 'Не вдалося завантажити дані доступу кабінету.'
-const ONBOARDING_LOAD_ERROR = 'Failed to load onboarding state.'
+const ONBOARDING_LOAD_ERROR = 'Не вдалося завантажити стан онбордингу.'
 
 const onboardingState = ref<unknown | null>(null)
 const onboardingLoading = ref(false)

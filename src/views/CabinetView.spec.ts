@@ -314,12 +314,16 @@ describe('CabinetView', () => {
   it('renders onboarding readiness with pending steps and primary cta from backend enums', async () => {
     mockedApiGet.mockResolvedValue([])
     mockedFetchSpecialistOnboardingState.mockResolvedValue({
-      readiness: false,
-      missing_items: [{ code: 'PROFILE_CORE_INCOMPLETE' }, { code: 'PUBLIC_PROFILE_DISABLED' }],
-      warnings: [{ code: 'PUBLIC_MEDIA_VISIBILITY_INCONSISTENT' }],
-      next_actions: [{ cta_code: 'CONFIGURE_AVAILABILITY', cta_target: 'CABINET_AVAILABILITY_RULES' }],
-      primary_cta_code: 'COMPLETE_PROFILE_CORE',
-      cta_target: 'CABINET_PROFILE',
+      readiness: {
+        profile_core_ready: false,
+        has_future_slots: false,
+        public_profile_enabled: false,
+        ready_for_inbound_intent: false,
+      },
+      missing_items: ['MISSING_DISPLAY_NAME', 'MISSING_FUTURE_SLOTS', 'PUBLIC_PROFILE_DISABLED'],
+      warnings: [{ code: 'PROFILE_CORE_INCOMPLETE' }],
+      next_actions: [{ code: 'COMPLETE_PROFILE', target: 'CABINET_PROFILE', priority: 1 }],
+      primary_cta_code: 'COMPLETE_PROFILE',
     } as any)
 
     const view = renderView()
@@ -343,40 +347,83 @@ describe('CabinetView', () => {
     mockMe.value = {
       ...createMePayload(),
       onboarding_summary: {
-        readiness: false,
-        missing_items: [{ code: 'PROFILE_CORE_INCOMPLETE' }],
-        warnings: [],
-        next_actions: [],
-        primary_cta_code: 'COMPLETE_PROFILE_CORE',
-        cta_target: 'CABINET_PROFILE',
+        ready_for_inbound_intent: false,
+        missing_items_count: 3,
+        primary_cta_code: 'ADD_AVAILABILITY',
       },
     } as any
 
     const view = renderView()
-    let shellText = ''
+    let shellStatus = ''
 
     await waitFor(() => {
-      expect(view.container.querySelector('a[href="/cabinet/profile"]')).toBeInTheDocument()
-      const list = view.container.querySelector('.onboarding-list')
-      expect(list).toBeInTheDocument()
-      shellText = list?.textContent || ''
-      expect(shellText.length).toBeGreaterThan(0)
+      const status = view.container.querySelector('.onboarding-status')
+      expect(status).toBeInTheDocument()
+      shellStatus = (status?.textContent || '').trim()
+      expect(shellStatus).toBe('Потрібні дії')
     })
 
     resolveCanonical({
-      readiness: false,
-      missing_items: [{ code: 'PUBLIC_PROFILE_DISABLED' }],
-      warnings: [],
-      next_actions: [],
-      primary_cta_code: 'ENABLE_PUBLIC_PROFILE',
-      cta_target: 'CABINET_PROFILE',
+      readiness: {
+        profile_core_ready: true,
+        has_future_slots: true,
+        public_profile_enabled: false,
+        ready_for_inbound_intent: false,
+      },
+      missing_items: ['PUBLIC_PROFILE_DISABLED'],
+      warnings: [{ code: 'PUBLIC_PROFILE_OFF' }],
+      next_actions: [{ code: 'OPEN_PUBLIC_PROFILE', target: 'CABINET_PUBLIC_PROFILE', priority: 3 }],
+      primary_cta_code: 'OPEN_PUBLIC_PROFILE',
     })
 
     await waitFor(() => {
       const list = view.container.querySelector('.onboarding-list')
       expect(list).toBeInTheDocument()
       expect((list?.textContent || '').length).toBeGreaterThan(0)
-      expect(list?.textContent).not.toBe(shellText)
+      expect(view.container.querySelector('a[href="/cabinet/profile"]')).toBeInTheDocument()
+      expect((view.container.querySelector('.onboarding-status')?.textContent || '').trim()).toBe(shellStatus)
+    })
+  })
+
+  it('renders CTA for add availability via route-key mapping', async () => {
+    mockedApiGet.mockResolvedValue([])
+    mockedFetchSpecialistOnboardingState.mockResolvedValue({
+      readiness: {
+        profile_core_ready: true,
+        has_future_slots: false,
+        public_profile_enabled: true,
+        ready_for_inbound_intent: false,
+      },
+      missing_items: ['MISSING_FUTURE_SLOTS'],
+      warnings: [{ code: 'PUBLISHED_WITHOUT_BOOKABLE_TIME' }],
+      next_actions: [{ code: 'ADD_AVAILABILITY', target: 'CABINET_AVAILABILITY', priority: 2 }],
+      primary_cta_code: 'ADD_AVAILABILITY',
+    } as any)
+
+    const view = renderView()
+    await waitFor(() => {
+      expect(view.container.querySelector('a[href="/cabinet/availability-rules"]')).toBeInTheDocument()
+    })
+  })
+
+  it('renders CTA for view public profile via route-key mapping', async () => {
+    mockedApiGet.mockResolvedValue([])
+    mockedFetchSpecialistOnboardingState.mockResolvedValue({
+      readiness: {
+        profile_core_ready: true,
+        has_future_slots: true,
+        public_profile_enabled: true,
+        ready_for_inbound_intent: true,
+      },
+      missing_items: [],
+      warnings: [],
+      next_actions: [{ code: 'VIEW_PUBLIC_PROFILE', target: 'PUBLIC_PROFILE_VIEW', priority: 1 }],
+      primary_cta_code: 'VIEW_PUBLIC_PROFILE',
+    } as any)
+
+    const view = renderView()
+    await waitFor(() => {
+      expect(view.container.querySelector('a[href="/public"]')).toBeInTheDocument()
     })
   })
 })

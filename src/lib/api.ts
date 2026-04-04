@@ -89,17 +89,31 @@ export type OnboardingMissingItem = {
 
 export type OnboardingWarning = {
   code: string
-  default_message?: string | null
-}
-
-export type OnboardingNextAction = {
   cta_code?: string | null
   cta_target?: string | null
   default_message?: string | null
 }
 
+export type OnboardingNextAction = {
+  code?: string | null
+  target?: string | null
+  cta_code?: string | null
+  cta_target?: string | null
+  priority?: number | null
+  default_message?: string | null
+}
+
+export type SpecialistOnboardingReadiness = {
+  profile_core_ready?: boolean | null
+  has_future_slots?: boolean | null
+  public_profile_enabled?: boolean | null
+  ready_for_inbound_intent?: boolean | null
+}
+
 export type SpecialistOnboardingState = {
-  readiness?: boolean | null
+  version?: number | null
+  readiness?: boolean | SpecialistOnboardingReadiness | null
+  ready_for_inbound_intent?: boolean | null
   is_ready?: boolean | null
   missing_items?: Array<OnboardingMissingItem | string> | null
   warnings?: Array<OnboardingWarning | string> | null
