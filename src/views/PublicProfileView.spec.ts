@@ -368,6 +368,47 @@ describe('PublicProfileView', () => {
     expect(screen.queryByText('Оберіть канал зв’язку')).not.toBeInTheDocument()
   })
 
+  it('filters non-allowlisted contact action scheme from CTA/chooser and blocks open', async () => {
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(
+      buildProfile({
+        contact_actions: [
+          {
+            channel: 'EMAIL',
+            label: 'Email',
+            value: 'hello@example.com',
+            action_url: 'mailto:hello@example.com',
+          },
+          {
+            channel: 'TELEGRAM',
+            label: 'Telegram',
+            value: '@olena_help',
+            action_url: 'javascript:alert(1)',
+          },
+        ],
+      })
+    )
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/slots/') return [buildTodayLocalSlot()]
+      if (url === '/public/specialists/olena/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    const { container } = renderView()
+
+    await screen.findByText('Email')
+
+    const directLinks = Array.from(container.querySelectorAll('a.contact-action')) as HTMLAnchorElement[]
+    expect(directLinks).toHaveLength(1)
+    expect(directLinks[0]?.getAttribute('href')).toBe('mailto:hello@example.com')
+    expect(
+      directLinks.some((link) => String(link.getAttribute('href') || '').startsWith('javascript:'))
+    ).toBe(false)
+    expect(screen.queryByText('Telegram')).not.toBeInTheDocument()
+  })
+
   it('opens chooser and routes to selected action when multiple contact channels exist', async () => {
     mockedFetchPublicSpecialistProfile.mockResolvedValue(buildProfile())
     mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])

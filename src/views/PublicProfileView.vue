@@ -1310,8 +1310,21 @@ const CONTACT_CHOOSER_COPY = {
   emptyStateText: 'Публічні канали зв’язку поки недоступні.',
 }
 
+const CONTACT_ACTION_ALLOWED_SCHEMES = new Set(['http', 'https', 'mailto', 'tel', 'viber', 'whatsapp', 'tg'])
+
 function sanitizeContactActionValue(value: string | null | undefined): string {
   return String(value || '').trim()
+}
+
+function normalizeContactActionUrl(url: string | null | undefined): string {
+  return String(url || '').trim()
+}
+
+function isAllowedContactActionUrl(url: string): boolean {
+  const schemeMatch = url.match(/^([a-z][a-z0-9+.-]*):/i)
+  if (!schemeMatch) return false
+  const scheme = String(schemeMatch[1] || '').toLowerCase()
+  return CONTACT_ACTION_ALLOWED_SCHEMES.has(scheme)
 }
 
 function resolveContactActionChannelLabel(action: PublicContactAction): string {
@@ -1326,8 +1339,8 @@ function normalizePublicContactAction(
   index: number
 ): PublicContactActionViewModel | null {
   if (!action) return null
-  const actionUrl = String(action.action_url || '').trim()
-  if (!actionUrl) return null
+  const actionUrl = normalizeContactActionUrl(action.action_url)
+  if (!actionUrl || !isAllowedContactActionUrl(actionUrl)) return null
   const channel = String(action.channel || '').trim().toUpperCase()
   const valueText = sanitizeContactActionValue(action.value)
   return {
@@ -1528,8 +1541,8 @@ function openClientChat() {
 }
 
 function openContactActionUrl(url: string) {
-  const safeUrl = String(url || '').trim()
-  if (!safeUrl) return
+  const safeUrl = normalizeContactActionUrl(url)
+  if (!safeUrl || !isAllowedContactActionUrl(safeUrl)) return
   window.open(safeUrl, '_blank', 'noopener,noreferrer')
 }
 
