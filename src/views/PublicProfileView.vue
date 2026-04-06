@@ -45,7 +45,7 @@
       <aside class="hero-cta" v-if="profile">
         <div class="hero-cta__head">
           <div class="badge badge--soft">Наступний крок</div>
-          <h2 class="hero-cta__title">Запишіться на консультацію</h2>
+          <h2 class="hero-cta__title">{{ heroCtaTitle }}</h2>
           <p class="hero-cta__hint">
             Оберіть зручний формат знайомства і переходьте до бронювання без зайвих кроків.
           </p>
@@ -74,6 +74,12 @@
           <a v-else class="btn btn--ghost" href="#slots">Переглянути вільні вікна</a>
           <RouterLink class="btn btn--ghost" :to="feedbackLink">Відгуки</RouterLink>
         </div>
+        <p class="hero-cta__next-step">
+          {{ primaryActionNextStepCopy }}
+        </p>
+        <ul class="hero-cta__trust-list">
+          <li v-for="marker in heroTrustMarkers" :key="marker">{{ marker }}</li>
+        </ul>
       </aside>
     </header>
 
@@ -173,6 +179,10 @@
         <div class="inquiry-state" :class="`inquiry-state--${inquiryLeadCopy.tone}`">
           {{ inquiryLeadCopy.body }}
         </div>
+        <article v-if="inquiryClarityCard" class="inquiry-clarity">
+          <div class="inquiry-clarity__title">{{ inquiryClarityCard.title }}</div>
+          <p class="inquiry-clarity__body">{{ inquiryClarityCard.body }}</p>
+        </article>
 
         <div v-if="inquiryLoading" class="muted">Завантажуємо запит...</div>
         <div v-else-if="inquiryError" class="form-error">{{ inquiryError }}</div>
@@ -300,6 +310,7 @@
               <li v-if="!isAuthenticated">Щоб забронювати час, увійдіть у свій кабінет клієнта.</li>
               <li v-else-if="!isClient">Бронювання доступне лише для клієнтів.</li>
               <li v-else>Бронювання доступне в кабінеті клієнта.</li>
+              <li>Натискання кнопки «Записатися» не списує оплату автоматично.</li>
               <li>Спеціаліст підтверджує сесію після запису.</li>
               <li>Нагадування надходять після підтвердження.</li>
             </ul>
@@ -487,6 +498,9 @@
           <div>
             <div class="badge badge--soft">Зв’язок</div>
             <h2 class="panel__title">Зв’язок зі спеціалістом</h2>
+            <p class="panel__lead">
+              Оберіть зручний канал. Якщо застосунок не відкриється, контакт можна скопіювати й продовжити вручну.
+            </p>
           </div>
         </div>
         <div class="contact-actions">
@@ -676,6 +690,7 @@
           <div class="closing-cta__copy">
             <h2 class="closing-cta__title">Готові зробити перший крок?</h2>
             <p class="closing-cta__subtitle">{{ closingCtaSupportLine }}</p>
+            <p class="closing-cta__next-step">{{ primaryActionNextStepCopy }}</p>
           </div>
           <div class="closing-cta__actions">
             <button class="btn btn--primary" type="button" @click="handleClosingPrimaryAction">
@@ -799,6 +814,7 @@
           </div>
           <div class="booking-next">
             <div class="booking-next__title">Що далі</div>
+            <div class="booking-next__item">• Натискання кнопки «Записатися» не списує оплату автоматично.</div>
             <div class="booking-next__item">• Перевіряйте статус і деталі у кабінеті клієнта.</div>
             <div class="booking-next__item">• Після підтвердження сесії сервіс нагадає про зустріч.</div>
             <div class="booking-next__item">• Якщо плани зміняться, ви можете перенести або скасувати запис у деталях сесії.</div>
@@ -1180,12 +1196,50 @@ const feedbackLink = computed(() => ({
   name: 'specialist-feedback',
   params: { slug: profile.value?.public_slug || slug.value },
 }))
+const heroCtaTitle = computed(() => {
+  if (canMessageSpecialist.value) return 'Продовжити спілкування'
+  if (showInquiryEntry.value) return 'Почніть із короткого запиту'
+  return 'Запишіться на консультацію'
+})
 const heroPrimaryLabel = computed(() => {
   if (canMessageSpecialist.value) return 'Написати повідомлення'
   if (showInquiryEntry.value) {
     return inquiryState.value?.inquiry_exists ? 'Уточнити деталі' : 'Поставити запитання'
   }
   return 'Записатися на ознайомчу сесію'
+})
+
+const primaryActionNextStepCopy = computed(() => {
+  if (canMessageSpecialist.value) {
+    return 'Після натискання відкриється чат у кабінеті клієнта, де можна узгодити деталі у зручному темпі.'
+  }
+  if (showInquiryEntry.value) {
+    return 'Після натискання відкриється короткий запит до бронювання. Це м’який старт без фіксації слота.'
+  }
+  if (!isAuthenticated.value) {
+    return 'Після вибору часу потрібно увійти в кабінет клієнта, щоби завершити запис.'
+  }
+  if (!isClient.value) {
+    return 'Бронювання доступне в ролі клієнта. Натисніть кнопку, щоб переглянути вільні слоти.'
+  }
+  return 'Після вибору часу створюється запит на сесію: спеціаліст підтвердить його окремо.'
+})
+
+const heroTrustMarkers = computed(() => {
+  if (canMessageSpecialist.value) {
+    return [
+      'Листування ведеться у вашому кабінеті клієнта.',
+      'За потреби можна спочатку узгодити деталі, а потім бронювати.',
+    ]
+  }
+  const markers = [
+    'Натискання кнопки «Записатися» не списує оплату автоматично.',
+    'Сесія вважається підтвердженою після відповіді спеціаліста.',
+  ]
+  if (showInquiryEntry.value) {
+    markers.push('Якщо не готові одразу бронювати, почніть із короткого запиту.')
+  }
+  return markers
 })
 
 const closingPrimaryLabel = computed(() => {
@@ -1345,7 +1399,7 @@ const CONTACT_CHANNEL_LABELS: Record<string, string> = {
 const CONTACT_CHOOSER_COPY = {
   ctaLabel: 'Зв’язатися зі спеціалістом',
   title: 'Оберіть канал зв’язку',
-  helperText: 'Оберіть зручний канал і продовжіть у вибраному застосунку або сервісі.',
+  helperText: 'Оберіть зручний канал: це не бронювання, а прямий контакт для першого діалогу.',
   channelActionButtonLabel: 'Відкрити',
   closeButtonLabel: 'Закрити',
   emptyStateText: 'Публічні канали зв’язку поки недоступні.',
@@ -1583,6 +1637,20 @@ const showInquiryComposer = computed(() => {
 const inquirySubmitLabel = computed(() => {
   if (inquiryState.value?.can_create_inquiry) return 'Надіслати запит'
   return 'Надіслати уточнення'
+})
+
+const inquiryClarityCard = computed<{ title: string; body: string } | null>(() => {
+  if (!showInquiryComposer.value) return null
+  if (inquiryState.value?.can_create_inquiry) {
+    return {
+      title: 'Почніть без тиску',
+      body: 'Короткий запит не фіксує слот і не потребує оплати. Можна спокійно уточнити деталі перед рішенням.',
+    }
+  }
+  return {
+    title: 'Уточнення перед рішенням',
+    body: 'Додавайте короткі уточнення по черзі. Після відповіді спеціаліста оберете, чи переходити до запису.',
+  }
 })
 
 const standardSessionDurationMinutes = computed(() => {
@@ -2577,6 +2645,23 @@ onMounted(async () => {
   width: 100%;
 }
 
+.hero-cta__next-step {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: color-mix(in srgb, var(--text) 78%, var(--muted));
+}
+
+.hero-cta__trust-list {
+  margin: 0;
+  padding-left: 16px;
+  display: grid;
+  gap: 4px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--muted);
+}
+
 .public__grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -2813,6 +2898,28 @@ onMounted(async () => {
 
 .inquiry-state--neutral {
   background: color-mix(in srgb, #e9e3d7 45%, #ffffff);
+}
+
+.inquiry-clarity {
+  display: grid;
+  gap: 4px;
+  border: 1px dashed color-mix(in srgb, var(--line) 82%, #d2c8b4);
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: color-mix(in srgb, #f6f1e6 50%, #ffffff);
+}
+
+.inquiry-clarity__title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--deep);
+}
+
+.inquiry-clarity__body {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--muted);
 }
 
 .inquiry-thread {
@@ -3158,6 +3265,13 @@ onMounted(async () => {
   color: var(--muted);
   font-size: 14px;
   line-height: 1.5;
+}
+
+.closing-cta__next-step {
+  margin: 0;
+  color: color-mix(in srgb, var(--text) 82%, var(--muted));
+  font-size: 13px;
+  line-height: 1.45;
 }
 
 .closing-cta__actions {

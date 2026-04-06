@@ -442,7 +442,7 @@ describe('PublicProfileView', () => {
     const chooserModal = chooserTitle.closest('.contact-chooser-modal')
     expect(chooserModal).not.toBeNull()
     const chooser = within(chooserModal as HTMLElement)
-    expect(chooser.getByText('Оберіть зручний канал і продовжіть у вибраному застосунку або сервісі.')).toBeInTheDocument()
+    expect(chooser.getByText('Оберіть зручний канал: це не бронювання, а прямий контакт для першого діалогу.')).toBeInTheDocument()
     expect(chooser.getByText('Email')).toBeInTheDocument()
     expect(chooser.getByText('Telegram')).toBeInTheDocument()
     expect(chooser.getByText('@olena_help')).toBeInTheDocument()
@@ -715,6 +715,18 @@ describe('PublicProfileView', () => {
     renderView()
 
     expect(await screen.findByText('Формат зустрічей: Онлайн та офлайн')).toBeInTheDocument()
+  })
+
+  it('explains booking next step and trust markers before client login', async () => {
+    mockCommonPublicData()
+    mockBookingPageDataWithSingleSlot()
+
+    renderView()
+
+    expect(
+      await screen.findAllByText('Після вибору часу потрібно увійти в кабінет клієнта, щоби завершити запис.')
+    ).toHaveLength(2)
+    expect(screen.getAllByText('Натискання кнопки «Записатися» не списує оплату автоматично.')).toHaveLength(2)
   })
 
   it('blocks booking for a client until setting acceptance is confirmed', async () => {
@@ -1071,6 +1083,27 @@ describe('PublicProfileView', () => {
     expect(inquiryButtons).toHaveLength(2)
     expect(screen.queryByRole('button', { name: 'Написати повідомлення' })).not.toBeInTheDocument()
     expect(screen.queryByText('Написати спеціалісту')).not.toBeInTheDocument()
+  })
+
+  it('frames inquiry as a low-pressure entry point before booking', async () => {
+    mockAuth.accessToken = 'token'
+    mockAuth.me = { user: { id: 7, roles: ['CLIENT'] } }
+
+    mockCommonPublicData()
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedFetchInquiryState.mockResolvedValue(buildInquiryState())
+    mockClientPageData()
+
+    renderView()
+
+    expect(await screen.findByText('Почніть із короткого запиту')).toBeInTheDocument()
+    expect(
+      screen.getAllByText('Після натискання відкриється короткий запит до бронювання. Це м’який старт без фіксації слота.')
+    ).toHaveLength(2)
+    expect(screen.getByText('Почніть без тиску')).toBeInTheDocument()
+    expect(
+      screen.getByText('Короткий запит не фіксує слот і не потребує оплати. Можна спокійно уточнити деталі перед рішенням.')
+    ).toBeInTheDocument()
   })
 
   it('creates the first inquiry from the public profile happy path', async () => {
