@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/vue'
+import { fireEvent, render, screen, within } from '@testing-library/vue'
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import PublicProfileView from './PublicProfileView.vue'
 import { BOOKING_UI_MESSAGES } from '../lib/bookingCopy'
@@ -83,6 +83,7 @@ const mockedFetchSpecialistProfile = vi.mocked(fetchSpecialistProfile)
 const mockedFetchPublicAuthorJournalPosts = vi.mocked(fetchPublicAuthorJournalPosts)
 const mockedFetchPublicJournalCollections = vi.mocked(fetchPublicJournalCollections)
 const mockedSendInquiryMessage = vi.mocked(sendInquiryMessage)
+const windowOpenSpy = vi.spyOn(window, 'open').mockImplementation(() => null)
 
 async function flushAsyncUpdates() {
   await Promise.resolve()
@@ -111,8 +112,20 @@ function buildProfile(overrides: Record<string, unknown> = {}) {
     intro_duration_minutes: 30,
     intro_price: '600',
     intro_price_currency: 'UAH',
-    contact_email: 'hello@example.com',
-    telegram: '@olena_help',
+    contact_actions: [
+      {
+        channel: 'EMAIL',
+        label: 'Email',
+        value: 'hello@example.com',
+        action_url: 'mailto:hello@example.com',
+      },
+      {
+        channel: 'TELEGRAM',
+        label: 'Telegram',
+        value: '@olena_help',
+        action_url: 'https://t.me/olena_help',
+      },
+    ],
     photo_url: 'https://example.com/photo.jpg',
     video_url: 'https://example.com/video.mp4',
     profile_documents: [
@@ -240,6 +253,7 @@ describe('PublicProfileView', () => {
     mockedFetchPublicJournalCollections.mockReset()
     mockedSendInquiryMessage.mockReset()
     mockedFetchInquiryMessages.mockResolvedValue([])
+    windowOpenSpy.mockClear()
   })
 
   it('renders the main public profile sections from loaded data', async () => {
@@ -299,6 +313,139 @@ describe('PublicProfileView', () => {
     expect(await screen.findByText('Що кажуть клієнти')).toBeInTheDocument()
     expect(screen.getByText('Щоб забронювати час, увійдіть у свій кабінет клієнта.')).toBeInTheDocument()
     expect(container).toHaveTextContent('Дуже уважний підхід.')
+  })
+
+  it('hides public contact CTA when backend returns zero contact actions', async () => {
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(buildProfile({ contact_actions: [] }))
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/slots/') return [buildTodayLocalSlot()]
+      if (url === '/public/specialists/olena/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    await screen.findByText('Олена')
+    expect(screen.queryByRole('heading', { name: /зв.?язок зі спеціалістом/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Зв’язатися зі спеціалістом' })).not.toBeInTheDocument()
+  })
+
+  it('opens the only contact action directly without chooser', async () => {
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(
+      buildProfile({
+        contact_actions: [
+          {
+            channel: 'EMAIL',
+            label: 'Email',
+            value: 'hello@example.com',
+            action_url: 'mailto:hello@example.com',
+          },
+        ],
+      })
+    )
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/slots/') return [buildTodayLocalSlot()]
+      if (url === '/public/specialists/olena/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    const contactCta = await screen.findByRole('button', { name: 'Зв’язатися зі спеціалістом' })
+    await fireEvent.click(contactCta)
+
+    expect(windowOpenSpy).toHaveBeenCalledWith(
+      'mailto:hello@example.com',
+      '_blank',
+      'noopener,noreferrer'
+    )
+    expect(screen.queryByText('Оберіть канал зв’язку')).not.toBeInTheDocument()
+  })
+
+  it('opens chooser and routes to selected action when multiple contact channels exist', async () => {
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(buildProfile())
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/slots/') return [buildTodayLocalSlot()]
+      if (url === '/public/specialists/olena/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    const contactCta = await screen.findByRole('button', { name: 'Зв’язатися зі спеціалістом' })
+    await fireEvent.click(contactCta)
+
+    const chooserTitle = await screen.findByText('Оберіть канал зв’язку')
+    expect(chooserTitle).toBeInTheDocument()
+    const chooserModal = chooserTitle.closest('.contact-chooser-modal')
+    expect(chooserModal).not.toBeNull()
+    const chooser = within(chooserModal as HTMLElement)
+    expect(chooser.getByText('Оберіть зручний канал і продовжіть у вибраному застосунку або сервісі.')).toBeInTheDocument()
+    expect(chooser.getByText('Email')).toBeInTheDocument()
+    expect(chooser.getByText('Telegram')).toBeInTheDocument()
+    expect(chooser.getByText('@olena_help')).toBeInTheDocument()
+    expect(screen.queryByText('EMAIL')).not.toBeInTheDocument()
+    expect(screen.queryByText('TELEGRAM')).not.toBeInTheDocument()
+
+    const actionButtons = chooser.getAllByRole('button', { name: 'Відкрити' })
+    await fireEvent.click(actionButtons[1] as HTMLButtonElement)
+
+    expect(windowOpenSpy).toHaveBeenCalledWith(
+      'https://t.me/olena_help',
+      '_blank',
+      'noopener,noreferrer'
+    )
+  })
+
+  it('does not crash when contact_actions are missing or partially empty', async () => {
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(
+      buildProfile({
+        contact_actions: [
+          { channel: 'EMAIL', label: null, value: null, action_url: null },
+          { channel: 'TELEGRAM', label: 'Telegram', value: '', action_url: '' },
+        ],
+      })
+    )
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/slots/') return [buildTodayLocalSlot()]
+      if (url === '/public/specialists/olena/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    expect(await screen.findByText('Олена')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Зв’язатися зі спеціалістом' })).not.toBeInTheDocument()
+    expect(screen.queryByText('Оберіть канал зв’язку')).not.toBeInTheDocument()
+  })
+
+  it('does not crash when contact_actions are not returned yet', async () => {
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(buildProfile({ contact_actions: undefined }))
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/slots/') return [buildTodayLocalSlot()]
+      if (url === '/public/specialists/olena/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    expect(await screen.findByText('Олена')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Зв’язатися зі спеціалістом' })).not.toBeInTheDocument()
   })
 
   it('shows owner unpublished-profile state instead of raw not-found copy for own slug', async () => {

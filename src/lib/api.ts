@@ -292,6 +292,21 @@ export type PublicSpecialistProfileDocument = {
   source: string
 }
 
+export type PublicContactActionChannel =
+  | 'EMAIL'
+  | 'TELEGRAM'
+  | 'VIBER'
+  | 'WHATSAPP'
+  | 'PHONE'
+  | string
+
+export type PublicContactAction = {
+  channel?: PublicContactActionChannel | null
+  label?: string | null
+  value?: string | null
+  action_url?: string | null
+}
+
 export type PublicTherapistProfile = {
   public_slug?: string
   therapist_id: number
@@ -326,6 +341,7 @@ export type PublicTherapistProfile = {
   platform_setting_text?: string
   setting_text?: string
   profile_documents?: PublicSpecialistProfileDocument[]
+  contact_actions?: PublicContactAction[] | null
 }
 
 export type PublicSpecialistProfile = PublicTherapistProfile

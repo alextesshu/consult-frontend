@@ -492,14 +492,14 @@
         <div class="contact-actions">
           <a
             v-for="item in contactActions"
-            :key="item.label"
+            :key="item.id"
             class="contact-action"
-            :href="item.href"
+            :href="item.actionUrl"
             target="_blank"
             rel="noopener noreferrer"
           >
-            <span class="contact-action__label">{{ item.label }}</span>
-            <span class="contact-action__value">{{ item.value }}</span>
+            <span class="contact-action__label">{{ item.channelLabel }}</span>
+            <span class="contact-action__value">{{ item.valueText }}</span>
           </a>
         </div>
       </section>
@@ -702,19 +702,53 @@
             >
               Переглянути вільні вікна
             </button>
-            <a
+            <button
               v-else-if="closingSecondaryKind === 'contact'"
               class="btn btn--ghost"
-              :href="primaryContactHref"
-              target="_blank"
-              rel="noopener noreferrer"
+              type="button"
+              @click="openPublicContactCta"
             >
-              Написати спеціалісту
-            </a>
+              {{ CONTACT_CHOOSER_COPY.ctaLabel }}
+            </button>
           </div>
         </div>
       </section>
     </section>
+
+    <div v-if="showContactChooserModal" class="setting-modal">
+      <div class="setting-modal__backdrop" @click="closeContactChooserModal"></div>
+      <div class="setting-modal__content contact-chooser-modal">
+        <div class="setting-modal__header">
+          <h3>{{ CONTACT_CHOOSER_COPY.title }}</h3>
+          <button class="btn btn--ghost btn--sm" type="button" @click="closeContactChooserModal">
+            {{ CONTACT_CHOOSER_COPY.closeButtonLabel }}
+          </button>
+        </div>
+        <div class="setting-modal__body">
+          <p class="muted contact-chooser-modal__hint">{{ CONTACT_CHOOSER_COPY.helperText }}</p>
+          <div v-if="contactActions.length" class="contact-chooser-modal__list">
+            <article
+              v-for="item in contactActions"
+              :key="item.id"
+              class="contact-chooser-modal__item"
+            >
+              <div class="contact-chooser-modal__meta">
+                <div class="contact-chooser-modal__title">{{ item.channelLabel }}</div>
+                <div v-if="item.valueText" class="contact-chooser-modal__value">{{ item.valueText }}</div>
+              </div>
+              <button
+                class="btn btn--ghost btn--sm"
+                type="button"
+                @click="handleContactChooserAction(item.actionUrl)"
+              >
+                {{ CONTACT_CHOOSER_COPY.channelActionButtonLabel }}
+              </button>
+            </article>
+          </div>
+          <div v-else class="muted">{{ CONTACT_CHOOSER_COPY.emptyStateText }}</div>
+        </div>
+      </div>
+    </div>
 
     <div v-if="showBookingModal" class="setting-modal">
       <div class="setting-modal__backdrop" @click="closeBookingModal"></div>
@@ -813,6 +847,7 @@ import {
   type ChatThread,
   type InquiryMessage,
   type InquiryState,
+  type PublicContactAction,
   type PublicSpecialistProfile,
   type PublicSpecialistProfileDocument,
   type PublicAuthorJournalPost,
@@ -844,6 +879,13 @@ type PublicReview = {
   created_at: string
 }
 
+type PublicContactActionViewModel = {
+  id: string
+  channelLabel: string
+  valueText: string
+  actionUrl: string
+}
+
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
@@ -863,6 +905,7 @@ const showBookingModal = ref(false)
 const lastBookedSlot = ref<PublicSlot | null>(null)
 const settingAccepted = ref(false)
 const showSettingModal = ref(false)
+const showContactChooserModal = ref(false)
 const settingAttention = ref(false)
 const settingButtonRef = ref<HTMLElement | null>(null)
 let settingAttentionTimer: number | null = null
@@ -1132,7 +1175,7 @@ const closingSecondaryKind = computed<'sessions' | 'reviews' | 'slots' | 'contac
   if (showClientSessionsCta.value) return 'sessions'
   if (canMessageSpecialist.value) return 'reviews'
   if (showInquiryEntry.value) return 'slots'
-  if (primaryContactHref.value) return 'contact'
+  if (hasPublicContactCta.value) return 'contact'
   return 'reviews'
 })
 
@@ -1250,83 +1293,62 @@ function isImageDocument(document: PublicSpecialistProfileDocument): boolean {
   return ['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp', 'svg', 'avif'].includes(extension)
 }
 
-function normalizeTelegramHref(value: string) {
-  const trimmed = value.trim()
-  if (!trimmed) return ''
-  if (/^https?:\/\//i.test(trimmed)) return trimmed
-  return `https://t.me/${trimmed.replace(/^@/, '')}`
+const CONTACT_CHANNEL_LABELS: Record<string, string> = {
+  EMAIL: 'Email',
+  TELEGRAM: 'Telegram',
+  VIBER: 'Viber',
+  WHATSAPP: 'WhatsApp',
+  PHONE: 'Телефон',
 }
 
-function normalizeWhatsAppHref(value: string) {
-  const digits = value.replace(/[^\d+]/g, '')
-  if (!digits) return ''
-  if (/^https?:\/\//i.test(value.trim())) return value.trim()
-  return `https://wa.me/${digits.replace('+', '')}`
+const CONTACT_CHOOSER_COPY = {
+  ctaLabel: 'Зв’язатися зі спеціалістом',
+  title: 'Оберіть канал зв’язку',
+  helperText: 'Оберіть зручний канал і продовжіть у вибраному застосунку або сервісі.',
+  channelActionButtonLabel: 'Відкрити',
+  closeButtonLabel: 'Закрити',
+  emptyStateText: 'Публічні канали зв’язку поки недоступні.',
 }
 
-function normalizeViberHref(value: string) {
-  const trimmed = value.trim()
-  if (!trimmed) return ''
-  if (/^https?:\/\//i.test(trimmed)) return trimmed
-  return `viber://chat?number=${trimmed.replace(/[^\d+]/g, '')}`
+function sanitizeContactActionValue(value: string | null | undefined): string {
+  return String(value || '').trim()
 }
 
-const contactActions = computed(() => {
-  if (!profile.value) return []
-  const items: Array<{ label: string; value: string; href: string }> = []
-  if (profile.value.contact_email) {
-    items.push({
-      label: 'Email',
-      value: profile.value.contact_email,
-      href: `mailto:${profile.value.contact_email}`,
-    })
+function resolveContactActionChannelLabel(action: PublicContactAction): string {
+  const safeLabel = String(action.label || '').trim()
+  if (safeLabel) return safeLabel
+  const channel = String(action.channel || '').trim().toUpperCase()
+  return CONTACT_CHANNEL_LABELS[channel] || 'Контактний канал'
+}
+
+function normalizePublicContactAction(
+  action: PublicContactAction | null | undefined,
+  index: number
+): PublicContactActionViewModel | null {
+  if (!action) return null
+  const actionUrl = String(action.action_url || '').trim()
+  if (!actionUrl) return null
+  const channel = String(action.channel || '').trim().toUpperCase()
+  const valueText = sanitizeContactActionValue(action.value)
+  return {
+    id: `${channel || 'CONTACT'}-${index}`,
+    channelLabel: resolveContactActionChannelLabel(action),
+    valueText,
+    actionUrl,
   }
-  if (profile.value.contact_phone) {
-    const phone = profile.value.contact_phone
-    items.push({
-      label: 'Телефон',
-      value: phone,
-      href: `tel:${phone.replace(/[^\d+]/g, '')}`,
-    })
-  }
-  if (profile.value.telegram) {
-    items.push({
-      label: 'Telegram',
-      value: profile.value.telegram,
-      href: normalizeTelegramHref(profile.value.telegram),
-    })
-  }
-  if (profile.value.whatsapp) {
-    items.push({
-      label: 'WhatsApp',
-      value: profile.value.whatsapp,
-      href: normalizeWhatsAppHref(profile.value.whatsapp),
-    })
-  }
-  if (profile.value.viber) {
-    items.push({
-      label: 'Viber',
-      value: profile.value.viber,
-      href: normalizeViberHref(profile.value.viber),
-    })
-  }
-  if (profile.value.messenger) {
-    const messenger = profile.value.messenger
-    items.push({
-      label: 'Messenger / Signal',
-      value: messenger,
-      href: /^https?:\/\//i.test(messenger) ? messenger : `https://m.me/${messenger.replace(/^@/, '')}`,
-    })
-  }
-  return items.filter((item) => Boolean(item.href))
+}
+
+const contactActions = computed<PublicContactActionViewModel[]>(() => {
+  const source = profile.value?.contact_actions
+  if (!Array.isArray(source) || source.length === 0) return []
+  return source
+    .map((action, index) => normalizePublicContactAction(action, index))
+    .filter((action): action is PublicContactActionViewModel => Boolean(action))
 })
 
 const showDirectContactActions = computed(() => Boolean(contactActions.value.length && !isClient.value))
-
-const primaryContactHref = computed(() =>
-  !canMessageSpecialist.value && !showInquiryEntry.value && showDirectContactActions.value
-    ? contactActions.value[0]?.href || ''
-    : ''
+const hasPublicContactCta = computed(
+  () => !canMessageSpecialist.value && !showInquiryEntry.value && contactActions.value.length > 0
 )
 
 const inquiryLeadCopy = computed(() => {
@@ -1505,6 +1527,30 @@ function openClientChat() {
   })
 }
 
+function openContactActionUrl(url: string) {
+  const safeUrl = String(url || '').trim()
+  if (!safeUrl) return
+  window.open(safeUrl, '_blank', 'noopener,noreferrer')
+}
+
+function closeContactChooserModal() {
+  showContactChooserModal.value = false
+}
+
+function handleContactChooserAction(url: string) {
+  openContactActionUrl(url)
+  closeContactChooserModal()
+}
+
+function openPublicContactCta() {
+  if (!hasPublicContactCta.value) return
+  if (contactActions.value.length === 1) {
+    openContactActionUrl(contactActions.value[0]!.actionUrl)
+    return
+  }
+  showContactChooserModal.value = true
+}
+
 function handleHeroPrimaryAction() {
   if (canMessageSpecialist.value) {
     openClientChat()
@@ -1524,6 +1570,10 @@ function handleClosingPrimaryAction() {
   }
   if (showInquiryEntry.value) {
     scrollToInquiry()
+    return
+  }
+  if (hasPublicContactCta.value) {
+    openPublicContactCta()
     return
   }
   scrollToSlots()
@@ -2001,6 +2051,7 @@ watch(
 watch(slug, () => {
   profile.value = null
   slots.value = []
+  showContactChooserModal.value = false
   showAllSlots.value = false
   selectedDate.value = toLocalDate(new Date())
   inquiryState.value = null
@@ -3614,6 +3665,47 @@ onMounted(async () => {
   .setting-modal__body {
     display: grid;
     gap: 12px;
+  }
+
+  .contact-chooser-modal {
+    width: min(560px, 92vw);
+  }
+
+  .contact-chooser-modal__hint {
+    margin: 0;
+  }
+
+  .contact-chooser-modal__list {
+    display: grid;
+    gap: 8px;
+  }
+
+  .contact-chooser-modal__item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: #fff;
+  }
+
+  .contact-chooser-modal__meta {
+    min-width: 0;
+    display: grid;
+    gap: 2px;
+  }
+
+  .contact-chooser-modal__title {
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .contact-chooser-modal__value {
+    font-size: 12px;
+    color: var(--muted);
+    overflow-wrap: anywhere;
   }
 
   .booking-checklist {
