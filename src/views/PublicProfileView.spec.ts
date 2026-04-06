@@ -84,6 +84,7 @@ const mockedFetchPublicAuthorJournalPosts = vi.mocked(fetchPublicAuthorJournalPo
 const mockedFetchPublicJournalCollections = vi.mocked(fetchPublicJournalCollections)
 const mockedSendInquiryMessage = vi.mocked(sendInquiryMessage)
 const windowOpenSpy = vi.spyOn(window, 'open').mockImplementation(() => null)
+const clipboardWriteTextSpy = vi.fn().mockResolvedValue(undefined)
 
 async function flushAsyncUpdates() {
   await Promise.resolve()
@@ -229,6 +230,12 @@ beforeAll(() => {
     value: vi.fn(),
     configurable: true,
   })
+  Object.defineProperty(navigator, 'clipboard', {
+    value: {
+      writeText: clipboardWriteTextSpy,
+    },
+    configurable: true,
+  })
 })
 
 describe('PublicProfileView', () => {
@@ -241,6 +248,9 @@ describe('PublicProfileView', () => {
     mockAuth.me = null
     mockToast.success.mockReset()
     mockToast.error.mockReset()
+    mockToast.warning.mockReset()
+    mockToast.info.mockReset()
+    mockToast.show.mockReset()
     mockedApiGet.mockReset()
     mockedApiPost.mockReset()
     mockedCreateInquiryThread.mockReset()
@@ -254,6 +264,8 @@ describe('PublicProfileView', () => {
     mockedSendInquiryMessage.mockReset()
     mockedFetchInquiryMessages.mockResolvedValue([])
     windowOpenSpy.mockClear()
+    clipboardWriteTextSpy.mockReset()
+    clipboardWriteTextSpy.mockResolvedValue(undefined)
   })
 
   it('renders the main public profile sections from loaded data', async () => {
@@ -447,6 +459,99 @@ describe('PublicProfileView', () => {
     )
   })
 
+  it('shows fallback modal with copy action for direct external contact channels', async () => {
+    vi.useFakeTimers()
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(
+      buildProfile({
+        contact_actions: [
+          {
+            channel: 'VIBER',
+            label: 'Viber',
+            value: '+380001112233',
+            action_url: 'viber://chat?number=%2B380001112233',
+          },
+        ],
+      })
+    )
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/slots/') return [buildTodayLocalSlot()]
+      if (url === '/public/specialists/olena/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    try {
+      const { container } = renderView()
+      await screen.findByText('Viber')
+
+      const directAction = container.querySelector('.contact-action')
+      expect(directAction).not.toBeNull()
+      await fireEvent.click(directAction as HTMLAnchorElement)
+
+      expect(windowOpenSpy).toHaveBeenCalledWith(
+        'viber://chat?number=%2B380001112233',
+        '_blank',
+        'noopener,noreferrer'
+      )
+      await vi.advanceTimersByTimeAsync(950)
+      const fallbackModal = container.querySelector('.contact-fallback-modal')
+      expect(fallbackModal).not.toBeNull()
+      const fallback = within(fallbackModal as HTMLElement)
+      expect(fallback.getByText('Viber')).toBeInTheDocument()
+      expect(fallback.getByText('+380001112233')).toBeInTheDocument()
+      const fallbackButtons = fallback.getAllByRole('button')
+      await fireEvent.click(fallbackButtons[1] as HTMLButtonElement)
+      expect(clipboardWriteTextSpy).toHaveBeenCalledWith('+380001112233')
+      expect(mockToast.success).toHaveBeenCalled()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+  it('shows fallback modal for chooser-selected telegram action', async () => {
+    vi.useFakeTimers()
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(buildProfile())
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/slots/') return [buildTodayLocalSlot()]
+      if (url === '/public/specialists/olena/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    try {
+      const { container } = renderView()
+
+      await screen.findByText('Telegram')
+      const closingButtons = Array.from(
+        container.querySelectorAll('.closing-cta__actions button')
+      ) as HTMLButtonElement[]
+      expect(closingButtons.length).toBeGreaterThan(1)
+      await fireEvent.click(closingButtons[1] as HTMLButtonElement)
+
+      const chooserModal = container.querySelector('.contact-chooser-modal')
+      expect(chooserModal).not.toBeNull()
+      const chooser = within(chooserModal as HTMLElement)
+      const actionButtons = chooser.getAllByRole('button')
+      await fireEvent.click(actionButtons[actionButtons.length - 1] as HTMLButtonElement)
+
+      expect(windowOpenSpy).toHaveBeenCalledWith(
+        'https://t.me/olena_help',
+        '_blank',
+        'noopener,noreferrer'
+      )
+      expect(container.querySelector('.contact-chooser-modal')).toBeNull()
+
+      await vi.advanceTimersByTimeAsync(950)
+      const fallbackModal = container.querySelector('.contact-fallback-modal')
+      expect(fallbackModal).not.toBeNull()
+      const fallback = within(fallbackModal as HTMLElement)
+      expect(fallback.getByText('Telegram')).toBeInTheDocument()
+      expect(fallback.getByText('@olena_help')).toBeInTheDocument()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
   it('does not crash when contact_actions are missing or partially empty', async () => {
     mockedFetchPublicSpecialistProfile.mockResolvedValue(
       buildProfile({
@@ -1109,3 +1214,4 @@ describe('PublicProfileView', () => {
     ).toBeInTheDocument()
   })
 })
+

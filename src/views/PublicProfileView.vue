@@ -497,6 +497,7 @@
             :href="item.actionUrl"
             target="_blank"
             rel="noopener noreferrer"
+            @click.prevent="handleDirectContactAction(item)"
           >
             <span class="contact-action__label">{{ item.channelLabel }}</span>
             <span class="contact-action__value">{{ item.valueText }}</span>
@@ -739,13 +740,41 @@
               <button
                 class="btn btn--ghost btn--sm"
                 type="button"
-                @click="handleContactChooserAction(item.actionUrl)"
+                @click="handleContactChooserAction(item)"
               >
                 {{ CONTACT_CHOOSER_COPY.channelActionButtonLabel }}
               </button>
             </article>
           </div>
           <div v-else class="muted">{{ CONTACT_CHOOSER_COPY.emptyStateText }}</div>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="contactActionFallback" class="setting-modal">
+      <div class="setting-modal__backdrop" @click="closeContactActionFallbackModal"></div>
+      <div class="setting-modal__content contact-fallback-modal">
+        <div class="setting-modal__header">
+          <h3>{{ CONTACT_FALLBACK_COPY.title }}</h3>
+          <button class="btn btn--ghost btn--sm" type="button" @click="closeContactActionFallbackModal">
+            {{ CONTACT_FALLBACK_COPY.closeButtonLabel }}
+          </button>
+        </div>
+        <div class="setting-modal__body">
+          <p class="muted contact-fallback-modal__helper">{{ CONTACT_FALLBACK_COPY.helperText }}</p>
+          <article class="contact-fallback-modal__contact">
+            <div class="contact-fallback-modal__label">{{ contactActionFallback.channelLabel }}</div>
+            <div class="contact-fallback-modal__value">{{ contactActionFallback.valueText }}</div>
+          </article>
+          <p class="muted contact-fallback-modal__hint">{{ contactActionFallback.manualHint }}</p>
+          <div class="contact-fallback-modal__actions">
+            <button class="btn btn--ghost btn--sm" type="button" @click="copyContactActionFallbackValue">
+              {{ CONTACT_FALLBACK_COPY.copyButtonLabel }}
+            </button>
+            <button class="btn btn--ghost btn--sm" type="button" @click="retryContactActionFallback">
+              {{ CONTACT_FALLBACK_COPY.retryButtonLabel }}
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -814,7 +843,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import DOMPurify from 'dompurify'
 import { marked } from 'marked'
 import { useRoute, useRouter } from 'vue-router'
@@ -881,8 +910,18 @@ type PublicReview = {
 
 type PublicContactActionViewModel = {
   id: string
+  channel: string
   channelLabel: string
   valueText: string
+  actionUrl: string
+  actionScheme: string
+}
+
+type ContactActionFallbackViewModel = {
+  channelLabel: string
+  valueText: string
+  copyValue: string
+  manualHint: string
   actionUrl: string
 }
 
@@ -906,9 +945,11 @@ const lastBookedSlot = ref<PublicSlot | null>(null)
 const settingAccepted = ref(false)
 const showSettingModal = ref(false)
 const showContactChooserModal = ref(false)
+const contactActionFallback = ref<ContactActionFallbackViewModel | null>(null)
 const settingAttention = ref(false)
 const settingButtonRef = ref<HTMLElement | null>(null)
 let settingAttentionTimer: number | null = null
+let contactActionFallbackTimer: number | null = null
 const clientSessions = ref<ClientSession[]>([])
 const pastClientSessions = ref<ClientSession[]>([])
 const chatThreads = ref<ChatThread[]>([])
@@ -1310,7 +1351,33 @@ const CONTACT_CHOOSER_COPY = {
   emptyStateText: 'Публічні канали зв’язку поки недоступні.',
 }
 
+const CONTACT_FALLBACK_COPY = {
+  title: 'Застосунок не відкрився?',
+  helperText: 'Скопіюйте контакт і продовжіть вручну.',
+  copyButtonLabel: 'Скопіювати контакт',
+  retryButtonLabel: 'Спробувати ще раз',
+  closeButtonLabel: 'Закрити',
+  copySuccessText: 'Контакт скопійовано.',
+  copyErrorText: 'Не вдалося скопіювати контакт.',
+}
+
 const CONTACT_ACTION_ALLOWED_SCHEMES = new Set(['http', 'https', 'mailto', 'tel', 'viber', 'whatsapp', 'tg'])
+const CONTACT_ACTION_FALLBACK_CHANNELS = new Set(['EMAIL', 'PHONE', 'TELEGRAM', 'VIBER', 'WHATSAPP'])
+const CONTACT_ACTION_FALLBACK_SCHEMES = new Set(['mailto', 'tel', 'viber', 'whatsapp', 'tg'])
+const CONTACT_ACTION_FALLBACK_DELAY_MS = 900
+
+const CONTACT_ACTION_FALLBACK_HINTS: Record<string, string> = {
+  EMAIL:
+    'Відкрийте пошту вручну, вставте email у одержувача і надішліть лист.',
+  PHONE:
+    'Відкрийте застосунок телефону, вставте номер і зателефонуйте вручну.',
+  TELEGRAM:
+    'Відкрийте Telegram вручну, вставте контакт у пошук і почніть діалог.',
+  VIBER:
+    'Відкрийте Viber вручну, вставте номер у пошук і почніть чат.',
+  WHATSAPP:
+    'Відкрийте WhatsApp вручну, вставте номер у пошук і почніть чат.',
+}
 
 function sanitizeContactActionValue(value: string | null | undefined): string {
   return String(value || '').trim()
@@ -1320,10 +1387,15 @@ function normalizeContactActionUrl(url: string | null | undefined): string {
   return String(url || '').trim()
 }
 
-function isAllowedContactActionUrl(url: string): boolean {
+function resolveContactActionScheme(url: string): string {
   const schemeMatch = url.match(/^([a-z][a-z0-9+.-]*):/i)
-  if (!schemeMatch) return false
-  const scheme = String(schemeMatch[1] || '').toLowerCase()
+  if (!schemeMatch) return ''
+  return String(schemeMatch[1] || '').toLowerCase()
+}
+
+function isAllowedContactActionUrl(url: string): boolean {
+  const scheme = resolveContactActionScheme(url)
+  if (!scheme) return false
   return CONTACT_ACTION_ALLOWED_SCHEMES.has(scheme)
 }
 
@@ -1343,11 +1415,14 @@ function normalizePublicContactAction(
   if (!actionUrl || !isAllowedContactActionUrl(actionUrl)) return null
   const channel = String(action.channel || '').trim().toUpperCase()
   const valueText = sanitizeContactActionValue(action.value)
+  const actionScheme = resolveContactActionScheme(actionUrl)
   return {
     id: `${channel || 'CONTACT'}-${index}`,
+    channel: channel || 'CONTACT',
     channelLabel: resolveContactActionChannelLabel(action),
     valueText,
     actionUrl,
+    actionScheme,
   }
 }
 
@@ -1363,6 +1438,97 @@ const showDirectContactActions = computed(() => Boolean(contactActions.value.len
 const hasPublicContactCta = computed(
   () => !canMessageSpecialist.value && !showInquiryEntry.value && contactActions.value.length > 0
 )
+
+function decodeContactActionValue(value: string): string {
+  const normalized = String(value || '').replace(/\+/g, '%20')
+  try {
+    return decodeURIComponent(normalized)
+  } catch {
+    return value
+  }
+}
+
+function extractContactActionUrlSearchParams(url: string): URLSearchParams {
+  try {
+    return new URL(url).searchParams
+  } catch {
+    const queryIndex = url.indexOf('?')
+    if (queryIndex < 0) return new URLSearchParams()
+    return new URLSearchParams(url.slice(queryIndex + 1))
+  }
+}
+
+function normalizeTelegramValue(value: string): string {
+  const normalized = sanitizeContactActionValue(value)
+  if (!normalized) return ''
+  if (normalized.startsWith('@') || normalized.startsWith('+')) return normalized
+  return `@${normalized}`
+}
+
+function extractContactFallbackValueFromUrl(action: PublicContactActionViewModel): string {
+  const safeUrl = normalizeContactActionUrl(action.actionUrl)
+  if (!safeUrl) return ''
+  const scheme = action.actionScheme
+  if (scheme === 'mailto') {
+    const raw = safeUrl.replace(/^mailto:/i, '').split('?')[0] || ''
+    return sanitizeContactActionValue(decodeContactActionValue(raw))
+  }
+  if (scheme === 'tel') {
+    const raw = safeUrl.replace(/^tel:/i, '').split('?')[0] || ''
+    return sanitizeContactActionValue(decodeContactActionValue(raw))
+  }
+
+  const params = extractContactActionUrlSearchParams(safeUrl)
+  const numberLike =
+    params.get('number') ||
+    params.get('phone') ||
+    params.get('chatURI') ||
+    params.get('chat_uri') ||
+    ''
+  if (numberLike) {
+    return sanitizeContactActionValue(decodeContactActionValue(numberLike))
+  }
+
+  const telegramDomain = params.get('domain') || params.get('username') || ''
+  if (telegramDomain) {
+    return normalizeTelegramValue(decodeContactActionValue(telegramDomain))
+  }
+
+  const telegramMatch = safeUrl.match(/^https?:\/\/(?:www\.)?t\.me\/([^/?#]+)/i)
+  if (telegramMatch?.[1]) {
+    return normalizeTelegramValue(decodeContactActionValue(telegramMatch[1]))
+  }
+
+  const whatsappMatch = safeUrl.match(/^https?:\/\/(?:www\.)?wa\.me\/([^/?#]+)/i)
+  if (whatsappMatch?.[1]) {
+    return sanitizeContactActionValue(decodeContactActionValue(whatsappMatch[1]))
+  }
+
+  return ''
+}
+
+function resolveContactFallbackValue(action: PublicContactActionViewModel): string {
+  if (action.valueText) {
+    return action.channel === 'TELEGRAM'
+      ? normalizeTelegramValue(action.valueText)
+      : sanitizeContactActionValue(action.valueText)
+  }
+  const valueFromUrl = extractContactFallbackValueFromUrl(action)
+  if (valueFromUrl) return valueFromUrl
+  return action.actionUrl
+}
+
+function resolveContactFallbackHint(action: PublicContactActionViewModel): string {
+  return (
+    CONTACT_ACTION_FALLBACK_HINTS[action.channel] ||
+    'Відкрийте канал вручну і вставте контакт для продовження спілкування.'
+  )
+}
+
+function shouldShowContactActionFallback(action: PublicContactActionViewModel): boolean {
+  if (CONTACT_ACTION_FALLBACK_CHANNELS.has(action.channel)) return true
+  return CONTACT_ACTION_FALLBACK_SCHEMES.has(action.actionScheme)
+}
 
 const inquiryLeadCopy = computed(() => {
   const state = inquiryState.value
@@ -1540,28 +1706,86 @@ function openClientChat() {
   })
 }
 
-function openContactActionUrl(url: string) {
+function clearContactActionFallbackTimer() {
+  if (contactActionFallbackTimer === null) return
+  window.clearTimeout(contactActionFallbackTimer)
+  contactActionFallbackTimer = null
+}
+
+function closeContactActionFallbackModal() {
+  contactActionFallback.value = null
+  clearContactActionFallbackTimer()
+}
+
+function scheduleContactActionFallback(action: PublicContactActionViewModel) {
+  if (!shouldShowContactActionFallback(action)) return
+  clearContactActionFallbackTimer()
+  contactActionFallbackTimer = window.setTimeout(() => {
+    contactActionFallbackTimer = null
+    const valueText = resolveContactFallbackValue(action)
+    contactActionFallback.value = {
+      channelLabel: action.channelLabel,
+      valueText,
+      copyValue: valueText,
+      manualHint: resolveContactFallbackHint(action),
+      actionUrl: action.actionUrl,
+    }
+  }, CONTACT_ACTION_FALLBACK_DELAY_MS)
+}
+
+function openContactActionUrl(url: string): boolean {
   const safeUrl = normalizeContactActionUrl(url)
-  if (!safeUrl || !isAllowedContactActionUrl(safeUrl)) return
+  if (!safeUrl || !isAllowedContactActionUrl(safeUrl)) return false
   window.open(safeUrl, '_blank', 'noopener,noreferrer')
+  return true
+}
+
+function openContactAction(item: PublicContactActionViewModel, options?: { scheduleFallback?: boolean }) {
+  closeContactActionFallbackModal()
+  const opened = openContactActionUrl(item.actionUrl)
+  if (!opened) return
+  if (options?.scheduleFallback === false) return
+  scheduleContactActionFallback(item)
 }
 
 function closeContactChooserModal() {
   showContactChooserModal.value = false
 }
 
-function handleContactChooserAction(url: string) {
-  openContactActionUrl(url)
+function handleDirectContactAction(item: PublicContactActionViewModel) {
+  openContactAction(item)
+}
+
+function handleContactChooserAction(item: PublicContactActionViewModel) {
+  openContactAction(item)
   closeContactChooserModal()
 }
 
 function openPublicContactCta() {
   if (!hasPublicContactCta.value) return
   if (contactActions.value.length === 1) {
-    openContactActionUrl(contactActions.value[0]!.actionUrl)
+    openContactAction(contactActions.value[0]!)
     return
   }
   showContactChooserModal.value = true
+}
+
+async function copyContactActionFallbackValue() {
+  const fallback = contactActionFallback.value
+  if (!fallback?.copyValue) return
+  try {
+    await navigator.clipboard.writeText(fallback.copyValue)
+    toast.success(CONTACT_FALLBACK_COPY.copySuccessText)
+  } catch {
+    toast.error(CONTACT_FALLBACK_COPY.copyErrorText)
+  }
+}
+
+function retryContactActionFallback() {
+  const fallback = contactActionFallback.value
+  if (!fallback) return
+  closeContactActionFallbackModal()
+  openContactActionUrl(fallback.actionUrl)
 }
 
 function handleHeroPrimaryAction() {
@@ -2065,6 +2289,7 @@ watch(slug, () => {
   profile.value = null
   slots.value = []
   showContactChooserModal.value = false
+  closeContactActionFallbackModal()
   showAllSlots.value = false
   selectedDate.value = toLocalDate(new Date())
   inquiryState.value = null
@@ -2124,6 +2349,14 @@ watch(
   },
   { immediate: true }
 )
+
+onBeforeUnmount(() => {
+  if (settingAttentionTimer !== null) {
+    window.clearTimeout(settingAttentionTimer)
+    settingAttentionTimer = null
+  }
+  clearContactActionFallbackTimer()
+})
 
 onMounted(async () => {
   if (!selectedDate.value) {
@@ -3719,6 +3952,45 @@ onMounted(async () => {
     font-size: 12px;
     color: var(--muted);
     overflow-wrap: anywhere;
+  }
+
+  .contact-fallback-modal {
+    width: min(560px, 92vw);
+  }
+
+  .contact-fallback-modal__helper {
+    margin: 0;
+  }
+
+  .contact-fallback-modal__contact {
+    display: grid;
+    gap: 4px;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: #fff;
+  }
+
+  .contact-fallback-modal__label {
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .contact-fallback-modal__value {
+    font-size: 13px;
+    line-height: 1.4;
+    color: var(--muted);
+    overflow-wrap: anywhere;
+  }
+
+  .contact-fallback-modal__hint {
+    margin: 0;
+  }
+
+  .contact-fallback-modal__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
   }
 
   .booking-checklist {
