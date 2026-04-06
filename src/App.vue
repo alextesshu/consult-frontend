@@ -181,8 +181,11 @@
           >
             {{ cabinetLabel }}
           </RouterLink>
+          <RouterLink v-if="isSpecialist" class="mobile-menu__item" to="/cabinet/profile" @click="closeMobileMenu">
+            Керування профілем
+          </RouterLink>
           <RouterLink v-if="isSpecialist" class="mobile-menu__item" to="/public" @click="closeMobileMenu">
-            Публічний профіль
+            Публічний профіль (перегляд)
           </RouterLink>
           <RouterLink
             v-if="isClient && !isSpecialist"
@@ -192,38 +195,20 @@
           >
             Стати спеціалістом
           </RouterLink>
-          <button
+          <RouterLink
             v-if="isSpecialist"
-            type="button"
-            class="mobile-menu__item mobile-menu__item--button"
-            @click="openSettingsSheetFromMenu"
+            class="mobile-menu__item"
+            to="/cabinet/settings"
+            @click="closeMobileMenu"
           >
             Налаштування
-          </button>
+          </RouterLink>
           <RouterLink v-if="isChatCapable" class="mobile-menu__item" :to="chatRoute" @click="closeMobileMenu">Чат</RouterLink>
           <button type="button" class="mobile-menu__item mobile-menu__item--button" @click="onLogoutFromMenu">
             Вийти
           </button>
         </div>
         </nav>
-        <div
-          v-if="isAuthenticated && isSpecialist && showSettings"
-          ref="settingsSheetRef"
-          class="settings-sheet nav__mobile-only"
-        >
-          <RouterLink class="settings-sheet__item" to="/cabinet/settings" @click="showSettings = false">
-            Усі налаштування
-          </RouterLink>
-          <RouterLink class="settings-sheet__item" to="/cabinet/profile" @click="showSettings = false">
-            Профіль
-          </RouterLink>
-          <RouterLink class="settings-sheet__item" to="/cabinet/settings/notifications" @click="showSettings = false">
-            Сповіщення
-          </RouterLink>
-          <RouterLink class="settings-sheet__item" to="/cabinet/billing" @click="showSettings = false">
-            Плани та доступ
-          </RouterLink>
-        </div>
       </div>
     </header>
 
@@ -380,7 +365,6 @@ const notificationsButtonRef = ref<HTMLButtonElement | null>(null)
 const notificationsPanelRef = ref<HTMLDivElement | null>(null)
 const settingsButtonRef = ref<HTMLButtonElement | null>(null)
 const settingsPanelRef = ref<HTMLDivElement | null>(null)
-const settingsSheetRef = ref<HTMLDivElement | null>(null)
 const mobileMenuButtonRef = ref<HTMLButtonElement | null>(null)
 const mobileMenuPanelRef = ref<HTMLDivElement | null>(null)
 const refreshIntervalId = ref<number | null>(null)
@@ -603,11 +587,6 @@ function closeMobileMenu() {
   showMobileMenu.value = false
 }
 
-function openSettingsSheetFromMenu() {
-  showMobileMenu.value = false
-  showSettings.value = true
-}
-
 function onLogoutFromMenu() {
   closeMobileMenu()
   void onLogout()
@@ -728,10 +707,8 @@ function handleGlobalClick(event: MouseEvent) {
   if (showSettings.value) {
     const button = settingsButtonRef.value
     const panel = settingsPanelRef.value
-    const sheet = settingsSheetRef.value
     if (button && button.contains(target)) return
     if (panel && panel.contains(target)) return
-    if (sheet && sheet.contains(target)) return
     showSettings.value = false
   }
   if (showMobileMenu.value) {
@@ -841,6 +818,11 @@ watch(isChatCapable, (value) => {
   box-shadow: 0 10px 24px rgba(8, 24, 20, 0.14);
 }
 
+.shell:not(.shell--home):not(.shell--minimal) .topbar {
+  width: calc(100% + 48px);
+  margin: 0 -24px;
+}
+
 .topbar::after {
   content: '';
   position: absolute;
@@ -859,14 +841,15 @@ watch(isChatCapable, (value) => {
 }
 
 .topbar__inner {
-  width: 80vw;
+  width: 100%;
+  max-width: none;
   margin: 0 auto;
   min-height: 66px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  padding: 13px 0;
+  padding: 13px 24px;
 }
 
 .topbar--specialist,
@@ -888,7 +871,7 @@ watch(isChatCapable, (value) => {
 }
 
 .topbar--overlay .topbar__inner {
-  width: min(1200px, 92vw);
+  width: 100%;
 }
 
 .brand {
@@ -1281,7 +1264,7 @@ watch(isChatCapable, (value) => {
 
 .main {
   min-height: 320px;
-  width: 80%;
+  width: min(1200px, 92vw);
   margin: 0 auto;
 }
 
@@ -1436,6 +1419,10 @@ body.body--home .footer {
 }
 
 @media (max-width: 640px) {
+  .main {
+    width: 100%;
+  }
+
   .topbar {
     position: sticky;
     top: 0;
