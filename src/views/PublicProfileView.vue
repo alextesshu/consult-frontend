@@ -1,87 +1,35 @@
 <template>
   <section class="public">
-    <header class="public__hero">
-      <div class="hero-profile">
-        <div class="hero-media" v-if="profile">
-          <img
-            v-if="profile.photo_url"
-            class="hero-photo"
-            :src="profile.photo_url"
-            alt="Фото спеціаліста"
-          />
-          <div v-else class="hero-photo-placeholder">Фото спеціаліста</div>
-          <video
-            v-if="profile.video_url"
-            class="hero-video"
-            :src="profile.video_url"
-            controls
-            preload="metadata"
-          ></video>
-        </div>
+    <section class="public__top">
+      <PublicProfileHeroSection
+        :profile="heroMediaProfile"
+        :public-name="publicName"
+        :hero-role-line="heroRoleLine"
+        :hero-lead-text="heroLeadText"
+        :hero-support-text="heroSupportText"
+        :completed-sessions-badge="completedSessionsBadge"
+        :hero-meta-highlights="heroMetaHighlights"
+        :display-specialization-chips="displaySpecializationChips"
+      />
 
-        <div class="hero-main">
-          <div class="badge">Профіль спеціаліста</div>
-          <h1 class="title public__title">{{ publicName || 'Профіль спеціаліста' }}</h1>
-          <p v-if="profile && heroRoleLine" class="hero-main__role">{{ heroRoleLine }}</p>
-          <p class="hero-main__lead">{{ profile ? heroLeadText : 'Завантаження профілю' }}</p>
-          <p v-if="profile && heroSupportText" class="hero-main__support">{{ heroSupportText }}</p>
-          <p v-if="profile && completedSessionsBadge" class="hero-main__sessions">
-            Проведено сесій: {{ completedSessionsBadge }}
-          </p>
-
-          <div v-if="profile && heroMetaHighlights.length" class="hero-main__meta">
-            <article v-for="item in heroMetaHighlights" :key="item.label" class="hero-meta-card">
-              <div class="hero-meta-card__label">{{ item.label }}</div>
-              <div class="hero-meta-card__value">{{ item.value }}</div>
-            </article>
-          </div>
-
-          <div v-if="profile && displaySpecializationChips.length" class="hero-trust">
-            <span v-for="(chip, index) in displaySpecializationChips" :key="`${chip}-${index}`">{{ chip }}</span>
-          </div>
-        </div>
-      </div>
-
-      <aside class="hero-cta" v-if="profile">
-        <div class="hero-cta__head">
-          <div class="badge badge--soft">Наступний крок</div>
-          <h2 class="hero-cta__title">{{ heroCtaTitle }}</h2>
-          <p class="hero-cta__hint">
-            Оберіть зручний формат знайомства і переходьте до бронювання без зайвих кроків.
-          </p>
-        </div>
-        <div class="hero-cta__prices">
-          <div v-if="introPriceDisplay" class="hero-cta__price hero-cta__price--intro">
-            Ознайомча сесія: {{ introPriceDisplay }}
-            <span v-if="introDurationLabel">· {{ introDurationLabel }}</span>
-          </div>
-          <div v-if="priceDisplay" class="hero-cta__price">
-            Консультація: {{ priceDisplay }}
-            <span> · {{ standardSessionDurationLabel }}</span>
-          </div>
-        </div>
-        <div class="hero-cta__actions">
-          <button class="btn btn--primary" type="button" @click="handleHeroPrimaryAction">
-            {{ heroPrimaryLabel }}
-          </button>
-          <RouterLink
-            v-if="showClientSessionsCta"
-            class="btn btn--ghost"
-            to="/client"
-          >
-            Мої сесії
-          </RouterLink>
-          <a v-else class="btn btn--ghost" href="#slots">Переглянути вільні вікна</a>
-          <RouterLink class="btn btn--ghost" :to="feedbackLink">Відгуки</RouterLink>
-        </div>
-        <p class="hero-cta__next-step">
-          {{ primaryActionNextStepCopy }}
-        </p>
-        <ul class="hero-cta__trust-list">
-          <li v-for="marker in heroTrustMarkers" :key="marker">{{ marker }}</li>
-        </ul>
-      </aside>
-    </header>
+      <PublicProfileIdentityRail
+        :profile="profile"
+        :public-name="publicName"
+        :hero-role-line="heroRoleLine"
+        :hero-cta-title="heroCtaTitle"
+        :hero-primary-label="heroPrimaryLabel"
+        :show-client-sessions-cta="showClientSessionsCta"
+        :feedback-link="feedbackLink"
+        :primary-action-next-step-copy="primaryActionNextStepCopy"
+        :hero-trust-markers="heroTrustMarkers"
+        :identity-trust-items="identityTrustItems"
+        :intro-price-display="introPriceDisplay"
+        :intro-duration-label="introDurationLabel"
+        :price-display="priceDisplay"
+        :standard-session-duration-label="standardSessionDurationLabel"
+        @primary-action="handleHeroPrimaryAction"
+      />
+    </section>
 
     <div v-if="loading" class="muted">Завантаження...</div>
     <section v-else-if="ownerUnpublishedProfile" class="panel panel--owner-unpublished">
@@ -102,71 +50,14 @@
     <div v-else-if="error" class="form-error">{{ error }}</div>
 
     <section v-else-if="profile" class="public__grid">
-      <section class="panel panel--trust" v-if="trustItems.length">
-        <div class="panel__header">
-          <div>
-            <div class="badge badge--soft">Що важливо знати</div>
-            <h2 class="panel__title">Довіра і формат</h2>
-            <p class="panel__lead">Ключова інформація для спокійного рішення перед першим записом.</p>
-          </div>
-        </div>
-        <div class="trust-grid">
-          <article v-for="item in trustItems" :key="item.label" class="trust-card">
-            <div class="trust-card__label">{{ item.label }}</div>
-            <div class="trust-card__value">{{ item.value }}</div>
-          </article>
-        </div>
-      </section>
-
-      <section class="panel panel--documents" v-if="publicDocuments.length">
-        <div class="panel__header">
-          <div>
-            <div class="badge badge--soft">Документи</div>
-            <h2 class="panel__title">Документи та сертифікати</h2>
-            <p class="panel__lead">
-              Матеріали, завантажені спеціалістом для ознайомлення. PRO CONSULT не здійснює автоматичної
-              верифікації їх змісту, якщо інше прямо не зазначено.
-            </p>
-          </div>
-        </div>
-        <div class="documents-grid">
-          <article
-            v-for="document in publicDocuments"
-            :key="document.id"
-            class="document-card"
-            :class="{ 'document-card--file': !isImageDocument(document) }"
-          >
-            <div v-if="isImageDocument(document)" class="document-card__preview">
-              <img
-                :src="document.file_url"
-                :alt="document.title"
-                loading="lazy"
-              />
-            </div>
-            <div v-else class="document-card__file-top">
-              <div class="document-card__file-badge">
-                {{ isPdfDocument(document) ? 'PDF' : 'DOC' }}
-              </div>
-              <div class="document-card__kind document-card__kind--file">{{ documentKindLabel(document.document_kind) }}</div>
-            </div>
-            <div class="document-card__body">
-              <div v-if="isImageDocument(document)" class="document-card__kind">{{ documentKindLabel(document.document_kind) }}</div>
-              <h3 class="document-card__title">{{ document.title }}</h3>
-              <div v-if="document.uploaded_at" class="document-card__meta">
-                Додано: {{ formatDate(document.uploaded_at) }}
-              </div>
-            </div>
-            <a
-              class="btn btn--ghost document-card__action"
-              :href="document.file_url"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {{ isPdfDocument(document) ? 'Відкрити документ' : 'Відкрити' }}
-            </a>
-          </article>
-        </div>
-      </section>
+      <PublicProfileTrustSection
+        :trust-items="trustItems"
+        :public-documents="publicDocuments"
+        :is-image-document="isImageDocument"
+        :is-pdf-document="isPdfDocument"
+        :document-kind-label="documentKindLabel"
+        :format-date="formatDate"
+      />
 
       <section v-if="showInquiryPanel" class="panel panel--inquiry" id="inquiry">
         <div class="panel__header">
@@ -428,304 +319,71 @@
         </div>
       </div>
 
-      <section class="panel panel--work-format">
-        <div class="panel__header">
-          <div>
-            <div class="badge badge--soft">Формат</div>
-            <h2 class="panel__title">Формат роботи</h2>
-          </div>
-        </div>
-        <div class="work-format-grid">
-          <div v-if="meetingFormatLabel" class="profile-summary__item">
-            Формат зустрічей: {{ meetingFormatLabel }}
-          </div>
-          <div v-if="introDurationLabel" class="profile-summary__item">
-            Тривалість ознайомчої сесії: {{ introDurationLabel }}
-          </div>
-          <div v-if="introPriceDisplay" class="profile-summary__item">
-            Вартість ознайомчої сесії: {{ introPriceDisplay }}
-          </div>
-          <div v-if="offlineMeetingLocation" class="profile-summary__item">
-            Локація офлайн-зустрічей: {{ offlineMeetingLocation }}
-          </div>
-          <div v-else-if="profile.location" class="profile-summary__item">
-            Локація: {{ profile.location }}
-          </div>
-          <div v-if="priceDisplay" class="profile-summary__item">
-            Консультація: {{ priceDisplay }} · {{ standardSessionDurationLabel }}
-          </div>
-          <div class="profile-summary__item">
-            Що буде після запису: сесія з’явиться в кабінеті, після підтвердження надійде нагадування.
-          </div>
-        </div>
-      </section>
+      <PublicProfileAboutSection
+        :meeting-format-label="meetingFormatLabel"
+        :intro-duration-label="introDurationLabel"
+        :intro-price-display="introPriceDisplay"
+        :offline-meeting-location="offlineMeetingLocation"
+        :profile-location="profileLocationDisplay"
+        :price-display="priceDisplay"
+        :standard-session-duration-label="standardSessionDurationLabel"
+        :about-sections="aboutSections"
+        :who-this-is-for-text="whoThisIsForText"
+        :specialization-chips="specializationChips"
+        :show-direct-contact-actions="showDirectContactActions"
+        :contact-actions="contactActions"
+        @direct-contact-action="handleDirectContactAction"
+      />
 
-      <section class="panel panel--about" v-if="aboutSections.length">
-        <div class="panel__header">
-          <div>
-            <div class="badge badge--soft">Про спеціаліста</div>
-            <h2 class="panel__title">Про спеціаліста</h2>
-            <p class="panel__lead">Познайомтеся з підходом та стилем роботи перед першою консультацією.</p>
-          </div>
-        </div>
-        <div class="about-grid">
-          <article v-for="section in aboutSections" :key="section.title" class="bio-section">
-            <div class="bio-title">{{ section.title }}</div>
-            <div class="bio-copy">{{ section.body }}</div>
-          </article>
-        </div>
-      </section>
+      <PublicProfileMediaSection
+        :media-items="mediaItems"
+      />
 
-      <section class="panel panel--who" v-if="whoThisIsForText">
-        <div class="panel__header">
-          <div>
-            <div class="badge badge--soft">Кому підійде</div>
-            <h2 class="panel__title">З якими запитами я працюю</h2>
-          </div>
-        </div>
-        <div class="muted who-lead">Цей формат може підійти вам, якщо...</div>
-        <div class="who-text">{{ whoThisIsForText }}</div>
-        <div v-if="specializationChips.length" class="hero-trust">
-          <span v-for="(chip, index) in specializationChips" :key="`${chip}-${index}`">{{ chip }}</span>
-        </div>
-      </section>
+      <PublicProfileFaqSection
+        :faq-items="faqItems"
+      />
 
-      <section class="panel panel--contacts" v-if="showDirectContactActions">
-        <div class="panel__header">
-          <div>
-            <div class="badge badge--soft">Зв’язок</div>
-            <h2 class="panel__title">Зв’язок зі спеціалістом</h2>
-            <p class="panel__lead">
-              Оберіть зручний канал. Якщо застосунок не відкриється, контакт можна скопіювати й продовжити вручну.
-            </p>
-          </div>
-        </div>
-        <div class="contact-actions">
-          <a
-            v-for="item in contactActions"
-            :key="item.id"
-            class="contact-action"
-            :href="item.actionUrl"
-            target="_blank"
-            rel="noopener noreferrer"
-            @click.prevent="handleDirectContactAction(item)"
-          >
-            <span class="contact-action__label">{{ item.channelLabel }}</span>
-            <span class="contact-action__value">{{ item.valueText }}</span>
-          </a>
-        </div>
-      </section>
+      <PublicProfileJournalPreviewSection
+        :has-public-journal-posts="hasPublicJournalPosts"
+        :slug="slug"
+        :journal-loading="journalLoading"
+        :journal-error="journalError"
+        :canonical-empty-state-code="journalEmptyStateCode"
+        :canonical-empty-state-title="journalCanonicalEmptyStateTitle"
+        :canonical-empty-state-body="journalCanonicalEmptyStateBody"
+        :preview-collections="previewCollections"
+        :collection-cover-url="collectionCoverUrl"
+        :filtered-journal-posts="filteredJournalPosts"
+        :category-options="categoryOptions"
+        :active-category="activeCategory"
+        :featured-post="featuredPost"
+        :grid-posts="gridPosts"
+        :category-color="categoryColor"
+        :category-label="categoryLabel"
+        :format-date="formatDate"
+        :reading-time="readingTime"
+        :render-markdown="renderMarkdown"
+        @set-active-category="setActiveJournalCategory"
+        @navigate-to-post="navigateToPost"
+      />
 
-      <div v-if="hasPublicJournalPosts" class="panel panel--journal" id="journal">
-        <div class="panel__header">
-          <div>
-            <div class="badge badge--soft">Авторський журнал</div>
-            <h2 class="panel__title">Статті та матеріали спеціаліста</h2>
-            <p class="panel__lead">Матеріали допоможуть краще відчути стиль роботи і теми спеціаліста.</p>
-          </div>
-          <div class="panel__header-actions">
-            <RouterLink class="btn btn--ghost btn--sm" :to="{ name: 'public-journal', params: { slug } }">
-              Всі статті
-            </RouterLink>
-          </div>
-        </div>
+      <PublicProfileReviewsSection
+        :reviews="displayReviews"
+        :feedback-link="feedbackLink"
+        :format-date="formatDate"
+      />
 
-        <div v-if="journalLoading" class="muted">Завантажуємо журнал...</div>
-        <div v-else-if="journalError" class="form-error">{{ journalError }}</div>
-        <div v-else>
-          <section v-if="previewCollections.length" class="profile-collections">
-            <div class="profile-collections__head">
-              <div class="profile-collections__title">Серії</div>
-              <RouterLink class="btn btn--ghost btn--sm" :to="{ name: 'public-journal', params: { slug } }">
-                Переглянути всі
-              </RouterLink>
-            </div>
-            <div class="profile-collections__list">
-              <RouterLink
-                v-for="collection in previewCollections"
-                :key="collection.slug"
-                class="profile-collection-item"
-                :to="{
-                  name: 'public-journal-collection',
-                  params: { specialist_slug: slug, collection_slug: collection.slug },
-                }"
-              >
-                <div class="profile-collection-item__left">
-                  <div v-if="collectionCoverUrl(collection)" class="profile-collection-item__cover">
-                    <img :src="collectionCoverUrl(collection)" :alt="collection.title" />
-                  </div>
-                  <span class="profile-collection-item__name">{{ collection.title }}</span>
-                </div>
-                <span class="profile-collection-item__meta">{{ collection.posts_count }} статті</span>
-              </RouterLink>
-            </div>
-          </section>
-
-          <div v-if="filteredJournalPosts.length === 0" class="empty">
-            <div class="empty-title">Немає статей у цій категорії</div>
-            <div class="muted">Спробуйте інший фільтр або поверніться до всіх статей.</div>
-            <button class="btn btn--ghost btn--sm" type="button" @click="activeCategory = 'ALL'">
-              Повернути всі статті
-            </button>
-          </div>
-          <div v-else class="journal-list">
-            <div class="journal-filters" role="tablist" aria-label="Фільтр статей">
-              <button
-                v-for="opt in categoryOptions"
-                :key="opt.key"
-                type="button"
-                class="filter-chip"
-                :class="{ 'is-active': activeCategory === opt.key }"
-                @click="activeCategory = opt.key"
-              >
-                {{ opt.label }}
-              </button>
-            </div>
-            <article
-              v-if="featuredPost"
-              :class="[
-                'journal-card',
-                'journal-card--feature',
-                featuredPost.is_featured ? 'journal-card--pinned' : '',
-                'journal-card--closed',
-              ]"
-              role="button"
-              tabindex="0"
-              @click="navigateToPost(featuredPost)"
-              @keydown.enter="navigateToPost(featuredPost)"
-              @keydown.space.prevent="navigateToPost(featuredPost)"
-            >
-              <div class="journal-body">
-                <span class="post-tag" :style="{ '--cat': categoryColor(featuredPost.category) }">
-                  {{ categoryLabel(featuredPost.category) }}
-                </span>
-                <span v-if="featuredPost.is_featured" class="pin-badge">Закріплено</span>
-                <div class="journal-title">{{ featuredPost.title }}</div>
-                <div class="journal-meta">
-                  {{ formatDate(featuredPost.published_at || featuredPost.created_at) }}
-                  · {{ readingTime(featuredPost.summary) }} хв читання
-                </div>
-                <div class="journal-summary" v-if="featuredPost.summary" v-html="renderMarkdown(featuredPost.summary)"></div>
-                <RouterLink
-                  class="read-more"
-                  :to="{ name: 'public-journal-post', params: { slug, postSlug: featuredPost.slug } }"
-                  @click.stop
-                >
-                  Читати статтю →
-                </RouterLink>
-              </div>
-              <div v-if="featuredPost.cover_image_url" class="journal-cover">
-                <img :src="featuredPost.cover_image_url" alt="Обкладинка статті" />
-              </div>
-            </article>
-
-            <div class="journal-grid">
-              <article
-                v-for="post in gridPosts"
-                :key="post.id"
-                :class="[
-                  'journal-card',
-                  post.is_featured ? 'journal-card--pinned' : '',
-                  'journal-card--closed',
-                ]"
-                role="button"
-                tabindex="0"
-                @click="navigateToPost(post)"
-                @keydown.enter="navigateToPost(post)"
-                @keydown.space.prevent="navigateToPost(post)"
-              >
-                <div class="journal-body">
-                  <span class="post-tag" :style="{ '--cat': categoryColor(post.category) }">
-                    {{ categoryLabel(post.category) }}
-                  </span>
-                  <span v-if="post.is_featured" class="pin-badge">Закріплено</span>
-                  <div class="journal-title">{{ post.title }}</div>
-                  <div class="journal-meta">
-                    {{ formatDate(post.published_at || post.created_at) }}
-                    · {{ readingTime(post.summary) }} хв читання
-                  </div>
-                  <div
-                    class="journal-summary"
-                    v-if="post.summary"
-                    v-html="renderMarkdown(post.summary)"
-                  ></div>
-                  <RouterLink
-                    class="read-more"
-                    :to="{ name: 'public-journal-post', params: { slug, postSlug: post.slug } }"
-                    @click.stop
-                  >
-                    Читати статтю →
-                  </RouterLink>
-                </div>
-                <div v-if="post.cover_image_url" class="journal-cover">
-                  <img :src="post.cover_image_url" alt="Обкладинка статті" />
-                </div>
-              </article>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <section class="panel panel--reviews" v-if="reviews.length">
-        <div class="panel__header">
-          <div>
-            <div class="badge badge--soft">Відгуки</div>
-            <h2 class="panel__title">Що кажуть клієнти</h2>
-          </div>
-          <RouterLink class="btn btn--ghost btn--sm" :to="feedbackLink">Усі відгуки</RouterLink>
-        </div>
-        <div class="reviews-list">
-          <article v-for="review in reviews" :key="review.id" class="review-card">
-            <div class="review-card__text">{{ review.review_text }}</div>
-            <div class="review-card__meta">{{ formatDate(review.created_at) }}</div>
-          </article>
-        </div>
-      </section>
-
-      <section class="panel panel--footer-cta">
-        <div class="closing-cta">
-          <div class="closing-cta__copy">
-            <h2 class="closing-cta__title">Готові зробити перший крок?</h2>
-            <p class="closing-cta__subtitle">{{ closingCtaSupportLine }}</p>
-            <p class="closing-cta__next-step">{{ primaryActionNextStepCopy }}</p>
-          </div>
-          <div class="closing-cta__actions">
-            <button class="btn btn--primary" type="button" @click="handleClosingPrimaryAction">
-              {{ closingPrimaryLabel }}
-            </button>
-            <RouterLink
-              v-if="closingSecondaryKind === 'sessions'"
-              class="btn btn--ghost"
-              to="/client"
-            >
-              Мої сесії
-            </RouterLink>
-            <RouterLink
-              v-else-if="closingSecondaryKind === 'reviews'"
-              class="btn btn--ghost"
-              :to="feedbackLink"
-            >
-              Відгуки
-            </RouterLink>
-            <button
-              v-else-if="closingSecondaryKind === 'slots'"
-              class="btn btn--ghost"
-              type="button"
-              @click="scrollToSlots"
-            >
-              Переглянути вільні вікна
-            </button>
-            <button
-              v-else-if="closingSecondaryKind === 'contact'"
-              class="btn btn--ghost"
-              type="button"
-              @click="openPublicContactCta"
-            >
-              {{ CONTACT_CHOOSER_COPY.ctaLabel }}
-            </button>
-          </div>
-        </div>
-      </section>
+      <PublicProfileFinalCtaSection
+        :closing-cta-support-line="closingCtaSupportLine"
+        :primary-action-next-step-copy="primaryActionNextStepCopy"
+        :closing-primary-label="closingPrimaryLabel"
+        :closing-secondary-kind="closingSecondaryKind"
+        :feedback-link="feedbackLink"
+        :contact-cta-label="CONTACT_CHOOSER_COPY.ctaLabel"
+        @primary-action="handleClosingPrimaryAction"
+        @scroll-slots="scrollToSlots"
+        @open-contact="openPublicContactCta"
+      />
     </section>
 
     <div v-if="showContactChooserModal" class="setting-modal">
@@ -971,6 +629,15 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import DOMPurify from 'dompurify'
 import { marked } from 'marked'
 import { useRoute, useRouter } from 'vue-router'
+import PublicProfileAboutSection from '../components/public-profile/PublicProfileAboutSection.vue'
+import PublicProfileFaqSection from '../components/public-profile/PublicProfileFaqSection.vue'
+import PublicProfileFinalCtaSection from '../components/public-profile/PublicProfileFinalCtaSection.vue'
+import PublicProfileHeroSection from '../components/public-profile/PublicProfileHeroSection.vue'
+import PublicProfileIdentityRail from '../components/public-profile/PublicProfileIdentityRail.vue'
+import PublicProfileJournalPreviewSection from '../components/public-profile/PublicProfileJournalPreviewSection.vue'
+import PublicProfileMediaSection from '../components/public-profile/PublicProfileMediaSection.vue'
+import PublicProfileReviewsSection from '../components/public-profile/PublicProfileReviewsSection.vue'
+import PublicProfileTrustSection from '../components/public-profile/PublicProfileTrustSection.vue'
 import { getApiErrorMessage } from '../lib/errors'
 import {
   BOOKING_ERROR_FALLBACKS,
@@ -1001,6 +668,15 @@ import {
   type InquiryMessage,
   type InquiryState,
   type PublicContactAction,
+  type PublicProfileAboutItem,
+  type PublicProfileContactActionsSection,
+  type PublicProfileFaqItem,
+  type PublicProfileMediaItem,
+  type PublicProfilePublicationsPreviewEmptyState,
+  type PublicProfilePublicationsPreviewItem,
+  type PublicProfileReviewItem,
+  type PublicProfileTopicsSection,
+  type PublicProfileTrustItem,
   type PublicSpecialistProfile,
   type PublicSpecialistProfileDocument,
   type PublicAuthorJournalPost,
@@ -1052,6 +728,52 @@ type PublicReview = {
   id: number
   review_text: string
   created_at: string
+}
+
+type PublicReviewView = {
+  id: string
+  review_text: string
+  created_at: string
+}
+
+type PublicFaqItemView = {
+  id: string
+  question: string
+  answer: string
+}
+
+type PublicMediaItemView = {
+  id: string
+  title: string
+  description: string
+  kindLabel: string
+  url: string
+}
+
+type JournalPreviewPost = {
+  id: number
+  slug: string
+  title: string
+  summary?: string | null
+  cover_image_url?: string | null
+  is_featured: boolean
+  featured_order?: number
+  published_at?: string | null
+  created_at?: string | null
+  category?: 'TIP' | 'EXPLAIN' | 'FAQ' | 'RESEARCH' | 'PRACTICE' | null
+  reading_time_minutes?: number | null
+}
+
+type JournalCanonicalEmptyStateCode = Exclude<PublicProfilePublicationsPreviewEmptyState, null>
+
+type ProfileKeyValueItem = {
+  label: string
+  value: string
+}
+
+type ProfileAboutSection = {
+  title: string
+  body: string
 }
 
 type PublicContactActionViewModel = {
@@ -1118,10 +840,11 @@ const inquiryError = ref('')
 const inquiryDraft = ref('')
 const inquirySubmitError = ref('')
 const inquirySubmitting = ref(false)
-const journalPosts = ref<PublicAuthorJournalPost[]>([])
+const journalPosts = ref<JournalPreviewPost[]>([])
 const journalCollections = ref<PublicJournalCollectionListItem[]>([])
 const journalLoading = ref(false)
 const journalError = ref('')
+const journalEmptyStateCode = ref<JournalCanonicalEmptyStateCode | null>(null)
 const reviews = ref<PublicReview[]>([])
 type JournalCategory = 'ALL' | 'TIP' | 'EXPLAIN' | 'FAQ' | 'RESEARCH' | 'PRACTICE'
 const activeCategory = ref<JournalCategory>('ALL')
@@ -1175,7 +898,23 @@ const isBookingDisabled = (slotId: number) => {
 }
 const visibleSlots = computed(() => (showAllSlots.value ? slots.value : slots.value.slice(0, slotsPreviewLimit)))
 const hasMoreSlots = computed(() => slots.value.length > slotsPreviewLimit)
-const hasPublicJournalPosts = computed(() => journalPosts.value.length > 0)
+const hasPublicJournalPosts = computed(
+  () => journalPosts.value.length > 0 || Boolean(journalEmptyStateCode.value)
+)
+const journalCanonicalEmptyStateTitle = computed(() => {
+  if (journalEmptyStateCode.value === 'JOURNAL_DISABLED') return 'Авторський журнал тимчасово вимкнено'
+  if (journalEmptyStateCode.value === 'NO_PUBLICATIONS') return 'Поки немає публікацій'
+  return ''
+})
+const journalCanonicalEmptyStateBody = computed(() => {
+  if (journalEmptyStateCode.value === 'JOURNAL_DISABLED') {
+    return 'Спеціаліст тимчасово не показує публікації на публічній сторінці.'
+  }
+  if (journalEmptyStateCode.value === 'NO_PUBLICATIONS') {
+    return 'Коли зʼявляться нові матеріали, вони будуть доступні у цьому розділі.'
+  }
+  return ''
+})
 const matchesProfileSession = (session: ClientSession) => {
   if (!profile.value) return false
   const specialistId = profile.value.therapist_id
@@ -1244,6 +983,20 @@ const weekDays = computed(() => {
 const platformSettingText = computed(() => profile.value?.platform_setting_text || '')
 const therapistSettingText = computed(() => profile.value?.setting_text || '')
 
+const sectionsTrust = computed(() => profile.value?.sections?.trust || null)
+const sectionsAbout = computed(() => profile.value?.sections?.about || null)
+const sectionsTopics = computed(() => profile.value?.sections?.topics || null)
+const sectionsFormats = computed(() => profile.value?.sections?.formats || null)
+const sectionsContactActions = computed(() => profile.value?.sections?.contact_actions ?? null)
+const sectionsReviews = computed(() => profile.value?.sections?.reviews || null)
+const sectionsFaq = computed(() => profile.value?.sections?.faq || null)
+const sectionsMedia = computed(() => profile.value?.sections?.media || null)
+
+function toDisplayText(value: unknown): string {
+  if (value === null || value === undefined) return ''
+  return String(value).trim()
+}
+
 const languagesDisplay = computed(() => {
   const value = profile.value?.languages
   if (!value) return ''
@@ -1260,16 +1013,189 @@ function toTextList(value: unknown): string[] {
     .filter(Boolean)
 }
 
-const specializationChips = computed(() => toTextList(profile.value?.specializations))
-const displaySpecializationChips = computed(() => specializationChips.value.slice(0, 6))
-
 const publicName = computed(() => formatPublicName(profile.value?.display_name) || profile.value?.display_name || '')
+
+const heroMediaProfile = computed<{ photo_url?: string | null; video_url?: string | null } | null>(() => {
+  if (!profile.value) return null
+  const sectionHeroMedia = resolveSectionHeroMedia()
+  return {
+    photo_url: firstFilledText(sectionHeroMedia?.photoUrl, toDisplayText(profile.value.photo_url)) || null,
+    video_url: firstFilledText(sectionHeroMedia?.videoUrl, toDisplayText(profile.value.video_url)) || null,
+  }
+})
 
 function firstFilledText(...values: Array<string | null | undefined>) {
   return values
     .map((value) => (value || '').replace(/\s+/g, ' ').trim())
     .find(Boolean) || ''
 }
+
+function normalizeTrustItem(item: PublicProfileTrustItem | null | undefined): ProfileKeyValueItem | null {
+  if (!item || typeof item !== 'object') return null
+  const label = toDisplayText(item.label)
+  const value = toDisplayText(item.value)
+  if (!label || !value) return null
+  return { label, value }
+}
+
+function normalizeAboutSection(item: PublicProfileAboutItem | null | undefined): ProfileAboutSection | null {
+  if (!item || typeof item !== 'object') return null
+  const title = toDisplayText(item.title)
+  const body = toDisplayText(item.body)
+  if (!title || !body) return null
+  return { title, body }
+}
+
+function normalizeTopicChip(item: unknown): string {
+  if (typeof item === 'string') return item.trim()
+  if (!item || typeof item !== 'object') return ''
+  const value = item as Record<string, unknown>
+  return toDisplayText(value.label ?? value.title ?? value.name)
+}
+
+function normalizeReviewItemFromSection(
+  item: PublicProfileReviewItem | null | undefined,
+  index: number
+): PublicReviewView | null {
+  if (!item || typeof item !== 'object') return null
+  const reviewText = toDisplayText(item.review_text ?? item.text)
+  if (!reviewText) return null
+  const createdAt = toDisplayText(item.created_at ?? item.published_at)
+  return {
+    id: toDisplayText(item.id) || `section-review-${index}`,
+    review_text: reviewText,
+    created_at: createdAt,
+  }
+}
+
+function resolveSectionReviewItems(): PublicReviewView[] {
+  const source = sectionsReviews.value?.items
+  if (!Array.isArray(source) || source.length === 0) return []
+  return source
+    .map((item, index) => normalizeReviewItemFromSection(item, index))
+    .filter((item): item is PublicReviewView => Boolean(item))
+}
+
+function normalizeFaqItemFromSection(
+  item: PublicProfileFaqItem | null | undefined,
+  index: number
+): PublicFaqItemView | null {
+  if (!item || typeof item !== 'object') return null
+  const question = toDisplayText(item.question ?? item.title)
+  const answer = toDisplayText(item.answer ?? item.body)
+  if (!question || !answer) return null
+  return {
+    id: toDisplayText(item.id) || `section-faq-${index}`,
+    question,
+    answer,
+  }
+}
+
+function resolveSectionFaqItems(): PublicFaqItemView[] {
+  const source = sectionsFaq.value?.items
+  if (!Array.isArray(source) || source.length === 0) return []
+  return source
+    .map((item, index) => normalizeFaqItemFromSection(item, index))
+    .filter((item): item is PublicFaqItemView => Boolean(item))
+}
+
+function resolveMediaItemUrl(item: PublicProfileMediaItem): string {
+  return toDisplayText(item.url ?? item.file_url ?? item.image_url ?? item.video_url)
+}
+
+function normalizeMediaItemFromSection(
+  item: PublicProfileMediaItem | null | undefined,
+  index: number
+): PublicMediaItemView | null {
+  if (!item || typeof item !== 'object') return null
+  const url = resolveMediaItemUrl(item)
+  if (!url) return null
+  const title = toDisplayText(item.title) || 'Матеріал'
+  const description = toDisplayText(item.description)
+  const kindLabel = toDisplayText(item.kind ?? item.type)
+  return {
+    id: toDisplayText(item.id) || `section-media-${index}`,
+    title,
+    description,
+    kindLabel,
+    url,
+  }
+}
+
+function resolveSectionMediaItems(): PublicMediaItemView[] {
+  const source = Array.isArray(sectionsMedia.value?.items)
+    ? sectionsMedia.value?.items
+    : Array.isArray(sectionsMedia.value?.assets)
+      ? sectionsMedia.value?.assets
+      : []
+  if (!source.length) return []
+  return source
+    .map((item, index) => normalizeMediaItemFromSection(item, index))
+    .filter((item): item is PublicMediaItemView => Boolean(item))
+}
+
+function resolveSectionHeroMedia() {
+  const media = sectionsMedia.value
+  if (!media || typeof media !== 'object') return null
+  const photoUrl = firstFilledText(
+    toDisplayText(media.hero_photo_url),
+    toDisplayText(media.photo_url)
+  )
+  const videoUrl = firstFilledText(
+    toDisplayText(media.hero_video_url),
+    toDisplayText(media.video_url)
+  )
+  return { photoUrl, videoUrl }
+}
+
+function resolveMeetingFormatLabelFromFlags(offersOnline: boolean, offersOffline: boolean): string {
+  if (offersOnline && offersOffline) return 'Онлайн та офлайн'
+  if (offersOnline) return 'Онлайн'
+  if (offersOffline) return 'Офлайн'
+  return ''
+}
+
+const sectionTrustItems = computed<ProfileKeyValueItem[]>(() => {
+  const source = sectionsTrust.value?.items
+  if (!Array.isArray(source) || source.length === 0) return []
+  return source
+    .map((item) => normalizeTrustItem(item))
+    .filter((item): item is ProfileKeyValueItem => Boolean(item))
+})
+
+const sectionAboutSections = computed<ProfileAboutSection[]>(() => {
+  const source = Array.isArray(sectionsAbout.value?.items)
+    ? sectionsAbout.value?.items
+    : Array.isArray(sectionsAbout.value?.sections)
+      ? sectionsAbout.value?.sections
+      : []
+  if (!source.length) return []
+  return source
+    .map((item) => normalizeAboutSection(item))
+    .filter((item): item is ProfileAboutSection => Boolean(item))
+})
+
+const sectionTopicChips = computed<string[]>(() => {
+  const source = Array.isArray(sectionsTopics.value?.chips)
+    ? sectionsTopics.value?.chips
+    : Array.isArray(sectionsTopics.value?.items)
+      ? sectionsTopics.value?.items
+      : []
+  if (!source.length) return []
+  return source
+    .map((item) => normalizeTopicChip(item))
+    .filter(Boolean)
+})
+
+const sectionWhoThisIsForText = computed(() => {
+  const source = sectionsTopics.value as (PublicProfileTopicsSection & Record<string, unknown>) | null
+  return firstFilledText(
+    toDisplayText(source?.who_this_is_for),
+    toDisplayText(source?.for_whom),
+    toDisplayText(source?.text),
+    toDisplayText(source?.description)
+  )
+})
 
 function toSnippet(value: string, maxLength = 220) {
   const normalized = value.replace(/\s+/g, ' ').trim()
@@ -1283,18 +1209,27 @@ const heroRoleLine = computed(() => {
   const parts: string[] = []
   const specializationLine = displaySpecializationChips.value.slice(0, 2).join(', ')
   if (specializationLine) parts.push(specializationLine)
-  if (profile.value.location) parts.push(profile.value.location)
+  if (profileLocationDisplay.value) parts.push(profileLocationDisplay.value)
   return parts.join(' · ')
 })
 
 const heroLeadText = computed(() => {
-  const source = firstFilledText(profile.value?.bio_about, profile.value?.bio, profile.value?.bio_work)
+  const sectionPrimaryAbout = sectionAboutSections.value[0]?.body || ''
+  const source = firstFilledText(sectionPrimaryAbout, profile.value?.bio_about, profile.value?.bio, profile.value?.bio_work)
   if (!source) return 'Спеціаліст описує формат роботи та допомагає зробити перший крок у зручному для вас темпі.'
   return toSnippet(source, 250)
 })
 
 const heroSupportText = computed(() => {
-  const source = firstFilledText(profile.value?.bio_approach, profile.value?.bio_work, profile.value?.bio_for_whom)
+  const sectionSecondaryAbout = sectionAboutSections.value[1]?.body || ''
+  const sectionTertiaryAbout = sectionAboutSections.value[2]?.body || ''
+  const source = firstFilledText(
+    sectionSecondaryAbout,
+    sectionTertiaryAbout,
+    profile.value?.bio_approach,
+    profile.value?.bio_work,
+    profile.value?.bio_for_whom
+  )
   if (!source) return ''
   const lead = heroLeadText.value
   const normalizedSource = toSnippet(source, 180)
@@ -1307,18 +1242,32 @@ const completedSessionsBadge = computed(() => {
 })
 
 const meetingFormatLabel = computed(() => {
+  const sectionLabel = toDisplayText(sectionsFormats.value?.meeting_format_label)
+  if (sectionLabel) return sectionLabel
+  const sectionFormats = sectionsFormats.value as (Record<string, unknown> & { offers_online?: unknown; offers_offline?: unknown }) | null
+  const sectionOffersOnline = typeof sectionFormats?.offers_online === 'boolean' ? sectionFormats.offers_online : null
+  const sectionOffersOffline = typeof sectionFormats?.offers_offline === 'boolean' ? sectionFormats.offers_offline : null
+  if (sectionOffersOnline !== null || sectionOffersOffline !== null) {
+    return resolveMeetingFormatLabelFromFlags(Boolean(sectionOffersOnline), Boolean(sectionOffersOffline))
+  }
   if (!profile.value) return ''
-  const hasOnline = Boolean(profile.value.offers_online)
-  const hasOffline = Boolean(profile.value.offers_offline)
-  if (hasOnline && hasOffline) return 'Онлайн та офлайн'
-  if (hasOnline) return 'Онлайн'
-  if (hasOffline) return 'Офлайн'
-  return ''
+  return resolveMeetingFormatLabelFromFlags(
+    Boolean(profile.value.offers_online),
+    Boolean(profile.value.offers_offline)
+  )
 })
 
 const offlineMeetingLocation = computed(() => {
+  const sectionLocation = toDisplayText(sectionsFormats.value?.offline_location)
+  if (sectionLocation) return sectionLocation
   if (!profile.value?.offers_offline) return ''
   return (profile.value.offline_location || '').trim()
+})
+
+const profileLocationDisplay = computed(() => {
+  const sectionLocation = toDisplayText(sectionsFormats.value?.location)
+  if (sectionLocation) return sectionLocation
+  return toDisplayText(profile.value?.location)
 })
 
 const heroMetaHighlights = computed(() => {
@@ -1444,20 +1393,47 @@ function formatPriceDisplay(value: string | number | null | undefined, currency?
 }
 
 const priceDisplay = computed(() => {
+  const sectionDisplay = toDisplayText(sectionsFormats.value?.price_display)
+  if (sectionDisplay) return sectionDisplay
+  const sectionPrice = sectionsFormats.value?.price
+  if (sectionPrice !== null && sectionPrice !== undefined) {
+    const fromSection = formatPriceDisplay(
+      sectionPrice,
+      sectionsFormats.value?.price_currency || profile.value?.price_currency
+    )
+    if (fromSection) return fromSection
+  }
   return formatPriceDisplay(profile.value?.price, profile.value?.price_currency)
 })
 
 const introPriceDisplay = computed(() => {
+  const sectionDisplay = toDisplayText(sectionsFormats.value?.intro_price_display)
+  if (sectionDisplay) return sectionDisplay
+  const sectionPrice = sectionsFormats.value?.intro_price
+  if (sectionPrice !== null && sectionPrice !== undefined) {
+    const fromSection = formatPriceDisplay(
+      sectionPrice,
+      sectionsFormats.value?.intro_price_currency || profile.value?.intro_price_currency
+    )
+    if (fromSection) return fromSection
+  }
   return formatPriceDisplay(profile.value?.intro_price, profile.value?.intro_price_currency)
 })
 
 const introDurationLabel = computed(() => {
-  const minutes = profile.value?.intro_duration_minutes
+  const sectionLabel = toDisplayText(sectionsFormats.value?.intro_duration_label)
+  if (sectionLabel) return sectionLabel
+  const sectionMinutes = sectionsFormats.value?.intro_duration_minutes
+  const minutes =
+    typeof sectionMinutes === 'number' && Number.isFinite(sectionMinutes)
+      ? sectionMinutes
+      : profile.value?.intro_duration_minutes
   if (!minutes) return ''
   return `${minutes} хв`
 })
 
 const aboutSections = computed(() => {
+  if (sectionAboutSections.value.length) return sectionAboutSections.value
   if (!profile.value) return []
   return [
     { title: 'Про мене', body: profile.value.bio_about || profile.value.bio || '' },
@@ -1466,11 +1442,18 @@ const aboutSections = computed(() => {
   ].filter((section) => section.body)
 })
 
-const whoThisIsForText = computed(() => profile.value?.bio_for_whom || '')
+const specializationChips = computed(() => {
+  if (sectionTopicChips.value.length) return sectionTopicChips.value
+  return toTextList(profile.value?.specializations)
+})
+const displaySpecializationChips = computed(() => specializationChips.value.slice(0, 6))
 
-const trustItems = computed(() => {
+const whoThisIsForText = computed(() => sectionWhoThisIsForText.value || profile.value?.bio_for_whom || '')
+
+const trustItems = computed<ProfileKeyValueItem[]>(() => {
+  if (sectionTrustItems.value.length) return sectionTrustItems.value
   if (!profile.value) return []
-  const items: Array<{ label: string; value: string }> = []
+  const items: ProfileKeyValueItem[] = []
   if (meetingFormatLabel.value) {
     items.push({ label: 'Формат зустрічей', value: meetingFormatLabel.value })
   }
@@ -1489,6 +1472,8 @@ const trustItems = computed(() => {
   }
   return items
 })
+
+const identityTrustItems = computed(() => trustItems.value.slice(0, 4))
 
 const publicDocuments = computed<PublicSpecialistProfileDocument[]>(() => {
   const documents = profile.value?.profile_documents || []
@@ -1632,13 +1617,44 @@ function normalizePublicContactAction(
   }
 }
 
+function resolveSectionContactActionsSource(
+  section: PublicProfileContactActionsSection | PublicContactAction[] | null | undefined
+): PublicContactAction[] {
+  if (Array.isArray(section)) return section
+  if (!section || typeof section !== 'object') return []
+  if (Array.isArray(section.items)) return section.items
+  if (Array.isArray(section.actions)) return section.actions
+  return []
+}
+
 const contactActions = computed<PublicContactActionViewModel[]>(() => {
-  const source = profile.value?.contact_actions
+  const sectionSource = resolveSectionContactActionsSource(sectionsContactActions.value)
+  const source =
+    sectionSource.length > 0
+      ? sectionSource
+      : Array.isArray(profile.value?.contact_actions)
+        ? profile.value?.contact_actions
+        : []
   if (!Array.isArray(source) || source.length === 0) return []
   return source
     .map((action, index) => normalizePublicContactAction(action, index))
     .filter((action): action is PublicContactActionViewModel => Boolean(action))
 })
+
+const displayReviews = computed<PublicReviewView[]>(() => {
+  const sectionItems = resolveSectionReviewItems()
+  if (sectionsReviews.value && typeof sectionsReviews.value === 'object') {
+    return sectionItems
+  }
+  return reviews.value.map((item, index) => ({
+    id: String(item.id ?? index),
+    review_text: toDisplayText(item.review_text),
+    created_at: toDisplayText(item.created_at),
+  }))
+})
+
+const faqItems = computed<PublicFaqItemView[]>(() => resolveSectionFaqItems())
+const mediaItems = computed<PublicMediaItemView[]>(() => resolveSectionMediaItems())
 
 const showDirectContactActions = computed(() => Boolean(contactActions.value.length && !isClient.value))
 const hasPublicContactCta = computed(
@@ -1886,7 +1902,15 @@ const standardSessionDurationMinutes = computed(() => {
   return winner
 })
 
-const standardSessionDurationLabel = computed(() => `${standardSessionDurationMinutes.value} хв`)
+const standardSessionDurationLabel = computed(() => {
+  const sectionLabel = toDisplayText(sectionsFormats.value?.standard_session_duration_label)
+  if (sectionLabel) return sectionLabel
+  const sectionMinutes = sectionsFormats.value?.standard_session_duration_minutes
+  if (typeof sectionMinutes === 'number' && Number.isFinite(sectionMinutes) && sectionMinutes > 0) {
+    return `${Math.round(sectionMinutes)} хв`
+  }
+  return `${standardSessionDurationMinutes.value} хв`
+})
 
 function formatPublicName(value?: string) {
   if (!value) return ''
@@ -2171,20 +2195,79 @@ function formatExperience(value: number) {
   return `${value} років`
 }
 
+function normalizeJournalEmptyStateCode(
+  value: PublicProfilePublicationsPreviewEmptyState | undefined
+): JournalCanonicalEmptyStateCode | null {
+  if (value === 'JOURNAL_DISABLED' || value === 'NO_PUBLICATIONS') return value
+  return null
+}
+
+function mapLegacyJournalPost(post: PublicAuthorJournalPost): JournalPreviewPost {
+  return {
+    id: post.id,
+    slug: post.slug,
+    title: post.title,
+    summary: post.summary || '',
+    cover_image_url: post.cover_image_url || '',
+    is_featured: post.is_featured,
+    featured_order: post.featured_order,
+    published_at: post.published_at || null,
+    created_at: post.created_at || null,
+    category: post.category || null,
+    reading_time_minutes: null,
+  }
+}
+
+function mapCanonicalJournalPost(item: PublicProfilePublicationsPreviewItem): JournalPreviewPost {
+  return {
+    id: item.id,
+    slug: item.slug,
+    title: item.title,
+    summary: item.excerpt || '',
+    cover_image_url: item.cover_image_url || '',
+    is_featured: Boolean(item.is_featured),
+    published_at: item.published_at || null,
+    created_at: item.published_at || null,
+    category: item.category || null,
+    reading_time_minutes:
+      typeof item.reading_time_minutes === 'number' ? item.reading_time_minutes : null,
+  }
+}
+
+function resolveCanonicalPublicationsPreview() {
+  const preview = profile.value?.sections?.publications_preview
+  if (!preview || typeof preview !== 'object') return null
+  return preview
+}
+
 async function loadJournal() {
   if (!slug.value) return
   journalLoading.value = true
   journalError.value = ''
   try {
+    const canonicalPreview = resolveCanonicalPublicationsPreview()
+    if (canonicalPreview) {
+      const previewItems = Array.isArray(canonicalPreview.items) ? canonicalPreview.items : []
+      journalPosts.value = previewItems.map(mapCanonicalJournalPost)
+      journalCollections.value = []
+      journalEmptyStateCode.value =
+        journalPosts.value.length > 0
+          ? null
+          : normalizeJournalEmptyStateCode(canonicalPreview.empty_state)
+      return
+    }
+
     const [posts, collections] = await Promise.all([
       fetchPublicAuthorJournalPosts(slug.value),
       fetchPublicJournalCollections(slug.value),
     ])
-    journalPosts.value = posts
+    journalPosts.value = posts.map(mapLegacyJournalPost)
     journalCollections.value = collections
+    journalEmptyStateCode.value = null
   } catch {
     journalPosts.value = []
     journalCollections.value = []
+    journalEmptyStateCode.value = null
     journalError.value = 'Не вдалося завантажити авторський журнал.'
   } finally {
     journalLoading.value = false
@@ -2193,6 +2276,10 @@ async function loadJournal() {
 
 async function loadReviews() {
   if (!slug.value) return
+  if (sectionsReviews.value && typeof sectionsReviews.value === 'object') {
+    reviews.value = []
+    return
+  }
   try {
     const resp = await apiGet<PublicReview[]>(`/public/specialists/${slug.value}/reviews/`, {
       params: { limit: 4 },
@@ -2203,7 +2290,7 @@ async function loadReviews() {
   }
 }
 
-function postCategory(post: PublicAuthorJournalPost): Exclude<JournalCategory, 'ALL'> | null {
+function postCategory(post: JournalPreviewPost): Exclude<JournalCategory, 'ALL'> | null {
   const v = (post as { category?: string })?.category
   if (v === 'TIP' || v === 'EXPLAIN' || v === 'FAQ' || v === 'RESEARCH' || v === 'PRACTICE') return v
   return null
@@ -2243,7 +2330,10 @@ function categoryColor(cat?: string) {
   }
 }
 
-function readingTime(text: string | null | undefined): number {
+function readingTime(text: string | null | undefined, fixedMinutes?: number | null): number {
+  if (typeof fixedMinutes === 'number' && Number.isFinite(fixedMinutes)) {
+    return Math.max(1, Math.round(fixedMinutes))
+  }
   if (!text) return 1
   const words = text.trim().split(/\s+/).length
   const minutes = Math.ceil(words / 200)
@@ -2261,9 +2351,13 @@ const filteredJournalPosts = computed(() => {
   return journalPosts.value.filter((p) => postCategory(p) === activeCategory.value)
 })
 
+function setActiveJournalCategory(category: JournalCategory) {
+  activeCategory.value = category
+}
+
 const featuredPost = computed(() => filteredJournalPosts.value.find((p) => p.is_featured) || null)
 
-function navigateToPost(post: PublicAuthorJournalPost) {
+function navigateToPost(post: JournalPreviewPost) {
   if (!slug.value || !post.slug) return
   router.push({
     name: 'public-journal-post',
@@ -2779,14 +2873,16 @@ watch(slug, () => {
   inquiryDraft.value = ''
   inquiryError.value = ''
   inquirySubmitError.value = ''
+  journalEmptyStateCode.value = null
+  reviews.value = []
   loadProfile().then(async () => {
     await loadSlots()
     await loadInquiryState()
+    await loadJournal()
+    await loadReviews()
   })
   loadClientSessions()
   loadChatThreads()
-  loadJournal()
-  loadReviews()
 })
 
 watch(selectedDate, () => {
@@ -2861,6 +2957,13 @@ onMounted(async () => {
 .public {
   display: grid;
   gap: 18px;
+}
+
+.public__top {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
+  gap: 16px;
+  align-items: start;
 }
 
 .public__hero {
@@ -4608,6 +4711,11 @@ onMounted(async () => {
   }
 
 @media (max-width: 960px) {
+  .public__top {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
   .public__hero {
     grid-template-columns: 1fr;
     gap: 14px;

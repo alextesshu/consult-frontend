@@ -317,6 +317,7 @@ describe('PublicProfileView', () => {
     const { container } = renderView()
 
     expect(await screen.findByText('Довіра і формат')).toBeInTheDocument()
+    expect(screen.getByText('Швидкий огляд')).toBeInTheDocument()
     expect(screen.getByText('Документи та сертифікати')).toBeInTheDocument()
     expect(screen.getByText('Сертифікат CBT')).toBeInTheDocument()
     expect(screen.getByText('Зв’язок зі спеціалістом')).toBeInTheDocument()
@@ -327,6 +328,337 @@ describe('PublicProfileView', () => {
       screen.getByText('Можна почати без реєстрації: оберіть слот і залиште короткий запит з контактом.')
     ).toBeInTheDocument()
     expect(container).toHaveTextContent('Дуже уважний підхід.')
+  })
+
+  it('uses sections.publications_preview as primary source for journal preview', async () => {
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(
+      buildProfile({
+        sections_version: 1,
+        sections: {
+          publications_preview: {
+            enabled: true,
+            items: [
+              {
+                id: 21,
+                slug: 'canonical-preview',
+                title: 'Канонічний превʼю-матеріал',
+                category: 'TIP',
+                published_at: '2026-03-12T10:00:00Z',
+                is_featured: true,
+                cover_image_url: '',
+                excerpt: 'Короткий канонічний опис.',
+                reading_time_minutes: 4,
+              },
+            ],
+            empty_state: null,
+          },
+        },
+      })
+    )
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/slots/') return [buildTodayLocalSlot()]
+      if (url === '/public/specialists/olena/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    expect(await screen.findByText('Канонічний превʼю-матеріал')).toBeInTheDocument()
+    expect(mockedFetchPublicAuthorJournalPosts).not.toHaveBeenCalled()
+    expect(mockedFetchPublicJournalCollections).not.toHaveBeenCalled()
+  })
+
+  it('falls back to legacy journal endpoints when sections.publications_preview is unavailable', async () => {
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(buildProfile())
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([
+      {
+        id: 31,
+        title: 'Legacy journal post',
+        slug: 'legacy-journal-post',
+        summary: 'Legacy summary',
+        cover_image_url: '',
+        is_featured: false,
+        featured_order: 0,
+        published_at: '2026-03-11T10:00:00Z',
+        created_at: '2026-03-11T10:00:00Z',
+        category: 'TIP',
+      },
+    ])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/slots/') return [buildTodayLocalSlot()]
+      if (url === '/public/specialists/olena/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    expect(await screen.findByText('Legacy journal post')).toBeInTheDocument()
+    expect(mockedFetchPublicAuthorJournalPosts).toHaveBeenCalledWith('olena')
+    expect(mockedFetchPublicJournalCollections).toHaveBeenCalledWith('olena')
+  })
+
+  it('renders canonical empty state for NO_PUBLICATIONS', async () => {
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(
+      buildProfile({
+        sections_version: 1,
+        sections: {
+          publications_preview: {
+            enabled: true,
+            items: [],
+            empty_state: 'NO_PUBLICATIONS',
+          },
+        },
+      })
+    )
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/slots/') return [buildTodayLocalSlot()]
+      if (url === '/public/specialists/olena/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    expect(await screen.findByText('Поки немає публікацій')).toBeInTheDocument()
+    expect(
+      screen.getByText('Коли зʼявляться нові матеріали, вони будуть доступні у цьому розділі.')
+    ).toBeInTheDocument()
+    expect(mockedFetchPublicAuthorJournalPosts).not.toHaveBeenCalled()
+    expect(mockedFetchPublicJournalCollections).not.toHaveBeenCalled()
+  })
+
+  it('uses sections trust/about/topics/formats/contact_actions as primary source when present', async () => {
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(
+      buildProfile({
+        bio_about: 'Flat about should not be primary.',
+        bio_for_whom: 'Flat topics fallback text.',
+        contact_actions: [
+          {
+            channel: 'EMAIL',
+            label: 'Email',
+            value: 'hello@example.com',
+            action_url: 'mailto:hello@example.com',
+          },
+        ],
+        sections_version: 1,
+        sections: {
+          trust: {
+            items: [{ label: 'Section trust label', value: 'Section trust value' }],
+          },
+          about: {
+            items: [{ title: 'Section about title', body: 'Section about body copy.' }],
+          },
+          topics: {
+            who_this_is_for: 'Section topics body.',
+            items: ['Section topic chip'],
+          },
+          formats: {
+            meeting_format_label: 'Секційний формат',
+            intro_duration_label: '40 хв (section)',
+            intro_price_display: '999 грн (section)',
+            price_display: '1999 грн (section)',
+            standard_session_duration_label: '55 хв (section)',
+            location: 'Section City',
+          },
+          contact_actions: {
+            items: [
+              {
+                channel: 'PHONE',
+                label: 'Телефон секції',
+                value: '+380441112233',
+                action_url: 'tel:+380441112233',
+              },
+            ],
+          },
+        },
+      })
+    )
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/slots/') return [buildTodayLocalSlot()]
+      if (url === '/public/specialists/olena/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    expect((await screen.findAllByText('Section trust label')).length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Section trust value').length).toBeGreaterThan(0)
+    expect(screen.getByText('Section about title')).toBeInTheDocument()
+    expect(screen.getAllByText('Section about body copy.').length).toBeGreaterThan(0)
+    expect(screen.getByText('Section topics body.')).toBeInTheDocument()
+    expect(screen.getAllByText('Section topic chip').length).toBeGreaterThan(0)
+    expect(screen.getByText('Формат зустрічей: Секційний формат')).toBeInTheDocument()
+    expect(screen.getByText('Тривалість ознайомчої сесії: 40 хв (section)')).toBeInTheDocument()
+    expect(screen.getByText('Консультація: 1999 грн (section) · 55 хв (section)')).toBeInTheDocument()
+    expect(screen.getByText('Телефон секції')).toBeInTheDocument()
+    expect(screen.queryByText('hello@example.com')).not.toBeInTheDocument()
+  })
+
+  it('falls back to flat trust/topics/formats/contact_actions when related sections are empty', async () => {
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(
+      buildProfile({
+        sections_version: 1,
+        sections: {
+          trust: { items: [] },
+          about: { items: [] },
+          topics: { items: [], who_this_is_for: '' },
+          formats: {},
+          contact_actions: { items: [] },
+        },
+      })
+    )
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/slots/') return [buildTodayLocalSlot()]
+      if (url === '/public/specialists/olena/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    expect((await screen.findAllByText('Формат зустрічей')).length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Працюю з тривогою.').length).toBeGreaterThan(0)
+    expect(screen.getByText('Для людей у стресі.')).toBeInTheDocument()
+    expect(screen.getAllByText('Тривога').length).toBeGreaterThan(0)
+    expect(screen.getByText('Email')).toBeInTheDocument()
+    expect(screen.getByText('hello@example.com')).toBeInTheDocument()
+  })
+
+  it('uses sections.reviews as primary source and skips legacy reviews endpoint', async () => {
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(
+      buildProfile({
+        sections_version: 1,
+        sections: {
+          reviews: {
+            items: [
+              {
+                id: 901,
+                review_text: 'Section review text',
+                created_at: '2026-03-20T10:00:00Z',
+              },
+            ],
+          },
+        },
+      })
+    )
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/slots/') return [buildTodayLocalSlot()]
+      if (url === '/public/specialists/olena/reviews/') {
+        throw new Error('Legacy reviews endpoint should not be called when sections.reviews exists')
+      }
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    expect(await screen.findByText('Section review text')).toBeInTheDocument()
+    const reviewCalls = mockedApiGet.mock.calls.filter((call) => call[0] === '/public/specialists/olena/reviews/')
+    expect(reviewCalls).toHaveLength(0)
+  })
+
+  it('falls back to legacy reviews endpoint when sections.reviews is unavailable', async () => {
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(buildProfile())
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/slots/') return [buildTodayLocalSlot()]
+      if (url === '/public/specialists/olena/reviews/') {
+        return [
+          {
+            id: 1,
+            review_text: 'Legacy reviews endpoint text',
+            created_at: '2026-03-19T10:00:00Z',
+          },
+        ]
+      }
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    expect(await screen.findByText('Legacy reviews endpoint text')).toBeInTheDocument()
+    const reviewCalls = mockedApiGet.mock.calls.filter((call) => call[0] === '/public/specialists/olena/reviews/')
+    expect(reviewCalls.length).toBeGreaterThan(0)
+  })
+
+  it('renders FAQ and media blocks from sections when provided', async () => {
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(
+      buildProfile({
+        sections_version: 1,
+        sections: {
+          faq: {
+            items: [
+              {
+                id: 'faq-1',
+                question: 'Section FAQ question',
+                answer: 'Section FAQ answer',
+              },
+            ],
+          },
+          media: {
+            items: [
+              {
+                id: 'media-1',
+                title: 'Section media title',
+                description: 'Section media description',
+                kind: 'ARTICLE',
+                url: 'https://example.com/media-item',
+              },
+            ],
+          },
+        },
+      })
+    )
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/slots/') return [buildTodayLocalSlot()]
+      if (url === '/public/specialists/olena/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    expect(await screen.findByRole('heading', { name: 'Поширені запитання' })).toBeInTheDocument()
+    expect(screen.getByText('Section FAQ question')).toBeInTheDocument()
+    expect(screen.getByText('Section FAQ answer')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Додаткові матеріали' })).toBeInTheDocument()
+    expect(screen.getByText('Section media title')).toBeInTheDocument()
+  })
+
+  it('keeps FAQ and media blocks hidden when sections are unavailable', async () => {
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(buildProfile())
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/slots/') return [buildTodayLocalSlot()]
+      if (url === '/public/specialists/olena/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    await screen.findByRole('heading', { name: 'Олена' })
+    expect(screen.queryByRole('heading', { name: 'Поширені запитання' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Додаткові матеріали' })).not.toBeInTheDocument()
   })
 
   it('hides public contact CTA when backend returns zero contact actions', async () => {
@@ -342,7 +674,7 @@ describe('PublicProfileView', () => {
 
     renderView()
 
-    await screen.findByText('Олена')
+    await screen.findByRole('heading', { name: 'Олена' })
     expect(screen.queryByRole('heading', { name: /зв.?язок зі спеціалістом/i })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Зв’язатися зі спеціалістом' })).not.toBeInTheDocument()
   })
@@ -574,7 +906,7 @@ describe('PublicProfileView', () => {
 
     renderView()
 
-    expect(await screen.findByText('Олена')).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Олена' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Зв’язатися зі спеціалістом' })).not.toBeInTheDocument()
     expect(screen.queryByText('Оберіть канал зв’язку')).not.toBeInTheDocument()
   })
@@ -592,7 +924,7 @@ describe('PublicProfileView', () => {
 
     renderView()
 
-    expect(await screen.findByText('Олена')).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Олена' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Зв’язатися зі спеціалістом' })).not.toBeInTheDocument()
   })
 
@@ -1464,4 +1796,3 @@ describe('PublicProfileView', () => {
     ).toBeInTheDocument()
   })
 })
-

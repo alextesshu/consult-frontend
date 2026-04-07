@@ -307,6 +307,133 @@ export type PublicContactAction = {
   action_url?: string | null
 }
 
+export type PublicProfilePublicationsPreviewEmptyState =
+  | 'JOURNAL_DISABLED'
+  | 'NO_PUBLICATIONS'
+  | null
+
+export type PublicProfilePublicationsPreviewItem = {
+  id: number
+  slug: string
+  title: string
+  category?: 'TIP' | 'EXPLAIN' | 'FAQ' | 'RESEARCH' | 'PRACTICE' | null
+  published_at?: string | null
+  is_featured?: boolean
+  cover_image_url?: string | null
+  excerpt?: string | null
+  reading_time_minutes?: number | null
+}
+
+export type PublicProfilePublicationsPreviewSection = {
+  enabled?: boolean
+  items?: PublicProfilePublicationsPreviewItem[] | null
+  empty_state?: PublicProfilePublicationsPreviewEmptyState
+}
+
+export type PublicProfileTrustItem = {
+  label?: string | null
+  value?: string | null
+}
+
+export type PublicProfileTrustSection = {
+  items?: PublicProfileTrustItem[] | null
+}
+
+export type PublicProfileAboutItem = {
+  title?: string | null
+  body?: string | null
+}
+
+export type PublicProfileAboutSection = {
+  items?: PublicProfileAboutItem[] | null
+  sections?: PublicProfileAboutItem[] | null
+}
+
+export type PublicProfileTopicsSection = {
+  who_this_is_for?: string | null
+  items?: string[] | null
+  chips?: string[] | null
+}
+
+export type PublicProfileFormatsSection = {
+  meeting_format_label?: string | null
+  intro_duration_label?: string | null
+  intro_duration_minutes?: number | null
+  intro_price_display?: string | null
+  intro_price?: string | number | null
+  intro_price_currency?: string | null
+  price_display?: string | null
+  price?: string | number | null
+  price_currency?: string | null
+  offline_location?: string | null
+  location?: string | null
+  standard_session_duration_label?: string | null
+  standard_session_duration_minutes?: number | null
+}
+
+export type PublicProfileContactActionsSection = {
+  items?: PublicContactAction[] | null
+  actions?: PublicContactAction[] | null
+}
+
+export type PublicProfileReviewItem = {
+  id?: number | string | null
+  review_text?: string | null
+  text?: string | null
+  created_at?: string | null
+  published_at?: string | null
+}
+
+export type PublicProfileReviewsSection = {
+  items?: PublicProfileReviewItem[] | null
+}
+
+export type PublicProfileFaqItem = {
+  id?: number | string | null
+  question?: string | null
+  answer?: string | null
+  title?: string | null
+  body?: string | null
+}
+
+export type PublicProfileFaqSection = {
+  items?: PublicProfileFaqItem[] | null
+}
+
+export type PublicProfileMediaItem = {
+  id?: number | string | null
+  title?: string | null
+  description?: string | null
+  type?: string | null
+  kind?: string | null
+  url?: string | null
+  file_url?: string | null
+  image_url?: string | null
+  video_url?: string | null
+  thumbnail_url?: string | null
+}
+
+export type PublicProfileMediaSection = {
+  items?: PublicProfileMediaItem[] | null
+  assets?: PublicProfileMediaItem[] | null
+  photo_url?: string | null
+  video_url?: string | null
+  hero_photo_url?: string | null
+  hero_video_url?: string | null
+}
+
+export type PublicProfileSections = {
+  publications_preview?: PublicProfilePublicationsPreviewSection | null
+  trust?: PublicProfileTrustSection | null
+  about?: PublicProfileAboutSection | null
+  topics?: PublicProfileTopicsSection | null
+  formats?: PublicProfileFormatsSection | null
+  contact_actions?: PublicProfileContactActionsSection | PublicContactAction[] | null
+  reviews?: PublicProfileReviewsSection | null
+  faq?: PublicProfileFaqSection | null
+  media?: PublicProfileMediaSection | null
+}
+
 export type PublicTherapistProfile = {
   public_slug?: string
   therapist_id: number
@@ -342,6 +469,8 @@ export type PublicTherapistProfile = {
   setting_text?: string
   profile_documents?: PublicSpecialistProfileDocument[]
   contact_actions?: PublicContactAction[] | null
+  sections_version?: number | null
+  sections?: PublicProfileSections | null
 }
 
 export type PublicSpecialistProfile = PublicTherapistProfile
