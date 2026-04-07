@@ -78,6 +78,94 @@ describe('CabinetView', () => {
     } as any)
   })
 
+  it('renders guest quota row in plan metrics when guest entitlement fields are available', async () => {
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/cabinet/entitlements/') {
+        return {
+          guest_sessions_enabled: true,
+          guest_sessions_used_in_period: 2,
+          guest_sessions_limit_per_period: 5,
+        } as any
+      }
+      if (config?.params?.upcoming === true) return []
+      if (config?.params?.upcoming === false) return []
+      return []
+    })
+
+    const view = renderView()
+
+    await waitFor(() => {
+      expect(mockedApiGet).toHaveBeenCalledWith('/cabinet/entitlements/')
+      expect(view.container).toHaveTextContent('Гостьові сесії:')
+      expect(view.container).toHaveTextContent('2 / 5')
+    })
+  })
+
+  it('renders guest quota zero state without breaking plan metrics', async () => {
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/cabinet/entitlements/') {
+        return {
+          guest_sessions_enabled: true,
+          guest_sessions_used_in_period: 0,
+          guest_sessions_limit_per_period: 5,
+        } as any
+      }
+      if (config?.params?.upcoming === true) return []
+      if (config?.params?.upcoming === false) return []
+      return []
+    })
+
+    const view = renderView()
+
+    await waitFor(() => {
+      expect(view.container).toHaveTextContent('Гостьові сесії:')
+      expect(view.container).toHaveTextContent('0 / 5')
+    })
+  })
+
+  it('hides guest quota row when guest entitlement fields are missing', async () => {
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/cabinet/entitlements/') {
+        return {
+          guest_sessions_enabled: true,
+          guest_sessions_limit_per_period: 5,
+        } as any
+      }
+      if (config?.params?.upcoming === true) return []
+      if (config?.params?.upcoming === false) return []
+      return []
+    })
+
+    const view = renderView()
+
+    await waitFor(() => {
+      expect(mockedApiGet).toHaveBeenCalledWith('/cabinet/entitlements/')
+    })
+    expect(view.container).not.toHaveTextContent('Гостьові сесії:')
+  })
+
+  it('hides guest quota row when guest sessions are not enabled for the plan', async () => {
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/cabinet/entitlements/') {
+        return {
+          guest_sessions_enabled: false,
+          guest_sessions_used_in_period: 2,
+          guest_sessions_limit_per_period: 5,
+        } as any
+      }
+      if (config?.params?.upcoming === true) return []
+      if (config?.params?.upcoming === false) return []
+      return []
+    })
+
+    const view = renderView()
+
+    await waitFor(() => {
+      expect(mockedApiGet).toHaveBeenCalledWith('/cabinet/entitlements/')
+    })
+    expect(view.container).not.toHaveTextContent('Гостьові сесії:')
+  })
+
   it('shows explicit profile error state with retry when cabinet profile bootstrap fails', async () => {
     mockMe.value = null as any
     mockLoadMe.mockRejectedValue(new Error('profile bootstrap failed'))

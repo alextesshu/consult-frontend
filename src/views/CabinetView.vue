@@ -106,6 +106,9 @@
             Активні клієнти: <strong>{{ activeClientsCount }}</strong> з
             <strong>{{ activeClientLimitLabel }}</strong>
           </div>
+          <div v-if="guestSessionsUsage" class="plan-metrics__line">
+            Гостьові сесії: <strong>{{ guestSessionsUsage.used }} / {{ guestSessionsUsage.limit }}</strong>
+          </div>
           <div class="progress">
             <div class="progress__bar" :style="{ width: `${progressPercent}%` }"></div>
           </div>
@@ -357,7 +360,14 @@ type CabinetSession = {
   slot_end_at?: string | null
 }
 
+type CabinetEntitlementsSnapshot = {
+  guest_sessions_enabled?: boolean | null
+  guest_sessions_limit_per_period?: number | null
+  guest_sessions_used_in_period?: number | null
+}
+
 const allSessions = ref<CabinetSession[]>([])
+const entitlementsSnapshot = ref<CabinetEntitlementsSnapshot | null>(null)
 const heroSessionsLoading = ref(false)
 const heroSessionsError = ref('')
 const profileLoading = ref(false)
@@ -458,6 +468,16 @@ const isNearLimit = computed(() => {
 const showStartNudge = computed(() => planCodeLabel.value === 'START')
 
 const showUpgradeButton = computed(() => planCodeLabel.value !== 'LEADER')
+
+const guestSessionsUsage = computed<{ used: number; limit: number } | null>(() => {
+  const snapshot = entitlementsSnapshot.value
+  if (!snapshot || snapshot.guest_sessions_enabled !== true) return null
+  const used = snapshot.guest_sessions_used_in_period
+  const limit = snapshot.guest_sessions_limit_per_period
+  if (typeof used !== 'number' || !Number.isFinite(used) || used < 0) return null
+  if (typeof limit !== 'number' || !Number.isFinite(limit) || limit < 0) return null
+  return { used, limit }
+})
 
 const activeLimitLabel = computed(() => {
   const limit = me.value?.effective_entitlements?.active_client_limit
@@ -609,7 +629,26 @@ async function ensureCabinetData() {
 }
 
 function retryCabinetDataLoad() {
-  void ensureCabinetData()
+  void Promise.all([ensureCabinetData(), loadCabinetEntitlementsSnapshot()])
+}
+
+async function loadCabinetEntitlementsSnapshot() {
+  if (!auth.accessToken) {
+    entitlementsSnapshot.value = null
+    return
+  }
+  try {
+    const payload = await apiGet<CabinetEntitlementsSnapshot | null>(
+      '/cabinet/entitlements/'
+    )
+    if (!payload || typeof payload !== 'object') {
+      entitlementsSnapshot.value = null
+      return
+    }
+    entitlementsSnapshot.value = payload
+  } catch {
+    entitlementsSnapshot.value = null
+  }
 }
 
 async function loadOnboardingState() {
@@ -641,7 +680,11 @@ const serverTimeLabel = computed(() => {
 
 onMounted(async () => {
   await Promise.all([ensureCabinetProfile(), loadSessionsForHero()])
-  await Promise.all([ensureCabinetData(), loadOnboardingState()])
+  await Promise.all([
+    ensureCabinetData(),
+    loadOnboardingState(),
+    loadCabinetEntitlementsSnapshot(),
+  ])
   nowIntervalId = window.setInterval(() => {
     nowTs.value = Date.now()
   }, LIVE_STATUS_REFRESH_MS)
