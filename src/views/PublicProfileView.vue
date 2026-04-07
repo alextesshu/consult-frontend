@@ -1020,7 +1020,7 @@ type PublicGuestBookingRequestPayload = {
   slot_id: number
   session_format: SessionFormat
   guest_name: string
-  contact_channel: string
+  contact_channel: GuestContactChannel
   contact_value: string
   message?: string
 }
@@ -1033,6 +1033,8 @@ type PublicGuestBookingRequestResponse = {
     next_step: string | null
   }
 }
+
+type GuestContactChannel = 'email' | 'phone' | 'telegram'
 
 type ClientSession = {
   id: number
@@ -1092,7 +1094,7 @@ const guestBookingError = ref('')
 const guestBookingSuccess = ref<PublicGuestBookingRequestResponse['request'] | null>(null)
 const guestBookingForm = ref({
   guest_name: '',
-  contact_channel: 'EMAIL',
+  contact_channel: 'email' as GuestContactChannel,
   contact_value: '',
   message: '',
 })
@@ -1727,10 +1729,10 @@ function resolveContactFallbackHint(action: PublicContactActionViewModel): strin
   )
 }
 
-const GUEST_CONTACT_CHANNEL_OPTIONS: Array<{ value: string; label: string }> = [
-  { value: 'EMAIL', label: 'Email' },
-  { value: 'PHONE', label: 'Телефон' },
-  { value: 'TELEGRAM', label: 'Telegram' },
+const GUEST_CONTACT_CHANNEL_OPTIONS: Array<{ value: GuestContactChannel; label: string }> = [
+  { value: 'email', label: 'Email' },
+  { value: 'phone', label: 'Телефон' },
+  { value: 'telegram', label: 'Telegram' },
 ]
 
 const GUEST_BOOKING_UNAVAILABLE_CODES = new Set([
@@ -1761,9 +1763,9 @@ const GUEST_BOOKING_DUPLICATE_OR_SPAM_CODES = new Set([
 
 const guestContactValuePlaceholder = computed(() => {
   switch (guestBookingForm.value.contact_channel) {
-    case 'PHONE':
+    case 'phone':
       return '+380...'
-    case 'TELEGRAM':
+    case 'telegram':
       return '@username'
     default:
       return 'name@example.com'
@@ -2398,7 +2400,7 @@ async function submitInquiryMessage() {
 function resetGuestBookingForm() {
   guestBookingForm.value = {
     guest_name: '',
-    contact_channel: 'EMAIL',
+    contact_channel: 'email',
     contact_value: '',
     message: '',
   }
@@ -2446,6 +2448,23 @@ function hasGuestContactValidationError(err: unknown): boolean {
   return Boolean(data.contact_value || data.contact_channel || data.guest_name)
 }
 
+function extractGuestFieldErrors(err: unknown, field: string): string[] {
+  const data = (err as { response?: { data?: Record<string, unknown> } })?.response?.data
+  if (!data || typeof data !== 'object') return []
+  const value = data[field]
+  if (typeof value === 'string') return [value]
+  if (Array.isArray(value)) {
+    return value.filter((item): item is string => typeof item === 'string')
+  }
+  return []
+}
+
+function hasInvalidGuestContactChannelChoice(err: unknown): boolean {
+  return extractGuestFieldErrors(err, 'contact_channel').some((message) =>
+    message.toLowerCase().includes('not a valid choice')
+  )
+}
+
 function isGuestBookingUnavailableError(err: unknown): boolean {
   const code = getGuestBookingErrorCode(err)
   const reasonCode = getGuestBookingReasonCode(err)
@@ -2477,6 +2496,10 @@ function getGuestBookingErrorMessage(err: unknown): string {
     GUEST_BOOKING_DUPLICATE_OR_SPAM_CODES.has(reasonCode)
   ) {
     return 'Такий запит уже надіслано або ліміт звернень вичерпано. Спробуйте трохи пізніше.'
+  }
+
+  if (hasInvalidGuestContactChannelChoice(err)) {
+    return 'Оберіть канал зв’язку зі списку: Email, Телефон або Telegram.'
   }
 
   if (hasGuestContactValidationError(err)) {
@@ -2514,12 +2537,17 @@ async function submitGuestBookingRequest() {
   if (!slot || !profileSlug) return
 
   const guestName = guestBookingForm.value.guest_name.trim()
-  const contactChannel = guestBookingForm.value.contact_channel.trim().toUpperCase()
+  const contactChannelRaw = guestBookingForm.value.contact_channel.trim().toLowerCase()
   const contactValue = guestBookingForm.value.contact_value.trim()
   const message = guestBookingForm.value.message.trim()
+  const isSupportedContactChannel = ['email', 'phone', 'telegram'].includes(contactChannelRaw)
 
-  if (!guestName || !contactChannel || !contactValue) {
+  if (!guestName || !contactChannelRaw || !contactValue) {
     guestBookingError.value = 'Заповніть, будь ласка, ім’я та контакт для відповіді.'
+    return
+  }
+  if (!isSupportedContactChannel) {
+    guestBookingError.value = 'Оберіть канал зв’язку зі списку: Email, Телефон або Telegram.'
     return
   }
 
@@ -2528,6 +2556,7 @@ async function submitGuestBookingRequest() {
     guestBookingError.value = 'Не вдалося визначити формат сесії. Оновіть сторінку та спробуйте ще раз.'
     return
   }
+  const contactChannel = contactChannelRaw as GuestContactChannel
 
   guestBookingSubmitting.value = true
   guestBookingError.value = ''

@@ -771,7 +771,7 @@ describe('PublicProfileView', () => {
         slot_id: 100,
         session_format: 'online',
         guest_name: 'Ірина',
-        contact_channel: 'EMAIL',
+        contact_channel: 'email',
         contact_value: 'iryna@example.com',
       }
     )
@@ -781,6 +781,88 @@ describe('PublicProfileView', () => {
     expect(screen.getByText(/Реєстрація не потрібна для цього кроку\./)).toBeInTheDocument()
     expect(
       screen.getByText(/Натискання кнопки не означає автоматичне списання оплати\./)
+    ).toBeInTheDocument()
+  })
+
+  it('submits guest booking request with canonical telegram contact channel value', async () => {
+    mockCommonPublicData()
+    mockBookingPageDataWithSingleSlot()
+    mockedApiPost.mockResolvedValue({
+      request: {
+        id: 502,
+        status: 'PENDING',
+        created_at: '2026-04-07T10:00:00Z',
+        next_step: null,
+      },
+    })
+
+    renderView()
+
+    await fireEvent.click(await screen.findByRole('button', { name: 'Записатися' }))
+    await fireEvent.update(screen.getByLabelText('Ім’я'), 'Ірина')
+    await fireEvent.update(screen.getByLabelText('Канал зв’язку'), 'telegram')
+    await fireEvent.update(screen.getByLabelText('Контакт'), '@iryna_help')
+    await fireEvent.click(screen.getByRole('button', { name: 'Надіслати запит' }))
+
+    expect(mockedApiPost).toHaveBeenCalledWith(
+      '/public/specialists/olena/guest-booking-requests/',
+      expect.objectContaining({
+        contact_channel: 'telegram',
+        contact_value: '@iryna_help',
+      })
+    )
+  })
+
+  it('submits guest booking request with canonical phone contact channel value', async () => {
+    mockCommonPublicData()
+    mockBookingPageDataWithSingleSlot()
+    mockedApiPost.mockResolvedValue({
+      request: {
+        id: 503,
+        status: 'PENDING',
+        created_at: '2026-04-07T10:00:00Z',
+        next_step: null,
+      },
+    })
+
+    renderView()
+
+    await fireEvent.click(await screen.findByRole('button', { name: 'Записатися' }))
+    await fireEvent.update(screen.getByLabelText('Ім’я'), 'Ірина')
+    await fireEvent.update(screen.getByLabelText('Канал зв’язку'), 'phone')
+    await fireEvent.update(screen.getByLabelText('Контакт'), '+380501112233')
+    await fireEvent.click(screen.getByRole('button', { name: 'Надіслати запит' }))
+
+    expect(mockedApiPost).toHaveBeenCalledWith(
+      '/public/specialists/olena/guest-booking-requests/',
+      expect.objectContaining({
+        contact_channel: 'phone',
+        contact_value: '+380501112233',
+      })
+    )
+  })
+
+  it('shows specific validation message for unsupported contact channel choice', async () => {
+    mockCommonPublicData()
+    mockBookingPageDataWithSingleSlot()
+    mockedApiPost.mockRejectedValue({
+      response: {
+        status: 400,
+        data: {
+          contact_channel: ['"TELEGRAM" is not a valid choice.'],
+        },
+      },
+    })
+
+    renderView()
+
+    await fireEvent.click(await screen.findByRole('button', { name: 'Записатися' }))
+    await fireEvent.update(screen.getByLabelText('Ім’я'), 'Ірина')
+    await fireEvent.update(screen.getByLabelText('Контакт'), 'iryna@example.com')
+    await fireEvent.click(screen.getByRole('button', { name: 'Надіслати запит' }))
+
+    expect(
+      await screen.findByText('Оберіть канал зв’язку зі списку: Email, Телефон або Telegram.')
     ).toBeInTheDocument()
   })
 
