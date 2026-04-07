@@ -307,16 +307,13 @@
           <aside class="slot-info" aria-label="Умови бронювання">
             <div class="slot-info__title">Перед записом</div>
             <ul class="slot-info__list">
-              <li v-if="!isAuthenticated">Щоб забронювати час, увійдіть у свій кабінет клієнта.</li>
+              <li v-if="isGuestVisitor">Можна почати без реєстрації: оберіть слот і залиште короткий запит з контактом.</li>
               <li v-else-if="!isClient">Бронювання доступне лише для клієнтів.</li>
               <li v-else>Бронювання доступне в кабінеті клієнта.</li>
               <li>Натискання кнопки «Записатися» не списує оплату автоматично.</li>
               <li>Спеціаліст підтверджує сесію після запису.</li>
               <li>Нагадування надходять після підтвердження.</li>
             </ul>
-            <RouterLink v-if="!isAuthenticated" class="btn btn--ghost btn--sm slot-info__action" to="/login">
-              Увійти
-            </RouterLink>
           </aside>
         </div>
 
@@ -352,7 +349,7 @@
               :aria-disabled="isBookingDisabled(slot.id)"
               @click="handleBookingClick(slot.id)"
             >
-              {{ bookingSlotId === slot.id ? 'Бронюємо...' : 'Записатися' }}
+              {{ slotActionLabel(slot.id) }}
             </button>
           </div>
           <button
@@ -794,6 +791,117 @@
       </div>
     </div>
 
+    <div v-if="showGuestBookingModal" class="setting-modal">
+      <div class="setting-modal__backdrop" @click="closeGuestBookingModal"></div>
+      <div class="setting-modal__content guest-booking-modal">
+        <div class="setting-modal__header">
+          <h3>Запит на бронювання</h3>
+          <button class="btn btn--ghost btn--sm" type="button" @click="closeGuestBookingModal">
+            Закрити
+          </button>
+        </div>
+        <div class="setting-modal__body">
+          <template v-if="guestBookingSuccess">
+            <div class="success">
+              Запит надіслано. Спеціаліст підтвердить час або зв’яжеться з вами.
+            </div>
+            <div class="booking-slot" v-if="guestBookingSlot">
+              <div class="muted">Обраний слот</div>
+              <div class="booking-slot__time">{{ selectedGuestSlotSummary }}</div>
+              <div class="muted">{{ formatDuration(guestBookingSlot.start_at, guestBookingSlot.end_at) }}</div>
+            </div>
+            <div class="booking-next">
+              <div class="booking-next__title">Що далі</div>
+              <div class="booking-next__item">• Реєстрація не потрібна для цього кроку.</div>
+              <div class="booking-next__item">• Це запит, а не миттєво підтверджена сесія.</div>
+              <div class="booking-next__item">• Натискання кнопки не означає автоматичне списання оплати.</div>
+              <div v-if="guestBookingRequestSummaryCopy" class="booking-next__item">• {{ guestBookingRequestSummaryCopy }}</div>
+            </div>
+          </template>
+
+          <form v-else class="guest-booking-form" @submit.prevent="submitGuestBookingRequest">
+            <div class="booking-slot" v-if="guestBookingSlot">
+              <div class="muted">Обраний слот</div>
+              <div class="booking-slot__time">{{ selectedGuestSlotSummary }}</div>
+              <div class="muted">{{ formatDuration(guestBookingSlot.start_at, guestBookingSlot.end_at) }}</div>
+              <div class="muted" v-if="sessionFormatLabelForBooking">
+                Формат: {{ sessionFormatLabelForBooking }}
+              </div>
+            </div>
+
+            <div class="booking-next">
+              <div class="booking-next__title">Перед надсиланням</div>
+              <div class="booking-next__item">• Це м’який перший крок без створення кабінету.</div>
+              <div class="booking-next__item">• Спеціаліст окремо підтвердить час або запропонує інший.</div>
+            </div>
+
+            <label class="setting-label" for="guestBookingName">
+              Ім’я
+              <input
+                id="guestBookingName"
+                v-model="guestBookingForm.guest_name"
+                class="input"
+                type="text"
+                autocomplete="name"
+                required
+                :disabled="guestBookingSubmitting"
+              />
+            </label>
+
+            <label class="setting-label" for="guestBookingContactChannel">
+              Канал зв’язку
+              <select
+                id="guestBookingContactChannel"
+                v-model="guestBookingForm.contact_channel"
+                class="input"
+                :disabled="guestBookingSubmitting"
+              >
+                <option
+                  v-for="option in GUEST_CONTACT_CHANNEL_OPTIONS"
+                  :key="option.value"
+                  :value="option.value"
+                >
+                  {{ option.label }}
+                </option>
+              </select>
+            </label>
+
+            <label class="setting-label" for="guestBookingContactValue">
+              Контакт
+              <input
+                id="guestBookingContactValue"
+                v-model="guestBookingForm.contact_value"
+                class="input"
+                type="text"
+                :placeholder="guestContactValuePlaceholder"
+                autocomplete="off"
+                required
+                :disabled="guestBookingSubmitting"
+              />
+            </label>
+
+            <label class="setting-label" for="guestBookingMessage">
+              Повідомлення (необов’язково)
+              <textarea
+                id="guestBookingMessage"
+                v-model="guestBookingForm.message"
+                class="input guest-booking-form__message"
+                rows="3"
+                :disabled="guestBookingSubmitting"
+                placeholder="Коротко опишіть, що важливо уточнити перед першою сесією."
+              ></textarea>
+            </label>
+
+            <div v-if="guestBookingError" class="form-error">{{ guestBookingError }}</div>
+
+            <button class="btn btn--primary" type="submit" :disabled="guestBookingSubmitting">
+              {{ guestBookingSubmitting ? 'Надсилаємо...' : 'Надіслати запит' }}
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
     <div v-if="showBookingModal" class="setting-modal">
       <div class="setting-modal__backdrop" @click="closeBookingModal"></div>
       <div class="setting-modal__content">
@@ -908,6 +1016,24 @@ type PublicSlot = {
   end_at: string
 }
 
+type PublicGuestBookingRequestPayload = {
+  slot_id: number
+  session_format: SessionFormat
+  guest_name: string
+  contact_channel: string
+  contact_value: string
+  message?: string
+}
+
+type PublicGuestBookingRequestResponse = {
+  request: {
+    id: number
+    status: string
+    created_at: string
+    next_step: string | null
+  }
+}
+
 type ClientSession = {
   id: number
   status: string
@@ -958,6 +1084,18 @@ const bookingSuccess = ref('')
 const bookingSlotId = ref<number | null>(null)
 const showBookingModal = ref(false)
 const lastBookedSlot = ref<PublicSlot | null>(null)
+const showGuestBookingModal = ref(false)
+const guestBookingSlot = ref<PublicSlot | null>(null)
+const guestBookingSubmitting = ref(false)
+const guestBookingSubmitSlotId = ref<number | null>(null)
+const guestBookingError = ref('')
+const guestBookingSuccess = ref<PublicGuestBookingRequestResponse['request'] | null>(null)
+const guestBookingForm = ref({
+  guest_name: '',
+  contact_channel: 'EMAIL',
+  contact_value: '',
+  message: '',
+})
 const settingAccepted = ref(false)
 const showSettingModal = ref(false)
 const showContactChooserModal = ref(false)
@@ -1001,6 +1139,8 @@ const slug = computed(() => String(route.params.slug || '').trim())
 const roles = computed(() => auth.me?.user.roles ?? auth.user?.roles ?? [])
 const isAuthenticated = computed(() => Boolean(auth.accessToken))
 const isClient = computed(() => roles.value.includes('CLIENT'))
+const isGuestVisitor = computed(() => !isAuthenticated.value)
+const isUnsupportedBookingRole = computed(() => isAuthenticated.value && !isClient.value)
 const canBook = computed(() => isAuthenticated.value && isClient.value)
 const hasOnlineBooking = computed(() => Boolean(profile.value?.offers_online))
 const hasOfflineBooking = computed(() => Boolean(profile.value?.offers_offline))
@@ -1022,8 +1162,13 @@ const bookingOfflineLocationHint = computed(() => {
   if (resolvedSessionFormat.value !== 'offline') return ''
   return offlineMeetingLocation.value
 })
-const isBookingDisabled = (slotId: number) =>
-  !canBook.value || bookingSlotId.value === slotId || !settingAccepted.value
+const isBookingDisabled = (slotId: number) => {
+  if (bookingSlotId.value === slotId) return true
+  if (guestBookingSubmitting.value && guestBookingSubmitSlotId.value === slotId) return true
+  if (isGuestVisitor.value) return false
+  if (isUnsupportedBookingRole.value) return true
+  return !settingAccepted.value
+}
 const visibleSlots = computed(() => (showAllSlots.value ? slots.value : slots.value.slice(0, slotsPreviewLimit)))
 const hasMoreSlots = computed(() => slots.value.length > slotsPreviewLimit)
 const hasPublicJournalPosts = computed(() => journalPosts.value.length > 0)
@@ -1217,7 +1362,7 @@ const primaryActionNextStepCopy = computed(() => {
     return 'Після натискання відкриється короткий запит до бронювання. Це м’який старт без фіксації слота.'
   }
   if (!isAuthenticated.value) {
-    return 'Після вибору часу потрібно увійти в кабінет клієнта, щоби завершити запис.'
+    return 'Після вибору часу відкриється короткий запит: залиште ім’я та контакт без реєстрації.'
   }
   if (!isClient.value) {
     return 'Бронювання доступне в ролі клієнта. Натисніть кнопку, щоб переглянути вільні слоти.'
@@ -1236,6 +1381,9 @@ const heroTrustMarkers = computed(() => {
     'Натискання кнопки «Записатися» не списує оплату автоматично.',
     'Сесія вважається підтвердженою після відповіді спеціаліста.',
   ]
+  if (!isAuthenticated.value) {
+    markers.push('Перший крок можна зробити без реєстрації: достатньо короткого запиту з контактом.')
+  }
   if (showInquiryEntry.value) {
     markers.push('Якщо не готові одразу бронювати, почніть із короткого запиту.')
   }
@@ -1578,6 +1726,60 @@ function resolveContactFallbackHint(action: PublicContactActionViewModel): strin
     'Відкрийте канал вручну і вставте контакт для продовження спілкування.'
   )
 }
+
+const GUEST_CONTACT_CHANNEL_OPTIONS: Array<{ value: string; label: string }> = [
+  { value: 'EMAIL', label: 'Email' },
+  { value: 'PHONE', label: 'Телефон' },
+  { value: 'TELEGRAM', label: 'Telegram' },
+]
+
+const GUEST_BOOKING_UNAVAILABLE_CODES = new Set([
+  'SLOT_NOT_FOUND',
+  'SLOT_ALREADY_BOOKED',
+  'SLOT_LOCKED_BOOKED',
+  'SLOT_IN_PAST',
+])
+
+const GUEST_BOOKING_RESTRICTED_CODES = new Set([
+  'OVER_LIMIT',
+  'BILLING_RESTRICTED',
+  'BILLING_GRACE',
+  'SUSPENDED',
+  'GUEST_BOOKING_DISABLED',
+  'GUEST_BOOKING_RESTRICTED',
+  'ENTITLEMENT_RESTRICTED',
+])
+
+const GUEST_BOOKING_DUPLICATE_OR_SPAM_CODES = new Set([
+  'REQUEST_ALREADY_EXISTS',
+  'REQUEST_ALREADY_PENDING',
+  'DUPLICATE_REQUEST',
+  'SPAM_GUARD',
+  'RATE_LIMITED',
+  'TOO_MANY_REQUESTS',
+])
+
+const guestContactValuePlaceholder = computed(() => {
+  switch (guestBookingForm.value.contact_channel) {
+    case 'PHONE':
+      return '+380...'
+    case 'TELEGRAM':
+      return '@username'
+    default:
+      return 'name@example.com'
+  }
+})
+
+const selectedGuestSlotSummary = computed(() => {
+  const slot = guestBookingSlot.value
+  if (!slot) return ''
+  return formatDate(slot.start_at)
+})
+
+const guestBookingRequestSummaryCopy = computed(() => {
+  const nextStep = guestBookingSuccess.value?.next_step || ''
+  return nextStep.trim()
+})
 
 function shouldShowContactActionFallback(action: PublicContactActionViewModel): boolean {
   if (CONTACT_ACTION_FALLBACK_CHANNELS.has(action.channel)) return true
@@ -2193,6 +2395,176 @@ async function submitInquiryMessage() {
   }
 }
 
+function resetGuestBookingForm() {
+  guestBookingForm.value = {
+    guest_name: '',
+    contact_channel: 'EMAIL',
+    contact_value: '',
+    message: '',
+  }
+}
+
+function closeGuestBookingModal() {
+  showGuestBookingModal.value = false
+  guestBookingSlot.value = null
+  guestBookingError.value = ''
+  guestBookingSuccess.value = null
+  guestBookingSubmitting.value = false
+  guestBookingSubmitSlotId.value = null
+  resetGuestBookingForm()
+}
+
+function openGuestBookingModal(slotId: number) {
+  const selectedSlot = slots.value.find((slot) => slot.id === slotId) || null
+  if (!selectedSlot) {
+    bookingError.value = 'Обраний слот уже недоступний. Будь ласка, виберіть інший час.'
+    return
+  }
+  bookingError.value = ''
+  bookingSuccess.value = ''
+  guestBookingSlot.value = selectedSlot
+  guestBookingError.value = ''
+  guestBookingSuccess.value = null
+  guestBookingSubmitSlotId.value = slotId
+  resetGuestBookingForm()
+  showGuestBookingModal.value = true
+}
+
+function getGuestBookingErrorCode(err: unknown): string {
+  const code = (err as { response?: { data?: { code?: unknown } } })?.response?.data?.code
+  return typeof code === 'string' ? code.trim().toUpperCase() : ''
+}
+
+function getGuestBookingReasonCode(err: unknown): string {
+  const reasonCode = (err as { response?: { data?: { reason_code?: unknown } } })?.response?.data?.reason_code
+  return typeof reasonCode === 'string' ? reasonCode.trim().toUpperCase() : ''
+}
+
+function hasGuestContactValidationError(err: unknown): boolean {
+  const data = (err as { response?: { data?: Record<string, unknown> } })?.response?.data
+  if (!data || typeof data !== 'object') return false
+  return Boolean(data.contact_value || data.contact_channel || data.guest_name)
+}
+
+function isGuestBookingUnavailableError(err: unknown): boolean {
+  const code = getGuestBookingErrorCode(err)
+  const reasonCode = getGuestBookingReasonCode(err)
+  return GUEST_BOOKING_UNAVAILABLE_CODES.has(code) || GUEST_BOOKING_UNAVAILABLE_CODES.has(reasonCode)
+}
+
+function getGuestBookingErrorMessage(err: unknown): string {
+  const status = Number((err as { response?: { status?: unknown } })?.response?.status || 0)
+  const code = getGuestBookingErrorCode(err)
+  const reasonCode = getGuestBookingReasonCode(err)
+
+  if (
+    GUEST_BOOKING_UNAVAILABLE_CODES.has(code) ||
+    GUEST_BOOKING_UNAVAILABLE_CODES.has(reasonCode)
+  ) {
+    return 'Обраний слот уже недоступний. Будь ласка, виберіть інший час.'
+  }
+
+  if (
+    GUEST_BOOKING_RESTRICTED_CODES.has(code) ||
+    GUEST_BOOKING_RESTRICTED_CODES.has(reasonCode)
+  ) {
+    return 'Наразі нові гостьові запити тимчасово недоступні для цього профілю.'
+  }
+
+  if (
+    status === 429 ||
+    GUEST_BOOKING_DUPLICATE_OR_SPAM_CODES.has(code) ||
+    GUEST_BOOKING_DUPLICATE_OR_SPAM_CODES.has(reasonCode)
+  ) {
+    return 'Такий запит уже надіслано або ліміт звернень вичерпано. Спробуйте трохи пізніше.'
+  }
+
+  if (hasGuestContactValidationError(err)) {
+    return 'Перевірте ім’я та контакт: у формі є неточності.'
+  }
+
+  return 'Не вдалося надіслати запит. Спробуйте ще раз.'
+}
+
+async function createPublicGuestBookingRequest(
+  profileSlug: string,
+  payload: PublicGuestBookingRequestPayload
+): Promise<PublicGuestBookingRequestResponse> {
+  try {
+    return await apiPost<PublicGuestBookingRequestResponse>(
+      `/public/specialists/${profileSlug}/guest-booking-requests/`,
+      payload
+    )
+  } catch (err: any) {
+    const status = Number((err as { response?: { status?: unknown } })?.response?.status || 0)
+    if (status !== 404 && status !== 405) {
+      throw err
+    }
+  }
+
+  return apiPost<PublicGuestBookingRequestResponse>(
+    `/public/therapists/${profileSlug}/guest-booking-requests/`,
+    payload
+  )
+}
+
+async function submitGuestBookingRequest() {
+  const slot = guestBookingSlot.value
+  const profileSlug = profile.value?.public_slug || slug.value
+  if (!slot || !profileSlug) return
+
+  const guestName = guestBookingForm.value.guest_name.trim()
+  const contactChannel = guestBookingForm.value.contact_channel.trim().toUpperCase()
+  const contactValue = guestBookingForm.value.contact_value.trim()
+  const message = guestBookingForm.value.message.trim()
+
+  if (!guestName || !contactChannel || !contactValue) {
+    guestBookingError.value = 'Заповніть, будь ласка, ім’я та контакт для відповіді.'
+    return
+  }
+
+  const sessionFormat = resolvedSessionFormat.value
+  if (!sessionFormat) {
+    guestBookingError.value = 'Не вдалося визначити формат сесії. Оновіть сторінку та спробуйте ще раз.'
+    return
+  }
+
+  guestBookingSubmitting.value = true
+  guestBookingError.value = ''
+  guestBookingSubmitSlotId.value = slot.id
+
+  try {
+    const payload: PublicGuestBookingRequestPayload = {
+      slot_id: slot.id,
+      session_format: sessionFormat,
+      guest_name: guestName,
+      contact_channel: contactChannel,
+      contact_value: contactValue,
+    }
+    if (message) {
+      payload.message = message
+    }
+    const response = await createPublicGuestBookingRequest(profileSlug, payload)
+    guestBookingSuccess.value = response.request
+    toast.success('Запит надіслано.')
+  } catch (err: any) {
+    guestBookingError.value = getGuestBookingErrorMessage(err)
+    toast.error(guestBookingError.value)
+    if (isGuestBookingUnavailableError(err)) {
+      await loadSlots()
+    }
+  } finally {
+    guestBookingSubmitting.value = false
+    guestBookingSubmitSlotId.value = null
+  }
+}
+
+function slotActionLabel(slotId: number) {
+  if (bookingSlotId.value === slotId) return 'Бронюємо...'
+  if (guestBookingSubmitting.value && guestBookingSubmitSlotId.value === slotId) return 'Надсилаємо...'
+  return 'Записатися'
+}
+
 function flashSettingButton() {
   settingAttention.value = false
   if (settingAttentionTimer) {
@@ -2207,8 +2579,12 @@ function flashSettingButton() {
 }
 
 function handleBookingClick(slotId: number) {
-  if (!canBook.value) {
-    bookSlot(slotId)
+  if (isGuestVisitor.value) {
+    openGuestBookingModal(slotId)
+    return
+  }
+  if (isUnsupportedBookingRole.value) {
+    bookingError.value = BOOKING_UI_MESSAGES.onlyClientsCanBook
     return
   }
   if (bookingSlotId.value === slotId) return
@@ -2356,6 +2732,13 @@ watch(
 watch(slug, () => {
   profile.value = null
   slots.value = []
+  showGuestBookingModal.value = false
+  guestBookingSlot.value = null
+  guestBookingError.value = ''
+  guestBookingSuccess.value = null
+  guestBookingSubmitting.value = false
+  guestBookingSubmitSlotId.value = null
+  resetGuestBookingForm()
   showContactChooserModal.value = false
   closeContactActionFallbackModal()
   showAllSlots.value = false
@@ -2385,6 +2768,9 @@ watch([isAuthenticated, isClient], () => {
   loadClientSessions()
   loadChatThreads()
   loadInquiryState()
+  if (isAuthenticated.value && showGuestBookingModal.value) {
+    closeGuestBookingModal()
+  }
 })
 
 watch(
@@ -4175,6 +4561,19 @@ onMounted(async () => {
     gap: 6px;
     font-size: 13px;
     color: var(--muted);
+  }
+
+  .guest-booking-modal {
+    width: min(620px, 92vw);
+  }
+
+  .guest-booking-form {
+    display: grid;
+    gap: 12px;
+  }
+
+  .guest-booking-form__message {
+    resize: vertical;
   }
 
 @media (max-width: 960px) {

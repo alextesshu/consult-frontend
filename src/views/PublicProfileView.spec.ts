@@ -323,7 +323,9 @@ describe('PublicProfileView', () => {
     expect(screen.getByText('hello@example.com')).toBeInTheDocument()
     expect(await screen.findByText('Профілактика вигорання')).toBeInTheDocument()
     expect(await screen.findByText('Що кажуть клієнти')).toBeInTheDocument()
-    expect(screen.getByText('Щоб забронювати час, увійдіть у свій кабінет клієнта.')).toBeInTheDocument()
+    expect(
+      screen.getByText('Можна почати без реєстрації: оберіть слот і залиште короткий запит з контактом.')
+    ).toBeInTheDocument()
     expect(container).toHaveTextContent('Дуже уважний підхід.')
   })
 
@@ -724,9 +726,136 @@ describe('PublicProfileView', () => {
     renderView()
 
     expect(
-      await screen.findAllByText('Після вибору часу потрібно увійти в кабінет клієнта, щоби завершити запис.')
+      await screen.findAllByText('Після вибору часу відкриється короткий запит: залиште ім’я та контакт без реєстрації.')
     ).toHaveLength(2)
     expect(screen.getAllByText('Натискання кнопки «Записатися» не списує оплату автоматично.')).toHaveLength(2)
+  })
+
+  it('opens guest booking request flow from slot click without auth', async () => {
+    mockCommonPublicData()
+    mockBookingPageDataWithSingleSlot()
+
+    renderView()
+
+    const slotButton = await screen.findByRole('button', { name: 'Записатися' })
+    await fireEvent.click(slotButton)
+
+    expect(await screen.findByRole('heading', { name: 'Запит на бронювання' })).toBeInTheDocument()
+    expect(screen.getByLabelText('Ім’я')).toBeInTheDocument()
+    expect(screen.getByLabelText('Канал зв’язку')).toBeInTheDocument()
+    expect(screen.getByLabelText('Контакт')).toBeInTheDocument()
+  })
+
+  it('submits a valid guest booking request and renders success state copy', async () => {
+    mockCommonPublicData()
+    mockBookingPageDataWithSingleSlot()
+    mockedApiPost.mockResolvedValue({
+      request: {
+        id: 501,
+        status: 'PENDING',
+        created_at: '2026-04-07T10:00:00Z',
+        next_step: 'Спеціаліст відповість у робочий час.',
+      },
+    })
+
+    renderView()
+
+    await fireEvent.click(await screen.findByRole('button', { name: 'Записатися' }))
+    await fireEvent.update(screen.getByLabelText('Ім’я'), 'Ірина')
+    await fireEvent.update(screen.getByLabelText('Контакт'), 'iryna@example.com')
+    await fireEvent.click(screen.getByRole('button', { name: 'Надіслати запит' }))
+
+    expect(mockedApiPost).toHaveBeenCalledWith(
+      '/public/specialists/olena/guest-booking-requests/',
+      {
+        slot_id: 100,
+        session_format: 'online',
+        guest_name: 'Ірина',
+        contact_channel: 'EMAIL',
+        contact_value: 'iryna@example.com',
+      }
+    )
+    expect(
+      await screen.findByText('Запит надіслано. Спеціаліст підтвердить час або зв’яжеться з вами.')
+    ).toBeInTheDocument()
+    expect(screen.getByText(/Реєстрація не потрібна для цього кроку\./)).toBeInTheDocument()
+    expect(
+      screen.getByText(/Натискання кнопки не означає автоматичне списання оплати\./)
+    ).toBeInTheDocument()
+  })
+
+  it('shows friendly unavailable slot error for guest booking request', async () => {
+    mockCommonPublicData()
+    mockBookingPageDataWithSingleSlot()
+    mockedApiPost.mockRejectedValue({
+      response: {
+        data: {
+          code: 'SLOT_ALREADY_BOOKED',
+        },
+      },
+    })
+
+    renderView()
+
+    await fireEvent.click(await screen.findByRole('button', { name: 'Записатися' }))
+    await fireEvent.update(screen.getByLabelText('Ім’я'), 'Ірина')
+    await fireEvent.update(screen.getByLabelText('Контакт'), 'iryna@example.com')
+    await fireEvent.click(screen.getByRole('button', { name: 'Надіслати запит' }))
+
+    expect(
+      await screen.findByText('Обраний слот уже недоступний. Будь ласка, виберіть інший час.')
+    ).toBeInTheDocument()
+  })
+
+  it('shows friendly guest-flow restriction error for entitlement limits', async () => {
+    mockCommonPublicData()
+    mockBookingPageDataWithSingleSlot()
+    mockedApiPost.mockRejectedValue({
+      response: {
+        data: {
+          code: 'OVER_LIMIT',
+        },
+      },
+    })
+
+    renderView()
+
+    await fireEvent.click(await screen.findByRole('button', { name: 'Записатися' }))
+    await fireEvent.update(screen.getByLabelText('Ім’я'), 'Ірина')
+    await fireEvent.update(screen.getByLabelText('Контакт'), 'iryna@example.com')
+    await fireEvent.click(screen.getByRole('button', { name: 'Надіслати запит' }))
+
+    expect(
+      await screen.findByText('Наразі нові гостьові запити тимчасово недоступні для цього профілю.')
+    ).toBeInTheDocument()
+  })
+
+  it('keeps canonical client booking flow and does not open guest request modal', async () => {
+    mockAuth.accessToken = 'token'
+    mockAuth.me = { user: { id: 7, roles: ['CLIENT'] } }
+
+    mockCommonPublicData()
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedFetchInquiryState.mockResolvedValue(buildInquiryState())
+    mockBookingPageDataWithSingleSlot()
+    mockedApiPost.mockResolvedValue({})
+
+    renderView()
+
+    const bookingAgreement = await screen.findByRole('checkbox', {
+      name: 'Я ознайомився(-лась) і погоджуюсь з умовами бронювання',
+    })
+    await fireEvent.click(bookingAgreement)
+    await fireEvent.click(screen.getByRole('button', { name: 'Записатися' }))
+
+    expect(mockedApiPost).toHaveBeenCalledWith(
+      '/booking/sessions/',
+      expect.objectContaining({
+        slot_id: 100,
+        setting_accepted: true,
+      })
+    )
+    expect(screen.queryByRole('heading', { name: 'Запит на бронювання' })).not.toBeInTheDocument()
   })
 
   it('blocks booking for a client until setting acceptance is confirmed', async () => {
