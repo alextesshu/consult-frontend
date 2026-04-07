@@ -7,6 +7,7 @@ import {
   declineCabinetGuestBookingRequest,
   fetchCabinetGuestBookingRequests,
   fetchExternalSessions,
+  getApiErrorMessage,
 } from '../lib/api'
 
 const pushMock = vi.fn()
@@ -51,6 +52,7 @@ const mockedFetchExternalSessions = vi.mocked(fetchExternalSessions)
 const mockedFetchCabinetGuestBookingRequests = vi.mocked(fetchCabinetGuestBookingRequests)
 const mockedCreateExternalSession = vi.mocked(createExternalSession)
 const mockedDeclineCabinetGuestBookingRequest = vi.mocked(declineCabinetGuestBookingRequest)
+const mockedGetApiErrorMessage = vi.mocked(getApiErrorMessage)
 
 function createDeferred<T>() {
   let resolve!: (value: T) => void
@@ -602,6 +604,35 @@ describe('ExternalSessionsView guest request micro-polish', () => {
     expect(secondCard.card.querySelector('.request-card__error')).toBeNull()
     expect(secondCard.approveButton).not.toBeDisabled()
     expect(secondCard.declineButton).not.toBeDisabled()
+  })
+
+  it('localizes known slot-unavailable backend message for inline approve error', async () => {
+    mockedFetchCabinetGuestBookingRequests.mockResolvedValue([
+      buildGuestRequest({
+        id: 51,
+        guest_name: 'Guest One',
+        session_format: 'online',
+        contact_channel: 'email',
+      }),
+    ] as any)
+    mockedApproveCabinetGuestBookingRequest.mockRejectedValueOnce(new Error('slot unavailable'))
+    mockedGetApiErrorMessage.mockReturnValueOnce('Requested slot is no longer available.')
+
+    renderView()
+    await screen.findByText('Guest One')
+
+    const firstCard = getGuestRequestCardByName('Guest One')
+    if (!firstCard.meetingInput) {
+      throw new Error('Expected online meeting input for Guest One')
+    }
+
+    await fireEvent.update(firstCard.meetingInput, 'https://meet.google.com/slot-unavailable')
+    await fireEvent.click(firstCard.approveButton)
+
+    expect(
+      await screen.findByText('Цей слот більше недоступний. Оновіть список гостьових запитів.')
+    ).toBeInTheDocument()
+    expect(screen.queryByText('Requested slot is no longer available.')).not.toBeInTheDocument()
   })
 
   it('shows decline failure inline only on the affected card', async () => {

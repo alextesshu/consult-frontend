@@ -369,6 +369,18 @@ function requestActionError(id: number) {
   return requestActionErrors.value[id] || ''
 }
 
+function localizeGuestRequestActionError(message: string) {
+  const normalized = String(message || '').trim()
+  if (!normalized) return ''
+
+  const compact = normalized.toLowerCase().replace(/\s+/g, ' ')
+  if (compact === 'requested slot is no longer available.' || compact === 'requested slot is no longer available') {
+    return 'Цей слот більше недоступний. Оновіть список гостьових запитів.'
+  }
+
+  return normalized
+}
+
 function syncApproveMeetingDrafts(payload: GuestBookingRequestRecord[]) {
   const next: Record<number, string> = {}
   payload.forEach((request) => {
@@ -562,7 +574,8 @@ async function approveRequest(request: GuestBookingRequestRecord) {
     toast.success('Гостьовий запит погоджено.')
     await Promise.all([loadGuestRequests(), loadSessions()])
   } catch (err) {
-    setRequestActionError(request.id, getApiErrorMessage(err, 'Не вдалося погодити гостьовий запит.'))
+    const message = getApiErrorMessage(err, 'Не вдалося погодити гостьовий запит.')
+    setRequestActionError(request.id, localizeGuestRequestActionError(message))
   } finally {
     setRequestActionLoading(request.id, 'approve', false)
   }
@@ -576,7 +589,8 @@ async function declineRequest(requestId: number) {
     toast.success('Гостьовий запит відхилено.')
     await loadGuestRequests()
   } catch (err) {
-    setRequestActionError(requestId, getApiErrorMessage(err, 'Не вдалося відхилити гостьовий запит.'))
+    const message = getApiErrorMessage(err, 'Не вдалося відхилити гостьовий запит.')
+    setRequestActionError(requestId, localizeGuestRequestActionError(message))
   } finally {
     setRequestActionLoading(requestId, 'decline', false)
   }
