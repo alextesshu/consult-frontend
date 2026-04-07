@@ -107,9 +107,7 @@
 
       <div v-if="requestsError" class="form-error">{{ requestsError }}</div>
       <div v-else-if="requestsLoading" class="muted">Завантаження гостьових запитів…</div>
-      <div v-else-if="guestRequests.length === 0" class="muted">
-        Немає нових гостьових запитів.
-      </div>
+      <div v-else-if="guestRequests.length === 0" class="muted">Гостьових запитів поки немає.</div>
 
       <div v-else class="list-grid">
         <article v-for="request in guestRequests" :key="request.id" class="request-card">
@@ -135,8 +133,9 @@
               {{ requestStatusLabel(request.status) }}
             </div>
             <div v-if="requestDecisionAt(request)" class="muted">
-              Оновлено: {{ formatDateTime(requestDecisionAt(request)) }}
+              {{ requestDecisionLabel(request.status) }}: {{ formatDateTime(requestDecisionAt(request)) }}
             </div>
+            <div v-if="request.external_session_id" class="muted">На основі цього запиту створено зовнішню сесію.</div>
             <div v-if="request.external_session_id" class="request-next-step">
               <RouterLink
                 class="btn btn--ghost btn--sm"
@@ -164,7 +163,7 @@
                 class="input"
                 type="url"
                 placeholder="https://meet.google.com/..."
-                :disabled="isRequestActionLoading(request.id)"
+                :disabled="isRequestActionLoading(request.id, 'approve')"
               />
             </label>
             <button
@@ -173,16 +172,19 @@
               :disabled="isApproveRequestDisabled(request)"
               @click="approveRequest(request)"
             >
-              {{ isRequestActionLoading(request.id) ? 'Погоджуємо…' : 'Погодити' }}
+              {{ isRequestActionLoading(request.id, 'approve') ? 'Погоджуємо…' : 'Погодити' }}
             </button>
             <button
               class="btn btn--ghost btn--sm"
               type="button"
-              :disabled="isRequestActionLoading(request.id)"
+              :disabled="isRequestActionLoading(request.id, 'decline')"
               @click="declineRequest(request.id)"
             >
-              {{ isRequestActionLoading(request.id) ? 'Відхиляємо…' : 'Відхилити' }}
+              {{ isRequestActionLoading(request.id, 'decline') ? 'Відхиляємо…' : 'Відхилити' }}
             </button>
+            <div v-if="requestActionError(request.id)" class="form-error request-card__error">
+              {{ requestActionError(request.id) }}
+            </div>
           </div>
         </article>
       </div>
@@ -247,6 +249,11 @@ type CreateDraft = {
   guest_name: string
   guest_email: string
 }
+type RequestActionType = 'approve' | 'decline'
+type RequestActionLoadingState = {
+  approve?: boolean
+  decline?: boolean
+}
 
 const router = useRouter()
 const toast = useToast()
@@ -259,7 +266,8 @@ const createPending = ref(false)
 const createError = ref('')
 const sessions = ref<ExternalSessionRecord[]>([])
 const guestRequests = ref<GuestBookingRequestRecord[]>([])
-const requestActionLoading = ref<Set<number>>(new Set())
+const requestActionLoading = ref<Record<number, RequestActionLoadingState>>({})
+const requestActionErrors = ref<Record<number, string>>({})
 const approveMeetingUrls = ref<Record<number, string>>({})
 const latestInviteUrlByRequestId = ref<Record<number, string>>({})
 
@@ -319,18 +327,43 @@ function requestDecisionAt(request: GuestBookingRequestRecord) {
   return request.approved_at || request.declined_at || request.cancelled_at
 }
 
-function setRequestActionLoading(id: number, value: boolean) {
-  const next = new Set(requestActionLoading.value)
-  if (value) {
-    next.add(id)
+function requestDecisionLabel(status: string | null | undefined) {
+  const normalized = String(status || '').toLowerCase()
+  if (normalized === 'approved') return 'Погоджено'
+  if (normalized === 'declined') return 'Відхилено'
+  if (normalized === 'cancelled') return 'Скасовано'
+  return 'Оновлено'
+}
+
+function setRequestActionLoading(id: number, action: RequestActionType, value: boolean) {
+  const next = { ...requestActionLoading.value }
+  const current = { ...next[id] }
+  current[action] = value
+  if (!current.approve && !current.decline) {
+    delete next[id]
   } else {
-    next.delete(id)
+    next[id] = current
   }
   requestActionLoading.value = next
 }
 
-function isRequestActionLoading(id: number) {
-  return requestActionLoading.value.has(id)
+function isRequestActionLoading(id: number, action: RequestActionType) {
+  return Boolean(requestActionLoading.value[id]?.[action])
+}
+
+function setRequestActionError(id: number, message: string) {
+  const next = { ...requestActionErrors.value }
+  const normalized = String(message || '').trim()
+  if (normalized) {
+    next[id] = normalized
+  } else {
+    delete next[id]
+  }
+  requestActionErrors.value = next
+}
+
+function requestActionError(id: number) {
+  return requestActionErrors.value[id] || ''
 }
 
 function syncApproveMeetingDrafts(payload: GuestBookingRequestRecord[]) {
@@ -343,8 +376,37 @@ function syncApproveMeetingDrafts(payload: GuestBookingRequestRecord[]) {
   approveMeetingUrls.value = next
 }
 
+function syncRequestActionMeta(payload: GuestBookingRequestRecord[]) {
+  const pendingIds = new Set(
+    payload.filter((request) => isPendingRequest(request.status)).map((request) => request.id)
+  )
+
+  const nextErrors: Record<number, string> = {}
+  Object.entries(requestActionErrors.value).forEach(([key, value]) => {
+    const id = Number(key)
+    if (pendingIds.has(id) && value) {
+      nextErrors[id] = value
+    }
+  })
+  requestActionErrors.value = nextErrors
+
+  const nextLoading: Record<number, RequestActionLoadingState> = {}
+  Object.entries(requestActionLoading.value).forEach(([key, value]) => {
+    const id = Number(key)
+    if (!pendingIds.has(id)) return
+    const state = {
+      approve: Boolean(value?.approve),
+      decline: Boolean(value?.decline),
+    }
+    if (state.approve || state.decline) {
+      nextLoading[id] = state
+    }
+  })
+  requestActionLoading.value = nextLoading
+}
+
 function isApproveRequestDisabled(request: GuestBookingRequestRecord) {
-  if (isRequestActionLoading(request.id)) return true
+  if (isRequestActionLoading(request.id, 'approve')) return true
   if (request.session_format !== 'online') return false
   return !String(approveMeetingUrls.value[request.id] || '').trim()
 }
@@ -410,6 +472,7 @@ async function loadGuestRequests() {
     guestRequests.value = (payload || [])
       .slice()
       .sort((a, b) => new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime())
+    syncRequestActionMeta(guestRequests.value)
     syncApproveMeetingDrafts(guestRequests.value)
   } catch (err) {
     requestsError.value = getApiErrorMessage(err, 'Не вдалося завантажити гостьові запити.')
@@ -470,14 +533,14 @@ async function submitCreate() {
 
 async function approveRequest(request: GuestBookingRequestRecord) {
   if (!isPendingRequest(request.status)) return
-  requestsError.value = ''
+  setRequestActionError(request.id, '')
   const meetingUrl = String(approveMeetingUrls.value[request.id] || '').trim()
   if (request.session_format === 'online' && !meetingUrl) {
-    requestsError.value = 'Для онлайн-запиту перед погодженням додайте посилання на зустріч.'
+    setRequestActionError(request.id, 'Для онлайн-запиту перед погодженням додайте посилання на зустріч.')
     return
   }
 
-  setRequestActionLoading(request.id, true)
+  setRequestActionLoading(request.id, 'approve', true)
   try {
     const response = await approveCabinetGuestBookingRequest(
       request.id,
@@ -490,23 +553,23 @@ async function approveRequest(request: GuestBookingRequestRecord) {
     toast.success('Гостьовий запит погоджено.')
     await Promise.all([loadGuestRequests(), loadSessions()])
   } catch (err) {
-    requestsError.value = getApiErrorMessage(err, 'Не вдалося погодити гостьовий запит.')
+    setRequestActionError(request.id, getApiErrorMessage(err, 'Не вдалося погодити гостьовий запит.'))
   } finally {
-    setRequestActionLoading(request.id, false)
+    setRequestActionLoading(request.id, 'approve', false)
   }
 }
 
 async function declineRequest(requestId: number) {
-  requestsError.value = ''
-  setRequestActionLoading(requestId, true)
+  setRequestActionError(requestId, '')
+  setRequestActionLoading(requestId, 'decline', true)
   try {
     await declineCabinetGuestBookingRequest(requestId)
     toast.success('Гостьовий запит відхилено.')
     await loadGuestRequests()
   } catch (err) {
-    requestsError.value = getApiErrorMessage(err, 'Не вдалося відхилити гостьовий запит.')
+    setRequestActionError(requestId, getApiErrorMessage(err, 'Не вдалося відхилити гостьовий запит.'))
   } finally {
-    setRequestActionLoading(requestId, false)
+    setRequestActionLoading(requestId, 'decline', false)
   }
 }
 
@@ -638,6 +701,10 @@ onMounted(async () => {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+.request-card__error {
+  margin-top: 2px;
 }
 
 .status-pill {
