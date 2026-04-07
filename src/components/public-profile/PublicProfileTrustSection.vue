@@ -9,8 +9,11 @@
     </div>
     <div class="trust-grid">
       <article v-for="item in trustItems" :key="item.label" class="trust-card">
-        <div class="trust-card__label">{{ item.label }}</div>
-        <div class="trust-card__value">{{ item.value }}</div>
+        <p class="trust-card__line">
+          <span class="trust-card__label">{{ item.label }}</span>
+          <span class="trust-card__separator">:</span>
+          <span class="trust-card__value">{{ item.value }}</span>
+        </p>
       </article>
     </div>
   </section>
@@ -145,19 +148,29 @@ defineProps<Props>()
   border-radius: 12px;
   padding: 10px 12px;
   background: color-mix(in srgb, var(--color-primary-100) 22%, #ffffff);
-  display: grid;
+}
+
+.trust-card__line {
+  margin: 0;
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
   gap: 4px;
+  font-size: 13px;
+  line-height: 1.45;
 }
 
 .trust-card__label {
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.trust-card__separator {
   color: var(--muted);
 }
 
 .trust-card__value {
-  font-weight: 600;
+  color: var(--text);
 }
 
 .documents-grid {

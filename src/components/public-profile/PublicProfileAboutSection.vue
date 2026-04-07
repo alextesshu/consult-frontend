@@ -1,36 +1,4 @@
 <template>
-  <section class="panel panel--work-format">
-    <div class="panel__header">
-      <div>
-        <div class="badge badge--soft">Формат</div>
-        <h2 class="panel__title">Формат роботи</h2>
-      </div>
-    </div>
-    <div class="work-format-grid">
-      <div v-if="meetingFormatLabel" class="profile-summary__item">
-        Формат зустрічей: {{ meetingFormatLabel }}
-      </div>
-      <div v-if="introDurationLabel" class="profile-summary__item">
-        Тривалість ознайомчої сесії: {{ introDurationLabel }}
-      </div>
-      <div v-if="introPriceDisplay" class="profile-summary__item">
-        Вартість ознайомчої сесії: {{ introPriceDisplay }}
-      </div>
-      <div v-if="offlineMeetingLocation" class="profile-summary__item">
-        Локація офлайн-зустрічей: {{ offlineMeetingLocation }}
-      </div>
-      <div v-else-if="profileLocation" class="profile-summary__item">
-        Локація: {{ profileLocation }}
-      </div>
-      <div v-if="priceDisplay" class="profile-summary__item">
-        Консультація: {{ priceDisplay }} · {{ standardSessionDurationLabel }}
-      </div>
-      <div class="profile-summary__item">
-        Що буде після запису: сесія з’явиться в кабінеті, після підтвердження надійде нагадування.
-      </div>
-    </div>
-  </section>
-
   <section class="panel panel--about" v-if="aboutSections.length">
     <div class="panel__header">
       <div>
@@ -102,13 +70,6 @@ type ContactAction = {
 }
 
 type Props = {
-  meetingFormatLabel: string
-  introDurationLabel: string
-  introPriceDisplay: string
-  offlineMeetingLocation: string
-  profileLocation: string
-  priceDisplay: string
-  standardSessionDurationLabel: string
   aboutSections: AboutSection[]
   whoThisIsForText: string
   specializationChips: string[]
@@ -124,7 +85,6 @@ defineEmits<{
 </script>
 
 <style scoped>
-.panel--work-format,
 .panel--about,
 .panel--who,
 .panel--contacts {
@@ -165,20 +125,6 @@ defineEmits<{
   font-size: 14px;
   line-height: 1.55;
   max-width: 78ch;
-}
-
-.work-format-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-}
-
-.profile-summary__item {
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  padding: 10px 12px;
-  background: color-mix(in srgb, #f8f3e8 58%, #ffffff);
-  font-size: 13px;
 }
 
 .about-grid {
@@ -275,10 +221,6 @@ defineEmits<{
 }
 
 @media (max-width: 960px) {
-  .work-format-grid {
-    grid-template-columns: 1fr;
-  }
-
   .about-grid,
   .contact-actions {
     grid-template-columns: 1fr;

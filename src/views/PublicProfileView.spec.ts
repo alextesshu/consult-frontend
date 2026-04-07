@@ -497,9 +497,10 @@ describe('PublicProfileView', () => {
     expect(screen.getAllByText('Section about body copy.').length).toBeGreaterThan(0)
     expect(screen.getByText('Section topics body.')).toBeInTheDocument()
     expect(screen.getAllByText('Section topic chip').length).toBeGreaterThan(0)
-    expect(screen.getByText('Формат зустрічей: Секційний формат')).toBeInTheDocument()
-    expect(screen.getByText('Тривалість ознайомчої сесії: 40 хв (section)')).toBeInTheDocument()
-    expect(screen.getByText('Консультація: 1999 грн (section) · 55 хв (section)')).toBeInTheDocument()
+    expect(screen.getAllByText(/999 грн \(section\)/i).length).toBeGreaterThan(0)
+    expect(screen.getAllByText(/40 хв \(section\)/i).length).toBeGreaterThan(0)
+    expect(screen.getAllByText(/1999 грн \(section\)/i).length).toBeGreaterThan(0)
+    expect(screen.getAllByText(/55 хв \(section\)/i).length).toBeGreaterThan(0)
     expect(screen.getByText('Телефон секції')).toBeInTheDocument()
     expect(screen.queryByText('hello@example.com')).not.toBeInTheDocument()
   })
@@ -1003,7 +1004,7 @@ describe('PublicProfileView', () => {
 
     renderView()
 
-    expect(await screen.findByText('Формат зустрічей: Онлайн')).toBeInTheDocument()
+    expect(await screen.findByText('Формат визначено профілем: Онлайн')).toBeInTheDocument()
     expect(screen.queryByText(/Локація офлайн-зустрічей:/i)).not.toBeInTheDocument()
   })
 
@@ -1026,8 +1027,8 @@ describe('PublicProfileView', () => {
 
     renderView()
 
-    expect(await screen.findByText('Формат зустрічей: Офлайн')).toBeInTheDocument()
-    expect(screen.getByText('Локація офлайн-зустрічей: Львів, кабінет 7')).toBeInTheDocument()
+    expect(await screen.findByText('Формат визначено профілем: Офлайн')).toBeInTheDocument()
+    expect(screen.getByText('Локація офлайн-сесій: Львів, кабінет 7')).toBeInTheDocument()
   })
 
   it('renders combined online and offline format in public profile', async () => {
@@ -1048,7 +1049,8 @@ describe('PublicProfileView', () => {
 
     renderView()
 
-    expect(await screen.findByText('Формат зустрічей: Онлайн та офлайн')).toBeInTheDocument()
+    expect(await screen.findByLabelText('Онлайн')).toBeInTheDocument()
+    expect(screen.getByLabelText('Офлайн')).toBeInTheDocument()
   })
 
   it('explains booking next step and trust markers before client login', async () => {
@@ -1060,7 +1062,7 @@ describe('PublicProfileView', () => {
     expect(
       await screen.findAllByText('Після вибору часу відкриється короткий запит: залиште ім’я та контакт без реєстрації.')
     ).toHaveLength(2)
-    expect(screen.getAllByText('Натискання кнопки «Записатися» не списує оплату автоматично.')).toHaveLength(2)
+    expect(screen.getAllByText('Натискання кнопки «Записатися» не списує оплату автоматично.')).toHaveLength(1)
   })
 
   it('opens guest booking request flow from slot click without auth', async () => {

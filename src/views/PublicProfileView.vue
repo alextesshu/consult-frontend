@@ -8,21 +8,16 @@
         :hero-lead-text="heroLeadText"
         :hero-support-text="heroSupportText"
         :completed-sessions-badge="completedSessionsBadge"
-        :hero-meta-highlights="heroMetaHighlights"
         :display-specialization-chips="displaySpecializationChips"
       />
 
       <PublicProfileIdentityRail
         :profile="profile"
-        :public-name="publicName"
-        :hero-role-line="heroRoleLine"
         :hero-cta-title="heroCtaTitle"
         :hero-primary-label="heroPrimaryLabel"
         :show-client-sessions-cta="showClientSessionsCta"
         :feedback-link="feedbackLink"
         :primary-action-next-step-copy="primaryActionNextStepCopy"
-        :hero-trust-markers="heroTrustMarkers"
-        :identity-trust-items="identityTrustItems"
         :intro-price-display="introPriceDisplay"
         :intro-duration-label="introDurationLabel"
         :price-display="priceDisplay"
@@ -320,13 +315,6 @@
       </div>
 
       <PublicProfileAboutSection
-        :meeting-format-label="meetingFormatLabel"
-        :intro-duration-label="introDurationLabel"
-        :intro-price-display="introPriceDisplay"
-        :offline-meeting-location="offlineMeetingLocation"
-        :profile-location="profileLocationDisplay"
-        :price-display="priceDisplay"
-        :standard-session-duration-label="standardSessionDurationLabel"
         :about-sections="aboutSections"
         :who-this-is-for-text="whoThisIsForText"
         :specialization-chips="specializationChips"
@@ -1270,26 +1258,6 @@ const profileLocationDisplay = computed(() => {
   return toDisplayText(profile.value?.location)
 })
 
-const heroMetaHighlights = computed(() => {
-  if (!profile.value) return []
-  const items: Array<{ label: string; value: string }> = []
-  if (profile.value.experience_years !== undefined && profile.value.experience_years !== null) {
-    items.push({ label: 'Досвід', value: formatExperience(profile.value.experience_years) })
-  }
-  if (languagesDisplay.value) {
-    items.push({ label: 'Мови', value: languagesDisplay.value })
-  }
-  if (introDurationLabel.value) {
-    items.push({ label: 'Ознайомча сесія', value: introDurationLabel.value })
-  }
-  if (introPriceDisplay.value) {
-    items.push({ label: 'Вартість старту', value: introPriceDisplay.value })
-  } else if (priceDisplay.value) {
-    items.push({ label: 'Консультація', value: priceDisplay.value })
-  }
-  return items.slice(0, 4)
-})
-
 const feedbackLink = computed(() => ({
   name: 'specialist-feedback',
   params: { slug: profile.value?.public_slug || slug.value },
@@ -1321,26 +1289,6 @@ const primaryActionNextStepCopy = computed(() => {
     return 'Бронювання доступне в ролі клієнта. Натисніть кнопку, щоб переглянути вільні слоти.'
   }
   return 'Після вибору часу створюється запит на сесію: спеціаліст підтвердить його окремо.'
-})
-
-const heroTrustMarkers = computed(() => {
-  if (canMessageSpecialist.value) {
-    return [
-      'Листування ведеться у вашому кабінеті клієнта.',
-      'За потреби можна спочатку узгодити деталі, а потім бронювати.',
-    ]
-  }
-  const markers = [
-    'Натискання кнопки «Записатися» не списує оплату автоматично.',
-    'Сесія вважається підтвердженою після відповіді спеціаліста.',
-  ]
-  if (!isAuthenticated.value) {
-    markers.push('Перший крок можна зробити без реєстрації: достатньо короткого запиту з контактом.')
-  }
-  if (showInquiryEntry.value) {
-    markers.push('Якщо не готові одразу бронювати, почніть із короткого запиту.')
-  }
-  return markers
 })
 
 const closingPrimaryLabel = computed(() => {
@@ -1446,34 +1394,52 @@ const specializationChips = computed(() => {
   if (sectionTopicChips.value.length) return sectionTopicChips.value
   return toTextList(profile.value?.specializations)
 })
-const displaySpecializationChips = computed(() => specializationChips.value.slice(0, 6))
+const displaySpecializationChips = computed(() => specializationChips.value.slice(0, 4))
 
 const whoThisIsForText = computed(() => sectionWhoThisIsForText.value || profile.value?.bio_for_whom || '')
 
-const trustItems = computed<ProfileKeyValueItem[]>(() => {
-  if (sectionTrustItems.value.length) return sectionTrustItems.value
-  if (!profile.value) return []
+function buildFallbackTrustItems(): ProfileKeyValueItem[] {
   const items: ProfileKeyValueItem[] = []
   if (meetingFormatLabel.value) {
     items.push({ label: 'Формат зустрічей', value: meetingFormatLabel.value })
   }
-  if (profile.value.experience_years !== undefined && profile.value.experience_years !== null) {
+  if (profile.value?.experience_years !== undefined && profile.value?.experience_years !== null) {
     items.push({ label: 'Досвід', value: formatExperience(profile.value.experience_years) })
   }
-  if (languagesDisplay.value) items.push({ label: 'Мови', value: languagesDisplay.value })
+  if (languagesDisplay.value) {
+    items.push({ label: 'Мови', value: languagesDisplay.value })
+  }
   if (offlineMeetingLocation.value) {
     items.push({ label: 'Офлайн локація', value: offlineMeetingLocation.value })
-  } else if (profile.value.location) {
-    items.push({ label: 'Локація', value: profile.value.location })
+  } else if (profileLocationDisplay.value) {
+    items.push({ label: 'Локація', value: profileLocationDisplay.value })
   }
-  if (introDurationLabel.value) items.push({ label: 'Ознайомча сесія', value: introDurationLabel.value })
+  if (introDurationLabel.value) {
+    items.push({ label: 'Ознайомча сесія', value: introDurationLabel.value })
+  }
   if (standardSessionDurationLabel.value) {
     items.push({ label: 'Стандартна сесія', value: standardSessionDurationLabel.value })
   }
   return items
-})
+}
 
-const identityTrustItems = computed(() => trustItems.value.slice(0, 4))
+function appendTrustItemIfUnique(target: ProfileKeyValueItem[], item: ProfileKeyValueItem) {
+  const key = `${item.label.trim().toLowerCase()}::${item.value.trim().toLowerCase()}`
+  const alreadyExists = target.some((current) => {
+    const currentKey = `${current.label.trim().toLowerCase()}::${current.value.trim().toLowerCase()}`
+    return currentKey === key
+  })
+  if (!alreadyExists) {
+    target.push(item)
+  }
+}
+
+const trustItems = computed<ProfileKeyValueItem[]>(() => {
+  const items: ProfileKeyValueItem[] = []
+  sectionTrustItems.value.forEach((item) => appendTrustItemIfUnique(items, item))
+  buildFallbackTrustItems().forEach((item) => appendTrustItemIfUnique(items, item))
+  return items
+})
 
 const publicDocuments = computed<PublicSpecialistProfileDocument[]>(() => {
   const documents = profile.value?.profile_documents || []
@@ -2961,7 +2927,7 @@ onMounted(async () => {
 
 .public__top {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
+  grid-template-columns: minmax(0, 1fr) minmax(248px, 296px);
   gap: 16px;
   align-items: start;
 }
@@ -4710,7 +4676,7 @@ onMounted(async () => {
     resize: vertical;
   }
 
-@media (max-width: 960px) {
+@media (max-width: 1180px) {
   .public__top {
     grid-template-columns: 1fr;
     gap: 12px;

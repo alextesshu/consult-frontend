@@ -28,13 +28,6 @@
           Проведено сесій: {{ completedSessionsBadge }}
         </p>
 
-        <div v-if="profile && heroMetaHighlights.length" class="hero-main__meta">
-          <article v-for="item in heroMetaHighlights" :key="item.label" class="hero-meta-card">
-            <div class="hero-meta-card__label">{{ item.label }}</div>
-            <div class="hero-meta-card__value">{{ item.value }}</div>
-          </article>
-        </div>
-
         <div v-if="profile && displaySpecializationChips.length" class="hero-trust">
           <span v-for="(chip, index) in displaySpecializationChips" :key="`${chip}-${index}`">{{ chip }}</span>
         </div>
@@ -44,11 +37,6 @@
 </template>
 
 <script setup lang="ts">
-type HeroMetaHighlight = {
-  label: string
-  value: string
-}
-
 type PublicProfileMedia = {
   photo_url?: string | null
   video_url?: string | null
@@ -61,7 +49,6 @@ type Props = {
   heroLeadText: string
   heroSupportText: string
   completedSessionsBadge: string | null
-  heroMetaHighlights: HeroMetaHighlight[]
   displaySpecializationChips: string[]
 }
 
@@ -87,14 +74,14 @@ defineProps<Props>()
 
 .hero-profile {
   display: grid;
-  grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
-  gap: 18px;
+  grid-template-columns: minmax(180px, 232px) minmax(0, 1fr);
+  gap: 16px;
   min-width: 0;
 }
 
 .hero-media {
   width: 100%;
-  max-width: 280px;
+  max-width: 232px;
   display: grid;
   gap: 10px;
   align-content: start;
@@ -170,33 +157,6 @@ defineProps<Props>()
   color: color-mix(in srgb, var(--text) 86%, var(--muted));
 }
 
-.hero-main__meta {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-}
-
-.hero-meta-card {
-  border: 1px solid color-mix(in srgb, var(--line) 86%, #ffffff);
-  border-radius: var(--radius-sm);
-  padding: 9px 10px;
-  background: color-mix(in srgb, #ffffff 80%, var(--surface));
-  display: grid;
-  gap: 2px;
-}
-
-.hero-meta-card__label {
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  color: var(--muted);
-}
-
-.hero-meta-card__value {
-  font-weight: 600;
-  color: var(--ink);
-}
-
 .hero-trust {
   display: flex;
   flex-wrap: wrap;
@@ -218,15 +178,11 @@ defineProps<Props>()
 
   .hero-media {
     width: 100%;
-    max-width: 320px;
+    max-width: 280px;
   }
 
   .hero-main {
     width: 100%;
-  }
-
-  .hero-main__meta {
-    grid-template-columns: 1fr;
   }
 }
 </style>
