@@ -2789,7 +2789,65 @@ onMounted(() => {
   .profile__hero {
     flex-direction: column;
     align-items: flex-start;
+    padding: 18px;
   }
 
+  .profile__hero > div:first-child {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .profile__title {
+    font-size: clamp(28px, 8vw, 34px);
+    line-height: 1.1;
+  }
+
+  .profile__subtitle {
+    max-width: none;
+  }
+
+  .profile__actions {
+    width: 100%;
+    justify-content: flex-start;
+    align-items: flex-start;
+    min-width: 0;
+  }
+
+  .profile__actions .btn,
+  .profile__actions .btn.btn--ghost {
+    max-width: 100%;
+  }
+
+  .toggle-chip {
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+}
+
+@media (max-width: 640px) {
+  .profile__hero {
+    border-radius: 16px;
+    padding: 14px;
+    gap: 14px;
+  }
+
+  .profile__title {
+    font-size: 26px;
+    line-height: 1.15;
+  }
+
+  .profile__actions {
+    display: grid;
+    width: 100%;
+    gap: 10px;
+  }
+
+  .profile__actions .btn,
+  .profile__actions .btn.btn--ghost,
+  .profile__actions .toggle-chip {
+    width: 100%;
+  }
 }
 </style>

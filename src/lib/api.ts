@@ -82,6 +82,51 @@ export async function fetchMe(accessToken: string) {
   return resp.data
 }
 
+export type OnboardingMissingItem = {
+  code: string
+  default_message?: string | null
+}
+
+export type OnboardingWarning = {
+  code: string
+  cta_code?: string | null
+  cta_target?: string | null
+  default_message?: string | null
+}
+
+export type OnboardingNextAction = {
+  code?: string | null
+  target?: string | null
+  cta_code?: string | null
+  cta_target?: string | null
+  priority?: number | null
+  default_message?: string | null
+}
+
+export type SpecialistOnboardingReadiness = {
+  profile_core_ready?: boolean | null
+  has_future_slots?: boolean | null
+  public_profile_enabled?: boolean | null
+  ready_for_inbound_intent?: boolean | null
+}
+
+export type SpecialistOnboardingState = {
+  version?: number | null
+  readiness?: boolean | SpecialistOnboardingReadiness | null
+  ready_for_inbound_intent?: boolean | null
+  is_ready?: boolean | null
+  missing_items?: Array<OnboardingMissingItem | string> | null
+  warnings?: Array<OnboardingWarning | string> | null
+  next_actions?: OnboardingNextAction[] | null
+  primary_cta_code?: string | null
+  cta_target?: string | null
+}
+
+export async function fetchSpecialistOnboardingState(): Promise<SpecialistOnboardingState> {
+  const resp = await http.get<SpecialistOnboardingState>('/cabinet/onboarding-state/')
+  return resp.data
+}
+
 export async function refreshToken(): Promise<TokenResponse> {
   const resp = await http.post<TokenResponse>('/auth/token/refresh/', {})
   return resp.data
@@ -247,6 +292,21 @@ export type PublicSpecialistProfileDocument = {
   source: string
 }
 
+export type PublicContactActionChannel =
+  | 'EMAIL'
+  | 'TELEGRAM'
+  | 'VIBER'
+  | 'WHATSAPP'
+  | 'PHONE'
+  | string
+
+export type PublicContactAction = {
+  channel?: PublicContactActionChannel | null
+  label?: string | null
+  value?: string | null
+  action_url?: string | null
+}
+
 export type PublicTherapistProfile = {
   public_slug?: string
   therapist_id: number
@@ -281,6 +341,7 @@ export type PublicTherapistProfile = {
   platform_setting_text?: string
   setting_text?: string
   profile_documents?: PublicSpecialistProfileDocument[]
+  contact_actions?: PublicContactAction[] | null
 }
 
 export type PublicSpecialistProfile = PublicTherapistProfile
@@ -1310,6 +1371,7 @@ export async function updateSpecialistSessionMeeting(
 
 export type ExternalSessionStatus = 'SCHEDULED' | 'CANCELLED' | string
 export type ExternalInviteStatus = 'ACTIVE' | 'EXPIRED' | 'REVOKED' | 'OPENED' | 'JOINED' | string
+export type GuestBookingRequestStatus = 'pending' | 'approved' | 'declined' | 'cancelled' | string
 
 export type ExternalSessionRecord = {
   id: number
@@ -1338,6 +1400,48 @@ export type ExternalSessionInvite = {
   created_at: string | null
   updated_at: string | null
   invite_url?: string | null
+}
+
+export type GuestBookingRequestRecord = {
+  id: number
+  status: GuestBookingRequestStatus
+  specialist_id: number
+  slot_id: number
+  requested_slot_start: string | null
+  requested_slot_end: string | null
+  duration_minutes: number | null
+  session_format: SessionFormat | null
+  offline_location_snapshot: string | null
+  guest_name: string | null
+  contact_channel: string | null
+  contact_value: string | null
+  message: string | null
+  source: string | null
+  public_profile_slug_snapshot: string | null
+  slot_snapshot_timezone: string | null
+  approved_at: string | null
+  declined_at: string | null
+  cancelled_at: string | null
+  decline_reason: string | null
+  external_session_id: number | null
+  created_at: string | null
+  updated_at: string | null
+}
+
+export type GuestBookingRequestInviteSnapshot = {
+  status: string
+  expires_at: string | null
+  created_at: string | null
+  revoked_at: string | null
+  last_opened_at: string | null
+  joined_at: string | null
+  invite_url: string | null
+}
+
+export type GuestBookingRequestApproveResponse = {
+  request: GuestBookingRequestRecord
+  external_session: ExternalSessionRecord | null
+  invite: GuestBookingRequestInviteSnapshot | null
 }
 
 export type ExternalSessionInviteCreateResponse = {
@@ -1396,6 +1500,33 @@ export async function createExternalSession(payload: {
   guest_email?: string | null
 }): Promise<ExternalSessionRecord> {
   const resp = await http.post<ExternalSessionRecord>('/cabinet/external-sessions/', payload)
+  return resp.data
+}
+
+export async function fetchCabinetGuestBookingRequests(): Promise<GuestBookingRequestRecord[]> {
+  const resp = await http.get<GuestBookingRequestRecord[]>('/cabinet/guest-booking-requests/')
+  return resp.data || []
+}
+
+export async function approveCabinetGuestBookingRequest(
+  requestId: number,
+  payload?: { meeting_url?: string | null }
+): Promise<GuestBookingRequestApproveResponse> {
+  const resp = await http.post<GuestBookingRequestApproveResponse>(
+    `/cabinet/guest-booking-requests/${requestId}/approve/`,
+    payload ?? {}
+  )
+  return resp.data
+}
+
+export async function declineCabinetGuestBookingRequest(
+  requestId: number,
+  payload?: { decline_reason?: string | null }
+): Promise<GuestBookingRequestRecord> {
+  const resp = await http.post<GuestBookingRequestRecord>(
+    `/cabinet/guest-booking-requests/${requestId}/decline/`,
+    payload ?? {}
+  )
   return resp.data
 }
 

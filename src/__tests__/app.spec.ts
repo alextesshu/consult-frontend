@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/vue'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/vue'
 import { createPinia, setActivePinia } from 'pinia'
 import { createMemoryHistory, createRouter } from 'vue-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -108,6 +108,9 @@ async function renderWithProviders(options?: {
       meta: { minimalShell: true },
     },
     { path: '/cabinet', component: { template: '<div>Cabinet</div>' } },
+    { path: '/cabinet/profile', component: { template: '<div>Cabinet Profile</div>' } },
+    { path: '/cabinet/settings', component: { template: '<div>Cabinet Settings</div>' } },
+    { path: '/public', component: { template: '<div>Public Redirect</div>' } },
     { path: '/client', component: { template: '<div>Client</div>' } },
     { path: '/cabinet/inquiries', component: { template: '<div>Cabinet Inquiries</div>' } },
     {
@@ -219,6 +222,43 @@ describe('App shell', () => {
     expect(document.querySelector('footer.footer')).not.toBeInTheDocument()
     expect(screen.getByText('External Guest Session')).toBeInTheDocument()
   })
+
+  it('shows distinct specialist mobile menu entries for internal profile management and public profile preview', async () => {
+    await renderWithProviders({
+      initialPath: '/cabinet',
+      roles: ['SPECIALIST'],
+    })
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Меню' }))
+
+    const managementLink = await screen.findByRole('link', { name: 'Керування профілем' })
+    const publicPreviewLink = await screen.findByRole('link', { name: 'Публічний профіль (перегляд)' })
+
+    expect(managementLink).toHaveAttribute('href', '/cabinet/profile')
+    expect(publicPreviewLink).toHaveAttribute('href', '/public')
+  })
+
+  it('uses a functional specialist mobile settings link instead of a dead CTA', async () => {
+    const { router } = await renderWithProviders({
+      initialPath: '/cabinet',
+      roles: ['SPECIALIST'],
+    })
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Меню' }))
+
+    const mobileMenu = document.querySelector('.mobile-menu') as HTMLElement
+    expect(mobileMenu).toBeInTheDocument()
+    const settingsLink = await screen.findByRole('link', { name: 'Налаштування' })
+    expect(settingsLink).toHaveAttribute('href', '/cabinet/settings')
+    expect(within(mobileMenu).queryByRole('button', { name: 'Налаштування' })).not.toBeInTheDocument()
+
+    await fireEvent.click(settingsLink)
+
+    await waitFor(() => {
+      expect(router.currentRoute.value.fullPath).toBe('/cabinet/settings')
+    })
+  })
+
   it('refreshes me on visibilitychange when specialist tab becomes visible', async () => {
     await renderWithProviders({
       initialPath: '/cabinet',
@@ -698,9 +738,9 @@ describe('App shell', () => {
     notificationsState.current = notificationsState.current.map((item) =>
       item.id === 'inquiry_message:81'
         ? {
-            ...item,
-            read_at: '2026-03-12T10:05:00Z',
-          }
+          ...item,
+          read_at: '2026-03-12T10:05:00Z',
+        }
         : item
     )
 

@@ -1,7 +1,7 @@
 import { fireEvent, render, waitFor } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ref } from 'vue'
-import { apiGet } from '../lib/api'
+import { apiGet, fetchSpecialistOnboardingState } from '../lib/api'
 import CabinetView from './CabinetView.vue'
 
 function createMePayload() {
@@ -42,9 +42,11 @@ vi.mock('../stores/auth', () => ({
 
 vi.mock('../lib/api', () => ({
   apiGet: vi.fn(),
+  fetchSpecialistOnboardingState: vi.fn(),
 }))
 
 const mockedApiGet = vi.mocked(apiGet)
+const mockedFetchSpecialistOnboardingState = vi.mocked(fetchSpecialistOnboardingState)
 
 function renderView() {
   return render(CabinetView, {
@@ -62,9 +64,106 @@ function renderView() {
 describe('CabinetView', () => {
   beforeEach(() => {
     mockedApiGet.mockReset()
+    mockedFetchSpecialistOnboardingState.mockReset()
     mockLoadMe.mockReset()
     mockLoadMe.mockResolvedValue(undefined)
     mockMe.value = createMePayload()
+    mockedFetchSpecialistOnboardingState.mockResolvedValue({
+      readiness: true,
+      missing_items: [],
+      warnings: [],
+      next_actions: [],
+      primary_cta_code: null,
+      cta_target: null,
+    } as any)
+  })
+
+  it('renders guest quota row in plan metrics when guest entitlement fields are available', async () => {
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/cabinet/entitlements/') {
+        return {
+          guest_sessions_enabled: true,
+          guest_sessions_used_in_period: 2,
+          guest_sessions_limit_per_period: 5,
+        } as any
+      }
+      if (config?.params?.upcoming === true) return []
+      if (config?.params?.upcoming === false) return []
+      return []
+    })
+
+    const view = renderView()
+
+    await waitFor(() => {
+      expect(mockedApiGet).toHaveBeenCalledWith('/cabinet/entitlements/')
+      expect(view.container).toHaveTextContent('Гостьові сесії:')
+      expect(view.container).toHaveTextContent('2 / 5')
+    })
+  })
+
+  it('renders guest quota zero state without breaking plan metrics', async () => {
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/cabinet/entitlements/') {
+        return {
+          guest_sessions_enabled: true,
+          guest_sessions_used_in_period: 0,
+          guest_sessions_limit_per_period: 5,
+        } as any
+      }
+      if (config?.params?.upcoming === true) return []
+      if (config?.params?.upcoming === false) return []
+      return []
+    })
+
+    const view = renderView()
+
+    await waitFor(() => {
+      expect(view.container).toHaveTextContent('Гостьові сесії:')
+      expect(view.container).toHaveTextContent('0 / 5')
+    })
+  })
+
+  it('hides guest quota row when guest entitlement fields are missing', async () => {
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/cabinet/entitlements/') {
+        return {
+          guest_sessions_enabled: true,
+          guest_sessions_limit_per_period: 5,
+        } as any
+      }
+      if (config?.params?.upcoming === true) return []
+      if (config?.params?.upcoming === false) return []
+      return []
+    })
+
+    const view = renderView()
+
+    await waitFor(() => {
+      expect(mockedApiGet).toHaveBeenCalledWith('/cabinet/entitlements/')
+    })
+    expect(view.container).not.toHaveTextContent('Гостьові сесії:')
+  })
+
+  it('hides guest quota row when guest sessions are not enabled for the plan', async () => {
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/cabinet/entitlements/') {
+        return {
+          guest_sessions_enabled: false,
+          guest_sessions_used_in_period: 2,
+          guest_sessions_limit_per_period: 5,
+        } as any
+      }
+      if (config?.params?.upcoming === true) return []
+      if (config?.params?.upcoming === false) return []
+      return []
+    })
+
+    const view = renderView()
+
+    await waitFor(() => {
+      expect(mockedApiGet).toHaveBeenCalledWith('/cabinet/entitlements/')
+    })
+    expect(view.container).not.toHaveTextContent('Гостьові сесії:')
   })
 
   it('shows explicit profile error state with retry when cabinet profile bootstrap fails', async () => {
@@ -299,4 +398,122 @@ describe('CabinetView', () => {
     expect(view.container.querySelector('a.hero-live')).not.toBeInTheDocument()
     expect(view.container.querySelector('a.hero-live__join')).not.toBeInTheDocument()
   })
+
+  it('renders onboarding readiness with pending steps and primary cta from backend enums', async () => {
+    mockedApiGet.mockResolvedValue([])
+    mockedFetchSpecialistOnboardingState.mockResolvedValue({
+      readiness: {
+        profile_core_ready: false,
+        has_future_slots: false,
+        public_profile_enabled: false,
+        ready_for_inbound_intent: false,
+      },
+      missing_items: ['MISSING_DISPLAY_NAME', 'MISSING_FUTURE_SLOTS', 'PUBLIC_PROFILE_DISABLED'],
+      warnings: [{ code: 'PROFILE_CORE_INCOMPLETE' }],
+      next_actions: [{ code: 'COMPLETE_PROFILE', target: 'CABINET_PROFILE', priority: 1 }],
+      primary_cta_code: 'COMPLETE_PROFILE',
+    } as any)
+
+    const view = renderView()
+
+    await waitFor(() => {
+      expect(view.container.querySelector('.panel--onboarding')).toBeInTheDocument()
+      expect(view.container.querySelector('a[href="/cabinet/profile"]')).toBeInTheDocument()
+    })
+    expect(view.container.querySelector('.onboarding-step--pending')).toBeInTheDocument()
+    expect((view.container.querySelector('a[href="/cabinet/profile"]')?.textContent || '').trim().length).toBeGreaterThan(0)
+  })
+
+  it('uses onboarding_summary only as initial shell before canonical onboarding-state arrives', async () => {
+    mockedApiGet.mockResolvedValue([])
+    let resolveCanonical: (value: unknown) => void = () => {}
+    mockedFetchSpecialistOnboardingState.mockReturnValue(
+      new Promise((resolve) => {
+        resolveCanonical = resolve
+      }) as any
+    )
+    mockMe.value = {
+      ...createMePayload(),
+      onboarding_summary: {
+        ready_for_inbound_intent: false,
+        missing_items_count: 3,
+        primary_cta_code: 'ADD_AVAILABILITY',
+      },
+    } as any
+
+    const view = renderView()
+    let shellStatus = ''
+
+    await waitFor(() => {
+      const status = view.container.querySelector('.onboarding-status')
+      expect(status).toBeInTheDocument()
+      shellStatus = (status?.textContent || '').trim()
+      expect(shellStatus).toBe('Потрібні дії')
+    })
+
+    resolveCanonical({
+      readiness: {
+        profile_core_ready: true,
+        has_future_slots: true,
+        public_profile_enabled: false,
+        ready_for_inbound_intent: false,
+      },
+      missing_items: ['PUBLIC_PROFILE_DISABLED'],
+      warnings: [{ code: 'PUBLIC_PROFILE_OFF' }],
+      next_actions: [{ code: 'OPEN_PUBLIC_PROFILE', target: 'CABINET_PUBLIC_PROFILE', priority: 3 }],
+      primary_cta_code: 'OPEN_PUBLIC_PROFILE',
+    })
+
+    await waitFor(() => {
+      const list = view.container.querySelector('.onboarding-list')
+      expect(list).toBeInTheDocument()
+      expect((list?.textContent || '').length).toBeGreaterThan(0)
+      expect(view.container.querySelector('a[href="/cabinet/profile"]')).toBeInTheDocument()
+      expect((view.container.querySelector('.onboarding-status')?.textContent || '').trim()).toBe(shellStatus)
+    })
+  })
+
+  it('renders CTA for add availability via route-key mapping', async () => {
+    mockedApiGet.mockResolvedValue([])
+    mockedFetchSpecialistOnboardingState.mockResolvedValue({
+      readiness: {
+        profile_core_ready: true,
+        has_future_slots: false,
+        public_profile_enabled: true,
+        ready_for_inbound_intent: false,
+      },
+      missing_items: ['MISSING_FUTURE_SLOTS'],
+      warnings: [{ code: 'PUBLISHED_WITHOUT_BOOKABLE_TIME' }],
+      next_actions: [{ code: 'ADD_AVAILABILITY', target: 'CABINET_AVAILABILITY', priority: 2 }],
+      primary_cta_code: 'ADD_AVAILABILITY',
+    } as any)
+
+    const view = renderView()
+    await waitFor(() => {
+      expect(view.container.querySelector('a[href="/cabinet/availability-rules"]')).toBeInTheDocument()
+    })
+  })
+
+  it('renders CTA for view public profile via route-key mapping', async () => {
+    mockedApiGet.mockResolvedValue([])
+    mockedFetchSpecialistOnboardingState.mockResolvedValue({
+      readiness: {
+        profile_core_ready: true,
+        has_future_slots: true,
+        public_profile_enabled: true,
+        ready_for_inbound_intent: true,
+      },
+      missing_items: [],
+      warnings: [],
+      next_actions: [{ code: 'VIEW_PUBLIC_PROFILE', target: 'PUBLIC_PROFILE_VIEW', priority: 1 }],
+      primary_cta_code: 'VIEW_PUBLIC_PROFILE',
+    } as any)
+
+    const view = renderView()
+    await waitFor(() => {
+      expect(view.container.querySelector('a[href="/public"]')).toBeInTheDocument()
+    })
+  })
 })
+
+

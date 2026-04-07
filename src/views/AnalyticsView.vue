@@ -5,7 +5,7 @@
         <div class="badge">Аналітика</div>
         <h1 class="title analytics__title">Аналітика</h1>
         <p class="muted analytics__subtitle">
-          Переглядайте основні показники своєї практики за вибраний період.
+          Аналітика відображає основні сесії практики. Гостьові зовнішні сесії сюди не входять.
         </p>
       </div>
       <RouterLink class="btn btn--ghost" to="/cabinet">Назад до кабінету</RouterLink>

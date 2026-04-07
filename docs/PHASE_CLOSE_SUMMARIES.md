@@ -10,6 +10,47 @@ Usage:
 
 ---
 
+## 2026-04-07 - Specialist-Side Guest Request UX Polish (Staging Verified)
+
+### Context
+- Public guest booking request submit flow and cabinet guest quota visibility were already closed and staging-verified.
+- Remaining gap: specialist-side guest request handling had no dedicated actionable UI surface.
+
+### Done
+- Added specialist guest request panel in cabinet external sessions surface (`Гостьові запити`).
+- Added clear request status semantics in UI for:
+  - `pending`
+  - `approved`
+  - `declined`
+  - `cancelled`
+- Added approve/decline specialist actions directly in request cards.
+- Added controlled online-approve UX with required `meeting_url` input before approve action.
+- Added explicit post-decision bridge:
+  - link to resulting external session from approved request (`external_session_id`)
+  - invite link rendering when returned by approve response.
+- Added and updated targeted FE tests for render/approve/decline and online-approve requirement.
+- Backend changes were not required in this phase.
+
+### Validation
+- `npm run test:run -- src/views/ExternalSessionsView.spec.ts`
+- `npm run typecheck`
+- Staging manual smoke on `/cabinet/external-sessions`:
+  - guest request panel visible
+  - online pending request cannot be approved without meeting link
+  - approve transitions status and links to resulting external session
+  - decline transitions request to resolved state
+
+### Deferred / Not in Scope
+- Per-card inline error granularity for request decision actions.
+- Per-card split loading indicators for approve vs decline.
+- Backend contract documentation lock for guest request endpoints/response shape.
+
+### Key Commits
+- `d856b56` specialist-side guest request UX polish integrated on `dev`
+
+### Merge Readiness
+- `dev` includes specialist-side guest request UX improvements and is staging-verified.
+
 ## 2026-04-02 - External Guest Session FE Mapping Stabilization
 
 ### Context

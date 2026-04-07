@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/vue'
+import { fireEvent, render, screen, within } from '@testing-library/vue'
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import PublicProfileView from './PublicProfileView.vue'
 import { BOOKING_UI_MESSAGES } from '../lib/bookingCopy'
@@ -83,6 +83,8 @@ const mockedFetchSpecialistProfile = vi.mocked(fetchSpecialistProfile)
 const mockedFetchPublicAuthorJournalPosts = vi.mocked(fetchPublicAuthorJournalPosts)
 const mockedFetchPublicJournalCollections = vi.mocked(fetchPublicJournalCollections)
 const mockedSendInquiryMessage = vi.mocked(sendInquiryMessage)
+const windowOpenSpy = vi.spyOn(window, 'open').mockImplementation(() => null)
+const clipboardWriteTextSpy = vi.fn().mockResolvedValue(undefined)
 
 async function flushAsyncUpdates() {
   await Promise.resolve()
@@ -111,8 +113,20 @@ function buildProfile(overrides: Record<string, unknown> = {}) {
     intro_duration_minutes: 30,
     intro_price: '600',
     intro_price_currency: 'UAH',
-    contact_email: 'hello@example.com',
-    telegram: '@olena_help',
+    contact_actions: [
+      {
+        channel: 'EMAIL',
+        label: 'Email',
+        value: 'hello@example.com',
+        action_url: 'mailto:hello@example.com',
+      },
+      {
+        channel: 'TELEGRAM',
+        label: 'Telegram',
+        value: '@olena_help',
+        action_url: 'https://t.me/olena_help',
+      },
+    ],
     photo_url: 'https://example.com/photo.jpg',
     video_url: 'https://example.com/video.mp4',
     profile_documents: [
@@ -216,6 +230,12 @@ beforeAll(() => {
     value: vi.fn(),
     configurable: true,
   })
+  Object.defineProperty(navigator, 'clipboard', {
+    value: {
+      writeText: clipboardWriteTextSpy,
+    },
+    configurable: true,
+  })
 })
 
 describe('PublicProfileView', () => {
@@ -228,6 +248,9 @@ describe('PublicProfileView', () => {
     mockAuth.me = null
     mockToast.success.mockReset()
     mockToast.error.mockReset()
+    mockToast.warning.mockReset()
+    mockToast.info.mockReset()
+    mockToast.show.mockReset()
     mockedApiGet.mockReset()
     mockedApiPost.mockReset()
     mockedCreateInquiryThread.mockReset()
@@ -240,6 +263,9 @@ describe('PublicProfileView', () => {
     mockedFetchPublicJournalCollections.mockReset()
     mockedSendInquiryMessage.mockReset()
     mockedFetchInquiryMessages.mockResolvedValue([])
+    windowOpenSpy.mockClear()
+    clipboardWriteTextSpy.mockReset()
+    clipboardWriteTextSpy.mockResolvedValue(undefined)
   })
 
   it('renders the main public profile sections from loaded data', async () => {
@@ -297,8 +323,277 @@ describe('PublicProfileView', () => {
     expect(screen.getByText('hello@example.com')).toBeInTheDocument()
     expect(await screen.findByText('Профілактика вигорання')).toBeInTheDocument()
     expect(await screen.findByText('Що кажуть клієнти')).toBeInTheDocument()
-    expect(screen.getByText('Щоб забронювати час, увійдіть у свій кабінет клієнта.')).toBeInTheDocument()
+    expect(
+      screen.getByText('Можна почати без реєстрації: оберіть слот і залиште короткий запит з контактом.')
+    ).toBeInTheDocument()
     expect(container).toHaveTextContent('Дуже уважний підхід.')
+  })
+
+  it('hides public contact CTA when backend returns zero contact actions', async () => {
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(buildProfile({ contact_actions: [] }))
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/slots/') return [buildTodayLocalSlot()]
+      if (url === '/public/specialists/olena/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    await screen.findByText('Олена')
+    expect(screen.queryByRole('heading', { name: /зв.?язок зі спеціалістом/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Зв’язатися зі спеціалістом' })).not.toBeInTheDocument()
+  })
+
+  it('opens the only contact action directly without chooser', async () => {
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(
+      buildProfile({
+        contact_actions: [
+          {
+            channel: 'EMAIL',
+            label: 'Email',
+            value: 'hello@example.com',
+            action_url: 'mailto:hello@example.com',
+          },
+        ],
+      })
+    )
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/slots/') return [buildTodayLocalSlot()]
+      if (url === '/public/specialists/olena/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    const contactCta = await screen.findByRole('button', { name: 'Зв’язатися зі спеціалістом' })
+    await fireEvent.click(contactCta)
+
+    expect(windowOpenSpy).toHaveBeenCalledWith(
+      'mailto:hello@example.com',
+      '_blank',
+      'noopener,noreferrer'
+    )
+    expect(screen.queryByText('Оберіть канал зв’язку')).not.toBeInTheDocument()
+  })
+
+  it('filters non-allowlisted contact action scheme from CTA/chooser and blocks open', async () => {
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(
+      buildProfile({
+        contact_actions: [
+          {
+            channel: 'EMAIL',
+            label: 'Email',
+            value: 'hello@example.com',
+            action_url: 'mailto:hello@example.com',
+          },
+          {
+            channel: 'TELEGRAM',
+            label: 'Telegram',
+            value: '@olena_help',
+            action_url: 'javascript:alert(1)',
+          },
+        ],
+      })
+    )
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/slots/') return [buildTodayLocalSlot()]
+      if (url === '/public/specialists/olena/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    const { container } = renderView()
+
+    await screen.findByText('Email')
+
+    const directLinks = Array.from(container.querySelectorAll('a.contact-action')) as HTMLAnchorElement[]
+    expect(directLinks).toHaveLength(1)
+    expect(directLinks[0]?.getAttribute('href')).toBe('mailto:hello@example.com')
+    expect(
+      directLinks.some((link) => String(link.getAttribute('href') || '').startsWith('javascript:'))
+    ).toBe(false)
+    expect(screen.queryByText('Telegram')).not.toBeInTheDocument()
+  })
+
+  it('opens chooser and routes to selected action when multiple contact channels exist', async () => {
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(buildProfile())
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/slots/') return [buildTodayLocalSlot()]
+      if (url === '/public/specialists/olena/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    const contactCta = await screen.findByRole('button', { name: 'Зв’язатися зі спеціалістом' })
+    await fireEvent.click(contactCta)
+
+    const chooserTitle = await screen.findByText('Оберіть канал зв’язку')
+    expect(chooserTitle).toBeInTheDocument()
+    const chooserModal = chooserTitle.closest('.contact-chooser-modal')
+    expect(chooserModal).not.toBeNull()
+    const chooser = within(chooserModal as HTMLElement)
+    expect(chooser.getByText('Оберіть зручний канал: це не бронювання, а прямий контакт для першого діалогу.')).toBeInTheDocument()
+    expect(chooser.getByText('Email')).toBeInTheDocument()
+    expect(chooser.getByText('Telegram')).toBeInTheDocument()
+    expect(chooser.getByText('@olena_help')).toBeInTheDocument()
+    expect(screen.queryByText('EMAIL')).not.toBeInTheDocument()
+    expect(screen.queryByText('TELEGRAM')).not.toBeInTheDocument()
+
+    const actionButtons = chooser.getAllByRole('button', { name: 'Відкрити' })
+    await fireEvent.click(actionButtons[1] as HTMLButtonElement)
+
+    expect(windowOpenSpy).toHaveBeenCalledWith(
+      'https://t.me/olena_help',
+      '_blank',
+      'noopener,noreferrer'
+    )
+  })
+
+  it('shows fallback modal with copy action for direct external contact channels', async () => {
+    vi.useFakeTimers()
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(
+      buildProfile({
+        contact_actions: [
+          {
+            channel: 'VIBER',
+            label: 'Viber',
+            value: '+380001112233',
+            action_url: 'viber://chat?number=%2B380001112233',
+          },
+        ],
+      })
+    )
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/slots/') return [buildTodayLocalSlot()]
+      if (url === '/public/specialists/olena/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    try {
+      const { container } = renderView()
+      await screen.findByText('Viber')
+
+      const directAction = container.querySelector('.contact-action')
+      expect(directAction).not.toBeNull()
+      await fireEvent.click(directAction as HTMLAnchorElement)
+
+      expect(windowOpenSpy).toHaveBeenCalledWith(
+        'viber://chat?number=%2B380001112233',
+        '_blank',
+        'noopener,noreferrer'
+      )
+      await vi.advanceTimersByTimeAsync(950)
+      const fallbackModal = container.querySelector('.contact-fallback-modal')
+      expect(fallbackModal).not.toBeNull()
+      const fallback = within(fallbackModal as HTMLElement)
+      expect(fallback.getByText('Viber')).toBeInTheDocument()
+      expect(fallback.getByText('+380001112233')).toBeInTheDocument()
+      const fallbackButtons = fallback.getAllByRole('button')
+      await fireEvent.click(fallbackButtons[1] as HTMLButtonElement)
+      expect(clipboardWriteTextSpy).toHaveBeenCalledWith('+380001112233')
+      expect(mockToast.success).toHaveBeenCalled()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+  it('shows fallback modal for chooser-selected telegram action', async () => {
+    vi.useFakeTimers()
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(buildProfile())
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/slots/') return [buildTodayLocalSlot()]
+      if (url === '/public/specialists/olena/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    try {
+      const { container } = renderView()
+
+      await screen.findByText('Telegram')
+      const closingButtons = Array.from(
+        container.querySelectorAll('.closing-cta__actions button')
+      ) as HTMLButtonElement[]
+      expect(closingButtons.length).toBeGreaterThan(1)
+      await fireEvent.click(closingButtons[1] as HTMLButtonElement)
+
+      const chooserModal = container.querySelector('.contact-chooser-modal')
+      expect(chooserModal).not.toBeNull()
+      const chooser = within(chooserModal as HTMLElement)
+      const actionButtons = chooser.getAllByRole('button')
+      await fireEvent.click(actionButtons[actionButtons.length - 1] as HTMLButtonElement)
+
+      expect(windowOpenSpy).toHaveBeenCalledWith(
+        'https://t.me/olena_help',
+        '_blank',
+        'noopener,noreferrer'
+      )
+      expect(container.querySelector('.contact-chooser-modal')).toBeNull()
+
+      await vi.advanceTimersByTimeAsync(950)
+      const fallbackModal = container.querySelector('.contact-fallback-modal')
+      expect(fallbackModal).not.toBeNull()
+      const fallback = within(fallbackModal as HTMLElement)
+      expect(fallback.getByText('Telegram')).toBeInTheDocument()
+      expect(fallback.getByText('@olena_help')).toBeInTheDocument()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+  it('does not crash when contact_actions are missing or partially empty', async () => {
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(
+      buildProfile({
+        contact_actions: [
+          { channel: 'EMAIL', label: null, value: null, action_url: null },
+          { channel: 'TELEGRAM', label: 'Telegram', value: '', action_url: '' },
+        ],
+      })
+    )
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/slots/') return [buildTodayLocalSlot()]
+      if (url === '/public/specialists/olena/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    expect(await screen.findByText('Олена')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Зв’язатися зі спеціалістом' })).not.toBeInTheDocument()
+    expect(screen.queryByText('Оберіть канал зв’язку')).not.toBeInTheDocument()
+  })
+
+  it('does not crash when contact_actions are not returned yet', async () => {
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(buildProfile({ contact_actions: undefined }))
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/slots/') return [buildTodayLocalSlot()]
+      if (url === '/public/specialists/olena/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    expect(await screen.findByText('Олена')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Зв’язатися зі спеціалістом' })).not.toBeInTheDocument()
   })
 
   it('shows owner unpublished-profile state instead of raw not-found copy for own slug', async () => {
@@ -422,6 +717,233 @@ describe('PublicProfileView', () => {
     renderView()
 
     expect(await screen.findByText('Формат зустрічей: Онлайн та офлайн')).toBeInTheDocument()
+  })
+
+  it('explains booking next step and trust markers before client login', async () => {
+    mockCommonPublicData()
+    mockBookingPageDataWithSingleSlot()
+
+    renderView()
+
+    expect(
+      await screen.findAllByText('Після вибору часу відкриється короткий запит: залиште ім’я та контакт без реєстрації.')
+    ).toHaveLength(2)
+    expect(screen.getAllByText('Натискання кнопки «Записатися» не списує оплату автоматично.')).toHaveLength(2)
+  })
+
+  it('opens guest booking request flow from slot click without auth', async () => {
+    mockCommonPublicData()
+    mockBookingPageDataWithSingleSlot()
+
+    renderView()
+
+    const slotButton = await screen.findByRole('button', { name: 'Записатися' })
+    await fireEvent.click(slotButton)
+
+    expect(await screen.findByRole('heading', { name: 'Запит на бронювання' })).toBeInTheDocument()
+    expect(screen.getByLabelText('Ім’я')).toBeInTheDocument()
+    expect(screen.getByLabelText('Канал зв’язку')).toBeInTheDocument()
+    expect(screen.getByLabelText('Контакт')).toBeInTheDocument()
+  })
+
+  it('submits a valid guest booking request and renders success state copy', async () => {
+    mockCommonPublicData()
+    mockBookingPageDataWithSingleSlot()
+    mockedApiPost.mockResolvedValue({
+      request: {
+        id: 501,
+        status: 'PENDING',
+        created_at: '2026-04-07T10:00:00Z',
+        next_step: 'Request sent. Specialist will review and contact you soon.',
+      },
+    })
+
+    renderView()
+
+    await fireEvent.click(await screen.findByRole('button', { name: 'Записатися' }))
+    await fireEvent.update(screen.getByLabelText('Ім’я'), 'Ірина')
+    await fireEvent.update(screen.getByLabelText('Контакт'), 'iryna@example.com')
+    await fireEvent.click(screen.getByRole('button', { name: 'Надіслати запит' }))
+
+    expect(mockedApiPost).toHaveBeenCalledWith(
+      '/public/specialists/olena/guest-booking-requests/',
+      {
+        slot_id: 100,
+        session_format: 'online',
+        guest_name: 'Ірина',
+        contact_channel: 'email',
+        contact_value: 'iryna@example.com',
+      }
+    )
+    expect(
+      await screen.findByText('Запит надіслано. Спеціаліст підтвердить час або зв’яжеться з вами.')
+    ).toBeInTheDocument()
+    expect(screen.getByText(/Реєстрація не потрібна для цього кроку\./)).toBeInTheDocument()
+    expect(
+      screen.getByText(/Натискання кнопки не означає автоматичне списання оплати\./)
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText(/Спеціаліст перегляне запит і зв’яжеться з вами найближчим часом\./)
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByText(/Request sent\. Specialist will review and contact you soon\./)
+    ).not.toBeInTheDocument()
+  })
+
+  it('submits guest booking request with canonical telegram contact channel value', async () => {
+    mockCommonPublicData()
+    mockBookingPageDataWithSingleSlot()
+    mockedApiPost.mockResolvedValue({
+      request: {
+        id: 502,
+        status: 'PENDING',
+        created_at: '2026-04-07T10:00:00Z',
+        next_step: null,
+      },
+    })
+
+    renderView()
+
+    await fireEvent.click(await screen.findByRole('button', { name: 'Записатися' }))
+    await fireEvent.update(screen.getByLabelText('Ім’я'), 'Ірина')
+    await fireEvent.update(screen.getByLabelText('Канал зв’язку'), 'telegram')
+    await fireEvent.update(screen.getByLabelText('Контакт'), '@iryna_help')
+    await fireEvent.click(screen.getByRole('button', { name: 'Надіслати запит' }))
+
+    expect(mockedApiPost).toHaveBeenCalledWith(
+      '/public/specialists/olena/guest-booking-requests/',
+      expect.objectContaining({
+        contact_channel: 'telegram',
+        contact_value: '@iryna_help',
+      })
+    )
+  })
+
+  it('submits guest booking request with canonical phone contact channel value', async () => {
+    mockCommonPublicData()
+    mockBookingPageDataWithSingleSlot()
+    mockedApiPost.mockResolvedValue({
+      request: {
+        id: 503,
+        status: 'PENDING',
+        created_at: '2026-04-07T10:00:00Z',
+        next_step: null,
+      },
+    })
+
+    renderView()
+
+    await fireEvent.click(await screen.findByRole('button', { name: 'Записатися' }))
+    await fireEvent.update(screen.getByLabelText('Ім’я'), 'Ірина')
+    await fireEvent.update(screen.getByLabelText('Канал зв’язку'), 'phone')
+    await fireEvent.update(screen.getByLabelText('Контакт'), '+380501112233')
+    await fireEvent.click(screen.getByRole('button', { name: 'Надіслати запит' }))
+
+    expect(mockedApiPost).toHaveBeenCalledWith(
+      '/public/specialists/olena/guest-booking-requests/',
+      expect.objectContaining({
+        contact_channel: 'phone',
+        contact_value: '+380501112233',
+      })
+    )
+  })
+
+  it('shows specific validation message for unsupported contact channel choice', async () => {
+    mockCommonPublicData()
+    mockBookingPageDataWithSingleSlot()
+    mockedApiPost.mockRejectedValue({
+      response: {
+        status: 400,
+        data: {
+          contact_channel: ['"TELEGRAM" is not a valid choice.'],
+        },
+      },
+    })
+
+    renderView()
+
+    await fireEvent.click(await screen.findByRole('button', { name: 'Записатися' }))
+    await fireEvent.update(screen.getByLabelText('Ім’я'), 'Ірина')
+    await fireEvent.update(screen.getByLabelText('Контакт'), 'iryna@example.com')
+    await fireEvent.click(screen.getByRole('button', { name: 'Надіслати запит' }))
+
+    expect(
+      await screen.findByText('Оберіть канал зв’язку зі списку: Email, Телефон або Telegram.')
+    ).toBeInTheDocument()
+  })
+
+  it('shows friendly unavailable slot error for guest booking request', async () => {
+    mockCommonPublicData()
+    mockBookingPageDataWithSingleSlot()
+    mockedApiPost.mockRejectedValue({
+      response: {
+        data: {
+          code: 'SLOT_ALREADY_BOOKED',
+        },
+      },
+    })
+
+    renderView()
+
+    await fireEvent.click(await screen.findByRole('button', { name: 'Записатися' }))
+    await fireEvent.update(screen.getByLabelText('Ім’я'), 'Ірина')
+    await fireEvent.update(screen.getByLabelText('Контакт'), 'iryna@example.com')
+    await fireEvent.click(screen.getByRole('button', { name: 'Надіслати запит' }))
+
+    expect(
+      await screen.findByText('Обраний слот уже недоступний. Будь ласка, виберіть інший час.')
+    ).toBeInTheDocument()
+  })
+
+  it('shows friendly guest-flow restriction error for entitlement limits', async () => {
+    mockCommonPublicData()
+    mockBookingPageDataWithSingleSlot()
+    mockedApiPost.mockRejectedValue({
+      response: {
+        data: {
+          code: 'OVER_LIMIT',
+        },
+      },
+    })
+
+    renderView()
+
+    await fireEvent.click(await screen.findByRole('button', { name: 'Записатися' }))
+    await fireEvent.update(screen.getByLabelText('Ім’я'), 'Ірина')
+    await fireEvent.update(screen.getByLabelText('Контакт'), 'iryna@example.com')
+    await fireEvent.click(screen.getByRole('button', { name: 'Надіслати запит' }))
+
+    expect(
+      await screen.findByText('Наразі нові гостьові запити тимчасово недоступні для цього профілю.')
+    ).toBeInTheDocument()
+  })
+
+  it('keeps canonical client booking flow and does not open guest request modal', async () => {
+    mockAuth.accessToken = 'token'
+    mockAuth.me = { user: { id: 7, roles: ['CLIENT'] } }
+
+    mockCommonPublicData()
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedFetchInquiryState.mockResolvedValue(buildInquiryState())
+    mockBookingPageDataWithSingleSlot()
+    mockedApiPost.mockResolvedValue({})
+
+    renderView()
+
+    const bookingAgreement = await screen.findByRole('checkbox', {
+      name: 'Я ознайомився(-лась) і погоджуюсь з умовами бронювання',
+    })
+    await fireEvent.click(bookingAgreement)
+    await fireEvent.click(screen.getByRole('button', { name: 'Записатися' }))
+
+    expect(mockedApiPost).toHaveBeenCalledWith(
+      '/booking/sessions/',
+      expect.objectContaining({
+        slot_id: 100,
+        setting_accepted: true,
+      })
+    )
+    expect(screen.queryByRole('heading', { name: 'Запит на бронювання' })).not.toBeInTheDocument()
   })
 
   it('blocks booking for a client until setting acceptance is confirmed', async () => {
@@ -780,6 +1302,27 @@ describe('PublicProfileView', () => {
     expect(screen.queryByText('Написати спеціалісту')).not.toBeInTheDocument()
   })
 
+  it('frames inquiry as a low-pressure entry point before booking', async () => {
+    mockAuth.accessToken = 'token'
+    mockAuth.me = { user: { id: 7, roles: ['CLIENT'] } }
+
+    mockCommonPublicData()
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedFetchInquiryState.mockResolvedValue(buildInquiryState())
+    mockClientPageData()
+
+    renderView()
+
+    expect(await screen.findByText('Почніть із короткого запиту')).toBeInTheDocument()
+    expect(
+      screen.getAllByText('Після натискання відкриється короткий запит до бронювання. Це м’який старт без фіксації слота.')
+    ).toHaveLength(2)
+    expect(screen.getByText('Почніть без тиску')).toBeInTheDocument()
+    expect(
+      screen.getByText('Короткий запит не фіксує слот і не потребує оплати. Можна спокійно уточнити деталі перед рішенням.')
+    ).toBeInTheDocument()
+  })
+
   it('creates the first inquiry from the public profile happy path', async () => {
     mockAuth.accessToken = 'token'
     mockAuth.me = { user: { id: 7, roles: ['CLIENT'] } }
@@ -921,3 +1464,4 @@ describe('PublicProfileView', () => {
     ).toBeInTheDocument()
   })
 })
+

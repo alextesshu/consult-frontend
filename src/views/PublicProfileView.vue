@@ -45,7 +45,7 @@
       <aside class="hero-cta" v-if="profile">
         <div class="hero-cta__head">
           <div class="badge badge--soft">Наступний крок</div>
-          <h2 class="hero-cta__title">Запишіться на консультацію</h2>
+          <h2 class="hero-cta__title">{{ heroCtaTitle }}</h2>
           <p class="hero-cta__hint">
             Оберіть зручний формат знайомства і переходьте до бронювання без зайвих кроків.
           </p>
@@ -74,6 +74,12 @@
           <a v-else class="btn btn--ghost" href="#slots">Переглянути вільні вікна</a>
           <RouterLink class="btn btn--ghost" :to="feedbackLink">Відгуки</RouterLink>
         </div>
+        <p class="hero-cta__next-step">
+          {{ primaryActionNextStepCopy }}
+        </p>
+        <ul class="hero-cta__trust-list">
+          <li v-for="marker in heroTrustMarkers" :key="marker">{{ marker }}</li>
+        </ul>
       </aside>
     </header>
 
@@ -173,6 +179,10 @@
         <div class="inquiry-state" :class="`inquiry-state--${inquiryLeadCopy.tone}`">
           {{ inquiryLeadCopy.body }}
         </div>
+        <article v-if="inquiryClarityCard" class="inquiry-clarity">
+          <div class="inquiry-clarity__title">{{ inquiryClarityCard.title }}</div>
+          <p class="inquiry-clarity__body">{{ inquiryClarityCard.body }}</p>
+        </article>
 
         <div v-if="inquiryLoading" class="muted">Завантажуємо запит...</div>
         <div v-else-if="inquiryError" class="form-error">{{ inquiryError }}</div>
@@ -297,15 +307,13 @@
           <aside class="slot-info" aria-label="Умови бронювання">
             <div class="slot-info__title">Перед записом</div>
             <ul class="slot-info__list">
-              <li v-if="!isAuthenticated">Щоб забронювати час, увійдіть у свій кабінет клієнта.</li>
+              <li v-if="isGuestVisitor">Можна почати без реєстрації: оберіть слот і залиште короткий запит з контактом.</li>
               <li v-else-if="!isClient">Бронювання доступне лише для клієнтів.</li>
               <li v-else>Бронювання доступне в кабінеті клієнта.</li>
+              <li>Натискання кнопки «Записатися» не списує оплату автоматично.</li>
               <li>Спеціаліст підтверджує сесію після запису.</li>
               <li>Нагадування надходять після підтвердження.</li>
             </ul>
-            <RouterLink v-if="!isAuthenticated" class="btn btn--ghost btn--sm slot-info__action" to="/login">
-              Увійти
-            </RouterLink>
           </aside>
         </div>
 
@@ -341,7 +349,7 @@
               :aria-disabled="isBookingDisabled(slot.id)"
               @click="handleBookingClick(slot.id)"
             >
-              {{ bookingSlotId === slot.id ? 'Бронюємо...' : 'Записатися' }}
+              {{ slotActionLabel(slot.id) }}
             </button>
           </div>
           <button
@@ -487,19 +495,23 @@
           <div>
             <div class="badge badge--soft">Зв’язок</div>
             <h2 class="panel__title">Зв’язок зі спеціалістом</h2>
+            <p class="panel__lead">
+              Оберіть зручний канал. Якщо застосунок не відкриється, контакт можна скопіювати й продовжити вручну.
+            </p>
           </div>
         </div>
         <div class="contact-actions">
           <a
             v-for="item in contactActions"
-            :key="item.label"
+            :key="item.id"
             class="contact-action"
-            :href="item.href"
+            :href="item.actionUrl"
             target="_blank"
             rel="noopener noreferrer"
+            @click.prevent="handleDirectContactAction(item)"
           >
-            <span class="contact-action__label">{{ item.label }}</span>
-            <span class="contact-action__value">{{ item.value }}</span>
+            <span class="contact-action__label">{{ item.channelLabel }}</span>
+            <span class="contact-action__value">{{ item.valueText }}</span>
           </a>
         </div>
       </section>
@@ -675,6 +687,7 @@
           <div class="closing-cta__copy">
             <h2 class="closing-cta__title">Готові зробити перший крок?</h2>
             <p class="closing-cta__subtitle">{{ closingCtaSupportLine }}</p>
+            <p class="closing-cta__next-step">{{ primaryActionNextStepCopy }}</p>
           </div>
           <div class="closing-cta__actions">
             <button class="btn btn--primary" type="button" @click="handleClosingPrimaryAction">
@@ -702,19 +715,192 @@
             >
               Переглянути вільні вікна
             </button>
-            <a
+            <button
               v-else-if="closingSecondaryKind === 'contact'"
               class="btn btn--ghost"
-              :href="primaryContactHref"
-              target="_blank"
-              rel="noopener noreferrer"
+              type="button"
+              @click="openPublicContactCta"
             >
-              Написати спеціалісту
-            </a>
+              {{ CONTACT_CHOOSER_COPY.ctaLabel }}
+            </button>
           </div>
         </div>
       </section>
     </section>
+
+    <div v-if="showContactChooserModal" class="setting-modal">
+      <div class="setting-modal__backdrop" @click="closeContactChooserModal"></div>
+      <div class="setting-modal__content contact-chooser-modal">
+        <div class="setting-modal__header">
+          <h3>{{ CONTACT_CHOOSER_COPY.title }}</h3>
+          <button class="btn btn--ghost btn--sm" type="button" @click="closeContactChooserModal">
+            {{ CONTACT_CHOOSER_COPY.closeButtonLabel }}
+          </button>
+        </div>
+        <div class="setting-modal__body">
+          <p class="muted contact-chooser-modal__hint">{{ CONTACT_CHOOSER_COPY.helperText }}</p>
+          <div v-if="contactActions.length" class="contact-chooser-modal__list">
+            <article
+              v-for="item in contactActions"
+              :key="item.id"
+              class="contact-chooser-modal__item"
+            >
+              <div class="contact-chooser-modal__meta">
+                <div class="contact-chooser-modal__title">{{ item.channelLabel }}</div>
+                <div v-if="item.valueText" class="contact-chooser-modal__value">{{ item.valueText }}</div>
+              </div>
+              <button
+                class="btn btn--ghost btn--sm"
+                type="button"
+                @click="handleContactChooserAction(item)"
+              >
+                {{ CONTACT_CHOOSER_COPY.channelActionButtonLabel }}
+              </button>
+            </article>
+          </div>
+          <div v-else class="muted">{{ CONTACT_CHOOSER_COPY.emptyStateText }}</div>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="contactActionFallback" class="setting-modal">
+      <div class="setting-modal__backdrop" @click="closeContactActionFallbackModal"></div>
+      <div class="setting-modal__content contact-fallback-modal">
+        <div class="setting-modal__header">
+          <h3>{{ CONTACT_FALLBACK_COPY.title }}</h3>
+          <button class="btn btn--ghost btn--sm" type="button" @click="closeContactActionFallbackModal">
+            {{ CONTACT_FALLBACK_COPY.closeButtonLabel }}
+          </button>
+        </div>
+        <div class="setting-modal__body">
+          <p class="muted contact-fallback-modal__helper">{{ CONTACT_FALLBACK_COPY.helperText }}</p>
+          <article class="contact-fallback-modal__contact">
+            <div class="contact-fallback-modal__label">{{ contactActionFallback.channelLabel }}</div>
+            <div class="contact-fallback-modal__value">{{ contactActionFallback.valueText }}</div>
+          </article>
+          <p class="muted contact-fallback-modal__hint">{{ contactActionFallback.manualHint }}</p>
+          <div class="contact-fallback-modal__actions">
+            <button class="btn btn--ghost btn--sm" type="button" @click="copyContactActionFallbackValue">
+              {{ CONTACT_FALLBACK_COPY.copyButtonLabel }}
+            </button>
+            <button class="btn btn--ghost btn--sm" type="button" @click="retryContactActionFallback">
+              {{ CONTACT_FALLBACK_COPY.retryButtonLabel }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div v-if="showGuestBookingModal" class="setting-modal">
+      <div class="setting-modal__backdrop" @click="closeGuestBookingModal"></div>
+      <div class="setting-modal__content guest-booking-modal">
+        <div class="setting-modal__header">
+          <h3>Запит на бронювання</h3>
+          <button class="btn btn--ghost btn--sm" type="button" @click="closeGuestBookingModal">
+            Закрити
+          </button>
+        </div>
+        <div class="setting-modal__body">
+          <template v-if="guestBookingSuccess">
+            <div class="success">
+              Запит надіслано. Спеціаліст підтвердить час або зв’яжеться з вами.
+            </div>
+            <div class="booking-slot" v-if="guestBookingSlot">
+              <div class="muted">Обраний слот</div>
+              <div class="booking-slot__time">{{ selectedGuestSlotSummary }}</div>
+              <div class="muted">{{ formatDuration(guestBookingSlot.start_at, guestBookingSlot.end_at) }}</div>
+            </div>
+            <div class="booking-next">
+              <div class="booking-next__title">Що далі</div>
+              <div class="booking-next__item">• Реєстрація не потрібна для цього кроку.</div>
+              <div class="booking-next__item">• Це запит, а не миттєво підтверджена сесія.</div>
+              <div class="booking-next__item">• Натискання кнопки не означає автоматичне списання оплати.</div>
+              <div v-if="guestBookingRequestSummaryCopy" class="booking-next__item">• {{ guestBookingRequestSummaryCopy }}</div>
+            </div>
+          </template>
+
+          <form v-else class="guest-booking-form" @submit.prevent="submitGuestBookingRequest">
+            <div class="booking-slot" v-if="guestBookingSlot">
+              <div class="muted">Обраний слот</div>
+              <div class="booking-slot__time">{{ selectedGuestSlotSummary }}</div>
+              <div class="muted">{{ formatDuration(guestBookingSlot.start_at, guestBookingSlot.end_at) }}</div>
+              <div class="muted" v-if="sessionFormatLabelForBooking">
+                Формат: {{ sessionFormatLabelForBooking }}
+              </div>
+            </div>
+
+            <div class="booking-next">
+              <div class="booking-next__title">Перед надсиланням</div>
+              <div class="booking-next__item">• Це м’який перший крок без створення кабінету.</div>
+              <div class="booking-next__item">• Спеціаліст окремо підтвердить час або запропонує інший.</div>
+            </div>
+
+            <label class="setting-label" for="guestBookingName">
+              Ім’я
+              <input
+                id="guestBookingName"
+                v-model="guestBookingForm.guest_name"
+                class="input"
+                type="text"
+                autocomplete="name"
+                required
+                :disabled="guestBookingSubmitting"
+              />
+            </label>
+
+            <label class="setting-label" for="guestBookingContactChannel">
+              Канал зв’язку
+              <select
+                id="guestBookingContactChannel"
+                v-model="guestBookingForm.contact_channel"
+                class="input"
+                :disabled="guestBookingSubmitting"
+              >
+                <option
+                  v-for="option in GUEST_CONTACT_CHANNEL_OPTIONS"
+                  :key="option.value"
+                  :value="option.value"
+                >
+                  {{ option.label }}
+                </option>
+              </select>
+            </label>
+
+            <label class="setting-label" for="guestBookingContactValue">
+              Контакт
+              <input
+                id="guestBookingContactValue"
+                v-model="guestBookingForm.contact_value"
+                class="input"
+                type="text"
+                :placeholder="guestContactValuePlaceholder"
+                autocomplete="off"
+                required
+                :disabled="guestBookingSubmitting"
+              />
+            </label>
+
+            <label class="setting-label" for="guestBookingMessage">
+              Повідомлення (необов’язково)
+              <textarea
+                id="guestBookingMessage"
+                v-model="guestBookingForm.message"
+                class="input guest-booking-form__message"
+                rows="3"
+                :disabled="guestBookingSubmitting"
+                placeholder="Коротко опишіть, що важливо уточнити перед першою сесією."
+              ></textarea>
+            </label>
+
+            <div v-if="guestBookingError" class="form-error">{{ guestBookingError }}</div>
+
+            <button class="btn btn--primary" type="submit" :disabled="guestBookingSubmitting">
+              {{ guestBookingSubmitting ? 'Надсилаємо...' : 'Надіслати запит' }}
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
 
     <div v-if="showBookingModal" class="setting-modal">
       <div class="setting-modal__backdrop" @click="closeBookingModal"></div>
@@ -736,6 +922,7 @@
           </div>
           <div class="booking-next">
             <div class="booking-next__title">Що далі</div>
+            <div class="booking-next__item">• Натискання кнопки «Записатися» не списує оплату автоматично.</div>
             <div class="booking-next__item">• Перевіряйте статус і деталі у кабінеті клієнта.</div>
             <div class="booking-next__item">• Після підтвердження сесії сервіс нагадає про зустріч.</div>
             <div class="booking-next__item">• Якщо плани зміняться, ви можете перенести або скасувати запис у деталях сесії.</div>
@@ -780,7 +967,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import DOMPurify from 'dompurify'
 import { marked } from 'marked'
 import { useRoute, useRouter } from 'vue-router'
@@ -813,6 +1000,7 @@ import {
   type ChatThread,
   type InquiryMessage,
   type InquiryState,
+  type PublicContactAction,
   type PublicSpecialistProfile,
   type PublicSpecialistProfileDocument,
   type PublicAuthorJournalPost,
@@ -828,6 +1016,28 @@ type PublicSlot = {
   end_at: string
 }
 
+type PublicGuestBookingRequestPayload = {
+  slot_id: number
+  session_format: SessionFormat
+  guest_name: string
+  contact_channel: GuestContactChannel
+  contact_value: string
+  message?: string
+}
+
+type PublicGuestBookingRequestResponse = {
+  request: {
+    id: number
+    status: string
+    created_at: string
+    next_step: string | null
+  }
+}
+
+type GuestContactChannel = 'email' | 'phone' | 'telegram'
+const GUEST_BOOKING_SUCCESS_NEXT_STEP_COPY =
+  'Спеціаліст перегляне запит і зв’яжеться з вами найближчим часом.'
+
 type ClientSession = {
   id: number
   status: string
@@ -842,6 +1052,23 @@ type PublicReview = {
   id: number
   review_text: string
   created_at: string
+}
+
+type PublicContactActionViewModel = {
+  id: string
+  channel: string
+  channelLabel: string
+  valueText: string
+  actionUrl: string
+  actionScheme: string
+}
+
+type ContactActionFallbackViewModel = {
+  channelLabel: string
+  valueText: string
+  copyValue: string
+  manualHint: string
+  actionUrl: string
 }
 
 const route = useRoute()
@@ -861,11 +1088,26 @@ const bookingSuccess = ref('')
 const bookingSlotId = ref<number | null>(null)
 const showBookingModal = ref(false)
 const lastBookedSlot = ref<PublicSlot | null>(null)
+const showGuestBookingModal = ref(false)
+const guestBookingSlot = ref<PublicSlot | null>(null)
+const guestBookingSubmitting = ref(false)
+const guestBookingSubmitSlotId = ref<number | null>(null)
+const guestBookingError = ref('')
+const guestBookingSuccess = ref<PublicGuestBookingRequestResponse['request'] | null>(null)
+const guestBookingForm = ref({
+  guest_name: '',
+  contact_channel: 'email' as GuestContactChannel,
+  contact_value: '',
+  message: '',
+})
 const settingAccepted = ref(false)
 const showSettingModal = ref(false)
+const showContactChooserModal = ref(false)
+const contactActionFallback = ref<ContactActionFallbackViewModel | null>(null)
 const settingAttention = ref(false)
 const settingButtonRef = ref<HTMLElement | null>(null)
 let settingAttentionTimer: number | null = null
+let contactActionFallbackTimer: number | null = null
 const clientSessions = ref<ClientSession[]>([])
 const pastClientSessions = ref<ClientSession[]>([])
 const chatThreads = ref<ChatThread[]>([])
@@ -901,6 +1143,8 @@ const slug = computed(() => String(route.params.slug || '').trim())
 const roles = computed(() => auth.me?.user.roles ?? auth.user?.roles ?? [])
 const isAuthenticated = computed(() => Boolean(auth.accessToken))
 const isClient = computed(() => roles.value.includes('CLIENT'))
+const isGuestVisitor = computed(() => !isAuthenticated.value)
+const isUnsupportedBookingRole = computed(() => isAuthenticated.value && !isClient.value)
 const canBook = computed(() => isAuthenticated.value && isClient.value)
 const hasOnlineBooking = computed(() => Boolean(profile.value?.offers_online))
 const hasOfflineBooking = computed(() => Boolean(profile.value?.offers_offline))
@@ -922,8 +1166,13 @@ const bookingOfflineLocationHint = computed(() => {
   if (resolvedSessionFormat.value !== 'offline') return ''
   return offlineMeetingLocation.value
 })
-const isBookingDisabled = (slotId: number) =>
-  !canBook.value || bookingSlotId.value === slotId || !settingAccepted.value
+const isBookingDisabled = (slotId: number) => {
+  if (bookingSlotId.value === slotId) return true
+  if (guestBookingSubmitting.value && guestBookingSubmitSlotId.value === slotId) return true
+  if (isGuestVisitor.value) return false
+  if (isUnsupportedBookingRole.value) return true
+  return !settingAccepted.value
+}
 const visibleSlots = computed(() => (showAllSlots.value ? slots.value : slots.value.slice(0, slotsPreviewLimit)))
 const hasMoreSlots = computed(() => slots.value.length > slotsPreviewLimit)
 const hasPublicJournalPosts = computed(() => journalPosts.value.length > 0)
@@ -1096,12 +1345,53 @@ const feedbackLink = computed(() => ({
   name: 'specialist-feedback',
   params: { slug: profile.value?.public_slug || slug.value },
 }))
+const heroCtaTitle = computed(() => {
+  if (canMessageSpecialist.value) return 'Продовжити спілкування'
+  if (showInquiryEntry.value) return 'Почніть із короткого запиту'
+  return 'Запишіться на консультацію'
+})
 const heroPrimaryLabel = computed(() => {
   if (canMessageSpecialist.value) return 'Написати повідомлення'
   if (showInquiryEntry.value) {
     return inquiryState.value?.inquiry_exists ? 'Уточнити деталі' : 'Поставити запитання'
   }
   return 'Записатися на ознайомчу сесію'
+})
+
+const primaryActionNextStepCopy = computed(() => {
+  if (canMessageSpecialist.value) {
+    return 'Після натискання відкриється чат у кабінеті клієнта, де можна узгодити деталі у зручному темпі.'
+  }
+  if (showInquiryEntry.value) {
+    return 'Після натискання відкриється короткий запит до бронювання. Це м’який старт без фіксації слота.'
+  }
+  if (!isAuthenticated.value) {
+    return 'Після вибору часу відкриється короткий запит: залиште ім’я та контакт без реєстрації.'
+  }
+  if (!isClient.value) {
+    return 'Бронювання доступне в ролі клієнта. Натисніть кнопку, щоб переглянути вільні слоти.'
+  }
+  return 'Після вибору часу створюється запит на сесію: спеціаліст підтвердить його окремо.'
+})
+
+const heroTrustMarkers = computed(() => {
+  if (canMessageSpecialist.value) {
+    return [
+      'Листування ведеться у вашому кабінеті клієнта.',
+      'За потреби можна спочатку узгодити деталі, а потім бронювати.',
+    ]
+  }
+  const markers = [
+    'Натискання кнопки «Записатися» не списує оплату автоматично.',
+    'Сесія вважається підтвердженою після відповіді спеціаліста.',
+  ]
+  if (!isAuthenticated.value) {
+    markers.push('Перший крок можна зробити без реєстрації: достатньо короткого запиту з контактом.')
+  }
+  if (showInquiryEntry.value) {
+    markers.push('Якщо не готові одразу бронювати, почніть із короткого запиту.')
+  }
+  return markers
 })
 
 const closingPrimaryLabel = computed(() => {
@@ -1132,7 +1422,7 @@ const closingSecondaryKind = computed<'sessions' | 'reviews' | 'slots' | 'contac
   if (showClientSessionsCta.value) return 'sessions'
   if (canMessageSpecialist.value) return 'reviews'
   if (showInquiryEntry.value) return 'slots'
-  if (primaryContactHref.value) return 'contact'
+  if (hasPublicContactCta.value) return 'contact'
   return 'reviews'
 })
 
@@ -1250,84 +1540,255 @@ function isImageDocument(document: PublicSpecialistProfileDocument): boolean {
   return ['jpg', 'jpeg', 'png', 'webp', 'gif', 'bmp', 'svg', 'avif'].includes(extension)
 }
 
-function normalizeTelegramHref(value: string) {
-  const trimmed = value.trim()
-  if (!trimmed) return ''
-  if (/^https?:\/\//i.test(trimmed)) return trimmed
-  return `https://t.me/${trimmed.replace(/^@/, '')}`
+const CONTACT_CHANNEL_LABELS: Record<string, string> = {
+  EMAIL: 'Email',
+  TELEGRAM: 'Telegram',
+  VIBER: 'Viber',
+  WHATSAPP: 'WhatsApp',
+  PHONE: 'Телефон',
 }
 
-function normalizeWhatsAppHref(value: string) {
-  const digits = value.replace(/[^\d+]/g, '')
-  if (!digits) return ''
-  if (/^https?:\/\//i.test(value.trim())) return value.trim()
-  return `https://wa.me/${digits.replace('+', '')}`
+const CONTACT_CHOOSER_COPY = {
+  ctaLabel: 'Зв’язатися зі спеціалістом',
+  title: 'Оберіть канал зв’язку',
+  helperText: 'Оберіть зручний канал: це не бронювання, а прямий контакт для першого діалогу.',
+  channelActionButtonLabel: 'Відкрити',
+  closeButtonLabel: 'Закрити',
+  emptyStateText: 'Публічні канали зв’язку поки недоступні.',
 }
 
-function normalizeViberHref(value: string) {
-  const trimmed = value.trim()
-  if (!trimmed) return ''
-  if (/^https?:\/\//i.test(trimmed)) return trimmed
-  return `viber://chat?number=${trimmed.replace(/[^\d+]/g, '')}`
+const CONTACT_FALLBACK_COPY = {
+  title: 'Застосунок не відкрився?',
+  helperText: 'Скопіюйте контакт і продовжіть вручну.',
+  copyButtonLabel: 'Скопіювати контакт',
+  retryButtonLabel: 'Спробувати ще раз',
+  closeButtonLabel: 'Закрити',
+  copySuccessText: 'Контакт скопійовано.',
+  copyErrorText: 'Не вдалося скопіювати контакт.',
 }
 
-const contactActions = computed(() => {
-  if (!profile.value) return []
-  const items: Array<{ label: string; value: string; href: string }> = []
-  if (profile.value.contact_email) {
-    items.push({
-      label: 'Email',
-      value: profile.value.contact_email,
-      href: `mailto:${profile.value.contact_email}`,
-    })
+const CONTACT_ACTION_ALLOWED_SCHEMES = new Set(['http', 'https', 'mailto', 'tel', 'viber', 'whatsapp', 'tg'])
+const CONTACT_ACTION_FALLBACK_CHANNELS = new Set(['EMAIL', 'PHONE', 'TELEGRAM', 'VIBER', 'WHATSAPP'])
+const CONTACT_ACTION_FALLBACK_SCHEMES = new Set(['mailto', 'tel', 'viber', 'whatsapp', 'tg'])
+const CONTACT_ACTION_FALLBACK_DELAY_MS = 900
+
+const CONTACT_ACTION_FALLBACK_HINTS: Record<string, string> = {
+  EMAIL:
+    'Відкрийте пошту вручну, вставте email у одержувача і надішліть лист.',
+  PHONE:
+    'Відкрийте застосунок телефону, вставте номер і зателефонуйте вручну.',
+  TELEGRAM:
+    'Відкрийте Telegram вручну, вставте контакт у пошук і почніть діалог.',
+  VIBER:
+    'Відкрийте Viber вручну, вставте номер у пошук і почніть чат.',
+  WHATSAPP:
+    'Відкрийте WhatsApp вручну, вставте номер у пошук і почніть чат.',
+}
+
+function sanitizeContactActionValue(value: string | null | undefined): string {
+  return String(value || '').trim()
+}
+
+function normalizeContactActionUrl(url: string | null | undefined): string {
+  return String(url || '').trim()
+}
+
+function resolveContactActionScheme(url: string): string {
+  const schemeMatch = url.match(/^([a-z][a-z0-9+.-]*):/i)
+  if (!schemeMatch) return ''
+  return String(schemeMatch[1] || '').toLowerCase()
+}
+
+function isAllowedContactActionUrl(url: string): boolean {
+  const scheme = resolveContactActionScheme(url)
+  if (!scheme) return false
+  return CONTACT_ACTION_ALLOWED_SCHEMES.has(scheme)
+}
+
+function resolveContactActionChannelLabel(action: PublicContactAction): string {
+  const safeLabel = String(action.label || '').trim()
+  if (safeLabel) return safeLabel
+  const channel = String(action.channel || '').trim().toUpperCase()
+  return CONTACT_CHANNEL_LABELS[channel] || 'Контактний канал'
+}
+
+function normalizePublicContactAction(
+  action: PublicContactAction | null | undefined,
+  index: number
+): PublicContactActionViewModel | null {
+  if (!action) return null
+  const actionUrl = normalizeContactActionUrl(action.action_url)
+  if (!actionUrl || !isAllowedContactActionUrl(actionUrl)) return null
+  const channel = String(action.channel || '').trim().toUpperCase()
+  const valueText = sanitizeContactActionValue(action.value)
+  const actionScheme = resolveContactActionScheme(actionUrl)
+  return {
+    id: `${channel || 'CONTACT'}-${index}`,
+    channel: channel || 'CONTACT',
+    channelLabel: resolveContactActionChannelLabel(action),
+    valueText,
+    actionUrl,
+    actionScheme,
   }
-  if (profile.value.contact_phone) {
-    const phone = profile.value.contact_phone
-    items.push({
-      label: 'Телефон',
-      value: phone,
-      href: `tel:${phone.replace(/[^\d+]/g, '')}`,
-    })
-  }
-  if (profile.value.telegram) {
-    items.push({
-      label: 'Telegram',
-      value: profile.value.telegram,
-      href: normalizeTelegramHref(profile.value.telegram),
-    })
-  }
-  if (profile.value.whatsapp) {
-    items.push({
-      label: 'WhatsApp',
-      value: profile.value.whatsapp,
-      href: normalizeWhatsAppHref(profile.value.whatsapp),
-    })
-  }
-  if (profile.value.viber) {
-    items.push({
-      label: 'Viber',
-      value: profile.value.viber,
-      href: normalizeViberHref(profile.value.viber),
-    })
-  }
-  if (profile.value.messenger) {
-    const messenger = profile.value.messenger
-    items.push({
-      label: 'Messenger / Signal',
-      value: messenger,
-      href: /^https?:\/\//i.test(messenger) ? messenger : `https://m.me/${messenger.replace(/^@/, '')}`,
-    })
-  }
-  return items.filter((item) => Boolean(item.href))
+}
+
+const contactActions = computed<PublicContactActionViewModel[]>(() => {
+  const source = profile.value?.contact_actions
+  if (!Array.isArray(source) || source.length === 0) return []
+  return source
+    .map((action, index) => normalizePublicContactAction(action, index))
+    .filter((action): action is PublicContactActionViewModel => Boolean(action))
 })
 
 const showDirectContactActions = computed(() => Boolean(contactActions.value.length && !isClient.value))
-
-const primaryContactHref = computed(() =>
-  !canMessageSpecialist.value && !showInquiryEntry.value && showDirectContactActions.value
-    ? contactActions.value[0]?.href || ''
-    : ''
+const hasPublicContactCta = computed(
+  () => !canMessageSpecialist.value && !showInquiryEntry.value && contactActions.value.length > 0
 )
+
+function decodeContactActionValue(value: string): string {
+  const normalized = String(value || '').replace(/\+/g, '%20')
+  try {
+    return decodeURIComponent(normalized)
+  } catch {
+    return value
+  }
+}
+
+function extractContactActionUrlSearchParams(url: string): URLSearchParams {
+  try {
+    return new URL(url).searchParams
+  } catch {
+    const queryIndex = url.indexOf('?')
+    if (queryIndex < 0) return new URLSearchParams()
+    return new URLSearchParams(url.slice(queryIndex + 1))
+  }
+}
+
+function normalizeTelegramValue(value: string): string {
+  const normalized = sanitizeContactActionValue(value)
+  if (!normalized) return ''
+  if (normalized.startsWith('@') || normalized.startsWith('+')) return normalized
+  return `@${normalized}`
+}
+
+function extractContactFallbackValueFromUrl(action: PublicContactActionViewModel): string {
+  const safeUrl = normalizeContactActionUrl(action.actionUrl)
+  if (!safeUrl) return ''
+  const scheme = action.actionScheme
+  if (scheme === 'mailto') {
+    const raw = safeUrl.replace(/^mailto:/i, '').split('?')[0] || ''
+    return sanitizeContactActionValue(decodeContactActionValue(raw))
+  }
+  if (scheme === 'tel') {
+    const raw = safeUrl.replace(/^tel:/i, '').split('?')[0] || ''
+    return sanitizeContactActionValue(decodeContactActionValue(raw))
+  }
+
+  const params = extractContactActionUrlSearchParams(safeUrl)
+  const numberLike =
+    params.get('number') ||
+    params.get('phone') ||
+    params.get('chatURI') ||
+    params.get('chat_uri') ||
+    ''
+  if (numberLike) {
+    return sanitizeContactActionValue(decodeContactActionValue(numberLike))
+  }
+
+  const telegramDomain = params.get('domain') || params.get('username') || ''
+  if (telegramDomain) {
+    return normalizeTelegramValue(decodeContactActionValue(telegramDomain))
+  }
+
+  const telegramMatch = safeUrl.match(/^https?:\/\/(?:www\.)?t\.me\/([^/?#]+)/i)
+  if (telegramMatch?.[1]) {
+    return normalizeTelegramValue(decodeContactActionValue(telegramMatch[1]))
+  }
+
+  const whatsappMatch = safeUrl.match(/^https?:\/\/(?:www\.)?wa\.me\/([^/?#]+)/i)
+  if (whatsappMatch?.[1]) {
+    return sanitizeContactActionValue(decodeContactActionValue(whatsappMatch[1]))
+  }
+
+  return ''
+}
+
+function resolveContactFallbackValue(action: PublicContactActionViewModel): string {
+  if (action.valueText) {
+    return action.channel === 'TELEGRAM'
+      ? normalizeTelegramValue(action.valueText)
+      : sanitizeContactActionValue(action.valueText)
+  }
+  const valueFromUrl = extractContactFallbackValueFromUrl(action)
+  if (valueFromUrl) return valueFromUrl
+  return action.actionUrl
+}
+
+function resolveContactFallbackHint(action: PublicContactActionViewModel): string {
+  return (
+    CONTACT_ACTION_FALLBACK_HINTS[action.channel] ||
+    'Відкрийте канал вручну і вставте контакт для продовження спілкування.'
+  )
+}
+
+const GUEST_CONTACT_CHANNEL_OPTIONS: Array<{ value: GuestContactChannel; label: string }> = [
+  { value: 'email', label: 'Email' },
+  { value: 'phone', label: 'Телефон' },
+  { value: 'telegram', label: 'Telegram' },
+]
+
+const GUEST_BOOKING_UNAVAILABLE_CODES = new Set([
+  'SLOT_NOT_FOUND',
+  'SLOT_ALREADY_BOOKED',
+  'SLOT_LOCKED_BOOKED',
+  'SLOT_IN_PAST',
+])
+
+const GUEST_BOOKING_RESTRICTED_CODES = new Set([
+  'OVER_LIMIT',
+  'BILLING_RESTRICTED',
+  'BILLING_GRACE',
+  'SUSPENDED',
+  'GUEST_BOOKING_DISABLED',
+  'GUEST_BOOKING_RESTRICTED',
+  'ENTITLEMENT_RESTRICTED',
+])
+
+const GUEST_BOOKING_DUPLICATE_OR_SPAM_CODES = new Set([
+  'REQUEST_ALREADY_EXISTS',
+  'REQUEST_ALREADY_PENDING',
+  'DUPLICATE_REQUEST',
+  'SPAM_GUARD',
+  'RATE_LIMITED',
+  'TOO_MANY_REQUESTS',
+])
+
+const guestContactValuePlaceholder = computed(() => {
+  switch (guestBookingForm.value.contact_channel) {
+    case 'phone':
+      return '+380...'
+    case 'telegram':
+      return '@username'
+    default:
+      return 'name@example.com'
+  }
+})
+
+const selectedGuestSlotSummary = computed(() => {
+  const slot = guestBookingSlot.value
+  if (!slot) return ''
+  return formatDate(slot.start_at)
+})
+
+const guestBookingRequestSummaryCopy = computed(() => {
+  if (!guestBookingSuccess.value) return ''
+  return GUEST_BOOKING_SUCCESS_NEXT_STEP_COPY
+})
+
+function shouldShowContactActionFallback(action: PublicContactActionViewModel): boolean {
+  if (CONTACT_ACTION_FALLBACK_CHANNELS.has(action.channel)) return true
+  return CONTACT_ACTION_FALLBACK_SCHEMES.has(action.actionScheme)
+}
 
 const inquiryLeadCopy = computed(() => {
   const state = inquiryState.value
@@ -1382,6 +1843,20 @@ const showInquiryComposer = computed(() => {
 const inquirySubmitLabel = computed(() => {
   if (inquiryState.value?.can_create_inquiry) return 'Надіслати запит'
   return 'Надіслати уточнення'
+})
+
+const inquiryClarityCard = computed<{ title: string; body: string } | null>(() => {
+  if (!showInquiryComposer.value) return null
+  if (inquiryState.value?.can_create_inquiry) {
+    return {
+      title: 'Почніть без тиску',
+      body: 'Короткий запит не фіксує слот і не потребує оплати. Можна спокійно уточнити деталі перед рішенням.',
+    }
+  }
+  return {
+    title: 'Уточнення перед рішенням',
+    body: 'Додавайте короткі уточнення по черзі. Після відповіді спеціаліста оберете, чи переходити до запису.',
+  }
 })
 
 const standardSessionDurationMinutes = computed(() => {
@@ -1505,6 +1980,88 @@ function openClientChat() {
   })
 }
 
+function clearContactActionFallbackTimer() {
+  if (contactActionFallbackTimer === null) return
+  window.clearTimeout(contactActionFallbackTimer)
+  contactActionFallbackTimer = null
+}
+
+function closeContactActionFallbackModal() {
+  contactActionFallback.value = null
+  clearContactActionFallbackTimer()
+}
+
+function scheduleContactActionFallback(action: PublicContactActionViewModel) {
+  if (!shouldShowContactActionFallback(action)) return
+  clearContactActionFallbackTimer()
+  contactActionFallbackTimer = window.setTimeout(() => {
+    contactActionFallbackTimer = null
+    const valueText = resolveContactFallbackValue(action)
+    contactActionFallback.value = {
+      channelLabel: action.channelLabel,
+      valueText,
+      copyValue: valueText,
+      manualHint: resolveContactFallbackHint(action),
+      actionUrl: action.actionUrl,
+    }
+  }, CONTACT_ACTION_FALLBACK_DELAY_MS)
+}
+
+function openContactActionUrl(url: string): boolean {
+  const safeUrl = normalizeContactActionUrl(url)
+  if (!safeUrl || !isAllowedContactActionUrl(safeUrl)) return false
+  window.open(safeUrl, '_blank', 'noopener,noreferrer')
+  return true
+}
+
+function openContactAction(item: PublicContactActionViewModel, options?: { scheduleFallback?: boolean }) {
+  closeContactActionFallbackModal()
+  const opened = openContactActionUrl(item.actionUrl)
+  if (!opened) return
+  if (options?.scheduleFallback === false) return
+  scheduleContactActionFallback(item)
+}
+
+function closeContactChooserModal() {
+  showContactChooserModal.value = false
+}
+
+function handleDirectContactAction(item: PublicContactActionViewModel) {
+  openContactAction(item)
+}
+
+function handleContactChooserAction(item: PublicContactActionViewModel) {
+  openContactAction(item)
+  closeContactChooserModal()
+}
+
+function openPublicContactCta() {
+  if (!hasPublicContactCta.value) return
+  if (contactActions.value.length === 1) {
+    openContactAction(contactActions.value[0]!)
+    return
+  }
+  showContactChooserModal.value = true
+}
+
+async function copyContactActionFallbackValue() {
+  const fallback = contactActionFallback.value
+  if (!fallback?.copyValue) return
+  try {
+    await navigator.clipboard.writeText(fallback.copyValue)
+    toast.success(CONTACT_FALLBACK_COPY.copySuccessText)
+  } catch {
+    toast.error(CONTACT_FALLBACK_COPY.copyErrorText)
+  }
+}
+
+function retryContactActionFallback() {
+  const fallback = contactActionFallback.value
+  if (!fallback) return
+  closeContactActionFallbackModal()
+  openContactActionUrl(fallback.actionUrl)
+}
+
 function handleHeroPrimaryAction() {
   if (canMessageSpecialist.value) {
     openClientChat()
@@ -1524,6 +2081,10 @@ function handleClosingPrimaryAction() {
   }
   if (showInquiryEntry.value) {
     scrollToInquiry()
+    return
+  }
+  if (hasPublicContactCta.value) {
+    openPublicContactCta()
     return
   }
   scrollToSlots()
@@ -1838,6 +2399,203 @@ async function submitInquiryMessage() {
   }
 }
 
+function resetGuestBookingForm() {
+  guestBookingForm.value = {
+    guest_name: '',
+    contact_channel: 'email',
+    contact_value: '',
+    message: '',
+  }
+}
+
+function closeGuestBookingModal() {
+  showGuestBookingModal.value = false
+  guestBookingSlot.value = null
+  guestBookingError.value = ''
+  guestBookingSuccess.value = null
+  guestBookingSubmitting.value = false
+  guestBookingSubmitSlotId.value = null
+  resetGuestBookingForm()
+}
+
+function openGuestBookingModal(slotId: number) {
+  const selectedSlot = slots.value.find((slot) => slot.id === slotId) || null
+  if (!selectedSlot) {
+    bookingError.value = 'Обраний слот уже недоступний. Будь ласка, виберіть інший час.'
+    return
+  }
+  bookingError.value = ''
+  bookingSuccess.value = ''
+  guestBookingSlot.value = selectedSlot
+  guestBookingError.value = ''
+  guestBookingSuccess.value = null
+  guestBookingSubmitSlotId.value = slotId
+  resetGuestBookingForm()
+  showGuestBookingModal.value = true
+}
+
+function getGuestBookingErrorCode(err: unknown): string {
+  const code = (err as { response?: { data?: { code?: unknown } } })?.response?.data?.code
+  return typeof code === 'string' ? code.trim().toUpperCase() : ''
+}
+
+function getGuestBookingReasonCode(err: unknown): string {
+  const reasonCode = (err as { response?: { data?: { reason_code?: unknown } } })?.response?.data?.reason_code
+  return typeof reasonCode === 'string' ? reasonCode.trim().toUpperCase() : ''
+}
+
+function hasGuestContactValidationError(err: unknown): boolean {
+  const data = (err as { response?: { data?: Record<string, unknown> } })?.response?.data
+  if (!data || typeof data !== 'object') return false
+  return Boolean(data.contact_value || data.contact_channel || data.guest_name)
+}
+
+function extractGuestFieldErrors(err: unknown, field: string): string[] {
+  const data = (err as { response?: { data?: Record<string, unknown> } })?.response?.data
+  if (!data || typeof data !== 'object') return []
+  const value = data[field]
+  if (typeof value === 'string') return [value]
+  if (Array.isArray(value)) {
+    return value.filter((item): item is string => typeof item === 'string')
+  }
+  return []
+}
+
+function hasInvalidGuestContactChannelChoice(err: unknown): boolean {
+  return extractGuestFieldErrors(err, 'contact_channel').some((message) =>
+    message.toLowerCase().includes('not a valid choice')
+  )
+}
+
+function isGuestBookingUnavailableError(err: unknown): boolean {
+  const code = getGuestBookingErrorCode(err)
+  const reasonCode = getGuestBookingReasonCode(err)
+  return GUEST_BOOKING_UNAVAILABLE_CODES.has(code) || GUEST_BOOKING_UNAVAILABLE_CODES.has(reasonCode)
+}
+
+function getGuestBookingErrorMessage(err: unknown): string {
+  const status = Number((err as { response?: { status?: unknown } })?.response?.status || 0)
+  const code = getGuestBookingErrorCode(err)
+  const reasonCode = getGuestBookingReasonCode(err)
+
+  if (
+    GUEST_BOOKING_UNAVAILABLE_CODES.has(code) ||
+    GUEST_BOOKING_UNAVAILABLE_CODES.has(reasonCode)
+  ) {
+    return 'Обраний слот уже недоступний. Будь ласка, виберіть інший час.'
+  }
+
+  if (
+    GUEST_BOOKING_RESTRICTED_CODES.has(code) ||
+    GUEST_BOOKING_RESTRICTED_CODES.has(reasonCode)
+  ) {
+    return 'Наразі нові гостьові запити тимчасово недоступні для цього профілю.'
+  }
+
+  if (
+    status === 429 ||
+    GUEST_BOOKING_DUPLICATE_OR_SPAM_CODES.has(code) ||
+    GUEST_BOOKING_DUPLICATE_OR_SPAM_CODES.has(reasonCode)
+  ) {
+    return 'Такий запит уже надіслано або ліміт звернень вичерпано. Спробуйте трохи пізніше.'
+  }
+
+  if (hasInvalidGuestContactChannelChoice(err)) {
+    return 'Оберіть канал зв’язку зі списку: Email, Телефон або Telegram.'
+  }
+
+  if (hasGuestContactValidationError(err)) {
+    return 'Перевірте ім’я та контакт: у формі є неточності.'
+  }
+
+  return 'Не вдалося надіслати запит. Спробуйте ще раз.'
+}
+
+async function createPublicGuestBookingRequest(
+  profileSlug: string,
+  payload: PublicGuestBookingRequestPayload
+): Promise<PublicGuestBookingRequestResponse> {
+  try {
+    return await apiPost<PublicGuestBookingRequestResponse>(
+      `/public/specialists/${profileSlug}/guest-booking-requests/`,
+      payload
+    )
+  } catch (err: any) {
+    const status = Number((err as { response?: { status?: unknown } })?.response?.status || 0)
+    if (status !== 404 && status !== 405) {
+      throw err
+    }
+  }
+
+  return apiPost<PublicGuestBookingRequestResponse>(
+    `/public/therapists/${profileSlug}/guest-booking-requests/`,
+    payload
+  )
+}
+
+async function submitGuestBookingRequest() {
+  const slot = guestBookingSlot.value
+  const profileSlug = profile.value?.public_slug || slug.value
+  if (!slot || !profileSlug) return
+
+  const guestName = guestBookingForm.value.guest_name.trim()
+  const contactChannelRaw = guestBookingForm.value.contact_channel.trim().toLowerCase()
+  const contactValue = guestBookingForm.value.contact_value.trim()
+  const message = guestBookingForm.value.message.trim()
+  const isSupportedContactChannel = ['email', 'phone', 'telegram'].includes(contactChannelRaw)
+
+  if (!guestName || !contactChannelRaw || !contactValue) {
+    guestBookingError.value = 'Заповніть, будь ласка, ім’я та контакт для відповіді.'
+    return
+  }
+  if (!isSupportedContactChannel) {
+    guestBookingError.value = 'Оберіть канал зв’язку зі списку: Email, Телефон або Telegram.'
+    return
+  }
+
+  const sessionFormat = resolvedSessionFormat.value
+  if (!sessionFormat) {
+    guestBookingError.value = 'Не вдалося визначити формат сесії. Оновіть сторінку та спробуйте ще раз.'
+    return
+  }
+  const contactChannel = contactChannelRaw as GuestContactChannel
+
+  guestBookingSubmitting.value = true
+  guestBookingError.value = ''
+  guestBookingSubmitSlotId.value = slot.id
+
+  try {
+    const payload: PublicGuestBookingRequestPayload = {
+      slot_id: slot.id,
+      session_format: sessionFormat,
+      guest_name: guestName,
+      contact_channel: contactChannel,
+      contact_value: contactValue,
+    }
+    if (message) {
+      payload.message = message
+    }
+    const response = await createPublicGuestBookingRequest(profileSlug, payload)
+    guestBookingSuccess.value = response.request
+    toast.success('Запит надіслано.')
+  } catch (err: any) {
+    guestBookingError.value = getGuestBookingErrorMessage(err)
+    toast.error(guestBookingError.value)
+    if (isGuestBookingUnavailableError(err)) {
+      await loadSlots()
+    }
+  } finally {
+    guestBookingSubmitting.value = false
+    guestBookingSubmitSlotId.value = null
+  }
+}
+
+function slotActionLabel(slotId: number) {
+  if (bookingSlotId.value === slotId) return 'Бронюємо...'
+  if (guestBookingSubmitting.value && guestBookingSubmitSlotId.value === slotId) return 'Надсилаємо...'
+  return 'Записатися'
+}
+
 function flashSettingButton() {
   settingAttention.value = false
   if (settingAttentionTimer) {
@@ -1852,8 +2610,12 @@ function flashSettingButton() {
 }
 
 function handleBookingClick(slotId: number) {
-  if (!canBook.value) {
-    bookSlot(slotId)
+  if (isGuestVisitor.value) {
+    openGuestBookingModal(slotId)
+    return
+  }
+  if (isUnsupportedBookingRole.value) {
+    bookingError.value = BOOKING_UI_MESSAGES.onlyClientsCanBook
     return
   }
   if (bookingSlotId.value === slotId) return
@@ -2001,6 +2763,15 @@ watch(
 watch(slug, () => {
   profile.value = null
   slots.value = []
+  showGuestBookingModal.value = false
+  guestBookingSlot.value = null
+  guestBookingError.value = ''
+  guestBookingSuccess.value = null
+  guestBookingSubmitting.value = false
+  guestBookingSubmitSlotId.value = null
+  resetGuestBookingForm()
+  showContactChooserModal.value = false
+  closeContactActionFallbackModal()
   showAllSlots.value = false
   selectedDate.value = toLocalDate(new Date())
   inquiryState.value = null
@@ -2028,6 +2799,9 @@ watch([isAuthenticated, isClient], () => {
   loadClientSessions()
   loadChatThreads()
   loadInquiryState()
+  if (isAuthenticated.value && showGuestBookingModal.value) {
+    closeGuestBookingModal()
+  }
 })
 
 watch(
@@ -2060,6 +2834,14 @@ watch(
   },
   { immediate: true }
 )
+
+onBeforeUnmount(() => {
+  if (settingAttentionTimer !== null) {
+    window.clearTimeout(settingAttentionTimer)
+    settingAttentionTimer = null
+  }
+  clearContactActionFallbackTimer()
+})
 
 onMounted(async () => {
   if (!selectedDate.value) {
@@ -2278,6 +3060,23 @@ onMounted(async () => {
 
 .hero-cta__actions .btn {
   width: 100%;
+}
+
+.hero-cta__next-step {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: color-mix(in srgb, var(--text) 78%, var(--muted));
+}
+
+.hero-cta__trust-list {
+  margin: 0;
+  padding-left: 16px;
+  display: grid;
+  gap: 4px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--muted);
 }
 
 .public__grid {
@@ -2516,6 +3315,28 @@ onMounted(async () => {
 
 .inquiry-state--neutral {
   background: color-mix(in srgb, #e9e3d7 45%, #ffffff);
+}
+
+.inquiry-clarity {
+  display: grid;
+  gap: 4px;
+  border: 1px dashed color-mix(in srgb, var(--line) 82%, #d2c8b4);
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: color-mix(in srgb, #f6f1e6 50%, #ffffff);
+}
+
+.inquiry-clarity__title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--deep);
+}
+
+.inquiry-clarity__body {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--muted);
 }
 
 .inquiry-thread {
@@ -2861,6 +3682,13 @@ onMounted(async () => {
   color: var(--muted);
   font-size: 14px;
   line-height: 1.5;
+}
+
+.closing-cta__next-step {
+  margin: 0;
+  color: color-mix(in srgb, var(--text) 82%, var(--muted));
+  font-size: 13px;
+  line-height: 1.45;
 }
 
 .closing-cta__actions {
@@ -3616,6 +4444,86 @@ onMounted(async () => {
     gap: 12px;
   }
 
+  .contact-chooser-modal {
+    width: min(560px, 92vw);
+  }
+
+  .contact-chooser-modal__hint {
+    margin: 0;
+  }
+
+  .contact-chooser-modal__list {
+    display: grid;
+    gap: 8px;
+  }
+
+  .contact-chooser-modal__item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: #fff;
+  }
+
+  .contact-chooser-modal__meta {
+    min-width: 0;
+    display: grid;
+    gap: 2px;
+  }
+
+  .contact-chooser-modal__title {
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .contact-chooser-modal__value {
+    font-size: 12px;
+    color: var(--muted);
+    overflow-wrap: anywhere;
+  }
+
+  .contact-fallback-modal {
+    width: min(560px, 92vw);
+  }
+
+  .contact-fallback-modal__helper {
+    margin: 0;
+  }
+
+  .contact-fallback-modal__contact {
+    display: grid;
+    gap: 4px;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: #fff;
+  }
+
+  .contact-fallback-modal__label {
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  .contact-fallback-modal__value {
+    font-size: 13px;
+    line-height: 1.4;
+    color: var(--muted);
+    overflow-wrap: anywhere;
+  }
+
+  .contact-fallback-modal__hint {
+    margin: 0;
+  }
+
+  .contact-fallback-modal__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
   .booking-checklist {
     display: grid;
     gap: 6px;
@@ -3684,6 +4592,19 @@ onMounted(async () => {
     gap: 6px;
     font-size: 13px;
     color: var(--muted);
+  }
+
+  .guest-booking-modal {
+    width: min(620px, 92vw);
+  }
+
+  .guest-booking-form {
+    display: grid;
+    gap: 12px;
+  }
+
+  .guest-booking-form__message {
+    resize: vertical;
   }
 
 @media (max-width: 960px) {
