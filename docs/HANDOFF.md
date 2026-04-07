@@ -1,6 +1,6 @@
 # Handoff
 
-Last updated: 2026-03-26  
+Last updated: 2026-04-07  
 Owner: agent-maintained  
 Canonical file: `docs/HANDOFF.md`  
 Governance: `docs/HANDOFF_RULES.md`  
@@ -23,7 +23,10 @@ Frontend production-readiness slice is now integrated:
 - profile capability fields: done (online/offline availability + offline location + completed sessions bucket display wired across cabinet/public/catalog)
 - booking/session format slice: done (booking create uses `session_format`, public booking chooser by specialist capabilities, offline sessions avoid join-link UX, format badges shown across key session surfaces)
 - analytics session-format slice: done (overview now renders online/offline session metrics and offline-location distribution by selected range)
-- next functional slice remains CRM history explicit-state normalization
+- public guest booking request: done (public unauthenticated request submit flow on specialist public profile)
+- plan card guest quota visibility: done (`GET /api/cabinet/entitlements/` guest quota row in cabinet plan metrics)
+- specialist-side guest request UX polish: done (specialist list/status/approve/decline surface, online approve `meeting_url` guard, post-approve link to resulting external session/invite)
+- next functional slice: guest request micro-polish + contract-doc lock (no broad redesign)
 
 ## System State
 
@@ -64,6 +67,11 @@ Frontend production-readiness slice is now integrated:
   - online join reads meeting URL from `join.meeting_url`
   - backward-compatible fallback to top-level `meeting_url` is preserved
   - online meeting opens in a new browser tab and does not replace the guest page
+- Specialist-side guest request runtime contract is now wired in cabinet:
+  - `GET /api/cabinet/guest-booking-requests/`
+  - `POST /api/cabinet/guest-booking-requests/{id}/approve/`
+  - `POST /api/cabinet/guest-booking-requests/{id}/decline/`
+  - online approve requires `meeting_url`; approved request is linked to resulting `external_session_id`
 - Specialist analytics overview now includes format and offline location visibility:
   - metrics include online/offline totals and completed online/offline totals
   - offline location distribution list is rendered with empty-state handling
@@ -101,18 +109,18 @@ Frontend production-readiness slice is now integrated:
 
 ## Active Work
 
-- Keep CRM track narrow in `TherapistClientsView` without broad refactor.
-- Next target: history surface explicit-state normalization (`loading/error/empty/retry`) with local retry scoped to history source.
-- Preserve already-stabilized clients-list/reminders branches unchanged.
-- Keep homepage copy consistency aligned with billing/product terminology (Ukrainian-first, no mixed-language feature labels).
-- Keep deployment docs and runtime assumptions synchronized with backend production routing/email contracts.
+- Guest request micro-polish on specialist-side surface:
+  - per-card inline error granularity for decision actions
+  - clearer per-card loading states for approve/decline
+- Contract-doc lock between frontend/backend for guest request approve/decline response shape.
+- Preserve current staging-proven guest request/external session behavior unchanged outside this bounded slice.
 
 ## Immediate Next Step
 
-Implement and validate one focused `TherapistClientsView` history-state slice:
-- explicit `loading/error/empty/retry`
-- targeted specs only for history branch behavior
-- handoff sync after completion
+Implement and validate one focused specialist guest request micro-polish slice:
+- per-card error/loading UX for decision actions
+- no API contract changes
+- append-only phase summary update after closure
 
 ## Critical Rules
 
