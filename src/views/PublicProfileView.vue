@@ -2927,8 +2927,8 @@ onMounted(async () => {
 
 .public__top {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(248px, 296px);
-  gap: 16px;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 264px);
+  gap: 14px;
   align-items: start;
 }
 
@@ -4676,7 +4676,7 @@ onMounted(async () => {
     resize: vertical;
   }
 
-@media (max-width: 1180px) {
+@media (max-width: 1260px) {
   .public__top {
     grid-template-columns: 1fr;
     gap: 12px;

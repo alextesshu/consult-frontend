@@ -123,7 +123,7 @@ defineEmits<{
   color: color-mix(in srgb, #3f5945 82%, var(--text));
 }
 
-@media (max-width: 1180px) {
+@media (max-width: 1260px) {
   .identity-rail {
     position: static;
   }

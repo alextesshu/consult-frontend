@@ -74,14 +74,14 @@ defineProps<Props>()
 
 .hero-profile {
   display: grid;
-  grid-template-columns: minmax(180px, 232px) minmax(0, 1fr);
+  grid-template-columns: minmax(156px, 196px) minmax(0, 1fr);
   gap: 16px;
   min-width: 0;
 }
 
 .hero-media {
   width: 100%;
-  max-width: 232px;
+  max-width: 196px;
   display: grid;
   gap: 10px;
   align-content: start;
@@ -139,7 +139,7 @@ defineProps<Props>()
   font-size: 16px;
   line-height: 1.66;
   color: var(--deep);
-  max-width: 66ch;
+  max-width: 72ch;
 }
 
 .hero-main__support {
