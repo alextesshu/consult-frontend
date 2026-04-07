@@ -1371,6 +1371,7 @@ export async function updateSpecialistSessionMeeting(
 
 export type ExternalSessionStatus = 'SCHEDULED' | 'CANCELLED' | string
 export type ExternalInviteStatus = 'ACTIVE' | 'EXPIRED' | 'REVOKED' | 'OPENED' | 'JOINED' | string
+export type GuestBookingRequestStatus = 'pending' | 'approved' | 'declined' | 'cancelled' | string
 
 export type ExternalSessionRecord = {
   id: number
@@ -1399,6 +1400,48 @@ export type ExternalSessionInvite = {
   created_at: string | null
   updated_at: string | null
   invite_url?: string | null
+}
+
+export type GuestBookingRequestRecord = {
+  id: number
+  status: GuestBookingRequestStatus
+  specialist_id: number
+  slot_id: number
+  requested_slot_start: string | null
+  requested_slot_end: string | null
+  duration_minutes: number | null
+  session_format: SessionFormat | null
+  offline_location_snapshot: string | null
+  guest_name: string | null
+  contact_channel: string | null
+  contact_value: string | null
+  message: string | null
+  source: string | null
+  public_profile_slug_snapshot: string | null
+  slot_snapshot_timezone: string | null
+  approved_at: string | null
+  declined_at: string | null
+  cancelled_at: string | null
+  decline_reason: string | null
+  external_session_id: number | null
+  created_at: string | null
+  updated_at: string | null
+}
+
+export type GuestBookingRequestInviteSnapshot = {
+  status: string
+  expires_at: string | null
+  created_at: string | null
+  revoked_at: string | null
+  last_opened_at: string | null
+  joined_at: string | null
+  invite_url: string | null
+}
+
+export type GuestBookingRequestApproveResponse = {
+  request: GuestBookingRequestRecord
+  external_session: ExternalSessionRecord | null
+  invite: GuestBookingRequestInviteSnapshot | null
 }
 
 export type ExternalSessionInviteCreateResponse = {
@@ -1457,6 +1500,33 @@ export async function createExternalSession(payload: {
   guest_email?: string | null
 }): Promise<ExternalSessionRecord> {
   const resp = await http.post<ExternalSessionRecord>('/cabinet/external-sessions/', payload)
+  return resp.data
+}
+
+export async function fetchCabinetGuestBookingRequests(): Promise<GuestBookingRequestRecord[]> {
+  const resp = await http.get<GuestBookingRequestRecord[]>('/cabinet/guest-booking-requests/')
+  return resp.data || []
+}
+
+export async function approveCabinetGuestBookingRequest(
+  requestId: number,
+  payload?: { meeting_url?: string | null }
+): Promise<GuestBookingRequestApproveResponse> {
+  const resp = await http.post<GuestBookingRequestApproveResponse>(
+    `/cabinet/guest-booking-requests/${requestId}/approve/`,
+    payload ?? {}
+  )
+  return resp.data
+}
+
+export async function declineCabinetGuestBookingRequest(
+  requestId: number,
+  payload?: { decline_reason?: string | null }
+): Promise<GuestBookingRequestRecord> {
+  const resp = await http.post<GuestBookingRequestRecord>(
+    `/cabinet/guest-booking-requests/${requestId}/decline/`,
+    payload ?? {}
+  )
   return resp.data
 }
 

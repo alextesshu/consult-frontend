@@ -100,6 +100,97 @@
     <section class="panel">
       <div class="panel__header">
         <div>
+          <div class="badge badge--soft">Запити</div>
+          <h2 class="panel__title">Гостьові запити</h2>
+        </div>
+      </div>
+
+      <div v-if="requestsError" class="form-error">{{ requestsError }}</div>
+      <div v-else-if="requestsLoading" class="muted">Завантаження гостьових запитів…</div>
+      <div v-else-if="guestRequests.length === 0" class="muted">
+        Немає нових гостьових запитів.
+      </div>
+
+      <div v-else class="list-grid">
+        <article v-for="request in guestRequests" :key="request.id" class="request-card">
+          <div class="request-card__main">
+            <div class="request-card__title">
+              {{ request.guest_name || 'Гість' }}
+            </div>
+            <div class="muted">
+              Контакт: {{ contactChannelLabel(request.contact_channel) }} · {{ request.contact_value || '—' }}
+            </div>
+            <div class="muted">
+              Запитаний слот: {{ formatDateTime(request.requested_slot_start) }}
+              <span v-if="request.duration_minutes"> · {{ request.duration_minutes }} хв</span>
+            </div>
+            <div class="muted">
+              Формат: {{ request.session_format === 'offline' ? 'Офлайн' : 'Онлайн' }}
+              <span v-if="request.session_format === 'offline' && request.offline_location_snapshot">
+                · {{ request.offline_location_snapshot }}
+              </span>
+            </div>
+            <div v-if="request.message" class="muted">Коментар: {{ request.message }}</div>
+            <div class="status-pill" :class="requestStatusClass(request.status)">
+              {{ requestStatusLabel(request.status) }}
+            </div>
+            <div v-if="requestDecisionAt(request)" class="muted">
+              Оновлено: {{ formatDateTime(requestDecisionAt(request)) }}
+            </div>
+            <div v-if="request.external_session_id" class="request-next-step">
+              <RouterLink
+                class="btn btn--ghost btn--sm"
+                :to="`/cabinet/external-sessions/${request.external_session_id}`"
+              >
+                Відкрити зовнішню сесію
+              </RouterLink>
+              <a
+                v-if="latestInviteUrlByRequestId[request.id]"
+                class="btn btn--ghost btn--sm"
+                :href="latestInviteUrlByRequestId[request.id]"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Відкрити гостьовий лінк
+              </a>
+            </div>
+          </div>
+
+          <div v-if="isPendingRequest(request.status)" class="request-actions">
+            <label v-if="request.session_format === 'online'" class="field request-meeting-field">
+              <span>Посилання на онлайн-зустріч</span>
+              <input
+                v-model="approveMeetingUrls[request.id]"
+                class="input"
+                type="url"
+                placeholder="https://meet.google.com/..."
+                :disabled="isRequestActionLoading(request.id)"
+              />
+            </label>
+            <button
+              class="btn btn--ghost btn--sm"
+              type="button"
+              :disabled="isApproveRequestDisabled(request)"
+              @click="approveRequest(request)"
+            >
+              {{ isRequestActionLoading(request.id) ? 'Погоджуємо…' : 'Погодити' }}
+            </button>
+            <button
+              class="btn btn--ghost btn--sm"
+              type="button"
+              :disabled="isRequestActionLoading(request.id)"
+              @click="declineRequest(request.id)"
+            >
+              {{ isRequestActionLoading(request.id) ? 'Відхиляємо…' : 'Відхилити' }}
+            </button>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel__header">
+        <div>
           <div class="badge badge--soft">Список</div>
           <h2 class="panel__title">Ваші зовнішні сесії</h2>
         </div>
@@ -134,10 +225,14 @@ import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useToast } from '../composables/useToast'
 import {
+  approveCabinetGuestBookingRequest,
   createExternalSession,
+  declineCabinetGuestBookingRequest,
+  fetchCabinetGuestBookingRequests,
   fetchExternalSessions,
   getApiErrorMessage,
   type ExternalSessionRecord,
+  type GuestBookingRequestRecord,
   type SessionFormat,
 } from '../lib/api'
 import { formatUkDateTimeCompact } from '../lib/dateTime'
@@ -158,9 +253,15 @@ const toast = useToast()
 
 const listLoading = ref(false)
 const listError = ref('')
+const requestsLoading = ref(false)
+const requestsError = ref('')
 const createPending = ref(false)
 const createError = ref('')
 const sessions = ref<ExternalSessionRecord[]>([])
+const guestRequests = ref<GuestBookingRequestRecord[]>([])
+const requestActionLoading = ref<Set<number>>(new Set())
+const approveMeetingUrls = ref<Record<number, string>>({})
+const latestInviteUrlByRequestId = ref<Record<number, string>>({})
 
 const createDraft = ref<CreateDraft>({
   start_date: '',
@@ -183,6 +284,69 @@ const timeOptions = Array.from({ length: 24 * 4 }, (_, index) => {
 
 function formatDateTime(value: string | null | undefined) {
   return formatUkDateTimeCompact(value)
+}
+
+function isPendingRequest(status: string | null | undefined) {
+  return String(status || '').toLowerCase() === 'pending'
+}
+
+function requestStatusLabel(status: string | null | undefined) {
+  const normalized = String(status || '').toLowerCase()
+  if (normalized === 'pending') return 'Очікує рішення'
+  if (normalized === 'approved') return 'Погоджено'
+  if (normalized === 'declined') return 'Відхилено'
+  if (normalized === 'cancelled') return 'Скасовано'
+  return status || '—'
+}
+
+function requestStatusClass(status: string | null | undefined) {
+  const normalized = String(status || '').toLowerCase()
+  if (normalized === 'pending') return 'status-pill--warn'
+  if (normalized === 'approved') return 'status-pill--ok'
+  if (normalized === 'declined' || normalized === 'cancelled') return 'status-pill--danger'
+  return 'status-pill--muted'
+}
+
+function contactChannelLabel(channel: string | null | undefined) {
+  const normalized = String(channel || '').toLowerCase()
+  if (normalized === 'email') return 'Email'
+  if (normalized === 'phone') return 'Телефон'
+  if (normalized === 'telegram') return 'Telegram'
+  return channel || 'Контакт'
+}
+
+function requestDecisionAt(request: GuestBookingRequestRecord) {
+  return request.approved_at || request.declined_at || request.cancelled_at
+}
+
+function setRequestActionLoading(id: number, value: boolean) {
+  const next = new Set(requestActionLoading.value)
+  if (value) {
+    next.add(id)
+  } else {
+    next.delete(id)
+  }
+  requestActionLoading.value = next
+}
+
+function isRequestActionLoading(id: number) {
+  return requestActionLoading.value.has(id)
+}
+
+function syncApproveMeetingDrafts(payload: GuestBookingRequestRecord[]) {
+  const next: Record<number, string> = {}
+  payload.forEach((request) => {
+    if (isPendingRequest(request.status) && request.session_format === 'online') {
+      next[request.id] = approveMeetingUrls.value[request.id] || ''
+    }
+  })
+  approveMeetingUrls.value = next
+}
+
+function isApproveRequestDisabled(request: GuestBookingRequestRecord) {
+  if (isRequestActionLoading(request.id)) return true
+  if (request.session_format !== 'online') return false
+  return !String(approveMeetingUrls.value[request.id] || '').trim()
 }
 
 function openDatePicker(event: Event) {
@@ -238,6 +402,24 @@ async function loadSessions() {
   }
 }
 
+async function loadGuestRequests() {
+  requestsLoading.value = true
+  requestsError.value = ''
+  try {
+    const payload = await fetchCabinetGuestBookingRequests()
+    guestRequests.value = (payload || [])
+      .slice()
+      .sort((a, b) => new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime())
+    syncApproveMeetingDrafts(guestRequests.value)
+  } catch (err) {
+    requestsError.value = getApiErrorMessage(err, 'Не вдалося завантажити гостьові запити.')
+    guestRequests.value = []
+    approveMeetingUrls.value = {}
+  } finally {
+    requestsLoading.value = false
+  }
+}
+
 function validateCreateDraft() {
   const startsAtIso = combineDateTimeToIso(createDraft.value.start_date, createDraft.value.start_time)
   if (!startsAtIso) return 'Вкажіть коректний час початку.'
@@ -286,8 +468,50 @@ async function submitCreate() {
   }
 }
 
+async function approveRequest(request: GuestBookingRequestRecord) {
+  if (!isPendingRequest(request.status)) return
+  requestsError.value = ''
+  const meetingUrl = String(approveMeetingUrls.value[request.id] || '').trim()
+  if (request.session_format === 'online' && !meetingUrl) {
+    requestsError.value = 'Для онлайн-запиту перед погодженням додайте посилання на зустріч.'
+    return
+  }
+
+  setRequestActionLoading(request.id, true)
+  try {
+    const response = await approveCabinetGuestBookingRequest(
+      request.id,
+      request.session_format === 'online' ? { meeting_url: meetingUrl } : {}
+    )
+    latestInviteUrlByRequestId.value = {
+      ...latestInviteUrlByRequestId.value,
+      [request.id]: response.invite?.invite_url || '',
+    }
+    toast.success('Гостьовий запит погоджено.')
+    await Promise.all([loadGuestRequests(), loadSessions()])
+  } catch (err) {
+    requestsError.value = getApiErrorMessage(err, 'Не вдалося погодити гостьовий запит.')
+  } finally {
+    setRequestActionLoading(request.id, false)
+  }
+}
+
+async function declineRequest(requestId: number) {
+  requestsError.value = ''
+  setRequestActionLoading(requestId, true)
+  try {
+    await declineCabinetGuestBookingRequest(requestId)
+    toast.success('Гостьовий запит відхилено.')
+    await loadGuestRequests()
+  } catch (err) {
+    requestsError.value = getApiErrorMessage(err, 'Не вдалося відхилити гостьовий запит.')
+  } finally {
+    setRequestActionLoading(requestId, false)
+  }
+}
+
 onMounted(async () => {
-  await loadSessions()
+  await Promise.all([loadSessions(), loadGuestRequests()])
 })
 </script>
 
@@ -380,6 +604,42 @@ onMounted(async () => {
   font-weight: 700;
 }
 
+.request-card {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  background: #fff;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.request-card__main {
+  display: grid;
+  gap: 6px;
+}
+
+.request-card__title {
+  font-weight: 700;
+}
+
+.request-actions {
+  min-width: 240px;
+  display: grid;
+  gap: 8px;
+}
+
+.request-meeting-field {
+  margin-bottom: 2px;
+}
+
+.request-next-step {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .status-pill {
   width: fit-content;
   padding: 6px 10px;
@@ -394,9 +654,19 @@ onMounted(async () => {
   color: #1f7a4c;
 }
 
+.status-pill--warn {
+  background: rgba(176, 123, 16, 0.18);
+  color: #8b5f00;
+}
+
 .status-pill--danger {
   background: rgba(194, 75, 75, 0.18);
   color: #a03838;
+}
+
+.status-pill--muted {
+  background: rgba(109, 117, 139, 0.14);
+  color: #4b5563;
 }
 
 .form-error {
@@ -415,6 +685,15 @@ onMounted(async () => {
 
   .session-card {
     flex-direction: column;
+  }
+
+  .request-card {
+    flex-direction: column;
+  }
+
+  .request-actions {
+    min-width: unset;
+    width: 100%;
   }
 }
 </style>
