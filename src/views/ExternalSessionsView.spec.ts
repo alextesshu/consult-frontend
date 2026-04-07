@@ -186,8 +186,14 @@ describe('ExternalSessionsView', () => {
   it('renders external sessions list and empty guest requests state', async () => {
     const { container } = renderView()
 
+    const createPanelTitle = await screen.findByText('Нова зовнішня сесія')
     expect(await screen.findByText('Ваші зовнішні сесії')).toBeInTheDocument()
     expect(await screen.findByText('Гостьових запитів поки немає.')).toBeInTheDocument()
+
+    const panelTitles = Array.from(container.querySelectorAll('.panel__title')).map((node) => node.textContent?.trim())
+    expect(panelTitles).toEqual(['Нова зовнішня сесія', 'Ваші зовнішні сесії', 'Запити на гостьові сесії'])
+    expect(createPanelTitle).toBeInTheDocument()
+
     const detailLink = await screen.findByRole('link', { name: 'Деталі' })
     expect(container.querySelector('input[type="datetime-local"]')).not.toBeInTheDocument()
     expect(container.querySelector('input[type="date"]')).toBeInTheDocument()

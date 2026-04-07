@@ -97,131 +97,133 @@
       </datalist>
     </section>
 
-    <section class="panel">
-      <div class="panel__header">
-        <div>
-          <div class="badge badge--soft">Запити</div>
-          <h2 class="panel__title">Запити на гостьові сесії</h2>
+    <div class="external-sessions__operational">
+      <section class="panel">
+        <div class="panel__header">
+          <div>
+            <div class="badge badge--soft">Список</div>
+            <h2 class="panel__title">Ваші зовнішні сесії</h2>
+          </div>
         </div>
-      </div>
 
-      <div v-if="requestsError" class="form-error">{{ requestsError }}</div>
-      <div v-else-if="requestsLoading" class="muted">Завантаження гостьових запитів…</div>
-      <div v-else-if="guestRequests.length === 0" class="muted">Гостьових запитів поки немає.</div>
+        <div v-if="listError" class="form-error">{{ listError }}</div>
+        <div v-else-if="listLoading" class="muted">Завантаження зовнішніх сесій…</div>
+        <div v-else-if="sessions.length === 0" class="muted">Немає зовнішніх сесій. Створіть першу сесію вище.</div>
 
-      <div v-else class="list-grid">
-        <article v-for="request in guestRequests" :key="request.id" class="request-card">
-          <div class="request-card__main">
-            <div class="request-card__title">
-              {{ request.guest_name || 'Гість' }}
+        <div v-else class="list-grid">
+          <article v-for="session in sessions" :key="session.id" class="session-card">
+            <div class="session-card__main">
+              <div class="session-card__time">{{ formatDateTime(session.starts_at) }}</div>
+              <div class="muted">Тривалість: {{ session.duration_minutes }} хв</div>
+              <div class="muted">Формат: {{ session.session_format === 'offline' ? 'Офлайн' : 'Онлайн' }}</div>
+              <div v-if="session.guest_name || session.guest_email" class="muted">
+                Гість: {{ session.guest_name || '—' }} <span v-if="session.guest_email">({{ session.guest_email }})</span>
+              </div>
+              <div class="status-pill" :class="session.status === 'CANCELLED' ? 'status-pill--danger' : 'status-pill--ok'">
+                {{ session.status === 'CANCELLED' ? 'Скасовано' : 'Заплановано' }}
+              </div>
             </div>
-            <div class="muted">
-              Контакт: {{ contactChannelLabel(request.contact_channel) }} · {{ request.contact_value || '—' }}
-            </div>
-            <div class="muted">
-              Запитаний слот: {{ formatDateTime(request.requested_slot_start) }}
-              <span v-if="request.duration_minutes"> · {{ request.duration_minutes }} хв</span>
-            </div>
-            <div class="muted">
-              Формат: {{ request.session_format === 'offline' ? 'Офлайн' : 'Онлайн' }}
-              <span v-if="request.session_format === 'offline' && request.offline_location_snapshot">
-                · {{ request.offline_location_snapshot }}
-              </span>
-            </div>
-            <div v-if="request.message" class="muted">Коментар: {{ request.message }}</div>
-            <div class="status-pill" :class="requestStatusClass(request.status)">
-              {{ requestStatusLabel(request.status) }}
-            </div>
-            <div v-if="requestDecisionAt(request)" class="muted">
-              {{ requestDecisionLabel(request.status) }}: {{ formatDateTime(requestDecisionAt(request)) }}
-            </div>
-            <div v-if="request.external_session_id" class="muted">На основі цього запиту створено зовнішню сесію.</div>
-            <div v-if="request.external_session_id" class="request-next-step">
-              <RouterLink
-                class="btn btn--ghost btn--sm"
-                :to="`/cabinet/external-sessions/${request.external_session_id}`"
-              >
-                Відкрити зовнішню сесію
-              </RouterLink>
-              <a
-                v-if="latestInviteUrlByRequestId[request.id]"
-                class="btn btn--ghost btn--sm"
-                :href="latestInviteUrlByRequestId[request.id]"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Відкрити гостьовий лінк
-              </a>
-            </div>
-          </div>
-
-          <div v-if="isPendingRequest(request.status)" class="request-actions">
-            <label v-if="request.session_format === 'online'" class="field request-meeting-field">
-              <span>Посилання на онлайн-зустріч</span>
-              <input
-                v-model="approveMeetingUrls[request.id]"
-                class="input"
-                type="url"
-                placeholder="https://meet.google.com/..."
-                :disabled="isRequestActionLoading(request.id, 'approve')"
-              />
-            </label>
-            <div v-if="shouldShowApproveMeetingHint(request)" class="muted request-meeting-hint">
-              Щоб погодити онлайн-запит, додайте посилання на зустріч.
-            </div>
-            <button
-              class="btn btn--ghost btn--sm"
-              type="button"
-              :disabled="isApproveRequestDisabled(request)"
-              @click="approveRequest(request)"
-            >
-              {{ isRequestActionLoading(request.id, 'approve') ? 'Погоджуємо…' : 'Погодити' }}
-            </button>
-            <button
-              class="btn btn--ghost btn--sm"
-              type="button"
-              :disabled="isRequestActionLoading(request.id, 'decline')"
-              @click="declineRequest(request.id)"
-            >
-              {{ isRequestActionLoading(request.id, 'decline') ? 'Відхиляємо…' : 'Відхилити' }}
-            </button>
-            <div v-if="requestActionError(request.id)" class="form-error request-card__error">
-              {{ requestActionError(request.id) }}
-            </div>
-          </div>
-        </article>
-      </div>
-    </section>
-
-    <section class="panel">
-      <div class="panel__header">
-        <div>
-          <div class="badge badge--soft">Список</div>
-          <h2 class="panel__title">Ваші зовнішні сесії</h2>
+            <RouterLink class="btn btn--ghost btn--sm" :to="`/cabinet/external-sessions/${session.id}`">Деталі</RouterLink>
+          </article>
         </div>
-      </div>
+      </section>
 
-      <div v-if="listError" class="form-error">{{ listError }}</div>
-      <div v-else-if="listLoading" class="muted">Завантаження зовнішніх сесій…</div>
-      <div v-else-if="sessions.length === 0" class="muted">Немає зовнішніх сесій. Створіть першу сесію вище.</div>
-
-      <div v-else class="list-grid">
-        <article v-for="session in sessions" :key="session.id" class="session-card">
-          <div class="session-card__main">
-            <div class="session-card__time">{{ formatDateTime(session.starts_at) }}</div>
-            <div class="muted">Тривалість: {{ session.duration_minutes }} хв</div>
-            <div class="muted">Формат: {{ session.session_format === 'offline' ? 'Офлайн' : 'Онлайн' }}</div>
-            <div v-if="session.guest_name || session.guest_email" class="muted">
-              Гість: {{ session.guest_name || '—' }} <span v-if="session.guest_email">({{ session.guest_email }})</span>
-            </div>
-            <div class="status-pill" :class="session.status === 'CANCELLED' ? 'status-pill--danger' : 'status-pill--ok'">
-              {{ session.status === 'CANCELLED' ? 'Скасовано' : 'Заплановано' }}
-            </div>
+      <section class="panel">
+        <div class="panel__header">
+          <div>
+            <div class="badge badge--soft">Запити</div>
+            <h2 class="panel__title">Запити на гостьові сесії</h2>
           </div>
-          <RouterLink class="btn btn--ghost btn--sm" :to="`/cabinet/external-sessions/${session.id}`">Деталі</RouterLink>
-        </article>
-      </div>
-    </section>
+        </div>
+
+        <div v-if="requestsError" class="form-error">{{ requestsError }}</div>
+        <div v-else-if="requestsLoading" class="muted">Завантаження гостьових запитів…</div>
+        <div v-else-if="guestRequests.length === 0" class="muted">Гостьових запитів поки немає.</div>
+
+        <div v-else class="list-grid">
+          <article v-for="request in guestRequests" :key="request.id" class="request-card">
+            <div class="request-card__main">
+              <div class="request-card__title">
+                {{ request.guest_name || 'Гість' }}
+              </div>
+              <div class="muted">
+                Контакт: {{ contactChannelLabel(request.contact_channel) }} · {{ request.contact_value || '—' }}
+              </div>
+              <div class="muted">
+                Запитаний слот: {{ formatDateTime(request.requested_slot_start) }}
+                <span v-if="request.duration_minutes"> · {{ request.duration_minutes }} хв</span>
+              </div>
+              <div class="muted">
+                Формат: {{ request.session_format === 'offline' ? 'Офлайн' : 'Онлайн' }}
+                <span v-if="request.session_format === 'offline' && request.offline_location_snapshot">
+                  · {{ request.offline_location_snapshot }}
+                </span>
+              </div>
+              <div v-if="request.message" class="muted">Коментар: {{ request.message }}</div>
+              <div class="status-pill" :class="requestStatusClass(request.status)">
+                {{ requestStatusLabel(request.status) }}
+              </div>
+              <div v-if="requestDecisionAt(request)" class="muted">
+                {{ requestDecisionLabel(request.status) }}: {{ formatDateTime(requestDecisionAt(request)) }}
+              </div>
+              <div v-if="request.external_session_id" class="muted">На основі цього запиту створено зовнішню сесію.</div>
+              <div v-if="request.external_session_id" class="request-next-step">
+                <RouterLink
+                  class="btn btn--ghost btn--sm"
+                  :to="`/cabinet/external-sessions/${request.external_session_id}`"
+                >
+                  Відкрити зовнішню сесію
+                </RouterLink>
+                <a
+                  v-if="latestInviteUrlByRequestId[request.id]"
+                  class="btn btn--ghost btn--sm"
+                  :href="latestInviteUrlByRequestId[request.id]"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Відкрити гостьовий лінк
+                </a>
+              </div>
+            </div>
+
+            <div v-if="isPendingRequest(request.status)" class="request-actions">
+              <label v-if="request.session_format === 'online'" class="field request-meeting-field">
+                <span>Посилання на онлайн-зустріч</span>
+                <input
+                  v-model="approveMeetingUrls[request.id]"
+                  class="input"
+                  type="url"
+                  placeholder="https://meet.google.com/..."
+                  :disabled="isRequestActionLoading(request.id, 'approve')"
+                />
+              </label>
+              <div v-if="shouldShowApproveMeetingHint(request)" class="muted request-meeting-hint">
+                Щоб погодити онлайн-запит, додайте посилання на зустріч.
+              </div>
+              <button
+                class="btn btn--ghost btn--sm"
+                type="button"
+                :disabled="isApproveRequestDisabled(request)"
+                @click="approveRequest(request)"
+              >
+                {{ isRequestActionLoading(request.id, 'approve') ? 'Погоджуємо…' : 'Погодити' }}
+              </button>
+              <button
+                class="btn btn--ghost btn--sm"
+                type="button"
+                :disabled="isRequestActionLoading(request.id, 'decline')"
+                @click="declineRequest(request.id)"
+              >
+                {{ isRequestActionLoading(request.id, 'decline') ? 'Відхиляємо…' : 'Відхилити' }}
+              </button>
+              <div v-if="requestActionError(request.id)" class="form-error request-card__error">
+                {{ requestActionError(request.id) }}
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+    </div>
   </section>
 </template>
 
@@ -636,6 +638,13 @@ onMounted(async () => {
   gap: 14px;
 }
 
+.external-sessions__operational {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  align-items: start;
+}
+
 .panel__header {
   display: flex;
   align-items: flex-start;
@@ -775,6 +784,10 @@ onMounted(async () => {
   .external-sessions__hero {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .external-sessions__operational {
+    grid-template-columns: 1fr;
   }
 
   .session-card {
