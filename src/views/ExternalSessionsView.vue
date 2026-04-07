@@ -166,6 +166,9 @@
                 :disabled="isRequestActionLoading(request.id, 'approve')"
               />
             </label>
+            <div v-if="shouldShowApproveMeetingHint(request)" class="muted request-meeting-hint">
+              Щоб погодити онлайн-запит, додайте посилання на зустріч.
+            </div>
             <button
               class="btn btn--ghost btn--sm"
               type="button"
@@ -407,6 +410,12 @@ function syncRequestActionMeta(payload: GuestBookingRequestRecord[]) {
 
 function isApproveRequestDisabled(request: GuestBookingRequestRecord) {
   if (isRequestActionLoading(request.id, 'approve')) return true
+  if (request.session_format !== 'online') return false
+  return !String(approveMeetingUrls.value[request.id] || '').trim()
+}
+
+function shouldShowApproveMeetingHint(request: GuestBookingRequestRecord) {
+  if (!isPendingRequest(request.status)) return false
   if (request.session_format !== 'online') return false
   return !String(approveMeetingUrls.value[request.id] || '').trim()
 }
@@ -695,6 +704,10 @@ onMounted(async () => {
 
 .request-meeting-field {
   margin-bottom: 2px;
+}
+
+.request-meeting-hint {
+  margin-top: -2px;
 }
 
 .request-next-step {

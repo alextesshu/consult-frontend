@@ -321,7 +321,17 @@ describe('ExternalSessionsView', () => {
 
     expect(await screen.findByText('Гостьові запити')).toBeInTheDocument()
     expect(await screen.findByText('Очікує рішення')).toBeInTheDocument()
-    expect(await screen.findByLabelText('Посилання на онлайн-зустріч')).toBeInTheDocument()
+    const meetingInput = await screen.findByLabelText('Посилання на онлайн-зустріч')
+    const approveButton = screen.getByRole('button', { name: 'Погодити' })
+    expect(approveButton).toBeDisabled()
+    expect(await screen.findByText('Щоб погодити онлайн-запит, додайте посилання на зустріч.')).toBeInTheDocument()
+
+    await fireEvent.update(meetingInput, 'https://meet.google.com/helper-check')
+
+    await waitFor(() => {
+      expect(approveButton).not.toBeDisabled()
+    })
+    expect(screen.queryByText('Щоб погодити онлайн-запит, додайте посилання на зустріч.')).not.toBeInTheDocument()
   })
 
   it('approves pending online guest request and renders link to resulting external session', async () => {
