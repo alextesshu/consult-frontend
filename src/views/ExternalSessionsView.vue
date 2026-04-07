@@ -101,7 +101,7 @@
       <div class="panel__header">
         <div>
           <div class="badge badge--soft">Запити</div>
-          <h2 class="panel__title">Гостьові запити</h2>
+          <h2 class="panel__title">Запити на гостьові сесії</h2>
         </div>
       </div>
 
@@ -375,7 +375,7 @@ function localizeGuestRequestActionError(message: string) {
 
   const compact = normalized.toLowerCase().replace(/\s+/g, ' ')
   if (compact === 'requested slot is no longer available.' || compact === 'requested slot is no longer available') {
-    return 'Цей слот більше недоступний. Оновіть список гостьових запитів.'
+    return 'Цей слот більше недоступний.'
   }
 
   return normalized

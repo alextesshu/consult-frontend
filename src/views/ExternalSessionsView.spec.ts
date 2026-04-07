@@ -321,7 +321,7 @@ describe('ExternalSessionsView', () => {
 
     renderView()
 
-    expect(await screen.findByText('Гостьові запити')).toBeInTheDocument()
+    expect(await screen.findByText('Запити на гостьові сесії')).toBeInTheDocument()
     expect(await screen.findByText('Очікує рішення')).toBeInTheDocument()
     const meetingInput = await screen.findByLabelText('Посилання на онлайн-зустріч')
     const approveButton = screen.getByRole('button', { name: 'Погодити' })
@@ -629,9 +629,8 @@ describe('ExternalSessionsView guest request micro-polish', () => {
     await fireEvent.update(firstCard.meetingInput, 'https://meet.google.com/slot-unavailable')
     await fireEvent.click(firstCard.approveButton)
 
-    expect(
-      await screen.findByText('Цей слот більше недоступний. Оновіть список гостьових запитів.')
-    ).toBeInTheDocument()
+    expect(await screen.findByText('Цей слот більше недоступний.')).toBeInTheDocument()
+    expect(screen.queryByText('Цей слот більше недоступний. Оновіть список гостьових запитів.')).not.toBeInTheDocument()
     expect(screen.queryByText('Requested slot is no longer available.')).not.toBeInTheDocument()
   })
 
