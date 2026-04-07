@@ -754,7 +754,7 @@ describe('PublicProfileView', () => {
         id: 501,
         status: 'PENDING',
         created_at: '2026-04-07T10:00:00Z',
-        next_step: 'Спеціаліст відповість у робочий час.',
+        next_step: 'Request sent. Specialist will review and contact you soon.',
       },
     })
 
@@ -782,6 +782,12 @@ describe('PublicProfileView', () => {
     expect(
       screen.getByText(/Натискання кнопки не означає автоматичне списання оплати\./)
     ).toBeInTheDocument()
+    expect(
+      screen.getByText(/Спеціаліст перегляне запит і зв’яжеться з вами найближчим часом\./)
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByText(/Request sent\. Specialist will review and contact you soon\./)
+    ).not.toBeInTheDocument()
   })
 
   it('submits guest booking request with canonical telegram contact channel value', async () => {

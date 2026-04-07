@@ -1035,6 +1035,8 @@ type PublicGuestBookingRequestResponse = {
 }
 
 type GuestContactChannel = 'email' | 'phone' | 'telegram'
+const GUEST_BOOKING_SUCCESS_NEXT_STEP_COPY =
+  'Спеціаліст перегляне запит і зв’яжеться з вами найближчим часом.'
 
 type ClientSession = {
   id: number
@@ -1779,8 +1781,8 @@ const selectedGuestSlotSummary = computed(() => {
 })
 
 const guestBookingRequestSummaryCopy = computed(() => {
-  const nextStep = guestBookingSuccess.value?.next_step || ''
-  return nextStep.trim()
+  if (!guestBookingSuccess.value) return ''
+  return GUEST_BOOKING_SUCCESS_NEXT_STEP_COPY
 })
 
 function shouldShowContactActionFallback(action: PublicContactActionViewModel): boolean {
