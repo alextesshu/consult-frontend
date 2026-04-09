@@ -364,6 +364,91 @@ describe('PublicProfileView', () => {
     expect(container).toHaveTextContent('Дуже уважний підхід.')
   })
 
+  it('keeps session duration labels out of general info and leaves them in quick overview', async () => {
+    mockCommonPublicData()
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/slots/') return [buildTodayLocalSlot()]
+      if (url === '/public/specialists/olena/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    const generalInfo = await screen.findByLabelText('Загальна інформація')
+    expect(within(generalInfo).queryByText('Ознайомча сесія')).not.toBeInTheDocument()
+    expect(within(generalInfo).queryByText('Стандартна сесія')).not.toBeInTheDocument()
+    expect(screen.getAllByText(/Ознайомча сесія:/i).length).toBeGreaterThan(0)
+  })
+
+  it('shows back-to-top button only after scroll and scrolls to top on click', async () => {
+    mockCommonPublicData()
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/slots/') return [buildTodayLocalSlot()]
+      if (url === '/public/specialists/olena/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    const scrollToSpy = vi.spyOn(window, 'scrollTo').mockImplementation(() => {})
+    Object.defineProperty(window, 'scrollY', { value: 0, configurable: true })
+
+    renderView()
+    await screen.findByText('Загальна інформація')
+    expect(screen.queryByRole('button', { name: 'Вгору' })).not.toBeInTheDocument()
+
+    Object.defineProperty(window, 'scrollY', { value: 900, configurable: true })
+    window.dispatchEvent(new Event('scroll'))
+
+    const backToTopButton = await screen.findByRole('button', { name: 'Вгору' })
+    await fireEvent.click(backToTopButton)
+
+    expect(scrollToSpy).toHaveBeenCalledWith({ top: 0, behavior: 'smooth' })
+    scrollToSpy.mockRestore()
+  })
+
+  it('renders dedicated specialist terms section when setting_text is present', async () => {
+    mockCommonPublicData()
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/slots/') return [buildTodayLocalSlot()]
+      if (url === '/public/specialists/olena/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    expect(await screen.findByRole('heading', { name: 'Умови спеціаліста перед записом' })).toBeInTheDocument()
+    expect(screen.getByText('Therapist setting')).toBeInTheDocument()
+  })
+
+  it('keeps profile narrative sections separated without duplicate exclusions in about copy', async () => {
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(
+      buildProfile({
+        bio_about: 'Окремий опис спеціаліста.',
+        bio_approach: 'Окремий опис підходу.',
+        bio_for_whom: 'Працюю з тривогою та вигоранням.',
+        bio_other: 'Не працюю з кризовими станами.',
+      })
+    )
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/slots/') return [buildTodayLocalSlot()]
+      if (url === '/public/specialists/olena/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    expect(await screen.findByRole('heading', { name: 'Про спеціаліста' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Як я працюю' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'З чим я працюю' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'З чим я не працюю' })).toBeInTheDocument()
+    expect(screen.getByText('Не працюю з кризовими станами.')).toBeInTheDocument()
+  })
+
   it('uses sections.publications_preview as primary source for journal preview', async () => {
     mockedFetchPublicSpecialistProfile.mockResolvedValue(
       buildProfile({

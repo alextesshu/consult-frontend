@@ -1,32 +1,5 @@
 <template>
   <section class="public">
-    <section class="public__top">
-      <PublicProfileHeroSection
-        :profile="heroMediaProfile"
-        :public-name="publicName"
-        :hero-role-line="heroRoleLine"
-        :hero-lead-text="heroLeadText"
-        :hero-support-text="heroSupportText"
-        :completed-sessions-badge="completedSessionsBadge"
-        :display-specialization-chips="displaySpecializationChips"
-        :general-info-items="trustItems"
-      />
-
-      <PublicProfileIdentityRail
-        :profile="profile"
-        :hero-cta-title="heroCtaTitle"
-        :hero-primary-label="heroPrimaryLabel"
-        :show-client-sessions-cta="showClientSessionsCta"
-        :feedback-link="feedbackLink"
-        :primary-action-next-step-copy="primaryActionNextStepCopy"
-        :intro-price-display="introPriceDisplay"
-        :intro-duration-label="introDurationLabel"
-        :price-display="priceDisplay"
-        :standard-session-duration-label="standardSessionDurationLabel"
-        @primary-action="handleHeroPrimaryAction"
-      />
-    </section>
-
     <div v-if="loading" class="muted">Завантаження...</div>
     <section v-else-if="ownerUnpublishedProfile" class="panel panel--owner-unpublished">
       <div class="panel__header">
@@ -45,15 +18,48 @@
     </section>
     <div v-else-if="error" class="form-error">{{ error }}</div>
 
-    <section v-else-if="profile" class="public__grid">
-      <PublicProfileTrustSection
-        :trust-items="[]"
-        :public-documents="publicDocuments"
-        :is-image-document="isImageDocument"
-        :is-pdf-document="isPdfDocument"
-        :document-kind-label="documentKindLabel"
-        :format-date="formatDate"
-      />
+    <section v-else-if="profile" class="public__layout">
+      <section class="public__hero-col">
+        <PublicProfileHeroSection
+          :profile="heroMediaProfile"
+          :public-name="publicName"
+          :hero-role-line="heroRoleLine"
+          :hero-lead-text="heroLeadText"
+          :hero-support-text="heroSupportText"
+          :completed-sessions-badge="completedSessionsBadge"
+          :display-specialization-chips="displaySpecializationChips"
+          :general-info-items="trustItems"
+        />
+      </section>
+
+      <aside class="public__sidebar">
+        <PublicProfileIdentityRail
+          :profile="profile"
+          :hero-cta-title="heroCtaTitle"
+          :hero-primary-label="heroPrimaryLabel"
+          :show-client-sessions-cta="showClientSessionsCta"
+          :feedback-link="feedbackLink"
+          :primary-action-next-step-copy="primaryActionNextStepCopy"
+          :intro-price-display="introPriceDisplay"
+          :intro-duration-label="introDurationLabel"
+          :price-display="priceDisplay"
+          :standard-session-duration-label="standardSessionDurationLabel"
+          @primary-action="handleHeroPrimaryAction"
+        />
+      </aside>
+
+      <section class="public__grid">
+        <PublicProfileAboutSection
+          :about-narrative-text="aboutNarrativeText"
+          :work-style-text="workStyleText"
+          :work-with-text="whoThisIsForText"
+          :work-with-chips="specializationChips"
+          :who-is-not-suitable-text="whoIsNotSuitableText"
+          :specialist-booking-terms-text="specialistBookingTermsText"
+          :show-direct-contact-actions="showDirectContactActions"
+          :contact-actions="contactActions"
+          @direct-contact-action="handleDirectContactAction"
+        />
 
       <section v-if="showInquiryPanel" class="panel panel--inquiry" id="inquiry">
         <div class="panel__header">
@@ -323,14 +329,6 @@
         </div>
       </div>
 
-      <PublicProfileAboutSection
-        :about-sections="aboutSections"
-        :who-is-not-suitable-text="whoIsNotSuitableText"
-        :show-direct-contact-actions="showDirectContactActions"
-        :contact-actions="contactActions"
-        @direct-contact-action="handleDirectContactAction"
-      />
-
       <PublicProfileMediaSection
         :media-items="mediaItems"
       />
@@ -369,6 +367,15 @@
         :format-date="formatDate"
       />
 
+      <PublicProfileTrustSection
+        :trust-items="[]"
+        :public-documents="publicDocuments"
+        :is-image-document="isImageDocument"
+        :is-pdf-document="isPdfDocument"
+        :document-kind-label="documentKindLabel"
+        :format-date="formatDate"
+      />
+
       <PublicProfileFinalCtaSection
         :closing-cta-support-line="closingCtaSupportLine"
         :primary-action-next-step-copy="primaryActionNextStepCopy"
@@ -380,6 +387,7 @@
         @scroll-slots="scrollToSlots"
         @open-contact="openPublicContactCta"
       />
+      </section>
     </section>
 
     <div v-if="showContactChooserModal" class="setting-modal">
@@ -629,6 +637,15 @@
         </div>
       </div>
     </div>
+    <button
+      v-if="showBackToTopButton"
+      class="back-to-top-btn"
+      type="button"
+      aria-label="Вгору"
+      @click="scrollToTop"
+    >
+      Вгору
+    </button>
 
   </section>
 </template>
@@ -869,6 +886,7 @@ const categoryOptions: { key: JournalCategory; label: string }[] = [
 const selectedDate = ref('')
 const slotDateInput = ref<HTMLInputElement | null>(null)
 const showAllSlots = ref(false)
+const showBackToTopButton = ref(false)
 const slotsPreviewLimit = 96
 const bookingSessionFormat = ref<SessionFormat>('online')
 
@@ -1512,28 +1530,67 @@ const whoIsNotSuitableText = computed(() => {
   )
 })
 
-const aboutSections = computed(() => {
-  if (!profile.value) return []
-  const aboutPrimaryText = normalizeMultilineText(
-    firstFilledText(sectionAboutSections.value[0]?.body, profile.value.bio_about, profile.value.bio)
+function sectionAboutBodyByKeywords(keywords: string[]): string {
+  if (!keywords.length || !sectionAboutSections.value.length) return ''
+  const normalizedKeywords = keywords.map((keyword) => keyword.trim().toLowerCase()).filter(Boolean)
+  if (!normalizedKeywords.length) return ''
+  const found = sectionAboutSections.value.find((section) => {
+    const body = section.body.trim().toLowerCase()
+    return normalizedKeywords.some((keyword) => body.includes(keyword))
+  })
+  return found?.body || ''
+}
+
+const aboutNarrativeText = computed(() =>
+  normalizeMultilineText(
+    firstFilledText(
+      sectionAboutSections.value[0]?.body,
+      profile.value?.bio_about,
+      profile.value?.bio,
+      sectionAboutBodyByKeywords(['про мене', 'about', 'досвід'])
+    )
   )
-  const approachText = normalizeMultilineText(
-    firstFilledText(sectionAboutSections.value[2]?.body, profile.value.bio_approach)
+)
+
+const workStyleText = computed(() => {
+  const source = normalizeMultilineText(
+    firstFilledText(
+      sectionAboutBodyByKeywords(['підхід', 'approach', 'метод', 'стиль', 'працюю']),
+      sectionAboutSections.value[2]?.body,
+      sectionAboutSections.value[1]?.body,
+      profile.value?.bio_approach,
+      profile.value?.bio_work
+    )
   )
-  const cards: ProfileAboutSection[] = [
-    { title: '\u041f\u0440\u043e \u043c\u0435\u043d\u0435', body: aboutPrimaryText },
-    {
-      title: '\u0417\u0430\u043f\u0438\u0442\u0438, \u0437 \u044f\u043a\u0438\u043c\u0438 \u044f \u043f\u0440\u0430\u0446\u044e\u044e',
-      body: whoThisIsForText.value,
-    },
-    { title: '\u041c\u0456\u0439 \u043f\u0456\u0434\u0445\u0456\u0434', body: approachText },
-    {
-      title: '\u0417\u0430\u043f\u0438\u0442\u0438, \u0437 \u044f\u043a\u0438\u043c\u0438 \u044f \u043d\u0435 \u043f\u0440\u0430\u0446\u044e\u044e',
-      body: whoIsNotSuitableText.value,
-    },
-  ]
-  return cards.filter((section) => section.body)
+  if (!source) return ''
+  return source === aboutNarrativeText.value ? '' : source
 })
+
+const specialistBookingTermsText = computed(() => {
+  const explicitSettingText = normalizeMultilineText(profile.value?.setting_text || '')
+  if (explicitSettingText) return explicitSettingText
+  const uniqueRuleTexts = Array.from(
+    new Set(
+      activeSpecialistBookingRules.value
+        .map((rule) => normalizeMultilineText(rule.text))
+        .filter(Boolean)
+    )
+  )
+  return uniqueRuleTexts.join('\n\n')
+})
+
+const GENERAL_INFO_EXCLUDED_LABELS = new Set([
+  'ознайомча сесія',
+  'стандартна сесія',
+  'intro session',
+  'standard session',
+])
+
+function isGeneralInfoExcludedLabel(label: string): boolean {
+  const normalized = label.trim().toLowerCase().replace(/\s+/g, ' ')
+  return GENERAL_INFO_EXCLUDED_LABELS.has(normalized)
+}
+
 function buildFallbackTrustItems(): ProfileKeyValueItem[] {
   const items: ProfileKeyValueItem[] = []
   if (meetingFormatLabel.value) {
@@ -1549,12 +1606,6 @@ function buildFallbackTrustItems(): ProfileKeyValueItem[] {
     items.push({ label: 'Офлайн локація', value: offlineMeetingLocation.value })
   } else if (profileLocationDisplay.value) {
     items.push({ label: 'Локація', value: profileLocationDisplay.value })
-  }
-  if (introDurationLabel.value) {
-    items.push({ label: 'Ознайомча сесія', value: introDurationLabel.value })
-  }
-  if (standardSessionDurationLabel.value) {
-    items.push({ label: 'Стандартна сесія', value: standardSessionDurationLabel.value })
   }
   return items
 }
@@ -1574,7 +1625,7 @@ const trustItems = computed<ProfileKeyValueItem[]>(() => {
   const items: ProfileKeyValueItem[] = []
   sectionTrustItems.value.forEach((item) => appendTrustItemIfUnique(items, item))
   buildFallbackTrustItems().forEach((item) => appendTrustItemIfUnique(items, item))
-  return items
+  return items.filter((item) => !isGeneralInfoExcludedLabel(item.label))
 })
 
 const publicDocuments = computed<PublicSpecialistProfileDocument[]>(() => {
@@ -2083,6 +2134,15 @@ function selectDay(date: string) {
 function scrollToSlots() {
   window.location.hash = '#slots'
   focusSlotsSection()
+}
+
+function updateBackToTopVisibility() {
+  const threshold = Math.max(window.innerHeight * 0.85, 520)
+  showBackToTopButton.value = window.scrollY > threshold
+}
+
+function scrollToTop() {
+  window.scrollTo({ top: 0, behavior: 'smooth' })
 }
 
 function scrollToInquiry() {
@@ -3061,9 +3121,12 @@ watch(
 
 onBeforeUnmount(() => {
   clearContactActionFallbackTimer()
+  window.removeEventListener('scroll', updateBackToTopVisibility)
 })
 
 onMounted(async () => {
+  window.addEventListener('scroll', updateBackToTopVisibility, { passive: true })
+  updateBackToTopVisibility()
   if (!selectedDate.value) {
     selectedDate.value = toLocalDate(new Date())
   }
@@ -3083,11 +3146,24 @@ onMounted(async () => {
   gap: 18px;
 }
 
-.public__top {
+.public__layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(220px, 264px);
-  gap: 14px;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
+  column-gap: 20px;
+  row-gap: 16px;
   align-items: start;
+}
+
+.public__hero-col {
+  grid-column: 1;
+  min-width: 0;
+}
+
+.public__sidebar {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-items: start;
+  align-self: start;
 }
 
 .public__hero {
@@ -3310,6 +3386,27 @@ onMounted(async () => {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 16px;
+  min-width: 0;
+}
+
+.back-to-top-btn {
+  position: fixed;
+  right: 20px;
+  bottom: 24px;
+  z-index: 25;
+  border: 1px solid color-mix(in srgb, var(--line) 88%, #ffffff);
+  border-radius: 999px;
+  background: color-mix(in srgb, #ffffff 92%, var(--surface));
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px 14px;
+  cursor: pointer;
+  box-shadow: 0 10px 22px rgba(16, 24, 40, 0.16);
+}
+
+.back-to-top-btn:hover {
+  border-color: color-mix(in srgb, var(--primary) 24%, var(--line));
 }
 
 .panel--slots {
@@ -4814,9 +4911,16 @@ onMounted(async () => {
   }
 
 @media (max-width: 1260px) {
-  .public__top {
+  .public__layout {
     grid-template-columns: 1fr;
     gap: 12px;
+  }
+
+  .public__hero-col,
+  .public__sidebar,
+  .public__grid {
+    grid-column: 1;
+    grid-row: auto;
   }
 
   .public__hero {
@@ -4888,6 +4992,12 @@ onMounted(async () => {
 }
 
 @media (max-width: 640px) {
+  .back-to-top-btn {
+    right: 14px;
+    bottom: 16px;
+    padding: 9px 12px;
+  }
+
   .slot-list {
     grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
   }

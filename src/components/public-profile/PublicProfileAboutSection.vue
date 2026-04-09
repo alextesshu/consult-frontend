@@ -1,46 +1,58 @@
 <template>
-  <section class="panel panel--about" v-if="aboutSections.length">
+  <section class="panel panel--about" v-if="aboutNarrativeText">
     <div class="panel__header">
       <div>
         <div class="badge badge--soft">Про спеціаліста</div>
         <h2 class="panel__title">Про спеціаліста</h2>
-        <p class="panel__lead">Познайомтеся з підходом та стилем роботи перед першою консультацією.</p>
       </div>
     </div>
-    <div class="about-grid">
-      <article
-        v-for="(section, index) in aboutSections"
-        :key="`${section.title}-${index}`"
-        class="bio-section"
-        :class="{ 'bio-section--expanded': isSectionExpanded(index) }"
-      >
-        <div class="bio-title">{{ section.title }}</div>
-        <div
-          class="bio-copy"
-          :class="{ 'bio-copy--collapsed': isSectionCollapsible(section.body) && !isSectionExpanded(index) }"
-        >
-          {{ section.body }}
-        </div>
-        <button
-          v-if="isSectionCollapsible(section.body)"
-          class="bio-toggle"
-          type="button"
-          @click="toggleSection(index)"
-        >
-          {{ isSectionExpanded(index) ? 'Згорнути' : 'Читати повністю' }}
-        </button>
-      </article>
+    <p class="narrative-text">{{ aboutNarrativeText }}</p>
+  </section>
+
+  <section class="panel panel--approach" v-if="workStyleText">
+    <div class="panel__header">
+      <div>
+        <div class="badge badge--soft">Мій підхід</div>
+        <h2 class="panel__title">Як я працюю</h2>
+      </div>
     </div>
+    <p class="narrative-text">{{ workStyleText }}</p>
+  </section>
+
+  <section class="panel panel--work-with" v-if="workWithText || workWithChips.length">
+    <div class="panel__header">
+      <div>
+        <div class="badge badge--soft">Фокус роботи</div>
+        <h2 class="panel__title">З чим я працюю</h2>
+      </div>
+    </div>
+    <div v-if="workWithChips.length" class="work-with__chips">
+      <span v-for="(chip, index) in workWithChips" :key="`${chip}-${index}`" class="work-with__chip">{{ chip }}</span>
+    </div>
+    <p v-if="workWithText" class="scope-text">{{ workWithText }}</p>
   </section>
 
   <section class="panel panel--who" v-if="whoIsNotSuitableText">
     <div class="panel__header">
       <div>
-        <div class="badge badge--soft">Фокус роботи</div>
-        <h2 class="panel__title">Запити, з якими я не працюю</h2>
+        <div class="badge badge--soft">Обмеження</div>
+        <h2 class="panel__title">З чим я не працюю</h2>
       </div>
     </div>
-    <div class="who-text">{{ whoIsNotSuitableText }}</div>
+    <p class="scope-text">{{ whoIsNotSuitableText }}</p>
+  </section>
+
+  <section class="panel panel--terms" v-if="specialistBookingTermsText">
+    <div class="panel__header">
+      <div>
+        <div class="badge badge--soft">Перед записом</div>
+        <h2 class="panel__title">Умови спеціаліста перед записом</h2>
+        <p class="panel__lead">
+          Індивідуальні умови цього спеціаліста. Якщо умови оновляться, перед новим записом може знадобитися повторне підтвердження.
+        </p>
+      </div>
+    </div>
+    <p class="terms-text">{{ specialistBookingTermsText }}</p>
   </section>
 
   <section class="panel panel--contacts" v-if="showDirectContactActions">
@@ -71,57 +83,39 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-
-type AboutSection = {
-  title: string
-  body: string
-}
-
 type ContactAction = {
   id: string
+  channel: string
   channelLabel: string
   valueText: string
   actionUrl: string
+  actionScheme: string
 }
 
 type Props = {
-  aboutSections: AboutSection[]
+  aboutNarrativeText: string
+  workStyleText: string
+  workWithText: string
+  workWithChips: string[]
   whoIsNotSuitableText: string
+  specialistBookingTermsText: string
   showDirectContactActions: boolean
   contactActions: ContactAction[]
 }
 
 defineProps<Props>()
 
-const expandedIndexes = ref<Set<number>>(new Set())
-
-function isSectionCollapsible(body: string): boolean {
-  return body.length > 340 || body.split('\n').length > 7
-}
-
-function isSectionExpanded(index: number): boolean {
-  return expandedIndexes.value.has(index)
-}
-
-function toggleSection(index: number) {
-  const next = new Set(expandedIndexes.value)
-  if (next.has(index)) {
-    next.delete(index)
-  } else {
-    next.add(index)
-  }
-  expandedIndexes.value = next
-}
-
 defineEmits<{
-  (event: 'direct-contact-action', item: any): void
+  (event: 'direct-contact-action', item: ContactAction): void
 }>()
 </script>
 
 <style scoped>
 .panel--about,
+.panel--approach,
+.panel--work-with,
 .panel--who,
+.panel--terms,
 .panel--contacts {
   grid-column: 1 / -1;
 }
@@ -132,7 +126,7 @@ defineEmits<{
   padding: 18px 18px 20px;
   background: color-mix(in srgb, #ffffff 90%, var(--surface));
   display: grid;
-  gap: 14px;
+  gap: 12px;
 }
 
 .panel__header {
@@ -140,7 +134,7 @@ defineEmits<{
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
-  margin-bottom: 6px;
+  margin-bottom: 2px;
 }
 
 .panel__header > div {
@@ -162,95 +156,38 @@ defineEmits<{
   max-width: 78ch;
 }
 
-.panel--about {
-  padding: 16px;
-  gap: 10px;
-}
-
-.panel--about .panel__header {
-  margin-bottom: 2px;
-}
-
-.panel--about .panel__header > div {
-  gap: 4px;
-}
-
-.panel--about .panel__title {
-  font-size: 18px;
-  line-height: 1.2;
-}
-
-.panel--about .panel__lead {
-  font-size: 13px;
-  line-height: 1.45;
-}
-
-.about-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px 12px;
-  align-items: stretch;
-  grid-auto-rows: 1fr;
-}
-
-.bio-section {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  border: 1px solid color-mix(in srgb, var(--line) 84%, #ffffff);
-  border-radius: var(--radius-sm);
-  padding: 10px 12px;
-  background: color-mix(in srgb, #ffffff 78%, var(--surface));
-  min-height: 260px;
-}
-
-.bio-section--expanded {
-  min-height: auto;
-}
-
-.bio-title {
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  color: var(--deep);
-  font-weight: 600;
-}
-
-.bio-copy {
+.narrative-text,
+.scope-text,
+.terms-text {
+  margin: 0;
+  white-space: pre-line;
   color: color-mix(in srgb, var(--text) 88%, var(--muted));
-  font-size: 14px;
-  line-height: 1.58;
-  white-space: pre-line;
-}
-
-.bio-copy--collapsed {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 8;
-  overflow: hidden;
-}
-
-.bio-toggle {
-  margin-top: auto;
-  border: none;
-  background: transparent;
-  color: color-mix(in srgb, var(--primary) 85%, var(--text));
-  cursor: pointer;
-  font-size: 13px;
-  font-weight: 600;
-  padding: 4px 0 0;
-  text-align: left;
-}
-
-.bio-toggle:hover {
-  text-decoration: underline;
-}
-
-.who-text {
-  white-space: pre-line;
   font-size: 15px;
-  line-height: 1.55;
-  color: var(--deep);
+  line-height: 1.62;
+}
+
+.work-with__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.work-with__chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.82);
+  font-size: 12px;
+}
+
+.terms-text {
+  border: 1px solid color-mix(in srgb, #d9a441 22%, var(--line));
+  border-radius: 12px;
+  padding: 12px 14px;
+  background: color-mix(in srgb, #f5ecd5 42%, #ffffff);
 }
 
 .contact-actions {
@@ -292,20 +229,9 @@ defineEmits<{
   color: color-mix(in srgb, #3f5945 82%, var(--text));
 }
 
-@media (max-width: 1380px) {
-  .about-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
 @media (max-width: 960px) {
-  .about-grid,
   .contact-actions {
     grid-template-columns: 1fr;
-  }
-
-  .bio-section {
-    min-height: auto;
   }
 }
 </style>
