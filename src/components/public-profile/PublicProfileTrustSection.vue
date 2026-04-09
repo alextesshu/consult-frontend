@@ -175,17 +175,19 @@ defineProps<Props>()
 
 .documents-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 280px));
+  gap: 10px;
+  justify-content: start;
+  align-items: start;
 }
 
 .document-card {
   border: 1px solid var(--line);
   border-radius: 14px;
-  padding: 12px;
+  padding: 10px;
   background: #fff;
   display: grid;
-  gap: 10px;
+  gap: 8px;
 }
 
 .document-card--file {
@@ -195,12 +197,12 @@ defineProps<Props>()
 
 .document-card__preview {
   width: 100%;
-  height: clamp(160px, 24vw, 240px);
+  height: clamp(124px, 16vw, 172px);
   border-radius: 12px;
   border: 1px solid var(--line);
   overflow: hidden;
   background: color-mix(in srgb, #f4efe2 58%, #ffffff);
-  padding: 8px;
+  padding: 6px;
 }
 
 .document-card__preview img {
@@ -278,9 +280,12 @@ defineProps<Props>()
 }
 
 @media (max-width: 960px) {
-  .trust-grid,
-  .documents-grid {
+  .trust-grid {
     grid-template-columns: 1fr;
+  }
+
+  .documents-grid {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 240px));
   }
 }
 </style>

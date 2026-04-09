@@ -1062,7 +1062,7 @@ describe('PublicProfileView', () => {
     expect(
       await screen.findAllByText('Після вибору часу відкриється короткий запит: залиште ім’я та контакт без реєстрації.')
     ).toHaveLength(2)
-    expect(screen.getAllByText('Натискання кнопки «Записатися» не списує оплату автоматично.')).toHaveLength(1)
+    expect(screen.getAllByText('Натискання на вільне вікно не списує оплату автоматично.')).toHaveLength(1)
   })
 
   it('opens guest booking request flow from slot click without auth', async () => {

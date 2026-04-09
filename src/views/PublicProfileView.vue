@@ -197,7 +197,7 @@
               <li v-if="isGuestVisitor">Можна почати без реєстрації: оберіть слот і залиште короткий запит з контактом.</li>
               <li v-else-if="!isClient">Бронювання доступне лише для клієнтів.</li>
               <li v-else>Бронювання доступне в кабінеті клієнта.</li>
-              <li>Натискання кнопки «Записатися» не списує оплату автоматично.</li>
+              <li>Натискання на вільне вікно не списує оплату автоматично.</li>
               <li>Спеціаліст підтверджує сесію після запису.</li>
               <li>Нагадування надходять після підтвердження.</li>
             </ul>
@@ -224,21 +224,18 @@
           {{ noSlotsAvailable ? 'Наразі вільних віконець немає.' : 'На жаль, у цей день вільних віконець немає.' }}
         </div>
         <div v-else class="slot-list">
-          <div v-for="slot in visibleSlots" :key="slot.id" class="slot-card">
-            <div class="slot-card__main">
-              <div class="slot-time">{{ formatSlotTime(slot.start_at) }}</div>
-              <div class="muted slot-card__meta">{{ formatDuration(slot.start_at, slot.end_at) }}</div>
-            </div>
-            <button
-              class="btn btn--ghost btn--sm slot-card__action"
-              :class="{ 'btn--disabled': isBookingDisabled(slot.id) }"
-              type="button"
-              :aria-disabled="isBookingDisabled(slot.id)"
-              @click="handleBookingClick(slot.id)"
-            >
-              {{ slotActionLabel(slot.id) }}
-            </button>
-          </div>
+          <button
+            v-for="slot in visibleSlots"
+            :key="slot.id"
+            class="slot-card"
+            :class="{ 'slot-card--busy': isSlotBusy(slot.id) }"
+            type="button"
+            :aria-label="slotActionLabel(slot.id)"
+            :disabled="isSlotBusy(slot.id)"
+            @click="handleBookingClick(slot.id)"
+          >
+            <div class="slot-time">{{ formatSlotTime(slot.start_at) }}</div>
+          </button>
           <button
             v-if="hasMoreSlots"
             class="btn btn--ghost slot-list__toggle"
@@ -568,7 +565,7 @@
           </div>
           <div class="booking-next">
             <div class="booking-next__title">Що далі</div>
-            <div class="booking-next__item">• Натискання кнопки «Записатися» не списує оплату автоматично.</div>
+            <div class="booking-next__item">• Натискання на вільне вікно не списує оплату автоматично.</div>
             <div class="booking-next__item">• Перевіряйте статус і деталі у кабінеті клієнта.</div>
             <div class="booking-next__item">• Після підтвердження сесії сервіс нагадає про зустріч.</div>
             <div class="booking-next__item">• Якщо плани зміняться, ви можете перенести або скасувати запис у деталях сесії.</div>
@@ -847,7 +844,7 @@ const categoryOptions: { key: JournalCategory; label: string }[] = [
 const selectedDate = ref('')
 const slotDateInput = ref<HTMLInputElement | null>(null)
 const showAllSlots = ref(false)
-const slotsPreviewLimit = 5
+const slotsPreviewLimit = 96
 const bookingSessionFormat = ref<SessionFormat>('online')
 
 const slug = computed(() => String(route.params.slug || '').trim())
@@ -877,13 +874,9 @@ const bookingOfflineLocationHint = computed(() => {
   if (resolvedSessionFormat.value !== 'offline') return ''
   return offlineMeetingLocation.value
 })
-const isBookingDisabled = (slotId: number) => {
-  if (bookingSlotId.value === slotId) return true
-  if (guestBookingSubmitting.value && guestBookingSubmitSlotId.value === slotId) return true
-  if (isGuestVisitor.value) return false
-  if (isUnsupportedBookingRole.value) return true
-  return !settingAccepted.value
-}
+const isSlotBusy = (slotId: number) =>
+  bookingSlotId.value === slotId ||
+  (guestBookingSubmitting.value && guestBookingSubmitSlotId.value === slotId)
 const visibleSlots = computed(() => (showAllSlots.value ? slots.value : slots.value.slice(0, slotsPreviewLimit)))
 const hasMoreSlots = computed(() => slots.value.length > slotsPreviewLimit)
 const hasPublicJournalPosts = computed(
@@ -3836,8 +3829,8 @@ onMounted(async () => {
 
 .slot-list {
   display: grid;
-  grid-template-columns: repeat(1, minmax(0, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 6px;
 }
 
 .slot-list-heading {
@@ -3855,32 +3848,35 @@ onMounted(async () => {
 }
 
 .slot-card {
+  appearance: none;
   border: 1px solid var(--line);
   border-radius: 10px;
-  padding: 10px;
+  min-height: 54px;
+  padding: 8px 6px;
   background: color-mix(in srgb, #f5f0e4 38%, #ffffff);
   display: grid;
-  gap: 8px;
+  place-items: center;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease;
+  font: inherit;
 }
 
-.slot-card__main {
-  display: grid;
-  gap: 3px;
+.slot-card:hover:not(:disabled),
+.slot-card:focus-visible:not(:disabled) {
+  border-color: color-mix(in srgb, var(--color-primary-500) 36%, var(--line));
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary-100) 62%, transparent);
+  transform: translateY(-1px);
 }
 
-.slot-card__meta {
-  font-size: 12px;
-  line-height: 1.25;
-}
-
-.slot-card__action {
-  justify-self: start;
-  width: 100%;
-  min-height: 34px;
+.slot-card:disabled,
+.slot-card--busy {
+  cursor: progress;
+  opacity: 0.72;
 }
 
 .slot-time {
-  font-size: 24px;
+  font-size: 28px;
   line-height: 1;
   font-weight: 700;
   color: var(--text);
@@ -4766,7 +4762,7 @@ onMounted(async () => {
   }
 
   .slot-list {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
   }
 
   .about-grid,
@@ -4790,21 +4786,9 @@ onMounted(async () => {
   }
 }
 
-@media (min-width: 900px) {
-  .slot-list {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
-@media (min-width: 1280px) {
-  .slot-list {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-}
-
 @media (max-width: 640px) {
   .slot-list {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
   }
 }
 </style>
