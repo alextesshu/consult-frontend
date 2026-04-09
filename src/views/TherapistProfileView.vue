@@ -296,6 +296,21 @@
             <p class="panel__hint">Короткі блоки тексту. У кожного є перемикач “показувати”.</p>
           </div>
         </div>
+        <div class="form" style="margin-top: 12px;">
+          <label class="field" for="specialistBookingRulesText">
+            <span class="field-label">Умови спеціаліста перед записом</span>
+            <textarea
+              id="specialistBookingRulesText"
+              v-model="profile.setting_text"
+              class="input"
+              rows="4"
+              placeholder="Опишіть індивідуальні умови перед записом, які клієнт має побачити."
+            ></textarea>
+          </label>
+          <div class="field-help">
+            Клієнт бачить ці умови перед записом. Якщо оновити умови, клієнта попросять підтвердити нову версію повторно.
+          </div>
+        </div>
         <div class="details-stack">
           <details class="details" open>
             <summary>Коротко про мене</summary>
@@ -1345,6 +1360,7 @@ function buildProfilePayload() {
   return {
     public_profile_enabled: profile.public_profile_enabled,
     display_name: profile.display_name,
+    setting_text: (profile.setting_text || '').trim(),
     bio_about: profile.bio_about,
     bio_work: profile.bio_work,
     bio_approach: profile.bio_approach,
@@ -1396,6 +1412,7 @@ const profile = reactive<SpecialistProfile>({
   offers_offline: false,
   offline_location: '',
   display_name: '',
+  setting_text: '',
   bio_about: '',
   bio_work: '',
   bio_approach: '',
@@ -1489,6 +1506,7 @@ const hasAnyContact = computed(
 type ProfileFormSnapshot = {
   public_profile_enabled: boolean
   display_name: string
+  setting_text: string
   bio_about: string
   bio_work: string
   bio_approach: string
@@ -1534,6 +1552,7 @@ function createProfileFormSnapshot(): ProfileFormSnapshot {
   return {
     public_profile_enabled: profile.public_profile_enabled,
     display_name: profile.display_name || '',
+    setting_text: profile.setting_text || '',
     bio_about: profile.bio_about || '',
     bio_work: profile.bio_work || '',
     bio_approach: profile.bio_approach || '',
@@ -1831,6 +1850,7 @@ function normalizeProfile(data: SpecialistProfile): SpecialistProfile {
     offers_offline: typeof data.offers_offline === 'boolean' ? data.offers_offline : false,
     offline_location: data.offline_location || '',
     display_name: data.display_name || '',
+    setting_text: data.setting_text || '',
     bio_about: data.bio_about || '',
     bio_work: data.bio_work || '',
     bio_approach: data.bio_approach || '',

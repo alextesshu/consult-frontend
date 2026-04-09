@@ -1393,8 +1393,23 @@ describe('PublicProfileView', () => {
     renderView()
 
     expect(await screen.findByText('Правила перед записом')).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        'Щоб продовжити запис, підтвердьте актуальні версії загальних правил платформи та умов спеціаліста. Повторне підтвердження знадобиться лише після оновлення відповідної версії.'
+      )
+    ).toBeInTheDocument()
     expect(screen.getByText('Загальні правила платформи')).toBeInTheDocument()
     expect(screen.getByText('Умови спеціаліста')).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        'Ви підтверджуєте загальні правила платформи для поточної версії. Повторне підтвердження потрібне лише після оновлення цих правил.'
+      )
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        'Це індивідуальні умови цього спеціаліста перед записом. Повторне підтвердження потрібне лише якщо спеціаліст оновить свої правила.'
+      )
+    ).toBeInTheDocument()
 
     const bookButton = await screen.findByRole('button', { name: 'Записатися' })
     await fireEvent.click(bookButton)
@@ -1605,13 +1620,16 @@ describe('PublicProfileView', () => {
     await fireEvent.click(await screen.findByRole('button', { name: 'Записатися' }))
     expect(await screen.findByText('Загальні правила платформи')).toBeInTheDocument()
     expect(screen.getByText('Умови спеціаліста')).toBeInTheDocument()
+    expect(
+      screen.getByText(/Для гостя підтвердження діє лише для поточного запиту/i)
+    ).toBeInTheDocument()
 
     await fireEvent.update(screen.getByLabelText('Ім’я'), 'Ірина')
     await fireEvent.update(screen.getByLabelText('Контакт'), 'iryna@example.com')
     const submitButton = screen.getByRole('button', { name: 'Надіслати запит' })
     expect(submitButton).toBeDisabled()
 
-    await fireEvent.click(screen.getByRole('checkbox', { name: 'Я ознайомився(-лась) та погоджуюсь з правилами перед записом' }))
+    await fireEvent.click(screen.getByRole('checkbox', { name: 'Підтверджую правила перед відправкою цього запиту' }))
     expect(submitButton).not.toBeDisabled()
 
     await fireEvent.click(submitButton)
@@ -1640,7 +1658,7 @@ describe('PublicProfileView', () => {
     await fireEvent.click(await screen.findByRole('button', { name: 'Записатися' }))
     expect(
       screen.queryByRole('checkbox', {
-        name: 'Я ознайомився(-лась) та погоджуюсь з правилами перед записом',
+        name: 'Підтверджую правила перед відправкою цього запиту',
       })
     ).not.toBeInTheDocument()
   })

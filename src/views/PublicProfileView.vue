@@ -257,6 +257,9 @@
 
           <article v-if="pendingPlatformBookingRules.length" class="booking-rules-block">
             <div class="booking-rules-block__title">Загальні правила платформи</div>
+            <p class="muted" style="margin: 6px 0 10px;">
+              Ви підтверджуєте загальні правила платформи для поточної версії. Повторне підтвердження потрібне лише після оновлення цих правил.
+            </p>
             <p
               v-for="rule in pendingPlatformBookingRules"
               :key="`platform-${rule.version}`"
@@ -268,6 +271,9 @@
 
           <article v-if="pendingSpecialistBookingRules.length" class="booking-rules-block">
             <div class="booking-rules-block__title">Умови спеціаліста</div>
+            <p class="muted" style="margin: 6px 0 10px;">
+              Це індивідуальні умови цього спеціаліста перед записом. Повторне підтвердження потрібне лише якщо спеціаліст оновить свої правила.
+            </p>
             <p
               v-for="rule in pendingSpecialistBookingRules"
               :key="`specialist-${rule.version}-${rule.specialist_id || 'none'}`"
@@ -481,10 +487,19 @@
               <div class="booking-next__title">Перед надсиланням</div>
               <div class="booking-next__item">• Це м’який перший крок без створення кабінету.</div>
               <div class="booking-next__item">• Спеціаліст окремо підтвердить час або запропонує інший.</div>
+              <div v-if="shouldShowGuestBookingRulesPrompt" class="booking-next__item">
+                • Якщо перед записом є правила, підтвердіть їх чекбоксом перед надсиланням цього запиту.
+              </div>
+              <div v-if="shouldShowGuestBookingRulesPrompt" class="booking-next__item">
+                • Для гостя підтвердження діє лише для поточного запиту і не зберігається для майбутніх звернень.
+              </div>
             </div>
 
             <article v-if="shouldShowGuestBookingRulesPrompt && activePlatformBookingRules.length" class="booking-rules-block">
               <div class="booking-rules-block__title">Загальні правила платформи</div>
+              <p class="muted" style="margin: 6px 0 10px;">
+                Ви підтверджуєте поточну версію загальних правил платформи для цього запиту.
+              </p>
               <p
                 v-for="rule in activePlatformBookingRules"
                 :key="`guest-platform-${rule.version}`"
@@ -496,6 +511,9 @@
 
             <article v-if="shouldShowGuestBookingRulesPrompt && activeSpecialistBookingRules.length" class="booking-rules-block">
               <div class="booking-rules-block__title">Умови спеціаліста</div>
+              <p class="muted" style="margin: 6px 0 10px;">
+                Це індивідуальні умови цього спеціаліста для поточного запиту. Якщо умови зміняться, перед новим запитом потрібно підтвердити їх повторно.
+              </p>
               <p
                 v-for="rule in activeSpecialistBookingRules"
                 :key="`guest-specialist-${rule.version}-${rule.specialist_id || 'none'}`"
@@ -507,7 +525,7 @@
 
             <label v-if="shouldShowGuestBookingRulesPrompt" class="setting-check booking-gate__check">
               <input type="checkbox" v-model="guestBookingRulesAccepted" :disabled="guestBookingSubmitting" />
-              <span>Я ознайомився(-лась) та погоджуюсь з правилами перед записом</span>
+              <span>Підтверджую правила перед відправкою цього запиту</span>
             </label>
 
             <label class="setting-label" for="guestBookingName">
@@ -940,15 +958,15 @@ const requiresSpecialistRulesPrompt = computed(
 
 const clientBookingRulesPromptText = computed(() => {
   if (requiresPlatformRulesPrompt.value && requiresSpecialistRulesPrompt.value) {
-    return 'Щоб продовжити запис, підтвердьте загальні правила платформи та умови спеціаліста.'
+    return 'Щоб продовжити запис, підтвердьте актуальні версії загальних правил платформи та умов спеціаліста. Повторне підтвердження знадобиться лише після оновлення відповідної версії.'
   }
   if (requiresPlatformRulesPrompt.value) {
-    return 'Щоб продовжити запис, підтвердьте загальні правила платформи.'
+    return 'Щоб продовжити запис, підтвердьте актуальну версію загальних правил платформи. Повторне підтвердження потрібне лише після оновлення правил.'
   }
   if (requiresSpecialistRulesPrompt.value) {
-    return 'Щоб продовжити запис, підтвердьте умови спеціаліста.'
+    return 'Щоб продовжити запис, підтвердьте актуальну версію умов спеціаліста. Повторне підтвердження потрібне лише якщо спеціаліст оновить свої правила.'
   }
-  return 'Щоб продовжити запис, підтвердьте правила перед записом.'
+  return 'Щоб продовжити запис, підтвердьте актуальні правила перед записом.'
 })
 
 const bookingRulesConfirmLabel = computed(() =>

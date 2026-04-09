@@ -155,6 +155,7 @@ export type TherapistProfile = {
   bio_approach: string
   bio_for_whom: string
   bio_other: string
+  setting_text?: string
   show_bio_about: boolean
   show_bio_work: boolean
   show_bio_approach: boolean

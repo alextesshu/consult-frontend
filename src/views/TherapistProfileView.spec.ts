@@ -76,6 +76,7 @@ function makeProfile() {
     offers_offline: true,
     offline_location: 'Львів, офіс 12',
     display_name: 'Анна',
+    setting_text: 'Будь ласка, попереджайте про перенесення щонайменше за 24 години.',
     bio_about: 'Працюю дбайливо.',
     bio_work: 'Онлайн консультації.',
     bio_approach: 'CBT.',
@@ -166,6 +167,9 @@ describe('TherapistProfileView', () => {
     expect(screen.getByLabelText('Доступно онлайн')).toBeChecked()
     expect(screen.getByLabelText('Доступно офлайн')).toBeChecked()
     expect(screen.getByDisplayValue('Львів, офіс 12')).toBeInTheDocument()
+    expect(
+      screen.getByDisplayValue('Будь ласка, попереджайте про перенесення щонайменше за 24 години.')
+    ).toBeInTheDocument()
     expect(screen.getByText(`${window.location.origin}/specialist/specialist-anna`)).toBeInTheDocument()
   })
 
@@ -218,6 +222,8 @@ describe('TherapistProfileView', () => {
 
     const introPriceInput = screen.getByDisplayValue('600') as HTMLInputElement
     await fireEvent.update(introPriceInput, '')
+    const rulesInput = screen.getByLabelText('Умови спеціаліста перед записом') as HTMLTextAreaElement
+    await fireEvent.update(rulesInput, 'Оновлені умови перед записом.   ')
 
     expect(await screen.findByTestId('profile-sticky-save-bar')).toBeInTheDocument()
     await fireEvent.click(screen.getByRole('button', { name: 'Зберегти' }))
@@ -233,6 +239,7 @@ describe('TherapistProfileView', () => {
         offers_offline: true,
         offline_location: 'Львів, офіс 12',
         display_name: 'Анна',
+        setting_text: 'Оновлені умови перед записом.',
         specializations: ['CBT', 'ACT'],
         languages: ['Українська', 'English'],
         location: 'Львів',
