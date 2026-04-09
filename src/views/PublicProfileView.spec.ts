@@ -3,6 +3,7 @@ import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import PublicProfileView from './PublicProfileView.vue'
 import { BOOKING_UI_MESSAGES } from '../lib/bookingCopy'
 import {
+  acceptBookingRules,
   apiGet,
   apiPost,
   createInquiryThread,
@@ -59,6 +60,7 @@ vi.mock('../composables/useToast', () => ({
 }))
 
 vi.mock('../lib/api', () => ({
+  acceptBookingRules: vi.fn(),
   apiGet: vi.fn(),
   apiPost: vi.fn(),
   createInquiryThread: vi.fn(),
@@ -74,6 +76,7 @@ vi.mock('../lib/api', () => ({
 
 const mockedApiGet = vi.mocked(apiGet)
 const mockedApiPost = vi.mocked(apiPost)
+const mockedAcceptBookingRules = vi.mocked(acceptBookingRules)
 const mockedCreateInquiryThread = vi.mocked(createInquiryThread)
 const mockedFetchChatThreads = vi.mocked(fetchChatThreads)
 const mockedFetchInquiryMessages = vi.mocked(fetchInquiryMessages)
@@ -140,6 +143,11 @@ function buildProfile(overrides: Record<string, unknown> = {}) {
       },
     ],
     completed_sessions_count: 100,
+    booking_rules: {
+      show_prompt: false,
+      reason_codes: [],
+      items: [],
+    },
     platform_setting_text: 'Platform setting',
     setting_text: 'Therapist setting',
     ...overrides,
@@ -172,6 +180,31 @@ function buildTodayLocalSlot(overrides: Record<string, unknown> = {}) {
     id: 100,
     start_at: start.toISOString(),
     end_at: end.toISOString(),
+    ...overrides,
+  }
+}
+
+function buildPendingBookingRules(overrides: Record<string, unknown> = {}) {
+  return {
+    show_prompt: true,
+    reason_codes: ['PLATFORM_NOT_ACCEPTED', 'SPECIALIST_NOT_ACCEPTED'],
+    items: [
+      {
+        scope: 'PLATFORM',
+        version: 'platform-v1',
+        text: 'Platform rule text.',
+        accepted: false,
+        accepted_at: null,
+      },
+      {
+        scope: 'SPECIALIST',
+        version: 'specialist-v1',
+        specialist_id: 12,
+        text: 'Specialist rule text.',
+        accepted: false,
+        accepted_at: null,
+      },
+    ],
     ...overrides,
   }
 }
@@ -253,6 +286,7 @@ describe('PublicProfileView', () => {
     mockToast.show.mockReset()
     mockedApiGet.mockReset()
     mockedApiPost.mockReset()
+    mockedAcceptBookingRules.mockReset()
     mockedCreateInquiryThread.mockReset()
     mockedFetchChatThreads.mockReset()
     mockedFetchInquiryMessages.mockReset()
@@ -1264,11 +1298,7 @@ describe('PublicProfileView', () => {
 
     renderView()
 
-    const bookingAgreement = await screen.findByRole('checkbox', {
-      name: 'Я ознайомився(-лась) і погоджуюсь з умовами бронювання',
-    })
-    await fireEvent.click(bookingAgreement)
-    await fireEvent.click(screen.getByRole('button', { name: 'Записатися' }))
+    await fireEvent.click(await screen.findByRole('button', { name: 'Записатися' }))
 
     expect(mockedApiPost).toHaveBeenCalledWith(
       '/booking/sessions/',
@@ -1280,11 +1310,37 @@ describe('PublicProfileView', () => {
     expect(screen.queryByRole('heading', { name: 'Запит на бронювання' })).not.toBeInTheDocument()
   })
 
-  it('blocks booking for a client until setting acceptance is confirmed', async () => {
+  it('blocks booking for a client until booking rules acceptance is confirmed', async () => {
     mockAuth.accessToken = 'token'
     mockAuth.me = { user: { id: 7, roles: ['CLIENT'] } }
 
-    mockCommonPublicData()
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(
+      buildProfile({
+        booking_rules: {
+          show_prompt: true,
+          reason_codes: ['PLATFORM_NOT_ACCEPTED', 'SPECIALIST_NOT_ACCEPTED'],
+          items: [
+            {
+              scope: 'PLATFORM',
+              version: 'platform-v1',
+              text: 'Platform rule text.',
+              accepted: false,
+              accepted_at: null,
+            },
+            {
+              scope: 'SPECIALIST',
+              version: 'specialist-v1',
+              specialist_id: 12,
+              text: 'Specialist rule text.',
+              accepted: false,
+              accepted_at: null,
+            },
+          ],
+        },
+      })
+    )
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
     mockedFetchChatThreads.mockResolvedValue([])
     mockedFetchInquiryState.mockResolvedValue(buildInquiryState())
     mockedApiGet.mockImplementation(async (url, config) => {
@@ -1303,20 +1359,290 @@ describe('PublicProfileView', () => {
 
       throw new Error(`Unexpected apiGet call: ${url}`)
     })
+    mockedAcceptBookingRules.mockResolvedValue({
+      status: 'ok',
+      created_count: 2,
+      already_accepted_count: 0,
+      booking_rules: {
+        show_prompt: false,
+        reason_codes: [],
+        items: [
+          {
+            scope: 'PLATFORM',
+            version: 'platform-v1',
+            text: 'Platform rule text.',
+            accepted: true,
+            accepted_at: '2026-04-09T08:00:00Z',
+          },
+          {
+            scope: 'SPECIALIST',
+            version: 'specialist-v1',
+            specialist_id: 12,
+            text: 'Specialist rule text.',
+            accepted: true,
+            accepted_at: '2026-04-09T08:00:00Z',
+          },
+        ],
+      },
+    })
+    mockedApiPost.mockImplementation(async (url) => {
+      if (url === '/booking/sessions/') return {}
+      throw new Error(`Unexpected apiPost call: ${url}`)
+    })
 
     renderView()
 
-    expect(await screen.findByText('Для запису потрібно підтвердити умови спеціаліста')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Відкрити умови' })).toBeInTheDocument()
-    expect(
-      screen.getByText('Без цього підтвердження кнопки бронювання залишаються недоступними.')
-    ).toBeInTheDocument()
+    expect(await screen.findByText('Правила перед записом')).toBeInTheDocument()
+    expect(screen.getByText('Загальні правила платформи')).toBeInTheDocument()
+    expect(screen.getByText('Умови спеціаліста')).toBeInTheDocument()
 
     const bookButton = await screen.findByRole('button', { name: 'Записатися' })
     await fireEvent.click(bookButton)
 
     expect(await screen.findByText(BOOKING_UI_MESSAGES.acceptSettingBeforeBooking)).toBeInTheDocument()
-    expect(mockedApiPost).not.toHaveBeenCalled()
+    expect(mockedApiPost).not.toHaveBeenCalledWith('/booking/sessions/', expect.anything())
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Підтвердити правила перед записом' }))
+
+    expect(mockedAcceptBookingRules).toHaveBeenCalledWith({ specialist_id: 12 })
+    expect(mockedApiPost).toHaveBeenCalledWith(
+      '/booking/sessions/',
+      expect.objectContaining({
+        slot_id: 100,
+        setting_accepted: true,
+      })
+    )
+  })
+
+  it('does not render booking rules prompt when booking_rules has no active items', async () => {
+    mockAuth.accessToken = 'token'
+    mockAuth.me = { user: { id: 7, roles: ['CLIENT'] } }
+
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(
+      buildProfile({
+        booking_rules: {
+          show_prompt: false,
+          reason_codes: [],
+          items: [],
+        },
+      })
+    )
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedFetchInquiryState.mockResolvedValue(buildInquiryState())
+    mockBookingPageDataWithSingleSlot()
+    mockedApiPost.mockResolvedValue({})
+
+    renderView()
+
+    expect(screen.queryByText('Правила перед записом')).not.toBeInTheDocument()
+    await fireEvent.click(await screen.findByRole('button', { name: 'Записатися' }))
+
+    expect(mockedApiPost).toHaveBeenCalledWith(
+      '/booking/sessions/',
+      expect.objectContaining({
+        slot_id: 100,
+        setting_accepted: true,
+      })
+    )
+  })
+
+  it('renders only platform booking rules section when only platform item is pending', async () => {
+    mockAuth.accessToken = 'token'
+    mockAuth.me = { user: { id: 7, roles: ['CLIENT'] } }
+
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(
+      buildProfile({
+        booking_rules: buildPendingBookingRules({
+          reason_codes: ['PLATFORM_NOT_ACCEPTED'],
+          items: [
+            {
+              scope: 'PLATFORM',
+              version: 'platform-v1',
+              text: 'Platform-only rule.',
+              accepted: false,
+              accepted_at: null,
+            },
+          ],
+        }),
+      })
+    )
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedFetchInquiryState.mockResolvedValue(buildInquiryState())
+    mockBookingPageDataWithSingleSlot()
+
+    renderView()
+
+    expect(await screen.findByText('Правила перед записом')).toBeInTheDocument()
+    expect(screen.getByText('Загальні правила платформи')).toBeInTheDocument()
+    expect(screen.queryByText('Умови спеціаліста')).not.toBeInTheDocument()
+  })
+
+  it('renders only specialist booking rules section when only specialist item is pending', async () => {
+    mockAuth.accessToken = 'token'
+    mockAuth.me = { user: { id: 7, roles: ['CLIENT'] } }
+
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(
+      buildProfile({
+        booking_rules: buildPendingBookingRules({
+          reason_codes: ['SPECIALIST_NOT_ACCEPTED'],
+          items: [
+            {
+              scope: 'SPECIALIST',
+              version: 'specialist-v1',
+              specialist_id: 12,
+              text: 'Specialist-only rule.',
+              accepted: false,
+              accepted_at: null,
+            },
+          ],
+        }),
+      })
+    )
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedFetchInquiryState.mockResolvedValue(buildInquiryState())
+    mockBookingPageDataWithSingleSlot()
+
+    renderView()
+
+    expect(await screen.findByText('Правила перед записом')).toBeInTheDocument()
+    expect(screen.queryByText('Загальні правила платформи')).not.toBeInTheDocument()
+    expect(screen.getByText('Умови спеціаліста')).toBeInTheDocument()
+  })
+
+  it('does not re-prompt booking rules after successful acceptance for repeated booking actions', async () => {
+    mockAuth.accessToken = 'token'
+    mockAuth.me = { user: { id: 7, roles: ['CLIENT'] } }
+
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(
+      buildProfile({
+        booking_rules: buildPendingBookingRules(),
+      })
+    )
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedFetchInquiryState.mockResolvedValue(buildInquiryState())
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/booking/slots/') {
+        const params = (config as { params?: { therapist_id?: number } } | undefined)?.params || {}
+        if (params.therapist_id === 12) {
+          const secondStart = new Date()
+          secondStart.setHours(13, 0, 0, 0)
+          const secondEnd = new Date(secondStart)
+          secondEnd.setMinutes(secondEnd.getMinutes() + 50)
+          return [
+            buildTodayLocalSlot({ id: 100 }),
+            buildTodayLocalSlot({
+              id: 101,
+              start_at: secondStart.toISOString(),
+              end_at: secondEnd.toISOString(),
+            }),
+          ]
+        }
+        return []
+      }
+      if (url === '/booking/sessions/') return []
+      if (url === '/public/specialists/olena/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedAcceptBookingRules.mockResolvedValue({
+      status: 'ok',
+      created_count: 2,
+      already_accepted_count: 0,
+      booking_rules: {
+        show_prompt: false,
+        reason_codes: [],
+        items: [],
+      },
+    })
+    mockedApiPost.mockImplementation(async (url) => {
+      if (url === '/booking/sessions/') return {}
+      throw new Error(`Unexpected apiPost call: ${url}`)
+    })
+
+    renderView()
+
+    await fireEvent.click(await screen.findByRole('button', { name: 'Підтвердити правила перед записом' }))
+    expect(mockedAcceptBookingRules).toHaveBeenCalledWith({ specialist_id: 12 })
+
+    const slotButtons = await screen.findAllByRole('button', { name: 'Записатися' })
+    await fireEvent.click(slotButtons[0]!)
+    await fireEvent.click(screen.getAllByRole('button', { name: 'Закрити' })[0]!)
+    await fireEvent.click((await screen.findAllByRole('button', { name: 'Записатися' }))[0]!)
+
+    const acceptCalls = mockedAcceptBookingRules.mock.calls
+    const bookingCalls = mockedApiPost.mock.calls.filter((call) => call[0] === '/booking/sessions/')
+    expect(acceptCalls).toHaveLength(1)
+    expect(bookingCalls).toHaveLength(2)
+  })
+
+  it('requires guest booking rules checkbox when active rules are present', async () => {
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(
+      buildProfile({
+        booking_rules: buildPendingBookingRules(),
+      })
+    )
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockBookingPageDataWithSingleSlot()
+    mockedApiPost.mockResolvedValue({
+      request: {
+        id: 601,
+        status: 'PENDING',
+        created_at: '2026-04-07T10:00:00Z',
+        next_step: null,
+      },
+    })
+
+    renderView()
+
+    await fireEvent.click(await screen.findByRole('button', { name: 'Записатися' }))
+    expect(await screen.findByText('Загальні правила платформи')).toBeInTheDocument()
+    expect(screen.getByText('Умови спеціаліста')).toBeInTheDocument()
+
+    await fireEvent.update(screen.getByLabelText('Ім’я'), 'Ірина')
+    await fireEvent.update(screen.getByLabelText('Контакт'), 'iryna@example.com')
+    const submitButton = screen.getByRole('button', { name: 'Надіслати запит' })
+    expect(submitButton).toBeDisabled()
+
+    await fireEvent.click(screen.getByRole('checkbox', { name: 'Я ознайомився(-лась) та погоджуюсь з правилами перед записом' }))
+    expect(submitButton).not.toBeDisabled()
+
+    await fireEvent.click(submitButton)
+    expect(mockedApiPost).toHaveBeenCalledWith(
+      '/public/specialists/olena/guest-booking-requests/',
+      expect.objectContaining({
+        slot_id: 100,
+      })
+    )
+  })
+
+  it('does not require guest booking rules checkbox when there are no active booking rules', async () => {
+    mockCommonPublicData()
+    mockBookingPageDataWithSingleSlot()
+    mockedApiPost.mockResolvedValue({
+      request: {
+        id: 602,
+        status: 'PENDING',
+        created_at: '2026-04-07T10:00:00Z',
+        next_step: null,
+      },
+    })
+
+    renderView()
+
+    await fireEvent.click(await screen.findByRole('button', { name: 'Записатися' }))
+    expect(
+      screen.queryByRole('checkbox', {
+        name: 'Я ознайомився(-лась) та погоджуюсь з правилами перед записом',
+      })
+    ).not.toBeInTheDocument()
   })
 
   it('hides format chooser for online-only specialist and sends online session_format', async () => {
@@ -1339,11 +1665,7 @@ describe('PublicProfileView', () => {
     expect(screen.queryByLabelText('Онлайн')).not.toBeInTheDocument()
     expect(screen.queryByLabelText('Офлайн')).not.toBeInTheDocument()
 
-    const bookingAgreement = screen.getAllByRole('checkbox')[0]!
-    await fireEvent.click(bookingAgreement)
-    expect(screen.getByText('Умови бронювання підтверджено')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Переглянути умови' })).toBeInTheDocument()
-    await fireEvent.click(screen.getByRole('button', { name: 'Записатися' }))
+    await fireEvent.click(await screen.findByRole('button', { name: 'Записатися' }))
 
     expect(mockedApiPost).toHaveBeenCalledWith(
       '/booking/sessions/',
@@ -1380,9 +1702,7 @@ describe('PublicProfileView', () => {
     expect(screen.queryByLabelText('Онлайн')).not.toBeInTheDocument()
     expect(screen.queryByLabelText('Офлайн')).not.toBeInTheDocument()
 
-    const bookingAgreement = screen.getAllByRole('checkbox')[0]!
-    await fireEvent.click(bookingAgreement)
-    await fireEvent.click(screen.getByRole('button', { name: 'Записатися' }))
+    await fireEvent.click(await screen.findByRole('button', { name: 'Записатися' }))
 
     expect(mockedApiPost).toHaveBeenCalledWith(
       '/booking/sessions/',
@@ -1424,9 +1744,7 @@ describe('PublicProfileView', () => {
 
     const onlineOption = await screen.findByLabelText('Онлайн')
     await fireEvent.click(onlineOption)
-    const bookingAgreement = screen.getAllByRole('checkbox')[0]!
-    await fireEvent.click(bookingAgreement)
-    await fireEvent.click(screen.getByRole('button', { name: 'Записатися' }))
+    await fireEvent.click(await screen.findByRole('button', { name: 'Записатися' }))
 
     expect(mockedApiPost).toHaveBeenCalledWith(
       '/booking/sessions/',
@@ -1452,9 +1770,7 @@ describe('PublicProfileView', () => {
 
     const offlineOption = await screen.findByLabelText('Офлайн')
     await fireEvent.click(offlineOption)
-    const bookingAgreement = screen.getAllByRole('checkbox')[0]!
-    await fireEvent.click(bookingAgreement)
-    await fireEvent.click(screen.getByRole('button', { name: 'Записатися' }))
+    await fireEvent.click(await screen.findByRole('button', { name: 'Записатися' }))
 
     expect(mockedApiPost).toHaveBeenCalledWith(
       '/booking/sessions/',
@@ -1485,8 +1801,6 @@ describe('PublicProfileView', () => {
     renderView()
 
     await screen.findByText('Загальна інформація')
-    const bookingAgreement = screen.getAllByRole('checkbox')[0]!
-    await fireEvent.click(bookingAgreement)
     await fireEvent.click(await screen.findByRole('button', { name: 'Записатися' }))
 
     expect(await screen.findByText('Оберіть формат сесії перед бронюванням.')).toBeInTheDocument()

@@ -247,40 +247,45 @@
         </div>
 
         <section
-          v-if="isAuthenticated && isClient"
-          class="booking-gate"
-          :class="{
-            'booking-gate--pending': !settingAccepted,
-            'booking-gate--ready': settingAccepted,
-            'booking-gate--attention': settingAttention,
-          }"
-          aria-label="Підтвердження правил перед бронюванням"
+          v-if="shouldShowClientBookingRulesPrompt"
+          ref="bookingRulesPromptRef"
+          class="booking-gate booking-gate--pending"
+          aria-label="Правила перед записом"
         >
-          <div class="booking-gate__content">
-            <div>
-              <div class="booking-gate__title">
-                {{ settingAccepted ? 'Умови бронювання підтверджено' : 'Для запису потрібно підтвердити умови спеціаліста' }}
-              </div>
-              <p v-if="!settingAccepted" class="booking-gate__text">
-                Ознайомтеся з правилами бронювання перед вибором слота.
-              </p>
-            </div>
+          <div class="booking-gate__title">Правила перед записом</div>
+          <p class="booking-gate__text">{{ clientBookingRulesPromptText }}</p>
+
+          <article v-if="pendingPlatformBookingRules.length" class="booking-rules-block">
+            <div class="booking-rules-block__title">Загальні правила платформи</div>
+            <p
+              v-for="rule in pendingPlatformBookingRules"
+              :key="`platform-${rule.version}`"
+              class="booking-rules-block__item"
+            >
+              {{ rule.text }}
+            </p>
+          </article>
+
+          <article v-if="pendingSpecialistBookingRules.length" class="booking-rules-block">
+            <div class="booking-rules-block__title">Умови спеціаліста</div>
+            <p
+              v-for="rule in pendingSpecialistBookingRules"
+              :key="`specialist-${rule.version}-${rule.specialist_id || 'none'}`"
+              class="booking-rules-block__item"
+            >
+              {{ rule.text }}
+            </p>
+          </article>
+
+          <div class="booking-gate__actions">
             <button
               class="btn btn--ghost btn--sm booking-gate__button"
-              :class="{ 'btn--pulse': settingAttention }"
               type="button"
-              ref="settingButtonRef"
-              @click="openSettingModal"
+              :disabled="bookingRulesAccepting"
+              @click="confirmClientBookingRules"
             >
-              {{ settingAccepted ? 'Переглянути умови' : 'Відкрити умови' }}
+              {{ bookingRulesConfirmLabel }}
             </button>
-          </div>
-          <label v-if="!settingAccepted" class="setting-check booking-gate__check">
-            <input type="checkbox" v-model="settingAccepted" />
-            <span>Я ознайомився(-лась) і погоджуюсь з умовами бронювання</span>
-          </label>
-          <div v-if="!settingAccepted" class="booking-gate__hint">
-            Без цього підтвердження кнопки бронювання залишаються недоступними.
           </div>
         </section>
 
@@ -478,6 +483,33 @@
               <div class="booking-next__item">• Спеціаліст окремо підтвердить час або запропонує інший.</div>
             </div>
 
+            <article v-if="shouldShowGuestBookingRulesPrompt && activePlatformBookingRules.length" class="booking-rules-block">
+              <div class="booking-rules-block__title">Загальні правила платформи</div>
+              <p
+                v-for="rule in activePlatformBookingRules"
+                :key="`guest-platform-${rule.version}`"
+                class="booking-rules-block__item"
+              >
+                {{ rule.text }}
+              </p>
+            </article>
+
+            <article v-if="shouldShowGuestBookingRulesPrompt && activeSpecialistBookingRules.length" class="booking-rules-block">
+              <div class="booking-rules-block__title">Умови спеціаліста</div>
+              <p
+                v-for="rule in activeSpecialistBookingRules"
+                :key="`guest-specialist-${rule.version}-${rule.specialist_id || 'none'}`"
+                class="booking-rules-block__item"
+              >
+                {{ rule.text }}
+              </p>
+            </article>
+
+            <label v-if="shouldShowGuestBookingRulesPrompt" class="setting-check booking-gate__check">
+              <input type="checkbox" v-model="guestBookingRulesAccepted" :disabled="guestBookingSubmitting" />
+              <span>Я ознайомився(-лась) та погоджуюсь з правилами перед записом</span>
+            </label>
+
             <label class="setting-label" for="guestBookingName">
               Ім’я
               <input
@@ -537,7 +569,7 @@
 
             <div v-if="guestBookingError" class="form-error">{{ guestBookingError }}</div>
 
-            <button class="btn btn--primary" type="submit" :disabled="guestBookingSubmitting">
+            <button class="btn btn--primary" type="submit" :disabled="guestBookingSubmitDisabled">
               {{ guestBookingSubmitting ? 'Надсилаємо...' : 'Надіслати запит' }}
             </button>
           </form>
@@ -580,32 +612,6 @@
       </div>
     </div>
 
-    <div v-if="showSettingModal" class="setting-modal">
-      <div class="setting-modal__backdrop" @click="closeSettingModal"></div>
-      <div class="setting-modal__content">
-        <div class="setting-modal__header">
-          <h3>Сетінг</h3>
-          <button class="btn btn--ghost btn--sm" type="button" @click="closeSettingModal">Закрити</button>
-        </div>
-        <div class="setting-modal__body">
-          <div class="setting-section" v-if="platformSettingText">
-            <div class="setting-title">Загальні правила простору</div>
-            <div class="muted">{{ platformSettingText }}</div>
-          </div>
-          <div class="setting-section" v-if="therapistSettingText">
-            <div class="setting-title">Сетінг спеціаліста</div>
-            <div class="muted">{{ therapistSettingText }}</div>
-          </div>
-          <div v-if="!platformSettingText && !therapistSettingText" class="muted">
-            Сетінг ще не додано.
-          </div>
-          <label class="setting-check setting-check--modal">
-            <input type="checkbox" v-model="settingAccepted" />
-            <span>Погоджуюсь з умовами</span>
-          </label>
-        </div>
-      </div>
-    </div>
   </section>
 </template>
 
@@ -632,6 +638,7 @@ import {
 } from '../lib/bookingCopy'
 import { getInquiryActionErrorMessage, mapInquiryStateToUi } from '../lib/inquiryCopy'
 import {
+  acceptBookingRules,
   apiGet,
   apiPost,
   type BookingSessionCreatePayload,
@@ -662,6 +669,7 @@ import {
   type PublicProfileReviewItem,
   type PublicProfileTopicsSection,
   type PublicProfileTrustItem,
+  type PublicBookingRuleItem,
   type PublicSpecialistProfile,
   type PublicSpecialistProfileDocument,
   type PublicAuthorJournalPost,
@@ -807,13 +815,12 @@ const guestBookingForm = ref({
   contact_value: '',
   message: '',
 })
-const settingAccepted = ref(false)
-const showSettingModal = ref(false)
+const bookingRulesAccepting = ref(false)
+const pendingClientBookingSlotId = ref<number | null>(null)
+const bookingRulesPromptRef = ref<HTMLElement | null>(null)
+const guestBookingRulesAccepted = ref(false)
 const showContactChooserModal = ref(false)
 const contactActionFallback = ref<ContactActionFallbackViewModel | null>(null)
-const settingAttention = ref(false)
-const settingButtonRef = ref<HTMLElement | null>(null)
-let settingAttentionTimer: number | null = null
 let contactActionFallbackTimer: number | null = null
 const clientSessions = ref<ClientSession[]>([])
 const pastClientSessions = ref<ClientSession[]>([])
@@ -874,7 +881,88 @@ const bookingOfflineLocationHint = computed(() => {
   if (resolvedSessionFormat.value !== 'offline') return ''
   return offlineMeetingLocation.value
 })
+
+function resolveBookingRuleScope(rule: PublicBookingRuleItem): 'PLATFORM' | 'SPECIALIST' {
+  return String(rule.scope || '').trim().toUpperCase() === 'PLATFORM' ? 'PLATFORM' : 'SPECIALIST'
+}
+
+const activeBookingRuleItems = computed<PublicBookingRuleItem[]>(() => {
+  const items = profile.value?.booking_rules?.items || []
+  return items.filter((item) => typeof item?.text === 'string' && item.text.trim().length > 0)
+})
+
+const pendingBookingRuleItems = computed(() => activeBookingRuleItems.value.filter((item) => !item.accepted))
+
+const bookingRulesPromptEnabled = computed(() => {
+  const bookingRules = profile.value?.booking_rules
+  return Boolean(bookingRules?.show_prompt) && activeBookingRuleItems.value.length > 0
+})
+
+const bookingRulesReasonCodes = computed(() => {
+  const codes = profile.value?.booking_rules?.reason_codes || []
+  return new Set(
+    codes
+      .map((code) => String(code || '').trim().toUpperCase())
+      .filter((code) => code.length > 0)
+  )
+})
+
+const pendingPlatformBookingRules = computed(() =>
+  pendingBookingRuleItems.value.filter((item) => resolveBookingRuleScope(item) === 'PLATFORM')
+)
+const pendingSpecialistBookingRules = computed(() =>
+  pendingBookingRuleItems.value.filter((item) => resolveBookingRuleScope(item) === 'SPECIALIST')
+)
+const activePlatformBookingRules = computed(() =>
+  activeBookingRuleItems.value.filter((item) => resolveBookingRuleScope(item) === 'PLATFORM')
+)
+const activeSpecialistBookingRules = computed(() =>
+  activeBookingRuleItems.value.filter((item) => resolveBookingRuleScope(item) === 'SPECIALIST')
+)
+
+const shouldShowClientBookingRulesPrompt = computed(
+  () => Boolean(canBook.value && bookingRulesPromptEnabled.value && pendingBookingRuleItems.value.length > 0)
+)
+const shouldShowGuestBookingRulesPrompt = computed(
+  () => Boolean(isGuestVisitor.value && bookingRulesPromptEnabled.value)
+)
+
+const requiresPlatformRulesPrompt = computed(
+  () =>
+    bookingRulesReasonCodes.value.has('PLATFORM_NOT_ACCEPTED') ||
+    pendingPlatformBookingRules.value.length > 0
+)
+const requiresSpecialistRulesPrompt = computed(
+  () =>
+    bookingRulesReasonCodes.value.has('SPECIALIST_NOT_ACCEPTED') ||
+    pendingSpecialistBookingRules.value.length > 0
+)
+
+const clientBookingRulesPromptText = computed(() => {
+  if (requiresPlatformRulesPrompt.value && requiresSpecialistRulesPrompt.value) {
+    return 'Щоб продовжити запис, підтвердьте загальні правила платформи та умови спеціаліста.'
+  }
+  if (requiresPlatformRulesPrompt.value) {
+    return 'Щоб продовжити запис, підтвердьте загальні правила платформи.'
+  }
+  if (requiresSpecialistRulesPrompt.value) {
+    return 'Щоб продовжити запис, підтвердьте умови спеціаліста.'
+  }
+  return 'Щоб продовжити запис, підтвердьте правила перед записом.'
+})
+
+const bookingRulesConfirmLabel = computed(() =>
+  bookingRulesAccepting.value ? 'Підтверджуємо правила...' : 'Підтвердити правила перед записом'
+)
+
+const guestBookingSubmitDisabled = computed(
+  () =>
+    guestBookingSubmitting.value ||
+    (shouldShowGuestBookingRulesPrompt.value && !guestBookingRulesAccepted.value)
+)
+
 const isSlotBusy = (slotId: number) =>
+  bookingRulesAccepting.value ||
   bookingSlotId.value === slotId ||
   (guestBookingSubmitting.value && guestBookingSubmitSlotId.value === slotId)
 const visibleSlots = computed(() => (showAllSlots.value ? slots.value : slots.value.slice(0, slotsPreviewLimit)))
@@ -961,9 +1049,6 @@ const weekDays = computed(() => {
   }
   return days
 })
-const platformSettingText = computed(() => profile.value?.platform_setting_text || '')
-const therapistSettingText = computed(() => profile.value?.setting_text || '')
-
 const sectionsTrust = computed(() => profile.value?.sections?.trust || null)
 const sectionsAbout = computed(() => profile.value?.sections?.about || null)
 const sectionsTopics = computed(() => profile.value?.sections?.topics || null)
@@ -2508,6 +2593,7 @@ function closeGuestBookingModal() {
   guestBookingSuccess.value = null
   guestBookingSubmitting.value = false
   guestBookingSubmitSlotId.value = null
+  guestBookingRulesAccepted.value = false
   resetGuestBookingForm()
 }
 
@@ -2523,6 +2609,7 @@ function openGuestBookingModal(slotId: number) {
   guestBookingError.value = ''
   guestBookingSuccess.value = null
   guestBookingSubmitSlotId.value = slotId
+  guestBookingRulesAccepted.value = false
   resetGuestBookingForm()
   showGuestBookingModal.value = true
 }
@@ -2645,6 +2732,10 @@ async function submitGuestBookingRequest() {
     guestBookingError.value = 'Оберіть канал зв’язку зі списку: Email, Телефон або Telegram.'
     return
   }
+  if (shouldShowGuestBookingRulesPrompt.value && !guestBookingRulesAccepted.value) {
+    guestBookingError.value = BOOKING_UI_MESSAGES.acceptSettingBeforeBooking
+    return
+  }
 
   const sessionFormat = resolvedSessionFormat.value
   if (!sessionFormat) {
@@ -2684,25 +2775,47 @@ async function submitGuestBookingRequest() {
 }
 
 function slotActionLabel(slotId: number) {
+  if (bookingRulesAccepting.value) return 'Підтверджуємо правила...'
   if (bookingSlotId.value === slotId) return 'Бронюємо...'
   if (guestBookingSubmitting.value && guestBookingSubmitSlotId.value === slotId) return 'Надсилаємо...'
   return 'Записатися'
 }
 
-function flashSettingButton() {
-  settingAttention.value = false
-  if (settingAttentionTimer) {
-    window.clearTimeout(settingAttentionTimer)
-  }
-  settingAttention.value = true
-  settingButtonRef.value?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-  settingAttentionTimer = window.setTimeout(() => {
-    settingAttention.value = false
-    settingAttentionTimer = null
-  }, 900)
+function focusBookingRulesPrompt() {
+  bookingRulesPromptRef.value?.scrollIntoView({ behavior: 'smooth', block: 'center' })
 }
 
-function handleBookingClick(slotId: number) {
+async function confirmClientBookingRules() {
+  if (!canBook.value || !profile.value?.therapist_id || bookingRulesAccepting.value) return
+  bookingError.value = ''
+  bookingSuccess.value = ''
+  bookingRulesAccepting.value = true
+  try {
+    const response = await acceptBookingRules({ specialist_id: profile.value.therapist_id })
+    if (profile.value) {
+      profile.value = {
+        ...profile.value,
+        booking_rules: response.booking_rules || {
+          show_prompt: false,
+          reason_codes: [],
+          items: [],
+        },
+      }
+    }
+    const slotIdToBook = pendingClientBookingSlotId.value
+    pendingClientBookingSlotId.value = null
+    if (typeof slotIdToBook === 'number') {
+      await bookSlot(slotIdToBook)
+    }
+  } catch (err: any) {
+    bookingError.value = getApiErrorMessage(err, 'Не вдалося підтвердити правила перед записом.')
+    toast.error(bookingError.value)
+  } finally {
+    bookingRulesAccepting.value = false
+  }
+}
+
+async function handleBookingClick(slotId: number) {
   if (isGuestVisitor.value) {
     openGuestBookingModal(slotId)
     return
@@ -2711,13 +2824,14 @@ function handleBookingClick(slotId: number) {
     bookingError.value = BOOKING_UI_MESSAGES.onlyClientsCanBook
     return
   }
-  if (bookingSlotId.value === slotId) return
-  if (!settingAccepted.value) {
+  if (isSlotBusy(slotId)) return
+  if (shouldShowClientBookingRulesPrompt.value) {
+    pendingClientBookingSlotId.value = slotId
     bookingError.value = BOOKING_UI_MESSAGES.acceptSettingBeforeBooking
-    flashSettingButton()
+    focusBookingRulesPrompt()
     return
   }
-  bookSlot(slotId)
+  await bookSlot(slotId)
 }
 
 async function bookSlot(slotId: number) {
@@ -2727,11 +2841,13 @@ async function bookSlot(slotId: number) {
     bookingError.value = BOOKING_UI_MESSAGES.onlyClientsCanBook
     return
   }
-  if (!settingAccepted.value) {
+  if (shouldShowClientBookingRulesPrompt.value) {
+    pendingClientBookingSlotId.value = slotId
     bookingError.value = BOOKING_UI_MESSAGES.acceptSettingBeforeBooking
-    openSettingModal()
+    focusBookingRulesPrompt()
     return
   }
+  pendingClientBookingSlotId.value = null
   bookingSlotId.value = slotId
   const bookedSlot = slots.value.find((slot) => slot.id === slotId) || null
   try {
@@ -2765,14 +2881,6 @@ async function bookSlot(slotId: number) {
 
 function closeBookingModal() {
   showBookingModal.value = false
-}
-
-function openSettingModal() {
-  showSettingModal.value = true
-}
-
-function closeSettingModal() {
-  showSettingModal.value = false
 }
 
 function pickSpecialist(data: PublicSpecialistProfile) {
@@ -2862,6 +2970,9 @@ watch(slug, () => {
   guestBookingSuccess.value = null
   guestBookingSubmitting.value = false
   guestBookingSubmitSlotId.value = null
+  guestBookingRulesAccepted.value = false
+  bookingRulesAccepting.value = false
+  pendingClientBookingSlotId.value = null
   resetGuestBookingForm()
   showContactChooserModal.value = false
   closeContactActionFallbackModal()
@@ -2931,10 +3042,6 @@ watch(
 )
 
 onBeforeUnmount(() => {
-  if (settingAttentionTimer !== null) {
-    window.clearTimeout(settingAttentionTimer)
-    settingAttentionTimer = null
-  }
   clearContactActionFallbackTimer()
 })
 
@@ -4391,34 +4498,17 @@ onMounted(async () => {
 
   .booking-gate {
     display: grid;
-    gap: 8px;
-    padding: 10px 12px;
+    gap: 10px;
+    padding: 12px;
     margin-top: 6px;
     border-radius: 12px;
-    border: 1px solid color-mix(in srgb, var(--line) 88%, var(--primary));
-    background: color-mix(in srgb, #ffffff 92%, var(--surface));
+    border: 1px solid color-mix(in srgb, #d9a441 30%, var(--line));
+    background: color-mix(in srgb, #f4e2ae 10%, #ffffff);
   }
 
   .booking-gate--pending {
     border-color: color-mix(in srgb, #d9a441 30%, var(--line));
     background: color-mix(in srgb, #f4e2ae 10%, #ffffff);
-  }
-
-  .booking-gate--ready {
-    border-color: color-mix(in srgb, #1f7a4c 24%, var(--line));
-    background: color-mix(in srgb, #1f7a4c 6%, #ffffff);
-  }
-
-.booking-gate--attention {
-  box-shadow: 0 0 0 3px rgba(85, 132, 102, 0.16);
-}
-
-  .booking-gate__content {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 12px;
-    flex-wrap: wrap;
   }
 
   .booking-gate__title {
@@ -4435,8 +4525,38 @@ onMounted(async () => {
     font-size: 13px;
   }
 
+  .booking-gate__actions {
+    display: flex;
+    justify-content: flex-start;
+  }
+
   .booking-gate__button {
-    flex-shrink: 0;
+    min-width: 240px;
+  }
+
+  .booking-rules-block {
+    display: grid;
+    gap: 6px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: #fff;
+  }
+
+  .booking-rules-block__title {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--deep);
+    font-weight: 700;
+  }
+
+  .booking-rules-block__item {
+    margin: 0;
+    color: var(--text);
+    font-size: 13px;
+    line-height: 1.45;
+    white-space: pre-line;
   }
 
   .setting-check {
@@ -4462,40 +4582,6 @@ onMounted(async () => {
     color: var(--muted);
   }
 
-  .setting-check--modal {
-    margin-top: 16px;
-  }
-
-  .btn--disabled {
-    opacity: 0.55;
-    cursor: not-allowed;
-    pointer-events: auto;
-  }
-
-  .btn--disabled:hover {
-    transform: none;
-  }
-
-.btn--pulse {
-  animation: pulse-attention 0.9s ease-in-out;
-  box-shadow: 0 0 0 0 rgba(85, 132, 102, 0.28);
-}
-
-  @keyframes pulse-attention {
-    0% {
-      transform: scale(1);
-      box-shadow: 0 0 0 0 rgba(85, 132, 102, 0.28);
-    }
-    50% {
-      transform: scale(1.02);
-      box-shadow: 0 0 0 10px rgba(85, 132, 102, 0);
-    }
-    100% {
-      transform: scale(1);
-      box-shadow: 0 0 0 0 rgba(85, 132, 102, 0);
-    }
-  }
-
   .setting-modal {
     position: fixed;
     inset: 0;
@@ -4509,12 +4595,9 @@ onMounted(async () => {
       padding: 12px;
     }
 
-    .booking-gate__content {
-      align-items: stretch;
-    }
-
     .booking-gate__button {
       width: 100%;
+      min-width: 0;
     }
   }
 

@@ -434,6 +434,23 @@ export type PublicProfileSections = {
   media?: PublicProfileMediaSection | null
 }
 
+export type BookingRuleScope = 'PLATFORM' | 'SPECIALIST'
+
+export type PublicBookingRuleItem = {
+  scope: BookingRuleScope | string
+  version: string
+  text: string
+  accepted: boolean
+  accepted_at?: string | null
+  specialist_id?: number | null
+}
+
+export type PublicBookingRules = {
+  show_prompt: boolean
+  reason_codes?: string[]
+  items?: PublicBookingRuleItem[]
+}
+
 export type PublicTherapistProfile = {
   public_slug?: string
   therapist_id: number
@@ -467,6 +484,7 @@ export type PublicTherapistProfile = {
   video_url?: string
   platform_setting_text?: string
   setting_text?: string
+  booking_rules?: PublicBookingRules | null
   profile_documents?: PublicSpecialistProfileDocument[]
   contact_actions?: PublicContactAction[] | null
   sections_version?: number | null
@@ -956,6 +974,24 @@ export async function fetchPublicSpecialistProfile(
   slug: string
 ): Promise<PublicSpecialistProfile> {
   return fetchPublicTherapistProfile(slug)
+}
+
+export type AcceptBookingRulesPayload = {
+  specialist_id: number
+}
+
+export type AcceptBookingRulesResponse = {
+  status: string
+  created_count: number
+  already_accepted_count: number
+  booking_rules?: PublicBookingRules | null
+}
+
+export async function acceptBookingRules(
+  payload: AcceptBookingRulesPayload
+): Promise<AcceptBookingRulesResponse> {
+  const resp = await http.post<AcceptBookingRulesResponse>('/booking/rules/accept/', payload)
+  return resp.data
 }
 
 export async function fetchPublicAuthorJournalPosts(
