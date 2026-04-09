@@ -8,25 +8,39 @@
       </div>
     </div>
     <div class="about-grid">
-      <article v-for="section in aboutSections" :key="section.title" class="bio-section">
+      <article
+        v-for="(section, index) in aboutSections"
+        :key="`${section.title}-${index}`"
+        class="bio-section"
+        :class="{ 'bio-section--expanded': isSectionExpanded(index) }"
+      >
         <div class="bio-title">{{ section.title }}</div>
-        <div class="bio-copy">{{ section.body }}</div>
+        <div
+          class="bio-copy"
+          :class="{ 'bio-copy--collapsed': isSectionCollapsible(section.body) && !isSectionExpanded(index) }"
+        >
+          {{ section.body }}
+        </div>
+        <button
+          v-if="isSectionCollapsible(section.body)"
+          class="bio-toggle"
+          type="button"
+          @click="toggleSection(index)"
+        >
+          {{ isSectionExpanded(index) ? 'Згорнути' : 'Читати повністю' }}
+        </button>
       </article>
     </div>
   </section>
 
-  <section class="panel panel--who" v-if="whoThisIsForText">
+  <section class="panel panel--who" v-if="whoIsNotSuitableText">
     <div class="panel__header">
       <div>
-        <div class="badge badge--soft">Кому підійде</div>
-        <h2 class="panel__title">З якими запитами я працюю</h2>
+        <div class="badge badge--soft">Фокус роботи</div>
+        <h2 class="panel__title">Запити, з якими я не працюю</h2>
       </div>
     </div>
-    <div class="muted who-lead">Цей формат може підійти вам, якщо...</div>
-    <div class="who-text">{{ whoThisIsForText }}</div>
-    <div v-if="specializationChips.length" class="hero-trust">
-      <span v-for="(chip, index) in specializationChips" :key="`${chip}-${index}`">{{ chip }}</span>
-    </div>
+    <div class="who-text">{{ whoIsNotSuitableText }}</div>
   </section>
 
   <section class="panel panel--contacts" v-if="showDirectContactActions">
@@ -57,6 +71,8 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
+
 type AboutSection = {
   title: string
   body: string
@@ -71,13 +87,32 @@ type ContactAction = {
 
 type Props = {
   aboutSections: AboutSection[]
-  whoThisIsForText: string
-  specializationChips: string[]
+  whoIsNotSuitableText: string
   showDirectContactActions: boolean
   contactActions: ContactAction[]
 }
 
 defineProps<Props>()
+
+const expandedIndexes = ref<Set<number>>(new Set())
+
+function isSectionCollapsible(body: string): boolean {
+  return body.length > 340 || body.split('\n').length > 7
+}
+
+function isSectionExpanded(index: number): boolean {
+  return expandedIndexes.value.has(index)
+}
+
+function toggleSection(index: number) {
+  const next = new Set(expandedIndexes.value)
+  if (next.has(index)) {
+    next.delete(index)
+  } else {
+    next.add(index)
+  }
+  expandedIndexes.value = next
+}
 
 defineEmits<{
   (event: 'direct-contact-action', item: any): void
@@ -127,58 +162,95 @@ defineEmits<{
   max-width: 78ch;
 }
 
+.panel--about {
+  padding: 16px;
+  gap: 10px;
+}
+
+.panel--about .panel__header {
+  margin-bottom: 2px;
+}
+
+.panel--about .panel__header > div {
+  gap: 4px;
+}
+
+.panel--about .panel__title {
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+.panel--about .panel__lead {
+  font-size: 13px;
+  line-height: 1.45;
+}
+
 .about-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px 12px;
+  align-items: stretch;
+  grid-auto-rows: 1fr;
 }
 
 .bio-section {
-  display: grid;
-  gap: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
   border: 1px solid color-mix(in srgb, var(--line) 84%, #ffffff);
   border-radius: var(--radius-sm);
-  padding: 12px 14px;
+  padding: 10px 12px;
   background: color-mix(in srgb, #ffffff 78%, var(--surface));
+  min-height: 260px;
+}
+
+.bio-section--expanded {
+  min-height: auto;
 }
 
 .bio-title {
-  font-size: 12px;
+  font-size: 11px;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.07em;
   color: var(--deep);
   font-weight: 600;
 }
 
 .bio-copy {
   color: color-mix(in srgb, var(--text) 88%, var(--muted));
-  line-height: 1.72;
+  font-size: 14px;
+  line-height: 1.58;
   white-space: pre-line;
 }
 
-.who-lead {
-  margin-top: -4px;
+.bio-copy--collapsed {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 8;
+  overflow: hidden;
+}
+
+.bio-toggle {
+  margin-top: auto;
+  border: none;
+  background: transparent;
+  color: color-mix(in srgb, var(--primary) 85%, var(--text));
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 4px 0 0;
+  text-align: left;
+}
+
+.bio-toggle:hover {
+  text-decoration: underline;
 }
 
 .who-text {
   white-space: pre-line;
-  font-size: 16px;
-  line-height: 1.5;
+  font-size: 15px;
+  line-height: 1.55;
   color: var(--deep);
-}
-
-.hero-trust {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.hero-trust span {
-  padding: 6px 10px;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.82);
-  border: 1px solid var(--line);
-  font-size: 12px;
 }
 
 .contact-actions {
@@ -220,10 +292,20 @@ defineEmits<{
   color: color-mix(in srgb, #3f5945 82%, var(--text));
 }
 
+@media (max-width: 1380px) {
+  .about-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 @media (max-width: 960px) {
   .about-grid,
   .contact-actions {
     grid-template-columns: 1fr;
+  }
+
+  .bio-section {
+    min-height: auto;
   }
 }
 </style>

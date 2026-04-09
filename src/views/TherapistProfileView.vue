@@ -370,10 +370,10 @@
             </label>
           </details>
           <details class="details">
-            <summary>Додаткова інформація</summary>
+            <summary>Запити, з якими я не працюю</summary>
             <label class="field">
               <div class="field-head">
-                <span>Додатково</span>
+                <span>Запити, з якими я не працюю</span>
                 <label class="inline-check">
                   <input v-model="profile.show_bio_other" type="checkbox" />
                   Показувати
@@ -383,7 +383,7 @@
                 v-model="profile.bio_other"
                 class="input"
                 rows="4"
-                placeholder="Додаткова інформація, якщо потрібно."
+                placeholder="З якими запитами ви не працюєте."
               ></textarea>
             </label>
           </details>
@@ -675,7 +675,7 @@
                     <div class="muted preview-bio">{{ profile.bio_for_whom }}</div>
                   </div>
                   <div v-if="profile.show_bio_other && profile.bio_other" class="preview-section">
-                    <div class="preview-label">Інше</div>
+                    <div class="preview-label">Запити, з якими я не працюю</div>
                     <div class="muted preview-bio">{{ profile.bio_other }}</div>
                   </div>
                 </div>

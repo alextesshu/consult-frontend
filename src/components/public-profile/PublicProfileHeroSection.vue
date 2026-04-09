@@ -1,5 +1,5 @@
 <template>
-  <header class="public__hero">
+  <header class="public-profile-hero">
     <div class="hero-profile">
       <div class="hero-media" v-if="profile">
         <img
@@ -32,11 +32,26 @@
           <span v-for="(chip, index) in displaySpecializationChips" :key="`${chip}-${index}`">{{ chip }}</span>
         </div>
       </div>
+
+      <aside v-if="profile && generalInfoItems.length" class="hero-info" aria-label="Загальна інформація">
+        <div class="badge badge--soft">Загальна інформація</div>
+        <ul class="hero-info__list">
+          <li v-for="(item, index) in generalInfoItems" :key="`${item.label}-${index}`" class="hero-info__item">
+            <span class="hero-info__label">{{ item.label }}</span>
+            <span class="hero-info__value">{{ item.value }}</span>
+          </li>
+        </ul>
+      </aside>
     </div>
   </header>
 </template>
 
 <script setup lang="ts">
+type HeroInfoItem = {
+  label: string
+  value: string
+}
+
 type PublicProfileMedia = {
   photo_url?: string | null
   video_url?: string | null
@@ -50,13 +65,14 @@ type Props = {
   heroSupportText: string
   completedSessionsBadge: string | null
   displaySpecializationChips: string[]
+  generalInfoItems: HeroInfoItem[]
 }
 
 defineProps<Props>()
 </script>
 
 <style scoped>
-.public__hero {
+.public-profile-hero {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   align-items: start;
@@ -73,15 +89,18 @@ defineProps<Props>()
 }
 
 .hero-profile {
-  display: grid;
-  grid-template-columns: minmax(156px, 196px) minmax(0, 1fr);
-  gap: 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  width: 100%;
   min-width: 0;
 }
 
 .hero-media {
+  flex: 0 0 clamp(132px, 16vw, 176px);
   width: 100%;
-  max-width: 196px;
+  max-width: 176px;
+  min-width: 132px;
   display: grid;
   gap: 10px;
   align-content: start;
@@ -121,6 +140,7 @@ defineProps<Props>()
 }
 
 .hero-main {
+  flex: 1 1 auto;
   display: grid;
   gap: 12px;
   align-content: start;
@@ -139,7 +159,7 @@ defineProps<Props>()
   font-size: 16px;
   line-height: 1.66;
   color: var(--deep);
-  max-width: 72ch;
+  max-width: 70ch;
 }
 
 .hero-main__support {
@@ -169,6 +189,74 @@ defineProps<Props>()
   background: rgba(255, 255, 255, 0.82);
   border: 1px solid var(--line);
   font-size: 12px;
+}
+
+.hero-info {
+  flex: 0 0 clamp(190px, 22vw, 220px);
+  width: clamp(190px, 22vw, 220px);
+  max-width: 220px;
+  min-width: 190px;
+  border: 1px solid color-mix(in srgb, var(--line) 78%, #ffffff);
+  border-radius: 12px;
+  background: color-mix(in srgb, #ffffff 86%, var(--surface));
+  padding: 12px;
+  display: grid;
+  gap: 10px;
+  align-content: start;
+  min-width: 0;
+}
+
+.hero-info__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+}
+
+.hero-info__item {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+  padding: 8px 10px;
+  display: grid;
+  gap: 2px;
+}
+
+.hero-info__label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.hero-info__value {
+  font-size: 13px;
+  line-height: 1.35;
+  font-weight: 600;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 1120px) {
+  .hero-profile {
+    display: grid;
+    grid-template-columns: minmax(140px, 176px) minmax(0, 1fr);
+  }
+
+  .hero-media {
+    max-width: 176px;
+    min-width: 0;
+    flex: none;
+  }
+
+  .hero-info {
+    grid-column: 1 / -1;
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+    flex: none;
+  }
 }
 
 @media (max-width: 960px) {

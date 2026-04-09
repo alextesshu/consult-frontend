@@ -9,6 +9,7 @@
         :hero-support-text="heroSupportText"
         :completed-sessions-badge="completedSessionsBadge"
         :display-specialization-chips="displaySpecializationChips"
+        :general-info-items="trustItems"
       />
 
       <PublicProfileIdentityRail
@@ -46,7 +47,7 @@
 
     <section v-else-if="profile" class="public__grid">
       <PublicProfileTrustSection
-        :trust-items="trustItems"
+        :trust-items="[]"
         :public-documents="publicDocuments"
         :is-image-document="isImageDocument"
         :is-pdf-document="isPdfDocument"
@@ -316,8 +317,7 @@
 
       <PublicProfileAboutSection
         :about-sections="aboutSections"
-        :who-this-is-for-text="whoThisIsForText"
-        :specialization-chips="specializationChips"
+        :who-is-not-suitable-text="whoIsNotSuitableText"
         :show-direct-contact-actions="showDirectContactActions"
         :contact-actions="contactActions"
         @direct-contact-action="handleDirectContactAction"
@@ -985,6 +985,18 @@ function toDisplayText(value: unknown): string {
   return String(value).trim()
 }
 
+function normalizeMultilineText(value: unknown): string {
+  const text = toDisplayText(value)
+  if (!text) return ''
+  return text
+    .replace(/\r/g, '')
+    .split('\n')
+    .map((line) => line.trim())
+    .join('\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
+}
+
 const languagesDisplay = computed(() => {
   const value = profile.value?.languages
   if (!value) return ''
@@ -1029,7 +1041,7 @@ function normalizeTrustItem(item: PublicProfileTrustItem | null | undefined): Pr
 function normalizeAboutSection(item: PublicProfileAboutItem | null | undefined): ProfileAboutSection | null {
   if (!item || typeof item !== 'object') return null
   const title = toDisplayText(item.title)
-  const body = toDisplayText(item.body)
+  const body = normalizeMultilineText(item.body)
   if (!title || !body) return null
   return { title, body }
 }
@@ -1380,24 +1392,52 @@ const introDurationLabel = computed(() => {
   return `${minutes} хв`
 })
 
-const aboutSections = computed(() => {
-  if (sectionAboutSections.value.length) return sectionAboutSections.value
-  if (!profile.value) return []
-  return [
-    { title: 'Про мене', body: profile.value.bio_about || profile.value.bio || '' },
-    { title: 'Як я працюю', body: profile.value.bio_work || '' },
-    { title: 'Мій підхід', body: profile.value.bio_approach || '' },
-  ].filter((section) => section.body)
-})
-
 const specializationChips = computed(() => {
   if (sectionTopicChips.value.length) return sectionTopicChips.value
   return toTextList(profile.value?.specializations)
 })
 const displaySpecializationChips = computed(() => specializationChips.value.slice(0, 4))
 
-const whoThisIsForText = computed(() => sectionWhoThisIsForText.value || profile.value?.bio_for_whom || '')
+const whoThisIsForText = computed(() =>
+  normalizeMultilineText(sectionWhoThisIsForText.value || profile.value?.bio_for_whom || '')
+)
 
+const whoIsNotSuitableText = computed(() => {
+  const source = sectionsTopics.value as (PublicProfileTopicsSection & Record<string, unknown>) | null
+  return normalizeMultilineText(
+    firstFilledText(
+      toDisplayText(source?.who_this_is_not_for),
+      toDisplayText(source?.who_is_not_for),
+      toDisplayText(source?.not_for_whom),
+      toDisplayText(source?.not_suitable_for),
+      toDisplayText(source?.exclusions),
+      profile.value?.bio_other
+    )
+  )
+})
+
+const aboutSections = computed(() => {
+  if (!profile.value) return []
+  const aboutPrimaryText = normalizeMultilineText(
+    firstFilledText(sectionAboutSections.value[0]?.body, profile.value.bio_about, profile.value.bio)
+  )
+  const approachText = normalizeMultilineText(
+    firstFilledText(sectionAboutSections.value[2]?.body, profile.value.bio_approach)
+  )
+  const cards: ProfileAboutSection[] = [
+    { title: '\u041f\u0440\u043e \u043c\u0435\u043d\u0435', body: aboutPrimaryText },
+    {
+      title: '\u0417\u0430\u043f\u0438\u0442\u0438, \u0437 \u044f\u043a\u0438\u043c\u0438 \u044f \u043f\u0440\u0430\u0446\u044e\u044e',
+      body: whoThisIsForText.value,
+    },
+    { title: '\u041c\u0456\u0439 \u043f\u0456\u0434\u0445\u0456\u0434', body: approachText },
+    {
+      title: '\u0417\u0430\u043f\u0438\u0442\u0438, \u0437 \u044f\u043a\u0438\u043c\u0438 \u044f \u043d\u0435 \u043f\u0440\u0430\u0446\u044e\u044e',
+      body: whoIsNotSuitableText.value,
+    },
+  ]
+  return cards.filter((section) => section.body)
+})
 function buildFallbackTrustItems(): ProfileKeyValueItem[] {
   const items: ProfileKeyValueItem[] = []
   if (meetingFormatLabel.value) {

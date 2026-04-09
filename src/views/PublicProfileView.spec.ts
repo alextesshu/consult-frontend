@@ -316,7 +316,7 @@ describe('PublicProfileView', () => {
 
     const { container } = renderView()
 
-    expect(await screen.findByText('Довіра і формат')).toBeInTheDocument()
+    expect(await screen.findByText('Загальна інформація')).toBeInTheDocument()
     expect(screen.getByText('Швидкий огляд')).toBeInTheDocument()
     expect(screen.getByText('Документи та сертифікати')).toBeInTheDocument()
     expect(screen.getByText('Сертифікат CBT')).toBeInTheDocument()
@@ -493,7 +493,7 @@ describe('PublicProfileView', () => {
 
     expect((await screen.findAllByText('Section trust label')).length).toBeGreaterThan(0)
     expect(screen.getAllByText('Section trust value').length).toBeGreaterThan(0)
-    expect(screen.getByText('Section about title')).toBeInTheDocument()
+    expect(screen.queryByText('Section about title')).not.toBeInTheDocument()
     expect(screen.getAllByText('Section about body copy.').length).toBeGreaterThan(0)
     expect(screen.getByText('Section topics body.')).toBeInTheDocument()
     expect(screen.getAllByText('Section topic chip').length).toBeGreaterThan(0)
@@ -981,7 +981,7 @@ describe('PublicProfileView', () => {
 
     renderView()
 
-    await screen.findByText('Довіра і формат')
+    await screen.findByText('Загальна інформація')
     expect(screen.queryByText(/Проведено сесій:/i)).not.toBeInTheDocument()
   })
 
@@ -1484,7 +1484,7 @@ describe('PublicProfileView', () => {
 
     renderView()
 
-    await screen.findByText('Довіра і формат')
+    await screen.findByText('Загальна інформація')
     const bookingAgreement = screen.getAllByRole('checkbox')[0]!
     await fireEvent.click(bookingAgreement)
     await fireEvent.click(await screen.findByRole('button', { name: 'Записатися' }))
