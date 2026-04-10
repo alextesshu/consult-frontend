@@ -192,10 +192,10 @@ defineProps<Props>()
 }
 
 .hero-info {
-  flex: 0 0 clamp(190px, 22vw, 220px);
-  width: clamp(190px, 22vw, 220px);
-  max-width: 220px;
-  min-width: 190px;
+  flex: 0 0 clamp(168px, 18vw, 204px);
+  width: clamp(168px, 18vw, 204px);
+  max-width: 204px;
+  min-width: 168px;
   border: 1px solid color-mix(in srgb, var(--line) 78%, #ffffff);
   border-radius: 12px;
   background: color-mix(in srgb, #ffffff 86%, var(--surface));

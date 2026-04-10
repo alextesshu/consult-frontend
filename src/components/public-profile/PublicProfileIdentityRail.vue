@@ -63,12 +63,8 @@ defineEmits<{
 
 <style scoped>
 .identity-rail {
-  position: sticky;
-  top: 20px;
+  position: relative;
   align-self: start;
-  max-height: calc(100vh - 40px);
-  overflow: auto;
-  scrollbar-gutter: stable both-edges;
 }
 
 .identity-rail__card {
@@ -131,16 +127,32 @@ defineEmits<{
   color: color-mix(in srgb, #3f5945 82%, var(--text));
 }
 
-@media (max-width: 1260px) {
+@media (max-width: 1100px) {
   .identity-rail {
     position: static;
+    top: auto;
     max-height: none;
     overflow: visible;
+    width: 100%;
   }
 
   .identity-rail__card {
-    padding: 12px;
-    gap: 10px;
+    padding: 10px 12px;
+    gap: 8px;
+    box-shadow: 0 8px 20px rgba(17, 30, 40, 0.1);
+  }
+
+  .identity-rail__title {
+    font-size: 18px;
+  }
+
+  .identity-rail__next-step {
+    font-size: 11px;
+    line-height: 1.35;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 }
 </style>

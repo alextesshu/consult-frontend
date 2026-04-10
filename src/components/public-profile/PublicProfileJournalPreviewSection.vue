@@ -631,8 +631,33 @@ defineEmits<{
     padding: 18px;
   }
 
+  .journal-card--closed .journal-body,
+  .journal-card--closed .journal-cover {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
   .journal-card--closed .journal-cover {
     padding: 10px 12px;
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 10;
+  }
+
+  .journal-cover,
+  .journal-grid .journal-cover {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+  }
+
+  .journal-cover img,
+  .journal-grid .journal-cover img {
+    width: 100%;
+    max-width: 100%;
+    height: 100%;
+    object-fit: cover;
   }
 
   .journal-card--feature .journal-cover img {

@@ -3148,8 +3148,8 @@ onMounted(async () => {
 
 .public__layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(280px, 340px);
-  column-gap: 20px;
+  grid-template-columns: minmax(0, 1fr) clamp(300px, 22vw, 340px);
+  column-gap: clamp(20px, 2.2vw, 32px);
   row-gap: 16px;
   align-items: start;
 }
@@ -3162,8 +3162,11 @@ onMounted(async () => {
 .public__sidebar {
   grid-column: 2;
   grid-row: 1 / span 2;
-  align-items: start;
+  position: sticky;
+  top: 24px;
+  height: fit-content;
   align-self: start;
+  min-width: 0;
 }
 
 .public__hero {
@@ -4910,7 +4913,7 @@ onMounted(async () => {
     resize: vertical;
   }
 
-@media (max-width: 1260px) {
+@media (max-width: 1100px) {
   .public__layout {
     grid-template-columns: 1fr;
     gap: 12px;
@@ -4921,6 +4924,13 @@ onMounted(async () => {
   .public__grid {
     grid-column: 1;
     grid-row: auto;
+  }
+
+  .public__sidebar {
+    position: static;
+    top: auto;
+    max-height: none;
+    overflow: visible;
   }
 
   .public__hero {
@@ -4993,9 +5003,11 @@ onMounted(async () => {
 
 @media (max-width: 640px) {
   .back-to-top-btn {
-    right: 14px;
-    bottom: 16px;
-    padding: 9px 12px;
+    right: 10px;
+    bottom: max(10px, env(safe-area-inset-bottom) + 10px);
+    padding: 8px 11px;
+    font-size: 12px;
+    z-index: 14;
   }
 
   .slot-list {
