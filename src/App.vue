@@ -212,7 +212,7 @@
       </div>
     </header>
 
-    <main :class="['main', { 'main--home': isHome }]">
+    <main :class="['main', { 'main--home': isHome, 'main--public-profile': isPublicProfilePage }]">
       <RouterView :key="route.fullPath" />
     </main>
     <ToastHost />
@@ -332,6 +332,9 @@ const cabinetLabel = computed(() => {
 })
 const showCatalogNav = computed(() => isClient.value)
 const chatRoute = computed(() => (isSpecialist.value ? '/cabinet/chat' : '/client/chat'))
+const isPublicProfilePage = computed(
+  () => route.name === 'public-profile' || route.name === 'public-redirect'
+)
 const isPublicRoute = computed(
   () => route.path.startsWith('/public') || route.path.startsWith('/specialist/')
 )
@@ -1274,6 +1277,10 @@ watch(isChatCapable, (value) => {
   margin: 0;
   height: auto;
   overflow: visible;
+}
+
+.main--public-profile {
+  width: min(1720px, 94vw);
 }
 
 .shell--minimal .main {

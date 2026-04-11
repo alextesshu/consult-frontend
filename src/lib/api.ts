@@ -155,6 +155,10 @@ export type TherapistProfile = {
   bio_approach: string
   bio_for_whom: string
   bio_other: string
+  education_summary: string
+  education_items: string[]
+  professional_development_items: string[]
+  setting_text?: string
   show_bio_about: boolean
   show_bio_work: boolean
   show_bio_approach: boolean
@@ -307,6 +311,169 @@ export type PublicContactAction = {
   action_url?: string | null
 }
 
+export type PublicProfilePublicationsPreviewEmptyState =
+  | 'JOURNAL_DISABLED'
+  | 'NO_PUBLICATIONS'
+  | null
+
+export type PublicProfilePublicationsPreviewItem = {
+  id: number
+  slug: string
+  title: string
+  category?: 'TIP' | 'EXPLAIN' | 'FAQ' | 'RESEARCH' | 'PRACTICE' | null
+  published_at?: string | null
+  is_featured?: boolean
+  cover_image_url?: string | null
+  excerpt?: string | null
+  reading_time_minutes?: number | null
+}
+
+export type PublicProfilePublicationsPreviewSection = {
+  enabled?: boolean
+  items?: PublicProfilePublicationsPreviewItem[] | null
+  empty_state?: PublicProfilePublicationsPreviewEmptyState
+}
+
+export type PublicProfileTrustItem = {
+  label?: string | null
+  value?: string | null
+}
+
+export type PublicProfileTrustSection = {
+  items?: PublicProfileTrustItem[] | null
+  experience_years?: number | null
+  languages?: string[] | string | null
+  location?: string | null
+  completed_sessions_count?: number | null
+  profile_documents?: PublicSpecialistProfileDocument[] | null
+}
+
+export type PublicProfileAboutItem = {
+  title?: string | null
+  body?: string | null
+}
+
+export type PublicProfileAboutSection = {
+  items?: PublicProfileAboutItem[] | null
+  sections?: PublicProfileAboutItem[] | null
+  bio?: string | null
+  bio_about?: string | null
+  bio_work?: string | null
+  bio_approach?: string | null
+  bio_for_whom?: string | null
+  bio_other?: string | null
+}
+
+export type PublicProfileTopicsSection = {
+  who_this_is_for?: string | null
+  items?: string[] | null
+  chips?: string[] | null
+  specializations?: string[] | string | null
+}
+
+export type PublicProfileCompetenceSection = {
+  education_summary?: string | null
+  education_items?: string[] | null
+  professional_development_items?: string[] | null
+}
+
+export type PublicProfileFormatsSection = {
+  meeting_format_label?: string | null
+  intro_duration_label?: string | null
+  intro_duration_minutes?: number | null
+  intro_price_display?: string | null
+  intro_price?: string | number | null
+  intro_price_currency?: string | null
+  price_display?: string | null
+  price?: string | number | null
+  price_currency?: string | null
+  offline_location?: string | null
+  location?: string | null
+  standard_session_duration_label?: string | null
+  standard_session_duration_minutes?: number | null
+}
+
+export type PublicProfileContactActionsSection = {
+  items?: PublicContactAction[] | null
+  actions?: PublicContactAction[] | null
+}
+
+export type PublicProfileReviewItem = {
+  id?: number | string | null
+  review_text?: string | null
+  text?: string | null
+  created_at?: string | null
+  published_at?: string | null
+}
+
+export type PublicProfileReviewsSection = {
+  items?: PublicProfileReviewItem[] | null
+}
+
+export type PublicProfileFaqItem = {
+  id?: number | string | null
+  question?: string | null
+  answer?: string | null
+  title?: string | null
+  body?: string | null
+}
+
+export type PublicProfileFaqSection = {
+  items?: PublicProfileFaqItem[] | null
+}
+
+export type PublicProfileMediaItem = {
+  id?: number | string | null
+  title?: string | null
+  description?: string | null
+  type?: string | null
+  kind?: string | null
+  url?: string | null
+  file_url?: string | null
+  image_url?: string | null
+  video_url?: string | null
+  thumbnail_url?: string | null
+}
+
+export type PublicProfileMediaSection = {
+  items?: PublicProfileMediaItem[] | null
+  assets?: PublicProfileMediaItem[] | null
+  photo_url?: string | null
+  video_url?: string | null
+  hero_photo_url?: string | null
+  hero_video_url?: string | null
+}
+
+export type PublicProfileSections = {
+  publications_preview?: PublicProfilePublicationsPreviewSection | null
+  trust?: PublicProfileTrustSection | null
+  about?: PublicProfileAboutSection | null
+  competence?: PublicProfileCompetenceSection | null
+  topics?: PublicProfileTopicsSection | null
+  formats?: PublicProfileFormatsSection | null
+  contact_actions?: PublicProfileContactActionsSection | PublicContactAction[] | null
+  reviews?: PublicProfileReviewsSection | null
+  faq?: PublicProfileFaqSection | null
+  media?: PublicProfileMediaSection | null
+}
+
+export type BookingRuleScope = 'PLATFORM' | 'SPECIALIST'
+
+export type PublicBookingRuleItem = {
+  scope: BookingRuleScope | string
+  version: string
+  text: string
+  accepted: boolean
+  accepted_at?: string | null
+  specialist_id?: number | null
+}
+
+export type PublicBookingRules = {
+  show_prompt: boolean
+  reason_codes?: string[]
+  items?: PublicBookingRuleItem[]
+}
+
 export type PublicTherapistProfile = {
   public_slug?: string
   therapist_id: number
@@ -321,6 +488,9 @@ export type PublicTherapistProfile = {
   bio_approach?: string
   bio_for_whom?: string
   bio_other?: string
+  education_summary?: string
+  education_items?: string[]
+  professional_development_items?: string[]
   specializations?: string | string[]
   languages?: string | string[]
   location?: string
@@ -340,8 +510,11 @@ export type PublicTherapistProfile = {
   video_url?: string
   platform_setting_text?: string
   setting_text?: string
+  booking_rules?: PublicBookingRules | null
   profile_documents?: PublicSpecialistProfileDocument[]
   contact_actions?: PublicContactAction[] | null
+  sections_version?: number | null
+  sections?: PublicProfileSections | null
 }
 
 export type PublicSpecialistProfile = PublicTherapistProfile
@@ -827,6 +1000,24 @@ export async function fetchPublicSpecialistProfile(
   slug: string
 ): Promise<PublicSpecialistProfile> {
   return fetchPublicTherapistProfile(slug)
+}
+
+export type AcceptBookingRulesPayload = {
+  specialist_id: number
+}
+
+export type AcceptBookingRulesResponse = {
+  status: string
+  created_count: number
+  already_accepted_count: number
+  booking_rules?: PublicBookingRules | null
+}
+
+export async function acceptBookingRules(
+  payload: AcceptBookingRulesPayload
+): Promise<AcceptBookingRulesResponse> {
+  const resp = await http.post<AcceptBookingRulesResponse>('/booking/rules/accept/', payload)
+  return resp.data
 }
 
 export async function fetchPublicAuthorJournalPosts(

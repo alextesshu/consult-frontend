@@ -76,11 +76,15 @@ function makeProfile() {
     offers_offline: true,
     offline_location: 'Львів, офіс 12',
     display_name: 'Анна',
+    setting_text: 'Будь ласка, попереджайте про перенесення щонайменше за 24 години.',
     bio_about: 'Працюю дбайливо.',
     bio_work: 'Онлайн консультації.',
     bio_approach: 'CBT.',
     bio_for_whom: 'Для дорослих.',
     bio_other: '',
+    education_summary: 'Integrative psychotherapy background.',
+    education_items: ['Master in psychology', 'CBT program'],
+    professional_development_items: ['EMDR Level 1', 'Schema intensive'],
     show_bio_about: true,
     show_bio_work: true,
     show_bio_approach: true,
@@ -152,21 +156,29 @@ describe('TherapistProfileView', () => {
     mockedFetchProfileDocuments.mockResolvedValue([])
   })
 
-  it('renders the loaded public profile data and live preview', async () => {
+  it('renders the loaded public profile data and final public profile check action', async () => {
     mockedFetchSpecialistProfile.mockResolvedValue(makeProfile())
 
-    const { container } = renderView()
+    renderView()
 
     expect(await screen.findByDisplayValue('Анна')).toBeInTheDocument()
-    expect(screen.getByText('Live preview публічної сторінки')).toBeInTheDocument()
-    expect(container).toHaveTextContent('anna@example.com')
-    expect(container).toHaveTextContent('Анна')
-    expect(screen.getByText('Ознайомча: 600 грн')).toBeInTheDocument()
-    expect(screen.getByText('Досвід: 6 років')).toBeInTheDocument()
+    expect(screen.queryByText('Live preview публічної сторінки')).not.toBeInTheDocument()
+    expect(screen.getByDisplayValue('anna@example.com')).toBeInTheDocument()
+    expect(screen.queryByText('Ознайомча: 600 грн')).not.toBeInTheDocument()
+    expect(screen.queryByText('Досвід: 6 років')).not.toBeInTheDocument()
     expect(screen.getByLabelText('Доступно онлайн')).toBeChecked()
     expect(screen.getByLabelText('Доступно офлайн')).toBeChecked()
     expect(screen.getByDisplayValue('Львів, офіс 12')).toBeInTheDocument()
+    expect(
+      screen.getByDisplayValue('Будь ласка, попереджайте про перенесення щонайменше за 24 години.')
+    ).toBeInTheDocument()
     expect(screen.getByText(`${window.location.origin}/specialist/specialist-anna`)).toBeInTheDocument()
+    const finalCheck = screen.getByTestId('profile-final-public-check')
+    expect(finalCheck).toBeInTheDocument()
+    const finalOpenLink = screen.getByTestId('open-public-profile-final-link')
+    expect(finalOpenLink).toHaveAttribute('href', `${window.location.origin}/specialist/specialist-anna`)
+    expect(finalOpenLink).toHaveAttribute('target', '_blank')
+    expect(finalOpenLink).toHaveAttribute('rel', 'noopener noreferrer')
   })
 
   it('shows owner guidance when redirected from /public with unpublished profile', async () => {
@@ -183,6 +195,42 @@ describe('TherapistProfileView', () => {
     ).toBeInTheDocument()
     expect(screen.getByText('Перейти до налаштувань профілю')).toBeInTheDocument()
     expect(screen.queryByText('Profile not found.')).not.toBeInTheDocument()
+  })
+
+  it('supports quick-add suggestions for main requests and work boundaries without duplicates', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValue(makeProfile())
+
+    renderView()
+
+    const categoryKeys = ['psychology', 'coaching', 'mentoring', 'teaching', 'general']
+    for (const categoryKey of categoryKeys) {
+      expect(await screen.findByTestId(`main-requests-category-tab-${categoryKey}`)).toBeInTheDocument()
+      expect(screen.getByTestId(`work-boundaries-category-tab-${categoryKey}`)).toBeInTheDocument()
+    }
+
+    const mainRequestsTextarea = (await screen.findByTestId('main-requests-textarea')) as HTMLTextAreaElement
+    const mainRequestsChips = screen.getAllByTestId('main-requests-suggestion-chip')
+    expect(mainRequestsChips.length).toBeGreaterThan(0)
+    const firstMainRequestsChip = mainRequestsChips[0] as HTMLButtonElement
+    const mainRequestsSuggestion = firstMainRequestsChip.textContent?.trim() || ''
+
+    await fireEvent.click(firstMainRequestsChip)
+    expect(mainRequestsTextarea.value).toContain(`• ${mainRequestsSuggestion}`)
+    expect(firstMainRequestsChip).toBeDisabled()
+
+    const mainRequestsOccurrences = mainRequestsTextarea.value.split(`• ${mainRequestsSuggestion}`).length - 1
+    expect(mainRequestsOccurrences).toBe(1)
+
+    await fireEvent.click(screen.getByTestId('work-boundaries-category-tab-coaching'))
+    const workBoundariesTextarea = screen.getByTestId('work-boundaries-textarea') as HTMLTextAreaElement
+    const workBoundariesChips = screen.getAllByTestId('work-boundaries-suggestion-chip')
+    expect(workBoundariesChips.length).toBeGreaterThan(0)
+    const firstWorkBoundariesChip = workBoundariesChips[0] as HTMLButtonElement
+    const workBoundariesSuggestion = firstWorkBoundariesChip.textContent?.trim() || ''
+
+    await fireEvent.click(firstWorkBoundariesChip)
+    expect(workBoundariesTextarea.value).toContain(`• ${workBoundariesSuggestion}`)
+    expect(firstWorkBoundariesChip).toBeDisabled()
   })
 
   it('keeps sticky save bar hidden on pristine form', async () => {
@@ -218,6 +266,8 @@ describe('TherapistProfileView', () => {
 
     const introPriceInput = screen.getByDisplayValue('600') as HTMLInputElement
     await fireEvent.update(introPriceInput, '')
+    const rulesInput = screen.getByLabelText('Умови спеціаліста перед записом') as HTMLTextAreaElement
+    await fireEvent.update(rulesInput, 'Оновлені умови перед записом.   ')
 
     expect(await screen.findByTestId('profile-sticky-save-bar')).toBeInTheDocument()
     await fireEvent.click(screen.getByRole('button', { name: 'Зберегти' }))
@@ -233,6 +283,10 @@ describe('TherapistProfileView', () => {
         offers_offline: true,
         offline_location: 'Львів, офіс 12',
         display_name: 'Анна',
+        setting_text: 'Оновлені умови перед записом.',
+        education_summary: 'Integrative psychotherapy background.',
+        education_items: ['Master in psychology', 'CBT program'],
+        professional_development_items: ['EMDR Level 1', 'Schema intensive'],
         specializations: ['CBT', 'ACT'],
         languages: ['Українська', 'English'],
         location: 'Львів',

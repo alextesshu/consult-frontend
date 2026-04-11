@@ -1,88 +1,5 @@
 <template>
   <section class="public">
-    <header class="public__hero">
-      <div class="hero-profile">
-        <div class="hero-media" v-if="profile">
-          <img
-            v-if="profile.photo_url"
-            class="hero-photo"
-            :src="profile.photo_url"
-            alt="Фото спеціаліста"
-          />
-          <div v-else class="hero-photo-placeholder">Фото спеціаліста</div>
-          <video
-            v-if="profile.video_url"
-            class="hero-video"
-            :src="profile.video_url"
-            controls
-            preload="metadata"
-          ></video>
-        </div>
-
-        <div class="hero-main">
-          <div class="badge">Профіль спеціаліста</div>
-          <h1 class="title public__title">{{ publicName || 'Профіль спеціаліста' }}</h1>
-          <p v-if="profile && heroRoleLine" class="hero-main__role">{{ heroRoleLine }}</p>
-          <p class="hero-main__lead">{{ profile ? heroLeadText : 'Завантаження профілю' }}</p>
-          <p v-if="profile && heroSupportText" class="hero-main__support">{{ heroSupportText }}</p>
-          <p v-if="profile && completedSessionsBadge" class="hero-main__sessions">
-            Проведено сесій: {{ completedSessionsBadge }}
-          </p>
-
-          <div v-if="profile && heroMetaHighlights.length" class="hero-main__meta">
-            <article v-for="item in heroMetaHighlights" :key="item.label" class="hero-meta-card">
-              <div class="hero-meta-card__label">{{ item.label }}</div>
-              <div class="hero-meta-card__value">{{ item.value }}</div>
-            </article>
-          </div>
-
-          <div v-if="profile && displaySpecializationChips.length" class="hero-trust">
-            <span v-for="(chip, index) in displaySpecializationChips" :key="`${chip}-${index}`">{{ chip }}</span>
-          </div>
-        </div>
-      </div>
-
-      <aside class="hero-cta" v-if="profile">
-        <div class="hero-cta__head">
-          <div class="badge badge--soft">Наступний крок</div>
-          <h2 class="hero-cta__title">{{ heroCtaTitle }}</h2>
-          <p class="hero-cta__hint">
-            Оберіть зручний формат знайомства і переходьте до бронювання без зайвих кроків.
-          </p>
-        </div>
-        <div class="hero-cta__prices">
-          <div v-if="introPriceDisplay" class="hero-cta__price hero-cta__price--intro">
-            Ознайомча сесія: {{ introPriceDisplay }}
-            <span v-if="introDurationLabel">· {{ introDurationLabel }}</span>
-          </div>
-          <div v-if="priceDisplay" class="hero-cta__price">
-            Консультація: {{ priceDisplay }}
-            <span> · {{ standardSessionDurationLabel }}</span>
-          </div>
-        </div>
-        <div class="hero-cta__actions">
-          <button class="btn btn--primary" type="button" @click="handleHeroPrimaryAction">
-            {{ heroPrimaryLabel }}
-          </button>
-          <RouterLink
-            v-if="showClientSessionsCta"
-            class="btn btn--ghost"
-            to="/client"
-          >
-            Мої сесії
-          </RouterLink>
-          <a v-else class="btn btn--ghost" href="#slots">Переглянути вільні вікна</a>
-          <RouterLink class="btn btn--ghost" :to="feedbackLink">Відгуки</RouterLink>
-        </div>
-        <p class="hero-cta__next-step">
-          {{ primaryActionNextStepCopy }}
-        </p>
-        <ul class="hero-cta__trust-list">
-          <li v-for="marker in heroTrustMarkers" :key="marker">{{ marker }}</li>
-        </ul>
-      </aside>
-    </header>
-
     <div v-if="loading" class="muted">Завантаження...</div>
     <section v-else-if="ownerUnpublishedProfile" class="panel panel--owner-unpublished">
       <div class="panel__header">
@@ -101,72 +18,73 @@
     </section>
     <div v-else-if="error" class="form-error">{{ error }}</div>
 
-    <section v-else-if="profile" class="public__grid">
-      <section class="panel panel--trust" v-if="trustItems.length">
-        <div class="panel__header">
-          <div>
-            <div class="badge badge--soft">Що важливо знати</div>
-            <h2 class="panel__title">Довіра і формат</h2>
-            <p class="panel__lead">Ключова інформація для спокійного рішення перед першим записом.</p>
-          </div>
-        </div>
-        <div class="trust-grid">
-          <article v-for="item in trustItems" :key="item.label" class="trust-card">
-            <div class="trust-card__label">{{ item.label }}</div>
-            <div class="trust-card__value">{{ item.value }}</div>
-          </article>
-        </div>
+    <section v-else-if="profile" class="public__layout">
+      <section class="public__hero-col">
+        <PublicProfileHeroSection
+          :profile="heroMediaProfile"
+          :public-name="publicName"
+          :hero-role-line="heroRoleLine"
+          :hero-lead-text="heroLeadText"
+          :hero-support-text="heroSupportText"
+          :show-read-more="showHeroReadMore"
+          :completed-sessions-badge="completedSessionsBadge"
+          :display-specialization-chips="displaySpecializationChips"
+          :general-info-items="trustItems"
+          @read-more="focusAboutSection"
+        />
       </section>
 
-      <section class="panel panel--documents" v-if="publicDocuments.length">
-        <div class="panel__header">
-          <div>
-            <div class="badge badge--soft">Документи</div>
-            <h2 class="panel__title">Документи та сертифікати</h2>
-            <p class="panel__lead">
-              Матеріали, завантажені спеціалістом для ознайомлення. PRO CONSULT не здійснює автоматичної
-              верифікації їх змісту, якщо інше прямо не зазначено.
-            </p>
+      <aside class="public__sidebar">
+        <PublicProfileIdentityRail
+          :profile="profile"
+          :hero-cta-title="heroCtaTitle"
+          :hero-primary-label="heroPrimaryLabel"
+          :show-client-sessions-cta="showClientSessionsCta"
+          :feedback-link="feedbackLink"
+          :primary-action-next-step-copy="primaryActionNextStepCopy"
+          :intro-price-display="introPriceDisplay"
+          :intro-duration-label="introDurationLabel"
+          :price-display="priceDisplay"
+          :standard-session-duration-label="standardSessionDurationLabel"
+          :show-contact-actions="showDirectContactActions"
+          :contact-actions="contactActions"
+          @primary-action="handleHeroPrimaryAction"
+          @direct-contact-action="handleDirectContactAction"
+        />
+      </aside>
+
+      <section class="public__grid">
+        <PublicProfileAboutSection
+          :about-narrative-text="aboutNarrativeText"
+          :work-style-text="workStyleText"
+          :work-with-text="whoThisIsForText"
+          :work-with-chips="specializationChips"
+          :who-is-not-suitable-text="whoIsNotSuitableText"
+        />
+
+        <PublicProfileTrustSection
+          :education-summary="competenceEducationSummary"
+          :education-items="competenceEducationItems"
+          :professional-development-items="competenceProfessionalDevelopmentItems"
+          :public-documents="publicDocuments"
+          :is-image-document="isImageDocument"
+          :is-pdf-document="isPdfDocument"
+          :document-kind-label="documentKindLabel"
+          :format-date="formatDate"
+        />
+
+        <section class="panel panel--terms" v-if="specialistBookingTermsText">
+          <div class="panel__header">
+            <div>
+              <div class="badge badge--soft">Перед записом</div>
+              <h2 class="panel__title">Умови спеціаліста перед записом</h2>
+              <p class="panel__lead">
+                Індивідуальні умови цього спеціаліста. Якщо умови оновляться, перед новим записом може знадобитися повторне підтвердження.
+              </p>
+            </div>
           </div>
-        </div>
-        <div class="documents-grid">
-          <article
-            v-for="document in publicDocuments"
-            :key="document.id"
-            class="document-card"
-            :class="{ 'document-card--file': !isImageDocument(document) }"
-          >
-            <div v-if="isImageDocument(document)" class="document-card__preview">
-              <img
-                :src="document.file_url"
-                :alt="document.title"
-                loading="lazy"
-              />
-            </div>
-            <div v-else class="document-card__file-top">
-              <div class="document-card__file-badge">
-                {{ isPdfDocument(document) ? 'PDF' : 'DOC' }}
-              </div>
-              <div class="document-card__kind document-card__kind--file">{{ documentKindLabel(document.document_kind) }}</div>
-            </div>
-            <div class="document-card__body">
-              <div v-if="isImageDocument(document)" class="document-card__kind">{{ documentKindLabel(document.document_kind) }}</div>
-              <h3 class="document-card__title">{{ document.title }}</h3>
-              <div v-if="document.uploaded_at" class="document-card__meta">
-                Додано: {{ formatDate(document.uploaded_at) }}
-              </div>
-            </div>
-            <a
-              class="btn btn--ghost document-card__action"
-              :href="document.file_url"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              {{ isPdfDocument(document) ? 'Відкрити документ' : 'Відкрити' }}
-            </a>
-          </article>
-        </div>
-      </section>
+          <p class="terms-text">{{ specialistBookingTermsText }}</p>
+        </section>
 
       <section v-if="showInquiryPanel" class="panel panel--inquiry" id="inquiry">
         <div class="panel__header">
@@ -310,7 +228,7 @@
               <li v-if="isGuestVisitor">Можна почати без реєстрації: оберіть слот і залиште короткий запит з контактом.</li>
               <li v-else-if="!isClient">Бронювання доступне лише для клієнтів.</li>
               <li v-else>Бронювання доступне в кабінеті клієнта.</li>
-              <li>Натискання кнопки «Записатися» не списує оплату автоматично.</li>
+              <li>Натискання на вільне вікно не списує оплату автоматично.</li>
               <li>Спеціаліст підтверджує сесію після запису.</li>
               <li>Нагадування надходять після підтвердження.</li>
             </ul>
@@ -337,21 +255,18 @@
           {{ noSlotsAvailable ? 'Наразі вільних віконець немає.' : 'На жаль, у цей день вільних віконець немає.' }}
         </div>
         <div v-else class="slot-list">
-          <div v-for="slot in visibleSlots" :key="slot.id" class="slot-card">
-            <div class="slot-card__main">
-              <div class="slot-time">{{ formatSlotTime(slot.start_at) }}</div>
-              <div class="muted slot-card__meta">{{ formatDuration(slot.start_at, slot.end_at) }}</div>
-            </div>
-            <button
-              class="btn btn--ghost btn--sm slot-card__action"
-              :class="{ 'btn--disabled': isBookingDisabled(slot.id) }"
-              type="button"
-              :aria-disabled="isBookingDisabled(slot.id)"
-              @click="handleBookingClick(slot.id)"
-            >
-              {{ slotActionLabel(slot.id) }}
-            </button>
-          </div>
+          <button
+            v-for="slot in visibleSlots"
+            :key="slot.id"
+            class="slot-card"
+            :class="{ 'slot-card--busy': isSlotBusy(slot.id) }"
+            type="button"
+            :aria-label="slotActionLabel(slot.id)"
+            :disabled="isSlotBusy(slot.id)"
+            @click="handleBookingClick(slot.id)"
+          >
+            <div class="slot-time">{{ formatSlotTime(slot.start_at) }}</div>
+          </button>
           <button
             v-if="hasMoreSlots"
             class="btn btn--ghost slot-list__toggle"
@@ -363,40 +278,51 @@
         </div>
 
         <section
-          v-if="isAuthenticated && isClient"
-          class="booking-gate"
-          :class="{
-            'booking-gate--pending': !settingAccepted,
-            'booking-gate--ready': settingAccepted,
-            'booking-gate--attention': settingAttention,
-          }"
-          aria-label="Підтвердження правил перед бронюванням"
+          v-if="shouldShowClientBookingRulesPrompt"
+          ref="bookingRulesPromptRef"
+          class="booking-gate booking-gate--pending"
+          aria-label="Правила перед записом"
         >
-          <div class="booking-gate__content">
-            <div>
-              <div class="booking-gate__title">
-                {{ settingAccepted ? 'Умови бронювання підтверджено' : 'Для запису потрібно підтвердити умови спеціаліста' }}
-              </div>
-              <p v-if="!settingAccepted" class="booking-gate__text">
-                Ознайомтеся з правилами бронювання перед вибором слота.
-              </p>
-            </div>
+          <div class="booking-gate__title">Правила перед записом</div>
+          <p class="booking-gate__text">{{ clientBookingRulesPromptText }}</p>
+
+          <article v-if="pendingPlatformBookingRules.length" class="booking-rules-block">
+            <div class="booking-rules-block__title">Загальні правила платформи</div>
+            <p class="muted" style="margin: 6px 0 10px;">
+              Ви підтверджуєте загальні правила платформи для поточної версії. Повторне підтвердження потрібне лише після оновлення цих правил.
+            </p>
+            <p
+              v-for="rule in pendingPlatformBookingRules"
+              :key="`platform-${rule.version}`"
+              class="booking-rules-block__item"
+            >
+              {{ rule.text }}
+            </p>
+          </article>
+
+          <article v-if="pendingSpecialistBookingRules.length" class="booking-rules-block">
+            <div class="booking-rules-block__title">Умови спеціаліста</div>
+            <p class="muted" style="margin: 6px 0 10px;">
+              Це індивідуальні умови цього спеціаліста перед записом. Повторне підтвердження потрібне лише якщо спеціаліст оновить свої правила.
+            </p>
+            <p
+              v-for="rule in pendingSpecialistBookingRules"
+              :key="`specialist-${rule.version}-${rule.specialist_id || 'none'}`"
+              class="booking-rules-block__item"
+            >
+              {{ rule.text }}
+            </p>
+          </article>
+
+          <div class="booking-gate__actions">
             <button
               class="btn btn--ghost btn--sm booking-gate__button"
-              :class="{ 'btn--pulse': settingAttention }"
               type="button"
-              ref="settingButtonRef"
-              @click="openSettingModal"
+              :disabled="bookingRulesAccepting"
+              @click="confirmClientBookingRules"
             >
-              {{ settingAccepted ? 'Переглянути умови' : 'Відкрити умови' }}
+              {{ bookingRulesConfirmLabel }}
             </button>
-          </div>
-          <label v-if="!settingAccepted" class="setting-check booking-gate__check">
-            <input type="checkbox" v-model="settingAccepted" />
-            <span>Я ознайомився(-лась) і погоджуюсь з умовами бронювання</span>
-          </label>
-          <div v-if="!settingAccepted" class="booking-gate__hint">
-            Без цього підтвердження кнопки бронювання залишаються недоступними.
           </div>
         </section>
 
@@ -428,303 +354,55 @@
         </div>
       </div>
 
-      <section class="panel panel--work-format">
-        <div class="panel__header">
-          <div>
-            <div class="badge badge--soft">Формат</div>
-            <h2 class="panel__title">Формат роботи</h2>
-          </div>
-        </div>
-        <div class="work-format-grid">
-          <div v-if="meetingFormatLabel" class="profile-summary__item">
-            Формат зустрічей: {{ meetingFormatLabel }}
-          </div>
-          <div v-if="introDurationLabel" class="profile-summary__item">
-            Тривалість ознайомчої сесії: {{ introDurationLabel }}
-          </div>
-          <div v-if="introPriceDisplay" class="profile-summary__item">
-            Вартість ознайомчої сесії: {{ introPriceDisplay }}
-          </div>
-          <div v-if="offlineMeetingLocation" class="profile-summary__item">
-            Локація офлайн-зустрічей: {{ offlineMeetingLocation }}
-          </div>
-          <div v-else-if="profile.location" class="profile-summary__item">
-            Локація: {{ profile.location }}
-          </div>
-          <div v-if="priceDisplay" class="profile-summary__item">
-            Консультація: {{ priceDisplay }} · {{ standardSessionDurationLabel }}
-          </div>
-          <div class="profile-summary__item">
-            Що буде після запису: сесія з’явиться в кабінеті, після підтвердження надійде нагадування.
-          </div>
-        </div>
-      </section>
+      <PublicProfileJournalPreviewSection
+        :has-public-journal-posts="hasPublicJournalPosts"
+        :slug="slug"
+        :journal-loading="journalLoading"
+        :journal-error="journalError"
+        :canonical-empty-state-code="journalEmptyStateCode"
+        :canonical-empty-state-title="journalCanonicalEmptyStateTitle"
+        :canonical-empty-state-body="journalCanonicalEmptyStateBody"
+        :preview-collections="previewCollections"
+        :collection-cover-url="collectionCoverUrl"
+        :filtered-journal-posts="filteredJournalPosts"
+        :category-options="categoryOptions"
+        :active-category="activeCategory"
+        :featured-post="featuredPost"
+        :grid-posts="gridPosts"
+        :category-color="categoryColor"
+        :category-label="categoryLabel"
+        :format-date="formatDate"
+        :reading-time="readingTime"
+        :render-markdown="renderMarkdown"
+        @set-active-category="setActiveJournalCategory"
+        @navigate-to-post="navigateToPost"
+      />
 
-      <section class="panel panel--about" v-if="aboutSections.length">
-        <div class="panel__header">
-          <div>
-            <div class="badge badge--soft">Про спеціаліста</div>
-            <h2 class="panel__title">Про спеціаліста</h2>
-            <p class="panel__lead">Познайомтеся з підходом та стилем роботи перед першою консультацією.</p>
-          </div>
-        </div>
-        <div class="about-grid">
-          <article v-for="section in aboutSections" :key="section.title" class="bio-section">
-            <div class="bio-title">{{ section.title }}</div>
-            <div class="bio-copy">{{ section.body }}</div>
-          </article>
-        </div>
-      </section>
+      <PublicProfileMediaSection
+        :media-items="mediaItems"
+      />
 
-      <section class="panel panel--who" v-if="whoThisIsForText">
-        <div class="panel__header">
-          <div>
-            <div class="badge badge--soft">Кому підійде</div>
-            <h2 class="panel__title">З якими запитами я працюю</h2>
-          </div>
-        </div>
-        <div class="muted who-lead">Цей формат може підійти вам, якщо...</div>
-        <div class="who-text">{{ whoThisIsForText }}</div>
-        <div v-if="specializationChips.length" class="hero-trust">
-          <span v-for="(chip, index) in specializationChips" :key="`${chip}-${index}`">{{ chip }}</span>
-        </div>
-      </section>
+      <PublicProfileReviewsSection
+        :reviews="displayReviews"
+        :feedback-link="feedbackLink"
+        :format-date="formatDate"
+      />
 
-      <section class="panel panel--contacts" v-if="showDirectContactActions">
-        <div class="panel__header">
-          <div>
-            <div class="badge badge--soft">Зв’язок</div>
-            <h2 class="panel__title">Зв’язок зі спеціалістом</h2>
-            <p class="panel__lead">
-              Оберіть зручний канал. Якщо застосунок не відкриється, контакт можна скопіювати й продовжити вручну.
-            </p>
-          </div>
-        </div>
-        <div class="contact-actions">
-          <a
-            v-for="item in contactActions"
-            :key="item.id"
-            class="contact-action"
-            :href="item.actionUrl"
-            target="_blank"
-            rel="noopener noreferrer"
-            @click.prevent="handleDirectContactAction(item)"
-          >
-            <span class="contact-action__label">{{ item.channelLabel }}</span>
-            <span class="contact-action__value">{{ item.valueText }}</span>
-          </a>
-        </div>
-      </section>
+      <PublicProfileFaqSection
+        :faq-items="faqItems"
+      />
 
-      <div v-if="hasPublicJournalPosts" class="panel panel--journal" id="journal">
-        <div class="panel__header">
-          <div>
-            <div class="badge badge--soft">Авторський журнал</div>
-            <h2 class="panel__title">Статті та матеріали спеціаліста</h2>
-            <p class="panel__lead">Матеріали допоможуть краще відчути стиль роботи і теми спеціаліста.</p>
-          </div>
-          <div class="panel__header-actions">
-            <RouterLink class="btn btn--ghost btn--sm" :to="{ name: 'public-journal', params: { slug } }">
-              Всі статті
-            </RouterLink>
-          </div>
-        </div>
-
-        <div v-if="journalLoading" class="muted">Завантажуємо журнал...</div>
-        <div v-else-if="journalError" class="form-error">{{ journalError }}</div>
-        <div v-else>
-          <section v-if="previewCollections.length" class="profile-collections">
-            <div class="profile-collections__head">
-              <div class="profile-collections__title">Серії</div>
-              <RouterLink class="btn btn--ghost btn--sm" :to="{ name: 'public-journal', params: { slug } }">
-                Переглянути всі
-              </RouterLink>
-            </div>
-            <div class="profile-collections__list">
-              <RouterLink
-                v-for="collection in previewCollections"
-                :key="collection.slug"
-                class="profile-collection-item"
-                :to="{
-                  name: 'public-journal-collection',
-                  params: { specialist_slug: slug, collection_slug: collection.slug },
-                }"
-              >
-                <div class="profile-collection-item__left">
-                  <div v-if="collectionCoverUrl(collection)" class="profile-collection-item__cover">
-                    <img :src="collectionCoverUrl(collection)" :alt="collection.title" />
-                  </div>
-                  <span class="profile-collection-item__name">{{ collection.title }}</span>
-                </div>
-                <span class="profile-collection-item__meta">{{ collection.posts_count }} статті</span>
-              </RouterLink>
-            </div>
-          </section>
-
-          <div v-if="filteredJournalPosts.length === 0" class="empty">
-            <div class="empty-title">Немає статей у цій категорії</div>
-            <div class="muted">Спробуйте інший фільтр або поверніться до всіх статей.</div>
-            <button class="btn btn--ghost btn--sm" type="button" @click="activeCategory = 'ALL'">
-              Повернути всі статті
-            </button>
-          </div>
-          <div v-else class="journal-list">
-            <div class="journal-filters" role="tablist" aria-label="Фільтр статей">
-              <button
-                v-for="opt in categoryOptions"
-                :key="opt.key"
-                type="button"
-                class="filter-chip"
-                :class="{ 'is-active': activeCategory === opt.key }"
-                @click="activeCategory = opt.key"
-              >
-                {{ opt.label }}
-              </button>
-            </div>
-            <article
-              v-if="featuredPost"
-              :class="[
-                'journal-card',
-                'journal-card--feature',
-                featuredPost.is_featured ? 'journal-card--pinned' : '',
-                'journal-card--closed',
-              ]"
-              role="button"
-              tabindex="0"
-              @click="navigateToPost(featuredPost)"
-              @keydown.enter="navigateToPost(featuredPost)"
-              @keydown.space.prevent="navigateToPost(featuredPost)"
-            >
-              <div class="journal-body">
-                <span class="post-tag" :style="{ '--cat': categoryColor(featuredPost.category) }">
-                  {{ categoryLabel(featuredPost.category) }}
-                </span>
-                <span v-if="featuredPost.is_featured" class="pin-badge">Закріплено</span>
-                <div class="journal-title">{{ featuredPost.title }}</div>
-                <div class="journal-meta">
-                  {{ formatDate(featuredPost.published_at || featuredPost.created_at) }}
-                  · {{ readingTime(featuredPost.summary) }} хв читання
-                </div>
-                <div class="journal-summary" v-if="featuredPost.summary" v-html="renderMarkdown(featuredPost.summary)"></div>
-                <RouterLink
-                  class="read-more"
-                  :to="{ name: 'public-journal-post', params: { slug, postSlug: featuredPost.slug } }"
-                  @click.stop
-                >
-                  Читати статтю →
-                </RouterLink>
-              </div>
-              <div v-if="featuredPost.cover_image_url" class="journal-cover">
-                <img :src="featuredPost.cover_image_url" alt="Обкладинка статті" />
-              </div>
-            </article>
-
-            <div class="journal-grid">
-              <article
-                v-for="post in gridPosts"
-                :key="post.id"
-                :class="[
-                  'journal-card',
-                  post.is_featured ? 'journal-card--pinned' : '',
-                  'journal-card--closed',
-                ]"
-                role="button"
-                tabindex="0"
-                @click="navigateToPost(post)"
-                @keydown.enter="navigateToPost(post)"
-                @keydown.space.prevent="navigateToPost(post)"
-              >
-                <div class="journal-body">
-                  <span class="post-tag" :style="{ '--cat': categoryColor(post.category) }">
-                    {{ categoryLabel(post.category) }}
-                  </span>
-                  <span v-if="post.is_featured" class="pin-badge">Закріплено</span>
-                  <div class="journal-title">{{ post.title }}</div>
-                  <div class="journal-meta">
-                    {{ formatDate(post.published_at || post.created_at) }}
-                    · {{ readingTime(post.summary) }} хв читання
-                  </div>
-                  <div
-                    class="journal-summary"
-                    v-if="post.summary"
-                    v-html="renderMarkdown(post.summary)"
-                  ></div>
-                  <RouterLink
-                    class="read-more"
-                    :to="{ name: 'public-journal-post', params: { slug, postSlug: post.slug } }"
-                    @click.stop
-                  >
-                    Читати статтю →
-                  </RouterLink>
-                </div>
-                <div v-if="post.cover_image_url" class="journal-cover">
-                  <img :src="post.cover_image_url" alt="Обкладинка статті" />
-                </div>
-              </article>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <section class="panel panel--reviews" v-if="reviews.length">
-        <div class="panel__header">
-          <div>
-            <div class="badge badge--soft">Відгуки</div>
-            <h2 class="panel__title">Що кажуть клієнти</h2>
-          </div>
-          <RouterLink class="btn btn--ghost btn--sm" :to="feedbackLink">Усі відгуки</RouterLink>
-        </div>
-        <div class="reviews-list">
-          <article v-for="review in reviews" :key="review.id" class="review-card">
-            <div class="review-card__text">{{ review.review_text }}</div>
-            <div class="review-card__meta">{{ formatDate(review.created_at) }}</div>
-          </article>
-        </div>
-      </section>
-
-      <section class="panel panel--footer-cta">
-        <div class="closing-cta">
-          <div class="closing-cta__copy">
-            <h2 class="closing-cta__title">Готові зробити перший крок?</h2>
-            <p class="closing-cta__subtitle">{{ closingCtaSupportLine }}</p>
-            <p class="closing-cta__next-step">{{ primaryActionNextStepCopy }}</p>
-          </div>
-          <div class="closing-cta__actions">
-            <button class="btn btn--primary" type="button" @click="handleClosingPrimaryAction">
-              {{ closingPrimaryLabel }}
-            </button>
-            <RouterLink
-              v-if="closingSecondaryKind === 'sessions'"
-              class="btn btn--ghost"
-              to="/client"
-            >
-              Мої сесії
-            </RouterLink>
-            <RouterLink
-              v-else-if="closingSecondaryKind === 'reviews'"
-              class="btn btn--ghost"
-              :to="feedbackLink"
-            >
-              Відгуки
-            </RouterLink>
-            <button
-              v-else-if="closingSecondaryKind === 'slots'"
-              class="btn btn--ghost"
-              type="button"
-              @click="scrollToSlots"
-            >
-              Переглянути вільні вікна
-            </button>
-            <button
-              v-else-if="closingSecondaryKind === 'contact'"
-              class="btn btn--ghost"
-              type="button"
-              @click="openPublicContactCta"
-            >
-              {{ CONTACT_CHOOSER_COPY.ctaLabel }}
-            </button>
-          </div>
-        </div>
+      <PublicProfileFinalCtaSection
+        :closing-cta-support-line="closingCtaSupportLine"
+        :primary-action-next-step-copy="primaryActionNextStepCopy"
+        :closing-primary-label="closingPrimaryLabel"
+        :closing-secondary-kind="closingSecondaryKind"
+        :feedback-link="feedbackLink"
+        :contact-cta-label="CONTACT_CHOOSER_COPY.ctaLabel"
+        @primary-action="handleClosingPrimaryAction"
+        @scroll-slots="scrollToSlots"
+        @open-contact="openPublicContactCta"
+      />
       </section>
     </section>
 
@@ -833,7 +511,46 @@
               <div class="booking-next__title">Перед надсиланням</div>
               <div class="booking-next__item">• Це м’який перший крок без створення кабінету.</div>
               <div class="booking-next__item">• Спеціаліст окремо підтвердить час або запропонує інший.</div>
+              <div v-if="shouldShowGuestBookingRulesPrompt" class="booking-next__item">
+                • Якщо перед записом є правила, підтвердіть їх чекбоксом перед надсиланням цього запиту.
+              </div>
+              <div v-if="shouldShowGuestBookingRulesPrompt" class="booking-next__item">
+                • Для гостя підтвердження діє лише для поточного запиту і не зберігається для майбутніх звернень.
+              </div>
             </div>
+
+            <article v-if="shouldShowGuestBookingRulesPrompt && activePlatformBookingRules.length" class="booking-rules-block">
+              <div class="booking-rules-block__title">Загальні правила платформи</div>
+              <p class="muted" style="margin: 6px 0 10px;">
+                Ви підтверджуєте поточну версію загальних правил платформи для цього запиту.
+              </p>
+              <p
+                v-for="rule in activePlatformBookingRules"
+                :key="`guest-platform-${rule.version}`"
+                class="booking-rules-block__item"
+              >
+                {{ rule.text }}
+              </p>
+            </article>
+
+            <article v-if="shouldShowGuestBookingRulesPrompt && activeSpecialistBookingRules.length" class="booking-rules-block">
+              <div class="booking-rules-block__title">Умови спеціаліста</div>
+              <p class="muted" style="margin: 6px 0 10px;">
+                Це індивідуальні умови цього спеціаліста для поточного запиту. Якщо умови зміняться, перед новим запитом потрібно підтвердити їх повторно.
+              </p>
+              <p
+                v-for="rule in activeSpecialistBookingRules"
+                :key="`guest-specialist-${rule.version}-${rule.specialist_id || 'none'}`"
+                class="booking-rules-block__item"
+              >
+                {{ rule.text }}
+              </p>
+            </article>
+
+            <label v-if="shouldShowGuestBookingRulesPrompt" class="setting-check booking-gate__check">
+              <input type="checkbox" v-model="guestBookingRulesAccepted" :disabled="guestBookingSubmitting" />
+              <span>Підтверджую правила перед відправкою цього запиту</span>
+            </label>
 
             <label class="setting-label" for="guestBookingName">
               Ім’я
@@ -894,7 +611,7 @@
 
             <div v-if="guestBookingError" class="form-error">{{ guestBookingError }}</div>
 
-            <button class="btn btn--primary" type="submit" :disabled="guestBookingSubmitting">
+            <button class="btn btn--primary" type="submit" :disabled="guestBookingSubmitDisabled">
               {{ guestBookingSubmitting ? 'Надсилаємо...' : 'Надіслати запит' }}
             </button>
           </form>
@@ -922,7 +639,7 @@
           </div>
           <div class="booking-next">
             <div class="booking-next__title">Що далі</div>
-            <div class="booking-next__item">• Натискання кнопки «Записатися» не списує оплату автоматично.</div>
+            <div class="booking-next__item">• Натискання на вільне вікно не списує оплату автоматично.</div>
             <div class="booking-next__item">• Перевіряйте статус і деталі у кабінеті клієнта.</div>
             <div class="booking-next__item">• Після підтвердження сесії сервіс нагадає про зустріч.</div>
             <div class="booking-next__item">• Якщо плани зміняться, ви можете перенести або скасувати запис у деталях сесії.</div>
@@ -936,33 +653,16 @@
         </div>
       </div>
     </div>
+    <button
+      v-if="showBackToTopButton"
+      class="back-to-top-btn"
+      type="button"
+      aria-label="Вгору"
+      @click="scrollToTop"
+    >
+      Вгору
+    </button>
 
-    <div v-if="showSettingModal" class="setting-modal">
-      <div class="setting-modal__backdrop" @click="closeSettingModal"></div>
-      <div class="setting-modal__content">
-        <div class="setting-modal__header">
-          <h3>Сетінг</h3>
-          <button class="btn btn--ghost btn--sm" type="button" @click="closeSettingModal">Закрити</button>
-        </div>
-        <div class="setting-modal__body">
-          <div class="setting-section" v-if="platformSettingText">
-            <div class="setting-title">Загальні правила простору</div>
-            <div class="muted">{{ platformSettingText }}</div>
-          </div>
-          <div class="setting-section" v-if="therapistSettingText">
-            <div class="setting-title">Сетінг спеціаліста</div>
-            <div class="muted">{{ therapistSettingText }}</div>
-          </div>
-          <div v-if="!platformSettingText && !therapistSettingText" class="muted">
-            Сетінг ще не додано.
-          </div>
-          <label class="setting-check setting-check--modal">
-            <input type="checkbox" v-model="settingAccepted" />
-            <span>Погоджуюсь з умовами</span>
-          </label>
-        </div>
-      </div>
-    </div>
   </section>
 </template>
 
@@ -971,6 +671,15 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import DOMPurify from 'dompurify'
 import { marked } from 'marked'
 import { useRoute, useRouter } from 'vue-router'
+import PublicProfileAboutSection from '../components/public-profile/PublicProfileAboutSection.vue'
+import PublicProfileFaqSection from '../components/public-profile/PublicProfileFaqSection.vue'
+import PublicProfileFinalCtaSection from '../components/public-profile/PublicProfileFinalCtaSection.vue'
+import PublicProfileHeroSection from '../components/public-profile/PublicProfileHeroSection.vue'
+import PublicProfileIdentityRail from '../components/public-profile/PublicProfileIdentityRail.vue'
+import PublicProfileJournalPreviewSection from '../components/public-profile/PublicProfileJournalPreviewSection.vue'
+import PublicProfileMediaSection from '../components/public-profile/PublicProfileMediaSection.vue'
+import PublicProfileReviewsSection from '../components/public-profile/PublicProfileReviewsSection.vue'
+import PublicProfileTrustSection from '../components/public-profile/PublicProfileTrustSection.vue'
 import { getApiErrorMessage } from '../lib/errors'
 import {
   BOOKING_ERROR_FALLBACKS,
@@ -980,6 +689,7 @@ import {
 } from '../lib/bookingCopy'
 import { getInquiryActionErrorMessage, mapInquiryStateToUi } from '../lib/inquiryCopy'
 import {
+  acceptBookingRules,
   apiGet,
   apiPost,
   type BookingSessionCreatePayload,
@@ -1001,6 +711,18 @@ import {
   type InquiryMessage,
   type InquiryState,
   type PublicContactAction,
+  type PublicProfileAboutItem,
+  type PublicProfileCompetenceSection,
+  type PublicProfileContactActionsSection,
+  type PublicProfileFaqItem,
+  type PublicProfileMediaItem,
+  type PublicProfilePublicationsPreviewEmptyState,
+  type PublicProfilePublicationsPreviewItem,
+  type PublicProfileReviewItem,
+  type PublicProfileTopicsSection,
+  type PublicProfileTrustItem,
+  type PublicProfileTrustSection as PublicProfileTrustSectionData,
+  type PublicBookingRuleItem,
   type PublicSpecialistProfile,
   type PublicSpecialistProfileDocument,
   type PublicAuthorJournalPost,
@@ -1054,6 +776,52 @@ type PublicReview = {
   created_at: string
 }
 
+type PublicReviewView = {
+  id: string
+  review_text: string
+  created_at: string
+}
+
+type PublicFaqItemView = {
+  id: string
+  question: string
+  answer: string
+}
+
+type PublicMediaItemView = {
+  id: string
+  title: string
+  description: string
+  kindLabel: string
+  url: string
+}
+
+type JournalPreviewPost = {
+  id: number
+  slug: string
+  title: string
+  summary?: string | null
+  cover_image_url?: string | null
+  is_featured: boolean
+  featured_order?: number
+  published_at?: string | null
+  created_at?: string | null
+  category?: 'TIP' | 'EXPLAIN' | 'FAQ' | 'RESEARCH' | 'PRACTICE' | null
+  reading_time_minutes?: number | null
+}
+
+type JournalCanonicalEmptyStateCode = Exclude<PublicProfilePublicationsPreviewEmptyState, null>
+
+type ProfileKeyValueItem = {
+  label: string
+  value: string
+}
+
+type ProfileAboutSection = {
+  title: string
+  body: string
+}
+
 type PublicContactActionViewModel = {
   id: string
   channel: string
@@ -1100,13 +868,12 @@ const guestBookingForm = ref({
   contact_value: '',
   message: '',
 })
-const settingAccepted = ref(false)
-const showSettingModal = ref(false)
+const bookingRulesAccepting = ref(false)
+const pendingClientBookingSlotId = ref<number | null>(null)
+const bookingRulesPromptRef = ref<HTMLElement | null>(null)
+const guestBookingRulesAccepted = ref(false)
 const showContactChooserModal = ref(false)
 const contactActionFallback = ref<ContactActionFallbackViewModel | null>(null)
-const settingAttention = ref(false)
-const settingButtonRef = ref<HTMLElement | null>(null)
-let settingAttentionTimer: number | null = null
 let contactActionFallbackTimer: number | null = null
 const clientSessions = ref<ClientSession[]>([])
 const pastClientSessions = ref<ClientSession[]>([])
@@ -1118,10 +885,11 @@ const inquiryError = ref('')
 const inquiryDraft = ref('')
 const inquirySubmitError = ref('')
 const inquirySubmitting = ref(false)
-const journalPosts = ref<PublicAuthorJournalPost[]>([])
+const journalPosts = ref<JournalPreviewPost[]>([])
 const journalCollections = ref<PublicJournalCollectionListItem[]>([])
 const journalLoading = ref(false)
 const journalError = ref('')
+const journalEmptyStateCode = ref<JournalCanonicalEmptyStateCode | null>(null)
 const reviews = ref<PublicReview[]>([])
 type JournalCategory = 'ALL' | 'TIP' | 'EXPLAIN' | 'FAQ' | 'RESEARCH' | 'PRACTICE'
 const activeCategory = ref<JournalCategory>('ALL')
@@ -1136,7 +904,8 @@ const categoryOptions: { key: JournalCategory; label: string }[] = [
 const selectedDate = ref('')
 const slotDateInput = ref<HTMLInputElement | null>(null)
 const showAllSlots = ref(false)
-const slotsPreviewLimit = 5
+const showBackToTopButton = ref(false)
+const slotsPreviewLimit = 96
 const bookingSessionFormat = ref<SessionFormat>('online')
 
 const slug = computed(() => String(route.params.slug || '').trim())
@@ -1166,16 +935,109 @@ const bookingOfflineLocationHint = computed(() => {
   if (resolvedSessionFormat.value !== 'offline') return ''
   return offlineMeetingLocation.value
 })
-const isBookingDisabled = (slotId: number) => {
-  if (bookingSlotId.value === slotId) return true
-  if (guestBookingSubmitting.value && guestBookingSubmitSlotId.value === slotId) return true
-  if (isGuestVisitor.value) return false
-  if (isUnsupportedBookingRole.value) return true
-  return !settingAccepted.value
+
+function resolveBookingRuleScope(rule: PublicBookingRuleItem): 'PLATFORM' | 'SPECIALIST' {
+  return String(rule.scope || '').trim().toUpperCase() === 'PLATFORM' ? 'PLATFORM' : 'SPECIALIST'
 }
+
+const activeBookingRuleItems = computed<PublicBookingRuleItem[]>(() => {
+  const items = profile.value?.booking_rules?.items || []
+  return items.filter((item) => typeof item?.text === 'string' && item.text.trim().length > 0)
+})
+
+const pendingBookingRuleItems = computed(() => activeBookingRuleItems.value.filter((item) => !item.accepted))
+
+const bookingRulesPromptEnabled = computed(() => {
+  const bookingRules = profile.value?.booking_rules
+  return Boolean(bookingRules?.show_prompt) && activeBookingRuleItems.value.length > 0
+})
+
+const bookingRulesReasonCodes = computed(() => {
+  const codes = profile.value?.booking_rules?.reason_codes || []
+  return new Set(
+    codes
+      .map((code) => String(code || '').trim().toUpperCase())
+      .filter((code) => code.length > 0)
+  )
+})
+
+const pendingPlatformBookingRules = computed(() =>
+  pendingBookingRuleItems.value.filter((item) => resolveBookingRuleScope(item) === 'PLATFORM')
+)
+const pendingSpecialistBookingRules = computed(() =>
+  pendingBookingRuleItems.value.filter((item) => resolveBookingRuleScope(item) === 'SPECIALIST')
+)
+const activePlatformBookingRules = computed(() =>
+  activeBookingRuleItems.value.filter((item) => resolveBookingRuleScope(item) === 'PLATFORM')
+)
+const activeSpecialistBookingRules = computed(() =>
+  activeBookingRuleItems.value.filter((item) => resolveBookingRuleScope(item) === 'SPECIALIST')
+)
+
+const shouldShowClientBookingRulesPrompt = computed(
+  () => Boolean(canBook.value && bookingRulesPromptEnabled.value && pendingBookingRuleItems.value.length > 0)
+)
+const shouldShowGuestBookingRulesPrompt = computed(
+  () => Boolean(isGuestVisitor.value && bookingRulesPromptEnabled.value)
+)
+
+const requiresPlatformRulesPrompt = computed(
+  () =>
+    bookingRulesReasonCodes.value.has('PLATFORM_NOT_ACCEPTED') ||
+    pendingPlatformBookingRules.value.length > 0
+)
+const requiresSpecialistRulesPrompt = computed(
+  () =>
+    bookingRulesReasonCodes.value.has('SPECIALIST_NOT_ACCEPTED') ||
+    pendingSpecialistBookingRules.value.length > 0
+)
+
+const clientBookingRulesPromptText = computed(() => {
+  if (requiresPlatformRulesPrompt.value && requiresSpecialistRulesPrompt.value) {
+    return 'Щоб продовжити запис, підтвердьте актуальні версії загальних правил платформи та умов спеціаліста. Повторне підтвердження знадобиться лише після оновлення відповідної версії.'
+  }
+  if (requiresPlatformRulesPrompt.value) {
+    return 'Щоб продовжити запис, підтвердьте актуальну версію загальних правил платформи. Повторне підтвердження потрібне лише після оновлення правил.'
+  }
+  if (requiresSpecialistRulesPrompt.value) {
+    return 'Щоб продовжити запис, підтвердьте актуальну версію умов спеціаліста. Повторне підтвердження потрібне лише якщо спеціаліст оновить свої правила.'
+  }
+  return 'Щоб продовжити запис, підтвердьте актуальні правила перед записом.'
+})
+
+const bookingRulesConfirmLabel = computed(() =>
+  bookingRulesAccepting.value ? 'Підтверджуємо правила...' : 'Підтвердити правила перед записом'
+)
+
+const guestBookingSubmitDisabled = computed(
+  () =>
+    guestBookingSubmitting.value ||
+    (shouldShowGuestBookingRulesPrompt.value && !guestBookingRulesAccepted.value)
+)
+
+const isSlotBusy = (slotId: number) =>
+  bookingRulesAccepting.value ||
+  bookingSlotId.value === slotId ||
+  (guestBookingSubmitting.value && guestBookingSubmitSlotId.value === slotId)
 const visibleSlots = computed(() => (showAllSlots.value ? slots.value : slots.value.slice(0, slotsPreviewLimit)))
 const hasMoreSlots = computed(() => slots.value.length > slotsPreviewLimit)
-const hasPublicJournalPosts = computed(() => journalPosts.value.length > 0)
+const hasPublicJournalPosts = computed(
+  () => journalPosts.value.length > 0 || Boolean(journalEmptyStateCode.value)
+)
+const journalCanonicalEmptyStateTitle = computed(() => {
+  if (journalEmptyStateCode.value === 'JOURNAL_DISABLED') return 'Авторський журнал тимчасово вимкнено'
+  if (journalEmptyStateCode.value === 'NO_PUBLICATIONS') return 'Поки немає публікацій'
+  return ''
+})
+const journalCanonicalEmptyStateBody = computed(() => {
+  if (journalEmptyStateCode.value === 'JOURNAL_DISABLED') {
+    return 'Спеціаліст тимчасово не показує публікації на публічній сторінці.'
+  }
+  if (journalEmptyStateCode.value === 'NO_PUBLICATIONS') {
+    return 'Коли зʼявляться нові матеріали, вони будуть доступні у цьому розділі.'
+  }
+  return ''
+})
 const matchesProfileSession = (session: ClientSession) => {
   if (!profile.value) return false
   const specialistId = profile.value.therapist_id
@@ -1241,8 +1103,32 @@ const weekDays = computed(() => {
   }
   return days
 })
-const platformSettingText = computed(() => profile.value?.platform_setting_text || '')
-const therapistSettingText = computed(() => profile.value?.setting_text || '')
+const sectionsTrust = computed(() => profile.value?.sections?.trust || null)
+const sectionsAbout = computed(() => profile.value?.sections?.about || null)
+const sectionsCompetence = computed(() => profile.value?.sections?.competence || null)
+const sectionsTopics = computed(() => profile.value?.sections?.topics || null)
+const sectionsFormats = computed(() => profile.value?.sections?.formats || null)
+const sectionsContactActions = computed(() => profile.value?.sections?.contact_actions ?? null)
+const sectionsReviews = computed(() => profile.value?.sections?.reviews || null)
+const sectionsFaq = computed(() => profile.value?.sections?.faq || null)
+const sectionsMedia = computed(() => profile.value?.sections?.media || null)
+
+function toDisplayText(value: unknown): string {
+  if (value === null || value === undefined) return ''
+  return String(value).trim()
+}
+
+function normalizeMultilineText(value: unknown): string {
+  const text = toDisplayText(value)
+  if (!text) return ''
+  return text
+    .replace(/\r/g, '')
+    .split('\n')
+    .map((line) => line.trim())
+    .join('\n')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
+}
 
 const languagesDisplay = computed(() => {
   const value = profile.value?.languages
@@ -1260,10 +1146,33 @@ function toTextList(value: unknown): string[] {
     .filter(Boolean)
 }
 
-const specializationChips = computed(() => toTextList(profile.value?.specializations))
-const displaySpecializationChips = computed(() => specializationChips.value.slice(0, 6))
+function normalizeCompetenceItemList(value: unknown): string[] {
+  if (!value) return []
+  if (Array.isArray(value)) return value.map((item) => String(item).trim()).filter(Boolean)
+  const normalized = String(value).replace(/\r/g, '').trim()
+  if (!normalized) return []
+  if (normalized.includes('\n')) {
+    return normalized
+      .split('\n')
+      .map((item) => item.trim())
+      .filter(Boolean)
+  }
+  return normalized
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean)
+}
 
 const publicName = computed(() => formatPublicName(profile.value?.display_name) || profile.value?.display_name || '')
+
+const heroMediaProfile = computed<{ photo_url?: string | null; video_url?: string | null } | null>(() => {
+  if (!profile.value) return null
+  const sectionHeroMedia = resolveSectionHeroMedia()
+  return {
+    photo_url: firstFilledText(sectionHeroMedia?.photoUrl, toDisplayText(profile.value.photo_url)) || null,
+    video_url: firstFilledText(sectionHeroMedia?.videoUrl, toDisplayText(profile.value.video_url)) || null,
+  }
+})
 
 function firstFilledText(...values: Array<string | null | undefined>) {
   return values
@@ -1271,74 +1180,294 @@ function firstFilledText(...values: Array<string | null | undefined>) {
     .find(Boolean) || ''
 }
 
-function toSnippet(value: string, maxLength = 220) {
-  const normalized = value.replace(/\s+/g, ' ').trim()
-  if (!normalized) return ''
-  if (normalized.length <= maxLength) return normalized
-  return `${normalized.slice(0, maxLength - 1).trimEnd()}…`
+function normalizeTrustItem(item: PublicProfileTrustItem | null | undefined): ProfileKeyValueItem | null {
+  if (!item || typeof item !== 'object') return null
+  const label = toDisplayText(item.label)
+  const value = toDisplayText(item.value)
+  if (!label || !value) return null
+  return { label, value }
 }
+
+function normalizeAboutSection(item: PublicProfileAboutItem | null | undefined): ProfileAboutSection | null {
+  if (!item || typeof item !== 'object') return null
+  const title = toDisplayText(item.title)
+  const body = normalizeMultilineText(item.body)
+  if (!title || !body) return null
+  return { title, body }
+}
+
+function normalizeTopicChip(item: unknown): string {
+  if (typeof item === 'string') return item.trim()
+  if (!item || typeof item !== 'object') return ''
+  const value = item as Record<string, unknown>
+  return toDisplayText(value.label ?? value.title ?? value.name)
+}
+
+function normalizeReviewItemFromSection(
+  item: PublicProfileReviewItem | null | undefined,
+  index: number
+): PublicReviewView | null {
+  if (!item || typeof item !== 'object') return null
+  const reviewText = toDisplayText(item.review_text ?? item.text)
+  if (!reviewText) return null
+  const createdAt = toDisplayText(item.created_at ?? item.published_at)
+  return {
+    id: toDisplayText(item.id) || `section-review-${index}`,
+    review_text: reviewText,
+    created_at: createdAt,
+  }
+}
+
+function resolveSectionReviewItems(): PublicReviewView[] {
+  const source = sectionsReviews.value?.items
+  if (!Array.isArray(source) || source.length === 0) return []
+  return source
+    .map((item, index) => normalizeReviewItemFromSection(item, index))
+    .filter((item): item is PublicReviewView => Boolean(item))
+}
+
+function normalizeFaqItemFromSection(
+  item: PublicProfileFaqItem | null | undefined,
+  index: number
+): PublicFaqItemView | null {
+  if (!item || typeof item !== 'object') return null
+  const question = toDisplayText(item.question ?? item.title)
+  const answer = toDisplayText(item.answer ?? item.body)
+  if (!question || !answer) return null
+  return {
+    id: toDisplayText(item.id) || `section-faq-${index}`,
+    question,
+    answer,
+  }
+}
+
+function resolveSectionFaqItems(): PublicFaqItemView[] {
+  const source = sectionsFaq.value?.items
+  if (!Array.isArray(source) || source.length === 0) return []
+  return source
+    .map((item, index) => normalizeFaqItemFromSection(item, index))
+    .filter((item): item is PublicFaqItemView => Boolean(item))
+}
+
+function resolveMediaItemUrl(item: PublicProfileMediaItem): string {
+  return toDisplayText(item.url ?? item.file_url ?? item.image_url ?? item.video_url)
+}
+
+function normalizeMediaItemFromSection(
+  item: PublicProfileMediaItem | null | undefined,
+  index: number
+): PublicMediaItemView | null {
+  if (!item || typeof item !== 'object') return null
+  const url = resolveMediaItemUrl(item)
+  if (!url) return null
+  const title = toDisplayText(item.title) || 'Матеріал'
+  const description = toDisplayText(item.description)
+  const kindLabel = toDisplayText(item.kind ?? item.type)
+  return {
+    id: toDisplayText(item.id) || `section-media-${index}`,
+    title,
+    description,
+    kindLabel,
+    url,
+  }
+}
+
+function resolveSectionMediaItems(): PublicMediaItemView[] {
+  const source = Array.isArray(sectionsMedia.value?.items)
+    ? sectionsMedia.value?.items
+    : Array.isArray(sectionsMedia.value?.assets)
+      ? sectionsMedia.value?.assets
+      : []
+  if (!source.length) return []
+  return source
+    .map((item, index) => normalizeMediaItemFromSection(item, index))
+    .filter((item): item is PublicMediaItemView => Boolean(item))
+}
+
+function resolveSectionHeroMedia() {
+  const media = sectionsMedia.value
+  if (!media || typeof media !== 'object') return null
+  const photoUrl = firstFilledText(
+    toDisplayText(media.hero_photo_url),
+    toDisplayText(media.photo_url)
+  )
+  const videoUrl = firstFilledText(
+    toDisplayText(media.hero_video_url),
+    toDisplayText(media.video_url)
+  )
+  return { photoUrl, videoUrl }
+}
+
+function resolveMeetingFormatLabelFromFlags(offersOnline: boolean, offersOffline: boolean): string {
+  if (offersOnline && offersOffline) return 'Онлайн та офлайн'
+  if (offersOnline) return 'Онлайн'
+  if (offersOffline) return 'Офлайн'
+  return ''
+}
+
+const sectionTrustItems = computed<ProfileKeyValueItem[]>(() => {
+  const source = sectionsTrust.value as PublicProfileTrustSectionData | null
+  const explicitItems = Array.isArray(source?.items)
+    ? source.items
+        .map((item) => normalizeTrustItem(item))
+        .filter((item): item is ProfileKeyValueItem => Boolean(item))
+    : []
+
+  const structuredItems: ProfileKeyValueItem[] = []
+  if (source && typeof source.experience_years === 'number' && Number.isFinite(source.experience_years)) {
+    structuredItems.push({ label: 'Досвід', value: formatExperience(source.experience_years) })
+  }
+  const trustLanguages = toTextList(source?.languages)
+  if (trustLanguages.length) {
+    structuredItems.push({ label: 'Мови', value: trustLanguages.join(', ') })
+  }
+  const trustLocation = toDisplayText(source?.location)
+  if (trustLocation) {
+    structuredItems.push({ label: 'Локація', value: trustLocation })
+  }
+  if (
+    source &&
+    typeof source.completed_sessions_count === 'number' &&
+    Number.isFinite(source.completed_sessions_count)
+  ) {
+    const completedBadge = getCompletedSessionsBadge(source.completed_sessions_count)
+    if (completedBadge) {
+      structuredItems.push({ label: 'Проведені сесії', value: completedBadge })
+    }
+  }
+
+  return [...explicitItems, ...structuredItems]
+})
+
+const sectionAboutSections = computed<ProfileAboutSection[]>(() => {
+  const source = Array.isArray(sectionsAbout.value?.items)
+    ? sectionsAbout.value?.items
+    : Array.isArray(sectionsAbout.value?.sections)
+      ? sectionsAbout.value?.sections
+      : []
+  if (!source.length) return []
+  return source
+    .map((item) => normalizeAboutSection(item))
+    .filter((item): item is ProfileAboutSection => Boolean(item))
+})
+
+const sectionCompetenceData = computed<PublicProfileCompetenceSection | null>(() => {
+  const source = sectionsCompetence.value
+  if (!source || typeof source !== 'object') return null
+  return source
+})
+
+const hasSectionCompetenceSource = computed(() => Boolean(sectionCompetenceData.value))
+
+const competenceEducationSummary = computed(() => {
+  if (hasSectionCompetenceSource.value) {
+    return normalizeMultilineText(sectionCompetenceData.value?.education_summary || '')
+  }
+  return normalizeMultilineText(profile.value?.education_summary || '')
+})
+
+const competenceEducationItems = computed(() => {
+  if (hasSectionCompetenceSource.value) {
+    return normalizeCompetenceItemList(sectionCompetenceData.value?.education_items)
+  }
+  return normalizeCompetenceItemList(profile.value?.education_items)
+})
+
+const competenceProfessionalDevelopmentItems = computed(() => {
+  if (hasSectionCompetenceSource.value) {
+    return normalizeCompetenceItemList(sectionCompetenceData.value?.professional_development_items)
+  }
+  return normalizeCompetenceItemList(profile.value?.professional_development_items)
+})
+
+const sectionTopicChips = computed<string[]>(() => {
+  const source = Array.isArray(sectionsTopics.value?.chips)
+    ? sectionsTopics.value?.chips
+    : Array.isArray(sectionsTopics.value?.items)
+      ? sectionsTopics.value?.items
+      : []
+  if (source.length) {
+    return source
+      .map((item) => normalizeTopicChip(item))
+      .filter(Boolean)
+  }
+  return toTextList(sectionsTopics.value?.specializations)
+})
+
+type AboutNarrativeField = 'bio' | 'bio_about' | 'bio_work' | 'bio_approach' | 'bio_for_whom' | 'bio_other'
+
+function resolveSectionAboutField(field: AboutNarrativeField): string {
+  const source = sectionsAbout.value as Record<string, unknown> | null
+  return normalizeMultilineText(source?.[field])
+}
+
+const sectionWhoThisIsForText = computed(() => {
+  const source = sectionsTopics.value as (PublicProfileTopicsSection & Record<string, unknown>) | null
+  return firstFilledText(
+    resolveSectionAboutField('bio_for_whom'),
+    toDisplayText(source?.who_this_is_for),
+    toDisplayText(source?.for_whom),
+    toDisplayText(source?.text),
+    toDisplayText(source?.description)
+  )
+})
 
 const heroRoleLine = computed(() => {
   if (!profile.value) return ''
   const parts: string[] = []
   const specializationLine = displaySpecializationChips.value.slice(0, 2).join(', ')
   if (specializationLine) parts.push(specializationLine)
-  if (profile.value.location) parts.push(profile.value.location)
+  if (profileLocationDisplay.value) parts.push(profileLocationDisplay.value)
   return parts.join(' · ')
 })
 
 const heroLeadText = computed(() => {
-  const source = firstFilledText(profile.value?.bio_about, profile.value?.bio, profile.value?.bio_work)
+  const source = firstFilledText(
+    resolveSectionAboutField('bio_about'),
+    resolveSectionAboutField('bio'),
+    profile.value?.bio_about,
+    sectionAboutSections.value[0]?.body,
+    profile.value?.bio,
+    profile.value?.bio_work,
+    profile.value?.bio_approach
+  )
   if (!source) return 'Спеціаліст описує формат роботи та допомагає зробити перший крок у зручному для вас темпі.'
-  return toSnippet(source, 250)
+  return source.replace(/\s+/g, ' ').trim()
 })
 
-const heroSupportText = computed(() => {
-  const source = firstFilledText(profile.value?.bio_approach, profile.value?.bio_work, profile.value?.bio_for_whom)
-  if (!source) return ''
-  const lead = heroLeadText.value
-  const normalizedSource = toSnippet(source, 180)
-  if (normalizedSource === lead) return ''
-  return normalizedSource
-})
+const heroSupportText = computed(() => '')
 
 const completedSessionsBadge = computed(() => {
   return getCompletedSessionsBadge(profile.value?.completed_sessions_count)
 })
 
 const meetingFormatLabel = computed(() => {
+  const sectionLabel = toDisplayText(sectionsFormats.value?.meeting_format_label)
+  if (sectionLabel) return sectionLabel
+  const sectionFormats = sectionsFormats.value as (Record<string, unknown> & { offers_online?: unknown; offers_offline?: unknown }) | null
+  const sectionOffersOnline = typeof sectionFormats?.offers_online === 'boolean' ? sectionFormats.offers_online : null
+  const sectionOffersOffline = typeof sectionFormats?.offers_offline === 'boolean' ? sectionFormats.offers_offline : null
+  if (sectionOffersOnline !== null || sectionOffersOffline !== null) {
+    return resolveMeetingFormatLabelFromFlags(Boolean(sectionOffersOnline), Boolean(sectionOffersOffline))
+  }
   if (!profile.value) return ''
-  const hasOnline = Boolean(profile.value.offers_online)
-  const hasOffline = Boolean(profile.value.offers_offline)
-  if (hasOnline && hasOffline) return 'Онлайн та офлайн'
-  if (hasOnline) return 'Онлайн'
-  if (hasOffline) return 'Офлайн'
-  return ''
+  return resolveMeetingFormatLabelFromFlags(
+    Boolean(profile.value.offers_online),
+    Boolean(profile.value.offers_offline)
+  )
 })
 
 const offlineMeetingLocation = computed(() => {
+  const sectionLocation = toDisplayText(sectionsFormats.value?.offline_location)
+  if (sectionLocation) return sectionLocation
   if (!profile.value?.offers_offline) return ''
   return (profile.value.offline_location || '').trim()
 })
 
-const heroMetaHighlights = computed(() => {
-  if (!profile.value) return []
-  const items: Array<{ label: string; value: string }> = []
-  if (profile.value.experience_years !== undefined && profile.value.experience_years !== null) {
-    items.push({ label: 'Досвід', value: formatExperience(profile.value.experience_years) })
-  }
-  if (languagesDisplay.value) {
-    items.push({ label: 'Мови', value: languagesDisplay.value })
-  }
-  if (introDurationLabel.value) {
-    items.push({ label: 'Ознайомча сесія', value: introDurationLabel.value })
-  }
-  if (introPriceDisplay.value) {
-    items.push({ label: 'Вартість старту', value: introPriceDisplay.value })
-  } else if (priceDisplay.value) {
-    items.push({ label: 'Консультація', value: priceDisplay.value })
-  }
-  return items.slice(0, 4)
+const profileLocationDisplay = computed(() => {
+  const sectionLocation = toDisplayText(sectionsFormats.value?.location)
+  if (sectionLocation) return sectionLocation
+  return toDisplayText(profile.value?.location)
 })
 
 const feedbackLink = computed(() => ({
@@ -1372,26 +1501,6 @@ const primaryActionNextStepCopy = computed(() => {
     return 'Бронювання доступне в ролі клієнта. Натисніть кнопку, щоб переглянути вільні слоти.'
   }
   return 'Після вибору часу створюється запит на сесію: спеціаліст підтвердить його окремо.'
-})
-
-const heroTrustMarkers = computed(() => {
-  if (canMessageSpecialist.value) {
-    return [
-      'Листування ведеться у вашому кабінеті клієнта.',
-      'За потреби можна спочатку узгодити деталі, а потім бронювати.',
-    ]
-  }
-  const markers = [
-    'Натискання кнопки «Записатися» не списує оплату автоматично.',
-    'Сесія вважається підтвердженою після відповіді спеціаліста.',
-  ]
-  if (!isAuthenticated.value) {
-    markers.push('Перший крок можна зробити без реєстрації: достатньо короткого запиту з контактом.')
-  }
-  if (showInquiryEntry.value) {
-    markers.push('Якщо не готові одразу бронювати, почніть із короткого запиту.')
-  }
-  return markers
 })
 
 const closingPrimaryLabel = computed(() => {
@@ -1444,54 +1553,180 @@ function formatPriceDisplay(value: string | number | null | undefined, currency?
 }
 
 const priceDisplay = computed(() => {
+  const sectionDisplay = toDisplayText(sectionsFormats.value?.price_display)
+  if (sectionDisplay) return sectionDisplay
+  const sectionPrice = sectionsFormats.value?.price
+  if (sectionPrice !== null && sectionPrice !== undefined) {
+    const fromSection = formatPriceDisplay(
+      sectionPrice,
+      sectionsFormats.value?.price_currency || profile.value?.price_currency
+    )
+    if (fromSection) return fromSection
+  }
   return formatPriceDisplay(profile.value?.price, profile.value?.price_currency)
 })
 
 const introPriceDisplay = computed(() => {
+  const sectionDisplay = toDisplayText(sectionsFormats.value?.intro_price_display)
+  if (sectionDisplay) return sectionDisplay
+  const sectionPrice = sectionsFormats.value?.intro_price
+  if (sectionPrice !== null && sectionPrice !== undefined) {
+    const fromSection = formatPriceDisplay(
+      sectionPrice,
+      sectionsFormats.value?.intro_price_currency || profile.value?.intro_price_currency
+    )
+    if (fromSection) return fromSection
+  }
   return formatPriceDisplay(profile.value?.intro_price, profile.value?.intro_price_currency)
 })
 
 const introDurationLabel = computed(() => {
-  const minutes = profile.value?.intro_duration_minutes
+  const sectionLabel = toDisplayText(sectionsFormats.value?.intro_duration_label)
+  if (sectionLabel) return sectionLabel
+  const sectionMinutes = sectionsFormats.value?.intro_duration_minutes
+  const minutes =
+    typeof sectionMinutes === 'number' && Number.isFinite(sectionMinutes)
+      ? sectionMinutes
+      : profile.value?.intro_duration_minutes
   if (!minutes) return ''
   return `${minutes} хв`
 })
 
-const aboutSections = computed(() => {
-  if (!profile.value) return []
-  return [
-    { title: 'Про мене', body: profile.value.bio_about || profile.value.bio || '' },
-    { title: 'Як я працюю', body: profile.value.bio_work || '' },
-    { title: 'Мій підхід', body: profile.value.bio_approach || '' },
-  ].filter((section) => section.body)
+const specializationChips = computed(() => {
+  if (sectionTopicChips.value.length) return sectionTopicChips.value
+  return toTextList(profile.value?.specializations)
+})
+const displaySpecializationChips = computed(() => specializationChips.value.slice(0, 4))
+
+const whoThisIsForText = computed(() =>
+  normalizeMultilineText(sectionWhoThisIsForText.value || profile.value?.bio_for_whom || '')
+)
+
+const whoIsNotSuitableText = computed(() => {
+  const source = sectionsTopics.value as (PublicProfileTopicsSection & Record<string, unknown>) | null
+  return normalizeMultilineText(
+    firstFilledText(
+      resolveSectionAboutField('bio_other'),
+      toDisplayText(source?.who_this_is_not_for),
+      toDisplayText(source?.who_is_not_for),
+      toDisplayText(source?.not_for_whom),
+      toDisplayText(source?.not_suitable_for),
+      toDisplayText(source?.exclusions),
+      profile.value?.bio_other
+    )
+  )
 })
 
-const whoThisIsForText = computed(() => profile.value?.bio_for_whom || '')
+function sectionAboutBodyByKeywords(keywords: string[]): string {
+  if (!keywords.length || !sectionAboutSections.value.length) return ''
+  const normalizedKeywords = keywords.map((keyword) => keyword.trim().toLowerCase()).filter(Boolean)
+  if (!normalizedKeywords.length) return ''
+  const found = sectionAboutSections.value.find((section) => {
+    const body = section.body.trim().toLowerCase()
+    return normalizedKeywords.some((keyword) => body.includes(keyword))
+  })
+  return found?.body || ''
+}
 
-const trustItems = computed(() => {
-  if (!profile.value) return []
-  const items: Array<{ label: string; value: string }> = []
+const aboutNarrativeText = computed(() =>
+  normalizeMultilineText(
+    firstFilledText(
+      resolveSectionAboutField('bio_about'),
+      resolveSectionAboutField('bio'),
+      sectionAboutSections.value[0]?.body,
+      profile.value?.bio_about,
+      profile.value?.bio,
+      sectionAboutBodyByKeywords(['про мене', 'about', 'досвід'])
+    )
+  )
+)
+
+const showHeroReadMore = computed(() => Boolean(aboutNarrativeText.value))
+
+const workStyleText = computed(() => {
+  const source = normalizeMultilineText(
+    firstFilledText(
+      resolveSectionAboutField('bio_work'),
+      resolveSectionAboutField('bio_approach'),
+      sectionAboutBodyByKeywords(['підхід', 'approach', 'метод', 'стиль', 'працюю']),
+      sectionAboutSections.value[2]?.body,
+      sectionAboutSections.value[1]?.body,
+      profile.value?.bio_work,
+      profile.value?.bio_approach
+    )
+  )
+  if (!source) return ''
+  return source === aboutNarrativeText.value ? '' : source
+})
+
+const specialistBookingTermsText = computed(() => {
+  const explicitSettingText = normalizeMultilineText(profile.value?.setting_text || '')
+  if (explicitSettingText) return explicitSettingText
+  const uniqueRuleTexts = Array.from(
+    new Set(
+      activeSpecialistBookingRules.value
+        .map((rule) => normalizeMultilineText(rule.text))
+        .filter(Boolean)
+    )
+  )
+  return uniqueRuleTexts.join('\n\n')
+})
+
+const GENERAL_INFO_EXCLUDED_LABELS = new Set([
+  'ознайомча сесія',
+  'стандартна сесія',
+  'intro session',
+  'standard session',
+])
+
+function isGeneralInfoExcludedLabel(label: string): boolean {
+  const normalized = label.trim().toLowerCase().replace(/\s+/g, ' ')
+  return GENERAL_INFO_EXCLUDED_LABELS.has(normalized)
+}
+
+function buildFallbackTrustItems(): ProfileKeyValueItem[] {
+  const items: ProfileKeyValueItem[] = []
   if (meetingFormatLabel.value) {
     items.push({ label: 'Формат зустрічей', value: meetingFormatLabel.value })
   }
-  if (profile.value.experience_years !== undefined && profile.value.experience_years !== null) {
+  if (profile.value?.experience_years !== undefined && profile.value?.experience_years !== null) {
     items.push({ label: 'Досвід', value: formatExperience(profile.value.experience_years) })
   }
-  if (languagesDisplay.value) items.push({ label: 'Мови', value: languagesDisplay.value })
+  if (languagesDisplay.value) {
+    items.push({ label: 'Мови', value: languagesDisplay.value })
+  }
   if (offlineMeetingLocation.value) {
     items.push({ label: 'Офлайн локація', value: offlineMeetingLocation.value })
-  } else if (profile.value.location) {
-    items.push({ label: 'Локація', value: profile.value.location })
-  }
-  if (introDurationLabel.value) items.push({ label: 'Ознайомча сесія', value: introDurationLabel.value })
-  if (standardSessionDurationLabel.value) {
-    items.push({ label: 'Стандартна сесія', value: standardSessionDurationLabel.value })
+  } else if (profileLocationDisplay.value) {
+    items.push({ label: 'Локація', value: profileLocationDisplay.value })
   }
   return items
+}
+
+function appendTrustItemIfUnique(target: ProfileKeyValueItem[], item: ProfileKeyValueItem) {
+  const key = `${item.label.trim().toLowerCase()}::${item.value.trim().toLowerCase()}`
+  const alreadyExists = target.some((current) => {
+    const currentKey = `${current.label.trim().toLowerCase()}::${current.value.trim().toLowerCase()}`
+    return currentKey === key
+  })
+  if (!alreadyExists) {
+    target.push(item)
+  }
+}
+
+const trustItems = computed<ProfileKeyValueItem[]>(() => {
+  const items: ProfileKeyValueItem[] = []
+  sectionTrustItems.value.forEach((item) => appendTrustItemIfUnique(items, item))
+  buildFallbackTrustItems().forEach((item) => appendTrustItemIfUnique(items, item))
+  return items.filter((item) => !isGeneralInfoExcludedLabel(item.label))
 })
 
 const publicDocuments = computed<PublicSpecialistProfileDocument[]>(() => {
-  const documents = profile.value?.profile_documents || []
+  const sectionTrust = sectionsTrust.value as PublicProfileTrustSectionData | null
+  const sectionDocuments = sectionTrust?.profile_documents
+  const documents = Array.isArray(sectionDocuments)
+    ? sectionDocuments
+    : profile.value?.profile_documents || []
   return documents
     .filter((item) => Boolean(item?.file_url && item?.title))
     .map((item) => ({
@@ -1632,13 +1867,44 @@ function normalizePublicContactAction(
   }
 }
 
+function resolveSectionContactActionsSource(
+  section: PublicProfileContactActionsSection | PublicContactAction[] | null | undefined
+): PublicContactAction[] {
+  if (Array.isArray(section)) return section
+  if (!section || typeof section !== 'object') return []
+  if (Array.isArray(section.items)) return section.items
+  if (Array.isArray(section.actions)) return section.actions
+  return []
+}
+
 const contactActions = computed<PublicContactActionViewModel[]>(() => {
-  const source = profile.value?.contact_actions
+  const sectionSource = resolveSectionContactActionsSource(sectionsContactActions.value)
+  const source =
+    sectionSource.length > 0
+      ? sectionSource
+      : Array.isArray(profile.value?.contact_actions)
+        ? profile.value?.contact_actions
+        : []
   if (!Array.isArray(source) || source.length === 0) return []
   return source
     .map((action, index) => normalizePublicContactAction(action, index))
     .filter((action): action is PublicContactActionViewModel => Boolean(action))
 })
+
+const displayReviews = computed<PublicReviewView[]>(() => {
+  const sectionItems = resolveSectionReviewItems()
+  if (sectionsReviews.value && typeof sectionsReviews.value === 'object') {
+    return sectionItems
+  }
+  return reviews.value.map((item, index) => ({
+    id: String(item.id ?? index),
+    review_text: toDisplayText(item.review_text),
+    created_at: toDisplayText(item.created_at),
+  }))
+})
+
+const faqItems = computed<PublicFaqItemView[]>(() => resolveSectionFaqItems())
+const mediaItems = computed<PublicMediaItemView[]>(() => resolveSectionMediaItems())
 
 const showDirectContactActions = computed(() => Boolean(contactActions.value.length && !isClient.value))
 const hasPublicContactCta = computed(
@@ -1886,7 +2152,15 @@ const standardSessionDurationMinutes = computed(() => {
   return winner
 })
 
-const standardSessionDurationLabel = computed(() => `${standardSessionDurationMinutes.value} хв`)
+const standardSessionDurationLabel = computed(() => {
+  const sectionLabel = toDisplayText(sectionsFormats.value?.standard_session_duration_label)
+  if (sectionLabel) return sectionLabel
+  const sectionMinutes = sectionsFormats.value?.standard_session_duration_minutes
+  if (typeof sectionMinutes === 'number' && Number.isFinite(sectionMinutes) && sectionMinutes > 0) {
+    return `${Math.round(sectionMinutes)} хв`
+  }
+  return `${standardSessionDurationMinutes.value} хв`
+})
 
 function formatPublicName(value?: string) {
   if (!value) return ''
@@ -1959,9 +2233,22 @@ function scrollToSlots() {
   focusSlotsSection()
 }
 
+function updateBackToTopVisibility() {
+  const threshold = Math.max(window.innerHeight * 0.85, 520)
+  showBackToTopButton.value = window.scrollY > threshold
+}
+
+function scrollToTop() {
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
 function scrollToInquiry() {
   window.location.hash = '#inquiry'
   focusInquirySection()
+}
+
+function focusAboutSection() {
+  document.getElementById('about-me')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
 function focusInquirySection() {
@@ -2171,20 +2458,79 @@ function formatExperience(value: number) {
   return `${value} років`
 }
 
+function normalizeJournalEmptyStateCode(
+  value: PublicProfilePublicationsPreviewEmptyState | undefined
+): JournalCanonicalEmptyStateCode | null {
+  if (value === 'JOURNAL_DISABLED' || value === 'NO_PUBLICATIONS') return value
+  return null
+}
+
+function mapLegacyJournalPost(post: PublicAuthorJournalPost): JournalPreviewPost {
+  return {
+    id: post.id,
+    slug: post.slug,
+    title: post.title,
+    summary: post.summary || '',
+    cover_image_url: post.cover_image_url || '',
+    is_featured: post.is_featured,
+    featured_order: post.featured_order,
+    published_at: post.published_at || null,
+    created_at: post.created_at || null,
+    category: post.category || null,
+    reading_time_minutes: null,
+  }
+}
+
+function mapCanonicalJournalPost(item: PublicProfilePublicationsPreviewItem): JournalPreviewPost {
+  return {
+    id: item.id,
+    slug: item.slug,
+    title: item.title,
+    summary: item.excerpt || '',
+    cover_image_url: item.cover_image_url || '',
+    is_featured: Boolean(item.is_featured),
+    published_at: item.published_at || null,
+    created_at: item.published_at || null,
+    category: item.category || null,
+    reading_time_minutes:
+      typeof item.reading_time_minutes === 'number' ? item.reading_time_minutes : null,
+  }
+}
+
+function resolveCanonicalPublicationsPreview() {
+  const preview = profile.value?.sections?.publications_preview
+  if (!preview || typeof preview !== 'object') return null
+  return preview
+}
+
 async function loadJournal() {
   if (!slug.value) return
   journalLoading.value = true
   journalError.value = ''
   try {
+    const canonicalPreview = resolveCanonicalPublicationsPreview()
+    if (canonicalPreview) {
+      const previewItems = Array.isArray(canonicalPreview.items) ? canonicalPreview.items : []
+      journalPosts.value = previewItems.map(mapCanonicalJournalPost)
+      journalCollections.value = []
+      journalEmptyStateCode.value =
+        journalPosts.value.length > 0
+          ? null
+          : normalizeJournalEmptyStateCode(canonicalPreview.empty_state)
+      return
+    }
+
     const [posts, collections] = await Promise.all([
       fetchPublicAuthorJournalPosts(slug.value),
       fetchPublicJournalCollections(slug.value),
     ])
-    journalPosts.value = posts
+    journalPosts.value = posts.map(mapLegacyJournalPost)
     journalCollections.value = collections
+    journalEmptyStateCode.value = null
   } catch {
     journalPosts.value = []
     journalCollections.value = []
+    journalEmptyStateCode.value = null
     journalError.value = 'Не вдалося завантажити авторський журнал.'
   } finally {
     journalLoading.value = false
@@ -2193,6 +2539,10 @@ async function loadJournal() {
 
 async function loadReviews() {
   if (!slug.value) return
+  if (sectionsReviews.value && typeof sectionsReviews.value === 'object') {
+    reviews.value = []
+    return
+  }
   try {
     const resp = await apiGet<PublicReview[]>(`/public/specialists/${slug.value}/reviews/`, {
       params: { limit: 4 },
@@ -2203,7 +2553,7 @@ async function loadReviews() {
   }
 }
 
-function postCategory(post: PublicAuthorJournalPost): Exclude<JournalCategory, 'ALL'> | null {
+function postCategory(post: JournalPreviewPost): Exclude<JournalCategory, 'ALL'> | null {
   const v = (post as { category?: string })?.category
   if (v === 'TIP' || v === 'EXPLAIN' || v === 'FAQ' || v === 'RESEARCH' || v === 'PRACTICE') return v
   return null
@@ -2243,7 +2593,10 @@ function categoryColor(cat?: string) {
   }
 }
 
-function readingTime(text: string | null | undefined): number {
+function readingTime(text: string | null | undefined, fixedMinutes?: number | null): number {
+  if (typeof fixedMinutes === 'number' && Number.isFinite(fixedMinutes)) {
+    return Math.max(1, Math.round(fixedMinutes))
+  }
   if (!text) return 1
   const words = text.trim().split(/\s+/).length
   const minutes = Math.ceil(words / 200)
@@ -2261,9 +2614,13 @@ const filteredJournalPosts = computed(() => {
   return journalPosts.value.filter((p) => postCategory(p) === activeCategory.value)
 })
 
+function setActiveJournalCategory(category: JournalCategory) {
+  activeCategory.value = category
+}
+
 const featuredPost = computed(() => filteredJournalPosts.value.find((p) => p.is_featured) || null)
 
-function navigateToPost(post: PublicAuthorJournalPost) {
+function navigateToPost(post: JournalPreviewPost) {
   if (!slug.value || !post.slug) return
   router.push({
     name: 'public-journal-post',
@@ -2415,6 +2772,7 @@ function closeGuestBookingModal() {
   guestBookingSuccess.value = null
   guestBookingSubmitting.value = false
   guestBookingSubmitSlotId.value = null
+  guestBookingRulesAccepted.value = false
   resetGuestBookingForm()
 }
 
@@ -2430,6 +2788,7 @@ function openGuestBookingModal(slotId: number) {
   guestBookingError.value = ''
   guestBookingSuccess.value = null
   guestBookingSubmitSlotId.value = slotId
+  guestBookingRulesAccepted.value = false
   resetGuestBookingForm()
   showGuestBookingModal.value = true
 }
@@ -2552,6 +2911,10 @@ async function submitGuestBookingRequest() {
     guestBookingError.value = 'Оберіть канал зв’язку зі списку: Email, Телефон або Telegram.'
     return
   }
+  if (shouldShowGuestBookingRulesPrompt.value && !guestBookingRulesAccepted.value) {
+    guestBookingError.value = BOOKING_UI_MESSAGES.acceptSettingBeforeBooking
+    return
+  }
 
   const sessionFormat = resolvedSessionFormat.value
   if (!sessionFormat) {
@@ -2591,25 +2954,47 @@ async function submitGuestBookingRequest() {
 }
 
 function slotActionLabel(slotId: number) {
+  if (bookingRulesAccepting.value) return 'Підтверджуємо правила...'
   if (bookingSlotId.value === slotId) return 'Бронюємо...'
   if (guestBookingSubmitting.value && guestBookingSubmitSlotId.value === slotId) return 'Надсилаємо...'
   return 'Записатися'
 }
 
-function flashSettingButton() {
-  settingAttention.value = false
-  if (settingAttentionTimer) {
-    window.clearTimeout(settingAttentionTimer)
-  }
-  settingAttention.value = true
-  settingButtonRef.value?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-  settingAttentionTimer = window.setTimeout(() => {
-    settingAttention.value = false
-    settingAttentionTimer = null
-  }, 900)
+function focusBookingRulesPrompt() {
+  bookingRulesPromptRef.value?.scrollIntoView({ behavior: 'smooth', block: 'center' })
 }
 
-function handleBookingClick(slotId: number) {
+async function confirmClientBookingRules() {
+  if (!canBook.value || !profile.value?.therapist_id || bookingRulesAccepting.value) return
+  bookingError.value = ''
+  bookingSuccess.value = ''
+  bookingRulesAccepting.value = true
+  try {
+    const response = await acceptBookingRules({ specialist_id: profile.value.therapist_id })
+    if (profile.value) {
+      profile.value = {
+        ...profile.value,
+        booking_rules: response.booking_rules || {
+          show_prompt: false,
+          reason_codes: [],
+          items: [],
+        },
+      }
+    }
+    const slotIdToBook = pendingClientBookingSlotId.value
+    pendingClientBookingSlotId.value = null
+    if (typeof slotIdToBook === 'number') {
+      await bookSlot(slotIdToBook)
+    }
+  } catch (err: any) {
+    bookingError.value = getApiErrorMessage(err, 'Не вдалося підтвердити правила перед записом.')
+    toast.error(bookingError.value)
+  } finally {
+    bookingRulesAccepting.value = false
+  }
+}
+
+async function handleBookingClick(slotId: number) {
   if (isGuestVisitor.value) {
     openGuestBookingModal(slotId)
     return
@@ -2618,13 +3003,14 @@ function handleBookingClick(slotId: number) {
     bookingError.value = BOOKING_UI_MESSAGES.onlyClientsCanBook
     return
   }
-  if (bookingSlotId.value === slotId) return
-  if (!settingAccepted.value) {
+  if (isSlotBusy(slotId)) return
+  if (shouldShowClientBookingRulesPrompt.value) {
+    pendingClientBookingSlotId.value = slotId
     bookingError.value = BOOKING_UI_MESSAGES.acceptSettingBeforeBooking
-    flashSettingButton()
+    focusBookingRulesPrompt()
     return
   }
-  bookSlot(slotId)
+  await bookSlot(slotId)
 }
 
 async function bookSlot(slotId: number) {
@@ -2634,11 +3020,13 @@ async function bookSlot(slotId: number) {
     bookingError.value = BOOKING_UI_MESSAGES.onlyClientsCanBook
     return
   }
-  if (!settingAccepted.value) {
+  if (shouldShowClientBookingRulesPrompt.value) {
+    pendingClientBookingSlotId.value = slotId
     bookingError.value = BOOKING_UI_MESSAGES.acceptSettingBeforeBooking
-    openSettingModal()
+    focusBookingRulesPrompt()
     return
   }
+  pendingClientBookingSlotId.value = null
   bookingSlotId.value = slotId
   const bookedSlot = slots.value.find((slot) => slot.id === slotId) || null
   try {
@@ -2672,14 +3060,6 @@ async function bookSlot(slotId: number) {
 
 function closeBookingModal() {
   showBookingModal.value = false
-}
-
-function openSettingModal() {
-  showSettingModal.value = true
-}
-
-function closeSettingModal() {
-  showSettingModal.value = false
 }
 
 function pickSpecialist(data: PublicSpecialistProfile) {
@@ -2769,6 +3149,9 @@ watch(slug, () => {
   guestBookingSuccess.value = null
   guestBookingSubmitting.value = false
   guestBookingSubmitSlotId.value = null
+  guestBookingRulesAccepted.value = false
+  bookingRulesAccepting.value = false
+  pendingClientBookingSlotId.value = null
   resetGuestBookingForm()
   showContactChooserModal.value = false
   closeContactActionFallbackModal()
@@ -2779,14 +3162,16 @@ watch(slug, () => {
   inquiryDraft.value = ''
   inquiryError.value = ''
   inquirySubmitError.value = ''
+  journalEmptyStateCode.value = null
+  reviews.value = []
   loadProfile().then(async () => {
     await loadSlots()
     await loadInquiryState()
+    await loadJournal()
+    await loadReviews()
   })
   loadClientSessions()
   loadChatThreads()
-  loadJournal()
-  loadReviews()
 })
 
 watch(selectedDate, () => {
@@ -2836,14 +3221,13 @@ watch(
 )
 
 onBeforeUnmount(() => {
-  if (settingAttentionTimer !== null) {
-    window.clearTimeout(settingAttentionTimer)
-    settingAttentionTimer = null
-  }
   clearContactActionFallbackTimer()
+  window.removeEventListener('scroll', updateBackToTopVisibility)
 })
 
 onMounted(async () => {
+  window.addEventListener('scroll', updateBackToTopVisibility, { passive: true })
+  updateBackToTopVisibility()
   if (!selectedDate.value) {
     selectedDate.value = toLocalDate(new Date())
   }
@@ -2861,6 +3245,29 @@ onMounted(async () => {
 .public {
   display: grid;
   gap: 18px;
+}
+
+.public__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) clamp(300px, 22vw, 340px);
+  column-gap: clamp(20px, 2.2vw, 32px);
+  row-gap: 16px;
+  align-items: start;
+}
+
+.public__hero-col {
+  grid-column: 1;
+  min-width: 0;
+}
+
+.public__sidebar {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  position: sticky;
+  top: 24px;
+  height: fit-content;
+  align-self: start;
+  min-width: 0;
 }
 
 .public__hero {
@@ -3082,11 +3489,38 @@ onMounted(async () => {
 .public__grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 16px;
+  gap: 14px;
+  min-width: 0;
+}
+
+.back-to-top-btn {
+  position: fixed;
+  right: 20px;
+  bottom: 24px;
+  z-index: 25;
+  border: 1px solid color-mix(in srgb, var(--line) 88%, #ffffff);
+  border-radius: 999px;
+  background: color-mix(in srgb, #ffffff 92%, var(--surface));
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 10px 14px;
+  cursor: pointer;
+  box-shadow: 0 10px 22px rgba(16, 24, 40, 0.16);
+}
+
+.back-to-top-btn:hover {
+  border-color: color-mix(in srgb, var(--primary) 24%, var(--line));
 }
 
 .panel--slots {
   grid-column: 1 / -1;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, #f7f3ea 44%, #ffffff),
+    color-mix(in srgb, #fdfcf8 72%, #ffffff)
+  );
+  border-color: color-mix(in srgb, var(--line) 86%, #d9d0bd);
 }
 
 .panel--profile {
@@ -3101,12 +3535,18 @@ onMounted(async () => {
 .panel--trust,
 .panel--documents,
 .panel--work-format,
+.panel--terms,
 .panel--about,
 .panel--who,
 .panel--contacts,
 .panel--reviews,
 .panel--footer-cta {
   grid-column: 1 / -1;
+}
+
+.panel--contacts {
+  padding: 15px 16px 16px;
+  background: color-mix(in srgb, #f7f4ec 34%, #ffffff);
 }
 
 .panel {
@@ -3155,6 +3595,26 @@ onMounted(async () => {
   font-size: 14px;
   line-height: 1.55;
   max-width: 78ch;
+}
+
+.panel--terms {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, #f8f0de 34%, #ffffff),
+    #ffffff
+  );
+}
+
+.terms-text {
+  margin: 0;
+  white-space: pre-line;
+  color: color-mix(in srgb, var(--text) 88%, var(--muted));
+  font-size: 14px;
+  line-height: 1.56;
+  border: 1px solid color-mix(in srgb, #d9a441 22%, var(--line));
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: color-mix(in srgb, #f7efe0 48%, #ffffff);
 }
 
 .slot-filter {
@@ -3412,9 +3872,9 @@ onMounted(async () => {
 }
 
 .badge--soft {
-  background: color-mix(in srgb, #e4e9dc 62%, #f8f3e9);
-  border-color: color-mix(in srgb, #6f8b73 26%, var(--line));
-  color: color-mix(in srgb, #3f5945 82%, var(--text));
+  background: color-mix(in srgb, #edf2e8 48%, #ffffff);
+  border-color: color-mix(in srgb, #748676 18%, var(--line));
+  color: color-mix(in srgb, #516754 68%, var(--muted));
 }
 
 .profile-summary {
@@ -3727,8 +4187,8 @@ onMounted(async () => {
 
 .slot-list {
   display: grid;
-  grid-template-columns: repeat(1, minmax(0, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 6px;
 }
 
 .slot-list-heading {
@@ -3746,32 +4206,35 @@ onMounted(async () => {
 }
 
 .slot-card {
+  appearance: none;
   border: 1px solid var(--line);
   border-radius: 10px;
-  padding: 10px;
+  min-height: 54px;
+  padding: 8px 6px;
   background: color-mix(in srgb, #f5f0e4 38%, #ffffff);
   display: grid;
-  gap: 8px;
+  place-items: center;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease;
+  font: inherit;
 }
 
-.slot-card__main {
-  display: grid;
-  gap: 3px;
+.slot-card:hover:not(:disabled),
+.slot-card:focus-visible:not(:disabled) {
+  border-color: color-mix(in srgb, var(--color-primary-500) 36%, var(--line));
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary-100) 62%, transparent);
+  transform: translateY(-1px);
 }
 
-.slot-card__meta {
-  font-size: 12px;
-  line-height: 1.25;
-}
-
-.slot-card__action {
-  justify-self: start;
-  width: 100%;
-  min-height: 34px;
+.slot-card:disabled,
+.slot-card--busy {
+  cursor: progress;
+  opacity: 0.72;
 }
 
 .slot-time {
-  font-size: 24px;
+  font-size: 28px;
   line-height: 1;
   font-weight: 700;
   color: var(--text);
@@ -4286,34 +4749,17 @@ onMounted(async () => {
 
   .booking-gate {
     display: grid;
-    gap: 8px;
-    padding: 10px 12px;
+    gap: 10px;
+    padding: 12px;
     margin-top: 6px;
     border-radius: 12px;
-    border: 1px solid color-mix(in srgb, var(--line) 88%, var(--primary));
-    background: color-mix(in srgb, #ffffff 92%, var(--surface));
+    border: 1px solid color-mix(in srgb, #d9a441 30%, var(--line));
+    background: color-mix(in srgb, #f4e2ae 10%, #ffffff);
   }
 
   .booking-gate--pending {
     border-color: color-mix(in srgb, #d9a441 30%, var(--line));
     background: color-mix(in srgb, #f4e2ae 10%, #ffffff);
-  }
-
-  .booking-gate--ready {
-    border-color: color-mix(in srgb, #1f7a4c 24%, var(--line));
-    background: color-mix(in srgb, #1f7a4c 6%, #ffffff);
-  }
-
-.booking-gate--attention {
-  box-shadow: 0 0 0 3px rgba(85, 132, 102, 0.16);
-}
-
-  .booking-gate__content {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 12px;
-    flex-wrap: wrap;
   }
 
   .booking-gate__title {
@@ -4330,8 +4776,38 @@ onMounted(async () => {
     font-size: 13px;
   }
 
+  .booking-gate__actions {
+    display: flex;
+    justify-content: flex-start;
+  }
+
   .booking-gate__button {
-    flex-shrink: 0;
+    min-width: 240px;
+  }
+
+  .booking-rules-block {
+    display: grid;
+    gap: 6px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: #fff;
+  }
+
+  .booking-rules-block__title {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--deep);
+    font-weight: 700;
+  }
+
+  .booking-rules-block__item {
+    margin: 0;
+    color: var(--text);
+    font-size: 13px;
+    line-height: 1.45;
+    white-space: pre-line;
   }
 
   .setting-check {
@@ -4357,40 +4833,6 @@ onMounted(async () => {
     color: var(--muted);
   }
 
-  .setting-check--modal {
-    margin-top: 16px;
-  }
-
-  .btn--disabled {
-    opacity: 0.55;
-    cursor: not-allowed;
-    pointer-events: auto;
-  }
-
-  .btn--disabled:hover {
-    transform: none;
-  }
-
-.btn--pulse {
-  animation: pulse-attention 0.9s ease-in-out;
-  box-shadow: 0 0 0 0 rgba(85, 132, 102, 0.28);
-}
-
-  @keyframes pulse-attention {
-    0% {
-      transform: scale(1);
-      box-shadow: 0 0 0 0 rgba(85, 132, 102, 0.28);
-    }
-    50% {
-      transform: scale(1.02);
-      box-shadow: 0 0 0 10px rgba(85, 132, 102, 0);
-    }
-    100% {
-      transform: scale(1);
-      box-shadow: 0 0 0 0 rgba(85, 132, 102, 0);
-    }
-  }
-
   .setting-modal {
     position: fixed;
     inset: 0;
@@ -4404,12 +4846,9 @@ onMounted(async () => {
       padding: 12px;
     }
 
-    .booking-gate__content {
-      align-items: stretch;
-    }
-
     .booking-gate__button {
       width: 100%;
+      min-width: 0;
     }
   }
 
@@ -4607,7 +5046,26 @@ onMounted(async () => {
     resize: vertical;
   }
 
-@media (max-width: 960px) {
+@media (max-width: 1100px) {
+  .public__layout {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .public__hero-col,
+  .public__sidebar,
+  .public__grid {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .public__sidebar {
+    position: static;
+    top: auto;
+    max-height: none;
+    overflow: visible;
+  }
+
   .public__hero {
     grid-template-columns: 1fr;
     gap: 14px;
@@ -4652,7 +5110,7 @@ onMounted(async () => {
   }
 
   .slot-list {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
   }
 
   .about-grid,
@@ -4676,21 +5134,18 @@ onMounted(async () => {
   }
 }
 
-@media (min-width: 900px) {
-  .slot-list {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
-@media (min-width: 1280px) {
-  .slot-list {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-}
-
 @media (max-width: 640px) {
+  .back-to-top-btn {
+    right: 10px;
+    bottom: max(10px, env(safe-area-inset-bottom) + 10px);
+    padding: 8px 11px;
+    font-size: 12px;
+    z-index: 14;
+  }
+
   .slot-list {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
   }
 }
 </style>
+
