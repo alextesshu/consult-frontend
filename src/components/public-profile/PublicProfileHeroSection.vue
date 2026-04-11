@@ -22,7 +22,15 @@
         <div class="badge">Профіль спеціаліста</div>
         <h1 class="title public__title">{{ publicName || 'Профіль спеціаліста' }}</h1>
         <p v-if="profile && heroRoleLine" class="hero-main__role">{{ heroRoleLine }}</p>
-        <p class="hero-main__lead">{{ profile ? heroLeadText : 'Завантаження профілю' }}</p>
+        <p class="hero-main__lead hero-main__lead--teaser">{{ profile ? heroLeadText : 'Завантаження профілю' }}</p>
+        <button
+          v-if="profile && showReadMore"
+          type="button"
+          class="hero-main__read-more"
+          @click="emit('read-more')"
+        >
+          Читати далі
+        </button>
         <p v-if="profile && heroSupportText" class="hero-main__support">{{ heroSupportText }}</p>
         <p v-if="profile && completedSessionsBadge" class="hero-main__sessions">
           Проведено сесій: {{ completedSessionsBadge }}
@@ -63,12 +71,16 @@ type Props = {
   heroRoleLine: string
   heroLeadText: string
   heroSupportText: string
+  showReadMore: boolean
   completedSessionsBadge: string | null
   displaySpecializationChips: string[]
   generalInfoItems: HeroInfoItem[]
 }
 
 defineProps<Props>()
+const emit = defineEmits<{
+  (event: 'read-more'): void
+}>()
 </script>
 
 <style scoped>
@@ -91,18 +103,18 @@ defineProps<Props>()
 .hero-profile {
   display: flex;
   align-items: flex-start;
-  gap: 14px;
+  gap: 16px;
   width: 100%;
   min-width: 0;
 }
 
 .hero-media {
-  flex: 0 0 clamp(132px, 16vw, 176px);
+  flex: 0 0 clamp(180px, 24vw, 280px);
   width: 100%;
-  max-width: 176px;
-  min-width: 132px;
+  max-width: 280px;
+  min-width: 180px;
   display: grid;
-  gap: 10px;
+  gap: 12px;
   align-content: start;
 }
 
@@ -162,6 +174,33 @@ defineProps<Props>()
   max-width: 70ch;
 }
 
+.hero-main__lead--teaser {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow: hidden;
+}
+
+.hero-main__read-more {
+  justify-self: start;
+  margin-top: -6px;
+  border: none;
+  background: transparent;
+  padding: 0;
+  font-size: 13px;
+  line-height: 1.35;
+  font-weight: 600;
+  color: color-mix(in srgb, var(--primary) 78%, #0c4f73);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+.hero-main__read-more:hover {
+  color: color-mix(in srgb, var(--primary) 92%, #0c4f73);
+}
+
 .hero-main__support {
   margin: -4px 0 0;
   font-size: 14px;
@@ -192,10 +231,10 @@ defineProps<Props>()
 }
 
 .hero-info {
-  flex: 0 0 clamp(168px, 18vw, 204px);
-  width: clamp(168px, 18vw, 204px);
-  max-width: 204px;
-  min-width: 168px;
+  flex: 0 0 clamp(156px, 16vw, 188px);
+  width: clamp(156px, 16vw, 188px);
+  max-width: 188px;
+  min-width: 156px;
   border: 1px solid color-mix(in srgb, var(--line) 78%, #ffffff);
   border-radius: 12px;
   background: color-mix(in srgb, #ffffff 86%, var(--surface));
@@ -241,11 +280,11 @@ defineProps<Props>()
 @media (max-width: 1120px) {
   .hero-profile {
     display: grid;
-    grid-template-columns: minmax(140px, 176px) minmax(0, 1fr);
+    grid-template-columns: minmax(190px, 260px) minmax(0, 1fr);
   }
 
   .hero-media {
-    max-width: 176px;
+    max-width: 260px;
     min-width: 0;
     flex: none;
   }
@@ -266,11 +305,16 @@ defineProps<Props>()
 
   .hero-media {
     width: 100%;
-    max-width: 280px;
+    max-width: 340px;
   }
 
   .hero-main {
     width: 100%;
+  }
+
+  .hero-main__lead--teaser {
+    -webkit-line-clamp: 4;
+    line-clamp: 4;
   }
 }
 </style>

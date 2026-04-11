@@ -30,6 +30,24 @@
         <RouterLink class="btn btn--ghost" :to="feedbackLink">Відгуки</RouterLink>
       </div>
 
+      <section class="identity-rail__contacts" v-if="showContactActions">
+        <div class="identity-rail__contacts-title">Зв’язок зі спеціалістом</div>
+        <div class="identity-rail__contact-list">
+          <a
+            v-for="item in contactActions"
+            :key="item.id"
+            class="identity-rail__contact"
+            :href="item.actionUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+            @click.prevent="$emit('direct-contact-action', item)"
+          >
+            <span class="identity-rail__contact-label">{{ item.channelLabel }}</span>
+            <span class="identity-rail__contact-value">{{ item.valueText }}</span>
+          </a>
+        </div>
+      </section>
+
       <p class="identity-rail__next-step">{{ primaryActionNextStepCopy }}</p>
     </div>
   </aside>
@@ -39,6 +57,15 @@
 type PublicProfileMedia = {
   photo_url?: string | null
   video_url?: string | null
+}
+
+type ContactAction = {
+  id: string
+  channel: string
+  channelLabel: string
+  valueText: string
+  actionUrl: string
+  actionScheme: string
 }
 
 type Props = {
@@ -52,12 +79,15 @@ type Props = {
   introDurationLabel: string
   priceDisplay: string
   standardSessionDurationLabel: string
+  showContactActions: boolean
+  contactActions: ContactAction[]
 }
 
 defineProps<Props>()
 
 defineEmits<{
   (event: 'primary-action'): void
+  (event: 'direct-contact-action', item: ContactAction): void
 }>()
 </script>
 
@@ -119,6 +149,54 @@ defineEmits<{
   font-size: 12px;
   line-height: 1.45;
   color: color-mix(in srgb, var(--text) 78%, var(--muted));
+}
+
+.identity-rail__contacts {
+  display: grid;
+  gap: 6px;
+  border-top: 1px dashed color-mix(in srgb, var(--line) 82%, #d8cfbf);
+  padding-top: 8px;
+}
+
+.identity-rail__contacts-title {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+  color: color-mix(in srgb, var(--text) 82%, var(--muted));
+}
+
+.identity-rail__contact-list {
+  display: grid;
+  gap: 6px;
+}
+
+.identity-rail__contact {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 6px 8px;
+  display: grid;
+  gap: 2px;
+  text-decoration: none;
+  color: inherit;
+  background: #fff;
+}
+
+.identity-rail__contact:hover {
+  border-color: color-mix(in srgb, var(--primary) 28%, var(--line));
+}
+
+.identity-rail__contact-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--muted);
+}
+
+.identity-rail__contact-value {
+  font-size: 12px;
+  font-weight: 600;
+  overflow-wrap: anywhere;
 }
 
 .badge--soft {

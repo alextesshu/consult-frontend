@@ -26,9 +26,11 @@
           :hero-role-line="heroRoleLine"
           :hero-lead-text="heroLeadText"
           :hero-support-text="heroSupportText"
+          :show-read-more="showHeroReadMore"
           :completed-sessions-badge="completedSessionsBadge"
           :display-specialization-chips="displaySpecializationChips"
           :general-info-items="trustItems"
+          @read-more="focusAboutSection"
         />
       </section>
 
@@ -44,7 +46,10 @@
           :intro-duration-label="introDurationLabel"
           :price-display="priceDisplay"
           :standard-session-duration-label="standardSessionDurationLabel"
+          :show-contact-actions="showDirectContactActions"
+          :contact-actions="contactActions"
           @primary-action="handleHeroPrimaryAction"
+          @direct-contact-action="handleDirectContactAction"
         />
       </aside>
 
@@ -55,11 +60,29 @@
           :work-with-text="whoThisIsForText"
           :work-with-chips="specializationChips"
           :who-is-not-suitable-text="whoIsNotSuitableText"
-          :specialist-booking-terms-text="specialistBookingTermsText"
-          :show-direct-contact-actions="showDirectContactActions"
-          :contact-actions="contactActions"
-          @direct-contact-action="handleDirectContactAction"
         />
+
+        <PublicProfileTrustSection
+          :trust-items="competenceItems"
+          :public-documents="publicDocuments"
+          :is-image-document="isImageDocument"
+          :is-pdf-document="isPdfDocument"
+          :document-kind-label="documentKindLabel"
+          :format-date="formatDate"
+        />
+
+        <section class="panel panel--terms" v-if="specialistBookingTermsText">
+          <div class="panel__header">
+            <div>
+              <div class="badge badge--soft">Перед записом</div>
+              <h2 class="panel__title">Умови спеціаліста перед записом</h2>
+              <p class="panel__lead">
+                Індивідуальні умови цього спеціаліста. Якщо умови оновляться, перед новим записом може знадобитися повторне підтвердження.
+              </p>
+            </div>
+          </div>
+          <p class="terms-text">{{ specialistBookingTermsText }}</p>
+        </section>
 
       <section v-if="showInquiryPanel" class="panel panel--inquiry" id="inquiry">
         <div class="panel__header">
@@ -329,14 +352,6 @@
         </div>
       </div>
 
-      <PublicProfileMediaSection
-        :media-items="mediaItems"
-      />
-
-      <PublicProfileFaqSection
-        :faq-items="faqItems"
-      />
-
       <PublicProfileJournalPreviewSection
         :has-public-journal-posts="hasPublicJournalPosts"
         :slug="slug"
@@ -361,19 +376,18 @@
         @navigate-to-post="navigateToPost"
       />
 
+      <PublicProfileMediaSection
+        :media-items="mediaItems"
+      />
+
       <PublicProfileReviewsSection
         :reviews="displayReviews"
         :feedback-link="feedbackLink"
         :format-date="formatDate"
       />
 
-      <PublicProfileTrustSection
-        :trust-items="[]"
-        :public-documents="publicDocuments"
-        :is-image-document="isImageDocument"
-        :is-pdf-document="isPdfDocument"
-        :document-kind-label="documentKindLabel"
-        :format-date="formatDate"
+      <PublicProfileFaqSection
+        :faq-items="faqItems"
       />
 
       <PublicProfileFinalCtaSection
@@ -1311,13 +1325,6 @@ const sectionWhoThisIsForText = computed(() => {
   )
 })
 
-function toSnippet(value: string, maxLength = 220) {
-  const normalized = value.replace(/\s+/g, ' ').trim()
-  if (!normalized) return ''
-  if (normalized.length <= maxLength) return normalized
-  return `${normalized.slice(0, maxLength - 1).trimEnd()}…`
-}
-
 const heroRoleLine = computed(() => {
   if (!profile.value) return ''
   const parts: string[] = []
@@ -1328,28 +1335,18 @@ const heroRoleLine = computed(() => {
 })
 
 const heroLeadText = computed(() => {
-  const sectionPrimaryAbout = sectionAboutSections.value[0]?.body || ''
-  const source = firstFilledText(sectionPrimaryAbout, profile.value?.bio_about, profile.value?.bio, profile.value?.bio_work)
+  const source = firstFilledText(
+    profile.value?.bio_about,
+    sectionAboutSections.value[0]?.body,
+    profile.value?.bio,
+    profile.value?.bio_work,
+    profile.value?.bio_approach
+  )
   if (!source) return 'Спеціаліст описує формат роботи та допомагає зробити перший крок у зручному для вас темпі.'
-  return toSnippet(source, 250)
+  return source.replace(/\s+/g, ' ').trim()
 })
 
-const heroSupportText = computed(() => {
-  const sectionSecondaryAbout = sectionAboutSections.value[1]?.body || ''
-  const sectionTertiaryAbout = sectionAboutSections.value[2]?.body || ''
-  const source = firstFilledText(
-    sectionSecondaryAbout,
-    sectionTertiaryAbout,
-    profile.value?.bio_approach,
-    profile.value?.bio_work,
-    profile.value?.bio_for_whom
-  )
-  if (!source) return ''
-  const lead = heroLeadText.value
-  const normalizedSource = toSnippet(source, 180)
-  if (normalizedSource === lead) return ''
-  return normalizedSource
-})
+const heroSupportText = computed(() => '')
 
 const completedSessionsBadge = computed(() => {
   return getCompletedSessionsBadge(profile.value?.completed_sessions_count)
@@ -1512,6 +1509,27 @@ const specializationChips = computed(() => {
 })
 const displaySpecializationChips = computed(() => specializationChips.value.slice(0, 4))
 
+const competenceItems = computed<ProfileKeyValueItem[]>(() => {
+  const items: ProfileKeyValueItem[] = []
+
+  if (profile.value?.experience_years !== undefined && profile.value?.experience_years !== null) {
+    items.push({ label: 'Практичний досвід', value: formatExperience(profile.value.experience_years) })
+  }
+
+  if (specializationChips.value.length) {
+    items.push({
+      label: 'Професійні напрями',
+      value: specializationChips.value.slice(0, 6).join(', '),
+    })
+  }
+
+  if (completedSessionsBadge.value) {
+    items.push({ label: 'Проведені сесії', value: completedSessionsBadge.value })
+  }
+
+  return items
+})
+
 const whoThisIsForText = computed(() =>
   normalizeMultilineText(sectionWhoThisIsForText.value || profile.value?.bio_for_whom || '')
 )
@@ -1551,6 +1569,8 @@ const aboutNarrativeText = computed(() =>
     )
   )
 )
+
+const showHeroReadMore = computed(() => Boolean(aboutNarrativeText.value))
 
 const workStyleText = computed(() => {
   const source = normalizeMultilineText(
@@ -2148,6 +2168,10 @@ function scrollToTop() {
 function scrollToInquiry() {
   window.location.hash = '#inquiry'
   focusInquirySection()
+}
+
+function focusAboutSection() {
+  document.getElementById('about-me')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
 function focusInquirySection() {
@@ -3388,7 +3412,7 @@ onMounted(async () => {
 .public__grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 16px;
+  gap: 14px;
   min-width: 0;
 }
 
@@ -3414,6 +3438,12 @@ onMounted(async () => {
 
 .panel--slots {
   grid-column: 1 / -1;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, #f7f3ea 44%, #ffffff),
+    color-mix(in srgb, #fdfcf8 72%, #ffffff)
+  );
+  border-color: color-mix(in srgb, var(--line) 86%, #d9d0bd);
 }
 
 .panel--profile {
@@ -3428,12 +3458,18 @@ onMounted(async () => {
 .panel--trust,
 .panel--documents,
 .panel--work-format,
+.panel--terms,
 .panel--about,
 .panel--who,
 .panel--contacts,
 .panel--reviews,
 .panel--footer-cta {
   grid-column: 1 / -1;
+}
+
+.panel--contacts {
+  padding: 15px 16px 16px;
+  background: color-mix(in srgb, #f7f4ec 34%, #ffffff);
 }
 
 .panel {
@@ -3482,6 +3518,26 @@ onMounted(async () => {
   font-size: 14px;
   line-height: 1.55;
   max-width: 78ch;
+}
+
+.panel--terms {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, #f8f0de 34%, #ffffff),
+    #ffffff
+  );
+}
+
+.terms-text {
+  margin: 0;
+  white-space: pre-line;
+  color: color-mix(in srgb, var(--text) 88%, var(--muted));
+  font-size: 14px;
+  line-height: 1.56;
+  border: 1px solid color-mix(in srgb, #d9a441 22%, var(--line));
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: color-mix(in srgb, #f7efe0 48%, #ffffff);
 }
 
 .slot-filter {
@@ -3739,9 +3795,9 @@ onMounted(async () => {
 }
 
 .badge--soft {
-  background: color-mix(in srgb, #e4e9dc 62%, #f8f3e9);
-  border-color: color-mix(in srgb, #6f8b73 26%, var(--line));
-  color: color-mix(in srgb, #3f5945 82%, var(--text));
+  background: color-mix(in srgb, #edf2e8 48%, #ffffff);
+  border-color: color-mix(in srgb, #748676 18%, var(--line));
+  color: color-mix(in srgb, #516754 68%, var(--muted));
 }
 
 .profile-summary {

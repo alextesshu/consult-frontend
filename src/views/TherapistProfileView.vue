@@ -292,8 +292,10 @@
         <div class="panel__header">
           <div>
             <div class="badge badge--soft">Крок 3</div>
-            <h2 class="panel__title">Про вас</h2>
-            <p class="panel__hint">Короткі блоки тексту. У кожного є перемикач “показувати”.</p>
+            <h2 class="panel__title">Секції публічного профілю</h2>
+            <p class="panel__hint">
+              Назви йдуть у тому самому формулюванні, яке бачать клієнти в публічному профілі.
+            </p>
           </div>
         </div>
         <div class="form" style="margin-top: 12px;">
@@ -313,10 +315,10 @@
         </div>
         <div class="details-stack">
           <details class="details" open>
-            <summary>Коротко про мене</summary>
+            <summary>Про мене</summary>
             <label class="field">
               <div class="field-head">
-                <span>Коротко про вас</span>
+                <span>Про мене</span>
                 <label class="inline-check">
                   <input v-model="profile.show_bio_about" type="checkbox" />
                   Показувати
@@ -326,15 +328,16 @@
                 v-model="profile.bio_about"
                 class="input"
                 rows="4"
-                placeholder="2-3 речення про вас як спеціаліста."
+                placeholder="Короткий опис для публічного профілю."
               ></textarea>
+              <div class="field-help">Короткий опис для публічного профілю.</div>
             </label>
           </details>
           <details class="details">
-            <summary>Як проходить консультація</summary>
+            <summary>Формат роботи</summary>
             <label class="field">
               <div class="field-head">
-                <span>Формат консультації</span>
+                <span>Формат роботи</span>
                 <label class="inline-check">
                   <input v-model="profile.show_bio_work" type="checkbox" />
                   Показувати
@@ -344,15 +347,16 @@
                 v-model="profile.bio_work"
                 class="input"
                 rows="4"
-                placeholder="Як проходить сесія, тривалість, формат."
+                placeholder="Опишіть, як проходить консультація і чого очікувати від процесу роботи."
               ></textarea>
+              <div class="field-help">Опишіть, як проходить консультація і чого очікувати від процесу роботи.</div>
             </label>
           </details>
           <details class="details">
-            <summary>Методи та підхід</summary>
+            <summary>Спеціальності та підходи</summary>
             <label class="field">
               <div class="field-head">
-                <span>Методи та підхід</span>
+                <span>Спеціальності та підходи</span>
                 <label class="inline-check">
                   <input v-model="profile.show_bio_approach" type="checkbox" />
                   Показувати
@@ -362,15 +366,18 @@
                 v-model="profile.bio_approach"
                 class="input"
                 rows="4"
-                placeholder="Ключові методи/підходи, з якими працюєте."
+                placeholder="Ваші спеціальності та підходи, які бачить клієнт у верхній частині профілю."
               ></textarea>
+              <div class="field-help">
+                Показуються у верхній частині публічного профілю як ваші професійні орієнтири.
+              </div>
             </label>
           </details>
           <details class="details">
-            <summary>Запити, з якими я працюю</summary>
+            <summary>Основні запити</summary>
             <label class="field">
               <div class="field-head">
-                <span>Запити</span>
+                <span>Основні запити</span>
                 <label class="inline-check">
                   <input v-model="profile.show_bio_for_whom" type="checkbox" />
                   Показувати
@@ -380,15 +387,49 @@
                 v-model="profile.bio_for_whom"
                 class="input"
                 rows="4"
-                placeholder="З якими запитами працюєте."
+                placeholder="Теми, з якими до вас звертаються клієнти."
+                data-testid="main-requests-textarea"
               ></textarea>
+              <div class="field-help">
+                Оберіть готові приклади або опишіть своїми словами, з якими темами до вас звертаються клієнти.
+              </div>
             </label>
+            <div class="quick-suggestions" data-testid="main-requests-suggestions">
+              <div class="quick-suggestions__title">Швидко додати приклади</div>
+              <div class="quick-suggestions__tabs" role="tablist" aria-label="Категорії прикладів для Основних запитів">
+                <button
+                  v-for="category in profileSuggestionCategories"
+                  :key="`main-requests-${category.key}`"
+                  type="button"
+                  class="quick-suggestions__tab"
+                  :class="{ 'is-active': activeMainRequestsSuggestionCategory === category.key }"
+                  :data-testid="`main-requests-category-tab-${category.key}`"
+                  @click="setSuggestionCategory('main_requests', category.key)"
+                >
+                  {{ category.label }}
+                </button>
+              </div>
+              <div class="quick-suggestions__chips">
+                <button
+                  v-for="suggestion in mainRequestSuggestions"
+                  :key="`main-requests-suggestion-${suggestion}`"
+                  type="button"
+                  class="quick-suggestion-chip"
+                  :class="{ 'is-selected': isSuggestionSelected('bio_for_whom', suggestion) }"
+                  :disabled="isSuggestionSelected('bio_for_whom', suggestion)"
+                  data-testid="main-requests-suggestion-chip"
+                  @click="appendSuggestionToField('bio_for_whom', suggestion)"
+                >
+                  {{ suggestion }}
+                </button>
+              </div>
+            </div>
           </details>
           <details class="details">
-            <summary>Запити, з якими я не працюю</summary>
+            <summary>Межі роботи</summary>
             <label class="field">
               <div class="field-head">
-                <span>Запити, з якими я не працюю</span>
+                <span>Межі роботи</span>
                 <label class="inline-check">
                   <input v-model="profile.show_bio_other" type="checkbox" />
                   Показувати
@@ -398,9 +439,43 @@
                 v-model="profile.bio_other"
                 class="input"
                 rows="4"
-                placeholder="З якими запитами ви не працюєте."
+                placeholder="Теми або запити, з якими ви не працюєте."
+                data-testid="work-boundaries-textarea"
               ></textarea>
+              <div class="field-help">
+                Оберіть готові приклади або вкажіть теми й запити, з якими ви не працюєте.
+              </div>
             </label>
+            <div class="quick-suggestions" data-testid="work-boundaries-suggestions">
+              <div class="quick-suggestions__title">Швидко додати приклади</div>
+              <div class="quick-suggestions__tabs" role="tablist" aria-label="Категорії прикладів для Меж роботи">
+                <button
+                  v-for="category in profileSuggestionCategories"
+                  :key="`work-boundaries-${category.key}`"
+                  type="button"
+                  class="quick-suggestions__tab"
+                  :class="{ 'is-active': activeWorkBoundariesSuggestionCategory === category.key }"
+                  :data-testid="`work-boundaries-category-tab-${category.key}`"
+                  @click="setSuggestionCategory('work_boundaries', category.key)"
+                >
+                  {{ category.label }}
+                </button>
+              </div>
+              <div class="quick-suggestions__chips">
+                <button
+                  v-for="suggestion in workBoundarySuggestions"
+                  :key="`work-boundaries-suggestion-${suggestion}`"
+                  type="button"
+                  class="quick-suggestion-chip"
+                  :class="{ 'is-selected': isSuggestionSelected('bio_other', suggestion) }"
+                  :disabled="isSuggestionSelected('bio_other', suggestion)"
+                  data-testid="work-boundaries-suggestion-chip"
+                  @click="appendSuggestionToField('bio_other', suggestion)"
+                >
+                  {{ suggestion }}
+                </button>
+              </div>
+            </div>
           </details>
         </div>
       </section>
@@ -624,126 +699,10 @@
         </div>
       </section>
 
-      <section class="panel preview">
-        <div class="panel__header">
-          <div>
-            <div class="badge badge--soft">Крок 7</div>
-            <h2 class="panel__title">Перевірте публічний вигляд</h2>
-            <p class="panel__hint">Попередній перегляд вашої картки в каталозі.</p>
-          </div>
-          <div class="panel__meta">{{ profile.public_slug || 'slug ще не створено' }}</div>
-        </div>
-        <details class="details details--preview" open>
-          <summary>Live preview публічної сторінки</summary>
-          <div class="preview-card">
-            <div class="preview-content">
-              <div class="preview-info">
-                <div class="preview-header">
-                  <div class="preview-title">
-                    {{ profile.display_name || "Ваше публічне ім'я" }}
-                  </div>
-                  <div class="preview-price-group">
-                    <div v-if="profile.show_price && profile.price" class="preview-price">
-                      {{ priceDisplay }}
-                    </div>
-                    <div
-                      v-if="profile.show_intro_price && profile.intro_price"
-                      class="preview-price preview-price--intro"
-                    >
-                      Ознайомча: {{ introPriceDisplay }}
-                      <span v-if="profile.intro_duration_minutes">· {{ profile.intro_duration_minutes }} хв</span>
-                    </div>
-                  </div>
-                </div>
-                <div
-                  v-if="specializationList.length || languageList.length || (profile.show_location && profile.location)"
-                  class="preview-tags"
-                >
-                  <span v-for="(spec, index) in specializationList" :key="`${spec}-${index}`" class="preview-tag">
-                    {{ spec }}
-                  </span>
-                    <span v-for="language in languageList" :key="language" class="preview-tag preview-tag--ghost">
-                      {{ language }}
-                    </span>
-                    <span v-if="profile.show_location && profile.location" class="preview-tag preview-tag--muted">
-                      {{ profile.location }}
-                    </span>
-                    <span class="preview-tag preview-tag--muted">
-                      Досвід: {{ experienceLabel(profile.experience_years) }}
-                    </span>
-                  </div>
-                <div class="preview-sections" v-if="hasAnyBioSection">
-                  <div v-if="profile.show_bio_about && profile.bio_about" class="preview-section">
-                    <div class="preview-label">Про себе</div>
-                    <div class="muted preview-bio">{{ profile.bio_about }}</div>
-                  </div>
-                  <div v-if="profile.show_bio_work && profile.bio_work" class="preview-section">
-                    <div class="preview-label">Як я працюю</div>
-                    <div class="muted preview-bio">{{ profile.bio_work }}</div>
-                  </div>
-                  <div v-if="profile.show_bio_approach && profile.bio_approach" class="preview-section">
-                    <div class="preview-label">Мій підхід</div>
-                    <div class="muted preview-bio">{{ profile.bio_approach }}</div>
-                  </div>
-                  <div v-if="profile.show_bio_for_whom && profile.bio_for_whom" class="preview-section">
-                    <div class="preview-label">Для кого це може бути</div>
-                    <div class="muted preview-bio">{{ profile.bio_for_whom }}</div>
-                  </div>
-                  <div v-if="profile.show_bio_other && profile.bio_other" class="preview-section">
-                    <div class="preview-label">Запити, з якими я не працюю</div>
-                    <div class="muted preview-bio">{{ profile.bio_other }}</div>
-                  </div>
-                </div>
-                <div v-if="hasAnyContact" class="preview-contact">
-                  <div class="preview-label">Контакти</div>
-                  <div class="contact">
-                    <div v-if="profile.show_email && profile.contact_email">
-                      Email: {{ profile.contact_email }}
-                    </div>
-                    <div v-if="profile.show_phone && profile.contact_phone">
-                      Телефон: {{ profile.contact_phone }}
-                    </div>
-                    <div v-if="profile.show_messenger && profile.messenger">
-                      Messenger / Signal: {{ profile.messenger }}
-                    </div>
-                    <div v-if="profile.show_telegram && profile.telegram">
-                      Telegram: {{ profile.telegram }}
-                    </div>
-                    <div v-if="profile.show_viber && profile.viber">
-                      Viber: {{ profile.viber }}
-                    </div>
-                    <div v-if="profile.show_whatsapp && profile.whatsapp">
-                      WhatsApp: {{ profile.whatsapp }}
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="preview-media">
-                <div v-if="profile.show_photo && profile.photo_url" class="preview-media-card">
-                  <img
-                    class="preview-photo"
-                    :src="profile.photo_url"
-                    alt="Фото профілю"
-                  />
-                </div>
-                <div v-if="profile.show_video && profile.video_url" class="preview-media-card">
-                  <video
-                    class="preview-video"
-                    :src="profile.video_url"
-                    controls
-                    preload="metadata"
-                  ></video>
-                </div>
-              </div>
-            </div>
-          </div>
-        </details>
-      </section>
-
       <section class="panel">
         <div class="panel__header">
           <div>
-            <div class="badge badge--soft">Крок 8</div>
+            <div class="badge badge--soft">Крок 7</div>
             <h2 class="panel__title">Документи та сертифікати</h2>
             <p class="panel__hint">
               Завантажуйте документи, які допомагають клієнтам краще зрозуміти ваш професійний шлях.
@@ -862,6 +821,39 @@
         </div>
       </section>
 
+      <section class="panel panel--final-check" data-testid="profile-final-public-check">
+        <div class="panel__header">
+          <div>
+            <div class="badge badge--soft">Крок 8</div>
+            <h2 class="panel__title">Перевірте публічний профіль</h2>
+            <p class="panel__hint">
+              Відкрийте реальний публічний профіль, щоб перевірити, як його бачать клієнти.
+            </p>
+          </div>
+        </div>
+        <div class="final-check-actions">
+          <a
+            v-if="isPublicProfilePublished"
+            class="btn"
+            :href="publicUrl"
+            target="_blank"
+            rel="noopener noreferrer"
+            data-testid="open-public-profile-final-link"
+          >
+            Відкрити публічний профіль
+          </a>
+          <RouterLink v-else class="btn btn--ghost" to="/cabinet/profile">
+            Увімкнути публічний профіль
+          </RouterLink>
+        </div>
+        <div v-if="isPublicProfilePublished" class="muted final-check-note">
+          Профіль відкриється у новій вкладці.
+        </div>
+        <div v-else class="muted final-check-note">
+          Публічний профіль ще не опубліковано. Увімкніть його, щоб відкрити сторінку для клієнтів.
+        </div>
+      </section>
+
       <StickySaveBar
         v-if="isDirty"
         data-testid="profile-sticky-save-bar"
@@ -932,6 +924,13 @@ import {
 import SettingsSubnav from '../components/SettingsSubnav.vue'
 import StickySaveBar from '../components/StickySaveBar.vue'
 import { useDirtySnapshot } from '../composables/useDirtySnapshot'
+import {
+  profileSuggestionCategories,
+  profileSuggestionCategoryKeywords,
+  profileSuggestionPresets,
+  type SuggestionCategoryKey,
+  type SuggestionSectionKey,
+} from '../constants/profileSuggestionPresets'
 
 const loading = ref(true)
 const route = useRoute()
@@ -1026,6 +1025,8 @@ const specializationList = ref<string[]>([])
 const showOtherSpecialization = ref(false)
 const otherSpecializationInput = ref('')
 const disallowedLanguages = new Set<string>()
+const selectedMainRequestsSuggestionCategory = ref<SuggestionCategoryKey | null>(null)
+const selectedWorkBoundariesSuggestionCategory = ref<SuggestionCategoryKey | null>(null)
 
 function normalizeDocumentKind(value: string | null | undefined): string {
   const normalized = String(value ?? '').trim().toUpperCase()
@@ -1463,46 +1464,75 @@ const showPublicProfileNotPublishedHint = computed(
   () => route.query.public_profile === 'unpublished' && !profile.public_profile_enabled
 )
 
-function formatPriceAmount(value: string | number | null | undefined): string {
-  if (value === null || value === undefined) return ''
-  const raw = String(value).trim()
-  if (!raw) return ''
-  return raw.replace(/([.,])00$/, '')
+type SuggestionFieldKey = 'bio_for_whom' | 'bio_other'
+
+function normalizeSuggestionToken(value: string): string {
+  return value
+    .toLowerCase()
+    .replace(/^[\s•*–—-]+/, '')
+    .replace(/\s+/g, ' ')
+    .trim()
 }
 
-function formatPriceDisplay(value: string | number | null | undefined, currency?: string | null): string {
-  const amount = formatPriceAmount(value)
-  if (!amount) return ''
-  const code = (currency || 'UAH').toUpperCase()
-  if (code === 'UAH') return `${amount} грн`
-  if (code === 'USD') return `$${amount}`
-  if (code === 'EUR') return `€${amount}`
-  return `${amount} ${code}`
+function getSuggestionSet(field: SuggestionFieldKey): Set<string> {
+  return new Set(
+    String(profile[field] || '')
+      .split(/\r?\n/)
+      .map((line) => normalizeSuggestionToken(line))
+      .filter(Boolean)
+  )
 }
 
-const priceDisplay = computed(() => {
-  return formatPriceDisplay(profile.price, profile.price_currency)
+function isSuggestionSelected(field: SuggestionFieldKey, suggestion: string): boolean {
+  return getSuggestionSet(field).has(normalizeSuggestionToken(suggestion))
+}
+
+function appendSuggestionToField(field: SuggestionFieldKey, suggestion: string) {
+  if (isSuggestionSelected(field, suggestion)) return
+  const line = `• ${suggestion}`
+  const current = String(profile[field] || '').replace(/\s+$/, '')
+  profile[field] = current ? `${current}\n${line}` : line
+}
+
+const preferredSuggestionCategory = computed<SuggestionCategoryKey>(() => {
+  const normalizedSpecializations = specializationList.value.map((item) => item.toLowerCase())
+  for (const category of profileSuggestionCategories) {
+    if (category.key === 'general') continue
+    const keywords = profileSuggestionCategoryKeywords[category.key]
+    if (
+      keywords.some((keyword) =>
+        normalizedSpecializations.some((specialization) => specialization.includes(keyword))
+      )
+    ) {
+      return category.key
+    }
+  }
+  return 'general'
 })
-const introPriceDisplay = computed(() => {
-  return formatPriceDisplay(profile.intro_price, profile.intro_price_currency)
-})
-const hasAnyBioSection = computed(
-  () =>
-    (profile.show_bio_about && Boolean(profile.bio_about)) ||
-    (profile.show_bio_work && Boolean(profile.bio_work)) ||
-    (profile.show_bio_approach && Boolean(profile.bio_approach)) ||
-    (profile.show_bio_for_whom && Boolean(profile.bio_for_whom)) ||
-    (profile.show_bio_other && Boolean(profile.bio_other))
+
+const activeMainRequestsSuggestionCategory = computed<SuggestionCategoryKey>(
+  () => selectedMainRequestsSuggestionCategory.value || preferredSuggestionCategory.value
 )
-const hasAnyContact = computed(
-  () =>
-    (profile.show_email && Boolean(profile.contact_email)) ||
-    (profile.show_phone && Boolean(profile.contact_phone)) ||
-    (profile.show_messenger && Boolean(profile.messenger)) ||
-    (profile.show_telegram && Boolean(profile.telegram)) ||
-    (profile.show_viber && Boolean(profile.viber)) ||
-    (profile.show_whatsapp && Boolean(profile.whatsapp))
+
+const activeWorkBoundariesSuggestionCategory = computed<SuggestionCategoryKey>(
+  () => selectedWorkBoundariesSuggestionCategory.value || preferredSuggestionCategory.value
 )
+
+const mainRequestSuggestions = computed(
+  () => profileSuggestionPresets.main_requests[activeMainRequestsSuggestionCategory.value]
+)
+
+const workBoundarySuggestions = computed(
+  () => profileSuggestionPresets.work_boundaries[activeWorkBoundariesSuggestionCategory.value]
+)
+
+function setSuggestionCategory(section: SuggestionSectionKey, category: SuggestionCategoryKey) {
+  if (section === 'main_requests') {
+    selectedMainRequestsSuggestionCategory.value = category
+    return
+  }
+  selectedWorkBoundariesSuggestionCategory.value = category
+}
 type ProfileFormSnapshot = {
   public_profile_enabled: boolean
   display_name: string
@@ -1640,6 +1670,8 @@ async function loadProfile() {
     showOtherSpecialization.value = false
     otherSpecializationInput.value = ''
     languageInput.value = ''
+    selectedMainRequestsSuggestionCategory.value = null
+    selectedWorkBoundariesSuggestionCategory.value = null
     dirtySnapshot.markSaved()
     setPreviewUrl(photoPreviewUrl, null)
     setPreviewUrl(videoPreviewUrl, null)
@@ -2156,106 +2188,6 @@ onMounted(() => {
   margin-bottom: 10px;
 }
 
-.details--preview {
-  background: #fff;
-}
-
-.preview {
-  background: linear-gradient(135deg, #ffffff 0%, #f1f7ff 100%);
-}
-
-.preview-card {
-  margin-top: 12px;
-  display: grid;
-  gap: 16px;
-  border-radius: 18px;
-  padding: 18px 20px;
-  background: #ffffff;
-  border: 1px solid var(--line);
-  box-shadow: 0 18px 40px rgba(15, 31, 38, 0.08);
-}
-
-.preview-content {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 320px);
-  gap: 20px;
-  align-items: start;
-}
-
-.preview-info {
-  display: grid;
-  gap: 14px;
-}
-
-.preview-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.preview-title {
-  font-family: var(--font-display);
-  font-size: 24px;
-  font-weight: 600;
-  line-height: 1.2;
-}
-
-.preview-price {
-  padding: 6px 14px;
-  border-radius: 999px;
-  border: 1px solid rgba(20, 92, 140, 0.2);
-  background: rgba(20, 92, 140, 0.12);
-  color: #103247;
-  font-size: 13px;
-  font-weight: 600;
-  white-space: nowrap;
-}
-
-.preview-price-group {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 6px;
-}
-
-.preview-price--intro {
-  background: rgba(20, 92, 140, 0.08);
-  border-style: dashed;
-  font-weight: 500;
-}
-
-.preview-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.preview-tag {
-  padding: 6px 10px;
-  border-radius: 999px;
-  background: #f3f6fb;
-  border: 1px solid #e1e8f0;
-  font-size: 12px;
-  color: #405161;
-}
-
-.preview-tag--ghost {
-  background: #f7f4ef;
-  border-color: #ebe1d4;
-  color: #6a5d4f;
-}
-
-.preview-tag--muted {
-  background: #eef2f6;
-  border-color: #dde3ea;
-  color: #5b6774;
-}
-
-.preview-bio {
-  white-space: pre-line;
-}
-
 .field-head {
   display: flex;
   align-items: center;
@@ -2268,27 +2200,6 @@ onMounted(() => {
   align-items: center;
   gap: 6px;
   font-size: 12px;
-  color: var(--muted);
-}
-
-.preview-sections {
-  display: grid;
-  gap: 12px;
-}
-
-.preview-section {
-  display: grid;
-  gap: 6px;
-  padding: 12px 14px;
-  border-radius: 12px;
-  border: 1px solid #e9eef4;
-  background: #f9fbff;
-}
-
-.preview-label {
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
   color: var(--muted);
 }
 
@@ -2308,45 +2219,20 @@ onMounted(() => {
   word-break: break-word;
 }
 
-.preview-contact {
-  display: grid;
-  gap: 8px;
-  padding: 12px 14px;
-  border-radius: 12px;
-  border: 1px solid #efe7dd;
-  background: #fdfaf6;
+.panel--final-check {
+  background: linear-gradient(135deg, #ffffff 0%, #f7fbff 100%);
+  border-style: dashed;
 }
 
-.preview-media {
-  display: grid;
-  gap: 12px;
+.final-check-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
-.preview-media-card {
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  border-radius: 18px;
-  border: 1px solid var(--line);
-  background: #0f2b3a;
-  overflow: hidden;
-  display: block;
-  box-shadow: 0 16px 36px rgba(15, 31, 38, 0.16);
-}
-
-.preview-photo {
-  width: 100%;
-  max-width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-.preview-video {
-  width: 100%;
-  max-width: 100%;
-  height: 100%;
-  display: block;
-  object-fit: cover;
+.final-check-note {
+  margin-top: -4px;
+  font-size: 13px;
 }
 
 .profile-footer {
@@ -2571,6 +2457,70 @@ onMounted(() => {
   font-size: 12px;
   line-height: 1.5;
   color: color-mix(in srgb, var(--muted) 85%, #667580);
+}
+
+.quick-suggestions {
+  margin-top: 10px;
+  border: 1px dashed color-mix(in srgb, var(--line) 82%, #ffffff);
+  border-radius: 12px;
+  padding: 10px;
+  background: color-mix(in srgb, #f7fbff 70%, #ffffff);
+  display: grid;
+  gap: 8px;
+}
+
+.quick-suggestions__title {
+  font-size: 12px;
+  font-weight: 600;
+  color: color-mix(in srgb, var(--text-2) 84%, #ffffff);
+}
+
+.quick-suggestions__tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.quick-suggestions__tab {
+  border: 1px solid color-mix(in srgb, var(--line) 86%, #ffffff);
+  background: #fff;
+  color: color-mix(in srgb, var(--text-2) 84%, #ffffff);
+  border-radius: 10px;
+  padding: 5px 9px;
+  font-size: 12px;
+  line-height: 1.25;
+  cursor: pointer;
+}
+
+.quick-suggestions__tab.is-active {
+  border-color: color-mix(in srgb, var(--primary) 36%, #ffffff);
+  background: color-mix(in srgb, var(--primary) 14%, #ffffff);
+  color: color-mix(in srgb, var(--primary) 88%, #143248);
+}
+
+.quick-suggestions__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.quick-suggestion-chip {
+  border: 1px solid color-mix(in srgb, var(--line) 88%, #ffffff);
+  background: #fff;
+  color: color-mix(in srgb, var(--text-2) 84%, #ffffff);
+  border-radius: 10px;
+  padding: 5px 9px;
+  font-size: 12px;
+  line-height: 1.25;
+  cursor: pointer;
+}
+
+.quick-suggestion-chip.is-selected,
+.quick-suggestion-chip:disabled {
+  border-color: color-mix(in srgb, var(--primary) 32%, #ffffff);
+  background: color-mix(in srgb, var(--primary) 12%, #ffffff);
+  color: color-mix(in srgb, var(--primary) 85%, #143248);
+  cursor: default;
 }
 
 .check {
@@ -2799,10 +2749,6 @@ onMounted(() => {
 
   .documents-uploader__grid,
   .documents-item__grid {
-    grid-template-columns: 1fr;
-  }
-
-  .preview-content {
     grid-template-columns: 1fr;
   }
 

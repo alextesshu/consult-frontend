@@ -1,13 +1,16 @@
 <template>
-  <section class="panel panel--trust" v-if="trustItems.length">
+  <section class="panel panel--trust" v-if="trustItems.length || publicDocuments.length">
     <div class="panel__header">
       <div>
-        <div class="badge badge--soft">Що важливо знати</div>
-        <h2 class="panel__title">Довіра і формат</h2>
-        <p class="panel__lead">Ключова інформація для спокійного рішення перед першим записом.</p>
+        <div class="badge badge--soft">Професійний профіль</div>
+        <h2 class="panel__title">Освіта і професійний розвиток</h2>
+        <p class="panel__lead">
+          Коротко про професійну підготовку спеціаліста та матеріали, які він додав для ознайомлення.
+        </p>
       </div>
     </div>
-    <div class="trust-grid">
+
+    <div class="trust-grid" v-if="trustItems.length">
       <article v-for="item in trustItems" :key="item.label" class="trust-card">
         <p class="trust-card__line">
           <span class="trust-card__label">{{ item.label }}</span>
@@ -16,56 +19,54 @@
         </p>
       </article>
     </div>
-  </section>
 
-  <section class="panel panel--documents" v-if="publicDocuments.length">
-    <div class="panel__header">
-      <div>
-        <div class="badge badge--soft">Документи</div>
-        <h2 class="panel__title">Документи та сертифікати</h2>
-        <p class="panel__lead">
+    <section class="documents-block" v-if="publicDocuments.length">
+      <div class="documents-block__header">
+        <h3 class="documents-block__title">Документи та сертифікати</h3>
+        <p class="documents-block__lead">
           Матеріали, завантажені спеціалістом для ознайомлення. PRO CONSULT не здійснює автоматичної
           верифікації їх змісту, якщо інше прямо не зазначено.
         </p>
       </div>
-    </div>
-    <div class="documents-grid">
-      <article
-        v-for="document in publicDocuments"
-        :key="document.id"
-        class="document-card"
-        :class="{ 'document-card--file': !isImageDocument(document) }"
-      >
-        <div v-if="isImageDocument(document)" class="document-card__preview">
-          <img
-            :src="document.file_url"
-            :alt="document.title"
-            loading="lazy"
-          />
-        </div>
-        <div v-else class="document-card__file-top">
-          <div class="document-card__file-badge">
-            {{ isPdfDocument(document) ? 'PDF' : 'DOC' }}
-          </div>
-          <div class="document-card__kind document-card__kind--file">{{ documentKindLabel(document.document_kind) }}</div>
-        </div>
-        <div class="document-card__body">
-          <div v-if="isImageDocument(document)" class="document-card__kind">{{ documentKindLabel(document.document_kind) }}</div>
-          <h3 class="document-card__title">{{ document.title }}</h3>
-          <div v-if="document.uploaded_at" class="document-card__meta">
-            Додано: {{ formatDate(document.uploaded_at) }}
-          </div>
-        </div>
-        <a
-          class="btn btn--ghost document-card__action"
-          :href="document.file_url"
-          target="_blank"
-          rel="noopener noreferrer"
+
+      <div class="documents-grid">
+        <article
+          v-for="document in publicDocuments"
+          :key="document.id"
+          class="document-card"
+          :class="{ 'document-card--file': !isImageDocument(document) }"
         >
-          {{ isPdfDocument(document) ? 'Відкрити документ' : 'Відкрити' }}
-        </a>
-      </article>
-    </div>
+          <div v-if="isImageDocument(document)" class="document-card__preview">
+            <img
+              :src="document.file_url"
+              :alt="document.title"
+              loading="lazy"
+            />
+          </div>
+          <div v-else class="document-card__file-top">
+            <div class="document-card__file-badge">
+              {{ isPdfDocument(document) ? 'PDF' : 'DOC' }}
+            </div>
+            <div class="document-card__kind document-card__kind--file">{{ documentKindLabel(document.document_kind) }}</div>
+          </div>
+          <div class="document-card__body">
+            <div v-if="isImageDocument(document)" class="document-card__kind">{{ documentKindLabel(document.document_kind) }}</div>
+            <h3 class="document-card__title">{{ document.title }}</h3>
+            <div v-if="document.uploaded_at" class="document-card__meta">
+              Додано: {{ formatDate(document.uploaded_at) }}
+            </div>
+          </div>
+          <a
+            class="btn btn--ghost document-card__action"
+            :href="document.file_url"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {{ isPdfDocument(document) ? 'Відкрити документ' : 'Відкрити' }}
+          </a>
+        </article>
+      </div>
+    </section>
   </section>
 </template>
 
@@ -179,6 +180,32 @@ defineProps<Props>()
   gap: 10px;
   justify-content: start;
   align-items: start;
+}
+
+.documents-block {
+  display: grid;
+  gap: 10px;
+  padding-top: 6px;
+  border-top: 1px dashed color-mix(in srgb, var(--line) 82%, #d8cfbf);
+}
+
+.documents-block__header {
+  display: grid;
+  gap: 4px;
+}
+
+.documents-block__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 18px;
+  line-height: 1.3;
+}
+
+.documents-block__lead {
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
 }
 
 .document-card {

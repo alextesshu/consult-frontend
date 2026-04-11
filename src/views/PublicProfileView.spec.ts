@@ -88,6 +88,7 @@ const mockedFetchPublicJournalCollections = vi.mocked(fetchPublicJournalCollecti
 const mockedSendInquiryMessage = vi.mocked(sendInquiryMessage)
 const windowOpenSpy = vi.spyOn(window, 'open').mockImplementation(() => null)
 const clipboardWriteTextSpy = vi.fn().mockResolvedValue(undefined)
+const scrollIntoViewSpy = vi.fn()
 
 async function flushAsyncUpdates() {
   await Promise.resolve()
@@ -260,7 +261,7 @@ function renderView() {
 
 beforeAll(() => {
   Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', {
-    value: vi.fn(),
+    value: scrollIntoViewSpy,
     configurable: true,
   })
   Object.defineProperty(navigator, 'clipboard', {
@@ -296,6 +297,7 @@ describe('PublicProfileView', () => {
     mockedFetchPublicAuthorJournalPosts.mockReset()
     mockedFetchPublicJournalCollections.mockReset()
     mockedSendInquiryMessage.mockReset()
+    scrollIntoViewSpy.mockClear()
     mockedFetchInquiryMessages.mockResolvedValue([])
     windowOpenSpy.mockClear()
     clipboardWriteTextSpy.mockReset()
@@ -364,6 +366,43 @@ describe('PublicProfileView', () => {
     expect(container).toHaveTextContent('Дуже уважний підхід.')
   })
 
+  it('keeps documents before journal and moves contact block to sticky sidebar', async () => {
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(buildProfile())
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([
+      {
+        id: 1,
+        title: 'Профілактика вигорання',
+        slug: 'burnout',
+        summary: 'Короткий гід для стабілізації.',
+        cover_image_url: '',
+        is_featured: true,
+        featured_order: 1,
+        published_at: '2026-03-01T10:00:00Z',
+        created_at: '2026-03-01T10:00:00Z',
+        category: 'TIP',
+      },
+    ])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/slots/') return [buildTodayLocalSlot()]
+      if (url === '/public/specialists/olena/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    await screen.findByRole('heading', { name: 'Найближчі дати' })
+    expect(screen.queryByRole('heading', { name: 'Зв’язок зі спеціалістом' })).not.toBeInTheDocument()
+    const contactBlockTitle = screen.getByText('Зв’язок зі спеціалістом')
+    expect(contactBlockTitle.closest('.identity-rail__contacts')).toBeTruthy()
+    const documentsHeading = screen.getByRole('heading', { name: 'Документи та сертифікати' })
+    await screen.findByText('Профілактика вигорання')
+    const journalHeading = screen.getByRole('heading', { name: 'Статті та матеріали спеціаліста' })
+
+    expect(documentsHeading.compareDocumentPosition(journalHeading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+
   it('keeps session duration labels out of general info and leaves them in quick overview', async () => {
     mockCommonPublicData()
     mockedFetchChatThreads.mockResolvedValue([])
@@ -407,6 +446,28 @@ describe('PublicProfileView', () => {
     scrollToSpy.mockRestore()
   })
 
+  it('shows "Читати далі" in hero and scrolls smoothly to "Про мене" section', async () => {
+    mockCommonPublicData()
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/slots/') return [buildTodayLocalSlot()]
+      if (url === '/public/specialists/olena/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    const { container } = renderView()
+    await screen.findByRole('heading', { name: 'Про мене' })
+
+    const aboutSection = container.querySelector('#about-me')
+    expect(aboutSection).toBeTruthy()
+    const readMoreButton = screen.getByRole('button', { name: 'Читати далі' })
+
+    scrollIntoViewSpy.mockClear()
+    await fireEvent.click(readMoreButton)
+
+    expect(scrollIntoViewSpy).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start' })
+  })
+
   it('renders dedicated specialist terms section when setting_text is present', async () => {
     mockCommonPublicData()
     mockedFetchChatThreads.mockResolvedValue([])
@@ -442,10 +503,10 @@ describe('PublicProfileView', () => {
 
     renderView()
 
-    expect(await screen.findByRole('heading', { name: 'Про спеціаліста' })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Як я працюю' })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'З чим я працюю' })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'З чим я не працюю' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Про мене' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Формат роботи' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Основні запити' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Межі роботи' })).toBeInTheDocument()
     expect(screen.getByText('Не працюю з кризовими станами.')).toBeInTheDocument()
   })
 
@@ -866,7 +927,7 @@ describe('PublicProfileView', () => {
 
     await screen.findByText('Email')
 
-    const directLinks = Array.from(container.querySelectorAll('a.contact-action')) as HTMLAnchorElement[]
+    const directLinks = Array.from(container.querySelectorAll('a.identity-rail__contact')) as HTMLAnchorElement[]
     expect(directLinks).toHaveLength(1)
     expect(directLinks[0]?.getAttribute('href')).toBe('mailto:hello@example.com')
     expect(
@@ -939,7 +1000,7 @@ describe('PublicProfileView', () => {
       const { container } = renderView()
       await screen.findByText('Viber')
 
-      const directAction = container.querySelector('.contact-action')
+      const directAction = container.querySelector('.identity-rail__contact')
       expect(directAction).not.toBeNull()
       await fireEvent.click(directAction as HTMLAnchorElement)
 
