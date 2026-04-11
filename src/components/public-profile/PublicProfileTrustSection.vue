@@ -1,5 +1,5 @@
 <template>
-  <section class="panel panel--trust" v-if="trustItems.length || publicDocuments.length">
+  <section class="panel panel--trust" v-if="hasCompetenceContent || publicDocuments.length">
     <div class="panel__header">
       <div>
         <div class="badge badge--soft">Професійний профіль</div>
@@ -10,13 +10,36 @@
       </div>
     </div>
 
-    <div class="trust-grid" v-if="trustItems.length">
-      <article v-for="item in trustItems" :key="item.label" class="trust-card">
-        <p class="trust-card__line">
-          <span class="trust-card__label">{{ item.label }}</span>
-          <span class="trust-card__separator">:</span>
-          <span class="trust-card__value">{{ item.value }}</span>
-        </p>
+    <div v-if="hasCompetenceContent" class="competence-block">
+      <article v-if="educationSummary" class="competence-entry">
+        <h3 class="competence-entry__title">Коротко про підготовку</h3>
+        <p class="competence-entry__text">{{ educationSummary }}</p>
+      </article>
+
+      <article v-if="educationItems.length" class="competence-entry">
+        <h3 class="competence-entry__title">Базова освіта / програми</h3>
+        <ul class="competence-list">
+          <li
+            v-for="(item, index) in educationItems"
+            :key="`education-${index}-${item}`"
+            class="competence-list__item"
+          >
+            {{ item }}
+          </li>
+        </ul>
+      </article>
+
+      <article v-if="professionalDevelopmentItems.length" class="competence-entry">
+        <h3 class="competence-entry__title">Курси та професійний розвиток</h3>
+        <ul class="competence-list">
+          <li
+            v-for="(item, index) in professionalDevelopmentItems"
+            :key="`development-${index}-${item}`"
+            class="competence-list__item"
+          >
+            {{ item }}
+          </li>
+        </ul>
       </article>
     </div>
 
@@ -71,10 +94,7 @@
 </template>
 
 <script setup lang="ts">
-type TrustItem = {
-  label: string
-  value: string
-}
+import { computed } from 'vue'
 
 type PublicDocument = {
   id: number | string
@@ -85,7 +105,9 @@ type PublicDocument = {
 }
 
 type Props = {
-  trustItems: TrustItem[]
+  educationSummary: string
+  educationItems: string[]
+  professionalDevelopmentItems: string[]
   publicDocuments: PublicDocument[]
   isImageDocument: (document: any) => boolean
   isPdfDocument: (document: any) => boolean
@@ -93,7 +115,14 @@ type Props = {
   formatDate: (value: string) => string
 }
 
-defineProps<Props>()
+const props = defineProps<Props>()
+
+const hasCompetenceContent = computed(
+  () =>
+    Boolean(props.educationSummary) ||
+    props.educationItems.length > 0 ||
+    props.professionalDevelopmentItems.length > 0
+)
 </script>
 
 <style scoped>
@@ -138,40 +167,42 @@ defineProps<Props>()
   max-width: 78ch;
 }
 
-.trust-grid {
+.competence-block {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 10px;
 }
 
-.trust-card {
+.competence-entry {
   border: 1px solid var(--line);
   border-radius: 12px;
   padding: 10px 12px;
-  background: color-mix(in srgb, var(--color-primary-100) 22%, #ffffff);
+  background: color-mix(in srgb, var(--color-primary-100) 20%, #ffffff);
+  display: grid;
+  gap: 8px;
 }
 
-.trust-card__line {
+.competence-entry__title {
   margin: 0;
-  display: inline-flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 4px;
-  font-size: 13px;
-  line-height: 1.45;
+  font-size: 14px;
+  line-height: 1.4;
 }
 
-.trust-card__label {
-  font-weight: 600;
-  color: var(--muted);
+.competence-entry__text {
+  margin: 0;
+  white-space: pre-line;
+  color: color-mix(in srgb, var(--text) 92%, var(--muted));
+  line-height: 1.55;
 }
 
-.trust-card__separator {
-  color: var(--muted);
+.competence-list {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 6px;
 }
 
-.trust-card__value {
-  color: var(--text);
+.competence-list__item {
+  line-height: 1.5;
 }
 
 .documents-grid {
@@ -307,10 +338,6 @@ defineProps<Props>()
 }
 
 @media (max-width: 960px) {
-  .trust-grid {
-    grid-template-columns: 1fr;
-  }
-
   .documents-grid {
     grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 240px));
   }

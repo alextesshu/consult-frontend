@@ -63,7 +63,9 @@
         />
 
         <PublicProfileTrustSection
-          :trust-items="competenceItems"
+          :education-summary="competenceEducationSummary"
+          :education-items="competenceEducationItems"
+          :professional-development-items="competenceProfessionalDevelopmentItems"
           :public-documents="publicDocuments"
           :is-image-document="isImageDocument"
           :is-pdf-document="isPdfDocument"
@@ -710,6 +712,7 @@ import {
   type InquiryState,
   type PublicContactAction,
   type PublicProfileAboutItem,
+  type PublicProfileCompetenceSection,
   type PublicProfileContactActionsSection,
   type PublicProfileFaqItem,
   type PublicProfileMediaItem,
@@ -718,6 +721,7 @@ import {
   type PublicProfileReviewItem,
   type PublicProfileTopicsSection,
   type PublicProfileTrustItem,
+  type PublicProfileTrustSection as PublicProfileTrustSectionData,
   type PublicBookingRuleItem,
   type PublicSpecialistProfile,
   type PublicSpecialistProfileDocument,
@@ -1101,6 +1105,7 @@ const weekDays = computed(() => {
 })
 const sectionsTrust = computed(() => profile.value?.sections?.trust || null)
 const sectionsAbout = computed(() => profile.value?.sections?.about || null)
+const sectionsCompetence = computed(() => profile.value?.sections?.competence || null)
 const sectionsTopics = computed(() => profile.value?.sections?.topics || null)
 const sectionsFormats = computed(() => profile.value?.sections?.formats || null)
 const sectionsContactActions = computed(() => profile.value?.sections?.contact_actions ?? null)
@@ -1136,6 +1141,23 @@ function toTextList(value: unknown): string[] {
   if (!value) return []
   if (Array.isArray(value)) return value.map((item) => String(item).trim()).filter(Boolean)
   return String(value)
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean)
+}
+
+function normalizeCompetenceItemList(value: unknown): string[] {
+  if (!value) return []
+  if (Array.isArray(value)) return value.map((item) => String(item).trim()).filter(Boolean)
+  const normalized = String(value).replace(/\r/g, '').trim()
+  if (!normalized) return []
+  if (normalized.includes('\n')) {
+    return normalized
+      .split('\n')
+      .map((item) => item.trim())
+      .filter(Boolean)
+  }
+  return normalized
     .split(',')
     .map((item) => item.trim())
     .filter(Boolean)
@@ -1284,11 +1306,37 @@ function resolveMeetingFormatLabelFromFlags(offersOnline: boolean, offersOffline
 }
 
 const sectionTrustItems = computed<ProfileKeyValueItem[]>(() => {
-  const source = sectionsTrust.value?.items
-  if (!Array.isArray(source) || source.length === 0) return []
-  return source
-    .map((item) => normalizeTrustItem(item))
-    .filter((item): item is ProfileKeyValueItem => Boolean(item))
+  const source = sectionsTrust.value as PublicProfileTrustSectionData | null
+  const explicitItems = Array.isArray(source?.items)
+    ? source.items
+        .map((item) => normalizeTrustItem(item))
+        .filter((item): item is ProfileKeyValueItem => Boolean(item))
+    : []
+
+  const structuredItems: ProfileKeyValueItem[] = []
+  if (source && typeof source.experience_years === 'number' && Number.isFinite(source.experience_years)) {
+    structuredItems.push({ label: 'Досвід', value: formatExperience(source.experience_years) })
+  }
+  const trustLanguages = toTextList(source?.languages)
+  if (trustLanguages.length) {
+    structuredItems.push({ label: 'Мови', value: trustLanguages.join(', ') })
+  }
+  const trustLocation = toDisplayText(source?.location)
+  if (trustLocation) {
+    structuredItems.push({ label: 'Локація', value: trustLocation })
+  }
+  if (
+    source &&
+    typeof source.completed_sessions_count === 'number' &&
+    Number.isFinite(source.completed_sessions_count)
+  ) {
+    const completedBadge = getCompletedSessionsBadge(source.completed_sessions_count)
+    if (completedBadge) {
+      structuredItems.push({ label: 'Проведені сесії', value: completedBadge })
+    }
+  }
+
+  return [...explicitItems, ...structuredItems]
 })
 
 const sectionAboutSections = computed<ProfileAboutSection[]>(() => {
@@ -1303,21 +1351,60 @@ const sectionAboutSections = computed<ProfileAboutSection[]>(() => {
     .filter((item): item is ProfileAboutSection => Boolean(item))
 })
 
+const sectionCompetenceData = computed<PublicProfileCompetenceSection | null>(() => {
+  const source = sectionsCompetence.value
+  if (!source || typeof source !== 'object') return null
+  return source
+})
+
+const hasSectionCompetenceSource = computed(() => Boolean(sectionCompetenceData.value))
+
+const competenceEducationSummary = computed(() => {
+  if (hasSectionCompetenceSource.value) {
+    return normalizeMultilineText(sectionCompetenceData.value?.education_summary || '')
+  }
+  return normalizeMultilineText(profile.value?.education_summary || '')
+})
+
+const competenceEducationItems = computed(() => {
+  if (hasSectionCompetenceSource.value) {
+    return normalizeCompetenceItemList(sectionCompetenceData.value?.education_items)
+  }
+  return normalizeCompetenceItemList(profile.value?.education_items)
+})
+
+const competenceProfessionalDevelopmentItems = computed(() => {
+  if (hasSectionCompetenceSource.value) {
+    return normalizeCompetenceItemList(sectionCompetenceData.value?.professional_development_items)
+  }
+  return normalizeCompetenceItemList(profile.value?.professional_development_items)
+})
+
 const sectionTopicChips = computed<string[]>(() => {
   const source = Array.isArray(sectionsTopics.value?.chips)
     ? sectionsTopics.value?.chips
     : Array.isArray(sectionsTopics.value?.items)
       ? sectionsTopics.value?.items
       : []
-  if (!source.length) return []
-  return source
-    .map((item) => normalizeTopicChip(item))
-    .filter(Boolean)
+  if (source.length) {
+    return source
+      .map((item) => normalizeTopicChip(item))
+      .filter(Boolean)
+  }
+  return toTextList(sectionsTopics.value?.specializations)
 })
+
+type AboutNarrativeField = 'bio' | 'bio_about' | 'bio_work' | 'bio_approach' | 'bio_for_whom' | 'bio_other'
+
+function resolveSectionAboutField(field: AboutNarrativeField): string {
+  const source = sectionsAbout.value as Record<string, unknown> | null
+  return normalizeMultilineText(source?.[field])
+}
 
 const sectionWhoThisIsForText = computed(() => {
   const source = sectionsTopics.value as (PublicProfileTopicsSection & Record<string, unknown>) | null
   return firstFilledText(
+    resolveSectionAboutField('bio_for_whom'),
     toDisplayText(source?.who_this_is_for),
     toDisplayText(source?.for_whom),
     toDisplayText(source?.text),
@@ -1336,6 +1423,8 @@ const heroRoleLine = computed(() => {
 
 const heroLeadText = computed(() => {
   const source = firstFilledText(
+    resolveSectionAboutField('bio_about'),
+    resolveSectionAboutField('bio'),
     profile.value?.bio_about,
     sectionAboutSections.value[0]?.body,
     profile.value?.bio,
@@ -1509,27 +1598,6 @@ const specializationChips = computed(() => {
 })
 const displaySpecializationChips = computed(() => specializationChips.value.slice(0, 4))
 
-const competenceItems = computed<ProfileKeyValueItem[]>(() => {
-  const items: ProfileKeyValueItem[] = []
-
-  if (profile.value?.experience_years !== undefined && profile.value?.experience_years !== null) {
-    items.push({ label: 'Практичний досвід', value: formatExperience(profile.value.experience_years) })
-  }
-
-  if (specializationChips.value.length) {
-    items.push({
-      label: 'Професійні напрями',
-      value: specializationChips.value.slice(0, 6).join(', '),
-    })
-  }
-
-  if (completedSessionsBadge.value) {
-    items.push({ label: 'Проведені сесії', value: completedSessionsBadge.value })
-  }
-
-  return items
-})
-
 const whoThisIsForText = computed(() =>
   normalizeMultilineText(sectionWhoThisIsForText.value || profile.value?.bio_for_whom || '')
 )
@@ -1538,6 +1606,7 @@ const whoIsNotSuitableText = computed(() => {
   const source = sectionsTopics.value as (PublicProfileTopicsSection & Record<string, unknown>) | null
   return normalizeMultilineText(
     firstFilledText(
+      resolveSectionAboutField('bio_other'),
       toDisplayText(source?.who_this_is_not_for),
       toDisplayText(source?.who_is_not_for),
       toDisplayText(source?.not_for_whom),
@@ -1562,6 +1631,8 @@ function sectionAboutBodyByKeywords(keywords: string[]): string {
 const aboutNarrativeText = computed(() =>
   normalizeMultilineText(
     firstFilledText(
+      resolveSectionAboutField('bio_about'),
+      resolveSectionAboutField('bio'),
       sectionAboutSections.value[0]?.body,
       profile.value?.bio_about,
       profile.value?.bio,
@@ -1575,11 +1646,13 @@ const showHeroReadMore = computed(() => Boolean(aboutNarrativeText.value))
 const workStyleText = computed(() => {
   const source = normalizeMultilineText(
     firstFilledText(
+      resolveSectionAboutField('bio_work'),
+      resolveSectionAboutField('bio_approach'),
       sectionAboutBodyByKeywords(['підхід', 'approach', 'метод', 'стиль', 'працюю']),
       sectionAboutSections.value[2]?.body,
       sectionAboutSections.value[1]?.body,
-      profile.value?.bio_approach,
-      profile.value?.bio_work
+      profile.value?.bio_work,
+      profile.value?.bio_approach
     )
   )
   if (!source) return ''
@@ -1649,7 +1722,11 @@ const trustItems = computed<ProfileKeyValueItem[]>(() => {
 })
 
 const publicDocuments = computed<PublicSpecialistProfileDocument[]>(() => {
-  const documents = profile.value?.profile_documents || []
+  const sectionTrust = sectionsTrust.value as PublicProfileTrustSectionData | null
+  const sectionDocuments = sectionTrust?.profile_documents
+  const documents = Array.isArray(sectionDocuments)
+    ? sectionDocuments
+    : profile.value?.profile_documents || []
   return documents
     .filter((item) => Boolean(item?.file_url && item?.title))
     .map((item) => ({
@@ -5071,3 +5148,4 @@ onMounted(async () => {
   }
 }
 </style>
+

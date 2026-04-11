@@ -155,6 +155,9 @@ export type TherapistProfile = {
   bio_approach: string
   bio_for_whom: string
   bio_other: string
+  education_summary: string
+  education_items: string[]
+  professional_development_items: string[]
   setting_text?: string
   show_bio_about: boolean
   show_bio_work: boolean
@@ -338,6 +341,11 @@ export type PublicProfileTrustItem = {
 
 export type PublicProfileTrustSection = {
   items?: PublicProfileTrustItem[] | null
+  experience_years?: number | null
+  languages?: string[] | string | null
+  location?: string | null
+  completed_sessions_count?: number | null
+  profile_documents?: PublicSpecialistProfileDocument[] | null
 }
 
 export type PublicProfileAboutItem = {
@@ -348,12 +356,25 @@ export type PublicProfileAboutItem = {
 export type PublicProfileAboutSection = {
   items?: PublicProfileAboutItem[] | null
   sections?: PublicProfileAboutItem[] | null
+  bio?: string | null
+  bio_about?: string | null
+  bio_work?: string | null
+  bio_approach?: string | null
+  bio_for_whom?: string | null
+  bio_other?: string | null
 }
 
 export type PublicProfileTopicsSection = {
   who_this_is_for?: string | null
   items?: string[] | null
   chips?: string[] | null
+  specializations?: string[] | string | null
+}
+
+export type PublicProfileCompetenceSection = {
+  education_summary?: string | null
+  education_items?: string[] | null
+  professional_development_items?: string[] | null
 }
 
 export type PublicProfileFormatsSection = {
@@ -427,6 +448,7 @@ export type PublicProfileSections = {
   publications_preview?: PublicProfilePublicationsPreviewSection | null
   trust?: PublicProfileTrustSection | null
   about?: PublicProfileAboutSection | null
+  competence?: PublicProfileCompetenceSection | null
   topics?: PublicProfileTopicsSection | null
   formats?: PublicProfileFormatsSection | null
   contact_actions?: PublicProfileContactActionsSection | PublicContactAction[] | null
@@ -466,6 +488,9 @@ export type PublicTherapistProfile = {
   bio_approach?: string
   bio_for_whom?: string
   bio_other?: string
+  education_summary?: string
+  education_items?: string[]
+  professional_development_items?: string[]
   specializations?: string | string[]
   languages?: string | string[]
   location?: string

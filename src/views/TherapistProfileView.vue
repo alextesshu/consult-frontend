@@ -477,6 +477,47 @@
               </div>
             </div>
           </details>
+          <details class="details">
+            <summary>Освіта і професійний розвиток</summary>
+            <label class="field">
+              <div class="field-head">
+                <span>Коротко про підготовку</span>
+              </div>
+              <textarea
+                v-model="profile.education_summary"
+                class="input"
+                rows="3"
+                placeholder="Коротко опишіть вашу базову підготовку та професійний фокус."
+              ></textarea>
+              <div class="field-help">
+                Цей текст показується в секції «Освіта і професійний розвиток» у публічному профілі.
+              </div>
+            </label>
+            <label class="field">
+              <div class="field-head">
+                <span>Базова освіта / програми</span>
+              </div>
+              <textarea
+                v-model="educationItemsText"
+                class="input"
+                rows="4"
+                placeholder="Кожен пункт з нового рядка: магістратура, спеціалізація, довгі програми."
+                data-testid="education-items-textarea"
+              ></textarea>
+            </label>
+            <label class="field">
+              <div class="field-head">
+                <span>Курси та професійний розвиток</span>
+              </div>
+              <textarea
+                v-model="professionalDevelopmentItemsText"
+                class="input"
+                rows="4"
+                placeholder="Кожен пункт з нового рядка: курси, супервізії, сертифікації, інтенсиви."
+                data-testid="professional-development-items-textarea"
+              ></textarea>
+            </label>
+          </details>
         </div>
       </section>
 
@@ -1027,6 +1068,42 @@ const otherSpecializationInput = ref('')
 const disallowedLanguages = new Set<string>()
 const selectedMainRequestsSuggestionCategory = ref<SuggestionCategoryKey | null>(null)
 const selectedWorkBoundariesSuggestionCategory = ref<SuggestionCategoryKey | null>(null)
+const educationItemsText = ref('')
+const professionalDevelopmentItemsText = ref('')
+
+function toStringList(value: unknown): string[] {
+  if (!value) return []
+  if (Array.isArray(value)) {
+    return Array.from(
+      new Set(
+        value
+          .map((item) => String(item || '').trim())
+          .filter(Boolean)
+      )
+    )
+  }
+  return String(value)
+    .split(/\r?\n|[,;]+/)
+    .map((item) => item.trim())
+    .filter(Boolean)
+}
+
+function listToMultilineText(value: unknown): string {
+  const list = toStringList(value)
+  return list.join('\n')
+}
+
+function multilineTextToList(value: string): string[] {
+  return Array.from(
+    new Set(
+      String(value || '')
+        .replace(/\r/g, '\n')
+        .split('\n')
+        .map((line) => line.replace(/^[\s•*–—-]+/, '').trim())
+        .filter(Boolean)
+    )
+  )
+}
 
 function normalizeDocumentKind(value: string | null | undefined): string {
   const normalized = String(value ?? '').trim().toUpperCase()
@@ -1367,6 +1444,9 @@ function buildProfilePayload() {
     bio_approach: profile.bio_approach,
     bio_for_whom: profile.bio_for_whom,
     bio_other: profile.bio_other,
+    education_summary: (profile.education_summary || '').trim(),
+    education_items: multilineTextToList(educationItemsText.value),
+    professional_development_items: multilineTextToList(professionalDevelopmentItemsText.value),
     show_bio_about: profile.show_bio_about,
     show_bio_work: profile.show_bio_work,
     show_bio_approach: profile.show_bio_approach,
@@ -1419,6 +1499,9 @@ const profile = reactive<SpecialistProfile>({
   bio_approach: '',
   bio_for_whom: '',
   bio_other: '',
+  education_summary: '',
+  education_items: [],
+  professional_development_items: [],
   show_bio_about: true,
   show_bio_work: true,
   show_bio_approach: true,
@@ -1542,6 +1625,9 @@ type ProfileFormSnapshot = {
   bio_approach: string
   bio_for_whom: string
   bio_other: string
+  education_summary: string
+  education_items_text: string
+  professional_development_items_text: string
   show_bio_about: boolean
   show_bio_work: boolean
   show_bio_approach: boolean
@@ -1588,6 +1674,9 @@ function createProfileFormSnapshot(): ProfileFormSnapshot {
     bio_approach: profile.bio_approach || '',
     bio_for_whom: profile.bio_for_whom || '',
     bio_other: profile.bio_other || '',
+    education_summary: profile.education_summary || '',
+    education_items_text: educationItemsText.value,
+    professional_development_items_text: professionalDevelopmentItemsText.value,
     show_bio_about: profile.show_bio_about,
     show_bio_work: profile.show_bio_work,
     show_bio_approach: profile.show_bio_approach,
@@ -1628,13 +1717,22 @@ function createProfileFormSnapshot(): ProfileFormSnapshot {
 const dirtySnapshot = useDirtySnapshot<ProfileFormSnapshot>(createProfileFormSnapshot)
 
 function applyProfileFormSnapshot(snapshot: ProfileFormSnapshot) {
+  const {
+    education_items_text,
+    professional_development_items_text,
+    ...profileSnapshot
+  } = snapshot
   Object.assign(profile, {
-    ...snapshot,
-    specializations: [...snapshot.specializations],
-    languages: [...snapshot.languages],
+    ...profileSnapshot,
+    education_items: multilineTextToList(education_items_text),
+    professional_development_items: multilineTextToList(professional_development_items_text),
+    specializations: [...profileSnapshot.specializations],
+    languages: [...profileSnapshot.languages],
   })
-  specializationList.value = [...snapshot.specializations]
-  languageList.value = [...snapshot.languages]
+  educationItemsText.value = education_items_text
+  professionalDevelopmentItemsText.value = professional_development_items_text
+  specializationList.value = [...profileSnapshot.specializations]
+  languageList.value = [...profileSnapshot.languages]
   specializationInput.value = ''
   showOtherSpecialization.value = false
   otherSpecializationInput.value = ''
@@ -1666,6 +1764,10 @@ async function loadProfile() {
     Object.assign(profile, normalizeProfile(profileData))
     languageList.value = sanitizeLanguages(toList(profile.languages))
     specializationList.value = toList(profile.specializations)
+    educationItemsText.value = listToMultilineText(profile.education_items)
+    professionalDevelopmentItemsText.value = listToMultilineText(
+      profile.professional_development_items
+    )
     specializationInput.value = ''
     showOtherSpecialization.value = false
     otherSpecializationInput.value = ''
@@ -1717,6 +1819,10 @@ async function onSave() {
     Object.assign(profile, normalizeProfile(data))
     languageList.value = sanitizeLanguages(toList(profile.languages))
     specializationList.value = toList(profile.specializations)
+    educationItemsText.value = listToMultilineText(profile.education_items)
+    professionalDevelopmentItemsText.value = listToMultilineText(
+      profile.professional_development_items
+    )
     specializationInput.value = ''
     showOtherSpecialization.value = false
     otherSpecializationInput.value = ''
@@ -1888,6 +1994,9 @@ function normalizeProfile(data: SpecialistProfile): SpecialistProfile {
     bio_approach: data.bio_approach || '',
     bio_for_whom: data.bio_for_whom || '',
     bio_other: data.bio_other || '',
+    education_summary: data.education_summary || '',
+    education_items: toStringList(data.education_items),
+    professional_development_items: toStringList(data.professional_development_items),
     show_bio_about: data.show_bio_about ?? true,
     show_bio_work: data.show_bio_work ?? true,
     show_bio_approach: data.show_bio_approach ?? true,
