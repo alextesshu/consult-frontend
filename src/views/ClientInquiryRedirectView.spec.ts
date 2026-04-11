@@ -25,7 +25,7 @@ async function renderView(initialPath = '/client/inquiries/12') {
         component: ClientInquiryRedirectView,
       },
       {
-        path: '/specialist/:slug',
+        path: '/s/:slug',
         name: 'public-profile',
         component: { template: '<div>Public Profile</div>' },
       },
@@ -71,7 +71,7 @@ describe('ClientInquiryRedirectView', () => {
     const { router } = await renderView()
 
     await waitFor(() => {
-      expect(router.currentRoute.value.fullPath).toBe('/specialist/olena#inquiry')
+      expect(router.currentRoute.value.fullPath).toBe('/s/olena#inquiry')
     })
   })
 

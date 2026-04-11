@@ -336,7 +336,11 @@ const isPublicProfilePage = computed(
   () => route.name === 'public-profile' || route.name === 'public-redirect'
 )
 const isPublicRoute = computed(
-  () => route.path.startsWith('/public') || route.path.startsWith('/specialist/')
+  () =>
+    route.path.startsWith('/public') ||
+    route.path.startsWith('/s/') ||
+    route.path.startsWith('/t/') ||
+    route.path.startsWith('/specialist/')
 )
 
 const topbarClass = computed(() => [

@@ -569,7 +569,7 @@ async function loadProfileTitle() {
 
     const profile = await fetchPublicSpecialistProfile(slug.value)
 
-    publicName.value = profile.display_name || profile.public_slug || ''
+    publicName.value = profile.display_name || profile.public_slug || profile.slug || ''
 
   } catch {
 
@@ -1350,4 +1350,3 @@ onMounted(async () => {
 
 
 </style>
-

@@ -45,7 +45,7 @@
               ID: #{{ session.specialist_id }}
             </div>
             <div v-if="session.specialist_public_slug" class="detail-actions">
-              <RouterLink class="btn btn--ghost btn--sm" :to="`/specialist/${session.specialist_public_slug}`">
+              <RouterLink class="btn btn--ghost btn--sm" :to="`/s/${session.specialist_public_slug}`">
                 Відкрити профіль
               </RouterLink>
               <button class="btn btn--ghost btn--sm" type="button" @click="copySpecialistLink">
@@ -99,7 +99,7 @@
         <RouterLink
           v-if="followUpBookingLabel && session.specialist_public_slug"
           class="btn"
-          :to="`/specialist/${session.specialist_public_slug}`"
+          :to="`/s/${session.specialist_public_slug}`"
         >
           {{ followUpBookingLabel }}
         </RouterLink>
@@ -432,7 +432,7 @@ function onPaymentProofUpdated(nextPaymentProof: SessionPaymentProof) {
 
 async function copySpecialistLink() {
   if (!session.value?.specialist_public_slug) return
-  const url = `${window.location.origin}/specialist/${session.value.specialist_public_slug}`
+  const url = `${window.location.origin}/s/${session.value.specialist_public_slug}`
   try {
     await navigator.clipboard.writeText(url)
     toast.success('Посилання скопійовано.')

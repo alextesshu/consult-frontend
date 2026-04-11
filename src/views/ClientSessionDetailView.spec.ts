@@ -393,7 +393,7 @@ describe('ClientSessionDetailView', () => {
     ).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Записатися повторно' })).toHaveAttribute(
       'href',
-      '/specialist/olena'
+      '/s/olena'
     )
     expect(screen.getByText('Завершено')).toBeInTheDocument()
     expect(
@@ -418,7 +418,7 @@ describe('ClientSessionDetailView', () => {
     ).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Обрати новий слот' })).toHaveAttribute(
       'href',
-      '/specialist/olena'
+      '/s/olena'
     )
     expect(screen.getByText('Скасовано')).toBeInTheDocument()
     expect(

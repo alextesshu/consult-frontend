@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <section class="public-specialists">
     <header class="public-specialists__hero card">
       <div>
@@ -121,7 +121,7 @@
           v-for="therapist in therapists"
           :key="therapist.public_slug"
           class="therapist-card"
-          :to="`/specialist/${therapist.public_slug}`"
+          :to="`/s/${therapist.public_slug}`"
         >
           <div class="therapist-photo-link">
             <img
@@ -204,12 +204,12 @@ const languageOptions = [
   'English',
   'Polski',
   'Deutsch',
-  'Français',
-  'Español',
+  'Francais',
+  'Espanol',
   'Italiano',
-  'Português',
-  'Čeština',
-  'Slovenčina',
+  'Portugues',
+  'Cestina',
+  'Slovencina',
 ]
 
 const specializationOptions = [

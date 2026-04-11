@@ -234,29 +234,36 @@ const routes = [
     meta: { requiresAuth: true, requiresRole: 'CLIENT' },
   },
   {
-    path: '/specialist/:slug/feedback',
+    path: '/s/:slug/feedback',
     name: 'specialist-feedback',
     component: ClientFeedbackView,
+    alias: ['/specialist/:slug/feedback'],
     meta: {},
   },
-  { path: '/t/:slug', name: 'public-profile', component: PublicProfileView, alias: '/specialist/:slug' },
   {
-    path: '/t/:slug/journal',
+    path: '/s/:slug',
+    name: 'public-profile',
+    component: PublicProfileView,
+    alias: ['/t/:slug', '/specialist/:slug'],
+  },
+  {
+    path: '/s/:slug/journal',
     name: 'public-journal',
     component: PublicJournalView,
-    alias: '/specialist/:slug/journal',
+    alias: ['/t/:slug/journal', '/specialist/:slug/journal'],
   },
   {
-    path: '/:slug/journal/:postSlug',
+    path: '/s/:slug/journal/:postSlug',
     name: 'public-journal-post',
     component: PublicJournalPostView,
-    alias: ['/t/:slug/journal/:postSlug', '/specialist/:slug/journal/:postSlug'],
+    alias: ['/:slug/journal/:postSlug', '/t/:slug/journal/:postSlug', '/specialist/:slug/journal/:postSlug'],
   },
   {
-    path: '/:specialist_slug/journal/collections/:collection_slug',
+    path: '/s/:specialist_slug/journal/collections/:collection_slug',
     name: 'public-journal-collection',
     component: PublicJournalCollectionView,
     alias: [
+      '/:specialist_slug/journal/collections/:collection_slug',
       '/t/:specialist_slug/journal/collections/:collection_slug',
       '/specialist/:specialist_slug/journal/collections/:collection_slug',
     ],
@@ -308,6 +315,53 @@ const router = createRouter({
 
 const SPECIALIST_ROUTE_RECONCILE_COOLDOWN_MS = 15_000
 let lastSpecialistRouteReconcileAt = 0
+
+type SpecialistProfileRouteContract = {
+  slug?: string
+  public_slug?: string
+  public_profile_path?: string
+  public_profile_url?: string
+  public_profile_enabled?: boolean | null
+}
+
+function normalizePublicProfilePath(path: string | null | undefined): string {
+  const raw = String(path || '').trim()
+  if (!raw) return ''
+  if (/^https?:\/\//i.test(raw)) {
+    try {
+      const parsed = new URL(raw)
+      return parsed.pathname || ''
+    } catch {
+      return ''
+    }
+  }
+  return raw.startsWith('/') ? raw : `/${raw}`
+}
+
+function extractCanonicalSlugFromPath(path: string | null | undefined): string {
+  const normalizedPath = normalizePublicProfilePath(path)
+  const match = normalizedPath.match(/^\/s\/([^/?#]+)/i)
+  if (!match?.[1]) return ''
+  return match[1].trim()
+}
+
+function resolveSpecialistProfilePath(profile: SpecialistProfileRouteContract): string {
+  const fromPath = normalizePublicProfilePath(profile.public_profile_path)
+  if (fromPath) return fromPath
+  const fromUrl = normalizePublicProfilePath(profile.public_profile_url)
+  if (fromUrl) return fromUrl
+  const slug = String(profile.slug || profile.public_slug || '').trim()
+  if (!slug) return ''
+  return `/s/${slug}`
+}
+
+function resolveSpecialistProfileSlug(profile: SpecialistProfileRouteContract): string {
+  const direct = String(profile.slug || profile.public_slug || '').trim()
+  if (direct) return direct
+  const fromPath = extractCanonicalSlugFromPath(profile.public_profile_path)
+  if (fromPath) return fromPath
+  return extractCanonicalSlugFromPath(profile.public_profile_url)
+}
 
 async function maybeReconcileSpecialistMeOnRoute(auth: ReturnType<typeof useAuthStore>, path: string) {
   if (!auth.accessToken) return
@@ -402,18 +456,21 @@ router.beforeEach(async (to) => {
     if (!hasSpecialistRole()) {
       return defaultRoute()
     }
+    let profilePath = ''
     let slug = ''
     let publicProfileEnabled = false
     try {
-      const profile = await fetchSpecialistProfile()
-      slug = profile.public_slug || ''
+      const profile = await fetchSpecialistProfile() as SpecialistProfileRouteContract
+      profilePath = resolveSpecialistProfilePath(profile)
+      slug = resolveSpecialistProfileSlug(profile)
       publicProfileEnabled = Boolean(profile.public_profile_enabled)
     } catch {
+      profilePath = ''
       slug = ''
       publicProfileEnabled = false
     }
-    if (slug && publicProfileEnabled) {
-      return { name: 'public-profile', params: { slug } }
+    if (profilePath && publicProfileEnabled) {
+      return profilePath
     }
     if (slug && !publicProfileEnabled) {
       return { name: 'cabinet-profile', query: { public_profile: 'unpublished' } }

@@ -7,7 +7,6 @@ import {
   deleteProfileDocument,
   fetchProfileDocuments,
   fetchSpecialistProfile,
-  rotateSpecialistProfileSlug,
   updateProfileDocument,
   updateSpecialistProfile,
   uploadProfilePhoto,
@@ -49,7 +48,6 @@ vi.mock('../lib/api', () => ({
   deleteProfileDocument: vi.fn(),
   fetchSpecialistProfile: vi.fn(),
   fetchProfileDocuments: vi.fn(),
-  rotateSpecialistProfileSlug: vi.fn(),
   updateProfileDocument: vi.fn(),
   updateSpecialistProfile: vi.fn(),
   uploadProfilePhoto: vi.fn(),
@@ -60,7 +58,6 @@ const mockedCreateProfileDocument = vi.mocked(createProfileDocument)
 const mockedDeleteProfileDocument = vi.mocked(deleteProfileDocument)
 const mockedFetchSpecialistProfile = vi.mocked(fetchSpecialistProfile)
 const mockedFetchProfileDocuments = vi.mocked(fetchProfileDocuments)
-const mockedRotateSpecialistProfileSlug = vi.mocked(rotateSpecialistProfileSlug)
 const mockedUpdateProfileDocument = vi.mocked(updateProfileDocument)
 const mockedUpdateSpecialistProfile = vi.mocked(updateSpecialistProfile)
 const mockedUploadProfilePhoto = vi.mocked(uploadProfilePhoto)
@@ -70,6 +67,9 @@ function makeProfile() {
   return {
     id: 5,
     public_profile_enabled: true,
+    slug: 'specialist-anna',
+    public_profile_path: '/s/specialist-anna',
+    public_profile_url: `${window.location.origin}/s/specialist-anna`,
     public_slug: 'specialist-anna',
     last_slug_rotated_at: '2026-03-10T09:00:00Z',
     offers_online: true,
@@ -148,7 +148,6 @@ describe('TherapistProfileView', () => {
     mockedDeleteProfileDocument.mockReset()
     mockedFetchSpecialistProfile.mockReset()
     mockedFetchProfileDocuments.mockReset()
-    mockedRotateSpecialistProfileSlug.mockReset()
     mockedUpdateProfileDocument.mockReset()
     mockedUpdateSpecialistProfile.mockReset()
     mockedUploadProfilePhoto.mockReset()
@@ -172,11 +171,11 @@ describe('TherapistProfileView', () => {
     expect(
       screen.getByDisplayValue('Будь ласка, попереджайте про перенесення щонайменше за 24 години.')
     ).toBeInTheDocument()
-    expect(screen.getByText(`${window.location.origin}/specialist/specialist-anna`)).toBeInTheDocument()
+    expect(screen.getByText(`${window.location.origin}/s/specialist-anna`)).toBeInTheDocument()
     const finalCheck = screen.getByTestId('profile-final-public-check')
     expect(finalCheck).toBeInTheDocument()
     const finalOpenLink = screen.getByTestId('open-public-profile-final-link')
-    expect(finalOpenLink).toHaveAttribute('href', `${window.location.origin}/specialist/specialist-anna`)
+    expect(finalOpenLink).toHaveAttribute('href', `${window.location.origin}/s/specialist-anna`)
     expect(finalOpenLink).toHaveAttribute('target', '_blank')
     expect(finalOpenLink).toHaveAttribute('rel', 'noopener noreferrer')
   })
@@ -195,6 +194,54 @@ describe('TherapistProfileView', () => {
     ).toBeInTheDocument()
     expect(screen.getByText('Перейти до налаштувань профілю')).toBeInTheDocument()
     expect(screen.queryByText('Profile not found.')).not.toBeInTheDocument()
+  })
+
+  it('updates canonical profile slug via secondary edit flow', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValue(makeProfile())
+    mockedUpdateSpecialistProfile.mockResolvedValue({
+      ...makeProfile(),
+      slug: 'anna-new',
+      public_slug: 'anna-new',
+      public_profile_path: '/s/anna-new',
+      public_profile_url: `${window.location.origin}/s/anna-new`,
+    } as any)
+
+    renderView()
+
+    expect(await screen.findByText(`${window.location.origin}/s/specialist-anna`)).toBeInTheDocument()
+    await fireEvent.click(screen.getByRole('button', { name: 'Змінити адресу' }))
+    const slugInput = screen.getByPlaceholderText('ваш-slug') as HTMLInputElement
+    await fireEvent.update(slugInput, 'anna-new')
+    await fireEvent.click(screen.getByRole('button', { name: 'Зберегти адресу' }))
+
+    await waitFor(() => {
+      expect(mockedUpdateSpecialistProfile).toHaveBeenCalledWith({ slug: 'anna-new' })
+    })
+    expect(await screen.findByText(`${window.location.origin}/s/anna-new`)).toBeInTheDocument()
+  })
+
+  it.each([
+    ['SLUG_INVALID', 'Некоректний формат адреси. Використайте латинські літери, цифри або дефіс.'],
+    ['SLUG_RESERVED', 'Ця адреса недоступна. Спробуйте інший варіант.'],
+    ['SLUG_TAKEN', 'Ця адреса вже зайнята. Спробуйте іншу.'],
+  ])('maps %s slug update code to inline user-friendly feedback', async (code, expectedMessage) => {
+    mockedFetchSpecialistProfile.mockResolvedValue(makeProfile())
+    mockedUpdateSpecialistProfile.mockRejectedValue({
+      response: {
+        status: 400,
+        data: { code },
+      },
+    })
+
+    renderView()
+
+    await screen.findByText(`${window.location.origin}/s/specialist-anna`)
+    await fireEvent.click(screen.getByRole('button', { name: 'Змінити адресу' }))
+    const slugInput = screen.getByPlaceholderText('ваш-slug') as HTMLInputElement
+    await fireEvent.update(slugInput, 'anna-new')
+    await fireEvent.click(screen.getByRole('button', { name: 'Зберегти адресу' }))
+
+    expect(await screen.findByText(expectedMessage)).toBeInTheDocument()
   })
 
   it('supports quick-add suggestions for main requests and work boundaries without duplicates', async () => {

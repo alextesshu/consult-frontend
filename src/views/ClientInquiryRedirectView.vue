@@ -32,9 +32,12 @@ async function resolvePublicSlugBySpecialistId(specialistId: number) {
       page,
       page_size: 100,
     })
-    const match = (resp.results || []).find((item) => item.therapist_id === specialistId && item.public_slug)
-    if (match?.public_slug) {
-      return match.public_slug
+    const match = (resp.results || []).find(
+      (item) => item.therapist_id === specialistId && (item.public_slug || item.slug)
+    )
+    const resolvedSlug = String(match?.public_slug || match?.slug || '').trim()
+    if (resolvedSlug) {
+      return resolvedSlug
     }
     totalPages = Math.max(resp.total_pages || 1, 1)
     page += 1

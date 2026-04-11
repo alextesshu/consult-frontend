@@ -82,7 +82,7 @@
           >
             {{ submitLoading ? 'Надсилаємо...' : 'Надіслати відгук' }}
           </button>
-          <RouterLink v-if="profile?.public_slug" class="btn btn--ghost" :to="profileLink">
+          <RouterLink v-if="profile?.public_slug || profile?.slug" class="btn btn--ghost" :to="profileLink">
             Повернутись до профілю
           </RouterLink>
         </div>
@@ -116,10 +116,10 @@ const reviewsError = ref('')
 
 const slug = computed(() => String(route.params.slug || '').trim())
 const publicName = computed(() => profile.value?.display_name || 'спеціаліста')
-const profileLink = computed(() => `/specialist/${profile.value?.public_slug || slug.value}`)
+const profileLink = computed(() => `/s/${profile.value?.public_slug || profile.value?.slug || slug.value}`)
 const loginLink = computed(() => ({
   name: 'login',
-  query: { redirect: `/specialist/${profile.value?.public_slug || slug.value}/feedback` },
+  query: { redirect: `/s/${profile.value?.public_slug || profile.value?.slug || slug.value}/feedback` },
 }))
 const roles = computed(() => auth.me?.user.roles ?? auth.user?.roles ?? [])
 const isAuthenticated = computed(() => Boolean(auth.accessToken))

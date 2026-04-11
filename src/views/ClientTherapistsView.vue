@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <section class="therapists">
     <header class="therapists__hero card">
       <div>
@@ -35,7 +35,7 @@
           v-for="therapist in therapists"
           :key="therapist.public_slug"
           class="therapist-card"
-          :to="`/specialist/${therapist.public_slug}`"
+          :to="`/s/${therapist.public_slug}`"
         >
           <img
             v-if="therapist.photo_url"

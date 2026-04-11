@@ -52,41 +52,18 @@
             Публічний профіль увімкнено
           </label>
           <div class="field">
-            <div class="muted">Код посилання</div>
-            <div class="slug-row">
-              <code
-                class="slug"
-                title="Це унікальний код, з якого формується посилання на ваш профіль. Якщо оновити код — попереднє посилання перестане працювати."
-              >
-                {{ profile.public_slug }}
-              </code>
-              <button
-                class="btn btn--ghost"
-                type="button"
-                title="Згенерувати новий код. Старе посилання стане недійсним."
-                @click="onRotateSlug"
-              >
-                Оновити
-              </button>
-            </div>
-            <div class="muted" style="font-size: 12px;">
-              Останнє оновлення: {{ profile.last_slug_rotated_at || 'ніколи' }}
-            </div>
-            <div class="muted" style="font-size: 12px;">
-              Це службовий код. Він потрібен, щоб оновлювати публічне посилання або відкривати профіль вручну.
-            </div>
-          </div>
-          <div class="field">
             <div class="muted">Публічне посилання</div>
             <div class="slug-row">
-              <code class="slug" title="Повне посилання, яким можна ділитися з клієнтами.">{{ publicUrl }}</code>
+              <code class="slug" title="Повне посилання, яким можна ділитися з клієнтами.">
+                {{ publicUrl || 'Посилання буде доступне після збереження slug.' }}
+              </code>
               <button
                 class="btn btn--ghost"
                 type="button"
                 title="Скопіювати посилання в буфер обміну."
                 @click="onCopyLink"
               >
-                Копіювати
+                Копіювати посилання
               </button>
               <a
                 v-if="isPublicProfilePublished"
@@ -96,11 +73,52 @@
                 rel="noreferrer"
                 title="Відкрити публічний профіль у новій вкладці."
               >
-                Відкрити
+                Відкрити профіль
               </a>
               <RouterLink v-else class="btn btn--ghost" to="/cabinet/profile">
                 Увімкнути публічний профіль
               </RouterLink>
+              <button
+                class="btn btn--ghost"
+                type="button"
+                :disabled="slugSaving"
+                @click="startSlugEdit"
+              >
+                Змінити адресу
+              </button>
+            </div>
+            <div v-if="slugEditOpen" class="slug-edit">
+              <div class="slug-edit__preview">
+                Попередній вигляд: <code>{{ slugPreviewPath || '/s/' }}</code>
+              </div>
+              <label class="field">
+                <span class="muted">Нова адреса</span>
+                <div class="slug-input">
+                  <span class="slug-input__prefix">/s/</span>
+                  <input
+                    v-model.trim="slugDraft"
+                    class="input"
+                    type="text"
+                    inputmode="text"
+                    autocomplete="off"
+                    spellcheck="false"
+                    placeholder="ваш-slug"
+                    :disabled="slugSaving"
+                  />
+                </div>
+              </label>
+              <div class="slug-edit__actions">
+                <button class="btn btn--ghost btn--sm" type="button" :disabled="slugSaving" @click="cancelSlugEdit">
+                  Скасувати
+                </button>
+                <button class="btn btn--sm" type="button" :disabled="slugSaving || !slugDraft.trim()" @click="saveSlug">
+                  {{ slugSaving ? 'Збереження...' : 'Зберегти адресу' }}
+                </button>
+              </div>
+              <div class="muted" style="font-size: 12px;">
+                Використайте латинські літери, цифри або дефіс.
+              </div>
+              <div v-if="slugError" class="form-error">{{ slugError }}</div>
             </div>
             <div v-if="!profile.public_profile_enabled" class="muted" style="font-size: 12px;">
               Публічний профіль ще не опубліковано.
@@ -954,7 +972,6 @@ import {
   deleteProfileDocument,
   fetchSpecialistProfile,
   fetchProfileDocuments,
-  rotateSpecialistProfileSlug,
   updateProfileDocument,
   updateSpecialistProfile,
   uploadProfilePhoto,
@@ -982,6 +999,10 @@ const success = ref('')
 const copyStatus = ref('')
 const shareStatus = ref('')
 const shareLoading = ref(false)
+const slugEditOpen = ref(false)
+const slugDraft = ref('')
+const slugSaving = ref(false)
+const slugError = ref('')
 const photoUploading = ref(false)
 const videoUploading = ref(false)
 const photoPreviewUrl = ref('')
@@ -1487,6 +1508,9 @@ function buildProfilePayload() {
 const profile = reactive<SpecialistProfile>({
   id: 0,
   public_profile_enabled: false,
+  slug: '',
+  public_profile_path: '',
+  public_profile_url: '',
   public_slug: '',
   last_slug_rotated_at: null,
   offers_online: true,
@@ -1537,9 +1561,60 @@ const profile = reactive<SpecialistProfile>({
   show_photo: false,
 })
 
+function normalizePublicProfilePath(value: string | null | undefined): string {
+  const raw = String(value || '').trim()
+  if (!raw) return ''
+  if (/^https?:\/\//i.test(raw)) {
+    try {
+      const parsed = new URL(raw)
+      return parsed.pathname || ''
+    } catch {
+      return ''
+    }
+  }
+  return raw.startsWith('/') ? raw : `/${raw}`
+}
+
+function normalizePublicProfileUrl(value: string | null | undefined): string {
+  return String(value || '').trim()
+}
+
+function extractCanonicalSlug(pathOrUrl: string | null | undefined): string {
+  const path = normalizePublicProfilePath(pathOrUrl)
+  if (!path) return ''
+  const match = path.match(/^\/s\/([^/?#]+)/i)
+  if (!match?.[1]) return ''
+  return match[1].trim()
+}
+
+const resolvedSlug = computed(() => {
+  const direct = String(profile.slug || profile.public_slug || '').trim()
+  if (direct) return direct
+  const fromPath = extractCanonicalSlug(profile.public_profile_path)
+  if (fromPath) return fromPath
+  return extractCanonicalSlug(profile.public_profile_url)
+})
+
+const publicPath = computed(() => {
+  const fromPath = normalizePublicProfilePath(profile.public_profile_path)
+  if (fromPath) return fromPath
+  const fromUrl = normalizePublicProfilePath(profile.public_profile_url)
+  if (fromUrl) return fromUrl
+  if (!resolvedSlug.value) return ''
+  return `/s/${resolvedSlug.value}`
+})
+
 const publicUrl = computed(() => {
-  if (!profile.public_slug) return ''
-  return `${window.location.origin}/specialist/${profile.public_slug}`
+  const fromUrl = normalizePublicProfileUrl(profile.public_profile_url)
+  if (fromUrl) return fromUrl
+  if (!publicPath.value) return ''
+  return `${window.location.origin}${publicPath.value}`
+})
+
+const slugPreviewPath = computed(() => {
+  const nextSlug = slugDraft.value.trim() || resolvedSlug.value
+  if (!nextSlug) return ''
+  return `/s/${nextSlug}`
 })
 
 const isPublicProfilePublished = computed(() => Boolean(profile.public_profile_enabled && publicUrl.value))
@@ -1772,6 +1847,9 @@ async function loadProfile() {
     showOtherSpecialization.value = false
     otherSpecializationInput.value = ''
     languageInput.value = ''
+    slugDraft.value = resolvedSlug.value
+    slugEditOpen.value = false
+    slugError.value = ''
     selectedMainRequestsSuggestionCategory.value = null
     selectedWorkBoundariesSuggestionCategory.value = null
     dirtySnapshot.markSaved()
@@ -1827,6 +1905,7 @@ async function onSave() {
     showOtherSpecialization.value = false
     otherSpecializationInput.value = ''
     languageInput.value = ''
+    slugDraft.value = resolvedSlug.value
     dirtySnapshot.markSaved()
     success.value = 'Збережено.'
   } catch (err) {
@@ -1836,15 +1915,58 @@ async function onSave() {
   }
 }
 
-async function onRotateSlug() {
+function startSlugEdit() {
+  slugDraft.value = resolvedSlug.value
+  slugEditOpen.value = true
+  slugError.value = ''
+}
+
+function cancelSlugEdit() {
+  slugEditOpen.value = false
+  slugDraft.value = resolvedSlug.value
+  slugError.value = ''
+}
+
+function mapSlugUpdateError(err: unknown): string {
+  const payload = (err as { response?: { data?: any } })?.response?.data
+  const code =
+    String(payload?.code || '').trim() ||
+    String(payload?.slug?.[0]?.code || '').trim() ||
+    String(payload?.slug?.[0] || '').trim()
+  if (code === 'SLUG_INVALID') {
+    return 'Некоректний формат адреси. Використайте латинські літери, цифри або дефіс.'
+  }
+  if (code === 'SLUG_RESERVED') {
+    return 'Ця адреса недоступна. Спробуйте інший варіант.'
+  }
+  if (code === 'SLUG_TAKEN') {
+    return 'Ця адреса вже зайнята. Спробуйте іншу.'
+  }
+  return ''
+}
+
+async function saveSlug() {
+  const nextSlug = slugDraft.value.trim()
+  if (!nextSlug) {
+    slugError.value = 'Некоректний формат адреси. Використайте латинські літери, цифри або дефіс.'
+    return
+  }
+  slugSaving.value = true
+  slugError.value = ''
   error.value = ''
   success.value = ''
+  copyStatus.value = ''
+  shareStatus.value = ''
   try {
-    const data = await rotateSpecialistProfileSlug()
+    const data = await updateSpecialistProfile({ slug: nextSlug })
     Object.assign(profile, normalizeProfile(data))
-    success.value = 'Публічне посилання оновлено.'
+    slugDraft.value = resolvedSlug.value
+    slugEditOpen.value = false
+    success.value = 'Адресу профілю оновлено.'
   } catch (err) {
-    error.value = getApiErrorMessage(err, 'Не вдалося оновити посилання')
+    slugError.value = mapSlugUpdateError(err) || getApiErrorMessage(err, 'Не вдалося оновити адресу')
+  } finally {
+    slugSaving.value = false
   }
 }
 
@@ -1982,8 +2104,20 @@ async function onDeleteVideo() {
 }
 
 function normalizeProfile(data: SpecialistProfile): SpecialistProfile {
+  const canonicalSlug = String(data.slug || data.public_slug || '').trim()
+  const canonicalPath =
+    normalizePublicProfilePath(data.public_profile_path) ||
+    (canonicalSlug ? `/s/${canonicalSlug}` : '')
+  const canonicalUrl =
+    normalizePublicProfileUrl(data.public_profile_url) ||
+    (canonicalPath ? `${window.location.origin}${canonicalPath}` : '')
+
   return {
     ...data,
+    slug: canonicalSlug,
+    public_slug: String(data.public_slug || canonicalSlug).trim(),
+    public_profile_path: canonicalPath,
+    public_profile_url: canonicalUrl,
     offers_online: typeof data.offers_online === 'boolean' ? data.offers_online : true,
     offers_offline: typeof data.offers_offline === 'boolean' ? data.offers_offline : false,
     offline_location: data.offline_location || '',
@@ -2833,6 +2967,54 @@ onMounted(() => {
   background: #f7f4ef;
   border: 1px dashed var(--line);
   font-size: 13px;
+}
+
+.slug-edit {
+  margin-top: 10px;
+  display: grid;
+  gap: 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: #fff;
+}
+
+.slug-edit__preview {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.slug-edit__actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.slug-input {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.slug-input__prefix {
+  padding: 0 10px;
+  font-size: 13px;
+  color: var(--muted);
+  border-right: 1px solid var(--line);
+  background: #f7f4ef;
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.slug-input .input {
+  border: 0;
+  border-radius: 0;
+  min-height: 38px;
 }
 
 .form-error {

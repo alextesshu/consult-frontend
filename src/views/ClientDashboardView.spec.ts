@@ -273,7 +273,7 @@ describe('ClientDashboardView', () => {
     )
     expect(within(priorityCard as HTMLElement).getByRole('link', { name: 'Профіль спеціаліста' })).toHaveAttribute(
       'href',
-      '/specialist/olena'
+      '/s/olena'
     )
   })
 
@@ -673,5 +673,4 @@ describe('ClientDashboardView', () => {
     ).toBeInTheDocument()
   })
 })
-
 

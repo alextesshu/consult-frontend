@@ -482,7 +482,7 @@
                   <RouterLink
                     v-if="profileSlug"
                     class="btn btn--ghost btn--sm"
-                    :to="`/${profileSlug}/journal/collections/${collection.slug}`"
+                    :to="`/s/${profileSlug}/journal/collections/${collection.slug}`"
                   >
                     Переглянути серію
                   </RouterLink>
@@ -567,7 +567,7 @@
                         <RouterLink
                           v-if="getPostById(item.post)?.slug && profileSlug"
                           class="collection-post-row__title-link"
-                          :to="`/${profileSlug}/journal/${getPostById(item.post)?.slug}`"
+                          :to="`/s/${profileSlug}/journal/${getPostById(item.post)?.slug}`"
                           :title="`Відкрити статтю: ${getPostById(item.post)?.title || ''}`"
                         >
                           {{ getPostTitle(item.post) }}
@@ -576,7 +576,7 @@
                         <a
                           v-if="getPostById(item.post)?.slug && profileSlug"
                           class="collection-post-row__open-new"
-                          :href="`/${profileSlug}/journal/${getPostById(item.post)?.slug}`"
+                          :href="`/s/${profileSlug}/journal/${getPostById(item.post)?.slug}`"
                           target="_blank"
                           rel="noopener noreferrer"
                           title="Відкрити в новій вкладці"
@@ -632,7 +632,7 @@
                         <RouterLink
                           v-if="post.slug && profileSlug"
                           class="collection-post-row__title-link"
-                          :to="`/${profileSlug}/journal/${post.slug}`"
+                          :to="`/s/${profileSlug}/journal/${post.slug}`"
                           :title="`Відкрити статтю: ${post.title}`"
                         >
                           {{ post.title }}
@@ -641,7 +641,7 @@
                         <a
                           v-if="post.slug && profileSlug"
                           class="collection-post-row__open-new"
-                          :href="`/${profileSlug}/journal/${post.slug}`"
+                          :href="`/s/${profileSlug}/journal/${post.slug}`"
                           target="_blank"
                           rel="noopener noreferrer"
                           title="Відкрити в новій вкладці"
@@ -868,7 +868,7 @@ async function loadCollections() {
 async function loadProfileSlug() {
   try {
     const profile = await fetchSpecialistProfile()
-    profileSlug.value = profile.public_slug || ''
+    profileSlug.value = String(profile.slug || profile.public_slug || '').trim()
   } catch {
     profileSlug.value = ''
   }
@@ -1292,7 +1292,7 @@ function clearEditCover() {
 function previewPost(post: AuthorJournalPost) {
   const specialistSlug = profileSlug.value
   if (!specialistSlug || !post.slug) return
-  router.push(`/${specialistSlug}/journal/${post.slug}`)
+  router.push(`/s/${specialistSlug}/journal/${post.slug}`)
 }
 
 function requestDeleteJournal(post: AuthorJournalPost) {

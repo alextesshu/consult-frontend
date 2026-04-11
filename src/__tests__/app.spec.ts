@@ -121,7 +121,7 @@ async function renderWithProviders(options?: {
     { path: '/cabinet/sessions/:id', component: { template: '<div>Session</div>' } },
     { path: '/client/sessions/:id', component: { template: '<div>Client Session</div>' } },
     {
-      path: '/specialist/:slug',
+      path: '/s/:slug',
       name: 'public-profile',
       component: { template: '<div>Public Profile</div>' },
     },
@@ -625,7 +625,7 @@ describe('App shell', () => {
         source_kind: 'inquiry_message',
         source_id: 82,
       })
-      expect(router.currentRoute.value.fullPath).toBe('/specialist/olena#inquiry')
+      expect(router.currentRoute.value.fullPath).toBe('/s/olena#inquiry')
     })
   })
 

@@ -143,8 +143,11 @@ export async function enableSpecialist(): Promise<void> {
 export type TherapistProfile = {
   id: number
   public_profile_enabled: boolean
-  public_slug: string
-  last_slug_rotated_at: string | null
+  slug?: string
+  public_profile_path?: string
+  public_profile_url?: string
+  public_slug?: string
+  last_slug_rotated_at?: string | null
   offers_online: boolean
   offers_offline: boolean
   offline_location: string
@@ -475,6 +478,7 @@ export type PublicBookingRules = {
 }
 
 export type PublicTherapistProfile = {
+  slug?: string
   public_slug?: string
   therapist_id: number
   display_name: string
@@ -992,8 +996,17 @@ export async function uploadClientPhoto(file: File): Promise<ClientProfile> {
 export async function fetchPublicTherapistProfile(
   slug: string
 ): Promise<PublicTherapistProfile> {
-  const resp = await http.get<PublicTherapistProfile>(`/public/specialists/${slug}/`)
-  return resp.data
+  try {
+    const resp = await http.get<PublicTherapistProfile>(`/s/${slug}/`)
+    return resp.data
+  } catch (err: any) {
+    const status = Number(err?.response?.status || 0)
+    if (status !== 404 && status !== 405) {
+      throw err
+    }
+  }
+  const legacyResp = await http.get<PublicTherapistProfile>(`/public/specialists/${slug}/`)
+  return legacyResp.data
 }
 
 export async function fetchPublicSpecialistProfile(

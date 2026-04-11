@@ -1045,8 +1045,9 @@ const matchesProfileSession = (session: ClientSession) => {
   if (specialistId && sessionSpecialist) {
     return specialistId === sessionSpecialist
   }
-  if (profile.value.public_slug && session.therapist_public_slug) {
-    return profile.value.public_slug === session.therapist_public_slug
+  const profileSlug = String(profile.value.public_slug || profile.value.slug || '').trim()
+  if (profileSlug && session.therapist_public_slug) {
+    return profileSlug === session.therapist_public_slug
   }
   return false
 }
@@ -1472,7 +1473,7 @@ const profileLocationDisplay = computed(() => {
 
 const feedbackLink = computed(() => ({
   name: 'specialist-feedback',
-  params: { slug: profile.value?.public_slug || slug.value },
+  params: { slug: profile.value?.public_slug || profile.value?.slug || slug.value },
 }))
 const heroCtaTitle = computed(() => {
   if (canMessageSpecialist.value) return 'Продовжити спілкування'
@@ -2403,7 +2404,8 @@ async function loadProfile() {
       if (auth.accessToken && hasOwnerRole) {
         try {
           const ownProfile = await fetchSpecialistProfile()
-          if (ownProfile?.public_slug === slug.value && ownProfile?.public_profile_enabled === false) {
+          const ownProfileSlug = String(ownProfile?.slug || ownProfile?.public_slug || '').trim()
+          if (ownProfileSlug === slug.value && ownProfile?.public_profile_enabled === false) {
             ownerUnpublishedProfile.value = true
             profile.value = null
             error.value = ''
@@ -2894,7 +2896,7 @@ async function createPublicGuestBookingRequest(
 
 async function submitGuestBookingRequest() {
   const slot = guestBookingSlot.value
-  const profileSlug = profile.value?.public_slug || slug.value
+  const profileSlug = String(profile.value?.public_slug || profile.value?.slug || slug.value).trim()
   if (!slot || !profileSlug) return
 
   const guestName = guestBookingForm.value.guest_name.trim()
@@ -3045,10 +3047,12 @@ async function bookSlot(slotId: number) {
     slots.value = slots.value.filter((slot) => slot.id !== slotId)
     if (profile.value) {
       const entry = pickSpecialist(profile.value)
-      const items = getStoredSelectedSpecialists()
-      const filtered = items.filter((item: any) => item.public_slug !== entry.public_slug)
-      filtered.unshift(entry)
-      persistSelectedSpecialists(filtered)
+      if (entry) {
+        const items = getStoredSelectedSpecialists()
+        const filtered = items.filter((item: any) => item.public_slug !== entry.public_slug)
+        filtered.unshift(entry)
+        persistSelectedSpecialists(filtered)
+      }
     }
   } catch (err: any) {
     bookingError.value = getBookingErrorMessage(err, BOOKING_ERROR_FALLBACKS.bookSlot)
@@ -3063,9 +3067,11 @@ function closeBookingModal() {
 }
 
 function pickSpecialist(data: PublicSpecialistProfile) {
+  const profileSlug = String(data.public_slug || data.slug || '').trim()
+  if (!profileSlug) return null
   return {
     therapist_id: data.therapist_id,
-    public_slug: data.public_slug,
+    public_slug: profileSlug,
     display_name: data.display_name,
     location: data.location,
     languages: data.languages,
@@ -3114,9 +3120,9 @@ function persistViewedSpecialists(items: any[]) {
 }
 
 function saveViewedSpecialist(data: PublicSpecialistProfile) {
-  if (!data.public_slug) return
-  const items = getStoredViewedSpecialists()
   const entry = pickSpecialist(data)
+  if (!entry) return
+  const items = getStoredViewedSpecialists()
   const filtered = items.filter((item: any) => item.public_slug !== entry.public_slug)
   filtered.unshift(entry)
   persistViewedSpecialists(filtered.slice(0, 8))
@@ -5148,4 +5154,3 @@ onMounted(async () => {
   }
 }
 </style>
-

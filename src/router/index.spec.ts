@@ -243,6 +243,8 @@ describe('router specialist session routes', () => {
       server_time: '2026-03-31T00:00:00Z',
     })
     mockedFetchSpecialistProfile.mockResolvedValue({
+      slug: 'olena',
+      public_profile_path: '/s/olena',
       public_slug: 'olena',
       public_profile_enabled: true,
     } as Awaited<ReturnType<typeof fetchSpecialistProfile>>)
@@ -269,6 +271,8 @@ describe('router specialist session routes', () => {
       server_time: '2026-03-31T00:00:00Z',
     })
     mockedFetchSpecialistProfile.mockResolvedValue({
+      slug: 'olena',
+      public_profile_path: '/s/olena',
       public_slug: 'olena',
       public_profile_enabled: false,
     } as Awaited<ReturnType<typeof fetchSpecialistProfile>>)

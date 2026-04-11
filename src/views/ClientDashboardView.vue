@@ -39,7 +39,7 @@
           v-for="therapist in selectedSpecialistsWithSessions"
           :key="therapist.public_slug"
           class="therapist-card"
-          :to="`/specialist/${therapist.public_slug}`"
+          :to="`/s/${therapist.public_slug}`"
         >
           <div class="therapist-photo-link">
             <img
@@ -135,7 +135,7 @@
           <RouterLink
             v-if="prioritySession.specialist_public_slug"
             class="btn btn--ghost"
-            :to="`/specialist/${prioritySession.specialist_public_slug}`"
+            :to="`/s/${prioritySession.specialist_public_slug}`"
           >
             Профіль спеціаліста
           </RouterLink>
@@ -234,7 +234,7 @@
           v-for="therapist in viewedSpecialists"
           :key="therapist.public_slug"
           class="therapist-card"
-          :to="`/specialist/${therapist.public_slug}`"
+          :to="`/s/${therapist.public_slug}`"
         >
           <div class="therapist-photo-link">
             <img
@@ -340,7 +340,7 @@
               <RouterLink
                 v-if="session.specialist_public_slug"
                 class="btn btn--ghost btn--sm"
-                :to="`/specialist/${session.specialist_public_slug}`"
+                :to="`/s/${session.specialist_public_slug}`"
               >
                 Профіль
               </RouterLink>
@@ -386,7 +386,7 @@
               <RouterLink
                 v-if="session.specialist_public_slug"
                 class="btn btn--ghost btn--sm"
-                :to="`/specialist/${session.specialist_public_slug}`"
+                :to="`/s/${session.specialist_public_slug}`"
               >
                 Профіль
               </RouterLink>
@@ -1017,7 +1017,7 @@ async function hydrateSpecialistProfiles() {
   responses.forEach((res, index) => {
     if (res.status !== 'fulfilled') return
     const data = res.value
-    const slug = data.public_slug || uniqueSlugs[index]
+    const slug = data.public_slug || data.slug || uniqueSlugs[index]
     if (!slug) return
     bySlug.set(slug, {
       therapist_id: data.therapist_id,
