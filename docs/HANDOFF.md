@@ -1,6 +1,6 @@
 # Handoff
 
-Last updated: 2026-04-07  
+Last updated: 2026-04-12  
 Owner: agent-maintained  
 Canonical file: `docs/HANDOFF.md`  
 Governance: `docs/HANDOFF_RULES.md`  
@@ -26,7 +26,10 @@ Frontend production-readiness slice is now integrated:
 - public guest booking request: done (public unauthenticated request submit flow on specialist public profile)
 - plan card guest quota visibility: done (`GET /api/cabinet/entitlements/` guest quota row in cabinet plan metrics)
 - specialist-side guest request UX polish: done (specialist list/status/approve/decline surface, online approve `meeting_url` guard, post-approve link to resulting external session/invite)
-- next functional slice: guest request micro-polish + contract-doc lock (no broad redesign)
+- canonical public short URL for specialist profile: done (`/s/:slug` primary route, `GET /api/s/{slug}/`, cabinet canonical share/open fields)
+- transliteration-aware slug generation follow-up: done (fallback cleanup only when `public_profile_enabled=false`)
+- next functional slice: Mini-phase B - `professional_focus` + copy-personalization foundation (separate from slug/routing phase)
+- queued follow-up after Mini-phase B: client cabinet/dashboard top upcoming sessions visibility
 
 ## System State
 
@@ -76,11 +79,25 @@ Frontend production-readiness slice is now integrated:
   - metrics include online/offline totals and completed online/offline totals
   - offline location distribution list is rendered with empty-state handling
   - values refresh together with existing analytics blocks on range switch (`7d`/`30d`/`90d`)
+- Canonical specialist public profile contract is now active:
+  - primary public route is `/s/:slug`
+  - primary public fetch is `GET /api/s/{slug}/`
+  - cabinet profile contract is `GET/PATCH /api/cabinet/profile/` with `slug`, `public_profile_path`, `public_profile_url`
+  - cabinet share/open/copy uses `public_profile_url` or `public_profile_path` as source of truth
+  - `specialist_slug` semantics is canonical slug (not legacy token, not UUID-like identifier)
+  - slug update validation codes mapped in UI: `SLUG_INVALID`, `SLUG_RESERVED`, `SLUG_TAKEN`
+- Slug generation/runtime guardrails:
+  - transliteration-aware slug generation is enabled
+  - fallback slug cleanup (`specialist`, `specialist-2`, etc.) applies only when `public_profile_enabled=false`
+  - already public fallback URLs are not auto-rewritten
+- Deploy routing guardrail:
+  - if Caddy routing/health config changes, deploy must include explicit Caddy reload/restart (current container: `backend-caddy-1`)
 - Current high-priority references for UI work:
   - `docs/UI_SHAPE_STANDARD.md`
   - `docs/HANDOFF.md`
   - `docs/HANDOFF_RULES.md`
   - `docs/BETA_FRONTEND_READINESS_PLAN.md`
+  - `docs/PROFILE_PUBLIC_URLS.md`
 
 ## Stable Areas
 
@@ -109,18 +126,18 @@ Frontend production-readiness slice is now integrated:
 
 ## Active Work
 
-- Guest request micro-polish on specialist-side surface:
-  - per-card inline error granularity for decision actions
-  - clearer per-card loading states for approve/decline
-- Contract-doc lock between frontend/backend for guest request approve/decline response shape.
-- Preserve current staging-proven guest request/external session behavior unchanged outside this bounded slice.
+- Mini-phase B scope (next standalone direction):
+  - `professional_focus` foundation
+  - copy-personalization foundation
+- Keep canonical slug/public-link behavior stable while extending profile-related UX.
+- Keep the separate follow-up queued: client cabinet/dashboard top upcoming sessions visibility.
 
 ## Immediate Next Step
 
-Implement and validate one focused specialist guest request micro-polish slice:
-- per-card error/loading UX for decision actions
-- no API contract changes
-- append-only phase summary update after closure
+Implement and validate one focused Mini-phase B slice without mixing slug/routing changes:
+- add `professional_focus` and copy-personalization foundation where contract is confirmed
+- keep canonical share/open flow unchanged (`public_profile_url` / `public_profile_path`)
+- keep compatibility routes working while avoiding new legacy-first assumptions
 
 ## Critical Rules
 
@@ -128,6 +145,12 @@ Implement and validate one focused specialist guest request micro-polish slice:
 - Keep UI states explicit and scoped per data source; avoid shared top-level error leakage.
 - Reuse existing shared UI/state patterns (`LoadingSkeleton`, `EmptyState`, existing composables/stores).
 - Preserve cookie-only refresh model; do not reintroduce localStorage token persistence.
+- Do not regress canonical public profile assumptions:
+  - `/s/:slug` stays primary
+  - legacy public routes stay compatibility-only
+  - do not reintroduce code/UUID-like public profile sharing UX as primary path
+- Keep `public_profile_url`/`public_profile_path` as public-link source of truth; avoid ad-hoc URL construction drift.
+- For Caddyfile changes, backend/frontend deploy alone is insufficient; include explicit Caddy reload/restart.
 - Keep handoff governance aligned with `docs/HANDOFF_RULES.md`:
   - `HANDOFF.md` = compact current snapshot
   - `PHASE_CLOSE_SUMMARIES.md` = append-only historical phase archive

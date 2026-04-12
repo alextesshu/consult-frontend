@@ -10,6 +10,59 @@ Usage:
 
 ---
 
+## 2026-04-12 - Canonical Public Short URL for Specialist Profile (Production + Staging Rolled Out)
+
+### Context
+- Phase targeted canonical-first specialist public profile routing and share semantics on frontend.
+- Goal: move to canonical slug behavior without breaking legacy compatibility routes.
+
+### Done
+- Set canonical specialist route as primary: `/s/:slug`; legacy public routes preserved as compatibility fallback.
+- Aligned public profile fetch with canonical endpoint: `GET /api/s/{slug}/`.
+- Aligned cabinet profile contract usage to `GET/PATCH /api/cabinet/profile/` fields:
+  - `slug`
+  - `public_profile_path`
+  - `public_profile_url`
+- Locked cabinet share/open/copy policy to `public_profile_url` / `public_profile_path` (not legacy route templates).
+- Locked slug update semantics and UI mapping for:
+  - `SLUG_INVALID`
+  - `SLUG_RESERVED`
+  - `SLUG_TAKEN`
+- Updated semantic rule: `specialist_slug` means canonical slug (not a legacy technical token).
+- Follow-up integrated:
+  - transliteration-aware slug generation
+  - fallback slug cleanup only when `public_profile_enabled=false`
+  - already public fallback URLs are not auto-rewritten
+
+### Validation
+- Production rollout verified:
+  - backend deploy successful
+  - frontend deploy successful
+  - canonical `/s/{slug}` and cabinet canonical share flow working
+- Staging rollout verified:
+  - backend deploy successful
+  - frontend deploy successful
+  - `/s/{slug}` working
+  - `/healthz` and `/readyz` routing fixed
+- Operational deploy lesson confirmed:
+  - Caddyfile changes require explicit Caddy reload/restart after deploy (`docker restart backend-caddy-1`)
+
+### Deferred / Not in Scope
+- `professional_focus`
+- copy-personalization
+- onboarding text adaptation
+- broad SEO pass
+- slug history / alias system
+- redirect graph for old slugs
+- tariff/role routing branches
+
+### Key Commits
+- Canonical short URL and slug follow-up were rolled out before this handoff documentation refresh.
+- This frontend task records the canonical contract in docs and adds no runtime code changes.
+
+### Merge Readiness
+- Canonical public short URL phase is closed and documented for frontend handoff continuity.
+
 ## 2026-04-07 - Specialist-Side Guest Request UX Polish (Staging Verified)
 
 ### Context
