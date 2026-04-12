@@ -1557,8 +1557,34 @@ onBeforeUnmount(() => {
     align-items: flex-start;
   }
 
+  .client__hero > div:first-child {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .client-hero-actions {
+    width: 100%;
+  }
+
   .therapist-card {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .client-hero-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .client-hero-actions .btn,
+  .client-hero-actions .btn.btn--ghost,
+  .client-hero-actions .btn.btn--live {
+    width: 100%;
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
   }
 }
 </style>
