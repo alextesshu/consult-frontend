@@ -151,7 +151,7 @@
                 class="input input--select"
                 data-testid="professional-focus-select"
               >
-                <option :value="null">Оберіть професійний фокус</option>
+                <option :value="null">Оберіть тип практики</option>
                 <option v-for="option in professionalFocusOptions" :key="option.value" :value="option.value">
                   {{ option.label }}
                 </option>

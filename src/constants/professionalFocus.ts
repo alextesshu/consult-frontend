@@ -1,10 +1,9 @@
 export const professionalFocusValues = [
-  'psychologist',
-  'psychotherapist',
-  'coach',
-  'mentor',
-  'consultant',
-  'teacher',
+  'psychological_practice',
+  'coaching_practice',
+  'mentoring_practice',
+  'consulting_practice',
+  'teaching_practice',
   'other',
 ] as const
 
@@ -16,13 +15,12 @@ export type ProfessionalFocusOption = {
 }
 
 export const professionalFocusOptions: readonly ProfessionalFocusOption[] = [
-  { value: 'psychologist', label: 'Психолог' },
-  { value: 'psychotherapist', label: 'Психотерапевт' },
-  { value: 'coach', label: 'Коуч' },
-  { value: 'mentor', label: 'Ментор' },
-  { value: 'consultant', label: 'Консультант' },
-  { value: 'teacher', label: 'Викладач' },
-  { value: 'other', label: 'Інше' },
+  { value: 'psychological_practice', label: 'Психологічна практика' },
+  { value: 'coaching_practice', label: 'Коучингова практика' },
+  { value: 'mentoring_practice', label: 'Менторська практика' },
+  { value: 'consulting_practice', label: 'Консультаційна практика' },
+  { value: 'teaching_practice', label: 'Викладацька практика' },
+  { value: 'other', label: 'Інша практика' },
 ]
 
 const professionalFocusValueSet = new Set<string>(professionalFocusValues)

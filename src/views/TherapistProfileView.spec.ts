@@ -76,7 +76,7 @@ function makeProfile(): SpecialistProfile {
     offers_online: true,
     offers_offline: true,
     offline_location: 'Львів, офіс 12',
-    professional_focus: 'psychologist',
+    professional_focus: 'psychological_practice',
     display_name: 'Анна',
     setting_text: 'Будь ласка, попереджайте про перенесення щонайменше за 24 години.',
     bio_about: 'Працюю дбайливо.',
@@ -225,13 +225,16 @@ describe('TherapistProfileView', () => {
   it('maps professional_focus from API into the profile form select', async () => {
     mockedFetchSpecialistProfile.mockResolvedValue({
       ...makeProfile(),
-      professional_focus: 'coach',
+      professional_focus: 'coaching_practice',
     })
 
     renderView()
 
     const focusSelect = (await screen.findByTestId('professional-focus-select')) as HTMLSelectElement
-    expect(focusSelect.value).toBe('coach')
+    expect(focusSelect.value).toBe('coaching_practice')
+    expect(
+      Array.from(focusSelect.options).some((option) => option.text === 'Коучингова практика')
+    ).toBe(true)
   })
 
   it('keeps profile form stable when professional_focus is null', async () => {
@@ -244,7 +247,7 @@ describe('TherapistProfileView', () => {
 
     const focusSelect = (await screen.findByTestId('professional-focus-select')) as HTMLSelectElement
     const selectedOption = focusSelect.options[focusSelect.selectedIndex]
-    expect(selectedOption?.text).toBe('Оберіть професійний фокус')
+    expect(selectedOption?.text).toBe('Оберіть тип практики')
     expect(screen.getByDisplayValue('Анна')).toBeInTheDocument()
   })
 
@@ -357,7 +360,7 @@ describe('TherapistProfileView', () => {
         offers_online: true,
         offers_offline: true,
         offline_location: 'Львів, офіс 12',
-        professional_focus: 'psychologist',
+        professional_focus: 'psychological_practice',
         display_name: 'Анна',
         setting_text: 'Оновлені умови перед записом.',
         education_summary: 'Integrative psychotherapy background.',
