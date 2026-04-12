@@ -1,5 +1,6 @@
 import { http } from './http'
 import type { AxiosRequestConfig } from 'axios'
+import type { ProfessionalFocus } from '../constants/professionalFocus'
 
 type TokenResponse = {
   access: string
@@ -151,6 +152,7 @@ export type TherapistProfile = {
   offers_online: boolean
   offers_offline: boolean
   offline_location: string
+  professional_focus?: ProfessionalFocus | null
   display_name: string
   bio?: string
   bio_about: string
@@ -481,6 +483,7 @@ export type PublicTherapistProfile = {
   slug?: string
   public_slug?: string
   therapist_id: number
+  professional_focus?: ProfessionalFocus | null
   display_name: string
   completed_sessions_count?: number
   offers_online?: boolean

@@ -7,6 +7,7 @@ import {
   deleteProfileDocument,
   fetchProfileDocuments,
   fetchSpecialistProfile,
+  type SpecialistProfile,
   updateProfileDocument,
   updateSpecialistProfile,
   uploadProfilePhoto,
@@ -63,7 +64,7 @@ const mockedUpdateSpecialistProfile = vi.mocked(updateSpecialistProfile)
 const mockedUploadProfilePhoto = vi.mocked(uploadProfilePhoto)
 const mockedUploadProfileVideo = vi.mocked(uploadProfileVideo)
 
-function makeProfile() {
+function makeProfile(): SpecialistProfile {
   return {
     id: 5,
     public_profile_enabled: true,
@@ -75,6 +76,7 @@ function makeProfile() {
     offers_online: true,
     offers_offline: true,
     offline_location: 'Львів, офіс 12',
+    professional_focus: 'psychologist',
     display_name: 'Анна',
     setting_text: 'Будь ласка, попереджайте про перенесення щонайменше за 24 години.',
     bio_about: 'Працюю дбайливо.',
@@ -220,6 +222,32 @@ describe('TherapistProfileView', () => {
     expect(await screen.findByText(`${window.location.origin}/s/anna-new`)).toBeInTheDocument()
   })
 
+  it('maps professional_focus from API into the profile form select', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValue({
+      ...makeProfile(),
+      professional_focus: 'coach',
+    })
+
+    renderView()
+
+    const focusSelect = (await screen.findByTestId('professional-focus-select')) as HTMLSelectElement
+    expect(focusSelect.value).toBe('coach')
+  })
+
+  it('keeps profile form stable when professional_focus is null', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValue({
+      ...makeProfile(),
+      professional_focus: null,
+    })
+
+    renderView()
+
+    const focusSelect = (await screen.findByTestId('professional-focus-select')) as HTMLSelectElement
+    const selectedOption = focusSelect.options[focusSelect.selectedIndex]
+    expect(selectedOption?.text).toBe('Оберіть професійний фокус')
+    expect(screen.getByDisplayValue('Анна')).toBeInTheDocument()
+  })
+
   it.each([
     ['SLUG_INVALID', 'Некоректний формат адреси. Використайте латинські літери, цифри або дефіс.'],
     ['SLUG_RESERVED', 'Ця адреса недоступна. Спробуйте інший варіант.'],
@@ -329,6 +357,7 @@ describe('TherapistProfileView', () => {
         offers_online: true,
         offers_offline: true,
         offline_location: 'Львів, офіс 12',
+        professional_focus: 'psychologist',
         display_name: 'Анна',
         setting_text: 'Оновлені умови перед записом.',
         education_summary: 'Integrative psychotherapy background.',
@@ -348,6 +377,32 @@ describe('TherapistProfileView', () => {
     expect(await screen.findByText('Збережено.')).toBeInTheDocument()
     await waitFor(() => {
       expect(screen.queryByTestId('profile-sticky-save-bar')).not.toBeInTheDocument()
+    })
+  })
+
+  it('sends null professional_focus when specialist clears selection', async () => {
+    const profile = makeProfile()
+    mockedFetchSpecialistProfile.mockResolvedValue(profile)
+    mockedUpdateSpecialistProfile.mockResolvedValue({
+      ...profile,
+      professional_focus: null,
+    })
+
+    renderView()
+
+    const focusSelect = (await screen.findByTestId('professional-focus-select')) as HTMLSelectElement
+    const placeholderValue = focusSelect.options[0]?.value ?? ''
+    await fireEvent.update(focusSelect, placeholderValue)
+
+    expect(await screen.findByTestId('profile-sticky-save-bar')).toBeInTheDocument()
+    await fireEvent.click(screen.getByRole('button', { name: 'Зберегти' }))
+
+    await waitFor(() => {
+      expect(mockedUpdateSpecialistProfile).toHaveBeenCalledWith(
+        expect.objectContaining({
+          professional_focus: null,
+        })
+      )
     })
   })
 

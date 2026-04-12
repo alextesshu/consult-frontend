@@ -145,6 +145,20 @@
               <input v-model="profile.display_name" class="input" type="text" placeholder="Напр. Олена Коваль" />
             </label>
             <label class="field">
+              <span class="field-label">Професійний фокус</span>
+              <select
+                v-model="profile.professional_focus"
+                class="input input--select"
+                data-testid="professional-focus-select"
+              >
+                <option :value="null">Оберіть професійний фокус</option>
+                <option v-for="option in professionalFocusOptions" :key="option.value" :value="option.value">
+                  {{ option.label }}
+                </option>
+              </select>
+              <div class="field-help">Як ви позиціонуєте свою практику на платформі.</div>
+            </label>
+            <label class="field">
               <span class="field-label">Спеціалізації</span>
               <div class="chip-field">
                 <div class="chip" v-for="(spec, index) in specializationList" :key="`${spec}-${index}`">
@@ -989,6 +1003,11 @@ import {
   type SuggestionCategoryKey,
   type SuggestionSectionKey,
 } from '../constants/profileSuggestionPresets'
+import {
+  normalizeProfessionalFocus,
+  professionalFocusOptions,
+  type ProfessionalFocus,
+} from '../constants/professionalFocus'
 
 const loading = ref(true)
 const route = useRoute()
@@ -1459,6 +1478,7 @@ function buildProfilePayload() {
   return {
     public_profile_enabled: profile.public_profile_enabled,
     display_name: profile.display_name,
+    professional_focus: normalizeProfessionalFocus(profile.professional_focus),
     setting_text: (profile.setting_text || '').trim(),
     bio_about: profile.bio_about,
     bio_work: profile.bio_work,
@@ -1516,6 +1536,7 @@ const profile = reactive<SpecialistProfile>({
   offers_online: true,
   offers_offline: false,
   offline_location: '',
+  professional_focus: null,
   display_name: '',
   setting_text: '',
   bio_about: '',
@@ -1694,6 +1715,7 @@ function setSuggestionCategory(section: SuggestionSectionKey, category: Suggesti
 type ProfileFormSnapshot = {
   public_profile_enabled: boolean
   display_name: string
+  professional_focus: ProfessionalFocus | null
   setting_text: string
   bio_about: string
   bio_work: string
@@ -1743,6 +1765,7 @@ function createProfileFormSnapshot(): ProfileFormSnapshot {
   return {
     public_profile_enabled: profile.public_profile_enabled,
     display_name: profile.display_name || '',
+    professional_focus: normalizeProfessionalFocus(profile.professional_focus),
     setting_text: profile.setting_text || '',
     bio_about: profile.bio_about || '',
     bio_work: profile.bio_work || '',
@@ -2121,6 +2144,7 @@ function normalizeProfile(data: SpecialistProfile): SpecialistProfile {
     offers_online: typeof data.offers_online === 'boolean' ? data.offers_online : true,
     offers_offline: typeof data.offers_offline === 'boolean' ? data.offers_offline : false,
     offline_location: data.offline_location || '',
+    professional_focus: normalizeProfessionalFocus(data.professional_focus),
     display_name: data.display_name || '',
     setting_text: data.setting_text || '',
     bio_about: data.bio_about || '',
