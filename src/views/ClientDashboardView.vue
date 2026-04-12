@@ -105,23 +105,36 @@
         </template>
       </EmptyState>
       <div v-else-if="prioritySession" class="priority-body">
-        <RouterLink class="priority-main priority-main--clickable" :to="`/client/sessions/${prioritySession.id}`">
-          <div class="priority-time">{{ formatDateTime(sessionStartAt(prioritySession)) }}</div>
-          <div class="muted">{{ specialistLabel(prioritySession) }}</div>
-          <div class="muted">{{ sessionFormatBadge(prioritySession) }}</div>
-          <div v-if="meetingBadge(prioritySession)" class="muted">{{ meetingBadge(prioritySession) }}</div>
-          <div v-if="isPriorityLive" class="status-pill status-pill--danger">Сесія триває</div>
-          <div
-            v-else
-            class="status-pill"
-            :class="{ 'status-pill--warn': prioritySession.status === 'SCHEDULED' }"
-          >
-            {{ sessionStatusLabel(prioritySession) }}
+        <div class="priority-content">
+          <RouterLink class="priority-main priority-main--clickable" :to="`/client/sessions/${prioritySession.id}`">
+            <div class="priority-time">{{ formatDateTime(sessionStartAt(prioritySession)) }}</div>
+            <div class="muted">{{ specialistLabel(prioritySession) }}</div>
+            <div class="muted">{{ sessionFormatBadge(prioritySession) }}</div>
+            <div v-if="meetingBadge(prioritySession)" class="muted">{{ meetingBadge(prioritySession) }}</div>
+            <div v-if="isPriorityLive" class="status-pill status-pill--danger">Сесія триває</div>
+            <div
+              v-else
+              class="status-pill"
+              :class="{ 'status-pill--warn': prioritySession.status === 'SCHEDULED' }"
+            >
+              {{ sessionStatusLabel(prioritySession) }}
+            </div>
+            <div v-if="timeUntilLabel(prioritySession)" class="status-pill status-pill--warn">
+              Початок через {{ timeUntilLabel(prioritySession) }}
+            </div>
+          </RouterLink>
+          <div v-if="hasPrioritySecondarySummary" class="priority-secondary">
+            <div v-if="priorityAdditionalHint" class="priority-secondary__hint">{{ priorityAdditionalHint }}</div>
+            <RouterLink
+              v-if="prioritySecondarySession"
+              class="priority-secondary__row"
+              :to="`/client/sessions/${prioritySecondarySession.id}`"
+            >
+              {{ compactPrioritySessionLabel(prioritySecondarySession) }}
+            </RouterLink>
+            <a class="priority-secondary__link" href="#upcoming-sessions">Усі найближчі</a>
           </div>
-          <div v-if="timeUntilLabel(prioritySession)" class="status-pill status-pill--warn">
-            Початок через {{ timeUntilLabel(prioritySession) }}
-          </div>
-        </RouterLink>
+        </div>
         <div class="priority-actions">
           <a
             v-if="canJoinMeeting(prioritySession)"
@@ -293,7 +306,7 @@
     </div>
 
     <div class="client__grid">
-      <div class="card">
+      <div id="upcoming-sessions" class="card">
         <div class="card__title">Найближчі</div>
         <LoadingSkeleton v-if="loading" variant="list" :count="2" />
         <EmptyState
@@ -424,7 +437,7 @@ import EmptyState from '../components/EmptyState.vue'
 import ConfirmModal from '../components/ConfirmModal.vue'
 import LoadingSkeleton from '../components/LoadingSkeleton.vue'
 import { useConfirmModal } from '../composables/useConfirmModal'
-import { formatUkDateTimeCompact } from '../lib/dateTime'
+import { formatUkDateTimeCompact, formatUkTime } from '../lib/dateTime'
 import { mapInquiryStateToUi, type InquiryUiTone } from '../lib/inquiryCopy'
 import {
   canJoinExternalMeeting,
@@ -457,6 +470,11 @@ type Session = {
   slot: Slot | null
   slot_start_at?: string | null
   slot_end_at?: string | null
+}
+
+type TimedUpcomingSession = {
+  session: Session
+  startTs: number
 }
 
 type SelectedSpecialist = {
@@ -503,6 +521,7 @@ const groupEventsError = ref('')
 const confirmModal = useConfirmModal()
 const nowTs = ref(Date.now())
 const LIVE_STATUS_REFRESH_MS = 30 * 1000
+const SECONDARY_NEAR_TERM_WINDOW_MS = 36 * 60 * 60 * 1000
 let nowIntervalId: number | null = null
 
 type GroupEvent = {
@@ -567,6 +586,33 @@ const introPriceLabel = (specialist: SelectedSpecialist) => {
 const sessionStartAt = (session: Session) => session.slot?.start_at || session.slot_start_at || null
 const sessionEndAt = (session: Session) => session.slot?.end_at || session.slot_end_at || null
 
+function toTimestamp(value?: string | null) {
+  if (!value) return null
+  const timestamp = new Date(value).getTime()
+  return Number.isNaN(timestamp) ? null : timestamp
+}
+
+function sessionStartTs(session: Session) {
+  return toTimestamp(sessionStartAt(session))
+}
+
+function localDayStartTs(timestamp: number) {
+  const value = new Date(timestamp)
+  value.setHours(0, 0, 0, 0)
+  return value.getTime()
+}
+
+function isTodayTimestamp(timestamp: number) {
+  return localDayStartTs(timestamp) === localDayStartTs(nowTs.value)
+}
+
+function isTomorrowTimestamp(timestamp: number) {
+  const tomorrow = new Date(nowTs.value)
+  tomorrow.setHours(0, 0, 0, 0)
+  tomorrow.setDate(tomorrow.getDate() + 1)
+  return localDayStartTs(timestamp) === tomorrow.getTime()
+}
+
 function isSessionInProgress(session: Session) {
   if (!['SCHEDULED', 'CONFIRMED'].includes(session.status)) return false
   const startRaw = sessionStartAt(session) || session.join_starts_at
@@ -579,16 +625,15 @@ function isSessionInProgress(session: Session) {
   return now >= start && now <= end
 }
 
+const sortedUpcoming = computed<TimedUpcomingSession[]>(() =>
+  upcoming.value
+    .map((session) => ({ session, startTs: sessionStartTs(session) }))
+    .filter((item): item is TimedUpcomingSession => item.startTs !== null)
+    .sort((a, b) => a.startTs - b.startTs)
+)
+
 const nextUpcoming = computed(() => {
-  const items = upcoming.value
-    .filter((session) => sessionStartAt(session))
-    .slice()
-    .sort(
-      (a, b) =>
-        new Date(sessionStartAt(a) || '').getTime() -
-        new Date(sessionStartAt(b) || '').getTime()
-    )
-  return items[0] || null
+  return sortedUpcoming.value[0]?.session || null
 })
 
 const livePrioritySession = computed(() => {
@@ -596,17 +641,71 @@ const livePrioritySession = computed(() => {
     .filter((session, index, arr) => arr.findIndex((other) => other.id === session.id) === index)
     .filter((session) => isSessionInProgress(session))
     .slice()
-    .sort(
-      (a, b) =>
-        new Date(sessionStartAt(a) || '').getTime() -
-        new Date(sessionStartAt(b) || '').getTime()
-    )
+    .sort((a, b) => (sessionStartTs(a) || 0) - (sessionStartTs(b) || 0))
   return items[0] || null
 })
 
 const prioritySession = computed(() => livePrioritySession.value || nextUpcoming.value)
 const isPriorityLive = computed(() =>
   prioritySession.value ? isSessionInProgress(prioritySession.value) : false
+)
+const priorityAdditionalTodaySessions = computed(() => {
+  const primary = prioritySession.value
+  if (!primary) return []
+  const primaryStartTs = sessionStartTs(primary)
+  if (primaryStartTs === null || !isTodayTimestamp(primaryStartTs)) return []
+  return sortedUpcoming.value
+    .filter((item) => item.session.id !== primary.id && isTodayTimestamp(item.startTs))
+    .map((item) => item.session)
+})
+const priorityAdditionalTodayCount = computed(() => priorityAdditionalTodaySessions.value.length)
+const prioritySecondarySession = computed(() => {
+  const primary = prioritySession.value
+  if (!primary) return null
+
+  if (priorityAdditionalTodaySessions.value.length > 0) {
+    return priorityAdditionalTodaySessions.value[0]
+  }
+
+  const primaryStartTs = sessionStartTs(primary)
+  if (primaryStartTs === null) return null
+
+  const baselineTs = Math.max(primaryStartTs, nowTs.value)
+  const nextNearSession = sortedUpcoming.value.find(
+    (item) => item.session.id !== primary.id && item.startTs >= baselineTs
+  )
+  if (!nextNearSession) return null
+  if (nextNearSession.startTs - baselineTs > SECONDARY_NEAR_TERM_WINDOW_MS) return null
+  return nextNearSession.session
+})
+
+function meetingWord(count: number) {
+  const mod10 = count % 10
+  const mod100 = count % 100
+  if (mod10 === 1 && mod100 !== 11) return 'зустріч'
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return 'зустрічі'
+  return 'зустрічей'
+}
+
+const priorityAdditionalHint = computed(() => {
+  const additionalToday = priorityAdditionalTodayCount.value
+  if (additionalToday > 0) {
+    return `Сьогодні ще ${additionalToday} ${meetingWord(additionalToday)}`
+  }
+
+  const secondary = prioritySecondarySession.value
+  if (!secondary) return ''
+  const secondaryStartAt = sessionStartAt(secondary)
+  const secondaryStartTs = sessionStartTs(secondary)
+  if (!secondaryStartAt || secondaryStartTs === null) return ''
+  if (isTomorrowTimestamp(secondaryStartTs)) {
+    return `Далі: завтра о ${formatUkTime(secondaryStartAt)}`
+  }
+  return 'Далі ще 1 найближча сесія'
+})
+
+const hasPrioritySecondarySummary = computed(() =>
+  Boolean(priorityAdditionalHint.value || prioritySecondarySession.value)
 )
 
 function timeUntilLabel(session: Session) {
@@ -645,6 +744,15 @@ function specialistLabel(session: Session) {
   if (name) return `Спеціаліст: ${name}`
   if (session.specialist_id) return `Спеціаліст: #${session.specialist_id}`
   return 'Спеціаліст: —'
+}
+
+function compactPrioritySessionLabel(session: Session) {
+  const startAt = sessionStartAt(session)
+  const time = formatUkTime(startAt)
+  const specialist = session.specialist_name || session.specialist_username
+  if (specialist) return `${time} · ${specialist}`
+  if (session.specialist_id) return `${time} · Спеціаліст #${session.specialist_id}`
+  return `${time} · Спеціаліст`
 }
 
 function resolveSessionFormat(session: Session): SessionFormat {
@@ -1130,6 +1238,12 @@ onBeforeUnmount(() => {
     flex-wrap: wrap;
   }
 
+  .priority-content {
+    display: grid;
+    gap: 8px;
+    min-width: 0;
+  }
+
   .priority-main {
     display: grid;
     gap: 6px;
@@ -1160,6 +1274,35 @@ onBeforeUnmount(() => {
     display: flex;
     gap: 10px;
     flex-wrap: wrap;
+  }
+
+  .priority-secondary {
+    display: grid;
+    gap: 6px;
+    padding-left: 2px;
+  }
+
+  .priority-secondary__hint {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1f4a60;
+  }
+
+  .priority-secondary__row {
+    width: fit-content;
+    font-size: 13px;
+    color: var(--muted);
+    text-decoration: none;
+  }
+
+  .priority-secondary__row:hover {
+    text-decoration: underline;
+  }
+
+  .priority-secondary__link {
+    width: fit-content;
+    font-size: 13px;
+    color: var(--muted);
   }
 
 .status-pill {

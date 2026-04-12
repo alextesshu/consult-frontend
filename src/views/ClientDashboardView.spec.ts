@@ -63,6 +63,7 @@ function renderView() {
 
 describe('ClientDashboardView', () => {
   beforeEach(() => {
+    vi.useRealTimers()
     mockedApiGet.mockReset()
     mockedFetchInquiryState.mockReset()
     mockedFetchPublicSpecialistProfile.mockReset()
@@ -394,6 +395,154 @@ describe('ClientDashboardView', () => {
     expect(screen.queryByRole('link', { name: 'Сесія триває' })).not.toBeInTheDocument()
   })
 
+  it('shows compact same-day summary when more sessions are planned for today', async () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-01-15T08:00:00Z'))
+
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/booking/sessions/' && config?.params?.upcoming === true) {
+        return [
+          {
+            id: 301,
+            status: 'CONFIRMED',
+            specialist: 14,
+            specialist_name: 'Олена',
+            specialist_public_slug: 'olena',
+            meeting_url: null,
+            meeting_provider: null,
+            slot: null,
+            slot_start_at: '2026-01-15T10:00:00Z',
+            slot_end_at: '2026-01-15T11:00:00Z',
+          },
+          {
+            id: 302,
+            status: 'SCHEDULED',
+            specialist: 15,
+            specialist_name: 'Іван',
+            specialist_public_slug: 'ivan',
+            meeting_url: null,
+            meeting_provider: null,
+            slot: null,
+            slot_start_at: '2026-01-15T12:00:00Z',
+            slot_end_at: '2026-01-15T13:00:00Z',
+          },
+          {
+            id: 303,
+            status: 'SCHEDULED',
+            specialist: 16,
+            specialist_name: 'Марія',
+            specialist_public_slug: 'maria',
+            meeting_url: null,
+            meeting_provider: null,
+            slot: null,
+            slot_start_at: '2026-01-15T16:00:00Z',
+            slot_end_at: '2026-01-15T17:00:00Z',
+          },
+        ]
+      }
+      if (url === '/booking/sessions/' && config?.params?.upcoming === false) {
+        return []
+      }
+      if (url === '/booking/group-events/') {
+        return []
+      }
+      throw new Error(`Unexpected apiGet call: ${url} ${JSON.stringify(config)}`)
+    })
+
+    renderView()
+
+    expect(await screen.findByText('Сьогодні ще 2 зустрічі')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Іван/i })).toHaveAttribute('href', '/client/sessions/302')
+    expect(screen.getByRole('link', { name: 'Усі найближчі' })).toHaveAttribute('href', '#upcoming-sessions')
+  })
+
+  it('shows tomorrow hint when the next extra session is near but not today', async () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-01-15T08:00:00Z'))
+
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/booking/sessions/' && config?.params?.upcoming === true) {
+        return [
+          {
+            id: 401,
+            status: 'CONFIRMED',
+            specialist: 14,
+            specialist_name: 'Олена',
+            specialist_public_slug: 'olena',
+            meeting_url: null,
+            meeting_provider: null,
+            slot: null,
+            slot_start_at: '2026-01-15T10:00:00Z',
+            slot_end_at: '2026-01-15T11:00:00Z',
+          },
+          {
+            id: 402,
+            status: 'SCHEDULED',
+            specialist: 15,
+            specialist_name: 'Іван',
+            specialist_public_slug: 'ivan',
+            meeting_url: null,
+            meeting_provider: null,
+            slot: null,
+            slot_start_at: '2026-01-16T08:00:00Z',
+            slot_end_at: '2026-01-16T09:00:00Z',
+          },
+        ]
+      }
+      if (url === '/booking/sessions/' && config?.params?.upcoming === false) {
+        return []
+      }
+      if (url === '/booking/group-events/') {
+        return []
+      }
+      throw new Error(`Unexpected apiGet call: ${url} ${JSON.stringify(config)}`)
+    })
+
+    renderView()
+
+    expect(await screen.findByText(/^Далі: завтра о /)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /Іван/i })).toHaveAttribute('href', '/client/sessions/402')
+    expect(screen.queryByText(/Сьогодні ще/)).not.toBeInTheDocument()
+  })
+
+  it('keeps priority block clean when there is only one upcoming session', async () => {
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/booking/sessions/' && config?.params?.upcoming === true) {
+        return [
+          {
+            id: 501,
+            status: 'CONFIRMED',
+            specialist: 14,
+            specialist_name: 'Олена',
+            specialist_public_slug: 'olena',
+            meeting_url: null,
+            meeting_provider: null,
+            slot: null,
+            slot_start_at: '2099-06-15T10:00:00Z',
+            slot_end_at: '2099-06-15T11:00:00Z',
+          },
+        ]
+      }
+      if (url === '/booking/sessions/' && config?.params?.upcoming === false) {
+        return []
+      }
+      if (url === '/booking/group-events/') {
+        return []
+      }
+      throw new Error(`Unexpected apiGet call: ${url} ${JSON.stringify(config)}`)
+    })
+
+    renderView()
+
+    expect(await screen.findByRole('link', { name: 'Найближча сесія' })).toHaveAttribute(
+      'href',
+      '/client/sessions/501'
+    )
+    expect(screen.queryByText(/Сьогодні ще/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/^Далі:/)).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Усі найближчі' })).not.toBeInTheDocument()
+  })
+
   it('shows inquiry discoverability states for available, existing, and unavailable inquiry flows', async () => {
     localStorage.setItem(
       'selectedSpecialists',
@@ -673,4 +822,3 @@ describe('ClientDashboardView', () => {
     ).toBeInTheDocument()
   })
 })
-
