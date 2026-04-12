@@ -176,8 +176,25 @@
                   @keydown="onSpecializationKeydown"
                 />
                 <datalist id="specializationOptions">
-                  <option v-for="option in specializationOptions" :key="option" :value="option" />
+                  <option v-for="option in specializationPresetOptions" :key="option" :value="option" />
                 </datalist>
+              </div>
+              <div class="quick-suggestions" data-testid="specialization-suggestions">
+                <div class="quick-suggestions__title">Рекомендовані спеціалізації</div>
+                <div class="quick-suggestions__chips">
+                  <button
+                    v-for="suggestion in specializationPresetOptions"
+                    :key="`specialization-suggestion-${suggestion}`"
+                    type="button"
+                    class="quick-suggestion-chip"
+                    :class="{ 'is-selected': isSpecializationSelected(suggestion) }"
+                    :disabled="isSpecializationSelected(suggestion)"
+                    data-testid="specialization-suggestion-chip"
+                    @click="appendSpecializationSuggestion(suggestion)"
+                  >
+                    {{ suggestion }}
+                  </button>
+                </div>
               </div>
               <div v-if="showOtherSpecialization" class="chip-field" style="margin-top: 8px;">
                 <input
@@ -1008,6 +1025,7 @@ import {
   professionalFocusOptions,
   type ProfessionalFocus,
 } from '../constants/professionalFocus'
+import { getSpecializationPresets } from '../constants/specializationPresets'
 
 const loading = ref(true)
 const route = useRoute()
@@ -1082,22 +1100,6 @@ const experienceOptions = Array.from({ length: 31 }, (_, value) => ({
   value,
   label: experienceLabel(value),
 }))
-
-const specializationOptions = [
-  'Гештальт терапія',
-  'Екзистенційна терапія',
-  'Клієнт-центрована терапія',
-  'Когнітивно-поведінкова терапія',
-  'Терапія прийняття і відповідальності (ACT)',
-  'Позитивна психотерапія',
-  'Психоаналіз',
-  'Психодрама',
-  'Символдрама',
-  'Схема-терапія',
-  'Транзакційний аналіз',
-  'Арттерапія',
-  'Інше',
-]
 
 const languageInput = ref('')
 const languageList = ref<string[]>([])
@@ -1704,6 +1706,7 @@ const mainRequestSuggestions = computed(
 const workBoundarySuggestions = computed(
   () => profileSuggestionPresets.work_boundaries[activeWorkBoundariesSuggestionCategory.value]
 )
+const specializationPresetOptions = computed(() => getSpecializationPresets(profile.professional_focus))
 
 function setSuggestionCategory(section: SuggestionSectionKey, category: SuggestionCategoryKey) {
   if (section === 'main_requests') {
@@ -2245,17 +2248,20 @@ function isAllowedFileType(file: File, allowedMime: Set<string>, allowedExt: Set
 
 function addSpecialization() {
   const value = specializationInput.value.trim()
+  appendSpecializationValue(value)
+  specializationInput.value = ''
+}
+
+function appendSpecializationValue(value: string) {
   if (!value) return
   if (value.toLowerCase() === 'інше') {
     showOtherSpecialization.value = true
-    specializationInput.value = ''
     otherSpecializationInput.value = ''
     return
   }
   if (!specializationList.value.includes(value)) {
     specializationList.value.push(value)
   }
-  specializationInput.value = ''
 }
 
 function addOtherSpecialization() {
@@ -2287,9 +2293,17 @@ function onSpecializationInput() {
     addSpecialization()
     return
   }
-  if (specializationOptions.includes(value)) {
+  if (specializationPresetOptions.value.includes(value)) {
     addSpecialization()
   }
+}
+
+function isSpecializationSelected(value: string): boolean {
+  return specializationList.value.includes(value)
+}
+
+function appendSpecializationSuggestion(value: string) {
+  appendSpecializationValue(value)
 }
 
 function toStringValue(value: string | string[] | null | undefined): string {

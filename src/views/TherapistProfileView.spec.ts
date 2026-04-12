@@ -311,6 +311,86 @@ describe('TherapistProfileView', () => {
     expect(firstWorkBoundariesChip).toBeDisabled()
   })
 
+  it('renders psychology specialization presets for psychological_practice focus', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValue({
+      ...makeProfile(),
+      professional_focus: 'psychological_practice',
+    })
+
+    renderView()
+
+    await screen.findByTestId('specialization-suggestions')
+    expect(screen.getByRole('button', { name: 'Гештальт-терапія' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Когнітивно-поведінкова терапія' })).toBeInTheDocument()
+  })
+
+  it('renders coaching specialization presets for coaching_practice focus', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValue({
+      ...makeProfile(),
+      professional_focus: 'coaching_practice',
+    })
+
+    renderView()
+
+    await screen.findByTestId('specialization-suggestions')
+    expect(screen.getByRole('button', { name: 'Кар’єрний коучинг' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Executive coaching' })).toBeInTheDocument()
+  })
+
+  it('renders fallback specialization presets when professional_focus is null', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValue({
+      ...makeProfile(),
+      professional_focus: null,
+    })
+
+    renderView()
+
+    await screen.findByTestId('specialization-suggestions')
+    expect(screen.getByRole('button', { name: 'Індивідуальна практика' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Консультаційний супровід' })).toBeInTheDocument()
+  })
+
+  it('updates specialization presets when professional_focus changes', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValue({
+      ...makeProfile(),
+      professional_focus: 'psychological_practice',
+    })
+
+    renderView()
+
+    const focusSelect = (await screen.findByTestId('professional-focus-select')) as HTMLSelectElement
+    expect(screen.getByRole('button', { name: 'Гештальт-терапія' })).toBeInTheDocument()
+
+    await fireEvent.update(focusSelect, 'consulting_practice')
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Бізнес-консалтинг' })).toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'Гештальт-терапія' })).not.toBeInTheDocument()
+    })
+  })
+
+  it('preserves selected specialization tags when professional_focus changes', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValue({
+      ...makeProfile(),
+      specializations: [],
+      professional_focus: 'psychological_practice',
+    })
+
+    renderView()
+
+    await screen.findByTestId('specialization-suggestions')
+    await fireEvent.click(screen.getByRole('button', { name: 'Гештальт-терапія' }))
+    expect(screen.getAllByText('Гештальт-терапія').length).toBeGreaterThan(1)
+
+    const focusSelect = screen.getByTestId('professional-focus-select') as HTMLSelectElement
+    await fireEvent.update(focusSelect, 'coaching_practice')
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Кар’єрний коучинг' })).toBeInTheDocument()
+    })
+    expect(screen.getAllByText('Гештальт-терапія')).toHaveLength(1)
+  })
+
   it('keeps sticky save bar hidden on pristine form', async () => {
     mockedFetchSpecialistProfile.mockResolvedValue(makeProfile())
 
