@@ -2086,6 +2086,7 @@ describe('PublicProfileView', () => {
     const chatButton = await screen.findByRole('button', { name: 'Написати повідомлення' })
     expect(chatButton).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Написати спеціалісту' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Записатися на сесію' })).toHaveAttribute('href', '#slots')
     expect(screen.getAllByText('Мої сесії')).toHaveLength(2)
     expect(screen.queryByText('Поставити запитання')).not.toBeInTheDocument()
 

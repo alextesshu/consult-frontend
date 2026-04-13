@@ -19,15 +19,16 @@
         <button class="btn btn--primary" type="button" @click="$emit('primary-action')">
           {{ heroPrimaryLabel }}
         </button>
-        <RouterLink
-          v-if="showClientSessionsCta"
-          class="btn btn--ghost"
-          to="/client"
-        >
-          Мої сесії
-        </RouterLink>
-        <a v-else class="btn btn--ghost" href="#slots">Переглянути вільні вікна</a>
-        <RouterLink class="btn btn--ghost" :to="feedbackLink">Відгуки</RouterLink>
+        <template v-if="showClientSessionsCta">
+          <a class="btn btn--ghost" href="#slots">Записатися на сесію</a>
+          <RouterLink class="btn btn--ghost" to="/client">
+            Мої сесії
+          </RouterLink>
+        </template>
+        <template v-else>
+          <a class="btn btn--ghost" href="#slots">Переглянути вільні вікна</a>
+          <RouterLink class="btn btn--ghost" :to="feedbackLink">Відгуки</RouterLink>
+        </template>
       </div>
 
       <section class="identity-rail__contacts" v-if="showContactActions">
