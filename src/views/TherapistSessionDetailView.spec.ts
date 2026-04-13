@@ -519,6 +519,7 @@ describe('TherapistSessionDetailView', () => {
       expect(screen.getByRole('button', { name: 'Відкрити робочий зошит' })).toBeInTheDocument()
       expect(screen.queryByRole('button', { name: 'Додати / відкрити нотатку' })).not.toBeInTheDocument()
       expect(await screen.findByDisplayValue('Completed session note (reloaded)')).toBeInTheDocument()
+      expect(document.querySelector('a[href="/cabinet/clients?client=77&autoOpen=1"]')).toBeInTheDocument()
       expect(endpointCalls('/booking/sessions/42/')).toBe(2)
       expect(endpointCalls('/cabinet/slots/')).toBe(2)
       expect(endpointCalls('/booking/sessions/42/reschedule-suggestions/')).toBe(2)

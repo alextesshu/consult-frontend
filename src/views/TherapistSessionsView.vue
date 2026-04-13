@@ -28,7 +28,7 @@
         <button class="btn btn--sm" type="button" @click="openPostSessionWorkbook">
           Відкрити робочий зошит
         </button>
-        <RouterLink class="btn btn--ghost btn--sm" to="/cabinet/clients">
+        <RouterLink class="btn btn--ghost btn--sm" :to="postSessionClientLink">
           Відкрити клієнта
         </RouterLink>
         <RouterLink
@@ -567,7 +567,7 @@
           v-if="postSessionContext && noteSessionId === postSessionContext.sessionId"
           class="next-step-rail next-step-rail--modal"
         >
-          <RouterLink class="btn btn--ghost btn--sm" to="/cabinet/clients">
+          <RouterLink class="btn btn--ghost btn--sm" :to="postSessionClientLink">
             Відкрити клієнта
           </RouterLink>
           <RouterLink
@@ -605,6 +605,7 @@
                 >
                   Зберегти нотатку
                 </button>
+                <div v-if="noteSaveMessage" class="note-save-feedback">{{ noteSaveMessage }}</div>
               </div>
             </div>
             <div class="note-panel note-panel--workbook">
@@ -630,6 +631,7 @@
                 >
                   Зберегти зошит
                 </button>
+                <div v-if="journalSaveMessage" class="note-save-feedback">{{ journalSaveMessage }}</div>
               </div>
             </div>
           </div>
@@ -782,6 +784,10 @@ const noteTextareaRef = ref<HTMLTextAreaElement | null>(null)
 const journalTextareaRef = ref<HTMLTextAreaElement | null>(null)
 const journalClientId = ref<number | null>(null)
 const journalDraft = ref('')
+const noteInitialDraft = ref('')
+const journalInitialDraft = ref('')
+const noteSaveMessage = ref('')
+const journalSaveMessage = ref('')
 const journalLoading = ref(false)
 const journalSaving = ref(false)
 const therapistPhotoUrl = ref('')
@@ -945,6 +951,12 @@ const postSessionNextSession = computed(() => {
   })
 })
 
+const postSessionClientLink = computed(() => {
+  const clientId = postSessionContext.value?.clientId
+  if (!clientId) return '/cabinet/clients'
+  return `/cabinet/clients?client=${clientId}&autoOpen=1`
+})
+
 const canCancel = (status: string) => sharedCanCancel(status)
 const canReschedule = (status: string) => sharedCanReschedule(status)
 
@@ -964,6 +976,37 @@ function recurringReasonLabel(reason: string) {
 
 function suggestionReasonLabel(reasonTag: string) {
   return getSuggestionReasonLabel(reasonTag)
+}
+
+function savedAtMessage() {
+  const time = new Date().toLocaleTimeString('uk-UA', {
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+  return `\u0417\u0431\u0435\u0440\u0435\u0436\u0435\u043d\u043e \u043e ${time}.`
+}
+
+function hasUnsavedModalChanges() {
+  if (noteDraft.value !== noteInitialDraft.value) return true
+  if (journalClientId.value && journalDraft.value !== journalInitialDraft.value) return true
+  return false
+}
+
+function confirmNoteModalClose() {
+  return window.confirm(
+    '\u0423 \u0432\u0430\u0441 \u0454 \u043d\u0435\u0437\u0431\u0435\u0440\u0435\u0436\u0435\u043d\u0456 \u0437\u043c\u0456\u043d\u0438. \u0417\u0430\u043a\u0440\u0438\u0442\u0438 \u0431\u0435\u0437 \u0437\u0431\u0435\u0440\u0435\u0436\u0435\u043d\u043d\u044f?'
+  )
+}
+
+function resetNoteModalState() {
+  noteSessionId.value = null
+  noteDraft.value = ''
+  noteInitialDraft.value = ''
+  noteSaveMessage.value = ''
+  journalClientId.value = null
+  journalDraft.value = ''
+  journalInitialDraft.value = ''
+  journalSaveMessage.value = ''
 }
 
 const isActionLoading = (id: number) => actionLoading.value.has(id)
@@ -1269,7 +1312,8 @@ async function openPostSessionWorkbook() {
 }
 
 function returnToSessionList() {
-  closeNote()
+  const closed = closeNote()
+  if (!closed) return
   clearPostSessionContext()
 }
 
@@ -1421,6 +1465,8 @@ async function loadNote(id: number) {
   error.value = ''
   try {
     noteDraft.value = await fetchSpecialistSessionNoteContentData(id)
+    noteInitialDraft.value = noteDraft.value
+    noteSaveMessage.value = ''
   } catch (err: any) {
     error.value = getBookingErrorMessage(err, BOOKING_ERROR_FALLBACKS.loadSessionNote)
   } finally {
@@ -1433,6 +1479,8 @@ async function loadClientJournal(clientId: number) {
   error.value = ''
   try {
     journalDraft.value = await fetchSpecialistClientJournalContentData(clientId)
+    journalInitialDraft.value = journalDraft.value
+    journalSaveMessage.value = ''
   } catch (err: any) {
     error.value = getBookingErrorMessage(err, BOOKING_ERROR_FALLBACKS.loadSessionNote)
   } finally {
@@ -1445,6 +1493,8 @@ async function saveNote(id: number) {
   error.value = ''
   try {
     await saveSpecialistSessionNoteAction(id, noteDraft.value)
+    noteInitialDraft.value = noteDraft.value
+    noteSaveMessage.value = savedAtMessage()
     toast.success(BOOKING_SUCCESS_MESSAGES.noteSaved)
   } catch (err: any) {
     error.value = getBookingErrorMessage(err, BOOKING_ERROR_FALLBACKS.saveSessionNote)
@@ -1458,6 +1508,8 @@ async function saveClientJournal(clientId: number) {
   error.value = ''
   try {
     await saveSpecialistClientJournalAction(clientId, journalDraft.value)
+    journalInitialDraft.value = journalDraft.value
+    journalSaveMessage.value = savedAtMessage()
     toast.success(BOOKING_SUCCESS_MESSAGES.noteSaved)
   } catch (err: any) {
     error.value = getBookingErrorMessage(err, BOOKING_ERROR_FALLBACKS.saveSessionNote)
@@ -1477,9 +1529,17 @@ async function focusNoteModalField(target: NoteModalFocusTarget) {
 }
 
 async function openNoteModal(id: number, options?: { focus?: NoteModalFocusTarget }) {
+  if (noteSessionId.value && noteSessionId.value !== id) {
+    const closed = closeNote()
+    if (!closed) return
+  }
   noteSessionId.value = id
   noteDraft.value = ''
+  noteInitialDraft.value = ''
+  noteSaveMessage.value = ''
   journalDraft.value = ''
+  journalInitialDraft.value = ''
+  journalSaveMessage.value = ''
   const session = findSessionById(id)
   journalClientId.value = session?.client || null
   const target = options?.focus === 'workbook' && journalClientId.value ? 'workbook' : 'note'
@@ -1493,10 +1553,11 @@ async function openNoteModal(id: number, options?: { focus?: NoteModalFocusTarge
 }
 
 function closeNote() {
-  noteSessionId.value = null
-  noteDraft.value = ''
-  journalClientId.value = null
-  journalDraft.value = ''
+  if (hasUnsavedModalChanges() && !confirmNoteModalClose()) {
+    return false
+  }
+  resetNoteModalState()
+  return true
 }
 
 async function loadRescheduleRequests() {
@@ -1543,6 +1604,18 @@ async function openNoteFromHash() {
   if (!id) return
   await openNoteModal(id)
 }
+
+watch(noteDraft, (value) => {
+  if (value !== noteInitialDraft.value) {
+    noteSaveMessage.value = ''
+  }
+})
+
+watch(journalDraft, (value) => {
+  if (value !== journalInitialDraft.value) {
+    journalSaveMessage.value = ''
+  }
+})
 
 onMounted(async () => {
   await Promise.all([loadSessions(), loadSlots(), loadRescheduleRequests(), loadTherapistProfilePhoto()])
@@ -2045,6 +2118,13 @@ onBeforeUnmount(() => {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
+  align-items: center;
+}
+
+.note-save-feedback {
+  color: #1f6f52;
+  font-size: 12px;
+  font-weight: 600;
 }
 
 .note-panel--session {

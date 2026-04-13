@@ -658,6 +658,7 @@ describe('TherapistSessionsView', () => {
     expect(mockedFetchSpecialistClientJournalContent).toHaveBeenCalledWith(105)
     expect(await screen.findByDisplayValue('Updated completion note')).toBeInTheDocument()
     expect(await screen.findByDisplayValue('Client journal note')).toBeInTheDocument()
+    expect(document.querySelector('a[href="/cabinet/clients?client=105&autoOpen=1"]')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Відкрити робочий зошит' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Додати / відкрити нотатку' })).not.toBeInTheDocument()
     expect(screen.getByText('Нотатки після сесії')).toBeInTheDocument()
@@ -783,6 +784,73 @@ describe('TherapistSessionsView', () => {
       expect(mockedSaveSpecialistSessionNote).toHaveBeenCalledWith(17, 'Updated note')
     })
     expect(screen.getByDisplayValue('Updated note')).toBeInTheDocument()
+    expect(document.querySelectorAll('.note-save-feedback').length).toBeGreaterThan(0)
+
+    const saveButtons = Array.from(document.querySelectorAll('.note-panel .note-actions .btn--sm')) as HTMLButtonElement[]
+    const saveWorkbookButton = saveButtons[1]
+    expect(saveWorkbookButton).toBeTruthy()
+    await fireEvent.click(saveWorkbookButton as HTMLButtonElement)
+    await waitFor(() => {
+      expect(mockedSaveSpecialistClientJournal).toHaveBeenCalledWith(107, 'Initial workbook')
+    })
+    expect(document.querySelectorAll('.note-save-feedback').length).toBeGreaterThan(1)
+  })
+
+  it('confirms before closing note modal when there are unsaved changes', async () => {
+    const confirmedSession = buildSession({
+      id: 18,
+      status: 'CONFIRMED',
+      client: 108,
+      client_name: 'Guarded',
+      client_email: 'guarded@example.com',
+      slot: 208,
+      slot_start_at: '2099-06-22T08:00:00Z',
+      slot_end_at: '2099-06-22T08:50:00Z',
+    })
+    let upcomingSessions = [confirmedSession]
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/booking/sessions/' && (config as { params?: { upcoming?: boolean } } | undefined)?.params?.upcoming) {
+        return upcomingSessions
+      }
+      if (url === '/booking/sessions/' && (config as { params?: { upcoming?: boolean } } | undefined)?.params?.upcoming === false) {
+        return []
+      }
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedCompleteSpecialistSession.mockImplementation(async () => {
+      upcomingSessions = [{ ...confirmedSession, status: 'COMPLETED' }]
+    })
+    mockedFetchSpecialistSessionNoteContent.mockResolvedValue('Initial guarded note')
+    mockedFetchSpecialistClientJournalContent.mockResolvedValue('Initial guarded workbook')
+
+    const confirmSpy = vi.spyOn(window, 'confirm')
+    confirmSpy.mockReturnValueOnce(false).mockReturnValueOnce(true)
+
+    renderView()
+
+    expect(await screen.findByText(/guarded@example\.com/)).toBeInTheDocument()
+    const sessionCard = screen.getByText(/guarded@example\.com/).closest('article')
+    expect(sessionCard).not.toBeNull()
+    const completionButton = within(sessionCard as HTMLElement).getByRole('button', {
+      name: 'Завершити',
+    }) as HTMLButtonElement
+    await fireEvent.click(completionButton)
+    await fireEvent.click(screen.getByTestId('session-completion-submit'))
+
+    const noteField = await screen.findByDisplayValue('Initial guarded note')
+    await fireEvent.update(noteField, 'Unsaved guarded note')
+
+    const closeButton = document.querySelector('.note-modal__primary-action') as HTMLButtonElement | null
+    expect(closeButton).toBeTruthy()
+    await fireEvent.click(closeButton as HTMLButtonElement)
+    expect(confirmSpy).toHaveBeenCalledTimes(1)
+    expect(document.querySelector('.note-modal')).toBeInTheDocument()
+
+    await fireEvent.click(closeButton as HTMLButtonElement)
+    await waitFor(() => {
+      expect(document.querySelector('.note-modal')).not.toBeInTheDocument()
+    })
+    confirmSpy.mockRestore()
   })
 
   it('submits a reschedule request from the list and closes the inline panel after reload', async () => {
@@ -1029,5 +1097,4 @@ describe('TherapistSessionsView', () => {
     expect(mockedApiGet).toHaveBeenCalledTimes(4)
   })
 })
-
 

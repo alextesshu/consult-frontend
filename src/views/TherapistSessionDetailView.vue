@@ -188,7 +188,7 @@
           <button class="btn btn--sm" type="button" @click="openPostSessionWorkbook">
             Відкрити робочий зошит
           </button>
-          <RouterLink class="btn btn--ghost btn--sm" to="/cabinet/clients">
+          <RouterLink class="btn btn--ghost btn--sm" :to="postSessionClientLink">
             Відкрити клієнта
           </RouterLink>
           <RouterLink
@@ -595,6 +595,12 @@ const meetingHint = computed(() => {
 const meetingSetupHint = computed(() => {
   if (meetingHint.value) return meetingHint.value
   return 'Додайте посилання на Google Meet, Zoom або іншу платформу для онлайн-зустрічі.'
+})
+
+const postSessionClientLink = computed(() => {
+  const clientId = postSessionContext.value?.clientId ?? session.value?.client ?? null
+  if (!clientId) return '/cabinet/clients'
+  return `/cabinet/clients?client=${clientId}&autoOpen=1`
 })
 
 const sessionRequests = computed(() =>

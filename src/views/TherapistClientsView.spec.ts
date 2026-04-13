@@ -50,6 +50,11 @@ describe('TherapistClientsView', () => {
   beforeEach(() => {
     mockedApiGet.mockReset()
     mockedApiPatch.mockReset()
+    window.history.replaceState({}, '', '/cabinet/clients')
+    Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', {
+      configurable: true,
+      value: vi.fn(),
+    })
   })
 
   it('shows loading state while clients list is pending', async () => {
@@ -188,17 +193,21 @@ describe('TherapistClientsView', () => {
     })
     mockedApiPatch.mockResolvedValue(undefined as any)
 
-    const { getByRole } = renderView()
+    const { container } = renderView()
 
-    const archiveButton = await waitFor(() => getByRole('button', { name: 'Архівувати' }))
-    await fireEvent.click(archiveButton)
+    const actionButtons = await waitFor(() => {
+      const buttons = container.querySelectorAll('.client-card .client-actions button')
+      expect(buttons.length).toBeGreaterThanOrEqual(2)
+      return buttons
+    })
+    await fireEvent.click(actionButtons[1] as HTMLButtonElement)
 
     await waitFor(() => {
       expect(mockedApiPatch).toHaveBeenCalledWith('/cabinet/clients/44/archive/')
     })
   })
 
-  it('loads private history for matching client_id', async () => {
+  it('loads private history and renders continuation actions', async () => {
     mockedApiGet.mockImplementation(async (url) => {
       if (url === '/cabinet/clients/')
         return [
@@ -234,22 +243,171 @@ describe('TherapistClientsView', () => {
       throw new Error(`Unexpected apiGet call: ${url}`)
     })
 
-    const { getByRole, queryByText, container } = renderView()
+    const { queryByText, container } = renderView()
 
-    const historyButton = await waitFor(() => getByRole('button', { name: 'Приватна історія клієнта' }))
+    const historyButton = await waitFor(() => {
+      const button = container.querySelector('.client-card .client-actions button')
+      expect(button).toBeInstanceOf(HTMLButtonElement)
+      return button as HTMLButtonElement
+    })
     await fireEvent.click(historyButton)
-    const expandButton = await waitFor(() =>
-      Array.from(container.querySelectorAll('.workbook-block button.btn--ghost')).find(
-        (button) => button.textContent?.includes('Розгорнути зошит')
-      )
-    )
-    await fireEvent.click(expandButton as Element)
+
+    const expandButton = await waitFor(() => {
+      const button = container.querySelector('.workbook-block__controls button:last-of-type')
+      expect(button).toBeInstanceOf(HTMLButtonElement)
+      return button as HTMLButtonElement
+    })
+    await fireEvent.click(expandButton)
 
     await waitFor(() => {
       expect(container.querySelector('textarea.workbook-textarea')).toHaveValue('journal-44')
       expect(queryByText('note-44')).toBeInTheDocument()
       expect(queryByText('note-99')).not.toBeInTheDocument()
+      expect(container.querySelector('a[href="/cabinet/sessions#note-777"]')).toBeInTheDocument()
+      expect(container.querySelector('a[href="/cabinet/clients/44/workbook"]')).toBeInTheDocument()
     })
     expect(mockedApiGet).not.toHaveBeenCalledWith('/cabinet/clients/44/journal/')
+  })
+
+  it('searches clients by name, code and id and keeps status filter active', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/cabinet/clients/')
+        return [
+          {
+            id: 1,
+            client_id: 44,
+            state: 'ACTIVE',
+            last_session_at: null,
+            upcoming_count: 0,
+            client_name: 'Olena',
+            client_code: 'A-101',
+          },
+          {
+            id: 2,
+            client_id: 55,
+            state: 'INACTIVE',
+            last_session_at: null,
+            upcoming_count: 0,
+            client_name: 'Marta',
+            client_code: 'B-500',
+          },
+          {
+            id: 3,
+            client_id: 66,
+            state: 'ARCHIVED',
+            last_session_at: null,
+            upcoming_count: 0,
+            client_name: 'Ihor',
+            client_code: 'C-900',
+          },
+        ]
+      if (url === '/booking/sessions/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    const { container } = renderView()
+    const { clientsPanel } = getPanels(container)
+
+    const searchInput = await waitFor(() => {
+      const input = clientsPanel.querySelector('#clients-search-input')
+      expect(input).toBeInstanceOf(HTMLInputElement)
+      return input as HTMLInputElement
+    })
+    const filterButtons = clientsPanel.querySelectorAll('.filters button')
+
+    await waitFor(() => {
+      expect(clientsPanel.querySelectorAll('.client-card')).toHaveLength(3)
+    })
+
+    await fireEvent.update(searchInput, 'A-101')
+    await waitFor(() => {
+      expect(clientsPanel.querySelectorAll('.client-card')).toHaveLength(1)
+    })
+
+    await fireEvent.update(searchInput, '44')
+    await waitFor(() => {
+      expect(clientsPanel.querySelectorAll('.client-card')).toHaveLength(1)
+    })
+
+    await fireEvent.click(filterButtons[2] as HTMLButtonElement)
+    await waitFor(() => {
+      expect(clientsPanel.querySelectorAll('.client-card')).toHaveLength(0)
+      expect(clientsPanel.querySelector('.empty-state')).toBeTruthy()
+    })
+
+    await fireEvent.update(searchInput, 'B-500')
+    await waitFor(() => {
+      expect(clientsPanel.querySelectorAll('.client-card')).toHaveLength(1)
+    })
+  })
+
+  it('shows fallback client title with relation id when name and code are missing', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/cabinet/clients/')
+        return [
+          {
+            id: 1,
+            client_id: 44,
+            state: 'ACTIVE',
+            last_session_at: null,
+            upcoming_count: 0,
+          },
+        ]
+      if (url === '/booking/sessions/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    const { container } = renderView()
+
+    await waitFor(() => {
+      expect(container.textContent).toContain('Клієнт #44')
+    })
+  })
+
+  it('opens and highlights deep-linked client card automatically', async () => {
+    window.history.replaceState({}, '', '/cabinet/clients?client=44&autoOpen=1')
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/cabinet/clients/')
+        return [
+          {
+            id: 1,
+            client_id: 44,
+            state: 'ACTIVE',
+            last_session_at: null,
+            upcoming_count: 0,
+            client_name: 'Target Client',
+            client_journal_content: 'journal-44',
+          },
+          {
+            id: 2,
+            client_id: 55,
+            state: 'ACTIVE',
+            last_session_at: null,
+            upcoming_count: 0,
+            client_name: 'Another Client',
+          },
+        ]
+      if (url === '/booking/sessions/')
+        return [
+          {
+            id: 700,
+            client_id: 44,
+            status: 'COMPLETED',
+            slot_start_at: '2099-06-17T10:00:00Z',
+            slot_end_at: '2099-06-17T10:50:00Z',
+          },
+        ]
+      if (url === '/cabinet/sessions/700/note/') return { content: 'deep-link-note' }
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    const { container } = renderView()
+
+    await waitFor(() => {
+      const targetCard = container.querySelector('#client-card-44')
+      expect(targetCard).toBeInTheDocument()
+      expect(targetCard).toHaveClass('client-card--targeted')
+      expect(targetCard?.querySelector('.client-history')).toBeTruthy()
+    })
   })
 })

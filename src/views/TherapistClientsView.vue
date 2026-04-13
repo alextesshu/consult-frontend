@@ -84,6 +84,18 @@
         </button>
       </div>
 
+      <div class="clients-search">
+        <label class="clients-search__label" for="clients-search-input">Швидкий пошук</label>
+        <input
+          id="clients-search-input"
+          v-model.trim="searchQuery"
+          class="input clients-search__input"
+          type="search"
+          placeholder="Ім'я, код або ID клієнта"
+          autocomplete="off"
+        />
+      </div>
+
       <LoadingSkeleton v-if="clientsLoading" variant="list" :count="4" height="110px" />
       <EmptyState
         v-else-if="clientsError"
@@ -100,7 +112,14 @@
         description="Змініть фільтр або поверніться пізніше, коли з'являться нові клієнти."
       />
       <div v-else class="client-list">
-        <article v-for="client in filteredClients" :key="relationClientId(client)" class="client-card">
+        <article
+          v-for="client in filteredClients"
+          :id="clientCardDomId(relationClientId(client))"
+          :key="relationClientId(client)"
+          class="client-card"
+          :class="{ 'client-card--targeted': targetedClientId === relationClientId(client) }"
+          tabindex="-1"
+        >
           <div class="client-info">
             <div class="client-name">{{ displayClientName(client) }}</div>
             <div v-if="client.client_code" class="muted">
@@ -202,6 +221,14 @@
                 </div>
                 <div class="history-note" v-if="item.note">{{ item.note }}</div>
                 <div class="muted" v-else>Нотаток ще немає.</div>
+                <div class="history-actions">
+                  <RouterLink class="btn btn--ghost btn--sm" :to="`/cabinet/sessions#note-${item.sessionId}`">
+                    Відкрити нотатку
+                  </RouterLink>
+                  <RouterLink class="btn btn--ghost btn--sm" :to="`/cabinet/clients/${relationClientId(client)}/workbook`">
+                    Відкрити робочий зошит
+                  </RouterLink>
+                </div>
               </div>
             </div>
           </div>
@@ -212,7 +239,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { apiGet, apiPatch } from '../lib/api'
 import EmptyState from '../components/EmptyState.vue'
 import LoadingSkeleton from '../components/LoadingSkeleton.vue'
@@ -278,8 +305,10 @@ const clientsLoading = ref(false)
 const clientsError = ref('')
 const error = ref('')
 const filter = ref<'ALL' | 'ACTIVE' | 'INACTIVE' | 'ARCHIVED'>('ALL')
+const searchQuery = ref('')
 const actionLoading = ref<Set<number>>(new Set())
 const expandedClientId = ref<number | null>(null)
+const targetedClientId = ref<number | null>(null)
 const historyLoading = ref<Set<number>>(new Set())
 const clientHistory = ref<Record<number, HistoryItem[]>>({})
 const clientJournalDrafts = ref<Record<number, string>>({})
@@ -295,10 +324,15 @@ const retryLabel = '\u0421\u043f\u0440\u043e\u0431\u0443\u0432\u0430\u0442\u0438
 const remindersErrorTitle = '\u041d\u0435 \u0432\u0434\u0430\u043b\u043e\u0441\u044f \u0437\u0430\u0432\u0430\u043d\u0442\u0430\u0436\u0438\u0442\u0438 \u043d\u0430\u0433\u0430\u0434\u0443\u0432\u0430\u043d\u043d\u044f'
 const remindersEmptyTitle = '\u0423\u0441\u0456 \u0437\u0430\u0432\u0435\u0440\u0448\u0435\u043d\u0456 \u0441\u0435\u0441\u0456\u0457 \u043c\u0430\u044e\u0442\u044c \u043a\u043e\u043c\u0435\u043d\u0442\u0430\u0440\u0456'
 const remindersEmptyDescription = '\u041d\u043e\u0432\u0456 \u043d\u0430\u0433\u0430\u0434\u0443\u0432\u0430\u043d\u043d\u044f \u0437\u0027\u044f\u0432\u043b\u044f\u0442\u044c\u0441\u044f \u043f\u0456\u0441\u043b\u044f \u0437\u0430\u0432\u0435\u0440\u0448\u0435\u043d\u043d\u044f \u0441\u0435\u0441\u0456\u0439 \u0431\u0435\u0437 \u043d\u043e\u0442\u0430\u0442\u043a\u0438.'
+const initialDeepLinkClientId = parseClientDeepLinkClientId(window.location.search)
+let clientCardHighlightTimer: number | null = null
 
 const filteredClients = computed(() => {
-  if (filter.value === 'ALL') return clients.value
-  return clients.value.filter((client) => client.state === filter.value)
+  const byStatus =
+    filter.value === 'ALL' ? clients.value : clients.value.filter((client) => client.state === filter.value)
+  const query = normalizeSearchValue(searchQuery.value)
+  if (!query) return byStatus
+  return byStatus.filter((client) => matchesClientSearch(client, query))
 })
 
 const clientIndex = computed(() => {
@@ -321,6 +355,61 @@ function relationClientId(client: Pick<ClientState, 'client' | 'client_id'>) {
 
 function relationSessionClientId(session: Pick<SessionItem, 'client' | 'client_id'>) {
   return Number(session.client ?? session.client_id ?? 0)
+}
+
+function normalizeSearchValue(value?: string | number | null) {
+  return String(value ?? '').trim().toLowerCase()
+}
+
+function matchesClientSearch(client: ClientState, query: string) {
+  const searchable = [
+    displayClientName(client),
+    normalizeClientName(client.client_name),
+    normalizeClientName(client.client_username),
+    client.client_code,
+    relationClientId(client),
+    client.id,
+  ]
+  return searchable.map((item) => normalizeSearchValue(item)).some((item) => item.includes(query))
+}
+
+function parseClientDeepLinkClientId(search: string) {
+  const params = new URLSearchParams(search)
+  const value = Number(params.get('client'))
+  const autoOpen = params.get('autoOpen')
+  const shouldAutoOpen = autoOpen == null || autoOpen === '1' || autoOpen.toLowerCase() === 'true'
+  if (!shouldAutoOpen || !Number.isFinite(value) || value <= 0) return null
+  return value
+}
+
+function clientCardDomId(clientId: number) {
+  return `client-card-${clientId}`
+}
+
+function clearClientCardHighlightTimer() {
+  if (clientCardHighlightTimer == null) return
+  window.clearTimeout(clientCardHighlightTimer)
+  clientCardHighlightTimer = null
+}
+
+function markClientCardAsTargeted(clientId: number) {
+  targetedClientId.value = clientId
+  clearClientCardHighlightTimer()
+  clientCardHighlightTimer = window.setTimeout(() => {
+    if (targetedClientId.value === clientId) {
+      targetedClientId.value = null
+    }
+    clientCardHighlightTimer = null
+  }, 2400)
+}
+
+async function focusClientCard(clientId: number) {
+  await nextTick()
+  const element = document.getElementById(clientCardDomId(clientId))
+  if (!(element instanceof HTMLElement)) return
+  element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  element.focus({ preventScroll: true })
+  markClientCardAsTargeted(clientId)
 }
 
 function setFilter(value: 'ALL' | 'ACTIVE' | 'INACTIVE' | 'ARCHIVED') {
@@ -415,6 +504,7 @@ function clientLabel(clientId: number) {
   const normalized = normalizeClientName(client?.client_name || client?.client_username)
   if (normalized) return normalized
   if (client?.client_code) return `ID: ${client.client_code}`
+  if (clientId > 0) return `Клієнт #${clientId}`
   return '\u041a\u043b\u0456\u0454\u043d\u0442'
 }
 function normalizeClientName(value?: string | null) {
@@ -424,10 +514,14 @@ function normalizeClientName(value?: string | null) {
   if (/^(client|\u043a\u043b\u0456\u0454\u043d\u0442)\s*#?\d+$/i.test(name)) return ''
   return name
 }
-function displayClientName(client: Pick<ClientState, 'client' | 'client_name' | 'client_username' | 'client_code'>) {
+function displayClientName(
+  client: Pick<ClientState, 'client' | 'client_id' | 'client_name' | 'client_username' | 'client_code'>
+) {
   const normalized = normalizeClientName(client.client_name || client.client_username)
   if (normalized) return normalized
   if (client.client_code) return `ID: ${client.client_code}`
+  const id = relationClientId(client)
+  if (id > 0) return `Клієнт #${id}`
   return '\u041a\u043b\u0456\u0454\u043d\u0442'
 }
 
@@ -616,9 +710,29 @@ async function toggleHistory(clientId: number) {
   }
 }
 
+async function openClientFromDeepLinkIfNeeded() {
+  const deepLinkedClientId = initialDeepLinkClientId
+  if (!deepLinkedClientId) return
+  const matchingClient = clients.value.find((item) => relationClientId(item) === deepLinkedClientId)
+  if (!matchingClient) return
+
+  filter.value = 'ALL'
+  searchQuery.value = ''
+  expandedClientId.value = deepLinkedClientId
+  if (!clientHistory.value[deepLinkedClientId]) {
+    await loadHistory(deepLinkedClientId)
+  }
+  await focusClientCard(deepLinkedClientId)
+}
+
 onMounted(async () => {
   await loadClients()
+  await openClientFromDeepLinkIfNeeded()
   await loadPendingNotes()
+})
+
+onBeforeUnmount(() => {
+  clearClientCardHighlightTimer()
 })
 </script>
 
@@ -691,6 +805,22 @@ onMounted(async () => {
   flex-wrap: wrap;
 }
 
+.clients-search {
+  display: grid;
+  gap: 6px;
+  max-width: 360px;
+}
+
+.clients-search__label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #5a6772;
+}
+
+.clients-search__input {
+  width: 100%;
+}
+
 .btn--active {
   border-color: #0b4a7d;
   color: #0b4a7d;
@@ -710,6 +840,11 @@ onMounted(async () => {
   background: #fff;
   display: grid;
   gap: 12px;
+}
+
+.client-card--targeted {
+  border-color: #0b4a7d;
+  box-shadow: 0 0 0 2px rgba(11, 74, 125, 0.14);
 }
 
 .client-info {
@@ -857,6 +992,12 @@ onMounted(async () => {
 .history-note {
   white-space: pre-wrap;
   line-height: 1.5;
+}
+
+.history-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .btn--sm {
