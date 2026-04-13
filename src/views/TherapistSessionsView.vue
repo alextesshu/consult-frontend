@@ -581,58 +581,63 @@
             Повернутись до списку
           </button>
         </div>
-        <div class="note-grid">
-          <div class="note-panel">
-            <label class="field">
-              <span class="note-title">Нотатка після сесії</span>
-              <span class="note-badge">Сесія</span>
-              <textarea
-                v-model="noteDraft"
-                class="input note-textarea"
-                rows="5"
-                placeholder="Короткий коментар по сесії та ключові спостереження."
-              ></textarea>
-              <div class="note-helper muted">Окрема нотатка саме для цієї сесії.</div>
-            </label>
-            <div class="note-actions">
-              <button
-                class="btn btn--sm"
-                type="button"
-                :disabled="noteSessionId ? isNoteSaving(noteSessionId) : false"
-                @click="noteSessionId ? saveNote(noteSessionId) : null"
-              >
-                Зберегти нотатку
-              </button>
+        <div class="note-modal__body">
+          <div class="note-grid">
+            <div class="note-panel note-panel--session">
+              <label class="field">
+                <span class="note-title">Нотатка після сесії</span>
+                <span class="note-badge">Сесія</span>
+                <textarea
+                  v-model="noteDraft"
+                  class="input note-textarea note-textarea--session"
+                  rows="3"
+                  placeholder="Короткий коментар по сесії та ключові спостереження."
+                ></textarea>
+                <div class="note-helper muted">Окрема нотатка саме для цієї сесії.</div>
+              </label>
+              <div class="note-actions">
+                <button
+                  class="btn btn--sm"
+                  type="button"
+                  :disabled="noteSessionId ? isNoteSaving(noteSessionId) : false"
+                  @click="noteSessionId ? saveNote(noteSessionId) : null"
+                >
+                  Зберегти нотатку
+                </button>
+              </div>
             </div>
-          </div>
-          <div class="note-panel">
-            <label class="field">
-              <span class="note-title">Робочий зошит</span>
-              <span class="note-badge">Внутрішній</span>
-              <textarea
-                v-model="journalDraft"
-                class="input note-textarea"
-                rows="5"
-                placeholder="Довгостроковий контекст, динаміка, спостереження та план подальшої роботи."
-                :disabled="journalLoading || !journalClientId"
-              ></textarea>
-              <div class="note-helper muted">Внутрішній розділ спеціаліста, не видимий клієнту.</div>
-            </label>
-            <div class="note-actions">
-              <button
-                class="btn btn--sm"
-                type="button"
-                :disabled="journalSaving || journalLoading || !journalClientId"
-                @click="journalClientId ? saveClientJournal(journalClientId) : null"
-              >
-                Зберегти зошит
-              </button>
+            <div class="note-panel note-panel--workbook">
+              <label class="field">
+                <span class="note-title">Робочий зошит</span>
+                <span class="note-badge">Внутрішній</span>
+                <textarea
+                  v-model="journalDraft"
+                  class="input note-textarea note-textarea--workbook"
+                  rows="9"
+                  placeholder="Довгостроковий контекст, динаміка, спостереження та план подальшої роботи."
+                  :disabled="journalLoading || !journalClientId"
+                ></textarea>
+                <div class="note-helper muted">Внутрішній розділ спеціаліста, не видимий клієнту.</div>
+              </label>
+              <div class="note-actions">
+                <button
+                  class="btn btn--sm"
+                  type="button"
+                  :disabled="journalSaving || journalLoading || !journalClientId"
+                  @click="journalClientId ? saveClientJournal(journalClientId) : null"
+                >
+                  Зберегти зошит
+                </button>
+              </div>
             </div>
           </div>
         </div>
-        <div class="note-actions">
-          <button class="btn btn--ghost btn--sm" type="button" @click="closeNote">
-            Закрити
+        <div class="note-modal__footer">
+          <div class="muted note-modal__footer-hint">
+            Збережіть потрібні поля й завершіть післясесійний крок.
+          </div>
+          <button class="btn btn--sm note-modal__primary-action" type="button" @click="closeNote">
+            Завершити після сесії
           </button>
         </div>
       </div>
@@ -1613,6 +1618,7 @@ onBeforeUnmount(() => {
   }
 
   .next-step-rail--modal {
+    margin: 0 18px;
     padding: 10px;
     border-radius: 12px;
     border: 1px dashed rgba(31, 122, 76, 0.36);
@@ -1978,12 +1984,21 @@ onBeforeUnmount(() => {
 .note-grid {
   display: grid;
   gap: 12px;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  grid-template-columns: 1fr;
 }
 
 .note-textarea {
-  min-height: 120px;
   resize: vertical;
+}
+
+.note-textarea--session {
+  min-height: 88px;
+  max-height: 180px;
+}
+
+.note-textarea--workbook {
+  min-height: 220px;
+  max-height: 48vh;
 }
 
 .note-title {
@@ -2009,43 +2024,100 @@ onBeforeUnmount(() => {
   line-height: 1.4;
 }
 
-  .note-actions {
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-  }
+.note-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
 
-  .note-modal {
-    position: fixed;
-    inset: 0;
-    z-index: 50;
-  }
+.note-panel--session {
+  gap: 8px;
+}
 
-  .note-modal__backdrop {
-    position: absolute;
-    inset: 0;
-    background: rgba(8, 18, 24, 0.35);
-  }
+.note-panel--workbook {
+  border-color: rgba(8, 113, 201, 0.2);
+  background: rgba(8, 113, 201, 0.04);
+}
 
+.note-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+}
+
+.note-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(8, 18, 24, 0.35);
+}
+
+.note-modal__content {
+  position: relative;
+  width: min(760px, 96vw);
+  max-height: min(90vh, 920px);
+  margin: 4vh auto 0;
+  background: #fff;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.18);
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+}
+
+.note-modal__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 18px 0;
+}
+
+.note-modal__body {
+  min-height: 0;
+  overflow-y: auto;
+  padding: 12px 18px 0;
+}
+
+.note-modal__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 18px 18px;
+  border-top: 1px solid rgba(47, 63, 73, 0.16);
+  background: #fff;
+}
+
+.note-modal__footer-hint {
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.note-modal__primary-action {
+  min-width: 220px;
+}
+
+@media (max-width: 760px) {
   .note-modal__content {
-    position: relative;
-    max-width: 560px;
-    margin: 10vh auto 0;
-    background: #fff;
-    border-radius: 18px;
-    border: 1px solid var(--line);
-    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.18);
-    padding: 18px;
-    display: grid;
-    gap: 12px;
+    width: min(96vw, 620px);
+    margin-top: 3vh;
   }
 
-  .note-modal__header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
+  .note-modal__footer {
+    flex-direction: column;
+    align-items: stretch;
   }
+
+  .note-modal__primary-action {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .note-textarea--workbook {
+    min-height: 180px;
+    max-height: 42vh;
+  }
+}
 
 .request-list {
   display: grid;
