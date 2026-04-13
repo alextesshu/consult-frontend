@@ -217,11 +217,11 @@
               <RouterLink
                 class="onboarding-step onboarding-step--link"
                 :class="step.done ? 'onboarding-step--done' : 'onboarding-step--pending'"
-                :to="step.to"
+                :to="onboardingStepTo(step)"
               >
                 <div class="onboarding-step__title">{{ step.title }}</div>
                 <div class="onboarding-step__hint">{{ step.hint }}</div>
-                <div class="onboarding-step__action">Перейти до розділу</div>
+                <div class="onboarding-step__action">{{ onboardingStepActionLabel(step) }}</div>
               </RouterLink>
             </li>
           </ol>
@@ -470,6 +470,10 @@ const onboardingCanonicalLoaded = ref(false)
 
 type MeWithOnboardingSummary = {
   onboarding_summary?: unknown
+  slug?: string | null
+  public_slug?: string | null
+  public_profile_path?: string | null
+  public_profile_url?: string | null
 }
 
 const hasCabinetDataSnapshot = computed(() => {
@@ -501,6 +505,49 @@ const onboardingViewModel = computed<SpecialistOnboardingViewModel | null>(() =>
 })
 
 const onboardingReady = computed(() => onboardingViewModel.value?.readiness ?? false)
+type OnboardingStep = SpecialistOnboardingViewModel['steps'][number]
+
+function normalizePublicProfilePath(raw: string | null | undefined) {
+  const value = String(raw || '').trim()
+  if (!value) return ''
+  if (/^https?:\/\//i.test(value)) {
+    try {
+      const parsed = new URL(value)
+      const path = `${parsed.pathname || ''}${parsed.search || ''}${parsed.hash || ''}`.trim()
+      return path
+    } catch {
+      return ''
+    }
+  }
+  return value.startsWith('/') ? value : `/${value}`
+}
+
+const onboardingPublicProfilePath = computed(() => {
+  const profileData = me.value as MeWithOnboardingSummary | null
+  const fromPath = normalizePublicProfilePath(profileData?.public_profile_path)
+  if (fromPath) return fromPath
+  const fromUrl = normalizePublicProfilePath(profileData?.public_profile_url)
+  if (fromUrl) return fromUrl
+  const slug = String(profileData?.slug || profileData?.public_slug || '').trim()
+  if (slug) return `/s/${slug}`
+  return '/public'
+})
+
+function onboardingStepTo(step: OnboardingStep) {
+  if (step.key === 'profile_core') return '/cabinet/profile'
+  if (step.key === 'availability') return '/cabinet/availability-rules'
+  if (step.key === 'public_profile') return onboardingPublicProfilePath.value
+  if (step.key === 'inbound_readiness') return '/cabinet/inquiries'
+  return step.to
+}
+
+function onboardingStepActionLabel(step: OnboardingStep) {
+  if (step.key === 'profile_core') return 'Керувати профілем'
+  if (step.key === 'availability') return 'Налаштувати доступність'
+  if (step.key === 'public_profile') return 'Відкрити публічний профіль'
+  if (step.key === 'inbound_readiness') return 'Перейти до звернень'
+  return 'Відкрити'
+}
 
 const accessLabel = computed(() => {
   const state = me.value?.access_state

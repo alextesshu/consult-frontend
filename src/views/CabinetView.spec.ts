@@ -578,8 +578,44 @@ describe('CabinetView', () => {
 
     expect(profileCoreLink?.getAttribute('href')).toBe('/cabinet/profile')
     expect(availabilityLink?.getAttribute('href')).toBe('/cabinet/availability-rules')
-    expect(publicProfileLink?.getAttribute('href')).toBe('/cabinet/profile')
+    expect(publicProfileLink?.getAttribute('href')).toBe('/public')
     expect(inboundReadinessLink?.getAttribute('href')).toBe('/cabinet/inquiries')
+    expect(profileCoreLink?.textContent).toContain('Керувати профілем')
+    expect(availabilityLink?.textContent).toContain('Налаштувати доступність')
+    expect(publicProfileLink?.textContent).toContain('Відкрити публічний профіль')
+    expect(inboundReadinessLink?.textContent).toContain('Перейти до звернень')
+  })
+
+  it('uses canonical public profile path from me payload for public-profile onboarding step', async () => {
+    mockMe.value = {
+      ...createMePayload(),
+      public_profile_path: '/s/olena-koval',
+    } as any
+    mockedApiGet.mockResolvedValue([])
+    mockedFetchSpecialistOnboardingState.mockResolvedValue({
+      readiness: {
+        profile_core_ready: true,
+        has_future_slots: true,
+        public_profile_enabled: true,
+        ready_for_inbound_intent: true,
+      },
+      missing_items: [],
+      warnings: [],
+      next_actions: [],
+      primary_cta_code: null,
+      cta_target: null,
+    } as any)
+
+    const view = renderView()
+
+    await waitFor(() => {
+      expect(view.container.querySelectorAll('a.onboarding-step--link').length).toBeGreaterThanOrEqual(4)
+    })
+
+    const stepLinks = Array.from(view.container.querySelectorAll('a.onboarding-step--link'))
+    const publicProfileLink = stepLinks[2]
+
+    expect(publicProfileLink?.getAttribute('href')).toBe('/s/olena-koval')
   })
 
   it('uses onboarding_summary only as initial shell before canonical onboarding-state arrives', async () => {
@@ -626,7 +662,7 @@ describe('CabinetView', () => {
       const list = view.container.querySelector('.onboarding-list')
       expect(list).toBeInTheDocument()
       expect((list?.textContent || '').length).toBeGreaterThan(0)
-      expect(view.container.querySelector('a[href="/cabinet/profile"]')).toBeInTheDocument()
+      expect(view.container.querySelector('a[href="/public"]')).toBeInTheDocument()
       expect((view.container.querySelector('.onboarding-status')?.textContent || '').trim()).toBe(shellStatus)
     })
   })

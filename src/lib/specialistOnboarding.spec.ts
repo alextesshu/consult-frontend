@@ -29,7 +29,7 @@ describe('specialist onboarding mapping', () => {
 
     expect(CTA_TARGET_ROUTE_KEYS.CABINET_PROFILE).toBe('/cabinet/profile')
     expect(CTA_TARGET_ROUTE_KEYS.CABINET_AVAILABILITY).toBe('/cabinet/availability-rules')
-    expect(CTA_TARGET_ROUTE_KEYS.CABINET_PUBLIC_PROFILE).toBe('/cabinet/profile')
+    expect(CTA_TARGET_ROUTE_KEYS.CABINET_PUBLIC_PROFILE).toBe('/public')
     expect(CTA_TARGET_ROUTE_KEYS.PUBLIC_PROFILE_VIEW).toBe('/public')
   })
 
@@ -135,7 +135,7 @@ describe('specialist onboarding mapping', () => {
     expect(vm.steps.find((s) => s.key === 'availability')?.done).toBe(true)
     expect(vm.steps.find((s) => s.key === 'public_profile')?.done).toBe(false)
     expect(vm.steps.find((s) => s.key === 'inbound_readiness')?.done).toBe(false)
-    expect(vm.primaryCta?.to).toBe('/cabinet/profile')
+    expect(vm.primaryCta?.to).toBe('/public')
   })
 
   it('handles state: fully ready for inbound intent', () => {

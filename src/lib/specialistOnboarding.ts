@@ -84,7 +84,7 @@ export const PRIMARY_CTA_CODE_COPY: Record<string, string> = {
 export const CTA_TARGET_ROUTE_KEYS: Record<string, string> = {
   CABINET_PROFILE: '/cabinet/profile',
   CABINET_AVAILABILITY: '/cabinet/availability-rules',
-  CABINET_PUBLIC_PROFILE: '/cabinet/profile',
+  CABINET_PUBLIC_PROFILE: '/public',
   PUBLIC_PROFILE_VIEW: '/public',
 }
 
@@ -121,7 +121,7 @@ const STEP_META: Array<{ key: OnboardingStepKey; title: string; hint: string }> 
 const STEP_ROUTE_BY_KEY: Record<OnboardingStepKey, string> = {
   profile_core: '/cabinet/profile',
   availability: '/cabinet/availability-rules',
-  public_profile: '/cabinet/profile',
+  public_profile: '/public',
   inbound_readiness: '/cabinet/inquiries',
 }
 
