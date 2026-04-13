@@ -34,12 +34,14 @@
               :key="session.id"
               class="priority-item"
             >
-              <div>
+              <div class="priority-item__main">
                 <div class="priority-time">{{ formatDateTime(session.slot_start_at) }}</div>
                 <div class="muted">{{ session.client_name || session.client_username || `#${session.client}` }}</div>
+                <div class="muted">{{ sessionFormatBadge(session) }}</div>
+                <div class="muted priority-item__context">{{ sessionContextHint(session) }}</div>
               </div>
               <button
-                class="btn btn--ghost btn--sm"
+                class="btn btn--sm"
                 type="button"
                 :disabled="isActionLoading(session.id)"
                 @click="confirmSession(session.id)"
@@ -53,22 +55,32 @@
           <div class="priority-title">{{ isPriorityLive ? 'Сесія триває' : 'Найближча сесія' }}</div>
           <div v-if="prioritySession" class="priority-next">
             <RouterLink class="priority-next__main" :to="`/cabinet/sessions/${prioritySession.id}`">
-            <div class="priority-time">{{ formatDateTime(prioritySession.slot_start_at) }}</div>
-            <div class="muted">
-              Клієнт: {{ prioritySession.client_name || prioritySession.client_username || `#${prioritySession.client}` }}
-            </div>
-            <div class="muted">{{ sessionFormatBadge(prioritySession) }}</div>
-            <div v-if="isPriorityLive" class="status-pill status-pill--danger">Сесія триває</div>
-            <div v-else class="status-pill" :class="statusClass(prioritySession)">
-              {{ statusLabel(prioritySession) }}
-            </div>
-            <div v-if="timeUntilLabel(prioritySession)" class="status-pill status-pill--warn">
-              Початок через {{ timeUntilLabel(prioritySession) }}
-            </div>
+              <div class="priority-time">{{ formatDateTime(prioritySession.slot_start_at) }}</div>
+              <div class="muted">
+                Клієнт: {{ prioritySession.client_name || prioritySession.client_username || `#${prioritySession.client}` }}
+              </div>
+              <div class="muted">{{ sessionFormatBadge(prioritySession) }}</div>
+              <div class="muted priority-next__context">{{ sessionContextHint(prioritySession) }}</div>
+              <div v-if="isPriorityLive" class="status-pill status-pill--danger">Сесія триває</div>
+              <div v-else class="status-pill" :class="statusClass(prioritySession)">
+                {{ statusLabel(prioritySession) }}
+              </div>
+              <div v-if="timeUntilLabel(prioritySession)" class="status-pill status-pill--warn">
+                Початок через {{ timeUntilLabel(prioritySession) }}
+              </div>
             </RouterLink>
             <div class="priority-next__actions">
+              <button
+                v-if="priorityPrimaryAction === 'confirm'"
+                class="btn btn--sm"
+                type="button"
+                :disabled="isActionLoading(prioritySession.id)"
+                @click="confirmSession(prioritySession.id)"
+              >
+                Підтвердити
+              </button>
               <a
-                v-if="canJoinMeeting(prioritySession)"
+                v-else-if="priorityPrimaryAction === 'join'"
                 class="btn btn--sm"
                 :href="meetingUrl(prioritySession)"
                 target="_blank"
@@ -76,6 +88,16 @@
               >
                 Приєднатися
               </a>
+              <RouterLink v-else class="btn btn--sm" :to="`/cabinet/sessions/${prioritySession.id}`">
+                Відкрити сесію
+              </RouterLink>
+              <RouterLink
+                v-if="priorityPrimaryAction !== 'details'"
+                class="btn btn--ghost btn--sm"
+                :to="`/cabinet/sessions/${prioritySession.id}`"
+              >
+                Відкрити сесію
+              </RouterLink>
             </div>
           </div>
           <div v-else class="muted">Немає майбутніх сесій.</div>
@@ -111,9 +133,14 @@
             </option>
           </select>
         </label>
-        <label class="field session-filters__field">
+        <label class="field session-filters__field session-filters__field--date" @click="openDateFilterPicker">
           <span class="muted">Дата</span>
-          <input v-model="dateFilter" class="input" type="date" />
+          <input
+            ref="dateFilterInputRef"
+            v-model="dateFilter"
+            class="input session-filters__date-input"
+            type="date"
+          />
         </label>
       </div>
     </section>
@@ -159,6 +186,7 @@
                 Клієнт: {{ session.client_name || session.client_username || `#${session.client}` }}
               </div>
               <div class="muted">{{ sessionFormatBadge(session) }}</div>
+              <div class="muted session-context">{{ sessionContextHint(session) }}</div>
               <div v-if="session.client_email" class="muted">Пошта: {{ session.client_email }}</div>
               <div class="status-pill" :class="statusClass(session)">
                 {{ statusLabel(session) }}
@@ -189,17 +217,34 @@
               </div>
             </div>
             <div class="session-actions">
-              <RouterLink class="btn btn--ghost btn--sm" :to="`/cabinet/sessions/${session.id}`">
-                Деталі
-              </RouterLink>
               <button
-                class="btn btn--ghost btn--sm"
+                v-if="isPrimaryAction(session, 'confirm')"
+                class="btn btn--sm"
                 type="button"
-                :disabled="isActionLoading(session.id) || session.status !== 'SCHEDULED'"
+                :disabled="isActionLoading(session.id)"
                 @click="confirmSession(session.id)"
               >
                 Підтвердити
               </button>
+              <a
+                v-else-if="isPrimaryAction(session, 'join')"
+                class="btn btn--sm"
+                :href="meetingUrl(session)"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Приєднатися
+              </a>
+              <RouterLink v-else class="btn btn--sm" :to="`/cabinet/sessions/${session.id}`">
+                Відкрити сесію
+              </RouterLink>
+              <RouterLink
+                v-if="!isPrimaryAction(session, 'details')"
+                class="btn btn--ghost btn--sm"
+                :to="`/cabinet/sessions/${session.id}`"
+              >
+                Відкрити сесію
+              </RouterLink>
               <button
                 v-if="session.status === 'CONFIRMED'"
                 class="btn btn--ghost btn--sm"
@@ -434,40 +479,43 @@
         title="Історія порожня"
         description="Після завершених або відмінених сесій тут з'явиться історія."
       />
-      <div v-else class="session-list">
+      <div v-else class="history-grid">
         <article
           v-for="session in filteredHistorySessions"
           :key="session.id"
           :id="`session-${session.id}`"
-          class="session-card"
+          class="session-card history-tile"
           :class="{ 'session-card--highlight': highlightedSessionId === session.id }"
           @mouseenter="clearHighlight(session.id)"
         >
-          <div class="session-info">
-            <div class="session-time">{{ formatDateTime(session.slot_start_at) }}</div>
-            <div class="muted">{{ formatDuration(session.slot_start_at, session.slot_end_at) }}</div>
-            <div class="muted">
-              Клієнт: {{ session.client_name || session.client_username || `#${session.client}` }}
+          <div class="history-tile__body">
+            <div class="session-info">
+              <div class="session-time">{{ formatDateTime(session.slot_start_at) }}</div>
+              <div class="muted">{{ formatDuration(session.slot_start_at, session.slot_end_at) }}</div>
+              <div class="muted">
+                Клієнт: {{ session.client_name || session.client_username || `#${session.client}` }}
+              </div>
+              <div class="muted">{{ sessionFormatBadge(session) }}</div>
+              <div class="muted session-context">{{ sessionContextHint(session) }}</div>
+              <div v-if="session.client_email" class="muted">Пошта: {{ session.client_email }}</div>
+              <div class="status-pill" :class="statusClass(session)">
+                {{ statusLabel(session) }}
+              </div>
             </div>
-            <div class="muted">{{ sessionFormatBadge(session) }}</div>
-            <div v-if="session.client_email" class="muted">Пошта: {{ session.client_email }}</div>
-            <div class="status-pill" :class="statusClass(session)">
-              {{ statusLabel(session) }}
+            <div class="session-actions history-tile__actions">
+              <button
+                v-if="session.status === 'CONFIRMED'"
+                class="btn btn--ghost btn--sm"
+                type="button"
+                :disabled="isActionLoading(session.id)"
+                @click="completeSession(session.id)"
+              >
+                Завершити
+              </button>
+              <RouterLink class="btn btn--ghost btn--sm" :to="`/cabinet/sessions/${session.id}`">
+                Деталі
+              </RouterLink>
             </div>
-          </div>
-          <div class="session-actions">
-            <button
-              v-if="session.status === 'CONFIRMED'"
-              class="btn btn--ghost btn--sm"
-              type="button"
-              :disabled="isActionLoading(session.id)"
-              @click="completeSession(session.id)"
-            >
-              Завершити
-            </button>
-            <RouterLink class="btn btn--ghost btn--sm" :to="`/cabinet/sessions/${session.id}`">
-              Деталі
-            </RouterLink>
           </div>
         </article>
       </div>
@@ -617,6 +665,7 @@ type Slot = SpecialistSlot
 type RescheduleRequest = SpecialistRescheduleRequest
 type RecurringSummary = SpecialistRecurringSummary
 type RescheduleSuggestion = SpecialistRescheduleSuggestion
+type PrimarySessionAction = 'confirm' | 'join' | 'details'
 
 type SessionStatusFilter =
   | 'ALL'
@@ -664,6 +713,7 @@ const requestLoading = ref<Set<number>>(new Set())
 const highlightedSessionId = ref<number | null>(null)
 const statusFilter = ref<SessionStatusFilter>('ALL')
 const dateFilter = ref('')
+const dateFilterInputRef = ref<HTMLInputElement | null>(null)
 const route = useRoute()
 const toast = useToast()
 const highlightTimeoutId = ref<number | null>(null)
@@ -788,6 +838,10 @@ const prioritySession = computed(() => livePrioritySession.value || nextUpcoming
 const isPriorityLive = computed(() =>
   prioritySession.value ? isSessionInProgress(prioritySession.value) : false
 )
+const priorityPrimaryAction = computed<PrimarySessionAction>(() => {
+  if (!prioritySession.value) return 'details'
+  return sessionPrimaryAction(prioritySession.value)
+})
 
 const canCancel = (status: string) => sharedCanCancel(status)
 const canReschedule = (status: string) => sharedCanReschedule(status)
@@ -881,6 +935,34 @@ function canJoinMeeting(session: Session) {
   })
 }
 
+function sessionPrimaryAction(session: Session): PrimarySessionAction {
+  if (session.status === 'SCHEDULED') return 'confirm'
+  if (canJoinMeeting(session)) return 'join'
+  return 'details'
+}
+
+function isPrimaryAction(session: Session, action: PrimarySessionAction) {
+  return sessionPrimaryAction(session) === action
+}
+
+function sessionContextHint(session: Session) {
+  if (isOfflineSession(session)) {
+    const location = (session.offline_location || '').trim()
+    return location
+      ? `Локація: ${location}`
+      : 'Локацію офлайн-сесії уточнено зі спеціалістом.'
+  }
+
+  const link = meetingUrl(session)
+  if (!link) {
+    return 'Додайте посилання на онлайн-зустріч у деталях.'
+  }
+  if (canJoinMeeting(session)) {
+    return 'Можна приєднатися до зустрічі зараз.'
+  }
+  return 'Посилання додано. Вхід стане доступним ближче до початку.'
+}
+
 function parseSessionIdFromHash(hash: string): number | null {
   if (!hash) return null
   const match = hash.match(/session-(\d+)/)
@@ -938,6 +1020,19 @@ async function focusSession(id: number) {
 function clearSessionFilters() {
   statusFilter.value = 'ALL'
   dateFilter.value = ''
+}
+
+function openDateFilterPicker() {
+  const input = dateFilterInputRef.value
+  if (!input) return
+  input.focus()
+  if (typeof input.showPicker === 'function') {
+    try {
+      input.showPicker()
+    } catch {
+      // Some browsers require a strict user gesture context for showPicker.
+    }
+  }
 }
 
 async function loadSessions() {
@@ -1412,6 +1507,16 @@ onBeforeUnmount(() => {
     background: rgba(8, 113, 201, 0.05);
   }
 
+  .priority-item__main {
+    display: grid;
+    gap: 2px;
+  }
+
+  .priority-item__context {
+    max-width: 420px;
+    line-height: 1.35;
+  }
+
   .priority-time {
     font-weight: 600;
   }
@@ -1445,6 +1550,10 @@ onBeforeUnmount(() => {
   flex-wrap: wrap;
 }
 
+.priority-next__context {
+  line-height: 1.4;
+}
+
 .session-filters {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -1454,6 +1563,20 @@ onBeforeUnmount(() => {
 
 .session-filters__field {
   margin: 0;
+}
+
+.session-filters__field--date {
+  cursor: pointer;
+}
+
+.session-filters__date-input {
+  width: 100%;
+  cursor: pointer;
+}
+
+.session-filters__field--date:focus-within .session-filters__date-input {
+  border-color: color-mix(in srgb, var(--primary) 45%, var(--line));
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 18%, transparent);
 }
 
 .badge--soft {
@@ -1492,6 +1615,10 @@ onBeforeUnmount(() => {
 
 .session-time {
   font-weight: 600;
+}
+
+.session-context {
+  line-height: 1.4;
 }
 
 .status-pill {
@@ -1576,6 +1703,28 @@ onBeforeUnmount(() => {
   border-color: rgba(8, 113, 201, 0.55);
   box-shadow: 0 0 0 2px rgba(8, 113, 201, 0.18);
   background: rgba(8, 113, 201, 0.04);
+}
+
+.history-grid {
+  display: grid;
+  gap: 12px;
+  margin-top: 10px;
+  grid-template-columns: 1fr;
+}
+
+.history-tile {
+  padding: 12px;
+  gap: 0;
+}
+
+.history-tile__body {
+  display: grid;
+  gap: 10px;
+  min-height: 100%;
+}
+
+.history-tile__actions {
+  margin-top: auto;
 }
 
 .btn--sm {
@@ -1783,6 +1932,24 @@ onBeforeUnmount(() => {
   border: 1px solid #f5c2c0;
   border-radius: 10px;
   padding: 8px 10px;
+}
+
+@media (min-width: 760px) {
+  .history-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1040px) {
+  .history-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1440px) {
+  .history-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 860px) {

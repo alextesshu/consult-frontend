@@ -399,6 +399,111 @@ describe('CabinetView', () => {
     expect(view.container.querySelector('a.hero-live__join')).not.toBeInTheDocument()
   })
 
+  it('renders nearest upcoming session block with join readiness and direct actions', async () => {
+    mockedApiGet.mockImplementation(async (_url, config) => {
+      if (config?.params?.upcoming === true) {
+        return [
+          {
+            id: 91,
+            status: 'CONFIRMED',
+            client: 45,
+            client_name: 'Nearest Client',
+            session_format: 'online',
+            meeting_url: 'https://meet.google.com/nearest-room',
+            join_available: true,
+            slot_start_at: '2099-06-01T10:00:00Z',
+            slot_end_at: '2099-06-01T10:50:00Z',
+          },
+        ] as any
+      }
+      if (config?.params?.upcoming === false) return []
+      if (_url === '/cabinet/entitlements/') return {}
+      return []
+    })
+
+    const view = renderView()
+
+    await waitFor(() => {
+      expect(view.container).toHaveTextContent('Найближча сесія')
+      expect(view.container).toHaveTextContent('Nearest Client')
+      expect(view.container).toHaveTextContent('Формат')
+      expect(view.container).toHaveTextContent('Онлайн')
+    })
+    expect(view.container.querySelector('a[href="/cabinet/sessions/91"]')).toBeInTheDocument()
+    expect(view.container.querySelector('a[href="https://meet.google.com/nearest-room"]')).toBeInTheDocument()
+  })
+
+  it('renders offline nearest session context with location and without join action', async () => {
+    mockedApiGet.mockImplementation(async (_url, config) => {
+      if (config?.params?.upcoming === true) {
+        return [
+          {
+            id: 92,
+            status: 'SCHEDULED',
+            client: 46,
+            client_name: 'Offline Client',
+            session_format: 'offline',
+            offline_location: 'Київ, офіс 4',
+            meeting_url: 'https://meet.google.com/ignore-offline',
+            join_available: true,
+            slot_start_at: '2099-06-02T11:00:00Z',
+            slot_end_at: '2099-06-02T11:50:00Z',
+          },
+        ] as any
+      }
+      if (config?.params?.upcoming === false) return []
+      if (_url === '/cabinet/entitlements/') return {}
+      return []
+    })
+
+    const view = renderView()
+
+    await waitFor(() => {
+      expect(view.container).toHaveTextContent('Найближча сесія')
+      expect(view.container).toHaveTextContent('Offline Client')
+      expect(view.container).toHaveTextContent('Локація: Київ, офіс 4')
+      expect(view.container).toHaveTextContent('Офлайн-сесія без посилання для входу.')
+    })
+    expect(view.container.querySelector('a[href="https://meet.google.com/ignore-offline"]')).not.toBeInTheDocument()
+    expect(view.container.querySelector('a[href="/cabinet/sessions"]')).toBeInTheDocument()
+  })
+
+  it('keeps nearest-session and workflow links inside one action hub with full-tile links', async () => {
+    mockedApiGet.mockImplementation(async (_url, config) => {
+      if (config?.params?.upcoming === true) {
+        return [
+          {
+            id: 94,
+            status: 'CONFIRMED',
+            client: 49,
+            client_name: 'Hub Client',
+            session_format: 'online',
+            meeting_url: 'https://meet.google.com/hub-room',
+            join_available: true,
+            slot_start_at: '2099-06-04T08:00:00Z',
+            slot_end_at: '2099-06-04T08:50:00Z',
+          },
+        ] as any
+      }
+      if (config?.params?.upcoming === false) return []
+      if (_url === '/cabinet/entitlements/') return {}
+      return []
+    })
+
+    const view = renderView()
+
+    await waitFor(() => {
+      expect(view.container.querySelector('.panel--action-hub')).toBeInTheDocument()
+      expect(view.container.querySelector('.panel--action-hub .panel--nearest-session')).toBeInTheDocument()
+    })
+
+    const sessionsTile = view.container.querySelector('a.action-tile[href="/cabinet/sessions"]')
+    const clientsTile = view.container.querySelector('a.action-tile[href="/cabinet/clients"]')
+
+    expect(sessionsTile).toBeInTheDocument()
+    expect(clientsTile).toBeInTheDocument()
+  })
+
   it('renders onboarding readiness with pending steps and primary cta from backend enums', async () => {
     mockedApiGet.mockResolvedValue([])
     mockedFetchSpecialistOnboardingState.mockResolvedValue({
@@ -515,5 +620,3 @@ describe('CabinetView', () => {
     })
   })
 })
-
-

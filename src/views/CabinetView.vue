@@ -40,45 +40,116 @@
     </header>
 
     <div v-if="me && hasCabinetDataSnapshot" class="cabinet__grid">
-      <section class="panel panel--wide panel--actions">
+      <section class="panel panel--wide panel--action-hub">
         <div class="panel__header">
           <div>
-            <div class="badge badge--soft">Робоча панель</div>
-            <div class="panel__meta">Щоденні інструменти та конфігурація практики</div>
+            <div class="badge badge--soft">Щоденний центр дій</div>
+            <h2 class="panel__title">Щоденні сценарії</h2>
           </div>
         </div>
-        <div class="cabinet-actions">
-          <section class="action-group">
-            <h3 class="action-group__title">Щоденна робота</h3>
-            <div class="action-group__items">
-              <RouterLink class="btn btn--ghost" to="/cabinet/sessions">Сесії</RouterLink>
-              <RouterLink class="btn btn--ghost" to="/cabinet/external-sessions">Зовнішні сесії</RouterLink>
-              <RouterLink class="btn btn--ghost" to="/cabinet/clients">Клієнти</RouterLink>
-              <RouterLink class="btn btn--ghost" to="/cabinet/inquiries">Запити до бронювання</RouterLink>
-              <RouterLink class="btn btn--ghost" to="/cabinet/reviews">Відгуки</RouterLink>
+        <div class="action-hub">
+          <section class="panel panel--nearest-session action-hub__nearest">
+            <div class="panel__header">
+              <div>
+                <div class="badge badge--soft">Найближча сесія</div>
+                <h3 class="panel__title action-hub__title">Що у вас далі</h3>
+              </div>
+              <div v-if="nearestUpcomingSession" class="nearest-session__status" :class="nearestSessionStatusClass">
+                {{ nearestSessionStatusLabel }}
+              </div>
             </div>
+            <template v-if="nearestUpcomingSession">
+              <div class="nearest-session__grid">
+                <div class="nearest-session__item">
+                  <div class="nearest-session__label">Дата і час</div>
+                  <div class="nearest-session__value">{{ formatDateTime(sessionJoinStartAt(nearestUpcomingSession)) }}</div>
+                </div>
+                <div class="nearest-session__item">
+                  <div class="nearest-session__label">Клієнт</div>
+                  <div class="nearest-session__value">
+                    {{ nearestUpcomingSession.client_name || nearestUpcomingSession.client_username || `#${nearestUpcomingSession.client}` }}
+                  </div>
+                </div>
+                <div class="nearest-session__item">
+                  <div class="nearest-session__label">Формат</div>
+                  <div class="nearest-session__value">{{ nearestSessionFormatLabel }}</div>
+                  <div v-if="isNearestSessionOffline && nearestSessionOfflineLocation" class="muted nearest-session__meta">
+                    Локація: {{ nearestSessionOfflineLocation }}
+                  </div>
+                </div>
+              </div>
+              <div v-if="isNearestSessionOffline" class="muted nearest-session__hint">
+                {{ nearestSessionOfflineLocation ? 'Офлайн-сесія без посилання для входу.' : 'Офлайн-сесія. Локацію уточнено у деталях.' }}
+              </div>
+              <div v-else class="muted nearest-session__hint">
+                {{ nearestSessionOnlineHint }}
+              </div>
+              <div class="nearest-session__actions">
+                <RouterLink class="btn btn--sm" :to="`/cabinet/sessions/${nearestUpcomingSession.id}`">
+                  Відкрити сесію
+                </RouterLink>
+                <a
+                  v-if="canJoinNearestSession"
+                  class="btn btn--ghost btn--sm"
+                  :href="nearestSessionMeetingUrl"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Приєднатися
+                </a>
+                <RouterLink v-else class="btn btn--ghost btn--sm" to="/cabinet/sessions">
+                  Усі сесії
+                </RouterLink>
+              </div>
+            </template>
+            <template v-else>
+              <p class="muted action-hub__empty">
+                Немає майбутніх сесій. Перейдіть до сесій, щоб запланувати або перевірити нові запити.
+              </p>
+              <div class="nearest-session__actions">
+                <RouterLink class="btn btn--sm" to="/cabinet/sessions">
+                  Перейти до сесій
+                </RouterLink>
+              </div>
+            </template>
           </section>
 
-          <section class="action-group">
-            <h3 class="action-group__title">Планування</h3>
-            <div class="action-group__items">
-              <RouterLink class="btn btn--ghost" to="/cabinet/schedule">Розклад</RouterLink>
-              <RouterLink class="btn btn--ghost" to="/cabinet/group-events">Групові події</RouterLink>
-            </div>
-          </section>
+          <section class="action-hub__workflows">
+            <div class="panel__meta action-hub__meta">Щоденні інструменти та конфігурація практики</div>
+            <div class="cabinet-actions">
+              <section class="action-group">
+                <h3 class="action-group__title">Щоденна робота</h3>
+                <div class="action-group__items">
+                  <RouterLink class="action-tile" to="/cabinet/sessions">Сесії</RouterLink>
+                  <RouterLink class="action-tile" to="/cabinet/external-sessions">Зовнішні сесії</RouterLink>
+                  <RouterLink class="action-tile" to="/cabinet/clients">Клієнти</RouterLink>
+                  <RouterLink class="action-tile" to="/cabinet/inquiries">Запити до бронювання</RouterLink>
+                  <RouterLink class="action-tile" to="/cabinet/reviews">Відгуки</RouterLink>
+                </div>
+              </section>
 
-          <section class="action-group">
-            <h3 class="action-group__title">Контент</h3>
-            <div class="action-group__items">
-              <RouterLink class="btn btn--ghost" to="/cabinet/journal">Авторський журнал</RouterLink>
-            </div>
-          </section>
+              <section class="action-group">
+                <h3 class="action-group__title">Планування</h3>
+                <div class="action-group__items">
+                  <RouterLink class="action-tile" to="/cabinet/schedule">Розклад</RouterLink>
+                  <RouterLink class="action-tile" to="/cabinet/group-events">Групові події</RouterLink>
+                </div>
+              </section>
 
-          <section class="action-group">
-            <h3 class="action-group__title">Бізнес</h3>
-            <div class="action-group__items">
-              <RouterLink class="btn btn--ghost" to="/cabinet/analytics">Аналітика</RouterLink>
-              <RouterLink class="btn btn--ghost" to="/cabinet/billing">Плани та доступ</RouterLink>
+              <section class="action-group">
+                <h3 class="action-group__title">Контент</h3>
+                <div class="action-group__items">
+                  <RouterLink class="action-tile" to="/cabinet/journal">Авторський журнал</RouterLink>
+                </div>
+              </section>
+
+              <section class="action-group">
+                <h3 class="action-group__title">Бізнес</h3>
+                <div class="action-group__items">
+                  <RouterLink class="action-tile" to="/cabinet/analytics">Аналітика</RouterLink>
+                  <RouterLink class="action-tile" to="/cabinet/billing">Плани та доступ</RouterLink>
+                </div>
+              </section>
             </div>
           </section>
         </div>
@@ -333,9 +404,9 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
-import { apiGet, fetchSpecialistOnboardingState } from '../lib/api'
+import { apiGet, fetchSpecialistOnboardingState, type SessionFormat } from '../lib/api'
 import { formatUkDateTimeCompact } from '../lib/dateTime'
-import { normalizeMeetingUrl } from '../lib/sessionExecution'
+import { canJoinExternalMeeting, normalizeMeetingUrl } from '../lib/sessionExecution'
 import {
   buildSpecialistOnboardingViewModel,
   normalizeOnboardingState,
@@ -352,6 +423,9 @@ type CabinetSession = {
   client: number
   client_name?: string | null
   client_username?: string | null
+  session_format?: SessionFormat | null
+  meeting_mode?: 'ONLINE' | 'OFFLINE' | null
+  offline_location?: string | null
   meeting_url?: string | null
   join_available?: boolean
   join_starts_at?: string | null
@@ -540,6 +614,17 @@ function sessionJoinEndAt(session: CabinetSession) {
   return session.slot_end_at || session.join_ends_at || null
 }
 
+function resolveSessionFormat(session: CabinetSession): SessionFormat {
+  if (session.session_format === 'offline') return 'offline'
+  if (session.session_format === 'online') return 'online'
+  if (session.meeting_mode === 'OFFLINE') return 'offline'
+  return 'online'
+}
+
+function isOfflineSession(session: CabinetSession) {
+  return resolveSessionFormat(session) === 'offline'
+}
+
 function isSessionInProgress(session: CabinetSession) {
   if (!['SCHEDULED', 'CONFIRMED'].includes(session.status)) return false
   const startRaw = sessionJoinStartAt(session)
@@ -568,6 +653,84 @@ const liveMeetingUrl = computed(() => {
   if (!liveSession.value) return ''
   return normalizeMeetingUrl(liveSession.value.meeting_url)
 })
+
+const upcomingSorted = computed(() => {
+  return allSessions.value
+    .filter((session) => {
+      if (!['SCHEDULED', 'CONFIRMED'].includes(session.status)) return false
+      const start = new Date(sessionJoinStartAt(session) || '').getTime()
+      if (Number.isNaN(start)) return false
+      return start >= nowTs.value
+    })
+    .slice()
+    .sort(
+      (a, b) =>
+        new Date(sessionJoinStartAt(a) || '').getTime() -
+        new Date(sessionJoinStartAt(b) || '').getTime()
+    )
+})
+
+const nearestUpcomingSession = computed(() => upcomingSorted.value[0] || null)
+
+const nearestSessionMeetingUrl = computed(() => {
+  if (!nearestUpcomingSession.value) return ''
+  return normalizeMeetingUrl(nearestUpcomingSession.value.meeting_url)
+})
+
+const isNearestSessionOffline = computed(() => {
+  if (!nearestUpcomingSession.value) return false
+  return isOfflineSession(nearestUpcomingSession.value)
+})
+
+const nearestSessionOfflineLocation = computed(() => {
+  if (!isNearestSessionOffline.value || !nearestUpcomingSession.value) return ''
+  return (nearestUpcomingSession.value.offline_location || '').trim()
+})
+
+const canJoinNearestSession = computed(() => {
+  if (!nearestUpcomingSession.value || isNearestSessionOffline.value) return false
+  if (!nearestUpcomingSession.value.join_available || !nearestSessionMeetingUrl.value) return false
+  return canJoinExternalMeeting({
+    status: nearestUpcomingSession.value.status,
+    session_format: nearestUpcomingSession.value.session_format,
+    meeting_mode: nearestUpcomingSession.value.meeting_mode,
+    meeting_url: nearestUpcomingSession.value.meeting_url,
+  })
+})
+
+const nearestSessionFormatLabel = computed(() => {
+  if (!nearestUpcomingSession.value) return '—'
+  return isOfflineSession(nearestUpcomingSession.value) ? 'Офлайн' : 'Онлайн'
+})
+
+const nearestSessionStatusLabel = computed(() => {
+  if (!nearestUpcomingSession.value) return ''
+  if (nearestUpcomingSession.value.status === 'SCHEDULED') return 'Потрібне підтвердження'
+  if (nearestUpcomingSession.value.status === 'CONFIRMED') return 'Підтверджено'
+  return nearestUpcomingSession.value.status
+})
+
+const nearestSessionStatusClass = computed(() => {
+  if (!nearestUpcomingSession.value) return ''
+  if (nearestUpcomingSession.value.status === 'SCHEDULED') return 'nearest-session__status--warn'
+  if (nearestUpcomingSession.value.status === 'CONFIRMED') return 'nearest-session__status--ok'
+  return ''
+})
+
+const nearestSessionOnlineHint = computed(() => {
+  if (!nearestUpcomingSession.value || isNearestSessionOffline.value) return ''
+  if (!nearestSessionMeetingUrl.value) {
+    return 'Додайте посилання на онлайн-зустріч у деталях сесії.'
+  }
+  if (canJoinNearestSession.value) {
+    return 'Приєднання доступне. Можна перейти у зустріч.'
+  }
+  return 'Посилання на зустріч додано. Приєднання стане доступним ближче до початку.'
+})
+
+function formatDateTime(value?: string | null) {
+  return formatUkDateTimeCompact(value)
+}
 
 async function loadSessionsForHero() {
   heroSessionsLoading.value = true
@@ -839,6 +1002,106 @@ onBeforeUnmount(() => {
 
 .panel--tips {
   background: rgba(7, 47, 71, 0.03);
+}
+
+.panel--action-hub {
+  gap: 12px;
+  background: linear-gradient(165deg, rgba(7, 47, 71, 0.04), rgba(8, 113, 201, 0.06));
+}
+
+.action-hub {
+  display: grid;
+  grid-template-columns: minmax(280px, 1.15fr) minmax(0, 1fr);
+  gap: 12px;
+}
+
+.action-hub__nearest {
+  margin: 0;
+}
+
+.action-hub__workflows {
+  display: grid;
+  gap: 8px;
+}
+
+.action-hub__title {
+  font-size: 19px;
+}
+
+.action-hub__meta {
+  font-size: 13px;
+}
+
+.action-hub__empty {
+  margin: 0;
+  line-height: 1.45;
+}
+
+.panel--nearest-session {
+  gap: 12px;
+  background: linear-gradient(145deg, rgba(7, 47, 71, 0.03), rgba(8, 113, 201, 0.08));
+}
+
+.nearest-session__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.nearest-session__item {
+  border: 1px solid rgba(7, 47, 71, 0.12);
+  border-radius: var(--radius-md);
+  background: #fff;
+  padding: 10px 12px;
+  display: grid;
+  gap: 4px;
+}
+
+.nearest-session__label {
+  font-size: 12px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.nearest-session__value {
+  font-weight: 600;
+}
+
+.nearest-session__meta {
+  font-size: 13px;
+}
+
+.nearest-session__hint {
+  font-size: 14px;
+}
+
+.nearest-session__actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.nearest-session__status {
+  width: fit-content;
+  padding: 6px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: rgba(7, 47, 71, 0.08);
+  color: #1c4c66;
+}
+
+.nearest-session__status--warn {
+  background: rgba(217, 164, 65, 0.2);
+  color: #9b6c0b;
+}
+
+.nearest-session__status--ok {
+  background: rgba(31, 122, 76, 0.14);
+  color: #1f7a4c;
 }
 
 .panel--plan {
@@ -1173,14 +1436,39 @@ onBeforeUnmount(() => {
 }
 
 .action-group__items {
-  display: flex;
+  display: grid;
   gap: 6px;
-  flex-wrap: wrap;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
 }
 
-.action-group__items .btn {
-  height: 38px;
-  padding: 0 14px;
+.action-tile {
+  min-height: 42px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid color-mix(in srgb, var(--line) 70%, #ffffff);
+  background: #fff;
+  text-decoration: none;
+  color: var(--ink);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.action-tile:hover {
+  border-color: rgba(31, 74, 96, 0.35);
+  box-shadow: 0 8px 18px rgba(16, 33, 50, 0.12);
+  transform: translateY(-1px);
+}
+
+.action-tile:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 10px rgba(16, 33, 50, 0.12);
+}
+
+.action-tile:focus-visible {
+  outline: 2px solid rgba(31, 74, 96, 0.35);
+  outline-offset: 1px;
 }
 
 .cabinet__loading {
@@ -1209,6 +1497,10 @@ onBeforeUnmount(() => {
 
   .hero-chip {
     width: 100%;
+  }
+
+  .action-hub {
+    grid-template-columns: 1fr;
   }
 
   .cabinet-actions {

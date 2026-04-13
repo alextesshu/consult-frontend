@@ -256,6 +256,36 @@ describe('TherapistSessionsView', () => {
     expect(await screen.findByText(/anna@example\.com/)).toBeInTheDocument()
   })
 
+  it('opens the date picker when clicking anywhere in the date filter field', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/sessions/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    const showPickerMock = vi.fn()
+    const originalShowPicker = (HTMLInputElement.prototype as HTMLInputElement & { showPicker?: () => void }).showPicker
+    Object.defineProperty(HTMLInputElement.prototype, 'showPicker', {
+      configurable: true,
+      value: showPickerMock,
+    })
+
+    try {
+      renderView()
+      await screen.findByText('Керуйте сесіями')
+
+      const dateField = screen.getByText('Дата').closest('label')
+      expect(dateField).not.toBeNull()
+      await fireEvent.click(dateField as HTMLElement)
+
+      expect(showPickerMock).toHaveBeenCalled()
+    } finally {
+      Object.defineProperty(HTMLInputElement.prototype, 'showPicker', {
+        configurable: true,
+        value: originalShowPicker,
+      })
+    }
+  })
+
   it('prioritizes live session in the top card and exposes direct join CTA', async () => {
     mockedApiGet.mockImplementation(async (url, config) => {
       if (url === '/booking/sessions/' && (config as { params?: { upcoming?: boolean } } | undefined)?.params?.upcoming) {
@@ -405,6 +435,8 @@ describe('TherapistSessionsView', () => {
     renderView()
 
     expect(await screen.findByText(/past-confirmed@example\.com/)).toBeInTheDocument()
+    expect(document.querySelector('.history-grid')).not.toBeNull()
+    expect(document.querySelector('.history-grid .history-tile')).not.toBeNull()
     expect(screen.getByRole('button', { name: 'Завершити' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Деталі' })).toHaveAttribute('href', '/cabinet/sessions/41')
   })
@@ -489,7 +521,8 @@ describe('TherapistSessionsView', () => {
 
     const updatedScheduledCard = screen.getByText(/anna@example\.com/).closest('article')
     expect(updatedScheduledCard).not.toBeNull()
-    expect(within(updatedScheduledCard as HTMLElement).getByRole('button', { name: 'Підтвердити' })).toBeDisabled()
+    expect(within(updatedScheduledCard as HTMLElement).queryByRole('button', { name: 'Підтвердити' })).not.toBeInTheDocument()
+    expect(within(updatedScheduledCard as HTMLElement).getByRole('link', { name: 'Відкрити сесію' })).toBeInTheDocument()
 
     const confirmedCard = screen.getByText(/maria@example\.com/).closest('article')
     expect(confirmedCard).not.toBeNull()
@@ -686,7 +719,7 @@ describe('TherapistSessionsView', () => {
 
       const sessionCard = screen.getByText(/stale-complete@example\.com/).closest('article')
       expect(sessionCard).not.toBeNull()
-      const completionButton = within(sessionCard as HTMLElement).getAllByRole('button')[1]
+      const completionButton = within(sessionCard as HTMLElement).getByRole('button', { name: 'Завершити' })
       if (!completionButton) {
         throw new Error('Complete button not found')
       }
@@ -744,7 +777,9 @@ describe('TherapistSessionsView', () => {
       expect(await screen.findByText(/keep-open@example\.com/)).toBeInTheDocument()
       const sessionCard = screen.getByText(/keep-open@example\.com/).closest('article')
       expect(sessionCard).not.toBeNull()
-      const completionButton = within(sessionCard as HTMLElement).getAllByRole('button')[1] as HTMLButtonElement
+      const completionButton = within(sessionCard as HTMLElement).getByRole('button', {
+        name: 'Завершити',
+      }) as HTMLButtonElement
       expect(completionButton).toBeTruthy()
       await fireEvent.click(completionButton)
 
