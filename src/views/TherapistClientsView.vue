@@ -260,6 +260,12 @@ type ClientState = {
   upcoming_count: number
   client_name?: string
   client_username?: string
+  client_display_name?: string
+  display_name?: string
+  client_first_name?: string
+  client_last_name?: string
+  first_name?: string
+  last_name?: string
   client_code?: string
   client_journal_content?: string
   client_journal_updated_at?: string | null
@@ -276,6 +282,12 @@ type SessionItem = {
   slot_end_at: string
   client_name?: string | null
   client_username?: string | null
+  client_display_name?: string | null
+  display_name?: string | null
+  client_first_name?: string | null
+  client_last_name?: string | null
+  first_name?: string | null
+  last_name?: string | null
   client_code?: string | null
 }
 
@@ -298,6 +310,17 @@ type HistoryItem = {
   slotEnd: string
   status: string
   note: string
+}
+
+type NameSource = {
+  client_name?: string | null
+  client_username?: string | null
+  client_display_name?: string | null
+  display_name?: string | null
+  client_first_name?: string | null
+  client_last_name?: string | null
+  first_name?: string | null
+  last_name?: string | null
 }
 
 const clients = ref<ClientState[]>([])
@@ -363,7 +386,7 @@ function rememberSessionClientNames(sessions: SessionItem[]) {
   sessions.forEach((session) => {
     const id = relationSessionClientId(session)
     if (!id || next[id]) return
-    const normalized = normalizeClientName(session.client_name || session.client_username)
+    const normalized = preferredClientName(session)
     if (normalized) next[id] = normalized
   })
   sessionClientNames.value = next
@@ -513,7 +536,7 @@ function formatDuration(start?: string | null, end?: string | null) {
 
 function clientLabel(clientId: number) {
   const client = clientIndex.value.get(clientId)
-  const normalized = normalizeClientName(client?.client_name || client?.client_username)
+  const normalized = preferredClientName(client)
   if (normalized) return normalized
   const fromSessions = sessionClientNames.value[clientId]
   if (fromSessions) return fromSessions
@@ -528,10 +551,46 @@ function normalizeClientName(value?: string | null) {
   if (/^(client|\u043a\u043b\u0456\u0454\u043d\u0442)\s*#?\d+$/i.test(name)) return ''
   return name
 }
+
+function fullName(first?: string | null, last?: string | null) {
+  const merged = [first?.trim() || '', last?.trim() || ''].filter(Boolean).join(' ')
+  return normalizeClientName(merged)
+}
+
+function preferredClientName(source?: NameSource | null) {
+  if (!source) return ''
+  const candidates = [
+    source.client_display_name,
+    source.display_name,
+    fullName(source.client_first_name, source.client_last_name),
+    fullName(source.first_name, source.last_name),
+    source.client_name,
+    source.client_username,
+  ]
+  for (const candidate of candidates) {
+    const normalized = normalizeClientName(candidate)
+    if (normalized) return normalized
+  }
+  return ''
+}
+
 function displayClientName(
-  client: Pick<ClientState, 'client' | 'client_id' | 'client_name' | 'client_username' | 'client_code'>
+  client: Pick<
+    ClientState,
+    | 'client'
+    | 'client_id'
+    | 'client_name'
+    | 'client_username'
+    | 'client_display_name'
+    | 'display_name'
+    | 'client_first_name'
+    | 'client_last_name'
+    | 'first_name'
+    | 'last_name'
+    | 'client_code'
+  >
 ) {
-  const normalized = normalizeClientName(client.client_name || client.client_username)
+  const normalized = preferredClientName(client)
   if (normalized) return normalized
   const id = relationClientId(client)
   const fromSessions = sessionClientNames.value[id]
@@ -623,8 +682,8 @@ async function loadPendingNotes() {
       }
       if (!note.trim()) {
         const mappedClient = clientIndex.value.get(sessionClientId)
-        const sessionClientName = normalizeClientName(session.client_name || session.client_username)
-        const mappedClientName = normalizeClientName(mappedClient?.client_name || mappedClient?.client_username)
+        const sessionClientName = preferredClientName(session)
+        const mappedClientName = preferredClientName(mappedClient)
         missing.push({
           sessionId: session.id,
           clientId: sessionClientId,
