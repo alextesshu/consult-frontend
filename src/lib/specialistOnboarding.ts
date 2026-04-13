@@ -36,6 +36,7 @@ export type OnboardingViewStep = {
   title: string
   done: boolean
   hint: string
+  to: string
 }
 
 export type OnboardingCta = {
@@ -116,6 +117,13 @@ const STEP_META: Array<{ key: OnboardingStepKey; title: string; hint: string }> 
     hint: 'Готовність профілю до першого контакту з клієнтом.',
   },
 ]
+
+const STEP_ROUTE_BY_KEY: Record<OnboardingStepKey, string> = {
+  profile_core: '/cabinet/profile',
+  availability: '/cabinet/availability-rules',
+  public_profile: '/cabinet/profile',
+  inbound_readiness: '/cabinet/inquiries',
+}
 
 function normalizeCodeItem(value: unknown): NormalizedCodeItem | null {
   if (typeof value === 'string' && value.trim()) {
@@ -257,6 +265,7 @@ export function buildSpecialistOnboardingViewModel(
     title: step.title,
     hint: step.hint,
     done: stepDoneByKey[step.key],
+    to: STEP_ROUTE_BY_KEY[step.key],
   }))
 
   const nextActions: OnboardingCta[] = normalized.nextActions

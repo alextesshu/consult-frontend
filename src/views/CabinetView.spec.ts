@@ -504,6 +504,25 @@ describe('CabinetView', () => {
     expect(clientsTile).toBeInTheDocument()
   })
 
+  it('renders compact nearest-session fallback when there are no upcoming sessions', async () => {
+    mockedApiGet.mockImplementation(async (_url, config) => {
+      if (config?.params?.upcoming === true) return []
+      if (config?.params?.upcoming === false) return []
+      if (_url === '/cabinet/entitlements/') return {}
+      return []
+    })
+
+    const view = renderView()
+
+    await waitFor(() => {
+      expect(view.container.querySelector('.action-hub.action-hub--fallback')).toBeInTheDocument()
+      expect(view.container.querySelector('.action-hub__nearest--compact')).toBeInTheDocument()
+      expect(view.container).toHaveTextContent('Немає майбутніх сесій.')
+    })
+
+    expect(view.container.querySelector('.action-hub__nearest--compact a[href="/cabinet/sessions"]')).toBeInTheDocument()
+  })
+
   it('renders onboarding readiness with pending steps and primary cta from backend enums', async () => {
     mockedApiGet.mockResolvedValue([])
     mockedFetchSpecialistOnboardingState.mockResolvedValue({
@@ -527,6 +546,40 @@ describe('CabinetView', () => {
     })
     expect(view.container.querySelector('.onboarding-step--pending')).toBeInTheDocument()
     expect((view.container.querySelector('a[href="/cabinet/profile"]')?.textContent || '').trim().length).toBeGreaterThan(0)
+  })
+
+  it('renders onboarding steps as full clickable links to operational destinations', async () => {
+    mockedApiGet.mockResolvedValue([])
+    mockedFetchSpecialistOnboardingState.mockResolvedValue({
+      readiness: {
+        profile_core_ready: false,
+        has_future_slots: false,
+        public_profile_enabled: false,
+        ready_for_inbound_intent: false,
+      },
+      missing_items: ['MISSING_DISPLAY_NAME', 'MISSING_FUTURE_SLOTS', 'PUBLIC_PROFILE_DISABLED'],
+      warnings: [],
+      next_actions: [],
+      primary_cta_code: null,
+      cta_target: null,
+    } as any)
+
+    const view = renderView()
+
+    await waitFor(() => {
+      expect(view.container.querySelectorAll('a.onboarding-step--link').length).toBeGreaterThanOrEqual(4)
+    })
+
+    const stepLinks = Array.from(view.container.querySelectorAll('a.onboarding-step--link'))
+    const profileCoreLink = stepLinks.find((el) => (el.textContent || '').includes('Базовий профіль'))
+    const availabilityLink = stepLinks.find((el) => (el.textContent || '').includes('Доступність'))
+    const publicProfileLink = stepLinks.find((el) => (el.textContent || '').includes('Публічний профіль'))
+    const inboundReadinessLink = stepLinks.find((el) => (el.textContent || '').includes('Готовність до звернень'))
+
+    expect(profileCoreLink?.getAttribute('href')).toBe('/cabinet/profile')
+    expect(availabilityLink?.getAttribute('href')).toBe('/cabinet/availability-rules')
+    expect(publicProfileLink?.getAttribute('href')).toBe('/cabinet/profile')
+    expect(inboundReadinessLink?.getAttribute('href')).toBe('/cabinet/inquiries')
   })
 
   it('uses onboarding_summary only as initial shell before canonical onboarding-state arrives', async () => {

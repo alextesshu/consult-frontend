@@ -47,8 +47,11 @@
             <h2 class="panel__title">Щоденні сценарії</h2>
           </div>
         </div>
-        <div class="action-hub">
-          <section class="panel panel--nearest-session action-hub__nearest">
+        <div class="action-hub" :class="{ 'action-hub--fallback': !nearestUpcomingSession }">
+          <section
+            class="panel panel--nearest-session action-hub__nearest"
+            :class="{ 'action-hub__nearest--compact': !nearestUpcomingSession }"
+          >
             <div class="panel__header">
               <div>
                 <div class="badge badge--soft">Найближча сесія</div>
@@ -209,11 +212,17 @@
             <li
               v-for="step in onboardingViewModel.steps"
               :key="step.key"
-              class="onboarding-step"
-              :class="step.done ? 'onboarding-step--done' : 'onboarding-step--pending'"
+              class="onboarding-step-item"
             >
-              <div class="onboarding-step__title">{{ step.title }}</div>
-              <div class="onboarding-step__hint">{{ step.hint }}</div>
+              <RouterLink
+                class="onboarding-step onboarding-step--link"
+                :class="step.done ? 'onboarding-step--done' : 'onboarding-step--pending'"
+                :to="step.to"
+              >
+                <div class="onboarding-step__title">{{ step.title }}</div>
+                <div class="onboarding-step__hint">{{ step.hint }}</div>
+                <div class="onboarding-step__action">Перейти до розділу</div>
+              </RouterLink>
             </li>
           </ol>
 
@@ -1013,10 +1022,25 @@ onBeforeUnmount(() => {
   display: grid;
   grid-template-columns: minmax(280px, 1.15fr) minmax(0, 1fr);
   gap: 12px;
+  align-items: start;
+}
+
+.action-hub--fallback {
+  grid-template-columns: minmax(240px, 0.78fr) minmax(0, 1.22fr);
 }
 
 .action-hub__nearest {
   margin: 0;
+}
+
+.action-hub__nearest--compact {
+  padding: 12px;
+  gap: 8px;
+  background: #fff;
+}
+
+.action-hub__nearest--compact .action-hub__title {
+  font-size: 17px;
 }
 
 .action-hub__workflows {
@@ -1150,10 +1174,39 @@ onBeforeUnmount(() => {
   list-style: none;
 }
 
+.onboarding-step-item {
+  min-height: 100%;
+}
+
 .onboarding-step {
   border: 1px solid var(--line);
   border-radius: var(--radius-md);
   padding: 10px 12px;
+  display: grid;
+  gap: 6px;
+}
+
+.onboarding-step--link {
+  text-decoration: none;
+  color: inherit;
+  min-height: 100%;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.onboarding-step--link:hover {
+  border-color: rgba(31, 74, 96, 0.35);
+  box-shadow: 0 10px 18px rgba(16, 33, 50, 0.1);
+  transform: translateY(-1px);
+}
+
+.onboarding-step--link:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 10px rgba(16, 33, 50, 0.12);
+}
+
+.onboarding-step--link:focus-visible {
+  outline: 2px solid rgba(31, 74, 96, 0.35);
+  outline-offset: 1px;
 }
 
 .onboarding-step--done {
@@ -1172,9 +1225,15 @@ onBeforeUnmount(() => {
 }
 
 .onboarding-step__hint {
-  margin-top: 4px;
   font-size: 12px;
   color: var(--muted);
+}
+
+.onboarding-step__action {
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #1f4a60;
 }
 
 .onboarding-list-wrap {
