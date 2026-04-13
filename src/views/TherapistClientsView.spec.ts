@@ -364,6 +364,40 @@ describe('TherapistClientsView', () => {
     })
   })
 
+  it('uses session client name when clients payload has only placeholder identity', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/cabinet/clients/')
+        return [
+          {
+            id: 1,
+            client_id: 44,
+            state: 'ACTIVE',
+            last_session_at: null,
+            upcoming_count: 0,
+            client_name: 'Client #44',
+          },
+        ]
+      if (url === '/booking/sessions/')
+        return [
+          {
+            id: 777,
+            client_id: 44,
+            status: 'SCHEDULED',
+            slot_start_at: '2099-06-15T10:00:00Z',
+            slot_end_at: '2099-06-15T10:50:00Z',
+            client_name: 'Test Testovych',
+          },
+        ]
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    const { container } = renderView()
+
+    await waitFor(() => {
+      expect(container.textContent).toContain('Test Testovych')
+    })
+  })
+
   it('opens and highlights deep-linked client card automatically', async () => {
     window.history.replaceState({}, '', '/cabinet/clients?client=44&autoOpen=1')
     mockedApiGet.mockImplementation(async (url) => {

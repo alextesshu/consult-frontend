@@ -315,6 +315,7 @@ const clientJournalDrafts = ref<Record<number, string>>({})
 const workbookExpanded = ref<Record<number, boolean>>({})
 const workbookSavedMessage = ref<Record<number, string>>({})
 const sessionsCache = ref<SessionItem[] | null>(null)
+const sessionClientNames = ref<Record<number, string>>({})
 const journalLoading = ref<Set<number>>(new Set())
 const journalSaving = ref<Set<number>>(new Set())
 const notesLoading = ref(false)
@@ -355,6 +356,17 @@ function relationClientId(client: Pick<ClientState, 'client' | 'client_id'>) {
 
 function relationSessionClientId(session: Pick<SessionItem, 'client' | 'client_id'>) {
   return Number(session.client ?? session.client_id ?? 0)
+}
+
+function rememberSessionClientNames(sessions: SessionItem[]) {
+  const next = { ...sessionClientNames.value }
+  sessions.forEach((session) => {
+    const id = relationSessionClientId(session)
+    if (!id || next[id]) return
+    const normalized = normalizeClientName(session.client_name || session.client_username)
+    if (normalized) next[id] = normalized
+  })
+  sessionClientNames.value = next
 }
 
 function normalizeSearchValue(value?: string | number | null) {
@@ -503,6 +515,8 @@ function clientLabel(clientId: number) {
   const client = clientIndex.value.get(clientId)
   const normalized = normalizeClientName(client?.client_name || client?.client_username)
   if (normalized) return normalized
+  const fromSessions = sessionClientNames.value[clientId]
+  if (fromSessions) return fromSessions
   if (client?.client_code) return `ID: ${client.client_code}`
   if (clientId > 0) return `Клієнт #${clientId}`
   return '\u041a\u043b\u0456\u0454\u043d\u0442'
@@ -519,8 +533,10 @@ function displayClientName(
 ) {
   const normalized = normalizeClientName(client.client_name || client.client_username)
   if (normalized) return normalized
-  if (client.client_code) return `ID: ${client.client_code}`
   const id = relationClientId(client)
+  const fromSessions = sessionClientNames.value[id]
+  if (fromSessions) return fromSessions
+  if (client.client_code) return `ID: ${client.client_code}`
   if (id > 0) return `Клієнт #${id}`
   return '\u041a\u043b\u0456\u0454\u043d\u0442'
 }
@@ -579,6 +595,7 @@ async function loadSessionsIfNeeded() {
   if (sessionsCache.value) return sessionsCache.value
   const resp = await apiGet<SessionItem[]>('/booking/sessions/')
   sessionsCache.value = resp || []
+  rememberSessionClientNames(sessionsCache.value)
   return sessionsCache.value
 }
 
