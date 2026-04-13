@@ -16,16 +16,19 @@
       </div>
 
       <div class="identity-rail__actions">
-        <button class="btn btn--primary" type="button" @click="$emit('primary-action')">
-          {{ heroPrimaryLabel }}
-        </button>
         <template v-if="showClientSessionsCta">
-          <a class="btn btn--ghost" href="#slots">Записатися на сесію</a>
+          <a class="btn btn--primary" href="#slots">Записатися на сесію</a>
+          <button class="btn btn--ghost" type="button" @click="$emit('primary-action')">
+            {{ heroPrimaryLabel }}
+          </button>
           <RouterLink class="btn btn--ghost" to="/client">
             Мої сесії
           </RouterLink>
         </template>
         <template v-else>
+          <button class="btn btn--primary" type="button" @click="$emit('primary-action')">
+            {{ heroPrimaryLabel }}
+          </button>
           <a class="btn btn--ghost" href="#slots">Переглянути вільні вікна</a>
           <RouterLink class="btn btn--ghost" :to="feedbackLink">Відгуки</RouterLink>
         </template>

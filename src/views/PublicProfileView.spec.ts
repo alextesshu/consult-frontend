@@ -2086,7 +2086,9 @@ describe('PublicProfileView', () => {
     const chatButton = await screen.findByRole('button', { name: 'Написати повідомлення' })
     expect(chatButton).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Написати спеціалісту' })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Записатися на сесію' })).toHaveAttribute('href', '#slots')
+    const bookingCta = screen.getByRole('link', { name: 'Записатися на сесію' })
+    expect(bookingCta).toHaveAttribute('href', '#slots')
+    expect(bookingCta).toHaveClass('btn--primary')
     expect(screen.getAllByText('Мої сесії')).toHaveLength(2)
     expect(screen.queryByText('Поставити запитання')).not.toBeInTheDocument()
 
