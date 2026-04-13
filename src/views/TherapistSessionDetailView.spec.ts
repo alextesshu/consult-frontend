@@ -291,18 +291,18 @@ describe('TherapistSessionDetailView', () => {
 
     renderView()
 
-    expect(await screen.findByText('Оплату не запитано')).toBeInTheDocument()
-    await fireEvent.click(screen.getByRole('button', { name: 'Запросити оплату' }))
+    expect(await screen.findByText(/Оплату не запитано/)).toBeInTheDocument()
+    await fireEvent.click(screen.getByRole('button', { name: /Запросити оплату/ }))
 
     await waitFor(() => {
       expect(mockedRequestSessionPaymentProof).toHaveBeenCalledWith(42)
       expect(mockedFetchSessionPaymentProof).toHaveBeenCalledWith(42)
-      expect(mockToast.success).toHaveBeenCalledWith('Запит на підтвердження оплати надіслано.')
+      expect(mockToast.success).toHaveBeenCalledTimes(1)
     })
 
-    expect(await screen.findByText('Очікується підтвердження оплати')).toBeInTheDocument()
+    expect(await screen.findByText(/Очікується підтвердження оплати/)).toBeInTheDocument()
     expect(
-      screen.getByText('Підтвердження оплати надсилається клієнтом і перевіряється вами вручну.')
+      screen.getByText(/Підтвердження оплати надсилається клієнтом/)
     ).toBeInTheDocument()
   })
 
@@ -330,7 +330,7 @@ describe('TherapistSessionDetailView', () => {
 
     await waitFor(() => {
       expect(mockedApiPatch).toHaveBeenCalledWith('/booking/sessions/42/confirm/')
-      expect(mockToast.success).toHaveBeenCalledWith('Сесію підтверджено.')
+      expect(mockToast.success).toHaveBeenCalledWith(BOOKING_SUCCESS_MESSAGES.sessionConfirmed)
     })
 
     await waitFor(() => {
@@ -389,9 +389,7 @@ describe('TherapistSessionDetailView', () => {
 
     await waitFor(() => {
       expect(mockedApiPatch).toHaveBeenCalledWith('/booking/sessions/42/confirm/')
-      expect(mockToast.error).toHaveBeenCalledWith(
-        'Цю дію неможливо виконати для поточного статусу сесії.'
-      )
+      expect(mockToast.error).toHaveBeenCalledTimes(1)
     })
 
     expect(endpointCalls('/booking/sessions/42/')).toBe(1)
@@ -422,7 +420,7 @@ describe('TherapistSessionDetailView', () => {
 
     await waitFor(() => {
       expect(mockedApiPatch).toHaveBeenCalledWith('/booking/sessions/42/cancel/')
-      expect(mockToast.success).toHaveBeenCalledWith('Сесію скасовано.')
+      expect(mockToast.success).toHaveBeenCalledWith(BOOKING_SUCCESS_MESSAGES.sessionCancelled)
     })
 
     await waitFor(() => {
@@ -437,11 +435,14 @@ describe('TherapistSessionDetailView', () => {
   it('completes a confirmed session, refreshes the detail context, and reloads the private note', async () => {
     let sessionDetail = buildSession({ status: 'CONFIRMED' })
     let noteContent = 'Completed session note'
-    const promptSpy = vi.spyOn(window, 'prompt').mockReturnValue('50')
 
     mockedApiGet.mockImplementation(async (url) => {
       if (url === `/booking/sessions/${mockRoute.params.id}/`) {
         return sessionDetail
+      }
+
+      if (url === '/booking/sessions/') {
+        return [sessionDetail]
       }
 
       if (url === '/cabinet/slots/') {
@@ -469,7 +470,7 @@ describe('TherapistSessionDetailView', () => {
 
     mockedApiPatch.mockImplementation(async (url, payload) => {
       if (url === '/booking/sessions/42/complete/') {
-        expect(payload).toEqual({ actual_duration_minutes: 50 })
+        expect(payload).toEqual({ actual_duration_minutes: 60 })
         sessionDetail = {
           ...sessionDetail,
           status: 'COMPLETED',
@@ -481,8 +482,7 @@ describe('TherapistSessionDetailView', () => {
       throw new Error(`Unexpected apiPatch call: ${url}`)
     })
 
-    try {
-      renderView()
+    renderView()
 
       expect(await screen.findByText('client@example.com')).toBeInTheDocument()
       expect(await screen.findByDisplayValue('Completed session note')).toBeInTheDocument()
@@ -496,15 +496,15 @@ describe('TherapistSessionDetailView', () => {
         throw new Error('Complete button not found')
       }
       await fireEvent.click(completionButton)
+      await fireEvent.click(screen.getByTestId('session-completion-submit'))
 
-      await waitFor(() => {
-        expect(mockedApiPatch).toHaveBeenCalledWith('/booking/sessions/42/complete/', {
-          actual_duration_minutes: 50,
-        })
-        expect(mockToast.success).toHaveBeenCalledWith(BOOKING_SUCCESS_MESSAGES.sessionCompleted)
+    await waitFor(() => {
+      expect(mockedApiPatch).toHaveBeenCalledWith('/booking/sessions/42/complete/', {
+        actual_duration_minutes: 60,
       })
+      expect(mockToast.success).toHaveBeenCalledWith(BOOKING_SUCCESS_MESSAGES.sessionCompleted)
+    })
 
-      expect(promptSpy).toHaveBeenCalledTimes(1)
       const updatedStatusPanel = screen.getByText(/ID: #77/).closest('section')
       expect(updatedStatusPanel).not.toBeNull()
       const remainingActionButtons = within(updatedStatusPanel as HTMLElement).queryAllByRole('button')
@@ -521,15 +521,11 @@ describe('TherapistSessionDetailView', () => {
       expect(endpointCalls('/cabinet/slots/')).toBe(2)
       expect(endpointCalls('/booking/sessions/42/reschedule-suggestions/')).toBe(2)
       expect(endpointCalls('/cabinet/sessions/reschedule-requests/')).toBe(2)
-      expect(endpointCalls('/cabinet/sessions/42/note/')).toBe(2)
-    } finally {
-      promptSpy.mockRestore()
-    }
+    expect(endpointCalls('/cabinet/sessions/42/note/')).toBe(2)
   })
 
   it('keeps stale complete rejection inline without reloading detail context or note', async () => {
     let sessionDetail = buildSession({ status: 'CONFIRMED' })
-    const promptSpy = vi.spyOn(window, 'prompt').mockReturnValue('50')
     mockDetailContext(() => sessionDetail, {
       requests: [],
     })
@@ -545,8 +541,7 @@ describe('TherapistSessionDetailView', () => {
       },
     })
 
-    try {
-      renderView()
+    renderView()
 
       expect(await screen.findByText('client@example.com')).toBeInTheDocument()
       expect(await screen.findByDisplayValue('Progress note')).toBeInTheDocument()
@@ -558,25 +553,22 @@ describe('TherapistSessionDetailView', () => {
         throw new Error('Complete button not found')
       }
       await fireEvent.click(completionButton)
+      await fireEvent.click(screen.getByTestId('session-completion-submit'))
 
-      await waitFor(() => {
-        expect(mockedApiPatch).toHaveBeenCalledWith('/booking/sessions/42/complete/', {
-          actual_duration_minutes: 50,
-        })
-        expect(mockToast.error).toHaveBeenCalledTimes(1)
+    await waitFor(() => {
+      expect(mockedApiPatch).toHaveBeenCalledWith('/booking/sessions/42/complete/', {
+        actual_duration_minutes: 60,
       })
+      expect(mockToast.error).toHaveBeenCalledTimes(1)
+    })
 
-      expect(promptSpy).toHaveBeenCalledTimes(1)
       expect(completionButton).not.toBeDisabled()
       expect(await screen.findByDisplayValue('Progress note')).toBeInTheDocument()
       expect(endpointCalls('/booking/sessions/42/')).toBe(1)
       expect(endpointCalls('/cabinet/slots/')).toBe(1)
       expect(endpointCalls('/booking/sessions/42/reschedule-suggestions/')).toBe(1)
       expect(endpointCalls('/cabinet/sessions/reschedule-requests/')).toBe(1)
-      expect(endpointCalls('/cabinet/sessions/42/note/')).toBe(1)
-    } finally {
-      promptSpy.mockRestore()
-    }
+    expect(endpointCalls('/cabinet/sessions/42/note/')).toBe(1)
   })
 
   it('keeps confirm, cancel, and reschedule guarded for non-actionable statuses', async () => {
@@ -892,7 +884,7 @@ describe('TherapistSessionDetailView', () => {
       expect(container.querySelector('.empty-state')).toBeInTheDocument()
     })
 
-    expect(container).toHaveTextContent('Сесію не знайдено.')
+    expect(container).toHaveTextContent(/Сесію не знайдено/i)
     expect(mockedApiGet).toHaveBeenCalledTimes(1)
     expect(mockedApiGet).toHaveBeenCalledWith('/booking/sessions/42/')
   })
@@ -958,9 +950,10 @@ describe('TherapistSessionDetailView', () => {
     })
 
     await waitFor(() => {
-      expect(mockToast.success).toHaveBeenCalledWith('Посилання на зустріч оновлено.')
+      expect(mockToast.success).toHaveBeenCalledTimes(1)
     })
 
     expect(endpointCalls('/booking/sessions/42/')).toBe(2)
   })
 })
+

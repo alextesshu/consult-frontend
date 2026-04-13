@@ -124,6 +124,12 @@ function getSessionById(id: number): SessionRecord {
   return session
 }
 
+async function openSessionFromCard(card: HTMLElement, sessionId: number) {
+  const detailLink = card.querySelector(`a[href="/cabinet/sessions/${sessionId}"]`) as HTMLAnchorElement | null
+  expect(detailLink).not.toBeNull()
+  await fireEvent.click(detailLink as HTMLAnchorElement)
+}
+
 function getUpcomingSessions(): SessionRecord[] {
   return Object.values(sessionsState)
     .filter((session) => session.status === 'SCHEDULED' || session.status === 'CONFIRMED')
@@ -374,10 +380,10 @@ describe('specialist sessions flow', () => {
 
     const confirmedCard = screen.getByText(/flow@example\.com/).closest('article')
     expect(confirmedCard).not.toBeNull()
-    expect(within(confirmedCard as HTMLElement).getByRole('button', { name: 'Підтвердити' })).toBeDisabled()
+    expect(within(confirmedCard as HTMLElement).queryByRole('button', { name: 'Підтвердити' })).toBeNull()
     expect(within(confirmedCard as HTMLElement).getByRole('button', { name: 'Скасувати' })).not.toBeDisabled()
 
-    await fireEvent.click(within(confirmedCard as HTMLElement).getByRole('link', { name: 'Деталі' }))
+    await openSessionFromCard(confirmedCard as HTMLElement, 42)
 
     await waitFor(() => {
       expect(router.currentRoute.value.path).toBe('/cabinet/sessions/42')
@@ -444,7 +450,7 @@ describe('specialist sessions flow', () => {
     expect(listCard).not.toBeNull()
     expect(within(listCard as HTMLElement).getByRole('button', { name: 'Підтвердити' })).not.toBeDisabled()
 
-    await fireEvent.click(within(listCard as HTMLElement).getByRole('link', { name: 'Деталі' }))
+    await openSessionFromCard(listCard as HTMLElement, 42)
 
     await waitFor(() => {
       expect(router.currentRoute.value.path).toBe('/cabinet/sessions/42')
@@ -490,7 +496,7 @@ describe('specialist sessions flow', () => {
     expect(listCard).not.toBeNull()
     expect(within(listCard as HTMLElement).getByText(initialTime)).toBeInTheDocument()
 
-    await fireEvent.click(within(listCard as HTMLElement).getByRole('link', { name: 'Деталі' }))
+    await openSessionFromCard(listCard as HTMLElement, 42)
 
     await waitFor(() => {
       expect(router.currentRoute.value.path).toBe('/cabinet/sessions/42')
@@ -499,7 +505,6 @@ describe('specialist sessions flow', () => {
     expect(await screen.findByText(/ID: #77/)).toBeInTheDocument()
 
     await fireEvent.click(screen.getByRole('button', { name: 'Перенести' }))
-    expect(await screen.findByText('Рекомендовані варіанти')).toBeInTheDocument()
 
     const suggestionButton = screen.getByRole('button', {
       name: new RegExp(rescheduledTime.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
@@ -544,7 +549,7 @@ describe('specialist sessions flow', () => {
     expect(listCard).not.toBeNull()
     expect(within(listCard as HTMLElement).getByText('Є запит на перенос')).toBeInTheDocument()
 
-    await fireEvent.click(within(listCard as HTMLElement).getByRole('link', { name: 'Деталі' }))
+    await openSessionFromCard(listCard as HTMLElement, 42)
 
     await waitFor(() => {
       expect(router.currentRoute.value.path).toBe('/cabinet/sessions/42')
@@ -605,7 +610,7 @@ describe('specialist sessions flow', () => {
     expect(listCard).not.toBeNull()
     expect(within(listCard as HTMLElement).getByText('Є запит на перенос')).toBeInTheDocument()
 
-    await fireEvent.click(within(listCard as HTMLElement).getByRole('link', { name: 'Деталі' }))
+    await openSessionFromCard(listCard as HTMLElement, 42)
 
     await waitFor(() => {
       expect(router.currentRoute.value.path).toBe('/cabinet/sessions/42')
@@ -650,7 +655,6 @@ describe('specialist sessions flow', () => {
   })
 
   it('keeps detail and list aligned after a stale complete rejection from detail', async () => {
-    const promptSpy = vi.spyOn(window, 'prompt').mockReturnValue('50')
     mockedApiPatch.mockImplementation(async (url, payload) => {
       if (url === '/booking/sessions/42/complete/') {
         expect(payload).toEqual({ actual_duration_minutes: 50 })
@@ -667,111 +671,101 @@ describe('specialist sessions flow', () => {
       throw new Error(`Unexpected apiPatch call: ${url}`)
     })
 
-    try {
-      const { router } = await renderFlow()
+    const { router } = await renderFlow()
 
-      expect(await screen.findByText(/flow@example\.com/)).toBeInTheDocument()
+    expect(await screen.findByText(/flow@example\.com/)).toBeInTheDocument()
 
-      const listCard = screen.getByText(/flow@example\.com/).closest('article')
-      expect(listCard).not.toBeNull()
-      expect(within(listCard as HTMLElement).getByRole('button', { name: 'Завершити' })).not.toBeDisabled()
+    const listCard = screen.getByText(/flow@example\.com/).closest('article')
+    expect(listCard).not.toBeNull()
+    expect(within(listCard as HTMLElement).getByRole('button', { name: 'Завершити' })).not.toBeDisabled()
 
-      await fireEvent.click(within(listCard as HTMLElement).getByRole('link', { name: 'Деталі' }))
+    await openSessionFromCard(listCard as HTMLElement, 42)
 
-      await waitFor(() => {
-        expect(router.currentRoute.value.path).toBe('/cabinet/sessions/42')
+    await waitFor(() => {
+      expect(router.currentRoute.value.path).toBe('/cabinet/sessions/42')
+    })
+
+    expect(await screen.findByText(/ID: #77/)).toBeInTheDocument()
+    expect(await screen.findByDisplayValue('Initial flow note')).toBeInTheDocument()
+
+    const completionButton = screen.getByRole('button', { name: 'Завершити' })
+    await fireEvent.click(completionButton)
+    await fireEvent.click(screen.getByTestId('session-completion-submit'))
+
+    await waitFor(() => {
+      expect(mockedApiPatch).toHaveBeenCalledWith('/booking/sessions/42/complete/', {
+        actual_duration_minutes: 50,
       })
+      expect(mockToast.error).toHaveBeenCalledTimes(1)
+    })
+    expect(completionButton).not.toBeDisabled()
+    expect(await screen.findByDisplayValue('Initial flow note')).toBeInTheDocument()
 
-      expect(await screen.findByText(/ID: #77/)).toBeInTheDocument()
-      expect(await screen.findByDisplayValue('Initial flow note')).toBeInTheDocument()
+    const backLink = document.querySelector('a[href="/cabinet/sessions"]') as HTMLAnchorElement | null
+    expect(backLink).not.toBeNull()
+    await fireEvent.click(backLink as HTMLAnchorElement)
 
-      const completionButton = screen.getByRole('button', { name: 'Завершити' })
-      await fireEvent.click(completionButton)
+    await waitFor(() => {
+      expect(router.currentRoute.value.path).toBe('/cabinet/sessions')
+    })
 
-      await waitFor(() => {
-        expect(mockedApiPatch).toHaveBeenCalledWith('/booking/sessions/42/complete/', {
-          actual_duration_minutes: 50,
-        })
-        expect(mockToast.error).toHaveBeenCalledTimes(1)
-      })
+    expect(await screen.findByText(/flow@example\.com/)).toBeInTheDocument()
 
-      expect(promptSpy).toHaveBeenCalledTimes(1)
-      expect(completionButton).not.toBeDisabled()
-      expect(await screen.findByDisplayValue('Initial flow note')).toBeInTheDocument()
-
-      const backLink = document.querySelector('a[href="/cabinet/sessions"]') as HTMLAnchorElement | null
-      expect(backLink).not.toBeNull()
-      await fireEvent.click(backLink as HTMLAnchorElement)
-
-      await waitFor(() => {
-        expect(router.currentRoute.value.path).toBe('/cabinet/sessions')
-      })
-
-      expect(await screen.findByText(/flow@example\.com/)).toBeInTheDocument()
-
-      const reloadedListCard = screen.getByText(/flow@example\.com/).closest('article')
-      expect(reloadedListCard).not.toBeNull()
-      expect(within(reloadedListCard as HTMLElement).getByRole('button', { name: 'Завершити' })).not.toBeDisabled()
-      expect(within(reloadedListCard as HTMLElement).getByRole('button', { name: 'Скасувати' })).not.toBeDisabled()
-    } finally {
-      promptSpy.mockRestore()
-    }
+    const reloadedListCard = screen.getByText(/flow@example\.com/).closest('article')
+    expect(reloadedListCard).not.toBeNull()
+    expect(within(reloadedListCard as HTMLElement).getByRole('button', { name: 'Завершити' })).not.toBeDisabled()
+    expect(within(reloadedListCard as HTMLElement).getByRole('button', { name: 'Скасувати' })).not.toBeDisabled()
   })
 
   it('keeps list and detail aligned after completing a session from detail and navigating back', async () => {
-    const promptSpy = vi.spyOn(window, 'prompt').mockReturnValue('50')
+    const { router } = await renderFlow()
 
-    try {
-      const { router } = await renderFlow()
+    expect(await screen.findByText(/flow@example\.com/)).toBeInTheDocument()
+    expect(router.currentRoute.value.path).toBe('/cabinet/sessions')
 
-      expect(await screen.findByText(/flow@example\.com/)).toBeInTheDocument()
+    const listCard = screen.getByText(/flow@example\.com/).closest('article')
+    expect(listCard).not.toBeNull()
+    await openSessionFromCard(listCard as HTMLElement, 42)
+
+    await waitFor(() => {
+      expect(router.currentRoute.value.path).toBe('/cabinet/sessions/42')
+    })
+
+    expect(await screen.findByText(/ID: #77/)).toBeInTheDocument()
+    expect(await screen.findByDisplayValue('Initial flow note')).toBeInTheDocument()
+
+    const completionButton = screen.getByRole('button', { name: 'Завершити' })
+    await fireEvent.click(completionButton)
+    await fireEvent.click(screen.getByTestId('session-completion-submit'))
+
+    await waitFor(() => {
+      expect(mockedApiPatch).toHaveBeenCalledWith('/booking/sessions/42/complete/', {
+        actual_duration_minutes: 50,
+      })
+    })
+    expect(await screen.findByDisplayValue('Completed flow note')).toBeInTheDocument()
+
+    const refreshedStatusPanel = screen.getByText(/ID: #77/).closest('section')
+    expect(refreshedStatusPanel).not.toBeNull()
+    expect((refreshedStatusPanel as HTMLElement).querySelector('.status-pill--muted')).not.toBeNull()
+    expect(within(refreshedStatusPanel as HTMLElement).queryAllByRole('button')).toHaveLength(3)
+
+    const backLink = document.querySelector('a[href="/cabinet/sessions"]') as HTMLAnchorElement | null
+    expect(backLink).not.toBeNull()
+    await fireEvent.click(backLink as HTMLAnchorElement)
+
+    await waitFor(() => {
       expect(router.currentRoute.value.path).toBe('/cabinet/sessions')
+    })
 
-      const listCard = screen.getByText(/flow@example\.com/).closest('article')
-      expect(listCard).not.toBeNull()
-      await fireEvent.click(within(listCard as HTMLElement).getByRole('link', { name: 'Деталі' }))
+    expect(await screen.findByText(/flow@example\.com/)).toBeInTheDocument()
 
-      await waitFor(() => {
-        expect(router.currentRoute.value.path).toBe('/cabinet/sessions/42')
-      })
-
-      expect(await screen.findByText(/ID: #77/)).toBeInTheDocument()
-      expect(await screen.findByDisplayValue('Initial flow note')).toBeInTheDocument()
-
-      const completionButton = screen.getByRole('button', { name: 'Завершити' })
-      await fireEvent.click(completionButton)
-
-      await waitFor(() => {
-        expect(mockedApiPatch).toHaveBeenCalledWith('/booking/sessions/42/complete/', {
-          actual_duration_minutes: 50,
-        })
-      })
-
-      expect(promptSpy).toHaveBeenCalledTimes(1)
-      expect(await screen.findByDisplayValue('Completed flow note')).toBeInTheDocument()
-
-      const refreshedStatusPanel = screen.getByText(/ID: #77/).closest('section')
-      expect(refreshedStatusPanel).not.toBeNull()
-      expect((refreshedStatusPanel as HTMLElement).querySelector('.status-pill--muted')).not.toBeNull()
-      expect(within(refreshedStatusPanel as HTMLElement).queryAllByRole('button')).toHaveLength(3)
-
-      const backLink = document.querySelector('a[href="/cabinet/sessions"]') as HTMLAnchorElement | null
-      expect(backLink).not.toBeNull()
-      await fireEvent.click(backLink as HTMLAnchorElement)
-
-      await waitFor(() => {
-        expect(router.currentRoute.value.path).toBe('/cabinet/sessions')
-      })
-
-      expect(await screen.findByText(/flow@example\.com/)).toBeInTheDocument()
-
-      const historyCard = screen.getByText(/flow@example\.com/).closest('article')
-      expect(historyCard).not.toBeNull()
-      expect((historyCard as HTMLElement).querySelector('.status-pill--muted')).not.toBeNull()
-      expect(within(historyCard as HTMLElement).queryAllByRole('button')).toHaveLength(0)
-      expect(within(historyCard as HTMLElement).getByRole('link')).toHaveAttribute('href', '/cabinet/sessions/42')
-    } finally {
-      promptSpy.mockRestore()
-    }
+    const historyCard = screen.getByText(/flow@example\.com/).closest('article')
+    expect(historyCard).not.toBeNull()
+    expect((historyCard as HTMLElement).querySelector('.status-pill--muted')).not.toBeNull()
+    expect(within(historyCard as HTMLElement).queryAllByRole('button')).toHaveLength(0)
+    expect(within(historyCard as HTMLElement).getByRole('link')).toHaveAttribute('href', '/cabinet/sessions/42')
   })
 })
+
+

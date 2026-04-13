@@ -14,6 +14,36 @@
     <div v-if="error" class="form-error">{{ error }}</div>
     <LoadingSkeleton v-if="loading" variant="list" :count="3" />
 
+    <section v-if="postSessionContext" class="panel panel--next-step">
+      <div class="panel__header">
+        <div>
+          <div class="badge badge--soft">Після сесії</div>
+          <h2 class="panel__title">Оберіть наступний крок</h2>
+        </div>
+        <button class="btn btn--ghost btn--sm" type="button" @click="clearPostSessionContext">
+          Сховати
+        </button>
+      </div>
+      <div class="next-step-rail">
+        <button class="btn btn--sm" type="button" @click="openPostSessionNote">
+          Додати / відкрити нотатку
+        </button>
+        <RouterLink class="btn btn--ghost btn--sm" to="/cabinet/clients">
+          Відкрити клієнта
+        </RouterLink>
+        <RouterLink
+          v-if="postSessionNextSession"
+          class="btn btn--ghost btn--sm"
+          :to="`/cabinet/sessions/${postSessionNextSession.id}`"
+        >
+          Наступна сесія: {{ formatDateTime(postSessionNextSession.slot_start_at) }}
+        </RouterLink>
+        <button class="btn btn--ghost btn--sm" type="button" @click="returnToSessionList">
+          Повернутись до списку
+        </button>
+      </div>
+    </section>
+
     <section class="panel panel--priority">
       <div class="panel__header">
         <div>
@@ -250,7 +280,7 @@
                 class="btn btn--ghost btn--sm"
                 type="button"
                 :disabled="isActionLoading(session.id)"
-                @click="completeSession(session.id)"
+                @click="openCompletionModal(session.id)"
               >
                 Завершити
               </button>
@@ -316,7 +346,7 @@
                   type="button"
                   @click="selectSuggestedSlot(item.slot_id)"
                 >
-                  <span>{{ formatDateTime(item.start_at) }} · {{ formatDuration(item.start_at, item.end_at) }}</span>
+                  <span>{{ formatDateTime(item.start_at) }} В· {{ formatDuration(item.start_at, item.end_at) }}</span>
                   <span class="muted suggestion-meta">{{ suggestionReasonLabel(item.reason_tag) }}</span>
                 </button>
               </div>
@@ -432,7 +462,7 @@
               Запитане вільне віконце:
               <span v-if="req.requested_slot_start_at && req.requested_slot_end_at">
                 {{ formatDateTime(req.requested_slot_start_at) }}
-                · {{ formatDuration(req.requested_slot_start_at, req.requested_slot_end_at) }}
+                В· {{ formatDuration(req.requested_slot_start_at, req.requested_slot_end_at) }}
               </span>
               <span v-else>#{{ req.requested_slot_id }}</span>
             </div>
@@ -508,7 +538,7 @@
                 class="btn btn--ghost btn--sm"
                 type="button"
                 :disabled="isActionLoading(session.id)"
-                @click="completeSession(session.id)"
+                @click="openCompletionModal(session.id)"
               >
                 Завершити
               </button>
@@ -531,6 +561,24 @@
           </div>
           <button class="btn btn--ghost btn--sm" type="button" @click="closeNote">
             Закрити
+          </button>
+        </div>
+        <div
+          v-if="postSessionContext && noteSessionId === postSessionContext.sessionId"
+          class="next-step-rail next-step-rail--modal"
+        >
+          <RouterLink class="btn btn--ghost btn--sm" to="/cabinet/clients">
+            Відкрити клієнта
+          </RouterLink>
+          <RouterLink
+            v-if="postSessionNextSession"
+            class="btn btn--ghost btn--sm"
+            :to="`/cabinet/sessions/${postSessionNextSession.id}`"
+          >
+            Наступна сесія: {{ formatDateTime(postSessionNextSession.slot_start_at) }}
+          </RouterLink>
+          <button class="btn btn--ghost btn--sm" type="button" @click="returnToSessionList">
+            Повернутись до списку
           </button>
         </div>
         <div class="note-grid">
@@ -589,6 +637,16 @@
         </div>
       </div>
     </div>
+
+    <SessionCompletionModal
+      :open="Boolean(completionSessionId)"
+      v-model="completionDurationDraft"
+      :loading="isCompletionSubmitting"
+      :planned-duration-minutes="completionPlannedDuration"
+      :error-message="completionDurationError"
+      @confirm="submitCompletion"
+      @cancel="closeCompletionModal"
+    />
   </section>
 </template>
 
@@ -616,6 +674,7 @@ import {
   fetchSpecialistRescheduleSuggestions as fetchSpecialistRescheduleSuggestionsData,
   fetchSpecialistClientJournalContent as fetchSpecialistClientJournalContentData,
   fetchSpecialistSessionNoteContent as fetchSpecialistSessionNoteContentData,
+  findNextUpcomingSession as getNextUpcomingSession,
   formatSessionDateTime as sharedFormatSessionDateTime,
   formatSessionDuration as sharedFormatSessionDuration,
   parseActualDurationInput as getActualDurationPayload,
@@ -625,8 +684,10 @@ import {
   rescheduleStatusLabel as getRescheduleStatusLabel,
   saveSpecialistSessionNote as saveSpecialistSessionNoteAction,
   saveSpecialistClientJournal as saveSpecialistClientJournalAction,
+  sessionDurationMinutes as getSessionDurationMinutes,
   statusClass as getStatusClass,
   statusLabel as getStatusLabel,
+  suggestedActualDurationInput as getSuggestedActualDurationInput,
   suggestionReasonLabel as getSuggestionReasonLabel,
   timeUntilLabel as getTimeUntilLabel,
   type SpecialistRecurringSummary,
@@ -639,6 +700,7 @@ import { canJoinExternalMeeting, normalizeMeetingUrl } from '../lib/sessionExecu
 import { useToast } from '../composables/useToast'
 import LoadingSkeleton from '../components/LoadingSkeleton.vue'
 import EmptyState from '../components/EmptyState.vue'
+import SessionCompletionModal from '../components/SessionCompletionModal.vue'
 
 type Session = {
   id: number
@@ -666,6 +728,10 @@ type RescheduleRequest = SpecialistRescheduleRequest
 type RecurringSummary = SpecialistRecurringSummary
 type RescheduleSuggestion = SpecialistRescheduleSuggestion
 type PrimarySessionAction = 'confirm' | 'join' | 'details'
+type PostSessionContext = {
+  sessionId: number
+  clientId: number | null
+}
 
 type SessionStatusFilter =
   | 'ALL'
@@ -698,6 +764,9 @@ const recurringSessionId = ref<number | null>(null)
 const recurringPreset = ref<number | 'custom'>(4)
 const recurringCustomOccurrences = ref<number | ''>('')
 const recurringResult = ref<Record<number, RecurringSummary>>({})
+const completionSessionId = ref<number | null>(null)
+const completionDurationDraft = ref('')
+const completionDurationError = ref('')
 const noteSessionId = ref<number | null>(null)
 const noteDraft = ref('')
 const noteLoading = ref<Set<number>>(new Set())
@@ -711,6 +780,7 @@ const rescheduleRequests = ref<RescheduleRequest[]>([])
 const requestsLoading = ref(false)
 const requestLoading = ref<Set<number>>(new Set())
 const highlightedSessionId = ref<number | null>(null)
+const postSessionContext = ref<PostSessionContext | null>(null)
 const statusFilter = ref<SessionStatusFilter>('ALL')
 const dateFilter = ref('')
 const dateFilterInputRef = ref<HTMLInputElement | null>(null)
@@ -841,6 +911,29 @@ const isPriorityLive = computed(() =>
 const priorityPrimaryAction = computed<PrimarySessionAction>(() => {
   if (!prioritySession.value) return 'details'
   return sessionPrimaryAction(prioritySession.value)
+})
+
+const completionSession = computed(() => {
+  if (!completionSessionId.value) return null
+  return findSessionById(completionSessionId.value)
+})
+
+const completionPlannedDuration = computed(() => {
+  if (!completionSession.value) return null
+  return getSessionDurationMinutes(completionSession.value as SpecialistSessionLike)
+})
+
+const isCompletionSubmitting = computed(() => {
+  if (!completionSessionId.value) return false
+  return isActionLoading(completionSessionId.value)
+})
+
+const postSessionNextSession = computed(() => {
+  if (!postSessionContext.value) return null
+  return getNextUpcomingSession(upcomingSorted.value, {
+    excludeSessionId: postSessionContext.value.sessionId,
+    nowTs: nowTs.value,
+  })
 })
 
 const canCancel = (status: string) => sharedCanCancel(status)
@@ -1133,27 +1226,68 @@ async function confirmSession(id: number) {
   }
 }
 
-async function completeSession(id: number) {
-  const input = window.prompt('Вкажіть фактичну тривалість (хв). Порожньо — стандартна тривалість.')
-  if (input === null) return
+function openCompletionModal(id: number) {
+  const session = findSessionById(id)
+  completionSessionId.value = id
+  completionDurationDraft.value = session
+    ? getSuggestedActualDurationInput(session as SpecialistSessionLike)
+    : ''
+  completionDurationError.value = ''
+}
 
-  const { payload, error: durationError } = getActualDurationPayload(input)
+function closeCompletionModal(force = false) {
+  if (!force && isCompletionSubmitting.value) return
+  completionSessionId.value = null
+  completionDurationDraft.value = ''
+  completionDurationError.value = ''
+}
+
+function rememberPostSessionContext(sessionId: number) {
+  const completed = findSessionById(sessionId)
+  postSessionContext.value = {
+    sessionId,
+    clientId: completed?.client ?? null,
+  }
+}
+
+function clearPostSessionContext() {
+  postSessionContext.value = null
+}
+
+async function openPostSessionNote() {
+  if (!postSessionContext.value) return
+  await openNoteModal(postSessionContext.value.sessionId)
+}
+
+function returnToSessionList() {
+  closeNote()
+  clearPostSessionContext()
+}
+
+async function submitCompletion() {
+  const targetId = completionSessionId.value
+  if (!targetId) return
+
+  const { payload, error: durationError } = getActualDurationPayload(completionDurationDraft.value)
   if (durationError) {
-    error.value = durationError
+    completionDurationError.value = durationError
     return
   }
 
-  setActionLoading(id, true)
+  setActionLoading(targetId, true)
   error.value = ''
+  completionDurationError.value = ''
   try {
-    await completeSpecialistSessionAction(id, payload)
+    await completeSpecialistSessionAction(targetId, payload)
     await loadSessions()
-    await openNoteModal(id)
+    rememberPostSessionContext(targetId)
+    closeCompletionModal(true)
+    await openNoteModal(targetId)
     toast.success(BOOKING_SUCCESS_MESSAGES.sessionCompleted)
   } catch (err: any) {
     error.value = getBookingErrorMessage(err, BOOKING_ERROR_FALLBACKS.completeSession)
   } finally {
-    setActionLoading(id, false)
+    setActionLoading(targetId, false)
   }
 }
 
@@ -1466,6 +1600,23 @@ onBeforeUnmount(() => {
 
   .panel--priority {
     background: linear-gradient(135deg, rgba(8, 113, 201, 0.08), rgba(7, 47, 71, 0.04));
+  }
+
+  .panel--next-step {
+    background: linear-gradient(135deg, rgba(31, 122, 76, 0.1), rgba(7, 47, 71, 0.04));
+  }
+
+  .next-step-rail {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .next-step-rail--modal {
+    padding: 10px;
+    border-radius: 12px;
+    border: 1px dashed rgba(31, 122, 76, 0.36);
+    background: rgba(31, 122, 76, 0.08);
   }
 
   .priority-grid {
@@ -1972,3 +2123,6 @@ onBeforeUnmount(() => {
   }
 }
 </style>
+
+
+

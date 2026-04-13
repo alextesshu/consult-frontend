@@ -35,7 +35,7 @@
               class="btn btn--ghost btn--sm"
               type="button"
               :disabled="actionLoading"
-              @click="completeSession"
+              @click="openCompletionModal"
             >
               Завершити
             </button>
@@ -174,6 +174,36 @@
         </div>
       </section>
 
+      <section
+        v-if="postSessionContext && session.status === 'COMPLETED'"
+        class="panel panel--next-step"
+      >
+        <div class="panel__header">
+          <div>
+            <div class="badge badge--soft">Після сесії</div>
+            <h2 class="panel__title">Наступні кроки</h2>
+          </div>
+        </div>
+        <div class="next-step-rail">
+          <button class="btn btn--sm" type="button" @click="focusSessionNote">
+            Додати / відкрити нотатку
+          </button>
+          <RouterLink class="btn btn--ghost btn--sm" to="/cabinet/clients">
+            Відкрити клієнта
+          </RouterLink>
+          <RouterLink
+            v-if="postSessionNextSession"
+            class="btn btn--ghost btn--sm"
+            :to="`/cabinet/sessions/${postSessionNextSession.id}`"
+          >
+            Наступна сесія: {{ formatDateTime(postSessionNextSession.slot_start_at) }}
+          </RouterLink>
+          <RouterLink class="btn btn--ghost btn--sm" to="/cabinet/sessions">
+            Повернутись до списку
+          </RouterLink>
+        </div>
+      </section>
+
       <section class="panel">
         <SessionPaymentProofBlock
           :session-id="session.id"
@@ -202,7 +232,7 @@
                 Запитане вікно:
                 <span v-if="request.requested_slot_start_at && request.requested_slot_end_at">
                   {{ formatDateTime(request.requested_slot_start_at) }}
-                  ·
+                  В·
                   {{ formatDuration(request.requested_slot_start_at, request.requested_slot_end_at) }}
                 </span>
                 <span v-else>#{{ request.requested_slot_id }}</span>
@@ -259,7 +289,7 @@
               :disabled="actionLoading"
               @click="selectSuggestedSlot(item.slot_id)"
             >
-              <span>{{ formatDateTime(item.start_at) }} · {{ formatDuration(item.start_at, item.end_at) }}</span>
+              <span>{{ formatDateTime(item.start_at) }} В· {{ formatDuration(item.start_at, item.end_at) }}</span>
               <span class="muted suggestion-meta">{{ suggestionReasonLabel(item.reason_tag) }}</span>
             </button>
           </div>
@@ -368,6 +398,7 @@
             <span class="note-title">Приватна нотатка</span>
             <span class="note-badge">Зашифровано</span>
             <textarea
+              ref="noteTextareaRef"
               v-model="noteDraft"
               class="input note-textarea"
               rows="6"
@@ -392,11 +423,21 @@
         action-to="/cabinet/sessions"
       />
     </section>
+
+    <SessionCompletionModal
+      :open="completionModalOpen"
+      v-model="completionDurationDraft"
+      :loading="actionLoading"
+      :planned-duration-minutes="completionPlannedDuration"
+      :error-message="completionDurationError"
+      @confirm="submitCompletion"
+      @cancel="closeCompletionModal"
+    />
   </section>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import {
   apiGet,
@@ -420,6 +461,7 @@ import {
   confirmSpecialistSession as confirmSpecialistSessionAction,
   createRecurringSpecialistSessions as createRecurringSpecialistSessionsAction,
   declineSpecialistRescheduleRequest as declineSpecialistRescheduleRequestAction,
+  findNextUpcomingSession as getNextUpcomingSession,
   fetchSpecialistAvailableSlots as fetchSpecialistAvailableSlotsData,
   fetchSpecialistRescheduleRequests as fetchSpecialistRescheduleRequestsData,
   fetchSpecialistRescheduleSuggestions as fetchSpecialistRescheduleSuggestionsData,
@@ -432,10 +474,12 @@ import {
   rescheduleSpecialistSession as rescheduleSpecialistSessionAction,
   rescheduleStatusLabel as getRescheduleStatusLabel,
   saveSpecialistSessionNote as saveSpecialistSessionNoteAction,
+  sessionDurationMinutes as getSessionDurationMinutes,
   sessionEndAt as getSessionEndAt,
   sessionStartAt as getSessionStartAt,
   statusClass as getStatusClass,
   statusLabel as getStatusLabel,
+  suggestedActualDurationInput as getSuggestedActualDurationInput,
   suggestionReasonLabel as getSuggestionReasonLabel,
   timeUntilLabel as getTimeUntilLabel,
   type SpecialistRecurringSummary,
@@ -451,6 +495,7 @@ import { openClientWorkbookWindow } from '../lib/workbookWindow'
 import { useToast } from '../composables/useToast'
 import EmptyState from '../components/EmptyState.vue'
 import LoadingSkeleton from '../components/LoadingSkeleton.vue'
+import SessionCompletionModal from '../components/SessionCompletionModal.vue'
 import SessionPaymentProofBlock from '../components/SessionPaymentProofBlock.vue'
 
 type SessionSlot = {
@@ -482,6 +527,11 @@ type SessionDetail = {
   payment_proof?: SessionPaymentProof | null
 }
 
+type PostSessionContext = {
+  sessionId: number
+  clientId: number | null
+}
+
 const route = useRoute()
 const toast = useToast()
 const sessionId = computed(() => Number(route.params.id))
@@ -491,9 +541,13 @@ const loading = ref(false)
 const error = ref('')
 const pageError = ref('')
 const actionLoading = ref(false)
+const completionModalOpen = ref(false)
+const completionDurationDraft = ref('')
+const completionDurationError = ref('')
 const noteLoading = ref(false)
 const noteSaving = ref(false)
 const noteDraft = ref('')
+const noteTextareaRef = ref<HTMLTextAreaElement | null>(null)
 const slotsLoading = ref(false)
 const availableSlots = ref<SpecialistSlot[]>([])
 const suggestionsLoading = ref(false)
@@ -507,6 +561,8 @@ const showRecurringPanel = ref(false)
 const recurringPreset = ref<number | 'custom'>(4)
 const recurringCustomOccurrences = ref<number | ''>('')
 const recurringResult = ref<SpecialistRecurringSummary | null>(null)
+const postSessionContext = ref<PostSessionContext | null>(null)
+const postSessionNextSession = ref<Pick<SessionDetail, 'id' | 'status' | 'slot' | 'slot_start_at'> | null>(null)
 const isEditingMeetingLink = ref(false)
 const meetingLinkDraft = ref('')
 
@@ -544,6 +600,11 @@ const meetingSetupHint = computed(() => {
 const sessionRequests = computed(() =>
   session.value ? rescheduleRequests.value.filter((item) => item.session_id === session.value?.id) : []
 )
+
+const completionPlannedDuration = computed(() => {
+  if (!session.value) return null
+  return getSessionDurationMinutes(session.value)
+})
 
 const isRequestLoading = (id: number) => requestLoading.value.has(id)
 
@@ -713,6 +774,9 @@ async function loadPage() {
   recurringResult.value = null
   showReschedulePanel.value = false
   showRecurringPanel.value = false
+  postSessionContext.value = null
+  postSessionNextSession.value = null
+  closeCompletionModal(true)
   await loadSession()
   if (!session.value) return
   await Promise.all([loadSlots(), loadRescheduleSuggestions(), loadNote(), loadRescheduleRequests()])
@@ -737,22 +801,62 @@ async function confirmSession() {
   }
 }
 
-async function completeSession() {
+function openCompletionModal() {
   if (!session.value) return
-  const input = window.prompt('Вкажіть фактичну тривалість (хв). Порожньо - стандартна тривалість.')
-  if (input === null) return
+  completionModalOpen.value = true
+  completionDurationDraft.value = getSuggestedActualDurationInput(session.value)
+  completionDurationError.value = ''
+}
 
-  const { payload, error: durationError } = getActualDurationPayload(input)
+function closeCompletionModal(force = false) {
+  if (!force && actionLoading.value) return
+  completionModalOpen.value = false
+  completionDurationDraft.value = ''
+  completionDurationError.value = ''
+}
+
+async function loadPostSessionNextSession(completedSessionId: number) {
+  try {
+    const upcoming = await apiGet<Array<Pick<SessionDetail, 'id' | 'status' | 'slot' | 'slot_start_at'>>>(
+      '/booking/sessions/',
+      { params: { upcoming: true } }
+    )
+    postSessionNextSession.value = getNextUpcomingSession(upcoming || [], {
+      excludeSessionId: completedSessionId,
+    })
+  } catch {
+    postSessionNextSession.value = null
+  }
+}
+
+async function focusSessionNote() {
+  await nextTick()
+  const input = noteTextareaRef.value
+  if (!input) return
+  input.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  input.focus()
+}
+
+async function submitCompletion() {
+  if (!session.value) return
+  const completionTargetId = session.value.id
+  const { payload, error: durationError } = getActualDurationPayload(completionDurationDraft.value)
   if (durationError) {
-    error.value = durationError
+    completionDurationError.value = durationError
     return
   }
 
   actionLoading.value = true
   error.value = ''
+  completionDurationError.value = ''
   try {
-    await completeSpecialistSessionAction(session.value.id, payload)
-    await Promise.all([refreshSessionContext(), loadNote()])
+    await completeSpecialistSessionAction(completionTargetId, payload)
+    await Promise.all([refreshSessionContext(), loadNote(), loadPostSessionNextSession(completionTargetId)])
+    postSessionContext.value = {
+      sessionId: completionTargetId,
+      clientId: session.value?.client ?? null,
+    }
+    closeCompletionModal(true)
     toast.success(BOOKING_SUCCESS_MESSAGES.sessionCompleted)
   } catch (err: any) {
     error.value = getBookingErrorMessage(err, BOOKING_ERROR_FALLBACKS.completeSession)
@@ -965,6 +1069,10 @@ watch(
   background: linear-gradient(135deg, rgba(8, 113, 201, 0.08), rgba(7, 47, 71, 0.03));
 }
 
+.panel--next-step {
+  background: linear-gradient(135deg, rgba(31, 122, 76, 0.1), rgba(7, 47, 71, 0.04));
+}
+
 .panel__header {
   display: flex;
   align-items: flex-start;
@@ -987,6 +1095,12 @@ watch(
   flex-wrap: wrap;
   gap: 8px;
   justify-content: flex-end;
+}
+
+.next-step-rail {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .note-header-actions {
@@ -1242,3 +1356,4 @@ watch(
   }
 }
 </style>
+

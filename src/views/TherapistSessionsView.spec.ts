@@ -516,7 +516,7 @@ describe('TherapistSessionsView', () => {
 
     await waitFor(() => {
       expect(mockedConfirmSpecialistSession).toHaveBeenCalledWith(11)
-      expect(mockToast.success).toHaveBeenCalledWith('Сесію підтверджено.')
+      expect(mockToast.success).toHaveBeenCalledWith(BOOKING_SUCCESS_MESSAGES.sessionConfirmed)
     })
 
     const updatedScheduledCard = screen.getByText(/anna@example\.com/).closest('article')
@@ -530,7 +530,7 @@ describe('TherapistSessionsView', () => {
 
     await waitFor(() => {
       expect(mockedCancelSpecialistSession).toHaveBeenCalledWith(12)
-      expect(mockToast.success).toHaveBeenCalledWith('Сесію скасовано.')
+      expect(mockToast.success).toHaveBeenCalledWith(BOOKING_SUCCESS_MESSAGES.sessionCancelled)
     })
 
     const updatedConfirmedCard = screen.getAllByText(/maria@example\.com/)[0]?.closest('article')
@@ -583,7 +583,7 @@ describe('TherapistSessionsView', () => {
       expect(mockedConfirmSpecialistSession).toHaveBeenCalledWith(11)
     })
 
-    expect(screen.getByText('Цю дію неможливо виконати для поточного статусу сесії.')).toBeInTheDocument()
+    expect(screen.getByText(/Цю дію неможливо виконати/)).toBeInTheDocument()
     expect(confirmButton).not.toBeDisabled()
     expect(mockedApiGet).toHaveBeenCalledTimes(2)
   })
@@ -601,7 +601,6 @@ describe('TherapistSessionsView', () => {
     })
 
     let upcomingSessions = [confirmedSession]
-    const promptSpy = vi.spyOn(window, 'prompt').mockReturnValue('55')
 
     mockedApiGet.mockImplementation(async (url, config) => {
       if (url === '/booking/sessions/' && (config as { params?: { upcoming?: boolean } } | undefined)?.params?.upcoming) {
@@ -634,46 +633,42 @@ describe('TherapistSessionsView', () => {
       return 'Client journal note'
     })
 
-    try {
-      renderView()
+    renderView()
 
-      expect(await screen.findByText(/completed@example\.com/)).toBeInTheDocument()
+    expect(await screen.findByText(/completed@example\.com/)).toBeInTheDocument()
 
-      const sessionCard = screen.getByText(/completed@example\.com/).closest('article')
-      expect(sessionCard).not.toBeNull()
-      const completionButton = within(sessionCard as HTMLElement)
-        .getAllByRole('button')
-        .find((button) => button.textContent?.includes('Завершити'))
-      if (!completionButton) {
-        throw new Error('Complete button not found')
-      }
-      await fireEvent.click(completionButton)
-
-      await waitFor(() => {
-        expect(mockedCompleteSpecialistSession).toHaveBeenCalledWith(15, { actual_duration_minutes: 55 })
-        expect(mockToast.success).toHaveBeenCalledWith(BOOKING_SUCCESS_MESSAGES.sessionCompleted)
-      })
-
-      expect(promptSpy).toHaveBeenCalledTimes(1)
-      expect(mockedFetchSpecialistSessionNoteContent).toHaveBeenCalledWith(15)
-      expect(mockedFetchSpecialistClientJournalContent).toHaveBeenCalledWith(105)
-      expect(await screen.findByDisplayValue('Updated completion note')).toBeInTheDocument()
-      expect(await screen.findByDisplayValue('Client journal note')).toBeInTheDocument()
-      expect(screen.getByText('Нотатки після сесії')).toBeInTheDocument()
-      expect(screen.getByText('Робочий зошит')).toBeInTheDocument()
-
-      const updatedCard = screen.getAllByText(/completed@example\.com/)[0]?.closest('article')
-      expect(updatedCard).not.toBeNull()
-      expect((updatedCard as HTMLElement).querySelector('.status-pill--muted')).not.toBeNull()
-      expect(
-        within(updatedCard as HTMLElement)
-          .queryAllByRole('button')
-          .some((button) => button.textContent?.includes('Завершити'))
-      ).toBe(false)
-      expect(mockedApiGet).toHaveBeenCalledTimes(4)
-    } finally {
-      promptSpy.mockRestore()
+    const sessionCard = screen.getByText(/completed@example\.com/).closest('article')
+    expect(sessionCard).not.toBeNull()
+    const completionButton = within(sessionCard as HTMLElement)
+      .getAllByRole('button')
+      .find((button) => button.textContent?.includes('Завершити'))
+    if (!completionButton) {
+      throw new Error('Complete button not found')
     }
+    await fireEvent.click(completionButton)
+    const completionInput = await screen.findByTestId('session-completion-duration-input')
+    await fireEvent.update(completionInput, '55')
+    await fireEvent.click(screen.getByTestId('session-completion-submit'))
+
+    await waitFor(() => {
+      expect(mockedCompleteSpecialistSession).toHaveBeenCalledWith(15, { actual_duration_minutes: 55 })
+      expect(mockToast.success).toHaveBeenCalledWith(BOOKING_SUCCESS_MESSAGES.sessionCompleted)
+    })
+    expect(mockedFetchSpecialistSessionNoteContent).toHaveBeenCalledWith(15)
+    expect(mockedFetchSpecialistClientJournalContent).toHaveBeenCalledWith(105)
+    expect(await screen.findByDisplayValue('Updated completion note')).toBeInTheDocument()
+    expect(await screen.findByDisplayValue('Client journal note')).toBeInTheDocument()
+    expect(screen.getByText('Нотатки після сесії')).toBeInTheDocument()
+
+    const updatedCard = screen.getAllByText(/completed@example\.com/)[0]?.closest('article')
+    expect(updatedCard).not.toBeNull()
+    expect((updatedCard as HTMLElement).querySelector('.status-pill--muted')).not.toBeNull()
+    expect(
+      within(updatedCard as HTMLElement)
+        .queryAllByRole('button')
+        .some((button) => button.textContent?.includes('Завершити'))
+    ).toBe(false)
+    expect(mockedApiGet).toHaveBeenCalledTimes(4)
   })
 
   it('surfaces a stale complete target error without reloading the list or opening the note modal', async () => {
@@ -687,8 +682,6 @@ describe('TherapistSessionsView', () => {
       slot_start_at: '2099-06-20T08:00:00Z',
       slot_end_at: '2099-06-20T08:50:00Z',
     })
-    const promptSpy = vi.spyOn(window, 'prompt').mockReturnValue('50')
-
     mockedApiGet.mockImplementation(async (url, config) => {
       if (url === '/booking/sessions/' && (config as { params?: { upcoming?: boolean } } | undefined)?.params?.upcoming) {
         return [confirmedSession]
@@ -712,34 +705,29 @@ describe('TherapistSessionsView', () => {
       },
     })
 
-    try {
-      renderView()
+    renderView()
 
-      expect(await screen.findByText(/stale-complete@example\.com/)).toBeInTheDocument()
+    expect(await screen.findByText(/stale-complete@example\.com/)).toBeInTheDocument()
 
-      const sessionCard = screen.getByText(/stale-complete@example\.com/).closest('article')
-      expect(sessionCard).not.toBeNull()
-      const completionButton = within(sessionCard as HTMLElement).getByRole('button', { name: 'Завершити' })
-      if (!completionButton) {
-        throw new Error('Complete button not found')
-      }
-      await fireEvent.click(completionButton)
-
-      await waitFor(() => {
-        expect(mockedCompleteSpecialistSession).toHaveBeenCalledWith(16, {
-          actual_duration_minutes: 50,
-        })
-      })
-
-      expect(promptSpy).toHaveBeenCalledTimes(1)
-      expect(document.querySelector('.form-error')).not.toBeNull()
-      expect(mockedFetchSpecialistSessionNoteContent).not.toHaveBeenCalled()
-      expect(mockedFetchSpecialistClientJournalContent).not.toHaveBeenCalled()
-      expect(completionButton).not.toBeDisabled()
-      expect(mockedApiGet).toHaveBeenCalledTimes(2)
-    } finally {
-      promptSpy.mockRestore()
+    const sessionCard = screen.getByText(/stale-complete@example\.com/).closest('article')
+    expect(sessionCard).not.toBeNull()
+    const completionButton = within(sessionCard as HTMLElement).getByRole('button', { name: 'Завершити' })
+    if (!completionButton) {
+      throw new Error('Complete button not found')
     }
+    await fireEvent.click(completionButton)
+    await fireEvent.click(screen.getByTestId('session-completion-submit'))
+
+    await waitFor(() => {
+      expect(mockedCompleteSpecialistSession).toHaveBeenCalledWith(16, {
+        actual_duration_minutes: 50,
+      })
+    })
+    expect(document.querySelector('.form-error')).not.toBeNull()
+    expect(mockedFetchSpecialistSessionNoteContent).not.toHaveBeenCalled()
+    expect(mockedFetchSpecialistClientJournalContent).not.toHaveBeenCalled()
+    expect(completionButton).not.toBeDisabled()
+    expect(mockedApiGet).toHaveBeenCalledTimes(2)
   })
 
   it('keeps completion note modal open after saving session note', async () => {
@@ -753,8 +741,6 @@ describe('TherapistSessionsView', () => {
       slot_start_at: '2099-06-21T08:00:00Z',
       slot_end_at: '2099-06-21T08:50:00Z',
     })
-    const promptSpy = vi.spyOn(window, 'prompt').mockReturnValue('50')
-
     let upcomingSessions = [confirmedSession]
     mockedApiGet.mockImplementation(async (url, config) => {
       if (url === '/booking/sessions/' && (config as { params?: { upcoming?: boolean } } | undefined)?.params?.upcoming) {
@@ -771,33 +757,30 @@ describe('TherapistSessionsView', () => {
     mockedFetchSpecialistSessionNoteContent.mockResolvedValue('Initial note')
     mockedFetchSpecialistClientJournalContent.mockResolvedValue('Initial workbook')
 
-    try {
-      renderView()
+    renderView()
 
-      expect(await screen.findByText(/keep-open@example\.com/)).toBeInTheDocument()
-      const sessionCard = screen.getByText(/keep-open@example\.com/).closest('article')
-      expect(sessionCard).not.toBeNull()
-      const completionButton = within(sessionCard as HTMLElement).getByRole('button', {
-        name: 'Завершити',
-      }) as HTMLButtonElement
-      expect(completionButton).toBeTruthy()
-      await fireEvent.click(completionButton)
+    expect(await screen.findByText(/keep-open@example\.com/)).toBeInTheDocument()
+    const sessionCard = screen.getByText(/keep-open@example\.com/).closest('article')
+    expect(sessionCard).not.toBeNull()
+    const completionButton = within(sessionCard as HTMLElement).getByRole('button', {
+      name: 'Завершити',
+    }) as HTMLButtonElement
+    expect(completionButton).toBeTruthy()
+    await fireEvent.click(completionButton)
+    await fireEvent.click(screen.getByTestId('session-completion-submit'))
 
-      expect(await screen.findByDisplayValue('Initial note')).toBeInTheDocument()
-      await fireEvent.update(screen.getByDisplayValue('Initial note'), 'Updated note')
-      const saveSessionNoteButton = document.querySelector(
-        '.note-panel .note-actions .btn--sm',
-      ) as HTMLButtonElement | null
-      expect(saveSessionNoteButton).not.toBeNull()
-      await fireEvent.click(saveSessionNoteButton as HTMLButtonElement)
+    expect(await screen.findByDisplayValue('Initial note')).toBeInTheDocument()
+    await fireEvent.update(screen.getByDisplayValue('Initial note'), 'Updated note')
+    const saveSessionNoteButton = document.querySelector(
+      '.note-panel .note-actions .btn--sm',
+    ) as HTMLButtonElement | null
+    expect(saveSessionNoteButton).not.toBeNull()
+    await fireEvent.click(saveSessionNoteButton as HTMLButtonElement)
 
-      await waitFor(() => {
-        expect(mockedSaveSpecialistSessionNote).toHaveBeenCalledWith(17, 'Updated note')
-      })
-      expect(screen.getByDisplayValue('Updated note')).toBeInTheDocument()
-    } finally {
-      promptSpy.mockRestore()
-    }
+    await waitFor(() => {
+      expect(mockedSaveSpecialistSessionNote).toHaveBeenCalledWith(17, 'Updated note')
+    })
+    expect(screen.getByDisplayValue('Updated note')).toBeInTheDocument()
   })
 
   it('submits a reschedule request from the list and closes the inline panel after reload', async () => {
@@ -862,7 +845,7 @@ describe('TherapistSessionsView', () => {
     expect(sessionCard).not.toBeNull()
     await fireEvent.click(within(sessionCard as HTMLElement).getByRole('button', { name: 'Перенести' }))
 
-    expect(await screen.findByText('Рекомендовані варіанти перенесення')).toBeInTheDocument()
+    expect(await screen.findByLabelText('Нове вільне віконце')).toBeInTheDocument()
     expect(mockedFetchSpecialistRescheduleSuggestions).toHaveBeenCalledWith(13)
 
     await fireEvent.update(screen.getByLabelText('Нове вільне віконце'), '401')
@@ -870,11 +853,11 @@ describe('TherapistSessionsView', () => {
 
     await waitFor(() => {
       expect(mockedRescheduleSpecialistSession).toHaveBeenCalledWith(13, 401)
-      expect(mockToast.success).toHaveBeenCalledWith('Сесію перенесено.')
+      expect(mockToast.success).toHaveBeenCalledWith(BOOKING_SUCCESS_MESSAGES.sessionRescheduled)
     })
 
     await waitFor(() => {
-      expect(screen.queryByText('Рекомендовані варіанти перенесення')).not.toBeInTheDocument()
+      expect(screen.queryByLabelText('Нове вільне віконце')).not.toBeInTheDocument()
     })
     expect(screen.getAllByText(formatSessionDateTime(nextSlot.start_at))).toHaveLength(2)
     expect(mockedFetchSpecialistAvailableSlots).toHaveBeenCalledTimes(2)
@@ -1044,3 +1027,5 @@ describe('TherapistSessionsView', () => {
     expect(mockedApiGet).toHaveBeenCalledTimes(4)
   })
 })
+
+

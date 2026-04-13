@@ -116,6 +116,52 @@ export function formatSessionDuration(
   return `${prefix}${parts.join(' ')}`
 }
 
+export function sessionDurationMinutes(
+  detail: Pick<SpecialistSessionLike, 'slot' | 'slot_start_at' | 'slot_end_at'>
+) {
+  const start = sessionStartAt(detail)
+  const end = sessionEndAt(detail)
+  if (!start || !end) return null
+  const startValue = new Date(start).getTime()
+  const endValue = new Date(end).getTime()
+  if (Number.isNaN(startValue) || Number.isNaN(endValue)) return null
+  const minutes = Math.round((endValue - startValue) / 60000)
+  if (!Number.isFinite(minutes) || minutes <= 0 || minutes > 480) return null
+  return minutes
+}
+
+export function suggestedActualDurationInput(
+  detail: Pick<SpecialistSessionLike, 'slot' | 'slot_start_at' | 'slot_end_at'>
+) {
+  const minutes = sessionDurationMinutes(detail)
+  return minutes ? String(minutes) : ''
+}
+
+export function findNextUpcomingSession<
+  T extends Pick<SpecialistSessionLike, 'id' | 'status' | 'slot' | 'slot_start_at'>
+>(
+  sessions: T[],
+  options?: { excludeSessionId?: number; nowTs?: number }
+) {
+  const now = options?.nowTs ?? Date.now()
+  const items = sessions
+    .filter((item) => item.status === 'SCHEDULED' || item.status === 'CONFIRMED')
+    .filter((item) => item.id !== options?.excludeSessionId)
+    .filter((item) => {
+      const start = sessionStartAt(item)
+      if (!start) return false
+      const startValue = new Date(start).getTime()
+      if (Number.isNaN(startValue)) return false
+      return startValue >= now
+    })
+    .sort((a, b) => {
+      const aStart = new Date(sessionStartAt(a) || '').getTime()
+      const bStart = new Date(sessionStartAt(b) || '').getTime()
+      return aStart - bStart
+    })
+  return items[0] || null
+}
+
 export function isSessionInProgress(detail: Pick<SpecialistSessionLike, 'status' | 'slot' | 'slot_start_at' | 'slot_end_at'>) {
   if (detail.status !== 'CONFIRMED') return false
   const start = sessionStartAt(detail)
@@ -322,3 +368,4 @@ export async function approveSpecialistRescheduleRequest(requestId: number) {
 export async function declineSpecialistRescheduleRequest(requestId: number) {
   return apiPatch(`/cabinet/sessions/reschedule-requests/${requestId}/decline/`)
 }
+

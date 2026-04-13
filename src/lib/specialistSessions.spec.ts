@@ -8,6 +8,7 @@ import {
   confirmSpecialistSession,
   createRecurringSpecialistSessions,
   declineSpecialistRescheduleRequest,
+  findNextUpcomingSession,
   fetchSpecialistAvailableSlots,
   fetchSpecialistRescheduleRequests,
   fetchSpecialistRescheduleSuggestions,
@@ -17,10 +18,12 @@ import {
   parseRecurringOccurrences,
   rescheduleSpecialistSession,
   saveSpecialistSessionNote,
+  sessionDurationMinutes,
   sessionEndAt,
   sessionStartAt,
   statusClass,
   statusLabel,
+  suggestedActualDurationInput,
   timeUntilLabel,
 } from './specialistSessions'
 import { apiGet, apiPatch, apiPost, apiPut } from './api'
@@ -97,6 +100,54 @@ describe('specialistSessions helpers', () => {
       expect(parseActualDurationInput('0')).toEqual({
         payload: undefined,
         error: BOOKING_UI_MESSAGES.invalidDuration,
+      })
+    })
+  })
+
+  describe('completion continuity helpers', () => {
+    it('suggests duration from session window and finds the next upcoming session', () => {
+      expect(
+        sessionDurationMinutes({
+          slot_start_at: '2099-06-15T10:00:00Z',
+          slot_end_at: '2099-06-15T10:50:00Z',
+        })
+      ).toBe(50)
+
+      expect(
+        suggestedActualDurationInput({
+          slot_start_at: '2099-06-15T10:00:00Z',
+          slot_end_at: '2099-06-15T10:50:00Z',
+        })
+      ).toBe('50')
+
+      expect(
+        findNextUpcomingSession(
+          [
+            {
+              id: 40,
+              status: 'CONFIRMED',
+              slot_start_at: '2099-06-15T10:00:00Z',
+            },
+            {
+              id: 41,
+              status: 'SCHEDULED',
+              slot_start_at: '2099-06-16T10:00:00Z',
+            },
+            {
+              id: 42,
+              status: 'COMPLETED',
+              slot_start_at: '2099-06-14T10:00:00Z',
+            },
+          ],
+          {
+            excludeSessionId: 40,
+            nowTs: new Date('2099-06-15T10:00:00Z').getTime(),
+          }
+        )
+      ).toEqual({
+        id: 41,
+        status: 'SCHEDULED',
+        slot_start_at: '2099-06-16T10:00:00Z',
       })
     })
   })
