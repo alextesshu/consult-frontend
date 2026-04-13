@@ -25,8 +25,8 @@
         </button>
       </div>
       <div class="next-step-rail">
-        <button class="btn btn--sm" type="button" @click="openPostSessionNote">
-          Додати / відкрити нотатку
+        <button class="btn btn--sm" type="button" @click="openPostSessionWorkbook">
+          Відкрити робочий зошит
         </button>
         <RouterLink class="btn btn--ghost btn--sm" to="/cabinet/clients">
           Відкрити клієнта
@@ -588,6 +588,7 @@
                 <span class="note-title">Нотатка після сесії</span>
                 <span class="note-badge">Сесія</span>
                 <textarea
+                  ref="noteTextareaRef"
                   v-model="noteDraft"
                   class="input note-textarea note-textarea--session"
                   rows="3"
@@ -611,6 +612,7 @@
                 <span class="note-title">Робочий зошит</span>
                 <span class="note-badge">Внутрішній</span>
                 <textarea
+                  ref="journalTextareaRef"
                   v-model="journalDraft"
                   class="input note-textarea note-textarea--workbook"
                   rows="9"
@@ -776,6 +778,8 @@ const noteSessionId = ref<number | null>(null)
 const noteDraft = ref('')
 const noteLoading = ref<Set<number>>(new Set())
 const noteSaving = ref<Set<number>>(new Set())
+const noteTextareaRef = ref<HTMLTextAreaElement | null>(null)
+const journalTextareaRef = ref<HTMLTextAreaElement | null>(null)
 const journalClientId = ref<number | null>(null)
 const journalDraft = ref('')
 const journalLoading = ref(false)
@@ -1259,9 +1263,9 @@ function clearPostSessionContext() {
   postSessionContext.value = null
 }
 
-async function openPostSessionNote() {
+async function openPostSessionWorkbook() {
   if (!postSessionContext.value) return
-  await openNoteModal(postSessionContext.value.sessionId)
+  await openNoteModal(postSessionContext.value.sessionId, { focus: 'workbook' })
 }
 
 function returnToSessionList() {
@@ -1287,7 +1291,7 @@ async function submitCompletion() {
     await loadSessions()
     rememberPostSessionContext(targetId)
     closeCompletionModal(true)
-    await openNoteModal(targetId)
+    await openNoteModal(targetId, { focus: 'workbook' })
     toast.success(BOOKING_SUCCESS_MESSAGES.sessionCompleted)
   } catch (err: any) {
     error.value = getBookingErrorMessage(err, BOOKING_ERROR_FALLBACKS.completeSession)
@@ -1462,17 +1466,30 @@ async function saveClientJournal(clientId: number) {
   }
 }
 
-async function openNoteModal(id: number) {
+type NoteModalFocusTarget = 'note' | 'workbook'
+
+async function focusNoteModalField(target: NoteModalFocusTarget) {
+  await nextTick()
+  const preferredTarget = target === 'workbook' && journalClientId.value ? journalTextareaRef.value : noteTextareaRef.value
+  if (!preferredTarget) return
+  preferredTarget.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  preferredTarget.focus()
+}
+
+async function openNoteModal(id: number, options?: { focus?: NoteModalFocusTarget }) {
   noteSessionId.value = id
   noteDraft.value = ''
   journalDraft.value = ''
   const session = findSessionById(id)
   journalClientId.value = session?.client || null
+  const target = options?.focus === 'workbook' && journalClientId.value ? 'workbook' : 'note'
   if (journalClientId.value) {
     await Promise.all([loadNote(id), loadClientJournal(journalClientId.value)])
+    await focusNoteModalField(target)
     return
   }
   await loadNote(id)
+  await focusNoteModalField(target)
 }
 
 function closeNote() {

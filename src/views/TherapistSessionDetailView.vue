@@ -185,8 +185,8 @@
           </div>
         </div>
         <div class="next-step-rail">
-          <button class="btn btn--sm" type="button" @click="focusSessionNote">
-            Додати / відкрити нотатку
+          <button class="btn btn--sm" type="button" @click="openPostSessionWorkbook">
+            Відкрити робочий зошит
           </button>
           <RouterLink class="btn btn--ghost btn--sm" to="/cabinet/clients">
             Відкрити клієнта
@@ -835,6 +835,15 @@ async function focusSessionNote() {
   if (!input) return
   input.scrollIntoView({ behavior: 'smooth', block: 'center' })
   input.focus()
+}
+
+async function openPostSessionWorkbook() {
+  const clientId = postSessionContext.value?.clientId ?? session.value?.client ?? null
+  if (clientId) {
+    openWorkbookWindow(clientId)
+    return
+  }
+  await focusSessionNote()
 }
 
 async function submitCompletion() {

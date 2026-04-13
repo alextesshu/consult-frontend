@@ -658,6 +658,8 @@ describe('TherapistSessionsView', () => {
     expect(mockedFetchSpecialistClientJournalContent).toHaveBeenCalledWith(105)
     expect(await screen.findByDisplayValue('Updated completion note')).toBeInTheDocument()
     expect(await screen.findByDisplayValue('Client journal note')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Відкрити робочий зошит' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Додати / відкрити нотатку' })).not.toBeInTheDocument()
     expect(screen.getByText('Нотатки після сесії')).toBeInTheDocument()
 
     const updatedCard = screen.getAllByText(/completed@example\.com/)[0]?.closest('article')
