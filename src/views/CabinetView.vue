@@ -11,7 +11,7 @@
       <RouterLink v-if="liveSession" class="hero-live" :to="`/cabinet/sessions/${liveSession.id}`">
         <div class="hero-live__title">Сесія триває</div>
         <div class="hero-live__meta">
-          {{ liveSession.client_name || liveSession.client_username || `Клієнт #${liveSession.client}` }}
+          {{ sessionClientLabel(liveSession) }}
         </div>
         <a
           v-if="liveMeetingUrl && liveSession.join_available"
@@ -70,7 +70,7 @@
                 <div class="nearest-session__item">
                   <div class="nearest-session__label">Клієнт</div>
                   <div class="nearest-session__value">
-                    {{ nearestUpcomingSession.client_name || nearestUpcomingSession.client_username || `#${nearestUpcomingSession.client}` }}
+                    {{ sessionClientLabel(nearestUpcomingSession) }}
                   </div>
                 </div>
                 <div class="nearest-session__item">
@@ -413,7 +413,13 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
-import { apiGet, fetchSpecialistOnboardingState, type SessionFormat } from '../lib/api'
+import {
+  apiGet,
+  fetchChatThreads,
+  fetchSpecialistOnboardingState,
+  type ChatThread,
+  type SessionFormat,
+} from '../lib/api'
 import { formatUkDateTimeCompact } from '../lib/dateTime'
 import { canJoinExternalMeeting, normalizeMeetingUrl } from '../lib/sessionExecution'
 import {
@@ -432,6 +438,12 @@ type CabinetSession = {
   client: number
   client_name?: string | null
   client_username?: string | null
+  client_display_name?: string | null
+  display_name?: string | null
+  client_first_name?: string | null
+  client_last_name?: string | null
+  first_name?: string | null
+  last_name?: string | null
   session_format?: SessionFormat | null
   meeting_mode?: 'ONLINE' | 'OFFLINE' | null
   offline_location?: string | null
@@ -450,6 +462,7 @@ type CabinetEntitlementsSnapshot = {
 }
 
 const allSessions = ref<CabinetSession[]>([])
+const chatClientNames = ref<Record<number, string>>({})
 const entitlementsSnapshot = ref<CabinetEntitlementsSnapshot | null>(null)
 const heroSessionsLoading = ref(false)
 const heroSessionsError = ref('')
@@ -662,6 +675,55 @@ const accessPillClass = computed(() => {
   return 'access-pill--ok'
 })
 
+function normalizeClientName(value?: string | null) {
+  const name = value?.trim() || ''
+  if (!name) return ''
+  if (/^#?\d+$/i.test(name)) return ''
+  if (/^(client|\u043a\u043b\u0456\u0454\u043d\u0442)\s*#?\d+$/i.test(name)) return ''
+  return name
+}
+
+function fullName(first?: string | null, last?: string | null) {
+  const merged = [first?.trim() || '', last?.trim() || ''].filter(Boolean).join(' ')
+  return normalizeClientName(merged)
+}
+
+function preferredSessionClientName(session: CabinetSession) {
+  const candidates = [
+    session.client_display_name,
+    session.display_name,
+    fullName(session.client_first_name, session.client_last_name),
+    fullName(session.first_name, session.last_name),
+    session.client_name,
+    session.client_username,
+  ]
+  for (const candidate of candidates) {
+    const normalized = normalizeClientName(candidate)
+    if (normalized) return normalized
+  }
+  return ''
+}
+
+function rememberChatClientNames(threads: ChatThread[]) {
+  const next = { ...chatClientNames.value }
+  threads.forEach((thread) => {
+    const clientId = Number(thread.client_id || 0)
+    const normalized = normalizeClientName(thread.other_user?.display_name || '')
+    if (!clientId || !normalized) return
+    next[clientId] = normalized
+  })
+  chatClientNames.value = next
+}
+
+function sessionClientLabel(session?: CabinetSession | null) {
+  if (!session) return ''
+  const fromChat = chatClientNames.value[Number(session.client || 0)]
+  if (fromChat) return fromChat
+  const preferred = preferredSessionClientName(session)
+  if (preferred) return preferred
+  return `Клієнт #${session.client}`
+}
+
 function sessionJoinStartAt(session: CabinetSession) {
   return session.slot_start_at || session.join_starts_at || null
 }
@@ -788,6 +850,15 @@ function formatDateTime(value?: string | null) {
   return formatUkDateTimeCompact(value)
 }
 
+async function loadChatClientNames() {
+  try {
+    const threads = await fetchChatThreads()
+    rememberChatClientNames(Array.isArray(threads) ? threads : [])
+  } catch {
+    chatClientNames.value = {}
+  }
+}
+
 async function loadSessionsForHero() {
   heroSessionsLoading.value = true
   heroSessionsError.value = ''
@@ -898,7 +969,7 @@ const serverTimeLabel = computed(() => {
 })
 
 onMounted(async () => {
-  await Promise.all([ensureCabinetProfile(), loadSessionsForHero()])
+  await Promise.all([ensureCabinetProfile(), loadSessionsForHero(), loadChatClientNames()])
   await Promise.all([
     ensureCabinetData(),
     loadOnboardingState(),

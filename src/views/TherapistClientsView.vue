@@ -240,7 +240,7 @@
 
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
-import { apiGet, apiPatch } from '../lib/api'
+import { apiGet, apiPatch, fetchChatThreads, type ChatThread } from '../lib/api'
 import EmptyState from '../components/EmptyState.vue'
 import LoadingSkeleton from '../components/LoadingSkeleton.vue'
 import { formatUkDateTimeCompact } from '../lib/dateTime'
@@ -339,6 +339,7 @@ const workbookExpanded = ref<Record<number, boolean>>({})
 const workbookSavedMessage = ref<Record<number, string>>({})
 const sessionsCache = ref<SessionItem[] | null>(null)
 const sessionClientNames = ref<Record<number, string>>({})
+const chatClientNames = ref<Record<number, string>>({})
 const journalLoading = ref<Set<number>>(new Set())
 const journalSaving = ref<Set<number>>(new Set())
 const notesLoading = ref(false)
@@ -390,6 +391,17 @@ function rememberSessionClientNames(sessions: SessionItem[]) {
     if (normalized) next[id] = normalized
   })
   sessionClientNames.value = next
+}
+
+function rememberChatClientNames(threads: ChatThread[]) {
+  const next = { ...chatClientNames.value }
+  threads.forEach((thread) => {
+    const id = Number(thread.client_id || 0)
+    const normalized = normalizeClientName(thread.other_user?.display_name || '')
+    if (!id || !normalized) return
+    next[id] = normalized
+  })
+  chatClientNames.value = next
 }
 
 function normalizeSearchValue(value?: string | number | null) {
@@ -536,6 +548,8 @@ function formatDuration(start?: string | null, end?: string | null) {
 
 function clientLabel(clientId: number) {
   const client = clientIndex.value.get(clientId)
+  const fromChat = chatClientNames.value[clientId]
+  if (fromChat) return fromChat
   const normalized = preferredClientName(client)
   if (normalized) return normalized
   const fromSessions = sessionClientNames.value[clientId]
@@ -590,14 +604,25 @@ function displayClientName(
     | 'client_code'
   >
 ) {
+  const id = relationClientId(client)
+  const fromChat = chatClientNames.value[id]
+  if (fromChat) return fromChat
   const normalized = preferredClientName(client)
   if (normalized) return normalized
-  const id = relationClientId(client)
   const fromSessions = sessionClientNames.value[id]
   if (fromSessions) return fromSessions
   if (client.client_code) return `ID: ${client.client_code}`
   if (id > 0) return `Клієнт #${id}`
   return '\u041a\u043b\u0456\u0454\u043d\u0442'
+}
+
+async function loadChatClientNames() {
+  try {
+    const threads = await fetchChatThreads()
+    rememberChatClientNames(Array.isArray(threads) ? threads : [])
+  } catch {
+    chatClientNames.value = {}
+  }
 }
 
 async function loadClients() {
@@ -802,7 +827,7 @@ async function openClientFromDeepLinkIfNeeded() {
 }
 
 onMounted(async () => {
-  await loadClients()
+  await Promise.all([loadClients(), loadChatClientNames()])
   await openClientFromDeepLinkIfNeeded()
   await loadPendingNotes()
 })

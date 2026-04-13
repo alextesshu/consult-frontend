@@ -1,15 +1,17 @@
 import { fireEvent, render, waitFor, within } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { apiGet, apiPatch } from '../lib/api'
+import { apiGet, apiPatch, fetchChatThreads } from '../lib/api'
 import TherapistClientsView from './TherapistClientsView.vue'
 
 vi.mock('../lib/api', () => ({
   apiGet: vi.fn(),
   apiPatch: vi.fn(),
+  fetchChatThreads: vi.fn(),
 }))
 
 const mockedApiGet = vi.mocked(apiGet)
 const mockedApiPatch = vi.mocked(apiPatch)
+const mockedFetchChatThreads = vi.mocked(fetchChatThreads)
 
 function renderView() {
   return render(TherapistClientsView, {
@@ -50,6 +52,8 @@ describe('TherapistClientsView', () => {
   beforeEach(() => {
     mockedApiGet.mockReset()
     mockedApiPatch.mockReset()
+    mockedFetchChatThreads.mockReset()
+    mockedFetchChatThreads.mockResolvedValue([])
     window.history.replaceState({}, '', '/cabinet/clients')
     Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', {
       configurable: true,
@@ -421,6 +425,47 @@ describe('TherapistClientsView', () => {
 
     await waitFor(() => {
       expect(container.textContent).toContain('Тест Тестович')
+      expect(container.textContent).not.toContain('client.prcnslt')
+    })
+  })
+
+  it('uses chat thread display_name when clients payload has only login', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/cabinet/clients/')
+        return [
+          {
+            id: 1,
+            client_id: 44,
+            state: 'ACTIVE',
+            last_session_at: null,
+            upcoming_count: 0,
+            client_name: 'client.prcnslt',
+            client_username: 'client.prcnslt',
+          },
+        ]
+      if (url === '/booking/sessions/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedFetchChatThreads.mockResolvedValue([
+      {
+        id: 12,
+        therapist_id: 3,
+        client_id: 44,
+        last_message_at: null,
+        last_message_preview: '',
+        unread_count: 0,
+        other_user: {
+          id: 44,
+          role: 'CLIENT',
+          display_name: 'Клієнт Проконсалт тест',
+        },
+      },
+    ] as any)
+
+    const { container } = renderView()
+
+    await waitFor(() => {
+      expect(container.textContent).toContain('Клієнт Проконсалт тест')
       expect(container.textContent).not.toContain('client.prcnslt')
     })
   })

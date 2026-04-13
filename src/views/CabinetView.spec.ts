@@ -1,7 +1,7 @@
 import { fireEvent, render, waitFor } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ref } from 'vue'
-import { apiGet, fetchSpecialistOnboardingState } from '../lib/api'
+import { apiGet, fetchChatThreads, fetchSpecialistOnboardingState } from '../lib/api'
 import CabinetView from './CabinetView.vue'
 
 function createMePayload() {
@@ -42,10 +42,12 @@ vi.mock('../stores/auth', () => ({
 
 vi.mock('../lib/api', () => ({
   apiGet: vi.fn(),
+  fetchChatThreads: vi.fn(),
   fetchSpecialistOnboardingState: vi.fn(),
 }))
 
 const mockedApiGet = vi.mocked(apiGet)
+const mockedFetchChatThreads = vi.mocked(fetchChatThreads)
 const mockedFetchSpecialistOnboardingState = vi.mocked(fetchSpecialistOnboardingState)
 
 function renderView() {
@@ -64,6 +66,7 @@ function renderView() {
 describe('CabinetView', () => {
   beforeEach(() => {
     mockedApiGet.mockReset()
+    mockedFetchChatThreads.mockReset()
     mockedFetchSpecialistOnboardingState.mockReset()
     mockLoadMe.mockReset()
     mockLoadMe.mockResolvedValue(undefined)
@@ -76,6 +79,7 @@ describe('CabinetView', () => {
       primary_cta_code: null,
       cta_target: null,
     } as any)
+    mockedFetchChatThreads.mockResolvedValue([])
   })
 
   it('renders guest quota row in plan metrics when guest entitlement fields are available', async () => {
@@ -431,6 +435,52 @@ describe('CabinetView', () => {
     })
     expect(view.container.querySelector('a[href="/cabinet/sessions/91"]')).toBeInTheDocument()
     expect(view.container.querySelector('a[href="https://meet.google.com/nearest-room"]')).toBeInTheDocument()
+  })
+
+  it('prefers chat display name over login-like session name in nearest session block', async () => {
+    mockedApiGet.mockImplementation(async (_url, config) => {
+      if (config?.params?.upcoming === true) {
+        return [
+          {
+            id: 91,
+            status: 'CONFIRMED',
+            client: 45,
+            client_name: 'client.prcnslt',
+            client_username: 'client.prcnslt',
+            session_format: 'online',
+            meeting_url: 'https://meet.google.com/nearest-room',
+            join_available: true,
+            slot_start_at: '2099-06-01T10:00:00Z',
+            slot_end_at: '2099-06-01T10:50:00Z',
+          },
+        ] as any
+      }
+      if (config?.params?.upcoming === false) return []
+      if (_url === '/cabinet/entitlements/') return {}
+      return []
+    })
+    mockedFetchChatThreads.mockResolvedValue([
+      {
+        id: 7,
+        therapist_id: 10,
+        client_id: 45,
+        last_message_at: null,
+        last_message_preview: '',
+        unread_count: 0,
+        other_user: {
+          id: 45,
+          role: 'CLIENT',
+          display_name: 'Клієнт Проконсалт тест',
+        },
+      },
+    ] as any)
+
+    const view = renderView()
+
+    await waitFor(() => {
+      expect(view.container).toHaveTextContent('Клієнт Проконсалт тест')
+    })
+    expect(view.container).not.toHaveTextContent('client.prcnslt')
   })
 
   it('renders offline nearest session context with location and without join action', async () => {
