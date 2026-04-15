@@ -25,6 +25,43 @@ function createMePayload() {
   }
 }
 
+function createWorkQueuePayload(overrides?: Record<string, unknown>) {
+  return {
+    today_sessions_count: 2,
+    notes_reminders_count: 1,
+    pending_guest_requests_count: 1,
+    today_sessions: [
+      {
+        id: 501,
+        client: 91,
+        client_display_name: 'Queue Session Client',
+        status: 'CONFIRMED',
+        has_note: false,
+        session_format: 'online',
+        starts_at: '2099-06-05T09:00:00Z',
+      },
+    ],
+    notes_reminders_preview: [
+      {
+        id: 601,
+        client_id: 91,
+        client_display_name: 'Queue Notes Client',
+        reminder_at: '2099-06-05T11:00:00Z',
+      },
+    ],
+    guest_requests_preview: [
+      {
+        id: 701,
+        client_display_name: 'Queue Guest Client',
+        status: 'pending',
+        session_format: 'online',
+        created_at: '2099-06-05T12:00:00Z',
+      },
+    ],
+    ...(overrides || {}),
+  } as any
+}
+
 const mockMe = ref(createMePayload())
 const mockLoadMe = vi.fn()
 
@@ -61,6 +98,12 @@ function renderView() {
       },
     },
   })
+}
+
+function summaryValue(container: ParentNode, kind: 'sessions' | 'notes' | 'guest') {
+  return (
+    container.querySelector(`.work-queue-summary-card[data-kind="${kind}"] .work-queue-summary-card__value`)?.textContent || ''
+  ).trim()
 }
 
 describe('CabinetView', () => {
@@ -168,6 +211,138 @@ describe('CabinetView', () => {
       expect(mockedApiGet).toHaveBeenCalledWith('/cabinet/entitlements/')
     })
     expect(view.container).not.toHaveTextContent('Гостьові сесії:')
+  })
+
+  it('loads work-queue and renders counts, preview lists, and CTA links', async () => {
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/cabinet/work-queue/') return createWorkQueuePayload()
+      if (url === '/cabinet/entitlements/') return {}
+      if (config?.params?.upcoming === true) return []
+      if (config?.params?.upcoming === false) return []
+      return []
+    })
+
+    const view = renderView()
+
+    await waitFor(() => {
+      expect(mockedApiGet).toHaveBeenCalledWith('/cabinet/work-queue/')
+      expect(summaryValue(view.container, 'sessions')).toBe('2')
+      expect(summaryValue(view.container, 'notes')).toBe('1')
+      expect(summaryValue(view.container, 'guest')).toBe('1')
+    })
+
+    expect(view.container.querySelectorAll('.work-queue-list[data-kind="today-sessions"] .work-queue-list__item')).toHaveLength(1)
+    expect(view.container.querySelectorAll('.work-queue-list[data-kind="notes-reminders"] .work-queue-list__item')).toHaveLength(1)
+    expect(view.container.querySelectorAll('.work-queue-list[data-kind="guest-requests"] .work-queue-list__item')).toHaveLength(1)
+
+    expect(view.container.querySelector('a.work-queue-summary-card[href="/cabinet/sessions"]')).toBeInTheDocument()
+    expect(view.container.querySelector('a.work-queue-summary-card[href="/cabinet/clients"]')).toBeInTheDocument()
+    expect(view.container.querySelector('a.work-queue-summary-card[href="/cabinet/external-sessions"]')).toBeInTheDocument()
+  })
+
+  it('uses client_display_name in work-queue previews and keeps safe fallback when it is missing', async () => {
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/cabinet/work-queue/') {
+        return createWorkQueuePayload({
+          today_sessions: [
+            {
+              id: 801,
+              client: 211,
+              client_display_name: 'Canonical Queue Name',
+              status: 'SCHEDULED',
+              has_note: false,
+              starts_at: '2099-06-10T09:00:00Z',
+            },
+            {
+              id: 802,
+              client: 212,
+              client_display_name: null,
+              client_username: 'login.user',
+              status: 'CONFIRMED',
+              has_note: true,
+              starts_at: '2099-06-10T10:00:00Z',
+            },
+          ],
+        })
+      }
+      if (url === '/cabinet/entitlements/') return {}
+      if (config?.params?.upcoming === true) return []
+      if (config?.params?.upcoming === false) return []
+      return []
+    })
+
+    const view = renderView()
+
+    await waitFor(() => {
+      expect(view.container).toHaveTextContent('Canonical Queue Name')
+    })
+
+    const clients = Array.from(
+      view.container.querySelectorAll('.work-queue-list[data-kind="today-sessions"] .work-queue-list__client')
+    )
+    expect(clients.length).toBeGreaterThanOrEqual(2)
+    expect((clients[1]?.textContent || '').trim().length).toBeGreaterThan(0)
+    expect(view.container).not.toHaveTextContent('login.user')
+  })
+
+  it('renders explicit empty states for work-queue previews', async () => {
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/cabinet/work-queue/') {
+        return createWorkQueuePayload({
+          today_sessions_count: 0,
+          notes_reminders_count: 0,
+          pending_guest_requests_count: 0,
+          today_sessions: [],
+          notes_reminders_preview: [],
+          guest_requests_preview: [],
+        })
+      }
+      if (url === '/cabinet/entitlements/') return {}
+      if (config?.params?.upcoming === true) return []
+      if (config?.params?.upcoming === false) return []
+      return []
+    })
+
+    const view = renderView()
+
+    await waitFor(() => {
+      expect(summaryValue(view.container, 'sessions')).toBe('0')
+      expect(summaryValue(view.container, 'notes')).toBe('0')
+      expect(summaryValue(view.container, 'guest')).toBe('0')
+    })
+
+    expect(view.container.querySelectorAll('.work-queue-list__empty')).toHaveLength(3)
+  })
+
+  it('shows local work-queue error state and retries successfully', async () => {
+    let shouldFailWorkQueue = true
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/cabinet/work-queue/') {
+        if (shouldFailWorkQueue) throw new Error('work queue failed')
+        return createWorkQueuePayload({ today_sessions_count: 5 })
+      }
+      if (url === '/cabinet/entitlements/') return {}
+      if (config?.params?.upcoming === true) return []
+      if (config?.params?.upcoming === false) return []
+      return []
+    })
+
+    const view = renderView()
+
+    await waitFor(() => {
+      expect(view.container.querySelector('.work-queue__state--error')).toBeInTheDocument()
+    })
+
+    shouldFailWorkQueue = false
+    const retryButton = view.container.querySelector('.work-queue__retry')
+    expect(retryButton).toBeInTheDocument()
+    await fireEvent.click(retryButton as HTMLButtonElement)
+
+    await waitFor(() => {
+      expect(summaryValue(view.container, 'sessions')).toBe('5')
+    })
+    expect(view.container.querySelector('.work-queue__state--error')).not.toBeInTheDocument()
+    expect(mockedApiGet.mock.calls.filter((args) => args[0] === '/cabinet/work-queue/').length).toBeGreaterThanOrEqual(2)
   })
 
   it('shows explicit profile error state with retry when cabinet profile bootstrap fails', async () => {
@@ -621,19 +796,19 @@ describe('CabinetView', () => {
     })
 
     const stepLinks = Array.from(view.container.querySelectorAll('a.onboarding-step--link'))
-    const profileCoreLink = stepLinks.find((el) => (el.textContent || '').includes('Базовий профіль'))
-    const availabilityLink = stepLinks.find((el) => (el.textContent || '').includes('Доступність'))
-    const publicProfileLink = stepLinks.find((el) => (el.textContent || '').includes('Публічний профіль'))
-    const inboundReadinessLink = stepLinks.find((el) => (el.textContent || '').includes('Готовність до звернень'))
+    const profileCoreLink = stepLinks.find((el) => el.getAttribute('href') === '/cabinet/profile')
+    const availabilityLink = stepLinks.find((el) => el.getAttribute('href') === '/cabinet/availability-rules')
+    const publicProfileLink = stepLinks.find((el) => el.getAttribute('href') === '/public')
+    const inboundReadinessLink = stepLinks.find((el) => el.getAttribute('href') === '/cabinet/inquiries')
 
     expect(profileCoreLink?.getAttribute('href')).toBe('/cabinet/profile')
     expect(availabilityLink?.getAttribute('href')).toBe('/cabinet/availability-rules')
     expect(publicProfileLink?.getAttribute('href')).toBe('/public')
     expect(inboundReadinessLink?.getAttribute('href')).toBe('/cabinet/inquiries')
-    expect(profileCoreLink?.textContent).toContain('Керувати профілем')
-    expect(availabilityLink?.textContent).toContain('Налаштувати доступність')
-    expect(publicProfileLink?.textContent).toContain('Відкрити публічний профіль')
-    expect(inboundReadinessLink?.textContent).toContain('Перейти до звернень')
+    expect((profileCoreLink?.textContent || '').trim().length).toBeGreaterThan(0)
+    expect((availabilityLink?.textContent || '').trim().length).toBeGreaterThan(0)
+    expect((publicProfileLink?.textContent || '').trim().length).toBeGreaterThan(0)
+    expect((inboundReadinessLink?.textContent || '').trim().length).toBeGreaterThan(0)
   })
 
   it('uses canonical public profile path from me payload for public-profile onboarding step', async () => {

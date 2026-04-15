@@ -3,7 +3,7 @@
     <header class="clients__hero">
       <div>
         <div class="badge">Клієнти</div>
-        <h1 class="title clients__title">CRM спеціаліста</h1>
+        <h1 class="title clients__title">Робота з клієнтами</h1>
         <p class="muted clients__subtitle">
           Управління статусами клієнтів та доступом до активної роботи.
         </p>
@@ -91,7 +91,7 @@
           v-model.trim="searchQuery"
           class="input clients-search__input"
           type="search"
-          placeholder="Ім'я, код або ID клієнта"
+          placeholder="Ім'я, код або номер клієнта"
           autocomplete="off"
         />
       </div>
@@ -583,7 +583,7 @@ function clientLabel(clientId: number) {
   if (normalized) return normalized
   const fromSessions = sessionClientNames.value[clientId]
   if (fromSessions) return fromSessions
-  if (client?.client_code) return `ID: ${client.client_code}`
+  if (client?.client_code) return `Код: ${client.client_code}`
   if (clientId > 0) return `Клієнт #${clientId}`
   return '\u041a\u043b\u0456\u0454\u043d\u0442'
 }
@@ -718,7 +718,7 @@ function displayClientName(
   if (normalized) return normalized
   const fromSessions = sessionClientNames.value[id]
   if (fromSessions) return fromSessions
-  if (client.client_code) return `ID: ${client.client_code}`
+  if (client.client_code) return `Код: ${client.client_code}`
   if (id > 0) return `Клієнт #${id}`
   return '\u041a\u043b\u0456\u0454\u043d\u0442'
 }

@@ -2,24 +2,24 @@
   <section class="external-session-detail">
     <header class="detail-hero">
       <div>
-        <div class="badge">Зовнішня сесія</div>
-        <h1 class="title detail-title">Деталі зовнішньої сесії</h1>
+        <div class="badge">Гостьова сесія</div>
+        <h1 class="title detail-title">Деталі гостьової сесії</h1>
         <p class="muted detail-subtitle">
-          Редагування доступних полів, скасування і керування гостьовим доступом для зовнішнього клієнта.
+          Редагування доступних полів, скасування і керування гостьовим доступом для гостьового клієнта.
         </p>
       </div>
       <RouterLink class="btn btn--ghost" to="/cabinet/external-sessions">Назад до списку</RouterLink>
     </header>
 
     <div v-if="loadError" class="form-error">{{ loadError }}</div>
-    <div v-if="loading" class="muted">Завантаження зовнішньої сесії…</div>
+    <div v-if="loading" class="muted">Завантаження гостьової сесії…</div>
 
     <template v-else-if="session">
       <section class="panel">
         <div class="panel__header">
           <div>
             <div class="badge badge--soft">Зведення</div>
-            <h2 class="panel__title">Зовнішня сесія #{{ session.id }}</h2>
+            <h2 class="panel__title">Гостьова сесія #{{ session.id }}</h2>
           </div>
           <div class="status-pill" :class="session.status === 'CANCELLED' ? 'status-pill--danger' : 'status-pill--ok'">
             {{ session.status === 'CANCELLED' ? 'Скасовано' : 'Заплановано' }}
@@ -149,7 +149,7 @@
             </label>
 
             <label class="field">
-              <span>Email гостя (опційно)</span>
+              <span>Ел. пошта гостя (опційно)</span>
               <input
                 v-model="editDraft.guest_email"
                 class="input"
@@ -192,7 +192,7 @@
           </div>
         </div>
         <p class="muted">
-          Створіть окреме посилання для гостя, щоб він міг відкрити деталі цієї зовнішньої сесії без реєстрації.
+          Створіть окреме посилання для гостя, щоб він міг відкрити деталі цієї гостьової сесії без реєстрації.
         </p>
 
         <div v-if="inviteLoading" class="muted">Завантаження статусу запрошення…</div>
@@ -204,9 +204,9 @@
               <span v-if="invite" class="status-pill" :class="inviteStatusClass">{{ inviteStatusLabel }}</span>
               <span v-if="invite?.expires_at" class="muted">Діє до: {{ formatDateTime(invite.expires_at) }}</span>
               <span v-if="invite && (invite.last_opened_at || invite.opened_at)" class="muted">
-                Лінк відкривали: {{ formatDateTime(invite.last_opened_at || invite.opened_at) }}
+                Посилання відкривали: {{ formatDateTime(invite.last_opened_at || invite.opened_at) }}
               </span>
-              <span v-if="invite?.joined_at" class="muted">За лінком приєдналися: {{ formatDateTime(invite.joined_at) }}</span>
+              <span v-if="invite?.joined_at" class="muted">За посиланням приєдналися: {{ formatDateTime(invite.joined_at) }}</span>
             </div>
 
             <div class="actions-row">
@@ -248,12 +248,12 @@
             </div>
 
             <div v-if="inviteUrl" class="invite-link-block">
-              <div class="muted">Нове посилання для гостя</div>
+              <div class="muted">Гостьове посилання</div>
               <a :href="inviteUrl" class="invite-link-value" target="_blank" rel="noopener noreferrer">{{ inviteUrl }}</a>
             </div>
 
             <p v-if="invite && invitePrimaryStatus === 'active' && !inviteUrl" class="muted">
-              Щоб поділитися актуальним лінком, натисніть «Отримати нове посилання».
+              Щоб поділитися актуальним посиланням, натисніть «Отримати нове посилання».
             </p>
           </template>
 
@@ -477,7 +477,7 @@ function cancelEditMode() {
 async function loadSession() {
   if (!Number.isInteger(sessionId.value) || sessionId.value <= 0) {
     session.value = null
-    loadError.value = 'Некоректний ідентифікатор зовнішньої сесії.'
+    loadError.value = 'Некоректний ідентифікатор гостьової сесії.'
     return
   }
   loading.value = true
@@ -488,7 +488,7 @@ async function loadSession() {
     syncEditDraft(payload)
   } catch (err) {
     session.value = null
-    loadError.value = getApiErrorMessage(err, 'Не вдалося завантажити зовнішню сесію.')
+    loadError.value = getApiErrorMessage(err, 'Не вдалося завантажити гостьову сесію.')
   } finally {
     loading.value = false
   }
@@ -554,9 +554,9 @@ async function submitSave() {
     const updated = await updateExternalSession(session.value.id, payload)
     session.value = updated
     syncEditDraft(updated)
-    toast.success('Зовнішню сесію оновлено.')
+    toast.success('Гостьову сесію оновлено.')
   } catch (err) {
-    saveError.value = getApiErrorMessage(err, 'Не вдалося оновити зовнішню сесію.')
+    saveError.value = getApiErrorMessage(err, 'Не вдалося оновити гостьову сесію.')
   } finally {
     savePending.value = false
   }
@@ -572,9 +572,9 @@ async function submitCancel() {
     syncEditDraft(updated)
     isEditMode.value = false
     await loadInvite()
-    toast.success('Зовнішню сесію скасовано.')
+    toast.success('Гостьову сесію скасовано.')
   } catch (err) {
-    saveError.value = getApiErrorMessage(err, 'Не вдалося скасувати зовнішню сесію.')
+    saveError.value = getApiErrorMessage(err, 'Не вдалося скасувати гостьову сесію.')
   } finally {
     cancelPending.value = false
   }

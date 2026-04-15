@@ -40,6 +40,136 @@
     </header>
 
     <div v-if="me && hasCabinetDataSnapshot" class="cabinet__grid">
+      <section class="panel panel--wide panel--work-queue">
+        <div class="panel__header">
+          <div>
+            <div class="badge badge--soft">Сьогодні / До уваги</div>
+            <h2 class="panel__title">Робочий огляд</h2>
+          </div>
+        </div>
+
+        <div v-if="workQueueLoading && !workQueueLoaded" class="work-queue__state work-queue__state--loading">
+          Завантаження щоденного огляду...
+        </div>
+
+        <div v-else-if="workQueueError && !workQueueLoaded" class="work-queue__state work-queue__state--error">
+          <span>{{ workQueueError }}</span>
+          <button
+            class="btn btn--ghost btn--sm work-queue__retry"
+            type="button"
+            :disabled="workQueueLoading"
+            @click="retryWorkQueueLoad"
+          >
+            Повторити
+          </button>
+        </div>
+
+        <div v-else class="work-queue">
+          <div v-if="workQueueError" class="work-queue__inline-error">
+            <span>{{ workQueueError }}</span>
+            <button
+              class="btn btn--ghost btn--sm work-queue__retry"
+              type="button"
+              :disabled="workQueueLoading"
+              @click="retryWorkQueueLoad"
+            >
+              Повторити
+            </button>
+          </div>
+
+          <div class="work-queue__summary">
+            <RouterLink class="work-queue-summary-card" data-kind="sessions" to="/cabinet/sessions">
+              <div class="work-queue-summary-card__label">Сесії сьогодні</div>
+              <div class="work-queue-summary-card__value">{{ workQueue.todaySessionsCount }}</div>
+              <div class="work-queue-summary-card__cta">Перейти до сесій</div>
+            </RouterLink>
+
+            <RouterLink class="work-queue-summary-card" data-kind="notes" to="/cabinet/clients">
+              <div class="work-queue-summary-card__label">Нотатки до завершення</div>
+              <div class="work-queue-summary-card__value">{{ workQueue.notesRemindersCount }}</div>
+              <div class="work-queue-summary-card__cta">Перейти до клієнтів</div>
+            </RouterLink>
+
+            <RouterLink class="work-queue-summary-card" data-kind="guest" to="/cabinet/external-sessions">
+              <div class="work-queue-summary-card__label">Гостьові запити</div>
+              <div class="work-queue-summary-card__value">{{ workQueue.pendingGuestRequestsCount }}</div>
+              <div class="work-queue-summary-card__cta">Перейти до гостьових сесій</div>
+            </RouterLink>
+          </div>
+
+          <div class="work-queue__preview-grid">
+            <section class="work-queue-list" data-kind="today-sessions">
+              <div class="work-queue-list__header">
+                <h3 class="work-queue-list__title">Сьогоднішні сесії</h3>
+                <RouterLink class="btn btn--ghost btn--sm" to="/cabinet/sessions">Усі сесії</RouterLink>
+              </div>
+              <ul v-if="workQueue.todaySessions.length > 0" class="work-queue-list__items">
+                <li v-for="item in workQueue.todaySessions" :key="workQueueSessionKey(item)" class="work-queue-list__item">
+                  <div class="work-queue-list__row">
+                    <div class="work-queue-list__time">{{ workQueueSessionTimeLabel(item) }}</div>
+                    <div class="work-queue-list__status">{{ workQueueSessionStatusLabel(item.status) }}</div>
+                  </div>
+                  <div class="work-queue-list__client">{{ workQueueSessionClientLabel(item) }}</div>
+                  <div class="work-queue-list__meta">
+                    <span>Нотатка: {{ item.has_note ? 'є' : 'немає' }}</span>
+                    <span v-if="workQueueSessionFormatLabel(item)">{{ workQueueSessionFormatLabel(item) }}</span>
+                  </div>
+                  <RouterLink class="work-queue-list__link" :to="workQueueSessionTo(item)">Відкрити</RouterLink>
+                </li>
+              </ul>
+              <p v-else class="muted work-queue-list__empty">На сьогодні сесій у добірці немає.</p>
+            </section>
+
+            <section class="work-queue-list" data-kind="notes-reminders">
+              <div class="work-queue-list__header">
+                <h3 class="work-queue-list__title">Нагадування по нотатках</h3>
+                <RouterLink class="btn btn--ghost btn--sm" to="/cabinet/clients">До нотаток</RouterLink>
+              </div>
+              <ul v-if="workQueue.notesRemindersPreview.length > 0" class="work-queue-list__items">
+                <li
+                  v-for="item in workQueue.notesRemindersPreview"
+                  :key="workQueueReminderKey(item)"
+                  class="work-queue-list__item"
+                >
+                  <div class="work-queue-list__time">{{ workQueueReminderTimeLabel(item) }}</div>
+                  <div class="work-queue-list__client">{{ workQueueReminderClientLabel(item) }}</div>
+                  <div class="work-queue-list__meta">
+                    <span>Потрібно зафіксувати нотатку</span>
+                  </div>
+                  <RouterLink class="work-queue-list__link" :to="workQueueReminderTo(item)">Продовжити</RouterLink>
+                </li>
+              </ul>
+              <p v-else class="muted work-queue-list__empty">Немає активних нагадувань по нотатках.</p>
+            </section>
+
+            <section class="work-queue-list" data-kind="guest-requests">
+              <div class="work-queue-list__header">
+                <h3 class="work-queue-list__title">Гостьові запити</h3>
+                <RouterLink class="btn btn--ghost btn--sm" to="/cabinet/external-sessions">Усі запити</RouterLink>
+              </div>
+              <ul v-if="workQueue.guestRequestsPreview.length > 0" class="work-queue-list__items">
+                <li
+                  v-for="item in workQueue.guestRequestsPreview"
+                  :key="workQueueGuestRequestKey(item)"
+                  class="work-queue-list__item"
+                >
+                  <div class="work-queue-list__row">
+                    <div class="work-queue-list__time">{{ workQueueGuestRequestTimeLabel(item) }}</div>
+                    <div class="work-queue-list__status">{{ workQueueGuestRequestStatusLabel(item.status) }}</div>
+                  </div>
+                  <div class="work-queue-list__client">{{ workQueueGuestRequestClientLabel(item) }}</div>
+                  <div v-if="workQueueSessionFormatLabel(item)" class="work-queue-list__meta">
+                    <span>Формат: {{ workQueueSessionFormatLabel(item) }}</span>
+                  </div>
+                  <RouterLink class="work-queue-list__link" to="/cabinet/external-sessions">Опрацювати</RouterLink>
+                </li>
+              </ul>
+              <p v-else class="muted work-queue-list__empty">Немає гостьових запитів, що очікують рішення.</p>
+            </section>
+          </div>
+        </div>
+      </section>
+
       <section class="panel panel--wide panel--action-hub">
         <div class="panel__header">
           <div>
@@ -124,7 +254,7 @@
                 <h3 class="action-group__title">Щоденна робота</h3>
                 <div class="action-group__items">
                   <RouterLink class="action-tile" to="/cabinet/sessions">Сесії</RouterLink>
-                  <RouterLink class="action-tile" to="/cabinet/external-sessions">Зовнішні сесії</RouterLink>
+                  <RouterLink class="action-tile" to="/cabinet/external-sessions">Гостьові сесії</RouterLink>
                   <RouterLink class="action-tile" to="/cabinet/clients">Клієнти</RouterLink>
                   <RouterLink class="action-tile" to="/cabinet/inquiries">Запити до бронювання</RouterLink>
                   <RouterLink class="action-tile" to="/cabinet/reviews">Відгуки</RouterLink>
@@ -420,7 +550,7 @@ import {
   type ChatThread,
   type SessionFormat,
 } from '../lib/api'
-import { formatUkDateTimeCompact } from '../lib/dateTime'
+import { formatUkDateTimeCompact, formatUkTime } from '../lib/dateTime'
 import { canJoinExternalMeeting, normalizeMeetingUrl } from '../lib/sessionExecution'
 import {
   buildSpecialistOnboardingViewModel,
@@ -461,9 +591,87 @@ type CabinetEntitlementsSnapshot = {
   guest_sessions_used_in_period?: number | null
 }
 
+type WorkQueueSessionPreviewItem = {
+  id?: number | null
+  session_id?: number | null
+  client?: number | null
+  client_display_name?: string | null
+  client_first_name?: string | null
+  client_last_name?: string | null
+  first_name?: string | null
+  last_name?: string | null
+  status?: string | null
+  has_note?: boolean | null
+  session_format?: SessionFormat | null
+  meeting_mode?: 'ONLINE' | 'OFFLINE' | null
+  starts_at?: string | null
+  slot_start_at?: string | null
+  scheduled_at?: string | null
+}
+
+type WorkQueueNoteReminderPreviewItem = {
+  id?: number | null
+  session_id?: number | null
+  client_id?: number | null
+  client_display_name?: string | null
+  client_first_name?: string | null
+  client_last_name?: string | null
+  first_name?: string | null
+  last_name?: string | null
+  reminder_at?: string | null
+  starts_at?: string | null
+  slot_start_at?: string | null
+  created_at?: string | null
+}
+
+type WorkQueueGuestRequestPreviewItem = {
+  id?: number | null
+  status?: string | null
+  client_display_name?: string | null
+  guest_name?: string | null
+  session_format?: SessionFormat | null
+  meeting_mode?: 'ONLINE' | 'OFFLINE' | null
+  requested_slot_start?: string | null
+  starts_at?: string | null
+  created_at?: string | null
+}
+
+type CabinetWorkQueuePayload = {
+  today_sessions_count?: number | null
+  notes_reminders_count?: number | null
+  pending_guest_requests_count?: number | null
+  today_sessions?: WorkQueueSessionPreviewItem[] | null
+  notes_reminders_preview?: WorkQueueNoteReminderPreviewItem[] | null
+  guest_requests_preview?: WorkQueueGuestRequestPreviewItem[] | null
+}
+
+type CabinetWorkQueue = {
+  todaySessionsCount: number
+  notesRemindersCount: number
+  pendingGuestRequestsCount: number
+  todaySessions: WorkQueueSessionPreviewItem[]
+  notesRemindersPreview: WorkQueueNoteReminderPreviewItem[]
+  guestRequestsPreview: WorkQueueGuestRequestPreviewItem[]
+}
+
+function createEmptyWorkQueue(): CabinetWorkQueue {
+  return {
+    todaySessionsCount: 0,
+    notesRemindersCount: 0,
+    pendingGuestRequestsCount: 0,
+    todaySessions: [],
+    notesRemindersPreview: [],
+    guestRequestsPreview: [],
+  }
+}
+
 const allSessions = ref<CabinetSession[]>([])
 const chatClientNames = ref<Record<number, string>>({})
 const entitlementsSnapshot = ref<CabinetEntitlementsSnapshot | null>(null)
+const workQueue = ref<CabinetWorkQueue>(createEmptyWorkQueue())
+const workQueueLoading = ref(false)
+const workQueueError = ref('')
+const workQueueLoaded = ref(false)
 const heroSessionsLoading = ref(false)
 const heroSessionsError = ref('')
 const profileLoading = ref(false)
@@ -475,6 +683,7 @@ const LIVE_STATUS_REFRESH_MS = 30 * 1000
 let nowIntervalId: number | null = null
 const CABINET_DATA_LOAD_ERROR = 'Не вдалося завантажити дані доступу кабінету.'
 const ONBOARDING_LOAD_ERROR = 'Не вдалося завантажити стан онбордингу.'
+const WORK_QUEUE_LOAD_ERROR = 'Не вдалося завантажити блок "Сьогодні / До уваги".'
 
 const onboardingState = ref<unknown | null>(null)
 const onboardingLoading = ref(false)
@@ -686,6 +895,128 @@ function normalizeClientName(value?: string | null) {
 function fullName(first?: string | null, last?: string | null) {
   const merged = [first?.trim() || '', last?.trim() || ''].filter(Boolean).join(' ')
   return normalizeClientName(merged)
+}
+
+function normalizeCount(value: unknown) {
+  if (typeof value !== 'number' || !Number.isFinite(value) || value < 0) return 0
+  return Math.floor(value)
+}
+
+function normalizePreviewList<T>(value: unknown, limit: number): T[] {
+  if (!Array.isArray(value)) return []
+  return value.slice(0, limit)
+}
+
+function normalizeWorkQueuePayload(payload: unknown): CabinetWorkQueue {
+  if (!payload || typeof payload !== 'object') return createEmptyWorkQueue()
+  const source = payload as CabinetWorkQueuePayload
+  return {
+    todaySessionsCount: normalizeCount(source.today_sessions_count),
+    notesRemindersCount: normalizeCount(source.notes_reminders_count),
+    pendingGuestRequestsCount: normalizeCount(source.pending_guest_requests_count),
+    todaySessions: normalizePreviewList<WorkQueueSessionPreviewItem>(source.today_sessions, 5),
+    notesRemindersPreview: normalizePreviewList<WorkQueueNoteReminderPreviewItem>(source.notes_reminders_preview, 3),
+    guestRequestsPreview: normalizePreviewList<WorkQueueGuestRequestPreviewItem>(source.guest_requests_preview, 3),
+  }
+}
+
+function workQueueSessionKey(item: WorkQueueSessionPreviewItem) {
+  const id = Number(item.id ?? item.session_id ?? 0)
+  if (id > 0) return `session-${id}`
+  return `session-${item.starts_at || item.slot_start_at || item.scheduled_at || 'unknown'}`
+}
+
+function workQueueReminderKey(item: WorkQueueNoteReminderPreviewItem) {
+  const id = Number(item.id ?? item.session_id ?? 0)
+  if (id > 0) return `reminder-${id}`
+  return `reminder-${item.reminder_at || item.slot_start_at || item.starts_at || item.created_at || 'unknown'}`
+}
+
+function workQueueGuestRequestKey(item: WorkQueueGuestRequestPreviewItem) {
+  const id = Number(item.id ?? 0)
+  if (id > 0) return `guest-${id}`
+  return `guest-${item.requested_slot_start || item.starts_at || item.created_at || 'unknown'}`
+}
+
+function workQueueSessionClientLabel(item: WorkQueueSessionPreviewItem) {
+  const fromDisplayName = normalizeClientName(item.client_display_name)
+  if (fromDisplayName) return fromDisplayName
+  const fromClientNameParts = fullName(item.client_first_name, item.client_last_name)
+  if (fromClientNameParts) return fromClientNameParts
+  const fromNameParts = fullName(item.first_name, item.last_name)
+  if (fromNameParts) return fromNameParts
+  return 'Клієнт без імені'
+}
+
+function workQueueReminderClientLabel(item: WorkQueueNoteReminderPreviewItem) {
+  const fromDisplayName = normalizeClientName(item.client_display_name)
+  if (fromDisplayName) return fromDisplayName
+  const fromClientNameParts = fullName(item.client_first_name, item.client_last_name)
+  if (fromClientNameParts) return fromClientNameParts
+  const fromNameParts = fullName(item.first_name, item.last_name)
+  if (fromNameParts) return fromNameParts
+  return 'Клієнт без імені'
+}
+
+function workQueueGuestRequestClientLabel(item: WorkQueueGuestRequestPreviewItem) {
+  const fromDisplayName = normalizeClientName(item.client_display_name)
+  if (fromDisplayName) return fromDisplayName
+  const fromGuestName = normalizeClientName(item.guest_name)
+  if (fromGuestName) return fromGuestName
+  return 'Гість без імені'
+}
+
+function workQueueSessionTimeLabel(item: WorkQueueSessionPreviewItem) {
+  const value = item.slot_start_at || item.starts_at || item.scheduled_at || null
+  return formatUkTime(value)
+}
+
+function workQueueReminderTimeLabel(item: WorkQueueNoteReminderPreviewItem) {
+  const value = item.reminder_at || item.slot_start_at || item.starts_at || item.created_at || null
+  return formatUkDateTimeCompact(value)
+}
+
+function workQueueGuestRequestTimeLabel(item: WorkQueueGuestRequestPreviewItem) {
+  const value = item.requested_slot_start || item.starts_at || item.created_at || null
+  return formatUkDateTimeCompact(value)
+}
+
+function workQueueSessionStatusLabel(status?: string | null) {
+  if (status === 'SCHEDULED') return 'Заплановано'
+  if (status === 'CONFIRMED') return 'Підтверджено'
+  if (status === 'COMPLETED') return 'Завершено'
+  if (status === 'CANCELLED') return 'Скасовано'
+  if (status === 'NO_SHOW') return 'Не відбулося'
+  return status || '—'
+}
+
+function workQueueGuestRequestStatusLabel(status?: string | null) {
+  const normalized = (status || '').trim().toLowerCase()
+  if (normalized === 'pending') return 'Очікує'
+  if (normalized === 'approved') return 'Погоджено'
+  if (normalized === 'declined') return 'Відхилено'
+  if (normalized === 'cancelled') return 'Скасовано'
+  return status || '—'
+}
+
+function workQueueSessionFormatLabel(
+  item: Pick<WorkQueueSessionPreviewItem, 'session_format' | 'meeting_mode'>
+): string {
+  if (item.session_format === 'offline' || item.meeting_mode === 'OFFLINE') return 'Офлайн'
+  if (item.session_format === 'online' || item.meeting_mode === 'ONLINE') return 'Онлайн'
+  return ''
+}
+
+function workQueueSessionTo(item: WorkQueueSessionPreviewItem) {
+  const id = Number(item.id ?? item.session_id ?? 0)
+  if (id > 0) return `/cabinet/sessions/${id}`
+  return '/cabinet/sessions'
+}
+
+function workQueueReminderTo(item: WorkQueueNoteReminderPreviewItem) {
+  const clientId = Number(item.client_id ?? 0)
+  if (clientId > 0) return `/cabinet/clients?client=${clientId}&autoOpen=1`
+  return '/cabinet/clients'
 }
 
 function preferredSessionClientName(session: CabinetSession) {
@@ -918,8 +1249,35 @@ async function ensureCabinetData() {
   }
 }
 
+async function loadWorkQueue() {
+  if (!auth.accessToken) {
+    workQueue.value = createEmptyWorkQueue()
+    workQueueLoaded.value = false
+    workQueueError.value = ''
+    return
+  }
+  workQueueLoading.value = true
+  workQueueError.value = ''
+  try {
+    const payload = await apiGet<CabinetWorkQueuePayload | null>('/cabinet/work-queue/')
+    workQueue.value = normalizeWorkQueuePayload(payload)
+    workQueueLoaded.value = true
+  } catch {
+    if (!workQueueLoaded.value) {
+      workQueue.value = createEmptyWorkQueue()
+    }
+    workQueueError.value = WORK_QUEUE_LOAD_ERROR
+  } finally {
+    workQueueLoading.value = false
+  }
+}
+
 function retryCabinetDataLoad() {
-  void Promise.all([ensureCabinetData(), loadCabinetEntitlementsSnapshot()])
+  void Promise.all([ensureCabinetData(), loadCabinetEntitlementsSnapshot(), loadWorkQueue()])
+}
+
+function retryWorkQueueLoad() {
+  void loadWorkQueue()
 }
 
 async function loadCabinetEntitlementsSnapshot() {
@@ -974,6 +1332,7 @@ onMounted(async () => {
     ensureCabinetData(),
     loadOnboardingState(),
     loadCabinetEntitlementsSnapshot(),
+    loadWorkQueue(),
   ])
   nowIntervalId = window.setInterval(() => {
     nowTs.value = Date.now()
@@ -1134,6 +1493,183 @@ onBeforeUnmount(() => {
 .panel--action-hub {
   gap: 12px;
   background: linear-gradient(165deg, rgba(7, 47, 71, 0.04), rgba(8, 113, 201, 0.06));
+}
+
+.panel--work-queue {
+  gap: 12px;
+  background: linear-gradient(165deg, rgba(7, 47, 71, 0.02), rgba(12, 132, 93, 0.06));
+}
+
+.work-queue {
+  display: grid;
+  gap: 12px;
+}
+
+.work-queue__state {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.work-queue__state--loading {
+  background: rgba(8, 113, 201, 0.08);
+  color: #11445d;
+}
+
+.work-queue__state--error,
+.work-queue__inline-error {
+  border: 1px solid rgba(179, 29, 29, 0.35);
+  background: rgba(250, 232, 232, 0.9);
+  color: #7d1f1f;
+}
+
+.work-queue__inline-error {
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.work-queue__summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+}
+
+.work-queue-summary-card {
+  border: 1px solid rgba(7, 47, 71, 0.14);
+  border-radius: var(--radius-md);
+  background: #fff;
+  padding: 10px 12px;
+  text-decoration: none;
+  color: inherit;
+  display: grid;
+  gap: 4px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.work-queue-summary-card:hover {
+  border-color: rgba(31, 74, 96, 0.35);
+  box-shadow: 0 8px 16px rgba(16, 33, 50, 0.08);
+}
+
+.work-queue-summary-card:focus-visible {
+  outline: 2px solid rgba(31, 74, 96, 0.35);
+  outline-offset: 1px;
+}
+
+.work-queue-summary-card__label {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.work-queue-summary-card__value {
+  font-size: 28px;
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.work-queue-summary-card__cta {
+  font-size: 12px;
+  font-weight: 600;
+  color: #1f4a60;
+}
+
+.work-queue__preview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+.work-queue-list {
+  border: 1px solid rgba(7, 47, 71, 0.12);
+  border-radius: var(--radius-md);
+  background: #fff;
+  padding: 10px;
+  display: grid;
+  gap: 8px;
+}
+
+.work-queue-list__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.work-queue-list__title {
+  margin: 0;
+  font-size: 14px;
+}
+
+.work-queue-list__items {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+}
+
+.work-queue-list__item {
+  border: 1px solid rgba(7, 47, 71, 0.1);
+  border-radius: var(--radius-sm);
+  padding: 8px;
+  display: grid;
+  gap: 4px;
+}
+
+.work-queue-list__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.work-queue-list__time {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.work-queue-list__status {
+  font-size: 12px;
+  font-weight: 600;
+  color: #1f4a60;
+}
+
+.work-queue-list__client {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.work-queue-list__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.work-queue-list__link {
+  width: fit-content;
+  font-size: 12px;
+  font-weight: 600;
+  color: #1f4a60;
+  text-decoration: none;
+}
+
+.work-queue-list__link:hover {
+  text-decoration: underline;
+}
+
+.work-queue-list__empty {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
 }
 
 .action-hub {
@@ -1678,6 +2214,11 @@ onBeforeUnmount(() => {
 
   .action-hub {
     grid-template-columns: 1fr;
+  }
+
+  .work-queue__inline-error {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .cabinet-actions {

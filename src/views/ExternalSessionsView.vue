@@ -2,10 +2,10 @@
   <section class="external-sessions">
     <header class="external-sessions__hero">
       <div>
-        <div class="badge">Зовнішні сесії</div>
-        <h1 class="title external-sessions__title">Зовнішні сесії</h1>
+        <div class="badge">Гостьові сесії</div>
+        <h1 class="title external-sessions__title">Гостьові сесії</h1>
         <p class="muted external-sessions__subtitle">
-          Окремий розділ для сесій із зовнішніми гостями без змішування з основним сценарієм бронювання.
+          Окремий розділ для гостьових сесій без змішування з основним сценарієм бронювання.
         </p>
       </div>
       <RouterLink class="btn btn--ghost" to="/cabinet">Назад до кабінету</RouterLink>
@@ -15,7 +15,7 @@
       <div class="panel__header">
         <div>
           <div class="badge badge--soft">Створення</div>
-          <h2 class="panel__title">Нова зовнішня сесія</h2>
+          <h2 class="panel__title">Нова гостьова сесія</h2>
         </div>
       </div>
 
@@ -82,14 +82,14 @@
         </label>
 
         <label class="field">
-          <span>Email гостя (опційно)</span>
+          <span>Ел. пошта гостя (опційно)</span>
           <input v-model="createDraft.guest_email" class="input" type="email" maxlength="255" />
         </label>
       </div>
 
       <div class="actions-row">
         <button class="btn" type="button" :disabled="createPending" @click="submitCreate">
-          {{ createPending ? 'Створюємо…' : 'Створити зовнішню сесію' }}
+          {{ createPending ? 'Створюємо…' : 'Створити гостьову сесію' }}
         </button>
       </div>
       <datalist id="external-session-time-options">
@@ -102,13 +102,13 @@
         <div class="panel__header">
           <div>
             <div class="badge badge--soft">Список</div>
-            <h2 class="panel__title">Ваші зовнішні сесії</h2>
+            <h2 class="panel__title">Ваші гостьові сесії</h2>
           </div>
         </div>
 
         <div v-if="listError" class="form-error">{{ listError }}</div>
-        <div v-else-if="listLoading" class="muted">Завантаження зовнішніх сесій…</div>
-        <div v-else-if="sessions.length === 0" class="muted">Немає зовнішніх сесій. Створіть першу сесію вище.</div>
+        <div v-else-if="listLoading" class="muted">Завантаження гостьових сесій…</div>
+        <div v-else-if="sessions.length === 0" class="muted">Немає гостьових сесій. Створіть першу сесію вище.</div>
 
         <div v-else class="list-grid">
           <article v-for="session in sessions" :key="session.id" class="session-card">
@@ -132,7 +132,7 @@
         <div class="panel__header">
           <div>
             <div class="badge badge--soft">Запити</div>
-            <h2 class="panel__title">Запити на гостьові сесії</h2>
+            <h2 class="panel__title">Гостьові запити</h2>
           </div>
         </div>
 
@@ -166,13 +166,13 @@
               <div v-if="requestDecisionAt(request)" class="muted">
                 {{ requestDecisionLabel(request.status) }}: {{ formatDateTime(requestDecisionAt(request)) }}
               </div>
-              <div v-if="request.external_session_id" class="muted">На основі цього запиту створено зовнішню сесію.</div>
+              <div v-if="request.external_session_id" class="muted">На основі цього запиту створено гостьову сесію.</div>
               <div v-if="request.external_session_id" class="request-next-step">
                 <RouterLink
                   class="btn btn--ghost btn--sm"
                   :to="`/cabinet/external-sessions/${request.external_session_id}`"
                 >
-                  Відкрити зовнішню сесію
+                  Відкрити гостьову сесію
                 </RouterLink>
                 <a
                   v-if="latestInviteUrlByRequestId[request.id]"
@@ -181,7 +181,7 @@
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  Відкрити гостьовий лінк
+                  Гостьове посилання
                 </a>
               </div>
             </div>
@@ -322,7 +322,7 @@ function requestStatusClass(status: string | null | undefined) {
 
 function contactChannelLabel(channel: string | null | undefined) {
   const normalized = String(channel || '').toLowerCase()
-  if (normalized === 'email') return 'Email'
+  if (normalized === 'email') return 'Ел. пошта'
   if (normalized === 'phone') return 'Телефон'
   if (normalized === 'telegram') return 'Telegram'
   return channel || 'Контакт'
@@ -480,7 +480,7 @@ async function loadSessions() {
       .slice()
       .sort((a, b) => new Date(b.starts_at).getTime() - new Date(a.starts_at).getTime())
   } catch (err) {
-    listError.value = getApiErrorMessage(err, 'Не вдалося завантажити зовнішні сесії.')
+    listError.value = getApiErrorMessage(err, 'Не вдалося завантажити гостьові сесії.')
     sessions.value = []
   } finally {
     listLoading.value = false
@@ -544,11 +544,11 @@ async function submitCreate() {
     }
 
     const created = await createExternalSession(payload)
-    toast.success('Зовнішню сесію створено.')
+    toast.success('Гостьову сесію створено.')
     await loadSessions()
     await router.push(`/cabinet/external-sessions/${created.id}`)
   } catch (err) {
-    createError.value = getApiErrorMessage(err, 'Не вдалося створити зовнішню сесію.')
+    createError.value = getApiErrorMessage(err, 'Не вдалося створити гостьову сесію.')
   } finally {
     createPending.value = false
   }

@@ -103,7 +103,7 @@ describe('ExternalSessionDetailView', () => {
   it('renders empty invite state when invite does not exist', async () => {
     const { container } = renderView()
 
-    expect(await screen.findByText('Деталі зовнішньої сесії')).toBeInTheDocument()
+    expect(await screen.findByText('Деталі гостьової сесії')).toBeInTheDocument()
     expect(screen.getByText('Зведення')).toBeInTheDocument()
     expect(screen.getAllByText('Гостьовий доступ').length).toBeGreaterThan(0)
     expect(screen.getByRole('button', { name: 'Редагувати' })).toBeInTheDocument()
@@ -117,7 +117,7 @@ describe('ExternalSessionDetailView', () => {
 
   it('opens edit mode and closes with cancel while resetting local draft', async () => {
     const { container } = renderView()
-    await screen.findByText('Деталі зовнішньої сесії')
+    await screen.findByText('Деталі гостьової сесії')
 
     await fireEvent.click(screen.getByRole('button', { name: 'Редагувати' }))
     const dateInput = container.querySelector('input[type="date"]') as HTMLInputElement | null
@@ -184,7 +184,7 @@ describe('ExternalSessionDetailView', () => {
     await waitFor(() => {
       expect(clipboardWrite).toHaveBeenCalledWith('https://proconsult.space/guest/external-session/new-token')
     })
-    expect(screen.getByText('Нове посилання для гостя')).toBeInTheDocument()
+    expect(screen.getByText('Гостьове посилання')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'https://proconsult.space/guest/external-session/new-token' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Скопіювати посилання|Скопійовано/ })).toBeInTheDocument()
   })
@@ -227,7 +227,7 @@ describe('ExternalSessionDetailView', () => {
     mockedFetchExternalSessionInvite.mockResolvedValueOnce(null as any)
 
     renderView()
-    await screen.findByText('Деталі зовнішньої сесії')
+    await screen.findByText('Деталі гостьової сесії')
 
     expect(screen.getByText('Активне запрошення ще не створено.')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Створити запрошення' })).toBeInTheDocument()
@@ -251,7 +251,7 @@ describe('ExternalSessionDetailView', () => {
     } as any)
 
     renderView()
-    await screen.findByText('Деталі зовнішньої сесії')
+    await screen.findByText('Деталі гостьової сесії')
 
     expect(await screen.findByRole('button', { name: 'Отримати нове посилання' })).toBeInTheDocument()
     expect(await screen.findByRole('button', { name: 'Відкликати' })).toBeInTheDocument()
@@ -292,7 +292,7 @@ describe('ExternalSessionDetailView', () => {
     } as any)
 
     renderView()
-    await screen.findByText('Деталі зовнішньої сесії')
+    await screen.findByText('Деталі гостьової сесії')
 
     await fireEvent.click(await screen.findByRole('button', { name: 'Отримати нове посилання' }))
 
@@ -301,7 +301,7 @@ describe('ExternalSessionDetailView', () => {
       expect(toast.success).toHaveBeenCalledWith('Нове посилання скопійовано.')
     })
 
-    expect(screen.getByText('Нове посилання для гостя')).toBeInTheDocument()
+    expect(screen.getByText('Гостьове посилання')).toBeInTheDocument()
     expect(
       screen.getByRole('link', { name: 'https://proconsult.space/guest/external-session/new-from-regenerate' })
     ).toBeInTheDocument()
@@ -334,14 +334,14 @@ describe('ExternalSessionDetailView', () => {
     } as any)
 
     renderView()
-    await screen.findByText('Деталі зовнішньої сесії')
+    await screen.findByText('Деталі гостьової сесії')
 
     await fireEvent.click(await screen.findByRole('button', { name: 'Створити запрошення' }))
 
     await waitFor(() => {
       expect(toast.success).toHaveBeenCalledWith('Посилання запрошення готове до копіювання.')
     })
-    expect(screen.getByText('Нове посилання для гостя')).toBeInTheDocument()
+    expect(screen.getByText('Гостьове посилання')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Скопіювати посилання|Скопійовано/ })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'https://proconsult.space/guest/external-session/fallback-url' })).toBeInTheDocument()
   })
@@ -381,14 +381,14 @@ describe('ExternalSessionDetailView', () => {
       .mockRejectedValueOnce({ response: { status: 404, data: { code: 'NOT_FOUND' } } })
 
     renderView()
-    await screen.findByText('Деталі зовнішньої сесії')
+    await screen.findByText('Деталі гостьової сесії')
 
     await fireEvent.click(screen.getByRole('button', { name: 'Редагувати' }))
     await fireEvent.click(screen.getByRole('button', { name: 'Скасувати сесію' }))
 
     await waitFor(() => {
       expect(mockedCancelExternalSession).toHaveBeenCalledWith(21)
-      expect(toast.success).toHaveBeenCalledWith('Зовнішню сесію скасовано.')
+      expect(toast.success).toHaveBeenCalledWith('Гостьову сесію скасовано.')
     })
   })
 
@@ -432,7 +432,7 @@ describe('ExternalSessionDetailView', () => {
     } as any)
 
     renderView()
-    await screen.findByText('Деталі зовнішньої сесії')
+    await screen.findByText('Деталі гостьової сесії')
 
     await fireEvent.click(screen.getByRole('button', { name: 'Редагувати' }))
     await fireEvent.click(screen.getByRole('button', { name: 'Зберегти' }))
@@ -474,7 +474,7 @@ describe('ExternalSessionDetailView', () => {
     })
 
     renderView()
-    await screen.findByText('Деталі зовнішньої сесії')
+    await screen.findByText('Деталі гостьової сесії')
 
     const regenerateButton = await screen.findByRole('button', { name: 'Отримати нове посилання' })
     await fireEvent.click(regenerateButton)
@@ -511,7 +511,7 @@ describe('ExternalSessionDetailView', () => {
     })
 
     renderView()
-    await screen.findByText('Деталі зовнішньої сесії')
+    await screen.findByText('Деталі гостьової сесії')
 
     const revokeButton = await screen.findByRole('button', { name: 'Відкликати' })
     await fireEvent.click(revokeButton)

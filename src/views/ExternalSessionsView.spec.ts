@@ -186,12 +186,12 @@ describe('ExternalSessionsView', () => {
   it('renders external sessions list and empty guest requests state', async () => {
     const { container } = renderView()
 
-    const createPanelTitle = await screen.findByText('Нова зовнішня сесія')
-    expect(await screen.findByText('Ваші зовнішні сесії')).toBeInTheDocument()
+    const createPanelTitle = await screen.findByText('Нова гостьова сесія')
+    expect(await screen.findByText('Ваші гостьові сесії')).toBeInTheDocument()
     expect(await screen.findByText('Гостьових запитів поки немає.')).toBeInTheDocument()
 
     const panelTitles = Array.from(container.querySelectorAll('.panel__title')).map((node) => node.textContent?.trim())
-    expect(panelTitles).toEqual(['Нова зовнішня сесія', 'Ваші зовнішні сесії', 'Запити на гостьові сесії'])
+    expect(panelTitles).toEqual(['Нова гостьова сесія', 'Ваші гостьові сесії', 'Гостьові запити'])
     expect(createPanelTitle).toBeInTheDocument()
 
     const detailLink = await screen.findByRole('link', { name: 'Деталі' })
@@ -206,7 +206,7 @@ describe('ExternalSessionsView', () => {
     expect(options[0]).toBe('00:00')
     expect(options[1]).toBe('00:15')
     expect(options[95]).toBe('23:45')
-    expect(screen.getAllByText('Зовнішні сесії').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Гостьові сесії').length).toBeGreaterThan(0)
     expect(detailLink).toHaveAttribute('href', '/cabinet/external-sessions/8')
   })
 
@@ -228,7 +228,7 @@ describe('ExternalSessionsView', () => {
     } as any)
 
     const { container } = renderView()
-    await screen.findByText('Нова зовнішня сесія')
+    await screen.findByText('Нова гостьова сесія')
 
     const dateInput = container.querySelector('input[type="date"]')
     const timeInput = container.querySelector('input[inputmode="numeric"]')
@@ -240,8 +240,8 @@ describe('ExternalSessionsView', () => {
     await fireEvent.update(timeInput, '12:30')
     await fireEvent.update(screen.getByLabelText('Посилання на зустріч'), 'https://meet.google.com/new-room')
     await fireEvent.update(screen.getByLabelText("Ім'я гостя (опційно)"), 'Guest Name')
-    await fireEvent.update(screen.getByLabelText('Email гостя (опційно)'), 'guest@example.com')
-    await fireEvent.click(screen.getByRole('button', { name: 'Створити зовнішню сесію' }))
+    await fireEvent.update(screen.getByLabelText('Ел. пошта гостя (опційно)'), 'guest@example.com')
+    await fireEvent.click(screen.getByRole('button', { name: 'Створити гостьову сесію' }))
 
     await waitFor(() => {
       expect(mockedCreateExternalSession).toHaveBeenCalledTimes(1)
@@ -272,7 +272,7 @@ describe('ExternalSessionsView', () => {
     } as any)
 
     const { container } = renderView()
-    await screen.findByText('Нова зовнішня сесія')
+    await screen.findByText('Нова гостьова сесія')
 
     const dateInput = container.querySelector('input[type="date"]')
     const timeInput = container.querySelector('input[inputmode="numeric"]')
@@ -284,7 +284,7 @@ describe('ExternalSessionsView', () => {
     await fireEvent.update(dateInput, '2099-06-16')
     await fireEvent.update(timeInput, '12:30')
     await fireEvent.update(screen.getByLabelText('Локація'), 'Kyiv office')
-    await fireEvent.click(screen.getByRole('button', { name: 'Створити зовнішню сесію' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Створити гостьову сесію' }))
 
     await waitFor(() => {
       expect(mockedCreateExternalSession).toHaveBeenCalledTimes(1)
@@ -327,7 +327,7 @@ describe('ExternalSessionsView', () => {
 
     renderView()
 
-    expect(await screen.findByText('Запити на гостьові сесії')).toBeInTheDocument()
+    expect(await screen.findByText('Гостьові запити')).toBeInTheDocument()
     expect(await screen.findByText('Очікує рішення')).toBeInTheDocument()
     const meetingInput = await screen.findByLabelText('Посилання на онлайн-зустріч')
     const approveButton = screen.getByRole('button', { name: 'Погодити' })
@@ -452,10 +452,10 @@ describe('ExternalSessionsView', () => {
       })
     })
 
-    const sessionLink = await screen.findByRole('link', { name: 'Відкрити зовнішню сесію' })
+    const sessionLink = await screen.findByRole('link', { name: 'Відкрити гостьову сесію' })
     expect(sessionLink).toHaveAttribute('href', '/cabinet/external-sessions/99')
-    expect(await screen.findByText('На основі цього запиту створено зовнішню сесію.')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Відкрити гостьовий лінк' })).toHaveAttribute(
+    expect(await screen.findByText('На основі цього запиту створено гостьову сесію.')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Гостьове посилання' })).toHaveAttribute(
       'href',
       'https://proconsult.space/guest/external-session/token'
     )

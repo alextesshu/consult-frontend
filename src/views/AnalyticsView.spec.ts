@@ -101,7 +101,7 @@ describe('AnalyticsView conditional premium rendering', () => {
     renderView()
 
     expect(
-      await screen.findByText('Аналітика відображає основні сесії практики. Гостьові зовнішні сесії сюди не входять.')
+      await screen.findByText('Аналітика відображає основні сесії практики. Гостьові сесії сюди не входять.')
     ).toBeInTheDocument()
     expect(await screen.findByText('Рекомендації')).toBeInTheDocument()
     expect(screen.getByText('Часті перенесення')).toBeInTheDocument()
