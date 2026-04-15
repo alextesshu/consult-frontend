@@ -13,6 +13,7 @@ import {
   fetchSpecialistRescheduleRequests,
   fetchSpecialistRescheduleSuggestions,
   fetchSpecialistSessionNoteContent,
+  clientLabel,
   formatSessionDuration,
   parseActualDurationInput,
   parseRecurringOccurrences,
@@ -158,6 +159,37 @@ describe('specialistSessions helpers', () => {
       expect(parseRecurringOccurrences('custom', 7)).toBe(7)
       expect(parseRecurringOccurrences('custom', 0)).toBeNull()
       expect(parseRecurringOccurrences('custom', 53)).toBeNull()
+    })
+  })
+
+  describe('clientLabel', () => {
+    it('prefers client_display_name and falls back safely', () => {
+      expect(
+        clientLabel({
+          client: 44,
+          client_display_name: 'Олена Тест',
+          client_name: 'client #44',
+          client_username: 'client44',
+        } as any)
+      ).toBe('Олена Тест')
+
+      expect(
+        clientLabel({
+          client: 45,
+          client_display_name: 'client #45',
+          client_name: 'Marta',
+          client_username: 'marta.login',
+        } as any)
+      ).toBe('Marta')
+
+      expect(
+        clientLabel({
+          client: 46,
+          client_display_name: '',
+          client_name: 'client #46',
+          client_username: '',
+        } as any)
+      ).toBe('#46')
     })
   })
 

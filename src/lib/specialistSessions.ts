@@ -11,6 +11,7 @@ export type SpecialistSessionLike = {
   id: number
   status: string
   client: number
+  client_display_name?: string | null
   client_username?: string | null
   client_name?: string | null
   slot?: SessionSlot | number | null
@@ -189,8 +190,24 @@ export function timeUntilLabel(detail: Pick<SpecialistSessionLike, 'slot' | 'slo
   return mins ? `${hours} год ${mins} хв` : `${hours} год`
 }
 
-export function clientLabel(detail: Pick<SpecialistSessionLike, 'client' | 'client_name' | 'client_username'>) {
-  return detail.client_name || detail.client_username || `#${detail.client}`
+function normalizeClientDisplay(value?: string | null) {
+  const normalized = value?.trim() || ''
+  if (!normalized) return ''
+  if (/^#?\d+$/i.test(normalized)) return ''
+  if (/^(client|клієнт)\s*#?\d+$/i.test(normalized)) return ''
+  return normalized
+}
+
+export function clientLabel(
+  detail: Pick<SpecialistSessionLike, 'client' | 'client_display_name' | 'client_name' | 'client_username'>
+) {
+  const preferred = normalizeClientDisplay(detail.client_display_name)
+  if (preferred) return preferred
+  const name = normalizeClientDisplay(detail.client_name)
+  if (name) return name
+  const username = normalizeClientDisplay(detail.client_username)
+  if (username) return username
+  return `#${detail.client}`
 }
 
 export function statusLabel(detail: Pick<SpecialistSessionLike, 'status' | 'slot' | 'slot_start_at' | 'slot_end_at'>) {

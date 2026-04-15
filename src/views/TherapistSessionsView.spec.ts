@@ -1033,6 +1033,37 @@ describe('TherapistSessionsView', () => {
     expect(mockedApiGet).toHaveBeenCalledTimes(4)
   })
 
+  it('prefers client_display_name and shows note metadata in history tiles', async () => {
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/booking/sessions/' && (config as { params?: { upcoming?: boolean } } | undefined)?.params?.upcoming) {
+        return []
+      }
+      if (url === '/booking/sessions/' && (config as { params?: { upcoming?: boolean } } | undefined)?.params?.upcoming === false) {
+        return [
+          buildSession({
+            id: 61,
+            status: 'COMPLETED',
+            client: 161,
+            client_name: 'Client #161',
+            client_username: 'client.161',
+            client_display_name: 'Display Session Client',
+            slot_start_at: '2099-05-20T09:00:00Z',
+            slot_end_at: '2099-05-20T09:50:00Z',
+            has_note: true,
+            note_updated_at: '2099-05-20T11:00:00Z',
+          }),
+        ]
+      }
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    expect(await screen.findByText(/Display Session Client/)).toBeInTheDocument()
+    expect(screen.getByText(/Нотатку оновлено/)).toBeInTheDocument()
+    expect(screen.queryByText('Client #161')).not.toBeInTheDocument()
+  })
+
   it('creates a recurring series from the list and renders the returned summary', async () => {
     const recurringSession = buildSession({
       id: 14,
@@ -1097,4 +1128,3 @@ describe('TherapistSessionsView', () => {
     expect(mockedApiGet).toHaveBeenCalledTimes(4)
   })
 })
-

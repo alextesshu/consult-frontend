@@ -1,4 +1,4 @@
-import { fireEvent, render, waitFor, within } from '@testing-library/vue'
+﻿import { fireEvent, render, waitFor, within } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { apiGet, apiPatch, fetchChatThreads } from '../lib/api'
 import TherapistClientsView from './TherapistClientsView.vue'
@@ -12,6 +12,10 @@ vi.mock('../lib/api', () => ({
 const mockedApiGet = vi.mocked(apiGet)
 const mockedApiPatch = vi.mocked(apiPatch)
 const mockedFetchChatThreads = vi.mocked(fetchChatThreads)
+
+const CLIENTS_URL = '/cabinet/clients/'
+const REMINDERS_URL = '/cabinet/notes/reminders/'
+const clientHistoryUrl = (clientId: number) => `/cabinet/clients/${clientId}/notes/history/`
 
 function renderView() {
   return render(TherapistClientsView, {
@@ -64,8 +68,8 @@ describe('TherapistClientsView', () => {
   it('shows loading state while clients list is pending', async () => {
     const clientsDeferred = deferred<any[]>()
     mockedApiGet.mockImplementation(async (url) => {
-      if (url === '/cabinet/clients/') return clientsDeferred.promise
-      if (url === '/booking/sessions/') return []
+      if (url === CLIENTS_URL) return clientsDeferred.promise
+      if (url === REMINDERS_URL) return []
       throw new Error(`Unexpected apiGet call: ${url}`)
     })
 
@@ -85,8 +89,8 @@ describe('TherapistClientsView', () => {
 
   it('shows explicit error state and retries clients list', async () => {
     mockedApiGet.mockImplementation(async (url) => {
-      if (url === '/cabinet/clients/') {
-        const calls = mockedApiGet.mock.calls.filter((item) => item[0] === '/cabinet/clients/').length
+      if (url === CLIENTS_URL) {
+        const calls = mockedApiGet.mock.calls.filter((item) => item[0] === CLIENTS_URL).length
         if (calls === 1) throw new Error('clients failed')
         return [
           {
@@ -95,11 +99,11 @@ describe('TherapistClientsView', () => {
             state: 'ACTIVE',
             last_session_at: '2099-06-15T10:00:00Z',
             upcoming_count: 2,
-            client_username: 'Olena',
+            client_display_name: 'Olena',
           },
         ]
       }
-      if (url === '/booking/sessions/') return []
+      if (url === REMINDERS_URL) return []
       throw new Error(`Unexpected apiGet call: ${url}`)
     })
 
@@ -120,27 +124,11 @@ describe('TherapistClientsView', () => {
     })
   })
 
-  it('shows explicit empty state when clients list has no entries', async () => {
+  it('shows explicit reminders error state and retries reminders fetch from new endpoint', async () => {
     mockedApiGet.mockImplementation(async (url) => {
-      if (url === '/cabinet/clients/') return []
-      if (url === '/booking/sessions/') return []
-      throw new Error(`Unexpected apiGet call: ${url}`)
-    })
-
-    const { container } = renderView()
-    const { clientsPanel } = getPanels(container)
-
-    await waitFor(() => {
-      expect(clientsPanel.querySelector('.empty-state')).toBeTruthy()
-    })
-    expect(clientsPanel.querySelector('.empty-state .btn')).toBeFalsy()
-  })
-
-  it('shows explicit reminders error state and retries reminders fetch', async () => {
-    mockedApiGet.mockImplementation(async (url) => {
-      if (url === '/cabinet/clients/') return []
-      if (url === '/booking/sessions/') {
-        const calls = mockedApiGet.mock.calls.filter((item) => item[0] === '/booking/sessions/').length
+      if (url === CLIENTS_URL) return []
+      if (url === REMINDERS_URL) {
+        const calls = mockedApiGet.mock.calls.filter((item) => item[0] === REMINDERS_URL).length
         if (calls === 1) throw new Error('reminders failed')
         return []
       }
@@ -161,27 +149,38 @@ describe('TherapistClientsView', () => {
     await waitFor(() => {
       expect(remindersPanel.querySelector('.empty-state .btn')).toBeFalsy()
     })
+    expect(mockedApiGet).not.toHaveBeenCalledWith('/booking/sessions/')
   })
 
-  it('shows explicit reminders empty state when no pending notes exist', async () => {
+  it('uses reminders endpoint as canonical source', async () => {
     mockedApiGet.mockImplementation(async (url) => {
-      if (url === '/cabinet/clients/') return []
-      if (url === '/booking/sessions/') return []
+      if (url === CLIENTS_URL) return []
+      if (url === REMINDERS_URL)
+        return [
+          {
+            session_id: 777,
+            client_id: 44,
+            status: 'COMPLETED',
+            slot_start_at: '2099-06-15T10:00:00Z',
+            slot_end_at: '2099-06-15T10:50:00Z',
+            client_display_name: 'Display Client',
+          },
+        ]
       throw new Error(`Unexpected apiGet call: ${url}`)
     })
 
     const { container } = renderView()
-    const { remindersPanel } = getPanels(container)
 
     await waitFor(() => {
-      expect(remindersPanel.querySelector('.empty-state')).toBeTruthy()
+      expect(container.querySelector('a[href="/cabinet/sessions#note-777"]')).toBeInTheDocument()
+      expect(container.textContent).toContain('Display Client')
     })
-    expect(remindersPanel.querySelector('.empty-state .btn')).toBeFalsy()
+    expect(mockedApiGet).not.toHaveBeenCalledWith('/booking/sessions/')
   })
 
   it('archives client using client_id from relation payload', async () => {
     mockedApiGet.mockImplementation(async (url) => {
-      if (url === '/cabinet/clients/')
+      if (url === CLIENTS_URL)
         return [
           {
             id: 1,
@@ -192,7 +191,7 @@ describe('TherapistClientsView', () => {
             client_name: 'Test Client',
           },
         ]
-      if (url === '/booking/sessions/') return []
+      if (url === REMINDERS_URL) return []
       throw new Error(`Unexpected apiGet call: ${url}`)
     })
     mockedApiPatch.mockResolvedValue(undefined as any)
@@ -211,9 +210,9 @@ describe('TherapistClientsView', () => {
     })
   })
 
-  it('loads private history and renders continuation actions', async () => {
+  it('loads private history from metadata endpoint and renders continuation actions', async () => {
     mockedApiGet.mockImplementation(async (url) => {
-      if (url === '/cabinet/clients/')
+      if (url === CLIENTS_URL)
         return [
           {
             id: 1,
@@ -221,33 +220,39 @@ describe('TherapistClientsView', () => {
             state: 'ACTIVE',
             last_session_at: null,
             upcoming_count: 0,
-            client_name: 'Test Client',
+            client_display_name: 'Test Client',
             client_journal_content: 'journal-44',
+            has_workbook_content: true,
+            workbook_updated_at: '2099-06-15T11:20:00Z',
+            latest_session_note_at: '2099-06-15T12:20:00Z',
+            latest_session_note_session_id: 777,
           },
         ]
-      if (url === '/booking/sessions/')
+      if (url === REMINDERS_URL) return []
+      if (url === clientHistoryUrl(44)) {
         return [
           {
-            id: 777,
-            client_id: 44,
+            session_id: 777,
             status: 'COMPLETED',
             slot_start_at: '2099-06-15T10:00:00Z',
             slot_end_at: '2099-06-15T10:50:00Z',
+            has_note: true,
+            note_updated_at: '2099-06-15T12:20:00Z',
           },
           {
-            id: 888,
-            client_id: 99,
+            session_id: 778,
             status: 'COMPLETED',
-            slot_start_at: '2099-06-16T10:00:00Z',
-            slot_end_at: '2099-06-16T10:50:00Z',
+            slot_start_at: '2099-06-14T10:00:00Z',
+            slot_end_at: '2099-06-14T10:50:00Z',
+            has_note: false,
+            note_updated_at: null,
           },
         ]
-      if (url === '/cabinet/sessions/777/note/') return { content: 'note-44' }
-      if (url === '/cabinet/sessions/888/note/') return { content: 'note-99' }
+      }
       throw new Error(`Unexpected apiGet call: ${url}`)
     })
 
-    const { queryByText, container } = renderView()
+    const { container } = renderView()
 
     const historyButton = await waitFor(() => {
       const button = container.querySelector('.client-card .client-actions button')
@@ -265,17 +270,16 @@ describe('TherapistClientsView', () => {
 
     await waitFor(() => {
       expect(container.querySelector('textarea.workbook-textarea')).toHaveValue('journal-44')
-      expect(queryByText('note-44')).toBeInTheDocument()
-      expect(queryByText('note-99')).not.toBeInTheDocument()
       expect(container.querySelector('a[href="/cabinet/sessions#note-777"]')).toBeInTheDocument()
+      expect(container.querySelector('a[href="/cabinet/sessions#note-778"]')).toBeInTheDocument()
       expect(container.querySelector('a[href="/cabinet/clients/44/workbook"]')).toBeInTheDocument()
     })
     expect(mockedApiGet).not.toHaveBeenCalledWith('/cabinet/clients/44/journal/')
   })
 
-  it('searches clients by name, code and id and keeps status filter active', async () => {
+  it('handles has_workbook_content=false and workbook_updated_at=null without extra workbook fetch', async () => {
     mockedApiGet.mockImplementation(async (url) => {
-      if (url === '/cabinet/clients/')
+      if (url === CLIENTS_URL)
         return [
           {
             id: 1,
@@ -283,7 +287,49 @@ describe('TherapistClientsView', () => {
             state: 'ACTIVE',
             last_session_at: null,
             upcoming_count: 0,
-            client_name: 'Olena',
+            client_display_name: 'Metadata Client',
+            has_workbook_content: false,
+            workbook_updated_at: null,
+            latest_session_note_at: null,
+            latest_session_note_session_id: null,
+          },
+        ]
+      if (url === REMINDERS_URL) return []
+      if (url === clientHistoryUrl(44)) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    const { container } = renderView()
+
+    await waitFor(() => {
+      expect(container.textContent).toContain('Metadata Client')
+      expect(container.querySelector('a[href^="/cabinet/sessions#note-"]')).not.toBeInTheDocument()
+    })
+
+    const historyButton = await waitFor(() => {
+      const button = container.querySelector('.client-card .client-actions button')
+      expect(button).toBeInstanceOf(HTMLButtonElement)
+      return button as HTMLButtonElement
+    })
+    await fireEvent.click(historyButton)
+
+    await waitFor(() => {
+      expect(container.querySelector('.client-history')).toBeInTheDocument()
+    })
+    expect(mockedApiGet).not.toHaveBeenCalledWith('/cabinet/clients/44/journal/')
+  })
+
+  it('searches clients by name, code and id and keeps status filter active', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL)
+        return [
+          {
+            id: 1,
+            client_id: 44,
+            state: 'ACTIVE',
+            last_session_at: null,
+            upcoming_count: 0,
+            client_display_name: 'Olena',
             client_code: 'A-101',
           },
           {
@@ -292,7 +338,7 @@ describe('TherapistClientsView', () => {
             state: 'INACTIVE',
             last_session_at: null,
             upcoming_count: 0,
-            client_name: 'Marta',
+            client_display_name: 'Marta',
             client_code: 'B-500',
           },
           {
@@ -301,11 +347,11 @@ describe('TherapistClientsView', () => {
             state: 'ARCHIVED',
             last_session_at: null,
             upcoming_count: 0,
-            client_name: 'Ihor',
+            client_display_name: 'Ihor',
             client_code: 'C-900',
           },
         ]
-      if (url === '/booking/sessions/') return []
+      if (url === REMINDERS_URL) return []
       throw new Error(`Unexpected apiGet call: ${url}`)
     })
 
@@ -347,7 +393,7 @@ describe('TherapistClientsView', () => {
 
   it('shows fallback client title with relation id when name and code are missing', async () => {
     mockedApiGet.mockImplementation(async (url) => {
-      if (url === '/cabinet/clients/')
+      if (url === CLIENTS_URL)
         return [
           {
             id: 1,
@@ -357,54 +403,20 @@ describe('TherapistClientsView', () => {
             upcoming_count: 0,
           },
         ]
-      if (url === '/booking/sessions/') return []
+      if (url === REMINDERS_URL) return []
       throw new Error(`Unexpected apiGet call: ${url}`)
     })
 
     const { container } = renderView()
 
     await waitFor(() => {
-      expect(container.textContent).toContain('Клієнт #44')
+      expect(container.textContent).toContain('#44')
     })
   })
 
-  it('uses session client name when clients payload has only placeholder identity', async () => {
+  it('prefers client_display_name over login-like values', async () => {
     mockedApiGet.mockImplementation(async (url) => {
-      if (url === '/cabinet/clients/')
-        return [
-          {
-            id: 1,
-            client_id: 44,
-            state: 'ACTIVE',
-            last_session_at: null,
-            upcoming_count: 0,
-            client_name: 'Client #44',
-          },
-        ]
-      if (url === '/booking/sessions/')
-        return [
-          {
-            id: 777,
-            client_id: 44,
-            status: 'SCHEDULED',
-            slot_start_at: '2099-06-15T10:00:00Z',
-            slot_end_at: '2099-06-15T10:50:00Z',
-            client_name: 'Test Testovych',
-          },
-        ]
-      throw new Error(`Unexpected apiGet call: ${url}`)
-    })
-
-    const { container } = renderView()
-
-    await waitFor(() => {
-      expect(container.textContent).toContain('Test Testovych')
-    })
-  })
-
-  it('prefers display_name over login-like client_name in clients payload', async () => {
-    mockedApiGet.mockImplementation(async (url) => {
-      if (url === '/cabinet/clients/')
+      if (url === CLIENTS_URL)
         return [
           {
             id: 1,
@@ -414,24 +426,25 @@ describe('TherapistClientsView', () => {
             upcoming_count: 0,
             client_name: 'client.prcnslt',
             client_username: 'client.prcnslt',
-            display_name: 'Тест Тестович',
+            display_name: 'Old Display',
+            client_display_name: 'Canonical Display',
           },
         ]
-      if (url === '/booking/sessions/') return []
+      if (url === REMINDERS_URL) return []
       throw new Error(`Unexpected apiGet call: ${url}`)
     })
 
     const { container } = renderView()
 
     await waitFor(() => {
-      expect(container.textContent).toContain('Тест Тестович')
+      expect(container.textContent).toContain('Canonical Display')
       expect(container.textContent).not.toContain('client.prcnslt')
     })
   })
 
   it('uses chat thread display_name when clients payload has only login', async () => {
     mockedApiGet.mockImplementation(async (url) => {
-      if (url === '/cabinet/clients/')
+      if (url === CLIENTS_URL)
         return [
           {
             id: 1,
@@ -443,7 +456,7 @@ describe('TherapistClientsView', () => {
             client_username: 'client.prcnslt',
           },
         ]
-      if (url === '/booking/sessions/') return []
+      if (url === REMINDERS_URL) return []
       throw new Error(`Unexpected apiGet call: ${url}`)
     })
     mockedFetchChatThreads.mockResolvedValue([
@@ -457,7 +470,7 @@ describe('TherapistClientsView', () => {
         other_user: {
           id: 44,
           role: 'CLIENT',
-          display_name: 'Клієнт Проконсалт тест',
+          display_name: 'Chat Display 44',
         },
       },
     ] as any)
@@ -465,15 +478,15 @@ describe('TherapistClientsView', () => {
     const { container } = renderView()
 
     await waitFor(() => {
-      expect(container.textContent).toContain('Клієнт Проконсалт тест')
+      expect(container.textContent).toContain('Chat Display 44')
       expect(container.textContent).not.toContain('client.prcnslt')
     })
   })
 
-  it('opens and highlights deep-linked client card automatically', async () => {
+  it('opens and highlights deep-linked client card automatically with metadata history endpoint', async () => {
     window.history.replaceState({}, '', '/cabinet/clients?client=44&autoOpen=1')
     mockedApiGet.mockImplementation(async (url) => {
-      if (url === '/cabinet/clients/')
+      if (url === CLIENTS_URL)
         return [
           {
             id: 1,
@@ -481,8 +494,9 @@ describe('TherapistClientsView', () => {
             state: 'ACTIVE',
             last_session_at: null,
             upcoming_count: 0,
-            client_name: 'Target Client',
+            client_display_name: 'Target Client',
             client_journal_content: 'journal-44',
+            has_workbook_content: true,
           },
           {
             id: 2,
@@ -490,20 +504,23 @@ describe('TherapistClientsView', () => {
             state: 'ACTIVE',
             last_session_at: null,
             upcoming_count: 0,
-            client_name: 'Another Client',
+            client_display_name: 'Another Client',
           },
         ]
-      if (url === '/booking/sessions/')
+      if (url === REMINDERS_URL) return []
+      if (url === clientHistoryUrl(44)) {
         return [
           {
-            id: 700,
+            session_id: 700,
             client_id: 44,
             status: 'COMPLETED',
             slot_start_at: '2099-06-17T10:00:00Z',
             slot_end_at: '2099-06-17T10:50:00Z',
+            has_note: true,
+            note_updated_at: '2099-06-17T11:00:00Z',
           },
         ]
-      if (url === '/cabinet/sessions/700/note/') return { content: 'deep-link-note' }
+      }
       throw new Error(`Unexpected apiGet call: ${url}`)
     })
 
@@ -515,5 +532,7 @@ describe('TherapistClientsView', () => {
       expect(targetCard).toHaveClass('client-card--targeted')
       expect(targetCard?.querySelector('.client-history')).toBeTruthy()
     })
+
+    expect(mockedApiGet).toHaveBeenCalledWith(clientHistoryUrl(44), { params: { limit: 10 } })
   })
 })

@@ -66,7 +66,7 @@
             >
               <div class="priority-item__main">
                 <div class="priority-time">{{ formatDateTime(session.slot_start_at) }}</div>
-                <div class="muted">{{ session.client_name || session.client_username || `#${session.client}` }}</div>
+                <div class="muted">{{ sessionClientLabel(session) }}</div>
                 <div class="muted">{{ sessionFormatBadge(session) }}</div>
                 <div class="muted priority-item__context">{{ sessionContextHint(session) }}</div>
               </div>
@@ -87,7 +87,7 @@
             <RouterLink class="priority-next__main" :to="`/cabinet/sessions/${prioritySession.id}`">
               <div class="priority-time">{{ formatDateTime(prioritySession.slot_start_at) }}</div>
               <div class="muted">
-                Клієнт: {{ prioritySession.client_name || prioritySession.client_username || `#${prioritySession.client}` }}
+                Клієнт: {{ sessionClientLabel(prioritySession) }}
               </div>
               <div class="muted">{{ sessionFormatBadge(prioritySession) }}</div>
               <div class="muted priority-next__context">{{ sessionContextHint(prioritySession) }}</div>
@@ -213,7 +213,7 @@
               <div class="session-time">{{ formatDateTime(session.slot_start_at) }}</div>
               <div class="muted">{{ formatDuration(session.slot_start_at, session.slot_end_at) }}</div>
               <div class="muted">
-                Клієнт: {{ session.client_name || session.client_username || `#${session.client}` }}
+                Клієнт: {{ sessionClientLabel(session) }}
               </div>
               <div class="muted">{{ sessionFormatBadge(session) }}</div>
               <div class="muted session-context">{{ sessionContextHint(session) }}</div>
@@ -523,7 +523,7 @@
               <div class="session-time">{{ formatDateTime(session.slot_start_at) }}</div>
               <div class="muted">{{ formatDuration(session.slot_start_at, session.slot_end_at) }}</div>
               <div class="muted">
-                Клієнт: {{ session.client_name || session.client_username || `#${session.client}` }}
+                Клієнт: {{ sessionClientLabel(session) }}
               </div>
               <div class="muted">{{ sessionFormatBadge(session) }}</div>
               <div class="muted session-context">{{ sessionContextHint(session) }}</div>
@@ -531,6 +531,7 @@
               <div class="status-pill" :class="statusClass(session)">
                 {{ statusLabel(session) }}
               </div>
+              <div class="muted">{{ sessionNoteSummary(session) }}</div>
             </div>
             <div class="session-actions history-tile__actions">
               <button
@@ -715,6 +716,7 @@ type Session = {
   id: number
   status: string
   client: number
+  client_display_name?: string | null
   client_username?: string
   client_name?: string
   client_email?: string
@@ -730,6 +732,8 @@ type Session = {
   join_available?: boolean
   join_starts_at?: string | null
   join_ends_at?: string | null
+  has_note?: boolean | null
+  note_updated_at?: string | null
 }
 
 type Slot = SpecialistSlot
@@ -1023,6 +1027,30 @@ function formatDuration(start?: string | null, end?: string | null) {
     empty: 'Тривалість: —',
     prefix: 'Тривалість: ',
   })
+}
+
+function normalizeSessionClientName(value?: string | null) {
+  const normalized = value?.trim() || ''
+  if (!normalized) return ''
+  if (/^#?\d+$/i.test(normalized)) return ''
+  if (/^(client|клієнт)\s*#?\d+$/i.test(normalized)) return ''
+  return normalized
+}
+
+function sessionClientLabel(session: Session) {
+  const preferred = normalizeSessionClientName(session.client_display_name)
+  if (preferred) return preferred
+  const fallbackName = normalizeSessionClientName(session.client_name)
+  if (fallbackName) return fallbackName
+  const login = normalizeSessionClientName(session.client_username)
+  if (login) return login
+  return `#${session.client}`
+}
+
+function sessionNoteSummary(session: Session) {
+  if (session.has_note !== true) return 'Нотатка: не додана.'
+  if (!session.note_updated_at) return 'Нотатка: додана.'
+  return `Нотатку оновлено ${formatDateTime(session.note_updated_at)}.`
 }
 
 function timeUntilLabel(session: Session) {

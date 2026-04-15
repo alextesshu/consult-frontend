@@ -128,6 +128,8 @@
             <div class="muted">Статус: {{ client.state }}</div>
             <div class="muted">Остання сесія: {{ formatDateTime(client.last_session_at) }}</div>
             <div class="muted">Заплановано: {{ client.upcoming_count ?? 0 }}</div>
+            <div class="muted">{{ latestNoteSummary(client) }}</div>
+            <div class="muted">{{ workbookSummary(client) }}</div>
           </div>
           <div class="client-actions">
             <button
@@ -138,6 +140,13 @@
             >
               Приватна історія клієнта
             </button>
+            <RouterLink
+              v-if="client.latest_session_note_session_id"
+              class="btn btn--ghost btn--sm"
+              :to="`/cabinet/sessions#note-${client.latest_session_note_session_id}`"
+            >
+              Відкрити нотатку
+            </RouterLink>
             <button
               v-if="client.state !== 'ARCHIVED'"
               class="btn btn--ghost btn--sm"
@@ -167,7 +176,10 @@
             </div>
             <div class="workbook-block">
               <div class="workbook-block__header">
-                <div class="workbook-block__title">Робочий зошит клієнта</div>
+                <div>
+                  <div class="workbook-block__title">Робочий зошит клієнта</div>
+                  <div class="muted">{{ workbookSummary(client) }}</div>
+                </div>
                 <div class="workbook-block__controls">
                   <button
                     class="btn btn--ghost btn--sm"
@@ -219,8 +231,7 @@
                   <div class="muted">{{ formatDuration(item.slotStart, item.slotEnd) }}</div>
                   <div class="history-status">{{ sessionStatusLabel(item.status) }}</div>
                 </div>
-                <div class="history-note" v-if="item.note">{{ item.note }}</div>
-                <div class="muted" v-else>Нотаток ще немає.</div>
+                <div class="muted">{{ historyNoteSummary(item) }}</div>
                 <div class="history-actions">
                   <RouterLink class="btn btn--ghost btn--sm" :to="`/cabinet/sessions#note-${item.sessionId}`">
                     Відкрити нотатку
@@ -270,6 +281,10 @@ type ClientState = {
   client_journal_content?: string
   client_journal_updated_at?: string | null
   has_client_journal_content?: boolean
+  has_workbook_content?: boolean | null
+  workbook_updated_at?: string | null
+  latest_session_note_at?: string | null
+  latest_session_note_session_id?: number | null
 }
 
 
@@ -289,10 +304,8 @@ type SessionItem = {
   first_name?: string | null
   last_name?: string | null
   client_code?: string | null
-}
-
-type SessionNotePayload = {
-  content?: string
+  has_note?: boolean | null
+  note_updated_at?: string | null
 }
 
 type PendingNoteItem = {
@@ -309,7 +322,8 @@ type HistoryItem = {
   slotStart: string
   slotEnd: string
   status: string
-  note: string
+  hasNote: boolean
+  noteUpdatedAt: string | null
 }
 
 type NameSource = {
@@ -322,6 +336,21 @@ type NameSource = {
   first_name?: string | null
   last_name?: string | null
 }
+
+type SessionMetadataSource = NameSource & {
+  id?: number | null
+  session?: number | null
+  session_id?: number | null
+  client?: number | null
+  client_id?: number | null
+  status?: string | null
+  slot_start_at?: string | null
+  slot_end_at?: string | null
+  has_note?: boolean | null
+  note_updated_at?: string | null
+}
+
+type ListResponse<T> = T[] | { results?: T[] } | null | undefined
 
 const clients = ref<ClientState[]>([])
 const clientsLoading = ref(false)
@@ -558,6 +587,84 @@ function clientLabel(clientId: number) {
   if (clientId > 0) return `Клієнт #${clientId}`
   return '\u041a\u043b\u0456\u0454\u043d\u0442'
 }
+function isMetadataEndpointUnsupported(err: any) {
+  const status = Number(err?.response?.status || 0)
+  return status === 404 || status === 405 || status === 501
+}
+
+function listFromResponse<T>(payload: ListResponse<T>) {
+  if (Array.isArray(payload)) return payload
+  const withResults = payload as { results?: T[] } | null | undefined
+  if (Array.isArray(withResults?.results)) return withResults.results
+  return []
+}
+
+function toPositiveNumber(...candidates: Array<number | string | null | undefined>) {
+  for (const candidate of candidates) {
+    const value = Number(candidate)
+    if (Number.isFinite(value) && value > 0) return value
+  }
+  return 0
+}
+
+function resolveHasWorkbookContent(
+  client?: Pick<ClientState, 'has_workbook_content' | 'has_client_journal_content' | 'client_journal_content'> | null
+) {
+  if (!client) return false
+  if (typeof client.has_workbook_content === 'boolean') return client.has_workbook_content
+  if (typeof client.has_client_journal_content === 'boolean') return client.has_client_journal_content
+  return Boolean((client.client_journal_content || '').trim())
+}
+
+function workbookUpdatedAt(client?: Pick<ClientState, 'workbook_updated_at' | 'client_journal_updated_at'> | null) {
+  return client?.workbook_updated_at || client?.client_journal_updated_at || null
+}
+
+function workbookSummary(client: ClientState) {
+  if (!resolveHasWorkbookContent(client)) return '\u0420\u043e\u0431\u043e\u0447\u0438\u0439 \u0437\u043e\u0448\u0438\u0442 \u0449\u0435 \u043f\u043e\u0440\u043e\u0436\u043d\u0456\u0439.'
+  const updatedAt = workbookUpdatedAt(client)
+  if (!updatedAt) return '\u0423 \u0440\u043e\u0431\u043e\u0447\u043e\u043c\u0443 \u0437\u043e\u0448\u0438\u0442\u0456 \u0454 \u0437\u0430\u043f\u0438\u0441\u0438.'
+  return `\u041e\u0441\u0442\u0430\u043d\u043d\u0454 \u043e\u043d\u043e\u0432\u043b\u0435\u043d\u043d\u044f: ${formatDateTime(updatedAt)}`
+}
+
+function latestNoteSummary(client: ClientState) {
+  if (!client.latest_session_note_at) return '\u041d\u043e\u0442\u0430\u0442\u043e\u043a \u0449\u0435 \u043d\u0435\u043c\u0430\u0454.'
+  return `\u041e\u0441\u0442\u0430\u043d\u043d\u044f \u043d\u043e\u0442\u0430\u0442\u043a\u0430: ${formatDateTime(client.latest_session_note_at)}`
+}
+
+function historyNoteSummary(item: Pick<HistoryItem, 'hasNote' | 'noteUpdatedAt'>) {
+  if (!item.hasNote) return '\u041d\u043e\u0442\u0430\u0442\u043a\u0438 \u0449\u0435 \u043d\u0435\u043c\u0430\u0454.'
+  if (!item.noteUpdatedAt) return '\u041d\u043e\u0442\u0430\u0442\u043a\u0430 \u0434\u043e\u0434\u0430\u043d\u0430.'
+  return `\u041d\u043e\u0442\u0430\u0442\u043a\u0443 \u043e\u043d\u043e\u0432\u043b\u0435\u043d\u043e ${formatDateTime(item.noteUpdatedAt)}.`
+}
+
+function mapPendingNoteItem(source: SessionMetadataSource): PendingNoteItem | null {
+  const sessionId = toPositiveNumber(source.session_id, source.session, source.id)
+  const clientId = toPositiveNumber(source.client_id, source.client)
+  if (!sessionId || !clientId) return null
+  return {
+    sessionId,
+    clientId,
+    slotStart: source.slot_start_at || '',
+    slotEnd: source.slot_end_at || '',
+    status: source.status || 'COMPLETED',
+    clientName: preferredClientName(source) || undefined,
+  }
+}
+
+function mapHistoryItem(source: SessionMetadataSource): HistoryItem | null {
+  const sessionId = toPositiveNumber(source.session_id, source.session, source.id)
+  if (!sessionId) return null
+  return {
+    sessionId,
+    slotStart: source.slot_start_at || '',
+    slotEnd: source.slot_end_at || '',
+    status: source.status || 'COMPLETED',
+    hasNote: Boolean(source.has_note),
+    noteUpdatedAt: source.note_updated_at || null,
+  }
+}
+
 function normalizeClientName(value?: string | null) {
   const name = value?.trim() || ''
   if (!name) return ''
@@ -687,40 +794,21 @@ async function loadPendingNotes() {
   notesLoading.value = true
   remindersError.value = ''
   try {
-    const sessions = await loadSessionsIfNeeded()
-    const completed = sessions
-      .filter((item) => item.status === 'COMPLETED')
-      .sort((a, b) => b.slot_start_at.localeCompare(a.slot_start_at))
-      .slice(0, 20)
-    const missing: PendingNoteItem[] = []
-    for (const session of completed) {
-      const sessionClientId = relationSessionClientId(session)
-      if (!sessionClientId) continue
-      let note = ''
-      try {
-        const resp = await apiGet<SessionNotePayload | null>(`/cabinet/sessions/${session.id}/note/`)
-        note = resp?.content || ''
-      } catch (err: any) {
-        if (err?.response?.status !== 404) {
-          throw err
-        }
-      }
-      if (!note.trim()) {
-        const mappedClient = clientIndex.value.get(sessionClientId)
-        const sessionClientName = preferredClientName(session)
-        const mappedClientName = preferredClientName(mappedClient)
-        missing.push({
-          sessionId: session.id,
-          clientId: sessionClientId,
-          slotStart: session.slot_start_at,
-          slotEnd: session.slot_end_at,
-          status: session.status,
-          clientName: sessionClientName || mappedClientName || undefined,
-        })
-      }
-      if (missing.length >= 6) break
+    try {
+      const remindersResp = await apiGet<ListResponse<SessionMetadataSource>>('/cabinet/notes/reminders/')
+      pendingNotes.value = listFromResponse(remindersResp)
+        .map((item) => mapPendingNoteItem(item))
+        .filter((item): item is PendingNoteItem => Boolean(item))
+        .sort((a, b) => b.slotStart.localeCompare(a.slotStart))
+    } catch (primaryErr: any) {
+      if (!isMetadataEndpointUnsupported(primaryErr)) throw primaryErr
+      const sessions = await loadSessionsIfNeeded()
+      pendingNotes.value = sessions
+        .filter((item) => item.status === 'COMPLETED' && item.has_note === false)
+        .map((item) => mapPendingNoteItem(item))
+        .filter((item): item is PendingNoteItem => Boolean(item))
+        .sort((a, b) => b.slotStart.localeCompare(a.slotStart))
     }
-    pendingNotes.value = missing
   } catch (err: any) {
     pendingNotes.value = []
     remindersError.value = getApiErrorMessage(
@@ -737,39 +825,41 @@ async function loadHistory(clientId: number) {
   setJournalLoading(clientId, true)
   error.value = ''
   try {
-    const fromClientsList = clientIndex.value.get(clientId)?.client_journal_content
+    const client = clientIndex.value.get(clientId)
+    const fromClientsList = client?.client_journal_content
     const hasListValue = typeof fromClientsList === 'string'
+    const hasWorkbookByMetadata = resolveHasWorkbookContent(client)
     const journalContent = hasListValue
       ? fromClientsList || ''
-      : await fetchSpecialistClientJournalContentData(clientId)
+      : hasWorkbookByMetadata
+        ? await fetchSpecialistClientJournalContentData(clientId)
+        : ''
     clientJournalDrafts.value = { ...clientJournalDrafts.value, [clientId]: journalContent }
 
-    const sessions = await loadSessionsIfNeeded()
-    const items = sessions
-      .filter((item) => relationSessionClientId(item) === clientId)
-      .sort((a, b) => b.slot_start_at.localeCompare(a.slot_start_at))
-      .slice(0, 5)
-
-    const history: HistoryItem[] = []
-    for (const session of items) {
-      let note = ''
-      try {
-        const resp = await apiGet<SessionNotePayload | null>(`/cabinet/sessions/${session.id}/note/`)
-        note = resp?.content || ''
-      } catch (err: any) {
-        if (err?.response?.status !== 404) {
-          throw err
-        }
+    try {
+      const historyResp = await apiGet<ListResponse<SessionMetadataSource>>(
+        `/cabinet/clients/${clientId}/notes/history/`,
+        { params: { limit: 10 } }
+      )
+      clientHistory.value = {
+        ...clientHistory.value,
+        [clientId]: listFromResponse(historyResp)
+          .map((item) => mapHistoryItem(item))
+          .filter((item): item is HistoryItem => Boolean(item))
+          .sort((a, b) => b.slotStart.localeCompare(a.slotStart)),
       }
-      history.push({
-        sessionId: session.id,
-        slotStart: session.slot_start_at,
-        slotEnd: session.slot_end_at,
-        status: session.status,
-        note,
-      })
+    } catch (primaryErr: any) {
+      if (!isMetadataEndpointUnsupported(primaryErr)) throw primaryErr
+      const sessions = await loadSessionsIfNeeded()
+      clientHistory.value = {
+        ...clientHistory.value,
+        [clientId]: sessions
+          .filter((item) => relationSessionClientId(item) === clientId && item.status === 'COMPLETED')
+          .map((item) => mapHistoryItem(item))
+          .filter((item): item is HistoryItem => Boolean(item))
+          .sort((a, b) => b.slotStart.localeCompare(a.slotStart)),
+      }
     }
-    clientHistory.value = { ...clientHistory.value, [clientId]: history }
   } catch (err: any) {
     error.value = getApiErrorMessage(err, 'Не вдалося завантажити нотатки клієнта')
   } finally {
