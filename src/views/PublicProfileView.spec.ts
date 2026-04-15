@@ -1446,6 +1446,18 @@ describe('PublicProfileView', () => {
 
     await fireEvent.click(await screen.findByRole('button', { name: 'Записатися' }))
 
+    const confirmHeading = await screen.findByRole('heading', { name: 'Підтвердження запису' })
+    expect(confirmHeading).toBeInTheDocument()
+    const confirmModal = confirmHeading.closest('.setting-modal__content')
+    expect(confirmModal).toBeTruthy()
+    expect(within(confirmModal as HTMLElement).getByText('Дата')).toBeInTheDocument()
+    expect(within(confirmModal as HTMLElement).getByText('Час')).toBeInTheDocument()
+    expect(within(confirmModal as HTMLElement).getByText('Формат')).toBeInTheDocument()
+    expect(within(confirmModal as HTMLElement).getByText('Тривалість')).toBeInTheDocument()
+    expect(mockedApiPost).not.toHaveBeenCalledWith('/booking/sessions/', expect.anything())
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Підтвердити запис' }))
+
     expect(mockedApiPost).toHaveBeenCalledWith(
       '/booking/sessions/',
       expect.objectContaining({
@@ -1454,6 +1466,69 @@ describe('PublicProfileView', () => {
       })
     )
     expect(screen.queryByRole('heading', { name: 'Запит на бронювання' })).not.toBeInTheDocument()
+  })
+
+  it('blocks double-submit while client booking confirmation is in progress', async () => {
+    mockAuth.accessToken = 'token'
+    mockAuth.me = { user: { id: 7, roles: ['CLIENT'] } }
+
+    mockCommonPublicData()
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedFetchInquiryState.mockResolvedValue(buildInquiryState())
+    mockBookingPageDataWithSingleSlot()
+
+    let resolveBookingRequest: ((value?: unknown) => void) | undefined
+    const bookingRequestPromise = new Promise<unknown>((resolve) => {
+      resolveBookingRequest = resolve
+    })
+    mockedApiPost.mockImplementation(async (url) => {
+      if (url === '/booking/sessions/') {
+        return bookingRequestPromise
+      }
+      throw new Error(`Unexpected apiPost call: ${url}`)
+    })
+
+    renderView()
+
+    await fireEvent.click(await screen.findByRole('button', { name: 'Записатися' }))
+    const confirmButton = await screen.findByRole('button', { name: 'Підтвердити запис' })
+    await fireEvent.click(confirmButton)
+    await fireEvent.click(confirmButton)
+
+    const bookingCalls = mockedApiPost.mock.calls.filter((call) => call[0] === '/booking/sessions/')
+    expect(bookingCalls).toHaveLength(1)
+    const confirmHeading = await screen.findByRole('heading', { name: 'Підтвердження запису' })
+    const confirmModal = confirmHeading.closest('.setting-modal__content')
+    expect(confirmModal).toBeTruthy()
+    expect(await within(confirmModal as HTMLElement).findByRole('button', { name: 'Бронюємо...' })).toBeDisabled()
+
+    if (resolveBookingRequest) resolveBookingRequest({})
+    await flushAsyncUpdates()
+  })
+
+  it('shows friendly unavailable slot error for client confirmation booking', async () => {
+    mockAuth.accessToken = 'token'
+    mockAuth.me = { user: { id: 7, roles: ['CLIENT'] } }
+
+    mockCommonPublicData()
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedFetchInquiryState.mockResolvedValue(buildInquiryState())
+    mockBookingPageDataWithSingleSlot()
+    mockedApiPost.mockRejectedValue({
+      response: {
+        status: 409,
+      },
+    })
+
+    renderView()
+
+    await fireEvent.click(await screen.findByRole('button', { name: 'Записатися' }))
+    await fireEvent.click(await screen.findByRole('button', { name: 'Підтвердити запис' }))
+
+    expect(await screen.findByText('Обраний слот уже недоступний. Будь ласка, виберіть інший час.')).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Підтвердження запису' })).not.toBeInTheDocument()
+    const slotCalls = mockedApiGet.mock.calls.filter((call) => call[0] === '/booking/slots/')
+    expect(slotCalls.length).toBeGreaterThan(1)
   })
 
   it('blocks booking for a client until booking rules acceptance is confirmed', async () => {
@@ -1559,6 +1634,8 @@ describe('PublicProfileView', () => {
 
     const bookButton = await screen.findByRole('button', { name: 'Записатися' })
     await fireEvent.click(bookButton)
+    expect(await screen.findByRole('heading', { name: 'Підтвердження запису' })).toBeInTheDocument()
+    await fireEvent.click(screen.getByRole('button', { name: 'Підтвердити запис' }))
 
     expect(await screen.findByText(BOOKING_UI_MESSAGES.acceptSettingBeforeBooking)).toBeInTheDocument()
     expect(mockedApiPost).not.toHaveBeenCalledWith('/booking/sessions/', expect.anything())
@@ -1599,6 +1676,7 @@ describe('PublicProfileView', () => {
 
     expect(screen.queryByText('Правила перед записом')).not.toBeInTheDocument()
     await fireEvent.click(await screen.findByRole('button', { name: 'Записатися' }))
+    await fireEvent.click(await screen.findByRole('button', { name: 'Підтвердити запис' }))
 
     expect(mockedApiPost).toHaveBeenCalledWith(
       '/booking/sessions/',
@@ -1734,8 +1812,10 @@ describe('PublicProfileView', () => {
 
     const slotButtons = await screen.findAllByRole('button', { name: 'Записатися' })
     await fireEvent.click(slotButtons[0]!)
+    await fireEvent.click(screen.getByRole('button', { name: 'Підтвердити запис' }))
     await fireEvent.click(screen.getAllByRole('button', { name: 'Закрити' })[0]!)
     await fireEvent.click((await screen.findAllByRole('button', { name: 'Записатися' }))[0]!)
+    await fireEvent.click(screen.getByRole('button', { name: 'Підтвердити запис' }))
 
     const acceptCalls = mockedAcceptBookingRules.mock.calls
     const bookingCalls = mockedApiPost.mock.calls.filter((call) => call[0] === '/booking/sessions/')
@@ -1830,6 +1910,7 @@ describe('PublicProfileView', () => {
     expect(screen.queryByLabelText('Офлайн')).not.toBeInTheDocument()
 
     await fireEvent.click(await screen.findByRole('button', { name: 'Записатися' }))
+    await fireEvent.click(await screen.findByRole('button', { name: 'Підтвердити запис' }))
 
     expect(mockedApiPost).toHaveBeenCalledWith(
       '/booking/sessions/',
@@ -1867,6 +1948,7 @@ describe('PublicProfileView', () => {
     expect(screen.queryByLabelText('Офлайн')).not.toBeInTheDocument()
 
     await fireEvent.click(await screen.findByRole('button', { name: 'Записатися' }))
+    await fireEvent.click(await screen.findByRole('button', { name: 'Підтвердити запис' }))
 
     expect(mockedApiPost).toHaveBeenCalledWith(
       '/booking/sessions/',
@@ -1909,6 +1991,7 @@ describe('PublicProfileView', () => {
     const onlineOption = await screen.findByLabelText('Онлайн')
     await fireEvent.click(onlineOption)
     await fireEvent.click(await screen.findByRole('button', { name: 'Записатися' }))
+    await fireEvent.click(await screen.findByRole('button', { name: 'Підтвердити запис' }))
 
     expect(mockedApiPost).toHaveBeenCalledWith(
       '/booking/sessions/',
@@ -1935,6 +2018,7 @@ describe('PublicProfileView', () => {
     const offlineOption = await screen.findByLabelText('Офлайн')
     await fireEvent.click(offlineOption)
     await fireEvent.click(await screen.findByRole('button', { name: 'Записатися' }))
+    await fireEvent.click(await screen.findByRole('button', { name: 'Підтвердити запис' }))
 
     expect(mockedApiPost).toHaveBeenCalledWith(
       '/booking/sessions/',
@@ -1966,8 +2050,10 @@ describe('PublicProfileView', () => {
 
     await screen.findByText('Загальна інформація')
     await fireEvent.click(await screen.findByRole('button', { name: 'Записатися' }))
+    await fireEvent.click(await screen.findByRole('button', { name: 'Підтвердити запис' }))
 
-    expect(await screen.findByText('Оберіть формат сесії перед бронюванням.')).toBeInTheDocument()
+    const formatErrors = await screen.findAllByText('Оберіть формат сесії перед бронюванням.')
+    expect(formatErrors.length).toBeGreaterThan(0)
   })
 
   it('shows slots for the selected local day even when the slot starts on the previous UTC date', async () => {

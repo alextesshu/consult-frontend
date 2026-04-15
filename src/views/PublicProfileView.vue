@@ -619,6 +619,63 @@
       </div>
     </div>
 
+    <div v-if="showClientBookingConfirmModal" class="setting-modal">
+      <div class="setting-modal__backdrop" @click="closeClientBookingConfirmModal"></div>
+      <div class="setting-modal__content booking-confirm-modal">
+        <div class="setting-modal__header">
+          <h3>Підтвердження запису</h3>
+          <button
+            class="btn btn--ghost btn--sm"
+            type="button"
+            :disabled="clientBookingConfirmCloseDisabled"
+            @click="closeClientBookingConfirmModal"
+          >
+            Закрити
+          </button>
+        </div>
+        <div class="setting-modal__body">
+          <div v-if="clientBookingConfirmSlot" class="booking-slot booking-slot--details">
+            <div class="booking-slot__row">
+              <div class="booking-slot__label">Дата</div>
+              <div class="booking-slot__value">{{ clientBookingConfirmDate }}</div>
+            </div>
+            <div class="booking-slot__row">
+              <div class="booking-slot__label">Час</div>
+              <div class="booking-slot__value">{{ clientBookingConfirmTime }}</div>
+            </div>
+            <div class="booking-slot__row">
+              <div class="booking-slot__label">Формат</div>
+              <div class="booking-slot__value">{{ clientBookingConfirmFormat }}</div>
+            </div>
+            <div class="booking-slot__row">
+              <div class="booking-slot__label">Тривалість</div>
+              <div class="booking-slot__value">{{ clientBookingConfirmDuration }}</div>
+            </div>
+          </div>
+          <div v-else class="form-error">Обраний слот уже недоступний. Будь ласка, виберіть інший час.</div>
+          <div v-if="bookingError" class="form-error">{{ bookingError }}</div>
+        </div>
+        <div class="setting-modal__footer">
+          <button
+            class="btn btn--ghost"
+            type="button"
+            :disabled="clientBookingConfirmCloseDisabled"
+            @click="closeClientBookingConfirmModal"
+          >
+            Скасувати
+          </button>
+          <button
+            class="btn btn--primary"
+            type="button"
+            :disabled="clientBookingConfirmSubmitDisabled"
+            @click="confirmClientBookingFromModal"
+          >
+            {{ clientBookingConfirmSubmitLabel }}
+          </button>
+        </div>
+      </div>
+    </div>
+
     <div v-if="showBookingModal" class="setting-modal">
       <div class="setting-modal__backdrop" @click="closeBookingModal"></div>
       <div class="setting-modal__content">
@@ -685,7 +742,9 @@ import {
   BOOKING_ERROR_FALLBACKS,
   BOOKING_SUCCESS_MESSAGES,
   BOOKING_UI_MESSAGES,
+  getBookingErrorCode,
   getBookingErrorMessage,
+  getBookingErrorReasonCode,
 } from '../lib/bookingCopy'
 import { getInquiryActionErrorMessage, mapInquiryStateToUi } from '../lib/inquiryCopy'
 import {
@@ -701,7 +760,13 @@ import {
   sendInquiryMessage,
 } from '../lib/api'
 import { toLocalDate } from '../lib/dates'
-import { formatUkDateTimeCompact, formatUkDayMonth, formatUkTime, formatUkWeekdayShort } from '../lib/dateTime'
+import {
+  formatUkDateLong,
+  formatUkDateTimeCompact,
+  formatUkDayMonth,
+  formatUkTime,
+  formatUkWeekdayShort,
+} from '../lib/dateTime'
 import {
   fetchPublicSpecialistProfile,
   fetchSpecialistProfile,
@@ -854,6 +919,8 @@ const noSlotsAvailable = ref(false)
 const bookingError = ref('')
 const bookingSuccess = ref('')
 const bookingSlotId = ref<number | null>(null)
+const showClientBookingConfirmModal = ref(false)
+const clientBookingConfirmSlotId = ref<number | null>(null)
 const showBookingModal = ref(false)
 const lastBookedSlot = ref<PublicSlot | null>(null)
 const showGuestBookingModal = ref(false)
@@ -2011,6 +2078,15 @@ const GUEST_BOOKING_UNAVAILABLE_CODES = new Set([
   'SLOT_IN_PAST',
 ])
 
+const CLIENT_BOOKING_UNAVAILABLE_CODES = new Set([
+  'SLOT_NOT_FOUND',
+  'SLOT_ALREADY_BOOKED',
+  'SLOT_LOCKED_BOOKED',
+  'SLOT_IN_PAST',
+])
+
+const SLOT_UNAVAILABLE_MESSAGE = 'Обраний слот уже недоступний. Будь ласка, виберіть інший час.'
+
 const GUEST_BOOKING_RESTRICTED_CODES = new Set([
   'OVER_LIMIT',
   'BILLING_RESTRICTED',
@@ -2045,6 +2121,52 @@ const selectedGuestSlotSummary = computed(() => {
   const slot = guestBookingSlot.value
   if (!slot) return ''
   return formatDate(slot.start_at)
+})
+
+const clientBookingConfirmSlot = computed(() => {
+  const slotId = clientBookingConfirmSlotId.value
+  if (typeof slotId !== 'number') return null
+  return slots.value.find((slot) => slot.id === slotId) || null
+})
+
+const clientBookingConfirmDate = computed(() => {
+  const slot = clientBookingConfirmSlot.value
+  if (!slot) return ''
+  return formatUkDateLong(slot.start_at, '')
+})
+
+const clientBookingConfirmTime = computed(() => {
+  const slot = clientBookingConfirmSlot.value
+  if (!slot) return ''
+  const startTime = formatUkTime(slot.start_at, '')
+  const endTime = formatUkTime(slot.end_at, '')
+  if (!startTime || !endTime) return startTime || endTime
+  return `${startTime} - ${endTime}`
+})
+
+const clientBookingConfirmDuration = computed(() => {
+  const slot = clientBookingConfirmSlot.value
+  if (!slot) return ''
+  return formatDurationPlain(slot.start_at, slot.end_at)
+})
+
+const clientBookingConfirmFormat = computed(() => {
+  return sessionFormatLabelForBooking.value || 'Не вдалося визначити'
+})
+
+const clientBookingConfirmCloseDisabled = computed(() => bookingSlotId.value !== null)
+
+const clientBookingConfirmSubmitDisabled = computed(() => {
+  const slot = clientBookingConfirmSlot.value
+  if (!slot) return true
+  return bookingRulesAccepting.value || bookingSlotId.value === slot.id
+})
+
+const clientBookingConfirmSubmitLabel = computed(() => {
+  const slot = clientBookingConfirmSlot.value
+  if (slot && bookingSlotId.value === slot.id) return 'Бронюємо...'
+  if (bookingRulesAccepting.value) return 'Підтверджуємо правила...'
+  return 'Підтвердити запис'
 })
 
 const guestBookingRequestSummaryCopy = computed(() => {
@@ -2194,6 +2316,10 @@ function formatDuration(start: string, end: string) {
   if (hours) parts.push(`${hours} \u0433\u043e\u0434`)
   if (mins) parts.push(`${mins} \u0445\u0432`)
   return `\u0422\u0440\u0438\u0432\u0430\u043b\u0456\u0441\u0442\u044c: ${parts.join(' ')}`
+}
+
+function formatDurationPlain(start: string, end: string) {
+  return formatDuration(start, end).replace(/^\u0422\u0440\u0438\u0432\u0430\u043b\u0456\u0441\u0442\u044c:\s*/, '').trim()
 }
 
 function slotMatchesLocalDate(slot: PublicSlot, date: string) {
@@ -2781,7 +2907,7 @@ function closeGuestBookingModal() {
 function openGuestBookingModal(slotId: number) {
   const selectedSlot = slots.value.find((slot) => slot.id === slotId) || null
   if (!selectedSlot) {
-    bookingError.value = 'Обраний слот уже недоступний. Будь ласка, виберіть інший час.'
+    bookingError.value = SLOT_UNAVAILABLE_MESSAGE
     return
   }
   bookingError.value = ''
@@ -2793,6 +2919,40 @@ function openGuestBookingModal(slotId: number) {
   guestBookingRulesAccepted.value = false
   resetGuestBookingForm()
   showGuestBookingModal.value = true
+}
+
+function resetClientBookingConfirmModalState() {
+  showClientBookingConfirmModal.value = false
+  clientBookingConfirmSlotId.value = null
+}
+
+function closeClientBookingConfirmModal() {
+  if (bookingSlotId.value !== null) return
+  resetClientBookingConfirmModalState()
+}
+
+function openClientBookingConfirmModal(slotId: number) {
+  const selectedSlot = slots.value.find((slot) => slot.id === slotId) || null
+  if (!selectedSlot) {
+    bookingError.value = SLOT_UNAVAILABLE_MESSAGE
+    return
+  }
+  bookingError.value = ''
+  bookingSuccess.value = ''
+  clientBookingConfirmSlotId.value = slotId
+  showClientBookingConfirmModal.value = true
+}
+
+function isClientBookingUnavailableError(err: unknown): boolean {
+  const status = Number((err as { response?: { status?: unknown } })?.response?.status || 0)
+  const code = String(getBookingErrorCode(err) || '').trim().toUpperCase()
+  const reasonCode = String(getBookingErrorReasonCode(err) || '').trim().toUpperCase()
+
+  return (
+    status === 409 ||
+    CLIENT_BOOKING_UNAVAILABLE_CODES.has(code) ||
+    CLIENT_BOOKING_UNAVAILABLE_CODES.has(reasonCode)
+  )
 }
 
 function getGuestBookingErrorCode(err: unknown): string {
@@ -2843,7 +3003,7 @@ function getGuestBookingErrorMessage(err: unknown): string {
     GUEST_BOOKING_UNAVAILABLE_CODES.has(code) ||
     GUEST_BOOKING_UNAVAILABLE_CODES.has(reasonCode)
   ) {
-    return 'Обраний слот уже недоступний. Будь ласка, виберіть інший час.'
+    return SLOT_UNAVAILABLE_MESSAGE
   }
 
   if (
@@ -2996,6 +3156,28 @@ async function confirmClientBookingRules() {
   }
 }
 
+async function confirmClientBookingFromModal() {
+  if (bookingSlotId.value !== null || bookingRulesAccepting.value) return
+  const selectedSlot = clientBookingConfirmSlot.value
+  if (!selectedSlot) {
+    bookingError.value = SLOT_UNAVAILABLE_MESSAGE
+    closeClientBookingConfirmModal()
+    await loadSlots()
+    return
+  }
+  if (shouldShowClientBookingRulesPrompt.value) {
+    pendingClientBookingSlotId.value = selectedSlot.id
+    bookingError.value = BOOKING_UI_MESSAGES.acceptSettingBeforeBooking
+    closeClientBookingConfirmModal()
+    focusBookingRulesPrompt()
+    return
+  }
+  const booked = await bookSlot(selectedSlot.id)
+  if (booked) {
+    closeClientBookingConfirmModal()
+  }
+}
+
 async function handleBookingClick(slotId: number) {
   if (isGuestVisitor.value) {
     openGuestBookingModal(slotId)
@@ -3005,32 +3187,35 @@ async function handleBookingClick(slotId: number) {
     bookingError.value = BOOKING_UI_MESSAGES.onlyClientsCanBook
     return
   }
-  if (isSlotBusy(slotId)) return
-  if (shouldShowClientBookingRulesPrompt.value) {
-    pendingClientBookingSlotId.value = slotId
-    bookingError.value = BOOKING_UI_MESSAGES.acceptSettingBeforeBooking
-    focusBookingRulesPrompt()
-    return
-  }
-  await bookSlot(slotId)
+  if (isSlotBusy(slotId) || bookingSlotId.value !== null) return
+  openClientBookingConfirmModal(slotId)
 }
 
-async function bookSlot(slotId: number) {
+async function bookSlot(slotId: number): Promise<boolean> {
   bookingError.value = ''
   bookingSuccess.value = ''
   if (!canBook.value) {
     bookingError.value = BOOKING_UI_MESSAGES.onlyClientsCanBook
-    return
+    return false
   }
   if (shouldShowClientBookingRulesPrompt.value) {
     pendingClientBookingSlotId.value = slotId
     bookingError.value = BOOKING_UI_MESSAGES.acceptSettingBeforeBooking
     focusBookingRulesPrompt()
-    return
+    return false
+  }
+  if (bookingSlotId.value !== null) {
+    return false
   }
   pendingClientBookingSlotId.value = null
-  bookingSlotId.value = slotId
   const bookedSlot = slots.value.find((slot) => slot.id === slotId) || null
+  if (!bookedSlot) {
+    bookingError.value = SLOT_UNAVAILABLE_MESSAGE
+    toast.error(bookingError.value)
+    await loadSlots()
+    return false
+  }
+  bookingSlotId.value = slotId
   try {
     const payload: BookingSessionCreatePayload = {
       slot_id: slotId,
@@ -3054,9 +3239,17 @@ async function bookSlot(slotId: number) {
         persistSelectedSpecialists(filtered)
       }
     }
+    return true
   } catch (err: any) {
-    bookingError.value = getBookingErrorMessage(err, BOOKING_ERROR_FALLBACKS.bookSlot)
+    if (isClientBookingUnavailableError(err)) {
+      bookingError.value = SLOT_UNAVAILABLE_MESSAGE
+      resetClientBookingConfirmModalState()
+      await loadSlots()
+    } else {
+      bookingError.value = getBookingErrorMessage(err, BOOKING_ERROR_FALLBACKS.bookSlot)
+    }
     toast.error(bookingError.value)
+    return false
   } finally {
     bookingSlotId.value = null
   }
@@ -4889,6 +5082,17 @@ onMounted(async () => {
     gap: 12px;
   }
 
+  .setting-modal__footer {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .booking-confirm-modal {
+    width: min(560px, 92vw);
+  }
+
   .contact-chooser-modal {
     width: min(560px, 92vw);
   }
@@ -5002,6 +5206,27 @@ onMounted(async () => {
 
   .booking-slot__time {
     font-weight: 600;
+  }
+
+  .booking-slot--details {
+    gap: 8px;
+  }
+
+  .booking-slot__row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .booking-slot__label {
+    color: var(--muted);
+  }
+
+  .booking-slot__value {
+    color: var(--ink);
+    font-weight: 600;
+    text-align: right;
   }
 
   .booking-next {
