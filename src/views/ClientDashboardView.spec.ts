@@ -272,6 +272,14 @@ describe('ClientDashboardView', () => {
       'href',
       'https://meet.google.com/live-room'
     )
+    expect(within(priorityCard as HTMLElement).getByRole('link', { name: 'Деталі сесії' })).toHaveAttribute(
+      'href',
+      '/client/sessions/101'
+    )
+    expect(within(priorityCard as HTMLElement).getByRole('link', { name: 'Усі найближчі' })).toHaveAttribute(
+      'href',
+      '#upcoming-sessions'
+    )
     expect(within(priorityCard as HTMLElement).getByRole('link', { name: 'Профіль спеціаліста' })).toHaveAttribute(
       'href',
       '/s/olena'
@@ -453,6 +461,7 @@ describe('ClientDashboardView', () => {
 
     expect(await screen.findByText('Сьогодні ще 2 зустрічі')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: /Іван/i })).toHaveAttribute('href', '/client/sessions/302')
+    expect(screen.getByRole('link', { name: /Марія/i })).toHaveAttribute('href', '/client/sessions/303')
     expect(screen.getByRole('link', { name: 'Усі найближчі' })).toHaveAttribute('href', '#upcoming-sessions')
   })
 
@@ -540,7 +549,8 @@ describe('ClientDashboardView', () => {
     )
     expect(screen.queryByText(/Сьогодні ще/)).not.toBeInTheDocument()
     expect(screen.queryByText(/^Далі:/)).not.toBeInTheDocument()
-    expect(screen.queryByRole('link', { name: 'Усі найближчі' })).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Деталі сесії' })).toHaveAttribute('href', '/client/sessions/501')
+    expect(screen.getByRole('link', { name: 'Усі найближчі' })).toHaveAttribute('href', '#upcoming-sessions')
   })
 
   it('shows inquiry discoverability states for available, existing, and unavailable inquiry flows', async () => {

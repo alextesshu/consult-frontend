@@ -125,14 +125,20 @@
           </RouterLink>
           <div v-if="hasPrioritySecondarySummary" class="priority-secondary">
             <div v-if="priorityAdditionalHint" class="priority-secondary__hint">{{ priorityAdditionalHint }}</div>
-            <RouterLink
-              v-if="prioritySecondarySession"
-              class="priority-secondary__row"
-              :to="`/client/sessions/${prioritySecondarySession.id}`"
-            >
-              {{ compactPrioritySessionLabel(prioritySecondarySession) }}
-            </RouterLink>
-            <a class="priority-secondary__link" href="#upcoming-sessions">Усі найближчі</a>
+            <ul v-if="prioritySecondaryPreviewSessions.length > 0" class="priority-secondary-list">
+              <li
+                v-for="session in prioritySecondaryPreviewSessions"
+                :key="session.id"
+                class="priority-secondary-list__item"
+              >
+                <RouterLink class="priority-secondary__row" :to="`/client/sessions/${session.id}`">
+                  {{ compactPrioritySessionLabel(session) }}
+                </RouterLink>
+                <RouterLink class="priority-secondary__details" :to="`/client/sessions/${session.id}`">
+                  Деталі
+                </RouterLink>
+              </li>
+            </ul>
           </div>
         </div>
         <div class="priority-actions">
@@ -152,6 +158,10 @@
           >
             Профіль спеціаліста
           </RouterLink>
+          <RouterLink class="btn btn--ghost" :to="`/client/sessions/${prioritySession.id}`">
+            Деталі сесії
+          </RouterLink>
+          <a class="btn btn--ghost" href="#upcoming-sessions">Усі найближчі</a>
         </div>
       </div>
       <EmptyState
@@ -522,6 +532,7 @@ const confirmModal = useConfirmModal()
 const nowTs = ref(Date.now())
 const LIVE_STATUS_REFRESH_MS = 30 * 1000
 const SECONDARY_NEAR_TERM_WINDOW_MS = 36 * 60 * 60 * 1000
+const PRIORITY_PREVIEW_LIMIT = 2
 let nowIntervalId: number | null = null
 
 type GroupEvent = {
@@ -649,35 +660,43 @@ const prioritySession = computed(() => livePrioritySession.value || nextUpcoming
 const isPriorityLive = computed(() =>
   prioritySession.value ? isSessionInProgress(prioritySession.value) : false
 )
-const priorityAdditionalTodaySessions = computed(() => {
+const prioritySecondaryCandidates = computed<TimedUpcomingSession[]>(() => {
   const primary = prioritySession.value
   if (!primary) return []
-  const primaryStartTs = sessionStartTs(primary)
-  if (primaryStartTs === null || !isTodayTimestamp(primaryStartTs)) return []
-  return sortedUpcoming.value
-    .filter((item) => item.session.id !== primary.id && isTodayTimestamp(item.startTs))
-    .map((item) => item.session)
-})
-const priorityAdditionalTodayCount = computed(() => priorityAdditionalTodaySessions.value.length)
-const prioritySecondarySession = computed(() => {
-  const primary = prioritySession.value
-  if (!primary) return null
-
-  if (priorityAdditionalTodaySessions.value.length > 0) {
-    return priorityAdditionalTodaySessions.value[0]
-  }
 
   const primaryStartTs = sessionStartTs(primary)
-  if (primaryStartTs === null) return null
+  if (primaryStartTs === null) return []
 
   const baselineTs = Math.max(primaryStartTs, nowTs.value)
-  const nextNearSession = sortedUpcoming.value.find(
+  return sortedUpcoming.value.filter(
     (item) => item.session.id !== primary.id && item.startTs >= baselineTs
   )
-  if (!nextNearSession) return null
-  if (nextNearSession.startTs - baselineTs > SECONDARY_NEAR_TERM_WINDOW_MS) return null
-  return nextNearSession.session
 })
+const prioritySecondaryPreviewSessions = computed(() => {
+  const primary = prioritySession.value
+  if (!primary) return []
+
+  const primaryStartTs = sessionStartTs(primary)
+  if (primaryStartTs === null) return []
+
+  const baselineTs = Math.max(primaryStartTs, nowTs.value)
+  const preview = prioritySecondaryCandidates.value.filter(
+    (item) => item.startTs - baselineTs <= SECONDARY_NEAR_TERM_WINDOW_MS
+  )
+  return preview.slice(0, PRIORITY_PREVIEW_LIMIT).map((item) => item.session)
+})
+const priorityAdditionalTodayCount = computed(() => {
+  const primary = prioritySession.value
+  if (!primary) return 0
+
+  const primaryStartTs = sessionStartTs(primary)
+  if (primaryStartTs === null || !isTodayTimestamp(primaryStartTs)) return 0
+
+  return prioritySecondaryCandidates.value.filter((item) => isTodayTimestamp(item.startTs)).length
+})
+const priorityRemainingCount = computed(() =>
+  Math.max(prioritySecondaryCandidates.value.length - prioritySecondaryPreviewSessions.value.length, 0)
+)
 
 function meetingWord(count: number) {
   const mod10 = count % 10
@@ -693,7 +712,7 @@ const priorityAdditionalHint = computed(() => {
     return `Сьогодні ще ${additionalToday} ${meetingWord(additionalToday)}`
   }
 
-  const secondary = prioritySecondarySession.value
+  const secondary = prioritySecondaryPreviewSessions.value[0] || null
   if (!secondary) return ''
   const secondaryStartAt = sessionStartAt(secondary)
   const secondaryStartTs = sessionStartTs(secondary)
@@ -701,11 +720,15 @@ const priorityAdditionalHint = computed(() => {
   if (isTomorrowTimestamp(secondaryStartTs)) {
     return `Далі: завтра о ${formatUkTime(secondaryStartAt)}`
   }
-  return 'Далі ще 1 найближча сесія'
+  const remaining = priorityRemainingCount.value
+  if (remaining > 0) {
+    return `Ще ${remaining} ${meetingWord(remaining)} у списку`
+  }
+  return 'Далі найближчі сесії'
 })
 
 const hasPrioritySecondarySummary = computed(() =>
-  Boolean(priorityAdditionalHint.value || prioritySecondarySession.value)
+  Boolean(priorityAdditionalHint.value || prioritySecondaryPreviewSessions.value.length)
 )
 
 function timeUntilLabel(session: Session) {
@@ -1241,6 +1264,7 @@ onBeforeUnmount(() => {
   .priority-content {
     display: grid;
     gap: 8px;
+    flex: 1 1 360px;
     min-width: 0;
   }
 
@@ -1282,6 +1306,21 @@ onBeforeUnmount(() => {
     padding-left: 2px;
   }
 
+  .priority-secondary-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 6px;
+  }
+
+  .priority-secondary-list__item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
   .priority-secondary__hint {
     font-size: 13px;
     font-weight: 600;
@@ -1299,10 +1338,16 @@ onBeforeUnmount(() => {
     text-decoration: underline;
   }
 
-  .priority-secondary__link {
+  .priority-secondary__details {
     width: fit-content;
-    font-size: 13px;
+    font-size: 12px;
+    font-weight: 600;
     color: var(--muted);
+    text-decoration: none;
+  }
+
+  .priority-secondary__details:hover {
+    text-decoration: underline;
   }
 
 .status-pill {
@@ -1566,6 +1611,15 @@ onBeforeUnmount(() => {
     width: 100%;
   }
 
+  .priority-body {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .priority-actions {
+    width: 100%;
+  }
+
   .therapist-card {
     grid-template-columns: 1fr;
   }
@@ -1585,6 +1639,13 @@ onBeforeUnmount(() => {
     max-width: 100%;
     white-space: normal;
     overflow-wrap: anywhere;
+  }
+
+  .priority-actions .btn,
+  .priority-actions .btn.btn--ghost {
+    width: 100%;
+    max-width: 100%;
+    justify-content: center;
   }
 }
 </style>
