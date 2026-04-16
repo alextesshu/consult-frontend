@@ -60,17 +60,23 @@ export function useNotifications({
     return preview || 'Відкрийте запит, щоб переглянути деталі.'
   }
 
+  function isPaymentProofRequested(item: NotificationFeedItem) {
+    return item.source_kind === 'payment_proof_event' || item.code === 'PAYMENT_PROOF_REQUESTED'
+  }
+
   function notificationJoinUrl(item: NotificationFeedItem) {
     const url = normalizeMeetingUrl(item.meeting_url)
     if (!url) return null
     if (item.source_kind === 'inquiry_message' || item.source_kind === 'reschedule_request') return null
     if (item.source_kind === 'session_event' && item.code === 'CANCELLED') return null
+    if (isPaymentProofRequested(item)) return null
     return url
   }
 
   function notificationTone(item: NotificationFeedItem): BellNotification['tone'] {
     if (item.source_kind === 'inquiry_message') return 'info'
     if (item.source_kind === 'reschedule_request' || item.code === 'RESCHEDULE_REQUESTED') return 'warn'
+    if (isPaymentProofRequested(item)) return 'warn'
     if (item.source_kind === 'session_event' && item.code === 'RESCHEDULED') return 'ok'
     if (item.source_kind === 'session_event' && item.code === 'CANCELLED') return 'warn'
     if (item.source_kind === 'session_event' && item.code === 'BOOKED') return 'ok'
@@ -88,6 +94,9 @@ export function useNotifications({
     }
     if (item.source_kind === 'reschedule_request' || item.code === 'RESCHEDULE_REQUESTED') {
       return `Перенесення: ${clientLabel} просить змінити час сесії`
+    }
+    if (isPaymentProofRequested(item)) {
+      return `\u041E\u043F\u043B\u0430\u0442\u0430: ${counterpartyLabel} \u0437\u0430\u043F\u0440\u043E\u0441\u0438\u0432 \u043F\u0456\u0434\u0442\u0432\u0435\u0440\u0434\u0436\u0435\u043D\u043D\u044F \u043E\u043F\u043B\u0430\u0442\u0438`
     }
     if (item.source_kind === 'session_event') {
       if (item.code === 'CANCELLED') return `Бронювання: скасування сесії від ${clientLabel}`
@@ -116,6 +125,11 @@ export function useNotifications({
     const time = formatDateTime(item.slot_start_at)
     if (item.source_kind === 'inquiry_message') {
       return notificationPreview(item)
+    }
+    if (isPaymentProofRequested(item)) {
+      return time
+        ? `\u0421\u0435\u0441\u0456\u044F: ${time}. \u0412\u0456\u0434\u043A\u0440\u0438\u0439\u0442\u0435 \u0434\u0435\u0442\u0430\u043B\u0456 \u0442\u0430 \u043D\u0430\u0434\u0456\u0448\u043B\u0456\u0442\u044C \u043F\u0456\u0434\u0442\u0432\u0435\u0440\u0434\u0436\u0435\u043D\u043D\u044F \u043E\u043F\u043B\u0430\u0442\u0438.`
+        : '\u0412\u0456\u0434\u043A\u0440\u0438\u0439\u0442\u0435 \u0434\u0435\u0442\u0430\u043B\u0456 \u0441\u0435\u0441\u0456\u0457 \u0442\u0430 \u043D\u0430\u0434\u0456\u0448\u043B\u0456\u0442\u044C \u043F\u0456\u0434\u0442\u0432\u0435\u0440\u0434\u0436\u0435\u043D\u043D\u044F \u043E\u043F\u043B\u0430\u0442\u0438.'
     }
     if (item.source_kind === 'reschedule_request' || item.code === 'RESCHEDULE_REQUESTED') {
       return time ? `Запитаний час: ${time}${email}` : `Перевірте деталі запиту на перенесення${email}`
@@ -254,3 +268,4 @@ export function useNotifications({
     reset,
   }
 }
+

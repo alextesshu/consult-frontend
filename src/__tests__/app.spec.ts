@@ -370,6 +370,69 @@ describe('App shell', () => {
     })
   })
 
+  it('renders payment-proof request notification for client and routes to session detail after refresh', async () => {
+    const { router } = await renderWithProviders({
+      initialPath: '/client',
+      roles: ['CLIENT'],
+      notifications: [
+        buildNotification({
+          id: 'payment_proof_event:91',
+          kind: 'payment_proof_event',
+          source_kind: 'payment_proof_event',
+          source_id: 91,
+          code: 'PAYMENT_PROOF_REQUESTED',
+          session_id: 55,
+          client_id: 1,
+          client_name: 'testuser',
+          client_email: 'test@example.com',
+          specialist_id: 14,
+          specialist_name: 'Олена',
+          counterparty_id: 14,
+          counterparty_name: 'Олена',
+          slot_start_at: '2026-03-12T19:00:00Z',
+          created_at: '2026-03-12T10:00:00Z',
+          scheduled_for: null,
+          delivered_at: null,
+          read_at: null,
+        }),
+      ],
+    })
+
+    await waitFor(() => {
+      expect(mockedFetchNotifications).toHaveBeenCalled()
+    })
+    const refreshCallsBeforeOpen = mockedFetchNotifications.mock.calls.length
+
+    const notificationsButton = document.querySelector('.nav__notifications .icon-btn') as HTMLButtonElement | null
+    expect(notificationsButton).not.toBeNull()
+    await fireEvent.click(notificationsButton as HTMLButtonElement)
+
+    await waitFor(() => {
+      expect(mockedFetchNotifications.mock.calls.length).toBeGreaterThan(refreshCallsBeforeOpen)
+    })
+
+    await waitFor(() => {
+      expect(document.querySelector('.notif-panel a[href="/client/sessions/55"]')).not.toBeNull()
+    })
+    const notificationLink = document.querySelector('.notif-panel a[href="/client/sessions/55"]') as HTMLAnchorElement | null
+    expect(notificationLink).not.toBeNull()
+    expect(notificationLink).toHaveAttribute('href', '/client/sessions/55')
+    expect(notificationLink?.textContent || '').toContain('\u041E\u043F\u043B\u0430\u0442\u0430:')
+    expect(notificationLink?.textContent || '').toContain(
+      '\u043F\u0456\u0434\u0442\u0432\u0435\u0440\u0434\u0436\u0435\u043D\u043D\u044F \u043E\u043F\u043B\u0430\u0442\u0438'
+    )
+
+    await fireEvent.click(notificationLink as HTMLAnchorElement)
+
+    await waitFor(() => {
+      expect(mockedMarkNotificationRead).toHaveBeenCalledWith({
+        source_kind: 'payment_proof_event',
+        source_id: 91,
+      })
+      expect(router.currentRoute.value.fullPath).toBe('/client/sessions/55')
+    })
+  })
+
   it('shows a join button for reminder notifications with an external meeting link', async () => {
     await renderWithProviders({
       initialPath: '/client',
