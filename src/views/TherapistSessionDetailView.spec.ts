@@ -354,7 +354,7 @@ describe('TherapistSessionDetailView', () => {
     expect(mockedFetchSessionPaymentProof).not.toHaveBeenCalled()
 
     await fireEvent.click(screen.getByRole('button', { name: 'Перейти до реквізитів для оплати' }))
-    expect(mockRouter.push).toHaveBeenCalledWith({ path: '/cabinet/settings', hash: '#payment-details' })
+    expect(mockRouter.push).toHaveBeenCalledWith({ path: '/cabinet/settings', query: { tab: 'payment-details' } })
   })
 
   it('shows payment-details-missing inline UX on first click for reason_code response shape', async () => {

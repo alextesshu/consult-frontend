@@ -4,10 +4,15 @@
       <div class="badge badge--soft">Налаштування</div>
       <h1 class="title">Усі налаштування</h1>
       <p class="muted">Оберіть розділ, який хочете відкрити.</p>
-      <SettingsSubnav active="hub" />
+      <SettingsSubnav :active="activeTab" />
     </header>
 
-    <section class="settings-hub__grid">
+    <section v-if="activeTab === 'hub'" class="settings-hub__grid">
+      <RouterLink class="panel settings-card" to="/cabinet/settings?tab=payment-details">
+        <h2 class="settings-card__title">Реквізити</h2>
+        <p class="muted">Керуйте даними для запиту підтвердження оплати у сесіях.</p>
+      </RouterLink>
+
       <RouterLink class="panel settings-card" to="/cabinet/profile">
         <h2 class="settings-card__title">Профіль</h2>
         <p class="muted">Дані публічного профілю, контакти та видимість.</p>
@@ -24,7 +29,7 @@
       </RouterLink>
     </section>
 
-    <section id="payment-details" class="panel payment-details-card">
+    <section v-else id="payment-details" class="panel payment-details-card">
       <div class="payment-details-card__header">
         <div>
           <div class="badge badge--soft">Оплата</div>
@@ -126,7 +131,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useToast } from '../composables/useToast'
 import {
   fetchCabinetPaymentDetails,
@@ -136,13 +142,23 @@ import {
 } from '../lib/api'
 import SettingsSubnav from '../components/SettingsSubnav.vue'
 
+const PAYMENT_DETAILS_TAB = 'payment-details'
+
+const route = useRoute()
+const router = useRouter()
 const toast = useToast()
 
-const loading = ref(true)
+const loading = ref(false)
 const saving = ref(false)
 const isEditing = ref(false)
 const saveError = ref('')
 const formError = ref('')
+const isLoaded = ref(false)
+
+const activeTab = computed<'hub' | 'payment-details'>(() =>
+  route.query.tab === PAYMENT_DETAILS_TAB ? PAYMENT_DETAILS_TAB : 'hub'
+)
+const isPaymentDetailsTab = computed(() => activeTab.value === PAYMENT_DETAILS_TAB)
 
 const emptyDetails: SpecialistPaymentDetails = {
   method_type: null,
@@ -192,6 +208,21 @@ function normalizeDetails(payload: Partial<SpecialistPaymentDetails> | null | un
   }
 }
 
+function ensureCanonicalPaymentDetailsTab() {
+  const hasLegacyHash = route.hash === '#payment-details'
+  const isCanonicalTab = route.query.tab === PAYMENT_DETAILS_TAB
+  if (!hasLegacyHash || isCanonicalTab) return
+
+  router.replace({
+    path: '/cabinet/settings',
+    query: {
+      ...route.query,
+      tab: PAYMENT_DETAILS_TAB,
+    },
+    hash: '',
+  })
+}
+
 function startEdit() {
   form.value = {
     ...details.value,
@@ -223,9 +254,11 @@ async function loadPaymentDetails() {
   formError.value = ''
   try {
     details.value = normalizeDetails(await fetchCabinetPaymentDetails())
+    isLoaded.value = true
   } catch (err) {
     toast.error(getApiErrorMessage(err, 'Не вдалося завантажити реквізити для оплати.'))
     details.value = { ...emptyDetails }
+    isLoaded.value = false
   } finally {
     loading.value = false
   }
@@ -259,7 +292,22 @@ async function saveDetails() {
   }
 }
 
-onMounted(loadPaymentDetails)
+watch(
+  () => [route.hash, route.query.tab],
+  () => {
+    ensureCanonicalPaymentDetailsTab()
+  },
+  { immediate: true }
+)
+
+watch(
+  isPaymentDetailsTab,
+  async (isActive) => {
+    if (!isActive || isLoaded.value || loading.value) return
+    await loadPaymentDetails()
+  },
+  { immediate: true }
+)
 </script>
 
 <style scoped>

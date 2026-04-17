@@ -5,6 +5,13 @@
     </RouterLink>
     <RouterLink
       class="settings-subnav__link"
+      :class="{ 'is-active': active === 'payment-details' }"
+      to="/cabinet/settings?tab=payment-details"
+    >
+      Реквізити
+    </RouterLink>
+    <RouterLink
+      class="settings-subnav__link"
       :class="{ 'is-active': active === 'profile' }"
       to="/cabinet/profile"
     >
@@ -26,7 +33,7 @@
 <script setup lang="ts">
 withDefaults(
   defineProps<{
-    active?: 'hub' | 'profile' | 'notifications' | 'billing'
+    active?: 'hub' | 'payment-details' | 'profile' | 'notifications' | 'billing'
   }>(),
   {
     active: 'hub',

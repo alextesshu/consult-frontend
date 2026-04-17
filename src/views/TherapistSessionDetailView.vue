@@ -724,7 +724,7 @@ function onPaymentDetailsMissing(message: string) {
 }
 
 function openPaymentDetailsSettings() {
-  router.push({ path: '/cabinet/settings', hash: '#payment-details' })
+  router.push({ path: '/cabinet/settings', query: { tab: 'payment-details' } })
 }
 
 async function loadSession() {

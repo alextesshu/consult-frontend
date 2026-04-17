@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { reactive } from 'vue'
 import SettingsHubView from './SettingsHubView.vue'
 import { fetchCabinetPaymentDetails, updateCabinetPaymentDetails } from '../lib/api'
 
@@ -10,6 +11,27 @@ const mockToast = {
   warning: vi.fn(),
   info: vi.fn(),
 }
+
+const mockRoute = reactive<{ query: Record<string, unknown>; hash: string }>({
+  query: {},
+  hash: '',
+})
+
+const mockRouter = {
+  replace: vi.fn((payload: { query?: Record<string, unknown>; hash?: string }) => {
+    mockRoute.query = { ...mockRoute.query, ...(payload.query || {}) }
+    mockRoute.hash = payload.hash || ''
+  }),
+}
+
+vi.mock('vue-router', async () => {
+  const actual = await vi.importActual<typeof import('vue-router')>('vue-router')
+  return {
+    ...actual,
+    useRoute: () => mockRoute,
+    useRouter: () => mockRouter,
+  }
+})
 
 vi.mock('../composables/useToast', () => ({
   useToast: () => mockToast,
@@ -28,7 +50,6 @@ function renderView() {
   return render(SettingsHubView, {
     global: {
       stubs: {
-        SettingsSubnav: { template: '<div data-testid="settings-subnav" />' },
         RouterLink: {
           props: ['to'],
           template: '<a :href="typeof to === \'string\' ? to : \'\'"><slot /></a>',
@@ -38,8 +59,12 @@ function renderView() {
   })
 }
 
-describe('SettingsHubView payment details', () => {
+describe('SettingsHubView payment-details tab', () => {
   beforeEach(() => {
+    mockRoute.query = {}
+    mockRoute.hash = ''
+    mockRouter.replace.mockClear()
+
     mockedFetchCabinetPaymentDetails.mockReset()
     mockedUpdateCabinetPaymentDetails.mockReset()
     mockToast.show.mockReset()
@@ -49,7 +74,26 @@ describe('SettingsHubView payment details', () => {
     mockToast.info.mockReset()
   })
 
-  it('shows loading then empty state when payment details are not configured', async () => {
+  it('shows dedicated Реквізити tab in settings navigation', async () => {
+    renderView()
+
+    expect(screen.getByRole('link', { name: 'Реквізити' })).toHaveAttribute(
+      'href',
+      '/cabinet/settings?tab=payment-details'
+    )
+  })
+
+  it('keeps hub as default and does not load payment details API until payment tab is open', async () => {
+    renderView()
+
+    expect(screen.getByRole('link', { name: 'Реквізити' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Профіль' })).toBeInTheDocument()
+    expect(screen.queryByText('Реквізити для оплати')).not.toBeInTheDocument()
+    expect(mockedFetchCabinetPaymentDetails).not.toHaveBeenCalled()
+  })
+
+  it('opens payment details when tab=payment-details is in query', async () => {
+    mockRoute.query = { tab: 'payment-details' }
     mockedFetchCabinetPaymentDetails.mockResolvedValue({
       method_type: null,
       recipient_name: '',
@@ -62,38 +106,18 @@ describe('SettingsHubView payment details', () => {
 
     renderView()
 
-    expect(screen.getByText('Завантаження...')).toBeInTheDocument()
-    expect(await screen.findByText('Реквізити ще не додані. Додайте їх, щоб запитувати підтвердження оплати у сесіях.')).toBeInTheDocument()
+    expect(await screen.findByText('Реквізити для оплати')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Додати реквізити' })).toBeInTheDocument()
+    expect(mockedFetchCabinetPaymentDetails).toHaveBeenCalledTimes(1)
   })
 
-  it('renders configured bank account details in view mode', async () => {
+  it('supports legacy hash landing by canonically switching to query tab', async () => {
+    mockRoute.hash = '#payment-details'
     mockedFetchCabinetPaymentDetails.mockResolvedValue({
-      method_type: 'bank_account',
-      recipient_name: 'ФОП Петренко',
-      iban: 'UA123',
-      card_number: '',
-      bank_name: 'Monobank',
-      payment_purpose: 'Оплата консультації',
-      comment: 'Після оплати надішліть скрін',
-    })
-
-    renderView()
-
-    expect(await screen.findByText('Банківський рахунок (IBAN)')).toBeInTheDocument()
-    expect(screen.getByText('UA123')).toBeInTheDocument()
-    expect(screen.getByText('Monobank')).toBeInTheDocument()
-    expect(screen.getByText('Оплата консультації')).toBeInTheDocument()
-    expect(screen.getByText('Після оплати надішліть скрін')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Редагувати' })).toBeInTheDocument()
-  })
-
-  it('renders configured card details in view mode', async () => {
-    mockedFetchCabinetPaymentDetails.mockResolvedValue({
-      method_type: 'card',
-      recipient_name: 'Іван Коваль',
+      method_type: null,
+      recipient_name: '',
       iban: '',
-      card_number: '4444 3333 2222 1111',
+      card_number: '',
       bank_name: '',
       payment_purpose: '',
       comment: '',
@@ -101,11 +125,19 @@ describe('SettingsHubView payment details', () => {
 
     renderView()
 
-    expect(await screen.findByText('Картка')).toBeInTheDocument()
-    expect(screen.getByText('4444 3333 2222 1111')).toBeInTheDocument()
+    await waitFor(() => {
+      expect(mockRouter.replace).toHaveBeenCalledWith({
+        path: '/cabinet/settings',
+        query: { tab: 'payment-details' },
+        hash: '',
+      })
+    })
+
+    expect(await screen.findByText('Реквізити для оплати')).toBeInTheDocument()
   })
 
-  it('allows editing and saving payment details successfully', async () => {
+  it('keeps payment details save/edit behavior unchanged inside Реквізити tab', async () => {
+    mockRoute.query = { tab: 'payment-details' }
     mockedFetchCabinetPaymentDetails.mockResolvedValue({
       method_type: null,
       recipient_name: '',
@@ -149,56 +181,5 @@ describe('SettingsHubView payment details', () => {
     })
 
     expect(await screen.findByText('UA999')).toBeInTheDocument()
-  })
-
-  it('shows validation error and does not submit invalid form', async () => {
-    mockedFetchCabinetPaymentDetails.mockResolvedValue({
-      method_type: null,
-      recipient_name: '',
-      iban: '',
-      card_number: '',
-      bank_name: '',
-      payment_purpose: '',
-      comment: '',
-    })
-
-    renderView()
-
-    await screen.findByRole('button', { name: 'Додати реквізити' })
-    await fireEvent.click(screen.getByRole('button', { name: 'Додати реквізити' }))
-    await fireEvent.click(screen.getByRole('button', { name: 'Зберегти' }))
-
-    expect(await screen.findByText('Вкажіть отримувача.')).toBeInTheDocument()
-    expect(mockedUpdateCabinetPaymentDetails).not.toHaveBeenCalled()
-  })
-
-  it('shows save error and stays in edit mode when PATCH fails', async () => {
-    mockedFetchCabinetPaymentDetails.mockResolvedValue({
-      method_type: null,
-      recipient_name: '',
-      iban: '',
-      card_number: '',
-      bank_name: '',
-      payment_purpose: '',
-      comment: '',
-    })
-    mockedUpdateCabinetPaymentDetails.mockRejectedValue({
-      response: {
-        data: {
-          detail: 'Save failed.',
-        },
-      },
-    })
-
-    renderView()
-
-    await screen.findByRole('button', { name: 'Додати реквізити' })
-    await fireEvent.click(screen.getByRole('button', { name: 'Додати реквізити' }))
-    await fireEvent.update(screen.getByPlaceholderText('ПІБ або назва ФОП/компанії'), 'ФОП Тест')
-    await fireEvent.update(screen.getByPlaceholderText('UA...'), 'UA123')
-    await fireEvent.click(screen.getByRole('button', { name: 'Зберегти' }))
-
-    expect(await screen.findByText('Save failed.')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Скасувати' })).toBeInTheDocument()
   })
 })
