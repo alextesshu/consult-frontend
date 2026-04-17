@@ -112,7 +112,7 @@
         class="btn btn--sm"
         type="button"
         :disabled="isBusy"
-        @click="onMarkPaid"
+        @click="openMarkPaidConfirm"
       >
         {{ isBusy ? 'Оновлення...' : 'Позначити як оплачено' }}
       </button>
@@ -146,12 +146,23 @@
         @change="onFileSelected"
       />
     </div>
+
+    <ConfirmModal
+      :open="markPaidConfirmOpen"
+      title="Позначити сесію як оплачену?"
+      message="Використайте це, якщо ви вже бачите оплату або отримали її поза платформою."
+      confirm-text="Позначити як оплачено"
+      cancel-text="Скасувати"
+      @confirm="confirmMarkPaid"
+      @cancel="closeMarkPaidConfirm"
+    />
   </section>
 </template>
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { formatUkDateTimeCompact } from '../lib/dateTime'
+import ConfirmModal from './ConfirmModal.vue'
 import {
   fetchSessionPaymentProof,
   markSessionPaymentProofPaid,
@@ -202,6 +213,7 @@ const actionLoading = ref(false)
 const uploadLoading = ref(false)
 const fileInputRef = ref<HTMLInputElement | null>(null)
 const selectedMethodType = ref<CanonicalMethodType | null>(null)
+const markPaidConfirmOpen = ref(false)
 
 const isSpecialist = computed(() => props.role === 'specialist')
 const isClient = computed(() => props.role === 'client')
@@ -313,6 +325,15 @@ watch(
         : methodTypes[0] || null
   },
   { immediate: true }
+)
+
+watch(
+  () => proof.value.status,
+  (status) => {
+    if (status === 'MARKED_PAID') {
+      markPaidConfirmOpen.value = false
+    }
+  }
 )
 
 function getStringValue(value: unknown) {
@@ -480,6 +501,20 @@ async function onMarkPaid() {
     'Оплату позначено як отриману.',
     'Не вдалося позначити оплату як отриману.'
   )
+}
+
+function openMarkPaidConfirm() {
+  if (!isSpecialist.value || isBusy.value || !proof.value.specialist_can_mark_paid_now) return
+  markPaidConfirmOpen.value = true
+}
+
+function closeMarkPaidConfirm() {
+  markPaidConfirmOpen.value = false
+}
+
+async function confirmMarkPaid() {
+  markPaidConfirmOpen.value = false
+  await onMarkPaid()
 }
 
 async function onRequestClarification() {

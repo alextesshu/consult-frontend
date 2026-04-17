@@ -312,6 +312,58 @@ describe('TherapistSessionDetailView', () => {
     ).toBeInTheDocument()
   })
 
+  it('marks session as paid from specialist block after confirmation and refreshes payment-proof state', async () => {
+    const initialPaymentProof = {
+      status: 'REQUESTED',
+      image_url: null,
+      requested_by_specialist_at: '2099-06-15T09:00:00Z',
+      submitted_by_client_at: null,
+      reviewed_by_specialist_at: null,
+      marked_paid_at: null,
+      clarification_requested_at: null,
+      specialist_note: '',
+      client_can_upload_now: false,
+      specialist_can_mark_paid_now: true,
+      specialist_can_request_clarification_now: true,
+      specialist_can_request_proof_now: false,
+      payment_instructions: null,
+    }
+    const markedPaidProof = {
+      ...initialPaymentProof,
+      status: 'MARKED_PAID',
+      marked_paid_at: '2099-06-15T09:05:00Z',
+      specialist_can_mark_paid_now: false,
+      specialist_can_request_clarification_now: false,
+      specialist_can_request_proof_now: false,
+    }
+
+    const sessionDetail = buildSession({
+      status: 'CONFIRMED',
+      payment_proof: initialPaymentProof,
+    })
+    mockDetailContext(() => sessionDetail, { requests: [] })
+
+    mockedMarkSessionPaymentProofPaid.mockResolvedValue(markedPaidProof as any)
+    mockedFetchSessionPaymentProof.mockResolvedValue(markedPaidProof as any)
+
+    renderView()
+
+    expect(await screen.findByRole('button', { name: 'Позначити як оплачено' })).toBeInTheDocument()
+    await fireEvent.click(screen.getByRole('button', { name: 'Позначити як оплачено' }))
+
+    const dialog = await screen.findByRole('dialog', { name: 'Позначити сесію як оплачену?' })
+    await fireEvent.click(within(dialog).getByRole('button', { name: 'Позначити як оплачено' }))
+
+    await waitFor(() => {
+      expect(mockedMarkSessionPaymentProofPaid).toHaveBeenCalledWith(42)
+      expect(mockedFetchSessionPaymentProof).toHaveBeenCalledWith(42)
+      expect(mockToast.success).toHaveBeenCalledWith('Оплату позначено як отриману.')
+    })
+
+    expect(await screen.findByText(/Оплату позначено як отриману/)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Позначити як оплачено' })).not.toBeInTheDocument()
+  })
+
   it('shows actionable inline message for PAYMENT_DETAILS_MISSING and links to payment details settings', async () => {
     const initialPaymentProof = {
       status: 'NOT_REQUESTED',

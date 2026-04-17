@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/vue'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import SessionPaymentProofBlock from './SessionPaymentProofBlock.vue'
 import {
@@ -349,5 +349,78 @@ describe('SessionPaymentProofBlock payment instructions', () => {
 
     expect(view.emitted('payment-details-missing')).toBeFalsy()
     expect(mockToast.error).toHaveBeenCalledWith(detail)
+  })
+
+  it('shows mark-paid action for specialist in unpaid state and hides it for paid state', async () => {
+    const { rerender } = render(SessionPaymentProofBlock, {
+      props: {
+        sessionId: 42,
+        role: 'specialist',
+        paymentProof: buildPaymentProof({
+          status: 'REQUESTED',
+          specialist_can_mark_paid_now: true,
+        }),
+      },
+    })
+
+    expect(screen.getByRole('button', { name: 'Позначити як оплачено' })).toBeInTheDocument()
+
+    await rerender({
+      sessionId: 42,
+      role: 'specialist',
+      paymentProof: buildPaymentProof({
+        status: 'MARKED_PAID',
+        specialist_can_mark_paid_now: false,
+      }),
+    })
+
+    expect(screen.queryByRole('button', { name: 'Позначити як оплачено' })).not.toBeInTheDocument()
+  })
+
+  it('requires confirmation before mark-paid action and refreshes proof state after success', async () => {
+    mockedMarkSessionPaymentProofPaid.mockResolvedValue(
+      buildPaymentProof({
+        status: 'MARKED_PAID',
+        specialist_can_mark_paid_now: false,
+      }) as any
+    )
+    mockedFetchSessionPaymentProof.mockResolvedValue(
+      buildPaymentProof({
+        status: 'MARKED_PAID',
+        specialist_can_mark_paid_now: false,
+      }) as any
+    )
+
+    render(SessionPaymentProofBlock, {
+      props: {
+        sessionId: 42,
+        role: 'specialist',
+        paymentProof: buildPaymentProof({
+          status: 'REQUESTED',
+          specialist_can_mark_paid_now: true,
+        }),
+      },
+    })
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Позначити як оплачено' }))
+    expect(mockedMarkSessionPaymentProofPaid).not.toHaveBeenCalled()
+
+    const dialog = screen.getByRole('dialog', { name: 'Позначити сесію як оплачену?' })
+    expect(dialog).toBeInTheDocument()
+    await fireEvent.click(screen.getByRole('button', { name: 'Скасувати' }))
+
+    expect(mockedMarkSessionPaymentProofPaid).not.toHaveBeenCalled()
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Позначити як оплачено' }))
+    const confirmDialog = screen.getByRole('dialog', { name: 'Позначити сесію як оплачену?' })
+    await fireEvent.click(
+      within(confirmDialog).getByRole('button', { name: 'Позначити як оплачено' })
+    )
+
+    await waitFor(() => {
+      expect(mockedMarkSessionPaymentProofPaid).toHaveBeenCalledWith(42)
+      expect(mockedFetchSessionPaymentProof).toHaveBeenCalledWith(42)
+      expect(mockToast.success).toHaveBeenCalledWith('Оплату позначено як отриману.')
+    })
   })
 })
