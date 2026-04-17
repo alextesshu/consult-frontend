@@ -204,7 +204,66 @@
         </div>
       </section>
 
-      <section class="panel">
+      <section v-if="workspacePanelVisible" class="panel panel--workspace" data-testid="session-workspace">
+        <div class="panel__header">
+          <div>
+            <div class="badge badge--soft">Робочий простір</div>
+            <h2 class="panel__title">Стан після сесії</h2>
+          </div>
+        </div>
+
+        <div class="workspace-summary">
+          <article
+            v-for="item in workspaceSummaryItems"
+            :key="item.key"
+            class="workspace-summary__item"
+            :data-testid="`workspace-summary-${item.key}`"
+          >
+            <div class="workspace-summary__meta">
+              <div class="workspace-summary__label">{{ item.title }}</div>
+              <div v-if="item.updatedAtLabel" class="workspace-summary__updated muted">
+                Оновлено: {{ item.updatedAtLabel }}
+              </div>
+            </div>
+            <div class="status-pill" :class="item.pillClass">{{ item.statusLabel }}</div>
+          </article>
+        </div>
+
+        <div
+          v-if="workspacePrimaryAction || workspaceSecondaryActions.length"
+          class="workspace-actions"
+          data-testid="workspace-actions"
+        >
+          <div class="workspace-actions__title">Потребує уваги</div>
+          <button
+            v-if="workspacePrimaryAction"
+            class="btn btn--sm"
+            type="button"
+            :data-testid="`workspace-action-${workspacePrimaryAction.id}`"
+            @click="workspacePrimaryAction.run"
+          >
+            {{ workspacePrimaryAction.label }}
+          </button>
+          <div v-if="workspaceSecondaryActions.length" class="workspace-actions__secondary">
+            <button
+              v-for="action in workspaceSecondaryActions"
+              :key="action.id"
+              class="btn btn--ghost btn--sm"
+              type="button"
+              :data-testid="`workspace-action-${action.id}`"
+              @click="action.run"
+            >
+              {{ action.label }}
+            </button>
+          </div>
+        </div>
+
+        <div v-else class="muted" data-testid="workspace-no-pending">
+          Усі ключові кроки виконано або не потребують дій.
+        </div>
+      </section>
+
+      <section ref="paymentPanelRef" class="panel">
         <SessionPaymentProofBlock
           :session-id="session.id"
           role="specialist"
@@ -510,6 +569,31 @@ type SessionSlot = {
   end_at?: string | null
 }
 
+type WorkspacePaymentState = 'paid' | 'awaiting_confirmation' | 'unpaid' | 'not_applicable' | string
+type WorkspaceNoteState = 'hidden' | 'missing' | 'draft' | 'completed' | string
+type WorkspaceWorkbookState = 'hidden' | 'missing' | 'draft' | 'completed' | string
+
+type SessionWorkspaceItem = string | {
+  code?: string | null
+  label?: string | null
+  title?: string | null
+  name?: string | null
+}
+
+type SessionWorkspace = {
+  session_id?: number | null
+  lifecycle_status?: string | null
+  payment_state?: WorkspacePaymentState | null
+  note_state?: WorkspaceNoteState | null
+  workbook_state?: WorkspaceWorkbookState | null
+  payment_updated_at?: string | null
+  note_updated_at?: string | null
+  workbook_updated_at?: string | null
+  permissions?: Record<string, unknown> | null
+  available_actions?: SessionWorkspaceItem[] | null
+  pending_tasks?: SessionWorkspaceItem[] | null
+}
+
 type SessionDetail = {
   id: number
   status: string
@@ -532,11 +616,29 @@ type SessionDetail = {
   slot_start_at?: string | null
   slot_end_at?: string | null
   payment_proof?: SessionPaymentProof | null
+  workspace?: SessionWorkspace | null
 }
 
 type PostSessionContext = {
   sessionId: number
   clientId: number | null
+}
+
+type WorkspaceDomain = 'payment' | 'note' | 'workbook'
+
+type WorkspaceSummaryItem = {
+  key: WorkspaceDomain
+  title: string
+  statusLabel: string
+  pillClass: string
+  updatedAtLabel: string
+}
+
+type WorkspaceAction = {
+  id: WorkspaceDomain
+  label: string
+  priority: number
+  run: () => void | Promise<void>
 }
 
 const route = useRoute()
@@ -574,6 +676,7 @@ const postSessionNextSession = ref<Pick<SessionDetail, 'id' | 'status' | 'slot' 
 const isEditingMeetingLink = ref(false)
 const meetingLinkDraft = ref('')
 const paymentProofActionError = ref('')
+const paymentPanelRef = ref<HTMLElement | null>(null)
 
 function normalizeSessionFormat(detail: SessionDetail | null): SessionFormat {
   if (!detail) return 'online'
@@ -615,6 +718,129 @@ const postSessionClientLink = computed(() => {
 const sessionRequests = computed(() =>
   session.value ? rescheduleRequests.value.filter((item) => item.session_id === session.value?.id) : []
 )
+
+const workspace = computed<SessionWorkspace | null>(() => session.value?.workspace || null)
+
+const workspacePanelVisible = computed(() => Boolean(workspace.value))
+
+const workspacePaymentState = computed<WorkspacePaymentState | null>(() => workspace.value?.payment_state || null)
+const workspaceNoteState = computed<WorkspaceNoteState | null>(() => workspace.value?.note_state || null)
+const workspaceWorkbookState = computed<WorkspaceWorkbookState | null>(() => workspace.value?.workbook_state || null)
+
+const workspaceSummaryItems = computed<WorkspaceSummaryItem[]>(() => {
+  if (!workspace.value) return []
+
+  const items: WorkspaceSummaryItem[] = []
+  const paymentState = workspacePaymentState.value
+  const noteState = workspaceNoteState.value
+  const workbookState = workspaceWorkbookState.value
+
+  if (paymentState && paymentState !== 'not_applicable') {
+    items.push({
+      key: 'payment',
+      title: 'Оплата',
+      statusLabel: paymentStateLabel(paymentState),
+      pillClass: paymentStateClass(paymentState),
+      updatedAtLabel: formatWorkspaceUpdatedAt(workspace.value.payment_updated_at),
+    })
+  }
+
+  if (noteState) {
+    items.push({
+      key: 'note',
+      title: 'Нотатка',
+      statusLabel: noteStateLabel(noteState),
+      pillClass: noteStateClass(noteState),
+      updatedAtLabel: formatWorkspaceUpdatedAt(workspace.value.note_updated_at),
+    })
+  }
+
+  if (workbookState) {
+    items.push({
+      key: 'workbook',
+      title: 'Робочий зошит',
+      statusLabel: noteStateLabel(workbookState),
+      pillClass: noteStateClass(workbookState),
+      updatedAtLabel: formatWorkspaceUpdatedAt(workspace.value.workbook_updated_at),
+    })
+  }
+
+  return items
+})
+
+const workspaceActions = computed<WorkspaceAction[]>(() => {
+  if (!workspace.value) return []
+  const sourceItems = normalizeWorkspaceItems(
+    workspace.value.pending_tasks && workspace.value.pending_tasks.length
+      ? workspace.value.pending_tasks
+      : workspace.value.available_actions
+  )
+  const hasSourceItems = sourceItems.length > 0
+
+  const notePermission = hasWorkspaceDomainPermission('note')
+  const workbookPermission = hasWorkspaceDomainPermission('workbook')
+  const paymentPermission = hasWorkspaceDomainPermission('payment')
+
+  const noteState = workspaceNoteState.value
+  const workbookState = workspaceWorkbookState.value
+  const paymentState = workspacePaymentState.value
+
+  const noteRequested = sourceItems.some((item) => detectWorkspaceDomain(item) === 'note')
+  const workbookRequested = sourceItems.some((item) => detectWorkspaceDomain(item) === 'workbook')
+  const paymentRequested = sourceItems.some((item) => detectWorkspaceDomain(item) === 'payment')
+
+  const actions: WorkspaceAction[] = []
+
+  if (
+    notePermission &&
+    noteState &&
+    noteState !== 'hidden' &&
+    noteState !== 'completed' &&
+    (!hasSourceItems || noteRequested)
+  ) {
+    actions.push({
+      id: 'note',
+      label: noteState === 'draft' ? 'Продовжити нотатку' : 'Відкрити нотатку',
+      priority: noteState === 'missing' ? 10 : 20,
+      run: () => focusSessionNote(),
+    })
+  }
+
+  if (
+    workbookPermission &&
+    workbookState &&
+    workbookState !== 'hidden' &&
+    workbookState !== 'completed' &&
+    (!hasSourceItems || workbookRequested)
+  ) {
+    actions.push({
+      id: 'workbook',
+      label: workbookState === 'draft' ? 'Продовжити робочий зошит' : 'Відкрити робочий зошит',
+      priority: workbookState === 'missing' ? 30 : 40,
+      run: () => openPostSessionWorkbook(),
+    })
+  }
+
+  if (
+    paymentPermission &&
+    paymentState &&
+    paymentState !== 'paid' &&
+    paymentState !== 'not_applicable' &&
+    (!hasSourceItems || paymentRequested)
+  ) {
+    actions.push({
+      id: 'payment',
+      label: paymentState === 'awaiting_confirmation' ? 'Перевірити оплату' : 'Відкрити блок оплати',
+      priority: paymentState === 'awaiting_confirmation' ? 5 : 50,
+      run: () => focusPaymentBlock(),
+    })
+  }
+
+  return actions.sort((a, b) => a.priority - b.priority)
+})
+
+const workspacePrimaryAction = computed<WorkspaceAction | null>(() => workspaceActions.value[0] || null)
+const workspaceSecondaryActions = computed(() => workspaceActions.value.slice(1))
 
 const completionPlannedDuration = computed(() => {
   if (!session.value) return null
@@ -663,6 +889,101 @@ function statusLabel(detail: SessionDetail) {
 
 function statusClass(detail: SessionDetail) {
   return getStatusClass(detail)
+}
+
+function formatWorkspaceUpdatedAt(value?: string | null) {
+  if (!value) return ''
+  return sharedFormatSessionDateTime(value)
+}
+
+function paymentStateLabel(state: WorkspacePaymentState) {
+  if (state === 'paid') return 'Оплачено'
+  if (state === 'awaiting_confirmation') return 'Очікує підтвердження'
+  if (state === 'unpaid') return 'Не оплачено'
+  if (state === 'not_applicable') return 'Не застосовується'
+  return state
+}
+
+function paymentStateClass(state: WorkspacePaymentState) {
+  if (state === 'paid') return 'status-pill--ok'
+  if (state === 'awaiting_confirmation') return 'status-pill--warn'
+  if (state === 'unpaid') return 'status-pill--muted'
+  return 'status-pill--muted'
+}
+
+function noteStateLabel(state: WorkspaceNoteState | WorkspaceWorkbookState) {
+  if (state === 'missing') return 'Потрібно створити'
+  if (state === 'draft') return 'Чернетка'
+  if (state === 'completed') return 'Заповнено'
+  if (state === 'hidden') return 'Недоступно'
+  return state
+}
+
+function noteStateClass(state: WorkspaceNoteState | WorkspaceWorkbookState) {
+  if (state === 'completed') return 'status-pill--ok'
+  if (state === 'draft') return 'status-pill--warn'
+  if (state === 'missing') return 'status-pill--muted'
+  if (state === 'hidden') return 'status-pill--muted'
+  return 'status-pill--muted'
+}
+
+function normalizeWorkspaceItems(items?: SessionWorkspaceItem[] | null) {
+  if (!items || !Array.isArray(items)) return []
+  return items
+    .map((item) => {
+      if (typeof item === 'string') {
+        return {
+          code: item.trim().toLowerCase(),
+          label: item.trim(),
+        }
+      }
+      if (!item || typeof item !== 'object') return null
+      const rawCode = typeof item.code === 'string' ? item.code : ''
+      const rawLabel =
+        typeof item.label === 'string'
+          ? item.label
+          : typeof item.title === 'string'
+            ? item.title
+            : typeof item.name === 'string'
+              ? item.name
+              : ''
+
+      const code = rawCode.trim().toLowerCase()
+      const label = rawLabel.trim()
+      if (!code && !label) return null
+      return { code, label }
+    })
+    .filter((item): item is { code: string; label: string } => Boolean(item))
+}
+
+function detectWorkspaceDomain(item: { code: string; label: string }): WorkspaceDomain | null {
+  const haystack = `${item.code} ${item.label}`.toLowerCase()
+  if (haystack.includes('workbook') || haystack.includes('journal')) return 'workbook'
+  if (haystack.includes('note')) return 'note'
+  if (haystack.includes('payment') || haystack.includes('proof') || haystack.includes('paid')) {
+    return 'payment'
+  }
+  return null
+}
+
+function hasWorkspaceDomainPermission(domain: WorkspaceDomain) {
+  const permissions = workspace.value?.permissions
+  if (!permissions || typeof permissions !== 'object') return true
+
+  const domainHints: Record<WorkspaceDomain, string[]> = {
+    payment: ['payment', 'proof', 'paid'],
+    note: ['note'],
+    workbook: ['workbook', 'journal'],
+  }
+
+  const matched = Object.entries(permissions).filter(([key, value]) => {
+    if (typeof value !== 'boolean') return false
+    const normalized = key.toLowerCase()
+    return domainHints[domain].some((hint) => normalized.includes(hint))
+  })
+
+  if (!matched.length) return true
+  return matched.some(([, value]) => value === true)
 }
 
 function rescheduleStatusLabel(status: string) {
@@ -717,6 +1038,10 @@ function onPaymentProofUpdated(nextPaymentProof: SessionPaymentProof) {
     ...session.value,
     payment_proof: nextPaymentProof,
   }
+}
+
+function focusPaymentBlock() {
+  paymentPanelRef.value?.scrollIntoView({ behavior: 'smooth', block: 'center' })
 }
 
 function onPaymentDetailsMissing(message: string) {
@@ -1107,6 +1432,10 @@ watch(
   background: linear-gradient(135deg, rgba(31, 122, 76, 0.1), rgba(7, 47, 71, 0.04));
 }
 
+.panel--workspace {
+  background: linear-gradient(135deg, rgba(7, 47, 71, 0.06), rgba(8, 113, 201, 0.05));
+}
+
 .panel__header {
   display: flex;
   align-items: flex-start;
@@ -1142,6 +1471,59 @@ watch(
   flex-wrap: wrap;
   gap: 8px;
   justify-content: flex-end;
+}
+
+.workspace-summary {
+  display: grid;
+  gap: 10px;
+}
+
+.workspace-summary__item {
+  border: 1px solid rgba(7, 47, 71, 0.12);
+  border-radius: var(--radius-md);
+  background: rgba(7, 47, 71, 0.03);
+  padding: 10px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.workspace-summary__meta {
+  display: grid;
+  gap: 2px;
+}
+
+.workspace-summary__label {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.workspace-summary__updated {
+  font-size: 12px;
+}
+
+.workspace-actions {
+  display: grid;
+  gap: 10px;
+  border: 1px solid rgba(217, 164, 65, 0.36);
+  background: rgba(217, 164, 65, 0.08);
+  border-radius: var(--radius-md);
+  padding: 12px;
+}
+
+.workspace-actions__title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #7f5a12;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.workspace-actions__secondary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .detail-grid {

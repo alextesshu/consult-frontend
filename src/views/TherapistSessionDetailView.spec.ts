@@ -86,6 +86,27 @@ function buildSession(overrides: Record<string, unknown> = {}) {
   }
 }
 
+function buildWorkspace(overrides: Record<string, unknown> = {}) {
+  return {
+    session_id: 42,
+    lifecycle_status: 'completed',
+    payment_state: 'unpaid',
+    note_state: 'missing',
+    workbook_state: 'missing',
+    payment_updated_at: '2099-06-15T12:00:00Z',
+    note_updated_at: '2099-06-15T12:00:00Z',
+    workbook_updated_at: '2099-06-15T12:00:00Z',
+    permissions: {
+      can_edit_note: true,
+      can_open_workbook: true,
+      can_review_payment: true,
+    },
+    available_actions: ['OPEN_NOTE', 'OPEN_WORKBOOK', 'REVIEW_PAYMENT'],
+    pending_tasks: ['OPEN_NOTE', 'OPEN_WORKBOOK', 'REVIEW_PAYMENT'],
+    ...overrides,
+  }
+}
+
 function buildSlot(overrides: Record<string, unknown> = {}) {
   return {
     id: 9,
@@ -362,6 +383,114 @@ describe('TherapistSessionDetailView', () => {
 
     expect(await screen.findByText(/Оплату позначено як отриману/)).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Позначити як оплачено' })).not.toBeInTheDocument()
+  })
+
+  it('renders workspace pending actions for missing note and workbook with unpaid payment state', async () => {
+    const sessionDetail = buildSession({
+      status: 'COMPLETED',
+      workspace: buildWorkspace({
+        payment_state: 'unpaid',
+        note_state: 'missing',
+        workbook_state: 'missing',
+      }),
+    })
+    mockDetailContext(() => sessionDetail, { requests: [] })
+
+    renderView()
+
+    expect(await screen.findByTestId('session-workspace')).toBeInTheDocument()
+    expect(screen.getByTestId('workspace-summary-payment')).toHaveTextContent('Не оплачено')
+    expect(screen.getByTestId('workspace-summary-note')).toHaveTextContent('Потрібно створити')
+    expect(screen.getByTestId('workspace-summary-workbook')).toHaveTextContent('Потрібно створити')
+    expect(screen.getByTestId('workspace-actions')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Відкрити нотатку' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Відкрити робочий зошит' })).toBeInTheDocument()
+  })
+
+  it('uses continue semantics for note draft and keeps workbook pending action', async () => {
+    const sessionDetail = buildSession({
+      status: 'COMPLETED',
+      workspace: buildWorkspace({
+        payment_state: 'unpaid',
+        note_state: 'draft',
+        workbook_state: 'missing',
+      }),
+    })
+    mockDetailContext(() => sessionDetail, { requests: [] })
+
+    renderView()
+
+    expect(await screen.findByTestId('session-workspace')).toBeInTheDocument()
+    expect(screen.getByTestId('workspace-summary-note')).toHaveTextContent('Чернетка')
+    expect(screen.getByRole('button', { name: 'Продовжити нотатку' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Відкрити робочий зошит' })).toBeInTheDocument()
+  })
+
+  it('shows done states without noisy pending actions when workspace is complete', async () => {
+    const sessionDetail = buildSession({
+      status: 'COMPLETED',
+      workspace: buildWorkspace({
+        payment_state: 'paid',
+        note_state: 'completed',
+        workbook_state: 'completed',
+        pending_tasks: [],
+        available_actions: [],
+      }),
+    })
+    mockDetailContext(() => sessionDetail, { requests: [] })
+
+    renderView()
+
+    expect(await screen.findByTestId('session-workspace')).toBeInTheDocument()
+    expect(screen.getByTestId('workspace-summary-payment')).toHaveTextContent('Оплачено')
+    expect(screen.getByTestId('workspace-summary-note')).toHaveTextContent('Заповнено')
+    expect(screen.getByTestId('workspace-summary-workbook')).toHaveTextContent('Заповнено')
+    expect(screen.queryByTestId('workspace-actions')).not.toBeInTheDocument()
+    expect(screen.getByTestId('workspace-no-pending')).toBeInTheDocument()
+  })
+
+  it('shows payment awaiting confirmation state and payment review action when available', async () => {
+    const sessionDetail = buildSession({
+      status: 'COMPLETED',
+      workspace: buildWorkspace({
+        payment_state: 'awaiting_confirmation',
+        note_state: 'completed',
+        workbook_state: 'completed',
+        pending_tasks: ['REVIEW_PAYMENT'],
+        available_actions: ['REVIEW_PAYMENT'],
+      }),
+    })
+    mockDetailContext(() => sessionDetail, { requests: [] })
+
+    renderView()
+
+    expect(await screen.findByTestId('session-workspace')).toBeInTheDocument()
+    expect(screen.getByTestId('workspace-summary-payment')).toHaveTextContent('Очікує підтвердження')
+    expect(screen.getByRole('button', { name: 'Перевірити оплату' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Відкрити нотатку' })).not.toBeInTheDocument()
+  })
+
+  it('does not treat hidden workspace states as missing and avoids hidden CTAs', async () => {
+    const sessionDetail = buildSession({
+      status: 'COMPLETED',
+      workspace: buildWorkspace({
+        payment_state: 'paid',
+        note_state: 'hidden',
+        workbook_state: 'hidden',
+        pending_tasks: ['REVIEW_PAYMENT'],
+        available_actions: ['REVIEW_PAYMENT'],
+      }),
+    })
+    mockDetailContext(() => sessionDetail, { requests: [] })
+
+    renderView()
+
+    expect(await screen.findByTestId('session-workspace')).toBeInTheDocument()
+    expect(screen.getByTestId('workspace-summary-note')).toHaveTextContent('Недоступно')
+    expect(screen.getByTestId('workspace-summary-workbook')).toHaveTextContent('Недоступно')
+    expect(screen.queryByText('Потрібно створити')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Відкрити нотатку' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Відкрити робочий зошит' })).not.toBeInTheDocument()
   })
 
   it('shows actionable inline message for PAYMENT_DETAILS_MISSING and links to payment details settings', async () => {
