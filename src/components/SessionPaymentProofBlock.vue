@@ -12,6 +12,58 @@
 
     <p class="payment-proof__helper muted">{{ helperCopy }}</p>
 
+    <section v-if="paymentInstructions" class="payment-instructions">
+      <h4 class="payment-instructions__title">Платіжні реквізити</h4>
+
+      <div class="payment-instructions__grid">
+        <div class="payment-instructions__row">
+          <span class="muted">Спосіб оплати</span>
+          <strong>{{ paymentMethodLabel }}</strong>
+        </div>
+        <div v-if="snapshotCreatedAtLabel" class="payment-instructions__row">
+          <span class="muted">Реквізити зафіксовано</span>
+          <span>{{ snapshotCreatedAtLabel }}</span>
+        </div>
+        <div class="payment-instructions__row">
+          <span class="muted">Отримувач</span>
+          <strong>{{ paymentInstructions.recipientName }}</strong>
+        </div>
+        <div class="payment-instructions__row">
+          <span class="muted">{{ mainValueLabel }}</span>
+          <strong>{{ mainValue }}</strong>
+        </div>
+        <div v-if="paymentInstructions.bankName" class="payment-instructions__row">
+          <span class="muted">Банк</span>
+          <span>{{ paymentInstructions.bankName }}</span>
+        </div>
+        <div v-if="paymentInstructions.paymentPurpose" class="payment-instructions__row">
+          <span class="muted">Призначення платежу</span>
+          <span>{{ paymentInstructions.paymentPurpose }}</span>
+        </div>
+        <div v-if="paymentInstructions.comment" class="payment-instructions__row">
+          <span class="muted">Коментар</span>
+          <span>{{ paymentInstructions.comment }}</span>
+        </div>
+      </div>
+
+      <div class="payment-proof__actions">
+        <button class="btn btn--ghost btn--sm" type="button" @click="copyMainValue">
+          {{ copyMainLabel }}
+        </button>
+        <button
+          v-if="paymentInstructions.paymentPurpose"
+          class="btn btn--ghost btn--sm"
+          type="button"
+          @click="copyPaymentPurpose"
+        >
+          Скопіювати призначення
+        </button>
+        <button class="btn btn--ghost btn--sm" type="button" @click="copyAllInstructions">
+          Скопіювати всі реквізити
+        </button>
+      </div>
+    </section>
+
     <div v-if="proof.image_url" class="payment-proof__preview">
       <a :href="proof.image_url" target="_blank" rel="noopener noreferrer">
         <img class="payment-proof__image" :src="proof.image_url" alt="Підтвердження оплати" />
@@ -76,15 +128,28 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { formatUkDateTimeCompact } from '../lib/dateTime'
 import {
   fetchSessionPaymentProof,
   markSessionPaymentProofPaid,
   requestSessionPaymentProof,
   requestSessionPaymentProofClarification,
   uploadSessionPaymentProof,
+  type SessionPaymentInstructions,
   type SessionPaymentProof,
 } from '../lib/api'
 import { useToast } from '../composables/useToast'
+
+type NormalizedPaymentInstructions = {
+  methodType: 'bank_account' | 'card'
+  snapshotCreatedAt: string
+  recipientName: string
+  iban: string
+  cardNumber: string
+  bankName: string
+  paymentPurpose: string
+  comment: string
+}
 
 const props = defineProps<{
   sessionId: number
@@ -94,6 +159,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'updated', value: SessionPaymentProof): void
+  (e: 'payment-details-missing', value: string): void
 }>()
 
 const toast = useToast()
@@ -118,6 +184,7 @@ const fallbackProof: SessionPaymentProof = {
   specialist_can_mark_paid_now: false,
   specialist_can_request_clarification_now: false,
   specialist_can_request_proof_now: false,
+  payment_instructions: null,
 }
 
 const proof = computed<SessionPaymentProof>(() => props.paymentProof || fallbackProof)
@@ -163,6 +230,106 @@ const statusPillClass = computed(() => {
   return 'status-pill--muted'
 })
 
+const paymentInstructions = computed<NormalizedPaymentInstructions | null>(() =>
+  normalizePaymentInstructions(proof.value.payment_instructions)
+)
+
+const paymentMethodLabel = computed(() =>
+  paymentInstructions.value?.methodType === 'card' ? 'Картка' : 'Банківський рахунок (IBAN)'
+)
+const mainValueLabel = computed(() =>
+  paymentInstructions.value?.methodType === 'card' ? 'Номер картки' : 'IBAN'
+)
+const mainValue = computed(() =>
+  paymentInstructions.value?.methodType === 'card'
+    ? paymentInstructions.value.cardNumber
+    : paymentInstructions.value?.iban || ''
+)
+const copyMainLabel = computed(() =>
+  paymentInstructions.value?.methodType === 'card' ? 'Скопіювати номер картки' : 'Скопіювати IBAN'
+)
+const snapshotCreatedAtLabel = computed(() =>
+  paymentInstructions.value?.snapshotCreatedAt
+    ? formatUkDateTimeCompact(paymentInstructions.value.snapshotCreatedAt, '')
+    : ''
+)
+
+function getStringValue(value: unknown) {
+  return typeof value === 'string' ? value.trim() : ''
+}
+
+function normalizeMethod(raw: unknown): 'bank_account' | 'card' {
+  return raw === 'card' ? 'card' : 'bank_account'
+}
+
+function normalizePaymentInstructions(payload: SessionPaymentInstructions | null | undefined): NormalizedPaymentInstructions | null {
+  if (!payload) return null
+  const methodType = normalizeMethod(payload.method_type)
+  const recipientName = getStringValue(payload.recipient_name)
+  const iban = getStringValue(payload.iban)
+  const cardNumber = getStringValue(payload.card_number)
+  const bankName = getStringValue(payload.bank_name)
+  const paymentPurpose = getStringValue(payload.payment_purpose)
+  const comment = getStringValue(payload.comment)
+  const snapshotCreatedAt = getStringValue(payload.snapshot_created_at)
+  const mainValue = methodType === 'card' ? cardNumber : iban
+  if (!recipientName || !mainValue) return null
+  return {
+    methodType,
+    snapshotCreatedAt,
+    recipientName,
+    iban,
+    cardNumber,
+    bankName,
+    paymentPurpose,
+    comment,
+  }
+}
+
+function getPaymentDetailsMissingMessage(err: unknown): string {
+  const response = (err as { response?: { data?: unknown } })?.response?.data
+  if (!response || typeof response !== 'object') return ''
+  const code = (response as { code?: unknown }).code
+  if (code !== 'PAYMENT_DETAILS_MISSING') return ''
+  const detail = (response as { detail?: unknown }).detail
+  if (typeof detail === 'string' && detail.trim()) return detail
+  return 'Запит на підтвердження оплати недоступний. Спочатку додайте реквізити для оплати.'
+}
+
+async function copyText(value: string) {
+  if (!value) return
+  try {
+    await navigator.clipboard.writeText(value)
+    toast.success('Скопійовано')
+  } catch {
+    toast.error('Не вдалося скопіювати.')
+  }
+}
+
+async function copyMainValue() {
+  await copyText(mainValue.value)
+}
+
+async function copyPaymentPurpose() {
+  if (!paymentInstructions.value?.paymentPurpose) return
+  await copyText(paymentInstructions.value.paymentPurpose)
+}
+
+async function copyAllInstructions() {
+  if (!paymentInstructions.value) return
+  const lines = [
+    `Спосіб оплати: ${paymentMethodLabel.value}`,
+    `Отримувач: ${paymentInstructions.value.recipientName}`,
+    `${mainValueLabel.value}: ${mainValue.value}`,
+  ]
+  if (paymentInstructions.value.bankName) lines.push(`Банк: ${paymentInstructions.value.bankName}`)
+  if (paymentInstructions.value.paymentPurpose) {
+    lines.push(`Призначення платежу: ${paymentInstructions.value.paymentPurpose}`)
+  }
+  if (paymentInstructions.value.comment) lines.push(`Коментар: ${paymentInstructions.value.comment}`)
+  await copyText(lines.join('\n'))
+}
+
 async function refreshProofState() {
   const latest = await fetchSessionPaymentProof(props.sessionId)
   emit('updated', latest)
@@ -180,6 +347,11 @@ async function runSpecialistAction(
     await refreshProofState()
     toast.success(successMessage)
   } catch (err) {
+    const paymentDetailsMissingMessage = getPaymentDetailsMissingMessage(err)
+    if (paymentDetailsMissingMessage) {
+      emit('payment-details-missing', paymentDetailsMissingMessage)
+      return
+    }
     toast.error(readPaymentProofError(err, fallbackError))
   } finally {
     actionLoading.value = false
@@ -277,6 +449,30 @@ function readPaymentProofError(err: unknown, fallback: string): string {
   margin: 0;
   font-size: 12px;
   line-height: 1.45;
+}
+
+.payment-instructions {
+  display: grid;
+  gap: 8px;
+  border: 1px solid rgba(7, 47, 71, 0.12);
+  border-radius: var(--radius-sm);
+  background: #fff;
+  padding: 10px;
+}
+
+.payment-instructions__title {
+  margin: 0;
+  font-size: 14px;
+}
+
+.payment-instructions__grid {
+  display: grid;
+  gap: 6px;
+}
+
+.payment-instructions__row {
+  display: grid;
+  gap: 2px;
 }
 
 .payment-proof__preview {

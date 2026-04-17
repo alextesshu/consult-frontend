@@ -210,7 +210,14 @@
           role="specialist"
           :payment-proof="session.payment_proof"
           @updated="onPaymentProofUpdated"
+          @payment-details-missing="onPaymentDetailsMissing"
         />
+        <div v-if="paymentProofActionError" class="payment-proof-error">
+          <p>{{ paymentProofActionError }}</p>
+          <button class="btn btn--ghost btn--sm" type="button" @click="openPaymentDetailsSettings">
+            Перейти до реквізитів для оплати
+          </button>
+        </div>
       </section>
 
       <section v-if="sessionRequests.length" class="panel">
@@ -438,7 +445,7 @@
 
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import {
   apiGet,
   updateSpecialistSessionMeeting,
@@ -533,6 +540,7 @@ type PostSessionContext = {
 }
 
 const route = useRoute()
+const router = useRouter()
 const toast = useToast()
 const sessionId = computed(() => Number(route.params.id))
 const hasValidSessionId = computed(() => Number.isInteger(sessionId.value) && sessionId.value > 0)
@@ -565,6 +573,7 @@ const postSessionContext = ref<PostSessionContext | null>(null)
 const postSessionNextSession = ref<Pick<SessionDetail, 'id' | 'status' | 'slot' | 'slot_start_at'> | null>(null)
 const isEditingMeetingLink = ref(false)
 const meetingLinkDraft = ref('')
+const paymentProofActionError = ref('')
 
 function normalizeSessionFormat(detail: SessionDetail | null): SessionFormat {
   if (!detail) return 'online'
@@ -703,10 +712,19 @@ function setRequestLoading(id: number, value: boolean) {
 
 function onPaymentProofUpdated(nextPaymentProof: SessionPaymentProof) {
   if (!session.value) return
+  paymentProofActionError.value = ''
   session.value = {
     ...session.value,
     payment_proof: nextPaymentProof,
   }
+}
+
+function onPaymentDetailsMissing(message: string) {
+  paymentProofActionError.value = message
+}
+
+function openPaymentDetailsSettings() {
+  router.push({ path: '/cabinet/settings', hash: '#payment-details' })
 }
 
 async function loadSession() {
@@ -718,6 +736,7 @@ async function loadSession() {
   loading.value = true
   error.value = ''
   pageError.value = ''
+  paymentProofActionError.value = ''
   try {
     session.value = await apiGet<SessionDetail>(`/booking/sessions/${sessionId.value}/`)
   } catch (err: any) {
@@ -1344,6 +1363,21 @@ watch(
   border: 1px solid #f5c2c0;
   border-radius: var(--radius-sm);
   padding: 8px 10px;
+}
+
+.payment-proof-error {
+  margin-top: 8px;
+  display: grid;
+  gap: 8px;
+  border: 1px solid #f5c2c0;
+  background: #fdecea;
+  border-radius: var(--radius-sm);
+  padding: 10px;
+}
+
+.payment-proof-error p {
+  margin: 0;
+  color: #8a1f18;
 }
 
 .btn--sm {

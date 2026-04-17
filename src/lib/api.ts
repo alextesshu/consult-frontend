@@ -1479,6 +1479,41 @@ export async function apiDelete<T>(url: string, config?: AxiosRequestConfig): Pr
   return resp.data
 }
 
+export type SpecialistPaymentMethodType = 'bank_account' | 'card' | string
+
+export type SpecialistPaymentDetails = {
+  method_type: SpecialistPaymentMethodType | null
+  recipient_name: string
+  iban: string
+  card_number: string
+  bank_name: string
+  payment_purpose: string
+  comment: string
+}
+
+export type SessionPaymentInstructions = {
+  method_type?: SpecialistPaymentMethodType | null
+  recipient_name?: string | null
+  iban?: string | null
+  card_number?: string | null
+  bank_name?: string | null
+  payment_purpose?: string | null
+  comment?: string | null
+  snapshot_created_at?: string | null
+}
+
+export async function fetchCabinetPaymentDetails(): Promise<SpecialistPaymentDetails> {
+  const resp = await http.get<SpecialistPaymentDetails>('/cabinet/payment-details/')
+  return resp.data
+}
+
+export async function updateCabinetPaymentDetails(
+  payload: Partial<SpecialistPaymentDetails>
+): Promise<SpecialistPaymentDetails> {
+  const resp = await http.patch<SpecialistPaymentDetails>('/cabinet/payment-details/', payload)
+  return resp.data
+}
+
 export type SessionPaymentProofStatus =
   | 'NOT_REQUESTED'
   | 'REQUESTED'
@@ -1500,6 +1535,7 @@ export type SessionPaymentProof = {
   specialist_can_mark_paid_now: boolean
   specialist_can_request_clarification_now: boolean
   specialist_can_request_proof_now: boolean
+  payment_instructions?: SessionPaymentInstructions | null
 }
 
 export async function fetchSessionPaymentProof(sessionId: number): Promise<SessionPaymentProof> {
