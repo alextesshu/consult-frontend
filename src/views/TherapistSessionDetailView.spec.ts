@@ -339,7 +339,7 @@ describe('TherapistSessionDetailView', () => {
         status: 409,
         data: {
           code: 'PAYMENT_DETAILS_MISSING',
-          detail: 'Додайте реквізити для оплати перед запитом підтвердження.',
+          detail: 'Specialist payment details are not configured.',
         },
       },
     })
@@ -349,12 +349,57 @@ describe('TherapistSessionDetailView', () => {
     expect(await screen.findByText(/Оплату не запитано/)).toBeInTheDocument()
     await fireEvent.click(screen.getByRole('button', { name: /Запросити оплату/ }))
 
-    expect(await screen.findByText('Додайте реквізити для оплати перед запитом підтвердження.')).toBeInTheDocument()
+    expect(await screen.findByText('Щоб запросити оплату, спочатку додайте реквізити для оплати.')).toBeInTheDocument()
     expect(mockToast.error).not.toHaveBeenCalled()
     expect(mockedFetchSessionPaymentProof).not.toHaveBeenCalled()
 
     await fireEvent.click(screen.getByRole('button', { name: 'Перейти до реквізитів для оплати' }))
     expect(mockRouter.push).toHaveBeenCalledWith({ path: '/cabinet/settings', hash: '#payment-details' })
+  })
+
+  it('shows payment-details-missing inline UX on first click for reason_code response shape', async () => {
+    const initialPaymentProof = {
+      status: 'NOT_REQUESTED',
+      image_url: null,
+      requested_by_specialist_at: null,
+      submitted_by_client_at: null,
+      reviewed_by_specialist_at: null,
+      marked_paid_at: null,
+      clarification_requested_at: null,
+      specialist_note: '',
+      client_can_upload_now: false,
+      specialist_can_mark_paid_now: false,
+      specialist_can_request_clarification_now: false,
+      specialist_can_request_proof_now: true,
+      payment_instructions: null,
+    }
+    const sessionDetail = buildSession({
+      status: 'SCHEDULED',
+      payment_proof: initialPaymentProof,
+    })
+    mockDetailContext(() => sessionDetail, { requests: [] })
+
+    mockedRequestSessionPaymentProof.mockRejectedValue({
+      response: {
+        status: 409,
+        data: {
+          code: 'STATE_TRANSITION_INVALID',
+          reason_code: 'PAYMENT_DETAILS_MISSING',
+          detail: 'Specialist payment details are not configured.',
+        },
+      },
+    })
+
+    renderView()
+
+    expect(await screen.findByText(/Оплату не запитано/)).toBeInTheDocument()
+    await fireEvent.click(screen.getByRole('button', { name: /Запросити оплату/ }))
+
+    await waitFor(() => {
+      expect(mockedRequestSessionPaymentProof).toHaveBeenCalledTimes(1)
+    })
+    expect(await screen.findByText('Щоб запросити оплату, спочатку додайте реквізити для оплати.')).toBeInTheDocument()
+    expect(mockToast.error).not.toHaveBeenCalled()
   })
 
   it.each([

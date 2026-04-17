@@ -262,6 +262,9 @@ function normalizeMethod(raw: unknown): 'bank_account' | 'card' {
   return raw === 'card' ? 'card' : 'bank_account'
 }
 
+const PAYMENT_DETAILS_MISSING_COPY =
+  'Щоб запросити оплату, спочатку додайте реквізити для оплати.'
+
 function normalizePaymentInstructions(payload: SessionPaymentInstructions | null | undefined): NormalizedPaymentInstructions | null {
   if (!payload) return null
   const methodType = normalizeMethod(payload.method_type)
@@ -287,13 +290,18 @@ function normalizePaymentInstructions(payload: SessionPaymentInstructions | null
 }
 
 function getPaymentDetailsMissingMessage(err: unknown): string {
-  const response = (err as { response?: { data?: unknown } })?.response?.data
-  if (!response || typeof response !== 'object') return ''
-  const code = (response as { code?: unknown }).code
-  if (code !== 'PAYMENT_DETAILS_MISSING') return ''
-  const detail = (response as { detail?: unknown }).detail
-  if (typeof detail === 'string' && detail.trim()) return detail
-  return 'Запит на підтвердження оплати недоступний. Спочатку додайте реквізити для оплати.'
+  const errorResponse = (err as { response?: { status?: unknown; data?: unknown } })?.response
+  const status = typeof errorResponse?.status === 'number' ? errorResponse.status : null
+  const response = errorResponse?.data
+  if (status !== 409 || !response || typeof response !== 'object') return ''
+  const rawCode = (response as { code?: unknown }).code
+  const rawReasonCode = (response as { reason_code?: unknown }).reason_code
+  const code = typeof rawCode === 'string' ? rawCode.trim().toUpperCase() : ''
+  const reasonCode = typeof rawReasonCode === 'string' ? rawReasonCode.trim().toUpperCase() : ''
+  if (code === 'PAYMENT_DETAILS_MISSING' || reasonCode === 'PAYMENT_DETAILS_MISSING') {
+    return PAYMENT_DETAILS_MISSING_COPY
+  }
+  return ''
 }
 
 async function copyText(value: string) {

@@ -55,6 +55,9 @@ function buildPaymentProof(overrides: Record<string, unknown> = {}) {
 }
 
 describe('SessionPaymentProofBlock payment instructions', () => {
+  const paymentDetailsMissingCopy =
+    'Щоб запросити оплату, спочатку додайте реквізити для оплати.'
+
   beforeEach(() => {
     mockedFetchSessionPaymentProof.mockReset()
     mockedRequestSessionPaymentProof.mockReset()
@@ -192,7 +195,7 @@ describe('SessionPaymentProofBlock payment instructions', () => {
         status: 409,
         data: {
           code: 'PAYMENT_DETAILS_MISSING',
-          detail: 'Спочатку додайте реквізити.',
+          detail: 'Specialist payment details are not configured.',
         },
       },
     })
@@ -216,7 +219,41 @@ describe('SessionPaymentProofBlock payment instructions', () => {
 
     const emitted = view.emitted('payment-details-missing')
     expect(emitted).toBeTruthy()
-    expect(emitted?.[0]).toEqual(['Спочатку додайте реквізити.'])
+    expect(emitted?.[0]).toEqual([paymentDetailsMissingCopy])
+    expect(mockToast.error).not.toHaveBeenCalled()
+  })
+
+  it('emits payment-details-missing event when backend returns reason_code shape', async () => {
+    mockedRequestSessionPaymentProof.mockRejectedValue({
+      response: {
+        status: 409,
+        data: {
+          code: 'STATE_TRANSITION_INVALID',
+          reason_code: 'PAYMENT_DETAILS_MISSING',
+          detail: 'Specialist payment details are not configured.',
+        },
+      },
+    })
+
+    const view = render(SessionPaymentProofBlock, {
+      props: {
+        sessionId: 42,
+        role: 'specialist',
+        paymentProof: buildPaymentProof({
+          specialist_can_request_proof_now: true,
+        }),
+      },
+    })
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Запросити оплату' }))
+
+    await waitFor(() => {
+      expect(mockedRequestSessionPaymentProof).toHaveBeenCalledWith(42)
+    })
+
+    const emitted = view.emitted('payment-details-missing')
+    expect(emitted).toBeTruthy()
+    expect(emitted?.[0]).toEqual([paymentDetailsMissingCopy])
     expect(mockToast.error).not.toHaveBeenCalled()
   })
 
