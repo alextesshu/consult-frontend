@@ -572,6 +572,15 @@ type SessionSlot = {
 type WorkspacePaymentState = 'paid' | 'awaiting_confirmation' | 'unpaid' | 'not_applicable' | string
 type WorkspaceNoteState = 'hidden' | 'missing' | 'draft' | 'completed' | string
 type WorkspaceWorkbookState = 'hidden' | 'missing' | 'draft' | 'completed' | string
+type WorkspaceDomain = 'payment' | 'note' | 'workbook'
+type WorkspaceActionCode =
+  | 'OPEN_NOTE'
+  | 'CONTINUE_NOTE'
+  | 'OPEN_WORKBOOK'
+  | 'CONTINUE_WORKBOOK'
+  | 'REVIEW_PAYMENT'
+  | 'UPLOAD_PAYMENT_PROOF'
+  | 'CONFIRM_PAYMENT'
 
 type SessionWorkspaceItem = string | {
   code?: string | null
@@ -590,6 +599,8 @@ type SessionWorkspace = {
   note_updated_at?: string | null
   workbook_updated_at?: string | null
   permissions?: Record<string, unknown> | null
+  available_action_items?: SessionWorkspaceItem[] | null
+  pending_task_items?: SessionWorkspaceItem[] | null
   available_actions?: SessionWorkspaceItem[] | null
   pending_tasks?: SessionWorkspaceItem[] | null
 }
@@ -624,8 +635,6 @@ type PostSessionContext = {
   clientId: number | null
 }
 
-type WorkspaceDomain = 'payment' | 'note' | 'workbook'
-
 type WorkspaceSummaryItem = {
   key: WorkspaceDomain
   title: string
@@ -635,10 +644,40 @@ type WorkspaceSummaryItem = {
 }
 
 type WorkspaceAction = {
-  id: WorkspaceDomain
+  id: string
   label: string
   priority: number
   run: () => void | Promise<void>
+}
+
+const WORKSPACE_ACTION_PRIORITY: Record<WorkspaceActionCode, number> = {
+  CONTINUE_NOTE: 10,
+  OPEN_NOTE: 20,
+  CONTINUE_WORKBOOK: 30,
+  OPEN_WORKBOOK: 40,
+  REVIEW_PAYMENT: 5,
+  UPLOAD_PAYMENT_PROOF: 45,
+  CONFIRM_PAYMENT: 50,
+}
+
+const WORKSPACE_ACTION_LABEL: Record<WorkspaceActionCode, string> = {
+  OPEN_NOTE: 'Відкрити нотатку',
+  CONTINUE_NOTE: 'Продовжити нотатку',
+  OPEN_WORKBOOK: 'Відкрити робочий зошит',
+  CONTINUE_WORKBOOK: 'Продовжити робочий зошит',
+  REVIEW_PAYMENT: 'Перевірити оплату',
+  UPLOAD_PAYMENT_PROOF: 'Відкрити блок оплати',
+  CONFIRM_PAYMENT: 'Відкрити блок оплати',
+}
+
+const WORKSPACE_ACTION_DOMAIN: Record<WorkspaceActionCode, WorkspaceDomain> = {
+  OPEN_NOTE: 'note',
+  CONTINUE_NOTE: 'note',
+  OPEN_WORKBOOK: 'workbook',
+  CONTINUE_WORKBOOK: 'workbook',
+  REVIEW_PAYMENT: 'payment',
+  UPLOAD_PAYMENT_PROOF: 'payment',
+  CONFIRM_PAYMENT: 'payment',
 }
 
 const route = useRoute()
@@ -770,75 +809,34 @@ const workspaceSummaryItems = computed<WorkspaceSummaryItem[]>(() => {
 
 const workspaceActions = computed<WorkspaceAction[]>(() => {
   if (!workspace.value) return []
-  const sourceItems = normalizeWorkspaceItems(
-    workspace.value.pending_tasks && workspace.value.pending_tasks.length
-      ? workspace.value.pending_tasks
-      : workspace.value.available_actions
-  )
-  const hasSourceItems = sourceItems.length > 0
-
-  const notePermission = hasWorkspaceDomainPermission('note')
-  const workbookPermission = hasWorkspaceDomainPermission('workbook')
-  const paymentPermission = hasWorkspaceDomainPermission('payment')
-
   const noteState = workspaceNoteState.value
   const workbookState = workspaceWorkbookState.value
   const paymentState = workspacePaymentState.value
-
-  const noteRequested = sourceItems.some((item) => detectWorkspaceDomain(item) === 'note')
-  const workbookRequested = sourceItems.some((item) => detectWorkspaceDomain(item) === 'workbook')
-  const paymentRequested = sourceItems.some((item) => detectWorkspaceDomain(item) === 'payment')
-
+  const sourceItems = normalizeWorkspaceItems(resolveWorkspaceActionSource(workspace.value))
+  const actionItems =
+    sourceItems.length > 0
+      ? sourceItems
+      : deriveWorkspaceFallbackActionItems({
+          noteState,
+          workbookState,
+          paymentState,
+        })
   const actions: WorkspaceAction[] = []
-
-  if (
-    notePermission &&
-    noteState &&
-    noteState !== 'hidden' &&
-    noteState !== 'completed' &&
-    (!hasSourceItems || noteRequested)
-  ) {
-    actions.push({
-      id: 'note',
-      label: noteState === 'draft' ? 'Продовжити нотатку' : 'Відкрити нотатку',
-      priority: noteState === 'missing' ? 10 : 20,
-      run: () => focusSessionNote(),
+  const seenCodes = new Set<string>()
+  for (const item of actionItems) {
+    const code = item.code
+    if (seenCodes.has(code)) continue
+    seenCodes.add(code)
+    const nextAction = resolveWorkspaceActionByCode(code, {
+      noteState,
+      workbookState,
+      paymentState,
     })
+    if (!nextAction) continue
+    actions.push(nextAction)
   }
-
-  if (
-    workbookPermission &&
-    workbookState &&
-    workbookState !== 'hidden' &&
-    workbookState !== 'completed' &&
-    (!hasSourceItems || workbookRequested)
-  ) {
-    actions.push({
-      id: 'workbook',
-      label: workbookState === 'draft' ? 'Продовжити робочий зошит' : 'Відкрити робочий зошит',
-      priority: workbookState === 'missing' ? 30 : 40,
-      run: () => openPostSessionWorkbook(),
-    })
-  }
-
-  if (
-    paymentPermission &&
-    paymentState &&
-    paymentState !== 'paid' &&
-    paymentState !== 'not_applicable' &&
-    (!hasSourceItems || paymentRequested)
-  ) {
-    actions.push({
-      id: 'payment',
-      label: paymentState === 'awaiting_confirmation' ? 'Перевірити оплату' : 'Відкрити блок оплати',
-      priority: paymentState === 'awaiting_confirmation' ? 5 : 50,
-      run: () => focusPaymentBlock(),
-    })
-  }
-
   return actions.sort((a, b) => a.priority - b.priority)
 })
-
 const workspacePrimaryAction = computed<WorkspaceAction | null>(() => workspaceActions.value[0] || null)
 const workspaceSecondaryActions = computed(() => workspaceActions.value.slice(1))
 
@@ -927,13 +925,21 @@ function noteStateClass(state: WorkspaceNoteState | WorkspaceWorkbookState) {
   return 'status-pill--muted'
 }
 
+function resolveWorkspaceActionSource(currentWorkspace: SessionWorkspace) {
+  if (currentWorkspace.pending_task_items?.length) return currentWorkspace.pending_task_items
+  if (currentWorkspace.available_action_items?.length) return currentWorkspace.available_action_items
+  if (currentWorkspace.pending_tasks?.length) return currentWorkspace.pending_tasks
+  return currentWorkspace.available_actions
+}
 function normalizeWorkspaceItems(items?: SessionWorkspaceItem[] | null) {
   if (!items || !Array.isArray(items)) return []
   return items
     .map((item) => {
       if (typeof item === 'string') {
+        const code = item.trim().toUpperCase()
+        if (!code) return null
         return {
-          code: item.trim().toLowerCase(),
+          code,
           label: item.trim(),
         }
       }
@@ -947,45 +953,106 @@ function normalizeWorkspaceItems(items?: SessionWorkspaceItem[] | null) {
             : typeof item.name === 'string'
               ? item.name
               : ''
-
-      const code = rawCode.trim().toLowerCase()
+      const code = rawCode.trim().toUpperCase()
       const label = rawLabel.trim()
-      if (!code && !label) return null
+      if (!code) return null
       return { code, label }
     })
     .filter((item): item is { code: string; label: string } => Boolean(item))
 }
 
-function detectWorkspaceDomain(item: { code: string; label: string }): WorkspaceDomain | null {
-  const haystack = `${item.code} ${item.label}`.toLowerCase()
-  if (haystack.includes('workbook') || haystack.includes('journal')) return 'workbook'
-  if (haystack.includes('note')) return 'note'
-  if (haystack.includes('payment') || haystack.includes('proof') || haystack.includes('paid')) {
-    return 'payment'
-  }
-  return null
-}
+function deriveWorkspaceFallbackActionItems({
+  noteState,
+  workbookState,
+  paymentState,
+}: {
+  noteState: WorkspaceNoteState | null
+  workbookState: WorkspaceWorkbookState | null
+  paymentState: WorkspacePaymentState | null
+}) {
+  const codes: WorkspaceActionCode[] = []
 
-function hasWorkspaceDomainPermission(domain: WorkspaceDomain) {
+  if (noteState === 'draft') codes.push('CONTINUE_NOTE')
+  else if (noteState === 'missing') codes.push('OPEN_NOTE')
+
+  if (workbookState === 'draft') codes.push('CONTINUE_WORKBOOK')
+  else if (workbookState === 'missing') codes.push('OPEN_WORKBOOK')
+
+  if (paymentState === 'awaiting_confirmation') codes.push('REVIEW_PAYMENT')
+  else if (paymentState === 'unpaid') codes.push('UPLOAD_PAYMENT_PROOF')
+
+  return codes.map((code) => ({ code, label: '' }))
+}
+function isWorkspaceActionCode(code: string): code is WorkspaceActionCode {
+  return code in WORKSPACE_ACTION_DOMAIN
+}
+function hasWorkspaceActionPermission(code: WorkspaceActionCode) {
   const permissions = workspace.value?.permissions
   if (!permissions || typeof permissions !== 'object') return true
-
-  const domainHints: Record<WorkspaceDomain, string[]> = {
-    payment: ['payment', 'proof', 'paid'],
-    note: ['note'],
-    workbook: ['workbook', 'journal'],
+  const permissionKeysByCode: Record<WorkspaceActionCode, string[]> = {
+    OPEN_NOTE: ['can_edit_note', 'can_open_note'],
+    CONTINUE_NOTE: ['can_edit_note', 'can_open_note'],
+    OPEN_WORKBOOK: ['can_open_workbook', 'can_edit_workbook'],
+    CONTINUE_WORKBOOK: ['can_open_workbook', 'can_edit_workbook'],
+    REVIEW_PAYMENT: ['can_review_payment'],
+    UPLOAD_PAYMENT_PROOF: ['can_upload_payment_proof', 'can_review_payment'],
+    CONFIRM_PAYMENT: ['can_confirm_payment', 'can_review_payment'],
   }
-
-  const matched = Object.entries(permissions).filter(([key, value]) => {
-    if (typeof value !== 'boolean') return false
-    const normalized = key.toLowerCase()
-    return domainHints[domain].some((hint) => normalized.includes(hint))
-  })
-
-  if (!matched.length) return true
-  return matched.some(([, value]) => value === true)
+  const keys = permissionKeysByCode[code]
+  const knownValues = keys
+    .map((key) => permissions[key])
+    .filter((value): value is boolean => typeof value === 'boolean')
+  if (!knownValues.length) return true
+  return knownValues.some(Boolean)
 }
-
+function canRunWorkspaceActionForState(
+  code: WorkspaceActionCode,
+  {
+    noteState,
+    workbookState,
+    paymentState,
+  }: {
+    noteState: WorkspaceNoteState | null
+    workbookState: WorkspaceWorkbookState | null
+    paymentState: WorkspacePaymentState | null
+  }
+) {
+  const domain = WORKSPACE_ACTION_DOMAIN[code]
+  if (domain === 'note') {
+    return Boolean(noteState && noteState !== 'hidden' && noteState !== 'completed')
+  }
+  if (domain === 'workbook') {
+    return Boolean(workbookState && workbookState !== 'hidden' && workbookState !== 'completed')
+  }
+  return Boolean(paymentState && paymentState !== 'paid' && paymentState !== 'not_applicable')
+}
+function runWorkspaceAction(code: WorkspaceActionCode) {
+  if (code === 'OPEN_NOTE' || code === 'CONTINUE_NOTE') {
+    return () => focusSessionNote()
+  }
+  if (code === 'OPEN_WORKBOOK' || code === 'CONTINUE_WORKBOOK') {
+    return () => openPostSessionWorkbook()
+  }
+  return () => focusPaymentBlock()
+}
+function resolveWorkspaceActionByCode(
+  code: string,
+  state: {
+    noteState: WorkspaceNoteState | null
+    workbookState: WorkspaceWorkbookState | null
+    paymentState: WorkspacePaymentState | null
+  }
+): WorkspaceAction | null {
+  if (!isWorkspaceActionCode(code)) return null
+  if (!hasWorkspaceActionPermission(code)) return null
+  if (!canRunWorkspaceActionForState(code, state)) return null
+  return {
+    id: code.toLowerCase(),
+    label: WORKSPACE_ACTION_LABEL[code],
+    priority: WORKSPACE_ACTION_PRIORITY[code],
+    run: runWorkspaceAction(code),
+  }
+}
 function rescheduleStatusLabel(status: string) {
   return getRescheduleStatusLabel(status)
 }
@@ -1787,4 +1854,5 @@ watch(
   }
 }
 </style>
+
 

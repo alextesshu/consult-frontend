@@ -101,6 +101,16 @@ function buildWorkspace(overrides: Record<string, unknown> = {}) {
       can_open_workbook: true,
       can_review_payment: true,
     },
+    available_action_items: [
+      { code: 'OPEN_NOTE', label: 'Open note' },
+      { code: 'OPEN_WORKBOOK', label: 'Open workbook' },
+      { code: 'REVIEW_PAYMENT', label: 'Review payment' },
+    ],
+    pending_task_items: [
+      { code: 'OPEN_NOTE', label: 'Open note' },
+      { code: 'OPEN_WORKBOOK', label: 'Open workbook' },
+      { code: 'REVIEW_PAYMENT', label: 'Review payment' },
+    ],
     available_actions: ['OPEN_NOTE', 'OPEN_WORKBOOK', 'REVIEW_PAYMENT'],
     pending_tasks: ['OPEN_NOTE', 'OPEN_WORKBOOK', 'REVIEW_PAYMENT'],
     ...overrides,
@@ -414,6 +424,14 @@ describe('TherapistSessionDetailView', () => {
         payment_state: 'unpaid',
         note_state: 'draft',
         workbook_state: 'missing',
+        pending_task_items: [
+          { code: 'CONTINUE_NOTE', label: 'Continue note' },
+          { code: 'OPEN_WORKBOOK', label: 'Open workbook' },
+        ],
+        available_action_items: [
+          { code: 'CONTINUE_NOTE', label: 'Continue note' },
+          { code: 'OPEN_WORKBOOK', label: 'Open workbook' },
+        ],
       }),
     })
     mockDetailContext(() => sessionDetail, { requests: [] })
@@ -433,6 +451,8 @@ describe('TherapistSessionDetailView', () => {
         payment_state: 'paid',
         note_state: 'completed',
         workbook_state: 'completed',
+        pending_task_items: [],
+        available_action_items: [],
         pending_tasks: [],
         available_actions: [],
       }),
@@ -456,6 +476,8 @@ describe('TherapistSessionDetailView', () => {
         payment_state: 'awaiting_confirmation',
         note_state: 'completed',
         workbook_state: 'completed',
+        pending_task_items: [{ code: 'REVIEW_PAYMENT', label: 'Do payment review' }],
+        available_action_items: [{ code: 'REVIEW_PAYMENT', label: 'Do payment review' }],
         pending_tasks: ['REVIEW_PAYMENT'],
         available_actions: ['REVIEW_PAYMENT'],
       }),
@@ -477,6 +499,8 @@ describe('TherapistSessionDetailView', () => {
         payment_state: 'paid',
         note_state: 'hidden',
         workbook_state: 'hidden',
+        pending_task_items: [{ code: 'REVIEW_PAYMENT', label: 'Review payment' }],
+        available_action_items: [{ code: 'REVIEW_PAYMENT', label: 'Review payment' }],
         pending_tasks: ['REVIEW_PAYMENT'],
         available_actions: ['REVIEW_PAYMENT'],
       }),
@@ -492,7 +516,119 @@ describe('TherapistSessionDetailView', () => {
     expect(screen.queryByRole('button', { name: 'Відкрити нотатку' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Відкрити робочий зошит' })).not.toBeInTheDocument()
   })
-
+  it('uses pending_task_items as primary source over legacy pending_tasks', async () => {
+    const sessionDetail = buildSession({
+      status: 'COMPLETED',
+      workspace: buildWorkspace({
+        pending_task_items: [{ code: 'OPEN_NOTE', label: 'Primary source note action' }],
+        available_action_items: [{ code: 'OPEN_NOTE', label: 'Primary source note action' }],
+        pending_tasks: ['OPEN_WORKBOOK'],
+        available_actions: ['OPEN_WORKBOOK'],
+      }),
+    })
+    mockDetailContext(() => sessionDetail, { requests: [] })
+    renderView()
+    expect(await screen.findByTestId('session-workspace')).toBeInTheDocument()
+    expect(screen.getByTestId('workspace-action-open_note')).toBeInTheDocument()
+    expect(screen.queryByTestId('workspace-action-open_workbook')).not.toBeInTheDocument()
+  })
+  it('routes note workspace action by code and ignores misleading labels', async () => {
+    const sessionDetail = buildSession({
+      status: 'COMPLETED',
+      workspace: buildWorkspace({
+        note_state: 'missing',
+        workbook_state: 'completed',
+        payment_state: 'paid',
+        pending_task_items: [{ code: 'OPEN_NOTE', label: 'This text mentions payment and workbook' }],
+        available_action_items: [{ code: 'OPEN_NOTE', label: 'This text mentions payment and workbook' }],
+        pending_tasks: [],
+        available_actions: [],
+      }),
+    })
+    mockDetailContext(() => sessionDetail, { requests: [] })
+    renderView()
+    const noteTextarea = (await screen.findByDisplayValue('Progress note')) as HTMLTextAreaElement
+    ;(noteTextarea as any).scrollIntoView = vi.fn()
+    const noteAction = await screen.findByTestId('workspace-action-open_note')
+    await fireEvent.click(noteAction)
+    await waitFor(() => {
+      expect(document.activeElement).toBe(noteTextarea)
+    })
+  })
+  it('routes workbook workspace action by code to workbook flow', async () => {
+    const openSpy = vi.spyOn(window, 'open').mockImplementation(() => null as any)
+    const sessionDetail = buildSession({
+      status: 'COMPLETED',
+      workspace: buildWorkspace({
+        note_state: 'completed',
+        workbook_state: 'missing',
+        payment_state: 'paid',
+        pending_task_items: [{ code: 'OPEN_WORKBOOK', label: 'Open workbook now' }],
+        available_action_items: [{ code: 'OPEN_WORKBOOK', label: 'Open workbook now' }],
+        pending_tasks: [],
+        available_actions: [],
+      }),
+    })
+    mockDetailContext(() => sessionDetail, { requests: [] })
+    renderView()
+    const workbookAction = await screen.findByTestId('workspace-action-open_workbook')
+    await fireEvent.click(workbookAction)
+    await waitFor(() => {
+      expect(openSpy).toHaveBeenCalled()
+    })
+    openSpy.mockRestore()
+  })
+  it.each(['REVIEW_PAYMENT', 'UPLOAD_PAYMENT_PROOF', 'CONFIRM_PAYMENT'] as const)(
+    'routes %s workspace action by code to payment section',
+    async (actionCode) => {
+      const originalScrollIntoView = (HTMLElement.prototype as any).scrollIntoView
+      const scrollSpy = vi.fn()
+      ;(HTMLElement.prototype as any).scrollIntoView = scrollSpy
+      try {
+        const sessionDetail = buildSession({
+          status: 'COMPLETED',
+          workspace: buildWorkspace({
+            note_state: 'completed',
+            workbook_state: 'completed',
+            payment_state: 'unpaid',
+            pending_task_items: [{ code: actionCode, label: `Action ${actionCode}` }],
+            available_action_items: [{ code: actionCode, label: `Action ${actionCode}` }],
+            pending_tasks: [],
+            available_actions: [],
+          }),
+        })
+        mockDetailContext(() => sessionDetail, { requests: [] })
+        renderView()
+        const actionTestId = `workspace-action-${actionCode.toLowerCase()}`
+        const paymentAction = await screen.findByTestId(actionTestId)
+        await fireEvent.click(paymentAction)
+        await waitFor(() => {
+          expect(scrollSpy).toHaveBeenCalled()
+        })
+      } finally {
+        ;(HTMLElement.prototype as any).scrollIntoView = originalScrollIntoView
+      }
+    }
+  )
+  it('handles unknown workspace action codes without rendering unsafe CTA', async () => {
+    const sessionDetail = buildSession({
+      status: 'COMPLETED',
+      workspace: buildWorkspace({
+        note_state: 'missing',
+        workbook_state: 'missing',
+        payment_state: 'unpaid',
+        pending_task_items: [{ code: 'FUTURE_WORKSPACE_ACTION', label: 'Future action' }],
+        available_action_items: [{ code: 'FUTURE_WORKSPACE_ACTION', label: 'Future action' }],
+        pending_tasks: [],
+        available_actions: [],
+      }),
+    })
+    mockDetailContext(() => sessionDetail, { requests: [] })
+    renderView()
+    expect(await screen.findByTestId('session-workspace')).toBeInTheDocument()
+    expect(screen.queryByTestId('workspace-actions')).not.toBeInTheDocument()
+    expect(screen.getByTestId('workspace-no-pending')).toBeInTheDocument()
+  })
   it('shows actionable inline message for PAYMENT_DETAILS_MISSING and links to payment details settings', async () => {
     const initialPaymentProof = {
       status: 'NOT_REQUESTED',
@@ -1287,4 +1423,5 @@ describe('TherapistSessionDetailView', () => {
     expect(endpointCalls('/booking/sessions/42/')).toBe(2)
   })
 })
+
 

@@ -66,6 +66,10 @@ Frontend production-readiness slice is now integrated:
   - public booking sends normalized `session_format` (`online`/`offline`) based on specialist capability configuration
   - when specialist supports both formats, booking shows an explicit format chooser
   - client/specialist session details and lists expose format labels, and offline sessions do not expose misleading join-link actions
+- Specialist session workspace action contract is code-driven:
+  - frontend uses `workspace.pending_task_items` / `workspace.available_action_items` as primary source
+  - legacy `pending_tasks` / `available_actions` stay fallback-only for compatibility payloads
+  - CTA routing is resolved by canonical action `code` only; `label` is display-only and unknown codes are ignored safely
 - External public guest session flow is now aligned with backend nested join payload:
   - online join reads meeting URL from `join.meeting_url`
   - backward-compatible fallback to top-level `meeting_url` is preserved
