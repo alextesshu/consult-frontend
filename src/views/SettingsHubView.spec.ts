@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/vue'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { reactive } from 'vue'
 import SettingsHubView from './SettingsHubView.vue'
@@ -46,6 +46,16 @@ vi.mock('../lib/api', () => ({
 const mockedFetchCabinetPaymentDetails = vi.mocked(fetchCabinetPaymentDetails)
 const mockedUpdateCabinetPaymentDetails = vi.mocked(updateCabinetPaymentDetails)
 
+function paymentDetailsFixture(overrides: Record<string, unknown> = {}) {
+  return {
+    is_configured: false,
+    available_methods: [],
+    default_method_type: null,
+    methods: {},
+    ...overrides,
+  }
+}
+
 function renderView() {
   return render(SettingsHubView, {
     global: {
@@ -59,7 +69,19 @@ function renderView() {
   })
 }
 
-describe('SettingsHubView payment-details tab', () => {
+function bankCard() {
+  const card = screen.getByRole('heading', { name: 'Банківський рахунок (IBAN)' }).closest('article')
+  if (!card) throw new Error('Bank card not found')
+  return within(card)
+}
+
+function cardCard() {
+  const card = screen.getByRole('heading', { name: 'Картка' }).closest('article')
+  if (!card) throw new Error('Card card not found')
+  return within(card)
+}
+
+describe('SettingsHubView dual payment methods', () => {
   beforeEach(() => {
     mockRoute.query = {}
     mockRoute.hash = ''
@@ -87,41 +109,199 @@ describe('SettingsHubView payment-details tab', () => {
     renderView()
 
     expect(screen.getByRole('link', { name: 'Реквізити' })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Профіль' })).toBeInTheDocument()
     expect(screen.queryByText('Реквізити для оплати')).not.toBeInTheDocument()
     expect(mockedFetchCabinetPaymentDetails).not.toHaveBeenCalled()
   })
 
-  it('opens payment details when tab=payment-details is in query', async () => {
+  it('supports canonical payment tab and 0-method empty state', async () => {
     mockRoute.query = { tab: 'payment-details' }
-    mockedFetchCabinetPaymentDetails.mockResolvedValue({
-      method_type: null,
-      recipient_name: '',
-      iban: '',
-      card_number: '',
-      bank_name: '',
-      payment_purpose: '',
-      comment: '',
-    })
+    mockedFetchCabinetPaymentDetails.mockResolvedValue(paymentDetailsFixture())
 
     renderView()
 
     expect(await screen.findByText('Реквізити для оплати')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Додати реквізити' })).toBeInTheDocument()
-    expect(mockedFetchCabinetPaymentDetails).toHaveBeenCalledTimes(1)
+    expect(bankCard().getByRole('button', { name: 'Додати IBAN' })).toBeInTheDocument()
+    expect(cardCard().getByRole('button', { name: 'Додати картку' })).toBeInTheDocument()
+    expect(screen.queryByText('За замовчуванням')).not.toBeInTheDocument()
+  })
+
+  it('saves bank account method without affecting card method', async () => {
+    mockRoute.query = { tab: 'payment-details' }
+    mockedFetchCabinetPaymentDetails.mockResolvedValue(paymentDetailsFixture())
+    mockedUpdateCabinetPaymentDetails.mockResolvedValue(
+      paymentDetailsFixture({
+        is_configured: true,
+        available_methods: ['bank_account'],
+        default_method_type: 'bank_account',
+        methods: {
+          bank_account: {
+            recipient_name: 'ФОП Тест',
+            iban: 'UA111',
+            card_number: '',
+            bank_name: 'A-Bank',
+            payment_purpose: 'Оплата',
+            comment: '',
+          },
+        },
+      })
+    )
+
+    renderView()
+
+    await screen.findByText('Реквізити для оплати')
+    await fireEvent.click(bankCard().getByRole('button', { name: 'Додати IBAN' }))
+    await fireEvent.update(bankCard().getByPlaceholderText('ПІБ або назва ФОП/компанії'), 'ФОП Тест')
+    await fireEvent.update(bankCard().getByPlaceholderText('UA...'), 'UA111')
+    await fireEvent.update(bankCard().getByLabelText("Назва банку (необов'язково)"), 'A-Bank')
+    await fireEvent.update(bankCard().getByLabelText("Призначення платежу (необов'язково)"), 'Оплата')
+    await fireEvent.click(bankCard().getByRole('button', { name: 'Зберегти' }))
+
+    await waitFor(() => {
+      expect(mockedUpdateCabinetPaymentDetails).toHaveBeenCalledWith({
+        methods: {
+          bank_account: {
+            recipient_name: 'ФОП Тест',
+            iban: 'UA111',
+            card_number: '',
+            bank_name: 'A-Bank',
+            payment_purpose: 'Оплата',
+            comment: '',
+          },
+        },
+      })
+    })
+    expect(await screen.findByText('UA111')).toBeInTheDocument()
+    expect(cardCard().getByRole('button', { name: 'Додати картку' })).toBeInTheDocument()
+  })
+
+  it('deletes only one method and preserves second method', async () => {
+    mockRoute.query = { tab: 'payment-details' }
+    mockedFetchCabinetPaymentDetails.mockResolvedValue(
+      paymentDetailsFixture({
+        is_configured: true,
+        available_methods: ['bank_account', 'card'],
+        default_method_type: 'card',
+        methods: {
+          bank_account: {
+            recipient_name: 'ФОП Тест',
+            iban: 'UA111',
+            card_number: '',
+            bank_name: '',
+            payment_purpose: '',
+            comment: '',
+          },
+          card: {
+            recipient_name: 'ФОП Тест',
+            iban: '',
+            card_number: '4444 3333 2222 1111',
+            bank_name: '',
+            payment_purpose: '',
+            comment: '',
+          },
+        },
+      })
+    )
+    mockedUpdateCabinetPaymentDetails.mockResolvedValue(
+      paymentDetailsFixture({
+        is_configured: true,
+        available_methods: ['card'],
+        default_method_type: 'card',
+        methods: {
+          card: {
+            recipient_name: 'ФОП Тест',
+            iban: '',
+            card_number: '4444 3333 2222 1111',
+            bank_name: '',
+            payment_purpose: '',
+            comment: '',
+          },
+        },
+      })
+    )
+
+    renderView()
+
+    await screen.findByText('UA111')
+    await fireEvent.click(bankCard().getByRole('button', { name: 'Видалити' }))
+
+    await waitFor(() => {
+      expect(mockedUpdateCabinetPaymentDetails).toHaveBeenCalledWith({
+        methods: { bank_account: null },
+      })
+    })
+    expect(await screen.findByText('4444 3333 2222 1111')).toBeInTheDocument()
+    expect(bankCard().getByRole('button', { name: 'Додати IBAN' })).toBeInTheDocument()
+  })
+
+  it('updates default method when both methods are configured', async () => {
+    mockRoute.query = { tab: 'payment-details' }
+    mockedFetchCabinetPaymentDetails.mockResolvedValue(
+      paymentDetailsFixture({
+        is_configured: true,
+        available_methods: ['bank_account', 'card'],
+        default_method_type: 'bank_account',
+        methods: {
+          bank_account: {
+            recipient_name: 'ФОП Тест',
+            iban: 'UA111',
+            card_number: '',
+            bank_name: '',
+            payment_purpose: '',
+            comment: '',
+          },
+          card: {
+            recipient_name: 'ФОП Тест',
+            iban: '',
+            card_number: '4444 3333 2222 1111',
+            bank_name: '',
+            payment_purpose: '',
+            comment: '',
+          },
+        },
+      })
+    )
+    mockedUpdateCabinetPaymentDetails.mockResolvedValue(
+      paymentDetailsFixture({
+        is_configured: true,
+        available_methods: ['bank_account', 'card'],
+        default_method_type: 'card',
+        methods: {
+          bank_account: {
+            recipient_name: 'ФОП Тест',
+            iban: 'UA111',
+            card_number: '',
+            bank_name: '',
+            payment_purpose: '',
+            comment: '',
+          },
+          card: {
+            recipient_name: 'ФОП Тест',
+            iban: '',
+            card_number: '4444 3333 2222 1111',
+            bank_name: '',
+            payment_purpose: '',
+            comment: '',
+          },
+        },
+      })
+    )
+
+    renderView()
+
+    await screen.findByText('За замовчуванням')
+    await fireEvent.click(screen.getByRole('radio', { name: 'Картка' }))
+
+    await waitFor(() => {
+      expect(mockedUpdateCabinetPaymentDetails).toHaveBeenCalledWith({
+        default_method_type: 'card',
+      })
+      expect(mockToast.success).toHaveBeenCalledWith('Метод за замовчуванням оновлено.')
+    })
   })
 
   it('supports legacy hash landing by canonically switching to query tab', async () => {
     mockRoute.hash = '#payment-details'
-    mockedFetchCabinetPaymentDetails.mockResolvedValue({
-      method_type: null,
-      recipient_name: '',
-      iban: '',
-      card_number: '',
-      bank_name: '',
-      payment_purpose: '',
-      comment: '',
-    })
+    mockedFetchCabinetPaymentDetails.mockResolvedValue(paymentDetailsFixture())
 
     renderView()
 
@@ -132,54 +312,5 @@ describe('SettingsHubView payment-details tab', () => {
         hash: '',
       })
     })
-
-    expect(await screen.findByText('Реквізити для оплати')).toBeInTheDocument()
-  })
-
-  it('keeps payment details save/edit behavior unchanged inside Реквізити tab', async () => {
-    mockRoute.query = { tab: 'payment-details' }
-    mockedFetchCabinetPaymentDetails.mockResolvedValue({
-      method_type: null,
-      recipient_name: '',
-      iban: '',
-      card_number: '',
-      bank_name: '',
-      payment_purpose: '',
-      comment: '',
-    })
-    mockedUpdateCabinetPaymentDetails.mockResolvedValue({
-      method_type: 'bank_account',
-      recipient_name: 'ФОП Тест',
-      iban: 'UA999',
-      card_number: '',
-      bank_name: 'A-Bank',
-      payment_purpose: 'Оплата послуги',
-      comment: '',
-    })
-
-    renderView()
-
-    await screen.findByRole('button', { name: 'Додати реквізити' })
-    await fireEvent.click(screen.getByRole('button', { name: 'Додати реквізити' }))
-    await fireEvent.update(screen.getByPlaceholderText('ПІБ або назва ФОП/компанії'), 'ФОП Тест')
-    await fireEvent.update(screen.getByPlaceholderText('UA...'), 'UA999')
-    await fireEvent.update(screen.getByLabelText("Назва банку (необов'язково)"), 'A-Bank')
-    await fireEvent.update(screen.getByLabelText("Призначення платежу (необов'язково)"), 'Оплата послуги')
-    await fireEvent.click(screen.getByRole('button', { name: 'Зберегти' }))
-
-    await waitFor(() => {
-      expect(mockedUpdateCabinetPaymentDetails).toHaveBeenCalledWith({
-        method_type: 'bank_account',
-        recipient_name: 'ФОП Тест',
-        iban: 'UA999',
-        card_number: '',
-        bank_name: 'A-Bank',
-        payment_purpose: 'Оплата послуги',
-        comment: '',
-      })
-      expect(mockToast.success).toHaveBeenCalledWith('Реквізити для оплати збережено.')
-    })
-
-    expect(await screen.findByText('UA999')).toBeInTheDocument()
   })
 })

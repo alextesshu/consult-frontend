@@ -1481,8 +1481,7 @@ export async function apiDelete<T>(url: string, config?: AxiosRequestConfig): Pr
 
 export type SpecialistPaymentMethodType = 'bank_account' | 'card' | string
 
-export type SpecialistPaymentDetails = {
-  method_type: SpecialistPaymentMethodType | null
+export type SpecialistPaymentMethodDetails = {
   recipient_name: string
   iban: string
   card_number: string
@@ -1491,7 +1490,22 @@ export type SpecialistPaymentDetails = {
   comment: string
 }
 
+export type SpecialistPaymentDetails = {
+  is_configured: boolean
+  available_methods: SpecialistPaymentMethodType[]
+  default_method_type: SpecialistPaymentMethodType | null
+  methods: Partial<Record<'bank_account' | 'card', SpecialistPaymentMethodDetails | null>>
+}
+
+export type SpecialistPaymentDetailsUpdatePayload = {
+  default_method_type?: SpecialistPaymentMethodType | null
+  methods?: Partial<Record<'bank_account' | 'card', SpecialistPaymentMethodDetails | null>>
+}
+
 export type SessionPaymentInstructions = {
+  available_methods?: SpecialistPaymentMethodType[] | null
+  default_method_type?: SpecialistPaymentMethodType | null
+  methods?: Partial<Record<'bank_account' | 'card', Partial<SpecialistPaymentMethodDetails> | null>> | null
   method_type?: SpecialistPaymentMethodType | null
   recipient_name?: string | null
   iban?: string | null
@@ -1508,7 +1522,7 @@ export async function fetchCabinetPaymentDetails(): Promise<SpecialistPaymentDet
 }
 
 export async function updateCabinetPaymentDetails(
-  payload: Partial<SpecialistPaymentDetails>
+  payload: SpecialistPaymentDetailsUpdatePayload
 ): Promise<SpecialistPaymentDetails> {
   const resp = await http.patch<SpecialistPaymentDetails>('/cabinet/payment-details/', payload)
   return resp.data

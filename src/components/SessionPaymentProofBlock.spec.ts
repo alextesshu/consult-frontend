@@ -77,21 +77,26 @@ describe('SessionPaymentProofBlock payment instructions', () => {
     })
   })
 
-  it('renders bank account instructions from snapshot and shows snapshot_created_at', async () => {
+  it('renders single bank-account instructions from canonical snapshot without chooser', async () => {
     render(SessionPaymentProofBlock, {
       props: {
         sessionId: 42,
         role: 'client',
         paymentProof: buildPaymentProof({
           payment_instructions: {
-            method_type: 'bank_account',
+            available_methods: ['bank_account'],
+            default_method_type: 'bank_account',
             snapshot_created_at: '2099-06-15T11:30:00Z',
-            recipient_name: 'ФОП Анна',
-            iban: 'UA555',
-            card_number: '',
-            bank_name: 'Monobank',
-            payment_purpose: 'Оплата консультації',
-            comment: 'Оплатіть до сесії',
+            methods: {
+              bank_account: {
+                recipient_name: 'ФОП Анна',
+                iban: 'UA555',
+                card_number: '',
+                bank_name: 'Monobank',
+                payment_purpose: 'Оплата консультації',
+                comment: 'Оплатіть до сесії',
+              },
+            },
           },
         }),
       },
@@ -101,24 +106,26 @@ describe('SessionPaymentProofBlock payment instructions', () => {
     expect(screen.getByText('Банківський рахунок (IBAN)')).toBeInTheDocument()
     expect(screen.getByText('ФОП Анна')).toBeInTheDocument()
     expect(screen.getByText('UA555')).toBeInTheDocument()
-    expect(screen.getByText('Monobank')).toBeInTheDocument()
-    expect(screen.getByText('Оплата консультації')).toBeInTheDocument()
-    expect(screen.getByText('Оплатіть до сесії')).toBeInTheDocument()
+    expect(screen.queryByRole('tab', { name: 'Оплата на картку' })).not.toBeInTheDocument()
     expect(screen.getByText(/15\.06\.2099/)).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Скопіювати IBAN' })).toBeInTheDocument()
   })
 
-  it('renders card instructions and works when iban is empty string', async () => {
+  it('renders single card instructions when iban is empty', async () => {
     render(SessionPaymentProofBlock, {
       props: {
         sessionId: 42,
         role: 'client',
         paymentProof: buildPaymentProof({
           payment_instructions: {
-            method_type: 'card',
-            recipient_name: 'Іван Коваль',
-            card_number: '4444 3333 2222 1111',
-            iban: '',
+            available_methods: ['card'],
+            default_method_type: 'card',
+            methods: {
+              card: {
+                recipient_name: 'Іван Коваль',
+                card_number: '4444 3333 2222 1111',
+                iban: '',
+              },
+            },
           },
         }),
       },
@@ -129,6 +136,41 @@ describe('SessionPaymentProofBlock payment instructions', () => {
     expect(screen.getByRole('button', { name: 'Скопіювати номер картки' })).toBeInTheDocument()
   })
 
+  it('shows method chooser for dual-method snapshot and defaults to backend default', async () => {
+    render(SessionPaymentProofBlock, {
+      props: {
+        sessionId: 42,
+        role: 'client',
+        paymentProof: buildPaymentProof({
+          payment_instructions: {
+            available_methods: ['bank_account', 'card'],
+            default_method_type: 'card',
+            methods: {
+              bank_account: {
+                recipient_name: 'ФОП Анна',
+                iban: 'UA111',
+                card_number: '',
+              },
+              card: {
+                recipient_name: 'ФОП Анна',
+                iban: '',
+                card_number: '5555 6666 7777 8888',
+              },
+            },
+          },
+        }),
+      },
+    })
+
+    expect(await screen.findByRole('tab', { name: 'Оплата за IBAN' })).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'Оплата на картку' })).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByText('5555 6666 7777 8888')).toBeInTheDocument()
+
+    await fireEvent.click(screen.getByRole('tab', { name: 'Оплата за IBAN' }))
+    expect(screen.getByRole('tab', { name: 'Оплата за IBAN' })).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByText('UA111')).toBeInTheDocument()
+  })
+
   it('renders optional fields only when present and not when empty strings', async () => {
     render(SessionPaymentProofBlock, {
       props: {
@@ -136,13 +178,18 @@ describe('SessionPaymentProofBlock payment instructions', () => {
         role: 'client',
         paymentProof: buildPaymentProof({
           payment_instructions: {
-            method_type: 'bank_account',
-            recipient_name: 'ФОП Тест',
-            iban: 'UA777',
-            card_number: '',
-            bank_name: '',
-            payment_purpose: '',
-            comment: '',
+            available_methods: ['bank_account'],
+            default_method_type: 'bank_account',
+            methods: {
+              bank_account: {
+                recipient_name: 'ФОП Тест',
+                iban: 'UA777',
+                card_number: '',
+                bank_name: '',
+                payment_purpose: '',
+                comment: '',
+              },
+            },
           },
         }),
       },
@@ -154,7 +201,7 @@ describe('SessionPaymentProofBlock payment instructions', () => {
     expect(screen.queryByRole('button', { name: 'Скопіювати призначення' })).not.toBeInTheDocument()
   })
 
-  it('copies main value, purpose, and all requisites', async () => {
+  it('copies selected method value, purpose, and all requisites', async () => {
     const writeText = vi.fn().mockResolvedValue(undefined)
     Object.assign(navigator, {
       clipboard: {
@@ -168,11 +215,22 @@ describe('SessionPaymentProofBlock payment instructions', () => {
         role: 'client',
         paymentProof: buildPaymentProof({
           payment_instructions: {
-            method_type: 'bank_account',
-            recipient_name: 'ФОП Тест',
-            iban: 'UA123456',
-            card_number: '',
-            payment_purpose: 'Оплата',
+            available_methods: ['bank_account', 'card'],
+            default_method_type: 'bank_account',
+            methods: {
+              bank_account: {
+                recipient_name: 'ФОП Тест',
+                iban: 'UA123456',
+                card_number: '',
+                payment_purpose: 'Оплата',
+              },
+              card: {
+                recipient_name: 'ФОП Тест',
+                iban: '',
+                card_number: '1111 2222 3333 4444',
+                payment_purpose: '',
+              },
+            },
           },
         }),
       },

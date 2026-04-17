@@ -12,8 +12,31 @@
 
     <p class="payment-proof__helper muted">{{ helperCopy }}</p>
 
-    <section v-if="paymentInstructions" class="payment-instructions">
+    <section v-if="paymentInstructions && selectedMethodDetails" class="payment-instructions">
       <h4 class="payment-instructions__title">Платіжні реквізити</h4>
+
+      <div v-if="availableMethodTypes.length > 1" class="payment-instructions__chooser" role="tablist" aria-label="Спосіб оплати">
+        <button
+          class="btn btn--ghost btn--sm payment-instructions__chooser-item"
+          :class="{ 'payment-instructions__chooser-item--active': selectedMethodType === 'bank_account' }"
+          type="button"
+          role="tab"
+          :aria-selected="selectedMethodType === 'bank_account'"
+          @click="selectedMethodType = 'bank_account'"
+        >
+          Оплата за IBAN
+        </button>
+        <button
+          class="btn btn--ghost btn--sm payment-instructions__chooser-item"
+          :class="{ 'payment-instructions__chooser-item--active': selectedMethodType === 'card' }"
+          type="button"
+          role="tab"
+          :aria-selected="selectedMethodType === 'card'"
+          @click="selectedMethodType = 'card'"
+        >
+          Оплата на картку
+        </button>
+      </div>
 
       <div class="payment-instructions__grid">
         <div class="payment-instructions__row">
@@ -26,23 +49,23 @@
         </div>
         <div class="payment-instructions__row">
           <span class="muted">Отримувач</span>
-          <strong>{{ paymentInstructions.recipientName }}</strong>
+          <strong>{{ selectedMethodDetails.recipientName }}</strong>
         </div>
         <div class="payment-instructions__row">
           <span class="muted">{{ mainValueLabel }}</span>
           <strong>{{ mainValue }}</strong>
         </div>
-        <div v-if="paymentInstructions.bankName" class="payment-instructions__row">
+        <div v-if="selectedMethodDetails.bankName" class="payment-instructions__row">
           <span class="muted">Банк</span>
-          <span>{{ paymentInstructions.bankName }}</span>
+          <span>{{ selectedMethodDetails.bankName }}</span>
         </div>
-        <div v-if="paymentInstructions.paymentPurpose" class="payment-instructions__row">
+        <div v-if="selectedMethodDetails.paymentPurpose" class="payment-instructions__row">
           <span class="muted">Призначення платежу</span>
-          <span>{{ paymentInstructions.paymentPurpose }}</span>
+          <span>{{ selectedMethodDetails.paymentPurpose }}</span>
         </div>
-        <div v-if="paymentInstructions.comment" class="payment-instructions__row">
+        <div v-if="selectedMethodDetails.comment" class="payment-instructions__row">
           <span class="muted">Коментар</span>
-          <span>{{ paymentInstructions.comment }}</span>
+          <span>{{ selectedMethodDetails.comment }}</span>
         </div>
       </div>
 
@@ -51,7 +74,7 @@
           {{ copyMainLabel }}
         </button>
         <button
-          v-if="paymentInstructions.paymentPurpose"
+          v-if="selectedMethodDetails.paymentPurpose"
           class="btn btn--ghost btn--sm"
           type="button"
           @click="copyPaymentPurpose"
@@ -127,7 +150,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { formatUkDateTimeCompact } from '../lib/dateTime'
 import {
   fetchSessionPaymentProof,
@@ -137,12 +160,13 @@ import {
   uploadSessionPaymentProof,
   type SessionPaymentInstructions,
   type SessionPaymentProof,
+  type SpecialistPaymentMethodDetails,
 } from '../lib/api'
 import { useToast } from '../composables/useToast'
 
-type NormalizedPaymentInstructions = {
-  methodType: 'bank_account' | 'card'
-  snapshotCreatedAt: string
+type CanonicalMethodType = 'bank_account' | 'card'
+
+type NormalizedPaymentMethod = {
   recipientName: string
   iban: string
   cardNumber: string
@@ -150,6 +174,17 @@ type NormalizedPaymentInstructions = {
   paymentPurpose: string
   comment: string
 }
+
+type NormalizedPaymentInstructions = {
+  snapshotCreatedAt: string
+  availableMethods: CanonicalMethodType[]
+  defaultMethodType: CanonicalMethodType | null
+  methods: Record<CanonicalMethodType, NormalizedPaymentMethod | null>
+}
+
+const METHOD_TYPES: CanonicalMethodType[] = ['bank_account', 'card']
+const PAYMENT_DETAILS_MISSING_COPY =
+  'Щоб запросити оплату, спочатку додайте реквізити для оплати.'
 
 const props = defineProps<{
   sessionId: number
@@ -166,6 +201,7 @@ const toast = useToast()
 const actionLoading = ref(false)
 const uploadLoading = ref(false)
 const fileInputRef = ref<HTMLInputElement | null>(null)
+const selectedMethodType = ref<CanonicalMethodType | null>(null)
 
 const isSpecialist = computed(() => props.role === 'specialist')
 const isClient = computed(() => props.role === 'client')
@@ -233,20 +269,27 @@ const statusPillClass = computed(() => {
 const paymentInstructions = computed<NormalizedPaymentInstructions | null>(() =>
   normalizePaymentInstructions(proof.value.payment_instructions)
 )
+const availableMethodTypes = computed<CanonicalMethodType[]>(
+  () => paymentInstructions.value?.availableMethods || []
+)
+const selectedMethodDetails = computed<NormalizedPaymentMethod | null>(() => {
+  if (!paymentInstructions.value || !selectedMethodType.value) return null
+  return paymentInstructions.value.methods[selectedMethodType.value]
+})
 
 const paymentMethodLabel = computed(() =>
-  paymentInstructions.value?.methodType === 'card' ? 'Картка' : 'Банківський рахунок (IBAN)'
+  selectedMethodType.value === 'card' ? 'Картка' : 'Банківський рахунок (IBAN)'
 )
 const mainValueLabel = computed(() =>
-  paymentInstructions.value?.methodType === 'card' ? 'Номер картки' : 'IBAN'
+  selectedMethodType.value === 'card' ? 'Номер картки' : 'IBAN'
 )
 const mainValue = computed(() =>
-  paymentInstructions.value?.methodType === 'card'
-    ? paymentInstructions.value.cardNumber
-    : paymentInstructions.value?.iban || ''
+  selectedMethodType.value === 'card'
+    ? selectedMethodDetails.value?.cardNumber || ''
+    : selectedMethodDetails.value?.iban || ''
 )
 const copyMainLabel = computed(() =>
-  paymentInstructions.value?.methodType === 'card' ? 'Скопіювати номер картки' : 'Скопіювати IBAN'
+  selectedMethodType.value === 'card' ? 'Скопіювати номер картки' : 'Скопіювати IBAN'
 )
 const snapshotCreatedAtLabel = computed(() =>
   paymentInstructions.value?.snapshotCreatedAt
@@ -254,38 +297,95 @@ const snapshotCreatedAtLabel = computed(() =>
     : ''
 )
 
+watch(
+  [availableMethodTypes, () => paymentInstructions.value?.defaultMethodType],
+  ([methodTypes, defaultMethodType]) => {
+    if (!methodTypes.length) {
+      selectedMethodType.value = null
+      return
+    }
+
+    if (selectedMethodType.value && methodTypes.includes(selectedMethodType.value)) return
+
+    selectedMethodType.value =
+      defaultMethodType && methodTypes.includes(defaultMethodType)
+        ? defaultMethodType
+        : methodTypes[0] || null
+  },
+  { immediate: true }
+)
+
 function getStringValue(value: unknown) {
   return typeof value === 'string' ? value.trim() : ''
 }
 
-function normalizeMethod(raw: unknown): 'bank_account' | 'card' {
-  return raw === 'card' ? 'card' : 'bank_account'
+function normalizeMethodType(raw: unknown): CanonicalMethodType | null {
+  if (raw === 'bank_account' || raw === 'card') return raw
+  return null
 }
 
-const PAYMENT_DETAILS_MISSING_COPY =
-  'Щоб запросити оплату, спочатку додайте реквізити для оплати.'
+function normalizeMethodDetails(payload: unknown): NormalizedPaymentMethod {
+  const source = payload && typeof payload === 'object'
+    ? payload as Partial<SpecialistPaymentMethodDetails>
+    : {}
+
+  return {
+    recipientName: getStringValue(source.recipient_name),
+    iban: getStringValue(source.iban),
+    cardNumber: getStringValue(source.card_number),
+    bankName: getStringValue(source.bank_name),
+    paymentPurpose: getStringValue(source.payment_purpose),
+    comment: getStringValue(source.comment),
+  }
+}
+
+function hasRequiredFields(methodType: CanonicalMethodType, details: NormalizedPaymentMethod | null | undefined) {
+  if (!details) return false
+  if (!details.recipientName) return false
+  return methodType === 'card' ? Boolean(details.cardNumber) : Boolean(details.iban)
+}
 
 function normalizePaymentInstructions(payload: SessionPaymentInstructions | null | undefined): NormalizedPaymentInstructions | null {
   if (!payload) return null
-  const methodType = normalizeMethod(payload.method_type)
-  const recipientName = getStringValue(payload.recipient_name)
-  const iban = getStringValue(payload.iban)
-  const cardNumber = getStringValue(payload.card_number)
-  const bankName = getStringValue(payload.bank_name)
-  const paymentPurpose = getStringValue(payload.payment_purpose)
-  const comment = getStringValue(payload.comment)
   const snapshotCreatedAt = getStringValue(payload.snapshot_created_at)
-  const mainValue = methodType === 'card' ? cardNumber : iban
-  if (!recipientName || !mainValue) return null
+  const methods: Record<CanonicalMethodType, NormalizedPaymentMethod | null> = {
+    bank_account: null,
+    card: null,
+  }
+
+  METHOD_TYPES.forEach((methodType) => {
+    const normalized = payload.methods?.[methodType] ? normalizeMethodDetails(payload.methods[methodType]) : null
+    methods[methodType] = hasRequiredFields(methodType, normalized) ? normalized : null
+  })
+
+  let availableMethods = Array.isArray(payload.available_methods)
+    ? payload.available_methods
+        .map(normalizeMethodType)
+        .filter((value): value is CanonicalMethodType => Boolean(value))
+        .filter((methodType) => Boolean(methods[methodType]))
+    : []
+
+  if (availableMethods.length === 0) {
+    const legacyType = normalizeMethodType(payload.method_type)
+    const legacyDetails = normalizeMethodDetails(payload)
+    if (legacyType && hasRequiredFields(legacyType, legacyDetails)) {
+      methods[legacyType] = legacyDetails
+      availableMethods = [legacyType]
+    }
+  }
+
+  if (!availableMethods.length) return null
+
+  const defaultMethodType = normalizeMethodType(payload.default_method_type)
+
   return {
-    methodType,
     snapshotCreatedAt,
-    recipientName,
-    iban,
-    cardNumber,
-    bankName,
-    paymentPurpose,
-    comment,
+    availableMethods,
+    defaultMethodType:
+      defaultMethodType && availableMethods.includes(defaultMethodType)
+        ? defaultMethodType
+        : availableMethods[0] || null,
+    methods,
   }
 }
 
@@ -319,22 +419,22 @@ async function copyMainValue() {
 }
 
 async function copyPaymentPurpose() {
-  if (!paymentInstructions.value?.paymentPurpose) return
-  await copyText(paymentInstructions.value.paymentPurpose)
+  if (!selectedMethodDetails.value?.paymentPurpose) return
+  await copyText(selectedMethodDetails.value.paymentPurpose)
 }
 
 async function copyAllInstructions() {
-  if (!paymentInstructions.value) return
+  if (!selectedMethodDetails.value) return
   const lines = [
     `Спосіб оплати: ${paymentMethodLabel.value}`,
-    `Отримувач: ${paymentInstructions.value.recipientName}`,
+    `Отримувач: ${selectedMethodDetails.value.recipientName}`,
     `${mainValueLabel.value}: ${mainValue.value}`,
   ]
-  if (paymentInstructions.value.bankName) lines.push(`Банк: ${paymentInstructions.value.bankName}`)
-  if (paymentInstructions.value.paymentPurpose) {
-    lines.push(`Призначення платежу: ${paymentInstructions.value.paymentPurpose}`)
+  if (selectedMethodDetails.value.bankName) lines.push(`Банк: ${selectedMethodDetails.value.bankName}`)
+  if (selectedMethodDetails.value.paymentPurpose) {
+    lines.push(`Призначення платежу: ${selectedMethodDetails.value.paymentPurpose}`)
   }
-  if (paymentInstructions.value.comment) lines.push(`Коментар: ${paymentInstructions.value.comment}`)
+  if (selectedMethodDetails.value.comment) lines.push(`Коментар: ${selectedMethodDetails.value.comment}`)
   await copyText(lines.join('\n'))
 }
 
@@ -471,6 +571,17 @@ function readPaymentProofError(err: unknown, fallback: string): string {
 .payment-instructions__title {
   margin: 0;
   font-size: 14px;
+}
+
+.payment-instructions__chooser {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.payment-instructions__chooser-item--active {
+  border-color: rgba(8, 113, 201, 0.45);
+  background: rgba(8, 113, 201, 0.1);
 }
 
 .payment-instructions__grid {

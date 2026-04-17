@@ -10,7 +10,7 @@
     <section v-if="activeTab === 'hub'" class="settings-hub__grid">
       <RouterLink class="panel settings-card" to="/cabinet/settings?tab=payment-details">
         <h2 class="settings-card__title">Реквізити</h2>
-        <p class="muted">Керуйте даними для запиту підтвердження оплати у сесіях.</p>
+        <p class="muted">Керуйте платіжними реквізитами для запиту підтвердження оплати у сесіях.</p>
       </RouterLink>
 
       <RouterLink class="panel settings-card" to="/cabinet/profile">
@@ -29,109 +29,237 @@
       </RouterLink>
     </section>
 
-    <section v-else id="payment-details" class="panel payment-details-card">
-      <div class="payment-details-card__header">
-        <div>
-          <div class="badge badge--soft">Оплата</div>
-          <h2 class="payment-details-card__title">Реквізити для оплати</h2>
-        </div>
+    <section v-else id="payment-details" class="panel payment-details-panel">
+      <div class="payment-details-panel__header">
+        <div class="badge badge--soft">Оплата</div>
+        <h2 class="payment-details-panel__title">Реквізити для оплати</h2>
       </div>
 
       <div v-if="loading" class="muted">Завантаження...</div>
 
       <template v-else>
-        <div v-if="!isEditing && !hasConfiguredDetails" class="payment-details-card__empty">
-          <p class="muted">Реквізити ще не додані. Додайте їх, щоб запитувати підтвердження оплати у сесіях.</p>
-          <button class="btn btn--sm" type="button" @click="startEdit">Додати реквізити</button>
+        <div v-if="defaultError" class="form-error">{{ defaultError }}</div>
+
+        <fieldset v-if="configuredMethodTypes.length === 2" class="default-selector">
+          <legend class="muted">За замовчуванням</legend>
+          <label class="default-selector__option">
+            <input
+              type="radio"
+              name="default-payment-method"
+              :checked="details.default_method_type === 'bank_account'"
+              :disabled="defaultSaving"
+              @change="setDefaultMethod('bank_account')"
+            />
+            <span>IBAN</span>
+          </label>
+          <label class="default-selector__option">
+            <input
+              type="radio"
+              name="default-payment-method"
+              :checked="details.default_method_type === 'card'"
+              :disabled="defaultSaving"
+              @change="setDefaultMethod('card')"
+            />
+            <span>Картка</span>
+          </label>
+        </fieldset>
+
+        <p v-else-if="details.default_method_type" class="muted">
+          За замовчуванням: {{ methodTypeLabel(details.default_method_type) }}
+        </p>
+
+        <div class="payment-methods-grid">
+          <article class="panel payment-method-card">
+            <h3 class="payment-method-card__title">Банківський рахунок (IBAN)</h3>
+
+            <div v-if="!isEditingMethod('bank_account') && !hasConfiguredMethod('bank_account')" class="payment-method-card__empty">
+              <p class="muted">Метод ще не налаштований.</p>
+              <button class="btn btn--sm" type="button" @click="startEditMethod('bank_account')">
+                Додати IBAN
+              </button>
+            </div>
+
+            <div v-else-if="!isEditingMethod('bank_account')" class="payment-method-view">
+              <div class="payment-method-row">
+                <span class="muted">Отримувач</span>
+                <strong>{{ getConfiguredMethod('bank_account')?.recipient_name }}</strong>
+              </div>
+              <div class="payment-method-row">
+                <span class="muted">IBAN</span>
+                <strong>{{ getConfiguredMethod('bank_account')?.iban }}</strong>
+              </div>
+              <div v-if="getConfiguredMethod('bank_account')?.bank_name" class="payment-method-row">
+                <span class="muted">Банк</span>
+                <span>{{ getConfiguredMethod('bank_account')?.bank_name }}</span>
+              </div>
+              <div v-if="getConfiguredMethod('bank_account')?.payment_purpose" class="payment-method-row">
+                <span class="muted">Призначення платежу</span>
+                <span>{{ getConfiguredMethod('bank_account')?.payment_purpose }}</span>
+              </div>
+              <div v-if="getConfiguredMethod('bank_account')?.comment" class="payment-method-row">
+                <span class="muted">Коментар</span>
+                <span>{{ getConfiguredMethod('bank_account')?.comment }}</span>
+              </div>
+              <div class="payment-method-actions">
+                <button class="btn btn--ghost btn--sm" type="button" @click="startEditMethod('bank_account')">
+                  Редагувати
+                </button>
+                <button
+                  class="btn btn--ghost btn--sm"
+                  type="button"
+                  :disabled="deletingMethodType === 'bank_account'"
+                  @click="deleteMethod('bank_account')"
+                >
+                  {{ deletingMethodType === 'bank_account' ? 'Видаляємо...' : 'Видалити' }}
+                </button>
+              </div>
+            </div>
+
+            <form v-else class="payment-method-form" @submit.prevent="saveMethod('bank_account')">
+              <label class="field">
+                <span class="muted">Отримувач</span>
+                <input
+                  v-model.trim="forms.bank_account.recipient_name"
+                  class="input"
+                  placeholder="ПІБ або назва ФОП/компанії"
+                />
+              </label>
+
+              <label class="field">
+                <span class="muted">IBAN</span>
+                <input v-model.trim="forms.bank_account.iban" class="input" placeholder="UA..." />
+              </label>
+
+              <label class="field">
+                <span class="muted">Назва банку (необов'язково)</span>
+                <input v-model.trim="forms.bank_account.bank_name" class="input" />
+              </label>
+
+              <label class="field">
+                <span class="muted">Призначення платежу (необов'язково)</span>
+                <textarea v-model.trim="forms.bank_account.payment_purpose" class="input textarea" rows="2" />
+              </label>
+
+              <label class="field">
+                <span class="muted">Коментар (необов'язково)</span>
+                <textarea v-model.trim="forms.bank_account.comment" class="input textarea" rows="2" />
+              </label>
+
+              <p v-if="formErrors.bank_account" class="form-error">{{ formErrors.bank_account }}</p>
+              <p v-if="saveErrors.bank_account" class="form-error">{{ saveErrors.bank_account }}</p>
+
+              <div class="payment-method-actions">
+                <button class="btn btn--sm" type="submit" :disabled="savingMethodType === 'bank_account'">
+                  {{ savingMethodType === 'bank_account' ? 'Зберігаємо...' : 'Зберегти' }}
+                </button>
+                <button class="btn btn--ghost btn--sm" type="button" :disabled="savingMethodType === 'bank_account'" @click="cancelEditMethod">
+                  Скасувати
+                </button>
+              </div>
+            </form>
+          </article>
+
+          <article class="panel payment-method-card">
+            <h3 class="payment-method-card__title">Картка</h3>
+
+            <div v-if="!isEditingMethod('card') && !hasConfiguredMethod('card')" class="payment-method-card__empty">
+              <p class="muted">Метод ще не налаштований.</p>
+              <button class="btn btn--sm" type="button" @click="startEditMethod('card')">
+                Додати картку
+              </button>
+            </div>
+
+            <div v-else-if="!isEditingMethod('card')" class="payment-method-view">
+              <div class="payment-method-row">
+                <span class="muted">Отримувач</span>
+                <strong>{{ getConfiguredMethod('card')?.recipient_name }}</strong>
+              </div>
+              <div class="payment-method-row">
+                <span class="muted">Номер картки</span>
+                <strong>{{ getConfiguredMethod('card')?.card_number }}</strong>
+              </div>
+              <div v-if="getConfiguredMethod('card')?.bank_name" class="payment-method-row">
+                <span class="muted">Банк</span>
+                <span>{{ getConfiguredMethod('card')?.bank_name }}</span>
+              </div>
+              <div v-if="getConfiguredMethod('card')?.payment_purpose" class="payment-method-row">
+                <span class="muted">Призначення платежу</span>
+                <span>{{ getConfiguredMethod('card')?.payment_purpose }}</span>
+              </div>
+              <div v-if="getConfiguredMethod('card')?.comment" class="payment-method-row">
+                <span class="muted">Коментар</span>
+                <span>{{ getConfiguredMethod('card')?.comment }}</span>
+              </div>
+              <div class="payment-method-actions">
+                <button class="btn btn--ghost btn--sm" type="button" @click="startEditMethod('card')">
+                  Редагувати
+                </button>
+                <button
+                  class="btn btn--ghost btn--sm"
+                  type="button"
+                  :disabled="deletingMethodType === 'card'"
+                  @click="deleteMethod('card')"
+                >
+                  {{ deletingMethodType === 'card' ? 'Видаляємо...' : 'Видалити' }}
+                </button>
+              </div>
+            </div>
+
+            <form v-else class="payment-method-form" @submit.prevent="saveMethod('card')">
+              <label class="field">
+                <span class="muted">Отримувач</span>
+                <input
+                  v-model.trim="forms.card.recipient_name"
+                  class="input"
+                  placeholder="ПІБ або назва ФОП/компанії"
+                />
+              </label>
+
+              <label class="field">
+                <span class="muted">Номер картки</span>
+                <input
+                  v-model.trim="forms.card.card_number"
+                  class="input"
+                  placeholder="0000 0000 0000 0000"
+                />
+              </label>
+
+              <label class="field">
+                <span class="muted">Назва банку (необов'язково)</span>
+                <input v-model.trim="forms.card.bank_name" class="input" />
+              </label>
+
+              <label class="field">
+                <span class="muted">Призначення платежу (необов'язково)</span>
+                <textarea v-model.trim="forms.card.payment_purpose" class="input textarea" rows="2" />
+              </label>
+
+              <label class="field">
+                <span class="muted">Коментар (необов'язково)</span>
+                <textarea v-model.trim="forms.card.comment" class="input textarea" rows="2" />
+              </label>
+
+              <p v-if="formErrors.card" class="form-error">{{ formErrors.card }}</p>
+              <p v-if="saveErrors.card" class="form-error">{{ saveErrors.card }}</p>
+
+              <div class="payment-method-actions">
+                <button class="btn btn--sm" type="submit" :disabled="savingMethodType === 'card'">
+                  {{ savingMethodType === 'card' ? 'Зберігаємо...' : 'Зберегти' }}
+                </button>
+                <button class="btn btn--ghost btn--sm" type="button" :disabled="savingMethodType === 'card'" @click="cancelEditMethod">
+                  Скасувати
+                </button>
+              </div>
+            </form>
+          </article>
         </div>
-
-        <div v-else-if="!isEditing" class="payment-details-view">
-          <div class="payment-details-row">
-            <span class="muted">Спосіб оплати</span>
-            <strong>{{ methodTypeLabel }}</strong>
-          </div>
-          <div class="payment-details-row">
-            <span class="muted">Отримувач</span>
-            <strong>{{ details.recipient_name }}</strong>
-          </div>
-          <div class="payment-details-row">
-            <span class="muted">{{ mainPaymentFieldLabel }}</span>
-            <strong>{{ mainPaymentFieldValue }}</strong>
-          </div>
-          <div v-if="details.bank_name" class="payment-details-row">
-            <span class="muted">Банк</span>
-            <span>{{ details.bank_name }}</span>
-          </div>
-          <div v-if="details.payment_purpose" class="payment-details-row">
-            <span class="muted">Призначення платежу</span>
-            <span>{{ details.payment_purpose }}</span>
-          </div>
-          <div v-if="details.comment" class="payment-details-row">
-            <span class="muted">Коментар</span>
-            <span>{{ details.comment }}</span>
-          </div>
-          <div class="payment-details-actions">
-            <button class="btn btn--ghost btn--sm" type="button" @click="startEdit">Редагувати</button>
-          </div>
-        </div>
-
-        <form v-else class="payment-details-form" @submit.prevent="saveDetails">
-          <label class="field">
-            <span class="muted">Спосіб оплати</span>
-            <select v-model="form.method_type" class="input input--select">
-              <option value="bank_account">Банківський рахунок (IBAN)</option>
-              <option value="card">Картка</option>
-            </select>
-          </label>
-
-          <label class="field">
-            <span class="muted">Отримувач</span>
-            <input v-model.trim="form.recipient_name" class="input" placeholder="ПІБ або назва ФОП/компанії" />
-          </label>
-
-          <label v-if="isBankAccountForm" class="field">
-            <span class="muted">IBAN</span>
-            <input v-model.trim="form.iban" class="input" placeholder="UA..." />
-          </label>
-          <label v-else class="field">
-            <span class="muted">Номер картки</span>
-            <input v-model.trim="form.card_number" class="input" placeholder="0000 0000 0000 0000" />
-          </label>
-
-          <label class="field">
-            <span class="muted">Назва банку (необов'язково)</span>
-            <input v-model.trim="form.bank_name" class="input" />
-          </label>
-
-          <label class="field">
-            <span class="muted">Призначення платежу (необов'язково)</span>
-            <textarea v-model.trim="form.payment_purpose" class="input textarea" rows="2" />
-          </label>
-
-          <label class="field">
-            <span class="muted">Коментар (необов'язково)</span>
-            <textarea v-model.trim="form.comment" class="input textarea" rows="2" />
-          </label>
-
-          <p v-if="formError" class="form-error">{{ formError }}</p>
-          <p v-if="saveError" class="form-error">{{ saveError }}</p>
-
-          <div class="payment-details-actions">
-            <button class="btn btn--sm" type="submit" :disabled="saving">
-              {{ saving ? 'Зберігаємо...' : 'Зберегти' }}
-            </button>
-            <button class="btn btn--ghost btn--sm" type="button" :disabled="saving" @click="cancelEdit">
-              Скасувати
-            </button>
-          </div>
-        </form>
       </template>
     </section>
   </section>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useToast } from '../composables/useToast'
 import {
@@ -139,73 +267,140 @@ import {
   getApiErrorMessage,
   updateCabinetPaymentDetails,
   type SpecialistPaymentDetails,
+  type SpecialistPaymentMethodDetails,
+  type SpecialistPaymentMethodType,
 } from '../lib/api'
 import SettingsSubnav from '../components/SettingsSubnav.vue'
 
+type CanonicalMethodType = 'bank_account' | 'card'
+
 const PAYMENT_DETAILS_TAB = 'payment-details'
+const METHOD_TYPES: CanonicalMethodType[] = ['bank_account', 'card']
 
 const route = useRoute()
 const router = useRouter()
 const toast = useToast()
 
 const loading = ref(false)
-const saving = ref(false)
-const isEditing = ref(false)
-const saveError = ref('')
-const formError = ref('')
 const isLoaded = ref(false)
+const savingMethodType = ref<CanonicalMethodType | null>(null)
+const deletingMethodType = ref<CanonicalMethodType | null>(null)
+const defaultSaving = ref(false)
+const defaultError = ref('')
+const editingMethodType = ref<CanonicalMethodType | null>(null)
+
+const details = ref<SpecialistPaymentDetails>(createEmptyDetails())
+const forms = reactive<Record<CanonicalMethodType, SpecialistPaymentMethodDetails>>({
+  bank_account: createEmptyMethod(),
+  card: createEmptyMethod(),
+})
+const formErrors = reactive<Record<CanonicalMethodType, string>>({
+  bank_account: '',
+  card: '',
+})
+const saveErrors = reactive<Record<CanonicalMethodType, string>>({
+  bank_account: '',
+  card: '',
+})
 
 const activeTab = computed<'hub' | 'payment-details'>(() =>
   route.query.tab === PAYMENT_DETAILS_TAB ? PAYMENT_DETAILS_TAB : 'hub'
 )
 const isPaymentDetailsTab = computed(() => activeTab.value === PAYMENT_DETAILS_TAB)
-
-const emptyDetails: SpecialistPaymentDetails = {
-  method_type: null,
-  recipient_name: '',
-  iban: '',
-  card_number: '',
-  bank_name: '',
-  payment_purpose: '',
-  comment: '',
-}
-
-const details = ref<SpecialistPaymentDetails>({ ...emptyDetails })
-const form = ref<SpecialistPaymentDetails>({
-  ...emptyDetails,
-  method_type: 'bank_account',
-})
-
-const hasConfiguredDetails = computed(() => {
-  const method = normalizeMethod(details.value.method_type)
-  if (!method) return false
-  const hasRecipient = Boolean(details.value.recipient_name.trim())
-  const hasMainValue = method === 'bank_account' ? Boolean(details.value.iban.trim()) : Boolean(details.value.card_number.trim())
-  return hasRecipient && hasMainValue
-})
-
-const isBankAccountForm = computed(() => normalizeMethod(form.value.method_type) !== 'card')
-const methodTypeLabel = computed(() => (normalizeMethod(details.value.method_type) === 'card' ? 'Картка' : 'Банківський рахунок (IBAN)'))
-const mainPaymentFieldLabel = computed(() => (normalizeMethod(details.value.method_type) === 'card' ? 'Номер картки' : 'IBAN'))
-const mainPaymentFieldValue = computed(() =>
-  normalizeMethod(details.value.method_type) === 'card' ? details.value.card_number : details.value.iban
+const configuredMethodTypes = computed<CanonicalMethodType[]>(() =>
+  METHOD_TYPES.filter((methodType) => details.value.available_methods.includes(methodType))
 )
 
-function normalizeMethod(value: string | null | undefined): 'bank_account' | 'card' | null {
-  return value === 'card' || value === 'bank_account' ? value : null
+function createEmptyMethod(): SpecialistPaymentMethodDetails {
+  return {
+    recipient_name: '',
+    iban: '',
+    card_number: '',
+    bank_name: '',
+    payment_purpose: '',
+    comment: '',
+  }
 }
 
-function normalizeDetails(payload: Partial<SpecialistPaymentDetails> | null | undefined): SpecialistPaymentDetails {
-  const method = normalizeMethod(payload?.method_type)
+function createEmptyDetails(): SpecialistPaymentDetails {
   return {
-    method_type: method,
-    recipient_name: String(payload?.recipient_name || '').trim(),
-    iban: String(payload?.iban || '').trim(),
-    card_number: String(payload?.card_number || '').trim(),
-    bank_name: String(payload?.bank_name || '').trim(),
-    payment_purpose: String(payload?.payment_purpose || '').trim(),
-    comment: String(payload?.comment || '').trim(),
+    is_configured: false,
+    available_methods: [],
+    default_method_type: null,
+    methods: {},
   }
+}
+
+function normalizeMethodType(value: unknown): CanonicalMethodType | null {
+  if (value === 'bank_account' || value === 'card') return value
+  return null
+}
+
+function normalizeMethodDetails(payload: unknown): SpecialistPaymentMethodDetails {
+  const source = payload && typeof payload === 'object' ? payload as Partial<SpecialistPaymentMethodDetails> : {}
+  return {
+    recipient_name: String(source.recipient_name || '').trim(),
+    iban: String(source.iban || '').trim(),
+    card_number: String(source.card_number || '').trim(),
+    bank_name: String(source.bank_name || '').trim(),
+    payment_purpose: String(source.payment_purpose || '').trim(),
+    comment: String(source.comment || '').trim(),
+  }
+}
+
+function hasRequiredMethodFields(
+  methodType: CanonicalMethodType,
+  methodDetails: SpecialistPaymentMethodDetails | null | undefined
+) {
+  if (!methodDetails) return false
+  if (!methodDetails.recipient_name.trim()) return false
+  if (methodType === 'bank_account') return Boolean(methodDetails.iban.trim())
+  return Boolean(methodDetails.card_number.trim())
+}
+
+function normalizePaymentDetails(payload: unknown): SpecialistPaymentDetails {
+  const source = payload && typeof payload === 'object' ? payload as Partial<SpecialistPaymentDetails> : {}
+  const normalizedMethods: Partial<Record<CanonicalMethodType, SpecialistPaymentMethodDetails | null>> = {}
+
+  METHOD_TYPES.forEach((methodType) => {
+    const rawMethod = source.methods?.[methodType]
+    const methodDetails = rawMethod ? normalizeMethodDetails(rawMethod) : null
+    normalizedMethods[methodType] = hasRequiredMethodFields(methodType, methodDetails) ? methodDetails : null
+  })
+
+  const availableFromPayload = Array.isArray(source.available_methods)
+    ? source.available_methods.map(normalizeMethodType).filter((value): value is CanonicalMethodType => Boolean(value))
+    : []
+  const availableMethods = availableFromPayload.length
+    ? availableFromPayload.filter((methodType) => Boolean(normalizedMethods[methodType]))
+    : METHOD_TYPES.filter((methodType) => Boolean(normalizedMethods[methodType]))
+  const defaultMethod = normalizeMethodType(source.default_method_type)
+
+  return {
+    is_configured: availableMethods.length > 0,
+    available_methods: availableMethods,
+    default_method_type:
+      defaultMethod && availableMethods.includes(defaultMethod)
+        ? defaultMethod
+        : availableMethods[0] || null,
+    methods: normalizedMethods,
+  }
+}
+
+function methodTypeLabel(methodType: SpecialistPaymentMethodType | null) {
+  return methodType === 'card' ? 'Картка' : 'Банківський рахунок (IBAN)'
+}
+
+function getConfiguredMethod(methodType: CanonicalMethodType) {
+  return details.value.methods[methodType] || null
+}
+
+function hasConfiguredMethod(methodType: CanonicalMethodType) {
+  return configuredMethodTypes.value.includes(methodType) && Boolean(getConfiguredMethod(methodType))
+}
+
+function isEditingMethod(methodType: CanonicalMethodType) {
+  return editingMethodType.value === methodType
 }
 
 function ensureCanonicalPaymentDetailsTab() {
@@ -223,72 +418,128 @@ function ensureCanonicalPaymentDetailsTab() {
   })
 }
 
-function startEdit() {
-  form.value = {
-    ...details.value,
-    method_type: normalizeMethod(details.value.method_type) || 'bank_account',
+function resetMethodErrors(methodType: CanonicalMethodType) {
+  formErrors[methodType] = ''
+  saveErrors[methodType] = ''
+}
+
+function startEditMethod(methodType: CanonicalMethodType) {
+  const source = getConfiguredMethod(methodType) || createEmptyMethod()
+  forms[methodType] = {
+    recipient_name: source.recipient_name,
+    iban: source.iban,
+    card_number: source.card_number,
+    bank_name: source.bank_name,
+    payment_purpose: source.payment_purpose,
+    comment: source.comment,
   }
-  formError.value = ''
-  saveError.value = ''
-  isEditing.value = true
+  resetMethodErrors(methodType)
+  editingMethodType.value = methodType
 }
 
-function cancelEdit() {
-  formError.value = ''
-  saveError.value = ''
-  isEditing.value = false
+function cancelEditMethod() {
+  if (!editingMethodType.value) return
+  resetMethodErrors(editingMethodType.value)
+  editingMethodType.value = null
 }
 
-function validateForm() {
-  const method = normalizeMethod(form.value.method_type)
-  if (!method) return 'Оберіть спосіб оплати.'
-  if (!form.value.recipient_name.trim()) return 'Вкажіть отримувача.'
-  if (method === 'bank_account' && !form.value.iban.trim()) return 'Вкажіть IBAN.'
-  if (method === 'card' && !form.value.card_number.trim()) return 'Вкажіть номер картки.'
+function validateMethodForm(methodType: CanonicalMethodType) {
+  const form = forms[methodType]
+  if (!form.recipient_name.trim()) return 'Вкажіть отримувача.'
+  if (methodType === 'bank_account' && !form.iban.trim()) return 'Вкажіть IBAN.'
+  if (methodType === 'card' && !form.card_number.trim()) return 'Вкажіть номер картки.'
   return ''
+}
+
+function buildMethodPayload(methodType: CanonicalMethodType): SpecialistPaymentMethodDetails {
+  const form = forms[methodType]
+  return {
+    recipient_name: form.recipient_name.trim(),
+    iban: methodType === 'bank_account' ? form.iban.trim() : '',
+    card_number: methodType === 'card' ? form.card_number.trim() : '',
+    bank_name: form.bank_name.trim(),
+    payment_purpose: form.payment_purpose.trim(),
+    comment: form.comment.trim(),
+  }
 }
 
 async function loadPaymentDetails() {
   loading.value = true
-  saveError.value = ''
-  formError.value = ''
+  defaultError.value = ''
   try {
-    details.value = normalizeDetails(await fetchCabinetPaymentDetails())
+    details.value = normalizePaymentDetails(await fetchCabinetPaymentDetails())
     isLoaded.value = true
   } catch (err) {
     toast.error(getApiErrorMessage(err, 'Не вдалося завантажити реквізити для оплати.'))
-    details.value = { ...emptyDetails }
+    details.value = createEmptyDetails()
     isLoaded.value = false
   } finally {
     loading.value = false
   }
 }
 
-async function saveDetails() {
-  formError.value = validateForm()
-  saveError.value = ''
-  if (formError.value) return
+async function saveMethod(methodType: CanonicalMethodType) {
+  const validationError = validateMethodForm(methodType)
+  formErrors[methodType] = validationError
+  saveErrors[methodType] = ''
+  if (validationError) return
 
-  const method = normalizeMethod(form.value.method_type) || 'bank_account'
-  const payload: Partial<SpecialistPaymentDetails> = {
-    method_type: method,
-    recipient_name: form.value.recipient_name.trim(),
-    iban: method === 'bank_account' ? form.value.iban.trim() : '',
-    card_number: method === 'card' ? form.value.card_number.trim() : '',
-    bank_name: form.value.bank_name.trim(),
-    payment_purpose: form.value.payment_purpose.trim(),
-    comment: form.value.comment.trim(),
-  }
-
-  saving.value = true
+  savingMethodType.value = methodType
   try {
-    details.value = normalizeDetails(await updateCabinetPaymentDetails(payload))
-    isEditing.value = false
+    const payload = buildMethodPayload(methodType)
+    details.value = normalizePaymentDetails(
+      await updateCabinetPaymentDetails({
+        methods: {
+          [methodType]: payload,
+        },
+      })
+    )
+    editingMethodType.value = null
     toast.success('Реквізити для оплати збережено.')
   } catch (err) {
-    saveError.value = getApiErrorMessage(err, 'Не вдалося зберегти реквізити для оплати.')
+    saveErrors[methodType] = getApiErrorMessage(err, 'Не вдалося зберегти реквізити для оплати.')
   } finally {
-    saving.value = false
+    savingMethodType.value = null
+  }
+}
+
+async function deleteMethod(methodType: CanonicalMethodType) {
+  deletingMethodType.value = methodType
+  saveErrors[methodType] = ''
+  try {
+    details.value = normalizePaymentDetails(
+      await updateCabinetPaymentDetails({
+        methods: {
+          [methodType]: null,
+        },
+      })
+    )
+    if (editingMethodType.value === methodType) {
+      editingMethodType.value = null
+    }
+    toast.success('Реквізити оновлено.')
+  } catch (err) {
+    saveErrors[methodType] = getApiErrorMessage(err, 'Не вдалося видалити реквізити.')
+  } finally {
+    deletingMethodType.value = null
+  }
+}
+
+async function setDefaultMethod(methodType: CanonicalMethodType) {
+  if (details.value.default_method_type === methodType) return
+  defaultSaving.value = true
+  defaultError.value = ''
+  try {
+    details.value = normalizePaymentDetails(
+      await updateCabinetPaymentDetails({
+        default_method_type: methodType,
+      })
+    )
+    toast.success('Метод за замовчуванням оновлено.')
+  } catch (err) {
+    defaultError.value = getApiErrorMessage(err, 'Не вдалося оновити метод за замовчуванням.')
+  } finally {
+    defaultSaving.value = false
   }
 }
 
@@ -358,45 +609,75 @@ watch(
   font-size: 22px;
 }
 
-.payment-details-card {
+.payment-details-panel {
   display: grid;
   gap: 12px;
 }
 
-.payment-details-card__header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 10px;
+.payment-details-panel__header {
+  display: grid;
+  gap: 6px;
 }
 
-.payment-details-card__title {
+.payment-details-panel__title {
   margin: 0;
   font-family: var(--font-display);
   font-size: 22px;
 }
 
-.payment-details-card__empty {
+.default-selector {
+  margin: 0;
+  border: 1px solid rgba(8, 113, 201, 0.25);
+  border-radius: 12px;
+  padding: 10px 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.default-selector__option {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.payment-methods-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+
+.payment-method-card {
   display: grid;
   gap: 10px;
 }
 
-.payment-details-view {
+.payment-method-card__title {
+  margin: 0;
+  font-size: 18px;
+}
+
+.payment-method-card__empty {
+  display: grid;
+  gap: 10px;
+}
+
+.payment-method-view {
   display: grid;
   gap: 8px;
 }
 
-.payment-details-row {
+.payment-method-row {
   display: grid;
   gap: 2px;
 }
 
-.payment-details-form {
+.payment-method-form {
   display: grid;
   gap: 10px;
 }
 
-.payment-details-actions {
+.payment-method-actions {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
