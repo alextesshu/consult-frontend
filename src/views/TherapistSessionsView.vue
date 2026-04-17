@@ -222,6 +222,12 @@
                 {{ statusLabel(session) }}
               </div>
               <div
+                v-if="hasPaymentBadge(session)"
+                class="status-pill status-pill--payment"
+              >
+                {{ paymentBadgeLabel(session) }}
+              </div>
+              <div
                 v-if="timeUntilLabel(session)"
                 class="status-pill status-pill--warn"
               >
@@ -531,6 +537,12 @@
               <div class="status-pill" :class="statusClass(session)">
                 {{ statusLabel(session) }}
               </div>
+              <div
+                v-if="hasPaymentBadge(session)"
+                class="status-pill status-pill--payment"
+              >
+                {{ paymentBadgeLabel(session) }}
+              </div>
               <div class="muted">{{ sessionNoteSummary(session) }}</div>
             </div>
             <div class="session-actions history-tile__actions">
@@ -715,6 +727,7 @@ import SessionCompletionModal from '../components/SessionCompletionModal.vue'
 type Session = {
   id: number
   status: string
+  payment_badge_state?: 'paid' | 'awaiting_confirmation' | null
   client: number
   client_display_name?: string | null
   client_username?: string
@@ -817,6 +830,16 @@ const statusLabel = (session: Session) => {
 const statusClass = (session: Session) => {
   return getStatusClass(session as SpecialistSessionLike)
 }
+
+const paymentBadgeLabel = (session: Session) => {
+  if (session.payment_badge_state === 'paid') return 'Оплачено'
+  if (session.payment_badge_state === 'awaiting_confirmation') {
+    return 'Очікує підтвердження оплати'
+  }
+  return ''
+}
+
+const hasPaymentBadge = (session: Session) => Boolean(paymentBadgeLabel(session))
 
 const rescheduleStatusLabel = (status: string) => getRescheduleStatusLabel(status)
 
@@ -1932,6 +1955,13 @@ onBeforeUnmount(() => {
 .status-pill--new {
   background: rgba(8, 113, 201, 0.16);
   color: #0c4c77;
+}
+
+.status-pill--payment {
+  background: rgba(74, 124, 89, 0.12);
+  color: #2f5f3e;
+  text-transform: none;
+  letter-spacing: 0.02em;
 }
 
 .new-bookings-banner {

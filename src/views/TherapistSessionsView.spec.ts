@@ -256,6 +256,83 @@ describe('TherapistSessionsView', () => {
     expect(await screen.findByText(/anna@example\.com/)).toBeInTheDocument()
   })
 
+  it('renders payment badges from payment_badge_state without replacing lifecycle status badges', async () => {
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/booking/sessions/' && (config as { params?: { upcoming?: boolean } } | undefined)?.params?.upcoming) {
+        return [
+          buildSession({
+            id: 31,
+            client: 131,
+            client_name: 'Paid upcoming',
+            client_email: 'paid-upcoming@example.com',
+            payment_badge_state: 'paid',
+          }),
+          buildSession({
+            id: 32,
+            status: 'CONFIRMED',
+            client: 132,
+            client_name: 'Awaiting upcoming',
+            client_email: 'awaiting-upcoming@example.com',
+            payment_badge_state: 'awaiting_confirmation',
+          }),
+          buildSession({
+            id: 33,
+            client: 133,
+            client_name: 'No payment badge',
+            client_email: 'no-payment-badge@example.com',
+            payment_badge_state: null,
+          }),
+        ]
+      }
+
+      if (url === '/booking/sessions/' && (config as { params?: { upcoming?: boolean } } | undefined)?.params?.upcoming === false) {
+        return [
+          buildSession({
+            id: 41,
+            status: 'COMPLETED',
+            client: 141,
+            client_name: 'Paid history',
+            client_email: 'paid-history@example.com',
+            slot_start_at: '2099-05-10T10:00:00Z',
+            slot_end_at: '2099-05-10T10:50:00Z',
+            payment_badge_state: 'paid',
+          }),
+        ]
+      }
+
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    expect(await screen.findByText(/paid-upcoming@example\.com/)).toBeInTheDocument()
+    expect(await screen.findByText(/paid-history@example\.com/)).toBeInTheDocument()
+
+    const paidUpcomingCard = screen.getByText(/paid-upcoming@example\.com/).closest('article')
+    expect(paidUpcomingCard).not.toBeNull()
+    expect(within(paidUpcomingCard as HTMLElement).getByText('Оплачено')).toBeInTheDocument()
+    expect(within(paidUpcomingCard as HTMLElement).getByText('Заплановано')).toBeInTheDocument()
+
+    const awaitingUpcomingCard = screen.getByText(/awaiting-upcoming@example\.com/).closest('article')
+    expect(awaitingUpcomingCard).not.toBeNull()
+    expect(
+      within(awaitingUpcomingCard as HTMLElement).getByText('Очікує підтвердження оплати')
+    ).toBeInTheDocument()
+    expect(within(awaitingUpcomingCard as HTMLElement).getByText('Підтверджено')).toBeInTheDocument()
+
+    const noPaymentCard = screen.getByText(/no-payment-badge@example\.com/).closest('article')
+    expect(noPaymentCard).not.toBeNull()
+    expect(within(noPaymentCard as HTMLElement).queryByText('Оплачено')).not.toBeInTheDocument()
+    expect(
+      within(noPaymentCard as HTMLElement).queryByText('Очікує підтвердження оплати')
+    ).not.toBeInTheDocument()
+
+    const paidHistoryCard = screen.getByText(/paid-history@example\.com/).closest('article')
+    expect(paidHistoryCard).not.toBeNull()
+    expect(within(paidHistoryCard as HTMLElement).getByText('Оплачено')).toBeInTheDocument()
+    expect(within(paidHistoryCard as HTMLElement).getByText('Завершено')).toBeInTheDocument()
+  })
+
   it('opens the date picker when clicking anywhere in the date filter field', async () => {
     mockedApiGet.mockImplementation(async (url) => {
       if (url === '/booking/sessions/') return []
