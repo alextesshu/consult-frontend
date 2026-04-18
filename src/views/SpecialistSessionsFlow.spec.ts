@@ -748,7 +748,11 @@ describe('specialist sessions flow', () => {
     const refreshedStatusPanel = screen.getByText(/ID: #77/).closest('section')
     expect(refreshedStatusPanel).not.toBeNull()
     expect((refreshedStatusPanel as HTMLElement).querySelector('.status-pill--muted')).not.toBeNull()
-    expect(within(refreshedStatusPanel as HTMLElement).queryAllByRole('button')).toHaveLength(3)
+    const statusActionButtons = within(refreshedStatusPanel as HTMLElement).queryAllByRole('button')
+    expect(statusActionButtons).toHaveLength(4)
+    expect(statusActionButtons.map((button) => button.textContent?.trim())).toEqual(
+      expect.arrayContaining(['Підтвердити', 'Скасувати', 'Перенести', 'Додати на дошку'])
+    )
 
     const backLink = document.querySelector('a[href="/cabinet/sessions"]') as HTMLAnchorElement | null
     expect(backLink).not.toBeNull()
@@ -767,5 +771,4 @@ describe('specialist sessions flow', () => {
     expect(within(historyCard as HTMLElement).getByRole('link')).toHaveAttribute('href', '/cabinet/sessions/42')
   })
 })
-
 

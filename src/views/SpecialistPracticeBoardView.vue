@@ -17,7 +17,7 @@
       <div class="practice-board__boards-header">
         <div>
           <div class="badge badge--soft">Дошки</div>
-          <h2 class="panel__title">{{ currentBoard?.title || 'Робоча дошка' }}</h2>
+          <h2 class="panel__title">{{ currentBoardDisplayTitle }}</h2>
         </div>
         <div class="practice-board__boards-actions">
           <button class="btn btn--ghost btn--sm" type="button" @click="toggleRenameBoardForm" :disabled="!currentBoardId">
@@ -38,7 +38,7 @@
           type="button"
           @click="selectBoard(board.id)"
         >
-          {{ board.title }}
+          {{ displayBoardTitle(board.title) }}
         </button>
       </div>
 
@@ -321,9 +321,17 @@ const editDraft = ref<EditDraft>({ title: '', description: '' })
 const toast = useToast()
 
 const currentBoard = computed(() => boards.value.find((board) => String(board.id) === currentBoardId.value) || null)
+const currentBoardDisplayTitle = computed(() => displayBoardTitle(currentBoard.value?.title))
 const hasNoItems = computed(
   () => boardColumns.value.todo.length === 0 && boardColumns.value.in_progress.length === 0 && boardColumns.value.done.length === 0
 )
+
+function displayBoardTitle(title?: string | null) {
+  const normalized = title?.trim() ?? ''
+  if (!normalized) return 'Робоча дошка'
+  if (normalized.toLowerCase() === 'board') return 'Робоча дошка'
+  return normalized
+}
 
 function toPendingKey(itemId: number | string) {
   return String(itemId)
@@ -459,6 +467,7 @@ function toggleCreateBoardForm() {
   showCreateBoardForm.value = !showCreateBoardForm.value
   if (showCreateBoardForm.value) {
     showRenameBoardForm.value = false
+    createBoardTitle.value = 'Нова дошка'
   } else {
     createBoardTitle.value = ''
   }

@@ -198,6 +198,28 @@ describe('SpecialistPracticeBoardView', () => {
     expect(container.querySelector('.practice-board__boards .panel__title')?.textContent).toContain('Єдина дошка')
   })
 
+  it('localizes legacy Board title in UI', async () => {
+    mockedFetchPracticeBoards.mockResolvedValue([{ id: 1, title: 'Board', is_default: true }] as any)
+    mockedFetchPracticeBoardItems.mockResolvedValue(buildColumns())
+
+    const { container } = render(SpecialistPracticeBoardView)
+    await screen.findByText('Todo task')
+
+    expect(container.querySelector('.practice-board__boards .panel__title')?.textContent).toContain('Робоча дошка')
+  })
+
+  it('prefills new board form with Ukrainian default title', async () => {
+    mockedFetchPracticeBoards.mockResolvedValue(buildBoards() as any)
+    mockedFetchPracticeBoardItems.mockResolvedValue(buildColumns())
+
+    render(SpecialistPracticeBoardView)
+    await screen.findByText('Todo task')
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Створити дошку' }))
+    const input = screen.getByLabelText('Назва дошки') as HTMLInputElement
+    expect(input.value).toBe('Нова дошка')
+  })
+
   it('keeps move, edit, and archive behavior', async () => {
     mockedFetchPracticeBoards.mockResolvedValue(buildBoards() as any)
     mockedFetchPracticeBoardItems.mockResolvedValue(buildColumns())
