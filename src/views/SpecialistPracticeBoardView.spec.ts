@@ -56,7 +56,12 @@ describe('SpecialistPracticeBoardView', () => {
 
     render(SpecialistPracticeBoardView)
 
-    expect(await screen.findByText('Потребує уваги')).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Робоча дошка' })).toBeInTheDocument()
+    expect(
+      screen.getByText('Місце для ваших робочих задач, нагадувань і важливих кроків у роботі з клієнтами.')
+    ).toBeInTheDocument()
+    expect(await screen.findByText('Заплановано')).toBeInTheDocument()
+    expect(screen.queryByText('Потребує уваги')).not.toBeInTheDocument()
     expect(screen.getByText('У роботі')).toBeInTheDocument()
     expect(screen.getByText('Завершено')).toBeInTheDocument()
     expect(screen.getByText('Todo task')).toBeInTheDocument()
@@ -124,11 +129,44 @@ describe('SpecialistPracticeBoardView', () => {
     render(SpecialistPracticeBoardView)
     expect(await screen.findByText('Todo task')).toBeInTheDocument()
 
-    await fireEvent.click(screen.getByRole('button', { name: 'Перемістити в роботу' }))
+    expect(screen.getByRole('button', { name: 'Взяти в роботу' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Завершити' })).toBeInTheDocument()
+    await fireEvent.click(screen.getByRole('button', { name: 'Взяти в роботу' }))
 
     await waitFor(() => {
       expect(mockedMovePracticeBoardItem).toHaveBeenCalledWith(1, { status: 'in_progress' })
     })
+  })
+
+  it('renders backlog return CTA as "Повернути в заплановане"', async () => {
+    mockedFetchPracticeBoardItems.mockResolvedValue({
+      todo: [],
+      in_progress: [
+        {
+          id: 2,
+          title: 'In progress task',
+          description: null,
+          status: 'in_progress',
+          created_at: '2026-04-18T10:00:00Z',
+          updated_at: '2026-04-18T10:00:00Z',
+        },
+      ],
+      done: [
+        {
+          id: 3,
+          title: 'Done task',
+          description: null,
+          status: 'done',
+          created_at: '2026-04-18T10:00:00Z',
+          updated_at: '2026-04-18T10:00:00Z',
+        },
+      ],
+    } as any)
+
+    render(SpecialistPracticeBoardView)
+
+    expect(await screen.findAllByRole('button', { name: 'Повернути в заплановане' })).toHaveLength(2)
+    expect(screen.queryByRole('button', { name: 'Повернути до уваги' })).not.toBeInTheDocument()
   })
 
   it('renders empty state when there are no tasks', async () => {
@@ -140,7 +178,10 @@ describe('SpecialistPracticeBoardView', () => {
 
     render(SpecialistPracticeBoardView)
 
-    expect(await screen.findByText('Поки що немає задач')).toBeInTheDocument()
+    expect(await screen.findByText('Поки що тут порожньо')).toBeInTheDocument()
+    expect(
+      screen.getByText('Додайте першу задачу, щоб зафіксувати важливий крок, follow-up або нагадування.')
+    ).toBeInTheDocument()
   })
 
   it('renders fetch error without crashing view', async () => {

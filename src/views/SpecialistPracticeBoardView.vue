@@ -2,10 +2,10 @@
   <section class="practice-board">
     <header class="practice-board__hero">
       <div>
-        <div class="badge">Дошка задач</div>
-        <h1 class="title practice-board__title">Дошка задач</h1>
+        <div class="badge">Робоча дошка</div>
+        <h1 class="title practice-board__title">Робоча дошка</h1>
         <p class="muted practice-board__subtitle">
-          Приватний робочий простір для коротких операційних задач спеціаліста.
+          Місце для ваших робочих задач, нагадувань і важливих кроків у роботі з клієнтами.
         </p>
       </div>
       <button class="btn" type="button" @click="toggleCreateForm">
@@ -55,8 +55,8 @@
 
     <EmptyState
       v-else-if="hasNoItems"
-      title="Поки що немає задач"
-      description="Створіть першу задачу для організації роботи з клієнтами та сесіями."
+      title="Поки що тут порожньо"
+      description="Додайте першу задачу, щоб зафіксувати важливий крок, follow-up або нагадування."
     />
 
     <section v-else class="practice-board__columns">
@@ -127,23 +127,23 @@ type MoveAction = {
 }
 
 const columnsConfig: Array<{ status: PracticeBoardStatus; label: string }> = [
-  { status: 'todo', label: 'Потребує уваги' },
+  { status: 'todo', label: 'Заплановано' },
   { status: 'in_progress', label: 'У роботі' },
   { status: 'done', label: 'Завершено' },
 ]
 
 const MOVE_ACTIONS_BY_STATUS: Record<PracticeBoardStatus, MoveAction[]> = {
   todo: [
-    { label: 'Перемістити в роботу', target: 'in_progress' },
-    { label: 'Позначити завершеним', target: 'done' },
+    { label: 'Взяти в роботу', target: 'in_progress' },
+    { label: 'Завершити', target: 'done' },
   ],
   in_progress: [
-    { label: 'Повернути в увагу', target: 'todo' },
-    { label: 'Позначити завершеним', target: 'done' },
+    { label: 'Повернути в заплановане', target: 'todo' },
+    { label: 'Завершити', target: 'done' },
   ],
   done: [
     { label: 'Повернути в роботу', target: 'in_progress' },
-    { label: 'Повернути в увагу', target: 'todo' },
+    { label: 'Повернути в заплановане', target: 'todo' },
   ],
 }
 
