@@ -1,14 +1,14 @@
-<template>
+﻿<template>
   <section class="clients">
     <header class="clients__hero">
       <div>
-        <div class="badge">Клієнти</div>
-        <h1 class="title clients__title">Робота з клієнтами</h1>
+        <div class="badge">РљР»С–С”РЅС‚Рё</div>
+        <h1 class="title clients__title">Р РѕР±РѕС‚Р° Р· РєР»С–С”РЅС‚Р°РјРё</h1>
         <p class="muted clients__subtitle">
-          Управління статусами клієнтів та доступом до активної роботи.
+          РЈРїСЂР°РІР»С–РЅРЅСЏ СЃС‚Р°С‚СѓСЃР°РјРё РєР»С–С”РЅС‚С–РІ С‚Р° РґРѕСЃС‚СѓРїРѕРј РґРѕ Р°РєС‚РёРІРЅРѕС— СЂРѕР±РѕС‚Рё.
         </p>
       </div>
-      <RouterLink class="btn btn--ghost" to="/cabinet">Назад до кабінету</RouterLink>
+      <RouterLink class="btn btn--ghost" to="/cabinet">РќР°Р·Р°Рґ РґРѕ РєР°Р±С–РЅРµС‚Сѓ</RouterLink>
     </header>
 
     <div v-if="error" class="form-error">{{ error }}</div>
@@ -16,8 +16,8 @@
     <section class="panel panel--reminders">
       <div class="panel__header">
         <div>
-          <div class="badge badge--soft">Нагадування</div>
-          <h2 class="panel__title">Сесії без коментаря</h2>
+          <div class="badge badge--soft">РќР°РіР°РґСѓРІР°РЅРЅСЏ</div>
+          <h2 class="panel__title">РЎРµСЃС–С— Р±РµР· РєРѕРјРµРЅС‚Р°СЂСЏ</h2>
         </div>
       </div>
       <LoadingSkeleton v-if="notesLoading" variant="list" :count="2" height="88px" />
@@ -47,7 +47,7 @@
           </div>
           <div class="client-actions">
             <RouterLink class="btn btn--ghost btn--sm" :to="`/cabinet/sessions#note-${item.sessionId}`">
-              Додати нотатку
+              Р”РѕРґР°С‚Рё РЅРѕС‚Р°С‚РєСѓ
             </RouterLink>
             <button
               class="btn btn--ghost btn--sm"
@@ -55,7 +55,7 @@
               :disabled="!item.clientId || isHistoryLoading(item.clientId)"
               @click="toggleHistory(item.clientId)"
             >
-              Відкрити клієнта
+              Р’С–РґРєСЂРёС‚Рё РєР»С–С”РЅС‚Р°
             </button>
           </div>
         </div>
@@ -65,33 +65,33 @@
     <section class="panel panel--clients">
       <div class="panel__header">
         <div>
-          <div class="badge badge--soft">Список</div>
-          <h2 class="panel__title">Клієнти</h2>
+          <div class="badge badge--soft">РЎРїРёСЃРѕРє</div>
+          <h2 class="panel__title">РљР»С–С”РЅС‚Рё</h2>
         </div>
       </div>
       <div class="filters">
         <button class="btn btn--ghost btn--sm" :class="{ 'btn--active': filter === 'ALL' }" @click="setFilter('ALL')">
-          Усі
+          РЈСЃС–
         </button>
         <button class="btn btn--ghost btn--sm" :class="{ 'btn--active': filter === 'ACTIVE' }" @click="setFilter('ACTIVE')">
-          Активні
+          РђРєС‚РёРІРЅС–
         </button>
         <button class="btn btn--ghost btn--sm" :class="{ 'btn--active': filter === 'INACTIVE' }" @click="setFilter('INACTIVE')">
-          Неактивні
+          РќРµР°РєС‚РёРІРЅС–
         </button>
         <button class="btn btn--ghost btn--sm" :class="{ 'btn--active': filter === 'ARCHIVED' }" @click="setFilter('ARCHIVED')">
-          Архів
+          РђСЂС…С–РІ
         </button>
       </div>
 
       <div class="clients-search">
-        <label class="clients-search__label" for="clients-search-input">Швидкий пошук</label>
+        <label class="clients-search__label" for="clients-search-input">РЁРІРёРґРєРёР№ РїРѕС€СѓРє</label>
         <input
           id="clients-search-input"
           v-model.trim="searchQuery"
           class="input clients-search__input"
           type="search"
-          placeholder="Ім'я, код або номер клієнта"
+          placeholder="Р†Рј'СЏ, РєРѕРґ Р°Р±Рѕ РЅРѕРјРµСЂ РєР»С–С”РЅС‚Р°"
           autocomplete="off"
         />
       </div>
@@ -99,17 +99,17 @@
       <LoadingSkeleton v-if="clientsLoading" variant="list" :count="4" height="110px" />
       <EmptyState
         v-else-if="clientsError"
-        title="Не вдалося завантажити клієнтів"
+        title="РќРµ РІРґР°Р»РѕСЃСЏ Р·Р°РІР°РЅС‚Р°Р¶РёС‚Рё РєР»С–С”РЅС‚С–РІ"
         :description="clientsError"
       >
         <template #actions>
-          <button class="btn btn--ghost" type="button" @click="loadClients">Спробувати ще раз</button>
+          <button class="btn btn--ghost" type="button" @click="loadClients">РЎРїСЂРѕР±СѓРІР°С‚Рё С‰Рµ СЂР°Р·</button>
         </template>
       </EmptyState>
       <EmptyState
         v-else-if="filteredClients.length === 0"
-        title="Немає клієнтів для цього фільтра"
-        description="Змініть фільтр або поверніться пізніше, коли з'являться нові клієнти."
+        title="РќРµРјР°С” РєР»С–С”РЅС‚С–РІ РґР»СЏ С†СЊРѕРіРѕ С„С–Р»СЊС‚СЂР°"
+        description="Р—РјС–РЅС–С‚СЊ С„С–Р»СЊС‚СЂ Р°Р±Рѕ РїРѕРІРµСЂРЅС–С‚СЊСЃСЏ РїС–Р·РЅС–С€Рµ, РєРѕР»Рё Р·'СЏРІР»СЏС‚СЊСЃСЏ РЅРѕРІС– РєР»С–С”РЅС‚Рё."
       />
       <div v-else class="client-list">
         <article
@@ -123,11 +123,11 @@
           <div class="client-info">
             <div class="client-name">{{ displayClientName(client) }}</div>
             <div v-if="client.client_code" class="muted">
-              Код клієнта: {{ client.client_code }}
+              РљРѕРґ РєР»С–С”РЅС‚Р°: {{ client.client_code }}
             </div>
-            <div class="muted">Статус: {{ client.state }}</div>
-            <div class="muted">Остання сесія: {{ formatDateTime(client.last_session_at) }}</div>
-            <div class="muted">Заплановано: {{ client.upcoming_count ?? 0 }}</div>
+            <div class="muted">РЎС‚Р°С‚СѓСЃ: {{ client.state }}</div>
+            <div class="muted">РћСЃС‚Р°РЅРЅСЏ СЃРµСЃС–СЏ: {{ formatDateTime(client.last_session_at) }}</div>
+            <div class="muted">Р—Р°РїР»Р°РЅРѕРІР°РЅРѕ: {{ client.upcoming_count ?? 0 }}</div>
             <div class="muted">{{ latestNoteSummary(client) }}</div>
             <div class="muted">{{ workbookSummary(client) }}</div>
           </div>
@@ -138,14 +138,22 @@
               :disabled="!relationClientId(client) || isHistoryLoading(relationClientId(client))"
               @click="toggleHistory(relationClientId(client))"
             >
-              Приватна історія клієнта
+              РџСЂРёРІР°С‚РЅР° С–СЃС‚РѕСЂС–СЏ РєР»С–С”РЅС‚Р°
+            </button>
+            <button
+              class="btn btn--ghost btn--sm"
+              type="button"
+              :disabled="!relationClientId(client) || isQuickAddLoading(relationClientId(client))"
+              @click="addClientToPracticeBoard(relationClientId(client))"
+            >
+              {{ isQuickAddLoading(relationClientId(client)) ? 'Додаємо…' : 'Додати на дошку' }}
             </button>
             <RouterLink
               v-if="client.latest_session_note_session_id"
               class="btn btn--ghost btn--sm"
               :to="`/cabinet/sessions#note-${client.latest_session_note_session_id}`"
             >
-              Відкрити нотатку
+              Р’С–РґРєСЂРёС‚Рё РЅРѕС‚Р°С‚РєСѓ
             </RouterLink>
             <button
               v-if="client.state !== 'ARCHIVED'"
@@ -154,7 +162,7 @@
               :disabled="!relationClientId(client) || isActionLoading(relationClientId(client))"
               @click="archiveClient(relationClientId(client))"
             >
-              Архівувати
+              РђСЂС…С–РІСѓРІР°С‚Рё
             </button>
             <button
               v-else
@@ -163,21 +171,21 @@
               :disabled="!relationClientId(client) || isActionLoading(relationClientId(client))"
               @click="restoreClient(relationClientId(client))"
             >
-              Відновити
+              Р’С–РґРЅРѕРІРёС‚Рё
             </button>
           </div>
           <div v-if="expandedClientId === relationClientId(client)" class="client-history">
             <div class="history-header">
               <div>
-                <div class="history-title">Приватна історія клієнта</div>
-                <div class="muted history-subtitle">Інформація зашифрована. Доступ має лише спеціаліст.</div>
+                <div class="history-title">РџСЂРёРІР°С‚РЅР° С–СЃС‚РѕСЂС–СЏ РєР»С–С”РЅС‚Р°</div>
+                <div class="muted history-subtitle">Р†РЅС„РѕСЂРјР°С†С–СЏ Р·Р°С€РёС„СЂРѕРІР°РЅР°. Р”РѕСЃС‚СѓРї РјР°С” Р»РёС€Рµ СЃРїРµС†С–Р°Р»С–СЃС‚.</div>
               </div>
-              <span class="history-badge">Зашифровано</span>
+              <span class="history-badge">Р—Р°С€РёС„СЂРѕРІР°РЅРѕ</span>
             </div>
             <div class="workbook-block">
               <div class="workbook-block__header">
                 <div>
-                  <div class="workbook-block__title">Робочий зошит клієнта</div>
+                  <div class="workbook-block__title">Р РѕР±РѕС‡РёР№ Р·РѕС€РёС‚ РєР»С–С”РЅС‚Р°</div>
                   <div class="muted">{{ workbookSummary(client) }}</div>
                 </div>
                 <div class="workbook-block__controls">
@@ -186,26 +194,26 @@
                     type="button"
                     @click="openWorkbookWindow(relationClientId(client))"
                   >
-                    Відкрити в окремому вікні
+                    Р’С–РґРєСЂРёС‚Рё РІ РѕРєСЂРµРјРѕРјСѓ РІС–РєРЅС–
                   </button>
                   <button class="btn btn--ghost btn--sm" type="button" @click="toggleWorkbook(relationClientId(client))">
-                    {{ isWorkbookExpanded(relationClientId(client)) ? 'Згорнути зошит' : 'Розгорнути зошит' }}
+                    {{ isWorkbookExpanded(relationClientId(client)) ? 'Р—РіРѕСЂРЅСѓС‚Рё Р·РѕС€РёС‚' : 'Р РѕР·РіРѕСЂРЅСѓС‚Рё Р·РѕС€РёС‚' }}
                   </button>
                 </div>
               </div>
               <div v-if="workbookSavedMessage[relationClientId(client)]" class="workbook-success">
                 {{ workbookSavedMessage[relationClientId(client)] }}
               </div>
-              <div v-if="isJournalLoading(relationClientId(client))" class="muted">Завантаження робочого зошита...</div>
+              <div v-if="isJournalLoading(relationClientId(client))" class="muted">Р—Р°РІР°РЅС‚Р°Р¶РµРЅРЅСЏ СЂРѕР±РѕС‡РѕРіРѕ Р·РѕС€РёС‚Р°...</div>
               <div v-else-if="!isWorkbookExpanded(relationClientId(client))" class="muted">
-                Зошит згорнуто для конфіденційності.
+                Р—РѕС€РёС‚ Р·РіРѕСЂРЅСѓС‚Рѕ РґР»СЏ РєРѕРЅС„С–РґРµРЅС†С–Р№РЅРѕСЃС‚С–.
               </div>
               <template v-else>
                 <textarea
                   v-model="clientJournalDrafts[relationClientId(client)]"
                   class="input workbook-textarea"
                   rows="10"
-                  placeholder="Основні спостереження, динаміка, плани та робочі гіпотези по клієнту."
+                  placeholder="РћСЃРЅРѕРІРЅС– СЃРїРѕСЃС‚РµСЂРµР¶РµРЅРЅСЏ, РґРёРЅР°РјС–РєР°, РїР»Р°РЅРё С‚Р° СЂРѕР±РѕС‡С– РіС–РїРѕС‚РµР·Рё РїРѕ РєР»С–С”РЅС‚Сѓ."
                 ></textarea>
                 <div class="workbook-actions">
                   <button
@@ -214,15 +222,15 @@
                     :disabled="isJournalSaving(relationClientId(client))"
                     @click="saveClientJournal(relationClientId(client))"
                   >
-                    Зберегти робочий зошит
+                    Р—Р±РµСЂРµРіС‚Рё СЂРѕР±РѕС‡РёР№ Р·РѕС€РёС‚
                   </button>
                 </div>
               </template>
             </div>
-            <div class="history-list-title">Нотатки по сесіях</div>
-            <div v-if="isHistoryLoading(relationClientId(client))" class="muted">Завантаження історії...</div>
+            <div class="history-list-title">РќРѕС‚Р°С‚РєРё РїРѕ СЃРµСЃС–СЏС…</div>
+            <div v-if="isHistoryLoading(relationClientId(client))" class="muted">Р—Р°РІР°РЅС‚Р°Р¶РµРЅРЅСЏ С–СЃС‚РѕСЂС–С—...</div>
             <div v-else-if="!clientHistory[relationClientId(client)]?.length" class="muted">
-              Нотаток по цьому клієнту ще немає.
+              РќРѕС‚Р°С‚РѕРє РїРѕ С†СЊРѕРјСѓ РєР»С–С”РЅС‚Сѓ С‰Рµ РЅРµРјР°С”.
             </div>
             <div v-else class="history-list">
               <div v-for="item in clientHistory[relationClientId(client)]" :key="item.sessionId" class="history-item">
@@ -234,10 +242,10 @@
                 <div class="muted">{{ historyNoteSummary(item) }}</div>
                 <div class="history-actions">
                   <RouterLink class="btn btn--ghost btn--sm" :to="`/cabinet/sessions#note-${item.sessionId}`">
-                    Відкрити нотатку
+                    Р’С–РґРєСЂРёС‚Рё РЅРѕС‚Р°С‚РєСѓ
                   </RouterLink>
                   <RouterLink class="btn btn--ghost btn--sm" :to="`/cabinet/clients/${relationClientId(client)}/workbook`">
-                    Відкрити робочий зошит
+                    Р’С–РґРєСЂРёС‚Рё СЂРѕР±РѕС‡РёР№ Р·РѕС€РёС‚
                   </RouterLink>
                 </div>
               </div>
@@ -257,6 +265,8 @@ import LoadingSkeleton from '../components/LoadingSkeleton.vue'
 import { formatUkDateTimeCompact } from '../lib/dateTime'
 import { getApiErrorMessage } from '../lib/errors'
 import { openClientWorkbookWindow } from '../lib/workbookWindow'
+import { useToast } from '../composables/useToast'
+import { createPracticeBoardItem } from '../lib/specialistPracticeBoard'
 import {
   fetchSpecialistClientJournalContent as fetchSpecialistClientJournalContentData,
   saveSpecialistClientJournal as saveSpecialistClientJournalAction,
@@ -371,6 +381,7 @@ const sessionClientNames = ref<Record<number, string>>({})
 const chatClientNames = ref<Record<number, string>>({})
 const journalLoading = ref<Set<number>>(new Set())
 const journalSaving = ref<Set<number>>(new Set())
+const quickAddLoading = ref<Set<number>>(new Set())
 const notesLoading = ref(false)
 const remindersError = ref('')
 const pendingNotes = ref<PendingNoteItem[]>([])
@@ -380,6 +391,7 @@ const remindersEmptyTitle = '\u0423\u0441\u0456 \u0437\u0430\u0432\u0435\u0440\u
 const remindersEmptyDescription = '\u041d\u043e\u0432\u0456 \u043d\u0430\u0433\u0430\u0434\u0443\u0432\u0430\u043d\u043d\u044f \u0437\u0027\u044f\u0432\u043b\u044f\u0442\u044c\u0441\u044f \u043f\u0456\u0441\u043b\u044f \u0437\u0430\u0432\u0435\u0440\u0448\u0435\u043d\u043d\u044f \u0441\u0435\u0441\u0456\u0439 \u0431\u0435\u0437 \u043d\u043e\u0442\u0430\u0442\u043a\u0438.'
 const initialDeepLinkClientId = parseClientDeepLinkClientId(window.location.search)
 let clientCardHighlightTimer: number | null = null
+const toast = useToast()
 
 const filteredClients = computed(() => {
   const byStatus =
@@ -402,6 +414,7 @@ const isActionLoading = (id: number) => actionLoading.value.has(id)
 const isHistoryLoading = (id: number) => historyLoading.value.has(id)
 const isJournalLoading = (id: number) => journalLoading.value.has(id)
 const isJournalSaving = (id: number) => journalSaving.value.has(id)
+const isQuickAddLoading = (id: number) => quickAddLoading.value.has(id)
 const isWorkbookExpanded = (id: number) => Boolean(workbookExpanded.value[id])
 function relationClientId(client: Pick<ClientState, 'client' | 'client_id'>) {
   return Number(client.client ?? client.client_id ?? 0)
@@ -548,6 +561,16 @@ function setJournalSaving(id: number, value: boolean) {
   journalSaving.value = next
 }
 
+function setQuickAddLoading(id: number, value: boolean) {
+  const next = new Set(quickAddLoading.value)
+  if (value) {
+    next.add(id)
+  } else {
+    next.delete(id)
+  }
+  quickAddLoading.value = next
+}
+
 function toggleWorkbook(clientId: number) {
   workbookExpanded.value = {
     ...workbookExpanded.value,
@@ -569,10 +592,10 @@ function formatDuration(start?: string | null, end?: string | null) {
   const e = new Date(end)
   if (Number.isNaN(s.getTime()) || Number.isNaN(e.getTime())) return ''
   const minutes = Math.max(0, Math.round((e.getTime() - s.getTime()) / 60000))
-  if (minutes < 60) return `${minutes} хв`
+  if (minutes < 60) return `${minutes} С…РІ`
   const hours = Math.floor(minutes / 60)
   const rest = minutes % 60
-  return rest ? `${hours} год ${rest} хв` : `${hours} год`
+  return rest ? `${hours} РіРѕРґ ${rest} С…РІ` : `${hours} РіРѕРґ`
 }
 
 function clientLabel(clientId: number) {
@@ -583,8 +606,8 @@ function clientLabel(clientId: number) {
   if (normalized) return normalized
   const fromSessions = sessionClientNames.value[clientId]
   if (fromSessions) return fromSessions
-  if (client?.client_code) return `Код: ${client.client_code}`
-  if (clientId > 0) return `Клієнт #${clientId}`
+  if (client?.client_code) return `РљРѕРґ: ${client.client_code}`
+  if (clientId > 0) return `РљР»С–С”РЅС‚ #${clientId}`
   return '\u041a\u043b\u0456\u0454\u043d\u0442'
 }
 function isMetadataEndpointUnsupported(err: any) {
@@ -718,8 +741,8 @@ function displayClientName(
   if (normalized) return normalized
   const fromSessions = sessionClientNames.value[id]
   if (fromSessions) return fromSessions
-  if (client.client_code) return `Код: ${client.client_code}`
-  if (id > 0) return `Клієнт #${id}`
+  if (client.client_code) return `РљРѕРґ: ${client.client_code}`
+  if (id > 0) return `РљР»С–С”РЅС‚ #${id}`
   return '\u041a\u043b\u0456\u0454\u043d\u0442'
 }
 
@@ -748,7 +771,7 @@ async function loadClients() {
     clientJournalDrafts.value = seededDrafts
   } catch (err: any) {
     clients.value = []
-    clientsError.value = getApiErrorMessage(err, 'Спробуйте ще раз або оновіть сторінку.')
+    clientsError.value = getApiErrorMessage(err, 'РЎРїСЂРѕР±СѓР№С‚Рµ С‰Рµ СЂР°Р· Р°Р±Рѕ РѕРЅРѕРІС–С‚СЊ СЃС‚РѕСЂС–РЅРєСѓ.')
   } finally {
     clientsLoading.value = false
   }
@@ -861,7 +884,7 @@ async function loadHistory(clientId: number) {
       }
     }
   } catch (err: any) {
-    error.value = getApiErrorMessage(err, 'Не вдалося завантажити нотатки клієнта')
+    error.value = getApiErrorMessage(err, 'РќРµ РІРґР°Р»РѕСЃСЏ Р·Р°РІР°РЅС‚Р°Р¶РёС‚Рё РЅРѕС‚Р°С‚РєРё РєР»С–С”РЅС‚Р°')
   } finally {
     setJournalLoading(clientId, false)
     setHistoryLoading(clientId, false)
@@ -880,12 +903,30 @@ async function saveClientJournal(clientId: number) {
     }
     workbookSavedMessage.value = {
       ...workbookSavedMessage.value,
-      [clientId]: 'Дані збережено.',
+      [clientId]: 'Р”Р°РЅС– Р·Р±РµСЂРµР¶РµРЅРѕ.',
     }
   } catch (err: any) {
-    error.value = getApiErrorMessage(err, 'Не вдалося зберегти робочий зошит клієнта')
+    error.value = getApiErrorMessage(err, 'РќРµ РІРґР°Р»РѕСЃСЏ Р·Р±РµСЂРµРіС‚Рё СЂРѕР±РѕС‡РёР№ Р·РѕС€РёС‚ РєР»С–С”РЅС‚Р°')
   } finally {
     setJournalSaving(clientId, false)
+  }
+}
+
+async function addClientToPracticeBoard(clientId: number) {
+  if (!clientId || isQuickAddLoading(clientId)) return
+  setQuickAddLoading(clientId, true)
+  error.value = ''
+  try {
+    await createPracticeBoardItem({
+      title: 'Follow-up по клієнту',
+      related_client_id: clientId,
+      source_type: 'manual',
+    })
+    toast.success('Задачу додано на дошку')
+  } catch (err: any) {
+    error.value = getApiErrorMessage(err, 'Не вдалося додати задачу на дошку.')
+  } finally {
+    setQuickAddLoading(clientId, false)
   }
 }
 

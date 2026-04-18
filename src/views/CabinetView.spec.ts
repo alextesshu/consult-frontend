@@ -723,9 +723,11 @@ describe('CabinetView', () => {
     })
 
     const sessionsTile = view.container.querySelector('a.action-tile[href="/cabinet/sessions"]')
+    const practiceBoardTile = view.container.querySelector('a.action-tile[href="/cabinet/practice-board"]')
     const clientsTile = view.container.querySelector('a.action-tile[href="/cabinet/clients"]')
 
     expect(sessionsTile).toBeInTheDocument()
+    expect(practiceBoardTile).toBeInTheDocument()
     expect(clientsTile).toBeInTheDocument()
   })
 

@@ -2,16 +2,28 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { apiGet, apiPatch, fetchChatThreads } from '../lib/api'
 import TherapistClientsView from './TherapistClientsView.vue'
+import { createPracticeBoardItem } from '../lib/specialistPracticeBoard'
+
+const mockToast = {
+  success: vi.fn(),
+}
 
 vi.mock('../lib/api', () => ({
   apiGet: vi.fn(),
   apiPatch: vi.fn(),
   fetchChatThreads: vi.fn(),
 }))
+vi.mock('../lib/specialistPracticeBoard', () => ({
+  createPracticeBoardItem: vi.fn(),
+}))
+vi.mock('../composables/useToast', () => ({
+  useToast: () => mockToast,
+}))
 
 const mockedApiGet = vi.mocked(apiGet)
 const mockedApiPatch = vi.mocked(apiPatch)
 const mockedFetchChatThreads = vi.mocked(fetchChatThreads)
+const mockedCreatePracticeBoardItem = vi.mocked(createPracticeBoardItem)
 
 const CLIENTS_URL = '/cabinet/clients/'
 const REMINDERS_URL = '/cabinet/notes/reminders/'
@@ -58,6 +70,8 @@ describe('TherapistClientsView', () => {
     mockedApiPatch.mockReset()
     mockedFetchChatThreads.mockReset()
     mockedFetchChatThreads.mockResolvedValue([])
+    mockedCreatePracticeBoardItem.mockReset()
+    mockToast.success.mockReset()
     window.history.replaceState({}, '', '/cabinet/clients')
     Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', {
       configurable: true,
@@ -198,15 +212,55 @@ describe('TherapistClientsView', () => {
 
     const { container } = renderView()
 
-    const actionButtons = await waitFor(() => {
+    const archiveButton = await waitFor(() => {
       const buttons = container.querySelectorAll('.client-card .client-actions button')
-      expect(buttons.length).toBeGreaterThanOrEqual(2)
-      return buttons
+      expect(buttons.length).toBeGreaterThanOrEqual(3)
+      return buttons[buttons.length - 1] as HTMLButtonElement
     })
-    await fireEvent.click(actionButtons[1] as HTMLButtonElement)
+    await fireEvent.click(archiveButton)
 
     await waitFor(() => {
       expect(mockedApiPatch).toHaveBeenCalledWith('/cabinet/clients/44/archive/')
+    })
+  })
+
+  it('creates board task from client quick-add button with client context', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL)
+        return [
+          {
+            id: 1,
+            client_id: 44,
+            state: 'ACTIVE',
+            last_session_at: null,
+            upcoming_count: 0,
+            client_display_name: 'Test Client',
+          },
+        ]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedCreatePracticeBoardItem.mockResolvedValue({ id: 901 } as any)
+
+    const { container } = renderView()
+
+    const quickAddButton = await waitFor(() => {
+      const button = Array.from(container.querySelectorAll('.client-card .client-actions button')).find((item) =>
+        item.textContent?.includes('Додати на дошку')
+      )
+      expect(button).toBeInstanceOf(HTMLButtonElement)
+      return button as HTMLButtonElement
+    })
+
+    await fireEvent.click(quickAddButton)
+
+    await waitFor(() => {
+      expect(mockedCreatePracticeBoardItem).toHaveBeenCalledWith({
+        title: 'Follow-up по клієнту',
+        related_client_id: 44,
+        source_type: 'manual',
+      })
+      expect(mockToast.success).toHaveBeenCalledWith('Задачу додано на дошку')
     })
   })
 

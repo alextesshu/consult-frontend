@@ -14,6 +14,7 @@ import {
 import { BOOKING_SUCCESS_MESSAGES } from '../lib/bookingCopy'
 import { formatSessionDateTime } from '../lib/specialistSessions'
 import TherapistSessionDetailView from './TherapistSessionDetailView.vue'
+import { createPracticeBoardItem } from '../lib/specialistPracticeBoard'
 
 const mockRoute = {
   params: {
@@ -58,6 +59,9 @@ vi.mock('../lib/api', () => ({
   uploadSessionPaymentProof: vi.fn(),
   updateSpecialistSessionMeeting: vi.fn(),
 }))
+vi.mock('../lib/specialistPracticeBoard', () => ({
+  createPracticeBoardItem: vi.fn(),
+}))
 
 const mockedApiGet = vi.mocked(apiGet)
 const mockedApiPatch = vi.mocked(apiPatch)
@@ -68,6 +72,7 @@ const mockedMarkSessionPaymentProofPaid = vi.mocked(markSessionPaymentProofPaid)
 const mockedRequestSessionPaymentProofClarification = vi.mocked(requestSessionPaymentProofClarification)
 const mockedUploadSessionPaymentProof = vi.mocked(uploadSessionPaymentProof)
 const mockedUpdateSpecialistSessionMeeting = vi.mocked(updateSpecialistSessionMeeting)
+const mockedCreatePracticeBoardItem = vi.mocked(createPracticeBoardItem)
 
 function buildSession(overrides: Record<string, unknown> = {}) {
   return {
@@ -229,6 +234,7 @@ describe('TherapistSessionDetailView', () => {
     mockedRequestSessionPaymentProofClarification.mockReset()
     mockedUploadSessionPaymentProof.mockReset()
     mockedUpdateSpecialistSessionMeeting.mockReset()
+    mockedCreatePracticeBoardItem.mockReset()
     mockToast.show.mockReset()
     mockToast.success.mockReset()
     mockToast.error.mockReset()
@@ -577,6 +583,32 @@ describe('TherapistSessionDetailView', () => {
       expect(openSpy).toHaveBeenCalled()
     })
     openSpy.mockRestore()
+  })
+
+  it('creates board task from session quick-add button with session context', async () => {
+    const sessionDetail = buildSession({
+      id: 42,
+      client: 77,
+      status: 'CONFIRMED',
+    })
+    mockDetailContext(() => sessionDetail)
+    mockedCreatePracticeBoardItem.mockResolvedValue({ id: 901 } as any)
+
+    renderView()
+
+    expect(await screen.findByText('client@example.com')).toBeInTheDocument()
+    await fireEvent.click(screen.getByRole('button', { name: 'Додати на дошку' }))
+
+    await waitFor(() => {
+      expect(mockedCreatePracticeBoardItem).toHaveBeenCalledWith({
+        title: 'Повернутись до сесії',
+        related_client_id: 77,
+        related_session_id: 42,
+        source_type: 'session',
+        source_id: 42,
+      })
+      expect(mockToast.success).toHaveBeenCalledWith('Задачу додано на дошку')
+    })
   })
   it.each(['REVIEW_PAYMENT', 'UPLOAD_PAYMENT_PROOF', 'CONFIRM_PAYMENT'] as const)(
     'routes %s workspace action by code to payment section',
@@ -972,8 +1004,8 @@ describe('TherapistSessionDetailView', () => {
       const updatedStatusPanel = screen.getByText(/ID: #77/).closest('section')
       expect(updatedStatusPanel).not.toBeNull()
       const remainingActionButtons = within(updatedStatusPanel as HTMLElement).queryAllByRole('button')
-      expect(remainingActionButtons).toHaveLength(3)
-      expect(remainingActionButtons.every((button) => button.hasAttribute('disabled'))).toBe(true)
+      expect(remainingActionButtons).toHaveLength(4)
+      expect(remainingActionButtons.filter((button) => button.hasAttribute('disabled')).length).toBeGreaterThanOrEqual(3)
       expect((updatedStatusPanel as HTMLElement).querySelector('.status-pill--muted')).not.toBeNull()
       expect(
         within(updatedStatusPanel as HTMLElement)

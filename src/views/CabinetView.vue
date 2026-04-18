@@ -254,6 +254,7 @@
                 <h3 class="action-group__title">Щоденна робота</h3>
                 <div class="action-group__items">
                   <RouterLink class="action-tile" to="/cabinet/sessions">Сесії</RouterLink>
+                  <RouterLink class="action-tile" to="/cabinet/practice-board">Дошка задач</RouterLink>
                   <RouterLink class="action-tile" to="/cabinet/external-sessions">Гостьові сесії</RouterLink>
                   <RouterLink class="action-tile" to="/cabinet/clients">Клієнти</RouterLink>
                   <RouterLink class="action-tile" to="/cabinet/inquiries">Запити до бронювання</RouterLink>

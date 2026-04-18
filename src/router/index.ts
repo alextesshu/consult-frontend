@@ -42,6 +42,7 @@ import ClientInquiryRedirectView from '../views/ClientInquiryRedirectView.vue'
 import ExternalSessionsView from '../views/ExternalSessionsView.vue'
 import ExternalSessionDetailView from '../views/ExternalSessionDetailView.vue'
 import ExternalGuestSessionInviteView from '../views/ExternalGuestSessionInviteView.vue'
+import SpecialistPracticeBoardView from '../views/SpecialistPracticeBoardView.vue'
 import { useAuthStore } from '../stores/auth'
 import { fetchSpecialistProfile } from '../lib/api'
 import { hasSpecialistRole, isSpecialistCriticalReconcileRoute } from '../lib/entitlementReconcile'
@@ -141,6 +142,12 @@ const routes = [
     path: '/cabinet/external-sessions',
     name: 'cabinet-external-sessions',
     component: ExternalSessionsView,
+    meta: { requiresAuth: true, requiresRole: 'SPECIALIST' },
+  },
+  {
+    path: '/cabinet/practice-board',
+    name: 'cabinet-practice-board',
+    component: SpecialistPracticeBoardView,
     meta: { requiresAuth: true, requiresRole: 'SPECIALIST' },
   },
   {

@@ -64,6 +64,14 @@
             >
               {{ showRecurringPanel ? 'Сховати серію' : 'Повторювати щотижня' }}
             </button>
+            <button
+              class="btn btn--ghost btn--sm"
+              type="button"
+              :disabled="actionLoading || quickAddPending"
+              @click="addSessionToPracticeBoard"
+            >
+              {{ quickAddPending ? 'Додаємо…' : 'Додати на дошку' }}
+            </button>
           </div>
         </div>
 
@@ -563,6 +571,7 @@ import EmptyState from '../components/EmptyState.vue'
 import LoadingSkeleton from '../components/LoadingSkeleton.vue'
 import SessionCompletionModal from '../components/SessionCompletionModal.vue'
 import SessionPaymentProofBlock from '../components/SessionPaymentProofBlock.vue'
+import { createPracticeBoardItem } from '../lib/specialistPracticeBoard'
 
 type SessionSlot = {
   start_at?: string | null
@@ -716,6 +725,7 @@ const isEditingMeetingLink = ref(false)
 const meetingLinkDraft = ref('')
 const paymentProofActionError = ref('')
 const paymentPanelRef = ref<HTMLElement | null>(null)
+const quickAddPending = ref(false)
 
 function normalizeSessionFormat(detail: SessionDetail | null): SessionFormat {
   if (!detail) return 'online'
@@ -1444,6 +1454,26 @@ async function saveMeetingLink() {
     error.value = getBookingErrorMessage(err, 'Не вдалося оновити посилання на зустріч.')
   } finally {
     actionLoading.value = false
+  }
+}
+
+async function addSessionToPracticeBoard() {
+  if (!session.value || quickAddPending.value) return
+  quickAddPending.value = true
+  error.value = ''
+  try {
+    await createPracticeBoardItem({
+      title: 'Повернутись до сесії',
+      related_client_id: session.value.client || null,
+      related_session_id: session.value.id,
+      source_type: 'session',
+      source_id: session.value.id,
+    })
+    toast.success('Задачу додано на дошку')
+  } catch (err: any) {
+    error.value = getBookingErrorMessage(err, 'Не вдалося додати задачу на дошку.')
+  } finally {
+    quickAddPending.value = false
   }
 }
 

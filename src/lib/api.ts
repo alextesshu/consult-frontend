@@ -533,6 +533,56 @@ export type PublicSpecialistProfile = PublicTherapistProfile
 
 export type SessionFormat = 'online' | 'offline'
 
+export type PracticeBoardStatus = 'todo' | 'in_progress' | 'done'
+
+export type PracticeBoardSourceType =
+  | 'manual'
+  | 'session'
+  | 'session_note'
+  | 'client_advice'
+  | 'workbook'
+  | 'payment'
+  | null
+
+export type PracticeBoardItem = {
+  id: number | string
+  title: string
+  description: string | null
+  status: PracticeBoardStatus
+  priority?: string | null
+  related_client_id?: number | null
+  related_session_id?: number | null
+  source_type?: PracticeBoardSourceType
+  source_id?: number | string | null
+  created_at: string
+  updated_at: string
+  completed_at?: string | null
+}
+
+export type PracticeBoardColumns = {
+  todo: PracticeBoardItem[]
+  in_progress: PracticeBoardItem[]
+  done: PracticeBoardItem[]
+}
+
+export type PracticeBoardCreatePayload = {
+  title: string
+  description?: string | null
+  related_client_id?: number | null
+  related_session_id?: number | null
+  source_type?: PracticeBoardSourceType
+  source_id?: number | string | null
+}
+
+export type PracticeBoardUpdatePayload = {
+  title?: string
+  description?: string | null
+}
+
+export type PracticeBoardMovePayload = {
+  status: PracticeBoardStatus
+}
+
 export type BookingSessionCreatePayload = {
   slot_id: number
   setting_accepted?: boolean

@@ -53,6 +53,13 @@ describe('router specialist session routes', () => {
     expect(invalidDetail.name).not.toBe('cabinet-external-session-detail')
   })
 
+  it('matches specialist practice board route', () => {
+    const resolved = router.resolve('/cabinet/practice-board')
+
+    expect(resolved.name).toBe('cabinet-practice-board')
+    expect(resolved.params).toEqual({})
+  })
+
   it('redirects unauthenticated users away from specialist session routes', async () => {
     await router.push('/cabinet/sessions/42')
 
