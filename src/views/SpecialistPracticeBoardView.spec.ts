@@ -7,10 +7,17 @@ import {
   movePracticeBoardItem,
 } from '../lib/specialistPracticeBoard'
 
+const mockToast = {
+  success: vi.fn(),
+}
+
 vi.mock('../lib/specialistPracticeBoard', () => ({
   fetchPracticeBoardItems: vi.fn(),
   createPracticeBoardItem: vi.fn(),
   movePracticeBoardItem: vi.fn(),
+}))
+vi.mock('../composables/useToast', () => ({
+  useToast: () => mockToast,
 }))
 
 const mockedFetchPracticeBoardItems = vi.mocked(fetchPracticeBoardItems)
@@ -41,6 +48,7 @@ describe('SpecialistPracticeBoardView', () => {
     mockedFetchPracticeBoardItems.mockReset()
     mockedCreatePracticeBoardItem.mockReset()
     mockedMovePracticeBoardItem.mockReset()
+    mockToast.success.mockReset()
   })
 
   it('renders three board columns after initial fetch', async () => {
@@ -55,9 +63,25 @@ describe('SpecialistPracticeBoardView', () => {
   })
 
   it('creates item from inline form', async () => {
+    const columnsAfterCreate = {
+      todo: [
+        ...buildColumns().todo,
+        {
+          id: 5,
+          title: 'Нова задача',
+          description: 'Опис задачі',
+          status: 'todo',
+          created_at: '2026-04-18T11:00:00Z',
+          updated_at: '2026-04-18T11:00:00Z',
+        },
+      ],
+      in_progress: [],
+      done: [],
+    } as any
+
     mockedFetchPracticeBoardItems
       .mockResolvedValueOnce(buildColumns())
-      .mockResolvedValueOnce(buildColumns())
+      .mockResolvedValueOnce(columnsAfterCreate)
     mockedCreatePracticeBoardItem.mockResolvedValue({ id: 5 } as any)
 
     render(SpecialistPracticeBoardView)
@@ -74,6 +98,9 @@ describe('SpecialistPracticeBoardView', () => {
         description: 'Опис задачі',
       })
     })
+    expect(mockToast.success).toHaveBeenCalledWith('Задачу додано на дошку')
+    expect(screen.queryByText('Нова задача')).toBeInTheDocument()
+    expect(screen.queryByText('Нова задача', { selector: '.panel__title' })).not.toBeInTheDocument()
   })
 
   it('does not submit create when title is empty', async () => {

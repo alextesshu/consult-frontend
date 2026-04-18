@@ -13,7 +13,7 @@
       </button>
     </header>
 
-    <section v-if="showCreateForm" class="panel practice-board__create">
+    <form v-if="showCreateForm" class="panel practice-board__create" @submit.prevent="submitCreate">
       <div class="panel__header">
         <h2 class="panel__title">Нова задача</h2>
       </div>
@@ -34,14 +34,14 @@
         </label>
       </div>
       <div class="practice-board__create-actions">
-        <button class="btn btn--sm" type="button" :disabled="createPending" @click="submitCreate">
+        <button class="btn btn--sm" type="submit" :disabled="createPending">
           {{ createPending ? 'Зберігаємо…' : 'Зберегти' }}
         </button>
         <button class="btn btn--ghost btn--sm" type="button" :disabled="createPending" @click="cancelCreate">
           Скасувати
         </button>
       </div>
-    </section>
+    </form>
 
     <div v-if="boardError" class="form-error">
       {{ boardError }}
@@ -103,6 +103,7 @@
 import { computed, onMounted, ref } from 'vue'
 import EmptyState from '../components/EmptyState.vue'
 import LoadingSkeleton from '../components/LoadingSkeleton.vue'
+import { useToast } from '../composables/useToast'
 import type {
   PracticeBoardColumns,
   PracticeBoardCreatePayload,
@@ -166,6 +167,7 @@ const createDraft = ref<CreateDraft>({
   title: '',
   description: '',
 })
+const toast = useToast()
 
 const hasNoItems = computed(
   () =>
@@ -249,6 +251,7 @@ async function submitCreate() {
   createPending.value = true
   try {
     await createPracticeBoardItem(payload)
+    toast.success('Задачу додано на дошку')
     cancelCreate()
     await loadBoard()
   } catch {
