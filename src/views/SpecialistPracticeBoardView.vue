@@ -72,30 +72,118 @@
 
         <div v-else class="board-column__list">
           <article v-for="item in boardColumns[column.status]" :key="item.id" class="board-card">
-            <h3 class="board-card__title">{{ item.title }}</h3>
-            <p v-if="item.description" class="board-card__description muted">{{ item.description }}</p>
-
-            <div v-if="hasMetadata(item)" class="board-card__meta muted">
-              <span v-if="item.related_client_id">Клієнт #{{ item.related_client_id }}</span>
-              <span v-if="item.related_session_id">Сесія #{{ item.related_session_id }}</span>
-            </div>
-
-            <div class="board-card__actions">
+            <header class="board-card__header">
+              <h3 class="board-card__title">{{ item.title }}</h3>
               <button
-                v-for="action in moveActions(item.status)"
-                :key="action.target"
-                class="btn btn--ghost btn--sm"
+                class="btn btn--ghost btn--sm board-card__remove"
                 type="button"
-                :disabled="isMovePending(item.id)"
-                @click="moveItem(item.id, action.target)"
+                aria-label="Видалити"
+                :disabled="isArchivePending(item.id)"
+                @click="openArchiveConfirm(item.id)"
               >
-                {{ action.label }}
+                &times;
               </button>
-            </div>
+            </header>
+
+            <template v-if="isEditing(item.id)">
+              <div v-if="editError" class="form-error">{{ editError }}</div>
+              <div class="board-card__edit-grid">
+                <label class="field">
+                  <span>Заголовок</span>
+                  <input v-model.trim="editDraft.title" class="input" type="text" maxlength="180" />
+                </label>
+                <label class="field">
+                  <span>Опис (опційно)</span>
+                  <textarea
+                    v-model.trim="editDraft.description"
+                    class="input board-card__edit-description"
+                    rows="4"
+                    maxlength="1000"
+                  ></textarea>
+                </label>
+              </div>
+              <div class="board-card__actions">
+                <button class="btn btn--sm" type="button" :disabled="editPending" @click="submitEdit(item.id)">
+                  {{ editPending ? 'Зберігаємо…' : 'Зберегти' }}
+                </button>
+                <button class="btn btn--ghost btn--sm" type="button" :disabled="editPending" @click="cancelEdit">
+                  Скасувати
+                </button>
+              </div>
+            </template>
+
+            <template v-else>
+
+              <div v-if="hasMetadata(item)" class="board-card__meta muted">
+                <span v-if="item.related_client_id">Клієнт #{{ item.related_client_id }}</span>
+                <span v-if="item.related_session_id">Сесія #{{ item.related_session_id }}</span>
+              </div>
+
+              <div v-if="isArchiveConfirmOpen(item.id)" class="board-card__confirm">
+                <p class="board-card__confirm-title">Видалити цю задачу?</p>
+                <div v-if="archiveError" class="form-error">{{ archiveError }}</div>
+                <div class="board-card__actions">
+                  <button
+                    class="btn btn--sm"
+                    type="button"
+                    :disabled="isArchivePending(item.id)"
+                    @click="confirmArchive(item.id)"
+                  >
+                    {{ isArchivePending(item.id) ? 'Видаляємо…' : 'Видалити' }}
+                  </button>
+                  <button
+                    class="btn btn--ghost btn--sm"
+                    type="button"
+                    :disabled="isArchivePending(item.id)"
+                    @click="closeArchiveConfirm"
+                  >
+                    Скасувати
+                  </button>
+                </div>
+              </div>
+
+              <div v-else class="board-card__actions">
+                <button
+                  v-if="item.description && item.description.trim()"
+                  class="btn btn--sm"
+                  type="button"
+                  @click="openDetails(item)"
+                >
+                  Деталі
+                </button>
+                <button class="btn btn--ghost btn--sm" type="button" aria-label="Редагувати" @click="startEdit(item)">
+                  <span class="board-card__icon" aria-hidden="true">✎</span>
+                </button>
+                <button
+                  v-for="action in moveActions(item.status)"
+                  :key="action.target"
+                  class="btn btn--ghost btn--sm"
+                  type="button"
+                  :aria-label="action.label"
+                  :disabled="isMovePending(item.id)"
+                  @click="moveItem(item.id, action.target)"
+                >
+                  <span v-if="action.target === 'done'" class="board-card__icon board-card__icon--success" aria-hidden="true"
+                    >✓</span
+                  >
+                  <span v-else>{{ action.label }}</span>
+                </button>
+              </div>
+            </template>
           </article>
         </div>
       </article>
     </section>
+
+    <div v-if="detailsItem" class="practice-board__details-backdrop" @click.self="closeDetails">
+      <section class="practice-board__details panel" role="dialog" aria-modal="true" aria-label="Деталі задачі">
+        <div class="panel__header practice-board__details-header">
+          <h2 class="panel__title practice-board__details-title">{{ detailsItem.title }}</h2>
+          <button class="btn btn--ghost btn--sm practice-board__details-cancel" type="button" @click="closeDetails">Скасувати</button>
+        </div>
+        <p class="practice-board__details-text muted">{{ detailsItem.description }}</p>
+      </section>
+    </div>
   </section>
 </template>
 
@@ -111,12 +199,19 @@ import type {
   PracticeBoardStatus,
 } from '../lib/api'
 import {
+  archivePracticeBoardItem,
   createPracticeBoardItem,
   fetchPracticeBoardItems,
   movePracticeBoardItem,
+  updatePracticeBoardItem,
 } from '../lib/specialistPracticeBoard'
 
 type CreateDraft = {
+  title: string
+  description: string
+}
+
+type EditDraft = {
   title: string
   description: string
 }
@@ -135,11 +230,11 @@ const columnsConfig: Array<{ status: PracticeBoardStatus; label: string }> = [
 const MOVE_ACTIONS_BY_STATUS: Record<PracticeBoardStatus, MoveAction[]> = {
   todo: [
     { label: 'Взяти в роботу', target: 'in_progress' },
-    { label: 'Завершити', target: 'done' },
+    { label: 'Завершено', target: 'done' },
   ],
   in_progress: [
     { label: 'Повернути в заплановане', target: 'todo' },
-    { label: 'Завершити', target: 'done' },
+    { label: 'Завершено', target: 'done' },
   ],
   done: [
     { label: 'Повернути в роботу', target: 'in_progress' },
@@ -159,11 +254,22 @@ const loading = ref(true)
 const boardError = ref('')
 const createError = ref('')
 const moveError = ref('')
+const editError = ref('')
+const archiveError = ref('')
 const showCreateForm = ref(false)
 const createPending = ref(false)
+const editPending = ref(false)
 const movePending = ref<Set<string>>(new Set())
+const editingItemId = ref<string | null>(null)
+const archiveConfirmItemId = ref<string | null>(null)
+const archivePendingItemId = ref<string | null>(null)
+const detailsItem = ref<PracticeBoardItem | null>(null)
 const boardColumns = ref<PracticeBoardColumns>(createEmptyColumns())
 const createDraft = ref<CreateDraft>({
+  title: '',
+  description: '',
+})
+const editDraft = ref<EditDraft>({
   title: '',
   description: '',
 })
@@ -200,7 +306,108 @@ function hasMetadata(item: PracticeBoardItem) {
 }
 
 function moveActions(status: PracticeBoardStatus) {
+  if (status === 'done') {
+    return MOVE_ACTIONS_BY_STATUS.done.filter((action) => action.target === 'in_progress')
+  }
   return MOVE_ACTIONS_BY_STATUS[status]
+}
+
+function openDetails(item: PracticeBoardItem) {
+  detailsItem.value = item
+}
+
+function closeDetails() {
+  detailsItem.value = null
+}
+
+function isEditing(itemId: number | string) {
+  return editingItemId.value === toPendingKey(itemId)
+}
+
+function startEdit(item: PracticeBoardItem) {
+  editError.value = ''
+  archiveError.value = ''
+  archiveConfirmItemId.value = null
+  editingItemId.value = toPendingKey(item.id)
+  editDraft.value = {
+    title: item.title,
+    description: item.description || '',
+  }
+}
+
+function cancelEdit() {
+  editError.value = ''
+  editingItemId.value = null
+  editDraft.value = {
+    title: '',
+    description: '',
+  }
+}
+
+function buildEditPayload() {
+  const title = editDraft.value.title.trim()
+  if (!title) return null
+  const description = editDraft.value.description.trim()
+  return {
+    title,
+    description: description || null,
+  }
+}
+
+async function submitEdit(itemId: number | string) {
+  editError.value = ''
+  const payload = buildEditPayload()
+  if (!payload) {
+    editError.value = 'Вкажіть заголовок задачі.'
+    return
+  }
+
+  editPending.value = true
+  try {
+    await updatePracticeBoardItem(itemId, payload)
+    toast.success('Задачу оновлено')
+    cancelEdit()
+    await loadBoard()
+  } catch {
+    editError.value = 'Не вдалося оновити задачу.'
+  } finally {
+    editPending.value = false
+  }
+}
+
+function openArchiveConfirm(itemId: number | string) {
+  archiveError.value = ''
+  editError.value = ''
+  editingItemId.value = null
+  archiveConfirmItemId.value = toPendingKey(itemId)
+}
+
+function closeArchiveConfirm() {
+  archiveError.value = ''
+  archiveConfirmItemId.value = null
+}
+
+function isArchiveConfirmOpen(itemId: number | string) {
+  return archiveConfirmItemId.value === toPendingKey(itemId)
+}
+
+function isArchivePending(itemId: number | string) {
+  return archivePendingItemId.value === toPendingKey(itemId)
+}
+
+async function confirmArchive(itemId: number | string) {
+  archiveError.value = ''
+  archivePendingItemId.value = toPendingKey(itemId)
+  try {
+    await archivePracticeBoardItem(itemId)
+    toast.success('Задачу видалено')
+    closeArchiveConfirm()
+    await loadBoard()
+  } catch {
+    archiveError.value = 'Не вдалося видалити задачу.'
+  } finally {
+    archivePendingItemId.value = null
+  }
 }
 
 function toggleCreateForm() {
@@ -222,7 +429,7 @@ async function loadBoard() {
   boardError.value = ''
   try {
     boardColumns.value = await fetchPracticeBoardItems()
-  } catch (error) {
+  } catch {
     boardError.value = 'Не вдалося завантажити задачі дошки.'
   } finally {
     loading.value = false
@@ -403,6 +610,14 @@ onMounted(async () => {
   padding: 10px;
   display: grid;
   gap: 8px;
+  min-height: 110px;
+}
+
+.board-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
 }
 
 .board-card__title {
@@ -410,11 +625,40 @@ onMounted(async () => {
   font-size: 15px;
 }
 
-.board-card__description {
-  margin: 0;
-  font-size: 13px;
-  line-height: 1.45;
-  white-space: pre-wrap;
+.board-card__remove {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  line-height: 1;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+
+.board-card:hover .board-card__remove,
+.board-card:focus-within .board-card__remove {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.board-card__icon {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.board-card__icon--success {
+  color: #1f8b4c;
+  font-weight: 700;
+}
+
+.board-card__edit-grid {
+  display: grid;
+  gap: 8px;
+}
+
+.board-card__edit-description {
+  min-height: 86px;
+  resize: vertical;
 }
 
 .board-card__meta {
@@ -424,10 +668,62 @@ onMounted(async () => {
   font-size: 12px;
 }
 
+.board-card__confirm {
+  border: 1px solid rgba(7, 47, 71, 0.16);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.9);
+  padding: 8px;
+  display: grid;
+  gap: 8px;
+}
+
+.board-card__confirm-title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+}
+
 .board-card__actions {
   display: flex;
   gap: 6px;
   flex-wrap: wrap;
+}
+
+.practice-board__details-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(7, 47, 71, 0.28);
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  z-index: 60;
+}
+
+.practice-board__details {
+  width: min(560px, 100%);
+  max-height: 80vh;
+  overflow: auto;
+}
+
+.practice-board__details-header {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+}
+
+.practice-board__details-title {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.practice-board__details-cancel {
+  flex-shrink: 0;
+}
+.practice-board__details-text {
+  margin: 0;
+  white-space: pre-wrap;
+  line-height: 1.5;
 }
 
 .btn--sm {
@@ -456,3 +752,4 @@ onMounted(async () => {
   }
 }
 </style>
+

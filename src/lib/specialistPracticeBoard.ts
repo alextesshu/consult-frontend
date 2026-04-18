@@ -175,3 +175,7 @@ export async function movePracticeBoardItem(
     return apiPost<PracticeBoardItem>(endpoint, { target_status: payload.status })
   }
 }
+
+export async function archivePracticeBoardItem(itemId: number | string): Promise<PracticeBoardItem> {
+  return apiPost<PracticeBoardItem>(`${PRACTICE_BOARD_ITEMS_URL}${itemId}/archive/`, {})
+}

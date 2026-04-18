@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { apiGet, apiPatch, apiPost } from './api'
 import {
+  archivePracticeBoardItem,
   createPracticeBoardItem,
   fetchPracticeBoardItems,
   movePracticeBoardItem,
@@ -220,5 +221,13 @@ describe('specialistPracticeBoard', () => {
     expect(mockedApiPost).toHaveBeenNthCalledWith(2, '/cabinet/practice-board/items/5/move/', {
       target_status: 'done',
     })
+  })
+
+  it('archives item via canonical endpoint', async () => {
+    mockedApiPost.mockResolvedValue({} as never)
+
+    await archivePracticeBoardItem(9)
+
+    expect(mockedApiPost).toHaveBeenCalledWith('/cabinet/practice-board/items/9/archive/', {})
   })
 })

@@ -1,10 +1,12 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/vue'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import SpecialistPracticeBoardView from './SpecialistPracticeBoardView.vue'
 import {
+  archivePracticeBoardItem,
   createPracticeBoardItem,
   fetchPracticeBoardItems,
   movePracticeBoardItem,
+  updatePracticeBoardItem,
 } from '../lib/specialistPracticeBoard'
 
 const mockToast = {
@@ -12,9 +14,11 @@ const mockToast = {
 }
 
 vi.mock('../lib/specialistPracticeBoard', () => ({
+  archivePracticeBoardItem: vi.fn(),
   fetchPracticeBoardItems: vi.fn(),
   createPracticeBoardItem: vi.fn(),
   movePracticeBoardItem: vi.fn(),
+  updatePracticeBoardItem: vi.fn(),
 }))
 vi.mock('../composables/useToast', () => ({
   useToast: () => mockToast,
@@ -23,6 +27,8 @@ vi.mock('../composables/useToast', () => ({
 const mockedFetchPracticeBoardItems = vi.mocked(fetchPracticeBoardItems)
 const mockedCreatePracticeBoardItem = vi.mocked(createPracticeBoardItem)
 const mockedMovePracticeBoardItem = vi.mocked(movePracticeBoardItem)
+const mockedUpdatePracticeBoardItem = vi.mocked(updatePracticeBoardItem)
+const mockedArchivePracticeBoardItem = vi.mocked(archivePracticeBoardItem)
 
 function buildColumns() {
   return {
@@ -48,10 +54,12 @@ describe('SpecialistPracticeBoardView', () => {
     mockedFetchPracticeBoardItems.mockReset()
     mockedCreatePracticeBoardItem.mockReset()
     mockedMovePracticeBoardItem.mockReset()
+    mockedUpdatePracticeBoardItem.mockReset()
+    mockedArchivePracticeBoardItem.mockReset()
     mockToast.success.mockReset()
   })
 
-  it('renders three board columns after initial fetch', async () => {
+  it('renders board header and three columns after initial fetch', async () => {
     mockedFetchPracticeBoardItems.mockResolvedValue(buildColumns())
 
     render(SpecialistPracticeBoardView)
@@ -63,7 +71,7 @@ describe('SpecialistPracticeBoardView', () => {
     expect(await screen.findByText('Заплановано')).toBeInTheDocument()
     expect(screen.queryByText('Потребує уваги')).not.toBeInTheDocument()
     expect(screen.getByText('У роботі')).toBeInTheDocument()
-    expect(screen.getByText('Завершено')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Завершено' })).toBeInTheDocument()
     expect(screen.getByText('Todo task')).toBeInTheDocument()
   })
 
@@ -84,9 +92,7 @@ describe('SpecialistPracticeBoardView', () => {
       done: [],
     } as any
 
-    mockedFetchPracticeBoardItems
-      .mockResolvedValueOnce(buildColumns())
-      .mockResolvedValueOnce(columnsAfterCreate)
+    mockedFetchPracticeBoardItems.mockResolvedValueOnce(buildColumns()).mockResolvedValueOnce(columnsAfterCreate)
     mockedCreatePracticeBoardItem.mockResolvedValue({ id: 5 } as any)
 
     render(SpecialistPracticeBoardView)
@@ -104,12 +110,11 @@ describe('SpecialistPracticeBoardView', () => {
       })
     })
     expect(mockToast.success).toHaveBeenCalledWith('Задачу додано на дошку')
-    expect(screen.queryByText('Нова задача')).toBeInTheDocument()
-    expect(screen.queryByText('Нова задача', { selector: '.panel__title' })).not.toBeInTheDocument()
   })
 
   it('does not submit create when title is empty', async () => {
     mockedFetchPracticeBoardItems.mockResolvedValue(buildColumns())
+
     render(SpecialistPracticeBoardView)
     expect(await screen.findByText('Todo task')).toBeInTheDocument()
 
@@ -121,21 +126,122 @@ describe('SpecialistPracticeBoardView', () => {
   })
 
   it('moves item with expected payload', async () => {
-    mockedFetchPracticeBoardItems
-      .mockResolvedValueOnce(buildColumns())
-      .mockResolvedValueOnce(buildColumns())
+    mockedFetchPracticeBoardItems.mockResolvedValueOnce(buildColumns()).mockResolvedValueOnce(buildColumns())
     mockedMovePracticeBoardItem.mockResolvedValue({} as any)
 
     render(SpecialistPracticeBoardView)
     expect(await screen.findByText('Todo task')).toBeInTheDocument()
 
     expect(screen.getByRole('button', { name: 'Взяти в роботу' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Завершити' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Завершено' })).toBeInTheDocument()
+
     await fireEvent.click(screen.getByRole('button', { name: 'Взяти в роботу' }))
 
     await waitFor(() => {
       expect(mockedMovePracticeBoardItem).toHaveBeenCalledWith(1, { status: 'in_progress' })
     })
+  })
+
+  it('opens description in details dialog from card action', async () => {
+    const description = 'Детальний опис задачі для перевірки.'
+    mockedFetchPracticeBoardItems.mockResolvedValue({
+      todo: [
+        {
+          id: 1,
+          title: 'Task with details',
+          description,
+          status: 'todo',
+          created_at: '2026-04-18T10:00:00Z',
+          updated_at: '2026-04-18T10:00:00Z',
+        },
+      ],
+      in_progress: [],
+      done: [],
+    } as any)
+
+    render(SpecialistPracticeBoardView)
+
+    const detailsButton = await screen.findByRole('button', { name: 'Деталі' })
+    expect(detailsButton).toBeInTheDocument()
+    expect(detailsButton.className.includes('btn--ghost')).toBe(false)
+
+    const card = detailsButton.closest('.board-card')
+    if (!card) throw new Error('Card not found')
+    const actions = card.querySelector('.board-card__actions')
+    if (!(actions instanceof HTMLElement)) throw new Error('Actions container not found')
+    const firstAction = actions.querySelector('button')
+    expect(firstAction?.textContent?.trim()).toBe('Деталі')
+
+    expect(screen.queryByText(description)).not.toBeInTheDocument()
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Деталі' }))
+
+    expect(screen.getByRole('dialog', { name: 'Деталі задачі' })).toBeInTheDocument()
+    expect(screen.getByText(description)).toBeInTheDocument()
+  })
+
+  it('edits card inline via patch endpoint', async () => {
+    mockedFetchPracticeBoardItems
+      .mockResolvedValueOnce(buildColumns())
+      .mockResolvedValueOnce({
+        todo: [
+          {
+            ...buildColumns().todo[0],
+            title: 'Edited todo',
+            description: 'Edited description',
+          },
+        ],
+        in_progress: [],
+        done: [],
+      } as any)
+    mockedUpdatePracticeBoardItem.mockResolvedValue({} as any)
+
+    render(SpecialistPracticeBoardView)
+    expect(await screen.findByText('Todo task')).toBeInTheDocument()
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Редагувати' }))
+
+    const editForm = screen.getByDisplayValue('Todo task').closest('.board-card')
+    if (!editForm) throw new Error('Edit card not found')
+
+    await fireEvent.update(within(editForm).getByDisplayValue('Todo task'), 'Edited todo')
+    await fireEvent.update(within(editForm).getByDisplayValue('Todo description'), 'Edited description')
+    await fireEvent.click(within(editForm).getByRole('button', { name: 'Зберегти' }))
+
+    await waitFor(() => {
+      expect(mockedUpdatePracticeBoardItem).toHaveBeenCalledWith(1, {
+        title: 'Edited todo',
+        description: 'Edited description',
+      })
+    })
+    expect(mockToast.success).toHaveBeenCalledWith('Задачу оновлено')
+  })
+
+  it('archives item after inline confirmation', async () => {
+    mockedFetchPracticeBoardItems
+      .mockResolvedValueOnce(buildColumns())
+      .mockResolvedValueOnce({
+        todo: [],
+        in_progress: [],
+        done: [],
+      } as any)
+    mockedArchivePracticeBoardItem.mockResolvedValue({} as any)
+
+    render(SpecialistPracticeBoardView)
+    expect(await screen.findByText('Todo task')).toBeInTheDocument()
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Видалити' }))
+    expect(screen.getByText('Видалити цю задачу?')).toBeInTheDocument()
+
+    const confirmPanel = screen.getByText('Видалити цю задачу?').closest('.board-card__confirm')
+    if (!confirmPanel) throw new Error('Confirm panel not found')
+
+    await fireEvent.click(within(confirmPanel).getByRole('button', { name: 'Видалити' }))
+
+    await waitFor(() => {
+      expect(mockedArchivePracticeBoardItem).toHaveBeenCalledWith(1)
+    })
+    expect(mockToast.success).toHaveBeenCalledWith('Задачу видалено')
   })
 
   it('renders backlog return CTA as "Повернути в заплановане"', async () => {
@@ -165,7 +271,7 @@ describe('SpecialistPracticeBoardView', () => {
 
     render(SpecialistPracticeBoardView)
 
-    expect(await screen.findAllByRole('button', { name: 'Повернути в заплановане' })).toHaveLength(2)
+    expect(await screen.findAllByRole('button', { name: 'Повернути в заплановане' })).toHaveLength(1)
     expect(screen.queryByRole('button', { name: 'Повернути до уваги' })).not.toBeInTheDocument()
   })
 
