@@ -1,4 +1,4 @@
-﻿import { fireEvent, render, screen, waitFor, within } from '@testing-library/vue'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   apiGet,
@@ -279,8 +279,8 @@ describe('TherapistSessionDetailView', () => {
     expect(container.querySelector('.note-header-actions button.btn')).toBeInTheDocument()
     expect(container.querySelector('.empty-state')).not.toBeInTheDocument()
     expect(screen.getByText('Google Meet')).toBeInTheDocument()
-    expect(screen.getByText('Р¤РѕСЂРјР°С‚: РћРЅР»Р°Р№РЅ')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'РџСЂРёС”РґРЅР°С‚РёСЃСЏ' })).toHaveAttribute(
+    expect(screen.getByText('Формат: Онлайн')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Приєднатися' })).toHaveAttribute(
       'href',
       'https://meet.google.com/therapist-room'
     )
@@ -339,8 +339,8 @@ describe('TherapistSessionDetailView', () => {
 
     renderView()
 
-    expect(await screen.findByText(/РћРїР»Р°С‚Сѓ РЅРµ Р·Р°РїРёС‚Р°РЅРѕ/)).toBeInTheDocument()
-    await fireEvent.click(screen.getByRole('button', { name: /Р—Р°РїСЂРѕСЃРёС‚Рё РѕРїР»Р°С‚Сѓ/ }))
+    expect(await screen.findByText(/Оплату не запитано/)).toBeInTheDocument()
+    await fireEvent.click(screen.getByRole('button', { name: /Запросити оплату/ }))
 
     await waitFor(() => {
       expect(mockedRequestSessionPaymentProof).toHaveBeenCalledWith(42)
@@ -348,9 +348,9 @@ describe('TherapistSessionDetailView', () => {
       expect(mockToast.success).toHaveBeenCalledTimes(1)
     })
 
-    expect(await screen.findByText(/РћС‡С–РєСѓС”С‚СЊСЃСЏ РїС–РґС‚РІРµСЂРґР¶РµРЅРЅСЏ РѕРїР»Р°С‚Рё/)).toBeInTheDocument()
+    expect(await screen.findByText(/Очікується підтвердження оплати/)).toBeInTheDocument()
     expect(
-      screen.getByText(/РџС–РґС‚РІРµСЂРґР¶РµРЅРЅСЏ РѕРїР»Р°С‚Рё РЅР°РґСЃРёР»Р°С”С‚СЊСЃСЏ РєР»С–С”РЅС‚РѕРј/)
+      screen.getByText(/Підтвердження оплати надсилається клієнтом/)
     ).toBeInTheDocument()
   })
 
@@ -390,20 +390,20 @@ describe('TherapistSessionDetailView', () => {
 
     renderView()
 
-    expect(await screen.findByRole('button', { name: 'РџРѕР·РЅР°С‡РёС‚Рё СЏРє РѕРїР»Р°С‡РµРЅРѕ' })).toBeInTheDocument()
-    await fireEvent.click(screen.getByRole('button', { name: 'РџРѕР·РЅР°С‡РёС‚Рё СЏРє РѕРїР»Р°С‡РµРЅРѕ' }))
+    expect(await screen.findByRole('button', { name: 'Позначити як оплачено' })).toBeInTheDocument()
+    await fireEvent.click(screen.getByRole('button', { name: 'Позначити як оплачено' }))
 
-    const dialog = await screen.findByRole('dialog', { name: 'РџРѕР·РЅР°С‡РёС‚Рё СЃРµСЃС–СЋ СЏРє РѕРїР»Р°С‡РµРЅСѓ?' })
-    await fireEvent.click(within(dialog).getByRole('button', { name: 'РџРѕР·РЅР°С‡РёС‚Рё СЏРє РѕРїР»Р°С‡РµРЅРѕ' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Позначити сесію як оплачену?' })
+    await fireEvent.click(within(dialog).getByRole('button', { name: 'Позначити як оплачено' }))
 
     await waitFor(() => {
       expect(mockedMarkSessionPaymentProofPaid).toHaveBeenCalledWith(42)
       expect(mockedFetchSessionPaymentProof).toHaveBeenCalledWith(42)
-      expect(mockToast.success).toHaveBeenCalledWith('РћРїР»Р°С‚Сѓ РїРѕР·РЅР°С‡РµРЅРѕ СЏРє РѕС‚СЂРёРјР°РЅСѓ.')
+      expect(mockToast.success).toHaveBeenCalledWith('Оплату позначено як отриману.')
     })
 
-    expect(await screen.findByText(/РћРїР»Р°С‚Сѓ РїРѕР·РЅР°С‡РµРЅРѕ СЏРє РѕС‚СЂРёРјР°РЅСѓ/)).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'РџРѕР·РЅР°С‡РёС‚Рё СЏРє РѕРїР»Р°С‡РµРЅРѕ' })).not.toBeInTheDocument()
+    expect(await screen.findByText(/Оплату позначено як отриману/)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Позначити як оплачено' })).not.toBeInTheDocument()
   })
 
   it('renders workspace pending actions for missing note and workbook with unpaid payment state', async () => {
@@ -420,12 +420,12 @@ describe('TherapistSessionDetailView', () => {
     renderView()
 
     expect(await screen.findByTestId('session-workspace')).toBeInTheDocument()
-    expect(screen.getByTestId('workspace-summary-payment')).toHaveTextContent('РќРµ РѕРїР»Р°С‡РµРЅРѕ')
-    expect(screen.getByTestId('workspace-summary-note')).toHaveTextContent('РџРѕС‚СЂС–Р±РЅРѕ СЃС‚РІРѕСЂРёС‚Рё')
-    expect(screen.getByTestId('workspace-summary-workbook')).toHaveTextContent('РџРѕС‚СЂС–Р±РЅРѕ СЃС‚РІРѕСЂРёС‚Рё')
+    expect(screen.getByTestId('workspace-summary-payment')).toHaveTextContent('Не оплачено')
+    expect(screen.getByTestId('workspace-summary-note')).toHaveTextContent('Потрібно створити')
+    expect(screen.getByTestId('workspace-summary-workbook')).toHaveTextContent('Потрібно створити')
     expect(screen.getByTestId('workspace-actions')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Р’С–РґРєСЂРёС‚Рё РЅРѕС‚Р°С‚РєСѓ' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Р’С–РґРєСЂРёС‚Рё СЂРѕР±РѕС‡РёР№ Р·РѕС€РёС‚' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Відкрити нотатку' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Відкрити робочий зошит' })).toBeInTheDocument()
   })
 
   it('uses continue semantics for note draft and keeps workbook pending action', async () => {
@@ -450,9 +450,9 @@ describe('TherapistSessionDetailView', () => {
     renderView()
 
     expect(await screen.findByTestId('session-workspace')).toBeInTheDocument()
-    expect(screen.getByTestId('workspace-summary-note')).toHaveTextContent('Р§РµСЂРЅРµС‚РєР°')
-    expect(screen.getByRole('button', { name: 'РџСЂРѕРґРѕРІР¶РёС‚Рё РЅРѕС‚Р°С‚РєСѓ' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Р’С–РґРєСЂРёС‚Рё СЂРѕР±РѕС‡РёР№ Р·РѕС€РёС‚' })).toBeInTheDocument()
+    expect(screen.getByTestId('workspace-summary-note')).toHaveTextContent('Чернетка')
+    expect(screen.getByRole('button', { name: 'Продовжити нотатку' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Відкрити робочий зошит' })).toBeInTheDocument()
   })
 
   it('shows done states without noisy pending actions when workspace is complete', async () => {
@@ -473,9 +473,9 @@ describe('TherapistSessionDetailView', () => {
     renderView()
 
     expect(await screen.findByTestId('session-workspace')).toBeInTheDocument()
-    expect(screen.getByTestId('workspace-summary-payment')).toHaveTextContent('РћРїР»Р°С‡РµРЅРѕ')
-    expect(screen.getByTestId('workspace-summary-note')).toHaveTextContent('Р—Р°РїРѕРІРЅРµРЅРѕ')
-    expect(screen.getByTestId('workspace-summary-workbook')).toHaveTextContent('Р—Р°РїРѕРІРЅРµРЅРѕ')
+    expect(screen.getByTestId('workspace-summary-payment')).toHaveTextContent('Оплачено')
+    expect(screen.getByTestId('workspace-summary-note')).toHaveTextContent('Заповнено')
+    expect(screen.getByTestId('workspace-summary-workbook')).toHaveTextContent('Заповнено')
     expect(screen.queryByTestId('workspace-actions')).not.toBeInTheDocument()
     expect(screen.getByTestId('workspace-no-pending')).toBeInTheDocument()
   })
@@ -498,9 +498,9 @@ describe('TherapistSessionDetailView', () => {
     renderView()
 
     expect(await screen.findByTestId('session-workspace')).toBeInTheDocument()
-    expect(screen.getByTestId('workspace-summary-payment')).toHaveTextContent('РћС‡С–РєСѓС” РїС–РґС‚РІРµСЂРґР¶РµРЅРЅСЏ')
-    expect(screen.getByRole('button', { name: 'РџРµСЂРµРІС–СЂРёС‚Рё РѕРїР»Р°С‚Сѓ' })).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Р’С–РґРєСЂРёС‚Рё РЅРѕС‚Р°С‚РєСѓ' })).not.toBeInTheDocument()
+    expect(screen.getByTestId('workspace-summary-payment')).toHaveTextContent('Очікує підтвердження')
+    expect(screen.getByRole('button', { name: 'Перевірити оплату' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Відкрити нотатку' })).not.toBeInTheDocument()
   })
 
   it('does not treat hidden workspace states as missing and avoids hidden CTAs', async () => {
@@ -521,11 +521,11 @@ describe('TherapistSessionDetailView', () => {
     renderView()
 
     expect(await screen.findByTestId('session-workspace')).toBeInTheDocument()
-    expect(screen.getByTestId('workspace-summary-note')).toHaveTextContent('РќРµРґРѕСЃС‚СѓРїРЅРѕ')
-    expect(screen.getByTestId('workspace-summary-workbook')).toHaveTextContent('РќРµРґРѕСЃС‚СѓРїРЅРѕ')
-    expect(screen.queryByText('РџРѕС‚СЂС–Р±РЅРѕ СЃС‚РІРѕСЂРёС‚Рё')).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Р’С–РґРєСЂРёС‚Рё РЅРѕС‚Р°С‚РєСѓ' })).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Р’С–РґРєСЂРёС‚Рё СЂРѕР±РѕС‡РёР№ Р·РѕС€РёС‚' })).not.toBeInTheDocument()
+    expect(screen.getByTestId('workspace-summary-note')).toHaveTextContent('Недоступно')
+    expect(screen.getByTestId('workspace-summary-workbook')).toHaveTextContent('Недоступно')
+    expect(screen.queryByText('Потрібно створити')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Відкрити нотатку' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Відкрити робочий зошит' })).not.toBeInTheDocument()
   })
   it('uses pending_task_items as primary source over legacy pending_tasks', async () => {
     const sessionDetail = buildSession({
@@ -603,18 +603,18 @@ describe('TherapistSessionDetailView', () => {
     renderView()
 
     expect(await screen.findByText('client@example.com')).toBeInTheDocument()
-    await fireEvent.click(screen.getByRole('button', { name: 'Р”РѕРґР°С‚Рё РЅР° РґРѕС€РєСѓ' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Додати на дошку' }))
 
     await waitFor(() => {
       expect(mockedCreatePracticeBoardItem).toHaveBeenCalledWith({
         board_id: 1,
-        title: 'РџРѕРІРµСЂРЅСѓС‚РёСЃСЊ РґРѕ СЃРµСЃС–С—',
+        title: 'Повернутись до сесії',
         related_client_id: 77,
         related_session_id: 42,
         source_type: 'session',
         source_id: 42,
       })
-      expect(mockToast.success).toHaveBeenCalledWith('Р—Р°РґР°С‡Сѓ РґРѕРґР°РЅРѕ РЅР° РґРѕС€РєСѓ')
+      expect(mockToast.success).toHaveBeenCalledWith('Задачу додано на дошку')
     })
   })
   it.each(['REVIEW_PAYMENT', 'UPLOAD_PAYMENT_PROOF', 'CONFIRM_PAYMENT'] as const)(
@@ -702,14 +702,14 @@ describe('TherapistSessionDetailView', () => {
 
     renderView()
 
-    expect(await screen.findByText(/РћРїР»Р°С‚Сѓ РЅРµ Р·Р°РїРёС‚Р°РЅРѕ/)).toBeInTheDocument()
-    await fireEvent.click(screen.getByRole('button', { name: /Р—Р°РїСЂРѕСЃРёС‚Рё РѕРїР»Р°С‚Сѓ/ }))
+    expect(await screen.findByText(/Оплату не запитано/)).toBeInTheDocument()
+    await fireEvent.click(screen.getByRole('button', { name: /Запросити оплату/ }))
 
-    expect(await screen.findByText('Р©РѕР± Р·Р°РїСЂРѕСЃРёС‚Рё РѕРїР»Р°С‚Сѓ, СЃРїРѕС‡Р°С‚РєСѓ РґРѕРґР°Р№С‚Рµ СЂРµРєРІС–Р·РёС‚Рё РґР»СЏ РѕРїР»Р°С‚Рё.')).toBeInTheDocument()
+    expect(await screen.findByText('Щоб запросити оплату, спочатку додайте реквізити для оплати.')).toBeInTheDocument()
     expect(mockToast.error).not.toHaveBeenCalled()
     expect(mockedFetchSessionPaymentProof).not.toHaveBeenCalled()
 
-    await fireEvent.click(screen.getByRole('button', { name: 'РџРµСЂРµР№С‚Рё РґРѕ СЂРµРєРІС–Р·РёС‚С–РІ РґР»СЏ РѕРїР»Р°С‚Рё' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Перейти до реквізитів для оплати' }))
     expect(mockRouter.push).toHaveBeenCalledWith({ path: '/cabinet/settings', query: { tab: 'payment-details' } })
   })
 
@@ -748,20 +748,20 @@ describe('TherapistSessionDetailView', () => {
 
     renderView()
 
-    expect(await screen.findByText(/РћРїР»Р°С‚Сѓ РЅРµ Р·Р°РїРёС‚Р°РЅРѕ/)).toBeInTheDocument()
-    await fireEvent.click(screen.getByRole('button', { name: /Р—Р°РїСЂРѕСЃРёС‚Рё РѕРїР»Р°С‚Сѓ/ }))
+    expect(await screen.findByText(/Оплату не запитано/)).toBeInTheDocument()
+    await fireEvent.click(screen.getByRole('button', { name: /Запросити оплату/ }))
 
     await waitFor(() => {
       expect(mockedRequestSessionPaymentProof).toHaveBeenCalledTimes(1)
     })
-    expect(await screen.findByText('Р©РѕР± Р·Р°РїСЂРѕСЃРёС‚Рё РѕРїР»Р°С‚Сѓ, СЃРїРѕС‡Р°С‚РєСѓ РґРѕРґР°Р№С‚Рµ СЂРµРєРІС–Р·РёС‚Рё РґР»СЏ РѕРїР»Р°С‚Рё.')).toBeInTheDocument()
+    expect(await screen.findByText('Щоб запросити оплату, спочатку додайте реквізити для оплати.')).toBeInTheDocument()
     expect(mockToast.error).not.toHaveBeenCalled()
   })
 
   it.each([
-    ['PAYMENT_PROOF_STATE_INVALID', 400, 'РќРµРјРѕР¶Р»РёРІРѕ РІРёРєРѕРЅР°С‚Рё РґС–СЋ Сѓ РїРѕС‚РѕС‡РЅРѕРјСѓ СЃС‚Р°РЅС–.'],
-    ['SERVICE_UNAVAILABLE', 503, 'РЎРµСЂРІС–СЃ С‚РёРјС‡Р°СЃРѕРІРѕ РЅРµРґРѕСЃС‚СѓРїРЅРёР№.'],
-    ['PERMISSION_DENIED', 403, 'Р”РѕСЃС‚СѓРї Р·Р°Р±РѕСЂРѕРЅРµРЅРѕ.'],
+    ['PAYMENT_PROOF_STATE_INVALID', 400, 'Неможливо виконати дію у поточному стані.'],
+    ['SERVICE_UNAVAILABLE', 503, 'Сервіс тимчасово недоступний.'],
+    ['PERMISSION_DENIED', 403, 'Доступ заборонено.'],
   ])(
     'keeps regular UX for request-payment-proof %s',
     async (code, status, detail) => {
@@ -798,14 +798,14 @@ describe('TherapistSessionDetailView', () => {
 
       renderView()
 
-      expect(await screen.findByText(/РћРїР»Р°С‚Сѓ РЅРµ Р·Р°РїРёС‚Р°РЅРѕ/)).toBeInTheDocument()
-      await fireEvent.click(screen.getByRole('button', { name: /Р—Р°РїСЂРѕСЃРёС‚Рё РѕРїР»Р°С‚Сѓ/ }))
+      expect(await screen.findByText(/Оплату не запитано/)).toBeInTheDocument()
+      await fireEvent.click(screen.getByRole('button', { name: /Запросити оплату/ }))
 
       await waitFor(() => {
         expect(mockedRequestSessionPaymentProof).toHaveBeenCalledWith(42)
       })
       expect(mockToast.error).toHaveBeenCalledWith(detail)
-      expect(screen.queryByRole('button', { name: 'РџРµСЂРµР№С‚Рё РґРѕ СЂРµРєРІС–Р·РёС‚С–РІ РґР»СЏ РѕРїР»Р°С‚Рё' })).not.toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'Перейти до реквізитів для оплати' })).not.toBeInTheDocument()
     }
   )
 
@@ -829,7 +829,7 @@ describe('TherapistSessionDetailView', () => {
 
     expect(await screen.findByText('client@example.com')).toBeInTheDocument()
 
-    await fireEvent.click(screen.getByRole('button', { name: 'РџС–РґС‚РІРµСЂРґРёС‚Рё' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Підтвердити' }))
 
     await waitFor(() => {
       expect(mockedApiPatch).toHaveBeenCalledWith('/booking/sessions/42/confirm/')
@@ -837,7 +837,7 @@ describe('TherapistSessionDetailView', () => {
     })
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'РџС–РґС‚РІРµСЂРґРёС‚Рё' })).toBeDisabled()
+      expect(screen.getByRole('button', { name: 'Підтвердити' })).toBeDisabled()
     })
 
     expect(endpointCalls('/booking/sessions/42/')).toBe(2)
@@ -851,7 +851,7 @@ describe('TherapistSessionDetailView', () => {
       status: 'CONFIRMED',
       session_format: 'offline',
       meeting_mode: 'OFFLINE',
-      offline_location: 'РљРёС—РІ, РѕС„С–СЃ 12',
+      offline_location: 'Київ, офіс 12',
       meeting_url: 'https://meet.google.com/should-not-be-used',
       join_available: true,
     })
@@ -859,14 +859,14 @@ describe('TherapistSessionDetailView', () => {
 
     renderView()
 
-    expect(await screen.findByText('Р¤РѕСЂРјР°С‚: РћС„Р»Р°Р№РЅ')).toBeInTheDocument()
-    expect(screen.getByText('Р›РѕРєР°С†С–СЏ: РљРёС—РІ, РѕС„С–СЃ 12')).toBeInTheDocument()
-    expect(screen.getByText('РћС„Р»Р°Р№РЅ-СЃРµСЃС–СЏ')).toBeInTheDocument()
+    expect(await screen.findByText('Формат: Офлайн')).toBeInTheDocument()
+    expect(screen.getByText('Локація: Київ, офіс 12')).toBeInTheDocument()
+    expect(screen.getByText('Офлайн-сесія')).toBeInTheDocument()
     expect(
-      screen.getByText('Р”Р»СЏ РѕС„Р»Р°Р№РЅ-С„РѕСЂРјР°С‚Сѓ РїРѕСЃРёР»Р°РЅРЅСЏ РґР»СЏ РїСЂРёС”РґРЅР°РЅРЅСЏ РЅРµ РІРёРєРѕСЂРёСЃС‚РѕРІСѓС”С‚СЊСЃСЏ.')
+      screen.getByText('Для офлайн-формату посилання для приєднання не використовується.')
     ).toBeInTheDocument()
-    expect(screen.queryByRole('link', { name: 'РџСЂРёС”РґРЅР°С‚РёСЃСЏ' })).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Р—РјС–РЅРёС‚Рё РїРѕСЃРёР»Р°РЅРЅСЏ' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Приєднатися' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Змінити посилання' })).not.toBeInTheDocument()
   })
 
   it('surfaces a stale confirm target error without reloading the page context', async () => {
@@ -888,7 +888,7 @@ describe('TherapistSessionDetailView', () => {
 
     expect(await screen.findByText('client@example.com')).toBeInTheDocument()
 
-    await fireEvent.click(screen.getByRole('button', { name: 'РџС–РґС‚РІРµСЂРґРёС‚Рё' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Підтвердити' }))
 
     await waitFor(() => {
       expect(mockedApiPatch).toHaveBeenCalledWith('/booking/sessions/42/confirm/')
@@ -896,7 +896,7 @@ describe('TherapistSessionDetailView', () => {
     })
 
     expect(endpointCalls('/booking/sessions/42/')).toBe(1)
-    expect(screen.getByRole('button', { name: 'РџС–РґС‚РІРµСЂРґРёС‚Рё' })).not.toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Підтвердити' })).not.toBeDisabled()
   })
 
   it('cancels a confirmed session and disables further cancellation after reload', async () => {
@@ -919,7 +919,7 @@ describe('TherapistSessionDetailView', () => {
 
     expect(await screen.findByText('client@example.com')).toBeInTheDocument()
 
-    await fireEvent.click(screen.getByRole('button', { name: 'РЎРєР°СЃСѓРІР°С‚Рё' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Скасувати' }))
 
     await waitFor(() => {
       expect(mockedApiPatch).toHaveBeenCalledWith('/booking/sessions/42/cancel/')
@@ -927,11 +927,11 @@ describe('TherapistSessionDetailView', () => {
     })
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'РЎРєР°СЃСѓРІР°С‚Рё' })).toBeDisabled()
+      expect(screen.getByRole('button', { name: 'Скасувати' })).toBeDisabled()
     })
 
-    expect(screen.getByRole('button', { name: 'РџРµСЂРµРЅРµСЃС‚Рё' })).toBeDisabled()
-    expect(screen.queryByRole('button', { name: 'РџРѕРІС‚РѕСЂСЋРІР°С‚Рё С‰РѕС‚РёР¶РЅСЏ' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Перенести' })).toBeDisabled()
+    expect(screen.queryByRole('button', { name: 'Повторювати щотижня' })).not.toBeInTheDocument()
     expect(endpointCalls('/booking/sessions/42/')).toBe(2)
   })
 
@@ -994,7 +994,7 @@ describe('TherapistSessionDetailView', () => {
       expect(statusPanel).not.toBeNull()
       const completionButton = within(statusPanel as HTMLElement)
         .getAllByRole('button')
-        .find((button) => button.textContent?.includes('Р—Р°РІРµСЂС€РёС‚Рё'))
+        .find((button) => button.textContent?.includes('Завершити'))
       if (!completionButton) {
         throw new Error('Complete button not found')
       }
@@ -1017,10 +1017,10 @@ describe('TherapistSessionDetailView', () => {
       expect(
         within(updatedStatusPanel as HTMLElement)
           .queryAllByRole('button')
-          .some((button) => button.textContent?.includes('Р—Р°РІРµСЂС€РёС‚Рё'))
+          .some((button) => button.textContent?.includes('Завершити'))
       ).toBe(false)
-      expect(screen.getByRole('button', { name: 'Р’С–РґРєСЂРёС‚Рё СЂРѕР±РѕС‡РёР№ Р·РѕС€РёС‚' })).toBeInTheDocument()
-      expect(screen.queryByRole('button', { name: 'Р”РѕРґР°С‚Рё / РІС–РґРєСЂРёС‚Рё РЅРѕС‚Р°С‚РєСѓ' })).not.toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Відкрити робочий зошит' })).toBeInTheDocument()
+      expect(screen.queryByRole('button', { name: 'Додати / відкрити нотатку' })).not.toBeInTheDocument()
       expect(await screen.findByDisplayValue('Completed session note (reloaded)')).toBeInTheDocument()
       expect(document.querySelector('a[href="/cabinet/clients?client=77&autoOpen=1"]')).toBeInTheDocument()
       expect(endpointCalls('/booking/sessions/42/')).toBe(2)
@@ -1087,10 +1087,10 @@ describe('TherapistSessionDetailView', () => {
 
     expect(await screen.findByText('client@example.com')).toBeInTheDocument()
 
-    expect(screen.getByRole('button', { name: 'РџС–РґС‚РІРµСЂРґРёС‚Рё' })).toBeDisabled()
-    expect(screen.getByRole('button', { name: 'РЎРєР°СЃСѓРІР°С‚Рё' })).toBeDisabled()
-    expect(screen.getByRole('button', { name: 'РџРµСЂРµРЅРµСЃС‚Рё' })).toBeDisabled()
-    expect(screen.queryByRole('button', { name: 'РџРѕРІС‚РѕСЂСЋРІР°С‚Рё С‰РѕС‚РёР¶РЅСЏ' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Підтвердити' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Скасувати' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Перенести' })).toBeDisabled()
+    expect(screen.queryByRole('button', { name: 'Повторювати щотижня' })).not.toBeInTheDocument()
     expect(mockedApiPatch).not.toHaveBeenCalled()
   })
 
@@ -1102,14 +1102,14 @@ describe('TherapistSessionDetailView', () => {
 
     expect(await screen.findByText('client@example.com')).toBeInTheDocument()
 
-    await fireEvent.click(screen.getByRole('button', { name: 'РџРµСЂРµРЅРµСЃС‚Рё' }))
-    expect(await screen.findByText('РќРѕРІРёР№ СЃР»РѕС‚ РґР»СЏ СЃРµСЃС–С—')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'РЎС…РѕРІР°С‚Рё РїРµСЂРµРЅРѕСЃ' })).toBeInTheDocument()
+    await fireEvent.click(screen.getByRole('button', { name: 'Перенести' }))
+    expect(await screen.findByText('Новий слот для сесії')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Сховати перенос' })).toBeInTheDocument()
 
-    await fireEvent.click(screen.getByRole('button', { name: 'РЎС…РѕРІР°С‚Рё РїРµСЂРµРЅРѕСЃ' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Сховати перенос' }))
 
     await waitFor(() => {
-      expect(screen.queryByText('РќРѕРІРёР№ СЃР»РѕС‚ РґР»СЏ СЃРµСЃС–С—')).not.toBeInTheDocument()
+      expect(screen.queryByText('Новий слот для сесії')).not.toBeInTheDocument()
     })
   })
 
@@ -1340,15 +1340,15 @@ describe('TherapistSessionDetailView', () => {
 
     expect(await screen.findByText('client@example.com')).toBeInTheDocument()
 
-    await fireEvent.click(screen.getByRole('button', { name: 'РџРѕРІС‚РѕСЂСЋРІР°С‚Рё С‰РѕС‚РёР¶РЅСЏ' }))
-    expect(await screen.findByText('РЎС‚РІРѕСЂРёС‚Рё РїРѕРІС‚РѕСЂСЋРІР°РЅС– СЃРµСЃС–С—')).toBeInTheDocument()
+    await fireEvent.click(screen.getByRole('button', { name: 'Повторювати щотижня' }))
+    expect(await screen.findByText('Створити повторювані сесії')).toBeInTheDocument()
 
-    await fireEvent.update(screen.getByLabelText('РљС–Р»СЊРєС–СЃС‚СЊ РїРѕРІС‚РѕСЂС–РІ'), 'custom')
-    await fireEvent.update(screen.getByLabelText('Р’Р»Р°СЃРЅРµ С‡РёСЃР»Рѕ'), '0')
-    await fireEvent.click(screen.getByRole('button', { name: 'РЎС‚РІРѕСЂРёС‚Рё СЃРµСЂС–СЋ' }))
+    await fireEvent.update(screen.getByLabelText('Кількість повторів'), 'custom')
+    await fireEvent.update(screen.getByLabelText('Власне число'), '0')
+    await fireEvent.click(screen.getByRole('button', { name: 'Створити серію' }))
 
     await waitFor(() => {
-      expect(mockToast.error).toHaveBeenCalledWith('Р’РєР°Р¶С–С‚СЊ РєС–Р»СЊРєС–СЃС‚СЊ РїРѕРІС‚РѕСЂС–РІ РІС–Рґ 1 РґРѕ 52.')
+      expect(mockToast.error).toHaveBeenCalledWith('Вкажіть кількість повторів від 1 до 52.')
     })
 
     expect(mockedApiPost).not.toHaveBeenCalled()
@@ -1390,7 +1390,7 @@ describe('TherapistSessionDetailView', () => {
       expect(container.querySelector('.empty-state')).toBeInTheDocument()
     })
 
-    expect(container).toHaveTextContent(/РЎРµСЃС–СЋ РЅРµ Р·РЅР°Р№РґРµРЅРѕ/i)
+    expect(container).toHaveTextContent(/Сесію не знайдено/i)
     expect(mockedApiGet).toHaveBeenCalledTimes(1)
     expect(mockedApiGet).toHaveBeenCalledWith('/booking/sessions/42/')
   })
@@ -1431,21 +1431,21 @@ describe('TherapistSessionDetailView', () => {
 
     renderView()
 
-    const meetingCard = (await screen.findByText('РџСЂРёС”РґРЅР°С‚РёСЃСЏ')).closest('.meeting-card')
+    const meetingCard = (await screen.findByText('Приєднатися')).closest('.meeting-card')
     expect(meetingCard).toBeInTheDocument()
 
-    const editButton = within(meetingCard as HTMLElement).getByRole('button', { name: 'Р—РјС–РЅРёС‚Рё РїРѕСЃРёР»Р°РЅРЅСЏ' })
+    const editButton = within(meetingCard as HTMLElement).getByRole('button', { name: 'Змінити посилання' })
     await fireEvent.click(editButton)
 
     const input = (await within(meetingCard as HTMLElement).findByLabelText(
-      'РџРѕСЃРёР»Р°РЅРЅСЏ РЅР° РѕРЅР»Р°Р№РЅ-Р·СѓСЃС‚СЂС–С‡'
+      'Посилання на онлайн-зустріч'
     )) as HTMLInputElement
     expect(input).toBeInTheDocument()
     expect(input.value).toBe(oldUrl)
 
     await fireEvent.update(input, newUrl)
 
-    const saveButton = within(meetingCard as HTMLElement).getByRole('button', { name: 'Р—Р±РµСЂРµРіС‚Рё' })
+    const saveButton = within(meetingCard as HTMLElement).getByRole('button', { name: 'Зберегти' })
     await fireEvent.click(saveButton)
 
     await waitFor(() => {
