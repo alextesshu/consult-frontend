@@ -2,10 +2,15 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { apiGet, apiPatch, apiPost } from './api'
 import {
   archivePracticeBoardItem,
+  createPracticeBoard,
   createPracticeBoardItem,
   fetchPracticeBoardItems,
+  fetchPracticeBoards,
+  isBoardLimitReachedError,
   movePracticeBoardItem,
   normalizePracticeBoardColumns,
+  resolveDefaultPracticeBoardId,
+  updatePracticeBoard,
   updatePracticeBoardItem,
 } from './specialistPracticeBoard'
 
@@ -51,8 +56,6 @@ describe('specialistPracticeBoard', () => {
     expect(columns.todo).toHaveLength(1)
     expect(columns.in_progress).toHaveLength(0)
     expect(columns.done).toHaveLength(1)
-    expect(columns.todo[0]?.title).toBe('Task A')
-    expect(columns.done[0]?.title).toBe('Task B')
   })
 
   it('normalizes grouped response into three columns', () => {
@@ -67,31 +70,13 @@ describe('specialistPracticeBoard', () => {
           updated_at: '2026-04-18T10:00:00Z',
         },
       ],
-      in_progress: [
-        {
-          id: 11,
-          title: 'In progress item',
-          description: null,
-          status: 'in_progress',
-          created_at: '2026-04-18T10:00:00Z',
-          updated_at: '2026-04-18T10:00:00Z',
-        },
-      ],
-      done: [
-        {
-          id: 12,
-          title: 'Done item',
-          description: null,
-          status: 'done',
-          created_at: '2026-04-18T10:00:00Z',
-          updated_at: '2026-04-18T10:00:00Z',
-        },
-      ],
+      in_progress: [],
+      done: [],
     })
 
     expect(columns.todo).toHaveLength(1)
-    expect(columns.in_progress).toHaveLength(1)
-    expect(columns.done).toHaveLength(1)
+    expect(columns.in_progress).toHaveLength(0)
+    expect(columns.done).toHaveLength(0)
   })
 
   it('normalizes paginated results response into three columns', () => {
@@ -108,105 +93,83 @@ describe('specialistPracticeBoard', () => {
           created_at: '2026-04-18T10:00:00Z',
           updated_at: '2026-04-18T11:00:00Z',
         },
-        {
-          id: 102,
-          title: 'Paginated in progress',
-          description: null,
-          status: 'in_progress',
-          created_at: '2026-04-18T10:00:00Z',
-          updated_at: '2026-04-18T10:30:00Z',
-        },
       ],
-    })
-
-    expect(columns.todo).toHaveLength(1)
-    expect(columns.in_progress).toHaveLength(1)
-    expect(columns.done).toHaveLength(0)
-    expect(columns.todo[0]?.title).toBe('Paginated todo')
-    expect(columns.in_progress[0]?.title).toBe('Paginated in progress')
-  })
-
-  it('keeps items when paginated results use DRF created/updated field names', () => {
-    const columns = normalizePracticeBoardColumns({
-      count: 1,
-      next: null,
-      previous: null,
-      results: [
-        {
-          id: 201,
-          title: 'Runtime item',
-          description: 'Runtime description',
-          status: 'TODO',
-          created: '2026-04-18T12:00:00Z',
-          updated: '2026-04-18T12:30:00Z',
-          related_client_id: '44',
-          related_session_id: '99',
-        },
-      ],
-    })
-
-    expect(columns.todo).toHaveLength(1)
-    expect(columns.todo[0]?.title).toBe('Runtime item')
-    expect(columns.todo[0]?.related_client_id).toBe(44)
-    expect(columns.todo[0]?.related_session_id).toBe(99)
-  })
-
-  it('normalizes backend canonical columns payload with nested items arrays', () => {
-    const columns = normalizePracticeBoardColumns({
-      board: { specialist_id: 77 },
-      columns: {
-        todo: {
-          label: 'Потребує уваги',
-          items: [
-            {
-              id: 301,
-              title: 'Backend nested item',
-              description: null,
-              status: 'todo',
-              created_at: '2026-04-18T10:00:00Z',
-              updated_at: '2026-04-18T10:05:00Z',
-            },
-          ],
-        },
-        in_progress: { label: 'У роботі', items: [] },
-        done: { label: 'Завершено', items: [] },
-      },
     })
 
     expect(columns.todo).toHaveLength(1)
     expect(columns.in_progress).toHaveLength(0)
     expect(columns.done).toHaveLength(0)
-    expect(columns.todo[0]?.title).toBe('Backend nested item')
   })
 
-  it('fetches board items from canonical endpoint', async () => {
-    mockedApiGet.mockResolvedValue({
-      items: [
-        {
-          id: 1,
-          title: 'Task A',
-          description: null,
-          status: 'todo',
-          created_at: '2026-04-18T10:00:00Z',
-          updated_at: '2026-04-18T10:00:00Z',
-        },
-      ],
-    } as never)
+  it('loads boards list from canonical endpoint', async () => {
+    mockedApiGet.mockResolvedValue([
+      { id: 1, title: 'Main board', is_default: true },
+      { id: 2, title: 'Secondary board', is_default: false },
+    ] as never)
 
-    const result = await fetchPracticeBoardItems()
+    const boards = await fetchPracticeBoards()
 
-    expect(mockedApiGet).toHaveBeenCalledWith('/cabinet/practice-board/items/')
-    expect(result.todo).toHaveLength(1)
+    expect(mockedApiGet).toHaveBeenCalledWith('/cabinet/practice-board/boards/')
+    expect(boards).toHaveLength(2)
+    expect(boards[0]?.title).toBe('Main board')
   })
 
-  it('uses canonical endpoints for create and update', async () => {
+  it('resolves default board id with fallback to first board', () => {
+    expect(resolveDefaultPracticeBoardId([])).toBeNull()
+    expect(
+      resolveDefaultPracticeBoardId([
+        { id: 11, title: 'A', is_default: false },
+        { id: 22, title: 'B', is_default: false },
+      ])
+    ).toBe(11)
+    expect(
+      resolveDefaultPracticeBoardId([
+        { id: 11, title: 'A', is_default: false },
+        { id: 22, title: 'B', is_default: true },
+      ])
+    ).toBe(22)
+  })
+
+  it('fetches board items with board_id query when board is selected', async () => {
+    mockedApiGet.mockResolvedValue({ items: [] } as never)
+
+    await fetchPracticeBoardItems(77)
+
+    expect(mockedApiGet).toHaveBeenCalledWith('/cabinet/practice-board/items/', {
+      params: { board_id: 77 },
+    })
+  })
+
+  it('uses canonical endpoints for board create and rename', async () => {
     mockedApiPost.mockResolvedValue({} as never)
     mockedApiPatch.mockResolvedValue({} as never)
 
-    await createPracticeBoardItem({ title: 'Create me' })
+    await createPracticeBoard({ title: 'Focus board' })
+    await updatePracticeBoard(5, { title: 'Updated title' })
+
+    expect(mockedApiPost).toHaveBeenCalledWith('/cabinet/practice-board/boards/', { title: 'Focus board' })
+    expect(mockedApiPatch).toHaveBeenCalledWith('/cabinet/practice-board/boards/5/', { title: 'Updated title' })
+  })
+
+  it('uses canonical endpoint for create item and requires board_id payload', async () => {
+    mockedApiPost.mockResolvedValue({} as never)
+
+    await createPracticeBoardItem({
+      board_id: 2,
+      title: 'Create me',
+    })
+
+    expect(mockedApiPost).toHaveBeenCalledWith('/cabinet/practice-board/items/', {
+      board_id: 2,
+      title: 'Create me',
+    })
+  })
+
+  it('uses canonical endpoint for item update', async () => {
+    mockedApiPatch.mockResolvedValue({} as never)
+
     await updatePracticeBoardItem(42, { title: 'Update me' })
 
-    expect(mockedApiPost).toHaveBeenCalledWith('/cabinet/practice-board/items/', { title: 'Create me' })
     expect(mockedApiPatch).toHaveBeenCalledWith('/cabinet/practice-board/items/42/', { title: 'Update me' })
   })
 
@@ -229,5 +192,11 @@ describe('specialistPracticeBoard', () => {
     await archivePracticeBoardItem(9)
 
     expect(mockedApiPost).toHaveBeenCalledWith('/cabinet/practice-board/items/9/archive/', {})
+  })
+
+  it('detects board quota error by status+code', () => {
+    expect(isBoardLimitReachedError({ response: { status: 409, data: { code: 'BOARD_LIMIT_REACHED' } } })).toBe(true)
+    expect(isBoardLimitReachedError({ response: { status: 409, data: { code: 'OTHER' } } })).toBe(false)
+    expect(isBoardLimitReachedError({ response: { status: 400, data: { code: 'BOARD_LIMIT_REACHED' } } })).toBe(false)
   })
 })

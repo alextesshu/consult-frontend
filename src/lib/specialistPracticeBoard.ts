@@ -2,8 +2,11 @@ import {
   apiGet,
   apiPatch,
   apiPost,
+  type PracticeBoard,
   type PracticeBoardColumns,
   type PracticeBoardCreatePayload,
+  type PracticeBoardEntityCreatePayload,
+  type PracticeBoardEntityUpdatePayload,
   type PracticeBoardItem,
   type PracticeBoardMovePayload,
   type PracticeBoardStatus,
@@ -18,7 +21,14 @@ type PracticeBoardFlatResponse = {
 
 type PracticeBoardGroupedResponse = Partial<Record<PracticeBoardStatus, unknown>>
 
+type PracticeBoardsPayload = {
+  boards?: unknown
+  items?: unknown
+  results?: unknown
+}
+
 const PRACTICE_BOARD_ITEMS_URL = '/cabinet/practice-board/items/'
+const PRACTICE_BOARDS_URL = '/cabinet/practice-board/boards/'
 
 function createEmptyColumns(): PracticeBoardColumns {
   return {
@@ -71,6 +81,7 @@ function normalizeItem(input: unknown): PracticeBoardItem | null {
 
   return {
     id: (raw.id as number | string) ?? '',
+    board_id: (raw.board_id as number | string) ?? null,
     title,
     description: typeof raw.description === 'string' ? raw.description : null,
     status,
@@ -82,6 +93,23 @@ function normalizeItem(input: unknown): PracticeBoardItem | null {
     created_at: createdAt,
     updated_at: updatedAt,
     completed_at: typeof raw.completed_at === 'string' ? raw.completed_at : null,
+  }
+}
+
+function normalizeBoard(input: unknown): PracticeBoard | null {
+  if (!input || typeof input !== 'object') return null
+  const raw = input as Record<string, unknown>
+  const id = raw.id as number | string | undefined
+  const title = readString(raw, 'title')
+  if (!id) return null
+  if (!title) return null
+
+  return {
+    id,
+    title,
+    is_default: Boolean(raw.is_default),
+    created_at: readDateString(raw, ['created_at', 'createdAt', 'created']) || undefined,
+    updated_at: readDateString(raw, ['updated_at', 'updatedAt', 'updated']) || undefined,
   }
 }
 
@@ -105,11 +133,48 @@ function normalizeArray(raw: unknown): PracticeBoardItem[] {
   return items
 }
 
+function normalizeBoards(payload: unknown): PracticeBoard[] {
+  let rawList: unknown = []
+  if (Array.isArray(payload)) {
+    rawList = payload
+  } else if (payload && typeof payload === 'object') {
+    const wrapped = payload as PracticeBoardsPayload
+    if (Array.isArray(wrapped.boards)) rawList = wrapped.boards
+    else if (Array.isArray(wrapped.items)) rawList = wrapped.items
+    else if (Array.isArray(wrapped.results)) rawList = wrapped.results
+  }
+
+  if (!Array.isArray(rawList)) return []
+  return rawList
+    .map((entry) => normalizeBoard(entry))
+    .filter((entry): entry is PracticeBoard => Boolean(entry))
+}
+
 function readColumnItems(rawColumn: unknown): unknown {
   if (Array.isArray(rawColumn)) return rawColumn
   if (!rawColumn || typeof rawColumn !== 'object') return []
   const asObject = rawColumn as { items?: unknown }
   return Array.isArray(asObject.items) ? asObject.items : []
+}
+
+function withBoardParams(boardId?: number | string) {
+  if (boardId === undefined || boardId === null || boardId === '') return undefined
+  return {
+    params: {
+      board_id: boardId,
+    },
+  }
+}
+
+export function resolveDefaultPracticeBoardId(boards: PracticeBoard[]): number | string | null {
+  if (!boards.length) return null
+  return boards.find((board) => board.is_default)?.id ?? boards[0]?.id ?? null
+}
+
+export function isBoardLimitReachedError(error: unknown): boolean {
+  const data = (error as any)?.response?.data
+  const status = (error as any)?.response?.status
+  return status === 409 && data?.code === 'BOARD_LIMIT_REACHED'
 }
 
 export function normalizePracticeBoardColumns(payload: unknown): PracticeBoardColumns {
@@ -147,8 +212,24 @@ export function normalizePracticeBoardColumns(payload: unknown): PracticeBoardCo
   return columns
 }
 
-export async function fetchPracticeBoardItems(): Promise<PracticeBoardColumns> {
-  const payload = await apiGet<unknown>(PRACTICE_BOARD_ITEMS_URL)
+export async function fetchPracticeBoards(): Promise<PracticeBoard[]> {
+  const payload = await apiGet<unknown>(PRACTICE_BOARDS_URL)
+  return normalizeBoards(payload)
+}
+
+export async function createPracticeBoard(payload: PracticeBoardEntityCreatePayload): Promise<PracticeBoard> {
+  return apiPost<PracticeBoard>(PRACTICE_BOARDS_URL, payload)
+}
+
+export async function updatePracticeBoard(
+  boardId: number | string,
+  payload: PracticeBoardEntityUpdatePayload
+): Promise<PracticeBoard> {
+  return apiPatch<PracticeBoard>(`${PRACTICE_BOARDS_URL}${boardId}/`, payload)
+}
+
+export async function fetchPracticeBoardItems(boardId?: number | string): Promise<PracticeBoardColumns> {
+  const payload = await apiGet<unknown>(PRACTICE_BOARD_ITEMS_URL, withBoardParams(boardId))
   return normalizePracticeBoardColumns(payload)
 }
 

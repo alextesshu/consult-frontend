@@ -13,6 +13,68 @@
       </button>
     </header>
 
+    <section v-if="!loading && boards.length" class="panel practice-board__boards">
+      <div class="practice-board__boards-header">
+        <div>
+          <div class="badge badge--soft">Дошки</div>
+          <h2 class="panel__title">{{ currentBoard?.title || 'Робоча дошка' }}</h2>
+        </div>
+        <div class="practice-board__boards-actions">
+          <button class="btn btn--ghost btn--sm" type="button" @click="toggleRenameBoardForm" :disabled="!currentBoardId">
+            {{ showRenameBoardForm ? 'Скасувати' : 'Редагувати назву' }}
+          </button>
+          <button class="btn btn--ghost btn--sm" type="button" @click="toggleCreateBoardForm">
+            {{ showCreateBoardForm ? 'Скасувати' : 'Створити дошку' }}
+          </button>
+        </div>
+      </div>
+
+      <div v-if="boards.length > 1" class="practice-board__switcher" role="tablist" aria-label="Вибір дошки">
+        <button
+          v-for="board in boards"
+          :key="board.id"
+          class="btn btn--ghost btn--sm practice-board__board-chip"
+          :class="{ 'practice-board__board-chip--active': String(board.id) === currentBoardId }"
+          type="button"
+          @click="selectBoard(board.id)"
+        >
+          {{ board.title }}
+        </button>
+      </div>
+
+      <form v-if="showCreateBoardForm" class="practice-board__board-form" @submit.prevent="submitCreateBoard">
+        <label class="field">
+          <span>Назва дошки</span>
+          <input v-model.trim="createBoardTitle" class="input" type="text" maxlength="120" />
+        </label>
+        <div v-if="boardFormError" class="form-error">{{ boardFormError }}</div>
+        <div class="practice-board__create-actions">
+          <button class="btn btn--sm" type="submit" :disabled="createBoardPending">
+            {{ createBoardPending ? 'Зберігаємо…' : 'Зберегти' }}
+          </button>
+          <button class="btn btn--ghost btn--sm" type="button" :disabled="createBoardPending" @click="toggleCreateBoardForm">
+            Скасувати
+          </button>
+        </div>
+      </form>
+
+      <form v-if="showRenameBoardForm && currentBoard" class="practice-board__board-form" @submit.prevent="submitRenameBoard">
+        <label class="field">
+          <span>Нова назва дошки</span>
+          <input v-model.trim="renameBoardTitle" class="input" type="text" maxlength="120" />
+        </label>
+        <div v-if="boardFormError" class="form-error">{{ boardFormError }}</div>
+        <div class="practice-board__create-actions">
+          <button class="btn btn--sm" type="submit" :disabled="renameBoardPending">
+            {{ renameBoardPending ? 'Зберігаємо…' : 'Зберегти' }}
+          </button>
+          <button class="btn btn--ghost btn--sm" type="button" :disabled="renameBoardPending" @click="toggleRenameBoardForm">
+            Скасувати
+          </button>
+        </div>
+      </form>
+    </section>
+
     <form v-if="showCreateForm" class="panel practice-board__create" @submit.prevent="submitCreate">
       <div class="panel__header">
         <h2 class="panel__title">Нова задача</h2>
@@ -25,12 +87,7 @@
         </label>
         <label class="field">
           <span>Опис (опційно)</span>
-          <textarea
-            v-model.trim="createDraft.description"
-            class="input practice-board__description"
-            rows="4"
-            maxlength="1000"
-          ></textarea>
+          <textarea v-model.trim="createDraft.description" class="input practice-board__description" rows="4" maxlength="1000"></textarea>
         </label>
       </div>
       <div class="practice-board__create-actions">
@@ -45,7 +102,7 @@
 
     <div v-if="boardError" class="form-error">
       {{ boardError }}
-      <button class="btn btn--ghost btn--sm practice-board__retry" type="button" @click="loadBoard">
+      <button class="btn btn--ghost btn--sm practice-board__retry" type="button" @click="loadPage">
         Повторити
       </button>
     </div>
@@ -56,7 +113,7 @@
     <EmptyState
       v-else-if="hasNoItems"
       title="Поки що тут порожньо"
-      description="Додайте першу задачу, щоб зафіксувати важливий крок, follow-up або нагадування."
+      description="У цій дошці ще немає задач. Додайте першу задачу, щоб зафіксувати важливий крок, follow-up або нагадування."
     />
 
     <section v-else class="practice-board__columns">
@@ -113,7 +170,6 @@
             </template>
 
             <template v-else>
-
               <div v-if="hasMetadata(item)" class="board-card__meta muted">
                 <span v-if="item.related_client_id">Клієнт #{{ item.related_client_id }}</span>
                 <span v-if="item.related_session_id">Сесія #{{ item.related_session_id }}</span>
@@ -123,32 +179,17 @@
                 <p class="board-card__confirm-title">Видалити цю задачу?</p>
                 <div v-if="archiveError" class="form-error">{{ archiveError }}</div>
                 <div class="board-card__actions">
-                  <button
-                    class="btn btn--sm"
-                    type="button"
-                    :disabled="isArchivePending(item.id)"
-                    @click="confirmArchive(item.id)"
-                  >
+                  <button class="btn btn--sm" type="button" :disabled="isArchivePending(item.id)" @click="confirmArchive(item.id)">
                     {{ isArchivePending(item.id) ? 'Видаляємо…' : 'Видалити' }}
                   </button>
-                  <button
-                    class="btn btn--ghost btn--sm"
-                    type="button"
-                    :disabled="isArchivePending(item.id)"
-                    @click="closeArchiveConfirm"
-                  >
+                  <button class="btn btn--ghost btn--sm" type="button" :disabled="isArchivePending(item.id)" @click="closeArchiveConfirm">
                     Скасувати
                   </button>
                 </div>
               </div>
 
               <div v-else class="board-card__actions">
-                <button
-                  v-if="item.description && item.description.trim()"
-                  class="btn btn--sm"
-                  type="button"
-                  @click="openDetails(item)"
-                >
+                <button v-if="item.description && item.description.trim()" class="btn btn--sm" type="button" @click="openDetails(item)">
                   Деталі
                 </button>
                 <button class="btn btn--ghost btn--sm" type="button" aria-label="Редагувати" @click="startEdit(item)">
@@ -163,9 +204,7 @@
                   :disabled="isMovePending(item.id)"
                   @click="moveItem(item.id, action.target)"
                 >
-                  <span v-if="action.target === 'done'" class="board-card__icon board-card__icon--success" aria-hidden="true"
-                    >✓</span
-                  >
+                  <span v-if="action.target === 'done'" class="board-card__icon board-card__icon--success" aria-hidden="true">✓</span>
                   <span v-else>{{ action.label }}</span>
                 </button>
               </div>
@@ -192,17 +231,17 @@ import { computed, onMounted, ref } from 'vue'
 import EmptyState from '../components/EmptyState.vue'
 import LoadingSkeleton from '../components/LoadingSkeleton.vue'
 import { useToast } from '../composables/useToast'
-import type {
-  PracticeBoardColumns,
-  PracticeBoardCreatePayload,
-  PracticeBoardItem,
-  PracticeBoardStatus,
-} from '../lib/api'
+import type { PracticeBoard, PracticeBoardColumns, PracticeBoardCreatePayload, PracticeBoardItem, PracticeBoardStatus } from '../lib/api'
 import {
   archivePracticeBoardItem,
+  createPracticeBoard,
   createPracticeBoardItem,
   fetchPracticeBoardItems,
+  fetchPracticeBoards,
+  isBoardLimitReachedError,
   movePracticeBoardItem,
+  resolveDefaultPracticeBoardId,
+  updatePracticeBoard,
   updatePracticeBoardItem,
 } from '../lib/specialistPracticeBoard'
 
@@ -236,10 +275,7 @@ const MOVE_ACTIONS_BY_STATUS: Record<PracticeBoardStatus, MoveAction[]> = {
     { label: 'Повернути в заплановане', target: 'todo' },
     { label: 'Завершено', target: 'done' },
   ],
-  done: [
-    { label: 'Повернути в роботу', target: 'in_progress' },
-    { label: 'Повернути в заплановане', target: 'todo' },
-  ],
+  done: [{ label: 'Повернути в роботу', target: 'in_progress' }],
 }
 
 function createEmptyColumns(): PracticeBoardColumns {
@@ -252,34 +288,41 @@ function createEmptyColumns(): PracticeBoardColumns {
 
 const loading = ref(true)
 const boardError = ref('')
+const boardFormError = ref('')
 const createError = ref('')
 const moveError = ref('')
 const editError = ref('')
 const archiveError = ref('')
+
 const showCreateForm = ref(false)
+const showCreateBoardForm = ref(false)
+const showRenameBoardForm = ref(false)
+
 const createPending = ref(false)
+const createBoardPending = ref(false)
+const renameBoardPending = ref(false)
 const editPending = ref(false)
+
 const movePending = ref<Set<string>>(new Set())
 const editingItemId = ref<string | null>(null)
 const archiveConfirmItemId = ref<string | null>(null)
 const archivePendingItemId = ref<string | null>(null)
 const detailsItem = ref<PracticeBoardItem | null>(null)
+
+const boards = ref<PracticeBoard[]>([])
+const currentBoardId = ref<string | null>(null)
 const boardColumns = ref<PracticeBoardColumns>(createEmptyColumns())
-const createDraft = ref<CreateDraft>({
-  title: '',
-  description: '',
-})
-const editDraft = ref<EditDraft>({
-  title: '',
-  description: '',
-})
+
+const createBoardTitle = ref('')
+const renameBoardTitle = ref('')
+const createDraft = ref<CreateDraft>({ title: '', description: '' })
+const editDraft = ref<EditDraft>({ title: '', description: '' })
+
 const toast = useToast()
 
+const currentBoard = computed(() => boards.value.find((board) => String(board.id) === currentBoardId.value) || null)
 const hasNoItems = computed(
-  () =>
-    boardColumns.value.todo.length === 0 &&
-    boardColumns.value.in_progress.length === 0 &&
-    boardColumns.value.done.length === 0
+  () => boardColumns.value.todo.length === 0 && boardColumns.value.in_progress.length === 0 && boardColumns.value.done.length === 0
 )
 
 function toPendingKey(itemId: number | string) {
@@ -293,11 +336,8 @@ function isMovePending(itemId: number | string) {
 function setMovePending(itemId: number | string, value: boolean) {
   const next = new Set(movePending.value)
   const key = toPendingKey(itemId)
-  if (value) {
-    next.add(key)
-  } else {
-    next.delete(key)
-  }
+  if (value) next.add(key)
+  else next.delete(key)
   movePending.value = next
 }
 
@@ -306,9 +346,6 @@ function hasMetadata(item: PracticeBoardItem) {
 }
 
 function moveActions(status: PracticeBoardStatus) {
-  if (status === 'done') {
-    return MOVE_ACTIONS_BY_STATUS.done.filter((action) => action.target === 'in_progress')
-  }
   return MOVE_ACTIONS_BY_STATUS[status]
 }
 
@@ -338,10 +375,7 @@ function startEdit(item: PracticeBoardItem) {
 function cancelEdit() {
   editError.value = ''
   editingItemId.value = null
-  editDraft.value = {
-    title: '',
-    description: '',
-  }
+  editDraft.value = { title: '', description: '' }
 }
 
 function buildEditPayload() {
@@ -367,7 +401,7 @@ async function submitEdit(itemId: number | string) {
     await updatePracticeBoardItem(itemId, payload)
     toast.success('Задачу оновлено')
     cancelEdit()
-    await loadBoard()
+    await loadBoardItems()
   } catch {
     editError.value = 'Не вдалося оновити задачу.'
   } finally {
@@ -402,7 +436,7 @@ async function confirmArchive(itemId: number | string) {
     await archivePracticeBoardItem(itemId)
     toast.success('Задачу видалено')
     closeArchiveConfirm()
-    await loadBoard()
+    await loadBoardItems()
   } catch {
     archiveError.value = 'Не вдалося видалити задачу.'
   } finally {
@@ -418,29 +452,140 @@ function toggleCreateForm() {
 function cancelCreate() {
   showCreateForm.value = false
   createError.value = ''
-  createDraft.value = {
-    title: '',
-    description: '',
-  }
+  createDraft.value = { title: '', description: '' }
 }
 
-async function loadBoard() {
+function toggleCreateBoardForm() {
+  showCreateBoardForm.value = !showCreateBoardForm.value
+  if (showCreateBoardForm.value) {
+    showRenameBoardForm.value = false
+  } else {
+    createBoardTitle.value = ''
+  }
+  boardFormError.value = ''
+}
+
+function toggleRenameBoardForm() {
+  if (!currentBoard.value) return
+  showRenameBoardForm.value = !showRenameBoardForm.value
+  if (showRenameBoardForm.value) {
+    showCreateBoardForm.value = false
+    renameBoardTitle.value = currentBoard.value.title
+  } else {
+    renameBoardTitle.value = ''
+  }
+  boardFormError.value = ''
+}
+
+function resolveCurrentBoardId(nextBoards: PracticeBoard[]) {
+  if (!nextBoards.length) {
+    currentBoardId.value = null
+    return
+  }
+  const hasCurrent = currentBoardId.value && nextBoards.some((board) => String(board.id) === currentBoardId.value)
+  if (hasCurrent) return
+  const resolved = resolveDefaultPracticeBoardId(nextBoards)
+  currentBoardId.value = resolved !== null ? String(resolved) : null
+}
+
+async function loadBoards() {
+  const nextBoards = await fetchPracticeBoards()
+  boards.value = nextBoards
+  resolveCurrentBoardId(nextBoards)
+}
+
+async function loadBoardItems() {
+  if (!currentBoardId.value) {
+    boardColumns.value = createEmptyColumns()
+    return
+  }
+  boardColumns.value = await fetchPracticeBoardItems(currentBoardId.value)
+}
+
+async function loadPage() {
   loading.value = true
   boardError.value = ''
   try {
-    boardColumns.value = await fetchPracticeBoardItems()
+    await loadBoards()
+    await loadBoardItems()
   } catch {
-    boardError.value = 'Не вдалося завантажити задачі дошки.'
+    boardError.value = 'Не вдалося завантажити дані дошки.'
   } finally {
     loading.value = false
   }
 }
 
+async function selectBoard(boardId: number | string) {
+  const nextId = String(boardId)
+  if (nextId === currentBoardId.value) return
+  currentBoardId.value = nextId
+  boardError.value = ''
+  try {
+    await loadBoardItems()
+  } catch {
+    boardError.value = 'Не вдалося завантажити задачі для вибраної дошки.'
+  }
+}
+
+async function submitCreateBoard() {
+  boardFormError.value = ''
+  const title = createBoardTitle.value.trim()
+  if (!title) {
+    boardFormError.value = 'Вкажіть назву дошки.'
+    return
+  }
+
+  createBoardPending.value = true
+  try {
+    const created = await createPracticeBoard({ title })
+    await loadBoards()
+    currentBoardId.value = String(created.id)
+    createBoardTitle.value = ''
+    showCreateBoardForm.value = false
+    await loadBoardItems()
+  } catch (error) {
+    boardFormError.value = isBoardLimitReachedError(error)
+      ? 'Ліміт дощок для вашого тарифу вичерпано.'
+      : 'Не вдалося створити дошку.'
+  } finally {
+    createBoardPending.value = false
+  }
+}
+
+async function submitRenameBoard() {
+  boardFormError.value = ''
+  const boardId = currentBoardId.value
+  const title = renameBoardTitle.value.trim()
+  if (!boardId) {
+    boardFormError.value = 'Оберіть дошку.'
+    return
+  }
+  if (!title) {
+    boardFormError.value = 'Вкажіть назву дошки.'
+    return
+  }
+
+  renameBoardPending.value = true
+  try {
+    await updatePracticeBoard(boardId, { title })
+    await loadBoards()
+    showRenameBoardForm.value = false
+    toast.success('Назву дошки оновлено')
+  } catch {
+    boardFormError.value = 'Не вдалося оновити назву дошки.'
+  } finally {
+    renameBoardPending.value = false
+  }
+}
+
 function createPayloadFromDraft(): PracticeBoardCreatePayload | null {
   const title = createDraft.value.title.trim()
+  const boardId = currentBoardId.value
   if (!title) return null
+  if (!boardId) return null
   const description = createDraft.value.description.trim()
   return {
+    board_id: boardId,
     title,
     description: description || null,
   }
@@ -451,7 +596,7 @@ async function submitCreate() {
   moveError.value = ''
   const payload = createPayloadFromDraft()
   if (!payload) {
-    createError.value = 'Вкажіть заголовок задачі.'
+    createError.value = currentBoardId.value ? 'Вкажіть заголовок задачі.' : 'Оберіть дошку для створення задачі.'
     return
   }
 
@@ -460,7 +605,7 @@ async function submitCreate() {
     await createPracticeBoardItem(payload)
     toast.success('Задачу додано на дошку')
     cancelCreate()
-    await loadBoard()
+    await loadBoardItems()
   } catch {
     createError.value = 'Не вдалося створити задачу.'
   } finally {
@@ -473,7 +618,7 @@ async function moveItem(itemId: number | string, status: PracticeBoardStatus) {
   setMovePending(itemId, true)
   try {
     await movePracticeBoardItem(itemId, { status })
-    await loadBoard()
+    await loadBoardItems()
   } catch {
     moveError.value = 'Не вдалося перемістити задачу.'
   } finally {
@@ -482,7 +627,7 @@ async function moveItem(itemId: number | string, status: PracticeBoardStatus) {
 }
 
 onMounted(async () => {
-  await loadBoard()
+  await loadPage()
 })
 </script>
 
@@ -531,6 +676,37 @@ onMounted(async () => {
   margin: 0;
   font-size: 20px;
   font-family: var(--font-display);
+}
+
+.practice-board__boards-header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.practice-board__boards-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.practice-board__switcher {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.practice-board__board-chip--active {
+  border-color: rgba(8, 113, 201, 0.42);
+  background: rgba(8, 113, 201, 0.1);
+}
+
+.practice-board__board-form {
+  display: grid;
+  gap: 10px;
 }
 
 .practice-board__create-grid {
@@ -720,6 +896,7 @@ onMounted(async () => {
 .practice-board__details-cancel {
   flex-shrink: 0;
 }
+
 .practice-board__details-text {
   margin: 0;
   white-space: pre-wrap;
@@ -746,10 +923,10 @@ onMounted(async () => {
 }
 
 @media (max-width: 860px) {
-  .practice-board__hero {
+  .practice-board__hero,
+  .practice-board__boards-header {
     flex-direction: column;
     align-items: flex-start;
   }
 }
 </style>
-

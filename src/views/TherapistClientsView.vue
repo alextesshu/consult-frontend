@@ -146,7 +146,7 @@
               :disabled="!relationClientId(client) || isQuickAddLoading(relationClientId(client))"
               @click="addClientToPracticeBoard(relationClientId(client))"
             >
-              {{ isQuickAddLoading(relationClientId(client)) ? 'Додаємо…' : 'Додати на дошку' }}
+              {{ isQuickAddLoading(relationClientId(client)) ? 'Р”РѕРґР°С”РјРѕвЂ¦' : 'Р”РѕРґР°С‚Рё РЅР° РґРѕС€РєСѓ' }}
             </button>
             <RouterLink
               v-if="client.latest_session_note_session_id"
@@ -266,7 +266,11 @@ import { formatUkDateTimeCompact } from '../lib/dateTime'
 import { getApiErrorMessage } from '../lib/errors'
 import { openClientWorkbookWindow } from '../lib/workbookWindow'
 import { useToast } from '../composables/useToast'
-import { createPracticeBoardItem } from '../lib/specialistPracticeBoard'
+import {
+  createPracticeBoardItem,
+  fetchPracticeBoards,
+  resolveDefaultPracticeBoardId,
+} from '../lib/specialistPracticeBoard'
 import {
   fetchSpecialistClientJournalContent as fetchSpecialistClientJournalContentData,
   saveSpecialistClientJournal as saveSpecialistClientJournalAction,
@@ -917,14 +921,20 @@ async function addClientToPracticeBoard(clientId: number) {
   setQuickAddLoading(clientId, true)
   error.value = ''
   try {
+    const boards = await fetchPracticeBoards()
+    const boardId = resolveDefaultPracticeBoardId(boards)
+    if (!boardId) {
+      throw new Error('BOARD_NOT_FOUND')
+    }
     await createPracticeBoardItem({
-      title: 'Follow-up по клієнту',
+      board_id: boardId,
+      title: 'Follow-up РїРѕ РєР»С–С”РЅС‚Сѓ',
       related_client_id: clientId,
       source_type: 'manual',
     })
-    toast.success('Задачу додано на дошку')
+    toast.success('Р—Р°РґР°С‡Сѓ РґРѕРґР°РЅРѕ РЅР° РґРѕС€РєСѓ')
   } catch (err: any) {
-    error.value = getApiErrorMessage(err, 'Не вдалося додати задачу на дошку.')
+    error.value = getApiErrorMessage(err, 'РќРµ РІРґР°Р»РѕСЃСЏ РґРѕРґР°С‚Рё Р·Р°РґР°С‡Сѓ РЅР° РґРѕС€РєСѓ.')
   } finally {
     setQuickAddLoading(clientId, false)
   }
@@ -1252,3 +1262,4 @@ onBeforeUnmount(() => {
   }
 }
 </style>
+

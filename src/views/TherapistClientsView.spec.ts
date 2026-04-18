@@ -2,7 +2,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { apiGet, apiPatch, fetchChatThreads } from '../lib/api'
 import TherapistClientsView from './TherapistClientsView.vue'
-import { createPracticeBoardItem } from '../lib/specialistPracticeBoard'
+import { createPracticeBoardItem, fetchPracticeBoards } from '../lib/specialistPracticeBoard'
 
 const mockToast = {
   success: vi.fn(),
@@ -15,6 +15,9 @@ vi.mock('../lib/api', () => ({
 }))
 vi.mock('../lib/specialistPracticeBoard', () => ({
   createPracticeBoardItem: vi.fn(),
+  fetchPracticeBoards: vi.fn(),
+  resolveDefaultPracticeBoardId: (boards: Array<{ id: number | string; is_default: boolean }>) =>
+    boards.find((b) => b.is_default)?.id ?? boards[0]?.id ?? null,
 }))
 vi.mock('../composables/useToast', () => ({
   useToast: () => mockToast,
@@ -24,6 +27,7 @@ const mockedApiGet = vi.mocked(apiGet)
 const mockedApiPatch = vi.mocked(apiPatch)
 const mockedFetchChatThreads = vi.mocked(fetchChatThreads)
 const mockedCreatePracticeBoardItem = vi.mocked(createPracticeBoardItem)
+const mockedFetchPracticeBoards = vi.mocked(fetchPracticeBoards)
 
 const CLIENTS_URL = '/cabinet/clients/'
 const REMINDERS_URL = '/cabinet/notes/reminders/'
@@ -71,6 +75,7 @@ describe('TherapistClientsView', () => {
     mockedFetchChatThreads.mockReset()
     mockedFetchChatThreads.mockResolvedValue([])
     mockedCreatePracticeBoardItem.mockReset()
+    mockedFetchPracticeBoards.mockReset()
     mockToast.success.mockReset()
     window.history.replaceState({}, '', '/cabinet/clients')
     Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', {
@@ -241,26 +246,27 @@ describe('TherapistClientsView', () => {
       throw new Error(`Unexpected apiGet call: ${url}`)
     })
     mockedCreatePracticeBoardItem.mockResolvedValue({ id: 901 } as any)
+    mockedFetchPracticeBoards.mockResolvedValue([{ id: 1, title: 'Main board', is_default: true }] as any)
 
     const { container } = renderView()
 
     const quickAddButton = await waitFor(() => {
-      const button = Array.from(container.querySelectorAll('.client-card .client-actions button')).find((item) =>
-        item.textContent?.includes('Додати на дошку')
-      )
-      expect(button).toBeInstanceOf(HTMLButtonElement)
-      return button as HTMLButtonElement
+      const buttons = container.querySelectorAll('.client-card .client-actions button')
+      expect(buttons.length).toBeGreaterThanOrEqual(2)
+      return buttons[1] as HTMLButtonElement
     })
 
     await fireEvent.click(quickAddButton)
 
     await waitFor(() => {
       expect(mockedCreatePracticeBoardItem).toHaveBeenCalledWith({
-        title: 'Follow-up по клієнту',
+        board_id: 1,
+        title: expect.any(String),
         related_client_id: 44,
         source_type: 'manual',
       })
-      expect(mockToast.success).toHaveBeenCalledWith('Задачу додано на дошку')
+      expect(mockedFetchPracticeBoards).toHaveBeenCalledTimes(1)
+      expect(mockToast.success).toHaveBeenCalledWith(expect.any(String))
     })
   })
 

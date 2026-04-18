@@ -546,6 +546,7 @@ export type PracticeBoardSourceType =
 
 export type PracticeBoardItem = {
   id: number | string
+  board_id?: number | string | null
   title: string
   description: string | null
   status: PracticeBoardStatus
@@ -565,7 +566,25 @@ export type PracticeBoardColumns = {
   done: PracticeBoardItem[]
 }
 
+export type PracticeBoard = {
+  id: number | string
+  title: string
+  is_default: boolean
+  created_at?: string
+  updated_at?: string
+}
+
+export type PracticeBoardEntityCreatePayload = {
+  title: string
+}
+
+export type PracticeBoardEntityUpdatePayload = {
+  title?: string
+  is_default?: boolean
+}
+
 export type PracticeBoardCreatePayload = {
+  board_id: number | string
   title: string
   description?: string | null
   related_client_id?: number | null

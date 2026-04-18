@@ -1,14 +1,14 @@
-<template>
+﻿<template>
   <section class="session-detail">
     <header class="detail-hero">
       <div>
-        <div class="badge">Сесія спеціаліста</div>
-        <h1 class="title detail-title">Деталі сесії</h1>
+        <div class="badge">РЎРµСЃС–СЏ СЃРїРµС†С–Р°Р»С–СЃС‚Р°</div>
+        <h1 class="title detail-title">Р”РµС‚Р°Р»С– СЃРµСЃС–С—</h1>
         <p class="muted detail-subtitle">
-          Повний контекст по сесії, дії зі статусом, перенос і приватні нотатки в одному місці.
+          РџРѕРІРЅРёР№ РєРѕРЅС‚РµРєСЃС‚ РїРѕ СЃРµСЃС–С—, РґС–С— Р·С– СЃС‚Р°С‚СѓСЃРѕРј, РїРµСЂРµРЅРѕСЃ С– РїСЂРёРІР°С‚РЅС– РЅРѕС‚Р°С‚РєРё РІ РѕРґРЅРѕРјСѓ РјС–СЃС†С–.
         </p>
       </div>
-      <RouterLink class="btn btn--ghost" to="/cabinet/sessions">Назад до списку</RouterLink>
+      <RouterLink class="btn btn--ghost" to="/cabinet/sessions">РќР°Р·Р°Рґ РґРѕ СЃРїРёСЃРєСѓ</RouterLink>
     </header>
 
     <div v-if="error" class="form-error">{{ error }}</div>
@@ -18,7 +18,7 @@
       <section class="panel panel--summary">
         <div class="panel__header">
           <div>
-            <div class="badge badge--soft">Статус</div>
+            <div class="badge badge--soft">РЎС‚Р°С‚СѓСЃ</div>
             <h2 class="panel__title">{{ statusLabel(session) }}</h2>
           </div>
           <div class="summary-actions">
@@ -28,7 +28,7 @@
               :disabled="actionLoading || session.status !== 'SCHEDULED'"
               @click="confirmSession"
             >
-              Підтвердити
+              РџС–РґС‚РІРµСЂРґРёС‚Рё
             </button>
             <button
               v-if="session.status === 'CONFIRMED'"
@@ -37,7 +37,7 @@
               :disabled="actionLoading"
               @click="openCompletionModal"
             >
-              Завершити
+              Р—Р°РІРµСЂС€РёС‚Рё
             </button>
             <button
               class="btn btn--ghost btn--sm"
@@ -45,7 +45,7 @@
               :disabled="actionLoading || !canCancel(session.status)"
               @click="cancelSession"
             >
-              Скасувати
+              РЎРєР°СЃСѓРІР°С‚Рё
             </button>
             <button
               class="btn btn--ghost btn--sm"
@@ -53,7 +53,7 @@
               :disabled="actionLoading || !canReschedule(session.status)"
               @click="toggleReschedulePanel"
             >
-              {{ showReschedulePanel ? 'Сховати перенос' : 'Перенести' }}
+              {{ showReschedulePanel ? 'РЎС…РѕРІР°С‚Рё РїРµСЂРµРЅРѕСЃ' : 'РџРµСЂРµРЅРµСЃС‚Рё' }}
             </button>
             <button
               v-if="canShowRecurringAction(session)"
@@ -62,7 +62,7 @@
               :disabled="actionLoading"
               @click="toggleRecurringPanel"
             >
-              {{ showRecurringPanel ? 'Сховати серію' : 'Повторювати щотижня' }}
+              {{ showRecurringPanel ? 'РЎС…РѕРІР°С‚Рё СЃРµСЂС–СЋ' : 'РџРѕРІС‚РѕСЂСЋРІР°С‚Рё С‰РѕС‚РёР¶РЅСЏ' }}
             </button>
             <button
               class="btn btn--ghost btn--sm"
@@ -70,27 +70,27 @@
               :disabled="actionLoading || quickAddPending"
               @click="addSessionToPracticeBoard"
             >
-              {{ quickAddPending ? 'Додаємо…' : 'Додати на дошку' }}
+              {{ quickAddPending ? 'Р”РѕРґР°С”РјРѕвЂ¦' : 'Р”РѕРґР°С‚Рё РЅР° РґРѕС€РєСѓ' }}
             </button>
           </div>
         </div>
 
         <div class="detail-grid">
           <div class="detail-card">
-            <div class="detail-label">Початок</div>
+            <div class="detail-label">РџРѕС‡Р°С‚РѕРє</div>
             <div class="detail-value">{{ formatDateTime(sessionStartAt(session)) }}</div>
           </div>
           <div class="detail-card">
-            <div class="detail-label">Тривалість</div>
+            <div class="detail-label">РўСЂРёРІР°Р»С–СЃС‚СЊ</div>
             <div class="detail-value">{{ formatDuration(sessionStartAt(session), sessionEndAt(session)) }}</div>
           </div>
           <div class="detail-card">
-            <div class="detail-label">Формат</div>
-            <div class="detail-value">Формат: {{ sessionFormatLabel }}</div>
-            <div v-if="offlineLocation" class="muted detail-meta">Локація: {{ offlineLocation }}</div>
+            <div class="detail-label">Р¤РѕСЂРјР°С‚</div>
+            <div class="detail-value">Р¤РѕСЂРјР°С‚: {{ sessionFormatLabel }}</div>
+            <div v-if="offlineLocation" class="muted detail-meta">Р›РѕРєР°С†С–СЏ: {{ offlineLocation }}</div>
           </div>
           <div class="detail-card">
-            <div class="detail-label">Клієнт</div>
+            <div class="detail-label">РљР»С–С”РЅС‚</div>
             <div class="detail-value">
               {{ clientLabel(session) }}
               <div v-if="session.client_email" class="muted detail-meta">{{ session.client_email }}</div>
@@ -98,13 +98,13 @@
             </div>
           </div>
           <div class="detail-card">
-            <div class="detail-label">Поточний стан</div>
+            <div class="detail-label">РџРѕС‚РѕС‡РЅРёР№ СЃС‚Р°РЅ</div>
             <div class="detail-value">
               <div class="status-pill" :class="statusClass(session)">
                 {{ statusLabel(session) }}
               </div>
               <div v-if="timeUntilLabel(session)" class="status-pill status-pill--warn">
-                Початок через {{ timeUntilLabel(session) }}
+                РџРѕС‡Р°С‚РѕРє С‡РµСЂРµР· {{ timeUntilLabel(session) }}
               </div>
             </div>
           </div>
@@ -114,20 +114,20 @@
           class="meeting-card"
         >
           <div v-if="!isEditingMeetingLink">
-            <div class="detail-label">Онлайн-зустріч</div>
+            <div class="detail-label">РћРЅР»Р°Р№РЅ-Р·СѓСЃС‚СЂС–С‡</div>
             <div class="detail-value">{{ meetingProvider }}</div>
             <div class="muted detail-meta">{{ meetingSetupHint }}</div>
           </div>
           <div v-else class="field" style="width: 100%">
-            <label for="meeting-link-input" class="detail-label">Посилання на онлайн-зустріч</label>
+            <label for="meeting-link-input" class="detail-label">РџРѕСЃРёР»Р°РЅРЅСЏ РЅР° РѕРЅР»Р°Р№РЅ-Р·СѓСЃС‚СЂС–С‡</label>
             <input
               id="meeting-link-input"
               v-model="meetingLinkDraft"
               class="input"
-              placeholder="https://meet.google.com/... або https://zoom.us/..."
+              placeholder="https://meet.google.com/... Р°Р±Рѕ https://zoom.us/..."
             />
             <div class="muted detail-meta">
-              Вставте повне посилання на зустріч. Після збереження клієнт побачить кнопку «Приєднатися».
+              Р’СЃС‚Р°РІС‚Рµ РїРѕРІРЅРµ РїРѕСЃРёР»Р°РЅРЅСЏ РЅР° Р·СѓСЃС‚СЂС–С‡. РџС–СЃР»СЏ Р·Р±РµСЂРµР¶РµРЅРЅСЏ РєР»С–С”РЅС‚ РїРѕР±Р°С‡РёС‚СЊ РєРЅРѕРїРєСѓ В«РџСЂРёС”РґРЅР°С‚РёСЃСЏВ».
             </div>
           </div>
           <div class="meeting-card__actions">
@@ -139,10 +139,10 @@
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                Приєднатися
+                РџСЂРёС”РґРЅР°С‚РёСЃСЏ
               </a>
               <button v-if="meetingUrl" class="btn btn--ghost btn--sm" type="button" @click="copyMeetingLink">
-                Скопіювати посилання
+                РЎРєРѕРїС–СЋРІР°С‚Рё РїРѕСЃРёР»Р°РЅРЅСЏ
               </button>
               <button
                 v-if="session && ['SCHEDULED', 'CONFIRMED'].includes(session.status)"
@@ -150,7 +150,7 @@
                 type="button"
                 @click="toggleEditMeetingLink"
               >
-                {{ meetingUrl ? 'Змінити посилання' : 'Додати посилання' }}
+                {{ meetingUrl ? 'Р—РјС–РЅРёС‚Рё РїРѕСЃРёР»Р°РЅРЅСЏ' : 'Р”РѕРґР°С‚Рё РїРѕСЃРёР»Р°РЅРЅСЏ' }}
               </button>
             </template>
             <template v-else>
@@ -160,7 +160,7 @@
                 :disabled="actionLoading"
                 @click="saveMeetingLink"
               >
-                Зберегти
+                Р—Р±РµСЂРµРіС‚Рё
               </button>
               <button
                 class="btn btn--ghost btn--sm"
@@ -168,16 +168,16 @@
                 :disabled="actionLoading"
                 @click="toggleEditMeetingLink"
               >
-                Скасувати
+                РЎРєР°СЃСѓРІР°С‚Рё
               </button>
             </template>
           </div>
         </div>
         <div v-else-if="isOfflineSession" class="meeting-card">
           <div>
-            <div class="detail-label">Офлайн-сесія</div>
-            <div class="detail-value">{{ offlineLocation || 'Локацію узгоджено зі спеціалістом.' }}</div>
-            <div class="muted detail-meta">Для офлайн-формату посилання для приєднання не використовується.</div>
+            <div class="detail-label">РћС„Р»Р°Р№РЅ-СЃРµСЃС–СЏ</div>
+            <div class="detail-value">{{ offlineLocation || 'Р›РѕРєР°С†С–СЋ СѓР·РіРѕРґР¶РµРЅРѕ Р·С– СЃРїРµС†С–Р°Р»С–СЃС‚РѕРј.' }}</div>
+            <div class="muted detail-meta">Р”Р»СЏ РѕС„Р»Р°Р№РЅ-С„РѕСЂРјР°С‚Сѓ РїРѕСЃРёР»Р°РЅРЅСЏ РґР»СЏ РїСЂРёС”РґРЅР°РЅРЅСЏ РЅРµ РІРёРєРѕСЂРёСЃС‚РѕРІСѓС”С‚СЊСЃСЏ.</div>
           </div>
         </div>
       </section>
@@ -188,26 +188,26 @@
       >
         <div class="panel__header">
           <div>
-            <div class="badge badge--soft">Після сесії</div>
-            <h2 class="panel__title">Наступні кроки</h2>
+            <div class="badge badge--soft">РџС–СЃР»СЏ СЃРµСЃС–С—</div>
+            <h2 class="panel__title">РќР°СЃС‚СѓРїРЅС– РєСЂРѕРєРё</h2>
           </div>
         </div>
         <div class="next-step-rail">
           <button class="btn btn--sm" type="button" @click="openPostSessionWorkbook">
-            Відкрити робочий зошит
+            Р’С–РґРєСЂРёС‚Рё СЂРѕР±РѕС‡РёР№ Р·РѕС€РёС‚
           </button>
           <RouterLink class="btn btn--ghost btn--sm" :to="postSessionClientLink">
-            Відкрити клієнта
+            Р’С–РґРєСЂРёС‚Рё РєР»С–С”РЅС‚Р°
           </RouterLink>
           <RouterLink
             v-if="postSessionNextSession"
             class="btn btn--ghost btn--sm"
             :to="`/cabinet/sessions/${postSessionNextSession.id}`"
           >
-            Наступна сесія: {{ formatDateTime(postSessionNextSession.slot_start_at) }}
+            РќР°СЃС‚СѓРїРЅР° СЃРµСЃС–СЏ: {{ formatDateTime(postSessionNextSession.slot_start_at) }}
           </RouterLink>
           <RouterLink class="btn btn--ghost btn--sm" to="/cabinet/sessions">
-            Повернутись до списку
+            РџРѕРІРµСЂРЅСѓС‚РёСЃСЊ РґРѕ СЃРїРёСЃРєСѓ
           </RouterLink>
         </div>
       </section>
@@ -215,8 +215,8 @@
       <section v-if="workspacePanelVisible" class="panel panel--workspace" data-testid="session-workspace">
         <div class="panel__header">
           <div>
-            <div class="badge badge--soft">Робочий простір</div>
-            <h2 class="panel__title">Стан після сесії</h2>
+            <div class="badge badge--soft">Р РѕР±РѕС‡РёР№ РїСЂРѕСЃС‚С–СЂ</div>
+            <h2 class="panel__title">РЎС‚Р°РЅ РїС–СЃР»СЏ СЃРµСЃС–С—</h2>
           </div>
         </div>
 
@@ -230,7 +230,7 @@
             <div class="workspace-summary__meta">
               <div class="workspace-summary__label">{{ item.title }}</div>
               <div v-if="item.updatedAtLabel" class="workspace-summary__updated muted">
-                Оновлено: {{ item.updatedAtLabel }}
+                РћРЅРѕРІР»РµРЅРѕ: {{ item.updatedAtLabel }}
               </div>
             </div>
             <div class="status-pill" :class="item.pillClass">{{ item.statusLabel }}</div>
@@ -242,7 +242,7 @@
           class="workspace-actions"
           data-testid="workspace-actions"
         >
-          <div class="workspace-actions__title">Потребує уваги</div>
+          <div class="workspace-actions__title">РџРѕС‚СЂРµР±СѓС” СѓРІР°РіРё</div>
           <button
             v-if="workspacePrimaryAction"
             class="btn btn--sm"
@@ -267,7 +267,7 @@
         </div>
 
         <div v-else class="muted" data-testid="workspace-no-pending">
-          Усі ключові кроки виконано або не потребують дій.
+          РЈСЃС– РєР»СЋС‡РѕРІС– РєСЂРѕРєРё РІРёРєРѕРЅР°РЅРѕ Р°Р±Рѕ РЅРµ РїРѕС‚СЂРµР±СѓСЋС‚СЊ РґС–Р№.
         </div>
       </section>
 
@@ -282,7 +282,7 @@
         <div v-if="paymentProofActionError" class="payment-proof-error">
           <p>{{ paymentProofActionError }}</p>
           <button class="btn btn--ghost btn--sm" type="button" @click="openPaymentDetailsSettings">
-            Перейти до реквізитів для оплати
+            РџРµСЂРµР№С‚Рё РґРѕ СЂРµРєРІС–Р·РёС‚С–РІ РґР»СЏ РѕРїР»Р°С‚Рё
           </button>
         </div>
       </section>
@@ -290,23 +290,23 @@
       <section v-if="sessionRequests.length" class="panel">
         <div class="panel__header">
           <div>
-            <div class="badge badge--soft">Запити</div>
-            <h2 class="panel__title">Запити на перенос</h2>
+            <div class="badge badge--soft">Р—Р°РїРёС‚Рё</div>
+            <h2 class="panel__title">Р—Р°РїРёС‚Рё РЅР° РїРµСЂРµРЅРѕСЃ</h2>
           </div>
         </div>
-        <div v-if="requestsLoading" class="muted">Завантаження запитів...</div>
+        <div v-if="requestsLoading" class="muted">Р—Р°РІР°РЅС‚Р°Р¶РµРЅРЅСЏ Р·Р°РїРёС‚С–РІ...</div>
         <div v-else class="request-list">
           <article v-for="request in sessionRequests" :key="request.id" class="request-card">
             <div class="request-main">
               <div class="request-title">
-                {{ request.client_name || request.client_username || 'Клієнт' }}
+                {{ request.client_name || request.client_username || 'РљР»С–С”РЅС‚' }}
               </div>
               <div v-if="request.client_email" class="muted">{{ request.client_email }}</div>
               <div class="muted">
-                Запитане вікно:
+                Р—Р°РїРёС‚Р°РЅРµ РІС–РєРЅРѕ:
                 <span v-if="request.requested_slot_start_at && request.requested_slot_end_at">
                   {{ formatDateTime(request.requested_slot_start_at) }}
-                  В·
+                  Р’В·
                   {{ formatDuration(request.requested_slot_start_at, request.requested_slot_end_at) }}
                 </span>
                 <span v-else>#{{ request.requested_slot_id }}</span>
@@ -322,7 +322,7 @@
                 :disabled="isRequestLoading(request.id)"
                 @click="approveRequest(request.id)"
               >
-                Погодити
+                РџРѕРіРѕРґРёС‚Рё
               </button>
               <button
                 class="btn btn--ghost btn--sm"
@@ -330,7 +330,7 @@
                 :disabled="isRequestLoading(request.id)"
                 @click="declineRequest(request.id)"
               >
-                Відхилити
+                Р’С–РґС…РёР»РёС‚Рё
               </button>
             </div>
           </article>
@@ -340,18 +340,18 @@
       <section v-if="showReschedulePanel" class="panel">
         <div class="panel__header">
           <div>
-            <div class="badge badge--soft">Перенесення</div>
-            <h2 class="panel__title">Новий слот для сесії</h2>
+            <div class="badge badge--soft">РџРµСЂРµРЅРµСЃРµРЅРЅСЏ</div>
+            <h2 class="panel__title">РќРѕРІРёР№ СЃР»РѕС‚ РґР»СЏ СЃРµСЃС–С—</h2>
           </div>
         </div>
         <div class="muted">
-          Оберіть доступне вікно або скористайтеся рекомендованими варіантами переносу.
+          РћР±РµСЂС–С‚СЊ РґРѕСЃС‚СѓРїРЅРµ РІС–РєРЅРѕ Р°Р±Рѕ СЃРєРѕСЂРёСЃС‚Р°Р№С‚РµСЃСЏ СЂРµРєРѕРјРµРЅРґРѕРІР°РЅРёРјРё РІР°СЂС–Р°РЅС‚Р°РјРё РїРµСЂРµРЅРѕСЃСѓ.
         </div>
         <div class="suggestions-block">
-          <div class="muted suggestions-title">Рекомендовані варіанти</div>
-          <div v-if="suggestionsLoading" class="muted">Завантаження рекомендацій...</div>
+          <div class="muted suggestions-title">Р РµРєРѕРјРµРЅРґРѕРІР°РЅС– РІР°СЂС–Р°РЅС‚Рё</div>
+          <div v-if="suggestionsLoading" class="muted">Р—Р°РІР°РЅС‚Р°Р¶РµРЅРЅСЏ СЂРµРєРѕРјРµРЅРґР°С†С–Р№...</div>
           <div v-else-if="rescheduleSuggestions.length === 0" class="muted">
-            Для цієї сесії зараз немає окремих рекомендацій.
+            Р”Р»СЏ С†С–С”С— СЃРµСЃС–С— Р·Р°СЂР°Р· РЅРµРјР°С” РѕРєСЂРµРјРёС… СЂРµРєРѕРјРµРЅРґР°С†С–Р№.
           </div>
           <div v-else class="suggestions-list">
             <button
@@ -363,7 +363,7 @@
               :disabled="actionLoading"
               @click="selectSuggestedSlot(item.slot_id)"
             >
-              <span>{{ formatDateTime(item.start_at) }} В· {{ formatDuration(item.start_at, item.end_at) }}</span>
+              <span>{{ formatDateTime(item.start_at) }} Р’В· {{ formatDuration(item.start_at, item.end_at) }}</span>
               <span class="muted suggestion-meta">{{ suggestionReasonLabel(item.reason_tag) }}</span>
             </button>
           </div>
@@ -374,12 +374,12 @@
             :disabled="actionLoading"
             @click="submitSelectedSuggestion"
           >
-            Підтвердити перенос
+            РџС–РґС‚РІРµСЂРґРёС‚Рё РїРµСЂРµРЅРѕСЃ
           </button>
         </div>
 
-        <div v-if="slotsLoading" class="muted">Завантаження слотів...</div>
-        <div v-else-if="availableSlots.length === 0" class="muted">Немає доступних слотів для переносу.</div>
+        <div v-if="slotsLoading" class="muted">Р—Р°РІР°РЅС‚Р°Р¶РµРЅРЅСЏ СЃР»РѕС‚С–РІ...</div>
+        <div v-else-if="availableSlots.length === 0" class="muted">РќРµРјР°С” РґРѕСЃС‚СѓРїРЅРёС… СЃР»РѕС‚С–РІ РґР»СЏ РїРµСЂРµРЅРѕСЃСѓ.</div>
         <div v-else class="slot-list">
           <article v-for="slot in availableSlots" :key="slot.id" class="slot-card">
             <div>
@@ -392,7 +392,7 @@
               :disabled="actionLoading"
               @click="submitReschedule(slot.id)"
             >
-              Перенести сюди
+              РџРµСЂРµРЅРµСЃС‚Рё СЃСЋРґРё
             </button>
           </article>
         </div>
@@ -401,22 +401,22 @@
       <section v-if="showRecurringPanel" class="panel">
         <div class="panel__header">
           <div>
-            <div class="badge badge--soft">Серія</div>
-            <h2 class="panel__title">Створити повторювані сесії</h2>
+            <div class="badge badge--soft">РЎРµСЂС–СЏ</div>
+            <h2 class="panel__title">РЎС‚РІРѕСЂРёС‚Рё РїРѕРІС‚РѕСЂСЋРІР°РЅС– СЃРµСЃС–С—</h2>
           </div>
         </div>
         <div class="recurring-grid">
           <label class="field">
-            <span class="muted">Кількість повторів</span>
+            <span class="muted">РљС–Р»СЊРєС–СЃС‚СЊ РїРѕРІС‚РѕСЂС–РІ</span>
             <select v-model="recurringPreset" class="input input--select">
-              <option :value="4">4 тижні</option>
-              <option :value="8">8 тижнів</option>
-              <option :value="12">12 тижнів</option>
-              <option value="custom">Власне число</option>
+              <option :value="4">4 С‚РёР¶РЅС–</option>
+              <option :value="8">8 С‚РёР¶РЅС–РІ</option>
+              <option :value="12">12 С‚РёР¶РЅС–РІ</option>
+              <option value="custom">Р’Р»Р°СЃРЅРµ С‡РёСЃР»Рѕ</option>
             </select>
           </label>
           <label v-if="recurringPreset === 'custom'" class="field">
-            <span class="muted">Власне число</span>
+            <span class="muted">Р’Р»Р°СЃРЅРµ С‡РёСЃР»Рѕ</span>
             <input
               v-model.number="recurringCustomOccurrences"
               class="input"
@@ -424,24 +424,24 @@
               min="1"
               max="52"
               step="1"
-              placeholder="Наприклад, 6"
+              placeholder="РќР°РїСЂРёРєР»Р°Рґ, 6"
             />
           </label>
         </div>
         <div class="recurring-actions">
           <button class="btn btn--sm" type="button" :disabled="actionLoading" @click="submitRecurring">
-            Створити серію
+            РЎС‚РІРѕСЂРёС‚Рё СЃРµСЂС–СЋ
           </button>
         </div>
         <div v-if="recurringResult" class="recurring-result">
           <div class="status-pill status-pill--ok">
-            Створено {{ recurringResult.created_count ?? 0 }} сесій
+            РЎС‚РІРѕСЂРµРЅРѕ {{ recurringResult.created_count ?? 0 }} СЃРµСЃС–Р№
           </div>
           <div v-if="(recurringResult.skipped_count ?? 0) > 0" class="status-pill status-pill--warn">
-            Пропущено {{ recurringResult.skipped_count ?? 0 }} через конфлікти
+            РџСЂРѕРїСѓС‰РµРЅРѕ {{ recurringResult.skipped_count ?? 0 }} С‡РµСЂРµР· РєРѕРЅС„Р»С–РєС‚Рё
           </div>
           <div v-if="(recurringResult.created_dates || []).length" class="recurring-list">
-            <div class="muted">Створені дати:</div>
+            <div class="muted">РЎС‚РІРѕСЂРµРЅС– РґР°С‚Рё:</div>
             <ul class="recurring-ul">
               <li v-for="date in recurringResult.created_dates" :key="date">{{ formatDateTime(date) }}</li>
             </ul>
@@ -452,8 +452,8 @@
       <section class="panel">
         <div class="panel__header">
           <div>
-            <div class="badge badge--soft">Нотатки</div>
-            <h2 class="panel__title">Приватна історія по сесії</h2>
+            <div class="badge badge--soft">РќРѕС‚Р°С‚РєРё</div>
+            <h2 class="panel__title">РџСЂРёРІР°С‚РЅР° С–СЃС‚РѕСЂС–СЏ РїРѕ СЃРµСЃС–С—</h2>
           </div>
           <div class="note-header-actions">
             <button
@@ -466,23 +466,23 @@
             </button>
           </div>
         </div>
-        <div v-if="noteLoading" class="muted">Завантаження нотатки...</div>
+        <div v-if="noteLoading" class="muted">Р—Р°РІР°РЅС‚Р°Р¶РµРЅРЅСЏ РЅРѕС‚Р°С‚РєРё...</div>
         <div v-else class="note-panel">
           <label class="field">
-            <span class="note-title">Приватна нотатка</span>
-            <span class="note-badge">Зашифровано</span>
+            <span class="note-title">РџСЂРёРІР°С‚РЅР° РЅРѕС‚Р°С‚РєР°</span>
+            <span class="note-badge">Р—Р°С€РёС„СЂРѕРІР°РЅРѕ</span>
             <textarea
               ref="noteTextareaRef"
               v-model="noteDraft"
               class="input note-textarea"
               rows="6"
-              placeholder="Короткий коментар по сесії та важливі спостереження."
+              placeholder="РљРѕСЂРѕС‚РєРёР№ РєРѕРјРµРЅС‚Р°СЂ РїРѕ СЃРµСЃС–С— С‚Р° РІР°Р¶Р»РёРІС– СЃРїРѕСЃС‚РµСЂРµР¶РµРЅРЅСЏ."
             ></textarea>
-            <span class="note-helper muted">Доступ до нотатки має лише спеціаліст.</span>
+            <span class="note-helper muted">Р”РѕСЃС‚СѓРї РґРѕ РЅРѕС‚Р°С‚РєРё РјР°С” Р»РёС€Рµ СЃРїРµС†С–Р°Р»С–СЃС‚.</span>
           </label>
           <div class="note-actions">
             <button class="btn btn--sm" type="button" :disabled="noteSaving" @click="saveNote">
-              Зберегти
+              Р—Р±РµСЂРµРіС‚Рё
             </button>
           </div>
         </div>
@@ -491,9 +491,9 @@
 
     <section v-else class="panel">
       <EmptyState
-        title="Сесію не знайдено"
-        :description="pageError || 'Перевірте посилання або поверніться до списку сесій.'"
-        action-text="До списку сесій"
+        title="РЎРµСЃС–СЋ РЅРµ Р·РЅР°Р№РґРµРЅРѕ"
+        :description="pageError || 'РџРµСЂРµРІС–СЂС‚Рµ РїРѕСЃРёР»Р°РЅРЅСЏ Р°Р±Рѕ РїРѕРІРµСЂРЅС–С‚СЊСЃСЏ РґРѕ СЃРїРёСЃРєСѓ СЃРµСЃС–Р№.'"
+        action-text="Р”Рѕ СЃРїРёСЃРєСѓ СЃРµСЃС–Р№"
         action-to="/cabinet/sessions"
       />
     </section>
@@ -571,7 +571,11 @@ import EmptyState from '../components/EmptyState.vue'
 import LoadingSkeleton from '../components/LoadingSkeleton.vue'
 import SessionCompletionModal from '../components/SessionCompletionModal.vue'
 import SessionPaymentProofBlock from '../components/SessionPaymentProofBlock.vue'
-import { createPracticeBoardItem } from '../lib/specialistPracticeBoard'
+import {
+  createPracticeBoardItem,
+  fetchPracticeBoards,
+  resolveDefaultPracticeBoardId,
+} from '../lib/specialistPracticeBoard'
 
 type SessionSlot = {
   start_at?: string | null
@@ -670,13 +674,13 @@ const WORKSPACE_ACTION_PRIORITY: Record<WorkspaceActionCode, number> = {
 }
 
 const WORKSPACE_ACTION_LABEL: Record<WorkspaceActionCode, string> = {
-  OPEN_NOTE: 'Відкрити нотатку',
-  CONTINUE_NOTE: 'Продовжити нотатку',
-  OPEN_WORKBOOK: 'Відкрити робочий зошит',
-  CONTINUE_WORKBOOK: 'Продовжити робочий зошит',
-  REVIEW_PAYMENT: 'Перевірити оплату',
-  UPLOAD_PAYMENT_PROOF: 'Відкрити блок оплати',
-  CONFIRM_PAYMENT: 'Відкрити блок оплати',
+  OPEN_NOTE: 'Р’С–РґРєСЂРёС‚Рё РЅРѕС‚Р°С‚РєСѓ',
+  CONTINUE_NOTE: 'РџСЂРѕРґРѕРІР¶РёС‚Рё РЅРѕС‚Р°С‚РєСѓ',
+  OPEN_WORKBOOK: 'Р’С–РґРєСЂРёС‚Рё СЂРѕР±РѕС‡РёР№ Р·РѕС€РёС‚',
+  CONTINUE_WORKBOOK: 'РџСЂРѕРґРѕРІР¶РёС‚Рё СЂРѕР±РѕС‡РёР№ Р·РѕС€РёС‚',
+  REVIEW_PAYMENT: 'РџРµСЂРµРІС–СЂРёС‚Рё РѕРїР»Р°С‚Сѓ',
+  UPLOAD_PAYMENT_PROOF: 'Р’С–РґРєСЂРёС‚Рё Р±Р»РѕРє РѕРїР»Р°С‚Рё',
+  CONFIRM_PAYMENT: 'Р’С–РґРєСЂРёС‚Рё Р±Р»РѕРє РѕРїР»Р°С‚Рё',
 }
 
 const WORKSPACE_ACTION_DOMAIN: Record<WorkspaceActionCode, WorkspaceDomain> = {
@@ -737,7 +741,7 @@ function normalizeSessionFormat(detail: SessionDetail | null): SessionFormat {
 
 const sessionFormat = computed<SessionFormat>(() => normalizeSessionFormat(session.value))
 const isOfflineSession = computed(() => sessionFormat.value === 'offline')
-const sessionFormatLabel = computed(() => (isOfflineSession.value ? 'Офлайн' : 'Онлайн'))
+const sessionFormatLabel = computed(() => (isOfflineSession.value ? 'РћС„Р»Р°Р№РЅ' : 'РћРЅР»Р°Р№РЅ'))
 const offlineLocation = computed(() => {
   if (!isOfflineSession.value) return ''
   return (session.value?.offline_location || '').trim()
@@ -755,7 +759,7 @@ const meetingHint = computed(() => {
 })
 const meetingSetupHint = computed(() => {
   if (meetingHint.value) return meetingHint.value
-  return 'Додайте посилання на Google Meet, Zoom або іншу платформу для онлайн-зустрічі.'
+  return 'Р”РѕРґР°Р№С‚Рµ РїРѕСЃРёР»Р°РЅРЅСЏ РЅР° Google Meet, Zoom Р°Р±Рѕ С–РЅС€Сѓ РїР»Р°С‚С„РѕСЂРјСѓ РґР»СЏ РѕРЅР»Р°Р№РЅ-Р·СѓСЃС‚СЂС–С‡С–.'
 })
 
 const postSessionClientLink = computed(() => {
@@ -787,7 +791,7 @@ const workspaceSummaryItems = computed<WorkspaceSummaryItem[]>(() => {
   if (paymentState && paymentState !== 'not_applicable') {
     items.push({
       key: 'payment',
-      title: 'Оплата',
+      title: 'РћРїР»Р°С‚Р°',
       statusLabel: paymentStateLabel(paymentState),
       pillClass: paymentStateClass(paymentState),
       updatedAtLabel: formatWorkspaceUpdatedAt(workspace.value.payment_updated_at),
@@ -797,7 +801,7 @@ const workspaceSummaryItems = computed<WorkspaceSummaryItem[]>(() => {
   if (noteState) {
     items.push({
       key: 'note',
-      title: 'Нотатка',
+      title: 'РќРѕС‚Р°С‚РєР°',
       statusLabel: noteStateLabel(noteState),
       pillClass: noteStateClass(noteState),
       updatedAtLabel: formatWorkspaceUpdatedAt(workspace.value.note_updated_at),
@@ -807,7 +811,7 @@ const workspaceSummaryItems = computed<WorkspaceSummaryItem[]>(() => {
   if (workbookState) {
     items.push({
       key: 'workbook',
-      title: 'Робочий зошит',
+      title: 'Р РѕР±РѕС‡РёР№ Р·РѕС€РёС‚',
       statusLabel: noteStateLabel(workbookState),
       pillClass: noteStateClass(workbookState),
       updatedAtLabel: formatWorkspaceUpdatedAt(workspace.value.workbook_updated_at),
@@ -905,10 +909,10 @@ function formatWorkspaceUpdatedAt(value?: string | null) {
 }
 
 function paymentStateLabel(state: WorkspacePaymentState) {
-  if (state === 'paid') return 'Оплачено'
-  if (state === 'awaiting_confirmation') return 'Очікує підтвердження'
-  if (state === 'unpaid') return 'Не оплачено'
-  if (state === 'not_applicable') return 'Не застосовується'
+  if (state === 'paid') return 'РћРїР»Р°С‡РµРЅРѕ'
+  if (state === 'awaiting_confirmation') return 'РћС‡С–РєСѓС” РїС–РґС‚РІРµСЂРґР¶РµРЅРЅСЏ'
+  if (state === 'unpaid') return 'РќРµ РѕРїР»Р°С‡РµРЅРѕ'
+  if (state === 'not_applicable') return 'РќРµ Р·Р°СЃС‚РѕСЃРѕРІСѓС”С‚СЊСЃСЏ'
   return state
 }
 
@@ -920,10 +924,10 @@ function paymentStateClass(state: WorkspacePaymentState) {
 }
 
 function noteStateLabel(state: WorkspaceNoteState | WorkspaceWorkbookState) {
-  if (state === 'missing') return 'Потрібно створити'
-  if (state === 'draft') return 'Чернетка'
-  if (state === 'completed') return 'Заповнено'
-  if (state === 'hidden') return 'Недоступно'
+  if (state === 'missing') return 'РџРѕС‚СЂС–Р±РЅРѕ СЃС‚РІРѕСЂРёС‚Рё'
+  if (state === 'draft') return 'Р§РµСЂРЅРµС‚РєР°'
+  if (state === 'completed') return 'Р—Р°РїРѕРІРЅРµРЅРѕ'
+  if (state === 'hidden') return 'РќРµРґРѕСЃС‚СѓРїРЅРѕ'
   return state
 }
 
@@ -1091,9 +1095,9 @@ async function copyMeetingLink() {
   if (!meetingUrl.value) return
   try {
     await navigator.clipboard.writeText(meetingUrl.value)
-    toast.success('Посилання на зустріч скопійовано.')
+    toast.success('РџРѕСЃРёР»Р°РЅРЅСЏ РЅР° Р·СѓСЃС‚СЂС–С‡ СЃРєРѕРїС–Р№РѕРІР°РЅРѕ.')
   } catch {
-    toast.error('Не вдалося скопіювати посилання на зустріч.')
+    toast.error('РќРµ РІРґР°Р»РѕСЃСЏ СЃРєРѕРїС–СЋРІР°С‚Рё РїРѕСЃРёР»Р°РЅРЅСЏ РЅР° Р·СѓСЃС‚СЂС–С‡.')
   }
 }
 
@@ -1132,7 +1136,7 @@ function openPaymentDetailsSettings() {
 async function loadSession() {
   if (!hasValidSessionId.value) {
     session.value = null
-    pageError.value = 'Некоректний ідентифікатор сесії.'
+    pageError.value = 'РќРµРєРѕСЂРµРєС‚РЅРёР№ С–РґРµРЅС‚РёС„С–РєР°С‚РѕСЂ СЃРµСЃС–С—.'
     return
   }
   loading.value = true
@@ -1359,7 +1363,7 @@ async function submitRecurring() {
   if (!session.value) return
   const occurrences = recurringOccurrencesValue()
   if (!occurrences) {
-    error.value = 'Вкажіть кількість повторів від 1 до 52.'
+    error.value = 'Р’РєР°Р¶С–С‚СЊ РєС–Р»СЊРєС–СЃС‚СЊ РїРѕРІС‚РѕСЂС–РІ РІС–Рґ 1 РґРѕ 52.'
     return
   }
 
@@ -1371,7 +1375,7 @@ async function submitRecurring() {
     const skipped = recurringResult.value?.skipped_count || 0
     const created = recurringResult.value?.created_count || 0
     if (skipped > 0) {
-      toast.success(`Створено ${created} сесій, пропущено ${skipped}.`)
+      toast.success(`РЎС‚РІРѕСЂРµРЅРѕ ${created} СЃРµСЃС–Р№, РїСЂРѕРїСѓС‰РµРЅРѕ ${skipped}.`)
     } else {
       toast.success(BOOKING_SUCCESS_MESSAGES.recurringSeriesCreated)
     }
@@ -1447,11 +1451,11 @@ async function saveMeetingLink() {
       meeting_url: normalized || null,
     })
     await loadSession()
-    toast.success('Посилання на зустріч оновлено.')
+    toast.success('РџРѕСЃРёР»Р°РЅРЅСЏ РЅР° Р·СѓСЃС‚СЂС–С‡ РѕРЅРѕРІР»РµРЅРѕ.')
     isEditingMeetingLink.value = false
     meetingLinkDraft.value = ''
   } catch (err: any) {
-    error.value = getBookingErrorMessage(err, 'Не вдалося оновити посилання на зустріч.')
+    error.value = getBookingErrorMessage(err, 'РќРµ РІРґР°Р»РѕСЃСЏ РѕРЅРѕРІРёС‚Рё РїРѕСЃРёР»Р°РЅРЅСЏ РЅР° Р·СѓСЃС‚СЂС–С‡.')
   } finally {
     actionLoading.value = false
   }
@@ -1462,16 +1466,22 @@ async function addSessionToPracticeBoard() {
   quickAddPending.value = true
   error.value = ''
   try {
+    const boards = await fetchPracticeBoards()
+    const boardId = resolveDefaultPracticeBoardId(boards)
+    if (!boardId) {
+      throw new Error('BOARD_NOT_FOUND')
+    }
     await createPracticeBoardItem({
-      title: 'Повернутись до сесії',
+      board_id: boardId,
+      title: 'РџРѕРІРµСЂРЅСѓС‚РёСЃСЊ РґРѕ СЃРµСЃС–С—',
       related_client_id: session.value.client || null,
       related_session_id: session.value.id,
       source_type: 'session',
       source_id: session.value.id,
     })
-    toast.success('Задачу додано на дошку')
+    toast.success('Р—Р°РґР°С‡Сѓ РґРѕРґР°РЅРѕ РЅР° РґРѕС€РєСѓ')
   } catch (err: any) {
-    error.value = getBookingErrorMessage(err, 'Не вдалося додати задачу на дошку.')
+    error.value = getBookingErrorMessage(err, 'РќРµ РІРґР°Р»РѕСЃСЏ РґРѕРґР°С‚Рё Р·Р°РґР°С‡Сѓ РЅР° РґРѕС€РєСѓ.')
   } finally {
     quickAddPending.value = false
   }
@@ -1884,5 +1894,6 @@ watch(
   }
 }
 </style>
+
 
 
