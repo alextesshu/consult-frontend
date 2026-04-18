@@ -92,6 +92,37 @@ describe('SpecialistPracticeBoardView', () => {
     expect(mockedFetchPracticeBoardItems).toHaveBeenCalledWith('1')
   })
 
+  it('uses first board when default is not marked', async () => {
+    mockedFetchPracticeBoards.mockResolvedValue([
+      { id: 11, title: 'Перша дошка', is_default: false },
+      { id: 22, title: 'Друга дошка', is_default: false },
+    ] as any)
+    mockedFetchPracticeBoardItems.mockResolvedValue(buildColumns())
+
+    render(SpecialistPracticeBoardView)
+    await screen.findByText('Todo task')
+
+    expect(mockedFetchPracticeBoardItems).toHaveBeenCalledWith('11')
+  })
+
+  it('shows empty-board bootstrap state and no item create form when boards are missing', async () => {
+    mockedFetchPracticeBoards.mockResolvedValue([])
+    mockedFetchPracticeBoardItems.mockResolvedValue(buildColumns())
+
+    render(SpecialistPracticeBoardView)
+
+    expect(await screen.findByText('Поки що немає дошок')).toBeInTheDocument()
+    expect(mockedFetchPracticeBoardItems).not.toHaveBeenCalled()
+    expect(
+      screen.getByText('Створіть першу дошку, щоб додавати задачі та організовувати роботу.')
+    ).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { level: 2, name: 'Нова задача' })).not.toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: 'Створити дошку' }).length).toBeGreaterThan(0)
+
+    await fireEvent.click(screen.getAllByRole('button', { name: 'Створити дошку' })[0]!)
+    expect(screen.getByLabelText('Назва дошки')).toBeInTheDocument()
+  })
+
   it('switches board and refetches board-scoped items', async () => {
     mockedFetchPracticeBoards.mockResolvedValue(buildBoards() as any)
     mockedFetchPracticeBoardItems

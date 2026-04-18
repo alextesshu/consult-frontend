@@ -8,8 +8,8 @@
           Місце для ваших робочих задач, нагадувань і важливих кроків у роботі з клієнтами.
         </p>
       </div>
-      <button class="btn" type="button" @click="toggleCreateForm">
-        {{ showCreateForm ? 'Скасувати' : 'Створити задачу' }}
+      <button class="btn" type="button" @click="handlePrimaryAction">
+        {{ primaryActionLabel }}
       </button>
     </header>
 
@@ -42,22 +42,6 @@
         </button>
       </div>
 
-      <form v-if="showCreateBoardForm" class="practice-board__board-form" @submit.prevent="submitCreateBoard">
-        <label class="field">
-          <span>Назва дошки</span>
-          <input v-model.trim="createBoardTitle" class="input" type="text" maxlength="120" />
-        </label>
-        <div v-if="boardFormError" class="form-error">{{ boardFormError }}</div>
-        <div class="practice-board__create-actions">
-          <button class="btn btn--sm" type="submit" :disabled="createBoardPending">
-            {{ createBoardPending ? 'Зберігаємо…' : 'Зберегти' }}
-          </button>
-          <button class="btn btn--ghost btn--sm" type="button" :disabled="createBoardPending" @click="toggleCreateBoardForm">
-            Скасувати
-          </button>
-        </div>
-      </form>
-
       <form v-if="showRenameBoardForm && currentBoard" class="practice-board__board-form" @submit.prevent="submitRenameBoard">
         <label class="field">
           <span>Нова назва дошки</span>
@@ -75,7 +59,23 @@
       </form>
     </section>
 
-    <form v-if="showCreateForm" class="panel practice-board__create" @submit.prevent="submitCreate">
+    <form v-if="showCreateBoardForm" class="panel practice-board__board-form" @submit.prevent="submitCreateBoard">
+      <label class="field">
+        <span>Назва дошки</span>
+        <input v-model.trim="createBoardTitle" class="input" type="text" maxlength="120" />
+      </label>
+      <div v-if="boardFormError" class="form-error">{{ boardFormError }}</div>
+      <div class="practice-board__create-actions">
+        <button class="btn btn--sm" type="submit" :disabled="createBoardPending">
+          {{ createBoardPending ? 'Зберігаємо…' : 'Зберегти' }}
+        </button>
+        <button class="btn btn--ghost btn--sm" type="button" :disabled="createBoardPending" @click="toggleCreateBoardForm">
+          Скасувати
+        </button>
+      </div>
+    </form>
+
+    <form v-if="showCreateForm && hasCurrentBoard" class="panel practice-board__create" @submit.prevent="submitCreate">
       <div class="panel__header">
         <h2 class="panel__title">Нова задача</h2>
       </div>
@@ -109,6 +109,16 @@
     <div v-if="moveError" class="form-error">{{ moveError }}</div>
 
     <LoadingSkeleton v-if="loading" variant="card" :count="6" height="140px" />
+
+    <EmptyState
+      v-else-if="showEmptyBoardState"
+      title="Поки що немає дошок"
+      description="Створіть першу дошку, щоб додавати задачі та організовувати роботу."
+    >
+      <template #actions>
+        <button class="btn" type="button" @click="toggleCreateBoardForm">Створити дошку</button>
+      </template>
+    </EmptyState>
 
     <EmptyState
       v-else-if="hasNoItems"
@@ -322,6 +332,12 @@ const toast = useToast()
 
 const currentBoard = computed(() => boards.value.find((board) => String(board.id) === currentBoardId.value) || null)
 const currentBoardDisplayTitle = computed(() => displayBoardTitle(currentBoard.value?.title))
+const hasCurrentBoard = computed(() => Boolean(currentBoardId.value && currentBoard.value))
+const showEmptyBoardState = computed(() => !hasCurrentBoard.value)
+const primaryActionLabel = computed(() => {
+  if (hasCurrentBoard.value) return showCreateForm.value ? 'Скасувати' : 'Створити задачу'
+  return showCreateBoardForm.value ? 'Скасувати' : 'Створити дошку'
+})
 const hasNoItems = computed(
   () => boardColumns.value.todo.length === 0 && boardColumns.value.in_progress.length === 0 && boardColumns.value.done.length === 0
 )
@@ -453,8 +469,17 @@ async function confirmArchive(itemId: number | string) {
 }
 
 function toggleCreateForm() {
+  if (!hasCurrentBoard.value) return
   showCreateForm.value = !showCreateForm.value
   createError.value = ''
+}
+
+function handlePrimaryAction() {
+  if (hasCurrentBoard.value) {
+    toggleCreateForm()
+    return
+  }
+  toggleCreateBoardForm()
 }
 
 function cancelCreate() {
@@ -467,6 +492,7 @@ function toggleCreateBoardForm() {
   showCreateBoardForm.value = !showCreateBoardForm.value
   if (showCreateBoardForm.value) {
     showRenameBoardForm.value = false
+    showCreateForm.value = false
     createBoardTitle.value = 'Нова дошка'
   } else {
     createBoardTitle.value = ''
@@ -489,12 +515,19 @@ function toggleRenameBoardForm() {
 function resolveCurrentBoardId(nextBoards: PracticeBoard[]) {
   if (!nextBoards.length) {
     currentBoardId.value = null
+    showCreateForm.value = false
     return
   }
   const hasCurrent = currentBoardId.value && nextBoards.some((board) => String(board.id) === currentBoardId.value)
   if (hasCurrent) return
   const resolved = resolveDefaultPracticeBoardId(nextBoards)
-  currentBoardId.value = resolved !== null ? String(resolved) : null
+  if (resolved !== null && resolved !== undefined) {
+    currentBoardId.value = String(resolved)
+    return
+  }
+  const firstBoardId = nextBoards[0]?.id
+  currentBoardId.value = firstBoardId !== null && firstBoardId !== undefined ? String(firstBoardId) : null
+  if (!currentBoardId.value) showCreateForm.value = false
 }
 
 async function loadBoards() {
