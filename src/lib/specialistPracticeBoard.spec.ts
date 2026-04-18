@@ -93,6 +93,91 @@ describe('specialistPracticeBoard', () => {
     expect(columns.done).toHaveLength(1)
   })
 
+  it('normalizes paginated results response into three columns', () => {
+    const columns = normalizePracticeBoardColumns({
+      count: 2,
+      next: null,
+      previous: null,
+      results: [
+        {
+          id: 101,
+          title: 'Paginated todo',
+          description: null,
+          status: 'todo',
+          created_at: '2026-04-18T10:00:00Z',
+          updated_at: '2026-04-18T11:00:00Z',
+        },
+        {
+          id: 102,
+          title: 'Paginated in progress',
+          description: null,
+          status: 'in_progress',
+          created_at: '2026-04-18T10:00:00Z',
+          updated_at: '2026-04-18T10:30:00Z',
+        },
+      ],
+    })
+
+    expect(columns.todo).toHaveLength(1)
+    expect(columns.in_progress).toHaveLength(1)
+    expect(columns.done).toHaveLength(0)
+    expect(columns.todo[0]?.title).toBe('Paginated todo')
+    expect(columns.in_progress[0]?.title).toBe('Paginated in progress')
+  })
+
+  it('keeps items when paginated results use DRF created/updated field names', () => {
+    const columns = normalizePracticeBoardColumns({
+      count: 1,
+      next: null,
+      previous: null,
+      results: [
+        {
+          id: 201,
+          title: 'Runtime item',
+          description: 'Runtime description',
+          status: 'TODO',
+          created: '2026-04-18T12:00:00Z',
+          updated: '2026-04-18T12:30:00Z',
+          related_client_id: '44',
+          related_session_id: '99',
+        },
+      ],
+    })
+
+    expect(columns.todo).toHaveLength(1)
+    expect(columns.todo[0]?.title).toBe('Runtime item')
+    expect(columns.todo[0]?.related_client_id).toBe(44)
+    expect(columns.todo[0]?.related_session_id).toBe(99)
+  })
+
+  it('normalizes backend canonical columns payload with nested items arrays', () => {
+    const columns = normalizePracticeBoardColumns({
+      board: { specialist_id: 77 },
+      columns: {
+        todo: {
+          label: 'Потребує уваги',
+          items: [
+            {
+              id: 301,
+              title: 'Backend nested item',
+              description: null,
+              status: 'todo',
+              created_at: '2026-04-18T10:00:00Z',
+              updated_at: '2026-04-18T10:05:00Z',
+            },
+          ],
+        },
+        in_progress: { label: 'У роботі', items: [] },
+        done: { label: 'Завершено', items: [] },
+      },
+    })
+
+    expect(columns.todo).toHaveLength(1)
+    expect(columns.in_progress).toHaveLength(0)
+    expect(columns.done).toHaveLength(0)
+    expect(columns.todo[0]?.title).toBe('Backend nested item')
+  })
+
   it('fetches board items from canonical endpoint', async () => {
     mockedApiGet.mockResolvedValue({
       items: [

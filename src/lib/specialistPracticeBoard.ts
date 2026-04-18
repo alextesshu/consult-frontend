@@ -12,6 +12,8 @@ import {
 
 type PracticeBoardFlatResponse = {
   items?: unknown
+  results?: unknown
+  columns?: unknown
 }
 
 type PracticeBoardGroupedResponse = Partial<Record<PracticeBoardStatus, unknown>>
@@ -30,14 +32,40 @@ function isPracticeBoardStatus(value: unknown): value is PracticeBoardStatus {
   return value === 'todo' || value === 'in_progress' || value === 'done'
 }
 
+function normalizeStatus(value: unknown): PracticeBoardStatus | null {
+  if (typeof value !== 'string') return null
+  const normalized = value.trim().toLowerCase()
+  return isPracticeBoardStatus(normalized) ? normalized : null
+}
+
+function readString(source: Record<string, unknown>, key: string): string {
+  const value = source[key]
+  return typeof value === 'string' ? value.trim() : ''
+}
+
+function readDateString(source: Record<string, unknown>, keys: string[]): string {
+  for (const key of keys) {
+    const value = readString(source, key)
+    if (value) return value
+  }
+  return ''
+}
+
+function readNumberOrNull(value: unknown): number | null {
+  if (typeof value === 'number' && Number.isFinite(value)) return value
+  if (typeof value !== 'string') return null
+  const parsed = Number(value)
+  return Number.isFinite(parsed) ? parsed : null
+}
+
 function normalizeItem(input: unknown): PracticeBoardItem | null {
   if (!input || typeof input !== 'object') return null
   const raw = input as Record<string, unknown>
-  const status = raw.status
-  const title = typeof raw.title === 'string' ? raw.title.trim() : ''
-  const updatedAt = typeof raw.updated_at === 'string' ? raw.updated_at : ''
-  const createdAt = typeof raw.created_at === 'string' ? raw.created_at : ''
-  if (!isPracticeBoardStatus(status)) return null
+  const status = normalizeStatus(raw.status)
+  const title = readString(raw, 'title')
+  const createdAt = readDateString(raw, ['created_at', 'createdAt', 'created'])
+  const updatedAt = readDateString(raw, ['updated_at', 'updatedAt', 'updated']) || createdAt
+  if (!status) return null
   if (!title) return null
   if (!updatedAt || !createdAt) return null
 
@@ -47,8 +75,8 @@ function normalizeItem(input: unknown): PracticeBoardItem | null {
     description: typeof raw.description === 'string' ? raw.description : null,
     status,
     priority: typeof raw.priority === 'string' ? raw.priority : null,
-    related_client_id: typeof raw.related_client_id === 'number' ? raw.related_client_id : null,
-    related_session_id: typeof raw.related_session_id === 'number' ? raw.related_session_id : null,
+    related_client_id: readNumberOrNull(raw.related_client_id),
+    related_session_id: readNumberOrNull(raw.related_session_id),
     source_type: (raw.source_type as PracticeBoardItem['source_type']) ?? null,
     source_id: (raw.source_id as PracticeBoardItem['source_id']) ?? null,
     created_at: createdAt,
@@ -77,6 +105,13 @@ function normalizeArray(raw: unknown): PracticeBoardItem[] {
   return items
 }
 
+function readColumnItems(rawColumn: unknown): unknown {
+  if (Array.isArray(rawColumn)) return rawColumn
+  if (!rawColumn || typeof rawColumn !== 'object') return []
+  const asObject = rawColumn as { items?: unknown }
+  return Array.isArray(asObject.items) ? asObject.items : []
+}
+
 export function normalizePracticeBoardColumns(payload: unknown): PracticeBoardColumns {
   const columns = createEmptyColumns()
 
@@ -85,15 +120,23 @@ export function normalizePracticeBoardColumns(payload: unknown): PracticeBoardCo
     flatItems.forEach((item) => columns[item.status].push(item))
   } else if (payload && typeof payload === 'object') {
     const asFlat = payload as PracticeBoardFlatResponse
+    const asColumnsWrapped = asFlat.columns as PracticeBoardGroupedResponse | undefined
     const asGrouped = payload as PracticeBoardGroupedResponse
 
     if (Array.isArray(asFlat.items)) {
       const flatItems = normalizeArray(asFlat.items)
       flatItems.forEach((item) => columns[item.status].push(item))
+    } else if (Array.isArray(asFlat.results)) {
+      const flatItems = normalizeArray(asFlat.results)
+      flatItems.forEach((item) => columns[item.status].push(item))
+    } else if (asColumnsWrapped && typeof asColumnsWrapped === 'object') {
+      columns.todo = normalizeArray(readColumnItems(asColumnsWrapped.todo))
+      columns.in_progress = normalizeArray(readColumnItems(asColumnsWrapped.in_progress))
+      columns.done = normalizeArray(readColumnItems(asColumnsWrapped.done))
     } else {
-      columns.todo = normalizeArray(asGrouped.todo)
-      columns.in_progress = normalizeArray(asGrouped.in_progress)
-      columns.done = normalizeArray(asGrouped.done)
+      columns.todo = normalizeArray(readColumnItems(asGrouped.todo))
+      columns.in_progress = normalizeArray(readColumnItems(asGrouped.in_progress))
+      columns.done = normalizeArray(readColumnItems(asGrouped.done))
     }
   }
 
