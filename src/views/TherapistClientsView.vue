@@ -197,7 +197,11 @@
                     Відкрити в окремому вікні
                   </button>
                   <button class="btn btn--ghost btn--sm" type="button" @click="toggleWorkbook(relationClientId(client))">
-                    {{ isWorkbookExpanded(relationClientId(client)) ? 'Згорнути зошит' : 'Розгорнути зошит' }}
+                    {{
+                      isWorkbookExpanded(relationClientId(client))
+                        ? 'Згорнути робочий зошит'
+                        : 'Розгорнути робочий зошит'
+                    }}
                   </button>
                 </div>
               </div>

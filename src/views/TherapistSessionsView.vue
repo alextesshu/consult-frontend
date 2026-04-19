@@ -642,7 +642,7 @@
                   :disabled="journalSaving || journalLoading || !journalClientId"
                   @click="journalClientId ? saveClientJournal(journalClientId) : null"
                 >
-                  Зберегти зошит
+                  Зберегти робочий зошит
                 </button>
                 <div v-if="journalSaveMessage" class="note-save-feedback">{{ journalSaveMessage }}</div>
               </div>
@@ -1533,7 +1533,7 @@ async function loadClientJournal(clientId: number) {
     journalInitialDraft.value = journalDraft.value
     journalSaveMessage.value = ''
   } catch (err: any) {
-    error.value = getBookingErrorMessage(err, BOOKING_ERROR_FALLBACKS.loadSessionNote)
+    error.value = getBookingErrorMessage(err, BOOKING_ERROR_FALLBACKS.loadWorkbook)
   } finally {
     journalLoading.value = false
   }
@@ -1561,9 +1561,9 @@ async function saveClientJournal(clientId: number) {
     await saveSpecialistClientJournalAction(clientId, journalDraft.value)
     journalInitialDraft.value = journalDraft.value
     journalSaveMessage.value = savedAtMessage()
-    toast.success(BOOKING_SUCCESS_MESSAGES.noteSaved)
+    toast.success(BOOKING_SUCCESS_MESSAGES.workbookSaved)
   } catch (err: any) {
-    error.value = getBookingErrorMessage(err, BOOKING_ERROR_FALLBACKS.saveSessionNote)
+    error.value = getBookingErrorMessage(err, BOOKING_ERROR_FALLBACKS.saveWorkbook)
   } finally {
     journalSaving.value = false
   }
@@ -2350,6 +2350,5 @@ onBeforeUnmount(() => {
   }
 }
 </style>
-
 
 

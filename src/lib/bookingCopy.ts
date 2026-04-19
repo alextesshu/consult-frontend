@@ -1,46 +1,49 @@
-import { getApiErrorMessage } from './errors'
+﻿import { getApiErrorMessage } from './errors'
 
 export const BOOKING_SUCCESS_MESSAGES = {
-  sessionBooked: 'Сесію заброньовано. Перевірте статус у кабінеті.',
-  sessionConfirmed: 'Сесію підтверджено.',
-  sessionCompleted: 'Сесію завершено.',
-  sessionCancelled: 'Сесію скасовано.',
-  sessionRescheduled: 'Сесію перенесено.',
-  recurringSeriesCreated: 'Серію сесій створено.',
-  rescheduleRequestSent: 'Запит на перенесення надіслано.',
-  rescheduleRequestApproved: 'Запит на перенесення погоджено.',
-  rescheduleRequestDeclined: 'Запит на перенесення відхилено.',
+  sessionBooked: 'РЎРµСЃС–СЋ Р·Р°Р±СЂРѕРЅСЊРѕРІР°РЅРѕ. РџРµСЂРµРІС–СЂС‚Рµ СЃС‚Р°С‚СѓСЃ Сѓ РєР°Р±С–РЅРµС‚С–.',
+  sessionConfirmed: 'РЎРµСЃС–СЋ РїС–РґС‚РІРµСЂРґР¶РµРЅРѕ.',
+  sessionCompleted: 'РЎРµСЃС–СЋ Р·Р°РІРµСЂС€РµРЅРѕ.',
+  sessionCancelled: 'РЎРµСЃС–СЋ СЃРєР°СЃРѕРІР°РЅРѕ.',
+  sessionRescheduled: 'РЎРµСЃС–СЋ РїРµСЂРµРЅРµСЃРµРЅРѕ.',
+  recurringSeriesCreated: 'РЎРµСЂС–СЋ СЃРµСЃС–Р№ СЃС‚РІРѕСЂРµРЅРѕ.',
+  rescheduleRequestSent: 'Р—Р°РїРёС‚ РЅР° РїРµСЂРµРЅРµСЃРµРЅРЅСЏ РЅР°РґС–СЃР»Р°РЅРѕ.',
+  rescheduleRequestApproved: 'Р—Р°РїРёС‚ РЅР° РїРµСЂРµРЅРµСЃРµРЅРЅСЏ РїРѕРіРѕРґР¶РµРЅРѕ.',
+  rescheduleRequestDeclined: 'Р—Р°РїРёС‚ РЅР° РїРµСЂРµРЅРµСЃРµРЅРЅСЏ РІС–РґС…РёР»РµРЅРѕ.',
   noteSaved: 'Нотатку збережено.',
+  workbookSaved: 'Робочий зошит збережено.',
 } as const
 
 export const BOOKING_ERROR_FALLBACKS = {
-  loadSession: 'Не вдалося завантажити сесію.',
-  loadSessions: 'Не вдалося завантажити сесії.',
-  loadGroupEvents: 'Не вдалося завантажити групові події.',
-  bookSlot: 'Не вдалося забронювати вільне вікно.',
-  confirmSession: 'Не вдалося підтвердити сесію.',
-  completeSession: 'Не вдалося завершити сесію.',
-  cancelSession: 'Не вдалося скасувати сесію.',
-  rescheduleSession: 'Не вдалося перенести сесію.',
-  createRecurringSession: 'Не вдалося створити серію сесій.',
-  sendRescheduleRequest: 'Не вдалося надіслати запит на перенесення.',
-  approveRescheduleRequest: 'Не вдалося погодити запит на перенесення.',
-  declineRescheduleRequest: 'Не вдалося відхилити запит на перенесення.',
-  loadSessionNote: 'Не вдалося завантажити нотатку.',
+  loadSession: 'РќРµ РІРґР°Р»РѕСЃСЏ Р·Р°РІР°РЅС‚Р°Р¶РёС‚Рё СЃРµСЃС–СЋ.',
+  loadSessions: 'РќРµ РІРґР°Р»РѕСЃСЏ Р·Р°РІР°РЅС‚Р°Р¶РёС‚Рё СЃРµСЃС–С—.',
+  loadGroupEvents: 'РќРµ РІРґР°Р»РѕСЃСЏ Р·Р°РІР°РЅС‚Р°Р¶РёС‚Рё РіСЂСѓРїРѕРІС– РїРѕРґС–С—.',
+  bookSlot: 'РќРµ РІРґР°Р»РѕСЃСЏ Р·Р°Р±СЂРѕРЅСЋРІР°С‚Рё РІС–Р»СЊРЅРµ РІС–РєРЅРѕ.',
+  confirmSession: 'РќРµ РІРґР°Р»РѕСЃСЏ РїС–РґС‚РІРµСЂРґРёС‚Рё СЃРµСЃС–СЋ.',
+  completeSession: 'РќРµ РІРґР°Р»РѕСЃСЏ Р·Р°РІРµСЂС€РёС‚Рё СЃРµСЃС–СЋ.',
+  cancelSession: 'РќРµ РІРґР°Р»РѕСЃСЏ СЃРєР°СЃСѓРІР°С‚Рё СЃРµСЃС–СЋ.',
+  rescheduleSession: 'РќРµ РІРґР°Р»РѕСЃСЏ РїРµСЂРµРЅРµСЃС‚Рё СЃРµСЃС–СЋ.',
+  createRecurringSession: 'РќРµ РІРґР°Р»РѕСЃСЏ СЃС‚РІРѕСЂРёС‚Рё СЃРµСЂС–СЋ СЃРµСЃС–Р№.',
+  sendRescheduleRequest: 'РќРµ РІРґР°Р»РѕСЃСЏ РЅР°РґС–СЃР»Р°С‚Рё Р·Р°РїРёС‚ РЅР° РїРµСЂРµРЅРµСЃРµРЅРЅСЏ.',
+  approveRescheduleRequest: 'РќРµ РІРґР°Р»РѕСЃСЏ РїРѕРіРѕРґРёС‚Рё Р·Р°РїРёС‚ РЅР° РїРµСЂРµРЅРµСЃРµРЅРЅСЏ.',
+  declineRescheduleRequest: 'РќРµ РІРґР°Р»РѕСЃСЏ РІС–РґС…РёР»РёС‚Рё Р·Р°РїРёС‚ РЅР° РїРµСЂРµРЅРµСЃРµРЅРЅСЏ.',
+  loadSessionNote: 'РќРµ РІРґР°Р»РѕСЃСЏ Р·Р°РІР°РЅС‚Р°Р¶РёС‚Рё РЅРѕС‚Р°С‚РєСѓ.',
   saveSessionNote: 'Не вдалося зберегти нотатку.',
+  loadWorkbook: 'Не вдалося завантажити робочий зошит.',
+  saveWorkbook: 'Не вдалося зберегти робочий зошит.',
 } as const
 
 export const BOOKING_UI_MESSAGES = {
-  onlyClientsCanBook: 'Бронювання доступне лише для клієнтів.',
-  acceptSettingBeforeBooking: 'Підтвердьте правила перед бронюванням.',
-  invalidDuration: 'Некоректна тривалість. Вкажіть 1–480 хв.',
+  onlyClientsCanBook: 'Р‘СЂРѕРЅСЋРІР°РЅРЅСЏ РґРѕСЃС‚СѓРїРЅРµ Р»РёС€Рµ РґР»СЏ РєР»С–С”РЅС‚С–РІ.',
+  acceptSettingBeforeBooking: 'РџС–РґС‚РІРµСЂРґСЊС‚Рµ РїСЂР°РІРёР»Р° РїРµСЂРµРґ Р±СЂРѕРЅСЋРІР°РЅРЅСЏРј.',
+  invalidDuration: 'РќРµРєРѕСЂРµРєС‚РЅР° С‚СЂРёРІР°Р»С–СЃС‚СЊ. Р’РєР°Р¶С–С‚СЊ 1вЂ“480 С…РІ.',
 } as const
 
 export const BOOKING_RESCHEDULE_SUGGESTION_REASON_LABELS = {
-  nearby_days: 'Найближчі дні',
-  same_time_next_days: 'Той самий час у найближчі дні',
-  same_weekday_next_week: 'Той самий день тижня наступного тижня',
-  nearest_available: 'Найближче доступне вікно',
+  nearby_days: 'РќР°Р№Р±Р»РёР¶С‡С– РґРЅС–',
+  same_time_next_days: 'РўРѕР№ СЃР°РјРёР№ С‡Р°СЃ Сѓ РЅР°Р№Р±Р»РёР¶С‡С– РґРЅС–',
+  same_weekday_next_week: 'РўРѕР№ СЃР°РјРёР№ РґРµРЅСЊ С‚РёР¶РЅСЏ РЅР°СЃС‚СѓРїРЅРѕРіРѕ С‚РёР¶РЅСЏ',
+  nearest_available: 'РќР°Р№Р±Р»РёР¶С‡Рµ РґРѕСЃС‚СѓРїРЅРµ РІС–РєРЅРѕ',
 } as const
 
 export function getSuggestionReasonLabel(reasonTag?: string | null) {
@@ -129,3 +132,4 @@ export function getBookingErrorMessage(err: unknown, fallback: string): string {
 
   return getApiErrorMessage(err, fallback)
 }
+
