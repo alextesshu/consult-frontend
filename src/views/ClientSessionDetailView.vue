@@ -209,8 +209,6 @@ import {
   apiGet,
   apiPatch,
   apiPost,
-  fetchChatThreads,
-  sendChatMessage,
   type SessionPaymentProof,
   type BookingSessionCreatePayload,
   type SessionFormat,
@@ -457,19 +455,6 @@ async function requestMeetingLinkFromSpecialist() {
   error.value = ''
   try {
     await apiPost(`/booking/sessions/${session.value.id}/meeting-link/request/`, {})
-    const dateLabel = formatDateTime(session.value.slot_start_at)
-    const message = dateLabel
-      ? `Будь ласка, надішліть посилання на онлайн-зустріч для сесії ${dateLabel}.`
-      : 'Будь ласка, надішліть посилання на онлайн-зустріч для нашої сесії.'
-    try {
-      const threads = await fetchChatThreads()
-      const thread = threads.find((item) => item.therapist_id === session.value?.specialist_id)
-      if (thread) {
-        await sendChatMessage(thread.id, message)
-      }
-    } catch {
-      // Keep chat as secondary trace; workflow request already persisted.
-    }
     meetingLinkRequestSent.value = true
     toast.success('Запит на посилання надіслано спеціалісту.')
   } catch (err: any) {
