@@ -110,6 +110,23 @@ describe('SessionPaymentProofBlock payment instructions', () => {
     expect(screen.getByText(/15\.06\.2099/)).toBeInTheDocument()
   })
 
+  it('shows requested client state when upload is already available even if backend status is NOT_REQUESTED', async () => {
+    render(SessionPaymentProofBlock, {
+      props: {
+        sessionId: 42,
+        role: 'client',
+        paymentProof: buildPaymentProof({
+          status: 'NOT_REQUESTED',
+          client_can_upload_now: true,
+        }),
+      },
+    })
+
+    expect(await screen.findByText((text) => text.includes('запросив підтвердження оплати'))).toBeInTheDocument()
+    expect(screen.queryByText((text) => text.includes('ще не запитував підтвердження оплати'))).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Надіслати підтвердження оплати/i })).toBeInTheDocument()
+  })
+
   it('renders single card instructions when iban is empty', async () => {
     render(SessionPaymentProofBlock, {
       props: {

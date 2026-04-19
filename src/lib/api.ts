@@ -237,6 +237,9 @@ export type NotificationFeedItem = {
   scheduled_for: string | null
   delivered_at: string | null
   read_at: string | null
+  target_type?: string | null
+  target_id?: number | null
+  focus?: string | null
 }
 
 export type NotificationFeedResponse = {

@@ -389,9 +389,9 @@ describe('App shell', () => {
           specialist_name: 'Олена',
           counterparty_id: 14,
           counterparty_name: 'Олена',
-          slot_start_at: '2026-03-12T19:00:00Z',
+          slot_start_at: null,
           created_at: '2026-03-12T10:00:00Z',
-          scheduled_for: null,
+          scheduled_for: '2026-03-12T19:00:00Z',
           delivered_at: null,
           read_at: null,
         }),
@@ -418,6 +418,8 @@ describe('App shell', () => {
     expect(notificationLink).not.toBeNull()
     expect(notificationLink).toHaveAttribute('href', '/client/sessions/55')
     expect(notificationLink?.textContent || '').toContain('\u041E\u043F\u043B\u0430\u0442\u0430:')
+    expect(notificationLink?.textContent || '').toContain('\u0421\u0435\u0441\u0456\u044F:')
+    expect(notificationLink?.textContent || '').not.toContain('Invalid Date')
     expect(notificationLink?.textContent || '').toContain(
       '\u043F\u0456\u0434\u0442\u0432\u0435\u0440\u0434\u0436\u0435\u043D\u043D\u044F \u043E\u043F\u043B\u0430\u0442\u0438'
     )
@@ -430,6 +432,39 @@ describe('App shell', () => {
         source_id: 91,
       })
       expect(router.currentRoute.value.fullPath).toBe('/client/sessions/55')
+    })
+  })
+
+  it('routes meeting-link request notifications via target context with meeting-link focus', async () => {
+    const { router } = await renderWithProviders({
+      initialPath: '/cabinet',
+      roles: ['SPECIALIST'],
+      notifications: [
+        buildNotification({
+          id: 'session_event:402',
+          source_id: 402,
+          code: 'SESSION_MEETING_LINK_REQUESTED',
+          session_id: 402,
+          target_type: 'session_detail',
+          target_id: 402,
+          focus: 'meeting_link',
+          client_name: 'Ірина',
+        }),
+      ],
+    })
+
+    const notificationsButton = document.querySelector('.nav__notifications .icon-btn') as HTMLButtonElement | null
+    expect(notificationsButton).not.toBeNull()
+    await fireEvent.click(notificationsButton as HTMLButtonElement)
+
+    const notificationLink = (await screen.findByText('Клієнт попросив додати посилання на зустріч.')).closest('a')
+    expect(notificationLink).not.toBeNull()
+    expect(notificationLink).toHaveAttribute('href', '/cabinet/sessions/402?focus=meeting_link')
+
+    await fireEvent.click(notificationLink as HTMLAnchorElement)
+
+    await waitFor(() => {
+      expect(router.currentRoute.value.fullPath).toBe('/cabinet/sessions/402?focus=meeting_link')
     })
   })
 

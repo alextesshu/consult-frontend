@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/vue'
+﻿import { fireEvent, render, screen, waitFor, within } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   apiGet,
@@ -20,10 +20,12 @@ const mockRoute = {
   params: {
     id: '42',
   },
+  query: {} as Record<string, unknown>,
 }
 
 const mockRouter = {
   push: vi.fn(),
+  replace: vi.fn().mockResolvedValue(undefined),
 }
 
 const mockToast = {
@@ -228,7 +230,9 @@ function renderView() {
 describe('TherapistSessionDetailView', () => {
   beforeEach(() => {
     mockRoute.params.id = '42'
+    mockRoute.query = {}
     mockRouter.push.mockReset()
+    mockRouter.replace.mockReset()
     mockedApiGet.mockReset()
     mockedApiPatch.mockReset()
     mockedApiPost.mockReset()
@@ -916,6 +920,50 @@ describe('TherapistSessionDetailView', () => {
     expect(screen.queryByRole('button', { name: 'Змінити посилання' })).not.toBeInTheDocument()
   })
 
+  it('highlights online meeting block and promotes add-link CTA for confirmed sessions without meeting link', async () => {
+    const sessionDetail = buildSession({
+      status: 'CONFIRMED',
+      session_format: 'online',
+      meeting_mode: 'ONLINE',
+      meeting_url: null,
+      meeting_provider: null,
+      join_available: false,
+    })
+    mockDetailContext(() => sessionDetail)
+
+    renderView()
+
+    const meetingCard = (await screen.findByText('Онлайн-зустріч')).closest('.meeting-card')
+    expect(meetingCard).toBeInTheDocument()
+    expect(meetingCard).toHaveClass('meeting-card--attention')
+    expect(within(meetingCard as HTMLElement).getByText('Потрібно додати посилання')).toBeInTheDocument()
+
+    const addLinkButton = within(meetingCard as HTMLElement).getByRole('button', { name: /додати посилання/i })
+    expect(addLinkButton).toHaveClass('btn--sm')
+    expect(addLinkButton).not.toHaveClass('btn--ghost')
+  })
+
+  it('focuses and highlights online meeting block when opened with focus=meeting_link', async () => {
+    const sessionDetail = buildSession({
+      status: 'CONFIRMED',
+      session_format: 'online',
+      meeting_mode: 'ONLINE',
+      meeting_url: null,
+      meeting_provider: null,
+      join_available: false,
+    })
+    mockRoute.query = { focus: 'meeting_link' }
+    mockDetailContext(() => sessionDetail)
+
+    renderView()
+
+    const meetingCard = (await screen.findByText('Онлайн-зустріч')).closest('.meeting-card')
+    expect(meetingCard).toBeInTheDocument()
+    await waitFor(() => {
+      expect(meetingCard).toHaveClass('meeting-card--focused')
+    })
+  })
+
   it('surfaces a stale confirm target error without reloading the page context', async () => {
     let sessionDetail = buildSession({ status: 'SCHEDULED' })
     mockDetailContext(() => sessionDetail)
@@ -1509,5 +1557,6 @@ describe('TherapistSessionDetailView', () => {
     expect(endpointCalls('/booking/sessions/42/')).toBe(2)
   })
 })
+
 
 

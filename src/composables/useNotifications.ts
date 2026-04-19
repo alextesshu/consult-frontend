@@ -1,4 +1,4 @@
-import { computed, ref } from 'vue'
+﻿import { computed, ref } from 'vue'
 import type { ComputedRef } from 'vue'
 import {
   fetchNotifications,
@@ -103,6 +103,7 @@ export function useNotifications({
       return `\u041E\u043F\u043B\u0430\u0442\u0430: ${counterpartyLabel} \u0437\u0430\u043F\u0440\u043E\u0441\u0438\u0432 \u043F\u0456\u0434\u0442\u0432\u0435\u0440\u0434\u0436\u0435\u043D\u043D\u044F \u043E\u043F\u043B\u0430\u0442\u0438`
     }
     if (item.code === 'SESSION_MEETING_LINK_UPDATED') return 'Посилання на онлайн-зустріч оновлено.'
+    if (item.code === 'SESSION_MEETING_LINK_REQUESTED') return 'Клієнт попросив додати посилання на зустріч.'
     if (item.code === 'PAYMENT_PROOF_SUBMITTED') {
       return isClient.value ? 'Підтвердження оплати надіслано.' : 'Надійшло підтвердження оплати від клієнта.'
     }
@@ -136,7 +137,7 @@ export function useNotifications({
 
   function notificationHint(item: NotificationFeedItem) {
     const email = item.client_email ? ` · ${item.client_email}` : ''
-    const time = formatDateTime(item.slot_start_at)
+    const time = formatDateTime(item.slot_start_at || item.scheduled_for)
     if (item.source_kind === 'inquiry_message') {
       return notificationPreview(item)
     }
@@ -170,6 +171,11 @@ export function useNotifications({
   }
 
   function notificationTarget(item: NotificationFeedItem) {
+    if (item.target_type === 'session_detail' && typeof item.target_id === 'number') {
+      const focusSuffix = item.focus ? `?focus=${encodeURIComponent(String(item.focus).trim())}` : ''
+      if (isClient.value) return `/client/sessions/${item.target_id}${focusSuffix}`
+      return `/cabinet/sessions/${item.target_id}${focusSuffix}`
+    }
     if (item.source_kind === 'inquiry_message') {
       if (isClient.value) {
         return item.specialist_id ? `/client/inquiries/${item.specialist_id}` : '/specialists'
@@ -294,3 +300,4 @@ export function useNotifications({
     reset,
   }
 }
+

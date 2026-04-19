@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <section class="session-detail">
     <header class="detail-hero">
       <div>
@@ -111,12 +111,17 @@
         </div>
         <div
           v-if="!isOfflineSession && (meetingUrl || isEditingMeetingLink || ['SCHEDULED', 'CONFIRMED'].includes(session.status))"
+          ref="meetingCardRef"
           class="meeting-card"
+          :class="{ 'meeting-card--attention': needsMeetingLinkAttention, 'meeting-card--focused': meetingLinkFocused }"
         >
           <div v-if="!isEditingMeetingLink">
             <div class="detail-label">Онлайн-зустріч</div>
             <div class="detail-value">{{ meetingProvider }}</div>
             <div class="muted detail-meta">{{ meetingSetupHint }}</div>
+            <div v-if="needsMeetingLinkAttention" class="meeting-card__attention">
+              <span class="status-pill status-pill--warn">Потрібно додати посилання</span>
+            </div>
           </div>
           <div v-else class="field" style="width: 100%">
             <label for="meeting-link-input" class="detail-label">Посилання на онлайн-зустріч</label>
@@ -146,7 +151,7 @@
               </button>
               <button
                 v-if="session && ['SCHEDULED', 'CONFIRMED'].includes(session.status)"
-                class="btn btn--ghost btn--sm"
+                :class="meetingUrl || !needsMeetingLinkAttention ? 'btn btn--ghost btn--sm' : 'btn btn--sm'"
                 type="button"
                 @click="toggleEditMeetingLink"
               >
@@ -738,6 +743,8 @@ const isEditingMeetingLink = ref(false)
 const meetingLinkDraft = ref('')
 const paymentProofActionError = ref('')
 const paymentPanelRef = ref<HTMLElement | null>(null)
+const meetingCardRef = ref<HTMLElement | null>(null)
+const meetingLinkFocused = ref(false)
 const quickAddPending = ref(false)
 const quickAddModalOpen = ref(false)
 const quickAddModalError = ref('')
@@ -772,6 +779,10 @@ const meetingSetupHint = computed(() => {
   if (meetingHint.value) return meetingHint.value
   return 'Додайте посилання на Google Meet, Zoom або іншу платформу для онлайн-зустрічі.'
 })
+
+const needsMeetingLinkAttention = computed(() =>
+  Boolean(session.value && !isOfflineSession.value && session.value.status === 'CONFIRMED' && !meetingUrl.value)
+)
 
 const postSessionClientLink = computed(() => {
   const clientId = postSessionContext.value?.clientId ?? session.value?.client ?? null
@@ -1136,6 +1147,40 @@ function focusPaymentBlock() {
   paymentPanelRef.value?.scrollIntoView({ behavior: 'smooth', block: 'center' })
 }
 
+let meetingFocusTimer: number | null = null
+
+function clearMeetingFocusTimer() {
+  if (meetingFocusTimer === null) return
+  window.clearTimeout(meetingFocusTimer)
+  meetingFocusTimer = null
+}
+
+function normalizeFocusQuery() {
+  const raw = route.query.focus
+  const value = Array.isArray(raw) ? raw[0] : raw
+  return typeof value === 'string' ? value.trim().toLowerCase() : ''
+}
+
+async function focusMeetingLinkBlockIfRequested() {
+  if (normalizeFocusQuery() !== 'meeting_link') return
+  meetingLinkFocused.value = true
+  await nextTick()
+  const card = meetingCardRef.value
+
+  if (card && typeof card.scrollIntoView === 'function') {
+    card.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }
+  clearMeetingFocusTimer()
+  meetingFocusTimer = window.setTimeout(() => {
+    meetingLinkFocused.value = false
+    meetingFocusTimer = null
+  }, 1600)
+
+  const nextQuery = { ...route.query }
+  delete nextQuery.focus
+  void router.replace({ query: nextQuery })
+}
+
 function onPaymentDetailsMissing(message: string) {
   paymentProofActionError.value = message
 }
@@ -1224,10 +1269,12 @@ async function loadPage() {
   await loadSession()
   if (!session.value) return
   await Promise.all([loadSlots(), loadRescheduleSuggestions(), loadNote(), loadRescheduleRequests()])
+  await focusMeetingLinkBlockIfRequested()
 }
 
 async function refreshSessionContext() {
   await Promise.all([loadSession(), loadSlots(), loadRescheduleSuggestions(), loadRescheduleRequests()])
+  await focusMeetingLinkBlockIfRequested()
 }
 
 async function confirmSession() {
@@ -1516,6 +1563,13 @@ watch(
   },
   { immediate: true }
 )
+
+watch(
+  () => route.query.focus,
+  async () => {
+    await focusMeetingLinkBlockIfRequested()
+  }
+)
 </script>
 
 <style scoped>
@@ -1698,6 +1752,20 @@ watch(
   border-radius: var(--radius-md);
   border: 1px solid rgba(31, 122, 76, 0.22);
   background: rgba(31, 122, 76, 0.08);
+}
+
+.meeting-card--attention {
+  border-color: rgba(217, 164, 65, 0.5);
+  background: rgba(217, 164, 65, 0.12);
+  box-shadow: inset 0 0 0 1px rgba(217, 164, 65, 0.2);
+}
+
+.meeting-card__attention {
+  margin-top: 6px;
+}
+
+.meeting-card--focused {
+  box-shadow: 0 0 0 3px rgba(8, 113, 201, 0.22);
 }
 
 .meeting-card__actions {
@@ -1916,3 +1984,5 @@ watch(
   }
 }
 </style>
+
+

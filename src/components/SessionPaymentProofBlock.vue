@@ -253,8 +253,15 @@ const clientStatusMap: Record<string, string> = {
   REQUIRES_CLARIFICATION: 'Потрібно уточнити підтвердження оплати',
 }
 
+const effectiveStatus = computed(() => {
+  if (isClient.value && proof.value.status === 'NOT_REQUESTED' && proof.value.client_can_upload_now) {
+    return 'REQUESTED'
+  }
+  return proof.value.status
+})
+
 const statusLabel = computed(() => {
-  const status = proof.value.status
+  const status = effectiveStatus.value
   return isSpecialist.value ? specialistStatusMap[status] || status : clientStatusMap[status] || status
 })
 
@@ -266,15 +273,15 @@ const helperCopy = computed(() =>
 
 const uploadButtonLabel = computed(() => {
   if (uploadLoading.value) return 'Надсилання...'
-  if (proof.value.status === 'REQUIRES_CLARIFICATION') return 'Надіслати повторно'
+  if (effectiveStatus.value === 'REQUIRES_CLARIFICATION') return 'Надіслати повторно'
   if (proof.value.image_url) return 'Замінити підтвердження'
   return 'Надіслати підтвердження оплати'
 })
 
 const statusPillClass = computed(() => {
-  if (proof.value.status === 'MARKED_PAID') return 'status-pill--ok'
-  if (proof.value.status === 'REQUIRES_CLARIFICATION') return 'status-pill--warn'
-  if (proof.value.status === 'REQUESTED') return 'status-pill--warn'
+  if (effectiveStatus.value === 'MARKED_PAID') return 'status-pill--ok'
+  if (effectiveStatus.value === 'REQUIRES_CLARIFICATION') return 'status-pill--warn'
+  if (effectiveStatus.value === 'REQUESTED') return 'status-pill--warn'
   return 'status-pill--muted'
 })
 
