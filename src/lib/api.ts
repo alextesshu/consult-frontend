@@ -1337,6 +1337,7 @@ export type ChatThread = {
     display_name: string
     photo_url?: string
   }
+  header_context?: ChatThreadHeaderContext
 }
 
 export type ChatMessage = {
@@ -1347,6 +1348,33 @@ export type ChatMessage = {
   created_at: string
   is_deleted?: boolean
   deleted_at?: string | null
+}
+
+export type ChatThreadRouteTarget = {
+  route_name?: string
+  params?: Record<string, string | number>
+}
+
+export type ChatThreadCounterpartContext = {
+  type?: string
+  id?: number
+  client_id?: number
+  display_name?: string
+  avatar_url?: string | null
+  profile_target?: ChatThreadRouteTarget | null
+  sessions_target?: ChatThreadRouteTarget | null
+}
+
+export type ChatThreadRelevantSessionContext = {
+  id: number
+  status?: string
+  starts_at?: string | null
+  label?: string | null
+}
+
+export type ChatThreadHeaderContext = {
+  counterpart?: ChatThreadCounterpartContext | null
+  relevant_session?: ChatThreadRelevantSessionContext | null
 }
 
 export type InquiryStatus =
@@ -1418,6 +1446,11 @@ export type InquiryMessage = {
 
 export async function fetchChatThreads(): Promise<ChatThread[]> {
   const resp = await http.get<ChatThread[]>('/chat/threads/')
+  return resp.data
+}
+
+export async function fetchChatThreadDetail(threadId: number): Promise<ChatThread> {
+  const resp = await http.get<ChatThread>(`/chat/threads/${threadId}/`)
   return resp.data
 }
 

@@ -5,6 +5,7 @@ import {
   archiveChatThread,
   deleteChatMessage,
   fetchChatMessages,
+  fetchChatThreadDetail,
   fetchChatThreads,
   sendChatMessage,
   unarchiveChatThread,
@@ -38,6 +39,7 @@ vi.mock('../stores/auth', () => ({
 
 vi.mock('../lib/api', () => ({
   fetchChatThreads: vi.fn(),
+  fetchChatThreadDetail: vi.fn(),
   fetchChatMessages: vi.fn(),
   sendChatMessage: vi.fn(),
   deleteChatMessage: vi.fn(),
@@ -46,6 +48,7 @@ vi.mock('../lib/api', () => ({
 }))
 
 const mockedFetchChatThreads = vi.mocked(fetchChatThreads)
+const mockedFetchChatThreadDetail = vi.mocked(fetchChatThreadDetail)
 const mockedFetchChatMessages = vi.mocked(fetchChatMessages)
 const mockedSendChatMessage = vi.mocked(sendChatMessage)
 const mockedDeleteChatMessage = vi.mocked(deleteChatMessage)
@@ -110,7 +113,7 @@ function renderView() {
       stubs: {
         RouterLink: {
           props: ['to'],
-          template: '<a><slot /></a>',
+          template: '<a href="#" :data-to="typeof to === \'string\' ? to : JSON.stringify(to)"><slot /></a>',
         },
       },
     },
@@ -120,13 +123,45 @@ function renderView() {
 describe('ChatView', () => {
   beforeEach(() => {
     mockRoute.query = {}
+    mockAuth.me.user.roles = ['CLIENT']
     mockedFetchChatThreads.mockReset()
+    mockedFetchChatThreadDetail.mockReset()
     mockedFetchChatMessages.mockReset()
     mockedSendChatMessage.mockReset()
     mockedDeleteChatMessage.mockReset()
     mockedArchiveChatThread.mockReset()
     mockedUnarchiveChatThread.mockReset()
     mockedFetchChatThreads.mockResolvedValue(buildThreads())
+    mockedFetchChatThreadDetail.mockImplementation(async (threadId) => {
+      const base = buildThreads().find((thread) => thread.id === threadId)
+      if (!base) throw new Error('not found')
+      return {
+        ...base,
+        header_context: {
+          counterpart: {
+            type: 'client',
+            id: 123,
+            client_id: 123,
+            display_name: 'Client A',
+            avatar_url: null,
+            profile_target: {
+              route_name: 'client-detail',
+              params: { clientId: 123 },
+            },
+            sessions_target: {
+              route_name: 'client-sessions',
+              params: { clientId: 123 },
+            },
+          },
+          relevant_session: {
+            id: 456,
+            status: 'scheduled',
+            starts_at: '2026-04-20T15:00:00Z',
+            label: 'Nearest upcoming session',
+          },
+        },
+      }
+    })
     mockedFetchChatMessages.mockResolvedValue(buildMessages())
     mockedDeleteChatMessage.mockResolvedValue()
     mockedArchiveChatThread.mockResolvedValue()
@@ -141,10 +176,21 @@ describe('ChatView', () => {
     await waitFor(() => {
       expect(mockedFetchChatMessages).toHaveBeenCalledWith(42, { limit: 50 })
     })
+    expect(mockedFetchChatThreadDetail).toHaveBeenCalledWith(42)
 
     const activeThread = container.querySelector('.thread-item--active')
     expect(activeThread).toBeTruthy()
     expect(activeThread?.textContent).toContain('Monkey Письменник')
+  })
+
+  it('renders canonical header context and context CTAs', async () => {
+    mockAuth.me.user.roles = ['SPECIALIST']
+    renderView()
+
+    expect(await screen.findByText('Client A')).toBeInTheDocument()
+    expect(screen.getByText(/Найближча сесія:/)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Відкрити клієнта' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Відкрити сесії' })).toBeInTheDocument()
   })
 
   it('shows delete action only for own messages', async () => {

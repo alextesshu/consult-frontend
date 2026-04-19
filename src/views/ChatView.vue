@@ -34,10 +34,16 @@
             Архів
           </button>
         </div>
-        <div v-if="threadsLoading" class="muted">Завантаження...</div>
-        <div v-else-if="visibleThreads.length === 0" class="muted">
+
+        <div v-if="threadsLoading" class="chat-state muted">Завантажуємо чати...</div>
+        <div v-else-if="threadsError" class="chat-state chat-state--error">
+          <div>{{ threadsError }}</div>
+          <button class="btn btn--ghost btn--sm" type="button" @click="loadThreads()">Спробувати знову</button>
+        </div>
+        <div v-else-if="visibleThreads.length === 0" class="chat-state muted">
           {{ threadTab === 'active' ? 'Поки що немає активних чатів.' : 'Архівних чатів поки немає.' }}
         </div>
+
         <article
           v-for="thread in visibleThreads"
           :key="thread.id"
@@ -46,7 +52,12 @@
         >
           <button type="button" class="thread-item__main" @click="selectThread(thread.id)">
             <div class="thread-item__avatar">
-              <img v-if="thread.other_user.photo_url" :src="thread.other_user.photo_url" alt="" />
+              <img
+                v-if="threadAvatarUrl(thread) && !failedThreadAvatarIds.has(thread.id)"
+                :src="threadAvatarUrl(thread) || ''"
+                alt=""
+                @error="markThreadAvatarFailed(thread.id)"
+              />
               <span v-else>{{ initials(thread.other_user.display_name) }}</span>
             </div>
             <div class="thread-item__meta">
@@ -55,7 +66,10 @@
                 {{ thread.last_message_preview || 'Ще немає повідомлень' }}
               </div>
             </div>
-            <span v-if="thread.unread_count" class="thread-item__badge">{{ thread.unread_count }}</span>
+            <div class="thread-item__side">
+              <span class="thread-item__time muted">{{ formatThreadTime(thread.last_message_at) }}</span>
+              <span v-if="thread.unread_count" class="thread-item__badge">{{ thread.unread_count }}</span>
+            </div>
           </button>
 
           <div class="thread-item__actions">
@@ -96,22 +110,58 @@
 
       <section class="card chat__messages">
         <div class="card__title">Переписка</div>
-        <div v-if="!activeThread" class="muted">Оберіть чат, щоб побачити повідомлення.</div>
+
+        <div v-if="!activeThread" class="chat-state muted">Оберіть чат, щоб побачити повідомлення.</div>
+
         <div v-else class="chat__window">
-          <form class="chat__composer" @submit.prevent="sendMessage">
-            <input
-              v-model="draft"
-              class="input"
-              type="text"
-              placeholder="Напишіть повідомлення"
-              :disabled="sending || activeThreadArchived"
-            />
-            <button class="btn" type="submit" :disabled="sending || !draft.trim() || activeThreadArchived">
-              Надіслати
-            </button>
-          </form>
-          <div v-if="activeThreadArchived" class="muted">Цей чат в архіві. Надсилання повідомлень недоступне.</div>
+          <header class="chat-thread-header">
+            <div class="chat-thread-header__identity">
+              <div class="chat-thread-header__avatar">
+                <img
+                  v-if="activeCounterpartAvatarUrl && !activeHeaderAvatarFailed"
+                  :src="activeCounterpartAvatarUrl"
+                  alt=""
+                  @error="markHeaderAvatarFailed"
+                />
+                <span v-else>{{ initials(activeCounterpartName) }}</span>
+              </div>
+              <div class="chat-thread-header__meta">
+                <div class="chat-thread-header__name">{{ activeCounterpartName }}</div>
+                <div class="chat-thread-header__secondary muted">{{ activeSecondaryLine }}</div>
+              </div>
+            </div>
+            <div class="chat-thread-header__actions">
+              <RouterLink
+                v-if="openClientTarget"
+                class="btn btn--ghost btn--sm"
+                :to="openClientTarget"
+              >
+                Відкрити клієнта
+              </RouterLink>
+              <RouterLink
+                v-if="openSessionsTarget"
+                class="btn btn--ghost btn--sm"
+                :to="openSessionsTarget"
+              >
+                Відкрити сесії
+              </RouterLink>
+            </div>
+          </header>
+
+          <div v-if="detailLoading" class="chat-state muted">Оновлюємо контекст чату...</div>
+          <div v-else-if="detailError" class="chat-state chat-state--error">
+            <div>{{ detailError }}</div>
+            <button class="btn btn--ghost btn--sm" type="button" @click="loadActiveThreadDetail">Спробувати знову</button>
+          </div>
+
           <div ref="messagesRef" class="chat__messages-list">
+            <div v-if="messagesLoading" class="chat-state muted">Завантажуємо повідомлення...</div>
+            <div v-else-if="messagesError" class="chat-state chat-state--error">
+              <div>{{ messagesError }}</div>
+              <button class="btn btn--ghost btn--sm" type="button" @click="loadMessages()">Спробувати знову</button>
+            </div>
+            <div v-else-if="orderedMessages.length === 0" class="chat-state muted">У цьому чаті ще немає повідомлень.</div>
+
             <div
               v-for="message in orderedMessages"
               :key="message.id"
@@ -135,6 +185,21 @@
               <div class="chat-message__time muted">{{ formatTime(message.created_at) }}</div>
             </div>
           </div>
+
+          <form class="chat__composer" @submit.prevent="sendMessage">
+            <input
+              v-model="draft"
+              class="input chat__composer-input"
+              type="text"
+              placeholder="Напишіть повідомлення"
+              :disabled="sending || activeThreadArchived"
+            />
+            <button class="btn chat__composer-send" type="submit" :disabled="sending || !draft.trim() || activeThreadArchived">
+              {{ sending ? 'Надсилаємо...' : 'Надіслати' }}
+            </button>
+          </form>
+          <div v-if="activeThreadArchived" class="muted">Цей чат в архіві. Надсилання повідомлень недоступне.</div>
+          <div v-if="sendError" class="chat-state chat-state--error">{{ sendError }}</div>
         </div>
       </section>
     </div>
@@ -155,6 +220,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
+import type { RouteLocationRaw } from 'vue-router'
 import ConfirmModal from '../components/ConfirmModal.vue'
 import { useAuthStore } from '../stores/auth'
 import { formatUkDateTime } from '../lib/dateTime'
@@ -162,11 +228,12 @@ import {
   archiveChatThread,
   deleteChatMessage,
   fetchChatMessages,
+  fetchChatThreadDetail,
   fetchChatThreads,
   sendChatMessage,
   unarchiveChatThread,
 } from '../lib/api'
-import type { ChatMessage, ChatThread } from '../lib/api'
+import type { ChatMessage, ChatThread, ChatThreadRouteTarget } from '../lib/api'
 
 type ThreadTab = 'active' | 'archived'
 type ConfirmRequest =
@@ -180,8 +247,15 @@ const auth = useAuthStore()
 const threads = ref<ChatThread[]>([])
 const localArchivedThreads = ref<ChatThread[]>([])
 const threadsLoading = ref(false)
+const threadsError = ref<string | null>(null)
 const activeThreadId = ref<number | null>(null)
+const activeThreadDetail = ref<ChatThread | null>(null)
+const detailLoading = ref(false)
+const detailError = ref<string | null>(null)
 const messages = ref<ChatMessage[]>([])
+const messagesLoading = ref(false)
+const messagesError = ref<string | null>(null)
+const sendError = ref<string | null>(null)
 const draft = ref('')
 const sending = ref(false)
 const pollId = ref<number | null>(null)
@@ -196,6 +270,8 @@ const confirmRequest = ref<ConfirmRequest>(null)
 const deletingMessageId = ref<number | null>(null)
 const archivingThreadId = ref<number | null>(null)
 const unarchivingThreadId = ref<number | null>(null)
+const failedThreadAvatarIds = ref<Set<number>>(new Set())
+const failedHeaderAvatarThreadId = ref<number | null>(null)
 
 const isSpecialist = computed(() => {
   const roles = auth.me?.user.roles ?? []
@@ -219,10 +295,43 @@ const allThreads = computed(() => {
 const activeThreads = computed(() => allThreads.value.filter((thread) => !isThreadArchived(thread)))
 const archivedThreads = computed(() => allThreads.value.filter((thread) => isThreadArchived(thread)))
 const visibleThreads = computed(() => (threadTab.value === 'active' ? activeThreads.value : archivedThreads.value))
-const orderedMessages = computed(() => [...messages.value].reverse())
+const orderedMessages = computed(() => messages.value)
 
 const activeThread = computed(() => allThreads.value.find((thread) => thread.id === activeThreadId.value) || null)
 const activeThreadArchived = computed(() => (activeThread.value ? isThreadArchived(activeThread.value) : false))
+
+const activeHeaderSource = computed(() => activeThreadDetail.value || activeThread.value)
+const activeCounterpart = computed(() => activeHeaderSource.value?.header_context?.counterpart || null)
+const activeCounterpartName = computed(() => (
+  activeCounterpart.value?.display_name?.trim() || activeThread.value?.other_user.display_name || 'Клієнт'
+))
+const activeCounterpartAvatarUrl = computed(() => (
+  normalizeAvatarUrl(activeCounterpart.value?.avatar_url) || normalizeAvatarUrl(activeThread.value?.other_user.photo_url) || ''
+))
+const activeHeaderAvatarFailed = computed(() => activeThreadId.value !== null && failedHeaderAvatarThreadId.value === activeThreadId.value)
+
+const activeRelevantSession = computed(() => activeHeaderSource.value?.header_context?.relevant_session || null)
+const activeSecondaryLine = computed(() => {
+  const session = activeRelevantSession.value
+  if (!session) return 'Клієнт у переписці'
+  if (session.starts_at) {
+    const formatted = formatUkDateTime(
+      session.starts_at,
+      {
+        day: '2-digit',
+        month: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+      },
+      session.starts_at
+    )
+    return `Найближча сесія: ${formatted}`
+  }
+  return 'Найближча сесія запланована'
+})
+
+const openClientTarget = computed(() => resolveHeaderTarget('profile'))
+const openSessionsTarget = computed(() => resolveHeaderTarget('sessions'))
 
 const preferredThreadId = computed(() => {
   const raw = Number(route.query.thread_id)
@@ -267,6 +376,27 @@ function initials(value: string) {
   return `${first[0]}${second[0]}`.toUpperCase()
 }
 
+function normalizeAvatarUrl(raw: unknown) {
+  const value = String(raw || '').trim()
+  if (!value) return ''
+  const normalized = value.toLowerCase()
+  if (normalized === 'null' || normalized === 'none' || normalized === 'undefined') return ''
+  return value
+}
+
+function threadAvatarUrl(thread: ChatThread) {
+  return normalizeAvatarUrl(thread.other_user.photo_url)
+}
+
+function markThreadAvatarFailed(threadId: number) {
+  if (failedThreadAvatarIds.value.has(threadId)) return
+  failedThreadAvatarIds.value = new Set([...failedThreadAvatarIds.value, threadId])
+}
+
+function markHeaderAvatarFailed() {
+  failedHeaderAvatarThreadId.value = activeThreadId.value
+}
+
 function isMine(message: ChatMessage) {
   return message.sender_id === auth.me?.user.id
 }
@@ -281,6 +411,20 @@ function canDeleteMessage(message: ChatMessage) {
 
 function isThreadArchived(thread: ChatThread) {
   return Boolean(thread.is_archived || thread.archived_at || localArchivedThreadIds.value.has(thread.id))
+}
+
+function formatThreadTime(value: string | null) {
+  if (!value) return ''
+  return formatUkDateTime(
+    value,
+    {
+      day: '2-digit',
+      month: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    },
+    value
+  )
 }
 
 function formatTime(value: string) {
@@ -352,6 +496,19 @@ function setThreadArchiveState(threadId: number, archived: boolean) {
   localArchivedThreads.value = localArchivedThreads.value.filter((thread) => thread.id !== threadId)
 }
 
+function applyThreadData(data: ChatThread[]) {
+  threads.value = data
+  if (activeThreadDetail.value) {
+    const updated = data.find((thread) => thread.id === activeThreadDetail.value?.id)
+    if (updated) {
+      activeThreadDetail.value = {
+        ...updated,
+        header_context: activeThreadDetail.value.header_context || updated.header_context,
+      }
+    }
+  }
+}
+
 async function confirmAction() {
   const request = confirmRequest.value
   if (!request) return
@@ -391,6 +548,7 @@ async function confirmAction() {
         await selectThread(next.id)
       } else {
         activeThreadId.value = null
+        activeThreadDetail.value = null
         messages.value = []
       }
     }
@@ -399,11 +557,14 @@ async function confirmAction() {
   }
 }
 
-async function loadThreads() {
-  threadsLoading.value = true
+async function loadThreads(options?: { silent?: boolean }) {
+  if (!options?.silent) {
+    threadsLoading.value = true
+    threadsError.value = null
+  }
   try {
     const data = await fetchChatThreads()
-    threads.value = data
+    applyThreadData(data)
     const selectable = data.filter((thread) => !isThreadArchived(thread))
     const preferredId = resolvePreferredThreadId(selectable)
     if (preferredId && preferredId !== activeThreadId.value) {
@@ -417,45 +578,96 @@ async function loadThreads() {
       }
     }
   } catch {
-    threads.value = []
+    if (!options?.silent) {
+      threadsError.value = 'Не вдалося завантажити список чатів.'
+      threads.value = []
+    }
   } finally {
-    threadsLoading.value = false
+    if (!options?.silent) {
+      threadsLoading.value = false
+    }
+  }
+}
+
+async function loadActiveThreadDetail() {
+  if (!activeThreadId.value) return
+  detailLoading.value = true
+  detailError.value = null
+  try {
+    const detail = await fetchChatThreadDetail(activeThreadId.value)
+    activeThreadDetail.value = detail
+  } catch {
+    detailError.value = 'Не вдалося оновити контекст цього чату.'
+  } finally {
+    detailLoading.value = false
   }
 }
 
 async function loadMessages(options?: { since?: number | null }) {
   if (!activeThreadId.value) return
-  const params = options?.since ? { since_id: options.since } : { limit: 50 }
-  const data = await fetchChatMessages(activeThreadId.value, params)
-  if (options?.since) {
+  if (!options?.since) {
+    messagesLoading.value = true
+    messagesError.value = null
+  }
+
+  const shouldStickToBottom = options?.since ? isNearBottom() : true
+
+  try {
+    const params = options?.since ? { since_id: options.since } : { limit: 50 }
+    const data = await fetchChatMessages(activeThreadId.value, params)
+    if (options?.since) {
+      if (data.length) {
+        messages.value = [...messages.value, ...data]
+      }
+    } else {
+      messages.value = data
+    }
     if (data.length) {
-      messages.value = [...messages.value, ...data]
+      const last = data[data.length - 1]
+      if (last) {
+        lastMessageId.value = last.id
+      }
     }
-  } else {
-    messages.value = data
-  }
-  if (data.length) {
-    const last = data[data.length - 1]
-    if (last) {
-      lastMessageId.value = last.id
+    await nextTick()
+    if (shouldStickToBottom && (options?.since ? data.length > 0 : true)) {
+      scrollToBottom()
+    }
+  } catch {
+    if (!options?.since) {
+      messagesError.value = 'Не вдалося завантажити повідомлення.'
+      messages.value = []
+    }
+  } finally {
+    if (!options?.since) {
+      messagesLoading.value = false
     }
   }
-  await nextTick()
-  scrollToTop()
 }
 
-function scrollToTop() {
+function isNearBottom() {
+  const el = messagesRef.value
+  if (!el) return true
+  const offset = el.scrollHeight - el.scrollTop - el.clientHeight
+  return offset < 72
+}
+
+function scrollToBottom() {
   const el = messagesRef.value
   if (!el) return
-  el.scrollTop = 0
+  el.scrollTop = el.scrollHeight
 }
 
 async function selectThread(threadId: number) {
-  if (activeThreadId.value === threadId) return
+  if (activeThreadId.value === threadId && activeThreadDetail.value?.id === threadId) return
   activeThreadId.value = threadId
+  activeThreadDetail.value = null
+  detailError.value = null
+  sendError.value = null
+  messagesError.value = null
   messages.value = []
   lastMessageId.value = null
-  await loadMessages()
+
+  await Promise.all([loadMessages(), loadActiveThreadDetail()])
   markThreadRead(threadId)
 }
 
@@ -469,6 +681,7 @@ function markThreadRead(threadId: number) {
 async function sendMessage() {
   if (!activeThreadId.value || !draft.value.trim() || activeThreadArchived.value) return
   sending.value = true
+  sendError.value = null
   try {
     const message = await sendChatMessage(activeThreadId.value, draft.value.trim())
     messages.value = [...messages.value, message]
@@ -476,7 +689,9 @@ async function sendMessage() {
     draft.value = ''
     markThreadRead(activeThreadId.value)
     await nextTick()
-    scrollToTop()
+    scrollToBottom()
+  } catch {
+    sendError.value = 'Не вдалося надіслати повідомлення. Спробуйте ще раз.'
   } finally {
     sending.value = false
   }
@@ -499,7 +714,7 @@ function stopPolling() {
 function startThreadPolling() {
   if (threadPollId.value !== null) return
   threadPollId.value = window.setInterval(async () => {
-    await loadThreads()
+    await loadThreads({ silent: true })
   }, 10000)
 }
 
@@ -507,6 +722,57 @@ function stopThreadPolling() {
   if (threadPollId.value === null) return
   window.clearInterval(threadPollId.value)
   threadPollId.value = null
+}
+
+function normalizeParams(params: Record<string, string | number> | undefined) {
+  if (!params) return {}
+  const normalized: Record<string, string | number> = {}
+  for (const [key, value] of Object.entries(params)) {
+    if (value !== null && value !== undefined && value !== '') {
+      normalized[key] = value
+    }
+  }
+  return normalized
+}
+
+function fallbackClientTarget(clientId: number | null): RouteLocationRaw | null {
+  if (!isSpecialist.value || !clientId || clientId <= 0) return null
+  return `/cabinet/clients?client=${clientId}&autoOpen=1`
+}
+
+function fallbackSessionsTarget(clientId: number | null): RouteLocationRaw | null {
+  if (!isSpecialist.value || !clientId || clientId <= 0) return null
+  return {
+    name: 'cabinet-sessions',
+    query: { client: String(clientId) },
+  }
+}
+
+function resolveKnownHeaderRoute(target: ChatThreadRouteTarget | null | undefined, fallbackClientId: number | null) {
+  if (!target?.route_name) return null
+  const params = normalizeParams(target.params)
+  const fromParams = Number(params.clientId ?? params.client_id ?? fallbackClientId ?? 0)
+
+  if (target.route_name === 'client-detail') {
+    return fallbackClientTarget(fromParams > 0 ? fromParams : fallbackClientId)
+  }
+  if (target.route_name === 'client-sessions') {
+    return fallbackSessionsTarget(fromParams > 0 ? fromParams : fallbackClientId)
+  }
+
+  return {
+    name: target.route_name,
+    params,
+  }
+}
+
+function resolveHeaderTarget(kind: 'profile' | 'sessions') {
+  const counterpart = activeCounterpart.value
+  const fallbackClientId = Number(counterpart?.client_id || activeThread.value?.client_id || 0) || null
+  const target = kind === 'profile' ? counterpart?.profile_target : counterpart?.sessions_target
+  const known = resolveKnownHeaderRoute(target, fallbackClientId)
+  if (known) return known
+  return kind === 'profile' ? fallbackClientTarget(fallbackClientId) : fallbackSessionsTarget(fallbackClientId)
 }
 
 watch(activeThreadId, () => {
@@ -549,7 +815,7 @@ onBeforeUnmount(() => {
 .chat__grid {
   display: grid;
   gap: 20px;
-  grid-template-columns: minmax(220px, 280px) 1fr;
+  grid-template-columns: minmax(290px, 360px) 1fr;
 }
 
 .chat__threads {
@@ -564,6 +830,21 @@ onBeforeUnmount(() => {
   flex-wrap: wrap;
 }
 
+.chat-state {
+  border: 1px dashed var(--line);
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.chat-state--error {
+  display: grid;
+  gap: 8px;
+  color: #8f2f2f;
+  border-style: solid;
+  border-color: rgba(177, 70, 70, 0.35);
+  background: rgba(177, 70, 70, 0.06);
+}
+
 .thread-item {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -571,7 +852,7 @@ onBeforeUnmount(() => {
   align-items: center;
   border: 1px solid var(--line);
   border-radius: 14px;
-  padding: 8px;
+  padding: 9px;
   background: #fff;
   transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
@@ -590,8 +871,9 @@ onBeforeUnmount(() => {
 }
 
 .thread-item--active {
-  border-color: rgba(31, 74, 96, 0.4);
+  border-color: rgba(31, 74, 96, 0.44);
   box-shadow: 0 10px 18px rgba(16, 33, 50, 0.12);
+  background: rgba(31, 74, 96, 0.05);
 }
 
 .thread-item:hover {
@@ -619,14 +901,32 @@ onBeforeUnmount(() => {
 .thread-item__meta {
   display: grid;
   gap: 4px;
+  min-width: 0;
 }
 
 .thread-item__name {
   font-weight: 600;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .thread-item__preview {
   font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.thread-item__side {
+  display: grid;
+  justify-items: end;
+  gap: 6px;
+}
+
+.thread-item__time {
+  font-size: 11px;
 }
 
 .thread-item__badge {
@@ -695,25 +995,87 @@ onBeforeUnmount(() => {
   gap: 12px;
 }
 
+.chat-thread-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 10px;
+}
+
+.chat-thread-header__identity {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+}
+
+.chat-thread-header__avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(7, 47, 71, 0.08);
+  display: grid;
+  place-items: center;
+  font-weight: 600;
+}
+
+.chat-thread-header__avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.chat-thread-header__meta {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.chat-thread-header__name {
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chat-thread-header__secondary {
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chat-thread-header__actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
 .chat__messages-list {
-  height: 440px;
+  height: 450px;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  padding-right: 8px;
+  gap: 10px;
+  padding: 8px 10px 8px 0;
 }
 
 .chat-message {
-  max-width: 72%;
+  max-width: 74%;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 2px;
+  gap: 4px;
 }
 
 .chat-message--me {
-  justify-self: end;
+  align-self: flex-end;
   align-items: flex-end;
 }
 
@@ -724,9 +1086,10 @@ onBeforeUnmount(() => {
 
 .chat-message__bubble {
   padding: 10px 14px;
-  border-radius: 14px;
+  border-radius: 12px;
   background: rgba(7, 47, 71, 0.08);
   color: var(--ink);
+  line-height: 1.4;
 }
 
 .message-delete-btn {
@@ -780,7 +1143,7 @@ onBeforeUnmount(() => {
 }
 
 .chat-message__time {
-  font-size: 10px;
+  font-size: 11px;
   line-height: 1.2;
 }
 
@@ -789,6 +1152,15 @@ onBeforeUnmount(() => {
   grid-template-columns: 1fr auto;
   gap: 10px;
   align-items: center;
+}
+
+.chat__composer-input {
+  min-height: 42px;
+}
+
+.chat__composer-send {
+  min-width: 124px;
+  min-height: 42px;
 }
 
 @media (max-width: 900px) {
@@ -806,6 +1178,15 @@ onBeforeUnmount(() => {
 
   .thread-item__actions {
     justify-self: end;
+  }
+
+  .chat-thread-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .chat-thread-header__actions {
+    justify-content: flex-start;
   }
 }
 </style>
