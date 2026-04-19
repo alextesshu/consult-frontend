@@ -433,6 +433,60 @@ describe('App shell', () => {
     })
   })
 
+  it('renders localized copy for new notification event codes without raw code leakage', async () => {
+    await renderWithProviders({
+      initialPath: '/client',
+      roles: ['CLIENT'],
+      notifications: [
+        buildNotification({
+          id: 'session_event:300',
+          source_id: 300,
+          code: 'SESSION_MEETING_LINK_UPDATED',
+          session_id: 300,
+        }),
+        buildNotification({
+          id: 'payment_proof_event:301',
+          kind: 'payment_proof_event',
+          source_kind: 'payment_proof_event',
+          source_id: 301,
+          code: 'PAYMENT_PROOF_SUBMITTED',
+          session_id: 301,
+        }),
+        buildNotification({
+          id: 'payment_proof_event:302',
+          kind: 'payment_proof_event',
+          source_kind: 'payment_proof_event',
+          source_id: 302,
+          code: 'PAYMENT_CONFIRMED',
+          session_id: 302,
+        }),
+        buildNotification({
+          id: 'payment_proof_event:303',
+          kind: 'payment_proof_event',
+          source_kind: 'payment_proof_event',
+          source_id: 303,
+          code: 'PAYMENT_CLARIFICATION_REQUESTED',
+          session_id: 303,
+        }),
+      ],
+    })
+
+    const notificationsButton = document.querySelector('.nav__notifications .icon-btn') as HTMLButtonElement | null
+    expect(notificationsButton).not.toBeNull()
+    await fireEvent.click(notificationsButton as HTMLButtonElement)
+
+    expect(await screen.findByText('Посилання на онлайн-зустріч оновлено.')).toBeInTheDocument()
+    expect(screen.getByText('Підтвердження оплати надіслано.')).toBeInTheDocument()
+    expect(screen.getByText('Вашу оплату підтверджено.')).toBeInTheDocument()
+    expect(screen.getByText('Потрібне уточнення щодо оплати.')).toBeInTheDocument()
+
+    const panelText = (document.querySelector('.notif-panel')?.textContent || '').toUpperCase()
+    expect(panelText).not.toContain('SESSION_MEETING_LINK_UPDATED')
+    expect(panelText).not.toContain('PAYMENT_PROOF_SUBMITTED')
+    expect(panelText).not.toContain('PAYMENT_CONFIRMED')
+    expect(panelText).not.toContain('PAYMENT_CLARIFICATION_REQUESTED')
+  })
+
   it('shows a join button for reminder notifications with an external meeting link', async () => {
     await renderWithProviders({
       initialPath: '/client',

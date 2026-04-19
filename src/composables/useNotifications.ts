@@ -61,7 +61,9 @@ export function useNotifications({
   }
 
   function isPaymentProofRequested(item: NotificationFeedItem) {
-    return item.source_kind === 'payment_proof_event' || item.code === 'PAYMENT_PROOF_REQUESTED'
+    const code = String(item.code || '').trim().toUpperCase()
+    if (code) return code === 'PAYMENT_PROOF_REQUESTED'
+    return item.source_kind === 'payment_proof_event'
   }
 
   function notificationJoinUrl(item: NotificationFeedItem) {
@@ -77,6 +79,8 @@ export function useNotifications({
     if (item.source_kind === 'inquiry_message') return 'info'
     if (item.source_kind === 'reschedule_request' || item.code === 'RESCHEDULE_REQUESTED') return 'warn'
     if (isPaymentProofRequested(item)) return 'warn'
+    if (item.code === 'PAYMENT_CLARIFICATION_REQUESTED') return 'warn'
+    if (item.code === 'PAYMENT_CONFIRMED') return 'ok'
     if (item.source_kind === 'session_event' && item.code === 'RESCHEDULED') return 'ok'
     if (item.source_kind === 'session_event' && item.code === 'CANCELLED') return 'warn'
     if (item.source_kind === 'session_event' && item.code === 'BOOKED') return 'ok'
@@ -97,6 +101,16 @@ export function useNotifications({
     }
     if (isPaymentProofRequested(item)) {
       return `\u041E\u043F\u043B\u0430\u0442\u0430: ${counterpartyLabel} \u0437\u0430\u043F\u0440\u043E\u0441\u0438\u0432 \u043F\u0456\u0434\u0442\u0432\u0435\u0440\u0434\u0436\u0435\u043D\u043D\u044F \u043E\u043F\u043B\u0430\u0442\u0438`
+    }
+    if (item.code === 'SESSION_MEETING_LINK_UPDATED') return 'Посилання на онлайн-зустріч оновлено.'
+    if (item.code === 'PAYMENT_PROOF_SUBMITTED') {
+      return isClient.value ? 'Підтвердження оплати надіслано.' : 'Надійшло підтвердження оплати від клієнта.'
+    }
+    if (item.code === 'PAYMENT_CONFIRMED') {
+      return isClient.value ? 'Вашу оплату підтверджено.' : 'Оплату підтверджено.'
+    }
+    if (item.code === 'PAYMENT_CLARIFICATION_REQUESTED') {
+      return isClient.value ? 'Потрібне уточнення щодо оплати.' : 'Запитано уточнення щодо оплати.'
     }
     if (item.source_kind === 'session_event') {
       if (item.code === 'CANCELLED') return `Бронювання: скасування сесії від ${clientLabel}`
@@ -130,6 +144,18 @@ export function useNotifications({
       return time
         ? `\u0421\u0435\u0441\u0456\u044F: ${time}. \u0412\u0456\u0434\u043A\u0440\u0438\u0439\u0442\u0435 \u0434\u0435\u0442\u0430\u043B\u0456 \u0442\u0430 \u043D\u0430\u0434\u0456\u0448\u043B\u0456\u0442\u044C \u043F\u0456\u0434\u0442\u0432\u0435\u0440\u0434\u0436\u0435\u043D\u043D\u044F \u043E\u043F\u043B\u0430\u0442\u0438.`
         : '\u0412\u0456\u0434\u043A\u0440\u0438\u0439\u0442\u0435 \u0434\u0435\u0442\u0430\u043B\u0456 \u0441\u0435\u0441\u0456\u0457 \u0442\u0430 \u043D\u0430\u0434\u0456\u0448\u043B\u0456\u0442\u044C \u043F\u0456\u0434\u0442\u0432\u0435\u0440\u0434\u0436\u0435\u043D\u043D\u044F \u043E\u043F\u043B\u0430\u0442\u0438.'
+    }
+    if (item.code === 'SESSION_MEETING_LINK_UPDATED') {
+      return time ? `Сесія: ${time}${email}` : `Перевірте оновлене посилання на зустріч${email}`
+    }
+    if (item.code === 'PAYMENT_PROOF_SUBMITTED') {
+      return time ? `Сесія: ${time}${email}` : `Перевірте деталі оплати${email}`
+    }
+    if (item.code === 'PAYMENT_CONFIRMED') {
+      return time ? `Сесія: ${time}${email}` : `Підтвердження оплати збережено${email}`
+    }
+    if (item.code === 'PAYMENT_CLARIFICATION_REQUESTED') {
+      return time ? `Сесія: ${time}${email}` : `Відкрийте деталі та уточніть інформацію про оплату${email}`
     }
     if (item.source_kind === 'reschedule_request' || item.code === 'RESCHEDULE_REQUESTED') {
       return time ? `Запитаний час: ${time}${email}` : `Перевірте деталі запиту на перенесення${email}`
@@ -268,4 +294,3 @@ export function useNotifications({
     reset,
   }
 }
-
