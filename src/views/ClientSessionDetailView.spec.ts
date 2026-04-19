@@ -500,7 +500,7 @@ describe('ClientSessionDetailView', () => {
     expect(screen.queryByRole('link', { name: 'Приєднатися' })).not.toBeInTheDocument()
   })
 
-  it('sends a chat request to specialist for adding meeting link', async () => {
+  it('calls meeting-link workflow endpoint and keeps chat as secondary trace', async () => {
     mockedApiGet.mockImplementation(async (url) => {
       if (url === '/booking/sessions/55/') {
         return makeSession('CONFIRMED', {
@@ -521,6 +521,7 @@ describe('ClientSessionDetailView', () => {
 
       throw new Error(`Unexpected apiGet call: ${url}`)
     })
+    mockedApiPost.mockResolvedValue({ ok: true } as any)
     mockedFetchChatThreads.mockResolvedValue([
       {
         id: 901,
@@ -551,6 +552,7 @@ describe('ClientSessionDetailView', () => {
     await fireEvent.click(requestButton)
 
     await waitFor(() => {
+      expect(mockedApiPost).toHaveBeenCalledWith('/booking/sessions/55/meeting-link/request/', {})
       expect(mockedFetchChatThreads).toHaveBeenCalledTimes(1)
       expect(mockedSendChatMessage).toHaveBeenCalledWith(
         901,
@@ -562,6 +564,37 @@ describe('ClientSessionDetailView', () => {
     expect(await screen.findByRole('button', { name: 'Запит надіслано' })).toBeDisabled()
   })
 
+  it('does not fail when chat thread is missing after workflow request', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/sessions/55/') {
+        return makeSession('CONFIRMED', {
+          specialist_id: 8,
+          meeting_url: null,
+          meeting_provider: null,
+          join_available: false,
+        })
+      }
+
+      if (url === '/booking/slots/') return []
+      if (url === '/booking/sessions/55/reschedule-suggestions/') return { suggestions: [] }
+
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedApiPost.mockResolvedValue({ ok: true } as any)
+    mockedFetchChatThreads.mockResolvedValue([] as any)
+
+    renderView()
+
+    const requestButton = await screen.findByRole('button', { name: 'Попросити лінк зустрічі' })
+    await fireEvent.click(requestButton)
+
+    await waitFor(() => {
+      expect(mockedApiPost).toHaveBeenCalledWith('/booking/sessions/55/meeting-link/request/', {})
+      expect(mockedFetchChatThreads).toHaveBeenCalledTimes(1)
+      expect(mockedSendChatMessage).not.toHaveBeenCalled()
+      expect(mockToast.success).toHaveBeenCalledWith('Запит на посилання надіслано спеціалісту.')
+    })
+  })
   it('explains waiting state when link exists but join is not available yet', async () => {
     mockedApiGet.mockImplementation(async (url) => {
       if (url === '/booking/sessions/55/') {
