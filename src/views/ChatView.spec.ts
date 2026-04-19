@@ -163,6 +163,13 @@ describe('ChatView', () => {
       }
     })
     mockedFetchChatMessages.mockResolvedValue(buildMessages())
+    mockedSendChatMessage.mockResolvedValue({
+      id: 103,
+      thread_id: 42,
+      sender_id: 7,
+      body: 'Чернетка',
+      created_at: '2026-03-01T10:06:00Z',
+    })
     mockedDeleteChatMessage.mockResolvedValue()
     mockedArchiveChatThread.mockResolvedValue()
     mockedUnarchiveChatThread.mockResolvedValue()
@@ -199,6 +206,21 @@ describe('ChatView', () => {
     await screen.findByText('Моє повідомлення')
     expect(screen.getByLabelText('Видалити повідомлення 101')).toBeInTheDocument()
     expect(screen.queryByLabelText('Видалити повідомлення 102')).not.toBeInTheDocument()
+  })
+
+  it('handles Enter and Shift+Enter in composer correctly', async () => {
+    renderView()
+
+    const composer = await screen.findByPlaceholderText('Напишіть повідомлення')
+    await fireEvent.update(composer, 'Чернетка')
+
+    await fireEvent.keyDown(composer, { key: 'Enter', code: 'Enter', shiftKey: true })
+    expect(mockedSendChatMessage).not.toHaveBeenCalled()
+
+    await fireEvent.keyDown(composer, { key: 'Enter', code: 'Enter' })
+    await waitFor(() => {
+      expect(mockedSendChatMessage).toHaveBeenCalledWith(42, 'Чернетка')
+    })
   })
 
   it('renders deleted message placeholder after delete success', async () => {

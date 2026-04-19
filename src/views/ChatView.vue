@@ -10,7 +10,7 @@
     </header>
 
     <div class="chat__grid">
-      <aside class="card chat__threads">
+      <aside class="card chat__threads" :class="{ 'chat__pane--hidden-mobile': activeThread }">
         <div class="card__title">Чати</div>
         <div class="chat__thread-tabs" role="tablist" aria-label="Фільтр чатів">
           <button
@@ -108,14 +108,22 @@
         </article>
       </aside>
 
-      <section class="card chat__messages">
+      <section class="card chat__messages" :class="{ 'chat__pane--hidden-mobile': !activeThread }">
         <div class="card__title">Переписка</div>
 
         <div v-if="!activeThread" class="chat-state muted">Оберіть чат, щоб побачити повідомлення.</div>
 
         <div v-else class="chat__window">
+          <button class="btn btn--ghost btn--sm chat__mobile-back" type="button" @click="backToThreads">
+            Назад до чатів
+          </button>
           <header class="chat-thread-header">
-            <div class="chat-thread-header__identity">
+            <component
+              :is="openClientTarget ? RouterLink : 'div'"
+              class="chat-thread-header__identity"
+              :to="openClientTarget || undefined"
+              :aria-label="openClientTarget ? `Перейти до клієнта ${activeCounterpartName}` : undefined"
+            >
               <div class="chat-thread-header__avatar">
                 <img
                   v-if="activeCounterpartAvatarUrl && !activeHeaderAvatarFailed"
@@ -129,21 +137,23 @@
                 <div class="chat-thread-header__name">{{ activeCounterpartName }}</div>
                 <div class="chat-thread-header__secondary muted">{{ activeSecondaryLine }}</div>
               </div>
-            </div>
+            </component>
             <div class="chat-thread-header__actions">
               <RouterLink
                 v-if="openClientTarget"
-                class="btn btn--ghost btn--sm"
+                class="btn btn--ghost btn--sm chat-thread-header__action-btn chat-thread-header__profile-btn"
                 :to="openClientTarget"
               >
                 Відкрити клієнта
               </RouterLink>
               <RouterLink
                 v-if="openSessionsTarget"
-                class="btn btn--ghost btn--sm"
+                class="btn btn--ghost btn--sm chat-thread-header__action-btn"
                 :to="openSessionsTarget"
+                aria-label="Відкрити сесії"
               >
-                Відкрити сесії
+                <span class="chat-thread-header__sessions-label--full">Відкрити сесії</span>
+                <span class="chat-thread-header__sessions-label--compact">Сесії</span>
               </RouterLink>
             </div>
           </header>
@@ -155,12 +165,15 @@
           </div>
 
           <form ref="composerRef" class="chat__composer" @submit.prevent="sendMessage">
-            <input
+            <textarea
               v-model="draft"
               class="input chat__composer-input"
-              type="text"
+              rows="1"
               placeholder="Напишіть повідомлення"
               :disabled="sending || activeThreadArchived"
+              @keydown="onComposerKeydown"
+              @compositionstart="onComposerCompositionStart"
+              @compositionend="onComposerCompositionEnd"
             />
             <button class="btn chat__composer-send" type="submit" :disabled="sending || !draft.trim() || activeThreadArchived">
               {{ sending ? 'Надсилаємо...' : 'Надіслати' }}
@@ -219,7 +232,7 @@
 
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { RouterLink, useRoute } from 'vue-router'
 import type { RouteLocationRaw } from 'vue-router'
 import ConfirmModal from '../components/ConfirmModal.vue'
 import { useAuthStore } from '../stores/auth'
@@ -273,6 +286,7 @@ const archivingThreadId = ref<number | null>(null)
 const unarchivingThreadId = ref<number | null>(null)
 const failedThreadAvatarIds = ref<Set<number>>(new Set())
 const failedHeaderAvatarThreadId = ref<number | null>(null)
+const composerIsComposing = ref(false)
 
 const isSpecialist = computed(() => {
   const roles = auth.me?.user.roles ?? []
@@ -688,6 +702,27 @@ function markThreadRead(threadId: number) {
   }
 }
 
+function backToThreads() {
+  activeThreadId.value = null
+  activeThreadDetail.value = null
+}
+
+function onComposerCompositionStart() {
+  composerIsComposing.value = true
+}
+
+function onComposerCompositionEnd() {
+  composerIsComposing.value = false
+}
+
+function onComposerKeydown(event: KeyboardEvent) {
+  if (event.key !== 'Enter') return
+  if (event.shiftKey) return
+  if (event.isComposing || composerIsComposing.value) return
+  event.preventDefault()
+  void sendMessage()
+}
+
 async function sendMessage() {
   if (!activeThreadId.value || !draft.value.trim() || activeThreadArchived.value) return
   sending.value = true
@@ -998,6 +1033,7 @@ onBeforeUnmount(() => {
 .chat__messages {
   display: grid;
   gap: 12px;
+  align-content: start;
 }
 
 .chat__window {
@@ -1021,6 +1057,8 @@ onBeforeUnmount(() => {
   grid-template-columns: 42px minmax(0, 1fr);
   align-items: center;
   gap: 10px;
+  color: inherit;
+  text-decoration: none;
 }
 
 .chat-thread-header__avatar {
@@ -1065,6 +1103,14 @@ onBeforeUnmount(() => {
   gap: 8px;
   flex-wrap: wrap;
   justify-content: flex-end;
+}
+
+.chat-thread-header__action-btn {
+  white-space: nowrap;
+}
+
+.chat-thread-header__sessions-label--compact {
+  display: none;
 }
 
 .chat__messages-list {
@@ -1166,6 +1212,11 @@ onBeforeUnmount(() => {
 
 .chat__composer-input {
   min-height: 42px;
+  max-height: 120px;
+  resize: vertical;
+  line-height: 1.4;
+  padding-top: 10px;
+  padding-bottom: 10px;
 }
 
 .chat__composer-send {
@@ -1173,9 +1224,17 @@ onBeforeUnmount(() => {
   min-height: 42px;
 }
 
+.chat__mobile-back {
+  display: none;
+}
+
 @media (max-width: 900px) {
   .chat__grid {
     grid-template-columns: 1fr;
+  }
+
+  .chat__pane--hidden-mobile {
+    display: none;
   }
 
   .chat__messages-list {
@@ -1191,12 +1250,69 @@ onBeforeUnmount(() => {
   }
 
   .chat-thread-header {
-    flex-direction: column;
-    align-items: stretch;
+    gap: 8px;
+    padding: 8px;
   }
 
   .chat-thread-header__actions {
     justify-content: flex-start;
+    gap: 6px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+
+  .chat-thread-header__action-btn {
+    height: 30px;
+    padding: 4px 10px;
+    font-size: 13px;
+    flex: 0 0 auto;
+  }
+
+  .chat-thread-header__profile-btn {
+    display: none;
+  }
+
+  .chat-thread-header__sessions-label--full {
+    display: none;
+  }
+
+  .chat-thread-header__sessions-label--compact {
+    display: inline;
+  }
+
+  .chat-thread-header__avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+  }
+
+  .chat-thread-header__identity {
+    grid-template-columns: 36px minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .chat-thread-header__name {
+    font-size: 18px;
+    line-height: 1.1;
+  }
+
+  .chat-thread-header__secondary {
+    font-size: 11px;
+  }
+
+  .chat__mobile-back {
+    display: inline-flex;
+    justify-self: start;
+  }
+
+  .chat__composer {
+    grid-template-columns: 1fr auto;
+    gap: 8px;
+  }
+
+  .chat__composer-send {
+    min-width: 104px;
   }
 }
 </style>
