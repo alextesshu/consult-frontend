@@ -151,17 +151,23 @@ describe('specialistPracticeBoard', () => {
     expect(mockedApiPatch).toHaveBeenCalledWith('/cabinet/practice-board/boards/5/', { title: 'Updated title' })
   })
 
-  it('uses canonical endpoint for create item and requires board_id payload', async () => {
+  it('uses canonical endpoint for create item with and without board_id payload', async () => {
     mockedApiPost.mockResolvedValue({} as never)
 
     await createPracticeBoardItem({
       board_id: 2,
       title: 'Create me',
     })
+    await createPracticeBoardItem({
+      title: 'Create without board',
+    })
 
     expect(mockedApiPost).toHaveBeenCalledWith('/cabinet/practice-board/items/', {
       board_id: 2,
       title: 'Create me',
+    })
+    expect(mockedApiPost).toHaveBeenCalledWith('/cabinet/practice-board/items/', {
+      title: 'Create without board',
     })
   })
 

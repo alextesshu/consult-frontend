@@ -1468,11 +1468,8 @@ async function addSessionToPracticeBoard() {
   try {
     const boards = await fetchPracticeBoards()
     const boardId = resolveDefaultPracticeBoardId(boards)
-    if (!boardId) {
-      throw new Error('BOARD_NOT_FOUND')
-    }
     await createPracticeBoardItem({
-      board_id: boardId,
+      ...(boardId ? { board_id: boardId } : {}),
       title: 'Повернутись до сесії',
       related_client_id: session.value.client || null,
       related_session_id: session.value.id,
@@ -1894,6 +1891,5 @@ watch(
   }
 }
 </style>
-
 
 

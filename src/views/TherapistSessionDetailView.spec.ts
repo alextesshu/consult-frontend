@@ -617,6 +617,32 @@ describe('TherapistSessionDetailView', () => {
       expect(mockToast.success).toHaveBeenCalledWith('Задачу додано на дошку')
     })
   })
+
+  it('creates board task from session quick-add without board_id when no board exists yet', async () => {
+    const sessionDetail = buildSession({
+      id: 42,
+      client: 77,
+      status: 'CONFIRMED',
+    })
+    mockDetailContext(() => sessionDetail)
+    mockedCreatePracticeBoardItem.mockResolvedValue({ id: 902 } as any)
+    mockedFetchPracticeBoards.mockResolvedValue([])
+
+    renderView()
+
+    await fireEvent.click(await screen.findByRole('button', { name: 'Додати на дошку' }))
+
+    await waitFor(() => {
+      expect(mockedCreatePracticeBoardItem).toHaveBeenCalledWith({
+        title: 'Повернутись до сесії',
+        related_client_id: 77,
+        related_session_id: 42,
+        source_type: 'session',
+        source_id: 42,
+      })
+      expect(mockToast.success).toHaveBeenCalledWith('Задачу додано на дошку')
+    })
+  })
   it.each(['REVIEW_PAYMENT', 'UPLOAD_PAYMENT_PROOF', 'CONFIRM_PAYMENT'] as const)(
     'routes %s workspace action by code to payment section',
     async (actionCode) => {
@@ -1462,6 +1488,5 @@ describe('TherapistSessionDetailView', () => {
     expect(endpointCalls('/booking/sessions/42/')).toBe(2)
   })
 })
-
 
 

@@ -923,11 +923,8 @@ async function addClientToPracticeBoard(clientId: number) {
   try {
     const boards = await fetchPracticeBoards()
     const boardId = resolveDefaultPracticeBoardId(boards)
-    if (!boardId) {
-      throw new Error('BOARD_NOT_FOUND')
-    }
     await createPracticeBoardItem({
-      board_id: boardId,
+      ...(boardId ? { board_id: boardId } : {}),
       title: 'Follow-up по клієнту',
       related_client_id: clientId,
       source_type: 'manual',
@@ -1262,4 +1259,3 @@ onBeforeUnmount(() => {
   }
 }
 </style>
-

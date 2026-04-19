@@ -73,6 +73,13 @@ export function getApiErrorMessage(err: unknown, fallback: string) {
     return field
   }
 
+  const codeLabel = (code: string): string => {
+    const mapped: Record<string, string> = {
+      PRACTICE_BOARD_NOT_FOUND: 'Не вдалося відкрити потрібну дошку практики. Спробуйте ще раз.',
+    }
+    return mapped[code] || code
+  }
+
   if (err && typeof err === 'object') {
     const status = (err as { response?: { status?: number } }).response?.status
     const data = (err as { response?: { data?: unknown } }).response?.data
@@ -84,6 +91,13 @@ export function getApiErrorMessage(err: unknown, fallback: string) {
     if (data && typeof data === 'object' && 'detail' in data) {
       const detail = (data as { detail?: string }).detail
       if (detail) return detailLabel(detail)
+    }
+
+    if (data && typeof data === 'object' && 'code' in data) {
+      const code = (data as { code?: unknown }).code
+      if (typeof code === 'string' && code.trim()) {
+        return codeLabel(code)
+      }
     }
 
     if (typeof data === 'string' && data.trim()) {

@@ -584,7 +584,7 @@ export type PracticeBoardEntityUpdatePayload = {
 }
 
 export type PracticeBoardCreatePayload = {
-  board_id: number | string
+  board_id?: number | string
   title: string
   description?: string | null
   related_client_id?: number | null

@@ -270,6 +270,45 @@ describe('TherapistClientsView', () => {
     })
   })
 
+  it('creates board task from client quick-add without board_id when no board exists yet', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL)
+        return [
+          {
+            id: 1,
+            client_id: 44,
+            state: 'ACTIVE',
+            last_session_at: null,
+            upcoming_count: 0,
+            client_display_name: 'Test Client',
+          },
+        ]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedCreatePracticeBoardItem.mockResolvedValue({ id: 902 } as any)
+    mockedFetchPracticeBoards.mockResolvedValue([])
+
+    const { container } = renderView()
+
+    const quickAddButton = await waitFor(() => {
+      const buttons = container.querySelectorAll('.client-card .client-actions button')
+      expect(buttons.length).toBeGreaterThanOrEqual(2)
+      return buttons[1] as HTMLButtonElement
+    })
+
+    await fireEvent.click(quickAddButton)
+
+    await waitFor(() => {
+      expect(mockedCreatePracticeBoardItem).toHaveBeenCalledWith({
+        title: expect.any(String),
+        related_client_id: 44,
+        source_type: 'manual',
+      })
+      expect(mockToast.success).toHaveBeenCalledWith(expect.any(String))
+    })
+  })
+
   it('loads private history from metadata endpoint and renders continuation actions', async () => {
     mockedApiGet.mockImplementation(async (url) => {
       if (url === CLIENTS_URL)
