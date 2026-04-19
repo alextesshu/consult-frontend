@@ -590,7 +590,7 @@ describe('TherapistSessionDetailView', () => {
     openSpy.mockRestore()
   })
 
-  it('creates board task from session quick-add button with session context', async () => {
+  it('creates board task from session quick-add modal with custom title and session context', async () => {
     const sessionDetail = buildSession({
       id: 42,
       client: 77,
@@ -602,20 +602,38 @@ describe('TherapistSessionDetailView', () => {
 
     renderView()
 
-    expect(await screen.findByText('client@example.com')).toBeInTheDocument()
-    await fireEvent.click(screen.getByRole('button', { name: 'Додати на дошку' }))
+    await fireEvent.click(await screen.findByRole('button', { name: '\u0414\u043e\u0434\u0430\u0442\u0438 \u043d\u0430 \u0434\u043e\u0448\u043a\u0443' }))
+    await fireEvent.update(screen.getByLabelText('\u041d\u0430\u0437\u0432\u0430 \u0437\u0430\u0434\u0430\u0447\u0456'), 'Custom follow-up task')
+    await fireEvent.click(screen.getByRole('button', { name: '\u0414\u043e\u0434\u0430\u0442\u0438' }))
 
     await waitFor(() => {
       expect(mockedCreatePracticeBoardItem).toHaveBeenCalledWith({
         board_id: 1,
-        title: 'Повернутись до сесії',
+        title: 'Custom follow-up task',
         related_client_id: 77,
         related_session_id: 42,
         source_type: 'session',
         source_id: 42,
       })
-      expect(mockToast.success).toHaveBeenCalledWith('Задачу додано на дошку')
+      expect(mockToast.success).toHaveBeenCalledWith('\u0417\u0430\u0434\u0430\u0447\u0443 \u0434\u043e\u0434\u0430\u043d\u043e \u043d\u0430 \u0434\u043e\u0448\u043a\u0443')
     })
+  })
+
+  it('validates empty title in session quick-add modal and does not submit', async () => {
+    const sessionDetail = buildSession({
+      id: 42,
+      client: 77,
+      status: 'CONFIRMED',
+    })
+    mockDetailContext(() => sessionDetail)
+
+    renderView()
+
+    await fireEvent.click(await screen.findByRole('button', { name: '\u0414\u043e\u0434\u0430\u0442\u0438 \u043d\u0430 \u0434\u043e\u0448\u043a\u0443' }))
+    await fireEvent.click(screen.getByRole('button', { name: '\u0414\u043e\u0434\u0430\u0442\u0438' }))
+
+    expect(await screen.findByText('\u0412\u043a\u0430\u0436\u0456\u0442\u044c \u043d\u0430\u0437\u0432\u0443 \u0437\u0430\u0434\u0430\u0447\u0456.')).toBeInTheDocument()
+    expect(mockedCreatePracticeBoardItem).not.toHaveBeenCalled()
   })
 
   it('creates board task from session quick-add without board_id when no board exists yet', async () => {
@@ -630,19 +648,22 @@ describe('TherapistSessionDetailView', () => {
 
     renderView()
 
-    await fireEvent.click(await screen.findByRole('button', { name: 'Додати на дошку' }))
+    await fireEvent.click(await screen.findByRole('button', { name: '\u0414\u043e\u0434\u0430\u0442\u0438 \u043d\u0430 \u0434\u043e\u0448\u043a\u0443' }))
+    await fireEvent.update(screen.getByLabelText('\u041d\u0430\u0437\u0432\u0430 \u0437\u0430\u0434\u0430\u0447\u0456'), 'No-board custom task')
+    await fireEvent.click(screen.getByRole('button', { name: '\u0414\u043e\u0434\u0430\u0442\u0438' }))
 
     await waitFor(() => {
       expect(mockedCreatePracticeBoardItem).toHaveBeenCalledWith({
-        title: 'Повернутись до сесії',
+        title: 'No-board custom task',
         related_client_id: 77,
         related_session_id: 42,
         source_type: 'session',
         source_id: 42,
       })
-      expect(mockToast.success).toHaveBeenCalledWith('Задачу додано на дошку')
+      expect(mockToast.success).toHaveBeenCalledWith('\u0417\u0430\u0434\u0430\u0447\u0443 \u0434\u043e\u0434\u0430\u043d\u043e \u043d\u0430 \u0434\u043e\u0448\u043a\u0443')
     })
   })
+
   it.each(['REVIEW_PAYMENT', 'UPLOAD_PAYMENT_PROOF', 'CONFIRM_PAYMENT'] as const)(
     'routes %s workspace action by code to payment section',
     async (actionCode) => {

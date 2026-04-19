@@ -68,7 +68,7 @@
               class="btn btn--ghost btn--sm"
               type="button"
               :disabled="actionLoading || quickAddPending"
-              @click="addSessionToPracticeBoard"
+              @click="openSessionPracticeBoardModal"
             >
               {{ quickAddPending ? 'Додаємо…' : 'Додати на дошку' }}
             </button>
@@ -507,6 +507,14 @@
       @confirm="submitCompletion"
       @cancel="closeCompletionModal"
     />
+    <PracticeBoardQuickAddModal
+      :open="quickAddModalOpen"
+      :pending="quickAddPending"
+      :error="quickAddModalError"
+      subtitle="Сформулюйте наступний крок по цій сесії."
+      @cancel="closeSessionPracticeBoardModal"
+      @submit="submitSessionPracticeBoardQuickAdd"
+    />
   </section>
 </template>
 
@@ -569,6 +577,7 @@ import { openClientWorkbookWindow } from '../lib/workbookWindow'
 import { useToast } from '../composables/useToast'
 import EmptyState from '../components/EmptyState.vue'
 import LoadingSkeleton from '../components/LoadingSkeleton.vue'
+import PracticeBoardQuickAddModal from '../components/PracticeBoardQuickAddModal.vue'
 import SessionCompletionModal from '../components/SessionCompletionModal.vue'
 import SessionPaymentProofBlock from '../components/SessionPaymentProofBlock.vue'
 import {
@@ -730,6 +739,8 @@ const meetingLinkDraft = ref('')
 const paymentProofActionError = ref('')
 const paymentPanelRef = ref<HTMLElement | null>(null)
 const quickAddPending = ref(false)
+const quickAddModalOpen = ref(false)
+const quickAddModalError = ref('')
 
 function normalizeSessionFormat(detail: SessionDetail | null): SessionFormat {
   if (!detail) return 'online'
@@ -1205,6 +1216,8 @@ async function loadPage() {
   recurringResult.value = null
   showReschedulePanel.value = false
   showRecurringPanel.value = false
+  quickAddModalOpen.value = false
+  quickAddModalError.value = ''
   postSessionContext.value = null
   postSessionNextSession.value = null
   closeCompletionModal(true)
@@ -1461,24 +1474,36 @@ async function saveMeetingLink() {
   }
 }
 
-async function addSessionToPracticeBoard() {
+function openSessionPracticeBoardModal() {
+  quickAddModalError.value = ''
+  quickAddModalOpen.value = true
+}
+
+function closeSessionPracticeBoardModal() {
+  if (quickAddPending.value) return
+  quickAddModalError.value = ''
+  quickAddModalOpen.value = false
+}
+
+async function submitSessionPracticeBoardQuickAdd(title: string) {
   if (!session.value || quickAddPending.value) return
   quickAddPending.value = true
-  error.value = ''
+  quickAddModalError.value = ''
   try {
     const boards = await fetchPracticeBoards()
     const boardId = resolveDefaultPracticeBoardId(boards)
     await createPracticeBoardItem({
       ...(boardId ? { board_id: boardId } : {}),
-      title: 'Повернутись до сесії',
+      title: title.trim(),
       related_client_id: session.value.client || null,
       related_session_id: session.value.id,
       source_type: 'session',
       source_id: session.value.id,
     })
+    quickAddModalOpen.value = false
     toast.success('Задачу додано на дошку')
   } catch (err: any) {
-    error.value = getBookingErrorMessage(err, 'Не вдалося додати задачу на дошку.')
+    quickAddModalError.value = getBookingErrorMessage(err, 'Не вдалося додати задачу на дошку.')
   } finally {
     quickAddPending.value = false
   }
@@ -1891,5 +1916,3 @@ watch(
   }
 }
 </style>
-
-

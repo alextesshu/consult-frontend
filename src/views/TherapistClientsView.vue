@@ -144,7 +144,7 @@
               class="btn btn--ghost btn--sm"
               type="button"
               :disabled="!relationClientId(client) || isQuickAddLoading(relationClientId(client))"
-              @click="addClientToPracticeBoard(relationClientId(client))"
+              @click="openClientPracticeBoardModal(relationClientId(client))"
             >
               {{ isQuickAddLoading(relationClientId(client)) ? 'Додаємо…' : 'Додати на дошку' }}
             </button>
@@ -254,6 +254,14 @@
         </article>
       </div>
     </section>
+    <PracticeBoardQuickAddModal
+      :open="quickAddModalOpen"
+      :pending="isQuickAddLoading(quickAddDraftClientId || 0)"
+      :error="quickAddModalError"
+      subtitle="Сформулюйте наступний крок по клієнту."
+      @cancel="closeClientPracticeBoardModal"
+      @submit="submitClientPracticeBoardQuickAdd"
+    />
   </section>
 </template>
 
@@ -262,6 +270,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { apiGet, apiPatch, fetchChatThreads, type ChatThread } from '../lib/api'
 import EmptyState from '../components/EmptyState.vue'
 import LoadingSkeleton from '../components/LoadingSkeleton.vue'
+import PracticeBoardQuickAddModal from '../components/PracticeBoardQuickAddModal.vue'
 import { formatUkDateTimeCompact } from '../lib/dateTime'
 import { getApiErrorMessage } from '../lib/errors'
 import { openClientWorkbookWindow } from '../lib/workbookWindow'
@@ -386,6 +395,9 @@ const chatClientNames = ref<Record<number, string>>({})
 const journalLoading = ref<Set<number>>(new Set())
 const journalSaving = ref<Set<number>>(new Set())
 const quickAddLoading = ref<Set<number>>(new Set())
+const quickAddModalOpen = ref(false)
+const quickAddModalError = ref('')
+const quickAddDraftClientId = ref<number | null>(null)
 const notesLoading = ref(false)
 const remindersError = ref('')
 const pendingNotes = ref<PendingNoteItem[]>([])
@@ -916,22 +928,46 @@ async function saveClientJournal(clientId: number) {
   }
 }
 
-async function addClientToPracticeBoard(clientId: number) {
+function openClientPracticeBoardModal(clientId: number) {
+  if (!clientId || isQuickAddLoading(clientId)) return
+  quickAddDraftClientId.value = clientId
+  quickAddModalError.value = ''
+  quickAddModalOpen.value = true
+}
+
+function closeClientPracticeBoardModal() {
+  if (isQuickAddLoading(quickAddDraftClientId.value || 0)) return
+  quickAddModalError.value = ''
+  quickAddModalOpen.value = false
+  quickAddDraftClientId.value = null
+}
+
+async function submitClientPracticeBoardQuickAdd(title: string) {
+  const clientId = quickAddDraftClientId.value || 0
+  await addClientToPracticeBoard(clientId, title)
+}
+
+async function addClientToPracticeBoard(clientId: number, title: string) {
   if (!clientId || isQuickAddLoading(clientId)) return
   setQuickAddLoading(clientId, true)
-  error.value = ''
+  quickAddModalError.value = ''
   try {
     const boards = await fetchPracticeBoards()
     const boardId = resolveDefaultPracticeBoardId(boards)
     await createPracticeBoardItem({
       ...(boardId ? { board_id: boardId } : {}),
-      title: 'Follow-up по клієнту',
+      title: title.trim(),
       related_client_id: clientId,
       source_type: 'manual',
     })
-    toast.success('Задачу додано на дошку')
+    quickAddModalOpen.value = false
+    quickAddDraftClientId.value = null
+    toast.success('\u0417\u0430\u0434\u0430\u0447\u0443 \u0434\u043e\u0434\u0430\u043d\u043e \u043d\u0430 \u0434\u043e\u0448\u043a\u0443')
   } catch (err: any) {
-    error.value = getApiErrorMessage(err, 'Не вдалося додати задачу на дошку.')
+    quickAddModalError.value = getApiErrorMessage(
+      err,
+      '\u041d\u0435 \u0432\u0434\u0430\u043b\u043e\u0441\u044f \u0434\u043e\u0434\u0430\u0442\u0438 \u0437\u0430\u0434\u0430\u0447\u0443 \u043d\u0430 \u0434\u043e\u0448\u043a\u0443.'
+    )
   } finally {
     setQuickAddLoading(clientId, false)
   }

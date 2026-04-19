@@ -1,4 +1,4 @@
-import { fireEvent, render, waitFor, within } from '@testing-library/vue'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { apiGet, apiPatch, fetchChatThreads } from '../lib/api'
 import TherapistClientsView from './TherapistClientsView.vue'
@@ -229,7 +229,7 @@ describe('TherapistClientsView', () => {
     })
   })
 
-  it('creates board task from client quick-add button with client context', async () => {
+  it('creates board task from client quick-add modal with custom title and client context', async () => {
     mockedApiGet.mockImplementation(async (url) => {
       if (url === CLIENTS_URL)
         return [
@@ -257,17 +257,51 @@ describe('TherapistClientsView', () => {
     })
 
     await fireEvent.click(quickAddButton)
+    await fireEvent.update(screen.getByLabelText('\u041d\u0430\u0437\u0432\u0430 \u0437\u0430\u0434\u0430\u0447\u0456'), 'Client follow-up task')
+    await fireEvent.click(screen.getByRole('button', { name: '\u0414\u043e\u0434\u0430\u0442\u0438' }))
 
     await waitFor(() => {
       expect(mockedCreatePracticeBoardItem).toHaveBeenCalledWith({
         board_id: 1,
-        title: expect.any(String),
+        title: 'Client follow-up task',
         related_client_id: 44,
         source_type: 'manual',
       })
       expect(mockedFetchPracticeBoards).toHaveBeenCalledTimes(1)
-      expect(mockToast.success).toHaveBeenCalledWith(expect.any(String))
+      expect(mockToast.success).toHaveBeenCalledWith('\u0417\u0430\u0434\u0430\u0447\u0443 \u0434\u043e\u0434\u0430\u043d\u043e \u043d\u0430 \u0434\u043e\u0448\u043a\u0443')
     })
+  })
+
+  it('validates empty title in client quick-add modal and does not submit', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL)
+        return [
+          {
+            id: 1,
+            client_id: 44,
+            state: 'ACTIVE',
+            last_session_at: null,
+            upcoming_count: 0,
+            client_display_name: 'Test Client',
+          },
+        ]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    const { container } = renderView()
+
+    const quickAddButton = await waitFor(() => {
+      const buttons = container.querySelectorAll('.client-card .client-actions button')
+      expect(buttons.length).toBeGreaterThanOrEqual(2)
+      return buttons[1] as HTMLButtonElement
+    })
+
+    await fireEvent.click(quickAddButton)
+    await fireEvent.click(screen.getByRole('button', { name: '\u0414\u043e\u0434\u0430\u0442\u0438' }))
+
+    expect(await screen.findByText('\u0412\u043a\u0430\u0436\u0456\u0442\u044c \u043d\u0430\u0437\u0432\u0443 \u0437\u0430\u0434\u0430\u0447\u0456.')).toBeInTheDocument()
+    expect(mockedCreatePracticeBoardItem).not.toHaveBeenCalled()
   })
 
   it('creates board task from client quick-add without board_id when no board exists yet', async () => {
@@ -298,14 +332,16 @@ describe('TherapistClientsView', () => {
     })
 
     await fireEvent.click(quickAddButton)
+    await fireEvent.update(screen.getByLabelText('\u041d\u0430\u0437\u0432\u0430 \u0437\u0430\u0434\u0430\u0447\u0456'), 'No-board client task')
+    await fireEvent.click(screen.getByRole('button', { name: '\u0414\u043e\u0434\u0430\u0442\u0438' }))
 
     await waitFor(() => {
       expect(mockedCreatePracticeBoardItem).toHaveBeenCalledWith({
-        title: expect.any(String),
+        title: 'No-board client task',
         related_client_id: 44,
         source_type: 'manual',
       })
-      expect(mockToast.success).toHaveBeenCalledWith(expect.any(String))
+      expect(mockToast.success).toHaveBeenCalledWith('\u0417\u0430\u0434\u0430\u0447\u0443 \u0434\u043e\u0434\u0430\u043d\u043e \u043d\u0430 \u0434\u043e\u0448\u043a\u0443')
     })
   })
 
