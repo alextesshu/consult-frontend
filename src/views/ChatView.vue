@@ -154,6 +154,21 @@
             <button class="btn btn--ghost btn--sm" type="button" @click="loadActiveThreadDetail">Спробувати знову</button>
           </div>
 
+          <form ref="composerRef" class="chat__composer" @submit.prevent="sendMessage">
+            <input
+              v-model="draft"
+              class="input chat__composer-input"
+              type="text"
+              placeholder="Напишіть повідомлення"
+              :disabled="sending || activeThreadArchived"
+            />
+            <button class="btn chat__composer-send" type="submit" :disabled="sending || !draft.trim() || activeThreadArchived">
+              {{ sending ? 'Надсилаємо...' : 'Надіслати' }}
+            </button>
+          </form>
+          <div v-if="activeThreadArchived" class="muted">Цей чат в архіві. Надсилання повідомлень недоступне.</div>
+          <div v-if="sendError" class="chat-state chat-state--error">{{ sendError }}</div>
+
           <div ref="messagesRef" class="chat__messages-list">
             <div v-if="messagesLoading" class="chat-state muted">Завантажуємо повідомлення...</div>
             <div v-else-if="messagesError" class="chat-state chat-state--error">
@@ -185,21 +200,6 @@
               <div class="chat-message__time muted">{{ formatTime(message.created_at) }}</div>
             </div>
           </div>
-
-          <form class="chat__composer" @submit.prevent="sendMessage">
-            <input
-              v-model="draft"
-              class="input chat__composer-input"
-              type="text"
-              placeholder="Напишіть повідомлення"
-              :disabled="sending || activeThreadArchived"
-            />
-            <button class="btn chat__composer-send" type="submit" :disabled="sending || !draft.trim() || activeThreadArchived">
-              {{ sending ? 'Надсилаємо...' : 'Надіслати' }}
-            </button>
-          </form>
-          <div v-if="activeThreadArchived" class="muted">Цей чат в архіві. Надсилання повідомлень недоступне.</div>
-          <div v-if="sendError" class="chat-state chat-state--error">{{ sendError }}</div>
         </div>
       </section>
     </div>
@@ -262,6 +262,7 @@ const pollId = ref<number | null>(null)
 const threadPollId = ref<number | null>(null)
 const lastMessageId = ref<number | null>(null)
 const messagesRef = ref<HTMLDivElement | null>(null)
+const composerRef = ref<HTMLFormElement | null>(null)
 const threadTab = ref<ThreadTab>('active')
 const openThreadMenuId = ref<number | null>(null)
 const localDeletedMessageIds = ref<Set<number>>(new Set())
@@ -295,7 +296,7 @@ const allThreads = computed(() => {
 const activeThreads = computed(() => allThreads.value.filter((thread) => !isThreadArchived(thread)))
 const archivedThreads = computed(() => allThreads.value.filter((thread) => isThreadArchived(thread)))
 const visibleThreads = computed(() => (threadTab.value === 'active' ? activeThreads.value : archivedThreads.value))
-const orderedMessages = computed(() => messages.value)
+const orderedMessages = computed(() => [...messages.value].reverse())
 
 const activeThread = computed(() => allThreads.value.find((thread) => thread.id === activeThreadId.value) || null)
 const activeThreadArchived = computed(() => (activeThread.value ? isThreadArchived(activeThread.value) : false))
@@ -610,7 +611,7 @@ async function loadMessages(options?: { since?: number | null }) {
     messagesError.value = null
   }
 
-  const shouldStickToBottom = options?.since ? isNearBottom() : true
+  const shouldStickToTop = options?.since ? isNearTop() : true
 
   try {
     const params = options?.since ? { since_id: options.since } : { limit: 50 }
@@ -629,8 +630,8 @@ async function loadMessages(options?: { since?: number | null }) {
       }
     }
     await nextTick()
-    if (shouldStickToBottom && (options?.since ? data.length > 0 : true)) {
-      scrollToBottom()
+    if (shouldStickToTop && (options?.since ? data.length > 0 : true)) {
+      scrollToTop()
     }
   } catch {
     if (!options?.since) {
@@ -644,17 +645,24 @@ async function loadMessages(options?: { since?: number | null }) {
   }
 }
 
-function isNearBottom() {
+function isNearTop() {
   const el = messagesRef.value
   if (!el) return true
-  const offset = el.scrollHeight - el.scrollTop - el.clientHeight
-  return offset < 72
+  return el.scrollTop < 72
 }
 
-function scrollToBottom() {
+function scrollToTop() {
   const el = messagesRef.value
   if (!el) return
-  el.scrollTop = el.scrollHeight
+  el.scrollTop = 0
+}
+
+function ensureThreadViewportPosition() {
+  scrollToTop()
+  const composerEl = composerRef.value
+  if (composerEl && typeof composerEl.scrollIntoView === 'function') {
+    composerEl.scrollIntoView({ block: 'nearest' })
+  }
 }
 
 async function selectThread(threadId: number) {
@@ -669,6 +677,8 @@ async function selectThread(threadId: number) {
 
   await Promise.all([loadMessages(), loadActiveThreadDetail()])
   markThreadRead(threadId)
+  await nextTick()
+  ensureThreadViewportPosition()
 }
 
 function markThreadRead(threadId: number) {
@@ -689,7 +699,7 @@ async function sendMessage() {
     draft.value = ''
     markThreadRead(activeThreadId.value)
     await nextTick()
-    scrollToBottom()
+    scrollToTop()
   } catch {
     sendError.value = 'Не вдалося надіслати повідомлення. Спробуйте ще раз.'
   } finally {
