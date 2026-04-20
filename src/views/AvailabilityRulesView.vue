@@ -322,7 +322,7 @@
                       class="input"
                       type="date"
                       lang="uk"
-                      placeholder="РґРґ.РјРј.СЂСЂСЂСЂ"
+                      placeholder="дд.мм.рррр"
                       required
                       @click="openPicker"
                     />

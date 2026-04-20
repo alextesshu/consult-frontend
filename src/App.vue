@@ -528,7 +528,7 @@ const supplementalNotifications = computed<BellNotification[]>(() => {
     items.push({
       id: 'hint-access-restricted',
       text: 'Обмежений режим доступу',
-      hint: 'Нові дії заблоковані.',
+      hint: 'Нові 䳿 заблоковані.',
       to: '/cabinet/billing',
       join_url: null,
       tone: 'warn',

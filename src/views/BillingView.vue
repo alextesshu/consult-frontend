@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <section class="billing">
     <header class="billing__hero">
       <div>
@@ -303,7 +303,7 @@ const accessPillClass = computed(() => {
 const accessHint = computed(() => {
   const state = me.value?.access_state
   if (state === 'GRACE') return 'Оплата потребує уваги. Доступ тимчасово збережено.'
-  if (state === 'RESTRICTED') return 'Доступ лише для читання. Нові дії заблоковані.'
+  if (state === 'RESTRICTED') return 'Доступ лише для читання. Нові 䳿 заблоковані.'
   if (state === 'SUSPENDED') return 'Доступ призупинено адміністрацією.'
   return 'Все працює у штатному режимі.'
 })

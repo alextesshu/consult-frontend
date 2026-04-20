@@ -5,7 +5,7 @@
         <div class="badge">Кабінет спеціаліста</div>
         <h1 class="title cabinet__title">Твій робочий простір</h1>
         <p class="muted cabinet__subtitle">
-          Тут зібрані доступи, активність і швидкі дії. Публічні сторінки — окремо.
+          Тут зібрані доступи, активність і швидкі 䳿. Публічні сторінки — окремо.
         </p>
       </div>
       <RouterLink v-if="liveSession" class="hero-live" :to="`/cabinet/sessions/${liveSession.id}`">
@@ -330,7 +330,7 @@
             <div class="panel__meta">Шлях спеціаліста PRO CONSULT</div>
           </div>
           <div class="onboarding-status" :class="onboardingReady ? 'onboarding-status--ready' : 'onboarding-status--pending'">
-            {{ onboardingReady ? 'Готово' : 'Потрібні дії' }}
+            {{ onboardingReady ? 'Готово' : 'Потрібні 䳿' }}
           </div>
         </div>
 
@@ -848,7 +848,7 @@ const showOverLimit = computed(() => {
 const accessHint = computed(() => {
   const state = me.value?.access_state
   if (state === 'GRACE') return 'Оплата потребує уваги. Доступ тимчасово збережено.'
-  if (state === 'RESTRICTED') return 'Доступ лише для читання. Нові дії заблоковані.'
+  if (state === 'RESTRICTED') return 'Доступ лише для читання. Нові 䳿 заблоковані.'
   if (state === 'SUSPENDED') return 'Доступ призупинено адміністрацією.'
   if (showOverLimit.value) return 'Ліміт активних клієнтів перевищено.'
   return 'Все працює у штатному режимі.'

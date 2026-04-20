@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <section class="profile">
     <header class="profile__hero">
       <div>
@@ -135,7 +135,7 @@
           <div>
             <div class="badge badge--soft">Крок 2</div>
             <h2 class="panel__title">Основні дані</h2>
-            <p class="panel__hint">Ці поля формують перше враження в каталозі та публічному профілі.</p>
+            <p class="panel__hint">ֳ поля формують перше враження в каталозі та публічному профілі.</p>
           </div>
         </div>
         <div class="form form--profile-basics" style="margin-top: 12px;">

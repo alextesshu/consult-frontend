@@ -1,14 +1,14 @@
-﻿<template>
+<template>
   <section class="sessions">
     <header class="sessions__hero">
       <div>
-        <div class="badge">РЎРµСЃС–С— СЃРїРµС†С–Р°Р»С–СЃС‚Р°</div>
-        <h1 class="title sessions__title">РљРµСЂСѓР№С‚Рµ СЃРµСЃС–СЏРјРё</h1>
+        <div class="badge">Сесії спеціаліста</div>
+        <h1 class="title sessions__title">Керуйте сесіями</h1>
         <p class="muted sessions__subtitle">
-          РЎРїРёСЃРѕРє Р·Р°РїР»Р°РЅРѕРІР°РЅРёС… С– РјРёРЅСѓР»РёС… СЃРµСЃС–Р№. Р”С–С— РґРѕСЃС‚СѓРїРЅС– РѕРґСЂР°Р·Сѓ.
+          Список запланованих і минулих сесій. Дії доступні одразу.
         </p>
       </div>
-      <RouterLink class="btn btn--ghost" to="/cabinet">РќР°Р·Р°Рґ РґРѕ РєР°Р±С–РЅРµС‚Сѓ</RouterLink>
+      <RouterLink class="btn btn--ghost" to="/cabinet">Назад до кабінету</RouterLink>
     </header>
 
     <div v-if="error" class="form-error">{{ error }}</div>
@@ -17,29 +17,29 @@
     <section v-if="postSessionContext" class="panel panel--next-step">
       <div class="panel__header">
         <div>
-          <div class="badge badge--soft">РџС–СЃР»СЏ СЃРµСЃС–С—</div>
-          <h2 class="panel__title">РћР±РµСЂС–С‚СЊ РЅР°СЃС‚СѓРїРЅРёР№ РєСЂРѕРє</h2>
+          <div class="badge badge--soft">Після сесії</div>
+          <h2 class="panel__title">Оберіть наступний крок</h2>
         </div>
         <button class="btn btn--ghost btn--sm" type="button" @click="clearPostSessionContext">
-          РЎС…РѕРІР°С‚Рё
+          Сховати
         </button>
       </div>
       <div class="next-step-rail">
         <button class="btn btn--sm" type="button" @click="openPostSessionWorkbook">
-          Р’С–РґРєСЂРёС‚Рё СЂРѕР±РѕС‡РёР№ Р·РѕС€РёС‚
+          Відкрити робочий зошит
         </button>
         <RouterLink class="btn btn--ghost btn--sm" :to="postSessionClientLink">
-          Р’С–РґРєСЂРёС‚Рё РєР»С–С”РЅС‚Р°
+          Відкрити клієнта
         </RouterLink>
         <RouterLink
           v-if="postSessionNextSession"
           class="btn btn--ghost btn--sm"
           :to="`/cabinet/sessions/${postSessionNextSession.id}`"
         >
-          РќР°СЃС‚СѓРїРЅР° СЃРµСЃС–СЏ: {{ formatDateTime(postSessionNextSession.slot_start_at) }}
+          Наступна сесія: {{ formatDateTime(postSessionNextSession.slot_start_at) }}
         </RouterLink>
         <button class="btn btn--ghost btn--sm" type="button" @click="returnToSessionList">
-          РџРѕРІРµСЂРЅСѓС‚РёСЃСЊ РґРѕ СЃРїРёСЃРєСѓ
+          Повернутись до списку
         </button>
       </div>
     </section>
@@ -47,17 +47,17 @@
     <section class="panel panel--priority">
       <div class="panel__header">
         <div>
-          <div class="badge badge--soft">РџСЂС–РѕСЂРёС‚РµС‚</div>
-          <h2 class="panel__title">РњР°Р№Р±СѓС‚РЅС– СЃРµСЃС–С—</h2>
+          <div class="badge badge--soft">Пріоритет</div>
+          <h2 class="panel__title">Майбутні сесії</h2>
         </div>
       </div>
       <div class="priority-grid">
         <div class="priority-card">
-          <div class="priority-title">РћС‡С–РєСѓСЋС‚СЊ РїС–РґС‚РІРµСЂРґР¶РµРЅРЅСЏ</div>
+          <div class="priority-title">Очікують підтвердження</div>
           <div class="priority-value">
             {{ needsConfirmation.length }}
           </div>
-          <div class="muted">РџС–РґС‚РІРµСЂРґСЊС‚Рµ РЅР°Р№Р±Р»РёР¶С‡С– СЃРµСЃС–С—, С‰РѕР± СѓРЅРёРєРЅСѓС‚Рё вЂњРќРµ РІС–РґР±СѓР»РѕСЃСЏвЂќ.</div>
+          <div class="muted">Підтвердьте найближчі сесії, щоб уникнути “Не відбулося”.</div>
           <div v-if="needsConfirmation.length" class="priority-list">
             <div
               v-for="session in needsConfirmation.slice(0, 3)"
@@ -76,27 +76,27 @@
                 :disabled="isActionLoading(session.id)"
                 @click="confirmSession(session.id)"
               >
-                РџС–РґС‚РІРµСЂРґРёС‚Рё
+                Підтвердити
               </button>
             </div>
           </div>
         </div>
         <div class="priority-card">
-          <div class="priority-title">{{ isPriorityLive ? 'РЎРµСЃС–СЏ С‚СЂРёРІР°С”' : 'РќР°Р№Р±Р»РёР¶С‡Р° СЃРµСЃС–СЏ' }}</div>
+          <div class="priority-title">{{ isPriorityLive ? 'Сесія триває' : 'Найближча сесія' }}</div>
           <div v-if="prioritySession" class="priority-next">
             <RouterLink class="priority-next__main" :to="`/cabinet/sessions/${prioritySession.id}`">
               <div class="priority-time">{{ formatDateTime(prioritySession.slot_start_at) }}</div>
               <div class="muted">
-                РљР»С–С”РЅС‚: {{ sessionClientLabel(prioritySession) }}
+                Клієнт: {{ sessionClientLabel(prioritySession) }}
               </div>
               <div class="muted">{{ sessionFormatBadge(prioritySession) }}</div>
               <div class="muted priority-next__context">{{ sessionContextHint(prioritySession) }}</div>
-              <div v-if="isPriorityLive" class="status-pill status-pill--danger">РЎРµСЃС–СЏ С‚СЂРёРІР°С”</div>
+              <div v-if="isPriorityLive" class="status-pill status-pill--danger">Сесія триває</div>
               <div v-else class="status-pill" :class="statusClass(prioritySession)">
                 {{ statusLabel(prioritySession) }}
               </div>
               <div v-if="timeUntilLabel(prioritySession)" class="status-pill status-pill--warn">
-                РџРѕС‡Р°С‚РѕРє С‡РµСЂРµР· {{ timeUntilLabel(prioritySession) }}
+                Початок через {{ timeUntilLabel(prioritySession) }}
               </div>
             </RouterLink>
             <div class="priority-next__actions">
@@ -107,7 +107,7 @@
                 :disabled="isActionLoading(prioritySession.id)"
                 @click="confirmSession(prioritySession.id)"
               >
-                РџС–РґС‚РІРµСЂРґРёС‚Рё
+                Підтвердити
               </button>
               <a
                 v-else-if="priorityPrimaryAction === 'join'"
@@ -116,21 +116,21 @@
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                РџСЂРёС”РґРЅР°С‚РёСЃСЏ
+                Приєднатися
               </a>
               <RouterLink v-else class="btn btn--sm" :to="`/cabinet/sessions/${prioritySession.id}`">
-                Р’С–РґРєСЂРёС‚Рё СЃРµСЃС–СЋ
+                Відкрити сесію
               </RouterLink>
               <RouterLink
                 v-if="priorityPrimaryAction !== 'details'"
                 class="btn btn--ghost btn--sm"
                 :to="`/cabinet/sessions/${prioritySession.id}`"
               >
-                Р’С–РґРєСЂРёС‚Рё СЃРµСЃС–СЋ
+                Відкрити сесію
               </RouterLink>
             </div>
           </div>
-          <div v-else class="muted">РќРµРјР°С” РјР°Р№Р±СѓС‚РЅС–С… СЃРµСЃС–Р№.</div>
+          <div v-else class="muted">Немає майбутніх сесій.</div>
         </div>
       </div>
     </section>
@@ -138,8 +138,8 @@
     <section class="panel">
       <div class="panel__header">
         <div>
-          <div class="badge badge--soft">Р¤С–Р»СЊС‚СЂРё</div>
-          <h2 class="panel__title">РџРѕС€СѓРє РїРѕС‚СЂС–Р±РЅРёС… СЃРµСЃС–Р№</h2>
+          <div class="badge badge--soft">Фільтри</div>
+          <h2 class="panel__title">Пошук потрібних сесій</h2>
         </div>
         <button
           v-if="hasActiveSessionFilters"
@@ -147,12 +147,12 @@
           type="button"
           @click="clearSessionFilters"
         >
-          РЎРєРёРЅСѓС‚Рё С„С–Р»СЊС‚СЂРё
+          Скинути фільтри
         </button>
       </div>
       <div class="session-filters">
         <label class="field session-filters__field">
-          <span class="muted">РЎС‚Р°С‚СѓСЃ</span>
+          <span class="muted">Статус</span>
           <select v-model="statusFilter" class="input input--select">
             <option
               v-for="option in sessionStatusFilterOptions"
@@ -164,7 +164,7 @@
           </select>
         </label>
         <label class="field session-filters__field session-filters__field--date" @click="openDateFilterPicker">
-          <span class="muted">Р”Р°С‚Р°</span>
+          <span class="muted">Дата</span>
           <input
             ref="dateFilterInputRef"
             v-model="dateFilter"
@@ -178,25 +178,25 @@
     <section class="panel">
       <div class="panel__header">
         <div>
-          <div class="badge badge--soft">РќР°Р№Р±Р»РёР¶С‡С–</div>
-          <h2 class="panel__title">Р—Р°РїР»Р°РЅРѕРІР°РЅС– СЃРµСЃС–С—</h2>
+          <div class="badge badge--soft">Найближчі</div>
+          <h2 class="panel__title">Заплановані сесії</h2>
         </div>
       </div>
       <div v-if="needsConfirmation.length" class="new-bookings-banner">
         <div>
-          РќРѕРІС– Р±СЂРѕРЅСЋРІР°РЅРЅСЏ: <strong>{{ needsConfirmation.length }}</strong>
+          Нові бронювання: <strong>{{ needsConfirmation.length }}</strong>
         </div>
         <button class="btn btn--ghost btn--sm" type="button" @click="needsConfirmation[0] && focusSession(needsConfirmation[0].id)">
-          РџРµСЂРµР№С‚Рё РґРѕ РїРµСЂС€РѕРіРѕ
+          Перейти до першого
         </button>
       </div>
       <EmptyState
         v-if="!loading && filteredUpcomingSessions.length === 0"
-        title="РќРµРјР°С” Р·Р°РїР»Р°РЅРѕРІР°РЅРёС… СЃРµСЃС–Р№"
-        description="РЎС‚РІРѕСЂС–С‚СЊ РІС–Р»СЊРЅС– РІС–РєРѕРЅС†СЏ Р°Р±Рѕ РїРѕРґС–Р»С–С‚СЊСЃСЏ РїСЂРѕС„С–Р»РµРј, С‰РѕР± РєР»С–С”РЅС‚Рё РјРѕРіР»Рё Р·Р°РїРёСЃР°С‚РёСЃСЏ."
-        action-text="РЎС‚РІРѕСЂРёС‚Рё РІС–РєРѕРЅС†Рµ"
+        title="Немає запланованих сесій"
+        description="Створіть вільні віконця або поділіться профілем, щоб клієнти могли записатися."
+        action-text="Створити віконце"
         action-to="/cabinet/slots"
-        secondary-text="РљРµСЂСѓРІР°РЅРЅСЏ РїСЂРѕС„С–Р»РµРј"
+        secondary-text="Керування профілем"
         secondary-to="/cabinet/profile"
       />
       <div v-else class="session-list">
@@ -213,11 +213,11 @@
               <div class="session-time">{{ formatDateTime(session.slot_start_at) }}</div>
               <div class="muted">{{ formatDuration(session.slot_start_at, session.slot_end_at) }}</div>
               <div class="muted">
-                РљР»С–С”РЅС‚: {{ sessionClientLabel(session) }}
+                Клієнт: {{ sessionClientLabel(session) }}
               </div>
               <div class="muted">{{ sessionFormatBadge(session) }}</div>
               <div class="muted session-context">{{ sessionContextHint(session) }}</div>
-              <div v-if="session.client_email" class="muted">РџРѕС€С‚Р°: {{ session.client_email }}</div>
+              <div v-if="session.client_email" class="muted">Пошта: {{ session.client_email }}</div>
               <div class="status-pill" :class="statusClass(session)">
                 {{ statusLabel(session) }}
               </div>
@@ -231,25 +231,25 @@
                 v-if="timeUntilLabel(session)"
                 class="status-pill status-pill--warn"
               >
-                РџРѕС‡Р°С‚РѕРє С‡РµСЂРµР· {{ timeUntilLabel(session) }}
+                Початок через {{ timeUntilLabel(session) }}
               </div>
               <div
                 v-if="session.status === 'SCHEDULED'"
                 class="status-pill status-pill--danger"
               >
-                РџРѕС‚СЂС–Р±РЅРµ РїС–РґС‚РІРµСЂРґР¶РµРЅРЅСЏ
+                Потрібне підтвердження
               </div>
               <div
                 v-if="session.status === 'SCHEDULED'"
                 class="status-pill status-pill--new"
               >
-                РќРѕРІР° Р·Р°СЏРІРєР°
+                Нова заявка
               </div>
               <div
                 v-if="hasPendingReschedule(session.id)"
                 class="status-pill status-pill--warn"
               >
-                Р„ Р·Р°РїРёС‚ РЅР° РїРµСЂРµРЅРѕСЃ
+                Є запит на перенос
               </div>
             </div>
             <div class="session-actions">
@@ -260,7 +260,7 @@
                 :disabled="isActionLoading(session.id)"
                 @click="confirmSession(session.id)"
               >
-                РџС–РґС‚РІРµСЂРґРёС‚Рё
+                Підтвердити
               </button>
               <a
                 v-else-if="isPrimaryAction(session, 'join')"
@@ -269,17 +269,17 @@
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                РџСЂРёС”РґРЅР°С‚РёСЃСЏ
+                Приєднатися
               </a>
               <RouterLink v-else class="btn btn--sm" :to="`/cabinet/sessions/${session.id}`">
-                Р’С–РґРєСЂРёС‚Рё СЃРµСЃС–СЋ
+                Відкрити сесію
               </RouterLink>
               <RouterLink
                 v-if="!isPrimaryAction(session, 'details')"
                 class="btn btn--ghost btn--sm"
                 :to="`/cabinet/sessions/${session.id}`"
               >
-                Р’С–РґРєСЂРёС‚Рё СЃРµСЃС–СЋ
+                Відкрити сесію
               </RouterLink>
               <button
                 v-if="session.status === 'CONFIRMED'"
@@ -288,7 +288,7 @@
                 :disabled="isActionLoading(session.id)"
                 @click="openCompletionModal(session.id)"
               >
-                Р—Р°РІРµСЂС€РёС‚Рё
+                Завершити
               </button>
               <button
                 class="btn btn--ghost btn--sm"
@@ -296,7 +296,7 @@
                 :disabled="isActionLoading(session.id) || !canCancel(session.status)"
                 @click="cancelSession(session.id)"
               >
-                РЎРєР°СЃСѓРІР°С‚Рё
+                Скасувати
               </button>
               <button
                 class="btn btn--ghost btn--sm"
@@ -304,7 +304,7 @@
                 :disabled="isActionLoading(session.id) || !canReschedule(session.status) || hasPendingReschedule(session.id)"
                 @click="toggleReschedule(session.id)"
               >
-                РџРµСЂРµРЅРµСЃС‚Рё
+                Перенести
               </button>
               <button
                 v-if="canShowRecurringAction(session)"
@@ -313,7 +313,7 @@
                 :disabled="isActionLoading(session.id)"
                 @click="toggleRecurring(session.id)"
               >
-                РџРѕРІС‚РѕСЂСЋРІР°С‚Рё С‰РѕС‚РёР¶РЅСЏ
+                Повторювати щотижня
               </button>
             </div>
           </div>
@@ -321,28 +321,28 @@
             <img
               v-if="therapistPhotoUrl"
               :src="therapistPhotoUrl"
-              alt="Р¤РѕС‚Рѕ СЃРїРµС†С–Р°Р»С–СЃС‚Р°"
+              alt="Фото спеціаліста"
               class="session-photo"
             />
-            <div v-else class="session-photo session-photo--empty">Р¤РѕС‚Рѕ</div>
+            <div v-else class="session-photo session-photo--empty">Фото</div>
           </div>
           <div v-if="rescheduleSessionId === session.id" class="reschedule-panel">
             <label class="field">
-              РќРѕРІРµ РІС–Р»СЊРЅРµ РІС–РєРѕРЅС†Рµ
+              Нове вільне віконце
               <select v-model.number="rescheduleSlotId" class="input input--select">
-                <option value="">РћР±РµСЂС–С‚СЊ РІС–Р»СЊРЅРµ РІС–РєРѕРЅС†Рµ</option>
+                <option value="">Оберіть вільне віконце</option>
                 <option v-for="slot in availableSlots" :key="slot.id" :value="slot.id">
                   {{ formatDateTime(slot.start_at) }} ? {{ formatDuration(slot.start_at, slot.end_at) }}
                 </option>
               </select>
             </label>
             <div class="suggestions-block">
-              <div class="muted suggestions-title">Р РµРєРѕРјРµРЅРґРѕРІР°РЅС– РІР°СЂС–Р°РЅС‚Рё РїРµСЂРµРЅРµСЃРµРЅРЅСЏ</div>
+              <div class="muted suggestions-title">Рекомендовані варіанти перенесення</div>
               <div v-if="isSuggestionsLoading(session.id)" class="muted">
-                Р—Р°РІР°РЅС‚Р°Р¶РµРЅРЅСЏ СЂРµРєРѕРјРµРЅРґР°С†С–Р№...
+                Завантаження рекомендацій...
               </div>
               <div v-else-if="(rescheduleSuggestions[session.id] || []).length === 0" class="muted">
-                РќРµ РІРґР°Р»РѕСЃСЏ Р·РЅР°Р№С‚Рё РІС–РґРїРѕРІС–РґРЅС– РІР°СЂС–Р°РЅС‚Рё РїРµСЂРµРЅРµСЃРµРЅРЅСЏ
+                Не вдалося знайти відповідні варіанти перенесення
               </div>
               <div v-else class="suggestions-list">
                 <button
@@ -352,12 +352,12 @@
                   type="button"
                   @click="selectSuggestedSlot(item.slot_id)"
                 >
-                  <span>{{ formatDateTime(item.start_at) }} Р’В· {{ formatDuration(item.start_at, item.end_at) }}</span>
+                  <span>{{ formatDateTime(item.start_at) }} · {{ formatDuration(item.start_at, item.end_at) }}</span>
                   <span class="muted suggestion-meta">{{ suggestionReasonLabel(item.reason_tag) }}</span>
                 </button>
               </div>
               <div class="muted">
-                РќР°Р№Р±Р»РёР¶С‡С– РґРѕСЃС‚СѓРїРЅС– РІС–РєРЅР° РґР»СЏ С†С–С”С— СЃРµСЃС–С—
+                Найближчі доступні вікна для цієї сесії
               </div>
             </div>
             <div class="reschedule-actions">
@@ -367,25 +367,25 @@
                 :disabled="isActionLoading(session.id) || !rescheduleSlotId"
                 @click="submitReschedule(session.id)"
               >
-                РџС–РґС‚РІРµСЂРґРёС‚Рё РїРµСЂРµРЅРѕСЃ
+                Підтвердити перенос
               </button>
               <button class="btn btn--ghost btn--sm" type="button" @click="closeReschedule">
-                РЎРєР°СЃСѓРІР°С‚Рё
+                Скасувати
               </button>
             </div>
           </div>
           <div v-if="recurringSessionId === session.id" class="recurring-panel">
             <label class="field">
-              РљС–Р»СЊРєС–СЃС‚СЊ РїРѕРІС‚РѕСЂС–РІ
+              Кількість повторів
               <select v-model="recurringPreset" class="input input--select">
-                <option :value="4">4 С‚РёР¶РЅС–</option>
-                <option :value="8">8 С‚РёР¶РЅС–РІ</option>
-                <option :value="12">12 С‚РёР¶РЅС–РІ</option>
-                <option value="custom">Р’Р»Р°СЃРЅРµ С‡РёСЃР»Рѕ</option>
+                <option :value="4">4 тижні</option>
+                <option :value="8">8 тижнів</option>
+                <option :value="12">12 тижнів</option>
+                <option value="custom">Власне число</option>
               </select>
             </label>
             <label v-if="recurringPreset === 'custom'" class="field">
-              Р’РєР°Р¶С–С‚СЊ РєС–Р»СЊРєС–СЃС‚СЊ (1-52)
+              Вкажіть кількість (1-52)
               <input
                 v-model.number="recurringCustomOccurrences"
                 type="number"
@@ -393,7 +393,7 @@
                 max="52"
                 step="1"
                 class="input"
-                placeholder="РќР°РїСЂРёРєР»Р°Рґ, 6"
+                placeholder="Наприклад, 6"
               />
             </label>
             <div class="recurring-actions">
@@ -403,26 +403,26 @@
                 :disabled="isActionLoading(session.id)"
                 @click="submitRecurring(session.id)"
               >
-                РЎС‚РІРѕСЂРёС‚Рё СЃРµСЂС–СЋ
+                Створити серію
               </button>
               <button class="btn btn--ghost btn--sm" type="button" @click="closeRecurring">
-                РЎРєР°СЃСѓРІР°С‚Рё
+                Скасувати
               </button>
             </div>
 
             <div v-if="recurringResult[session.id]" class="recurring-result">
               <div class="status-pill status-pill--ok">
-                РЎС‚РІРѕСЂРµРЅРѕ {{ recurringResult[session.id]?.created_count ?? 0 }} СЃРµСЃС–Р№
+                Створено {{ recurringResult[session.id]?.created_count ?? 0 }} сесій
               </div>
               <div
                 v-if="(recurringResult[session.id]?.skipped_count ?? 0) > 0"
                 class="status-pill status-pill--warn"
               >
-                РџСЂРѕРїСѓС‰РµРЅРѕ {{ recurringResult[session.id]?.skipped_count ?? 0 }} С‡РµСЂРµР· РєРѕРЅС„Р»С–РєС‚Рё
+                Пропущено {{ recurringResult[session.id]?.skipped_count ?? 0 }} через конфлікти
               </div>
 
               <div v-if="(recurringResult[session.id]?.created_dates || []).length" class="recurring-list">
-                <div class="muted">РЎС‚РІРѕСЂРµРЅС– РґР°С‚Рё:</div>
+                <div class="muted">Створені дати:</div>
                 <ul class="recurring-ul">
                   <li v-for="date in (recurringResult[session.id]?.created_dates || [])" :key="date">
                     {{ formatDateTime(date) }}
@@ -431,7 +431,7 @@
               </div>
 
               <div v-if="(recurringResult[session.id]?.skipped || []).length" class="recurring-list">
-                <div class="muted">РџСЂРѕРїСѓС‰РµРЅС– РґР°С‚Рё:</div>
+                <div class="muted">Пропущені дати:</div>
                 <ul class="recurring-ul">
                   <li v-for="item in (recurringResult[session.id]?.skipped || [])" :key="`${item.start_at}-${item.reason}`">
                     {{ formatDateTime(item.start_at) }} - {{ recurringReasonLabel(item.reason) }}
@@ -447,28 +447,28 @@
     <section class="panel">
       <div class="panel__header">
         <div>
-          <div class="badge badge--soft">Р—Р°РїРёС‚Рё</div>
-          <h2 class="panel__title">РџРµСЂРµРЅРµСЃРµРЅРЅСЏ СЃРµСЃС–Р№</h2>
+          <div class="badge badge--soft">Запити</div>
+          <h2 class="panel__title">Перенесення сесій</h2>
         </div>
       </div>
-      <div v-if="requestsLoading" class="muted">Р—Р°РІР°РЅС‚Р°Р¶РµРЅРЅСЏ Р·Р°РїРёС‚С–РІ...</div>
+      <div v-if="requestsLoading" class="muted">Завантаження запитів...</div>
       <EmptyState
         v-else-if="rescheduleRequests.length === 0"
-        title="РќРµРјР°С” РЅРѕРІРёС… Р·Р°РїРёС‚С–РІ"
-        description="РљРѕР»Рё РєР»С–С”РЅС‚Рё РїРѕРїСЂРѕСЃСЏС‚СЊ РїРµСЂРµРЅРµСЃС‚Рё СЃРµСЃС–СЋ вЂ” С‚СѓС‚ Р·'СЏРІРёС‚СЊСЃСЏ Р·Р°РїРёС‚."
+        title="Немає нових запитів"
+        description="Коли клієнти попросять перенести сесію — тут з'явиться запит."
       />
       <div v-else class="request-list">
         <article v-for="req in rescheduleRequests" :key="req.id" class="request-card">
           <div class="request-info">
             <div class="request-title">
-              РЎРµСЃС–СЏ #{{ req.session_id }} В· {{ req.client_name || req.client_username || "РљР»С–С”РЅС‚" }}
+              Сесія #{{ req.session_id }} · {{ req.client_name || req.client_username || "Клієнт" }}
             </div>
-            <div v-if="req.client_email" class="muted">РџРѕС€С‚Р°: {{ req.client_email }}</div>
+            <div v-if="req.client_email" class="muted">Пошта: {{ req.client_email }}</div>
             <div class="muted">
-              Р—Р°РїРёС‚Р°РЅРµ РІС–Р»СЊРЅРµ РІС–РєРѕРЅС†Рµ:
+              Запитане вільне віконце:
               <span v-if="req.requested_slot_start_at && req.requested_slot_end_at">
                 {{ formatDateTime(req.requested_slot_start_at) }}
-                Р’В· {{ formatDuration(req.requested_slot_start_at, req.requested_slot_end_at) }}
+                · {{ formatDuration(req.requested_slot_start_at, req.requested_slot_end_at) }}
               </span>
               <span v-else>#{{ req.requested_slot_id }}</span>
             </div>
@@ -478,7 +478,7 @@
           </div>
           <div class="request-actions">
             <RouterLink class="btn btn--ghost btn--sm" :to="`/cabinet/sessions/${req.session_id}`">
-              Р”РµС‚Р°Р»С– СЃРµСЃС–С—
+              Деталі сесії
             </RouterLink>
             <button
               v-if="req.status === 'PENDING'"
@@ -487,7 +487,7 @@
               :disabled="isRequestLoading(req.id)"
               @click="approveRequest(req.id)"
             >
-              РџРѕРіРѕРґРёС‚Рё
+              Погодити
             </button>
             <button
               v-if="req.status === 'PENDING'"
@@ -496,7 +496,7 @@
               :disabled="isRequestLoading(req.id)"
               @click="declineRequest(req.id)"
             >
-              Р’С–РґС…РёР»РёС‚Рё
+              Відхилити
             </button>
           </div>
         </article>
@@ -506,14 +506,14 @@
     <section class="panel">
       <div class="panel__header">
         <div>
-          <div class="badge badge--soft">РњРёРЅСѓР»С–</div>
-          <h2 class="panel__title">Р†СЃС‚РѕСЂС–СЏ</h2>
+          <div class="badge badge--soft">Минулі</div>
+          <h2 class="panel__title">Історія</h2>
         </div>
       </div>
       <EmptyState
         v-if="!loading && filteredHistorySessions.length === 0"
-        title="Р†СЃС‚РѕСЂС–СЏ РїРѕСЂРѕР¶РЅСЏ"
-        description="РџС–СЃР»СЏ Р·Р°РІРµСЂС€РµРЅРёС… Р°Р±Рѕ РІС–РґРјС–РЅРµРЅРёС… СЃРµСЃС–Р№ С‚СѓС‚ Р·'СЏРІРёС‚СЊСЃСЏ С–СЃС‚РѕСЂС–СЏ."
+        title="Історія порожня"
+        description="Після завершених або відмінених сесій тут з'явиться історія."
       />
       <div v-else class="history-grid">
         <article
@@ -529,11 +529,11 @@
               <div class="session-time">{{ formatDateTime(session.slot_start_at) }}</div>
               <div class="muted">{{ formatDuration(session.slot_start_at, session.slot_end_at) }}</div>
               <div class="muted">
-                РљР»С–С”РЅС‚: {{ sessionClientLabel(session) }}
+                Клієнт: {{ sessionClientLabel(session) }}
               </div>
               <div class="muted">{{ sessionFormatBadge(session) }}</div>
               <div class="muted session-context">{{ sessionContextHint(session) }}</div>
-              <div v-if="session.client_email" class="muted">РџРѕС€С‚Р°: {{ session.client_email }}</div>
+              <div v-if="session.client_email" class="muted">Пошта: {{ session.client_email }}</div>
               <div class="status-pill" :class="statusClass(session)">
                 {{ statusLabel(session) }}
               </div>
@@ -553,10 +553,10 @@
                 :disabled="isActionLoading(session.id)"
                 @click="openCompletionModal(session.id)"
               >
-                Р—Р°РІРµСЂС€РёС‚Рё
+                Завершити
               </button>
               <RouterLink class="btn btn--ghost btn--sm" :to="`/cabinet/sessions/${session.id}`">
-                Р”РµС‚Р°Р»С–
+                Деталі
               </RouterLink>
             </div>
           </div>
@@ -569,11 +569,11 @@
       <div class="note-modal__content">
         <div class="note-modal__header">
           <div>
-            <div class="note-title">РќРѕС‚Р°С‚РєРё РїС–СЃР»СЏ СЃРµСЃС–С—</div>
-            <div class="muted">РћРєСЂРµРјРѕ РІРµРґС–С‚СЊ РЅРѕС‚Р°С‚РєСѓ РїРѕ СЃРµСЃС–С— С‚Р° СЂРѕР±РѕС‡РёР№ Р·РѕС€РёС‚.</div>
+            <div class="note-title">Нотатки після сесії</div>
+            <div class="muted">Окремо ведіть нотатку по сесії та робочий зошит.</div>
           </div>
           <button class="btn btn--ghost btn--sm" type="button" @click="closeNote">
-            Р—Р°РєСЂРёС‚Рё
+            Закрити
           </button>
         </div>
         <div
@@ -581,34 +581,34 @@
           class="next-step-rail next-step-rail--modal"
         >
           <RouterLink class="btn btn--ghost btn--sm" :to="postSessionClientLink">
-            Р’С–РґРєСЂРёС‚Рё РєР»С–С”РЅС‚Р°
+            Відкрити клієнта
           </RouterLink>
           <RouterLink
             v-if="postSessionNextSession"
             class="btn btn--ghost btn--sm"
             :to="`/cabinet/sessions/${postSessionNextSession.id}`"
           >
-            РќР°СЃС‚СѓРїРЅР° СЃРµСЃС–СЏ: {{ formatDateTime(postSessionNextSession.slot_start_at) }}
+            Наступна сесія: {{ formatDateTime(postSessionNextSession.slot_start_at) }}
           </RouterLink>
           <button class="btn btn--ghost btn--sm" type="button" @click="returnToSessionList">
-            РџРѕРІРµСЂРЅСѓС‚РёСЃСЊ РґРѕ СЃРїРёСЃРєСѓ
+            Повернутись до списку
           </button>
         </div>
         <div class="note-modal__body">
           <div class="note-grid">
             <div class="note-panel note-panel--session">
               <label class="field">
-                <span class="note-title">РќРѕС‚Р°С‚РєР° РїС–СЃР»СЏ СЃРµСЃС–С—</span>
-                <span class="note-badge">РЎРµСЃС–СЏ</span>
+                <span class="note-title">Нотатка після сесії</span>
+                <span class="note-badge">Сесія</span>
                 <span class="note-state muted">Стан: {{ noteContentStateLabel() }}</span>
                 <textarea
                   ref="noteTextareaRef"
                   v-model="noteDraft"
                   class="input note-textarea note-textarea--session"
                   rows="3"
-                  placeholder="РљРѕСЂРѕС‚РєРёР№ РєРѕРјРµРЅС‚Р°СЂ РїРѕ СЃРµСЃС–С— С‚Р° РєР»СЋС‡РѕРІС– СЃРїРѕСЃС‚РµСЂРµР¶РµРЅРЅСЏ."
+                  placeholder="Короткий коментар по сесії та ключові спостереження."
                 ></textarea>
-                <div class="note-helper muted">РћРєСЂРµРјР° РЅРѕС‚Р°С‚РєР° СЃР°РјРµ РґР»СЏ С†С–С”С— СЃРµСЃС–С—.</div>
+                <div class="note-helper muted">Окрема нотатка саме для цієї сесії.</div>
               </label>
               <div class="note-actions">
                 <button
@@ -617,22 +617,22 @@
                   :disabled="noteSessionId ? isNoteSaving(noteSessionId) : false"
                   @click="noteSessionId ? saveNote(noteSessionId) : null"
                 >
-                  Р—Р±РµСЂРµРіС‚Рё РЅРѕС‚Р°С‚РєСѓ
+                  Зберегти нотатку
                 </button>
                 <div v-if="noteSaveMessage" class="note-save-feedback">{{ noteSaveMessage }}</div>
               </div>
             </div>
             <div class="note-panel note-panel--workbook">
               <label class="field">
-                <span class="note-title">Р РѕР±РѕС‡РёР№ Р·РѕС€РёС‚</span>
-                <span class="note-badge">Р’РЅСѓС‚СЂС–С€РЅС–Р№</span>
+                <span class="note-title">Робочий зошит</span>
+                <span class="note-badge">Внутрішній</span>
                 <span class="note-state muted">Стан: {{ workbookContentStateLabel() }}</span>
                 <textarea
                   ref="journalTextareaRef"
                   v-model="journalDraft"
                   class="input note-textarea note-textarea--workbook"
                   rows="9"
-                  placeholder="Р”РѕРІРіРѕСЃС‚СЂРѕРєРѕРІРёР№ РєРѕРЅС‚РµРєСЃС‚, РґРёРЅР°РјС–РєР°, СЃРїРѕСЃС‚РµСЂРµР¶РµРЅРЅСЏ С‚Р° РїР»Р°РЅ РїРѕРґР°Р»СЊС€РѕС— СЂРѕР±РѕС‚Рё."
+                  placeholder="Довгостроковий контекст, динаміка, спостереження та план подальшої роботи."
                   :disabled="journalLoading || !journalClientId"
                 ></textarea>
                 <div class="note-helper muted">
@@ -650,7 +650,7 @@
                   :disabled="journalSaving || journalLoading || !journalClientId"
                   @click="journalClientId ? saveClientJournal(journalClientId) : null"
                 >
-                  Р—Р±РµСЂРµРіС‚Рё СЂРѕР±РѕС‡РёР№ Р·РѕС€РёС‚
+                  Зберегти робочий зошит
                 </button>
                 <div v-if="journalSaveMessage" class="note-save-feedback">{{ journalSaveMessage }}</div>
               </div>
@@ -659,10 +659,10 @@
         </div>
         <div class="note-modal__footer">
           <div class="muted note-modal__footer-hint">
-            Р—Р±РµСЂРµР¶С–С‚СЊ РїРѕС‚СЂС–Р±РЅС– РїРѕР»СЏ Р№ Р·Р°РІРµСЂС€С–С‚СЊ РїС–СЃР»СЏСЃРµСЃС–Р№РЅРёР№ РєСЂРѕРє.
+            Збережіть потрібні поля й завершіть післясесійний крок.
           </div>
           <button class="btn btn--sm note-modal__primary-action" type="button" @click="closeNote">
-            Р—Р°РІРµСЂС€РёС‚Рё РїС–СЃР»СЏ СЃРµСЃС–С—
+            Завершити після сесії
           </button>
         </div>
       </div>
@@ -780,12 +780,12 @@ type SessionStatusFilter =
   | 'NO_SHOW'
 
 const sessionStatusFilterOptions: Array<{ value: SessionStatusFilter; label: string }> = [
-  { value: 'ALL', label: 'РЈСЃС– СЃС‚Р°С‚СѓСЃРё' },
-  { value: 'SCHEDULED', label: 'Р—Р°РїР»Р°РЅРѕРІР°РЅРѕ' },
-  { value: 'CONFIRMED', label: 'РџС–РґС‚РІРµСЂРґР¶РµРЅРѕ' },
-  { value: 'COMPLETED', label: 'Р—Р°РІРµСЂС€РµРЅРѕ' },
-  { value: 'CANCELLED', label: 'РЎРєР°СЃРѕРІР°РЅРѕ' },
-  { value: 'NO_SHOW', label: 'РќРµ РІС–РґР±СѓР»РѕСЃСЏ' },
+  { value: 'ALL', label: 'Усі статуси' },
+  { value: 'SCHEDULED', label: 'Заплановано' },
+  { value: 'CONFIRMED', label: 'Підтверджено' },
+  { value: 'COMPLETED', label: 'Завершено' },
+  { value: 'CANCELLED', label: 'Скасовано' },
+  { value: 'NO_SHOW', label: 'Не відбулося' },
 ]
 
 const upcoming = ref<Session[]>([])
@@ -845,9 +845,9 @@ const statusClass = (session: Session) => {
 }
 
 const paymentBadgeLabel = (session: Session) => {
-  if (session.payment_badge_state === 'paid') return 'РћРїР»Р°С‡РµРЅРѕ'
+  if (session.payment_badge_state === 'paid') return 'Оплачено'
   if (session.payment_badge_state === 'awaiting_confirmation') {
-    return 'РћС‡С–РєСѓС” РїС–РґС‚РІРµСЂРґР¶РµРЅРЅСЏ РѕРїР»Р°С‚Рё'
+    return 'Очікує підтвердження оплати'
   }
   return ''
 }
@@ -1005,9 +1005,9 @@ const canShowRecurringAction = (session: Session) => {
 }
 
 const recurringReasonLabelMap: Record<string, string> = {
-  SLOT_UNAVAILABLE: 'РќР° С†СЋ РґР°С‚Сѓ РІР¶Рµ РЅРµРјР°С” РІС–Р»СЊРЅРѕРіРѕ РІС–РєРЅР°',
-  SLOT_ALREADY_BOOKED: 'Р¦Рµ РІС–РєРЅРѕ РІР¶Рµ Р·Р°Р№РЅСЏС‚Рµ',
-  CLIENT_TIME_CONFLICT: 'РЈ РєР»С–С”РЅС‚Р° РІР¶Рµ С” С–РЅС€Р° СЃРµСЃС–СЏ РЅР° С†РµР№ С‡Р°СЃ',
+  SLOT_UNAVAILABLE: 'На цю дату вже немає вільного вікна',
+  SLOT_ALREADY_BOOKED: 'Це вікно вже зайняте',
+  CLIENT_TIME_CONFLICT: 'У клієнта вже є інша сесія на цей час',
 }
 
 function recurringReasonLabel(reason: string) {
@@ -1077,8 +1077,8 @@ function formatDateTime(value?: string | null) {
 
 function formatDuration(start?: string | null, end?: string | null) {
   return sharedFormatSessionDuration(start, end, {
-    empty: 'РўСЂРёРІР°Р»С–СЃС‚СЊ: вЂ”',
-    prefix: 'РўСЂРёРІР°Р»С–СЃС‚СЊ: ',
+    empty: 'Тривалість: —',
+    prefix: 'Тривалість: ',
   })
 }
 
@@ -1086,7 +1086,7 @@ function normalizeSessionClientName(value?: string | null) {
   const normalized = value?.trim() || ''
   if (!normalized) return ''
   if (/^#?\d+$/i.test(normalized)) return ''
-  if (/^(client|РєР»С–С”РЅС‚)\s*#?\d+$/i.test(normalized)) return ''
+  if (/^(client|клієнт)\s*#?\d+$/i.test(normalized)) return ''
   return normalized
 }
 
@@ -1101,9 +1101,9 @@ function sessionClientLabel(session: Session) {
 }
 
 function sessionNoteSummary(session: Session) {
-  if (session.has_note !== true) return 'РќРѕС‚Р°С‚РєР°: РЅРµ РґРѕРґР°РЅР°.'
-  if (!session.note_updated_at) return 'РќРѕС‚Р°С‚РєР°: РґРѕРґР°РЅР°.'
-  return `РќРѕС‚Р°С‚РєСѓ РѕРЅРѕРІР»РµРЅРѕ ${formatDateTime(session.note_updated_at)}.`
+  if (session.has_note !== true) return 'Нотатка: не додана.'
+  if (!session.note_updated_at) return 'Нотатка: додана.'
+  return `Нотатку оновлено ${formatDateTime(session.note_updated_at)}.`
 }
 
 function timeUntilLabel(session: Session) {
@@ -1146,7 +1146,7 @@ function isOfflineSession(session: Session) {
 }
 
 function sessionFormatBadge(session: Session) {
-  return `Р¤РѕСЂРјР°С‚: ${isOfflineSession(session) ? 'РћС„Р»Р°Р№РЅ' : 'РћРЅР»Р°Р№РЅ'}`
+  return `Формат: ${isOfflineSession(session) ? 'Офлайн' : 'Онлайн'}`
 }
 
 function canJoinMeeting(session: Session) {
@@ -1175,18 +1175,18 @@ function sessionContextHint(session: Session) {
   if (isOfflineSession(session)) {
     const location = (session.offline_location || '').trim()
     return location
-      ? `Р›РѕРєР°С†С–СЏ: ${location}`
-      : 'Р›РѕРєР°С†С–СЋ РѕС„Р»Р°Р№РЅ-СЃРµСЃС–С— СѓС‚РѕС‡РЅРµРЅРѕ Р·С– СЃРїРµС†С–Р°Р»С–СЃС‚РѕРј.'
+      ? `Локація: ${location}`
+      : 'Локацію офлайн-сесії уточнено зі спеціалістом.'
   }
 
   const link = meetingUrl(session)
   if (!link) {
-    return 'Р”РѕРґР°Р№С‚Рµ РїРѕСЃРёР»Р°РЅРЅСЏ РЅР° РѕРЅР»Р°Р№РЅ-Р·СѓСЃС‚СЂС–С‡ Сѓ РґРµС‚Р°Р»СЏС….'
+    return 'Додайте посилання на онлайн-зустріч у деталях.'
   }
   if (canJoinMeeting(session)) {
-    return 'РњРѕР¶РЅР° РїСЂРёС”РґРЅР°С‚РёСЃСЏ РґРѕ Р·СѓСЃС‚СЂС–С‡С– Р·Р°СЂР°Р·.'
+    return 'Можна приєднатися до зустрічі зараз.'
   }
-  return 'РџРѕСЃРёР»Р°РЅРЅСЏ РґРѕРґР°РЅРѕ. Р’С…С–Рґ СЃС‚Р°РЅРµ РґРѕСЃС‚СѓРїРЅРёРј Р±Р»РёР¶С‡Рµ РґРѕ РїРѕС‡Р°С‚РєСѓ.'
+  return 'Посилання додано. Вхід стане доступним ближче до початку.'
 }
 
 function parseSessionIdFromHash(hash: string): number | null {
@@ -1514,7 +1514,7 @@ async function submitReschedule(id: number) {
 async function submitRecurring(id: number) {
   const occurrences = recurringOccurrencesValue()
   if (!occurrences) {
-    error.value = 'Р’РєР°Р¶С–С‚СЊ РєС–Р»СЊРєС–СЃС‚СЊ РїРѕРІС‚РѕСЂС–РІ РІС–Рґ 1 РґРѕ 52.'
+    error.value = 'Вкажіть кількість повторів від 1 до 52.'
     return
   }
   setActionLoading(id, true)
@@ -1529,7 +1529,7 @@ async function submitRecurring(id: number) {
     const skipped = resp?.skipped_count || 0
     const created = resp?.created_count || 0
     if (skipped > 0) {
-      toast.success(`РЎС‚РІРѕСЂРµРЅРѕ ${created} СЃРµСЃС–Р№, РїСЂРѕРїСѓС‰РµРЅРѕ ${skipped}.`)
+      toast.success(`Створено ${created} сесій, пропущено ${skipped}.`)
     } else {
       toast.success(BOOKING_SUCCESS_MESSAGES.recurringSeriesCreated)
     }

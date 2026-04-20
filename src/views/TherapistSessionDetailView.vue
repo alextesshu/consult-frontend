@@ -1,11 +1,11 @@
-﻿<template>
+<template>
   <section class="session-detail">
     <header class="detail-hero">
       <div>
         <div class="badge">Сесія спеціаліста</div>
         <h1 class="title detail-title">Деталі сесії</h1>
         <p class="muted detail-subtitle">
-          Повний контекст по сесії, дії зі статусом, перенос і приватні нотатки в одному місці.
+          Повний контекст по сесії, 䳿 зі статусом, перенос і приватні нотатки в одному місці.
         </p>
       </div>
       <RouterLink class="btn btn--ghost" to="/cabinet/sessions">Назад до списку</RouterLink>
@@ -248,7 +248,7 @@
           class="workspace-actions"
           data-testid="workspace-actions"
         >
-          <div class="workspace-actions__title">Рекомендовані дії</div>
+          <div class="workspace-actions__title">Рекомендовані 䳿</div>
           <button
             v-if="workspacePrimaryAction"
             class="btn btn--sm"
@@ -310,7 +310,7 @@
                 Запитане вікно:
                 <span v-if="request.requested_slot_start_at && request.requested_slot_end_at">
                   {{ formatDateTime(request.requested_slot_start_at) }}
-                  В·
+                  ·
                   {{ formatDuration(request.requested_slot_start_at, request.requested_slot_end_at) }}
                 </span>
                 <span v-else>#{{ request.requested_slot_id }}</span>
@@ -367,7 +367,7 @@
               :disabled="actionLoading"
               @click="selectSuggestedSlot(item.slot_id)"
             >
-              <span>{{ formatDateTime(item.start_at) }} В· {{ formatDuration(item.start_at, item.end_at) }}</span>
+              <span>{{ formatDateTime(item.start_at) }} · {{ formatDuration(item.start_at, item.end_at) }}</span>
               <span class="muted suggestion-meta">{{ suggestionReasonLabel(item.reason_tag) }}</span>
             </button>
           </div>

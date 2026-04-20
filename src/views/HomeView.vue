@@ -1,4 +1,4 @@
-﻿<template>
+<template>
   <section class="home home-agency">
     <div class="container container--agency">
       <section class="hero-agency reveal">
@@ -255,7 +255,7 @@
         <div class="faq-grid">
           <article class="card faq-card">
             <h3 class="faq-card__title">Чи є комісія за проведені сесії?</h3>
-            <p class="muted">Ні. Ви оплачуєте підписку, а не відсоток із кожної консультації.</p>
+            <p class="muted">ͳ. Ви оплачуєте підписку, а не відсоток із кожної консультації.</p>
           </article>
           <article class="card faq-card">
             <h3 class="faq-card__title">Чи можна ділитися профілем поза платформою?</h3>
