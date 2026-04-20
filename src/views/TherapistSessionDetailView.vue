@@ -589,6 +589,10 @@ import {
   fetchPracticeBoards,
   resolveDefaultPracticeBoardId,
 } from '../lib/specialistPracticeBoard'
+import {
+  noteContentStateLabel as getNoteContentStateLabel,
+  workbookContentStateLabel as getWorkbookContentStateLabel,
+} from '../lib/noteWorkbookCopy'
 
 type SessionSlot = {
   start_at?: string | null
@@ -945,19 +949,11 @@ function paymentStateClass(state: WorkspacePaymentState) {
 }
 
 function noteStateLabel(state: WorkspaceNoteState | WorkspaceWorkbookState) {
-  if (state === 'missing') return 'Відсутня'
-  if (state === 'draft') return 'Чернетка'
-  if (state === 'completed') return 'Заповнена'
-  if (state === 'hidden') return 'Недоступна'
-  return state
+  return getNoteContentStateLabel(state)
 }
 
 function workbookStateLabel(state: WorkspaceWorkbookState) {
-  if (state === 'missing') return 'Відсутній'
-  if (state === 'draft') return 'Чернетка'
-  if (state === 'completed') return 'Заповнений'
-  if (state === 'hidden') return 'Недоступний'
-  return state
+  return getWorkbookContentStateLabel(state)
 }
 
 function noteStateClass(state: WorkspaceNoteState | WorkspaceWorkbookState) {

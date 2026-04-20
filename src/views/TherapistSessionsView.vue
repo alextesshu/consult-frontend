@@ -731,6 +731,10 @@ import { useToast } from '../composables/useToast'
 import LoadingSkeleton from '../components/LoadingSkeleton.vue'
 import EmptyState from '../components/EmptyState.vue'
 import SessionCompletionModal from '../components/SessionCompletionModal.vue'
+import {
+  noteContentStateLabel as getNoteContentStateLabel,
+  workbookContentStateLabel as getWorkbookContentStateLabel,
+} from '../lib/noteWorkbookCopy'
 
 type Session = {
   id: number
@@ -1030,16 +1034,18 @@ function hasUnsavedModalChanges() {
 
 function noteContentStateLabel() {
   const hasContent = Boolean(noteDraft.value.trim())
-  if (!hasContent) return 'Р’С–РґСЃСѓС‚РЅСЏ'
-  if (noteDraft.value !== noteInitialDraft.value) return 'Р§РµСЂРЅРµС‚РєР°'
-  return 'Р—Р°РїРѕРІРЅРµРЅР°'
+  if (!hasContent) return getNoteContentStateLabel('missing')
+  if (noteDraft.value !== noteInitialDraft.value) return getNoteContentStateLabel('draft')
+  return getNoteContentStateLabel('completed')
 }
 
 function workbookContentStateLabel() {
   const hasContent = Boolean(journalDraft.value.trim())
-  if (!hasContent) return journalIsMissing.value ? 'Р’С–РґСЃСѓС‚РЅС–Р№' : 'Р§РµСЂРЅРµС‚РєР°'
-  if (journalDraft.value !== journalInitialDraft.value) return 'Р§РµСЂРЅРµС‚РєР°'
-  return 'Р—Р°РїРѕРІРЅРµРЅРёР№'
+  if (!hasContent) {
+    return journalIsMissing.value ? getWorkbookContentStateLabel('missing') : getWorkbookContentStateLabel('draft')
+  }
+  if (journalDraft.value !== journalInitialDraft.value) return getWorkbookContentStateLabel('draft')
+  return getWorkbookContentStateLabel('completed')
 }
 
 function confirmNoteModalClose() {

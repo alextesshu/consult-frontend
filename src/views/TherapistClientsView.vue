@@ -666,11 +666,11 @@ function workbookUpdatedAt(client?: Pick<ClientState, 'workbook_updated_at' | 'c
 
 function workbookSummary(client: ClientState) {
   const clientId = relationClientId(client)
-  if (workbookMissingByClient.value[clientId] === true) return 'Робочий зошит ще відсутній.'
-  if (!resolveHasWorkbookContent(client)) return '\u0420\u043e\u0431\u043e\u0447\u0438\u0439 \u0437\u043e\u0448\u0438\u0442 \u0449\u0435 \u043f\u043e\u0440\u043e\u0436\u043d\u0456\u0439.'
+  if (workbookMissingByClient.value[clientId] === true) return 'Стан: Відсутній.'
+  if (!resolveHasWorkbookContent(client)) return 'Стан: Відсутній.'
   const updatedAt = workbookUpdatedAt(client)
-  if (!updatedAt) return '\u0423 \u0440\u043e\u0431\u043e\u0447\u043e\u043c\u0443 \u0437\u043e\u0448\u0438\u0442\u0456 \u0454 \u0437\u0430\u043f\u0438\u0441\u0438.'
-  return `\u041e\u0441\u0442\u0430\u043d\u043d\u0454 \u043e\u043d\u043e\u0432\u043b\u0435\u043d\u043d\u044f: ${formatDateTime(updatedAt)}`
+  if (!updatedAt) return 'Стан: Заповнений.'
+  return `Стан: Заповнений. Оновлено: ${formatDateTime(updatedAt)}`
 }
 
 function latestNoteSummary(client: ClientState) {

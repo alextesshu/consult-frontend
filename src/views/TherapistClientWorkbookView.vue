@@ -38,6 +38,7 @@ import { useRoute } from 'vue-router'
 import LoadingSkeleton from '../components/LoadingSkeleton.vue'
 import { getApiErrorMessage } from '../lib/errors'
 import { fetchSpecialistClientWorkbookSnapshot, saveSpecialistClientJournal } from '../lib/specialistSessions'
+import { workbookContentStateLabel as getWorkbookContentStateLabel } from '../lib/noteWorkbookCopy'
 
 const route = useRoute()
 const clientId = Number(route.params.clientId || 0)
@@ -49,11 +50,14 @@ const content = ref('')
 const savedMessage = ref('')
 const isWorkbookMissing = ref(true)
 
-const workbookStateLabel = computed(() =>
-  isWorkbookMissing.value && !content.value.trim()
-    ? 'Стан: робочий зошит відсутній.'
-    : 'Стан: у робочому зошиті є вміст.'
-)
+const workbookStateLabel = computed(() => {
+  const hasContent = Boolean(content.value.trim())
+  if (!hasContent) {
+    const state = isWorkbookMissing.value ? 'missing' : 'draft'
+    return `Стан: ${getWorkbookContentStateLabel(state)}.`
+  }
+  return `Стан: ${getWorkbookContentStateLabel('completed')}.`
+})
 
 async function load() {
   if (!clientId) {
