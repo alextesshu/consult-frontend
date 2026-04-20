@@ -14,6 +14,7 @@
     <section class="panel">
       <LoadingSkeleton v-if="loading" variant="list" :count="1" height="260px" />
       <template v-else>
+        <p class="muted workbook-page__state">{{ workbookStateLabel }}</p>
         <textarea
           v-model="content"
           class="input workbook-page__textarea"
@@ -32,11 +33,11 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import LoadingSkeleton from '../components/LoadingSkeleton.vue'
 import { getApiErrorMessage } from '../lib/errors'
-import { fetchSpecialistClientJournalContent, saveSpecialistClientJournal } from '../lib/specialistSessions'
+import { fetchSpecialistClientWorkbookSnapshot, saveSpecialistClientJournal } from '../lib/specialistSessions'
 
 const route = useRoute()
 const clientId = Number(route.params.clientId || 0)
@@ -46,6 +47,13 @@ const saving = ref(false)
 const error = ref('')
 const content = ref('')
 const savedMessage = ref('')
+const isWorkbookMissing = ref(true)
+
+const workbookStateLabel = computed(() =>
+  isWorkbookMissing.value && !content.value.trim()
+    ? 'Стан: робочий зошит відсутній.'
+    : 'Стан: у робочому зошиті є вміст.'
+)
 
 async function load() {
   if (!clientId) {
@@ -55,7 +63,9 @@ async function load() {
   loading.value = true
   error.value = ''
   try {
-    content.value = await fetchSpecialistClientJournalContent(clientId)
+    const snapshot = await fetchSpecialistClientWorkbookSnapshot(clientId)
+    content.value = snapshot.content
+    isWorkbookMissing.value = snapshot.isMissing
   } catch (err: unknown) {
     error.value = getApiErrorMessage(err, 'Не вдалося завантажити робочий зошит.')
   } finally {
@@ -70,6 +80,7 @@ async function save() {
   savedMessage.value = ''
   try {
     await saveSpecialistClientJournal(clientId, content.value || '')
+    isWorkbookMissing.value = !Boolean(content.value.trim())
     savedMessage.value = 'Дані збережено.'
   } catch (err: unknown) {
     error.value = getApiErrorMessage(err, 'Не вдалося зберегти робочий зошит.')
@@ -111,6 +122,10 @@ onMounted(load)
   min-height: min(74vh, 920px);
   resize: vertical;
   line-height: 1.6;
+}
+
+.workbook-page__state {
+  margin: 0;
 }
 
 .workbook-page__actions {

@@ -285,7 +285,7 @@ import {
   resolveDefaultPracticeBoardId,
 } from '../lib/specialistPracticeBoard'
 import {
-  fetchSpecialistClientJournalContent as fetchSpecialistClientJournalContentData,
+  fetchSpecialistClientWorkbookSnapshot as fetchSpecialistClientWorkbookSnapshotData,
   saveSpecialistClientJournal as saveSpecialistClientJournalAction,
 } from '../lib/specialistSessions'
 
@@ -393,6 +393,7 @@ const clientHistory = ref<Record<number, HistoryItem[]>>({})
 const clientJournalDrafts = ref<Record<number, string>>({})
 const workbookExpanded = ref<Record<number, boolean>>({})
 const workbookSavedMessage = ref<Record<number, string>>({})
+const workbookMissingByClient = ref<Record<number, boolean>>({})
 const sessionsCache = ref<SessionItem[] | null>(null)
 const sessionClientNames = ref<Record<number, string>>({})
 const chatClientNames = ref<Record<number, string>>({})
@@ -664,6 +665,8 @@ function workbookUpdatedAt(client?: Pick<ClientState, 'workbook_updated_at' | 'c
 }
 
 function workbookSummary(client: ClientState) {
+  const clientId = relationClientId(client)
+  if (workbookMissingByClient.value[clientId] === true) return 'Робочий зошит ще відсутній.'
   if (!resolveHasWorkbookContent(client)) return '\u0420\u043e\u0431\u043e\u0447\u0438\u0439 \u0437\u043e\u0448\u0438\u0442 \u0449\u0435 \u043f\u043e\u0440\u043e\u0436\u043d\u0456\u0439.'
   const updatedAt = workbookUpdatedAt(client)
   if (!updatedAt) return '\u0423 \u0440\u043e\u0431\u043e\u0447\u043e\u043c\u0443 \u0437\u043e\u0448\u0438\u0442\u0456 \u0454 \u0437\u0430\u043f\u0438\u0441\u0438.'
@@ -785,6 +788,10 @@ async function loadClients() {
     for (const item of clients.value) {
       const id = relationClientId(item)
       if (!id) continue
+      workbookMissingByClient.value = {
+        ...workbookMissingByClient.value,
+        [id]: !resolveHasWorkbookContent(item),
+      }
       if (seededDrafts[id] !== undefined) continue
       seededDrafts[id] = item.client_journal_content || ''
     }
@@ -872,12 +879,21 @@ async function loadHistory(clientId: number) {
     const fromClientsList = client?.client_journal_content
     const hasListValue = typeof fromClientsList === 'string'
     const hasWorkbookByMetadata = resolveHasWorkbookContent(client)
-    const journalContent = hasListValue
-      ? fromClientsList || ''
-      : hasWorkbookByMetadata
-        ? await fetchSpecialistClientJournalContentData(clientId)
-        : ''
+    let journalContent = hasListValue ? fromClientsList || '' : ''
+    let workbookMissing = !hasWorkbookByMetadata && !Boolean(journalContent.trim())
+
+    if (!hasListValue && hasWorkbookByMetadata) {
+      const snapshot = await fetchSpecialistClientWorkbookSnapshotData(clientId)
+      journalContent = snapshot.content
+      workbookMissing = snapshot.isMissing
+    }
+
+    if (!hasListValue && !hasWorkbookByMetadata) {
+      workbookMissing = true
+    }
+
     clientJournalDrafts.value = { ...clientJournalDrafts.value, [clientId]: journalContent }
+    workbookMissingByClient.value = { ...workbookMissingByClient.value, [clientId]: workbookMissing }
 
     try {
       const historyResp = await apiGet<ListResponse<SessionMetadataSource>>(
@@ -924,6 +940,10 @@ async function saveClientJournal(clientId: number) {
     workbookSavedMessage.value = {
       ...workbookSavedMessage.value,
       [clientId]: 'Дані збережено.',
+    }
+    workbookMissingByClient.value = {
+      ...workbookMissingByClient.value,
+      [clientId]: !Boolean((clientJournalDrafts.value[clientId] || '').trim()),
     }
   } catch (err: any) {
     error.value = getApiErrorMessage(err, 'Не вдалося зберегти робочий зошит клієнта')

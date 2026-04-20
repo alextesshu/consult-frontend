@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/vue'
+﻿import { fireEvent, render, screen, waitFor, within } from '@testing-library/vue'
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { apiGet, fetchSpecialistProfile } from '../lib/api'
 import { BOOKING_SUCCESS_MESSAGES } from '../lib/bookingCopy'
@@ -10,7 +10,7 @@ import {
   createRecurringSpecialistSessions,
   declineSpecialistRescheduleRequest,
   fetchSpecialistAvailableSlots,
-  fetchSpecialistClientJournalContent,
+  fetchSpecialistClientWorkbookSnapshot,
   fetchSpecialistRescheduleRequests,
   fetchSpecialistRescheduleSuggestions,
   fetchSpecialistSessionNoteContent,
@@ -63,7 +63,7 @@ vi.mock('../lib/specialistSessions', async () => {
     createRecurringSpecialistSessions: vi.fn(),
     declineSpecialistRescheduleRequest: vi.fn(),
     fetchSpecialistAvailableSlots: vi.fn(),
-    fetchSpecialistClientJournalContent: vi.fn(),
+    fetchSpecialistClientWorkbookSnapshot: vi.fn(),
     fetchSpecialistRescheduleRequests: vi.fn(),
     fetchSpecialistRescheduleSuggestions: vi.fn(),
     fetchSpecialistSessionNoteContent: vi.fn(),
@@ -82,7 +82,7 @@ const mockedConfirmSpecialistSession = vi.mocked(confirmSpecialistSession)
 const mockedCreateRecurringSpecialistSessions = vi.mocked(createRecurringSpecialistSessions)
 const mockedDeclineSpecialistRescheduleRequest = vi.mocked(declineSpecialistRescheduleRequest)
 const mockedFetchSpecialistAvailableSlots = vi.mocked(fetchSpecialistAvailableSlots)
-const mockedFetchSpecialistClientJournalContent = vi.mocked(fetchSpecialistClientJournalContent)
+const mockedFetchSpecialistClientWorkbookSnapshot = vi.mocked(fetchSpecialistClientWorkbookSnapshot)
 const mockedFetchSpecialistRescheduleRequests = vi.mocked(fetchSpecialistRescheduleRequests)
 const mockedFetchSpecialistRescheduleSuggestions = vi.mocked(fetchSpecialistRescheduleSuggestions)
 const mockedFetchSpecialistSessionNoteContent = vi.mocked(fetchSpecialistSessionNoteContent)
@@ -95,7 +95,7 @@ function buildSession(overrides: Record<string, unknown> = {}) {
     id: 11,
     status: 'SCHEDULED',
     client: 101,
-    client_name: 'Анна',
+    client_name: 'РђРЅРЅР°',
     client_email: 'anna@example.com',
     therapist: 12,
     therapist_username: 'olena',
@@ -113,7 +113,7 @@ function buildRescheduleRequest(overrides: Record<string, unknown> = {}) {
     requested_slot_id: 301,
     requested_slot_start_at: '2099-06-17T13:00:00Z',
     requested_slot_end_at: '2099-06-17T13:50:00Z',
-    client_name: 'Марія',
+    client_name: 'РњР°СЂС–СЏ',
     client_email: 'maria-request@example.com',
     status: 'PENDING',
     ...overrides,
@@ -156,7 +156,7 @@ describe('TherapistSessionsView', () => {
     mockedCreateRecurringSpecialistSessions.mockReset()
     mockedDeclineSpecialistRescheduleRequest.mockReset()
     mockedFetchSpecialistAvailableSlots.mockReset()
-    mockedFetchSpecialistClientJournalContent.mockReset()
+    mockedFetchSpecialistClientWorkbookSnapshot.mockReset()
     mockedFetchSpecialistRescheduleRequests.mockReset()
     mockedFetchSpecialistRescheduleSuggestions.mockReset()
     mockedFetchSpecialistSessionNoteContent.mockReset()
@@ -174,7 +174,7 @@ describe('TherapistSessionsView', () => {
       photo_url: 'https://example.com/photo.jpg',
     } as Awaited<ReturnType<typeof fetchSpecialistProfile>>)
     mockedFetchSpecialistAvailableSlots.mockResolvedValue([])
-    mockedFetchSpecialistClientJournalContent.mockResolvedValue('')
+    mockedFetchSpecialistClientWorkbookSnapshot.mockResolvedValue({ content: '', isMissing: true })
     mockedFetchSpecialistRescheduleRequests.mockResolvedValue([])
     mockedFetchSpecialistRescheduleSuggestions.mockResolvedValue([])
     mockedFetchSpecialistSessionNoteContent.mockResolvedValue('')
@@ -190,7 +190,7 @@ describe('TherapistSessionsView', () => {
             id: 12,
             status: 'CONFIRMED',
             client: 102,
-            client_name: 'Марія',
+            client_name: 'РњР°СЂС–СЏ',
             client_email: 'maria@example.com',
             slot: 202,
             slot_start_at: '2099-06-16T12:00:00Z',
@@ -205,7 +205,7 @@ describe('TherapistSessionsView', () => {
             id: 21,
             status: 'COMPLETED',
             client: 103,
-            client_name: 'Ірина',
+            client_name: 'Р†СЂРёРЅР°',
             client_email: 'history@example.com',
             slot: 203,
             slot_start_at: '2099-05-20T09:00:00Z',
@@ -220,7 +220,7 @@ describe('TherapistSessionsView', () => {
 
     renderView()
 
-    expect(await screen.findByText('Керуйте сесіями')).toBeInTheDocument()
+    expect(await screen.findByText('РљРµСЂСѓР№С‚Рµ СЃРµСЃС–СЏРјРё')).toBeInTheDocument()
 
     await waitFor(() => {
       expect(mockedApiGet).toHaveBeenCalledWith('/booking/sessions/', { params: { upcoming: true } })
@@ -231,27 +231,27 @@ describe('TherapistSessionsView', () => {
     expect(mockedFetchSpecialistRescheduleRequests).toHaveBeenCalled()
     expect(mockedFetchSpecialistProfile).toHaveBeenCalled()
 
-    expect(screen.getByText('Очікують підтвердження')).toBeInTheDocument()
-    expect(screen.getByText('Є запит на перенос')).toBeInTheDocument()
+    expect(screen.getByText('РћС‡С–РєСѓСЋС‚СЊ РїС–РґС‚РІРµСЂРґР¶РµРЅРЅСЏ')).toBeInTheDocument()
+    expect(screen.getByText('Р„ Р·Р°РїРёС‚ РЅР° РїРµСЂРµРЅРѕСЃ')).toBeInTheDocument()
     expect(screen.getByText(/maria-request@example\.com/)).toBeInTheDocument()
     expect(screen.getByText(/history@example\.com/)).toBeInTheDocument()
-    const photos = screen.getAllByRole('img', { name: 'Фото спеціаліста' })
+    const photos = screen.getAllByRole('img', { name: 'Р¤РѕС‚Рѕ СЃРїРµС†С–Р°Р»С–СЃС‚Р°' })
     expect(photos).toHaveLength(2)
     expect(photos[0]).toHaveAttribute('src', 'https://example.com/photo.jpg')
 
     const mariaCard = screen.getByText(/maria@example\.com/).closest('article')
     expect(mariaCard).not.toBeNull()
-    expect(within(mariaCard as HTMLElement).getByRole('button', { name: 'Перенести' })).toBeDisabled()
+    expect(within(mariaCard as HTMLElement).getByRole('button', { name: 'РџРµСЂРµРЅРµСЃС‚Рё' })).toBeDisabled()
 
-    await fireEvent.update(screen.getByLabelText('Статус'), 'CONFIRMED')
+    await fireEvent.update(screen.getByLabelText('РЎС‚Р°С‚СѓСЃ'), 'CONFIRMED')
 
     await waitFor(() => {
       expect(screen.queryByText(/anna@example\.com/)).not.toBeInTheDocument()
     })
     expect(screen.getByText(/maria@example\.com/)).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Скинути фільтри' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'РЎРєРёРЅСѓС‚Рё С„С–Р»СЊС‚СЂРё' })).toBeInTheDocument()
 
-    await fireEvent.click(screen.getByRole('button', { name: 'Скинути фільтри' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'РЎРєРёРЅСѓС‚Рё С„С–Р»СЊС‚СЂРё' }))
 
     expect(await screen.findByText(/anna@example\.com/)).toBeInTheDocument()
   })
@@ -310,26 +310,26 @@ describe('TherapistSessionsView', () => {
 
     const paidUpcomingCard = screen.getByText(/paid-upcoming@example\.com/).closest('article')
     expect(paidUpcomingCard).not.toBeNull()
-    expect(within(paidUpcomingCard as HTMLElement).getByText('Оплачено')).toBeInTheDocument()
+    expect(within(paidUpcomingCard as HTMLElement).getByText('РћРїР»Р°С‡РµРЅРѕ')).toBeInTheDocument()
     expect(within(paidUpcomingCard as HTMLElement).getByText('Заплановано')).toBeInTheDocument()
 
     const awaitingUpcomingCard = screen.getByText(/awaiting-upcoming@example\.com/).closest('article')
     expect(awaitingUpcomingCard).not.toBeNull()
     expect(
-      within(awaitingUpcomingCard as HTMLElement).getByText('Очікує підтвердження оплати')
+      within(awaitingUpcomingCard as HTMLElement).getByText('РћС‡С–РєСѓС” РїС–РґС‚РІРµСЂРґР¶РµРЅРЅСЏ РѕРїР»Р°С‚Рё')
     ).toBeInTheDocument()
     expect(within(awaitingUpcomingCard as HTMLElement).getByText('Підтверджено')).toBeInTheDocument()
 
     const noPaymentCard = screen.getByText(/no-payment-badge@example\.com/).closest('article')
     expect(noPaymentCard).not.toBeNull()
-    expect(within(noPaymentCard as HTMLElement).queryByText('Оплачено')).not.toBeInTheDocument()
+    expect(within(noPaymentCard as HTMLElement).queryByText('РћРїР»Р°С‡РµРЅРѕ')).not.toBeInTheDocument()
     expect(
-      within(noPaymentCard as HTMLElement).queryByText('Очікує підтвердження оплати')
+      within(noPaymentCard as HTMLElement).queryByText('РћС‡С–РєСѓС” РїС–РґС‚РІРµСЂРґР¶РµРЅРЅСЏ РѕРїР»Р°С‚Рё')
     ).not.toBeInTheDocument()
 
     const paidHistoryCard = screen.getByText(/paid-history@example\.com/).closest('article')
     expect(paidHistoryCard).not.toBeNull()
-    expect(within(paidHistoryCard as HTMLElement).getByText('Оплачено')).toBeInTheDocument()
+    expect(within(paidHistoryCard as HTMLElement).getByText('РћРїР»Р°С‡РµРЅРѕ')).toBeInTheDocument()
     expect(within(paidHistoryCard as HTMLElement).getByText('Завершено')).toBeInTheDocument()
   })
 
@@ -348,9 +348,9 @@ describe('TherapistSessionsView', () => {
 
     try {
       renderView()
-      await screen.findByText('Керуйте сесіями')
+      await screen.findByText('РљРµСЂСѓР№С‚Рµ СЃРµСЃС–СЏРјРё')
 
-      const dateField = screen.getByText('Дата').closest('label')
+      const dateField = screen.getByText('Р”Р°С‚Р°').closest('label')
       expect(dateField).not.toBeNull()
       await fireEvent.click(dateField as HTMLElement)
 
@@ -394,7 +394,7 @@ describe('TherapistSessionsView', () => {
     })
 
     const view = renderView()
-    await screen.findByText('Керуйте сесіями')
+    await screen.findByText('РљРµСЂСѓР№С‚Рµ СЃРµСЃС–СЏРјРё')
 
     await waitFor(() => {
       const priorityMain = view.container.querySelector('.priority-next__main') as HTMLAnchorElement | null
@@ -418,7 +418,7 @@ describe('TherapistSessionsView', () => {
             id: 36,
             status: 'CONFIRMED',
             session_format: 'offline',
-            offline_location: 'Київ, офіс 12',
+            offline_location: 'РљРёС—РІ, РѕС„С–СЃ 12',
             meeting_url: 'https://meet.google.com/offline-ignored',
             join_available: true,
             join_starts_at: '2000-01-01T00:00:00Z',
@@ -437,10 +437,10 @@ describe('TherapistSessionsView', () => {
     })
 
     renderView()
-    await screen.findByText('Керуйте сесіями')
+    await screen.findByText('РљРµСЂСѓР№С‚Рµ СЃРµСЃС–СЏРјРё')
 
-    expect(await screen.findAllByText('Формат: Офлайн')).not.toHaveLength(0)
-    expect(screen.queryByRole('link', { name: 'Приєднатися' })).not.toBeInTheDocument()
+    expect(await screen.findAllByText('Р¤РѕСЂРјР°С‚: РћС„Р»Р°Р№РЅ')).not.toHaveLength(0)
+    expect(screen.queryByRole('link', { name: 'РџСЂРёС”РґРЅР°С‚РёСЃСЏ' })).not.toBeInTheDocument()
   })
 
   it('shows scheduled status before start even if join window is already open', async () => {
@@ -472,7 +472,7 @@ describe('TherapistSessionsView', () => {
     })
 
     const view = renderView()
-    await screen.findByText('Керуйте сесіями')
+    await screen.findByText('РљРµСЂСѓР№С‚Рµ СЃРµСЃС–СЏРјРё')
 
     await waitFor(() => {
       const priorityMain = view.container.querySelector('.priority-next__main') as HTMLAnchorElement | null
@@ -482,7 +482,7 @@ describe('TherapistSessionsView', () => {
 
     const priorityCards = view.container.querySelectorAll('.priority-card')
     const nextSessionCard = priorityCards[1] as HTMLElement
-    expect(within(nextSessionCard).queryByText('Сесія триває')).not.toBeInTheDocument()
+    expect(within(nextSessionCard).queryByText('РЎРµСЃС–СЏ С‚СЂРёРІР°С”')).not.toBeInTheDocument()
     expect(within(nextSessionCard).getByText('Заплановано')).toBeInTheDocument()
   })
 
@@ -514,8 +514,8 @@ describe('TherapistSessionsView', () => {
     expect(await screen.findByText(/past-confirmed@example\.com/)).toBeInTheDocument()
     expect(document.querySelector('.history-grid')).not.toBeNull()
     expect(document.querySelector('.history-grid .history-tile')).not.toBeNull()
-    expect(screen.getByRole('button', { name: 'Завершити' })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Деталі' })).toHaveAttribute('href', '/cabinet/sessions/41')
+    expect(screen.getByRole('button', { name: 'Р—Р°РІРµСЂС€РёС‚Рё' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Р”РµС‚Р°Р»С–' })).toHaveAttribute('href', '/cabinet/sessions/41')
   })
 
   it('shows empty states when there are no sessions or transfer requests', async () => {
@@ -536,10 +536,10 @@ describe('TherapistSessionsView', () => {
     await flushPromises()
     await flushPromises()
 
-    expect(screen.getByText('Немає майбутніх сесій.')).toBeInTheDocument()
-    expect(screen.getByText('Немає нових запитів')).toBeInTheDocument()
-    expect(screen.getByText('Історія порожня')).toBeInTheDocument()
-    expect(screen.queryByText(/Нові бронювання:/)).not.toBeInTheDocument()
+    expect(screen.getByText('РќРµРјР°С” РјР°Р№Р±СѓС‚РЅС–С… СЃРµСЃС–Р№.')).toBeInTheDocument()
+    expect(screen.getByText('РќРµРјР°С” РЅРѕРІРёС… Р·Р°РїРёС‚С–РІ')).toBeInTheDocument()
+    expect(screen.getByText('Р†СЃС‚РѕСЂС–СЏ РїРѕСЂРѕР¶РЅСЏ')).toBeInTheDocument()
+    expect(screen.queryByText(/РќРѕРІС– Р±СЂРѕРЅСЋРІР°РЅРЅСЏ:/)).not.toBeInTheDocument()
   })
 
   it('confirms and cancels sessions with a list reload after each mutation', async () => {
@@ -548,7 +548,7 @@ describe('TherapistSessionsView', () => {
       id: 12,
       status: 'CONFIRMED',
       client: 102,
-      client_name: 'Марія',
+      client_name: 'РњР°СЂС–СЏ',
       client_email: 'maria@example.com',
       slot: 202,
       slot_start_at: '2099-06-16T12:00:00Z',
@@ -589,7 +589,7 @@ describe('TherapistSessionsView', () => {
 
     const scheduledCard = screen.getByText(/anna@example\.com/).closest('article')
     expect(scheduledCard).not.toBeNull()
-    await fireEvent.click(within(scheduledCard as HTMLElement).getByRole('button', { name: 'Підтвердити' }))
+    await fireEvent.click(within(scheduledCard as HTMLElement).getByRole('button', { name: 'РџС–РґС‚РІРµСЂРґРёС‚Рё' }))
 
     await waitFor(() => {
       expect(mockedConfirmSpecialistSession).toHaveBeenCalledWith(11)
@@ -598,12 +598,12 @@ describe('TherapistSessionsView', () => {
 
     const updatedScheduledCard = screen.getByText(/anna@example\.com/).closest('article')
     expect(updatedScheduledCard).not.toBeNull()
-    expect(within(updatedScheduledCard as HTMLElement).queryByRole('button', { name: 'Підтвердити' })).not.toBeInTheDocument()
-    expect(within(updatedScheduledCard as HTMLElement).getByRole('link', { name: 'Відкрити сесію' })).toBeInTheDocument()
+    expect(within(updatedScheduledCard as HTMLElement).queryByRole('button', { name: 'РџС–РґС‚РІРµСЂРґРёС‚Рё' })).not.toBeInTheDocument()
+    expect(within(updatedScheduledCard as HTMLElement).getByRole('link', { name: 'Р’С–РґРєСЂРёС‚Рё СЃРµСЃС–СЋ' })).toBeInTheDocument()
 
     const confirmedCard = screen.getByText(/maria@example\.com/).closest('article')
     expect(confirmedCard).not.toBeNull()
-    await fireEvent.click(within(confirmedCard as HTMLElement).getByRole('button', { name: 'Скасувати' }))
+    await fireEvent.click(within(confirmedCard as HTMLElement).getByRole('button', { name: 'РЎРєР°СЃСѓРІР°С‚Рё' }))
 
     await waitFor(() => {
       expect(mockedCancelSpecialistSession).toHaveBeenCalledWith(12)
@@ -613,7 +613,7 @@ describe('TherapistSessionsView', () => {
     const updatedConfirmedCard = screen.getAllByText(/maria@example\.com/)[0]?.closest('article')
     expect(updatedConfirmedCard).not.toBeNull()
     expect(within(updatedConfirmedCard as HTMLElement).getByText('Скасовано')).toBeInTheDocument()
-    expect(within(updatedConfirmedCard as HTMLElement).getByRole('button', { name: 'Скасувати' })).toBeDisabled()
+    expect(within(updatedConfirmedCard as HTMLElement).getByRole('button', { name: 'РЎРєР°СЃСѓРІР°С‚Рё' })).toBeDisabled()
     expect(mockedApiGet).toHaveBeenCalledTimes(6)
   })
 
@@ -705,9 +705,9 @@ describe('TherapistSessionsView', () => {
       expect(sessionId).toBe(15)
       return 'Updated completion note'
     })
-    mockedFetchSpecialistClientJournalContent.mockImplementation(async (clientId) => {
+    mockedFetchSpecialistClientWorkbookSnapshot.mockImplementation(async (clientId) => {
       expect(clientId).toBe(105)
-      return 'Client journal note'
+      return { content: 'Client journal note', isMissing: false }
     })
 
     renderView()
@@ -718,7 +718,7 @@ describe('TherapistSessionsView', () => {
     expect(sessionCard).not.toBeNull()
     const completionButton = within(sessionCard as HTMLElement)
       .getAllByRole('button')
-      .find((button) => button.textContent?.includes('Завершити'))
+      .find((button) => button.textContent?.includes('Р—Р°РІРµСЂС€РёС‚Рё'))
     if (!completionButton) {
       throw new Error('Complete button not found')
     }
@@ -732,13 +732,13 @@ describe('TherapistSessionsView', () => {
       expect(mockToast.success).toHaveBeenCalledWith(BOOKING_SUCCESS_MESSAGES.sessionCompleted)
     })
     expect(mockedFetchSpecialistSessionNoteContent).toHaveBeenCalledWith(15)
-    expect(mockedFetchSpecialistClientJournalContent).toHaveBeenCalledWith(105)
+    expect(mockedFetchSpecialistClientWorkbookSnapshot).toHaveBeenCalledWith(105)
     expect(await screen.findByDisplayValue('Updated completion note')).toBeInTheDocument()
     expect(await screen.findByDisplayValue('Client journal note')).toBeInTheDocument()
     expect(document.querySelector('a[href="/cabinet/clients?client=105&autoOpen=1"]')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Відкрити робочий зошит' })).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Додати / відкрити нотатку' })).not.toBeInTheDocument()
-    expect(screen.getByText('Нотатки після сесії')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Р’С–РґРєСЂРёС‚Рё СЂРѕР±РѕС‡РёР№ Р·РѕС€РёС‚' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Р”РѕРґР°С‚Рё / РІС–РґРєСЂРёС‚Рё РЅРѕС‚Р°С‚РєСѓ' })).not.toBeInTheDocument()
+    expect(screen.getByText('РќРѕС‚Р°С‚РєРё РїС–СЃР»СЏ СЃРµСЃС–С—')).toBeInTheDocument()
 
     const updatedCard = screen.getAllByText(/completed@example\.com/)[0]?.closest('article')
     expect(updatedCard).not.toBeNull()
@@ -746,7 +746,7 @@ describe('TherapistSessionsView', () => {
     expect(
       within(updatedCard as HTMLElement)
         .queryAllByRole('button')
-        .some((button) => button.textContent?.includes('Завершити'))
+        .some((button) => button.textContent?.includes('Р—Р°РІРµСЂС€РёС‚Рё'))
     ).toBe(false)
     expect(mockedApiGet).toHaveBeenCalledTimes(4)
   })
@@ -791,7 +791,7 @@ describe('TherapistSessionsView', () => {
 
     const sessionCard = screen.getByText(/stale-complete@example\.com/).closest('article')
     expect(sessionCard).not.toBeNull()
-    const completionButton = within(sessionCard as HTMLElement).getByRole('button', { name: 'Завершити' })
+    const completionButton = within(sessionCard as HTMLElement).getByRole('button', { name: 'Р—Р°РІРµСЂС€РёС‚Рё' })
     if (!completionButton) {
       throw new Error('Complete button not found')
     }
@@ -805,7 +805,7 @@ describe('TherapistSessionsView', () => {
     })
     expect(document.querySelector('.form-error')).not.toBeNull()
     expect(mockedFetchSpecialistSessionNoteContent).not.toHaveBeenCalled()
-    expect(mockedFetchSpecialistClientJournalContent).not.toHaveBeenCalled()
+    expect(mockedFetchSpecialistClientWorkbookSnapshot).not.toHaveBeenCalled()
     expect(completionButton).not.toBeDisabled()
     expect(mockedApiGet).toHaveBeenCalledTimes(2)
   })
@@ -835,7 +835,7 @@ describe('TherapistSessionsView', () => {
       upcomingSessions = [{ ...confirmedSession, status: 'COMPLETED' }]
     })
     mockedFetchSpecialistSessionNoteContent.mockResolvedValue('Initial note')
-    mockedFetchSpecialistClientJournalContent.mockResolvedValue('Initial workbook')
+    mockedFetchSpecialistClientWorkbookSnapshot.mockResolvedValue({ content: 'Initial workbook', isMissing: false })
 
     renderView()
 
@@ -843,7 +843,7 @@ describe('TherapistSessionsView', () => {
     const sessionCard = screen.getByText(/keep-open@example\.com/).closest('article')
     expect(sessionCard).not.toBeNull()
     const completionButton = within(sessionCard as HTMLElement).getByRole('button', {
-      name: 'Завершити',
+      name: 'Р—Р°РІРµСЂС€РёС‚Рё',
     }) as HTMLButtonElement
     expect(completionButton).toBeTruthy()
     await fireEvent.click(completionButton)
@@ -898,7 +898,7 @@ describe('TherapistSessionsView', () => {
       upcomingSessions = [{ ...confirmedSession, status: 'COMPLETED' }]
     })
     mockedFetchSpecialistSessionNoteContent.mockResolvedValue('Initial guarded note')
-    mockedFetchSpecialistClientJournalContent.mockResolvedValue('Initial guarded workbook')
+    mockedFetchSpecialistClientWorkbookSnapshot.mockResolvedValue({ content: 'Initial guarded workbook', isMissing: false })
 
     const confirmSpy = vi.spyOn(window, 'confirm')
     confirmSpy.mockReturnValueOnce(false).mockReturnValueOnce(true)
@@ -909,7 +909,7 @@ describe('TherapistSessionsView', () => {
     const sessionCard = screen.getByText(/guarded@example\.com/).closest('article')
     expect(sessionCard).not.toBeNull()
     const completionButton = within(sessionCard as HTMLElement).getByRole('button', {
-      name: 'Завершити',
+      name: 'Р—Р°РІРµСЂС€РёС‚Рё',
     }) as HTMLButtonElement
     await fireEvent.click(completionButton)
     await fireEvent.click(screen.getByTestId('session-completion-submit'))
@@ -935,7 +935,7 @@ describe('TherapistSessionsView', () => {
       id: 13,
       status: 'CONFIRMED',
       client: 103,
-      client_name: 'Олена',
+      client_name: 'РћР»РµРЅР°',
       client_email: 'reschedule@example.com',
       slot: 203,
       slot_start_at: '2099-06-18T09:00:00Z',
@@ -990,13 +990,13 @@ describe('TherapistSessionsView', () => {
 
     const sessionCard = screen.getByText(/reschedule@example\.com/).closest('article')
     expect(sessionCard).not.toBeNull()
-    await fireEvent.click(within(sessionCard as HTMLElement).getByRole('button', { name: 'Перенести' }))
+    await fireEvent.click(within(sessionCard as HTMLElement).getByRole('button', { name: 'РџРµСЂРµРЅРµСЃС‚Рё' }))
 
-    expect(await screen.findByLabelText('Нове вільне віконце')).toBeInTheDocument()
+    expect(await screen.findByLabelText('РќРѕРІРµ РІС–Р»СЊРЅРµ РІС–РєРѕРЅС†Рµ')).toBeInTheDocument()
     expect(mockedFetchSpecialistRescheduleSuggestions).toHaveBeenCalledWith(13)
 
-    await fireEvent.update(screen.getByLabelText('Нове вільне віконце'), '401')
-    await fireEvent.click(screen.getByRole('button', { name: 'Підтвердити перенос' }))
+    await fireEvent.update(screen.getByLabelText('РќРѕРІРµ РІС–Р»СЊРЅРµ РІС–РєРѕРЅС†Рµ'), '401')
+    await fireEvent.click(screen.getByRole('button', { name: 'РџС–РґС‚РІРµСЂРґРёС‚Рё РїРµСЂРµРЅРѕСЃ' }))
 
     await waitFor(() => {
       expect(mockedRescheduleSpecialistSession).toHaveBeenCalledWith(13, 401)
@@ -1004,7 +1004,7 @@ describe('TherapistSessionsView', () => {
     })
 
     await waitFor(() => {
-      expect(screen.queryByLabelText('Нове вільне віконце')).not.toBeInTheDocument()
+      expect(screen.queryByLabelText('РќРѕРІРµ РІС–Р»СЊРЅРµ РІС–РєРѕРЅС†Рµ')).not.toBeInTheDocument()
     })
     expect(screen.getAllByText(formatSessionDateTime(nextSlot.start_at))).toHaveLength(2)
     expect(mockedFetchSpecialistAvailableSlots).toHaveBeenCalledTimes(2)
@@ -1016,7 +1016,7 @@ describe('TherapistSessionsView', () => {
       id: 12,
       status: 'CONFIRMED',
       client: 102,
-      client_name: 'Марія',
+      client_name: 'РњР°СЂС–СЏ',
       client_email: 'maria@example.com',
       slot: 202,
       slot_start_at: '2099-06-16T12:00:00Z',
@@ -1025,7 +1025,7 @@ describe('TherapistSessionsView', () => {
     const approvedRequest = buildRescheduleRequest({
       id: 51,
       session_id: 12,
-      client_name: 'Марія',
+      client_name: 'РњР°СЂС–СЏ',
       client_email: 'maria-request@example.com',
       status: 'APPROVED',
     })
@@ -1035,7 +1035,7 @@ describe('TherapistSessionsView', () => {
       requested_slot_id: 302,
       requested_slot_start_at: '2099-06-18T13:00:00Z',
       requested_slot_end_at: '2099-06-18T13:50:00Z',
-      client_name: 'Олена',
+      client_name: 'РћР»РµРЅР°',
       client_email: 'olena-request@example.com',
       status: 'PENDING',
     })
@@ -1137,7 +1137,7 @@ describe('TherapistSessionsView', () => {
     renderView()
 
     expect(await screen.findByText(/Display Session Client/)).toBeInTheDocument()
-    expect(screen.getByText(/Нотатку оновлено/)).toBeInTheDocument()
+    expect(screen.getByText(/РќРѕС‚Р°С‚РєСѓ РѕРЅРѕРІР»РµРЅРѕ/)).toBeInTheDocument()
     expect(screen.queryByText('Client #161')).not.toBeInTheDocument()
   })
 
@@ -1146,7 +1146,7 @@ describe('TherapistSessionsView', () => {
       id: 14,
       status: 'CONFIRMED',
       client: 104,
-      client_name: 'Ірина',
+      client_name: 'Р†СЂРёРЅР°',
       client_email: 'recurring@example.com',
       slot: 204,
       slot_start_at: '2099-07-01T08:00:00Z',
@@ -1183,25 +1183,26 @@ describe('TherapistSessionsView', () => {
 
     const sessionCard = screen.getByText(/recurring@example\.com/).closest('article')
     expect(sessionCard).not.toBeNull()
-    await fireEvent.click(within(sessionCard as HTMLElement).getByRole('button', { name: 'Повторювати щотижня' }))
+    await fireEvent.click(within(sessionCard as HTMLElement).getByRole('button', { name: 'РџРѕРІС‚РѕСЂСЋРІР°С‚Рё С‰РѕС‚РёР¶РЅСЏ' }))
 
-    expect(await screen.findByText('Кількість повторів')).toBeInTheDocument()
-    await fireEvent.click(screen.getByRole('button', { name: 'Створити серію' }))
+    expect(await screen.findByText('РљС–Р»СЊРєС–СЃС‚СЊ РїРѕРІС‚РѕСЂС–РІ')).toBeInTheDocument()
+    await fireEvent.click(screen.getByRole('button', { name: 'РЎС‚РІРѕСЂРёС‚Рё СЃРµСЂС–СЋ' }))
 
     await waitFor(() => {
       expect(mockedCreateRecurringSpecialistSessions).toHaveBeenCalledWith(14, 4)
-      expect(mockToast.success).toHaveBeenCalledWith('Створено 3 сесій, пропущено 1.')
+      expect(mockToast.success).toHaveBeenCalledWith('РЎС‚РІРѕСЂРµРЅРѕ 3 СЃРµСЃС–Р№, РїСЂРѕРїСѓС‰РµРЅРѕ 1.')
     })
 
-    expect(await screen.findByText('Створено 3 сесій')).toBeInTheDocument()
-    expect(screen.getByText('Пропущено 1 через конфлікти')).toBeInTheDocument()
+    expect(await screen.findByText('РЎС‚РІРѕСЂРµРЅРѕ 3 СЃРµСЃС–Р№')).toBeInTheDocument()
+    expect(screen.getByText('РџСЂРѕРїСѓС‰РµРЅРѕ 1 С‡РµСЂРµР· РєРѕРЅС„Р»С–РєС‚Рё')).toBeInTheDocument()
     expect(screen.getByText(formatSessionDateTime('2099-07-08T08:00:00Z'))).toBeInTheDocument()
     expect(
       screen.getByText(
-        `${formatSessionDateTime('2099-07-29T08:00:00Z')} - На цю дату вже немає вільного вікна`
+        `${formatSessionDateTime('2099-07-29T08:00:00Z')} - РќР° С†СЋ РґР°С‚Сѓ РІР¶Рµ РЅРµРјР°С” РІС–Р»СЊРЅРѕРіРѕ РІС–РєРЅР°`
       )
     ).toBeInTheDocument()
     expect(mockedFetchSpecialistAvailableSlots).toHaveBeenCalledTimes(2)
     expect(mockedApiGet).toHaveBeenCalledTimes(4)
   })
 })
+

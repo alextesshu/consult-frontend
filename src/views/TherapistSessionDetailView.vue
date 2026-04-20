@@ -222,6 +222,7 @@
           <div>
             <div class="badge badge--soft">Робочий простір</div>
             <h2 class="panel__title">Стан після сесії</h2>
+            <p class="muted workspace-panel__hint">Стани нижче показують саме наявність вмісту.</p>
           </div>
         </div>
 
@@ -247,7 +248,7 @@
           class="workspace-actions"
           data-testid="workspace-actions"
         >
-          <div class="workspace-actions__title">Потребує уваги</div>
+          <div class="workspace-actions__title">Рекомендовані дії</div>
           <button
             v-if="workspacePrimaryAction"
             class="btn btn--sm"
@@ -271,9 +272,7 @@
           </div>
         </div>
 
-        <div v-else class="muted" data-testid="workspace-no-pending">
-          Усі ключові кроки виконано або не потребують дій.
-        </div>
+        <div v-else class="muted" data-testid="workspace-no-pending">Немає рекомендованих дій у цьому блоці.</div>
       </section>
 
       <section ref="paymentPanelRef" class="panel">
@@ -834,7 +833,7 @@ const workspaceSummaryItems = computed<WorkspaceSummaryItem[]>(() => {
     items.push({
       key: 'workbook',
       title: 'Робочий зошит',
-      statusLabel: noteStateLabel(workbookState),
+      statusLabel: workbookStateLabel(workbookState),
       pillClass: noteStateClass(workbookState),
       updatedAtLabel: formatWorkspaceUpdatedAt(workspace.value.workbook_updated_at),
     })
@@ -946,10 +945,18 @@ function paymentStateClass(state: WorkspacePaymentState) {
 }
 
 function noteStateLabel(state: WorkspaceNoteState | WorkspaceWorkbookState) {
-  if (state === 'missing') return 'Потрібно створити'
+  if (state === 'missing') return 'Відсутня'
   if (state === 'draft') return 'Чернетка'
-  if (state === 'completed') return 'Заповнено'
-  if (state === 'hidden') return 'Недоступно'
+  if (state === 'completed') return 'Заповнена'
+  if (state === 'hidden') return 'Недоступна'
+  return state
+}
+
+function workbookStateLabel(state: WorkspaceWorkbookState) {
+  if (state === 'missing') return 'Відсутній'
+  if (state === 'draft') return 'Чернетка'
+  if (state === 'completed') return 'Заповнений'
+  if (state === 'hidden') return 'Недоступний'
   return state
 }
 
@@ -1617,6 +1624,10 @@ watch(
 
 .panel--workspace {
   background: linear-gradient(135deg, rgba(7, 47, 71, 0.06), rgba(8, 113, 201, 0.05));
+}
+
+.workspace-panel__hint {
+  margin: 6px 0 0;
 }
 
 .panel__header {

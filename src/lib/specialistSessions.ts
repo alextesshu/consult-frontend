@@ -330,12 +330,32 @@ export async function saveSpecialistSessionNote(sessionId: number, content: stri
 }
 
 export async function fetchSpecialistClientJournalContent(clientId: number) {
+  const snapshot = await fetchSpecialistClientWorkbookSnapshot(clientId)
+  return snapshot.content
+}
+
+export type SpecialistClientWorkbookSnapshot = {
+  content: string
+  isMissing: boolean
+}
+
+export async function fetchSpecialistClientWorkbookSnapshot(
+  clientId: number
+): Promise<SpecialistClientWorkbookSnapshot> {
   try {
-    const resp = await apiGet<{ content?: string } | null>(`/cabinet/clients/${clientId}/journal/`)
-    return resp?.content || ''
+    const resp = await apiGet<{ content?: string; is_missing?: boolean } | null>(
+      `/cabinet/clients/${clientId}/journal/`
+    )
+    const content = typeof resp?.content === 'string' ? resp.content : ''
+    const hasContent = Boolean(content.trim())
+    const isMissingFlag = resp?.is_missing === true
+    return {
+      content,
+      isMissing: isMissingFlag || !hasContent,
+    }
   } catch (err: any) {
     if (err?.response?.status === 404) {
-      return ''
+      return { content: '', isMissing: true }
     }
     throw err
   }
@@ -385,4 +405,3 @@ export async function approveSpecialistRescheduleRequest(requestId: number) {
 export async function declineSpecialistRescheduleRequest(requestId: number) {
   return apiPatch(`/cabinet/sessions/reschedule-requests/${requestId}/decline/`)
 }
-
