@@ -109,21 +109,26 @@ function buildWorkspace(overrides: Record<string, unknown> = {}) {
     workbook_updated_at: '2099-06-15T12:00:00Z',
     permissions: {
       can_edit_note: true,
-      can_open_workbook: true,
-      can_review_payment: true,
+      can_view_note: true,
+      can_edit_workbook: true,
+      can_view_workbook: true,
+      can_mark_payment_paid: true,
+      can_request_payment_proof: true,
+      can_request_payment_clarification: true,
+      can_upload_payment_proof: true,
     },
     available_action_items: [
-      { code: 'OPEN_NOTE', label: 'Open note' },
-      { code: 'OPEN_WORKBOOK', label: 'Open workbook' },
-      { code: 'REVIEW_PAYMENT', label: 'Review payment' },
+      { code: 'OPEN_NOTE', label: 'Open note', classification: 'capability', urgency: 'low', blocking_scope: 'workspace' },
+      { code: 'OPEN_WORKBOOK', label: 'Open workbook', classification: 'capability', urgency: 'low', blocking_scope: 'workspace' },
+      { code: 'REQUEST_PAYMENT_PROOF', label: 'Request payment', classification: 'capability', urgency: 'normal', blocking_scope: 'client' },
     ],
     pending_task_items: [
-      { code: 'OPEN_NOTE', label: 'Open note' },
-      { code: 'OPEN_WORKBOOK', label: 'Open workbook' },
-      { code: 'REVIEW_PAYMENT', label: 'Review payment' },
+      { code: 'COMPLETE_NOTE', label: 'Complete note', classification: 'recommended', urgency: 'normal', blocking_scope: 'workspace' },
+      { code: 'COMPLETE_WORKBOOK', label: 'Complete workbook', classification: 'recommended', urgency: 'normal', blocking_scope: 'workspace' },
+      { code: 'COMPLETE_PAYMENT_REVIEW', label: 'Complete payment review', classification: 'required', urgency: 'urgent', blocking_scope: 'session' },
     ],
-    available_actions: ['OPEN_NOTE', 'OPEN_WORKBOOK', 'REVIEW_PAYMENT'],
-    pending_tasks: ['OPEN_NOTE', 'OPEN_WORKBOOK', 'REVIEW_PAYMENT'],
+    available_actions: ['OPEN_NOTE', 'OPEN_WORKBOOK', 'REQUEST_PAYMENT_PROOF'],
+    pending_tasks: ['COMPLETE_NOTE', 'COMPLETE_WORKBOOK', 'COMPLETE_PAYMENT_REVIEW'],
     ...overrides,
   }
 }
@@ -428,8 +433,37 @@ describe('TherapistSessionDetailView', () => {
     expect(screen.getByTestId('workspace-summary-note')).toHaveTextContent('Відсутня')
     expect(screen.getByTestId('workspace-summary-workbook')).toHaveTextContent('Відсутній')
     expect(screen.getByTestId('workspace-actions')).toBeInTheDocument()
+    expect(screen.getByTestId('workspace-zone-required')).toBeInTheDocument()
+    expect(screen.getByTestId('workspace-zone-recommended')).toBeInTheDocument()
+    expect(screen.getByTestId('workspace-zone-capability')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Відкрити нотатку' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Відкрити робочий зошит' })).toBeInTheDocument()
+  })
+
+  it('groups pending actions by classification and does not infer required from priority', async () => {
+    const sessionDetail = buildSession({
+      status: 'COMPLETED',
+      workspace: buildWorkspace({
+        note_state: 'missing',
+        workbook_state: 'completed',
+        payment_state: 'paid',
+        pending_task_items: [
+          { code: 'OPEN_NOTE', label: 'Open note', priority: 'high' },
+          { code: 'COMPLETE_NOTE', label: 'Complete note', classification: 'required', urgency: 'low' },
+        ],
+        available_action_items: [],
+        pending_tasks: [],
+        available_actions: [],
+      }),
+    })
+    mockDetailContext(() => sessionDetail, { requests: [] })
+    renderView()
+
+    expect(await screen.findByTestId('session-workspace')).toBeInTheDocument()
+    expect(screen.getByTestId('workspace-zone-required')).toBeInTheDocument()
+    expect(screen.getByTestId('workspace-zone-recommended')).toBeInTheDocument()
+    expect(screen.getByTestId('workspace-action-complete_note')).toBeInTheDocument()
+    expect(screen.getByTestId('workspace-action-open_note')).toBeInTheDocument()
   })
 
   it('uses continue semantics for note draft and keeps workbook pending action', async () => {
@@ -1557,6 +1591,4 @@ describe('TherapistSessionDetailView', () => {
     expect(endpointCalls('/booking/sessions/42/')).toBe(2)
   })
 })
-
-
 
