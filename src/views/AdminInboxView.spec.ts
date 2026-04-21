@@ -54,6 +54,7 @@ const baseItem = {
     display_name: 'Олена К.',
   },
   payload: {
+    billing_access_request_id: 77,
     current_plan: 'START',
     requested_plan: 'PRO',
     created_at: '2026-04-21T08:00:00Z',
@@ -72,6 +73,16 @@ async function renderView(initialPath = '/admin/inbox') {
       {
         path: '/admin/inbox/:id(\\d+)',
         name: 'admin-inbox-item',
+        component: AdminInboxView,
+      },
+      {
+        path: '/admin/billing-access-requests',
+        name: 'admin-billing-access-requests',
+        component: AdminInboxView,
+      },
+      {
+        path: '/admin/billing-access-requests/:id(\\d+)',
+        name: 'admin-billing-access-request-detail',
         component: AdminInboxView,
       },
     ],
@@ -136,6 +147,9 @@ describe('AdminInboxView', () => {
     expect(screen.getByText(/START/)).toBeInTheDocument()
     expect(screen.getByText(/Запитаний план:/)).toBeInTheDocument()
     expect(screen.getByText(/PRO/)).toBeInTheDocument()
+
+    const operationalLink = screen.getByRole('link', { name: 'Відкрити billing handling' })
+    expect(operationalLink).toHaveAttribute('href', '/admin/billing-access-requests/77')
   })
 
   it('marks unread item as read and refreshes list without page reload', async () => {

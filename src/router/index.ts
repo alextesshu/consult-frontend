@@ -44,6 +44,8 @@ import ExternalSessionDetailView from '../views/ExternalSessionDetailView.vue'
 import ExternalGuestSessionInviteView from '../views/ExternalGuestSessionInviteView.vue'
 import SpecialistPracticeBoardView from '../views/SpecialistPracticeBoardView.vue'
 import AdminInboxView from '../views/AdminInboxView.vue'
+import AdminBillingAccessRequestsView from '../views/AdminBillingAccessRequestsView.vue'
+import AdminBillingAccessRequestDetailView from '../views/AdminBillingAccessRequestDetailView.vue'
 import { useAuthStore } from '../stores/auth'
 import { fetchSpecialistProfile } from '../lib/api'
 import { hasSpecialistRole, isSpecialistCriticalReconcileRoute } from '../lib/entitlementReconcile'
@@ -71,6 +73,18 @@ const routes = [
     path: '/admin/inbox/:id(\\d+)',
     name: 'admin-inbox-item',
     component: AdminInboxView,
+    meta: { requiresAuth: true, requiresRole: 'ADMIN' },
+  },
+  {
+    path: '/admin/billing-access-requests',
+    name: 'admin-billing-access-requests',
+    component: AdminBillingAccessRequestsView,
+    meta: { requiresAuth: true, requiresRole: 'ADMIN' },
+  },
+  {
+    path: '/admin/billing-access-requests/:id(\\d+)',
+    name: 'admin-billing-access-request-detail',
+    component: AdminBillingAccessRequestDetailView,
     meta: { requiresAuth: true, requiresRole: 'ADMIN' },
   },
   {

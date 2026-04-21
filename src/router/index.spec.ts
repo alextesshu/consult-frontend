@@ -53,6 +53,17 @@ describe('router specialist session routes', () => {
     expect(invalidDetail.name).not.toBe('cabinet-external-session-detail')
   })
 
+  it('matches admin billing request routes and rejects non-numeric detail id', () => {
+    const list = router.resolve('/admin/billing-access-requests')
+    const detail = router.resolve('/admin/billing-access-requests/33')
+    const invalidDetail = router.resolve('/admin/billing-access-requests/nope')
+
+    expect(list.name).toBe('admin-billing-access-requests')
+    expect(detail.name).toBe('admin-billing-access-request-detail')
+    expect(detail.params).toEqual({ id: '33' })
+    expect(invalidDetail.name).not.toBe('admin-billing-access-request-detail')
+  })
+
   it('matches specialist practice board route', () => {
     const resolved = router.resolve('/cabinet/practice-board')
 

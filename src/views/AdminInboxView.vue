@@ -8,6 +8,9 @@
           Операційна стрічка для запитів, які потребують дій адміністратора.
         </p>
       </div>
+      <RouterLink class="btn btn--ghost" to="/admin/billing-access-requests">
+        Billing access requests
+      </RouterLink>
     </header>
 
     <section class="panel admin-inbox__counters" aria-label="Лічильники inbox">
@@ -113,6 +116,13 @@
 
           <div class="inbox-item__actions">
             <RouterLink class="btn btn--ghost btn--sm" :to="`/admin/inbox/${item.id}`">Відкрити запит</RouterLink>
+            <RouterLink
+              v-if="billingRequestRoute(item)"
+              class="btn btn--ghost btn--sm"
+              :to="billingRequestRoute(item)"
+            >
+              Відкрити billing handling
+            </RouterLink>
             <button
               v-if="canMarkRead(item)"
               class="btn btn--ghost btn--sm"
@@ -168,10 +178,13 @@
         <div><strong>Статус:</strong> {{ statusLabel(selectedItem.status) }}</div>
         <div><strong>Створено:</strong> {{ formatDate(selectedItem.created_at) }}</div>
         <div><strong>Повідомлення:</strong> {{ selectedItem.message || '—' }}</div>
-        <div class="muted">
-          Окремий deep-link до суміжного billing request UI ще відсутній у фронтенді. Поточний operational CTA: деталі
-          inbox item + статусні дії.
-        </div>
+        <RouterLink
+          v-if="billingRequestRoute(selectedItem)"
+          class="btn btn--ghost btn--sm"
+          :to="billingRequestRoute(selectedItem)"
+        >
+          Перейти до billing handling
+        </RouterLink>
       </div>
     </section>
   </section>
@@ -300,6 +313,20 @@ function pickText(payload: Record<string, unknown>, keys: string[], fallback = '
   return fallback
 }
 
+function pickNumber(payload: Record<string, unknown>, keys: string[]) {
+  for (const key of keys) {
+    const value = payload[key]
+    if (typeof value === 'number' && Number.isInteger(value) && value > 0) return value
+    if (typeof value === 'string' && /^\\d+$/.test(value.trim())) return Number(value.trim())
+    if (value && typeof value === 'object' && 'id' in value) {
+      const idValue = (value as { id?: unknown }).id
+      if (typeof idValue === 'number' && Number.isInteger(idValue) && idValue > 0) return idValue
+      if (typeof idValue === 'string' && /^\\d+$/.test(idValue.trim())) return Number(idValue.trim())
+    }
+  }
+  return null
+}
+
 function billingSummary(item: AdminInboxItem): BillingSummary {
   const payload = relatedPayload(item)
   const requester =
@@ -312,6 +339,43 @@ function billingSummary(item: AdminInboxItem): BillingSummary {
     requestedPlan: pickText(payload, ['requested_plan', 'target_plan', 'plan'], 'Невідомо'),
     createdAt: pickText(payload, ['created_at', 'request_created_at'], item.created_at) || item.created_at,
   }
+}
+
+function billingRequestId(item: AdminInboxItem) {
+  if (item.code !== 'BILLING_ACCESS_REQUEST_CREATED') return null
+
+  const payload = relatedPayload(item)
+  const fromPayload = pickNumber(payload, [
+    'billing_access_request_id',
+    'billing_request_id',
+    'request_id',
+    'target_id',
+    'billing_access_request',
+    'request',
+  ])
+  if (fromPayload) return fromPayload
+
+  const related = item.related_object
+  if (related && typeof related === 'object') {
+    const relatedType = String(related.type || related.code || '').trim().toUpperCase()
+    const relatedId =
+      typeof related.id === 'number'
+        ? related.id
+        : typeof related.id === 'string' && /^\\d+$/.test(related.id.trim())
+          ? Number(related.id.trim())
+          : null
+    if (relatedId && (!relatedType || relatedType.includes('BILLING_ACCESS_REQUEST'))) {
+      return relatedId
+    }
+  }
+
+  return null
+}
+
+function billingRequestRoute(item: AdminInboxItem) {
+  const requestId = billingRequestId(item)
+  if (!requestId) return ''
+  return `/admin/billing-access-requests/${requestId}`
 }
 
 function relatedSummary(item: AdminInboxItem) {
@@ -434,6 +498,10 @@ onMounted(async () => {
 
 .admin-inbox__hero {
   background: linear-gradient(135deg, rgba(8, 113, 201, 0.14), rgba(7, 47, 71, 0.06));
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
 }
 
 .admin-inbox__title {
@@ -591,6 +659,11 @@ onMounted(async () => {
 }
 
 @media (max-width: 840px) {
+  .admin-inbox__hero {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
   .admin-inbox__counters {
     grid-template-columns: 1fr;
   }

@@ -341,6 +341,59 @@ export type AdminInboxListResponse = {
   items?: AdminInboxItem[]
 }
 
+export type AdminBillingAccessRequestStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | string
+
+export type AdminBillingAccessRequestInboxItem = {
+  id: number
+  code?: string | null
+  status?: string | null
+  title?: string | null
+  created_at?: string | null
+}
+
+export type AdminBillingAccessRequestInboxRelation = {
+  linked_items_count?: number | null
+  open_items_count?: number | null
+  has_open_items?: boolean | null
+  items?: AdminBillingAccessRequestInboxItem[] | null
+}
+
+export type AdminBillingAccessRequestUserSummary = {
+  id?: number | null
+  username?: string | null
+  email?: string | null
+  display_name?: string | null
+  full_name?: string | null
+}
+
+export type AdminBillingAccessRequestSpecialistSummary = {
+  id?: number | null
+  slug?: string | null
+  display_name?: string | null
+}
+
+export type AdminBillingAccessRequest = {
+  id: number
+  status: AdminBillingAccessRequestStatus
+  requested_plan?: string | null
+  current_plan?: string | null
+  note?: string | null
+  admin_note?: string | null
+  created_at?: string | null
+  updated_at?: string | null
+  decided_at?: string | null
+  user?: AdminBillingAccessRequestUserSummary | null
+  specialist?: AdminBillingAccessRequestSpecialistSummary | null
+  inbox_relation?: AdminBillingAccessRequestInboxRelation | null
+  metadata?: Record<string, unknown> | null
+}
+
+export type AdminBillingAccessRequestListResponse = {
+  count?: number
+  results?: AdminBillingAccessRequest[]
+  items?: AdminBillingAccessRequest[]
+}
+
 export type SpecialistProfileDocument = {
   id: number
   title: string
@@ -1093,6 +1146,47 @@ export async function resolveAdminInboxItem(itemId: number): Promise<AdminInboxI
 
 export async function dismissAdminInboxItem(itemId: number): Promise<AdminInboxItem> {
   const resp = await http.post<AdminInboxItem>(`/admin/inbox/${itemId}/dismiss/`, {})
+  return resp.data
+}
+
+export async function fetchAdminBillingAccessRequests(): Promise<AdminBillingAccessRequestListResponse> {
+  const resp = await http.get<AdminBillingAccessRequest[] | AdminBillingAccessRequestListResponse>(
+    '/admin/billing-access-requests/'
+  )
+  const payload = resp.data
+  if (Array.isArray(payload)) {
+    return {
+      count: payload.length,
+      results: payload,
+    }
+  }
+  return payload || { count: 0, results: [] }
+}
+
+export async function fetchAdminBillingAccessRequest(
+  requestId: number
+): Promise<AdminBillingAccessRequest> {
+  const resp = await http.get<AdminBillingAccessRequest>(`/admin/billing-access-requests/${requestId}/`)
+  return resp.data
+}
+
+export async function approveAdminBillingAccessRequest(
+  requestId: number
+): Promise<AdminBillingAccessRequest> {
+  const resp = await http.post<AdminBillingAccessRequest>(
+    `/admin/billing-access-requests/${requestId}/approve/`,
+    {}
+  )
+  return resp.data
+}
+
+export async function rejectAdminBillingAccessRequest(
+  requestId: number
+): Promise<AdminBillingAccessRequest> {
+  const resp = await http.post<AdminBillingAccessRequest>(
+    `/admin/billing-access-requests/${requestId}/reject/`,
+    {}
+  )
   return resp.data
 }
 
