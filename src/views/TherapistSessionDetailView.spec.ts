@@ -863,6 +863,43 @@ describe('TherapistSessionDetailView', () => {
     expect(screen.queryByRole('button', { name: 'COMPLETE_PAYMENT_REVIEW' })).not.toBeInTheDocument()
   })
 
+  it('renders localized labels for known workspace action codes and hides raw or legacy english labels', async () => {
+    const sessionDetail = buildSession({
+      status: 'COMPLETED',
+      workspace: buildWorkspace({
+        note_state: 'missing',
+        workbook_state: 'missing',
+        payment_state: 'awaiting_confirmation',
+        pending_task_items: [
+          { code: 'COMPLETE_PAYMENT_REVIEW', label: 'COMPLETE_PAYMENT_REVIEW', classification: 'required' },
+          { code: 'COMPLETE_NOTE', label: 'COMPLETE_NOTE', classification: 'recommended' },
+          { code: 'COMPLETE_WORKBOOK', label: 'Complete workbook', classification: 'recommended' },
+        ],
+        available_action_items: [
+          { code: 'MARK_PAYMENT_PAID', label: 'Mark payment paid', classification: 'capability' },
+          { code: 'REQUEST_PAYMENT_PROOF', label: 'REQUEST_PAYMENT_PROOF', classification: 'capability' },
+        ],
+        pending_tasks: [],
+        available_actions: [],
+      }),
+    })
+    mockDetailContext(() => sessionDetail, { requests: [] })
+    renderView()
+
+    expect(await screen.findByTestId('session-workspace')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Перевірити оплату' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Заповнити нотатку' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Заповнити робочий зошит' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Позначити як оплачено' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Запросити підтвердження оплати' })).toBeInTheDocument()
+
+    expect(screen.queryByRole('button', { name: 'COMPLETE_PAYMENT_REVIEW' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'COMPLETE_NOTE' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Complete workbook' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Mark payment paid' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'REQUEST_PAYMENT_PROOF' })).not.toBeInTheDocument()
+  })
+
   it('falls back to localized label for english capability labels', async () => {
     const sessionDetail = buildSession({
       status: 'COMPLETED',

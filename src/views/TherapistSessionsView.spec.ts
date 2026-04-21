@@ -363,6 +363,7 @@ describe('TherapistSessionsView', () => {
     const paidHistoryCard = screen.getByText(/paid-history@example\.com/).closest('article')
     expect(paidHistoryCard).not.toBeNull()
     expect(within(paidHistoryCard as HTMLElement).getByText('Оплачено')).toBeInTheDocument()
+    expect(within(paidHistoryCard as HTMLElement).getByText('Оплачено')).toHaveClass('status-pill--payment-paid')
     expect(within(paidHistoryCard as HTMLElement).getByText('Завершено')).toBeInTheDocument()
   })
 

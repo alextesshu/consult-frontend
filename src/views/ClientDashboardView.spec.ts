@@ -773,6 +773,124 @@ describe('ClientDashboardView', () => {
     ).toBeInTheDocument()
   })
 
+  it('renders payment badges in upcoming and past client cards with expected labels and classes', async () => {
+    mockedFetchPublicSpecialistProfile.mockImplementation(async (slug) => ({
+      therapist_id: 100,
+      public_slug: String(slug),
+      display_name: String(slug),
+      location: '',
+      languages: [],
+      photo_url: '',
+      price: '',
+      price_currency: 'UAH',
+      intro_price: '',
+      intro_price_currency: 'UAH',
+    } as any))
+
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/booking/sessions/' && config?.params?.upcoming === true) {
+        return [
+          {
+            id: 991,
+            status: 'SCHEDULED',
+            specialist: 14,
+            specialist_name: 'Paid upcoming',
+            specialist_public_slug: 'olena',
+            meeting_url: null,
+            meeting_provider: null,
+            payment_badge_state: 'paid',
+            slot: null,
+            slot_start_at: '2099-06-15T10:00:00Z',
+            slot_end_at: '2099-06-15T11:00:00Z',
+          },
+          {
+            id: 992,
+            status: 'CONFIRMED',
+            specialist: 15,
+            specialist_name: 'Awaiting upcoming',
+            specialist_public_slug: 'ivan',
+            meeting_url: null,
+            meeting_provider: null,
+            payment_badge_state: 'awaiting_confirmation',
+            slot: null,
+            slot_start_at: '2099-06-16T10:00:00Z',
+            slot_end_at: '2099-06-16T11:00:00Z',
+          },
+          {
+            id: 993,
+            status: 'CONFIRMED',
+            specialist: 16,
+            specialist_name: 'Unpaid upcoming',
+            specialist_public_slug: 'maria',
+            meeting_url: null,
+            meeting_provider: null,
+            payment_badge_state: 'unpaid',
+            slot: null,
+            slot_start_at: '2099-06-17T10:00:00Z',
+            slot_end_at: '2099-06-17T11:00:00Z',
+          },
+        ]
+      }
+      if (url === '/booking/sessions/' && config?.params?.upcoming === false) {
+        return [
+          {
+            id: 994,
+            status: 'COMPLETED',
+            specialist: 17,
+            specialist_name: 'Paid past',
+            specialist_public_slug: 'nina',
+            meeting_url: null,
+            meeting_provider: null,
+            payment_badge_state: 'paid',
+            slot: null,
+            slot_start_at: '2099-05-15T10:00:00Z',
+            slot_end_at: '2099-05-15T11:00:00Z',
+          },
+        ]
+      }
+      if (url === '/booking/group-events/') {
+        return []
+      }
+      throw new Error(`Unexpected apiGet call: ${url} ${JSON.stringify(config)}`)
+    })
+
+    renderView()
+
+    const paidUpcomingCard = (await screen.findAllByText(/Paid upcoming/))
+      .map((node) => node.closest('li'))
+      .find((node) => Boolean(node && node.classList.contains('session-item'))) || null
+    expect(paidUpcomingCard).not.toBeNull()
+    expect(within(paidUpcomingCard as HTMLElement).getByText('\u041e\u043f\u043b\u0430\u0447\u0435\u043d\u043e')).toHaveClass(
+      'status-pill--payment-paid'
+    )
+
+    const awaitingUpcomingCard = (await screen.findAllByText(/Awaiting upcoming/))
+      .map((node) => node.closest('li'))
+      .find((node) => Boolean(node && node.classList.contains('session-item'))) || null
+    expect(awaitingUpcomingCard).not.toBeNull()
+    expect(
+      within(awaitingUpcomingCard as HTMLElement).getByText(
+        '\u041e\u0447\u0456\u043a\u0443\u0454 \u043f\u0456\u0434\u0442\u0432\u0435\u0440\u0434\u0436\u0435\u043d\u043d\u044f \u043e\u043f\u043b\u0430\u0442\u0438'
+      )
+    ).toHaveClass('status-pill--payment-awaiting')
+
+    const unpaidUpcomingCard = (await screen.findAllByText(/Unpaid upcoming/))
+      .map((node) => node.closest('li'))
+      .find((node) => Boolean(node && node.classList.contains('session-item'))) || null
+    expect(unpaidUpcomingCard).not.toBeNull()
+    expect(
+      within(unpaidUpcomingCard as HTMLElement).getByText('\u041d\u0435 \u043e\u043f\u043b\u0430\u0447\u0435\u043d\u043e')
+    ).toHaveClass('status-pill--payment-unpaid')
+
+    const paidPastCard = (await screen.findAllByText(/Paid past/))
+      .map((node) => node.closest('li'))
+      .find((node) => Boolean(node && node.classList.contains('session-item'))) || null
+    expect(paidPastCard).not.toBeNull()
+    expect(within(paidPastCard as HTMLElement).getByText('\u041e\u043f\u043b\u0430\u0447\u0435\u043d\u043e')).toHaveClass(
+      'status-pill--payment-paid'
+    )
+  })
+
   it('keeps clear hero/tips CTAs when specialists are already selected', async () => {
     localStorage.setItem(
       'selectedSpecialists',
