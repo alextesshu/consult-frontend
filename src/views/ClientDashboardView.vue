@@ -252,14 +252,18 @@
       <div v-if="viewedSpecialists.length === 0" class="muted">
         Ви ще не переглядали профілі спеціалістів.
       </div>
-      <div v-else class="therapist-grid" :class="{ 'therapist-grid--compact': viewedSpecialists.length === 1 }">
+      <div
+        v-else
+        class="therapist-grid therapist-grid--viewed"
+        :class="{ 'therapist-grid--compact': viewedSpecialists.length === 1 }"
+      >
         <RouterLink
           v-for="therapist in viewedSpecialists"
           :key="therapist.public_slug"
-          class="therapist-card"
+          class="therapist-card therapist-card--viewed"
           :to="`/s/${therapist.public_slug}`"
         >
-          <div class="therapist-photo-link">
+          <div class="therapist-photo-link therapist-photo-link--viewed">
             <img
               v-if="therapist.photo_url"
               :src="therapist.photo_url"
@@ -269,16 +273,14 @@
             />
             <div v-else class="therapist-photo therapist-photo--empty">Фото</div>
           </div>
-          <div class="therapist-info">
-            <div class="therapist-name">{{ publicName(therapist.display_name) }}</div>
-            <div class="muted meta-line">
-              <span v-if="therapist.location">{{ therapist.location }}</span>
-              <span v-if="languageLabel(therapist.languages)">
-                {{ languageLabel(therapist.languages) }}
-              </span>
+          <div class="therapist-info therapist-info--viewed">
+            <div class="therapist-name therapist-name--viewed">{{ publicName(therapist.display_name) }}</div>
+            <div v-if="therapist.location" class="muted therapist-meta-line">{{ therapist.location }}</div>
+            <div v-if="languageLabel(therapist.languages)" class="muted therapist-meta-line">
+              {{ languageLabel(therapist.languages) }}
             </div>
-          <div v-if="priceLabel(therapist)" class="therapist-price">{{ priceLabel(therapist) }}</div>
-        </div>
+          </div>
+          <div v-if="priceLabel(therapist)" class="therapist-price therapist-price--viewed">{{ priceLabel(therapist) }}</div>
         </RouterLink>
       </div>
     </div>
@@ -1440,6 +1442,11 @@ onBeforeUnmount(() => {
   display: block;
 }
 
+.therapist-photo-link--viewed {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+}
+
 .therapist-photo {
   width: 100%;
   height: 100%;
@@ -1451,11 +1458,21 @@ onBeforeUnmount(() => {
 .therapist-photo--empty {
   display: grid;
   place-items: center;
-  background: rgba(7, 47, 71, 0.06);
-  color: var(--muted);
+  background:
+    linear-gradient(140deg, rgba(20, 76, 109, 0.12), rgba(20, 76, 109, 0.04)),
+    repeating-linear-gradient(
+      -45deg,
+      rgba(20, 76, 109, 0.03) 0,
+      rgba(20, 76, 109, 0.03) 8px,
+      rgba(20, 76, 109, 0.07) 8px,
+      rgba(20, 76, 109, 0.07) 16px
+    );
+  color: #355262;
   width: 100%;
   height: 100%;
   font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
 }
 
 .therapist-info {
@@ -1463,14 +1480,35 @@ onBeforeUnmount(() => {
   gap: 6px;
 }
 
+.therapist-info--viewed {
+  align-content: start;
+  min-width: 0;
+}
+
 .therapist-name {
   font-weight: 600;
+}
+
+.therapist-name--viewed {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.35;
 }
 
 .meta-line {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+}
+
+.therapist-meta-line {
+  font-size: 13px;
+  line-height: 1.35;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .meta-line span + span::before {
@@ -1480,6 +1518,12 @@ onBeforeUnmount(() => {
 
 .therapist-price {
   font-weight: 600;
+}
+
+.therapist-price--viewed {
+  margin-top: auto;
+  padding-top: 10px;
+  border-top: 1px solid rgba(20, 76, 109, 0.12);
 }
 
 .therapist-price--intro {
@@ -1520,12 +1564,32 @@ onBeforeUnmount(() => {
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
+.therapist-grid--viewed {
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(252px, 1fr));
+}
+
+.therapist-card--viewed {
+  grid-template-columns: 1fr;
+  grid-template-rows: auto auto 1fr;
+  gap: 12px;
+  min-width: 0;
+}
+
 .therapist-grid--compact {
   grid-template-columns: minmax(360px, 520px);
 }
 
 .therapist-grid--compact .therapist-card {
   max-width: 520px;
+}
+
+.therapist-grid--viewed.therapist-grid--compact {
+  grid-template-columns: minmax(252px, 360px);
+}
+
+.therapist-grid--viewed.therapist-grid--compact .therapist-card--viewed {
+  max-width: 360px;
 }
 
 .session-list {
@@ -1623,6 +1687,10 @@ onBeforeUnmount(() => {
   .therapist-card {
     grid-template-columns: 1fr;
   }
+
+  .therapist-grid--viewed {
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  }
 }
 
 @media (max-width: 640px) {
@@ -1646,6 +1714,11 @@ onBeforeUnmount(() => {
     width: 100%;
     max-width: 100%;
     justify-content: center;
+  }
+
+  .therapist-grid--viewed,
+  .therapist-grid--viewed.therapist-grid--compact {
+    grid-template-columns: 1fr;
   }
 }
 </style>
