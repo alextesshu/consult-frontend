@@ -310,22 +310,27 @@ const roles = computed(() => {
 })
 const isSpecialist = computed(() => roles.value.includes('SPECIALIST') || roles.value.includes('THERAPIST'))
 const isClient = computed(() => roles.value.includes('CLIENT'))
-const hasSupportedCabinetRole = computed(() => isSpecialist.value || isClient.value)
+const isAdmin = computed(() => roles.value.includes('ADMIN') || roles.value.includes('SUPERADMIN'))
+const hasSupportedCabinetRole = computed(() => isSpecialist.value || isClient.value || isAdmin.value)
 const isChatCapable = computed(() => isSpecialist.value || isClient.value)
 watchEffect(() => {
   const path = route.path || ''
   const role =
-    isSpecialist.value && (path.startsWith('/cabinet') || path.startsWith('/public'))
-      ? 'specialist'
-      : 'client'
+    isAdmin.value && path.startsWith('/admin')
+      ? 'admin'
+      : isSpecialist.value && (path.startsWith('/cabinet') || path.startsWith('/public'))
+        ? 'specialist'
+        : 'client'
   document.documentElement.setAttribute('data-role', role)
 })
 const cabinetRoute = computed(() => {
+  if (isAdmin.value) return '/admin/inbox'
   if (isSpecialist.value) return '/cabinet'
   if (isClient.value) return '/client'
   return '/403'
 })
 const cabinetLabel = computed(() => {
+  if (isAdmin.value) return 'Admin Inbox'
   if (isSpecialist.value) return 'Мій кабінет'
   if (isClient.value) return 'Кабінет'
   return 'Кабінет'

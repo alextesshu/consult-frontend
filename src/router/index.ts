@@ -43,6 +43,7 @@ import ExternalSessionsView from '../views/ExternalSessionsView.vue'
 import ExternalSessionDetailView from '../views/ExternalSessionDetailView.vue'
 import ExternalGuestSessionInviteView from '../views/ExternalGuestSessionInviteView.vue'
 import SpecialistPracticeBoardView from '../views/SpecialistPracticeBoardView.vue'
+import AdminInboxView from '../views/AdminInboxView.vue'
 import { useAuthStore } from '../stores/auth'
 import { fetchSpecialistProfile } from '../lib/api'
 import { hasSpecialistRole, isSpecialistCriticalReconcileRoute } from '../lib/entitlementReconcile'
@@ -59,6 +60,18 @@ const routes = [
     name: 'guest-external-session',
     component: ExternalGuestSessionInviteView,
     meta: { minimalShell: true },
+  },
+  {
+    path: '/admin/inbox',
+    name: 'admin-inbox',
+    component: AdminInboxView,
+    meta: { requiresAuth: true, requiresRole: 'ADMIN' },
+  },
+  {
+    path: '/admin/inbox/:id(\\d+)',
+    name: 'admin-inbox-item',
+    component: AdminInboxView,
+    meta: { requiresAuth: true, requiresRole: 'ADMIN' },
   },
   {
     path: '/cabinet',
@@ -390,14 +403,17 @@ router.beforeEach(async (to) => {
   const auth = useAuthStore()
   const getRoles = () => auth.me?.user.roles ?? auth.user?.roles ?? []
   const hasRole = (role: string) => getRoles().includes(role)
+  const hasAdminRole = () => hasRole('ADMIN') || hasRole('SUPERADMIN')
   const hasSpecialistRole = () => hasRole('SPECIALIST') || hasRole('THERAPIST')
   const roleMatches = (role: string) => {
     if (role === 'SPECIALIST') return hasSpecialistRole()
+    if (role === 'ADMIN') return hasAdminRole()
     return hasRole(role)
   }
   const defaultRoute = () => {
     if (hasSpecialistRole()) return { name: 'cabinet' }
     if (hasRole('CLIENT')) return { name: 'client-dashboard' }
+    if (hasAdminRole()) return { name: 'admin-inbox' }
     return { name: 'forbidden' }
   }
   let loadedMeInGuard = false

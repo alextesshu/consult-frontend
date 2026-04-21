@@ -289,6 +289,58 @@ export type BillingCheckoutSession = {
   message: string
 }
 
+export type AdminInboxItemStatus =
+  | 'UNREAD'
+  | 'OPEN'
+  | 'RESOLVED'
+  | 'DISMISSED'
+  | string
+
+export type AdminInboxActor = {
+  id?: number | null
+  username?: string | null
+  email?: string | null
+  display_name?: string | null
+  full_name?: string | null
+}
+
+export type AdminInboxRelatedObject = {
+  id?: number | string | null
+  type?: string | null
+  code?: string | null
+  title?: string | null
+  name?: string | null
+  status?: string | null
+  summary?: string | null
+  [key: string]: unknown
+}
+
+export type AdminInboxItem = {
+  id: number
+  code: string
+  status: AdminInboxItemStatus
+  title: string
+  message: string
+  created_at: string
+  read_at?: string | null
+  started_at?: string | null
+  resolved_at?: string | null
+  dismissed_at?: string | null
+  created_by?: AdminInboxActor | null
+  related_object?: AdminInboxRelatedObject | null
+  payload?: Record<string, unknown> | null
+  data?: Record<string, unknown> | null
+  metadata?: Record<string, unknown> | null
+}
+
+export type AdminInboxListResponse = {
+  count: number
+  unread_count: number
+  open_count: number
+  results?: AdminInboxItem[]
+  items?: AdminInboxItem[]
+}
+
 export type SpecialistProfileDocument = {
   id: number
   title: string
@@ -1011,6 +1063,36 @@ export async function markNotificationRead(payload: {
 
 export async function markAllNotificationsRead(): Promise<NotificationReadAllResponse> {
   const resp = await http.post<NotificationReadAllResponse>('/notifications/read-all/', {})
+  return resp.data
+}
+
+export async function fetchAdminInbox(): Promise<AdminInboxListResponse> {
+  const resp = await http.get<AdminInboxListResponse>('/admin/inbox/')
+  return resp.data
+}
+
+export async function fetchAdminInboxItem(itemId: number): Promise<AdminInboxItem> {
+  const resp = await http.get<AdminInboxItem>(`/admin/inbox/${itemId}/`)
+  return resp.data
+}
+
+export async function markAdminInboxItemRead(itemId: number): Promise<AdminInboxItem> {
+  const resp = await http.post<AdminInboxItem>(`/admin/inbox/${itemId}/read/`, {})
+  return resp.data
+}
+
+export async function startAdminInboxItem(itemId: number): Promise<AdminInboxItem> {
+  const resp = await http.post<AdminInboxItem>(`/admin/inbox/${itemId}/start/`, {})
+  return resp.data
+}
+
+export async function resolveAdminInboxItem(itemId: number): Promise<AdminInboxItem> {
+  const resp = await http.post<AdminInboxItem>(`/admin/inbox/${itemId}/resolve/`, {})
+  return resp.data
+}
+
+export async function dismissAdminInboxItem(itemId: number): Promise<AdminInboxItem> {
+  const resp = await http.post<AdminInboxItem>(`/admin/inbox/${itemId}/dismiss/`, {})
   return resp.data
 }
 
