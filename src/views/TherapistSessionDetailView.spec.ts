@@ -329,22 +329,25 @@ describe('TherapistSessionDetailView', () => {
       specialist_can_request_clarification_now: false,
       specialist_can_request_proof_now: true,
     }
-    const sessionDetail = buildSession({
+    let sessionDetail = buildSession({
       status: 'SCHEDULED',
       payment_proof: initialPaymentProof,
     })
     mockDetailContext(() => sessionDetail, { requests: [] })
 
-    mockedRequestSessionPaymentProof.mockResolvedValue({
+    const requestedProof = {
       ...initialPaymentProof,
       status: 'REQUESTED',
       specialist_can_request_proof_now: true,
-    } as any)
-    mockedFetchSessionPaymentProof.mockResolvedValue({
-      ...initialPaymentProof,
-      status: 'REQUESTED',
-      specialist_can_request_proof_now: true,
-    } as any)
+    }
+    mockedRequestSessionPaymentProof.mockImplementation(async () => {
+      sessionDetail = buildSession({
+        status: 'SCHEDULED',
+        payment_proof: requestedProof,
+      })
+      return requestedProof as any
+    })
+    mockedFetchSessionPaymentProof.mockResolvedValue(requestedProof as any)
 
     renderView()
 
@@ -388,13 +391,19 @@ describe('TherapistSessionDetailView', () => {
       specialist_can_request_proof_now: false,
     }
 
-    const sessionDetail = buildSession({
+    let sessionDetail = buildSession({
       status: 'CONFIRMED',
       payment_proof: initialPaymentProof,
     })
     mockDetailContext(() => sessionDetail, { requests: [] })
 
-    mockedMarkSessionPaymentProofPaid.mockResolvedValue(markedPaidProof as any)
+    mockedMarkSessionPaymentProofPaid.mockImplementation(async () => {
+      sessionDetail = buildSession({
+        status: 'CONFIRMED',
+        payment_proof: markedPaidProof,
+      })
+      return markedPaidProof as any
+    })
     mockedFetchSessionPaymentProof.mockResolvedValue(markedPaidProof as any)
 
     renderView()
@@ -413,6 +422,82 @@ describe('TherapistSessionDetailView', () => {
 
     expect(await screen.findByText(/Оплату позначено як отриману/)).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Позначити як оплачено' })).not.toBeInTheDocument()
+  })
+
+  it('removes stale payment required action without page reload after mark-paid action', async () => {
+    const initialPaymentProof = {
+      status: 'REQUESTED',
+      image_url: null,
+      requested_by_specialist_at: '2099-06-15T09:00:00Z',
+      submitted_by_client_at: null,
+      reviewed_by_specialist_at: null,
+      marked_paid_at: null,
+      clarification_requested_at: null,
+      specialist_note: '',
+      client_can_upload_now: false,
+      specialist_can_mark_paid_now: true,
+      specialist_can_request_clarification_now: true,
+      specialist_can_request_proof_now: false,
+      payment_instructions: null,
+    }
+    const markedPaidProof = {
+      ...initialPaymentProof,
+      status: 'MARKED_PAID',
+      marked_paid_at: '2099-06-15T09:05:00Z',
+      specialist_can_mark_paid_now: false,
+      specialist_can_request_clarification_now: false,
+      specialist_can_request_proof_now: false,
+    }
+
+    let sessionDetail = buildSession({
+      status: 'COMPLETED',
+      payment_proof: initialPaymentProof,
+      workspace: buildWorkspace({
+        payment_state: 'awaiting_confirmation',
+        note_state: 'completed',
+        workbook_state: 'completed',
+        pending_task_items: [{ code: 'REVIEW_PAYMENT', label: 'Do payment review', classification: 'required' }],
+        available_action_items: [{ code: 'REVIEW_PAYMENT', label: 'Do payment review', classification: 'capability' }],
+        pending_tasks: ['REVIEW_PAYMENT'],
+        available_actions: ['REVIEW_PAYMENT'],
+      }),
+    })
+    mockDetailContext(() => sessionDetail, { requests: [] })
+
+    mockedMarkSessionPaymentProofPaid.mockImplementation(async () => {
+      sessionDetail = buildSession({
+        status: 'COMPLETED',
+        payment_proof: markedPaidProof,
+        workspace: buildWorkspace({
+          payment_state: 'paid',
+          note_state: 'completed',
+          workbook_state: 'completed',
+          pending_task_items: [],
+          available_action_items: [],
+          pending_tasks: [],
+          available_actions: [],
+        }),
+      })
+      return markedPaidProof as any
+    })
+    mockedFetchSessionPaymentProof.mockResolvedValue(markedPaidProof as any)
+
+    renderView()
+
+    expect(await screen.findByRole('button', { name: 'Перевірити оплату' })).toBeInTheDocument()
+    await fireEvent.click(screen.getByRole('button', { name: 'Позначити як оплачено' }))
+
+    const dialog = await screen.findByRole('dialog', { name: 'Позначити сесію як оплачену?' })
+    await fireEvent.click(within(dialog).getByRole('button', { name: 'Позначити як оплачено' }))
+
+    await waitFor(() => {
+      expect(mockedMarkSessionPaymentProofPaid).toHaveBeenCalledWith(42)
+      expect(mockedFetchSessionPaymentProof).toHaveBeenCalledWith(42)
+      expect(screen.queryByRole('button', { name: 'Перевірити оплату' })).not.toBeInTheDocument()
+    })
+
+    expect(screen.getByTestId('workspace-no-pending')).toBeInTheDocument()
+    expect(await screen.findByText(/Оплату позначено як отриману/)).toBeInTheDocument()
   })
 
   it('renders workspace pending actions for missing note and workbook with unpaid payment state', async () => {
@@ -438,6 +523,31 @@ describe('TherapistSessionDetailView', () => {
     expect(screen.getByTestId('workspace-zone-capability')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Відкрити нотатку' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Відкрити робочий зошит' })).toBeInTheDocument()
+  })
+
+  it('keeps next-step continuity inside workspace rail when actionable workspace zones are present', async () => {
+    const sessionDetail = buildSession({
+      status: 'COMPLETED',
+      workspace: buildWorkspace({
+        payment_state: 'unpaid',
+        note_state: 'missing',
+        workbook_state: 'missing',
+      }),
+    })
+    mockDetailContext(() => sessionDetail, { requests: [] })
+
+    renderView()
+
+    expect(await screen.findByTestId('session-workspace')).toBeInTheDocument()
+    expect(screen.getByTestId('workspace-navigation-rail')).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Наступні кроки' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'До робочого зошита' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'До нотатки' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'До блоку оплати' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'До картки клієнта' })).toHaveAttribute(
+      'href',
+      '/cabinet/clients?client=77&autoOpen=1'
+    )
   })
 
   it('groups pending actions by classification and does not infer required from priority', async () => {

@@ -1015,6 +1015,8 @@ function workQueueSessionTo(item: WorkQueueSessionPreviewItem) {
 }
 
 function workQueueReminderTo(item: WorkQueueNoteReminderPreviewItem) {
+  const sessionId = Number(item.session_id ?? 0)
+  if (sessionId > 0) return `/cabinet/sessions/${sessionId}`
   const clientId = Number(item.client_id ?? 0)
   if (clientId > 0) return `/cabinet/clients?client=${clientId}&autoOpen=1`
   return '/cabinet/clients'

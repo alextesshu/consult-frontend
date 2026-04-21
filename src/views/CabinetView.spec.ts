@@ -240,6 +240,38 @@ describe('CabinetView', () => {
     expect(view.container.querySelector('a.work-queue-summary-card[href="/cabinet/external-sessions"]')).toBeInTheDocument()
   })
 
+  it('routes notes reminder preview to session detail when session_id is available', async () => {
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/cabinet/work-queue/') {
+        return createWorkQueuePayload({
+          notes_reminders_preview: [
+            {
+              id: 601,
+              session_id: 901,
+              client_id: 91,
+              client_display_name: 'Queue Notes Client',
+              reminder_at: '2099-06-05T11:00:00Z',
+            },
+          ],
+        })
+      }
+      if (url === '/cabinet/entitlements/') return {}
+      if (config?.params?.upcoming === true) return []
+      if (config?.params?.upcoming === false) return []
+      return []
+    })
+
+    const view = renderView()
+
+    await waitFor(() => {
+      expect(view.container.querySelector('.work-queue-list[data-kind="notes-reminders"] .work-queue-list__link')).toBeInTheDocument()
+    })
+
+    expect(
+      view.container.querySelector('.work-queue-list[data-kind="notes-reminders"] .work-queue-list__link[href="/cabinet/sessions/901"]')
+    ).toBeInTheDocument()
+  })
+
   it('uses client_display_name in work-queue previews and keeps safe fallback when it is missing', async () => {
     mockedApiGet.mockImplementation(async (url, config) => {
       if (url === '/cabinet/work-queue/') {

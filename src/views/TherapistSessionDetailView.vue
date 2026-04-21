@@ -188,7 +188,7 @@
       </section>
 
       <section
-        v-if="postSessionContext && session.status === 'COMPLETED'"
+        v-if="postSessionContext && session.status === 'COMPLETED' && !workspaceHasAnyAction"
         class="panel panel--next-step"
       >
         <div class="panel__header">
@@ -304,6 +304,29 @@
         </div>
 
         <div v-else class="muted" data-testid="workspace-no-pending">Немає дій у цьому блоці.</div>
+
+        <div class="next-step-rail" data-testid="workspace-navigation-rail">
+          <button
+            v-if="session.client"
+            class="btn btn--ghost btn--sm"
+            type="button"
+            @click="openPostSessionWorkbook"
+          >
+            До робочого зошита
+          </button>
+          <button class="btn btn--ghost btn--sm" type="button" @click="focusSessionNote">
+            До нотатки
+          </button>
+          <button class="btn btn--ghost btn--sm" type="button" @click="focusPaymentBlock">
+            До блоку оплати
+          </button>
+          <RouterLink class="btn btn--ghost btn--sm" :to="postSessionClientLink">
+            До картки клієнта
+          </RouterLink>
+          <RouterLink class="btn btn--ghost btn--sm" to="/cabinet/sessions">
+            До списку сесій
+          </RouterLink>
+        </div>
       </section>
 
       <section ref="paymentPanelRef" class="panel">
@@ -1388,13 +1411,24 @@ function setRequestLoading(id: number, value: boolean) {
   requestLoading.value = next
 }
 
-function onPaymentProofUpdated(nextPaymentProof: SessionPaymentProof) {
+async function syncSessionWorkspaceAfterPaymentMutation() {
+  if (!hasValidSessionId.value) return
+  try {
+    const latest = await apiGet<SessionDetail>(`/booking/sessions/${sessionId.value}/`)
+    session.value = latest
+  } catch {
+    // Keep current UI state if background sync fails.
+  }
+}
+
+async function onPaymentProofUpdated(nextPaymentProof: SessionPaymentProof) {
   if (!session.value) return
   paymentProofActionError.value = ''
   session.value = {
     ...session.value,
     payment_proof: nextPaymentProof,
   }
+  await syncSessionWorkspaceAfterPaymentMutation()
 }
 
 function focusPaymentBlock() {
