@@ -734,6 +734,64 @@ describe('TherapistSessionDetailView', () => {
       }
     }
   )
+  it('falls back to localized label when backend returns raw action code as label', async () => {
+    const sessionDetail = buildSession({
+      status: 'COMPLETED',
+      workspace: buildWorkspace({
+        note_state: 'completed',
+        workbook_state: 'completed',
+        payment_state: 'unpaid',
+        pending_task_items: [{ code: 'COMPLETE_PAYMENT_REVIEW', label: 'COMPLETE_PAYMENT_REVIEW' }],
+        available_action_items: [{ code: 'COMPLETE_PAYMENT_REVIEW', label: 'COMPLETE_PAYMENT_REVIEW' }],
+      }),
+    })
+    mockDetailContext(() => sessionDetail, { requests: [] })
+    renderView()
+
+    expect(await screen.findByTestId('workspace-action-complete_payment_review')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Перевірити оплату' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'COMPLETE_PAYMENT_REVIEW' })).not.toBeInTheDocument()
+  })
+
+  it('falls back to localized label for english capability labels', async () => {
+    const sessionDetail = buildSession({
+      status: 'COMPLETED',
+      workspace: buildWorkspace({
+        note_state: 'completed',
+        workbook_state: 'completed',
+        payment_state: 'unpaid',
+        pending_task_items: [],
+        available_action_items: [{ code: 'MARK_PAYMENT_PAID', label: 'Mark payment paid', classification: 'capability' }],
+      }),
+    })
+    mockDetailContext(() => sessionDetail, { requests: [] })
+    renderView()
+
+    expect(await screen.findByTestId('workspace-zone-capability')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Позначити як оплачено' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Mark payment paid' })).not.toBeInTheDocument()
+  })
+
+  it('keeps backend label when it is already user-facing', async () => {
+    const sessionDetail = buildSession({
+      status: 'COMPLETED',
+      workspace: buildWorkspace({
+        note_state: 'completed',
+        workbook_state: 'completed',
+        payment_state: 'unpaid',
+        pending_task_items: [],
+        available_action_items: [
+          { code: 'REQUEST_PAYMENT_PROOF', label: 'Запросити підтвердження в клієнта', classification: 'capability' },
+        ],
+      }),
+    })
+    mockDetailContext(() => sessionDetail, { requests: [] })
+    renderView()
+
+    expect(await screen.findByTestId('workspace-zone-capability')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Запросити підтвердження в клієнта' })).toBeInTheDocument()
+  })
+
   it('handles unknown workspace action codes without rendering unsafe CTA', async () => {
     const sessionDetail = buildSession({
       status: 'COMPLETED',
@@ -1591,4 +1649,3 @@ describe('TherapistSessionDetailView', () => {
     expect(endpointCalls('/booking/sessions/42/')).toBe(2)
   })
 })
-

@@ -743,14 +743,39 @@ const WORKSPACE_ACTION_PRIORITY: Partial<Record<WorkspaceActionCode, number>> = 
   CONFIRM_PAYMENT: 50,
 }
 
-const WORKSPACE_ACTION_LABEL: Partial<Record<WorkspaceActionCode, string>> = {
+const WORKSPACE_ACTION_LABEL: Record<WorkspaceActionCode, string> = {
   OPEN_NOTE: 'Відкрити нотатку',
   CONTINUE_NOTE: 'Продовжити нотатку',
+  COMPLETE_NOTE: 'Заповнити нотатку',
   OPEN_WORKBOOK: 'Відкрити робочий зошит',
   CONTINUE_WORKBOOK: 'Продовжити робочий зошит',
+  COMPLETE_WORKBOOK: 'Заповнити робочий зошит',
   REVIEW_PAYMENT: 'Перевірити оплату',
+  REQUEST_PAYMENT_PROOF: 'Запросити підтвердження оплати',
   UPLOAD_PAYMENT_PROOF: 'Відкрити блок оплати',
   CONFIRM_PAYMENT: 'Відкрити блок оплати',
+  MARK_PAYMENT_PAID: 'Позначити як оплачено',
+  REQUEST_PAYMENT_CLARIFICATION: 'Запросити уточнення щодо оплати',
+  COMPLETE_PAYMENT_REVIEW: 'Перевірити оплату',
+}
+
+const WORKSPACE_LEGACY_ENGLISH_LABELS: Record<WorkspaceActionCode, Set<string>> = {
+  OPEN_NOTE: new Set(['open note']),
+  CONTINUE_NOTE: new Set(['continue note']),
+  COMPLETE_NOTE: new Set(['complete note']),
+  OPEN_WORKBOOK: new Set(['open workbook']),
+  CONTINUE_WORKBOOK: new Set(['continue workbook']),
+  COMPLETE_WORKBOOK: new Set(['complete workbook']),
+  REVIEW_PAYMENT: new Set(['review payment', 'do payment review']),
+  REQUEST_PAYMENT_PROOF: new Set(['request payment proof']),
+  UPLOAD_PAYMENT_PROOF: new Set(['upload payment proof']),
+  CONFIRM_PAYMENT: new Set(['confirm payment']),
+  MARK_PAYMENT_PAID: new Set(['mark payment paid']),
+  REQUEST_PAYMENT_CLARIFICATION: new Set([
+    'request payment clarification',
+    'request payment clarifications',
+  ]),
+  COMPLETE_PAYMENT_REVIEW: new Set(['complete payment review']),
 }
 
 const KNOWN_WORKSPACE_ACTION_CODES = new Set<WorkspaceActionCode>([
@@ -1183,6 +1208,34 @@ function normalizeWorkspaceBlockingScope(blockingScope: unknown, code: string): 
 function isWorkspaceActionCode(code: string): code is WorkspaceActionCode {
   return KNOWN_WORKSPACE_ACTION_CODES.has(code as WorkspaceActionCode)
 }
+
+function normalizeWorkspaceLabelValue(value: string) {
+  return value.trim().toLowerCase().replace(/\s+/g, ' ')
+}
+
+function isUserFacingWorkspaceLabel(label: string, code: WorkspaceActionCode) {
+  const trimmed = label.trim()
+  if (!trimmed) return false
+  if (trimmed.toUpperCase() === code) return false
+  if (/^[A-Z0-9_]+$/.test(trimmed)) return false
+
+  const normalized = normalizeWorkspaceLabelValue(trimmed)
+  if (WORKSPACE_LEGACY_ENGLISH_LABELS[code].has(normalized)) return false
+
+  const hasCyrillic = /[А-Яа-яІіЇїЄєҐґ]/.test(trimmed)
+  const hasLatin = /[A-Za-z]/.test(trimmed)
+  if (hasLatin && !hasCyrillic) return false
+
+  return true
+}
+
+function resolveWorkspaceActionLabel(code: WorkspaceActionCode, rawLabel: string) {
+  if (isUserFacingWorkspaceLabel(rawLabel, code)) {
+    return rawLabel.trim()
+  }
+  return WORKSPACE_ACTION_LABEL[code]
+}
+
 function hasWorkspaceActionPermission(code: WorkspaceActionCode) {
   const permissions = workspace.value?.permissions
   if (!permissions || typeof permissions !== 'object') return true
@@ -1257,7 +1310,7 @@ function resolveWorkspaceActionByCode(
   if (!canRunWorkspaceActionForState(code, state)) return null
   return {
     id: code.toLowerCase(),
-    label: WORKSPACE_ACTION_LABEL[code] || item.label || code,
+    label: resolveWorkspaceActionLabel(code, item.label),
     priority: WORKSPACE_ACTION_PRIORITY[code] ?? 100,
     classification: item.classification,
     urgency: item.urgency,
