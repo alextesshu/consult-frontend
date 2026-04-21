@@ -348,6 +348,13 @@
               <div class="muted">{{ sessionFormatBadge(session) }}</div>
               <div v-if="meetingBadge(session)" class="muted">{{ meetingBadge(session) }}</div>
               <div class="muted">Статус: {{ sessionStatusLabel(session) }}</div>
+              <div
+                v-if="hasPaymentBadge(session)"
+                class="status-pill status-pill--payment"
+                :class="paymentBadgeClass(session)"
+              >
+                {{ paymentBadgeLabel(session) }}
+              </div>
             </div>
             <div class="session-actions">
               <a
@@ -403,6 +410,13 @@
               <div class="muted">{{ specialistLabel(session) }}</div>
               <div class="muted">{{ sessionFormatBadge(session) }}</div>
               <div class="muted">Статус: {{ sessionStatusLabel(session) }}</div>
+              <div
+                v-if="hasPaymentBadge(session)"
+                class="status-pill status-pill--payment"
+                :class="paymentBadgeClass(session)"
+              >
+                {{ paymentBadgeLabel(session) }}
+              </div>
             </div>
             <div class="session-actions">
               <RouterLink class="btn btn--ghost btn--sm" :to="`/client/sessions/${session.id}`">
@@ -465,6 +479,7 @@ type Slot = {
 type Session = {
   id: number
   status: string
+  payment_badge_state?: 'paid' | 'awaiting_confirmation' | 'unpaid' | null
   specialist?: number | any
   specialist_id?: number
   specialist_name?: string | null
@@ -564,6 +579,23 @@ const statusLabel = (status: string) => statusMap[status] || status
 const sessionStatusLabel = (session: Session) => {
   if (isSessionInProgress(session)) return 'В процесі'
   return statusMap[session.status] || session.status
+}
+
+const paymentBadgeLabel = (session: Session) => {
+  if (session.payment_badge_state === 'paid') return '\u041e\u043f\u043b\u0430\u0447\u0435\u043d\u043e'
+  if (session.payment_badge_state === 'awaiting_confirmation') {
+    return '\u041e\u0447\u0456\u043a\u0443\u0454 \u043f\u0456\u0434\u0442\u0432\u0435\u0440\u0434\u0436\u0435\u043d\u043d\u044f \u043e\u043f\u043b\u0430\u0442\u0438'
+  }
+  if (session.payment_badge_state === 'unpaid') return '\u041d\u0435 \u043e\u043f\u043b\u0430\u0447\u0435\u043d\u043e'
+  return ''
+}
+
+const hasPaymentBadge = (session: Session) => Boolean(paymentBadgeLabel(session))
+
+const paymentBadgeClass = (session: Session) => {
+  if (session.payment_badge_state === 'awaiting_confirmation') return 'status-pill--payment-awaiting'
+  if (session.payment_badge_state === 'unpaid') return 'status-pill--payment-unpaid'
+  return 'status-pill--payment-paid'
 }
 
 const eventModeLabel = (mode: GroupEvent['mode']) => {
@@ -1373,6 +1405,26 @@ onBeforeUnmount(() => {
   color: #fff;
   border: 1px solid rgba(154, 9, 9, 0.7);
   box-shadow: 0 6px 14px rgba(194, 23, 23, 0.26);
+}
+
+.status-pill--payment {
+  text-transform: none;
+  letter-spacing: 0.02em;
+}
+
+.status-pill--payment-paid {
+  background: rgba(74, 124, 89, 0.12);
+  color: #2f5f3e;
+}
+
+.status-pill--payment-awaiting {
+  background: rgba(217, 164, 65, 0.2);
+  color: #8d5b00;
+}
+
+.status-pill--payment-unpaid {
+  background: rgba(7, 47, 71, 0.1);
+  color: #1f3c4f;
 }
 
 .eyebrow {

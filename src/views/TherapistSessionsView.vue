@@ -224,6 +224,7 @@
               <div
                 v-if="hasPaymentBadge(session)"
                 class="status-pill status-pill--payment"
+                :class="paymentBadgeClass(session)"
               >
                 {{ paymentBadgeLabel(session) }}
               </div>
@@ -540,6 +541,7 @@
               <div
                 v-if="hasPaymentBadge(session)"
                 class="status-pill status-pill--payment"
+                :class="paymentBadgeClass(session)"
               >
                 {{ paymentBadgeLabel(session) }}
               </div>
@@ -739,7 +741,7 @@ import {
 type Session = {
   id: number
   status: string
-  payment_badge_state?: 'paid' | 'awaiting_confirmation' | null
+  payment_badge_state?: 'paid' | 'awaiting_confirmation' | 'unpaid' | null
   client: number
   client_display_name?: string | null
   client_username?: string
@@ -849,10 +851,17 @@ const paymentBadgeLabel = (session: Session) => {
   if (session.payment_badge_state === 'awaiting_confirmation') {
     return 'Очікує підтвердження оплати'
   }
+  if (session.payment_badge_state === 'unpaid') return 'Не оплачено'
   return ''
 }
 
 const hasPaymentBadge = (session: Session) => Boolean(paymentBadgeLabel(session))
+
+const paymentBadgeClass = (session: Session) => {
+  if (session.payment_badge_state === 'awaiting_confirmation') return 'status-pill--payment-awaiting'
+  if (session.payment_badge_state === 'unpaid') return 'status-pill--payment-unpaid'
+  return 'status-pill--payment-paid'
+}
 
 const rescheduleStatusLabel = (status: string) => getRescheduleStatusLabel(status)
 
@@ -1991,10 +2000,23 @@ onBeforeUnmount(() => {
 }
 
 .status-pill--payment {
-  background: rgba(74, 124, 89, 0.12);
-  color: #2f5f3e;
   text-transform: none;
   letter-spacing: 0.02em;
+}
+
+.status-pill--payment-paid {
+  background: rgba(74, 124, 89, 0.12);
+  color: #2f5f3e;
+}
+
+.status-pill--payment-awaiting {
+  background: rgba(217, 164, 65, 0.2);
+  color: #8d5b00;
+}
+
+.status-pill--payment-unpaid {
+  background: rgba(7, 47, 71, 0.1);
+  color: #1f3c4f;
 }
 
 .new-bookings-banner {

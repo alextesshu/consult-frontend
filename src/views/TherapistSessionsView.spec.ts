@@ -282,6 +282,14 @@ describe('TherapistSessionsView', () => {
             client_email: 'no-payment-badge@example.com',
             payment_badge_state: null,
           }),
+          buildSession({
+            id: 34,
+            status: 'CONFIRMED',
+            client: 134,
+            client_name: 'Unpaid upcoming',
+            client_email: 'unpaid-upcoming@example.com',
+            payment_badge_state: 'unpaid',
+          }),
         ]
       }
 
@@ -305,13 +313,30 @@ describe('TherapistSessionsView', () => {
 
     renderView()
 
-    expect(await screen.findByText(/paid-upcoming@example\.com/)).toBeInTheDocument()
+    expect(
+      await screen.findByText((_, element) =>
+        Boolean(
+          element?.classList.contains('muted') &&
+            element.textContent?.trim().endsWith('paid-upcoming@example.com') &&
+            !element.textContent.includes('unpaid-upcoming@example.com')
+        )
+      )
+    ).toBeInTheDocument()
     expect(await screen.findByText(/paid-history@example\.com/)).toBeInTheDocument()
 
-    const paidUpcomingCard = screen.getByText(/paid-upcoming@example\.com/).closest('article')
+    const paidUpcomingCard = screen
+      .getByText((_, element) =>
+        Boolean(
+          element?.classList.contains('muted') &&
+            element.textContent?.trim().endsWith('paid-upcoming@example.com') &&
+            !element.textContent.includes('unpaid-upcoming@example.com')
+        )
+      )
+      .closest('article')
     expect(paidUpcomingCard).not.toBeNull()
     expect(within(paidUpcomingCard as HTMLElement).getByText('Оплачено')).toBeInTheDocument()
     expect(within(paidUpcomingCard as HTMLElement).getByText('Заплановано')).toBeInTheDocument()
+    expect(within(paidUpcomingCard as HTMLElement).getByText('Оплачено')).toHaveClass('status-pill--payment-paid')
 
     const awaitingUpcomingCard = screen.getByText(/awaiting-upcoming@example\.com/).closest('article')
     expect(awaitingUpcomingCard).not.toBeNull()
@@ -319,6 +344,14 @@ describe('TherapistSessionsView', () => {
       within(awaitingUpcomingCard as HTMLElement).getByText('Очікує підтвердження оплати')
     ).toBeInTheDocument()
     expect(within(awaitingUpcomingCard as HTMLElement).getByText('Підтверджено')).toBeInTheDocument()
+    expect(
+      within(awaitingUpcomingCard as HTMLElement).getByText('Очікує підтвердження оплати')
+    ).toHaveClass('status-pill--payment-awaiting')
+
+    const unpaidUpcomingCard = screen.getByText(/unpaid-upcoming@example\.com/).closest('article')
+    expect(unpaidUpcomingCard).not.toBeNull()
+    expect(within(unpaidUpcomingCard as HTMLElement).getByText('Не оплачено')).toBeInTheDocument()
+    expect(within(unpaidUpcomingCard as HTMLElement).getByText('Не оплачено')).toHaveClass('status-pill--payment-unpaid')
 
     const noPaymentCard = screen.getByText(/no-payment-badge@example\.com/).closest('article')
     expect(noPaymentCard).not.toBeNull()
@@ -1205,4 +1238,3 @@ describe('TherapistSessionsView', () => {
     expect(mockedApiGet).toHaveBeenCalledTimes(4)
   })
 })
-
