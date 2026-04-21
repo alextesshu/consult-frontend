@@ -49,7 +49,7 @@ const props = withDefaults(
     pending: false,
     error: '',
     subtitle: '',
-    placeholder: 'Запитати про результати за тиждень',
+    placeholder: 'Наприклад, "Підготувати презентацію для клієнта"',
   }
 )
 
