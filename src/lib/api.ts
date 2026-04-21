@@ -349,41 +349,58 @@ export type AdminBillingAccessRequestInboxItem = {
   status?: string | null
   title?: string | null
   created_at?: string | null
+  read_at?: string | null
+  resolved_at?: string | null
+  updated_at?: string | null
 }
 
 export type AdminBillingAccessRequestInboxRelation = {
+  code?: string | null
+  related_object_type?: string | null
+  related_object_id?: number | null
+  has_linked_items?: boolean | null
   linked_items_count?: number | null
   open_items_count?: number | null
   has_open_items?: boolean | null
+  linked_items?: AdminBillingAccessRequestInboxItem[] | null
+  // Compatibility fallback for older payload shape.
   items?: AdminBillingAccessRequestInboxItem[] | null
 }
 
 export type AdminBillingAccessRequestUserSummary = {
   id?: number | null
-  username?: string | null
   email?: string | null
   display_name?: string | null
-  full_name?: string | null
 }
 
 export type AdminBillingAccessRequestSpecialistSummary = {
   id?: number | null
-  slug?: string | null
+  username?: string | null
   display_name?: string | null
+  email?: string | null
+  public_slug?: string | null
 }
 
 export type AdminBillingAccessRequest = {
   id: number
+  request_type?: string | null
   status: AdminBillingAccessRequestStatus
+  current_plan_label?: string | null
   requested_plan?: string | null
   current_plan?: string | null
+  requested_plan_label?: string | null
   note?: string | null
   admin_note?: string | null
+  submitted_by_user_id?: number | null
   created_at?: string | null
   updated_at?: string | null
   decided_at?: string | null
   user?: AdminBillingAccessRequestUserSummary | null
   specialist?: AdminBillingAccessRequestSpecialistSummary | null
+  plans?: {
+    current_plan?: string | null
+    requested_plan?: string | null
+  } | null
   inbox_relation?: AdminBillingAccessRequestInboxRelation | null
   metadata?: Record<string, unknown> | null
 }

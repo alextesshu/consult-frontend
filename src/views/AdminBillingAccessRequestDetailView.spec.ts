@@ -82,7 +82,9 @@ describe('AdminBillingAccessRequestDetailView', () => {
       created_at: '2026-04-21T10:00:00Z',
       updated_at: '2026-04-21T10:01:00Z',
       current_plan: 'START',
+      current_plan_label: 'Start',
       requested_plan: 'PRO',
+      requested_plan_label: 'Pro',
       note: 'Потрібен апгрейд',
       user: {
         id: 7,
@@ -92,18 +94,24 @@ describe('AdminBillingAccessRequestDetailView', () => {
       specialist: {
         id: 13,
         display_name: 'Марія І.',
-        slug: 'maria',
+        username: 'maria',
+        email: 'maria@example.com',
+        public_slug: 'maria',
       },
       inbox_relation: {
+        has_linked_items: true,
         linked_items_count: 1,
         open_items_count: 1,
         has_open_items: true,
-        items: [
+        linked_items: [
           {
             id: 41,
             code: 'BILLING_ACCESS_REQUEST_CREATED',
             status: 'OPEN',
             title: 'Новий billing-запит',
+            created_at: '2026-04-21T10:00:00Z',
+            read_at: null,
+            resolved_at: null,
           },
         ],
       },
@@ -134,7 +142,41 @@ describe('AdminBillingAccessRequestDetailView', () => {
       expect(mockedFetchAdminBillingAccessRequest).toHaveBeenCalledTimes(2)
     })
 
-    expect(toastSuccess).toHaveBeenCalledWith('Billing-запит погоджено.')
+    expect(toastSuccess).toHaveBeenCalledWith('Запит погоджено.')
+    expect(screen.getByText(/Поточний тариф/)).toBeInTheDocument()
+    expect(screen.getByText(/Start/)).toBeInTheDocument()
+    expect(screen.getByText(/Запитаний тариф/)).toBeInTheDocument()
+    expect(screen.getByText(/Pro/)).toBeInTheDocument()
+    expect(screen.getByText(/Повʼязані:/)).toBeInTheDocument()
+    expect(screen.getByText(/Відкриті:/)).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Відкрити inbox item' })).toHaveAttribute('href', '/admin/inbox/41')
+  })
+
+  it('keeps detail screen stable when canonical labels are absent', async () => {
+    mockedFetchAdminBillingAccessRequest.mockResolvedValueOnce({
+      id: 55,
+      status: 'PENDING',
+      current_plan: 'START',
+      requested_plan: 'PRO',
+      user: { id: 55, display_name: '', email: 'user55@example.com' },
+      specialist: { id: 55, username: 'spec55', public_slug: null },
+      inbox_relation: {
+        linked_items_count: 1,
+        open_items_count: 0,
+        has_open_items: false,
+        items: [
+          { id: 501, code: 'BILLING_ACCESS_REQUEST_CREATED', status: 'RESOLVED', title: 'Закритий item' },
+        ],
+      },
+    } as any)
+
+    await renderView()
+
+    await waitFor(() => {
+      expect(mockedFetchAdminBillingAccessRequest).toHaveBeenCalledWith(101)
+    })
+    expect(screen.getByText('START')).toBeInTheDocument()
+    expect(screen.getByText('PRO')).toBeInTheDocument()
+    expect(screen.getByText(/Усі повʼязані item закриті/)).toBeInTheDocument()
   })
 })

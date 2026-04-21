@@ -8,9 +8,7 @@
           Операційна стрічка для запитів, які потребують дій адміністратора.
         </p>
       </div>
-      <RouterLink class="btn btn--ghost" to="/admin/billing-access-requests">
-        Billing access requests
-      </RouterLink>
+      <RouterLink class="btn btn--ghost" to="/admin/billing-access-requests">Запити на доступ до тарифу</RouterLink>
     </header>
 
     <section class="panel admin-inbox__counters" aria-label="Лічильники inbox">
@@ -121,7 +119,7 @@
               class="btn btn--ghost btn--sm"
               :to="billingRequestRoute(item)"
             >
-              Відкрити billing handling
+              Відкрити опрацювання запиту
             </RouterLink>
             <button
               v-if="canMarkRead(item)"
@@ -183,7 +181,7 @@
           class="btn btn--ghost btn--sm"
           :to="billingRequestRoute(selectedItem)"
         >
-          Перейти до billing handling
+          Перейти до опрацювання запиту
         </RouterLink>
       </div>
     </section>
@@ -332,11 +330,21 @@ function billingSummary(item: AdminInboxItem): BillingSummary {
   const requester =
     actorLabel(item.created_by) !== '—'
       ? actorLabel(item.created_by)
-      : pickText(payload, ['requester_name', 'requested_by_name', 'specialist_name', 'therapist_name', 'user_name'])
+      : pickText(payload, [
+          'specialist_display_name',
+          'user_display_name',
+          'requester_name',
+          'requested_by_name',
+          'specialist_name',
+          'therapist_name',
+          'user_name',
+          'specialist_email',
+          'user_email',
+        ])
   return {
     requester,
-    currentPlan: pickText(payload, ['current_plan', 'from_plan', 'active_plan'], 'Невідомо'),
-    requestedPlan: pickText(payload, ['requested_plan', 'target_plan', 'plan'], 'Невідомо'),
+    currentPlan: pickText(payload, ['current_plan_label', 'current_plan', 'from_plan', 'active_plan'], 'Не вказано'),
+    requestedPlan: pickText(payload, ['requested_plan_label', 'requested_plan', 'target_plan', 'plan'], 'Не вказано'),
     createdAt: pickText(payload, ['created_at', 'request_created_at'], item.created_at) || item.created_at,
   }
 }

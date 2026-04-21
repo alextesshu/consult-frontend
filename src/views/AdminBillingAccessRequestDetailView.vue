@@ -3,9 +3,9 @@
     <header class="admin-billing-request-detail__hero panel">
       <div>
         <div class="badge">Адмін</div>
-        <h1 class="title admin-billing-request-detail__title">Опрацювання billing-запиту</h1>
+        <h1 class="title admin-billing-request-detail__title">Опрацювання запиту на тариф</h1>
         <p class="muted admin-billing-request-detail__subtitle">
-          Деталі запиту та операційні дії для прийняття рішення.
+          Повний контекст запиту та дії для прийняття рішення.
         </p>
       </div>
       <div class="admin-billing-request-detail__hero-actions">
@@ -22,7 +22,7 @@
         <div class="panel__header">
           <div>
             <div class="badge badge--soft">Зведення</div>
-            <h2 class="panel__title">Request #{{ request.id }}</h2>
+            <h2 class="panel__title">Запит №{{ request.id }}</h2>
           </div>
           <span class="status-pill" :class="statusClass(request.status)">{{ statusLabel(request.status) }}</span>
         </div>
@@ -37,20 +37,16 @@
             <div>{{ specialistSummary }}</div>
           </div>
           <div>
-            <div class="muted">Email</div>
-            <div>{{ userEmail }}</div>
+            <div class="muted">Поточний тариф</div>
+            <div>{{ planDisplay('current') }}</div>
+          </div>
+          <div>
+            <div class="muted">Запитаний тариф</div>
+            <div>{{ planDisplay('requested') }}</div>
           </div>
           <div>
             <div class="muted">Ідентифікатори</div>
             <div>{{ identifiersSummary }}</div>
-          </div>
-          <div>
-            <div class="muted">Поточний план</div>
-            <div>{{ planLabel(request.current_plan) }}</div>
-          </div>
-          <div>
-            <div class="muted">Запитаний план</div>
-            <div>{{ planLabel(request.requested_plan) }}</div>
           </div>
           <div>
             <div class="muted">Створено</div>
@@ -60,6 +56,10 @@
             <div class="muted">Оновлено</div>
             <div>{{ formatDate(request.updated_at) }}</div>
           </div>
+          <div>
+            <div class="muted">Рішення прийнято</div>
+            <div>{{ formatDate(request.decided_at) }}</div>
+          </div>
         </div>
       </section>
 
@@ -67,66 +67,62 @@
         <div class="panel__header">
           <div>
             <div class="badge badge--soft">Контекст</div>
-            <h2 class="panel__title">Нотатки і metadata</h2>
+            <h2 class="panel__title">Нотатки</h2>
           </div>
         </div>
 
         <div class="context-grid">
           <div>
-            <div class="muted">Note</div>
-            <div>{{ request.note?.trim() || '—' }}</div>
+            <div class="muted">Нотатка користувача</div>
+            <div>{{ request.note?.trim() || 'Немає' }}</div>
           </div>
           <div>
-            <div class="muted">Admin note</div>
-            <div>{{ request.admin_note?.trim() || '—' }}</div>
+            <div class="muted">Нотатка адміністратора</div>
+            <div>{{ request.admin_note?.trim() || 'Немає' }}</div>
           </div>
         </div>
-
-        <details v-if="metadataJson" class="metadata-block">
-          <summary>Metadata</summary>
-          <pre>{{ metadataJson }}</pre>
-        </details>
       </section>
 
       <section class="panel">
         <div class="panel__header">
           <div>
-            <div class="badge badge--soft">Inbox relation</div>
+            <div class="badge badge--soft">Inbox</div>
             <h2 class="panel__title">Повʼязані inbox item</h2>
           </div>
         </div>
 
         <div class="inbox-relation-summary">
-          <div><strong>Linked:</strong> {{ linkedItemsCount }}</div>
-          <div><strong>Open:</strong> {{ openItemsCount }}</div>
-          <div>
-            <strong>Стан:</strong>
-            {{ hasOpenInboxItems ? 'Є відкриті item' : 'Відкритих item немає' }}
-          </div>
+          <div><strong>Повʼязані:</strong> {{ linkedItemsCount }}</div>
+          <div><strong>Відкриті:</strong> {{ openItemsCount }}</div>
+          <div><strong>Стан:</strong> {{ relationStateText }}</div>
         </div>
 
-        <div v-if="inboxItems.length > 0" class="inbox-item-list">
-          <article v-for="item in inboxItems" :key="item.id" class="inbox-item-card">
+        <div v-if="linkedItems.length > 0" class="inbox-item-list">
+          <article v-for="item in linkedItems" :key="item.id" class="inbox-item-card">
             <div class="inbox-item-card__row">
               <strong>Inbox #{{ item.id }}</strong>
-              <span class="status-pill" :class="inboxItemStatusClass(item.status)">{{ inboxItemStatusLabel(item.status) }}</span>
-            </div>
-            <div class="muted">
-              {{ item.code || '—' }}
-              <span v-if="item.created_at"> · {{ formatDate(item.created_at) }}</span>
+              <span class="status-pill" :class="inboxItemStatusClass(item.status)">
+                {{ inboxItemStatusLabel(item.status) }}
+              </span>
             </div>
             <div>{{ item.title || 'Без заголовка' }}</div>
+            <div class="muted">
+              {{ item.code || '—' }}
+              <span v-if="item.created_at"> · Створено: {{ formatDate(item.created_at) }}</span>
+              <span v-if="item.read_at"> · Прочитано: {{ formatDate(item.read_at) }}</span>
+              <span v-if="item.resolved_at"> · Вирішено: {{ formatDate(item.resolved_at) }}</span>
+            </div>
             <RouterLink class="btn btn--ghost btn--sm" :to="`/admin/inbox/${item.id}`">Відкрити inbox item</RouterLink>
           </article>
         </div>
-        <div v-else class="muted">Повʼязані inbox item не передані backend-ом.</div>
+        <div v-else class="muted">Повʼязаних inbox item немає.</div>
       </section>
 
       <section class="panel">
         <div class="panel__header">
           <div>
             <div class="badge badge--soft">Рішення</div>
-            <h2 class="panel__title">Approve / Reject</h2>
+            <h2 class="panel__title">Погодити або відхилити</h2>
           </div>
         </div>
 
@@ -143,7 +139,7 @@
           >
             {{ actionPending && actionType === 'reject' ? 'Відхиляємо…' : 'Відхилити' }}
           </button>
-          <div v-if="!canDecide" class="muted">Цей запит вже має фінальний статус і недоступний для повторного рішення.</div>
+          <div v-if="!canDecide" class="muted">Запит уже має фінальний статус, повторне рішення недоступне.</div>
         </div>
       </section>
     </template>
@@ -181,53 +177,73 @@ const requestId = computed(() => Number(route.params.id))
 const canDecide = computed(() => normalizeStatus(request.value?.status) === 'PENDING')
 const userSummary = computed(() => {
   const user = request.value?.user
-  if (!user) return '—'
-  return user.display_name || user.full_name || user.username || user.email || '—'
+  if (!user) return 'Немає даних'
+  const name = String(user.display_name || '').trim()
+  const email = String(user.email || '').trim()
+  if (name && email) return `${name} (${email})`
+  if (name) return name
+  if (email) return email
+  return 'Немає даних'
 })
 const specialistSummary = computed(() => {
   const specialist = request.value?.specialist
-  if (!specialist) return '—'
-  if (specialist.display_name && specialist.slug) {
-    return `${specialist.display_name} (${specialist.slug})`
-  }
-  return specialist.display_name || specialist.slug || '—'
+  if (!specialist) return 'Немає даних'
+  const parts = [
+    String(specialist.display_name || '').trim(),
+    specialist.username ? `@${String(specialist.username).trim()}` : '',
+    specialist.public_slug ? `/${String(specialist.public_slug).trim()}` : '',
+    specialist.email ? String(specialist.email).trim() : '',
+  ].filter(Boolean)
+  return parts.length > 0 ? parts.join(' · ') : 'Немає даних'
 })
-const userEmail = computed(() => request.value?.user?.email || '—')
 const identifiersSummary = computed(() => {
   const userId = request.value?.user?.id
   const specialistId = request.value?.specialist?.id
+  const submittedId = request.value?.submitted_by_user_id
   const parts = [
     Number.isFinite(userId) ? `user:${userId}` : '',
     Number.isFinite(specialistId) ? `specialist:${specialistId}` : '',
+    Number.isFinite(submittedId) ? `submitted_by:${submittedId}` : '',
   ].filter(Boolean)
-  return parts.length > 0 ? parts.join(' · ') : '—'
+  return parts.length > 0 ? parts.join(' · ') : 'Немає даних'
 })
-const metadataJson = computed(() => {
-  if (!request.value?.metadata) return ''
-  try {
-    return JSON.stringify(request.value.metadata, null, 2)
-  } catch {
-    return ''
-  }
+
+const linkedItems = computed<AdminBillingAccessRequestInboxItem[]>(() => {
+  const relation = request.value?.inbox_relation
+  if (!relation) return []
+  if (Array.isArray(relation.linked_items)) return relation.linked_items
+  if (Array.isArray(relation.items)) return relation.items
+  return []
 })
-const inboxItems = computed<AdminBillingAccessRequestInboxItem[]>(() => {
-  const items = request.value?.inbox_relation?.items
-  return Array.isArray(items) ? items : []
-})
+
 const linkedItemsCount = computed(() => {
-  const linked = Number(request.value?.inbox_relation?.linked_items_count)
+  const relation = request.value?.inbox_relation
+  const linked = Number(relation?.linked_items_count)
   if (Number.isFinite(linked)) return String(linked)
-  return String(inboxItems.value.length)
+  return String(linkedItems.value.length)
 })
+
 const openItemsCount = computed(() => {
-  const open = Number(request.value?.inbox_relation?.open_items_count)
+  const relation = request.value?.inbox_relation
+  const open = Number(relation?.open_items_count)
   if (Number.isFinite(open)) return String(open)
-  return String(inboxItems.value.filter((item) => normalizeInboxStatus(item.status) === 'OPEN').length)
+  return String(linkedItems.value.filter((item) => isOpenInboxStatus(item.status)).length)
 })
-const hasOpenInboxItems = computed(() => {
-  const explicit = request.value?.inbox_relation?.has_open_items
-  if (typeof explicit === 'boolean') return explicit
-  return inboxItems.value.some((item) => normalizeInboxStatus(item.status) === 'OPEN')
+
+const relationStateText = computed(() => {
+  const relation = request.value?.inbox_relation
+  if (!relation) return 'Звʼязок не передано'
+
+  const hasLinked = typeof relation.has_linked_items === 'boolean'
+    ? relation.has_linked_items
+    : linkedItems.value.length > 0
+  const hasOpen = typeof relation.has_open_items === 'boolean'
+    ? relation.has_open_items
+    : linkedItems.value.some((item) => isOpenInboxStatus(item.status))
+
+  if (!hasLinked) return 'Повʼязаних item немає'
+  if (hasOpen) return 'Є відкриті item'
+  return 'Усі повʼязані item закриті'
 })
 
 function normalizeStatus(status: string | null | undefined) {
@@ -236,6 +252,11 @@ function normalizeStatus(status: string | null | undefined) {
 
 function normalizeInboxStatus(status: string | null | undefined) {
   return String(status || '').trim().toUpperCase()
+}
+
+function isOpenInboxStatus(status: string | null | undefined) {
+  const normalized = normalizeInboxStatus(status)
+  return normalized === 'OPEN' || normalized === 'IN_PROGRESS' || normalized === 'NEW' || normalized === 'UNREAD'
 }
 
 function statusLabel(status: string | null | undefined) {
@@ -265,7 +286,9 @@ function inboxItemStatusLabel(status: string | null | undefined) {
 
 function inboxItemStatusClass(status: string | null | undefined) {
   const normalized = normalizeInboxStatus(status)
-  if (normalized === 'OPEN' || normalized === 'IN_PROGRESS') return 'status-pill--warn'
+  if (normalized === 'OPEN' || normalized === 'IN_PROGRESS' || normalized === 'UNREAD' || normalized === 'NEW') {
+    return 'status-pill--warn'
+  }
   if (normalized === 'RESOLVED' || normalized === 'DONE') return 'status-pill--ok'
   if (normalized === 'DISMISSED' || normalized === 'CLOSED') return 'status-pill--danger'
   return 'status-pill--muted'
@@ -275,9 +298,18 @@ function formatDate(value: string | null | undefined) {
   return formatUkDateTimeCompact(value)
 }
 
-function planLabel(value: string | null | undefined) {
-  const normalized = String(value || '').trim().toUpperCase()
-  return normalized || 'Невідомо'
+function planDisplay(kind: 'current' | 'requested') {
+  if (!request.value) return 'Не вказано'
+  const label = kind === 'current'
+    ? String(request.value.current_plan_label || '').trim()
+    : String(request.value.requested_plan_label || '').trim()
+  if (label) return label
+
+  const codeCandidate = kind === 'current'
+    ? request.value.current_plan || request.value.plans?.current_plan
+    : request.value.requested_plan || request.value.plans?.requested_plan
+  const code = String(codeCandidate || '').trim().toUpperCase()
+  return code || 'Не вказано'
 }
 
 async function loadRequest() {
@@ -307,7 +339,7 @@ async function approveRequest() {
   actionError.value = ''
   try {
     request.value = await approveAdminBillingAccessRequest(request.value.id)
-    toast.success('Billing-запит погоджено.')
+    toast.success('Запит погоджено.')
     await loadRequest()
   } catch (err) {
     actionError.value = getApiErrorMessage(err, 'Не вдалося погодити billing-запит.')
@@ -324,7 +356,7 @@ async function rejectRequest() {
   actionError.value = ''
   try {
     request.value = await rejectAdminBillingAccessRequest(request.value.id)
-    toast.success('Billing-запит відхилено.')
+    toast.success('Запит відхилено.')
     await loadRequest()
   } catch (err) {
     actionError.value = getApiErrorMessage(err, 'Не вдалося відхилити billing-запит.')
@@ -402,19 +434,6 @@ watch(
   display: grid;
   gap: 12px;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-}
-
-.metadata-block {
-  margin: 0;
-}
-
-.metadata-block pre {
-  margin: 8px 0 0;
-  padding: 10px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
-  background: color-mix(in srgb, var(--surface) 85%, #ffffff);
-  overflow: auto;
 }
 
 .inbox-relation-summary {

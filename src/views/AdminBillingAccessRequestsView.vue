@@ -3,9 +3,9 @@
     <header class="admin-billing-requests__hero panel">
       <div>
         <div class="badge">Адмін</div>
-        <h1 class="title admin-billing-requests__title">Запити на billing-доступ</h1>
+        <h1 class="title admin-billing-requests__title">Запити на доступ до тарифу</h1>
         <p class="muted admin-billing-requests__subtitle">
-          Операційний список запитів на зміну плану зі швидким переходом у ручне опрацювання.
+          Операційний список запитів на зміну тарифу з переходом до екрана опрацювання.
         </p>
       </div>
       <RouterLink class="btn btn--ghost" to="/admin/inbox">Назад до inbox</RouterLink>
@@ -41,7 +41,7 @@
       <div class="panel__header">
         <div>
           <div class="badge badge--soft">Список</div>
-          <h2 class="panel__title">Billing access requests</h2>
+          <h2 class="panel__title">Список запитів</h2>
         </div>
       </div>
 
@@ -57,7 +57,7 @@
         <article v-for="request in filteredRequests" :key="request.id" class="request-card">
           <div class="request-card__header">
             <div>
-              <h3 class="request-card__title">Request #{{ request.id }}</h3>
+              <h3 class="request-card__title">Запит №{{ request.id }}</h3>
               <div class="muted">
                 {{ formatDate(request.created_at) }}
                 <span v-if="request.updated_at"> · Оновлено: {{ formatDate(request.updated_at) }}</span>
@@ -69,21 +69,18 @@
           <div class="request-card__grid">
             <div><strong>Користувач:</strong> {{ userSummary(request) }}</div>
             <div><strong>Спеціаліст:</strong> {{ specialistSummary(request) }}</div>
-            <div><strong>Поточний план:</strong> {{ planLabel(request.current_plan) }}</div>
-            <div><strong>Запитаний план:</strong> {{ planLabel(request.requested_plan) }}</div>
+            <div><strong>Поточний тариф:</strong> {{ planDisplay(request, 'current') }}</div>
+            <div><strong>Запитаний тариф:</strong> {{ planDisplay(request, 'requested') }}</div>
           </div>
 
           <div class="request-card__summary">
             <div><strong>Коротко:</strong> {{ requestSummary(request) }}</div>
-            <div>
-              <strong>Inbox relation:</strong>
-              {{ inboxRelationSummary(request.inbox_relation) }}
-            </div>
+            <div><strong>Inbox:</strong> {{ inboxRelationSummary(request.inbox_relation) }}</div>
           </div>
 
           <div class="request-card__actions">
             <RouterLink class="btn btn--ghost btn--sm" :to="`/admin/billing-access-requests/${request.id}`">
-              Відкрити handling
+              Відкрити деталі
             </RouterLink>
           </div>
         </article>
@@ -146,34 +143,56 @@ function formatDate(value: string | null | undefined) {
   return formatUkDateTimeCompact(value)
 }
 
-function planLabel(value: string | null | undefined) {
-  const normalized = String(value || '').trim().toUpperCase()
-  return normalized || 'Невідомо'
-}
-
 function userSummary(request: AdminBillingAccessRequest) {
   const user = request.user
-  if (!user) return '—'
-  return user.display_name || user.full_name || user.email || user.username || '—'
+  if (!user) return 'Немає даних'
+  const name = String(user.display_name || '').trim()
+  const email = String(user.email || '').trim()
+  if (name && email) return `${name} (${email})`
+  if (name) return name
+  if (email) return email
+  return 'Немає даних'
 }
 
 function specialistSummary(request: AdminBillingAccessRequest) {
   const specialist = request.specialist
-  if (!specialist) return '—'
-  if (specialist.display_name && specialist.slug) {
-    return `${specialist.display_name} (${specialist.slug})`
-  }
-  return specialist.display_name || specialist.slug || '—'
+  if (!specialist) return 'Немає даних'
+
+  const parts = [
+    String(specialist.display_name || '').trim(),
+    specialist.username ? `@${String(specialist.username).trim()}` : '',
+    specialist.public_slug ? `/${String(specialist.public_slug).trim()}` : '',
+  ].filter(Boolean)
+  if (parts.length > 0) return parts.join(' · ')
+
+  const email = String(specialist.email || '').trim()
+  return email || 'Немає даних'
+}
+
+function planDisplay(request: AdminBillingAccessRequest, kind: 'current' | 'requested') {
+  const label =
+    kind === 'current'
+      ? String(request.current_plan_label || '').trim()
+      : String(request.requested_plan_label || '').trim()
+  if (label) return label
+
+  const codeCandidate =
+    kind === 'current'
+      ? request.current_plan || request.plans?.current_plan
+      : request.requested_plan || request.plans?.requested_plan
+  const code = String(codeCandidate || '').trim().toUpperCase()
+  return code || 'Не вказано'
 }
 
 function requestSummary(request: AdminBillingAccessRequest) {
-  const parts = [
-    `План ${planLabel(request.current_plan)} → ${planLabel(request.requested_plan)}`,
-    userSummary(request) !== '—' ? `Користувач: ${userSummary(request)}` : '',
-    specialistSummary(request) !== '—' ? `Спеціаліст: ${specialistSummary(request)}` : '',
-  ].filter(Boolean)
+  return `Тариф ${planDisplay(request, 'current')} → ${planDisplay(request, 'requested')}`
+}
 
-  return parts.join(' · ')
+function relationLinkedItems(relation: AdminBillingAccessRequestInboxRelation | null | undefined) {
+  if (!relation) return []
+  if (Array.isArray(relation.linked_items)) return relation.linked_items
+  if (Array.isArray(relation.items)) return relation.items
+  return []
 }
 
 function hasOpenInboxItems(relation: AdminBillingAccessRequestInboxRelation | null | undefined) {
@@ -181,18 +200,22 @@ function hasOpenInboxItems(relation: AdminBillingAccessRequestInboxRelation | nu
   if (typeof relation.has_open_items === 'boolean') return relation.has_open_items
   const openCount = Number(relation.open_items_count)
   if (Number.isFinite(openCount)) return openCount > 0
-  const items = Array.isArray(relation.items) ? relation.items : []
-  return items.some((item) => String(item.status || '').trim().toUpperCase() === 'OPEN')
+  return relationLinkedItems(relation).some((item) => String(item.status || '').trim().toUpperCase() === 'OPEN')
 }
 
 function inboxRelationSummary(relation: AdminBillingAccessRequestInboxRelation | null | undefined) {
-  if (!relation) return 'Звʼязок не вказано'
+  if (!relation) return 'Звʼязок із inbox item не вказано.'
 
-  const linked = Number(relation.linked_items_count)
-  const open = Number(relation.open_items_count)
-  const linkedLabel = Number.isFinite(linked) ? String(linked) : '—'
-  const openLabel = Number.isFinite(open) ? String(open) : hasOpenInboxItems(relation) ? 'так' : 'ні'
-  return `linked: ${linkedLabel}, open: ${openLabel}`
+  const linkedCount = Number(relation.linked_items_count)
+  const openCount = Number(relation.open_items_count)
+  const linked = Number.isFinite(linkedCount) ? linkedCount : relationLinkedItems(relation).length
+  const open = Number.isFinite(openCount)
+    ? openCount
+    : relationLinkedItems(relation).filter((item) => String(item.status || '').trim().toUpperCase() === 'OPEN').length
+
+  if (linked <= 0) return 'Повʼязаних inbox item немає.'
+  if (open > 0) return `Повʼязано: ${linked}. Відкриті: ${open}.`
+  return `Повʼязано: ${linked}. Відкритих немає.`
 }
 
 async function loadRequests() {

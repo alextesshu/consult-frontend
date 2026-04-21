@@ -55,7 +55,9 @@ const baseItem = {
   },
   payload: {
     billing_access_request_id: 77,
+    current_plan_label: 'Start',
     current_plan: 'START',
+    requested_plan_label: 'Pro',
     requested_plan: 'PRO',
     created_at: '2026-04-21T08:00:00Z',
   },
@@ -144,11 +146,11 @@ describe('AdminInboxView', () => {
     expect(screen.getByText(/Хто подав:/)).toBeInTheDocument()
     expect(screen.getAllByText(/Олена К\./).length).toBeGreaterThan(0)
     expect(screen.getByText(/Поточний план:/)).toBeInTheDocument()
-    expect(screen.getByText(/START/)).toBeInTheDocument()
+    expect(screen.getByText(/Start/)).toBeInTheDocument()
     expect(screen.getByText(/Запитаний план:/)).toBeInTheDocument()
-    expect(screen.getByText(/PRO/)).toBeInTheDocument()
+    expect(screen.getByText(/Pro/)).toBeInTheDocument()
 
-    const operationalLink = screen.getByRole('link', { name: 'Відкрити billing handling' })
+    const operationalLink = screen.getByRole('link', { name: 'Відкрити опрацювання запиту' })
     expect(operationalLink).toHaveAttribute('href', '/admin/billing-access-requests/77')
   })
 
