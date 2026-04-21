@@ -48,13 +48,13 @@
       <div v-if="loading" class="muted">Завантаження billing-запитів…</div>
       <div v-else-if="error" class="form-error">{{ error }}</div>
       <EmptyState
-        v-else-if="filteredRequests.length === 0"
+        v-else-if="requests.length === 0"
         title="Запитів за поточними фільтрами немає"
         description="Спробуйте змінити фільтри або поверніться пізніше."
       />
 
       <div v-else class="admin-billing-requests__list">
-        <article v-for="request in filteredRequests" :key="request.id" class="request-card">
+        <article v-for="request in requests" :key="request.id" class="request-card">
           <div class="request-card__header">
             <div>
               <h3 class="request-card__title">Запит №{{ request.id }}</h3>
@@ -90,37 +90,90 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
+import { useRoute, useRouter, type LocationQuery, type LocationQueryRaw } from 'vue-router'
 import EmptyState from '../components/EmptyState.vue'
 import {
   fetchAdminBillingAccessRequests,
   getApiErrorMessage,
   type AdminBillingAccessRequest,
+  type AdminBillingAccessRequestListFilters,
   type AdminBillingAccessRequestInboxRelation,
 } from '../lib/api'
 import { formatUkDateTimeCompact } from '../lib/dateTime'
 
+const route = useRoute()
+const router = useRouter()
+
 const loading = ref(false)
 const error = ref('')
 const requests = ref<AdminBillingAccessRequest[]>([])
+const allowedStatusFilters = ['PENDING', 'APPROVED', 'REJECTED'] as const
+type BillingRequestStatusFilter = (typeof allowedStatusFilters)[number]
 
-const statusFilter = ref('')
-const openInboxOnly = ref(false)
+const statusFilter = ref(readStatusQuery(route.query))
+const openInboxOnly = ref(readOpenInboxOnlyQuery(route.query))
+const applyingRouteQuery = ref(false)
 
 const statusOptions = computed(() => {
-  return Array.from(new Set(requests.value.map((item) => normalizeStatus(item.status)).filter(Boolean))).sort()
-})
-
-const filteredRequests = computed(() => {
-  return requests.value.filter((request) => {
-    if (statusFilter.value && normalizeStatus(request.status) !== statusFilter.value) return false
-    if (openInboxOnly.value && !hasOpenInboxItems(request.inbox_relation)) return false
-    return true
-  })
+  const fromItems = requests.value
+    .map((item) => normalizeStatus(item.status))
+    .filter((item): item is string => Boolean(item))
+  const fromFilters = statusFilter.value ? [statusFilter.value] : []
+  return Array.from(new Set([...allowedStatusFilters, ...fromItems, ...fromFilters])).sort()
 })
 
 function normalizeStatus(status: string | null | undefined) {
   return String(status || '').trim().toUpperCase()
+}
+
+function firstQueryValue(value: unknown) {
+  if (Array.isArray(value)) return value[0]
+  return value
+}
+
+function readStatusQuery(query: LocationQuery) {
+  const raw = firstQueryValue(query.status)
+  if (typeof raw !== 'string') return ''
+  const normalized = normalizeStatus(raw)
+  return allowedStatusFilters.includes(normalized as BillingRequestStatusFilter) ? normalized : ''
+}
+
+function readOpenInboxOnlyQuery(query: LocationQuery) {
+  const raw = firstQueryValue(query.open_inbox_only)
+  return typeof raw === 'string' && ['1', 'true', 'yes', 'on'].includes(raw.trim().toLowerCase())
+}
+
+function buildBillingFiltersFromQuery(query: LocationQuery): AdminBillingAccessRequestListFilters {
+  const filters: AdminBillingAccessRequestListFilters = {}
+  const status = readStatusQuery(query)
+  const openInboxOnlyValue = readOpenInboxOnlyQuery(query)
+
+  if (status) filters.status = status as BillingRequestStatusFilter
+  if (openInboxOnlyValue) filters.open_inbox_only = true
+  return filters
+}
+
+function buildQueryFromFilters() {
+  const nextQuery: LocationQueryRaw = { ...route.query }
+
+  if (statusFilter.value) nextQuery.status = statusFilter.value
+  else delete nextQuery.status
+
+  if (openInboxOnly.value) nextQuery.open_inbox_only = '1'
+  else delete nextQuery.open_inbox_only
+
+  return nextQuery
+}
+
+function areManagedQueriesEqual(query: LocationQuery, nextQuery: LocationQueryRaw) {
+  const currentStatus = readStatusQuery(query)
+  const nextStatus = readStatusQuery(nextQuery as LocationQuery)
+  if (currentStatus !== nextStatus) return false
+
+  const currentOpenOnly = readOpenInboxOnlyQuery(query)
+  const nextOpenOnly = readOpenInboxOnlyQuery(nextQuery as LocationQuery)
+  return currentOpenOnly === nextOpenOnly
 }
 
 function statusLabel(status: string | null | undefined) {
@@ -195,14 +248,6 @@ function relationLinkedItems(relation: AdminBillingAccessRequestInboxRelation | 
   return []
 }
 
-function hasOpenInboxItems(relation: AdminBillingAccessRequestInboxRelation | null | undefined) {
-  if (!relation) return false
-  if (typeof relation.has_open_items === 'boolean') return relation.has_open_items
-  const openCount = Number(relation.open_items_count)
-  if (Number.isFinite(openCount)) return openCount > 0
-  return relationLinkedItems(relation).some((item) => String(item.status || '').trim().toUpperCase() === 'OPEN')
-}
-
 function inboxRelationSummary(relation: AdminBillingAccessRequestInboxRelation | null | undefined) {
   if (!relation) return 'Звʼязок із inbox item не вказано.'
 
@@ -218,11 +263,11 @@ function inboxRelationSummary(relation: AdminBillingAccessRequestInboxRelation |
   return `Повʼязано: ${linked}. Відкритих немає.`
 }
 
-async function loadRequests() {
+async function loadRequests(filters: AdminBillingAccessRequestListFilters = {}) {
   loading.value = true
   error.value = ''
   try {
-    const response = await fetchAdminBillingAccessRequests()
+    const response = await fetchAdminBillingAccessRequests(filters)
     const resolved = Array.isArray(response.results)
       ? response.results
       : Array.isArray(response.items)
@@ -239,8 +284,24 @@ async function loadRequests() {
   }
 }
 
-onMounted(async () => {
-  await loadRequests()
+watch(
+  () => route.query,
+  async (query) => {
+    applyingRouteQuery.value = true
+    statusFilter.value = readStatusQuery(query)
+    openInboxOnly.value = readOpenInboxOnlyQuery(query)
+    applyingRouteQuery.value = false
+
+    await loadRequests(buildBillingFiltersFromQuery(query))
+  },
+  { immediate: true }
+)
+
+watch([statusFilter, openInboxOnly], async () => {
+  if (applyingRouteQuery.value) return
+  const nextQuery = buildQueryFromFilters()
+  if (areManagedQueriesEqual(route.query, nextQuery)) return
+  await router.push({ path: route.path, query: nextQuery })
 })
 </script>
 

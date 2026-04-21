@@ -71,14 +71,14 @@
       <div v-if="loading" class="muted">Завантаження inbox…</div>
       <div v-else-if="error" class="form-error">{{ error }}</div>
       <EmptyState
-        v-else-if="filteredItems.length === 0"
+        v-else-if="items.length === 0"
         title="Запитів за поточними фільтрами немає"
         description="Змініть фільтри або зачекайте на нові події в admin inbox."
       />
 
       <div v-else class="admin-inbox__list">
         <article
-          v-for="item in filteredItems"
+          v-for="item in items"
           :key="item.id"
           class="inbox-item"
           :class="{ 'inbox-item--active': selectedItemId === item.id }"
@@ -190,7 +190,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter, type LocationQuery, type LocationQueryRaw } from 'vue-router'
 import EmptyState from '../components/EmptyState.vue'
 import { useToast } from '../composables/useToast'
 import {
@@ -203,6 +203,7 @@ import {
   startAdminInboxItem,
   type AdminInboxActor,
   type AdminInboxItem,
+  type AdminInboxListFilters,
   type AdminInboxListResponse,
 } from '../lib/api'
 import { formatUkDateTimeCompact } from '../lib/dateTime'
@@ -217,6 +218,7 @@ type BillingSummary = {
 }
 
 const route = useRoute()
+const router = useRouter()
 const toast = useToast()
 
 const loading = ref(false)
@@ -225,10 +227,13 @@ const listResponse = ref<AdminInboxListResponse | null>(null)
 const items = ref<AdminInboxItem[]>([])
 const selectedItem = ref<AdminInboxItem | null>(null)
 const actionPending = ref<Record<number, Partial<Record<InboxAction, boolean>>>>({})
+const allowedStatusFilters = ['NEW', 'IN_PROGRESS', 'RESOLVED', 'DISMISSED'] as const
+type InboxStatusFilter = (typeof allowedStatusFilters)[number]
 
-const statusFilter = ref('')
-const codeFilter = ref('')
-const unreadOnly = ref(false)
+const statusFilter = ref(readStatusQuery(route.query))
+const codeFilter = ref(readCodeQuery(route.query))
+const unreadOnly = ref(readUnreadOnlyQuery(route.query))
+const applyingRouteQuery = ref(false)
 
 const selectedItemId = computed(() => {
   const rawId = Number(route.params.id)
@@ -236,56 +241,117 @@ const selectedItemId = computed(() => {
 })
 
 const counters = computed(() => {
-  const total = Number(listResponse.value?.count ?? items.value.length)
-  const unread = Number(
-    listResponse.value?.unread_count ?? items.value.filter((item) => isUnreadStatus(item.status)).length
-  )
-  const open = Number(
-    listResponse.value?.open_count ?? items.value.filter((item) => normalizeStatus(item.status) === 'open').length
-  )
+  const total = Number.isFinite(Number(listResponse.value?.count)) ? Number(listResponse.value?.count) : items.value.length
+  const unread = Number.isFinite(Number(listResponse.value?.unread_count)) ? Number(listResponse.value?.unread_count) : 0
+  const open = Number.isFinite(Number(listResponse.value?.open_count)) ? Number(listResponse.value?.open_count) : 0
   return { total, unread, open }
 })
 
 const statusOptions = computed(() => {
-  return Array.from(new Set(items.value.map((item) => String(item.status || '')).filter(Boolean))).sort()
+  const fromItems = items.value
+    .map((item) => normalizeStatus(item.status))
+    .filter((item): item is string => Boolean(item))
+  const fromFilters = statusFilter.value ? [statusFilter.value] : []
+  return Array.from(new Set([...allowedStatusFilters, ...fromItems, ...fromFilters])).sort()
 })
 
 const codeOptions = computed(() => {
   return Array.from(new Set(items.value.map((item) => String(item.code || '')).filter(Boolean))).sort()
 })
 
-const filteredItems = computed(() => {
-  return items.value.filter((item) => {
-    if (statusFilter.value && item.status !== statusFilter.value) return false
-    if (codeFilter.value && item.code !== codeFilter.value) return false
-    if (unreadOnly.value && !isUnreadStatus(item.status)) return false
-    return true
-  })
-})
-
 function normalizeStatus(status: string | null | undefined) {
-  return String(status || '').trim().toLowerCase()
+  return String(status || '').trim().toUpperCase()
+}
+
+function firstQueryValue(value: unknown) {
+  if (Array.isArray(value)) return value[0]
+  return value
+}
+
+function readStatusQuery(query: LocationQuery) {
+  const raw = firstQueryValue(query.status)
+  if (typeof raw !== 'string') return ''
+  const normalized = normalizeStatusFilterValue(raw)
+  return normalized
+}
+
+function normalizeStatusFilterValue(raw: string) {
+  const normalized = normalizeStatus(raw)
+  if (normalized === 'UNREAD') return 'NEW'
+  if (normalized === 'OPEN') return 'IN_PROGRESS'
+  return allowedStatusFilters.includes(normalized as InboxStatusFilter) ? normalized : ''
+}
+
+function readCodeQuery(query: LocationQuery) {
+  const raw = firstQueryValue(query.code)
+  return typeof raw === 'string' ? raw.trim() : ''
+}
+
+function readUnreadOnlyQuery(query: LocationQuery) {
+  const raw = firstQueryValue(query.unread_only)
+  return typeof raw === 'string' && ['1', 'true', 'yes', 'on'].includes(raw.trim().toLowerCase())
+}
+
+function buildInboxFiltersFromQuery(query: LocationQuery): AdminInboxListFilters {
+  const filters: AdminInboxListFilters = {}
+  const status = readStatusQuery(query)
+  const code = readCodeQuery(query)
+  const unreadOnlyValue = readUnreadOnlyQuery(query)
+
+  if (status) filters.status = status as InboxStatusFilter
+  if (code) filters.code = code
+  if (unreadOnlyValue) filters.unread_only = true
+  return filters
+}
+
+function buildQueryFromFilters() {
+  const nextQuery: LocationQueryRaw = { ...route.query }
+
+  if (statusFilter.value) nextQuery.status = statusFilter.value
+  else delete nextQuery.status
+
+  if (codeFilter.value) nextQuery.code = codeFilter.value
+  else delete nextQuery.code
+
+  if (unreadOnly.value) nextQuery.unread_only = '1'
+  else delete nextQuery.unread_only
+
+  return nextQuery
+}
+
+function areManagedQueriesEqual(query: LocationQuery, nextQuery: LocationQueryRaw) {
+  const currentStatus = readStatusQuery(query)
+  const nextStatus = readStatusQuery(nextQuery as LocationQuery)
+  if (currentStatus !== nextStatus) return false
+
+  const currentCode = readCodeQuery(query)
+  const nextCode = readCodeQuery(nextQuery as LocationQuery)
+  if (currentCode !== nextCode) return false
+
+  const currentUnreadOnly = readUnreadOnlyQuery(query)
+  const nextUnreadOnly = readUnreadOnlyQuery(nextQuery as LocationQuery)
+  return currentUnreadOnly === nextUnreadOnly
 }
 
 function isUnreadStatus(status: string | null | undefined) {
   const normalized = normalizeStatus(status)
-  return normalized === 'unread' || normalized === 'new'
+  return normalized === 'UNREAD' || normalized === 'NEW'
 }
 
 function statusLabel(status: string | null | undefined) {
   const normalized = normalizeStatus(status)
-  if (normalized === 'unread' || normalized === 'new') return 'Непрочитано'
-  if (normalized === 'open' || normalized === 'in_progress') return 'В роботі'
-  if (normalized === 'resolved' || normalized === 'done') return 'Вирішено'
-  if (normalized === 'dismissed' || normalized === 'closed') return 'Відхилено'
+  if (normalized === 'UNREAD' || normalized === 'NEW') return 'Непрочитано'
+  if (normalized === 'OPEN' || normalized === 'IN_PROGRESS') return 'В роботі'
+  if (normalized === 'RESOLVED' || normalized === 'DONE') return 'Вирішено'
+  if (normalized === 'DISMISSED' || normalized === 'CLOSED') return 'Відхилено'
   return status || '—'
 }
 
 function statusClass(status: string | null | undefined) {
   const normalized = normalizeStatus(status)
-  if (normalized === 'open' || normalized === 'in_progress') return 'status-pill--warn'
-  if (normalized === 'resolved' || normalized === 'done') return 'status-pill--ok'
-  if (normalized === 'dismissed' || normalized === 'closed') return 'status-pill--danger'
+  if (normalized === 'OPEN' || normalized === 'IN_PROGRESS') return 'status-pill--warn'
+  if (normalized === 'RESOLVED' || normalized === 'DONE') return 'status-pill--ok'
+  if (normalized === 'DISMISSED' || normalized === 'CLOSED') return 'status-pill--danger'
   return 'status-pill--muted'
 }
 
@@ -418,24 +484,24 @@ function canMarkRead(item: AdminInboxItem) {
 
 function canStart(item: AdminInboxItem) {
   const status = normalizeStatus(item.status)
-  return status !== 'open' && status !== 'in_progress' && status !== 'resolved' && status !== 'done' && status !== 'dismissed'
+  return status !== 'OPEN' && status !== 'IN_PROGRESS' && status !== 'RESOLVED' && status !== 'DONE' && status !== 'DISMISSED'
 }
 
 function canResolve(item: AdminInboxItem) {
   const status = normalizeStatus(item.status)
-  return status !== 'resolved' && status !== 'done' && status !== 'dismissed'
+  return status !== 'RESOLVED' && status !== 'DONE' && status !== 'DISMISSED'
 }
 
 function canDismiss(item: AdminInboxItem) {
   const status = normalizeStatus(item.status)
-  return status !== 'dismissed' && status !== 'resolved' && status !== 'done'
+  return status !== 'DISMISSED' && status !== 'RESOLVED' && status !== 'DONE'
 }
 
-async function loadInbox() {
+async function loadInbox(filters: AdminInboxListFilters = {}) {
   loading.value = true
   error.value = ''
   try {
-    const response = await fetchAdminInbox()
+    const response = await fetchAdminInbox(filters)
     listResponse.value = response
     const resolved = Array.isArray(response.results)
       ? response.results
@@ -473,7 +539,7 @@ async function runAction(itemId: number, action: InboxAction) {
     if (action === 'start') await startAdminInboxItem(itemId)
     if (action === 'resolve') await resolveAdminInboxItem(itemId)
     if (action === 'dismiss') await dismissAdminInboxItem(itemId)
-    await loadInbox()
+    await loadInbox(buildInboxFiltersFromQuery(route.query))
     if (selectedItemId.value) {
       await loadSelectedItem(selectedItemId.value)
     }
@@ -492,8 +558,28 @@ watch(
   }
 )
 
+watch(
+  () => route.query,
+  async (query) => {
+    applyingRouteQuery.value = true
+    statusFilter.value = readStatusQuery(query)
+    codeFilter.value = readCodeQuery(query)
+    unreadOnly.value = readUnreadOnlyQuery(query)
+    applyingRouteQuery.value = false
+
+    await loadInbox(buildInboxFiltersFromQuery(query))
+  },
+  { immediate: true }
+)
+
+watch([statusFilter, codeFilter, unreadOnly], async () => {
+  if (applyingRouteQuery.value) return
+  const nextQuery = buildQueryFromFilters()
+  if (areManagedQueriesEqual(route.query, nextQuery)) return
+  await router.push({ path: route.path, query: nextQuery })
+})
+
 onMounted(async () => {
-  await loadInbox()
   await loadSelectedItem(selectedItemId.value)
 })
 </script>

@@ -1,4 +1,4 @@
-﻿import { render, screen, waitFor } from '@testing-library/vue'
+import { fireEvent, render, screen, waitFor } from '@testing-library/vue'
 import { createMemoryHistory, createRouter } from 'vue-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import AdminBillingAccessRequestsView from './AdminBillingAccessRequestsView.vue'
@@ -15,7 +15,7 @@ vi.mock('../lib/api', async () => {
 
 const mockedFetchAdminBillingAccessRequests = vi.mocked(fetchAdminBillingAccessRequests)
 
-async function renderView() {
+async function renderView(initialPath = '/admin/billing-access-requests') {
   const router = createRouter({
     history: createMemoryHistory(),
     routes: [
@@ -37,7 +37,7 @@ async function renderView() {
     ],
   })
 
-  await router.push('/admin/billing-access-requests')
+  await router.push(initialPath)
   await router.isReady()
 
   render(AdminBillingAccessRequestsView, {
@@ -45,6 +45,8 @@ async function renderView() {
       plugins: [router],
     },
   })
+
+  return { router }
 }
 
 describe('AdminBillingAccessRequestsView', () => {
@@ -89,14 +91,14 @@ describe('AdminBillingAccessRequestsView', () => {
           },
         },
       ],
-    })
+    } as any)
   })
 
   it('renders canonical list payload and deep-link to detail route', async () => {
     await renderView()
 
     await waitFor(() => {
-      expect(mockedFetchAdminBillingAccessRequests).toHaveBeenCalledTimes(1)
+      expect(mockedFetchAdminBillingAccessRequests).toHaveBeenCalledWith({})
     })
 
     expect(screen.getByRole('heading', { name: 'Запити на доступ до тарифу' })).toBeInTheDocument()
@@ -109,27 +111,69 @@ describe('AdminBillingAccessRequestsView', () => {
     expect(detailLink).toHaveAttribute('href', '/admin/billing-access-requests/101')
   })
 
-  it('falls back to plan codes when canonical labels are missing', async () => {
+  it('hydrates filters from route query and fetches backend-filtered set', async () => {
     mockedFetchAdminBillingAccessRequests.mockResolvedValueOnce({
       count: 1,
       results: [
         {
-          id: 202,
+          id: 301,
           status: 'PENDING',
-          current_plan: 'START',
-          requested_plan: 'PRO',
-          user: { id: 2, display_name: 'Ірина', email: '' },
-          specialist: { id: 2, username: 'iryna' },
-          inbox_relation: { has_open_items: false, linked_items_count: 0, open_items_count: 0 },
+          current_plan_label: 'Start',
+          requested_plan_label: 'Pro',
+          user: { id: 1, display_name: 'Олена', email: 'olena@example.com' },
+          specialist: { id: 1, display_name: 'Олена', username: 'olena' },
+          inbox_relation: { has_open_items: true, open_items_count: 1, linked_items_count: 1 },
         },
       ],
     } as any)
 
-    await renderView()
+    await renderView('/admin/billing-access-requests?status=PENDING&open_inbox_only=1')
 
     await waitFor(() => {
-      expect(screen.getByText('Запит №202')).toBeInTheDocument()
+      expect(mockedFetchAdminBillingAccessRequests).toHaveBeenCalledWith({
+        status: 'PENDING',
+        open_inbox_only: true,
+      })
     })
-    expect(screen.getByText(/Тариф START → PRO/)).toBeInTheDocument()
+
+    expect((screen.getByLabelText('Статус') as HTMLSelectElement).value).toBe('PENDING')
+    expect((screen.getByLabelText('Лише з відкритими inbox item') as HTMLInputElement).checked).toBe(true)
+    expect(screen.getByText('Запит №301')).toBeInTheDocument()
+    expect(screen.queryByText('Запит №101')).not.toBeInTheDocument()
+  })
+
+  it('updates and clears route query when filters change', async () => {
+    const { router } = await renderView('/admin/billing-access-requests')
+
+    await waitFor(() => {
+      expect(mockedFetchAdminBillingAccessRequests).toHaveBeenCalledWith({})
+    })
+
+    const statusSelect = screen.getByLabelText('Статус')
+    const openOnlyCheckbox = screen.getByLabelText('Лише з відкритими inbox item')
+
+    await fireEvent.update(statusSelect, 'PENDING')
+    await waitFor(() => {
+      expect(router.currentRoute.value.query.status).toBe('PENDING')
+      expect(mockedFetchAdminBillingAccessRequests).toHaveBeenLastCalledWith({ status: 'PENDING' })
+    })
+
+    await fireEvent.click(openOnlyCheckbox)
+    await waitFor(() => {
+      expect(router.currentRoute.value.query.open_inbox_only).toBe('1')
+      expect(mockedFetchAdminBillingAccessRequests).toHaveBeenLastCalledWith({
+        status: 'PENDING',
+        open_inbox_only: true,
+      })
+    })
+
+    await fireEvent.update(statusSelect, '')
+    await fireEvent.click(openOnlyCheckbox)
+
+    await waitFor(() => {
+      expect(router.currentRoute.value.query.status).toBeUndefined()
+      expect(router.currentRoute.value.query.open_inbox_only).toBeUndefined()
+      expect(mockedFetchAdminBillingAccessRequests).toHaveBeenLastCalledWith({})
+    })
   })
 })

@@ -341,6 +341,13 @@ export type AdminInboxListResponse = {
   items?: AdminInboxItem[]
 }
 
+export type AdminInboxListFilters = {
+  status?: 'NEW' | 'IN_PROGRESS' | 'RESOLVED' | 'DISMISSED'
+  code?: string
+  unread_only?: boolean
+  limit?: number
+}
+
 export type AdminBillingAccessRequestStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | string
 
 export type AdminBillingAccessRequestInboxItem = {
@@ -409,6 +416,11 @@ export type AdminBillingAccessRequestListResponse = {
   count?: number
   results?: AdminBillingAccessRequest[]
   items?: AdminBillingAccessRequest[]
+}
+
+export type AdminBillingAccessRequestListFilters = {
+  status?: 'PENDING' | 'APPROVED' | 'REJECTED'
+  open_inbox_only?: boolean
 }
 
 export type SpecialistProfileDocument = {
@@ -1136,8 +1148,14 @@ export async function markAllNotificationsRead(): Promise<NotificationReadAllRes
   return resp.data
 }
 
-export async function fetchAdminInbox(): Promise<AdminInboxListResponse> {
-  const resp = await http.get<AdminInboxListResponse>('/admin/inbox/')
+export async function fetchAdminInbox(filters: AdminInboxListFilters = {}): Promise<AdminInboxListResponse> {
+  const params: Record<string, string | number> = {}
+  if (filters.status) params.status = filters.status
+  if (filters.code) params.code = filters.code
+  if (filters.unread_only) params.unread_only = '1'
+  if (typeof filters.limit === 'number') params.limit = filters.limit
+
+  const resp = await http.get<AdminInboxListResponse>('/admin/inbox/', { params })
   return resp.data
 }
 
@@ -1166,9 +1184,16 @@ export async function dismissAdminInboxItem(itemId: number): Promise<AdminInboxI
   return resp.data
 }
 
-export async function fetchAdminBillingAccessRequests(): Promise<AdminBillingAccessRequestListResponse> {
+export async function fetchAdminBillingAccessRequests(
+  filters: AdminBillingAccessRequestListFilters = {}
+): Promise<AdminBillingAccessRequestListResponse> {
+  const params: Record<string, string> = {}
+  if (filters.status) params.status = filters.status
+  if (filters.open_inbox_only) params.open_inbox_only = '1'
+
   const resp = await http.get<AdminBillingAccessRequest[] | AdminBillingAccessRequestListResponse>(
-    '/admin/billing-access-requests/'
+    '/admin/billing-access-requests/',
+    { params }
   )
   const payload = resp.data
   if (Array.isArray(payload)) {
