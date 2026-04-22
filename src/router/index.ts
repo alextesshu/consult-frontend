@@ -12,6 +12,7 @@ import SpecialistProfileView from '../views/TherapistProfileView.vue'
 import SlotsView from '../views/SlotsView.vue'
 import AvailabilityRulesView from '../views/AvailabilityRulesView.vue'
 import HomeView from '../views/HomeView.vue'
+import TourView from '../views/TourView.vue'
 import ClientDashboardView from '../views/ClientDashboardView.vue'
 import SpecialistSessionsView from '../views/TherapistSessionsView.vue'
 import SpecialistSessionDetailView from '../views/TherapistSessionDetailView.vue'
@@ -52,6 +53,7 @@ import { hasSpecialistRole, isSpecialistCriticalReconcileRoute } from '../lib/en
 
 const routes = [
   { path: '/', name: 'home', component: HomeView },
+  { path: '/tour', name: 'tour', component: TourView },
   { path: '/public', name: 'public-redirect', component: PublicProfileView },
   { path: '/login', name: 'login', component: LoginView },
   { path: '/signup', name: 'signup', component: SignupView },

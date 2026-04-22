@@ -29,6 +29,9 @@
         <RouterLink v-if="!isAuthenticated" class="nav__desktop-only" :to="{ path: '/', hash: '#features' }">
           Можливості
         </RouterLink>
+        <RouterLink v-if="!isAuthenticated" class="nav__desktop-only" to="/tour">
+          Тур
+        </RouterLink>
         <RouterLink v-if="!isAuthenticated" class="nav__desktop-only" :to="{ path: '/', hash: '#pricing' }">
           Тарифи
         </RouterLink>
