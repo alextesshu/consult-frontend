@@ -3,8 +3,8 @@
     <header v-if="!useMinimalShell" :class="topbarClass">
       <div class="topbar__inner">
         <RouterLink class="brand" to="/">
-          <div class="brand__mark">Pro Consult</div>
-          <div class="brand__tagline">Простір для вашої справи</div>
+          <div class="brand__mark">PRO CONSULT</div>
+          <div class="brand__tagline">простір для вашої справи</div>
         </RouterLink>
         <nav class="nav">
         <RouterLink
@@ -26,18 +26,9 @@
         >
           Публічний профіль
         </RouterLink>
-        <RouterLink v-if="!isAuthenticated" class="nav__desktop-only" :to="{ path: '/', hash: '#features' }">
-          Можливості
-        </RouterLink>
-        <RouterLink v-if="!isAuthenticated" class="nav__desktop-only" to="/tour">
-          Тур
-        </RouterLink>
-        <RouterLink v-if="!isAuthenticated" class="nav__desktop-only" :to="{ path: '/', hash: '#pricing' }">
-          Тарифи
-        </RouterLink>
+        <RouterLink v-if="!isAuthenticated" class="nav__desktop-only" to="/pricing">Тарифи</RouterLink>
         <RouterLink v-if="!isAuthenticated" to="/login">Вхід</RouterLink>
-        <RouterLink v-if="!isAuthenticated" to="/signup-client">Реєстрація клієнта</RouterLink>
-        <RouterLink v-if="!isAuthenticated" to="/signup">Реєстрація спеціаліста</RouterLink>
+        <RouterLink v-if="!isAuthenticated" class="nav__guest-cta" to="/signup">Спробувати безкоштовно</RouterLink>
         <RouterLink
           v-if="isAuthenticated && isChatCapable"
           class="icon-btn nav__desktop-only"
@@ -215,7 +206,7 @@
       </div>
     </header>
 
-    <main :class="['main', { 'main--home': isHome, 'main--public-profile': isPublicProfilePage }]">
+    <main :class="['main', { 'main--home': isHome, 'main--public-profile': isPublicProfilePage, 'main--tour': isTour }]">
       <RouterView :key="route.fullPath" />
     </main>
     <ToastHost />
@@ -272,6 +263,7 @@ const router = useRouter()
 const auth = useAuthStore()
 const isAuthenticated = computed(() => Boolean(auth.accessToken))
 const isHome = computed(() => route.path === '/')
+const isTour = computed(() => route.path === '/tour')
 const useMinimalShell = computed(() => Boolean(route.meta?.minimalShell))
 const runtimeHost = typeof window !== 'undefined' ? window.location.hostname.toLowerCase() : ''
 const deployEnv = String(import.meta.env.VITE_DEPLOY_ENV || '').trim().toLowerCase()
@@ -356,6 +348,7 @@ const topbarClass = computed(() => [
   {
     'topbar--specialist': isSpecialist.value,
     'topbar--client': isClient.value,
+    'topbar--guest': !isAuthenticated.value,
     'topbar--overlay': isHome.value,
   },
 ])
@@ -878,6 +871,23 @@ watch(isChatCapable, (value) => {
   border-bottom-color: var(--topbar-border);
 }
 
+.topbar--guest {
+  background: color-mix(in srgb, #ffffff 86%, #e6efe9);
+  color: #1d3e38;
+  border-bottom: 1px solid color-mix(in srgb, #1d3e38 18%, #d8e4de);
+  box-shadow: 0 8px 20px rgba(18, 44, 38, 0.08);
+}
+
+.topbar--guest::after {
+  opacity: 0.3;
+}
+
+.topbar--guest .topbar__inner {
+  width: min(1460px, 96vw);
+  min-height: 78px;
+  padding: 14px 0;
+}
+
 .topbar--overlay {
   position: absolute;
   top: 0;
@@ -918,6 +928,27 @@ watch(isChatCapable, (value) => {
   text-align: left;
 }
 
+.topbar--guest .brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.topbar--guest .brand__mark {
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.topbar--guest .brand__tagline {
+  font-size: 15px;
+  letter-spacing: 0;
+  font-weight: 500;
+  text-transform: none;
+  color: color-mix(in srgb, #1d3e38 70%, #55756e);
+  padding-left: 14px;
+  border-left: 1px solid color-mix(in srgb, #1d3e38 20%, #d5dfda);
+}
+
 .nav {
   display: flex;
   gap: 10px;
@@ -932,6 +963,10 @@ watch(isChatCapable, (value) => {
 
 .nav__desktop-only {
   display: inline-flex;
+}
+
+.nav__guest-cta {
+  font-weight: 600;
 }
 
 .nav__mobile-only {
@@ -993,6 +1028,45 @@ watch(isChatCapable, (value) => {
 .nav a:focus-visible {
   outline: 2px solid color-mix(in srgb, var(--topbar-text) 45%, transparent);
   outline-offset: 2px;
+}
+
+.topbar--guest .nav {
+  gap: 14px;
+  align-items: center;
+  flex-wrap: nowrap;
+}
+
+.topbar--guest .nav a {
+  min-height: 38px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  box-shadow: none;
+  color: #1d3e38;
+  font-weight: 500;
+  padding: 6px 8px;
+}
+
+.topbar--guest .nav a:hover {
+  background: color-mix(in srgb, #1d3e38 7%, #ffffff);
+}
+
+.topbar--guest .nav a.router-link-active {
+  background: color-mix(in srgb, #1d3e38 9%, #ffffff);
+  box-shadow: none;
+}
+
+.topbar--guest .nav a.nav__guest-cta {
+  border: 1px solid color-mix(in srgb, #0d6b55 30%, #0c5e4a);
+  background: linear-gradient(180deg, #178466 0%, #0f7059 100%);
+  color: #f4fffb;
+  padding: 6px 16px;
+  box-shadow: 0 10px 18px rgba(11, 73, 58, 0.22);
+}
+
+.topbar--guest .nav a.nav__guest-cta:hover {
+  background: linear-gradient(180deg, #1b8f6f 0%, #10705a 100%);
+  border-color: color-mix(in srgb, #0d6b55 40%, #0c5e4a);
 }
 
 .nav__notifications {
@@ -1283,6 +1357,10 @@ watch(isChatCapable, (value) => {
   margin: 0 auto;
 }
 
+.main--tour {
+  width: 100%;
+}
+
 .main--home {
   min-height: 100vh;
   width: 100%;
@@ -1435,6 +1513,16 @@ body.body--home .footer {
   .nav {
     gap: 10px;
   }
+
+  .topbar--guest .topbar__inner {
+    align-items: center;
+    min-height: 70px;
+    width: min(1460px, 95vw);
+  }
+
+  .topbar--guest .brand__tagline {
+    font-size: 13px;
+  }
 }
 
 @media (max-width: 640px) {
@@ -1490,6 +1578,29 @@ body.body--home .footer {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+
+  .topbar--guest .topbar__inner {
+    padding: 10px 0 9px;
+    flex-wrap: nowrap;
+    gap: 10px;
+  }
+
+  .topbar--guest .brand__tagline {
+    display: none;
+  }
+
+  .topbar--guest .nav {
+    gap: 6px;
+  }
+
+  .topbar--guest .nav a {
+    min-height: 34px;
+    padding: 5px 8px;
+  }
+
+  .topbar--guest .nav a.nav__guest-cta {
+    padding: 5px 12px;
   }
 
   .mobile-menu {

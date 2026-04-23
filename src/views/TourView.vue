@@ -2,20 +2,50 @@
   <section class="tour-page">
     <div class="tour-page__container">
       <section class="tour-hero reveal" id="hero">
-        <p class="tour-hero__eyebrow">Тур по платформі</p>
-        <h1 class="tour-hero__title">Подивіться, як PRO CONSULT допомагає вести приватну практику в одному просторі</h1>
-        <p class="tour-hero__subtitle">
-          Публічний профіль, онлайн-запис, сесії, нотатки, робочий зошит, оплати й аналітика — без комісії з кожної
-          сесії.
-        </p>
-        <div class="tour-hero__actions">
-          <button v-if="isAuthenticated" class="btn" type="button" @click="goToCabinet">Перейти в кабінет</button>
-          <RouterLink v-else class="btn" to="/signup">Спробувати безкоштовно</RouterLink>
-          <RouterLink class="btn btn--ghost" to="/pricing">Переглянути тарифи</RouterLink>
+        <div class="tour-hero__content">
+          <p class="tour-hero__eyebrow">Тур по платформі</p>
+          <h1 class="tour-hero__title">Подивіться, як PRO CONSULT допомагає вести приватну практику в одному просторі</h1>
+          <p class="tour-hero__subtitle">
+            Публічний профіль, онлайн-бронювання, сесії, нотатки, робочий зошит, платежі та аналітика — усе в одній
+            системі, щоб ви могли фокусуватися на головному: клієнтах.
+          </p>
+          <div class="tour-hero__actions">
+            <button v-if="isAuthenticated" class="btn" type="button" @click="goToCabinet">Перейти в кабінет</button>
+            <RouterLink v-else class="btn" to="/signup">Спробувати безкоштовно</RouterLink>
+            <RouterLink class="btn btn--ghost" to="/pricing">Переглянути тарифи</RouterLink>
+          </div>
+          <p class="tour-hero__microcopy">
+            30 днів Pro для нових спеціалістів. Потім — безкоштовний Start або перехід на потрібний рівень доступу.
+          </p>
         </div>
-        <p class="tour-hero__microcopy">
-          30 днів Pro для нових спеціалістів. Потім — безкоштовний Start або перехід на потрібний рівень доступу.
-        </p>
+        <div class="tour-hero__visual">
+          <div class="hero-collage">
+            <article class="hero-shot hero-shot--primary">
+              <div class="hero-shot__top"><span></span><span></span><span></span></div>
+              <div class="hero-shot__viewport">
+                <img src="/images/tour/public-profile-2.jpg" alt="Публічний профіль спеціаліста" loading="eager" decoding="async" />
+              </div>
+            </article>
+            <article class="hero-shot hero-shot--slots">
+              <div class="hero-shot__top"><span></span><span></span><span></span></div>
+              <div class="hero-shot__viewport">
+                <img src="/images/tour/slots-1.jpg" alt="Доступні вікна для бронювання" loading="lazy" decoding="async" />
+              </div>
+            </article>
+            <article class="hero-shot hero-shot--payments">
+              <div class="hero-shot__top"><span></span><span></span><span></span></div>
+              <div class="hero-shot__viewport">
+                <img src="/images/tour/payments-block-1.jpg" alt="Підтвердження оплат у кабінеті" loading="lazy" decoding="async" />
+              </div>
+            </article>
+            <article class="hero-shot hero-shot--analytics">
+              <div class="hero-shot__top"><span></span><span></span><span></span></div>
+              <div class="hero-shot__viewport">
+                <img src="/images/tour/analytics-1.jpg" alt="Аналітика практики" loading="lazy" decoding="async" />
+              </div>
+            </article>
+          </div>
+        </div>
       </section>
 
       <nav class="tour-nav reveal" aria-label="Розділи туру">
@@ -409,7 +439,7 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .tour-page {
-  padding: 88px 0 120px;
+  padding: 42px 0 120px;
   position: relative;
   isolation: isolate;
 }
@@ -417,20 +447,20 @@ onBeforeUnmount(() => {
 .tour-page::before {
   content: '';
   position: absolute;
-  inset: -220px 0;
+  inset: -180px 0 0;
   pointer-events: none;
   z-index: -1;
   background:
-    radial-gradient(1200px 540px at 14% 28%, rgba(6, 58, 97, 0.14), transparent 72%),
-    radial-gradient(860px 440px at 84% 20%, rgba(219, 120, 39, 0.09), transparent 72%),
-    linear-gradient(180deg, rgba(247, 248, 251, 0.74) 0%, rgba(247, 248, 251, 0.92) 32%, rgba(247, 248, 251, 0.9) 100%);
+    radial-gradient(1300px 560px at 18% 20%, rgba(17, 89, 69, 0.12), transparent 72%),
+    radial-gradient(980px 460px at 88% 18%, rgba(219, 120, 39, 0.08), transparent 74%),
+    linear-gradient(180deg, rgba(245, 247, 242, 0.82) 0%, rgba(247, 248, 251, 0.94) 38%, rgba(247, 248, 251, 0.95) 100%);
 }
 
 .tour-page__container {
-  width: min(1200px, 92vw);
+  width: min(1480px, 96vw);
   margin: 0 auto;
   display: grid;
-  gap: 44px;
+  gap: 34px;
 }
 
 .tour-hero,
@@ -446,7 +476,14 @@ onBeforeUnmount(() => {
 }
 
 .tour-hero {
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.88), rgba(17, 64, 54, 0.06));
+  background: linear-gradient(132deg, rgba(255, 255, 255, 0.88), rgba(18, 64, 54, 0.06));
+  display: grid;
+  grid-template-columns: minmax(0, 0.84fr) minmax(0, 1.16fr);
+  gap: clamp(18px, 2.2vw, 34px);
+  align-items: center;
+}
+
+.tour-hero__content {
   display: grid;
   gap: 14px;
 }
@@ -463,17 +500,17 @@ onBeforeUnmount(() => {
 
 .tour-hero__title {
   margin: 0;
-  font-size: clamp(32px, 3.8vw, 54px);
+  font-size: clamp(37px, 4vw, 66px);
   line-height: 1.12;
   letter-spacing: -0.02em;
-  max-width: 20ch;
+  max-width: 16ch;
 }
 
 .tour-hero__subtitle,
 .tour-hero__microcopy {
   margin: 0;
   color: var(--muted);
-  max-width: 68ch;
+  max-width: 60ch;
 }
 
 .tour-hero__microcopy {
@@ -483,30 +520,106 @@ onBeforeUnmount(() => {
 .tour-hero__actions,
 .tour-final-cta__actions {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   flex-wrap: wrap;
+}
+
+.tour-hero__visual {
+  min-width: 0;
+}
+
+.hero-collage {
+  position: relative;
+  min-height: clamp(520px, 42vw, 670px);
+  padding: 20px 6px 8px;
+}
+
+.hero-shot {
+  position: absolute;
+  border: 1px solid color-mix(in srgb, var(--primary) 20%, var(--border));
+  border-radius: var(--radius-lg);
+  background: linear-gradient(168deg, rgba(255, 255, 255, 0.94), rgba(18, 65, 55, 0.06));
+  overflow: hidden;
+  box-shadow: 0 16px 32px rgba(17, 64, 54, 0.13);
+}
+
+.hero-shot__top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 11px;
+  border-bottom: 1px solid color-mix(in srgb, var(--primary) 14%, var(--border));
+}
+
+.hero-shot__top span {
+  width: 7px;
+  height: 7px;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--primary) 32%, var(--border));
+}
+
+.hero-shot__viewport {
+  padding: 8px;
+  background: linear-gradient(180deg, rgba(10, 30, 45, 0.03), rgba(10, 30, 45, 0.01));
+}
+
+.hero-shot__viewport img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-md);
+}
+
+.hero-shot--primary {
+  top: 0;
+  left: 4%;
+  width: 92%;
+  z-index: 2;
+}
+
+.hero-shot--slots {
+  left: -1%;
+  bottom: 10%;
+  width: 30%;
+  z-index: 4;
+}
+
+.hero-shot--payments {
+  left: 33%;
+  bottom: 6%;
+  width: 34%;
+  z-index: 5;
+}
+
+.hero-shot--analytics {
+  right: -1%;
+  bottom: 6%;
+  width: 34%;
+  z-index: 4;
 }
 
 .tour-nav {
   position: sticky;
-  top: 78px;
+  top: 84px;
   z-index: 6;
   display: flex;
-  gap: 8px;
+  gap: 7px;
   flex-wrap: wrap;
-  padding: 10px;
-  border: 1px solid color-mix(in srgb, var(--primary) 18%, var(--border));
-  border-radius: var(--radius-sm);
-  background: color-mix(in srgb, #ffffff 88%, var(--surface));
+  padding: 8px;
+  border: 1px solid color-mix(in srgb, var(--primary) 14%, var(--border));
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, #ffffff 74%, var(--surface));
   backdrop-filter: blur(8px);
+  box-shadow: 0 8px 22px rgba(17, 64, 54, 0.08);
 }
 
 .tour-nav a {
-  border: 1px solid color-mix(in srgb, var(--primary) 20%, var(--border));
+  border: 1px solid color-mix(in srgb, var(--primary) 16%, var(--border));
   border-radius: var(--radius-xs);
-  padding: 6px 11px;
-  font-size: 12px;
-  color: color-mix(in srgb, var(--text) 86%, #2d5666);
+  padding: 5px 10px;
+  font-size: 11.5px;
+  color: color-mix(in srgb, var(--text) 82%, #2d5666);
+  background: color-mix(in srgb, #ffffff 80%, var(--surface));
   white-space: nowrap;
   transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
 }
@@ -718,6 +831,29 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 1080px) {
+  .tour-hero {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+
+  .hero-collage {
+    min-height: auto;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .hero-shot {
+    position: relative;
+    inset: auto;
+    width: auto;
+  }
+
+  .hero-shot--primary {
+    grid-column: 1 / -1;
+  }
+
   .tour-feature {
     grid-template-columns: 1fr;
   }
@@ -736,7 +872,7 @@ onBeforeUnmount(() => {
 
 @media (max-width: 760px) {
   .tour-page {
-    padding-top: 102px;
+    padding-top: 26px;
   }
 
   .tour-nav {
@@ -747,6 +883,10 @@ onBeforeUnmount(() => {
 
   .tour-nav a {
     flex: 0 0 auto;
+  }
+
+  .hero-collage {
+    grid-template-columns: 1fr;
   }
 }
 </style>
