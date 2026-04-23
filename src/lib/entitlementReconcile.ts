@@ -63,7 +63,7 @@ export function hasSpecialistRole(roles: unknown): boolean {
 
 export function hasAdminRole(roles: unknown): boolean {
   const upper = normalizeRoles(roles)
-  return upper.includes('ADMIN') || upper.includes('SUPERADMIN')
+  return upper.includes('ADMIN')
 }
 
 export function hasClientRole(roles: unknown): boolean {
