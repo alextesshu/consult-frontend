@@ -64,6 +64,15 @@ describe('router specialist session routes', () => {
     expect(invalidDetail.name).not.toBe('admin-billing-access-request-detail')
   })
 
+  it('matches admin specialist detail route and rejects non-numeric id', () => {
+    const detail = router.resolve('/admin/specialists/77')
+    const invalid = router.resolve('/admin/specialists/not-a-number')
+
+    expect(detail.name).toBe('admin-specialist-detail')
+    expect(detail.params).toEqual({ id: '77' })
+    expect(invalid.name).not.toBe('admin-specialist-detail')
+  })
+
   it('matches specialist practice board route', () => {
     const resolved = router.resolve('/cabinet/practice-board')
 

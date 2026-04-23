@@ -423,6 +423,113 @@ export type AdminBillingAccessRequestListFilters = {
   open_inbox_only?: boolean
 }
 
+export type AdminSpecialistSearchItem = {
+  id: number
+  username: string
+  email: string | null
+  display_name: string
+  public_profile_enabled: boolean
+  base_plan: 'START' | 'PRO' | 'LEADER' | string
+  effective_plan: 'START' | 'PRO' | 'LEADER' | string
+  active_trial: boolean
+  active_override: boolean
+}
+
+export type AdminSpecialistSearchResponse = {
+  count: number
+  results: AdminSpecialistSearchItem[]
+}
+
+export type AdminSpecialistDetailResponse = {
+  identity: {
+    id: number
+    username: string
+    email: string | null
+    display_name: string
+    slug: string | null
+    public_profile_enabled: boolean
+    created_at: string | null
+  }
+  role_state: {
+    role: string
+    roles: string[]
+    specialist_active: boolean
+    client_status: boolean
+  }
+  tariff_access: {
+    base_plan: 'START' | 'PRO' | 'LEADER' | string
+    effective_plan: 'START' | 'PRO' | 'LEADER' | string
+    effective_entitlements: Record<string, unknown>
+    current_limits: {
+      active_client_limit: number | null
+      group_room_meeting_limit: number | null
+      guest_sessions_limit_per_period: number | null
+    }
+    trial: {
+      active: boolean
+      trial_plan: string | null
+      starts_at: string | null
+      ends_at: string | null
+      reason: string | null
+      actor: string | null
+    }
+    override: {
+      active: boolean
+      override_plan: string | null
+      override_config: {
+        forced_group_room_addon_enabled: boolean | null
+        forced_active_client_limit: number | null
+      }
+      starts_at: string | null
+      ends_at: string | null
+      reason: string | null
+      actor: string | null
+    }
+  }
+  admin_context: {
+    open_billing_admin_requests_count: number
+    open_admin_inbox_items_count?: number
+    latest_related_request_summary: {
+      id: number
+      requested_plan: string | null
+      status: string
+      created_at: string | null
+      note: string | null
+    } | null
+    last_access_change_summary: {
+      id: number
+      event_type: string
+      reason: string
+      actor: string | null
+      created_at: string | null
+    } | null
+  }
+}
+
+export type AdminSpecialistAccessHistoryItem = {
+  id: number
+  event_type: string
+  before_snapshot: Record<string, unknown> | null
+  after_snapshot: Record<string, unknown> | null
+  actor: number | null
+  actor_username: string | null
+  reason: string
+  source: string
+  source_request_id: number | null
+  created_at: string | null
+}
+
+export type AdminSpecialistPlanActionPayload = {
+  plan: 'START' | 'PRO' | 'LEADER'
+  reason: string
+}
+
+export type AdminSpecialistPlanActionResponse = {
+  specialist_id: number
+  access_summary: Record<string, unknown>
+  history_record: AdminSpecialistAccessHistoryItem
+}
+
 export type SpecialistProfileDocument = {
   id: number
   title: string
@@ -1228,6 +1335,41 @@ export async function rejectAdminBillingAccessRequest(
   const resp = await http.post<AdminBillingAccessRequest>(
     `/admin/billing-access-requests/${requestId}/reject/`,
     {}
+  )
+  return resp.data
+}
+
+export async function fetchAdminSpecialistSearch(params?: {
+  q?: string
+  limit?: number
+}): Promise<AdminSpecialistSearchResponse> {
+  const resp = await http.get<AdminSpecialistSearchResponse>('/admin/specialists/search/', { params })
+  return resp.data
+}
+
+export async function fetchAdminSpecialistDetail(
+  specialistId: number
+): Promise<AdminSpecialistDetailResponse> {
+  const resp = await http.get<AdminSpecialistDetailResponse>(`/admin/specialists/${specialistId}/detail/`)
+  return resp.data
+}
+
+export async function fetchAdminSpecialistAccessHistory(
+  specialistId: number
+): Promise<AdminSpecialistAccessHistoryItem[]> {
+  const resp = await http.get<AdminSpecialistAccessHistoryItem[]>(
+    `/admin/specialists/${specialistId}/access/history/`
+  )
+  return resp.data
+}
+
+export async function applyAdminSpecialistPlanAction(
+  specialistId: number,
+  payload: AdminSpecialistPlanActionPayload
+): Promise<AdminSpecialistPlanActionResponse> {
+  const resp = await http.post<AdminSpecialistPlanActionResponse>(
+    `/admin/specialists/${specialistId}/access/plan/`,
+    payload
   )
   return resp.data
 }

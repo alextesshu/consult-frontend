@@ -9,6 +9,13 @@
         </p>
       </div>
       <div class="admin-billing-request-detail__hero-actions">
+        <RouterLink
+          v-if="specialistDetailRoute"
+          class="btn btn--ghost"
+          :to="specialistDetailRoute"
+        >
+          Деталка спеціаліста
+        </RouterLink>
         <RouterLink class="btn btn--ghost" to="/admin/billing-access-requests">До списку</RouterLink>
         <RouterLink class="btn btn--ghost" to="/admin/inbox">До inbox</RouterLink>
       </div>
@@ -173,6 +180,11 @@ const actionType = ref<ActionType>(null)
 const actionError = ref('')
 
 const requestId = computed(() => Number(route.params.id))
+const specialistDetailRoute = computed(() => {
+  const id = Number(request.value?.specialist?.id)
+  if (!Number.isInteger(id) || id <= 0) return ''
+  return `/admin/specialists/${id}`
+})
 
 const canDecide = computed(() => normalizeStatus(request.value?.status) === 'PENDING')
 const userSummary = computed(() => {

@@ -121,6 +121,13 @@
             >
               Відкрити опрацювання запиту
             </RouterLink>
+            <RouterLink
+              v-if="specialistDetailRoute(item)"
+              class="btn btn--ghost btn--sm"
+              :to="specialistDetailRoute(item)"
+            >
+              Відкрити деталку спеціаліста
+            </RouterLink>
             <button
               v-if="canMarkRead(item)"
               class="btn btn--ghost btn--sm"
@@ -450,6 +457,24 @@ function billingRequestRoute(item: AdminInboxItem) {
   const requestId = billingRequestId(item)
   if (!requestId) return ''
   return `/admin/billing-access-requests/${requestId}`
+}
+
+function specialistIdFromPayload(payload: Record<string, unknown>) {
+  return pickNumber(payload, [
+    'specialist_id',
+    'therapist_id',
+    'user_id',
+    'subject_id',
+    'target_user_id',
+    'requested_by_user_id',
+  ])
+}
+
+function specialistDetailRoute(item: AdminInboxItem) {
+  const payload = relatedPayload(item)
+  const specialistId = specialistIdFromPayload(payload)
+  if (specialistId) return `/admin/specialists/${specialistId}`
+  return ''
 }
 
 function relatedSummary(item: AdminInboxItem) {

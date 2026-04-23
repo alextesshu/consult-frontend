@@ -79,6 +79,13 @@
           </div>
 
           <div class="request-card__actions">
+            <RouterLink
+              v-if="specialistDetailRoute(request)"
+              class="btn btn--ghost btn--sm"
+              :to="specialistDetailRoute(request)"
+            >
+              Перейти в деталку спеціаліста
+            </RouterLink>
             <RouterLink class="btn btn--ghost btn--sm" :to="`/admin/billing-access-requests/${request.id}`">
               Відкрити деталі
             </RouterLink>
@@ -239,6 +246,12 @@ function planDisplay(request: AdminBillingAccessRequest, kind: 'current' | 'requ
 
 function requestSummary(request: AdminBillingAccessRequest) {
   return `Тариф ${planDisplay(request, 'current')} → ${planDisplay(request, 'requested')}`
+}
+
+function specialistDetailRoute(request: AdminBillingAccessRequest) {
+  const id = Number(request.specialist?.id)
+  if (!Number.isInteger(id) || id <= 0) return ''
+  return `/admin/specialists/${id}`
 }
 
 function relationLinkedItems(relation: AdminBillingAccessRequestInboxRelation | null | undefined) {
