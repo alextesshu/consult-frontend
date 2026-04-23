@@ -83,6 +83,30 @@ describe('router specialist session routes', () => {
     expect(router.currentRoute.value.name).toBe('login')
   })
 
+  it('waits auth bootstrap for admin route and avoids forbidden redirect for ADMIN', async () => {
+    const auth = useAuthStore()
+    vi.spyOn(auth, 'restoreSession').mockImplementation(async () => {
+      auth.setToken('admin-token')
+      auth.setMe({
+        user: {
+          id: 99,
+          username: 'admin',
+          email: 'admin@example.com',
+          roles: ['ADMIN'],
+        },
+        access_state: null,
+        effective_entitlements: null,
+        counts: null,
+        server_time: '2026-03-31T00:00:00Z',
+      })
+      return true
+    })
+
+    await router.push('/admin/inbox')
+
+    expect(router.currentRoute.value.name).toBe('admin-inbox')
+  })
+
   it('allows authenticated specialists to open the session detail route', async () => {
     const auth = useAuthStore()
     auth.setToken('test-token')

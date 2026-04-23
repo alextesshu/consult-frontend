@@ -275,6 +275,7 @@ import ToastHost from './components/ToastHost.vue'
 import ScrollToTopButton from './components/ScrollToTopButton.vue'
 import { apiGet, fetchChatUnreadCount } from './lib/api'
 import { normalizeMeetingUrl, canJoinExternalMeeting } from './lib/sessionExecution'
+import { hasAdminRole, hasClientRole, hasSpecialistRole, normalizeRoles } from './lib/entitlementReconcile'
 import { useToast } from './composables/useToast'
 import { useNotifications, type BellNotification } from './composables/useNotifications'
 import type { ToastAction } from './stores/toast'
@@ -325,12 +326,11 @@ watchEffect(() => {
 })
 const roles = computed(() => {
   const rawRoles = auth.me?.user.roles ?? auth.user?.roles ?? []
-  if (!Array.isArray(rawRoles)) return []
-  return rawRoles.map((role) => String(role).toUpperCase())
+  return normalizeRoles(rawRoles)
 })
-const isSpecialist = computed(() => roles.value.includes('SPECIALIST') || roles.value.includes('THERAPIST'))
-const isClient = computed(() => roles.value.includes('CLIENT'))
-const isAdmin = computed(() => roles.value.includes('ADMIN') || roles.value.includes('SUPERADMIN'))
+const isSpecialist = computed(() => hasSpecialistRole(roles.value))
+const isClient = computed(() => hasClientRole(roles.value))
+const isAdmin = computed(() => hasAdminRole(roles.value))
 const hasSupportedCabinetRole = computed(() => isSpecialist.value || isClient.value || isAdmin.value)
 const isChatCapable = computed(() => isSpecialist.value || isClient.value)
 watchEffect(() => {

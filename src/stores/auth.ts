@@ -36,6 +36,7 @@ type MePayload = {
 
 let refreshInFlight: Promise<string | null> | null = null
 let restoreInFlight: Promise<boolean> | null = null
+let resolveInFlight: Promise<boolean> | null = null
 const AUTH_REFRESH_RETRY_ATTEMPTS = 2
 const AUTH_ME_RETRY_ATTEMPTS = 2
 const AUTH_RETRY_DELAY_MS = 150
@@ -56,11 +57,13 @@ export const useAuthStore = defineStore('auth', {
     me: null as MePayload | null,
     loading: false as boolean,
     error: '' as string,
+    authResolved: false as boolean,
     authEpoch: 0 as number,
   }),
   actions: {
     beginAuthEpoch() {
       this.authEpoch += 1
+      this.authResolved = false
       return this.authEpoch
     },
     isEpochActive(epoch: number) {
@@ -86,6 +89,7 @@ export const useAuthStore = defineStore('auth', {
     setMe(payload: MePayload | null) {
       this.me = payload
       this.user = payload ? payload.user : null
+      this.authResolved = true
     },
     async login(identifier: string, password: string) {
       const epoch = this.beginAuthEpoch()
@@ -106,6 +110,7 @@ export const useAuthStore = defineStore('auth', {
       } finally {
         if (!this.isEpochActive(epoch)) return
         this.loading = false
+        this.authResolved = true
       }
     },
     async signup(email: string, password: string, passwordConfirm: string) {
@@ -127,6 +132,7 @@ export const useAuthStore = defineStore('auth', {
       } finally {
         if (!this.isEpochActive(epoch)) return
         this.loading = false
+        this.authResolved = true
       }
     },
     async signupClient(email: string, password: string, passwordConfirm: string) {
@@ -148,12 +154,42 @@ export const useAuthStore = defineStore('auth', {
       } finally {
         if (!this.isEpochActive(epoch)) return
         this.loading = false
+        this.authResolved = true
       }
     },
     async loadMe() {
       if (!this.accessToken) return
       const me = await fetchMe(this.accessToken)
       this.setMe(me)
+    },
+    async ensureAuthResolved(): Promise<boolean> {
+      if (this.authResolved) return Boolean(this.accessToken)
+      if (resolveInFlight) return resolveInFlight
+
+      resolveInFlight = (async () => {
+        if (!this.accessToken) {
+          const restored = await this.restoreSession().catch(() => false)
+          this.authResolved = true
+          return restored
+        }
+
+        if (!this.me) {
+          try {
+            await this.loadMe()
+            this.authResolved = true
+            return true
+          } catch {
+            // Keep route pending decisions tolerant to transient me failures when token exists.
+          }
+        }
+
+        this.authResolved = true
+        return Boolean(this.accessToken)
+      })().finally(() => {
+        resolveInFlight = null
+      })
+
+      return resolveInFlight
     },
     async refreshAccessToken(epoch?: number): Promise<string | null> {
       if (refreshInFlight) {
@@ -218,7 +254,9 @@ export const useAuthStore = defineStore('auth', {
         restoreInFlight = null
       })
 
-      return restoreInFlight
+      return restoreInFlight.finally(() => {
+        this.authResolved = true
+      })
     },
     async logoutWithServer() {
       try {
@@ -230,6 +268,7 @@ export const useAuthStore = defineStore('auth', {
     logout() {
       this.beginAuthEpoch()
       this.clearAuthState()
+      this.authResolved = true
       localStorage.removeItem('accessToken')
       localStorage.removeItem('refreshToken')
     },

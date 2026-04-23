@@ -48,7 +48,12 @@ import AdminBillingAccessRequestsView from '../views/AdminBillingAccessRequestsV
 import AdminBillingAccessRequestDetailView from '../views/AdminBillingAccessRequestDetailView.vue'
 import { useAuthStore } from '../stores/auth'
 import { fetchSpecialistProfile } from '../lib/api'
-import { hasSpecialistRole, isSpecialistCriticalReconcileRoute } from '../lib/entitlementReconcile'
+import {
+  hasAdminRole,
+  hasClientRole,
+  hasSpecialistRole,
+  isSpecialistCriticalReconcileRoute,
+} from '../lib/entitlementReconcile'
 
 const routes = [
   { path: '/', name: 'home', component: HomeView },
@@ -417,48 +422,37 @@ async function maybeReconcileSpecialistMeOnRoute(auth: ReturnType<typeof useAuth
 router.beforeEach(async (to) => {
   const auth = useAuthStore()
   const getRoles = () => auth.me?.user.roles ?? auth.user?.roles ?? []
-  const hasRole = (role: string) => getRoles().includes(role)
-  const hasAdminRole = () => hasRole('ADMIN') || hasRole('SUPERADMIN')
-  const hasSpecialistRole = () => hasRole('SPECIALIST') || hasRole('THERAPIST')
+  const hasRole = (role: string) => getRoles().includes(role.toUpperCase())
+  const hasAdmin = () => hasAdminRole(getRoles())
+  const hasSpecialist = () => hasSpecialistRole(getRoles())
+  const hasClient = () => hasClientRole(getRoles())
   const roleMatches = (role: string) => {
-    if (role === 'SPECIALIST') return hasSpecialistRole()
-    if (role === 'ADMIN') return hasAdminRole()
+    if (role === 'SPECIALIST') return hasSpecialist()
+    if (role === 'ADMIN') return hasAdmin()
     return hasRole(role)
   }
   const defaultRoute = () => {
-    if (hasSpecialistRole()) return { name: 'cabinet' }
-    if (hasRole('CLIENT')) return { name: 'client-dashboard' }
-    if (hasAdminRole()) return { name: 'admin-inbox' }
+    if (hasSpecialist()) return { name: 'cabinet' }
+    if (hasClient()) return { name: 'client-dashboard' }
+    if (hasAdmin()) return { name: 'admin-inbox' }
     return { name: 'forbidden' }
   }
   let loadedMeInGuard = false
 
   if (to.meta.requiresAuth) {
-    if (!auth.accessToken) {
-      const restored = await auth.restoreSession().catch(() => false)
-      if (!restored) {
-        if (to.name === 'public-specialists') {
-          return { name: 'signup-client' }
-        }
-        return { name: 'login' }
+    const hasSession = await auth.ensureAuthResolved().catch(() => false)
+    if (!hasSession) {
+      if (to.name === 'public-specialists') {
+        return { name: 'signup-client' }
       }
+      return { name: 'login' }
     }
     if (!auth.user) {
-      try {
-        await auth.loadMe()
-        loadedMeInGuard = true
-      } catch {
-        if (auth.accessToken) {
-          return
-        }
-        if (to.name === 'public-specialists') {
-          return { name: 'signup-client' }
-        }
-        return { name: 'login' }
-      }
+      return
     }
+
     if (to.meta.requiresRole && auth.user && !roleMatches(String(to.meta.requiresRole))) {
-      if (to.name === 'public-specialists' && hasSpecialistRole()) {
+      if (to.name === 'public-specialists' && hasSpecialist()) {
         return { name: 'cabinet' }
       }
       return { name: 'forbidden' }
@@ -491,7 +485,7 @@ router.beforeEach(async (to) => {
         return { name: 'login' }
       }
     }
-    if (!hasSpecialistRole()) {
+    if (!hasSpecialist()) {
       return defaultRoute()
     }
     let profilePath = ''

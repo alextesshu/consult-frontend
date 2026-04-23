@@ -57,7 +57,20 @@ export function isSpecialistCriticalReconcileRoute(path: string): boolean {
 }
 
 export function hasSpecialistRole(roles: unknown): boolean {
-  if (!Array.isArray(roles)) return false
-  const upper = roles.map((role) => String(role).toUpperCase())
+  const upper = normalizeRoles(roles)
   return upper.includes('SPECIALIST') || upper.includes('THERAPIST')
+}
+
+export function hasAdminRole(roles: unknown): boolean {
+  const upper = normalizeRoles(roles)
+  return upper.includes('ADMIN') || upper.includes('SUPERADMIN')
+}
+
+export function hasClientRole(roles: unknown): boolean {
+  return normalizeRoles(roles).includes('CLIENT')
+}
+
+export function normalizeRoles(roles: unknown): string[] {
+  if (!Array.isArray(roles)) return []
+  return roles.map((role) => String(role).toUpperCase())
 }
