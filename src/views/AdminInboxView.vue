@@ -11,7 +11,7 @@
       <RouterLink class="btn btn--ghost" to="/admin/billing-access-requests">Запити на доступ до тарифу</RouterLink>
     </header>
 
-    <section class="panel admin-inbox__counters" aria-label="Лічильники inbox">
+    <section class="panel admin-inbox__counters" aria-label="Лічильники адмін-запитів">
       <article class="counter-tile">
         <div class="counter-tile__label">Непрочитані</div>
         <div class="counter-tile__value">{{ counters.unread }}</div>
@@ -68,12 +68,12 @@
         </div>
       </div>
 
-      <div v-if="loading" class="muted">Завантаження inbox…</div>
+      <div v-if="loading" class="muted">Завантаження адмін-запитів…</div>
       <div v-else-if="error" class="form-error">{{ error }}</div>
       <EmptyState
         v-else-if="items.length === 0"
         title="Запитів за поточними фільтрами немає"
-        description="Змініть фільтри або зачекайте на нові події в admin inbox."
+        description="Змініть фільтри або зачекайте на нові події в адмін-запитах."
       />
 
       <div v-else class="admin-inbox__list">

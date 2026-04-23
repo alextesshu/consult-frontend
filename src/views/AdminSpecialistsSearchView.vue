@@ -5,33 +5,33 @@
         <div class="badge">Адмін</div>
         <h1 class="title admin-specialists-search__title">Спеціалісти</h1>
         <p class="muted admin-specialists-search__subtitle">
-          Пошук спеціалістів і перехід у деталку доступу.
+          Знайдіть спеціаліста за email, логіном, слагом або ім’ям.
         </p>
       </div>
-      <RouterLink class="btn btn--ghost" to="/admin/inbox">До inbox</RouterLink>
+      <RouterLink class="btn btn--ghost" to="/admin/inbox">До адмін-запитів</RouterLink>
     </header>
 
     <section class="panel">
       <div class="panel__header">
         <div>
           <div class="badge badge--soft">Пошук</div>
-          <h2 class="panel__title">Знайти спеціаліста</h2>
+          <h2 class="panel__title">Пошук спеціалістів</h2>
         </div>
       </div>
 
       <form class="search-form" @submit.prevent="submitSearch">
         <label class="field search-form__field">
-          <span>Email, username, slug або імʼя</span>
+          <span>Введіть email, логін, слаг або ім’я</span>
           <input
             v-model="searchQuery"
             class="input"
             type="search"
             autocomplete="off"
-            placeholder="Наприклад: ira@, ira-bondar, Bondar"
+            placeholder="Введіть email, логін, слаг або ім’я"
           />
         </label>
         <div class="search-form__actions">
-          <button class="btn" type="submit" :disabled="loading">Пошук</button>
+          <button class="btn" type="submit" :disabled="loading">Знайти</button>
           <button class="btn btn--ghost" type="button" :disabled="loading" @click="clearSearch">
             Очистити
           </button>
@@ -48,17 +48,17 @@
         <div v-if="hasSearched && !loading && !error" class="muted">Знайдено: {{ results.length }}</div>
       </div>
 
-      <div v-if="loading" class="muted">Завантаження результатів…</div>
+      <div v-if="loading" class="muted">Завантаження…</div>
       <div v-else-if="error" class="form-error">{{ error }}</div>
       <EmptyState
         v-else-if="!hasSearched"
-        title="Введіть запит для пошуку"
-        description="Пошук працює за email, username, slug або display/full name."
+        title="Почніть вводити запит для пошуку спеціалістів"
+        description="Знайдіть спеціаліста за email, логіном, слагом або ім’ям."
       />
       <EmptyState
         v-else-if="results.length === 0"
         title="Нічого не знайдено"
-        description="Спробуйте інший запит або перевірте написання."
+        description="Спробуйте інший запит."
       />
 
       <div v-else class="results-list">
@@ -83,17 +83,18 @@
 
           <div class="result-card__grid">
             <div><strong>Email:</strong> {{ item.email || '—' }}</div>
-            <div><strong>Slug:</strong> {{ item.slug || '—' }}</div>
+            <div><strong>Логін:</strong> @{{ item.username }}</div>
+            <div><strong>Слаг профілю:</strong> {{ item.slug || '—' }}</div>
             <div><strong>Базовий тариф:</strong> {{ planLabel(item.base_plan) }}</div>
             <div><strong>Фактичний тариф:</strong> {{ planLabel(item.effective_plan) }}</div>
           </div>
 
           <div class="result-card__badges">
             <span :class="statusPillClass(trialActive(item))">
-              Trial {{ trialActive(item) ? 'активний' : 'неактивний' }}
+              {{ trialActive(item) ? 'Тестовий доступ активний' : 'Тестовий доступ неактивний' }}
             </span>
             <span :class="statusPillClass(overrideActive(item))">
-              Override {{ overrideActive(item) ? 'активний' : 'неактивний' }}
+              {{ overrideActive(item) ? 'Перевизначення активне' : 'Перевизначення неактивне' }}
             </span>
           </div>
         </article>
@@ -177,7 +178,7 @@ async function runSearch(rawQuery: string) {
     results.value = resp.results || []
   } catch (err) {
     if (seq !== requestSeq.value) return
-    error.value = getApiErrorMessage(err, 'Не вдалося завантажити список спеціалістів.')
+    error.value = getApiErrorMessage(err, 'Не вдалося завантажити список спеціалістів')
     results.value = []
   } finally {
     if (seq === requestSeq.value) loading.value = false

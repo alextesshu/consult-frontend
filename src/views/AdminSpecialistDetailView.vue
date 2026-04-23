@@ -9,7 +9,7 @@
         </p>
       </div>
       <div class="admin-specialist-detail__hero-actions">
-        <RouterLink class="btn btn--ghost" to="/admin/inbox">До inbox</RouterLink>
+        <RouterLink class="btn btn--ghost" to="/admin/inbox">До адмін-запитів</RouterLink>
         <RouterLink class="btn btn--ghost" to="/admin/billing-access-requests">До запитів на тариф</RouterLink>
         <RouterLink class="btn btn--ghost" to="/admin/specialists">До списку спеціалістів</RouterLink>
       </div>
@@ -22,21 +22,21 @@
       <section class="panel">
         <div class="panel__header">
           <div>
-            <div class="badge badge--soft">Підсумок</div>
+            <div class="badge badge--soft">ПІДСУМОК</div>
             <h2 class="panel__title">{{ detail.identity.display_name || detail.identity.username }}</h2>
           </div>
           <div class="summary-actions">
             <button class="btn btn--sm" type="button" @click="openPlanModal">Змінити базовий тариф</button>
-            <button class="btn btn--ghost btn--sm" type="button" @click="openTrialModal">Керувати trial</button>
-            <button class="btn btn--ghost btn--sm" type="button" @click="openOverrideModal">Керувати override</button>
+            <button class="btn btn--ghost btn--sm" type="button" @click="openTrialModal">Керувати тестовим доступом</button>
+            <button class="btn btn--ghost btn--sm" type="button" @click="openOverrideModal">Керувати перевизначенням доступу</button>
           </div>
         </div>
 
         <div class="summary-grid">
           <div><span class="muted">ID:</span> {{ detail.identity.id }}</div>
-          <div><span class="muted">Username:</span> @{{ detail.identity.username }}</div>
+          <div><span class="muted">Логін:</span> @{{ detail.identity.username }}</div>
           <div><span class="muted">Email:</span> {{ detail.identity.email || '—' }}</div>
-          <div><span class="muted">Slug:</span> {{ detail.identity.slug || '—' }}</div>
+          <div><span class="muted">Слаг профілю:</span> {{ detail.identity.slug || '—' }}</div>
           <div>
             <span class="muted">Публічний профіль:</span>
             {{ detail.identity.public_profile_enabled ? 'Увімкнено' : 'Вимкнено' }}
@@ -48,7 +48,7 @@
       <section class="panel">
         <div class="panel__header">
           <div>
-            <div class="badge badge--soft">Поточний доступ</div>
+            <div class="badge badge--soft">ПОТОЧНИЙ ДОСТУП</div>
             <h2 class="panel__title">Стан доступу</h2>
           </div>
         </div>
@@ -63,9 +63,9 @@
             <strong>{{ detail.tariff_access.effective_plan }}</strong>
           </div>
           <div>
-            <div class="muted">Статус trial</div>
+            <div class="muted">Статус тестового доступу</div>
             <span :class="pillClass(detail.tariff_access.trial.active)">
-              {{ detail.tariff_access.trial.active ? 'Trial активний' : 'Trial неактивний' }}
+              {{ detail.tariff_access.trial.active ? 'ТЕСТОВИЙ ДОСТУП АКТИВНИЙ' : 'ТЕСТОВИЙ ДОСТУП НЕАКТИВНИЙ' }}
             </span>
             <div v-if="detail.tariff_access.trial.active" class="muted">
               {{ detail.tariff_access.trial.trial_plan || '—' }} ·
@@ -73,9 +73,9 @@
             </div>
           </div>
           <div>
-            <div class="muted">Статус override</div>
+            <div class="muted">Статус перевизначення</div>
             <span :class="pillClass(detail.tariff_access.override.active)">
-              {{ detail.tariff_access.override.active ? 'Override активний' : 'Override неактивний' }}
+              {{ detail.tariff_access.override.active ? 'ПЕРЕВИЗНАЧЕННЯ АКТИВНЕ' : 'ПЕРЕВИЗНАЧЕННЯ НЕАКТИВНЕ' }}
             </span>
             <div v-if="detail.tariff_access.override.active" class="muted">
               {{ detail.tariff_access.override.override_plan || '—' }} ·
@@ -87,14 +87,14 @@
         <div class="summary-list">
           <div><strong>Базовий тариф:</strong> {{ planLabel(detail.tariff_access.base_plan) }}</div>
           <div>
-            <strong>Активний trial:</strong>
+            <strong>Активний тестовий доступ:</strong>
             <template v-if="detail.tariff_access.trial.active">
               {{ planLabel(detail.tariff_access.trial.trial_plan || '—') }} до {{ formatDate(detail.tariff_access.trial.ends_at) }}
             </template>
             <template v-else>немає</template>
           </div>
           <div>
-            <strong>Активний override:</strong>
+            <strong>Активне перевизначення:</strong>
             <template v-if="detail.tariff_access.override.active">
               {{ planLabel(detail.tariff_access.override.override_plan || '—') }}
               <template v-if="detail.tariff_access.override.ends_at">
@@ -110,15 +110,15 @@
           v-if="detail.tariff_access.override.active && detail.tariff_access.base_plan !== detail.tariff_access.effective_plan"
           class="access-warning"
         >
-          Активний override перекриває базовий тариф.
+          Активне перевизначення перекриває базовий тариф.
         </div>
       </section>
 
       <section class="panel">
         <div class="panel__header">
           <div>
-            <div class="badge badge--soft">Повʼязані запити</div>
-            <h2 class="panel__title">Підсумок відкритих запитів</h2>
+            <div class="badge badge--soft">ПОВ’ЯЗАНІ ЗАПИТИ</div>
+            <h2 class="panel__title">Зведення відкритих запитів</h2>
           </div>
         </div>
         <div class="requests-grid">
@@ -127,7 +127,7 @@
             {{ detail.admin_context.open_billing_admin_requests_count }}
           </div>
           <div>
-            <span class="muted">Відкриті inbox item:</span>
+            <span class="muted">Відкриті елементи inbox:</span>
             {{ detail.admin_context.open_admin_inbox_items_count ?? 0 }}
           </div>
           <div v-if="detail.admin_context.latest_related_request_summary" class="request-highlight">
@@ -144,15 +144,15 @@
               Відкрити запит
             </RouterLink>
           </div>
-          <div v-else class="muted">Немає відкритих запитів.</div>
+          <div v-else class="muted">Немає відкритих запитів</div>
         </div>
       </section>
 
       <section class="panel">
         <div class="panel__header">
           <div>
-            <div class="badge badge--soft">Історія змін доступу</div>
-            <h2 class="panel__title">Журнал змін доступу</h2>
+            <div class="badge badge--soft">ІСТОРІЯ ЗМІН ДОСТУПУ</div>
+            <h2 class="panel__title">Історія змін доступу</h2>
           </div>
         </div>
         <div v-if="historyLoading" class="muted">Завантаження історії…</div>
@@ -161,11 +161,11 @@
         <div v-else class="history-list">
           <article v-for="item in history" :key="item.id" class="history-item">
             <div class="history-item__head">
-              <strong>{{ item.event_label || eventLabel(item.event_type) }}</strong>
-              <span class="muted">{{ formatDate(item.created_at) }}</span>
+              <strong>{{ eventLabel(item.event_type) }}</strong>
             </div>
-            <div class="muted">{{ beforeAfterSummary(item) }}</div>
-            <div><span class="muted">Адміністратор:</span> {{ item.actor_username || 'SYSTEM' }}</div>
+            <div><span class="muted">Опис зміни:</span> {{ beforeAfterSummary(item) }}</div>
+            <div><span class="muted">Створено:</span> {{ formatDate(item.created_at) }}</div>
+            <div><span class="muted">Хто змінив:</span> {{ item.actor_username || 'SYSTEM' }}</div>
             <div><span class="muted">Причина:</span> {{ item.reason || '—' }}</div>
           </article>
         </div>
@@ -194,7 +194,7 @@
 
         <label class="field">
           <span>Причина</span>
-          <textarea v-model="planForm.reason" class="input input--textarea" rows="4" placeholder="Reason is required" />
+          <textarea v-model="planForm.reason" class="input input--textarea" rows="4" placeholder="Причина є обов’язковою" />
         </label>
 
         <div v-if="planFormError" class="form-error">{{ planFormError }}</div>
@@ -210,44 +210,44 @@
 
     <div v-if="trialModalOpen" class="setting-modal" @keydown.esc="closeTrialModal">
       <div class="setting-modal__backdrop" @click="closeTrialModal"></div>
-      <section class="setting-modal__content panel" role="dialog" aria-modal="true" aria-label="Керувати trial">
+      <section class="setting-modal__content panel" role="dialog" aria-modal="true" aria-label="Керувати тестовим доступом">
         <div class="panel__header">
           <div>
-            <div class="badge badge--soft">Trial</div>
-            <h3 class="panel__title">Керувати trial</h3>
+            <div class="badge badge--soft">ТЕСТОВИЙ ДОСТУП</div>
+            <h3 class="panel__title">Керувати тестовим доступом</h3>
           </div>
           <button class="btn btn--ghost btn--sm" type="button" @click="closeTrialModal">Закрити</button>
         </div>
 
         <label class="field">
-          <span>Action</span>
+          <span>Дія</span>
           <select v-model="trialForm.action" class="input input--select">
-            <option value="START">Start trial</option>
-            <option value="END">End trial early</option>
+            <option value="START">Запустити тестовий доступ</option>
+            <option value="END">Завершити тестовий доступ</option>
           </select>
         </label>
 
         <template v-if="trialForm.action === 'START'">
           <label class="field">
-            <span>Trial plan</span>
+            <span>Тариф тестового доступу</span>
             <select v-model="trialForm.trial_plan" class="input input--select">
               <option value="PRO">PRO</option>
               <option value="LEADER">LEADER</option>
             </select>
           </label>
           <label class="field">
-            <span>Starts at</span>
+            <span>Початок дії</span>
             <input v-model="trialForm.starts_at" type="datetime-local" class="input" />
           </label>
           <label class="field">
-            <span>Ends at</span>
+            <span>Завершення дії</span>
             <input v-model="trialForm.ends_at" type="datetime-local" class="input" />
           </label>
         </template>
 
         <label class="field">
-          <span>Reason</span>
-          <textarea v-model="trialForm.reason" class="input input--textarea" rows="4" placeholder="Reason is required" />
+          <span>Причина</span>
+          <textarea v-model="trialForm.reason" class="input input--textarea" rows="4" placeholder="Причина є обов’язковою" />
         </label>
 
         <div v-if="trialFormError" class="form-error">{{ trialFormError }}</div>
@@ -263,27 +263,27 @@
 
     <div v-if="overrideModalOpen" class="setting-modal" @keydown.esc="closeOverrideModal">
       <div class="setting-modal__backdrop" @click="closeOverrideModal"></div>
-      <section class="setting-modal__content panel" role="dialog" aria-modal="true" aria-label="Керувати override">
+      <section class="setting-modal__content panel" role="dialog" aria-modal="true" aria-label="Керувати перевизначенням доступу">
         <div class="panel__header">
           <div>
-            <div class="badge badge--soft">Override</div>
-            <h3 class="panel__title">Керувати override</h3>
+            <div class="badge badge--soft">ПЕРЕВИЗНАЧЕННЯ</div>
+            <h3 class="panel__title">Керувати перевизначенням доступу</h3>
           </div>
           <button class="btn btn--ghost btn--sm" type="button" @click="closeOverrideModal">Закрити</button>
         </div>
 
         <label class="field">
-          <span>Action</span>
+          <span>Дія</span>
           <select v-model="overrideForm.action" class="input input--select">
-            <option value="ENABLE">Enable override</option>
-            <option value="UPDATE">Update override</option>
-            <option value="DISABLE">Disable override</option>
+            <option value="ENABLE">Увімкнути перевизначення</option>
+            <option value="UPDATE">Оновити перевизначення</option>
+            <option value="DISABLE">Вимкнути перевизначення</option>
           </select>
         </label>
 
         <template v-if="overrideForm.action !== 'DISABLE'">
           <label class="field">
-            <span>Plan</span>
+            <span>Тариф</span>
             <select v-model="overrideForm.forced_plan" class="input input--select">
               <option value="START">START</option>
               <option value="PRO">PRO</option>
@@ -291,22 +291,22 @@
             </select>
           </label>
           <label class="field">
-            <span>Starts at (optional)</span>
+            <span>Початок дії (необов’язково)</span>
             <input v-model="overrideForm.starts_at" type="datetime-local" class="input" />
           </label>
           <label class="field">
-            <span>Ends at (optional)</span>
+            <span>Завершення дії (необов’язково)</span>
             <input v-model="overrideForm.expires_at" type="datetime-local" class="input" />
           </label>
         </template>
 
         <label class="field">
-          <span>Reason</span>
+          <span>Причина</span>
           <textarea
             v-model="overrideForm.reason"
             class="input input--textarea"
             rows="4"
-            placeholder="Reason is required"
+            placeholder="Причина є обов’язковою"
           />
         </label>
 
@@ -434,11 +434,11 @@ function planLabel(value: string) {
 function eventLabel(eventType: string) {
   const mapping: Record<string, string> = {
     BASE_PLAN_CHANGED: 'Базовий тариф змінено',
-    TRIAL_STARTED: 'Trial запущено',
-    TRIAL_ENDED: 'Trial завершено',
-    OVERRIDE_ENABLED: 'Override увімкнено',
-    OVERRIDE_UPDATED: 'Override оновлено',
-    OVERRIDE_DISABLED: 'Override вимкнено',
+    TRIAL_STARTED: 'Тестовий доступ розпочато',
+    TRIAL_ENDED: 'Тестовий доступ завершено',
+    OVERRIDE_ENABLED: 'Перевизначення увімкнено',
+    OVERRIDE_UPDATED: 'Перевизначення оновлено',
+    OVERRIDE_DISABLED: 'Перевизначення вимкнено',
     REQUEST_APPROVED: 'Запит погоджено',
     REQUEST_REJECTED: 'Запит відхилено',
   }
@@ -446,9 +446,31 @@ function eventLabel(eventType: string) {
 }
 
 function beforeAfterSummary(item: AdminSpecialistAccessHistoryItem) {
-  if (item.summary) return item.summary
+  if (item.event_type === 'BASE_PLAN_CHANGED' && item.before_plan && item.after_plan) {
+    return `Базовий тариф змінено: ${item.before_plan} → ${item.after_plan}`
+  }
+  if (item.event_type === 'TRIAL_STARTED') {
+    const after = item.after_plan || '—'
+    const untilDate = formatDate(
+      (item.after_snapshot as { trial_ends_at?: string | null } | null)?.trial_ends_at || null
+    )
+    if (untilDate && untilDate !== '—') return `Тестовий доступ розпочато: ${after} до ${untilDate}`
+    return `Тестовий доступ розпочато: ${after}`
+  }
+  if (item.event_type === 'TRIAL_ENDED') return 'Тестовий доступ завершено'
+  if (item.event_type === 'OVERRIDE_ENABLED') {
+    const after = item.after_plan || '—'
+    return `Перевизначення увімкнено: ${after}`
+  }
+  if (item.event_type === 'OVERRIDE_UPDATED') {
+    const after = item.after_plan || '—'
+    return `Перевизначення оновлено: ${after}`
+  }
+  if (item.event_type === 'OVERRIDE_DISABLED') return 'Перевизначення вимкнено'
+  if (item.event_type === 'REQUEST_APPROVED') return 'Запит погоджено'
+  if (item.event_type === 'REQUEST_REJECTED') return 'Запит відхилено'
   if (item.before_plan && item.after_plan && item.before_plan !== item.after_plan) {
-    return `${item.before_plan} → ${item.after_plan}`
+    return `Змінено: ${item.before_plan} → ${item.after_plan}`
   }
   return '—'
 }
@@ -510,7 +532,7 @@ function closePlanModal() {
 async function submitPlanAction() {
   const reason = planForm.value.reason.trim()
   if (!reason) {
-    planFormError.value = 'Поле reason є обовʼязковим.'
+    planFormError.value = 'Причина є обов’язковою.'
     return
   }
   planFormError.value = ''
@@ -521,9 +543,9 @@ async function submitPlanAction() {
       reason,
     })
     planModalOpen.value = false
-    await refreshAfterAction('Базовий тариф змінено.')
+    await refreshAfterAction('Базовий тариф оновлено')
   } catch (err) {
-    planFormError.value = getApiErrorMessage(err, 'Не вдалося змінити базовий тариф.')
+    planFormError.value = getApiErrorMessage(err, 'Не вдалося оновити базовий тариф')
   } finally {
     planSaving.value = false
   }
@@ -549,7 +571,7 @@ function closeTrialModal() {
 async function submitTrialAction() {
   const reason = trialForm.value.reason.trim()
   if (!reason) {
-    trialFormError.value = 'Поле reason є обовʼязковим.'
+    trialFormError.value = 'Причина є обов’язковою.'
     return
   }
   trialFormError.value = ''
@@ -559,7 +581,7 @@ async function submitTrialAction() {
       const startsAt = toIsoOrNull(trialForm.value.starts_at)
       const endsAt = toIsoOrNull(trialForm.value.ends_at)
       if (!endsAt) {
-        trialFormError.value = 'Для start trial потрібно вказати ends_at.'
+        trialFormError.value = 'Для запуску тестового доступу потрібно вказати завершення дії.'
         return
       }
       await applyAdminSpecialistTrialAction(specialistId.value, {
@@ -576,9 +598,9 @@ async function submitTrialAction() {
       })
     }
     trialModalOpen.value = false
-    await refreshAfterAction('Trial оновлено.')
+    await refreshAfterAction('Тестовий доступ оновлено')
   } catch (err) {
-    trialFormError.value = getApiErrorMessage(err, 'Не вдалося виконати trial action.')
+    trialFormError.value = getApiErrorMessage(err, 'Не вдалося оновити тестовий доступ')
   } finally {
     trialSaving.value = false
   }
@@ -605,7 +627,7 @@ function closeOverrideModal() {
 async function submitOverrideAction() {
   const reason = overrideForm.value.reason.trim()
   if (!reason) {
-    overrideFormError.value = 'Поле reason є обовʼязковим.'
+    overrideFormError.value = 'Причина є обов’язковою.'
     return
   }
   overrideFormError.value = ''
@@ -626,9 +648,9 @@ async function submitOverrideAction() {
       })
     }
     overrideModalOpen.value = false
-    await refreshAfterAction('Override оновлено.')
+    await refreshAfterAction('Перевизначення оновлено')
   } catch (err) {
-    overrideFormError.value = getApiErrorMessage(err, 'Не вдалося виконати override action.')
+    overrideFormError.value = getApiErrorMessage(err, 'Не вдалося оновити перевизначення')
   } finally {
     overrideSaving.value = false
   }

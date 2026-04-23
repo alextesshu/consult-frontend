@@ -360,7 +360,7 @@ const cabinetRoute = computed(() => {
   return '/403'
 })
 const cabinetLabel = computed(() => {
-  if (isAdmin.value) return 'Admin Inbox'
+  if (isAdmin.value) return 'Адмін-запити'
   if (isSpecialist.value) return 'Мій кабінет'
   if (isClient.value) return 'Кабінет'
   return 'Кабінет'

@@ -8,7 +8,7 @@
           Операційний список запитів на зміну тарифу з переходом до екрана опрацювання.
         </p>
       </div>
-      <RouterLink class="btn btn--ghost" to="/admin/inbox">Назад до inbox</RouterLink>
+      <RouterLink class="btn btn--ghost" to="/admin/inbox">До адмін-запитів</RouterLink>
     </header>
 
     <section class="panel">
@@ -32,7 +32,7 @@
 
         <label class="field field--checkbox">
           <input v-model="openInboxOnly" type="checkbox" />
-          <span>Лише з відкритими inbox item</span>
+          <span>Лише з відкритими елементами inbox</span>
         </label>
       </div>
     </section>
@@ -45,7 +45,7 @@
         </div>
       </div>
 
-      <div v-if="loading" class="muted">Завантаження billing-запитів…</div>
+      <div v-if="loading" class="muted">Завантаження запитів на тариф…</div>
       <div v-else-if="error" class="form-error">{{ error }}</div>
       <EmptyState
         v-else-if="requests.length === 0"
@@ -75,7 +75,7 @@
 
           <div class="request-card__summary">
             <div><strong>Коротко:</strong> {{ requestSummary(request) }}</div>
-            <div><strong>Inbox:</strong> {{ inboxRelationSummary(request.inbox_relation) }}</div>
+            <div><strong>Зв’язок з inbox:</strong> {{ inboxRelationSummary(request.inbox_relation) }}</div>
           </div>
 
           <div class="request-card__actions">
@@ -262,7 +262,7 @@ function relationLinkedItems(relation: AdminBillingAccessRequestInboxRelation | 
 }
 
 function inboxRelationSummary(relation: AdminBillingAccessRequestInboxRelation | null | undefined) {
-  if (!relation) return 'Звʼязок із inbox item не вказано.'
+  if (!relation) return 'Звʼязок з inbox не вказано.'
 
   const linkedCount = Number(relation.linked_items_count)
   const openCount = Number(relation.open_items_count)
@@ -271,7 +271,7 @@ function inboxRelationSummary(relation: AdminBillingAccessRequestInboxRelation |
     ? openCount
     : relationLinkedItems(relation).filter((item) => String(item.status || '').trim().toUpperCase() === 'OPEN').length
 
-  if (linked <= 0) return 'Повʼязаних inbox item немає.'
+  if (linked <= 0) return 'Повʼязаних елементів inbox немає.'
   if (open > 0) return `Повʼязано: ${linked}. Відкриті: ${open}.`
   return `Повʼязано: ${linked}. Відкритих немає.`
 }
@@ -290,7 +290,7 @@ async function loadRequests(filters: AdminBillingAccessRequestListFilters = {}) 
       .slice()
       .sort((a, b) => new Date(b.created_at || '').getTime() - new Date(a.created_at || '').getTime())
   } catch (err) {
-    error.value = getApiErrorMessage(err, 'Не вдалося завантажити billing-запити.')
+    error.value = getApiErrorMessage(err, 'Не вдалося завантажити запити на тариф.')
     requests.value = []
   } finally {
     loading.value = false

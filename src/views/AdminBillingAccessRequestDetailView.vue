@@ -17,11 +17,11 @@
           Деталка спеціаліста
         </RouterLink>
         <RouterLink class="btn btn--ghost" to="/admin/billing-access-requests">До списку</RouterLink>
-        <RouterLink class="btn btn--ghost" to="/admin/inbox">До inbox</RouterLink>
+        <RouterLink class="btn btn--ghost" to="/admin/inbox">До адмін-запитів</RouterLink>
       </div>
     </header>
 
-    <div v-if="loading" class="muted">Завантаження billing-запиту…</div>
+    <div v-if="loading" class="muted">Завантаження запиту на тариф…</div>
     <div v-else-if="error" class="form-error">{{ error }}</div>
 
     <template v-else-if="request">
@@ -94,7 +94,7 @@
         <div class="panel__header">
           <div>
             <div class="badge badge--soft">Inbox</div>
-            <h2 class="panel__title">Повʼязані inbox item</h2>
+            <h2 class="panel__title">Повʼязані елементи inbox</h2>
           </div>
         </div>
 
@@ -107,7 +107,7 @@
         <div v-if="linkedItems.length > 0" class="inbox-item-list">
           <article v-for="item in linkedItems" :key="item.id" class="inbox-item-card">
             <div class="inbox-item-card__row">
-              <strong>Inbox #{{ item.id }}</strong>
+              <strong>Елемент inbox #{{ item.id }}</strong>
               <span class="status-pill" :class="inboxItemStatusClass(item.status)">
                 {{ inboxItemStatusLabel(item.status) }}
               </span>
@@ -119,10 +119,10 @@
               <span v-if="item.read_at"> · Прочитано: {{ formatDate(item.read_at) }}</span>
               <span v-if="item.resolved_at"> · Вирішено: {{ formatDate(item.resolved_at) }}</span>
             </div>
-            <RouterLink class="btn btn--ghost btn--sm" :to="`/admin/inbox/${item.id}`">Відкрити inbox item</RouterLink>
+            <RouterLink class="btn btn--ghost btn--sm" :to="`/admin/inbox/${item.id}`">Відкрити елемент inbox</RouterLink>
           </article>
         </div>
-        <div v-else class="muted">Повʼязаних inbox item немає.</div>
+        <div v-else class="muted">Повʼязаних елементів inbox немає.</div>
       </section>
 
       <section class="panel">
@@ -253,9 +253,9 @@ const relationStateText = computed(() => {
     ? relation.has_open_items
     : linkedItems.value.some((item) => isOpenInboxStatus(item.status))
 
-  if (!hasLinked) return 'Повʼязаних item немає'
-  if (hasOpen) return 'Є відкриті item'
-  return 'Усі повʼязані item закриті'
+  if (!hasLinked) return 'Повʼязаних елементів немає'
+  if (hasOpen) return 'Є відкриті елементи'
+  return 'Усі повʼязані елементи закриті'
 })
 
 function normalizeStatus(status: string | null | undefined) {
@@ -327,7 +327,7 @@ function planDisplay(kind: 'current' | 'requested') {
 async function loadRequest() {
   if (!Number.isInteger(requestId.value) || requestId.value <= 0) {
     request.value = null
-    error.value = 'Некоректний ідентифікатор billing-запиту.'
+    error.value = 'Некоректний ідентифікатор запиту на тариф.'
     return
   }
 
@@ -338,7 +338,7 @@ async function loadRequest() {
     request.value = await fetchAdminBillingAccessRequest(requestId.value)
   } catch (err) {
     request.value = null
-    error.value = getApiErrorMessage(err, 'Не вдалося завантажити billing-запит.')
+    error.value = getApiErrorMessage(err, 'Не вдалося завантажити запит на тариф.')
   } finally {
     loading.value = false
   }
@@ -354,7 +354,7 @@ async function approveRequest() {
     toast.success('Запит погоджено.')
     await loadRequest()
   } catch (err) {
-    actionError.value = getApiErrorMessage(err, 'Не вдалося погодити billing-запит.')
+    actionError.value = getApiErrorMessage(err, 'Не вдалося погодити запит на тариф.')
   } finally {
     actionPending.value = false
     actionType.value = null
@@ -371,7 +371,7 @@ async function rejectRequest() {
     toast.success('Запит відхилено.')
     await loadRequest()
   } catch (err) {
-    actionError.value = getApiErrorMessage(err, 'Не вдалося відхилити billing-запит.')
+    actionError.value = getApiErrorMessage(err, 'Не вдалося відхилити запит на тариф.')
   } finally {
     actionPending.value = false
     actionType.value = null
