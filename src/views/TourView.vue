@@ -19,7 +19,14 @@
       </section>
 
       <nav class="tour-nav reveal" aria-label="Розділи туру">
-        <a v-for="anchor in sectionAnchors" :key="anchor.id" :href="`#${anchor.id}`">{{ anchor.label }}</a>
+        <a
+          v-for="anchor in sectionAnchors"
+          :key="anchor.id"
+          :href="`#${anchor.id}`"
+          :class="{ 'is-active': activeSectionId === anchor.id }"
+        >
+          {{ anchor.label }}
+        </a>
       </nav>
 
       <section class="tour-intro reveal" id="intro">
@@ -38,18 +45,13 @@
         :class="{ 'tour-feature--reverse': index % 2 === 1 }"
       >
         <div class="tour-feature__media">
-          <div class="product-mockup">
-            <div class="product-mockup__top">
+          <div class="product-shot">
+            <div class="product-shot__top">
               <span></span><span></span><span></span>
-              <strong>{{ feature.mockupLabel }}</strong>
+              <strong>{{ feature.screenLabel }}</strong>
             </div>
-            <div class="product-mockup__body">
-              <div class="product-mockup__line product-mockup__line--strong"></div>
-              <div class="product-mockup__line"></div>
-              <div class="product-mockup__line product-mockup__line--short"></div>
-              <div class="product-mockup__grid">
-                <div class="product-mockup__cell" v-for="cell in feature.mockupCells" :key="cell"></div>
-              </div>
+            <div class="product-shot__viewport">
+              <img :src="feature.screenSrc" :alt="feature.screenAlt" loading="lazy" decoding="async" />
             </div>
           </div>
         </div>
@@ -177,16 +179,17 @@ const isAuthenticated = computed(() => Boolean(auth.accessToken))
 const roles = computed(() => auth.me?.user.roles ?? auth.user?.roles ?? [])
 
 const sectionAnchors = [
-  { id: 'intro', label: 'Intro' },
+  { id: 'intro', label: 'Огляд' },
   { id: 'public-profile', label: 'Профіль' },
   { id: 'hours', label: 'Графік' },
   { id: 'booking', label: 'Бронювання' },
-  { id: 'sessions-payments', label: 'Сесії та оплати' },
+  { id: 'sessions-overview', label: 'Сесії' },
+  { id: 'session-workflow', label: 'Workflow' },
+  { id: 'payments', label: 'Оплати' },
   { id: 'notes', label: 'Нотатки' },
   { id: 'workbook', label: 'Зошит' },
   { id: 'publications', label: 'Публікації' },
-  { id: 'analytics-basic', label: 'Базова аналітика' },
-  { id: 'analytics-advanced', label: 'Розширена аналітика' },
+  { id: 'analytics', label: 'Аналітика' },
   { id: 'todo', label: 'Todo' },
   { id: 'compare', label: 'Порівняння' },
   { id: 'pricing-teaser', label: 'Доступ' },
@@ -200,8 +203,9 @@ const featureSections = [
     body: 'Клієнт бачить спеціаліста, формат роботи, ключову інформацію і зрозумілий шлях до запису.',
     points: ['Окреме публічне посилання', 'Чіткий опис формату та умов', 'Швидкий перехід до бронювання'],
     tariffNote: 'Start / Pro / Leader',
-    mockupLabel: 'Public Profile',
-    mockupCells: [1, 2, 3],
+    screenLabel: 'Public Profile',
+    screenSrc: '/images/tour/public-profile-2.jpg',
+    screenAlt: 'Публічний профіль спеціаліста з CTA для запису',
   },
   {
     id: 'hours',
@@ -209,8 +213,9 @@ const featureSections = [
     body: 'Керуйте доступністю, слотами і ритмом практики без ручного перенесення між інструментами.',
     points: ['Контроль робочих вікон', 'Гнучкі правила доступності', 'Прозорий графік для клієнта'],
     tariffNote: 'Start / Pro / Leader',
-    mockupLabel: 'Availability & Slots',
-    mockupCells: [1, 2, 3, 4],
+    screenLabel: 'Schedule Rules',
+    screenSrc: '/images/tour/schedule-rules.jpg',
+    screenAlt: 'Налаштування робочих годин та правил доступності',
   },
   {
     id: 'booking',
@@ -218,17 +223,39 @@ const featureSections = [
     body: 'Публічний запис синхронізований з вашим графіком і зменшує ручні підтвердження.',
     points: ['Публічний booking flow', 'Логіка anti-overlap', 'Менше ручних уточнень у чатах'],
     tariffNote: 'Start / Pro / Leader',
-    mockupLabel: 'Booking Flow',
-    mockupCells: [1, 2, 3],
+    screenLabel: 'Slots',
+    screenSrc: '/images/tour/slots-1.jpg',
+    screenAlt: 'Доступні дати та вільні вікна для бронювання',
   },
   {
-    id: 'sessions-payments',
-    title: 'Контролюйте сесії та оплати в одному місці',
-    body: 'Статуси сесій і оплат видно в робочому процесі, разом із потрібними діями.',
-    points: ['Статуси сесій', 'Статуси оплат', 'Швидкі дії без втрати контексту'],
+    id: 'sessions-overview',
+    title: 'Керуйте майбутніми сесіями',
+    body: 'Огляд сесій показує, що потрібно підтвердити зараз і яка зустріч наступна.',
+    points: ['Pending confirmations', 'Найближча сесія', 'Операційний контроль щоденного графіка'],
     tariffNote: 'Pro / Leader',
-    mockupLabel: 'Session Detail & Payment',
-    mockupCells: [1, 2, 3, 4],
+    screenLabel: 'Sessions Overview',
+    screenSrc: '/images/tour/booking-sessions-2.jpg',
+    screenAlt: 'Кабінет керування запланованими сесіями',
+  },
+  {
+    id: 'session-workflow',
+    title: 'Контролюйте сесії в одному робочому потоці',
+    body: 'У деталці сесії видно статус, формат, клієнта і наступні дії після зустрічі.',
+    points: ['Повний контекст сесії', 'Meeting block і статус', 'Післясесійний workspace summary'],
+    tariffNote: 'Pro / Leader',
+    screenLabel: 'Session Workflow',
+    screenSrc: '/images/tour/session-detail-1.jpg',
+    screenAlt: 'Деталка сесії зі статусами та діями після зустрічі',
+  },
+  {
+    id: 'payments',
+    title: 'Контролюйте оплати в одному місці',
+    body: 'Реквізити, підтвердження оплат і ключові дії зібрані в одному платіжному блоці.',
+    points: ['Реквізити оплати', 'Статус підтвердження', 'Швидкі дії для фоллоу-апу'],
+    tariffNote: 'Pro / Leader',
+    screenLabel: 'Payments',
+    screenSrc: '/images/tour/payments-block-1.jpg',
+    screenAlt: 'Блок оплати з реквізитами і підтвердженням платежу',
   },
   {
     id: 'notes',
@@ -236,8 +263,9 @@ const featureSections = [
     body: 'Внутрішній робочий контекст по клієнту тримається структуровано і конфіденційно.',
     points: ['Нотатки по сесіях', 'Робочі рекомендації', 'Контекст без сторонніх файлів'],
     tariffNote: 'За фактичним рівнем доступу у вашому кабінеті',
-    mockupLabel: 'Private Notes Workspace',
-    mockupCells: [1, 2, 3],
+    screenLabel: 'Notes',
+    screenSrc: '/images/tour/notes-3.jpg',
+    screenAlt: 'Конфіденційні приватні нотатки спеціаліста',
   },
   {
     id: 'workbook',
@@ -245,8 +273,9 @@ const featureSections = [
     body: 'Міжсесійна робота стає послідовною: матеріали, рефлексії і continuity в одному потоці.',
     points: ['Матеріали між сесіями', 'Безперервність роботи', 'Підтримка між зустрічами'],
     tariffNote: 'Pro / Leader',
-    mockupLabel: 'Client Workbook',
-    mockupCells: [1, 2, 3, 4],
+    screenLabel: 'Workbook',
+    screenSrc: '/images/tour/workbook-3.jpg',
+    screenAlt: 'Робочий зошит клієнта для міжсесійної роботи',
   },
   {
     id: 'publications',
@@ -254,26 +283,19 @@ const featureSections = [
     body: 'Публікації допомагають формувати публічну експертність і підтримувати професійне позиціонування.',
     points: ['Авторський журнал', 'Публічний шар експертності', 'Підсилення довіри до профілю'],
     tariffNote: 'Pro / Leader',
-    mockupLabel: 'Publications',
-    mockupCells: [1, 2, 3],
+    screenLabel: 'Author Journal',
+    screenSrc: '/images/tour/author-journal-1.jpg',
+    screenAlt: 'Список авторських публікацій спеціаліста',
   },
   {
-    id: 'analytics-basic',
-    title: 'Бачте базову картину вашої практики',
-    body: 'Швидкий огляд поточного стану практики для щоденних рішень.',
-    points: ['Огляд ключових показників', 'Динаміка завантаження', 'Оперативний контроль'],
-    tariffNote: 'Start / Pro / Leader',
-    mockupLabel: 'Basic Analytics',
-    mockupCells: [1, 2, 3, 4],
-  },
-  {
-    id: 'analytics-advanced',
-    title: 'Аналізуйте практику глибше',
-    body: 'Розширені зрізи допомагають бачити патерни, планувати навантаження і стабілізувати практику.',
-    points: ['Глибші графіки', 'Патерни і тренди', 'Підтримка рішень по навантаженню'],
+    id: 'analytics',
+    title: 'Бачте базову й розширену картину практики',
+    body: 'Аналітика показує ключові показники, динаміку і зрізи, які підтримують щоденні рішення.',
+    points: ['Огляд ключових метрик', 'Динаміка по днях', 'Оперативний контроль навантаження'],
     tariffNote: 'Pro / Leader',
-    mockupLabel: 'Advanced Analytics',
-    mockupCells: [1, 2, 3, 4],
+    screenLabel: 'Analytics',
+    screenSrc: '/images/tour/analytics-1.jpg',
+    screenAlt: 'Дашборд аналітики практики',
   },
   {
     id: 'todo',
@@ -281,8 +303,9 @@ const featureSections = [
     body: 'Todo-дошка допомагає не втрачати операційні задачі в щоденному потоці.',
     points: ['Список робочих задач', 'Фокус на наступних кроках', 'Порядок у поточних справах'],
     tariffNote: 'Pro / Leader',
-    mockupLabel: 'Todo Board',
-    mockupCells: [1, 2, 3],
+    screenLabel: 'Todo Board',
+    screenSrc: '/images/tour/todo-board-1.jpg',
+    screenAlt: 'Робоча дошка задач спеціаліста',
   },
 ]
 
@@ -307,6 +330,7 @@ const faqItems = [
 ]
 
 const openFaqIndex = ref<number | null>(0)
+const activeSectionId = ref('intro')
 
 const toggleFaq = (index: number) => {
   openFaqIndex.value = openFaqIndex.value === index ? null : index
@@ -335,29 +359,51 @@ const goToCabinet = async () => {
 }
 
 let revealObserver: IntersectionObserver | null = null
+let navObserver: IntersectionObserver | null = null
 
 onMounted(() => {
   const targets = Array.from(document.querySelectorAll<HTMLElement>('.reveal'))
-  if (!targets.length) return
+  if (targets.length) {
+    revealObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-visible')
+            revealObserver?.unobserve(entry.target)
+          }
+        })
+      },
+      { threshold: 0.14, rootMargin: '0px 0px -8% 0px' }
+    )
 
-  revealObserver = new IntersectionObserver(
+    targets.forEach((el) => revealObserver?.observe(el))
+  }
+
+  const sectionTargets = sectionAnchors
+    .map((anchor) => document.getElementById(anchor.id))
+    .filter((section): section is HTMLElement => section instanceof HTMLElement)
+
+  if (!sectionTargets.length) return
+
+  navObserver = new IntersectionObserver(
     (entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('is-visible')
-          revealObserver?.unobserve(entry.target)
-        }
-      })
+      const mostVisible = entries
+        .filter((entry) => entry.isIntersecting)
+        .sort((a, b) => b.intersectionRatio - a.intersectionRatio)
+        .at(0)
+      if (mostVisible) activeSectionId.value = mostVisible.target.id
     },
-    { threshold: 0.14, rootMargin: '0px 0px -8% 0px' }
+    { threshold: [0.22, 0.38, 0.6], rootMargin: '-18% 0px -54% 0px' }
   )
 
-  targets.forEach((el) => revealObserver?.observe(el))
+  sectionTargets.forEach((section) => navObserver?.observe(section))
 })
 
 onBeforeUnmount(() => {
   revealObserver?.disconnect()
   revealObserver = null
+  navObserver?.disconnect()
+  navObserver = null
 })
 </script>
 
@@ -384,7 +430,7 @@ onBeforeUnmount(() => {
   width: min(1200px, 92vw);
   margin: 0 auto;
   display: grid;
-  gap: 46px;
+  gap: 44px;
 }
 
 .tour-hero,
@@ -458,10 +504,18 @@ onBeforeUnmount(() => {
 .tour-nav a {
   border: 1px solid color-mix(in srgb, var(--primary) 20%, var(--border));
   border-radius: var(--radius-xs);
-  padding: 6px 10px;
+  padding: 6px 11px;
   font-size: 12px;
   color: color-mix(in srgb, var(--text) 86%, #2d5666);
   white-space: nowrap;
+  transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.tour-nav a.is-active {
+  border-color: color-mix(in srgb, var(--primary) 56%, var(--border));
+  color: color-mix(in srgb, var(--primary) 78%, #1f4f5e);
+  background: color-mix(in srgb, #ffffff 68%, var(--surface));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--primary) 26%, transparent);
 }
 
 .tour-section__title {
@@ -478,8 +532,8 @@ onBeforeUnmount(() => {
 .tour-feature {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  gap: 24px;
-  align-items: center;
+  gap: 26px;
+  align-items: start;
 }
 
 .tour-feature--reverse {
@@ -511,15 +565,19 @@ onBeforeUnmount(() => {
   color: color-mix(in srgb, var(--text) 64%, #50606a);
 }
 
-.product-mockup {
-  border: 1px solid color-mix(in srgb, var(--primary) 24%, var(--border));
-  border-radius: var(--radius-lg);
-  background: linear-gradient(165deg, rgba(255, 255, 255, 0.92), rgba(18, 65, 55, 0.08));
-  overflow: hidden;
-  box-shadow: 0 12px 22px rgba(17, 64, 54, 0.1);
+.tour-feature__media {
+  min-width: 0;
 }
 
-.product-mockup__top {
+.product-shot {
+  border: 1px solid color-mix(in srgb, var(--primary) 24%, var(--border));
+  border-radius: var(--radius-lg);
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.94), rgba(18, 65, 55, 0.06));
+  overflow: hidden;
+  box-shadow: 0 14px 24px rgba(17, 64, 54, 0.1);
+}
+
+.product-shot__top {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -527,14 +585,14 @@ onBeforeUnmount(() => {
   border-bottom: 1px solid color-mix(in srgb, var(--primary) 16%, var(--border));
 }
 
-.product-mockup__top span {
+.product-shot__top span {
   width: 7px;
   height: 7px;
   border-radius: 999px;
   background: color-mix(in srgb, var(--primary) 32%, var(--border));
 }
 
-.product-mockup__top strong {
+.product-shot__top strong {
   margin-left: auto;
   font-size: 12px;
   letter-spacing: 0.05em;
@@ -542,37 +600,16 @@ onBeforeUnmount(() => {
   color: color-mix(in srgb, var(--text) 62%, #4f616a);
 }
 
-.product-mockup__body {
-  padding: 12px;
-  display: grid;
-  gap: 8px;
+.product-shot__viewport {
+  background: linear-gradient(180deg, rgba(10, 30, 45, 0.04), rgba(10, 30, 45, 0.01));
+  padding: 10px;
 }
 
-.product-mockup__line {
-  height: 7px;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--primary) 12%, var(--border));
-}
-
-.product-mockup__line--strong {
-  width: 84%;
-}
-
-.product-mockup__line--short {
-  width: 62%;
-}
-
-.product-mockup__grid {
-  display: grid;
-  gap: 8px;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.product-mockup__cell {
-  height: 64px;
-  border: 1px solid color-mix(in srgb, var(--primary) 16%, var(--border));
-  border-radius: var(--radius-sm);
-  background: color-mix(in srgb, #ffffff 85%, var(--surface));
+.product-shot__viewport img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-md);
 }
 
 .tour-compare__grid,
