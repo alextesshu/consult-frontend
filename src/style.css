@@ -142,6 +142,10 @@ a {
   animation: page-in 420ms ease;
 }
 
+body.body--authenticated .page {
+  padding: 30px clamp(18px, 1.8vw, 30px) 60px;
+}
+
 .topbar {
   display: flex;
   align-items: center;
@@ -253,10 +257,20 @@ a {
   color: var(--ink);
 }
 
+body.body--authenticated .card {
+  border-radius: var(--radius-xl);
+  padding: clamp(20px, 1.35vw, 28px);
+  box-shadow: 0 12px 28px rgba(17, 64, 54, 0.13);
+}
+
 .card__title {
   margin: 0 0 12px;
   font-size: 18px;
   font-weight: 400;
+}
+
+body.body--authenticated .card__title {
+  font-size: clamp(20px, 1.3vw, 24px);
 }
 
 .muted {

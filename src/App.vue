@@ -1,5 +1,14 @@
 <template>
-  <div :class="['shell', { 'shell--home': isHome, 'shell--minimal': useMinimalShell }]">
+  <div
+    :class="[
+      'shell',
+      {
+        'shell--home': isHome,
+        'shell--minimal': useMinimalShell,
+        'shell--authenticated': isAuthenticatedLayout,
+      },
+    ]"
+  >
     <header v-if="!useMinimalShell" :class="topbarClass">
       <div class="topbar__inner">
         <RouterLink class="brand" to="/">
@@ -206,9 +215,20 @@
       </div>
     </header>
 
-    <main :class="['main', { 'main--home': isHome, 'main--public-profile': isPublicProfilePage, 'main--tour': isTour }]">
+    <main
+      :class="[
+        'main',
+        {
+          'main--home': isHome,
+          'main--public-profile': isPublicProfilePage,
+          'main--tour': isTour,
+          'main--authenticated': isAuthenticatedLayout,
+        },
+      ]"
+    >
       <RouterView :key="route.fullPath" />
     </main>
+    <ScrollToTopButton v-if="showGlobalScrollTopButton" />
     <ToastHost />
     <footer v-if="!useMinimalShell" class="footer">
       <div class="footer__brand">
@@ -252,6 +272,7 @@ import { computed, onBeforeUnmount, onMounted, ref, watch, watchEffect } from 'v
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from './stores/auth'
 import ToastHost from './components/ToastHost.vue'
+import ScrollToTopButton from './components/ScrollToTopButton.vue'
 import { apiGet, fetchChatUnreadCount } from './lib/api'
 import { normalizeMeetingUrl, canJoinExternalMeeting } from './lib/sessionExecution'
 import { useToast } from './composables/useToast'
@@ -265,6 +286,9 @@ const isAuthenticated = computed(() => Boolean(auth.accessToken))
 const isHome = computed(() => route.path === '/')
 const isTour = computed(() => route.path === '/tour')
 const useMinimalShell = computed(() => Boolean(route.meta?.minimalShell))
+const isAuthenticatedLayout = computed(
+  () => isAuthenticated.value && !useMinimalShell.value && !isHome.value
+)
 const runtimeHost = typeof window !== 'undefined' ? window.location.hostname.toLowerCase() : ''
 const deployEnv = String(import.meta.env.VITE_DEPLOY_ENV || '').trim().toLowerCase()
 const apiBaseUrl = String(import.meta.env.VITE_API_BASE_URL || '').trim().toLowerCase()
@@ -297,6 +321,7 @@ const showMinimalShellDeployMarker = computed(
 
 watchEffect(() => {
   document.body.classList.toggle('body--home', isHome.value)
+  document.body.classList.toggle('body--authenticated', isAuthenticatedLayout.value)
 })
 const roles = computed(() => {
   const rawRoles = auth.me?.user.roles ?? auth.user?.roles ?? []
@@ -342,6 +367,9 @@ const isPublicRoute = computed(
     route.path.startsWith('/t/') ||
     route.path.startsWith('/specialist/')
 )
+const showGlobalScrollTopButton = computed(
+  () => !useMinimalShell.value && !isPublicProfilePage.value
+)
 
 const topbarClass = computed(() => [
   'topbar',
@@ -349,7 +377,7 @@ const topbarClass = computed(() => [
     'topbar--specialist': isSpecialist.value,
     'topbar--client': isClient.value,
     'topbar--guest': !isAuthenticated.value,
-    'topbar--overlay': isHome.value,
+    'topbar--overlay': isHome.value && !isAuthenticated.value,
   },
 ])
 
@@ -784,11 +812,18 @@ watch(isChatCapable, (value) => {
 
 <style scoped>
 .shell {
+  --shell-inline-pad: 24px;
   max-width: none;
   margin: 0 auto;
-  padding: 0 24px 48px;
+  padding: 0 var(--shell-inline-pad) 48px;
   display: grid;
   gap: 24px;
+}
+
+.shell--authenticated {
+  --shell-inline-pad: clamp(24px, 2.4vw, 34px);
+  padding: 0 var(--shell-inline-pad) 56px;
+  gap: 30px;
 }
 
 .shell--home {
@@ -827,8 +862,8 @@ watch(isChatCapable, (value) => {
 }
 
 .shell:not(.shell--home):not(.shell--minimal) .topbar {
-  width: calc(100% + 48px);
-  margin: 0 -24px;
+  width: calc(100% + (var(--shell-inline-pad) * 2));
+  margin: 0 calc(var(--shell-inline-pad) * -1);
 }
 
 .topbar::after {
@@ -863,13 +898,29 @@ watch(isChatCapable, (value) => {
 
 .topbar--specialist,
 .topbar--therapist {
-  background: var(--topbar-bg);
-  border-bottom-color: var(--topbar-border);
+  --topbar-text: #1d4139;
+  background:
+    radial-gradient(120% 180% at 50% -28%, rgba(255, 255, 255, 0.58), transparent 62%),
+    linear-gradient(180deg, rgba(234, 245, 241, 0.9) 0%, rgba(220, 239, 232, 0.82) 100%);
+  border-bottom-color: color-mix(in srgb, #0f7059 35%, #b6cdc5);
+  box-shadow: 0 10px 24px rgba(10, 44, 36, 0.08);
 }
 
 .topbar--client {
-  background: var(--topbar-bg);
-  border-bottom-color: var(--topbar-border);
+  --topbar-text: #1d4139;
+  background:
+    radial-gradient(120% 180% at 50% -28%, rgba(255, 255, 255, 0.58), transparent 62%),
+    linear-gradient(180deg, rgba(234, 245, 241, 0.9) 0%, rgba(220, 239, 232, 0.82) 100%);
+  border-bottom-color: color-mix(in srgb, #0f7059 35%, #b6cdc5);
+  box-shadow: 0 10px 24px rgba(10, 44, 36, 0.08);
+}
+
+.topbar--specialist .topbar__inner,
+.topbar--therapist .topbar__inner,
+.topbar--client .topbar__inner {
+  width: var(--marketing-shell-width);
+  min-height: 78px;
+  padding: 14px 0;
 }
 
 .topbar--guest {
@@ -929,18 +980,27 @@ watch(isChatCapable, (value) => {
   text-align: left;
 }
 
-.topbar--guest .brand {
+.topbar--guest .brand,
+.topbar--specialist .brand,
+.topbar--therapist .brand,
+.topbar--client .brand {
   display: flex;
   align-items: center;
   gap: 14px;
 }
 
-.topbar--guest .brand__mark {
+.topbar--guest .brand__mark,
+.topbar--specialist .brand__mark,
+.topbar--therapist .brand__mark,
+.topbar--client .brand__mark {
   text-transform: uppercase;
   letter-spacing: 0.02em;
 }
 
-.topbar--guest .brand__tagline {
+.topbar--guest .brand__tagline,
+.topbar--specialist .brand__tagline,
+.topbar--therapist .brand__tagline,
+.topbar--client .brand__tagline {
   font-size: 15px;
   letter-spacing: 0;
   font-weight: 500;
@@ -1070,6 +1130,110 @@ watch(isChatCapable, (value) => {
   border-color: color-mix(in srgb, #0d6b55 40%, #0c5e4a);
 }
 
+.topbar--specialist .nav,
+.topbar--therapist .nav,
+.topbar--client .nav {
+  gap: 14px;
+  align-items: center;
+  flex-wrap: nowrap;
+}
+
+.topbar--specialist .nav a,
+.topbar--therapist .nav a,
+.topbar--client .nav a {
+  min-height: 38px;
+  border-radius: 10px;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  color: #1d3e38;
+  font-weight: 500;
+  padding: 6px 8px;
+}
+
+.topbar--specialist .nav a:hover,
+.topbar--therapist .nav a:hover,
+.topbar--client .nav a:hover {
+  background: color-mix(in srgb, #1d3e38 7%, #ffffff);
+}
+
+.topbar--specialist .nav a.router-link-active,
+.topbar--therapist .nav a.router-link-active,
+.topbar--client .nav a.router-link-active {
+  background: color-mix(in srgb, #1d3e38 9%, #ffffff);
+  box-shadow: none;
+}
+
+.topbar--specialist .nav a.nav__primary-action,
+.topbar--therapist .nav a.nav__primary-action,
+.topbar--client .nav a.nav__primary-action {
+  border: 1px solid color-mix(in srgb, #0d6b55 30%, #0c5e4a);
+  background: linear-gradient(180deg, #178466 0%, #0f7059 100%);
+  color: #f4fffb;
+  box-shadow: 0 10px 18px rgba(11, 73, 58, 0.18);
+}
+
+.topbar--specialist .nav a.nav__primary-action:hover,
+.topbar--therapist .nav a.nav__primary-action:hover,
+.topbar--client .nav a.nav__primary-action:hover {
+  background: linear-gradient(180deg, #1b8f6f 0%, #10705a 100%);
+  border-color: color-mix(in srgb, #0d6b55 40%, #0c5e4a);
+}
+
+.topbar--specialist .nav a.icon-btn,
+.topbar--therapist .nav a.icon-btn,
+.topbar--client .nav a.icon-btn {
+  width: 38px;
+  min-height: 38px;
+  padding: 0;
+}
+
+.topbar--specialist .icon-btn,
+.topbar--therapist .icon-btn,
+.topbar--client .icon-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: #1d3e38;
+  box-shadow: none;
+}
+
+.topbar--specialist .icon-btn:hover,
+.topbar--therapist .icon-btn:hover,
+.topbar--client .icon-btn:hover,
+.topbar--specialist .icon-btn:focus-visible,
+.topbar--therapist .icon-btn:focus-visible,
+.topbar--client .icon-btn:focus-visible {
+  border-color: color-mix(in srgb, #1d3e38 20%, #d5dfda);
+  background: color-mix(in srgb, #1d3e38 7%, #ffffff);
+  box-shadow: none;
+}
+
+.topbar--specialist .btn--ghost,
+.topbar--therapist .btn--ghost,
+.topbar--client .btn--ghost {
+  min-height: 38px;
+  padding: 6px 8px;
+  border-radius: 10px;
+  border: 0;
+  background: transparent;
+  color: #1d3e38;
+  box-shadow: none;
+  font-weight: 500;
+  font-size: inherit;
+}
+
+.topbar--specialist .btn--ghost:hover,
+.topbar--therapist .btn--ghost:hover,
+.topbar--client .btn--ghost:hover,
+.topbar--specialist .btn--ghost:focus-visible,
+.topbar--therapist .btn--ghost:focus-visible,
+.topbar--client .btn--ghost:focus-visible {
+  background: color-mix(in srgb, #1d3e38 7%, #ffffff);
+}
+
 .nav__notifications {
   position: relative;
 }
@@ -1131,7 +1295,7 @@ watch(isChatCapable, (value) => {
   border-radius: var(--radius-pill);
 }
 
-.topbar .btn--ghost {
+.topbar--guest .btn--ghost {
   min-height: 32px;
   padding: 4px 12px;
   border-radius: 6px;
@@ -1146,8 +1310,8 @@ watch(isChatCapable, (value) => {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
 }
 
-.topbar .btn--ghost:hover,
-.topbar .btn--ghost:focus-visible {
+.topbar--guest .btn--ghost:hover,
+.topbar--guest .btn--ghost:focus-visible {
   border-color: color-mix(in srgb, var(--topbar-text) 50%, transparent);
   background: color-mix(in srgb, var(--topbar-text) 16%, transparent);
   box-shadow:
@@ -1155,7 +1319,7 @@ watch(isChatCapable, (value) => {
     0 6px 12px rgba(9, 24, 20, 0.14);
 }
 
-.topbar .btn--ghost:active {
+.topbar--guest .btn--ghost:active {
   background: color-mix(in srgb, var(--topbar-text) 24%, transparent);
 }
 
@@ -1356,6 +1520,10 @@ watch(isChatCapable, (value) => {
   min-height: 320px;
   width: min(1200px, 92vw);
   margin: 0 auto;
+}
+
+.main--authenticated {
+  width: min(1480px, 96vw);
 }
 
 .main--tour {

@@ -710,15 +710,7 @@
         </div>
       </div>
     </div>
-    <button
-      v-if="showBackToTopButton"
-      class="back-to-top-btn"
-      type="button"
-      aria-label="Вгору"
-      @click="scrollToTop"
-    >
-      Вгору
-    </button>
+    <ScrollToTopButton />
 
   </section>
 </template>
@@ -737,6 +729,7 @@ import PublicProfileJournalPreviewSection from '../components/public-profile/Pub
 import PublicProfileMediaSection from '../components/public-profile/PublicProfileMediaSection.vue'
 import PublicProfileReviewsSection from '../components/public-profile/PublicProfileReviewsSection.vue'
 import PublicProfileTrustSection from '../components/public-profile/PublicProfileTrustSection.vue'
+import ScrollToTopButton from '../components/ScrollToTopButton.vue'
 import { getApiErrorMessage } from '../lib/errors'
 import {
   BOOKING_ERROR_FALLBACKS,
@@ -971,7 +964,6 @@ const categoryOptions: { key: JournalCategory; label: string }[] = [
 const selectedDate = ref('')
 const slotDateInput = ref<HTMLInputElement | null>(null)
 const showAllSlots = ref(false)
-const showBackToTopButton = ref(false)
 const slotsPreviewLimit = 96
 const bookingSessionFormat = ref<SessionFormat>('online')
 
@@ -2360,15 +2352,6 @@ function scrollToSlots() {
   focusSlotsSection()
 }
 
-function updateBackToTopVisibility() {
-  const threshold = Math.max(window.innerHeight * 0.85, 520)
-  showBackToTopButton.value = window.scrollY > threshold
-}
-
-function scrollToTop() {
-  window.scrollTo({ top: 0, behavior: 'smooth' })
-}
-
 function scrollToInquiry() {
   window.location.hash = '#inquiry'
   focusInquirySection()
@@ -3421,12 +3404,9 @@ watch(
 
 onBeforeUnmount(() => {
   clearContactActionFallbackTimer()
-  window.removeEventListener('scroll', updateBackToTopVisibility)
 })
 
 onMounted(async () => {
-  window.addEventListener('scroll', updateBackToTopVisibility, { passive: true })
-  updateBackToTopVisibility()
   if (!selectedDate.value) {
     selectedDate.value = toLocalDate(new Date())
   }
@@ -3692,25 +3672,6 @@ onMounted(async () => {
   min-width: 0;
 }
 
-.back-to-top-btn {
-  position: fixed;
-  right: 20px;
-  bottom: 24px;
-  z-index: 25;
-  border: 1px solid color-mix(in srgb, var(--line) 88%, #ffffff);
-  border-radius: 999px;
-  background: color-mix(in srgb, #ffffff 92%, var(--surface));
-  color: var(--text);
-  font-size: 13px;
-  font-weight: 600;
-  padding: 10px 14px;
-  cursor: pointer;
-  box-shadow: 0 10px 22px rgba(16, 24, 40, 0.16);
-}
-
-.back-to-top-btn:hover {
-  border-color: color-mix(in srgb, var(--primary) 24%, var(--line));
-}
 
 .panel--slots {
   grid-column: 1 / -1;
@@ -5366,14 +5327,6 @@ onMounted(async () => {
 }
 
 @media (max-width: 640px) {
-  .back-to-top-btn {
-    right: 10px;
-    bottom: max(10px, env(safe-area-inset-bottom) + 10px);
-    padding: 8px 11px;
-    font-size: 12px;
-    z-index: 14;
-  }
-
   .slot-list {
     grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
   }

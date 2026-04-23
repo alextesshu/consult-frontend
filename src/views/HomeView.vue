@@ -61,8 +61,8 @@
 
       <section id="how-it-works" class="walkthrough reveal">
         <div class="section-head">
-          <p class="section-head__eyebrow">Product walkthrough</p>
-          <h2 class="section-head__title">Подивіться, як PRO CONSULT працює в реальних сценаріях</h2>
+          <p class="section-head__eyebrow">Огляд продукту</p>
+          <h2 class="section-head__title">Подивіться, як Pro Consult працює в реальних сценаріях</h2>
           <p class="walkthrough__lead">
             Усі ключові етапи роботи спеціаліста в одному маршруті: від публічного профілю до щоденних операційних
             задач.
@@ -173,13 +173,13 @@
 
       <section id="faq" class="home-faq reveal">
         <div class="section-head">
-          <h2 class="section-head__title">FAQ</h2>
+          <h2 class="section-head__title">Поширені питання</h2>
           <p class="muted">Короткі відповіді перед стартом.</p>
         </div>
         <div class="home-faq__grid">
           <article class="faq-card">
             <h3 class="faq-card__title">Чи є комісія з кожної сесії?</h3>
-            <p class="muted">Ні. PRO CONSULT не забирає відсоток із кожної сесії.</p>
+            <p class="muted">Ні. Pro Consult не забирає відсоток із кожної сесії.</p>
           </article>
           <article class="faq-card">
             <h3 class="faq-card__title">Чи можна почати безкоштовно?</h3>
@@ -239,7 +239,7 @@ const walkthroughSections = [
     body: 'Клієнт одразу бачить вашу спеціалізацію, формат роботи, умови та зрозумілий шлях до запису без зайвих кроків.',
     points: ['Публічне посилання профілю', 'Прозорі умови роботи', 'Швидкий перехід до запису'],
     tariffNote: 'Start / Pro / Leader',
-    screenLabel: 'Public Profile',
+    screenLabel: 'ПУБЛІЧНИЙ ПРОФІЛЬ',
     screenSrc: '/images/tour/public-profile-2.jpg',
     screenAlt: 'Публічний профіль спеціаліста',
     type: 'core',
@@ -251,7 +251,7 @@ const walkthroughSections = [
     body: 'Керуйте робочими правилами, доступністю та ритмом практики в одному місці, без ручних перенесень між інструментами.',
     points: ['Налаштування робочих вікон', 'Керування правилами доступності', 'Прозорий календар для клієнта'],
     tariffNote: 'Start / Pro / Leader',
-    screenLabel: 'Schedule Rules',
+    screenLabel: 'ПРАВИЛА ГРАФІКА',
     screenSrc: '/images/tour/schedule-rules.jpg',
     screenAlt: 'Налаштування робочих годин',
     type: 'core',
@@ -260,10 +260,10 @@ const walkthroughSections = [
     id: 'booking',
     shortLabel: 'Бронювання',
     title: 'Бронювання без накладок',
-    body: 'Публічний booking flow синхронізується з вашим графіком і прибирає зайву ручну координацію з клієнтами.',
-    points: ['Доступні дати й вікна', 'Логіка anti-overlap', 'Менше ручних уточнень'],
+    body: 'Публічний процес запису синхронізується з вашим графіком і прибирає зайву ручну координацію з клієнтами.',
+    points: ['Доступні дати й вікна', 'Логіка без накладок', 'Менше ручних уточнень'],
     tariffNote: 'Start / Pro / Leader',
-    screenLabel: 'Slots',
+    screenLabel: 'ВІЛЬНІ ВІКНА',
     screenSrc: '/images/tour/slots-1.jpg',
     screenAlt: 'Слоти для бронювання',
     type: 'core',
@@ -273,21 +273,21 @@ const walkthroughSections = [
     shortLabel: 'Сесії',
     title: 'Керування майбутніми сесіями',
     body: 'Огляд майбутніх сесій показує підтвердження, найближчі зустрічі й критичні кроки для стабільного робочого ритму.',
-    points: ['Pending confirmations', 'Найближча сесія', 'Операційний контроль графіка'],
+    points: ['Сесії, що очікують підтвердження', 'Найближча сесія', 'Операційний контроль графіка'],
     tariffNote: 'Pro / Leader',
-    screenLabel: 'Sessions',
+    screenLabel: 'СЕСІЇ',
     screenSrc: '/images/tour/booking-sessions-2.jpg',
     screenAlt: 'Список майбутніх сесій',
     type: 'core',
   },
   {
     id: 'session-workflow',
-    shortLabel: 'Workflow',
-    title: 'Контроль сесії в одному workflow',
+    shortLabel: 'Процес',
+    title: 'Контроль сесії в одному робочому процесі',
     body: 'У деталці сесії зібрано статус, формат, дані клієнта та наступні дії, щоб не втрачати контекст між етапами роботи.',
-    points: ['Контекст сесії', 'Meeting block і статус', 'Післясесійний workspace summary'],
+    points: ['Контекст сесії', 'Блок зустрічі і статус', 'Підсумок після сесії'],
     tariffNote: 'Pro / Leader',
-    screenLabel: 'Session Detail',
+    screenLabel: 'ДЕТАЛІ СЕСІЇ',
     screenSrc: '/images/tour/session-detail-1.jpg',
     screenAlt: 'Деталка сесії',
     type: 'core',
@@ -297,9 +297,9 @@ const walkthroughSections = [
     shortLabel: 'Оплати',
     title: 'Оплати та підтвердження оплат',
     body: 'Реквізити, підтвердження оплат і потрібні дії зібрані в одному блоці, щоб ви тримали фінансову частину під контролем.',
-    points: ['Платіжні реквізити', 'Підтвердження оплат', 'Швидкі дії для фоллоу-апу'],
+    points: ['Платіжні реквізити', 'Підтвердження оплат', 'Швидкі дії для подальших кроків'],
     tariffNote: 'Pro / Leader',
-    screenLabel: 'Payments',
+    screenLabel: 'ОПЛАТИ',
     screenSrc: '/images/tour/payments-block-1.jpg',
     screenAlt: 'Платіжний блок',
     type: 'core',
@@ -308,10 +308,10 @@ const walkthroughSections = [
     id: 'workbook',
     shortLabel: 'Зошит',
     title: 'Робочий зошит між сесіями',
-    body: 'Міжсесійна робота стає послідовною: матеріали, контекст і continuity зберігаються в єдиному робочому потоці.',
+    body: 'Міжсесійна робота стає послідовною: матеріали, контекст і безперервність зберігаються в єдиному робочому потоці.',
     points: ['Міжсесійний контекст', 'Структурована робота', 'Безперервність процесу'],
     tariffNote: 'Pro / Leader',
-    screenLabel: 'Workbook',
+    screenLabel: 'РОБОЧИЙ ЗОШИТ',
     screenSrc: '/images/tour/workbook-3.jpg',
     screenAlt: 'Робочий зошит клієнта',
     type: 'core',
@@ -323,7 +323,7 @@ const walkthroughSections = [
     body: 'Ключові показники, динаміка та навантаження допомагають щодня приймати рішення на основі реальної картини практики.',
     points: ['Огляд метрик', 'Динаміка по днях', 'Контроль навантаження'],
     tariffNote: 'Start / Pro / Leader',
-    screenLabel: 'Analytics',
+    screenLabel: 'АНАЛІТИКА',
     screenSrc: '/images/tour/analytics-1.jpg',
     screenAlt: 'Аналітичний дашборд',
     type: 'core',
@@ -334,7 +334,7 @@ const walkthroughSections = [
     title: 'Приватні нотатки',
     body: 'Конфіденційний робочий контекст по клієнту в захищеній внутрішній зоні.',
     points: [],
-    screenLabel: 'Notes',
+    screenLabel: 'НОТАТКИ',
     screenSrc: '/images/tour/notes-3.jpg',
     screenAlt: 'Приватні нотатки',
     type: 'secondary',
@@ -345,18 +345,18 @@ const walkthroughSections = [
     title: 'Авторські публікації',
     body: 'Публічний журнал підсилює експертний голос і довіру до профілю.',
     points: [],
-    screenLabel: 'Author Journal',
+    screenLabel: 'АВТОРСЬКИЙ ЖУРНАЛ',
     screenSrc: '/images/tour/author-journal-1.jpg',
     screenAlt: 'Авторські публікації',
     type: 'secondary',
   },
   {
     id: 'todo',
-    shortLabel: 'Todo',
-    title: 'Todo дошка',
+    shortLabel: 'Справи',
+    title: 'Дошка завдань',
     body: 'Операційні задачі та наступні кроки завжди під контролем.',
     points: [],
-    screenLabel: 'Todo Board',
+    screenLabel: 'ДОШКА ЗАВДАНЬ',
     screenSrc: '/images/tour/todo-board-1.jpg',
     screenAlt: 'Todo дошка',
     type: 'secondary',
@@ -459,7 +459,7 @@ onMounted(() => {
             }
           })
         },
-        { threshold: 0.16, rootMargin: '0px 0px -10% 0px' }
+        { threshold: 0.02, rootMargin: '0px 0px 14% 0px' }
       )
 
       targets.forEach((el) => revealObserver?.observe(el))
@@ -629,7 +629,7 @@ onBeforeUnmount(() => {
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   border-radius: var(--radius-md);
 }
 
@@ -795,7 +795,7 @@ onBeforeUnmount(() => {
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   border-radius: var(--radius-md);
 }
 
