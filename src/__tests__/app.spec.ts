@@ -97,6 +97,7 @@ async function renderWithProviders(options?: {
   const routes = [
     { path: '/', component: { template: '<div>Home</div>' } },
     { path: '/login', component: { template: '<div>Login</div>' } },
+    { path: '/admin/inbox', component: { template: '<div>Admin Inbox</div>' } },
     { path: '/faq', component: { template: '<div>Faq</div>' } },
     { path: '/terms', component: { template: '<div>Terms</div>' } },
     { path: '/privacy', component: { template: '<div>Privacy</div>' } },
@@ -108,10 +109,12 @@ async function renderWithProviders(options?: {
       meta: { minimalShell: true },
     },
     { path: '/cabinet', component: { template: '<div>Cabinet</div>' } },
+    { path: '/cabinet/chat', component: { template: '<div>Cabinet Chat</div>' } },
     { path: '/cabinet/profile', component: { template: '<div>Cabinet Profile</div>' } },
     { path: '/cabinet/settings', component: { template: '<div>Cabinet Settings</div>' } },
     { path: '/public', component: { template: '<div>Public Redirect</div>' } },
     { path: '/client', component: { template: '<div>Client</div>' } },
+    { path: '/client/chat', component: { template: '<div>Client Chat</div>' } },
     { path: '/cabinet/inquiries', component: { template: '<div>Cabinet Inquiries</div>' } },
     {
       path: '/client/inquiries/:specialistId',
@@ -257,6 +260,48 @@ describe('App shell', () => {
     await waitFor(() => {
       expect(router.currentRoute.value.fullPath).toBe('/cabinet/settings')
     })
+  })
+
+  it('shows only admin header navigation for pure ADMIN', async () => {
+    await renderWithProviders({
+      initialPath: '/admin/inbox',
+      roles: ['ADMIN'],
+    })
+
+    const nav = document.querySelector('header.topbar .nav') as HTMLElement
+    expect(nav).toBeInTheDocument()
+    expect(within(nav).getByRole('link', { name: 'Admin Inbox' })).toHaveAttribute('href', '/admin/inbox')
+    expect(nav.querySelector('a[href="/specialists"]')).not.toBeInTheDocument()
+    expect(nav.querySelector('a[href="/public"]')).not.toBeInTheDocument()
+    expect(nav.querySelector('a[href="/client/chat"]')).not.toBeInTheDocument()
+    expect(nav.querySelector('a[href="/cabinet/chat"]')).not.toBeInTheDocument()
+    expect(nav.querySelector('.nav__settings')).not.toBeInTheDocument()
+    expect(nav.querySelector('button.btn.btn--ghost.nav__desktop-only')).toBeInTheDocument()
+  })
+
+  it('shows additional client navigation for hybrid ADMIN + CLIENT', async () => {
+    await renderWithProviders({
+      initialPath: '/client',
+      roles: ['ADMIN', 'CLIENT'],
+    })
+
+    const nav = document.querySelector('header.topbar .nav') as HTMLElement
+    expect(within(nav).getByRole('link', { name: 'Admin Inbox' })).toHaveAttribute('href', '/admin/inbox')
+    expect(nav.querySelector('a[href="/specialists"]')).toBeInTheDocument()
+    expect(nav.querySelector('a[href="/client/chat"]')).toBeInTheDocument()
+  })
+
+  it('shows additional specialist navigation for hybrid ADMIN + SPECIALIST', async () => {
+    await renderWithProviders({
+      initialPath: '/cabinet',
+      roles: ['ADMIN', 'SPECIALIST'],
+    })
+
+    const nav = document.querySelector('header.topbar .nav') as HTMLElement
+    expect(within(nav).getByRole('link', { name: 'Admin Inbox' })).toHaveAttribute('href', '/admin/inbox')
+    expect(nav.querySelector('a[href="/public"]')).toBeInTheDocument()
+    expect(nav.querySelector('a[href="/cabinet/chat"]')).toBeInTheDocument()
+    expect(nav.querySelector('.nav__settings')).toBeInTheDocument()
   })
 
   it('refreshes me on visibilitychange when specialist tab becomes visible', async () => {
