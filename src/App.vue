@@ -373,6 +373,7 @@ const showGlobalScrollTopButton = computed(
 const topbarClass = computed(() => [
   'topbar',
   {
+    'topbar--admin': isAdmin.value,
     'topbar--specialist': isSpecialist.value,
     'topbar--client': isClient.value,
     'topbar--guest': !isAuthenticated.value,
@@ -896,7 +897,8 @@ watch(isChatCapable, (value) => {
 }
 
 .topbar--specialist,
-.topbar--therapist {
+.topbar--therapist,
+.topbar--admin {
   --topbar-text: #1d4139;
   background:
     radial-gradient(120% 180% at 50% -28%, rgba(255, 255, 255, 0.58), transparent 62%),
@@ -914,8 +916,17 @@ watch(isChatCapable, (value) => {
   box-shadow: 0 10px 24px rgba(10, 44, 36, 0.08);
 }
 
+.topbar--admin {
+  background:
+    radial-gradient(120% 180% at 50% -28%, rgba(255, 255, 255, 0.5), transparent 62%),
+    linear-gradient(180deg, rgba(225, 241, 233, 0.93) 0%, rgba(205, 231, 219, 0.9) 100%);
+  border-bottom-color: color-mix(in srgb, #0f7059 42%, #a7c6bb);
+  box-shadow: 0 10px 24px rgba(8, 46, 35, 0.12);
+}
+
 .topbar--specialist .topbar__inner,
 .topbar--therapist .topbar__inner,
+.topbar--admin .topbar__inner,
 .topbar--client .topbar__inner {
   width: var(--marketing-shell-width);
   min-height: 78px;
@@ -982,6 +993,7 @@ watch(isChatCapable, (value) => {
 .topbar--guest .brand,
 .topbar--specialist .brand,
 .topbar--therapist .brand,
+.topbar--admin .brand,
 .topbar--client .brand {
   display: flex;
   align-items: center;
@@ -991,6 +1003,7 @@ watch(isChatCapable, (value) => {
 .topbar--guest .brand__mark,
 .topbar--specialist .brand__mark,
 .topbar--therapist .brand__mark,
+.topbar--admin .brand__mark,
 .topbar--client .brand__mark {
   text-transform: uppercase;
   letter-spacing: 0.02em;
@@ -999,6 +1012,7 @@ watch(isChatCapable, (value) => {
 .topbar--guest .brand__tagline,
 .topbar--specialist .brand__tagline,
 .topbar--therapist .brand__tagline,
+.topbar--admin .brand__tagline,
 .topbar--client .brand__tagline {
   font-size: 15px;
   letter-spacing: 0;
@@ -1131,6 +1145,7 @@ watch(isChatCapable, (value) => {
 
 .topbar--specialist .nav,
 .topbar--therapist .nav,
+.topbar--admin .nav,
 .topbar--client .nav {
   gap: 14px;
   align-items: center;
@@ -1139,6 +1154,7 @@ watch(isChatCapable, (value) => {
 
 .topbar--specialist .nav a,
 .topbar--therapist .nav a,
+.topbar--admin .nav a,
 .topbar--client .nav a {
   min-height: 38px;
   border-radius: 10px;
@@ -1152,12 +1168,14 @@ watch(isChatCapable, (value) => {
 
 .topbar--specialist .nav a:hover,
 .topbar--therapist .nav a:hover,
+.topbar--admin .nav a:hover,
 .topbar--client .nav a:hover {
   background: color-mix(in srgb, #1d3e38 7%, #ffffff);
 }
 
 .topbar--specialist .nav a.router-link-active,
 .topbar--therapist .nav a.router-link-active,
+.topbar--admin .nav a.router-link-active,
 .topbar--client .nav a.router-link-active {
   background: color-mix(in srgb, #1d3e38 9%, #ffffff);
   box-shadow: none;
@@ -1165,6 +1183,7 @@ watch(isChatCapable, (value) => {
 
 .topbar--specialist .nav a.nav__primary-action,
 .topbar--therapist .nav a.nav__primary-action,
+.topbar--admin .nav a.nav__primary-action,
 .topbar--client .nav a.nav__primary-action {
   border: 1px solid color-mix(in srgb, #0d6b55 30%, #0c5e4a);
   background: linear-gradient(180deg, #178466 0%, #0f7059 100%);
@@ -1174,6 +1193,7 @@ watch(isChatCapable, (value) => {
 
 .topbar--specialist .nav a.nav__primary-action:hover,
 .topbar--therapist .nav a.nav__primary-action:hover,
+.topbar--admin .nav a.nav__primary-action:hover,
 .topbar--client .nav a.nav__primary-action:hover {
   background: linear-gradient(180deg, #1b8f6f 0%, #10705a 100%);
   border-color: color-mix(in srgb, #0d6b55 40%, #0c5e4a);
@@ -1181,6 +1201,7 @@ watch(isChatCapable, (value) => {
 
 .topbar--specialist .nav a.icon-btn,
 .topbar--therapist .nav a.icon-btn,
+.topbar--admin .nav a.icon-btn,
 .topbar--client .nav a.icon-btn {
   width: 38px;
   min-height: 38px;
@@ -1189,6 +1210,7 @@ watch(isChatCapable, (value) => {
 
 .topbar--specialist .icon-btn,
 .topbar--therapist .icon-btn,
+.topbar--admin .icon-btn,
 .topbar--client .icon-btn {
   width: 38px;
   height: 38px;
@@ -1201,9 +1223,11 @@ watch(isChatCapable, (value) => {
 
 .topbar--specialist .icon-btn:hover,
 .topbar--therapist .icon-btn:hover,
+.topbar--admin .icon-btn:hover,
 .topbar--client .icon-btn:hover,
 .topbar--specialist .icon-btn:focus-visible,
 .topbar--therapist .icon-btn:focus-visible,
+.topbar--admin .icon-btn:focus-visible,
 .topbar--client .icon-btn:focus-visible {
   border-color: color-mix(in srgb, #1d3e38 20%, #d5dfda);
   background: color-mix(in srgb, #1d3e38 7%, #ffffff);
@@ -1212,6 +1236,7 @@ watch(isChatCapable, (value) => {
 
 .topbar--specialist .btn--ghost,
 .topbar--therapist .btn--ghost,
+.topbar--admin .btn--ghost,
 .topbar--client .btn--ghost {
   min-height: 38px;
   padding: 6px 8px;
@@ -1226,9 +1251,11 @@ watch(isChatCapable, (value) => {
 
 .topbar--specialist .btn--ghost:hover,
 .topbar--therapist .btn--ghost:hover,
+.topbar--admin .btn--ghost:hover,
 .topbar--client .btn--ghost:hover,
 .topbar--specialist .btn--ghost:focus-visible,
 .topbar--therapist .btn--ghost:focus-visible,
+.topbar--admin .btn--ghost:focus-visible,
 .topbar--client .btn--ghost:focus-visible {
   background: color-mix(in srgb, #1d3e38 7%, #ffffff);
 }
