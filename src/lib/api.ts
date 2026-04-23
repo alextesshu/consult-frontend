@@ -509,8 +509,12 @@ export type AdminSpecialistDetailResponse = {
 export type AdminSpecialistAccessHistoryItem = {
   id: number
   event_type: string
+  event_label?: string | null
   before_snapshot: Record<string, unknown> | null
   after_snapshot: Record<string, unknown> | null
+  before_plan?: string | null
+  after_plan?: string | null
+  summary?: string | null
   actor: number | null
   actor_username: string | null
   reason: string
@@ -529,6 +533,39 @@ export type AdminSpecialistPlanActionResponse = {
   access_summary: Record<string, unknown>
   history_record: AdminSpecialistAccessHistoryItem
 }
+
+export type AdminSpecialistTrialActionPayload =
+  | {
+      action: 'START'
+      trial_plan: 'PRO' | 'LEADER'
+      starts_at?: string
+      ends_at: string
+      reason: string
+    }
+  | {
+      action: 'END'
+      reason: string
+    }
+
+export type AdminSpecialistOverrideActionPayload =
+  | {
+      action: 'ENABLE'
+      forced_plan?: 'START' | 'PRO' | 'LEADER' | null
+      starts_at?: string | null
+      expires_at?: string | null
+      reason: string
+    }
+  | {
+      action: 'UPDATE'
+      forced_plan?: 'START' | 'PRO' | 'LEADER' | null
+      starts_at?: string | null
+      expires_at?: string | null
+      reason: string
+    }
+  | {
+      action: 'DISABLE'
+      reason: string
+    }
 
 export type SpecialistProfileDocument = {
   id: number
@@ -1369,6 +1406,28 @@ export async function applyAdminSpecialistPlanAction(
 ): Promise<AdminSpecialistPlanActionResponse> {
   const resp = await http.post<AdminSpecialistPlanActionResponse>(
     `/admin/specialists/${specialistId}/access/plan/`,
+    payload
+  )
+  return resp.data
+}
+
+export async function applyAdminSpecialistTrialAction(
+  specialistId: number,
+  payload: AdminSpecialistTrialActionPayload
+): Promise<AdminSpecialistPlanActionResponse> {
+  const resp = await http.post<AdminSpecialistPlanActionResponse>(
+    `/admin/specialists/${specialistId}/access/trial/`,
+    payload
+  )
+  return resp.data
+}
+
+export async function applyAdminSpecialistOverrideAction(
+  specialistId: number,
+  payload: AdminSpecialistOverrideActionPayload
+): Promise<AdminSpecialistPlanActionResponse> {
+  const resp = await http.post<AdminSpecialistPlanActionResponse>(
+    `/admin/specialists/${specialistId}/access/override/`,
     payload
   )
   return resp.data
