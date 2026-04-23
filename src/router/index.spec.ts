@@ -65,9 +65,11 @@ describe('router specialist session routes', () => {
   })
 
   it('matches admin specialist detail route and rejects non-numeric id', () => {
+    const list = router.resolve('/admin/specialists')
     const detail = router.resolve('/admin/specialists/77')
     const invalid = router.resolve('/admin/specialists/not-a-number')
 
+    expect(list.name).toBe('admin-specialists')
     expect(detail.name).toBe('admin-specialist-detail')
     expect(detail.params).toEqual({ id: '77' })
     expect(invalid.name).not.toBe('admin-specialist-detail')

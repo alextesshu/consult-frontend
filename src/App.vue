@@ -23,6 +23,9 @@
         >
           {{ cabinetLabel }}
         </RouterLink>
+        <RouterLink v-if="isAuthenticated && isAdmin" class="nav__desktop-only" to="/admin/specialists">
+          Спеціалісти
+        </RouterLink>
         <RouterLink v-if="showCatalogNav" class="nav__desktop-only" to="/specialists">Каталог</RouterLink>
         <RouterLink v-if="isAuthenticated && isClient && !isSpecialist" class="nav__desktop-only" to="/signup">
           Стати спеціалістом
@@ -183,6 +186,14 @@
             @click="closeMobileMenu"
           >
             {{ cabinetLabel }}
+          </RouterLink>
+          <RouterLink
+            v-if="isAdmin"
+            class="mobile-menu__item"
+            to="/admin/specialists"
+            @click="closeMobileMenu"
+          >
+            Спеціалісти
           </RouterLink>
           <RouterLink v-if="isSpecialist" class="mobile-menu__item" to="/cabinet/profile" @click="closeMobileMenu">
             Керування профілем

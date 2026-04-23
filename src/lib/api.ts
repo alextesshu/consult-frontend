@@ -428,11 +428,14 @@ export type AdminSpecialistSearchItem = {
   username: string
   email: string | null
   display_name: string
+  slug?: string | null
   public_profile_enabled: boolean
   base_plan: 'START' | 'PRO' | 'LEADER' | string
   effective_plan: 'START' | 'PRO' | 'LEADER' | string
   active_trial: boolean
   active_override: boolean
+  trial_active?: boolean
+  override_active?: boolean
 }
 
 export type AdminSpecialistSearchResponse = {

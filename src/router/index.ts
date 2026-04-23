@@ -46,6 +46,7 @@ import SpecialistPracticeBoardView from '../views/SpecialistPracticeBoardView.vu
 import AdminInboxView from '../views/AdminInboxView.vue'
 import AdminBillingAccessRequestsView from '../views/AdminBillingAccessRequestsView.vue'
 import AdminBillingAccessRequestDetailView from '../views/AdminBillingAccessRequestDetailView.vue'
+import AdminSpecialistsSearchView from '../views/AdminSpecialistsSearchView.vue'
 import AdminSpecialistDetailView from '../views/AdminSpecialistDetailView.vue'
 import { useAuthStore } from '../stores/auth'
 import { fetchSpecialistProfile } from '../lib/api'
@@ -93,6 +94,12 @@ const routes = [
     path: '/admin/billing-access-requests/:id(\\d+)',
     name: 'admin-billing-access-request-detail',
     component: AdminBillingAccessRequestDetailView,
+    meta: { requiresAuth: true, requiresRole: 'ADMIN' },
+  },
+  {
+    path: '/admin/specialists',
+    name: 'admin-specialists',
+    component: AdminSpecialistsSearchView,
     meta: { requiresAuth: true, requiresRole: 'ADMIN' },
   },
   {

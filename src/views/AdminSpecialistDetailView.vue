@@ -11,6 +11,7 @@
       <div class="admin-specialist-detail__hero-actions">
         <RouterLink class="btn btn--ghost" to="/admin/inbox">До inbox</RouterLink>
         <RouterLink class="btn btn--ghost" to="/admin/billing-access-requests">До запитів на тариф</RouterLink>
+        <RouterLink class="btn btn--ghost" to="/admin/specialists">До списку спеціалістів</RouterLink>
       </div>
     </header>
 
@@ -21,7 +22,7 @@
       <section class="panel">
         <div class="panel__header">
           <div>
-            <div class="badge badge--soft">Summary</div>
+            <div class="badge badge--soft">Підсумок</div>
             <h2 class="panel__title">{{ detail.identity.display_name || detail.identity.username }}</h2>
           </div>
           <div class="summary-actions">
@@ -48,23 +49,23 @@
         <div class="panel__header">
           <div>
             <div class="badge badge--soft">Поточний доступ</div>
-            <h2 class="panel__title">Operational access state</h2>
+            <h2 class="panel__title">Стан доступу</h2>
           </div>
         </div>
 
         <div class="access-grid">
           <div>
-            <div class="muted">Base plan</div>
+            <div class="muted">Базовий тариф</div>
             <strong>{{ detail.tariff_access.base_plan }}</strong>
           </div>
           <div>
-            <div class="muted">Effective plan</div>
+            <div class="muted">Фактичний тариф</div>
             <strong>{{ detail.tariff_access.effective_plan }}</strong>
           </div>
           <div>
-            <div class="muted">Trial status</div>
+            <div class="muted">Статус trial</div>
             <span :class="pillClass(detail.tariff_access.trial.active)">
-              {{ detail.tariff_access.trial.active ? 'Active' : 'Inactive' }}
+              {{ detail.tariff_access.trial.active ? 'Trial активний' : 'Trial неактивний' }}
             </span>
             <div v-if="detail.tariff_access.trial.active" class="muted">
               {{ detail.tariff_access.trial.trial_plan || '—' }} ·
@@ -72,9 +73,9 @@
             </div>
           </div>
           <div>
-            <div class="muted">Override status</div>
+            <div class="muted">Статус override</div>
             <span :class="pillClass(detail.tariff_access.override.active)">
-              {{ detail.tariff_access.override.active ? 'Active' : 'Inactive' }}
+              {{ detail.tariff_access.override.active ? 'Override активний' : 'Override неактивний' }}
             </span>
             <div v-if="detail.tariff_access.override.active" class="muted">
               {{ detail.tariff_access.override.override_plan || '—' }} ·
@@ -117,12 +118,12 @@
         <div class="panel__header">
           <div>
             <div class="badge badge--soft">Повʼязані запити</div>
-            <h2 class="panel__title">Open requests summary</h2>
+            <h2 class="panel__title">Підсумок відкритих запитів</h2>
           </div>
         </div>
         <div class="requests-grid">
           <div>
-            <span class="muted">Відкриті billing/admin requests:</span>
+            <span class="muted">Відкриті billing/admin запити:</span>
             {{ detail.admin_context.open_billing_admin_requests_count }}
           </div>
           <div>
@@ -134,13 +135,13 @@
               <strong>Останній запит:</strong>
               #{{ detail.admin_context.latest_related_request_summary.id }}
               · {{ detail.admin_context.latest_related_request_summary.status }}
-              · requested {{ detail.admin_context.latest_related_request_summary.requested_plan || '—' }}
+              · запитано {{ detail.admin_context.latest_related_request_summary.requested_plan || '—' }}
             </div>
             <RouterLink
               class="btn btn--ghost btn--sm"
               :to="`/admin/billing-access-requests/${detail.admin_context.latest_related_request_summary.id}`"
             >
-              Перейти до запиту
+              Відкрити запит
             </RouterLink>
           </div>
           <div v-else class="muted">Немає відкритих запитів.</div>
@@ -151,7 +152,7 @@
         <div class="panel__header">
           <div>
             <div class="badge badge--soft">Історія змін доступу</div>
-            <h2 class="panel__title">Audit trail</h2>
+            <h2 class="panel__title">Журнал змін доступу</h2>
           </div>
         </div>
         <div v-if="historyLoading" class="muted">Завантаження історії…</div>
@@ -164,8 +165,8 @@
               <span class="muted">{{ formatDate(item.created_at) }}</span>
             </div>
             <div class="muted">{{ beforeAfterSummary(item) }}</div>
-            <div><span class="muted">Actor:</span> {{ item.actor_username || 'SYSTEM' }}</div>
-            <div><span class="muted">Reason:</span> {{ item.reason || '—' }}</div>
+            <div><span class="muted">Адміністратор:</span> {{ item.actor_username || 'SYSTEM' }}</div>
+            <div><span class="muted">Причина:</span> {{ item.reason || '—' }}</div>
           </article>
         </div>
       </section>
@@ -176,14 +177,14 @@
       <section class="setting-modal__content panel" role="dialog" aria-modal="true" aria-label="Змінити базовий тариф">
         <div class="panel__header">
           <div>
-            <div class="badge badge--soft">Admin action</div>
+            <div class="badge badge--soft">Адмін-дія</div>
             <h3 class="panel__title">Змінити базовий тариф</h3>
           </div>
           <button class="btn btn--ghost btn--sm" type="button" @click="closePlanModal">Закрити</button>
         </div>
 
         <label class="field">
-          <span>Plan</span>
+          <span>Тариф</span>
           <select v-model="planForm.plan" class="input input--select">
             <option value="START">START</option>
             <option value="PRO">PRO</option>
@@ -192,7 +193,7 @@
         </label>
 
         <label class="field">
-          <span>Reason</span>
+          <span>Причина</span>
           <textarea v-model="planForm.reason" class="input input--textarea" rows="4" placeholder="Reason is required" />
         </label>
 
