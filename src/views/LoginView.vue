@@ -34,14 +34,6 @@
         <button class="btn" type="submit" :disabled="loading">
           {{ loading ? 'Вхід...' : 'Продовжити' }}
         </button>
-        <p class="muted auth__footer">
-          Вперше тут?
-          <RouterLink to="/signup">Створити акаунт спеціаліста</RouterLink>
-        </p>
-        <p class="muted auth__helper">
-          Потрібен акаунт клієнта?
-          <RouterLink to="/signup-client">Створити акаунт клієнта</RouterLink>
-        </p>
         <p class="muted auth__legal">
           Продовжуючи, ви погоджуєтеся з
           <RouterLink to="/terms">Умовами користування</RouterLink>
@@ -56,6 +48,29 @@
     </div>
 
     <aside class="auth__aside">
+      <div class="aside-card aside-card--onboarding">
+        <div class="aside-title">Вперше на платформі?</div>
+        <p class="aside-text">
+          Оберіть роль і створіть окремий кабінет під ваш сценарій роботи.
+        </p>
+        <div class="onboarding-grid">
+          <article class="onboarding-item onboarding-item--primary">
+            <h2 class="onboarding-item__title">Я спеціаліст</h2>
+            <p class="onboarding-item__copy">
+              Створіть кабінет для ведення приватної практики.
+            </p>
+            <RouterLink class="btn onboarding-item__cta" to="/signup">Створити кабінет спеціаліста</RouterLink>
+          </article>
+          <article class="onboarding-item">
+            <h2 class="onboarding-item__title">Я клієнт</h2>
+            <p class="onboarding-item__copy">
+              Створіть акаунт для запису, оплат і доступу до сесій.
+            </p>
+            <RouterLink class="btn btn--ghost onboarding-item__cta" to="/signup-client">Створити кабінет клієнта</RouterLink>
+          </article>
+        </div>
+      </div>
+
       <div class="aside-card">
         <div class="aside-title">Чому це безпечно</div>
         <ul class="aside-list">
@@ -156,10 +171,6 @@ onMounted(() => {
   max-width: 420px;
 }
 
-.auth__footer {
-  margin-top: 12px;
-}
-
 .auth__legal {
   margin-top: 8px;
   font-size: 13px;
@@ -176,6 +187,49 @@ onMounted(() => {
   padding: 18px;
   background: #fff;
   color: var(--ink);
+}
+
+.aside-card--onboarding {
+  border-color: color-mix(in srgb, var(--primary) 28%, var(--line));
+  background: linear-gradient(165deg, rgba(255, 255, 255, 0.96), rgba(17, 64, 54, 0.06));
+  box-shadow: 0 16px 30px rgba(16, 40, 34, 0.12);
+  display: grid;
+  gap: 12px;
+}
+
+.onboarding-grid {
+  display: grid;
+  gap: 10px;
+}
+
+.onboarding-item {
+  border: 1px solid color-mix(in srgb, var(--primary) 18%, var(--line));
+  border-radius: 12px;
+  padding: 14px;
+  background: color-mix(in srgb, #ffffff 88%, var(--surface));
+  display: grid;
+  gap: 10px;
+}
+
+.onboarding-item--primary {
+  background: linear-gradient(180deg, rgba(17, 64, 54, 0.12), rgba(255, 255, 255, 0.94));
+  border-color: color-mix(in srgb, var(--primary) 30%, var(--line));
+}
+
+.onboarding-item__title {
+  margin: 0;
+  font-size: 20px;
+  line-height: 1.2;
+}
+
+.onboarding-item__copy {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.45;
+}
+
+.onboarding-item__cta {
+  justify-self: start;
 }
 
 .aside-card--dark {

@@ -849,6 +849,7 @@ watch(isChatCapable, (value) => {
 }
 
 .topbar__inner {
+  --marketing-shell-width: min(1480px, 96vw);
   width: 100%;
   max-width: none;
   margin: 0 auto;
@@ -883,7 +884,7 @@ watch(isChatCapable, (value) => {
 }
 
 .topbar--guest .topbar__inner {
-  width: min(1460px, 96vw);
+  width: var(--marketing-shell-width);
   min-height: 78px;
   padding: 14px 0;
 }
@@ -895,7 +896,7 @@ watch(isChatCapable, (value) => {
   right: 0;
 }
 
-.topbar--overlay .topbar__inner {
+.topbar--overlay:not(.topbar--guest) .topbar__inner {
   width: 100%;
 }
 
@@ -1517,7 +1518,7 @@ body.body--home .footer {
   .topbar--guest .topbar__inner {
     align-items: center;
     min-height: 70px;
-    width: min(1460px, 95vw);
+    width: var(--marketing-shell-width);
   }
 
   .topbar--guest .brand__tagline {
@@ -1581,6 +1582,7 @@ body.body--home .footer {
   }
 
   .topbar--guest .topbar__inner {
+    width: var(--marketing-shell-width);
     padding: 10px 0 9px;
     flex-wrap: nowrap;
     gap: 10px;
