@@ -423,11 +423,44 @@ async function maybeReconcileSpecialistMeOnRoute(auth: ReturnType<typeof useAuth
 
 router.beforeEach(async (to) => {
   const auth = useAuthStore()
+  let ensureAuthResolvedRan = false
+  let ensureAuthResolvedForceRan = false
+
   const getRoles = () => normalizeUserRoles(auth.me?.user ?? auth.user)
   const hasRole = (role: string) => getRoles().includes(role.toUpperCase())
   const hasAdmin = () => hasAdminRole(getRoles())
   const hasSpecialist = () => hasSpecialistRole(getRoles())
   const hasClient = () => hasClientRole(getRoles())
+  const guardSnapshot = () => ({
+    targetPath: to.fullPath,
+    targetName: String(to.name || ''),
+    matchedRoutes: to.matched.map((record) => ({
+      name: String(record.name || ''),
+      path: record.path,
+      meta: { ...record.meta },
+    })),
+    authResolved: auth.authResolved,
+    ensureAuthResolvedRan,
+    ensureAuthResolvedForceRan,
+    accessTokenPresent: Boolean(auth.accessToken),
+    normalizedRoles: getRoles(),
+    userRole: typeof auth.user?.role === 'string' ? auth.user.role : null,
+    userRoles: Array.isArray(auth.user?.roles) ? auth.user?.roles : [],
+    meUserRole: typeof auth.me?.user?.role === 'string' ? auth.me.user.role : null,
+    meUserRoles: Array.isArray(auth.me?.user?.roles) ? auth.me.user.roles : [],
+    isAdmin: hasAdmin(),
+    requiresAuth: Boolean(to.meta.requiresAuth),
+    requiresRole: String(to.meta.requiresRole || ''),
+  })
+  const denyForbidden = (reason: string, extra: Record<string, unknown> = {}) => {
+    const payload = {
+      ...guardSnapshot(),
+      reason,
+      ...extra,
+    }
+    console.warn('[admin-guard-deny]', payload)
+    return { name: 'forbidden', query: { reason } }
+  }
   const roleMatches = (role: string) => {
     if (role === 'SPECIALIST') return hasSpecialist()
     if (role === 'ADMIN') return hasAdmin()
@@ -437,11 +470,12 @@ router.beforeEach(async (to) => {
     if (hasSpecialist()) return { name: 'cabinet' }
     if (hasClient()) return { name: 'client-dashboard' }
     if (hasAdmin()) return { name: 'admin-inbox' }
-    return { name: 'forbidden' }
+    return denyForbidden('fallback-guard-deny', { source: 'default-route' })
   }
   let loadedMeInGuard = false
 
   if (to.meta.requiresAuth) {
+    ensureAuthResolvedRan = true
     const hasSession = await auth.ensureAuthResolved().catch(() => false)
     if (!hasSession) {
       if (to.name === 'public-specialists') {
@@ -452,15 +486,20 @@ router.beforeEach(async (to) => {
     if (!auth.user) {
       const needsAdminRole = String(to.meta.requiresRole || '').toUpperCase() === 'ADMIN'
       if (!needsAdminRole) return
+      ensureAuthResolvedForceRan = true
       const refreshed = await auth.ensureAuthResolved({ force: true }).catch(() => false)
-      if (!refreshed || !auth.user) return
+      if (!refreshed || !auth.user) {
+        return denyForbidden('auth-unresolved', { source: 'admin-force-resolve' })
+      }
     }
 
     if (to.meta.requiresRole && auth.user && !roleMatches(String(to.meta.requiresRole))) {
       if (to.name === 'public-specialists' && hasSpecialist()) {
         return { name: 'cabinet' }
       }
-      return { name: 'forbidden' }
+      const requiredRole = String(to.meta.requiresRole || '').toUpperCase()
+      const reason = requiredRole === 'ADMIN' ? 'admin-role-missing' : 'route-meta-admin-check-failed'
+      return denyForbidden(reason, { requiredRole })
     }
   }
 

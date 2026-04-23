@@ -102,6 +102,7 @@ import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useAuthStore } from '../stores/auth'
+import { hasAdminRole, hasClientRole, hasSpecialistRole, normalizeUserRoles } from '../lib/entitlementReconcile'
 
 const identifier = ref('')
 const password = ref('')
@@ -112,10 +113,20 @@ const auth = useAuthStore()
 const { loading } = storeToRefs(auth)
 
 function defaultPath() {
-  const roles = auth.me?.user.roles ?? auth.user?.roles ?? []
-  if (roles.includes('SPECIALIST') || roles.includes('THERAPIST')) return '/cabinet'
-  if (roles.includes('CLIENT')) return '/client'
-  return '/403'
+  const roles = normalizeUserRoles(auth.me?.user ?? auth.user)
+  if (hasSpecialistRole(roles)) return '/cabinet'
+  if (hasClientRole(roles)) return '/client'
+  if (hasAdminRole(roles)) return '/admin/inbox'
+  console.warn('[admin-guard-deny]', {
+    reason: 'login-default-role-missing',
+    source: 'login-default-path',
+    normalizedRoles: roles,
+    userRole: auth.user?.role ?? null,
+    userRoles: auth.user?.roles ?? [],
+    meUserRole: auth.me?.user?.role ?? null,
+    meUserRoles: auth.me?.user?.roles ?? [],
+  })
+  return '/403?reason=login-default-role-missing'
 }
 
 function resolvePostLoginPath() {
