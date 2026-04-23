@@ -1,4 +1,4 @@
-# Frontend Beta Readiness Plan (Pro Consult)
+п»ї# Frontend Beta Readiness Plan (Pro Consult)
 
 Last updated: 2026-03-27  
 Status: planning only (no code changes requested)
@@ -36,9 +36,9 @@ Nice-to-have:
 ### 2.4 Expiry behavior
 - Expiry known:
   - Show exact date in billing summary + cabinet banner.
-  - Show neutral reminder text (`Ми нагадаємо про подальші кроки до завершення бета-доступу.`).
+  - Show neutral reminder text (`РњРё РЅР°РіР°РґР°С”РјРѕ РїСЂРѕ РїРѕРґР°Р»СЊС€С– РєСЂРѕРєРё РґРѕ Р·Р°РІРµСЂС€РµРЅРЅСЏ Р±РµС‚Р°-РґРѕСЃС‚СѓРїСѓ.`).
 - Expiry unknown/not finalized:
-  - Show `Термін бета-доступу уточнюється`.
+  - Show `РўРµСЂРјС–РЅ Р±РµС‚Р°-РґРѕСЃС‚СѓРїСѓ СѓС‚РѕС‡РЅСЋС”С‚СЊСЃСЏ`.
   - Do not show fake countdown or assumptions.
 
 ### 2.5 Minimal frontend state assumptions (aligned with current frontend contracts)
@@ -70,16 +70,16 @@ Fallback until dedicated beta fields are exposed:
 
 ### 3.2 Tariff visibility and actions
 - Keep `START / PRO / LEADER` visible.
-- Add caption above cards: `Модель тарифів після бета-періоду`.
+- Add caption above cards: `РњРѕРґРµР»СЊ С‚Р°СЂРёС„С–РІ РїС–СЃР»СЏ Р±РµС‚Р°-РїРµСЂС–РѕРґСѓ`.
 - During beta, replace primary checkout actions with informational state:
-  - Option A (recommended minimal): disable buttons with explicit text (`Недоступно під час бета`) and helper note.
-  - Option B: keep request-interest CTA only (`Хочу отримати оновлення щодо тарифів`).
+  - Option A (recommended minimal): disable buttons with explicit text (`РќРµРґРѕСЃС‚СѓРїРЅРѕ РїС–Рґ С‡Р°СЃ Р±РµС‚Р°`) and helper note.
+  - Option B: keep request-interest CTA only (`РҐРѕС‡Сѓ РѕС‚СЂРёРјР°С‚Рё РѕРЅРѕРІР»РµРЅРЅСЏ С‰РѕРґРѕ С‚Р°СЂРёС„С–РІ`).
 
 ### 3.3 Avoiding purchase confusion
-- Never show badge/text like `Поточний платний план` for beta-only users.
+- Never show badge/text like `РџРѕС‚РѕС‡РЅРёР№ РїР»Р°С‚РЅРёР№ РїР»Р°РЅ` for beta-only users.
 - If entitlement internally maps to `PRO`, label it in UI as `PRO beta access`, not purchased `PRO`.
 - Add short clarifier in billing summary:
-  - `Під час бета доступ може надаватися без оплати за запрошенням або когортою.`
+  - `РџС–Рґ С‡Р°СЃ Р±РµС‚Р° РґРѕСЃС‚СѓРї РјРѕР¶Рµ РЅР°РґР°РІР°С‚РёСЃСЏ Р±РµР· РѕРїР»Р°С‚Рё Р·Р° Р·Р°РїСЂРѕС€РµРЅРЅСЏРј Р°Р±Рѕ РєРѕРіРѕСЂС‚РѕСЋ.`
 
 ### 3.4 Minimal phase-1 logic
 - Access summary priority:
@@ -90,28 +90,28 @@ Fallback until dedicated beta fields are exposed:
 ## 4. Hero/Positioning Copy Recommendations
 
 ### 4.1 Evaluation of current headline
-Current: `Керування приватною практикою на власних умовах`  
+Current: `РљРµСЂСѓРІР°РЅРЅСЏ РїСЂРёРІР°С‚РЅРѕСЋ РїСЂР°РєС‚РёРєРѕСЋ РЅР° РІР»Р°СЃРЅРёС… СѓРјРѕРІР°С…`  
 Assessment: good baseline, credible and calm; can be kept if minor polish is preferred.
 
-### 4.2 Headline options (3–5)
-1. `Простір для ведення консультаційної практики на власних умовах`
-2. `Ведіть консультаційну практику системно й у своєму стилі`
-3. `Професійний простір для консультаційної практики`
-4. `Упорядкована консультаційна практика без зайвого шуму`
-5. `Консультаційна практика під вашим контролем`
+### 4.2 Headline options (3вЂ“5)
+1. `РџСЂРѕСЃС‚С–СЂ РґР»СЏ РІРµРґРµРЅРЅСЏ РєРѕРЅСЃСѓР»СЊС‚Р°С†С–Р№РЅРѕС— РїСЂР°РєС‚РёРєРё РЅР° РІР»Р°СЃРЅРёС… СѓРјРѕРІР°С…`
+2. `Р’РµРґС–С‚СЊ РєРѕРЅСЃСѓР»СЊС‚Р°С†С–Р№РЅСѓ РїСЂР°РєС‚РёРєСѓ СЃРёСЃС‚РµРјРЅРѕ Р№ Сѓ СЃРІРѕС”РјСѓ СЃС‚РёР»С–`
+3. `РџСЂРѕС„РµСЃС–Р№РЅРёР№ РїСЂРѕСЃС‚С–СЂ РґР»СЏ РєРѕРЅСЃСѓР»СЊС‚Р°С†С–Р№РЅРѕС— РїСЂР°РєС‚РёРєРё`
+4. `РЈРїРѕСЂСЏРґРєРѕРІР°РЅР° РєРѕРЅСЃСѓР»СЊС‚Р°С†С–Р№РЅР° РїСЂР°РєС‚РёРєР° Р±РµР· Р·Р°Р№РІРѕРіРѕ С€СѓРјСѓ`
+5. `РљРѕРЅСЃСѓР»СЊС‚Р°С†С–Р№РЅР° РїСЂР°РєС‚РёРєР° РїС–Рґ РІР°С€РёРј РєРѕРЅС‚СЂРѕР»РµРј`
 
 ### 4.3 Subtitle options
-- `PRO CONSULT допомагає спеціалістам організувати роботу з клієнтами, зберігати професійне представлення онлайн і вести практику послідовно.`
-- `Налаштування практики, публічний профіль, сесії та комунікація — в одному зрозумілому робочому просторі.`
-- `Для спеціалістів, які хочуть працювати системно, прозоро й на власних умовах.`
+- `PRO CONSULT РґРѕРїРѕРјР°РіР°С” СЃРїРµС†С–Р°Р»С–СЃС‚Р°Рј РѕСЂРіР°РЅС–Р·СѓРІР°С‚Рё СЂРѕР±РѕС‚Сѓ Р· РєР»С–С”РЅС‚Р°РјРё, Р·Р±РµСЂС–РіР°С‚Рё РїСЂРѕС„РµСЃС–Р№РЅРµ РїСЂРµРґСЃС‚Р°РІР»РµРЅРЅСЏ РѕРЅР»Р°Р№РЅ С– РІРµСЃС‚Рё РїСЂР°РєС‚РёРєСѓ РїРѕСЃР»С–РґРѕРІРЅРѕ.`
+- `РќР°Р»Р°С€С‚СѓРІР°РЅРЅСЏ РїСЂР°РєС‚РёРєРё, РїСѓР±Р»С–С‡РЅРёР№ РїСЂРѕС„С–Р»СЊ, СЃРµСЃС–С— С‚Р° РєРѕРјСѓРЅС–РєР°С†С–СЏ вЂ” РІ РѕРґРЅРѕРјСѓ Р·СЂРѕР·СѓРјС–Р»РѕРјСѓ СЂРѕР±РѕС‡РѕРјСѓ РїСЂРѕСЃС‚РѕСЂС–.`
+- `Р”Р»СЏ СЃРїРµС†С–Р°Р»С–СЃС‚С–РІ, СЏРєС– С…РѕС‡СѓС‚СЊ РїСЂР°С†СЋРІР°С‚Рё СЃРёСЃС‚РµРјРЅРѕ, РїСЂРѕР·РѕСЂРѕ Р№ РЅР° РІР»Р°СЃРЅРёС… СѓРјРѕРІР°С….`
 
 ### 4.4 CTA options (layout-compatible)
 Primary:
-- `Створити кабінет`
-- `Перейти в кабінет`
+- `РЎС‚РІРѕСЂРёС‚Рё РєР°Р±С–РЅРµС‚`
+- `РџРµСЂРµР№С‚Рё РІ РєР°Р±С–РЅРµС‚`
 Secondary:
-- `Переглянути можливості`
-- `Подивитися, як це працює`
+- `РџРµСЂРµРіР»СЏРЅСѓС‚Рё РјРѕР¶Р»РёРІРѕСЃС‚С–`
+- `РџРѕРґРёРІРёС‚РёСЃСЏ, СЏРє С†Рµ РїСЂР°С†СЋС”`
 
 ## 5. Frontend Beta Release Checklist (Manual)
 
