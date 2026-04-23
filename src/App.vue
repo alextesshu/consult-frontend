@@ -275,7 +275,7 @@ import ToastHost from './components/ToastHost.vue'
 import ScrollToTopButton from './components/ScrollToTopButton.vue'
 import { apiGet, fetchChatUnreadCount } from './lib/api'
 import { normalizeMeetingUrl, canJoinExternalMeeting } from './lib/sessionExecution'
-import { hasAdminRole, hasClientRole, hasSpecialistRole, normalizeRoles } from './lib/entitlementReconcile'
+import { hasAdminRole, hasClientRole, hasSpecialistRole, normalizeUserRoles } from './lib/entitlementReconcile'
 import { useToast } from './composables/useToast'
 import { useNotifications, type BellNotification } from './composables/useNotifications'
 import type { ToastAction } from './stores/toast'
@@ -325,8 +325,7 @@ watchEffect(() => {
   document.body.classList.toggle('body--authenticated', isAuthenticatedLayout.value)
 })
 const roles = computed(() => {
-  const rawRoles = auth.me?.user.roles ?? auth.user?.roles ?? []
-  return normalizeRoles(rawRoles)
+  return normalizeUserRoles(auth.me?.user ?? auth.user)
 })
 const isSpecialist = computed(() => hasSpecialistRole(roles.value))
 const isClient = computed(() => hasClientRole(roles.value))

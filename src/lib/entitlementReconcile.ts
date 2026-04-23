@@ -74,3 +74,11 @@ export function normalizeRoles(roles: unknown): string[] {
   if (!Array.isArray(roles)) return []
   return roles.map((role) => String(role).toUpperCase())
 }
+
+export function normalizeUserRoles(user: unknown): string[] {
+  if (!user || typeof user !== 'object') return []
+  const typed = user as { role?: unknown; roles?: unknown }
+  const fromRoles = normalizeRoles(typed.roles)
+  const fromRole = typeof typed.role === 'string' ? [typed.role.toUpperCase()] : []
+  return Array.from(new Set([...fromRoles, ...fromRole]))
+}

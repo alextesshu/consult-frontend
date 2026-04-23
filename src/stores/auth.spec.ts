@@ -197,4 +197,60 @@ describe('auth store cookie-based flow', () => {
     expect(auth.user).toBeNull()
     expect(auth.me).toBeNull()
   })
+
+  it('resets auth bootstrap state on logout and does not reuse stale resolve promise across login', async () => {
+    const auth = useAuthStore()
+    const refreshDeferred = deferred<{ access: string }>()
+
+    mockedRefreshToken.mockImplementationOnce(() => refreshDeferred.promise)
+    const staleResolve = auth.ensureAuthResolved()
+
+    auth.logout()
+    expect(auth.authResolved).toBe(false)
+    expect(auth.accessToken).toBe('')
+    expect(auth.user).toBeNull()
+    expect(auth.me).toBeNull()
+
+    mockedLoginWithIdentifier.mockResolvedValueOnce({
+      access: 'fresh-admin-access',
+      refresh: 'ignored',
+    })
+    mockedFetchMe.mockResolvedValueOnce({
+      user: { id: 77, username: 'admin', email: 'admin@example.com', role: 'ADMIN', roles: ['ADMIN'] },
+      access_state: null,
+      effective_entitlements: null,
+      counts: null,
+      server_time: '2026-03-25T10:00:00Z',
+    })
+
+    await auth.login('admin@example.com', 'pass')
+    refreshDeferred.resolve({ access: 'stale-access' })
+    await staleResolve
+
+    expect(auth.accessToken).toBe('fresh-admin-access')
+    expect(auth.user?.role).toBe('ADMIN')
+    expect(auth.user?.username).toBe('admin')
+  })
+
+  it('supports forced auth resolve to fetch me with active token', async () => {
+    const auth = useAuthStore()
+    auth.setToken('active-token')
+    auth.authResolved = true
+    auth.setUser(null)
+    auth.me = null
+
+    mockedFetchMe.mockResolvedValueOnce({
+      user: { id: 55, username: 'admin', email: 'admin@example.com', role: 'ADMIN', roles: ['ADMIN'] },
+      access_state: null,
+      effective_entitlements: null,
+      counts: null,
+      server_time: '2026-03-25T10:00:00Z',
+    })
+
+    const resolved = await auth.ensureAuthResolved({ force: true })
+
+    expect(resolved).toBe(true)
+    expect(auth.user?.role).toBe('ADMIN')
+    expect(mockedFetchMe).toHaveBeenCalledWith('active-token')
+  })
 })

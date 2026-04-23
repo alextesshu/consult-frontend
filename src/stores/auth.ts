@@ -5,7 +5,8 @@ type AuthUser = {
   id: number
   username: string
   email: string | null
-  roles: string[]
+  role?: string | null
+  roles?: string[]
 }
 
 type Entitlements = {
@@ -34,9 +35,11 @@ type MePayload = {
   server_time: string
 }
 
-let refreshInFlight: Promise<string | null> | null = null
-let restoreInFlight: Promise<boolean> | null = null
-let resolveInFlight: Promise<boolean> | null = null
+type InFlight<T> = { epoch: number; promise: Promise<T> }
+
+let refreshInFlight: InFlight<string | null> | null = null
+let restoreInFlight: InFlight<boolean> | null = null
+let resolveInFlight: InFlight<boolean> | null = null
 const AUTH_REFRESH_RETRY_ATTEMPTS = 2
 const AUTH_ME_RETRY_ATTEMPTS = 2
 const AUTH_RETRY_DELAY_MS = 150
@@ -64,6 +67,9 @@ export const useAuthStore = defineStore('auth', {
     beginAuthEpoch() {
       this.authEpoch += 1
       this.authResolved = false
+      refreshInFlight = null
+      restoreInFlight = null
+      resolveInFlight = null
       return this.authEpoch
     },
     isEpochActive(epoch: number) {
@@ -162,13 +168,20 @@ export const useAuthStore = defineStore('auth', {
       const me = await fetchMe(this.accessToken)
       this.setMe(me)
     },
-    async ensureAuthResolved(): Promise<boolean> {
-      if (this.authResolved) return Boolean(this.accessToken)
-      if (resolveInFlight) return resolveInFlight
+    async ensureAuthResolved(options?: { force?: boolean }): Promise<boolean> {
+      const force = Boolean(options?.force)
+      if (!force && this.authResolved) return Boolean(this.accessToken)
+      if (!force && resolveInFlight && resolveInFlight.epoch === this.authEpoch) {
+        return resolveInFlight.promise
+      }
 
-      resolveInFlight = (async () => {
+      const epoch = this.authEpoch
+      resolveInFlight = {
+        epoch,
+        promise: (async () => {
         if (!this.accessToken) {
           const restored = await this.restoreSession().catch(() => false)
+          if (!this.isEpochActive(epoch)) return false
           this.authResolved = true
           return restored
         }
@@ -176,6 +189,7 @@ export const useAuthStore = defineStore('auth', {
         if (!this.me) {
           try {
             await this.loadMe()
+            if (!this.isEpochActive(epoch)) return false
             this.authResolved = true
             return true
           } catch {
@@ -183,21 +197,27 @@ export const useAuthStore = defineStore('auth', {
           }
         }
 
+        if (!this.isEpochActive(epoch)) return false
         this.authResolved = true
         return Boolean(this.accessToken)
       })().finally(() => {
-        resolveInFlight = null
-      })
-
-      return resolveInFlight
-    },
-    async refreshAccessToken(epoch?: number): Promise<string | null> {
-      if (refreshInFlight) {
-        return refreshInFlight
+        if (resolveInFlight?.epoch === epoch) {
+          resolveInFlight = null
+        }
+      }),
       }
 
+      return resolveInFlight.promise
+    },
+    async refreshAccessToken(epoch?: number): Promise<string | null> {
       const effectiveEpoch = epoch ?? this.authEpoch
-      refreshInFlight = (async () => {
+      if (refreshInFlight && refreshInFlight.epoch === effectiveEpoch) {
+        return refreshInFlight.promise
+      }
+
+      refreshInFlight = {
+        epoch: effectiveEpoch,
+        promise: (async () => {
         try {
           const tokens = await refreshToken()
           if (!this.isEpochActive(effectiveEpoch)) return null
@@ -211,19 +231,24 @@ export const useAuthStore = defineStore('auth', {
           return null
         }
       })().finally(() => {
-        refreshInFlight = null
-      })
+        if (refreshInFlight?.epoch === effectiveEpoch) {
+          refreshInFlight = null
+        }
+      }),
+      }
 
-      return refreshInFlight
+      return refreshInFlight.promise
     },
 
     async restoreSession(): Promise<boolean> {
-      if (restoreInFlight) {
-        return restoreInFlight
+      const epoch = this.authEpoch
+      if (restoreInFlight && restoreInFlight.epoch === epoch) {
+        return restoreInFlight.promise
       }
 
-      restoreInFlight = (async () => {
-        const epoch = this.beginAuthEpoch()
+      restoreInFlight = {
+        epoch,
+        promise: (async () => {
         let access: string | null = null
         for (let attempt = 0; attempt < AUTH_REFRESH_RETRY_ATTEMPTS; attempt += 1) {
           access = await this.refreshAccessToken(epoch)
@@ -251,10 +276,14 @@ export const useAuthStore = defineStore('auth', {
         }
         return false
       })().finally(() => {
-        restoreInFlight = null
-      })
+        if (restoreInFlight?.epoch === epoch) {
+          restoreInFlight = null
+        }
+      }),
+      }
 
-      return restoreInFlight.finally(() => {
+      return restoreInFlight.promise.finally(() => {
+        if (!this.isEpochActive(epoch)) return
         this.authResolved = true
       })
     },
@@ -268,7 +297,7 @@ export const useAuthStore = defineStore('auth', {
     logout() {
       this.beginAuthEpoch()
       this.clearAuthState()
-      this.authResolved = true
+      this.authResolved = false
       localStorage.removeItem('accessToken')
       localStorage.removeItem('refreshToken')
     },

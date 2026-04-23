@@ -53,6 +53,7 @@ import {
   hasClientRole,
   hasSpecialistRole,
   isSpecialistCriticalReconcileRoute,
+  normalizeUserRoles,
 } from '../lib/entitlementReconcile'
 
 const routes = [
@@ -406,7 +407,8 @@ function resolveSpecialistProfileSlug(profile: SpecialistProfileRouteContract): 
 async function maybeReconcileSpecialistMeOnRoute(auth: ReturnType<typeof useAuthStore>, path: string) {
   if (!auth.accessToken) return
   if (!isSpecialistCriticalReconcileRoute(path)) return
-  if (!hasSpecialistRole(auth.me?.user.roles ?? auth.user?.roles ?? [])) return
+  const roles = normalizeUserRoles(auth.me?.user ?? auth.user)
+  if (!hasSpecialistRole(roles)) return
 
   const now = Date.now()
   if (now - lastSpecialistRouteReconcileAt < SPECIALIST_ROUTE_RECONCILE_COOLDOWN_MS) return
@@ -421,7 +423,7 @@ async function maybeReconcileSpecialistMeOnRoute(auth: ReturnType<typeof useAuth
 
 router.beforeEach(async (to) => {
   const auth = useAuthStore()
-  const getRoles = () => auth.me?.user.roles ?? auth.user?.roles ?? []
+  const getRoles = () => normalizeUserRoles(auth.me?.user ?? auth.user)
   const hasRole = (role: string) => getRoles().includes(role.toUpperCase())
   const hasAdmin = () => hasAdminRole(getRoles())
   const hasSpecialist = () => hasSpecialistRole(getRoles())
@@ -448,7 +450,10 @@ router.beforeEach(async (to) => {
       return { name: 'login' }
     }
     if (!auth.user) {
-      return
+      const needsAdminRole = String(to.meta.requiresRole || '').toUpperCase() === 'ADMIN'
+      if (!needsAdminRole) return
+      const refreshed = await auth.ensureAuthResolved({ force: true }).catch(() => false)
+      if (!refreshed || !auth.user) return
     }
 
     if (to.meta.requiresRole && auth.user && !roleMatches(String(to.meta.requiresRole))) {

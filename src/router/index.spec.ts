@@ -107,6 +107,28 @@ describe('router specialist session routes', () => {
     expect(router.currentRoute.value.name).toBe('admin-inbox')
   })
 
+  it('treats singular role=ADMIN as admin access for route guard', async () => {
+    const auth = useAuthStore()
+    auth.setToken('admin-token')
+    auth.setMe({
+      user: {
+        id: 100,
+        username: 'admin-role-only',
+        email: 'admin@example.com',
+        role: 'ADMIN',
+        roles: [],
+      },
+      access_state: null,
+      effective_entitlements: null,
+      counts: null,
+      server_time: '2026-03-31T00:00:00Z',
+    })
+
+    await router.push('/admin/inbox')
+
+    expect(router.currentRoute.value.name).toBe('admin-inbox')
+  })
+
   it('allows authenticated specialists to open the session detail route', async () => {
     const auth = useAuthStore()
     auth.setToken('test-token')
