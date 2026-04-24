@@ -191,6 +191,9 @@
             </button>
             <div v-else-if="isCurrentPlan(plan.code)" class="plan-action__state">Поточний план</div>
             <div v-else-if="isBasePlan(plan.code)" class="plan-action__state plan-action__state--base">Базовий тариф</div>
+            <div v-else-if="isUnavailableBetaPlan(plan.code)" class="plan-action__state plan-action__state--base">
+              Тариф готується
+            </div>
             <div v-if="requestMessageFor(plan.code)" class="muted">
               {{ requestMessageFor(plan.code) }}
             </div>
@@ -308,12 +311,14 @@ const plans = [
     title: 'Leader',
     subtitle: 'Максимальний доступ для масштабування',
     price: '2 490 грн',
-    badge: '',
-    features: ['Усе з Pro', 'Найглибша аналітика'],
+    badge: 'Недоступно під час beta',
+    features: ['У розробці', 'Буде доступно пізніше'],
   },
 ] as const
 
 const planByCode = new Map(plans.map((plan) => [plan.code, plan]))
+const specialistSelectablePlans = new Set<PlanCode>(['PRO'])
+const hiddenBetaFeatureCodes = new Set(['pair', 'group_room', 'group_room_broadcast', 'public_events'])
 const annualCopyByPlan: Record<PlanCode, string> = {
   START: 'Без оплати',
   PRO: 'Майбутня річна модель: 9 900 грн / рік',
@@ -391,7 +396,7 @@ const hasDowngradePlans = computed(() => currentIndex.value > 0)
 
 const nextPlan = computed<PlanCode | null>(() => {
   if (currentIndex.value === -1) return null
-  return planOrder[currentIndex.value + 1] || null
+  return planOrder.slice(currentIndex.value + 1).find((plan) => isSpecialistSelectablePlan(plan)) || null
 })
 
 const summaryCurrentRequest = computed(() => accessSummary.value?.current_request || null)
@@ -579,7 +584,8 @@ const guestSessionsUsageLabel = computed(() => {
 })
 
 const featureRows = computed(() => {
-  return Array.isArray(accessSummary.value?.features) ? accessSummary.value?.features || [] : []
+  if (!Array.isArray(accessSummary.value?.features)) return []
+  return accessSummary.value.features.filter((feature) => !hiddenBetaFeatureCodes.has(feature.code))
 })
 
 const featureLabels: Record<string, string> = {
@@ -666,18 +672,27 @@ function isBasePlan(code: string) {
 
 function isUpgradePlan(code: string) {
   if (currentIndex.value === -1) return false
-  return planOrder.indexOf(code as PlanCode) > currentIndex.value
+  return isSpecialistSelectablePlan(code) && planOrder.indexOf(code as PlanCode) > currentIndex.value
 }
 
 function canSelfServePlan(code: string) {
-  return isUpgradePlan(code) && !hasUnappliedApprovedRequestFor(code)
+  return isUpgradePlan(code) && isSpecialistSelectablePlan(code) && !hasUnappliedApprovedRequestFor(code)
 }
 
 function planActionLabel(code: string) {
   if (isCurrentPlan(code)) return 'Поточний план'
+  if (isUnavailableBetaPlan(code)) return 'Тариф готується'
   if (hasUnappliedApprovedRequestFor(code)) return 'Очікує активації'
   if (isUpgradePlan(code)) return `Перейти на ${planTitle(code as PlanCode)}`
   return 'Недоступно'
+}
+
+function isSpecialistSelectablePlan(code: string): code is PlanCode {
+  return specialistSelectablePlans.has(code as PlanCode)
+}
+
+function isUnavailableBetaPlan(code: string) {
+  return code === 'LEADER' && !isCurrentPlan(code) && !isBasePlan(code)
 }
 
 function hasUnappliedApprovedRequestFor(code: string) {
@@ -824,7 +839,7 @@ async function startSelfServeCheckout(planCode: string) {
   activationPendingPlan.value = null
   try {
     const response = await createBillingCheckoutSession({
-      plan: target === 'LEADER' ? 'LEADER' : 'PRO',
+      plan: target as 'PRO' | 'LEADER',
       billing_cycle: checkoutCycleForPlan(target),
     })
     if (response.checkout_url) {
@@ -855,6 +870,7 @@ async function startSelfServeCheckout(planCode: string) {
 
 async function requestAccess(planCode: string) {
   if (!planOrder.includes(planCode as PlanCode)) return
+  if (!isSpecialistSelectablePlan(planCode)) return
   if (requestingPlan.value) return
   if (hasPendingRequest.value) {
     const pendingPlan = activeRequest.value?.requested_plan

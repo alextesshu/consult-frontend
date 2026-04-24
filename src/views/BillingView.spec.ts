@@ -129,7 +129,7 @@ describe('BillingView downgrade semantics', () => {
     expect(screen.getAllByText('Перехід на нижчий план зараз оформлюється через підтримку.')).toHaveLength(1)
   })
 
-  it('shows downgrade note once for PRO and keeps upgrade path to LEADER', async () => {
+  it('shows downgrade note once for PRO and marks Leader as unavailable during beta', async () => {
     setCurrentPlan('PRO')
     renderView()
 
@@ -139,7 +139,9 @@ describe('BillingView downgrade semantics', () => {
 
     expect(screen.queryByText('Нижчий план')).not.toBeInTheDocument()
     expect(screen.getAllByText('Перехід на нижчий план зараз оформлюється через підтримку.')).toHaveLength(1)
-    expect(screen.getAllByRole('button', { name: 'Перейти на Leader' }).length).toBeGreaterThan(0)
+    expect(screen.queryByRole('button', { name: 'Перейти на Leader' })).not.toBeInTheDocument()
+    expect(screen.getAllByText('Тариф готується').length).toBeGreaterThan(0)
+    expect(screen.getByText('Недоступно під час beta')).toBeInTheDocument()
   })
 
   it('does not render downgrade note for START', async () => {
@@ -238,6 +240,32 @@ describe('BillingView downgrade semantics', () => {
 
     expect(screen.getAllByText('Заявку зафіксовано. Команда розгляне її вручну.').length).toBeGreaterThan(
       0
+    )
+  })
+
+  it('does not expose Leader request or checkout actions in specialist billing UI', async () => {
+    setCurrentPlan('START')
+    renderView()
+
+    await waitFor(() => {
+      expect(mockedFetchBillingAccessRequestState).toHaveBeenCalled()
+    })
+
+    expect(screen.queryByRole('button', { name: 'Перейти на Leader' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Подати заявку на Leader' })).not.toBeInTheDocument()
+    expect(screen.getAllByText('Тариф готується').length).toBeGreaterThan(0)
+
+    const requestButtons = screen.getAllByRole('button', { name: 'Подати заявку на індивідуальні умови' })
+    await fireEvent.click(requestButtons[0]!)
+
+    await waitFor(() => {
+      expect(mockedCreateBillingAccessRequest).toHaveBeenCalledWith({
+        requested_plan: 'PRO',
+        note: 'upgrade_from:START',
+      })
+    })
+    expect(mockedCreateBillingAccessRequest).not.toHaveBeenCalledWith(
+      expect.objectContaining({ requested_plan: 'LEADER' })
     )
   })
 
@@ -380,7 +408,8 @@ describe('BillingView downgrade semantics', () => {
     })
     expect(screen.getAllByText('Заявку на Leader схвалено, але тариф ще не активовано.').length).toBeGreaterThan(0)
     expect(screen.getAllByText('Поточний план').length).toBe(1)
-    expect(screen.getAllByRole('button', { name: 'Очікує активації' })[0]).toBeDisabled()
+    expect(screen.queryByRole('button', { name: 'Очікує активації' })).not.toBeInTheDocument()
+    expect(screen.getAllByText('Тариф готується').length).toBeGreaterThan(0)
   })
 
   it('marks Leader as current when approved request is already applied', async () => {
