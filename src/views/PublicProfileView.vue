@@ -3424,6 +3424,13 @@ onMounted(async () => {
 .public {
   display: grid;
   gap: 18px;
+  background:
+    radial-gradient(820px 420px at 10% 0%, color-mix(in srgb, var(--pc-teal-100) 72%, transparent), transparent 68%),
+    radial-gradient(760px 420px at 90% 4%, color-mix(in srgb, var(--pc-peach-100) 78%, transparent), transparent 70%),
+    var(--pc-bg-main);
+  border-radius: var(--radius-xl);
+  padding: clamp(14px, 2vw, 22px);
+  color: var(--pc-text-main);
 }
 
 .public__layout {

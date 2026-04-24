@@ -1298,3 +1298,44 @@ Verification:
 npm run test:run -- src/views/ExternalSessionDetailView.spec.ts
 npm run typecheck
 npm run build
+```
+
+---
+
+## 20. Public Profile Visual Migration Log
+
+### 2026-04-25 — Public profile hero first safe pass
+
+Changed scope:
+
+* `src/views/PublicProfileView.vue`
+* `src/components/public-profile/PublicProfileHeroSection.vue`
+* `src/components/public-profile/PublicProfileIdentityRail.vue`
+
+What changed:
+
+* Updated the public specialist profile top area toward the PRO CONSULT navy / cream / teal / peach visual system.
+* Applied `--pc-*` tokens to the hero card, profile media, chips, general info card, and sticky identity/CTA rail.
+* Updated the top primary CTA rail locally to use navy primary buttons and white/navy secondary buttons.
+* Softened borders, shadows, card backgrounds, and accent badges in the hero/top section only.
+* Added a cream public-profile page backdrop around the existing layout.
+
+Preserved:
+
+* Public profile route and slug handling.
+* Existing API calls and profile visibility branches.
+* Booking, inquiry, available slot, client session, journal, media, reviews, FAQ, and final CTA logic.
+* Existing hero props, emitted events, labels, and conditional rendering.
+* Existing lower public profile sections for future migration phases.
+
+Verification:
+
+```bash
+npm run test:run -- src/views/PublicProfileView.spec.ts src/components/public-profile/PublicProfileTrustSection.spec.ts
+npm run typecheck
+npm run build
+```
+
+Notes:
+
+This is a first safe visual pass for the public profile hero/top section only. Remaining future polish should migrate lower profile panels, slots, inquiry, reviews, media, journal preview, FAQ, and final CTA in separate scoped passes.

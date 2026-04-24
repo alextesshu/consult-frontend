@@ -104,21 +104,24 @@ defineEmits<{
 .identity-rail__card {
   display: grid;
   gap: 12px;
-  border: 1px solid color-mix(in srgb, var(--line) 64%, #ffffff);
+  border: 1px solid var(--pc-border);
   background: linear-gradient(
     160deg,
-    color-mix(in srgb, #ffffff 95%, var(--surface)),
-    color-mix(in srgb, #f7f3ea 46%, #ffffff)
+    color-mix(in srgb, var(--pc-bg-card) 94%, var(--pc-teal-100)),
+    color-mix(in srgb, var(--pc-bg-card) 88%, var(--pc-peach-100))
   );
-  border-radius: var(--radius-md);
-  padding: 14px;
-  box-shadow: 0 14px 36px rgba(17, 30, 40, 0.12);
+  border-radius: var(--radius-xl);
+  padding: 16px;
+  box-shadow: var(--pc-shadow-card);
+  color: var(--pc-text-main);
 }
 
 .identity-rail__title {
   margin: 0;
   font-size: 20px;
   line-height: 1.25;
+  color: var(--pc-navy-950);
+  letter-spacing: 0;
 }
 
 .identity-rail__prices {
@@ -129,14 +132,16 @@ defineEmits<{
 .identity-rail__price {
   padding: 8px 10px;
   border-radius: 10px;
-  border: 1px solid var(--line);
-  background: #fff;
+  border: 1px solid var(--pc-border);
+  background: var(--pc-bg-card);
   font-size: 13px;
   font-weight: 600;
+  color: var(--pc-navy-900);
 }
 
 .identity-rail__price--intro {
-  border-color: color-mix(in srgb, var(--color-primary-500) 20%, var(--line));
+  border-color: color-mix(in srgb, var(--pc-teal-500) 38%, var(--pc-border));
+  background: color-mix(in srgb, var(--pc-bg-card) 82%, var(--pc-teal-100));
 }
 
 .identity-rail__actions {
@@ -148,17 +153,42 @@ defineEmits<{
   width: 100%;
 }
 
+.identity-rail__actions .btn--primary {
+  border-color: var(--pc-navy-950);
+  background: var(--pc-navy-950);
+  color: #fff;
+  box-shadow: 0 12px 24px rgba(14, 45, 82, 0.18);
+}
+
+.identity-rail__actions .btn--primary:hover,
+.identity-rail__actions .btn--primary:focus-visible {
+  border-color: var(--pc-navy-800);
+  background: var(--pc-navy-800);
+}
+
+.identity-rail__actions .btn--ghost {
+  border-color: var(--pc-border);
+  background: color-mix(in srgb, var(--pc-bg-card) 92%, transparent);
+  color: var(--pc-navy-900);
+}
+
+.identity-rail__actions .btn--ghost:hover,
+.identity-rail__actions .btn--ghost:focus-visible {
+  border-color: color-mix(in srgb, var(--pc-navy-900) 28%, var(--pc-border));
+  background: var(--pc-bg-card);
+}
+
 .identity-rail__next-step {
   margin: 0;
   font-size: 12px;
   line-height: 1.45;
-  color: color-mix(in srgb, var(--text) 78%, var(--muted));
+  color: var(--pc-text-muted);
 }
 
 .identity-rail__contacts {
   display: grid;
   gap: 6px;
-  border-top: 1px dashed color-mix(in srgb, var(--line) 82%, #d8cfbf);
+  border-top: 1px dashed color-mix(in srgb, var(--pc-border) 86%, var(--pc-border-strong));
   padding-top: 8px;
 }
 
@@ -167,7 +197,7 @@ defineEmits<{
   text-transform: uppercase;
   letter-spacing: 0.06em;
   font-weight: 700;
-  color: color-mix(in srgb, var(--text) 82%, var(--muted));
+  color: color-mix(in srgb, var(--pc-navy-900) 82%, var(--pc-text-muted));
 }
 
 .identity-rail__contact-list {
@@ -176,37 +206,39 @@ defineEmits<{
 }
 
 .identity-rail__contact {
-  border: 1px solid var(--line);
+  border: 1px solid var(--pc-border);
   border-radius: 10px;
   padding: 6px 8px;
   display: grid;
   gap: 2px;
   text-decoration: none;
   color: inherit;
-  background: #fff;
+  background: var(--pc-bg-card);
 }
 
 .identity-rail__contact:hover {
-  border-color: color-mix(in srgb, var(--primary) 28%, var(--line));
+  border-color: color-mix(in srgb, var(--pc-teal-500) 44%, var(--pc-border));
 }
 
 .identity-rail__contact-label {
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.07em;
-  color: var(--muted);
+  color: var(--pc-text-muted);
 }
 
 .identity-rail__contact-value {
   font-size: 12px;
   font-weight: 600;
   overflow-wrap: anywhere;
+  color: var(--pc-navy-950);
 }
 
 .badge--soft {
-  background: color-mix(in srgb, #e4e9dc 62%, #f8f3e9);
-  border-color: color-mix(in srgb, #6f8b73 26%, var(--line));
-  color: color-mix(in srgb, #3f5945 82%, var(--text));
+  width: fit-content;
+  background: color-mix(in srgb, var(--pc-peach-100) 74%, var(--pc-bg-card));
+  border-color: color-mix(in srgb, var(--pc-peach-500) 32%, var(--pc-border));
+  color: var(--pc-navy-900);
 }
 
 @media (max-width: 1100px) {
@@ -221,7 +253,7 @@ defineEmits<{
   .identity-rail__card {
     padding: 10px 12px;
     gap: 8px;
-    box-shadow: 0 8px 20px rgba(17, 30, 40, 0.1);
+    box-shadow: var(--pc-shadow-soft);
   }
 
   .identity-rail__title {

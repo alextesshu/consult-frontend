@@ -90,14 +90,15 @@ const emit = defineEmits<{
   align-items: start;
   gap: 16px;
   background: linear-gradient(
-    140deg,
-    color-mix(in srgb, var(--color-primary-100) 65%, #ffffff),
-    color-mix(in srgb, var(--color-neutral-100) 52%, #ffffff)
+    145deg,
+    color-mix(in srgb, var(--pc-bg-card) 88%, var(--pc-teal-100)),
+    color-mix(in srgb, var(--pc-bg-card) 82%, var(--pc-peach-100))
   );
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 20px 22px;
-  box-shadow: var(--shadow);
+  border: 1px solid var(--pc-border);
+  border-radius: var(--radius-xl);
+  padding: clamp(18px, 2.2vw, 28px);
+  box-shadow: var(--pc-shadow-card);
+  color: var(--pc-text-main);
 }
 
 .hero-profile {
@@ -123,32 +124,35 @@ const emit = defineEmits<{
   aspect-ratio: 1 / 1;
   object-fit: cover;
   border-radius: 16px;
-  border: 1px solid var(--line);
-  background: #fff;
+  border: 1px solid var(--pc-border);
+  background: var(--pc-bg-card);
+  box-shadow: var(--pc-shadow-soft);
 }
 
 .hero-photo-placeholder {
   width: 100%;
   aspect-ratio: 1 / 1;
   border-radius: 16px;
-  border: 1px dashed var(--line);
+  border: 1px dashed var(--pc-border-strong);
   display: grid;
   place-items: center;
   font-size: 12px;
-  color: var(--muted);
-  background: rgba(255, 255, 255, 0.65);
+  color: var(--pc-text-muted);
+  background: color-mix(in srgb, var(--pc-bg-card) 78%, var(--pc-bg-soft));
 }
 
 .hero-video {
   width: 100%;
   border-radius: 12px;
-  border: 1px solid var(--line);
-  background: #0f2b3a;
+  border: 1px solid var(--pc-border);
+  background: var(--pc-navy-950);
 }
 
 .public__title {
   font-size: clamp(30px, 4vw, 40px);
   line-height: 1.15;
+  color: var(--pc-navy-950);
+  letter-spacing: 0;
 }
 
 .hero-main {
@@ -162,7 +166,7 @@ const emit = defineEmits<{
 .hero-main__role {
   margin: -2px 0 0;
   font-size: 14px;
-  color: color-mix(in srgb, var(--text) 72%, var(--muted));
+  color: color-mix(in srgb, var(--pc-navy-900) 70%, var(--pc-text-muted));
   font-weight: 600;
 }
 
@@ -170,7 +174,7 @@ const emit = defineEmits<{
   margin: 0;
   font-size: 16px;
   line-height: 1.66;
-  color: var(--deep);
+  color: var(--pc-text-main);
   max-width: 70ch;
 }
 
@@ -191,21 +195,21 @@ const emit = defineEmits<{
   font-size: 13px;
   line-height: 1.35;
   font-weight: 600;
-  color: color-mix(in srgb, var(--primary) 78%, #0c4f73);
+  color: var(--pc-navy-900);
   text-decoration: underline;
   text-underline-offset: 2px;
   cursor: pointer;
 }
 
 .hero-main__read-more:hover {
-  color: color-mix(in srgb, var(--primary) 92%, #0c4f73);
+  color: var(--pc-navy-950);
 }
 
 .hero-main__support {
   margin: -4px 0 0;
   font-size: 14px;
   line-height: 1.6;
-  color: var(--muted);
+  color: var(--pc-text-muted);
 }
 
 .hero-main__sessions {
@@ -213,7 +217,7 @@ const emit = defineEmits<{
   font-size: 14px;
   line-height: 1.5;
   font-weight: 600;
-  color: color-mix(in srgb, var(--text) 86%, var(--muted));
+  color: color-mix(in srgb, var(--pc-navy-950) 84%, var(--pc-text-muted));
 }
 
 .hero-trust {
@@ -225,9 +229,10 @@ const emit = defineEmits<{
 .hero-trust span {
   padding: 6px 10px;
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.82);
-  border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--pc-bg-card) 86%, var(--pc-teal-100));
+  border: 1px solid var(--pc-border);
   font-size: 12px;
+  color: var(--pc-navy-900);
 }
 
 .hero-info {
@@ -235,9 +240,9 @@ const emit = defineEmits<{
   width: clamp(156px, 16vw, 188px);
   max-width: 188px;
   min-width: 156px;
-  border: 1px solid color-mix(in srgb, var(--line) 78%, #ffffff);
-  border-radius: 12px;
-  background: color-mix(in srgb, #ffffff 86%, var(--surface));
+  border: 1px solid var(--pc-border);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--pc-bg-card) 88%, var(--pc-bg-soft));
   padding: 12px;
   display: grid;
   gap: 10px;
@@ -254,9 +259,9 @@ const emit = defineEmits<{
 }
 
 .hero-info__item {
-  border: 1px solid var(--line);
+  border: 1px solid var(--pc-border);
   border-radius: 10px;
-  background: #fff;
+  background: var(--pc-bg-card);
   padding: 8px 10px;
   display: grid;
   gap: 2px;
@@ -266,15 +271,28 @@ const emit = defineEmits<{
   font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--muted);
+  color: var(--pc-text-muted);
 }
 
 .hero-info__value {
   font-size: 13px;
   line-height: 1.35;
   font-weight: 600;
-  color: var(--text);
+  color: var(--pc-navy-950);
   overflow-wrap: anywhere;
+}
+
+.badge {
+  width: fit-content;
+  border-color: color-mix(in srgb, var(--pc-teal-500) 34%, var(--pc-border));
+  background: color-mix(in srgb, var(--pc-teal-100) 72%, var(--pc-bg-card));
+  color: var(--pc-navy-900);
+}
+
+.badge--soft {
+  border-color: color-mix(in srgb, var(--pc-peach-500) 30%, var(--pc-border));
+  background: color-mix(in srgb, var(--pc-peach-100) 72%, var(--pc-bg-card));
+  color: var(--pc-navy-900);
 }
 
 @media (max-width: 1120px) {
