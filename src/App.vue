@@ -180,7 +180,7 @@
         </button>
         <div v-if="isAuthenticated && showMobileMenu" ref="mobileMenuPanelRef" class="mobile-menu" role="menu">
           <RouterLink
-            v-if="hasSupportedCabinetRole"
+            v-if="hasSupportedCabinetRole && !isSpecialist"
             class="mobile-menu__item"
             :to="cabinetRoute"
             @click="closeMobileMenu"
@@ -194,9 +194,6 @@
             @click="closeMobileMenu"
           >
             Спеціалісти
-          </RouterLink>
-          <RouterLink v-if="isSpecialist" class="mobile-menu__item" to="/cabinet/profile" @click="closeMobileMenu">
-            Керування профілем
           </RouterLink>
           <RouterLink v-if="isSpecialist" class="mobile-menu__item" to="/public" @click="closeMobileMenu">
             Публічний профіль (перегляд)
@@ -217,7 +214,7 @@
           >
             Налаштування
           </RouterLink>
-          <RouterLink v-if="isChatCapable" class="mobile-menu__item" :to="chatRoute" @click="closeMobileMenu">Чат</RouterLink>
+          <RouterLink v-if="isChatCapable && !isSpecialist" class="mobile-menu__item" :to="chatRoute" @click="closeMobileMenu">Чат</RouterLink>
           <button type="button" class="mobile-menu__item mobile-menu__item--button" @click="onLogoutFromMenu">
             Вийти
           </button>
@@ -439,6 +436,7 @@ const specialistSidebarItems: SpecialistSidebarItem[] = [
   { label: 'Сесії', to: '/cabinet/sessions', match: ['/cabinet/sessions'] },
   { label: 'Клієнти', to: '/cabinet/clients', match: ['/cabinet/clients'] },
   { label: 'Гостьові сесії', to: '/cabinet/external-sessions', match: ['/cabinet/external-sessions'] },
+  { label: 'Чати', to: '/cabinet/chat', match: ['/cabinet/chat'] },
   { label: 'Аналітика', to: '/cabinet/analytics', match: ['/cabinet/analytics'] },
   { label: 'Тарифи і доступ', to: '/cabinet/billing', match: ['/cabinet/billing'] },
   { label: 'Налаштування', to: '/cabinet/settings', match: ['/cabinet/settings'] },

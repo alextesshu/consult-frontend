@@ -237,7 +237,7 @@ describe('App shell', () => {
     expect(screen.getByText('External Guest Session')).toBeInTheDocument()
   })
 
-  it('shows distinct specialist mobile menu entries for internal profile management and public profile preview', async () => {
+  it('keeps specialist top mobile menu focused on account actions', async () => {
     await renderWithProviders({
       initialPath: '/cabinet',
       roles: ['SPECIALIST'],
@@ -245,11 +245,19 @@ describe('App shell', () => {
 
     await fireEvent.click(screen.getByRole('button', { name: 'Меню' }))
 
-    const managementLink = await screen.findByRole('link', { name: 'Керування профілем' })
+    const mobileMenu = document.querySelector('.mobile-menu') as HTMLElement
+    expect(mobileMenu).toBeInTheDocument()
     const publicPreviewLink = await screen.findByRole('link', { name: 'Публічний профіль (перегляд)' })
 
-    expect(managementLink).toHaveAttribute('href', '/cabinet/profile')
     expect(publicPreviewLink).toHaveAttribute('href', '/public')
+    expect(within(mobileMenu).getByRole('link', { name: 'Налаштування' })).toHaveAttribute(
+      'href',
+      '/cabinet/settings'
+    )
+    expect(within(mobileMenu).getByRole('button', { name: 'Вийти' })).toBeInTheDocument()
+    expect(within(mobileMenu).queryByRole('link', { name: 'Керування профілем' })).not.toBeInTheDocument()
+    expect(within(mobileMenu).queryByRole('link', { name: 'Чат' })).not.toBeInTheDocument()
+    expect(within(mobileMenu).queryByRole('link', { name: 'Мій кабінет' })).not.toBeInTheDocument()
   })
 
   it('uses a functional specialist mobile settings link instead of a dead CTA', async () => {
@@ -290,6 +298,7 @@ describe('App shell', () => {
       'href',
       '/cabinet/external-sessions'
     )
+    expect(within(sidebar).getByRole('link', { name: 'Чати' })).toHaveAttribute('href', '/cabinet/chat')
     expect(within(sidebar).getByRole('link', { name: 'Аналітика' })).toHaveAttribute('href', '/cabinet/analytics')
     expect(within(sidebar).getByRole('link', { name: 'Тарифи і доступ' })).toHaveAttribute(
       'href',
@@ -307,6 +316,16 @@ describe('App shell', () => {
     const sidebar = screen.getByRole('navigation', { name: 'Навігація кабінету спеціаліста' })
     expect(within(sidebar).getByRole('link', { name: 'Сесії' })).toHaveClass('is-active')
     expect(within(sidebar).getByRole('link', { name: 'Головна' })).not.toHaveClass('is-active')
+  })
+
+  it('highlights the specialist chat sidebar item on chat route', async () => {
+    await renderWithProviders({
+      initialPath: '/cabinet/chat',
+      roles: ['SPECIALIST'],
+    })
+
+    const sidebar = screen.getByRole('navigation', { name: 'Навігація кабінету спеціаліста' })
+    expect(within(sidebar).getByRole('link', { name: 'Чати' })).toHaveClass('is-active')
   })
 
   it('does not show specialist sidebar for client users', async () => {
@@ -339,8 +358,18 @@ describe('App shell', () => {
 
     const drawer = await screen.findByRole('dialog', { name: 'Розділи кабінету спеціаліста' })
     expect(within(drawer).getByRole('link', { name: 'Головна' })).toHaveAttribute('href', '/cabinet')
+    expect(within(drawer).getByRole('link', { name: 'Профіль' })).toHaveAttribute('href', '/cabinet/profile')
+    expect(within(drawer).getByRole('link', { name: 'Розклад' })).toHaveAttribute('href', '/cabinet/slots')
     expect(within(drawer).getByRole('link', { name: 'Сесії' })).toHaveAttribute('href', '/cabinet/sessions')
+    expect(within(drawer).getByRole('link', { name: 'Клієнти' })).toHaveAttribute('href', '/cabinet/clients')
+    expect(within(drawer).getByRole('link', { name: 'Гостьові сесії' })).toHaveAttribute(
+      'href',
+      '/cabinet/external-sessions'
+    )
+    expect(within(drawer).getByRole('link', { name: 'Чати' })).toHaveAttribute('href', '/cabinet/chat')
+    expect(within(drawer).getByRole('link', { name: 'Аналітика' })).toHaveAttribute('href', '/cabinet/analytics')
     expect(within(drawer).getByRole('link', { name: 'Тарифи і доступ' })).toHaveAttribute('href', '/cabinet/billing')
+    expect(within(drawer).getByRole('link', { name: 'Налаштування' })).toHaveAttribute('href', '/cabinet/settings')
   })
 
   it('keeps existing cabinet routes rendering inside the specialist shell', async () => {
