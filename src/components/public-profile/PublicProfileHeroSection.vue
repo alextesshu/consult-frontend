@@ -153,6 +153,10 @@ const emit = defineEmits<{
   line-height: 1.15;
   color: var(--pc-navy-950);
   letter-spacing: 0;
+  max-width: 100%;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .hero-main {
@@ -161,6 +165,7 @@ const emit = defineEmits<{
   gap: 12px;
   align-content: start;
   min-width: 0;
+  max-width: 100%;
 }
 
 .hero-main__role {
@@ -295,14 +300,14 @@ const emit = defineEmits<{
   color: var(--pc-navy-900);
 }
 
-@media (max-width: 1120px) {
+@media (max-width: 1280px) {
   .hero-profile {
     display: grid;
-    grid-template-columns: minmax(190px, 260px) minmax(0, 1fr);
+    grid-template-columns: minmax(170px, 240px) minmax(0, 1fr);
   }
 
   .hero-media {
-    max-width: 260px;
+    max-width: 240px;
     min-width: 0;
     flex: none;
   }
@@ -313,6 +318,10 @@ const emit = defineEmits<{
     max-width: none;
     min-width: 0;
     flex: none;
+  }
+
+  .hero-info__list {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   }
 }
 

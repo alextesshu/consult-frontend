@@ -2096,6 +2096,13 @@ body.body--home .footer__link:hover {
     display: none;
   }
 
+  .topbar--specialist .brand__tagline,
+  .topbar--therapist .brand__tagline,
+  .topbar--admin .brand__tagline,
+  .topbar--client .brand__tagline {
+    display: none;
+  }
+
   .topbar--guest .nav {
     gap: 6px;
   }
