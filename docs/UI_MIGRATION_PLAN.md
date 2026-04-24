@@ -1214,3 +1214,27 @@ Preserved:
 Notes:
 
 Tablet and phone layouts require different top spacing because the Home header behavior differs across breakpoints.
+
+### 2026-04-24 — Home pricing secondary CTA alignment
+
+Changed scope:
+
+* `src/views/HomeView.vue`
+
+What changed:
+
+* Centered the secondary pricing CTA under the pricing cards.
+* Removed old yellow/green hover behavior from the “Потрібні інші умови?” button.
+* Updated the button to use the new navy/teal secondary CTA style.
+
+Preserved:
+
+* Existing support/data request route.
+* Existing pricing card logic.
+* Existing billing toggle.
+* Existing tariff copy.
+* Existing script logic.
+
+Notes:
+
+The pricing secondary CTA now visually belongs to the pricing section instead of looking like a stray button.

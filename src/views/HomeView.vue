@@ -592,6 +592,28 @@ onBeforeUnmount(() => {
   flex-wrap: wrap;
 }
 
+.pricing-teaser__actions {
+  justify-content: center;
+  margin-top: 4px;
+}
+
+.pricing-teaser__actions .btn {
+  min-height: 42px;
+  padding: 0 18px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.76);
+  border-color: var(--pc-border-strong);
+  color: var(--pc-navy-900);
+  box-shadow: none;
+  font-weight: 700;
+}
+
+.pricing-teaser__actions .btn:hover {
+  background: var(--pc-teal-100);
+  border-color: var(--pc-teal-500);
+  color: var(--pc-navy-950);
+}
+
 .home-hero__actions .btn {
   min-height: 48px;
   padding: 0 22px;
