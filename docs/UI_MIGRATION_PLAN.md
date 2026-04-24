@@ -1140,3 +1140,77 @@ Preserved:
 Notes:
 
 FAQ cards are now visually aligned with the Home first-pass redesign.
+
+### 2026-04-24 — Home footer first pass
+
+Changed scope:
+
+* `src/App.vue`
+* `src/views/HomeView.vue`
+
+What changed:
+
+* Updated Home-only footer to use the new navy PRO CONSULT visual direction.
+* Kept footer changes scoped to `body.body--home`.
+* Updated footer link colors for dark background.
+* Reduced excessive bottom spacing between final CTA and footer.
+
+Preserved:
+
+* Existing footer template.
+* Existing footer legal links.
+* Existing FAQ link.
+* Existing staging deploy marker behavior.
+* Existing shell behavior for non-Home pages.
+* Existing Home content and CTA logic.
+
+Notes:
+
+This is a first visual pass for the Home footer. Full footer restructuring into multi-column marketing footer is intentionally deferred.
+
+### 2026-04-24 — Home walkthrough tariff accent cleanup
+
+Changed scope:
+
+* `src/views/HomeView.vue`
+
+What changed:
+
+* Replaced old green tariff/access accent in walkthrough feature cards.
+* Updated access line styling to use the new PRO CONSULT accent token.
+* Improved visual consistency with the navy/teal Home redesign.
+
+Preserved:
+
+* Existing tariff/access text.
+* Existing walkthrough content.
+* Existing anchors and chip behavior.
+* Existing script logic.
+
+Notes:
+
+This removes another visible remnant of the old green visual system from the Home walkthrough section.
+
+### 2026-04-24 — Home tablet/mobile spacing correction
+
+Changed scope:
+
+* `src/views/HomeView.vue`
+
+What changed:
+
+* Added tablet-specific top spacing for Home to prevent hero eyebrow from being clipped around 768px.
+* Kept mobile Home top spacing compact for phones.
+* Verified Home hero on iPad Mini / 768px and phone-width viewport.
+
+Preserved:
+
+* Existing mobile hero layout.
+* Existing desktop layout.
+* Existing CTA logic.
+* Existing screenshot behavior.
+* Existing script logic.
+
+Notes:
+
+Tablet and phone layouts require different top spacing because the Home header behavior differs across breakpoints.

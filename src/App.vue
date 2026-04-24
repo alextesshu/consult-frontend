@@ -1789,15 +1789,18 @@ watch(isChatCapable, (value) => {
 body.body--home .footer {
   position: static;
   margin: 0;
-  padding: 12px 24px 0;
+  padding: 36px max(24px, calc((100vw - var(--pc-container-wide)) / 2)) 28px;
   z-index: auto;
-  border-top: 1px solid var(--border);
-  background: transparent;
+  border-top: 0;
+  background:
+    radial-gradient(520px 260px at 92% 12%, rgba(143, 203, 200, 0.12), transparent 72%),
+    linear-gradient(180deg, var(--pc-navy-900), var(--pc-navy-950));
   backdrop-filter: none;
-  color: var(--text-2);
+  color: rgba(255, 255, 255, 0.82);
   font-size: 13px;
   font-weight: 400;
   line-height: 1.45;
+  box-shadow: 0 -18px 48px rgba(18, 35, 58, 0.1);
 }
 
 .footer {
@@ -1910,6 +1913,29 @@ body.body--home .footer {
 
 .footer__link:hover {
   text-decoration-color: color-mix(in srgb, var(--text) 80%, transparent);
+}
+
+body.body--home .footer__brand {
+  color: #ffffff;
+  font-weight: 700;
+}
+
+body.body--home .footer__meta {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+body.body--home .footer__legal {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+body.body--home .footer__link {
+  color: rgba(255, 255, 255, 0.86);
+  text-decoration-color: rgba(255, 255, 255, 0.34);
+}
+
+body.body--home .footer__link:hover {
+  color: #ffffff;
+  text-decoration-color: rgba(255, 255, 255, 0.72);
 }
 
 @media (max-width: 1024px) {

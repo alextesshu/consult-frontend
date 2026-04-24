@@ -506,7 +506,7 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .home-lite {
-  padding: 42px 0 120px;
+  padding: 42px 0 72px;
   position: relative;
   isolation: isolate;
 }
@@ -827,8 +827,8 @@ onBeforeUnmount(() => {
 .walkthrough-feature__tariff {
   margin: 0;
   font-size: 14px;
-  font-weight: 500;
-  color: color-mix(in srgb, var(--primary) 72%, #295f54);
+  font-weight: 700;
+  color: var(--pc-navy-800);
 }
 
 .product-shot {
@@ -1250,14 +1250,54 @@ onBeforeUnmount(() => {
   }
 }
 
-@media (max-width: 680px) {
+@media (max-width: 820px) {
   .home-lite {
-    padding-top: 26px;
+    padding-top: 96px;
+  }
+}
+
+@media (max-width: 680px) {
+  .home-hero {
+    padding: 22px 18px;
+  }
+
+  .home-hero__title {
+    font-size: clamp(34px, 11vw, 44px);
+  }
+
+  .home-hero__actions {
+    width: 100%;
+  }
+
+  .home-hero__actions .btn {
+    width: 100%;
+  }
+
+  .hero-collage {
+  grid-template-columns: 1fr;
+  }
+
+  .hero-shot--slots,
+  .hero-shot--payments,
+  .hero-shot--analytics {
+    display: none;
+  }
+
+  .hero-shot--primary {
+    grid-column: auto;
+  }
+
+  .hero-shot__viewport {
+    aspect-ratio: 16 / 11;
+  }
+
+  .home-lite {
+    padding-top: 16px;
+    padding-bottom: 48px;
   }
 
   .home-lite__container {
     width: min(100% - 24px, var(--pc-container-wide));
-    gap: 46px;
   }
 
   .value-grid,
