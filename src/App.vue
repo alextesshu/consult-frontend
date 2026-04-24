@@ -1069,10 +1069,10 @@ watch(isChatCapable, (value) => {
 }
 
 .topbar--guest {
-  background: color-mix(in srgb, #ffffff 86%, #e6efe9);
-  color: #1d3e38;
-  border-bottom: 1px solid color-mix(in srgb, #1d3e38 18%, #d8e4de);
-  box-shadow: 0 8px 20px rgba(18, 44, 38, 0.08);
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--pc-navy-950);
+  border-bottom: 1px solid var(--pc-border);
+  box-shadow: 0 8px 24px rgba(18, 35, 58, 0.08);
 }
 
 .topbar--guest::after {
@@ -1156,6 +1156,11 @@ watch(isChatCapable, (value) => {
   color: color-mix(in srgb, #1d3e38 70%, #55756e);
   padding-left: 14px;
   border-left: 1px solid color-mix(in srgb, #1d3e38 20%, #d5dfda);
+}
+
+.topbar--guest .brand__tagline {
+  color: var(--pc-text-muted);
+  border-left-color: var(--pc-border-strong);
 }
 
 .nav {
@@ -1251,7 +1256,7 @@ watch(isChatCapable, (value) => {
   border-radius: 10px;
   background: transparent;
   box-shadow: none;
-  color: #1d3e38;
+  color: var(--pc-navy-950);
   font-weight: 500;
   padding: 6px 8px;
 }
@@ -1266,16 +1271,16 @@ watch(isChatCapable, (value) => {
 }
 
 .topbar--guest .nav a.nav__guest-cta {
-  border: 1px solid color-mix(in srgb, #0d6b55 30%, #0c5e4a);
-  background: linear-gradient(180deg, #178466 0%, #0f7059 100%);
-  color: #f4fffb;
+  border: 1px solid var(--pc-navy-900);
+  background: var(--pc-navy-900);
+  color: #ffffff;
   padding: 6px 16px;
-  box-shadow: 0 10px 18px rgba(11, 73, 58, 0.22);
+  box-shadow: 0 10px 22px rgba(18, 52, 90, 0.18);
 }
 
 .topbar--guest .nav a.nav__guest-cta:hover {
-  background: linear-gradient(180deg, #1b8f6f 0%, #10705a 100%);
-  border-color: color-mix(in srgb, #0d6b55 40%, #0c5e4a);
+  background: var(--pc-navy-950);
+  border-color: var(--pc-navy-950);
 }
 
 .topbar--specialist .nav,

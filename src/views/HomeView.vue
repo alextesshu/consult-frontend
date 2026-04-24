@@ -3,6 +3,7 @@
     <div class="home-lite__container">
       <section class="home-hero reveal">
         <div class="home-hero__content">
+          <p class="home-hero__eyebrow">Сервіс для зручного проведення консультацій</p>
           <h1 class="home-hero__title">Приватна практика на власних умовах — без комісій</h1>
           <p class="home-hero__subtitle">
             Профіль, запис, сесії, оплати й робочі матеріали зібрані в одній системі, щоб вам було легше тримати
@@ -530,14 +531,19 @@ onBeforeUnmount(() => {
 }
 
 .home-hero {
-  border: 1px solid color-mix(in srgb, var(--primary) 24%, var(--border));
-  border-radius: var(--radius-xl);
-  background: linear-gradient(132deg, rgba(255, 255, 255, 0.88), rgba(18, 64, 54, 0.06));
-  padding: clamp(22px, 3vw, 38px);
+  border: 1px solid var(--pc-border);
+  border-radius: var(--radius-2xl);
+  background:
+    radial-gradient(720px 420px at 92% 12%, rgba(143, 203, 200, 0.18), transparent 72%),
+    radial-gradient(620px 380px at 76% 92%, rgba(247, 183, 126, 0.2), transparent 74%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.92), var(--pc-bg-main));
+  padding: clamp(28px, 4vw, 56px);
   display: grid;
   grid-template-columns: minmax(0, 0.84fr) minmax(0, 1.16fr);
-  gap: clamp(18px, 2.2vw, 34px);
+  gap: clamp(22px, 3vw, 44px);
   align-items: center;
+  box-shadow: var(--pc-shadow-card);
+  overflow: hidden;
 }
 
 .home-hero__content {
@@ -562,6 +568,7 @@ onBeforeUnmount(() => {
   line-height: 1.12;
   letter-spacing: -0.02em;
   max-width: 16ch;
+  color: var(--pc-navy-950);
 }
 
 .home-hero__subtitle {
@@ -583,6 +590,36 @@ onBeforeUnmount(() => {
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
+}
+
+.home-hero__actions .btn {
+  min-height: 48px;
+  padding: 0 22px;
+  border-radius: var(--radius-md);
+  background: var(--pc-navy-900);
+  border-color: var(--pc-navy-900);
+  color: #fff;
+  box-shadow: 0 12px 26px rgba(18, 52, 90, 0.18);
+  font-weight: 700;
+}
+
+.home-hero__actions .btn:hover {
+  background: var(--pc-navy-950);
+  border-color: var(--pc-navy-950);
+  box-shadow: 0 16px 32px rgba(18, 52, 90, 0.22);
+}
+
+.home-hero__actions .btn--ghost {
+  background: rgba(255, 255, 255, 0.72);
+  border-color: var(--pc-border-strong);
+  color: var(--pc-navy-900);
+  box-shadow: none;
+}
+
+.home-hero__actions .btn--ghost:hover {
+  background: #fff;
+  border-color: var(--pc-navy-900);
+  color: var(--pc-navy-950);
 }
 
 .home-hero__visual {

@@ -71,10 +71,10 @@
   --shadow: var(--shadow-1);
 
   /* Topbar */
-  --topbar-bg: #114036;
-  --topbar-border: #114036;
-  --topbar-text: #f9f3d9;
-  --topbar-icon: #f9f3d9;
+  --topbar-bg: #ffffff;
+  --topbar-border: var(--pc-border);
+  --topbar-text: var(--pc-navy-950);
+  --topbar-icon: var(--pc-navy-950);
 
   /* PRO CONSULT target visual tokens.
      Additive only: do not remove legacy tokens yet. */
