@@ -915,3 +915,76 @@ npm run build
 Note:
 
 Vite still shows the existing chunk size warning for the main JS bundle. This is not related to design tokens and is not blocking the UI migration.
+
+---
+
+## 18. Home Visual Migration Log
+
+### 2026-04-24 — Home hero first pass
+
+Changed scope:
+
+* `src/views/HomeView.vue`
+* `src/App.vue`
+* `src/style.css`
+
+What changed:
+
+* Added additive `--pc-*` target design tokens.
+* Added hero eyebrow label on Home.
+* Updated Home hero container to use the new PRO CONSULT navy / cream / peach / teal visual direction.
+* Updated Home hero title color to `--pc-navy-950`.
+* Updated Home hero CTA buttons locally without changing global `.btn`.
+* Updated guest topbar/header colors toward the new navy public-page style.
+
+Preserved:
+
+* Home route.
+* Authenticated/guest CTA logic.
+* Pricing route.
+* Signup route.
+* Cabinet redirect logic.
+* Billing toggle logic.
+* Walkthrough content and observers.
+* Existing screenshot assets.
+* Existing global `.btn` behavior outside Home hero.
+
+Notes:
+
+This is only the first visual pass for the Home hero/header. The full Home page has not been migrated yet.
+
+Remaining Home work:
+
+* Align hero screenshot cards with the new mockup style.
+* Improve decorative background shapes.
+* Polish value cards.
+* Polish walkthrough section.
+* Polish pricing teaser.
+* Polish FAQ and final CTA.
+* Check mobile layout after each section-level change.
+
+### 2026-04-24 — Home hero screenshot cards polish
+
+Changed scope:
+
+* `src/views/HomeView.vue`
+
+What changed:
+
+* Updated hero screenshot card borders to the new navy-based visual system.
+* Updated hero screenshot card backgrounds to a cleaner white/cream style.
+* Updated browser-dot accents to teal.
+* Updated screenshot card shadows and viewport backgrounds.
+* Kept all existing screenshot assets and layout logic.
+
+Preserved:
+
+* Existing image paths.
+* Existing hero collage structure.
+* Existing responsive behavior.
+* Existing CTA logic.
+* Existing Home page script logic.
+
+Notes:
+
+Hero area is now partially aligned with the new PRO CONSULT visual direction. Further work should continue section by section.

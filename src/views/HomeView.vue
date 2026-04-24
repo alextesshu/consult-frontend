@@ -634,31 +634,37 @@ onBeforeUnmount(() => {
 
 .hero-shot {
   position: absolute;
-  border: 1px solid color-mix(in srgb, var(--primary) 20%, var(--border));
-  border-radius: var(--radius-lg);
-  background: linear-gradient(168deg, rgba(255, 255, 255, 0.94), rgba(18, 65, 55, 0.06));
+  border: 1px solid rgba(18, 52, 90, 0.16);
+  border-radius: var(--radius-xl);
+  background: rgba(255, 255, 255, 0.9);
   overflow: hidden;
-  box-shadow: 0 16px 32px rgba(17, 64, 54, 0.13);
+  box-shadow: 0 22px 54px rgba(18, 35, 58, 0.12);
+  backdrop-filter: blur(10px);
 }
 
 .hero-shot__top {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 9px 11px;
-  border-bottom: 1px solid color-mix(in srgb, var(--primary) 14%, var(--border));
+  gap: 7px;
+  padding: 10px 13px;
+  border-bottom: 1px solid var(--pc-border);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(250, 247, 242, 0.84));
 }
 
 .hero-shot__top span {
-  width: 7px;
-  height: 7px;
+  width: 8px;
+  height: 8px;
   border-radius: var(--radius-pill);
-  background: color-mix(in srgb, var(--primary) 32%, var(--border));
+  background: var(--pc-teal-500);
+  opacity: 0.82;
 }
 
 .hero-shot__viewport {
-  padding: 8px;
-  background: linear-gradient(180deg, rgba(10, 30, 45, 0.03), rgba(10, 30, 45, 0.01));
+  padding: 10px;
+  background:
+    radial-gradient(460px 240px at 85% 18%, rgba(143, 203, 200, 0.14), transparent 70%),
+    radial-gradient(420px 220px at 18% 88%, rgba(247, 183, 126, 0.16), transparent 74%),
+    #fff;
   aspect-ratio: 16 / 10;
 }
 
