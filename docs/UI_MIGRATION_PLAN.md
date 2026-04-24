@@ -900,3 +900,18 @@ The first safe change should be additive only:
 * do not change existing class styles yet
 
 After that, start using the new tokens in one isolated page or component.
+
+### Token addition check
+
+Added additive `--pc-*` design tokens to `src/style.css`.
+
+Build result:
+
+```text
+npm run build
+✓ built successfully
+```
+
+Note:
+
+Vite still shows the existing chunk size warning for the main JS bundle. This is not related to design tokens and is not blocking the UI migration.
