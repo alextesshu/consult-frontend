@@ -626,14 +626,6 @@
                 >
                   Зберегти нотатку
                 </button>
-                <button
-                  class="btn btn--ghost btn--sm"
-                  type="button"
-                  :disabled="noteSessionId ? isNoteSkipping(noteSessionId) : false"
-                  @click="noteSessionId ? skipNote(noteSessionId) : null"
-                >
-                  {{ noteSessionId && isNoteSkipping(noteSessionId) ? 'Завершуємо...' : 'Завершити без нотатки' }}
-                </button>
                 <div v-if="noteSaveMessage" class="note-save-feedback">{{ noteSaveMessage }}</div>
               </div>
             </div>
@@ -676,8 +668,13 @@
           <div class="muted note-modal__footer-hint">
             Збережіть потрібні поля й завершіть післясесійний крок.
           </div>
-          <button class="btn btn--sm note-modal__primary-action" type="button" @click="closeNote">
-            Завершити після сесії
+          <button
+            class="btn btn--sm note-modal__primary-action"
+            type="button"
+            :disabled="isPostSessionFinishing"
+            @click="finishPostSessionStep"
+          >
+            {{ isPostSessionFinishing ? 'Завершуємо...' : 'Завершити після сесії' }}
           </button>
         </div>
       </div>
@@ -1100,6 +1097,10 @@ const isNoteSaving = (id: number) => noteSaving.value.has(id)
 const isNoteSkipping = (id: number) => noteSkipping.value.has(id)
 const isRequestLoading = (id: number) => requestLoading.value.has(id)
 const isSuggestionsLoading = (id: number) => suggestionsLoading.value.has(id)
+const isPostSessionFinishing = computed(() => {
+  const id = noteSessionId.value
+  return Boolean(id && (isNoteSaving(id) || isNoteSkipping(id))) || journalSaving.value
+})
 
 function formatDateTime(value?: string | null) {
   return sharedFormatSessionDateTime(value)
@@ -1626,24 +1627,32 @@ async function saveNote(id: number) {
   }
 }
 
-async function skipNote(id: number) {
-  if (journalClientId.value && journalDraft.value !== journalInitialDraft.value) {
-    const proceed = window.confirm(
-      'У робочому зошиті є незбережені зміни. Завершити крок без нотатки без збереження цих змін?'
-    )
-    if (!proceed) return
-  }
-
+async function finishPostSessionStep() {
+  const id = noteSessionId.value
+  if (!id || isPostSessionFinishing.value) return
   setNoteSkipping(id, true)
   error.value = ''
   try {
-    await skipSpecialistSessionNoteAction(id)
-    toast.success('Крок після сесії завершено без нотатки.')
+    const noteText = noteDraft.value.trim()
+    if (noteText) {
+      await saveSpecialistSessionNoteAction(id, noteDraft.value)
+      noteInitialDraft.value = noteDraft.value
+    } else {
+      await skipSpecialistSessionNoteAction(id)
+    }
+
+    if (journalClientId.value && journalDraft.value !== journalInitialDraft.value) {
+      await saveSpecialistClientJournalAction(journalClientId.value, journalDraft.value)
+      journalInitialDraft.value = journalDraft.value
+      journalIsMissing.value = !Boolean(journalDraft.value.trim())
+    }
+
+    toast.success('Післясесійний крок завершено.')
     resetNoteModalState()
     clearPostSessionContext()
     await loadSessions()
   } catch (err: any) {
-    error.value = getBookingErrorMessage(err, 'Не вдалося завершити крок без нотатки')
+    error.value = getBookingErrorMessage(err, 'Не вдалося завершити післясесійний крок')
   } finally {
     setNoteSkipping(id, false)
   }

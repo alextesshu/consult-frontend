@@ -915,7 +915,7 @@ describe('TherapistSessionsView', () => {
     expect(document.querySelectorAll('.note-save-feedback').length).toBeGreaterThan(1)
   })
 
-  it('shows session context in note modal and can finish without a note', async () => {
+  it('shows session context and finishes through the primary action without a note', async () => {
     mockRoute.hash = '#note-31'
     const completedSession = buildSession({
       id: 31,
@@ -946,7 +946,8 @@ describe('TherapistSessionsView', () => {
     expect(screen.getByText('Статус:')).toBeInTheDocument()
     expect(screen.getByText("Нотатка необов'язкова. Ви можете завершити цей крок без тексту.")).toBeInTheDocument()
 
-    await fireEvent.click(screen.getByRole('button', { name: 'Завершити без нотатки' }))
+    expect(screen.queryByRole('button', { name: 'Завершити без нотатки' })).not.toBeInTheDocument()
+    await fireEvent.click(screen.getByRole('button', { name: 'Завершити після сесії' }))
 
     await waitFor(() => {
       expect(mockedSkipSpecialistSessionNote).toHaveBeenCalledWith(31)
@@ -954,10 +955,10 @@ describe('TherapistSessionsView', () => {
     })
     expect(mockedSaveSpecialistSessionNote).not.toHaveBeenCalled()
     expect(screen.queryByText('Без нотатки')).not.toBeInTheDocument()
-    expect(mockToast.success).toHaveBeenCalledWith('Крок після сесії завершено без нотатки.')
+    expect(mockToast.success).toHaveBeenCalledWith('Післясесійний крок завершено.')
   })
 
-  it('does not skip note when workbook has unsaved changes and specialist cancels warning', async () => {
+  it('saves workbook changes when finishing without a note', async () => {
     mockRoute.hash = '#note-32'
     const completedSession = buildSession({
       id: 32,
@@ -978,19 +979,54 @@ describe('TherapistSessionsView', () => {
       throw new Error(`Unexpected apiGet call: ${url}`)
     })
     mockedFetchSpecialistClientWorkbookSnapshot.mockResolvedValue({ content: 'Initial workbook', isMissing: false })
-    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false)
 
     renderView()
 
     const workbookField = await screen.findByDisplayValue('Initial workbook')
     await fireEvent.update(workbookField, 'Unsaved workbook')
-    await fireEvent.click(screen.getByRole('button', { name: 'Завершити без нотатки' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Завершити після сесії' }))
 
-    expect(confirmSpy).toHaveBeenCalled()
+    await waitFor(() => {
+      expect(mockedSkipSpecialistSessionNote).toHaveBeenCalledWith(32)
+      expect(mockedSaveSpecialistClientJournal).toHaveBeenCalledWith(132, 'Unsaved workbook')
+      expect(document.querySelector('.note-modal')).not.toBeInTheDocument()
+    })
+  })
+
+  it('saves a non-empty note through the primary action without skipping it', async () => {
+    mockRoute.hash = '#note-33'
+    const completedSession = buildSession({
+      id: 33,
+      status: 'COMPLETED',
+      client: 133,
+      client_name: 'Note Client',
+      client_email: 'note-client@example.com',
+      slot_start_at: '2026-04-24T04:00:00Z',
+      slot_end_at: '2026-04-24T04:50:00Z',
+    })
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/booking/sessions/' && (config as { params?: { upcoming?: boolean } } | undefined)?.params?.upcoming) {
+        return []
+      }
+      if (url === '/booking/sessions/' && (config as { params?: { upcoming?: boolean } } | undefined)?.params?.upcoming === false) {
+        return [completedSession]
+      }
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedFetchSpecialistSessionNoteContent.mockResolvedValue('')
+    mockedFetchSpecialistClientWorkbookSnapshot.mockResolvedValue({ content: '', isMissing: true })
+
+    renderView()
+
+    const noteField = await screen.findByPlaceholderText(/Короткий коментар/)
+    await fireEvent.update(noteField, 'Післясесійна нотатка')
+    await fireEvent.click(screen.getByRole('button', { name: 'Завершити після сесії' }))
+
+    await waitFor(() => {
+      expect(mockedSaveSpecialistSessionNote).toHaveBeenCalledWith(33, 'Післясесійна нотатка')
+      expect(document.querySelector('.note-modal')).not.toBeInTheDocument()
+    })
     expect(mockedSkipSpecialistSessionNote).not.toHaveBeenCalled()
-    expect(screen.getByDisplayValue('Unsaved workbook')).toBeInTheDocument()
-
-    confirmSpy.mockRestore()
   })
 
   it('confirms before closing note modal when there are unsaved changes', async () => {
@@ -1037,7 +1073,7 @@ describe('TherapistSessionsView', () => {
     const noteField = await screen.findByDisplayValue('Initial guarded note')
     await fireEvent.update(noteField, 'Unsaved guarded note')
 
-    const closeButton = document.querySelector('.note-modal__primary-action') as HTMLButtonElement | null
+    const closeButton = screen.getByRole('button', { name: 'Закрити' }) as HTMLButtonElement | null
     expect(closeButton).toBeTruthy()
     await fireEvent.click(closeButton as HTMLButtonElement)
     expect(confirmSpy).toHaveBeenCalledTimes(1)
