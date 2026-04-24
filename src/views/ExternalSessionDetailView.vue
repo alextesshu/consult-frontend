@@ -181,6 +181,70 @@
           </datalist>
         </template>
 
+        <template v-else>
+          <div class="session-parameters">
+            <div v-if="isOnlineSession" class="meeting-share-card" :class="{ 'meeting-share-card--attention': meetingUrl && !hasInviteState }">
+              <div class="meeting-share-card__content">
+                <div class="detail-label">Посилання на онлайн-зустріч</div>
+                <a
+                  v-if="meetingUrl"
+                  class="meeting-link-value"
+                  :href="meetingUrl"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {{ meetingUrl }}
+                </a>
+                <div v-else class="muted">Посилання ще не додано.</div>
+                <p class="muted meeting-share-card__hint">
+                  Це внутрішнє посилання на онлайн-зустріч. Не надсилайте його гостю напряму.
+                  Для гостя створіть гостьове запрошення нижче.
+                </p>
+                <p v-if="meetingUrl" class="muted meeting-share-card__hint">
+                  Буде показане гостю після відкриття гостьового запрошення.
+                </p>
+                <div v-if="meetingUrl && !hasInviteState" class="meeting-share-card__attention">
+                  Гостьове запрошення ще не створено
+                </div>
+              </div>
+              <div class="meeting-share-card__actions">
+                <button
+                  v-if="inviteUrl"
+                  class="btn"
+                  type="button"
+                  :disabled="inviteActionPending || isCancelled || invitePrimaryStatus !== 'active'"
+                  @click="copyInviteLink"
+                >
+                  Скопіювати гостьове запрошення
+                </button>
+                <button
+                  v-else-if="invite && shouldShowGetNewInviteUrlAction"
+                  class="btn"
+                  type="button"
+                  :disabled="inviteActionPending || isCancelled"
+                  @click="regenerateInvite"
+                >
+                  {{ inviteAction === 'regenerate' ? 'Отримуємо посилання…' : 'Отримати гостьове посилання' }}
+                </button>
+                <button
+                  v-else-if="!hasInviteState"
+                  class="btn"
+                  type="button"
+                  :disabled="inviteActionPending || isCancelled"
+                  @click="createInvite"
+                >
+                  {{ inviteAction === 'create' ? 'Створюємо…' : 'Створити гостьове запрошення' }}
+                </button>
+              </div>
+            </div>
+
+            <div v-else class="offline-info-card">
+              <div class="detail-label">Локація</div>
+              <div>{{ session.offline_location_snapshot || 'Локацію не вказано.' }}</div>
+            </div>
+          </div>
+        </template>
+
         <p v-if="isCancelled" class="muted">Сесію скасовано. Редагування та активні дії з запрошенням вимкнено.</p>
       </section>
 
@@ -248,7 +312,7 @@
             </div>
 
             <div v-if="inviteUrl" class="invite-link-block">
-              <div class="muted">Гостьове посилання</div>
+              <div class="muted">Посилання для гостя</div>
               <a :href="inviteUrl" class="invite-link-value" target="_blank" rel="noopener noreferrer">{{ inviteUrl }}</a>
             </div>
 
@@ -258,7 +322,7 @@
           </template>
 
           <template v-else>
-            <div class="muted">Активне запрошення ще не створено.</div>
+            <div class="muted">Запрошення ще не створено. Створіть його, щоб надіслати гостю безпечне посилання.</div>
             <div class="actions-row">
               <button class="btn" type="button" :disabled="inviteActionPending || isCancelled" @click="createInvite">
                 {{ inviteAction === 'create' ? 'Створюємо…' : 'Створити запрошення' }}
@@ -335,6 +399,8 @@ const inviteAction = ref<InviteAction>(null)
 const copyLabel = ref('Скопіювати посилання')
 
 const isCancelled = computed(() => session.value?.status === 'CANCELLED')
+const isOnlineSession = computed(() => session.value?.session_format !== 'offline')
+const meetingUrl = computed(() => (isOnlineSession.value ? String(session.value?.meeting_url || '').trim() : ''))
 const isEditOnline = computed(() => editDraft.value.session_format === 'online')
 const inviteActionPending = computed(() => inviteAction.value !== null)
 const hasInviteState = computed(() => Boolean(invite.value || inviteUrl.value))
@@ -502,6 +568,7 @@ async function loadInvite() {
   try {
     const payload = await fetchExternalSessionInvite(session.value.id)
     invite.value = payload || null
+    inviteUrl.value = resolveInviteUrl({ invite: payload || null })
   } catch (err: any) {
     if (err?.response?.status === 404) {
       invite.value = null
@@ -757,6 +824,61 @@ watch(
   align-items: center;
 }
 
+.session-parameters {
+  display: grid;
+  gap: 12px;
+}
+
+.meeting-share-card,
+.offline-info-card {
+  display: grid;
+  gap: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  background: #f8fafc;
+}
+
+.meeting-share-card {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: flex-start;
+}
+
+.meeting-share-card--attention {
+  border-color: rgba(217, 164, 65, 0.45);
+  background: rgba(217, 164, 65, 0.08);
+}
+
+.meeting-share-card__content,
+.meeting-share-card__actions {
+  display: grid;
+  gap: 8px;
+}
+
+.meeting-share-card__actions {
+  justify-items: end;
+}
+
+.meeting-share-card__hint {
+  margin: 0;
+}
+
+.meeting-share-card__attention {
+  width: fit-content;
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  background: rgba(217, 164, 65, 0.16);
+  color: #8a5b08;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.meeting-link-value {
+  font-size: 13px;
+  color: #0b5cad;
+  word-break: break-all;
+}
+
 .invite-link-block {
   display: grid;
   gap: 4px;
@@ -805,6 +927,14 @@ watch(
   .detail-hero {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .meeting-share-card {
+    grid-template-columns: 1fr;
+  }
+
+  .meeting-share-card__actions {
+    justify-items: stretch;
   }
 }
 </style>

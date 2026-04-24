@@ -1259,3 +1259,42 @@ Current status:
 * Home first-pass is good enough to move to the next public/conversion page.
 * Do not treat Home as final.
 * Return to Home after at least one more key public page is aligned with the new visual system.
+
+---
+
+## 19. External Sessions UX Safety Log
+
+### 2026-04-24 — Guest invite primary sharing path
+
+Changed scope:
+
+* `src/views/ExternalSessionDetailView.vue`
+* `src/views/ExternalSessionDetailView.spec.ts`
+
+What changed:
+
+* Added clear explanation near the online meeting URL that it is an internal meeting link and should not be sent directly to the guest.
+* Added attention state when an online external session has a meeting URL but no guest invite yet.
+* Added primary CTA near session parameters to create a guest invitation when no invite exists.
+* Added action near session parameters to copy the guest invitation when invite already exists.
+* Updated the guest access section to label the guest URL as `Посилання для гостя`.
+* Kept offline sessions free from online-specific warning copy.
+* Preserved the existing guest invite section.
+
+Preserved:
+
+* Existing external session route.
+* Existing guest invite business logic.
+* Existing meeting URL handling.
+* Existing offline session behavior.
+* Existing guest access section.
+* Existing backend contracts.
+* Existing sharing/copy behavior.
+* Existing tests, extended where needed.
+
+Verification:
+
+```bash
+npm run test:run -- src/views/ExternalSessionDetailView.spec.ts
+npm run typecheck
+npm run build

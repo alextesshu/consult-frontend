@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/vue'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import ExternalSessionDetailView from './ExternalSessionDetailView.vue'
 import {
@@ -107,12 +107,103 @@ describe('ExternalSessionDetailView', () => {
     expect(screen.getByText('Зведення')).toBeInTheDocument()
     expect(screen.getAllByText('Гостьовий доступ').length).toBeGreaterThan(0)
     expect(screen.getByRole('button', { name: 'Редагувати' })).toBeInTheDocument()
-    expect(await screen.findByText('Активне запрошення ще не створено.')).toBeInTheDocument()
+    expect(await screen.findByText('Запрошення ще не створено. Створіть його, щоб надіслати гостю безпечне посилання.')).toBeInTheDocument()
     expect(container.querySelector('input[type="datetime-local"]')).not.toBeInTheDocument()
     expect(container.querySelector('input[type="date"]')).not.toBeInTheDocument()
     expect(container.querySelector('input[inputmode="numeric"]')).not.toBeInTheDocument()
     expect(mockedFetchExternalSessionDetail).toHaveBeenCalledWith(21)
     expect(mockedFetchExternalSessionInvite).toHaveBeenCalledWith(21)
+  })
+
+  it('promotes safe guest invite CTA near online meeting URL when invite does not exist', async () => {
+    mockedCreateExternalSessionInvite.mockResolvedValue({
+      invite: {
+        id: 31,
+        external_session_id: 21,
+        status: 'ACTIVE',
+        expires_at: '2099-06-16T10:00:00Z',
+        opened_at: null,
+        last_opened_at: null,
+        joined_at: null,
+        created_at: null,
+        updated_at: null,
+      },
+    } as any)
+
+    const { container } = renderView()
+    await screen.findByText('Посилання на онлайн-зустріч')
+
+    const meetingCard = container.querySelector('.meeting-share-card') as HTMLElement | null
+    expect(meetingCard).not.toBeNull()
+    expect(within(meetingCard as HTMLElement).getByText('https://meet.google.com/demo')).toBeInTheDocument()
+    expect(
+      within(meetingCard as HTMLElement).getByText('Це внутрішнє посилання на онлайн-зустріч. Не надсилайте його гостю напряму. Для гостя створіть гостьове запрошення нижче.')
+    ).toBeInTheDocument()
+    expect(
+      within(meetingCard as HTMLElement).getByText('Буде показане гостю після відкриття гостьового запрошення.')
+    ).toBeInTheDocument()
+    expect(within(meetingCard as HTMLElement).getByText('Гостьове запрошення ще не створено')).toBeInTheDocument()
+
+    await fireEvent.click(within(meetingCard as HTMLElement).getByRole('button', { name: 'Створити гостьове запрошення' }))
+
+    await waitFor(() => {
+      expect(mockedCreateExternalSessionInvite).toHaveBeenCalledWith(21)
+    })
+  })
+
+  it('shows existing invite as guest link with copy action instead of a raw meeting share link', async () => {
+    const clipboardWrite = vi.fn().mockResolvedValue(undefined)
+    vi.stubGlobal('navigator', {
+      clipboard: { writeText: clipboardWrite },
+    })
+    mockedFetchExternalSessionInvite.mockResolvedValue({
+      id: 32,
+      external_session_id: 21,
+      status: 'ACTIVE',
+      expires_at: '2099-06-16T10:00:00Z',
+      opened_at: null,
+      last_opened_at: null,
+      joined_at: null,
+      created_at: null,
+      updated_at: null,
+      invite_url: 'https://proconsult.space/guest/external-session/existing-token',
+    } as any)
+
+    const { container } = renderView()
+    expect(await screen.findByText('Посилання для гостя')).toBeInTheDocument()
+    expect(screen.queryByText('Гостьове посилання')).not.toBeInTheDocument()
+
+    const meetingCard = container.querySelector('.meeting-share-card') as HTMLElement | null
+    expect(meetingCard).not.toBeNull()
+    expect(within(meetingCard as HTMLElement).queryByText('Гостьове запрошення ще не створено')).not.toBeInTheDocument()
+    expect(
+      within(meetingCard as HTMLElement).getByRole('button', { name: 'Скопіювати гостьове запрошення' })
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('link', { name: 'https://proconsult.space/guest/external-session/existing-token' })
+    ).toBeInTheDocument()
+
+    await fireEvent.click(within(meetingCard as HTMLElement).getByRole('button', { name: 'Скопіювати гостьове запрошення' }))
+    await waitFor(() => {
+      expect(clipboardWrite).toHaveBeenCalledWith('https://proconsult.space/guest/external-session/existing-token')
+    })
+  })
+
+  it('does not show online meeting URL warning for offline session', async () => {
+    mockedFetchExternalSessionDetail.mockResolvedValue(
+      baseSession({
+        session_format: 'offline',
+        meeting_url: 'https://meet.google.com/should-not-be-shared',
+        offline_location_snapshot: 'Київ, вул. Тестова, 1',
+      }) as any
+    )
+
+    const { container } = renderView()
+    expect(await screen.findByText('Локація')).toBeInTheDocument()
+    expect(screen.getByText('Київ, вул. Тестова, 1')).toBeInTheDocument()
+    expect(screen.queryByText('Це внутрішнє посилання на онлайн-зустріч. Не надсилайте його гостю напряму. Для гостя створіть гостьове запрошення нижче.')).not.toBeInTheDocument()
+    expect(screen.queryByText('Гостьове запрошення ще не створено')).not.toBeInTheDocument()
+    expect(container.querySelector('.meeting-share-card')).toBeNull()
   })
 
   it('opens edit mode and closes with cancel while resetting local draft', async () => {
@@ -171,7 +262,7 @@ describe('ExternalSessionDetailView', () => {
     } as any)
 
     renderView()
-    await screen.findByText('Активне запрошення ще не створено.')
+    await screen.findByText('Запрошення ще не створено. Створіть його, щоб надіслати гостю безпечне посилання.')
 
     const createInviteButton = await screen.findByRole('button', { name: 'Створити запрошення' })
     await fireEvent.click(createInviteButton)
@@ -184,7 +275,7 @@ describe('ExternalSessionDetailView', () => {
     await waitFor(() => {
       expect(clipboardWrite).toHaveBeenCalledWith('https://proconsult.space/guest/external-session/new-token')
     })
-    expect(screen.getByText('Гостьове посилання')).toBeInTheDocument()
+    expect(screen.getByText('Посилання для гостя')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'https://proconsult.space/guest/external-session/new-token' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Скопіювати посилання|Скопійовано/ })).toBeInTheDocument()
   })
@@ -229,7 +320,7 @@ describe('ExternalSessionDetailView', () => {
     renderView()
     await screen.findByText('Деталі гостьової сесії')
 
-    expect(screen.getByText('Активне запрошення ще не створено.')).toBeInTheDocument()
+    expect(screen.getByText('Запрошення ще не створено. Створіть його, щоб надіслати гостю безпечне посилання.')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Створити запрошення' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Перевидати' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Відкликати' })).not.toBeInTheDocument()
@@ -301,7 +392,7 @@ describe('ExternalSessionDetailView', () => {
       expect(toast.success).toHaveBeenCalledWith('Нове посилання скопійовано.')
     })
 
-    expect(screen.getByText('Гостьове посилання')).toBeInTheDocument()
+    expect(screen.getByText('Посилання для гостя')).toBeInTheDocument()
     expect(
       screen.getByRole('link', { name: 'https://proconsult.space/guest/external-session/new-from-regenerate' })
     ).toBeInTheDocument()
@@ -341,7 +432,7 @@ describe('ExternalSessionDetailView', () => {
     await waitFor(() => {
       expect(toast.success).toHaveBeenCalledWith('Посилання запрошення готове до копіювання.')
     })
-    expect(screen.getByText('Гостьове посилання')).toBeInTheDocument()
+    expect(screen.getByText('Посилання для гостя')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Скопіювати посилання|Скопійовано/ })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'https://proconsult.space/guest/external-session/fallback-url' })).toBeInTheDocument()
   })
@@ -483,7 +574,7 @@ describe('ExternalSessionDetailView', () => {
       expect(mockedRegenerateExternalSessionInvite).toHaveBeenCalledWith(21)
       expect(mockedFetchExternalSessionInvite).toHaveBeenCalledTimes(2)
     })
-    expect(screen.getByText('Активне запрошення ще не створено.')).toBeInTheDocument()
+    expect(screen.getByText('Запрошення ще не створено. Створіть його, щоб надіслати гостю безпечне посилання.')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Перевидати' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Відкликати' })).not.toBeInTheDocument()
   })
@@ -520,7 +611,7 @@ describe('ExternalSessionDetailView', () => {
       expect(mockedRevokeExternalSessionInvite).toHaveBeenCalledWith(21)
       expect(mockedFetchExternalSessionInvite).toHaveBeenCalledTimes(2)
     })
-    expect(screen.getByText('Активне запрошення ще не створено.')).toBeInTheDocument()
+    expect(screen.getByText('Запрошення ще не створено. Створіть його, щоб надіслати гостю безпечне посилання.')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Перевидати' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Відкликати' })).not.toBeInTheDocument()
   })
