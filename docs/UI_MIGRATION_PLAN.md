@@ -988,3 +988,27 @@ Preserved:
 Notes:
 
 Hero area is now partially aligned with the new PRO CONSULT visual direction. Further work should continue section by section.
+
+### 2026-04-24 — Home value cards polish
+
+Changed scope:
+
+* `src/views/HomeView.vue`
+
+What changed:
+
+* Updated Home value cards to use the new PRO CONSULT visual tokens.
+* Added softer card radius, border, shadow, and subtle decorative circles.
+* Kept FAQ and pricing cards separated from value card styling to avoid accidental broad visual changes.
+
+Preserved:
+
+* Existing value proposition content.
+* Existing Home page layout.
+* Existing FAQ card styling.
+* Existing pricing teaser card styling.
+* Existing script logic.
+
+Notes:
+
+This step intentionally affects only the value cards below the hero.

@@ -890,7 +890,14 @@ onBeforeUnmount(() => {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-.value-card,
+.value-card {
+  border: 1px solid var(--pc-border);
+  border-radius: var(--radius-xl);
+  background: rgba(255, 255, 255, 0.86);
+  padding: 22px;
+  box-shadow: var(--pc-shadow-soft);
+}
+
 .faq-card,
 .plan-card {
   border: 1px solid color-mix(in srgb, var(--primary) 20%, var(--border));
@@ -899,18 +906,41 @@ onBeforeUnmount(() => {
   padding: 18px;
 }
 
-.plan-card {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+.value-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.value-card::before {
+  content: '';
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius-pill);
+  background: var(--pc-teal-100);
+  opacity: 0.9;
 }
 
 .value-card--accent {
-  background: linear-gradient(180deg, rgba(17, 64, 54, 0.1), rgba(255, 255, 255, 0.9));
-  border-color: color-mix(in srgb, var(--primary) 30%, var(--border));
+  background:
+    radial-gradient(220px 140px at 88% 12%, rgba(143, 203, 200, 0.2), transparent 72%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92), var(--pc-bg-card));
+  border-color: rgba(18, 52, 90, 0.14);
 }
 
-.value-card__title,
+.value-card--accent:nth-child(2)::before {
+  background: var(--pc-peach-100);
+}
+
+.value-card__title {
+  margin: 0 0 8px;
+  font-size: 19px;
+  line-height: 1.3;
+  color: var(--pc-navy-950);
+}
+
 .faq-card__title,
 .plan-card__title {
   margin: 0 0 8px;
