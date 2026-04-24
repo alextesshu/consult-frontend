@@ -118,6 +118,7 @@ async function renderWithProviders(options?: {
     { path: '/cabinet/external-sessions', component: { template: '<div>Cabinet External Sessions</div>' } },
     { path: '/cabinet/analytics', component: { template: '<div>Cabinet Analytics</div>' } },
     { path: '/cabinet/billing', component: { template: '<div>Cabinet Billing</div>' } },
+    { path: '/cabinet/journal', component: { template: '<div>Cabinet Journal</div>' } },
     { path: '/cabinet/settings', component: { template: '<div>Cabinet Settings</div>' } },
     { path: '/cabinet/settings/notifications', component: { template: '<div>Cabinet Notifications</div>' } },
     { path: '/public', component: { template: '<div>Public Redirect</div>' } },
@@ -299,6 +300,10 @@ describe('App shell', () => {
       '/cabinet/external-sessions'
     )
     expect(within(sidebar).getByRole('link', { name: 'Чати' })).toHaveAttribute('href', '/cabinet/chat')
+    expect(within(sidebar).getByRole('link', { name: 'Авторський журнал' })).toHaveAttribute(
+      'href',
+      '/cabinet/journal'
+    )
     expect(within(sidebar).getByRole('link', { name: 'Аналітика' })).toHaveAttribute('href', '/cabinet/analytics')
     expect(within(sidebar).getByRole('link', { name: 'Тарифи і доступ' })).toHaveAttribute(
       'href',
@@ -326,6 +331,16 @@ describe('App shell', () => {
 
     const sidebar = screen.getByRole('navigation', { name: 'Навігація кабінету спеціаліста' })
     expect(within(sidebar).getByRole('link', { name: 'Чати' })).toHaveClass('is-active')
+  })
+
+  it('highlights the specialist author journal sidebar item on journal route', async () => {
+    await renderWithProviders({
+      initialPath: '/cabinet/journal',
+      roles: ['SPECIALIST'],
+    })
+
+    const sidebar = screen.getByRole('navigation', { name: 'Навігація кабінету спеціаліста' })
+    expect(within(sidebar).getByRole('link', { name: 'Авторський журнал' })).toHaveClass('is-active')
   })
 
   it('does not show specialist sidebar for client users', async () => {
@@ -367,6 +382,10 @@ describe('App shell', () => {
       '/cabinet/external-sessions'
     )
     expect(within(drawer).getByRole('link', { name: 'Чати' })).toHaveAttribute('href', '/cabinet/chat')
+    expect(within(drawer).getByRole('link', { name: 'Авторський журнал' })).toHaveAttribute(
+      'href',
+      '/cabinet/journal'
+    )
     expect(within(drawer).getByRole('link', { name: 'Аналітика' })).toHaveAttribute('href', '/cabinet/analytics')
     expect(within(drawer).getByRole('link', { name: 'Тарифи і доступ' })).toHaveAttribute('href', '/cabinet/billing')
     expect(within(drawer).getByRole('link', { name: 'Налаштування' })).toHaveAttribute('href', '/cabinet/settings')
