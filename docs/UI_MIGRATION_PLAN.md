@@ -1037,3 +1037,106 @@ Preserved:
 Notes:
 
 This step intentionally affects only the walkthrough section header and navigation chips. The walkthrough feature blocks themselves are not migrated yet.
+
+### 2026-04-24 — Home walkthrough feature cards first pass
+
+Changed scope:
+
+* `src/views/HomeView.vue`
+
+What changed:
+
+* Updated walkthrough feature blocks to use the new PRO CONSULT card style.
+* Added softer border, radius, shadow, and cream/navy/teal background treatment.
+* Reduced excessive width by limiting feature cards to `1180px`.
+* Reduced spacing between walkthrough feature cards.
+* Updated walkthrough feature title typography.
+
+Preserved:
+
+* Existing walkthrough section order.
+* Existing anchors and chip navigation.
+* Existing active section tracking.
+* Existing IntersectionObserver logic.
+* Existing image paths.
+* Existing responsive structure.
+* Existing script logic.
+
+Notes:
+
+This is a first pass for the large walkthrough feature cards. Further polish may include product-shot top bars, text spacing, and mobile layout checks.
+
+### 2026-04-24 — Home walkthrough product-shot polish
+
+Changed scope:
+
+* `src/views/HomeView.vue`
+
+What changed:
+
+* Updated product-shot top bars to the new PRO CONSULT visual system.
+* Replaced old green-tinted borders with softer `--pc-border`.
+* Updated browser dots to teal.
+* Updated viewport backgrounds with subtle teal/peach accents.
+* Improved visual consistency between hero screenshots and walkthrough screenshots.
+
+Preserved:
+
+* Existing product screenshot assets.
+* Existing walkthrough card layout.
+* Existing anchors and chip behavior.
+* Existing script logic.
+* Existing responsive structure.
+
+Notes:
+
+Walkthrough feature blocks now visually align better with the new Home hero direction.
+
+### 2026-04-24 — Home final CTA polish
+
+Changed scope:
+
+* `src/views/HomeView.vue`
+
+What changed:
+
+* Updated final CTA to use the new PRO CONSULT navy / cream / teal / peach visual direction.
+* Added softer radius, border, shadow, and background accents.
+* Updated final CTA heading typography.
+* Updated final CTA buttons locally without changing global `.btn`.
+
+Preserved:
+
+* Existing CTA copy.
+* Existing signup route.
+* Existing pricing route.
+* Existing authenticated cabinet redirect logic.
+* Existing script logic.
+
+Notes:
+
+Final CTA is now visually aligned with the first Home migration pass. Footer remains a separate future task.
+
+### 2026-04-24 — Home FAQ cards polish
+
+Changed scope:
+
+* `src/views/HomeView.vue`
+
+What changed:
+
+* Updated FAQ cards to use the new PRO CONSULT card style.
+* Separated FAQ card styling from pricing card styling.
+* Updated FAQ title typography to use navy color.
+* Preserved pricing card overrides.
+
+Preserved:
+
+* Existing FAQ copy.
+* Existing FAQ section layout.
+* Existing pricing teaser styles.
+* Existing script logic.
+
+Notes:
+
+FAQ cards are now visually aligned with the Home first-pass redesign.
