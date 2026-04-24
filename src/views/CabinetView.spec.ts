@@ -148,6 +148,22 @@ describe('CabinetView', () => {
     })
   })
 
+  it('routes plan upgrade CTA to cabinet billing page', async () => {
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/cabinet/entitlements/') return {}
+      if (config?.params?.upcoming === true) return []
+      if (config?.params?.upcoming === false) return []
+      return []
+    })
+
+    const view = renderView()
+
+    await waitFor(() => {
+      expect(view.container.querySelector('a[href="/cabinet/billing"]')).toBeInTheDocument()
+    })
+    expect(view.container.querySelector('a[href="/pricing"]')).not.toBeInTheDocument()
+  })
+
   it('renders guest quota zero state without breaking plan metrics', async () => {
     mockedApiGet.mockImplementation(async (url, config) => {
       if (url === '/cabinet/entitlements/') {

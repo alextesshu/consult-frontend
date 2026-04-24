@@ -290,7 +290,7 @@
           <RouterLink
             v-if="showUpgradeButton"
             class="btn btn--ghost btn--sm"
-            to="/pricing"
+            to="/cabinet/billing"
           >
             Оновити план
           </RouterLink>
