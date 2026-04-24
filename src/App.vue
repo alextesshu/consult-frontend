@@ -948,11 +948,13 @@ watch(isChatCapable, (value) => {
 <style scoped>
 .shell {
   --shell-inline-pad: 24px;
+  width: 100%;
   max-width: none;
   margin: 0 auto;
   padding: 0 var(--shell-inline-pad) 48px;
   display: grid;
   gap: 24px;
+  min-width: 0;
 }
 
 .shell--authenticated {
@@ -989,16 +991,17 @@ watch(isChatCapable, (value) => {
   border-bottom: 1px solid color-mix(in srgb, var(--topbar-text) 16%, transparent);
   color: var(--topbar-text);
   width: 100%;
-  max-width: none;
+  max-width: 100%;
   margin: 0;
   border-radius: 0;
   padding: 0;
   box-shadow: 0 10px 24px rgba(8, 24, 20, 0.14);
+  min-width: 0;
 }
 
 .shell:not(.shell--home):not(.shell--minimal) .topbar {
-  width: calc(100% + (var(--shell-inline-pad) * 2));
-  margin: 0 calc(var(--shell-inline-pad) * -1);
+  width: 100%;
+  margin: 0;
 }
 
 .topbar::after {
@@ -1019,9 +1022,9 @@ watch(isChatCapable, (value) => {
 }
 
 .topbar__inner {
-  --marketing-shell-width: min(1480px, 96vw);
+  --marketing-shell-width: min(1480px, 100%);
   width: 100%;
-  max-width: none;
+  max-width: 100%;
   margin: 0 auto;
   min-height: 66px;
   display: flex;
@@ -1029,6 +1032,7 @@ watch(isChatCapable, (value) => {
   justify-content: space-between;
   gap: 24px;
   padding: 13px 24px;
+  min-width: 0;
 }
 
 .topbar--specialist,
@@ -1100,6 +1104,7 @@ watch(isChatCapable, (value) => {
   display: grid;
   gap: 3px;
   color: inherit;
+  min-width: 0;
 }
 
 .brand__mark {
@@ -1169,6 +1174,7 @@ watch(isChatCapable, (value) => {
   font-weight: 300;
   flex-wrap: wrap;
   justify-content: flex-end;
+  min-width: 0;
 }
 
 .nav__primary-action {
@@ -1290,6 +1296,7 @@ watch(isChatCapable, (value) => {
   gap: 14px;
   align-items: center;
   flex-wrap: nowrap;
+  min-width: 0;
 }
 
 .topbar--specialist .nav a,
@@ -1687,6 +1694,9 @@ watch(isChatCapable, (value) => {
   grid-template-columns: 220px minmax(0, 1fr);
   gap: 20px;
   align-items: start;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .specialist-sidebar {
@@ -1754,16 +1764,18 @@ watch(isChatCapable, (value) => {
 
 .main {
   min-height: 320px;
-  width: min(1200px, 92vw);
+  width: min(1200px, 100%);
+  max-width: 100%;
   margin: 0 auto;
+  min-width: 0;
 }
 
 .main--authenticated {
-  width: min(1480px, 96vw);
+  width: min(1480px, 100%);
 }
 
 .main--specialist-shell {
-  width: min(1540px, 96vw);
+  width: min(1540px, 100%);
 }
 
 .main--tour {
@@ -1814,6 +1826,8 @@ body.body--home .footer {
   font-weight: 400;
   line-height: 1.45;
   flex-wrap: wrap;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .footer__brand {

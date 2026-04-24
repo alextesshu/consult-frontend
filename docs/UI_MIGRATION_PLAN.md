@@ -1335,7 +1335,68 @@ npm run test:run -- src/views/PublicProfileView.spec.ts src/components/public-pr
 npm run typecheck
 npm run build
 ```
+```
 
 Notes:
 
 This is a first safe visual pass for the public profile hero/top section only. Remaining future polish should migrate lower profile panels, slots, inquiry, reviews, media, journal preview, FAQ, and final CTA in separate scoped passes.
+
+---
+
+## 21. Specialist Dashboard Visual Migration Log
+
+### 2026-04-25 — Dashboard top and summary first safe pass
+
+Changed scope:
+
+* `src/views/CabinetView.vue`
+
+What changed:
+
+* Updated the specialist dashboard shell backdrop and hero/header card toward the PRO CONSULT navy / cream / teal / peach visual system.
+* Applied local `--pc-*` token styling to the dashboard hero, live-session status card, work queue panel, summary metric cards, action hub panel, and quick action tiles.
+* Softened borders, shadows, card backgrounds, and dashboard title hierarchy in the migrated top area.
+* Kept the migrated styling local to the dashboard top/summary blocks.
+
+Preserved:
+
+* Existing dashboard API calls and data normalization.
+* Existing onboarding/readiness logic.
+* Existing entitlement/access and Start limit fallback logic.
+* Existing work queue business rules and preview branches.
+* Existing session/client/payment state handling.
+* Existing routes and RouterLink targets.
+* Existing loading, error, empty, warning, and retry states.
+
+Verification:
+
+```bash
+npm run test:run -- src/views/CabinetView.spec.ts
+npm run typecheck
+npm run build
+```
+
+Notes:
+
+This is not a full dashboard redesign. Remaining future polish should migrate the detailed work queue cards, nearest session internals, plan/access panel, onboarding panel, loading/error states, and mobile density in separate scoped passes.
+
+### 2026-04-24 — Public profile hero layout clipping fix
+
+Changed scope:
+
+* `src/components/public-profile/PublicProfileHeroSection.vue`
+
+What changed:
+
+* Fixed specialist name clipping around 1180px viewport.
+* Moved general information below the main hero row on widths up to 1280px.
+* Made the photo column more compact on small desktop/tablet.
+* Allowed specialist name to wrap naturally instead of being clipped.
+* Preserved mobile stacked layout.
+
+Verification:
+
+```bash
+npm run test:run -- src/views/PublicProfileView.spec.ts src/components/public-profile/PublicProfileTrustSection.spec.ts
+npm run typecheck
+npm run build
