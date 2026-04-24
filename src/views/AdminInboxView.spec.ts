@@ -149,7 +149,7 @@ describe('AdminInboxView', () => {
 
     expect(screen.getByRole('heading', { name: 'Адмінські запити' })).toBeInTheDocument()
 
-    const countersRegion = screen.getByLabelText('Лічильники inbox')
+    const countersRegion = screen.getByLabelText('Лічильники адмін-запитів')
     expect(within(countersRegion).getByText('Непрочитані')).toBeInTheDocument()
     expect(within(countersRegion).getByText('В роботі')).toBeInTheDocument()
     expect(within(countersRegion).getByText('Усього')).toBeInTheDocument()

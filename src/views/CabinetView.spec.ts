@@ -164,6 +164,44 @@ describe('CabinetView', () => {
     expect(view.container.querySelector('a[href="/pricing"]')).not.toBeInTheDocument()
   })
 
+  it('uses Start fallback limit 3 from billing access model instead of stale legacy limit 5', async () => {
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/cabinet/entitlements/') return { effective_plan: 'START' }
+      if (config?.params?.upcoming === true) return []
+      if (config?.params?.upcoming === false) return []
+      return []
+    })
+
+    const view = renderView()
+
+    await waitFor(() => {
+      expect(mockedApiGet).toHaveBeenCalledWith('/cabinet/entitlements/')
+      expect(view.container).toHaveTextContent('Активні клієнти:')
+      expect(view.container).toHaveTextContent('3')
+    })
+    expect(view.container).not.toHaveTextContent('Активні клієнти: 1 з 5')
+  })
+
+  it('does not render beta-hidden Leader/internal feature labels on cabinet dashboard', async () => {
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/cabinet/entitlements/') return { effective_plan: 'START' }
+      if (config?.params?.upcoming === true) return []
+      if (config?.params?.upcoming === false) return []
+      return []
+    })
+
+    const view = renderView()
+
+    await waitFor(() => {
+      expect(view.container.querySelector('.cabinet__grid')).toBeInTheDocument()
+    })
+    expect(view.container).not.toHaveTextContent('Broadcast')
+    expect(view.container).not.toHaveTextContent('Групові онлайн-події')
+    expect(view.container).not.toHaveTextContent('Технічна місткість')
+    expect(view.container).not.toHaveTextContent('Ліміт подій')
+    expect(view.container).toHaveTextContent('Доступ до практики без комісій за сесію')
+  })
+
   it('renders guest quota zero state without breaking plan metrics', async () => {
     mockedApiGet.mockImplementation(async (url, config) => {
       if (url === '/cabinet/entitlements/') {

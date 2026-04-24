@@ -5,7 +5,6 @@ import BillingView from './BillingView.vue'
 import {
   apiGet,
   createBillingAccessRequest,
-  createBillingCheckoutSession,
   fetchBillingAccessRequestState,
 } from '../lib/api'
 
@@ -27,14 +26,12 @@ vi.mock('../lib/api', () => ({
   apiGet: vi.fn(),
   fetchBillingAccessRequestState: vi.fn(),
   createBillingAccessRequest: vi.fn(),
-  createBillingCheckoutSession: vi.fn(),
   getApiErrorMessage: vi.fn(() => 'Request failed'),
 }))
 
 const mockedApiGet = vi.mocked(apiGet)
 const mockedFetchBillingAccessRequestState = vi.mocked(fetchBillingAccessRequestState)
 const mockedCreateBillingAccessRequest = vi.mocked(createBillingAccessRequest)
-const mockedCreateBillingCheckoutSession = vi.mocked(createBillingCheckoutSession)
 
 function buildAccessSummary(overrides: Record<string, unknown> = {}) {
   return {
@@ -114,7 +111,6 @@ describe('BillingView downgrade semantics', () => {
     })
 
     mockedCreateBillingAccessRequest.mockReset()
-    mockedCreateBillingCheckoutSession.mockReset()
   })
 
   it('shows explanatory downgrade copy and no broken downgrade CTA for LEADER', async () => {
@@ -154,7 +150,7 @@ describe('BillingView downgrade semantics', () => {
 
     expect(screen.queryByText('Нижчий план')).not.toBeInTheDocument()
     expect(screen.queryByText('Перехід на нижчий план зараз оформлюється через підтримку.')).not.toBeInTheDocument()
-    expect(screen.getAllByRole('button', { name: 'Перейти на Pro' }).length).toBeGreaterThan(0)
+    expect(screen.getAllByRole('button', { name: 'Подати заявку на Pro' }).length).toBeGreaterThan(0)
   })
 
   it('uses neutral active-access label for OK state', async () => {
@@ -169,15 +165,22 @@ describe('BillingView downgrade semantics', () => {
     expect(screen.queryByText('Повний доступ')).not.toBeInTheDocument()
   })
 
-  it('shows calm fallback copy instead of raw checkout backend message', async () => {
+  it('uses beta access request flow instead of checkout payment wording', async () => {
     setCurrentPlan('START')
-    mockedCreateBillingCheckoutSession.mockResolvedValue({
-      plan: 'PRO',
-      billing_cycle: 'monthly',
-      checkout_url: null,
-      activation_source: 'VERIFIED_BILLING_WEBHOOK',
-      fallback_available: true,
-      message: 'Checkout URL не налаштований. Використайте fallback запит.',
+    mockedCreateBillingAccessRequest.mockResolvedValue({
+      has_pending_request: true,
+      request: {
+        id: 101,
+        therapist: 77,
+        requested_plan: 'PRO',
+        status: 'PENDING',
+        note: 'upgrade_from:START',
+        admin_note: 'Internal note must stay hidden',
+        created_at: '2026-03-31T10:00:00Z',
+        updated_at: '2026-03-31T10:00:00Z',
+        decided_at: null,
+        decided_by: null,
+      },
     })
     renderView()
 
@@ -185,24 +188,20 @@ describe('BillingView downgrade semantics', () => {
       expect(mockedFetchBillingAccessRequestState).toHaveBeenCalled()
     })
 
-    const upgradeButton = screen.getAllByRole('button', { name: 'Перейти на Pro' })[0]!
+    const upgradeButton = screen.getAllByRole('button', { name: 'Подати заявку на Pro' })[0]!
     await fireEvent.click(upgradeButton)
 
     await waitFor(() => {
-      expect(mockedCreateBillingCheckoutSession).toHaveBeenCalledWith({
-        plan: 'PRO',
-        billing_cycle: 'monthly',
+      expect(mockedCreateBillingAccessRequest).toHaveBeenCalledWith({
+        requested_plan: 'PRO',
+        note: 'upgrade_from:START',
       })
     })
 
-    expect(
-      screen.getAllByText(
-        'Онлайн-оплата для цього плану зараз недоступна. Ви можете залишити запит на індивідуальні умови.'
-      ).length
-    ).toBeGreaterThan(0)
-    expect(
-      screen.queryByText('Checkout URL не налаштований. Використайте fallback запит.')
-    ).not.toBeInTheDocument()
+    expect(screen.getAllByText('Заявку зафіксовано. Команда розгляне її вручну.').length).toBeGreaterThan(0)
+    expect(screen.queryByText(/онлайн-оплата/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/сторінка оплати/i)).not.toBeInTheDocument()
+    expect(screen.queryByText('Internal note must stay hidden')).not.toBeInTheDocument()
   })
 
   it('shows visible success feedback after requesting individual terms', async () => {
@@ -228,7 +227,7 @@ describe('BillingView downgrade semantics', () => {
       expect(mockedFetchBillingAccessRequestState).toHaveBeenCalled()
     })
 
-    const requestButtons = screen.getAllByRole('button', { name: 'Подати заявку на індивідуальні умови' })
+    const requestButtons = screen.getAllByRole('button', { name: 'Подати заявку на Pro' })
     await fireEvent.click(requestButtons[0]!)
 
     await waitFor(() => {
@@ -255,7 +254,7 @@ describe('BillingView downgrade semantics', () => {
     expect(screen.queryByRole('button', { name: 'Подати заявку на Leader' })).not.toBeInTheDocument()
     expect(screen.getAllByText('Тариф готується').length).toBeGreaterThan(0)
 
-    const requestButtons = screen.getAllByRole('button', { name: 'Подати заявку на індивідуальні умови' })
+    const requestButtons = screen.getAllByRole('button', { name: 'Подати заявку на Pro' })
     await fireEvent.click(requestButtons[0]!)
 
     await waitFor(() => {
@@ -365,12 +364,32 @@ describe('BillingView downgrade semantics', () => {
       expect(screen.getAllByText('Заявка очікує розгляду').length).toBeGreaterThan(0)
     })
     expect(screen.getAllByRole('button', { name: 'Заявка очікує розгляду' })[0]).toBeDisabled()
-    expect(screen.getAllByRole('button', { name: 'Подати заявку на індивідуальні умови' })[0]).toBeDisabled()
+    expect(screen.getAllByRole('button', { name: 'Подати заявку на Pro' })[0]).toBeDisabled()
   })
 
-  it('shows rejected current request and keeps new request available', async () => {
+  it('does not treat resolved current_request as active pending state', async () => {
     setCurrentPlan('START', {
       current_request: {
+        id: 18,
+        requested_plan: 'PRO',
+        status: 'REJECTED',
+        created_at: '2026-04-20T10:00:00Z',
+        reviewed_at: '2026-04-21T10:00:00Z',
+        public_note: 'Safe public note from invalid current request.',
+      },
+    })
+    renderView()
+
+    await waitFor(() => {
+      expect(screen.getByText('Немає активної заявки')).toBeInTheDocument()
+    })
+    expect(screen.queryByText('Safe public note from invalid current request.')).not.toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: 'Подати заявку на Pro' })[0]).not.toBeDisabled()
+  })
+
+  it('shows rejected latest request and keeps new request available', async () => {
+    setCurrentPlan('START', {
+      latest_request: {
         id: 8,
         requested_plan: 'PRO',
         status: 'REJECTED',
@@ -382,10 +401,10 @@ describe('BillingView downgrade semantics', () => {
     renderView()
 
     await waitFor(() => {
-      expect(screen.getAllByText('Заявку відхилено').length).toBeGreaterThan(0)
+      expect(screen.getAllByText('Останню заявку відхилено').length).toBeGreaterThan(0)
     })
     expect(screen.getByText('Спробуйте пізніше.')).toBeInTheDocument()
-    expect(screen.getAllByRole('button', { name: 'Подати заявку на індивідуальні умови' })[0]).not.toBeDisabled()
+    expect(screen.getAllByRole('button', { name: 'Подати заявку на Pro' })[0]).not.toBeDisabled()
   })
 
   it('does not present approved but unapplied Leader request as active access', async () => {
@@ -404,9 +423,10 @@ describe('BillingView downgrade semantics', () => {
     renderView()
 
     await waitFor(() => {
-      expect(screen.getAllByText('Заявку схвалено, тариф ще не активовано').length).toBeGreaterThan(0)
+      expect(screen.getAllByText('Останню заявку схвалено, тариф ще не активовано').length).toBeGreaterThan(0)
     })
     expect(screen.getAllByText('Заявку на Leader схвалено, але тариф ще не активовано.').length).toBeGreaterThan(0)
+    expect(screen.getByText('Немає активної заявки')).toBeInTheDocument()
     expect(screen.getAllByText('Поточний план').length).toBe(1)
     expect(screen.queryByRole('button', { name: 'Очікує активації' })).not.toBeInTheDocument()
     expect(screen.getAllByText('Тариф готується').length).toBeGreaterThan(0)
@@ -428,8 +448,9 @@ describe('BillingView downgrade semantics', () => {
     renderView()
 
     await waitFor(() => {
-      expect(screen.getAllByText('Схвалено й активовано для тарифу Leader.').length).toBeGreaterThan(0)
+      expect(screen.getAllByText('Останню заявку схвалено').length).toBeGreaterThan(0)
     })
+    expect(screen.getByText('Немає активної заявки')).toBeInTheDocument()
     expect(screen.getAllByText('Поточний план').length).toBe(1)
     expect(screen.queryByRole('button', { name: 'Перейти на Leader' })).not.toBeInTheDocument()
   })
@@ -449,6 +470,8 @@ describe('BillingView downgrade semantics', () => {
       expect(screen.getAllByText('Тестовий доступ').length).toBeGreaterThan(0)
     })
     expect(view.container).not.toHaveTextContent('checkout')
+    expect(view.container).not.toHaveTextContent('онлайн-оплата')
+    expect(view.container).not.toHaveTextContent('сторінка оплати')
     expect(view.container).not.toHaveTextContent('webhook')
     expect(view.container).not.toHaveTextContent('entitlements')
     expect(view.container).not.toHaveTextContent('effective plan')

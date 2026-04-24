@@ -90,6 +90,7 @@ function buildNotification(overrides: Partial<NotificationFeedItem>): Notificati
 async function renderWithProviders(options?: {
   initialPath?: string
   roles?: string[]
+  meOverrides?: Partial<ReturnType<typeof buildMePayload>>
   notifications?: NotificationFeedItem[]
   notificationsState?: { current: NotificationFeedItem[] }
   upcomingSessions?: any[]
@@ -138,7 +139,10 @@ async function renderWithProviders(options?: {
   setActivePinia(pinia)
 
   const roles = options?.roles ?? []
-  const mePayload = buildMePayload(roles)
+  const mePayload = {
+    ...buildMePayload(roles),
+    ...(options?.meOverrides || {}),
+  }
   const notificationsState = options?.notificationsState ?? { current: options?.notifications ?? [] }
 
   mockedFetchChatUnreadCount.mockResolvedValue({ unread_count: 0 })
@@ -262,6 +266,36 @@ describe('App shell', () => {
     })
   })
 
+  it('renders restricted-access notification without broken characters', async () => {
+    await renderWithProviders({
+      initialPath: '/cabinet',
+      roles: ['SPECIALIST'],
+      meOverrides: {
+        access_state: 'RESTRICTED',
+        effective_entitlements: {
+          plan: 'START',
+          active_client_limit: 3,
+          pair_enabled: false,
+          group_room_enabled: false,
+          group_room_meeting_limit: null,
+          group_room_broadcast_enabled: false,
+          default_technical_cap: 3,
+        },
+        counts: {
+          active_clients: 0,
+          prospect_clients: 0,
+          upcoming_sessions_count: 0,
+        },
+      } as any,
+    })
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Сповіщення' }))
+
+    expect(await screen.findByText('Обмежений режим доступу')).toBeInTheDocument()
+    expect(screen.getByText('Нові дії тимчасово заблоковані.')).toBeInTheDocument()
+    expect(document.body).not.toHaveTextContent('䳿')
+  })
+
   it('shows only admin header navigation for pure ADMIN', async () => {
     await renderWithProviders({
       initialPath: '/admin/inbox',
@@ -270,7 +304,7 @@ describe('App shell', () => {
 
     const nav = document.querySelector('header.topbar .nav') as HTMLElement
     expect(nav).toBeInTheDocument()
-    expect(within(nav).getByRole('link', { name: 'Admin Inbox' })).toHaveAttribute('href', '/admin/inbox')
+    expect(within(nav).getByRole('link', { name: 'Адмін-запити' })).toHaveAttribute('href', '/admin/inbox')
     expect(nav.querySelector('a[href="/specialists"]')).not.toBeInTheDocument()
     expect(nav.querySelector('a[href="/public"]')).not.toBeInTheDocument()
     expect(nav.querySelector('a[href="/client/chat"]')).not.toBeInTheDocument()
@@ -286,7 +320,7 @@ describe('App shell', () => {
     })
 
     const nav = document.querySelector('header.topbar .nav') as HTMLElement
-    expect(within(nav).getByRole('link', { name: 'Admin Inbox' })).toHaveAttribute('href', '/admin/inbox')
+    expect(within(nav).getByRole('link', { name: 'Адмін-запити' })).toHaveAttribute('href', '/admin/inbox')
     expect(nav.querySelector('a[href="/specialists"]')).toBeInTheDocument()
     expect(nav.querySelector('a[href="/client/chat"]')).toBeInTheDocument()
   })
@@ -298,7 +332,7 @@ describe('App shell', () => {
     })
 
     const nav = document.querySelector('header.topbar .nav') as HTMLElement
-    expect(within(nav).getByRole('link', { name: 'Admin Inbox' })).toHaveAttribute('href', '/admin/inbox')
+    expect(within(nav).getByRole('link', { name: 'Адмін-запити' })).toHaveAttribute('href', '/admin/inbox')
     expect(nav.querySelector('a[href="/public"]')).toBeInTheDocument()
     expect(nav.querySelector('a[href="/cabinet/chat"]')).toBeInTheDocument()
     expect(nav.querySelector('.nav__settings')).toBeInTheDocument()

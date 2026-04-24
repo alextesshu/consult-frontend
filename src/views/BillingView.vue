@@ -64,6 +64,17 @@
           {{ normalizedCurrentRequest.public_note }}
         </p>
       </div>
+      <div v-if="normalizedLatestRequest" class="request-summary request-summary--resolved">
+        <div class="request-summary__title">{{ latestRequestStatusLabel }}</div>
+        <div class="request-summary__meta">
+          <span>Тариф: {{ planTitle(normalizedLatestRequest.requested_plan) }}</span>
+          <span v-if="normalizedLatestRequest.created_at">Створено: {{ formatDateTime(normalizedLatestRequest.created_at) }}</span>
+          <span v-if="normalizedLatestRequest.reviewed_at">Розглянуто: {{ formatDateTime(normalizedLatestRequest.reviewed_at) }}</span>
+        </div>
+        <p v-if="normalizedLatestRequest.public_note" class="muted request-summary__note">
+          {{ normalizedLatestRequest.public_note }}
+        </p>
+      </div>
       <div class="limits-grid">
         <article class="limit-card">
           <div class="limit-card__label">Активні клієнти</div>
@@ -90,15 +101,6 @@
           @click="startSelfServeUpgrade"
         >
           {{ upgradeButtonLabel }}
-        </button>
-        <button
-          v-if="nextPlan"
-          class="btn btn--ghost"
-          type="button"
-          :disabled="isRequesting || (nextPlan ? isRequestActionBlocked(nextPlan) : false)"
-          @click="requestAccess(nextPlan)"
-        >
-          Подати заявку на індивідуальні умови
         </button>
         <button class="btn btn--ghost" type="button" :disabled="isRefreshing" @click="refreshBillingState">
           {{ isRefreshing ? 'Оновлюємо…' : 'Оновити стан плану' }}
@@ -176,18 +178,9 @@
               class="btn"
               type="button"
               :disabled="!canSelfServePlan(plan.code) || isRequesting || isRequestActionBlocked(plan.code)"
-              @click="startSelfServeCheckout(plan.code)"
-            >
-              {{ planActionLabel(plan.code) }}
-            </button>
-            <button
-              v-if="isUpgradePlan(plan.code)"
-              class="btn btn--ghost plan-action__secondary"
-              type="button"
-              :disabled="isRequesting || isRequestActionBlocked(plan.code)"
               @click="requestAccess(plan.code)"
             >
-              Індивідуальні умови
+              {{ planActionLabel(plan.code) }}
             </button>
             <div v-else-if="isCurrentPlan(plan.code)" class="plan-action__state">Поточний план</div>
             <div v-else-if="isBasePlan(plan.code)" class="plan-action__state plan-action__state--base">Базовий тариф</div>
@@ -209,12 +202,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useAuthStore } from '../stores/auth'
 import {
   apiGet,
-  createBillingCheckoutSession,
   createBillingAccessRequest,
   fetchBillingAccessRequestState,
   getApiErrorMessage,
@@ -234,7 +226,6 @@ type BillingSummaryRequest = {
   reviewed_at?: string | null
   decided_at?: string | null
   public_note?: string | null
-  admin_note?: string | null
   applied?: boolean | null
   applied_plan?: PlanCode | string | null
 }
@@ -280,9 +271,6 @@ type BillingAccessSummary = {
   guest_sessions_used_in_period?: number | null
   guest_sessions_limit_per_period?: number | null
 }
-const ACTIVATION_POLL_INTERVAL_MS = 5000
-const ACTIVATION_MAX_ATTEMPTS = 12
-
 const planOrder: PlanCode[] = ['START', 'PRO', 'LEADER']
 
 const plans = [
@@ -334,11 +322,6 @@ const annualOneShotByPlan: Record<PlanCode, string | null> = {
   PRO: '9 900 грн / рік. 12 місяців користування за ціною 10 місяців.',
   LEADER: '24 900 грн / рік. 12 місяців користування за ціною 10 місяців.',
 }
-const paymentFallbackMessage =
-  'Онлайн-оплата для цього плану зараз недоступна. Ви можете залишити запит на індивідуальні умови.'
-const paymentUnavailableMessage =
-  'Онлайн-оплата для цього плану зараз недоступна. Спробуйте пізніше або скористайтеся «Індивідуальні умови».'
-
 const auth = useAuthStore()
 const { me } = storeToRefs(auth)
 
@@ -348,13 +331,7 @@ const requestState = ref<BillingAccessRequestState | null>(null)
 const accessSummary = ref<BillingAccessSummary | null>(null)
 const requestFeedback = ref('')
 const requestFeedbackPlan = ref<PlanCode | null>(null)
-const checkoutFeedback = ref('')
-const checkoutFeedbackPlan = ref<PlanCode | null>(null)
 const billingCycle = ref<BillingCycle>('monthly')
-const activationPendingPlan = ref<PlanCode | null>(null)
-const isActivationPolling = ref(false)
-const activationPollAttempts = ref(0)
-let activationPollTimer: ReturnType<typeof setTimeout> | null = null
 
 function normalizePlan(raw: unknown): PlanCode | null {
   if (raw === 'START' || raw === 'PRO' || raw === 'LEADER') return raw
@@ -409,25 +386,42 @@ const activeRequest = computed(() => requestState.value?.active_request)
 const latestRequest = computed(() => requestState.value?.latest_request)
 
 const normalizedCurrentRequest = computed<BillingSummaryRequest | null>(() => {
-  if (summaryCurrentRequest.value) return summaryCurrentRequest.value
-  if (summaryLatestRequest.value) return summaryLatestRequest.value
-  const fallback = activeRequest.value || latestRequest.value
-  if (!fallback) return null
+  if (summaryCurrentRequest.value?.status === 'PENDING') return summaryCurrentRequest.value
+  const fallback = activeRequest.value
+  if (!fallback || fallback.status !== 'PENDING') return null
   return {
     id: fallback.id,
     requested_plan: fallback.requested_plan,
     status: fallback.status,
     created_at: fallback.created_at,
     reviewed_at: fallback.decided_at,
-    public_note: fallback.admin_note || '',
   }
+})
+
+const normalizedLatestRequest = computed<BillingSummaryRequest | null>(() => {
+  if (summaryLatestRequest.value && summaryLatestRequest.value.status !== 'PENDING') {
+    return summaryLatestRequest.value
+  }
+  const fallback = latestRequest.value
+  if (!fallback || fallback.status === 'PENDING') return null
+  return {
+    id: fallback.id,
+    requested_plan: fallback.requested_plan,
+    status: fallback.status,
+    created_at: fallback.created_at,
+    reviewed_at: fallback.decided_at,
+  }
+})
+
+const requestForActionState = computed(() => {
+  return normalizedCurrentRequest.value || normalizedLatestRequest.value
 })
 
 const upgradeButtonLabel = computed(() => {
   if (!nextPlan.value) return 'У вас максимальний план'
   if (hasPendingRequest.value) return 'Заявка очікує розгляду'
   if (hasUnappliedApprovedRequestFor(nextPlan.value)) return 'Очікує активації'
-  return `Перейти на ${planTitle(nextPlan.value)}`
+  return `Подати заявку на ${planTitle(nextPlan.value)}`
 })
 
 const isRequesting = computed(() => Boolean(requestingPlan.value))
@@ -435,7 +429,7 @@ const requestStatus = computed(() => {
   if (requestFeedback.value) return requestFeedback.value
   return requestMessage(normalizedCurrentRequest.value)
 })
-const primaryStatus = computed(() => checkoutFeedback.value || requestStatus.value)
+const primaryStatus = computed(() => requestStatus.value)
 const billingCycleLabel = computed(() =>
   billingCycle.value === 'annual' ? 'за місяць у майбутній річній моделі' : 'майбутня модель / міс'
 )
@@ -530,13 +524,16 @@ const currentRequestHint = computed(() => {
   if (!request) return 'Можна подати заявку на зміну тарифу.'
   const plan = planTitle(request.requested_plan)
   if (request.status === 'PENDING') return `Очікує розгляду для тарифу ${plan}.`
-  if (request.status === 'APPROVED' && request.applied === false) {
-    return `Заявку на ${plan} схвалено, але тариф ще не активовано. Ми оновимо доступ після завершення ручної активації.`
-  }
-  if (request.status === 'APPROVED' && request.applied) return `Схвалено й активовано для тарифу ${plan}.`
-  if (request.status === 'APPROVED') return `Схвалено для тарифу ${plan}.`
-  if (request.status === 'REJECTED') return `Відхилено для тарифу ${plan}. За потреби можна подати нову заявку.`
   return `Тариф: ${plan}.`
+})
+
+const latestRequestStatusLabel = computed(() => {
+  const request = normalizedLatestRequest.value
+  if (!request) return ''
+  if (request.status === 'APPROVED' && request.applied === false) return 'Останню заявку схвалено, тариф ще не активовано'
+  if (request.status === 'APPROVED') return 'Останню заявку схвалено'
+  if (request.status === 'REJECTED') return 'Останню заявку відхилено'
+  return 'Останню заявку розглянуто'
 })
 
 const accessPillClass = computed(() => {
@@ -549,7 +546,7 @@ const accessPillClass = computed(() => {
 const accessHint = computed(() => {
   const state = me.value?.access_state
   if (state === 'GRACE') return 'Оплата потребує уваги. Доступ тимчасово збережено.'
-  if (state === 'RESTRICTED') return 'Доступ лише для читання. Нові 䳿 заблоковані.'
+  if (state === 'RESTRICTED') return 'Доступ лише для читання. Нові дії тимчасово заблоковані.'
   if (state === 'SUSPENDED') return 'Доступ призупинено адміністрацією.'
   return 'Все працює у штатному режимі.'
 })
@@ -608,20 +605,6 @@ function planTitle(code: PlanCode | string | null | undefined) {
   return planByCode.get(code as PlanCode)?.title || String(code)
 }
 
-function clearActivationPolling() {
-  if (activationPollTimer) {
-    clearTimeout(activationPollTimer)
-    activationPollTimer = null
-  }
-  isActivationPolling.value = false
-  activationPollAttempts.value = 0
-}
-
-function isPlanReached(target: PlanCode) {
-  if (currentIndex.value === -1) return false
-  return currentIndex.value >= planOrder.indexOf(target)
-}
-
 function planDisplayPrice(code: string) {
   const typedCode = code as PlanCode
   if (billingCycle.value === 'annual' && annualMonthlyPriceByPlan[typedCode]) {
@@ -655,13 +638,6 @@ function planFeatureList(code: PlanCode) {
   return [...limitLine, ...(planByCode.get(code)?.features || [])]
 }
 
-function checkoutCycleForPlan(code: PlanCode): BillingCycle {
-  if (billingCycle.value === 'annual' && annualMonthlyPriceByPlan[code]) {
-    return 'annual'
-  }
-  return 'monthly'
-}
-
 function isCurrentPlan(code: string) {
   return currentPlan.value === code
 }
@@ -683,7 +659,7 @@ function planActionLabel(code: string) {
   if (isCurrentPlan(code)) return 'Поточний план'
   if (isUnavailableBetaPlan(code)) return 'Тариф готується'
   if (hasUnappliedApprovedRequestFor(code)) return 'Очікує активації'
-  if (isUpgradePlan(code)) return `Перейти на ${planTitle(code as PlanCode)}`
+  if (isUpgradePlan(code)) return `Подати заявку на ${planTitle(code as PlanCode)}`
   return 'Недоступно'
 }
 
@@ -696,7 +672,7 @@ function isUnavailableBetaPlan(code: string) {
 }
 
 function hasUnappliedApprovedRequestFor(code: string) {
-  const request = normalizedCurrentRequest.value
+  const request = requestForActionState.value
   return Boolean(
     request &&
       request.status === 'APPROVED' &&
@@ -710,19 +686,10 @@ function isRequestActionBlocked(code: string) {
 }
 
 function requestMessageFor(code: string) {
-  if (activationPendingPlan.value === code) {
-    if (isActivationPolling.value) {
-      return 'Оновлення доступу в процесі. Перевіряємо стан тарифу.'
-    }
-    return 'Очікуємо підтвердження зміни. Тариф оновиться автоматично.'
-  }
-  if (checkoutFeedbackPlan.value === code && checkoutFeedback.value) {
-    return checkoutFeedback.value
-  }
   if (requestFeedbackPlan.value === code && requestFeedback.value) {
     return requestFeedback.value
   }
-  const summary = normalizedCurrentRequest.value
+  const summary = requestForActionState.value
   if (summary?.requested_plan === code) return requestMessage(summary)
   const base = activeRequest.value || latestRequest.value
   if (!base || base.requested_plan !== code) return ''
@@ -753,56 +720,9 @@ async function refreshBillingState() {
   try {
     await auth.loadMe()
     await Promise.all([loadAccessSummary(), loadRequestState()])
-    if (activationPendingPlan.value && isPlanReached(activationPendingPlan.value)) {
-      const activatedPlan = activationPendingPlan.value
-      clearActivationPolling()
-      activationPendingPlan.value = null
-      checkoutFeedbackPlan.value = activatedPlan
-      checkoutFeedback.value = `План ${planTitle(activatedPlan)} активовано.`
-    }
   } finally {
     isRefreshing.value = false
   }
-}
-
-async function pollPlanActivation(target: PlanCode) {
-  clearActivationPolling()
-  activationPendingPlan.value = target
-  isActivationPolling.value = true
-  activationPollAttempts.value = 0
-  checkoutFeedbackPlan.value = target
-  checkoutFeedback.value =
-    'Оновлення доступу в процесі. Тариф оновиться автоматично після підтвердження.'
-
-  const tick = async () => {
-    if (!isActivationPolling.value) return
-    activationPollAttempts.value += 1
-    try {
-      await auth.loadMe()
-      if (isPlanReached(target)) {
-        clearActivationPolling()
-        activationPendingPlan.value = null
-        checkoutFeedbackPlan.value = target
-        checkoutFeedback.value = `Тариф ${planTitle(target)} активовано.`
-        await loadRequestState()
-        return
-      }
-    } catch {
-      // Keep calm UX: polling can continue even on transient errors.
-    }
-
-    if (activationPollAttempts.value >= ACTIVATION_MAX_ATTEMPTS) {
-      clearActivationPolling()
-      checkoutFeedbackPlan.value = target
-      checkoutFeedback.value =
-        'Зміну тарифу обробляємо. Це може тривати кілька хвилин. Натисніть «Оновити стан плану» трохи пізніше.'
-      return
-    }
-
-    activationPollTimer = setTimeout(tick, ACTIVATION_POLL_INTERVAL_MS)
-  }
-
-  activationPollTimer = setTimeout(tick, ACTIVATION_POLL_INTERVAL_MS)
 }
 
 async function loadRequestState() {
@@ -824,48 +744,7 @@ async function loadAccessSummary() {
 
 async function startSelfServeUpgrade() {
   if (!nextPlan.value) return
-  await startSelfServeCheckout(nextPlan.value)
-}
-
-async function startSelfServeCheckout(planCode: string) {
-  if (!planOrder.includes(planCode as PlanCode)) return
-  if (!canSelfServePlan(planCode)) return
-  if (requestingPlan.value) return
-  const target = planCode as PlanCode
-  requestingPlan.value = target
-  checkoutFeedbackPlan.value = target
-  checkoutFeedback.value = ''
-  clearActivationPolling()
-  activationPendingPlan.value = null
-  try {
-    const response = await createBillingCheckoutSession({
-      plan: target as 'PRO' | 'LEADER',
-      billing_cycle: checkoutCycleForPlan(target),
-    })
-    if (response.checkout_url) {
-      const checkoutWindow = window.open(response.checkout_url, '_blank', 'noopener,noreferrer')
-      if (!checkoutWindow) {
-        checkoutFeedback.value =
-          'Не вдалося відкрити сторінку оплати. Дозвольте pop-up або скористайтеся варіантом «Індивідуальні умови».'
-        return
-      }
-      checkoutFeedback.value =
-        'Переходимо до оплати. Після підтвердження тариф активується автоматично.'
-      await pollPlanActivation(target)
-      return
-    }
-    checkoutFeedback.value = response.fallback_available
-      ? paymentFallbackMessage
-      : paymentUnavailableMessage
-    await refreshBillingState()
-  } catch (err: any) {
-    checkoutFeedback.value = getApiErrorMessage(
-      err,
-      'Не вдалося відкрити оплату. Спробуйте ще раз.'
-    )
-  } finally {
-    requestingPlan.value = null
-  }
+  await requestAccess(nextPlan.value)
 }
 
 async function requestAccess(planCode: string) {
@@ -884,8 +763,6 @@ async function requestAccess(planCode: string) {
   requestingPlan.value = target
   requestFeedbackPlan.value = target
   requestFeedback.value = ''
-  checkoutFeedback.value = ''
-  checkoutFeedbackPlan.value = null
   try {
     const note = currentPlan.value ? `upgrade_from:${currentPlan.value}` : undefined
     const result = await createBillingAccessRequest({
@@ -905,7 +782,6 @@ async function requestAccess(planCode: string) {
         status: result.request.status,
         created_at: result.request.created_at,
         reviewed_at: result.request.decided_at,
-        public_note: result.request.admin_note || '',
       },
     }
     requestFeedback.value = 'Заявку зафіксовано. Команда розгляне її вручну.'
@@ -933,10 +809,6 @@ async function requestAccess(planCode: string) {
 
 onMounted(() => {
   refreshBillingState()
-})
-
-onBeforeUnmount(() => {
-  clearActivationPolling()
 })
 </script>
 

@@ -149,7 +149,7 @@ describe('AdminBillingAccessRequestDetailView', () => {
     expect(screen.getByText(/Pro/)).toBeInTheDocument()
     expect(screen.getByText(/Повʼязані:/)).toBeInTheDocument()
     expect(screen.getByText(/Відкриті:/)).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Відкрити inbox item' })).toHaveAttribute('href', '/admin/inbox/41')
+    expect(screen.getByRole('link', { name: 'Відкрити елемент inbox' })).toHaveAttribute('href', '/admin/inbox/41')
   })
 
   it('keeps detail screen stable when canonical labels are absent', async () => {
@@ -177,6 +177,6 @@ describe('AdminBillingAccessRequestDetailView', () => {
     })
     expect(screen.getByText('START')).toBeInTheDocument()
     expect(screen.getByText('PRO')).toBeInTheDocument()
-    expect(screen.getByText(/Усі повʼязані item закриті/)).toBeInTheDocument()
+    expect(screen.getByText(/Усі повʼязані елементи закриті/)).toBeInTheDocument()
   })
 })

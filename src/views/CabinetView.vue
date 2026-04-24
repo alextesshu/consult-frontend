@@ -300,7 +300,7 @@
             <span class="badge badge--outline">{{ planCodeLabel }}</span>
             <span v-if="planCodeLabel === 'PRO'" class="badge badge--soft">Рекомендовано</span>
           </div>
-          <div class="muted plan-hint">Підписка без комісій</div>
+          <div class="muted plan-hint">Доступ до практики без комісій за сесію</div>
         </div>
         <div class="plan-metrics">
           <div class="plan-metrics__line">
@@ -471,30 +471,6 @@
         <div class="muted">Слідкуй за завантаженням тижня.</div>
       </RouterLink>
 
-      <section class="panel panel--wide">
-        <div class="panel__header">
-          <div class="badge badge--soft">Можливості</div>
-          <div class="panel__meta">Права доступу</div>
-        </div>
-        <div class="feature-grid">
-          <div class="feature">
-            <div class="feature__title">Групові онлайн-події</div>
-            <div class="feature__value">{{ groupRoomLabel }}</div>
-          </div>
-          <div class="feature">
-            <div class="feature__title">Ліміт подій</div>
-            <div class="feature__value">{{ meetingLimitLabel }}</div>
-          </div>
-          <div class="feature">
-            <div class="feature__title">Broadcast</div>
-            <div class="feature__value">{{ broadcastLabel }}</div>
-          </div>
-          <div class="feature">
-            <div class="feature__title">Технічна місткість</div>
-            <div class="feature__value">{{ technicalCapLabel }}</div>
-          </div>
-        </div>
-      </section>
     </div>
 
     <div v-else-if="me && cabinetDataLoading" class="card cabinet__loading cabinet__details-state">
@@ -583,6 +559,16 @@ type CabinetSession = {
 }
 
 type CabinetEntitlementsSnapshot = {
+  plan?: string | null
+  effective_plan?: string | null
+  active_client_limit?: number | null
+  active_clients?: number | null
+  limits?: {
+    active_clients?: {
+      used?: number | null
+      limit?: number | null
+    } | null
+  } | null
   guest_sessions_enabled?: boolean | null
   guest_sessions_limit_per_period?: number | null
   guest_sessions_used_in_period?: number | null
@@ -792,12 +778,27 @@ const planCodeLabel = computed(() => {
   return 'START'
 })
 
-const activeClientsCount = computed(() => me.value?.counts?.active_clients ?? 0)
+const activeClientsCount = computed(() => {
+  const used =
+    entitlementsSnapshot.value?.limits?.active_clients?.used ??
+    entitlementsSnapshot.value?.active_clients
+  if (typeof used === 'number' && Number.isFinite(used) && used >= 0) return used
+  return me.value?.counts?.active_clients ?? 0
+})
 
 const activeClientLimit = computed(() => {
-  const limit = me.value?.effective_entitlements?.active_client_limit
-  if (typeof limit === 'number') return limit
-  return 5
+  const plan =
+    entitlementsSnapshot.value?.effective_plan ||
+    entitlementsSnapshot.value?.plan ||
+    me.value?.effective_entitlements?.plan
+  const summaryLimit =
+    entitlementsSnapshot.value?.limits?.active_clients?.limit ??
+    entitlementsSnapshot.value?.active_client_limit
+  if (typeof summaryLimit === 'number') return summaryLimit
+  if (plan === 'START' || !plan) return 3
+  const legacyLimit = me.value?.effective_entitlements?.active_client_limit
+  if (typeof legacyLimit === 'number') return legacyLimit
+  return Number.POSITIVE_INFINITY
 })
 
 const activeClientLimitLabel = computed(() => {
@@ -829,8 +830,7 @@ const guestSessionsUsage = computed<{ used: number; limit: number } | null>(() =
 })
 
 const activeLimitLabel = computed(() => {
-  const limit = me.value?.effective_entitlements?.active_client_limit
-  if (limit === null || limit === undefined) return 'Н/Д'
+  const limit = activeClientLimit.value
   return Number.isFinite(limit) ? String(limit) : '∞'
 })
 
@@ -848,30 +848,6 @@ const accessHint = computed(() => {
   if (state === 'SUSPENDED') return 'Доступ призупинено адміністрацією.'
   if (showOverLimit.value) return 'Ліміт активних клієнтів перевищено.'
   return 'Все працює у штатному режимі.'
-})
-
-const groupRoomLabel = computed(() => {
-  const enabled = me.value?.effective_entitlements?.group_room_enabled
-  if (enabled === null || enabled === undefined) return 'Н/Д'
-  return enabled ? 'Доступний' : 'Недоступний'
-})
-
-const meetingLimitLabel = computed(() => {
-  const limit = me.value?.effective_entitlements?.group_room_meeting_limit
-  if (limit === null || limit === undefined) return 'Н/Д'
-  return Number.isFinite(limit) ? String(limit) : '∞'
-})
-
-const broadcastLabel = computed(() => {
-  const enabled = me.value?.effective_entitlements?.group_room_broadcast_enabled
-  if (enabled === null || enabled === undefined) return 'Н/Д'
-  return enabled ? 'Увімкнено' : 'Вимкнено'
-})
-
-const technicalCapLabel = computed(() => {
-  const cap = me.value?.effective_entitlements?.default_technical_cap
-  if (cap === null || cap === undefined) return 'Н/Д'
-  return String(cap)
 })
 
 const accessPillClass = computed(() => {

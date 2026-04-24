@@ -137,7 +137,7 @@ describe('AdminBillingAccessRequestsView', () => {
     })
 
     expect((screen.getByLabelText('Статус') as HTMLSelectElement).value).toBe('PENDING')
-    expect((screen.getByLabelText('Лише з відкритими inbox item') as HTMLInputElement).checked).toBe(true)
+    expect((screen.getByLabelText('Лише з відкритими елементами inbox') as HTMLInputElement).checked).toBe(true)
     expect(screen.getByText('Запит №301')).toBeInTheDocument()
     expect(screen.queryByText('Запит №101')).not.toBeInTheDocument()
   })
@@ -150,7 +150,7 @@ describe('AdminBillingAccessRequestsView', () => {
     })
 
     const statusSelect = screen.getByLabelText('Статус')
-    const openOnlyCheckbox = screen.getByLabelText('Лише з відкритими inbox item')
+    const openOnlyCheckbox = screen.getByLabelText('Лише з відкритими елементами inbox')
 
     await fireEvent.update(statusSelect, 'PENDING')
     await waitFor(() => {
