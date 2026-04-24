@@ -35,6 +35,28 @@ Frontend production-readiness slice is now integrated:
 
 - Repository: Consult frontend (`Vue 3`, `Vite`, `TypeScript`, `Pinia`, `Vue Router`, `Vitest`).
 - Canonical persistent handoff file is this document.
+- Specialist billing/tariff beta model is current:
+  - canonical page is `/cabinet/billing`
+  - cabinet tariff CTA routes to `/cabinet/billing`, not `/pricing`
+  - Pro Consult is in beta; payment is not collected
+  - tariffs are shown as future access model
+  - Start = `0 грн / міс`, up to `3` active clients
+  - Pro = `990 грн / міс` or `9 900 грн / рік`
+  - Leader = `2 490 грн / міс` or `24 900 грн / рік`
+  - yearly price rule: monthly price x 10
+  - old euro prices must not be shown in billing UI
+- Specialist billing contract:
+  - canonical endpoint is `GET /api/cabinet/entitlements/`
+  - uses additive `base_plan`, `effective_plan`, `access_source`, `access_label`, `access_message`, `trial`, `override`, `current_request`, `latest_request`, `limits`, `features`
+  - `current_request` is pending-only
+  - `APPROVED`/`REJECTED` appear as `latest_request`
+  - approved requests apply access; use `latest_request.applied` and `latest_request.applied_plan` to avoid contradictory UI
+- Leader beta freeze:
+  - Leader is visible as unavailable/future on `/cabinet/billing`
+  - no specialist-facing Leader request/checkout CTA during beta
+  - specialist self-service Leader request/checkout returns `UNSUPPORTED_SELF_SERVE_PLAN`
+  - admin can still assign/approve Leader manually
+  - existing Leader users must keep working
 - Auth runtime contract:
   - access token is memory-only
   - refresh token is cookie-only (`httpOnly`) and never exposed to JS storage

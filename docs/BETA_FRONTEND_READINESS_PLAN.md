@@ -131,6 +131,20 @@ Secondary:
 - Tariff cards visible as future model, not forced now.
 - Checkout/select-plan actions behave per beta mode (disabled/informational).
 - No copy implying silent purchase.
+- `/cabinet/billing` is the canonical specialist-facing billing/tariff page.
+- Cabinet plan/tariff CTA must route to `/cabinet/billing`, not `/pricing`.
+- Billing UI must not show old euro prices.
+- Current Ukrainian market display:
+  - Start: `0 грн / міс`, up to `3` active clients
+  - Pro: `990 грн / міс` or `9 900 грн / рік`
+  - Leader: `2 490 грн / міс` or `24 900 грн / рік`
+  - yearly price rule: monthly price x 10
+- During beta, payment is not charged and tariffs are shown as the future access model.
+- Leader remains visible only as a future/internal plan during beta:
+  - mark as `Недоступно під час beta` / `Тариф готується`
+  - do not render specialist self-service checkout/request CTA
+  - do not show future-only Leader features as active feature labels
+- Existing Leader users must still see their current access without broken UI.
 
 ### 5.4 Core specialist UX
 - Profile editor, media upload/crop/delete flows stable.
@@ -161,3 +175,6 @@ Secondary:
 - During beta, should checkout actions be disabled globally or cohort-dependent?
 - How should legacy users with existing paid entitlements be displayed when beta policy is active?
 - If backend exposes only tariff entitlements without beta flags, frontend risks ambiguous copy; explicit beta fields are strongly recommended.
+- Current canonical billing access payload is `GET /api/cabinet/entitlements/` with `base_plan`, `effective_plan`, `access_source`, `access_label`, `access_message`, `trial`, `override`, `current_request`, `latest_request`, `limits`, and `features`.
+- `current_request` is pending-only; resolved request status is represented as `latest_request`.
+- `latest_request.applied` and `latest_request.applied_plan` must be used to avoid showing approved-but-not-active access as active.
