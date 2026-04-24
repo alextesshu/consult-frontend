@@ -1012,3 +1012,28 @@ Preserved:
 Notes:
 
 This step intentionally affects only the value cards below the hero.
+
+### 2026-04-24 — Home walkthrough header and chips polish
+
+Changed scope:
+
+* `src/views/HomeView.vue`
+
+What changed:
+
+* Updated walkthrough section heading typography to match the new PRO CONSULT visual direction.
+* Updated walkthrough chips to use pill style, navy active state, softer borders, and lighter card-like background.
+* Updated eyebrow color to use `--pc-text-muted`.
+
+Preserved:
+
+* Existing walkthrough anchors.
+* Existing active section tracking.
+* Existing IntersectionObserver logic.
+* Existing walkthrough content.
+* Existing screenshot assets.
+* Existing responsive structure.
+
+Notes:
+
+This step intentionally affects only the walkthrough section header and navigation chips. The walkthrough feature blocks themselves are not migrated yet.

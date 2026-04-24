@@ -559,7 +559,7 @@ onBeforeUnmount(() => {
   font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: color-mix(in srgb, var(--text) 62%, #48606b);
+  color: var(--pc-text-muted);
 }
 
 .home-hero__title {
@@ -714,27 +714,41 @@ onBeforeUnmount(() => {
 
 .walkthrough__chips {
   display: flex;
-  gap: 8px;
+  gap: 10px;
   flex-wrap: wrap;
-  padding: 0;
+  padding: 4px 0 0;
 }
 
 .walkthrough__chips a {
-  border: 1px solid color-mix(in srgb, var(--primary) 14%, var(--border));
-  border-radius: var(--radius-xs);
-  padding: 6px 10px;
+  border: 1px solid var(--pc-border);
+  border-radius: var(--radius-pill);
+  padding: 8px 13px;
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 700;
   line-height: 1;
-  color: color-mix(in srgb, var(--text) 82%, #2d5666);
-  background: color-mix(in srgb, #ffffff 88%, var(--surface));
-  transition: border-color 0.2s ease, color 0.2s ease, background-color 0.2s ease;
+  color: var(--pc-text-muted);
+  background: rgba(255, 255, 255, 0.74);
+  box-shadow: 0 8px 20px rgba(18, 35, 58, 0.04);
+  transition:
+    border-color 0.2s ease,
+    color 0.2s ease,
+    background-color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+
+.walkthrough__chips a:hover {
+  border-color: rgba(18, 52, 90, 0.24);
+  color: var(--pc-navy-900);
+  background: #fff;
+  transform: translateY(-1px);
 }
 
 .walkthrough__chips a.is-active {
-  border-color: color-mix(in srgb, var(--primary) 42%, var(--border));
-  color: color-mix(in srgb, var(--primary) 80%, #1f4f5e);
-  background: color-mix(in srgb, var(--primary) 12%, #ffffff);
+  border-color: var(--pc-navy-900);
+  color: #fff;
+  background: var(--pc-navy-900);
+  box-shadow: 0 10px 24px rgba(18, 52, 90, 0.16);
 }
 
 .walkthrough__core {
@@ -872,8 +886,10 @@ onBeforeUnmount(() => {
 
 .section-head__title {
   margin: 0;
-  font-size: clamp(28px, 3vw, 40px);
-  line-height: 1.2;
+  font-size: clamp(30px, 3vw, 44px);
+  line-height: 1.16;
+  letter-spacing: -0.03em;
+  color: var(--pc-navy-950);
 }
 
 .walkthrough__lead {
