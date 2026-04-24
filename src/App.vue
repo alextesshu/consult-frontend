@@ -234,10 +234,88 @@
           'main--public-profile': isPublicProfilePage,
           'main--tour': isTour,
           'main--authenticated': isAuthenticatedLayout,
+          'main--specialist-shell': showSpecialistCabinetShell,
         },
       ]"
     >
-      <RouterView :key="route.fullPath" />
+      <div v-if="showSpecialistCabinetShell" class="specialist-shell">
+        <aside class="specialist-sidebar" role="navigation" aria-label="Навігація кабінету спеціаліста">
+          <div class="specialist-sidebar__label">Кабінет</div>
+          <nav class="specialist-sidebar__nav">
+            <RouterLink
+              v-for="item in specialistSidebarItems"
+              :key="item.to"
+              class="specialist-sidebar__link"
+              :class="{ 'is-active': isSpecialistSidebarItemActive(item) }"
+              :to="item.to"
+            >
+              {{ item.label }}
+            </RouterLink>
+          </nav>
+        </aside>
+        <section class="specialist-content">
+          <div class="specialist-mobile-nav">
+            <button
+              class="btn btn--ghost specialist-mobile-nav__toggle"
+              type="button"
+              aria-controls="specialist-mobile-drawer"
+              :aria-expanded="showSpecialistSidebarDrawer ? 'true' : 'false'"
+              @click="toggleSpecialistSidebarDrawer"
+            >
+              Розділи кабінету
+            </button>
+          </div>
+          <div
+            v-if="showSpecialistSidebarDrawer"
+            class="specialist-mobile-drawer"
+            id="specialist-mobile-drawer"
+            role="dialog"
+            aria-label="Розділи кабінету спеціаліста"
+          >
+            <button
+              class="specialist-mobile-drawer__backdrop"
+              type="button"
+              aria-label="Закрити меню кабінету"
+              @click="closeSpecialistSidebarDrawer"
+            ></button>
+            <div class="specialist-mobile-drawer__panel">
+              <div class="specialist-mobile-drawer__header">
+                <div class="specialist-sidebar__label">Кабінет</div>
+                <button
+                  class="icon-btn specialist-mobile-drawer__close"
+                  type="button"
+                  aria-label="Закрити меню кабінету"
+                  @click="closeSpecialistSidebarDrawer"
+                >
+                  <svg viewBox="0 0 24 24" aria-hidden="true">
+                    <path
+                      d="M6 6l12 12M18 6L6 18"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-width="2"
+                    />
+                  </svg>
+                </button>
+              </div>
+              <nav class="specialist-sidebar__nav">
+                <RouterLink
+                  v-for="item in specialistSidebarItems"
+                  :key="`mobile-${item.to}`"
+                  class="specialist-sidebar__link"
+                  :class="{ 'is-active': isSpecialistSidebarItemActive(item) }"
+                  :to="item.to"
+                  @click="closeSpecialistSidebarDrawer"
+                >
+                  {{ item.label }}
+                </RouterLink>
+              </nav>
+            </div>
+          </div>
+          <RouterView :key="route.fullPath" />
+        </section>
+      </div>
+      <RouterView v-else :key="route.fullPath" />
     </main>
     <ScrollToTopButton v-if="showGlobalScrollTopButton" />
     <ToastHost />
@@ -343,6 +421,31 @@ const isClient = computed(() => hasClientRole(roles.value))
 const isAdmin = computed(() => hasAdminRole(roles.value))
 const hasSupportedCabinetRole = computed(() => isSpecialist.value || isClient.value || isAdmin.value)
 const isChatCapable = computed(() => isSpecialist.value || isClient.value)
+type SpecialistSidebarItem = {
+  label: string
+  to: string
+  match: string[]
+  exact?: boolean
+}
+
+const specialistSidebarItems: SpecialistSidebarItem[] = [
+  { label: 'Головна', to: '/cabinet', match: ['/cabinet'], exact: true },
+  { label: 'Профіль', to: '/cabinet/profile', match: ['/cabinet/profile'] },
+  {
+    label: 'Розклад',
+    to: '/cabinet/slots',
+    match: ['/cabinet/schedule', '/cabinet/slots', '/cabinet/availability-rules', '/cabinet/availability-exceptions'],
+  },
+  { label: 'Сесії', to: '/cabinet/sessions', match: ['/cabinet/sessions'] },
+  { label: 'Клієнти', to: '/cabinet/clients', match: ['/cabinet/clients'] },
+  { label: 'Гостьові сесії', to: '/cabinet/external-sessions', match: ['/cabinet/external-sessions'] },
+  { label: 'Аналітика', to: '/cabinet/analytics', match: ['/cabinet/analytics'] },
+  { label: 'Тарифи і доступ', to: '/cabinet/billing', match: ['/cabinet/billing'] },
+  { label: 'Налаштування', to: '/cabinet/settings', match: ['/cabinet/settings'] },
+]
+const showSpecialistCabinetShell = computed(
+  () => isAuthenticated.value && isSpecialist.value && !useMinimalShell.value && route.path.startsWith('/cabinet')
+)
 watchEffect(() => {
   const path = route.path || ''
   const role =
@@ -408,6 +511,7 @@ const PRE_SESSION_TOAST_STORAGE_KEY = 'consult.pre_session_toast_shown.v1'
 const showNotifications = ref(false)
 const showSettings = ref(false)
 const showMobileMenu = ref(false)
+const showSpecialistSidebarDrawer = ref(false)
 const notificationsButtonRef = ref<HTMLButtonElement | null>(null)
 const notificationsPanelRef = ref<HTMLDivElement | null>(null)
 const settingsButtonRef = ref<HTMLButtonElement | null>(null)
@@ -615,23 +719,43 @@ const notificationCount = notifs.unreadCount
 function toggleNotifications() {
   showSettings.value = false
   showMobileMenu.value = false
+  showSpecialistSidebarDrawer.value = false
   showNotifications.value = !showNotifications.value
 }
 
 function toggleSettings() {
   showNotifications.value = false
   showMobileMenu.value = false
+  showSpecialistSidebarDrawer.value = false
   showSettings.value = !showSettings.value
 }
 
 function toggleMobileMenu() {
   showNotifications.value = false
   showSettings.value = false
+  showSpecialistSidebarDrawer.value = false
   showMobileMenu.value = !showMobileMenu.value
 }
 
 function closeMobileMenu() {
   showMobileMenu.value = false
+}
+
+function toggleSpecialistSidebarDrawer() {
+  showNotifications.value = false
+  showSettings.value = false
+  showMobileMenu.value = false
+  showSpecialistSidebarDrawer.value = !showSpecialistSidebarDrawer.value
+}
+
+function closeSpecialistSidebarDrawer() {
+  showSpecialistSidebarDrawer.value = false
+}
+
+function isSpecialistSidebarItemActive(item: SpecialistSidebarItem) {
+  const path = route.path || ''
+  if (item.exact) return path === item.to
+  return item.match.some((prefix) => path === prefix || path.startsWith(`${prefix}/`))
 }
 
 function onLogoutFromMenu() {
@@ -655,6 +779,7 @@ watch(
     showNotifications.value = false
     showSettings.value = false
     showMobileMenu.value = false
+    showSpecialistSidebarDrawer.value = false
   }
 )
 
@@ -1553,6 +1678,76 @@ watch(isChatCapable, (value) => {
   background: color-mix(in srgb, var(--primary) 12%, #ffffff);
 }
 
+.specialist-shell {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.specialist-sidebar {
+  position: sticky;
+  top: 92px;
+  display: grid;
+  gap: 14px;
+  max-height: calc(100vh - 116px);
+  overflow: auto;
+  border: 1px solid color-mix(in srgb, var(--border) 84%, #ffffff);
+  border-radius: 12px;
+  background: color-mix(in srgb, #fff8e6 92%, #ffffff);
+  box-shadow: 0 12px 28px rgba(17, 64, 54, 0.1);
+  padding: 14px;
+}
+
+.specialist-sidebar__label {
+  color: color-mix(in srgb, var(--text) 68%, #ffffff);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.specialist-sidebar__nav {
+  display: grid;
+  gap: 4px;
+}
+
+.specialist-sidebar__link {
+  display: flex;
+  align-items: center;
+  min-height: 38px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 8px 10px;
+  color: var(--text);
+  font-weight: 500;
+  line-height: 1.2;
+  text-decoration: none;
+}
+
+.specialist-sidebar__link:hover,
+.specialist-sidebar__link:focus-visible {
+  border-color: color-mix(in srgb, var(--primary) 24%, var(--border));
+  background: color-mix(in srgb, var(--primary) 7%, #ffffff);
+  outline: none;
+}
+
+.specialist-sidebar__link.is-active {
+  border-color: color-mix(in srgb, var(--primary) 34%, var(--border));
+  background: color-mix(in srgb, var(--primary) 13%, #ffffff);
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--primary) 74%, var(--color-primary-600));
+  color: var(--color-primary-600);
+}
+
+.specialist-content {
+  min-width: 0;
+}
+
+.specialist-mobile-nav,
+.specialist-mobile-drawer {
+  display: none;
+}
+
 .main {
   min-height: 320px;
   width: min(1200px, 92vw);
@@ -1561,6 +1756,10 @@ watch(isChatCapable, (value) => {
 
 .main--authenticated {
   width: min(1480px, 96vw);
+}
+
+.main--specialist-shell {
+  width: min(1540px, 96vw);
 }
 
 .main--tour {
@@ -1728,6 +1927,76 @@ body.body--home .footer {
 
   .topbar--guest .brand__tagline {
     font-size: 13px;
+  }
+}
+
+@media (max-width: 900px) {
+  .main--specialist-shell {
+    width: 100%;
+  }
+
+  .specialist-shell {
+    display: block;
+  }
+
+  .specialist-sidebar {
+    display: none;
+  }
+
+  .specialist-content {
+    width: 100%;
+  }
+
+  .specialist-mobile-nav {
+    display: flex;
+    justify-content: flex-start;
+    padding: 12px 16px 0;
+  }
+
+  .specialist-mobile-nav__toggle {
+    min-height: 38px;
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--surface) 86%, #ffffff);
+  }
+
+  .specialist-mobile-drawer {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+  }
+
+  .specialist-mobile-drawer__backdrop {
+    position: absolute;
+    inset: 0;
+    border: 0;
+    background: rgba(15, 28, 24, 0.32);
+    cursor: pointer;
+  }
+
+  .specialist-mobile-drawer__panel {
+    position: relative;
+    z-index: 1;
+    width: min(320px, calc(100vw - 32px));
+    min-height: 100%;
+    max-height: 100vh;
+    overflow: auto;
+    border-right: 1px solid color-mix(in srgb, var(--border) 84%, #ffffff);
+    background: color-mix(in srgb, #fff8e6 94%, #ffffff);
+    box-shadow: 18px 0 32px rgba(17, 64, 54, 0.18);
+    padding: 16px;
+  }
+
+  .specialist-mobile-drawer__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .specialist-mobile-drawer__close {
+    flex: 0 0 auto;
   }
 }
 

@@ -112,7 +112,14 @@ async function renderWithProviders(options?: {
     { path: '/cabinet', component: { template: '<div>Cabinet</div>' } },
     { path: '/cabinet/chat', component: { template: '<div>Cabinet Chat</div>' } },
     { path: '/cabinet/profile', component: { template: '<div>Cabinet Profile</div>' } },
+    { path: '/cabinet/slots', component: { template: '<div>Cabinet Slots</div>' } },
+    { path: '/cabinet/sessions', component: { template: '<div>Cabinet Sessions</div>' } },
+    { path: '/cabinet/clients', component: { template: '<div>Cabinet Clients</div>' } },
+    { path: '/cabinet/external-sessions', component: { template: '<div>Cabinet External Sessions</div>' } },
+    { path: '/cabinet/analytics', component: { template: '<div>Cabinet Analytics</div>' } },
+    { path: '/cabinet/billing', component: { template: '<div>Cabinet Billing</div>' } },
     { path: '/cabinet/settings', component: { template: '<div>Cabinet Settings</div>' } },
+    { path: '/cabinet/settings/notifications', component: { template: '<div>Cabinet Notifications</div>' } },
     { path: '/public', component: { template: '<div>Public Redirect</div>' } },
     { path: '/client', component: { template: '<div>Client</div>' } },
     { path: '/client/chat', component: { template: '<div>Client Chat</div>' } },
@@ -255,7 +262,7 @@ describe('App shell', () => {
 
     const mobileMenu = document.querySelector('.mobile-menu') as HTMLElement
     expect(mobileMenu).toBeInTheDocument()
-    const settingsLink = await screen.findByRole('link', { name: 'Налаштування' })
+    const settingsLink = within(mobileMenu).getByRole('link', { name: 'Налаштування' })
     expect(settingsLink).toHaveAttribute('href', '/cabinet/settings')
     expect(within(mobileMenu).queryByRole('button', { name: 'Налаштування' })).not.toBeInTheDocument()
 
@@ -264,6 +271,86 @@ describe('App shell', () => {
     await waitFor(() => {
       expect(router.currentRoute.value.fullPath).toBe('/cabinet/settings')
     })
+  })
+
+  it('shows specialist sidebar on cabinet routes with main workspace links', async () => {
+    await renderWithProviders({
+      initialPath: '/cabinet',
+      roles: ['SPECIALIST'],
+    })
+
+    const sidebar = screen.getByRole('navigation', { name: 'Навігація кабінету спеціаліста' })
+    expect(sidebar).toBeInTheDocument()
+    expect(within(sidebar).getByRole('link', { name: 'Головна' })).toHaveAttribute('href', '/cabinet')
+    expect(within(sidebar).getByRole('link', { name: 'Профіль' })).toHaveAttribute('href', '/cabinet/profile')
+    expect(within(sidebar).getByRole('link', { name: 'Розклад' })).toHaveAttribute('href', '/cabinet/slots')
+    expect(within(sidebar).getByRole('link', { name: 'Сесії' })).toHaveAttribute('href', '/cabinet/sessions')
+    expect(within(sidebar).getByRole('link', { name: 'Клієнти' })).toHaveAttribute('href', '/cabinet/clients')
+    expect(within(sidebar).getByRole('link', { name: 'Гостьові сесії' })).toHaveAttribute(
+      'href',
+      '/cabinet/external-sessions'
+    )
+    expect(within(sidebar).getByRole('link', { name: 'Аналітика' })).toHaveAttribute('href', '/cabinet/analytics')
+    expect(within(sidebar).getByRole('link', { name: 'Тарифи і доступ' })).toHaveAttribute(
+      'href',
+      '/cabinet/billing'
+    )
+    expect(within(sidebar).getByRole('link', { name: 'Налаштування' })).toHaveAttribute('href', '/cabinet/settings')
+  })
+
+  it('highlights active specialist sidebar item for nested cabinet routes', async () => {
+    await renderWithProviders({
+      initialPath: '/cabinet/sessions/42',
+      roles: ['SPECIALIST'],
+    })
+
+    const sidebar = screen.getByRole('navigation', { name: 'Навігація кабінету спеціаліста' })
+    expect(within(sidebar).getByRole('link', { name: 'Сесії' })).toHaveClass('is-active')
+    expect(within(sidebar).getByRole('link', { name: 'Головна' })).not.toHaveClass('is-active')
+  })
+
+  it('does not show specialist sidebar for client users', async () => {
+    await renderWithProviders({
+      initialPath: '/client',
+      roles: ['CLIENT'],
+    })
+
+    expect(screen.queryByRole('navigation', { name: 'Навігація кабінету спеціаліста' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Розділи кабінету' })).not.toBeInTheDocument()
+  })
+
+  it('does not show specialist sidebar for pure ADMIN users', async () => {
+    await renderWithProviders({
+      initialPath: '/admin/inbox',
+      roles: ['ADMIN'],
+    })
+
+    expect(screen.queryByRole('navigation', { name: 'Навігація кабінету спеціаліста' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Розділи кабінету' })).not.toBeInTheDocument()
+  })
+
+  it('opens a specialist mobile drawer with cabinet links', async () => {
+    await renderWithProviders({
+      initialPath: '/cabinet',
+      roles: ['SPECIALIST'],
+    })
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Розділи кабінету' }))
+
+    const drawer = await screen.findByRole('dialog', { name: 'Розділи кабінету спеціаліста' })
+    expect(within(drawer).getByRole('link', { name: 'Головна' })).toHaveAttribute('href', '/cabinet')
+    expect(within(drawer).getByRole('link', { name: 'Сесії' })).toHaveAttribute('href', '/cabinet/sessions')
+    expect(within(drawer).getByRole('link', { name: 'Тарифи і доступ' })).toHaveAttribute('href', '/cabinet/billing')
+  })
+
+  it('keeps existing cabinet routes rendering inside the specialist shell', async () => {
+    await renderWithProviders({
+      initialPath: '/cabinet/billing',
+      roles: ['SPECIALIST'],
+    })
+
+    expect(screen.getByText('Cabinet Billing')).toBeInTheDocument()
+    expect(screen.getByRole('navigation', { name: 'Навігація кабінету спеціаліста' })).toBeInTheDocument()
   })
 
   it('renders restricted-access notification without broken characters', async () => {
