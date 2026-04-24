@@ -54,7 +54,7 @@
             {{ item.clientName || clientLabel(item.clientId) }}
           </div>
           <div class="client-actions">
-            <RouterLink class="btn btn--ghost btn--sm" :to="`/cabinet/sessions#note-${item.sessionId}`">
+            <RouterLink class="btn btn--ghost btn--sm" :to="noteReminderRoute(item.sessionId)">
               Додати нотатку
             </RouterLink>
             <button
@@ -626,6 +626,14 @@ function toggleRemindersExpanded() {
 
 function showMorePendingNotes() {
   pendingNotesVisibleLimit.value += 3
+}
+
+function noteReminderRoute(sessionId: number) {
+  return {
+    path: '/cabinet/sessions',
+    query: { returnTo: '/cabinet/clients' },
+    hash: `#note-${sessionId}`,
+  }
 }
 
 function formatDateTime(value?: string | null) {

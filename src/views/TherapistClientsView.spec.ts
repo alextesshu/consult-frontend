@@ -41,6 +41,7 @@ const mockedSkipSpecialistSessionNote = vi.mocked(skipSpecialistSessionNote)
 const CLIENTS_URL = '/cabinet/clients/'
 const REMINDERS_URL = '/cabinet/notes/reminders/'
 const clientHistoryUrl = (clientId: number) => `/cabinet/clients/${clientId}/notes/history/`
+const noteReminderHref = (sessionId: number) => `/cabinet/sessions?returnTo=%2Fcabinet%2Fclients#note-${sessionId}`
 
 function renderView() {
   return render(TherapistClientsView, {
@@ -48,7 +49,13 @@ function renderView() {
       stubs: {
         RouterLink: {
           props: ['to'],
-          template: '<a :href="typeof to === \'string\' ? to : \'\'"><slot /></a>',
+          template: `
+            <a :href="typeof to === 'string'
+              ? to
+              : \`\${to.path || ''}\${to.query?.returnTo ? '?returnTo=' + encodeURIComponent(to.query.returnTo) : ''}\${to.hash || ''}\`">
+              <slot />
+            </a>
+          `,
         },
       },
     },
@@ -205,12 +212,12 @@ describe('TherapistClientsView', () => {
       expect(screen.getByText('Є 1 завершена сесія, до якої можна додати нотатку.')).toBeInTheDocument()
       return screen.getByRole('button', { name: 'Показати сесії' })
     })
-    expect(container.querySelector('a[href="/cabinet/sessions#note-777"]')).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Додати нотатку' })).not.toBeInTheDocument()
 
     await fireEvent.click(showSessionsButton)
 
     await waitFor(() => {
-      expect(container.querySelector('a[href="/cabinet/sessions#note-777"]')).toBeInTheDocument()
+      expect(screen.getByRole('link', { name: 'Додати нотатку' })).toHaveAttribute('href', noteReminderHref(777))
       expect(container.textContent).toContain('Display Client')
     })
     expect(mockedApiGet).not.toHaveBeenCalledWith('/booking/sessions/')
@@ -242,7 +249,7 @@ describe('TherapistClientsView', () => {
 
     const remindersPanel = requireHTMLElement(container.querySelector('.panel--reminders'), '.panel--reminders')
     expect(container).not.toHaveTextContent('Сесії без коментаря')
-    expect(remindersPanel.querySelector('a[href="/cabinet/sessions#note-800"]')).toBeNull()
+    expect(within(remindersPanel).queryByRole('link', { name: 'Додати нотатку' })).not.toBeInTheDocument()
     expect(remindersPanel).not.toHaveTextContent('потрібно')
     expect(remindersPanel).not.toHaveTextContent('обов')
     expect(remindersPanel).not.toHaveTextContent('без коментаря')
@@ -250,7 +257,13 @@ describe('TherapistClientsView', () => {
     await fireEvent.click(showSessionsButton)
 
     await waitFor(() => {
-      expect(remindersPanel?.querySelectorAll('a[href^="/cabinet/sessions#note-"]')).toHaveLength(3)
+      const addNoteLinks = within(remindersPanel).getAllByRole('link', { name: 'Додати нотатку' })
+      expect(addNoteLinks).toHaveLength(3)
+      expect(addNoteLinks.map((link) => link.getAttribute('href'))).toEqual([
+        noteReminderHref(804),
+        noteReminderHref(803),
+        noteReminderHref(802),
+      ])
       expect(screen.getByRole('button', { name: 'Показати ще' })).toBeInTheDocument()
       expect(screen.getByText('Клієнт #54')).toBeInTheDocument()
       expect(screen.getByText('Клієнт #53')).toBeInTheDocument()
@@ -259,7 +272,7 @@ describe('TherapistClientsView', () => {
 
     await fireEvent.click(screen.getByRole('button', { name: 'Показати ще' }))
     await waitFor(() => {
-      expect(remindersPanel?.querySelectorAll('a[href^="/cabinet/sessions#note-"]')).toHaveLength(5)
+      expect(within(remindersPanel).getAllByRole('link', { name: 'Додати нотатку' })).toHaveLength(5)
     })
   })
 
@@ -283,7 +296,7 @@ describe('TherapistClientsView', () => {
     const { container } = renderView()
 
     await fireEvent.click(await screen.findByRole('button', { name: 'Показати сесії' }))
-    expect(container.querySelector('a[href="/cabinet/sessions#note-900"]')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Додати нотатку' })).toHaveAttribute('href', noteReminderHref(900))
 
     await fireEvent.click(screen.getByRole('button', { name: 'Залишити без нотатки' }))
 

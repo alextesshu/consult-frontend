@@ -694,7 +694,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, onBeforeUnmount, ref, watch, nextTick } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { apiGet, fetchSpecialistProfile, type SessionFormat, type SpecialistProfile } from '../lib/api'
 import {
   BOOKING_ERROR_FALLBACKS,
@@ -844,6 +844,7 @@ const statusFilter = ref<SessionStatusFilter>('ALL')
 const dateFilter = ref('')
 const dateFilterInputRef = ref<HTMLInputElement | null>(null)
 const route = useRoute()
+const router = useRouter()
 const toast = useToast()
 const highlightTimeoutId = ref<number | null>(null)
 const nowTs = ref(Date.now())
@@ -1101,6 +1102,21 @@ const isPostSessionFinishing = computed(() => {
   const id = noteSessionId.value
   return Boolean(id && (isNoteSaving(id) || isNoteSkipping(id))) || journalSaving.value
 })
+
+function safeReturnTo() {
+  const value = route.query?.returnTo
+  const target = Array.isArray(value) ? value[0] : value
+  if (typeof target !== 'string') return ''
+  if (target === '/cabinet/clients') return target
+  if (/^\/cabinet\/[A-Za-z0-9/_-]*$/.test(target)) return target
+  return ''
+}
+
+async function navigateToReturnTargetIfPresent() {
+  const target = safeReturnTo()
+  if (!target) return
+  await router.push(target)
+}
 
 function formatDateTime(value?: string | null) {
   return sharedFormatSessionDateTime(value)
@@ -1651,6 +1667,7 @@ async function finishPostSessionStep() {
     resetNoteModalState()
     clearPostSessionContext()
     await loadSessions()
+    await navigateToReturnTargetIfPresent()
   } catch (err: any) {
     error.value = getBookingErrorMessage(err, 'Не вдалося завершити післясесійний крок')
   } finally {

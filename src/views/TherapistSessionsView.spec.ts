@@ -24,6 +24,11 @@ import TherapistSessionsView from './TherapistSessionsView.vue'
 
 const mockRoute = {
   hash: '',
+  query: {} as Record<string, string | string[] | undefined>,
+}
+
+const mockRouter = {
+  push: vi.fn(),
 }
 
 const mockToast = {
@@ -40,6 +45,7 @@ vi.mock('vue-router', async () => {
   return {
     ...actual,
     useRoute: () => mockRoute,
+    useRouter: () => mockRouter,
   }
 })
 
@@ -150,6 +156,8 @@ beforeAll(() => {
 describe('TherapistSessionsView', () => {
   beforeEach(() => {
     mockRoute.hash = ''
+    mockRoute.query = {}
+    mockRouter.push.mockReset()
     mockedApiGet.mockReset()
     mockedFetchSpecialistProfile.mockReset()
     mockedApproveSpecialistRescheduleRequest.mockReset()
@@ -956,6 +964,76 @@ describe('TherapistSessionsView', () => {
     expect(mockedSaveSpecialistSessionNote).not.toHaveBeenCalled()
     expect(screen.queryByText('Без нотатки')).not.toBeInTheDocument()
     expect(mockToast.success).toHaveBeenCalledWith('Післясесійний крок завершено.')
+    expect(mockRouter.push).not.toHaveBeenCalled()
+  })
+
+  it('returns to clients page after finishing a note opened from clients reminders', async () => {
+    mockRoute.hash = '#note-34'
+    mockRoute.query = { returnTo: '/cabinet/clients' }
+    const completedSession = buildSession({
+      id: 34,
+      status: 'COMPLETED',
+      client: 134,
+      client_name: 'Return Client',
+      client_email: 'return-client@example.com',
+      slot_start_at: '2026-04-24T05:00:00Z',
+      slot_end_at: '2026-04-24T05:50:00Z',
+    })
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/booking/sessions/' && (config as { params?: { upcoming?: boolean } } | undefined)?.params?.upcoming) {
+        return []
+      }
+      if (url === '/booking/sessions/' && (config as { params?: { upcoming?: boolean } } | undefined)?.params?.upcoming === false) {
+        return [completedSession]
+      }
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedFetchSpecialistSessionNoteContent.mockResolvedValue('')
+    mockedFetchSpecialistClientWorkbookSnapshot.mockResolvedValue({ content: '', isMissing: true })
+
+    renderView()
+
+    await screen.findByText('Клієнт:')
+    await fireEvent.click(screen.getByRole('button', { name: 'Завершити після сесії' }))
+
+    await waitFor(() => {
+      expect(mockedSkipSpecialistSessionNote).toHaveBeenCalledWith(34)
+      expect(mockRouter.push).toHaveBeenCalledWith('/cabinet/clients')
+    })
+  })
+
+  it('ignores unsafe returnTo after finishing post-session note step', async () => {
+    mockRoute.hash = '#note-35'
+    mockRoute.query = { returnTo: 'https://evil.example/phish' }
+    const completedSession = buildSession({
+      id: 35,
+      status: 'COMPLETED',
+      client: 135,
+      client_name: 'Unsafe Return',
+      client_email: 'unsafe-return@example.com',
+      slot_start_at: '2026-04-24T06:00:00Z',
+      slot_end_at: '2026-04-24T06:50:00Z',
+    })
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/booking/sessions/' && (config as { params?: { upcoming?: boolean } } | undefined)?.params?.upcoming) {
+        return []
+      }
+      if (url === '/booking/sessions/' && (config as { params?: { upcoming?: boolean } } | undefined)?.params?.upcoming === false) {
+        return [completedSession]
+      }
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    await screen.findByText('Клієнт:')
+    await fireEvent.click(screen.getByRole('button', { name: 'Завершити після сесії' }))
+
+    await waitFor(() => {
+      expect(mockedSkipSpecialistSessionNote).toHaveBeenCalledWith(35)
+      expect(document.querySelector('.note-modal')).not.toBeInTheDocument()
+    })
+    expect(mockRouter.push).not.toHaveBeenCalled()
   })
 
   it('saves workbook changes when finishing without a note', async () => {
@@ -995,6 +1073,7 @@ describe('TherapistSessionsView', () => {
 
   it('saves a non-empty note through the primary action without skipping it', async () => {
     mockRoute.hash = '#note-33'
+    mockRoute.query = { returnTo: '/cabinet/clients' }
     const completedSession = buildSession({
       id: 33,
       status: 'COMPLETED',
@@ -1025,6 +1104,7 @@ describe('TherapistSessionsView', () => {
     await waitFor(() => {
       expect(mockedSaveSpecialistSessionNote).toHaveBeenCalledWith(33, 'Післясесійна нотатка')
       expect(document.querySelector('.note-modal')).not.toBeInTheDocument()
+      expect(mockRouter.push).toHaveBeenCalledWith('/cabinet/clients')
     })
     expect(mockedSkipSpecialistSessionNote).not.toHaveBeenCalled()
   })
