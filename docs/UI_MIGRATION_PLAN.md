@@ -1238,3 +1238,24 @@ Preserved:
 Notes:
 
 The pricing secondary CTA now visually belongs to the pricing section instead of looking like a stray button.
+
+### Home future polish backlog
+
+The Home page first-pass visual migration is complete, but it is not the final 1:1 target design.
+
+Future Home polish should include:
+
+* Add visual icons to the value cards.
+* Add or refine decorative shapes and dotted patterns.
+* Improve the footer toward a richer multi-column marketing footer.
+* Refine typography and spacing against the final visual reference.
+* Consider a stronger SaaS-style hero dashboard mockup composition.
+* Review whether current screenshot assets should be replaced, cropped, or recomposed.
+* Generate or add lightweight SVG assets where CSS is not enough.
+* Run final visual QA across desktop, tablet, and mobile.
+
+Current status:
+
+* Home first-pass is good enough to move to the next public/conversion page.
+* Do not treat Home as final.
+* Return to Home after at least one more key public page is aligned with the new visual system.
