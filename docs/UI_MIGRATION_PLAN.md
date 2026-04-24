@@ -1,0 +1,902 @@
+# PRO CONSULT — UI Migration Plan
+
+## 1. Purpose
+
+This document defines the safe visual migration plan for the PRO CONSULT frontend.
+
+The goal is to move the existing product toward the new visual direction without losing implemented functionality.
+
+This is not a rewrite.
+
+This is a controlled, page-by-page visual migration.
+
+Main rule:
+
+> Preserve the product. Improve the interface.
+
+---
+
+## 2. Related Documents
+
+Before working on any visual migration task, read:
+
+```text
+frontend/docs/DESIGN_SYSTEM.md
+````
+
+`DESIGN_SYSTEM.md` defines:
+
+* visual direction
+* color system
+* typography
+* cards
+* buttons
+* layout rules
+* safety rules
+* AI/Codex agent rules
+
+This document defines:
+
+* page order
+* migration phases
+* risk levels
+* smoke checks
+* task boundaries
+
+---
+
+## 3. Core Migration Rules
+
+### Must preserve
+
+Every migration task must preserve:
+
+* existing routes
+* existing API calls
+* existing business logic
+* existing permission logic
+* existing role-specific UI
+* existing loading states
+* existing error states
+* existing empty states
+* existing tests
+* current Ukrainian product terminology
+
+### Must avoid
+
+Do not:
+
+* replace working pages with static mockups
+* hardcode generated mockup data into real pages
+* use mockup prices as real tariff truth
+* remove conditions just because they complicate layout
+* remove warning states
+* remove confirmation flows
+* rename routes
+* change backend contracts
+* mix unrelated visual polish with business logic changes
+
+### Allowed
+
+Visual migration may change:
+
+* spacing
+* card layout
+* typography
+* colors
+* button style
+* badge style
+* section hierarchy
+* decorative elements
+* responsive layout
+* visual grouping of existing data
+
+---
+
+## 4. Product Truth
+
+Generated design mockups are visual references only.
+
+They are useful for:
+
+* style
+* spacing
+* hierarchy
+* page mood
+* component direction
+* decorative language
+
+They are not truth for:
+
+* prices
+* tariff limits
+* routes
+* copy with legal meaning
+* API fields
+* user roles
+* business rules
+* payment flow
+* booking flow
+* notification rules
+
+When mockups conflict with implemented product logic, the implemented product logic wins.
+
+---
+
+## 5. Current Tariff Truth
+
+As of the current product decision:
+
+### Start
+
+* free
+* active client limit is controlled by backend entitlement logic
+
+### Pro
+
+* 990 грн / month
+* 9,900 грн / year
+
+### Leader
+
+* 2,490 грн / month
+* 24,900 грн / year
+* self-service may be disabled during beta depending on backend rules
+
+Do not use old generated prices such as:
+
+* 299 грн
+* 599 грн
+* 999 грн
+
+unless the product decision is explicitly changed.
+
+---
+
+## 6. Page Inventory and Migration Table
+
+| Page / Area               | Route / Area                                         |         Current status | Priority |   Risk | Migration approach                                                     |
+| ------------------------- | ---------------------------------------------------- | ---------------------: | -------: | -----: | ---------------------------------------------------------------------- |
+| Home                      | `/`                                                  |            Implemented |     High | Medium | Align with new public landing style, preserve CTA and navigation logic |
+| Pricing / tariffs         | public pricing area + `/cabinet/billing` related CTA | Implemented / evolving |     High |   High | Polish visuals only after confirming tariff truth                      |
+| Public specialist profile | `/s/:slug`                                           |            Implemented |     High |   High | Improve trust, profile layout, booking clarity                         |
+| Specialist dashboard      | `/cabinet`                                           |            Implemented |     High |   High | Improve cockpit layout, cards, work queue, quick actions               |
+| Sessions list             | `/cabinet/sessions`                                  |            Implemented |     High |   High | Improve status readability and grouping                                |
+| Session detail            | session detail route                                 |            Implemented |     High |   High | Polish panels/actions, preserve lifecycle logic                        |
+| Clients list              | `/cabinet/clients`                                   |            Implemented |     High | Medium | Improve cards, reminders, search, batch workflow                       |
+| Client detail             | client detail route                                  |            Implemented |   Medium |   High | Improve information architecture only                                  |
+| External sessions         | `/cabinet/external-sessions`                         |            Implemented |     High |   High | Improve guest invite safety UX                                         |
+| External session detail   | `/cabinet/external-sessions/:id`                     |            Implemented |     High |   High | Make guest invite the primary sharing action                           |
+| Settings                  | `/cabinet/settings` or related settings pages        |            Implemented |   Medium | Medium | Improve grouping/forms, preserve all saved fields                      |
+| Payment details           | settings/payment details area                        |            Implemented |     High |   High | Polish only, preserve IBAN/card method logic                           |
+| Billing                   | `/cabinet/billing`                                   |            Implemented |     High |   High | Improve entitlement/tariff visibility                                  |
+| Login/Register            | auth routes                                          |            Implemented |   Medium | Medium | Align with public visual style                                         |
+| Blog                      | blog routes                                          |    Implemented/planned |      Low |    Low | Apply public card style later                                          |
+| Contacts/About            | public routes                                        |    Implemented/planned |      Low |    Low | Lower priority                                                         |
+| Admin pages               | `/admin/*`                                           |            Implemented |   Medium |   High | Improve clarity only, do not alter admin access logic                  |
+
+---
+
+## 7. Recommended Migration Phases
+
+## Phase 1 — Documentation and Visual Tokens
+
+### Phase 1 Goal
+
+Prepare the system for safe migration.
+
+### Scope
+
+* `DESIGN_SYSTEM.md`
+* `UI_MIGRATION_PLAN.md`
+* CSS variables audit
+* shared component audit
+
+### Allowed changes
+
+* documentation
+* comments
+* optional non-breaking CSS variable additions
+
+### Avoid
+
+* page redesign
+* route changes
+* business logic changes
+
+### Done when
+
+* design direction is documented
+* migration plan is documented
+* current CSS/global style structure is understood
+
+---
+
+## Phase 2 — Shared UI Foundations
+
+### Phase 2 Goal
+
+Create reusable primitives before redesigning pages.
+
+### Candidate components/styles
+
+* page container
+* public section wrapper
+* section heading
+* card
+* button variants
+* badge variants
+* empty state
+* attention state
+* CTA banner
+* dashboard metric card
+* pricing card
+* decorative background elements
+
+### Principle
+
+Do not migrate every page immediately.
+
+Create primitives gradually and apply only where safe.
+
+### Risk
+
+Medium.
+
+Shared styles can accidentally affect many pages.
+
+### Safety
+
+Prefer additive classes or components.
+
+Avoid changing global styles too broadly.
+
+---
+
+## Phase 3 — Public Pages Visual Polish
+
+### Phase 3 Goal
+
+Improve first impression and conversion.
+
+### Recommended order
+
+1. Home
+2. Pricing / tariffs presentation
+3. Public specialist profile
+4. Login/Register
+5. Contacts/About/FAQ
+6. Blog
+
+### Why this phase matters
+
+Public pages affect:
+
+* trust
+* conversion
+* product perception
+* onboarding of new specialists
+* client confidence before booking
+
+### Safety rules
+
+Preserve:
+
+* links
+* CTA targets
+* public profile slug logic
+* booking flow
+* tariff truth
+* auth redirects
+* responsive header behavior
+
+---
+
+## Phase 4 — Specialist Dashboard Polish
+
+### Phase 4 Goal
+
+Make the authenticated workspace feel like a daily working cockpit.
+
+### Target areas
+
+* main cabinet/dashboard
+* summary cards
+* today sessions
+* upcoming sessions
+* work queue
+* pending tasks
+* quick actions
+* messages/notifications preview
+* onboarding/readiness state
+
+### Should improve
+
+* visibility of important actions
+* unpaid/pending states
+* upcoming sessions
+* client/session context
+* daily workflow speed
+
+### Must preserve
+
+* onboarding state endpoint usage
+* entitlement logic
+* role behavior
+* existing dashboard actions
+* current data sources
+
+### Risk
+
+High.
+
+Dashboard touches many product areas.
+
+---
+
+## Phase 5 — Core Workflow Pages Polish
+
+### Phase 5 Goal
+
+Improve daily specialist workflows without changing behavior.
+
+### Recommended order
+
+1. Sessions list
+2. Session detail
+3. Clients list
+4. Client detail
+5. External sessions
+6. External session detail
+7. Settings
+8. Billing/payment details
+
+### Why this order
+
+These pages directly affect daily product usefulness.
+
+### Must preserve
+
+* session lifecycle
+* booking statuses
+* payment statuses
+* note/workbook flow
+* returnTo navigation flow
+* client relation logic
+* guest invite logic
+* payment method logic
+
+---
+
+## Phase 6 — External Sessions Guest Invite Safety UX
+
+### Phase 6 Goal
+
+Prevent specialists from sending raw meeting URLs directly to guests.
+
+### Scope
+
+Main page:
+
+```text
+/cabinet/external-sessions/:id
+```
+
+Main principle:
+
+> Guest invite link must be the primary sharing path.
+
+### Requirements
+
+* raw meeting URL should not look like a guest-share link
+* near meeting URL, show explanation that it is internal
+* near meeting URL, show CTA to create/copy guest invite
+* existing “Гостьовий доступ” section should remain
+* if invite exists, label it “Посилання для гостя”
+* if no invite exists, show attention state
+* no backend changes unless data is missing
+
+### Risk
+
+High.
+
+This is a security/flow clarity issue, not just visual polish.
+
+### Tests should cover
+
+* online external session with meeting URL and no invite
+* existing invite visible as guest link
+* raw meeting URL not labeled as shareable
+* CTA creates or copies invite depending on state
+
+---
+
+## Phase 7 — Mobile Visual QA
+
+### Phase 7 Goal
+
+Ensure the new design does not break small screens.
+
+### Required viewport checks
+
+* 360px
+* 390px
+* 430px
+* 768px
+* desktop
+
+### Check every migrated page for
+
+* no horizontal overflow
+* visible primary CTA
+* readable cards
+* no clipped text
+* no broken header/sidebar
+* no blocked forms
+* no hidden important warnings
+* usable modals
+* usable tables or mobile alternatives
+
+### Important
+
+Decorative elements must be simplified or hidden on mobile if they cause layout issues.
+
+---
+
+## Phase 8 — Final Visual Consistency Pass
+
+### Phase 8 Goal
+
+Remove visual fragmentation after page-by-page migration.
+
+### Check consistency of
+
+* buttons
+* cards
+* badges
+* headings
+* section spacing
+* forms
+* tables
+* empty states
+* attention states
+* footer/header
+* dashboard panels
+* mobile behavior
+
+### Done when
+
+The product feels like one coherent system, not a collection of unrelated pages.
+
+---
+
+## 8. Near-Term Execution Plan
+
+Recommended next practical sequence:
+
+### Step 1
+
+Audit current frontend style structure.
+
+Find:
+
+* global CSS files
+* layout components
+* button styles
+* card styles
+* badge styles
+* existing CSS variables
+* existing component patterns
+
+### Step 2
+
+Add or align visual tokens.
+
+Do this carefully and additively.
+
+Do not break current UI.
+
+### Step 3
+
+Polish Home page.
+
+Reason:
+
+* public-facing
+* high visual impact
+* relatively lower business risk than workspace pages
+
+### Step 4
+
+Polish Pricing/Tariff presentation.
+
+Reason:
+
+* high conversion impact
+* must reflect correct product pricing
+
+### Step 5
+
+Polish Public Specialist Profile.
+
+Reason:
+
+* directly affects client trust and booking conversion
+
+### Step 6
+
+Polish Specialist Dashboard.
+
+Reason:
+
+* directly affects daily product usefulness for specialists
+
+### Step 7
+
+Polish workflow pages gradually.
+
+Start with:
+
+* Sessions
+* Clients
+* External sessions
+
+---
+
+## 9. Page-Level Migration Template
+
+Use this template before starting each page migration.
+
+```md
+# Page Migration Task — [Page Name]
+
+## Page
+
+Route:
+
+Files:
+
+## Current behavior to preserve
+
+- 
+- 
+- 
+
+## Visual goals
+
+- 
+- 
+- 
+
+## Allowed changes
+
+- spacing
+- layout grouping
+- cards
+- typography
+- colors
+- badges
+- responsive improvements
+
+## Forbidden changes
+
+- routes
+- API calls
+- business logic
+- permission logic
+- tests removal
+- mock data introduction
+
+## Data states to preserve
+
+- loading
+- error
+- empty
+- success
+- permission denied
+- disabled state
+- mobile state
+
+## Smoke checks
+
+- page opens
+- main CTA works
+- route still works
+- API calls unchanged
+- mobile has no overflow
+- tests pass
+- build passes
+```
+
+---
+
+## 10. Smoke Check Template
+
+Use after each migrated page.
+
+```md
+# Smoke Check — [Page Name]
+
+## Route checked
+
+- 
+
+## Desktop
+
+- [ ] page opens
+- [ ] no console errors
+- [ ] main content visible
+- [ ] main CTA works
+- [ ] loading state works
+- [ ] empty/error state preserved where applicable
+
+## Mobile
+
+- [ ] checked at 360px
+- [ ] checked at 390px
+- [ ] checked at 430px
+- [ ] no horizontal overflow
+- [ ] primary CTA visible
+- [ ] cards stack correctly
+- [ ] text not clipped
+
+## Product safety
+
+- [ ] no route changed
+- [ ] no API contract changed
+- [ ] no business logic changed
+- [ ] no mock data added
+- [ ] no role-specific behavior removed
+- [ ] no approved Ukrainian copy accidentally replaced
+
+## Tests/build
+
+- [ ] relevant tests pass
+- [ ] build passes
+```
+
+---
+
+## 11. Task Size Rule
+
+Each visual migration task should be small.
+
+Preferred task size:
+
+* one page
+* or one shared component
+* or one section of a complex page
+
+Avoid tasks like:
+
+* “redesign all cabinet pages”
+* “make the whole site like the mockup”
+* “replace all styles globally”
+* “clean all CSS”
+* “rebuild dashboard and sessions together”
+
+Better tasks:
+
+* “Polish Home hero and feature cards”
+* “Create reusable pricing card component”
+* “Polish public specialist profile hero”
+* “Improve session status badges”
+* “Polish external session guest invite block”
+
+---
+
+## 12. High-Risk Areas
+
+Be extra careful with these areas.
+
+### Booking flow
+
+Risk:
+
+* broken client conversion
+* wrong slot states
+* wrong redirects
+
+### Session lifecycle
+
+Risk:
+
+* wrong status transitions
+* broken completion flow
+* broken notes/workbook flow
+
+### Payments
+
+Risk:
+
+* wrong payment status
+* wrong recipient instructions
+* broken payment proof flow
+* incorrect tariff/business logic
+
+### Guest sessions
+
+Risk:
+
+* guest receives wrong link
+* meeting URL exposed as primary share link
+* invite flow becomes unclear
+
+### Admin pages
+
+Risk:
+
+* admin access logic broken
+* role guard changes
+* pure admin behavior broken
+
+### Auth pages
+
+Risk:
+
+* login/register redirect bugs
+* validation errors hidden
+* mobile form issues
+
+---
+
+## 13. Current Priority Recommendation
+
+Current recommended priority:
+
+1. Keep external sessions UX task paused until ready
+2. Finish design planning documents
+3. Audit current CSS/components
+4. Start with public Home visual polish
+5. Then Pricing visual polish
+6. Then Public Specialist Profile visual polish
+7. Then Specialist Dashboard polish
+8. Then return to External Sessions UX safety fix
+9. Then Sessions/Clients workflow polish
+
+Reason:
+
+The project already has many working pages. The safest path is to establish visual foundations first, then migrate by page.
+
+---
+
+## 14. Design Asset Strategy
+
+Do not depend on many large images.
+
+Prefer:
+
+* CSS shapes
+* inline SVG
+* reusable decorative components
+* icon library
+* optimized SVGs
+
+Generate separate assets only when needed:
+
+* logo pack
+* favicon
+* OG image
+* hero/dashboard mockup
+* specialist placeholder portraits
+* decorative SVG shapes
+
+Do not block page migration on perfect assets.
+
+First priority is a clean, consistent UI system.
+
+---
+
+## 15. Definition of Done for UI Migration
+
+A page migration is done when:
+
+* visual style is closer to the target design
+* existing functionality is preserved
+* mobile layout is checked
+* loading/error/empty states are preserved
+* Ukrainian terminology is consistent
+* tests pass
+* build passes
+* no mock data or mock pricing was introduced
+* no route/API/business logic was changed accidentally
+
+---
+
+## 16. Final Rule
+
+The redesign must make PRO CONSULT feel more professional without making the product less reliable.
+
+The correct migration outcome is:
+
+> Same working product, stronger visual system, clearer hierarchy, better trust, better daily usability.
+
+## 17. Current Frontend Style Audit
+
+### Audit date
+
+2026-04-24
+
+### Summary
+
+The frontend currently has one global stylesheet:
+
+```text
+src/style.css
+````
+
+Most Vue pages and components also contain local scoped styles:
+
+```text
+src/**/*.vue <style scoped>
+```
+
+The backend does not currently contain project-owned HTML/CSS that affects the main website UI.
+
+### Global style state
+
+`src/style.css` already contains a basic design foundation:
+
+* global CSS variables in `:root`
+* color tokens
+* font tokens
+* radius tokens
+* shadow tokens
+* global body background
+* page wrapper styles
+* topbar styles
+* brand/nav styles
+* card styles
+* badge styles
+* input styles
+* button styles
+* basic hero/scene styles
+
+This means the project already has a partial design system.
+
+The new visual direction should not replace this file from scratch.
+
+### Important migration conclusion
+
+Do not rewrite `src/style.css`.
+
+Instead:
+
+1. add new PRO CONSULT target tokens additively, preferably using `--pc-*` variables
+2. keep old variables for compatibility
+3. gradually map old variables to new variables only when safe
+4. migrate pages/components one by one
+5. avoid broad global changes that may unexpectedly affect many scoped pages
+
+### Current risk
+
+Because almost every `.vue` page/component has its own `<style scoped>` block, visual migration must be page-scoped.
+
+Global changes in `src/style.css` can still affect:
+
+* body background
+* `.page`
+* `.topbar`
+* `.brand`
+* `.nav`
+* `.card`
+* `.badge`
+* `.input`
+* `.btn`
+
+So any change to these global classes must be treated as medium/high risk.
+
+### Recommended next technical step
+
+Add new design tokens to `src/style.css` without changing existing behavior.
+
+The first safe change should be additive only:
+
+* add `--pc-*` color tokens
+* add `--pc-*` spacing tokens
+* add `--pc-*` shadow tokens
+* add `--pc-*` container tokens
+* do not remap existing variables yet
+* do not change existing class styles yet
+
+After that, start using the new tokens in one isolated page or component.
