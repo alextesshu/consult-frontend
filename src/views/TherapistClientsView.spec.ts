@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { apiGet, apiPatch, fetchChatThreads } from '../lib/api'
 import TherapistClientsView from './TherapistClientsView.vue'
 import { createPracticeBoardItem, fetchPracticeBoards } from '../lib/specialistPracticeBoard'
+import { skipSpecialistSessionNote } from '../lib/specialistSessions'
 
 const mockToast = {
   success: vi.fn(),
@@ -19,6 +20,13 @@ vi.mock('../lib/specialistPracticeBoard', () => ({
   resolveDefaultPracticeBoardId: (boards: Array<{ id: number | string; is_default: boolean }>) =>
     boards.find((b) => b.is_default)?.id ?? boards[0]?.id ?? null,
 }))
+vi.mock('../lib/specialistSessions', async () => {
+  const actual = await vi.importActual<typeof import('../lib/specialistSessions')>('../lib/specialistSessions')
+  return {
+    ...actual,
+    skipSpecialistSessionNote: vi.fn(),
+  }
+})
 vi.mock('../composables/useToast', () => ({
   useToast: () => mockToast,
 }))
@@ -28,6 +36,7 @@ const mockedApiPatch = vi.mocked(apiPatch)
 const mockedFetchChatThreads = vi.mocked(fetchChatThreads)
 const mockedCreatePracticeBoardItem = vi.mocked(createPracticeBoardItem)
 const mockedFetchPracticeBoards = vi.mocked(fetchPracticeBoards)
+const mockedSkipSpecialistSessionNote = vi.mocked(skipSpecialistSessionNote)
 
 const CLIENTS_URL = '/cabinet/clients/'
 const REMINDERS_URL = '/cabinet/notes/reminders/'
@@ -62,9 +71,8 @@ function requireHTMLElement(node: Element | null, selector: string): HTMLElement
 }
 
 function getPanels(container: Element) {
-  const remindersPanel = requireHTMLElement(container.querySelector('.panel--reminders'), '.panel--reminders')
-  const panelList = container.querySelectorAll('.panel')
-  const clientsPanel = requireHTMLElement(panelList.item(1), '.panel:nth-of-type(2)')
+  const remindersPanel = container.querySelector('.panel--reminders') as HTMLElement | null
+  const clientsPanel = requireHTMLElement(container.querySelector('.panel--clients'), '.panel--clients')
   return { remindersPanel, clientsPanel }
 }
 
@@ -76,6 +84,8 @@ describe('TherapistClientsView', () => {
     mockedFetchChatThreads.mockResolvedValue([])
     mockedCreatePracticeBoardItem.mockReset()
     mockedFetchPracticeBoards.mockReset()
+    mockedSkipSpecialistSessionNote.mockReset()
+    mockedSkipSpecialistSessionNote.mockResolvedValue(undefined)
     mockToast.success.mockReset()
     window.history.replaceState({}, '', '/cabinet/clients')
     Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', {
@@ -155,10 +165,11 @@ describe('TherapistClientsView', () => {
     })
 
     const { container } = renderView()
-    const { remindersPanel } = getPanels(container)
 
     const retryButton = await waitFor(() => {
-      const button = remindersPanel.querySelector('.empty-state .btn')
+      const remindersPanel = container.querySelector('.panel--reminders')
+      expect(remindersPanel).toBeInstanceOf(HTMLElement)
+      const button = remindersPanel?.querySelector('.empty-state .btn')
       expect(button).toBeInstanceOf(HTMLButtonElement)
       return button as HTMLButtonElement
     })
@@ -166,7 +177,7 @@ describe('TherapistClientsView', () => {
     await fireEvent.click(retryButton)
 
     await waitFor(() => {
-      expect(remindersPanel.querySelector('.empty-state .btn')).toBeFalsy()
+      expect(container.querySelector('.panel--reminders')).toBeFalsy()
     })
     expect(mockedApiGet).not.toHaveBeenCalledWith('/booking/sessions/')
   })
@@ -190,10 +201,97 @@ describe('TherapistClientsView', () => {
 
     const { container } = renderView()
 
+    const showSessionsButton = await waitFor(() => {
+      expect(screen.getByText('Є 1 завершена сесія, до якої можна додати нотатку.')).toBeInTheDocument()
+      return screen.getByRole('button', { name: 'Показати сесії' })
+    })
+    expect(container.querySelector('a[href="/cabinet/sessions#note-777"]')).not.toBeInTheDocument()
+
+    await fireEvent.click(showSessionsButton)
+
     await waitFor(() => {
       expect(container.querySelector('a[href="/cabinet/sessions#note-777"]')).toBeInTheDocument()
       expect(container.textContent).toContain('Display Client')
     })
+    expect(mockedApiGet).not.toHaveBeenCalledWith('/booking/sessions/')
+  })
+
+  it('renders note reminders as a compact optional summary before revealing a limited list', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === REMINDERS_URL)
+        return Array.from({ length: 5 }, (_, index) => ({
+          session_id: 800 + index,
+          client_id: 50 + index,
+          status: 'COMPLETED',
+          slot_start_at: `2099-06-${15 + index}T10:00:00Z`,
+          slot_end_at: `2099-06-${15 + index}T10:50:00Z`,
+          client_name: `Client ${index + 1}`,
+        }))
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    const { container } = renderView()
+
+    const showSessionsButton = await waitFor(() => {
+      expect(screen.getByText('Нотатки після сесій')).toBeInTheDocument()
+      expect(screen.getByText('Є 5 завершені сесії, до яких можна додати нотатку.')).toBeInTheDocument()
+      expect(screen.getByText('Для зручності ведення історії можна додати коротку нотатку після сесії.')).toBeInTheDocument()
+      return screen.getByRole('button', { name: 'Показати сесії' })
+    })
+
+    const remindersPanel = requireHTMLElement(container.querySelector('.panel--reminders'), '.panel--reminders')
+    expect(container).not.toHaveTextContent('Сесії без коментаря')
+    expect(remindersPanel.querySelector('a[href="/cabinet/sessions#note-800"]')).toBeNull()
+    expect(remindersPanel).not.toHaveTextContent('потрібно')
+    expect(remindersPanel).not.toHaveTextContent('обов')
+    expect(remindersPanel).not.toHaveTextContent('без коментаря')
+
+    await fireEvent.click(showSessionsButton)
+
+    await waitFor(() => {
+      expect(remindersPanel?.querySelectorAll('a[href^="/cabinet/sessions#note-"]')).toHaveLength(3)
+      expect(screen.getByRole('button', { name: 'Показати ще' })).toBeInTheDocument()
+      expect(screen.getByText('Клієнт #54')).toBeInTheDocument()
+      expect(screen.getByText('Клієнт #53')).toBeInTheDocument()
+      expect(screen.getByText('Клієнт #52')).toBeInTheDocument()
+    })
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Показати ще' }))
+    await waitFor(() => {
+      expect(remindersPanel?.querySelectorAll('a[href^="/cabinet/sessions#note-"]')).toHaveLength(5)
+    })
+  })
+
+  it('can close a note reminder without creating fake note text', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === REMINDERS_URL)
+        return [
+          {
+            session_id: 900,
+            client_id: 44,
+            status: 'COMPLETED',
+            slot_start_at: '2099-06-15T10:00:00Z',
+            slot_end_at: '2099-06-15T10:50:00Z',
+            client_display_name: 'Display Client',
+          },
+        ]
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    const { container } = renderView()
+
+    await fireEvent.click(await screen.findByRole('button', { name: 'Показати сесії' }))
+    expect(container.querySelector('a[href="/cabinet/sessions#note-900"]')).toBeInTheDocument()
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Залишити без нотатки' }))
+
+    await waitFor(() => {
+      expect(mockedSkipSpecialistSessionNote).toHaveBeenCalledWith(900)
+      expect(container.querySelector('.panel--reminders')).toBeFalsy()
+    })
+    expect(container).not.toHaveTextContent('Без нотатки')
     expect(mockedApiGet).not.toHaveBeenCalledWith('/booking/sessions/')
   })
 
@@ -523,6 +621,105 @@ describe('TherapistClientsView', () => {
     await fireEvent.update(searchInput, 'B-500')
     await waitFor(() => {
       expect(clientsPanel.querySelectorAll('.client-card')).toHaveLength(1)
+    })
+  })
+
+  it('renders Ukrainian status badges and key client metadata without raw status values', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL)
+        return [
+          {
+            id: 1,
+            client_id: 44,
+            state: 'ACTIVE',
+            last_session_at: '2099-06-15T10:00:00Z',
+            upcoming_count: 2,
+            client_display_name: 'Active Client',
+            client_code: 'A-101',
+            has_workbook_content: true,
+            workbook_updated_at: '2099-06-15T11:20:00Z',
+            latest_session_note_at: '2099-06-15T12:20:00Z',
+            latest_session_note_session_id: 777,
+          },
+          {
+            id: 2,
+            client_id: 55,
+            state: 'INACTIVE',
+            last_session_at: null,
+            upcoming_count: 0,
+            client_display_name: 'Inactive Client',
+          },
+          {
+            id: 3,
+            client_id: 66,
+            state: 'ARCHIVED',
+            last_session_at: null,
+            upcoming_count: 0,
+            client_display_name: 'Archived Client',
+          },
+        ]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    const { container } = renderView()
+    const { clientsPanel } = getPanels(container)
+
+    await waitFor(() => {
+      expect(within(clientsPanel).getByText('Active Client')).toBeInTheDocument()
+      expect(clientsPanel.querySelector('.client-status--active')).toHaveTextContent('Активний')
+      expect(clientsPanel.querySelector('.client-status--inactive')).toHaveTextContent('Неактивний')
+      expect(clientsPanel.querySelector('.client-status--archived')).toHaveTextContent('Архів')
+    })
+
+    const firstCard = clientsPanel.querySelector('.client-card') as HTMLElement
+    expect(within(firstCard).getByText('Остання сесія')).toBeInTheDocument()
+    expect(within(firstCard).getByText('Заплановано')).toBeInTheDocument()
+    expect(within(firstCard).getByText('Остання нотатка')).toBeInTheDocument()
+    expect(within(firstCard).getByText('Робочий зошит')).toBeInTheDocument()
+    expect(within(firstCard).getByText('Оновлено')).toBeInTheDocument()
+    expect(within(firstCard).getByRole('link', { name: 'Відкрити нотатку' })).toHaveAttribute(
+      'href',
+      '/cabinet/sessions#note-777'
+    )
+    expect(within(firstCard).getByRole('button', { name: 'Додати на дошку' })).toBeInTheDocument()
+    expect(within(firstCard).getByRole('button', { name: 'Архівувати' })).toBeInTheDocument()
+    expect(clientsPanel).not.toHaveTextContent('ACTIVE')
+    expect(clientsPanel).not.toHaveTextContent('INACTIVE')
+    expect(clientsPanel).not.toHaveTextContent('ARCHIVED')
+  })
+
+  it('shows useful empty copy for no clients, filtered lists, archive, and search', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    const { container } = renderView()
+    const { clientsPanel } = getPanels(container)
+
+    await waitFor(() => {
+      expect(clientsPanel).toHaveTextContent('Клієнтів поки немає')
+      expect(clientsPanel).toHaveTextContent('Клієнти з’являться після перших консультацій')
+    })
+
+    const searchInput = clientsPanel.querySelector('#clients-search-input') as HTMLInputElement
+    await fireEvent.update(searchInput, 'олена')
+    await waitFor(() => {
+      expect(clientsPanel).toHaveTextContent('Нічого не знайдено')
+      expect(clientsPanel).toHaveTextContent('Перевірте написання або змініть фільтр')
+    })
+
+    await fireEvent.update(searchInput, '')
+    const filterButtons = clientsPanel.querySelectorAll('.filters button')
+    await fireEvent.click(filterButtons[1] as HTMLButtonElement)
+    await waitFor(() => {
+      expect(clientsPanel).toHaveTextContent('Активних клієнтів поки немає')
+    })
+    await fireEvent.click(filterButtons[3] as HTMLButtonElement)
+    await waitFor(() => {
+      expect(clientsPanel).toHaveTextContent('Архів порожній')
     })
   })
 

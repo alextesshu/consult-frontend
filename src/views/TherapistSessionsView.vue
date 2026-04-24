@@ -572,11 +572,16 @@
         <div class="note-modal__header">
           <div>
             <div class="note-title">Нотатки після сесії</div>
-            <div class="muted">Окремо ведіть нотатку по сесії та робочий зошит.</div>
+            <div class="muted">Нотатка необов'язкова. Ви можете завершити цей крок без тексту.</div>
           </div>
           <button class="btn btn--ghost btn--sm" type="button" @click="closeNote">
             Закрити
           </button>
+        </div>
+        <div v-if="activeNoteSession" class="note-modal__context">
+          <div><strong>Клієнт:</strong> {{ sessionClientLabel(activeNoteSession) }}</div>
+          <div><strong>Сесія:</strong> {{ formatDateTime(activeNoteSession.slot_start_at) }}</div>
+          <div><strong>Статус:</strong> {{ statusLabel(activeNoteSession) }}</div>
         </div>
         <div
           v-if="postSessionContext && noteSessionId === postSessionContext.sessionId"
@@ -620,6 +625,14 @@
                   @click="noteSessionId ? saveNote(noteSessionId) : null"
                 >
                   Зберегти нотатку
+                </button>
+                <button
+                  class="btn btn--ghost btn--sm"
+                  type="button"
+                  :disabled="noteSessionId ? isNoteSkipping(noteSessionId) : false"
+                  @click="noteSessionId ? skipNote(noteSessionId) : null"
+                >
+                  {{ noteSessionId && isNoteSkipping(noteSessionId) ? 'Завершуємо...' : 'Завершити без нотатки' }}
                 </button>
                 <div v-if="noteSaveMessage" class="note-save-feedback">{{ noteSaveMessage }}</div>
               </div>
@@ -717,6 +730,7 @@ import {
   saveSpecialistSessionNote as saveSpecialistSessionNoteAction,
   saveSpecialistClientJournal as saveSpecialistClientJournalAction,
   sessionDurationMinutes as getSessionDurationMinutes,
+  skipSpecialistSessionNote as skipSpecialistSessionNoteAction,
   statusClass as getStatusClass,
   statusLabel as getStatusLabel,
   suggestedActualDurationInput as getSuggestedActualDurationInput,
@@ -811,6 +825,7 @@ const noteSessionId = ref<number | null>(null)
 const noteDraft = ref('')
 const noteLoading = ref<Set<number>>(new Set())
 const noteSaving = ref<Set<number>>(new Set())
+const noteSkipping = ref<Set<number>>(new Set())
 const noteTextareaRef = ref<HTMLTextAreaElement | null>(null)
 const journalTextareaRef = ref<HTMLTextAreaElement | null>(null)
 const journalClientId = ref<number | null>(null)
@@ -939,6 +954,11 @@ const filteredUpcomingSessions = computed(() =>
 const filteredHistorySessions = computed(() =>
   historySessions.value.filter((session) => matchesSessionFilters(session))
 )
+
+const activeNoteSession = computed(() => {
+  if (!noteSessionId.value) return null
+  return findSessionById(noteSessionId.value)
+})
 
 const needsConfirmation = computed(() =>
   upcomingSorted.value.filter((session) => session.status === 'SCHEDULED')
@@ -1077,6 +1097,7 @@ function resetNoteModalState() {
 
 const isActionLoading = (id: number) => actionLoading.value.has(id)
 const isNoteSaving = (id: number) => noteSaving.value.has(id)
+const isNoteSkipping = (id: number) => noteSkipping.value.has(id)
 const isRequestLoading = (id: number) => requestLoading.value.has(id)
 const isSuggestionsLoading = (id: number) => suggestionsLoading.value.has(id)
 
@@ -1332,6 +1353,16 @@ function setNoteSaving(id: number, value: boolean) {
     next.delete(id)
   }
   noteSaving.value = next
+}
+
+function setNoteSkipping(id: number, value: boolean) {
+  const next = new Set(noteSkipping.value)
+  if (value) {
+    next.add(id)
+  } else {
+    next.delete(id)
+  }
+  noteSkipping.value = next
 }
 
 function setRequestLoading(id: number, value: boolean) {
@@ -1592,6 +1623,29 @@ async function saveNote(id: number) {
     error.value = getBookingErrorMessage(err, BOOKING_ERROR_FALLBACKS.saveSessionNote)
   } finally {
     setNoteSaving(id, false)
+  }
+}
+
+async function skipNote(id: number) {
+  if (journalClientId.value && journalDraft.value !== journalInitialDraft.value) {
+    const proceed = window.confirm(
+      'У робочому зошиті є незбережені зміни. Завершити крок без нотатки без збереження цих змін?'
+    )
+    if (!proceed) return
+  }
+
+  setNoteSkipping(id, true)
+  error.value = ''
+  try {
+    await skipSpecialistSessionNoteAction(id)
+    toast.success('Крок після сесії завершено без нотатки.')
+    resetNoteModalState()
+    clearPostSessionContext()
+    await loadSessions()
+  } catch (err: any) {
+    error.value = getBookingErrorMessage(err, 'Не вдалося завершити крок без нотатки')
+  } finally {
+    setNoteSkipping(id, false)
   }
 }
 
@@ -2288,6 +2342,18 @@ onBeforeUnmount(() => {
   padding: 18px 18px 0;
 }
 
+.note-modal__context {
+  display: grid;
+  gap: 6px;
+  margin: 12px 18px 0;
+  border: 1px solid color-mix(in srgb, var(--line) 74%, #ffffff);
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: color-mix(in srgb, var(--surface) 70%, #ffffff);
+  color: var(--text);
+  font-size: 13px;
+}
+
 .note-modal__body {
   min-height: 0;
   overflow-y: auto;
@@ -2411,4 +2477,3 @@ onBeforeUnmount(() => {
   }
 }
 </style>
-

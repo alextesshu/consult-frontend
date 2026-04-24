@@ -329,6 +329,10 @@ export async function saveSpecialistSessionNote(sessionId: number, content: stri
   return apiPut(`/cabinet/sessions/${sessionId}/note/`, { content })
 }
 
+export async function skipSpecialistSessionNote(sessionId: number) {
+  return apiPost(`/cabinet/sessions/${sessionId}/skip-note/`, {})
+}
+
 export async function fetchSpecialistClientJournalContent(clientId: number) {
   const snapshot = await fetchSpecialistClientWorkbookSnapshot(clientId)
   return snapshot.content

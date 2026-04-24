@@ -13,11 +13,11 @@
 
     <div v-if="error" class="form-error">{{ error }}</div>
 
-    <section class="panel panel--reminders">
+    <section v-if="showRemindersPanel" class="panel panel--reminders">
       <div class="panel__header">
         <div>
           <div class="badge badge--soft">Нагадування</div>
-          <h2 class="panel__title">Сесії без коментаря</h2>
+          <h2 class="panel__title">Нотатки після сесій</h2>
         </div>
       </div>
       <LoadingSkeleton v-if="notesLoading" variant="list" :count="2" height="88px" />
@@ -30,13 +30,21 @@
           <button class="btn btn--ghost" type="button" @click="loadPendingNotes">{{ retryLabel }}</button>
         </template>
       </EmptyState>
-      <EmptyState
-        v-else-if="pendingNotes.length === 0"
-        :title="remindersEmptyTitle"
-        :description="remindersEmptyDescription"
-      />
-      <div v-else class="history-list">
-        <div v-for="item in pendingNotes" :key="item.sessionId" class="history-item">
+      <div v-else class="reminders-summary">
+        <div>
+          <p class="reminders-summary__text">{{ pendingNotesSummary }}</p>
+          <p class="reminders-summary__hint">Для зручності ведення історії можна додати коротку нотатку після сесії.</p>
+        </div>
+        <button
+          class="btn btn--ghost btn--sm"
+          type="button"
+          @click="toggleRemindersExpanded"
+        >
+          {{ remindersExpanded ? 'Сховати сесії' : 'Показати сесії' }}
+        </button>
+      </div>
+      <div v-if="remindersExpanded && pendingNotes.length > 0" class="history-list history-list--reminders">
+        <div v-for="item in visiblePendingNotes" :key="item.sessionId" class="history-item history-item--compact">
           <div class="history-meta">
             <div class="history-date">{{ formatDateTime(item.slotStart) }}</div>
             <div class="muted">{{ formatDuration(item.slotStart, item.slotEnd) }}</div>
@@ -57,8 +65,24 @@
             >
               Відкрити клієнта
             </button>
+            <button
+              class="btn btn--ghost btn--sm"
+              type="button"
+              :disabled="isNoteSkipping(item.sessionId)"
+              @click="skipPendingNote(item.sessionId)"
+            >
+              {{ isNoteSkipping(item.sessionId) ? 'Завершуємо...' : 'Залишити без нотатки' }}
+            </button>
           </div>
         </div>
+        <button
+          v-if="hasMorePendingNotes"
+          class="btn btn--ghost btn--sm reminders-more"
+          type="button"
+          @click="showMorePendingNotes"
+        >
+          Показати ще
+        </button>
       </div>
     </section>
 
@@ -69,31 +93,33 @@
           <h2 class="panel__title">Клієнти</h2>
         </div>
       </div>
-      <div class="filters">
-        <button class="btn btn--ghost btn--sm" :class="{ 'btn--active': filter === 'ALL' }" @click="setFilter('ALL')">
-          Усі
-        </button>
-        <button class="btn btn--ghost btn--sm" :class="{ 'btn--active': filter === 'ACTIVE' }" @click="setFilter('ACTIVE')">
-          Активні
-        </button>
-        <button class="btn btn--ghost btn--sm" :class="{ 'btn--active': filter === 'INACTIVE' }" @click="setFilter('INACTIVE')">
-          Неактивні
-        </button>
-        <button class="btn btn--ghost btn--sm" :class="{ 'btn--active': filter === 'ARCHIVED' }" @click="setFilter('ARCHIVED')">
-          Архів
-        </button>
-      </div>
+      <div class="clients-toolbar">
+        <div class="filters" aria-label="Фільтр клієнтів">
+          <button class="filters__item" :class="{ 'is-active': filter === 'ALL' }" @click="setFilter('ALL')">
+            Усі
+          </button>
+          <button class="filters__item" :class="{ 'is-active': filter === 'ACTIVE' }" @click="setFilter('ACTIVE')">
+            Активні
+          </button>
+          <button class="filters__item" :class="{ 'is-active': filter === 'INACTIVE' }" @click="setFilter('INACTIVE')">
+            Неактивні
+          </button>
+          <button class="filters__item" :class="{ 'is-active': filter === 'ARCHIVED' }" @click="setFilter('ARCHIVED')">
+            Архів
+          </button>
+        </div>
 
-      <div class="clients-search">
-        <label class="clients-search__label" for="clients-search-input">Швидкий пошук</label>
-        <input
-          id="clients-search-input"
-          v-model.trim="searchQuery"
-          class="input clients-search__input"
-          type="search"
-          placeholder="Ім'я, код або номер клієнта"
-          autocomplete="off"
-        />
+        <div class="clients-search">
+          <label class="clients-search__label" for="clients-search-input">Швидкий пошук</label>
+          <input
+            id="clients-search-input"
+            v-model.trim="searchQuery"
+            class="input clients-search__input"
+            type="search"
+            placeholder="Ім'я, код або номер клієнта"
+            autocomplete="off"
+          />
+        </div>
       </div>
 
       <LoadingSkeleton v-if="clientsLoading" variant="list" :count="4" height="110px" />
@@ -108,8 +134,8 @@
       </EmptyState>
       <EmptyState
         v-else-if="filteredClients.length === 0"
-        title="Немає клієнтів для цього фільтра"
-        description="Змініть фільтр або поверніться пізніше, коли з'являться нові клієнти."
+        :title="clientsEmptyTitle"
+        :description="clientsEmptyDescription"
       />
       <div v-else class="client-list">
         <article
@@ -120,59 +146,96 @@
           :class="{ 'client-card--targeted': targetedClientId === relationClientId(client) }"
           tabindex="-1"
         >
-          <div class="client-info">
-            <div class="client-name">{{ displayClientName(client) }}</div>
-            <div v-if="client.client_code" class="muted">
-              Код клієнта: {{ client.client_code }}
+          <div class="client-card__main">
+            <div class="client-card__identity">
+              <div>
+                <div class="client-name">{{ displayClientName(client) }}</div>
+                <div v-if="client.client_code" class="client-code">Код клієнта: {{ client.client_code }}</div>
+              </div>
+              <span class="client-status" :class="clientStatusClass(client.state)">
+                {{ clientStatusLabel(client.state) }}
+              </span>
             </div>
-            <div class="muted">Статус: {{ client.state }}</div>
-            <div class="muted">Остання сесія: {{ formatDateTime(client.last_session_at) }}</div>
-            <div class="muted">Заплановано: {{ client.upcoming_count ?? 0 }}</div>
-            <div class="muted">{{ latestNoteSummary(client) }}</div>
-            <div class="muted">{{ workbookSummary(client) }}</div>
+
+            <dl class="client-meta">
+              <div class="client-meta__item">
+                <dt>Остання сесія</dt>
+                <dd>{{ optionalDateLabel(client.last_session_at, 'Ще не було') }}</dd>
+              </div>
+              <div class="client-meta__item">
+                <dt>Заплановано</dt>
+                <dd>{{ client.upcoming_count ?? 0 }}</dd>
+              </div>
+              <div class="client-meta__item">
+                <dt>Остання нотатка</dt>
+                <dd>{{ latestNoteSummary(client) }}</dd>
+              </div>
+              <div class="client-meta__item">
+                <dt>Робочий зошит</dt>
+                <dd>{{ workbookSummary(client) }}</dd>
+              </div>
+              <div class="client-meta__item">
+                <dt>Оновлено</dt>
+                <dd>{{ clientUpdatedLabel(client) }}</dd>
+              </div>
+            </dl>
           </div>
           <div class="client-actions">
-            <button
-              class="btn btn--ghost btn--sm"
-              type="button"
-              :disabled="!relationClientId(client) || isHistoryLoading(relationClientId(client))"
-              @click="toggleHistory(relationClientId(client))"
-            >
-              Приватна історія клієнта
-            </button>
-            <button
-              class="btn btn--ghost btn--sm"
-              type="button"
-              :disabled="!relationClientId(client) || isQuickAddLoading(relationClientId(client))"
-              @click="openClientPracticeBoardModal(relationClientId(client))"
-            >
-              {{ isQuickAddLoading(relationClientId(client)) ? 'Додаємо…' : 'Додати на дошку' }}
-            </button>
-            <RouterLink
-              v-if="client.latest_session_note_session_id"
-              class="btn btn--ghost btn--sm"
-              :to="`/cabinet/sessions#note-${client.latest_session_note_session_id}`"
-            >
-              Відкрити нотатку
-            </RouterLink>
-            <button
-              v-if="client.state !== 'ARCHIVED'"
-              class="btn btn--ghost btn--sm"
-              type="button"
-              :disabled="!relationClientId(client) || isActionLoading(relationClientId(client))"
-              @click="archiveClient(relationClientId(client))"
-            >
-              Архівувати
-            </button>
-            <button
-              v-else
-              class="btn btn--ghost btn--sm"
-              type="button"
-              :disabled="!relationClientId(client) || isActionLoading(relationClientId(client))"
-              @click="restoreClient(relationClientId(client))"
-            >
-              Відновити
-            </button>
+            <div class="client-actions__primary">
+              <RouterLink
+                v-if="client.latest_session_note_session_id"
+                class="btn btn--sm"
+                :to="`/cabinet/sessions#note-${client.latest_session_note_session_id}`"
+              >
+                Відкрити нотатку
+              </RouterLink>
+              <button
+                v-else
+                class="btn btn--sm"
+                type="button"
+                :disabled="!relationClientId(client) || isHistoryLoading(relationClientId(client))"
+                @click="toggleHistory(relationClientId(client))"
+              >
+                Приватна історія клієнта
+              </button>
+            </div>
+            <div class="client-actions__secondary">
+              <button
+                v-if="client.latest_session_note_session_id"
+                class="btn btn--ghost btn--sm"
+                type="button"
+                :disabled="!relationClientId(client) || isHistoryLoading(relationClientId(client))"
+                @click="toggleHistory(relationClientId(client))"
+              >
+                Приватна історія
+              </button>
+              <button
+                class="btn btn--ghost btn--sm"
+                type="button"
+                :disabled="!relationClientId(client) || isQuickAddLoading(relationClientId(client))"
+                @click="openClientPracticeBoardModal(relationClientId(client))"
+              >
+                {{ isQuickAddLoading(relationClientId(client)) ? 'Додаємо…' : 'Додати на дошку' }}
+              </button>
+              <button
+                v-if="client.state !== 'ARCHIVED'"
+                class="btn btn--ghost btn--sm"
+                type="button"
+                :disabled="!relationClientId(client) || isActionLoading(relationClientId(client))"
+                @click="archiveClient(relationClientId(client))"
+              >
+                Архівувати
+              </button>
+              <button
+                v-else
+                class="btn btn--ghost btn--sm"
+                type="button"
+                :disabled="!relationClientId(client) || isActionLoading(relationClientId(client))"
+                @click="restoreClient(relationClientId(client))"
+              >
+                Відновити
+              </button>
+            </div>
           </div>
           <div v-if="expandedClientId === relationClientId(client)" class="client-history">
             <div class="history-header">
@@ -287,6 +350,7 @@ import {
 import {
   fetchSpecialistClientWorkbookSnapshot as fetchSpecialistClientWorkbookSnapshotData,
   saveSpecialistClientJournal as saveSpecialistClientJournalAction,
+  skipSpecialistSessionNote as skipSpecialistSessionNoteAction,
 } from '../lib/specialistSessions'
 
 type ClientState = {
@@ -406,10 +470,11 @@ const quickAddDraftClientId = ref<number | null>(null)
 const notesLoading = ref(false)
 const remindersError = ref('')
 const pendingNotes = ref<PendingNoteItem[]>([])
+const remindersExpanded = ref(false)
+const pendingNotesVisibleLimit = ref(3)
+const noteSkipping = ref<Set<number>>(new Set())
 const retryLabel = '\u0421\u043f\u0440\u043e\u0431\u0443\u0432\u0430\u0442\u0438 \u0449\u0435 \u0440\u0430\u0437'
 const remindersErrorTitle = '\u041d\u0435 \u0432\u0434\u0430\u043b\u043e\u0441\u044f \u0437\u0430\u0432\u0430\u043d\u0442\u0430\u0436\u0438\u0442\u0438 \u043d\u0430\u0433\u0430\u0434\u0443\u0432\u0430\u043d\u043d\u044f'
-const remindersEmptyTitle = '\u0423\u0441\u0456 \u0437\u0430\u0432\u0435\u0440\u0448\u0435\u043d\u0456 \u0441\u0435\u0441\u0456\u0457 \u043c\u0430\u044e\u0442\u044c \u043a\u043e\u043c\u0435\u043d\u0442\u0430\u0440\u0456'
-const remindersEmptyDescription = '\u041d\u043e\u0432\u0456 \u043d\u0430\u0433\u0430\u0434\u0443\u0432\u0430\u043d\u043d\u044f \u0437\u0027\u044f\u0432\u043b\u044f\u0442\u044c\u0441\u044f \u043f\u0456\u0441\u043b\u044f \u0437\u0430\u0432\u0435\u0440\u0448\u0435\u043d\u043d\u044f \u0441\u0435\u0441\u0456\u0439 \u0431\u0435\u0437 \u043d\u043e\u0442\u0430\u0442\u043a\u0438.'
 const initialDeepLinkClientId = parseClientDeepLinkClientId(window.location.search)
 let clientCardHighlightTimer: number | null = null
 const toast = useToast()
@@ -421,6 +486,34 @@ const filteredClients = computed(() => {
   if (!query) return byStatus
   return byStatus.filter((client) => matchesClientSearch(client, query))
 })
+
+const clientsEmptyTitle = computed(() => {
+  if (searchQuery.value.trim()) return 'Нічого не знайдено'
+  if (filter.value === 'ACTIVE') return 'Активних клієнтів поки немає'
+  if (filter.value === 'INACTIVE') return 'Неактивних клієнтів поки немає'
+  if (filter.value === 'ARCHIVED') return 'Архів порожній'
+  return 'Клієнтів поки немає'
+})
+
+const clientsEmptyDescription = computed(() => {
+  if (searchQuery.value.trim()) return 'Перевірте написання або змініть фільтр, щоб побачити більше клієнтів.'
+  if (filter.value === 'ACTIVE') return 'Активні клієнти з’являться тут після підтверджених або поточних консультацій.'
+  if (filter.value === 'INACTIVE') return 'Клієнти без поточної роботи з’являться тут, коли не буде запланованих сесій.'
+  if (filter.value === 'ARCHIVED') return 'Архівовані клієнти зберігатимуться тут, якщо ви приберете їх з активної роботи.'
+  return 'Клієнти з’являться після перших консультацій або гостьових сесій.'
+})
+
+const showRemindersPanel = computed(() => notesLoading.value || Boolean(remindersError.value) || pendingNotes.value.length > 0)
+
+const pendingNotesSummary = computed(() => {
+  const count = pendingNotes.value.length
+  if (count === 1) return 'Є 1 завершена сесія, до якої можна додати нотатку.'
+  return `Є ${count} завершені сесії, до яких можна додати нотатку.`
+})
+
+const visiblePendingNotes = computed(() => pendingNotes.value.slice(0, pendingNotesVisibleLimit.value))
+
+const hasMorePendingNotes = computed(() => pendingNotesVisibleLimit.value < pendingNotes.value.length)
 
 const clientIndex = computed(() => {
   const map = new Map<number, ClientState>()
@@ -436,6 +529,7 @@ const isHistoryLoading = (id: number) => historyLoading.value.has(id)
 const isJournalLoading = (id: number) => journalLoading.value.has(id)
 const isJournalSaving = (id: number) => journalSaving.value.has(id)
 const isQuickAddLoading = (id: number) => quickAddLoading.value.has(id)
+const isNoteSkipping = (id: number) => noteSkipping.value.has(id)
 const isWorkbookExpanded = (id: number) => Boolean(workbookExpanded.value[id])
 function relationClientId(client: Pick<ClientState, 'client' | 'client_id'>) {
   return Number(client.client ?? client.client_id ?? 0)
@@ -526,6 +620,14 @@ function setFilter(value: 'ALL' | 'ACTIVE' | 'INACTIVE' | 'ARCHIVED') {
   filter.value = value
 }
 
+function toggleRemindersExpanded() {
+  remindersExpanded.value = !remindersExpanded.value
+}
+
+function showMorePendingNotes() {
+  pendingNotesVisibleLimit.value += 3
+}
+
 function formatDateTime(value?: string | null) {
   return formatUkDateTimeCompact(value)
 }
@@ -540,6 +642,23 @@ const SESSION_STATUS_LABELS: Record<string, string> = {
 
 function sessionStatusLabel(status: string) {
   return SESSION_STATUS_LABELS[status] || status
+}
+
+const CLIENT_STATUS_LABELS: Record<ClientState['state'], string> = {
+  CREATED: 'Неактивний',
+  ACTIVE: 'Активний',
+  INACTIVE: 'Неактивний',
+  ARCHIVED: 'Архів',
+}
+
+function clientStatusLabel(status: ClientState['state']) {
+  return CLIENT_STATUS_LABELS[status] || 'Неактивний'
+}
+
+function clientStatusClass(status: ClientState['state']) {
+  if (status === 'ACTIVE') return 'client-status--active'
+  if (status === 'ARCHIVED') return 'client-status--archived'
+  return 'client-status--inactive'
 }
 
 function setActionLoading(id: number, value: boolean) {
@@ -590,6 +709,16 @@ function setQuickAddLoading(id: number, value: boolean) {
     next.delete(id)
   }
   quickAddLoading.value = next
+}
+
+function setNoteSkipping(id: number, value: boolean) {
+  const next = new Set(noteSkipping.value)
+  if (value) {
+    next.add(id)
+  } else {
+    next.delete(id)
+  }
+  noteSkipping.value = next
 }
 
 function toggleWorkbook(clientId: number) {
@@ -666,16 +795,27 @@ function workbookUpdatedAt(client?: Pick<ClientState, 'workbook_updated_at' | 'c
 
 function workbookSummary(client: ClientState) {
   const clientId = relationClientId(client)
-  if (workbookMissingByClient.value[clientId] === true) return 'Стан: Відсутній.'
-  if (!resolveHasWorkbookContent(client)) return 'Стан: Відсутній.'
+  if (workbookMissingByClient.value[clientId] === true) return 'Відсутній'
+  if (!resolveHasWorkbookContent(client)) return 'Відсутній'
   const updatedAt = workbookUpdatedAt(client)
-  if (!updatedAt) return 'Стан: Заповнений.'
-  return `Стан: Заповнений. Оновлено: ${formatDateTime(updatedAt)}`
+  if (!updatedAt) return 'Заповнений'
+  return `Заповнений, оновлено ${formatDateTime(updatedAt)}`
 }
 
 function latestNoteSummary(client: ClientState) {
-  if (!client.latest_session_note_at) return '\u041d\u043e\u0442\u0430\u0442\u043e\u043a \u0449\u0435 \u043d\u0435\u043c\u0430\u0454.'
-  return `\u041e\u0441\u0442\u0430\u043d\u043d\u044f \u043d\u043e\u0442\u0430\u0442\u043a\u0430: ${formatDateTime(client.latest_session_note_at)}`
+  if (!client.latest_session_note_at) return '\u041d\u043e\u0442\u0430\u0442\u043e\u043a \u0449\u0435 \u043d\u0435\u043c\u0430\u0454'
+  return formatDateTime(client.latest_session_note_at)
+}
+
+function optionalDateLabel(value: string | null | undefined, fallback: string) {
+  if (!value) return fallback
+  const label = formatDateTime(value)
+  return label && label !== '—' ? label : fallback
+}
+
+function clientUpdatedLabel(client: ClientState) {
+  const value = client.workbook_updated_at || client.client_journal_updated_at || client.latest_session_note_at || client.last_session_at
+  return optionalDateLabel(value, 'Немає оновлень')
 }
 
 function historyNoteSummary(item: Pick<HistoryItem, 'hasNote' | 'noteUpdatedAt'>) {
@@ -866,7 +1006,28 @@ async function loadPendingNotes() {
       '\u0421\u043f\u0440\u043e\u0431\u0443\u0439\u0442\u0435 \u0449\u0435 \u0440\u0430\u0437 \u0430\u0431\u043e \u043e\u043d\u043e\u0432\u0456\u0442\u044c \u0442\u0440\u043e\u0445\u0438 \u043f\u0456\u0437\u043d\u0456\u0448\u0435.'
     )
   } finally {
+    if (!remindersError.value) {
+      remindersExpanded.value = false
+      pendingNotesVisibleLimit.value = 3
+    }
     notesLoading.value = false
+  }
+}
+
+async function skipPendingNote(sessionId: number) {
+  if (!sessionId) return
+  setNoteSkipping(sessionId, true)
+  remindersError.value = ''
+  try {
+    await skipSpecialistSessionNoteAction(sessionId)
+    pendingNotes.value = pendingNotes.value.filter((item) => item.sessionId !== sessionId)
+    if (pendingNotesVisibleLimit.value > 3 && pendingNotesVisibleLimit.value > pendingNotes.value.length) {
+      pendingNotesVisibleLimit.value = Math.max(3, pendingNotes.value.length)
+    }
+  } catch (err: any) {
+    remindersError.value = getApiErrorMessage(err, 'Не вдалося завершити крок без нотатки. Спробуйте ще раз.')
+  } finally {
+    setNoteSkipping(sessionId, false)
   }
 }
 
@@ -1087,7 +1248,8 @@ onBeforeUnmount(() => {
 
 .panel--reminders {
   order: 2;
-  background: linear-gradient(135deg, rgba(8, 113, 201, 0.05), rgba(7, 47, 71, 0.02));
+  border-color: color-mix(in srgb, var(--line) 86%, #ffffff);
+  background: color-mix(in srgb, var(--surface) 78%, #ffffff);
 }
 
 .panel--clients {
@@ -1098,16 +1260,92 @@ onBeforeUnmount(() => {
   background: rgba(8, 113, 201, 0.12);
 }
 
+.clients-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(240px, 360px);
+  gap: 12px;
+  align-items: end;
+  padding: 10px;
+  border: 1px solid color-mix(in srgb, var(--line) 78%, #ffffff);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--surface) 80%, #ffffff);
+}
+
 .filters {
-  display: flex;
-  gap: 8px;
+  display: inline-flex;
+  width: fit-content;
+  gap: 4px;
   flex-wrap: wrap;
+  padding: 4px;
+  border: 1px solid color-mix(in srgb, var(--line) 78%, #ffffff);
+  border-radius: 10px;
+  background: #fff;
+}
+
+.filters__item {
+  min-height: 34px;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  padding: 6px 10px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.filters__item:hover,
+.filters__item:focus-visible {
+  border-color: color-mix(in srgb, var(--primary) 22%, var(--line));
+  background: color-mix(in srgb, var(--primary) 6%, #ffffff);
+  outline: none;
+}
+
+.filters__item.is-active {
+  border-color: color-mix(in srgb, var(--primary) 34%, var(--line));
+  background: color-mix(in srgb, var(--primary) 12%, #ffffff);
+  color: var(--color-primary-600);
+}
+
+.reminders-summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: center;
+  border: 1px solid color-mix(in srgb, var(--line) 74%, #ffffff);
+  border-radius: 10px;
+  padding: 12px;
+  background: #fff;
+}
+
+.reminders-summary__text {
+  margin: 0;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.reminders-summary__hint {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.history-list--reminders {
+  margin-top: 10px;
+}
+
+.history-item--compact {
+  padding: 10px 12px;
+}
+
+.reminders-more {
+  justify-self: flex-start;
 }
 
 .clients-search {
   display: grid;
   gap: 6px;
-  max-width: 360px;
 }
 
 .clients-search__label {
@@ -1120,25 +1358,22 @@ onBeforeUnmount(() => {
   width: 100%;
 }
 
-.btn--active {
-  border-color: #0b4a7d;
-  color: #0b4a7d;
-  background: #eef6ff;
-}
-
 .client-list {
   display: grid;
-  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 14px;
   margin-top: 10px;
 }
 
 .client-card {
   border: 1px solid var(--line);
-  border-radius: 16px;
-  padding: 14px;
+  border-radius: 12px;
+  padding: 16px;
   background: #fff;
   display: grid;
-  gap: 12px;
+  gap: 14px;
+  align-content: start;
+  box-shadow: 0 8px 18px rgba(17, 64, 54, 0.08);
 }
 
 .client-card--targeted {
@@ -1146,19 +1381,109 @@ onBeforeUnmount(() => {
   box-shadow: 0 0 0 2px rgba(11, 74, 125, 0.14);
 }
 
-.client-info {
+.client-card__main {
   display: grid;
-  gap: 6px;
+  gap: 12px;
+}
+
+.client-card__identity {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
 }
 
 .client-name {
+  color: var(--text);
+  font-size: 18px;
   font-weight: 600;
+  line-height: 1.2;
+}
+
+.client-code {
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.client-status {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  padding: 4px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.client-status--active {
+  border-color: color-mix(in srgb, var(--success) 28%, var(--line));
+  background: color-mix(in srgb, var(--success) 12%, #ffffff);
+  color: #1f6f52;
+}
+
+.client-status--inactive {
+  border-color: color-mix(in srgb, var(--muted) 22%, var(--line));
+  background: color-mix(in srgb, var(--muted) 8%, #ffffff);
+  color: var(--muted);
+}
+
+.client-status--archived {
+  border-color: color-mix(in srgb, var(--warning) 32%, var(--line));
+  background: color-mix(in srgb, var(--warning) 14%, #ffffff);
+  color: #8a640b;
+}
+
+.client-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+.client-meta__item {
+  min-width: 0;
+  border: 1px solid color-mix(in srgb, var(--line) 72%, #ffffff);
+  border-radius: 10px;
+  padding: 9px 10px;
+  background: color-mix(in srgb, var(--surface) 62%, #ffffff);
+}
+
+.client-meta__item dt {
+  margin: 0 0 4px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.client-meta__item dd {
+  margin: 0;
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.35;
 }
 
 .client-actions {
+  display: grid;
+  gap: 8px;
+  border-top: 1px solid color-mix(in srgb, var(--line) 70%, #ffffff);
+  padding-top: 12px;
+}
+
+.client-actions__primary,
+.client-actions__secondary {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+.client-actions__secondary .btn {
+  min-height: 32px;
 }
 .client-history {
   border-top: 1px solid rgba(47, 63, 73, 0.12);
@@ -1316,6 +1641,35 @@ onBeforeUnmount(() => {
   .clients__hero {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .clients-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .filters {
+    width: 100%;
+  }
+
+  .filters__item {
+    flex: 1 1 auto;
+  }
+
+  .reminders-summary {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .client-list {
+    grid-template-columns: 1fr;
+  }
+
+  .client-card__identity {
+    flex-direction: column;
+  }
+
+  .client-meta {
+    grid-template-columns: 1fr;
   }
 }
 </style>

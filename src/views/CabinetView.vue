@@ -87,7 +87,7 @@
             </RouterLink>
 
             <RouterLink class="work-queue-summary-card" data-kind="guest" to="/cabinet/external-sessions">
-              <div class="work-queue-summary-card__label">Гостьові запити</div>
+              <div class="work-queue-summary-card__label">Гостьові заявки</div>
               <div class="work-queue-summary-card__value">{{ workQueue.pendingGuestRequestsCount }}</div>
               <div class="work-queue-summary-card__cta">Перейти до гостьових сесій</div>
             </RouterLink>
@@ -113,7 +113,9 @@
                   <RouterLink class="work-queue-list__link" :to="workQueueSessionTo(item)">Відкрити</RouterLink>
                 </li>
               </ul>
-              <p v-else class="muted work-queue-list__empty">На сьогодні сесій у добірці немає.</p>
+              <p v-else class="muted work-queue-list__empty">
+                На сьогодні сесій немає. Перевірте розклад або відкрийте список сесій, щоб спланувати наступні зустрічі.
+              </p>
             </section>
 
             <section class="work-queue-list" data-kind="notes-reminders">
@@ -135,13 +137,15 @@
                   <RouterLink class="work-queue-list__link" :to="workQueueReminderTo(item)">Продовжити</RouterLink>
                 </li>
               </ul>
-              <p v-else class="muted work-queue-list__empty">Немає активних нагадувань по нотатках.</p>
+              <p v-else class="muted work-queue-list__empty">
+                Нотатки не потребують уваги. Коли після сесії треба буде доповнити запис, він з’явиться тут.
+              </p>
             </section>
 
             <section class="work-queue-list" data-kind="guest-requests">
               <div class="work-queue-list__header">
                 <h3 class="work-queue-list__title">Гостьові запити</h3>
-                <RouterLink class="btn btn--ghost btn--sm" to="/cabinet/external-sessions">Усі запити</RouterLink>
+                <RouterLink class="btn btn--ghost btn--sm" to="/cabinet/external-sessions">Усі заявки</RouterLink>
               </div>
               <ul v-if="workQueue.guestRequestsPreview.length > 0" class="work-queue-list__items">
                 <li
@@ -160,7 +164,19 @@
                   <RouterLink class="work-queue-list__link" to="/cabinet/external-sessions">Опрацювати</RouterLink>
                 </li>
               </ul>
-              <p v-else class="muted work-queue-list__empty">Немає гостьових запитів, що очікують рішення.</p>
+              <p v-else class="muted work-queue-list__empty">
+                Немає гостьових заявок на розгляд. Нові заявки з публічного профілю з’являться в цьому блоці.
+              </p>
+            </section>
+
+            <section v-if="activeClientsCount === 0" class="work-queue-list" data-kind="clients-empty">
+              <div class="work-queue-list__header">
+                <h3 class="work-queue-list__title">Клієнти</h3>
+                <RouterLink class="btn btn--ghost btn--sm" to="/cabinet/clients">До клієнтів</RouterLink>
+              </div>
+              <p class="muted work-queue-list__empty">
+                Клієнтів ще немає. Перевірте публічний профіль, відкрийте слоти в розкладі або додайте контакт після першої консультації.
+              </p>
             </section>
           </div>
         </div>
@@ -244,40 +260,17 @@
           </section>
 
           <section class="action-hub__workflows">
-            <div class="panel__meta action-hub__meta">Щоденні інструменти та конфігурація практики</div>
+            <div class="panel__meta action-hub__meta">Ключові переходи для щоденної роботи</div>
             <div class="cabinet-actions">
               <section class="action-group">
-                <h3 class="action-group__title">Щоденна робота</h3>
+                <h3 class="action-group__title">Швидкі дії</h3>
                 <div class="action-group__items">
-                  <RouterLink class="action-tile" to="/cabinet/sessions">Сесії</RouterLink>
-                  <RouterLink class="action-tile" to="/cabinet/practice-board">Дошка задач</RouterLink>
+                  <RouterLink class="action-tile" to="/cabinet/slots">Створити слоти / Розклад</RouterLink>
+                  <RouterLink class="action-tile" to="/cabinet/sessions">Перейти до сесій</RouterLink>
+                  <RouterLink class="action-tile" to="/cabinet/clients">Перейти до клієнтів</RouterLink>
                   <RouterLink class="action-tile" to="/cabinet/external-sessions">Гостьові сесії</RouterLink>
-                  <RouterLink class="action-tile" to="/cabinet/clients">Клієнти</RouterLink>
-                  <RouterLink class="action-tile" to="/cabinet/inquiries">Запити до бронювання</RouterLink>
-                  <RouterLink class="action-tile" to="/cabinet/reviews">Відгуки</RouterLink>
-                </div>
-              </section>
-
-              <section class="action-group">
-                <h3 class="action-group__title">Планування</h3>
-                <div class="action-group__items">
-                  <RouterLink class="action-tile" to="/cabinet/schedule">Розклад</RouterLink>
-                  <RouterLink class="action-tile" to="/cabinet/group-events">Групові події</RouterLink>
-                </div>
-              </section>
-
-              <section class="action-group">
-                <h3 class="action-group__title">Контент</h3>
-                <div class="action-group__items">
                   <RouterLink class="action-tile" to="/cabinet/journal">Авторський журнал</RouterLink>
-                </div>
-              </section>
-
-              <section class="action-group">
-                <h3 class="action-group__title">Бізнес</h3>
-                <div class="action-group__items">
-                  <RouterLink class="action-tile" to="/cabinet/analytics">Аналітика</RouterLink>
-                  <RouterLink class="action-tile" to="/cabinet/billing">Плани та доступ</RouterLink>
+                  <RouterLink class="action-tile" to="/cabinet/billing">Тарифи і доступ</RouterLink>
                 </div>
               </section>
             </div>
@@ -286,13 +279,15 @@
       </section>
       <section class="panel panel--wide panel--plan">
         <div class="panel__header">
-          <div class="badge badge--soft">Ваш план</div>
+          <div>
+            <div class="badge badge--soft">Тарифи і доступ</div>
+            <h2 class="panel__title panel__title--compact">Короткий стан доступу</h2>
+          </div>
           <RouterLink
-            v-if="showUpgradeButton"
             class="btn btn--ghost btn--sm"
             to="/cabinet/billing"
           >
-            Оновити план
+            Відкрити тарифи і доступ
           </RouterLink>
         </div>
         <div class="plan-row">
@@ -310,13 +305,7 @@
           <div v-if="guestSessionsUsage" class="plan-metrics__line">
             Гостьові сесії: <strong>{{ guestSessionsUsage.used }} / {{ guestSessionsUsage.limit }}</strong>
           </div>
-          <div class="progress">
-            <div class="progress__bar" :style="{ width: `${progressPercent}%` }"></div>
-          </div>
           <div v-if="isNearLimit" class="plan-warning">Ви наближаєтесь до ліміту плану</div>
-          <div v-if="showStartNudge" class="plan-nudge">
-            Переходьте на PRO для зростання практики
-          </div>
         </div>
       </section>
       <section class="panel panel--wide panel--onboarding">
@@ -393,84 +382,6 @@
           </button>
         </div>
       </section>
-      <section class="panel panel--wide panel--tips">
-        <div class="panel__header">
-          <div class="badge badge--soft">Підказки</div>
-          <div class="panel__meta">Що зробити далі</div>
-        </div>
-        <ul class="tips-list">
-          <li>
-            <RouterLink class="tips-link" to="/cabinet/schedule">Налаштуйте правила розкладу</RouterLink>
-            <span class="muted">Після цього згенеруйте вільні вікна на 30 днів.</span>
-          </li>
-          <li>
-            <RouterLink class="tips-link" to="/cabinet/slots">Перегляньте вільні вікна</RouterLink>
-            <span class="muted">Тут ви керуєте тим, що клієнти бачать для запису.</span>
-          </li>
-          <li>
-            <RouterLink class="tips-link" to="/cabinet/sessions">Перевіряйте запити та сесії</RouterLink>
-            <span class="muted">Підтвердження та перенесення приходять сюди.</span>
-          </li>
-          <li>
-            <RouterLink class="tips-link" to="/cabinet/journal">Підготуйте серії в авторському журналі</RouterLink>
-            <span class="muted">Це допоможе клієнтам проходити матеріали поетапно.</span>
-          </li>
-        </ul>
-      </section>
-
-      <RouterLink
-        class="panel panel--clickable"
-        to="/cabinet/billing"
-        aria-label="Перейти до планів та доступу"
-      >
-        <div class="panel__header">
-          <div class="badge badge--soft">Доступ</div>
-          <div class="access-pill" :class="accessPillClass">{{ accessLabel }}</div>
-        </div>
-        <h2 class="panel__title">{{ planLabel }}</h2>
-        <div class="muted">{{ accessHint }}</div>
-        <div v-if="showOverLimit" class="alert">
-          Перевищено ліміт активних клієнтів. Нові підтвердження тимчасово заблоковані.
-        </div>
-      </RouterLink>
-
-      <RouterLink
-        class="panel panel--clickable"
-        to="/cabinet/clients"
-        aria-label="Перейти до клієнтів"
-      >
-        <div class="panel__header">
-          <div class="badge badge--soft">Клієнти</div>
-          <div class="panel__meta">
-            Ліміт: {{ activeLimitLabel }}
-          </div>
-        </div>
-        <div class="stat">
-          <div class="stat__value">{{ me.counts?.active_clients ?? 0 }}</div>
-          <div class="stat__label">Активні</div>
-        </div>
-        <div class="stat stat--secondary">
-          <div class="stat__value">{{ me.counts?.prospect_clients ?? 0 }}</div>
-          <div class="stat__label">Потенційні</div>
-        </div>
-      </RouterLink>
-
-      <RouterLink
-        class="panel panel--clickable"
-        to="/cabinet/sessions"
-        aria-label="Перейти до сесій"
-      >
-        <div class="panel__header">
-          <div class="badge badge--soft">Сесії</div>
-          <div class="panel__meta">Найближчі</div>
-        </div>
-        <div class="stat">
-          <div class="stat__value">{{ me.counts?.upcoming_sessions_count ?? 0 }}</div>
-          <div class="stat__label">Заплановано</div>
-        </div>
-        <div class="muted">Слідкуй за завантаженням тижня.</div>
-      </RouterLink>
-
     </div>
 
     <div v-else-if="me && cabinetDataLoading" class="card cabinet__loading cabinet__details-state">
@@ -754,24 +665,6 @@ function onboardingStepActionLabel(step: OnboardingStep) {
   return 'Відкрити'
 }
 
-const accessLabel = computed(() => {
-  const state = me.value?.access_state
-  if (!state) return 'Невідомо'
-  if (state === 'OK') return 'Доступ активний'
-  if (state === 'GRACE') return 'Пільговий період'
-  if (state === 'RESTRICTED') return 'Обмежений режим'
-  if (state === 'SUSPENDED') return 'Призупинено'
-  return state
-})
-
-const planLabel = computed(() => {
-  const plan = me.value?.effective_entitlements?.plan
-  if (plan === 'START') return 'Start'
-  if (plan === 'PRO') return 'Pro'
-  if (plan === 'LEADER') return 'Leader'
-  return plan || 'Н/Д'
-})
-
 const planCodeLabel = computed(() => {
   const raw = me.value?.effective_entitlements?.plan
   if (raw === 'START' || raw === 'PRO' || raw === 'LEADER') return raw
@@ -805,19 +698,10 @@ const activeClientLimitLabel = computed(() => {
   return Number.isFinite(activeClientLimit.value) ? String(activeClientLimit.value) : '∞'
 })
 
-const progressPercent = computed(() => {
-  if (!Number.isFinite(activeClientLimit.value) || activeClientLimit.value === 0) return 0
-  return Math.min(100, Math.round((activeClientsCount.value / activeClientLimit.value) * 100))
-})
-
 const isNearLimit = computed(() => {
   if (!Number.isFinite(activeClientLimit.value) || activeClientLimit.value === 0) return false
   return activeClientsCount.value / activeClientLimit.value >= 0.8
 })
-
-const showStartNudge = computed(() => planCodeLabel.value === 'START')
-
-const showUpgradeButton = computed(() => planCodeLabel.value !== 'LEADER')
 
 const guestSessionsUsage = computed<{ used: number; limit: number } | null>(() => {
   const snapshot = entitlementsSnapshot.value
@@ -827,34 +711,6 @@ const guestSessionsUsage = computed<{ used: number; limit: number } | null>(() =
   if (typeof used !== 'number' || !Number.isFinite(used) || used < 0) return null
   if (typeof limit !== 'number' || !Number.isFinite(limit) || limit < 0) return null
   return { used, limit }
-})
-
-const activeLimitLabel = computed(() => {
-  const limit = activeClientLimit.value
-  return Number.isFinite(limit) ? String(limit) : '∞'
-})
-
-const showOverLimit = computed(() => {
-  const limit = me.value?.effective_entitlements?.active_client_limit
-  const count = me.value?.counts?.active_clients
-  if (limit === null || limit === undefined || count === null || count === undefined) return false
-  return Number.isFinite(limit) && count > limit
-})
-
-const accessHint = computed(() => {
-  const state = me.value?.access_state
-  if (state === 'GRACE') return 'Оплата потребує уваги. Доступ тимчасово збережено.'
-  if (state === 'RESTRICTED') return 'Доступ лише для читання. Нові дії заблоковані.'
-  if (state === 'SUSPENDED') return 'Доступ призупинено адміністрацією.'
-  if (showOverLimit.value) return 'Ліміт активних клієнтів перевищено.'
-  return 'Все працює у штатному режимі.'
-})
-
-const accessPillClass = computed(() => {
-  const state = me.value?.access_state
-  if (state === 'GRACE') return 'access-pill--warn'
-  if (state === 'RESTRICTED') return 'access-pill--danger'
-  return 'access-pill--ok'
 })
 
 function normalizeClientName(value?: string | null) {

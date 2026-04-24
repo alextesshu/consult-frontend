@@ -292,6 +292,10 @@ describe('CabinetView', () => {
     expect(view.container.querySelector('a.work-queue-summary-card[href="/cabinet/sessions"]')).toBeInTheDocument()
     expect(view.container.querySelector('a.work-queue-summary-card[href="/cabinet/clients"]')).toBeInTheDocument()
     expect(view.container.querySelector('a.work-queue-summary-card[href="/cabinet/external-sessions"]')).toBeInTheDocument()
+    expect(view.container).toHaveTextContent('Робочий огляд')
+    expect(view.container).toHaveTextContent('Сьогоднішні сесії')
+    expect(view.container).toHaveTextContent('Нагадування по нотатках')
+    expect(view.container).toHaveTextContent('Гостьові заявки')
   })
 
   it('routes notes reminder preview to session detail when session_id is available', async () => {
@@ -372,6 +376,14 @@ describe('CabinetView', () => {
   })
 
   it('renders explicit empty states for work-queue previews', async () => {
+    mockMe.value = {
+      ...createMePayload(),
+      counts: {
+        active_clients: 0,
+        prospect_clients: 0,
+        upcoming_sessions_count: 0,
+      },
+    }
     mockedApiGet.mockImplementation(async (url, config) => {
       if (url === '/cabinet/work-queue/') {
         return createWorkQueuePayload({
@@ -397,7 +409,12 @@ describe('CabinetView', () => {
       expect(summaryValue(view.container, 'guest')).toBe('0')
     })
 
-    expect(view.container.querySelectorAll('.work-queue-list__empty')).toHaveLength(3)
+    expect(view.container.querySelectorAll('.work-queue-list__empty')).toHaveLength(4)
+    expect(view.container).toHaveTextContent('На сьогодні сесій немає. Перевірте розклад')
+    expect(view.container).toHaveTextContent('Нотатки не потребують уваги.')
+    expect(view.container).toHaveTextContent('Немає гостьових заявок на розгляд.')
+    expect(view.container).toHaveTextContent('Клієнтів ще немає. Перевірте публічний профіль')
+    expect(view.container.querySelector('.work-queue-list[data-kind="clients-empty"] a[href="/cabinet/clients"]')).toBeInTheDocument()
   })
 
   it('shows local work-queue error state and retries successfully', async () => {
@@ -779,7 +796,7 @@ describe('CabinetView', () => {
     expect(view.container.querySelector('a[href="/cabinet/sessions"]')).toBeInTheDocument()
   })
 
-  it('keeps nearest-session and workflow links inside one action hub with full-tile links', async () => {
+  it('keeps nearest-session and daily quick links inside one action hub', async () => {
     mockedApiGet.mockImplementation(async (_url, config) => {
       if (config?.params?.upcoming === true) {
         return [
@@ -808,13 +825,60 @@ describe('CabinetView', () => {
       expect(view.container.querySelector('.panel--action-hub .panel--nearest-session')).toBeInTheDocument()
     })
 
-    const sessionsTile = view.container.querySelector('a.action-tile[href="/cabinet/sessions"]')
-    const practiceBoardTile = view.container.querySelector('a.action-tile[href="/cabinet/practice-board"]')
-    const clientsTile = view.container.querySelector('a.action-tile[href="/cabinet/clients"]')
+    expect(view.container.querySelector('a.action-tile[href="/cabinet/slots"]')).toHaveTextContent('Створити слоти / Розклад')
+    expect(view.container.querySelector('a.action-tile[href="/cabinet/sessions"]')).toHaveTextContent('Перейти до сесій')
+    expect(view.container.querySelector('a.action-tile[href="/cabinet/clients"]')).toHaveTextContent('Перейти до клієнтів')
+    expect(view.container.querySelector('a.action-tile[href="/cabinet/external-sessions"]')).toHaveTextContent('Гостьові сесії')
+    expect(view.container.querySelector('a.action-tile[href="/cabinet/journal"]')).toHaveTextContent('Авторський журнал')
+    expect(view.container.querySelector('a.action-tile[href="/cabinet/billing"]')).toHaveTextContent('Тарифи і доступ')
+    expect(view.container.querySelector('a.action-tile[href="/cabinet/group-events"]')).not.toBeInTheDocument()
+  })
 
-    expect(sessionsTile).toBeInTheDocument()
-    expect(practiceBoardTile).toBeInTheDocument()
-    expect(clientsTile).toBeInTheDocument()
+  it('renders compact billing summary without duplicating detailed tariff logic', async () => {
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/cabinet/entitlements/') {
+        return {
+          effective_plan: 'START',
+          limits: {
+            active_clients: { used: 1, limit: 3 },
+          },
+        } as any
+      }
+      if (config?.params?.upcoming === true) return []
+      if (config?.params?.upcoming === false) return []
+      return []
+    })
+
+    const view = renderView()
+
+    await waitFor(() => {
+      expect(view.container).toHaveTextContent('Короткий стан доступу')
+    })
+    expect(view.container.querySelector('.panel--plan a[href="/cabinet/billing"]')).toHaveTextContent(
+      'Відкрити тарифи і доступ'
+    )
+    expect(view.container).toHaveTextContent('Активні клієнти:')
+    expect(view.container).not.toHaveTextContent('Тестовий доступ')
+    expect(view.container).not.toHaveTextContent('Ручне перевизначення доступу')
+  })
+
+  it('does not render obsolete technical labels on cabinet dashboard', async () => {
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/cabinet/entitlements/') return { effective_plan: 'START' }
+      if (config?.params?.upcoming === true) return []
+      if (config?.params?.upcoming === false) return []
+      return []
+    })
+
+    const view = renderView()
+
+    await waitFor(() => {
+      expect(view.container.querySelector('.cabinet__grid')).toBeInTheDocument()
+    })
+
+    const text = view.container.textContent || ''
+    expect(text).not.toMatch(/entitlements|trial|override|request|checkout|webhook|Broadcast/i)
+    expect(view.container.querySelector('a[href="/cabinet/group-events"]')).not.toBeInTheDocument()
   })
 
   it('renders compact nearest-session fallback when there are no upcoming sessions', async () => {
