@@ -220,6 +220,15 @@
           <div v-if="isManualClient(client)" class="client-actions">
             <div class="client-actions__secondary">
               <button
+                class="btn btn--ghost btn--sm"
+                type="button"
+                :disabled="isManualActionLoading(client.id)"
+                @click="openManualClientEditModal(client)"
+              >
+                Редагувати
+              </button>
+
+              <button
                 v-if="client.status !== 'archived'"
                 class="btn btn--ghost btn--sm"
                 type="button"
@@ -399,7 +408,7 @@
         <div class="manual-client-modal__header">
           <div>
             <div class="badge badge--soft">Без кабінету</div>
-            <h2 id="manual-client-title" class="manual-client-modal__title">Додати клієнта</h2>
+            <h2 id="manual-client-title" class="manual-client-modal__title">{{ manualClientModalTitle }}</h2>
           </div>
           <button class="btn btn--ghost btn--sm" type="button" @click="closeManualClientModal">
             Закрити
@@ -440,7 +449,7 @@
         </div>
         <div class="manual-client-modal__actions">
           <button class="btn btn--sm" type="submit" :disabled="manualClientSaving">
-            {{ manualClientSaving ? 'Додаємо...' : 'Додати клієнта' }}
+            {{ manualClientSubmitLabel }}
           </button>
           <button class="btn btn--ghost btn--sm" type="button" @click="closeManualClientModal">
             Скасувати
@@ -622,6 +631,7 @@ const remindersExpanded = ref(false)
 const pendingNotesVisibleLimit = ref(3)
 const noteSkipping = ref<Set<number>>(new Set())
 const manualClientModalOpen = ref(false)
+const manualClientEditingId = ref<number | null>(null)
 const manualClientSaving = ref(false)
 const manualClientFormError = ref('')
 const manualClientForm = ref<ManualClientFormState>({
@@ -681,6 +691,20 @@ const clientIndex = computed(() => {
     if (id > 0) map.set(id, client)
   })
   return map
+})
+
+const isManualClientEditMode = computed(() => manualClientEditingId.value !== null)
+
+const manualClientModalTitle = computed(() =>
+  isManualClientEditMode.value ? 'Редагувати клієнта' : 'Додати клієнта'
+)
+
+const manualClientSubmitLabel = computed(() => {
+  if (manualClientSaving.value) {
+    return isManualClientEditMode.value ? 'Зберігаємо...' : 'Додаємо...'
+  }
+
+  return isManualClientEditMode.value ? 'Зберегти зміни' : 'Додати клієнта'
 })
 
 const isActionLoading = (id: number) => actionLoading.value.has(id)
@@ -1170,13 +1194,28 @@ function resetManualClientForm() {
 }
 
 function openManualClientModal() {
+  manualClientEditingId.value = null
   resetManualClientForm()
+  manualClientModalOpen.value = true
+}
+
+function openManualClientEditModal(client: ManualClientRecord) {
+  manualClientEditingId.value = client.id
+  manualClientFormError.value = ''
+  manualClientForm.value = {
+    display_name: client.display_name || '',
+    email: client.email || '',
+    phone: client.phone || '',
+    telegram: client.telegram || '',
+    internal_note: client.internal_note || '',
+  }
   manualClientModalOpen.value = true
 }
 
 function closeManualClientModal() {
   if (manualClientSaving.value) return
   manualClientModalOpen.value = false
+  manualClientEditingId.value = null
   resetManualClientForm()
 }
 
@@ -1212,21 +1251,35 @@ function manualClientErrorMessage(err: unknown, fallback: string) {
 
 async function submitManualClient() {
   const payload = manualClientPayload()
+
   if (!payload.display_name) {
     manualClientFormError.value = 'Вкажіть імʼя клієнта.'
     return
   }
 
+  const editingId = manualClientEditingId.value
+
   manualClientSaving.value = true
   manualClientFormError.value = ''
   error.value = ''
+
   try {
-    const created = await apiPost<ManualClientRecord>('/cabinet/client-records/', payload)
-    manualClientRecords.value = [created, ...manualClientRecords.value.filter((item) => item.id !== created.id)]
+    const saved = editingId
+      ? await apiPatch<ManualClientRecord>(`/cabinet/client-records/${editingId}/`, payload)
+      : await apiPost<ManualClientRecord>('/cabinet/client-records/', payload)
+
+    manualClientRecords.value = editingId
+      ? manualClientRecords.value.map((item) => (item.id === saved.id ? saved : item))
+      : [saved, ...manualClientRecords.value.filter((item) => item.id !== saved.id)]
+
     manualClientModalOpen.value = false
+    manualClientEditingId.value = null
     resetManualClientForm()
   } catch (err: any) {
-    manualClientFormError.value = manualClientErrorMessage(err, 'Не вдалося додати клієнта.')
+    manualClientFormError.value = manualClientErrorMessage(
+      err,
+      editingId ? 'Не вдалося зберегти зміни.' : 'Не вдалося додати клієнта.'
+    )
   } finally {
     manualClientSaving.value = false
   }
