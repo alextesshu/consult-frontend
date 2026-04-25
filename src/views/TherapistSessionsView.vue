@@ -236,6 +236,10 @@
               <div class="muted">
                 Клієнт: {{ sessionClientLabel(session) }}
               </div>
+              <div v-if="isManualClientSession(session)" class="manual-client-badges">
+                <span class="status-pill status-pill--manual">Без кабінету</span>
+                <span class="muted manual-client-label">Ручна картка клієнта</span>
+              </div>
               <div class="muted">{{ sessionFormatBadge(session) }}</div>
               <div class="muted session-context">{{ sessionContextHint(session) }}</div>
               <div v-if="session.client_email" class="muted">Пошта: {{ session.client_email }}</div>
@@ -553,6 +557,10 @@
               <div class="muted">
                 Клієнт: {{ sessionClientLabel(session) }}
               </div>
+              <div v-if="isManualClientSession(session)" class="manual-client-badges">
+                <span class="status-pill status-pill--manual">Без кабінету</span>
+                <span class="muted manual-client-label">Ручна картка клієнта</span>
+              </div>
               <div class="muted">{{ sessionFormatBadge(session) }}</div>
               <div class="muted session-context">{{ sessionContextHint(session) }}</div>
               <div v-if="session.client_email" class="muted">Пошта: {{ session.client_email }}</div>
@@ -774,11 +782,16 @@ type Session = {
   id: number
   status: string
   payment_badge_state?: 'paid' | 'awaiting_confirmation' | 'unpaid' | null
-  client: number
+  client: number | null
+  client_user_id?: number | null
+  client_record_id?: number | null
   client_display_name?: string | null
-  client_username?: string
-  client_name?: string
-  client_email?: string
+  client_username?: string | null
+  client_name?: string | null
+  client_email?: string | null
+  client_has_account?: boolean | null
+  client_source?: string | null
+  client_identity_type?: string | null
   therapist: number
   therapist_username?: string
   slot: number | null
@@ -889,7 +902,7 @@ const paymentBadgeLabel = (session: Session) => {
   return ''
 }
 
-const hasPaymentBadge = (session: Session) => Boolean(paymentBadgeLabel(session))
+const hasPaymentBadge = (session: Session) => !isManualClientSession(session) && Boolean(paymentBadgeLabel(session))
 
 const paymentBadgeClass = (session: Session) => {
   if (session.payment_badge_state === 'awaiting_confirmation') return 'status-pill--payment-awaiting'
@@ -1162,6 +1175,12 @@ function normalizeSessionClientName(value?: string | null) {
   return normalized
 }
 
+function isManualClientSession(session: Session) {
+  if (session.client_identity_type === 'manual') return true
+  if (session.client_source === 'manual') return true
+  return session.client_has_account === false && Boolean(session.client_record_id)
+}
+
 function sessionClientLabel(session: Session) {
   const preferred = normalizeSessionClientName(session.client_display_name)
   if (preferred) return preferred
@@ -1169,6 +1188,8 @@ function sessionClientLabel(session: Session) {
   if (fallbackName) return fallbackName
   const login = normalizeSessionClientName(session.client_username)
   if (login) return login
+  if (isManualClientSession(session) && session.client_record_id) return `Клієнт #${session.client_record_id}`
+  if (!session.client) return 'Клієнт'
   return `#${session.client}`
 }
 
@@ -2184,6 +2205,17 @@ onBeforeUnmount(() => {
   line-height: 1.4;
 }
 
+.manual-client-badges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.manual-client-label {
+  font-size: 12px;
+}
+
 .status-pill {
   width: fit-content;
   max-width: 100%;
@@ -2227,6 +2259,12 @@ onBeforeUnmount(() => {
   background: var(--pc-teal-100);
   color: var(--pc-navy-800);
   border-color: color-mix(in srgb, var(--pc-teal-500) 34%, transparent);
+}
+
+.status-pill--manual {
+  background: var(--pc-peach-100);
+  color: var(--pc-navy-900);
+  border-color: color-mix(in srgb, var(--pc-peach-300) 54%, var(--pc-border));
 }
 
 .status-pill--payment {

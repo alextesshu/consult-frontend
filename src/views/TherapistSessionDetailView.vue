@@ -93,8 +93,14 @@
             <div class="detail-label">Клієнт</div>
             <div class="detail-value">
               {{ clientLabel(session) }}
+              <div v-if="isManualClientSession" class="manual-client-detail">
+                <span class="status-pill status-pill--manual">Без кабінету</span>
+                <span class="muted detail-meta">
+                  Цю сесію створено для ручної картки клієнта. Клієнт ще не має кабінету.
+                </span>
+              </div>
               <div v-if="session.client_email" class="muted detail-meta">{{ session.client_email }}</div>
-              <div class="muted detail-meta">ID: #{{ session.client }}</div>
+              <div v-if="session.client" class="muted detail-meta">ID: #{{ session.client }}</div>
             </div>
           </div>
           <div class="detail-card">
@@ -198,10 +204,10 @@
           </div>
         </div>
         <div class="next-step-rail">
-          <button class="btn btn--sm" type="button" @click="openPostSessionWorkbook">
+          <button v-if="canUseClientAccountFeatures" class="btn btn--sm" type="button" @click="openPostSessionWorkbook">
             Відкрити робочий зошит
           </button>
-          <RouterLink class="btn btn--ghost btn--sm" :to="postSessionClientLink">
+          <RouterLink v-if="canUseClientAccountFeatures" class="btn btn--ghost btn--sm" :to="postSessionClientLink">
             Відкрити клієнта
           </RouterLink>
           <RouterLink
@@ -307,7 +313,7 @@
 
         <div class="next-step-rail" data-testid="workspace-navigation-rail">
           <button
-            v-if="session.client"
+            v-if="canUseClientAccountFeatures"
             class="btn btn--ghost btn--sm"
             type="button"
             @click="openPostSessionWorkbook"
@@ -317,10 +323,10 @@
           <button class="btn btn--ghost btn--sm" type="button" @click="focusSessionNote">
             До нотатки
           </button>
-          <button class="btn btn--ghost btn--sm" type="button" @click="focusPaymentBlock">
+          <button v-if="!isManualClientSession" class="btn btn--ghost btn--sm" type="button" @click="focusPaymentBlock">
             До блоку оплати
           </button>
-          <RouterLink class="btn btn--ghost btn--sm" :to="postSessionClientLink">
+          <RouterLink v-if="canUseClientAccountFeatures" class="btn btn--ghost btn--sm" :to="postSessionClientLink">
             До картки клієнта
           </RouterLink>
           <RouterLink class="btn btn--ghost btn--sm" to="/cabinet/sessions">
@@ -329,7 +335,7 @@
         </div>
       </section>
 
-      <section ref="paymentPanelRef" class="panel">
+      <section v-if="!isManualClientSession" ref="paymentPanelRef" class="panel">
         <SessionPaymentProofBlock
           :session-id="session.id"
           role="specialist"
@@ -515,10 +521,10 @@
           </div>
           <div class="note-header-actions">
             <button
-              v-if="session.client"
+              v-if="canUseClientAccountFeatures"
               class="btn btn--ghost btn--sm"
               type="button"
-              @click="openWorkbookWindow(session.client)"
+              @click="openCurrentClientWorkbook"
             >
               &#1042;&#1110;&#1076;&#1082;&#1088;&#1080;&#1090;&#1080;&#32;&#1074;&#32;&#1086;&#1082;&#1088;&#1077;&#1084;&#1086;&#1084;&#1091;&#32;&#1074;&#1110;&#1082;&#1085;&#1110;
             </button>
@@ -705,10 +711,16 @@ type SessionWorkspace = {
 type SessionDetail = {
   id: number
   status: string
-  client: number
+  client: number | null
+  client_user_id?: number | null
+  client_record_id?: number | null
+  client_display_name?: string | null
   client_username?: string | null
   client_name?: string | null
   client_email?: string | null
+  client_has_account?: boolean | null
+  client_source?: string | null
+  client_identity_type?: string | null
   therapist: number
   session_format?: SessionFormat | null
   offline_location?: string | null
@@ -894,6 +906,16 @@ const needsMeetingLinkAttention = computed(() =>
   Boolean(session.value && !isOfflineSession.value && session.value.status === 'CONFIRMED' && !meetingUrl.value)
 )
 
+const isManualClientSession = computed(() => {
+  const detail = session.value
+  if (!detail) return false
+  if (detail.client_identity_type === 'manual') return true
+  if (detail.client_source === 'manual') return true
+  return detail.client_has_account === false && Boolean(detail.client_record_id)
+})
+
+const canUseClientAccountFeatures = computed(() => Boolean(session.value?.client && !isManualClientSession.value))
+
 const postSessionClientLink = computed(() => {
   const clientId = postSessionContext.value?.clientId ?? session.value?.client ?? null
   if (!clientId) return '/cabinet/clients'
@@ -920,7 +942,7 @@ const workspaceSummaryItems = computed<WorkspaceSummaryItem[]>(() => {
   const noteState = workspaceNoteState.value
   const workbookState = workspaceWorkbookState.value
 
-  if (paymentState && paymentState !== 'not_applicable') {
+  if (!isManualClientSession.value && paymentState && paymentState !== 'not_applicable') {
     items.push({
       key: 'payment',
       title: 'Оплата',
@@ -940,7 +962,7 @@ const workspaceSummaryItems = computed<WorkspaceSummaryItem[]>(() => {
     })
   }
 
-  if (workbookState) {
+  if (!isManualClientSession.value && workbookState) {
     items.push({
       key: 'workbook',
       title: 'Робочий зошит',
@@ -1039,6 +1061,12 @@ function openWorkbookWindow(clientId: number) {
   openClientWorkbookWindow(clientId)
 }
 
+function openCurrentClientWorkbook() {
+  const clientId = session.value?.client
+  if (!clientId || isManualClientSession.value) return
+  openWorkbookWindow(clientId)
+}
+
 function sessionStartAt(detail: SessionDetail) {
   return getSessionStartAt(detail)
 }
@@ -1055,12 +1083,28 @@ function formatDuration(start?: string | null, end?: string | null) {
   return sharedFormatSessionDuration(start, end)
 }
 
+function normalizeClientDisplay(value?: string | null) {
+  const normalized = value?.trim() || ''
+  if (!normalized) return ''
+  if (/^#?\d+$/i.test(normalized)) return ''
+  if (/^(client|клієнт)\s*#?\d+$/i.test(normalized)) return ''
+  return normalized
+}
+
 function timeUntilLabel(detail: SessionDetail) {
   return getTimeUntilLabel(detail)
 }
 
 function clientLabel(detail: SessionDetail) {
-  return getClientLabel(detail)
+  const preferred = normalizeClientDisplay(detail.client_display_name)
+  if (preferred) return preferred
+  const name = normalizeClientDisplay(detail.client_name)
+  if (name) return name
+  const username = normalizeClientDisplay(detail.client_username)
+  if (username) return username
+  if (isManualClientSession.value && detail.client_record_id) return `Клієнт #${detail.client_record_id}`
+  if (!detail.client) return 'Клієнт'
+  return getClientLabel(detail as SessionDetail & { client: number })
 }
 
 function statusLabel(detail: SessionDetail) {
@@ -1310,6 +1354,12 @@ function canRunWorkspaceActionForState(
   }
   return Boolean(paymentState && paymentState !== 'paid' && paymentState !== 'not_applicable')
 }
+function isManualUnsupportedWorkspaceAction(code: WorkspaceActionCode, blockingScope: WorkspaceBlockingScope) {
+  if (!isManualClientSession.value) return false
+  if (code.includes('WORKBOOK')) return true
+  if (code.includes('PAYMENT')) return true
+  return blockingScope === 'client'
+}
 function runWorkspaceAction(code: WorkspaceActionCode) {
   if (code === 'OPEN_NOTE' || code === 'CONTINUE_NOTE' || code === 'COMPLETE_NOTE') {
     return () => focusSessionNote()
@@ -1329,6 +1379,7 @@ function resolveWorkspaceActionByCode(
 ): WorkspaceAction | null {
   const code = item.code
   if (!isWorkspaceActionCode(code)) return null
+  if (isManualUnsupportedWorkspaceAction(code, item.blockingScope)) return null
   if (!hasWorkspaceActionPermission(code)) return null
   if (!canRunWorkspaceActionForState(code, state)) return null
   return {
@@ -2046,6 +2097,11 @@ watch(
   font-weight: 400;
 }
 
+.manual-client-detail {
+  display: grid;
+  gap: 6px;
+}
+
 .meeting-card {
   display: flex;
   justify-content: space-between;
@@ -2107,6 +2163,12 @@ watch(
 .status-pill--danger {
   background: rgba(194, 75, 75, 0.18);
   color: #a03838;
+}
+
+.status-pill--manual {
+  border: 1px solid color-mix(in srgb, var(--pc-peach-300) 54%, var(--pc-border));
+  background: var(--pc-peach-100);
+  color: var(--pc-navy-900);
 }
 
 .request-list {

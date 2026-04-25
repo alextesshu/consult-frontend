@@ -380,6 +380,58 @@ describe('TherapistSessionsView', () => {
     expect(within(paidHistoryCard as HTMLElement).getByText('Завершено')).toBeInTheDocument()
   })
 
+  it('shows manual-client badge and display name on session cards without payment badge noise', async () => {
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/booking/sessions/' && (config as { params?: { upcoming?: boolean } } | undefined)?.params?.upcoming) {
+        return [
+          buildSession({
+            id: 41,
+            client: null,
+            client_user_id: null,
+            client_record_id: 501,
+            client_display_name: 'Manual Display Client',
+            client_name: null,
+            client_username: null,
+            client_email: null,
+            client_has_account: false,
+            client_source: 'manual',
+            client_identity_type: 'manual',
+            payment_badge_state: 'unpaid',
+          }),
+          buildSession({
+            id: 42,
+            client: 142,
+            client_name: 'Registered Client',
+            client_email: 'registered@example.com',
+            payment_badge_state: 'unpaid',
+          }),
+        ]
+      }
+
+      if (url === '/booking/sessions/' && (config as { params?: { upcoming?: boolean } } | undefined)?.params?.upcoming === false) {
+        return []
+      }
+
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    await screen.findAllByText(/Manual Display Client/)
+    const manualArticle = document.querySelector('#session-41') as HTMLElement
+    expect(manualArticle).toBeTruthy()
+    expect(within(manualArticle).getByText('Без кабінету')).toBeInTheDocument()
+    expect(within(manualArticle).getByText('Ручна картка клієнта')).toBeInTheDocument()
+    expect(within(manualArticle).queryByText('Не оплачено')).not.toBeInTheDocument()
+    expect(manualArticle).not.toHaveTextContent('undefined')
+    expect(manualArticle).not.toHaveTextContent('null')
+
+    const registeredArticle = (await screen.findByText(/registered@example\.com/)).closest('article') as HTMLElement
+    expect(registeredArticle).toBeTruthy()
+    expect(within(registeredArticle).queryByText('Без кабінету')).not.toBeInTheDocument()
+    expect(within(registeredArticle).getByText('Не оплачено')).toBeInTheDocument()
+  })
+
   it('opens the date picker when clicking anywhere in the date filter field', async () => {
     mockedApiGet.mockImplementation(async (url) => {
       if (url === '/booking/sessions/') return []

@@ -314,6 +314,54 @@ describe('TherapistSessionDetailView', () => {
     openSpy.mockRestore()
   })
 
+  it('shows manual-client badge and hides account-only detail actions', async () => {
+    const sessionDetail = buildSession({
+      status: 'COMPLETED',
+      client: null,
+      client_user_id: null,
+      client_record_id: 501,
+      client_display_name: 'Manual Detail Client',
+      client_name: null,
+      client_username: null,
+      client_email: null,
+      client_has_account: false,
+      client_source: 'manual',
+      client_identity_type: 'manual',
+      workspace: buildWorkspace({
+        payment_state: 'unpaid',
+        note_state: 'missing',
+        workbook_state: 'missing',
+        pending_task_items: [
+          { code: 'COMPLETE_NOTE', label: 'Complete note', classification: 'recommended' },
+          { code: 'COMPLETE_WORKBOOK', label: 'Complete workbook', classification: 'recommended' },
+          { code: 'REQUEST_PAYMENT_PROOF', label: 'Request payment', classification: 'capability', blocking_scope: 'client' },
+        ],
+        available_action_items: [
+          { code: 'OPEN_NOTE', label: 'Open note', classification: 'capability' },
+          { code: 'OPEN_WORKBOOK', label: 'Open workbook', classification: 'capability' },
+          { code: 'REQUEST_PAYMENT_PROOF', label: 'Request payment', classification: 'capability', blocking_scope: 'client' },
+        ],
+      }),
+    })
+    mockDetailContext(() => sessionDetail, { requests: [] })
+
+    const { container } = renderView()
+
+    expect(await screen.findByText('Manual Detail Client')).toBeInTheDocument()
+    expect(screen.getByText('Без кабінету')).toBeInTheDocument()
+    expect(screen.getByText('Цю сесію створено для ручної картки клієнта. Клієнт ще не має кабінету.')).toBeInTheDocument()
+    expect(container).not.toHaveTextContent('undefined')
+    expect(container).not.toHaveTextContent('null')
+    expect(container).not.toHaveTextContent('ID: #null')
+    expect(screen.queryByRole('link', { name: 'До картки клієнта' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'До робочого зошита' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Відкрити.*робоч/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Запросити підтвердження оплати' })).not.toBeInTheDocument()
+    expect(screen.queryByText('Оплата')).not.toBeInTheDocument()
+    expect(screen.queryByText('Робочий зошит')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Заповнити нотатку' })).toBeInTheDocument()
+  })
+
   it('requests payment proof from specialist block and refreshes payment-proof state', async () => {
     const initialPaymentProof = {
       status: 'NOT_REQUESTED',
