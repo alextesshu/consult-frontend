@@ -92,6 +92,9 @@
         <div>
           <div class="badge badge--soft">Список</div>
           <h2 class="panel__title">Клієнти</h2>
+          <p class="clients-panel-hint">
+            Клієнта можна додати вручну без кабінету. Кабінет клієнта можна буде підключити пізніше.
+          </p>
         </div>
         <button class="btn btn--sm clients-add-btn" type="button" @click="openManualClientModal">
           Додати клієнта
@@ -1652,6 +1655,14 @@ onBeforeUnmount(() => {
   border: 1px solid color-mix(in srgb, var(--line) 78%, #ffffff);
   border-radius: 12px;
   background: color-mix(in srgb, var(--surface) 80%, #ffffff);
+}
+
+.clients-panel-hint {
+  max-width: 620px;
+  margin: 6px 0 0;
+  color: var(--pc-text-muted);
+  font-size: 14px;
+  line-height: 1.45;
 }
 
 .filters {
