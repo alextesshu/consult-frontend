@@ -1335,7 +1335,6 @@ npm run test:run -- src/views/PublicProfileView.spec.ts src/components/public-pr
 npm run typecheck
 npm run build
 ```
-```
 
 Notes:
 
@@ -1400,3 +1399,53 @@ Verification:
 npm run test:run -- src/views/PublicProfileView.spec.ts src/components/public-profile/PublicProfileTrustSection.spec.ts
 npm run typecheck
 npm run build
+```
+
+---
+
+## 22. Sessions Page Visual Migration Log
+
+### 2026-04-25 - Specialist sessions first safe visual pass
+
+Changed scope:
+
+* `src/views/TherapistSessionsView.vue`
+* `docs/UI_MIGRATION_PLAN.md`
+
+What changed:
+
+* Updated the specialist sessions page shell, hero, panels, filters, priority cards, session cards, request cards, history tiles, and local status badge styling toward the PRO CONSULT visual system.
+* Applied local `--pc-*` token styling for navy headings, cream/white panels, soft borders, teal/peach accents, and softer shadows.
+* Kept changes scoped to the sessions page visual layer.
+
+Preserved:
+
+* Existing `/cabinet/sessions` route behavior.
+* Existing API calls for upcoming/history sessions, slots, reschedule requests, suggestions, profile photo, notes, and workbook snapshots.
+* Existing upcoming/history filtering and status grouping.
+* Existing session lifecycle actions: confirm, join, complete, cancel, reschedule, recurring series.
+* Existing payment badge logic and payment badge classes.
+* Existing loading, error, empty, request, inline panel, completion modal, note modal, workbook, and `returnTo` flows.
+
+Verification:
+
+```bash
+npm run test:run -- src/views/TherapistSessionsView.spec.ts
+npm run test:run -- src/views/SpecialistSessionsFlow.spec.ts
+npm run typecheck
+npm run build
+```
+
+Result:
+
+* `npm run test:run -- src/views/TherapistSessionsView.spec.ts` - passed, 23 tests.
+* `npm run test:run -- src/views/SpecialistSessionsFlow.spec.ts` - passed, 7 tests; existing Vue Router warning for `/cabinet/clients?client=77&autoOpen=1` remains in the test harness.
+* `npm run typecheck` - passed.
+* `npm run build` - passed; existing Vite chunk-size warning remains.
+
+Deferred items:
+
+* Full note/workbook modal visual migration.
+* Session detail page polish.
+* Broader shared button/card component extraction.
+* Manual browser smoke at 1180px, 768px, and 390-430px.

@@ -1975,6 +1975,10 @@ body.body--home .footer__link:hover {
 }
 
 @media (max-width: 900px) {
+  .shell--authenticated {
+    gap: 12px;
+  }
+
   .main--specialist-shell {
     width: 100%;
   }
@@ -1994,13 +1998,46 @@ body.body--home .footer__link:hover {
   .specialist-mobile-nav {
     display: flex;
     justify-content: flex-start;
-    padding: 12px 16px 0;
+    width: min(100% - 32px, var(--pc-container-wide));
+    margin: 0 auto;
+    padding: 4px 0 4px;
   }
 
   .specialist-mobile-nav__toggle {
-    min-height: 38px;
-    border-radius: 8px;
-    background: color-mix(in srgb, var(--surface) 86%, #ffffff);
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    min-height: 46px;
+    border: 1px solid var(--pc-border);
+    border-radius: var(--radius-md);
+    padding: 11px 14px;
+    background: linear-gradient(135deg, var(--pc-bg-card), var(--pc-bg-soft));
+    box-shadow: var(--pc-shadow-soft);
+    color: var(--pc-navy-900);
+    font-weight: 700;
+    line-height: 1.2;
+    text-align: left;
+  }
+
+  .specialist-mobile-nav__toggle::after {
+    content: "";
+    flex: 0 0 auto;
+    width: 9px;
+    height: 9px;
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    opacity: 0.72;
+    transform: rotate(45deg) translateY(-2px);
+  }
+
+  .specialist-mobile-nav__toggle:hover,
+  .specialist-mobile-nav__toggle:focus-visible {
+    border-color: color-mix(in srgb, var(--pc-teal-500) 52%, var(--pc-border));
+    background: var(--pc-bg-card);
+    box-shadow: 0 0 0 3px rgba(143, 203, 200, 0.22), var(--pc-shadow-soft);
+    outline: none;
   }
 
   .specialist-mobile-drawer {
