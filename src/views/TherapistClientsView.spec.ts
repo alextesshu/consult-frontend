@@ -806,6 +806,77 @@ describe('TherapistClientsView', () => {
     })
   })
 
+  it('edits manual client record using display_name payload', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL)
+        return [
+          manualClientRecord({
+            id: 206,
+            display_name: 'Manual Before',
+            email: 'before@example.com',
+            phone: '+380501111111',
+            telegram: '@before',
+            internal_note: 'Before note',
+          }),
+        ]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    mockedApiPatch.mockResolvedValue(
+      manualClientRecord({
+        id: 206,
+        display_name: 'Manual After',
+        email: 'after@example.com',
+        phone: '+380502222222',
+        telegram: '@after',
+        internal_note: 'After note',
+      }) as any
+    )
+
+    const { container } = renderView()
+    const { clientsPanel } = getPanels(container)
+
+    const manualCard = await waitFor(() => {
+      const card = clientsPanel.querySelector('#manual-client-record-206')
+      expect(card).toBeInstanceOf(HTMLElement)
+      return card as HTMLElement
+    })
+
+    await fireEvent.click(within(manualCard).getByRole('button', { name: 'Редагувати' }))
+
+    const dialog = await screen.findByRole('dialog', { name: 'Редагувати клієнта' })
+
+    expect(within(dialog).getByLabelText('Імʼя клієнта')).toHaveValue('Manual Before')
+    expect(within(dialog).getByLabelText('Email')).toHaveValue('before@example.com')
+    expect(within(dialog).getByLabelText('Телефон')).toHaveValue('+380501111111')
+    expect(within(dialog).getByLabelText('Telegram')).toHaveValue('@before')
+    expect(within(dialog).getByLabelText('Внутрішня нотатка')).toHaveValue('Before note')
+
+    await fireEvent.update(within(dialog).getByLabelText('Імʼя клієнта'), 'Manual After')
+    await fireEvent.update(within(dialog).getByLabelText('Email'), 'after@example.com')
+    await fireEvent.update(within(dialog).getByLabelText('Телефон'), '+380502222222')
+    await fireEvent.update(within(dialog).getByLabelText('Telegram'), '@after')
+    await fireEvent.update(within(dialog).getByLabelText('Внутрішня нотатка'), 'After note')
+
+    await fireEvent.click(within(dialog).getByRole('button', { name: 'Зберегти зміни' }))
+
+    await waitFor(() => {
+      expect(mockedApiPatch).toHaveBeenCalledWith('/cabinet/client-records/206/', {
+        display_name: 'Manual After',
+        email: 'after@example.com',
+        phone: '+380502222222',
+        telegram: '@after',
+        internal_note: 'After note',
+      })
+      expect(mockedApiPatch.mock.calls[0]?.[1]).not.toHaveProperty('full_name')
+      expect(within(clientsPanel).getByText('Manual After')).toBeInTheDocument()
+      expect(within(clientsPanel).getByText('after@example.com')).toBeInTheDocument()
+      expect(screen.queryByRole('dialog', { name: 'Редагувати клієнта' })).not.toBeInTheDocument()
+    })
+  })
+
   it('archives and restores manual client records without registered client actions', async () => {
     mockedApiGet.mockImplementation(async (url) => {
       if (url === CLIENTS_URL) return []
