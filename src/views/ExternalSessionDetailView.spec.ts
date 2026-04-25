@@ -106,7 +106,7 @@ describe('ExternalSessionDetailView', () => {
     expect(await screen.findByText('Деталі гостьової сесії')).toBeInTheDocument()
     expect(screen.getByText('Зведення')).toBeInTheDocument()
     expect(screen.getAllByText('Гостьовий доступ').length).toBeGreaterThan(0)
-    expect(screen.getByRole('button', { name: 'Редагувати' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Редагувати / перенести' })).toBeInTheDocument()
     expect(await screen.findByText('Запрошення ще не створено. Створіть його, щоб надіслати гостю безпечне посилання.')).toBeInTheDocument()
     expect(container.querySelector('input[type="datetime-local"]')).not.toBeInTheDocument()
     expect(container.querySelector('input[type="date"]')).not.toBeInTheDocument()
@@ -210,7 +210,7 @@ describe('ExternalSessionDetailView', () => {
     const { container } = renderView()
     await screen.findByText('Деталі гостьової сесії')
 
-    await fireEvent.click(screen.getByRole('button', { name: 'Редагувати' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Редагувати / перенести' }))
     const dateInput = container.querySelector('input[type="date"]') as HTMLInputElement | null
     const timeInput = container.querySelector('input[inputmode="numeric"]') as HTMLInputElement | null
     if (!dateInput || !timeInput) {
@@ -227,13 +227,13 @@ describe('ExternalSessionDetailView', () => {
 
     await fireEvent.update(dateInput, '2099-06-20')
     await fireEvent.update(timeInput, '11:45')
-    await fireEvent.click(screen.getByRole('button', { name: 'Скасувати' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Закрити редагування' }))
 
-    expect(screen.getByRole('button', { name: 'Редагувати' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Редагувати / перенести' })).toBeInTheDocument()
     expect(container.querySelector('input[type="date"]')).not.toBeInTheDocument()
     expect(container.querySelector('input[inputmode="numeric"]')).not.toBeInTheDocument()
 
-    await fireEvent.click(screen.getByRole('button', { name: 'Редагувати' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Редагувати / перенести' }))
     const resetDateInput = container.querySelector('input[type="date"]') as HTMLInputElement | null
     const resetTimeInput = container.querySelector('input[inputmode="numeric"]') as HTMLInputElement | null
     expect(resetDateInput?.value).toBe('2099-06-15')
@@ -474,7 +474,7 @@ describe('ExternalSessionDetailView', () => {
     renderView()
     await screen.findByText('Деталі гостьової сесії')
 
-    await fireEvent.click(screen.getByRole('button', { name: 'Редагувати' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Редагувати / перенести' }))
     await fireEvent.click(screen.getByRole('button', { name: 'Скасувати сесію' }))
 
     await waitFor(() => {
@@ -525,18 +525,18 @@ describe('ExternalSessionDetailView', () => {
     renderView()
     await screen.findByText('Деталі гостьової сесії')
 
-    await fireEvent.click(screen.getByRole('button', { name: 'Редагувати' }))
-    await fireEvent.click(screen.getByRole('button', { name: 'Зберегти' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Редагувати / перенести' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Зберегти зміни' }))
     await waitFor(() => {
       expect(mockedUpdateExternalSession).toHaveBeenCalledTimes(1)
     })
 
-    await fireEvent.click(screen.getByRole('button', { name: 'Відкликати' }))
+    await fireEvent.click(await screen.findByRole('button', { name: 'Відкликати' }))
     await waitFor(() => {
       expect(mockedRevokeExternalSessionInvite).toHaveBeenCalledWith(21)
     })
 
-    await fireEvent.click(screen.getByRole('button', { name: 'Перевидати' }))
+    await fireEvent.click(await screen.findByRole('button', { name: 'Перевидати' }))
     await waitFor(() => {
       expect(mockedRegenerateExternalSessionInvite).toHaveBeenCalledWith(21)
     })

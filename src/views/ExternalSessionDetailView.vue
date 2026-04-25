@@ -59,7 +59,7 @@
             :disabled="savePending || cancelPending"
             @click="openEditMode"
           >
-            Редагувати
+            Редагувати / перенести
           </button>
         </div>
 
@@ -162,7 +162,7 @@
 
           <div class="actions-row">
             <button class="btn" type="button" :disabled="isCancelled || savePending" @click="submitSave">
-              {{ savePending ? 'Зберігаємо…' : 'Зберегти' }}
+              {{ savePending ? 'Зберігаємо…' : 'Зберегти зміни' }}
             </button>
             <button
               class="btn btn--ghost"
@@ -170,7 +170,7 @@
               :disabled="isCancelled || savePending || cancelPending"
               @click="cancelEditMode"
             >
-              Скасувати
+              Закрити редагування
             </button>
             <button class="btn btn--ghost" type="button" :disabled="isCancelled || cancelPending" @click="submitCancel">
               {{ cancelPending ? 'Скасовуємо…' : 'Скасувати сесію' }}
