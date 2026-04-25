@@ -1,6 +1,6 @@
 # Handoff
 
-Last updated: 2026-04-12  
+Last updated: 2026-04-25  
 Owner: agent-maintained  
 Canonical file: `docs/HANDOFF.md`  
 Governance: `docs/HANDOFF_RULES.md`  
@@ -9,6 +9,7 @@ Phase archive: `docs/PHASE_CLOSE_SUMMARIES.md`
 ## Current Phase
 
 Frontend production-readiness slice is now integrated:
+
 - cookie-based auth hardening: done (refresh token only in httpOnly cookie, silent restore, no token persistence in localStorage)
 - production container baseline: done (Docker multi-stage build + nginx SPA routing)
 - production API wiring: done (`VITE_API_BASE_URL` build-time injection for deploy artifacts)
@@ -28,8 +29,17 @@ Frontend production-readiness slice is now integrated:
 - specialist-side guest request UX polish: done (specialist list/status/approve/decline surface, online approve `meeting_url` guard, post-approve link to resulting external session/invite)
 - canonical public short URL for specialist profile: done (`/s/:slug` primary route, `GET /api/s/{slug}/`, cabinet canonical share/open fields)
 - transliteration-aware slug generation follow-up: done (fallback cleanup only when `public_profile_enabled=false`)
-- next functional slice: Mini-phase B - `professional_focus` + copy-personalization foundation (separate from slug/routing phase)
-- queued follow-up after Mini-phase B: client cabinet/dashboard top upcoming sessions visibility
+- manual client records Phase 1: done
+  - backend `ClientRecord` model/API implemented and staging-smoked
+  - frontend create/edit/archive/restore integrated on `/cabinet/clients`
+  - active-client counting includes active manual records and active registered relations
+  - dashboard empty-client hint updated
+  - clients page manual-client hint added
+  - manual clients remain session-less for now
+- next recommended slice: Manual Client Records Phase 2 design — manual-client sessions architecture
+- queued follow-ups:
+  - client cabinet/dashboard top upcoming sessions visibility
+  - `professional_focus` + copy-personalization foundation if profile-copy work resumes
 
 ## System State
 
@@ -61,6 +71,35 @@ Frontend production-readiness slice is now integrated:
   - access token is memory-only
   - refresh token is cookie-only (`httpOnly`) and never exposed to JS storage
   - axios requests run with credentials
+- Manual client records Phase 1 is active:
+  - specialists can manually create client cards without requiring a registered client account
+  - frontend page: `/cabinet/clients`
+  - main frontend file: `src/views/TherapistClientsView.vue`
+  - dashboard hint file: `src/views/CabinetView.vue`
+  - backend API:
+    - `GET /api/cabinet/client-records/`
+    - `POST /api/cabinet/client-records/`
+    - `PATCH /api/cabinet/client-records/{record_id}/`
+    - `POST /api/cabinet/client-records/{record_id}/archive/`
+    - `POST /api/cabinet/client-records/{record_id}/restore/`
+  - manual record name field is `display_name`, not `full_name`
+  - manual records return `source=manual`, `has_account=false`, `user_id=null`
+  - frontend labels:
+    - manual clients: `Без кабінету`
+    - registered clients: `З кабінетом`
+  - manual client cards support create/edit/archive/restore
+  - manual client cards do not yet support sessions, workbook, journal, chat, reviews, payment flow, invite/linking, or client cabinet access
+- Manual client records architecture guardrail:
+  - `ClientRecord` is not a parallel manual-client system
+  - `ClientRecord` is the future specialist-owned client identity layer
+  - current transition model keeps `ClientRelation` unchanged for registered clients
+  - active-client count is combined:
+    - active registered `ClientRelation` rows
+    - active manual `ClientRecord` rows
+  - guest/external participants remain separate and must not auto-create `ClientRecord`
+  - no fake users
+  - no auto-linking by email/phone
+  - no guest conversion without explicit future design
 - Public session execution contract is external meeting-link based (`meeting_url`/`meeting_provider`), no built-in video runtime.
 - Production deployment baseline:
   - frontend is served from nginx container
@@ -134,6 +173,10 @@ Frontend production-readiness slice is now integrated:
 - `TherapistClientsView` has isolated explicit-state handling for:
   - clients list (`loading/error/empty/retry`)
   - reminders (`loading/error/empty/retry`)
+  - manual client records (`GET /cabinet/client-records/`) are loaded non-blockingly
+  - registered clients remain visible if manual records endpoint fails
+  - manual clients are filtered/searchable together with registered clients
+  - registered-client-only actions are hidden for manual clients
 - Legal navigation baseline is in place:
   - global footer links for Terms/Privacy/Disclaimer/Support
   - auth notice links for Terms/Privacy
@@ -152,18 +195,35 @@ Frontend production-readiness slice is now integrated:
 
 ## Active Work
 
-- Mini-phase B scope (next standalone direction):
-  - `professional_focus` foundation
-  - copy-personalization foundation
+- Manual Client Records Phase 1 is closed.
+- Next active direction should be design-first, not implementation-first:
+  - Manual Client Records Phase 2 — manual-client sessions architecture.
 - Keep canonical slug/public-link behavior stable while extending profile-related UX.
-- Keep the separate follow-up queued: client cabinet/dashboard top upcoming sessions visibility.
+- Keep queued follow-ups:
+  - client cabinet/dashboard top upcoming sessions visibility
+  - `professional_focus` + copy-personalization foundation
 
 ## Immediate Next Step
 
-Implement and validate one focused Mini-phase B slice without mixing slug/routing changes:
-- add `professional_focus` and copy-personalization foundation where contract is confirmed
-- keep canonical share/open flow unchanged (`public_profile_url` / `public_profile_path`)
-- keep compatibility routes working while avoiding new legacy-first assumptions
+Prepare backend design for Manual Client Records Phase 2 before implementation.
+
+Do not add manual-client sessions as a quick frontend-only patch.
+
+The design must answer:
+
+- should canonical `Session` get `client_record`;
+- how registered-client sessions stay backward-compatible;
+- how session notes, workbook/journal, reviews, reschedule requests, reminders, chat, payment proof, and client cabinet relate to manual clients;
+- whether manual-client sessions are specialist-only until linked to a registered `User`;
+- how active-client counting remains canonical;
+- how guest/external flows stay separate;
+- how later invite/link/deduplication should work.
+
+Safe implementation boundary until Phase 2 design is approved:
+
+- manual clients can be created, edited, archived, restored;
+- manual clients count toward active-client limits;
+- manual clients cannot yet have canonical sessions.
 
 ## Critical Rules
 
@@ -177,6 +237,15 @@ Implement and validate one focused Mini-phase B slice without mixing slug/routin
   - do not reintroduce code/UUID-like public profile sharing UX as primary path
 - Keep `public_profile_url`/`public_profile_path` as public-link source of truth; avoid ad-hoc URL construction drift.
 - For Caddyfile changes, backend/frontend deploy alone is insufficient; include explicit Caddy reload/restart.
+- Do not regress manual client record assumptions:
+  - use `display_name`, not `full_name`
+  - manual records use `/api/cabinet/client-records/`
+  - do not reuse `/api/cabinet/clients/{client_id}/...` for manual records because existing registered-client routes use registered `User.id`
+  - do not show registered-client-only actions for manual clients unless backend support exists
+  - do not create fake users for manual clients
+  - do not auto-link manual clients by email/phone
+  - do not convert guests into client records automatically
+  - do not implement manual-client sessions without backend design
 - Keep handoff governance aligned with `docs/HANDOFF_RULES.md`:
   - `HANDOFF.md` = compact current snapshot
   - `PHASE_CLOSE_SUMMARIES.md` = append-only historical phase archive
