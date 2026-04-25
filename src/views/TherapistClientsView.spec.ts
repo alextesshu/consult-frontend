@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { apiGet, apiPatch, fetchChatThreads } from '../lib/api'
+import { apiGet, apiPatch, apiPost, fetchChatThreads } from '../lib/api'
 import TherapistClientsView from './TherapistClientsView.vue'
 import { createPracticeBoardItem, fetchPracticeBoards } from '../lib/specialistPracticeBoard'
 import { skipSpecialistSessionNote } from '../lib/specialistSessions'
@@ -12,6 +12,7 @@ const mockToast = {
 vi.mock('../lib/api', () => ({
   apiGet: vi.fn(),
   apiPatch: vi.fn(),
+  apiPost: vi.fn(),
   fetchChatThreads: vi.fn(),
 }))
 vi.mock('../lib/specialistPracticeBoard', () => ({
@@ -33,12 +34,14 @@ vi.mock('../composables/useToast', () => ({
 
 const mockedApiGet = vi.mocked(apiGet)
 const mockedApiPatch = vi.mocked(apiPatch)
+const mockedApiPost = vi.mocked(apiPost)
 const mockedFetchChatThreads = vi.mocked(fetchChatThreads)
 const mockedCreatePracticeBoardItem = vi.mocked(createPracticeBoardItem)
 const mockedFetchPracticeBoards = vi.mocked(fetchPracticeBoards)
 const mockedSkipSpecialistSessionNote = vi.mocked(skipSpecialistSessionNote)
 
 const CLIENTS_URL = '/cabinet/clients/'
+const CLIENT_RECORDS_URL = '/cabinet/client-records/'
 const REMINDERS_URL = '/cabinet/notes/reminders/'
 const clientHistoryUrl = (clientId: number) => `/cabinet/clients/${clientId}/notes/history/`
 const noteReminderHref = (sessionId: number) => `/cabinet/sessions?returnTo=%2Fcabinet%2Fclients#note-${sessionId}`
@@ -83,10 +86,30 @@ function getPanels(container: Element) {
   return { remindersPanel, clientsPanel }
 }
 
+function manualClientRecord(overrides: Record<string, unknown> = {}) {
+  return {
+    id: 201,
+    user_id: null,
+    display_name: 'Manual Client',
+    email: null,
+    phone: null,
+    telegram: null,
+    internal_note: null,
+    status: 'active',
+    source: 'manual',
+    has_account: false,
+    archived_at: null,
+    created_at: '2099-06-15T10:00:00Z',
+    updated_at: '2099-06-15T10:00:00Z',
+    ...overrides,
+  }
+}
+
 describe('TherapistClientsView', () => {
   beforeEach(() => {
     mockedApiGet.mockReset()
     mockedApiPatch.mockReset()
+    mockedApiPost.mockReset()
     mockedFetchChatThreads.mockReset()
     mockedFetchChatThreads.mockResolvedValue([])
     mockedCreatePracticeBoardItem.mockReset()
@@ -733,6 +756,176 @@ describe('TherapistClientsView', () => {
     await fireEvent.click(filterButtons[3] as HTMLButtonElement)
     await waitFor(() => {
       expect(clientsPanel).toHaveTextContent('Архів порожній')
+    })
+  })
+
+  it('opens manual client create modal and posts display_name payload', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL) return []
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedApiPost.mockResolvedValue(
+      manualClientRecord({
+        id: 202,
+        display_name: 'Марія Коваль',
+        email: 'maria@example.com',
+        phone: '+380501112233',
+        telegram: '@maria',
+        internal_note: 'Prefers evening calls',
+      }) as any
+    )
+
+    const { container } = renderView()
+    const { clientsPanel } = getPanels(container)
+
+    await fireEvent.click(await within(clientsPanel).findByRole('button', { name: 'Додати клієнта' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Додати клієнта' })
+
+    expect(within(dialog).getByLabelText('Імʼя клієнта')).toBeInTheDocument()
+    await fireEvent.update(within(dialog).getByLabelText('Імʼя клієнта'), 'Марія Коваль')
+    await fireEvent.update(within(dialog).getByLabelText('Email'), 'maria@example.com')
+    await fireEvent.update(within(dialog).getByLabelText('Телефон'), '+380501112233')
+    await fireEvent.update(within(dialog).getByLabelText('Telegram'), '@maria')
+    await fireEvent.update(within(dialog).getByLabelText('Внутрішня нотатка'), 'Prefers evening calls')
+    await fireEvent.click(within(dialog).getByRole('button', { name: 'Додати клієнта' }))
+
+    await waitFor(() => {
+      expect(mockedApiPost).toHaveBeenCalledWith(CLIENT_RECORDS_URL, {
+        display_name: 'Марія Коваль',
+        email: 'maria@example.com',
+        phone: '+380501112233',
+        telegram: '@maria',
+        internal_note: 'Prefers evening calls',
+      })
+      expect(mockedApiPost.mock.calls[0]?.[1]).not.toHaveProperty('full_name')
+      expect(within(clientsPanel).getByText('Марія Коваль')).toBeInTheDocument()
+      expect(within(clientsPanel).getByText('Без кабінету')).toBeInTheDocument()
+      expect(within(clientsPanel).getByText('maria@example.com')).toBeInTheDocument()
+    })
+  })
+
+  it('archives and restores manual client records without registered client actions', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL)
+        return [
+          manualClientRecord({
+            id: 203,
+            display_name: 'Manual Active',
+            email: 'active@example.com',
+          }),
+        ]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedApiPost.mockImplementation(async (url) => {
+      if (url === '/cabinet/client-records/203/archive/')
+        return manualClientRecord({
+          id: 203,
+          display_name: 'Manual Active',
+          email: 'active@example.com',
+          status: 'archived',
+          archived_at: '2099-06-15T11:00:00Z',
+        }) as any
+      if (url === '/cabinet/client-records/203/restore/')
+        return manualClientRecord({
+          id: 203,
+          display_name: 'Manual Active',
+          email: 'active@example.com',
+          status: 'active',
+          archived_at: null,
+        }) as any
+      throw new Error(`Unexpected apiPost call: ${url}`)
+    })
+
+    const { container } = renderView()
+    const { clientsPanel } = getPanels(container)
+
+    const manualCard = await waitFor(() => {
+      const card = clientsPanel.querySelector('#manual-client-record-203')
+      expect(card).toBeInstanceOf(HTMLElement)
+      return card as HTMLElement
+    })
+    expect(within(manualCard).queryByRole('button', { name: 'Приватна історія клієнта' })).not.toBeInTheDocument()
+    expect(within(manualCard).queryByRole('button', { name: 'Додати на дошку' })).not.toBeInTheDocument()
+    expect(container.querySelector('a[href^="/cabinet/sessions"]')).not.toBeInTheDocument()
+
+    await fireEvent.click(within(manualCard).getByRole('button', { name: 'Архівувати' }))
+
+    await waitFor(() => {
+      expect(mockedApiPost).toHaveBeenCalledWith('/cabinet/client-records/203/archive/', {})
+      expect(within(manualCard).getByText('Архів')).toBeInTheDocument()
+      expect(within(manualCard).getByRole('button', { name: 'Відновити' })).toBeInTheDocument()
+    })
+
+    await fireEvent.click(within(manualCard).getByRole('button', { name: 'Відновити' }))
+
+    await waitFor(() => {
+      expect(mockedApiPost).toHaveBeenCalledWith('/cabinet/client-records/203/restore/', {})
+      expect(within(manualCard).getByText('Активний')).toBeInTheDocument()
+      expect(within(manualCard).getByRole('button', { name: 'Архівувати' })).toBeInTheDocument()
+    })
+  })
+
+  it('keeps registered clients visible when manual records endpoint fails', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL)
+        return [
+          {
+            id: 1,
+            client_id: 44,
+            state: 'ACTIVE',
+            last_session_at: null,
+            upcoming_count: 0,
+            client_display_name: 'Registered Client',
+          },
+        ]
+      if (url === CLIENT_RECORDS_URL) throw { response: { data: {} } }
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    const { container } = renderView()
+    const { clientsPanel } = getPanels(container)
+
+    await waitFor(() => {
+      expect(within(clientsPanel).getByText('Registered Client')).toBeInTheDocument()
+      expect(container).toHaveTextContent('Не вдалося завантажити клієнтів без кабінету')
+    })
+  })
+
+  it('filters manual records by active and archive status', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL)
+        return [
+          manualClientRecord({ id: 204, display_name: 'Manual Active Filter', status: 'active' }),
+          manualClientRecord({ id: 205, display_name: 'Manual Archived Filter', status: 'archived' }),
+        ]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    const { container } = renderView()
+    const { clientsPanel } = getPanels(container)
+    const filterButtons = await waitFor(() => {
+      expect(within(clientsPanel).getByText('Manual Active Filter')).toBeInTheDocument()
+      expect(within(clientsPanel).getByText('Manual Archived Filter')).toBeInTheDocument()
+      return clientsPanel.querySelectorAll('.filters button')
+    })
+
+    await fireEvent.click(filterButtons[1] as HTMLButtonElement)
+    await waitFor(() => {
+      expect(within(clientsPanel).getByText('Manual Active Filter')).toBeInTheDocument()
+      expect(within(clientsPanel).queryByText('Manual Archived Filter')).not.toBeInTheDocument()
+    })
+
+    await fireEvent.click(filterButtons[3] as HTMLButtonElement)
+    await waitFor(() => {
+      expect(within(clientsPanel).queryByText('Manual Active Filter')).not.toBeInTheDocument()
+      expect(within(clientsPanel).getByText('Manual Archived Filter')).toBeInTheDocument()
     })
   })
 

@@ -12,6 +12,7 @@
     </header>
 
     <div v-if="error" class="form-error">{{ error }}</div>
+    <div v-if="manualClientsWarning" class="form-warning">{{ manualClientsWarning }}</div>
 
     <section v-if="showRemindersPanel" class="panel panel--reminders">
       <div class="panel__header">
@@ -92,6 +93,9 @@
           <div class="badge badge--soft">Список</div>
           <h2 class="panel__title">Клієнти</h2>
         </div>
+        <button class="btn btn--sm clients-add-btn" type="button" @click="openManualClientModal">
+          Додати клієнта
+        </button>
       </div>
       <div class="clients-toolbar">
         <div class="filters" aria-label="Фільтр клієнтів">
@@ -140,24 +144,57 @@
       <div v-else class="client-list">
         <article
           v-for="client in filteredClients"
-          :id="clientCardDomId(relationClientId(client))"
-          :key="relationClientId(client)"
+          :id="clientCardDomId(client)"
+          :key="clientListKey(client)"
           class="client-card"
-          :class="{ 'client-card--targeted': targetedClientId === relationClientId(client) }"
+          :class="{
+            'client-card--manual': isManualClient(client),
+            'client-card--targeted': !isManualClient(client) && targetedClientId === relationClientId(client),
+          }"
           tabindex="-1"
         >
           <div class="client-card__main">
             <div class="client-card__identity">
               <div>
                 <div class="client-name">{{ displayClientName(client) }}</div>
-                <div v-if="client.client_code" class="client-code">Код клієнта: {{ client.client_code }}</div>
+                <div v-if="!isManualClient(client) && client.client_code" class="client-code">Код клієнта: {{ client.client_code }}</div>
               </div>
-              <span class="client-status" :class="clientStatusClass(client.state)">
-                {{ clientStatusLabel(client.state) }}
-              </span>
+              <div class="client-badges">
+                <span class="client-account-badge" :class="{ 'client-account-badge--manual': isManualClient(client) }">
+                  {{ isManualClient(client) ? 'Без кабінету' : 'З кабінетом' }}
+                </span>
+                <span class="client-status" :class="clientStatusClass(clientListState(client))">
+                  {{ clientStatusLabel(clientListState(client)) }}
+                </span>
+              </div>
             </div>
 
-            <dl class="client-meta">
+            <dl v-if="isManualClient(client)" class="client-meta client-meta--manual">
+              <div v-if="client.email" class="client-meta__item">
+                <dt>Email</dt>
+                <dd>{{ client.email }}</dd>
+              </div>
+              <div v-if="client.phone" class="client-meta__item">
+                <dt>Телефон</dt>
+                <dd>{{ client.phone }}</dd>
+              </div>
+              <div v-if="client.telegram" class="client-meta__item">
+                <dt>Telegram</dt>
+                <dd>{{ client.telegram }}</dd>
+              </div>
+              <div class="client-meta__item">
+                <dt>Джерело</dt>
+                <dd>Вручну створена картка</dd>
+              </div>
+              <div class="client-meta__item">
+                <dt>Оновлено</dt>
+                <dd>{{ manualClientUpdatedLabel(client) }}</dd>
+              </div>
+            </dl>
+            <div v-if="isManualClient(client) && client.internal_note" class="manual-client-note">
+              {{ client.internal_note }}
+            </div>
+            <dl v-if="!isManualClient(client)" class="client-meta">
               <div class="client-meta__item">
                 <dt>Остання сесія</dt>
                 <dd>{{ optionalDateLabel(client.last_session_at, 'Ще не було') }}</dd>
@@ -180,7 +217,29 @@
               </div>
             </dl>
           </div>
-          <div class="client-actions">
+          <div v-if="isManualClient(client)" class="client-actions">
+            <div class="client-actions__secondary">
+              <button
+                v-if="client.status !== 'archived'"
+                class="btn btn--ghost btn--sm"
+                type="button"
+                :disabled="isManualActionLoading(client.id)"
+                @click="archiveManualClient(client.id)"
+              >
+                Архівувати
+              </button>
+              <button
+                v-else
+                class="btn btn--ghost btn--sm"
+                type="button"
+                :disabled="isManualActionLoading(client.id)"
+                @click="restoreManualClient(client.id)"
+              >
+                Відновити
+              </button>
+            </div>
+          </div>
+          <div v-else class="client-actions">
             <div class="client-actions__primary">
               <RouterLink
                 v-if="client.latest_session_note_session_id"
@@ -237,7 +296,7 @@
               </button>
             </div>
           </div>
-          <div v-if="expandedClientId === relationClientId(client)" class="client-history">
+          <div v-if="!isManualClient(client) && expandedClientId === relationClientId(client)" class="client-history">
             <div class="history-header">
               <div>
                 <div class="history-title">Приватна історія клієнта</div>
@@ -329,12 +388,72 @@
       @cancel="closeClientPracticeBoardModal"
       @submit="submitClientPracticeBoardQuickAdd"
     />
+    <div v-if="manualClientModalOpen" class="manual-client-modal" role="dialog" aria-modal="true" aria-labelledby="manual-client-title">
+      <button
+        class="manual-client-modal__backdrop"
+        type="button"
+        aria-label="Закрити форму додавання клієнта"
+        @click="closeManualClientModal"
+      ></button>
+      <form class="manual-client-modal__content" @submit.prevent="submitManualClient">
+        <div class="manual-client-modal__header">
+          <div>
+            <div class="badge badge--soft">Без кабінету</div>
+            <h2 id="manual-client-title" class="manual-client-modal__title">Додати клієнта</h2>
+          </div>
+          <button class="btn btn--ghost btn--sm" type="button" @click="closeManualClientModal">
+            Закрити
+          </button>
+        </div>
+        <div v-if="manualClientFormError" class="form-error">{{ manualClientFormError }}</div>
+        <div class="manual-client-form">
+          <label class="field">
+            Імʼя клієнта
+            <input
+              v-model.trim="manualClientForm.display_name"
+              class="input"
+              type="text"
+              autocomplete="name"
+              required
+            />
+          </label>
+          <label class="field">
+            Email
+            <input v-model.trim="manualClientForm.email" class="input" type="email" autocomplete="email" />
+          </label>
+          <label class="field">
+            Телефон
+            <input v-model.trim="manualClientForm.phone" class="input" type="tel" autocomplete="tel" />
+          </label>
+          <label class="field">
+            Telegram
+            <input v-model.trim="manualClientForm.telegram" class="input" type="text" autocomplete="off" />
+          </label>
+          <label class="field manual-client-form__note">
+            Внутрішня нотатка
+            <textarea
+              v-model.trim="manualClientForm.internal_note"
+              class="input manual-client-form__textarea"
+              rows="4"
+            ></textarea>
+          </label>
+        </div>
+        <div class="manual-client-modal__actions">
+          <button class="btn btn--sm" type="submit" :disabled="manualClientSaving">
+            {{ manualClientSaving ? 'Додаємо...' : 'Додати клієнта' }}
+          </button>
+          <button class="btn btn--ghost btn--sm" type="button" @click="closeManualClientModal">
+            Скасувати
+          </button>
+        </div>
+      </form>
+    </div>
   </section>
 </template>
 
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
-import { apiGet, apiPatch, fetchChatThreads, type ChatThread } from '../lib/api'
+import { apiGet, apiPatch, apiPost, fetchChatThreads, type ChatThread } from '../lib/api'
 import EmptyState from '../components/EmptyState.vue'
 import LoadingSkeleton from '../components/LoadingSkeleton.vue'
 import PracticeBoardQuickAddModal from '../components/PracticeBoardQuickAddModal.vue'
@@ -377,6 +496,32 @@ type ClientState = {
   latest_session_note_at?: string | null
   latest_session_note_session_id?: number | null
 }
+
+type ManualClientRecord = {
+  id: number
+  user_id: null
+  display_name: string
+  email: string | null
+  phone: string | null
+  telegram: string | null
+  internal_note: string | null
+  status: 'active' | 'archived'
+  source: 'manual'
+  has_account: false
+  archived_at: string | null
+  created_at: string | null
+  updated_at: string | null
+}
+
+type ManualClientFormState = {
+  display_name: string
+  email: string
+  phone: string
+  telegram: string
+  internal_note: string
+}
+
+type ClientListItem = ClientState | ManualClientRecord
 
 
 type SessionItem = {
@@ -444,12 +589,15 @@ type SessionMetadataSource = NameSource & {
 type ListResponse<T> = T[] | { results?: T[] } | null | undefined
 
 const clients = ref<ClientState[]>([])
+const manualClientRecords = ref<ManualClientRecord[]>([])
 const clientsLoading = ref(false)
 const clientsError = ref('')
 const error = ref('')
+const manualClientsWarning = ref('')
 const filter = ref<'ALL' | 'ACTIVE' | 'INACTIVE' | 'ARCHIVED'>('ALL')
 const searchQuery = ref('')
 const actionLoading = ref<Set<number>>(new Set())
+const manualActionLoading = ref<Set<number>>(new Set())
 const expandedClientId = ref<number | null>(null)
 const targetedClientId = ref<number | null>(null)
 const historyLoading = ref<Set<number>>(new Set())
@@ -473,6 +621,16 @@ const pendingNotes = ref<PendingNoteItem[]>([])
 const remindersExpanded = ref(false)
 const pendingNotesVisibleLimit = ref(3)
 const noteSkipping = ref<Set<number>>(new Set())
+const manualClientModalOpen = ref(false)
+const manualClientSaving = ref(false)
+const manualClientFormError = ref('')
+const manualClientForm = ref<ManualClientFormState>({
+  display_name: '',
+  email: '',
+  phone: '',
+  telegram: '',
+  internal_note: '',
+})
 const retryLabel = '\u0421\u043f\u0440\u043e\u0431\u0443\u0432\u0430\u0442\u0438 \u0449\u0435 \u0440\u0430\u0437'
 const remindersErrorTitle = '\u041d\u0435 \u0432\u0434\u0430\u043b\u043e\u0441\u044f \u0437\u0430\u0432\u0430\u043d\u0442\u0430\u0436\u0438\u0442\u0438 \u043d\u0430\u0433\u0430\u0434\u0443\u0432\u0430\u043d\u043d\u044f'
 const initialDeepLinkClientId = parseClientDeepLinkClientId(window.location.search)
@@ -480,8 +638,9 @@ let clientCardHighlightTimer: number | null = null
 const toast = useToast()
 
 const filteredClients = computed(() => {
+  const items: ClientListItem[] = [...clients.value, ...manualClientRecords.value]
   const byStatus =
-    filter.value === 'ALL' ? clients.value : clients.value.filter((client) => client.state === filter.value)
+    filter.value === 'ALL' ? items : items.filter((client) => clientListState(client) === filter.value)
   const query = normalizeSearchValue(searchQuery.value)
   if (!query) return byStatus
   return byStatus.filter((client) => matchesClientSearch(client, query))
@@ -525,14 +684,35 @@ const clientIndex = computed(() => {
 })
 
 const isActionLoading = (id: number) => actionLoading.value.has(id)
+const isManualActionLoading = (id: number) => manualActionLoading.value.has(id)
 const isHistoryLoading = (id: number) => historyLoading.value.has(id)
 const isJournalLoading = (id: number) => journalLoading.value.has(id)
 const isJournalSaving = (id: number) => journalSaving.value.has(id)
 const isQuickAddLoading = (id: number) => quickAddLoading.value.has(id)
 const isNoteSkipping = (id: number) => noteSkipping.value.has(id)
 const isWorkbookExpanded = (id: number) => Boolean(workbookExpanded.value[id])
-function relationClientId(client: Pick<ClientState, 'client' | 'client_id'>) {
-  return Number(client.client ?? client.client_id ?? 0)
+function isManualClient(client: ClientListItem): client is ManualClientRecord {
+  return (client as ManualClientRecord).source === 'manual' && (client as ManualClientRecord).has_account === false
+}
+
+function clientListState(client: ClientListItem): ClientState['state'] {
+  if (isManualClient(client)) return client.status === 'archived' ? 'ARCHIVED' : 'ACTIVE'
+  return client.state
+}
+
+function clientListKey(client: ClientListItem) {
+  return isManualClient(client) ? `manual-${client.id}` : `registered-${relationClientId(client)}`
+}
+
+function clientCardDomId(client: ClientListItem | number) {
+  if (typeof client === 'number') return `client-card-${client}`
+  return isManualClient(client) ? `manual-client-record-${client.id}` : `client-card-${relationClientId(client)}`
+}
+
+function relationClientId(client: Pick<ClientState, 'client' | 'client_id'> | ClientListItem) {
+  if (isManualClient(client as ClientListItem)) return 0
+  const relation = client as Pick<ClientState, 'client' | 'client_id'>
+  return Number(relation.client ?? relation.client_id ?? 0)
 }
 
 function relationSessionClientId(session: Pick<SessionItem, 'client' | 'client_id'>) {
@@ -565,7 +745,18 @@ function normalizeSearchValue(value?: string | number | null) {
   return String(value ?? '').trim().toLowerCase()
 }
 
-function matchesClientSearch(client: ClientState, query: string) {
+function matchesClientSearch(client: ClientListItem, query: string) {
+  if (isManualClient(client)) {
+    const searchable = [
+      client.display_name,
+      client.email,
+      client.phone,
+      client.telegram,
+      client.internal_note,
+      client.id,
+    ]
+    return searchable.map((item) => normalizeSearchValue(item)).some((item) => item.includes(query))
+  }
   const searchable = [
     displayClientName(client),
     normalizeClientName(client.client_name),
@@ -584,10 +775,6 @@ function parseClientDeepLinkClientId(search: string) {
   const shouldAutoOpen = autoOpen == null || autoOpen === '1' || autoOpen.toLowerCase() === 'true'
   if (!shouldAutoOpen || !Number.isFinite(value) || value <= 0) return null
   return value
-}
-
-function clientCardDomId(clientId: number) {
-  return `client-card-${clientId}`
 }
 
 function clearClientCardHighlightTimer() {
@@ -677,6 +864,16 @@ function setActionLoading(id: number, value: boolean) {
     next.delete(id)
   }
   actionLoading.value = next
+}
+
+function setManualActionLoading(id: number, value: boolean) {
+  const next = new Set(manualActionLoading.value)
+  if (value) {
+    next.add(id)
+  } else {
+    next.delete(id)
+  }
+  manualActionLoading.value = next
 }
 
 function setHistoryLoading(id: number, value: boolean) {
@@ -801,7 +998,8 @@ function workbookUpdatedAt(client?: Pick<ClientState, 'workbook_updated_at' | 'c
   return client?.workbook_updated_at || client?.client_journal_updated_at || null
 }
 
-function workbookSummary(client: ClientState) {
+function workbookSummary(client: ClientListItem) {
+  if (isManualClient(client)) return 'Недоступний без кабінету'
   const clientId = relationClientId(client)
   if (workbookMissingByClient.value[clientId] === true) return 'Відсутній'
   if (!resolveHasWorkbookContent(client)) return 'Відсутній'
@@ -810,7 +1008,8 @@ function workbookSummary(client: ClientState) {
   return `Заповнений, оновлено ${formatDateTime(updatedAt)}`
 }
 
-function latestNoteSummary(client: ClientState) {
+function latestNoteSummary(client: ClientListItem) {
+  if (isManualClient(client)) return 'Нотаток ще немає'
   if (!client.latest_session_note_at) return '\u041d\u043e\u0442\u0430\u0442\u043e\u043a \u0449\u0435 \u043d\u0435\u043c\u0430\u0454'
   return formatDateTime(client.latest_session_note_at)
 }
@@ -821,7 +1020,8 @@ function optionalDateLabel(value: string | null | undefined, fallback: string) {
   return label && label !== '—' ? label : fallback
 }
 
-function clientUpdatedLabel(client: ClientState) {
+function clientUpdatedLabel(client: ClientListItem) {
+  if (isManualClient(client)) return manualClientUpdatedLabel(client)
   const value = client.workbook_updated_at || client.client_journal_updated_at || client.latest_session_note_at || client.last_session_at
   return optionalDateLabel(value, 'Немає оновлень')
 }
@@ -890,21 +1090,9 @@ function preferredClientName(source?: NameSource | null) {
 }
 
 function displayClientName(
-  client: Pick<
-    ClientState,
-    | 'client'
-    | 'client_id'
-    | 'client_name'
-    | 'client_username'
-    | 'client_display_name'
-    | 'display_name'
-    | 'client_first_name'
-    | 'client_last_name'
-    | 'first_name'
-    | 'last_name'
-    | 'client_code'
-  >
+  client: ClientListItem
 ) {
+  if (isManualClient(client)) return normalizeClientName(client.display_name) || `Клієнт #${client.id}`
   const id = relationClientId(client)
   const fromChat = chatClientNames.value[id]
   if (fromChat) return fromChat
@@ -915,6 +1103,10 @@ function displayClientName(
   if (client.client_code) return `Код: ${client.client_code}`
   if (id > 0) return `Клієнт #${id}`
   return '\u041a\u043b\u0456\u0454\u043d\u0442'
+}
+
+function manualClientUpdatedLabel(client: ManualClientRecord) {
+  return optionalDateLabel(client.updated_at || client.created_at, 'Немає оновлень')
 }
 
 async function loadChatClientNames() {
@@ -952,6 +1144,94 @@ async function loadClients() {
   }
 }
 
+async function loadManualClientRecords() {
+  manualClientsWarning.value = ''
+  try {
+    const resp = await apiGet<ListResponse<ManualClientRecord>>('/cabinet/client-records/')
+    manualClientRecords.value = listFromResponse(resp)
+  } catch (err: any) {
+    manualClientRecords.value = []
+    manualClientsWarning.value = getApiErrorMessage(
+      err,
+      'Не вдалося завантажити клієнтів без кабінету. Зареєстровані клієнти залишаються доступними.'
+    )
+  }
+}
+
+function resetManualClientForm() {
+  manualClientForm.value = {
+    display_name: '',
+    email: '',
+    phone: '',
+    telegram: '',
+    internal_note: '',
+  }
+  manualClientFormError.value = ''
+}
+
+function openManualClientModal() {
+  resetManualClientForm()
+  manualClientModalOpen.value = true
+}
+
+function closeManualClientModal() {
+  if (manualClientSaving.value) return
+  manualClientModalOpen.value = false
+  resetManualClientForm()
+}
+
+function manualClientPayload() {
+  const form = manualClientForm.value
+  return {
+    display_name: form.display_name.trim(),
+    email: form.email.trim() || null,
+    phone: form.phone.trim() || null,
+    telegram: form.telegram.trim() || null,
+    internal_note: form.internal_note.trim() || null,
+  }
+}
+
+function manualClientErrorMessage(err: unknown, fallback: string) {
+  const data = (err as { response?: { data?: any } })?.response?.data
+  const raw = [
+    data?.detail,
+    data?.code,
+    data?.non_field_errors?.[0],
+    data?.display_name?.[0],
+    typeof data === 'string' ? data : '',
+  ]
+    .filter(Boolean)
+    .join(' ')
+    .toLowerCase()
+
+  if (raw.includes('limit') || raw.includes('active_client')) {
+    return 'Досягнуто ліміт активних клієнтів для вашого тарифу.'
+  }
+  return getApiErrorMessage(err, fallback)
+}
+
+async function submitManualClient() {
+  const payload = manualClientPayload()
+  if (!payload.display_name) {
+    manualClientFormError.value = 'Вкажіть імʼя клієнта.'
+    return
+  }
+
+  manualClientSaving.value = true
+  manualClientFormError.value = ''
+  error.value = ''
+  try {
+    const created = await apiPost<ManualClientRecord>('/cabinet/client-records/', payload)
+    manualClientRecords.value = [created, ...manualClientRecords.value.filter((item) => item.id !== created.id)]
+    manualClientModalOpen.value = false
+    resetManualClientForm()
+  } catch (err: any) {
+    manualClientFormError.value = manualClientErrorMessage(err, 'Не вдалося додати клієнта.')
+  } finally {
+    manualClientSaving.value = false
+  }
+}
+
 async function archiveClient(id: number) {
   if (!id) return
   setActionLoading(id, true)
@@ -977,6 +1257,42 @@ async function restoreClient(id: number) {
     error.value = getApiErrorMessage(err, '\u041d\u0435 \u0432\u0434\u0430\u043b\u043e\u0441\u044f \u0432\u0456\u0434\u043d\u043e\u0432\u0438\u0442\u0438 \u043a\u043b\u0456\u0454\u043d\u0442\u0430')
   } finally {
     setActionLoading(id, false)
+  }
+}
+
+async function archiveManualClient(id: number) {
+  if (!id) return
+  setManualActionLoading(id, true)
+  error.value = ''
+  try {
+    const updated = await apiPost<ManualClientRecord | null>(`/cabinet/client-records/${id}/archive/`, {})
+    if (updated?.id) {
+      manualClientRecords.value = manualClientRecords.value.map((item) => (item.id === id ? updated : item))
+    } else {
+      await loadManualClientRecords()
+    }
+  } catch (err: any) {
+    error.value = manualClientErrorMessage(err, 'Не вдалося архівувати клієнта.')
+  } finally {
+    setManualActionLoading(id, false)
+  }
+}
+
+async function restoreManualClient(id: number) {
+  if (!id) return
+  setManualActionLoading(id, true)
+  error.value = ''
+  try {
+    const updated = await apiPost<ManualClientRecord | null>(`/cabinet/client-records/${id}/restore/`, {})
+    if (updated?.id) {
+      manualClientRecords.value = manualClientRecords.value.map((item) => (item.id === id ? updated : item))
+    } else {
+      await loadManualClientRecords()
+    }
+  } catch (err: any) {
+    error.value = manualClientErrorMessage(err, 'Не вдалося відновити клієнта.')
+  } finally {
+    setManualActionLoading(id, false)
   }
 }
 
@@ -1194,7 +1510,7 @@ async function openClientFromDeepLinkIfNeeded() {
 }
 
 onMounted(async () => {
-  await Promise.all([loadClients(), loadChatClientNames()])
+  await Promise.all([loadClients(), loadManualClientRecords(), loadChatClientNames()])
   await openClientFromDeepLinkIfNeeded()
   await loadPendingNotes()
 })
@@ -1246,6 +1562,12 @@ onBeforeUnmount(() => {
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
+}
+
+.clients-add-btn {
+  border-color: var(--pc-navy-900);
+  background: var(--pc-navy-900);
+  color: #fff;
 }
 
 .panel__title {
@@ -1389,6 +1711,13 @@ onBeforeUnmount(() => {
   box-shadow: 0 0 0 2px rgba(11, 74, 125, 0.14);
 }
 
+.client-card--manual {
+  border-color: var(--pc-border);
+  background:
+    radial-gradient(circle at 100% 0, rgba(221, 241, 239, 0.7), transparent 34%),
+    var(--pc-bg-card);
+}
+
 .client-card__main {
   display: grid;
   gap: 12px;
@@ -1399,6 +1728,14 @@ onBeforeUnmount(() => {
   justify-content: space-between;
   gap: 12px;
   align-items: flex-start;
+}
+
+.client-badges {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
 }
 
 .client-name {
@@ -1445,6 +1782,25 @@ onBeforeUnmount(() => {
   color: #8a640b;
 }
 
+.client-account-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  border: 1px solid var(--pc-border);
+  border-radius: 8px;
+  padding: 4px 8px;
+  background: var(--pc-blue-soft);
+  color: var(--pc-navy-800);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.client-account-badge--manual {
+  background: var(--pc-peach-100);
+  color: var(--pc-navy-900);
+}
+
 .client-meta {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1474,6 +1830,22 @@ onBeforeUnmount(() => {
   color: var(--text);
   font-size: 13px;
   line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.client-meta--manual {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.manual-client-note {
+  border: 1px solid var(--pc-border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: var(--pc-bg-main);
+  color: var(--pc-text-muted);
+  font-size: 13px;
+  line-height: 1.45;
+  white-space: pre-wrap;
 }
 
 .client-actions {
@@ -1645,6 +2017,78 @@ onBeforeUnmount(() => {
   padding: 8px 10px;
 }
 
+.form-warning {
+  color: var(--pc-warning);
+  background: var(--pc-yellow-soft);
+  border: 1px solid color-mix(in srgb, var(--pc-warning) 24%, var(--pc-border));
+  border-radius: 10px;
+  padding: 8px 10px;
+}
+
+.manual-client-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+}
+
+.manual-client-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: rgba(18, 35, 58, 0.38);
+}
+
+.manual-client-modal__content {
+  position: relative;
+  width: min(720px, calc(100vw - 32px));
+  max-height: min(90vh, 820px);
+  margin: 5vh auto 0;
+  overflow: auto;
+  border: 1px solid var(--pc-border);
+  border-radius: var(--radius-xl);
+  background: var(--pc-bg-card);
+  box-shadow: var(--pc-shadow-float);
+  padding: 20px;
+  display: grid;
+  gap: 16px;
+}
+
+.manual-client-modal__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.manual-client-modal__title {
+  margin: 8px 0 0;
+  color: var(--pc-navy-950);
+  font-family: var(--font-display);
+  font-size: 24px;
+  line-height: 1.2;
+}
+
+.manual-client-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.manual-client-form__note {
+  grid-column: 1 / -1;
+}
+
+.manual-client-form__textarea {
+  min-height: 110px;
+  resize: vertical;
+}
+
+.manual-client-modal__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
 @media (max-width: 860px) {
   .clients__hero {
     flex-direction: column;
@@ -1676,8 +2120,20 @@ onBeforeUnmount(() => {
     flex-direction: column;
   }
 
+  .client-badges {
+    justify-content: flex-start;
+  }
+
   .client-meta {
     grid-template-columns: 1fr;
+  }
+
+  .manual-client-form {
+    grid-template-columns: 1fr;
+  }
+
+  .manual-client-modal__header {
+    flex-direction: column;
   }
 }
 </style>

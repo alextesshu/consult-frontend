@@ -1449,3 +1449,52 @@ Deferred items:
 * Session detail page polish.
 * Broader shared button/card component extraction.
 * Manual browser smoke at 1180px, 768px, and 390-430px.
+
+---
+
+## 23. Manual Client Records FE Phase 1
+
+### 2026-04-25 - Clients page manual record integration
+
+Changed scope:
+
+* `src/views/TherapistClientsView.vue`
+* `src/views/TherapistClientsView.spec.ts`
+* `docs/UI_MIGRATION_PLAN.md`
+
+What changed:
+
+* Added specialist-created manual client records to the Clients page list.
+* Added `Додати клієнта` CTA and create modal using the backend `display_name` contract.
+* Integrated manual record archive and restore actions through the cabinet client-record endpoints.
+* Added visual distinction between registered clients (`З кабінетом`) and manual clients (`Без кабінету`).
+* Included manual active/archived records in the existing status filters and search.
+* Added a non-blocking warning when manual records fail to load while registered clients remain visible.
+
+Preserved:
+
+* Existing registered-client API calls and relation behavior.
+* Existing registered-client filters, archive/restore, private history, workbook, note, board, and reminder flows.
+* Existing route names, session return targets, and client deep-link behavior.
+* No manual-client session creation, invite, linking, deduplication, or guest conversion.
+
+Verification:
+
+```bash
+npm run test:run -- src/views/TherapistClientsView.spec.ts
+npm run typecheck
+npm run build
+```
+
+Result:
+
+* `npm run test:run -- src/views/TherapistClientsView.spec.ts` - passed, 23 tests.
+* `npm run typecheck` - passed.
+* `npm run build` - passed; existing Vite chunk-size warning remains.
+
+Deferred items:
+
+* Manual-client edit flow.
+* Manual-client session creation, if backend support is added later.
+* Invite/link/deduplication flows.
+* Manual browser smoke at desktop, 1180px, 768px, and 390-430px.
