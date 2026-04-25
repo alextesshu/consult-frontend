@@ -1617,12 +1617,35 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 16px;
+  gap: 18px;
+  min-width: 0;
+}
+
+.panel--clients > .panel__header {
+  padding: 14px 16px;
+  border: 1px solid var(--pc-border);
+  border-radius: var(--radius-lg);
+  background:
+    radial-gradient(circle at 100% 0, rgba(221, 241, 239, 0.72), transparent 36%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(255, 250, 239, 0.78));
+}
+
+.panel--clients > .panel__header > div {
+  min-width: 0;
 }
 
 .clients-add-btn {
+  flex: 0 0 auto;
+  min-height: 42px;
   border-color: var(--pc-navy-900);
   background: var(--pc-navy-900);
+  color: #fff;
+  box-shadow: 0 12px 26px rgba(18, 52, 90, 0.18);
+}
+
+.clients-add-btn:hover {
+  border-color: var(--pc-navy-950);
+  background: var(--pc-navy-950);
   color: #fff;
 }
 
