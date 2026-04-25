@@ -532,6 +532,18 @@
           </div>
         </div>
         <div v-if="noteLoading" class="muted">Завантаження нотатки...</div>
+        <div v-else-if="!noteOpen" class="note-panel note-panel--collapsed">
+          <div>
+            <div class="note-title">Приватна нотатка</div>
+            <span class="note-badge">Зашифровано</span>
+            <p class="note-helper muted">Приватна нотатка прихована. Доступ має лише спеціаліст.</p>
+          </div>
+          <div class="note-actions">
+            <button class="btn btn--sm" type="button" @click="openPrivateNote">
+              Відкрити нотатку
+            </button>
+          </div>
+        </div>
         <div v-else class="note-panel">
           <label class="field">
             <span class="note-title">Приватна нотатка</span>
@@ -548,6 +560,9 @@
           <div class="note-actions">
             <button class="btn btn--sm" type="button" :disabled="noteSaving" @click="saveNote">
               Зберегти
+            </button>
+            <button class="btn btn--ghost btn--sm" type="button" :disabled="noteSaving" @click="closePrivateNote">
+              Закрити нотатку
             </button>
           </div>
         </div>
@@ -845,6 +860,7 @@ const completionDurationDraft = ref('')
 const completionDurationError = ref('')
 const noteLoading = ref(false)
 const noteSaving = ref(false)
+const noteOpen = ref(false)
 const noteDraft = ref('')
 const noteTextareaRef = ref<HTMLTextAreaElement | null>(null)
 const slotsLoading = ref(false)
@@ -1604,6 +1620,7 @@ async function loadPage() {
   showRecurringPanel.value = false
   quickAddModalOpen.value = false
   quickAddModalError.value = ''
+  noteOpen.value = false
   postSessionContext.value = null
   postSessionNextSession.value = null
   closeCompletionModal(true)
@@ -1662,11 +1679,23 @@ async function loadPostSessionNextSession(completedSessionId: number) {
 }
 
 async function focusSessionNote() {
+  noteOpen.value = true
   await nextTick()
   const input = noteTextareaRef.value
   if (!input) return
   input.scrollIntoView({ behavior: 'smooth', block: 'center' })
   input.focus()
+}
+
+async function openPrivateNote() {
+  noteOpen.value = true
+  await nextTick()
+  noteTextareaRef.value?.focus()
+}
+
+function closePrivateNote() {
+  if (noteSaving.value) return
+  noteOpen.value = false
 }
 
 async function openPostSessionWorkbook() {

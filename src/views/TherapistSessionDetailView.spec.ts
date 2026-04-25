@@ -4,6 +4,7 @@ import {
   apiGet,
   apiPatch,
   apiPost,
+  apiPut,
   fetchSessionPaymentProof,
   requestSessionPaymentProof,
   markSessionPaymentProofPaid,
@@ -71,6 +72,7 @@ vi.mock('../lib/specialistPracticeBoard', () => ({
 const mockedApiGet = vi.mocked(apiGet)
 const mockedApiPatch = vi.mocked(apiPatch)
 const mockedApiPost = vi.mocked(apiPost)
+const mockedApiPut = vi.mocked(apiPut)
 const mockedFetchSessionPaymentProof = vi.mocked(fetchSessionPaymentProof)
 const mockedRequestSessionPaymentProof = vi.mocked(requestSessionPaymentProof)
 const mockedMarkSessionPaymentProofPaid = vi.mocked(markSessionPaymentProofPaid)
@@ -241,6 +243,7 @@ describe('TherapistSessionDetailView', () => {
     mockedApiGet.mockReset()
     mockedApiPatch.mockReset()
     mockedApiPost.mockReset()
+    mockedApiPut.mockReset()
     mockedFetchSessionPaymentProof.mockReset()
     mockedRequestSessionPaymentProof.mockReset()
     mockedMarkSessionPaymentProofPaid.mockReset()
@@ -278,6 +281,9 @@ describe('TherapistSessionDetailView', () => {
     expect(await screen.findByText('client@example.com')).toBeInTheDocument()
     expect(screen.getByText(/ID: #77/)).toBeInTheDocument()
     expect(await screen.findByText('request@example.com')).toBeInTheDocument()
+    expect(screen.getByText('Приватна нотатка прихована. Доступ має лише спеціаліст.')).toBeInTheDocument()
+    expect(screen.queryByDisplayValue('Progress note')).not.toBeInTheDocument()
+    await fireEvent.click(await screen.findByRole('button', { name: 'Відкрити нотатку' }))
     expect(await screen.findByDisplayValue('Progress note')).toBeInTheDocument()
 
     expect(mockedApiGet).toHaveBeenCalledWith('/booking/sessions/42/')
@@ -361,7 +367,47 @@ describe('TherapistSessionDetailView', () => {
     expect(screen.queryByRole('button', { name: 'Запросити підтвердження оплати' })).not.toBeInTheDocument()
     expect(screen.queryByText('Оплата')).not.toBeInTheDocument()
     expect(screen.queryByText('Робочий зошит')).not.toBeInTheDocument()
+    expect(screen.queryByDisplayValue('Progress note')).not.toBeInTheDocument()
+    expect(await screen.findByText('Приватна нотатка прихована. Доступ має лише спеціаліст.')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Заповнити нотатку' })).toBeInTheDocument()
+  })
+
+  it('keeps private session note collapsed until opened, preserves local edits on close, and saves', async () => {
+    const sessionDetail = buildSession({ status: 'CONFIRMED' })
+    mockDetailContext(() => sessionDetail, { note: 'Sensitive progress note', requests: [] })
+    mockedApiPut.mockResolvedValue({} as any)
+
+    renderView()
+
+    const noteSection = await waitFor(() => {
+      const heading = screen.getByRole('heading', { name: 'Приватна історія по сесії' })
+      const section = heading.closest('section')
+      expect(section).toBeInstanceOf(HTMLElement)
+      return section as HTMLElement
+    })
+
+    await waitFor(() => {
+      expect(within(noteSection).getByText('Зашифровано')).toBeInTheDocument()
+      expect(within(noteSection).getByText('Приватна нотатка прихована. Доступ має лише спеціаліст.')).toBeInTheDocument()
+    })
+    expect(screen.queryByDisplayValue('Sensitive progress note')).not.toBeInTheDocument()
+
+    await fireEvent.click(within(noteSection).getByRole('button', { name: 'Відкрити нотатку' }))
+    const textarea = await screen.findByDisplayValue('Sensitive progress note')
+    await fireEvent.update(textarea, 'Unsaved local note')
+    await fireEvent.click(within(noteSection).getByRole('button', { name: 'Закрити нотатку' }))
+
+    expect(screen.queryByDisplayValue('Unsaved local note')).not.toBeInTheDocument()
+    await fireEvent.click(within(noteSection).getByRole('button', { name: 'Відкрити нотатку' }))
+    expect(await screen.findByDisplayValue('Unsaved local note')).toBeInTheDocument()
+
+    await fireEvent.click(within(noteSection).getByRole('button', { name: 'Зберегти' }))
+    await waitFor(() => {
+      expect(mockedApiPut).toHaveBeenCalledWith('/cabinet/sessions/42/note/', {
+        content: 'Unsaved local note',
+      })
+      expect(mockToast.success).toHaveBeenCalledWith(BOOKING_SUCCESS_MESSAGES.noteSaved)
+    })
   })
 
   it('requests payment proof from specialist block and refreshes payment-proof state', async () => {
@@ -571,7 +617,7 @@ describe('TherapistSessionDetailView', () => {
     expect(screen.getByTestId('workspace-zone-required')).toBeInTheDocument()
     expect(screen.getByTestId('workspace-zone-recommended')).toBeInTheDocument()
     expect(screen.getByTestId('workspace-zone-capability')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Відкрити нотатку' })).toBeInTheDocument()
+    expect(screen.getByTestId('workspace-action-open_note')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Відкрити робочий зошит' })).toBeInTheDocument()
   })
 
@@ -698,7 +744,7 @@ describe('TherapistSessionDetailView', () => {
     expect(await screen.findByTestId('session-workspace')).toBeInTheDocument()
     expect(screen.getByTestId('workspace-summary-payment')).toHaveTextContent('Очікує підтвердження')
     expect(screen.getByRole('button', { name: 'Перевірити оплату' })).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Відкрити нотатку' })).not.toBeInTheDocument()
+    expect(within(screen.getByTestId('session-workspace')).queryByRole('button', { name: 'Відкрити нотатку' })).not.toBeInTheDocument()
   })
 
   it('does not treat hidden workspace states as missing and avoids hidden CTAs', async () => {
@@ -722,7 +768,7 @@ describe('TherapistSessionDetailView', () => {
     expect(screen.getByTestId('workspace-summary-note')).toHaveTextContent('Недоступна')
     expect(screen.getByTestId('workspace-summary-workbook')).toHaveTextContent('Недоступний')
     expect(screen.queryByText('Відсутня')).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Відкрити нотатку' })).not.toBeInTheDocument()
+    expect(within(screen.getByTestId('session-workspace')).queryByRole('button', { name: 'Відкрити нотатку' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Відкрити робочий зошит' })).not.toBeInTheDocument()
   })
   it('uses pending_task_items as primary source over legacy pending_tasks', async () => {
@@ -756,12 +802,10 @@ describe('TherapistSessionDetailView', () => {
     })
     mockDetailContext(() => sessionDetail, { requests: [] })
     renderView()
-    const noteTextarea = (await screen.findByDisplayValue('Progress note')) as HTMLTextAreaElement
-    ;(noteTextarea as any).scrollIntoView = vi.fn()
     const noteAction = await screen.findByTestId('workspace-action-open_note')
     await fireEvent.click(noteAction)
     await waitFor(() => {
-      expect(document.activeElement).toBe(noteTextarea)
+      expect(screen.getByDisplayValue('Progress note')).toBeInTheDocument()
     })
   })
   it('routes workbook workspace action by code to workbook flow', async () => {
@@ -1372,6 +1416,8 @@ describe('TherapistSessionDetailView', () => {
     renderView()
 
       expect(await screen.findByText('client@example.com')).toBeInTheDocument()
+      expect(screen.queryByDisplayValue('Completed session note')).not.toBeInTheDocument()
+      await fireEvent.click(await screen.findByRole('button', { name: 'Відкрити нотатку' }))
       expect(await screen.findByDisplayValue('Completed session note')).toBeInTheDocument()
 
       const statusPanel = screen.getByText(/ID: #77/).closest('section')
@@ -1434,6 +1480,8 @@ describe('TherapistSessionDetailView', () => {
     renderView()
 
       expect(await screen.findByText('client@example.com')).toBeInTheDocument()
+      expect(screen.queryByDisplayValue('Progress note')).not.toBeInTheDocument()
+      await fireEvent.click(await screen.findByRole('button', { name: 'Відкрити нотатку' }))
       expect(await screen.findByDisplayValue('Progress note')).toBeInTheDocument()
 
       const statusPanel = screen.getByText(/ID: #77/).closest('section')
