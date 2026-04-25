@@ -349,10 +349,12 @@ describe('TherapistSessionDetailView', () => {
 
     expect(await screen.findByText('Manual Detail Client')).toBeInTheDocument()
     expect(screen.getByText('Без кабінету')).toBeInTheDocument()
-    expect(screen.getByText('Цю сесію створено для ручної картки клієнта. Клієнт ще не має кабінету.')).toBeInTheDocument()
+    expect(screen.getByText('Цю сесію створено для клієнта без кабінету. Підключення кабінету пізніше відкриє клієнту доступ до сесій, матеріалів і робочого зошита.')).toBeInTheDocument()
     expect(container).not.toHaveTextContent('undefined')
     expect(container).not.toHaveTextContent('null')
     expect(container).not.toHaveTextContent('ID: #null')
+    expect(screen.queryByRole('button', { name: 'Повторювати щотижня' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Додати на дошку' })).not.toBeInTheDocument()
     expect(screen.queryByRole('link', { name: 'До картки клієнта' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'До робочого зошита' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /Відкрити.*робоч/ })).not.toBeInTheDocument()

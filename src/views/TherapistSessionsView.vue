@@ -238,7 +238,7 @@
               </div>
               <div v-if="isManualClientSession(session)" class="manual-client-badges">
                 <span class="status-pill status-pill--manual">Без кабінету</span>
-                <span class="muted manual-client-label">Ручна картка клієнта</span>
+                <span class="muted manual-client-label">Клієнт без кабінету</span>
               </div>
               <div class="muted">{{ sessionFormatBadge(session) }}</div>
               <div class="muted session-context">{{ sessionContextHint(session) }}</div>
@@ -559,7 +559,7 @@
               </div>
               <div v-if="isManualClientSession(session)" class="manual-client-badges">
                 <span class="status-pill status-pill--manual">Без кабінету</span>
-                <span class="muted manual-client-label">Ручна картка клієнта</span>
+                <span class="muted manual-client-label">Клієнт без кабінету</span>
               </div>
               <div class="muted">{{ sessionFormatBadge(session) }}</div>
               <div class="muted session-context">{{ sessionContextHint(session) }}</div>
@@ -1066,6 +1066,7 @@ const canCancel = (status: string) => sharedCanCancel(status)
 const canReschedule = (status: string) => sharedCanReschedule(status)
 
 const canShowRecurringAction = (session: Session) => {
+  if (isManualClientSession(session)) return false
   return sharedCanShowRecurringAction(session as SpecialistSessionLike, hasPendingReschedule(session.id))
 }
 

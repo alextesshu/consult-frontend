@@ -93,7 +93,7 @@
           <div class="badge badge--soft">Список</div>
           <h2 class="panel__title">Клієнти</h2>
           <p class="clients-panel-hint">
-            Клієнта можна додати вручну без кабінету. Кабінет клієнта можна буде підключити пізніше.
+            Клієнта можна додати вручну без кабінету, щоб швидко почати роботу. Кабінет клієнта можна буде підключити пізніше — для сесій, матеріалів і зручнішої взаємодії.
           </p>
         </div>
         <button class="btn btn--sm clients-add-btn" type="button" @click="openManualClientModal">

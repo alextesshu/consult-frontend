@@ -421,8 +421,10 @@ describe('TherapistSessionsView', () => {
     const manualArticle = document.querySelector('#session-41') as HTMLElement
     expect(manualArticle).toBeTruthy()
     expect(within(manualArticle).getByText('Без кабінету')).toBeInTheDocument()
-    expect(within(manualArticle).getByText('Ручна картка клієнта')).toBeInTheDocument()
+    expect(within(manualArticle).getByText('Клієнт без кабінету')).toBeInTheDocument()
+    expect(within(manualArticle).queryByText('Ручна картка клієнта')).not.toBeInTheDocument()
     expect(within(manualArticle).queryByText('Не оплачено')).not.toBeInTheDocument()
+    expect(within(manualArticle).queryByRole('button', { name: 'Повторювати щотижня' })).not.toBeInTheDocument()
     expect(manualArticle).not.toHaveTextContent('undefined')
     expect(manualArticle).not.toHaveTextContent('null')
 

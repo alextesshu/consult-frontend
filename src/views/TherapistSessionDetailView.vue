@@ -65,6 +65,7 @@
               {{ showRecurringPanel ? 'Сховати серію' : 'Повторювати щотижня' }}
             </button>
             <button
+              v-if="!isManualClientSession"
               class="btn btn--ghost btn--sm"
               type="button"
               :disabled="actionLoading || quickAddPending"
@@ -96,7 +97,7 @@
               <div v-if="isManualClientSession" class="manual-client-detail">
                 <span class="status-pill status-pill--manual">Без кабінету</span>
                 <span class="muted detail-meta">
-                  Цю сесію створено для ручної картки клієнта. Клієнт ще не має кабінету.
+                  Цю сесію створено для клієнта без кабінету. Підключення кабінету пізніше відкриє клієнту доступ до сесій, матеріалів і робочого зошита.
                 </span>
               </div>
               <div v-if="session.client_email" class="muted detail-meta">{{ session.client_email }}</div>
@@ -1438,6 +1439,7 @@ function canReschedule(status: string) {
 }
 
 function canShowRecurringAction(detail: SessionDetail) {
+  if (isManualClientSession.value) return false
   return sharedCanShowRecurringAction(detail)
 }
 
@@ -1861,6 +1863,7 @@ async function saveMeetingLink() {
 }
 
 function openSessionPracticeBoardModal() {
+  if (isManualClientSession.value) return
   quickAddModalError.value = ''
   quickAddModalOpen.value = true
 }

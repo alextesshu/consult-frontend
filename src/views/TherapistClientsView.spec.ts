@@ -738,6 +738,9 @@ describe('TherapistClientsView', () => {
     await waitFor(() => {
       expect(clientsPanel).toHaveTextContent('Клієнтів поки немає')
       expect(clientsPanel).toHaveTextContent('Клієнти з’являться після перших консультацій')
+      expect(clientsPanel).toHaveTextContent(
+        'Клієнта можна додати вручну без кабінету, щоб швидко почати роботу. Кабінет клієнта можна буде підключити пізніше — для сесій, матеріалів і зручнішої взаємодії.'
+      )
     })
 
     const searchInput = clientsPanel.querySelector('#clients-search-input') as HTMLInputElement
