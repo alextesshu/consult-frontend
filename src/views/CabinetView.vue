@@ -172,10 +172,10 @@
             <section v-if="activeClientsCount === 0" class="work-queue-list" data-kind="clients-empty">
               <div class="work-queue-list__header">
                 <h3 class="work-queue-list__title">Клієнти</h3>
-                <RouterLink class="btn btn--ghost btn--sm" to="/cabinet/clients">До клієнтів</RouterLink>
+                <RouterLink class="btn btn--ghost btn--sm" to="/cabinet/clients">Додати клієнта</RouterLink>
               </div>
               <p class="muted work-queue-list__empty">
-                Клієнтів ще немає. Перевірте публічний профіль, відкрийте слоти в розкладі або додайте контакт після першої консультації.
+                Клієнтів ще немає. Ви можете додати клієнта вручну без створення кабінету для нього або запросити клієнтів через публічний профіль і відкриті слоти.
               </p>
             </section>
           </div>

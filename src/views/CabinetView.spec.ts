@@ -412,8 +412,11 @@ describe('CabinetView', () => {
     expect(view.container.querySelectorAll('.work-queue-list__empty')).toHaveLength(4)
     expect(view.container).toHaveTextContent('На сьогодні сесій немає. Перевірте розклад')
     expect(view.container).toHaveTextContent('Нотатки не потребують уваги.')
+    expect(view.container).toHaveTextContent('Додати клієнта')
     expect(view.container).toHaveTextContent('Немає гостьових заявок на розгляд.')
-    expect(view.container).toHaveTextContent('Клієнтів ще немає. Перевірте публічний профіль')
+    expect(view.container).toHaveTextContent(
+      'Клієнтів ще немає. Ви можете додати клієнта вручну без створення кабінету'
+    )
     expect(view.container.querySelector('.work-queue-list[data-kind="clients-empty"] a[href="/cabinet/clients"]')).toBeInTheDocument()
   })
 
@@ -997,7 +1000,7 @@ describe('CabinetView', () => {
 
   it('uses onboarding_summary only as initial shell before canonical onboarding-state arrives', async () => {
     mockedApiGet.mockResolvedValue([])
-    let resolveCanonical: (value: unknown) => void = () => {}
+    let resolveCanonical: (value: unknown) => void = () => { }
     mockedFetchSpecialistOnboardingState.mockReturnValue(
       new Promise((resolve) => {
         resolveCanonical = resolve
