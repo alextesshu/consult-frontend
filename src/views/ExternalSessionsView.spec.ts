@@ -4,6 +4,7 @@ import ExternalSessionsView from './ExternalSessionsView.vue'
 import {
   approveCabinetGuestBookingRequest,
   createExternalSession,
+  createExternalSessionInvite,
   declineCabinetGuestBookingRequest,
   fetchCabinetGuestBookingRequests,
   fetchExternalSessions,
@@ -40,6 +41,7 @@ vi.mock('../lib/api', async () => {
     ...actual,
     approveCabinetGuestBookingRequest: vi.fn(),
     fetchExternalSessions: vi.fn(),
+    createExternalSessionInvite: vi.fn(),
     fetchCabinetGuestBookingRequests: vi.fn(),
     createExternalSession: vi.fn(),
     declineCabinetGuestBookingRequest: vi.fn(),
@@ -51,6 +53,7 @@ const mockedApproveCabinetGuestBookingRequest = vi.mocked(approveCabinetGuestBoo
 const mockedFetchExternalSessions = vi.mocked(fetchExternalSessions)
 const mockedFetchCabinetGuestBookingRequests = vi.mocked(fetchCabinetGuestBookingRequests)
 const mockedCreateExternalSession = vi.mocked(createExternalSession)
+const mockedCreateExternalSessionInvite = vi.mocked(createExternalSessionInvite)
 const mockedDeclineCabinetGuestBookingRequest = vi.mocked(declineCabinetGuestBookingRequest)
 const mockedGetApiErrorMessage = vi.mocked(getApiErrorMessage)
 
@@ -177,6 +180,20 @@ describe('ExternalSessionsView', () => {
     ] as any)
     mockedFetchCabinetGuestBookingRequests.mockResolvedValue([])
     mockedCreateExternalSession.mockReset()
+    mockedCreateExternalSessionInvite.mockResolvedValue({
+      invite: {
+        id: 99,
+        external_session_id: 31,
+        status: 'ACTIVE',
+        expires_at: '2099-06-16T10:00:00Z',
+        opened_at: null,
+        last_opened_at: null,
+        joined_at: null,
+        created_at: null,
+        updated_at: null,
+      },
+      invite_url: 'https://proconsult.space/guest/external-session/test-token',
+    } as any)
     mockedDeclineCabinetGuestBookingRequest.mockResolvedValue({
       id: 51,
       status: 'declined',
@@ -256,7 +273,11 @@ describe('ExternalSessionsView', () => {
     expect(payload?.meeting_url).toBe('https://meet.google.com/new-room')
     expect(payload?.offline_location_snapshot).toBeNull()
     expect(payload?.price_currency).toBe('UAH')
-    expect(pushMock).toHaveBeenCalledWith('/cabinet/external-sessions/31')
+
+    await waitFor(() => {
+      expect(mockedCreateExternalSessionInvite).toHaveBeenCalledWith(31)
+      expect(pushMock).toHaveBeenCalledWith('/cabinet/external-sessions/31')
+    })
   })
 
   it('creates offline external session with location payload', async () => {
@@ -300,6 +321,11 @@ describe('ExternalSessionsView', () => {
     expect(payload?.meeting_url).toBeNull()
     expect(payload?.offline_location_snapshot).toBe('Kyiv office')
     expect(payload?.price_currency).toBe('UAH')
+
+    await waitFor(() => {
+      expect(mockedCreateExternalSessionInvite).toHaveBeenCalledWith(44)
+      expect(pushMock).toHaveBeenCalledWith('/cabinet/external-sessions/44')
+    })
   })
 
   it('renders pending guest request with clear status and required online approve field', async () => {

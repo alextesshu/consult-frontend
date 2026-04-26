@@ -246,6 +246,7 @@ import { useToast } from '../composables/useToast'
 import {
   approveCabinetGuestBookingRequest,
   createExternalSession,
+  createExternalSessionInvite,
   declineCabinetGuestBookingRequest,
   fetchCabinetGuestBookingRequests,
   fetchExternalSessions,
@@ -560,9 +561,21 @@ async function submitCreate() {
     }
 
     const created = await createExternalSession(payload)
-    toast.success('Гостьову сесію створено.')
-    await loadSessions()
-    await router.push(`/cabinet/external-sessions/${created.id}`)
+
+    try {
+      await createExternalSessionInvite(created.id)
+      toast.success('Гостьову сесію створено. Посилання для гостя готове.')
+    } catch (inviteErr) {
+      toast.warning(
+        getApiErrorMessage(
+          inviteErr,
+          'Гостьову сесію створено, але посилання для гостя не вдалося створити автоматично. Його можна створити в деталях сесії.'
+        )
+      )
+    }
+
+await loadSessions()
+await router.push(`/cabinet/external-sessions/${created.id}`)
   } catch (err) {
     createError.value = getApiErrorMessage(err, 'Не вдалося створити гостьову сесію.')
   } finally {
