@@ -462,17 +462,7 @@ describe('ExternalSessionDetailView', () => {
 
   it('renders explicit get new link action when active invite has no invite URL in page state', async () => {
     mockedFetchExternalSessionInvite.mockReset()
-    mockedFetchExternalSessionInvite.mockResolvedValue({
-      id: 77,
-      external_session_id: 21,
-      status: 'ACTIVE',
-      expires_at: '2099-06-16T10:00:00Z',
-      opened_at: null,
-      last_opened_at: null,
-      joined_at: null,
-      created_at: null,
-      updated_at: null,
-    } as any)
+    mockedFetchExternalSessionInvite.mockResolvedValue(activeInviteResponse({ id: 77 }, null) as any)
 
     renderView()
     await screen.findByText('Деталі гостьової сесії')
@@ -489,17 +479,7 @@ describe('ExternalSessionDetailView', () => {
     })
 
     mockedFetchExternalSessionInvite.mockReset()
-    mockedFetchExternalSessionInvite.mockResolvedValue({
-      id: 78,
-      external_session_id: 21,
-      status: 'ACTIVE',
-      expires_at: '2099-06-16T10:00:00Z',
-      opened_at: null,
-      last_opened_at: null,
-      joined_at: null,
-      created_at: null,
-      updated_at: null,
-    } as any)
+    mockedFetchExternalSessionInvite.mockResolvedValue(activeInviteResponse({ id: 78 }, null) as any)
     mockedRegenerateExternalSessionInvite.mockResolvedValue({
       invite: {
         id: 79,
@@ -574,17 +554,7 @@ describe('ExternalSessionDetailView', () => {
     mockedFetchExternalSessionDetail.mockResolvedValue(
       baseSession({ status: 'CANCELLED', cancelled_at: '2099-06-12T10:00:00Z' }) as any
     )
-    mockedFetchExternalSessionInvite.mockResolvedValue({
-      id: 14,
-      external_session_id: 21,
-      status: 'ACTIVE',
-      expires_at: '2099-06-16T10:00:00Z',
-      opened_at: null,
-      last_opened_at: null,
-      joined_at: null,
-      created_at: null,
-      updated_at: null,
-    } as any)
+    mockedFetchExternalSessionInvite.mockResolvedValue(activeInviteResponse({ id: 14 }, null) as any)
 
     renderView()
     await screen.findByText('Скасовано')
@@ -617,17 +587,7 @@ describe('ExternalSessionDetailView', () => {
   })
 
   it('keeps existing action methods wired (no accidental regressions)', async () => {
-    mockedFetchExternalSessionInvite.mockResolvedValue({
-      id: 14,
-      external_session_id: 21,
-      status: 'ACTIVE',
-      expires_at: '2099-06-16T10:00:00Z',
-      opened_at: null,
-      last_opened_at: null,
-      joined_at: null,
-      created_at: null,
-      updated_at: null,
-    } as any)
+    mockedFetchExternalSessionInvite.mockResolvedValue(activeInviteResponse({ id: 14 }, null) as any)
     mockedUpdateExternalSession.mockResolvedValue(baseSession() as any)
     mockedRevokeExternalSessionInvite.mockResolvedValue({
       id: 14,
@@ -681,17 +641,7 @@ describe('ExternalSessionDetailView', () => {
     mockedFetchExternalSessionInvite.mockImplementation(async () => {
       inviteStatusCall += 1
       if (inviteStatusCall >= 2) return null as any
-      return {
-        id: 90,
-        external_session_id: 21,
-        status: 'ACTIVE',
-        expires_at: '2099-06-16T10:00:00Z',
-        opened_at: null,
-        last_opened_at: null,
-        joined_at: null,
-        created_at: null,
-        updated_at: null,
-      } as any
+      return activeInviteResponse({ id: 90 }, null) as any
     })
     mockedRegenerateExternalSessionInvite.mockRejectedValue({
       response: { status: 409, data: { code: 'EXTERNAL_GUEST_INVITE_STATE_CONFLICT' } },
@@ -718,17 +668,7 @@ describe('ExternalSessionDetailView', () => {
     mockedFetchExternalSessionInvite.mockImplementation(async () => {
       inviteStatusCall += 1
       if (inviteStatusCall >= 2) return null as any
-      return {
-        id: 91,
-        external_session_id: 21,
-        status: 'ACTIVE',
-        expires_at: '2099-06-16T10:00:00Z',
-        opened_at: null,
-        last_opened_at: null,
-        joined_at: null,
-        created_at: null,
-        updated_at: null,
-      } as any
+      return activeInviteResponse({ id: 91 }, null) as any
     })
     mockedRevokeExternalSessionInvite.mockRejectedValue({
       response: { status: 409, data: { code: 'EXTERNAL_GUEST_INVITE_STATE_CONFLICT' } },
