@@ -130,6 +130,10 @@ async function openSessionFromCard(card: HTMLElement, sessionId: number) {
   await fireEvent.click(detailLink as HTMLAnchorElement)
 }
 
+async function openPrivateSessionNote() {
+  await fireEvent.click(await screen.findByRole('button', { name: 'Відкрити нотатку' }))
+}
+
 function getUpcomingSessions(): SessionRecord[] {
   return Object.values(sessionsState)
     .filter((session) => session.status === 'SCHEDULED' || session.status === 'CONFIRMED')
@@ -686,6 +690,7 @@ describe('specialist sessions flow', () => {
     })
 
     expect(await screen.findByText(/ID: #77/)).toBeInTheDocument()
+    await openPrivateSessionNote()
     expect(await screen.findByDisplayValue('Initial flow note')).toBeInTheDocument()
 
     const completionButton = screen.getByRole('button', { name: 'Завершити' })
@@ -732,6 +737,7 @@ describe('specialist sessions flow', () => {
     })
 
     expect(await screen.findByText(/ID: #77/)).toBeInTheDocument()
+    await openPrivateSessionNote()
     expect(await screen.findByDisplayValue('Initial flow note')).toBeInTheDocument()
 
     const completionButton = screen.getByRole('button', { name: 'Завершити' })
@@ -771,4 +777,3 @@ describe('specialist sessions flow', () => {
     expect(within(historyCard as HTMLElement).getByRole('link')).toHaveAttribute('href', '/cabinet/sessions/42')
   })
 })
-
