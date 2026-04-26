@@ -2267,6 +2267,7 @@ export type ExternalSessionInviteCreateResponse = {
 
 export type ExternalSessionInviteStatusResponse = {
   invite: ExternalSessionInvite | null
+  invite_url?: string | null
 }
 
 export type PublicExternalSessionInviteResolved = {
@@ -2408,16 +2409,13 @@ export async function cancelExternalSession(sessionId: number): Promise<External
   return resp.data
 }
 
-export async function fetchExternalSessionInvite(sessionId: number): Promise<ExternalSessionInvite | null> {
-  const resp = await http.get<ExternalSessionInvite | ExternalSessionInviteStatusResponse>(
+export async function fetchExternalSessionInvite(
+  sessionId: number
+): Promise<ExternalSessionInviteStatusResponse | null> {
+  const resp = await http.get<ExternalSessionInviteStatusResponse | null>(
     `/cabinet/external-sessions/${sessionId}/invite/`
   )
-  const payload = resp.data as ExternalSessionInvite | ExternalSessionInviteStatusResponse | null
-  if (!payload) return null
-  if (typeof payload === 'object' && 'invite' in payload) {
-    return payload.invite || null
-  }
-  return payload
+  return resp.data || null
 }
 
 export async function createExternalSessionInvite(

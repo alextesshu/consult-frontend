@@ -656,8 +656,8 @@ async function loadInvite() {
   inviteUrl.value = ''
   try {
     const payload = await fetchExternalSessionInvite(session.value.id)
-    invite.value = payload || null
-    inviteUrl.value = resolveInviteUrl({ invite: payload || null })
+    invite.value = payload?.invite || null
+    inviteUrl.value = resolveInviteUrl(payload || {})
   } catch (err: any) {
     if (err?.response?.status === 404) {
       invite.value = null

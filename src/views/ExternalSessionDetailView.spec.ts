@@ -108,6 +108,28 @@ function baseSession(overrides: Record<string, unknown> = {}) {
   }
 }
 
+function activeInvite(overrides: Record<string, unknown> = {}) {
+  return {
+    id: 14,
+    external_session_id: 21,
+    status: 'ACTIVE',
+    expires_at: '2099-06-16T10:00:00Z',
+    opened_at: null,
+    last_opened_at: null,
+    joined_at: null,
+    created_at: null,
+    updated_at: null,
+    ...overrides,
+  }
+}
+
+function activeInviteResponse(overrides: Record<string, unknown> = {}, inviteUrl: string | null = null) {
+  return {
+    invite: activeInvite(overrides),
+    invite_url: inviteUrl,
+  }
+}
+
 function renderView() {
   return render(ExternalSessionDetailView, {
     global: {
@@ -273,18 +295,12 @@ describe('ExternalSessionDetailView', () => {
     vi.stubGlobal('navigator', {
       clipboard: { writeText: clipboardWrite },
     })
-    mockedFetchExternalSessionInvite.mockResolvedValue({
-      id: 32,
-      external_session_id: 21,
-      status: 'ACTIVE',
-      expires_at: '2099-06-16T10:00:00Z',
-      opened_at: null,
-      last_opened_at: null,
-      joined_at: null,
-      created_at: null,
-      updated_at: null,
-      invite_url: 'https://proconsult.space/guest/external-session/existing-token',
-    } as any)
+    mockedFetchExternalSessionInvite.mockResolvedValue(
+      activeInviteResponse(
+        { id: 32 },
+        'https://proconsult.space/guest/external-session/existing-token'
+      ) as any
+    )
 
     const { container } = renderView()
     expect(await screen.findByText('Посилання для гостя')).toBeInTheDocument()
