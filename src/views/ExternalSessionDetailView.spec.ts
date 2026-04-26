@@ -6,7 +6,9 @@ import {
   createExternalSessionInvite,
   fetchExternalSessionDetail,
   fetchExternalSessionInvite,
+  markExternalSessionPaymentPaid,
   regenerateExternalSessionInvite,
+  requestExternalSessionPayment,
   revokeExternalSessionInvite,
   updateExternalSession,
 } from '../lib/api'
@@ -46,6 +48,8 @@ vi.mock('../lib/api', async () => {
     createExternalSessionInvite: vi.fn(),
     revokeExternalSessionInvite: vi.fn(),
     regenerateExternalSessionInvite: vi.fn(),
+    requestExternalSessionPayment: vi.fn(),
+    markExternalSessionPaymentPaid: vi.fn(),
     getApiErrorMessage: vi.fn((_error: unknown, fallback: string) => fallback),
   }
 })
@@ -57,7 +61,8 @@ const mockedFetchExternalSessionInvite = vi.mocked(fetchExternalSessionInvite)
 const mockedCreateExternalSessionInvite = vi.mocked(createExternalSessionInvite)
 const mockedRevokeExternalSessionInvite = vi.mocked(revokeExternalSessionInvite)
 const mockedRegenerateExternalSessionInvite = vi.mocked(regenerateExternalSessionInvite)
-
+const mockedRequestExternalSessionPayment = vi.mocked(requestExternalSessionPayment)
+const mockedMarkExternalSessionPaymentPaid = vi.mocked(markExternalSessionPaymentPaid)
 function baseSession(overrides: Record<string, unknown> = {}) {
   return {
     id: 21,
@@ -73,6 +78,32 @@ function baseSession(overrides: Record<string, unknown> = {}) {
     cancelled_at: null,
     created_at: '2099-06-01T00:00:00Z',
     updated_at: '2099-06-01T00:00:00Z',
+    payment_state: 'unpaid',
+    payment_badge_state: 'unpaid',
+    payment_requested_at: null,
+    payment_confirmed_at: null,
+    payment_amount: null,
+    payment_currency: 'UAH',
+    payment_details_snapshot: {
+      is_available: false,
+      available_methods: [],
+      default_method_type: null,
+      methods: {},
+      method_type: null,
+      recipient_name: null,
+      iban: null,
+      card_number: null,
+      bank_name: null,
+      payment_purpose: null,
+      comment: null,
+      snapshot_created_at: null,
+    },
+    payment_available_actions: {
+      can_request_payment: true,
+      can_mark_paid: false,
+      can_request_clarification: false,
+    },
+    payment_proof: null,
     ...overrides,
   }
 }
@@ -98,6 +129,32 @@ describe('ExternalSessionDetailView', () => {
     mockedFetchExternalSessionInvite.mockRejectedValue({
       response: { status: 404, data: { code: 'NOT_FOUND' } },
     })
+    mockedRequestExternalSessionPayment.mockResolvedValue(
+      baseSession({
+        payment_state: 'requested',
+        payment_badge_state: 'awaiting_confirmation',
+        payment_requested_at: '2099-06-15T12:00:00Z',
+        payment_available_actions: {
+          can_request_payment: true,
+          can_mark_paid: true,
+          can_request_clarification: false,
+        },
+      }) as any
+    )
+
+    mockedMarkExternalSessionPaymentPaid.mockResolvedValue(
+      baseSession({
+        payment_state: 'paid',
+        payment_badge_state: 'paid',
+        payment_requested_at: '2099-06-15T12:00:00Z',
+        payment_confirmed_at: '2099-06-15T12:30:00Z',
+        payment_available_actions: {
+          can_request_payment: false,
+          can_mark_paid: false,
+          can_request_clarification: false,
+        },
+      }) as any
+    )
   })
 
   it('renders empty invite state when invite does not exist', async () => {
@@ -113,6 +170,66 @@ describe('ExternalSessionDetailView', () => {
     expect(container.querySelector('input[inputmode="numeric"]')).not.toBeInTheDocument()
     expect(mockedFetchExternalSessionDetail).toHaveBeenCalledWith(21)
     expect(mockedFetchExternalSessionInvite).toHaveBeenCalledWith(21)
+  })
+
+  it('renders unpaid guest payment state and request action', async () => {
+    renderView()
+
+    await screen.findByText('Деталі гостьової сесії')
+
+    expect(screen.getByText('Оплата гостьової сесії')).toBeInTheDocument()
+    expect(screen.getByText('Не оплачено')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Запросити оплату' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Позначити оплаченою' })).not.toBeInTheDocument()
+  })
+
+  it('requests guest payment and updates payment state', async () => {
+    renderView()
+
+    await screen.findByText('Деталі гостьової сесії')
+    await fireEvent.click(screen.getByRole('button', { name: 'Запросити оплату' }))
+
+    await waitFor(() => {
+      expect(mockedRequestExternalSessionPayment).toHaveBeenCalledWith(21, {
+        amount: null,
+        currency: 'UAH',
+      })
+    })
+
+    expect(await screen.findByText('Оплату запрошено')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Позначити оплаченою' })).toBeInTheDocument()
+  })
+
+  it('marks requested guest payment as paid', async () => {
+    mockedFetchExternalSessionDetail.mockResolvedValue(
+      baseSession({
+        payment_state: 'requested',
+        payment_badge_state: 'awaiting_confirmation',
+        payment_requested_at: '2099-06-15T12:00:00Z',
+        payment_amount: '2000.00',
+        payment_available_actions: {
+          can_request_payment: true,
+          can_mark_paid: true,
+          can_request_clarification: false,
+        },
+      }) as any
+    )
+
+    renderView()
+
+    await screen.findByText('Деталі гостьової сесії')
+    expect(screen.getByText('Оплату запрошено')).toBeInTheDocument()
+    expect(screen.getByText('2000.00 UAH')).toBeInTheDocument()
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Позначити оплаченою' }))
+
+    await waitFor(() => {
+      expect(mockedMarkExternalSessionPaymentPaid).toHaveBeenCalledWith(21, {
+        specialist_note: 'Оплату підтверджено вручну.',
+      })
+    })
+
+    expect(await screen.findByText('Оплачено')).toBeInTheDocument()
   })
 
   it('promotes safe guest invite CTA near online meeting URL when invite does not exist', async () => {

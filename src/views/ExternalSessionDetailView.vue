@@ -251,6 +251,65 @@
       <section class="panel">
         <div class="panel__header">
           <div>
+            <div class="badge badge--soft">Оплата</div>
+            <h2 class="panel__title">Оплата гостьової сесії</h2>
+          </div>
+          <span class="status-pill" :class="paymentStatusClass">{{ paymentStatusLabel }}</span>
+        </div>
+
+        <div v-if="paymentError" class="form-error">{{ paymentError }}</div>
+
+        <div class="payment-card">
+          <div>
+            <div class="detail-label">Стан оплати</div>
+            <p class="muted payment-card__text">
+              Запит на оплату можна створити для гостя без реєстрації. Поки підтвердження від гостя не підключене,
+              оплату можна позначити вручну після перевірки.
+            </p>
+            <p v-if="paymentAmountLabel" class="payment-card__amount">
+              {{ paymentAmountLabel }}
+            </p>
+            <p v-if="session.payment_requested_at" class="muted">
+              Запрошено: {{ formatDateTime(session.payment_requested_at) }}
+            </p>
+            <p v-if="session.payment_confirmed_at" class="muted">
+              Підтверджено: {{ formatDateTime(session.payment_confirmed_at) }}
+            </p>
+          </div>
+
+          <div class="payment-card__actions">
+            <button
+              v-if="canRequestPayment"
+              class="btn"
+              type="button"
+              :disabled="paymentActionPending"
+              @click="requestPayment"
+            >
+              {{
+                paymentActionPending
+                  ? 'Зберігаємо…'
+                  : paymentState === 'requested'
+                    ? 'Оновити запит'
+                    : 'Запросити оплату'
+              }}
+            </button>
+
+            <button
+              v-if="canMarkPaid"
+              class="btn btn--ghost"
+              type="button"
+              :disabled="paymentActionPending"
+              @click="markPaymentPaid"
+            >
+              {{ paymentActionPending ? 'Підтверджуємо…' : 'Позначити оплаченою' }}
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel__header">
+          <div>
             <div class="badge badge--soft">Гостьовий доступ</div>
             <h2 class="panel__title">Гостьовий доступ</h2>
           </div>
@@ -345,7 +404,9 @@ import {
   fetchExternalSessionDetail,
   fetchExternalSessionInvite,
   getApiErrorMessage,
+  markExternalSessionPaymentPaid,
   regenerateExternalSessionInvite,
+  requestExternalSessionPayment,
   revokeExternalSessionInvite,
   updateExternalSession,
   type ExternalSessionInvite,
@@ -378,6 +439,8 @@ const savePending = ref(false)
 const cancelPending = ref(false)
 const saveError = ref('')
 const isEditMode = ref(false)
+const paymentActionPending = ref(false)
+const paymentError = ref('')
 
 const session = ref<ExternalSessionRecord | null>(null)
 const editDraft = ref<EditDraft>({
@@ -407,6 +470,32 @@ const hasInviteState = computed(() => Boolean(invite.value || inviteUrl.value))
 const shouldShowGetNewInviteUrlAction = computed(
   () => invitePrimaryStatus.value === 'active' && !inviteUrl.value
 )
+const paymentState = computed(() => String(session.value?.payment_state || 'unpaid'))
+const paymentBadgeState = computed(() => session.value?.payment_badge_state || null)
+const paymentActions = computed(() => session.value?.payment_available_actions || {})
+const canRequestPayment = computed(() => Boolean(paymentActions.value.can_request_payment) && !isCancelled.value)
+const canMarkPaid = computed(() => Boolean(paymentActions.value.can_mark_paid) && !isCancelled.value)
+
+const paymentStatusLabel = computed(() => {
+  if (paymentState.value === 'paid') return 'Оплачено'
+  if (paymentState.value === 'requested') return 'Оплату запрошено'
+  if (paymentState.value === 'awaiting_confirmation') return 'Очікує підтвердження'
+  if (paymentState.value === 'not_applicable') return 'Не застосовується'
+  return 'Не оплачено'
+})
+
+const paymentStatusClass = computed(() => {
+  if (paymentBadgeState.value === 'paid' || paymentState.value === 'paid') return 'status-pill--ok'
+  if (paymentBadgeState.value === 'awaiting_confirmation' || paymentState.value === 'requested') return 'status-pill--warn'
+  return 'status-pill--danger'
+})
+
+const paymentAmountLabel = computed(() => {
+  const amount = session.value?.payment_amount
+  if (amount === null || amount === undefined || amount === '') return ''
+  return `${amount} ${session.value?.payment_currency || 'UAH'}`
+})
+
 const timeOptions = Array.from({ length: 24 * 4 }, (_, index) => {
   const minutes = index * 15
   const hours = String(Math.floor(minutes / 60)).padStart(2, '0')
@@ -626,6 +715,47 @@ async function submitSave() {
     saveError.value = getApiErrorMessage(err, 'Не вдалося оновити гостьову сесію.')
   } finally {
     savePending.value = false
+  }
+}
+
+async function requestPayment() {
+  if (!session.value || isCancelled.value || paymentActionPending.value) return
+
+  paymentActionPending.value = true
+  paymentError.value = ''
+
+  try {
+    const updated = await requestExternalSessionPayment(session.value.id, {
+      amount: session.value.payment_amount ?? null,
+      currency: session.value.payment_currency || 'UAH',
+    })
+    session.value = updated
+    syncEditDraft(updated)
+    toast.success('Запит на оплату створено.')
+  } catch (err) {
+    paymentError.value = getApiErrorMessage(err, 'Не вдалося створити запит на оплату.')
+  } finally {
+    paymentActionPending.value = false
+  }
+}
+
+async function markPaymentPaid() {
+  if (!session.value || isCancelled.value || paymentActionPending.value) return
+
+  paymentActionPending.value = true
+  paymentError.value = ''
+
+  try {
+    const updated = await markExternalSessionPaymentPaid(session.value.id, {
+      specialist_note: 'Оплату підтверджено вручну.',
+    })
+    session.value = updated
+    syncEditDraft(updated)
+    toast.success('Оплату позначено як підтверджену.')
+  } catch (err) {
+    paymentError.value = getApiErrorMessage(err, 'Не вдалося підтвердити оплату.')
+  } finally {
+    paymentActionPending.value = false
   }
 }
 
@@ -891,6 +1021,34 @@ watch(
   word-break: break-all;
 }
 
+.payment-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: flex-start;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  background: #f8fafc;
+}
+
+.payment-card__text {
+  margin: 4px 0 0;
+}
+
+.payment-card__amount {
+  margin: 10px 0 0;
+  color: var(--text);
+  font-weight: 700;
+}
+
+.payment-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
 .status-pill {
   width: fit-content;
   padding: 6px 10px;
@@ -936,5 +1094,14 @@ watch(
   .meeting-share-card__actions {
     justify-items: stretch;
   }
+
+  .payment-card {
+    grid-template-columns: 1fr;
+  }
+
+  .payment-card__actions {
+    justify-content: flex-start;
+  }
+
 }
 </style>

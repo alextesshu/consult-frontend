@@ -212,11 +212,11 @@ export type NotificationFeedItem = {
   id: string
   kind: 'session_event' | 'reminder_event' | 'reschedule_request' | 'inquiry_message' | 'payment_proof_event'
   source_kind:
-    | 'session_event'
-    | 'reminder_delivery'
-    | 'reschedule_request'
-    | 'inquiry_message'
-    | 'payment_proof_event'
+  | 'session_event'
+  | 'reminder_delivery'
+  | 'reschedule_request'
+  | 'inquiry_message'
+  | 'payment_proof_event'
   source_id: number
   code: string
   session_id: number | null
@@ -539,36 +539,36 @@ export type AdminSpecialistPlanActionResponse = {
 
 export type AdminSpecialistTrialActionPayload =
   | {
-      action: 'START'
-      trial_plan: 'PRO' | 'LEADER'
-      starts_at?: string
-      ends_at: string
-      reason: string
-    }
+    action: 'START'
+    trial_plan: 'PRO' | 'LEADER'
+    starts_at?: string
+    ends_at: string
+    reason: string
+  }
   | {
-      action: 'END'
-      reason: string
-    }
+    action: 'END'
+    reason: string
+  }
 
 export type AdminSpecialistOverrideActionPayload =
   | {
-      action: 'ENABLE'
-      forced_plan?: 'START' | 'PRO' | 'LEADER' | null
-      starts_at?: string | null
-      expires_at?: string | null
-      reason: string
-    }
+    action: 'ENABLE'
+    forced_plan?: 'START' | 'PRO' | 'LEADER' | null
+    starts_at?: string | null
+    expires_at?: string | null
+    reason: string
+  }
   | {
-      action: 'UPDATE'
-      forced_plan?: 'START' | 'PRO' | 'LEADER' | null
-      starts_at?: string | null
-      expires_at?: string | null
-      reason: string
-    }
+    action: 'UPDATE'
+    forced_plan?: 'START' | 'PRO' | 'LEADER' | null
+    starts_at?: string | null
+    expires_at?: string | null
+    reason: string
+  }
   | {
-      action: 'DISABLE'
-      reason: string
-    }
+    action: 'DISABLE'
+    reason: string
+  }
 
 export type SpecialistProfileDocument = {
   id: number
@@ -2162,6 +2162,22 @@ export type ExternalSessionStatus = 'SCHEDULED' | 'CANCELLED' | string
 export type ExternalInviteStatus = 'ACTIVE' | 'EXPIRED' | 'REVOKED' | 'OPENED' | 'JOINED' | string
 export type GuestBookingRequestStatus = 'pending' | 'approved' | 'declined' | 'cancelled' | string
 
+export type ExternalGuestPaymentState =
+  | 'unpaid'
+  | 'requested'
+  | 'paid'
+  | 'awaiting_confirmation'
+  | 'not_applicable'
+  | string
+
+export type ExternalGuestPaymentBadgeState = 'unpaid' | 'awaiting_confirmation' | 'paid' | null | string
+
+export type ExternalGuestPaymentAvailableActions = {
+  can_request_payment?: boolean
+  can_mark_paid?: boolean
+  can_request_clarification?: boolean
+}
+
 export type ExternalSessionRecord = {
   id: number
   starts_at: string
@@ -2176,6 +2192,15 @@ export type ExternalSessionRecord = {
   cancelled_at: string | null
   created_at: string | null
   updated_at: string | null
+  payment_state?: ExternalGuestPaymentState
+  payment_badge_state?: ExternalGuestPaymentBadgeState
+  payment_requested_at?: string | null
+  payment_confirmed_at?: string | null
+  payment_amount?: string | number | null
+  payment_currency?: string | null
+  payment_details_snapshot?: SessionPaymentInstructions | null
+  payment_available_actions?: ExternalGuestPaymentAvailableActions | null
+  payment_proof?: unknown | null
 }
 
 export type ExternalSessionInvite = {
@@ -2339,6 +2364,34 @@ export async function updateExternalSession(
   const resp = await http.patch<ExternalSessionRecord>(
     `/cabinet/external-sessions/${sessionId}/`,
     payload
+  )
+  return resp.data
+}
+
+export type ExternalSessionPaymentRequestPayload = {
+  amount?: string | number | null
+  currency?: string | null
+  specialist_note?: string
+}
+
+export async function requestExternalSessionPayment(
+  sessionId: number,
+  payload?: ExternalSessionPaymentRequestPayload
+): Promise<ExternalSessionRecord> {
+  const resp = await http.post<ExternalSessionRecord>(
+    `/cabinet/external-sessions/${sessionId}/payment-request/`,
+    payload ?? {}
+  )
+  return resp.data
+}
+
+export async function markExternalSessionPaymentPaid(
+  sessionId: number,
+  payload?: { specialist_note?: string }
+): Promise<ExternalSessionRecord> {
+  const resp = await http.post<ExternalSessionRecord>(
+    `/cabinet/external-sessions/${sessionId}/payment/mark-paid/`,
+    payload ?? {}
   )
   return resp.data
 }
