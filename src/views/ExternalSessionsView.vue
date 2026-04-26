@@ -780,14 +780,16 @@ onMounted(async () => {
   padding: 8px 10px;
 }
 
+@media (max-width: 1100px) {
+  .external-sessions__operational {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 860px) {
   .external-sessions__hero {
     flex-direction: column;
     align-items: flex-start;
-  }
-
-  .external-sessions__operational {
-    grid-template-columns: 1fr;
   }
 
   .session-card {
