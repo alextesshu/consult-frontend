@@ -80,10 +80,22 @@
           <span>Ім'я гостя (опційно)</span>
           <input v-model="createDraft.guest_name" class="input" type="text" maxlength="120" />
         </label>
-
+        
         <label class="field">
           <span>Ел. пошта гостя (опційно)</span>
           <input v-model="createDraft.guest_email" class="input" type="email" maxlength="255" />
+        </label>
+
+        <label class="field">
+        <span>Вартість сесії, грн</span>
+        <input
+          v-model.trim="createDraft.price_amount"
+          class="input"
+          type="number"
+          min="0"
+          step="0.01"
+          placeholder="Наприклад, 2000"
+          />
         </label>
       </div>
 
@@ -253,6 +265,7 @@ type CreateDraft = {
   offline_location_snapshot: string
   guest_name: string
   guest_email: string
+  price_amount: string
 }
 type RequestActionType = 'approve' | 'decline'
 type RequestActionLoadingState = {
@@ -285,6 +298,7 @@ const createDraft = ref<CreateDraft>({
   offline_location_snapshot: '',
   guest_name: '',
   guest_email: '',
+  price_amount: '',
 })
 
 const isCreateOnline = computed(() => createDraft.value.session_format === 'online')
@@ -541,6 +555,8 @@ async function submitCreate() {
         : createDraft.value.offline_location_snapshot.trim() || null,
       guest_name: createDraft.value.guest_name.trim() || null,
       guest_email: createDraft.value.guest_email.trim() || null,
+      price_amount: createDraft.value.price_amount.trim() || null,
+      price_currency: 'UAH',
     }
 
     const created = await createExternalSession(payload)
@@ -778,6 +794,15 @@ onMounted(async () => {
   border: 1px solid #f5c2c0;
   border-radius: var(--radius-sm);
   padding: 8px 10px;
+}
+
+.external-price-currency__value {
+  display: flex;
+  align-items: center;
+  min-height: 40px;
+  color: var(--text);
+  background: #f8fafc;
+  cursor: default;
 }
 
 @media (max-width: 1100px) {

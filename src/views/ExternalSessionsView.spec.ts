@@ -199,6 +199,10 @@ describe('ExternalSessionsView', () => {
     expect(container.querySelector('input[type="date"]')).toBeInTheDocument()
     const timeInput = container.querySelector('input[inputmode="numeric"]')
     expect(timeInput).toBeInTheDocument()
+    expect(screen.getByText('Вартість сесії, грн')).toBeInTheDocument()
+    expect(screen.queryByText('Валюта')).not.toBeInTheDocument()
+    expect(container.querySelector('input[placeholder="UAH"]')).not.toBeInTheDocument()
+    expect(container.querySelector('.external-price-currency__value')).not.toBeInTheDocument()
     expect(timeInput).toHaveAttribute('list', 'external-session-time-options')
     const options = Array.from(container.querySelectorAll('datalist#external-session-time-options option')).map((item) =>
       item.getAttribute('value')
@@ -251,6 +255,7 @@ describe('ExternalSessionsView', () => {
     expect(payload?.session_format).toBe('online')
     expect(payload?.meeting_url).toBe('https://meet.google.com/new-room')
     expect(payload?.offline_location_snapshot).toBeNull()
+    expect(payload?.price_currency).toBe('UAH')
     expect(pushMock).toHaveBeenCalledWith('/cabinet/external-sessions/31')
   })
 
@@ -294,6 +299,7 @@ describe('ExternalSessionsView', () => {
     expect(payload?.session_format).toBe('offline')
     expect(payload?.meeting_url).toBeNull()
     expect(payload?.offline_location_snapshot).toBe('Kyiv office')
+    expect(payload?.price_currency).toBe('UAH')
   })
 
   it('renders pending guest request with clear status and required online approve field', async () => {

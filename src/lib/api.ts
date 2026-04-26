@@ -2188,6 +2188,8 @@ export type ExternalSessionRecord = {
   offline_location_snapshot: string | null
   guest_name: string | null
   guest_email: string | null
+  price_amount?: string | number | null
+  price_currency?: string | null
   status: ExternalSessionStatus
   cancelled_at: string | null
   created_at: string | null
@@ -2312,6 +2314,8 @@ export async function createExternalSession(payload: {
   offline_location_snapshot?: string | null
   guest_name?: string | null
   guest_email?: string | null
+  price_amount?: string | number | null
+  price_currency?: string | null
 }): Promise<ExternalSessionRecord> {
   const resp = await http.post<ExternalSessionRecord>('/cabinet/external-sessions/', payload)
   return resp.data
