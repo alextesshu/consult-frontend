@@ -40,6 +40,15 @@ Frontend production-readiness slice is now integrated:
 - queued follow-ups:
   - client cabinet/dashboard top upcoming sessions visibility
   - `professional_focus` + copy-personalization foundation if profile-copy work resumes
+- manual client sessions foundation: done
+  - backend schema supports `Session.client_record`
+  - session serializers expose manual-client identity fields
+  - backend endpoint can create canonical sessions for active manual `ClientRecord`
+  - specialist UI displays manual sessions as `Клієнт без кабінету`
+  - manual session detail explains that the client does not yet have cabinet access
+  - basic specialist lifecycle smoke passed: create, confirm, meeting link add/edit/copy, cancel, complete
+  - private session note is hidden by default on detail page
+  - manual session creation UI from client card is still deferred
 
 ## System State
 
@@ -163,6 +172,15 @@ Frontend production-readiness slice is now integrated:
   - `docs/HANDOFF_RULES.md`
   - `docs/BETA_FRONTEND_READINESS_PLAN.md`
   - `docs/PROFILE_PUBLIC_URLS.md`
+- manual client sessions foundation: done
+  - backend schema supports `Session.client_record`
+  - session serializers expose manual-client identity fields
+  - backend endpoint can create canonical sessions for active manual `ClientRecord`
+  - specialist UI displays manual sessions as `Клієнт без кабінету`
+  - manual session detail explains that the client does not yet have cabinet access
+  - basic specialist lifecycle smoke passed: create, confirm, meeting link add/edit/copy, cancel, complete
+  - private session note is hidden by default on detail page
+  - manual session creation UI from client card is still deferred
 
 ## Stable Areas
 
@@ -224,6 +242,16 @@ Safe implementation boundary until Phase 2 design is approved:
 - manual clients can be created, edited, archived, restored;
 - manual clients count toward active-client limits;
 - manual clients cannot yet have canonical sessions.
+
+Current recommended product direction:
+
+1. Guest Session Payments Phase 1 — design/contract first.
+2. Then decide between:
+   - guest payment implementation;
+   - UI for creating manual-client sessions from `/cabinet/clients`.
+
+Do not add payment buttons for guest sessions until backend contract is confirmed.
+Do not expose manual-session creation UI until slot-selection UX is designed.
 
 ## Critical Rules
 
