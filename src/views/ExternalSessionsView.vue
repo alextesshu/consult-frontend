@@ -89,7 +89,7 @@
         <label class="field">
         <span>Вартість сесії, грн</span>
         <input
-          v-model.trim="createDraft.price_amount"
+          v-model="createDraft.price_amount"
           class="input"
           type="number"
           min="0"
@@ -555,7 +555,7 @@ async function submitCreate() {
         : createDraft.value.offline_location_snapshot.trim() || null,
       guest_name: createDraft.value.guest_name.trim() || null,
       guest_email: createDraft.value.guest_email.trim() || null,
-      price_amount: createDraft.value.price_amount.trim() || null,
+      price_amount: String(createDraft.value.price_amount ?? '').trim() || null,
       price_currency: 'UAH',
     }
 
