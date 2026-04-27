@@ -193,6 +193,20 @@
                 <dt>Оновлено</dt>
                 <dd>{{ manualClientUpdatedLabel(client) }}</dd>
               </div>
+              <div class="client-meta__item">
+                <dt>Найближча сесія</dt>
+                <dd>{{ optionalDateLabel(manualClientNearestSession(client)?.slot_start_at, 'Немає запланованих') }}</dd>
+              </div>
+
+              <div class="client-meta__item">
+                <dt>Заплановано</dt>
+                <dd>{{ manualClientUpcomingSessions(client).length }}</dd>
+              </div>
+
+              <div class="client-meta__item">
+                <dt>Остання сесія</dt>
+                <dd>{{ optionalDateLabel(manualClientLastSession(client)?.slot_start_at, 'Ще не було') }}</dd>
+              </div>
             </dl>
             <div v-if="isManualClient(client) && client.internal_note" class="manual-client-note">
               {{ client.internal_note }}
@@ -230,6 +244,22 @@
               >
                 Створити сесію
               </button>
+
+              <RouterLink
+                v-if="manualClientNearestSession(client)"
+                class="btn btn--ghost btn--sm"
+                :to="manualClientSessionRoute(manualClientNearestSession(client))"
+              >
+                Відкрити найближчу
+              </RouterLink>
+
+              <RouterLink
+                v-else-if="manualClientLastSession(client)"
+                class="btn btn--ghost btn--sm"
+                :to="manualClientSessionRoute(manualClientLastSession(client))"
+              >
+                Відкрити останню
+              </RouterLink>
             </div>
 
             <div class="client-actions__secondary">
@@ -634,6 +664,10 @@ type SessionItem = {
   id: number
   client?: number
   client_id?: number
+  client_record_id?: number | null
+  client_has_account?: boolean | null
+  client_source?: string | null
+  client_identity_type?: string | null
   status: string
   slot_start_at: string
   slot_end_at: string
@@ -861,6 +895,54 @@ function relationClientId(client: Pick<ClientState, 'client' | 'client_id'> | Cl
 
 function relationSessionClientId(session: Pick<SessionItem, 'client' | 'client_id'>) {
   return Number(session.client ?? session.client_id ?? 0)
+}
+
+function relationSessionClientRecordId(session: Pick<SessionItem, 'client_record_id'>) {
+  return Number(session.client_record_id || 0)
+}
+
+function isActiveSessionStatus(status?: string | null) {
+  return ['SCHEDULED', 'CONFIRMED'].includes(String(status || '').toUpperCase())
+}
+
+function isCompletedOrPastSession(session: SessionItem) {
+  const status = String(session.status || '').toUpperCase()
+  const start = new Date(session.slot_start_at).getTime()
+
+  if (status === 'COMPLETED') return true
+  if (!Number.isFinite(start)) return false
+
+  return start <= Date.now()
+}
+
+function manualClientSessions(client: ManualClientRecord) {
+  return (sessionsCache.value || [])
+    .filter((session) => relationSessionClientRecordId(session) === client.id)
+    .sort((a, b) => String(a.slot_start_at || '').localeCompare(String(b.slot_start_at || '')))
+}
+
+function manualClientUpcomingSessions(client: ManualClientRecord) {
+  const now = Date.now()
+
+  return manualClientSessions(client).filter((session) => {
+    const start = new Date(session.slot_start_at).getTime()
+    return isActiveSessionStatus(session.status) && Number.isFinite(start) && start > now
+  })
+}
+
+function manualClientNearestSession(client: ManualClientRecord) {
+  return manualClientUpcomingSessions(client)[0] || null
+}
+
+function manualClientLastSession(client: ManualClientRecord) {
+  return manualClientSessions(client)
+    .filter((session) => isCompletedOrPastSession(session))
+    .sort((a, b) => String(b.slot_start_at || '').localeCompare(String(a.slot_start_at || '')))[0] || null
+}
+
+function manualClientSessionRoute(session: SessionItem | null | undefined) {
+  if (!session?.id) return '/cabinet/sessions'
+  return `/cabinet/sessions/${session.id}`
 }
 
 function rememberSessionClientNames(sessions: SessionItem[]) {
@@ -1772,7 +1854,12 @@ async function openClientFromDeepLinkIfNeeded() {
 }
 
 onMounted(async () => {
-  await Promise.all([loadClients(), loadManualClientRecords(), loadChatClientNames()])
+  await Promise.all([
+    loadClients(),
+    loadManualClientRecords(),
+    loadChatClientNames(),
+    loadSessionsIfNeeded().catch(() => []),
+  ])
   await openClientFromDeepLinkIfNeeded()
   await loadPendingNotes()
 })
