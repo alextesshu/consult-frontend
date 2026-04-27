@@ -189,6 +189,12 @@
                 <dt>Джерело</dt>
                 <dd>Вручну створена картка</dd>
               </div>
+
+              <div class="client-meta__item">
+                <dt>Ціна сесії</dt>
+                <dd>{{ manualClientCustomPriceLabel(client) }}</dd>
+              </div>
+
               <div class="client-meta__item">
                 <dt>Оновлено</dt>
                 <dd>{{ manualClientUpdatedLabel(client) }}</dd>
@@ -209,7 +215,8 @@
               </div>
             </dl>
             <div v-if="isManualClient(client) && client.internal_note" class="manual-client-note">
-              {{ client.internal_note }}
+              <div class="manual-client-note__label">Короткий опис клієнта</div>
+              <div>{{ client.internal_note }}</div>
             </div>
             <dl v-if="!isManualClient(client)" class="client-meta">
               <div class="client-meta__item">
@@ -552,8 +559,20 @@
             Telegram
             <input v-model.trim="manualClientForm.telegram" class="input" type="text" autocomplete="off" />
           </label>
+          <label class="field">
+            Індивідуальна ціна сесії, грн
+            <input
+              v-model.trim="manualClientForm.custom_price_amount"
+              class="input"
+              type="text"
+              inputmode="decimal"
+              placeholder="Наприклад, 1600"
+              autocomplete="off"
+            />
+            <span class="field-hint">Залиште порожнім, щоб використовувати стандартну ціну спеціаліста.</span>
+          </label>
           <label class="field manual-client-form__note">
-            Внутрішня нотатка
+            Короткий опис клієнта
             <textarea
               v-model.trim="manualClientForm.internal_note"
               class="input manual-client-form__textarea"
@@ -631,6 +650,8 @@ type ManualClientRecord = {
   phone: string | null
   telegram: string | null
   internal_note: string | null
+  custom_price_amount: string | null
+  custom_price_currency: string | null
   status: 'active' | 'archived'
   source: 'manual'
   has_account: false
@@ -645,6 +666,7 @@ type ManualClientFormState = {
   phone: string
   telegram: string
   internal_note: string
+  custom_price_amount: string
 }
 
 type ManualClientSessionFormState = {
@@ -771,6 +793,7 @@ const manualClientForm = ref<ManualClientFormState>({
   phone: '',
   telegram: '',
   internal_note: '',
+  custom_price_amount: '',
 })
 
 const manualSessionModalOpen = ref(false)
@@ -1335,6 +1358,22 @@ function manualClientUpdatedLabel(client: ManualClientRecord) {
   return optionalDateLabel(client.updated_at || client.created_at, 'Немає оновлень')
 }
 
+function manualClientCustomPriceLabel(client: ManualClientRecord) {
+  const amount = String(client.custom_price_amount || '').trim()
+
+  if (!amount) {
+    return 'Стандартна ціна'
+  }
+
+  const currency = String(client.custom_price_currency || 'UAH').toUpperCase()
+  const numericAmount = Number(amount)
+  const formattedAmount = Number.isFinite(numericAmount)
+    ? new Intl.NumberFormat('uk-UA', { maximumFractionDigits: 2 }).format(numericAmount)
+    : amount
+
+  return `${formattedAmount} ${currency === 'UAH' ? 'грн' : currency}`
+}
+
 async function loadChatClientNames() {
   try {
     const threads = await fetchChatThreads()
@@ -1391,6 +1430,7 @@ function resetManualClientForm() {
     phone: '',
     telegram: '',
     internal_note: '',
+    custom_price_amount: '',
   }
   manualClientFormError.value = ''
 }
@@ -1410,6 +1450,7 @@ function openManualClientEditModal(client: ManualClientRecord) {
     phone: client.phone || '',
     telegram: client.telegram || '',
     internal_note: client.internal_note || '',
+    custom_price_amount: client.custom_price_amount || '',
   }
   manualClientModalOpen.value = true
 }
@@ -1518,6 +1559,8 @@ function manualClientPayload() {
     phone: form.phone.trim() || null,
     telegram: form.telegram.trim() || null,
     internal_note: form.internal_note.trim() || null,
+    custom_price_amount: form.custom_price_amount.trim() || null,
+    custom_price_currency: 'UAH',
   }
 }
 
@@ -2244,6 +2287,15 @@ onBeforeUnmount(() => {
   font-size: 13px;
   line-height: 1.45;
   white-space: pre-wrap;
+}
+
+.manual-client-note__label {
+  margin-bottom: 5px;
+  color: color-mix(in srgb, var(--pc-navy-900) 56%, var(--pc-text-muted));
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
 }
 
 .client-actions {
