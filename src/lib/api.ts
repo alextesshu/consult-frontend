@@ -2270,6 +2270,40 @@ export type ExternalSessionInviteStatusResponse = {
   invite_url?: string | null
 }
 
+export type PublicPaymentMethodSnapshot = {
+  recipient_name?: string | null
+  iban?: string | null
+  card_number?: string | null
+  bank_name?: string | null
+  payment_purpose?: string | null
+  comment?: string | null
+}
+
+export type PublicPaymentDetailsSnapshot = {
+  is_available: boolean
+  available_methods: string[]
+  default_method_type: string | null
+  methods: Record<string, PublicPaymentMethodSnapshot>
+  method_type: string | null
+  recipient_name: string | null
+  iban: string | null
+  card_number: string | null
+  bank_name: string | null
+  payment_purpose: string | null
+  comment: string | null
+  snapshot_created_at: string | null
+}
+
+export type PublicExternalSessionPaymentPayload = {
+  payment_requested: boolean
+  payment_state: string
+  payment_amount: string | null
+  payment_currency: string | null
+  payment_details_snapshot: PublicPaymentDetailsSnapshot | null
+  can_submit_payment_proof: boolean
+  payment_proof_status: string | null
+}
+
 export type PublicExternalSessionInviteResolved = {
   status: ExternalInviteStatus
   specialist_name: string | null
@@ -2281,6 +2315,7 @@ export type PublicExternalSessionInviteResolved = {
   offline_location: string | null
   instructions: string | null
   can_join: boolean
+  payment: PublicExternalSessionPaymentPayload | null
 }
 
 type PublicExternalSessionInviteResolvedResponse = {
@@ -2470,6 +2505,7 @@ export async function fetchPublicExternalSessionInvite(
     offline_location: source?.offline_location || null,
     instructions: source?.instructions || null,
     can_join: Boolean(source?.can_join),
+    payment: source?.payment || null,
   }
 }
 
