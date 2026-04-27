@@ -2273,6 +2273,8 @@ export type ExternalSessionInviteStatusResponse = {
 export type PublicExternalSessionInviteResolved = {
   status: ExternalInviteStatus
   specialist_name: string | null
+  specialist_profile_path: string | null
+  specialist_profile_url: string | null
   starts_at: string | null
   ends_at: string | null
   session_format: SessionFormat | null
@@ -2460,6 +2462,8 @@ export async function fetchPublicExternalSessionInvite(
   return {
     status: source?.status || 'EXPIRED',
     specialist_name: source?.specialist_name || null,
+    specialist_profile_path: source?.specialist_profile_path || null,
+    specialist_profile_url: source?.specialist_profile_url || null,
     starts_at: source?.starts_at || null,
     ends_at: source?.ends_at || null,
     session_format: source?.session_format || null,

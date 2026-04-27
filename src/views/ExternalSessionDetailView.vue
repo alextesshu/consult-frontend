@@ -865,10 +865,18 @@ async function tryCopyInviteLink(value: string) {
 
 async function copyInviteLink() {
   if (!inviteUrl.value) return
+
+  inviteError.value = ''
+
   const copied = await tryCopyInviteLink(inviteUrl.value)
-  if (!copied) {
-    inviteError.value = 'Не вдалося скопіювати URL запрошення.'
+
+  if (copied) {
+    toast.success('Посилання скопійовано.')
+    return
   }
+
+  inviteError.value = 'Не вдалося скопіювати посилання.'
+  toast.error('Не вдалося скопіювати посилання.')
 }
 
 async function loadPage() {

@@ -1,18 +1,18 @@
 ﻿<template>
   <section class="guest-external-session">
     <div v-if="loading" class="panel">
-      <h1 class="title">Доступ до зовнішньої сесії</h1>
+      <h1 class="title">Доступ до гостьової сесії</h1>
       <p class="muted">Завантажуємо запрошення…</p>
     </div>
 
     <div v-else-if="errorState" class="panel">
-      <h1 class="title">Доступ до зовнішньої сесії</h1>
+      <h1 class="title">Доступ до гостьової сесії</h1>
       <p class="muted">{{ errorTitle }}</p>
       <p class="muted">{{ errorDescription }}</p>
     </div>
 
     <div v-else-if="invite" class="panel">
-      <h1 class="title">Доступ до зовнішньої сесії</h1>
+      <h1 class="title">Доступ до гостьової сесії</h1>
       <p class="muted">
         {{ inviteIntroText }}
       </p>
@@ -34,6 +34,22 @@
         <button v-else class="btn" type="button" :disabled="joinPending || !invite.can_join" @click="joinInvite">
           {{ joinPending ? 'Оновлюємо…' : 'Переглянути деталі зустрічі' }}
         </button>
+                <RouterLink
+          v-if="specialistProfilePath"
+          class="btn btn--ghost"
+          :to="specialistProfilePath"
+        >
+          Профіль спеціаліста
+        </RouterLink>
+        <a
+          v-else-if="specialistProfileUrl"
+          class="btn btn--ghost"
+          :href="specialistProfileUrl"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Профіль спеціаліста
+        </a>
       </div>
 
       <p v-if="isOffline" class="muted">
@@ -66,6 +82,8 @@ const invite = ref<PublicExternalSessionInviteResolved | null>(null)
 const errorState = ref<GuestErrorState>(null)
 
 const isOffline = computed(() => invite.value?.session_format === 'offline')
+const specialistProfilePath = computed(() => String(invite.value?.specialist_profile_path || '').trim())
+const specialistProfileUrl = computed(() => String(invite.value?.specialist_profile_url || '').trim())
 const defaultGuestIntroText =
   'Ваш спеціаліст запросив вас на сесію. Це обмежене посилання лише для цієї зустрічі без реєстрації.'
 const inviteIntroText = computed(() => localizeGuestInstruction(invite.value?.instructions))
