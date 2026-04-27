@@ -324,7 +324,7 @@
           <button class="btn btn--ghost btn--sm" type="button" @click="focusSessionNote">
             До нотатки
           </button>
-          <button v-if="!isManualClientSession" class="btn btn--ghost btn--sm" type="button" @click="focusPaymentBlock">
+          <button class="btn btn--ghost btn--sm" type="button" @click="focusPaymentBlock">
             До блоку оплати
           </button>
           <RouterLink v-if="canUseClientAccountFeatures" class="btn btn--ghost btn--sm" :to="postSessionClientLink">
@@ -349,6 +349,46 @@
           <button class="btn btn--ghost btn--sm" type="button" @click="openPaymentDetailsSettings">
             Перейти до реквізитів для оплати
           </button>
+        </div>
+      </section>
+
+      <section v-else ref="paymentPanelRef" class="panel">
+        <div class="panel__header">
+          <div>
+            <div class="badge badge--soft">Оплата</div>
+            <h2 class="panel__title">Оплата сесії</h2>
+          </div>
+          <span class="status-pill" :class="manualPaymentStatusClass">
+            {{ manualPaymentStatusLabel }}
+          </span>
+        </div>
+
+        <div v-if="manualPaymentError" class="payment-proof-error">
+          <p>{{ manualPaymentError }}</p>
+        </div>
+
+        <div class="manual-payment-card">
+          <div>
+            <div class="detail-label">Клієнт без кабінету</div>
+            <p class="muted manual-payment-card__text">
+              Для клієнта без кабінету оплата ведеться вручну. Після перевірки надходження можна позначити сесію оплаченою.
+            </p>
+            <p v-if="manualPaymentAmountLabel" class="manual-payment-card__amount">
+              {{ manualPaymentAmountLabel }}
+            </p>
+          </div>
+
+          <div class="manual-payment-card__actions">
+            <button
+              v-if="!manualPaymentPaid"
+              class="btn btn--sm"
+              type="button"
+              :disabled="manualPaymentSaving"
+              @click="markManualSessionPaymentPaid"
+            >
+              {{ manualPaymentSaving ? 'Підтверджуємо…' : 'Позначити оплаченою' }}
+            </button>
+          </div>
         </div>
       </section>
 
@@ -603,6 +643,7 @@ import { computed, nextTick, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
   apiGet,
+  apiPost,
   updateSpecialistSessionMeeting,
   type SessionFormat,
   type SessionPaymentProof,
@@ -751,6 +792,8 @@ type SessionDetail = {
   slot?: SessionSlot | number | null
   slot_start_at?: string | null
   slot_end_at?: string | null
+  price_amount?: string | number | null
+  price_currency?: string | null
   payment_proof?: SessionPaymentProof | null
   workspace?: SessionWorkspace | null
 }
@@ -882,6 +925,8 @@ const isEditingMeetingLink = ref(false)
 const meetingLinkDraft = ref('')
 const paymentProofActionError = ref('')
 const paymentPanelRef = ref<HTMLElement | null>(null)
+const manualPaymentSaving = ref(false)
+const manualPaymentError = ref('')
 const meetingCardRef = ref<HTMLElement | null>(null)
 const meetingLinkFocused = ref(false)
 const quickAddPending = ref(false)
@@ -944,6 +989,33 @@ const sessionRequests = computed(() =>
 )
 
 const workspace = computed<SessionWorkspace | null>(() => session.value?.workspace || null)
+
+const manualPaymentProof = computed(() => session.value?.payment_proof || null)
+
+const manualPaymentPaid = computed(() => {
+  return String(manualPaymentProof.value?.status || '').toUpperCase() === 'MARKED_PAID'
+})
+
+const manualPaymentStatusLabel = computed(() => {
+  return manualPaymentPaid.value ? 'Оплачено' : 'Не оплачено'
+})
+
+const manualPaymentStatusClass = computed(() => {
+  return manualPaymentPaid.value ? 'status-pill--ok' : 'status-pill--muted'
+})
+
+const manualPaymentAmountLabel = computed(() => {
+  const amount = session.value?.price_amount
+  if (amount === null || amount === undefined || amount === '') return ''
+
+  const currency = String(session.value?.price_currency || 'UAH').toUpperCase()
+  const numericAmount = Number(amount)
+  const formattedAmount = Number.isFinite(numericAmount)
+    ? new Intl.NumberFormat('uk-UA', { maximumFractionDigits: 2 }).format(numericAmount)
+    : String(amount)
+
+  return `${formattedAmount} ${currency === 'UAH' ? 'грн' : currency}`
+})
 
 const workspacePanelVisible = computed(() => Boolean(workspace.value))
 
@@ -1498,6 +1570,32 @@ async function onPaymentProofUpdated(nextPaymentProof: SessionPaymentProof) {
     payment_proof: nextPaymentProof,
   }
   await syncSessionWorkspaceAfterPaymentMutation()
+}
+
+async function markManualSessionPaymentPaid() {
+  if (!session.value || !isManualClientSession.value || manualPaymentSaving.value) return
+
+  manualPaymentSaving.value = true
+  manualPaymentError.value = ''
+
+  try {
+    const nextPaymentProof = await apiPost<SessionPaymentProof>(
+      `/booking/sessions/${session.value.id}/payment-proof/mark-paid/`,
+      {
+        specialist_note: 'Оплату підтверджено вручну.',
+      }
+    )
+
+    await onPaymentProofUpdated(nextPaymentProof)
+    toast.success('Оплату позначено як підтверджену.')
+  } catch (err: any) {
+    manualPaymentError.value = getBookingErrorMessage(
+      err,
+      'Не вдалося позначити оплату як підтверджену.'
+    )
+  } finally {
+    manualPaymentSaving.value = false
+  }
 }
 
 function focusPaymentBlock() {
@@ -2340,6 +2438,45 @@ watch(
   border: 1px solid #f5c2c0;
   border-radius: var(--radius-sm);
   padding: 8px 10px;
+}
+
+.manual-payment-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 14px;
+  align-items: flex-start;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+  background: #f8fafc;
+}
+
+.manual-payment-card__text {
+  margin: 4px 0 0;
+}
+
+.manual-payment-card__amount {
+  margin: 10px 0 0;
+  color: var(--text);
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.manual-payment-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+@media (max-width: 760px) {
+  .manual-payment-card {
+    grid-template-columns: 1fr;
+  }
+
+  .manual-payment-card__actions {
+    justify-content: flex-start;
+  }
 }
 
 .payment-proof-error {
