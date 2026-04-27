@@ -376,6 +376,53 @@
             <p v-if="manualPaymentAmountLabel" class="manual-payment-card__amount">
               {{ manualPaymentAmountLabel }}
             </p>
+
+            <div class="manual-price-editor">
+              <button
+                v-if="!manualPriceEditing"
+                class="btn btn--ghost btn--sm"
+                type="button"
+                @click="startManualPriceEdit"
+              >
+                Редагувати ціну
+              </button>
+
+              <div v-else class="manual-price-editor__form">
+                <label class="field manual-price-editor__field">
+                  Вартість сесії, грн
+                  <input
+                    v-model.trim="manualPriceDraft"
+                    class="input"
+                    type="text"
+                    inputmode="decimal"
+                    placeholder="Наприклад, 1600"
+                  />
+                </label>
+
+                <div v-if="manualPriceError" class="form-error">
+                  {{ manualPriceError }}
+                </div>
+
+                <div class="manual-price-editor__actions">
+                  <button
+                    class="btn btn--sm"
+                    type="button"
+                    :disabled="manualPriceSubmitDisabled"
+                    @click="saveManualSessionPrice"
+                  >
+                    {{ manualPriceSaving ? 'Зберігаємо…' : 'Зберегти ціну' }}
+                  </button>
+                  <button
+                    class="btn btn--ghost btn--sm"
+                    type="button"
+                    :disabled="manualPriceSaving"
+                    @click="cancelManualPriceEdit"
+                  >
+                    Скасувати
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div class="manual-payment-card__actions">
@@ -643,6 +690,7 @@ import { computed, nextTick, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import {
   apiGet,
+  apiPatch,
   apiPost,
   updateSpecialistSessionMeeting,
   type SessionFormat,
@@ -927,6 +975,10 @@ const paymentProofActionError = ref('')
 const paymentPanelRef = ref<HTMLElement | null>(null)
 const manualPaymentSaving = ref(false)
 const manualPaymentError = ref('')
+const manualPriceEditing = ref(false)
+const manualPriceDraft = ref('')
+const manualPriceSaving = ref(false)
+const manualPriceError = ref('')
 const meetingCardRef = ref<HTMLElement | null>(null)
 const meetingLinkFocused = ref(false)
 const quickAddPending = ref(false)
@@ -1015,6 +1067,10 @@ const manualPaymentAmountLabel = computed(() => {
     : String(amount)
 
   return `${formattedAmount} ${currency === 'UAH' ? 'грн' : currency}`
+})
+
+const manualPriceSubmitDisabled = computed(() => {
+  return manualPriceSaving.value || !session.value
 })
 
 const workspacePanelVisible = computed(() => Boolean(workspace.value))
@@ -1595,6 +1651,53 @@ async function markManualSessionPaymentPaid() {
     )
   } finally {
     manualPaymentSaving.value = false
+  }
+}
+
+function startManualPriceEdit() {
+  if (!session.value || !isManualClientSession.value) return
+
+  manualPriceDraft.value = String(session.value.price_amount ?? '')
+  manualPriceError.value = ''
+  manualPriceEditing.value = true
+}
+
+function cancelManualPriceEdit() {
+  if (manualPriceSaving.value) return
+
+  manualPriceEditing.value = false
+  manualPriceDraft.value = ''
+  manualPriceError.value = ''
+}
+
+async function saveManualSessionPrice() {
+  if (!session.value || !isManualClientSession.value || manualPriceSaving.value) return
+
+  manualPriceSaving.value = true
+  manualPriceError.value = ''
+
+  const normalizedAmount = manualPriceDraft.value.trim().replace(',', '.')
+
+  try {
+    const updatedSession = await apiPatch<SessionDetail>(
+      `/booking/sessions/${session.value.id}/price/`,
+      {
+        price_amount: normalizedAmount || null,
+        price_currency: 'UAH',
+      }
+    )
+
+    session.value = updatedSession
+    manualPriceEditing.value = false
+    manualPriceDraft.value = ''
+    toast.success('Вартість сесії оновлено.')
+  } catch (err: any) {
+    manualPriceError.value = getBookingErrorMessage(
+      err,
+      'Не вдалося оновити вартість сесії.'
+    )
+  } finally {
+    manualPriceSaving.value = false
   }
 }
 
@@ -2438,6 +2541,26 @@ watch(
   border: 1px solid #f5c2c0;
   border-radius: var(--radius-sm);
   padding: 8px 10px;
+}
+
+.manual-price-editor {
+  margin-top: 10px;
+}
+
+.manual-price-editor__form {
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.manual-price-editor__field {
+  max-width: 260px;
+}
+
+.manual-price-editor__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .manual-payment-card {
