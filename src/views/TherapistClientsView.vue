@@ -714,6 +714,9 @@ type SessionItem = {
   has_note?: boolean | null
   note_updated_at?: string | null
   payment_badge_state?: 'paid' | 'awaiting_confirmation' | 'unpaid' | null
+  payment_resolution_state?: 'pending' | 'refunded' | 'credited' | 'retained' | string | null
+  payment_resolution_note?: string | null
+  payment_resolution_updated_at?: string | null
   price_amount?: string | number | null
   price_currency?: string | null
   payment_proof?: {
@@ -1006,6 +1009,9 @@ function sessionPaymentState(session: SessionItem | null | undefined): ManualSes
 }
 
 function sessionPaymentLabel(session: SessionItem | null | undefined) {
+  const resolutionLabel = sessionPaymentResolutionLabel(session)
+  if (resolutionLabel) return resolutionLabel
+
   const state = sessionPaymentState(session)
 
   if (state === 'paid') return 'Оплачено'
@@ -1016,6 +1022,11 @@ function sessionPaymentLabel(session: SessionItem | null | undefined) {
 }
 
 function sessionPaymentClass(session: SessionItem | null | undefined) {
+  const resolutionState = sessionPaymentResolutionState(session)
+
+  if (resolutionState === 'pending') return 'manual-payment-status--awaiting'
+  if (resolutionState) return 'manual-payment-status--paid'
+
   const state = sessionPaymentState(session)
 
   if (state === 'paid') return 'manual-payment-status--paid'
@@ -1023,6 +1034,30 @@ function sessionPaymentClass(session: SessionItem | null | undefined) {
   if (state === 'unpaid') return 'manual-payment-status--unpaid'
 
   return 'manual-payment-status--muted'
+}
+
+type SessionPaymentResolutionState = 'pending' | 'refunded' | 'credited' | 'retained' | null
+
+function sessionPaymentResolutionState(session: SessionItem | null | undefined): SessionPaymentResolutionState {
+  const value = String(session?.payment_resolution_state || '').toLowerCase()
+
+  if (value === 'pending') return 'pending'
+  if (value === 'refunded') return 'refunded'
+  if (value === 'credited') return 'credited'
+  if (value === 'retained') return 'retained'
+
+  return null
+}
+
+function sessionPaymentResolutionLabel(session: SessionItem | null | undefined) {
+  const state = sessionPaymentResolutionState(session)
+
+  if (state === 'pending') return 'Потребує рішення'
+  if (state === 'refunded') return 'Оплату повернено'
+  if (state === 'credited') return 'Зараховано на майбутню'
+  if (state === 'retained') return 'Залишено за домовленістю'
+
+  return ''
 }
 
 function manualClientPaymentSession(client: ManualClientRecord) {

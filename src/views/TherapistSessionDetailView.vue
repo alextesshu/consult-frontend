@@ -437,6 +437,53 @@
             </button>
           </div>
         </div>
+        <div v-if="shouldShowPaymentResolutionBlock" class="payment-resolution-card">
+          <div class="payment-resolution-card__header">
+            <div>
+              <div class="detail-label">Оплата після скасування</div>
+              <h3 class="payment-resolution-card__title">{{ paymentResolutionLabel }}</h3>
+            </div>
+          </div>
+
+          <p class="muted payment-resolution-card__text">
+            {{ paymentResolutionDescription }}
+          </p>
+
+          <div v-if="paymentResolutionError" class="form-error">
+            {{ paymentResolutionError }}
+          </div>
+
+          <label class="field payment-resolution-card__note">
+            Коментар щодо рішення
+            <textarea
+              v-model.trim="paymentResolutionNote"
+              class="input"
+              rows="3"
+              placeholder="Наприклад: повернено на картку, зараховано на наступну зустріч або залишено за домовленістю."
+            ></textarea>
+          </label>
+
+          <div class="payment-resolution-card__actions">
+            <button
+              v-for="action in ['refunded', 'credited', 'retained']"
+              :key="action"
+              class="btn btn--ghost btn--sm"
+              type="button"
+              :disabled="Boolean(paymentResolutionSaving)"
+              @click="savePaymentResolution(action as PaymentResolutionAction)"
+            >
+              {{
+                paymentResolutionSaving === action
+                  ? 'Зберігаємо…'
+                  : paymentResolutionActionLabel(action as PaymentResolutionAction)
+              }}
+            </button>
+          </div>
+
+          <p v-if="session?.payment_resolution_updated_at" class="muted payment-resolution-card__updated">
+            Оновлено: {{ formatDateTime(session.payment_resolution_updated_at) }}
+          </p>
+        </div>
       </section>
 
       <section v-if="sessionRequests.length" class="panel">
@@ -843,8 +890,14 @@ type SessionDetail = {
   price_amount?: string | number | null
   price_currency?: string | null
   payment_proof?: SessionPaymentProof | null
+  payment_resolution_state?: 'pending' | 'refunded' | 'credited' | 'retained' | string | null
+  payment_resolution_note?: string | null
+  payment_resolution_updated_at?: string | null
   workspace?: SessionWorkspace | null
 }
+
+type PaymentResolutionState = 'pending' | 'refunded' | 'credited' | 'retained' | null
+type PaymentResolutionAction = 'refunded' | 'credited' | 'retained'
 
 type PostSessionContext = {
   sessionId: number
@@ -975,6 +1028,9 @@ const paymentProofActionError = ref('')
 const paymentPanelRef = ref<HTMLElement | null>(null)
 const manualPaymentSaving = ref(false)
 const manualPaymentError = ref('')
+const paymentResolutionSaving = ref<PaymentResolutionAction | null>(null)
+const paymentResolutionError = ref('')
+const paymentResolutionNote = ref('')
 const manualPriceEditing = ref(false)
 const manualPriceDraft = ref('')
 const manualPriceSaving = ref(false)
@@ -1068,6 +1124,58 @@ const manualPaymentAmountLabel = computed(() => {
 
   return `${formattedAmount} ${currency === 'UAH' ? 'грн' : currency}`
 })
+
+const paymentResolutionState = computed<PaymentResolutionState>(() => {
+  const value = String(session.value?.payment_resolution_state || '').toLowerCase()
+
+  if (value === 'pending') return 'pending'
+  if (value === 'refunded') return 'refunded'
+  if (value === 'credited') return 'credited'
+  if (value === 'retained') return 'retained'
+
+  return null
+})
+
+const shouldShowPaymentResolutionBlock = computed(() => {
+  return Boolean(paymentResolutionState.value)
+})
+
+const paymentResolutionLabel = computed(() => {
+  if (paymentResolutionState.value === 'pending') return 'Потребує рішення щодо оплати'
+  if (paymentResolutionState.value === 'refunded') return 'Оплату повернено'
+  if (paymentResolutionState.value === 'credited') return 'Зараховано на майбутню сесію'
+  if (paymentResolutionState.value === 'retained') return 'Оплату залишено за домовленістю'
+
+  return ''
+})
+
+const paymentResolutionDescription = computed(() => {
+  if (paymentResolutionState.value === 'pending') {
+    return 'Сесію скасовано, але оплату було підтверджено. Оберіть, як обробити оплату.'
+  }
+
+  if (paymentResolutionState.value === 'refunded') {
+    return 'Спеціаліст позначив оплату як повернену клієнту.'
+  }
+
+  if (paymentResolutionState.value === 'credited') {
+    return 'Оплату позначено як зараховану на майбутню сесію.'
+  }
+
+  if (paymentResolutionState.value === 'retained') {
+    return 'Оплату позначено як залишену за домовленістю.'
+  }
+
+  return ''
+})
+
+function paymentResolutionActionLabel(action: PaymentResolutionAction) {
+  if (action === 'refunded') return 'Позначити як повернену'
+  if (action === 'credited') return 'Зарахувати на майбутню сесію'
+  if (action === 'retained') return 'Залишити за домовленістю'
+
+  return 'Зберегти рішення'
+}
 
 const manualPriceSubmitDisabled = computed(() => {
   return manualPriceSaving.value || !session.value
@@ -1703,6 +1811,34 @@ async function saveManualSessionPrice() {
 
 function focusPaymentBlock() {
   paymentPanelRef.value?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+}
+
+async function savePaymentResolution(action: PaymentResolutionAction) {
+  if (!session.value || paymentResolutionSaving.value) return
+
+  paymentResolutionSaving.value = action
+  paymentResolutionError.value = ''
+
+  try {
+    const updatedSession = await apiPatch<SessionDetail>(
+      `/booking/sessions/${session.value.id}/payment-resolution/`,
+      {
+        resolution: action,
+        note: paymentResolutionNote.value.trim(),
+      }
+    )
+
+    session.value = updatedSession
+    paymentResolutionNote.value = updatedSession.payment_resolution_note || ''
+    toast.success('Рішення щодо оплати збережено.')
+  } catch (err: any) {
+    paymentResolutionError.value = getBookingErrorMessage(
+      err,
+      'Не вдалося зберегти рішення щодо оплати.'
+    )
+  } finally {
+    paymentResolutionSaving.value = null
+  }
 }
 
 let meetingFocusTimer: number | null = null
@@ -2590,6 +2726,47 @@ watch(
   flex-wrap: wrap;
   gap: 8px;
   justify-content: flex-end;
+}
+
+.payment-resolution-card {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+  border: 1px solid color-mix(in srgb, var(--pc-warning) 26%, var(--pc-border));
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  background: color-mix(in srgb, var(--pc-yellow-soft) 36%, white);
+}
+
+.payment-resolution-card__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.payment-resolution-card__title {
+  margin: 2px 0 0;
+  color: var(--pc-navy-900);
+  font-size: 18px;
+}
+
+.payment-resolution-card__text {
+  margin: 0;
+}
+
+.payment-resolution-card__note {
+  max-width: 640px;
+}
+
+.payment-resolution-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.payment-resolution-card__updated {
+  margin: 0;
+  font-size: 13px;
 }
 
 @media (max-width: 760px) {

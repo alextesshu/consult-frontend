@@ -790,6 +790,9 @@ type Session = {
   workspace?: {
     payment_state?: 'paid' | 'awaiting_confirmation' | 'unpaid' | 'not_applicable' | string | null
   } | null
+  payment_resolution_state?: 'pending' | 'refunded' | 'credited' | 'retained' | string | null
+  payment_resolution_note?: string | null
+  payment_resolution_updated_at?: string | null
   client: number | null
   client_user_id?: number | null
   client_record_id?: number | null
@@ -927,7 +930,34 @@ const sessionPaymentBadgeState = (session: Session): SessionPaymentBadgeState =>
   return null
 }
 
+type SessionPaymentResolutionState = 'pending' | 'refunded' | 'credited' | 'retained' | null
+
+const sessionPaymentResolutionState = (session: Session): SessionPaymentResolutionState => {
+  const value = String(session.payment_resolution_state || '').toLowerCase()
+
+  if (value === 'pending') return 'pending'
+  if (value === 'refunded') return 'refunded'
+  if (value === 'credited') return 'credited'
+  if (value === 'retained') return 'retained'
+
+  return null
+}
+
+const paymentResolutionBadgeLabel = (session: Session) => {
+  const state = sessionPaymentResolutionState(session)
+
+  if (state === 'pending') return 'Потребує рішення щодо оплати'
+  if (state === 'refunded') return 'Оплату повернено'
+  if (state === 'credited') return 'Зараховано на майбутню сесію'
+  if (state === 'retained') return 'Оплату залишено за домовленістю'
+
+  return ''
+}
+
 const paymentBadgeLabel = (session: Session) => {
+  const resolutionLabel = paymentResolutionBadgeLabel(session)
+  if (resolutionLabel) return resolutionLabel
+
   const state = sessionPaymentBadgeState(session)
 
   if (state === 'paid') return 'Оплачено'
@@ -940,6 +970,11 @@ const paymentBadgeLabel = (session: Session) => {
 const hasPaymentBadge = (session: Session) => Boolean(paymentBadgeLabel(session))
 
 const paymentBadgeClass = (session: Session) => {
+  const resolutionState = sessionPaymentResolutionState(session)
+
+  if (resolutionState === 'pending') return 'status-pill--payment-awaiting'
+  if (resolutionState) return 'status-pill--payment-paid'
+
   const state = sessionPaymentBadgeState(session)
 
   if (state === 'awaiting_confirmation') return 'status-pill--payment-awaiting'
