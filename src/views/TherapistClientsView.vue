@@ -221,6 +221,17 @@
             </dl>
           </div>
           <div v-if="isManualClient(client)" class="client-actions">
+            <div v-if="client.status !== 'archived'" class="client-actions__primary">
+              <button
+                class="btn btn--sm"
+                type="button"
+                :disabled="isManualActionLoading(client.id)"
+                @click="openManualClientSessionModal(client)"
+              >
+                Створити сесію
+              </button>
+            </div>
+
             <div class="client-actions__secondary">
               <button
                 class="btn btn--ghost btn--sm"
@@ -400,6 +411,76 @@
       @cancel="closeClientPracticeBoardModal"
       @submit="submitClientPracticeBoardQuickAdd"
     />
+
+    <div
+      v-if="manualSessionModalOpen"
+      class="manual-client-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="manual-session-title"
+    >
+      <button
+        class="manual-client-modal__backdrop"
+        type="button"
+        aria-label="Закрити форму створення сесії"
+        @click="closeManualClientSessionModal"
+      ></button>
+
+      <form class="manual-client-modal__content" @submit.prevent="submitManualClientSession">
+        <div class="manual-client-modal__header">
+          <div>
+            <div class="badge badge--soft">Без кабінету</div>
+            <h2 id="manual-session-title" class="manual-client-modal__title">{{ manualSessionModalTitle }}</h2>
+          </div>
+          <button class="btn btn--ghost btn--sm" type="button" @click="closeManualClientSessionModal">
+            Закрити
+          </button>
+        </div>
+
+        <div v-if="manualSessionError" class="form-error">{{ manualSessionError }}</div>
+
+        <p class="muted">
+          Сесія буде створена для клієнта без кабінету на основі одного з ваших вільних слотів.
+        </p>
+
+        <div v-if="manualSessionSlotsLoading" class="muted">Завантаження вільних слотів…</div>
+
+        <div v-else-if="manualSessionSlots.length === 0" class="form-warning">
+          Немає майбутніх вільних слотів. Спочатку створіть слот у розкладі.
+          <RouterLink to="/cabinet/slots">Перейти до розкладу</RouterLink>
+        </div>
+
+        <div v-else class="manual-client-form">
+          <label class="field manual-client-form__note">
+            Вільний слот
+            <select v-model.number="manualSessionDraft.slot_id" class="input input--select" required>
+              <option :value="0" disabled>Оберіть слот</option>
+              <option v-for="slot in manualSessionSlots" :key="slot.id" :value="slot.id">
+                {{ formatManualSessionSlot(slot) }}
+              </option>
+            </select>
+          </label>
+
+          <label class="field">
+            Формат
+            <select v-model="manualSessionDraft.session_format" class="input input--select">
+              <option value="online">Онлайн</option>
+              <option value="offline">Офлайн</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="manual-client-modal__actions">
+          <button class="btn btn--sm" type="submit" :disabled="manualSessionSubmitDisabled">
+            {{ manualSessionSaving ? 'Створюємо…' : 'Створити сесію' }}
+          </button>
+          <button class="btn btn--ghost btn--sm" type="button" @click="closeManualClientSessionModal">
+            Скасувати
+          </button>
+        </div>
+      </form>
+    </div>
+
     <div v-if="manualClientModalOpen" class="manual-client-modal" role="dialog" aria-modal="true" aria-labelledby="manual-client-title">
       <button
         class="manual-client-modal__backdrop"
@@ -465,7 +546,8 @@
 
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
-import { apiGet, apiPatch, apiPost, fetchChatThreads, type ChatThread } from '../lib/api'
+import { useRouter } from 'vue-router'
+import { apiGet, apiPatch, apiPost, fetchChatThreads, type ChatThread, type SessionFormat } from '../lib/api'
 import EmptyState from '../components/EmptyState.vue'
 import LoadingSkeleton from '../components/LoadingSkeleton.vue'
 import PracticeBoardQuickAddModal from '../components/PracticeBoardQuickAddModal.vue'
@@ -479,9 +561,11 @@ import {
   resolveDefaultPracticeBoardId,
 } from '../lib/specialistPracticeBoard'
 import {
+  fetchSpecialistAvailableSlots,
   fetchSpecialistClientWorkbookSnapshot as fetchSpecialistClientWorkbookSnapshotData,
   saveSpecialistClientJournal as saveSpecialistClientJournalAction,
   skipSpecialistSessionNote as skipSpecialistSessionNoteAction,
+  type SpecialistSlot,
 } from '../lib/specialistSessions'
 
 type ClientState = {
@@ -531,6 +615,16 @@ type ManualClientFormState = {
   phone: string
   telegram: string
   internal_note: string
+}
+
+type ManualClientSessionFormState = {
+  slot_id: number
+  session_format: SessionFormat
+}
+
+type ManualClientSessionCreateResponse = {
+  id?: number
+  session_id?: number
 }
 
 type ClientListItem = ClientState | ManualClientRecord
@@ -644,11 +738,24 @@ const manualClientForm = ref<ManualClientFormState>({
   telegram: '',
   internal_note: '',
 })
+
+const manualSessionModalOpen = ref(false)
+const manualSessionClient = ref<ManualClientRecord | null>(null)
+const manualSessionSlots = ref<SpecialistSlot[]>([])
+const manualSessionSlotsLoading = ref(false)
+const manualSessionSaving = ref(false)
+const manualSessionError = ref('')
+const manualSessionDraft = ref<ManualClientSessionFormState>({
+  slot_id: 0,
+  session_format: 'online',
+})
+
 const retryLabel = '\u0421\u043f\u0440\u043e\u0431\u0443\u0432\u0430\u0442\u0438 \u0449\u0435 \u0440\u0430\u0437'
 const remindersErrorTitle = '\u041d\u0435 \u0432\u0434\u0430\u043b\u043e\u0441\u044f \u0437\u0430\u0432\u0430\u043d\u0442\u0430\u0436\u0438\u0442\u0438 \u043d\u0430\u0433\u0430\u0434\u0443\u0432\u0430\u043d\u043d\u044f'
 const initialDeepLinkClientId = parseClientDeepLinkClientId(window.location.search)
 let clientCardHighlightTimer: number | null = null
 const toast = useToast()
+const router = useRouter()
 
 const filteredClients = computed(() => {
   const items: ClientListItem[] = [...clients.value, ...manualClientRecords.value]
@@ -708,6 +815,16 @@ const manualClientSubmitLabel = computed(() => {
   }
 
   return isManualClientEditMode.value ? 'Зберегти зміни' : 'Додати клієнта'
+})
+
+const manualSessionModalTitle = computed(() => {
+  const client = manualSessionClient.value
+  if (!client) return 'Створити сесію'
+  return `Створити сесію для ${displayClientName(client)}`
+})
+
+const manualSessionSubmitDisabled = computed(() => {
+  return manualSessionSaving.value || manualSessionSlotsLoading.value || !manualSessionDraft.value.slot_id
 })
 
 const isActionLoading = (id: number) => actionLoading.value.has(id)
@@ -1220,6 +1337,95 @@ function closeManualClientModal() {
   manualClientModalOpen.value = false
   manualClientEditingId.value = null
   resetManualClientForm()
+}
+
+function resetManualSessionForm() {
+  manualSessionDraft.value = {
+    slot_id: 0,
+    session_format: 'online',
+  }
+  manualSessionError.value = ''
+  manualSessionSlots.value = []
+}
+
+function formatManualSessionSlot(slot: SpecialistSlot) {
+  const start = formatDateTime(slot.start_at)
+  const end = formatDateTime(slot.end_at)
+  if (!start || start === '—') return `Слот #${slot.id}`
+  if (!end || end === '—') return start
+  return `${start} — ${end}`
+}
+
+async function openManualClientSessionModal(client: ManualClientRecord) {
+  if (client.status === 'archived') return
+
+  manualSessionClient.value = client
+  resetManualSessionForm()
+  manualSessionModalOpen.value = true
+  manualSessionSlotsLoading.value = true
+
+  try {
+    const slots = await fetchSpecialistAvailableSlots()
+    manualSessionSlots.value = slots
+    manualSessionDraft.value = {
+      ...manualSessionDraft.value,
+      slot_id: slots[0]?.id || 0,
+    }
+  } catch (err: any) {
+    manualSessionError.value = getApiErrorMessage(err, 'Не вдалося завантажити вільні слоти.')
+  } finally {
+    manualSessionSlotsLoading.value = false
+  }
+}
+
+function closeManualClientSessionModal() {
+  if (manualSessionSaving.value) return
+  manualSessionModalOpen.value = false
+  manualSessionClient.value = null
+  resetManualSessionForm()
+}
+
+async function submitManualClientSession() {
+  const client = manualSessionClient.value
+  if (!client || client.status === 'archived') return
+
+  if (!manualSessionDraft.value.slot_id) {
+    manualSessionError.value = 'Оберіть вільний слот.'
+    return
+  }
+
+  manualSessionSaving.value = true
+  manualSessionError.value = ''
+  error.value = ''
+
+  try {
+    const created = await apiPost<ManualClientSessionCreateResponse>(
+      `/cabinet/client-records/${client.id}/sessions/`,
+      {
+        slot_id: manualSessionDraft.value.slot_id,
+        session_format: manualSessionDraft.value.session_format,
+      }
+    )
+
+    const sessionId = Number(created?.id || created?.session_id || 0)
+
+    manualSessionModalOpen.value = false
+    manualSessionClient.value = null
+    resetManualSessionForm()
+
+    toast.success('Сесію для клієнта створено.')
+
+    if (sessionId) {
+      await router.push(`/cabinet/sessions/${sessionId}`)
+      return
+    }
+
+    await router.push('/cabinet/sessions')
+  } catch (err: any) {
+    manualSessionError.value = getApiErrorMessage(err, 'Не вдалося створити сесію для клієнта.')
+  } finally {
+    manualSessionSaving.value = false
+  }
 }
 
 function manualClientPayload() {
