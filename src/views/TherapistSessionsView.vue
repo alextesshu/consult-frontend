@@ -76,7 +76,7 @@
                 :disabled="isActionLoading(session.id)"
                 @click="confirmSession(session.id)"
               >
-                Підтвердити
+                Підтвердити сесію
               </button>
             </div>
           </div>
@@ -286,7 +286,7 @@
                 :disabled="isActionLoading(session.id)"
                 @click="confirmSession(session.id)"
               >
-                Підтвердити
+                Підтвердити сесію
               </button>
               <a
                 v-else-if="isPrimaryAction(session, 'join')"
@@ -782,6 +782,14 @@ type Session = {
   id: number
   status: string
   payment_badge_state?: 'paid' | 'awaiting_confirmation' | 'unpaid' | null
+  price_amount?: string | number | null
+  price_currency?: string | null
+  payment_proof?: {
+    status?: string | null
+  } | null
+  workspace?: {
+    payment_state?: 'paid' | 'awaiting_confirmation' | 'unpaid' | 'not_applicable' | string | null
+  } | null
   client: number | null
   client_user_id?: number | null
   client_record_id?: number | null
@@ -893,20 +901,49 @@ const statusClass = (session: Session) => {
   return getStatusClass(session as SpecialistSessionLike)
 }
 
+type SessionPaymentBadgeState = 'paid' | 'awaiting_confirmation' | 'unpaid' | null
+
+function hasSessionPrice(session: Session) {
+  const amount = session.price_amount
+  return amount !== null && amount !== undefined && String(amount).trim() !== ''
+}
+
+const sessionPaymentBadgeState = (session: Session): SessionPaymentBadgeState => {
+  const workspaceState = String(session.workspace?.payment_state || '').toLowerCase()
+
+  if (workspaceState === 'paid') return 'paid'
+  if (workspaceState === 'awaiting_confirmation') return 'awaiting_confirmation'
+  if (workspaceState === 'unpaid') return 'unpaid'
+
+  const proofStatus = String(session.payment_proof?.status || '').toUpperCase()
+
+  if (proofStatus === 'MARKED_PAID') return 'paid'
+  if (proofStatus === 'PROOF_SUBMITTED') return 'awaiting_confirmation'
+
+  if (session.payment_badge_state) return session.payment_badge_state
+
+  if (isManualClientSession(session) && hasSessionPrice(session)) return 'unpaid'
+
+  return null
+}
+
 const paymentBadgeLabel = (session: Session) => {
-  if (session.payment_badge_state === 'paid') return 'Оплачено'
-  if (session.payment_badge_state === 'awaiting_confirmation') {
-    return 'Очікує підтвердження оплати'
-  }
-  if (session.payment_badge_state === 'unpaid') return 'Не оплачено'
+  const state = sessionPaymentBadgeState(session)
+
+  if (state === 'paid') return 'Оплачено'
+  if (state === 'awaiting_confirmation') return 'Очікує підтвердження оплати'
+  if (state === 'unpaid') return 'Не оплачено'
+
   return ''
 }
 
-const hasPaymentBadge = (session: Session) => !isManualClientSession(session) && Boolean(paymentBadgeLabel(session))
+const hasPaymentBadge = (session: Session) => Boolean(paymentBadgeLabel(session))
 
 const paymentBadgeClass = (session: Session) => {
-  if (session.payment_badge_state === 'awaiting_confirmation') return 'status-pill--payment-awaiting'
-  if (session.payment_badge_state === 'unpaid') return 'status-pill--payment-unpaid'
+  const state = sessionPaymentBadgeState(session)
+
+  if (state === 'awaiting_confirmation') return 'status-pill--payment-awaiting'
+  if (state === 'unpaid') return 'status-pill--payment-unpaid'
   return 'status-pill--payment-paid'
 }
 

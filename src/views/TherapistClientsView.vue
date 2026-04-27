@@ -205,10 +205,19 @@
               </div>
 
               <div class="client-meta__item">
+                <dt>{{ manualClientPaymentTitle(client) }}</dt>
+                <dd>
+                  <span class="manual-payment-status" :class="manualClientPaymentClass(client)">
+                    {{ manualClientPaymentLabel(client) }}
+                  </span>
+                </dd>
+              </div>
+
+              <div class="client-meta__item">
                 <dt>Заплановано</dt>
                 <dd>{{ manualClientUpcomingSessions(client).length }}</dd>
               </div>
-
+              
               <div class="client-meta__item">
                 <dt>Остання сесія</dt>
                 <dd>{{ optionalDateLabel(manualClientLastSession(client)?.slot_start_at, 'Ще не було') }}</dd>
@@ -704,6 +713,15 @@ type SessionItem = {
   client_code?: string | null
   has_note?: boolean | null
   note_updated_at?: string | null
+  payment_badge_state?: 'paid' | 'awaiting_confirmation' | 'unpaid' | null
+  price_amount?: string | number | null
+  price_currency?: string | null
+  payment_proof?: {
+    status?: string | null
+  } | null
+  workspace?: {
+    payment_state?: 'paid' | 'awaiting_confirmation' | 'unpaid' | 'not_applicable' | string | null
+  } | null
 }
 
 type PendingNoteItem = {
@@ -955,6 +973,76 @@ function manualClientUpcomingSessions(client: ManualClientRecord) {
 
 function manualClientNearestSession(client: ManualClientRecord) {
   return manualClientUpcomingSessions(client)[0] || null
+}
+
+type ManualSessionPaymentState = 'paid' | 'awaiting_confirmation' | 'unpaid' | null
+
+function hasSessionPrice(session: SessionItem | null | undefined) {
+  const amount = session?.price_amount
+  return amount !== null && amount !== undefined && String(amount).trim() !== ''
+}
+
+function sessionPaymentState(session: SessionItem | null | undefined): ManualSessionPaymentState {
+  if (!session) return null
+
+  const workspaceState = String(session.workspace?.payment_state || '').toLowerCase()
+
+  if (workspaceState === 'paid') return 'paid'
+  if (workspaceState === 'awaiting_confirmation') return 'awaiting_confirmation'
+  if (workspaceState === 'unpaid') return 'unpaid'
+
+  const proofStatus = String(session.payment_proof?.status || '').toUpperCase()
+
+  if (proofStatus === 'MARKED_PAID') return 'paid'
+  if (proofStatus === 'PROOF_SUBMITTED') return 'awaiting_confirmation'
+
+  if (session.payment_badge_state === 'paid') return 'paid'
+  if (session.payment_badge_state === 'awaiting_confirmation') return 'awaiting_confirmation'
+  if (session.payment_badge_state === 'unpaid') return 'unpaid'
+
+  if (hasSessionPrice(session)) return 'unpaid'
+
+  return null
+}
+
+function sessionPaymentLabel(session: SessionItem | null | undefined) {
+  const state = sessionPaymentState(session)
+
+  if (state === 'paid') return 'Оплачено'
+  if (state === 'awaiting_confirmation') return 'Очікує підтвердження'
+  if (state === 'unpaid') return 'Не оплачено'
+
+  return 'Немає даних'
+}
+
+function sessionPaymentClass(session: SessionItem | null | undefined) {
+  const state = sessionPaymentState(session)
+
+  if (state === 'paid') return 'manual-payment-status--paid'
+  if (state === 'awaiting_confirmation') return 'manual-payment-status--awaiting'
+  if (state === 'unpaid') return 'manual-payment-status--unpaid'
+
+  return 'manual-payment-status--muted'
+}
+
+function manualClientPaymentSession(client: ManualClientRecord) {
+  return manualClientNearestSession(client) || manualClientLastSession(client)
+}
+
+function manualClientPaymentTitle(client: ManualClientRecord) {
+  if (manualClientNearestSession(client)) return 'Оплата найближчої'
+  if (manualClientLastSession(client)) return 'Оплата останньої'
+  return 'Оплата'
+}
+
+function manualClientPaymentLabel(client: ManualClientRecord) {
+  const session = manualClientPaymentSession(client)
+  if (!session) return 'Немає сесій'
+  return sessionPaymentLabel(session)
+}
+
+function manualClientPaymentClass(client: ManualClientRecord) {
+  return sessionPaymentClass(manualClientPaymentSession(client))
 }
 
 function manualClientLastSession(client: ManualClientRecord) {
@@ -2579,6 +2667,41 @@ onBeforeUnmount(() => {
   border-color: var(--pc-navy-950);
   background: var(--pc-navy-950);
   color: #fff;
+}
+
+.manual-payment-status {
+  display: inline-flex;
+  width: fit-content;
+  max-width: 100%;
+  align-items: center;
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  padding: 4px 8px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.manual-payment-status--paid {
+  background: var(--pc-green-soft);
+  color: var(--pc-success);
+  border-color: color-mix(in srgb, var(--pc-success) 25%, transparent);
+}
+
+.manual-payment-status--awaiting {
+  background: var(--pc-yellow-soft);
+  color: var(--pc-warning);
+  border-color: color-mix(in srgb, var(--pc-warning) 26%, transparent);
+}
+
+.manual-payment-status--unpaid {
+  background: var(--pc-blue-soft);
+  color: var(--pc-navy-800);
+}
+
+.manual-payment-status--muted {
+  background: var(--pc-blue-soft);
+  color: var(--pc-text-muted);
 }
 
 @media (max-width: 860px) {
