@@ -241,7 +241,7 @@ describe('ExternalSessionDetailView', () => {
 
     await screen.findByText('Деталі гостьової сесії')
     expect(screen.getByText('Оплату запрошено')).toBeInTheDocument()
-    expect(screen.getByText('2000.00 UAH')).toBeInTheDocument()
+    expect(screen.getByText(/2\s000 грн/)).toBeInTheDocument()
 
     await fireEvent.click(screen.getByRole('button', { name: 'Позначити оплаченою' }))
 

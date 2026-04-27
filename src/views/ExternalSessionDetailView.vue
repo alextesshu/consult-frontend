@@ -493,7 +493,14 @@ const paymentStatusClass = computed(() => {
 const paymentAmountLabel = computed(() => {
   const amount = session.value?.payment_amount
   if (amount === null || amount === undefined || amount === '') return ''
-  return `${amount} ${session.value?.payment_currency || 'UAH'}`
+
+  const currency = String(session.value?.payment_currency || 'UAH').toUpperCase()
+  const numericAmount = Number(amount)
+  const formattedAmount = Number.isFinite(numericAmount)
+    ? new Intl.NumberFormat('uk-UA', { maximumFractionDigits: 2 }).format(numericAmount)
+    : String(amount)
+
+  return `${formattedAmount} ${currency === 'UAH' ? 'грн' : currency}`
 })
 
 const timeOptions = Array.from({ length: 24 * 4 }, (_, index) => {
