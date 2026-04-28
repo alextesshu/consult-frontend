@@ -1015,10 +1015,10 @@ function sessionPaymentLabel(session: SessionItem | null | undefined) {
   const state = sessionPaymentState(session)
 
   if (state === 'paid') return 'Оплачено'
-  if (state === 'awaiting_confirmation') return 'Очікує підтвердження'
+  if (state === 'awaiting_confirmation') return 'Очікує підтвердження оплати'
   if (state === 'unpaid') return 'Не оплачено'
 
-  return 'Немає даних'
+  return 'Немає даних про оплату'
 }
 
 function sessionPaymentClass(session: SessionItem | null | undefined) {
@@ -1052,10 +1052,10 @@ function sessionPaymentResolutionState(session: SessionItem | null | undefined):
 function sessionPaymentResolutionLabel(session: SessionItem | null | undefined) {
   const state = sessionPaymentResolutionState(session)
 
-  if (state === 'pending') return 'Потребує рішення'
+  if (state === 'pending') return 'Потребує рішення щодо оплати'
   if (state === 'refunded') return 'Оплату повернено'
-  if (state === 'credited') return 'Зараховано на майбутню'
-  if (state === 'retained') return 'Залишено за домовленістю'
+  if (state === 'credited') return 'Зараховано на майбутню сесію'
+  if (state === 'retained') return 'Оплату залишено за домовленістю'
 
   return ''
 }
