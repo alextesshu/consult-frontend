@@ -453,30 +453,54 @@
             {{ paymentResolutionError }}
           </div>
 
-          <label class="field payment-resolution-card__note">
-            Коментар щодо рішення
-            <textarea
-              v-model.trim="paymentResolutionNote"
-              class="input"
-              rows="3"
-              placeholder="Наприклад: повернено на картку, зараховано на наступну зустріч або залишено за домовленістю."
-            ></textarea>
-          </label>
+          <p
+            v-if="paymentResolutionIsResolved && session?.payment_resolution_note && !paymentResolutionEditVisible"
+            class="payment-resolution-card__note-text"
+          >
+            {{ session.payment_resolution_note }}
+          </p>
 
-          <div class="payment-resolution-card__actions">
-            <button
-              v-for="action in ['refunded', 'credited', 'retained']"
-              :key="action"
-              class="btn btn--ghost btn--sm"
-              type="button"
-              :disabled="Boolean(paymentResolutionSaving)"
-              @click="savePaymentResolution(action as PaymentResolutionAction)"
-            >
-              {{
-                paymentResolutionSaving === action
-                  ? 'Зберігаємо…'
-                  : paymentResolutionActionLabel(action as PaymentResolutionAction)
-              }}
+          <template v-if="paymentResolutionEditVisible">
+            <label class="field payment-resolution-card__note">
+              Коментар щодо рішення
+              <textarea
+                v-model.trim="paymentResolutionNote"
+                class="input"
+                rows="3"
+                placeholder="Наприклад: повернено на картку, зараховано на наступну зустріч або залишено за домовленістю."
+              ></textarea>
+            </label>
+
+            <div class="payment-resolution-card__actions">
+              <button
+                v-for="action in ['refunded', 'credited', 'retained']"
+                :key="action"
+                class="btn btn--ghost btn--sm"
+                type="button"
+                :disabled="Boolean(paymentResolutionSaving)"
+                @click="savePaymentResolution(action as PaymentResolutionAction)"
+              >
+                {{
+                  paymentResolutionSaving === action
+                    ? 'Зберігаємо…'
+                    : paymentResolutionActionLabel(action as PaymentResolutionAction)
+                }}
+              </button>
+              <button
+                v-if="paymentResolutionIsResolved"
+                class="btn btn--ghost btn--sm"
+                type="button"
+                :disabled="Boolean(paymentResolutionSaving)"
+                @click="cancelPaymentResolutionEditing"
+              >
+                Скасувати зміну
+              </button>
+            </div>
+          </template>
+
+          <div v-else-if="paymentResolutionIsResolved" class="payment-resolution-card__actions">
+            <button class="btn btn--ghost btn--sm" type="button" @click="startPaymentResolutionEditing">
+              Змінити рішення
             </button>
           </div>
 
@@ -1031,6 +1055,7 @@ const manualPaymentError = ref('')
 const paymentResolutionSaving = ref<PaymentResolutionAction | null>(null)
 const paymentResolutionError = ref('')
 const paymentResolutionNote = ref('')
+const paymentResolutionEditing = ref(false)
 const manualPriceEditing = ref(false)
 const manualPriceDraft = ref('')
 const manualPriceSaving = ref(false)
@@ -1140,6 +1165,15 @@ const shouldShowPaymentResolutionBlock = computed(() => {
   return Boolean(paymentResolutionState.value)
 })
 
+const paymentResolutionIsResolved = computed(() => {
+  return ['refunded', 'credited', 'retained'].includes(paymentResolutionState.value || '')
+})
+
+const paymentResolutionEditVisible = computed(() => {
+  if (paymentResolutionState.value === 'pending') return true
+  return paymentResolutionIsResolved.value && paymentResolutionEditing.value
+})
+
 const paymentResolutionLabel = computed(() => {
   if (paymentResolutionState.value === 'pending') return 'Потребує рішення щодо оплати'
   if (paymentResolutionState.value === 'refunded') return 'Оплату повернено'
@@ -1175,6 +1209,25 @@ function paymentResolutionActionLabel(action: PaymentResolutionAction) {
   if (action === 'retained') return 'Залишити за домовленістю'
 
   return 'Зберегти рішення'
+}
+
+function syncPaymentResolutionDraft(detail: SessionDetail | null) {
+  paymentResolutionNote.value = detail?.payment_resolution_note || ''
+  paymentResolutionEditing.value = false
+  paymentResolutionError.value = ''
+}
+
+function startPaymentResolutionEditing() {
+  if (!paymentResolutionIsResolved.value) return
+  paymentResolutionNote.value = session.value?.payment_resolution_note || ''
+  paymentResolutionError.value = ''
+  paymentResolutionEditing.value = true
+}
+
+function cancelPaymentResolutionEditing() {
+  paymentResolutionNote.value = session.value?.payment_resolution_note || ''
+  paymentResolutionError.value = ''
+  paymentResolutionEditing.value = false
 }
 
 const manualPriceSubmitDisabled = computed(() => {
@@ -1721,6 +1774,7 @@ async function syncSessionWorkspaceAfterPaymentMutation() {
   try {
     const latest = await apiGet<SessionDetail>(`/booking/sessions/${sessionId.value}/`)
     session.value = latest
+    syncPaymentResolutionDraft(latest)
   } catch {
     // Keep current UI state if background sync fails.
   }
@@ -1829,8 +1883,8 @@ async function savePaymentResolution(action: PaymentResolutionAction) {
     )
 
     session.value = updatedSession
-    paymentResolutionNote.value = updatedSession.payment_resolution_note || ''
-    toast.success('Рішення щодо оплати збережено.')
+    syncPaymentResolutionDraft(updatedSession)
+    toast.success('Рішення щодо оплати оновлено.')
   } catch (err: any) {
     paymentResolutionError.value = getBookingErrorMessage(
       err,
@@ -1894,9 +1948,12 @@ async function loadSession() {
   pageError.value = ''
   paymentProofActionError.value = ''
   try {
-    session.value = await apiGet<SessionDetail>(`/booking/sessions/${sessionId.value}/`)
+    const nextSession = await apiGet<SessionDetail>(`/booking/sessions/${sessionId.value}/`)
+    session.value = nextSession
+    syncPaymentResolutionDraft(nextSession)
   } catch (err: any) {
     session.value = null
+    syncPaymentResolutionDraft(null)
     pageError.value = getBookingErrorMessage(err, BOOKING_ERROR_FALLBACKS.loadSession)
   } finally {
     loading.value = false
