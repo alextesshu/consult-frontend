@@ -690,11 +690,23 @@ onMounted(async () => {
   color: var(--pc-navy-900);
 }
 
+.external-sessions__hero .btn {
+  border-radius: var(--pc-radius-control);
+  font-weight: 700;
+}
+
+.external-sessions__hero .btn--ghost {
+  border-color: var(--pc-border);
+  background: #fff;
+  color: var(--pc-navy-900);
+}
+
 .panel {
-  border: 1px solid var(--line);
-  border-radius: 18px;
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-panel);
   padding: 18px;
   background: #fff;
+  box-shadow: var(--pc-shadow-soft);
   display: grid;
   gap: 14px;
 }
@@ -720,7 +732,9 @@ onMounted(async () => {
 }
 
 .badge--soft {
-  background: rgba(8, 113, 201, 0.12);
+  background: color-mix(in srgb, var(--pc-blue-soft) 82%, #ffffff);
+  border-color: color-mix(in srgb, var(--pc-navy-900) 22%, var(--pc-border));
+  color: var(--pc-navy-900);
 }
 
 .form-grid {
@@ -735,14 +749,39 @@ onMounted(async () => {
   flex-wrap: wrap;
 }
 
+.form-grid .input,
+.request-meeting-field .input {
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-control);
+}
+
+.actions-row .btn:not(.btn--ghost) {
+  border-color: var(--pc-navy-900);
+  border-radius: var(--pc-radius-control);
+  background: linear-gradient(180deg, var(--pc-navy-900), var(--pc-navy-950));
+  color: #fff;
+  font-weight: 700;
+}
+
+.actions-row .btn:not(.btn--ghost):hover,
+.actions-row .btn:not(.btn--ghost):focus-visible {
+  border-color: var(--pc-navy-950);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--pc-navy-900) 92%, #000000),
+    var(--pc-navy-950)
+  );
+  color: #fff;
+}
+
 .list-grid {
   display: grid;
   gap: 12px;
 }
 
 .session-card {
-  border: 1px solid var(--line);
-  border-radius: var(--radius-md);
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-card);
   padding: 12px;
   background: #fff;
   display: flex;
@@ -761,8 +800,8 @@ onMounted(async () => {
 }
 
 .request-card {
-  border: 1px solid var(--line);
-  border-radius: var(--radius-md);
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-card);
   padding: 12px;
   background: #fff;
   display: flex;
@@ -845,6 +884,8 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   min-height: 40px;
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-control);
   color: var(--text);
   background: #f8fafc;
   cursor: default;

@@ -850,7 +850,7 @@ onBeforeUnmount(() => {
   gap: 20px;
 }
 
-.chat__hero {
+.chat__hero.card {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -859,11 +859,12 @@ onBeforeUnmount(() => {
   position: relative;
   overflow: hidden;
   background:
-    radial-gradient(circle at 92% 70%, color-mix(in srgb, var(--pc-peach-100) 70%, transparent) 0 120px, transparent 121px),
-    linear-gradient(135deg, #ffffff 0%, color-mix(in srgb, var(--pc-primary-soft) 70%, #ffffff) 54%, color-mix(in srgb, var(--pc-yellow-soft) 45%, #ffffff) 100%);
+    radial-gradient(circle at 92% 18%, rgba(143, 203, 200, 0.28), transparent 28%),
+    linear-gradient(135deg, var(--pc-bg-card), var(--pc-bg-soft));
   border: 1px solid var(--pc-border);
   border-radius: var(--pc-radius-panel);
   box-shadow: var(--pc-shadow-soft);
+  color: var(--pc-text-main);
 }
 
 .chat__hero > * {
@@ -931,6 +932,15 @@ onBeforeUnmount(() => {
   display: grid;
   gap: 12px;
   align-content: start;
+}
+
+.chat__threads.card,
+.chat__messages.card {
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-panel);
+  background: #fff;
+  box-shadow: var(--pc-shadow-soft);
+  color: var(--pc-text-main);
 }
 
 .chat__thread-tabs {

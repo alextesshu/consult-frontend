@@ -100,17 +100,79 @@ onMounted(load)
 }
 
 .panel {
-  border: 1px solid var(--line);
-  border-radius: 16px;
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-panel);
   padding: 16px;
   background: #fff;
+  box-shadow: var(--pc-shadow-soft);
   display: grid;
   gap: 10px;
 }
 
+.panel:first-of-type {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 92% 70%, color-mix(in srgb, var(--pc-peach-100) 70%, transparent) 0 120px, transparent 121px),
+    linear-gradient(135deg, #ffffff 0%, color-mix(in srgb, var(--pc-primary-soft) 70%, #ffffff) 54%, color-mix(in srgb, var(--pc-yellow-soft) 45%, #ffffff) 100%);
+}
+
+.panel:first-of-type > * {
+  position: relative;
+  z-index: 1;
+}
+
+.panel:first-of-type::after {
+  content: "";
+  position: absolute;
+  right: -44px;
+  bottom: -58px;
+  width: 180px;
+  height: 180px;
+  border-radius: 999px;
+  background: rgba(247, 183, 126, 0.18);
+  pointer-events: none;
+}
+
+.panel:first-of-type .title {
+  margin: 8px 0 8px;
+  color: var(--pc-navy-950);
+  font-size: 32px;
+  line-height: 1.15;
+}
+
+.panel:first-of-type .muted {
+  max-width: 520px;
+  color: var(--pc-text-muted);
+  line-height: 1.55;
+}
+
 .badge--soft {
   width: fit-content;
-  background: rgba(8, 113, 201, 0.12);
+  border: 1px solid color-mix(in srgb, var(--pc-navy-900) 24%, var(--pc-border));
+  background: color-mix(in srgb, var(--pc-primary-soft) 78%, #ffffff);
+  color: var(--pc-navy-900);
+}
+
+.settings :deep(.settings-subnav__link) {
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-control);
+  background: #ffffff;
+  color: var(--pc-text-muted);
+  font-weight: 700;
+}
+
+.settings :deep(.settings-subnav__link:hover),
+.settings :deep(.settings-subnav__link:focus-visible) {
+  border-color: color-mix(in srgb, var(--pc-navy-900) 24%, var(--pc-border));
+  background: color-mix(in srgb, var(--pc-primary-soft) 64%, #ffffff);
+  color: var(--pc-navy-900);
+}
+
+.settings :deep(.settings-subnav__link.is-active) {
+  border-color: color-mix(in srgb, var(--pc-navy-900) 36%, var(--pc-border));
+  background: color-mix(in srgb, var(--pc-primary-soft) 80%, #ffffff);
+  color: var(--pc-navy-900);
 }
 
 .prefs {
@@ -124,9 +186,20 @@ onMounted(load)
   gap: 10px;
   align-items: start;
   padding: 10px 12px;
-  border-radius: 10px;
-  border: 1px solid var(--line);
-  background: rgba(7, 47, 71, 0.03);
+  border-radius: var(--pc-radius-card);
+  border: 1px solid var(--pc-border);
+  background: color-mix(in srgb, var(--pc-surface) 94%, #ffffff);
+  transition: background-color 0.18s ease, border-color 0.18s ease;
+}
+
+.pref-item:hover,
+.pref-item:focus-within {
+  border-color: color-mix(in srgb, var(--pc-navy-900) 24%, var(--pc-border));
+  background: color-mix(in srgb, var(--pc-primary-soft) 46%, #ffffff);
+}
+
+.pref-item input[type="checkbox"] {
+  accent-color: var(--pc-navy-900);
 }
 
 .pref-item strong {
@@ -141,5 +214,12 @@ onMounted(load)
   margin-top: 8px;
   display: flex;
   gap: 8px;
+}
+
+.actions .btn {
+  border-color: var(--pc-navy-900);
+  border-radius: var(--pc-radius-control);
+  background: linear-gradient(180deg, var(--pc-navy-900), var(--pc-navy-950));
+  color: #ffffff;
 }
 </style>

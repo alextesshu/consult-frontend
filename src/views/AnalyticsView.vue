@@ -461,11 +461,23 @@ onMounted(loadOverview)
   color: var(--pc-navy-900);
 }
 
+.analytics__header .btn {
+  border-radius: var(--pc-radius-control);
+  font-weight: 700;
+}
+
+.analytics__header .btn--ghost {
+  border-color: var(--pc-border);
+  background: #fff;
+  color: var(--pc-navy-900);
+}
+
 .panel {
-  border: 1px solid var(--line);
-  border-radius: 16px;
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-panel);
   padding: 14px;
   background: #fff;
+  box-shadow: var(--pc-shadow-soft);
   display: grid;
   gap: 10px;
 }
@@ -487,6 +499,12 @@ onMounted(loadOverview)
   font-size: 20px;
 }
 
+.badge--soft {
+  background: color-mix(in srgb, var(--pc-blue-soft) 82%, #ffffff);
+  border-color: color-mix(in srgb, var(--pc-navy-900) 22%, var(--pc-border));
+  color: var(--pc-navy-900);
+}
+
 .analytics__range {
   display: flex;
   justify-content: space-between;
@@ -500,10 +518,25 @@ onMounted(loadOverview)
   flex-wrap: wrap;
 }
 
+.range-switch .btn {
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-control);
+  background: #fff;
+  color: var(--pc-text-muted);
+  font-weight: 700;
+}
+
+.range-switch .btn:hover,
+.range-switch .btn:focus-visible {
+  border-color: color-mix(in srgb, var(--pc-navy-900) 28%, var(--pc-border));
+  background: color-mix(in srgb, var(--pc-blue-soft) 76%, #ffffff);
+  color: var(--pc-navy-900);
+}
+
 .btn--active {
-  border-color: #0b4a7d;
-  color: #0b4a7d;
-  background: #eef6ff;
+  border-color: color-mix(in srgb, var(--pc-navy-900) 36%, var(--pc-border));
+  color: var(--pc-navy-900);
+  background: color-mix(in srgb, var(--pc-primary-soft) 80%, #ffffff);
 }
 
 .metrics-grid {
@@ -517,11 +550,14 @@ onMounted(loadOverview)
 }
 
 .metric-card {
-  border: 1px solid var(--line);
-  border-radius: 12px;
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-card);
   padding: 10px;
+  background: #fff;
   display: grid;
-  gap: 4px;
+  grid-template-rows: auto minmax(48px, auto) minmax(42px, auto);
+  align-content: start;
+  gap: 6px;
 }
 
 .metric-card__label {
@@ -533,6 +569,16 @@ onMounted(loadOverview)
   font-family: var(--font-display);
   font-size: 30px;
   font-weight: 700;
+  width: 100%;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.metric-card > .muted {
+  min-height: 42px;
 }
 
 .empty-state {
@@ -567,7 +613,7 @@ onMounted(loadOverview)
 
 .series-row__bar {
   height: 100%;
-  background: linear-gradient(90deg, #0f9d86, #0b4a7d);
+  background: linear-gradient(90deg, var(--pc-navy-900), var(--pc-info));
   border-radius: 999px;
 }
 

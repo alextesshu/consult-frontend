@@ -568,10 +568,11 @@ watch(
 }
 
 .panel {
-  border: 1px solid var(--line);
-  border-radius: 16px;
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-panel);
   padding: 16px;
   background: #fff;
+  box-shadow: var(--pc-shadow-soft);
 }
 
 .settings-hub__hero {
@@ -619,7 +620,29 @@ watch(
 
 .badge--soft {
   width: fit-content;
-  background: rgba(8, 113, 201, 0.12);
+  border: 1px solid color-mix(in srgb, var(--pc-navy-900) 24%, var(--pc-border));
+  background: color-mix(in srgb, var(--pc-primary-soft) 78%, #ffffff);
+  color: var(--pc-navy-900);
+}
+
+.settings-hub :deep(.settings-subnav__link) {
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-control);
+  background: #ffffff;
+  color: var(--pc-text-muted);
+}
+
+.settings-hub :deep(.settings-subnav__link:hover),
+.settings-hub :deep(.settings-subnav__link:focus-visible) {
+  border-color: color-mix(in srgb, var(--pc-navy-900) 24%, var(--pc-border));
+  background: color-mix(in srgb, var(--pc-primary-soft) 64%, #ffffff);
+  color: var(--pc-navy-900);
+}
+
+.settings-hub :deep(.settings-subnav__link.is-active) {
+  border-color: color-mix(in srgb, var(--pc-navy-900) 36%, var(--pc-border));
+  background: color-mix(in srgb, var(--pc-primary-soft) 80%, #ffffff);
+  color: var(--pc-navy-900);
 }
 
 .settings-hub__grid {
@@ -629,16 +652,23 @@ watch(
 }
 
 .settings-card {
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-panel);
+  background: #ffffff;
+  box-shadow: var(--pc-shadow-soft);
   text-decoration: none;
   color: inherit;
   display: grid;
   gap: 6px;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease;
 }
 
-.settings-card:hover {
-  border-color: color-mix(in srgb, var(--primary) 35%, var(--line));
-  box-shadow: 0 10px 22px rgba(31, 74, 96, 0.12);
+.settings-card:hover,
+.settings-card:focus-visible {
+  border-color: color-mix(in srgb, var(--pc-navy-900) 26%, var(--pc-border));
+  background: color-mix(in srgb, var(--pc-primary-soft) 58%, #ffffff);
+  color: var(--pc-navy-900);
+  box-shadow: 0 12px 24px rgba(18, 52, 90, 0.1);
 }
 
 .settings-card__title {

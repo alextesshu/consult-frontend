@@ -953,6 +953,14 @@ onMounted(loadSlots)
 .slots__header .btn {
   min-height: 38px;
   padding: 6px 12px;
+  border-radius: var(--pc-radius-control);
+  font-weight: 700;
+}
+
+.slots__header .btn--ghost {
+  border-color: var(--pc-border);
+  background: #fff;
+  color: var(--pc-navy-900);
 }
 
 .slots__title {
@@ -978,11 +986,33 @@ onMounted(loadSlots)
   margin-top: -2px;
 }
 
+.slots__subnav :deep(.schedule-subnav__link) {
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-control);
+  background: #fff;
+  color: var(--pc-text-muted);
+  font-weight: 700;
+}
+
+.slots__subnav :deep(.schedule-subnav__link:hover),
+.slots__subnav :deep(.schedule-subnav__link:focus-visible) {
+  border-color: color-mix(in srgb, var(--pc-navy-900) 28%, var(--pc-border));
+  background: color-mix(in srgb, var(--pc-blue-soft) 76%, #ffffff);
+  color: var(--pc-navy-900);
+}
+
+.slots__subnav :deep(.schedule-subnav__link.is-active) {
+  border-color: color-mix(in srgb, var(--pc-navy-900) 36%, var(--pc-border));
+  background: color-mix(in srgb, var(--pc-primary-soft) 80%, #ffffff);
+  color: var(--pc-navy-900);
+}
+
 .panel {
-  border: 1px solid var(--line);
-  border-radius: 14px;
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-panel);
   padding: 14px;
   background: #fff;
+  box-shadow: var(--pc-shadow-soft);
   display: grid;
   gap: 8px;
 }
@@ -1011,7 +1041,9 @@ onMounted(loadSlots)
 }
 
 .badge--soft {
-  background: rgba(8, 113, 201, 0.12);
+  background: color-mix(in srgb, var(--pc-blue-soft) 82%, #ffffff);
+  border-color: color-mix(in srgb, var(--pc-navy-900) 22%, var(--pc-border));
+  color: var(--pc-navy-900);
 }
 
 .slot-form {
@@ -1039,6 +1071,8 @@ onMounted(loadSlots)
 .slot-form .input {
   font-size: 13px;
   padding: 10px 12px;
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-control);
 }
 
 .slot-form .btn {
@@ -1085,6 +1119,30 @@ onMounted(loadSlots)
   flex-wrap: wrap;
 }
 
+.day-nav-actions .btn,
+.day-list .btn,
+.slot-filter .btn,
+.slot-toggle {
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-control);
+  background: #fff;
+  color: var(--pc-text-muted);
+  font-weight: 700;
+}
+
+.day-nav-actions .btn:hover:not(:disabled),
+.day-nav-actions .btn:focus-visible,
+.day-list .btn:hover,
+.day-list .btn:focus-visible,
+.slot-filter .btn:hover,
+.slot-filter .btn:focus-visible,
+.slot-toggle:hover,
+.slot-toggle:focus-visible {
+  border-color: color-mix(in srgb, var(--pc-navy-900) 28%, var(--pc-border));
+  background: color-mix(in srgb, var(--pc-blue-soft) 76%, #ffffff);
+  color: var(--pc-navy-900);
+}
+
 .slot-filter {
   display: flex;
   gap: 6px;
@@ -1119,6 +1177,8 @@ onMounted(loadSlots)
 .day-picker--compact .input {
   height: 36px;
   width: 220px;
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-control);
 }
 
 .day-hint {
@@ -1159,9 +1219,9 @@ onMounted(loadSlots)
 }
 
 .btn--active {
-  border-color: #0b4a7d;
-  color: #0b4a7d;
-  background: #eef6ff;
+  border-color: color-mix(in srgb, var(--pc-navy-900) 36%, var(--pc-border));
+  color: var(--pc-navy-900);
+  background: color-mix(in srgb, var(--pc-primary-soft) 80%, #ffffff);
 }
 
 .slot-bulk {
@@ -1183,6 +1243,11 @@ onMounted(loadSlots)
 .bulk-group .input,
 .bulk-group .btn {
   height: 40px;
+}
+
+.bulk-group .input {
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-control);
 }
 
 .bulk-group .field {
@@ -1210,10 +1275,11 @@ onMounted(loadSlots)
 }
 
 .slot-card {
-  border: 1px solid var(--line);
-  border-radius: 12px;
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-card);
   padding: 10px;
   background: #fff;
+  box-shadow: var(--pc-shadow-soft);
   display: grid;
   gap: 6px;
 }
@@ -1223,8 +1289,8 @@ onMounted(loadSlots)
 }
 
 .slot-card--booked {
-  background: #faf7f6;
-  border-color: #e6dad7;
+  background: color-mix(in srgb, var(--pc-bg-soft) 62%, #ffffff);
+  border-color: var(--pc-border);
 }
 
 .slot-card--booked .slot-card__time {
@@ -1266,6 +1332,11 @@ onMounted(loadSlots)
   align-items: center;
 }
 
+.slot-card__edit .input {
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-control);
+}
+
 .field-hint {
   margin-top: 4px;
   font-size: 12px;
@@ -1275,9 +1346,10 @@ onMounted(loadSlots)
 .slot-status {
   font-size: 12px;
   padding: 4px 8px;
-  border-radius: 999px;
-  background: #eef6ff;
-  color: #0b4a7d;
+  border: 1px solid color-mix(in srgb, var(--pc-navy-900) 22%, var(--pc-border));
+  border-radius: var(--pc-radius-control);
+  background: color-mix(in srgb, var(--pc-blue-soft) 82%, #ffffff);
+  color: var(--pc-navy-900);
   width: fit-content;
 }
 
@@ -1297,6 +1369,14 @@ onMounted(loadSlots)
   height: 34px;
   padding: 5px 10px;
   font-size: 12px;
+  border-radius: var(--pc-radius-control);
+  font-weight: 700;
+}
+
+.slot-actions .btn--ghost {
+  border-color: var(--pc-border);
+  background: #fff;
+  color: var(--pc-navy-900);
 }
 
 .slot-hint {
