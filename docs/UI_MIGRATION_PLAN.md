@@ -1866,3 +1866,59 @@ Result:
 * `npm run test:run -- src/views/TherapistSessionsView.spec.ts src/views/TherapistSessionDetailView.spec.ts src/views/TherapistClientsView.spec.ts src/views/CabinetView.spec.ts` - passed, 131 tests.
 * `npm run typecheck` - passed.
 * `npm run build` - passed; existing Vite chunk-size warning remains.
+
+### 2026-04-28 — Cabinet page hero consistency pass
+
+Changed scope:
+
+* `src/views/CabinetView.vue`
+* `src/views/TherapistClientsView.vue`
+* `src/views/ExternalSessionsView.vue`
+* `src/views/AnalyticsView.vue`
+* `src/views/BillingView.vue`
+* `src/views/SettingsHubView.vue`
+* `src/views/TherapistProfileView.vue`
+* `src/views/SlotsView.vue`
+* `src/views/ChatView.vue`
+* `src/views/AuthorJournalView.vue`
+* `docs/UI_MIGRATION_PLAN.md`
+
+What changed:
+
+* Aligned cabinet/workspace top hero sections with the `/cabinet/sessions` hero pattern.
+* Standardized eyebrow/title/subtitle/action visual hierarchy and spacing.
+* Applied navy-first cream/soft hero background treatment with subtle decorative shape.
+* Added compact hero behavior for small/tablet widths (reduced padding/title/subtitle density and hidden decorative shape).
+* Kept changes limited to top-section visual layer.
+
+Preserved:
+
+* Existing routes.
+* Existing API calls.
+* Existing page-specific business logic.
+* Existing tabs, filters, forms, payments, and session/client/chat/journal behavior.
+
+Verification:
+
+```bash
+npm run test:run -- src/views/TherapistSessionsView.spec.ts src/views/TherapistClientsView.spec.ts src/views/CabinetView.spec.ts src/views/AnalyticsView.spec.ts src/views/BillingView.spec.ts src/views/ExternalSessionsView.spec.ts src/views/ChatView.spec.ts src/views/SlotsView.spec.ts src/views/TherapistProfileView.spec.ts src/views/SettingsHubView.spec.ts
+npm run typecheck
+npm run build
+```
+
+Result:
+
+* `npm run test:run -- src/views/TherapistSessionsView.spec.ts src/views/TherapistClientsView.spec.ts src/views/CabinetView.spec.ts src/views/AnalyticsView.spec.ts src/views/BillingView.spec.ts src/views/ExternalSessionsView.spec.ts src/views/ChatView.spec.ts src/views/SlotsView.spec.ts src/views/TherapistProfileView.spec.ts src/views/SettingsHubView.spec.ts` - passed, 167 tests.
+* `npm run typecheck` - passed.
+* `npm run build` - passed; existing Vite chunk-size warning remains.
+
+Follow-up (same date, hero parity adjustments):
+
+* Unified top hero corner radius to the same panel radius pattern used on `/cabinet/sessions`.
+* Aligned right-side hero actions (buttons/links) to vertical center in hero rows where they were bottom-aligned.
+* Normalized hero typography scale where titles were larger than sessions-pattern expectations.
+* Updated `Кабінет спеціаліста` hero badge treatment to light blue, consistent with workspace soft badges.
+* Verification:
+  * `npm run test:run -- src/views/CabinetView.spec.ts src/views/TherapistClientsView.spec.ts src/views/ExternalSessionsView.spec.ts src/views/AnalyticsView.spec.ts src/views/BillingView.spec.ts src/views/SlotsView.spec.ts src/views/ChatView.spec.ts src/views/TherapistProfileView.spec.ts` - passed, 136 tests.
+  * `npm run typecheck` - passed.
+  * `npm run build` - passed; existing Vite chunk-size warning remains.

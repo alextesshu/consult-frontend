@@ -577,6 +577,44 @@ watch(
 .settings-hub__hero {
   display: grid;
   gap: 10px;
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 92% 70%, color-mix(in srgb, var(--pc-peach-100) 70%, transparent) 0 120px, transparent 121px),
+    linear-gradient(135deg, #ffffff 0%, color-mix(in srgb, var(--pc-primary-soft) 70%, #ffffff) 54%, color-mix(in srgb, var(--pc-yellow-soft) 45%, #ffffff) 100%);
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-panel);
+  box-shadow: var(--pc-shadow-soft);
+}
+
+.settings-hub__hero > * {
+  position: relative;
+  z-index: 1;
+}
+
+.settings-hub__hero::after {
+  content: "";
+  position: absolute;
+  right: -44px;
+  bottom: -58px;
+  width: 180px;
+  height: 180px;
+  border-radius: 999px;
+  background: rgba(247, 183, 126, 0.18);
+  pointer-events: none;
+}
+
+.settings-hub__hero .title {
+  margin: 8px 0 8px;
+  color: var(--pc-navy-950);
+  font-size: 32px;
+  line-height: 1.15;
+}
+
+.settings-hub__hero .muted {
+  max-width: 520px;
+  color: var(--pc-text-muted);
+  line-height: 1.55;
 }
 
 .badge--soft {
@@ -696,5 +734,33 @@ watch(
   margin: 0;
   color: #b3261e;
   font-size: 13px;
+}
+
+@media (max-width: 860px) {
+  .settings-hub__hero {
+    padding: 14px 16px;
+    gap: 10px;
+  }
+
+  .settings-hub__hero::after {
+    display: none;
+  }
+
+  .settings-hub__hero .title {
+    font-size: 26px;
+    margin: 4px 0;
+    line-height: 1.16;
+  }
+
+  .settings-hub__hero .muted {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.32;
+    max-width: 100%;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
 }
 </style>

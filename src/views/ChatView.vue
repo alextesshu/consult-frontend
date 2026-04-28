@@ -855,6 +855,59 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: space-between;
   gap: 18px;
+  padding: 24px;
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 92% 70%, color-mix(in srgb, var(--pc-peach-100) 70%, transparent) 0 120px, transparent 121px),
+    linear-gradient(135deg, #ffffff 0%, color-mix(in srgb, var(--pc-primary-soft) 70%, #ffffff) 54%, color-mix(in srgb, var(--pc-yellow-soft) 45%, #ffffff) 100%);
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-panel);
+  box-shadow: var(--pc-shadow-soft);
+}
+
+.chat__hero > * {
+  position: relative;
+  z-index: 1;
+}
+
+.chat__hero::after {
+  content: "";
+  position: absolute;
+  right: -44px;
+  bottom: -58px;
+  width: 180px;
+  height: 180px;
+  border-radius: 999px;
+  background: rgba(247, 183, 126, 0.18);
+  pointer-events: none;
+}
+
+.chat__hero .eyebrow {
+  width: fit-content;
+  padding: 5px 9px;
+  background: color-mix(in srgb, var(--pc-blue-soft) 82%, #ffffff);
+  border: 1px solid color-mix(in srgb, var(--pc-navy-900) 24%, var(--pc-border));
+  border-radius: var(--pc-radius-pill);
+  color: color-mix(in srgb, var(--pc-navy-900) 78%, var(--pc-text-muted));
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.chat__hero .title {
+  margin: 8px 0 8px;
+  color: var(--pc-navy-950);
+  font-size: 32px;
+  line-height: 1.15;
+}
+
+.chat__hero .muted {
+  max-width: 520px;
+  color: var(--pc-text-muted);
+  line-height: 1.55;
 }
 
 .chat__grid {
@@ -1229,6 +1282,34 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 900px) {
+  .chat__hero {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 14px 16px;
+    gap: 10px;
+  }
+
+  .chat__hero::after {
+    display: none;
+  }
+
+  .chat__hero .title {
+    font-size: 26px;
+    margin: 4px 0;
+    line-height: 1.16;
+  }
+
+  .chat__hero .muted {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.32;
+    max-width: 100%;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
   .chat__grid {
     grid-template-columns: 1fr;
   }

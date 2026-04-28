@@ -1188,37 +1188,58 @@ onBeforeUnmount(() => {
 .cabinet__hero {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   gap: 18px;
-  background: linear-gradient(
-    145deg,
-    color-mix(in srgb, var(--pc-bg-card) 90%, var(--pc-teal-100)),
-    color-mix(in srgb, var(--pc-bg-card) 86%, var(--pc-peach-100))
-  );
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 92% 70%, color-mix(in srgb, var(--pc-peach-100) 70%, transparent) 0 120px, transparent 121px),
+    linear-gradient(135deg, #ffffff 0%, color-mix(in srgb, var(--pc-primary-soft) 70%, #ffffff) 54%, color-mix(in srgb, var(--pc-yellow-soft) 45%, #ffffff) 100%);
   border: 1px solid var(--pc-border);
   border-radius: var(--pc-radius-panel);
   padding: clamp(18px, 2.2vw, 28px);
-  box-shadow: var(--pc-shadow-card);
+  box-shadow: var(--pc-shadow-soft);
   min-width: 0;
   max-width: 100%;
 }
 
 .cabinet__hero > div {
   min-width: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.cabinet__hero::after {
+  content: "";
+  position: absolute;
+  right: -44px;
+  bottom: -58px;
+  width: 180px;
+  height: 180px;
+  border-radius: 999px;
+  background: rgba(247, 183, 126, 0.18);
+  pointer-events: none;
 }
 
 .cabinet__title {
-  font-size: clamp(34px, 2.8vw, 42px);
-  line-height: 1.1;
+  margin: 8px 0 8px;
+  font-size: 32px;
+  line-height: 1.15;
   color: var(--pc-navy-950);
   letter-spacing: 0;
 }
 
 .cabinet__subtitle {
-  max-width: 620px;
-  font-size: 18px;
-  line-height: 1.58;
+  max-width: 520px;
+  font-size: 16px;
+  line-height: 1.55;
   color: var(--pc-text-muted);
+}
+
+.cabinet__hero .badge {
+  background: color-mix(in srgb, var(--pc-blue-soft) 82%, #ffffff);
+  border-color: color-mix(in srgb, var(--pc-navy-900) 22%, var(--pc-border));
+  color: var(--pc-navy-900);
 }
 
 
@@ -2111,6 +2132,10 @@ onBeforeUnmount(() => {
     border-radius: var(--pc-radius-panel);
   }
 
+  .cabinet__hero::after {
+    display: none;
+  }
+
   .cabinet__title {
     font-size: 28px;
     line-height: 1.14;
@@ -2152,7 +2177,7 @@ onBeforeUnmount(() => {
   .cabinet__title {
     font-size: 24px;
     line-height: 1.16;
-    margin: 2px 0;
+    margin: 4px 0;
   }
 
   .cabinet__subtitle {

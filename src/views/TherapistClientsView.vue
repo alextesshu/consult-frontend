@@ -2047,20 +2047,51 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 20px;
   order: 0;
-  background: linear-gradient(135deg, rgba(8, 113, 201, 0.1), rgba(7, 47, 71, 0.03));
-  border: 1px solid var(--line);
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 92% 70%, color-mix(in srgb, var(--pc-peach-100) 70%, transparent) 0 120px, transparent 121px),
+    linear-gradient(135deg, #ffffff 0%, color-mix(in srgb, var(--pc-primary-soft) 70%, #ffffff) 54%, color-mix(in srgb, var(--pc-yellow-soft) 45%, #ffffff) 100%);
+  border: 1px solid var(--pc-border);
   border-radius: var(--pc-radius-panel);
-  padding: 14px 16px;
+  padding: 24px;
+  box-shadow: var(--pc-shadow-soft);
+}
+
+.clients__hero > * {
+  position: relative;
+  z-index: 1;
+}
+
+.clients__hero::after {
+  content: "";
+  position: absolute;
+  right: -44px;
+  bottom: -58px;
+  width: 180px;
+  height: 180px;
+  border-radius: 999px;
+  background: rgba(247, 183, 126, 0.18);
+  pointer-events: none;
 }
 
 .clients__title {
-  font-size: 26px;
-  margin-bottom: 4px;
+  margin: 8px 0 8px;
+  color: var(--pc-navy-950);
+  font-size: 32px;
+  line-height: 1.15;
 }
 
 .clients__subtitle {
-  max-width: 640px;
-  font-size: 15px;
+  max-width: 520px;
+  color: var(--pc-text-muted);
+  line-height: 1.55;
+}
+
+.clients__hero .badge {
+  background: color-mix(in srgb, var(--pc-blue-soft) 82%, #ffffff);
+  border-color: color-mix(in srgb, var(--pc-navy-900) 22%, var(--pc-border));
+  color: var(--pc-navy-900);
 }
 
 .panel {
@@ -2747,15 +2778,19 @@ onBeforeUnmount(() => {
   .clients__hero {
     flex-direction: column;
     align-items: flex-start;
-    padding: 12px 14px;
-    gap: 9px;
+    padding: 14px 16px;
+    gap: 10px;
     border-radius: var(--pc-radius-panel);
   }
 
+  .clients__hero::after {
+    display: none;
+  }
+
   .clients__title {
-    font-size: 24px;
-    margin: 2px 0;
-    line-height: 1.18;
+    font-size: 26px;
+    margin: 4px 0;
+    line-height: 1.16;
   }
 
   .clients__subtitle {
@@ -2844,15 +2879,15 @@ onBeforeUnmount(() => {
   }
 
   .clients__hero {
-    padding: 10px 12px;
-    gap: 8px;
+    padding: 12px 14px;
+    gap: 10px;
     border-radius: var(--pc-radius-panel);
   }
 
   .clients__title {
-    font-size: 22px;
-    margin: 2px 0 2px;
-    line-height: 1.18;
+    font-size: 24px;
+    margin: 4px 0;
+    line-height: 1.16;
   }
 
   .clients__subtitle {

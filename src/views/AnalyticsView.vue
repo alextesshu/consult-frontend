@@ -412,22 +412,53 @@ onMounted(loadOverview)
 .analytics__header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  gap: 10px;
-  background: transparent;
-  border: 0;
-  border-radius: 0;
-  padding: 2px 2px 0;
-  box-shadow: none;
+  align-items: center;
+  gap: 20px;
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 92% 70%, color-mix(in srgb, var(--pc-peach-100) 70%, transparent) 0 120px, transparent 121px),
+    linear-gradient(135deg, #ffffff 0%, color-mix(in srgb, var(--pc-primary-soft) 70%, #ffffff) 54%, color-mix(in srgb, var(--pc-yellow-soft) 45%, #ffffff) 100%);
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-panel);
+  padding: 24px;
+  box-shadow: var(--pc-shadow-soft);
+}
+
+.analytics__header > * {
+  position: relative;
+  z-index: 1;
+}
+
+.analytics__header::after {
+  content: "";
+  position: absolute;
+  right: -44px;
+  bottom: -58px;
+  width: 180px;
+  height: 180px;
+  border-radius: 999px;
+  background: rgba(247, 183, 126, 0.18);
+  pointer-events: none;
 }
 
 .analytics__title {
-  font-size: 28px;
+  margin: 8px 0 8px;
+  color: var(--pc-navy-950);
+  font-size: 32px;
+  line-height: 1.15;
 }
 
 .analytics__subtitle {
-  max-width: 560px;
-  font-size: 17px;
+  max-width: 520px;
+  color: var(--pc-text-muted);
+  line-height: 1.55;
+}
+
+.analytics__header .badge {
+  background: color-mix(in srgb, var(--pc-blue-soft) 82%, #ffffff);
+  border-color: color-mix(in srgb, var(--pc-navy-900) 22%, var(--pc-border));
+  color: var(--pc-navy-900);
 }
 
 .panel {
@@ -588,6 +619,29 @@ onMounted(loadOverview)
   .analytics__header {
     flex-direction: column;
     align-items: flex-start;
+    padding: 14px 16px;
+    gap: 10px;
+  }
+
+  .analytics__header::after {
+    display: none;
+  }
+
+  .analytics__title {
+    font-size: 26px;
+    margin: 4px 0;
+    line-height: 1.16;
+  }
+
+  .analytics__subtitle {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.32;
+    max-width: 100%;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 
   .analytics__range {
