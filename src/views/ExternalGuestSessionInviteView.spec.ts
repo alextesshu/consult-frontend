@@ -4,6 +4,13 @@ import ExternalGuestSessionInviteView from './ExternalGuestSessionInviteView.vue
 import { fetchPublicExternalSessionInvite, joinPublicExternalSessionInvite } from '../lib/api'
 
 const routeParams = { token: 'valid-token' }
+const mockToast = {
+  show: vi.fn(),
+  success: vi.fn(),
+  error: vi.fn(),
+  warning: vi.fn(),
+  info: vi.fn(),
+}
 
 vi.mock('vue-router', async () => {
   const actual = await vi.importActual<typeof import('vue-router')>('vue-router')
@@ -24,6 +31,10 @@ vi.mock('../lib/api', async () => {
     getApiErrorMessage: vi.fn((_error: unknown, fallback: string) => fallback),
   }
 })
+
+vi.mock('../composables/useToast', () => ({
+  useToast: () => mockToast,
+}))
 
 const mockedFetchPublicExternalSessionInvite = vi.mocked(fetchPublicExternalSessionInvite)
 const mockedJoinPublicExternalSessionInvite = vi.mocked(joinPublicExternalSessionInvite)

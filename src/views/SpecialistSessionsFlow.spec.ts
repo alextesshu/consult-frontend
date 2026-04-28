@@ -375,7 +375,7 @@ describe('specialist sessions flow', () => {
     const scheduledCard = screen.getByText(/flow@example\.com/).closest('article')
     expect(scheduledCard).not.toBeNull()
 
-    await fireEvent.click(within(scheduledCard as HTMLElement).getByRole('button', { name: 'Підтвердити' }))
+    await fireEvent.click(within(scheduledCard as HTMLElement).getByRole('button', { name: 'Підтвердити сесію' }))
 
     await waitFor(() => {
       expect(mockedApiPatch).toHaveBeenCalledWith('/booking/sessions/42/confirm/')
@@ -384,7 +384,7 @@ describe('specialist sessions flow', () => {
 
     const confirmedCard = screen.getByText(/flow@example\.com/).closest('article')
     expect(confirmedCard).not.toBeNull()
-    expect(within(confirmedCard as HTMLElement).queryByRole('button', { name: 'Підтвердити' })).toBeNull()
+    expect(within(confirmedCard as HTMLElement).queryByRole('button', { name: 'Підтвердити сесію' })).toBeNull()
     expect(within(confirmedCard as HTMLElement).getByRole('button', { name: 'Скасувати' })).not.toBeDisabled()
 
     await openSessionFromCard(confirmedCard as HTMLElement, 42)
@@ -452,7 +452,7 @@ describe('specialist sessions flow', () => {
 
     const listCard = screen.getByText(/flow@example\.com/).closest('article')
     expect(listCard).not.toBeNull()
-    expect(within(listCard as HTMLElement).getByRole('button', { name: 'Підтвердити' })).not.toBeDisabled()
+    expect(within(listCard as HTMLElement).getByRole('button', { name: 'Підтвердити сесію' })).not.toBeDisabled()
 
     await openSessionFromCard(listCard as HTMLElement, 42)
 
@@ -485,7 +485,7 @@ describe('specialist sessions flow', () => {
 
     const reloadedListCard = screen.getByText(/flow@example\.com/).closest('article')
     expect(reloadedListCard).not.toBeNull()
-    expect(within(reloadedListCard as HTMLElement).getByRole('button', { name: 'Підтвердити' })).not.toBeDisabled()
+    expect(within(reloadedListCard as HTMLElement).getByRole('button', { name: 'Підтвердити сесію' })).not.toBeDisabled()
     expect(within(reloadedListCard as HTMLElement).getByRole('button', { name: 'Скасувати' })).not.toBeDisabled()
   })
 

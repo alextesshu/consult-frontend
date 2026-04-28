@@ -209,7 +209,7 @@ describe('TherapistClientsView', () => {
     await waitFor(() => {
       expect(container.querySelector('.panel--reminders')).toBeFalsy()
     })
-    expect(mockedApiGet).not.toHaveBeenCalledWith('/booking/sessions/')
+    expect(mockedApiGet.mock.calls.filter((item) => item[0] === REMINDERS_URL)).toHaveLength(2)
   })
 
   it('uses reminders endpoint as canonical source', async () => {
@@ -243,7 +243,7 @@ describe('TherapistClientsView', () => {
       expect(screen.getByRole('link', { name: 'Додати нотатку' })).toHaveAttribute('href', noteReminderHref(777))
       expect(container.textContent).toContain('Display Client')
     })
-    expect(mockedApiGet).not.toHaveBeenCalledWith('/booking/sessions/')
+    expect(mockedApiGet).toHaveBeenCalledWith(REMINDERS_URL)
   })
 
   it('renders note reminders as a compact optional summary before revealing a limited list', async () => {
@@ -328,7 +328,7 @@ describe('TherapistClientsView', () => {
       expect(container.querySelector('.panel--reminders')).toBeFalsy()
     })
     expect(container).not.toHaveTextContent('Без нотатки')
-    expect(mockedApiGet).not.toHaveBeenCalledWith('/booking/sessions/')
+    expect(mockedApiGet).toHaveBeenCalledWith(REMINDERS_URL)
   })
 
   it('archives client using client_id from relation payload', async () => {
@@ -710,7 +710,7 @@ describe('TherapistClientsView', () => {
 
     const firstCard = clientsPanel.querySelector('.client-card') as HTMLElement
     expect(within(firstCard).getByText('Остання сесія')).toBeInTheDocument()
-    expect(within(firstCard).getByText('Заплановано')).toBeInTheDocument()
+    expect(within(firstCard).getByText('Майбутніх сесій')).toBeInTheDocument()
     expect(within(firstCard).getByText('Остання нотатка')).toBeInTheDocument()
     expect(within(firstCard).getByText('Робочий зошит')).toBeInTheDocument()
     expect(within(firstCard).getByText('Оновлено')).toBeInTheDocument()
@@ -739,7 +739,7 @@ describe('TherapistClientsView', () => {
       expect(clientsPanel).toHaveTextContent('Клієнтів поки немає')
       expect(clientsPanel).toHaveTextContent('Клієнти з’являться після перших консультацій')
       expect(clientsPanel).toHaveTextContent(
-        'Клієнта можна додати вручну без кабінету, щоб швидко почати роботу. Кабінет клієнта можна буде підключити пізніше — для сесій, матеріалів і зручнішої взаємодії.'
+        'Клієнта можна додати вручну без кабінету, щоб швидко почати роботу. Кабінет клієнта можна буде підключити пізніше — для власних сесій клієнта, нагадувань, оплати та зручнішої взаємодії.'
       )
     })
 
@@ -777,6 +777,8 @@ describe('TherapistClientsView', () => {
         phone: '+380501112233',
         telegram: '@maria',
         internal_note: 'Prefers evening calls',
+        custom_price_amount: null,
+        custom_price_currency: 'UAH',
       }) as any
     )
 
@@ -791,7 +793,7 @@ describe('TherapistClientsView', () => {
     await fireEvent.update(within(dialog).getByLabelText('Email'), 'maria@example.com')
     await fireEvent.update(within(dialog).getByLabelText('Телефон'), '+380501112233')
     await fireEvent.update(within(dialog).getByLabelText('Telegram'), '@maria')
-    await fireEvent.update(within(dialog).getByLabelText('Внутрішня нотатка'), 'Prefers evening calls')
+    await fireEvent.update(within(dialog).getByLabelText('Короткий опис клієнта'), 'Prefers evening calls')
     await fireEvent.click(within(dialog).getByRole('button', { name: 'Додати клієнта' }))
 
     await waitFor(() => {
@@ -801,6 +803,8 @@ describe('TherapistClientsView', () => {
         phone: '+380501112233',
         telegram: '@maria',
         internal_note: 'Prefers evening calls',
+        custom_price_amount: null,
+        custom_price_currency: 'UAH',
       })
       expect(mockedApiPost.mock.calls[0]?.[1]).not.toHaveProperty('full_name')
       expect(within(clientsPanel).getByText('Марія Коваль')).toBeInTheDocument()
@@ -835,6 +839,8 @@ describe('TherapistClientsView', () => {
         phone: '+380502222222',
         telegram: '@after',
         internal_note: 'After note',
+        custom_price_amount: null,
+        custom_price_currency: 'UAH',
       }) as any
     )
 
@@ -855,13 +861,13 @@ describe('TherapistClientsView', () => {
     expect(within(dialog).getByLabelText('Email')).toHaveValue('before@example.com')
     expect(within(dialog).getByLabelText('Телефон')).toHaveValue('+380501111111')
     expect(within(dialog).getByLabelText('Telegram')).toHaveValue('@before')
-    expect(within(dialog).getByLabelText('Внутрішня нотатка')).toHaveValue('Before note')
+    expect(within(dialog).getByLabelText('Короткий опис клієнта')).toHaveValue('Before note')
 
     await fireEvent.update(within(dialog).getByLabelText('Імʼя клієнта'), 'Manual After')
     await fireEvent.update(within(dialog).getByLabelText('Email'), 'after@example.com')
     await fireEvent.update(within(dialog).getByLabelText('Телефон'), '+380502222222')
     await fireEvent.update(within(dialog).getByLabelText('Telegram'), '@after')
-    await fireEvent.update(within(dialog).getByLabelText('Внутрішня нотатка'), 'After note')
+    await fireEvent.update(within(dialog).getByLabelText('Короткий опис клієнта'), 'After note')
 
     await fireEvent.click(within(dialog).getByRole('button', { name: 'Зберегти зміни' }))
 
@@ -872,6 +878,8 @@ describe('TherapistClientsView', () => {
         phone: '+380502222222',
         telegram: '@after',
         internal_note: 'After note',
+        custom_price_amount: null,
+        custom_price_currency: 'UAH',
       })
       expect(mockedApiPatch.mock.calls[0]?.[1]).not.toHaveProperty('full_name')
       expect(within(clientsPanel).getByText('Manual After')).toBeInTheDocument()

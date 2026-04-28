@@ -97,7 +97,7 @@
               <div v-if="isManualClientSession" class="manual-client-detail">
                 <span class="status-pill status-pill--manual">Без кабінету</span>
                 <span class="muted detail-meta">
-                  Цю сесію створено для клієнта без кабінету. Підключення кабінету пізніше відкриє клієнту доступ до сесій, матеріалів і робочого зошита.
+                  Цю сесію створено для клієнта без кабінету. Підключення кабінету дасть клієнту доступ до власних сесій, нагадувань, оплати та комунікації зі спеціалістом.
                 </span>
               </div>
               <div v-if="session.client_email" class="muted detail-meta">{{ session.client_email }}</div>

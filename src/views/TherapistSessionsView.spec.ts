@@ -423,7 +423,7 @@ describe('TherapistSessionsView', () => {
     expect(within(manualArticle).getByText('Без кабінету')).toBeInTheDocument()
     expect(within(manualArticle).getByText('Клієнт без кабінету')).toBeInTheDocument()
     expect(within(manualArticle).queryByText('Ручна картка клієнта')).not.toBeInTheDocument()
-    expect(within(manualArticle).queryByText('Не оплачено')).not.toBeInTheDocument()
+    expect(within(manualArticle).getByText('Не оплачено')).toBeInTheDocument()
     expect(within(manualArticle).queryByRole('button', { name: 'Повторювати щотижня' })).not.toBeInTheDocument()
     expect(manualArticle).not.toHaveTextContent('undefined')
     expect(manualArticle).not.toHaveTextContent('null')
@@ -690,7 +690,7 @@ describe('TherapistSessionsView', () => {
 
     const scheduledCard = screen.getByText(/anna@example\.com/).closest('article')
     expect(scheduledCard).not.toBeNull()
-    await fireEvent.click(within(scheduledCard as HTMLElement).getByRole('button', { name: 'Підтвердити' }))
+    await fireEvent.click(within(scheduledCard as HTMLElement).getByRole('button', { name: 'Підтвердити сесію' }))
 
     await waitFor(() => {
       expect(mockedConfirmSpecialistSession).toHaveBeenCalledWith(11)
@@ -699,7 +699,7 @@ describe('TherapistSessionsView', () => {
 
     const updatedScheduledCard = screen.getByText(/anna@example\.com/).closest('article')
     expect(updatedScheduledCard).not.toBeNull()
-    expect(within(updatedScheduledCard as HTMLElement).queryByRole('button', { name: 'Підтвердити' })).not.toBeInTheDocument()
+    expect(within(updatedScheduledCard as HTMLElement).queryByRole('button', { name: 'Підтвердити сесію' })).not.toBeInTheDocument()
     expect(within(updatedScheduledCard as HTMLElement).getByRole('link', { name: 'Відкрити сесію' })).toBeInTheDocument()
 
     const confirmedCard = screen.getByText(/maria@example\.com/).closest('article')

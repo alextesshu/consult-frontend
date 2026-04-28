@@ -355,7 +355,7 @@ describe('TherapistSessionDetailView', () => {
 
     expect(await screen.findByText('Manual Detail Client')).toBeInTheDocument()
     expect(screen.getByText('Без кабінету')).toBeInTheDocument()
-    expect(screen.getByText('Цю сесію створено для клієнта без кабінету. Підключення кабінету пізніше відкриє клієнту доступ до сесій, матеріалів і робочого зошита.')).toBeInTheDocument()
+    expect(screen.getByText('Цю сесію створено для клієнта без кабінету. Підключення кабінету дасть клієнту доступ до власних сесій, нагадувань, оплати та комунікації зі спеціалістом.')).toBeInTheDocument()
     expect(container).not.toHaveTextContent('undefined')
     expect(container).not.toHaveTextContent('null')
     expect(container).not.toHaveTextContent('ID: #null')
@@ -365,7 +365,10 @@ describe('TherapistSessionDetailView', () => {
     expect(screen.queryByRole('button', { name: 'До робочого зошита' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /Відкрити.*робоч/ })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Запросити підтвердження оплати' })).not.toBeInTheDocument()
-    expect(screen.queryByText('Оплата')).not.toBeInTheDocument()
+    expect(screen.getByText('Оплата')).toBeInTheDocument()
+    expect(screen.getByText('Оплата сесії')).toBeInTheDocument()
+    expect(screen.getByText('Не оплачено')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Позначити оплаченою' })).toBeInTheDocument()
     expect(screen.queryByText('Робочий зошит')).not.toBeInTheDocument()
     expect(screen.queryByDisplayValue('Progress note')).not.toBeInTheDocument()
     expect(await screen.findByText('Приватна нотатка прихована. Доступ має лише спеціаліст.')).toBeInTheDocument()
@@ -911,7 +914,7 @@ describe('TherapistSessionDetailView', () => {
     async (actionCode) => {
       const originalScrollIntoView = (HTMLElement.prototype as any).scrollIntoView
       const scrollSpy = vi.fn()
-      ;(HTMLElement.prototype as any).scrollIntoView = scrollSpy
+        ; (HTMLElement.prototype as any).scrollIntoView = scrollSpy
       try {
         const sessionDetail = buildSession({
           status: 'COMPLETED',
@@ -934,7 +937,7 @@ describe('TherapistSessionDetailView', () => {
           expect(scrollSpy).toHaveBeenCalled()
         })
       } finally {
-        ;(HTMLElement.prototype as any).scrollIntoView = originalScrollIntoView
+        ; (HTMLElement.prototype as any).scrollIntoView = originalScrollIntoView
       }
     }
   )
@@ -1415,21 +1418,21 @@ describe('TherapistSessionDetailView', () => {
 
     renderView()
 
-      expect(await screen.findByText('client@example.com')).toBeInTheDocument()
-      expect(screen.queryByDisplayValue('Completed session note')).not.toBeInTheDocument()
-      await fireEvent.click(await screen.findByRole('button', { name: 'Відкрити нотатку' }))
-      expect(await screen.findByDisplayValue('Completed session note')).toBeInTheDocument()
+    expect(await screen.findByText('client@example.com')).toBeInTheDocument()
+    expect(screen.queryByDisplayValue('Completed session note')).not.toBeInTheDocument()
+    await fireEvent.click(await screen.findByRole('button', { name: 'Відкрити нотатку' }))
+    expect(await screen.findByDisplayValue('Completed session note')).toBeInTheDocument()
 
-      const statusPanel = screen.getByText(/ID: #77/).closest('section')
-      expect(statusPanel).not.toBeNull()
-      const completionButton = within(statusPanel as HTMLElement)
-        .getAllByRole('button')
-        .find((button) => button.textContent?.includes('Завершити'))
-      if (!completionButton) {
-        throw new Error('Complete button not found')
-      }
-      await fireEvent.click(completionButton)
-      await fireEvent.click(screen.getByTestId('session-completion-submit'))
+    const statusPanel = screen.getByText(/ID: #77/).closest('section')
+    expect(statusPanel).not.toBeNull()
+    const completionButton = within(statusPanel as HTMLElement)
+      .getAllByRole('button')
+      .find((button) => button.textContent?.includes('Завершити'))
+    if (!completionButton) {
+      throw new Error('Complete button not found')
+    }
+    await fireEvent.click(completionButton)
+    await fireEvent.click(screen.getByTestId('session-completion-submit'))
 
     await waitFor(() => {
       expect(mockedApiPatch).toHaveBeenCalledWith('/booking/sessions/42/complete/', {
@@ -1438,25 +1441,25 @@ describe('TherapistSessionDetailView', () => {
       expect(mockToast.success).toHaveBeenCalledWith(BOOKING_SUCCESS_MESSAGES.sessionCompleted)
     })
 
-      const updatedStatusPanel = screen.getByText(/ID: #77/).closest('section')
-      expect(updatedStatusPanel).not.toBeNull()
-      const remainingActionButtons = within(updatedStatusPanel as HTMLElement).queryAllByRole('button')
-      expect(remainingActionButtons).toHaveLength(4)
-      expect(remainingActionButtons.filter((button) => button.hasAttribute('disabled')).length).toBeGreaterThanOrEqual(3)
-      expect((updatedStatusPanel as HTMLElement).querySelector('.status-pill--muted')).not.toBeNull()
-      expect(
-        within(updatedStatusPanel as HTMLElement)
-          .queryAllByRole('button')
-          .some((button) => button.textContent?.includes('Завершити'))
-      ).toBe(false)
-      expect(screen.getByRole('button', { name: 'Відкрити робочий зошит' })).toBeInTheDocument()
-      expect(screen.queryByRole('button', { name: 'Додати / відкрити нотатку' })).not.toBeInTheDocument()
-      expect(await screen.findByDisplayValue('Completed session note (reloaded)')).toBeInTheDocument()
-      expect(document.querySelector('a[href="/cabinet/clients?client=77&autoOpen=1"]')).toBeInTheDocument()
-      expect(endpointCalls('/booking/sessions/42/')).toBe(2)
-      expect(endpointCalls('/cabinet/slots/')).toBe(2)
-      expect(endpointCalls('/booking/sessions/42/reschedule-suggestions/')).toBe(2)
-      expect(endpointCalls('/cabinet/sessions/reschedule-requests/')).toBe(2)
+    const updatedStatusPanel = screen.getByText(/ID: #77/).closest('section')
+    expect(updatedStatusPanel).not.toBeNull()
+    const remainingActionButtons = within(updatedStatusPanel as HTMLElement).queryAllByRole('button')
+    expect(remainingActionButtons).toHaveLength(4)
+    expect(remainingActionButtons.filter((button) => button.hasAttribute('disabled')).length).toBeGreaterThanOrEqual(3)
+    expect((updatedStatusPanel as HTMLElement).querySelector('.status-pill--muted')).not.toBeNull()
+    expect(
+      within(updatedStatusPanel as HTMLElement)
+        .queryAllByRole('button')
+        .some((button) => button.textContent?.includes('Завершити'))
+    ).toBe(false)
+    expect(screen.getByRole('button', { name: 'Відкрити робочий зошит' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Додати / відкрити нотатку' })).not.toBeInTheDocument()
+    expect(await screen.findByDisplayValue('Completed session note (reloaded)')).toBeInTheDocument()
+    expect(document.querySelector('a[href="/cabinet/clients?client=77&autoOpen=1"]')).toBeInTheDocument()
+    expect(endpointCalls('/booking/sessions/42/')).toBe(2)
+    expect(endpointCalls('/cabinet/slots/')).toBe(2)
+    expect(endpointCalls('/booking/sessions/42/reschedule-suggestions/')).toBe(2)
+    expect(endpointCalls('/cabinet/sessions/reschedule-requests/')).toBe(2)
     expect(endpointCalls('/cabinet/sessions/42/note/')).toBe(2)
   })
 
@@ -1479,19 +1482,19 @@ describe('TherapistSessionDetailView', () => {
 
     renderView()
 
-      expect(await screen.findByText('client@example.com')).toBeInTheDocument()
-      expect(screen.queryByDisplayValue('Progress note')).not.toBeInTheDocument()
-      await fireEvent.click(await screen.findByRole('button', { name: 'Відкрити нотатку' }))
-      expect(await screen.findByDisplayValue('Progress note')).toBeInTheDocument()
+    expect(await screen.findByText('client@example.com')).toBeInTheDocument()
+    expect(screen.queryByDisplayValue('Progress note')).not.toBeInTheDocument()
+    await fireEvent.click(await screen.findByRole('button', { name: 'Відкрити нотатку' }))
+    expect(await screen.findByDisplayValue('Progress note')).toBeInTheDocument()
 
-      const statusPanel = screen.getByText(/ID: #77/).closest('section')
-      expect(statusPanel).not.toBeNull()
-      const completionButton = within(statusPanel as HTMLElement).getAllByRole('button')[1]
-      if (!completionButton) {
-        throw new Error('Complete button not found')
-      }
-      await fireEvent.click(completionButton)
-      await fireEvent.click(screen.getByTestId('session-completion-submit'))
+    const statusPanel = screen.getByText(/ID: #77/).closest('section')
+    expect(statusPanel).not.toBeNull()
+    const completionButton = within(statusPanel as HTMLElement).getAllByRole('button')[1]
+    if (!completionButton) {
+      throw new Error('Complete button not found')
+    }
+    await fireEvent.click(completionButton)
+    await fireEvent.click(screen.getByTestId('session-completion-submit'))
 
     await waitFor(() => {
       expect(mockedApiPatch).toHaveBeenCalledWith('/booking/sessions/42/complete/', {
@@ -1500,12 +1503,12 @@ describe('TherapistSessionDetailView', () => {
       expect(mockToast.error).toHaveBeenCalledTimes(1)
     })
 
-      expect(completionButton).not.toBeDisabled()
-      expect(await screen.findByDisplayValue('Progress note')).toBeInTheDocument()
-      expect(endpointCalls('/booking/sessions/42/')).toBe(1)
-      expect(endpointCalls('/cabinet/slots/')).toBe(1)
-      expect(endpointCalls('/booking/sessions/42/reschedule-suggestions/')).toBe(1)
-      expect(endpointCalls('/cabinet/sessions/reschedule-requests/')).toBe(1)
+    expect(completionButton).not.toBeDisabled()
+    expect(await screen.findByDisplayValue('Progress note')).toBeInTheDocument()
+    expect(endpointCalls('/booking/sessions/42/')).toBe(1)
+    expect(endpointCalls('/cabinet/slots/')).toBe(1)
+    expect(endpointCalls('/booking/sessions/42/reschedule-suggestions/')).toBe(1)
+    expect(endpointCalls('/cabinet/sessions/reschedule-requests/')).toBe(1)
     expect(endpointCalls('/cabinet/sessions/42/note/')).toBe(1)
   })
 
