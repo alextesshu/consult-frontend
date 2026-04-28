@@ -49,14 +49,14 @@
   --color-info-100: #e3efe9;
 
   /* Role defaults (client as baseline) */
-  --primary: var(--color-primary-500);
-  --primary-hover: color-mix(in srgb, var(--color-primary-500) 78%, var(--color-primary-600));
-  --primary-soft: var(--color-primary-100);
+  --primary: var(--pc-navy-900);
+  --primary-hover: var(--pc-navy-950);
+  --primary-soft: color-mix(in srgb, var(--pc-navy-900) 8%, #ffffff);
   --primary-soft-2: var(--color-neutral-100);
   --accent: #f9b73f;
   --accent-2: var(--color-neutral-600);
 
-  --success: var(--color-success-500);
+  --success: var(--pc-navy-900);
   --warning: var(--color-warning-500);
   --danger: var(--color-error-500);
 
@@ -106,7 +106,13 @@
   --pc-border: #e6e0d8;
   --pc-border-strong: #d4ccc2;
 
-  --pc-success: #2f9e6d;
+  --pc-primary: var(--pc-navy-900);
+  --pc-primary-hover: var(--pc-navy-950);
+  --pc-primary-soft: color-mix(in srgb, var(--pc-navy-900) 8%, #ffffff);
+  --pc-accent: var(--pc-navy-900);
+  --pc-accent-soft: color-mix(in srgb, var(--pc-navy-900) 8%, #ffffff);
+  --pc-success: var(--pc-navy-900);
+  --pc-success-soft: color-mix(in srgb, var(--pc-navy-900) 8%, #ffffff);
   --pc-warning: #d98a2b;
   --pc-danger: #c94444;
   --pc-info: #2f6fa8;
@@ -159,7 +165,7 @@ body,
 body {
   margin: 0;
   background:
-    radial-gradient(1200px 520px at 18% -12%, rgba(22, 175, 142, 0.18), transparent 70%),
+    radial-gradient(1200px 520px at 18% -12%, rgba(18, 52, 90, 0.14), transparent 70%),
     radial-gradient(900px 480px at 82% 0%, rgba(249, 183, 63, 0.16), transparent 70%),
     linear-gradient(180deg, #f9f3d9 0%, var(--bg) 70%);
   color: var(--ink);
@@ -178,7 +184,7 @@ body::before {
   z-index: -1;
   pointer-events: none;
   background:
-    radial-gradient(1100px 520px at 12% 38%, rgba(22, 175, 142, 0.12), transparent 72%),
+    radial-gradient(1100px 520px at 12% 38%, rgba(18, 52, 90, 0.1), transparent 72%),
     radial-gradient(980px 520px at 88% 42%, rgba(249, 183, 63, 0.12), transparent 72%),
     linear-gradient(180deg,
       rgba(249, 243, 217, 0.8) 0%,
@@ -410,18 +416,18 @@ input[type="time"]:focus::-webkit-datetime-edit {
   justify-content: center;
   padding: 10px 14px;
   border-radius: var(--radius-md);
-  border: 1px solid color-mix(in srgb, var(--color-primary-600) 55%, transparent);
+  border: 1px solid color-mix(in srgb, var(--pc-navy-900) 55%, transparent);
   background:
     radial-gradient(140% 140% at 8% 12%, rgba(255, 255, 255, 0.35), transparent 60%),
-    radial-gradient(120% 140% at 92% 78%, rgba(17, 64, 54, 0.22), transparent 70%),
-    linear-gradient(135deg, var(--color-primary-600) 0%, var(--color-primary-500) 100%);
+    radial-gradient(120% 140% at 92% 78%, rgba(18, 52, 90, 0.22), transparent 70%),
+    linear-gradient(135deg, var(--pc-navy-950) 0%, var(--pc-navy-900) 100%);
   color: #f9f3d9;
   font-weight: 300;
   text-align: center;
   cursor: pointer;
   line-height: 1.2;
   min-height: 36px;
-  box-shadow: 0 8px 18px rgba(17, 64, 54, 0.16), inset 0 1px 1px rgba(255, 255, 255, 0.18);
+  box-shadow: 0 8px 18px rgba(18, 52, 90, 0.16), inset 0 1px 1px rgba(255, 255, 255, 0.18);
   transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
   position: relative;
   overflow: hidden;
@@ -467,20 +473,20 @@ input[type="time"]:focus::-webkit-datetime-edit {
 .btn:hover {
   background:
     radial-gradient(140% 140% at 12% 16%, rgba(255, 255, 255, 0.45), transparent 58%),
-    radial-gradient(120% 140% at 92% 78%, rgba(17, 64, 54, 0.28), transparent 70%),
-    linear-gradient(135deg, var(--color-primary-600) 0%, var(--color-primary-500) 100%);
-  border-color: color-mix(in srgb, var(--color-primary-600) 70%, transparent);
-  box-shadow: 0 10px 20px rgba(17, 64, 54, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.22);
+    radial-gradient(120% 140% at 92% 78%, rgba(18, 52, 90, 0.28), transparent 70%),
+    linear-gradient(135deg, var(--pc-navy-900) 0%, var(--pc-navy-950) 100%);
+  border-color: color-mix(in srgb, var(--pc-navy-900) 70%, transparent);
+  box-shadow: 0 10px 20px rgba(18, 52, 90, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.22);
   transform: translateY(-2px);
 }
 
 .btn:active {
   transform: translateY(0);
-  box-shadow: 0 6px 14px rgba(17, 64, 54, 0.18), inset 0 1px 1px rgba(255, 255, 255, 0.2);
+  box-shadow: 0 6px 14px rgba(18, 52, 90, 0.18), inset 0 1px 1px rgba(255, 255, 255, 0.2);
   background:
     radial-gradient(140% 140% at 12% 16%, rgba(255, 255, 255, 0.32), transparent 58%),
-    radial-gradient(120% 140% at 92% 78%, rgba(17, 64, 54, 0.28), transparent 70%),
-    linear-gradient(135deg, var(--color-primary-700) 0%, var(--color-primary-600) 100%);
+    radial-gradient(120% 140% at 92% 78%, rgba(18, 52, 90, 0.28), transparent 70%),
+    linear-gradient(135deg, var(--pc-navy-950) 0%, var(--pc-navy-900) 100%);
 }
 
 .btn:focus-visible {

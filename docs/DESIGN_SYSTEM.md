@@ -206,6 +206,12 @@ Recommended target variables:
 
 ### Usage rules
 
+Hard rule:
+
+- Navy is the global primary brand and action color.
+- Green/teal is not the default success or primary UI color.
+- Green/teal may be used only as a very small decorative accent and must not dominate workspace UI.
+
 #### Navy
 
 Use for:
@@ -213,6 +219,8 @@ Use for:
 - primary buttons
 - main headings
 - sidebar active states
+- authenticated topbar primary action
+- active navigation
 - footer background
 - important UI anchors
 

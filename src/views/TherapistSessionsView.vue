@@ -2299,9 +2299,9 @@ onBeforeUnmount(() => {
 }
 
 .status-pill--ok {
-  background: var(--pc-green-soft);
-  color: var(--pc-success);
-  border-color: color-mix(in srgb, var(--pc-success) 28%, transparent);
+  background: color-mix(in srgb, var(--pc-navy-900) 10%, #ffffff);
+  color: var(--pc-navy-900);
+  border-color: color-mix(in srgb, var(--pc-navy-900) 28%, transparent);
 }
 
 .status-pill--warn {
@@ -2340,9 +2340,9 @@ onBeforeUnmount(() => {
 }
 
 .status-pill--payment-paid {
-  background: var(--pc-green-soft);
-  color: var(--pc-success);
-  border-color: color-mix(in srgb, var(--pc-success) 25%, transparent);
+  background: color-mix(in srgb, var(--pc-navy-900) 10%, #ffffff);
+  color: var(--pc-navy-900);
+  border-color: color-mix(in srgb, var(--pc-navy-900) 25%, transparent);
 }
 
 .status-pill--payment-awaiting {

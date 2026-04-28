@@ -1050,29 +1050,29 @@ watch(isChatCapable, (value) => {
 .topbar--specialist,
 .topbar--therapist,
 .topbar--admin {
-  --topbar-text: #1d4139;
+  --topbar-text: var(--pc-navy-950);
   background:
     radial-gradient(120% 180% at 50% -28%, rgba(255, 255, 255, 0.58), transparent 62%),
-    linear-gradient(180deg, rgba(234, 245, 241, 0.9) 0%, rgba(220, 239, 232, 0.82) 100%);
-  border-bottom-color: color-mix(in srgb, #0f7059 35%, #b6cdc5);
-  box-shadow: 0 10px 24px rgba(10, 44, 36, 0.08);
+    linear-gradient(180deg, rgba(238, 244, 250, 0.92) 0%, rgba(229, 238, 248, 0.86) 100%);
+  border-bottom-color: color-mix(in srgb, var(--pc-navy-900) 30%, var(--pc-border));
+  box-shadow: 0 10px 24px rgba(18, 52, 90, 0.08);
 }
 
 .topbar--client {
-  --topbar-text: #1d4139;
+  --topbar-text: var(--pc-navy-950);
   background:
     radial-gradient(120% 180% at 50% -28%, rgba(255, 255, 255, 0.58), transparent 62%),
-    linear-gradient(180deg, rgba(234, 245, 241, 0.9) 0%, rgba(220, 239, 232, 0.82) 100%);
-  border-bottom-color: color-mix(in srgb, #0f7059 35%, #b6cdc5);
-  box-shadow: 0 10px 24px rgba(10, 44, 36, 0.08);
+    linear-gradient(180deg, rgba(238, 244, 250, 0.92) 0%, rgba(229, 238, 248, 0.86) 100%);
+  border-bottom-color: color-mix(in srgb, var(--pc-navy-900) 30%, var(--pc-border));
+  box-shadow: 0 10px 24px rgba(18, 52, 90, 0.08);
 }
 
 .topbar--admin {
   background:
     radial-gradient(120% 180% at 50% -28%, rgba(255, 255, 255, 0.5), transparent 62%),
-    linear-gradient(180deg, rgba(225, 241, 233, 0.93) 0%, rgba(205, 231, 219, 0.9) 100%);
-  border-bottom-color: color-mix(in srgb, #0f7059 42%, #a7c6bb);
-  box-shadow: 0 10px 24px rgba(8, 46, 35, 0.12);
+    linear-gradient(180deg, rgba(233, 242, 250, 0.94) 0%, rgba(221, 235, 247, 0.9) 100%);
+  border-bottom-color: color-mix(in srgb, var(--pc-navy-900) 35%, var(--pc-border));
+  box-shadow: 0 10px 24px rgba(18, 52, 90, 0.12);
 }
 
 .topbar--specialist .topbar__inner,
@@ -1170,9 +1170,9 @@ watch(isChatCapable, (value) => {
   letter-spacing: 0;
   font-weight: 500;
   text-transform: none;
-  color: color-mix(in srgb, #1d3e38 70%, #55756e);
+  color: color-mix(in srgb, var(--pc-navy-900) 74%, var(--pc-text-muted));
   padding-left: 14px;
-  border-left: 1px solid color-mix(in srgb, #1d3e38 20%, #d5dfda);
+  border-left: 1px solid color-mix(in srgb, var(--pc-navy-900) 20%, var(--pc-border));
 }
 
 .topbar--guest .brand__tagline {
@@ -1320,7 +1320,7 @@ watch(isChatCapable, (value) => {
   border: 0;
   background: transparent;
   box-shadow: none;
-  color: #1d3e38;
+  color: var(--pc-navy-900);
   font-weight: 500;
   padding: 6px 8px;
 }
@@ -1329,14 +1329,14 @@ watch(isChatCapable, (value) => {
 .topbar--therapist .nav a:hover,
 .topbar--admin .nav a:hover,
 .topbar--client .nav a:hover {
-  background: color-mix(in srgb, #1d3e38 7%, #ffffff);
+  background: color-mix(in srgb, var(--pc-navy-900) 8%, #ffffff);
 }
 
 .topbar--specialist .nav a.router-link-active,
 .topbar--therapist .nav a.router-link-active,
 .topbar--admin .nav a.router-link-active,
 .topbar--client .nav a.router-link-active {
-  background: color-mix(in srgb, #1d3e38 9%, #ffffff);
+  background: color-mix(in srgb, var(--pc-navy-900) 10%, #ffffff);
   box-shadow: none;
 }
 
@@ -1344,18 +1344,18 @@ watch(isChatCapable, (value) => {
 .topbar--therapist .nav a.nav__primary-action,
 .topbar--admin .nav a.nav__primary-action,
 .topbar--client .nav a.nav__primary-action {
-  border: 1px solid color-mix(in srgb, #0d6b55 30%, #0c5e4a);
-  background: linear-gradient(180deg, #178466 0%, #0f7059 100%);
-  color: #f4fffb;
-  box-shadow: 0 10px 18px rgba(11, 73, 58, 0.18);
+  border: 1px solid var(--pc-navy-900);
+  background: linear-gradient(180deg, var(--pc-navy-900) 0%, var(--pc-navy-950) 100%);
+  color: #ffffff;
+  box-shadow: 0 10px 18px rgba(18, 52, 90, 0.18);
 }
 
 .topbar--specialist .nav a.nav__primary-action:hover,
 .topbar--therapist .nav a.nav__primary-action:hover,
 .topbar--admin .nav a.nav__primary-action:hover,
 .topbar--client .nav a.nav__primary-action:hover {
-  background: linear-gradient(180deg, #1b8f6f 0%, #10705a 100%);
-  border-color: color-mix(in srgb, #0d6b55 40%, #0c5e4a);
+  background: var(--pc-navy-950);
+  border-color: var(--pc-navy-950);
 }
 
 .topbar--specialist .nav a.icon-btn,
@@ -1376,7 +1376,7 @@ watch(isChatCapable, (value) => {
   border-radius: 10px;
   border: 1px solid transparent;
   background: transparent;
-  color: #1d3e38;
+  color: var(--pc-navy-900);
   box-shadow: none;
 }
 
@@ -1388,8 +1388,8 @@ watch(isChatCapable, (value) => {
 .topbar--therapist .icon-btn:focus-visible,
 .topbar--admin .icon-btn:focus-visible,
 .topbar--client .icon-btn:focus-visible {
-  border-color: color-mix(in srgb, #1d3e38 20%, #d5dfda);
-  background: color-mix(in srgb, #1d3e38 7%, #ffffff);
+  border-color: color-mix(in srgb, var(--pc-navy-900) 20%, var(--pc-border));
+  background: color-mix(in srgb, var(--pc-navy-900) 8%, #ffffff);
   box-shadow: none;
 }
 
@@ -1402,7 +1402,7 @@ watch(isChatCapable, (value) => {
   border-radius: 10px;
   border: 0;
   background: transparent;
-  color: #1d3e38;
+  color: var(--pc-navy-900);
   box-shadow: none;
   font-weight: 500;
   font-size: inherit;
@@ -1416,7 +1416,7 @@ watch(isChatCapable, (value) => {
 .topbar--therapist .btn--ghost:focus-visible,
 .topbar--admin .btn--ghost:focus-visible,
 .topbar--client .btn--ghost:focus-visible {
-  background: color-mix(in srgb, #1d3e38 7%, #ffffff);
+  background: color-mix(in srgb, var(--pc-navy-900) 8%, #ffffff);
 }
 
 .nav__notifications {
@@ -2047,9 +2047,9 @@ body.body--home .footer__link:hover {
 
   .specialist-mobile-nav__toggle:hover,
   .specialist-mobile-nav__toggle:focus-visible {
-    border-color: color-mix(in srgb, var(--pc-teal-500) 52%, var(--pc-border));
+    border-color: color-mix(in srgb, var(--pc-navy-900) 38%, var(--pc-border));
     background: var(--pc-bg-card);
-    box-shadow: 0 0 0 3px rgba(143, 203, 200, 0.22), var(--pc-shadow-soft);
+    box-shadow: 0 0 0 3px rgba(18, 52, 90, 0.14), var(--pc-shadow-soft);
     outline: none;
   }
 

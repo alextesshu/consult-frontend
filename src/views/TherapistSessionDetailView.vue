@@ -2661,9 +2661,9 @@ watch(
 }
 
 .status-pill--ok {
-  border-color: color-mix(in srgb, var(--pc-success) 30%, transparent);
-  background: color-mix(in srgb, var(--pc-teal-100) 78%, #ffffff);
-  color: #1b6f4a;
+  border-color: color-mix(in srgb, var(--pc-navy-900) 30%, transparent);
+  background: color-mix(in srgb, var(--pc-navy-900) 10%, #ffffff);
+  color: var(--pc-navy-900);
 }
 
 .status-pill--warn {

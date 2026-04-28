@@ -2336,9 +2336,9 @@ onBeforeUnmount(() => {
 }
 
 .client-status--active {
-  border-color: color-mix(in srgb, var(--success) 28%, var(--line));
-  background: color-mix(in srgb, var(--success) 12%, #ffffff);
-  color: #1f6f52;
+  border-color: color-mix(in srgb, var(--pc-navy-900) 28%, var(--line));
+  background: color-mix(in srgb, var(--pc-navy-900) 10%, #ffffff);
+  color: var(--pc-navy-900);
 }
 
 .client-status--inactive {
@@ -2718,9 +2718,9 @@ onBeforeUnmount(() => {
 }
 
 .manual-payment-status--paid {
-  background: var(--pc-green-soft);
-  color: var(--pc-success);
-  border-color: color-mix(in srgb, var(--pc-success) 25%, transparent);
+  background: color-mix(in srgb, var(--pc-navy-900) 10%, #ffffff);
+  color: var(--pc-navy-900);
+  border-color: color-mix(in srgb, var(--pc-navy-900) 25%, transparent);
 }
 
 .manual-payment-status--awaiting {

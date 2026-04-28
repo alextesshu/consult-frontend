@@ -1826,3 +1826,43 @@ Follow-up (same date, meeting link existing-state CTA priority):
   * `npm run test:run -- src/views/TherapistSessionDetailView.spec.ts` - passed, 49 tests.
   * `npm run typecheck` - passed.
   * `npm run build` - passed; existing Vite chunk-size warning remains.
+
+### 2026-04-28 - Global navy-first palette alignment
+
+Changed scope:
+
+* `src/style.css`
+* `src/App.vue`
+* `src/views/TherapistSessionsView.vue`
+* `src/views/TherapistSessionDetailView.vue`
+* `src/views/TherapistClientsView.vue`
+* `docs/DESIGN_SYSTEM.md`
+* `docs/UI_MIGRATION_PLAN.md`
+
+What changed:
+
+* Added/updated navy-first aliases in root tokens (`--pc-primary`, `--pc-primary-hover`, `--pc-primary-soft`, `--pc-accent`, `--pc-accent-soft`, `--pc-success`, `--pc-success-soft`) and aligned legacy `--primary`/`--success` to navy-first behavior.
+* Updated global primary button styling to navy-first gradient/border/shadow.
+* Updated authenticated topbar variants (`specialist/therapist/client/admin`) from green-tinted treatment to navy/cream treatment.
+* Updated authenticated primary nav action (`.nav__primary-action`) to navy filled CTA and navy hover.
+* Kept warning/attention/destructive semantics unchanged (peach/yellow and red/rose remain for those states).
+* Rebalanced dominant success/paid/active badges in key workspace views from green-first to navy-soft treatment.
+
+Preserved:
+
+* Routes, API calls, handlers, auth/role/permission logic, navigation structure, and business logic.
+* Existing warning/attention and destructive color semantics.
+
+Verification:
+
+```bash
+npm run test:run -- src/views/TherapistSessionsView.spec.ts src/views/TherapistSessionDetailView.spec.ts src/views/TherapistClientsView.spec.ts src/views/CabinetView.spec.ts
+npm run typecheck
+npm run build
+```
+
+Result:
+
+* `npm run test:run -- src/views/TherapistSessionsView.spec.ts src/views/TherapistSessionDetailView.spec.ts src/views/TherapistClientsView.spec.ts src/views/CabinetView.spec.ts` - passed, 131 tests.
+* `npm run typecheck` - passed.
+* `npm run build` - passed; existing Vite chunk-size warning remains.
