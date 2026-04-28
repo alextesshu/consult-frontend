@@ -314,7 +314,7 @@ const walkthroughSections = [
     tariffNote: 'Pro / Leader',
     screenLabel: 'РОБОЧИЙ ЗОШИТ',
     screenSrc: '/images/tour/workbook-3.jpg',
-    screenAlt: 'Робочий зошит клієнта',
+    screenAlt: 'Робочий зошит спеціаліста',
     type: 'core',
   },
   {

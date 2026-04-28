@@ -376,7 +376,7 @@
             <div class="workbook-block">
               <div class="workbook-block__header">
                 <div>
-                  <div class="workbook-block__title">Робочий зошит клієнта</div>
+                  <div class="workbook-block__title">Робочий зошит по клієнту</div>
                   <div class="muted">{{ workbookSummary(client) }}</div>
                 </div>
                 <div class="workbook-block__controls">

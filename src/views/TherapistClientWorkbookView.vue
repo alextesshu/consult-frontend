@@ -3,7 +3,7 @@
     <header class="workbook-page__header">
       <div>
         <div class="badge badge--soft">Конфіденційно</div>
-        <h1 class="title workbook-page__title">Робочий зошит клієнта</h1>
+        <h1 class="title workbook-page__title">Робочий зошит по клієнту</h1>
         <p class="muted">Доступ лише для спеціаліста. Дані зберігаються у приватній історії клієнта.</p>
       </div>
       <RouterLink class="btn btn--ghost" to="/cabinet/clients">Назад до CRM</RouterLink>
