@@ -1780,3 +1780,49 @@ Result:
 * `npm run test:run -- src/views/TherapistSessionsView.spec.ts src/views/TherapistSessionDetailView.spec.ts src/views/TherapistClientsView.spec.ts src/views/CabinetView.spec.ts` - passed, 131 tests.
 * `npm run typecheck` - passed.
 * `npm run build` - passed; existing Vite chunk-size warning remains.
+
+### 2026-04-28 - Meeting link attention CTA correction
+
+Changed scope:
+
+* `src/views/TherapistSessionDetailView.vue`
+* `docs/UI_MIGRATION_PLAN.md`
+
+What changed:
+
+* Verified missing online meeting-link state keeps `meeting-card--attention` binding on the real meeting card container.
+* Strengthened `.meeting-card--attention` visual treatment with a warm warning border, left accent border, and clearer attention background/shadow.
+* Kept `Додати посилання` as contextual primary CTA in missing-link state (`meeting-card__cta--primary`) and tuned emphasis to navy-first CTA styling.
+
+Preserved:
+
+* Existing meeting link add/edit behavior.
+* Existing route/query/focus behavior.
+* Existing session lifecycle logic.
+* Existing payment/manual-client/note/workbook behavior.
+
+Verification:
+
+```bash
+npm run test:run -- src/views/TherapistSessionDetailView.spec.ts
+npm run typecheck
+npm run build
+```
+
+Result:
+
+* `npm run test:run -- src/views/TherapistSessionDetailView.spec.ts` - passed, 49 tests.
+* `npm run typecheck` - passed.
+* `npm run build` - passed; existing Vite chunk-size warning remains.
+
+Follow-up (same date, meeting link existing-state CTA priority):
+
+* `src/views/TherapistSessionDetailView.vue`
+  * Updated online meeting actions when `meeting_url` exists:
+    * `Копіювати посилання` is now the visual primary CTA (navy filled).
+    * `Змінити посилання` remains secondary/outline.
+  * Kept missing-link state behavior unchanged (`Додати посилання` stays primary in attention state).
+* Verification:
+  * `npm run test:run -- src/views/TherapistSessionDetailView.spec.ts` - passed, 49 tests.
+  * `npm run typecheck` - passed.
+  * `npm run build` - passed; existing Vite chunk-size warning remains.

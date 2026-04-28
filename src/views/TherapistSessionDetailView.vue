@@ -153,7 +153,12 @@
               >
                 Приєднатися
               </a>
-              <button v-if="meetingUrl" class="btn btn--ghost btn--sm" type="button" @click="copyMeetingLink">
+              <button
+                v-if="meetingUrl"
+                class="btn btn--sm meeting-card__cta--copy-primary"
+                type="button"
+                @click="copyMeetingLink"
+              >
                 Скопіювати посилання
               </button>
               <button
@@ -1107,7 +1112,12 @@ const meetingSetupHint = computed(() => {
 })
 
 const needsMeetingLinkAttention = computed(() =>
-  Boolean(session.value && !isOfflineSession.value && session.value.status === 'CONFIRMED' && !meetingUrl.value)
+  Boolean(
+    session.value &&
+    !isOfflineSession.value &&
+    ['SCHEDULED', 'CONFIRMED'].includes(session.value.status) &&
+    !meetingUrl.value
+  )
 )
 
 const isManualClientSession = computed(() => {
@@ -2584,15 +2594,15 @@ watch(
 }
 
 .meeting-card--attention {
-  border-color: color-mix(in srgb, var(--pc-warning) 52%, var(--pc-border));
+  border: 1px solid color-mix(in srgb, var(--pc-warning) 52%, var(--pc-border));
   background: linear-gradient(
     135deg,
-    color-mix(in srgb, var(--pc-yellow-soft) 78%, #ffffff),
-    color-mix(in srgb, var(--pc-peach-100) 72%, #ffffff)
+    color-mix(in srgb, var(--pc-yellow-soft) 74%, #ffffff),
+    color-mix(in srgb, var(--pc-peach-100) 84%, #ffffff)
   );
   box-shadow:
-    inset 0 0 0 1px color-mix(in srgb, var(--pc-warning) 22%, transparent),
-    var(--pc-shadow-soft);
+    inset 0 1px 0 rgba(255, 255, 255, 0.44),
+    0 8px 18px rgba(122, 78, 20, 0.08);
 }
 
 .meeting-card__attention {
@@ -2610,17 +2620,31 @@ watch(
 }
 
 .meeting-card__cta--primary {
-  border-color: var(--pc-navy-900);
-  background: var(--pc-navy-900);
-  color: #fff;
-  box-shadow: 0 10px 22px rgba(18, 52, 90, 0.18);
+  border-color: color-mix(in srgb, var(--pc-warning) 58%, var(--pc-border));
+  background: color-mix(in srgb, var(--pc-peach-100) 78%, var(--pc-yellow-soft));
+  color: var(--pc-navy-950);
+  box-shadow: 0 6px 14px rgba(122, 78, 20, 0.1);
 }
 
 .meeting-card__cta--primary:hover,
 .meeting-card__cta--primary:focus-visible {
+  border-color: color-mix(in srgb, var(--pc-warning) 68%, var(--pc-border));
+  background: color-mix(in srgb, var(--pc-peach-100) 88%, var(--pc-yellow-soft));
+  color: var(--pc-navy-950);
+}
+
+.meeting-card__cta--copy-primary {
+  border-color: var(--pc-navy-900);
+  background: var(--pc-navy-900);
+  color: #ffffff;
+  box-shadow: 0 8px 18px rgba(18, 52, 90, 0.16);
+}
+
+.meeting-card__cta--copy-primary:hover,
+.meeting-card__cta--copy-primary:focus-visible {
   border-color: var(--pc-navy-950);
   background: var(--pc-navy-950);
-  color: #fff;
+  color: #ffffff;
 }
 
 .status-pill {
