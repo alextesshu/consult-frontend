@@ -107,7 +107,7 @@
                 :disabled="isActionLoading(prioritySession.id)"
                 @click="confirmSession(prioritySession.id)"
               >
-                Підтвердити
+                Підтвердити сесію
               </button>
               <a
                 v-else-if="priorityPrimaryAction === 'join'"
@@ -264,12 +264,6 @@
                 class="status-pill status-pill--danger"
               >
                 Потрібне підтвердження
-              </div>
-              <div
-                v-if="session.status === 'SCHEDULED'"
-                class="status-pill status-pill--new"
-              >
-                Нова заявка
               </div>
               <div
                 v-if="hasPendingReschedule(session.id)"
