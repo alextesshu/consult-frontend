@@ -214,7 +214,7 @@
               </div>
 
               <div class="client-meta__item">
-                <dt>Заплановано</dt>
+                <dt>Майбутніх сесій</dt>
                 <dd>{{ manualClientUpcomingSessions(client).length }}</dd>
               </div>
               
@@ -233,7 +233,7 @@
                 <dd>{{ optionalDateLabel(client.last_session_at, 'Ще не було') }}</dd>
               </div>
               <div class="client-meta__item">
-                <dt>Заплановано</dt>
+                <dt>Майбутніх сесій</dt>
                 <dd>{{ client.upcoming_count ?? 0 }}</dd>
               </div>
               <div class="client-meta__item">
