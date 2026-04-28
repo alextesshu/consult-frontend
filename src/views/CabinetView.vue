@@ -1178,7 +1178,7 @@ onBeforeUnmount(() => {
     radial-gradient(880px 420px at 8% -4%, color-mix(in srgb, var(--pc-teal-100) 76%, transparent), transparent 68%),
     radial-gradient(720px 380px at 92% 2%, color-mix(in srgb, var(--pc-peach-100) 78%, transparent), transparent 70%),
     var(--pc-bg-main);
-  border-radius: var(--radius-xl);
+  border-radius: var(--pc-radius-panel);
   padding: clamp(14px, 2vw, 22px);
   color: var(--pc-text-main);
   min-width: 0;
@@ -1196,7 +1196,7 @@ onBeforeUnmount(() => {
     color-mix(in srgb, var(--pc-bg-card) 86%, var(--pc-peach-100))
   );
   border: 1px solid var(--pc-border);
-  border-radius: var(--radius-xl);
+  border-radius: var(--pc-radius-panel);
   padding: clamp(18px, 2.2vw, 28px);
   box-shadow: var(--pc-shadow-card);
   min-width: 0;
@@ -1231,7 +1231,7 @@ onBeforeUnmount(() => {
     color-mix(in srgb, var(--pc-danger) 92%, #ffffff),
     color-mix(in srgb, var(--pc-navy-950) 24%, var(--pc-danger))
   );
-  border-radius: var(--radius-lg);
+  border-radius: var(--pc-radius-panel);
   padding: 12px 14px;
   display: grid;
   gap: 8px;
@@ -1260,7 +1260,7 @@ onBeforeUnmount(() => {
 .hero-status {
   min-width: min(260px, 100%);
   max-width: 100%;
-  border-radius: var(--radius-md);
+  border-radius: var(--pc-radius-panel);
   padding: 12px 14px;
   display: grid;
   gap: 10px;
@@ -1288,7 +1288,7 @@ onBeforeUnmount(() => {
 
 .panel {
   border: 1px solid var(--line);
-  border-radius: var(--radius-xl);
+  border-radius: var(--pc-radius-panel);
   padding: clamp(18px, 1.2vw, 24px);
   background: #fff;
   display: grid;
@@ -1357,7 +1357,7 @@ onBeforeUnmount(() => {
 
 .work-queue__state {
   border: 1px solid var(--line);
-  border-radius: var(--radius-md);
+  border-radius: var(--pc-radius-panel);
   padding: 12px;
   display: grid;
   gap: 10px;
@@ -1376,7 +1376,7 @@ onBeforeUnmount(() => {
 }
 
 .work-queue__inline-error {
-  border-radius: var(--radius-sm);
+  border-radius: var(--pc-radius-control);
   padding: 10px 12px;
   display: flex;
   align-items: center;
@@ -1393,7 +1393,7 @@ onBeforeUnmount(() => {
 
 .work-queue-summary-card {
   border: 1px solid var(--pc-border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--pc-radius-panel);
   background: var(--pc-bg-card);
   padding: 14px 16px;
   text-decoration: none;
@@ -1454,7 +1454,7 @@ onBeforeUnmount(() => {
 
 .work-queue-list {
   border: 1px solid rgba(7, 47, 71, 0.12);
-  border-radius: var(--radius-md);
+  border-radius: var(--pc-radius-panel);
   background: #fff;
   padding: 14px;
   display: grid;
@@ -1484,7 +1484,7 @@ onBeforeUnmount(() => {
 
 .work-queue-list__item {
   border: 1px solid rgba(7, 47, 71, 0.1);
-  border-radius: var(--radius-sm);
+  border-radius: var(--pc-radius-control);
   padding: 10px;
   display: grid;
   gap: 6px;
@@ -1599,7 +1599,7 @@ onBeforeUnmount(() => {
 
 .nearest-session__item {
   border: 1px solid rgba(7, 47, 71, 0.12);
-  border-radius: var(--radius-md);
+  border-radius: var(--pc-radius-panel);
   background: #fff;
   padding: 12px 14px;
   display: grid;
@@ -1706,7 +1706,7 @@ onBeforeUnmount(() => {
 
 .onboarding-step {
   border: 1px solid var(--line);
-  border-radius: var(--radius-md);
+  border-radius: var(--pc-radius-panel);
   padding: 12px 14px;
   display: grid;
   gap: 8px;
@@ -1769,7 +1769,7 @@ onBeforeUnmount(() => {
 
 .onboarding-list-wrap--warning {
   padding: 10px 12px;
-  border-radius: var(--radius-sm);
+  border-radius: var(--pc-radius-control);
   border: 1px solid rgba(179, 29, 29, 0.24);
   background: rgba(250, 232, 232, 0.6);
 }
@@ -1858,7 +1858,7 @@ onBeforeUnmount(() => {
 .btn--sm {
   padding: 6px 10px;
   font-size: 12px;
-  border-radius: var(--radius-sm);
+  border-radius: var(--pc-radius-control);
 }
 
 .tips-list {
@@ -1974,7 +1974,7 @@ onBeforeUnmount(() => {
 
 .feature {
   padding: 10px 12px;
-  border-radius: var(--radius-md);
+  border-radius: var(--pc-radius-panel);
   background: rgba(7, 47, 71, 0.04);
   border: 1px solid rgba(7, 47, 71, 0.08);
 }
@@ -1994,7 +1994,7 @@ onBeforeUnmount(() => {
 .alert {
   margin-top: 8px;
   padding: 10px 12px;
-  border-radius: var(--radius-sm);
+  border-radius: var(--pc-radius-control);
   background: rgba(194, 75, 75, 0.1);
   color: #8b3030;
   font-size: 13px;
@@ -2009,7 +2009,7 @@ onBeforeUnmount(() => {
 
 .action-group {
   border: 1px solid var(--line);
-  border-radius: var(--radius-md);
+  border-radius: var(--pc-radius-panel);
   padding: 12px;
   display: grid;
   gap: 10px;
@@ -2033,7 +2033,7 @@ onBeforeUnmount(() => {
 .action-tile {
   min-height: 48px;
   padding: 12px 14px;
-  border-radius: var(--radius-lg);
+  border-radius: var(--pc-radius-panel);
   border: 1px solid var(--pc-border);
   background: var(--pc-bg-card);
   text-decoration: none;
@@ -2108,7 +2108,7 @@ onBeforeUnmount(() => {
   .cabinet__hero {
     padding: 14px 16px;
     gap: 10px;
-    border-radius: var(--radius-lg);
+    border-radius: var(--pc-radius-panel);
   }
 
   .cabinet__title {
@@ -2146,7 +2146,7 @@ onBeforeUnmount(() => {
   .cabinet__hero {
     padding: 12px;
     gap: 10px;
-    border-radius: var(--radius-lg);
+    border-radius: var(--pc-radius-panel);
   }
 
   .cabinet__title {
@@ -2177,7 +2177,7 @@ onBeforeUnmount(() => {
   .panel {
     padding: 14px;
     gap: 12px;
-    border-radius: var(--radius-lg);
+    border-radius: var(--pc-radius-panel);
   }
 }
 </style>

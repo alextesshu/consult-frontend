@@ -1683,3 +1683,100 @@ Follow-up (same date, compact tablet hero density):
   * `npm run test:run -- src/views/TherapistSessionsView.spec.ts src/views/TherapistClientsView.spec.ts src/views/CabinetView.spec.ts` - passed, 82 tests.
   * `npm run typecheck` - passed.
   * `npm run build` - passed; existing Vite chunk-size warning remains.
+
+---
+
+## 27. Site-Wide Topbar Full-Bleed Alignment
+
+### 2026-04-28 - Shell-level topbar full-bleed fix
+
+Changed scope:
+
+* `src/App.vue`
+* `docs/UI_MIGRATION_PLAN.md`
+
+What changed:
+
+* Fixed topbar clipping caused by padded `.shell` by applying full-bleed escape at shell/topbar level for normal padded shells.
+* Updated `.shell:not(.shell--home):not(.shell--minimal) .topbar` to expand beyond shell inline padding and align to viewport edges.
+* Added stronger shell-scoped alignment rule for `.topbar__inner` so topbar content remains aligned with normal container width and does not touch viewport edges.
+* Kept routes/auth/role logic, navigation structure, handlers, notifications, mobile menu, and page business logic unchanged.
+
+Preserved:
+
+* Existing Home/minimal shell behavior.
+* Existing topbar role variants and visual semantics.
+
+Verification:
+
+```bash
+npm run typecheck
+npm run build
+```
+
+Result:
+
+* `npm run typecheck` - passed.
+* `npm run build` - passed; existing Vite chunk-size warning remains.
+
+Follow-up (same date, sidebar shape + meeting-link attention CTA):
+
+* `src/App.vue`
+  * Updated specialist cabinet sidebar and mobile sections menu to a straighter workspace card shape.
+  * Reduced rounding and aligned border/background treatment with current navy-first workspace panels.
+  * Kept sticky/scroll/sidebar behavior and drawer open/close behavior unchanged.
+  * Kept active sidebar item clearly visible with navy-first accent.
+* `src/views/TherapistSessionDetailView.vue`
+  * Strengthened missing online meeting-link attention state in the meeting block with warm yellow/peach attention styling and stronger border separation.
+  * Made `Додати посилання` a clear contextual primary CTA in missing-link state via local class-based styling, without behavior changes.
+  * Preserved meeting-link handlers, focus/query behavior, and session lifecycle logic.
+* Verification:
+  * `npm run test:run -- src/views/TherapistSessionDetailView.spec.ts` - passed, 49 tests.
+  * `npm run typecheck` - passed.
+  * `npm run build` - passed; existing Vite chunk-size warning remains.
+
+---
+
+### 2026-04-28 - Global workspace corner-radius alignment
+
+Changed scope:
+
+* `src/style.css`
+* `src/App.vue`
+* `src/views/TherapistSessionsView.vue`
+* `src/views/TherapistSessionDetailView.vue`
+* `src/views/TherapistClientsView.vue`
+* `src/views/CabinetView.vue`
+* `docs/DESIGN_SYSTEM.md`
+* `docs/UI_MIGRATION_PLAN.md`
+
+What changed:
+
+* Added explicit PRO CONSULT workspace radius tokens:
+  * `--pc-radius-sharp: 2px`
+  * `--pc-radius-card: 4px`
+  * `--pc-radius-panel: 4px`
+  * `--pc-radius-control: 4px`
+  * `--pc-radius-pill: 999px`
+* Aligned specialist cabinet navigation surfaces in `App.vue` to straighter corners (`.specialist-sidebar`, `.specialist-sidebar__link`, mobile sections toggle/drawer panel).
+* Replaced locally large workspace radii in cabinet/sessions/clients/session-detail views with `--pc-radius-panel`, `--pc-radius-card`, and `--pc-radius-control`.
+* Kept pill-like statuses/chips/badges unchanged where pill semantics are intentional.
+
+Preserved:
+
+* Existing routes, API calls, handlers, permissions, and business logic.
+* Existing copy and session/payment/manual-client flows.
+
+Verification:
+
+```bash
+npm run test:run -- src/views/TherapistSessionsView.spec.ts src/views/TherapistSessionDetailView.spec.ts src/views/TherapistClientsView.spec.ts src/views/CabinetView.spec.ts
+npm run typecheck
+npm run build
+```
+
+Result:
+
+* `npm run test:run -- src/views/TherapistSessionsView.spec.ts src/views/TherapistSessionDetailView.spec.ts src/views/TherapistClientsView.spec.ts src/views/CabinetView.spec.ts` - passed, 131 tests.
+* `npm run typecheck` - passed.
+* `npm run build` - passed; existing Vite chunk-size warning remains.

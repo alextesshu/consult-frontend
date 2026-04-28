@@ -118,6 +118,14 @@
   --pc-space-2: 8px;
   --pc-space-3: 12px;
   --pc-space-4: 16px;
+  --pc-radius-sharp: 2px;
+  --pc-radius-card: 4px;
+  --pc-radius-panel: 4px;
+  --pc-radius-control: 4px;
+  --pc-radius-pill: 999px;
+  --pc-radius-sm: var(--pc-radius-card);
+  --pc-radius-md: var(--pc-radius-panel);
+  --pc-radius-lg: var(--pc-radius-panel);
   --pc-space-5: 20px;
   --pc-space-6: 24px;
   --pc-space-8: 32px;

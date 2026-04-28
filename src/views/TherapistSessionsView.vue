@@ -1950,7 +1950,7 @@ onBeforeUnmount(() => {
     radial-gradient(circle at 92% 18%, rgba(143, 203, 200, 0.28), transparent 28%),
     linear-gradient(135deg, var(--pc-bg-card), var(--pc-bg-soft));
   border: 1px solid var(--pc-border);
-  border-radius: var(--radius-xl);
+  border-radius: var(--pc-radius-panel);
   padding: 24px;
   box-shadow: var(--pc-shadow-soft);
 }
@@ -1987,7 +1987,7 @@ onBeforeUnmount(() => {
 
 .panel {
   border: 1px solid var(--pc-border);
-  border-radius: var(--radius-xl);
+  border-radius: var(--pc-radius-panel);
   padding: 20px;
   background: var(--pc-bg-card);
   display: grid;
@@ -2031,7 +2031,7 @@ onBeforeUnmount(() => {
   .next-step-rail--modal {
     margin: 0 18px;
     padding: 10px;
-    border-radius: 12px;
+    border-radius: var(--pc-radius-card);
     border: 1px dashed color-mix(in srgb, var(--pc-teal-500) 48%, var(--pc-border));
     background: var(--pc-teal-100);
   }
@@ -2044,7 +2044,7 @@ onBeforeUnmount(() => {
 
   .priority-card {
     border: 1px solid var(--pc-border);
-    border-radius: 16px;
+    border-radius: var(--pc-radius-panel);
     padding: 16px;
     background: rgba(255, 255, 255, 0.88);
     display: grid;
@@ -2075,7 +2075,7 @@ onBeforeUnmount(() => {
     justify-content: space-between;
     gap: 10px;
     padding: 12px;
-    border-radius: 12px;
+    border-radius: var(--pc-radius-card);
     border: 1px solid var(--pc-border);
     background: var(--pc-bg-main);
   }
@@ -2105,7 +2105,7 @@ onBeforeUnmount(() => {
   gap: 6px;
   color: inherit;
   text-decoration: none;
-  border-radius: 12px;
+  border-radius: var(--pc-radius-card);
   padding: 8px;
 }
 
@@ -2155,7 +2155,7 @@ onBeforeUnmount(() => {
 
 .session-filters .input {
   border-color: var(--pc-border);
-  border-radius: 12px;
+  border-radius: var(--pc-radius-card);
   background: #fff;
   color: var(--pc-text-main);
 }
@@ -2166,7 +2166,7 @@ onBeforeUnmount(() => {
   justify-content: space-between;
   gap: 14px;
   border: 1px solid var(--pc-border);
-  border-radius: 14px;
+  border-radius: var(--pc-radius-panel);
   padding: 12px 14px;
   background: var(--pc-bg-main);
   color: var(--pc-text-muted);
@@ -2200,7 +2200,7 @@ onBeforeUnmount(() => {
   align-items: center;
   min-height: 34px;
   border: 1px solid var(--pc-border);
-  border-radius: var(--radius-sm);
+  border-radius: var(--pc-radius-control);
   padding: 6px 10px;
   background: #fff;
   color: var(--pc-navy-900);
@@ -2239,7 +2239,7 @@ onBeforeUnmount(() => {
 
 .session-card {
   border: 1px solid var(--pc-border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--pc-radius-panel);
   padding: 16px;
   background: var(--pc-bg-card);
   display: grid;
@@ -2360,7 +2360,7 @@ onBeforeUnmount(() => {
   margin-top: 6px;
   padding: 12px 14px;
   border: 1px solid color-mix(in srgb, var(--pc-teal-500) 45%, var(--pc-border));
-  border-radius: 12px;
+  border-radius: var(--pc-radius-card);
   background: var(--pc-teal-100);
   display: flex;
   align-items: center;
@@ -2384,7 +2384,7 @@ onBeforeUnmount(() => {
 .session-photo {
   width: 120px;
   height: 120px;
-  border-radius: 16px;
+  border-radius: var(--pc-radius-panel);
   object-fit: cover;
   border: 1px solid var(--pc-border);
   background: var(--pc-bg-soft);
@@ -2434,7 +2434,7 @@ onBeforeUnmount(() => {
   display: grid;
   gap: 10px;
   padding: 12px;
-  border-radius: 12px;
+  border-radius: var(--pc-radius-card);
   border: 1px dashed color-mix(in srgb, var(--pc-teal-500) 42%, var(--pc-border));
   background: var(--pc-bg-main);
   grid-column: 1 / -1;
@@ -2450,7 +2450,7 @@ onBeforeUnmount(() => {
   display: grid;
   gap: 8px;
   padding: 10px;
-  border-radius: 10px;
+  border-radius: var(--pc-radius-control);
   border: 1px solid var(--pc-border);
   background: #fff;
 }
@@ -2479,7 +2479,7 @@ onBeforeUnmount(() => {
   display: grid;
   gap: 10px;
   padding: 12px;
-  border-radius: 12px;
+  border-radius: var(--pc-radius-card);
   border: 1px dashed color-mix(in srgb, var(--pc-teal-500) 42%, var(--pc-border));
   background: var(--pc-teal-100);
   grid-column: 1 / -1;
@@ -2516,7 +2516,7 @@ onBeforeUnmount(() => {
   display: grid;
   gap: 10px;
   padding: 12px;
-  border-radius: 12px;
+  border-radius: var(--pc-radius-card);
   border: 1px solid rgba(47, 63, 73, 0.12);
   background: #fbfbfb;
   grid-column: 1 / -1;
@@ -2611,7 +2611,7 @@ onBeforeUnmount(() => {
   max-height: min(90vh, 920px);
   margin: 4vh auto 0;
   background: #fff;
-  border-radius: 18px;
+  border-radius: var(--pc-radius-panel);
   border: 1px solid var(--line);
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.18);
   display: grid;
@@ -2631,7 +2631,7 @@ onBeforeUnmount(() => {
   gap: 6px;
   margin: 12px 18px 0;
   border: 1px solid color-mix(in srgb, var(--line) 74%, #ffffff);
-  border-radius: 10px;
+  border-radius: var(--pc-radius-control);
   padding: 10px 12px;
   background: color-mix(in srgb, var(--surface) 70%, #ffffff);
   color: var(--text);
@@ -2693,7 +2693,7 @@ onBeforeUnmount(() => {
 
 .request-card {
   border: 1px solid var(--pc-border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--pc-radius-panel);
   padding: 16px;
   background: var(--pc-bg-card);
   display: grid;
@@ -2721,7 +2721,7 @@ onBeforeUnmount(() => {
   color: var(--pc-danger);
   background: var(--pc-red-soft);
   border: 1px solid color-mix(in srgb, var(--pc-danger) 24%, var(--pc-border));
-  border-radius: 12px;
+  border-radius: var(--pc-radius-card);
   padding: 10px 12px;
 }
 
@@ -2735,7 +2735,7 @@ onBeforeUnmount(() => {
 .recurring-actions .btn,
 .request-actions .btn,
 .new-bookings-banner .btn {
-  border-radius: var(--radius-sm);
+  border-radius: var(--pc-radius-control);
   font-weight: 700;
 }
 
@@ -2844,7 +2844,7 @@ onBeforeUnmount(() => {
 
   .panel,
   .sessions__hero {
-    border-radius: var(--radius-lg);
+    border-radius: var(--pc-radius-panel);
   }
 
   .sessions__hero {

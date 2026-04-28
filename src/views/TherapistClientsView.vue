@@ -2049,7 +2049,7 @@ onBeforeUnmount(() => {
   order: 0;
   background: linear-gradient(135deg, rgba(8, 113, 201, 0.1), rgba(7, 47, 71, 0.03));
   border: 1px solid var(--line);
-  border-radius: var(--radius);
+  border-radius: var(--pc-radius-panel);
   padding: 14px 16px;
 }
 
@@ -2065,7 +2065,7 @@ onBeforeUnmount(() => {
 
 .panel {
   border: 1px solid var(--line);
-  border-radius: 18px;
+  border-radius: var(--pc-radius-panel);
   padding: 18px;
   background: #fff;
   display: grid;
@@ -2083,7 +2083,7 @@ onBeforeUnmount(() => {
 .panel--clients > .panel__header {
   padding: 14px 16px;
   border: 1px solid var(--pc-border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--pc-radius-panel);
   background:
     radial-gradient(circle at 100% 0, rgba(221, 241, 239, 0.72), transparent 36%),
     linear-gradient(145deg, rgba(255, 255, 255, 0.96), rgba(255, 250, 239, 0.78));
@@ -2135,7 +2135,7 @@ onBeforeUnmount(() => {
   align-items: end;
   padding: 12px;
   border: 1px solid var(--pc-border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--pc-radius-panel);
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(255, 250, 239, 0.78));
   box-shadow: 0 8px 18px rgba(18, 52, 90, 0.06);
 }
@@ -2194,7 +2194,7 @@ onBeforeUnmount(() => {
   gap: 14px;
   align-items: center;
   border: 1px solid color-mix(in srgb, var(--line) 74%, #ffffff);
-  border-radius: 10px;
+  border-radius: var(--pc-radius-control);
   padding: 12px;
   background: #fff;
 }
@@ -2257,7 +2257,7 @@ onBeforeUnmount(() => {
 
 .client-card {
   border: 1px solid var(--pc-border);
-  border-radius: var(--radius-lg);
+  border-radius: var(--pc-radius-panel);
   padding: 18px;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(255, 253, 248, 0.94));
@@ -2375,7 +2375,7 @@ onBeforeUnmount(() => {
 .client-meta__item {
   min-width: 0;
   border: 1px solid color-mix(in srgb, var(--pc-border) 76%, #ffffff);
-  border-radius: var(--radius-md);
+  border-radius: var(--pc-radius-panel);
   padding: 10px 12px;
   background: color-mix(in srgb, var(--pc-bg-main) 72%, #ffffff);
 }
@@ -2403,7 +2403,7 @@ onBeforeUnmount(() => {
 
 .manual-client-note {
   border: 1px solid color-mix(in srgb, var(--pc-border) 82%, #ffffff);
-  border-radius: var(--radius-md);
+  border-radius: var(--pc-radius-panel);
   padding: 11px 12px;
   background: color-mix(in srgb, var(--pc-bg-main) 82%, #ffffff);
   color: var(--pc-text-muted);
@@ -2488,7 +2488,7 @@ onBeforeUnmount(() => {
   display: grid;
   gap: 8px;
   padding: 12px;
-  border-radius: 12px;
+  border-radius: var(--pc-radius-card);
   border: 1px solid rgba(7, 47, 71, 0.12);
   background: rgba(7, 47, 71, 0.03);
 }
@@ -2531,7 +2531,7 @@ onBeforeUnmount(() => {
 
 .history-item {
   padding: 10px 12px;
-  border-radius: 12px;
+  border-radius: var(--pc-radius-card);
   background: #f7f8fa;
   border: 1px solid rgba(47, 63, 73, 0.08);
   display: grid;
@@ -2587,7 +2587,7 @@ onBeforeUnmount(() => {
   color: #b3261e;
   background: #fdecea;
   border: 1px solid #f5c2c0;
-  border-radius: 10px;
+  border-radius: var(--pc-radius-control);
   padding: 8px 10px;
 }
 
@@ -2595,7 +2595,7 @@ onBeforeUnmount(() => {
   color: var(--pc-warning);
   background: var(--pc-yellow-soft);
   border: 1px solid color-mix(in srgb, var(--pc-warning) 24%, var(--pc-border));
-  border-radius: 10px;
+  border-radius: var(--pc-radius-control);
   padding: 8px 10px;
 }
 
@@ -2623,7 +2623,7 @@ onBeforeUnmount(() => {
   max-height: min(90vh, 820px);
   overflow: auto;
   border: 1px solid var(--pc-border);
-  border-radius: var(--radius-xl);
+  border-radius: var(--pc-radius-panel);
   background:
     radial-gradient(circle at 100% 0, rgba(221, 241, 239, 0.7), transparent 32%),
     var(--pc-bg-card);
@@ -2749,7 +2749,7 @@ onBeforeUnmount(() => {
     align-items: flex-start;
     padding: 12px 14px;
     gap: 9px;
-    border-radius: var(--radius-lg);
+    border-radius: var(--pc-radius-panel);
   }
 
   .clients__title {
@@ -2814,7 +2814,7 @@ onBeforeUnmount(() => {
   .manual-client-modal__content {
     max-height: calc(100vh - 28px);
     padding: 18px;
-    border-radius: var(--radius-lg);
+    border-radius: var(--pc-radius-panel);
   }
 
   .manual-client-modal__header {
@@ -2846,7 +2846,7 @@ onBeforeUnmount(() => {
   .clients__hero {
     padding: 10px 12px;
     gap: 8px;
-    border-radius: var(--radius-lg);
+    border-radius: var(--pc-radius-panel);
   }
 
   .clients__title {

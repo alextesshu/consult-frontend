@@ -462,20 +462,18 @@ grid-template-columns: 1fr;
 Recommended:
 
 ```css
---radius-sm: 8px;
---radius-md: 12px;
---radius-lg: 18px;
---radius-xl: 24px;
---radius-2xl: 32px;
---radius-pill: 999px;
+--pc-radius-sharp: 2px;
+--pc-radius-card: 4px;
+--pc-radius-panel: 4px;
+--pc-radius-control: 4px;
+--pc-radius-pill: 999px;
 ```
 
 Usage:
 
-- buttons: `12px` or pill
-- cards: `18px` to `24px`
-- large hero panels: `24px` to `32px`
-- badges: pill
+- workspace cards/panels/sidebar/menus/form blocks: `2px` to `4px`
+- buttons/controls: `4px` unless intentionally pill-like
+- badges/status pills/chips: pill
 
 ### Shadows
 

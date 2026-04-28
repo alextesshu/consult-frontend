@@ -158,7 +158,9 @@
               </button>
               <button
                 v-if="session && ['SCHEDULED', 'CONFIRMED'].includes(session.status)"
-                :class="meetingUrl || !needsMeetingLinkAttention ? 'btn btn--ghost btn--sm' : 'btn btn--sm'"
+                :class="[
+                  meetingUrl || !needsMeetingLinkAttention ? 'btn btn--ghost btn--sm' : 'btn btn--sm meeting-card__cta--primary'
+                ]"
                 type="button"
                 @click="toggleEditMeetingLink"
               >
@@ -2582,9 +2584,15 @@ watch(
 }
 
 .meeting-card--attention {
-  border-color: color-mix(in srgb, var(--pc-warning) 38%, var(--pc-border));
-  background: color-mix(in srgb, var(--pc-yellow-soft) 72%, #ffffff);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--pc-warning) 16%, transparent);
+  border-color: color-mix(in srgb, var(--pc-warning) 52%, var(--pc-border));
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--pc-yellow-soft) 78%, #ffffff),
+    color-mix(in srgb, var(--pc-peach-100) 72%, #ffffff)
+  );
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--pc-warning) 22%, transparent),
+    var(--pc-shadow-soft);
 }
 
 .meeting-card__attention {
@@ -2599,6 +2607,20 @@ watch(
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+.meeting-card__cta--primary {
+  border-color: var(--pc-navy-900);
+  background: var(--pc-navy-900);
+  color: #fff;
+  box-shadow: 0 10px 22px rgba(18, 52, 90, 0.18);
+}
+
+.meeting-card__cta--primary:hover,
+.meeting-card__cta--primary:focus-visible {
+  border-color: var(--pc-navy-950);
+  background: var(--pc-navy-950);
+  color: #fff;
 }
 
 .status-pill {
@@ -2780,7 +2802,7 @@ watch(
   color: #b3261e;
   background: #fdecea;
   border: 1px solid #f5c2c0;
-  border-radius: var(--radius-sm);
+  border-radius: var(--pc-radius-control);
   padding: 8px 10px;
 }
 
@@ -2905,7 +2927,7 @@ watch(
   gap: 8px;
   border: 1px solid #f5c2c0;
   background: #fdecea;
-  border-radius: var(--radius-sm);
+  border-radius: var(--pc-radius-control);
   padding: 10px;
 }
 
