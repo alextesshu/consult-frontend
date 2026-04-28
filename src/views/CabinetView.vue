@@ -13,7 +13,7 @@
         :class="[
           'hero-signal',
           `hero-signal--${dashboardHeroSignal.type}`,
-          dashboardHeroSignal.tone === 'live' ? 'hero-signal--live' : 'hero-signal--warning',
+          `hero-signal--${dashboardHeroSignal.tone}`,
         ]"
         :to="dashboardHeroSignal.to"
       >
@@ -25,9 +25,9 @@
           {{ dashboardHeroSignal.message }}
         </div>
         <a
-          v-if="dashboardHeroSignal.type === 'live' && liveMeetingUrl && dashboardHeroSignal.session.join_available"
+          v-if="canShowHeroJoinAction && heroMeetingUrl"
           class="btn btn--sm hero-signal__join"
-          :href="liveMeetingUrl"
+          :href="heroMeetingUrl"
           target="_blank"
           rel="noopener noreferrer"
           @click.stop
@@ -485,13 +485,14 @@ type DashboardHeroSignalType =
   | 'needs_confirmation_now'
   | 'needs_confirmation_soon'
   | 'missing_meeting_link'
+  | 'confirmed_soon'
 
 type DashboardHeroSignal = {
   type: DashboardHeroSignalType
   session: CabinetSession
   title: string
   message?: string
-  tone: 'live' | 'warning'
+  tone: 'live' | 'warning' | 'info'
   to: string
 }
 
@@ -601,6 +602,7 @@ const cabinetDataError = ref('')
 const nowTs = ref(Date.now())
 const LIVE_STATUS_REFRESH_MS = 30 * 1000
 const HERO_SIGNAL_SOON_WINDOW_MS = 60 * 60 * 1000
+const HERO_SIGNAL_CONFIRMED_SOON_WINDOW_MS = 30 * 60 * 1000
 let nowIntervalId: number | null = null
 const CABINET_DATA_LOAD_ERROR = 'Не вдалося завантажити дані доступу кабінету.'
 const ONBOARDING_LOAD_ERROR = 'Не вдалося завантажити стан онбордингу.'
@@ -961,6 +963,13 @@ function startsWithinHeroSignalWindow(session: CabinetSession) {
   return start > now && start <= now + HERO_SIGNAL_SOON_WINDOW_MS
 }
 
+function startsWithinConfirmedSoonWindow(session: CabinetSession) {
+  const start = getSessionStartMs(session)
+  if (start === null) return false
+  const now = nowTs.value
+  return start > now && start <= now + HERO_SIGNAL_CONFIRMED_SOON_WINDOW_MS
+}
+
 function sortBySessionStart(a: CabinetSession, b: CabinetSession) {
   return (getSessionStartMs(a) ?? Number.POSITIVE_INFINITY) - (getSessionStartMs(b) ?? Number.POSITIVE_INFINITY)
 }
@@ -1028,12 +1037,34 @@ const dashboardHeroSignal = computed<DashboardHeroSignal | null>(() => {
     }
   }
 
+  const confirmedSoonSession = firstSessionMatching(
+    (session) => session.status === 'CONFIRMED' && startsWithinConfirmedSoonWindow(session)
+  )
+  if (confirmedSoonSession) {
+    return {
+      type: 'confirmed_soon',
+      session: confirmedSoonSession,
+      title: 'Сесія скоро почнеться',
+      message: isOfflineSession(confirmedSoonSession)
+        ? 'Підготуйтеся до сесії.'
+        : 'Посилання додано. Підготуйтеся до сесії.',
+      tone: 'info',
+      to: `/cabinet/sessions/${confirmedSoonSession.id}`,
+    }
+  }
+
   return null
 })
 
-const liveMeetingUrl = computed(() => {
-  if (dashboardHeroSignal.value?.type !== 'live') return ''
+const heroMeetingUrl = computed(() => {
+  if (!dashboardHeroSignal.value || !['live', 'confirmed_soon'].includes(dashboardHeroSignal.value.type)) return ''
   return normalizeMeetingUrl(dashboardHeroSignal.value.session.meeting_url)
+})
+
+const canShowHeroJoinAction = computed(() => {
+  const signal = dashboardHeroSignal.value
+  if (!signal || !['live', 'confirmed_soon'].includes(signal.type)) return false
+  return signal.session.join_available === true
 })
 
 const upcomingSorted = computed(() => {
@@ -1372,6 +1403,18 @@ onBeforeUnmount(() => {
   );
   color: var(--pc-navy-900);
   box-shadow: 0 12px 24px rgba(122, 78, 20, 0.08);
+}
+
+.hero-signal--info {
+  border: 1px solid color-mix(in srgb, var(--pc-navy-900) 24%, var(--pc-border));
+  border-left: 4px solid var(--pc-navy-900);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--pc-blue-soft) 86%, #ffffff),
+    color-mix(in srgb, var(--pc-primary-soft) 72%, #ffffff)
+  );
+  color: var(--pc-navy-900);
+  box-shadow: 0 12px 24px rgba(18, 52, 90, 0.08);
 }
 
 .hero-signal__title {

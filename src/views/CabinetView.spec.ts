@@ -731,6 +731,42 @@ describe('CabinetView', () => {
     expect(view.getByText('Онлайн-сесія скоро почнеться, але посилання ще не додано.')).toBeInTheDocument()
   })
 
+  it('shows confirmed soon hero signal for confirmed session starting soon', async () => {
+    const start = new Date(Date.now() + 20 * 60 * 1000).toISOString()
+    const end = new Date(Date.now() + 80 * 60 * 1000).toISOString()
+
+    mockedApiGet.mockImplementation(async (_url, config) => {
+      if (config?.params?.upcoming === true) {
+        return [
+          {
+            id: 84,
+            status: 'CONFIRMED',
+            client: 50,
+            client_name: 'Confirmed Soon Client',
+            session_format: 'online',
+            meeting_url: 'https://meet.google.com/confirmed-soon-room',
+            join_available: true,
+            slot_start_at: start,
+            slot_end_at: end,
+          },
+        ] as any
+      }
+      if (config?.params?.upcoming === false) return []
+      return []
+    })
+
+    const view = renderView()
+
+    await waitFor(() => {
+      expect(view.container.querySelector('a.hero-signal--confirmed_soon[href="/cabinet/sessions/84"]')).toBeInTheDocument()
+    })
+    const heroSignal = view.container.querySelector('a.hero-signal--confirmed_soon')
+    expect(heroSignal).toHaveTextContent('Сесія скоро почнеться')
+    expect(heroSignal).toHaveTextContent('Confirmed Soon Client')
+    expect(heroSignal).not.toHaveTextContent('Потрібне підтвердження')
+    expect(view.container.querySelector('a.hero-signal__join[href="https://meet.google.com/confirmed-soon-room"]')).toBeInTheDocument()
+  })
+
   it('prioritizes confirmed live session over scheduled session starting soon', async () => {
     const soonStart = new Date(Date.now() + 30 * 60 * 1000).toISOString()
     const soonEnd = new Date(Date.now() + 90 * 60 * 1000).toISOString()
@@ -771,6 +807,90 @@ describe('CabinetView', () => {
       expect(view.container.querySelector('a.hero-signal--live[href="/cabinet/sessions/83"]')).toBeInTheDocument()
     })
     expect(view.container.querySelector('a.hero-signal--needs_confirmation_soon')).not.toBeInTheDocument()
+  })
+
+  it('prioritizes scheduled soon warning over confirmed soon signal', async () => {
+    const start = new Date(Date.now() + 20 * 60 * 1000).toISOString()
+    const end = new Date(Date.now() + 80 * 60 * 1000).toISOString()
+
+    mockedApiGet.mockImplementation(async (_url, config) => {
+      if (config?.params?.upcoming === true) {
+        return [
+          {
+            id: 85,
+            status: 'CONFIRMED',
+            client: 51,
+            client_name: 'Confirmed Soon Client',
+            session_format: 'online',
+            meeting_url: 'https://meet.google.com/confirmed-soon-room',
+            slot_start_at: start,
+            slot_end_at: end,
+          },
+          {
+            id: 86,
+            status: 'SCHEDULED',
+            client: 52,
+            client_name: 'Scheduled Soon Client',
+            slot_start_at: start,
+            slot_end_at: end,
+          },
+        ] as any
+      }
+      if (config?.params?.upcoming === false) return []
+      return []
+    })
+
+    const view = renderView()
+
+    await waitFor(() => {
+      expect(
+        view.container.querySelector('a.hero-signal--needs_confirmation_soon[href="/cabinet/sessions/86"]')
+      ).toBeInTheDocument()
+    })
+    expect(view.container.querySelector('a.hero-signal--confirmed_soon')).not.toBeInTheDocument()
+  })
+
+  it('prioritizes missing meeting link warning over confirmed soon signal', async () => {
+    const start = new Date(Date.now() + 20 * 60 * 1000).toISOString()
+    const end = new Date(Date.now() + 80 * 60 * 1000).toISOString()
+
+    mockedApiGet.mockImplementation(async (_url, config) => {
+      if (config?.params?.upcoming === true) {
+        return [
+          {
+            id: 87,
+            status: 'CONFIRMED',
+            client: 53,
+            client_name: 'Confirmed Soon Client',
+            session_format: 'online',
+            meeting_url: 'https://meet.google.com/confirmed-soon-room',
+            slot_start_at: start,
+            slot_end_at: end,
+          },
+          {
+            id: 89,
+            status: 'CONFIRMED',
+            client: 54,
+            client_name: 'Missing Link Client',
+            session_format: 'online',
+            meeting_url: null,
+            slot_start_at: start,
+            slot_end_at: end,
+          },
+        ] as any
+      }
+      if (config?.params?.upcoming === false) return []
+      return []
+    })
+
+    const view = renderView()
+
+    await waitFor(() => {
+      expect(
+        view.container.querySelector('a.hero-signal--missing_meeting_link[href="/cabinet/sessions/89"]')
+      ).toBeInTheDocument()
+    })
+    expect(view.container.querySelector('a.hero-signal--confirmed_soon')).not.toBeInTheDocument()
   })
 
   it('does not show live marker before actual slot start even if join window already opened', async () => {
