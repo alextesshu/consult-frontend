@@ -8,7 +8,7 @@
           Список запланованих і минулих сесій. Дії доступні одразу.
         </p>
       </div>
-      <RouterLink class="btn btn--ghost" to="/cabinet">Назад до кабінету</RouterLink>
+      <RouterLink class="btn btn--ghost hero-back-link" to="/cabinet">Назад до кабінету</RouterLink>
     </header>
 
     <div v-if="error" class="form-error">{{ error }}</div>
@@ -2783,10 +2783,44 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 860px) {
+  .sessions {
+    gap: 16px;
+  }
+
   .sessions__hero {
     flex-direction: column;
     align-items: flex-start;
-    padding: 20px;
+    padding: 14px 16px;
+    gap: 10px;
+  }
+
+  .sessions__title {
+    font-size: 26px;
+    margin: 4px 0;
+    line-height: 1.16;
+  }
+
+  .sessions__subtitle {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.32;
+    max-width: 100%;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .sessions__hero::after {
+    width: 116px;
+    height: 116px;
+    right: -22px;
+    bottom: -30px;
+    opacity: 0.55;
+  }
+
+  .hero-back-link {
+    display: none;
   }
 
   .new-bookings-banner {
@@ -2805,7 +2839,7 @@ onBeforeUnmount(() => {
 
 @media (max-width: 520px) {
   .sessions {
-    gap: 16px;
+    gap: 14px;
   }
 
   .panel,
@@ -2813,8 +2847,17 @@ onBeforeUnmount(() => {
     border-radius: var(--radius-lg);
   }
 
+  .sessions__hero {
+    padding: 12px 14px;
+    gap: 10px;
+  }
+
+  .sessions__hero::after {
+    display: none;
+  }
+
   .panel {
-    padding: 16px;
+    padding: 14px;
   }
 
   .panel__header {
@@ -2823,7 +2866,24 @@ onBeforeUnmount(() => {
   }
 
   .sessions__title {
-    font-size: 28px;
+    font-size: 24px;
+    margin: 4px 0;
+    line-height: 1.16;
+  }
+
+  .sessions__subtitle {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.35;
+    max-width: 100%;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .hero-back-link {
+    display: none;
   }
 
   .session-filters {

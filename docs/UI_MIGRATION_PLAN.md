@@ -1566,3 +1566,120 @@ Future obligation:
   * `src/views/TherapistClientsView.spec.ts`
   * `src/views/TherapistSessionDetailView.spec.ts`
   * `src/views/TherapistSessionsView.spec.ts`
+
+---
+
+## 25. Session Detail Visual Migration Log
+
+### 2026-04-28 - Session detail first safe visual pass
+
+Changed scope:
+
+* `src/views/TherapistSessionDetailView.vue`
+* `docs/UI_MIGRATION_PLAN.md`
+
+What changed:
+
+* Updated specialist session detail visual hierarchy toward the PRO CONSULT navy / cream / teal / peach system.
+* Polished local page shell, hero, panel, workspace, manual payment, payment resolution, private note, and status pill styling.
+* Added state-aware visual styling for the cancelled-paid payment resolution card (`pending` vs `resolved`) without changing behavior.
+* Improved mobile wrapping behavior for key action groups at narrow widths (`430px` and below).
+* Kept changes scoped to the session detail page visual layer.
+
+Preserved:
+
+* Existing route and API calls.
+* Existing session lifecycle actions.
+* Existing manual-client behavior.
+* Existing payment proof and payment-resolution behavior.
+* Existing private note/workbook confidentiality behavior.
+* Existing loading, error, empty, disabled, and permission states.
+
+Verification:
+
+```bash
+npm run test:run -- src/views/TherapistSessionDetailView.spec.ts
+npm run typecheck
+npm run build
+```
+
+Result:
+
+* `npm run test:run -- src/views/TherapistSessionDetailView.spec.ts` - passed, 49 tests.
+* `npm run typecheck` - passed.
+* `npm run build` - passed; existing Vite chunk-size warning remains.
+
+---
+
+## 26. Mobile Cabinet Hero Density Pass
+
+### 2026-04-28 - Compact mobile working headers for cabinet/workspace pages
+
+Changed scope:
+
+* `src/views/CabinetView.vue`
+* `src/views/TherapistSessionsView.vue`
+* `src/views/TherapistSessionDetailView.vue`
+* `src/views/TherapistClientsView.vue`
+* `docs/UI_MIGRATION_PLAN.md`
+
+What changed:
+
+* Reduced mobile hero/header vertical density for `360/390/430` widths across cabinet/workspace pages.
+* Tightened mobile spacing and padding in hero wrappers and first-level panels.
+* Reduced hero title size on narrow screens to make operational content appear sooner.
+* Applied visual subtitle compaction (`2`-line clamp) on narrow screens for descriptive copy only.
+* Removed/disabled decorative hero orb on sessions page for narrow screens to reduce above-the-fold height.
+* Kept CTA visibility and critical status/warning/action surfaces intact.
+
+Preserved:
+
+* Existing API calls, routes, handlers, and `v-if` conditions.
+* Existing labels and Ukrainian copy.
+* Existing payment/session/manual-client/private-note/workbook behavior and visibility rules.
+* Desktop layout and behavior.
+
+Verification:
+
+```bash
+npm run test:run -- src/views/TherapistSessionsView.spec.ts src/views/TherapistSessionDetailView.spec.ts src/views/TherapistClientsView.spec.ts src/views/CabinetView.spec.ts
+npm run typecheck
+npm run build
+```
+
+Result:
+
+* `npm run test:run -- src/views/TherapistSessionsView.spec.ts src/views/TherapistSessionDetailView.spec.ts src/views/TherapistClientsView.spec.ts src/views/CabinetView.spec.ts` - passed, 131 tests.
+* `npm run typecheck` - passed.
+* `npm run build` - passed; existing Vite chunk-size warning remains.
+
+Follow-up (same date, mobile hero content trim):
+
+* On `<=520px`, hidden redundant hero secondary navigation action `Назад до кабінету` on:
+  * `src/views/TherapistSessionsView.vue`
+  * `src/views/TherapistClientsView.vue`
+* Kept contextual detail-page back action unchanged (`Назад до списку` on session detail).
+* Further compacted sessions hero subtitle to one visual line on narrow screens to pull `Майбутні сесії` higher above the fold.
+* Validation:
+  * `npm run test:run -- src/views/TherapistSessionsView.spec.ts src/views/TherapistClientsView.spec.ts src/views/CabinetView.spec.ts` - passed, 82 tests.
+  * `npm run typecheck` - passed.
+  * `npm run build` - passed; existing Vite chunk-size warning remains.
+
+Follow-up (same date, compact tablet hero density):
+
+* Extended compact hero behavior from phone-only to small/tablet workspace widths:
+  * `src/views/TherapistSessionsView.vue` (`<=860px`)
+  * `src/views/TherapistClientsView.vue` (`<=860px`)
+  * `src/views/CabinetView.vue` (`<=900px`)
+* Sessions/clients:
+  * hide redundant secondary hero navigation `Назад до кабінету` at compact tablet widths;
+  * reduce hero padding/gap/title size;
+  * reduce subtitle vertical impact (single-line clamp);
+  * reduce sessions hero decorative orb footprint/impact.
+* Cabinet:
+  * reduce hero density (padding/title/subtitle/live-status block) on compact tablet widths without removing operational dashboard content.
+* Kept contextual detail-page back action unchanged (`Назад до списку` on session detail).
+* Validation:
+  * `npm run test:run -- src/views/TherapistSessionsView.spec.ts src/views/TherapistClientsView.spec.ts src/views/CabinetView.spec.ts` - passed, 82 tests.
+  * `npm run typecheck` - passed.
+  * `npm run build` - passed; existing Vite chunk-size warning remains.

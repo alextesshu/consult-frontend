@@ -8,7 +8,7 @@
           Управління статусами клієнтів та доступом до активної роботи.
         </p>
       </div>
-      <RouterLink class="btn btn--ghost" to="/cabinet">Назад до кабінету</RouterLink>
+      <RouterLink class="btn btn--ghost hero-back-link" to="/cabinet">Назад до кабінету</RouterLink>
     </header>
 
     <div v-if="error" class="form-error">{{ error }}</div>
@@ -2740,9 +2740,37 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 860px) {
+  .clients {
+    gap: 16px;
+  }
+
   .clients__hero {
     flex-direction: column;
     align-items: flex-start;
+    padding: 12px 14px;
+    gap: 9px;
+    border-radius: var(--radius-lg);
+  }
+
+  .clients__title {
+    font-size: 24px;
+    margin: 2px 0;
+    line-height: 1.18;
+  }
+
+  .clients__subtitle {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.32;
+    max-width: 100%;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .hero-back-link {
+    display: none;
   }
 
   .clients-toolbar {
@@ -2807,6 +2835,54 @@ onBeforeUnmount(() => {
 
   .manual-client-modal__actions .btn {
     width: 100%;
+  }
+}
+
+@media (max-width: 520px) {
+  .clients {
+    gap: 14px;
+  }
+
+  .clients__hero {
+    padding: 10px 12px;
+    gap: 8px;
+    border-radius: var(--radius-lg);
+  }
+
+  .clients__title {
+    font-size: 22px;
+    margin: 2px 0 2px;
+    line-height: 1.18;
+  }
+
+  .clients__subtitle {
+    margin: 0;
+    font-size: 13px;
+    line-height: 1.35;
+    max-width: 100%;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .panel {
+    padding: 14px;
+    gap: 12px;
+  }
+
+  .panel--clients > .panel__header {
+    padding: 10px 12px;
+    gap: 10px;
+  }
+
+  .clients-toolbar {
+    padding: 10px;
+    gap: 10px;
+  }
+
+  .hero-back-link {
+    display: none;
   }
 }
 </style>
