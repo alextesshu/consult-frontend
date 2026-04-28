@@ -548,7 +548,7 @@ describe('CabinetView', () => {
       expect(view.container.querySelector('.hero-status--error')).toBeInTheDocument()
     })
     expect(view.container.querySelector('.hero-status--error button')).toBeInTheDocument()
-    expect(view.container.querySelector('a.hero-live')).not.toBeInTheDocument()
+    expect(view.container.querySelector('a.hero-signal')).not.toBeInTheDocument()
   })
 
   it('retries hero sessions fetch and clears the error state', async () => {
@@ -586,7 +586,7 @@ describe('CabinetView', () => {
     await fireEvent.click(retryButton as HTMLButtonElement)
 
     await waitFor(() => {
-      expect(view.container.querySelector('a.hero-live[href="/cabinet/sessions/88"]')).toBeInTheDocument()
+      expect(view.container.querySelector('a.hero-signal--live[href="/cabinet/sessions/88"]')).toBeInTheDocument()
     })
     expect(view.container.querySelector('.hero-status--error')).not.toBeInTheDocument()
   })
@@ -619,12 +619,12 @@ describe('CabinetView', () => {
     })
 
     await waitFor(() => {
-      expect(view.container.querySelector('a.hero-live[href="/cabinet/sessions/77"]')).toBeInTheDocument()
+      expect(view.container.querySelector('a.hero-signal--live[href="/cabinet/sessions/77"]')).toBeInTheDocument()
     })
-    expect(view.container.querySelector('a.hero-live__join[href="https://meet.google.com/live-hero-room"]')).toBeInTheDocument()
+    expect(view.container.querySelector('a.hero-signal__join[href="https://meet.google.com/live-hero-room"]')).toBeInTheDocument()
   })
 
-  it('shows live session marker for scheduled in-progress session', async () => {
+  it('shows pending confirmation hero signal for scheduled in-progress session', async () => {
     mockedApiGet.mockImplementation(async (_url, config) => {
       if (config?.params?.upcoming === true) return []
       if (config?.params?.upcoming === false) {
@@ -647,8 +647,130 @@ describe('CabinetView', () => {
     const view = renderView()
 
     await waitFor(() => {
-      expect(view.container.querySelector('a.hero-live[href="/cabinet/sessions/78"]')).toBeInTheDocument()
+      expect(mockedApiGet).toHaveBeenCalledWith('/booking/sessions/', { params: { upcoming: false } })
     })
+
+    await waitFor(() => {
+      expect(
+        view.container.querySelector('a.hero-signal--needs_confirmation_now[href="/cabinet/sessions/78"]')
+      ).toBeInTheDocument()
+    })
+    const heroSignal = view.container.querySelector('a.hero-signal--needs_confirmation_now')
+    expect(view.container.querySelector('a.hero-signal--live')).not.toBeInTheDocument()
+    expect(heroSignal).toHaveTextContent('Потрібне підтвердження')
+    expect(heroSignal).toHaveTextContent('Час сесії настав, але її ще не підтверджено.')
+  })
+
+  it('shows pending confirmation hero signal for scheduled session starting soon', async () => {
+    const start = new Date(Date.now() + 30 * 60 * 1000).toISOString()
+    const end = new Date(Date.now() + 90 * 60 * 1000).toISOString()
+
+    mockedApiGet.mockImplementation(async (_url, config) => {
+      if (config?.params?.upcoming === true) {
+        return [
+          {
+            id: 80,
+            status: 'SCHEDULED',
+            client: 46,
+            client_name: 'Soon Scheduled Client',
+            meeting_url: null,
+            join_available: false,
+            slot_start_at: start,
+            slot_end_at: end,
+          },
+        ] as any
+      }
+      if (config?.params?.upcoming === false) return []
+      return []
+    })
+
+    const view = renderView()
+
+    await waitFor(() => {
+      expect(
+        view.container.querySelector('a.hero-signal--needs_confirmation_soon[href="/cabinet/sessions/80"]')
+      ).toBeInTheDocument()
+    })
+    const heroSignal = view.container.querySelector('a.hero-signal--needs_confirmation_soon')
+    expect(heroSignal).toHaveTextContent('Потрібне підтвердження')
+    expect(heroSignal).toHaveTextContent('Сесія починається скоро, але її ще не підтверджено.')
+  })
+
+  it('shows missing meeting link hero signal for confirmed online session starting soon', async () => {
+    const start = new Date(Date.now() + 30 * 60 * 1000).toISOString()
+    const end = new Date(Date.now() + 90 * 60 * 1000).toISOString()
+
+    mockedApiGet.mockImplementation(async (_url, config) => {
+      if (config?.params?.upcoming === true) {
+        return [
+          {
+            id: 81,
+            status: 'CONFIRMED',
+            client: 47,
+            client_name: 'Missing Link Client',
+            session_format: 'online',
+            meeting_url: null,
+            join_available: false,
+            slot_start_at: start,
+            slot_end_at: end,
+          },
+        ] as any
+      }
+      if (config?.params?.upcoming === false) return []
+      return []
+    })
+
+    const view = renderView()
+
+    await waitFor(() => {
+      expect(
+        view.container.querySelector('a.hero-signal--missing_meeting_link[href="/cabinet/sessions/81"]')
+      ).toBeInTheDocument()
+    })
+    expect(view.getByText('Потрібно додати посилання')).toBeInTheDocument()
+    expect(view.getByText('Онлайн-сесія скоро почнеться, але посилання ще не додано.')).toBeInTheDocument()
+  })
+
+  it('prioritizes confirmed live session over scheduled session starting soon', async () => {
+    const soonStart = new Date(Date.now() + 30 * 60 * 1000).toISOString()
+    const soonEnd = new Date(Date.now() + 90 * 60 * 1000).toISOString()
+
+    mockedApiGet.mockImplementation(async (_url, config) => {
+      if (config?.params?.upcoming === true) {
+        return [
+          {
+            id: 82,
+            status: 'SCHEDULED',
+            client: 48,
+            client_name: 'Soon Scheduled Client',
+            slot_start_at: soonStart,
+            slot_end_at: soonEnd,
+          },
+        ] as any
+      }
+      if (config?.params?.upcoming === false) {
+        return [
+          {
+            id: 83,
+            status: 'CONFIRMED',
+            client: 49,
+            client_name: 'Live Priority Client',
+            meeting_url: 'https://meet.google.com/live-priority-room',
+            join_available: true,
+            slot_start_at: '2000-01-01T00:00:00Z',
+            slot_end_at: '2100-01-01T00:00:00Z',
+          },
+        ] as any
+      }
+      return []
+    })
+
+    const view = renderView()
+
+    await waitFor(() => {
+      expect(view.container.querySelector('a.hero-signal--live[href="/cabinet/sessions/83"]')).toBeInTheDocument()
+    })
+    expect(view.container.querySelector('a.hero-signal--needs_confirmation_soon')).not.toBeInTheDocument()
   })
 
   it('does not show live marker before actual slot start even if join window already opened', async () => {
@@ -680,8 +802,8 @@ describe('CabinetView', () => {
       expect(mockedApiGet).toHaveBeenCalledWith('/booking/sessions/', { params: { upcoming: false } })
     })
 
-    expect(view.container.querySelector('a.hero-live')).not.toBeInTheDocument()
-    expect(view.container.querySelector('a.hero-live__join')).not.toBeInTheDocument()
+    expect(view.container.querySelector('a.hero-signal--live')).not.toBeInTheDocument()
+    expect(view.container.querySelector('a.hero-signal__join')).not.toBeInTheDocument()
   })
 
   it('renders nearest upcoming session block with join readiness and direct actions', async () => {

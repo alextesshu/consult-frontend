@@ -8,14 +8,25 @@
           Тут зібрані доступи, активність і швидкі дії. Публічні сторінки — окремо.
         </p>
       </div>
-      <RouterLink v-if="liveSession" class="hero-live" :to="`/cabinet/sessions/${liveSession.id}`">
-        <div class="hero-live__title">Сесія триває</div>
-        <div class="hero-live__meta">
-          {{ sessionClientLabel(liveSession) }}
+      <RouterLink
+        v-if="dashboardHeroSignal"
+        :class="[
+          'hero-signal',
+          `hero-signal--${dashboardHeroSignal.type}`,
+          dashboardHeroSignal.tone === 'live' ? 'hero-signal--live' : 'hero-signal--warning',
+        ]"
+        :to="dashboardHeroSignal.to"
+      >
+        <div class="hero-signal__title">{{ dashboardHeroSignal.title }}</div>
+        <div class="hero-signal__meta">
+          {{ sessionClientLabel(dashboardHeroSignal.session) }}
+        </div>
+        <div v-if="dashboardHeroSignal.message" class="hero-signal__hint">
+          {{ dashboardHeroSignal.message }}
         </div>
         <a
-          v-if="liveMeetingUrl && liveSession.join_available"
-          class="btn btn--sm hero-live__join"
+          v-if="dashboardHeroSignal.type === 'live' && liveMeetingUrl && dashboardHeroSignal.session.join_available"
+          class="btn btn--sm hero-signal__join"
           :href="liveMeetingUrl"
           target="_blank"
           rel="noopener noreferrer"
@@ -469,6 +480,21 @@ type CabinetSession = {
   slot_end_at?: string | null
 }
 
+type DashboardHeroSignalType =
+  | 'live'
+  | 'needs_confirmation_now'
+  | 'needs_confirmation_soon'
+  | 'missing_meeting_link'
+
+type DashboardHeroSignal = {
+  type: DashboardHeroSignalType
+  session: CabinetSession
+  title: string
+  message?: string
+  tone: 'live' | 'warning'
+  to: string
+}
+
 type CabinetEntitlementsSnapshot = {
   plan?: string | null
   effective_plan?: string | null
@@ -574,6 +600,7 @@ const cabinetDataLoading = ref(false)
 const cabinetDataError = ref('')
 const nowTs = ref(Date.now())
 const LIVE_STATUS_REFRESH_MS = 30 * 1000
+const HERO_SIGNAL_SOON_WINDOW_MS = 60 * 60 * 1000
 let nowIntervalId: number | null = null
 const CABINET_DATA_LOAD_ERROR = 'Не вдалося завантажити дані доступу кабінету.'
 const ONBOARDING_LOAD_ERROR = 'Не вдалося завантажити стан онбордингу.'
@@ -905,49 +932,120 @@ function isOfflineSession(session: CabinetSession) {
   return resolveSessionFormat(session) === 'offline'
 }
 
-function isSessionInProgress(session: CabinetSession) {
-  if (!['SCHEDULED', 'CONFIRMED'].includes(session.status)) return false
-  const startRaw = sessionJoinStartAt(session)
-  const endRaw = sessionJoinEndAt(session)
-  if (!startRaw || !endRaw) return false
-  const start = new Date(startRaw).getTime()
-  const end = new Date(endRaw).getTime()
-  if (Number.isNaN(start) || Number.isNaN(end)) return false
+function getSessionStartMs(session: CabinetSession) {
+  const raw = sessionJoinStartAt(session)
+  if (!raw) return null
+  const value = new Date(raw).getTime()
+  return Number.isNaN(value) ? null : value
+}
+
+function getSessionEndMs(session: CabinetSession) {
+  const raw = sessionJoinEndAt(session)
+  if (!raw) return null
+  const value = new Date(raw).getTime()
+  return Number.isNaN(value) ? null : value
+}
+
+function isInsideSessionWindow(session: CabinetSession) {
+  const start = getSessionStartMs(session)
+  const end = getSessionEndMs(session)
+  if (start === null || end === null) return false
   const now = nowTs.value
   return now >= start && now <= end
 }
 
-const liveSession = computed(() => {
-  const items = allSessions.value
-    .filter((session) => isSessionInProgress(session))
-    .slice()
-    .sort(
-      (a, b) =>
-        new Date(sessionJoinStartAt(a) || '').getTime() -
-        new Date(sessionJoinStartAt(b) || '').getTime()
-    )
-  return items[0] || null
+function startsWithinHeroSignalWindow(session: CabinetSession) {
+  const start = getSessionStartMs(session)
+  if (start === null) return false
+  const now = nowTs.value
+  return start > now && start <= now + HERO_SIGNAL_SOON_WINDOW_MS
+}
+
+function sortBySessionStart(a: CabinetSession, b: CabinetSession) {
+  return (getSessionStartMs(a) ?? Number.POSITIVE_INFINITY) - (getSessionStartMs(b) ?? Number.POSITIVE_INFINITY)
+}
+
+function firstSessionMatching(predicate: (session: CabinetSession) => boolean) {
+  return allSessions.value.filter(predicate).slice().sort(sortBySessionStart)[0] || null
+}
+
+const dashboardHeroSignal = computed<DashboardHeroSignal | null>(() => {
+  const liveSession = firstSessionMatching(
+    (session) => session.status === 'CONFIRMED' && isInsideSessionWindow(session)
+  )
+  if (liveSession) {
+    return {
+      type: 'live',
+      session: liveSession,
+      title: 'Сесія триває',
+      tone: 'live',
+      to: `/cabinet/sessions/${liveSession.id}`,
+    }
+  }
+
+  const scheduledStartedSession = firstSessionMatching(
+    (session) => session.status === 'SCHEDULED' && isInsideSessionWindow(session)
+  )
+  if (scheduledStartedSession) {
+    return {
+      type: 'needs_confirmation_now',
+      session: scheduledStartedSession,
+      title: 'Потрібне підтвердження',
+      message: 'Час сесії настав, але її ще не підтверджено.',
+      tone: 'warning',
+      to: `/cabinet/sessions/${scheduledStartedSession.id}`,
+    }
+  }
+
+  const scheduledSoonSession = firstSessionMatching(
+    (session) => session.status === 'SCHEDULED' && startsWithinHeroSignalWindow(session)
+  )
+  if (scheduledSoonSession) {
+    return {
+      type: 'needs_confirmation_soon',
+      session: scheduledSoonSession,
+      title: 'Потрібне підтвердження',
+      message: 'Сесія починається скоро, але її ще не підтверджено.',
+      tone: 'warning',
+      to: `/cabinet/sessions/${scheduledSoonSession.id}`,
+    }
+  }
+
+  const missingMeetingLinkSession = firstSessionMatching((session) => {
+    if (session.status !== 'CONFIRMED') return false
+    if (isOfflineSession(session)) return false
+    if (normalizeMeetingUrl(session.meeting_url)) return false
+    return startsWithinHeroSignalWindow(session)
+  })
+  if (missingMeetingLinkSession) {
+    return {
+      type: 'missing_meeting_link',
+      session: missingMeetingLinkSession,
+      title: 'Потрібно додати посилання',
+      message: 'Онлайн-сесія скоро почнеться, але посилання ще не додано.',
+      tone: 'warning',
+      to: `/cabinet/sessions/${missingMeetingLinkSession.id}`,
+    }
+  }
+
+  return null
 })
 
 const liveMeetingUrl = computed(() => {
-  if (!liveSession.value) return ''
-  return normalizeMeetingUrl(liveSession.value.meeting_url)
+  if (dashboardHeroSignal.value?.type !== 'live') return ''
+  return normalizeMeetingUrl(dashboardHeroSignal.value.session.meeting_url)
 })
 
 const upcomingSorted = computed(() => {
   return allSessions.value
     .filter((session) => {
       if (!['SCHEDULED', 'CONFIRMED'].includes(session.status)) return false
-      const start = new Date(sessionJoinStartAt(session) || '').getTime()
-      if (Number.isNaN(start)) return false
+      const start = getSessionStartMs(session)
+      if (start === null) return false
       return start >= nowTs.value
     })
     .slice()
-    .sort(
-      (a, b) =>
-        new Date(sessionJoinStartAt(a) || '').getTime() -
-        new Date(sessionJoinStartAt(b) || '').getTime()
-    )
+    .sort(sortBySessionStart)
 })
 
 const nearestUpcomingSession = computed(() => upcomingSorted.value[0] || null)
@@ -1243,38 +1341,58 @@ onBeforeUnmount(() => {
 }
 
 
-.hero-live {
+.hero-signal {
   min-width: min(260px, 100%);
   max-width: 100%;
+  border-radius: var(--pc-radius-panel);
+  padding: 12px 14px;
+  display: grid;
+  gap: 8px;
+  text-decoration: none;
+}
+
+.hero-signal--live {
   border: 1px solid color-mix(in srgb, var(--pc-danger) 34%, var(--pc-border));
   background: linear-gradient(
     145deg,
     color-mix(in srgb, var(--pc-danger) 92%, #ffffff),
     color-mix(in srgb, var(--pc-navy-950) 24%, var(--pc-danger))
   );
-  border-radius: var(--pc-radius-panel);
-  padding: 12px 14px;
-  display: grid;
-  gap: 8px;
   color: #fff;
-  text-decoration: none;
   box-shadow: 0 14px 28px rgba(201, 68, 68, 0.2);
 }
 
-.hero-live__title {
-  color: #fff;
+.hero-signal--warning {
+  border: 1px solid color-mix(in srgb, var(--pc-warning) 45%, var(--pc-border));
+  border-left: 4px solid var(--pc-warning);
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--pc-yellow-soft) 80%, #ffffff),
+    color-mix(in srgb, var(--pc-peach-100) 56%, #ffffff)
+  );
+  color: var(--pc-navy-900);
+  box-shadow: 0 12px 24px rgba(122, 78, 20, 0.08);
+}
+
+.hero-signal__title {
+  color: inherit;
   font-weight: 700;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   font-size: 12px;
 }
 
-.hero-live__meta {
+.hero-signal__meta {
   font-weight: 600;
   opacity: 0.95;
 }
 
-.hero-live__join {
+.hero-signal__hint {
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.hero-signal__join {
   width: fit-content;
 }
 
@@ -2153,7 +2271,7 @@ onBeforeUnmount(() => {
     overflow: hidden;
   }
 
-  .hero-live,
+  .hero-signal,
   .hero-status {
     min-width: 0;
     width: 100%;
@@ -2191,7 +2309,7 @@ onBeforeUnmount(() => {
     overflow: hidden;
   }
 
-  .hero-live,
+  .hero-signal,
   .hero-status {
     min-width: 0;
     width: 100%;
