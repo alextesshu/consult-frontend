@@ -1494,7 +1494,75 @@ Result:
 
 Deferred items:
 
-* Manual-client edit flow.
-* Manual-client session creation, if backend support is added later.
+* Superseded by later FE slices: manual-client edit flow is now active.
+* Superseded by later FE slices: manual-client session creation from `/cabinet/clients` is now active.
 * Invite/link/deduplication flows.
 * Manual browser smoke at desktop, 1180px, 768px, and 390-430px.
+
+---
+
+## 24. Manual Client / Confidentiality / Payment Docs Sync
+
+### 2026-04-28 - Manual clients current-state documentation refresh
+
+Changed scope:
+
+* `docs/HANDOFF.md`
+* `docs/MANUAL_CLIENTS_RFC.md`
+* `docs/UI_MIGRATION_PLAN.md`
+* `docs/PHASE_CLOSE_SUMMARIES.md`
+
+What changed:
+
+* Updated frontend docs after manual client and session polish slices:
+  * session card status hierarchy cleanup
+  * manual client payment labels cleanup
+  * upcoming sessions label clarification from `Заплановано` to `Майбутніх сесій`
+  * manual client cabinet-access copy fix
+  * workbook confidentiality copy audit
+* Documented current `/cabinet/clients` behavior for manual client cards, badges, search/filter, session summaries, payment summaries, and `Створити сесію` flow.
+* Documented manual session detail payment behavior, per-session price editing, and specialist-side manual paid marking.
+* Documented cancelled paid payment resolution surfaces in `/cabinet/sessions` and `/cabinet/sessions/{id}`.
+* Locked canonical manual-client payment labels:
+  * `Оплата найближчої`
+  * `Оплата останньої`
+* Locked payment state labels:
+  * `Оплачено`
+  * `Не оплачено`
+  * `Очікує підтвердження оплати`
+  * `Потребує рішення щодо оплати`
+  * `Оплату повернено`
+  * `Зараховано на майбутню сесію`
+  * `Оплату залишено за домовленістю`
+  * `Немає сесій`
+  * `Немає даних про оплату`
+* Added hard confidentiality rule: private notes and workbook / `Робочий зошит` are specialist-only documents; frontend copy must not imply client cabinet access to them.
+* Added future-copy/spec obligation: Vue copy/UI changes must check/update related `*.spec.ts` files.
+
+Preserved:
+
+* Runtime code.
+* Existing Vue components, stores, composables, routes, and API integration.
+* Manual-client and guest/external flow separation.
+* Backend contract assumptions.
+
+Validation:
+
+```powershell
+cd C:\Users\admin\dev\portfolio\consult\frontend
+
+npm run test:run -- src/views/TherapistClientsView.spec.ts src/views/TherapistSessionDetailView.spec.ts src/views/TherapistSessionsView.spec.ts
+npm run typecheck
+npm run build
+```
+
+Result:
+
+* Docs-only change; run the listed commands when the related Vue copy/UI changes are made.
+
+Future obligation:
+
+* For any later Vue copy/UI change touching manual-client surfaces, payment state labels, status badges, CTAs, route behavior, or confidentiality wording, check/update:
+  * `src/views/TherapistClientsView.spec.ts`
+  * `src/views/TherapistSessionDetailView.spec.ts`
+  * `src/views/TherapistSessionsView.spec.ts`

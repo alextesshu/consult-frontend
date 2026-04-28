@@ -1,6 +1,6 @@
 # Handoff
 
-Last updated: 2026-04-25  
+Last updated: 2026-04-28
 Owner: agent-maintained  
 Canonical file: `docs/HANDOFF.md`  
 Governance: `docs/HANDOFF_RULES.md`  
@@ -29,14 +29,14 @@ Frontend production-readiness slice is now integrated:
 - specialist-side guest request UX polish: done (specialist list/status/approve/decline surface, online approve `meeting_url` guard, post-approve link to resulting external session/invite)
 - canonical public short URL for specialist profile: done (`/s/:slug` primary route, `GET /api/s/{slug}/`, cabinet canonical share/open fields)
 - transliteration-aware slug generation follow-up: done (fallback cleanup only when `public_profile_enabled=false`)
-- manual client records Phase 1: done
+- manual client records and sessions: done
   - backend `ClientRecord` model/API implemented and staging-smoked
   - frontend create/edit/archive/restore integrated on `/cabinet/clients`
   - active-client counting includes active manual records and active registered relations
   - dashboard empty-client hint updated
   - clients page manual-client hint added
-  - manual clients remain session-less for now
-- next recommended slice: Manual Client Records Phase 2 design — manual-client sessions architecture
+  - manual-client cards can create canonical sessions from `/cabinet/clients`
+  - manual session payment, per-session price, and cancelled-paid resolution UI are wired
 - queued follow-ups:
   - client cabinet/dashboard top upcoming sessions visibility
   - `professional_focus` + copy-personalization foundation if profile-copy work resumes
@@ -48,7 +48,7 @@ Frontend production-readiness slice is now integrated:
   - manual session detail explains that the client does not yet have cabinet access
   - basic specialist lifecycle smoke passed: create, confirm, meeting link add/edit/copy, cancel, complete
   - private session note is hidden by default on detail page
-  - manual session creation UI from client card is still deferred
+  - manual session creation UI from client card is active
 
 ## System State
 
@@ -80,7 +80,7 @@ Frontend production-readiness slice is now integrated:
   - access token is memory-only
   - refresh token is cookie-only (`httpOnly`) and never exposed to JS storage
   - axios requests run with credentials
-- Manual client records Phase 1 is active:
+- Manual client records and manual sessions are active:
   - specialists can manually create client cards without requiring a registered client account
   - frontend page: `/cabinet/clients`
   - main frontend file: `src/views/TherapistClientsView.vue`
@@ -97,7 +97,15 @@ Frontend production-readiness slice is now integrated:
     - manual clients: `Без кабінету`
     - registered clients: `З кабінетом`
   - manual client cards support create/edit/archive/restore
-  - manual client cards do not yet support sessions, workbook, journal, chat, reviews, payment flow, invite/linking, or client cabinet access
+  - manual clients are searchable/filterable together with registered clients
+  - manual client card shows custom/default session price, nearest session, payment status for nearest or last session, future sessions count, last session, and short client description
+  - the old `Заплановано` label was clarified to `Майбутніх сесій`
+  - manual client cards have CTA `Створити сесію`
+  - the create-session modal allows choosing an available slot and session format
+  - after creation, frontend redirects to created session detail
+  - manual session detail displays client identity as `Без кабінету`
+  - registered-client-only actions remain hidden for manual clients where unsupported
+  - manual clients still do not have client cabinet access until an explicit future invite/link flow exists
 - Manual client records architecture guardrail:
   - `ClientRecord` is not a parallel manual-client system
   - `ClientRecord` is the future specialist-owned client identity layer
@@ -180,7 +188,35 @@ Frontend production-readiness slice is now integrated:
   - manual session detail explains that the client does not yet have cabinet access
   - basic specialist lifecycle smoke passed: create, confirm, meeting link add/edit/copy, cancel, complete
   - private session note is hidden by default on detail page
-  - manual session creation UI from client card is still deferred
+  - manual session creation UI from client card is active
+- Manual session detail/payment UI is active:
+  - manual session detail has `Оплата сесії`
+  - session price snapshot is shown
+  - specialist can edit per-session price
+  - price edit affects only this session, not the client's custom price
+  - specialist can manually mark session paid
+  - manual payment is specialist-side only
+- Cancelled paid payment resolution UI is active:
+  - `/cabinet/sessions` cards prioritize settlement status over basic payment status
+  - cancelled paid unresolved sessions show a settlement badge, not only `Оплачено`
+  - `/cabinet/sessions/{id}` shows `Оплата після скасування`
+  - pending copy: `Сесію скасовано, але оплату було підтверджено. Оберіть, як обробити оплату.`
+  - actions: `Позначити як повернену`, `Зарахувати на майбутню сесію`, `Залишити за домовленістю`
+  - resolved states: `Оплату повернено`, `Зараховано на майбутню сесію`, `Оплату залишено за домовленістю`
+  - resolved UX hides the three action buttons by default, shows `Змінити рішення`, and edit mode allows changing note/resolution
+  - successful update toast: `Рішення щодо оплати оновлено.`
+- Session card status hierarchy for `/cabinet/sessions`:
+  1. lifecycle status
+  2. payment / settlement status
+  3. time urgency
+  4. source/identity
+  5. attention flags only if meaningful
+  - `Нова заявка` was removed as duplicate noise
+  - `Потрібне підтвердження` remains the clear `SCHEDULED` attention label
+  - priority action label should use `Підтвердити сесію`, not ambiguous `Підтвердити`
+- Manual client payment labels:
+  - summary labels: `Оплата найближчої`, `Оплата останньої`
+  - states: `Оплачено`, `Не оплачено`, `Очікує підтвердження оплати`, `Потребує рішення щодо оплати`, `Оплату повернено`, `Зараховано на майбутню сесію`, `Оплату залишено за домовленістю`, `Немає сесій`, `Немає даних про оплату`
 
 ## Stable Areas
 
@@ -213,9 +249,7 @@ Frontend production-readiness slice is now integrated:
 
 ## Active Work
 
-- Manual Client Records Phase 1 is closed.
-- Next active direction should be design-first, not implementation-first:
-  - Manual Client Records Phase 2 — manual-client sessions architecture.
+- Manual Client Records Phase 1 and manual-client session creation are closed on frontend.
 - Keep canonical slug/public-link behavior stable while extending profile-related UX.
 - Keep queued follow-ups:
   - client cabinet/dashboard top upcoming sessions visibility
@@ -223,35 +257,21 @@ Frontend production-readiness slice is now integrated:
 
 ## Immediate Next Step
 
-Prepare backend design for Manual Client Records Phase 2 before implementation.
-
-Do not add manual-client sessions as a quick frontend-only patch.
-
-The design must answer:
-
-- should canonical `Session` get `client_record`;
-- how registered-client sessions stay backward-compatible;
-- how session notes, workbook/journal, reviews, reschedule requests, reminders, chat, payment proof, and client cabinet relate to manual clients;
-- whether manual-client sessions are specialist-only until linked to a registered `User`;
-- how active-client counting remains canonical;
-- how guest/external flows stay separate;
-- how later invite/link/deduplication should work.
-
-Safe implementation boundary until Phase 2 design is approved:
-
-- manual clients can be created, edited, archived, restored;
-- manual clients count toward active-client limits;
-- manual clients cannot yet have canonical sessions.
-
-Current recommended product direction:
-
-1. Guest Session Payments Phase 1 — design/contract first.
-2. Then decide between:
-   - guest payment implementation;
-   - UI for creating manual-client sessions from `/cabinet/clients`.
+Keep manual-client, registered-client, and guest/external flows separate while extending account linking or client-cabinet access.
 
 Do not add payment buttons for guest sessions until backend contract is confirmed.
-Do not expose manual-session creation UI until slot-selection UX is designed.
+
+## Validation Commands
+
+Use the canonical Vitest run script and keep these three specs in scope for related manual-client/session/payment copy changes:
+
+```powershell
+cd C:\Users\admin\dev\portfolio\consult\frontend
+
+npm run test:run -- src/views/TherapistClientsView.spec.ts src/views/TherapistSessionDetailView.spec.ts src/views/TherapistSessionsView.spec.ts
+npm run typecheck
+npm run build
+```
 
 ## Critical Rules
 
@@ -273,7 +293,14 @@ Do not expose manual-session creation UI until slot-selection UX is designed.
   - do not create fake users for manual clients
   - do not auto-link manual clients by email/phone
   - do not convert guests into client records automatically
-  - do not implement manual-client sessions without backend design
+- Private session notes and workbook / `Робочий зошит` are specialist-only confidential documents.
+  - Frontend copy must never imply that connecting a client cabinet gives the client access to specialist notes or workbook.
+  - Canonical safe cabinet wording: `Підключення кабінету дасть клієнту доступ до власних сесій, нагадувань, оплати та комунікації зі спеціалістом.`
+  - Safe workbook wording: `Робочий зошит по клієнту`, `Внутрішній робочий зошит спеціаліста`, `Внутрішній розділ спеціаліста, не видимий клієнту.`
+  - Avoid `Робочий зошит клієнта`, `клієнту відкриється робочий зошит`, `доступ до робочого зошита`, and `access workbook/materials` unless the text explicitly says it is specialist-only and not visible to the client.
+  - Future client account/cabinet copy may mention only own sessions, reminders, payment/instructions, communication, and explicitly shared materials.
+- Any frontend copy/UI change in Vue files must include checking/updating related `*.spec.ts` files, especially text labels, status badges, buttons, route/CTA behavior, confidentiality wording, payment state labels, and manual-client surfaces.
+  - Likely specs: `src/views/TherapistClientsView.spec.ts`, `src/views/TherapistSessionDetailView.spec.ts`, `src/views/TherapistSessionsView.spec.ts`
 - Keep handoff governance aligned with `docs/HANDOFF_RULES.md`:
   - `HANDOFF.md` = compact current snapshot
   - `PHASE_CLOSE_SUMMARIES.md` = append-only historical phase archive

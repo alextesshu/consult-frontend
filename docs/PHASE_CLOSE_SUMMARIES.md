@@ -10,6 +10,56 @@ Usage:
 
 ---
 
+## 2026-04-28 - Manual Clients / Confidentiality / Payment Docs Refresh
+
+### Context
+- Runtime manual-client polish slices were already completed:
+  - session cards status hierarchy cleanup
+  - manual client payment labels cleanup
+  - upcoming sessions label clarification
+  - manual client cabinet-access copy fix
+  - workbook confidentiality copy audit
+- Frontend docs still contained stale deferred-session wording and risky workbook/materials access wording.
+
+### Done
+- Updated current frontend state for manual clients in `/cabinet/clients`.
+- Documented manual client badges: `Без кабінету` and `З кабінетом`.
+- Documented create/edit/archive/restore, search/filter, manual client card session/payment summaries, `Майбутніх сесій`, and `Створити сесію`.
+- Documented manual session detail payment UI, per-session price editing, and specialist-side manual paid marking.
+- Documented cancelled paid settlement UI and resolved/edit behavior.
+- Documented `/cabinet/sessions` card status hierarchy and canonical payment labels.
+- Added hard confidentiality rule: private notes and workbook / `Робочий зошит` are specialist-only and must not be described as client-accessible.
+- Added spec obligation for future Vue copy/UI changes touching labels, statuses, buttons, route/CTA behavior, confidentiality wording, payment labels, or manual-client surfaces.
+
+### Changed files
+- `docs/HANDOFF.md`
+- `docs/MANUAL_CLIENTS_RFC.md`
+- `docs/UI_MIGRATION_PLAN.md`
+- `docs/PHASE_CLOSE_SUMMARIES.md`
+
+### Validation
+- Docs-only change.
+- Reference commands for related future FE work:
+
+```powershell
+cd C:\Users\admin\dev\portfolio\consult\frontend
+
+npm run test:run -- src/views/TherapistClientsView.spec.ts src/views/TherapistSessionDetailView.spec.ts src/views/TherapistSessionsView.spec.ts
+npm run typecheck
+npm run build
+```
+
+### Deferred / Not in Scope
+- Runtime Vue/component changes.
+- Backend contract changes.
+- Client cabinet invite/link/deduplication implementation.
+- Guest/external flow changes.
+
+### Merge Readiness
+- Docs now reflect current frontend manual-client, payment, and confidentiality behavior.
+
+---
+
 ## 2026-04-12 - Canonical Public Short URL for Specialist Profile (Production + Staging Rolled Out)
 
 ### Context

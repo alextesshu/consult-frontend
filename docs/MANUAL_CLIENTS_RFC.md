@@ -2,7 +2,7 @@
 
 ## 1. Status
 
-Proposed.
+Accepted direction. Frontend manual client records, manual session creation, and manual payment polish are active as of 2026-04-28.
 
 This document defines the product concept and implementation direction for allowing specialists to create client cards manually, without requiring the client to register first.
 
@@ -76,7 +76,7 @@ Can:
 * book sessions
 * view own sessions
 * receive notifications
-* access workbook/materials
+* access own sessions, reminders, payment/instructions, communication, and explicitly shared materials
 * see payment/session information
 * interact through the client-side workspace
 
@@ -103,6 +103,37 @@ A guest participant for a guest/external session.
 This should remain separate from the client base.
 
 Guest sessions are session-scoped and should not automatically become client records.
+
+## 5.4 Confidentiality rule for notes/workbook
+
+Private session notes and workbook / `Робочий зошит` are specialist-only confidential documents.
+
+Frontend copy must never imply that connecting a client cabinet gives the client access to specialist notes or workbook.
+
+Canonical safe cabinet wording:
+
+```text
+Підключення кабінету дасть клієнту доступ до власних сесій, нагадувань, оплати та комунікації зі спеціалістом.
+```
+
+Safe workbook wording:
+
+```text
+Робочий зошит по клієнту
+Внутрішній робочий зошит спеціаліста
+Внутрішній розділ спеціаліста, не видимий клієнту.
+```
+
+Avoid:
+
+```text
+Робочий зошит клієнта
+клієнту відкриється робочий зошит
+доступ до робочого зошита
+access workbook/materials
+```
+
+unless the text explicitly says it is specialist-only and not visible to the client.
 
 ---
 
@@ -229,7 +260,13 @@ Avoid automatic merging in MVP unless it is clearly safe.
 
 ## 8.1 Clients page
 
-Add primary or secondary CTA:
+Current frontend route:
+
+```text
+/cabinet/clients
+```
+
+Current primary/secondary CTA:
 
 ```text
 Додати клієнта
@@ -249,6 +286,33 @@ Possible labels:
 Архівований
 ```
 
+Current FE behavior:
+
+* manual client records are displayed in `/cabinet/clients`
+* manual clients have badge `Без кабінету`
+* registered clients have badge `З кабінетом`
+* manual clients can be created/edited/archived/restored
+* manual clients are searchable/filterable
+* manual client card shows:
+  * custom/default session price
+  * nearest session
+  * payment status for nearest or last session
+  * future sessions count
+  * last session
+  * short client description
+* `Заплановано` was clarified to `Майбутніх сесій`
+* canonical manual-client payment summary labels are `Оплата найближчої` and `Оплата останньої`
+* canonical payment states are:
+  * `Оплачено`
+  * `Не оплачено`
+  * `Очікує підтвердження оплати`
+  * `Потребує рішення щодо оплати`
+  * `Оплату повернено`
+  * `Зараховано на майбутню сесію`
+  * `Оплату залишено за домовленістю`
+  * `Немає сесій`
+  * `Немає даних про оплату`
+
 ## 8.2 Client detail page
 
 For manually created clients, show:
@@ -261,11 +325,97 @@ For manually created clients, show:
 * action to create session
 * action to invite to cabinet
 
-Possible CTA:
+Current manual session creation behavior:
+
+* route: `/cabinet/clients`
+* manual client card has CTA `Створити сесію`
+* modal allows choosing an available slot and session format
+* after creation, FE redirects to created session detail
+* manual session detail displays client identity as `Без кабінету`
+* registered-client-only actions stay hidden for manual clients where unsupported
+
+Future cabinet invite CTA:
 
 ```text
 Запросити клієнта в кабінет
 ```
+
+Cabinet invite copy must not imply client access to specialist notes or workbook. Use:
+
+```text
+Підключення кабінету дасть клієнту доступ до власних сесій, нагадувань, оплати та комунікації зі спеціалістом.
+```
+
+## 8.2.1 Manual session detail/payment UI
+
+Current behavior:
+
+* manual session detail has `Оплата сесії`
+* session price snapshot is shown
+* specialist can edit per-session price
+* price edit affects only this session, not client custom price
+* specialist can manually mark session paid
+* manual payment is specialist-side only
+
+## 8.2.2 Cancelled paid payment resolution UI
+
+In `/cabinet/sessions`:
+
+* cancelled paid unresolved session shows settlement badge, not only `Оплачено`
+* session cards prioritize settlement status over basic payment status
+
+In `/cabinet/sessions/{id}` block:
+
+```text
+Оплата після скасування
+```
+
+Pending state:
+
+```text
+Сесію скасовано, але оплату було підтверджено. Оберіть, як обробити оплату.
+```
+
+Actions:
+
+```text
+Позначити як повернену
+Зарахувати на майбутню сесію
+Залишити за домовленістю
+```
+
+Resolved states:
+
+```text
+Оплату повернено
+Зараховано на майбутню сесію
+Оплату залишено за домовленістю
+```
+
+Resolved state UX:
+
+* hides three action buttons by default
+* shows `Змінити рішення`
+* edit mode allows changing note/resolution
+* successful update toast: `Рішення щодо оплати оновлено.`
+
+## 8.2.3 Session card status hierarchy
+
+Current `/cabinet/sessions` card hierarchy:
+
+```text
+1. lifecycle status
+2. payment / settlement status
+3. time urgency
+4. source/identity
+5. attention flags only if meaningful
+```
+
+Cleanup rules:
+
+* `Нова заявка` was removed as duplicate noise
+* `Потрібне підтвердження` remains the clear `SCHEDULED` attention label
+* priority action label should use `Підтвердити сесію`, not ambiguous `Підтвердити`
 
 ## 8.3 Tariff/limit UX
 
@@ -361,7 +511,7 @@ Implementation must be additive-first and backward-compatible.
 
 ## 10. Frontend Concept
 
-Likely affected areas:
+Affected areas:
 
 * clients list
 * client detail
@@ -374,6 +524,36 @@ Likely affected areas:
 Do not implement frontend-only mock data.
 
 Frontend must follow backend contract.
+
+Any frontend copy/UI change in Vue files must include checking/updating related `*.spec.ts` files.
+
+Especially for:
+
+* text labels
+* status badges
+* buttons
+* route/CTA behavior
+* confidentiality wording
+* payment state labels
+* manual-client surfaces
+
+Likely spec files:
+
+```text
+src/views/TherapistClientsView.spec.ts
+src/views/TherapistSessionDetailView.spec.ts
+src/views/TherapistSessionsView.spec.ts
+```
+
+Validation commands for related FE work:
+
+```powershell
+cd C:\Users\admin\dev\portfolio\consult\frontend
+
+npm run test:run -- src/views/TherapistClientsView.spec.ts src/views/TherapistSessionDetailView.spec.ts src/views/TherapistSessionsView.spec.ts
+npm run typecheck
+npm run build
+```
 
 ---
 
@@ -399,6 +579,7 @@ Mitigation:
 * terms of use
 * minimal MVP fields
 * avoid sensitive fields by default
+* never imply client access to specialist-only notes or workbook
 
 ## 11.3 Tariff bypass
 
@@ -445,6 +626,13 @@ Scope:
 * session creation supports client card without user
 * session list/detail displays manual client correctly
 * notes/payment/session history work
+
+Frontend state:
+
+* manual session creation from `/cabinet/clients` is active
+* manual session detail and specialist-side payment controls are active
+* registered-client-only actions stay hidden for manual clients where unsupported
+* private notes and workbook remain specialist-only
 
 ## Phase 3 — Invite client to cabinet
 
@@ -494,6 +682,8 @@ MVP should include:
 * archive/restore manual client
 * count active manual clients in tariff limit
 * show whether client has cabinet or not
+* create canonical sessions for manual clients from the client card
+* show manual-client session/payment summary on the client card
 
 MVP should not include yet:
 
@@ -504,6 +694,7 @@ MVP should not include yet:
 * bulk upload
 * advanced consent flows
 * full invitation system, unless backend structure is already simple enough
+* client access to specialist notes/workbook
 
 ---
 
