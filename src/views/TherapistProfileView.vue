@@ -2411,6 +2411,37 @@ onMounted(() => {
   justify-content: flex-end;
 }
 
+.profile__actions .btn {
+  border-radius: var(--pc-radius-control);
+  font-weight: 700;
+}
+
+.profile__actions .btn--ghost {
+  border-color: var(--pc-border);
+  background: #fff;
+  color: var(--pc-navy-900);
+}
+
+.profile :deep(.settings-subnav__link) {
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-control);
+  background: #fff;
+  color: var(--pc-text-muted);
+}
+
+.profile :deep(.settings-subnav__link:hover),
+.profile :deep(.settings-subnav__link:focus-visible) {
+  border-color: color-mix(in srgb, var(--pc-navy-900) 28%, var(--pc-border));
+  background: color-mix(in srgb, var(--pc-blue-soft) 76%, #ffffff);
+  color: var(--pc-navy-900);
+}
+
+.profile :deep(.settings-subnav__link.is-active) {
+  border-color: color-mix(in srgb, var(--pc-navy-900) 36%, var(--pc-border));
+  background: color-mix(in srgb, var(--pc-primary-soft) 80%, #ffffff);
+  color: var(--pc-navy-900);
+}
+
 .toggle-chip {
   padding: 6px 12px;
   border-radius: 999px;

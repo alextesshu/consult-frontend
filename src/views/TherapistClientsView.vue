@@ -2094,6 +2094,17 @@ onBeforeUnmount(() => {
   color: var(--pc-navy-900);
 }
 
+.clients__hero .btn {
+  border-radius: var(--pc-radius-control);
+  font-weight: 700;
+}
+
+.clients__hero .btn--ghost {
+  border-color: var(--pc-border);
+  background: #fff;
+  color: var(--pc-navy-900);
+}
+
 .panel {
   border: 1px solid var(--line);
   border-radius: var(--pc-radius-panel);
@@ -2127,15 +2138,21 @@ onBeforeUnmount(() => {
 .clients-add-btn {
   flex: 0 0 auto;
   min-height: 42px;
+  border-radius: var(--pc-radius-control);
   border-color: var(--pc-navy-900);
-  background: var(--pc-navy-900);
+  background: linear-gradient(180deg, var(--pc-navy-900), var(--pc-navy-950));
   color: #fff;
-  box-shadow: 0 12px 26px rgba(18, 52, 90, 0.18);
+  box-shadow: none;
+  font-weight: 700;
 }
 
 .clients-add-btn:hover {
   border-color: var(--pc-navy-950);
-  background: var(--pc-navy-950);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--pc-navy-900) 92%, #000000),
+    var(--pc-navy-950)
+  );
   color: #fff;
 }
 
@@ -2812,6 +2829,14 @@ onBeforeUnmount(() => {
     grid-template-columns: 1fr;
   }
 
+  .panel--clients > .panel__header {
+    flex-wrap: wrap;
+  }
+
+  .clients-add-btn {
+    max-width: 100%;
+  }
+
   .filters {
     width: 100%;
   }
@@ -2907,8 +2932,14 @@ onBeforeUnmount(() => {
   }
 
   .panel--clients > .panel__header {
+    flex-direction: column;
+    align-items: flex-start;
     padding: 10px 12px;
     gap: 10px;
+  }
+
+  .clients-add-btn {
+    width: 100%;
   }
 
   .clients-toolbar {

@@ -910,6 +910,17 @@ onBeforeUnmount(() => {
   line-height: 1.55;
 }
 
+.chat__hero .btn {
+  border-radius: var(--pc-radius-control);
+  font-weight: 700;
+}
+
+.chat__hero .btn--ghost {
+  border-color: var(--pc-border);
+  background: #fff;
+  color: var(--pc-navy-900);
+}
+
 .chat__grid {
   display: grid;
   gap: 20px;
@@ -926,6 +937,27 @@ onBeforeUnmount(() => {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+.chat__thread-tabs .btn {
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-control);
+  background: #fff;
+  color: var(--pc-text-muted);
+  font-weight: 700;
+}
+
+.chat__thread-tabs .btn:hover,
+.chat__thread-tabs .btn:focus-visible {
+  border-color: color-mix(in srgb, var(--pc-navy-900) 28%, var(--pc-border));
+  background: color-mix(in srgb, var(--pc-blue-soft) 76%, #ffffff);
+  color: var(--pc-navy-900);
+}
+
+.chat__thread-tabs .btn--active {
+  border-color: color-mix(in srgb, var(--pc-navy-900) 36%, var(--pc-border));
+  background: color-mix(in srgb, var(--pc-primary-soft) 80%, #ffffff);
+  color: var(--pc-navy-900);
 }
 
 .chat-state {
@@ -1159,7 +1191,19 @@ onBeforeUnmount(() => {
 }
 
 .chat-thread-header__action-btn {
+  border-color: var(--pc-border);
+  border-radius: var(--pc-radius-control);
+  background: #fff;
+  color: var(--pc-navy-900);
+  font-weight: 700;
   white-space: nowrap;
+}
+
+.chat-thread-header__action-btn:hover,
+.chat-thread-header__action-btn:focus-visible {
+  border-color: color-mix(in srgb, var(--pc-navy-900) 28%, var(--pc-border));
+  background: color-mix(in srgb, var(--pc-blue-soft) 76%, #ffffff);
+  color: var(--pc-navy-900);
 }
 
 .chat-thread-header__sessions-label--compact {
