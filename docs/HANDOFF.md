@@ -114,6 +114,14 @@ Frontend production-readiness slice is now integrated:
   - linked ClientRecord remains the canonical manual/client-record card
   - session creation continues through `POST /api/cabinet/client-records/{record_id}/sessions/`; backend resolves `Session.client` when `ClientRecord.user` exists
   - invite copy is limited to client access to their own sessions in the client cabinet; do not expose specialist notes, ClientJournal, workbook, or `internal_note`
+  - client-facing account invite route:
+    - `/client/invite/:token`
+    - public preview loads without auth
+    - unauthenticated users go to login/signup with `redirect=/client/invite/:token`
+    - `/signup-client` now honors safe internal redirect paths
+    - authenticated CLIENT users accept through `/api/client/client-record-account-invites/{token}/accept/`
+    - after accept, frontend refreshes `me` and redirects to `/client`
+    - the invite page must not expose `SessionNote`, `ClientJournal`, workbook content, `ClientRecord.internal_note`, or practice-board items
 - Manual client records architecture guardrail:
   - `ClientRecord` is not a parallel manual-client system
   - `ClientRecord` is the future specialist-owned client identity layer

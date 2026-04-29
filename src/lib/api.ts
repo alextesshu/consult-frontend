@@ -2360,7 +2360,9 @@ export type ClientRecordAccountInviteResponse = {
 export type PublicClientRecordAccountInvitePreview = {
   status: string
   specialist_name?: string | null
+  specialist_display_name?: string | null
   client_display_name?: string | null
+  client_name?: string | null
   expires_at?: string | null
   can_accept?: boolean
 }

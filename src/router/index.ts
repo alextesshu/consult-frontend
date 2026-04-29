@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import LoginView from '../views/LoginView.vue'
 import SignupView from '../views/SignupView.vue'
 import ClientSignupView from '../views/ClientSignupView.vue'
+import ClientRecordAccountInviteView from '../views/ClientRecordAccountInviteView.vue'
 import CabinetView from '../views/CabinetView.vue'
 import GroupEventsView from '../views/GroupEventsView.vue'
 import PublicProfileView from '../views/PublicProfileView.vue'
@@ -65,6 +66,12 @@ const routes = [
   { path: '/login', name: 'login', component: LoginView },
   { path: '/signup', name: 'signup', component: SignupView },
   { path: '/signup-client', name: 'signup-client', component: ClientSignupView },
+  {
+    path: '/client/invite/:token',
+    name: 'client-record-account-invite',
+    component: ClientRecordAccountInviteView,
+    meta: { minimalShell: true },
+  },
   { path: '/invite/:token', name: 'group-invite-join', component: GroupInviteJoinView },
   {
     path: '/guest/external-session/:token',

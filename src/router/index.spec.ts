@@ -53,6 +53,15 @@ describe('router specialist session routes', () => {
     expect(invalidDetail.name).not.toBe('cabinet-external-session-detail')
   })
 
+  it('matches client account invite route as public preview', () => {
+    const resolved = router.resolve('/client/invite/manual-token')
+
+    expect(resolved.name).toBe('client-record-account-invite')
+    expect(resolved.params).toEqual({ token: 'manual-token' })
+    expect(resolved.meta.requiresAuth).toBeUndefined()
+    expect(resolved.meta.minimalShell).toBe(true)
+  })
+
   it('matches admin billing request routes and rejects non-numeric detail id', () => {
     const list = router.resolve('/admin/billing-access-requests')
     const detail = router.resolve('/admin/billing-access-requests/33')

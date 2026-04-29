@@ -84,7 +84,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useAuthStore } from '../stores/auth'
 
@@ -92,9 +92,17 @@ const email = ref('')
 const password = ref('')
 const passwordConfirm = ref('')
 const error = ref('')
+const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
 const { loading } = storeToRefs(auth)
+
+function safeRedirectPath() {
+  const redirect = typeof route.query.redirect === 'string' ? route.query.redirect.trim() : ''
+  if (!redirect) return '/client'
+  if (!redirect.startsWith('/') || redirect.startsWith('//')) return '/client'
+  return redirect
+}
 
 async function onSubmit() {
   error.value = ''
@@ -108,7 +116,7 @@ async function onSubmit() {
   }
   try {
     await auth.signupClient(email.value.trim(), password.value, passwordConfirm.value)
-    router.push('/client')
+    router.push(safeRedirectPath())
   } catch (err) {
     error.value = err instanceof Error ? err.message : 'Не вдалося зареєструватися'
   }

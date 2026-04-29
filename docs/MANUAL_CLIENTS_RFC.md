@@ -358,6 +358,16 @@ Cabinet invite copy must not imply client access to specialist notes or workbook
 
 Current frontend copy is limited to client access to their own sessions in the client cabinet.
 
+Client-facing invite flow:
+
+* public route: `/client/invite/:token`
+* preview is available without authentication
+* unauthenticated clients are sent to `/login?redirect=/client/invite/:token` or `/signup-client?redirect=/client/invite/:token`
+* client signup honors safe internal redirect paths and falls back to `/client` for unsafe redirects
+* authenticated clients accept through `POST /api/client/client-record-account-invites/{token}/accept/`
+* after accept, frontend refreshes `me` and redirects to `/client`
+* privacy boundary: the invite page does not expose `SessionNote`, `ClientJournal`, workbook content, `ClientRecord.internal_note`, or practice-board items
+
 ## 8.2.1 Manual session detail/payment UI
 
 Current behavior:
