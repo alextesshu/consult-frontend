@@ -19,6 +19,14 @@
         </div>
       </div>
 
+      <div v-if="guestQuotaSummary" class="quota-summary" :class="{ 'quota-summary--blocked': isGuestQuotaBlocked }">
+        <div class="quota-summary__title">{{ guestQuotaSummary }}</div>
+        <template v-if="isGuestQuotaBlocked">
+          <div class="quota-summary__message">{{ guestQuotaBlockMessage }}</div>
+          <RouterLink class="btn btn--ghost btn--sm quota-summary__link" to="/cabinet/billing">Перейти до тарифів</RouterLink>
+        </template>
+      </div>
+
       <div v-if="createError" class="form-error">{{ createError }}</div>
 
       <div class="form-grid">
@@ -100,7 +108,7 @@
       </div>
 
       <div class="actions-row">
-        <button class="btn" type="button" :disabled="createPending" @click="submitCreate">
+        <button class="btn" type="button" :disabled="createPending || isGuestQuotaBlocked" @click="submitCreate">
           {{ createPending ? 'Створюємо…' : 'Створити гостьову сесію' }}
         </button>
       </div>
@@ -244,6 +252,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useToast } from '../composables/useToast'
 import {
+  apiGet,
   approveCabinetGuestBookingRequest,
   createExternalSession,
   createExternalSessionInvite,
@@ -273,6 +282,12 @@ type RequestActionLoadingState = {
   approve?: boolean
   decline?: boolean
 }
+type GuestQuotaSnapshot = {
+  guest_sessions_enabled?: boolean | null
+  guest_sessions_used_in_period?: number | null
+  guest_sessions_limit_per_period?: number | null
+  guest_sessions_period_days?: number | null
+}
 
 const router = useRouter()
 const toast = useToast()
@@ -283,6 +298,7 @@ const requestsLoading = ref(false)
 const requestsError = ref('')
 const createPending = ref(false)
 const createError = ref('')
+const guestQuota = ref<GuestQuotaSnapshot | null>(null)
 const sessions = ref<ExternalSessionRecord[]>([])
 const guestRequests = ref<GuestBookingRequestRecord[]>([])
 const requestActionLoading = ref<Record<number, RequestActionLoadingState>>({})
@@ -303,6 +319,33 @@ const createDraft = ref<CreateDraft>({
 })
 
 const isCreateOnline = computed(() => createDraft.value.session_format === 'online')
+const isGuestQuotaBlocked = computed(() => {
+  const quota = guestQuota.value
+  if (!quota) return false
+  if (quota.guest_sessions_enabled === false) return true
+  const used = quota.guest_sessions_used_in_period
+  const limit = quota.guest_sessions_limit_per_period
+  if (typeof used !== 'number' || typeof limit !== 'number') return false
+  return Number.isFinite(used) && Number.isFinite(limit) && used >= limit
+})
+const guestQuotaSummary = computed(() => {
+  const quota = guestQuota.value
+  if (!quota) return ''
+  if (quota.guest_sessions_enabled === false) return 'Гостьові сесії недоступні на вашому тарифі.'
+  const used = quota.guest_sessions_used_in_period
+  const limit = quota.guest_sessions_limit_per_period
+  const period = quota.guest_sessions_period_days
+  if (typeof limit !== 'number') return 'Гостьові сесії доступні'
+  if (typeof used !== 'number') return 'Гостьові сесії доступні'
+  const periodLabel = typeof period === 'number' && Number.isFinite(period) ? period : 30
+  return `Гостьові сесії: ${used} з ${limit} за ${periodLabel} днів`
+})
+const guestQuotaBlockMessage = computed(() => {
+  if (guestQuota.value?.guest_sessions_enabled === false) {
+    return 'Гостьові сесії недоступні на вашому тарифі.'
+  }
+  return 'Ви використали доступні гостьові сесії за поточний період. Щоб створити нову гостьову сесію, дочекайтесь оновлення ліміту або змініть тариф.'
+})
 const timeOptions = Array.from({ length: 24 * 4 }, (_, index) => {
   const minutes = index * 15
   const hours = String(Math.floor(minutes / 60)).padStart(2, '0')
@@ -384,6 +427,23 @@ function setRequestActionError(id: number, message: string) {
 
 function requestActionError(id: number) {
   return requestActionErrors.value[id] || ''
+}
+
+function getApiErrorCode(err: unknown) {
+  const data = (err as { response?: { data?: { code?: unknown; reason_code?: unknown } } })?.response?.data
+  const code = data?.code || data?.reason_code
+  return typeof code === 'string' ? code : ''
+}
+
+function localizeGuestQuotaCreateError(err: unknown, fallback: string) {
+  const code = getApiErrorCode(err)
+  if (code === 'GUEST_SESSIONS_LIMIT_REACHED') {
+    return 'Ліміт гостьових сесій вичерпано. Ви використали доступні гостьові сесії за поточний період. Щоб створити нову гостьову сесію, дочекайтесь оновлення ліміту або змініть тариф.'
+  }
+  if (code === 'GUEST_SESSIONS_DISABLED') {
+    return 'Гостьові сесії недоступні на вашому тарифі.'
+  }
+  return getApiErrorMessage(err, fallback)
 }
 
 function localizeGuestRequestActionError(message: string) {
@@ -521,6 +581,15 @@ async function loadGuestRequests() {
   }
 }
 
+async function loadGuestQuota() {
+  try {
+    const payload = await apiGet<GuestQuotaSnapshot>('/cabinet/entitlements/')
+    guestQuota.value = payload && typeof payload === 'object' ? payload : null
+  } catch {
+    guestQuota.value = null
+  }
+}
+
 function validateCreateDraft() {
   const startsAtIso = combineDateTimeToIso(createDraft.value.start_date, createDraft.value.start_time)
   if (!startsAtIso) return 'Вкажіть коректний час початку.'
@@ -538,6 +607,13 @@ function validateCreateDraft() {
 
 async function submitCreate() {
   createError.value = ''
+  if (isGuestQuotaBlocked.value) {
+    createError.value =
+      guestQuota.value?.guest_sessions_enabled === false
+        ? 'Гостьові сесії недоступні на вашому тарифі.'
+        : 'Ліміт гостьових сесій вичерпано. Ви використали доступні гостьові сесії за поточний період. Щоб створити нову гостьову сесію, дочекайтесь оновлення ліміту або змініть тариф.'
+    return
+  }
   const validationError = validateCreateDraft()
   if (validationError) {
     createError.value = validationError
@@ -574,10 +650,14 @@ async function submitCreate() {
       )
     }
 
-await loadSessions()
-await router.push(`/cabinet/external-sessions/${created.id}`)
+    await Promise.all([loadSessions(), loadGuestQuota()])
+    await router.push(`/cabinet/external-sessions/${created.id}`)
   } catch (err) {
-    createError.value = getApiErrorMessage(err, 'Не вдалося створити гостьову сесію.')
+    createError.value = localizeGuestQuotaCreateError(err, 'Не вдалося створити гостьову сесію.')
+    const code = getApiErrorCode(err)
+    if (code === 'GUEST_SESSIONS_LIMIT_REACHED' || code === 'GUEST_SESSIONS_DISABLED') {
+      await loadGuestQuota()
+    }
   } finally {
     createPending.value = false
   }
@@ -628,7 +708,7 @@ async function declineRequest(requestId: number) {
 }
 
 onMounted(async () => {
-  await Promise.all([loadSessions(), loadGuestRequests()])
+  await Promise.all([loadSessions(), loadGuestRequests(), loadGuestQuota()])
 })
 </script>
 
@@ -761,6 +841,35 @@ onMounted(async () => {
   background: linear-gradient(180deg, var(--pc-navy-900), var(--pc-navy-950));
   color: #fff;
   font-weight: 700;
+}
+
+.quota-summary {
+  display: grid;
+  gap: 8px;
+  align-items: start;
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-control);
+  background: color-mix(in srgb, var(--pc-blue-soft) 48%, #ffffff);
+  padding: 12px;
+  color: var(--pc-navy-900);
+}
+
+.quota-summary--blocked {
+  border-color: color-mix(in srgb, var(--pc-danger, #b42318) 30%, var(--pc-border));
+  background: color-mix(in srgb, #fff1f1 70%, #ffffff);
+}
+
+.quota-summary__title {
+  font-weight: 700;
+}
+
+.quota-summary__message {
+  color: var(--pc-text-muted);
+  line-height: 1.5;
+}
+
+.quota-summary__link {
+  justify-self: start;
 }
 
 .actions-row .btn:not(.btn--ghost):hover,

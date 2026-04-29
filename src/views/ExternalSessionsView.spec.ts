@@ -2,6 +2,7 @@ import { fireEvent, render, screen, waitFor } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import ExternalSessionsView from './ExternalSessionsView.vue'
 import {
+  apiGet,
   approveCabinetGuestBookingRequest,
   createExternalSession,
   createExternalSessionInvite,
@@ -39,6 +40,7 @@ vi.mock('../lib/api', async () => {
   const actual = await vi.importActual<typeof import('../lib/api')>('../lib/api')
   return {
     ...actual,
+    apiGet: vi.fn(),
     approveCabinetGuestBookingRequest: vi.fn(),
     fetchExternalSessions: vi.fn(),
     createExternalSessionInvite: vi.fn(),
@@ -50,6 +52,7 @@ vi.mock('../lib/api', async () => {
 })
 
 const mockedApproveCabinetGuestBookingRequest = vi.mocked(approveCabinetGuestBookingRequest)
+const mockedApiGet = vi.mocked(apiGet)
 const mockedFetchExternalSessions = vi.mocked(fetchExternalSessions)
 const mockedFetchCabinetGuestBookingRequests = vi.mocked(fetchCabinetGuestBookingRequests)
 const mockedCreateExternalSession = vi.mocked(createExternalSession)
@@ -178,6 +181,12 @@ describe('ExternalSessionsView', () => {
         updated_at: '2099-06-01T00:00:00Z',
       },
     ] as any)
+    mockedApiGet.mockResolvedValue({
+      guest_sessions_enabled: true,
+      guest_sessions_used_in_period: 1,
+      guest_sessions_limit_per_period: 5,
+      guest_sessions_period_days: 30,
+    } as any)
     mockedFetchCabinetGuestBookingRequests.mockResolvedValue([])
     mockedCreateExternalSession.mockReset()
     mockedCreateExternalSessionInvite.mockResolvedValue({
@@ -229,6 +238,73 @@ describe('ExternalSessionsView', () => {
     expect(options[95]).toBe('23:45')
     expect(screen.getAllByText('Гостьові сесії').length).toBeGreaterThan(0)
     expect(detailLink).toHaveAttribute('href', '/cabinet/external-sessions/8')
+  })
+
+  it('shows guest quota summary when entitlements are available', async () => {
+    renderView()
+
+    expect(await screen.findByText('Гостьові сесії: 1 з 5 за 30 днів')).toBeInTheDocument()
+    expect(mockedApiGet).toHaveBeenCalledWith('/cabinet/entitlements/')
+  })
+
+  it('disables create button and shows exhausted quota message when quota is exhausted', async () => {
+    mockedApiGet.mockResolvedValueOnce({
+      guest_sessions_enabled: true,
+      guest_sessions_used_in_period: 5,
+      guest_sessions_limit_per_period: 5,
+      guest_sessions_period_days: 30,
+    } as any)
+
+    renderView()
+
+    expect(await screen.findByText('Гостьові сесії: 5 з 5 за 30 днів')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Створити гостьову сесію' })).toBeDisabled()
+    expect(await screen.findByText('Ви використали доступні гостьові сесії за поточний період. Щоб створити нову гостьову сесію, дочекайтесь оновлення ліміту або змініть тариф.')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Перейти до тарифів' })).toHaveAttribute('href', '/cabinet/billing')
+  })
+
+  it('handles GUEST_SESSIONS_LIMIT_REACHED from backend create response', async () => {
+    mockedCreateExternalSession.mockRejectedValueOnce({
+      response: { data: { code: 'GUEST_SESSIONS_LIMIT_REACHED' } },
+    })
+
+    const { container } = renderView()
+    await screen.findByText('Гостьові сесії: 1 з 5 за 30 днів')
+
+    const dateInput = container.querySelector('input[type="date"]')
+    const timeInput = container.querySelector('input[inputmode="numeric"]')
+    if (!dateInput || !timeInput) {
+      throw new Error('Missing start date/time fields')
+    }
+
+    await fireEvent.update(dateInput, '2099-06-16')
+    await fireEvent.update(timeInput, '12:30')
+    await fireEvent.update(screen.getByLabelText('Посилання на зустріч'), 'https://meet.google.com/quota-limit')
+    await fireEvent.click(screen.getByRole('button', { name: 'Створити гостьову сесію' }))
+
+    expect(await screen.findByText('Ліміт гостьових сесій вичерпано. Ви використали доступні гостьові сесії за поточний період. Щоб створити нову гостьову сесію, дочекайтесь оновлення ліміту або змініть тариф.')).toBeInTheDocument()
+  })
+
+  it('handles GUEST_SESSIONS_DISABLED from backend create response', async () => {
+    mockedCreateExternalSession.mockRejectedValueOnce({
+      response: { data: { code: 'GUEST_SESSIONS_DISABLED' } },
+    })
+
+    const { container } = renderView()
+    await screen.findByText('Гостьові сесії: 1 з 5 за 30 днів')
+
+    const dateInput = container.querySelector('input[type="date"]')
+    const timeInput = container.querySelector('input[inputmode="numeric"]')
+    if (!dateInput || !timeInput) {
+      throw new Error('Missing start date/time fields')
+    }
+
+    await fireEvent.update(dateInput, '2099-06-16')
+    await fireEvent.update(timeInput, '12:30')
+    await fireEvent.update(screen.getByLabelText('Посилання на зустріч'), 'https://meet.google.com/quota-disabled')
+    await fireEvent.click(screen.getByRole('button', { name: 'Створити гостьову сесію' }))
+
+    expect(await screen.findByText('Гостьові сесії недоступні на вашому тарифі.')).toBeInTheDocument()
   })
 
   it('creates online external session and navigates to detail page', async () => {
