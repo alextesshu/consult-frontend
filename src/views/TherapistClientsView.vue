@@ -151,8 +151,8 @@
           :key="clientListKey(client)"
           class="client-card"
           :class="{
-            'client-card--manual': isManualClient(client),
-            'client-card--targeted': !isManualClient(client) && targetedClientId === relationClientId(client),
+            'client-card--manual': isManualClientRecord(client),
+            'client-card--targeted': !isManualClientRecord(client) && targetedClientId === relationClientId(client),
           }"
           tabindex="-1"
         >
@@ -160,11 +160,11 @@
             <div class="client-card__identity">
               <div>
                 <div class="client-name">{{ displayClientName(client) }}</div>
-                <div v-if="!isManualClient(client) && client.client_code" class="client-code">Код клієнта: {{ client.client_code }}</div>
+                <div v-if="!isManualClientRecord(client) && client.client_code" class="client-code">Код клієнта: {{ client.client_code }}</div>
               </div>
               <div class="client-badges">
-                <span class="client-account-badge" :class="{ 'client-account-badge--manual': isManualClient(client) }">
-                  {{ isManualClient(client) ? 'Без кабінету' : 'З кабінетом' }}
+                <span class="client-account-badge" :class="{ 'client-account-badge--manual': isManualClientRecord(client) && !hasLinkedAccount(client) }">
+                  {{ accountBadgeLabel(client) }}
                 </span>
                 <span class="client-status" :class="clientStatusClass(clientListState(client))">
                   {{ clientStatusLabel(clientListState(client)) }}
@@ -172,7 +172,7 @@
               </div>
             </div>
 
-            <dl v-if="isManualClient(client)" class="client-meta client-meta--manual">
+            <dl v-if="isManualClientRecord(client)" class="client-meta client-meta--manual">
               <div v-if="client.email" class="client-meta__item">
                 <dt>Email</dt>
                 <dd>{{ client.email }}</dd>
@@ -223,11 +223,11 @@
                 <dd>{{ optionalDateLabel(manualClientLastSession(client)?.slot_start_at, 'Ще не було') }}</dd>
               </div>
             </dl>
-            <div v-if="isManualClient(client) && client.internal_note" class="manual-client-note">
+            <div v-if="isManualClientRecord(client) && client.internal_note" class="manual-client-note">
               <div class="manual-client-note__label">Короткий опис клієнта</div>
               <div>{{ client.internal_note }}</div>
             </div>
-            <dl v-if="!isManualClient(client)" class="client-meta">
+            <dl v-if="!isManualClientRecord(client)" class="client-meta">
               <div class="client-meta__item">
                 <dt>Остання сесія</dt>
                 <dd>{{ optionalDateLabel(client.last_session_at, 'Ще не було') }}</dd>
@@ -250,7 +250,7 @@
               </div>
             </dl>
           </div>
-          <div v-if="isManualClient(client)" class="client-actions">
+          <div v-if="isManualClientRecord(client)" class="client-actions">
             <div v-if="client.status !== 'archived'" class="client-actions__primary">
               <button
                 class="btn btn--sm"
@@ -365,7 +365,7 @@
               </button>
             </div>
           </div>
-          <div v-if="!isManualClient(client) && expandedClientId === relationClientId(client)" class="client-history">
+          <div v-if="!isManualClientRecord(client) && expandedClientId === relationClientId(client)" class="client-history">
             <div class="history-header">
               <div>
                 <div class="history-title">Приватна історія клієнта</div>
@@ -653,7 +653,7 @@ type ClientState = {
 
 type ManualClientRecord = {
   id: number
-  user_id: null
+  user_id: number | null
   display_name: string
   email: string | null
   phone: string | null
@@ -663,7 +663,7 @@ type ManualClientRecord = {
   custom_price_currency: string | null
   status: 'active' | 'archived'
   source: 'manual'
-  has_account: false
+  has_account: boolean
   archived_at: string | null
   created_at: string | null
   updated_at: string | null
@@ -913,26 +913,35 @@ const isJournalSaving = (id: number) => journalSaving.value.has(id)
 const isQuickAddLoading = (id: number) => quickAddLoading.value.has(id)
 const isNoteSkipping = (id: number) => noteSkipping.value.has(id)
 const isWorkbookExpanded = (id: number) => Boolean(workbookExpanded.value[id])
-function isManualClient(client: ClientListItem): client is ManualClientRecord {
-  return (client as ManualClientRecord).source === 'manual' && (client as ManualClientRecord).has_account === false
+function isManualClientRecord(client: ClientListItem): client is ManualClientRecord {
+  return (client as ManualClientRecord).source === 'manual'
+}
+
+function hasLinkedAccount(client: ClientListItem): boolean {
+  if (!isManualClientRecord(client)) return true
+  return Boolean(client.has_account || client.user_id)
+}
+
+function accountBadgeLabel(client: ClientListItem) {
+  return hasLinkedAccount(client) ? 'З кабінетом' : 'Без кабінету'
 }
 
 function clientListState(client: ClientListItem): ClientState['state'] {
-  if (isManualClient(client)) return client.status === 'archived' ? 'ARCHIVED' : 'ACTIVE'
+  if (isManualClientRecord(client)) return client.status === 'archived' ? 'ARCHIVED' : 'ACTIVE'
   return client.state
 }
 
 function clientListKey(client: ClientListItem) {
-  return isManualClient(client) ? `manual-${client.id}` : `registered-${relationClientId(client)}`
+  return isManualClientRecord(client) ? `manual-${client.id}` : `registered-${relationClientId(client)}`
 }
 
 function clientCardDomId(client: ClientListItem | number) {
   if (typeof client === 'number') return `client-card-${client}`
-  return isManualClient(client) ? `manual-client-record-${client.id}` : `client-card-${relationClientId(client)}`
+  return isManualClientRecord(client) ? `manual-client-record-${client.id}` : `client-card-${relationClientId(client)}`
 }
 
 function relationClientId(client: Pick<ClientState, 'client' | 'client_id'> | ClientListItem) {
-  if (isManualClient(client as ClientListItem)) return 0
+  if (isManualClientRecord(client as ClientListItem)) return 0
   const relation = client as Pick<ClientState, 'client' | 'client_id'>
   return Number(relation.client ?? relation.client_id ?? 0)
 }
@@ -1118,7 +1127,7 @@ function normalizeSearchValue(value?: string | number | null) {
 }
 
 function matchesClientSearch(client: ClientListItem, query: string) {
-  if (isManualClient(client)) {
+  if (isManualClientRecord(client)) {
     const searchable = [
       client.display_name,
       client.email,
@@ -1371,7 +1380,7 @@ function workbookUpdatedAt(client?: Pick<ClientState, 'workbook_updated_at' | 'c
 }
 
 function workbookSummary(client: ClientListItem) {
-  if (isManualClient(client)) return 'Недоступний без кабінету'
+  if (isManualClientRecord(client)) return 'Недоступний без кабінету'
   const clientId = relationClientId(client)
   if (workbookMissingByClient.value[clientId] === true) return 'Відсутній'
   if (!resolveHasWorkbookContent(client)) return 'Відсутній'
@@ -1381,7 +1390,7 @@ function workbookSummary(client: ClientListItem) {
 }
 
 function latestNoteSummary(client: ClientListItem) {
-  if (isManualClient(client)) return 'Нотаток ще немає'
+  if (isManualClientRecord(client)) return 'Нотаток ще немає'
   if (!client.latest_session_note_at) return '\u041d\u043e\u0442\u0430\u0442\u043e\u043a \u0449\u0435 \u043d\u0435\u043c\u0430\u0454'
   return formatDateTime(client.latest_session_note_at)
 }
@@ -1393,7 +1402,7 @@ function optionalDateLabel(value: string | null | undefined, fallback: string) {
 }
 
 function clientUpdatedLabel(client: ClientListItem) {
-  if (isManualClient(client)) return manualClientUpdatedLabel(client)
+  if (isManualClientRecord(client)) return manualClientUpdatedLabel(client)
   const value = client.workbook_updated_at || client.client_journal_updated_at || client.latest_session_note_at || client.last_session_at
   return optionalDateLabel(value, 'Немає оновлень')
 }
@@ -1464,7 +1473,7 @@ function preferredClientName(source?: NameSource | null) {
 function displayClientName(
   client: ClientListItem
 ) {
-  if (isManualClient(client)) return normalizeClientName(client.display_name) || `Клієнт #${client.id}`
+  if (isManualClientRecord(client)) return normalizeClientName(client.display_name) || `Клієнт #${client.id}`
   const id = relationClientId(client)
   const fromChat = chatClientNames.value[id]
   if (fromChat) return fromChat

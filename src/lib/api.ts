@@ -2339,6 +2339,108 @@ type PublicExternalSessionInviteJoinNestedResponse = {
   } | null
 }
 
+export type ClientRecordAccountInvite = {
+  id: number
+  client_record_id?: number | null
+  token?: string | null
+  invite_url?: string | null
+  status: string
+  expires_at?: string | null
+  accepted_at?: string | null
+  revoked_at?: string | null
+  created_at?: string | null
+  updated_at?: string | null
+}
+
+export type ClientRecordAccountInviteResponse = {
+  invite: ClientRecordAccountInvite | null
+  invite_url?: string | null
+}
+
+export type PublicClientRecordAccountInvitePreview = {
+  status: string
+  specialist_name?: string | null
+  client_display_name?: string | null
+  expires_at?: string | null
+  can_accept?: boolean
+}
+
+type PublicClientRecordAccountInvitePreviewResponse = {
+  invite: PublicClientRecordAccountInvitePreview | null
+}
+
+export type AcceptClientRecordAccountInvitePayload = {
+  confirm_identity?: boolean
+}
+
+export type AcceptClientRecordAccountInviteResponse = {
+  status: string
+  client_record_id?: number | null
+  client_id?: number | null
+  redirect_url?: string | null
+}
+
+export async function fetchClientRecordAccountInvite(
+  recordId: number
+): Promise<ClientRecordAccountInviteResponse | null> {
+  const resp = await http.get<ClientRecordAccountInviteResponse | null>(
+    `/cabinet/client-records/${recordId}/account-invite/`
+  )
+  return resp.data || null
+}
+
+export async function createClientRecordAccountInvite(
+  recordId: number
+): Promise<ClientRecordAccountInviteResponse> {
+  const resp = await http.post<ClientRecordAccountInviteResponse>(
+    `/cabinet/client-records/${recordId}/account-invite/`,
+    {}
+  )
+  return resp.data
+}
+
+export async function revokeClientRecordAccountInvite(
+  recordId: number
+): Promise<ClientRecordAccountInviteResponse> {
+  const resp = await http.post<ClientRecordAccountInviteResponse>(
+    `/cabinet/client-records/${recordId}/account-invite/revoke/`,
+    {}
+  )
+  return resp.data
+}
+
+export async function regenerateClientRecordAccountInvite(
+  recordId: number
+): Promise<ClientRecordAccountInviteResponse> {
+  const resp = await http.post<ClientRecordAccountInviteResponse>(
+    `/cabinet/client-records/${recordId}/account-invite/regenerate/`,
+    {}
+  )
+  return resp.data
+}
+
+export async function fetchPublicClientRecordAccountInvite(
+  token: string
+): Promise<PublicClientRecordAccountInvitePreview | null> {
+  const resp = await http.get<
+    PublicClientRecordAccountInvitePreview | PublicClientRecordAccountInvitePreviewResponse | null
+  >(`/public/client-record-account-invites/${token}/`)
+  const payload = resp.data
+  if (!payload) return null
+  return typeof payload === 'object' && 'invite' in payload ? payload.invite : payload
+}
+
+export async function acceptClientRecordAccountInvite(
+  token: string,
+  payload?: AcceptClientRecordAccountInvitePayload
+): Promise<AcceptClientRecordAccountInviteResponse> {
+  const resp = await http.post<AcceptClientRecordAccountInviteResponse>(
+    `/client/client-record-account-invites/${token}/accept/`,
+    payload ?? {}
+  )
+  return resp.data
+}
+
 export async function fetchExternalSessions(): Promise<ExternalSessionRecord[]> {
   const resp = await http.get<ExternalSessionRecord[]>('/cabinet/external-sessions/')
   return resp.data

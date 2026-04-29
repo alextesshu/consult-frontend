@@ -289,7 +289,9 @@ Possible labels:
 Current FE behavior:
 
 * manual client records are displayed in `/cabinet/clients`
-* manual clients have badge `Без кабінету`
+* FE separates ClientRecord source from account-linked state
+* manual ClientRecord without linked account has badge `Без кабінету`
+* manual ClientRecord with linked account has badge `З кабінетом`
 * registered clients have badge `З кабінетом`
 * manual clients can be created/edited/archived/restored
 * manual clients are searchable/filterable
@@ -329,6 +331,8 @@ Current manual session creation behavior:
 
 * route: `/cabinet/clients`
 * manual client card has CTA `Створити сесію`
+* linked ClientRecord remains the canonical manual/client-record card
+* session creation continues through `POST /cabinet/client-records/{record_id}/sessions/`; backend resolves `Session.client` when `ClientRecord.user` exists
 * modal allows choosing an available slot and session format
 * after creation, FE redirects to created session detail
 * manual session detail displays client identity as `Без кабінету`

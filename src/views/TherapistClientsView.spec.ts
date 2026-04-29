@@ -43,6 +43,7 @@ const mockedSkipSpecialistSessionNote = vi.mocked(skipSpecialistSessionNote)
 const CLIENTS_URL = '/cabinet/clients/'
 const CLIENT_RECORDS_URL = '/cabinet/client-records/'
 const REMINDERS_URL = '/cabinet/notes/reminders/'
+const SLOTS_URL = '/cabinet/slots/'
 const clientHistoryUrl = (clientId: number) => `/cabinet/clients/${clientId}/notes/history/`
 const noteReminderHref = (sessionId: number) => `/cabinet/sessions?returnTo=%2Fcabinet%2Fclients#note-${sessionId}`
 
@@ -885,6 +886,89 @@ describe('TherapistClientsView', () => {
       expect(within(clientsPanel).getByText('Manual After')).toBeInTheDocument()
       expect(within(clientsPanel).getByText('after@example.com')).toBeInTheDocument()
       expect(screen.queryByRole('dialog', { name: 'Редагувати клієнта' })).not.toBeInTheDocument()
+    })
+  })
+
+  it('shows account badge for linked manual client records without leaving manual-card behavior', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL)
+        return [
+          manualClientRecord({
+            id: 207,
+            user_id: 55,
+            has_account: true,
+            display_name: 'Linked Manual Client',
+            email: 'linked@example.com',
+          }),
+        ]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    const { container } = renderView()
+    const { clientsPanel } = getPanels(container)
+
+    const manualCard = await waitFor(() => {
+      const card = clientsPanel.querySelector('#manual-client-record-207')
+      expect(card).toBeInstanceOf(HTMLElement)
+      return card as HTMLElement
+    })
+
+    expect(manualCard).toHaveClass('client-card--manual')
+    expect(within(manualCard).getByText('З кабінетом')).toBeInTheDocument()
+    expect(within(manualCard).getByRole('button', { name: 'Створити сесію' })).toBeInTheDocument()
+    expect(within(manualCard).getByRole('button', { name: 'Редагувати' })).toBeInTheDocument()
+    expect(within(manualCard).getByRole('button', { name: 'Архівувати' })).toBeInTheDocument()
+    expect(within(manualCard).queryByRole('button', { name: 'Приватна історія клієнта' })).not.toBeInTheDocument()
+  })
+
+  it('creates session for linked manual client through client-record endpoint only', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL)
+        return [
+          manualClientRecord({
+            id: 208,
+            user_id: 56,
+            has_account: true,
+            display_name: 'Linked Session Client',
+          }),
+        ]
+      if (url === REMINDERS_URL) return []
+      if (url === SLOTS_URL)
+        return [
+          {
+            id: 901,
+            start_at: '2099-06-20T10:00:00Z',
+            end_at: '2099-06-20T10:50:00Z',
+            is_booked: false,
+          },
+        ]
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedApiPost.mockResolvedValue({ id: 710 } as any)
+
+    const { container } = renderView()
+    const { clientsPanel } = getPanels(container)
+
+    const manualCard = await waitFor(() => {
+      const card = clientsPanel.querySelector('#manual-client-record-208')
+      expect(card).toBeInstanceOf(HTMLElement)
+      return card as HTMLElement
+    })
+
+    await fireEvent.click(within(manualCard).getByRole('button', { name: 'Створити сесію' }))
+    const dialog = await screen.findByRole('dialog', { name: /Створити сесію для Linked Session Client/ })
+    await fireEvent.click(within(dialog).getByRole('button', { name: 'Створити сесію' }))
+
+    await waitFor(() => {
+      expect(mockedApiPost).toHaveBeenCalledWith('/cabinet/client-records/208/sessions/', {
+        slot_id: 901,
+        session_format: 'online',
+      })
+      expect(mockedApiPost.mock.calls[0]?.[1]).not.toHaveProperty('client_id')
+      expect(mockedApiPost.mock.calls[0]?.[1]).not.toHaveProperty('client')
     })
   })
 
