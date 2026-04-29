@@ -913,15 +913,48 @@ watch(
   justify-content: space-between;
   align-items: center;
   gap: 20px;
-  background: linear-gradient(135deg, rgba(8, 113, 201, 0.16), rgba(7, 47, 71, 0.06));
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(
+      circle at 92% 70%,
+      color-mix(in srgb, var(--pc-peach-100) 70%, transparent) 0 120px,
+      transparent 121px
+    ),
+    linear-gradient(
+      135deg,
+      #ffffff 0%,
+      color-mix(in srgb, var(--pc-primary-soft) 70%, #ffffff) 54%,
+      color-mix(in srgb, var(--pc-yellow-soft) 45%, #ffffff) 100%
+    );
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-panel);
   padding: 22px 24px;
-  box-shadow: var(--shadow);
+  box-shadow: var(--pc-shadow-soft);
+}
+
+.detail-hero > * {
+  position: relative;
+  z-index: 1;
+}
+
+.detail-hero .badge {
+  background: color-mix(in srgb, var(--pc-blue-soft) 82%, #ffffff);
+  border-color: color-mix(in srgb, var(--pc-navy-900) 22%, var(--pc-border));
+  color: var(--pc-navy-900);
+}
+
+.detail-hero .btn--ghost {
+  border-color: var(--pc-border);
+  border-radius: var(--pc-radius-control);
+  background: #fff;
+  color: var(--pc-navy-900);
+  font-weight: 700;
 }
 
 .detail-title {
   font-size: 32px;
+  color: var(--pc-navy-950);
 }
 
 .detail-subtitle {
@@ -929,10 +962,11 @@ watch(
 }
 
 .panel {
-  border: 1px solid var(--line);
-  border-radius: 18px;
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-panel);
   padding: 18px;
   background: #fff;
+  box-shadow: var(--pc-shadow-soft);
   display: grid;
   gap: 14px;
 }
@@ -951,7 +985,9 @@ watch(
 }
 
 .badge--soft {
-  background: rgba(8, 113, 201, 0.12);
+  background: color-mix(in srgb, var(--pc-blue-soft) 82%, #ffffff);
+  border-color: color-mix(in srgb, var(--pc-navy-900) 22%, var(--pc-border));
+  color: var(--pc-navy-900);
 }
 
 .summary-grid,
@@ -978,10 +1014,10 @@ watch(
 .offline-info-card {
   display: grid;
   gap: 12px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-card);
   padding: 14px;
-  background: #f8fafc;
+  background: color-mix(in srgb, var(--pc-surface) 94%, #ffffff);
 }
 
 .meeting-share-card {
@@ -990,8 +1026,8 @@ watch(
 }
 
 .meeting-share-card--attention {
-  border-color: rgba(217, 164, 65, 0.45);
-  background: rgba(217, 164, 65, 0.08);
+  border-color: color-mix(in srgb, var(--pc-yellow-600, #d9a441) 42%, var(--pc-border));
+  background: color-mix(in srgb, var(--pc-yellow-soft) 58%, #ffffff);
 }
 
 .meeting-share-card__content,
@@ -1010,29 +1046,34 @@ watch(
 
 .meeting-share-card__attention {
   width: fit-content;
-  border-radius: var(--radius-sm);
+  border: 1px solid color-mix(in srgb, var(--pc-yellow-600, #d9a441) 32%, var(--pc-border));
+  border-radius: var(--pc-radius-control);
   padding: 6px 10px;
-  background: rgba(217, 164, 65, 0.16);
-  color: #8a5b08;
+  background: color-mix(in srgb, var(--pc-yellow-soft) 72%, #ffffff);
+  color: var(--pc-navy-900);
   font-size: 13px;
   font-weight: 700;
 }
 
 .meeting-link-value {
   font-size: 13px;
-  color: #0b5cad;
+  color: var(--pc-navy-900);
   word-break: break-all;
 }
 
 .invite-link-block {
   display: grid;
-  gap: 4px;
+  gap: 6px;
   margin-top: 8px;
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-card);
+  padding: 12px;
+  background: color-mix(in srgb, var(--pc-surface) 94%, #ffffff);
 }
 
 .invite-link-value {
   font-size: 13px;
-  color: #0b5cad;
+  color: var(--pc-navy-900);
   word-break: break-all;
 }
 
@@ -1041,10 +1082,10 @@ watch(
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 14px;
   align-items: flex-start;
-  border: 1px solid var(--line);
-  border-radius: var(--radius-sm);
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-card);
   padding: 14px;
-  background: #f8fafc;
+  background: color-mix(in srgb, var(--pc-surface) 94%, #ffffff);
 }
 
 .payment-card__text {
@@ -1067,32 +1108,74 @@ watch(
 .status-pill {
   width: fit-content;
   padding: 6px 10px;
-  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  border-radius: var(--pc-radius-control);
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
+  font-weight: 700;
 }
 
 .status-pill--ok {
-  background: rgba(31, 122, 76, 0.18);
-  color: #1f7a4c;
+  border-color: color-mix(in srgb, var(--pc-navy-900) 20%, var(--pc-border));
+  background: color-mix(in srgb, var(--pc-blue-soft) 76%, #ffffff);
+  color: var(--pc-navy-900);
 }
 
 .status-pill--warn {
-  background: rgba(217, 164, 65, 0.18);
-  color: #a57011;
+  border-color: color-mix(in srgb, var(--pc-yellow-600, #d9a441) 32%, var(--pc-border));
+  background: color-mix(in srgb, var(--pc-yellow-soft) 72%, #ffffff);
+  color: var(--pc-navy-900);
 }
 
 .status-pill--danger {
-  background: rgba(194, 75, 75, 0.18);
-  color: #a03838;
+  border-color: color-mix(in srgb, #b42318 28%, var(--pc-border));
+  background: color-mix(in srgb, #fff1f1 80%, #ffffff);
+  color: #9f1d15;
+}
+
+.btn {
+  border-radius: var(--pc-radius-control);
+}
+
+.btn:not(.btn--ghost) {
+  border-color: var(--pc-navy-900);
+  background: linear-gradient(180deg, var(--pc-navy-900), var(--pc-navy-950));
+  color: #fff;
+  font-weight: 700;
+}
+
+.btn:not(.btn--ghost):hover,
+.btn:not(.btn--ghost):focus-visible {
+  border-color: var(--pc-navy-950);
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--pc-navy-900) 92%, #000000),
+    var(--pc-navy-950)
+  );
+  color: #fff;
+}
+
+.btn--ghost {
+  border-color: var(--pc-border);
+  border-radius: var(--pc-radius-control);
+  background: #fff;
+  color: var(--pc-navy-900);
+  font-weight: 700;
+}
+
+.btn--ghost:hover,
+.btn--ghost:focus-visible {
+  border-color: color-mix(in srgb, var(--pc-navy-900) 28%, var(--pc-border));
+  background: color-mix(in srgb, var(--pc-blue-soft) 56%, #ffffff);
+  color: var(--pc-navy-950);
 }
 
 .form-error {
   color: #b3261e;
   background: #fdecea;
   border: 1px solid #f5c2c0;
-  border-radius: var(--radius-sm);
+  border-radius: var(--pc-radius-card);
   padding: 8px 10px;
 }
 
