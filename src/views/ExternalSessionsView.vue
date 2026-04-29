@@ -908,6 +908,22 @@ onMounted(async () => {
   font-weight: 700;
 }
 
+.session-card > .btn--ghost {
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-control);
+  background: #fff;
+  color: var(--pc-navy-900);
+  box-shadow: none;
+  font-weight: 700;
+}
+
+.session-card > .btn--ghost:hover,
+.session-card > .btn--ghost:focus-visible {
+  border-color: color-mix(in srgb, var(--pc-navy-900) 24%, var(--pc-border));
+  background: color-mix(in srgb, var(--pc-primary-soft) 55%, #ffffff);
+  color: var(--pc-navy-900);
+}
+
 .request-card {
   border: 1px solid var(--pc-border);
   border-radius: var(--pc-radius-card);
@@ -955,30 +971,36 @@ onMounted(async () => {
 .status-pill {
   width: fit-content;
   padding: 6px 10px;
-  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  border-radius: var(--pc-radius-control);
   font-size: 12px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
+  font-weight: 700;
 }
 
 .status-pill--ok {
-  background: rgba(31, 122, 76, 0.18);
-  color: #1f7a4c;
+  border-color: color-mix(in srgb, var(--pc-navy-900) 20%, var(--pc-border));
+  background: color-mix(in srgb, var(--pc-blue-soft) 76%, #ffffff);
+  color: var(--pc-navy-900);
 }
 
 .status-pill--warn {
-  background: rgba(176, 123, 16, 0.18);
-  color: #8b5f00;
+  border-color: color-mix(in srgb, var(--pc-yellow-600, #d9a441) 32%, var(--pc-border));
+  background: color-mix(in srgb, var(--pc-yellow-soft) 72%, #ffffff);
+  color: var(--pc-navy-900);
 }
 
 .status-pill--danger {
-  background: rgba(194, 75, 75, 0.18);
-  color: #a03838;
+  border-color: color-mix(in srgb, #b42318 28%, var(--pc-border));
+  background: color-mix(in srgb, #fff1f1 80%, #ffffff);
+  color: #9f1d15;
 }
 
 .status-pill--muted {
-  background: rgba(109, 117, 139, 0.14);
-  color: #4b5563;
+  border-color: color-mix(in srgb, var(--pc-navy-900) 14%, var(--pc-border));
+  background: color-mix(in srgb, var(--pc-surface) 88%, #ffffff);
+  color: var(--pc-text-muted);
 }
 
 .form-error {
