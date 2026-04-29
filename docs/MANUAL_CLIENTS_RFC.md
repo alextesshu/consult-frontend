@@ -293,6 +293,11 @@ Current FE behavior:
 * manual ClientRecord without linked account has badge `Без кабінету`
 * manual ClientRecord with linked account has badge `З кабінетом`
 * registered clients have badge `З кабінетом`
+* manual ClientRecord without linked account shows specialist-side account invite controls:
+  * create invite
+  * copy invite link when available
+  * regenerate invite
+  * revoke invite
 * manual clients can be created/edited/archived/restored
 * manual clients are searchable/filterable
 * manual client card shows:
@@ -339,6 +344,7 @@ Current manual session creation behavior:
 * registered-client-only actions stay hidden for manual clients where unsupported
 
 Future cabinet invite CTA:
+Implemented in `/cabinet/clients` for manual ClientRecord rows without linked account:
 
 ```text
 Запросити клієнта в кабінет
@@ -349,6 +355,8 @@ Cabinet invite copy must not imply client access to specialist notes or workbook
 ```text
 Підключення кабінету дасть клієнту доступ до власних сесій, нагадувань, оплати та комунікації зі спеціалістом.
 ```
+
+Current frontend copy is limited to client access to their own sessions in the client cabinet.
 
 ## 8.2.1 Manual session detail/payment UI
 

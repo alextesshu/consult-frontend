@@ -278,6 +278,75 @@
               </RouterLink>
             </div>
 
+            <div v-if="!hasLinkedAccount(client)" class="manual-account-invite">
+              <div class="manual-account-invite__header">
+                <div>
+                  <div class="manual-account-invite__title">Запросити до кабінету</div>
+                  <p class="manual-account-invite__copy">
+                    Клієнт зможе увійти або зареєструватися і побачити свої сесії в кабінеті.
+                  </p>
+                </div>
+                <span v-if="accountInviteState(client.id).loading" class="manual-account-invite__status">
+                  Перевіряємо...
+                </span>
+              </div>
+
+              <p v-if="accountInviteState(client.id).error" class="manual-account-invite__error">
+                {{ accountInviteState(client.id).error }}
+              </p>
+
+              <template v-if="activeAccountInvite(client.id)">
+                <p class="manual-account-invite__status">
+                  {{ accountInviteStatusLabel(activeAccountInvite(client.id)) }}
+                </p>
+
+                <div v-if="accountInviteUrl(client.id)" class="manual-account-invite__link">
+                  {{ accountInviteUrl(client.id) }}
+                </div>
+                <p v-else class="manual-account-invite__hint">
+                  Посилання було створене раніше. Якщо його втрачено — перевидайте запрошення.
+                </p>
+
+                <div class="manual-account-invite__actions">
+                  <button
+                    v-if="accountInviteUrl(client.id)"
+                    class="btn btn--ghost btn--sm"
+                    type="button"
+                    :disabled="accountInviteState(client.id).actionLoading"
+                    @click="copyAccountInviteLink(client.id)"
+                  >
+                    {{ accountInviteState(client.id).copied ? 'Скопійовано' : 'Копіювати посилання' }}
+                  </button>
+                  <button
+                    class="btn btn--ghost btn--sm"
+                    type="button"
+                    :disabled="accountInviteState(client.id).actionLoading"
+                    @click="regenerateAccountInvite(client.id)"
+                  >
+                    Перевидати
+                  </button>
+                  <button
+                    class="btn btn--ghost btn--sm"
+                    type="button"
+                    :disabled="accountInviteState(client.id).actionLoading"
+                    @click="revokeAccountInvite(client.id)"
+                  >
+                    Відкликати
+                  </button>
+                </div>
+              </template>
+
+              <button
+                v-else
+                class="btn btn--ghost btn--sm manual-account-invite__cta"
+                type="button"
+                :disabled="accountInviteState(client.id).actionLoading || accountInviteState(client.id).loading"
+                @click="createAccountInvite(client.id)"
+              >
+                {{ accountInviteState(client.id).actionLoading ? 'Створюємо...' : 'Запросити до кабінету' }}
+              </button>
+            </div>
+
             <div class="client-actions__secondary">
               <button
                 class="btn btn--ghost btn--sm"
@@ -605,7 +674,20 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { apiGet, apiPatch, apiPost, fetchChatThreads, type ChatThread, type SessionFormat } from '../lib/api'
+import {
+  apiGet,
+  apiPatch,
+  apiPost,
+  createClientRecordAccountInvite,
+  fetchChatThreads,
+  fetchClientRecordAccountInvite,
+  regenerateClientRecordAccountInvite,
+  revokeClientRecordAccountInvite,
+  type ChatThread,
+  type ClientRecordAccountInvite,
+  type ClientRecordAccountInviteResponse,
+  type SessionFormat,
+} from '../lib/api'
 import EmptyState from '../components/EmptyState.vue'
 import LoadingSkeleton from '../components/LoadingSkeleton.vue'
 import PracticeBoardQuickAddModal from '../components/PracticeBoardQuickAddModal.vue'
@@ -686,6 +768,15 @@ type ManualClientSessionFormState = {
 type ManualClientSessionCreateResponse = {
   id?: number
   session_id?: number
+}
+
+type AccountInviteState = {
+  loading: boolean
+  actionLoading: boolean
+  invite: ClientRecordAccountInvite | null
+  inviteUrl: string
+  error: string
+  copied: boolean
 }
 
 type ClientListItem = ClientState | ManualClientRecord
@@ -827,6 +918,7 @@ const manualSessionDraft = ref<ManualClientSessionFormState>({
   slot_id: 0,
   session_format: 'online',
 })
+const accountInviteStateByRecordId = ref<Record<number, AccountInviteState>>({})
 
 const retryLabel = '\u0421\u043f\u0440\u043e\u0431\u0443\u0432\u0430\u0442\u0438 \u0449\u0435 \u0440\u0430\u0437'
 const remindersErrorTitle = '\u041d\u0435 \u0432\u0434\u0430\u043b\u043e\u0441\u044f \u0437\u0430\u0432\u0430\u043d\u0442\u0430\u0436\u0438\u0442\u0438 \u043d\u0430\u0433\u0430\u0434\u0443\u0432\u0430\u043d\u043d\u044f'
@@ -924,6 +1016,161 @@ function hasLinkedAccount(client: ClientListItem): boolean {
 
 function accountBadgeLabel(client: ClientListItem) {
   return hasLinkedAccount(client) ? 'З кабінетом' : 'Без кабінету'
+}
+
+function defaultAccountInviteState(): AccountInviteState {
+  return {
+    loading: false,
+    actionLoading: false,
+    invite: null,
+    inviteUrl: '',
+    error: '',
+    copied: false,
+  }
+}
+
+function accountInviteState(recordId: number): AccountInviteState {
+  const existing = accountInviteStateByRecordId.value[recordId]
+  if (existing) return existing
+
+  const next = defaultAccountInviteState()
+  accountInviteStateByRecordId.value = {
+    ...accountInviteStateByRecordId.value,
+    [recordId]: next,
+  }
+  return next
+}
+
+function updateAccountInviteState(recordId: number, patch: Partial<AccountInviteState>) {
+  accountInviteStateByRecordId.value = {
+    ...accountInviteStateByRecordId.value,
+    [recordId]: {
+      ...accountInviteState(recordId),
+      ...patch,
+    },
+  }
+}
+
+function normalizeAccountInviteResponse(payload: ClientRecordAccountInviteResponse | null | undefined) {
+  const invite = payload?.invite || null
+  const inviteUrl = String(invite?.invite_url || payload?.invite_url || '').trim()
+  return { invite, inviteUrl }
+}
+
+function isActiveAccountInvite(invite?: ClientRecordAccountInvite | null) {
+  return String(invite?.status || '').toUpperCase() === 'ACTIVE'
+}
+
+function activeAccountInvite(recordId: number) {
+  const invite = accountInviteState(recordId).invite
+  return isActiveAccountInvite(invite) ? invite : null
+}
+
+function accountInviteUrl(recordId: number) {
+  return accountInviteState(recordId).inviteUrl
+}
+
+function accountInviteStatusLabel(invite: ClientRecordAccountInvite | null) {
+  const expiresAt = formatDateTime(invite?.expires_at || null)
+  if (expiresAt && expiresAt !== '—') return `Запрошення активне до ${expiresAt}`
+  return 'Запрошення активне'
+}
+
+function accountInviteErrorMessage(err: unknown) {
+  const payload = (err as any)?.response?.data || {}
+  const code = String(payload.code || payload.reason_code || '').toUpperCase()
+  if (code === 'CLIENT_RECORD_ALREADY_LINKED') return 'Клієнт уже має підключений кабінет.'
+  if (code === 'CLIENT_RECORD_ARCHIVED') return 'Неможливо запросити архівного клієнта.'
+  if (code === 'ACTIVE_INVITE_EXISTS') return 'Активне запрошення вже існує.'
+  return getApiErrorMessage(err, 'Не вдалося оновити запрошення. Спробуйте ще раз.')
+}
+
+async function loadAccountInvite(recordId: number) {
+  updateAccountInviteState(recordId, { loading: true, error: '' })
+  try {
+    const payload = await fetchClientRecordAccountInvite(recordId)
+    const { invite, inviteUrl } = normalizeAccountInviteResponse(payload)
+    updateAccountInviteState(recordId, {
+      invite: isActiveAccountInvite(invite) ? invite : null,
+      inviteUrl: isActiveAccountInvite(invite) ? inviteUrl : '',
+      loading: false,
+    })
+  } catch {
+    updateAccountInviteState(recordId, { loading: false })
+  }
+}
+
+function preloadAccountInvites(records: ManualClientRecord[]) {
+  records
+    .filter((record) => !hasLinkedAccount(record))
+    .forEach((record) => {
+      void loadAccountInvite(record.id)
+    })
+}
+
+function applyAccountInviteResponse(recordId: number, payload: ClientRecordAccountInviteResponse | null | undefined) {
+  const { invite, inviteUrl } = normalizeAccountInviteResponse(payload)
+  updateAccountInviteState(recordId, {
+    invite: isActiveAccountInvite(invite) ? invite : null,
+    inviteUrl: isActiveAccountInvite(invite) ? inviteUrl : '',
+    error: '',
+    copied: false,
+  })
+}
+
+async function createAccountInvite(recordId: number) {
+  updateAccountInviteState(recordId, { actionLoading: true, error: '', copied: false })
+  try {
+    const payload = await createClientRecordAccountInvite(recordId)
+    applyAccountInviteResponse(recordId, payload)
+  } catch (err) {
+    updateAccountInviteState(recordId, { error: accountInviteErrorMessage(err) })
+    const payload = (err as any)?.response?.data || {}
+    const code = String(payload.code || payload.reason_code || '').toUpperCase()
+    if (code === 'ACTIVE_INVITE_EXISTS') {
+      await loadAccountInvite(recordId)
+    }
+  } finally {
+    updateAccountInviteState(recordId, { actionLoading: false })
+  }
+}
+
+async function regenerateAccountInvite(recordId: number) {
+  updateAccountInviteState(recordId, { actionLoading: true, error: '', copied: false })
+  try {
+    const payload = await regenerateClientRecordAccountInvite(recordId)
+    applyAccountInviteResponse(recordId, payload)
+  } catch (err) {
+    updateAccountInviteState(recordId, { error: accountInviteErrorMessage(err) })
+  } finally {
+    updateAccountInviteState(recordId, { actionLoading: false })
+  }
+}
+
+async function revokeAccountInvite(recordId: number) {
+  updateAccountInviteState(recordId, { actionLoading: true, error: '', copied: false })
+  try {
+    await revokeClientRecordAccountInvite(recordId)
+    updateAccountInviteState(recordId, { invite: null, inviteUrl: '' })
+  } catch (err) {
+    updateAccountInviteState(recordId, { error: accountInviteErrorMessage(err) })
+  } finally {
+    updateAccountInviteState(recordId, { actionLoading: false })
+  }
+}
+
+async function copyAccountInviteLink(recordId: number) {
+  const inviteUrl = accountInviteUrl(recordId)
+  if (!inviteUrl) return
+  try {
+    await navigator.clipboard.writeText(inviteUrl)
+    updateAccountInviteState(recordId, { copied: true })
+    window.setTimeout(() => {
+      updateAccountInviteState(recordId, { copied: false })
+    }, 1800)
+  } catch {
+    updateAccountInviteState(recordId, { error: 'Не вдалося скопіювати посилання.' })
+  }
 }
 
 function clientListState(client: ClientListItem): ClientState['state'] {
@@ -1545,7 +1792,9 @@ async function loadManualClientRecords() {
   manualClientsWarning.value = ''
   try {
     const resp = await apiGet<ListResponse<ManualClientRecord>>('/cabinet/client-records/')
-    manualClientRecords.value = listFromResponse(resp)
+    const records = listFromResponse(resp)
+    manualClientRecords.value = records
+    preloadAccountInvites(records)
   } catch (err: any) {
     manualClientRecords.value = []
     manualClientsWarning.value = getApiErrorMessage(
@@ -2494,6 +2743,68 @@ onBeforeUnmount(() => {
 
 .client-actions__secondary .btn {
   min-height: 34px;
+}
+
+.manual-account-invite {
+  display: grid;
+  gap: 9px;
+  border: 1px solid color-mix(in srgb, var(--pc-border) 82%, #ffffff);
+  border-radius: var(--pc-radius-card);
+  padding: 12px;
+  background: color-mix(in srgb, var(--pc-bg-main) 84%, #ffffff);
+}
+
+.manual-account-invite__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.manual-account-invite__title {
+  color: var(--pc-navy-900);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.manual-account-invite__copy,
+.manual-account-invite__hint,
+.manual-account-invite__status,
+.manual-account-invite__error {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.manual-account-invite__copy,
+.manual-account-invite__hint,
+.manual-account-invite__status {
+  color: var(--pc-text-muted);
+}
+
+.manual-account-invite__error {
+  color: var(--pc-danger);
+}
+
+.manual-account-invite__link {
+  overflow-wrap: anywhere;
+  border: 1px solid color-mix(in srgb, var(--pc-border) 78%, #ffffff);
+  border-radius: var(--pc-radius-control);
+  padding: 8px 10px;
+  background: #fff;
+  color: var(--pc-navy-900);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.manual-account-invite__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.manual-account-invite__cta {
+  justify-self: start;
 }
 
 .client-history {

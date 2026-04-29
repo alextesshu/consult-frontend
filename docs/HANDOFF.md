@@ -94,9 +94,14 @@ Frontend production-readiness slice is now integrated:
   - manual record name field is `display_name`, not `full_name`
   - manual records return `source=manual`; `has_account`/`user_id` describe account-linked state
   - frontend labels:
-    - manual ClientRecord without linked account: `Без кабінету`
-    - manual ClientRecord with linked account: `З кабінетом`
-    - registered clients: `З кабінетом`
+  - manual ClientRecord without linked account: `Без кабінету`
+  - manual ClientRecord with linked account: `З кабінетом`
+  - registered clients: `З кабінетом`
+  - manual ClientRecord rows without linked account expose specialist-side account invite controls:
+    - create invite
+    - copy invite link when backend returns `invite_url`
+    - regenerate invite
+    - revoke invite
   - manual client cards support create/edit/archive/restore
   - manual clients are searchable/filterable together with registered clients
   - manual client card shows custom/default session price, nearest session, payment status for nearest or last session, future sessions count, last session, and short client description
@@ -108,6 +113,7 @@ Frontend production-readiness slice is now integrated:
   - registered-client-only actions remain hidden for manual clients where unsupported
   - linked ClientRecord remains the canonical manual/client-record card
   - session creation continues through `POST /api/cabinet/client-records/{record_id}/sessions/`; backend resolves `Session.client` when `ClientRecord.user` exists
+  - invite copy is limited to client access to their own sessions in the client cabinet; do not expose specialist notes, ClientJournal, workbook, or `internal_note`
 - Manual client records architecture guardrail:
   - `ClientRecord` is not a parallel manual-client system
   - `ClientRecord` is the future specialist-owned client identity layer

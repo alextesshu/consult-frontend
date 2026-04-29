@@ -1,6 +1,15 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { apiGet, apiPatch, apiPost, fetchChatThreads } from '../lib/api'
+import {
+  apiGet,
+  apiPatch,
+  apiPost,
+  createClientRecordAccountInvite,
+  fetchChatThreads,
+  fetchClientRecordAccountInvite,
+  regenerateClientRecordAccountInvite,
+  revokeClientRecordAccountInvite,
+} from '../lib/api'
 import TherapistClientsView from './TherapistClientsView.vue'
 import { createPracticeBoardItem, fetchPracticeBoards } from '../lib/specialistPracticeBoard'
 import { skipSpecialistSessionNote } from '../lib/specialistSessions'
@@ -13,7 +22,11 @@ vi.mock('../lib/api', () => ({
   apiGet: vi.fn(),
   apiPatch: vi.fn(),
   apiPost: vi.fn(),
+  createClientRecordAccountInvite: vi.fn(),
   fetchChatThreads: vi.fn(),
+  fetchClientRecordAccountInvite: vi.fn(),
+  regenerateClientRecordAccountInvite: vi.fn(),
+  revokeClientRecordAccountInvite: vi.fn(),
 }))
 vi.mock('../lib/specialistPracticeBoard', () => ({
   createPracticeBoardItem: vi.fn(),
@@ -35,7 +48,11 @@ vi.mock('../composables/useToast', () => ({
 const mockedApiGet = vi.mocked(apiGet)
 const mockedApiPatch = vi.mocked(apiPatch)
 const mockedApiPost = vi.mocked(apiPost)
+const mockedCreateClientRecordAccountInvite = vi.mocked(createClientRecordAccountInvite)
 const mockedFetchChatThreads = vi.mocked(fetchChatThreads)
+const mockedFetchClientRecordAccountInvite = vi.mocked(fetchClientRecordAccountInvite)
+const mockedRegenerateClientRecordAccountInvite = vi.mocked(regenerateClientRecordAccountInvite)
+const mockedRevokeClientRecordAccountInvite = vi.mocked(revokeClientRecordAccountInvite)
 const mockedCreatePracticeBoardItem = vi.mocked(createPracticeBoardItem)
 const mockedFetchPracticeBoards = vi.mocked(fetchPracticeBoards)
 const mockedSkipSpecialistSessionNote = vi.mocked(skipSpecialistSessionNote)
@@ -106,13 +123,39 @@ function manualClientRecord(overrides: Record<string, unknown> = {}) {
   }
 }
 
+function accountInviteResponse(overrides: Record<string, unknown> = {}, inviteUrl: string | null = null) {
+  return {
+    invite: {
+      id: 301,
+      client_record_id: 201,
+      status: 'ACTIVE',
+      expires_at: '2099-06-30T10:00:00Z',
+      accepted_at: null,
+      revoked_at: null,
+      created_at: '2099-06-15T10:00:00Z',
+      updated_at: '2099-06-15T10:00:00Z',
+      invite_url: inviteUrl,
+      ...overrides,
+    },
+    invite_url: inviteUrl,
+  }
+}
+
 describe('TherapistClientsView', () => {
   beforeEach(() => {
     mockedApiGet.mockReset()
     mockedApiPatch.mockReset()
     mockedApiPost.mockReset()
+    mockedCreateClientRecordAccountInvite.mockReset()
+    mockedCreateClientRecordAccountInvite.mockResolvedValue({ invite: null, invite_url: null } as any)
     mockedFetchChatThreads.mockReset()
     mockedFetchChatThreads.mockResolvedValue([])
+    mockedFetchClientRecordAccountInvite.mockReset()
+    mockedFetchClientRecordAccountInvite.mockResolvedValue(null)
+    mockedRegenerateClientRecordAccountInvite.mockReset()
+    mockedRegenerateClientRecordAccountInvite.mockResolvedValue({ invite: null, invite_url: null } as any)
+    mockedRevokeClientRecordAccountInvite.mockReset()
+    mockedRevokeClientRecordAccountInvite.mockResolvedValue({ invite: null, invite_url: null } as any)
     mockedCreatePracticeBoardItem.mockReset()
     mockedFetchPracticeBoards.mockReset()
     mockedSkipSpecialistSessionNote.mockReset()
@@ -122,6 +165,12 @@ describe('TherapistClientsView', () => {
     Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', {
       configurable: true,
       value: vi.fn(),
+    })
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: {
+        writeText: vi.fn().mockResolvedValue(undefined),
+      },
     })
   })
 
@@ -921,6 +970,240 @@ describe('TherapistClientsView', () => {
     expect(within(manualCard).getByRole('button', { name: 'Редагувати' })).toBeInTheDocument()
     expect(within(manualCard).getByRole('button', { name: 'Архівувати' })).toBeInTheDocument()
     expect(within(manualCard).queryByRole('button', { name: 'Приватна історія клієнта' })).not.toBeInTheDocument()
+  })
+
+  it('shows manual account invite CTA for manual client records without account', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL)
+        return [
+          manualClientRecord({
+            id: 209,
+            display_name: 'Manual Invite Candidate',
+          }),
+        ]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    const { container } = renderView()
+    const { clientsPanel } = getPanels(container)
+
+    const manualCard = await waitFor(() => {
+      const card = clientsPanel.querySelector('#manual-client-record-209')
+      expect(card).toBeInstanceOf(HTMLElement)
+      return card as HTMLElement
+    })
+
+    expect(within(manualCard).getByText('Клієнт зможе увійти або зареєструватися і побачити свої сесії в кабінеті.')).toBeInTheDocument()
+    expect(within(manualCard).getByRole('button', { name: 'Запросити до кабінету' })).toBeInTheDocument()
+  })
+
+  it('does not show manual account invite CTA for linked manual client records', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL)
+        return [
+          manualClientRecord({
+            id: 215,
+            user_id: 57,
+            has_account: true,
+            display_name: 'Linked Invite Hidden',
+          }),
+        ]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    const { container } = renderView()
+    const { clientsPanel } = getPanels(container)
+
+    const manualCard = await waitFor(() => {
+      const card = clientsPanel.querySelector('#manual-client-record-215')
+      expect(card).toBeInstanceOf(HTMLElement)
+      return card as HTMLElement
+    })
+
+    expect(within(manualCard).queryByRole('button', { name: 'Запросити до кабінету' })).not.toBeInTheDocument()
+  })
+
+  it('does not show manual account invite CTA for registered client relations', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL)
+        return [
+          {
+            id: 1,
+            client_id: 44,
+            state: 'ACTIVE',
+            last_session_at: null,
+            upcoming_count: 0,
+            client_display_name: 'Registered Client',
+          },
+        ]
+      if (url === CLIENT_RECORDS_URL) return []
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    const { container } = renderView()
+    const { clientsPanel } = getPanels(container)
+
+    await waitFor(() => {
+      expect(within(clientsPanel).getByText('Registered Client')).toBeInTheDocument()
+    })
+    expect(within(clientsPanel).queryByRole('button', { name: 'Запросити до кабінету' })).not.toBeInTheDocument()
+  })
+
+  it('creates manual account invite and shows invite URL with copy action', async () => {
+    const clipboardWrite = vi.fn().mockResolvedValue(undefined)
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText: clipboardWrite },
+    })
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL) return [manualClientRecord({ id: 210, display_name: 'Manual Invite Create' })]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedCreateClientRecordAccountInvite.mockResolvedValue(
+      accountInviteResponse({ id: 310, client_record_id: 210 }, 'https://proconsult.space/client/invite/new-token') as any
+    )
+
+    const { container } = renderView()
+    const { clientsPanel } = getPanels(container)
+
+    const manualCard = await waitFor(() => {
+      const card = clientsPanel.querySelector('#manual-client-record-210')
+      expect(card).toBeInstanceOf(HTMLElement)
+      return card as HTMLElement
+    })
+
+    await fireEvent.click(within(manualCard).getByRole('button', { name: 'Запросити до кабінету' }))
+
+    await waitFor(() => {
+      expect(mockedCreateClientRecordAccountInvite).toHaveBeenCalledWith(210)
+      expect(within(manualCard).getByText('https://proconsult.space/client/invite/new-token')).toBeInTheDocument()
+      expect(within(manualCard).getByRole('button', { name: 'Копіювати посилання' })).toBeInTheDocument()
+    })
+
+    await fireEvent.click(within(manualCard).getByRole('button', { name: 'Копіювати посилання' }))
+    expect(clipboardWrite).toHaveBeenCalledWith('https://proconsult.space/client/invite/new-token')
+  })
+
+  it('shows active invite without URL as regenerate guidance', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL) return [manualClientRecord({ id: 211, display_name: 'Manual Invite Existing' })]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedFetchClientRecordAccountInvite.mockResolvedValue(
+      accountInviteResponse({ id: 311, client_record_id: 211, invite_url: null }, null) as any
+    )
+
+    const { container } = renderView()
+    const { clientsPanel } = getPanels(container)
+
+    const manualCard = await waitFor(() => {
+      const card = clientsPanel.querySelector('#manual-client-record-211')
+      expect(card).toBeInstanceOf(HTMLElement)
+      expect(card).toHaveTextContent('перевидайте запрошення')
+      return card as HTMLElement
+    })
+
+    expect(within(manualCard).queryByRole('button', { name: 'Копіювати посилання' })).not.toBeInTheDocument()
+    expect(within(manualCard).getByRole('button', { name: 'Перевидати' })).toBeInTheDocument()
+    expect(within(manualCard).getByRole('button', { name: 'Відкликати' })).toBeInTheDocument()
+  })
+
+  it('regenerates manual account invite and shows new invite URL', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL) return [manualClientRecord({ id: 212, display_name: 'Manual Invite Regenerate' })]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedFetchClientRecordAccountInvite.mockResolvedValue(
+      accountInviteResponse({ id: 312, client_record_id: 212, invite_url: null }, null) as any
+    )
+    mockedRegenerateClientRecordAccountInvite.mockResolvedValue(
+      accountInviteResponse({ id: 313, client_record_id: 212 }, 'https://proconsult.space/client/invite/regenerated') as any
+    )
+
+    const { container } = renderView()
+    const { clientsPanel } = getPanels(container)
+
+    const manualCard = await waitFor(() => {
+      const card = clientsPanel.querySelector('#manual-client-record-212')
+      expect(card).toBeInstanceOf(HTMLElement)
+      expect(card).toHaveTextContent('перевидайте запрошення')
+      return card as HTMLElement
+    })
+
+    await fireEvent.click(within(manualCard).getByRole('button', { name: 'Перевидати' }))
+
+    await waitFor(() => {
+      expect(mockedRegenerateClientRecordAccountInvite).toHaveBeenCalledWith(212)
+      expect(within(manualCard).getByText('https://proconsult.space/client/invite/regenerated')).toBeInTheDocument()
+    })
+  })
+
+  it('revokes manual account invite and returns to create CTA state', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL) return [manualClientRecord({ id: 213, display_name: 'Manual Invite Revoke' })]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedFetchClientRecordAccountInvite.mockResolvedValue(
+      accountInviteResponse({ id: 314, client_record_id: 213 }, 'https://proconsult.space/client/invite/revoke-me') as any
+    )
+
+    const { container } = renderView()
+    const { clientsPanel } = getPanels(container)
+
+    const manualCard = await waitFor(() => {
+      const card = clientsPanel.querySelector('#manual-client-record-213')
+      expect(card).toBeInstanceOf(HTMLElement)
+      expect(card).toHaveTextContent('https://proconsult.space/client/invite/revoke-me')
+      return card as HTMLElement
+    })
+
+    await fireEvent.click(within(manualCard).getByRole('button', { name: 'Відкликати' }))
+
+    await waitFor(() => {
+      expect(mockedRevokeClientRecordAccountInvite).toHaveBeenCalledWith(213)
+      expect(within(manualCard).getByRole('button', { name: 'Запросити до кабінету' })).toBeInTheDocument()
+      expect(manualCard).not.toHaveTextContent('https://proconsult.space/client/invite/revoke-me')
+    })
+  })
+
+  it('shows friendly error when backend reports already linked client record', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL) return [manualClientRecord({ id: 214, display_name: 'Manual Invite Error' })]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedCreateClientRecordAccountInvite.mockRejectedValue({
+      response: { data: { code: 'CLIENT_RECORD_ALREADY_LINKED' } },
+    })
+
+    const { container } = renderView()
+    const { clientsPanel } = getPanels(container)
+
+    const manualCard = await waitFor(() => {
+      const card = clientsPanel.querySelector('#manual-client-record-214')
+      expect(card).toBeInstanceOf(HTMLElement)
+      return card as HTMLElement
+    })
+
+    await fireEvent.click(within(manualCard).getByRole('button', { name: 'Запросити до кабінету' }))
+
+    await waitFor(() => {
+      expect(within(manualCard).getByText('Клієнт уже має підключений кабінет.')).toBeInTheDocument()
+    })
   })
 
   it('creates session for linked manual client through client-record endpoint only', async () => {
