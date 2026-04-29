@@ -6,6 +6,9 @@
       <p class="muted auth__subtitle">
         Використайте електронну пошту або логін. Доступ до кабінету без зайвих кроків.
       </p>
+      <p v-if="isClientInviteRedirect" class="auth__invite-note">
+        Ви відкрили запрошення до акаунта клієнта. Увійдіть, щоб продовжити підключення до клієнтської картки.
+      </p>
 
       <form class="form" @submit.prevent="onSubmit">
         <label class="field">
@@ -98,7 +101,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useAuthStore } from '../stores/auth'
@@ -111,6 +114,10 @@ const router = useRouter()
 const route = useRoute()
 const auth = useAuthStore()
 const { loading } = storeToRefs(auth)
+const isClientInviteRedirect = computed(() => {
+  const redirect = typeof route.query.redirect === 'string' ? route.query.redirect.trim() : ''
+  return redirect.startsWith('/client/invite/')
+})
 
 function defaultPath() {
   const roles = normalizeUserRoles(auth.me?.user ?? auth.user)
@@ -180,6 +187,16 @@ onMounted(() => {
 
 .auth__subtitle {
   max-width: 420px;
+}
+
+.auth__invite-note {
+  margin-top: 10px;
+  border: 1px solid color-mix(in srgb, var(--primary) 22%, var(--line));
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: color-mix(in srgb, var(--surface) 90%, #ffffff);
+  color: var(--ink);
+  line-height: 1.45;
 }
 
 .auth__legal {

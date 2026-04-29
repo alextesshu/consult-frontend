@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, waitFor } from '@testing-library/vue'
+import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/vue'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { reactive } from 'vue'
@@ -78,5 +78,27 @@ describe('ClientSignupView', () => {
     await waitFor(() => {
       expect(routerPush).toHaveBeenCalledWith('/client')
     })
+  })
+
+  it('shows invite-context notice when redirect points to client invite', async () => {
+    routeState.query = { redirect: '/client/invite/token-123' }
+    renderView()
+
+    expect(
+      await screen.findByText(
+        'Ви створюєте акаунт клієнта за запрошенням спеціаліста. Після реєстрації ви зможете підтвердити підключення до клієнтської картки.'
+      )
+    ).toBeInTheDocument()
+  })
+
+  it('does not show invite-context notice for regular signup', async () => {
+    routeState.query = {}
+    renderView()
+
+    expect(
+      screen.queryByText(
+        'Ви створюєте акаунт клієнта за запрошенням спеціаліста. Після реєстрації ви зможете підтвердити підключення до клієнтської картки.'
+      )
+    ).not.toBeInTheDocument()
   })
 })

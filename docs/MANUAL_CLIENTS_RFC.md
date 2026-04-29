@@ -363,6 +363,10 @@ Client-facing invite flow:
 * public route: `/client/invite/:token`
 * preview is available without authentication
 * unauthenticated clients are sent to `/login?redirect=/client/invite/:token` or `/signup-client?redirect=/client/invite/:token`
+* invite page copy uses account-first wording:
+  * title: `Запрошення підключити акаунт клієнта`
+  * CTAs: `Увійти у свій акаунт` / `Створити свій акаунт клієнта`
+  * no technical “ми повернемо вас” phrasing; after auth user explicitly confirms connection on invite page
 * client signup honors safe internal redirect paths and falls back to `/client` for unsafe redirects
 * authenticated clients accept through `POST /api/client/client-record-account-invites/{token}/accept/`
 * after accept, frontend refreshes `me` and redirects to `/client`

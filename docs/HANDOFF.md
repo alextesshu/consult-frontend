@@ -118,6 +118,9 @@ Frontend production-readiness slice is now integrated:
     - `/client/invite/:token`
     - public preview loads without auth
     - unauthenticated users go to login/signup with `redirect=/client/invite/:token`
+    - invite copy uses account wording (`Запрошення підключити акаунт клієнта`, `Увійти у свій акаунт`, `Створити свій акаунт клієнта`)
+    - login/signup show invite-context notice for `redirect` paths starting with `/client/invite/`
+    - no auto-accept after auth; user confirms connection explicitly on the invite page
     - `/signup-client` now honors safe internal redirect paths
     - authenticated CLIENT users accept through `/api/client/client-record-account-invites/{token}/accept/`
     - after accept, frontend refreshes `me` and redirects to `/client`

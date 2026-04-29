@@ -110,19 +110,42 @@ describe('ClientRecordAccountInviteView', () => {
   it('renders public preview with specialist and client names', async () => {
     renderView()
 
+    expect(
+      await screen.findByRole('heading', { name: 'Запрошення підключити акаунт клієнта' })
+    ).toBeInTheDocument()
     expect(await screen.findByText('Dr Specialist')).toBeInTheDocument()
     expect(screen.getByText('Client Name')).toBeInTheDocument()
-    expect(screen.getByText(/Спеціаліст запросив вас підключити кабінет/)).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        'Спеціаліст вже створив для вас клієнтську картку в Pro Consult. Щоб бачити дані про свої сесії, увійдіть у наявний акаунт або створіть новий акаунт клієнта.'
+      )
+    ).toBeInTheDocument()
   })
 
   it('shows login and signup CTAs with redirect for unauthenticated user', async () => {
     renderView()
 
-    const loginLink = await screen.findByRole('link', { name: 'Увійти і підключити' })
-    const signupLink = await screen.findByRole('link', { name: 'Створити кабінет клієнта' })
+    const loginLink = await screen.findByRole('link', { name: 'Увійти у свій акаунт' })
+    const signupLink = await screen.findByRole('link', { name: 'Створити свій акаунт клієнта' })
 
     expect(loginLink).toHaveAttribute('href', 'login?redirect=%2Fclient%2Finvite%2Finvite-token')
     expect(signupLink).toHaveAttribute('href', 'signup-client?redirect=%2Fclient%2Finvite%2Finvite-token')
+    expect(
+      screen.getByText(
+        'Оберіть цей варіант, якщо у вас вже є акаунт у Pro Consult. Після входу ви зможете підтвердити підключення до вашої клієнтської картки.'
+      )
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        'Оберіть цей варіант, якщо ви ще не користувались Pro Consult. Після створення акаунта ви зможете підтвердити підключення до вашої клієнтської картки.'
+      )
+    ).toBeInTheDocument()
+    expect(screen.getByText('Що буде доступно після підключення')).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        'Приватні нотатки спеціаліста залишаються конфіденційними та зашифрованими. Доступ до них має лише спеціаліст, з яким ви працюєте.'
+      )
+    ).toBeInTheDocument()
     expect(mockedAcceptInvite).not.toHaveBeenCalled()
   })
 
@@ -142,7 +165,9 @@ describe('ClientRecordAccountInviteView', () => {
     renderView({ roles: ['SPECIALIST'] })
 
     await screen.findByText('Dr Specialist')
-    expect(await screen.findByText(/Це запрошення можна прийняти лише з клієнтського кабінету/)).toBeInTheDocument()
+    expect(
+      await screen.findByText('Це запрошення можна прийняти лише з клієнтського кабінету.')
+    ).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Вийти та увійти як клієнт' })).toBeInTheDocument()
     expect(mockedAcceptInvite).not.toHaveBeenCalled()
   })
@@ -166,12 +191,16 @@ describe('ClientRecordAccountInviteView', () => {
   it('renders friendly preview errors', async () => {
     mockedFetchPreview.mockRejectedValueOnce({ response: { data: { code: 'INVITE_EXPIRED' } } })
     const expired = renderView()
-    expect(await screen.findByText('Запрошення більше не дійсне. Попросіть спеціаліста надіслати нове.')).toBeInTheDocument()
+    expect(
+      await screen.findByText('Запрошення більше не дійсне. Попросіть спеціаліста надіслати нове.')
+    ).toBeInTheDocument()
     expired.unmount()
 
     mockedFetchPreview.mockRejectedValueOnce({ response: { data: { code: 'INVITE_REVOKED' } } })
     const revoked = renderView()
-    expect(await screen.findByText('Запрошення було відкликане. Попросіть спеціаліста надіслати нове.')).toBeInTheDocument()
+    expect(
+      await screen.findByText('Запрошення було відкликане. Попросіть спеціаліста надіслати нове.')
+    ).toBeInTheDocument()
     revoked.unmount()
 
     mockedFetchPreview.mockRejectedValueOnce({ response: { data: { code: 'INVITE_ALREADY_ACCEPTED' } } })
@@ -190,7 +219,7 @@ describe('ClientRecordAccountInviteView', () => {
 
     await fireEvent.click(await screen.findByRole('button', { name: 'Підключити кабінет' }))
 
-    const panel = await screen.findByText('Цей акаунт уже повʼязаний з іншою карткою цього спеціаліста.')
+    const panel = await screen.findByText(/Цей акаунт уже пов.?язаний з іншою карткою цього спеціаліста\./)
     expect(within(panel.closest('.invite-panel') as HTMLElement).getByText('Dr Specialist')).toBeInTheDocument()
   })
 })

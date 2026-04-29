@@ -2,7 +2,7 @@
   <section class="client-account-invite">
     <div class="invite-panel">
       <div class="badge">Запрошення</div>
-      <h1 class="title invite-panel__title">Запрошення до кабінету</h1>
+      <h1 class="title invite-panel__title">Запрошення підключити акаунт клієнта</h1>
 
       <div v-if="loading" class="muted">Перевіряємо запрошення...</div>
 
@@ -12,8 +12,8 @@
 
       <template v-else>
         <p class="muted invite-panel__intro">
-          Спеціаліст запросив вас підключити кабінет до вже створеної клієнтської картки.
-          Після підключення ви зможете бачити свої сесії в Pro Consult.
+          Спеціаліст вже створив для вас клієнтську картку в Pro Consult.
+          Щоб бачити дані про свої сесії, увійдіть у наявний акаунт або створіть новий акаунт клієнта.
         </p>
 
         <dl v-if="preview" class="invite-details">
@@ -43,9 +43,21 @@
           </button>
         </div>
 
-        <div v-else-if="!isAuthenticated" class="invite-actions">
-          <RouterLink class="btn" :to="loginTarget">Увійти і підключити</RouterLink>
-          <RouterLink class="btn btn--ghost" :to="signupTarget">Створити кабінет клієнта</RouterLink>
+        <div v-else-if="!isAuthenticated" class="invite-auth-options">
+          <div class="invite-auth-option">
+            <RouterLink class="btn" :to="loginTarget">Увійти у свій акаунт</RouterLink>
+            <p class="invite-auth-option__hint">
+              Оберіть цей варіант, якщо у вас вже є акаунт у Pro Consult.
+              Після входу ви зможете підтвердити підключення до вашої клієнтської картки.
+            </p>
+          </div>
+          <div class="invite-auth-option">
+            <RouterLink class="btn btn--ghost" :to="signupTarget">Створити свій акаунт клієнта</RouterLink>
+            <p class="invite-auth-option__hint">
+              Оберіть цей варіант, якщо ви ще не користувались Pro Consult.
+              Після створення акаунта ви зможете підтвердити підключення до вашої клієнтської картки.
+            </p>
+          </div>
         </div>
 
         <div v-else-if="!isClientUser" class="invite-confirmation">
@@ -62,6 +74,19 @@
         </div>
 
         <p v-if="acceptError" class="form-error">{{ acceptError }}</p>
+
+        <div class="invite-info-block">
+          <h2 class="invite-info-block__title">Що буде доступно після підключення</h2>
+          <p>
+            Ви зможете бачити дані про свої сесії: дату, час, формат, статус, посилання на онлайн-зустріч, якщо воно
+            додане, а також інформацію щодо оплати, якщо спеціаліст надає її через сервіс.
+          </p>
+        </div>
+
+        <p class="invite-privacy-note">
+          Приватні нотатки спеціаліста залишаються конфіденційними та зашифрованими. Доступ до них має лише спеціаліст,
+          з яким ви працюєте.
+        </p>
       </template>
     </div>
   </section>
@@ -242,6 +267,23 @@ onMounted(async () => {
   align-items: center;
 }
 
+.invite-auth-options {
+  display: grid;
+  gap: 12px;
+}
+
+.invite-auth-option {
+  display: grid;
+  gap: 8px;
+}
+
+.invite-auth-option__hint {
+  margin: 0;
+  color: var(--pc-text-muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
 .invite-confirmation {
   display: grid;
   justify-items: start;
@@ -259,5 +301,33 @@ onMounted(async () => {
   background: color-mix(in srgb, var(--pc-blue-soft) 72%, #ffffff);
   color: var(--pc-navy-900);
   font-weight: 800;
+}
+
+.invite-info-block {
+  border: 1px solid color-mix(in srgb, var(--pc-border) 82%, #ffffff);
+  border-radius: var(--pc-radius-card);
+  padding: 12px;
+  background: color-mix(in srgb, var(--pc-bg-main) 82%, #ffffff);
+  color: var(--pc-text-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.invite-info-block__title {
+  margin: 0 0 6px;
+  color: var(--pc-navy-900);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.invite-info-block p,
+.invite-privacy-note {
+  margin: 0;
+}
+
+.invite-privacy-note {
+  color: var(--pc-text-muted);
+  font-size: 12px;
+  line-height: 1.5;
 }
 </style>
