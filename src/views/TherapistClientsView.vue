@@ -173,9 +173,13 @@
             </div>
 
             <dl v-if="isManualClientRecord(client)" class="client-meta client-meta--manual">
-              <div v-if="client.email" class="client-meta__item">
-                <dt>Email</dt>
-                <dd>{{ client.email }}</dd>
+              <div v-if="shouldShowManualContactEmail(client)" class="client-meta__item">
+                <dt>{{ manualContactEmailLabel(client) }}</dt>
+                <dd>{{ manualContactEmail(client) }}</dd>
+              </div>
+              <div v-if="shouldShowManualAccountEmail(client)" class="client-meta__item">
+                <dt>Email акаунта</dt>
+                <dd>{{ manualAccountEmail(client) }}</dd>
               </div>
               <div v-if="client.phone" class="client-meta__item">
                 <dt>Телефон</dt>
@@ -1035,6 +1039,7 @@ type ManualClientRecord = {
   user_id: number | null
   display_name: string
   email: string | null
+  account_email?: string | null
   phone: string | null
   telegram: string | null
   internal_note: string | null
@@ -1328,6 +1333,29 @@ function isManualClientRecord(client: ClientListItem): client is ManualClientRec
 function hasLinkedAccount(client: ClientListItem): boolean {
   if (!isManualClientRecord(client)) return true
   return Boolean(client.has_account || client.user_id)
+}
+
+function manualContactEmail(client: ManualClientRecord): string {
+  return String(client.email || '').trim()
+}
+
+function manualAccountEmail(client: ManualClientRecord): string {
+  return String(client.account_email || '').trim()
+}
+
+function shouldShowManualAccountEmail(client: ManualClientRecord): boolean {
+  return Boolean(manualAccountEmail(client))
+}
+
+function shouldShowManualContactEmail(client: ManualClientRecord): boolean {
+  const contactEmail = manualContactEmail(client)
+  if (!contactEmail) return false
+  const accountEmail = manualAccountEmail(client)
+  return !accountEmail || accountEmail.toLowerCase() !== contactEmail.toLowerCase()
+}
+
+function manualContactEmailLabel(client: ManualClientRecord): string {
+  return manualAccountEmail(client) ? 'Контактний email' : 'Email'
 }
 
 function accountBadgeLabel(client: ClientListItem) {

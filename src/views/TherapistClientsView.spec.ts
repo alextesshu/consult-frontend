@@ -123,6 +123,7 @@ function manualClientRecord(overrides: Record<string, unknown> = {}) {
     user_id: null,
     display_name: 'Manual Client',
     email: null,
+    account_email: null,
     phone: null,
     telegram: null,
     internal_note: null,
@@ -1010,6 +1011,126 @@ describe('TherapistClientsView', () => {
     expect(within(manualCard).getByRole('button', { name: 'Редагувати' })).toBeInTheDocument()
     expect(within(manualCard).getByRole('button', { name: 'Архівувати' })).toBeInTheDocument()
     expect(within(manualCard).queryByRole('button', { name: 'Приватна історія клієнта' })).not.toBeInTheDocument()
+  })
+
+  it('shows contact and account email separately for linked manual client when they differ', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL) {
+        return [
+          manualClientRecord({
+            id: 271,
+            user_id: 991,
+            has_account: true,
+            email: 'contact271@example.com',
+            account_email: 'account271@example.com',
+          }),
+        ]
+      }
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    const { container } = renderView()
+    const { clientsPanel } = getPanels(container)
+    const manualCard = await waitFor(() => {
+      const card = clientsPanel.querySelector('#manual-client-record-271')
+      expect(card).toBeInstanceOf(HTMLElement)
+      return card as HTMLElement
+    })
+
+    expect(within(manualCard).getByText('contact271@example.com')).toBeInTheDocument()
+    expect(within(manualCard).getByText('account271@example.com')).toBeInTheDocument()
+  })
+
+  it('shows only account email when contact email is empty', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL) {
+        return [
+          manualClientRecord({
+            id: 272,
+            user_id: 992,
+            has_account: true,
+            email: null,
+            account_email: 'account272@example.com',
+          }),
+        ]
+      }
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    const { container } = renderView()
+    const { clientsPanel } = getPanels(container)
+    const manualCard = await waitFor(() => {
+      const card = clientsPanel.querySelector('#manual-client-record-272')
+      expect(card).toBeInstanceOf(HTMLElement)
+      return card as HTMLElement
+    })
+
+    expect(within(manualCard).getByText('account272@example.com')).toBeInTheDocument()
+    expect(within(manualCard).queryByText('contact272@example.com')).not.toBeInTheDocument()
+  })
+
+  it('does not render account email row for unlinked manual client', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL) {
+        return [
+          manualClientRecord({
+            id: 273,
+            user_id: null,
+            has_account: false,
+            email: 'contact273@example.com',
+            account_email: null,
+          }),
+        ]
+      }
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    const { container } = renderView()
+    const { clientsPanel } = getPanels(container)
+    const manualCard = await waitFor(() => {
+      const card = clientsPanel.querySelector('#manual-client-record-273')
+      expect(card).toBeInstanceOf(HTMLElement)
+      return card as HTMLElement
+    })
+
+    expect(within(manualCard).getByText('contact273@example.com')).toBeInTheDocument()
+    expect(within(manualCard).queryByText('account273@example.com')).not.toBeInTheDocument()
+  })
+
+  it('does not duplicate email row when contact and account email are equal', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL) {
+        return [
+          manualClientRecord({
+            id: 274,
+            user_id: 993,
+            has_account: true,
+            email: 'same274@example.com',
+            account_email: 'same274@example.com',
+          }),
+        ]
+      }
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    const { container } = renderView()
+    const { clientsPanel } = getPanels(container)
+    const manualCard = await waitFor(() => {
+      const card = clientsPanel.querySelector('#manual-client-record-274')
+      expect(card).toBeInstanceOf(HTMLElement)
+      return card as HTMLElement
+    })
+
+    expect(within(manualCard).getByText('same274@example.com')).toBeInTheDocument()
+    expect(within(manualCard).queryAllByText('same274@example.com')).toHaveLength(1)
   })
 
   it('shows manual account invite CTA for manual client records without account', async () => {
