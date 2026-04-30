@@ -1215,6 +1215,70 @@ describe('TherapistClientsView', () => {
     expect(within(clientsPanel).queryByRole('button', { name: 'Запросити до кабінету' })).not.toBeInTheDocument()
   })
 
+  it('renders registered client email when client_email exists', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) {
+        return [
+          {
+            id: 2,
+            client_id: 45,
+            client_email: 'registered45@example.com',
+            state: 'ACTIVE',
+            last_session_at: null,
+            upcoming_count: 0,
+            client_display_name: 'Registered With Email',
+          },
+        ]
+      }
+      if (url === CLIENT_RECORDS_URL) return []
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    const { container } = renderView()
+    const { clientsPanel } = getPanels(container)
+    const registeredCard = await waitFor(() => {
+      const card = clientsPanel.querySelector('#client-card-45')
+      expect(card).toBeInstanceOf(HTMLElement)
+      return card as HTMLElement
+    })
+
+    expect(within(registeredCard).getByText('registered45@example.com')).toBeInTheDocument()
+    expect(within(registeredCard).getByText('EMAIL')).toBeInTheDocument()
+  })
+
+  it('does not render empty registered email block when client_email is missing', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) {
+        return [
+          {
+            id: 3,
+            client_id: 46,
+            client_email: null,
+            state: 'ACTIVE',
+            last_session_at: null,
+            upcoming_count: 0,
+            client_display_name: 'Registered Without Email',
+          },
+        ]
+      }
+      if (url === CLIENT_RECORDS_URL) return []
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    const { container } = renderView()
+    const { clientsPanel } = getPanels(container)
+    const registeredCard = await waitFor(() => {
+      const card = clientsPanel.querySelector('#client-card-46')
+      expect(card).toBeInstanceOf(HTMLElement)
+      return card as HTMLElement
+    })
+
+    expect(within(registeredCard).queryByText('EMAIL')).not.toBeInTheDocument()
+    expect(within(registeredCard).queryByText('registered46@example.com')).not.toBeInTheDocument()
+  })
+
   it('creates manual account invite and shows invite URL with copy action', async () => {
     const clipboardWrite = vi.fn().mockResolvedValue(undefined)
     Object.defineProperty(navigator, 'clipboard', {

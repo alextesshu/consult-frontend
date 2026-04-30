@@ -232,6 +232,10 @@
               <div>{{ client.internal_note }}</div>
             </div>
             <dl v-if="!isManualClientRecord(client)" class="client-meta">
+              <div v-if="client.client_email" class="client-meta__item">
+                <dt>EMAIL</dt>
+                <dd>{{ client.client_email }}</dd>
+              </div>
               <div class="client-meta__item">
                 <dt>Остання сесія</dt>
                 <dd>{{ optionalDateLabel(client.last_session_at, 'Ще не було') }}</dd>
@@ -1013,6 +1017,7 @@ type ClientState = {
   id: number
   client?: number
   client_id?: number
+  client_email?: string | null
   state: 'CREATED' | 'ACTIVE' | 'INACTIVE' | 'ARCHIVED'
   last_session_at: string | null
   upcoming_count: number
