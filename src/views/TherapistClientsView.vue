@@ -351,17 +351,17 @@
               <div class="client-materials__header">
                 <div class="client-materials__title">Матеріали для клієнта</div>
                 <button class="btn btn--ghost btn--sm" type="button" @click="toggleClientMaterials(client)">
-                  {{ clientMaterialsState(client.id).open ? 'Сховати' : 'Відкрити' }}
+                  {{ clientMaterialsState(clientMaterialsScopeKey(client) || '').open ? 'Сховати' : 'Відкрити' }}
                 </button>
               </div>
               <p v-if="isManualClientRecord(client) && !hasLinkedAccount(client)" class="client-materials__note">
                 Матеріал можна підготувати зараз. Клієнт побачить його після підключення акаунта.
               </p>
-              <div v-if="clientMaterialsState(client.id).open" class="client-materials__body">
-                <p v-if="clientMaterialsState(client.id).error" class="form-error">{{ clientMaterialsState(client.id).error }}</p>
-                <div v-if="clientMaterialsState(client.id).loading" class="muted">Завантаження матеріалів...</div>
+              <div v-if="clientMaterialsState(clientMaterialsScopeKey(client) || '').open" class="client-materials__body">
+                <p v-if="clientMaterialsState(clientMaterialsScopeKey(client) || '').error" class="form-error">{{ clientMaterialsState(clientMaterialsScopeKey(client) || '').error }}</p>
+                <div v-if="clientMaterialsState(clientMaterialsScopeKey(client) || '').loading" class="muted">Завантаження матеріалів...</div>
                 <div v-else class="client-materials__list">
-                  <article v-for="material in clientMaterialsState(client.id).items" :key="material.id" class="client-material">
+                  <article v-for="material in clientMaterialsState(clientMaterialsScopeKey(client) || '').items" :key="material.id" class="client-material">
                     <div class="client-material__top">
                       <span class="client-material__type">{{ materialTypeLabel(material.material_type) }}</span>
                       <span class="material-status" :class="materialStatusClass(material.status)">{{ materialStatusLabel(material.status) }}</span>
@@ -370,16 +370,16 @@
                       Назва
                       <input
                         class="input"
-                        :value="materialFormById(client.id, material.id).title"
-                        @input="onMaterialTitleInput(client.id, material.id, $event)"
+                        :value="materialFormById(clientMaterialsScopeKey(client) || '', material.id).title"
+                        @input="onMaterialTitleInput(clientMaterialsScopeKey(client) || '', material.id, $event)"
                       />
                     </label>
                     <label class="field">
                       Тип
                       <select
                         class="input input--select"
-                        :value="materialFormById(client.id, material.id).material_type"
-                        @change="onMaterialTypeInput(client.id, material.id, $event)"
+                        :value="materialFormById(clientMaterialsScopeKey(client) || '', material.id).material_type"
+                        @change="onMaterialTypeInput(clientMaterialsScopeKey(client) || '', material.id, $event)"
                       >
                         <option value="recommendation">Рекомендація</option>
                         <option value="homework">Домашнє завдання</option>
@@ -395,8 +395,8 @@
                       <textarea
                         class="input manual-client-form__textarea"
                         rows="4"
-                        :value="materialFormById(client.id, material.id).content"
-                        @input="onMaterialContentInput(client.id, material.id, $event)"
+                        :value="materialFormById(clientMaterialsScopeKey(client) || '', material.id).content"
+                        @input="onMaterialContentInput(clientMaterialsScopeKey(client) || '', material.id, $event)"
                       ></textarea>
                     </label>
                     <label class="field">
@@ -404,20 +404,20 @@
                       <input
                         class="input"
                         type="url"
-                        :value="materialFormById(client.id, material.id).url"
-                        @input="onMaterialUrlInput(client.id, material.id, $event)"
+                        :value="materialFormById(clientMaterialsScopeKey(client) || '', material.id).url"
+                        @input="onMaterialUrlInput(clientMaterialsScopeKey(client) || '', material.id, $event)"
                       />
                     </label>
                     <div class="client-material__actions">
-                      <button class="btn btn--ghost btn--sm" type="button" :disabled="clientMaterialsState(client.id).actionLoadingId === material.id" @click="saveMaterial(client.id, material.id)">
+                      <button class="btn btn--ghost btn--sm" type="button" :disabled="clientMaterialsState(clientMaterialsScopeKey(client) || '').actionLoadingId === material.id" @click="saveMaterial(client, material.id)">
                         Зберегти
                       </button>
                       <button
                         v-if="material.status === 'draft'"
                         class="btn btn--sm"
                         type="button"
-                        :disabled="clientMaterialsState(client.id).actionLoadingId === material.id"
-                        @click="publishMaterial(client.id, material.id)"
+                        :disabled="clientMaterialsState(clientMaterialsScopeKey(client) || '').actionLoadingId === material.id"
+                        @click="publishMaterial(client, material.id)"
                       >
                         Опублікувати для клієнта
                       </button>
@@ -425,8 +425,8 @@
                         v-if="material.status === 'published'"
                         class="btn btn--ghost btn--sm"
                         type="button"
-                        :disabled="clientMaterialsState(client.id).actionLoadingId === material.id"
-                        @click="revokeMaterial(client.id, material.id)"
+                        :disabled="clientMaterialsState(clientMaterialsScopeKey(client) || '').actionLoadingId === material.id"
+                        @click="revokeMaterial(client, material.id)"
                       >
                         Відкликати доступ
                       </button>
@@ -448,16 +448,16 @@
                     Назва
                     <input
                       class="input"
-                      :value="clientMaterialsState(client.id).create.title"
-                      @input="setCreateMaterialField(client.id, { title: String(($event.target as HTMLInputElement | null)?.value || '') })"
+                      :value="clientMaterialsState(clientMaterialsScopeKey(client) || '').create.title"
+                      @input="setCreateMaterialField(clientMaterialsScopeKey(client) || '', { title: String(($event.target as HTMLInputElement | null)?.value || '') })"
                     />
                   </label>
                   <label class="field">
                     Тип
                     <select
                       class="input input--select"
-                      :value="clientMaterialsState(client.id).create.material_type"
-                      @change="setCreateMaterialField(client.id, { material_type: String(($event.target as HTMLSelectElement | null)?.value || 'recommendation') as ClientMaterialType })"
+                      :value="clientMaterialsState(clientMaterialsScopeKey(client) || '').create.material_type"
+                      @change="setCreateMaterialField(clientMaterialsScopeKey(client) || '', { material_type: String(($event.target as HTMLSelectElement | null)?.value || 'recommendation') as ClientMaterialType })"
                     >
                       <option value="recommendation">Рекомендація</option>
                       <option value="homework">Домашнє завдання</option>
@@ -473,8 +473,8 @@
                     <textarea
                       class="input manual-client-form__textarea"
                       rows="4"
-                      :value="clientMaterialsState(client.id).create.content"
-                      @input="setCreateMaterialField(client.id, { content: String(($event.target as HTMLTextAreaElement | null)?.value || '') })"
+                      :value="clientMaterialsState(clientMaterialsScopeKey(client) || '').create.content"
+                      @input="setCreateMaterialField(clientMaterialsScopeKey(client) || '', { content: String(($event.target as HTMLTextAreaElement | null)?.value || '') })"
                     ></textarea>
                   </label>
                   <label class="field">
@@ -482,12 +482,12 @@
                     <input
                       class="input"
                       type="url"
-                      :value="clientMaterialsState(client.id).create.url"
-                      @input="setCreateMaterialField(client.id, { url: String(($event.target as HTMLInputElement | null)?.value || '') })"
+                      :value="clientMaterialsState(clientMaterialsScopeKey(client) || '').create.url"
+                      @input="setCreateMaterialField(clientMaterialsScopeKey(client) || '', { url: String(($event.target as HTMLInputElement | null)?.value || '') })"
                     />
                   </label>
-                  <button class="btn btn--sm" type="button" :disabled="clientMaterialsState(client.id).saving" @click="createMaterial(client)">
-                    {{ clientMaterialsState(client.id).saving ? 'Зберігаємо...' : 'Додати матеріал' }}
+                  <button class="btn btn--sm" type="button" :disabled="clientMaterialsState(clientMaterialsScopeKey(client) || '').saving" @click="createMaterial(client)">
+                    {{ clientMaterialsState(clientMaterialsScopeKey(client) || '').saving ? 'Зберігаємо...' : 'Додати матеріал' }}
                   </button>
                 </div>
               </div>
@@ -546,14 +546,14 @@
               <div class="client-materials__header">
                 <div class="client-materials__title">Матеріали для клієнта</div>
                 <button class="btn btn--ghost btn--sm" type="button" @click="toggleClientMaterials(client)">
-                  {{ clientMaterialsState(client.id).open ? 'Сховати' : 'Відкрити' }}
+                  {{ clientMaterialsState(clientMaterialsScopeKey(client) || '').open ? 'Сховати' : 'Відкрити' }}
                 </button>
               </div>
-              <div v-if="clientMaterialsState(client.id).open" class="client-materials__body">
-                <p v-if="clientMaterialsState(client.id).error" class="form-error">{{ clientMaterialsState(client.id).error }}</p>
-                <div v-if="clientMaterialsState(client.id).loading" class="muted">Завантаження матеріалів...</div>
+              <div v-if="clientMaterialsState(clientMaterialsScopeKey(client) || '').open" class="client-materials__body">
+                <p v-if="clientMaterialsState(clientMaterialsScopeKey(client) || '').error" class="form-error">{{ clientMaterialsState(clientMaterialsScopeKey(client) || '').error }}</p>
+                <div v-if="clientMaterialsState(clientMaterialsScopeKey(client) || '').loading" class="muted">Завантаження матеріалів...</div>
                 <div v-else class="client-materials__list">
-                  <article v-for="material in clientMaterialsState(client.id).items" :key="material.id" class="client-material">
+                  <article v-for="material in clientMaterialsState(clientMaterialsScopeKey(client) || '').items" :key="material.id" class="client-material">
                     <div class="client-material__top">
                       <span class="client-material__type">{{ materialTypeLabel(material.material_type) }}</span>
                       <span class="material-status" :class="materialStatusClass(material.status)">{{ materialStatusLabel(material.status) }}</span>
@@ -562,16 +562,16 @@
                       Назва
                       <input
                         class="input"
-                        :value="materialFormById(client.id, material.id).title"
-                        @input="onMaterialTitleInput(client.id, material.id, $event)"
+                        :value="materialFormById(clientMaterialsScopeKey(client) || '', material.id).title"
+                        @input="onMaterialTitleInput(clientMaterialsScopeKey(client) || '', material.id, $event)"
                       />
                     </label>
                     <label class="field">
                       Тип
                       <select
                         class="input input--select"
-                        :value="materialFormById(client.id, material.id).material_type"
-                        @change="onMaterialTypeInput(client.id, material.id, $event)"
+                        :value="materialFormById(clientMaterialsScopeKey(client) || '', material.id).material_type"
+                        @change="onMaterialTypeInput(clientMaterialsScopeKey(client) || '', material.id, $event)"
                       >
                         <option value="recommendation">Рекомендація</option>
                         <option value="homework">Домашнє завдання</option>
@@ -587,8 +587,8 @@
                       <textarea
                         class="input manual-client-form__textarea"
                         rows="4"
-                        :value="materialFormById(client.id, material.id).content"
-                        @input="onMaterialContentInput(client.id, material.id, $event)"
+                        :value="materialFormById(clientMaterialsScopeKey(client) || '', material.id).content"
+                        @input="onMaterialContentInput(clientMaterialsScopeKey(client) || '', material.id, $event)"
                       ></textarea>
                     </label>
                     <label class="field">
@@ -596,20 +596,20 @@
                       <input
                         class="input"
                         type="url"
-                        :value="materialFormById(client.id, material.id).url"
-                        @input="onMaterialUrlInput(client.id, material.id, $event)"
+                        :value="materialFormById(clientMaterialsScopeKey(client) || '', material.id).url"
+                        @input="onMaterialUrlInput(clientMaterialsScopeKey(client) || '', material.id, $event)"
                       />
                     </label>
                     <div class="client-material__actions">
-                      <button class="btn btn--ghost btn--sm" type="button" :disabled="clientMaterialsState(client.id).actionLoadingId === material.id" @click="saveMaterial(client.id, material.id)">
+                      <button class="btn btn--ghost btn--sm" type="button" :disabled="clientMaterialsState(clientMaterialsScopeKey(client) || '').actionLoadingId === material.id" @click="saveMaterial(client, material.id)">
                         Зберегти
                       </button>
                       <button
                         v-if="material.status === 'draft'"
                         class="btn btn--sm"
                         type="button"
-                        :disabled="clientMaterialsState(client.id).actionLoadingId === material.id"
-                        @click="publishMaterial(client.id, material.id)"
+                        :disabled="clientMaterialsState(clientMaterialsScopeKey(client) || '').actionLoadingId === material.id"
+                        @click="publishMaterial(client, material.id)"
                       >
                         Опублікувати для клієнта
                       </button>
@@ -617,8 +617,8 @@
                         v-if="material.status === 'published'"
                         class="btn btn--ghost btn--sm"
                         type="button"
-                        :disabled="clientMaterialsState(client.id).actionLoadingId === material.id"
-                        @click="revokeMaterial(client.id, material.id)"
+                        :disabled="clientMaterialsState(clientMaterialsScopeKey(client) || '').actionLoadingId === material.id"
+                        @click="revokeMaterial(client, material.id)"
                       >
                         Відкликати доступ
                       </button>
@@ -640,16 +640,16 @@
                     Назва
                     <input
                       class="input"
-                      :value="clientMaterialsState(client.id).create.title"
-                      @input="setCreateMaterialField(client.id, { title: String(($event.target as HTMLInputElement | null)?.value || '') })"
+                      :value="clientMaterialsState(clientMaterialsScopeKey(client) || '').create.title"
+                      @input="setCreateMaterialField(clientMaterialsScopeKey(client) || '', { title: String(($event.target as HTMLInputElement | null)?.value || '') })"
                     />
                   </label>
                   <label class="field">
                     Тип
                     <select
                       class="input input--select"
-                      :value="clientMaterialsState(client.id).create.material_type"
-                      @change="setCreateMaterialField(client.id, { material_type: String(($event.target as HTMLSelectElement | null)?.value || 'recommendation') as ClientMaterialType })"
+                      :value="clientMaterialsState(clientMaterialsScopeKey(client) || '').create.material_type"
+                      @change="setCreateMaterialField(clientMaterialsScopeKey(client) || '', { material_type: String(($event.target as HTMLSelectElement | null)?.value || 'recommendation') as ClientMaterialType })"
                     >
                       <option value="recommendation">Рекомендація</option>
                       <option value="homework">Домашнє завдання</option>
@@ -665,8 +665,8 @@
                     <textarea
                       class="input manual-client-form__textarea"
                       rows="4"
-                      :value="clientMaterialsState(client.id).create.content"
-                      @input="setCreateMaterialField(client.id, { content: String(($event.target as HTMLTextAreaElement | null)?.value || '') })"
+                      :value="clientMaterialsState(clientMaterialsScopeKey(client) || '').create.content"
+                      @input="setCreateMaterialField(clientMaterialsScopeKey(client) || '', { content: String(($event.target as HTMLTextAreaElement | null)?.value || '') })"
                     ></textarea>
                   </label>
                   <label class="field">
@@ -674,12 +674,12 @@
                     <input
                       class="input"
                       type="url"
-                      :value="clientMaterialsState(client.id).create.url"
-                      @input="setCreateMaterialField(client.id, { url: String(($event.target as HTMLInputElement | null)?.value || '') })"
+                      :value="clientMaterialsState(clientMaterialsScopeKey(client) || '').create.url"
+                      @input="setCreateMaterialField(clientMaterialsScopeKey(client) || '', { url: String(($event.target as HTMLInputElement | null)?.value || '') })"
                     />
                   </label>
-                  <button class="btn btn--sm" type="button" :disabled="clientMaterialsState(client.id).saving" @click="createMaterial(client)">
-                    {{ clientMaterialsState(client.id).saving ? 'Зберігаємо...' : 'Додати матеріал' }}
+                  <button class="btn btn--sm" type="button" :disabled="clientMaterialsState(clientMaterialsScopeKey(client) || '').saving" @click="createMaterial(client)">
+                    {{ clientMaterialsState(clientMaterialsScopeKey(client) || '').saving ? 'Зберігаємо...' : 'Додати матеріал' }}
                   </button>
                 </div>
               </div>
@@ -1234,7 +1234,7 @@ const manualSessionDraft = ref<ManualClientSessionFormState>({
   session_format: 'online',
 })
 const accountInviteStateByRecordId = ref<Record<number, AccountInviteState>>({})
-const materialsStateByRecordId = ref<Record<number, ClientMaterialsState>>({})
+const materialsStateByScopeKey = ref<Record<string, ClientMaterialsState>>({})
 
 const retryLabel = '\u0421\u043f\u0440\u043e\u0431\u0443\u0432\u0430\u0442\u0438 \u0449\u0435 \u0440\u0430\u0437'
 const remindersErrorTitle = '\u041d\u0435 \u0432\u0434\u0430\u043b\u043e\u0441\u044f \u0437\u0430\u0432\u0430\u043d\u0442\u0430\u0436\u0438\u0442\u0438 \u043d\u0430\u0433\u0430\u0434\u0443\u0432\u0430\u043d\u043d\u044f'
@@ -1519,22 +1519,22 @@ function defaultMaterialsState(): ClientMaterialsState {
   }
 }
 
-function clientMaterialsState(recordId: number): ClientMaterialsState {
-  const existing = materialsStateByRecordId.value[recordId]
+function clientMaterialsState(scopeKey: string): ClientMaterialsState {
+  const existing = materialsStateByScopeKey.value[scopeKey]
   if (existing) return existing
   const next = defaultMaterialsState()
-  materialsStateByRecordId.value = {
-    ...materialsStateByRecordId.value,
-    [recordId]: next,
+  materialsStateByScopeKey.value = {
+    ...materialsStateByScopeKey.value,
+    [scopeKey]: next,
   }
   return next
 }
 
-function updateClientMaterialsState(recordId: number, patch: Partial<ClientMaterialsState>) {
-  materialsStateByRecordId.value = {
-    ...materialsStateByRecordId.value,
-    [recordId]: {
-      ...clientMaterialsState(recordId),
+function updateClientMaterialsState(scopeKey: string, patch: Partial<ClientMaterialsState>) {
+  materialsStateByScopeKey.value = {
+    ...materialsStateByScopeKey.value,
+    [scopeKey]: {
+      ...clientMaterialsState(scopeKey),
       ...patch,
     },
   }
@@ -1562,8 +1562,8 @@ function materialStatusClass(value: ClientMaterialStatus): string {
   return 'material-status--draft'
 }
 
-function materialFormById(recordId: number, materialId: number): ClientMaterialDraft {
-  const state = clientMaterialsState(recordId)
+function materialFormById(scopeKey: string, materialId: number): ClientMaterialDraft {
+  const state = clientMaterialsState(scopeKey)
   const existing = state.editById[materialId]
   if (existing) return existing
   const material = state.items.find((item) => item.id === materialId)
@@ -1573,7 +1573,7 @@ function materialFormById(recordId: number, materialId: number): ClientMaterialD
     material_type: material?.material_type || 'recommendation',
     url: material?.url || '',
   }
-  updateClientMaterialsState(recordId, {
+  updateClientMaterialsState(scopeKey, {
     editById: {
       ...state.editById,
       [materialId]: seed,
@@ -1582,10 +1582,10 @@ function materialFormById(recordId: number, materialId: number): ClientMaterialD
   return seed
 }
 
-function setMaterialFormById(recordId: number, materialId: number, patch: Partial<ClientMaterialDraft>) {
-  const state = clientMaterialsState(recordId)
-  const current = materialFormById(recordId, materialId)
-  updateClientMaterialsState(recordId, {
+function setMaterialFormById(scopeKey: string, materialId: number, patch: Partial<ClientMaterialDraft>) {
+  const state = clientMaterialsState(scopeKey)
+  const current = materialFormById(scopeKey, materialId)
+  updateClientMaterialsState(scopeKey, {
     editById: {
       ...state.editById,
       [materialId]: {
@@ -1596,36 +1596,36 @@ function setMaterialFormById(recordId: number, materialId: number, patch: Partia
   })
 }
 
-function onMaterialTitleInput(recordId: number, materialId: number, event: Event) {
-  setMaterialFormById(recordId, materialId, {
+function onMaterialTitleInput(scopeKey: string, materialId: number, event: Event) {
+  setMaterialFormById(scopeKey, materialId, {
     title: String((event.target as HTMLInputElement | null)?.value || ''),
   })
 }
 
-function onMaterialTypeInput(recordId: number, materialId: number, event: Event) {
-  setMaterialFormById(recordId, materialId, {
+function onMaterialTypeInput(scopeKey: string, materialId: number, event: Event) {
+  setMaterialFormById(scopeKey, materialId, {
     material_type: String((event.target as HTMLSelectElement | null)?.value || 'recommendation') as ClientMaterialType,
   })
 }
 
-function onMaterialContentInput(recordId: number, materialId: number, event: Event) {
-  setMaterialFormById(recordId, materialId, {
+function onMaterialContentInput(scopeKey: string, materialId: number, event: Event) {
+  setMaterialFormById(scopeKey, materialId, {
     content: String((event.target as HTMLTextAreaElement | null)?.value || ''),
   })
 }
 
-function onMaterialUrlInput(recordId: number, materialId: number, event: Event) {
-  setMaterialFormById(recordId, materialId, {
+function onMaterialUrlInput(scopeKey: string, materialId: number, event: Event) {
+  setMaterialFormById(scopeKey, materialId, {
     url: String((event.target as HTMLInputElement | null)?.value || ''),
   })
 }
 
 function setCreateMaterialField(
-  recordId: number,
+  scopeKey: string,
   patch: Partial<ClientMaterialDraft>
 ) {
-  const state = clientMaterialsState(recordId)
-  updateClientMaterialsState(recordId, {
+  const state = clientMaterialsState(scopeKey)
+  updateClientMaterialsState(scopeKey, {
     create: {
       ...state.create,
       ...patch,
@@ -1634,6 +1634,13 @@ function setCreateMaterialField(
 }
 
 type ClientMaterialScope = { client_record_id?: number; client_id?: number }
+
+function clientMaterialsScopeKey(client: ClientListItem): string | null {
+  if (isManualClientRecord(client)) return `client-record:${client.id}`
+  const clientId = relationClientId(client)
+  if (!clientId) return null
+  return `client:${clientId}`
+}
 
 function resolveClientMaterialScope(client: ClientListItem): ClientMaterialScope | null {
   if (isManualClientRecord(client)) {
@@ -1644,16 +1651,8 @@ function resolveClientMaterialScope(client: ClientListItem): ClientMaterialScope
   return { client_id: clientId }
 }
 
-function resolveClientMaterialScopeByCardId(recordId: number): ClientMaterialScope | null {
-  const client =
-    manualClientRecords.value.find((item) => item.id === recordId)
-    ?? clients.value.find((item) => item.id === recordId)
-  if (!client) return null
-  return resolveClientMaterialScope(client)
-}
-
-async function loadClientMaterials(recordId: number, scope: ClientMaterialScope) {
-  updateClientMaterialsState(recordId, { loading: true, error: '' })
+async function loadClientMaterials(scopeKey: string, scope: ClientMaterialScope) {
+  updateClientMaterialsState(scopeKey, { loading: true, error: '' })
   try {
     const items = await fetchSpecialistClientMaterials(scope)
     const editById: Record<number, ClientMaterialDraft> = {}
@@ -1665,13 +1664,13 @@ async function loadClientMaterials(recordId: number, scope: ClientMaterialScope)
         url: item.url || '',
       }
     })
-    updateClientMaterialsState(recordId, {
+    updateClientMaterialsState(scopeKey, {
       items,
       editById,
       loading: false,
     })
   } catch (err) {
-    updateClientMaterialsState(recordId, {
+    updateClientMaterialsState(scopeKey, {
       loading: false,
       error: getApiErrorMessage(err, 'Не вдалося завантажити матеріали.'),
     })
@@ -1679,28 +1678,30 @@ async function loadClientMaterials(recordId: number, scope: ClientMaterialScope)
 }
 
 async function toggleClientMaterials(client: ClientListItem) {
-  const recordId = client.id
+  const scopeKey = clientMaterialsScopeKey(client)
+  if (!scopeKey) return
   const scope = resolveClientMaterialScope(client)
   if (!scope) return
-  const state = clientMaterialsState(recordId)
+  const state = clientMaterialsState(scopeKey)
   const open = !state.open
-  updateClientMaterialsState(recordId, { open })
+  updateClientMaterialsState(scopeKey, { open })
   if (open && !state.items.length && !state.loading) {
-    await loadClientMaterials(recordId, scope)
+    await loadClientMaterials(scopeKey, scope)
   }
 }
 
 async function createMaterial(client: ClientListItem) {
-  const recordId = client.id
+  const scopeKey = clientMaterialsScopeKey(client)
+  if (!scopeKey) return
   const scope = resolveClientMaterialScope(client)
   if (!scope) return
-  const state = clientMaterialsState(recordId)
+  const state = clientMaterialsState(scopeKey)
   const draft = state.create
   if (!draft.title.trim() || !draft.content.trim()) {
-    updateClientMaterialsState(recordId, { error: 'Заповніть назву і текст матеріалу.' })
+    updateClientMaterialsState(scopeKey, { error: 'Заповніть назву і текст матеріалу.' })
     return
   }
-  updateClientMaterialsState(recordId, { saving: true, error: '' })
+  updateClientMaterialsState(scopeKey, { saving: true, error: '' })
   try {
     await createSpecialistClientMaterial({
       ...scope,
@@ -1709,26 +1710,28 @@ async function createMaterial(client: ClientListItem) {
       material_type: draft.material_type,
       url: draft.url.trim() || null,
     })
-    updateClientMaterialsState(recordId, { create: defaultMaterialDraft() })
-    await loadClientMaterials(recordId, scope)
+    updateClientMaterialsState(scopeKey, { create: defaultMaterialDraft() })
+    await loadClientMaterials(scopeKey, scope)
   } catch (err) {
-    updateClientMaterialsState(recordId, {
+    updateClientMaterialsState(scopeKey, {
       error: getApiErrorMessage(err, 'Не вдалося створити матеріал.'),
     })
   } finally {
-    updateClientMaterialsState(recordId, { saving: false })
+    updateClientMaterialsState(scopeKey, { saving: false })
   }
 }
 
-async function saveMaterial(recordId: number, materialId: number) {
-  const scope = resolveClientMaterialScopeByCardId(recordId)
+async function saveMaterial(client: ClientListItem, materialId: number) {
+  const scopeKey = clientMaterialsScopeKey(client)
+  if (!scopeKey) return
+  const scope = resolveClientMaterialScope(client)
   if (!scope) return
-  const form = materialFormById(recordId, materialId)
+  const form = materialFormById(scopeKey, materialId)
   if (!form.title.trim() || !form.content.trim()) {
-    updateClientMaterialsState(recordId, { error: 'Заповніть назву і текст матеріалу.' })
+    updateClientMaterialsState(scopeKey, { error: 'Заповніть назву і текст матеріалу.' })
     return
   }
-  updateClientMaterialsState(recordId, { actionLoadingId: materialId, error: '' })
+  updateClientMaterialsState(scopeKey, { actionLoadingId: materialId, error: '' })
   try {
     await updateSpecialistClientMaterial(materialId, {
       title: form.title.trim(),
@@ -1736,50 +1739,54 @@ async function saveMaterial(recordId: number, materialId: number) {
       material_type: form.material_type,
       url: form.url.trim() || null,
     })
-    await loadClientMaterials(recordId, scope)
+    await loadClientMaterials(scopeKey, scope)
   } catch (err) {
-    updateClientMaterialsState(recordId, {
+    updateClientMaterialsState(scopeKey, {
       error: getApiErrorMessage(err, 'Не вдалося зберегти матеріал.'),
     })
   } finally {
-    if (clientMaterialsState(recordId).actionLoadingId === materialId) {
-      updateClientMaterialsState(recordId, { actionLoadingId: null })
+    if (clientMaterialsState(scopeKey).actionLoadingId === materialId) {
+      updateClientMaterialsState(scopeKey, { actionLoadingId: null })
     }
   }
 }
 
-async function publishMaterial(recordId: number, materialId: number) {
-  const scope = resolveClientMaterialScopeByCardId(recordId)
+async function publishMaterial(client: ClientListItem, materialId: number) {
+  const scopeKey = clientMaterialsScopeKey(client)
+  if (!scopeKey) return
+  const scope = resolveClientMaterialScope(client)
   if (!scope) return
-  updateClientMaterialsState(recordId, { actionLoadingId: materialId, error: '' })
+  updateClientMaterialsState(scopeKey, { actionLoadingId: materialId, error: '' })
   try {
     await publishSpecialistClientMaterial(materialId)
-    await loadClientMaterials(recordId, scope)
+    await loadClientMaterials(scopeKey, scope)
   } catch (err) {
-    updateClientMaterialsState(recordId, {
+    updateClientMaterialsState(scopeKey, {
       error: getApiErrorMessage(err, 'Не вдалося опублікувати матеріал.'),
     })
   } finally {
-    if (clientMaterialsState(recordId).actionLoadingId === materialId) {
-      updateClientMaterialsState(recordId, { actionLoadingId: null })
+    if (clientMaterialsState(scopeKey).actionLoadingId === materialId) {
+      updateClientMaterialsState(scopeKey, { actionLoadingId: null })
     }
   }
 }
 
-async function revokeMaterial(recordId: number, materialId: number) {
-  const scope = resolveClientMaterialScopeByCardId(recordId)
+async function revokeMaterial(client: ClientListItem, materialId: number) {
+  const scopeKey = clientMaterialsScopeKey(client)
+  if (!scopeKey) return
+  const scope = resolveClientMaterialScope(client)
   if (!scope) return
-  updateClientMaterialsState(recordId, { actionLoadingId: materialId, error: '' })
+  updateClientMaterialsState(scopeKey, { actionLoadingId: materialId, error: '' })
   try {
     await revokeSpecialistClientMaterial(materialId)
-    await loadClientMaterials(recordId, scope)
+    await loadClientMaterials(scopeKey, scope)
   } catch (err) {
-    updateClientMaterialsState(recordId, {
+    updateClientMaterialsState(scopeKey, {
       error: getApiErrorMessage(err, 'Не вдалося відкликати матеріал.'),
     })
   } finally {
-    if (clientMaterialsState(recordId).actionLoadingId === materialId) {
-      updateClientMaterialsState(recordId, { actionLoadingId: null })
+    if (clientMaterialsState(scopeKey).actionLoadingId === materialId) {
+      updateClientMaterialsState(scopeKey, { actionLoadingId: null })
     }
   }
 }

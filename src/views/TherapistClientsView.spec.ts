@@ -1794,4 +1794,95 @@ describe('TherapistClientsView', () => {
       })
     })
   })
+
+  it('keeps materials state isolated for registered and manual cards with the same numeric id', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL)
+        return [
+          {
+            id: 1,
+            client_id: 34,
+            state: 'ACTIVE',
+            last_session_at: null,
+            upcoming_count: 0,
+            client_display_name: 'Registered #34',
+          },
+        ]
+      if (url === CLIENT_RECORDS_URL)
+        return [
+          manualClientRecord({
+            id: 1,
+            user_id: 66,
+            has_account: true,
+            display_name: 'Manual #1',
+          }),
+        ]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedFetchSpecialistClientMaterials.mockResolvedValue([])
+
+    const { container } = renderView()
+    const { clientsPanel } = getPanels(container)
+
+    const registeredCard = await waitFor(() => {
+      const card = clientsPanel.querySelector('#client-card-34')
+      expect(card).toBeInstanceOf(HTMLElement)
+      return card as HTMLElement
+    })
+    const manualCard = await waitFor(() => {
+      const card = clientsPanel.querySelector('#manual-client-record-1')
+      expect(card).toBeInstanceOf(HTMLElement)
+      return card as HTMLElement
+    })
+
+    await fireEvent.click(requireHTMLElement(registeredCard.querySelector('.client-materials__header .btn'), '.client-materials__header .btn'))
+    await fireEvent.click(requireHTMLElement(manualCard.querySelector('.client-materials__header .btn'), '.client-materials__header .btn'))
+
+    await waitFor(() => {
+      expect(mockedFetchSpecialistClientMaterials).toHaveBeenCalledWith({ client_id: 34 })
+      expect(mockedFetchSpecialistClientMaterials).toHaveBeenCalledWith({ client_record_id: 1 })
+    })
+
+    const regCreate = requireHTMLElement(registeredCard.querySelector('.client-materials__create'), '.client-materials__create')
+    const manCreate = requireHTMLElement(manualCard.querySelector('.client-materials__create'), '.client-materials__create')
+
+    const regTitle = requireHTMLElement(regCreate.querySelector('input.input:not([type="url"])'), 'registered title') as HTMLInputElement
+    const regContent = requireHTMLElement(regCreate.querySelector('textarea'), 'registered content') as HTMLTextAreaElement
+    const regSubmit = requireHTMLElement(regCreate.querySelector('button.btn'), 'registered submit') as HTMLButtonElement
+
+    const manTitle = requireHTMLElement(manCreate.querySelector('input.input:not([type="url"])'), 'manual title') as HTMLInputElement
+    const manContent = requireHTMLElement(manCreate.querySelector('textarea'), 'manual content') as HTMLTextAreaElement
+    const manSubmit = requireHTMLElement(manCreate.querySelector('button.btn'), 'manual submit') as HTMLButtonElement
+
+    await fireEvent.update(regTitle, 'Registered only title')
+    expect(manTitle.value).toBe('')
+    await fireEvent.update(regContent, 'Registered only content')
+    expect(manContent.value).toBe('')
+
+    await fireEvent.update(manTitle, 'Manual only title')
+    expect(regTitle.value).toBe('Registered only title')
+    await fireEvent.update(manContent, 'Manual only content')
+    expect(regContent.value).toBe('Registered only content')
+
+    await fireEvent.click(regSubmit)
+    await fireEvent.click(manSubmit)
+
+    await waitFor(() => {
+      expect(mockedCreateSpecialistClientMaterial).toHaveBeenCalledWith({
+        client_id: 34,
+        title: 'Registered only title',
+        content: 'Registered only content',
+        material_type: 'recommendation',
+        url: null,
+      })
+      expect(mockedCreateSpecialistClientMaterial).toHaveBeenCalledWith({
+        client_record_id: 1,
+        title: 'Manual only title',
+        content: 'Manual only content',
+        material_type: 'recommendation',
+        url: null,
+      })
+    })
+  })
 })
