@@ -213,7 +213,7 @@ async function submitReview() {
       backendDetail === 'You already left a review for this specialist.'
     if (status === 403) {
       submitError.value =
-        'Відгук можна залишити лише спеціалісту, з яким ви працюєте або працювали.'
+        'Залишити відгук можна лише спеціалісту, з яким у вас була або є сесія.'
     } else if (duplicateReview) {
       reviewLocked.value = true
       submitError.value = 'Ви вже залишили відгук для цього спеціаліста.'

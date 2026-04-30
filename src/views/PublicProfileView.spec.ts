@@ -2176,6 +2176,7 @@ describe('PublicProfileView', () => {
     expect(bookingCta).toHaveAttribute('href', '#slots')
     expect(bookingCta).toHaveClass('btn--primary')
     expect(screen.getAllByText('Мої сесії')).toHaveLength(2)
+    expect(screen.getAllByText('Відгуки').length).toBeGreaterThan(0)
     expect(screen.queryByText('Поставити запитання')).not.toBeInTheDocument()
 
     await fireEvent.click(chatButton as HTMLButtonElement)
@@ -2201,6 +2202,7 @@ describe('PublicProfileView', () => {
     expect(inquiryButtons).toHaveLength(2)
     expect(screen.queryByRole('button', { name: 'Написати повідомлення' })).not.toBeInTheDocument()
     expect(screen.queryByText('Написати спеціалісту')).not.toBeInTheDocument()
+    expect(screen.queryByText('Відгуки')).not.toBeInTheDocument()
   })
 
   it('frames inquiry as a low-pressure entry point before booking', async () => {
