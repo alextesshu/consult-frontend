@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/vue'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import ClientMaterialsView from './ClientMaterialsView.vue'
 import { fetchClientMaterials } from '../lib/api'
@@ -26,25 +26,85 @@ describe('ClientMaterialsView', () => {
     })
   })
 
-  it('renders published materials and hides link button for empty url', async () => {
+  it('renders visible destination URL and safe open-link attributes', async () => {
     mockedFetchClientMaterials.mockResolvedValue({
       results: [
         {
           id: 1,
           session_id: 77,
-          material_type: 'recommendation',
+          material_type: 'link',
           title: 'Матеріал 1',
           content: 'Текст 1',
           content_preview: 'Текст 1',
-          url: null,
+          url: 'https://kendo.com.ua',
           published_at: '2026-04-30T09:00:00Z',
         },
       ],
       next_cursor: null,
     } as any)
-    render(ClientMaterialsView)
+
+    const { container } = render(ClientMaterialsView)
     expect(await screen.findByText('Матеріал 1')).toBeInTheDocument()
     expect(screen.getByText('Пов’язано із сесією #77')).toBeInTheDocument()
+
+    const card = container.querySelector('.client-material-card') as HTMLElement
+    const urlNode = card.querySelector('.client-material-card__link-value') as HTMLElement
+    expect(urlNode).toBeTruthy()
+    expect(urlNode.textContent).toBe('https://kendo.com.ua')
+    expect(urlNode.getAttribute('title')).toBe('https://kendo.com.ua')
+
+    const link = within(card).getByRole('link', { name: 'Відкрити посилання' })
+    expect(link.getAttribute('href')).toBe('https://kendo.com.ua')
+    expect(link.getAttribute('target')).toBe('_blank')
+    expect(link.getAttribute('rel')).toBe('noopener noreferrer')
+  })
+
+  it('keeps long URL in title attribute for truncated display', async () => {
+    const longUrl = 'https://example.com/very/long/path/for/materials/testing/with/query?utm_source=client&ref=abc123'
+    mockedFetchClientMaterials.mockResolvedValue({
+      results: [
+        {
+          id: 2,
+          session_id: null,
+          material_type: 'link',
+          title: 'Long URL',
+          content: 'Body',
+          content_preview: 'Body',
+          url: longUrl,
+          published_at: '2026-04-30T10:00:00Z',
+        },
+      ],
+      next_cursor: null,
+    } as any)
+
+    const { container } = render(ClientMaterialsView)
+    await screen.findByText('Long URL')
+    const urlNode = container.querySelector('.client-material-card__link-value') as HTMLElement
+    expect(urlNode).toBeTruthy()
+    expect(urlNode.getAttribute('title')).toBe(longUrl)
+    expect(urlNode.textContent).toBe(longUrl)
+  })
+
+  it('does not render URL block or link button when url is missing', async () => {
+    mockedFetchClientMaterials.mockResolvedValue({
+      results: [
+        {
+          id: 3,
+          session_id: null,
+          material_type: 'recommendation',
+          title: 'No URL',
+          content: 'Body',
+          content_preview: 'Body',
+          url: null,
+          published_at: '2026-04-30T10:00:00Z',
+        },
+      ],
+      next_cursor: null,
+    } as any)
+
+    const { container } = render(ClientMaterialsView)
+    await screen.findByText('No URL')
+    expect(container.querySelector('.client-material-card__link-block')).toBeFalsy()
     expect(screen.queryByRole('link', { name: 'Відкрити посилання' })).not.toBeInTheDocument()
   })
 

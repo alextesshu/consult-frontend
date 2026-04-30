@@ -13,6 +13,7 @@ import {
   regenerateClientRecordAccountInvite,
   revokeSpecialistClientMaterial,
   revokeClientRecordAccountInvite,
+  updateSpecialistClientMaterial,
 } from '../lib/api'
 import TherapistClientsView from './TherapistClientsView.vue'
 import { createPracticeBoardItem, fetchPracticeBoards } from '../lib/specialistPracticeBoard'
@@ -36,6 +37,7 @@ vi.mock('../lib/api', () => ({
   regenerateClientRecordAccountInvite: vi.fn(),
   revokeSpecialistClientMaterial: vi.fn(),
   revokeClientRecordAccountInvite: vi.fn(),
+  updateSpecialistClientMaterial: vi.fn(),
 }))
 vi.mock('../lib/specialistPracticeBoard', () => ({
   createPracticeBoardItem: vi.fn(),
@@ -66,6 +68,7 @@ const mockedPublishSpecialistClientMaterial = vi.mocked(publishSpecialistClientM
 const mockedRegenerateClientRecordAccountInvite = vi.mocked(regenerateClientRecordAccountInvite)
 const mockedRevokeSpecialistClientMaterial = vi.mocked(revokeSpecialistClientMaterial)
 const mockedRevokeClientRecordAccountInvite = vi.mocked(revokeClientRecordAccountInvite)
+const mockedUpdateSpecialistClientMaterial = vi.mocked(updateSpecialistClientMaterial)
 const mockedCreatePracticeBoardItem = vi.mocked(createPracticeBoardItem)
 const mockedFetchPracticeBoards = vi.mocked(fetchPracticeBoards)
 const mockedSkipSpecialistSessionNote = vi.mocked(skipSpecialistSessionNote)
@@ -178,6 +181,8 @@ describe('TherapistClientsView', () => {
     mockedRevokeSpecialistClientMaterial.mockResolvedValue({} as any)
     mockedRevokeClientRecordAccountInvite.mockReset()
     mockedRevokeClientRecordAccountInvite.mockResolvedValue({ invite: null, invite_url: null } as any)
+    mockedUpdateSpecialistClientMaterial.mockReset()
+    mockedUpdateSpecialistClientMaterial.mockResolvedValue({} as any)
     mockedCreatePracticeBoardItem.mockReset()
     mockedFetchPracticeBoards.mockReset()
     mockedSkipSpecialistSessionNote.mockReset()
@@ -1802,6 +1807,217 @@ describe('TherapistClientsView', () => {
         url: null,
       })
     })
+  })
+
+  it('normalizes create material URL without protocol to https', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL) return [manualClientRecord({ id: 504 })]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedFetchSpecialistClientMaterials.mockResolvedValue([])
+
+    const { container } = renderView()
+    const { clientsPanel } = getPanels(container)
+    const manualCard = await waitFor(() => {
+      const card = clientsPanel.querySelector('#manual-client-record-504')
+      expect(card).toBeInstanceOf(HTMLElement)
+      return card as HTMLElement
+    })
+    await fireEvent.click(requireHTMLElement(manualCard.querySelector('.client-materials__header .btn'), 'materials open'))
+    const createBlock = requireHTMLElement(manualCard.querySelector('.client-materials__create'), 'create block')
+    const titleInput = requireHTMLElement(createBlock.querySelector('input.input:not([type=\"url\"])'), 'title') as HTMLInputElement
+    const contentInput = requireHTMLElement(createBlock.querySelector('textarea'), 'content') as HTMLTextAreaElement
+    const urlInput = requireHTMLElement(createBlock.querySelector('input[type=\"url\"]'), 'url') as HTMLInputElement
+    const createButton = requireHTMLElement(createBlock.querySelector('button.btn'), 'create') as HTMLButtonElement
+    await fireEvent.update(titleInput, 'Link material')
+    await fireEvent.update(contentInput, 'Link content')
+    await fireEvent.update(urlInput, 'kendo.com.ua')
+    await fireEvent.click(createButton)
+
+    await waitFor(() => {
+      expect(mockedCreateSpecialistClientMaterial).toHaveBeenCalledWith({
+        client_record_id: 504,
+        title: 'Link material',
+        content: 'Link content',
+        material_type: 'recommendation',
+        url: 'https://kendo.com.ua',
+      })
+    })
+  })
+
+  it('requires URL for link material type and shows scoped create error', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL)
+        return [manualClientRecord({ id: 505, display_name: 'Manual With Published' })]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedFetchSpecialistClientMaterials.mockResolvedValue([
+      {
+        id: 901,
+        client_record_id: 505,
+        session_id: null,
+        status: 'published',
+        material_type: 'recommendation',
+        title: 'Published',
+        content: 'Published content',
+        content_preview: 'Published content',
+        url: null,
+        published_at: '2026-04-30T01:00:00Z',
+        revoked_at: null,
+        created_at: '2026-04-30T00:00:00Z',
+        updated_at: '2026-04-30T01:00:00Z',
+      } as any,
+    ])
+
+    const { container } = renderView()
+    const { clientsPanel } = getPanels(container)
+    const manualCard = await waitFor(() => {
+      const card = clientsPanel.querySelector('#manual-client-record-505')
+      expect(card).toBeInstanceOf(HTMLElement)
+      return card as HTMLElement
+    })
+    await fireEvent.click(requireHTMLElement(manualCard.querySelector('.client-materials__header .btn'), 'materials open'))
+    const createBlock = requireHTMLElement(manualCard.querySelector('.client-materials__create'), 'create block')
+    const titleInput = requireHTMLElement(createBlock.querySelector('input.input:not([type=\"url\"])'), 'title') as HTMLInputElement
+    const typeSelect = requireHTMLElement(createBlock.querySelector('select'), 'type') as HTMLSelectElement
+    const contentInput = requireHTMLElement(createBlock.querySelector('textarea'), 'content') as HTMLTextAreaElement
+    const createButton = requireHTMLElement(createBlock.querySelector('button.btn'), 'create') as HTMLButtonElement
+
+    await fireEvent.update(titleInput, 'Link title')
+    await fireEvent.change(typeSelect, { target: { value: 'link' } })
+    await fireEvent.update(contentInput, 'Link body')
+    await fireEvent.click(createButton)
+
+    expect(mockedCreateSpecialistClientMaterial).not.toHaveBeenCalled()
+    await waitFor(() => {
+      const createError = createBlock.querySelector('.form-error')
+      expect(createError).toBeTruthy()
+      expect(createError?.textContent || '').toContain('Додайте посилання')
+    })
+    const listBlockError = manualCard.querySelector('.client-materials__body > .form-error')
+    expect(listBlockError).toBeFalsy()
+    const publishedMaterialTitleInput = manualCard.querySelector('.client-material input.input') as HTMLInputElement | null
+    expect(publishedMaterialTitleInput?.value).toBe('Published')
+  })
+
+  it('localizes backend URL validation error in create form', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL) return [manualClientRecord({ id: 506 })]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedFetchSpecialistClientMaterials.mockResolvedValue([])
+    mockedCreateSpecialistClientMaterial.mockRejectedValueOnce({
+      response: { data: { url: ['Enter a valid URL.'] } },
+    })
+
+    const { container } = renderView()
+    const { clientsPanel } = getPanels(container)
+    const manualCard = await waitFor(() => {
+      const card = clientsPanel.querySelector('#manual-client-record-506')
+      expect(card).toBeInstanceOf(HTMLElement)
+      return card as HTMLElement
+    })
+    await fireEvent.click(requireHTMLElement(manualCard.querySelector('.client-materials__header .btn'), 'materials open'))
+    const createBlock = requireHTMLElement(manualCard.querySelector('.client-materials__create'), 'create block')
+    const titleInput = requireHTMLElement(createBlock.querySelector('input.input:not([type=\"url\"])'), 'title') as HTMLInputElement
+    const typeSelect = requireHTMLElement(createBlock.querySelector('select'), 'type') as HTMLSelectElement
+    const contentInput = requireHTMLElement(createBlock.querySelector('textarea'), 'content') as HTMLTextAreaElement
+    const urlInput = requireHTMLElement(createBlock.querySelector('input[type=\"url\"]'), 'url') as HTMLInputElement
+    const createButton = requireHTMLElement(createBlock.querySelector('button.btn'), 'create') as HTMLButtonElement
+
+    await fireEvent.update(titleInput, 'Link title')
+    await fireEvent.change(typeSelect, { target: { value: 'link' } })
+    await fireEvent.update(contentInput, 'Link body')
+    await fireEvent.update(urlInput, 'https://')
+    await fireEvent.click(createButton)
+
+    await waitFor(() => {
+      const createError = createBlock.querySelector('.form-error')
+      expect(createError).toBeTruthy()
+      expect(createError?.textContent || '').toContain('Введіть коректне посилання')
+    })
+  })
+
+  it('shows edit and action errors only on affected material card', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL) return [manualClientRecord({ id: 507 })]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedFetchSpecialistClientMaterials.mockResolvedValue([
+      {
+        id: 910,
+        client_record_id: 507,
+        session_id: null,
+        status: 'draft',
+        material_type: 'recommendation',
+        title: 'Draft A',
+        content: 'A',
+        content_preview: 'A',
+        url: null,
+        published_at: null,
+        revoked_at: null,
+        created_at: '2026-04-30T00:00:00Z',
+        updated_at: '2026-04-30T00:00:00Z',
+      } as any,
+      {
+        id: 911,
+        client_record_id: 507,
+        session_id: null,
+        status: 'draft',
+        material_type: 'recommendation',
+        title: 'Draft B',
+        content: 'B',
+        content_preview: 'B',
+        url: null,
+        published_at: null,
+        revoked_at: null,
+        created_at: '2026-04-30T00:00:00Z',
+        updated_at: '2026-04-30T00:00:00Z',
+      } as any,
+    ])
+    mockedUpdateSpecialistClientMaterial.mockRejectedValueOnce({
+      response: { data: { url: ['Enter a valid URL.'] } },
+    } as any)
+    mockedPublishSpecialistClientMaterial.mockRejectedValueOnce(new Error('publish failed'))
+
+    const { container } = renderView()
+    const { clientsPanel } = getPanels(container)
+    const manualCard = await waitFor(() => {
+      const card = clientsPanel.querySelector('#manual-client-record-507')
+      expect(card).toBeInstanceOf(HTMLElement)
+      return card as HTMLElement
+    })
+    await fireEvent.click(requireHTMLElement(manualCard.querySelector('.client-materials__header .btn'), 'materials open'))
+    const materials = await waitFor(() => {
+      const nodes = manualCard.querySelectorAll('.client-material')
+      expect(nodes.length).toBe(2)
+      return nodes
+    })
+    const first = materials[0] as HTMLElement
+    const second = materials[1] as HTMLElement
+    const firstUrl = requireHTMLElement(first.querySelector('input[type=\"url\"]'), 'first url') as HTMLInputElement
+    const firstSave = requireHTMLElement(first.querySelector('.client-material__actions button.btn--ghost'), 'first save') as HTMLButtonElement
+    await fireEvent.update(firstUrl, 'https://')
+    await fireEvent.click(firstSave)
+    await waitFor(() => {
+      expect(first.querySelector('.form-error')?.textContent || '').toContain('Введіть коректне посилання')
+    })
+    expect(second.querySelector('.form-error')).toBeFalsy()
+
+    const firstPublish = within(first).getByRole('button', { name: 'Опублікувати для клієнта' })
+    await fireEvent.click(firstPublish)
+    await waitFor(() => {
+      expect(first.textContent || '').toContain('publish failed')
+    })
+    expect(second.querySelector('.form-error')).toBeFalsy()
   })
 
   it('publishes and revokes material from materials block', async () => {

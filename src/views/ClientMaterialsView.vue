@@ -22,16 +22,21 @@
         <div class="muted">{{ materialTypeLabel(item.material_type) }}</div>
         <p class="client-material-card__content">{{ item.content }}</p>
         <div v-if="item.session_id" class="muted">Пов’язано із сесією #{{ item.session_id }}</div>
-        <div class="client-material-card__actions">
-          <a
-            v-if="hasMaterialUrl(item)"
-            class="btn btn--ghost btn--sm"
-            :href="item.url || '#'"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Відкрити посилання
-          </a>
+
+        <div v-if="hasMaterialUrl(item)" class="client-material-card__link-block">
+          <div class="client-material-card__link-label">Посилання</div>
+          <div class="client-material-card__link-value" :title="item.url || ''">{{ item.url }}</div>
+          <div class="client-material-card__link-hint muted">Перевірте посилання перед відкриттям.</div>
+          <div class="client-material-card__actions">
+            <a
+              class="btn btn--ghost btn--sm"
+              :href="item.url || '#'"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Відкрити посилання
+            </a>
+          </div>
         </div>
       </article>
       <button v-if="nextCursor" class="btn btn--ghost" type="button" :disabled="loadingMore" @click="loadMore">
@@ -142,5 +147,24 @@ onMounted(() => {
 .client-material-card__content {
   margin: 0;
   white-space: pre-wrap;
+}
+
+.client-material-card__link-block {
+  display: grid;
+  gap: 6px;
+}
+
+.client-material-card__link-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.client-material-card__link-value {
+  font-size: 14px;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 </style>

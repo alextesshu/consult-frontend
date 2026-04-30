@@ -366,7 +366,7 @@
                 Матеріал можна підготувати зараз. Клієнт побачить його після підключення акаунта.
               </p>
               <div v-if="clientMaterialsState(clientMaterialsScopeKey(client) || '').open" class="client-materials__body">
-                <p v-if="clientMaterialsState(clientMaterialsScopeKey(client) || '').error" class="form-error">{{ clientMaterialsState(clientMaterialsScopeKey(client) || '').error }}</p>
+                <p v-if="clientMaterialsState(clientMaterialsScopeKey(client) || '').listError" class="form-error">{{ clientMaterialsState(clientMaterialsScopeKey(client) || '').listError }}</p>
                 <div v-if="clientMaterialsState(clientMaterialsScopeKey(client) || '').loading" class="muted">Завантаження матеріалів...</div>
                 <div v-else class="client-materials__list">
                   <article v-for="material in clientMaterialsState(clientMaterialsScopeKey(client) || '').items" :key="material.id" class="client-material">
@@ -416,6 +416,12 @@
                         @input="onMaterialUrlInput(clientMaterialsScopeKey(client) || '', material.id, $event)"
                       />
                     </label>
+                    <p v-if="clientMaterialsState(clientMaterialsScopeKey(client) || '').editErrorsById[material.id]" class="form-error">
+                      {{ clientMaterialsState(clientMaterialsScopeKey(client) || '').editErrorsById[material.id] }}
+                    </p>
+                    <p v-if="clientMaterialsState(clientMaterialsScopeKey(client) || '').actionErrorsById[material.id]" class="form-error">
+                      {{ clientMaterialsState(clientMaterialsScopeKey(client) || '').actionErrorsById[material.id] }}
+                    </p>
                     <div class="client-material__actions">
                       <button class="btn btn--ghost btn--sm" type="button" :disabled="clientMaterialsState(clientMaterialsScopeKey(client) || '').actionLoadingId === material.id" @click="saveMaterial(client, material.id)">
                         Зберегти
@@ -452,6 +458,9 @@
                 </div>
                 <div class="client-materials__create">
                   <h4>Додати матеріал</h4>
+                  <p v-if="clientMaterialsState(clientMaterialsScopeKey(client) || '').createError" class="form-error">
+                    {{ clientMaterialsState(clientMaterialsScopeKey(client) || '').createError }}
+                  </p>
                   <label class="field">
                     Назва
                     <input
@@ -558,7 +567,7 @@
                 </button>
               </div>
               <div v-if="clientMaterialsState(clientMaterialsScopeKey(client) || '').open" class="client-materials__body">
-                <p v-if="clientMaterialsState(clientMaterialsScopeKey(client) || '').error" class="form-error">{{ clientMaterialsState(clientMaterialsScopeKey(client) || '').error }}</p>
+                <p v-if="clientMaterialsState(clientMaterialsScopeKey(client) || '').listError" class="form-error">{{ clientMaterialsState(clientMaterialsScopeKey(client) || '').listError }}</p>
                 <div v-if="clientMaterialsState(clientMaterialsScopeKey(client) || '').loading" class="muted">Завантаження матеріалів...</div>
                 <div v-else class="client-materials__list">
                   <article v-for="material in clientMaterialsState(clientMaterialsScopeKey(client) || '').items" :key="material.id" class="client-material">
@@ -608,6 +617,12 @@
                         @input="onMaterialUrlInput(clientMaterialsScopeKey(client) || '', material.id, $event)"
                       />
                     </label>
+                    <p v-if="clientMaterialsState(clientMaterialsScopeKey(client) || '').editErrorsById[material.id]" class="form-error">
+                      {{ clientMaterialsState(clientMaterialsScopeKey(client) || '').editErrorsById[material.id] }}
+                    </p>
+                    <p v-if="clientMaterialsState(clientMaterialsScopeKey(client) || '').actionErrorsById[material.id]" class="form-error">
+                      {{ clientMaterialsState(clientMaterialsScopeKey(client) || '').actionErrorsById[material.id] }}
+                    </p>
                     <div class="client-material__actions">
                       <button class="btn btn--ghost btn--sm" type="button" :disabled="clientMaterialsState(clientMaterialsScopeKey(client) || '').actionLoadingId === material.id" @click="saveMaterial(client, material.id)">
                         Зберегти
@@ -644,6 +659,9 @@
                 </div>
                 <div class="client-materials__create">
                   <h4>Додати матеріал</h4>
+                  <p v-if="clientMaterialsState(clientMaterialsScopeKey(client) || '').createError" class="form-error">
+                    {{ clientMaterialsState(clientMaterialsScopeKey(client) || '').createError }}
+                  </p>
                   <label class="field">
                     Назва
                     <input
@@ -1099,7 +1117,10 @@ type ClientMaterialsState = {
   loading: boolean
   saving: boolean
   actionLoadingId: number | null
-  error: string
+  listError: string
+  createError: string
+  editErrorsById: Record<number, string>
+  actionErrorsById: Record<number, string>
   items: ClientMaterialSpecialistRecord[]
   create: ClientMaterialDraft
   editById: Record<number, ClientMaterialDraft>
@@ -1544,7 +1565,10 @@ function defaultMaterialsState(): ClientMaterialsState {
     loading: false,
     saving: false,
     actionLoadingId: null,
-    error: '',
+    listError: '',
+    createError: '',
+    editErrorsById: {},
+    actionErrorsById: {},
     items: [],
     create: defaultMaterialDraft(),
     editById: {},
@@ -1571,6 +1595,40 @@ function updateClientMaterialsState(scopeKey: string, patch: Partial<ClientMater
       ...patch,
     },
   }
+}
+
+function normalizeMaterialUrl(value: string): string {
+  const trimmed = String(value || '').trim()
+  if (!trimmed) return ''
+  const lowered = trimmed.toLowerCase()
+  if (lowered.startsWith('http://') || lowered.startsWith('https://')) return trimmed
+  return `https://${trimmed}`
+}
+
+function materialValidationErrorMessage(err: unknown, fallback: string): string {
+  const data = (err as any)?.response?.data || {}
+  const urlErrors = Array.isArray(data?.url) ? data.url : []
+  const urlMessage = String(urlErrors[0] || '').toLowerCase()
+  if (urlMessage.includes('enter a valid url') || urlMessage.includes('valid url')) {
+    return 'Введіть коректне посилання. Наприклад: https://kendo.com.ua'
+  }
+  return getApiErrorMessage(err, fallback)
+}
+
+function clearMaterialEditError(scopeKey: string, materialId: number) {
+  const state = clientMaterialsState(scopeKey)
+  if (!state.editErrorsById[materialId]) return
+  const next = { ...state.editErrorsById }
+  delete next[materialId]
+  updateClientMaterialsState(scopeKey, { editErrorsById: next })
+}
+
+function clearMaterialActionError(scopeKey: string, materialId: number) {
+  const state = clientMaterialsState(scopeKey)
+  if (!state.actionErrorsById[materialId]) return
+  const next = { ...state.actionErrorsById }
+  delete next[materialId]
+  updateClientMaterialsState(scopeKey, { actionErrorsById: next })
 }
 
 function materialTypeLabel(value: ClientMaterialType): string {
@@ -1630,24 +1688,28 @@ function setMaterialFormById(scopeKey: string, materialId: number, patch: Partia
 }
 
 function onMaterialTitleInput(scopeKey: string, materialId: number, event: Event) {
+  clearMaterialEditError(scopeKey, materialId)
   setMaterialFormById(scopeKey, materialId, {
     title: String((event.target as HTMLInputElement | null)?.value || ''),
   })
 }
 
 function onMaterialTypeInput(scopeKey: string, materialId: number, event: Event) {
+  clearMaterialEditError(scopeKey, materialId)
   setMaterialFormById(scopeKey, materialId, {
     material_type: String((event.target as HTMLSelectElement | null)?.value || 'recommendation') as ClientMaterialType,
   })
 }
 
 function onMaterialContentInput(scopeKey: string, materialId: number, event: Event) {
+  clearMaterialEditError(scopeKey, materialId)
   setMaterialFormById(scopeKey, materialId, {
     content: String((event.target as HTMLTextAreaElement | null)?.value || ''),
   })
 }
 
 function onMaterialUrlInput(scopeKey: string, materialId: number, event: Event) {
+  clearMaterialEditError(scopeKey, materialId)
   setMaterialFormById(scopeKey, materialId, {
     url: String((event.target as HTMLInputElement | null)?.value || ''),
   })
@@ -1658,6 +1720,9 @@ function setCreateMaterialField(
   patch: Partial<ClientMaterialDraft>
 ) {
   const state = clientMaterialsState(scopeKey)
+  if (state.createError) {
+    updateClientMaterialsState(scopeKey, { createError: '' })
+  }
   updateClientMaterialsState(scopeKey, {
     create: {
       ...state.create,
@@ -1685,7 +1750,7 @@ function resolveClientMaterialScope(client: ClientListItem): ClientMaterialScope
 }
 
 async function loadClientMaterials(scopeKey: string, scope: ClientMaterialScope) {
-  updateClientMaterialsState(scopeKey, { loading: true, error: '' })
+  updateClientMaterialsState(scopeKey, { loading: true, listError: '' })
   try {
     const items = await fetchSpecialistClientMaterials(scope)
     const editById: Record<number, ClientMaterialDraft> = {}
@@ -1701,11 +1766,12 @@ async function loadClientMaterials(scopeKey: string, scope: ClientMaterialScope)
       items,
       editById,
       loading: false,
+      listError: '',
     })
   } catch (err) {
     updateClientMaterialsState(scopeKey, {
       loading: false,
-      error: getApiErrorMessage(err, 'Не вдалося завантажити матеріали.'),
+      listError: getApiErrorMessage(err, 'Не вдалося завантажити матеріали.'),
     })
   }
 }
@@ -1731,23 +1797,28 @@ async function createMaterial(client: ClientListItem) {
   const state = clientMaterialsState(scopeKey)
   const draft = state.create
   if (!draft.title.trim() || !draft.content.trim()) {
-    updateClientMaterialsState(scopeKey, { error: 'Заповніть назву і текст матеріалу.' })
+    updateClientMaterialsState(scopeKey, { createError: 'Заповніть назву і текст матеріалу.' })
     return
   }
-  updateClientMaterialsState(scopeKey, { saving: true, error: '' })
+  if (draft.material_type === 'link' && !draft.url.trim()) {
+    updateClientMaterialsState(scopeKey, { createError: 'Додайте посилання для матеріалу цього типу.' })
+    return
+  }
+  const normalizedUrl = normalizeMaterialUrl(draft.url)
+  updateClientMaterialsState(scopeKey, { saving: true, createError: '' })
   try {
     await createSpecialistClientMaterial({
       ...scope,
       title: draft.title.trim(),
       content: draft.content.trim(),
       material_type: draft.material_type,
-      url: draft.url.trim() || null,
+      url: normalizedUrl || null,
     })
     updateClientMaterialsState(scopeKey, { create: defaultMaterialDraft() })
     await loadClientMaterials(scopeKey, scope)
   } catch (err) {
     updateClientMaterialsState(scopeKey, {
-      error: getApiErrorMessage(err, 'Не вдалося створити матеріал.'),
+      createError: materialValidationErrorMessage(err, 'Не вдалося створити матеріал.'),
     })
   } finally {
     updateClientMaterialsState(scopeKey, { saving: false })
@@ -1761,21 +1832,41 @@ async function saveMaterial(client: ClientListItem, materialId: number) {
   if (!scope) return
   const form = materialFormById(scopeKey, materialId)
   if (!form.title.trim() || !form.content.trim()) {
-    updateClientMaterialsState(scopeKey, { error: 'Заповніть назву і текст матеріалу.' })
+    updateClientMaterialsState(scopeKey, {
+      editErrorsById: {
+        ...clientMaterialsState(scopeKey).editErrorsById,
+        [materialId]: 'Заповніть назву і текст матеріалу.',
+      },
+    })
     return
   }
-  updateClientMaterialsState(scopeKey, { actionLoadingId: materialId, error: '' })
+  if (form.material_type === 'link' && !form.url.trim()) {
+    updateClientMaterialsState(scopeKey, {
+      editErrorsById: {
+        ...clientMaterialsState(scopeKey).editErrorsById,
+        [materialId]: 'Додайте посилання для матеріалу цього типу.',
+      },
+    })
+    return
+  }
+  clearMaterialEditError(scopeKey, materialId)
+  const normalizedUrl = normalizeMaterialUrl(form.url)
+  updateClientMaterialsState(scopeKey, { actionLoadingId: materialId })
   try {
     await updateSpecialistClientMaterial(materialId, {
       title: form.title.trim(),
       content: form.content.trim(),
       material_type: form.material_type,
-      url: form.url.trim() || null,
+      url: normalizedUrl || null,
     })
     await loadClientMaterials(scopeKey, scope)
   } catch (err) {
+    const state = clientMaterialsState(scopeKey)
     updateClientMaterialsState(scopeKey, {
-      error: getApiErrorMessage(err, 'Не вдалося зберегти матеріал.'),
+      editErrorsById: {
+        ...state.editErrorsById,
+        [materialId]: materialValidationErrorMessage(err, 'Не вдалося зберегти матеріал.'),
+      },
     })
   } finally {
     if (clientMaterialsState(scopeKey).actionLoadingId === materialId) {
@@ -1789,13 +1880,18 @@ async function publishMaterial(client: ClientListItem, materialId: number) {
   if (!scopeKey) return
   const scope = resolveClientMaterialScope(client)
   if (!scope) return
-  updateClientMaterialsState(scopeKey, { actionLoadingId: materialId, error: '' })
+  clearMaterialActionError(scopeKey, materialId)
+  updateClientMaterialsState(scopeKey, { actionLoadingId: materialId })
   try {
     await publishSpecialistClientMaterial(materialId)
     await loadClientMaterials(scopeKey, scope)
   } catch (err) {
+    const state = clientMaterialsState(scopeKey)
     updateClientMaterialsState(scopeKey, {
-      error: getApiErrorMessage(err, 'Не вдалося опублікувати матеріал.'),
+      actionErrorsById: {
+        ...state.actionErrorsById,
+        [materialId]: materialValidationErrorMessage(err, 'Не вдалося опублікувати матеріал.'),
+      },
     })
   } finally {
     if (clientMaterialsState(scopeKey).actionLoadingId === materialId) {
@@ -1809,13 +1905,18 @@ async function revokeMaterial(client: ClientListItem, materialId: number) {
   if (!scopeKey) return
   const scope = resolveClientMaterialScope(client)
   if (!scope) return
-  updateClientMaterialsState(scopeKey, { actionLoadingId: materialId, error: '' })
+  clearMaterialActionError(scopeKey, materialId)
+  updateClientMaterialsState(scopeKey, { actionLoadingId: materialId })
   try {
     await revokeSpecialistClientMaterial(materialId)
     await loadClientMaterials(scopeKey, scope)
   } catch (err) {
+    const state = clientMaterialsState(scopeKey)
     updateClientMaterialsState(scopeKey, {
-      error: getApiErrorMessage(err, 'Не вдалося відкликати матеріал.'),
+      actionErrorsById: {
+        ...state.actionErrorsById,
+        [materialId]: materialValidationErrorMessage(err, 'Не вдалося відкликати матеріал.'),
+      },
     })
   } finally {
     if (clientMaterialsState(scopeKey).actionLoadingId === materialId) {
