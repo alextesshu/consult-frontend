@@ -304,7 +304,7 @@
                   {{ accountInviteUrl(client.id) }}
                 </div>
                 <p v-else class="manual-account-invite__hint">
-                  Посилання було створене раніше. Якщо його втрачено — перевидайте запрошення.
+                  Запрошення вже було відкрито, але клієнт ще не підключив акаунт.
                 </p>
 
                 <div class="manual-account-invite__actions">
@@ -315,7 +315,7 @@
                     :disabled="accountInviteState(client.id).actionLoading"
                     @click="copyAccountInviteLink(client.id)"
                   >
-                    {{ accountInviteState(client.id).copied ? 'Скопійовано' : 'Копіювати посилання' }}
+                    {{ accountInviteState(client.id).copied ? 'Посилання скопійовано' : 'Скопіювати посилання' }}
                   </button>
                   <button
                     class="btn btn--ghost btn--sm"
@@ -323,7 +323,7 @@
                     :disabled="accountInviteState(client.id).actionLoading"
                     @click="regenerateAccountInvite(client.id)"
                   >
-                    Перевидати
+                    {{ accountInviteUrl(client.id) ? 'Створити нове посилання' : 'Отримати нове посилання' }}
                   </button>
                   <button
                     class="btn btn--ghost btn--sm"
@@ -350,11 +350,11 @@
             <div class="client-materials">
               <div class="client-materials__header">
                 <div class="client-materials__title">Матеріали для клієнта</div>
-                <button class="btn btn--ghost btn--sm" type="button" @click="toggleClientMaterials(client.id)">
+                <button class="btn btn--ghost btn--sm" type="button" @click="toggleClientMaterials(client)">
                   {{ clientMaterialsState(client.id).open ? 'Сховати' : 'Відкрити' }}
                 </button>
               </div>
-              <p v-if="!hasLinkedAccount(client)" class="client-materials__note">
+              <p v-if="isManualClientRecord(client) && !hasLinkedAccount(client)" class="client-materials__note">
                 Матеріал можна підготувати зараз. Клієнт побачить його після підключення акаунта.
               </p>
               <div v-if="clientMaterialsState(client.id).open" class="client-materials__body">
@@ -486,7 +486,7 @@
                       @input="setCreateMaterialField(client.id, { url: String(($event.target as HTMLInputElement | null)?.value || '') })"
                     />
                   </label>
-                  <button class="btn btn--sm" type="button" :disabled="clientMaterialsState(client.id).saving" @click="createMaterial(client.id)">
+                  <button class="btn btn--sm" type="button" :disabled="clientMaterialsState(client.id).saving" @click="createMaterial(client)">
                     {{ clientMaterialsState(client.id).saving ? 'Зберігаємо...' : 'Додати матеріал' }}
                   </button>
                 </div>
@@ -541,6 +541,148 @@
               >
                 Приватна історія клієнта
               </button>
+            </div>
+            <div class="client-materials">
+              <div class="client-materials__header">
+                <div class="client-materials__title">РњР°С‚РµСЂС–Р°Р»Рё РґР»СЏ РєР»С–С”РЅС‚Р°</div>
+                <button class="btn btn--ghost btn--sm" type="button" @click="toggleClientMaterials(client)">
+                  {{ clientMaterialsState(client.id).open ? 'РЎС…РѕРІР°С‚Рё' : 'Р’С–РґРєСЂРёС‚Рё' }}
+                </button>
+              </div>
+              <div v-if="clientMaterialsState(client.id).open" class="client-materials__body">
+                <p v-if="clientMaterialsState(client.id).error" class="form-error">{{ clientMaterialsState(client.id).error }}</p>
+                <div v-if="clientMaterialsState(client.id).loading" class="muted">Р—Р°РІР°РЅС‚Р°Р¶РµРЅРЅСЏ РјР°С‚РµСЂС–Р°Р»С–РІ...</div>
+                <div v-else class="client-materials__list">
+                  <article v-for="material in clientMaterialsState(client.id).items" :key="material.id" class="client-material">
+                    <div class="client-material__top">
+                      <span class="client-material__type">{{ materialTypeLabel(material.material_type) }}</span>
+                      <span class="material-status" :class="materialStatusClass(material.status)">{{ materialStatusLabel(material.status) }}</span>
+                    </div>
+                    <label class="field">
+                      РќР°Р·РІР°
+                      <input
+                        class="input"
+                        :value="materialFormById(client.id, material.id).title"
+                        @input="onMaterialTitleInput(client.id, material.id, $event)"
+                      />
+                    </label>
+                    <label class="field">
+                      РўРёРї
+                      <select
+                        class="input input--select"
+                        :value="materialFormById(client.id, material.id).material_type"
+                        @change="onMaterialTypeInput(client.id, material.id, $event)"
+                      >
+                        <option value="recommendation">Р РµРєРѕРјРµРЅРґР°С†С–СЏ</option>
+                        <option value="homework">Р”РѕРјР°С€РЅС” Р·Р°РІРґР°РЅРЅСЏ</option>
+                        <option value="exercise">Р’РїСЂР°РІР°</option>
+                        <option value="instruction">Р†РЅСЃС‚СЂСѓРєС†С–СЏ</option>
+                        <option value="link">РџРѕСЃРёР»Р°РЅРЅСЏ</option>
+                        <option value="document">Р”РѕРєСѓРјРµРЅС‚</option>
+                        <option value="other">Р†РЅС€Рµ</option>
+                      </select>
+                    </label>
+                    <label class="field">
+                      РўРµРєСЃС‚
+                      <textarea
+                        class="input manual-client-form__textarea"
+                        rows="4"
+                        :value="materialFormById(client.id, material.id).content"
+                        @input="onMaterialContentInput(client.id, material.id, $event)"
+                      ></textarea>
+                    </label>
+                    <label class="field">
+                      URL
+                      <input
+                        class="input"
+                        type="url"
+                        :value="materialFormById(client.id, material.id).url"
+                        @input="onMaterialUrlInput(client.id, material.id, $event)"
+                      />
+                    </label>
+                    <div class="client-material__actions">
+                      <button class="btn btn--ghost btn--sm" type="button" :disabled="clientMaterialsState(client.id).actionLoadingId === material.id" @click="saveMaterial(client.id, material.id)">
+                        Р—Р±РµСЂРµРіС‚Рё
+                      </button>
+                      <button
+                        v-if="material.status === 'draft'"
+                        class="btn btn--sm"
+                        type="button"
+                        :disabled="clientMaterialsState(client.id).actionLoadingId === material.id"
+                        @click="publishMaterial(client.id, material.id)"
+                      >
+                        РћРїСѓР±Р»С–РєСѓРІР°С‚Рё РґР»СЏ РєР»С–С”РЅС‚Р°
+                      </button>
+                      <button
+                        v-if="material.status === 'published'"
+                        class="btn btn--ghost btn--sm"
+                        type="button"
+                        :disabled="clientMaterialsState(client.id).actionLoadingId === material.id"
+                        @click="revokeMaterial(client.id, material.id)"
+                      >
+                        Р’С–РґРєР»РёРєР°С‚Рё РґРѕСЃС‚СѓРї
+                      </button>
+                      <a
+                        v-if="hasMaterialUrl(material)"
+                        class="btn btn--ghost btn--sm"
+                        :href="material.url || '#'"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Р’С–РґРєСЂРёС‚Рё РїРѕСЃРёР»Р°РЅРЅСЏ
+                      </a>
+                    </div>
+                  </article>
+                </div>
+                <div class="client-materials__create">
+                  <h4>Р”РѕРґР°С‚Рё РјР°С‚РµСЂС–Р°Р»</h4>
+                  <label class="field">
+                    РќР°Р·РІР°
+                    <input
+                      class="input"
+                      :value="clientMaterialsState(client.id).create.title"
+                      @input="setCreateMaterialField(client.id, { title: String(($event.target as HTMLInputElement | null)?.value || '') })"
+                    />
+                  </label>
+                  <label class="field">
+                    РўРёРї
+                    <select
+                      class="input input--select"
+                      :value="clientMaterialsState(client.id).create.material_type"
+                      @change="setCreateMaterialField(client.id, { material_type: String(($event.target as HTMLSelectElement | null)?.value || 'recommendation') as ClientMaterialType })"
+                    >
+                      <option value="recommendation">Р РµРєРѕРјРµРЅРґР°С†С–СЏ</option>
+                      <option value="homework">Р”РѕРјР°С€РЅС” Р·Р°РІРґР°РЅРЅСЏ</option>
+                      <option value="exercise">Р’РїСЂР°РІР°</option>
+                      <option value="instruction">Р†РЅСЃС‚СЂСѓРєС†С–СЏ</option>
+                      <option value="link">РџРѕСЃРёР»Р°РЅРЅСЏ</option>
+                      <option value="document">Р”РѕРєСѓРјРµРЅС‚</option>
+                      <option value="other">Р†РЅС€Рµ</option>
+                    </select>
+                  </label>
+                  <label class="field">
+                    РўРµРєСЃС‚
+                    <textarea
+                      class="input manual-client-form__textarea"
+                      rows="4"
+                      :value="clientMaterialsState(client.id).create.content"
+                      @input="setCreateMaterialField(client.id, { content: String(($event.target as HTMLTextAreaElement | null)?.value || '') })"
+                    ></textarea>
+                  </label>
+                  <label class="field">
+                    URL
+                    <input
+                      class="input"
+                      type="url"
+                      :value="clientMaterialsState(client.id).create.url"
+                      @input="setCreateMaterialField(client.id, { url: String(($event.target as HTMLInputElement | null)?.value || '') })"
+                    />
+                  </label>
+                  <button class="btn btn--sm" type="button" :disabled="clientMaterialsState(client.id).saving" @click="createMaterial(client)">
+                    {{ clientMaterialsState(client.id).saving ? 'Р—Р±РµСЂС–РіР°С”РјРѕ...' : 'Р”РѕРґР°С‚Рё РјР°С‚РµСЂС–Р°Р»' }}
+                  </button>
+                </div>
+              </div>
             </div>
             <div class="client-actions__secondary">
               <button
@@ -1232,7 +1374,8 @@ function normalizeAccountInviteResponse(payload: ClientRecordAccountInviteRespon
 }
 
 function isActiveAccountInvite(invite?: ClientRecordAccountInvite | null) {
-  return String(invite?.status || '').toUpperCase() === 'ACTIVE'
+  const normalized = String(invite?.status || '').toUpperCase()
+  return normalized === 'ACTIVE' || normalized === 'OPENED'
 }
 
 function activeAccountInvite(recordId: number) {
@@ -1245,6 +1388,8 @@ function accountInviteUrl(recordId: number) {
 }
 
 function accountInviteStatusLabel(invite: ClientRecordAccountInvite | null) {
+  const normalized = String(invite?.status || '').toUpperCase()
+  if (normalized === 'OPENED') return 'Запрошення вже відкрито'
   const expiresAt = formatDateTime(invite?.expires_at || null)
   if (expiresAt && expiresAt !== '—') return `Запрошення активне до ${expiresAt}`
   return 'Запрошення активне'
@@ -1488,10 +1633,29 @@ function setCreateMaterialField(
   })
 }
 
-async function loadClientMaterials(recordId: number) {
+type ClientMaterialScope = { client_record_id?: number; client_id?: number }
+
+function resolveClientMaterialScope(client: ClientListItem): ClientMaterialScope | null {
+  if (isManualClientRecord(client)) {
+    return { client_record_id: client.id }
+  }
+  const clientId = relationClientId(client)
+  if (!clientId) return null
+  return { client_id: clientId }
+}
+
+function resolveClientMaterialScopeByCardId(recordId: number): ClientMaterialScope | null {
+  const client =
+    manualClientRecords.value.find((item) => item.id === recordId)
+    ?? clients.value.find((item) => item.id === recordId)
+  if (!client) return null
+  return resolveClientMaterialScope(client)
+}
+
+async function loadClientMaterials(recordId: number, scope: ClientMaterialScope) {
   updateClientMaterialsState(recordId, { loading: true, error: '' })
   try {
-    const items = await fetchSpecialistClientMaterials({ client_record_id: recordId })
+    const items = await fetchSpecialistClientMaterials(scope)
     const editById: Record<number, ClientMaterialDraft> = {}
     items.forEach((item) => {
       editById[item.id] = {
@@ -1514,16 +1678,22 @@ async function loadClientMaterials(recordId: number) {
   }
 }
 
-async function toggleClientMaterials(recordId: number) {
+async function toggleClientMaterials(client: ClientListItem) {
+  const recordId = client.id
+  const scope = resolveClientMaterialScope(client)
+  if (!scope) return
   const state = clientMaterialsState(recordId)
   const open = !state.open
   updateClientMaterialsState(recordId, { open })
   if (open && !state.items.length && !state.loading) {
-    await loadClientMaterials(recordId)
+    await loadClientMaterials(recordId, scope)
   }
 }
 
-async function createMaterial(recordId: number) {
+async function createMaterial(client: ClientListItem) {
+  const recordId = client.id
+  const scope = resolveClientMaterialScope(client)
+  if (!scope) return
   const state = clientMaterialsState(recordId)
   const draft = state.create
   if (!draft.title.trim() || !draft.content.trim()) {
@@ -1533,14 +1703,14 @@ async function createMaterial(recordId: number) {
   updateClientMaterialsState(recordId, { saving: true, error: '' })
   try {
     await createSpecialistClientMaterial({
-      client_record_id: recordId,
+      ...scope,
       title: draft.title.trim(),
       content: draft.content.trim(),
       material_type: draft.material_type,
       url: draft.url.trim() || null,
     })
     updateClientMaterialsState(recordId, { create: defaultMaterialDraft() })
-    await loadClientMaterials(recordId)
+    await loadClientMaterials(recordId, scope)
   } catch (err) {
     updateClientMaterialsState(recordId, {
       error: getApiErrorMessage(err, 'Не вдалося створити матеріал.'),
@@ -1551,6 +1721,8 @@ async function createMaterial(recordId: number) {
 }
 
 async function saveMaterial(recordId: number, materialId: number) {
+  const scope = resolveClientMaterialScopeByCardId(recordId)
+  if (!scope) return
   const form = materialFormById(recordId, materialId)
   if (!form.title.trim() || !form.content.trim()) {
     updateClientMaterialsState(recordId, { error: 'Заповніть назву і текст матеріалу.' })
@@ -1564,7 +1736,7 @@ async function saveMaterial(recordId: number, materialId: number) {
       material_type: form.material_type,
       url: form.url.trim() || null,
     })
-    await loadClientMaterials(recordId)
+    await loadClientMaterials(recordId, scope)
   } catch (err) {
     updateClientMaterialsState(recordId, {
       error: getApiErrorMessage(err, 'Не вдалося зберегти матеріал.'),
@@ -1577,10 +1749,12 @@ async function saveMaterial(recordId: number, materialId: number) {
 }
 
 async function publishMaterial(recordId: number, materialId: number) {
+  const scope = resolveClientMaterialScopeByCardId(recordId)
+  if (!scope) return
   updateClientMaterialsState(recordId, { actionLoadingId: materialId, error: '' })
   try {
     await publishSpecialistClientMaterial(materialId)
-    await loadClientMaterials(recordId)
+    await loadClientMaterials(recordId, scope)
   } catch (err) {
     updateClientMaterialsState(recordId, {
       error: getApiErrorMessage(err, 'Не вдалося опублікувати матеріал.'),
@@ -1593,10 +1767,12 @@ async function publishMaterial(recordId: number, materialId: number) {
 }
 
 async function revokeMaterial(recordId: number, materialId: number) {
+  const scope = resolveClientMaterialScopeByCardId(recordId)
+  if (!scope) return
   updateClientMaterialsState(recordId, { actionLoadingId: materialId, error: '' })
   try {
     await revokeSpecialistClientMaterial(materialId)
-    await loadClientMaterials(recordId)
+    await loadClientMaterials(recordId, scope)
   } catch (err) {
     updateClientMaterialsState(recordId, {
       error: getApiErrorMessage(err, 'Не вдалося відкликати матеріал.'),

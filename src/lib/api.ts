@@ -2401,13 +2401,15 @@ export type ClientMaterialsClientListResponse = {
 
 export type SpecialistClientMaterialFilters = {
   client_record_id?: number
+  client_id?: number
   status?: ClientMaterialStatus
   session_id?: number
   q?: string
 }
 
 export type SpecialistClientMaterialCreatePayload = {
-  client_record_id: number
+  client_record_id?: number
+  client_id?: number
   session_id?: number | null
   material_type: ClientMaterialType
   title: string

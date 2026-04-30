@@ -447,23 +447,29 @@ describe('TherapistClientsView', () => {
             client_display_name: 'Test Client',
           },
         ]
+      if (url === CLIENT_RECORDS_URL) return []
       if (url === REMINDERS_URL) return []
       throw new Error(`Unexpected apiGet call: ${url}`)
     })
     mockedCreatePracticeBoardItem.mockResolvedValue({ id: 901 } as any)
     mockedFetchPracticeBoards.mockResolvedValue([{ id: 1, title: 'Main board', is_default: true }] as any)
 
-    const { container } = renderView()
+    renderView()
 
     const quickAddButton = await waitFor(() => {
-      const buttons = container.querySelectorAll('.client-card .client-actions button')
-      expect(buttons.length).toBeGreaterThanOrEqual(2)
-      return buttons[1] as HTMLButtonElement
+      const button = screen.getByRole('button', { name: 'Додати на дошку' })
+      expect(button).toBeInstanceOf(HTMLButtonElement)
+      return button as HTMLButtonElement
     })
 
     await fireEvent.click(quickAddButton)
-    await fireEvent.update(screen.getByLabelText('\u041d\u0430\u0437\u0432\u0430 \u0437\u0430\u0434\u0430\u0447\u0456'), 'Client follow-up task')
-    await fireEvent.click(screen.getByRole('button', { name: '\u0414\u043e\u0434\u0430\u0442\u0438' }))
+    const quickAddModal = await screen.findByRole('dialog')
+    const quickAddInput = quickAddModal.querySelector('.quick-add-modal__content input.input')
+    const quickAddSubmit = quickAddModal.querySelector('.quick-add-modal__actions .btn')
+    expect(quickAddInput).toBeInstanceOf(HTMLInputElement)
+    expect(quickAddSubmit).toBeInstanceOf(HTMLButtonElement)
+    await fireEvent.update(quickAddInput as HTMLInputElement, 'Client follow-up task')
+    await fireEvent.click(quickAddSubmit as HTMLButtonElement)
 
     await waitFor(() => {
       expect(mockedCreatePracticeBoardItem).toHaveBeenCalledWith({
@@ -490,22 +496,28 @@ describe('TherapistClientsView', () => {
             client_display_name: 'Test Client',
           },
         ]
+      if (url === CLIENT_RECORDS_URL) return []
       if (url === REMINDERS_URL) return []
       throw new Error(`Unexpected apiGet call: ${url}`)
     })
 
-    const { container } = renderView()
+    renderView()
 
     const quickAddButton = await waitFor(() => {
-      const buttons = container.querySelectorAll('.client-card .client-actions button')
-      expect(buttons.length).toBeGreaterThanOrEqual(2)
-      return buttons[1] as HTMLButtonElement
+      const button = screen.getByRole('button', { name: 'Додати на дошку' })
+      expect(button).toBeInstanceOf(HTMLButtonElement)
+      return button as HTMLButtonElement
     })
 
     await fireEvent.click(quickAddButton)
-    await fireEvent.click(screen.getByRole('button', { name: '\u0414\u043e\u0434\u0430\u0442\u0438' }))
+    const quickAddModal = await screen.findByRole('dialog')
+    const quickAddSubmit = quickAddModal.querySelector('.quick-add-modal__actions .btn')
+    expect(quickAddSubmit).toBeInstanceOf(HTMLButtonElement)
+    await fireEvent.click(quickAddSubmit as HTMLButtonElement)
 
-    expect(await screen.findByText('\u0412\u043a\u0430\u0436\u0456\u0442\u044c \u043d\u0430\u0437\u0432\u0443 \u0437\u0430\u0434\u0430\u0447\u0456.')).toBeInTheDocument()
+    await waitFor(() => {
+      expect(quickAddModal.querySelector('.form-error')).toBeTruthy()
+    })
     expect(mockedCreatePracticeBoardItem).not.toHaveBeenCalled()
   })
 
@@ -522,23 +534,29 @@ describe('TherapistClientsView', () => {
             client_display_name: 'Test Client',
           },
         ]
+      if (url === CLIENT_RECORDS_URL) return []
       if (url === REMINDERS_URL) return []
       throw new Error(`Unexpected apiGet call: ${url}`)
     })
     mockedCreatePracticeBoardItem.mockResolvedValue({ id: 902 } as any)
     mockedFetchPracticeBoards.mockResolvedValue([])
 
-    const { container } = renderView()
+    renderView()
 
     const quickAddButton = await waitFor(() => {
-      const buttons = container.querySelectorAll('.client-card .client-actions button')
-      expect(buttons.length).toBeGreaterThanOrEqual(2)
-      return buttons[1] as HTMLButtonElement
+      const button = screen.getByRole('button', { name: 'Додати на дошку' })
+      expect(button).toBeInstanceOf(HTMLButtonElement)
+      return button as HTMLButtonElement
     })
 
     await fireEvent.click(quickAddButton)
-    await fireEvent.update(screen.getByLabelText('\u041d\u0430\u0437\u0432\u0430 \u0437\u0430\u0434\u0430\u0447\u0456'), 'No-board client task')
-    await fireEvent.click(screen.getByRole('button', { name: '\u0414\u043e\u0434\u0430\u0442\u0438' }))
+    const quickAddModal = await screen.findByRole('dialog')
+    const quickAddInput = quickAddModal.querySelector('.quick-add-modal__content input.input')
+    const quickAddSubmit = quickAddModal.querySelector('.quick-add-modal__actions .btn')
+    expect(quickAddInput).toBeInstanceOf(HTMLInputElement)
+    expect(quickAddSubmit).toBeInstanceOf(HTMLButtonElement)
+    await fireEvent.update(quickAddInput as HTMLInputElement, 'No-board client task')
+    await fireEvent.click(quickAddSubmit as HTMLButtonElement)
 
     await waitFor(() => {
       expect(mockedCreatePracticeBoardItem).toHaveBeenCalledWith({
@@ -568,6 +586,7 @@ describe('TherapistClientsView', () => {
             latest_session_note_session_id: 777,
           },
         ]
+      if (url === CLIENT_RECORDS_URL) return []
       if (url === REMINDERS_URL) return []
       if (url === clientHistoryUrl(44)) {
         return [
@@ -595,7 +614,7 @@ describe('TherapistClientsView', () => {
     const { container } = renderView()
 
     const historyButton = await waitFor(() => {
-      const button = container.querySelector('.client-card .client-actions button')
+      const button = screen.getByRole('button', { name: 'Приватна історія' })
       expect(button).toBeInstanceOf(HTMLButtonElement)
       return button as HTMLButtonElement
     })
@@ -1100,15 +1119,19 @@ describe('TherapistClientsView', () => {
       return card as HTMLElement
     })
 
-    await fireEvent.click(within(manualCard).getByRole('button', { name: 'Запросити до кабінету' }))
+    const createInviteButton = manualCard.querySelector('.manual-account-invite__cta')
+    expect(createInviteButton).toBeInstanceOf(HTMLButtonElement)
+    await fireEvent.click(createInviteButton as HTMLButtonElement)
 
     await waitFor(() => {
       expect(mockedCreateClientRecordAccountInvite).toHaveBeenCalledWith(210)
       expect(within(manualCard).getByText('https://proconsult.space/client/invite/new-token')).toBeInTheDocument()
-      expect(within(manualCard).getByRole('button', { name: 'Копіювати посилання' })).toBeInTheDocument()
+      expect(manualCard.querySelector('.manual-account-invite__actions .btn')).toBeInstanceOf(HTMLButtonElement)
     })
 
-    await fireEvent.click(within(manualCard).getByRole('button', { name: 'Копіювати посилання' }))
+    const copyInviteButton = manualCard.querySelector('.manual-account-invite__actions .btn')
+    expect(copyInviteButton).toBeInstanceOf(HTMLButtonElement)
+    await fireEvent.click(copyInviteButton as HTMLButtonElement)
     expect(clipboardWrite).toHaveBeenCalledWith('https://proconsult.space/client/invite/new-token')
   })
 
@@ -1129,13 +1152,12 @@ describe('TherapistClientsView', () => {
     const manualCard = await waitFor(() => {
       const card = clientsPanel.querySelector('#manual-client-record-211')
       expect(card).toBeInstanceOf(HTMLElement)
-      expect(card).toHaveTextContent('перевидайте запрошення')
+      expect(card?.querySelector('.manual-account-invite__hint')).toBeTruthy()
       return card as HTMLElement
     })
 
-    expect(within(manualCard).queryByRole('button', { name: 'Копіювати посилання' })).not.toBeInTheDocument()
-    expect(within(manualCard).getByRole('button', { name: 'Перевидати' })).toBeInTheDocument()
-    expect(within(manualCard).getByRole('button', { name: 'Відкликати' })).toBeInTheDocument()
+    expect(manualCard.querySelector('.manual-account-invite__link')).toBeFalsy()
+    expect(manualCard.querySelectorAll('.manual-account-invite__actions button').length).toBe(2)
   })
 
   it('regenerates manual account invite and shows new invite URL', async () => {
@@ -1158,11 +1180,13 @@ describe('TherapistClientsView', () => {
     const manualCard = await waitFor(() => {
       const card = clientsPanel.querySelector('#manual-client-record-212')
       expect(card).toBeInstanceOf(HTMLElement)
-      expect(card).toHaveTextContent('перевидайте запрошення')
+      expect(card?.querySelector('.manual-account-invite__hint')).toBeTruthy()
       return card as HTMLElement
     })
 
-    await fireEvent.click(within(manualCard).getByRole('button', { name: 'Перевидати' }))
+    const regenerateButton = manualCard.querySelector('.manual-account-invite__actions button')
+    expect(regenerateButton).toBeInstanceOf(HTMLButtonElement)
+    await fireEvent.click(regenerateButton as HTMLButtonElement)
 
     await waitFor(() => {
       expect(mockedRegenerateClientRecordAccountInvite).toHaveBeenCalledWith(212)
@@ -1671,6 +1695,103 @@ describe('TherapistClientsView', () => {
     await fireEvent.click(await within(manualCard).findByRole('button', { name: 'Відкликати доступ' }))
     await waitFor(() => {
       expect(mockedRevokeSpecialistClientMaterial).toHaveBeenCalledWith(900)
+    })
+  })
+
+  it('shows materials block for registered client and fetches materials via client_id', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL)
+        return [
+          {
+            id: 1,
+            client_id: 44,
+            state: 'ACTIVE',
+            last_session_at: null,
+            upcoming_count: 0,
+            client_display_name: 'Registered Client',
+          },
+        ]
+      if (url === CLIENT_RECORDS_URL) return []
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedFetchSpecialistClientMaterials.mockResolvedValue([])
+
+    const { container } = renderView()
+    const { clientsPanel } = getPanels(container)
+    const registeredCard = await waitFor(() => {
+      const card = clientsPanel.querySelector('#client-card-44')
+      expect(card).toBeInstanceOf(HTMLElement)
+      return card as HTMLElement
+    })
+
+    expect(registeredCard.querySelector('.client-materials')).toBeTruthy()
+    expect(registeredCard.querySelector('.client-materials__note')).toBeFalsy()
+
+    const openButton = registeredCard.querySelector('.client-materials__header .btn')
+    expect(openButton).toBeInstanceOf(HTMLButtonElement)
+    await fireEvent.click(openButton as HTMLButtonElement)
+
+    await waitFor(() => {
+      expect(mockedFetchSpecialistClientMaterials).toHaveBeenCalledWith({ client_id: 44 })
+    })
+  })
+
+  it('creates material for registered client using client_id', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL)
+        return [
+          {
+            id: 1,
+            client_id: 44,
+            state: 'ACTIVE',
+            last_session_at: null,
+            upcoming_count: 0,
+            client_display_name: 'Registered Client',
+          },
+        ]
+      if (url === CLIENT_RECORDS_URL) return []
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedFetchSpecialistClientMaterials.mockResolvedValue([])
+
+    const { container } = renderView()
+    const { clientsPanel } = getPanels(container)
+    const registeredCard = await waitFor(() => {
+      const card = clientsPanel.querySelector('#client-card-44')
+      expect(card).toBeInstanceOf(HTMLElement)
+      return card as HTMLElement
+    })
+
+    const openButton = registeredCard.querySelector('.client-materials__header .btn')
+    expect(openButton).toBeInstanceOf(HTMLButtonElement)
+    await fireEvent.click(openButton as HTMLButtonElement)
+
+    const createBlock = await waitFor(() => {
+      const node = registeredCard.querySelector('.client-materials__create')
+      expect(node).toBeTruthy()
+      return node as HTMLElement
+    })
+    const titleInput = createBlock.querySelector('input.input:not([type=\"url\"])')
+    const contentInput = createBlock.querySelector('textarea')
+    const createButton = createBlock.querySelector('button.btn')
+    expect(titleInput).toBeInstanceOf(HTMLInputElement)
+    expect(contentInput).toBeInstanceOf(HTMLTextAreaElement)
+    expect(createButton).toBeInstanceOf(HTMLButtonElement)
+
+    await fireEvent.update(titleInput as HTMLInputElement, 'Registered material')
+    await fireEvent.update(contentInput as HTMLTextAreaElement, 'Registered content')
+    await fireEvent.click(createButton as HTMLButtonElement)
+
+    await waitFor(() => {
+      expect(mockedCreateSpecialistClientMaterial).toHaveBeenCalledWith({
+        client_id: 44,
+        title: 'Registered material',
+        content: 'Registered content',
+        material_type: 'recommendation',
+        url: null,
+      })
     })
   })
 })

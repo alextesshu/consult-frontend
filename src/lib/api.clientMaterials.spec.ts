@@ -32,9 +32,9 @@ describe('client materials api', () => {
 
   it('calls specialist list endpoint with filters', async () => {
     mockedHttp.get.mockResolvedValue({ data: [] } as any)
-    await fetchSpecialistClientMaterials({ client_record_id: 22, status: 'draft', q: 'abc' })
+    await fetchSpecialistClientMaterials({ client_record_id: 22, client_id: 44, status: 'draft', q: 'abc' })
     expect(mockedHttp.get).toHaveBeenCalledWith('/cabinet/client-materials/', {
-      params: { client_record_id: 22, status: 'draft', q: 'abc' },
+      params: { client_record_id: 22, client_id: 44, status: 'draft', q: 'abc' },
     })
   })
 
@@ -69,6 +69,38 @@ describe('client materials api', () => {
       material_type: 'recommendation',
     })
     expect(material.url).toBeNull()
+  })
+
+  it('creates specialist material via client_id scope', async () => {
+    mockedHttp.post.mockResolvedValue({
+      data: {
+        id: 2,
+        client_record_id: 99,
+        session_id: null,
+        status: 'draft',
+        material_type: 'recommendation',
+        title: 'T2',
+        content: 'C2',
+        content_preview: 'C2',
+        url: null,
+        published_at: null,
+        revoked_at: null,
+        created_at: '2026-04-30T00:00:00Z',
+        updated_at: '2026-04-30T00:00:00Z',
+      },
+    } as any)
+    await createSpecialistClientMaterial({
+      client_id: 44,
+      title: 'T2',
+      content: 'C2',
+      material_type: 'recommendation',
+    })
+    expect(mockedHttp.post).toHaveBeenCalledWith('/cabinet/client-materials/', {
+      client_id: 44,
+      title: 'T2',
+      content: 'C2',
+      material_type: 'recommendation',
+    })
   })
 
   it('calls publish/revoke specialist actions', async () => {
