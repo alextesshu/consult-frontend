@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <section class="clients">
     <header class="clients__hero">
       <div>
@@ -544,14 +544,14 @@
             </div>
             <div class="client-materials">
               <div class="client-materials__header">
-                <div class="client-materials__title">РњР°С‚РµСЂС–Р°Р»Рё РґР»СЏ РєР»С–С”РЅС‚Р°</div>
+                <div class="client-materials__title">Матеріали для клієнта</div>
                 <button class="btn btn--ghost btn--sm" type="button" @click="toggleClientMaterials(client)">
-                  {{ clientMaterialsState(client.id).open ? 'РЎС…РѕРІР°С‚Рё' : 'Р’С–РґРєСЂРёС‚Рё' }}
+                  {{ clientMaterialsState(client.id).open ? 'Сховати' : 'Відкрити' }}
                 </button>
               </div>
               <div v-if="clientMaterialsState(client.id).open" class="client-materials__body">
                 <p v-if="clientMaterialsState(client.id).error" class="form-error">{{ clientMaterialsState(client.id).error }}</p>
-                <div v-if="clientMaterialsState(client.id).loading" class="muted">Р—Р°РІР°РЅС‚Р°Р¶РµРЅРЅСЏ РјР°С‚РµСЂС–Р°Р»С–РІ...</div>
+                <div v-if="clientMaterialsState(client.id).loading" class="muted">Завантаження матеріалів...</div>
                 <div v-else class="client-materials__list">
                   <article v-for="material in clientMaterialsState(client.id).items" :key="material.id" class="client-material">
                     <div class="client-material__top">
@@ -559,7 +559,7 @@
                       <span class="material-status" :class="materialStatusClass(material.status)">{{ materialStatusLabel(material.status) }}</span>
                     </div>
                     <label class="field">
-                      РќР°Р·РІР°
+                      Назва
                       <input
                         class="input"
                         :value="materialFormById(client.id, material.id).title"
@@ -567,23 +567,23 @@
                       />
                     </label>
                     <label class="field">
-                      РўРёРї
+                      Тип
                       <select
                         class="input input--select"
                         :value="materialFormById(client.id, material.id).material_type"
                         @change="onMaterialTypeInput(client.id, material.id, $event)"
                       >
-                        <option value="recommendation">Р РµРєРѕРјРµРЅРґР°С†С–СЏ</option>
-                        <option value="homework">Р”РѕРјР°С€РЅС” Р·Р°РІРґР°РЅРЅСЏ</option>
-                        <option value="exercise">Р’РїСЂР°РІР°</option>
-                        <option value="instruction">Р†РЅСЃС‚СЂСѓРєС†С–СЏ</option>
-                        <option value="link">РџРѕСЃРёР»Р°РЅРЅСЏ</option>
-                        <option value="document">Р”РѕРєСѓРјРµРЅС‚</option>
-                        <option value="other">Р†РЅС€Рµ</option>
+                        <option value="recommendation">Рекомендація</option>
+                        <option value="homework">Домашнє завдання</option>
+                        <option value="exercise">Вправа</option>
+                        <option value="instruction">Інструкція</option>
+                        <option value="link">Посилання</option>
+                        <option value="document">Документ</option>
+                        <option value="other">Інше</option>
                       </select>
                     </label>
                     <label class="field">
-                      РўРµРєСЃС‚
+                      Текст
                       <textarea
                         class="input manual-client-form__textarea"
                         rows="4"
@@ -602,7 +602,7 @@
                     </label>
                     <div class="client-material__actions">
                       <button class="btn btn--ghost btn--sm" type="button" :disabled="clientMaterialsState(client.id).actionLoadingId === material.id" @click="saveMaterial(client.id, material.id)">
-                        Р—Р±РµСЂРµРіС‚Рё
+                        Зберегти
                       </button>
                       <button
                         v-if="material.status === 'draft'"
@@ -611,7 +611,7 @@
                         :disabled="clientMaterialsState(client.id).actionLoadingId === material.id"
                         @click="publishMaterial(client.id, material.id)"
                       >
-                        РћРїСѓР±Р»С–РєСѓРІР°С‚Рё РґР»СЏ РєР»С–С”РЅС‚Р°
+                        Опублікувати для клієнта
                       </button>
                       <button
                         v-if="material.status === 'published'"
@@ -620,7 +620,7 @@
                         :disabled="clientMaterialsState(client.id).actionLoadingId === material.id"
                         @click="revokeMaterial(client.id, material.id)"
                       >
-                        Р’С–РґРєР»РёРєР°С‚Рё РґРѕСЃС‚СѓРї
+                        Відкликати доступ
                       </button>
                       <a
                         v-if="hasMaterialUrl(material)"
@@ -629,15 +629,15 @@
                         target="_blank"
                         rel="noopener noreferrer"
                       >
-                        Р’С–РґРєСЂРёС‚Рё РїРѕСЃРёР»Р°РЅРЅСЏ
+                        Відкрити посилання
                       </a>
                     </div>
                   </article>
                 </div>
                 <div class="client-materials__create">
-                  <h4>Р”РѕРґР°С‚Рё РјР°С‚РµСЂС–Р°Р»</h4>
+                  <h4>Додати матеріал</h4>
                   <label class="field">
-                    РќР°Р·РІР°
+                    Назва
                     <input
                       class="input"
                       :value="clientMaterialsState(client.id).create.title"
@@ -645,23 +645,23 @@
                     />
                   </label>
                   <label class="field">
-                    РўРёРї
+                    Тип
                     <select
                       class="input input--select"
                       :value="clientMaterialsState(client.id).create.material_type"
                       @change="setCreateMaterialField(client.id, { material_type: String(($event.target as HTMLSelectElement | null)?.value || 'recommendation') as ClientMaterialType })"
                     >
-                      <option value="recommendation">Р РµРєРѕРјРµРЅРґР°С†С–СЏ</option>
-                      <option value="homework">Р”РѕРјР°С€РЅС” Р·Р°РІРґР°РЅРЅСЏ</option>
-                      <option value="exercise">Р’РїСЂР°РІР°</option>
-                      <option value="instruction">Р†РЅСЃС‚СЂСѓРєС†С–СЏ</option>
-                      <option value="link">РџРѕСЃРёР»Р°РЅРЅСЏ</option>
-                      <option value="document">Р”РѕРєСѓРјРµРЅС‚</option>
-                      <option value="other">Р†РЅС€Рµ</option>
+                      <option value="recommendation">Рекомендація</option>
+                      <option value="homework">Домашнє завдання</option>
+                      <option value="exercise">Вправа</option>
+                      <option value="instruction">Інструкція</option>
+                      <option value="link">Посилання</option>
+                      <option value="document">Документ</option>
+                      <option value="other">Інше</option>
                     </select>
                   </label>
                   <label class="field">
-                    РўРµРєСЃС‚
+                    Текст
                     <textarea
                       class="input manual-client-form__textarea"
                       rows="4"
@@ -679,7 +679,7 @@
                     />
                   </label>
                   <button class="btn btn--sm" type="button" :disabled="clientMaterialsState(client.id).saving" @click="createMaterial(client)">
-                    {{ clientMaterialsState(client.id).saving ? 'Р—Р±РµСЂС–РіР°С”РјРѕ...' : 'Р”РѕРґР°С‚Рё РјР°С‚РµСЂС–Р°Р»' }}
+                    {{ clientMaterialsState(client.id).saving ? 'Зберігаємо...' : 'Додати матеріал' }}
                   </button>
                 </div>
               </div>
