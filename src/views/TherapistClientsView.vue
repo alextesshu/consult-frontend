@@ -347,6 +347,152 @@
               </button>
             </div>
 
+            <div class="client-materials">
+              <div class="client-materials__header">
+                <div class="client-materials__title">Матеріали для клієнта</div>
+                <button class="btn btn--ghost btn--sm" type="button" @click="toggleClientMaterials(client.id)">
+                  {{ clientMaterialsState(client.id).open ? 'Сховати' : 'Відкрити' }}
+                </button>
+              </div>
+              <p v-if="!hasLinkedAccount(client)" class="client-materials__note">
+                Матеріал можна підготувати зараз. Клієнт побачить його після підключення акаунта.
+              </p>
+              <div v-if="clientMaterialsState(client.id).open" class="client-materials__body">
+                <p v-if="clientMaterialsState(client.id).error" class="form-error">{{ clientMaterialsState(client.id).error }}</p>
+                <div v-if="clientMaterialsState(client.id).loading" class="muted">Завантаження матеріалів...</div>
+                <div v-else class="client-materials__list">
+                  <article v-for="material in clientMaterialsState(client.id).items" :key="material.id" class="client-material">
+                    <div class="client-material__top">
+                      <span class="client-material__type">{{ materialTypeLabel(material.material_type) }}</span>
+                      <span class="material-status" :class="materialStatusClass(material.status)">{{ materialStatusLabel(material.status) }}</span>
+                    </div>
+                    <label class="field">
+                      Назва
+                      <input
+                        class="input"
+                        :value="materialFormById(client.id, material.id).title"
+                        @input="onMaterialTitleInput(client.id, material.id, $event)"
+                      />
+                    </label>
+                    <label class="field">
+                      Тип
+                      <select
+                        class="input input--select"
+                        :value="materialFormById(client.id, material.id).material_type"
+                        @change="onMaterialTypeInput(client.id, material.id, $event)"
+                      >
+                        <option value="recommendation">Рекомендація</option>
+                        <option value="homework">Домашнє завдання</option>
+                        <option value="exercise">Вправа</option>
+                        <option value="instruction">Інструкція</option>
+                        <option value="link">Посилання</option>
+                        <option value="document">Документ</option>
+                        <option value="other">Інше</option>
+                      </select>
+                    </label>
+                    <label class="field">
+                      Текст
+                      <textarea
+                        class="input manual-client-form__textarea"
+                        rows="4"
+                        :value="materialFormById(client.id, material.id).content"
+                        @input="onMaterialContentInput(client.id, material.id, $event)"
+                      ></textarea>
+                    </label>
+                    <label class="field">
+                      URL
+                      <input
+                        class="input"
+                        type="url"
+                        :value="materialFormById(client.id, material.id).url"
+                        @input="onMaterialUrlInput(client.id, material.id, $event)"
+                      />
+                    </label>
+                    <div class="client-material__actions">
+                      <button class="btn btn--ghost btn--sm" type="button" :disabled="clientMaterialsState(client.id).actionLoadingId === material.id" @click="saveMaterial(client.id, material.id)">
+                        Зберегти
+                      </button>
+                      <button
+                        v-if="material.status === 'draft'"
+                        class="btn btn--sm"
+                        type="button"
+                        :disabled="clientMaterialsState(client.id).actionLoadingId === material.id"
+                        @click="publishMaterial(client.id, material.id)"
+                      >
+                        Опублікувати для клієнта
+                      </button>
+                      <button
+                        v-if="material.status === 'published'"
+                        class="btn btn--ghost btn--sm"
+                        type="button"
+                        :disabled="clientMaterialsState(client.id).actionLoadingId === material.id"
+                        @click="revokeMaterial(client.id, material.id)"
+                      >
+                        Відкликати доступ
+                      </button>
+                      <a
+                        v-if="hasMaterialUrl(material)"
+                        class="btn btn--ghost btn--sm"
+                        :href="material.url || '#'"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Відкрити посилання
+                      </a>
+                    </div>
+                  </article>
+                </div>
+                <div class="client-materials__create">
+                  <h4>Додати матеріал</h4>
+                  <label class="field">
+                    Назва
+                    <input
+                      class="input"
+                      :value="clientMaterialsState(client.id).create.title"
+                      @input="setCreateMaterialField(client.id, { title: String(($event.target as HTMLInputElement | null)?.value || '') })"
+                    />
+                  </label>
+                  <label class="field">
+                    Тип
+                    <select
+                      class="input input--select"
+                      :value="clientMaterialsState(client.id).create.material_type"
+                      @change="setCreateMaterialField(client.id, { material_type: String(($event.target as HTMLSelectElement | null)?.value || 'recommendation') as ClientMaterialType })"
+                    >
+                      <option value="recommendation">Рекомендація</option>
+                      <option value="homework">Домашнє завдання</option>
+                      <option value="exercise">Вправа</option>
+                      <option value="instruction">Інструкція</option>
+                      <option value="link">Посилання</option>
+                      <option value="document">Документ</option>
+                      <option value="other">Інше</option>
+                    </select>
+                  </label>
+                  <label class="field">
+                    Текст
+                    <textarea
+                      class="input manual-client-form__textarea"
+                      rows="4"
+                      :value="clientMaterialsState(client.id).create.content"
+                      @input="setCreateMaterialField(client.id, { content: String(($event.target as HTMLTextAreaElement | null)?.value || '') })"
+                    ></textarea>
+                  </label>
+                  <label class="field">
+                    URL
+                    <input
+                      class="input"
+                      type="url"
+                      :value="clientMaterialsState(client.id).create.url"
+                      @input="setCreateMaterialField(client.id, { url: String(($event.target as HTMLInputElement | null)?.value || '') })"
+                    />
+                  </label>
+                  <button class="btn btn--sm" type="button" :disabled="clientMaterialsState(client.id).saving" @click="createMaterial(client.id)">
+                    {{ clientMaterialsState(client.id).saving ? 'Зберігаємо...' : 'Додати матеріал' }}
+                  </button>
+                </div>
+              </div>
+            </div>
+
             <div class="client-actions__secondary">
               <button
                 class="btn btn--ghost btn--sm"
@@ -678,12 +824,21 @@ import {
   apiGet,
   apiPatch,
   apiPost,
+  createSpecialistClientMaterial,
   createClientRecordAccountInvite,
+  fetchSpecialistClientMaterials,
   fetchChatThreads,
   fetchClientRecordAccountInvite,
+  hasMaterialUrl,
+  publishSpecialistClientMaterial,
   regenerateClientRecordAccountInvite,
+  revokeSpecialistClientMaterial,
   revokeClientRecordAccountInvite,
+  updateSpecialistClientMaterial,
   type ChatThread,
+  type ClientMaterialSpecialistRecord,
+  type ClientMaterialStatus,
+  type ClientMaterialType,
   type ClientRecordAccountInvite,
   type ClientRecordAccountInviteResponse,
   type SessionFormat,
@@ -780,6 +935,24 @@ type AccountInviteState = {
 }
 
 type ClientListItem = ClientState | ManualClientRecord
+
+type ClientMaterialDraft = {
+  title: string
+  content: string
+  material_type: ClientMaterialType
+  url: string
+}
+
+type ClientMaterialsState = {
+  loading: boolean
+  saving: boolean
+  actionLoadingId: number | null
+  error: string
+  items: ClientMaterialSpecialistRecord[]
+  create: ClientMaterialDraft
+  editById: Record<number, ClientMaterialDraft>
+  open: boolean
+}
 
 
 type SessionItem = {
@@ -919,6 +1092,7 @@ const manualSessionDraft = ref<ManualClientSessionFormState>({
   session_format: 'online',
 })
 const accountInviteStateByRecordId = ref<Record<number, AccountInviteState>>({})
+const materialsStateByRecordId = ref<Record<number, ClientMaterialsState>>({})
 
 const retryLabel = '\u0421\u043f\u0440\u043e\u0431\u0443\u0432\u0430\u0442\u0438 \u0449\u0435 \u0440\u0430\u0437'
 const remindersErrorTitle = '\u041d\u0435 \u0432\u0434\u0430\u043b\u043e\u0441\u044f \u0437\u0430\u0432\u0430\u043d\u0442\u0430\u0436\u0438\u0442\u0438 \u043d\u0430\u0433\u0430\u0434\u0443\u0432\u0430\u043d\u043d\u044f'
@@ -1176,6 +1350,262 @@ async function copyAccountInviteLink(recordId: number) {
 function clientListState(client: ClientListItem): ClientState['state'] {
   if (isManualClientRecord(client)) return client.status === 'archived' ? 'ARCHIVED' : 'ACTIVE'
   return client.state
+}
+
+function defaultMaterialDraft(): ClientMaterialDraft {
+  return {
+    title: '',
+    content: '',
+    material_type: 'recommendation',
+    url: '',
+  }
+}
+
+function defaultMaterialsState(): ClientMaterialsState {
+  return {
+    loading: false,
+    saving: false,
+    actionLoadingId: null,
+    error: '',
+    items: [],
+    create: defaultMaterialDraft(),
+    editById: {},
+    open: false,
+  }
+}
+
+function clientMaterialsState(recordId: number): ClientMaterialsState {
+  const existing = materialsStateByRecordId.value[recordId]
+  if (existing) return existing
+  const next = defaultMaterialsState()
+  materialsStateByRecordId.value = {
+    ...materialsStateByRecordId.value,
+    [recordId]: next,
+  }
+  return next
+}
+
+function updateClientMaterialsState(recordId: number, patch: Partial<ClientMaterialsState>) {
+  materialsStateByRecordId.value = {
+    ...materialsStateByRecordId.value,
+    [recordId]: {
+      ...clientMaterialsState(recordId),
+      ...patch,
+    },
+  }
+}
+
+function materialTypeLabel(value: ClientMaterialType): string {
+  if (value === 'recommendation') return 'Рекомендація'
+  if (value === 'homework') return 'Домашнє завдання'
+  if (value === 'exercise') return 'Вправа'
+  if (value === 'instruction') return 'Інструкція'
+  if (value === 'link') return 'Посилання'
+  if (value === 'document') return 'Документ'
+  return 'Інше'
+}
+
+function materialStatusLabel(value: ClientMaterialStatus): string {
+  if (value === 'draft') return 'Чернетка'
+  if (value === 'published') return 'Опубліковано'
+  return 'Відкликано'
+}
+
+function materialStatusClass(value: ClientMaterialStatus): string {
+  if (value === 'published') return 'material-status--published'
+  if (value === 'revoked') return 'material-status--revoked'
+  return 'material-status--draft'
+}
+
+function materialFormById(recordId: number, materialId: number): ClientMaterialDraft {
+  const state = clientMaterialsState(recordId)
+  const existing = state.editById[materialId]
+  if (existing) return existing
+  const material = state.items.find((item) => item.id === materialId)
+  const seed: ClientMaterialDraft = {
+    title: material?.title || '',
+    content: material?.content || '',
+    material_type: material?.material_type || 'recommendation',
+    url: material?.url || '',
+  }
+  updateClientMaterialsState(recordId, {
+    editById: {
+      ...state.editById,
+      [materialId]: seed,
+    },
+  })
+  return seed
+}
+
+function setMaterialFormById(recordId: number, materialId: number, patch: Partial<ClientMaterialDraft>) {
+  const state = clientMaterialsState(recordId)
+  const current = materialFormById(recordId, materialId)
+  updateClientMaterialsState(recordId, {
+    editById: {
+      ...state.editById,
+      [materialId]: {
+        ...current,
+        ...patch,
+      },
+    },
+  })
+}
+
+function onMaterialTitleInput(recordId: number, materialId: number, event: Event) {
+  setMaterialFormById(recordId, materialId, {
+    title: String((event.target as HTMLInputElement | null)?.value || ''),
+  })
+}
+
+function onMaterialTypeInput(recordId: number, materialId: number, event: Event) {
+  setMaterialFormById(recordId, materialId, {
+    material_type: String((event.target as HTMLSelectElement | null)?.value || 'recommendation') as ClientMaterialType,
+  })
+}
+
+function onMaterialContentInput(recordId: number, materialId: number, event: Event) {
+  setMaterialFormById(recordId, materialId, {
+    content: String((event.target as HTMLTextAreaElement | null)?.value || ''),
+  })
+}
+
+function onMaterialUrlInput(recordId: number, materialId: number, event: Event) {
+  setMaterialFormById(recordId, materialId, {
+    url: String((event.target as HTMLInputElement | null)?.value || ''),
+  })
+}
+
+function setCreateMaterialField(
+  recordId: number,
+  patch: Partial<ClientMaterialDraft>
+) {
+  const state = clientMaterialsState(recordId)
+  updateClientMaterialsState(recordId, {
+    create: {
+      ...state.create,
+      ...patch,
+    },
+  })
+}
+
+async function loadClientMaterials(recordId: number) {
+  updateClientMaterialsState(recordId, { loading: true, error: '' })
+  try {
+    const items = await fetchSpecialistClientMaterials({ client_record_id: recordId })
+    const editById: Record<number, ClientMaterialDraft> = {}
+    items.forEach((item) => {
+      editById[item.id] = {
+        title: item.title || '',
+        content: item.content || '',
+        material_type: item.material_type,
+        url: item.url || '',
+      }
+    })
+    updateClientMaterialsState(recordId, {
+      items,
+      editById,
+      loading: false,
+    })
+  } catch (err) {
+    updateClientMaterialsState(recordId, {
+      loading: false,
+      error: getApiErrorMessage(err, 'Не вдалося завантажити матеріали.'),
+    })
+  }
+}
+
+async function toggleClientMaterials(recordId: number) {
+  const state = clientMaterialsState(recordId)
+  const open = !state.open
+  updateClientMaterialsState(recordId, { open })
+  if (open && !state.items.length && !state.loading) {
+    await loadClientMaterials(recordId)
+  }
+}
+
+async function createMaterial(recordId: number) {
+  const state = clientMaterialsState(recordId)
+  const draft = state.create
+  if (!draft.title.trim() || !draft.content.trim()) {
+    updateClientMaterialsState(recordId, { error: 'Заповніть назву і текст матеріалу.' })
+    return
+  }
+  updateClientMaterialsState(recordId, { saving: true, error: '' })
+  try {
+    await createSpecialistClientMaterial({
+      client_record_id: recordId,
+      title: draft.title.trim(),
+      content: draft.content.trim(),
+      material_type: draft.material_type,
+      url: draft.url.trim() || null,
+    })
+    updateClientMaterialsState(recordId, { create: defaultMaterialDraft() })
+    await loadClientMaterials(recordId)
+  } catch (err) {
+    updateClientMaterialsState(recordId, {
+      error: getApiErrorMessage(err, 'Не вдалося створити матеріал.'),
+    })
+  } finally {
+    updateClientMaterialsState(recordId, { saving: false })
+  }
+}
+
+async function saveMaterial(recordId: number, materialId: number) {
+  const form = materialFormById(recordId, materialId)
+  if (!form.title.trim() || !form.content.trim()) {
+    updateClientMaterialsState(recordId, { error: 'Заповніть назву і текст матеріалу.' })
+    return
+  }
+  updateClientMaterialsState(recordId, { actionLoadingId: materialId, error: '' })
+  try {
+    await updateSpecialistClientMaterial(materialId, {
+      title: form.title.trim(),
+      content: form.content.trim(),
+      material_type: form.material_type,
+      url: form.url.trim() || null,
+    })
+    await loadClientMaterials(recordId)
+  } catch (err) {
+    updateClientMaterialsState(recordId, {
+      error: getApiErrorMessage(err, 'Не вдалося зберегти матеріал.'),
+    })
+  } finally {
+    if (clientMaterialsState(recordId).actionLoadingId === materialId) {
+      updateClientMaterialsState(recordId, { actionLoadingId: null })
+    }
+  }
+}
+
+async function publishMaterial(recordId: number, materialId: number) {
+  updateClientMaterialsState(recordId, { actionLoadingId: materialId, error: '' })
+  try {
+    await publishSpecialistClientMaterial(materialId)
+    await loadClientMaterials(recordId)
+  } catch (err) {
+    updateClientMaterialsState(recordId, {
+      error: getApiErrorMessage(err, 'Не вдалося опублікувати матеріал.'),
+    })
+  } finally {
+    if (clientMaterialsState(recordId).actionLoadingId === materialId) {
+      updateClientMaterialsState(recordId, { actionLoadingId: null })
+    }
+  }
+}
+
+async function revokeMaterial(recordId: number, materialId: number) {
+  updateClientMaterialsState(recordId, { actionLoadingId: materialId, error: '' })
+  try {
+    await revokeSpecialistClientMaterial(materialId)
+    await loadClientMaterials(recordId)
+  } catch (err) {
+    updateClientMaterialsState(recordId, {
+      error: getApiErrorMessage(err, 'Не вдалося відкликати матеріал.'),
+    })
+  } finally {
+    if (clientMaterialsState(recordId).actionLoadingId === materialId) {
+      updateClientMaterialsState(recordId, { actionLoadingId: null })
+    }
+  }
 }
 
 function clientListKey(client: ClientListItem) {
@@ -2805,6 +3235,90 @@ onBeforeUnmount(() => {
 
 .manual-account-invite__cta {
   justify-self: start;
+}
+
+.client-materials {
+  display: grid;
+  gap: 10px;
+  border: 1px solid color-mix(in srgb, var(--pc-border) 82%, #ffffff);
+  border-radius: var(--pc-radius-card);
+  padding: 12px;
+  background: color-mix(in srgb, var(--pc-bg-main) 84%, #ffffff);
+}
+
+.client-materials__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.client-materials__title {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--pc-navy-900);
+}
+
+.client-materials__note {
+  margin: 0;
+  color: var(--pc-text-muted);
+  font-size: 12px;
+}
+
+.client-materials__body,
+.client-materials__list,
+.client-materials__create {
+  display: grid;
+  gap: 10px;
+}
+
+.client-material {
+  border: 1px solid color-mix(in srgb, var(--pc-border) 82%, #ffffff);
+  border-radius: var(--pc-radius-control);
+  padding: 10px;
+  display: grid;
+  gap: 8px;
+  background: #fff;
+}
+
+.client-material__top {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+}
+
+.client-material__type {
+  font-size: 12px;
+  color: var(--pc-text-muted);
+}
+
+.material-status {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.material-status--draft {
+  color: #6b7280;
+}
+
+.material-status--published {
+  color: #0a7a3f;
+}
+
+.material-status--revoked {
+  color: #b45309;
+}
+
+.client-material__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.client-materials__create h4 {
+  margin: 0;
+  font-size: 13px;
 }
 
 .client-history {

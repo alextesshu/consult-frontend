@@ -2352,6 +2352,104 @@ export type ClientRecordAccountInvite = {
   updated_at?: string | null
 }
 
+export type ClientMaterialStatus = 'draft' | 'published' | 'revoked'
+export type ClientMaterialType =
+  | 'recommendation'
+  | 'homework'
+  | 'exercise'
+  | 'instruction'
+  | 'link'
+  | 'document'
+  | 'other'
+
+export type ClientMaterialSpecialistRecord = {
+  id: number
+  client_record_id: number
+  session_id: number | null
+  status: ClientMaterialStatus
+  material_type: ClientMaterialType
+  title: string
+  content: string
+  content_preview: string
+  url: string | null
+  published_at: string | null
+  revoked_at: string | null
+  created_at: string
+  updated_at: string
+}
+
+export type ClientMaterialClientRecord = {
+  id: number
+  session_id: number | null
+  material_type: ClientMaterialType
+  title: string
+  content: string
+  content_preview: string
+  url: string | null
+  published_at: string
+  specialist?: {
+    id?: number | null
+    display_name?: string | null
+    username?: string | null
+  } | null
+}
+
+export type ClientMaterialsClientListResponse = {
+  results: ClientMaterialClientRecord[]
+  next_cursor: string | null
+}
+
+export type SpecialistClientMaterialFilters = {
+  client_record_id?: number
+  status?: ClientMaterialStatus
+  session_id?: number
+  q?: string
+}
+
+export type SpecialistClientMaterialCreatePayload = {
+  client_record_id: number
+  session_id?: number | null
+  material_type: ClientMaterialType
+  title: string
+  content: string
+  url?: string | null
+}
+
+export type SpecialistClientMaterialUpdatePayload = Partial<{
+  session_id: number | null
+  material_type: ClientMaterialType
+  title: string
+  content: string
+  url: string | null
+}>
+
+function normalizeClientMaterialUrl(url: unknown): string | null {
+  const value = String(url ?? '').trim()
+  return value || null
+}
+
+function normalizeSpecialistClientMaterial(
+  material: ClientMaterialSpecialistRecord
+): ClientMaterialSpecialistRecord {
+  return {
+    ...material,
+    url: normalizeClientMaterialUrl(material.url),
+  }
+}
+
+function normalizeClientMaterial(
+  material: ClientMaterialClientRecord
+): ClientMaterialClientRecord {
+  return {
+    ...material,
+    url: normalizeClientMaterialUrl(material.url),
+  }
+}
+
+export function hasMaterialUrl(material: { url?: string | null } | null | undefined): boolean {
+  return Boolean(normalizeClientMaterialUrl(material?.url))
+}
+
 export type ClientRecordAccountInviteResponse = {
   invite: ClientRecordAccountInvite | null
   invite_url?: string | null
@@ -2441,6 +2539,90 @@ export async function acceptClientRecordAccountInvite(
     payload ?? {}
   )
   return resp.data
+}
+
+export async function fetchSpecialistClientMaterials(
+  filters: SpecialistClientMaterialFilters = {}
+): Promise<ClientMaterialSpecialistRecord[]> {
+  const resp = await http.get<ClientMaterialSpecialistRecord[]>(
+    '/cabinet/client-materials/',
+    {
+      params: filters,
+    }
+  )
+  return (resp.data || []).map(normalizeSpecialistClientMaterial)
+}
+
+export async function createSpecialistClientMaterial(
+  payload: SpecialistClientMaterialCreatePayload
+): Promise<ClientMaterialSpecialistRecord> {
+  const resp = await http.post<ClientMaterialSpecialistRecord>(
+    '/cabinet/client-materials/',
+    payload
+  )
+  return normalizeSpecialistClientMaterial(resp.data)
+}
+
+export async function fetchSpecialistClientMaterial(
+  materialId: number
+): Promise<ClientMaterialSpecialistRecord> {
+  const resp = await http.get<ClientMaterialSpecialistRecord>(`/cabinet/client-materials/${materialId}/`)
+  return normalizeSpecialistClientMaterial(resp.data)
+}
+
+export async function updateSpecialistClientMaterial(
+  materialId: number,
+  payload: SpecialistClientMaterialUpdatePayload
+): Promise<ClientMaterialSpecialistRecord> {
+  const resp = await http.patch<ClientMaterialSpecialistRecord>(
+    `/cabinet/client-materials/${materialId}/`,
+    payload
+  )
+  return normalizeSpecialistClientMaterial(resp.data)
+}
+
+export async function publishSpecialistClientMaterial(
+  materialId: number
+): Promise<ClientMaterialSpecialistRecord> {
+  const resp = await http.post<ClientMaterialSpecialistRecord>(
+    `/cabinet/client-materials/${materialId}/publish/`,
+    {}
+  )
+  return normalizeSpecialistClientMaterial(resp.data)
+}
+
+export async function revokeSpecialistClientMaterial(
+  materialId: number
+): Promise<ClientMaterialSpecialistRecord> {
+  const resp = await http.post<ClientMaterialSpecialistRecord>(
+    `/cabinet/client-materials/${materialId}/revoke/`,
+    {}
+  )
+  return normalizeSpecialistClientMaterial(resp.data)
+}
+
+export async function fetchClientMaterials(
+  cursor?: string | null,
+  sessionId?: number | null
+): Promise<ClientMaterialsClientListResponse> {
+  const resp = await http.get<ClientMaterialsClientListResponse>('/client/materials/', {
+    params: {
+      cursor: cursor || undefined,
+      session_id: sessionId || undefined,
+    },
+  })
+  const payload = resp.data || { results: [], next_cursor: null }
+  return {
+    results: (payload.results || []).map(normalizeClientMaterial),
+    next_cursor: payload.next_cursor || null,
+  }
+}
+
+export async function fetchClientMaterialDetail(
+  materialId: number
+): Promise<ClientMaterialClientRecord> {
+  const resp = await http.get<ClientMaterialClientRecord>(`/client/materials/${materialId}/`)
+  return normalizeClientMaterial(resp.data)
 }
 
 export async function fetchExternalSessions(): Promise<ExternalSessionRecord[]> {

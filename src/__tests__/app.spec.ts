@@ -123,6 +123,7 @@ async function renderWithProviders(options?: {
     { path: '/cabinet/settings/notifications', component: { template: '<div>Cabinet Notifications</div>' } },
     { path: '/public', component: { template: '<div>Public Redirect</div>' } },
     { path: '/client', component: { template: '<div>Client</div>' } },
+    { path: '/client/materials', component: { template: '<div>Client Materials</div>' } },
     { path: '/client/chat', component: { template: '<div>Client Chat</div>' } },
     { path: '/cabinet/inquiries', component: { template: '<div>Cabinet Inquiries</div>' } },
     {
@@ -457,6 +458,7 @@ describe('App shell', () => {
     const nav = document.querySelector('header.topbar .nav') as HTMLElement
     expect(within(nav).getByRole('link', { name: 'Адмін-запити' })).toHaveAttribute('href', '/admin/inbox')
     expect(nav.querySelector('a[href="/specialists"]')).toBeInTheDocument()
+    expect(nav.querySelector('a[href="/client/materials"]')).toBeInTheDocument()
     expect(nav.querySelector('a[href="/client/chat"]')).toBeInTheDocument()
   })
 

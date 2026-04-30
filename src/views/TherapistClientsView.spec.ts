@@ -4,10 +4,14 @@ import {
   apiGet,
   apiPatch,
   apiPost,
+  createSpecialistClientMaterial,
   createClientRecordAccountInvite,
+  fetchSpecialistClientMaterials,
   fetchChatThreads,
   fetchClientRecordAccountInvite,
+  publishSpecialistClientMaterial,
   regenerateClientRecordAccountInvite,
+  revokeSpecialistClientMaterial,
   revokeClientRecordAccountInvite,
 } from '../lib/api'
 import TherapistClientsView from './TherapistClientsView.vue'
@@ -22,10 +26,15 @@ vi.mock('../lib/api', () => ({
   apiGet: vi.fn(),
   apiPatch: vi.fn(),
   apiPost: vi.fn(),
+  createSpecialistClientMaterial: vi.fn(),
   createClientRecordAccountInvite: vi.fn(),
+  fetchSpecialistClientMaterials: vi.fn(),
   fetchChatThreads: vi.fn(),
   fetchClientRecordAccountInvite: vi.fn(),
+  hasMaterialUrl: (material: { url?: string | null }) => Boolean(String(material?.url || '').trim()),
+  publishSpecialistClientMaterial: vi.fn(),
   regenerateClientRecordAccountInvite: vi.fn(),
+  revokeSpecialistClientMaterial: vi.fn(),
   revokeClientRecordAccountInvite: vi.fn(),
 }))
 vi.mock('../lib/specialistPracticeBoard', () => ({
@@ -48,10 +57,14 @@ vi.mock('../composables/useToast', () => ({
 const mockedApiGet = vi.mocked(apiGet)
 const mockedApiPatch = vi.mocked(apiPatch)
 const mockedApiPost = vi.mocked(apiPost)
+const mockedCreateSpecialistClientMaterial = vi.mocked(createSpecialistClientMaterial)
 const mockedCreateClientRecordAccountInvite = vi.mocked(createClientRecordAccountInvite)
+const mockedFetchSpecialistClientMaterials = vi.mocked(fetchSpecialistClientMaterials)
 const mockedFetchChatThreads = vi.mocked(fetchChatThreads)
 const mockedFetchClientRecordAccountInvite = vi.mocked(fetchClientRecordAccountInvite)
+const mockedPublishSpecialistClientMaterial = vi.mocked(publishSpecialistClientMaterial)
 const mockedRegenerateClientRecordAccountInvite = vi.mocked(regenerateClientRecordAccountInvite)
+const mockedRevokeSpecialistClientMaterial = vi.mocked(revokeSpecialistClientMaterial)
 const mockedRevokeClientRecordAccountInvite = vi.mocked(revokeClientRecordAccountInvite)
 const mockedCreatePracticeBoardItem = vi.mocked(createPracticeBoardItem)
 const mockedFetchPracticeBoards = vi.mocked(fetchPracticeBoards)
@@ -146,14 +159,22 @@ describe('TherapistClientsView', () => {
     mockedApiGet.mockReset()
     mockedApiPatch.mockReset()
     mockedApiPost.mockReset()
+    mockedCreateSpecialistClientMaterial.mockReset()
+    mockedCreateSpecialistClientMaterial.mockResolvedValue({} as any)
     mockedCreateClientRecordAccountInvite.mockReset()
     mockedCreateClientRecordAccountInvite.mockResolvedValue({ invite: null, invite_url: null } as any)
     mockedFetchChatThreads.mockReset()
     mockedFetchChatThreads.mockResolvedValue([])
     mockedFetchClientRecordAccountInvite.mockReset()
     mockedFetchClientRecordAccountInvite.mockResolvedValue(null)
+    mockedFetchSpecialistClientMaterials.mockReset()
+    mockedFetchSpecialistClientMaterials.mockResolvedValue([])
+    mockedPublishSpecialistClientMaterial.mockReset()
+    mockedPublishSpecialistClientMaterial.mockResolvedValue({} as any)
     mockedRegenerateClientRecordAccountInvite.mockReset()
     mockedRegenerateClientRecordAccountInvite.mockResolvedValue({ invite: null, invite_url: null } as any)
+    mockedRevokeSpecialistClientMaterial.mockReset()
+    mockedRevokeSpecialistClientMaterial.mockResolvedValue({} as any)
     mockedRevokeClientRecordAccountInvite.mockReset()
     mockedRevokeClientRecordAccountInvite.mockResolvedValue({ invite: null, invite_url: null } as any)
     mockedCreatePracticeBoardItem.mockReset()
@@ -1521,5 +1542,135 @@ describe('TherapistClientsView', () => {
     })
 
     expect(mockedApiGet).toHaveBeenCalledWith(clientHistoryUrl(44), { params: { limit: 10 } })
+  })
+
+  it('shows soft materials notice for manual client without linked account', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL) return [manualClientRecord({ id: 501, has_account: false, user_id: null })]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    const { container } = renderView()
+    const { clientsPanel } = getPanels(container)
+    const manualCard = await waitFor(() => {
+      const card = clientsPanel.querySelector('#manual-client-record-501')
+      expect(card).toBeInstanceOf(HTMLElement)
+      return card as HTMLElement
+    })
+    expect(within(manualCard).getByText('Матеріали для клієнта')).toBeInTheDocument()
+    expect(within(manualCard).getByText('Матеріал можна підготувати зараз. Клієнт побачить його після підключення акаунта.')).toBeInTheDocument()
+  })
+
+  it('creates draft material via specialist endpoint', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL) return [manualClientRecord({ id: 502 })]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedFetchSpecialistClientMaterials.mockResolvedValue([])
+
+    const { container } = renderView()
+    const { clientsPanel } = getPanels(container)
+    const manualCard = await waitFor(() => {
+      const card = clientsPanel.querySelector('#manual-client-record-502')
+      expect(card).toBeInstanceOf(HTMLElement)
+      return card as HTMLElement
+    })
+    await fireEvent.click(within(manualCard).getByRole('button', { name: 'Відкрити' }))
+    await fireEvent.update(within(manualCard).getByLabelText('Назва'), 'Новий матеріал')
+    await fireEvent.update(within(manualCard).getByLabelText('Текст'), 'Опис')
+    await fireEvent.click(within(manualCard).getByRole('button', { name: 'Додати матеріал' }))
+
+    await waitFor(() => {
+      expect(mockedCreateSpecialistClientMaterial).toHaveBeenCalledWith({
+        client_record_id: 502,
+        title: 'Новий матеріал',
+        content: 'Опис',
+        material_type: 'recommendation',
+        url: null,
+      })
+    })
+  })
+
+  it('publishes and revokes material from materials block', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL) return [manualClientRecord({ id: 503 })]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedFetchSpecialistClientMaterials
+      .mockResolvedValueOnce([
+        {
+          id: 900,
+          client_record_id: 503,
+          session_id: null,
+          status: 'draft',
+          material_type: 'recommendation',
+          title: 'M1',
+          content: 'C1',
+          content_preview: 'C1',
+          url: '',
+          published_at: null,
+          revoked_at: null,
+          created_at: '2026-04-30T00:00:00Z',
+          updated_at: '2026-04-30T00:00:00Z',
+        } as any,
+      ])
+      .mockResolvedValueOnce([
+        {
+          id: 900,
+          client_record_id: 503,
+          session_id: null,
+          status: 'published',
+          material_type: 'recommendation',
+          title: 'M1',
+          content: 'C1',
+          content_preview: 'C1',
+          url: null,
+          published_at: '2026-04-30T01:00:00Z',
+          revoked_at: null,
+          created_at: '2026-04-30T00:00:00Z',
+          updated_at: '2026-04-30T01:00:00Z',
+        } as any,
+      ])
+      .mockResolvedValueOnce([
+        {
+          id: 900,
+          client_record_id: 503,
+          session_id: null,
+          status: 'revoked',
+          material_type: 'recommendation',
+          title: 'M1',
+          content: 'C1',
+          content_preview: 'C1',
+          url: null,
+          published_at: '2026-04-30T01:00:00Z',
+          revoked_at: '2026-04-30T02:00:00Z',
+          created_at: '2026-04-30T00:00:00Z',
+          updated_at: '2026-04-30T02:00:00Z',
+        } as any,
+      ])
+
+    const { container } = renderView()
+    const { clientsPanel } = getPanels(container)
+    const manualCard = await waitFor(() => {
+      const card = clientsPanel.querySelector('#manual-client-record-503')
+      expect(card).toBeInstanceOf(HTMLElement)
+      return card as HTMLElement
+    })
+
+    await fireEvent.click(within(manualCard).getByRole('button', { name: 'Відкрити' }))
+    await fireEvent.click(await within(manualCard).findByRole('button', { name: 'Опублікувати для клієнта' }))
+    await waitFor(() => {
+      expect(mockedPublishSpecialistClientMaterial).toHaveBeenCalledWith(900)
+    })
+    await fireEvent.click(await within(manualCard).findByRole('button', { name: 'Відкликати доступ' }))
+    await waitFor(() => {
+      expect(mockedRevokeSpecialistClientMaterial).toHaveBeenCalledWith(900)
+    })
   })
 })

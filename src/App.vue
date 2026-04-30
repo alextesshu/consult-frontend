@@ -30,6 +30,9 @@
         <RouterLink v-if="isAuthenticated && isClient && !isSpecialist" class="nav__desktop-only" to="/signup">
           Стати спеціалістом
         </RouterLink>
+        <RouterLink v-if="isAuthenticated && isClient && !isSpecialist" class="nav__desktop-only" to="/client/materials">
+          Матеріали
+        </RouterLink>
         <RouterLink
           v-if="isAuthenticated && isSpecialist"
           class="nav__desktop-only"
@@ -205,6 +208,14 @@
             @click="closeMobileMenu"
           >
             Стати спеціалістом
+          </RouterLink>
+          <RouterLink
+            v-if="isClient && !isSpecialist"
+            class="mobile-menu__item"
+            to="/client/materials"
+            @click="closeMobileMenu"
+          >
+            Матеріали
           </RouterLink>
           <RouterLink
             v-if="isSpecialist"

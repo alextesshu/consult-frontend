@@ -36,6 +36,7 @@ import ForbiddenView from '../views/ForbiddenView.vue'
 import ChatView from '../views/ChatView.vue'
 import AnalyticsView from '../views/AnalyticsView.vue'
 import ClientProfileView from '../views/ClientProfileView.vue'
+import ClientMaterialsView from '../views/ClientMaterialsView.vue'
 import NotificationSettingsView from '../views/NotificationSettingsView.vue'
 import SettingsHubView from '../views/SettingsHubView.vue'
 import SpecialistInquiriesView from '../views/SpecialistInquiriesView.vue'
@@ -257,6 +258,12 @@ const routes = [
     path: '/client/profile',
     name: 'client-profile',
     component: ClientProfileView,
+    meta: { requiresAuth: true, requiresRole: 'CLIENT' },
+  },
+  {
+    path: '/client/materials',
+    name: 'client-materials',
+    component: ClientMaterialsView,
     meta: { requiresAuth: true, requiresRole: 'CLIENT' },
   },
   {

@@ -62,6 +62,13 @@ describe('router specialist session routes', () => {
     expect(resolved.meta.minimalShell).toBe(true)
   })
 
+  it('matches client materials route and requires client role', () => {
+    const resolved = router.resolve('/client/materials')
+    expect(resolved.name).toBe('client-materials')
+    expect(resolved.meta.requiresAuth).toBe(true)
+    expect(resolved.meta.requiresRole).toBe('CLIENT')
+  })
+
   it('matches admin billing request routes and rejects non-numeric detail id', () => {
     const list = router.resolve('/admin/billing-access-requests')
     const detail = router.resolve('/admin/billing-access-requests/33')
