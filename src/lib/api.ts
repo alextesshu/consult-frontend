@@ -1585,6 +1585,8 @@ export type CabinetReviewStatus = 'PENDING' | 'APPROVED' | 'REJECTED'
 
 export type CabinetReview = {
   id: number
+  source: 'session' | 'practice'
+  review_uid: string
   author_display_name: string
   rating: number | null
   text: string

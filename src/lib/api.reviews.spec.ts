@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+п»їimport { beforeEach, describe, expect, it, vi } from 'vitest'
 import { http } from './http'
 import { fetchCabinetReviews } from './api'
 
@@ -36,9 +36,11 @@ describe('reviews api', () => {
       data: [
         {
           id: 1,
-          author_display_name: 'Олена',
+          source: 'session',
+          review_uid: 'session:1',
+          author_display_name: 'РћР»РµРЅР°',
           rating: 1,
-          text: 'Дякую за консультацію',
+          text: 'Р”СЏРєСѓСЋ Р·Р° РєРѕРЅСЃСѓР»СЊС‚Р°С†С–СЋ',
           status: 'APPROVED',
           created_at: '2026-05-02T10:00:00Z',
           session_id: 123,
@@ -47,8 +49,10 @@ describe('reviews api', () => {
     } as any)
 
     const result = await fetchCabinetReviews()
-    expect(result[0]?.author_display_name).toBe('Олена')
-    expect(result[0]?.text).toBe('Дякую за консультацію')
+    expect(result[0]?.source).toBe('session')
+    expect(result[0]?.review_uid).toBe('session:1')
+    expect(result[0]?.author_display_name).toBe('РћР»РµРЅР°')
+    expect(result[0]?.text).toBe('Р”СЏРєСѓСЋ Р·Р° РєРѕРЅСЃСѓР»СЊС‚Р°С†С–СЋ')
     expect(result[0]?.session_id).toBe(123)
     expect((result[0] as any)?.client_username).toBeUndefined()
     expect((result[0] as any)?.review_text).toBeUndefined()

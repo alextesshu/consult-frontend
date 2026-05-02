@@ -5,7 +5,7 @@
         <div class="badge">Відгуки</div>
         <h1 class="title reviews__title">Відгуки</h1>
         <p class="muted reviews__subtitle">
-          Відгуки клієнтів після сесій. Вони доступні тільки у вашому кабінеті.
+          Тут зібрані приватні відгуки від клієнтів. Вони доступні тільки у вашому кабінеті.
         </p>
       </div>
       <RouterLink class="btn btn--ghost" to="/cabinet">Назад до кабінету</RouterLink>
@@ -37,7 +37,7 @@
       </p>
     </div>
     <div v-else class="reviews__list">
-      <article v-for="review in reviews" :key="review.id" class="review-card">
+      <article v-for="review in reviews" :key="review.review_uid" class="review-card">
         <div class="review-card__head">
           <div class="review-card__author">Відгук від: {{ review.author_display_name }}</div>
           <span class="review-card__status" :class="statusClass(review.status)">{{ statusLabel(review.status) }}</span>
@@ -70,16 +70,16 @@ import { formatUkDateTimeCompact } from '../lib/dateTime'
 type FilterKey = 'ALL' | CabinetReviewStatus
 
 const REVIEW_STATUS_LABELS: Record<CabinetReviewStatus, string> = {
-  PENDING: 'Очікує перевірки',
-  APPROVED: 'Підтверджено',
-  REJECTED: 'Не враховано',
+  PENDING: 'Новий',
+  APPROVED: 'Переглянуто',
+  REJECTED: 'Спам / приховано',
 }
 
 const filterOptions: Array<{ key: FilterKey; label: string }> = [
   { key: 'ALL', label: 'Усі' },
-  { key: 'PENDING', label: 'Очікує перевірки' },
-  { key: 'APPROVED', label: 'Підтверджено' },
-  { key: 'REJECTED', label: 'Не враховано' },
+  { key: 'PENDING', label: 'Нові' },
+  { key: 'APPROVED', label: 'Переглянуті' },
+  { key: 'REJECTED', label: 'Спам / приховані' },
 ]
 
 const reviews = ref<CabinetReview[]>([])
