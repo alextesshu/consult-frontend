@@ -56,7 +56,7 @@ describe('ClientMaterialsView', () => {
 
     render(ClientMaterialsView)
     expect(await screen.findByText('Матеріал 1')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Переглянути матеріал' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Відкрити матеріал' })).toBeInTheDocument()
   })
 
   it('fetches material detail before rendering attachments', async () => {
@@ -96,7 +96,7 @@ describe('ClientMaterialsView', () => {
     } as any)
 
     render(ClientMaterialsView)
-    await fireEvent.click(await screen.findByRole('button', { name: 'Переглянути матеріал' }))
+    await fireEvent.click(await screen.findByRole('button', { name: 'Відкрити матеріал' }))
 
     await waitFor(() => {
       expect(mockedFetchClientMaterialDetail).toHaveBeenCalledWith(10)
@@ -143,7 +143,7 @@ describe('ClientMaterialsView', () => {
     mockedGetClientMaterialAttachmentDownloadUrl.mockResolvedValue({ download_url: 'https://signed-url' })
 
     render(ClientMaterialsView)
-    await fireEvent.click(await screen.findByRole('button', { name: 'Переглянути матеріал' }))
+    await fireEvent.click(await screen.findByRole('button', { name: 'Відкрити матеріал' }))
     await fireEvent.click(await screen.findByRole('button', { name: 'Завантажити файл' }))
 
     expect(mockedGetClientMaterialAttachmentDownloadUrl).toHaveBeenCalledWith(10, 1)
@@ -179,7 +179,7 @@ describe('ClientMaterialsView', () => {
     } as any)
 
     const { container } = render(ClientMaterialsView)
-    await fireEvent.click(await screen.findByRole('button', { name: 'Переглянути матеріал' }))
+    await fireEvent.click(await screen.findByRole('button', { name: 'Відкрити матеріал' }))
     expect(container.textContent || '').not.toContain('https://signed-url')
   })
 
@@ -223,7 +223,7 @@ describe('ClientMaterialsView', () => {
     })
 
     render(ClientMaterialsView)
-    await fireEvent.click(await screen.findByRole('button', { name: 'Переглянути матеріал' }))
+    await fireEvent.click(await screen.findByRole('button', { name: 'Відкрити матеріал' }))
     await fireEvent.click(await screen.findByRole('button', { name: 'Завантажити файл' }))
 
     expect(await screen.findByText('Не вдалося підготувати посилання для завантаження. Спробуйте пізніше.')).toBeInTheDocument()
@@ -258,7 +258,7 @@ describe('ClientMaterialsView', () => {
     } as any)
 
     render(ClientMaterialsView)
-    await fireEvent.click(await screen.findByRole('button', { name: 'Переглянути матеріал' }))
+    await fireEvent.click(await screen.findByRole('button', { name: 'Відкрити матеріал' }))
     expect(await screen.findByText('До цього матеріалу немає прикріплених файлів.')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Завантажити файл' })).not.toBeInTheDocument()
   })
@@ -306,5 +306,6 @@ describe('ClientMaterialsView', () => {
     expect(mockedFetchClientMaterials).toHaveBeenNthCalledWith(2, 'cursor-2')
   })
 })
+
 
 

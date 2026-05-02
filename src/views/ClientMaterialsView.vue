@@ -26,7 +26,7 @@
           <div class="client-material-card__link-value" :title="item.url || ''">{{ item.url }}</div>
           <div class="client-material-card__link-hint muted">Перевірте посилання перед відкриттям.</div>
           <div class="client-material-card__actions">
-            <a class="btn btn--ghost btn--sm" :href="item.url || '#'" target="_blank" rel="noopener noreferrer">
+            <a class="btn btn--sm client-materials-btn client-materials-btn--primary" :href="item.url || '#'" target="_blank" rel="noopener noreferrer">
               Відкрити посилання
             </a>
           </div>
@@ -35,8 +35,13 @@
         <div class="client-material-card__attachments">
           <div class="client-material-card__attachments-head">
             <div class="client-material-card__link-label">Файли до цього матеріалу</div>
-            <button class="btn btn--ghost btn--sm" type="button" @click="toggleDetail(item.id)">
-              {{ isDetailOpen(item.id) ? 'Сховати матеріал' : 'Переглянути матеріал' }}
+            <button
+              class="btn btn--sm client-materials-btn"
+              :class="isDetailOpen(item.id) ? 'client-materials-btn--secondary' : 'client-materials-btn--primary'"
+              type="button"
+              @click="toggleDetail(item.id)"
+            >
+              {{ isDetailOpen(item.id) ? 'Сховати матеріал' : 'Відкрити матеріал' }}
             </button>
           </div>
           <p v-if="detailErrorByMaterialId[item.id]" class="form-error">{{ detailErrorByMaterialId[item.id] }}</p>
@@ -51,7 +56,7 @@
                   <div class="muted">{{ humanFileSize(attachment.size_bytes) }}</div>
                 </div>
                 <button
-                  class="btn btn--ghost btn--sm"
+                  class="btn btn--sm client-materials-btn client-materials-btn--primary"
                   type="button"
                   :disabled="Boolean(downloadingByAttachmentId[attachment.id])"
                   @click="downloadAttachment(item.id, attachment.id)"
@@ -305,6 +310,58 @@ onMounted(() => {
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+.client-materials-btn {
+  min-height: 38px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+.client-materials-btn--primary {
+  background: var(--pc-navy-900, #1f3556);
+  color: #fff;
+  border: 1px solid var(--pc-navy-900, #1f3556);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+}
+
+.client-materials-btn--primary:hover {
+  background: var(--pc-navy-950, #162741);
+  border-color: var(--pc-navy-950, #162741);
+}
+
+.client-materials-btn--primary:focus-visible,
+.client-materials-btn--secondary:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--pc-navy-900, #1f3556) 60%, #ffffff);
+  outline-offset: 2px;
+}
+
+.client-materials-btn--secondary {
+  background: #fff;
+  color: var(--pc-navy-900, #1f3556);
+  border: 1px solid color-mix(in srgb, var(--pc-navy-900, #1f3556) 45%, #cbd5e1);
+}
+
+.client-materials-btn--secondary:hover {
+  background: color-mix(in srgb, var(--pc-navy-900, #1f3556) 8%, #ffffff);
+  border-color: var(--pc-navy-900, #1f3556);
+}
+
+.client-materials-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+  .attachments-item {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .client-materials-btn {
+    width: 100%;
+  }
 }
 </style>
 
