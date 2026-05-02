@@ -18,11 +18,11 @@ describe('ReviewShareCardModal', () => {
   beforeEach(() => {
     vi.restoreAllMocks()
     MockImage.lastSrc = ''
-    ;(globalThis as any).Image = MockImage as any
+      ; (globalThis as any).Image = MockImage as any
   })
 
   afterAll(() => {
-    ;(globalThis as any).Image = originalImage
+    ; (globalThis as any).Image = originalImage
   })
 
   function renderView(profileUrl = 'https://example.com/s/anna-kupriyan', specialistDisplayName = 'Олена Коваль') {
@@ -73,7 +73,7 @@ describe('ReviewShareCardModal', () => {
 
   it('preview includes Pro Consult branding and consent footer', async () => {
     renderView()
-    expect(screen.getByText('Відгук клієнта через Pro Consult')).toBeInTheDocument()
+    expect(screen.getByText('Відгук клієнта через proconsult.space')).toBeInTheDocument()
     expect(screen.getByText('Використано зі згоди клієнта')).toBeInTheDocument()
   })
 
@@ -81,7 +81,7 @@ describe('ReviewShareCardModal', () => {
     renderView()
     await fireEvent.click(screen.getByRole('button', { name: 'Завантажити PNG' }))
     await waitFor(() => {
-      expect(MockImage.lastSrc).toContain(encodeURIComponent('Відгук клієнта через Pro Consult'))
+      expect(MockImage.lastSrc).toContain(encodeURIComponent('Відгук клієнта через proconsult.space'))
     })
   })
 

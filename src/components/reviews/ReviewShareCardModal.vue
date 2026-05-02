@@ -38,7 +38,7 @@
       <div class="share-card-modal__preview-wrap">
         <article class="share-card-preview" :class="[`is-${format}`, `is-${theme}`]">
           <div class="share-card-preview__content share-card-preview__content--compact">
-            <div class="share-card-preview__title">Відгук клієнта через Pro Consult</div>
+            <div class="share-card-preview__title">Відгук клієнта через proconsult.space</div>
             <blockquote class="share-card-preview__text">“{{ previewText }}”</blockquote>
             <div class="share-card-preview__author">— Анонімний клієнт</div>
             <div v-if="showSpecialistName" class="share-card-preview__specialist">{{ safeSpecialistDisplayName }}</div>
@@ -180,7 +180,7 @@ function buildSvg(): string {
 <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
   <rect width="100%" height="100%" fill="${bg}"/>
   <rect x="70" y="70" width="940" height="${height - 140}" rx="28" fill="${cardBg}" stroke="${cardBorder}"/>
-  <text x="90" y="170" fill="${accent}" font-size="42" font-weight="700" font-family="Arial, sans-serif">Відгук клієнта через Pro Consult</text>
+  <text x="90" y="170" fill="${accent}" font-size="42" font-weight="700" font-family="Arial, sans-serif">Відгук клієнта через proconsult.space</text>
   <text x="90" y="250" fill="${fg}" font-size="48" font-family="Arial, sans-serif">${quoteBlock}</text>
   ${optionalBlocks.join('')}
 </svg>`.trim()
