@@ -130,6 +130,10 @@ export function getBookingErrorMessage(err: unknown, fallback: string): string {
     return BOOKING_ERROR_CODE_MESSAGES[code]
   }
 
+  const detail = (err as { response?: { data?: { detail?: unknown } } })?.response?.data?.detail
+  if (detail === 'Slot not found.') {
+    return BOOKING_ERROR_CODE_MESSAGES.SLOT_NOT_FOUND!
+  }
+
   return getApiErrorMessage(err, fallback)
 }
-
