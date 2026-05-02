@@ -1573,19 +1573,38 @@ export async function fetchPublicJournalCollectionDetail(
 
 export async function createPracticeReview(
   specialistId: number,
-  reviewText: string
+  reviewText: string,
+  allowAnonymousExternalUse?: boolean
 ): Promise<{ id: number }> {
-  const resp = await http.post<{ id: number }>(`/practice/specialists/${specialistId}/reviews/`, {
+  const payload: { review_text: string; allow_anonymous_external_use?: boolean } = {
     review_text: reviewText,
+  }
+  if (typeof allowAnonymousExternalUse === 'boolean') {
+    payload.allow_anonymous_external_use = allowAnonymousExternalUse
+  }
+  const resp = await http.post<{ id: number }>(`/practice/specialists/${specialistId}/reviews/`, {
+    ...payload,
   })
   return resp.data
 }
 
 export type CabinetReviewStatus = 'PENDING' | 'APPROVED' | 'REJECTED'
+export type ReviewSource = 'session' | 'practice'
+export type ShareCardPermissionStatus =
+  | 'NOT_GRANTED'
+  | 'GRANTED_ANONYMOUS'
+  | 'REVOKED'
+  | 'UNSUPPORTED_REVIEW_SOURCE'
+
+export type ShareCardPermission = {
+  can_create: boolean
+  status: ShareCardPermissionStatus
+  mode: 'anonymous' | null
+}
 
 export type CabinetReview = {
   id: number
-  source: 'session' | 'practice'
+  source: ReviewSource
   review_uid: string
   author_display_name: string
   rating: number | null
@@ -1593,6 +1612,7 @@ export type CabinetReview = {
   status: CabinetReviewStatus
   created_at: string
   session_id: number | null
+  share_card_permission: ShareCardPermission
 }
 
 export async function fetchCabinetReviews(params?: {
@@ -1604,6 +1624,28 @@ export async function fetchCabinetReviews(params?: {
     },
   })
   return resp.data || []
+}
+
+export async function updateCabinetReviewStatus(params: {
+  source: 'session' | 'practice'
+  id: number
+  status: CabinetReviewStatus
+}): Promise<{
+  id: number
+  source: 'session' | 'practice'
+  review_uid: string
+  status: CabinetReviewStatus
+}> {
+  const resp = await http.patch<{
+    id: number
+    source: 'session' | 'practice'
+    review_uid: string
+    status: CabinetReviewStatus
+  }>(
+    `/cabinet/reviews/${params.source}/${params.id}/status/`,
+    { status: params.status }
+  )
+  return resp.data
 }
 
 export async function fetchAuthorJournalPosts(): Promise<AuthorJournalPost[]> {

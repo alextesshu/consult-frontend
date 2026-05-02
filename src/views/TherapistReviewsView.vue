@@ -43,29 +43,66 @@
           <span class="review-card__status" :class="statusClass(review.status)">{{ statusLabel(review.status) }}</span>
         </div>
         <p class="review-card__text">{{ review.text }}</p>
+        <div class="review-card__permission">{{ permissionLabel(review) }}</div>
         <div class="review-card__meta">
           <span>{{ formatDate(review.created_at) }}</span>
-          <RouterLink
-            v-if="review.session_id"
-            class="btn btn--ghost btn--sm"
-            :to="`/cabinet/sessions/${review.session_id}`"
-          >
-            Перейти до сесії
-          </RouterLink>
+          <div class="review-card__actions">
+            <button
+              v-if="canCreateShareCard(review)"
+              class="btn btn--sm"
+              type="button"
+              @click="openShareCard(review)"
+            >
+              Створити картку
+            </button>
+            <RouterLink
+              v-if="review.session_id"
+              class="btn btn--ghost btn--sm"
+              :to="`/cabinet/sessions/${review.session_id}`"
+            >
+              Перейти до сесії
+            </RouterLink>
+            <button
+              v-for="action in triageActions(review.status)"
+              :key="`${review.review_uid}:${action.next}`"
+              class="btn btn--ghost btn--sm"
+              type="button"
+              :disabled="Boolean(statusActionLoadingByReviewUid[review.review_uid])"
+              @click="applyReviewStatus(review, action.next)"
+            >
+              {{ action.label }}
+            </button>
+          </div>
+        </div>
+        <div v-if="statusActionErrorByReviewUid[review.review_uid]" class="form-error">
+          {{ statusActionErrorByReviewUid[review.review_uid] }}
         </div>
       </article>
     </div>
+
+    <ReviewShareCardModal
+      v-if="selectedReview"
+      :open="Boolean(selectedReview)"
+      :review-text="selectedReview.text"
+      :review-uid="selectedReview.review_uid"
+      :specialist-display-name="specialistDisplayName"
+      :profile-url="specialistProfileUrl"
+      @close="closeShareCard"
+    />
   </section>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
+import { useAuthStore } from '../stores/auth'
 import {
   fetchCabinetReviews,
+  updateCabinetReviewStatus,
   type CabinetReview,
   type CabinetReviewStatus,
 } from '../lib/api'
 import { formatUkDateTimeCompact } from '../lib/dateTime'
+import ReviewShareCardModal from '../components/reviews/ReviewShareCardModal.vue'
 
 type FilterKey = 'ALL' | CabinetReviewStatus
 
@@ -86,6 +123,51 @@ const reviews = ref<CabinetReview[]>([])
 const loading = ref(false)
 const error = ref('')
 const activeFilter = ref<FilterKey>('ALL')
+const selectedReview = ref<CabinetReview | null>(null)
+const statusActionLoadingByReviewUid = ref<Record<string, boolean>>({})
+const statusActionErrorByReviewUid = ref<Record<string, string>>({})
+const auth = useAuthStore()
+
+const specialistDisplayName = computed(() => {
+  const mePayload = auth.me as any
+  const profileDisplayName = String(mePayload?.display_name || '').trim()
+  if (profileDisplayName) return profileDisplayName
+  const meDisplayName = String(mePayload?.user?.display_name || '').trim()
+  if (meDisplayName) return meDisplayName
+  const authDisplayName = String((auth.user as any)?.display_name || '').trim()
+  if (authDisplayName) return authDisplayName
+  const firstName = String(mePayload?.user?.first_name || '').trim()
+  const lastName = String(mePayload?.user?.last_name || '').trim()
+  const fullName = `${firstName} ${lastName}`.trim()
+  if (fullName) return fullName
+  return 'Спеціаліст'
+})
+
+function normalizePublicProfilePath(value: unknown): string {
+  const raw = String(value || '').trim()
+  if (!raw) return ''
+  if (raw.startsWith('/s/')) return raw
+  if (/^https?:\/\//i.test(raw)) {
+    try {
+      const url = new URL(raw)
+      if (url.pathname.startsWith('/s/')) return url.pathname
+    } catch {
+      return ''
+    }
+  }
+  return ''
+}
+
+const specialistProfileUrl = computed(() => {
+  const mePayload = auth.me as any
+  const path =
+    normalizePublicProfilePath(mePayload?.public_profile_path) ||
+    normalizePublicProfilePath(mePayload?.user?.public_profile_path) ||
+    normalizePublicProfilePath(mePayload?.public_profile_url) ||
+    normalizePublicProfilePath(mePayload?.user?.public_profile_url)
+  if (!path) return ''
+  return `${window.location.origin}${path}`
+})
 
 function statusLabel(status: CabinetReviewStatus): string {
   return REVIEW_STATUS_LABELS[status] || status
@@ -105,6 +187,70 @@ function mapError(err: unknown): string {
   const code = String((err as any)?.response?.data?.code || '').trim().toUpperCase()
   if (code === 'REVIEW_INVALID_STATUS') return 'Некоректний статус відгуків.'
   return 'Не вдалося завантажити відгуки. Спробуйте ще раз.'
+}
+
+function permissionLabel(review: CabinetReview): string {
+  const permission = review.share_card_permission
+  if (permission?.status === 'GRANTED_ANONYMOUS') {
+    return 'Використання поза платформою: дозволено анонімно'
+  }
+  if (permission?.status === 'REVOKED') return 'Дозвіл відкликано'
+  if (permission?.status === 'UNSUPPORTED_REVIEW_SOURCE') {
+    return 'Картки доступні лише для анонімних відгуків'
+  }
+  return 'Використання поза платформою: не дозволено'
+}
+
+function canCreateShareCard(review: CabinetReview): boolean {
+  const permission = review.share_card_permission
+  return (
+    review.source === 'practice' &&
+    permission?.can_create === true &&
+    permission?.status === 'GRANTED_ANONYMOUS' &&
+    permission?.mode === 'anonymous'
+  )
+}
+
+function triageActions(status: CabinetReviewStatus): Array<{ label: string; next: CabinetReviewStatus }> {
+  if (status === 'PENDING') {
+    return [
+      { label: 'Позначити як переглянутий', next: 'APPROVED' },
+      { label: 'Помітити як спам', next: 'REJECTED' },
+    ]
+  }
+  if (status === 'APPROVED') {
+    return [
+      { label: 'Повернути до нових', next: 'PENDING' },
+      { label: 'Помітити як спам', next: 'REJECTED' },
+    ]
+  }
+  return [{ label: 'Повернути до нових', next: 'PENDING' }]
+}
+
+function openShareCard(review: CabinetReview) {
+  selectedReview.value = review
+}
+
+function closeShareCard() {
+  selectedReview.value = null
+}
+
+async function applyReviewStatus(review: CabinetReview, nextStatus: CabinetReviewStatus) {
+  statusActionLoadingByReviewUid.value[review.review_uid] = true
+  statusActionErrorByReviewUid.value[review.review_uid] = ''
+  try {
+    await updateCabinetReviewStatus({
+      source: review.source,
+      id: review.id,
+      status: nextStatus,
+    })
+    await loadReviews()
+  } catch {
+    statusActionErrorByReviewUid.value[review.review_uid] =
+      'Не вдалося оновити статус відгуку. Спробуйте ще раз.'
+  } finally {
+    statusActionLoadingByReviewUid.value[review.review_uid] = false
+  }
 }
 
 async function loadReviews() {
@@ -238,6 +384,11 @@ onMounted(() => {
   white-space: pre-wrap;
 }
 
+.review-card__permission {
+  color: var(--pc-text-muted);
+  font-size: 13px;
+}
+
 .review-card__meta {
   display: flex;
   justify-content: space-between;
@@ -246,6 +397,21 @@ onMounted(() => {
   flex-wrap: wrap;
   color: var(--pc-text-muted);
   font-size: 13px;
+}
+
+.review-card__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.form-error {
+  color: #b3261e;
+  background: #fdecea;
+  border: 1px solid #f5c2c0;
+  border-radius: 10px;
+  padding: 8px 10px;
 }
 
 @media (max-width: 760px) {

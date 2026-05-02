@@ -69,6 +69,21 @@
         </label>
 
         <div class="field__hint">Текст бачить лише спеціаліст. Ім’я не передається.</div>
+        <label class="consent-field">
+          <input
+            v-model="allowAnonymousExternalUse"
+            type="checkbox"
+            :disabled="!isAuthenticated || submitLoading || feedbackLimitReached"
+          />
+          <span>
+            Дозволяю спеціалісту використовувати цей відгук анонімно поза платформою — наприклад у
+            соцмережах або на власному сайті.
+          </span>
+        </label>
+        <div class="field__hint">
+          Спеціаліст зможе використати лише текст відгуку без вашого імені, профілю та контактних
+          даних.
+        </div>
         <div v-if="feedbackLimitReached" class="hint">
           Ви вже залишили максимальну кількість відгуків для цього спеціаліста.
         </div>
@@ -110,6 +125,7 @@ const submitLoading = ref(false)
 const submitError = ref('')
 const submitSuccess = ref('')
 const feedbackLimitReached = ref(false)
+const allowAnonymousExternalUse = ref(false)
 const reviews = ref<Array<{ id: number; text?: string; review_text?: string; created_at: string }>>([])
 const reviewsLoading = ref(false)
 const reviewsError = ref('')
@@ -203,9 +219,10 @@ async function submitReview() {
   }
   submitLoading.value = true
   try {
-    await createPracticeReview(profile.value.therapist_id, text)
+    await createPracticeReview(profile.value.therapist_id, text, allowAnonymousExternalUse.value)
     submitSuccess.value = `Дякуємо! Ваш відгук для ${publicNameShort.value} збережено.`
     reviewText.value = ''
+    allowAnonymousExternalUse.value = false
   } catch (err: any) {
     const status = err?.response?.status
     const backendCode = String(err?.response?.data?.code || '')
@@ -310,6 +327,19 @@ onMounted(async () => {
 .field__hint {
   font-size: 12px;
   color: var(--muted);
+}
+
+.consent-field {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--ink);
+  line-height: 1.4;
+}
+
+.consent-field input {
+  margin-top: 2px;
 }
 
 .hint {
