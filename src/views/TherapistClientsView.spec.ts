@@ -1,18 +1,21 @@
-import { fireEvent, render, screen, waitFor, within } from '@testing-library/vue'
+﻿import { fireEvent, render, screen, waitFor, within } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   apiGet,
   apiPatch,
   apiPost,
   createSpecialistClientMaterial,
+  deleteClientMaterialAttachment,
   createClientRecordAccountInvite,
   fetchSpecialistClientMaterials,
   fetchChatThreads,
   fetchClientRecordAccountInvite,
+  listClientMaterialAttachments,
   publishSpecialistClientMaterial,
   regenerateClientRecordAccountInvite,
   revokeSpecialistClientMaterial,
   revokeClientRecordAccountInvite,
+  uploadClientMaterialAttachment,
   updateSpecialistClientMaterial,
 } from '../lib/api'
 import TherapistClientsView from './TherapistClientsView.vue'
@@ -28,15 +31,18 @@ vi.mock('../lib/api', () => ({
   apiPatch: vi.fn(),
   apiPost: vi.fn(),
   createSpecialistClientMaterial: vi.fn(),
+  deleteClientMaterialAttachment: vi.fn(),
   createClientRecordAccountInvite: vi.fn(),
   fetchSpecialistClientMaterials: vi.fn(),
   fetchChatThreads: vi.fn(),
   fetchClientRecordAccountInvite: vi.fn(),
+  listClientMaterialAttachments: vi.fn(),
   hasMaterialUrl: (material: { url?: string | null }) => Boolean(String(material?.url || '').trim()),
   publishSpecialistClientMaterial: vi.fn(),
   regenerateClientRecordAccountInvite: vi.fn(),
   revokeSpecialistClientMaterial: vi.fn(),
   revokeClientRecordAccountInvite: vi.fn(),
+  uploadClientMaterialAttachment: vi.fn(),
   updateSpecialistClientMaterial: vi.fn(),
 }))
 vi.mock('../lib/specialistPracticeBoard', () => ({
@@ -60,14 +66,17 @@ const mockedApiGet = vi.mocked(apiGet)
 const mockedApiPatch = vi.mocked(apiPatch)
 const mockedApiPost = vi.mocked(apiPost)
 const mockedCreateSpecialistClientMaterial = vi.mocked(createSpecialistClientMaterial)
+const mockedDeleteClientMaterialAttachment = vi.mocked(deleteClientMaterialAttachment)
 const mockedCreateClientRecordAccountInvite = vi.mocked(createClientRecordAccountInvite)
 const mockedFetchSpecialistClientMaterials = vi.mocked(fetchSpecialistClientMaterials)
 const mockedFetchChatThreads = vi.mocked(fetchChatThreads)
 const mockedFetchClientRecordAccountInvite = vi.mocked(fetchClientRecordAccountInvite)
+const mockedListClientMaterialAttachments = vi.mocked(listClientMaterialAttachments)
 const mockedPublishSpecialistClientMaterial = vi.mocked(publishSpecialistClientMaterial)
 const mockedRegenerateClientRecordAccountInvite = vi.mocked(regenerateClientRecordAccountInvite)
 const mockedRevokeSpecialistClientMaterial = vi.mocked(revokeSpecialistClientMaterial)
 const mockedRevokeClientRecordAccountInvite = vi.mocked(revokeClientRecordAccountInvite)
+const mockedUploadClientMaterialAttachment = vi.mocked(uploadClientMaterialAttachment)
 const mockedUpdateSpecialistClientMaterial = vi.mocked(updateSpecialistClientMaterial)
 const mockedCreatePracticeBoardItem = vi.mocked(createPracticeBoardItem)
 const mockedFetchPracticeBoards = vi.mocked(fetchPracticeBoards)
@@ -165,12 +174,16 @@ describe('TherapistClientsView', () => {
     mockedApiPost.mockReset()
     mockedCreateSpecialistClientMaterial.mockReset()
     mockedCreateSpecialistClientMaterial.mockResolvedValue({} as any)
+    mockedDeleteClientMaterialAttachment.mockReset()
+    mockedDeleteClientMaterialAttachment.mockResolvedValue(undefined as any)
     mockedCreateClientRecordAccountInvite.mockReset()
     mockedCreateClientRecordAccountInvite.mockResolvedValue({ invite: null, invite_url: null } as any)
     mockedFetchChatThreads.mockReset()
     mockedFetchChatThreads.mockResolvedValue([])
     mockedFetchClientRecordAccountInvite.mockReset()
     mockedFetchClientRecordAccountInvite.mockResolvedValue(null)
+    mockedListClientMaterialAttachments.mockReset()
+    mockedListClientMaterialAttachments.mockResolvedValue([])
     mockedFetchSpecialistClientMaterials.mockReset()
     mockedFetchSpecialistClientMaterials.mockResolvedValue([])
     mockedPublishSpecialistClientMaterial.mockReset()
@@ -181,6 +194,8 @@ describe('TherapistClientsView', () => {
     mockedRevokeSpecialistClientMaterial.mockResolvedValue({} as any)
     mockedRevokeClientRecordAccountInvite.mockReset()
     mockedRevokeClientRecordAccountInvite.mockResolvedValue({ invite: null, invite_url: null } as any)
+    mockedUploadClientMaterialAttachment.mockReset()
+    mockedUploadClientMaterialAttachment.mockResolvedValue({} as any)
     mockedUpdateSpecialistClientMaterial.mockReset()
     mockedUpdateSpecialistClientMaterial.mockResolvedValue({} as any)
     mockedCreatePracticeBoardItem.mockReset()
@@ -309,15 +324,15 @@ describe('TherapistClientsView', () => {
     const { container } = renderView()
 
     const showSessionsButton = await waitFor(() => {
-      expect(screen.getByText('Є 1 завершена сесія, до якої можна додати нотатку.')).toBeInTheDocument()
-      return screen.getByRole('button', { name: 'Показати сесії' })
+      expect(screen.getByText('Р„ 1 Р·Р°РІРµСЂС€РµРЅР° СЃРµСЃС–СЏ, РґРѕ СЏРєРѕС— РјРѕР¶РЅР° РґРѕРґР°С‚Рё РЅРѕС‚Р°С‚РєСѓ.')).toBeInTheDocument()
+      return screen.getByRole('button', { name: 'РџРѕРєР°Р·Р°С‚Рё СЃРµСЃС–С—' })
     })
-    expect(screen.queryByRole('link', { name: 'Додати нотатку' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Р”РѕРґР°С‚Рё РЅРѕС‚Р°С‚РєСѓ' })).not.toBeInTheDocument()
 
     await fireEvent.click(showSessionsButton)
 
     await waitFor(() => {
-      expect(screen.getByRole('link', { name: 'Додати нотатку' })).toHaveAttribute('href', noteReminderHref(777))
+      expect(screen.getByRole('link', { name: 'Р”РѕРґР°С‚Рё РЅРѕС‚Р°С‚РєСѓ' })).toHaveAttribute('href', noteReminderHref(777))
       expect(container.textContent).toContain('Display Client')
     })
     expect(mockedApiGet).toHaveBeenCalledWith(REMINDERS_URL)
@@ -341,38 +356,38 @@ describe('TherapistClientsView', () => {
     const { container } = renderView()
 
     const showSessionsButton = await waitFor(() => {
-      expect(screen.getByText('Нотатки після сесій')).toBeInTheDocument()
-      expect(screen.getByText('Є 5 завершені сесії, до яких можна додати нотатку.')).toBeInTheDocument()
-      expect(screen.getByText('Для зручності ведення історії можна додати коротку нотатку після сесії.')).toBeInTheDocument()
-      return screen.getByRole('button', { name: 'Показати сесії' })
+      expect(screen.getByText('РќРѕС‚Р°С‚РєРё РїС–СЃР»СЏ СЃРµСЃС–Р№')).toBeInTheDocument()
+      expect(screen.getByText('Р„ 5 Р·Р°РІРµСЂС€РµРЅС– СЃРµСЃС–С—, РґРѕ СЏРєРёС… РјРѕР¶РЅР° РґРѕРґР°С‚Рё РЅРѕС‚Р°С‚РєСѓ.')).toBeInTheDocument()
+      expect(screen.getByText('Р”Р»СЏ Р·СЂСѓС‡РЅРѕСЃС‚С– РІРµРґРµРЅРЅСЏ С–СЃС‚РѕСЂС–С— РјРѕР¶РЅР° РґРѕРґР°С‚Рё РєРѕСЂРѕС‚РєСѓ РЅРѕС‚Р°С‚РєСѓ РїС–СЃР»СЏ СЃРµСЃС–С—.')).toBeInTheDocument()
+      return screen.getByRole('button', { name: 'РџРѕРєР°Р·Р°С‚Рё СЃРµСЃС–С—' })
     })
 
     const remindersPanel = requireHTMLElement(container.querySelector('.panel--reminders'), '.panel--reminders')
-    expect(container).not.toHaveTextContent('Сесії без коментаря')
-    expect(within(remindersPanel).queryByRole('link', { name: 'Додати нотатку' })).not.toBeInTheDocument()
-    expect(remindersPanel).not.toHaveTextContent('потрібно')
-    expect(remindersPanel).not.toHaveTextContent('обов')
-    expect(remindersPanel).not.toHaveTextContent('без коментаря')
+    expect(container).not.toHaveTextContent('РЎРµСЃС–С— Р±РµР· РєРѕРјРµРЅС‚Р°СЂСЏ')
+    expect(within(remindersPanel).queryByRole('link', { name: 'Р”РѕРґР°С‚Рё РЅРѕС‚Р°С‚РєСѓ' })).not.toBeInTheDocument()
+    expect(remindersPanel).not.toHaveTextContent('РїРѕС‚СЂС–Р±РЅРѕ')
+    expect(remindersPanel).not.toHaveTextContent('РѕР±РѕРІ')
+    expect(remindersPanel).not.toHaveTextContent('Р±РµР· РєРѕРјРµРЅС‚Р°СЂСЏ')
 
     await fireEvent.click(showSessionsButton)
 
     await waitFor(() => {
-      const addNoteLinks = within(remindersPanel).getAllByRole('link', { name: 'Додати нотатку' })
+      const addNoteLinks = within(remindersPanel).getAllByRole('link', { name: 'Р”РѕРґР°С‚Рё РЅРѕС‚Р°С‚РєСѓ' })
       expect(addNoteLinks).toHaveLength(3)
       expect(addNoteLinks.map((link) => link.getAttribute('href'))).toEqual([
         noteReminderHref(804),
         noteReminderHref(803),
         noteReminderHref(802),
       ])
-      expect(screen.getByRole('button', { name: 'Показати ще' })).toBeInTheDocument()
-      expect(screen.getByText('Клієнт #54')).toBeInTheDocument()
-      expect(screen.getByText('Клієнт #53')).toBeInTheDocument()
-      expect(screen.getByText('Клієнт #52')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'РџРѕРєР°Р·Р°С‚Рё С‰Рµ' })).toBeInTheDocument()
+      expect(screen.getByText('РљР»С–С”РЅС‚ #54')).toBeInTheDocument()
+      expect(screen.getByText('РљР»С–С”РЅС‚ #53')).toBeInTheDocument()
+      expect(screen.getByText('РљР»С–С”РЅС‚ #52')).toBeInTheDocument()
     })
 
-    await fireEvent.click(screen.getByRole('button', { name: 'Показати ще' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'РџРѕРєР°Р·Р°С‚Рё С‰Рµ' }))
     await waitFor(() => {
-      expect(within(remindersPanel).getAllByRole('link', { name: 'Додати нотатку' })).toHaveLength(5)
+      expect(within(remindersPanel).getAllByRole('link', { name: 'Р”РѕРґР°С‚Рё РЅРѕС‚Р°С‚РєСѓ' })).toHaveLength(5)
     })
   })
 
@@ -395,16 +410,16 @@ describe('TherapistClientsView', () => {
 
     const { container } = renderView()
 
-    await fireEvent.click(await screen.findByRole('button', { name: 'Показати сесії' }))
-    expect(screen.getByRole('link', { name: 'Додати нотатку' })).toHaveAttribute('href', noteReminderHref(900))
+    await fireEvent.click(await screen.findByRole('button', { name: 'РџРѕРєР°Р·Р°С‚Рё СЃРµСЃС–С—' }))
+    expect(screen.getByRole('link', { name: 'Р”РѕРґР°С‚Рё РЅРѕС‚Р°С‚РєСѓ' })).toHaveAttribute('href', noteReminderHref(900))
 
-    await fireEvent.click(screen.getByRole('button', { name: 'Залишити без нотатки' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Р—Р°Р»РёС€РёС‚Рё Р±РµР· РЅРѕС‚Р°С‚РєРё' }))
 
     await waitFor(() => {
       expect(mockedSkipSpecialistSessionNote).toHaveBeenCalledWith(900)
       expect(container.querySelector('.panel--reminders')).toBeFalsy()
     })
-    expect(container).not.toHaveTextContent('Без нотатки')
+    expect(container).not.toHaveTextContent('Р‘РµР· РЅРѕС‚Р°С‚РєРё')
     expect(mockedApiGet).toHaveBeenCalledWith(REMINDERS_URL)
   })
 
@@ -463,7 +478,7 @@ describe('TherapistClientsView', () => {
     renderView()
 
     const quickAddButton = await waitFor(() => {
-      const button = screen.getByRole('button', { name: 'Додати на дошку' })
+      const button = screen.getByRole('button', { name: 'Р”РѕРґР°С‚Рё РЅР° РґРѕС€РєСѓ' })
       expect(button).toBeInstanceOf(HTMLButtonElement)
       return button as HTMLButtonElement
     })
@@ -510,7 +525,7 @@ describe('TherapistClientsView', () => {
     renderView()
 
     const quickAddButton = await waitFor(() => {
-      const button = screen.getByRole('button', { name: 'Додати на дошку' })
+      const button = screen.getByRole('button', { name: 'Р”РѕРґР°С‚Рё РЅР° РґРѕС€РєСѓ' })
       expect(button).toBeInstanceOf(HTMLButtonElement)
       return button as HTMLButtonElement
     })
@@ -550,7 +565,7 @@ describe('TherapistClientsView', () => {
     renderView()
 
     const quickAddButton = await waitFor(() => {
-      const button = screen.getByRole('button', { name: 'Додати на дошку' })
+      const button = screen.getByRole('button', { name: 'Р”РѕРґР°С‚Рё РЅР° РґРѕС€РєСѓ' })
       expect(button).toBeInstanceOf(HTMLButtonElement)
       return button as HTMLButtonElement
     })
@@ -620,7 +635,7 @@ describe('TherapistClientsView', () => {
     const { container } = renderView()
 
     const historyButton = await waitFor(() => {
-      const button = screen.getByRole('button', { name: 'Приватна історія' })
+      const button = screen.getByRole('button', { name: 'РџСЂРёРІР°С‚РЅР° С–СЃС‚РѕСЂС–СЏ' })
       expect(button).toBeInstanceOf(HTMLButtonElement)
       return button as HTMLButtonElement
     })
@@ -799,23 +814,23 @@ describe('TherapistClientsView', () => {
 
     await waitFor(() => {
       expect(within(clientsPanel).getByText('Active Client')).toBeInTheDocument()
-      expect(clientsPanel.querySelector('.client-status--active')).toHaveTextContent('Активний')
-      expect(clientsPanel.querySelector('.client-status--inactive')).toHaveTextContent('Неактивний')
-      expect(clientsPanel.querySelector('.client-status--archived')).toHaveTextContent('Архів')
+      expect(clientsPanel.querySelector('.client-status--active')).toHaveTextContent('РђРєС‚РёРІРЅРёР№')
+      expect(clientsPanel.querySelector('.client-status--inactive')).toHaveTextContent('РќРµР°РєС‚РёРІРЅРёР№')
+      expect(clientsPanel.querySelector('.client-status--archived')).toHaveTextContent('РђСЂС…С–РІ')
     })
 
     const firstCard = clientsPanel.querySelector('.client-card') as HTMLElement
-    expect(within(firstCard).getByText('Остання сесія')).toBeInTheDocument()
-    expect(within(firstCard).getByText('Майбутніх сесій')).toBeInTheDocument()
-    expect(within(firstCard).getByText('Остання нотатка')).toBeInTheDocument()
-    expect(within(firstCard).getByText('Робочий зошит')).toBeInTheDocument()
-    expect(within(firstCard).getByText('Оновлено')).toBeInTheDocument()
-    expect(within(firstCard).getByRole('link', { name: 'Відкрити нотатку' })).toHaveAttribute(
+    expect(within(firstCard).getByText('РћСЃС‚Р°РЅРЅСЏ СЃРµСЃС–СЏ')).toBeInTheDocument()
+    expect(within(firstCard).getByText('РњР°Р№Р±СѓС‚РЅС–С… СЃРµСЃС–Р№')).toBeInTheDocument()
+    expect(within(firstCard).getByText('РћСЃС‚Р°РЅРЅСЏ РЅРѕС‚Р°С‚РєР°')).toBeInTheDocument()
+    expect(within(firstCard).getByText('Р РѕР±РѕС‡РёР№ Р·РѕС€РёС‚')).toBeInTheDocument()
+    expect(within(firstCard).getByText('РћРЅРѕРІР»РµРЅРѕ')).toBeInTheDocument()
+    expect(within(firstCard).getByRole('link', { name: 'Р’С–РґРєСЂРёС‚Рё РЅРѕС‚Р°С‚РєСѓ' })).toHaveAttribute(
       'href',
       '/cabinet/sessions#note-777'
     )
-    expect(within(firstCard).getByRole('button', { name: 'Додати на дошку' })).toBeInTheDocument()
-    expect(within(firstCard).getByRole('button', { name: 'Архівувати' })).toBeInTheDocument()
+    expect(within(firstCard).getByRole('button', { name: 'Р”РѕРґР°С‚Рё РЅР° РґРѕС€РєСѓ' })).toBeInTheDocument()
+    expect(within(firstCard).getByRole('button', { name: 'РђСЂС…С–РІСѓРІР°С‚Рё' })).toBeInTheDocument()
     expect(clientsPanel).not.toHaveTextContent('ACTIVE')
     expect(clientsPanel).not.toHaveTextContent('INACTIVE')
     expect(clientsPanel).not.toHaveTextContent('ARCHIVED')
@@ -832,29 +847,29 @@ describe('TherapistClientsView', () => {
     const { clientsPanel } = getPanels(container)
 
     await waitFor(() => {
-      expect(clientsPanel).toHaveTextContent('Клієнтів поки немає')
-      expect(clientsPanel).toHaveTextContent('Клієнти з’являться після перших консультацій')
+      expect(clientsPanel).toHaveTextContent('РљР»С–С”РЅС‚С–РІ РїРѕРєРё РЅРµРјР°С”')
+      expect(clientsPanel).toHaveTextContent('РљР»С–С”РЅС‚Рё Р·вЂ™СЏРІР»СЏС‚СЊСЃСЏ РїС–СЃР»СЏ РїРµСЂС€РёС… РєРѕРЅСЃСѓР»СЊС‚Р°С†С–Р№')
       expect(clientsPanel).toHaveTextContent(
-        'Клієнта можна додати вручну без кабінету, щоб швидко почати роботу. Кабінет клієнта можна буде підключити пізніше — для власних сесій клієнта, нагадувань, оплати та зручнішої взаємодії.'
+        'РљР»С–С”РЅС‚Р° РјРѕР¶РЅР° РґРѕРґР°С‚Рё РІСЂСѓС‡РЅСѓ Р±РµР· РєР°Р±С–РЅРµС‚Сѓ, С‰РѕР± С€РІРёРґРєРѕ РїРѕС‡Р°С‚Рё СЂРѕР±РѕС‚Сѓ. РљР°Р±С–РЅРµС‚ РєР»С–С”РЅС‚Р° РјРѕР¶РЅР° Р±СѓРґРµ РїС–РґРєР»СЋС‡РёС‚Рё РїС–Р·РЅС–С€Рµ вЂ” РґР»СЏ РІР»Р°СЃРЅРёС… СЃРµСЃС–Р№ РєР»С–С”РЅС‚Р°, РЅР°РіР°РґСѓРІР°РЅСЊ, РѕРїР»Р°С‚Рё С‚Р° Р·СЂСѓС‡РЅС–С€РѕС— РІР·Р°С”РјРѕРґС–С—.'
       )
     })
 
     const searchInput = clientsPanel.querySelector('#clients-search-input') as HTMLInputElement
-    await fireEvent.update(searchInput, 'олена')
+    await fireEvent.update(searchInput, 'РѕР»РµРЅР°')
     await waitFor(() => {
-      expect(clientsPanel).toHaveTextContent('Нічого не знайдено')
-      expect(clientsPanel).toHaveTextContent('Перевірте написання або змініть фільтр')
+      expect(clientsPanel).toHaveTextContent('РќС–С‡РѕРіРѕ РЅРµ Р·РЅР°Р№РґРµРЅРѕ')
+      expect(clientsPanel).toHaveTextContent('РџРµСЂРµРІС–СЂС‚Рµ РЅР°РїРёСЃР°РЅРЅСЏ Р°Р±Рѕ Р·РјС–РЅС–С‚СЊ С„С–Р»СЊС‚СЂ')
     })
 
     await fireEvent.update(searchInput, '')
     const filterButtons = clientsPanel.querySelectorAll('.filters button')
     await fireEvent.click(filterButtons[1] as HTMLButtonElement)
     await waitFor(() => {
-      expect(clientsPanel).toHaveTextContent('Активних клієнтів поки немає')
+      expect(clientsPanel).toHaveTextContent('РђРєС‚РёРІРЅРёС… РєР»С–С”РЅС‚С–РІ РїРѕРєРё РЅРµРјР°С”')
     })
     await fireEvent.click(filterButtons[3] as HTMLButtonElement)
     await waitFor(() => {
-      expect(clientsPanel).toHaveTextContent('Архів порожній')
+      expect(clientsPanel).toHaveTextContent('РђСЂС…С–РІ РїРѕСЂРѕР¶РЅС–Р№')
     })
   })
 
@@ -868,7 +883,7 @@ describe('TherapistClientsView', () => {
     mockedApiPost.mockResolvedValue(
       manualClientRecord({
         id: 202,
-        display_name: 'Марія Коваль',
+        display_name: 'РњР°СЂС–СЏ РљРѕРІР°Р»СЊ',
         email: 'maria@example.com',
         phone: '+380501112233',
         telegram: '@maria',
@@ -881,20 +896,20 @@ describe('TherapistClientsView', () => {
     const { container } = renderView()
     const { clientsPanel } = getPanels(container)
 
-    await fireEvent.click(await within(clientsPanel).findByRole('button', { name: 'Додати клієнта' }))
-    const dialog = await screen.findByRole('dialog', { name: 'Додати клієнта' })
+    await fireEvent.click(await within(clientsPanel).findByRole('button', { name: 'Р”РѕРґР°С‚Рё РєР»С–С”РЅС‚Р°' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Р”РѕРґР°С‚Рё РєР»С–С”РЅС‚Р°' })
 
-    expect(within(dialog).getByLabelText('Імʼя клієнта')).toBeInTheDocument()
-    await fireEvent.update(within(dialog).getByLabelText('Імʼя клієнта'), 'Марія Коваль')
+    expect(within(dialog).getByLabelText('Р†РјКјСЏ РєР»С–С”РЅС‚Р°')).toBeInTheDocument()
+    await fireEvent.update(within(dialog).getByLabelText('Р†РјКјСЏ РєР»С–С”РЅС‚Р°'), 'РњР°СЂС–СЏ РљРѕРІР°Р»СЊ')
     await fireEvent.update(within(dialog).getByLabelText('Email'), 'maria@example.com')
-    await fireEvent.update(within(dialog).getByLabelText('Телефон'), '+380501112233')
+    await fireEvent.update(within(dialog).getByLabelText('РўРµР»РµС„РѕРЅ'), '+380501112233')
     await fireEvent.update(within(dialog).getByLabelText('Telegram'), '@maria')
-    await fireEvent.update(within(dialog).getByLabelText('Короткий опис клієнта'), 'Prefers evening calls')
-    await fireEvent.click(within(dialog).getByRole('button', { name: 'Додати клієнта' }))
+    await fireEvent.update(within(dialog).getByLabelText('РљРѕСЂРѕС‚РєРёР№ РѕРїРёСЃ РєР»С–С”РЅС‚Р°'), 'Prefers evening calls')
+    await fireEvent.click(within(dialog).getByRole('button', { name: 'Р”РѕРґР°С‚Рё РєР»С–С”РЅС‚Р°' }))
 
     await waitFor(() => {
       expect(mockedApiPost).toHaveBeenCalledWith(CLIENT_RECORDS_URL, {
-        display_name: 'Марія Коваль',
+        display_name: 'РњР°СЂС–СЏ РљРѕРІР°Р»СЊ',
         email: 'maria@example.com',
         phone: '+380501112233',
         telegram: '@maria',
@@ -903,8 +918,8 @@ describe('TherapistClientsView', () => {
         custom_price_currency: 'UAH',
       })
       expect(mockedApiPost.mock.calls[0]?.[1]).not.toHaveProperty('full_name')
-      expect(within(clientsPanel).getByText('Марія Коваль')).toBeInTheDocument()
-      expect(within(clientsPanel).getByText('Без кабінету')).toBeInTheDocument()
+      expect(within(clientsPanel).getByText('РњР°СЂС–СЏ РљРѕРІР°Р»СЊ')).toBeInTheDocument()
+      expect(within(clientsPanel).getByText('Р‘РµР· РєР°Р±С–РЅРµС‚Сѓ')).toBeInTheDocument()
       expect(within(clientsPanel).getByText('maria@example.com')).toBeInTheDocument()
     })
   })
@@ -949,23 +964,23 @@ describe('TherapistClientsView', () => {
       return card as HTMLElement
     })
 
-    await fireEvent.click(within(manualCard).getByRole('button', { name: 'Редагувати' }))
+    await fireEvent.click(within(manualCard).getByRole('button', { name: 'Р РµРґР°РіСѓРІР°С‚Рё' }))
 
-    const dialog = await screen.findByRole('dialog', { name: 'Редагувати клієнта' })
+    const dialog = await screen.findByRole('dialog', { name: 'Р РµРґР°РіСѓРІР°С‚Рё РєР»С–С”РЅС‚Р°' })
 
-    expect(within(dialog).getByLabelText('Імʼя клієнта')).toHaveValue('Manual Before')
+    expect(within(dialog).getByLabelText('Р†РјКјСЏ РєР»С–С”РЅС‚Р°')).toHaveValue('Manual Before')
     expect(within(dialog).getByLabelText('Email')).toHaveValue('before@example.com')
-    expect(within(dialog).getByLabelText('Телефон')).toHaveValue('+380501111111')
+    expect(within(dialog).getByLabelText('РўРµР»РµС„РѕРЅ')).toHaveValue('+380501111111')
     expect(within(dialog).getByLabelText('Telegram')).toHaveValue('@before')
-    expect(within(dialog).getByLabelText('Короткий опис клієнта')).toHaveValue('Before note')
+    expect(within(dialog).getByLabelText('РљРѕСЂРѕС‚РєРёР№ РѕРїРёСЃ РєР»С–С”РЅС‚Р°')).toHaveValue('Before note')
 
-    await fireEvent.update(within(dialog).getByLabelText('Імʼя клієнта'), 'Manual After')
+    await fireEvent.update(within(dialog).getByLabelText('Р†РјКјСЏ РєР»С–С”РЅС‚Р°'), 'Manual After')
     await fireEvent.update(within(dialog).getByLabelText('Email'), 'after@example.com')
-    await fireEvent.update(within(dialog).getByLabelText('Телефон'), '+380502222222')
+    await fireEvent.update(within(dialog).getByLabelText('РўРµР»РµС„РѕРЅ'), '+380502222222')
     await fireEvent.update(within(dialog).getByLabelText('Telegram'), '@after')
-    await fireEvent.update(within(dialog).getByLabelText('Короткий опис клієнта'), 'After note')
+    await fireEvent.update(within(dialog).getByLabelText('РљРѕСЂРѕС‚РєРёР№ РѕРїРёСЃ РєР»С–С”РЅС‚Р°'), 'After note')
 
-    await fireEvent.click(within(dialog).getByRole('button', { name: 'Зберегти зміни' }))
+    await fireEvent.click(within(dialog).getByRole('button', { name: 'Р—Р±РµСЂРµРіС‚Рё Р·РјС–РЅРё' }))
 
     await waitFor(() => {
       expect(mockedApiPatch).toHaveBeenCalledWith('/cabinet/client-records/206/', {
@@ -980,7 +995,7 @@ describe('TherapistClientsView', () => {
       expect(mockedApiPatch.mock.calls[0]?.[1]).not.toHaveProperty('full_name')
       expect(within(clientsPanel).getByText('Manual After')).toBeInTheDocument()
       expect(within(clientsPanel).getByText('after@example.com')).toBeInTheDocument()
-      expect(screen.queryByRole('dialog', { name: 'Редагувати клієнта' })).not.toBeInTheDocument()
+      expect(screen.queryByRole('dialog', { name: 'Р РµРґР°РіСѓРІР°С‚Рё РєР»С–С”РЅС‚Р°' })).not.toBeInTheDocument()
     })
   })
 
@@ -1011,11 +1026,11 @@ describe('TherapistClientsView', () => {
     })
 
     expect(manualCard).toHaveClass('client-card--manual')
-    expect(within(manualCard).getByText('З кабінетом')).toBeInTheDocument()
-    expect(within(manualCard).getByRole('button', { name: 'Створити сесію' })).toBeInTheDocument()
-    expect(within(manualCard).getByRole('button', { name: 'Редагувати' })).toBeInTheDocument()
-    expect(within(manualCard).getByRole('button', { name: 'Архівувати' })).toBeInTheDocument()
-    expect(within(manualCard).queryByRole('button', { name: 'Приватна історія клієнта' })).not.toBeInTheDocument()
+    expect(within(manualCard).getByText('Р— РєР°Р±С–РЅРµС‚РѕРј')).toBeInTheDocument()
+    expect(within(manualCard).getByRole('button', { name: 'РЎС‚РІРѕСЂРёС‚Рё СЃРµСЃС–СЋ' })).toBeInTheDocument()
+    expect(within(manualCard).getByRole('button', { name: 'Р РµРґР°РіСѓРІР°С‚Рё' })).toBeInTheDocument()
+    expect(within(manualCard).getByRole('button', { name: 'РђСЂС…С–РІСѓРІР°С‚Рё' })).toBeInTheDocument()
+    expect(within(manualCard).queryByRole('button', { name: 'РџСЂРёРІР°С‚РЅР° С–СЃС‚РѕСЂС–СЏ РєР»С–С”РЅС‚Р°' })).not.toBeInTheDocument()
   })
 
   it('shows contact and account email separately for linked manual client when they differ', async () => {
@@ -1161,8 +1176,8 @@ describe('TherapistClientsView', () => {
       return card as HTMLElement
     })
 
-    expect(within(manualCard).getByText('Клієнт зможе увійти або зареєструватися і побачити свої сесії в кабінеті.')).toBeInTheDocument()
-    expect(within(manualCard).getByRole('button', { name: 'Запросити до кабінету' })).toBeInTheDocument()
+    expect(within(manualCard).getByText('РљР»С–С”РЅС‚ Р·РјРѕР¶Рµ СѓРІС–Р№С‚Рё Р°Р±Рѕ Р·Р°СЂРµС”СЃС‚СЂСѓРІР°С‚РёСЃСЏ С– РїРѕР±Р°С‡РёС‚Рё СЃРІРѕС— СЃРµСЃС–С— РІ РєР°Р±С–РЅРµС‚С–.')).toBeInTheDocument()
+    expect(within(manualCard).getByRole('button', { name: 'Р—Р°РїСЂРѕСЃРёС‚Рё РґРѕ РєР°Р±С–РЅРµС‚Сѓ' })).toBeInTheDocument()
   })
 
   it('does not show manual account invite CTA for linked manual client records', async () => {
@@ -1190,7 +1205,7 @@ describe('TherapistClientsView', () => {
       return card as HTMLElement
     })
 
-    expect(within(manualCard).queryByRole('button', { name: 'Запросити до кабінету' })).not.toBeInTheDocument()
+    expect(within(manualCard).queryByRole('button', { name: 'Р—Р°РїСЂРѕСЃРёС‚Рё РґРѕ РєР°Р±С–РЅРµС‚Сѓ' })).not.toBeInTheDocument()
   })
 
   it('does not show manual account invite CTA for registered client relations', async () => {
@@ -1217,7 +1232,7 @@ describe('TherapistClientsView', () => {
     await waitFor(() => {
       expect(within(clientsPanel).getByText('Registered Client')).toBeInTheDocument()
     })
-    expect(within(clientsPanel).queryByRole('button', { name: 'Запросити до кабінету' })).not.toBeInTheDocument()
+    expect(within(clientsPanel).queryByRole('button', { name: 'Р—Р°РїСЂРѕСЃРёС‚Рё РґРѕ РєР°Р±С–РЅРµС‚Сѓ' })).not.toBeInTheDocument()
   })
 
   it('renders registered client email when client_email exists', async () => {
@@ -1405,11 +1420,11 @@ describe('TherapistClientsView', () => {
       return card as HTMLElement
     })
 
-    await fireEvent.click(within(manualCard).getByRole('button', { name: 'Відкликати' }))
+    await fireEvent.click(within(manualCard).getByRole('button', { name: 'Р’С–РґРєР»РёРєР°С‚Рё' }))
 
     await waitFor(() => {
       expect(mockedRevokeClientRecordAccountInvite).toHaveBeenCalledWith(213)
-      expect(within(manualCard).getByRole('button', { name: 'Запросити до кабінету' })).toBeInTheDocument()
+      expect(within(manualCard).getByRole('button', { name: 'Р—Р°РїСЂРѕСЃРёС‚Рё РґРѕ РєР°Р±С–РЅРµС‚Сѓ' })).toBeInTheDocument()
       expect(manualCard).not.toHaveTextContent('https://proconsult.space/client/invite/revoke-me')
     })
   })
@@ -1434,10 +1449,10 @@ describe('TherapistClientsView', () => {
       return card as HTMLElement
     })
 
-    await fireEvent.click(within(manualCard).getByRole('button', { name: 'Запросити до кабінету' }))
+    await fireEvent.click(within(manualCard).getByRole('button', { name: 'Р—Р°РїСЂРѕСЃРёС‚Рё РґРѕ РєР°Р±С–РЅРµС‚Сѓ' }))
 
     await waitFor(() => {
-      expect(within(manualCard).getByText('Клієнт уже має підключений кабінет.')).toBeInTheDocument()
+      expect(within(manualCard).getByText('РљР»С–С”РЅС‚ СѓР¶Рµ РјР°С” РїС–РґРєР»СЋС‡РµРЅРёР№ РєР°Р±С–РЅРµС‚.')).toBeInTheDocument()
     })
   })
 
@@ -1476,9 +1491,9 @@ describe('TherapistClientsView', () => {
       return card as HTMLElement
     })
 
-    await fireEvent.click(within(manualCard).getByRole('button', { name: 'Створити сесію' }))
-    const dialog = await screen.findByRole('dialog', { name: /Створити сесію для Linked Session Client/ })
-    await fireEvent.click(within(dialog).getByRole('button', { name: 'Створити сесію' }))
+    await fireEvent.click(within(manualCard).getByRole('button', { name: 'РЎС‚РІРѕСЂРёС‚Рё СЃРµСЃС–СЋ' }))
+    const dialog = await screen.findByRole('dialog', { name: /РЎС‚РІРѕСЂРёС‚Рё СЃРµСЃС–СЋ РґР»СЏ Linked Session Client/ })
+    await fireEvent.click(within(dialog).getByRole('button', { name: 'РЎС‚РІРѕСЂРёС‚Рё СЃРµСЃС–СЋ' }))
 
     await waitFor(() => {
       expect(mockedApiPost).toHaveBeenCalledWith('/cabinet/client-records/208/sessions/', {
@@ -1532,24 +1547,24 @@ describe('TherapistClientsView', () => {
       expect(card).toBeInstanceOf(HTMLElement)
       return card as HTMLElement
     })
-    expect(within(manualCard).queryByRole('button', { name: 'Приватна історія клієнта' })).not.toBeInTheDocument()
-    expect(within(manualCard).queryByRole('button', { name: 'Додати на дошку' })).not.toBeInTheDocument()
+    expect(within(manualCard).queryByRole('button', { name: 'РџСЂРёРІР°С‚РЅР° С–СЃС‚РѕСЂС–СЏ РєР»С–С”РЅС‚Р°' })).not.toBeInTheDocument()
+    expect(within(manualCard).queryByRole('button', { name: 'Р”РѕРґР°С‚Рё РЅР° РґРѕС€РєСѓ' })).not.toBeInTheDocument()
     expect(container.querySelector('a[href^="/cabinet/sessions"]')).not.toBeInTheDocument()
 
-    await fireEvent.click(within(manualCard).getByRole('button', { name: 'Архівувати' }))
+    await fireEvent.click(within(manualCard).getByRole('button', { name: 'РђСЂС…С–РІСѓРІР°С‚Рё' }))
 
     await waitFor(() => {
       expect(mockedApiPost).toHaveBeenCalledWith('/cabinet/client-records/203/archive/', {})
-      expect(within(manualCard).getByText('Архів')).toBeInTheDocument()
-      expect(within(manualCard).getByRole('button', { name: 'Відновити' })).toBeInTheDocument()
+      expect(within(manualCard).getByText('РђСЂС…С–РІ')).toBeInTheDocument()
+      expect(within(manualCard).getByRole('button', { name: 'Р’С–РґРЅРѕРІРёС‚Рё' })).toBeInTheDocument()
     })
 
-    await fireEvent.click(within(manualCard).getByRole('button', { name: 'Відновити' }))
+    await fireEvent.click(within(manualCard).getByRole('button', { name: 'Р’С–РґРЅРѕРІРёС‚Рё' }))
 
     await waitFor(() => {
       expect(mockedApiPost).toHaveBeenCalledWith('/cabinet/client-records/203/restore/', {})
-      expect(within(manualCard).getByText('Активний')).toBeInTheDocument()
-      expect(within(manualCard).getByRole('button', { name: 'Архівувати' })).toBeInTheDocument()
+      expect(within(manualCard).getByText('РђРєС‚РёРІРЅРёР№')).toBeInTheDocument()
+      expect(within(manualCard).getByRole('button', { name: 'РђСЂС…С–РІСѓРІР°С‚Рё' })).toBeInTheDocument()
     })
   })
 
@@ -1576,7 +1591,7 @@ describe('TherapistClientsView', () => {
 
     await waitFor(() => {
       expect(within(clientsPanel).getByText('Registered Client')).toBeInTheDocument()
-      expect(container).toHaveTextContent('Не вдалося завантажити клієнтів без кабінету')
+      expect(container).toHaveTextContent('РќРµ РІРґР°Р»РѕСЃСЏ Р·Р°РІР°РЅС‚Р°Р¶РёС‚Рё РєР»С–С”РЅС‚С–РІ Р±РµР· РєР°Р±С–РЅРµС‚Сѓ')
     })
   })
 
@@ -1773,8 +1788,8 @@ describe('TherapistClientsView', () => {
       expect(card).toBeInstanceOf(HTMLElement)
       return card as HTMLElement
     })
-    expect(within(manualCard).getByText('Матеріали для клієнта')).toBeInTheDocument()
-    expect(within(manualCard).getByText('Матеріал можна підготувати зараз. Клієнт побачить його після підключення акаунта.')).toBeInTheDocument()
+    expect(within(manualCard).getByText('РњР°С‚РµСЂС–Р°Р»Рё РґР»СЏ РєР»С–С”РЅС‚Р°')).toBeInTheDocument()
+    expect(within(manualCard).getByText('РњР°С‚РµСЂС–Р°Р» РјРѕР¶РЅР° РїС–РґРіРѕС‚СѓРІР°С‚Рё Р·Р°СЂР°Р·. РљР»С–С”РЅС‚ РїРѕР±Р°С‡РёС‚СЊ Р№РѕРіРѕ РїС–СЃР»СЏ РїС–РґРєР»СЋС‡РµРЅРЅСЏ Р°РєР°СѓРЅС‚Р°.')).toBeInTheDocument()
   })
 
   it('creates draft material via specialist endpoint', async () => {
@@ -1793,16 +1808,16 @@ describe('TherapistClientsView', () => {
       expect(card).toBeInstanceOf(HTMLElement)
       return card as HTMLElement
     })
-    await fireEvent.click(within(manualCard).getByRole('button', { name: 'Відкрити' }))
-    await fireEvent.update(within(manualCard).getByLabelText('Назва'), 'Новий матеріал')
-    await fireEvent.update(within(manualCard).getByLabelText('Текст'), 'Опис')
-    await fireEvent.click(within(manualCard).getByRole('button', { name: 'Додати матеріал' }))
+    await fireEvent.click(within(manualCard).getByRole('button', { name: 'Р’С–РґРєСЂРёС‚Рё' }))
+    await fireEvent.update(within(manualCard).getByLabelText('РќР°Р·РІР°'), 'РќРѕРІРёР№ РјР°С‚РµСЂС–Р°Р»')
+    await fireEvent.update(within(manualCard).getByLabelText('РўРµРєСЃС‚'), 'РћРїРёСЃ')
+    await fireEvent.click(within(manualCard).getByRole('button', { name: 'Р”РѕРґР°С‚Рё РјР°С‚РµСЂС–Р°Р»' }))
 
     await waitFor(() => {
       expect(mockedCreateSpecialistClientMaterial).toHaveBeenCalledWith({
         client_record_id: 502,
-        title: 'Новий матеріал',
-        content: 'Опис',
+        title: 'РќРѕРІРёР№ РјР°С‚РµСЂС–Р°Р»',
+        content: 'РћРїРёСЃ',
         material_type: 'recommendation',
         url: null,
       })
@@ -1896,7 +1911,7 @@ describe('TherapistClientsView', () => {
     await waitFor(() => {
       const createError = createBlock.querySelector('.form-error')
       expect(createError).toBeTruthy()
-      expect(createError?.textContent || '').toContain('Додайте посилання')
+      expect(createError?.textContent || '').toContain('Р”РѕРґР°Р№С‚Рµ РїРѕСЃРёР»Р°РЅРЅСЏ')
     })
     const listBlockError = manualCard.querySelector('.client-materials__body > .form-error')
     expect(listBlockError).toBeFalsy()
@@ -1940,7 +1955,7 @@ describe('TherapistClientsView', () => {
     await waitFor(() => {
       const createError = createBlock.querySelector('.form-error')
       expect(createError).toBeTruthy()
-      expect(createError?.textContent || '').toContain('Введіть коректне посилання')
+      expect(createError?.textContent || '').toContain('Р’РІРµРґС–С‚СЊ РєРѕСЂРµРєС‚РЅРµ РїРѕСЃРёР»Р°РЅРЅСЏ')
     })
   })
 
@@ -2008,11 +2023,11 @@ describe('TherapistClientsView', () => {
     await fireEvent.update(firstUrl, 'https://')
     await fireEvent.click(firstSave)
     await waitFor(() => {
-      expect(first.querySelector('.form-error')?.textContent || '').toContain('Введіть коректне посилання')
+      expect(first.querySelector('.form-error')?.textContent || '').toContain('Р’РІРµРґС–С‚СЊ РєРѕСЂРµРєС‚РЅРµ РїРѕСЃРёР»Р°РЅРЅСЏ')
     })
     expect(second.querySelector('.form-error')).toBeFalsy()
 
-    const firstPublish = within(first).getByRole('button', { name: 'Опублікувати для клієнта' })
+    const firstPublish = within(first).getByRole('button', { name: 'РћРїСѓР±Р»С–РєСѓРІР°С‚Рё РґР»СЏ РєР»С–С”РЅС‚Р°' })
     await fireEvent.click(firstPublish)
     await waitFor(() => {
       expect(first.textContent || '').toContain('publish failed')
@@ -2088,12 +2103,12 @@ describe('TherapistClientsView', () => {
       return card as HTMLElement
     })
 
-    await fireEvent.click(within(manualCard).getByRole('button', { name: 'Відкрити' }))
-    await fireEvent.click(await within(manualCard).findByRole('button', { name: 'Опублікувати для клієнта' }))
+    await fireEvent.click(within(manualCard).getByRole('button', { name: 'Р’С–РґРєСЂРёС‚Рё' }))
+    await fireEvent.click(await within(manualCard).findByRole('button', { name: 'РћРїСѓР±Р»С–РєСѓРІР°С‚Рё РґР»СЏ РєР»С–С”РЅС‚Р°' }))
     await waitFor(() => {
       expect(mockedPublishSpecialistClientMaterial).toHaveBeenCalledWith(900)
     })
-    await fireEvent.click(await within(manualCard).findByRole('button', { name: 'Відкликати доступ' }))
+    await fireEvent.click(await within(manualCard).findByRole('button', { name: 'Р’С–РґРєР»РёРєР°С‚Рё РґРѕСЃС‚СѓРї' }))
     await waitFor(() => {
       expect(mockedRevokeSpecialistClientMaterial).toHaveBeenCalledWith(900)
     })
@@ -2286,4 +2301,177 @@ describe('TherapistClientsView', () => {
       })
     })
   })
+
+  it('renders attachment section for material cards and uploads file', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL) return [manualClientRecord({ id: 701 })]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedFetchSpecialistClientMaterials.mockResolvedValue([
+      {
+        id: 991,
+        client_record_id: 701,
+        session_id: null,
+        status: 'draft',
+        material_type: 'document',
+        title: 'M1',
+        content: 'C1',
+        content_preview: 'C1',
+        url: null,
+        published_at: null,
+        revoked_at: null,
+        created_at: '2026-05-01T00:00:00Z',
+        updated_at: '2026-05-01T00:00:00Z',
+      } as any,
+    ])
+    mockedListClientMaterialAttachments.mockResolvedValueOnce([])
+    mockedListClientMaterialAttachments.mockResolvedValueOnce([
+      {
+        id: 3001,
+        original_filename: 'exercise.pdf',
+        mime_type: 'application/pdf',
+        size_bytes: 245000,
+        created_at: '2026-05-01T00:00:00Z',
+      },
+    ] as any)
+
+    const { container } = renderView()
+    const manualCard = await waitFor(() => {
+      const card = container.querySelector('#manual-client-record-701')
+      expect(card).toBeInstanceOf(HTMLElement)
+      return card as HTMLElement
+    })
+    await fireEvent.click(requireHTMLElement(manualCard.querySelector('.client-materials__header .btn'), 'open'))
+    expect(await within(manualCard).findByText('Р¤Р°Р№Р»Рё')).toBeInTheDocument()
+
+    const fileInput = manualCard.querySelector('input[type=\"file\"]') as HTMLInputElement
+    const file = new File(['x'], 'exercise.pdf', { type: 'application/pdf' })
+    await fireEvent.change(fileInput, { target: { files: [file] } })
+
+    await waitFor(() => {
+      expect(mockedUploadClientMaterialAttachment).toHaveBeenCalledWith(991, expect.any(File))
+      expect(within(manualCard).getByText('exercise.pdf В· 239 РљР‘')).toBeInTheDocument()
+    })
+  })
+
+  it('shows scoped upload validation errors and does not leak between materials', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL) return [manualClientRecord({ id: 702 })]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedFetchSpecialistClientMaterials.mockResolvedValue([
+      {
+        id: 992,
+        client_record_id: 702,
+        session_id: null,
+        status: 'draft',
+        material_type: 'document',
+        title: 'A',
+        content: 'A',
+        content_preview: 'A',
+        url: null,
+        published_at: null,
+        revoked_at: null,
+        created_at: '2026-05-01T00:00:00Z',
+        updated_at: '2026-05-01T00:00:00Z',
+      } as any,
+      {
+        id: 993,
+        client_record_id: 702,
+        session_id: null,
+        status: 'draft',
+        material_type: 'document',
+        title: 'B',
+        content: 'B',
+        content_preview: 'B',
+        url: null,
+        published_at: null,
+        revoked_at: null,
+        created_at: '2026-05-01T00:00:00Z',
+        updated_at: '2026-05-01T00:00:00Z',
+      } as any,
+    ])
+
+    const { container } = renderView()
+    const manualCard = await waitFor(() => {
+      const card = container.querySelector('#manual-client-record-702')
+      expect(card).toBeInstanceOf(HTMLElement)
+      return card as HTMLElement
+    })
+    await fireEvent.click(requireHTMLElement(manualCard.querySelector('.client-materials__header .btn'), 'open'))
+    const materialCards = await waitFor(() => {
+      const nodes = manualCard.querySelectorAll('.client-material')
+      expect(nodes.length).toBe(2)
+      return nodes
+    })
+    const firstFile = materialCards[0]! .querySelector('input[type=\"file\"]') as HTMLInputElement
+    const secondFile = materialCards[1]! .querySelector('input[type=\"file\"]') as HTMLInputElement
+    const bigFile = new File([new Uint8Array(21 * 1024 * 1024)], 'big.pdf', { type: 'application/pdf' })
+    const badExt = new File(['x'], 'bad.exe', { type: 'application/octet-stream' })
+
+    await fireEvent.change(firstFile, { target: { files: [bigFile] } })
+    await waitFor(() => {
+      expect(materialCards[0]! .textContent || '').toContain('Р¤Р°Р№Р» Р·Р°РІРµР»РёРєРёР№. РњР°РєСЃРёРјР°Р»СЊРЅРёР№ СЂРѕР·РјС–СЂ РѕРґРЅРѕРіРѕ С„Р°Р№Р»Сѓ вЂ” 20 РњР‘.')
+    })
+    expect(materialCards[1]! .textContent || '').not.toContain('Р¤Р°Р№Р» Р·Р°РІРµР»РёРєРёР№')
+
+    await fireEvent.change(secondFile, { target: { files: [badExt] } })
+    await waitFor(() => {
+      expect(materialCards[1]! .textContent || '').toContain('Р¦РµР№ С‚РёРї С„Р°Р№Р»Сѓ РЅРµ РїС–РґС‚СЂРёРјСѓС”С‚СЊСЃСЏ.')
+    })
+    expect(materialCards[0]! .textContent || '').not.toContain('Р¦РµР№ С‚РёРї С„Р°Р№Р»Сѓ РЅРµ РїС–РґС‚СЂРёРјСѓС”С‚СЊСЃСЏ.')
+  })
+
+  it('deletes attachment from the correct material', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL) return [manualClientRecord({ id: 703 })]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedFetchSpecialistClientMaterials.mockResolvedValue([
+      {
+        id: 994,
+        client_record_id: 703,
+        session_id: null,
+        status: 'draft',
+        material_type: 'document',
+        title: 'A',
+        content: 'A',
+        content_preview: 'A',
+        url: null,
+        published_at: null,
+        revoked_at: null,
+        created_at: '2026-05-01T00:00:00Z',
+        updated_at: '2026-05-01T00:00:00Z',
+      } as any,
+    ])
+    mockedListClientMaterialAttachments.mockResolvedValue([
+      {
+        id: 4001,
+        original_filename: 'exercise.pdf',
+        mime_type: 'application/pdf',
+        size_bytes: 1200,
+        created_at: '2026-05-01T00:00:00Z',
+      },
+    ] as any)
+
+    const { container } = renderView()
+    const manualCard = await waitFor(() => {
+      const card = container.querySelector('#manual-client-record-703')
+      expect(card).toBeInstanceOf(HTMLElement)
+      return card as HTMLElement
+    })
+    await fireEvent.click(requireHTMLElement(manualCard.querySelector('.client-materials__header .btn'), 'open'))
+    await fireEvent.click(await within(manualCard).findByRole('button', { name: 'Р’РёРґР°Р»РёС‚Рё С„Р°Р№Р»' }))
+    await waitFor(() => {
+      expect(mockedDeleteClientMaterialAttachment).toHaveBeenCalledWith(994, 4001)
+      expect(manualCard.textContent || '').toContain('Р¤Р°Р№Р» РІРёРґР°Р»РµРЅРѕ')
+    })
+  })
 })
+

@@ -1,18 +1,16 @@
-<template>
+﻿<template>
   <section class="client-materials-page">
     <header class="client-materials-page__header">
       <div class="badge">Матеріали</div>
       <h1 class="title">Матеріали від спеціаліста</h1>
       <p class="muted">
-        Тут з’являться рекомендації, вправи, інструкції або посилання, які спеціаліст відкриє для вас.
+        Тут з?являються рекомендації, вправи, інструкції або посилання, які спеціаліст відкриє для вас.
       </p>
     </header>
 
     <div v-if="error" class="form-error">{{ error }}</div>
     <div v-if="loading" class="muted">Завантаження...</div>
-    <div v-else-if="items.length === 0" class="empty-state">
-      Поки що матеріалів немає.
-    </div>
+    <div v-else-if="items.length === 0" class="empty-state">Поки що матеріалів немає.</div>
     <div v-else class="client-materials-list">
       <article v-for="item in items" :key="item.id" class="client-material-card">
         <div class="client-material-card__top">
@@ -28,15 +26,42 @@
           <div class="client-material-card__link-value" :title="item.url || ''">{{ item.url }}</div>
           <div class="client-material-card__link-hint muted">Перевірте посилання перед відкриттям.</div>
           <div class="client-material-card__actions">
-            <a
-              class="btn btn--ghost btn--sm"
-              :href="item.url || '#'"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
+            <a class="btn btn--ghost btn--sm" :href="item.url || '#'" target="_blank" rel="noopener noreferrer">
               Відкрити посилання
             </a>
           </div>
+        </div>
+
+        <div class="client-material-card__attachments">
+          <div class="client-material-card__attachments-head">
+            <div class="client-material-card__link-label">Файли до цього матеріалу</div>
+            <button class="btn btn--ghost btn--sm" type="button" @click="toggleDetail(item.id)">
+              {{ isDetailOpen(item.id) ? 'Сховати матеріал' : 'Переглянути матеріал' }}
+            </button>
+          </div>
+          <p v-if="detailErrorByMaterialId[item.id]" class="form-error">{{ detailErrorByMaterialId[item.id] }}</p>
+          <p v-if="downloadErrorByMaterialId[item.id]" class="form-error">{{ downloadErrorByMaterialId[item.id] }}</p>
+          <p v-if="isDetailLoading(item.id)" class="muted">Завантаження файлів...</p>
+          <template v-else-if="isDetailOpen(item.id)">
+            <p class="muted">Файл відкриється за безпечним тимчасовим посиланням.</p>
+            <ul v-if="(detailByMaterialId[item.id]?.attachments || []).length" class="attachments-list">
+              <li v-for="attachment in detailByMaterialId[item.id]?.attachments || []" :key="attachment.id" class="attachments-item">
+                <div>
+                  <div>{{ attachment.original_filename }}</div>
+                  <div class="muted">{{ humanFileSize(attachment.size_bytes) }}</div>
+                </div>
+                <button
+                  class="btn btn--ghost btn--sm"
+                  type="button"
+                  :disabled="Boolean(downloadingByAttachmentId[attachment.id])"
+                  @click="downloadAttachment(item.id, attachment.id)"
+                >
+                  Завантажити файл
+                </button>
+              </li>
+            </ul>
+            <p v-else class="muted">До цього матеріалу немає прикріплених файлів.</p>
+          </template>
         </div>
       </article>
       <button v-if="nextCursor" class="btn btn--ghost" type="button" :disabled="loadingMore" @click="loadMore">
@@ -49,7 +74,9 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import {
+  fetchClientMaterialDetail,
   fetchClientMaterials,
+  getClientMaterialAttachmentDownloadUrl,
   hasMaterialUrl,
   type ClientMaterialClientRecord,
   type ClientMaterialType,
@@ -62,6 +89,12 @@ const loadingMore = ref(false)
 const error = ref('')
 const items = ref<ClientMaterialClientRecord[]>([])
 const nextCursor = ref<string | null>(null)
+const detailOpenByMaterialId = ref<Record<number, boolean>>({})
+const detailByMaterialId = ref<Record<number, ClientMaterialClientRecord>>({})
+const detailLoadingByMaterialId = ref<Record<number, boolean>>({})
+const detailErrorByMaterialId = ref<Record<number, string>>({})
+const downloadErrorByMaterialId = ref<Record<number, string>>({})
+const downloadingByAttachmentId = ref<Record<number, boolean>>({})
 
 function materialTypeLabel(value: ClientMaterialType): string {
   if (value === 'recommendation') return 'Рекомендація'
@@ -75,6 +108,81 @@ function materialTypeLabel(value: ClientMaterialType): string {
 
 function formatDateTime(value?: string | null) {
   return formatUkDateTimeCompact(value || null)
+}
+
+function humanFileSize(bytes: number): string {
+  if (!Number.isFinite(bytes) || bytes <= 0) return '0 Б'
+  if (bytes < 1024) return `${Math.round(bytes)} Б`
+  const kb = bytes / 1024
+  if (kb < 1024) return `${Math.round(kb)} КБ`
+  const mb = kb / 1024
+  const value = mb >= 10 ? Math.round(mb) : Math.round(mb * 10) / 10
+  return `${value.toString().replace('.', ',')} МБ`
+}
+
+function isDetailOpen(materialId: number): boolean {
+  return Boolean(detailOpenByMaterialId.value[materialId])
+}
+
+function isDetailLoading(materialId: number): boolean {
+  return Boolean(detailLoadingByMaterialId.value[materialId])
+}
+
+function downloadErrorMessage(err: unknown): string {
+  const data = (err as any)?.response?.data
+  const code = String(data?.code || data?.reason_code || '').trim().toUpperCase()
+  if (code === 'ATTACHMENT_DOWNLOAD_UNAVAILABLE') {
+    return 'Не вдалося підготувати посилання для завантаження. Спробуйте пізніше.'
+  }
+  if (code === 'CLIENT_MATERIAL_ATTACHMENT_NOT_FOUND' || code === 'CLIENT_MATERIAL_NOT_FOUND') {
+    return 'Файл не знайдено або доступ до нього вже закрито.'
+  }
+  return getApiErrorMessage(err, 'Не вдалося завантажити файл. Спробуйте ще раз.')
+}
+
+async function loadDetail(materialId: number) {
+  detailLoadingByMaterialId.value = { ...detailLoadingByMaterialId.value, [materialId]: true }
+  detailErrorByMaterialId.value = { ...detailErrorByMaterialId.value, [materialId]: '' }
+  try {
+    const detail = await fetchClientMaterialDetail(materialId)
+    detailByMaterialId.value = { ...detailByMaterialId.value, [materialId]: detail }
+  } catch (err) {
+    detailErrorByMaterialId.value = {
+      ...detailErrorByMaterialId.value,
+      [materialId]: getApiErrorMessage(err, 'Не вдалося завантажити матеріал.'),
+    }
+  } finally {
+    detailLoadingByMaterialId.value = { ...detailLoadingByMaterialId.value, [materialId]: false }
+  }
+}
+
+async function toggleDetail(materialId: number) {
+  const next = !isDetailOpen(materialId)
+  detailOpenByMaterialId.value = { ...detailOpenByMaterialId.value, [materialId]: next }
+  if (!next) return
+  if (!detailByMaterialId.value[materialId] && !isDetailLoading(materialId)) {
+    await loadDetail(materialId)
+  }
+}
+
+async function downloadAttachment(materialId: number, attachmentId: number) {
+  downloadErrorByMaterialId.value = { ...downloadErrorByMaterialId.value, [materialId]: '' }
+  downloadingByAttachmentId.value = { ...downloadingByAttachmentId.value, [attachmentId]: true }
+  try {
+    const payload = await getClientMaterialAttachmentDownloadUrl(materialId, attachmentId)
+    if (payload.download_url) {
+      window.open(payload.download_url, '_blank', 'noopener,noreferrer')
+    }
+  } catch (err) {
+    downloadErrorByMaterialId.value = {
+      ...downloadErrorByMaterialId.value,
+      [materialId]: downloadErrorMessage(err),
+    }
+  } finally {
+    const next = { ...downloadingByAttachmentId.value }
+    delete next[attachmentId]
+    downloadingByAttachmentId.value = next
+  }
 }
 
 async function loadInitial() {
@@ -167,4 +275,36 @@ onMounted(() => {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+.client-material-card__attachments {
+  display: grid;
+  gap: 8px;
+  border-top: 1px solid var(--border);
+  padding-top: 8px;
+}
+
+.client-material-card__attachments-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.attachments-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.attachments-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
 </style>
+

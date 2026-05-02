@@ -2378,6 +2378,14 @@ export type ClientMaterialSpecialistRecord = {
   updated_at: string
 }
 
+export type ClientMaterialAttachment = {
+  id: number
+  original_filename: string
+  mime_type: string
+  size_bytes: number
+  created_at: string
+}
+
 export type ClientMaterialClientRecord = {
   id: number
   session_id: number | null
@@ -2387,6 +2395,7 @@ export type ClientMaterialClientRecord = {
   content_preview: string
   url: string | null
   published_at: string
+  attachments?: ClientMaterialAttachment[]
   specialist?: {
     id?: number | null
     display_name?: string | null
@@ -2445,6 +2454,7 @@ function normalizeClientMaterial(
   return {
     ...material,
     url: normalizeClientMaterialUrl(material.url),
+    attachments: Array.isArray(material.attachments) ? material.attachments : [],
   }
 }
 
@@ -2603,6 +2613,35 @@ export async function revokeSpecialistClientMaterial(
   return normalizeSpecialistClientMaterial(resp.data)
 }
 
+export async function listClientMaterialAttachments(
+  materialId: number
+): Promise<ClientMaterialAttachment[]> {
+  const resp = await http.get<ClientMaterialAttachment[]>(
+    `/cabinet/client-materials/${materialId}/attachments/`
+  )
+  return resp.data || []
+}
+
+export async function uploadClientMaterialAttachment(
+  materialId: number,
+  file: File
+): Promise<ClientMaterialAttachment> {
+  const formData = new FormData()
+  formData.append('file', file)
+  const resp = await http.post<ClientMaterialAttachment>(
+    `/cabinet/client-materials/${materialId}/attachments/`,
+    formData
+  )
+  return resp.data
+}
+
+export async function deleteClientMaterialAttachment(
+  materialId: number,
+  attachmentId: number
+): Promise<void> {
+  await http.delete(`/cabinet/client-materials/${materialId}/attachments/${attachmentId}/`)
+}
+
 export async function fetchClientMaterials(
   cursor?: string | null,
   sessionId?: number | null
@@ -2625,6 +2664,16 @@ export async function fetchClientMaterialDetail(
 ): Promise<ClientMaterialClientRecord> {
   const resp = await http.get<ClientMaterialClientRecord>(`/client/materials/${materialId}/`)
   return normalizeClientMaterial(resp.data)
+}
+
+export async function getClientMaterialAttachmentDownloadUrl(
+  materialId: number,
+  attachmentId: number
+): Promise<{ download_url: string }> {
+  const resp = await http.get<{ download_url: string }>(
+    `/client/materials/${materialId}/attachments/${attachmentId}/download/`
+  )
+  return resp.data
 }
 
 export async function fetchExternalSessions(): Promise<ExternalSessionRecord[]> {

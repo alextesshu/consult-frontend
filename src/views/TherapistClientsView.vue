@@ -454,6 +454,51 @@
                         Відкрити посилання
                       </a>
                     </div>
+                    <div class="client-material__attachments">
+                      <div class="client-material__attachments-title">Файли</div>
+                      <p v-if="clientMaterialsState(clientMaterialsScopeKey(client) || '').attachmentErrorByMaterialId[material.id]" class="form-error">
+                        {{ clientMaterialsState(clientMaterialsScopeKey(client) || '').attachmentErrorByMaterialId[material.id] }}
+                      </p>
+                      <p v-if="clientMaterialsState(clientMaterialsScopeKey(client) || '').attachmentSuccessByMaterialId[material.id]" class="muted">
+                        {{ clientMaterialsState(clientMaterialsScopeKey(client) || '').attachmentSuccessByMaterialId[material.id] }}
+                      </p>
+                      <div class="client-material__attachments-upload">
+                        <label class="btn btn--ghost btn--sm">
+                          Додати файл
+                          <input
+                            class="sr-only"
+                            type="file"
+                            :disabled="clientMaterialsState(clientMaterialsScopeKey(client) || '').attachmentUploadingByMaterialId[material.id]"
+                            @change="attachmentFileChange(clientMaterialsScopeKey(client) || '', material.id, $event)"
+                          />
+                        </label>
+                        <span v-if="clientMaterialsState(clientMaterialsScopeKey(client) || '').attachmentUploadingByMaterialId[material.id]" class="muted">Файл завантажується…</span>
+                      </div>
+                      <div v-if="clientMaterialsState(clientMaterialsScopeKey(client) || '').attachmentLoadingByMaterialId[material.id]" class="muted">
+                        Завантаження файлів...
+                      </div>
+                      <ul
+                        v-else-if="(clientMaterialsState(clientMaterialsScopeKey(client) || '').attachmentsByMaterialId[material.id] || []).length"
+                        class="client-material__attachments-list"
+                      >
+                        <li
+                          v-for="attachment in clientMaterialsState(clientMaterialsScopeKey(client) || '').attachmentsByMaterialId[material.id]"
+                          :key="attachment.id"
+                          class="client-material__attachments-item"
+                        >
+                          <span>{{ attachment.original_filename }} · {{ humanFileSize(attachment.size_bytes) }}</span>
+                          <button
+                            class="btn btn--ghost btn--sm"
+                            type="button"
+                            :disabled="Boolean(clientMaterialsState(clientMaterialsScopeKey(client) || '').attachmentDeletingByAttachmentId[attachment.id])"
+                            @click="deleteAttachment(clientMaterialsScopeKey(client) || '', material.id, attachment.id)"
+                          >
+                            Видалити файл
+                          </button>
+                        </li>
+                      </ul>
+                      <p v-else class="muted">До цього матеріалу ще не додано файлів.</p>
+                    </div>
                   </article>
                 </div>
                 <div class="client-materials__create">
@@ -654,6 +699,51 @@
                       >
                         Відкрити посилання
                       </a>
+                    </div>
+                    <div class="client-material__attachments">
+                      <div class="client-material__attachments-title">Файли</div>
+                      <p v-if="clientMaterialsState(clientMaterialsScopeKey(client) || '').attachmentErrorByMaterialId[material.id]" class="form-error">
+                        {{ clientMaterialsState(clientMaterialsScopeKey(client) || '').attachmentErrorByMaterialId[material.id] }}
+                      </p>
+                      <p v-if="clientMaterialsState(clientMaterialsScopeKey(client) || '').attachmentSuccessByMaterialId[material.id]" class="muted">
+                        {{ clientMaterialsState(clientMaterialsScopeKey(client) || '').attachmentSuccessByMaterialId[material.id] }}
+                      </p>
+                      <div class="client-material__attachments-upload">
+                        <label class="btn btn--ghost btn--sm">
+                          Додати файл
+                          <input
+                            class="sr-only"
+                            type="file"
+                            :disabled="clientMaterialsState(clientMaterialsScopeKey(client) || '').attachmentUploadingByMaterialId[material.id]"
+                            @change="attachmentFileChange(clientMaterialsScopeKey(client) || '', material.id, $event)"
+                          />
+                        </label>
+                        <span v-if="clientMaterialsState(clientMaterialsScopeKey(client) || '').attachmentUploadingByMaterialId[material.id]" class="muted">Файл завантажується…</span>
+                      </div>
+                      <div v-if="clientMaterialsState(clientMaterialsScopeKey(client) || '').attachmentLoadingByMaterialId[material.id]" class="muted">
+                        Завантаження файлів...
+                      </div>
+                      <ul
+                        v-else-if="(clientMaterialsState(clientMaterialsScopeKey(client) || '').attachmentsByMaterialId[material.id] || []).length"
+                        class="client-material__attachments-list"
+                      >
+                        <li
+                          v-for="attachment in clientMaterialsState(clientMaterialsScopeKey(client) || '').attachmentsByMaterialId[material.id]"
+                          :key="attachment.id"
+                          class="client-material__attachments-item"
+                        >
+                          <span>{{ attachment.original_filename }} · {{ humanFileSize(attachment.size_bytes) }}</span>
+                          <button
+                            class="btn btn--ghost btn--sm"
+                            type="button"
+                            :disabled="Boolean(clientMaterialsState(clientMaterialsScopeKey(client) || '').attachmentDeletingByAttachmentId[attachment.id])"
+                            @click="deleteAttachment(clientMaterialsScopeKey(client) || '', material.id, attachment.id)"
+                          >
+                            Видалити файл
+                          </button>
+                        </li>
+                      </ul>
+                      <p v-else class="muted">До цього матеріалу ще не додано файлів.</p>
                     </div>
                   </article>
                 </div>
@@ -993,17 +1083,21 @@ import {
   apiPatch,
   apiPost,
   createSpecialistClientMaterial,
+  deleteClientMaterialAttachment,
   createClientRecordAccountInvite,
   fetchSpecialistClientMaterials,
   fetchChatThreads,
   fetchClientRecordAccountInvite,
   hasMaterialUrl,
+  listClientMaterialAttachments,
   publishSpecialistClientMaterial,
   regenerateClientRecordAccountInvite,
   revokeSpecialistClientMaterial,
   revokeClientRecordAccountInvite,
+  uploadClientMaterialAttachment,
   updateSpecialistClientMaterial,
   type ChatThread,
+  type ClientMaterialAttachment,
   type ClientMaterialSpecialistRecord,
   type ClientMaterialStatus,
   type ClientMaterialType,
@@ -1124,6 +1218,12 @@ type ClientMaterialsState = {
   items: ClientMaterialSpecialistRecord[]
   create: ClientMaterialDraft
   editById: Record<number, ClientMaterialDraft>
+  attachmentsByMaterialId: Record<number, ClientMaterialAttachment[]>
+  attachmentLoadingByMaterialId: Record<number, boolean>
+  attachmentErrorByMaterialId: Record<number, string>
+  attachmentSuccessByMaterialId: Record<number, string>
+  attachmentUploadingByMaterialId: Record<number, boolean>
+  attachmentDeletingByAttachmentId: Record<number, boolean>
   open: boolean
 }
 
@@ -1572,6 +1672,12 @@ function defaultMaterialsState(): ClientMaterialsState {
     items: [],
     create: defaultMaterialDraft(),
     editById: {},
+    attachmentsByMaterialId: {},
+    attachmentLoadingByMaterialId: {},
+    attachmentErrorByMaterialId: {},
+    attachmentSuccessByMaterialId: {},
+    attachmentUploadingByMaterialId: {},
+    attachmentDeletingByAttachmentId: {},
     open: false,
   }
 }
@@ -1613,6 +1719,53 @@ function materialValidationErrorMessage(err: unknown, fallback: string): string 
     return 'Введіть коректне посилання. Наприклад: https://kendo.com.ua'
   }
   return getApiErrorMessage(err, fallback)
+}
+
+const attachmentAllowedExtensions = new Set(['pdf', 'doc', 'docx', 'jpg', 'jpeg', 'png', 'webp', 'txt'])
+const attachmentMaxSizeBytes = 20 * 1024 * 1024
+
+function attachmentCode(err: unknown): string {
+  const data = (err as any)?.response?.data
+  return String(data?.code || data?.reason_code || '').trim().toUpperCase()
+}
+
+function attachmentActionErrorMessage(err: unknown, fallback: string): string {
+  const code = attachmentCode(err)
+  if (code === 'ATTACHMENT_FILE_REQUIRED') return 'Оберіть файл для завантаження.'
+  if (code === 'ATTACHMENT_INVALID_EXTENSION' || code === 'ATTACHMENT_INVALID_MIME_TYPE') {
+    return 'Цей тип файлу не підтримується. Дозволені PDF, DOC, DOCX, JPG, PNG, WEBP або TXT.'
+  }
+  if (code === 'ATTACHMENT_FILE_TOO_LARGE') return 'Файл завеликий. Максимальний розмір одного файлу — 20 МБ.'
+  if (code === 'ATTACHMENT_COUNT_LIMIT_REACHED') return 'До одного матеріалу можна додати не більше 10 файлів.'
+  if (code === 'ATTACHMENT_TOTAL_SIZE_LIMIT_REACHED') {
+    return 'Загальний розмір файлів для одного матеріалу не може перевищувати 100 МБ.'
+  }
+  if (code === 'CLIENT_MATERIAL_ATTACHMENT_NOT_FOUND' || code === 'CLIENT_MATERIAL_NOT_FOUND') {
+    return 'Файл не знайдено або у вас немає доступу.'
+  }
+  return getApiErrorMessage(err, fallback)
+}
+
+function clearAttachmentMessage(scopeKey: string, materialId: number) {
+  const state = clientMaterialsState(scopeKey)
+  const errors = { ...state.attachmentErrorByMaterialId }
+  const success = { ...state.attachmentSuccessByMaterialId }
+  delete errors[materialId]
+  delete success[materialId]
+  updateClientMaterialsState(scopeKey, {
+    attachmentErrorByMaterialId: errors,
+    attachmentSuccessByMaterialId: success,
+  })
+}
+
+function humanFileSize(bytes: number): string {
+  if (!Number.isFinite(bytes) || bytes <= 0) return '0 Б'
+  if (bytes < 1024) return `${Math.round(bytes)} Б`
+  const kb = bytes / 1024
+  if (kb < 1024) return `${Math.round(kb)} КБ`
+  const mb = kb / 1024
+  const value = mb >= 10 ? Math.round(mb) : Math.round(mb * 10) / 10
+  return `${value.toString().replace('.', ',')} МБ`
 }
 
 function clearMaterialEditError(scopeKey: string, materialId: number) {
@@ -1768,10 +1921,47 @@ async function loadClientMaterials(scopeKey: string, scope: ClientMaterialScope)
       loading: false,
       listError: '',
     })
+    await Promise.all(items.map((item) => loadMaterialAttachments(scopeKey, item.id)))
   } catch (err) {
     updateClientMaterialsState(scopeKey, {
       loading: false,
       listError: getApiErrorMessage(err, 'Не вдалося завантажити матеріали.'),
+    })
+  }
+}
+
+async function loadMaterialAttachments(scopeKey: string, materialId: number) {
+  const state = clientMaterialsState(scopeKey)
+  updateClientMaterialsState(scopeKey, {
+    attachmentLoadingByMaterialId: {
+      ...state.attachmentLoadingByMaterialId,
+      [materialId]: true,
+    },
+  })
+  try {
+    const attachments = await listClientMaterialAttachments(materialId)
+    const nextErrors = { ...clientMaterialsState(scopeKey).attachmentErrorByMaterialId }
+    delete nextErrors[materialId]
+    updateClientMaterialsState(scopeKey, {
+      attachmentsByMaterialId: {
+        ...clientMaterialsState(scopeKey).attachmentsByMaterialId,
+        [materialId]: attachments,
+      },
+      attachmentErrorByMaterialId: nextErrors,
+    })
+  } catch (err) {
+    updateClientMaterialsState(scopeKey, {
+      attachmentErrorByMaterialId: {
+        ...clientMaterialsState(scopeKey).attachmentErrorByMaterialId,
+        [materialId]: attachmentActionErrorMessage(err, 'Не вдалося виконати дію з файлом. Спробуйте ще раз.'),
+      },
+    })
+  } finally {
+    updateClientMaterialsState(scopeKey, {
+      attachmentLoadingByMaterialId: {
+        ...clientMaterialsState(scopeKey).attachmentLoadingByMaterialId,
+        [materialId]: false,
+      },
     })
   }
 }
@@ -1922,6 +2112,114 @@ async function revokeMaterial(client: ClientListItem, materialId: number) {
     if (clientMaterialsState(scopeKey).actionLoadingId === materialId) {
       updateClientMaterialsState(scopeKey, { actionLoadingId: null })
     }
+  }
+}
+
+function attachmentFileChange(scopeKey: string, materialId: number, event: Event) {
+  const input = event.target as HTMLInputElement | null
+  const file = input?.files?.[0]
+  if (!file) {
+    updateClientMaterialsState(scopeKey, {
+      attachmentErrorByMaterialId: {
+        ...clientMaterialsState(scopeKey).attachmentErrorByMaterialId,
+        [materialId]: 'Оберіть файл для завантаження.',
+      },
+    })
+    return
+  }
+
+  const extension = file.name.includes('.') ? file.name.split('.').pop()?.toLowerCase() || '' : ''
+  if (!attachmentAllowedExtensions.has(extension)) {
+    updateClientMaterialsState(scopeKey, {
+      attachmentErrorByMaterialId: {
+        ...clientMaterialsState(scopeKey).attachmentErrorByMaterialId,
+        [materialId]: 'Цей тип файлу не підтримується. Дозволені PDF, DOC, DOCX, JPG, PNG, WEBP або TXT.',
+      },
+    })
+    return
+  }
+
+  if (file.size > attachmentMaxSizeBytes) {
+    updateClientMaterialsState(scopeKey, {
+      attachmentErrorByMaterialId: {
+        ...clientMaterialsState(scopeKey).attachmentErrorByMaterialId,
+        [materialId]: 'Файл завеликий. Максимальний розмір одного файлу — 20 МБ.',
+      },
+    })
+    return
+  }
+
+  void uploadAttachment(scopeKey, materialId, file).finally(() => {
+    if (input) input.value = ''
+  })
+}
+
+async function uploadAttachment(scopeKey: string, materialId: number, file: File) {
+  clearAttachmentMessage(scopeKey, materialId)
+  updateClientMaterialsState(scopeKey, {
+    attachmentUploadingByMaterialId: {
+      ...clientMaterialsState(scopeKey).attachmentUploadingByMaterialId,
+      [materialId]: true,
+    },
+  })
+  try {
+    await uploadClientMaterialAttachment(materialId, file)
+    await loadMaterialAttachments(scopeKey, materialId)
+    updateClientMaterialsState(scopeKey, {
+      attachmentSuccessByMaterialId: {
+        ...clientMaterialsState(scopeKey).attachmentSuccessByMaterialId,
+        [materialId]: 'Файл додано',
+      },
+    })
+  } catch (err) {
+    updateClientMaterialsState(scopeKey, {
+      attachmentErrorByMaterialId: {
+        ...clientMaterialsState(scopeKey).attachmentErrorByMaterialId,
+        [materialId]: attachmentActionErrorMessage(err, 'Не вдалося виконати дію з файлом. Спробуйте ще раз.'),
+      },
+    })
+  } finally {
+    updateClientMaterialsState(scopeKey, {
+      attachmentUploadingByMaterialId: {
+        ...clientMaterialsState(scopeKey).attachmentUploadingByMaterialId,
+        [materialId]: false,
+      },
+    })
+  }
+}
+
+async function deleteAttachment(scopeKey: string, materialId: number, attachmentId: number) {
+  clearAttachmentMessage(scopeKey, materialId)
+  updateClientMaterialsState(scopeKey, {
+    attachmentDeletingByAttachmentId: {
+      ...clientMaterialsState(scopeKey).attachmentDeletingByAttachmentId,
+      [attachmentId]: true,
+    },
+  })
+  try {
+    await deleteClientMaterialAttachment(materialId, attachmentId)
+    const existing = clientMaterialsState(scopeKey).attachmentsByMaterialId[materialId] || []
+    updateClientMaterialsState(scopeKey, {
+      attachmentsByMaterialId: {
+        ...clientMaterialsState(scopeKey).attachmentsByMaterialId,
+        [materialId]: existing.filter((item) => item.id !== attachmentId),
+      },
+      attachmentSuccessByMaterialId: {
+        ...clientMaterialsState(scopeKey).attachmentSuccessByMaterialId,
+        [materialId]: 'Файл видалено',
+      },
+    })
+  } catch (err) {
+    updateClientMaterialsState(scopeKey, {
+      attachmentErrorByMaterialId: {
+        ...clientMaterialsState(scopeKey).attachmentErrorByMaterialId,
+        [materialId]: attachmentActionErrorMessage(err, 'Не вдалося виконати дію з файлом. Спробуйте ще раз.'),
+      },
+    })
+  } finally {
+    const deleting = { ...clientMaterialsState(scopeKey).attachmentDeletingByAttachmentId }
+    delete deleting[attachmentId]
+    updateClientMaterialsState(scopeKey, { attachmentDeletingByAttachmentId: deleting })
   }
 }
 
@@ -3631,6 +3929,52 @@ onBeforeUnmount(() => {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+.client-material__attachments {
+  display: grid;
+  gap: 8px;
+  padding-top: 6px;
+  border-top: 1px solid color-mix(in srgb, var(--pc-border) 82%, #ffffff);
+}
+
+.client-material__attachments-title {
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.client-material__attachments-upload {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.client-material__attachments-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.client-material__attachments-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
 }
 
 .client-materials__create h4 {
