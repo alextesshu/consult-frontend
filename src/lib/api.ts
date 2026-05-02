@@ -1581,6 +1581,29 @@ export async function createPracticeReview(
   return resp.data
 }
 
+export type CabinetReviewStatus = 'PENDING' | 'APPROVED' | 'REJECTED'
+
+export type CabinetReview = {
+  id: number
+  author_display_name: string
+  rating: number | null
+  text: string
+  status: CabinetReviewStatus
+  created_at: string
+  session_id: number | null
+}
+
+export async function fetchCabinetReviews(params?: {
+  status?: CabinetReviewStatus
+}): Promise<CabinetReview[]> {
+  const resp = await http.get<CabinetReview[]>('/cabinet/reviews/', {
+    params: {
+      status: params?.status || undefined,
+    },
+  })
+  return resp.data || []
+}
+
 export async function fetchAuthorJournalPosts(): Promise<AuthorJournalPost[]> {
   const resp = await http.get<AuthorJournalPost[]>('/cabinet/journal/')
   return resp.data

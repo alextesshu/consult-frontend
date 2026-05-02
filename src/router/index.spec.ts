@@ -69,6 +69,13 @@ describe('router specialist session routes', () => {
     expect(resolved.meta.requiresRole).toBe('CLIENT')
   })
 
+  it('matches specialist reviews route and requires specialist role', () => {
+    const resolved = router.resolve('/cabinet/reviews')
+    expect(resolved.name).toBe('cabinet-reviews')
+    expect(resolved.meta.requiresAuth).toBe(true)
+    expect(resolved.meta.requiresRole).toBe('SPECIALIST')
+  })
+
   it('matches admin billing request routes and rejects non-numeric detail id', () => {
     const list = router.resolve('/admin/billing-access-requests')
     const detail = router.resolve('/admin/billing-access-requests/33')

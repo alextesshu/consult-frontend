@@ -64,20 +64,20 @@
             v-model="reviewText"
             rows="6"
             placeholder="Опишіть свій досвід співпраці."
-            :disabled="!isAuthenticated || submitLoading || reviewLocked"
+            :disabled="!isAuthenticated || submitLoading || feedbackLimitReached"
           ></textarea>
         </label>
 
         <div class="field__hint">Текст бачить лише спеціаліст. Ім’я не передається.</div>
-        <div v-if="reviewLocked" class="hint">
-          Ви вже залишили відгук для цього спеціаліста.
+        <div v-if="feedbackLimitReached" class="hint">
+          Ви вже залишили максимальну кількість відгуків для цього спеціаліста.
         </div>
 
         <div class="actions">
           <button
             class="btn"
             type="button"
-            :disabled="submitLoading || !isAuthenticated || reviewLocked"
+            :disabled="submitLoading || !isAuthenticated || feedbackLimitReached"
             @click="submitReview"
           >
             {{ submitLoading ? 'Надсилаємо...' : 'Надіслати відгук' }}
@@ -109,8 +109,8 @@ const reviewText = ref('')
 const submitLoading = ref(false)
 const submitError = ref('')
 const submitSuccess = ref('')
-const reviewLocked = ref(false)
-const reviews = ref<Array<{ id: number; review_text: string; created_at: string }>>([])
+const feedbackLimitReached = ref(false)
+const reviews = ref<Array<{ id: number; text?: string; review_text?: string; created_at: string }>>([])
 const reviewsLoading = ref(false)
 const reviewsError = ref('')
 
@@ -170,7 +170,7 @@ async function loadReviews() {
   reviewsLoading.value = true
   reviewsError.value = ''
   try {
-    const resp = await apiGet<Array<{ id: number; review_text: string; created_at: string }>>(
+    const resp = await apiGet<Array<{ id: number; text?: string; review_text?: string; created_at: string }>>(
       '/cabinet/reviews/'
     )
     reviews.value = resp || []
@@ -184,8 +184,8 @@ async function loadReviews() {
 async function submitReview() {
   submitError.value = ''
   submitSuccess.value = ''
-  if (reviewLocked.value) {
-    submitError.value = 'Ви вже залишили відгук для цього спеціаліста.'
+  if (feedbackLimitReached.value) {
+    submitError.value = 'Ви вже залишили максимальну кількість відгуків для цього спеціаліста.'
     return
   }
   if (!isAuthenticated.value) {
@@ -208,15 +208,17 @@ async function submitReview() {
     reviewText.value = ''
   } catch (err: any) {
     const status = err?.response?.status
+    const backendCode = String(err?.response?.data?.code || '')
     const backendDetail = String(err?.response?.data?.detail || '')
-    const duplicateReview =
-      backendDetail === 'You already left a review for this specialist.'
+    const feedbackLimitHit =
+      backendCode === 'SPECIALIST_FEEDBACK_LIMIT_REACHED' ||
+      backendDetail === 'Feedback limit reached for this specialist.'
     if (status === 403) {
       submitError.value =
         'Залишити відгук можна лише спеціалісту, з яким у вас була або є сесія.'
-    } else if (duplicateReview) {
-      reviewLocked.value = true
-      submitError.value = 'Ви вже залишили відгук для цього спеціаліста.'
+    } else if (feedbackLimitHit) {
+      feedbackLimitReached.value = true
+      submitError.value = 'Ви вже залишили максимальну кількість відгуків для цього спеціаліста.'
     } else {
       submitError.value = getApiErrorMessage(err, 'Не вдалося надіслати відгук.')
     }

@@ -1,12 +1,12 @@
-<template>
+﻿<template>
   <div>
-    <div v-if="loading" class="muted" style="margin-top: 12px;">Завантаження...</div>
+    <div v-if="loading" class="muted" style="margin-top: 12px;">Р—Р°РІР°РЅС‚Р°Р¶РµРЅРЅСЏ...</div>
     <div v-else-if="error" class="form-error" style="margin-top: 12px;">{{ error }}</div>
 
     <section v-else class="review-list">
       <div v-if="showCount && reviews.length > 0" class="review-stats">
         <div class="stat-chip">
-          Усього: <strong>{{ reviews.length }}</strong>
+          РЈСЃСЊРѕРіРѕ: <strong>{{ reviews.length }}</strong>
         </div>
       </div>
       <EmptyState
@@ -24,7 +24,7 @@
         </div>
 
         <div class="review-text">
-          {{ review.review_text ? review.review_text : 'Без тексту відгуку.' }}
+          {{ review.text ? review.text : (review.review_text ? review.review_text : 'Без тексту відгуку.') }}
         </div>
       </article>
     </section>
@@ -37,7 +37,8 @@ import { formatUkDateTimeCompact } from '../lib/dateTime'
 
 type ReviewItem = {
   id: number
-  review_text: string
+  text?: string
+  review_text?: string
   created_at: string
 }
 
@@ -56,9 +57,9 @@ const props = withDefaults(defineProps<Props>(), {
   loading: false,
   error: '',
   showCount: true,
-  emptyTitle: 'Поки немає відгуків',
-  emptyDescription: 'Коли клієнти залишать відгук після співпраці, він з’явиться тут.',
-  emptyActionText: 'Відкрити профіль',
+  emptyTitle: 'РџРѕРєРё РЅРµРјР°С” РІС–РґРіСѓРєС–РІ',
+  emptyDescription: 'РљРѕР»Рё РєР»С–С”РЅС‚Рё Р·Р°Р»РёС€Р°С‚СЊ РІС–РґРіСѓРє РїС–СЃР»СЏ СЃРїС–РІРїСЂР°С†С–, РІС–РЅ Р·вЂ™СЏРІРёС‚СЊСЃСЏ С‚СѓС‚.',
+  emptyActionText: 'Р’С–РґРєСЂРёС‚Рё РїСЂРѕС„С–Р»СЊ',
   emptyActionTo: '/cabinet/profile',
 })
 
@@ -113,3 +114,4 @@ function formatDate(value: string) {
   }
 }
 </style>
+

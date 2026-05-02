@@ -115,6 +115,7 @@ async function renderWithProviders(options?: {
     { path: '/cabinet/slots', component: { template: '<div>Cabinet Slots</div>' } },
     { path: '/cabinet/sessions', component: { template: '<div>Cabinet Sessions</div>' } },
     { path: '/cabinet/clients', component: { template: '<div>Cabinet Clients</div>' } },
+    { path: '/cabinet/reviews', component: { template: '<div>Cabinet Reviews</div>' } },
     { path: '/cabinet/external-sessions', component: { template: '<div>Cabinet External Sessions</div>' } },
     { path: '/cabinet/analytics', component: { template: '<div>Cabinet Analytics</div>' } },
     { path: '/cabinet/billing', component: { template: '<div>Cabinet Billing</div>' } },
@@ -296,6 +297,7 @@ describe('App shell', () => {
     expect(within(sidebar).getByRole('link', { name: 'Розклад' })).toHaveAttribute('href', '/cabinet/slots')
     expect(within(sidebar).getByRole('link', { name: 'Сесії' })).toHaveAttribute('href', '/cabinet/sessions')
     expect(within(sidebar).getByRole('link', { name: 'Клієнти' })).toHaveAttribute('href', '/cabinet/clients')
+    expect(within(sidebar).getByRole('link', { name: 'Відгуки' })).toHaveAttribute('href', '/cabinet/reviews')
     expect(within(sidebar).getByRole('link', { name: 'Гостьові сесії' })).toHaveAttribute(
       'href',
       '/cabinet/external-sessions'
@@ -378,6 +380,7 @@ describe('App shell', () => {
     expect(within(drawer).getByRole('link', { name: 'Розклад' })).toHaveAttribute('href', '/cabinet/slots')
     expect(within(drawer).getByRole('link', { name: 'Сесії' })).toHaveAttribute('href', '/cabinet/sessions')
     expect(within(drawer).getByRole('link', { name: 'Клієнти' })).toHaveAttribute('href', '/cabinet/clients')
+    expect(within(drawer).getByRole('link', { name: 'Відгуки' })).toHaveAttribute('href', '/cabinet/reviews')
     expect(within(drawer).getByRole('link', { name: 'Гостьові сесії' })).toHaveAttribute(
       'href',
       '/cabinet/external-sessions'
