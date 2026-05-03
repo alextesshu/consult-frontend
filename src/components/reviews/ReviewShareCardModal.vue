@@ -37,14 +37,7 @@
 
       <div class="share-card-modal__preview-wrap">
         <article class="share-card-preview" :class="[`is-${format}`, `is-${theme}`]">
-          <div class="share-card-preview__content share-card-preview__content--compact">
-            <div class="share-card-preview__title">Відгук клієнта через proconsult.space</div>
-            <blockquote class="share-card-preview__text">“{{ previewText }}”</blockquote>
-            <div class="share-card-preview__author">— Анонімний клієнт</div>
-            <div v-if="showSpecialistName" class="share-card-preview__specialist">{{ safeSpecialistDisplayName }}</div>
-            <div v-if="showProfileUrl && profileUrl" class="share-card-preview__profile">{{ profileUrl }}</div>
-            <div class="share-card-preview__footer">Використано зі згоди клієнта</div>
-          </div>
+          <div class="share-card-preview__svg" v-html="previewSvgMarkup"></div>
         </article>
       </div>
 
@@ -58,7 +51,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
+import proconsultLogoDark from '../../assets/consult-logo_2026-02-24-2135_black.png?inline'
 
 export type ShareCardFormat = 'square' | 'story'
 export type ShareCardTheme = 'light' | 'dark'
@@ -83,16 +77,27 @@ const downloading = ref(false)
 
 const hasProfileUrl = computed(() => Boolean(String(props.profileUrl || '').trim()))
 const profileUrl = computed(() => String(props.profileUrl || '').trim())
+const logoSrc = computed(() => String(proconsultLogoDark || ''))
+const exportLogoHref = ref('')
 const safeSpecialistDisplayName = computed(() => {
   const value = String(props.specialistDisplayName || '').trim()
   return value || 'Спеціаліст'
 })
 
-const previewText = computed(() => {
+function stripOuterQuotes(value: string): string {
+  return value.replace(/^["“”«»]+|["“”«»]+$/g, '').trim()
+}
+
+function formatReviewQuote(text: string): string {
+  const cleaned = stripOuterQuotes(String(text || '').trim())
+  return `“${cleaned}”`
+}
+
+const previewQuoteText = computed(() => {
   const source = String(props.reviewText || '').trim()
   const maxLen = format.value === 'story' ? 560 : 320
-  if (source.length <= maxLen) return source
-  return `${source.slice(0, maxLen - 1).trim()}…`
+  const truncated = source.length <= maxLen ? source : `${source.slice(0, maxLen - 1).trim()}…`
+  return formatReviewQuote(truncated)
 })
 
 function escapeXml(value: string): string {
@@ -129,9 +134,38 @@ function buildFileName(uid: string): string {
   return `proconsult-review-card-${sanitizeReviewUid(uid)}.png`
 }
 
+async function toDataUrlIfNeeded(src: string): Promise<string> {
+  const raw = String(src || '').trim()
+  if (!raw) return ''
+  if (raw.startsWith('data:image/')) return raw
+  try {
+    const response = await fetch(raw)
+    if (!response.ok) return raw
+    const blob = await response.blob()
+    const dataUrl = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = () => resolve(String(reader.result || raw))
+      reader.onerror = () => reject(new Error('Failed to read logo blob'))
+      reader.readAsDataURL(blob)
+    })
+    return dataUrl
+  } catch {
+    return raw
+  }
+}
+
+watch(
+  logoSrc,
+  async (src) => {
+    exportLogoHref.value = await toDataUrlIfNeeded(src)
+  },
+  { immediate: true }
+)
+
 function buildSvg(): string {
   const width = 1080
-  const height = format.value === 'story' ? 1920 : 1080
+  const isStory = format.value === 'story'
+  const height = isStory ? 1920 : 1080
   const isDark = theme.value === 'dark'
   const bg = isDark ? '#0f172a' : '#f8f6f1'
   const cardBg = isDark ? '#111827' : '#ffffff'
@@ -140,29 +174,34 @@ function buildSvg(): string {
   const muted = isDark ? '#cbd5e1' : '#334155'
   const accent = '#0f766e'
 
-  const textLines = wrapSvgText(previewText.value, format.value === 'story' ? 36 : 42)
-  const maxLines = format.value === 'story' ? 12 : 8
+  const textLines = wrapSvgText(previewQuoteText.value, isStory ? 30 : 32)
+  const maxLines = isStory ? 12 : 8
   const visibleLines = textLines.slice(0, maxLines)
-  const lineHeight = 64
-  const quoteStartY = 320
+  const lineHeight = isStory ? 66 : 64
+  const quoteStartY = isStory ? 660 : 320
+  const quoteX = 110
 
   const quoteBlock = visibleLines
-    .map((line, index) => `<tspan x="90" y="${quoteStartY + index * lineHeight}">${escapeXml(line)}</tspan>`)
+    .map((line, index) => `<tspan x="${quoteX}" y="${quoteStartY + index * lineHeight}">${escapeXml(line)}</tspan>`)
     .join('')
 
   const quoteLastY = quoteStartY + Math.max(visibleLines.length - 1, 0) * lineHeight
-  let cursorY = quoteLastY + 86
+  let cursorY = quoteLastY + (isStory ? 92 : 86)
 
   const optionalBlocks: string[] = [
     `<text x="90" y="${cursorY}" fill="${fg}" font-size="36" font-family="Arial, sans-serif">— Анонімний клієнт</text>`,
   ]
-  cursorY += 54
+  cursorY += isStory ? 58 : 54
 
   if (showSpecialistName.value) {
     optionalBlocks.push(
-      `<text x="90" y="${cursorY}" fill="${muted}" font-size="32" font-family="Arial, sans-serif">${escapeXml(safeSpecialistDisplayName.value)}</text>`
+      `<text x="90" y="${cursorY}" fill="${muted}" font-size="24" font-family="Arial, sans-serif">Спеціаліст</text>`
     )
-    cursorY += 48
+    cursorY += 38
+    optionalBlocks.push(
+      `<text x="90" y="${cursorY}" fill="${fg}" font-size="30" font-family="Arial, sans-serif">${escapeXml(safeSpecialistDisplayName.value)}</text>`
+    )
+    cursorY += 44
   }
 
   if (showProfileUrl.value && profileUrl.value) {
@@ -172,24 +211,45 @@ function buildSvg(): string {
     cursorY += 44
   }
 
+  const footerY = isStory ? height - 320 : height - 190
   optionalBlocks.push(
-    `<text x="90" y="${cursorY}" fill="${muted}" font-size="26" font-family="Arial, sans-serif">Використано зі згоди клієнта</text>`
+    `<text x="90" y="${footerY}" fill="${muted}" font-size="${isStory ? 34 : 30}" font-family="Arial, sans-serif">Використано зі згоди клієнта</text>`
+  )
+  const logoWidth = isStory ? 210 : 185
+  const logoHeight = isStory ? 50 : 44
+  const logoFilter = theme.value === 'dark' ? ' filter="url(#logoLighten)"' : ''
+  const logoY = footerY + 24
+  optionalBlocks.push(
+    `<image x="90" y="${logoY}" width="${logoWidth}" height="${logoHeight}" href="${escapeXml(exportLogoHref.value || logoSrc.value)}"${logoFilter} preserveAspectRatio="xMinYMin meet" />`
+  )
+  optionalBlocks.push(
+    `<text x="920" y="${logoY + logoHeight - 2}" text-anchor="end" fill="${muted}" font-size="${isStory ? 30 : 28}" font-family="Arial, sans-serif">proconsult.space</text>`
   )
 
   return `
-<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" data-layout="${isStory ? 'story-v1' : 'square-v1'}">
+  <defs>
+    <filter id="logoLighten" color-interpolation-filters="sRGB">
+      <feColorMatrix type="matrix" values="-1 0 0 0 1  0 -1 0 0 1  0 0 -1 0 1  0 0 0 1 0" />
+    </filter>
+  </defs>
   <rect width="100%" height="100%" fill="${bg}"/>
+  <ellipse cx="${isStory ? 160 : 150}" cy="${isStory ? 230 : 180}" rx="${isStory ? 160 : 120}" ry="${isStory ? 90 : 68}" fill="${isDark ? '#1e293b' : '#dbeafe'}" opacity="${isDark ? '0.42' : '0.55'}"/>
+  <ellipse cx="${isStory ? 960 : 930}" cy="${isStory ? 1710 : 900}" rx="${isStory ? 180 : 130}" ry="${isStory ? 104 : 74}" fill="${isDark ? '#134e4a' : '#ccfbf1'}" opacity="${isDark ? '0.36' : '0.58'}"/>
+  <path d="${isStory ? 'M830 180 C905 136, 990 148, 1030 220 C970 256, 905 274, 840 248 Z' : 'M760 146 C825 112, 892 118, 930 174 C876 204, 820 218, 770 198 Z'}" fill="${isDark ? '#0b3a35' : '#dcfce7'}" opacity="${isDark ? '0.42' : '0.58'}"/>
   <rect x="70" y="70" width="940" height="${height - 140}" rx="28" fill="${cardBg}" stroke="${cardBorder}"/>
-  <text x="90" y="170" fill="${accent}" font-size="42" font-weight="700" font-family="Arial, sans-serif">Відгук клієнта через proconsult.space</text>
-  <text x="90" y="250" fill="${fg}" font-size="48" font-family="Arial, sans-serif">${quoteBlock}</text>
+  <text x="90" y="${isStory ? 250 : 170}" fill="${accent}" font-size="${isStory ? 46 : 42}" font-weight="700" font-family="Arial, sans-serif">Відгук через Pro Consult</text>
+  <text x="${quoteX}" y="${isStory ? 560 : 250}" fill="${fg}" font-size="${isStory ? 50 : 44}" font-family="Arial, sans-serif">${quoteBlock}</text>
   ${optionalBlocks.join('')}
 </svg>`.trim()
 }
 
+const previewSvgMarkup = computed(() => buildSvg())
+
 async function downloadPng() {
   downloading.value = true
   try {
-    const svg = buildSvg()
+    const svg = previewSvgMarkup.value
     const svgDataUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
 
     const img = new Image()
@@ -283,7 +343,7 @@ async function downloadPng() {
   margin: 0 auto;
   border-radius: 16px;
   border: 1px solid var(--pc-border);
-  padding: 18px;
+  padding: 12px;
 }
 
 .share-card-preview.is-square {
@@ -306,40 +366,21 @@ async function downloadPng() {
   color: #f8fafc;
 }
 
-.share-card-preview__content {
-  display: grid;
-}
-
-.share-card-preview__content--compact {
-  gap: 8px;
-  align-content: start;
-}
-
-.share-card-preview__title {
-  font-weight: 700;
-  color: #0f766e;
-}
-
-.share-card-preview__text {
-  margin: 0;
-  white-space: pre-wrap;
-  line-height: 1.45;
-}
-
-.share-card-preview__author {
-  font-weight: 600;
-}
-
-.share-card-preview__specialist,
-.share-card-preview__profile,
-.share-card-preview__footer {
-  color: var(--pc-text-muted);
-  font-size: 13px;
+.share-card-preview__svg :deep(svg) {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
 }
 
 .share-card-modal__actions {
   display: flex;
   justify-content: flex-end;
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  padding-top: 10px;
+  background: linear-gradient(to top, #fff 72%, rgba(255, 255, 255, 0));
 }
 
 @media (max-width: 760px) {

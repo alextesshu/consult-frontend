@@ -97,6 +97,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import {
   fetchCabinetReviews,
+  fetchSpecialistProfile,
   updateCabinetReviewStatus,
   type CabinetReview,
   type CabinetReviewStatus,
@@ -126,9 +127,12 @@ const activeFilter = ref<FilterKey>('ALL')
 const selectedReview = ref<CabinetReview | null>(null)
 const statusActionLoadingByReviewUid = ref<Record<string, boolean>>({})
 const statusActionErrorByReviewUid = ref<Record<string, string>>({})
+const specialistProfileDisplayName = ref('')
 const auth = useAuthStore()
 
 const specialistDisplayName = computed(() => {
+  const specialistProfileName = String(specialistProfileDisplayName.value || '').trim()
+  if (specialistProfileName) return specialistProfileName
   const mePayload = auth.me as any
   const profileDisplayName = String(mePayload?.display_name || '').trim()
   if (profileDisplayName) return profileDisplayName
@@ -142,6 +146,15 @@ const specialistDisplayName = computed(() => {
   if (fullName) return fullName
   return 'Спеціаліст'
 })
+
+async function loadSpecialistDisplayName() {
+  try {
+    const profile = await fetchSpecialistProfile()
+    specialistProfileDisplayName.value = String(profile?.display_name || '').trim()
+  } catch {
+    specialistProfileDisplayName.value = ''
+  }
+}
 
 function normalizePublicProfilePath(value: unknown): string {
   const raw = String(value || '').trim()
@@ -274,6 +287,7 @@ async function applyFilter(next: FilterKey) {
 }
 
 onMounted(() => {
+  void loadSpecialistDisplayName()
   void loadReviews()
 })
 </script>

@@ -3,18 +3,20 @@ import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useAuthStore } from '../stores/auth'
 import TherapistReviewsView from './TherapistReviewsView.vue'
-import { fetchCabinetReviews, updateCabinetReviewStatus } from '../lib/api'
+import { fetchCabinetReviews, fetchSpecialistProfile, updateCabinetReviewStatus } from '../lib/api'
 
 vi.mock('../lib/api', async () => {
   const actual = await vi.importActual<typeof import('../lib/api')>('../lib/api')
   return {
     ...actual,
     fetchCabinetReviews: vi.fn(),
+    fetchSpecialistProfile: vi.fn(),
     updateCabinetReviewStatus: vi.fn(),
   }
 })
 
 const mockedFetchCabinetReviews = vi.mocked(fetchCabinetReviews)
+const mockedFetchSpecialistProfile = vi.mocked(fetchSpecialistProfile)
 const mockedUpdateCabinetReviewStatus = vi.mocked(updateCabinetReviewStatus)
 
 function review(overrides: Record<string, unknown> = {}) {
@@ -48,8 +50,8 @@ function renderView(withDisplayName = true) {
       username: 'therapist_slug',
       email: 'spec@example.com',
       display_name: withDisplayName ? 'Олена Коваль' : '',
-      first_name: withDisplayName ? '' : '',
-      last_name: withDisplayName ? '' : '',
+      first_name: '',
+      last_name: '',
       public_profile_path: '/s/anna-kupriyan',
       role: 'SPECIALIST',
       roles: ['SPECIALIST'],
@@ -76,7 +78,11 @@ function renderView(withDisplayName = true) {
 describe('TherapistReviewsView', () => {
   beforeEach(() => {
     mockedFetchCabinetReviews.mockReset()
+    mockedFetchSpecialistProfile.mockReset()
     mockedUpdateCabinetReviewStatus.mockReset()
+    mockedFetchSpecialistProfile.mockResolvedValue({
+      display_name: '',
+    } as any)
   })
 
   it('renders page title and private subtitle', async () => {
@@ -202,19 +208,69 @@ describe('TherapistReviewsView', () => {
 
   it('passes safe specialistDisplayName to modal and not username fallback', async () => {
     mockedFetchCabinetReviews.mockResolvedValue([review()] as any)
+    mockedFetchSpecialistProfile.mockResolvedValue({
+      display_name: 'Імʼя з профілю',
+    } as any)
     renderView(true)
     await fireEvent.click(await screen.findByRole('button', { name: 'Створити картку' }))
     await fireEvent.click(screen.getByLabelText('Показувати ім’я спеціаліста'))
-    expect(screen.getByText('Олена Коваль')).toBeInTheDocument()
+    expect(screen.getByText('Імʼя з профілю')).toBeInTheDocument()
+    expect(screen.queryByText('therapist_slug')).not.toBeInTheDocument()
+  })
+
+  it('uses first_name + last_name when profile and display_name are unavailable', async () => {
+    mockedFetchCabinetReviews.mockResolvedValue([review()] as any)
+    mockedFetchSpecialistProfile.mockResolvedValue({
+      display_name: '',
+    } as any)
+    const pinia = createPinia()
+    setActivePinia(pinia)
+    const auth = useAuthStore()
+    auth.$reset()
+    auth.setMe({
+      user: {
+        id: 42,
+        username: 'therapist_slug',
+        email: 'spec@example.com',
+        display_name: '',
+        first_name: 'Олександр',
+        last_name: 'Константінов',
+        public_profile_path: '/s/anna-kupriyan',
+        role: 'SPECIALIST',
+        roles: ['SPECIALIST'],
+      },
+      access_state: null,
+      effective_entitlements: null,
+      counts: null,
+      server_time: '2026-05-02T00:00:00Z',
+    } as any)
+
+    render(TherapistReviewsView, {
+      global: {
+        plugins: [pinia],
+        stubs: {
+          RouterLink: {
+            props: ['to'],
+            template: '<a :href="typeof to === \'string\' ? to : to.path"><slot /></a>',
+          },
+        },
+      },
+    })
+    await fireEvent.click(await screen.findByRole('button', { name: 'Створити картку' }))
+    await fireEvent.click(screen.getByLabelText('Показувати ім’я спеціаліста'))
+    expect(screen.getByText('Олександр Константінов')).toBeInTheDocument()
     expect(screen.queryByText('therapist_slug')).not.toBeInTheDocument()
   })
 
   it('falls back to "Спеціаліст" when only username exists', async () => {
     mockedFetchCabinetReviews.mockResolvedValue([review()] as any)
+    mockedFetchSpecialistProfile.mockResolvedValue({
+      display_name: '',
+    } as any)
     renderView(false)
     await fireEvent.click(await screen.findByRole('button', { name: 'Створити картку' }))
     await fireEvent.click(screen.getByLabelText('Показувати ім’я спеціаліста'))
-    expect(screen.getByText('Спеціаліст')).toBeInTheDocument()
+    expect((await screen.findAllByText('Спеціаліст')).length).toBeGreaterThan(0)
     expect(screen.queryByText('therapist_slug')).not.toBeInTheDocument()
   })
 
