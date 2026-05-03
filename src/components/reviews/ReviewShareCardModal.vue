@@ -29,6 +29,10 @@
           <span>Показувати ім’я спеціаліста</span>
         </label>
 
+        <small v-if="textMode === 'full'" class="share-card-modal__excerpt-help">
+          Якщо відгук довгий, текст на картці буде зменшено. Для кращого вигляду оберіть фрагмент.
+        </small>
+
         <label v-if="hasProfileUrl" class="share-card-modal__toggle">
           <input v-model="showProfileUrl" type="checkbox" />
           <span>Показувати посилання на профіль</span>
@@ -40,6 +44,10 @@
             <input v-model="textMode" type="radio" value="full" name="text-mode" />
             <span>Використати весь відгук</span>
           </label>
+          <div v-if="textMode === 'full'" class="share-card-modal__excerpt-notice">
+            <strong>Весь відгук може виглядати дрібніше.</strong>
+            <span>Для красивішої картки оберіть фрагмент або формат Stories.</span>
+          </div>
           <label class="share-card-modal__toggle">
             <input v-model="textMode" type="radio" value="excerpt" name="text-mode" />
             <span>Обрати фрагмент</span>
@@ -149,12 +157,13 @@ function buildInitialExcerpt(source: string, limit: number): string {
 watch(
   [showExcerptControls, originalReviewText, recommendedExcerptLimit],
   ([enabled, source, limit]) => {
+    textMode.value = 'full'
+
     if (!enabled) {
-      textMode.value = 'full'
       excerptDraft.value = source
       return
     }
-    textMode.value = 'excerpt'
+
     excerptDraft.value = buildInitialExcerpt(source, Math.max(140, Math.floor(limit * 0.8)))
   },
   { immediate: true }
@@ -245,6 +254,56 @@ function wrapSvgText(text: string, maxCharsPerLine: number): string[] {
   }
 
   return lines
+}
+
+function resolveQuoteLayout(params: {
+  text: string
+  isStory: boolean
+  isFullTextMode: boolean
+  maxLinesBySpace: number
+}) {
+  const attempts = params.isStory
+    ? [
+        { fontSize: 50, lineHeight: 66, maxCharsPerLine: 30 },
+        { fontSize: 46, lineHeight: 60, maxCharsPerLine: 34 },
+        { fontSize: 42, lineHeight: 54, maxCharsPerLine: 38 },
+        { fontSize: 38, lineHeight: 50, maxCharsPerLine: 42 },
+        { fontSize: 34, lineHeight: 46, maxCharsPerLine: 46 },
+      ]
+    : [
+        { fontSize: 44, lineHeight: 64, maxCharsPerLine: 32 },
+        { fontSize: 40, lineHeight: 56, maxCharsPerLine: 36 },
+        { fontSize: 36, lineHeight: 50, maxCharsPerLine: 40 },
+        { fontSize: 32, lineHeight: 44, maxCharsPerLine: 45 },
+        { fontSize: 28, lineHeight: 40, maxCharsPerLine: 50 },
+      ]
+
+  if (!params.isFullTextMode) {
+    const firstAttempt = attempts[0]!
+    return {
+      ...firstAttempt,
+      lines: wrapSvgText(params.text, firstAttempt.maxCharsPerLine),
+      fitsFullText: false,
+    }
+  }
+
+  for (const attempt of attempts) {
+    const lines = wrapSvgText(params.text, attempt.maxCharsPerLine)
+    if (lines.length <= params.maxLinesBySpace) {
+      return {
+        ...attempt,
+        lines,
+        fitsFullText: true,
+      }
+    }
+  }
+
+  const lastAttempt = attempts[attempts.length - 1]!
+  return {
+    ...lastAttempt,
+    lines: wrapSvgText(params.text, lastAttempt.maxCharsPerLine),
+    fitsFullText: false,
+  }
 }
 
 function sanitizeReviewUid(uid: string): string {
@@ -345,13 +404,7 @@ function buildSvg(): string {
         logoHeight: 44,
       }
 
-  const textLines = wrapSvgText(previewQuoteText.value, layout.maxCharsPerLine)
-  const nonEmptyQuoteLines = textLines.filter((line) => line.trim()).length
-  const isCompactQuote = nonEmptyQuoteLines <= 4
-
-  const lineHeight = layout.lineHeight
-  const quoteStartY = isCompactQuote ? layout.compactQuoteStartY : layout.quoteStartY
-  const quoteX = layout.quoteX
+  const isFullTextMode = !showExcerptControls.value || textMode.value === 'full'
   const footerY = layout.footerY
 
   const authorBlockHeight = layout.authorBlockHeight
@@ -363,20 +416,32 @@ function buildSvg(): string {
     authorBlockHeight + specialistBlockHeight + profileBlockHeight + gapBeforeFooter
 
   const maxQuoteLastY = footerY - reservedBottomHeight
+
+  const preliminaryMaxLinesBySpace = Math.max(
+    1,
+    Math.floor((maxQuoteLastY - layout.quoteStartY) / layout.lineHeight) + 1
+  )
+
+  const quoteLayout = resolveQuoteLayout({
+    text: previewQuoteText.value,
+    isStory,
+    isFullTextMode,
+    maxLinesBySpace: preliminaryMaxLinesBySpace,
+  })
+
+  const textLines = quoteLayout.lines
+  const nonEmptyQuoteLines = textLines.filter((line) => line.trim()).length
+  const isCompactQuote = nonEmptyQuoteLines <= 4
+
+  const lineHeight = quoteLayout.lineHeight
+  const quoteStartY = isCompactQuote ? layout.compactQuoteStartY : layout.quoteStartY
+  const quoteX = layout.quoteX
+
   const maxLinesBySpace = Math.max(1, Math.floor((maxQuoteLastY - quoteStartY) / lineHeight) + 1)
-  const maxLinesByFormat = layout.maxQuoteLines
+  const maxLinesByFormat = isFullTextMode ? maxLinesBySpace : layout.maxQuoteLines
   const allowedLines = Math.max(1, Math.min(maxLinesByFormat, maxLinesBySpace))
 
-  const visibleLines = textLines.slice(0, allowedLines)
-  const wasTruncatedBySpace = textLines.length > visibleLines.length
-
-  if (wasTruncatedBySpace && visibleLines.length > 0) {
-    const lastIndex = visibleLines.length - 1
-    const currentLastLine = visibleLines[lastIndex] ?? ''
-    const lastLine = currentLastLine.replace(/[.…\s]+$/g, '')
-
-    visibleLines[lastIndex] = `${lastLine || currentLastLine}…`
-  }
+  const visibleLines = isFullTextMode ? textLines.slice(0, maxLinesBySpace) : textLines.slice(0, allowedLines)
 
   const quoteBlock = visibleLines
     .map((line, index) => `<tspan x="${quoteX}" y="${quoteStartY + index * lineHeight}">${escapeXml(line)}</tspan>`)
@@ -435,7 +500,7 @@ function buildSvg(): string {
   <path d="${isStory ? 'M830 180 C905 136, 990 148, 1030 220 C970 256, 905 274, 840 248 Z' : 'M760 146 C825 112, 892 118, 930 174 C876 204, 820 218, 770 198 Z'}" fill="${isDark ? '#0b3a35' : '#dcfce7'}" opacity="${isDark ? '0.42' : '0.58'}"/>
   <rect x="70" y="70" width="940" height="${height - 140}" rx="28" fill="${cardBg}" stroke="${cardBorder}"/>
   <text x="90" y="${layout.headerY}" fill="${accent}" font-size="${layout.headerFontSize}" font-weight="700" font-family="Arial, sans-serif">Відгук через Pro Consult</text>
-  <text x="${quoteX}" y="${quoteStartY}" fill="${fg}" font-size="${layout.quoteFontSize}" font-family="Arial, sans-serif">${quoteBlock}</text>
+  <text x="${quoteX}" y="${quoteStartY}" fill="${fg}" font-size="${quoteLayout.fontSize}" font-family="Arial, sans-serif">${quoteBlock}</text>
   ${optionalBlocks.join('')}
 </svg>`.trim()
 }
@@ -549,6 +614,22 @@ async function downloadPng() {
 
 .share-card-modal__excerpt-help {
   color: var(--pc-muted, #475569);
+}
+
+.share-card-modal__excerpt-notice {
+  display: grid;
+  gap: 2px;
+  padding: 10px 12px;
+  border: 1px solid #f0d9a8;
+  border-radius: 10px;
+  background: #fff8e7;
+  color: #6f4f12;
+  font-size: 0.92rem;
+  line-height: 1.35;
+}
+
+.share-card-modal__excerpt-notice strong {
+  color: #533a08;
 }
 
 .share-card-modal__excerpt-warning {

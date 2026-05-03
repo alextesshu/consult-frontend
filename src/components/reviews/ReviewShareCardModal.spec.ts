@@ -280,11 +280,14 @@ describe('ReviewShareCardModal', () => {
     expect(screen.getByText('Текст, який буде на картці')).toBeInTheDocument()
     expect(screen.getByLabelText('Використати весь відгук')).toBeInTheDocument()
     expect(screen.getByLabelText('Обрати фрагмент')).toBeInTheDocument()
-    expect(screen.getByLabelText('Обрати фрагмент')).toBeChecked()
+    expect(screen.getByLabelText('Використати весь відгук')).toBeChecked()
   })
 
   it('updates preview and export with selected excerpt', async () => {
     renderLongView()
+
+    await fireEvent.click(screen.getByLabelText('Обрати фрагмент'))
+
     const excerptInput = screen.getByRole('textbox')
     await fireEvent.update(excerptInput, 'Я відчув більше спокою та ясності думок.')
 
@@ -301,6 +304,9 @@ describe('ReviewShareCardModal', () => {
 
   it('shows validation error and blocks download for rewritten excerpt', async () => {
     renderLongView()
+
+    await fireEvent.click(screen.getByLabelText('Обрати фрагмент'))
+
     const excerptInput = screen.getByRole('textbox')
     await fireEvent.update(excerptInput, 'Це переписаний текст якого не було в оригіналі')
 
