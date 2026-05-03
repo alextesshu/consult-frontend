@@ -194,20 +194,53 @@ function escapeXml(value: string): string {
     .replace(/'/g, '&#39;')
 }
 
-function wrapSvgText(text: string, maxCharsPerLine: number): string[] {
-  const words = text.split(/\s+/).filter(Boolean)
+function normalizeLineBreaks(value: string): string {
+  return String(value || '')
+    .replace(/\r\n/g, '\n')
+    .replace(/\r/g, '\n')
+}
+
+function wrapSingleParagraph(paragraph: string, maxCharsPerLine: number): string[] {
+  const words = paragraph.split(/[ \t]+/).filter(Boolean)
   const lines: string[] = []
   let line = ''
+
   for (const word of words) {
     const next = line ? `${line} ${word}` : word
+
     if (next.length > maxCharsPerLine) {
-      if (line) lines.push(line)
-      line = word
+      if (line) {
+        lines.push(line)
+        line = word
+      } else {
+        lines.push(word)
+        line = ''
+      }
     } else {
       line = next
     }
   }
+
   if (line) lines.push(line)
+
+  return lines.length ? lines : ['']
+}
+
+function wrapSvgText(text: string, maxCharsPerLine: number): string[] {
+  const paragraphs = normalizeLineBreaks(text).split('\n')
+  const lines: string[] = []
+
+  for (const paragraph of paragraphs) {
+    const trimmedParagraph = paragraph.trim()
+
+    if (!trimmedParagraph) {
+      lines.push('')
+      continue
+    }
+
+    lines.push(...wrapSingleParagraph(trimmedParagraph, maxCharsPerLine))
+  }
+
   return lines
 }
 
