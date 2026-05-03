@@ -272,15 +272,15 @@ describe('ReviewShareCardModal', () => {
 
   it('does not show excerpt controls for short review', async () => {
     renderView()
-    expect(screen.queryByText('Текст для картки')).not.toBeInTheDocument()
+    expect(screen.queryByText('Текст, який буде на картці')).not.toBeInTheDocument()
   })
 
   it('shows excerpt controls for long review', async () => {
     renderLongView()
-    expect(screen.getByText('Текст для картки')).toBeInTheDocument()
-    expect(screen.getByLabelText('Повний текст')).toBeInTheDocument()
-    expect(screen.getByLabelText('Короткий фрагмент')).toBeInTheDocument()
-    expect(screen.getByLabelText('Короткий фрагмент')).toBeChecked()
+    expect(screen.getByText('Текст, який буде на картці')).toBeInTheDocument()
+    expect(screen.getByLabelText('Використати весь відгук')).toBeInTheDocument()
+    expect(screen.getByLabelText('Обрати фрагмент')).toBeInTheDocument()
+    expect(screen.getByLabelText('Обрати фрагмент')).toBeChecked()
   })
 
   it('updates preview and export with selected excerpt', async () => {

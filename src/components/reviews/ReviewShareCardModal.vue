@@ -35,24 +35,24 @@
         </label>
 
         <div v-if="showExcerptControls" class="share-card-modal__excerpt">
-          <p class="share-card-modal__excerpt-title">Текст для картки</p>
+          <p class="share-card-modal__excerpt-title">Текст, який буде на картці</p>
           <label class="share-card-modal__toggle">
             <input v-model="textMode" type="radio" value="full" name="text-mode" />
-            <span>Повний текст</span>
+            <span>Використати весь відгук</span>
           </label>
           <label class="share-card-modal__toggle">
             <input v-model="textMode" type="radio" value="excerpt" name="text-mode" />
-            <span>Короткий фрагмент</span>
+            <span>Обрати фрагмент</span>
           </label>
           <label v-if="textMode === 'excerpt'" class="field share-card-modal__excerpt-field">
-            <span>Фрагмент відгуку</span>
+            <span>Фрагмент з оригінального відгуку</span>
             <textarea
               v-model="excerptDraft"
               class="input"
               rows="4"
               :aria-invalid="excerptError ? 'true' : 'false'"
             />
-            <small class="share-card-modal__excerpt-help">Можна скоротити відгук, але не змінювати його зміст.</small>
+            <small class="share-card-modal__excerpt-help">Можна скоротити відгук, але не змінювати слова клієнта.</small>
             <small class="share-card-modal__excerpt-help">
               Рекомендована довжина для цього формату: до {{ recommendedExcerptLimit }} символів.
             </small>
@@ -172,7 +172,7 @@ const excerptError = computed(() => {
 const excerptWarning = computed(() => {
   if (!showExcerptControls.value || textMode.value !== 'excerpt' || excerptError.value) return ''
   return excerptDraft.value.trim().length > recommendedExcerptLimit.value
-    ? 'Фрагмент може не вміститися красиво. Скоротіть текст або оберіть формат Stories.'
+    ? 'Фрагмент може не вміститися на картку. Скоротіть текст або оберіть формат Stories.'
     : ''
 })
 
