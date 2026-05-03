@@ -207,11 +207,11 @@ describe('ReviewShareCardModal', () => {
   it('uses a higher safe footer zone for story than square', async () => {
     const { container } = renderView()
     expect(container.innerHTML).toContain('data-layout="square-v1"')
-    expect(container.innerHTML).toContain('y="890"')
+    expect(container.innerHTML).toContain('y="880"')
 
     await fireEvent.update(screen.getByDisplayValue('Квадрат 1080×1080'), 'story')
     expect(container.innerHTML).toContain('data-layout="story-v1"')
-    expect(container.innerHTML).toContain('y="1600"')
+    expect(container.innerHTML).toContain('y="1580"')
     expect(container.innerHTML).toContain('width="210"')
   })
 

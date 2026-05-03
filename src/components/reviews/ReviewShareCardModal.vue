@@ -292,32 +292,108 @@ function buildSvg(): string {
   const muted = isDark ? '#cbd5e1' : '#334155'
   const accent = '#0f766e'
 
-  const textLines = wrapSvgText(previewQuoteText.value, isStory ? 30 : 32)
-  const maxLines = isStory ? 12 : 8
-  const visibleLines = textLines.slice(0, maxLines)
-  const lineHeight = isStory ? 66 : 64
-  const quoteStartY = isStory ? 660 : 320
-  const quoteX = 110
+  const layout = isStory
+    ? {
+        maxCharsPerLine: 30,
+        maxQuoteLines: 12,
+        lineHeight: 66,
+        quoteX: 110,
+        quoteStartY: 660,
+        compactQuoteStartY: 700,
+        headerY: 250,
+        footerY: height - 340,
+        authorGap: 88,
+        authorBlockHeight: 58,
+        specialistBlockHeight: showSpecialistName.value ? 92 : 0,
+        profileBlockHeight: showProfileUrl.value && profileUrl.value ? 48 : 0,
+        gapBeforeFooter: 100,
+        quoteFontSize: 50,
+        headerFontSize: 46,
+        authorFontSize: 36,
+        specialistLabelFontSize: 24,
+        specialistNameFontSize: 30,
+        consentFontSize: 34,
+        domainFontSize: 30,
+        logoWidth: 210,
+        logoHeight: 50,
+      }
+    : {
+        maxCharsPerLine: 32,
+        maxQuoteLines: 8,
+        lineHeight: 64,
+        quoteX: 110,
+        quoteStartY: 320,
+        compactQuoteStartY: 340,
+        headerY: 170,
+        footerY: height - 200,
+        authorGap: 82,
+        authorBlockHeight: 54,
+        specialistBlockHeight: showSpecialistName.value ? 88 : 0,
+        profileBlockHeight: showProfileUrl.value && profileUrl.value ? 44 : 0,
+        gapBeforeFooter: 86,
+        quoteFontSize: 44,
+        headerFontSize: 42,
+        authorFontSize: 36,
+        specialistLabelFontSize: 24,
+        specialistNameFontSize: 30,
+        consentFontSize: 30,
+        domainFontSize: 28,
+        logoWidth: 185,
+        logoHeight: 44,
+      }
+
+  const textLines = wrapSvgText(previewQuoteText.value, layout.maxCharsPerLine)
+  const nonEmptyQuoteLines = textLines.filter((line) => line.trim()).length
+  const isCompactQuote = nonEmptyQuoteLines <= 4
+
+  const lineHeight = layout.lineHeight
+  const quoteStartY = isCompactQuote ? layout.compactQuoteStartY : layout.quoteStartY
+  const quoteX = layout.quoteX
+  const footerY = layout.footerY
+
+  const authorBlockHeight = layout.authorBlockHeight
+  const specialistBlockHeight = layout.specialistBlockHeight
+  const profileBlockHeight = layout.profileBlockHeight
+  const gapBeforeFooter = layout.gapBeforeFooter
+
+  const reservedBottomHeight =
+    authorBlockHeight + specialistBlockHeight + profileBlockHeight + gapBeforeFooter
+
+  const maxQuoteLastY = footerY - reservedBottomHeight
+  const maxLinesBySpace = Math.max(1, Math.floor((maxQuoteLastY - quoteStartY) / lineHeight) + 1)
+  const maxLinesByFormat = layout.maxQuoteLines
+  const allowedLines = Math.max(1, Math.min(maxLinesByFormat, maxLinesBySpace))
+
+  const visibleLines = textLines.slice(0, allowedLines)
+  const wasTruncatedBySpace = textLines.length > visibleLines.length
+
+  if (wasTruncatedBySpace && visibleLines.length > 0) {
+    const lastIndex = visibleLines.length - 1
+    const currentLastLine = visibleLines[lastIndex] ?? ''
+    const lastLine = currentLastLine.replace(/[.…\s]+$/g, '')
+
+    visibleLines[lastIndex] = `${lastLine || currentLastLine}…`
+  }
 
   const quoteBlock = visibleLines
     .map((line, index) => `<tspan x="${quoteX}" y="${quoteStartY + index * lineHeight}">${escapeXml(line)}</tspan>`)
     .join('')
 
   const quoteLastY = quoteStartY + Math.max(visibleLines.length - 1, 0) * lineHeight
-  let cursorY = quoteLastY + (isStory ? 92 : 86)
+  let cursorY = quoteLastY + (isCompactQuote ? Math.round(layout.authorGap * 0.72) : layout.authorGap)
 
   const optionalBlocks: string[] = [
-    `<text x="90" y="${cursorY}" fill="${fg}" font-size="36" font-family="Arial, sans-serif">— Анонімний клієнт</text>`,
+    `<text x="90" y="${cursorY}" fill="${fg}" font-size="${layout.authorFontSize}" font-family="Arial, sans-serif">— Анонімний клієнт</text>`,
   ]
   cursorY += isStory ? 58 : 54
 
   if (showSpecialistName.value) {
     optionalBlocks.push(
-      `<text x="90" y="${cursorY}" fill="${muted}" font-size="24" font-family="Arial, sans-serif">Спеціаліст</text>`
+      `<text x="90" y="${cursorY}" fill="${muted}" font-size="${layout.specialistLabelFontSize}" font-family="Arial, sans-serif">Спеціаліст</text>`
     )
     cursorY += 38
     optionalBlocks.push(
-      `<text x="90" y="${cursorY}" fill="${fg}" font-size="30" font-family="Arial, sans-serif">${escapeXml(safeSpecialistDisplayName.value)}</text>`
+      `<text x="90" y="${cursorY}" fill="${fg}" font-size="${layout.specialistNameFontSize}" font-family="Arial, sans-serif">${escapeXml(safeSpecialistDisplayName.value)}</text>`
     )
     cursorY += 44
   }
@@ -329,23 +405,22 @@ function buildSvg(): string {
     cursorY += 44
   }
 
-  const footerY = isStory ? height - 320 : height - 190
   optionalBlocks.push(
-    `<text x="90" y="${footerY}" fill="${muted}" font-size="${isStory ? 34 : 30}" font-family="Arial, sans-serif">Використано зі згоди клієнта</text>`
+    `<text x="90" y="${footerY}" fill="${muted}" font-size="${layout.consentFontSize}" font-family="Arial, sans-serif">Використано зі згоди клієнта</text>`
   )
-  const logoWidth = isStory ? 210 : 185
-  const logoHeight = isStory ? 50 : 44
+  const logoWidth = layout.logoWidth
+  const logoHeight = layout.logoHeight
   const logoFilter = theme.value === 'dark' ? ' filter="url(#logoLighten)"' : ''
   const logoY = footerY + 24
   optionalBlocks.push(
     `<image x="90" y="${logoY}" width="${logoWidth}" height="${logoHeight}" href="${escapeXml(exportLogoHref.value || logoSrc.value)}"${logoFilter} preserveAspectRatio="xMinYMin meet" />`
   )
   optionalBlocks.push(
-    `<text x="920" y="${logoY + logoHeight - 2}" text-anchor="end" fill="${muted}" font-size="${isStory ? 30 : 28}" font-family="Arial, sans-serif">proconsult.space</text>`
+    `<text x="920" y="${logoY + logoHeight - 2}" text-anchor="end" fill="${muted}" font-size="${layout.domainFontSize}" font-family="Arial, sans-serif">proconsult.space</text>`
   )
 
   return `
-<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" data-layout="${isStory ? 'story-v1' : 'square-v1'}">
+<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" data-layout="${isStory ? 'story-v1' : 'square-v1'}" data-density="${isCompactQuote ? 'compact' : 'regular'}">
   <defs>
     <filter id="logoLighten" color-interpolation-filters="sRGB">
       <feColorMatrix type="matrix" values="-1 0 0 0 1  0 -1 0 0 1  0 0 -1 0 1  0 0 0 1 0" />
@@ -356,8 +431,8 @@ function buildSvg(): string {
   <ellipse cx="${isStory ? 960 : 930}" cy="${isStory ? 1710 : 900}" rx="${isStory ? 180 : 130}" ry="${isStory ? 104 : 74}" fill="${isDark ? '#134e4a' : '#ccfbf1'}" opacity="${isDark ? '0.36' : '0.58'}"/>
   <path d="${isStory ? 'M830 180 C905 136, 990 148, 1030 220 C970 256, 905 274, 840 248 Z' : 'M760 146 C825 112, 892 118, 930 174 C876 204, 820 218, 770 198 Z'}" fill="${isDark ? '#0b3a35' : '#dcfce7'}" opacity="${isDark ? '0.42' : '0.58'}"/>
   <rect x="70" y="70" width="940" height="${height - 140}" rx="28" fill="${cardBg}" stroke="${cardBorder}"/>
-  <text x="90" y="${isStory ? 250 : 170}" fill="${accent}" font-size="${isStory ? 46 : 42}" font-weight="700" font-family="Arial, sans-serif">Відгук через Pro Consult</text>
-  <text x="${quoteX}" y="${isStory ? 560 : 250}" fill="${fg}" font-size="${isStory ? 50 : 44}" font-family="Arial, sans-serif">${quoteBlock}</text>
+  <text x="90" y="${layout.headerY}" fill="${accent}" font-size="${layout.headerFontSize}" font-weight="700" font-family="Arial, sans-serif">Відгук через Pro Consult</text>
+  <text x="${quoteX}" y="${quoteStartY}" fill="${fg}" font-size="${layout.quoteFontSize}" font-family="Arial, sans-serif">${quoteBlock}</text>
   ${optionalBlocks.join('')}
 </svg>`.trim()
 }
