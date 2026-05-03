@@ -25,7 +25,12 @@ describe('ReviewShareCardModal', () => {
     ; (globalThis as any).Image = originalImage
   })
 
-  function renderView(profileUrl = 'https://example.com/s/anna-kupriyan', specialistDisplayName = 'Олена Коваль') {
+  function renderView(
+    profileUrl = 'https://example.com/s/anna-kupriyan',
+    specialistDisplayName = 'Олена Коваль',
+    reviewText = 'Мені стало легше після консультації та з’явилося більше ясності.',
+    reviewUid = 'practice:123'
+  ) {
     const anchorClick = vi.fn()
     const toDataUrl = vi.fn(() => 'data:image/png;base64,test')
     const drawImage = vi.fn()
@@ -53,14 +58,23 @@ describe('ReviewShareCardModal', () => {
     const utils = render(ReviewShareCardModal, {
       props: {
         open: true,
-        reviewText: 'Мені стало легше після консультації та з’явилося більше ясності.',
-        reviewUid: 'practice:123',
+        reviewText,
+        reviewUid,
         specialistDisplayName,
         profileUrl,
       },
     })
 
     return { ...utils, anchorClick, toDataUrl, drawImage, createElementSpy }
+  }
+
+  function renderLongView() {
+    return renderView(
+      'https://example.com/s/anna-kupriyan',
+      'Олена Коваль',
+      'Це довгий відгук після консультації. Я відчув більше спокою та ясності думок. Стало простіше справлятися з тривогою в роботі та вдома. Ми розібрали конкретні кроки, і я вже бачу зміни у щоденному житті. Дякую за уважність, підтримку та дуже практичні поради, які легко застосувати.',
+      'practice:999'
+    )
   }
 
   it('renders modal title and defaults', async () => {
@@ -254,5 +268,44 @@ describe('ReviewShareCardModal', () => {
       expect(anchorClick).toHaveBeenCalled()
       expect(capturedAnchor.download).toBe('proconsult-review-card-practice-123.png')
     })
+  })
+
+  it('does not show excerpt controls for short review', async () => {
+    renderView()
+    expect(screen.queryByText('Текст для картки')).not.toBeInTheDocument()
+  })
+
+  it('shows excerpt controls for long review', async () => {
+    renderLongView()
+    expect(screen.getByText('Текст для картки')).toBeInTheDocument()
+    expect(screen.getByLabelText('Повний текст')).toBeInTheDocument()
+    expect(screen.getByLabelText('Короткий фрагмент')).toBeInTheDocument()
+    expect(screen.getByLabelText('Короткий фрагмент')).toBeChecked()
+  })
+
+  it('updates preview and export with selected excerpt', async () => {
+    renderLongView()
+    const excerptInput = screen.getByRole('textbox')
+    await fireEvent.update(excerptInput, 'Я відчув більше спокою та ясності думок.')
+
+    expect(document.body.innerHTML).toContain('Я відчув більше спокою та')
+    expect(document.body.innerHTML).toContain('ясності думок.…')
+    await fireEvent.click(screen.getByRole('button', { name: 'Завантажити PNG' }))
+
+    await waitFor(() => {
+      expect(MockImage.lastSrc).toContain(encodeURIComponent('Я відчув більше спокою та'))
+      expect(MockImage.lastSrc).toContain(encodeURIComponent('ясності думок.…'))
+      expect(MockImage.lastSrc).not.toContain(encodeURIComponent('Дякую за уважність, підтримку'))
+    })
+  })
+
+  it('shows validation error and blocks download for rewritten excerpt', async () => {
+    renderLongView()
+    const excerptInput = screen.getByRole('textbox')
+    await fireEvent.update(excerptInput, 'Це переписаний текст якого не було в оригіналі')
+
+    expect(screen.getByText('Фрагмент має бути частиною оригінального відгуку.')).toBeInTheDocument()
+    const button = screen.getByRole('button', { name: 'Завантажити PNG' })
+    expect(button).toBeDisabled()
   })
 })

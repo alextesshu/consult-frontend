@@ -33,6 +33,33 @@
           <input v-model="showProfileUrl" type="checkbox" />
           <span>Показувати посилання на профіль</span>
         </label>
+
+        <div v-if="showExcerptControls" class="share-card-modal__excerpt">
+          <p class="share-card-modal__excerpt-title">Текст для картки</p>
+          <label class="share-card-modal__toggle">
+            <input v-model="textMode" type="radio" value="full" name="text-mode" />
+            <span>Повний текст</span>
+          </label>
+          <label class="share-card-modal__toggle">
+            <input v-model="textMode" type="radio" value="excerpt" name="text-mode" />
+            <span>Короткий фрагмент</span>
+          </label>
+          <label v-if="textMode === 'excerpt'" class="field share-card-modal__excerpt-field">
+            <span>Фрагмент відгуку</span>
+            <textarea
+              v-model="excerptDraft"
+              class="input"
+              rows="4"
+              :aria-invalid="excerptError ? 'true' : 'false'"
+            />
+            <small class="share-card-modal__excerpt-help">Можна скоротити відгук, але не змінювати його зміст.</small>
+            <small class="share-card-modal__excerpt-help">
+              Рекомендована довжина для цього формату: до {{ recommendedExcerptLimit }} символів.
+            </small>
+            <small v-if="excerptWarning" class="share-card-modal__excerpt-warning">{{ excerptWarning }}</small>
+            <small v-if="excerptError" class="share-card-modal__excerpt-error">{{ excerptError }}</small>
+          </label>
+        </div>
       </div>
 
       <div class="share-card-modal__preview-wrap">
@@ -42,7 +69,7 @@
       </div>
 
       <div class="share-card-modal__actions">
-        <button class="btn" type="button" :disabled="downloading" @click="downloadPng">
+        <button class="btn" type="button" :disabled="downloading || Boolean(excerptError)" @click="downloadPng">
           {{ downloading ? 'Готуємо PNG…' : 'Завантажити PNG' }}
         </button>
       </div>
@@ -74,6 +101,8 @@ const theme = ref<ShareCardTheme>('light')
 const showSpecialistName = ref(false)
 const showProfileUrl = ref(false)
 const downloading = ref(false)
+const textMode = ref<'full' | 'excerpt'>('full')
+const excerptDraft = ref('')
 
 const hasProfileUrl = computed(() => Boolean(String(props.profileUrl || '').trim()))
 const profileUrl = computed(() => String(props.profileUrl || '').trim())
@@ -88,16 +117,72 @@ function stripOuterQuotes(value: string): string {
   return value.replace(/^["“”«»]+|["“”«»]+$/g, '').trim()
 }
 
-function formatReviewQuote(text: string): string {
+function formatReviewQuote(text: string, suffixEllipsis = false): string {
   const cleaned = stripOuterQuotes(String(text || '').trim())
-  return `“${cleaned}”`
+  const body = suffixEllipsis && cleaned ? `${cleaned}…` : cleaned
+  return `“${body}”`
 }
 
+const originalReviewText = computed(() => String(props.reviewText || '').trim())
+const recommendedExcerptLimit = computed(() => (format.value === 'story' ? 550 : 320))
+const EXCERPT_CONTROL_THRESHOLD = 240
+const showExcerptControls = computed(() => originalReviewText.value.length > EXCERPT_CONTROL_THRESHOLD)
+
+function normalizeForContains(value: string): string {
+  return value.replace(/\s+/g, ' ').trim()
+}
+
+function buildInitialExcerpt(source: string, limit: number): string {
+  const safe = source.trim()
+  if (safe.length <= limit) return safe
+  const head = safe.slice(0, limit)
+  const punctIndex = Math.max(head.lastIndexOf('.'), head.lastIndexOf('!'), head.lastIndexOf('?'))
+  if (punctIndex >= Math.floor(limit * 0.55)) return head.slice(0, punctIndex + 1).trim()
+  const spaceIndex = head.lastIndexOf(' ')
+  if (spaceIndex >= Math.floor(limit * 0.65)) return head.slice(0, spaceIndex).trim()
+  return head.trim()
+}
+
+watch(
+  [showExcerptControls, originalReviewText, recommendedExcerptLimit],
+  ([enabled, source, limit]) => {
+    if (!enabled) {
+      textMode.value = 'full'
+      excerptDraft.value = source
+      return
+    }
+    textMode.value = 'excerpt'
+    excerptDraft.value = buildInitialExcerpt(source, Math.max(140, Math.floor(limit * 0.8)))
+  },
+  { immediate: true }
+)
+
+const excerptError = computed(() => {
+  if (!showExcerptControls.value || textMode.value !== 'excerpt') return ''
+  const candidate = excerptDraft.value.trim()
+  if (!candidate) return 'Фрагмент має бути частиною оригінального відгуку.'
+  const base = normalizeForContains(originalReviewText.value)
+  const probe = normalizeForContains(candidate)
+  return base.includes(probe) ? '' : 'Фрагмент має бути частиною оригінального відгуку.'
+})
+
+const excerptWarning = computed(() => {
+  if (!showExcerptControls.value || textMode.value !== 'excerpt' || excerptError.value) return ''
+  return excerptDraft.value.trim().length > recommendedExcerptLimit.value
+    ? 'Фрагмент може не вміститися красиво. Скоротіть текст або оберіть формат Stories.'
+    : ''
+})
+
+const effectiveQuoteSource = computed(() => {
+  if (showExcerptControls.value && textMode.value === 'excerpt' && !excerptError.value) return excerptDraft.value.trim()
+  return originalReviewText.value
+})
+
 const previewQuoteText = computed(() => {
-  const source = String(props.reviewText || '').trim()
-  const maxLen = format.value === 'story' ? 560 : 320
-  const truncated = source.length <= maxLen ? source : `${source.slice(0, maxLen - 1).trim()}…`
-  return formatReviewQuote(truncated)
+  const text = effectiveQuoteSource.value
+  const shouldEllipsis =
+    showExcerptControls.value && textMode.value === 'excerpt' && !excerptError.value && normalizeForContains(text) !== normalizeForContains(originalReviewText.value)
+  return formatReviewQuote(text, shouldEllipsis)
 })
 
 function escapeXml(value: string): string {
@@ -330,6 +415,37 @@ async function downloadPng() {
   align-items: center;
   gap: 8px;
   grid-column: 1 / -1;
+}
+
+.share-card-modal__excerpt {
+  grid-column: 1 / -1;
+  border: 1px solid var(--pc-border);
+  border-radius: 10px;
+  padding: 10px;
+  display: grid;
+  gap: 8px;
+}
+
+.share-card-modal__excerpt-title {
+  margin: 0;
+  font-weight: 600;
+}
+
+.share-card-modal__excerpt-field {
+  display: grid;
+  gap: 6px;
+}
+
+.share-card-modal__excerpt-help {
+  color: var(--pc-muted, #475569);
+}
+
+.share-card-modal__excerpt-warning {
+  color: #9a6a00;
+}
+
+.share-card-modal__excerpt-error {
+  color: #b91c1c;
 }
 
 .share-card-modal__preview-wrap {
