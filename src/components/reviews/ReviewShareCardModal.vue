@@ -69,8 +69,11 @@
       </div>
 
       <div class="share-card-modal__actions">
+        <p class="share-card-modal__safety-note">
+          Перед публікацією перевірте, що у відгуку немає чутливих деталей клієнта.
+        </p>
         <button class="btn" type="button" :disabled="downloading || Boolean(excerptError)" @click="downloadPng">
-          {{ downloading ? 'Готуємо PNG…' : 'Завантажити PNG' }}
+          {{ downloading ? 'Готуємо картку…' : 'Завантажити картку' }}
         </button>
       </div>
     </div>
@@ -599,7 +602,9 @@ async function downloadPng() {
 
 .share-card-modal__actions {
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
   position: sticky;
   bottom: 0;
   z-index: 2;
@@ -607,9 +612,20 @@ async function downloadPng() {
   background: linear-gradient(to top, #fff 72%, rgba(255, 255, 255, 0));
 }
 
+.share-card-modal__safety-note {
+  margin: 0;
+  color: var(--pc-muted, #64748b);
+  font-size: 0.86rem;
+  line-height: 1.35;
+}
+
 @media (max-width: 760px) {
   .share-card-modal__controls {
     grid-template-columns: 1fr;
+  }
+  .share-card-modal__actions {
+    align-items: stretch;
+    flex-direction: column;
   }
 }
 </style>

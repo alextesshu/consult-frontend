@@ -100,7 +100,7 @@ describe('ReviewShareCardModal', () => {
     expect(container.innerHTML).toContain('Мені стало легше після')
     expect(container.innerHTML).toContain('консультації та з’явилося більше')
     expect(container.innerHTML).toContain('ясності.”')
-    await fireEvent.click(screen.getByRole('button', { name: 'Завантажити PNG' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Завантажити картку' }))
     await waitFor(() => {
       expect(MockImage.lastSrc).toContain(encodeURIComponent('Відгук через Pro Consult'))
       expect(MockImage.lastSrc).toContain(encodeURIComponent('“'))
@@ -146,7 +146,7 @@ describe('ReviewShareCardModal', () => {
     renderView()
     await fireEvent.update(screen.getByDisplayValue('Квадрат 1080×1080'), 'story')
     await fireEvent.update(screen.getByDisplayValue('Світла'), 'dark')
-    await fireEvent.click(screen.getByRole('button', { name: 'Завантажити PNG' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Завантажити картку' }))
     await waitFor(() => {
       expect(MockImage.lastSrc).toContain(encodeURIComponent('data-layout="story-v1"'))
       expect(MockImage.lastSrc).toContain(encodeURIComponent('filter="url(#logoLighten)"'))
@@ -157,7 +157,7 @@ describe('ReviewShareCardModal', () => {
 
   it('exported SVG uses dark logo source for light theme', async () => {
     renderView()
-    await fireEvent.click(screen.getByRole('button', { name: 'Завантажити PNG' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Завантажити картку' }))
     await waitFor(() => {
       expect(MockImage.lastSrc).toContain(encodeURIComponent('data-layout="square-v1"'))
       expect(MockImage.lastSrc).toContain(encodeURIComponent('<image'))
@@ -192,7 +192,7 @@ describe('ReviewShareCardModal', () => {
   it('includes profileUrl in rendered card only when option is enabled and provided', async () => {
     renderView('https://example.com/s/anna-kupriyan')
     await fireEvent.click(screen.getByLabelText('Показувати посилання на профіль'))
-    await fireEvent.click(screen.getByRole('button', { name: 'Завантажити PNG' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Завантажити картку' }))
     await waitFor(() => {
       expect(MockImage.lastSrc).toContain(encodeURIComponent('https://example.com/s/anna-kupriyan'))
     })
@@ -218,7 +218,7 @@ describe('ReviewShareCardModal', () => {
   it('export keeps author, specialist label, specialist name and consent text', async () => {
     renderView('https://example.com/s/anna-kupriyan', 'Олександр Константінов')
     await fireEvent.click(screen.getByLabelText('Показувати ім’я спеціаліста'))
-    await fireEvent.click(screen.getByRole('button', { name: 'Завантажити PNG' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Завантажити картку' }))
     await waitFor(() => {
       expect(MockImage.lastSrc).toContain(encodeURIComponent('Анонімний клієнт'))
       expect(MockImage.lastSrc).toContain(encodeURIComponent('Спеціаліст'))
@@ -229,7 +229,7 @@ describe('ReviewShareCardModal', () => {
 
   it('never injects username fallback into generated card', async () => {
     renderView(null as any)
-    await fireEvent.click(screen.getByRole('button', { name: 'Завантажити PNG' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Завантажити картку' }))
     await waitFor(() => {
       expect(MockImage.lastSrc).not.toContain(encodeURIComponent('/s/famkendo'))
       expect(MockImage.lastSrc).not.toContain(encodeURIComponent('/s/therapist_slug'))
@@ -260,7 +260,7 @@ describe('ReviewShareCardModal', () => {
       return document.createElementNS('http://www.w3.org/1999/xhtml', tagName) as any
     }) as any)
 
-    await fireEvent.click(screen.getByRole('button', { name: 'Завантажити PNG' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Завантажити картку' }))
 
     await waitFor(() => {
       expect(drawImage).toHaveBeenCalled()
@@ -290,7 +290,7 @@ describe('ReviewShareCardModal', () => {
 
     expect(document.body.innerHTML).toContain('Я відчув більше спокою та')
     expect(document.body.innerHTML).toContain('ясності думок.…')
-    await fireEvent.click(screen.getByRole('button', { name: 'Завантажити PNG' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Завантажити картку' }))
 
     await waitFor(() => {
       expect(MockImage.lastSrc).toContain(encodeURIComponent('Я відчув більше спокою та'))
@@ -305,7 +305,7 @@ describe('ReviewShareCardModal', () => {
     await fireEvent.update(excerptInput, 'Це переписаний текст якого не було в оригіналі')
 
     expect(screen.getByText('Фрагмент має бути частиною оригінального відгуку.')).toBeInTheDocument()
-    const button = screen.getByRole('button', { name: 'Завантажити PNG' })
+    const button = screen.getByRole('button', { name: 'Завантажити картку' })
     expect(button).toBeDisabled()
   })
 })
