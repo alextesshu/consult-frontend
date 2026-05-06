@@ -7,7 +7,7 @@
           Тут зібрані приватні відгуки від клієнтів. Вони доступні тільки у вашому кабінеті.
         </p>
       </div>
-      <RouterLink class="btn btn--ghost" to="/cabinet">Назад до кабінету</RouterLink>
+      <RouterLink class="btn btn--ghost hero-back-link" to="/cabinet">Назад до кабінету</RouterLink>
     </header>
 
     <section class="reviews__filters" aria-label="Фільтр відгуків">
@@ -300,21 +300,59 @@ onMounted(() => {
 .reviews__hero {
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
-  gap: 16px;
+  align-items: center;
+  gap: 20px;
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 92% 70%, color-mix(in srgb, var(--pc-peach-100) 70%, transparent) 0 120px, transparent 121px),
+    linear-gradient(135deg, #ffffff 0%, color-mix(in srgb, var(--pc-primary-soft) 70%, #ffffff) 54%, color-mix(in srgb, var(--pc-yellow-soft) 45%, #ffffff) 100%);
   border: 1px solid var(--pc-border);
-  border-radius: var(--pc-radius-card);
-  background: color-mix(in srgb, var(--pc-bg-card) 94%, #ffffff);
-  padding: 18px;
+  border-radius: var(--pc-radius-panel);
+  padding: 24px;
+  box-shadow: var(--pc-shadow-soft);
+}
+
+.reviews__hero > * {
+  position: relative;
+  z-index: 1;
+}
+
+.reviews__hero::after {
+  content: "";
+  position: absolute;
+  right: -44px;
+  bottom: -58px;
+  width: 180px;
+  height: 180px;
+  border-radius: 999px;
+  background: rgba(247, 183, 126, 0.18);
+  pointer-events: none;
 }
 
 .reviews__title {
-  margin: 6px 0;
+  margin: 8px 0 8px;
+  color: var(--pc-navy-950);
+  font-size: 32px;
+  line-height: 1.15;
 }
 
 .reviews__subtitle {
   margin: 0;
-  max-width: 640px;
+  max-width: 520px;
+  color: var(--pc-text-muted);
+  line-height: 1.55;
+}
+
+.reviews__hero .btn {
+  border-radius: var(--pc-radius-control);
+  font-weight: 700;
+}
+
+.reviews__hero .btn--ghost {
+  border-color: var(--pc-border);
+  background: #fff;
+  color: var(--pc-navy-900);
 }
 
 .reviews__filters {
@@ -431,10 +469,61 @@ onMounted(() => {
   .reviews__hero {
     flex-direction: column;
     align-items: flex-start;
+    padding: 14px 16px;
+    gap: 10px;
+    border-radius: var(--pc-radius-panel);
+  }
+
+  .reviews__hero::after {
+    display: none;
+  }
+
+  .reviews__title {
+    font-size: 26px;
+    margin: 4px 0;
+    line-height: 1.16;
+  }
+
+  .reviews__subtitle {
+    font-size: 13px;
+    line-height: 1.32;
+    max-width: 100%;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .hero-back-link {
+    display: none;
   }
 
   .review-card__head {
     flex-direction: column;
+  }
+}
+
+@media (max-width: 520px) {
+  .reviews__hero {
+    padding: 12px 14px;
+    gap: 10px;
+    border-radius: var(--pc-radius-panel);
+  }
+
+  .reviews__title {
+    font-size: 24px;
+    margin: 4px 0;
+    line-height: 1.16;
+  }
+
+  .reviews__subtitle {
+    font-size: 13px;
+    line-height: 1.35;
+    max-width: 100%;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
   }
 }
 </style>

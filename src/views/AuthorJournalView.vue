@@ -2,7 +2,6 @@
   <section class="journal-page">
     <header class="journal-hero">
       <div>
-        <div class="badge">Кабінет спеціаліста</div>
         <h1 class="title journal-title">Авторський журнал</h1>
         <p class="muted journal-subtitle">
           Публікуйте нотатки для профілю спеціаліста. Опубліковані записи видно всім.
@@ -17,9 +16,6 @@
     <section class="panel">
       <div class="panel__header">
         <div>
-          <div class="panel__eyebrow">
-            <span class="pill pill--neutral">Створення</span>
-          </div>
           <h2 class="panel__title">Новий запис</h2>
           <p v-if="isAuthorJournalEnabled" class="panel__hint">
             Чернетки видно лише вам. Опубліковані записи зʼявляються у публічному профілі.
@@ -201,7 +197,6 @@
     <section class="panel">
       <div class="panel__header">
         <div>
-          <div class="badge badge--soft">Список</div>
           <h2 class="panel__title">Ваші записи</h2>
         </div>
       </div>
@@ -1637,12 +1632,6 @@ onMounted(() => {
   line-height: 1.55;
 }
 
-.journal-hero .badge {
-  background: color-mix(in srgb, var(--pc-blue-soft) 82%, #ffffff);
-  border-color: color-mix(in srgb, var(--pc-navy-900) 22%, var(--pc-border));
-  color: var(--pc-navy-900);
-}
-
 .journal-actions {
   display: flex;
   gap: 12px;
@@ -1737,12 +1726,6 @@ onMounted(() => {
   font-size: 13px;
   color: var(--muted);
   max-width: 640px;
-}
-
-.badge--soft {
-  background: color-mix(in srgb, var(--pc-blue-soft) 82%, #ffffff);
-  border-color: color-mix(in srgb, var(--pc-navy-900) 22%, var(--pc-border));
-  color: var(--pc-navy-900);
 }
 
 .journal-tabs {

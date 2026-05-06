@@ -1,7 +1,6 @@
 <template>
   <section class="settings-hub">
     <header class="panel settings-hub__hero">
-      <div class="badge badge--soft">Налаштування</div>
       <h1 class="title">Усі налаштування</h1>
       <p class="muted">Оберіть розділ, який хочете відкрити.</p>
       <SettingsSubnav :active="activeTab" />
@@ -31,7 +30,6 @@
 
     <section v-else id="payment-details" class="panel payment-details-panel">
       <div class="payment-details-panel__header">
-        <div class="badge badge--soft">Оплата</div>
         <h2 class="payment-details-panel__title">Реквізити для оплати</h2>
       </div>
 
@@ -616,13 +614,6 @@ watch(
   max-width: 520px;
   color: var(--pc-text-muted);
   line-height: 1.55;
-}
-
-.badge--soft {
-  width: fit-content;
-  border: 1px solid color-mix(in srgb, var(--pc-navy-900) 24%, var(--pc-border));
-  background: color-mix(in srgb, var(--pc-primary-soft) 78%, #ffffff);
-  color: var(--pc-navy-900);
 }
 
 .settings-hub :deep(.settings-subnav__link) {

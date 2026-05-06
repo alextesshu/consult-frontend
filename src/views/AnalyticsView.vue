@@ -2,7 +2,6 @@
   <section class="analytics">
     <header class="analytics__header">
       <div>
-        <div class="badge">Аналітика</div>
         <h1 class="title analytics__title">Аналітика</h1>
         <p class="muted analytics__subtitle">
           Аналітика відображає основні сесії практики. Гостьові сесії сюди не входять.
@@ -34,7 +33,6 @@
       <section class="panel panel--wide">
         <div class="panel__header">
           <div>
-            <div class="badge badge--soft">Огляд</div>
             <h2 class="panel__title">Ключові показники</h2>
           </div>
         </div>
@@ -73,7 +71,6 @@
       <section class="panel panel--wide">
         <div class="panel__header">
           <div>
-            <div class="badge badge--soft">Формати</div>
             <h2 class="panel__title">Сесії за форматом</h2>
           </div>
         </div>
@@ -109,7 +106,6 @@
         <section class="panel panel--wide">
           <div class="panel__header">
             <div>
-              <div class="badge badge--soft">Динаміка</div>
               <h2 class="panel__title">Динаміка по днях</h2>
             </div>
           </div>
@@ -129,7 +125,6 @@
           <section class="panel">
             <div class="panel__header">
               <div>
-                <div class="badge badge--soft">Попит</div>
                 <h2 class="panel__title">Найчастіші дні</h2>
               </div>
             </div>
@@ -144,7 +139,6 @@
           <section class="panel">
             <div class="panel__header">
               <div>
-                <div class="badge badge--soft">Попит</div>
                 <h2 class="panel__title">Найчастіший час запису</h2>
               </div>
             </div>
@@ -159,7 +153,6 @@
           <section class="panel">
             <div class="panel__header">
               <div>
-                <div class="badge badge--soft">Офлайн</div>
                 <h2 class="panel__title">Офлайн-локації</h2>
               </div>
             </div>
@@ -453,12 +446,6 @@ onMounted(loadOverview)
   max-width: 520px;
   color: var(--pc-text-muted);
   line-height: 1.55;
-}
-
-.analytics__header .badge {
-  background: color-mix(in srgb, var(--pc-blue-soft) 82%, #ffffff);
-  border-color: color-mix(in srgb, var(--pc-navy-900) 22%, var(--pc-border));
-  color: var(--pc-navy-900);
 }
 
 .analytics__header .btn {
