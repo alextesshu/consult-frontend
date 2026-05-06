@@ -1,142 +1,149 @@
 ﻿<template>
   <section class="home-lite">
     <div class="home-lite__container">
-      <section class="home-hero reveal">
+      <section class="home-hero reveal" aria-labelledby="home-hero-title">
         <div class="home-hero__content">
-          <p class="home-hero__eyebrow">Сервіс для зручного проведення консультацій</p>
-          <h1 class="home-hero__title">Приватна практика на власних умовах — без комісій</h1>
+          <p class="home-hero__eyebrow">Платформа для приватної практики</p>
+          <h1 id="home-hero-title" class="home-hero__title">Приватна практика на ваших умовах — без комісій</h1>
           <p class="home-hero__subtitle">
-            Профіль, запис, сесії, оплати й робочі матеріали зібрані в одній системі, щоб вам було легше тримати
-            практику в порядку.
+            Публічний профіль, онлайн-запис, сесії, оплати, клієнти й робочі матеріали в одному охайному просторі.
           </p>
           <div class="home-hero__actions">
             <button v-if="isAuthenticated" class="btn" type="button" @click="goToCabinet">Перейти в кабінет</button>
-            <RouterLink v-else class="btn" to="/signup">Спробувати безкоштовно</RouterLink>
-            <RouterLink class="btn btn--ghost" to="/pricing">Переглянути тарифи</RouterLink>
+            <RouterLink v-else class="btn" to="/signup">Почати безкоштовно</RouterLink>
+            <a class="btn btn--ghost" href="#features">Переглянути можливості</a>
           </div>
-          <p class="home-hero__microcopy">
-            30 днів Pro для нових спеціалістів. Потім — безкоштовний Start або перехід на потрібний рівень доступу.
-          </p>
-        </div>
-        <div class="home-hero__visual">
-          <div class="hero-collage">
-            <article class="hero-shot hero-shot--primary">
-              <div class="hero-shot__top"><span></span><span></span><span></span></div>
-              <div class="hero-shot__viewport">
-                <img src="/images/tour/public-profile-2.jpg" alt="Публічний профіль спеціаліста" loading="eager" decoding="async" />
-              </div>
-            </article>
-            <article class="hero-shot hero-shot--slots">
-              <div class="hero-shot__top"><span></span><span></span><span></span></div>
-              <div class="hero-shot__viewport">
-                <img src="/images/tour/slots-1.jpg" alt="Доступні вікна для бронювання" loading="lazy" decoding="async" />
-              </div>
-            </article>
-            <article class="hero-shot hero-shot--payments">
-              <div class="hero-shot__top"><span></span><span></span><span></span></div>
-              <div class="hero-shot__viewport">
-                <img src="/images/tour/payments-block-1.jpg" alt="Платежі і підтвердження оплат" loading="lazy" decoding="async" />
-              </div>
-            </article>
-            <article class="hero-shot hero-shot--analytics">
-              <div class="hero-shot__top"><span></span><span></span><span></span></div>
-              <div class="hero-shot__viewport">
-                <img src="/images/tour/analytics-1.jpg" alt="Аналітика практики" loading="lazy" decoding="async" />
-              </div>
-            </article>
-          </div>
-        </div>
-      </section>
-
-      <section class="value-grid reveal" aria-label="Ключові переваги">
-        <article
-          v-for="(item, index) in valueProps"
-          :key="item.title"
-          class="value-card"
-          :class="{ 'value-card--accent': index < 2 }"
-        >
-          <h2 class="value-card__title">{{ item.title }}</h2>
-          <p class="muted">{{ item.copy }}</p>
-        </article>
-      </section>
-
-      <section id="how-it-works" class="walkthrough reveal">
-        <div class="section-head">
-          <p class="section-head__eyebrow">Огляд продукту</p>
-          <h2 class="section-head__title">Подивіться, як Pro Consult працює в реальних сценаріях</h2>
-          <p class="walkthrough__lead">
-            Усі ключові етапи роботи спеціаліста в одному маршруті: від публічного профілю до щоденних операційних
-            задач.
-          </p>
+          <ul class="hero-trust" aria-label="Переваги платформи">
+            <li v-for="marker in trustMarkers" :key="marker">{{ marker }}</li>
+          </ul>
         </div>
 
-        <div class="walkthrough__chips">
-          <a
-            v-for="item in coreWalkthroughSections"
-            :key="item.id"
-            :href="`#${item.id}`"
-            :class="{ 'is-active': activeWalkthroughSectionId === item.id }"
-            :aria-current="activeWalkthroughSectionId === item.id ? 'true' : undefined"
-          >
-            {{ item.shortLabel }}
-          </a>
-        </div>
+        <div class="home-hero__visual" aria-hidden="true">
+          <span class="hero-blob hero-blob--teal"></span>
+          <span class="hero-blob hero-blob--peach"></span>
+          <span class="hero-dot-grid"></span>
 
-        <div class="walkthrough__core">
-          <section
-            v-for="(item, index) in coreWalkthroughSections"
-            :id="item.id"
-            :key="item.id"
-            class="walkthrough-feature"
-            :class="{ 'walkthrough-feature--reverse': index % 2 === 1 }"
-          >
-            <div class="walkthrough-feature__media">
-              <div class="product-shot">
-                <div class="product-shot__top">
-                  <span></span><span></span><span></span>
-                  <strong>{{ item.screenLabel }}</strong>
-                </div>
-                <div class="product-shot__viewport">
-                  <img :src="item.screenSrc" :alt="item.screenAlt" loading="lazy" decoding="async" />
-                </div>
-              </div>
-            </div>
-            <div class="walkthrough-feature__content">
-              <h3 class="walkthrough-feature__title">{{ item.title }}</h3>
-              <p class="walkthrough-feature__body">{{ item.body }}</p>
-              <ul>
-                <li v-for="point in item.points" :key="point">{{ point }}</li>
-              </ul>
-              <p class="walkthrough-feature__tariff">Доступ: {{ item.tariffNote }}</p>
-            </div>
-          </section>
-        </div>
-
-        <div class="walkthrough__secondary">
-          <article v-for="item in secondaryWalkthroughSections" :id="item.id" :key="item.id" class="walkthrough-secondary-card">
-            <div class="product-shot product-shot--compact">
-              <div class="product-shot__top">
-                <span></span><span></span><span></span>
-                <strong>{{ item.screenLabel }}</strong>
-              </div>
-              <div class="product-shot__viewport">
-                <img :src="item.screenSrc" :alt="item.screenAlt" loading="lazy" decoding="async" />
-              </div>
-            </div>
-            <h3 class="walkthrough-secondary-card__title">{{ item.title }}</h3>
-            <p class="muted">{{ item.body }}</p>
+          <article class="preview-card preview-card--dashboard">
+            <header>Робочий дашборд</header>
+            <img src="/images/tour/booking-sessions-2.jpg" alt="" loading="eager" decoding="async" />
+          </article>
+          <article class="preview-card preview-card--profile">
+            <header>Публічний профіль</header>
+            <img src="/images/tour/public-profile-2.jpg" alt="" loading="lazy" decoding="async" />
+          </article>
+          <article class="preview-card preview-card--booking">
+            <header>Онлайн-запис</header>
+            <img src="/images/tour/slots-1.jpg" alt="" loading="lazy" decoding="async" />
+          </article>
+          <article class="preview-card preview-card--payments">
+            <header>Оплати</header>
+            <img src="/images/tour/payments-block-1.jpg" alt="" loading="lazy" decoding="async" />
           </article>
         </div>
       </section>
 
-      <section id="pricing" class="pricing-teaser reveal">
+      <section id="features" class="how how--merged reveal" aria-labelledby="how-title">
         <div class="section-head section-head--center">
-          <p class="section-head__eyebrow">Рівні доступу</p>
-          <h2 class="section-head__title">Повноцінні тарифи для різних етапів практики</h2>
-          <p class="muted">
-            Start — безкоштовний. Pro і Leader доступні помісячно або вигідніше при оплаті за рік.
+          <p class="section-head__eyebrow">Практика без хаосу</p>
+          <h2 id="how-title" class="section-head__title how__title">Як Pro Consult допомагає вести практику</h2>
+          <p class="how__intro">
+            Від першого запису до матеріалів після сесії — усе зібрано в одному охайному просторі.
           </p>
         </div>
+        <div class="how__row" role="list" aria-label="Кроки використання платформи">
+          <article v-for="step in howSteps" :key="step.title" class="how-step" role="listitem">
+            <span class="icon-wrap" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path v-for="path in iconPaths[step.icon]" :key="path" :d="path"></path>
+              </svg>
+            </span>
+            <span class="how-step__connector" aria-hidden="true">→</span>
+            <h3>{{ step.title }}</h3>
+            <p>{{ step.copy }}</p>
+          </article>
+        </div>
+        <div class="benefit-chips" role="list" aria-label="Ключові переваги">
+          <article v-for="item in compactValueStrip" :key="item.title" class="benefit-chip" role="listitem">
+            <span class="icon-wrap icon-wrap--soft benefit-chip__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path v-for="path in iconPaths[item.icon]" :key="path" :d="path"></path>
+              </svg>
+            </span>
+            <span class="benefit-chip__label">{{ item.title }}</span>
+          </article>
+        </div>
+      </section>
+
+      <section class="profile-promo reveal" aria-labelledby="profile-promo-title">
+        <div class="profile-promo__copy">
+          <p class="section-head__eyebrow">Профіль і запис</p>
+          <h2 id="profile-promo-title" class="section-head__title">
+            Клієнт одразу бачить, як з вами працювати
+          </h2>
+          <p>
+            Покажіть послуги, умови й доступні години в зрозумілій структурі. Клієнт бачить ключове і записується без зайвого
+            шуму.
+          </p>
+          <div class="profile-promo__points" role="list" aria-label="Переваги профілю і запису">
+            <article v-for="item in profileHighlights" :key="item.title" class="profile-point" role="listitem">
+              <span class="icon-wrap icon-wrap--soft profile-point__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path v-for="path in iconPaths[item.icon]" :key="path" :d="path"></path>
+                </svg>
+              </span>
+              <span class="profile-point__text">{{ item.title }}</span>
+            </article>
+          </div>
+        </div>
+        <div class="profile-promo__preview" aria-hidden="true">
+          <article class="booking-preview booking-preview--profile">
+            <header class="booking-preview__header">Public profile</header>
+            <div class="booking-preview__body">
+              <div class="profile-mini">
+                <div class="profile-mini__avatar">ОК</div>
+                <div>
+                  <p class="profile-mini__name">Олена Коваль</p>
+                  <p class="profile-mini__role">Психолог, гештальт-терапевт</p>
+                </div>
+              </div>
+              <div class="profile-mini__chips">
+                <span>Тривога</span>
+                <span>Самооцінка</span>
+                <span>Відносини</span>
+              </div>
+              <p class="profile-mini__snippet">Формат, умови та доступні години видно одразу перед записом.</p>
+              <button class="profile-mini__cta" type="button">Записатися</button>
+            </div>
+          </article>
+
+          <article class="booking-preview booking-preview--calendar">
+            <header class="booking-preview__header">Booking calendar</header>
+            <div class="booking-preview__body">
+              <div class="calendar-mini__top">
+                <span>Травень 2026</span>
+                <span>15 травня</span>
+              </div>
+              <div class="calendar-mini__grid" aria-label="Календар доступних дат">
+                <span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Нд</span>
+                <span>12</span><span>13</span><span>14</span><span class="is-selected">15</span><span>16</span><span>17</span><span>18</span>
+              </div>
+              <div class="calendar-mini__slots">
+                <button type="button">09:00</button>
+                <button type="button">11:00</button>
+                <button type="button">14:00</button>
+                <button type="button">16:00</button>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section id="pricing" class="pricing reveal" aria-labelledby="pricing-title">
+        <div class="section-head section-head--center">
+          <p class="section-head__eyebrow">Тарифи</p>
+          <h2 id="pricing-title" class="section-head__title">Прозорі рівні доступу без прихованих умов</h2>
+        </div>
+
         <div class="pricing-toggle" role="group" aria-label="Період оплати">
           <button
             class="pricing-toggle__btn"
@@ -155,49 +162,38 @@
             Рік
           </button>
         </div>
-        <div class="pricing-teaser__grid">
+
+        <div class="pricing__grid">
           <article v-for="plan in pricingPlans" :key="plan.name" class="plan-card" :class="{ 'plan-card--pro': plan.name === 'Pro' }">
-            <h3 class="plan-card__title">{{ plan.name }}</h3>
+            <h3>{{ plan.name }}</h3>
             <p class="plan-card__price">{{ plan.price }}</p>
             <p v-if="plan.helper" class="plan-card__helper">{{ plan.helper }}</p>
-            <p class="muted">{{ plan.subtitle }}</p>
             <ul>
               <li v-for="feature in plan.features" :key="feature">{{ feature }}</li>
             </ul>
             <RouterLink class="btn" :class="{ 'btn--ghost': plan.ghostCta }" :to="plan.ctaTo">{{ plan.ctaLabel }}</RouterLink>
           </article>
         </div>
-        <div class="pricing-teaser__actions">
-          <RouterLink class="btn btn--ghost" to="/support-and-data-requests">Потрібні інші умови?</RouterLink>
-        </div>
       </section>
 
-      <section id="faq" class="home-faq reveal">
-        <div class="section-head">
-          <h2 class="section-head__title">Поширені питання</h2>
-          <p class="muted">Короткі відповіді перед стартом.</p>
+      <section class="testimonials reveal" aria-labelledby="testimonials-title">
+        <div class="section-head section-head--center">
+          <p class="section-head__eyebrow">Відгуки про платформу</p>
+          <h2 id="testimonials-title" class="section-head__title">Що спеціалісти цінують у Pro Consult</h2>
         </div>
-        <div class="home-faq__grid">
-          <article class="faq-card">
-            <h3 class="faq-card__title">Чи є комісія з кожної сесії?</h3>
-            <p class="muted">Ні. Pro Consult не забирає відсоток із кожної сесії.</p>
-          </article>
-          <article class="faq-card">
-            <h3 class="faq-card__title">Чи можна почати безкоштовно?</h3>
-            <p class="muted">Так. Нові спеціалісти отримують 30 днів Pro, далі можна залишитися на Start.</p>
-          </article>
-          <article class="faq-card">
-            <h3 class="faq-card__title">Кому підходить платформа?</h3>
-            <p class="muted">Спеціалістам приватної практики, які працюють через індивідуальні сесії.</p>
+        <div class="testimonials__grid">
+          <article v-for="item in testimonials" :key="item.quote" class="testimonial-card">
+            <p class="testimonial-card__quote">«{{ item.quote }}»</p>
+            <p class="testimonial-card__author">{{ item.author }}</p>
           </article>
         </div>
       </section>
 
       <section class="final-cta reveal">
-        <h2 class="final-cta__title">Запустіть робочий простір для вашої практики</h2>
-        <p class="muted">Почніть без комісії з кожної сесії, з цілісним процесом і зрозумним маршрутом росту.</p>
+        <h2 class="final-cta__title">Ведіть приватну практику в одному просторі</h2>
+        <p>Сконцентруйтесь на роботі зі своїми клієнтами, а не на ручній операційці.</p>
         <div class="final-cta__actions">
-          <RouterLink v-if="!isAuthenticated" class="btn" to="/signup">Спробувати безкоштовно</RouterLink>
+          <RouterLink v-if="!isAuthenticated" class="btn" to="/signup">Почати безкоштовно</RouterLink>
           <button v-else class="btn" type="button" @click="goToCabinet">Перейти в кабінет</button>
           <RouterLink class="btn btn--ghost" to="/pricing">Переглянути тарифи</RouterLink>
         </div>
@@ -211,208 +207,100 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 
+type IconKey =
+  | 'profile'
+  | 'booking'
+  | 'session'
+  | 'clients'
+  | 'payments'
+  | 'materials'
+  | 'feedback'
+  | 'analytics'
+  | 'security'
+  | 'support'
+
 const router = useRouter()
 const auth = useAuthStore()
 const isAuthenticated = computed(() => Boolean(auth.accessToken))
 const roles = computed(() => auth.me?.user.roles ?? auth.user?.roles ?? [])
 const billingCycle = ref<'monthly' | 'yearly'>('monthly')
 
-const valueProps = [
-  {
-    title: 'Один робочий простір',
-    copy: 'Профіль, запис, сесії, оплати, нотатки й аналітика зібрані в одному місці.',
-  },
-  {
-    title: 'Без комісії з кожної сесії',
-    copy: 'Ви працюєте на власних умовах і не віддаєте відсоток із кожної консультації.',
-  },
-  {
-    title: 'Для приватної практики',
-    copy: 'Побудовано для спеціалістів, які ведуть власну практику й хочуть системний процес.',
-  },
+const iconPaths: Record<IconKey, string[]> = {
+  profile: ['M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z', 'M4 20a8 8 0 0 1 16 0'],
+  booking: ['M7 3v3M17 3v3M4 9h16', 'M5 6h14a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1Z'],
+  session: ['M9 8.5v7l6-3.5-6-3.5Z', 'M4 6h16v12H4z'],
+  clients: ['M8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z', 'M16 12a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z', 'M3.5 20a5 5 0 0 1 9 0', 'M13 20a4 4 0 0 1 7 0'],
+  payments: ['M3 7h18v10H3z', 'M3 11h18', 'M7 15h3'],
+  materials: ['M7 3h7l4 4v14H7z', 'M14 3v4h4', 'M10 13h5M10 17h5'],
+  feedback: ['M4 5h16v10H8l-4 4V5z', 'M8 9h8M8 12h5'],
+  analytics: ['M5 19V9', 'M12 19V5', 'M19 19v-7'],
+  security: ['M12 3l7 3v5c0 4.5-3 7.8-7 10-4-2.2-7-5.5-7-10V6l7-3Z', 'M9.5 12.5 11.2 14.2 14.8 10.6'],
+  support: ['M12 18v2', 'M8.5 9.5a3.5 3.5 0 1 1 6.2 2.2c-.9.8-1.7 1.3-1.7 2.3v.5', 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z'],
+}
+
+const trustMarkers = ['Без комісій з оплат', 'Для індивідуальної практики', 'Онлайн і офлайн сесії']
+
+const compactValueStrip: Array<{ icon: IconKey; title: string }> = [
+  { icon: 'payments', title: 'Без комісій з оплат' },
+  { icon: 'security', title: 'Захищений робочий контекст' },
+  { icon: 'materials', title: 'Матеріали й нотатки під рукою' },
+  { icon: 'support', title: 'Підтримка, що допомагає' },
+  { icon: 'session', title: 'Онлайн і офлайн сесії' },
 ]
 
-const walkthroughSections = [
-  {
-    id: 'public-profile',
-    shortLabel: 'Профіль',
-    title: 'Публічний профіль',
-    body: 'Клієнт одразу бачить вашу спеціалізацію, формат роботи, умови та зрозумілий шлях до запису без зайвих кроків.',
-    points: ['Публічне посилання профілю', 'Прозорі умови роботи', 'Швидкий перехід до запису'],
-    tariffNote: 'Start / Pro / Leader',
-    screenLabel: 'ПУБЛІЧНИЙ ПРОФІЛЬ',
-    screenSrc: '/images/tour/public-profile-2.jpg',
-    screenAlt: 'Публічний профіль спеціаліста',
-    type: 'core',
-  },
-  {
-    id: 'hours',
-    shortLabel: 'Графік',
-    title: 'Планування робочих годин',
-    body: 'Керуйте робочими правилами, доступністю та ритмом практики в одному місці, без ручних перенесень між інструментами.',
-    points: ['Налаштування робочих вікон', 'Керування правилами доступності', 'Прозорий календар для клієнта'],
-    tariffNote: 'Start / Pro / Leader',
-    screenLabel: 'ПРАВИЛА ГРАФІКА',
-    screenSrc: '/images/tour/schedule-rules.jpg',
-    screenAlt: 'Налаштування робочих годин',
-    type: 'core',
-  },
-  {
-    id: 'booking',
-    shortLabel: 'Бронювання',
-    title: 'Бронювання без накладок',
-    body: 'Публічний процес запису синхронізується з вашим графіком і прибирає зайву ручну координацію з клієнтами.',
-    points: ['Доступні дати й вікна', 'Логіка без накладок', 'Менше ручних уточнень'],
-    tariffNote: 'Start / Pro / Leader',
-    screenLabel: 'ВІЛЬНІ ВІКНА',
-    screenSrc: '/images/tour/slots-1.jpg',
-    screenAlt: 'Слоти для бронювання',
-    type: 'core',
-  },
-  {
-    id: 'sessions-overview',
-    shortLabel: 'Сесії',
-    title: 'Керування майбутніми сесіями',
-    body: 'Огляд майбутніх сесій показує підтвердження, найближчі зустрічі й критичні кроки для стабільного робочого ритму.',
-    points: ['Сесії, що очікують підтвердження', 'Найближча сесія', 'Операційний контроль графіка'],
-    tariffNote: 'Pro / Leader',
-    screenLabel: 'СЕСІЇ',
-    screenSrc: '/images/tour/booking-sessions-2.jpg',
-    screenAlt: 'Список майбутніх сесій',
-    type: 'core',
-  },
-  {
-    id: 'session-workflow',
-    shortLabel: 'Процес',
-    title: 'Контроль сесії в одному робочому процесі',
-    body: 'У деталці сесії зібрано статус, формат, дані клієнта та наступні дії, щоб не втрачати контекст між етапами роботи.',
-    points: ['Контекст сесії', 'Блок зустрічі і статус', 'Підсумок після сесії'],
-    tariffNote: 'Pro / Leader',
-    screenLabel: 'ДЕТАЛІ СЕСІЇ',
-    screenSrc: '/images/tour/session-detail-1.jpg',
-    screenAlt: 'Деталка сесії',
-    type: 'core',
-  },
-  {
-    id: 'payments',
-    shortLabel: 'Оплати',
-    title: 'Оплати та підтвердження оплат',
-    body: 'Реквізити, підтвердження оплат і потрібні дії зібрані в одному блоці, щоб ви тримали фінансову частину під контролем.',
-    points: ['Платіжні реквізити', 'Підтвердження оплат', 'Швидкі дії для подальших кроків'],
-    tariffNote: 'Pro / Leader',
-    screenLabel: 'ОПЛАТИ',
-    screenSrc: '/images/tour/payments-block-1.jpg',
-    screenAlt: 'Платіжний блок',
-    type: 'core',
-  },
-  {
-    id: 'workbook',
-    shortLabel: 'Зошит',
-    title: 'Робочий зошит між сесіями',
-    body: 'Міжсесійна робота стає послідовною: матеріали, контекст і безперервність зберігаються в єдиному робочому потоці.',
-    points: ['Міжсесійний контекст', 'Структурована робота', 'Безперервність процесу'],
-    tariffNote: 'Pro / Leader',
-    screenLabel: 'РОБОЧИЙ ЗОШИТ',
-    screenSrc: '/images/tour/workbook-3.jpg',
-    screenAlt: 'Робочий зошит спеціаліста',
-    type: 'core',
-  },
-  {
-    id: 'analytics',
-    shortLabel: 'Аналітика',
-    title: 'Аналітика практики',
-    body: 'Ключові показники, динаміка та навантаження допомагають щодня приймати рішення на основі реальної картини практики.',
-    points: ['Огляд метрик', 'Динаміка по днях', 'Контроль навантаження'],
-    tariffNote: 'Start / Pro / Leader',
-    screenLabel: 'АНАЛІТИКА',
-    screenSrc: '/images/tour/analytics-1.jpg',
-    screenAlt: 'Аналітичний дашборд',
-    type: 'core',
-  },
-  {
-    id: 'notes',
-    shortLabel: 'Нотатки',
-    title: 'Приватні нотатки',
-    body: 'Конфіденційний робочий контекст по клієнту в захищеній внутрішній зоні.',
-    points: [],
-    screenLabel: 'НОТАТКИ',
-    screenSrc: '/images/tour/notes-3.jpg',
-    screenAlt: 'Приватні нотатки',
-    type: 'secondary',
-  },
-  {
-    id: 'publications',
-    shortLabel: 'Публікації',
-    title: 'Авторські публікації',
-    body: 'Публічний журнал підсилює експертний голос і довіру до профілю.',
-    points: [],
-    screenLabel: 'АВТОРСЬКИЙ ЖУРНАЛ',
-    screenSrc: '/images/tour/author-journal-1.jpg',
-    screenAlt: 'Авторські публікації',
-    type: 'secondary',
-  },
-  {
-    id: 'todo',
-    shortLabel: 'Справи',
-    title: 'Дошка завдань',
-    body: 'Операційні задачі та наступні кроки завжди під контролем.',
-    points: [],
-    screenLabel: 'ДОШКА ЗАВДАНЬ',
-    screenSrc: '/images/tour/todo-board-1.jpg',
-    screenAlt: 'Todo дошка',
-    type: 'secondary',
-  },
+const howSteps: Array<{ icon: IconKey; title: string; copy: string }> = [
+  { icon: 'profile', title: 'Налаштуйте профіль', copy: 'Опишіть послуги, формат роботи й доступні години.' },
+  { icon: 'booking', title: 'Клієнт записується онлайн', copy: 'Клієнт бачить вільні слоти й бронює без зайвого листування.' },
+  { icon: 'session', title: 'Ви проводите сесію', copy: 'Усі деталі зустрічі, статуси й матеріали залишаються під рукою.' },
+  { icon: 'payments', title: 'Отримайте оплату', copy: 'Фінансові кроки зрозумілі й не губляться в повідомленнях.' },
+  { icon: 'analytics', title: 'Зростайте легко', copy: 'Аналітика, приватні відгуки й порядок допомагають розвивати практику.' },
 ]
 
-const coreWalkthroughSections = walkthroughSections.filter((item) => item.type === 'core')
-const secondaryWalkthroughSections = walkthroughSections.filter((item) => item.type === 'secondary')
-const activeWalkthroughSectionId = ref(coreWalkthroughSections[0]?.id ?? '')
+const profileHighlights: Array<{ icon: IconKey; title: string }> = [
+  { icon: 'profile', title: 'Послуги й умови в одному місці' },
+  { icon: 'booking', title: 'Видимі вільні слоти для запису' },
+  { icon: 'session', title: 'Спокійна точка входу для нового клієнта' },
+]
+
+const testimonials = [
+  {
+    quote: 'Раніше я вела запис і платежі в різних таблицях. Тепер усе в одному маршруті.',
+    author: 'Психологиня, приватна практика',
+  },
+  {
+    quote: 'Публічний профіль став зрозумілішим для клієнта, і менше уточнень перед записом.',
+    author: 'Психотерапевт, онлайн та офлайн сесії',
+  },
+  {
+    quote: 'Платформа прибрала ручну операційку, і я повернула фокус на роботу з людьми.',
+    author: 'Сімейний консультант',
+  },
+]
 
 const pricingPlans = computed(() => [
   {
     name: 'Start',
-    price: 'Безкоштовно',
+    price: '0 грн',
     helper: '',
-    subtitle: 'Для старту приватної практики',
-    features: [
-      'Публічний профіль',
-      'Онлайн-запис',
-      'Базова аналітика',
-      'До 3 активних клієнтів одночасно',
-    ],
+    features: ['Публічний профіль', 'Онлайн-запис', 'До 3 активних клієнтів'],
     ctaLabel: 'Почати безкоштовно',
     ctaTo: '/signup',
     ghostCta: false,
   },
   {
     name: 'Pro',
-    price: billingCycle.value === 'monthly' ? '990 грн / міс' : '9900 грн / рік',
-    helper: billingCycle.value === 'yearly' ? '2 місяці безкоштовно при оплаті за рік' : 'Річний план вигідніше, ніж помісячно',
-    subtitle: 'Для стабільної щоденної практики',
-    features: [
-      'Все, що у Start +',
-      'Робочий зошит',
-      'Оплати та підтвердження оплат',
-      'Розширена аналітика',
-      'Більші ліміти',
-      'До 20 активних клієнтів одночасно',
-    ],
-    ctaLabel: 'Спробувати 30 днів безкоштовно',
+    price: billingCycle.value === 'monthly' ? '990 грн/міс' : '9 900 грн/рік',
+    helper: billingCycle.value === 'yearly' ? 'Оплата за рік' : 'Оплата щомісяця',
+    features: ['Усе зі Start', 'Робочий зошит і матеріали', 'До 20 активних клієнтів'],
+    ctaLabel: 'Спробувати 30 днів',
     ctaTo: '/signup',
     ghostCta: false,
   },
   {
     name: 'Leader',
-    price: billingCycle.value === 'monthly' ? '2490 грн / міс' : '24900 грн / рік',
-    helper: billingCycle.value === 'yearly' ? '2 місяці безкоштовно при оплаті за рік' : 'Річний план вигідніше, ніж помісячно',
-    subtitle: 'Для великої та інтенсивної практики',
-    features: [
-      'Все, що у Pro +',
-      'Максимальні ліміти',
-      'Пріоритетний супровід',
-      'Більше робочого навантаження',
-      'До 60 активних клієнтів одночасно',
-    ],
+    price: billingCycle.value === 'monthly' ? '2 490 грн/міс' : '24 900 грн/рік',
+    helper: billingCycle.value === 'yearly' ? 'Оплата за рік' : 'Оплата щомісяця',
+    features: ['Усе з Pro', 'Пріоритетний супровід', 'До 60 активних клієнтів'],
     ctaLabel: 'Подати запит',
     ctaTo: '/support-and-data-requests',
     ghostCta: true,
@@ -442,491 +330,318 @@ const goToCabinet = async () => {
 }
 
 let revealObserver: IntersectionObserver | null = null
-let walkthroughSectionObserver: IntersectionObserver | null = null
 
 onMounted(() => {
   const targets = Array.from(document.querySelectorAll<HTMLElement>('.reveal'))
-  if (targets.length) {
-    const hasHashOnLoad = typeof window !== 'undefined' && Boolean(window.location.hash)
-    if (hasHashOnLoad || typeof IntersectionObserver === 'undefined') {
-      targets.forEach((el) => el.classList.add('is-visible'))
-    } else {
-      revealObserver = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((entry) => {
-            if (entry.isIntersecting) {
-              entry.target.classList.add('is-visible')
-              revealObserver?.unobserve(entry.target)
-            }
-          })
-        },
-        { threshold: 0.02, rootMargin: '0px 0px 14% 0px' }
-      )
+  if (!targets.length) return
 
-      targets.forEach((el) => revealObserver?.observe(el))
-    }
+  const hasHashOnLoad = typeof window !== 'undefined' && Boolean(window.location.hash)
+  if (hasHashOnLoad || typeof IntersectionObserver === 'undefined') {
+    targets.forEach((el) => el.classList.add('is-visible'))
+    return
   }
 
-  const sectionTargets = coreWalkthroughSections
-    .map((item) => document.getElementById(item.id))
-    .filter((item): item is HTMLElement => item instanceof HTMLElement)
-
-  if (!sectionTargets.length) return
-
-  const hashId = typeof window !== 'undefined' ? window.location.hash.replace('#', '').trim() : ''
-  if (hashId && coreWalkthroughSections.some((item) => item.id === hashId)) {
-    activeWalkthroughSectionId.value = hashId
-  }
-
-  if (typeof IntersectionObserver === 'undefined') return
-
-  walkthroughSectionObserver = new IntersectionObserver(
+  revealObserver = new IntersectionObserver(
     (entries) => {
-      const mostVisible = entries
-        .filter((entry) => entry.isIntersecting)
-        .sort((a, b) => b.intersectionRatio - a.intersectionRatio)
-        .at(0)
-      if (mostVisible?.target?.id) {
-        activeWalkthroughSectionId.value = mostVisible.target.id
-      }
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible')
+          revealObserver?.unobserve(entry.target)
+        }
+      })
     },
-    { threshold: [0.22, 0.4, 0.62], rootMargin: '-12% 0px -48% 0px' }
+    { threshold: 0.02, rootMargin: '0px 0px 14% 0px' }
   )
 
-  sectionTargets.forEach((section) => walkthroughSectionObserver?.observe(section))
+  targets.forEach((el) => revealObserver?.observe(el))
 })
 
 onBeforeUnmount(() => {
   revealObserver?.disconnect()
   revealObserver = null
-  walkthroughSectionObserver?.disconnect()
-  walkthroughSectionObserver = null
 })
 </script>
 
 <style scoped>
 .home-lite {
-  padding: 42px 0 72px;
   position: relative;
   isolation: isolate;
+  padding: 28px 0 68px;
 }
 
 .home-lite::before {
   content: '';
   position: absolute;
-  inset: -180px 0 0;
+  inset: -160px 0 0;
   z-index: -1;
   pointer-events: none;
   background:
-    radial-gradient(1300px 560px at 18% 20%, rgba(17, 89, 69, 0.12), transparent 72%),
-    radial-gradient(980px 460px at 88% 18%, rgba(219, 120, 39, 0.08), transparent 74%),
-    linear-gradient(180deg, rgba(245, 247, 242, 0.82) 0%, rgba(247, 248, 251, 0.94) 38%, rgba(247, 248, 251, 0.95) 100%);
+    radial-gradient(1200px 540px at 16% 8%, rgba(17, 89, 69, 0.11), transparent 72%),
+    radial-gradient(960px 420px at 88% 14%, rgba(219, 120, 39, 0.09), transparent 74%),
+    linear-gradient(180deg, rgba(245, 247, 242, 0.86) 0%, rgba(247, 248, 251, 0.96) 100%);
 }
 
 .home-lite__container {
   width: min(var(--pc-container-wide), calc(100% - 48px));
   margin: 0 auto;
   display: grid;
-  gap: 52px;
+  gap: 46px;
 }
 
 .home-hero {
   border: 1px solid var(--pc-border);
   border-radius: var(--radius-2xl);
-  background:
-    radial-gradient(720px 420px at 92% 12%, rgba(143, 203, 200, 0.18), transparent 72%),
-    radial-gradient(620px 380px at 76% 92%, rgba(247, 183, 126, 0.2), transparent 74%),
-    linear-gradient(135deg, rgba(255, 255, 255, 0.92), var(--pc-bg-main));
-  padding: clamp(28px, 4vw, 56px);
-  display: grid;
-  grid-template-columns: minmax(0, 0.84fr) minmax(0, 1.16fr);
-  gap: clamp(22px, 3vw, 44px);
-  align-items: center;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.96), var(--pc-bg-main));
   box-shadow: var(--pc-shadow-card);
+  padding: clamp(24px, 3.6vw, 48px);
+  display: grid;
+  grid-template-columns: minmax(0, 0.88fr) minmax(0, 1.12fr);
+  gap: clamp(22px, 3vw, 38px);
+  align-items: center;
   overflow: hidden;
 }
 
 .home-hero__content {
   display: grid;
   gap: 14px;
-  align-content: center;
 }
 
 .home-hero__eyebrow,
 .section-head__eyebrow {
   margin: 0;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.12em;
   text-transform: uppercase;
+  font-size: 11px;
+  letter-spacing: 0.12em;
   color: var(--pc-text-muted);
+  font-weight: 700;
 }
 
 .home-hero__title {
   margin: 0;
-  font-size: clamp(37px, 4vw, 66px);
-  line-height: 1.12;
-  letter-spacing: -0.02em;
-  max-width: 16ch;
+  font-size: clamp(36px, 4.2vw, 62px);
+  line-height: 1.08;
+  letter-spacing: -0.025em;
   color: var(--pc-navy-950);
+  max-width: 16ch;
 }
 
 .home-hero__subtitle {
   margin: 0;
+  max-width: 58ch;
+  line-height: 1.58;
   color: var(--muted);
-  line-height: 1.6;
-  max-width: 60ch;
-}
-
-.home-hero__microcopy {
-  margin: 0;
-  font-size: 13px;
-  color: color-mix(in srgb, var(--text) 62%, #50606a);
 }
 
 .home-hero__actions,
-.final-cta__actions,
-.pricing-teaser__actions {
+.final-cta__actions {
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
 }
 
-.pricing-teaser__actions {
-  justify-content: center;
-  margin-top: 4px;
-}
-
-.pricing-teaser__actions .btn {
-  min-height: 42px;
+.home-hero__actions .btn,
+.final-cta .btn,
+.plan-card .btn {
+  min-height: 44px;
   padding: 0 18px;
-  border-radius: var(--radius-pill);
-  background: rgba(255, 255, 255, 0.76);
-  border-color: var(--pc-border-strong);
-  color: var(--pc-navy-900);
-  box-shadow: none;
+  border-radius: var(--radius-sm);
   font-weight: 700;
 }
 
-.pricing-teaser__actions .btn:hover {
-  background: var(--pc-teal-100);
-  border-color: var(--pc-teal-500);
-  color: var(--pc-navy-950);
-}
-
-.home-hero__actions .btn {
-  min-height: 48px;
-  padding: 0 22px;
-  border-radius: var(--radius-md);
+.home-hero__actions .btn,
+.final-cta .btn,
+.plan-card .btn:not(.btn--ghost) {
   background: var(--pc-navy-900);
   border-color: var(--pc-navy-900);
   color: #fff;
-  box-shadow: 0 12px 26px rgba(18, 52, 90, 0.18);
-  font-weight: 700;
+  box-shadow: 0 12px 26px rgba(18, 52, 90, 0.16);
 }
 
-.home-hero__actions .btn:hover {
-  background: var(--pc-navy-950);
-  border-color: var(--pc-navy-950);
-  box-shadow: 0 16px 32px rgba(18, 52, 90, 0.22);
-}
-
-.home-hero__actions .btn--ghost {
-  background: rgba(255, 255, 255, 0.72);
+.home-hero__actions .btn--ghost,
+.final-cta .btn--ghost,
+.plan-card .btn--ghost {
+  background: rgba(255, 255, 255, 0.82);
   border-color: var(--pc-border-strong);
   color: var(--pc-navy-900);
   box-shadow: none;
 }
 
-.home-hero__actions .btn--ghost:hover {
-  background: #fff;
-  border-color: var(--pc-navy-900);
-  color: var(--pc-navy-950);
+.hero-trust {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.hero-trust li {
+  font-size: 13px;
+  color: var(--pc-navy-900);
+  border: 1px solid var(--pc-border);
+  border-radius: var(--radius-pill);
+  padding: 6px 10px;
+  background: rgba(255, 255, 255, 0.78);
 }
 
 .home-hero__visual {
   min-width: 0;
-}
-
-.hero-collage {
+  min-height: 420px;
   position: relative;
-  min-height: clamp(460px, 36vw, 580px);
-  padding: 6px 6px;
 }
 
-.hero-shot {
+.hero-blob {
   position: absolute;
-  border: 1px solid rgba(18, 52, 90, 0.16);
-  border-radius: var(--radius-xl);
-  background: rgba(255, 255, 255, 0.9);
-  overflow: hidden;
-  box-shadow: 0 22px 54px rgba(18, 35, 58, 0.12);
-  backdrop-filter: blur(10px);
+  border-radius: 999px;
+  pointer-events: none;
 }
 
-.hero-shot__top {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  padding: 10px 13px;
-  border-bottom: 1px solid var(--pc-border);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(250, 247, 242, 0.84));
+.hero-blob--teal {
+  width: 180px;
+  height: 180px;
+  top: -12px;
+  right: 4%;
+  background: radial-gradient(circle at 30% 30%, rgba(143, 203, 200, 0.6), rgba(143, 203, 200, 0.14));
 }
 
-.hero-shot__top span {
-  width: 8px;
-  height: 8px;
-  border-radius: var(--radius-pill);
-  background: var(--pc-teal-500);
-  opacity: 0.82;
+.hero-blob--peach {
+  width: 210px;
+  height: 210px;
+  left: 8%;
+  bottom: 2%;
+  background: radial-gradient(circle at 32% 32%, rgba(247, 183, 126, 0.48), rgba(247, 183, 126, 0.12));
 }
 
-.hero-shot__viewport {
-  padding: 10px;
-  background:
-    radial-gradient(460px 240px at 85% 18%, rgba(143, 203, 200, 0.14), transparent 70%),
-    radial-gradient(420px 220px at 18% 88%, rgba(247, 183, 126, 0.16), transparent 74%),
-    #fff;
-  aspect-ratio: 16 / 10;
+.hero-dot-grid {
+  position: absolute;
+  right: 18%;
+  bottom: 4%;
+  width: 120px;
+  height: 94px;
+  background-image: radial-gradient(rgba(18, 52, 90, 0.26) 1.1px, transparent 1.1px);
+  background-size: 12px 12px;
+  opacity: 0.3;
 }
 
-.hero-shot__viewport img {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  border-radius: var(--radius-md);
-}
-
-.hero-shot--primary {
-  top: 0;
-  left: 4%;
-  width: 92%;
-  z-index: 2;
-}
-
-.hero-shot--slots {
-  left: -1%;
-  bottom: 10%;
-  width: 30%;
-  z-index: 4;
-}
-
-.hero-shot--payments {
-  left: 33%;
-  bottom: 6%;
-  width: 34%;
-  z-index: 5;
-}
-
-.hero-shot--analytics {
-  right: -1%;
-  bottom: 6%;
-  width: 34%;
-  z-index: 4;
-}
-
-.walkthrough,
-.pricing-teaser,
-.home-faq,
-.final-cta {
-  display: grid;
-  gap: 22px;
-}
-
-.walkthrough__chips {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  padding: 4px 0 0;
-}
-
-.walkthrough__chips a {
+.preview-card {
+  position: absolute;
   border: 1px solid var(--pc-border);
-  border-radius: var(--radius-pill);
-  padding: 8px 13px;
-  font-size: 12px;
-  font-weight: 700;
-  line-height: 1;
-  color: var(--pc-text-muted);
-  background: rgba(255, 255, 255, 0.74);
-  box-shadow: 0 8px 20px rgba(18, 35, 58, 0.04);
-  transition:
-    border-color 0.2s ease,
-    color 0.2s ease,
-    background-color 0.2s ease,
-    box-shadow 0.2s ease,
-    transform 0.2s ease;
-}
-
-.walkthrough__chips a:hover {
-  border-color: rgba(18, 52, 90, 0.24);
-  color: var(--pc-navy-900);
-  background: #fff;
-  transform: translateY(-1px);
-}
-
-.walkthrough__chips a.is-active {
-  border-color: var(--pc-navy-900);
-  color: #fff;
-  background: var(--pc-navy-900);
-  box-shadow: 0 10px 24px rgba(18, 52, 90, 0.16);
-}
-
-.walkthrough__core {
-  display: grid;
-  gap: 28px;
-}
-
-.walkthrough-feature {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 0.98fr);
-  gap: clamp(22px, 2.4vw, 36px);
-  align-items: center;
-  max-width: 1180px;
-  margin-inline: auto;
-  width: 100%;
-  border: 1px solid var(--pc-border);
-  border-radius: var(--radius-2xl);
-  background:
-    radial-gradient(520px 280px at 92% 10%, rgba(143, 203, 200, 0.14), transparent 72%),
-    linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(250, 247, 242, 0.82));
-  padding: clamp(18px, 2.4vw, 30px);
-  box-shadow: var(--pc-shadow-soft);
-  overflow: hidden;
-}
-
-.walkthrough-feature--reverse {
-  direction: rtl;
-}
-
-.walkthrough-feature--reverse > * {
-  direction: ltr;
-}
-
-.walkthrough-feature__media {
-  min-width: 0;
-}
-
-.walkthrough-feature__content {
-  display: grid;
-  gap: 16px;
-}
-
-.walkthrough-feature__title {
-  margin: 0;
-  font-size: clamp(28px, 2.8vw, 42px);
-  line-height: 1.14;
-  letter-spacing: -0.03em;
-  color: var(--pc-navy-950);
-}
-
-.walkthrough-secondary-card__title {
-  margin: 0;
-  font-size: clamp(22px, 2vw, 28px);
-  line-height: 1.18;
-  letter-spacing: -0.02em;
-  color: var(--pc-navy-950);
-}
-
-.walkthrough-feature__body {
-  margin: 0;
-  font-size: clamp(16px, 1.25vw, 20px);
-  line-height: 1.68;
-  color: color-mix(in srgb, var(--text) 82%, #415763);
-}
-
-.walkthrough-feature__content ul {
-  margin: 0;
-  padding-left: 20px;
-  display: grid;
-  gap: 10px;
-  font-size: clamp(15px, 1.05vw, 17px);
-  line-height: 1.5;
-  color: color-mix(in srgb, var(--text) 74%, #4f616a);
-}
-
-.walkthrough-feature__tariff {
-  margin: 0;
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--pc-navy-800);
-}
-
-.product-shot {
-  border: 1px solid color-mix(in srgb, var(--primary) 24%, var(--border));
-  border-radius: var(--radius-lg);
-  background: linear-gradient(165deg, rgba(255, 255, 255, 0.94), rgba(18, 65, 55, 0.06));
-  overflow: hidden;
-  box-shadow: 0 14px 24px rgba(17, 64, 54, 0.1);
-}
-
-.walkthrough-feature .product-shot {
-  border-color: rgba(18, 52, 90, 0.14);
   border-radius: var(--radius-xl);
-  background: rgba(255, 255, 255, 0.92);
-  box-shadow: 0 18px 42px rgba(18, 35, 58, 0.1);
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 20px 44px rgba(18, 35, 58, 0.12);
+  overflow: hidden;
 }
 
-.product-shot__top {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  padding: 11px 13px;
+.preview-card header {
   border-bottom: 1px solid var(--pc-border);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(250, 247, 242, 0.86));
-}
-
-.product-shot__top span {
-  width: 8px;
-  height: 8px;
-  border-radius: var(--radius-pill);
-  background: var(--pc-teal-500);
-  opacity: 0.82;
-}
-
-.product-shot__top strong {
-  margin-left: auto;
+  padding: 10px 12px;
   font-size: 11px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--pc-text-muted);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(250, 247, 242, 0.8));
 }
 
-.product-shot__viewport {
-  background:
-    radial-gradient(460px 240px at 86% 16%, rgba(143, 203, 200, 0.12), transparent 72%),
-    radial-gradient(420px 220px at 16% 90%, rgba(247, 183, 126, 0.14), transparent 74%),
-    #ffffff;
-  padding: 10px;
-  aspect-ratio: 16 / 10;
-}
-
-.product-shot__viewport img {
+.preview-card img {
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: contain;
-  border-radius: var(--radius-md);
+  object-fit: cover;
 }
 
-.walkthrough__secondary {
+.preview-card--dashboard {
+  inset: 0 10% 26% 0;
+  z-index: 3;
+}
+
+.preview-card--profile {
+  width: 36%;
+  top: 7%;
+  right: 0;
+  z-index: 4;
+}
+
+.preview-card--booking {
+  width: 40%;
+  right: 2%;
+  bottom: 4%;
+  z-index: 5;
+}
+
+.preview-card--payments {
+  width: 39%;
+  left: 9%;
+  bottom: -2%;
+  z-index: 4;
+}
+
+.how__row,
+.pricing__grid,
+.testimonials__grid {
   display: grid;
   gap: 14px;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
-.walkthrough-secondary-card {
-  border: 1px solid color-mix(in srgb, var(--primary) 17%, var(--border));
-  border-radius: var(--radius-md);
-  background: color-mix(in srgb, #ffffff 86%, var(--surface));
-  padding: 14px;
+.how-step,
+.plan-card,
+.testimonial-card {
+  border: 1px solid var(--pc-border);
+  border-radius: var(--radius-xl);
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: var(--pc-shadow-soft);
+}
+
+.icon-wrap {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
   display: grid;
-  gap: 12px;
+  place-items: center;
+  background: rgba(143, 203, 200, 0.18);
+  color: var(--pc-navy-900);
+  border: 1px solid rgba(18, 52, 90, 0.14);
+  flex: 0 0 auto;
 }
 
-.product-shot--compact {
-  box-shadow: 0 10px 18px rgba(17, 64, 54, 0.08);
+.icon-wrap--soft {
+  background: linear-gradient(145deg, rgba(143, 203, 200, 0.2), rgba(247, 183, 126, 0.16));
+}
+
+.icon-wrap svg {
+  width: 20px;
+  height: 20px;
+}
+
+.icon-wrap path {
+  stroke: currentcolor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.benefit-chip__label,
+.how-step h3,
+.plan-card h3,
+.section-head__title,
+.final-cta__title {
+  margin: 0;
+  color: var(--pc-navy-950);
+}
+
+.benefit-chip__label,
+.how-step h3,
+.plan-card h3 {
+  font-size: 16px;
+  line-height: 1.2;
+}
+
+.how-step p,
+.testimonial-card p,
+.profile-promo__copy p,
+.final-cta p {
+  margin: 0;
+  line-height: 1.55;
+  color: color-mix(in srgb, var(--text) 78%, #445966);
 }
 
 .section-head {
@@ -939,153 +654,389 @@ onBeforeUnmount(() => {
 }
 
 .section-head__title {
-  margin: 0;
-  font-size: clamp(30px, 3vw, 44px);
-  line-height: 1.16;
-  letter-spacing: -0.03em;
+  font-size: clamp(30px, 2.8vw, 42px);
+  line-height: 1.14;
+  letter-spacing: -0.028em;
+}
+
+.how,
+.pricing,
+.testimonials,
+.final-cta,
+.profile-promo {
+  display: grid;
+  gap: 22px;
+}
+
+.how {
+  gap: 14px;
+}
+
+.how__row {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 4px;
+  align-items: start;
+}
+
+.how-step {
+  padding: 4px 2px;
+  display: grid;
+  gap: 7px;
+  text-align: center;
+  place-items: center;
+  position: relative;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.how-step .icon-wrap {
+  width: 80px;
+  height: 80px;
+  background: #fff;
+  border-color: color-mix(in srgb, var(--pc-navy-900) 20%, #dfe8ef);
+}
+
+.how-step .icon-wrap svg {
+  width: 32px;
+  height: 32px;
+}
+
+.how-step__connector {
+  position: absolute;
+  top: 31px;
+  right: -12px;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1;
+  color: color-mix(in srgb, var(--pc-navy-900) 56%, #99adba);
+}
+
+.how-step:last-child .how-step__connector {
+  display: none;
+}
+
+.how__title {
+  font-size: clamp(24px, 2vw, 30px);
+  letter-spacing: -0.02em;
+}
+
+.how__intro {
+  margin: 0 auto;
+  max-width: 66ch;
+  text-align: center;
+  color: color-mix(in srgb, var(--text) 80%, #465f6b);
+  line-height: 1.5;
+}
+
+.benefit-chips {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.benefit-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 6px 12px;
+  border: 1px solid color-mix(in srgb, var(--pc-border) 85%, #fff);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.benefit-chip__icon {
+  width: 24px;
+  height: 24px;
+}
+
+.benefit-chip__icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+.benefit-chip__label {
+  font-size: 13px;
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.how-step h3 {
+  max-width: 20ch;
+  font-size: 15px;
+  line-height: 1.25;
+}
+
+.how-step p {
+  max-width: 22ch;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.profile-promo {
+  grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+  align-items: center;
+  gap: clamp(16px, 2.6vw, 28px);
+  padding: clamp(10px, 1.8vw, 16px) 0;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.profile-promo__copy {
+  display: grid;
+  gap: 10px;
+}
+
+.profile-promo__copy p {
+  max-width: 56ch;
+}
+
+.profile-promo__points {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 220px));
+  gap: 10px;
+}
+
+.profile-point {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  padding: 6px 10px;
+  border: 1px solid color-mix(in srgb, var(--pc-border) 84%, #fff);
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.74);
+}
+
+.profile-point__icon {
+  width: 24px;
+  height: 24px;
+}
+
+.profile-point__icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+.profile-point__text {
+  font-size: 13px;
+  line-height: 1.3;
   color: var(--pc-navy-950);
 }
 
-.walkthrough__lead {
-  margin: 0;
-  font-size: 17px;
-  line-height: 1.62;
-  color: color-mix(in srgb, var(--text) 72%, #4f616a);
-}
-
-.value-grid,
-.home-faq__grid {
-  display: grid;
-  gap: 14px;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.value-card {
-  border: 1px solid var(--pc-border);
-  border-radius: var(--radius-xl);
-  background: rgba(255, 255, 255, 0.86);
-  padding: 22px;
-  box-shadow: var(--pc-shadow-soft);
-}
-
-.faq-card {
-  border: 1px solid var(--pc-border);
-  border-radius: var(--radius-xl);
-  background: rgba(255, 255, 255, 0.88);
-  padding: 22px;
-  box-shadow: var(--pc-shadow-soft);
-}
-
-.plan-card {
-  border: 1px solid color-mix(in srgb, var(--primary) 20%, var(--border));
-  border-radius: var(--radius-md);
-  background: color-mix(in srgb, #ffffff 82%, var(--surface));
-  padding: 18px;
-}
-
-.plan-card {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  border-radius: var(--radius-xl);
-  border-color: var(--pc-border);
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: var(--pc-shadow-soft);
-  padding: 24px;
-}
-
-.value-card {
+.profile-promo__preview {
   position: relative;
+  min-width: 0;
+  min-height: 340px;
+}
+
+.booking-preview {
+  border: 1px solid color-mix(in srgb, var(--pc-border) 88%, #fff);
+  border-radius: var(--radius-xl);
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.94), rgba(245, 247, 242, 0.9));
+  box-shadow: var(--pc-shadow-soft);
   overflow: hidden;
 }
 
-.value-card::before {
-  content: '';
-  position: absolute;
-  top: 18px;
-  right: 18px;
-  width: 42px;
-  height: 42px;
-  border-radius: var(--radius-pill);
-  background: var(--pc-teal-100);
-  opacity: 0.9;
+.booking-preview__header {
+  border-bottom: 1px solid var(--pc-border);
+  padding: 10px 12px;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--pc-text-muted);
+  background: rgba(255, 255, 255, 0.88);
 }
 
-.value-card--accent {
-  background:
-    radial-gradient(220px 140px at 88% 12%, rgba(143, 203, 200, 0.2), transparent 72%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.92), var(--pc-bg-card));
-  border-color: rgba(18, 52, 90, 0.14);
-}
-
-.value-card--accent:nth-child(2)::before {
-  background: var(--pc-peach-100);
-}
-
-.value-card__title {
-  margin: 0 0 8px;
-  font-size: 19px;
-  line-height: 1.3;
-  color: var(--pc-navy-950);
-}
-
-.faq-card__title {
-  margin: 0 0 8px;
-  font-size: 19px;
-  line-height: 1.3;
-  color: var(--pc-navy-950);
-}
-
-.plan-card__title {
-  margin: 0 0 8px;
-  font-size: 18px;
-  line-height: 1.3;
-}
-
-.pricing-teaser__grid {
+.booking-preview__body {
+  padding: 12px;
   display: grid;
-  gap: 18px;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  max-width: 1040px;
+  gap: 10px;
+}
+
+.booking-preview--profile {
+  width: min(100%, 480px);
+}
+
+.booking-preview--calendar {
+  position: absolute;
+  right: 0;
+  bottom: -18px;
+  width: min(86%, 370px);
+}
+
+.profile-mini {
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  gap: 10px;
+  align-items: center;
+}
+
+.profile-mini__avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  color: #1d7f84;
+  background: linear-gradient(145deg, rgba(143, 203, 200, 0.25), rgba(170, 183, 228, 0.25));
+  border: 1px solid rgba(18, 52, 90, 0.12);
+}
+
+.profile-mini__name,
+.profile-mini__role,
+.profile-mini__snippet {
+  margin: 0;
+}
+
+.profile-mini__name {
+  font-size: 15px;
+  line-height: 1.25;
+  color: var(--pc-navy-950);
+  font-weight: 700;
+}
+
+.profile-mini__role {
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--pc-text-muted);
+}
+
+.profile-mini__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.profile-mini__chips span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 8px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--pc-border) 82%, #fff);
+  background: rgba(255, 255, 255, 0.82);
+  font-size: 11px;
+  color: var(--pc-navy-900);
+}
+
+.profile-mini__snippet {
+  font-size: 12px;
+  line-height: 1.45;
+  color: color-mix(in srgb, var(--text) 80%, #445966);
+}
+
+.profile-mini__cta {
+  min-height: 34px;
   width: 100%;
-  margin-inline: auto;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--pc-navy-900);
+  background: var(--pc-navy-900);
+  color: #fff;
+  font-weight: 600;
+}
+
+.calendar-mini__top {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 12px;
+  color: var(--pc-navy-900);
+  font-weight: 600;
+}
+
+.calendar-mini__grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+  font-size: 11px;
+  color: var(--pc-text-muted);
+}
+
+.calendar-mini__grid span {
+  min-height: 22px;
+  display: grid;
+  place-items: center;
+}
+
+.calendar-mini__grid .is-selected {
+  color: #fff;
+  background: var(--pc-navy-900);
+  border-radius: 999px;
+  font-weight: 700;
+}
+
+.calendar-mini__slots {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.calendar-mini__slots button {
+  min-height: 30px;
+  border: 1px solid color-mix(in srgb, var(--pc-border) 80%, #fff);
+  border-radius: var(--radius-xs);
+  background: rgba(255, 255, 255, 0.86);
+  color: var(--pc-navy-900);
+  font-size: 12px;
+  font-weight: 600;
 }
 
 .pricing-toggle {
   justify-self: center;
   display: inline-flex;
-  align-items: center;
   gap: 6px;
-  padding: 5px;
-  border: 1px solid color-mix(in srgb, var(--primary) 22%, var(--border));
+  padding: 4px;
+  border: 1px solid var(--pc-border);
   border-radius: var(--radius-sm);
-  background: color-mix(in srgb, #ffffff 88%, var(--surface));
+  background: rgba(255, 255, 255, 0.86);
 }
 
 .pricing-toggle__btn {
+  min-height: 34px;
+  padding: 0 12px;
   border: 1px solid transparent;
   border-radius: var(--radius-xs);
-  padding: 6px 12px;
-  min-height: 32px;
-  font: inherit;
-  font-size: 13px;
-  color: color-mix(in srgb, var(--text) 78%, #2d5666);
   background: transparent;
+  color: var(--pc-text-muted);
   cursor: pointer;
 }
 
 .pricing-toggle__btn.is-active {
   border-color: var(--pc-teal-500);
-  color: var(--pc-navy-900);
   background: var(--pc-teal-100);
+  color: var(--pc-navy-900);
   font-weight: 700;
-  box-shadow: 0 6px 14px rgba(18, 35, 58, 0.06);
+}
+
+.pricing__grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.plan-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 22px;
+}
+
+.plan-card ul {
+  margin: 0;
+  padding-left: 18px;
+  display: grid;
+  gap: 6px;
+  color: color-mix(in srgb, var(--text) 76%, #415763);
 }
 
 .plan-card__price {
-  margin: -2px 0 0;
-  font-size: 30px;
-  line-height: 1.15;
+  margin: 0;
+  font-size: 32px;
+  line-height: 1.08;
   font-weight: 800;
   color: var(--pc-navy-950);
 }
@@ -1093,129 +1044,52 @@ onBeforeUnmount(() => {
 .plan-card__helper {
   margin: 0;
   font-size: 12px;
-  color: var(--pc-teal-500);
-  font-weight: 600;
-}
-
-.plan-card ul {
-  margin: 2px 0 0;
-  padding-left: 18px;
-  display: grid;
-  gap: 6px;
-  color: color-mix(in srgb, var(--text) 72%, #4f616a);
-}
-
-.plan-card .btn {
-  margin-top: auto;
-  align-self: flex-start;
-}
-
-.pricing-teaser .plan-card .btn {
-  min-height: 46px;
-  padding: 0 18px;
-  border-radius: var(--radius-md);
-  background: var(--pc-navy-900);
-  border-color: var(--pc-navy-900);
-  color: #fff;
-  box-shadow: 0 12px 26px rgba(18, 52, 90, 0.16);
-  font-weight: 700;
-}
-
-.pricing-teaser .plan-card .btn:hover {
-  background: var(--pc-navy-950);
-  border-color: var(--pc-navy-950);
-  box-shadow: 0 16px 32px rgba(18, 52, 90, 0.2);
-}
-
-.pricing-teaser .plan-card .btn--ghost {
-  background: #fff;
-  border-color: var(--pc-border-strong);
-  color: var(--pc-navy-900);
-  box-shadow: none;
-}
-
-.pricing-teaser .plan-card .btn--ghost:hover {
-  background: var(--pc-bg-main);
-  border-color: var(--pc-navy-900);
-  color: var(--pc-navy-950);
+  color: var(--pc-text-muted);
 }
 
 .plan-card--pro {
-  position: relative;
-  border-color: rgba(18, 52, 90, 0.28);
+  border-color: rgba(18, 52, 90, 0.26);
   background:
-    radial-gradient(260px 160px at 88% 10%, rgba(143, 203, 200, 0.22), transparent 72%),
-    linear-gradient(180deg, #ffffff, var(--pc-bg-main));
-  box-shadow: 0 20px 48px rgba(18, 35, 58, 0.12);
+    radial-gradient(220px 120px at 90% 10%, rgba(143, 203, 200, 0.2), transparent 70%),
+    #fff;
 }
 
-.plan-card--pro::before {
-  content: 'Найпопулярніший';
-  position: absolute;
-  top: -16px;
-  left: 24px;
-  right: 24px;
-  min-height: 28px;
+.testimonials__grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.testimonial-card {
   display: grid;
-  place-items: center;
-  border-radius: var(--radius-pill);
-  background: var(--pc-navy-900);
-  color: #fff;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  box-shadow: 0 10px 22px rgba(18, 52, 90, 0.16);
+  gap: 12px;
+  padding: 20px;
+}
+
+.testimonial-card__quote {
+  font-size: 18px;
+  line-height: 1.5;
+}
+
+.testimonial-card__author {
+  font-size: 14px;
+  color: var(--pc-text-muted);
 }
 
 .final-cta {
-  position: relative;
-  overflow: hidden;
   border: 1px solid var(--pc-border);
   border-radius: var(--radius-2xl);
-  padding: clamp(28px, 4vw, 48px);
+  padding: clamp(24px, 3.2vw, 40px);
   background:
-    radial-gradient(520px 260px at 88% 18%, rgba(143, 203, 200, 0.22), transparent 72%),
-    radial-gradient(520px 280px at 8% 92%, rgba(247, 183, 126, 0.22), transparent 74%),
-    linear-gradient(135deg, #ffffff, var(--pc-bg-main));
+    radial-gradient(440px 220px at 86% 16%, rgba(143, 203, 200, 0.2), transparent 72%),
+    radial-gradient(460px 250px at 12% 90%, rgba(247, 183, 126, 0.18), transparent 72%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.96), var(--pc-bg-main));
   box-shadow: var(--pc-shadow-card);
 }
 
 .final-cta__title {
-  margin: 0;
-  font-size: clamp(30px, 3vw, 46px);
-  line-height: 1.12;
+  font-size: clamp(30px, 3vw, 44px);
+  line-height: 1.1;
   letter-spacing: -0.03em;
-  max-width: 20ch;
-  color: var(--pc-navy-950);
-}
-
-.final-cta .btn {
-  min-height: 48px;
-  padding: 0 22px;
-  border-radius: var(--radius-md);
-  background: var(--pc-navy-900);
-  border-color: var(--pc-navy-900);
-  color: #fff;
-  box-shadow: 0 12px 26px rgba(18, 52, 90, 0.16);
-  font-weight: 700;
-}
-
-.final-cta .btn:hover {
-  background: var(--pc-navy-950);
-  border-color: var(--pc-navy-950);
-}
-
-.final-cta .btn--ghost {
-  background: rgba(255, 255, 255, 0.78);
-  border-color: var(--pc-border-strong);
-  color: var(--pc-navy-900);
-  box-shadow: none;
-}
-
-.final-cta .btn--ghost:hover {
-  background: #fff;
-  border-color: var(--pc-navy-900);
+  max-width: 18ch;
 }
 
 .reveal {
@@ -1229,108 +1103,159 @@ onBeforeUnmount(() => {
   transform: translateY(0);
 }
 
-@media (max-width: 980px) {
-  .home-hero {
-    grid-template-columns: 1fr;
-    gap: 18px;
+@media (max-width: 1080px) {
+  .how__row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .hero-collage {
+  .pricing__grid,
+  .testimonials__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .profile-promo {
+    grid-template-columns: 1fr;
+    padding: 6px 0 2px;
+  }
+
+  .profile-promo__points {
+    grid-template-columns: 1fr;
+  }
+
+  .profile-promo__preview {
     min-height: auto;
-    padding: 0;
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
   }
 
-  .hero-shot {
+  .booking-preview--calendar {
     position: relative;
-    inset: auto;
-    width: auto;
+    right: auto;
+    bottom: auto;
+    width: min(100%, 370px);
+    margin-top: 10px;
+    margin-left: auto;
   }
 
-  .hero-shot--primary {
-    grid-column: 1 / -1;
+  .how-step .icon-wrap {
+    width: 74px;
+    height: 74px;
   }
 
-  .walkthrough-feature {
-    grid-template-columns: 1fr;
-  }
-
-  .walkthrough-feature--reverse {
-    direction: ltr;
-  }
-
-  .walkthrough__secondary {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .value-grid,
-  .home-faq__grid,
-  .pricing-teaser__grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+  .how-step__connector {
+    display: none;
   }
 }
 
 @media (max-width: 820px) {
-  .home-lite {
-    padding-top: 96px;
+  .benefit-chip__label {
+    white-space: normal;
+  }
+}
+
+@media (max-width: 920px) {
+  .home-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .home-hero__visual {
+    min-height: 320px;
+  }
+
+  .preview-card--dashboard {
+    inset: 0 0 27% 0;
+  }
+
+  .preview-card--profile {
+    width: 42%;
+  }
+
+  .preview-card--booking,
+  .preview-card--payments {
+    width: 44%;
   }
 }
 
 @media (max-width: 680px) {
-  .home-hero {
-    padding: 22px 18px;
-  }
-
-  .home-hero__title {
-    font-size: clamp(34px, 11vw, 44px);
-  }
-
-  .home-hero__actions {
-    width: 100%;
-  }
-
-  .home-hero__actions .btn {
-    width: 100%;
-  }
-
-  .hero-collage {
-  grid-template-columns: 1fr;
-  }
-
-  .hero-shot--slots,
-  .hero-shot--payments,
-  .hero-shot--analytics {
-    display: none;
-  }
-
-  .hero-shot--primary {
-    grid-column: auto;
-  }
-
-  .hero-shot__viewport {
-    aspect-ratio: 16 / 11;
-  }
-
   .home-lite {
-    padding-top: 16px;
-    padding-bottom: 48px;
+    padding: 14px 0 48px;
   }
 
   .home-lite__container {
     width: min(100% - 24px, var(--pc-container-wide));
+    gap: 30px;
   }
 
-  .value-grid,
-  .walkthrough__secondary,
-  .home-faq__grid,
-  .pricing-teaser__grid {
+  .home-hero {
+    padding: 20px 16px;
+  }
+
+  .home-hero__title {
+    font-size: clamp(33px, 11vw, 42px);
+  }
+
+  .home-hero__actions,
+  .final-cta__actions {
+    width: 100%;
+  }
+
+  .home-hero__actions .btn,
+  .final-cta .btn {
+    width: 100%;
+  }
+
+  .home-hero__visual {
+    min-height: auto;
+    display: grid;
+    gap: 10px;
+  }
+
+  .hero-blob,
+  .hero-dot-grid {
+    display: none;
+  }
+
+  .preview-card {
+    position: relative;
+    inset: auto;
+    width: 100%;
+  }
+
+  .preview-card img {
+    aspect-ratio: 16 / 10;
+  }
+
+  .pricing__grid,
+  .testimonials__grid,
+  .how__row {
     grid-template-columns: 1fr;
   }
 
-  .hero-collage {
-    grid-template-columns: 1fr;
+  .how-step {
+    border: 1px solid var(--pc-border);
+    border-radius: var(--radius-xl);
+    background: rgba(255, 255, 255, 0.92);
+    box-shadow: var(--pc-shadow-soft);
+    padding: 14px 10px;
+  }
+
+  .how-step__connector {
+    display: none;
+  }
+
+  .benefit-chips {
+    justify-content: flex-start;
+  }
+
+  .profile-promo__preview {
+    display: grid;
+    gap: 10px;
+  }
+
+  .booking-preview--profile,
+  .booking-preview--calendar {
+    width: 100%;
+    position: relative;
+    margin: 0;
   }
 }
+
 </style>
