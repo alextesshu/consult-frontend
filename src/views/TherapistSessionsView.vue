@@ -2,7 +2,6 @@
   <section class="sessions">
     <header class="sessions__hero">
       <div>
-        <div class="badge">Сесії спеціаліста</div>
         <h1 class="title sessions__title">Керуйте сесіями</h1>
         <p class="muted sessions__subtitle">
           Список запланованих і минулих сесій. Дії доступні одразу.

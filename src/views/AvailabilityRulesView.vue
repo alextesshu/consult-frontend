@@ -2,7 +2,6 @@
   <section class="availability-rules">
     <header class="availability-rules__header">
       <div>
-        <div class="badge">Розклад</div>
         <h1 class="title availability-rules__title">{{ isVacationView ? 'Відпустка' : 'Налаштування розкладу' }}</h1>
         <p class="muted availability-rules__subtitle">
           {{
@@ -22,8 +21,7 @@
     <section v-if="!isVacationView" class="panel panel--control">
       <div class="panel__header">
         <div>
-          <div class="badge badge--soft">Налаштування</div>
-          <h2 class="panel__title">Крок 1: Налаштуйте робочі години</h2>
+          <h2 class="panel__title">Налаштуйте робочі години</h2>
           <p class="muted generation__subtitle generation__subtitle--quiet">
             Робочі години визначають, коли ви зазвичай доступні в цей день. Щоб зробити перерву, створіть два окремі записи.
           </p>
@@ -97,7 +95,6 @@
     <section v-if="!isVacationView" class="panel">
       <div class="panel__header">
         <div>
-          <div class="badge badge--soft">Список</div>
           <h2 class="panel__title">Налаштовані робочі години</h2>
         </div>
       </div>
@@ -216,7 +213,6 @@
     <section v-if="isVacationView" class="panel panel--control">
       <div class="panel__header">
         <div>
-          <div class="badge badge--soft">Відпустка</div>
           <h2 class="panel__title">Періоди недоступності</h2>
           <p class="muted generation__subtitle generation__subtitle--quiet">
             Такі періоди перекривають ваш звичний розклад і не дозволяють створювати нові вільні вікна у цей час.
@@ -386,8 +382,7 @@
     <section v-if="!isVacationView" class="panel">
       <div class="panel__header">
         <div>
-          <div class="badge badge--soft">Вільні вікна</div>
-          <h2 class="panel__title">Крок 2: Згенеруйте вільні вікна</h2>
+          <h2 class="panel__title">Згенеруйте вільні вікна</h2>
           <p class="muted generation__subtitle">
             Система створить вільні вікна на основі ваших активних робочих годин.
           </p>
@@ -1096,11 +1091,6 @@ onMounted(loadScheduleContext)
   color: var(--pc-navy-900);
 }
 
-.availability-rules__header .badge {
-  background: color-mix(in srgb, var(--pc-blue-soft) 82%, #ffffff);
-  border-color: color-mix(in srgb, var(--pc-navy-900) 22%, var(--pc-border));
-  color: var(--pc-navy-900);
-}
 
 .availability-rules__title {
   margin: 8px 0 8px;
@@ -1167,11 +1157,6 @@ onMounted(loadScheduleContext)
   font-size: 22px;
 }
 
-.badge--soft {
-  background: color-mix(in srgb, var(--pc-blue-soft) 82%, #ffffff);
-  border-color: color-mix(in srgb, var(--pc-navy-900) 22%, var(--pc-border));
-  color: var(--pc-navy-900);
-}
 
 .availability-rules .input {
   border: 1px solid var(--pc-border);

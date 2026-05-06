@@ -2,7 +2,6 @@
   <section class="clients">
     <header class="clients__hero">
       <div>
-        <div class="badge">Клієнти</div>
         <h1 class="title clients__title">Робота з клієнтами</h1>
         <p class="muted clients__subtitle">
           Управління статусами клієнтів та доступом до активної роботи.
@@ -17,7 +16,6 @@
     <section v-if="showRemindersPanel" class="panel panel--reminders">
       <div class="panel__header">
         <div>
-          <div class="badge badge--soft">Нагадування</div>
           <h2 class="panel__title">Нотатки після сесій</h2>
         </div>
       </div>
@@ -90,7 +88,6 @@
     <section class="panel panel--clients">
       <div class="panel__header">
         <div>
-          <div class="badge badge--soft">Список</div>
           <h2 class="panel__title">Клієнти</h2>
           <p class="clients-panel-hint">
             Клієнта можна додати вручну без кабінету, щоб швидко почати роботу. Кабінет клієнта можна буде підключити пізніше — для власних сесій клієнта, нагадувань, оплати та зручнішої взаємодії.
@@ -3389,12 +3386,6 @@ onBeforeUnmount(() => {
   max-width: 520px;
   color: var(--pc-text-muted);
   line-height: 1.55;
-}
-
-.clients__hero .badge {
-  background: color-mix(in srgb, var(--pc-blue-soft) 82%, #ffffff);
-  border-color: color-mix(in srgb, var(--pc-navy-900) 22%, var(--pc-border));
-  color: var(--pc-navy-900);
 }
 
 .clients__hero .btn {

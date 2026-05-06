@@ -2,7 +2,6 @@
   <section class="reviews">
     <header class="reviews__hero">
       <div>
-        <div class="badge">Відгуки</div>
         <h1 class="title reviews__title">Відгуки</h1>
         <p class="muted reviews__subtitle">
           Тут зібрані приватні відгуки від клієнтів. Вони доступні тільки у вашому кабінеті.

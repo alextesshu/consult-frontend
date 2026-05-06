@@ -2,7 +2,6 @@
   <section class="billing">
     <header class="billing__hero">
       <div>
-        <div class="badge">Плани</div>
         <h1 class="title billing__title">Доступ та тарифи</h1>
         <p class="muted billing__subtitle">
           Перевірте поточний тариф, фактичний доступ, ліміти та статус заявки на зміну тарифу.
@@ -15,7 +14,6 @@
     <section class="panel panel--access">
       <div class="panel__header">
         <div>
-          <div class="badge badge--soft">Огляд доступу</div>
           <h2 class="panel__title">{{ accessSummaryTitle }}</h2>
         </div>
         <div class="access-pill" :class="accessPillClass">{{ accessLabel }}</div>
@@ -862,12 +860,6 @@ onMounted(() => {
   max-width: 520px;
   color: var(--pc-text-muted);
   line-height: 1.55;
-}
-
-.billing__hero .badge {
-  background: color-mix(in srgb, var(--pc-blue-soft) 82%, #ffffff);
-  border-color: color-mix(in srgb, var(--pc-navy-900) 22%, var(--pc-border));
-  color: var(--pc-navy-900);
 }
 
 .billing__hero .btn {

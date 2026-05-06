@@ -2,7 +2,6 @@
   <section class="chat">
     <header class="chat__hero card">
       <div>
-        <div class="eyebrow">Чат</div>
         <h1 class="title">Діалоги</h1>
         <p class="muted">Спілкування доступне лише для активних клієнтів.</p>
       </div>
@@ -882,20 +881,6 @@ onBeforeUnmount(() => {
   border-radius: 999px;
   background: rgba(247, 183, 126, 0.18);
   pointer-events: none;
-}
-
-.chat__hero .eyebrow {
-  width: fit-content;
-  padding: 5px 9px;
-  background: color-mix(in srgb, var(--pc-blue-soft) 82%, #ffffff);
-  border: 1px solid color-mix(in srgb, var(--pc-navy-900) 24%, var(--pc-border));
-  border-radius: var(--pc-radius-pill);
-  color: color-mix(in srgb, var(--pc-navy-900) 78%, var(--pc-text-muted));
-  font-size: 11px;
-  font-weight: 700;
-  line-height: 1;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
 }
 
 .chat__hero .title {

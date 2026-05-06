@@ -2,7 +2,6 @@
   <section class="slots">
     <header class="slots__header">
       <div>
-        <div class="badge">Розклад</div>
         <h1 class="title slots__title">Вільні вікна</h1>
         <p class="muted slots__subtitle">
           Переглядайте та оновлюйте вільні вікна, які доступні клієнтам для запису.
@@ -18,7 +17,6 @@
     <section class="panel">
       <div class="filters-toolbar__row filters-toolbar__row--header">
         <div>
-          <div class="badge badge--soft">Навігація</div>
           <h2 class="panel__title">Дні та фільтри</h2>
         </div>
         <div class="day-nav-actions">
@@ -264,7 +262,6 @@
     <section class="panel">
       <div class="panel__header">
         <div>
-          <div class="badge badge--soft">Масове заповнення</div>
           <h2 class="panel__title">Швидкі шаблони</h2>
         </div>
       </div>
@@ -976,11 +973,6 @@ onMounted(loadSlots)
   line-height: 1.55;
 }
 
-.slots__header .badge {
-  background: color-mix(in srgb, var(--pc-blue-soft) 82%, #ffffff);
-  border-color: color-mix(in srgb, var(--pc-navy-900) 22%, var(--pc-border));
-  color: var(--pc-navy-900);
-}
 
 .slots__subnav {
   margin-top: -2px;
@@ -1038,12 +1030,6 @@ onMounted(loadSlots)
   margin: 0;
   font-family: var(--font-display);
   font-size: 22px;
-}
-
-.badge--soft {
-  background: color-mix(in srgb, var(--pc-blue-soft) 82%, #ffffff);
-  border-color: color-mix(in srgb, var(--pc-navy-900) 22%, var(--pc-border));
-  color: var(--pc-navy-900);
 }
 
 .slot-form {

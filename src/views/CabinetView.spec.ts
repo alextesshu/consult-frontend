@@ -1,4 +1,4 @@
-import { fireEvent, render, waitFor } from '@testing-library/vue'
+﻿import { fireEvent, render, waitFor } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ref } from 'vue'
 import { apiGet, fetchChatThreads, fetchSpecialistOnboardingState } from '../lib/api'
@@ -951,7 +951,7 @@ describe('CabinetView', () => {
     const view = renderView()
 
     await waitFor(() => {
-      expect(view.container).toHaveTextContent('Найближча сесія')
+      expect(view.container).toHaveTextContent('Що у вас далі')
       expect(view.container).toHaveTextContent('Nearest Client')
       expect(view.container).toHaveTextContent('Формат')
       expect(view.container).toHaveTextContent('Онлайн')
@@ -1032,7 +1032,7 @@ describe('CabinetView', () => {
     const view = renderView()
 
     await waitFor(() => {
-      expect(view.container).toHaveTextContent('Найближча сесія')
+      expect(view.container).toHaveTextContent('Що у вас далі')
       expect(view.container).toHaveTextContent('Offline Client')
       expect(view.container).toHaveTextContent('Локація: Київ, офіс 4')
       expect(view.container).toHaveTextContent('Офлайн-сесія без посилання для входу.')
@@ -1331,3 +1331,5 @@ describe('CabinetView', () => {
     })
   })
 })
+
+

@@ -2,7 +2,6 @@
   <section class="external-sessions">
     <header class="external-sessions__hero">
       <div>
-        <div class="badge">Гостьові сесії</div>
         <h1 class="title external-sessions__title">Гостьові сесії</h1>
         <p class="muted external-sessions__subtitle">
           Окремий розділ для гостьових сесій без змішування з основним сценарієм бронювання.
@@ -14,7 +13,6 @@
     <section class="panel">
       <div class="panel__header">
         <div>
-          <div class="badge badge--soft">Створення</div>
           <h2 class="panel__title">Нова гостьова сесія</h2>
         </div>
       </div>
@@ -121,7 +119,6 @@
       <section class="panel">
         <div class="panel__header">
           <div>
-            <div class="badge badge--soft">Список</div>
             <h2 class="panel__title">Ваші гостьові сесії</h2>
           </div>
         </div>
@@ -151,7 +148,6 @@
       <section class="panel">
         <div class="panel__header">
           <div>
-            <div class="badge badge--soft">Запити</div>
             <h2 class="panel__title">Гостьові запити</h2>
           </div>
         </div>
@@ -764,11 +760,6 @@ onMounted(async () => {
   line-height: 1.55;
 }
 
-.external-sessions__hero .badge {
-  background: color-mix(in srgb, var(--pc-blue-soft) 82%, #ffffff);
-  border-color: color-mix(in srgb, var(--pc-navy-900) 22%, var(--pc-border));
-  color: var(--pc-navy-900);
-}
 
 .external-sessions__hero .btn {
   border-radius: var(--pc-radius-control);
@@ -809,12 +800,6 @@ onMounted(async () => {
   margin: 0;
   font-family: var(--font-display);
   font-size: 22px;
-}
-
-.badge--soft {
-  background: color-mix(in srgb, var(--pc-blue-soft) 82%, #ffffff);
-  border-color: color-mix(in srgb, var(--pc-navy-900) 22%, var(--pc-border));
-  color: var(--pc-navy-900);
 }
 
 .form-grid {

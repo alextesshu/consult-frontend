@@ -2,7 +2,6 @@
   <section class="cabinet">
     <header class="cabinet__hero">
       <div>
-        <div class="badge">Кабінет спеціаліста</div>
         <h1 class="title cabinet__title">Твій робочий простір</h1>
         <p class="muted cabinet__subtitle">
           Тут зібрані доступи, активність і швидкі дії. Публічні сторінки — окремо.
@@ -50,7 +49,6 @@
       <section class="panel panel--wide panel--work-queue">
         <div class="panel__header">
           <div>
-            <div class="badge badge--soft">Сьогодні / До уваги</div>
             <h2 class="panel__title">Робочий огляд</h2>
           </div>
         </div>
@@ -196,7 +194,6 @@
       <section class="panel panel--wide panel--action-hub">
         <div class="panel__header">
           <div>
-            <div class="badge badge--soft">Щоденний центр дій</div>
             <h2 class="panel__title">Щоденні сценарії</h2>
           </div>
         </div>
@@ -207,7 +204,6 @@
           >
             <div class="panel__header">
               <div>
-                <div class="badge badge--soft">Найближча сесія</div>
                 <h3 class="panel__title action-hub__title">Що у вас далі</h3>
               </div>
               <div v-if="nearestUpcomingSession" class="nearest-session__status" :class="nearestSessionStatusClass">
@@ -291,7 +287,6 @@
       <section class="panel panel--wide panel--plan">
         <div class="panel__header">
           <div>
-            <div class="badge badge--soft">Тарифи і доступ</div>
             <h2 class="panel__title panel__title--compact">Короткий стан доступу</h2>
           </div>
           <RouterLink
@@ -322,7 +317,6 @@
       <section class="panel panel--wide panel--onboarding">
         <div class="panel__header">
           <div>
-            <div class="badge badge--soft">Готовність онбордингу</div>
             <div class="panel__meta">Шлях спеціаліста PRO CONSULT</div>
           </div>
           <div class="onboarding-status" :class="onboardingReady ? 'onboarding-status--ready' : 'onboarding-status--pending'">
@@ -1363,12 +1357,6 @@ onBeforeUnmount(() => {
   font-size: 16px;
   line-height: 1.55;
   color: var(--pc-text-muted);
-}
-
-.cabinet__hero .badge {
-  background: color-mix(in srgb, var(--pc-blue-soft) 82%, #ffffff);
-  border-color: color-mix(in srgb, var(--pc-navy-900) 22%, var(--pc-border));
-  color: var(--pc-navy-900);
 }
 
 

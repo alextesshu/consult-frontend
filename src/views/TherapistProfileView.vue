@@ -2,7 +2,6 @@
   <section class="profile">
     <header class="profile__hero">
       <div>
-        <div class="badge">Кабінет спеціаліста</div>
         <h1 class="title profile__title">Керування публічним профілем</h1>
         <p class="muted profile__subtitle">
           Збирайте свою публічну сторінку як міні-сайт: умови роботи, довіра, контент, контакти й медіа.
@@ -2387,12 +2386,6 @@ onMounted(() => {
   max-width: 520px;
   color: var(--pc-text-muted);
   line-height: 1.55;
-}
-
-.profile__hero .badge {
-  background: color-mix(in srgb, var(--pc-blue-soft) 82%, #ffffff);
-  border-color: color-mix(in srgb, var(--pc-navy-900) 22%, var(--pc-border));
-  color: var(--pc-navy-900);
 }
 
 .profile__actions {
