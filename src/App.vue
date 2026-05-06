@@ -13,7 +13,7 @@
       <div class="topbar__inner">
         <RouterLink class="brand" to="/">
           <div class="brand__mark">PRO CONSULT</div>
-          <div class="brand__tagline">простір для вашої справи</div>
+          <div class="brand__tagline">простір для ведення консультацій</div>
         </RouterLink>
         <nav class="nav">
         <RouterLink

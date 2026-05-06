@@ -5,7 +5,7 @@
         <div class="badge">Сесія спеціаліста</div>
         <h1 class="title detail-title">Деталі сесії</h1>
         <p class="muted detail-subtitle">
-          Повний контекст по сесії, дії зі статусом, перенос і приватні нотатки в одному місці.
+          Уся інформація по сесії, дії зі статусом, перенос і приватні нотатки в одному місці.
         </p>
       </div>
       <RouterLink class="btn btn--ghost" to="/cabinet/sessions">Назад до списку</RouterLink>
@@ -18,7 +18,6 @@
       <section class="panel panel--summary">
         <div class="panel__header">
           <div>
-            <div class="badge badge--soft">Статус</div>
             <h2 class="panel__title">{{ statusLabel(session) }}</h2>
           </div>
           <div class="summary-actions">
@@ -207,7 +206,6 @@
       >
         <div class="panel__header">
           <div>
-            <div class="badge badge--soft">Після сесії</div>
             <h2 class="panel__title">Наступні кроки</h2>
           </div>
         </div>
@@ -234,7 +232,6 @@
       <section v-if="workspacePanelVisible" class="panel panel--workspace" data-testid="session-workspace">
         <div class="panel__header">
           <div>
-            <div class="badge badge--soft">Робочий простір</div>
             <h2 class="panel__title">Стан після сесії</h2>
             <p class="muted workspace-panel__hint">Стани нижче показують саме наявність вмісту.</p>
           </div>
@@ -362,7 +359,6 @@
       <section v-else ref="paymentPanelRef" class="panel">
         <div class="panel__header">
           <div>
-            <div class="badge badge--soft">Оплата</div>
             <h2 class="panel__title">Оплата сесії</h2>
           </div>
           <span class="status-pill" :class="manualPaymentStatusClass">
@@ -527,7 +523,6 @@
       <section v-if="sessionRequests.length" class="panel">
         <div class="panel__header">
           <div>
-            <div class="badge badge--soft">Запити</div>
             <h2 class="panel__title">Запити на перенос</h2>
           </div>
         </div>
@@ -577,7 +572,6 @@
       <section v-if="showReschedulePanel" class="panel">
         <div class="panel__header">
           <div>
-            <div class="badge badge--soft">Перенесення</div>
             <h2 class="panel__title">Новий слот для сесії</h2>
           </div>
         </div>
@@ -638,7 +632,6 @@
       <section v-if="showRecurringPanel" class="panel">
         <div class="panel__header">
           <div>
-            <div class="badge badge--soft">Серія</div>
             <h2 class="panel__title">Створити повторювані сесії</h2>
           </div>
         </div>
@@ -689,7 +682,6 @@
       <section class="panel">
         <div class="panel__header">
           <div>
-            <div class="badge badge--soft">Нотатки</div>
             <h2 class="panel__title">Приватна історія по сесії</h2>
           </div>
           <div class="note-header-actions">

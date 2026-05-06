@@ -158,7 +158,7 @@
             </div>
           </header>
 
-          <div v-if="detailLoading" class="chat-state muted">Оновлюємо контекст чату...</div>
+          <div v-if="detailLoading" class="chat-state muted">Оновлюємо дані цього чату...</div>
           <div v-else-if="detailError" class="chat-state chat-state--error">
             <div>{{ detailError }}</div>
             <button class="btn btn--ghost btn--sm" type="button" @click="loadActiveThreadDetail">Спробувати знову</button>
@@ -612,7 +612,7 @@ async function loadActiveThreadDetail() {
     const detail = await fetchChatThreadDetail(activeThreadId.value)
     activeThreadDetail.value = detail
   } catch {
-    detailError.value = 'Не вдалося оновити контекст цього чату.'
+    detailError.value = 'Не вдалося оновити дані цього чату.'
   } finally {
     detailLoading.value = false
   }

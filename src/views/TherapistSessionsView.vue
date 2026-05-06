@@ -17,7 +17,6 @@
     <section v-if="postSessionContext" class="panel panel--next-step">
       <div class="panel__header">
         <div>
-          <div class="badge badge--soft">Після сесії</div>
           <h2 class="panel__title">Оберіть наступний крок</h2>
         </div>
         <button class="btn btn--ghost btn--sm" type="button" @click="clearPostSessionContext">
@@ -47,7 +46,6 @@
     <section class="panel panel--priority">
       <div class="panel__header">
         <div>
-          <div class="badge badge--soft">Пріоритет</div>
           <h2 class="panel__title">Майбутні сесії</h2>
         </div>
       </div>
@@ -138,7 +136,6 @@
     <section class="panel">
       <div class="panel__header">
         <div>
-          <div class="badge badge--soft">Фільтри</div>
           <h2 class="panel__title">Пошук потрібних сесій</h2>
         </div>
         <button
@@ -199,7 +196,6 @@
     <section id="sessions-upcoming" class="panel panel--results">
       <div class="panel__header">
         <div>
-          <div class="badge badge--soft">Найближчі</div>
           <h2 class="panel__title">Заплановані сесії</h2>
         </div>
       </div>
@@ -467,7 +463,6 @@
     <section class="panel">
       <div class="panel__header">
         <div>
-          <div class="badge badge--soft">Запити</div>
           <h2 class="panel__title">Перенесення сесій</h2>
         </div>
       </div>
@@ -526,7 +521,6 @@
     <section id="sessions-history" class="panel panel--results">
       <div class="panel__header">
         <div>
-          <div class="badge badge--soft">Минулі</div>
           <h2 class="panel__title">Історія</h2>
         </div>
       </div>
@@ -662,7 +656,7 @@
                   v-model="journalDraft"
                   class="input note-textarea note-textarea--workbook"
                   rows="9"
-                  placeholder="Довгостроковий контекст, динаміка, спостереження та план подальшої роботи."
+                  placeholder="Довгострокові спостереження, динаміка та план подальшої роботи."
                   :disabled="journalLoading || !journalClientId"
                 ></textarea>
                 <div class="note-helper muted">

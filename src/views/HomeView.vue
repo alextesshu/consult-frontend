@@ -139,40 +139,94 @@
       </section>
 
       <section id="pricing" class="pricing reveal" aria-labelledby="pricing-title">
-        <div class="section-head section-head--center">
-          <p class="section-head__eyebrow">Тарифи</p>
-          <h2 id="pricing-title" class="section-head__title">Прозорі рівні доступу без прихованих умов</h2>
-        </div>
+        <div class="pricing-layout">
+          <div class="pricing-layout__left">
+            <div class="section-head pricing-head">
+              <p class="section-head__eyebrow">Тарифи</p>
+              <h2 id="pricing-title" class="section-head__title pricing-title">Прозорі рівні доступу без прихованих умов</h2>
+            </div>
 
-        <div class="pricing-toggle" role="group" aria-label="Період оплати">
-          <button
-            class="pricing-toggle__btn"
-            :class="{ 'is-active': billingCycle === 'monthly' }"
-            type="button"
-            @click="billingCycle = 'monthly'"
-          >
-            Місяць
-          </button>
-          <button
-            class="pricing-toggle__btn"
-            :class="{ 'is-active': billingCycle === 'yearly' }"
-            type="button"
-            @click="billingCycle = 'yearly'"
-          >
-            Рік
-          </button>
-        </div>
+            <div class="pricing-toggle" role="group" aria-label="Період оплати">
+              <button
+                class="pricing-toggle__btn"
+                :class="{ 'is-active': billingCycle === 'monthly' }"
+                type="button"
+                @click="billingCycle = 'monthly'"
+              >
+                Місяць
+              </button>
+              <button
+                class="pricing-toggle__btn"
+                :class="{ 'is-active': billingCycle === 'yearly' }"
+                type="button"
+                @click="billingCycle = 'yearly'"
+              >
+                Рік
+              </button>
+            </div>
 
-        <div class="pricing__grid">
-          <article v-for="plan in pricingPlans" :key="plan.name" class="plan-card" :class="{ 'plan-card--pro': plan.name === 'Pro' }">
-            <h3>{{ plan.name }}</h3>
-            <p class="plan-card__price">{{ plan.price }}</p>
-            <p v-if="plan.helper" class="plan-card__helper">{{ plan.helper }}</p>
-            <ul>
-              <li v-for="feature in plan.features" :key="feature">{{ feature }}</li>
-            </ul>
-            <RouterLink class="btn" :class="{ 'btn--ghost': plan.ghostCta }" :to="plan.ctaTo">{{ plan.ctaLabel }}</RouterLink>
-          </article>
+            <div class="pricing__grid">
+              <article v-for="plan in pricingPlans" :key="plan.name" class="plan-card" :class="{ 'plan-card--pro': plan.name === 'Pro' }">
+                <p v-if="plan.name === 'Pro'" class="plan-card__badge">Найпопулярніший</p>
+                <h3>{{ plan.name }}</h3>
+                <p class="plan-card__price">{{ plan.price }}</p>
+                <p v-if="plan.helper" class="plan-card__helper">{{ plan.helper }}</p>
+                <ul>
+                  <li v-for="feature in plan.features" :key="feature">{{ feature }}</li>
+                </ul>
+                <RouterLink class="btn" :class="{ 'btn--ghost': plan.ghostCta }" :to="plan.ctaTo">{{ plan.ctaLabel }}</RouterLink>
+              </article>
+            </div>
+          </div>
+
+          <aside class="pricing-layout__right" aria-label="Переваги профілю і запису">
+            <p class="section-head__eyebrow">Профіль і запис</p>
+            <h3 class="pricing-promo__title">Розвивайте практику та довіру клієнтів</h3>
+            <p class="pricing-promo__copy">
+              Ваш публічний профіль допомагає клієнтам дізнатися про вас і зручно записатися на сесію.
+            </p>
+
+            <div class="pricing-promo__preview" aria-hidden="true">
+              <article class="booking-preview booking-preview--profile pricing-booking-preview--profile">
+                <header class="booking-preview__header">Public profile</header>
+                <div class="booking-preview__body">
+                  <div class="profile-mini">
+                    <div class="profile-mini__avatar">ОК</div>
+                    <div>
+                      <p class="profile-mini__name">Олена Коваль</p>
+                      <p class="profile-mini__role">Психолог, гештальт-терапевт</p>
+                    </div>
+                  </div>
+                  <div class="profile-mini__chips">
+                    <span>Тривога</span>
+                    <span>Самооцінка</span>
+                    <span>Відносини</span>
+                  </div>
+                  <button class="profile-mini__cta" type="button">Записатися</button>
+                </div>
+              </article>
+
+              <article class="booking-preview booking-preview--calendar pricing-booking-preview--calendar">
+                <header class="booking-preview__header">Booking calendar</header>
+                <div class="booking-preview__body">
+                  <div class="calendar-mini__top">
+                    <span>Травень 2026</span>
+                    <span>15 травня</span>
+                  </div>
+                  <div class="calendar-mini__grid" aria-label="Календар доступних дат">
+                    <span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Нд</span>
+                    <span>12</span><span>13</span><span>14</span><span class="is-selected">15</span><span>16</span><span>17</span><span>18</span>
+                  </div>
+                  <div class="calendar-mini__slots">
+                    <button type="button">09:00</button>
+                    <button type="button">11:00</button>
+                    <button type="button">14:00</button>
+                    <button type="button">16:00</button>
+                  </div>
+                </div>
+              </article>
+            </div>
+          </aside>
         </div>
       </section>
 
@@ -242,7 +296,7 @@ const trustMarkers = ['Без комісій з оплат', 'Для індив�
 
 const compactValueStrip: Array<{ icon: IconKey; title: string }> = [
   { icon: 'payments', title: 'Без комісій з оплат' },
-  { icon: 'security', title: 'Захищений робочий контекст' },
+  { icon: 'security', title: 'Захищені робочі дані' },
   { icon: 'materials', title: 'Матеріали й нотатки під рукою' },
   { icon: 'support', title: 'Підтримка, що допомагає' },
   { icon: 'session', title: 'Онлайн і офлайн сесії' },
@@ -264,7 +318,7 @@ const profileHighlights: Array<{ icon: IconKey; title: string }> = [
 
 const testimonials = [
   {
-    quote: 'Раніше я вела запис і платежі в різних таблицях. Тепер усе в одному маршруті.',
+    quote: 'Раніше я вела запис і платежі в різних таблицях. Тепер усе в одному місці.',
     author: 'Психологиня, приватна практика',
   },
   {
@@ -272,7 +326,7 @@ const testimonials = [
     author: 'Психотерапевт, онлайн та офлайн сесії',
   },
   {
-    quote: 'Платформа прибрала ручну операційку, і я повернула фокус на роботу з людьми.',
+    quote: 'Платформа прибрала зайву ручну роботу, і я повернула фокус на роботу з людьми.',
     author: 'Сімейний консультант',
   },
 ]
@@ -291,7 +345,14 @@ const pricingPlans = computed(() => [
     name: 'Pro',
     price: billingCycle.value === 'monthly' ? '990 грн/міс' : '9 900 грн/рік',
     helper: billingCycle.value === 'yearly' ? 'Оплата за рік' : 'Оплата щомісяця',
-    features: ['Усе зі Start', 'Робочий зошит і матеріали', 'До 20 активних клієнтів'],
+    features: [
+      'Усе зі Start',
+      'До 20 активних клієнтів',
+      'Робочий зошит і матеріали',
+      'Приватні відгуки клієнтів',
+      'Картки відгуків для соцмереж',
+      'Розширена організація практики',
+    ],
     ctaLabel: 'Спробувати 30 днів',
     ctaTo: '/signup',
     ghostCta: false,
@@ -300,7 +361,13 @@ const pricingPlans = computed(() => [
     name: 'Leader',
     price: billingCycle.value === 'monthly' ? '2 490 грн/міс' : '24 900 грн/рік',
     helper: billingCycle.value === 'yearly' ? 'Оплата за рік' : 'Оплата щомісяця',
-    features: ['Усе з Pro', 'Пріоритетний супровід', 'До 60 активних клієнтів'],
+    features: [
+      'Усе з Pro',
+      'До 60 активних клієнтів',
+      'Пріоритетний супровід',
+      'Розширена аналітика',
+      'Індивідуальне налаштування',
+    ],
     ctaLabel: 'Подати запит',
     ctaTo: '/support-and-data-requests',
     ghostCta: true,
@@ -988,7 +1055,7 @@ onBeforeUnmount(() => {
 }
 
 .pricing-toggle {
-  justify-self: center;
+  justify-self: start;
   display: inline-flex;
   gap: 6px;
   padding: 4px;
@@ -1016,21 +1083,38 @@ onBeforeUnmount(() => {
 
 .pricing__grid {
   grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
 }
 
 .plan-card {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  padding: 22px;
+  gap: 8px;
+  padding: 18px;
+  min-height: 100%;
 }
 
 .plan-card ul {
   margin: 0;
-  padding-left: 18px;
+  padding: 0;
+  list-style: none;
   display: grid;
   gap: 6px;
   color: color-mix(in srgb, var(--text) 76%, #415763);
+}
+
+.plan-card li {
+  position: relative;
+  padding-left: 20px;
+}
+
+.plan-card li::before {
+  content: '✓';
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: #2c7f7b;
+  font-weight: 700;
 }
 
 .plan-card__price {
@@ -1047,11 +1131,88 @@ onBeforeUnmount(() => {
   color: var(--pc-text-muted);
 }
 
+.plan-card__badge {
+  margin: -18px -18px 4px;
+  min-height: 30px;
+  display: grid;
+  place-items: center;
+  border-top-left-radius: var(--radius-lg);
+  border-top-right-radius: var(--radius-lg);
+  background: var(--pc-navy-900);
+  color: #fff;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
 .plan-card--pro {
-  border-color: rgba(18, 52, 90, 0.26);
+  border-color: rgba(18, 52, 90, 0.32);
   background:
     radial-gradient(220px 120px at 90% 10%, rgba(143, 203, 200, 0.2), transparent 70%),
     #fff;
+  box-shadow: 0 16px 34px rgba(15, 45, 80, 0.16);
+}
+
+.pricing-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
+  gap: clamp(18px, 2.2vw, 28px);
+  align-items: start;
+}
+
+.pricing-layout__left {
+  display: grid;
+  gap: 12px;
+}
+
+.pricing-head {
+  gap: 6px;
+}
+
+.pricing-title {
+  font-size: clamp(24px, 2vw, 30px);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+  max-width: 22ch;
+}
+
+.pricing-layout__right {
+  border: 1px solid var(--pc-border);
+  border-radius: var(--radius-xl);
+  background: linear-gradient(140deg, rgba(255, 255, 255, 0.95), rgba(245, 247, 242, 0.88));
+  box-shadow: var(--pc-shadow-soft);
+  padding: 14px;
+  display: grid;
+  gap: 10px;
+}
+
+.pricing-promo__title {
+  margin: 0;
+  color: var(--pc-navy-950);
+  font-size: clamp(24px, 2vw, 30px);
+  line-height: 1.2;
+}
+
+.pricing-promo__copy {
+  margin: 0;
+  color: color-mix(in srgb, var(--text) 80%, #445966);
+  line-height: 1.5;
+}
+
+.pricing-promo__preview {
+  position: relative;
+  min-height: 300px;
+}
+
+.pricing-booking-preview--profile {
+  width: min(100%, 420px);
+}
+
+.pricing-booking-preview--calendar {
+  width: min(85%, 320px);
+  right: -2px;
+  bottom: -8px;
 }
 
 .testimonials__grid {
@@ -1111,6 +1272,33 @@ onBeforeUnmount(() => {
   .pricing__grid,
   .testimonials__grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .pricing-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .pricing-layout__right {
+    order: 2;
+  }
+
+  .pricing-layout__left {
+    order: 1;
+  }
+
+  .pricing-promo__preview {
+    min-height: auto;
+    display: grid;
+    gap: 10px;
+  }
+
+  .pricing-booking-preview--profile,
+  .pricing-booking-preview--calendar {
+    position: relative;
+    width: 100%;
+    right: auto;
+    bottom: auto;
+    margin: 0;
   }
 
   .profile-promo {
@@ -1227,6 +1415,10 @@ onBeforeUnmount(() => {
   .testimonials__grid,
   .how__row {
     grid-template-columns: 1fr;
+  }
+
+  .pricing-layout__right {
+    padding: 12px;
   }
 
   .how-step {

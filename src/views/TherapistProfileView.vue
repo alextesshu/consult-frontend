@@ -5,7 +5,7 @@
         <div class="badge">Кабінет спеціаліста</div>
         <h1 class="title profile__title">Керування публічним профілем</h1>
         <p class="muted profile__subtitle">
-          Збирайте свою публічну сторінку як міні-сайт: офер, довіра, контент, контакти й медіа.
+          Збирайте свою публічну сторінку як міні-сайт: умови роботи, довіра, контент, контакти й медіа.
         </p>
       </div>
       <div class="profile__actions">
@@ -38,7 +38,6 @@
       <section class="panel panel--highlight">
         <div class="panel__header">
           <div>
-            <div class="badge badge--soft">Крок 1</div>
             <h2 class="panel__title">Публічний профіль</h2>
             <p class="panel__hint">
               Якщо ви вже знайшли клієнта і хочете почати співпрацю — поділіться з ним посиланням
@@ -133,7 +132,6 @@
       <section class="panel" id="journal">
         <div class="panel__header">
           <div>
-            <div class="badge badge--soft">Крок 2</div>
             <h2 class="panel__title">Основні дані</h2>
             <p class="panel__hint">Ці поля формують перше враження в каталозі та публічному профілі.</p>
           </div>
@@ -340,7 +338,6 @@
       <section class="panel">
         <div class="panel__header">
           <div>
-            <div class="badge badge--soft">Крок 3</div>
             <h2 class="panel__title">Секції публічного профілю</h2>
             <p class="panel__hint">
               Назви йдуть у тому самому формулюванні, яке бачать клієнти в публічному профілі.
@@ -573,7 +570,6 @@
       <section class="panel">
         <div class="panel__header">
           <div>
-            <div class="badge badge--soft">Крок 4</div>
             <h2 class="panel__title">Контакти</h2>
             <p class="panel__hint">Заповніть те, що готові показати. Видимість налаштовується нижче.</p>
           </div>
@@ -613,7 +609,6 @@
       <section class="panel">
         <div class="panel__header">
           <div>
-            <div class="badge badge--soft">Крок 5</div>
             <h2 class="panel__title">Видимість</h2>
             <p class="panel__hint">Вмикайте тільки те, що має бути видно клієнтам у публічному профілі.</p>
           </div>
@@ -669,7 +664,6 @@
       <section class="panel">
         <div class="panel__header">
           <div>
-            <div class="badge badge--soft">Крок 6</div>
             <h2 class="panel__title">Фото та відео</h2>
             <p class="panel__hint">Завантажте обкладинку профілю та (за потреби) відео-прев'ю.</p>
           </div>
@@ -792,7 +786,6 @@
       <section class="panel">
         <div class="panel__header">
           <div>
-            <div class="badge badge--soft">Крок 7</div>
             <h2 class="panel__title">Документи та сертифікати</h2>
             <p class="panel__hint">
               Завантажуйте документи, які допомагають клієнтам краще зрозуміти ваш професійний шлях.
@@ -914,7 +907,6 @@
       <section class="panel panel--final-check" data-testid="profile-final-public-check">
         <div class="panel__header">
           <div>
-            <div class="badge badge--soft">Крок 8</div>
             <h2 class="panel__title">Перевірте публічний профіль</h2>
             <p class="panel__hint">
               Відкрийте реальний публічний профіль, щоб перевірити, як його бачать клієнти.

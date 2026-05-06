@@ -365,7 +365,6 @@ describe('TherapistSessionDetailView', () => {
     expect(screen.queryByRole('button', { name: 'До робочого зошита' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /Відкрити.*робоч/ })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Запросити підтвердження оплати' })).not.toBeInTheDocument()
-    expect(screen.getByText('Оплата')).toBeInTheDocument()
     expect(screen.getByText('Оплата сесії')).toBeInTheDocument()
     expect(screen.getByText('Не оплачено')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Позначити оплаченою' })).toBeInTheDocument()
