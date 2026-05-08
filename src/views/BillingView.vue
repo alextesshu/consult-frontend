@@ -4,7 +4,7 @@
       <div>
         <h1 class="title billing__title">Доступ та тарифи</h1>
         <p class="muted billing__subtitle">
-          Перевірте поточний тариф, фактичний доступ, ліміти та статус заявки на зміну тарифу.
+          Перевірте ваш доступ, доступні можливості, ліміти та статус заявок.
         </p>
       </div>
       <RouterLink class="btn btn--ghost" to="/cabinet">Назад до кабінету</RouterLink>
@@ -14,68 +14,22 @@
     <section class="panel panel--access">
       <div class="panel__header">
         <div>
-          <h2 class="panel__title">{{ accessSummaryTitle }}</h2>
+          <h2 class="panel__title">Ваш доступ зараз: {{ currentPlanLabel }}</h2>
         </div>
         <div class="access-pill" :class="accessPillClass">{{ accessLabel }}</div>
       </div>
-      <div class="muted">{{ accessExplanation }}</div>
-      <div class="summary-grid">
-        <article class="summary-card">
-          <div class="summary-card__label">Поточний тариф</div>
-          <div class="summary-card__value">{{ basePlanLabel }}</div>
-          <div v-if="basePlanDiffers" class="summary-card__hint">
-            Це базовий тариф акаунта.
-          </div>
-        </article>
-        <article class="summary-card">
-          <div class="summary-card__label">Фактичний доступ</div>
-          <div class="summary-card__value">{{ currentPlanLabel }}</div>
-          <div v-if="basePlanDiffers" class="summary-card__hint">
-            {{ effectiveAccessHint }}
-          </div>
-        </article>
-        <article class="summary-card">
-          <div class="summary-card__label">Стан доступу</div>
-          <div class="summary-card__value">{{ accessSourceLabel }}</div>
-          <div class="summary-card__hint">{{ accessStateHint }}</div>
-        </article>
-        <article class="summary-card">
-          <div class="summary-card__label">Заявка на зміну тарифу</div>
-          <div class="summary-card__value">{{ currentRequestStatusLabel }}</div>
-          <div v-if="currentRequestHint" class="summary-card__hint">{{ currentRequestHint }}</div>
-        </article>
-      </div>
+      <div class="muted">{{ mainAccessDescription }}</div>
+      <div v-if="secondaryAccessNote" class="muted access-secondary-note">{{ secondaryAccessNote }}</div>
+      <div v-if="latestRequestLine" class="muted access-secondary-note">{{ latestRequestLine }}</div>
       <div v-if="trialDateLines.length" class="access-meta">
         <div v-for="line in trialDateLines" :key="line" class="access-line">{{ line }}</div>
       </div>
       <div v-if="overrideDateLines.length" class="access-meta">
         <div v-for="line in overrideDateLines" :key="line" class="access-line">{{ line }}</div>
       </div>
-      <div v-if="normalizedCurrentRequest" class="request-summary">
-        <div class="request-summary__title">{{ currentRequestStatusLabel }}</div>
-        <div class="request-summary__meta">
-          <span>Тариф: {{ planTitle(normalizedCurrentRequest.requested_plan) }}</span>
-          <span v-if="normalizedCurrentRequest.created_at">Створено: {{ formatDateTime(normalizedCurrentRequest.created_at) }}</span>
-          <span v-if="normalizedCurrentRequest.reviewed_at">Розглянуто: {{ formatDateTime(normalizedCurrentRequest.reviewed_at) }}</span>
-        </div>
-        <p v-if="normalizedCurrentRequest.public_note" class="muted request-summary__note">
-          {{ normalizedCurrentRequest.public_note }}
-        </p>
-      </div>
-      <div v-if="normalizedLatestRequest" class="request-summary request-summary--resolved">
-        <div class="request-summary__title">{{ latestRequestStatusLabel }}</div>
-        <div class="request-summary__meta">
-          <span>Тариф: {{ planTitle(normalizedLatestRequest.requested_plan) }}</span>
-          <span v-if="normalizedLatestRequest.created_at">Створено: {{ formatDateTime(normalizedLatestRequest.created_at) }}</span>
-          <span v-if="normalizedLatestRequest.reviewed_at">Розглянуто: {{ formatDateTime(normalizedLatestRequest.reviewed_at) }}</span>
-        </div>
-        <p v-if="normalizedLatestRequest.public_note" class="muted request-summary__note">
-          {{ normalizedLatestRequest.public_note }}
-        </p>
-      </div>
       <div class="limits-grid">
         <article class="limit-card">
-          <div class="limit-card__label">Активні клієнти</div>
+          <div class="limit-card__label">Постійні клієнти</div>
           <div class="limit-card__value">{{ activeClientsUsageLabel }}</div>
         </article>
         <article class="limit-card">
@@ -103,8 +57,23 @@
         <button class="btn btn--ghost" type="button" :disabled="isRefreshing" @click="refreshBillingState">
           {{ isRefreshing ? 'Оновлюємо…' : 'Оновити стан плану' }}
         </button>
+        <button
+          v-if="showSwitchToStartAction"
+          class="btn btn--ghost"
+          type="button"
+          :disabled="isRequesting || hasPendingRequest"
+          @click="switchToStart"
+        >
+          Перейти на Start
+        </button>
         <div v-if="primaryStatus" class="muted">{{ primaryStatus }}</div>
       </div>
+      <p class="muted billing__limits-helper">
+        Постійні клієнти — це клієнти у вашій базі, які займають ліміт тарифу. Гостьові сесії рахуються окремо.
+      </p>
+      <p v-if="showSwitchToStartAction" class="muted">
+        Після переходу вам залишаться базові можливості Start, і beta Pro-доступ більше не буде застосовуватись автоматично.
+      </p>
     </section>
 
     <p class="muted billing__shared-value">
@@ -114,31 +83,9 @@
     <section class="panel panel--beta">
       <div class="badge badge--soft">Beta-режим</div>
       <p>
-        Зараз Pro Consult працює в beta-режимі. Оплата не стягується. Тарифи показані для прозорості майбутньої моделі доступу.
-        Перед запуском платних тарифів ми окремо повідомимо умови переходу.
+        Зараз Pro Consult працює в beta-режимі. Оплата не стягується. Перед запуском платних тарифів ми окремо повідомимо умови переходу.
       </p>
     </section>
-    <div class="billing__cycle-toggle" role="group" aria-label="Режим оплати">
-      <button
-        type="button"
-        class="billing__cycle-btn"
-        :class="{ 'is-active': billingCycle === 'monthly' }"
-        @click="billingCycle = 'monthly'"
-      >
-        Щомісяця
-      </button>
-      <button
-        type="button"
-        class="billing__cycle-btn"
-        :class="{ 'is-active': billingCycle === 'annual' }"
-        @click="billingCycle = 'annual'"
-      >
-        Щороку
-      </button>
-    </div>
-    <p class="muted billing__cycle-note">
-      Режим оплати застосовується до нового апгрейду і не відображає поточний цикл підписки.
-    </p>
 
     <section class="plan-grid">
       <article
@@ -157,10 +104,10 @@
           </div>
           <div class="plan-price">
             <div class="plan-price__main">{{ planDisplayPrice(plan.code) }}</div>
-            <div class="plan-price__period">{{ billingCycleLabel }}</div>
+            <div v-if="billingCycleLabel" class="plan-price__period">{{ billingCycleLabel }}</div>
           </div>
         </div>
-        <div class="plan-price__alt">
+        <div v-if="planSecondaryPriceHint(plan.code)" class="plan-price__alt">
           <span class="plan-price__hint">{{ planSecondaryPriceHint(plan.code) }}</span>
         </div>
         <div v-if="plan.badge" class="plan-badges">
@@ -180,7 +127,7 @@
             >
               {{ planActionLabel(plan.code) }}
             </button>
-            <div v-else-if="isCurrentPlan(plan.code)" class="plan-action__state">Поточний план</div>
+            <div v-else-if="isCurrentPlan(plan.code)" class="plan-action__state">Поточний доступ</div>
             <div v-else-if="isBasePlan(plan.code)" class="plan-action__state plan-action__state--base">Базовий тариф</div>
             <div v-else-if="isUnavailableBetaPlan(plan.code)" class="plan-action__state plan-action__state--base">
               Тариф готується
@@ -214,8 +161,7 @@ import {
 import SettingsSubnav from '../components/SettingsSubnav.vue'
 
 type PlanCode = 'START' | 'PRO' | 'LEADER'
-type BillingCycle = 'monthly' | 'annual'
-type AccessSource = 'base_plan' | 'trial' | 'override' | 'billing' | string
+type AccessSource = 'base_plan' | 'trial' | 'override' | 'billing' | 'beta_default_pro' | string
 type BillingSummaryRequest = {
   id: number
   requested_plan: PlanCode
@@ -278,7 +224,7 @@ const plans = [
     subtitle: 'Безкоштовний базовий старт',
     price: '0 грн',
     badge: 'Безкоштовний',
-    features: ['Публічний профіль і запис', 'Базовий старт практики'],
+    features: ['Базовий старт роботи', 'Публічний профіль', 'Гнучкий функціонал запису та бронювання', 'Робота без комісії за сесії'],
   },
   {
     code: 'PRO',
@@ -290,36 +236,23 @@ const plans = [
       'Усе зі Start',
       'Публікації у профілі',
       'Розширена аналітика',
+      'Робочий зошит і матеріали',
+      'Приватні відгуки клієнтів',
     ],
   },
   {
     code: 'LEADER',
     title: 'Leader',
-    subtitle: 'Максимальний доступ для масштабування',
+    subtitle: 'Максимальний доступ для масштабнішої роботи',
     price: '2 490 грн',
     badge: 'Недоступно під час beta',
-    features: ['У розробці', 'Буде доступно пізніше'],
+    features: ['Усе з Pro', 'Розширена підтримка', 'Розширена аналітика', 'Індивідуальне налаштування'],
   },
 ] as const
 
 const planByCode = new Map(plans.map((plan) => [plan.code, plan]))
 const specialistSelectablePlans = new Set<PlanCode>(['PRO'])
 const hiddenBetaFeatureCodes = new Set(['pair', 'group_room', 'group_room_broadcast', 'public_events'])
-const annualCopyByPlan: Record<PlanCode, string> = {
-  START: 'Без оплати',
-  PRO: 'Майбутня річна модель: 9 900 грн / рік',
-  LEADER: 'Майбутня річна модель: 24 900 грн / рік',
-}
-const annualMonthlyPriceByPlan: Record<PlanCode, string | null> = {
-  START: null,
-  PRO: '825 грн',
-  LEADER: '2 075 грн',
-}
-const annualOneShotByPlan: Record<PlanCode, string | null> = {
-  START: null,
-  PRO: '9 900 грн / рік. 12 місяців користування за ціною 10 місяців.',
-  LEADER: '24 900 грн / рік. 12 місяців користування за ціною 10 місяців.',
-}
 const auth = useAuthStore()
 const { me } = storeToRefs(auth)
 
@@ -329,7 +262,6 @@ const requestState = ref<BillingAccessRequestState | null>(null)
 const accessSummary = ref<BillingAccessSummary | null>(null)
 const requestFeedback = ref('')
 const requestFeedbackPlan = ref<PlanCode | null>(null)
-const billingCycle = ref<BillingCycle>('monthly')
 
 function normalizePlan(raw: unknown): PlanCode | null {
   if (raw === 'START' || raw === 'PRO' || raw === 'LEADER') return raw
@@ -351,11 +283,6 @@ const basePlan = computed<PlanCode | null>(() => {
 const currentPlanLabel = computed(() => {
   if (!currentPlan.value) return 'Не визначено'
   return planTitle(currentPlan.value)
-})
-
-const basePlanLabel = computed(() => {
-  if (!basePlan.value) return 'Не визначено'
-  return planTitle(basePlan.value)
 })
 
 const basePlanDiffers = computed(() => {
@@ -428,9 +355,7 @@ const requestStatus = computed(() => {
   return requestMessage(normalizedCurrentRequest.value)
 })
 const primaryStatus = computed(() => requestStatus.value)
-const billingCycleLabel = computed(() =>
-  billingCycle.value === 'annual' ? 'за місяць у майбутній річній моделі' : 'майбутня модель / міс'
-)
+const billingCycleLabel = computed(() => '')
 
 const accessLabel = computed(() => {
   if (accessSummary.value?.access_label) return accessSummary.value.access_label
@@ -444,39 +369,51 @@ const accessLabel = computed(() => {
 })
 
 const accessSource = computed(() => accessSummary.value?.access_source || 'base_plan')
+const isBetaDefaultProAccess = computed(
+  () => accessSource.value === 'beta_default_pro' && currentPlan.value === 'PRO'
+)
+const showSwitchToStartAction = computed(
+  () => isBetaDefaultProAccess.value && basePlan.value === 'START'
+)
 
-const accessSourceLabel = computed(() => {
-  if (accessSource.value === 'trial') return 'Тестовий доступ'
-  if (accessSource.value === 'override') return 'Ручне перевизначення доступу'
-  return 'Звичайний доступ за тарифом'
-})
-
-const accessSummaryTitle = computed(() => {
-  if (basePlanDiffers.value) return `${basePlanLabel.value} → ${currentPlanLabel.value}`
-  return currentPlanLabel.value
-})
-
-const accessExplanation = computed(() => {
-  if (basePlanDiffers.value && accessSource.value === 'trial') {
-    return `Ваш базовий тариф — ${basePlanLabel.value}. Зараз активний тестовий доступ ${currentPlanLabel.value}.`
+const mainAccessDescription = computed(() => {
+  if (isBetaDefaultProAccess.value) {
+    return 'Під час beta вам доступні можливості Pro без оплати. Ви можете перейти на Start у будь-який момент, якщо хочете залишити лише базові можливості.'
   }
-  if (basePlanDiffers.value && accessSource.value === 'override') {
-    return `Ваш базовий тариф — ${basePlanLabel.value}. Адміністратор тимчасово надав доступ ${currentPlanLabel.value}.`
+  if (accessSource.value === 'trial') {
+    return `Вам відкрито тестовий доступ до можливостей тарифу ${currentPlanLabel.value}.`
   }
-  if (accessSummary.value?.access_message) return accessSummary.value.access_message
-  return accessHint.value
+  if (accessSource.value === 'override') {
+    return `Адміністратор тимчасово надав доступ до можливостей тарифу ${currentPlanLabel.value}.`
+  }
+  if (
+    normalizedLatestRequest.value?.status === 'APPROVED' &&
+    normalizedLatestRequest.value.applied !== false
+  ) {
+    return `Заявку на ${currentPlanLabel.value} схвалено. Можливості ${currentPlanLabel.value} активні.`
+  }
+  return `Вам доступні можливості тарифу ${currentPlanLabel.value}.`
 })
 
-const effectiveAccessHint = computed(() => {
-  if (accessSource.value === 'trial') return 'Надано як тестовий доступ.'
-  if (accessSource.value === 'override') return 'Тимчасово надано адміністратором.'
-  return 'Відповідає поточному тарифу.'
+const secondaryAccessNote = computed(() => {
+  if (isBetaDefaultProAccess.value && basePlan.value === 'START') {
+    return 'Основний тариф може залишатися Start, але на час beta вам відкрито можливості Pro.'
+  }
+  return ''
 })
 
-const accessStateHint = computed(() => {
-  if (accessSource.value === 'trial') return 'Показує тимчасовий тестовий рівень доступу.'
-  if (accessSource.value === 'override') return 'Показує тимчасове ручне налаштування доступу.'
-  return accessHint.value
+const latestRequestLine = computed(() => {
+  const request = normalizedLatestRequest.value
+  if (!request || request.status === 'PENDING') return ''
+  const statusLabel =
+    request.status === 'APPROVED'
+      ? 'схвалено'
+      : request.status === 'REJECTED'
+        ? 'відхилено'
+        : 'розглянуто'
+  const reviewedAt = request.reviewed_at || request.decided_at || request.created_at
+  const datePart = reviewedAt ? formatDateTime(reviewedAt) : ''
+  return `Остання заявка: ${planTitle(request.requested_plan)}, ${statusLabel}${datePart ? ` ${datePart}` : ''}`
 })
 
 function formatDateTime(value: string | null | undefined) {
@@ -507,46 +444,11 @@ const overrideDateLines = computed(() => {
   return [`Ручне налаштування діє до: ${formatDateTime(override.expires_at)}`]
 })
 
-const currentRequestStatusLabel = computed(() => {
-  const request = normalizedCurrentRequest.value
-  if (!request) return 'Немає активної заявки'
-  if (request.status === 'PENDING') return 'Заявка очікує розгляду'
-  if (request.status === 'APPROVED' && request.applied === false) return 'Заявку схвалено, тариф ще не активовано'
-  if (request.status === 'APPROVED') return 'Заявку схвалено'
-  if (request.status === 'REJECTED') return 'Заявку відхилено'
-  return 'Статус заявки оновлено'
-})
-
-const currentRequestHint = computed(() => {
-  const request = normalizedCurrentRequest.value
-  if (!request) return 'Можна подати заявку на зміну тарифу.'
-  const plan = planTitle(request.requested_plan)
-  if (request.status === 'PENDING') return `Очікує розгляду для тарифу ${plan}.`
-  return `Тариф: ${plan}.`
-})
-
-const latestRequestStatusLabel = computed(() => {
-  const request = normalizedLatestRequest.value
-  if (!request) return ''
-  if (request.status === 'APPROVED' && request.applied === false) return 'Останню заявку схвалено, тариф ще не активовано'
-  if (request.status === 'APPROVED') return 'Останню заявку схвалено'
-  if (request.status === 'REJECTED') return 'Останню заявку відхилено'
-  return 'Останню заявку розглянуто'
-})
-
 const accessPillClass = computed(() => {
   const state = me.value?.access_state
   if (state === 'GRACE') return 'access-pill--warn'
   if (state === 'RESTRICTED' || state === 'SUSPENDED') return 'access-pill--danger'
   return 'access-pill--ok'
-})
-
-const accessHint = computed(() => {
-  const state = me.value?.access_state
-  if (state === 'GRACE') return 'Оплата потребує уваги. Доступ тимчасово збережено.'
-  if (state === 'RESTRICTED') return 'Доступ лише для читання. Нові дії тимчасово заблоковані.'
-  if (state === 'SUSPENDED') return 'Доступ призупинено адміністрацією.'
-  return 'Все працює у штатному режимі.'
 })
 
 const activeLimitLabel = computed(() => {
@@ -590,7 +492,7 @@ const featureLabels: Record<string, string> = {
   reminders: 'Нагадування',
   author_journal: 'Публікації у профілі',
   public_events: 'Публічні події',
-  priority_support: 'Пріоритетна підтримка',
+  priority_support: 'Розширена підтримка',
   guest_sessions: 'Гостьові сесії',
 }
 
@@ -605,18 +507,11 @@ function planTitle(code: PlanCode | string | null | undefined) {
 
 function planDisplayPrice(code: string) {
   const typedCode = code as PlanCode
-  if (billingCycle.value === 'annual' && annualMonthlyPriceByPlan[typedCode]) {
-    return annualMonthlyPriceByPlan[typedCode] as string
-  }
   return planByCode.get(typedCode)?.price || ''
 }
 
-function planSecondaryPriceHint(code: string) {
-  const typedCode = code as PlanCode
-  if (billingCycle.value === 'annual') {
-    return annualOneShotByPlan[typedCode] || 'Без оплати'
-  }
-  return annualCopyByPlan[typedCode] || ''
+function planSecondaryPriceHint(_code: string) {
+  return ''
 }
 
 function planActiveClientLimit(code: PlanCode) {
@@ -632,8 +527,15 @@ function planActiveClientLimit(code: PlanCode) {
 
 function planFeatureList(code: PlanCode) {
   const limit = planActiveClientLimit(code)
-  const limitLine = typeof limit === 'number' ? [`До ${limit} активних клієнтів`] : []
-  return [...limitLine, ...(planByCode.get(code)?.features || [])]
+  const features = [...(planByCode.get(code)?.features || [])]
+  if (typeof limit !== 'number') return features
+  const limitLine = `До ${limit} постійних клієнтів`
+  if (code === 'START') return [...features, limitLine]
+  if (code === 'PRO' || code === 'LEADER') {
+    if (!features.length) return [limitLine]
+    return [features[0], limitLine, ...features.slice(1)]
+  }
+  return [limitLine, ...features]
 }
 
 function isCurrentPlan(code: string) {
@@ -654,7 +556,7 @@ function canSelfServePlan(code: string) {
 }
 
 function planActionLabel(code: string) {
-  if (isCurrentPlan(code)) return 'Поточний план'
+  if (isCurrentPlan(code)) return 'Поточний доступ'
   if (isUnavailableBetaPlan(code)) return 'Тариф готується'
   if (hasUnappliedApprovedRequestFor(code)) return 'Очікує активації'
   if (isUpgradePlan(code)) return `Подати заявку на ${planTitle(code as PlanCode)}`
@@ -745,9 +647,13 @@ async function startSelfServeUpgrade() {
   await requestAccess(nextPlan.value)
 }
 
+async function switchToStart() {
+  await requestAccess('START')
+}
+
 async function requestAccess(planCode: string) {
   if (!planOrder.includes(planCode as PlanCode)) return
-  if (!isSpecialistSelectablePlan(planCode)) return
+  if (!isSpecialistSelectablePlan(planCode) && !(showSwitchToStartAction.value && planCode === 'START')) return
   if (requestingPlan.value) return
   if (hasPendingRequest.value) {
     const pendingPlan = activeRequest.value?.requested_plan
@@ -1008,6 +914,10 @@ onMounted(() => {
   display: grid;
   gap: 6px;
   font-size: 14px;
+}
+
+.access-secondary-note {
+  font-size: 13px;
 }
 
 .summary-grid,

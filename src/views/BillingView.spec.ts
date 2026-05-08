@@ -273,17 +273,13 @@ describe('BillingView downgrade semantics', () => {
     renderView()
 
     await waitFor(() => {
-      expect(screen.getByText('Доступ відповідає тарифу Start.')).toBeInTheDocument()
+      expect(screen.getByText('Ваш доступ зараз: Start')).toBeInTheDocument()
     })
 
-    expect(screen.getAllByText('Поточний тариф').length).toBeGreaterThan(0)
-    expect(screen.getByText('Фактичний доступ')).toBeInTheDocument()
-    expect(screen.getByText('Стан доступу')).toBeInTheDocument()
-    expect(screen.getByText('Заявка на зміну тарифу')).toBeInTheDocument()
-    expect(screen.getByText('Немає активної заявки')).toBeInTheDocument()
+    expect(screen.getByText('Вам доступні можливості тарифу Start.')).toBeInTheDocument()
   })
 
-  it('shows Start as free with 3 active clients and no outdated euro prices', async () => {
+  it('shows Start as free with 3 regular clients and no outdated euro prices', async () => {
     setCurrentPlan('START')
     const view = renderView()
 
@@ -291,8 +287,8 @@ describe('BillingView downgrade semantics', () => {
       expect(screen.getAllByText('0 грн').length).toBeGreaterThan(0)
     })
 
-    expect(screen.getAllByText('До 3 активних клієнтів').length).toBeGreaterThan(0)
-    expect(screen.queryByText('До 5 активних клієнтів')).not.toBeInTheDocument()
+    expect(screen.getAllByText('До 3 постійних клієнтів').length).toBeGreaterThan(0)
+    expect(screen.queryByText('До 5 постійних клієнтів')).not.toBeInTheDocument()
     expect(view.container).not.toHaveTextContent('€10')
     expect(view.container).not.toHaveTextContent('€24')
     expect(view.container).not.toHaveTextContent('€59')
@@ -317,9 +313,9 @@ describe('BillingView downgrade semantics', () => {
     renderView()
 
     await waitFor(() => {
-      expect(screen.getByText('Ваш базовий тариф — Start. Зараз активний тестовий доступ Pro.')).toBeInTheDocument()
+      expect(screen.getByText('Ваш доступ зараз: Pro')).toBeInTheDocument()
     })
-    expect(screen.getAllByText('Тестовий доступ').length).toBeGreaterThan(0)
+    expect(screen.getByText('Вам відкрито тестовий доступ до можливостей тарифу Pro.')).toBeInTheDocument()
     expect(screen.getByText(/Початок тестового доступу:/)).toBeInTheDocument()
     expect(screen.getByText(/Завершення тестового доступу:/)).toBeInTheDocument()
   })
@@ -340,11 +336,58 @@ describe('BillingView downgrade semantics', () => {
     renderView()
 
     await waitFor(() => {
-      expect(screen.getByText('Ваш базовий тариф — Start. Адміністратор тимчасово надав доступ Leader.')).toBeInTheDocument()
+      expect(screen.getByText('Ваш доступ зараз: Leader')).toBeInTheDocument()
     })
-    expect(screen.getAllByText('Ручне перевизначення доступу').length).toBeGreaterThan(0)
+    expect(screen.getByText('Адміністратор тимчасово надав доступ до можливостей тарифу Leader.')).toBeInTheDocument()
     expect(screen.getByText(/Ручне налаштування діє до:/)).toBeInTheDocument()
-    expect(screen.getByText('Базовий тариф')).toBeInTheDocument()
+  })
+
+  it('shows beta default Pro as primary access state and supports switch to Start action', async () => {
+    setCurrentPlan('START', {
+      plan: 'PRO',
+      base_plan: 'START',
+      effective_plan: 'PRO',
+      access_source: 'beta_default_pro',
+      access_label: 'Pro-доступ під час beta',
+      access_message:
+        'Під час beta вам відкрито Pro-доступ. Базовий тариф залишається Start, але можливості Pro доступні до завершення beta або доки ви самі не перейдете на Start.',
+    })
+    mockedCreateBillingAccessRequest.mockResolvedValue({
+      has_pending_request: true,
+      request: {
+        id: 501,
+        therapist: 77,
+        requested_plan: 'START',
+        status: 'PENDING',
+        note: 'switch_to_start_from_beta_default_pro',
+        admin_note: '',
+        created_at: '2026-05-06T10:00:00Z',
+        updated_at: '2026-05-06T10:00:00Z',
+        decided_at: null,
+        decided_by: null,
+      },
+    })
+    renderView()
+
+    await waitFor(() => {
+      expect(screen.getAllByText('Pro-доступ під час beta').length).toBeGreaterThan(0)
+    })
+    expect(screen.getByText('Ваш доступ зараз: Pro')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Перейти на Start' })).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        'Після переходу вам залишаться базові можливості Start, і beta Pro-доступ більше не буде застосовуватись автоматично.'
+      )
+    ).toBeInTheDocument()
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Перейти на Start' }))
+
+    await waitFor(() => {
+      expect(mockedCreateBillingAccessRequest).toHaveBeenCalledWith({
+        requested_plan: 'START',
+        note: 'upgrade_from:PRO',
+      })
+    })
   })
 
   it('disables duplicate tariff actions when current request is pending', async () => {
@@ -381,7 +424,7 @@ describe('BillingView downgrade semantics', () => {
     renderView()
 
     await waitFor(() => {
-      expect(screen.getByText('Немає активної заявки')).toBeInTheDocument()
+      expect(screen.getByText('Ваш доступ зараз: Start')).toBeInTheDocument()
     })
     expect(screen.queryByText('Safe public note from invalid current request.')).not.toBeInTheDocument()
     expect(screen.getAllByRole('button', { name: 'Подати заявку на Pro' })[0]).not.toBeDisabled()
@@ -401,9 +444,8 @@ describe('BillingView downgrade semantics', () => {
     renderView()
 
     await waitFor(() => {
-      expect(screen.getAllByText('Останню заявку відхилено').length).toBeGreaterThan(0)
+      expect(screen.getByText(/Остання заявка: Pro, відхилено/)).toBeInTheDocument()
     })
-    expect(screen.getByText('Спробуйте пізніше.')).toBeInTheDocument()
     expect(screen.getAllByRole('button', { name: 'Подати заявку на Pro' })[0]).not.toBeDisabled()
   })
 
@@ -423,11 +465,10 @@ describe('BillingView downgrade semantics', () => {
     renderView()
 
     await waitFor(() => {
-      expect(screen.getAllByText('Останню заявку схвалено, тариф ще не активовано').length).toBeGreaterThan(0)
+      expect(screen.getByText(/Остання заявка: Leader, схвалено/)).toBeInTheDocument()
     })
-    expect(screen.getAllByText('Заявку на Leader схвалено, але тариф ще не активовано.').length).toBeGreaterThan(0)
-    expect(screen.getByText('Немає активної заявки')).toBeInTheDocument()
-    expect(screen.getAllByText('Поточний план').length).toBe(1)
+    expect(screen.getByText('Ваш доступ зараз: Pro')).toBeInTheDocument()
+    expect(screen.getAllByText('Поточний доступ').length).toBe(1)
     expect(screen.queryByRole('button', { name: 'Очікує активації' })).not.toBeInTheDocument()
     expect(screen.getAllByText('Тариф готується').length).toBeGreaterThan(0)
   })
@@ -448,10 +489,9 @@ describe('BillingView downgrade semantics', () => {
     renderView()
 
     await waitFor(() => {
-      expect(screen.getAllByText('Останню заявку схвалено').length).toBeGreaterThan(0)
+      expect(screen.getByText('Ваш доступ зараз: Leader')).toBeInTheDocument()
     })
-    expect(screen.getByText('Немає активної заявки')).toBeInTheDocument()
-    expect(screen.getAllByText('Поточний план').length).toBe(1)
+    expect(screen.getAllByText('Поточний доступ').length).toBe(1)
     expect(screen.queryByRole('button', { name: 'Перейти на Leader' })).not.toBeInTheDocument()
   })
 

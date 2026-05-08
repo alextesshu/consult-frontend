@@ -85,4 +85,12 @@ describe('SignupView dual-role enable flow', () => {
       expect(mockPush).toHaveBeenCalledWith('/cabinet')
     })
   })
+
+  it('shows beta Pro signup copy without paid-subscription wording', () => {
+    renderView()
+
+    expect(screen.getByText(/Під час beta вам одразу відкривається Pro-доступ\./)).toBeInTheDocument()
+    expect(screen.getByText(/Ви зможете перейти на Start у налаштуваннях тарифу/)).toBeInTheDocument()
+    expect(screen.queryByText(/оплата активується|підписка Pro оплачена|платний тариф підключено/i)).not.toBeInTheDocument()
+  })
 })
