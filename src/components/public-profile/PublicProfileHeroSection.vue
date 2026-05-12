@@ -19,7 +19,7 @@
       </div>
 
       <div class="hero-main">
-        <div class="badge">Профіль спеціаліста</div>
+        <p class="hero-main__eyebrow">Профіль спеціаліста</p>
         <h1 class="title public__title">{{ publicName || 'Профіль спеціаліста' }}</h1>
         <p v-if="profile && heroRoleLine" class="hero-main__role">{{ heroRoleLine }}</p>
         <p class="hero-main__lead hero-main__lead--teaser">{{ profile ? heroLeadText : 'Завантаження профілю' }}</p>
@@ -42,11 +42,14 @@
       </div>
 
       <aside v-if="profile && generalInfoItems.length" class="hero-info" aria-label="Загальна інформація">
-        <div class="badge badge--soft">Загальна інформація</div>
+        <h2 class="hero-info__title">Загальна інформація</h2>
         <ul class="hero-info__list">
           <li v-for="(item, index) in generalInfoItems" :key="`${item.label}-${index}`" class="hero-info__item">
-            <span class="hero-info__label">{{ item.label }}</span>
-            <span class="hero-info__value">{{ item.value }}</span>
+            <span class="hero-info__icon" aria-hidden="true">●</span>
+            <span class="hero-info__meta">
+              <span class="hero-info__label">{{ item.label }}</span>
+              <span class="hero-info__value">{{ item.value }}</span>
+            </span>
           </li>
         </ul>
       </aside>
@@ -88,15 +91,15 @@ const emit = defineEmits<{
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   align-items: start;
-  gap: 16px;
+  gap: 20px;
   background: linear-gradient(
-    145deg,
-    color-mix(in srgb, var(--pc-bg-card) 88%, var(--pc-teal-100)),
-    color-mix(in srgb, var(--pc-bg-card) 82%, var(--pc-peach-100))
+    155deg,
+    color-mix(in srgb, var(--pc-bg-card) 90%, var(--pc-teal-100)),
+    color-mix(in srgb, var(--pc-bg-card) 84%, var(--pc-peach-100))
   );
   border: 1px solid var(--pc-border);
   border-radius: var(--radius-xl);
-  padding: clamp(18px, 2.2vw, 28px);
+  padding: clamp(20px, 2.4vw, 30px);
   box-shadow: var(--pc-shadow-card);
   color: var(--pc-text-main);
 }
@@ -162,10 +165,19 @@ const emit = defineEmits<{
 .hero-main {
   flex: 1 1 auto;
   display: grid;
-  gap: 12px;
+  gap: 10px;
   align-content: start;
   min-width: 0;
   max-width: 100%;
+}
+
+.hero-main__eyebrow {
+  margin: 0;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  color: color-mix(in srgb, var(--pc-navy-900) 72%, var(--pc-text-muted));
 }
 
 .hero-main__role {
@@ -228,15 +240,15 @@ const emit = defineEmits<{
 .hero-trust {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 6px;
 }
 
 .hero-trust span {
-  padding: 6px 10px;
+  padding: 5px 9px;
   border-radius: 10px;
-  background: color-mix(in srgb, var(--pc-bg-card) 86%, var(--pc-teal-100));
+  background: color-mix(in srgb, var(--pc-bg-card) 88%, var(--pc-teal-100));
   border: 1px solid var(--pc-border);
-  font-size: 12px;
+  font-size: 11px;
   color: var(--pc-navy-900);
 }
 
@@ -247,12 +259,20 @@ const emit = defineEmits<{
   min-width: 156px;
   border: 1px solid var(--pc-border);
   border-radius: 14px;
-  background: color-mix(in srgb, var(--pc-bg-card) 88%, var(--pc-bg-soft));
+  background: color-mix(in srgb, var(--pc-bg-card) 90%, var(--pc-bg-soft));
   padding: 12px;
   display: grid;
-  gap: 10px;
+  gap: 8px;
   align-content: start;
   min-width: 0;
+}
+
+.hero-info__title {
+  margin: 0;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: color-mix(in srgb, var(--pc-navy-900) 80%, var(--pc-text-muted));
 }
 
 .hero-info__list {
@@ -267,7 +287,20 @@ const emit = defineEmits<{
   border: 1px solid var(--pc-border);
   border-radius: 10px;
   background: var(--pc-bg-card);
-  padding: 8px 10px;
+  padding: 7px 9px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: 8px;
+}
+
+.hero-info__icon {
+  color: var(--pc-teal-500);
+  font-size: 9px;
+  line-height: 1.5;
+}
+
+.hero-info__meta {
   display: grid;
   gap: 2px;
 }
@@ -285,19 +318,6 @@ const emit = defineEmits<{
   font-weight: 600;
   color: var(--pc-navy-950);
   overflow-wrap: anywhere;
-}
-
-.badge {
-  width: fit-content;
-  border-color: color-mix(in srgb, var(--pc-teal-500) 34%, var(--pc-border));
-  background: color-mix(in srgb, var(--pc-teal-100) 72%, var(--pc-bg-card));
-  color: var(--pc-navy-900);
-}
-
-.badge--soft {
-  border-color: color-mix(in srgb, var(--pc-peach-500) 30%, var(--pc-border));
-  background: color-mix(in srgb, var(--pc-peach-100) 72%, var(--pc-bg-card));
-  color: var(--pc-navy-900);
 }
 
 @media (max-width: 1280px) {

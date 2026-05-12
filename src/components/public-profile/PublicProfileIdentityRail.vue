@@ -1,18 +1,18 @@
 <template>
   <aside v-if="profile" class="identity-rail">
     <div class="identity-rail__card">
-      <div class="badge badge--soft">Швидкий огляд</div>
+      <p class="identity-rail__eyebrow">Швидкий огляд</p>
       <h2 class="identity-rail__title">{{ heroCtaTitle }}</h2>
 
-      <div class="identity-rail__prices" v-if="introPriceDisplay || priceDisplay">
-        <div v-if="introPriceDisplay" class="identity-rail__price identity-rail__price--intro">
-          Ознайомча сесія: {{ introPriceDisplay }}
-          <span v-if="introDurationLabel">· {{ introDurationLabel }}</span>
-        </div>
-        <div v-if="priceDisplay" class="identity-rail__price">
-          Консультація: {{ priceDisplay }}
-          <span> · {{ standardSessionDurationLabel }}</span>
-        </div>
+      <div class="identity-rail__services" v-if="introPriceDisplay || priceDisplay" aria-label="Послуги та вартість">
+        <article v-if="introPriceDisplay" class="identity-rail__service identity-rail__service--intro">
+          <div class="identity-rail__service-title">Ознайомча сесія: {{ introPriceDisplay }}</div>
+          <div v-if="introDurationLabel" class="identity-rail__service-meta">{{ introDurationLabel }}</div>
+        </article>
+        <article v-if="priceDisplay" class="identity-rail__service">
+          <div class="identity-rail__service-title">Консультація: {{ priceDisplay }}</div>
+          <div class="identity-rail__service-meta">{{ standardSessionDurationLabel }}</div>
+        </article>
       </div>
 
       <div class="identity-rail__actions">
@@ -103,7 +103,7 @@ defineEmits<{
 
 .identity-rail__card {
   display: grid;
-  gap: 12px;
+  gap: 14px;
   border: 1px solid var(--pc-border);
   background: linear-gradient(
     160deg,
@@ -111,35 +111,56 @@ defineEmits<{
     color-mix(in srgb, var(--pc-bg-card) 88%, var(--pc-peach-100))
   );
   border-radius: var(--radius-xl);
-  padding: 16px;
+  padding: 18px;
   box-shadow: var(--pc-shadow-card);
   color: var(--pc-text-main);
 }
 
+.identity-rail__eyebrow {
+  margin: 0;
+  width: fit-content;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  color: color-mix(in srgb, var(--pc-navy-900) 78%, var(--pc-text-muted));
+}
+
 .identity-rail__title {
   margin: 0;
-  font-size: 20px;
+  font-size: 22px;
   line-height: 1.25;
   color: var(--pc-navy-950);
   letter-spacing: 0;
 }
 
-.identity-rail__prices {
+.identity-rail__services {
   display: grid;
-  gap: 8px;
+  gap: 9px;
 }
 
-.identity-rail__price {
-  padding: 8px 10px;
-  border-radius: 10px;
+.identity-rail__service {
+  padding: 10px 11px;
+  border-radius: 12px;
   border: 1px solid var(--pc-border);
   background: var(--pc-bg-card);
-  font-size: 13px;
-  font-weight: 600;
+  display: grid;
+  gap: 3px;
+}
+
+.identity-rail__service-title {
+  font-size: 14px;
+  line-height: 1.35;
+  font-weight: 700;
   color: var(--pc-navy-900);
 }
 
-.identity-rail__price--intro {
+.identity-rail__service-meta {
+  font-size: 12px;
+  color: var(--pc-text-muted);
+}
+
+.identity-rail__service--intro {
   border-color: color-mix(in srgb, var(--pc-teal-500) 38%, var(--pc-border));
   background: color-mix(in srgb, var(--pc-bg-card) 82%, var(--pc-teal-100));
 }
@@ -193,9 +214,9 @@ defineEmits<{
 }
 
 .identity-rail__contacts-title {
-  font-size: 12px;
+  font-size: 11px;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   font-weight: 700;
   color: color-mix(in srgb, var(--pc-navy-900) 82%, var(--pc-text-muted));
 }
@@ -207,8 +228,8 @@ defineEmits<{
 
 .identity-rail__contact {
   border: 1px solid var(--pc-border);
-  border-radius: 10px;
-  padding: 6px 8px;
+  border-radius: 12px;
+  padding: 8px 9px;
   display: grid;
   gap: 2px;
   text-decoration: none;
@@ -221,24 +242,17 @@ defineEmits<{
 }
 
 .identity-rail__contact-label {
-  font-size: 10px;
+  font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.07em;
   color: var(--pc-text-muted);
 }
 
 .identity-rail__contact-value {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
   overflow-wrap: anywhere;
   color: var(--pc-navy-950);
-}
-
-.badge--soft {
-  width: fit-content;
-  background: color-mix(in srgb, var(--pc-peach-100) 74%, var(--pc-bg-card));
-  border-color: color-mix(in srgb, var(--pc-peach-500) 32%, var(--pc-border));
-  color: var(--pc-navy-900);
 }
 
 @media (max-width: 1100px) {
@@ -251,13 +265,13 @@ defineEmits<{
   }
 
   .identity-rail__card {
-    padding: 10px 12px;
-    gap: 8px;
+    padding: 13px 12px;
+    gap: 10px;
     box-shadow: var(--pc-shadow-soft);
   }
 
   .identity-rail__title {
-    font-size: 18px;
+    font-size: 20px;
   }
 
   .identity-rail__next-step {

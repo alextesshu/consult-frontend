@@ -2,7 +2,7 @@
   <section class="panel panel--reviews" v-if="reviews.length">
     <div class="panel__header">
       <div>
-        <div class="badge badge--soft">Відгуки</div>
+        <p class="panel__eyebrow">Відгуки</p>
         <h2 class="panel__title">Що кажуть клієнти</h2>
       </div>
       <RouterLink class="btn btn--ghost btn--sm" :to="feedbackLink">Усі відгуки</RouterLink>
@@ -65,6 +65,16 @@ defineProps<Props>()
   font-size: 22px;
 }
 
+.panel__eyebrow {
+  margin: 0;
+  width: fit-content;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  color: color-mix(in srgb, var(--pc-navy-900) 78%, var(--pc-text-muted));
+}
+
 .reviews-list {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -77,22 +87,27 @@ defineProps<Props>()
   padding: 12px;
   background: #fff;
   display: grid;
-  gap: 10px;
+  gap: 8px;
 }
 
 .review-card__text {
   line-height: 1.5;
+  position: relative;
+  padding-left: 14px;
+}
+
+.review-card__text::before {
+  content: '“';
+  position: absolute;
+  left: 0;
+  top: 0;
+  color: var(--pc-teal-500);
+  font-weight: 700;
 }
 
 .review-card__meta {
   color: var(--muted);
   font-size: 12px;
-}
-
-.badge--soft {
-  background: color-mix(in srgb, #e4e9dc 62%, #f8f3e9);
-  border-color: color-mix(in srgb, #6f8b73 26%, var(--line));
-  color: color-mix(in srgb, #3f5945 82%, var(--text));
 }
 
 @media (max-width: 960px) {

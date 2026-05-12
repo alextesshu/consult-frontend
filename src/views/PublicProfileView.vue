@@ -76,7 +76,7 @@
         <section class="panel panel--terms" v-if="specialistBookingTermsText">
           <div class="panel__header">
             <div>
-              <div class="badge badge--soft">Перед записом</div>
+              <p class="panel__eyebrow">Перед записом</p>
               <h2 class="panel__title">Умови спеціаліста перед записом</h2>
               <p class="panel__lead">
                 Індивідуальні умови цього спеціаліста. Якщо умови оновляться, перед новим записом може знадобитися повторне підтвердження.
@@ -89,7 +89,7 @@
       <section v-if="showInquiryPanel" class="panel panel--inquiry" id="inquiry">
         <div class="panel__header">
           <div>
-            <div class="badge badge--soft">До бронювання</div>
+            <p class="panel__eyebrow">До бронювання</p>
             <h2 class="panel__title">{{ inquiryLeadCopy.title }}</h2>
           </div>
         </div>
@@ -152,41 +152,46 @@
       <div class="panel panel--slots" id="slots">
         <div class="panel__header">
           <div>
-            <div class="badge badge--soft">Доступні вільні вікна</div>
+            <p class="panel__eyebrow">Доступні вільні вікна</p>
             <h2 class="panel__title">Найближчі дати</h2>
+            <p class="panel__lead">Оберіть дату, час і формат сесії, щоб одразу перейти до запису.</p>
           </div>
         </div>
 
         <div class="slot-top">
           <div class="slot-filter">
-            <div class="slot-week">
-              <button
-                v-for="day in weekDays"
-                :key="day.date"
-                class="slot-day"
-                :class="{ 'slot-day--active': day.date === selectedDate }"
-                type="button"
-                @click="selectDay(day.date)"
-              >
-                <span class="slot-day__label">{{ day.label }}</span>
-                <span class="slot-day__date">{{ day.dateLabel }}</span>
-              </button>
+            <div class="slot-filter__calendar">
+              <div class="slot-week">
+                <button
+                  v-for="day in weekDays"
+                  :key="day.date"
+                  class="slot-day"
+                  :class="{ 'slot-day--active': day.date === selectedDate }"
+                  type="button"
+                  @click="selectDay(day.date)"
+                >
+                  <span class="slot-day__label">{{ day.label }}</span>
+                  <span class="slot-day__date">{{ day.dateLabel }}</span>
+                </button>
+              </div>
             </div>
-            <label class="slot-filter__label" for="slotDate">Оберіть дату</label>
-            <input
-              id="slotDate"
-              class="input slot-filter__input"
-              type="date"
-              v-model="selectedDate"
-              :min="todayInputValue"
-              ref="slotDateInput"
-              @click="openDatePicker"
-              @focus="openDatePicker"
-            />
-            <div class="muted slot-filter__hint">
-              Оберіть дату, щоб переглянути доступні вільні вікна.
+            <div class="slot-filter__picker">
+              <label class="slot-filter__label" for="slotDate">Оберіть дату</label>
+              <input
+                id="slotDate"
+                class="input slot-filter__input"
+                type="date"
+                v-model="selectedDate"
+                :min="todayInputValue"
+                ref="slotDateInput"
+                @click="openDatePicker"
+                @focus="openDatePicker"
+              />
+              <div class="muted slot-filter__hint">
+                Оберіть дату, щоб переглянути доступні вільні вікна.
+              </div>
             </div>
-            <div class="slot-format">
+            <div class="slot-format slot-filter__format">
               <div class="slot-filter__label">Формат сесії</div>
               <div
                 v-if="needsSessionFormatChoice"
@@ -251,7 +256,7 @@
 
         <div v-if="slotsLoading" class="muted">Завантажуємо вільні вікна</div>
         <div v-else-if="slotsError" class="form-error">{{ slotsError }}</div>
-        <div v-else-if="slots.length === 0" class="muted">
+        <div v-else-if="slots.length === 0" class="slot-empty muted">
           {{ noSlotsAvailable ? 'Наразі вільних віконець немає.' : 'На жаль, у цей день вільних віконець немає.' }}
         </div>
         <div v-else class="slot-list">
@@ -3683,11 +3688,12 @@ onMounted(async () => {
 .panel--slots {
   grid-column: 1 / -1;
   background: linear-gradient(
-    180deg,
-    color-mix(in srgb, #f7f3ea 44%, #ffffff),
-    color-mix(in srgb, #fdfcf8 72%, #ffffff)
+    160deg,
+    color-mix(in srgb, #f8f4ec 48%, #ffffff),
+    color-mix(in srgb, #fcfaf5 78%, #ffffff)
   );
-  border-color: color-mix(in srgb, var(--line) 86%, #d9d0bd);
+  border-color: color-mix(in srgb, var(--line) 88%, #d9d0bd);
+  box-shadow: var(--pc-shadow-soft);
 }
 
 .panel--profile {
@@ -3719,10 +3725,10 @@ onMounted(async () => {
 .panel {
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
-  padding: 18px 18px 20px;
+  padding: 20px;
   background: color-mix(in srgb, #ffffff 90%, var(--surface));
   display: grid;
-  gap: 14px;
+  gap: 16px;
 }
 
 .panel--footer-cta {
@@ -3756,6 +3762,16 @@ onMounted(async () => {
   font-size: 22px;
 }
 
+.panel__eyebrow {
+  margin: 0;
+  width: fit-content;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  color: color-mix(in srgb, var(--pc-navy-900) 78%, var(--pc-text-muted));
+}
+
 .panel__lead {
   margin: 0;
   color: var(--muted);
@@ -3786,77 +3802,95 @@ onMounted(async () => {
 
 .slot-filter {
   display: grid;
-  gap: 5px;
-  padding: 10px;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--line) 88%, #d5ccb8);
+  background: color-mix(in srgb, #f8f4ec 82%, #ffffff);
+}
+
+.slot-filter__calendar,
+.slot-filter__picker,
+.slot-filter__format {
+  display: grid;
+  gap: 7px;
+  padding: 10px 11px;
   border-radius: 12px;
-  border: 1px dashed color-mix(in srgb, var(--line) 84%, #d5ccb8);
-  background: color-mix(in srgb, #f8f4ec 78%, #ffffff);
+  border: 1px solid color-mix(in srgb, var(--line) 90%, #e4dccd);
+  background: #fff;
 }
 
 .slot-top {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(260px, 320px);
-  gap: 8px;
+  grid-template-columns: minmax(0, 1fr) minmax(268px, 320px);
+  gap: 10px;
   align-items: start;
 }
 
 .slot-week {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: 4px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
+  gap: 7px;
 }
 
 .slot-day {
   border: 1px solid var(--line);
   background: #fff;
-  border-radius: 10px;
-  padding: 5px 8px;
+  border-radius: 12px;
+  padding: 8px 8px;
   display: grid;
-  gap: 2px;
-  min-width: 58px;
+  gap: 4px;
+  min-width: 0;
   text-align: center;
   cursor: pointer;
-  color: var(--ink);
-  font-weight: 400;
+  color: var(--pc-text-main);
+  font-weight: 600;
+  transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.slot-day:hover {
+  border-color: color-mix(in srgb, var(--pc-navy-900) 26%, var(--line));
+  box-shadow: 0 8px 18px rgba(18, 35, 58, 0.08);
+  transform: translateY(-1px);
 }
 
 .slot-day__label {
   text-transform: uppercase;
-  font-size: 9px;
+  font-size: 10px;
   letter-spacing: 0.08em;
-  color: var(--muted);
+  color: var(--pc-text-muted);
 }
 
 .slot-day__date {
-  font-size: 11px;
+  font-size: 13px;
 }
 
 .slot-day--active {
-  border-color: color-mix(in srgb, var(--primary) 40%, var(--border));
-  background: color-mix(in srgb, var(--primary) 12%, transparent);
+  border-color: color-mix(in srgb, var(--pc-navy-900) 50%, var(--border));
+  background: color-mix(in srgb, var(--pc-blue-soft) 70%, #ffffff);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--pc-navy-900) 14%, transparent);
 }
 
 .slot-filter__label {
-  font-size: 12px;
+  font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: var(--muted);
-  font-weight: 600;
+  color: var(--pc-text-muted);
+  font-weight: 700;
 }
 
 .slot-filter__input {
-  max-width: 220px;
+  max-width: 100%;
 }
 
 .slot-filter__hint {
-  font-size: 11px;
+  font-size: 12px;
 }
 
 .slot-format {
   display: grid;
-  gap: 6px;
-  margin-top: 2px;
+  gap: 8px;
+  margin-top: 0;
 }
 
 .slot-format__options {
@@ -3869,11 +3903,11 @@ onMounted(async () => {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 9px;
-  border-radius: 10px;
+  padding: 7px 10px;
+  border-radius: 12px;
   border: 1px solid var(--line);
   background: #fff;
-  color: var(--ink);
+  color: var(--pc-text-main);
   font-size: 13px;
 }
 
@@ -3883,7 +3917,7 @@ onMounted(async () => {
 
 .slot-format__fixed {
   font-size: 13px;
-  color: var(--ink);
+  color: var(--pc-text-main);
 }
 
 .slot-format__hint {
@@ -3892,27 +3926,41 @@ onMounted(async () => {
 
 .slot-info {
   border: 1px solid color-mix(in srgb, var(--line) 84%, #d5ccb8);
-  border-radius: 12px;
-  padding: 10px 12px;
-  background: color-mix(in srgb, #f4efe3 46%, #ffffff);
+  border-radius: 14px;
+  padding: 12px;
+  background: color-mix(in srgb, #f2ede2 52%, #ffffff);
   display: grid;
-  gap: 8px;
+  gap: 10px;
 }
 
 .slot-info__title {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
-  color: var(--deep);
+  color: var(--pc-navy-900);
 }
 
 .slot-info__list {
   margin: 0;
-  padding-left: 16px;
+  padding: 0;
+  list-style: none;
   display: grid;
-  gap: 4px;
-  color: var(--muted);
+  gap: 6px;
+  color: var(--pc-text-muted);
   font-size: 12px;
-  line-height: 1.4;
+  line-height: 1.45;
+}
+
+.slot-info__list li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 8px;
+}
+
+.slot-info__list li::before {
+  content: '●';
+  font-size: 8px;
+  line-height: 1.8;
+  color: var(--pc-teal-500);
 }
 
 .slot-info__action {
@@ -4354,17 +4402,15 @@ onMounted(async () => {
 
 .slot-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
-  gap: 6px;
+  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  gap: 8px;
 }
 
 .slot-list-heading {
-  font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+  font-size: 14px;
   font-weight: 700;
-  color: var(--muted);
-  margin-top: 2px;
+  color: var(--pc-navy-900);
+  margin-top: 4px;
 }
 
 .slot-list__toggle {
@@ -4375,36 +4421,46 @@ onMounted(async () => {
 .slot-card {
   appearance: none;
   border: 1px solid var(--line);
-  border-radius: 10px;
-  min-height: 54px;
-  padding: 8px 6px;
-  background: color-mix(in srgb, #f5f0e4 38%, #ffffff);
+  border-radius: 12px;
+  min-height: 58px;
+  padding: 9px 8px;
+  background: #fff;
   display: grid;
   place-items: center;
   text-align: center;
   cursor: pointer;
-  transition: transform 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease;
+  transition: transform 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
   font: inherit;
 }
 
 .slot-card:hover:not(:disabled),
 .slot-card:focus-visible:not(:disabled) {
-  border-color: color-mix(in srgb, var(--color-primary-500) 36%, var(--line));
-  box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-primary-100) 62%, transparent);
+  border-color: color-mix(in srgb, var(--pc-navy-900) 34%, var(--line));
+  background: color-mix(in srgb, var(--pc-blue-soft) 62%, #ffffff);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--pc-navy-900) 12%, transparent);
   transform: translateY(-1px);
 }
 
 .slot-card:disabled,
 .slot-card--busy {
-  cursor: progress;
-  opacity: 0.72;
+  cursor: not-allowed;
+  opacity: 0.64;
+  background: color-mix(in srgb, #f2f0eb 80%, #ffffff);
 }
 
 .slot-time {
-  font-size: 28px;
+  font-size: 24px;
   line-height: 1;
   font-weight: 700;
-  color: var(--text);
+  color: var(--pc-navy-900);
+}
+
+.slot-empty {
+  border: 1px dashed color-mix(in srgb, var(--line) 88%, #d4cab8);
+  border-radius: 12px;
+  padding: 12px;
+  background: color-mix(in srgb, #f6f2e9 55%, #ffffff);
+  font-size: 13px;
 }
 
 .first-session-flow {

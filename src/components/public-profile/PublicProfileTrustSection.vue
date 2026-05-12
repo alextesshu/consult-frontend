@@ -2,7 +2,7 @@
   <section class="panel panel--trust" v-if="hasCompetenceContent || publicDocuments.length">
     <div class="panel__header">
       <div>
-        <div class="badge badge--soft">Професійний профіль</div>
+        <p class="panel__eyebrow">Професійний профіль</p>
         <h2 class="panel__title">Освіта і професійний розвиток</h2>
         <p class="panel__lead">
           Коротко про професійну підготовку спеціаліста та матеріали, які він додав для ознайомлення.
@@ -159,6 +159,16 @@ const hasCompetenceContent = computed(
   font-size: 22px;
 }
 
+.panel__eyebrow {
+  margin: 0;
+  width: fit-content;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-weight: 700;
+  color: color-mix(in srgb, var(--pc-navy-900) 78%, var(--pc-text-muted));
+}
+
 .panel__lead {
   margin: 0;
   color: var(--muted);
@@ -196,13 +206,24 @@ const hasCompetenceContent = computed(
 
 .competence-list {
   margin: 0;
-  padding-left: 18px;
+  padding-left: 0;
+  list-style: none;
   display: grid;
   gap: 6px;
 }
 
 .competence-list__item {
   line-height: 1.5;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 8px;
+}
+
+.competence-list__item::before {
+  content: '●';
+  font-size: 9px;
+  line-height: 1.7;
+  color: var(--pc-teal-500);
 }
 
 .documents-grid {
@@ -329,12 +350,6 @@ const hasCompetenceContent = computed(
 
 .document-card__action {
   justify-self: start;
-}
-
-.badge--soft {
-  background: color-mix(in srgb, #e4e9dc 62%, #f8f3e9);
-  border-color: color-mix(in srgb, #6f8b73 26%, var(--line));
-  color: color-mix(in srgb, #3f5945 82%, var(--text));
 }
 
 @media (max-width: 960px) {
