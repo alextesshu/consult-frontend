@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from '@testing-library/vue'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/vue'
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import PublicProfileView from './PublicProfileView.vue'
 import { BOOKING_UI_MESSAGES } from '../lib/bookingCopy'
@@ -360,9 +360,7 @@ describe('PublicProfileView', () => {
     expect(screen.getByText('hello@example.com')).toBeInTheDocument()
     expect(await screen.findByText('Профілактика вигорання')).toBeInTheDocument()
     expect(await screen.findByText('Що кажуть клієнти')).toBeInTheDocument()
-    expect(
-      screen.getByText('Можна почати без реєстрації: оберіть слот і залиште короткий запит з контактом.')
-    ).toBeInTheDocument()
+    expect(screen.getByText('Правила потрібно підтвердити один раз для цього спеціаліста.')).toBeInTheDocument()
     expect(container).toHaveTextContent('Дуже уважний підхід.')
   })
 
@@ -392,7 +390,7 @@ describe('PublicProfileView', () => {
 
     renderView()
 
-    await screen.findByRole('heading', { name: 'Найближчі дати' })
+    await screen.findByRole('heading', { name: 'Оберіть дату і час' })
     expect(screen.queryByRole('heading', { name: 'Зв’язок зі спеціалістом' })).not.toBeInTheDocument()
     const contactBlockTitle = screen.getByText('Зв’язок зі спеціалістом')
     expect(contactBlockTitle.closest('.identity-rail__contacts')).toBeTruthy()
@@ -468,7 +466,7 @@ describe('PublicProfileView', () => {
     expect(scrollIntoViewSpy).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start' })
   })
 
-  it('renders dedicated specialist terms section when setting_text is present', async () => {
+  it('shows compact specialist terms reminder in booking sidebar when setting_text is present', async () => {
     mockCommonPublicData()
     mockedFetchChatThreads.mockResolvedValue([])
     mockedApiGet.mockImplementation(async (url) => {
@@ -479,7 +477,9 @@ describe('PublicProfileView', () => {
 
     renderView()
 
-    expect(await screen.findByRole('heading', { name: 'Умови спеціаліста перед записом' })).toBeInTheDocument()
+    expect(await screen.findByText('Перед записом')).toBeInTheDocument()
+    expect(screen.getByText('Умови спеціаліста')).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Умови спеціаліста перед записом' })).not.toBeInTheDocument()
     expect(screen.getByText('Therapist setting')).toBeInTheDocument()
   })
 
@@ -1242,7 +1242,7 @@ describe('PublicProfileView', () => {
     expect(
       await screen.findAllByText('Після вибору часу відкриється короткий запит: залиште ім’я та контакт без реєстрації.')
     ).toHaveLength(2)
-    expect(screen.getAllByText('Натискання на вільне вікно не списує оплату автоматично.')).toHaveLength(1)
+    expect(screen.getAllByText('Оплата не списується автоматично.')).toHaveLength(1)
   })
 
   it('opens guest booking request flow from slot click without auth', async () => {
@@ -1613,24 +1613,14 @@ describe('PublicProfileView', () => {
 
     renderView()
 
-    expect(await screen.findByText('Правила перед записом')).toBeInTheDocument()
+    expect(await screen.findByText('Підтвердіть правила перед записом')).toBeInTheDocument()
     expect(
       screen.getByText(
-        'Щоб продовжити запис, підтвердьте актуальні версії загальних правил платформи та умов спеціаліста. Повторне підтвердження знадобиться лише після оновлення відповідної версії.'
+        'Щоб продовжити запис до цього спеціаліста, підтвердіть актуальні правила платформи та умови спеціаліста. Повторне підтвердження знадобиться лише тоді, якщо правила платформи або умови спеціаліста оновляться.'
       )
     ).toBeInTheDocument()
     expect(screen.getByText('Загальні правила платформи')).toBeInTheDocument()
-    expect(screen.getByText('Умови спеціаліста')).toBeInTheDocument()
-    expect(
-      screen.getByText(
-        'Ви підтверджуєте загальні правила платформи для поточної версії. Повторне підтвердження потрібне лише після оновлення цих правил.'
-      )
-    ).toBeInTheDocument()
-    expect(
-      screen.getByText(
-        'Це індивідуальні умови цього спеціаліста перед записом. Повторне підтвердження потрібне лише якщо спеціаліст оновить свої правила.'
-      )
-    ).toBeInTheDocument()
+    expect(within(screen.getByLabelText('Правила перед записом')).getByText('Умови спеціаліста')).toBeInTheDocument()
 
     const bookButton = await screen.findByRole('button', { name: 'Записатися' })
     await fireEvent.click(bookButton)
@@ -1674,7 +1664,7 @@ describe('PublicProfileView', () => {
 
     renderView()
 
-    expect(screen.queryByText('Правила перед записом')).not.toBeInTheDocument()
+    expect(screen.queryByText('Підтвердіть правила перед записом')).not.toBeInTheDocument()
     await fireEvent.click(await screen.findByRole('button', { name: 'Записатися' }))
     await fireEvent.click(await screen.findByRole('button', { name: 'Підтвердити запис' }))
 
@@ -1715,9 +1705,9 @@ describe('PublicProfileView', () => {
 
     renderView()
 
-    expect(await screen.findByText('Правила перед записом')).toBeInTheDocument()
+    expect(await screen.findByText('Підтвердіть правила перед записом')).toBeInTheDocument()
     expect(screen.getByText('Загальні правила платформи')).toBeInTheDocument()
-    expect(screen.queryByText('Умови спеціаліста')).not.toBeInTheDocument()
+    expect(within(screen.getByLabelText('Правила перед записом')).queryByText('Умови спеціаліста')).not.toBeInTheDocument()
   })
 
   it('renders only specialist booking rules section when only specialist item is pending', async () => {
@@ -1749,9 +1739,9 @@ describe('PublicProfileView', () => {
 
     renderView()
 
-    expect(await screen.findByText('Правила перед записом')).toBeInTheDocument()
+    expect(await screen.findByText('Підтвердіть правила перед записом')).toBeInTheDocument()
     expect(screen.queryByText('Загальні правила платформи')).not.toBeInTheDocument()
-    expect(screen.getByText('Умови спеціаліста')).toBeInTheDocument()
+    expect(within(screen.getByLabelText('Правила перед записом')).getByText('Умови спеціаліста')).toBeInTheDocument()
   })
 
   it('does not re-prompt booking rules after successful acceptance for repeated booking actions', async () => {
@@ -1845,7 +1835,7 @@ describe('PublicProfileView', () => {
 
     await fireEvent.click(await screen.findByRole('button', { name: 'Записатися' }))
     expect(await screen.findByText('Загальні правила платформи')).toBeInTheDocument()
-    expect(screen.getByText('Умови спеціаліста')).toBeInTheDocument()
+    expect(screen.getAllByText('Умови спеціаліста').length).toBeGreaterThan(0)
     expect(
       screen.getByText(/Для гостя підтвердження діє лише для поточного запиту/i)
     ).toBeInTheDocument()
@@ -2056,6 +2046,128 @@ describe('PublicProfileView', () => {
     expect(formatErrors.length).toBeGreaterThan(0)
   })
 
+  it('renders a monthly booking calendar and marks available days from month slots', async () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-03-12T10:00:00+02:00'))
+
+    mockCommonPublicData()
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/booking/slots/') {
+        const params = (config as { params?: Record<string, unknown> } | undefined)?.params || {}
+        expect(params).toEqual(
+          expect.objectContaining({
+            therapist_id: 12,
+            date_from: '2026-03-01',
+            date_to: '2026-03-31',
+          })
+        )
+        return [
+          {
+            id: 310,
+            start_at: '2026-03-14T10:00:00+02:00',
+            end_at: '2026-03-14T10:50:00+02:00',
+          },
+        ]
+      }
+      if (url === '/public/specialists/olena/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    try {
+      renderView()
+
+      expect(await screen.findByText(/Березень 2026/i)).toBeInTheDocument()
+      const availableDay = await screen.findByRole('gridcell', {
+        name: /14 березня 2026.*доступно слотів: 1/i,
+      })
+      expect(availableDay).toHaveClass('booking-calendar__day--available')
+      expect(screen.getByText('На цю дату вільних слотів немає.')).toBeInTheDocument()
+
+      await fireEvent.click(availableDay)
+
+      expect(availableDay).toHaveClass('booking-calendar__day--selected')
+      expect(await screen.findByText('10:00')).toBeInTheDocument()
+      expect(screen.queryByText('На цю дату вільних слотів немає.')).not.toBeInTheDocument()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('loads previous and next month ranges from calendar navigation', async () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-03-12T10:00:00+02:00'))
+
+    mockCommonPublicData()
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/slots/') return []
+      if (url === '/public/specialists/olena/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    try {
+      renderView()
+      expect(await screen.findByText(/Березень 2026/i)).toBeInTheDocument()
+
+      await fireEvent.click(screen.getByRole('button', { name: 'Наступний місяць' }))
+      expect(await screen.findByText(/Квітень 2026/i)).toBeInTheDocument()
+
+      await fireEvent.click(screen.getByRole('button', { name: 'Попередній місяць' }))
+      expect(await screen.findByText(/Березень 2026/i)).toBeInTheDocument()
+
+      const slotCalls = mockedApiGet.mock.calls.filter((call) => call[0] === '/booking/slots/')
+      expect(slotCalls).toEqual(
+        expect.arrayContaining([
+          [
+            '/booking/slots/',
+            expect.objectContaining({
+              params: expect.objectContaining({
+                therapist_id: 12,
+                date_from: '2026-03-01',
+                date_to: '2026-03-31',
+              }),
+            }),
+          ],
+          [
+            '/booking/slots/',
+            expect.objectContaining({
+              params: expect.objectContaining({
+                therapist_id: 12,
+                date_from: '2026-04-01',
+                date_to: '2026-04-30',
+              }),
+            }),
+          ],
+        ])
+      )
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('shows a month-level empty state when the visible month has no slots', async () => {
+    mockCommonPublicData()
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/slots/') return []
+      if (url === '/public/specialists/olena/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    await screen.findByRole('heading', { name: 'Оберіть дату і час' })
+    await waitFor(() => {
+      const slotCalls = mockedApiGet.mock.calls.filter((call) => call[0] === '/booking/slots/')
+      expect(slotCalls).toHaveLength(1)
+    })
+    await flushAsyncUpdates()
+    expect(screen.getByText('У цьому місяці поки немає доступних слотів.')).toBeInTheDocument()
+    const slotCalls = mockedApiGet.mock.calls.filter((call) => call[0] === '/booking/slots/')
+    expect(slotCalls).toHaveLength(1)
+  })
+
   it('shows slots for the selected local day even when the slot starts on the previous UTC date', async () => {
     vi.useFakeTimers()
     vi.setSystemTime(new Date('2026-03-12T10:00:00+02:00'))
@@ -2063,23 +2175,11 @@ describe('PublicProfileView', () => {
     mockCommonPublicData()
     mockedFetchChatThreads.mockResolvedValue([])
 
-    const selectedLocalDate = '2026-03-12'
-
     mockedApiGet.mockImplementation(async (url, config) => {
       if (url === '/booking/slots/') {
         const params = (config as { params?: Record<string, unknown> } | undefined)?.params || {}
 
-        if (params.date_from === selectedLocalDate && params.date_to === selectedLocalDate) {
-          return [
-            {
-              id: 100,
-              start_at: '2026-03-11T22:30:00Z',
-              end_at: '2026-03-11T23:20:00Z',
-            },
-          ]
-        }
-
-        if (params.therapist_id === 12 && !params.date_from && !params.date_to) {
+        if (params.date_from === '2026-03-01' && params.date_to === '2026-03-31') {
           return [
             {
               id: 100,
@@ -2101,12 +2201,11 @@ describe('PublicProfileView', () => {
       renderView()
       await flushAsyncUpdates()
 
-      const dateInput = screen.getByLabelText('Оберіть дату')
-      await fireEvent.update(dateInput, '2026-03-12')
+      expect(await screen.findByText(/Березень 2026/i)).toBeInTheDocument()
       await flushAsyncUpdates()
 
       expect(screen.getByText('00:30')).toBeInTheDocument()
-      expect(screen.queryByText('На жаль, у цей день вільних віконець немає.')).not.toBeInTheDocument()
+      expect(screen.queryByText('На цю дату вільних слотів немає.')).not.toBeInTheDocument()
     } finally {
       vi.useRealTimers()
     }

@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <section class="public">
     <div v-if="loading" class="muted">Завантаження...</div>
     <section v-else-if="ownerUnpublishedProfile" class="panel panel--owner-unpublished">
@@ -73,19 +73,6 @@
           :format-date="formatDate"
         />
 
-        <section class="panel panel--terms" v-if="specialistBookingTermsText">
-          <div class="panel__header">
-            <div>
-              <p class="panel__eyebrow">Перед записом</p>
-              <h2 class="panel__title">Умови спеціаліста перед записом</h2>
-              <p class="panel__lead">
-                Індивідуальні умови цього спеціаліста. Якщо умови оновляться, перед новим записом може знадобитися повторне підтвердження.
-              </p>
-            </div>
-          </div>
-          <p class="terms-text">{{ specialistBookingTermsText }}</p>
-        </section>
-
       <section v-if="showInquiryPanel" class="panel panel--inquiry" id="inquiry">
         <div class="panel__header">
           <div>
@@ -153,42 +140,67 @@
         <div class="panel__header">
           <div>
             <p class="panel__eyebrow">Доступні вільні вікна</p>
-            <h2 class="panel__title">Найближчі дати</h2>
-            <p class="panel__lead">Оберіть дату, час і формат сесії, щоб одразу перейти до запису.</p>
+            <h2 class="panel__title">Оберіть дату і час</h2>
+            <p class="panel__lead">Оберіть день у календарі, а потім зручний час для сесії.</p>
           </div>
         </div>
 
         <div class="slot-top">
           <div class="slot-filter">
             <div class="slot-filter__calendar">
-              <div class="slot-week">
+              <div class="booking-calendar__header">
                 <button
-                  v-for="day in weekDays"
-                  :key="day.date"
-                  class="slot-day"
-                  :class="{ 'slot-day--active': day.date === selectedDate }"
+                  class="booking-calendar__nav"
                   type="button"
-                  @click="selectDay(day.date)"
+                  aria-label="Попередній місяць"
+                  @click="changeVisibleMonth(-1)"
                 >
-                  <span class="slot-day__label">{{ day.label }}</span>
-                  <span class="slot-day__date">{{ day.dateLabel }}</span>
+                  ‹
+                </button>
+                <div class="booking-calendar__month" aria-live="polite">{{ visibleMonthLabel }}</div>
+                <button
+                  class="booking-calendar__nav"
+                  type="button"
+                  aria-label="Наступний місяць"
+                  @click="changeVisibleMonth(1)"
+                >
+                  ›
                 </button>
               </div>
-            </div>
-            <div class="slot-filter__picker">
-              <label class="slot-filter__label" for="slotDate">Оберіть дату</label>
-              <input
-                id="slotDate"
-                class="input slot-filter__input"
-                type="date"
-                v-model="selectedDate"
-                :min="todayInputValue"
-                ref="slotDateInput"
-                @click="openDatePicker"
-                @focus="openDatePicker"
-              />
-              <div class="muted slot-filter__hint">
-                Оберіть дату, щоб переглянути доступні вільні вікна.
+              <div class="booking-calendar__grid" role="grid" :aria-label="visibleMonthLabel">
+                <div
+                  v-for="dayName in calendarWeekdayHeaders"
+                  :key="dayName"
+                  class="booking-calendar__weekday"
+                  role="columnheader"
+                >
+                  {{ dayName }}
+                </div>
+                <div
+                  v-for="index in calendarLeadingBlanks"
+                  :key="`blank-${index}`"
+                  class="booking-calendar__blank"
+                  aria-hidden="true"
+                ></div>
+                <button
+                  v-for="day in calendarDays"
+                  :key="day.date"
+                  class="booking-calendar__day"
+                  :class="{
+                    'booking-calendar__day--available': day.isAvailable,
+                    'booking-calendar__day--selected': day.isSelected,
+                    'booking-calendar__day--today': day.isToday,
+                  }"
+                  type="button"
+                  role="gridcell"
+                  :aria-label="day.ariaLabel"
+                  :aria-selected="day.isSelected"
+                  :disabled="!day.isAvailable"
+                  @click="selectCalendarDay(day.date)"
+                >
+                  <span class="booking-calendar__day-number">{{ day.dayNumber }}</span>
+                  <span v-if="day.isAvailable" class="booking-calendar__dot" aria-hidden="true"></span>
+                </button>
               </div>
             </div>
             <div class="slot-format slot-filter__format">
@@ -229,12 +241,12 @@
 
           <aside class="slot-info" aria-label="Умови бронювання">
             <div class="slot-info__title">Перед записом</div>
+            <div class="slot-info__subtitle">Умови спеціаліста</div>
+            <p class="slot-info__summary">{{ specialistTermsReminderSummary }}</p>
             <ul class="slot-info__list">
-              <li v-if="isGuestVisitor">Можна почати без реєстрації: оберіть слот і залиште короткий запит з контактом.</li>
-              <li v-else-if="!isClient">Бронювання доступне лише для клієнтів.</li>
-              <li v-else>Бронювання доступне в кабінеті клієнта.</li>
-              <li>Натискання на вільне вікно не списує оплату автоматично.</li>
-              <li>Спеціаліст підтверджує сесію після запису.</li>
+              <li>Правила потрібно підтвердити один раз для цього спеціаліста.</li>
+              <li>Якщо умови оновляться, система попросить підтвердити їх повторно.</li>
+              <li>Оплата не списується автоматично.</li>
               <li>Нагадування надходять після підтвердження.</li>
             </ul>
           </aside>
@@ -252,12 +264,15 @@
           </div>
         </div>
 
-        <div class="slot-list-heading">Вільні вікна на обрану дату</div>
+        <div class="slot-list-heading">Вільні вікна на {{ selectedDateDisplayLabel }}</div>
 
         <div v-if="slotsLoading" class="muted">Завантажуємо вільні вікна</div>
         <div v-else-if="slotsError" class="form-error">{{ slotsError }}</div>
+        <div v-else-if="!monthHasSlots" class="slot-empty muted">
+          У цьому місяці поки немає доступних слотів.
+        </div>
         <div v-else-if="slots.length === 0" class="slot-empty muted">
-          {{ noSlotsAvailable ? 'Наразі вільних віконець немає.' : 'На жаль, у цей день вільних віконець немає.' }}
+          На цю дату вільних слотів немає.
         </div>
         <div v-else class="slot-list">
           <button
@@ -288,14 +303,11 @@
           class="booking-gate booking-gate--pending"
           aria-label="Правила перед записом"
         >
-          <div class="booking-gate__title">Правила перед записом</div>
+          <div class="booking-gate__title">Підтвердіть правила перед записом</div>
           <p class="booking-gate__text">{{ clientBookingRulesPromptText }}</p>
 
           <article v-if="pendingPlatformBookingRules.length" class="booking-rules-block">
             <div class="booking-rules-block__title">Загальні правила платформи</div>
-            <p class="muted" style="margin: 6px 0 10px;">
-              Ви підтверджуєте загальні правила платформи для поточної версії. Повторне підтвердження потрібне лише після оновлення цих правил.
-            </p>
             <p
               v-for="rule in pendingPlatformBookingRules"
               :key="`platform-${rule.version}`"
@@ -307,9 +319,6 @@
 
           <article v-if="pendingSpecialistBookingRules.length" class="booking-rules-block">
             <div class="booking-rules-block__title">Умови спеціаліста</div>
-            <p class="muted" style="margin: 6px 0 10px;">
-              Це індивідуальні умови цього спеціаліста перед записом. Повторне підтвердження потрібне лише якщо спеціаліст оновить свої правила.
-            </p>
             <p
               v-for="rule in pendingSpecialistBookingRules"
               :key="`specialist-${rule.version}-${rule.specialist_id || 'none'}`"
@@ -761,9 +770,7 @@ import { toLocalDate } from '../lib/dates'
 import {
   formatUkDateLong,
   formatUkDateTimeCompact,
-  formatUkDayMonth,
   formatUkTime,
-  formatUkWeekdayShort,
 } from '../lib/dateTime'
 import {
   fetchPublicSpecialistProfile,
@@ -908,12 +915,12 @@ const auth = useAuthStore()
 const toast = useToast()
 const profile = ref<PublicSpecialistProfile | null>(null)
 const slots = ref<PublicSlot[]>([])
+const monthSlots = ref<PublicSlot[]>([])
 const loading = ref(false)
 const slotsLoading = ref(false)
 const error = ref('')
 const ownerUnpublishedProfile = ref(false)
 const slotsError = ref('')
-const noSlotsAvailable = ref(false)
 const bookingError = ref('')
 const bookingSuccess = ref('')
 const bookingSlotId = ref<number | null>(null)
@@ -967,10 +974,11 @@ const categoryOptions: { key: JournalCategory; label: string }[] = [
   { key: 'FAQ', label: 'FAQ' },
 ]
 const selectedDate = ref('')
-const slotDateInput = ref<HTMLInputElement | null>(null)
+const visibleMonthStart = ref(toLocalMonthStart(new Date()))
 const showAllSlots = ref(false)
 const slotsPreviewLimit = 96
 const bookingSessionFormat = ref<SessionFormat>('online')
+const monthSlotsCache = new Map<string, PublicSlot[]>()
 
 const slug = computed(() => String(route.params.slug || '').trim())
 const roles = computed(() => auth.me?.user.roles ?? auth.user?.roles ?? [])
@@ -1058,15 +1066,15 @@ const requiresSpecialistRulesPrompt = computed(
 
 const clientBookingRulesPromptText = computed(() => {
   if (requiresPlatformRulesPrompt.value && requiresSpecialistRulesPrompt.value) {
-    return 'Щоб продовжити запис, підтвердьте актуальні версії загальних правил платформи та умов спеціаліста. Повторне підтвердження знадобиться лише після оновлення відповідної версії.'
+    return 'Щоб продовжити запис до цього спеціаліста, підтвердіть актуальні правила платформи та умови спеціаліста. Повторне підтвердження знадобиться лише тоді, якщо правила платформи або умови спеціаліста оновляться.'
   }
   if (requiresPlatformRulesPrompt.value) {
-    return 'Щоб продовжити запис, підтвердьте актуальну версію загальних правил платформи. Повторне підтвердження потрібне лише після оновлення правил.'
+    return 'Щоб продовжити запис до цього спеціаліста, підтвердіть актуальні правила платформи. Повторне підтвердження знадобиться лише тоді, якщо правила платформи оновляться.'
   }
   if (requiresSpecialistRulesPrompt.value) {
-    return 'Щоб продовжити запис, підтвердьте актуальну версію умов спеціаліста. Повторне підтвердження потрібне лише якщо спеціаліст оновить свої правила.'
+    return 'Щоб продовжити запис до цього спеціаліста, підтвердіть актуальні умови спеціаліста. Повторне підтвердження знадобиться лише тоді, якщо умови спеціаліста оновляться.'
   }
-  return 'Щоб продовжити запис, підтвердьте актуальні правила перед записом.'
+  return 'Щоб продовжити запис до цього спеціаліста, підтвердіть актуальні правила.'
 })
 
 const bookingRulesConfirmLabel = computed(() =>
@@ -1155,17 +1163,39 @@ const showInquiryPanel = computed(() => {
   if (hasActiveClientRelation.value) return false
   return inquiryLoading.value || Boolean(inquiryState.value)
 })
-const weekDays = computed(() => {
-  const base = new Date()
-  const days: Array<{ date: string; label: string; dateLabel: string }> = []
-  for (let i = 0; i < 10; i += 1) {
-    const d = new Date(base)
-    d.setDate(base.getDate() + i)
-    const date = toLocalDate(d)
-    const label = formatUkWeekdayShort(d)
-    const dateLabel = formatUkDayMonth(d)
-    days.push({ date, label, dateLabel })
+const calendarWeekdayHeaders = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд']
+const visibleMonthLabel = computed(() => formatCalendarMonthLabel(visibleMonthStart.value))
+const calendarLeadingBlanks = computed(() => {
+  const firstDay = parseLocalDateValue(visibleMonthStart.value)
+  return (firstDay.getDay() + 6) % 7
+})
+const slotsByLocalDate = computed(() => groupSlotsByLocalDate(monthSlots.value))
+const monthHasSlots = computed(() => monthSlots.value.length > 0)
+const selectedDateDisplayLabel = computed(() => {
+  if (!selectedDate.value) return 'обрану дату'
+  return formatCalendarDateLabel(selectedDate.value)
+})
+const calendarDays = computed(() => {
+  const firstDay = parseLocalDateValue(visibleMonthStart.value)
+  const year = firstDay.getFullYear()
+  const month = firstDay.getMonth()
+  const daysInMonth = new Date(year, month + 1, 0).getDate()
+  const today = toLocalDate(new Date())
+  const days = []
+
+  for (let dayNumber = 1; dayNumber <= daysInMonth; dayNumber += 1) {
+    const date = toLocalDate(new Date(year, month, dayNumber))
+    const availableCount = slotsByLocalDate.value.get(date)?.length || 0
+    days.push({
+      date,
+      dayNumber,
+      isAvailable: availableCount > 0,
+      isSelected: date === selectedDate.value,
+      isToday: date === today,
+      ariaLabel: `${formatCalendarDateLabel(date)}${availableCount ? `, доступно слотів: ${availableCount}` : ', немає доступних слотів'}`,
+    })
   }
+
   return days
 })
 const sectionsTrust = computed(() => profile.value?.sections?.trust || null)
@@ -1735,6 +1765,15 @@ const specialistBookingTermsText = computed(() => {
     )
   )
   return uniqueRuleTexts.join('\n\n')
+})
+const specialistTermsReminderSummary = computed(() => {
+  const source = specialistBookingTermsText.value.trim()
+  if (!source) {
+    return 'Консультація триває 50 хвилин. Скасування або перенесення можливе не пізніше ніж за 24 години до зустрічі.'
+  }
+  const normalized = source.replace(/\s+/g, ' ').trim()
+  const firstSentence = normalized.match(/[^.!?]+[.!?]/)?.[0]?.trim() || normalized
+  return firstSentence.length > 170 ? `${firstSentence.slice(0, 167).trim()}...` : firstSentence
 })
 
 const GENERAL_INFO_EXCLUDED_LABELS = new Set([
@@ -2319,37 +2358,85 @@ function formatDurationPlain(start: string, end: string) {
   return formatDuration(start, end).replace(/^\u0422\u0440\u0438\u0432\u0430\u043b\u0456\u0441\u0442\u044c:\s*/, '').trim()
 }
 
-function slotMatchesLocalDate(slot: PublicSlot, date: string) {
-  return toLocalDate(new Date(slot.start_at)) === date
+function parseLocalDateValue(value: string) {
+  const parts = value.split('-').map((part) => Number(part))
+  const yearRaw = parts[0]
+  const monthRaw = parts[1]
+  const dayRaw = parts[2]
+  const year = Number.isFinite(yearRaw) ? yearRaw : new Date().getFullYear()
+  const month = Number.isFinite(monthRaw) ? Number(monthRaw) - 1 : new Date().getMonth()
+  const day = Number.isFinite(dayRaw) ? dayRaw : 1
+  return new Date(Number(year), month, Number(day))
 }
 
-function toApiDayRangeForLocalDate(date: string) {
+function toLocalMonthStart(value: Date | string) {
+  const date = value instanceof Date ? value : parseLocalDateValue(value)
+  return toLocalDate(new Date(date.getFullYear(), date.getMonth(), 1))
+}
+
+function toApiMonthRange(monthStart: string) {
+  const firstDay = parseLocalDateValue(monthStart)
+  const lastDay = new Date(firstDay.getFullYear(), firstDay.getMonth() + 1, 0)
   return {
-    date_from: date,
-    date_to: date,
+    date_from: toLocalDate(firstDay),
+    date_to: toLocalDate(lastDay),
   }
 }
 
-function toDateInputValue(date: Date) {
-  const offset = date.getTimezoneOffset() * 60000
-  return new Date(date.getTime() - offset).toISOString().slice(0, 10)
+function addMonths(monthStart: string, amount: number) {
+  const date = parseLocalDateValue(monthStart)
+  return toLocalMonthStart(new Date(date.getFullYear(), date.getMonth() + amount, 1))
 }
 
-const todayInputValue = toDateInputValue(new Date())
+function formatCalendarMonthLabel(monthStart: string) {
+  const label = new Intl.DateTimeFormat('uk-UA', {
+    month: 'long',
+    year: 'numeric',
+  }).format(parseLocalDateValue(monthStart))
+  return label.charAt(0).toUpperCase() + label.slice(1)
+}
 
-function openDatePicker() {
-  const input = slotDateInput.value
-  if (!input) return
-  if (typeof input.showPicker === 'function') {
-    input.showPicker()
-  } else {
-    input.focus()
+function formatCalendarDateLabel(date: string) {
+  return new Intl.DateTimeFormat('uk-UA', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+  }).format(parseLocalDateValue(date))
+}
+
+function isDateInVisibleMonth(date: string) {
+  if (!date) return false
+  return toLocalMonthStart(date) === visibleMonthStart.value
+}
+
+function groupSlotsByLocalDate(sourceSlots: PublicSlot[]) {
+  const groups = new Map<string, PublicSlot[]>()
+  for (const slot of sourceSlots) {
+    const date = toLocalDate(new Date(slot.start_at))
+    if (!groups.has(date)) groups.set(date, [])
+    groups.get(date)!.push(slot)
   }
+  for (const group of groups.values()) {
+    group.sort((a, b) => new Date(a.start_at).getTime() - new Date(b.start_at).getTime())
+  }
+  return groups
 }
 
-function selectDay(date: string) {
+function syncSelectedDateSlots() {
+  slots.value = [...(slotsByLocalDate.value.get(selectedDate.value) || [])]
+}
+
+function selectCalendarDay(date: string) {
+  if (!slotsByLocalDate.value.has(date)) return
   selectedDate.value = date
   showAllSlots.value = false
+  syncSelectedDateSlots()
+}
+
+async function changeVisibleMonth(amount: number) {
+  visibleMonthStart.value = addMonths(visibleMonthStart.value, amount)
+  showAllSlots.value = false
+  await loadSlots({ preferFirstAvailable: true })
 }
 
 function scrollToSlots() {
@@ -2536,32 +2623,40 @@ async function loadProfile() {
   }
 }
 
-async function loadSlots() {
+async function loadSlots(options: { preferFirstAvailable?: boolean; forceRefresh?: boolean } = {}) {
   if (!profile.value?.therapist_id) return
   slotsLoading.value = true
   slotsError.value = ''
-  noSlotsAvailable.value = false
   try {
-    const selectedLocalDate = selectedDate.value || toLocalDate(new Date())
-    const localDayRange = toApiDayRangeForLocalDate(selectedLocalDate)
-    const resp = await apiGet<PublicSlot[]>('/booking/slots/', {
-      params: {
-        therapist_id: profile.value.therapist_id,
-        date_from: localDayRange.date_from,
-        date_to: localDayRange.date_to,
-      },
-    })
-    const list = (resp || []).filter((slot) => slotMatchesLocalDate(slot, selectedLocalDate))
-    slots.value = list
-    if (!list.length) {
-      const anyResp = await apiGet<PublicSlot[]>('/booking/slots/', {
-        params: { therapist_id: profile.value.therapist_id },
+    const currentMonth = visibleMonthStart.value
+    const cachedSlots = options.forceRefresh ? undefined : monthSlotsCache.get(currentMonth)
+    const nextMonthSlots = cachedSlots || await (async () => {
+      const monthRange = toApiMonthRange(currentMonth)
+      const resp = await apiGet<PublicSlot[]>('/booking/slots/', {
+        params: {
+          therapist_id: profile.value!.therapist_id,
+          date_from: monthRange.date_from,
+          date_to: monthRange.date_to,
+        },
       })
-      noSlotsAvailable.value = !(anyResp && anyResp.length)
+      if (!Array.isArray(resp)) {
+        throw new Error('Unexpected slots response')
+      }
+      monthSlotsCache.set(currentMonth, resp)
+      return resp
+    })()
+
+    monthSlots.value = nextMonthSlots
+    const groupedSlots = groupSlotsByLocalDate(nextMonthSlots)
+    const firstAvailableDate = Array.from(groupedSlots.keys()).sort()[0] || currentMonth
+    if (!isDateInVisibleMonth(selectedDate.value) || (options.preferFirstAvailable && firstAvailableDate)) {
+      selectedDate.value = firstAvailableDate
     }
+    slots.value = [...(groupedSlots.get(selectedDate.value) || [])]
   } catch {
+    monthSlots.value = []
     slots.value = []
-    slotsError.value = 'Не вдалося завантажити вільні вікна.'
+    slotsError.value = 'Не вдалося завантажити доступні слоти. Спробуйте ще раз.'
   } finally {
     slotsLoading.value = false
   }
@@ -3095,7 +3190,7 @@ async function submitGuestBookingRequest() {
     guestBookingError.value = getGuestBookingErrorMessage(err)
     toast.error(guestBookingError.value)
     if (isGuestBookingUnavailableError(err)) {
-      await loadSlots()
+      await loadSlots({ forceRefresh: true })
     }
   } finally {
     guestBookingSubmitting.value = false
@@ -3150,7 +3245,7 @@ async function confirmClientBookingFromModal() {
   if (!selectedSlot) {
     bookingError.value = SLOT_UNAVAILABLE_MESSAGE
     closeClientBookingConfirmModal()
-    await loadSlots()
+    await loadSlots({ forceRefresh: true })
     return
   }
   if (shouldShowClientBookingRulesPrompt.value) {
@@ -3217,6 +3312,11 @@ async function bookSlot(slotId: number): Promise<boolean> {
     toast.success(bookingSuccess.value)
     lastBookedSlot.value = bookedSlot
     showBookingModal.value = true
+    monthSlots.value = monthSlots.value.filter((slot) => slot.id !== slotId)
+    monthSlotsCache.set(
+      visibleMonthStart.value,
+      (monthSlotsCache.get(visibleMonthStart.value) || []).filter((slot) => slot.id !== slotId)
+    )
     slots.value = slots.value.filter((slot) => slot.id !== slotId)
     if (profile.value) {
       const entry = pickSpecialist(profile.value)
@@ -3232,7 +3332,7 @@ async function bookSlot(slotId: number): Promise<boolean> {
     if (isClientBookingUnavailableError(err)) {
       bookingError.value = SLOT_UNAVAILABLE_MESSAGE
       resetClientBookingConfirmModalState()
-      await loadSlots()
+      await loadSlots({ forceRefresh: true })
     } else {
       bookingError.value = getBookingErrorMessage(err, BOOKING_ERROR_FALLBACKS.bookSlot)
     }
@@ -3330,6 +3430,8 @@ watch(
 watch(slug, () => {
   profile.value = null
   slots.value = []
+  monthSlots.value = []
+  monthSlotsCache.clear()
   showGuestBookingModal.value = false
   guestBookingSlot.value = null
   guestBookingError.value = ''
@@ -3344,6 +3446,7 @@ watch(slug, () => {
   closeContactActionFallbackModal()
   showAllSlots.value = false
   selectedDate.value = toLocalDate(new Date())
+  visibleMonthStart.value = toLocalMonthStart(selectedDate.value)
   inquiryState.value = null
   inquiryMessages.value = []
   inquiryDraft.value = ''
@@ -3362,9 +3465,13 @@ watch(slug, () => {
 })
 
 watch(selectedDate, () => {
-  slots.value = []
   showAllSlots.value = false
-  loadSlots()
+  if (!isDateInVisibleMonth(selectedDate.value)) {
+    visibleMonthStart.value = toLocalMonthStart(selectedDate.value)
+    loadSlots()
+    return
+  }
+  syncSelectedDateSlots()
 })
 
 watch([isAuthenticated, isClient], () => {
@@ -3708,7 +3815,6 @@ onMounted(async () => {
 .panel--trust,
 .panel--documents,
 .panel--work-format,
-.panel--terms,
 .panel--about,
 .panel--who,
 .panel--contacts,
@@ -3780,26 +3886,6 @@ onMounted(async () => {
   max-width: 78ch;
 }
 
-.panel--terms {
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, #f8f0de 34%, #ffffff),
-    #ffffff
-  );
-}
-
-.terms-text {
-  margin: 0;
-  white-space: pre-line;
-  color: color-mix(in srgb, var(--text) 88%, var(--muted));
-  font-size: 14px;
-  line-height: 1.56;
-  border: 1px solid color-mix(in srgb, #d9a441 22%, var(--line));
-  border-radius: 12px;
-  padding: 10px 12px;
-  background: color-mix(in srgb, #f7efe0 48%, #ffffff);
-}
-
 .slot-filter {
   display: grid;
   gap: 10px;
@@ -3810,7 +3896,6 @@ onMounted(async () => {
 }
 
 .slot-filter__calendar,
-.slot-filter__picker,
 .slot-filter__format {
   display: grid;
   gap: 7px;
@@ -3827,48 +3912,116 @@ onMounted(async () => {
   align-items: start;
 }
 
-.slot-week {
+.booking-calendar__header {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(72px, 1fr));
-  gap: 7px;
+  grid-template-columns: 40px minmax(0, 1fr) 40px;
+  align-items: center;
+  gap: 8px;
 }
 
-.slot-day {
-  border: 1px solid var(--line);
-  background: #fff;
-  border-radius: 12px;
-  padding: 8px 8px;
-  display: grid;
-  gap: 4px;
-  min-width: 0;
+.booking-calendar__month {
   text-align: center;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--pc-navy-900);
+}
+
+.booking-calendar__nav {
+  appearance: none;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--pc-bg-card) 92%, var(--pc-blue-soft));
+  color: var(--pc-navy-900);
+  font-size: 24px;
+  line-height: 1;
   cursor: pointer;
-  color: var(--pc-text-main);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.booking-calendar__nav:hover,
+.booking-calendar__nav:focus-visible {
+  border-color: color-mix(in srgb, var(--pc-navy-900) 30%, var(--line));
+  box-shadow: 0 8px 18px rgba(18, 35, 58, 0.08);
+  transform: translateY(-1px);
+}
+
+.booking-calendar__grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.booking-calendar__weekday {
+  display: grid;
+  place-items: center;
+  min-height: 26px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--pc-text-muted);
+}
+
+.booking-calendar__blank {
+  min-height: 40px;
+}
+
+.booking-calendar__day {
+  border: 1px solid var(--line);
+  background: color-mix(in srgb, #f7f3eb 54%, #ffffff);
+  border-radius: 10px;
+  min-width: 0;
+  min-height: 42px;
+  padding: 5px 4px;
+  display: grid;
+  place-items: center;
+  gap: 2px;
+  text-align: center;
+  cursor: not-allowed;
+  color: var(--pc-text-soft);
   font-weight: 600;
   transition: border-color 0.15s ease, background 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
 }
 
-.slot-day:hover {
+.booking-calendar__day--available {
+  border-color: color-mix(in srgb, var(--pc-teal-500) 28%, var(--line));
+  background: color-mix(in srgb, var(--pc-teal-500) 13%, #ffffff);
+  color: var(--pc-text-main);
+  cursor: pointer;
+}
+
+.booking-calendar__day--available:hover,
+.booking-calendar__day--available:focus-visible {
   border-color: color-mix(in srgb, var(--pc-navy-900) 26%, var(--line));
   box-shadow: 0 8px 18px rgba(18, 35, 58, 0.08);
   transform: translateY(-1px);
 }
 
-.slot-day__label {
-  text-transform: uppercase;
-  font-size: 10px;
-  letter-spacing: 0.08em;
-  color: var(--pc-text-muted);
-}
-
-.slot-day__date {
-  font-size: 13px;
-}
-
-.slot-day--active {
-  border-color: color-mix(in srgb, var(--pc-navy-900) 50%, var(--border));
-  background: color-mix(in srgb, var(--pc-blue-soft) 70%, #ffffff);
+.booking-calendar__day--selected {
+  border-color: color-mix(in srgb, var(--pc-navy-900) 58%, var(--border));
+  background: color-mix(in srgb, var(--pc-blue-soft) 78%, #ffffff);
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--pc-navy-900) 14%, transparent);
+  color: var(--pc-navy-900);
+}
+
+.booking-calendar__day--today:not(.booking-calendar__day--selected) {
+  border-color: color-mix(in srgb, var(--pc-peach-500) 46%, var(--line));
+}
+
+.booking-calendar__day:disabled {
+  opacity: 0.68;
+}
+
+.booking-calendar__day-number {
+  font-size: 13px;
+  line-height: 1;
+}
+
+.booking-calendar__dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--pc-teal-500);
 }
 
 .slot-filter__label {
@@ -3877,10 +4030,6 @@ onMounted(async () => {
   letter-spacing: 0.08em;
   color: var(--pc-text-muted);
   font-weight: 700;
-}
-
-.slot-filter__input {
-  max-width: 100%;
 }
 
 .slot-filter__hint {
@@ -3937,6 +4086,20 @@ onMounted(async () => {
   font-size: 14px;
   font-weight: 700;
   color: var(--pc-navy-900);
+}
+
+.slot-info__subtitle {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--pc-text-muted);
+}
+
+.slot-info__summary {
+  margin: 0;
+  color: var(--pc-text-main);
+  font-size: 13px;
+  line-height: 1.45;
 }
 
 .slot-info__list {
@@ -4970,14 +5133,14 @@ onMounted(async () => {
     font-weight: 600;
   }
 
-  .booking-gate {
-    display: grid;
-    gap: 10px;
-    padding: 12px;
-    margin-top: 6px;
-    border-radius: 12px;
-    border: 1px solid color-mix(in srgb, #d9a441 30%, var(--line));
-    background: color-mix(in srgb, #f4e2ae 10%, #ffffff);
+.booking-gate {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  margin-top: 8px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, #d9a441 30%, var(--line));
+  background: color-mix(in srgb, #f4e2ae 10%, #ffffff);
   }
 
   .booking-gate--pending {
@@ -5008,14 +5171,14 @@ onMounted(async () => {
     min-width: 240px;
   }
 
-  .booking-rules-block {
-    display: grid;
-    gap: 6px;
-    padding: 10px 12px;
-    border-radius: 10px;
-    border: 1px solid var(--line);
-    background: #fff;
-  }
+.booking-rules-block {
+  display: grid;
+  gap: 8px;
+  padding: 0;
+  border-radius: 10px;
+  border: 0;
+  background: transparent;
+}
 
   .booking-rules-block__title {
     font-size: 12px;
@@ -5025,13 +5188,17 @@ onMounted(async () => {
     font-weight: 700;
   }
 
-  .booking-rules-block__item {
-    margin: 0;
-    color: var(--text);
-    font-size: 13px;
-    line-height: 1.45;
-    white-space: pre-line;
-  }
+.booking-rules-block__item {
+  margin: 0;
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.45;
+  white-space: pre-line;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+}
 
   .setting-check {
     display: flex;
@@ -5390,8 +5557,34 @@ onMounted(async () => {
 }
 
 @media (max-width: 640px) {
+  .booking-calendar__header {
+    grid-template-columns: 38px minmax(0, 1fr) 38px;
+  }
+
+  .booking-calendar__nav {
+    width: 38px;
+    height: 38px;
+  }
+
+  .booking-calendar__grid {
+    gap: 4px;
+  }
+
+  .booking-calendar__day {
+    min-height: 38px;
+    border-radius: 8px;
+    padding: 4px 2px;
+  }
+
+  .booking-calendar__blank {
+    min-height: 38px;
+  }
+
   .slot-list {
     grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
   }
 }
 </style>
+
+
+
