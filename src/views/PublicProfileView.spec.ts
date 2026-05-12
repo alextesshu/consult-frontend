@@ -506,8 +506,7 @@ describe('PublicProfileView', () => {
     expect(await screen.findByRole('heading', { name: 'Про мене' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Формат роботи' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Основні запити' })).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Межі роботи' })).toBeInTheDocument()
-    expect(screen.getByText('Не працюю з кризовими станами.')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'З чим я не працюю' })).toBeInTheDocument()
   })
 
   it('uses sections.publications_preview as primary source for journal preview', async () => {

@@ -1,4 +1,4 @@
-<template>
+﻿<template>
   <section
     id="about-me"
     class="panel panel--about text-section text-section--about text-section--compact"
@@ -48,7 +48,10 @@
   <section class="panel panel--who structured-section structured-section--soft" v-if="whoIsNotSuitableText">
     <div class="panel__header">
       <div>
-        <h2 class="panel__title">Межі роботи</h2>
+        <h2 class="panel__title">З чим я не працюю</h2>
+        <p class="panel__lead">
+          Тут спеціаліст пояснює, у яких випадках краще звернутися до іншого фахівця або отримати медичну допомогу.
+        </p>
       </div>
     </div>
     <ul v-if="whoIsNotSuitableItems.length" class="scope-list scope-list--warning">
@@ -76,8 +79,8 @@ function splitScopeText(rawValue: string): string[] {
     .trim()
   if (!normalized) return []
   const splitByMarkers = normalized
-    .split(/\n|[;•]+/g)
-    .map((item) => item.replace(/^[\s\-–—]+/, '').trim())
+    .split(/\n|[;вЂў]+/g)
+    .map((item) => item.replace(/^[\s\-вЂ“вЂ”]+/, '').trim())
     .filter(Boolean)
   if (splitByMarkers.length > 0) {
     return Array.from(new Set(splitByMarkers))
@@ -316,3 +319,4 @@ const whoIsNotSuitableItems = computed(() => splitScopeText(props.whoIsNotSuitab
   }
 }
 </style>
+
