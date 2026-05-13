@@ -781,6 +781,7 @@ import {
   type InquiryMessage,
   type InquiryState,
   type PublicContactAction,
+  type PublicProfileAboutSection as PublicProfileAboutSectionData,
   type PublicProfileAboutItem,
   type PublicProfileCompetenceSection,
   type PublicProfileContactActionsSection,
@@ -1517,16 +1518,11 @@ const heroRoleLine = computed(() => {
 })
 
 const heroLeadText = computed(() => {
-  const source = firstFilledText(
-    resolveSectionAboutField('bio_about'),
-    resolveSectionAboutField('bio'),
-    profile.value?.bio_about,
-    sectionAboutSections.value[0]?.body,
-    profile.value?.bio,
-    profile.value?.bio_work,
-    profile.value?.bio_approach
+  const sectionSummary = toDisplayText(
+    (sectionsAbout.value as (PublicProfileAboutSectionData & Record<string, unknown>) | null)?.public_profile_summary
   )
-  if (!source) return 'Спеціаліст описує формат роботи та допомагає зробити перший крок у зручному для вас темпі.'
+  const source = firstFilledText(sectionSummary, toDisplayText(profile.value?.public_profile_summary))
+  if (!source) return ''
   return source.replace(/\s+/g, ' ').trim()
 })
 
@@ -1736,7 +1732,7 @@ const aboutNarrativeText = computed(() =>
   )
 )
 
-const showHeroReadMore = computed(() => Boolean(aboutNarrativeText.value))
+const showHeroReadMore = computed(() => Boolean(heroLeadText.value && aboutNarrativeText.value))
 
 const workStyleText = computed(() => {
   const source = normalizeMultilineText(

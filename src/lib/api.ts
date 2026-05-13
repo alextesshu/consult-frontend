@@ -155,6 +155,7 @@ export type TherapistProfile = {
   professional_focus?: ProfessionalFocus | null
   display_name: string
   bio?: string
+  public_profile_summary?: string
   bio_about: string
   bio_work: string
   bio_approach: string
@@ -650,6 +651,7 @@ export type PublicProfileAboutItem = {
 export type PublicProfileAboutSection = {
   items?: PublicProfileAboutItem[] | null
   sections?: PublicProfileAboutItem[] | null
+  public_profile_summary?: string | null
   bio?: string | null
   bio_about?: string | null
   bio_work?: string | null
@@ -779,6 +781,7 @@ export type PublicTherapistProfile = {
   offers_offline?: boolean
   offline_location?: string
   bio?: string
+  public_profile_summary?: string
   bio_about?: string
   bio_work?: string
   bio_approach?: string

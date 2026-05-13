@@ -29,7 +29,7 @@
           class="hero-main__read-more"
           @click="emit('read-more')"
         >
-          Читати далі
+          Докладніше про мене
         </button>
         <p v-if="profile && heroSupportText" class="hero-main__support">{{ heroSupportText }}</p>
         <p v-if="profile && completedSessionsBadge" class="hero-main__sessions">

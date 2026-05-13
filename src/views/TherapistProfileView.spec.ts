@@ -78,6 +78,7 @@ function makeProfile(): SpecialistProfile {
     offline_location: 'Львів, офіс 12',
     professional_focus: 'psychological_practice',
     display_name: 'Анна',
+    public_profile_summary: 'Короткий опис для hero-блоку.',
     setting_text: 'Будь ласка, попереджайте про перенесення щонайменше за 24 години.',
     bio_about: 'Працюю дбайливо.',
     bio_work: 'Онлайн консультації.',
@@ -180,6 +181,15 @@ describe('TherapistProfileView', () => {
     expect(finalOpenLink).toHaveAttribute('href', `${window.location.origin}/s/specialist-anna`)
     expect(finalOpenLink).toHaveAttribute('target', '_blank')
     expect(finalOpenLink).toHaveAttribute('rel', 'noopener noreferrer')
+  })
+
+  it('renders public_profile_summary field in profile settings', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValue(makeProfile())
+
+    renderView()
+
+    expect(await screen.findByText('Короткий опис для верхнього блоку профілю')).toBeInTheDocument()
+    expect(screen.getByDisplayValue('Короткий опис для hero-блоку.')).toBeInTheDocument()
   })
 
   it('shows owner guidance when redirected from /public with unpublished profile', async () => {
@@ -424,6 +434,8 @@ describe('TherapistProfileView', () => {
 
     const introPriceInput = screen.getByDisplayValue('600') as HTMLInputElement
     await fireEvent.update(introPriceInput, '')
+    const summaryInput = screen.getByDisplayValue('Короткий опис для hero-блоку.') as HTMLTextAreaElement
+    await fireEvent.update(summaryInput, 'Оновлений короткий опис.   ')
     const rulesInput = screen.getByLabelText('Умови спеціаліста перед записом') as HTMLTextAreaElement
     await fireEvent.update(rulesInput, 'Оновлені умови перед записом.   ')
 
@@ -442,6 +454,7 @@ describe('TherapistProfileView', () => {
         offline_location: 'Львів, офіс 12',
         professional_focus: 'psychological_practice',
         display_name: 'Анна',
+        public_profile_summary: 'Оновлений короткий опис.',
         setting_text: 'Оновлені умови перед записом.',
         education_summary: 'Integrative psychotherapy background.',
         education_items: ['Master in psychology', 'CBT program'],

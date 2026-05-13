@@ -362,6 +362,17 @@
           <details class="details" open>
             <summary>Про мене</summary>
             <label class="field">
+              <span class="field-label">Короткий опис для верхнього блоку профілю</span>
+              <textarea
+                v-model="profile.public_profile_summary"
+                class="input"
+                rows="3"
+                maxlength="240"
+                placeholder="Наприклад: Працюю з тривогою, самооцінкою та стосунками."
+              ></textarea>
+              <div class="field-help">До 240 символів. Напишіть 1–2 речення про ваш формат роботи, основні запити або підхід.</div>
+            </label>
+            <label class="field">
               <div class="field-head">
                 <span>Про мене</span>
                 <label class="inline-check">
@@ -373,9 +384,9 @@
                 v-model="profile.bio_about"
                 class="input"
                 rows="4"
-                placeholder="Короткий опис для публічного профілю."
+                placeholder="Докладніший опис вашого досвіду, підходу, освіти або формату роботи."
               ></textarea>
-              <div class="field-help">Короткий опис для публічного профілю.</div>
+              <div class="field-help">Докладніший опис вашого досвіду, підходу, освіти або формату роботи.</div>
             </label>
           </details>
           <details class="details">
@@ -1472,6 +1483,7 @@ function buildProfilePayload() {
     public_profile_enabled: profile.public_profile_enabled,
     display_name: profile.display_name,
     professional_focus: normalizeProfessionalFocus(profile.professional_focus),
+    public_profile_summary: (profile.public_profile_summary || '').trim(),
     setting_text: (profile.setting_text || '').trim(),
     bio_about: profile.bio_about,
     bio_work: profile.bio_work,
@@ -1531,6 +1543,7 @@ const profile = reactive<SpecialistProfile>({
   offline_location: '',
   professional_focus: null,
   display_name: '',
+  public_profile_summary: '',
   setting_text: '',
   bio_about: '',
   bio_work: '',
@@ -1710,6 +1723,7 @@ type ProfileFormSnapshot = {
   public_profile_enabled: boolean
   display_name: string
   professional_focus: ProfessionalFocus | null
+  public_profile_summary: string
   setting_text: string
   bio_about: string
   bio_work: string
@@ -1760,6 +1774,7 @@ function createProfileFormSnapshot(): ProfileFormSnapshot {
     public_profile_enabled: profile.public_profile_enabled,
     display_name: profile.display_name || '',
     professional_focus: normalizeProfessionalFocus(profile.professional_focus),
+    public_profile_summary: profile.public_profile_summary || '',
     setting_text: profile.setting_text || '',
     bio_about: profile.bio_about || '',
     bio_work: profile.bio_work || '',
@@ -2140,6 +2155,7 @@ function normalizeProfile(data: SpecialistProfile): SpecialistProfile {
     offline_location: data.offline_location || '',
     professional_focus: normalizeProfessionalFocus(data.professional_focus),
     display_name: data.display_name || '',
+    public_profile_summary: data.public_profile_summary || '',
     setting_text: data.setting_text || '',
     bio_about: data.bio_about || '',
     bio_work: data.bio_work || '',

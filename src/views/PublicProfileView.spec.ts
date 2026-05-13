@@ -444,8 +444,15 @@ describe('PublicProfileView', () => {
     scrollToSpy.mockRestore()
   })
 
-  it('shows "Читати далі" in hero and scrolls smoothly to "Про мене" section', async () => {
+  it('shows "Докладніше про мене" in hero and scrolls smoothly to "Про мене" section', async () => {
     mockCommonPublicData()
+    const profileWithSummary = buildProfile()
+    ;(profileWithSummary as Record<string, any>).public_profile_summary = 'Short hero summary for read more action.'
+    if ((profileWithSummary as Record<string, any>).sections?.about) {
+      ;(profileWithSummary as Record<string, any>).sections.about.public_profile_summary =
+        'Short hero summary for read more action.'
+    }
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(profileWithSummary)
     mockedFetchChatThreads.mockResolvedValue([])
     mockedApiGet.mockImplementation(async (url) => {
       if (url === '/booking/slots/') return [buildTodayLocalSlot()]
@@ -458,7 +465,7 @@ describe('PublicProfileView', () => {
 
     const aboutSection = container.querySelector('#about-me')
     expect(aboutSection).toBeTruthy()
-    const readMoreButton = screen.getByRole('button', { name: 'Читати далі' })
+    const readMoreButton = screen.getByRole('button', { name: 'Докладніше про мене' })
 
     scrollIntoViewSpy.mockClear()
     await fireEvent.click(readMoreButton)
