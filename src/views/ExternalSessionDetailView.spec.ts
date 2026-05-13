@@ -182,11 +182,11 @@ describe('ExternalSessionDetailView', () => {
   it('renders empty invite state when invite does not exist', async () => {
     const { container } = renderView()
 
-    expect(await screen.findByText('Деталі гостьової сесії')).toBeInTheDocument()
+    expect(await screen.findByText('Деталі сесії без реєстрації')).toBeInTheDocument()
     expect(screen.getByText('Зведення')).toBeInTheDocument()
-    expect(screen.getAllByText('Гостьовий доступ').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Доступ без реєстрації').length).toBeGreaterThan(0)
     expect(screen.getByRole('button', { name: 'Редагувати / перенести' })).toBeInTheDocument()
-    expect(await screen.findByText('Запрошення ще не створено. Створіть його, щоб надіслати гостю безпечне посилання.')).toBeInTheDocument()
+    expect(await screen.findByText('Запрошення ще не створено. Створіть його, щоб надіслати клієнту безпечне посилання.')).toBeInTheDocument()
     expect(container.querySelector('input[type="datetime-local"]')).not.toBeInTheDocument()
     expect(container.querySelector('input[type="date"]')).not.toBeInTheDocument()
     expect(container.querySelector('input[inputmode="numeric"]')).not.toBeInTheDocument()
@@ -197,9 +197,9 @@ describe('ExternalSessionDetailView', () => {
   it('renders unpaid guest payment state and request action', async () => {
     renderView()
 
-    await screen.findByText('Деталі гостьової сесії')
+    await screen.findByText('Деталі сесії без реєстрації')
 
-    expect(screen.getByText('Оплата гостьової сесії')).toBeInTheDocument()
+    expect(screen.getByText('Оплата сесії без реєстрації')).toBeInTheDocument()
     expect(screen.getByText('Не оплачено')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Запросити оплату' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Позначити оплаченою' })).not.toBeInTheDocument()
@@ -208,7 +208,7 @@ describe('ExternalSessionDetailView', () => {
   it('requests guest payment and updates payment state', async () => {
     renderView()
 
-    await screen.findByText('Деталі гостьової сесії')
+    await screen.findByText('Деталі сесії без реєстрації')
     await fireEvent.click(screen.getByRole('button', { name: 'Запросити оплату' }))
 
     await waitFor(() => {
@@ -239,7 +239,7 @@ describe('ExternalSessionDetailView', () => {
 
     renderView()
 
-    await screen.findByText('Деталі гостьової сесії')
+    await screen.findByText('Деталі сесії без реєстрації')
     expect(screen.getByText('Оплату запрошено')).toBeInTheDocument()
     expect(screen.getByText(/2\s000 грн/)).toBeInTheDocument()
 
@@ -276,14 +276,14 @@ describe('ExternalSessionDetailView', () => {
     expect(meetingCard).not.toBeNull()
     expect(within(meetingCard as HTMLElement).getByText('https://meet.google.com/demo')).toBeInTheDocument()
     expect(
-      within(meetingCard as HTMLElement).getByText('Це внутрішнє посилання на онлайн-зустріч. Не надсилайте його гостю напряму. Для гостя створіть гостьове запрошення нижче.')
+      within(meetingCard as HTMLElement).getByText('Це внутрішнє посилання на онлайн-зустріч. Не надсилайте його клієнту напряму. Для клієнта створіть запрошення без реєстрації нижче.')
     ).toBeInTheDocument()
     expect(
-      within(meetingCard as HTMLElement).getByText('Буде показане гостю після відкриття гостьового запрошення.')
+      within(meetingCard as HTMLElement).getByText('Буде показане клієнту після відкриття запрошення без реєстрації.')
     ).toBeInTheDocument()
-    expect(within(meetingCard as HTMLElement).getByText('Гостьове запрошення ще не створено')).toBeInTheDocument()
+    expect(within(meetingCard as HTMLElement).getByText('Запрошення без реєстрації ще не створено')).toBeInTheDocument()
 
-    await fireEvent.click(within(meetingCard as HTMLElement).getByRole('button', { name: 'Створити гостьове запрошення' }))
+    await fireEvent.click(within(meetingCard as HTMLElement).getByRole('button', { name: 'Створити запрошення без реєстрації' }))
 
     await waitFor(() => {
       expect(mockedCreateExternalSessionInvite).toHaveBeenCalledWith(21)
@@ -303,20 +303,20 @@ describe('ExternalSessionDetailView', () => {
     )
 
     const { container } = renderView()
-    expect(await screen.findByText('Посилання для гостя')).toBeInTheDocument()
-    expect(screen.queryByText('Гостьове посилання')).not.toBeInTheDocument()
+    expect(await screen.findByText('Посилання для клієнта')).toBeInTheDocument()
+    expect(screen.queryByText('Посилання без реєстрації')).not.toBeInTheDocument()
 
     const meetingCard = container.querySelector('.meeting-share-card') as HTMLElement | null
     expect(meetingCard).not.toBeNull()
-    expect(within(meetingCard as HTMLElement).queryByText('Гостьове запрошення ще не створено')).not.toBeInTheDocument()
+    expect(within(meetingCard as HTMLElement).queryByText('Запрошення без реєстрації ще не створено')).not.toBeInTheDocument()
     expect(
-      within(meetingCard as HTMLElement).getByRole('button', { name: 'Скопіювати гостьове запрошення' })
+      within(meetingCard as HTMLElement).getByRole('button', { name: 'Скопіювати запрошення без реєстрації' })
     ).toBeInTheDocument()
     expect(
       screen.getByRole('link', { name: 'https://proconsult.space/guest/external-session/existing-token' })
     ).toBeInTheDocument()
 
-    await fireEvent.click(within(meetingCard as HTMLElement).getByRole('button', { name: 'Скопіювати гостьове запрошення' }))
+    await fireEvent.click(within(meetingCard as HTMLElement).getByRole('button', { name: 'Скопіювати запрошення без реєстрації' }))
     await waitFor(() => {
       expect(clipboardWrite).toHaveBeenCalledWith('https://proconsult.space/guest/external-session/existing-token')
     })
@@ -334,14 +334,14 @@ describe('ExternalSessionDetailView', () => {
     const { container } = renderView()
     expect(await screen.findByText('Локація')).toBeInTheDocument()
     expect(screen.getByText('Київ, вул. Тестова, 1')).toBeInTheDocument()
-    expect(screen.queryByText('Це внутрішнє посилання на онлайн-зустріч. Не надсилайте його гостю напряму. Для гостя створіть гостьове запрошення нижче.')).not.toBeInTheDocument()
-    expect(screen.queryByText('Гостьове запрошення ще не створено')).not.toBeInTheDocument()
+    expect(screen.queryByText('Це внутрішнє посилання на онлайн-зустріч. Не надсилайте його клієнту напряму. Для клієнта створіть запрошення без реєстрації нижче.')).not.toBeInTheDocument()
+    expect(screen.queryByText('Запрошення без реєстрації ще не створено')).not.toBeInTheDocument()
     expect(container.querySelector('.meeting-share-card')).toBeNull()
   })
 
   it('opens edit mode and closes with cancel while resetting local draft', async () => {
     const { container } = renderView()
-    await screen.findByText('Деталі гостьової сесії')
+    await screen.findByText('Деталі сесії без реєстрації')
 
     await fireEvent.click(screen.getByRole('button', { name: 'Редагувати / перенести' }))
     const dateInput = container.querySelector('input[type="date"]') as HTMLInputElement | null
@@ -395,7 +395,7 @@ describe('ExternalSessionDetailView', () => {
     } as any)
 
     renderView()
-    await screen.findByText('Запрошення ще не створено. Створіть його, щоб надіслати гостю безпечне посилання.')
+    await screen.findByText('Запрошення ще не створено. Створіть його, щоб надіслати клієнту безпечне посилання.')
 
     const createInviteButton = await screen.findByRole('button', { name: 'Створити запрошення' })
     await fireEvent.click(createInviteButton)
@@ -408,7 +408,7 @@ describe('ExternalSessionDetailView', () => {
     await waitFor(() => {
       expect(clipboardWrite).toHaveBeenCalledWith('https://proconsult.space/guest/external-session/new-token')
     })
-    expect(screen.getByText('Посилання для гостя')).toBeInTheDocument()
+    expect(screen.getByText('Посилання для клієнта')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'https://proconsult.space/guest/external-session/new-token' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Скопіювати посилання|Скопійовано/ })).toBeInTheDocument()
   })
@@ -451,9 +451,9 @@ describe('ExternalSessionDetailView', () => {
     mockedFetchExternalSessionInvite.mockResolvedValueOnce(null as any)
 
     renderView()
-    await screen.findByText('Деталі гостьової сесії')
+    await screen.findByText('Деталі сесії без реєстрації')
 
-    expect(screen.getByText('Запрошення ще не створено. Створіть його, щоб надіслати гостю безпечне посилання.')).toBeInTheDocument()
+    expect(screen.getByText('Запрошення ще не створено. Створіть його, щоб надіслати клієнту безпечне посилання.')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Створити запрошення' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Перевидати' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Відкликати' })).not.toBeInTheDocument()
@@ -465,7 +465,7 @@ describe('ExternalSessionDetailView', () => {
     mockedFetchExternalSessionInvite.mockResolvedValue(activeInviteResponse({ id: 77 }, null) as any)
 
     renderView()
-    await screen.findByText('Деталі гостьової сесії')
+    await screen.findByText('Деталі сесії без реєстрації')
 
     expect(await screen.findByRole('button', { name: 'Отримати нове посилання' })).toBeInTheDocument()
     expect(await screen.findByRole('button', { name: 'Відкликати' })).toBeInTheDocument()
@@ -496,7 +496,7 @@ describe('ExternalSessionDetailView', () => {
     } as any)
 
     renderView()
-    await screen.findByText('Деталі гостьової сесії')
+    await screen.findByText('Деталі сесії без реєстрації')
 
     await fireEvent.click(await screen.findByRole('button', { name: 'Отримати нове посилання' }))
 
@@ -505,7 +505,7 @@ describe('ExternalSessionDetailView', () => {
       expect(toast.success).toHaveBeenCalledWith('Нове посилання скопійовано.')
     })
 
-    expect(screen.getByText('Посилання для гостя')).toBeInTheDocument()
+    expect(screen.getByText('Посилання для клієнта')).toBeInTheDocument()
     expect(
       screen.getByRole('link', { name: 'https://proconsult.space/guest/external-session/new-from-regenerate' })
     ).toBeInTheDocument()
@@ -538,14 +538,14 @@ describe('ExternalSessionDetailView', () => {
     } as any)
 
     renderView()
-    await screen.findByText('Деталі гостьової сесії')
+    await screen.findByText('Деталі сесії без реєстрації')
 
     await fireEvent.click(await screen.findByRole('button', { name: 'Створити запрошення' }))
 
     await waitFor(() => {
       expect(toast.success).toHaveBeenCalledWith('Посилання запрошення готове до копіювання.')
     })
-    expect(screen.getByText('Посилання для гостя')).toBeInTheDocument()
+    expect(screen.getByText('Посилання для клієнта')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /Скопіювати посилання|Скопійовано/ })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'https://proconsult.space/guest/external-session/fallback-url' })).toBeInTheDocument()
   })
@@ -575,14 +575,14 @@ describe('ExternalSessionDetailView', () => {
       .mockRejectedValueOnce({ response: { status: 404, data: { code: 'NOT_FOUND' } } })
 
     renderView()
-    await screen.findByText('Деталі гостьової сесії')
+    await screen.findByText('Деталі сесії без реєстрації')
 
     await fireEvent.click(screen.getByRole('button', { name: 'Редагувати / перенести' }))
     await fireEvent.click(screen.getByRole('button', { name: 'Скасувати сесію' }))
 
     await waitFor(() => {
       expect(mockedCancelExternalSession).toHaveBeenCalledWith(21)
-      expect(toast.success).toHaveBeenCalledWith('Гостьову сесію скасовано.')
+      expect(toast.success).toHaveBeenCalledWith('Сесію без реєстрації скасовано.')
     })
   })
 
@@ -616,7 +616,7 @@ describe('ExternalSessionDetailView', () => {
     } as any)
 
     renderView()
-    await screen.findByText('Деталі гостьової сесії')
+    await screen.findByText('Деталі сесії без реєстрації')
 
     await fireEvent.click(screen.getByRole('button', { name: 'Редагувати / перенести' }))
     await fireEvent.click(screen.getByRole('button', { name: 'Зберегти зміни' }))
@@ -648,7 +648,7 @@ describe('ExternalSessionDetailView', () => {
     })
 
     renderView()
-    await screen.findByText('Деталі гостьової сесії')
+    await screen.findByText('Деталі сесії без реєстрації')
 
     const regenerateButton = await screen.findByRole('button', { name: 'Отримати нове посилання' })
     await fireEvent.click(regenerateButton)
@@ -657,7 +657,7 @@ describe('ExternalSessionDetailView', () => {
       expect(mockedRegenerateExternalSessionInvite).toHaveBeenCalledWith(21)
       expect(mockedFetchExternalSessionInvite).toHaveBeenCalledTimes(2)
     })
-    expect(screen.getByText('Запрошення ще не створено. Створіть його, щоб надіслати гостю безпечне посилання.')).toBeInTheDocument()
+    expect(screen.getByText('Запрошення ще не створено. Створіть його, щоб надіслати клієнту безпечне посилання.')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Перевидати' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Відкликати' })).not.toBeInTheDocument()
   })
@@ -675,7 +675,7 @@ describe('ExternalSessionDetailView', () => {
     })
 
     renderView()
-    await screen.findByText('Деталі гостьової сесії')
+    await screen.findByText('Деталі сесії без реєстрації')
 
     const revokeButton = await screen.findByRole('button', { name: 'Відкликати' })
     await fireEvent.click(revokeButton)
@@ -684,7 +684,7 @@ describe('ExternalSessionDetailView', () => {
       expect(mockedRevokeExternalSessionInvite).toHaveBeenCalledWith(21)
       expect(mockedFetchExternalSessionInvite).toHaveBeenCalledTimes(2)
     })
-    expect(screen.getByText('Запрошення ще не створено. Створіть його, щоб надіслати гостю безпечне посилання.')).toBeInTheDocument()
+    expect(screen.getByText('Запрошення ще не створено. Створіть його, щоб надіслати клієнту безпечне посилання.')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Перевидати' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Відкликати' })).not.toBeInTheDocument()
   })

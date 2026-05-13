@@ -354,8 +354,8 @@ describe('TherapistSessionDetailView', () => {
     const { container } = renderView()
 
     expect(await screen.findByText('Manual Detail Client')).toBeInTheDocument()
-    expect(screen.getByText('Без кабінету')).toBeInTheDocument()
-    expect(screen.getByText('Цю сесію створено для клієнта без кабінету. Підключення кабінету дасть клієнту доступ до власних сесій, нагадувань, оплати та комунікації зі спеціалістом.')).toBeInTheDocument()
+    expect(screen.getByText('Без реєстрації')).toBeInTheDocument()
+    expect(screen.getByText('Цю сесію створено для клієнта без реєстрації. Підключення кабінету дасть клієнту доступ до власних сесій, нагадувань, оплати та комунікації зі спеціалістом.')).toBeInTheDocument()
     expect(container).not.toHaveTextContent('undefined')
     expect(container).not.toHaveTextContent('null')
     expect(container).not.toHaveTextContent('ID: #null')

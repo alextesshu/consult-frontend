@@ -212,12 +212,12 @@ describe('ExternalSessionsView', () => {
   it('renders external sessions list and empty guest requests state', async () => {
     const { container } = renderView()
 
-    const createPanelTitle = await screen.findByText('Нова гостьова сесія')
-    expect(await screen.findByText('Ваші гостьові сесії')).toBeInTheDocument()
-    expect(await screen.findByText('Гостьових запитів поки немає.')).toBeInTheDocument()
+    const createPanelTitle = await screen.findByText('Нова сесія без реєстрації')
+    expect(await screen.findByText('Ваші сесії без реєстрації')).toBeInTheDocument()
+    expect(await screen.findByText('Запитів без реєстрації поки немає.')).toBeInTheDocument()
 
     const panelTitles = Array.from(container.querySelectorAll('.panel__title')).map((node) => node.textContent?.trim())
-    expect(panelTitles).toEqual(['Нова гостьова сесія', 'Ваші гостьові сесії', 'Гостьові запити'])
+    expect(panelTitles).toEqual(['Нова сесія без реєстрації', 'Ваші сесії без реєстрації', 'Запити без реєстрації'])
     expect(createPanelTitle).toBeInTheDocument()
 
     const detailLink = await screen.findByRole('link', { name: 'Деталі' })
@@ -236,14 +236,14 @@ describe('ExternalSessionsView', () => {
     expect(options[0]).toBe('00:00')
     expect(options[1]).toBe('00:15')
     expect(options[95]).toBe('23:45')
-    expect(screen.getAllByText('Гостьові сесії').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Сесії без реєстрації').length).toBeGreaterThan(0)
     expect(detailLink).toHaveAttribute('href', '/cabinet/external-sessions/8')
   })
 
   it('shows guest quota summary when entitlements are available', async () => {
     renderView()
 
-    expect(await screen.findByText('Гостьові сесії: 1 з 5 за 30 днів')).toBeInTheDocument()
+    expect(await screen.findByText('Сесії без реєстрації: 1 з 5 за 30 днів')).toBeInTheDocument()
     expect(mockedApiGet).toHaveBeenCalledWith('/cabinet/entitlements/')
   })
 
@@ -257,9 +257,9 @@ describe('ExternalSessionsView', () => {
 
     renderView()
 
-    expect(await screen.findByText('Гостьові сесії: 5 з 5 за 30 днів')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Створити гостьову сесію' })).toBeDisabled()
-    expect(await screen.findByText('Ви використали доступні гостьові сесії за поточний період. Щоб створити нову гостьову сесію, дочекайтесь оновлення ліміту або змініть тариф.')).toBeInTheDocument()
+    expect(await screen.findByText('Сесії без реєстрації: 5 з 5 за 30 днів')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Створити сесію без реєстрації' })).toBeDisabled()
+    expect(await screen.findByText('Ви використали доступні сесії без реєстрації за поточний період. Щоб створити нову сесію без реєстрації, дочекайтесь оновлення ліміту або змініть тариф.')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Перейти до тарифів' })).toHaveAttribute('href', '/cabinet/billing')
   })
 
@@ -269,7 +269,7 @@ describe('ExternalSessionsView', () => {
     })
 
     const { container } = renderView()
-    await screen.findByText('Гостьові сесії: 1 з 5 за 30 днів')
+    await screen.findByText('Сесії без реєстрації: 1 з 5 за 30 днів')
 
     const dateInput = container.querySelector('input[type="date"]')
     const timeInput = container.querySelector('input[inputmode="numeric"]')
@@ -280,9 +280,9 @@ describe('ExternalSessionsView', () => {
     await fireEvent.update(dateInput, '2099-06-16')
     await fireEvent.update(timeInput, '12:30')
     await fireEvent.update(screen.getByLabelText('Посилання на зустріч'), 'https://meet.google.com/quota-limit')
-    await fireEvent.click(screen.getByRole('button', { name: 'Створити гостьову сесію' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Створити сесію без реєстрації' }))
 
-    expect(await screen.findByText('Ліміт гостьових сесій вичерпано. Ви використали доступні гостьові сесії за поточний період. Щоб створити нову гостьову сесію, дочекайтесь оновлення ліміту або змініть тариф.')).toBeInTheDocument()
+    expect(await screen.findByText('Ліміт сесій без реєстрації вичерпано. Ви використали доступні сесії без реєстрації за поточний період. Щоб створити нову сесію без реєстрації, дочекайтесь оновлення ліміту або змініть тариф.')).toBeInTheDocument()
   })
 
   it('handles GUEST_SESSIONS_DISABLED from backend create response', async () => {
@@ -291,7 +291,7 @@ describe('ExternalSessionsView', () => {
     })
 
     const { container } = renderView()
-    await screen.findByText('Гостьові сесії: 1 з 5 за 30 днів')
+    await screen.findByText('Сесії без реєстрації: 1 з 5 за 30 днів')
 
     const dateInput = container.querySelector('input[type="date"]')
     const timeInput = container.querySelector('input[inputmode="numeric"]')
@@ -302,9 +302,9 @@ describe('ExternalSessionsView', () => {
     await fireEvent.update(dateInput, '2099-06-16')
     await fireEvent.update(timeInput, '12:30')
     await fireEvent.update(screen.getByLabelText('Посилання на зустріч'), 'https://meet.google.com/quota-disabled')
-    await fireEvent.click(screen.getByRole('button', { name: 'Створити гостьову сесію' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Створити сесію без реєстрації' }))
 
-    expect(await screen.findByText('Гостьові сесії недоступні на вашому тарифі.')).toBeInTheDocument()
+    expect(await screen.findByText('Сесії без реєстрації недоступні на вашому тарифі.')).toBeInTheDocument()
   })
 
   it('creates online external session and navigates to detail page', async () => {
@@ -325,7 +325,7 @@ describe('ExternalSessionsView', () => {
     } as any)
 
     const { container } = renderView()
-    await screen.findByText('Нова гостьова сесія')
+    await screen.findByText('Нова сесія без реєстрації')
 
     const dateInput = container.querySelector('input[type="date"]')
     const timeInput = container.querySelector('input[inputmode="numeric"]')
@@ -336,9 +336,9 @@ describe('ExternalSessionsView', () => {
     await fireEvent.update(dateInput, '2099-06-16')
     await fireEvent.update(timeInput, '12:30')
     await fireEvent.update(screen.getByLabelText('Посилання на зустріч'), 'https://meet.google.com/new-room')
-    await fireEvent.update(screen.getByLabelText("Ім'я гостя (опційно)"), 'Guest Name')
-    await fireEvent.update(screen.getByLabelText('Ел. пошта гостя (опційно)'), 'guest@example.com')
-    await fireEvent.click(screen.getByRole('button', { name: 'Створити гостьову сесію' }))
+    await fireEvent.update(screen.getByLabelText("Ім'я клієнта (опційно)"), 'Guest Name')
+    await fireEvent.update(screen.getByLabelText('Ел. пошта клієнта (опційно)'), 'guest@example.com')
+    await fireEvent.click(screen.getByRole('button', { name: 'Створити сесію без реєстрації' }))
 
     await waitFor(() => {
       expect(mockedCreateExternalSession).toHaveBeenCalledTimes(1)
@@ -374,7 +374,7 @@ describe('ExternalSessionsView', () => {
     } as any)
 
     const { container } = renderView()
-    await screen.findByText('Нова гостьова сесія')
+    await screen.findByText('Нова сесія без реєстрації')
 
     const dateInput = container.querySelector('input[type="date"]')
     const timeInput = container.querySelector('input[inputmode="numeric"]')
@@ -386,7 +386,7 @@ describe('ExternalSessionsView', () => {
     await fireEvent.update(dateInput, '2099-06-16')
     await fireEvent.update(timeInput, '12:30')
     await fireEvent.update(screen.getByLabelText('Локація'), 'Kyiv office')
-    await fireEvent.click(screen.getByRole('button', { name: 'Створити гостьову сесію' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Створити сесію без реєстрації' }))
 
     await waitFor(() => {
       expect(mockedCreateExternalSession).toHaveBeenCalledTimes(1)
@@ -435,7 +435,7 @@ describe('ExternalSessionsView', () => {
 
     renderView()
 
-    expect(await screen.findByText('Гостьові запити')).toBeInTheDocument()
+    expect(await screen.findByText('Запити без реєстрації')).toBeInTheDocument()
     expect(await screen.findByText('Очікує рішення')).toBeInTheDocument()
     const meetingInput = await screen.findByLabelText('Посилання на онлайн-зустріч')
     const approveButton = screen.getByRole('button', { name: 'Погодити' })
@@ -560,10 +560,10 @@ describe('ExternalSessionsView', () => {
       })
     })
 
-    const sessionLink = await screen.findByRole('link', { name: 'Відкрити гостьову сесію' })
+    const sessionLink = await screen.findByRole('link', { name: 'Відкрити сесію без реєстрації' })
     expect(sessionLink).toHaveAttribute('href', '/cabinet/external-sessions/99')
-    expect(await screen.findByText('На основі цього запиту створено гостьову сесію.')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Гостьове посилання' })).toHaveAttribute(
+    expect(await screen.findByText('На основі цього запиту створено сесію без реєстрації.')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Посилання без реєстрації' })).toHaveAttribute(
       'href',
       'https://proconsult.space/guest/external-session/token'
     )
@@ -744,7 +744,7 @@ describe('ExternalSessionsView guest request micro-polish', () => {
     await fireEvent.click(firstCard.approveButton)
 
     expect(await screen.findByText('Цей слот більше недоступний.')).toBeInTheDocument()
-    expect(screen.queryByText('Цей слот більше недоступний. Оновіть список гостьових запитів.')).not.toBeInTheDocument()
+    expect(screen.queryByText('Цей слот більше недоступний. Оновіть список запитів без реєстрації.')).not.toBeInTheDocument()
     expect(screen.queryByText('Requested slot is no longer available.')).not.toBeInTheDocument()
   })
 

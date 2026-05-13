@@ -94,9 +94,9 @@
             <div class="detail-value">
               {{ clientLabel(session) }}
               <div v-if="isManualClientSession" class="manual-client-detail">
-                <span class="status-pill status-pill--manual">Без кабінету</span>
+                <span class="status-pill status-pill--manual">Без реєстрації</span>
                 <span class="muted detail-meta">
-                  Цю сесію створено для клієнта без кабінету. Підключення кабінету дасть клієнту доступ до власних сесій, нагадувань, оплати та комунікації зі спеціалістом.
+                  Цю сесію створено для клієнта без реєстрації. Підключення кабінету дасть клієнту доступ до власних сесій, нагадувань, оплати та комунікації зі спеціалістом.
                 </span>
               </div>
               <div v-if="session.client_email" class="muted detail-meta">{{ session.client_email }}</div>
@@ -372,9 +372,9 @@
 
         <div class="manual-payment-card">
           <div>
-            <div class="detail-label">Клієнт без кабінету</div>
+            <div class="detail-label">Клієнт без реєстрації</div>
             <p class="muted manual-payment-card__text">
-              Для клієнта без кабінету оплата ведеться вручну. Після перевірки надходження можна позначити сесію оплаченою.
+              Для клієнта без реєстрації оплата ведеться вручну. Після перевірки надходження можна позначити сесію оплаченою.
             </p>
             <p v-if="manualPaymentAmountLabel" class="manual-payment-card__amount">
               {{ manualPaymentAmountLabel }}

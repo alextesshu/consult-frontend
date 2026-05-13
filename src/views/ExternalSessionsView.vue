@@ -2,18 +2,18 @@
   <section class="external-sessions">
     <header class="external-sessions__hero">
       <div>
-        <h1 class="title external-sessions__title">Гостьові сесії</h1>
+        <h1 class="title external-sessions__title">Сесії без реєстрації</h1>
         <p class="muted external-sessions__subtitle">
-          Окремий розділ для гостьових сесій без змішування з основним сценарієм бронювання.
+          Окремий сценарій для сесій із клієнтами, які записуються без створення акаунта.
         </p>
       </div>
-      <RouterLink class="btn btn--ghost" to="/cabinet">Назад до кабінету</RouterLink>
+      <RouterLink class="btn btn--ghost" to="/cabinet/sessions">Назад до сесій</RouterLink>
     </header>
 
     <section class="panel">
       <div class="panel__header">
         <div>
-          <h2 class="panel__title">Нова гостьова сесія</h2>
+          <h2 class="panel__title">Нова сесія без реєстрації</h2>
         </div>
       </div>
 
@@ -83,12 +83,12 @@
         </label>
 
         <label class="field">
-          <span>Ім'я гостя (опційно)</span>
+          <span>Ім'я клієнта (опційно)</span>
           <input v-model="createDraft.guest_name" class="input" type="text" maxlength="120" />
         </label>
         
         <label class="field">
-          <span>Ел. пошта гостя (опційно)</span>
+          <span>Ел. пошта клієнта (опційно)</span>
           <input v-model="createDraft.guest_email" class="input" type="email" maxlength="255" />
         </label>
 
@@ -107,7 +107,7 @@
 
       <div class="actions-row">
         <button class="btn" type="button" :disabled="createPending || isGuestQuotaBlocked" @click="submitCreate">
-          {{ createPending ? 'Створюємо…' : 'Створити гостьову сесію' }}
+          {{ createPending ? 'Створюємо…' : 'Створити сесію без реєстрації' }}
         </button>
       </div>
       <datalist id="external-session-time-options">
@@ -119,13 +119,13 @@
       <section class="panel">
         <div class="panel__header">
           <div>
-            <h2 class="panel__title">Ваші гостьові сесії</h2>
+            <h2 class="panel__title">Ваші сесії без реєстрації</h2>
           </div>
         </div>
 
         <div v-if="listError" class="form-error">{{ listError }}</div>
-        <div v-else-if="listLoading" class="muted">Завантаження гостьових сесій…</div>
-        <div v-else-if="sessions.length === 0" class="muted">Немає гостьових сесій. Створіть першу сесію вище.</div>
+        <div v-else-if="listLoading" class="muted">Завантаження сесій без реєстрації…</div>
+        <div v-else-if="sessions.length === 0" class="muted">Немає сесій без реєстрації. Створіть першу сесію вище.</div>
 
         <div v-else class="list-grid">
           <article v-for="session in sessions" :key="session.id" class="session-card">
@@ -134,7 +134,7 @@
               <div class="muted">Тривалість: {{ session.duration_minutes }} хв</div>
               <div class="muted">Формат: {{ session.session_format === 'offline' ? 'Офлайн' : 'Онлайн' }}</div>
               <div v-if="session.guest_name || session.guest_email" class="muted">
-                Гість: {{ session.guest_name || '—' }} <span v-if="session.guest_email">({{ session.guest_email }})</span>
+                Клієнт: {{ session.guest_name || '—' }} <span v-if="session.guest_email">({{ session.guest_email }})</span>
               </div>
               <div class="status-pill" :class="session.status === 'CANCELLED' ? 'status-pill--danger' : 'status-pill--ok'">
                 {{ session.status === 'CANCELLED' ? 'Скасовано' : 'Заплановано' }}
@@ -148,19 +148,19 @@
       <section class="panel">
         <div class="panel__header">
           <div>
-            <h2 class="panel__title">Гостьові запити</h2>
+            <h2 class="panel__title">Запити без реєстрації</h2>
           </div>
         </div>
 
         <div v-if="requestsError" class="form-error">{{ requestsError }}</div>
-        <div v-else-if="requestsLoading" class="muted">Завантаження гостьових запитів…</div>
-        <div v-else-if="guestRequests.length === 0" class="muted">Гостьових запитів поки немає.</div>
+        <div v-else-if="requestsLoading" class="muted">Завантаження запитів без реєстрації…</div>
+        <div v-else-if="guestRequests.length === 0" class="muted">Запитів без реєстрації поки немає.</div>
 
         <div v-else class="list-grid">
           <article v-for="request in guestRequests" :key="request.id" class="request-card">
             <div class="request-card__main">
               <div class="request-card__title">
-                {{ request.guest_name || 'Гість' }}
+                {{ request.guest_name || 'Клієнт' }}
               </div>
               <div class="muted">
                 Контакт: {{ contactChannelLabel(request.contact_channel) }} · {{ request.contact_value || '—' }}
@@ -182,13 +182,13 @@
               <div v-if="requestDecisionAt(request)" class="muted">
                 {{ requestDecisionLabel(request.status) }}: {{ formatDateTime(requestDecisionAt(request)) }}
               </div>
-              <div v-if="request.external_session_id" class="muted">На основі цього запиту створено гостьову сесію.</div>
+              <div v-if="request.external_session_id" class="muted">На основі цього запиту створено сесію без реєстрації.</div>
               <div v-if="request.external_session_id" class="request-next-step">
                 <RouterLink
                   class="btn btn--ghost btn--sm"
                   :to="`/cabinet/external-sessions/${request.external_session_id}`"
                 >
-                  Відкрити гостьову сесію
+                  Відкрити сесію без реєстрації
                 </RouterLink>
                 <a
                   v-if="latestInviteUrlByRequestId[request.id]"
@@ -197,7 +197,7 @@
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  Гостьове посилання
+                  Посилання без реєстрації
                 </a>
               </div>
             </div>
@@ -327,20 +327,20 @@ const isGuestQuotaBlocked = computed(() => {
 const guestQuotaSummary = computed(() => {
   const quota = guestQuota.value
   if (!quota) return ''
-  if (quota.guest_sessions_enabled === false) return 'Гостьові сесії недоступні на вашому тарифі.'
+  if (quota.guest_sessions_enabled === false) return 'Сесії без реєстрації недоступні на вашому тарифі.'
   const used = quota.guest_sessions_used_in_period
   const limit = quota.guest_sessions_limit_per_period
   const period = quota.guest_sessions_period_days
-  if (typeof limit !== 'number') return 'Гостьові сесії доступні'
-  if (typeof used !== 'number') return 'Гостьові сесії доступні'
+  if (typeof limit !== 'number') return 'Сесії без реєстрації доступні'
+  if (typeof used !== 'number') return 'Сесії без реєстрації доступні'
   const periodLabel = typeof period === 'number' && Number.isFinite(period) ? period : 30
-  return `Гостьові сесії: ${used} з ${limit} за ${periodLabel} днів`
+  return `Сесії без реєстрації: ${used} з ${limit} за ${periodLabel} днів`
 })
 const guestQuotaBlockMessage = computed(() => {
   if (guestQuota.value?.guest_sessions_enabled === false) {
-    return 'Гостьові сесії недоступні на вашому тарифі.'
+    return 'Сесії без реєстрації недоступні на вашому тарифі.'
   }
-  return 'Ви використали доступні гостьові сесії за поточний період. Щоб створити нову гостьову сесію, дочекайтесь оновлення ліміту або змініть тариф.'
+  return 'Ви використали доступні сесії без реєстрації за поточний період. Щоб створити нову сесію без реєстрації, дочекайтесь оновлення ліміту або змініть тариф.'
 })
 const timeOptions = Array.from({ length: 24 * 4 }, (_, index) => {
   const minutes = index * 15
@@ -434,10 +434,10 @@ function getApiErrorCode(err: unknown) {
 function localizeGuestQuotaCreateError(err: unknown, fallback: string) {
   const code = getApiErrorCode(err)
   if (code === 'GUEST_SESSIONS_LIMIT_REACHED') {
-    return 'Ліміт гостьових сесій вичерпано. Ви використали доступні гостьові сесії за поточний період. Щоб створити нову гостьову сесію, дочекайтесь оновлення ліміту або змініть тариф.'
+    return 'Ліміт сесій без реєстрації вичерпано. Ви використали доступні сесії без реєстрації за поточний період. Щоб створити нову сесію без реєстрації, дочекайтесь оновлення ліміту або змініть тариф.'
   }
   if (code === 'GUEST_SESSIONS_DISABLED') {
-    return 'Гостьові сесії недоступні на вашому тарифі.'
+    return 'Сесії без реєстрації недоступні на вашому тарифі.'
   }
   return getApiErrorMessage(err, fallback)
 }
@@ -551,7 +551,7 @@ async function loadSessions() {
       .slice()
       .sort((a, b) => new Date(b.starts_at).getTime() - new Date(a.starts_at).getTime())
   } catch (err) {
-    listError.value = getApiErrorMessage(err, 'Не вдалося завантажити гостьові сесії.')
+    listError.value = getApiErrorMessage(err, 'Не вдалося завантажити сесії без реєстрації.')
     sessions.value = []
   } finally {
     listLoading.value = false
@@ -569,7 +569,7 @@ async function loadGuestRequests() {
     syncRequestActionMeta(guestRequests.value)
     syncApproveMeetingDrafts(guestRequests.value)
   } catch (err) {
-    requestsError.value = getApiErrorMessage(err, 'Не вдалося завантажити гостьові запити.')
+    requestsError.value = getApiErrorMessage(err, 'Не вдалося завантажити запити без реєстрації.')
     guestRequests.value = []
     approveMeetingUrls.value = {}
   } finally {
@@ -606,8 +606,8 @@ async function submitCreate() {
   if (isGuestQuotaBlocked.value) {
     createError.value =
       guestQuota.value?.guest_sessions_enabled === false
-        ? 'Гостьові сесії недоступні на вашому тарифі.'
-        : 'Ліміт гостьових сесій вичерпано. Ви використали доступні гостьові сесії за поточний період. Щоб створити нову гостьову сесію, дочекайтесь оновлення ліміту або змініть тариф.'
+        ? 'Сесії без реєстрації недоступні на вашому тарифі.'
+        : 'Ліміт сесій без реєстрації вичерпано. Ви використали доступні сесії без реєстрації за поточний період. Щоб створити нову сесію без реєстрації, дочекайтесь оновлення ліміту або змініть тариф.'
     return
   }
   const validationError = validateCreateDraft()
@@ -636,12 +636,12 @@ async function submitCreate() {
 
     try {
       await createExternalSessionInvite(created.id)
-      toast.success('Гостьову сесію створено. Посилання для гостя готове.')
+      toast.success('Сесію без реєстрації створено. Посилання для клієнта готове.')
     } catch (inviteErr) {
       toast.warning(
         getApiErrorMessage(
           inviteErr,
-          'Гостьову сесію створено, але посилання для гостя не вдалося створити автоматично. Його можна створити в деталях сесії.'
+          'Сесію без реєстрації створено, але посилання для клієнта не вдалося створити автоматично. Його можна створити в деталях сесії.'
         )
       )
     }
@@ -649,7 +649,7 @@ async function submitCreate() {
     await Promise.all([loadSessions(), loadGuestQuota()])
     await router.push(`/cabinet/external-sessions/${created.id}`)
   } catch (err) {
-    createError.value = localizeGuestQuotaCreateError(err, 'Не вдалося створити гостьову сесію.')
+    createError.value = localizeGuestQuotaCreateError(err, 'Не вдалося створити сесію без реєстрації.')
     const code = getApiErrorCode(err)
     if (code === 'GUEST_SESSIONS_LIMIT_REACHED' || code === 'GUEST_SESSIONS_DISABLED') {
       await loadGuestQuota()
@@ -678,10 +678,10 @@ async function approveRequest(request: GuestBookingRequestRecord) {
       ...latestInviteUrlByRequestId.value,
       [request.id]: response.invite?.invite_url || '',
     }
-    toast.success('Гостьовий запит погоджено.')
+    toast.success('Запит без реєстрації погоджено.')
     await Promise.all([loadGuestRequests(), loadSessions()])
   } catch (err) {
-    const message = getApiErrorMessage(err, 'Не вдалося погодити гостьовий запит.')
+    const message = getApiErrorMessage(err, 'Не вдалося погодити запит без реєстрації.')
     setRequestActionError(request.id, localizeGuestRequestActionError(message))
   } finally {
     setRequestActionLoading(request.id, 'approve', false)
@@ -693,10 +693,10 @@ async function declineRequest(requestId: number) {
   setRequestActionLoading(requestId, 'decline', true)
   try {
     await declineCabinetGuestBookingRequest(requestId)
-    toast.success('Гостьовий запит відхилено.')
+    toast.success('Запит без реєстрації відхилено.')
     await loadGuestRequests()
   } catch (err) {
-    const message = getApiErrorMessage(err, 'Не вдалося відхилити гостьовий запит.')
+    const message = getApiErrorMessage(err, 'Не вдалося відхилити запит без реєстрації.')
     setRequestActionError(requestId, localizeGuestRequestActionError(message))
   } finally {
     setRequestActionLoading(requestId, 'decline', false)

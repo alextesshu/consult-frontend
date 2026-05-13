@@ -1393,7 +1393,7 @@ const clientsEmptyDescription = computed(() => {
   if (filter.value === 'ACTIVE') return 'Активні клієнти з’являться тут після підтверджених або поточних консультацій.'
   if (filter.value === 'INACTIVE') return 'Клієнти без поточної роботи з’являться тут, коли не буде запланованих сесій.'
   if (filter.value === 'ARCHIVED') return 'Архівовані клієнти зберігатимуться тут, якщо ви приберете їх з активної роботи.'
-  return 'Клієнти з’являться після перших консультацій або гостьових сесій.'
+  return 'Клієнти з’являться після перших консультацій або сесій без реєстрації.'
 })
 
 const showRemindersPanel = computed(() => notesLoading.value || Boolean(remindersError.value) || pendingNotes.value.length > 0)

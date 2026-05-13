@@ -96,9 +96,9 @@
             </RouterLink>
 
             <RouterLink class="work-queue-summary-card" data-kind="guest" to="/cabinet/external-sessions">
-              <div class="work-queue-summary-card__label">Гостьові заявки</div>
+              <div class="work-queue-summary-card__label">Запити без реєстрації</div>
               <div class="work-queue-summary-card__value">{{ workQueue.pendingGuestRequestsCount }}</div>
-              <div class="work-queue-summary-card__cta">Перейти до гостьових сесій</div>
+              <div class="work-queue-summary-card__cta">Опрацювати запити</div>
             </RouterLink>
           </div>
 
@@ -153,8 +153,8 @@
 
             <section class="work-queue-list" data-kind="guest-requests">
               <div class="work-queue-list__header">
-                <h3 class="work-queue-list__title">Гостьові запити</h3>
-                <RouterLink class="btn btn--ghost btn--sm" to="/cabinet/external-sessions">Усі заявки</RouterLink>
+                <h3 class="work-queue-list__title">Запити без реєстрації</h3>
+                <RouterLink class="btn btn--ghost btn--sm" to="/cabinet/external-sessions">Усі запити</RouterLink>
               </div>
               <ul v-if="workQueue.guestRequestsPreview.length > 0" class="work-queue-list__items">
                 <li
@@ -174,7 +174,7 @@
                 </li>
               </ul>
               <p v-else class="muted work-queue-list__empty">
-                Немає гостьових заявок на розгляд. Нові заявки з публічного профілю з’являться в цьому блоці.
+                Тут з’являються запити від клієнтів, які записуються без створення акаунта.
               </p>
             </section>
 
@@ -275,7 +275,7 @@
                   <RouterLink class="action-tile" to="/cabinet/slots">Створити слоти / Розклад</RouterLink>
                   <RouterLink class="action-tile" to="/cabinet/sessions">Перейти до сесій</RouterLink>
                   <RouterLink class="action-tile" to="/cabinet/clients">Перейти до клієнтів</RouterLink>
-                  <RouterLink class="action-tile" to="/cabinet/external-sessions">Гостьові сесії</RouterLink>
+                  <RouterLink class="action-tile" to="/cabinet/external-sessions">Сесії без реєстрації</RouterLink>
                   <RouterLink class="action-tile" to="/cabinet/journal">Авторський журнал</RouterLink>
                   <RouterLink class="action-tile" to="/cabinet/billing">Тарифи і доступ</RouterLink>
                 </div>
@@ -309,7 +309,7 @@
             <strong>{{ activeClientLimitLabel }}</strong>
           </div>
           <div v-if="guestSessionsUsage" class="plan-metrics__line">
-            Гостьові сесії: <strong>{{ guestSessionsUsage.used }} / {{ guestSessionsUsage.limit }}</strong>
+            Сесії без реєстрації: <strong>{{ guestSessionsUsage.used }} / {{ guestSessionsUsage.limit }}</strong>
           </div>
           <div v-if="isNearLimit" class="plan-warning">Ви наближаєтесь до ліміту плану</div>
         </div>
@@ -815,7 +815,7 @@ function workQueueGuestRequestClientLabel(item: WorkQueueGuestRequestPreviewItem
   if (fromDisplayName) return fromDisplayName
   const fromGuestName = normalizeClientName(item.guest_name)
   if (fromGuestName) return fromGuestName
-  return 'Гість без імені'
+  return 'Клієнт без імені'
 }
 
 function workQueueSessionTimeLabel(item: WorkQueueSessionPreviewItem) {

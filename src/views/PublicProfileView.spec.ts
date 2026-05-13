@@ -1434,7 +1434,7 @@ describe('PublicProfileView', () => {
     await fireEvent.click(screen.getByRole('button', { name: 'Надіслати запит' }))
 
     expect(
-      await screen.findByText('Наразі нові гостьові запити тимчасово недоступні для цього профілю.')
+      await screen.findByText('Наразі нові запити без реєстрації тимчасово недоступні для цього профілю.')
     ).toBeInTheDocument()
   })
 
@@ -1843,7 +1843,7 @@ describe('PublicProfileView', () => {
     expect(await screen.findByText('Загальні правила платформи')).toBeInTheDocument()
     expect(screen.getAllByText('Умови спеціаліста').length).toBeGreaterThan(0)
     expect(
-      screen.getByText(/Для гостя підтвердження діє лише для поточного запиту/i)
+      screen.getByText(/Для клієнта без акаунта підтвердження діє лише для поточного запиту/i)
     ).toBeInTheDocument()
 
     await fireEvent.update(screen.getByLabelText('Ім’я'), 'Ірина')

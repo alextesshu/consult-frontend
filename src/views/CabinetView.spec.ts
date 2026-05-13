@@ -143,7 +143,7 @@ describe('CabinetView', () => {
 
     await waitFor(() => {
       expect(mockedApiGet).toHaveBeenCalledWith('/cabinet/entitlements/')
-      expect(view.container).toHaveTextContent('Гостьові сесії:')
+      expect(view.container).toHaveTextContent('Сесії без реєстрації:')
       expect(view.container).toHaveTextContent('2 / 5')
     })
   })
@@ -219,7 +219,7 @@ describe('CabinetView', () => {
     const view = renderView()
 
     await waitFor(() => {
-      expect(view.container).toHaveTextContent('Гостьові сесії:')
+      expect(view.container).toHaveTextContent('Сесії без реєстрації:')
       expect(view.container).toHaveTextContent('0 / 5')
     })
   })
@@ -242,7 +242,7 @@ describe('CabinetView', () => {
     await waitFor(() => {
       expect(mockedApiGet).toHaveBeenCalledWith('/cabinet/entitlements/')
     })
-    expect(view.container).not.toHaveTextContent('Гостьові сесії:')
+    expect(view.container).not.toHaveTextContent('Сесії без реєстрації:')
   })
 
   it('hides guest quota row when guest sessions are not enabled for the plan', async () => {
@@ -264,7 +264,7 @@ describe('CabinetView', () => {
     await waitFor(() => {
       expect(mockedApiGet).toHaveBeenCalledWith('/cabinet/entitlements/')
     })
-    expect(view.container).not.toHaveTextContent('Гостьові сесії:')
+    expect(view.container).not.toHaveTextContent('Сесії без реєстрації:')
   })
 
   it('loads work-queue and renders counts, preview lists, and CTA links', async () => {
@@ -295,7 +295,7 @@ describe('CabinetView', () => {
     expect(view.container).toHaveTextContent('Робочий огляд')
     expect(view.container).toHaveTextContent('Сьогоднішні сесії')
     expect(view.container).toHaveTextContent('Нагадування по нотатках')
-    expect(view.container).toHaveTextContent('Гостьові заявки')
+    expect(view.container).toHaveTextContent('Запити без реєстрації')
   })
 
   it('routes notes reminder preview to session detail when session_id is available', async () => {
@@ -413,7 +413,7 @@ describe('CabinetView', () => {
     expect(view.container).toHaveTextContent('На сьогодні сесій немає. Перевірте розклад')
     expect(view.container).toHaveTextContent('Нотатки не потребують уваги.')
     expect(view.container).toHaveTextContent('Додати клієнта')
-    expect(view.container).toHaveTextContent('Немає гостьових заявок на розгляд.')
+    expect(view.container).toHaveTextContent('Тут з’являються запити від клієнтів, які записуються без створення акаунта.')
     expect(view.container).toHaveTextContent(
       'Клієнтів ще немає. Ви можете додати клієнта вручну без створення кабінету'
     )
@@ -1073,7 +1073,7 @@ describe('CabinetView', () => {
     expect(view.container.querySelector('a.action-tile[href="/cabinet/slots"]')).toHaveTextContent('Створити слоти / Розклад')
     expect(view.container.querySelector('a.action-tile[href="/cabinet/sessions"]')).toHaveTextContent('Перейти до сесій')
     expect(view.container.querySelector('a.action-tile[href="/cabinet/clients"]')).toHaveTextContent('Перейти до клієнтів')
-    expect(view.container.querySelector('a.action-tile[href="/cabinet/external-sessions"]')).toHaveTextContent('Гостьові сесії')
+    expect(view.container.querySelector('a.action-tile[href="/cabinet/external-sessions"]')).toHaveTextContent('Сесії без реєстрації')
     expect(view.container.querySelector('a.action-tile[href="/cabinet/journal"]')).toHaveTextContent('Авторський журнал')
     expect(view.container.querySelector('a.action-tile[href="/cabinet/billing"]')).toHaveTextContent('Тарифи і доступ')
     expect(view.container.querySelector('a.action-tile[href="/cabinet/group-events"]')).not.toBeInTheDocument()
@@ -1331,5 +1331,4 @@ describe('CabinetView', () => {
     })
   })
 })
-
 

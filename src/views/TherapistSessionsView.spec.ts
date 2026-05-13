@@ -234,6 +234,14 @@ describe('TherapistSessionsView', () => {
     renderView()
 
     expect(await screen.findByText('Керуйте сесіями')).toBeInTheDocument()
+    expect(screen.getByText('Сесії без реєстрації')).toBeInTheDocument()
+    expect(
+      screen.getByText('Створюйте та ведіть сесії для клієнтів, які записуються без створення акаунта.')
+    ).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Відкрити сесії без реєстрації' })).toHaveAttribute(
+      'href',
+      '/cabinet/external-sessions'
+    )
 
     await waitFor(() => {
       expect(mockedApiGet).toHaveBeenCalledWith('/booking/sessions/', { params: { upcoming: true } })
@@ -420,8 +428,8 @@ describe('TherapistSessionsView', () => {
     await screen.findAllByText(/Manual Display Client/)
     const manualArticle = document.querySelector('#session-41') as HTMLElement
     expect(manualArticle).toBeTruthy()
-    expect(within(manualArticle).getByText('Без кабінету')).toBeInTheDocument()
-    expect(within(manualArticle).getByText('Клієнт без кабінету')).toBeInTheDocument()
+    expect(within(manualArticle).getByText('Без реєстрації')).toBeInTheDocument()
+    expect(within(manualArticle).getByText('Клієнт без реєстрації')).toBeInTheDocument()
     expect(within(manualArticle).queryByText('Ручна картка клієнта')).not.toBeInTheDocument()
     expect(within(manualArticle).getByText('Не оплачено')).toBeInTheDocument()
     expect(within(manualArticle).queryByRole('button', { name: 'Повторювати щотижня' })).not.toBeInTheDocument()
@@ -430,7 +438,7 @@ describe('TherapistSessionsView', () => {
 
     const registeredArticle = (await screen.findByText(/registered@example\.com/)).closest('article') as HTMLElement
     expect(registeredArticle).toBeTruthy()
-    expect(within(registeredArticle).queryByText('Без кабінету')).not.toBeInTheDocument()
+    expect(within(registeredArticle).queryByText('Без реєстрації')).not.toBeInTheDocument()
     expect(within(registeredArticle).getByText('Не оплачено')).toBeInTheDocument()
   })
 

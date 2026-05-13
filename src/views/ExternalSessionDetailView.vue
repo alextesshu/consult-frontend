@@ -2,24 +2,24 @@
   <section class="external-session-detail">
     <header class="detail-hero">
       <div>
-        <div class="badge">Гостьова сесія</div>
-        <h1 class="title detail-title">Деталі гостьової сесії</h1>
+        <div class="badge">Сесія без реєстрації</div>
+        <h1 class="title detail-title">Деталі сесії без реєстрації</h1>
         <p class="muted detail-subtitle">
-          Редагування доступних полів, скасування і керування гостьовим доступом для гостьового клієнта.
+          Редагування доступних полів, скасування і керування доступом без реєстрації для клієнта.
         </p>
       </div>
-      <RouterLink class="btn btn--ghost" to="/cabinet/external-sessions">Назад до списку</RouterLink>
+      <RouterLink class="btn btn--ghost" to="/cabinet/sessions">Назад до сесій</RouterLink>
     </header>
 
     <div v-if="loadError" class="form-error">{{ loadError }}</div>
-    <div v-if="loading" class="muted">Завантаження гостьової сесії…</div>
+    <div v-if="loading" class="muted">Завантаження сесії без реєстрації…</div>
 
     <template v-else-if="session">
       <section class="panel">
         <div class="panel__header">
           <div>
             <div class="badge badge--soft">Зведення</div>
-            <h2 class="panel__title">Гостьова сесія #{{ session.id }}</h2>
+            <h2 class="panel__title">Сесія без реєстрації #{{ session.id }}</h2>
           </div>
           <div class="status-pill" :class="session.status === 'CANCELLED' ? 'status-pill--danger' : 'status-pill--ok'">
             {{ session.status === 'CANCELLED' ? 'Скасовано' : 'Заплановано' }}
@@ -40,7 +40,7 @@
             <div>{{ session.session_format === 'offline' ? 'Офлайн' : 'Онлайн' }}</div>
           </div>
           <div>
-            <div class="muted">Гість</div>
+            <div class="muted">Клієнт</div>
             <div>{{ session.guest_name || '—' }} <span v-if="session.guest_email">({{ session.guest_email }})</span></div>
           </div>
         </div>
@@ -138,7 +138,7 @@
             </label>
 
             <label class="field">
-              <span>Ім'я гостя (опційно)</span>
+              <span>Ім'я клієнта (опційно)</span>
               <input
                 v-model="editDraft.guest_name"
                 class="input"
@@ -149,7 +149,7 @@
             </label>
 
             <label class="field">
-              <span>Ел. пошта гостя (опційно)</span>
+              <span>Ел. пошта клієнта (опційно)</span>
               <input
                 v-model="editDraft.guest_email"
                 class="input"
@@ -197,14 +197,14 @@
                 </a>
                 <div v-else class="muted">Посилання ще не додано.</div>
                 <p class="muted meeting-share-card__hint">
-                  Це внутрішнє посилання на онлайн-зустріч. Не надсилайте його гостю напряму.
-                  Для гостя створіть гостьове запрошення нижче.
+                  Це внутрішнє посилання на онлайн-зустріч. Не надсилайте його клієнту напряму.
+                  Для клієнта створіть запрошення без реєстрації нижче.
                 </p>
                 <p v-if="meetingUrl" class="muted meeting-share-card__hint">
-                  Буде показане гостю після відкриття гостьового запрошення.
+                  Буде показане клієнту після відкриття запрошення без реєстрації.
                 </p>
                 <div v-if="meetingUrl && !hasInviteState" class="meeting-share-card__attention">
-                  Гостьове запрошення ще не створено
+                  Запрошення без реєстрації ще не створено
                 </div>
               </div>
               <div class="meeting-share-card__actions">
@@ -215,7 +215,7 @@
                   :disabled="inviteActionPending || isCancelled || invitePrimaryStatus !== 'active'"
                   @click="copyInviteLink"
                 >
-                  Скопіювати гостьове запрошення
+                  Скопіювати запрошення без реєстрації
                 </button>
                 <button
                   v-else-if="invite && shouldShowGetNewInviteUrlAction"
@@ -224,7 +224,7 @@
                   :disabled="inviteActionPending || isCancelled"
                   @click="regenerateInvite"
                 >
-                  {{ inviteAction === 'regenerate' ? 'Отримуємо посилання…' : 'Отримати гостьове посилання' }}
+                  {{ inviteAction === 'regenerate' ? 'Отримуємо посилання…' : 'Отримати посилання без реєстрації' }}
                 </button>
                 <button
                   v-else-if="!hasInviteState"
@@ -233,7 +233,7 @@
                   :disabled="inviteActionPending || isCancelled"
                   @click="createInvite"
                 >
-                  {{ inviteAction === 'create' ? 'Створюємо…' : 'Створити гостьове запрошення' }}
+                  {{ inviteAction === 'create' ? 'Створюємо…' : 'Створити запрошення без реєстрації' }}
                 </button>
               </div>
             </div>
@@ -252,7 +252,7 @@
         <div class="panel__header">
           <div>
             <div class="badge badge--soft">Оплата</div>
-            <h2 class="panel__title">Оплата гостьової сесії</h2>
+            <h2 class="panel__title">Оплата сесії без реєстрації</h2>
           </div>
           <span class="status-pill" :class="paymentStatusClass">{{ paymentStatusLabel }}</span>
         </div>
@@ -263,7 +263,7 @@
           <div>
             <div class="detail-label">Стан оплати</div>
             <p class="muted payment-card__text">
-              Запит на оплату можна створити для гостя без реєстрації. Поки підтвердження від гостя не підключене,
+              Запит на оплату можна створити для клієнта без реєстрації. Поки підтвердження від клієнта не підключене,
               оплату можна позначити вручну після перевірки.
             </p>
             <p v-if="paymentAmountLabel" class="payment-card__amount">
@@ -310,12 +310,12 @@
       <section class="panel">
         <div class="panel__header">
           <div>
-            <div class="badge badge--soft">Гостьовий доступ</div>
-            <h2 class="panel__title">Гостьовий доступ</h2>
+            <div class="badge badge--soft">Доступ без реєстрації</div>
+            <h2 class="panel__title">Доступ без реєстрації</h2>
           </div>
         </div>
         <p class="muted">
-          Створіть окреме посилання для гостя, щоб він міг відкрити деталі цієї гостьової сесії без реєстрації.
+          Створіть окреме посилання для клієнта, щоб він міг відкрити деталі цієї сесії без реєстрації.
         </p>
 
         <div v-if="inviteLoading" class="muted">Завантаження статусу запрошення…</div>
@@ -371,7 +371,7 @@
             </div>
 
             <div v-if="inviteUrl" class="invite-link-block">
-              <div class="muted">Посилання для гостя</div>
+              <div class="muted">Посилання для клієнта</div>
               <a :href="inviteUrl" class="invite-link-value" target="_blank" rel="noopener noreferrer">{{ inviteUrl }}</a>
             </div>
 
@@ -381,7 +381,7 @@
           </template>
 
           <template v-else>
-            <div class="muted">Запрошення ще не створено. Створіть його, щоб надіслати гостю безпечне посилання.</div>
+            <div class="muted">Запрошення ще не створено. Створіть його, щоб надіслати клієнту безпечне посилання.</div>
             <div class="actions-row">
               <button class="btn" type="button" :disabled="inviteActionPending || isCancelled" @click="createInvite">
                 {{ inviteAction === 'create' ? 'Створюємо…' : 'Створити запрошення' }}
@@ -639,7 +639,7 @@ function cancelEditMode() {
 async function loadSession() {
   if (!Number.isInteger(sessionId.value) || sessionId.value <= 0) {
     session.value = null
-    loadError.value = 'Некоректний ідентифікатор гостьової сесії.'
+    loadError.value = 'Некоректний ідентифікатор сесії без реєстрації.'
     return
   }
   loading.value = true
@@ -650,7 +650,7 @@ async function loadSession() {
     syncEditDraft(payload)
   } catch (err) {
     session.value = null
-    loadError.value = getApiErrorMessage(err, 'Не вдалося завантажити гостьову сесію.')
+    loadError.value = getApiErrorMessage(err, 'Не вдалося завантажити сесію без реєстрації.')
   } finally {
     loading.value = false
   }
@@ -717,9 +717,9 @@ async function submitSave() {
     const updated = await updateExternalSession(session.value.id, payload)
     session.value = updated
     syncEditDraft(updated)
-    toast.success('Гостьову сесію оновлено.')
+    toast.success('Сесію без реєстрації оновлено.')
   } catch (err) {
-    saveError.value = getApiErrorMessage(err, 'Не вдалося оновити гостьову сесію.')
+    saveError.value = getApiErrorMessage(err, 'Не вдалося оновити сесію без реєстрації.')
   } finally {
     savePending.value = false
   }
@@ -776,9 +776,9 @@ async function submitCancel() {
     syncEditDraft(updated)
     isEditMode.value = false
     await loadInvite()
-    toast.success('Гостьову сесію скасовано.')
+    toast.success('Сесію без реєстрації скасовано.')
   } catch (err) {
-    saveError.value = getApiErrorMessage(err, 'Не вдалося скасувати гостьову сесію.')
+    saveError.value = getApiErrorMessage(err, 'Не вдалося скасувати сесію без реєстрації.')
   } finally {
     cancelPending.value = false
   }
@@ -793,13 +793,13 @@ async function createInvite() {
     invite.value = payload.invite
     inviteUrl.value = resolveInviteUrl(payload)
     if (!inviteUrl.value) {
-      toast.success('Гостьове запрошення створено.')
+      toast.success('Запрошення без реєстрації створено.')
       return
     }
     const copied = await tryCopyInviteLink(inviteUrl.value)
     toast.success(copied ? 'Посилання запрошення скопійовано.' : 'Посилання запрошення готове до копіювання.')
   } catch (err) {
-    inviteError.value = getApiErrorMessage(err, 'Не вдалося створити гостьове запрошення.')
+    inviteError.value = getApiErrorMessage(err, 'Не вдалося створити запрошення без реєстрації.')
   } finally {
     inviteAction.value = null
   }
@@ -813,14 +813,14 @@ async function revokeInvite() {
     const payload = await revokeExternalSessionInvite(session.value.id)
     invite.value = payload
     inviteUrl.value = ''
-    toast.success('Гостьове запрошення відкликано.')
+    toast.success('Запрошення без реєстрації відкликано.')
   } catch (err) {
     if (isConflictError(err)) {
       await loadInvite()
       inviteError.value = ''
       return
     }
-    inviteError.value = getApiErrorMessage(err, 'Не вдалося відкликати гостьове запрошення.')
+    inviteError.value = getApiErrorMessage(err, 'Не вдалося відкликати запрошення без реєстрації.')
   } finally {
     inviteAction.value = null
   }
@@ -836,7 +836,7 @@ async function regenerateInvite() {
     invite.value = payload.invite
     inviteUrl.value = resolveInviteUrl(payload)
     if (!inviteUrl.value) {
-      toast.success(shouldShowReadyCopyMessage ? 'Нове посилання готове.' : 'Гостьове запрошення перевидано.')
+      toast.success(shouldShowReadyCopyMessage ? 'Нове посилання готове.' : 'Запрошення без реєстрації перевидано.')
       return
     }
     const copied = await tryCopyInviteLink(inviteUrl.value)
@@ -851,7 +851,7 @@ async function regenerateInvite() {
       inviteError.value = ''
       return
     }
-    inviteError.value = getApiErrorMessage(err, 'Не вдалося перевидати гостьове запрошення.')
+    inviteError.value = getApiErrorMessage(err, 'Не вдалося перевидати запрошення без реєстрації.')
   } finally {
     inviteAction.value = null
   }

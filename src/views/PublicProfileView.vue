@@ -529,7 +529,7 @@
                 • Якщо перед записом є правила, підтвердіть їх чекбоксом перед надсиланням цього запиту.
               </div>
               <div v-if="shouldShowGuestBookingRulesPrompt" class="booking-next__item">
-                • Для гостя підтвердження діє лише для поточного запиту і не зберігається для майбутніх звернень.
+                • Для клієнта без акаунта підтвердження діє лише для поточного запиту і не зберігається для майбутніх звернень.
               </div>
             </div>
 
@@ -3089,7 +3089,7 @@ function getGuestBookingErrorMessage(err: unknown): string {
     GUEST_BOOKING_RESTRICTED_CODES.has(code) ||
     GUEST_BOOKING_RESTRICTED_CODES.has(reasonCode)
   ) {
-    return 'Наразі нові гостьові запити тимчасово недоступні для цього профілю.'
+    return 'Наразі нові запити без реєстрації тимчасово недоступні для цього профілю.'
   }
 
   if (
@@ -5581,6 +5581,4 @@ onMounted(async () => {
   }
 }
 </style>
-
-
 

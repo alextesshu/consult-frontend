@@ -33,7 +33,7 @@
           <div class="limit-card__value">{{ activeClientsUsageLabel }}</div>
         </article>
         <article class="limit-card">
-          <div class="limit-card__label">Гостьові сесії</div>
+          <div class="limit-card__label">Сесії без реєстрації</div>
           <div class="limit-card__value">{{ guestSessionsUsageLabel }}</div>
         </article>
       </div>
@@ -69,7 +69,7 @@
         <div v-if="primaryStatus" class="muted">{{ primaryStatus }}</div>
       </div>
       <p class="muted billing__limits-helper">
-        Постійні клієнти — це клієнти у вашій базі, які займають ліміт тарифу. Гостьові сесії рахуються окремо.
+        Постійні клієнти — це клієнти у вашій базі, які займають ліміт тарифу. Сесії без реєстрації рахуються окремо.
       </p>
       <p v-if="showSwitchToStartAction" class="muted">
         Після переходу вам залишаться базові можливості Start, і beta Pro-доступ більше не буде застосовуватись автоматично.
@@ -237,7 +237,7 @@ const plans = [
       'Свій блог у профілі',
       'Розширена аналітика',
       'Приватні відгуки клієнтів',
-      'Більше гостьових сесій',
+      'Більше сесій без реєстрації',
     ],
   },
   {
@@ -493,7 +493,7 @@ const featureLabels: Record<string, string> = {
   author_journal: 'Публікації у профілі',
   public_events: 'Публічні події',
   priority_support: 'Розширена підтримка',
-  guest_sessions: 'Гостьові сесії',
+  guest_sessions: 'Сесії без реєстрації',
 }
 
 function featureLabel(code: string) {

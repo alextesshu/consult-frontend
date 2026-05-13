@@ -4,7 +4,7 @@
       <div>
         <h1 class="title analytics__title">Аналітика</h1>
         <p class="muted analytics__subtitle">
-          Аналітика відображає основні сесії практики. Гостьові сесії сюди не входять.
+          Аналітика відображає основні сесії практики. Сесії без реєстрації сюди не входять.
         </p>
       </div>
       <RouterLink class="btn btn--ghost" to="/cabinet">Назад до кабінету</RouterLink>

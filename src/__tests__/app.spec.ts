@@ -298,10 +298,7 @@ describe('App shell', () => {
     expect(within(sidebar).getByRole('link', { name: 'Сесії' })).toHaveAttribute('href', '/cabinet/sessions')
     expect(within(sidebar).getByRole('link', { name: 'Клієнти' })).toHaveAttribute('href', '/cabinet/clients')
     expect(within(sidebar).getByRole('link', { name: 'Відгуки' })).toHaveAttribute('href', '/cabinet/reviews')
-    expect(within(sidebar).getByRole('link', { name: 'Гостьові сесії' })).toHaveAttribute(
-      'href',
-      '/cabinet/external-sessions'
-    )
+    expect(within(sidebar).queryByRole('link', { name: 'Сесії без реєстрації' })).not.toBeInTheDocument()
     expect(within(sidebar).getByRole('link', { name: 'Чати' })).toHaveAttribute('href', '/cabinet/chat')
     expect(within(sidebar).getByRole('link', { name: 'Авторський журнал' })).toHaveAttribute(
       'href',
@@ -381,10 +378,7 @@ describe('App shell', () => {
     expect(within(drawer).getByRole('link', { name: 'Сесії' })).toHaveAttribute('href', '/cabinet/sessions')
     expect(within(drawer).getByRole('link', { name: 'Клієнти' })).toHaveAttribute('href', '/cabinet/clients')
     expect(within(drawer).getByRole('link', { name: 'Відгуки' })).toHaveAttribute('href', '/cabinet/reviews')
-    expect(within(drawer).getByRole('link', { name: 'Гостьові сесії' })).toHaveAttribute(
-      'href',
-      '/cabinet/external-sessions'
-    )
+    expect(within(drawer).queryByRole('link', { name: 'Сесії без реєстрації' })).not.toBeInTheDocument()
     expect(within(drawer).getByRole('link', { name: 'Чати' })).toHaveAttribute('href', '/cabinet/chat')
     expect(within(drawer).getByRole('link', { name: 'Авторський журнал' })).toHaveAttribute(
       'href',

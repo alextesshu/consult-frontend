@@ -132,6 +132,23 @@
       </div>
     </section>
 
+    <section class="panel panel--no-registration">
+      <div class="no-registration-entry">
+        <div>
+          <h2 class="panel__title">Сесії без реєстрації</h2>
+          <p class="muted no-registration-entry__copy">
+            Створюйте та ведіть сесії для клієнтів, які записуються без створення акаунта.
+          </p>
+          <p class="muted no-registration-entry__helper">
+            Запити з публічного профілю залишаються в роботі, доки ви їх не підтвердите або не відхилите.
+          </p>
+          <RouterLink class="btn no-registration-entry__cta" to="/cabinet/external-sessions">
+            Відкрити сесії без реєстрації
+          </RouterLink>
+        </div>
+      </div>
+    </section>
+
     <section class="panel">
       <div class="panel__header">
         <div>
@@ -232,8 +249,8 @@
                 Клієнт: {{ sessionClientLabel(session) }}
               </div>
               <div v-if="isManualClientSession(session)" class="manual-client-badges">
-                <span class="status-pill status-pill--manual">Без кабінету</span>
-                <span class="muted manual-client-label">Клієнт без кабінету</span>
+                <span class="status-pill status-pill--manual">Без реєстрації</span>
+                <span class="muted manual-client-label">Клієнт без реєстрації</span>
               </div>
               <div class="muted">{{ sessionFormatBadge(session) }}</div>
               <div class="muted session-context">{{ sessionContextHint(session) }}</div>
@@ -545,8 +562,8 @@
                 Клієнт: {{ sessionClientLabel(session) }}
               </div>
               <div v-if="isManualClientSession(session)" class="manual-client-badges">
-                <span class="status-pill status-pill--manual">Без кабінету</span>
-                <span class="muted manual-client-label">Клієнт без кабінету</span>
+                <span class="status-pill status-pill--manual">Без реєстрації</span>
+                <span class="muted manual-client-label">Клієнт без реєстрації</span>
               </div>
               <div class="muted">{{ sessionFormatBadge(session) }}</div>
               <div class="muted session-context">{{ sessionContextHint(session) }}</div>
@@ -2027,6 +2044,31 @@ onBeforeUnmount(() => {
     border-radius: var(--pc-radius-card);
     border: 1px dashed color-mix(in srgb, var(--pc-teal-500) 48%, var(--pc-border));
     background: var(--pc-teal-100);
+  }
+
+  .panel--no-registration {
+    background: linear-gradient(135deg, var(--pc-bg-card), var(--pc-bg-soft));
+  }
+
+  .no-registration-entry {
+    display: grid;
+    gap: 14px;
+  }
+
+  .no-registration-entry__copy,
+  .no-registration-entry__helper {
+    margin: 8px 0 0;
+    max-width: 680px;
+    line-height: 1.5;
+  }
+
+  .no-registration-entry__helper {
+    font-size: 14px;
+  }
+
+  .no-registration-entry__cta {
+    justify-self: start;
+    margin-top: 6px;
   }
 
   .priority-grid {

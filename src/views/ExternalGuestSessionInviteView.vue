@@ -1,18 +1,18 @@
 ﻿<template>
   <section class="guest-external-session">
     <div v-if="loading" class="panel">
-      <h1 class="title">Доступ до гостьової сесії</h1>
+      <h1 class="title">Доступ до сесії без реєстрації</h1>
       <p class="muted">Завантажуємо запрошення…</p>
     </div>
 
     <div v-else-if="errorState" class="panel">
-      <h1 class="title">Доступ до гостьової сесії</h1>
+      <h1 class="title">Доступ до сесії без реєстрації</h1>
       <p class="muted">{{ errorTitle }}</p>
       <p class="muted">{{ errorDescription }}</p>
     </div>
 
     <div v-else-if="invite" class="panel">
-      <h1 class="title">Доступ до гостьової сесії</h1>
+      <h1 class="title">Доступ до сесії без реєстрації</h1>
       <p class="muted">
         {{ inviteIntroText }}
       </p>
@@ -29,7 +29,7 @@
         <div class="guest-payment-card__header">
           <div>
             <div class="detail-label">Оплата</div>
-            <h2 class="guest-payment-card__title">Оплата гостьової сесії</h2>
+            <h2 class="guest-payment-card__title">Оплата сесії без реєстрації</h2>
           </div>
           <span class="payment-status">{{ paymentStatusLabel }}</span>
         </div>
@@ -253,8 +253,8 @@ const errorTitle = computed(() => {
 
 const errorDescription = computed(() => {
   if (errorState.value === 'invalid') return 'Перевірте посилання або попросіть спеціаліста надіслати нове.'
-  if (errorState.value === 'expired') return 'Попросіть спеціаліста створити нове гостьове посилання для цієї сесії.'
-  if (errorState.value === 'revoked') return 'Спеціаліст відкликав це гостьове посилання.'
+  if (errorState.value === 'expired') return 'Попросіть спеціаліста створити нове посилання без реєстрації для цієї сесії.'
+  if (errorState.value === 'revoked') return 'Спеціаліст відкликав це посилання без реєстрації.'
   if (errorState.value === 'unavailable') return 'Ця сесія зараз недоступна за цим запрошенням.'
   return 'Спробуйте відкрити лінк трохи пізніше.'
 })
