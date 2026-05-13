@@ -2,9 +2,9 @@
   <section class="cabinet">
     <header class="cabinet__hero">
       <div>
-        <h1 class="title cabinet__title">Твій робочий простір</h1>
+        <h1 class="title cabinet__title">Робоча панель</h1>
         <p class="muted cabinet__subtitle">
-          Тут зібрані доступи, активність і швидкі дії. Публічні сторінки — окремо.
+          Тут зібрано короткий огляд вашої практики: сесії, клієнти, нотатки, запити та стан профілю.
         </p>
       </div>
       <RouterLink
@@ -194,7 +194,7 @@
       <section class="panel panel--wide panel--action-hub">
         <div class="panel__header">
           <div>
-            <h2 class="panel__title">Щоденні сценарії</h2>
+            <h2 class="panel__title">Робота на сьогодні</h2>
           </div>
         </div>
         <div class="action-hub" :class="{ 'action-hub--fallback': !nearestUpcomingSession }">
@@ -267,10 +267,10 @@
           </section>
 
           <section class="action-hub__workflows">
-            <div class="panel__meta action-hub__meta">Ключові переходи для щоденної роботи</div>
+            <div class="panel__meta action-hub__meta">Оберіть розділ, з яким хочете працювати далі.</div>
             <div class="cabinet-actions">
               <section class="action-group">
-                <h3 class="action-group__title">Швидкі дії</h3>
+                <h3 class="action-group__title">Куди перейти далі</h3>
                 <div class="action-group__items">
                   <RouterLink class="action-tile" to="/cabinet/slots">Створити слоти / Розклад</RouterLink>
                   <RouterLink class="action-tile" to="/cabinet/sessions">Перейти до сесій</RouterLink>
