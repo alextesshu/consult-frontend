@@ -203,7 +203,7 @@
             Заплановані: {{ filteredUpcomingSessions.length }}
           </a>
           <a class="session-filter-summary__link" href="#sessions-history">
-            Історія: {{ filteredHistorySessions.length }}
+            Історія: {{ historyResultCount }}
           </a>
         </div>
       </div>
@@ -597,6 +597,16 @@
           </div>
         </article>
       </div>
+      <div v-if="historyHasMore" class="history-load-more">
+        <button
+          class="btn btn--ghost btn--sm"
+          type="button"
+          :disabled="historyLoadingMore"
+          @click="loadMoreHistory"
+        >
+          {{ historyLoadingMore ? 'Завантаження...' : 'Показати ще' }}
+        </button>
+      </div>
     </section>
 
     <div v-if="noteSessionId" class="note-modal">
@@ -832,6 +842,12 @@ type PostSessionContext = {
   sessionId: number
   clientId: number | null
 }
+type PaginatedSessionsResponse = {
+  count: number
+  next: string | null
+  previous: string | null
+  results: Session[]
+}
 
 type SessionStatusFilter =
   | 'ALL'
@@ -852,6 +868,10 @@ const sessionStatusFilterOptions: Array<{ value: SessionStatusFilter; label: str
 
 const upcoming = ref<Session[]>([])
 const past = ref<Session[]>([])
+const historyPage = ref(1)
+const historyNext = ref<string | null>(null)
+const historyCount = ref(0)
+const historyLoadingMore = ref(false)
 const availableSlots = ref<Slot[]>([])
 const loading = ref(false)
 const error = ref('')
@@ -1011,20 +1031,12 @@ const hasActiveSessionFilters = computed(
 
 const historySessions = computed(() => {
   const ids = new Set<number>()
-  const history = [...upcoming.value, ...past.value]
-    .filter((session) => {
-      if (['COMPLETED', 'CANCELLED', 'NO_SHOW'].includes(session.status)) return true
-      if (session.status !== 'CONFIRMED') return false
-      const end = new Date(session.slot_end_at || '').getTime()
-      if (Number.isNaN(end)) return false
-      return end < nowTs.value
-    })
+  return past.value
     .filter((session) => {
       if (ids.has(session.id)) return false
       ids.add(session.id)
       return true
     })
-  return history
 })
 
 const upcomingSorted = computed(() => {
@@ -1063,8 +1075,16 @@ const filteredHistorySessions = computed(() =>
   historySessions.value.filter((session) => matchesSessionFilters(session))
 )
 
+const historyResultCount = computed(() =>
+  historyCount.value || filteredHistorySessions.value.length
+)
+
+const historyHasMore = computed(() =>
+  Boolean(historyNext.value) || past.value.length < historyCount.value
+)
+
 const filteredSessionResultCount = computed(
-  () => filteredUpcomingSessions.value.length + filteredHistorySessions.value.length
+  () => filteredUpcomingSessions.value.length + historyResultCount.value
 )
 
 const activeNoteSession = computed(() => {
@@ -1431,16 +1451,80 @@ function openDateFilterPicker() {
   }
 }
 
+function normalizeHistoryResponse(response: Session[] | PaginatedSessionsResponse) {
+  if (Array.isArray(response)) {
+    return {
+      count: response.length,
+      next: null,
+      results: response,
+    }
+  }
+
+  return {
+    count: Number(response?.count || 0),
+    next: response?.next || null,
+    results: Array.isArray(response?.results) ? response.results : [],
+  }
+}
+
+function historyRequestParams(page: number) {
+  const params: Record<string, string | number | boolean> = {
+    upcoming: false,
+    page,
+    page_size: 20,
+  }
+
+  if (statusFilter.value !== 'ALL') {
+    params.status = statusFilter.value
+  }
+  if (dateFilter.value) {
+    params.date = dateFilter.value
+  }
+
+  return params
+}
+
+async function loadHistoryPage(page: number, options: { append?: boolean } = {}) {
+  const response = await apiGet<Session[] | PaginatedSessionsResponse>('/booking/sessions/', {
+    params: historyRequestParams(page),
+  })
+  const normalized = normalizeHistoryResponse(response)
+  historyPage.value = page
+  historyNext.value = normalized.next
+  historyCount.value = normalized.count
+  past.value = options.append ? [...past.value, ...normalized.results] : normalized.results
+}
+
+async function reloadHistoryFirstPage() {
+  past.value = []
+  historyPage.value = 1
+  historyNext.value = null
+  historyCount.value = 0
+  await loadHistoryPage(1)
+}
+
+async function loadMoreHistory() {
+  if (historyLoadingMore.value || !historyHasMore.value) return
+  historyLoadingMore.value = true
+  error.value = ''
+  try {
+    await loadHistoryPage(historyPage.value + 1, { append: true })
+  } catch (err: any) {
+    error.value = getBookingErrorMessage(err, BOOKING_ERROR_FALLBACKS.loadSessions)
+  } finally {
+    historyLoadingMore.value = false
+  }
+}
+
 async function loadSessions() {
   loading.value = true
   error.value = ''
   try {
-    const [upcomingResp, pastResp] = await Promise.all([
+    const [upcomingResp] = await Promise.all([
       apiGet<Session[]>('/booking/sessions/', { params: { upcoming: true } }),
-      apiGet<Session[]>('/booking/sessions/', { params: { upcoming: false } }),
+      reloadHistoryFirstPage(),
     ])
     upcoming.value = upcomingResp || []
-    past.value = pastResp || []
   } catch (err: any) {
     error.value = getBookingErrorMessage(err, BOOKING_ERROR_FALLBACKS.loadSessions)
   } finally {
@@ -1910,6 +1994,15 @@ watch(noteDraft, (value) => {
 watch(journalDraft, (value) => {
   if (value !== journalInitialDraft.value) {
     journalSaveMessage.value = ''
+  }
+})
+
+watch([statusFilter, dateFilter], async () => {
+  error.value = ''
+  try {
+    await reloadHistoryFirstPage()
+  } catch (err: any) {
+    error.value = getBookingErrorMessage(err, BOOKING_ERROR_FALLBACKS.loadSessions)
   }
 })
 
@@ -2458,6 +2551,12 @@ onBeforeUnmount(() => {
 
 .history-tile__actions {
   margin-top: auto;
+}
+
+.history-load-more {
+  display: flex;
+  justify-content: center;
+  margin-top: 14px;
 }
 
 .btn--sm {

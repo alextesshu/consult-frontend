@@ -245,16 +245,18 @@ describe('TherapistSessionsView', () => {
 
     await waitFor(() => {
       expect(mockedApiGet).toHaveBeenCalledWith('/booking/sessions/', { params: { upcoming: true } })
-      expect(mockedApiGet).toHaveBeenCalledWith('/booking/sessions/', { params: { upcoming: false } })
+      expect(mockedApiGet).toHaveBeenCalledWith('/booking/sessions/', {
+        params: { upcoming: false, page: 1, page_size: 20 },
+      })
     })
 
     expect(mockedFetchSpecialistAvailableSlots).toHaveBeenCalled()
     expect(mockedFetchSpecialistRescheduleRequests).toHaveBeenCalled()
     expect(mockedFetchSpecialistProfile).toHaveBeenCalled()
 
-    expect(screen.getByText('Очікують підтвердження')).toBeInTheDocument()
-    expect(screen.getByText('Є запит на перенос')).toBeInTheDocument()
-    expect(screen.getByText(/maria-request@example\.com/)).toBeInTheDocument()
+    expect(await screen.findByText('Очікують підтвердження')).toBeInTheDocument()
+    expect(await screen.findByText('Є запит на перенос')).toBeInTheDocument()
+    expect(await screen.findByText(/maria-request@example\.com/)).toBeInTheDocument()
     expect(screen.getByText(/history@example\.com/)).toBeInTheDocument()
     const photos = screen.getAllByRole('img', { name: 'Фото спеціаліста' })
     expect(photos).toHaveLength(2)
@@ -275,6 +277,122 @@ describe('TherapistSessionsView', () => {
     await fireEvent.click(screen.getByRole('button', { name: 'Скинути фільтри' }))
 
     expect(await screen.findByText(/anna@example\.com/)).toBeInTheDocument()
+  })
+
+  it('loads paginated history and appends the next page from show-more', async () => {
+    const firstHistory = buildSession({
+      id: 71,
+      status: 'COMPLETED',
+      client: 171,
+      client_name: 'First History',
+      client_email: 'first-history@example.com',
+      slot_start_at: '2026-04-20T09:00:00Z',
+      slot_end_at: '2026-04-20T09:50:00Z',
+    })
+    const nextHistory = buildSession({
+      id: 72,
+      status: 'COMPLETED',
+      client: 172,
+      client_name: 'Next History',
+      client_email: 'next-history@example.com',
+      slot_start_at: '2026-04-19T09:00:00Z',
+      slot_end_at: '2026-04-19T09:50:00Z',
+    })
+
+    mockedApiGet.mockImplementation(async (url, config) => {
+      const params = (config as { params?: Record<string, unknown> } | undefined)?.params
+      if (url === '/booking/sessions/' && params?.upcoming === true) {
+        return []
+      }
+      if (url === '/booking/sessions/' && params?.upcoming === false && params?.page === 1) {
+        return {
+          count: 2,
+          next: '/api/booking/sessions/?upcoming=false&page=2&page_size=20',
+          previous: null,
+          results: [firstHistory],
+        }
+      }
+      if (url === '/booking/sessions/' && params?.upcoming === false && params?.page === 2) {
+        return {
+          count: 2,
+          next: null,
+          previous: '/api/booking/sessions/?upcoming=false&page=1&page_size=20',
+          results: [nextHistory],
+        }
+      }
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    expect(await screen.findByText(/first-history@example\.com/)).toBeInTheDocument()
+    expect(screen.queryByText(/next-history@example\.com/)).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Показати ще' })).toBeInTheDocument()
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Показати ще' }))
+
+    expect(await screen.findByText(/next-history@example\.com/)).toBeInTheDocument()
+    expect(screen.getByText(/first-history@example\.com/)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Показати ще' })).not.toBeInTheDocument()
+    expect(mockedApiGet).toHaveBeenCalledWith('/booking/sessions/', {
+      params: { upcoming: false, page: 2, page_size: 20 },
+    })
+  })
+
+  it('resets paginated history to the first filtered page when filters change', async () => {
+    const cancelledHistory = buildSession({
+      id: 81,
+      status: 'CANCELLED',
+      client: 181,
+      client_name: 'Cancelled History',
+      client_email: 'cancelled-history@example.com',
+      slot_start_at: '2026-04-18T09:00:00Z',
+      slot_end_at: '2026-04-18T09:50:00Z',
+    })
+    const completedHistory = buildSession({
+      id: 82,
+      status: 'COMPLETED',
+      client: 182,
+      client_name: 'Completed History',
+      client_email: 'completed-history-filtered@example.com',
+      slot_start_at: '2026-04-17T09:00:00Z',
+      slot_end_at: '2026-04-17T09:50:00Z',
+    })
+
+    mockedApiGet.mockImplementation(async (url, config) => {
+      const params = (config as { params?: Record<string, unknown> } | undefined)?.params
+      if (url === '/booking/sessions/' && params?.upcoming === true) {
+        return []
+      }
+      if (url === '/booking/sessions/' && params?.upcoming === false && params?.status === 'COMPLETED') {
+        return {
+          count: 1,
+          next: null,
+          previous: null,
+          results: [completedHistory],
+        }
+      }
+      if (url === '/booking/sessions/' && params?.upcoming === false && params?.page === 1) {
+        return {
+          count: 1,
+          next: null,
+          previous: null,
+          results: [cancelledHistory],
+        }
+      }
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    expect(await screen.findByText(/cancelled-history@example\.com/)).toBeInTheDocument()
+    await fireEvent.update(screen.getByLabelText('Статус'), 'COMPLETED')
+
+    expect(await screen.findByText(/completed-history-filtered@example\.com/)).toBeInTheDocument()
+    expect(screen.queryByText(/cancelled-history@example\.com/)).not.toBeInTheDocument()
+    expect(mockedApiGet).toHaveBeenCalledWith('/booking/sessions/', {
+      params: { upcoming: false, page: 1, page_size: 20, status: 'COMPLETED' },
+    })
   })
 
   it('renders payment badges from payment_badge_state without replacing lifecycle status badges', async () => {
