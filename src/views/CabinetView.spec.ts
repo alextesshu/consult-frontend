@@ -100,12 +100,6 @@ function renderView() {
   })
 }
 
-function summaryValue(container: ParentNode, kind: 'sessions' | 'notes' | 'guest') {
-  return (
-    container.querySelector(`.work-queue-summary-card[data-kind="${kind}"] .work-queue-summary-card__value`)?.textContent || ''
-  ).trim()
-}
-
 describe('CabinetView', () => {
   beforeEach(() => {
     mockedApiGet.mockReset()
@@ -267,7 +261,7 @@ describe('CabinetView', () => {
     expect(view.container).not.toHaveTextContent('Сесії без реєстрації:')
   })
 
-  it('loads work-queue and renders counts, preview lists, and CTA links', async () => {
+  it('loads work-queue and renders a calm today panel with guest request action', async () => {
     mockedApiGet.mockImplementation(async (url, config) => {
       if (url === '/cabinet/work-queue/') return createWorkQueuePayload()
       if (url === '/cabinet/entitlements/') return {}
@@ -280,25 +274,22 @@ describe('CabinetView', () => {
 
     await waitFor(() => {
       expect(mockedApiGet).toHaveBeenCalledWith('/cabinet/work-queue/')
-      expect(summaryValue(view.container, 'sessions')).toBe('2')
-      expect(summaryValue(view.container, 'notes')).toBe('1')
-      expect(summaryValue(view.container, 'guest')).toBe('1')
+      expect(view.container.querySelector('.panel--today')).toBeInTheDocument()
+      expect(view.container).toHaveTextContent('Сьогодні')
+      expect(view.container).toHaveTextContent('Запити без реєстрації')
+      expect(view.container).toHaveTextContent('Є нові запити від клієнтів, які записалися без створення акаунта.')
     })
 
-    expect(view.container.querySelectorAll('.work-queue-list[data-kind="today-sessions"] .work-queue-list__item')).toHaveLength(1)
-    expect(view.container.querySelectorAll('.work-queue-list[data-kind="notes-reminders"] .work-queue-list__item')).toHaveLength(1)
-    expect(view.container.querySelectorAll('.work-queue-list[data-kind="guest-requests"] .work-queue-list__item')).toHaveLength(1)
-
-    expect(view.container.querySelector('a.work-queue-summary-card[href="/cabinet/sessions"]')).toBeInTheDocument()
-    expect(view.container.querySelector('a.work-queue-summary-card[href="/cabinet/clients"]')).toBeInTheDocument()
-    expect(view.container.querySelector('a.work-queue-summary-card[href="/cabinet/external-sessions"]')).toBeInTheDocument()
-    expect(view.container).toHaveTextContent('Робочий огляд')
-    expect(view.container).toHaveTextContent('Сьогоднішні сесії')
-    expect(view.container).toHaveTextContent('Нагадування по нотатках')
-    expect(view.container).toHaveTextContent('Запити без реєстрації')
+    expect(view.container.querySelector('a[href="/cabinet/external-sessions"]')).toHaveTextContent('Опрацювати запити')
+    expect(view.container.querySelectorAll('a[href="/cabinet/external-sessions"]')).toHaveLength(1)
+    expect(view.container.querySelector('[data-kind="next-action"]')).not.toBeInTheDocument()
+    expect(view.container.querySelector('.work-queue-summary-card')).not.toBeInTheDocument()
+    expect(view.container.querySelector('.work-queue-list')).not.toBeInTheDocument()
+    expect(view.container).not.toHaveTextContent('Робочий огляд')
+    expect(view.container).not.toHaveTextContent('Нотатки до завершення')
   })
 
-  it('routes notes reminder preview to session detail when session_id is available', async () => {
+  it('does not surface notes reminders as a prominent dashboard block', async () => {
     mockedApiGet.mockImplementation(async (url, config) => {
       if (url === '/cabinet/work-queue/') {
         return createWorkQueuePayload({
@@ -322,41 +313,41 @@ describe('CabinetView', () => {
     const view = renderView()
 
     await waitFor(() => {
-      expect(view.container.querySelector('.work-queue-list[data-kind="notes-reminders"] .work-queue-list__link')).toBeInTheDocument()
+      expect(view.container.querySelector('.panel--today')).toBeInTheDocument()
     })
 
-    expect(
-      view.container.querySelector('.work-queue-list[data-kind="notes-reminders"] .work-queue-list__link[href="/cabinet/sessions/901"]')
-    ).toBeInTheDocument()
+    expect(view.container).not.toHaveTextContent('Нотатки до завершення')
+    expect(view.container).not.toHaveTextContent('Queue Notes Client')
+    expect(view.container.querySelector('a[href="/cabinet/sessions/901"]')).not.toBeInTheDocument()
   })
 
-  it('uses client_display_name in work-queue previews and keeps safe fallback when it is missing', async () => {
+  it('uses client_display_name for the nearest session and keeps safe fallback when it is missing', async () => {
     mockedApiGet.mockImplementation(async (url, config) => {
-      if (url === '/cabinet/work-queue/') {
-        return createWorkQueuePayload({
-          today_sessions: [
-            {
-              id: 801,
-              client: 211,
-              client_display_name: 'Canonical Queue Name',
-              status: 'SCHEDULED',
-              has_note: false,
-              starts_at: '2099-06-10T09:00:00Z',
-            },
-            {
-              id: 802,
-              client: 212,
-              client_display_name: null,
-              client_username: 'login.user',
-              status: 'CONFIRMED',
-              has_note: true,
-              starts_at: '2099-06-10T10:00:00Z',
-            },
-          ],
-        })
-      }
+      if (url === '/cabinet/work-queue/') return createWorkQueuePayload()
       if (url === '/cabinet/entitlements/') return {}
-      if (config?.params?.upcoming === true) return []
+      if (config?.params?.upcoming === true) {
+        return [
+          {
+            id: 801,
+            client: 211,
+            client_display_name: 'Canonical Session Name',
+            status: 'SCHEDULED',
+            session_format: 'online',
+            slot_start_at: '2099-06-10T09:00:00Z',
+            slot_end_at: '2099-06-10T09:50:00Z',
+          },
+          {
+            id: 802,
+            client: 212,
+            client_display_name: null,
+            client_username: 'login.user',
+            status: 'CONFIRMED',
+            session_format: 'online',
+            slot_start_at: '2099-06-10T10:00:00Z',
+            slot_end_at: '2099-06-10T10:50:00Z',
+          },
+        ] as any
+      }
       if (config?.params?.upcoming === false) return []
       return []
     })
@@ -364,18 +355,13 @@ describe('CabinetView', () => {
     const view = renderView()
 
     await waitFor(() => {
-      expect(view.container).toHaveTextContent('Canonical Queue Name')
+      expect(view.container).toHaveTextContent('Canonical Session Name')
     })
 
-    const clients = Array.from(
-      view.container.querySelectorAll('.work-queue-list[data-kind="today-sessions"] .work-queue-list__client')
-    )
-    expect(clients.length).toBeGreaterThanOrEqual(2)
-    expect((clients[1]?.textContent || '').trim().length).toBeGreaterThan(0)
     expect(view.container).not.toHaveTextContent('login.user')
   })
 
-  it('renders explicit empty states for work-queue previews', async () => {
+  it('renders calm empty states for today panel', async () => {
     mockMe.value = {
       ...createMePayload(),
       counts: {
@@ -404,23 +390,21 @@ describe('CabinetView', () => {
     const view = renderView()
 
     await waitFor(() => {
-      expect(summaryValue(view.container, 'sessions')).toBe('0')
-      expect(summaryValue(view.container, 'notes')).toBe('0')
-      expect(summaryValue(view.container, 'guest')).toBe('0')
+      expect(view.container.querySelector('.panel--today')).toBeInTheDocument()
+      expect(view.container).toHaveTextContent('На сьогодні сесій немає.')
+      expect(view.container).toHaveTextContent('Можна спокійно підготувати розклад або перевірити публічний профіль.')
+      expect(view.container).toHaveTextContent('Нових запитів без реєстрації немає.')
     })
 
-    expect(view.container.querySelectorAll('.work-queue-list__empty')).toHaveLength(4)
-    expect(view.container).toHaveTextContent('На сьогодні сесій немає. Перевірте розклад')
-    expect(view.container).toHaveTextContent('Нотатки не потребують уваги.')
-    expect(view.container).toHaveTextContent('Додати клієнта')
-    expect(view.container).toHaveTextContent('Тут з’являються запити від клієнтів, які записуються без створення акаунта.')
-    expect(view.container).toHaveTextContent(
-      'Клієнтів ще немає. Ви можете додати клієнта вручну без створення кабінету'
-    )
-    expect(view.container.querySelector('.work-queue-list[data-kind="clients-empty"] a[href="/cabinet/clients"]')).toBeInTheDocument()
+    expect(view.container.querySelector('a[href="/cabinet/slots"]')).toHaveTextContent('Налаштувати розклад')
+    expect(view.container.querySelectorAll('a[href="/cabinet/slots"]')).toHaveLength(1)
+    expect(view.container.querySelector('[data-kind="next-action"]')).not.toBeInTheDocument()
+    expect(view.container).not.toHaveTextContent('Нотатки не потребують уваги.')
+    expect(view.container).not.toHaveTextContent('Додати клієнта')
+    expect(view.container.querySelector('.work-queue-list__empty')).not.toBeInTheDocument()
   })
 
-  it('shows local work-queue error state and retries successfully', async () => {
+  it('shows local today panel error state and retries successfully', async () => {
     let shouldFailWorkQueue = true
     mockedApiGet.mockImplementation(async (url, config) => {
       if (url === '/cabinet/work-queue/') {
@@ -436,18 +420,18 @@ describe('CabinetView', () => {
     const view = renderView()
 
     await waitFor(() => {
-      expect(view.container.querySelector('.work-queue__state--error')).toBeInTheDocument()
+      expect(view.container.querySelector('.today-panel__state--error')).toBeInTheDocument()
     })
 
     shouldFailWorkQueue = false
-    const retryButton = view.container.querySelector('.work-queue__retry')
+    const retryButton = view.container.querySelector('.today-panel__retry')
     expect(retryButton).toBeInTheDocument()
     await fireEvent.click(retryButton as HTMLButtonElement)
 
     await waitFor(() => {
-      expect(summaryValue(view.container, 'sessions')).toBe('5')
+      expect(view.container).toHaveTextContent('Є нові запити від клієнтів, які записалися без створення акаунта.')
     })
-    expect(view.container.querySelector('.work-queue__state--error')).not.toBeInTheDocument()
+    expect(view.container.querySelector('.today-panel__state--error')).not.toBeInTheDocument()
     expect(mockedApiGet.mock.calls.filter((args) => args[0] === '/cabinet/work-queue/').length).toBeGreaterThanOrEqual(2)
   })
 
@@ -951,7 +935,7 @@ describe('CabinetView', () => {
     const view = renderView()
 
     await waitFor(() => {
-      expect(view.container).toHaveTextContent('Що у вас далі')
+      expect(view.container).toHaveTextContent('Найближча сесія')
       expect(view.container).toHaveTextContent('Nearest Client')
       expect(view.container).toHaveTextContent('Формат')
       expect(view.container).toHaveTextContent('Онлайн')
@@ -1032,16 +1016,16 @@ describe('CabinetView', () => {
     const view = renderView()
 
     await waitFor(() => {
-      expect(view.container).toHaveTextContent('Що у вас далі')
+      expect(view.container).toHaveTextContent('Найближча сесія')
       expect(view.container).toHaveTextContent('Offline Client')
       expect(view.container).toHaveTextContent('Локація: Київ, офіс 4')
       expect(view.container).toHaveTextContent('Офлайн-сесія без посилання для входу.')
     })
     expect(view.container.querySelector('a[href="https://meet.google.com/ignore-offline"]')).not.toBeInTheDocument()
-    expect(view.container.querySelector('a[href="/cabinet/sessions"]')).toBeInTheDocument()
+    expect(view.container.querySelector('a[href="/cabinet/sessions/92"]')).toBeInTheDocument()
   })
 
-  it('keeps nearest-session and daily quick links inside one action hub', async () => {
+  it('keeps nearest session and contextual action inside the today panel', async () => {
     mockedApiGet.mockImplementation(async (_url, config) => {
       if (config?.params?.upcoming === true) {
         return [
@@ -1066,17 +1050,18 @@ describe('CabinetView', () => {
     const view = renderView()
 
     await waitFor(() => {
-      expect(view.container.querySelector('.panel--action-hub')).toBeInTheDocument()
-      expect(view.container.querySelector('.panel--action-hub .panel--nearest-session')).toBeInTheDocument()
+      expect(view.container.querySelector('.panel--today')).toBeInTheDocument()
+      expect(view.container.querySelector('.today-card--primary')).toBeInTheDocument()
+      expect(view.container).toHaveTextContent('Hub Client')
     })
 
-    expect(view.container.querySelector('a.action-tile[href="/cabinet/slots"]')).toHaveTextContent('Створити слоти / Розклад')
-    expect(view.container.querySelector('a.action-tile[href="/cabinet/sessions"]')).toHaveTextContent('Перейти до сесій')
-    expect(view.container.querySelector('a.action-tile[href="/cabinet/clients"]')).toHaveTextContent('Перейти до клієнтів')
-    expect(view.container.querySelector('a.action-tile[href="/cabinet/external-sessions"]')).toHaveTextContent('Сесії без реєстрації')
-    expect(view.container.querySelector('a.action-tile[href="/cabinet/journal"]')).toHaveTextContent('Авторський журнал')
-    expect(view.container.querySelector('a.action-tile[href="/cabinet/billing"]')).toHaveTextContent('Тарифи і доступ')
-    expect(view.container.querySelector('a.action-tile[href="/cabinet/group-events"]')).not.toBeInTheDocument()
+    expect(view.container.querySelector('a[href="/cabinet/sessions/94"]')).toHaveTextContent('Відкрити сесію')
+    expect(view.container.querySelector('a[href="https://meet.google.com/hub-room"]')).toHaveTextContent('Приєднатися')
+    expect(view.container.querySelector('.action-tile')).not.toBeInTheDocument()
+    expect(view.container).not.toHaveTextContent('Куди перейти далі')
+    expect(view.container).not.toHaveTextContent('Перейти до сесій')
+    expect(view.container).not.toHaveTextContent('Перейти до клієнтів')
+    expect(view.container).not.toHaveTextContent('Авторський журнал')
   })
 
   it('renders compact billing summary without duplicating detailed tariff logic', async () => {
@@ -1097,7 +1082,7 @@ describe('CabinetView', () => {
     const view = renderView()
 
     await waitFor(() => {
-      expect(view.container).toHaveTextContent('Короткий стан доступу')
+      expect(view.container).toHaveTextContent('Тариф і ліміти')
     })
     expect(view.container.querySelector('.panel--plan a[href="/cabinet/billing"]')).toHaveTextContent(
       'Відкрити тарифи і доступ'
@@ -1137,12 +1122,14 @@ describe('CabinetView', () => {
     const view = renderView()
 
     await waitFor(() => {
-      expect(view.container.querySelector('.action-hub.action-hub--fallback')).toBeInTheDocument()
-      expect(view.container.querySelector('.action-hub__nearest--compact')).toBeInTheDocument()
-      expect(view.container).toHaveTextContent('Немає майбутніх сесій.')
+      expect(view.container.querySelector('.panel--today')).toBeInTheDocument()
+      expect(view.container.querySelector('.today-card--compact')).toBeInTheDocument()
+      expect(view.container).toHaveTextContent('На сьогодні сесій немає.')
     })
 
-    expect(view.container.querySelector('.action-hub__nearest--compact a[href="/cabinet/sessions"]')).toBeInTheDocument()
+    expect(view.container.querySelector('.today-card--compact a[href="/cabinet/slots"]')).toHaveTextContent('Налаштувати розклад')
+    expect(view.container.querySelectorAll('a[href="/cabinet/slots"]')).toHaveLength(1)
+    expect(view.container.querySelector('[data-kind="next-action"]')).not.toBeInTheDocument()
   })
 
   it('renders onboarding readiness with pending steps and primary cta from backend enums', async () => {
@@ -1164,9 +1151,10 @@ describe('CabinetView', () => {
 
     await waitFor(() => {
       expect(view.container.querySelector('.panel--onboarding')).toBeInTheDocument()
+      expect(view.container).toHaveTextContent('Готовність профілю')
+      expect(view.container.querySelector('.onboarding-step--pending')).toBeInTheDocument()
       expect(view.container.querySelector('a[href="/cabinet/profile"]')).toBeInTheDocument()
     })
-    expect(view.container.querySelector('.onboarding-step--pending')).toBeInTheDocument()
     expect((view.container.querySelector('a[href="/cabinet/profile"]')?.textContent || '').trim().length).toBeGreaterThan(0)
   })
 
@@ -1331,4 +1319,3 @@ describe('CabinetView', () => {
     })
   })
 })
-

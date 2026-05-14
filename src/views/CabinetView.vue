@@ -4,7 +4,7 @@
       <div>
         <h1 class="title cabinet__title">Робоча панель</h1>
         <p class="muted cabinet__subtitle">
-          Тут зібрано короткий огляд вашої практики: сесії, клієнти, нотатки, запити та стан профілю.
+          Тут видно найближчі сесії, нові запити та підказки для роботи з практикою.
         </p>
       </div>
       <RouterLink
@@ -46,21 +46,21 @@
     </header>
 
     <div v-if="me && hasCabinetDataSnapshot" class="cabinet__grid">
-      <section class="panel panel--wide panel--work-queue">
+      <section class="panel panel--wide panel--today">
         <div class="panel__header">
           <div>
-            <h2 class="panel__title">Робочий огляд</h2>
+            <h2 class="panel__title">Сьогодні</h2>
           </div>
         </div>
 
-        <div v-if="workQueueLoading && !workQueueLoaded" class="work-queue__state work-queue__state--loading">
-          Завантаження щоденного огляду...
+        <div v-if="workQueueLoading && !workQueueLoaded" class="today-panel__state today-panel__state--loading">
+          Завантаження орієнтирів на сьогодні...
         </div>
 
-        <div v-else-if="workQueueError && !workQueueLoaded" class="work-queue__state work-queue__state--error">
+        <div v-else-if="workQueueError && !workQueueLoaded" class="today-panel__state today-panel__state--error">
           <span>{{ workQueueError }}</span>
           <button
-            class="btn btn--ghost btn--sm work-queue__retry"
+            class="btn btn--ghost btn--sm today-panel__retry"
             type="button"
             :disabled="workQueueLoading"
             @click="retryWorkQueueLoad"
@@ -69,11 +69,11 @@
           </button>
         </div>
 
-        <div v-else class="work-queue">
-          <div v-if="workQueueError" class="work-queue__inline-error">
+        <div v-else class="today-panel">
+          <div v-if="workQueueError" class="today-panel__inline-error">
             <span>{{ workQueueError }}</span>
             <button
-              class="btn btn--ghost btn--sm work-queue__retry"
+              class="btn btn--ghost btn--sm today-panel__retry"
               type="button"
               :disabled="workQueueLoading"
               @click="retryWorkQueueLoad"
@@ -82,129 +82,13 @@
             </button>
           </div>
 
-          <div class="work-queue__summary">
-            <RouterLink class="work-queue-summary-card" data-kind="sessions" to="/cabinet/sessions">
-              <div class="work-queue-summary-card__label">Сесії сьогодні</div>
-              <div class="work-queue-summary-card__value">{{ workQueue.todaySessionsCount }}</div>
-              <div class="work-queue-summary-card__cta">Перейти до сесій</div>
-            </RouterLink>
-
-            <RouterLink class="work-queue-summary-card" data-kind="notes" to="/cabinet/clients">
-              <div class="work-queue-summary-card__label">Нотатки до завершення</div>
-              <div class="work-queue-summary-card__value">{{ workQueue.notesRemindersCount }}</div>
-              <div class="work-queue-summary-card__cta">Перейти до клієнтів</div>
-            </RouterLink>
-
-            <RouterLink class="work-queue-summary-card" data-kind="guest" to="/cabinet/external-sessions">
-              <div class="work-queue-summary-card__label">Запити без реєстрації</div>
-              <div class="work-queue-summary-card__value">{{ workQueue.pendingGuestRequestsCount }}</div>
-              <div class="work-queue-summary-card__cta">Опрацювати запити</div>
-            </RouterLink>
-          </div>
-
-          <div class="work-queue__preview-grid">
-            <section class="work-queue-list" data-kind="today-sessions">
-              <div class="work-queue-list__header">
-                <h3 class="work-queue-list__title">Сьогоднішні сесії</h3>
-                <RouterLink class="btn btn--ghost btn--sm" to="/cabinet/sessions">Усі сесії</RouterLink>
-              </div>
-              <ul v-if="workQueue.todaySessions.length > 0" class="work-queue-list__items">
-                <li v-for="item in workQueue.todaySessions" :key="workQueueSessionKey(item)" class="work-queue-list__item">
-                  <div class="work-queue-list__row">
-                    <div class="work-queue-list__time">{{ workQueueSessionTimeLabel(item) }}</div>
-                    <div class="work-queue-list__status">{{ workQueueSessionStatusLabel(item.status) }}</div>
-                  </div>
-                  <div class="work-queue-list__client">{{ workQueueSessionClientLabel(item) }}</div>
-                  <div class="work-queue-list__meta">
-                    <span>Нотатка: {{ item.has_note ? 'є' : 'немає' }}</span>
-                    <span v-if="workQueueSessionFormatLabel(item)">{{ workQueueSessionFormatLabel(item) }}</span>
-                  </div>
-                  <RouterLink class="work-queue-list__link" :to="workQueueSessionTo(item)">Відкрити</RouterLink>
-                </li>
-              </ul>
-              <p v-else class="muted work-queue-list__empty">
-                На сьогодні сесій немає. Перевірте розклад або відкрийте список сесій, щоб спланувати наступні зустрічі.
-              </p>
-            </section>
-
-            <section class="work-queue-list" data-kind="notes-reminders">
-              <div class="work-queue-list__header">
-                <h3 class="work-queue-list__title">Нагадування по нотатках</h3>
-                <RouterLink class="btn btn--ghost btn--sm" to="/cabinet/clients">До нотаток</RouterLink>
-              </div>
-              <ul v-if="workQueue.notesRemindersPreview.length > 0" class="work-queue-list__items">
-                <li
-                  v-for="item in workQueue.notesRemindersPreview"
-                  :key="workQueueReminderKey(item)"
-                  class="work-queue-list__item"
-                >
-                  <div class="work-queue-list__time">{{ workQueueReminderTimeLabel(item) }}</div>
-                  <div class="work-queue-list__client">{{ workQueueReminderClientLabel(item) }}</div>
-                  <div class="work-queue-list__meta">
-                    <span>Потрібно зафіксувати нотатку</span>
-                  </div>
-                  <RouterLink class="work-queue-list__link" :to="workQueueReminderTo(item)">Продовжити</RouterLink>
-                </li>
-              </ul>
-              <p v-else class="muted work-queue-list__empty">
-                Нотатки не потребують уваги. Коли після сесії треба буде доповнити запис, він з’явиться тут.
-              </p>
-            </section>
-
-            <section class="work-queue-list" data-kind="guest-requests">
-              <div class="work-queue-list__header">
-                <h3 class="work-queue-list__title">Запити без реєстрації</h3>
-                <RouterLink class="btn btn--ghost btn--sm" to="/cabinet/external-sessions">Усі запити</RouterLink>
-              </div>
-              <ul v-if="workQueue.guestRequestsPreview.length > 0" class="work-queue-list__items">
-                <li
-                  v-for="item in workQueue.guestRequestsPreview"
-                  :key="workQueueGuestRequestKey(item)"
-                  class="work-queue-list__item"
-                >
-                  <div class="work-queue-list__row">
-                    <div class="work-queue-list__time">{{ workQueueGuestRequestTimeLabel(item) }}</div>
-                    <div class="work-queue-list__status">{{ workQueueGuestRequestStatusLabel(item.status) }}</div>
-                  </div>
-                  <div class="work-queue-list__client">{{ workQueueGuestRequestClientLabel(item) }}</div>
-                  <div v-if="workQueueSessionFormatLabel(item)" class="work-queue-list__meta">
-                    <span>Формат: {{ workQueueSessionFormatLabel(item) }}</span>
-                  </div>
-                  <RouterLink class="work-queue-list__link" to="/cabinet/external-sessions">Опрацювати</RouterLink>
-                </li>
-              </ul>
-              <p v-else class="muted work-queue-list__empty">
-                Тут з’являються запити від клієнтів, які записуються без створення акаунта.
-              </p>
-            </section>
-
-            <section v-if="activeClientsCount === 0" class="work-queue-list" data-kind="clients-empty">
-              <div class="work-queue-list__header">
-                <h3 class="work-queue-list__title">Клієнти</h3>
-                <RouterLink class="btn btn--ghost btn--sm" to="/cabinet/clients">Додати клієнта</RouterLink>
-              </div>
-              <p class="muted work-queue-list__empty">
-                Клієнтів ще немає. Ви можете додати клієнта вручну без створення кабінету для нього або запросити клієнтів через публічний профіль і відкриті слоти.
-              </p>
-            </section>
-          </div>
-        </div>
-      </section>
-
-      <section class="panel panel--wide panel--action-hub">
-        <div class="panel__header">
-          <div>
-            <h2 class="panel__title">Робота на сьогодні</h2>
-          </div>
-        </div>
-        <div class="action-hub" :class="{ 'action-hub--fallback': !nearestUpcomingSession }">
           <section
-            class="panel panel--nearest-session action-hub__nearest"
-            :class="{ 'action-hub__nearest--compact': !nearestUpcomingSession }"
+            class="today-card today-card--primary"
+            :class="{ 'today-card--compact': !nearestUpcomingSession }"
           >
-            <div class="panel__header">
+            <div class="today-card__header">
               <div>
-                <h3 class="panel__title action-hub__title">Що у вас далі</h3>
+                <h3 class="today-card__title">Найближча сесія</h3>
               </div>
               <div v-if="nearestUpcomingSession" class="nearest-session__status" :class="nearestSessionStatusClass">
                 {{ nearestSessionStatusLabel }}
@@ -249,75 +133,54 @@
                 >
                   Приєднатися
                 </a>
-                <RouterLink v-else class="btn btn--ghost btn--sm" to="/cabinet/sessions">
-                  Усі сесії
-                </RouterLink>
               </div>
             </template>
             <template v-else>
-              <p class="muted action-hub__empty">
-                Немає майбутніх сесій. Перейдіть до сесій, щоб запланувати або перевірити нові запити.
+              <p class="muted today-card__empty">
+                На сьогодні сесій немає.<br>
+                Можна спокійно підготувати розклад або перевірити публічний профіль.
               </p>
               <div class="nearest-session__actions">
-                <RouterLink class="btn btn--sm" to="/cabinet/sessions">
-                  Перейти до сесій
+                <RouterLink class="btn btn--sm" to="/cabinet/slots">
+                  Налаштувати розклад
                 </RouterLink>
               </div>
             </template>
           </section>
 
-          <section class="action-hub__workflows">
-            <div class="panel__meta action-hub__meta">Оберіть розділ, з яким хочете працювати далі.</div>
-            <div class="cabinet-actions">
-              <section class="action-group">
-                <h3 class="action-group__title">Куди перейти далі</h3>
-                <div class="action-group__items">
-                  <RouterLink class="action-tile" to="/cabinet/slots">Створити слоти / Розклад</RouterLink>
-                  <RouterLink class="action-tile" to="/cabinet/sessions">Перейти до сесій</RouterLink>
-                  <RouterLink class="action-tile" to="/cabinet/clients">Перейти до клієнтів</RouterLink>
-                  <RouterLink class="action-tile" to="/cabinet/external-sessions">Сесії без реєстрації</RouterLink>
-                  <RouterLink class="action-tile" to="/cabinet/journal">Авторський журнал</RouterLink>
-                  <RouterLink class="action-tile" to="/cabinet/billing">Тарифи і доступ</RouterLink>
-                </div>
-              </section>
-            </div>
+          <section class="today-side">
+            <article class="today-card today-card--soft" data-kind="guest-requests">
+              <h3 class="today-card__title">Запити без реєстрації</h3>
+              <p v-if="workQueue.pendingGuestRequestsCount > 0" class="muted today-card__copy">
+                Є нові запити від клієнтів, які записалися без створення акаунта.
+              </p>
+              <p v-else class="muted today-card__copy">
+                Нових запитів без реєстрації немає.
+              </p>
+              <RouterLink
+                v-if="workQueue.pendingGuestRequestsCount > 0"
+                class="btn btn--sm"
+                to="/cabinet/external-sessions"
+              >
+                Опрацювати запити
+              </RouterLink>
+            </article>
+
+            <article v-if="showDailyNextAction" class="today-card today-card--soft" data-kind="next-action">
+              <h3 class="today-card__title">{{ dailyNextAction.title }}</h3>
+              <p class="muted today-card__copy">{{ dailyNextAction.description }}</p>
+              <RouterLink v-if="dailyNextAction.to" class="btn btn--ghost btn--sm" :to="dailyNextAction.to">
+                {{ dailyNextAction.label }}
+              </RouterLink>
+            </article>
           </section>
-        </div>
-      </section>
-      <section class="panel panel--wide panel--plan">
-        <div class="panel__header">
-          <div>
-            <h2 class="panel__title panel__title--compact">Короткий стан доступу</h2>
-          </div>
-          <RouterLink
-            class="btn btn--ghost btn--sm"
-            to="/cabinet/billing"
-          >
-            Відкрити тарифи і доступ
-          </RouterLink>
-        </div>
-        <div class="plan-row">
-          <div class="plan-badges">
-            <span class="badge badge--outline">{{ planCodeLabel }}</span>
-            <span v-if="planCodeLabel === 'PRO'" class="badge badge--soft">Рекомендовано</span>
-          </div>
-          <div class="muted plan-hint">Доступ до практики без комісій за сесію</div>
-        </div>
-        <div class="plan-metrics">
-          <div class="plan-metrics__line">
-            Активні клієнти: <strong>{{ activeClientsCount }}</strong> з
-            <strong>{{ activeClientLimitLabel }}</strong>
-          </div>
-          <div v-if="guestSessionsUsage" class="plan-metrics__line">
-            Сесії без реєстрації: <strong>{{ guestSessionsUsage.used }} / {{ guestSessionsUsage.limit }}</strong>
-          </div>
-          <div v-if="isNearLimit" class="plan-warning">Ви наближаєтесь до ліміту плану</div>
         </div>
       </section>
       <section class="panel panel--wide panel--onboarding">
         <div class="panel__header">
           <div>
-            <div class="panel__meta">Шлях спеціаліста PRO CONSULT</div>
+            <h2 class="panel__title panel__title--compact">Готовність профілю</h2>
+            <div class="panel__meta">Публічний профіль, розклад і готовність до запитів.</div>
           </div>
           <div class="onboarding-status" :class="onboardingReady ? 'onboarding-status--ready' : 'onboarding-status--pending'">
             {{ onboardingReady ? 'Готово' : 'Потрібні дії' }}
@@ -325,7 +188,7 @@
         </div>
 
         <div v-if="onboardingLoading && !onboardingViewModel" class="onboarding-loading">
-          Завантаження стану онбордингу...
+          Завантаження стану профілю...
         </div>
 
         <div v-else-if="onboardingViewModel" class="onboarding-layout">
@@ -387,6 +250,36 @@
           </button>
         </div>
       </section>
+      <section class="panel panel--wide panel--plan">
+        <div class="panel__header">
+          <div>
+            <h2 class="panel__title panel__title--compact">Тариф і ліміти</h2>
+          </div>
+          <RouterLink
+            class="btn btn--ghost btn--sm"
+            to="/cabinet/billing"
+          >
+            Відкрити тарифи і доступ
+          </RouterLink>
+        </div>
+        <div class="plan-row">
+          <div class="plan-badges">
+            <span class="badge badge--outline">{{ planCodeLabel }}</span>
+            <span v-if="planCodeLabel === 'PRO'" class="badge badge--soft">Рекомендовано</span>
+          </div>
+          <div class="muted plan-hint">Доступ до практики без комісій за сесію</div>
+        </div>
+        <div class="plan-metrics">
+          <div class="plan-metrics__line">
+            Активні клієнти: <strong>{{ activeClientsCount }}</strong> з
+            <strong>{{ activeClientLimitLabel }}</strong>
+          </div>
+          <div v-if="guestSessionsUsage" class="plan-metrics__line">
+            Сесії без реєстрації: <strong>{{ guestSessionsUsage.used }} / {{ guestSessionsUsage.limit }}</strong>
+          </div>
+          <div v-if="isNearLimit" class="plan-warning">Ви наближаєтесь до ліміту плану</div>
+        </div>
+      </section>
     </div>
 
     <div v-else-if="me && cabinetDataLoading" class="card cabinet__loading cabinet__details-state">
@@ -439,7 +332,7 @@ import {
   type ChatThread,
   type SessionFormat,
 } from '../lib/api'
-import { formatUkDateTimeCompact, formatUkTime } from '../lib/dateTime'
+import { formatUkDateTimeCompact } from '../lib/dateTime'
 import { canJoinExternalMeeting, normalizeMeetingUrl } from '../lib/sessionExecution'
 import {
   buildSpecialistOnboardingViewModel,
@@ -487,6 +380,13 @@ type DashboardHeroSignal = {
   title: string
   message?: string
   tone: 'live' | 'warning' | 'info'
+  to: string
+}
+
+type DailyNextAction = {
+  title: string
+  description: string
+  label: string
   to: string
 }
 
@@ -600,7 +500,7 @@ const HERO_SIGNAL_CONFIRMED_SOON_WINDOW_MS = 30 * 60 * 1000
 let nowIntervalId: number | null = null
 const CABINET_DATA_LOAD_ERROR = 'Не вдалося завантажити дані доступу кабінету.'
 const ONBOARDING_LOAD_ERROR = 'Не вдалося завантажити стан онбордингу.'
-const WORK_QUEUE_LOAD_ERROR = 'Не вдалося завантажити блок "Сьогодні / До уваги".'
+const WORK_QUEUE_LOAD_ERROR = 'Не вдалося завантажити орієнтири на сьогодні.'
 
 const onboardingState = ref<unknown | null>(null)
 const onboardingLoading = ref(false)
@@ -770,107 +670,6 @@ function normalizeWorkQueuePayload(payload: unknown): CabinetWorkQueue {
     notesRemindersPreview: normalizePreviewList<WorkQueueNoteReminderPreviewItem>(source.notes_reminders_preview, 3),
     guestRequestsPreview: normalizePreviewList<WorkQueueGuestRequestPreviewItem>(source.guest_requests_preview, 3),
   }
-}
-
-function workQueueSessionKey(item: WorkQueueSessionPreviewItem) {
-  const id = Number(item.id ?? item.session_id ?? 0)
-  if (id > 0) return `session-${id}`
-  return `session-${item.starts_at || item.slot_start_at || item.scheduled_at || 'unknown'}`
-}
-
-function workQueueReminderKey(item: WorkQueueNoteReminderPreviewItem) {
-  const id = Number(item.id ?? item.session_id ?? 0)
-  if (id > 0) return `reminder-${id}`
-  return `reminder-${item.reminder_at || item.slot_start_at || item.starts_at || item.created_at || 'unknown'}`
-}
-
-function workQueueGuestRequestKey(item: WorkQueueGuestRequestPreviewItem) {
-  const id = Number(item.id ?? 0)
-  if (id > 0) return `guest-${id}`
-  return `guest-${item.requested_slot_start || item.starts_at || item.created_at || 'unknown'}`
-}
-
-function workQueueSessionClientLabel(item: WorkQueueSessionPreviewItem) {
-  const fromDisplayName = normalizeClientName(item.client_display_name)
-  if (fromDisplayName) return fromDisplayName
-  const fromClientNameParts = fullName(item.client_first_name, item.client_last_name)
-  if (fromClientNameParts) return fromClientNameParts
-  const fromNameParts = fullName(item.first_name, item.last_name)
-  if (fromNameParts) return fromNameParts
-  return 'Клієнт без імені'
-}
-
-function workQueueReminderClientLabel(item: WorkQueueNoteReminderPreviewItem) {
-  const fromDisplayName = normalizeClientName(item.client_display_name)
-  if (fromDisplayName) return fromDisplayName
-  const fromClientNameParts = fullName(item.client_first_name, item.client_last_name)
-  if (fromClientNameParts) return fromClientNameParts
-  const fromNameParts = fullName(item.first_name, item.last_name)
-  if (fromNameParts) return fromNameParts
-  return 'Клієнт без імені'
-}
-
-function workQueueGuestRequestClientLabel(item: WorkQueueGuestRequestPreviewItem) {
-  const fromDisplayName = normalizeClientName(item.client_display_name)
-  if (fromDisplayName) return fromDisplayName
-  const fromGuestName = normalizeClientName(item.guest_name)
-  if (fromGuestName) return fromGuestName
-  return 'Клієнт без імені'
-}
-
-function workQueueSessionTimeLabel(item: WorkQueueSessionPreviewItem) {
-  const value = item.slot_start_at || item.starts_at || item.scheduled_at || null
-  return formatUkTime(value)
-}
-
-function workQueueReminderTimeLabel(item: WorkQueueNoteReminderPreviewItem) {
-  const value = item.reminder_at || item.slot_start_at || item.starts_at || item.created_at || null
-  return formatUkDateTimeCompact(value)
-}
-
-function workQueueGuestRequestTimeLabel(item: WorkQueueGuestRequestPreviewItem) {
-  const value = item.requested_slot_start || item.starts_at || item.created_at || null
-  return formatUkDateTimeCompact(value)
-}
-
-function workQueueSessionStatusLabel(status?: string | null) {
-  if (status === 'SCHEDULED') return 'Заплановано'
-  if (status === 'CONFIRMED') return 'Підтверджено'
-  if (status === 'COMPLETED') return 'Завершено'
-  if (status === 'CANCELLED') return 'Скасовано'
-  if (status === 'NO_SHOW') return 'Не відбулося'
-  return status || '—'
-}
-
-function workQueueGuestRequestStatusLabel(status?: string | null) {
-  const normalized = (status || '').trim().toLowerCase()
-  if (normalized === 'pending') return 'Очікує'
-  if (normalized === 'approved') return 'Погоджено'
-  if (normalized === 'declined') return 'Відхилено'
-  if (normalized === 'cancelled') return 'Скасовано'
-  return status || '—'
-}
-
-function workQueueSessionFormatLabel(
-  item: Pick<WorkQueueSessionPreviewItem, 'session_format' | 'meeting_mode'>
-): string {
-  if (item.session_format === 'offline' || item.meeting_mode === 'OFFLINE') return 'Офлайн'
-  if (item.session_format === 'online' || item.meeting_mode === 'ONLINE') return 'Онлайн'
-  return ''
-}
-
-function workQueueSessionTo(item: WorkQueueSessionPreviewItem) {
-  const id = Number(item.id ?? item.session_id ?? 0)
-  if (id > 0) return `/cabinet/sessions/${id}`
-  return '/cabinet/sessions'
-}
-
-function workQueueReminderTo(item: WorkQueueNoteReminderPreviewItem) {
-  const sessionId = Number(item.session_id ?? 0)
-  if (sessionId > 0) return `/cabinet/sessions/${sessionId}`
-  const clientId = Number(item.client_id ?? 0)
-  if (clientId > 0) return `/cabinet/clients?client=${clientId}&autoOpen=1`
-  return '/cabinet/clients'
 }
 
 function preferredSessionClientName(session: CabinetSession) {
@@ -1074,6 +873,47 @@ const upcomingSorted = computed(() => {
 })
 
 const nearestUpcomingSession = computed(() => upcomingSorted.value[0] || null)
+
+const showDailyNextAction = computed(() => {
+  if (workQueue.value.pendingGuestRequestsCount > 0) return false
+  return Boolean(nearestUpcomingSession.value)
+})
+
+const dailyNextAction = computed<DailyNextAction>(() => {
+  if (nearestUpcomingSession.value?.status === 'SCHEDULED') {
+    return {
+      title: 'Наступний крок',
+      description: 'Найближча сесія ще очікує підтвердження.',
+      label: 'Відкрити сесію',
+      to: `/cabinet/sessions/${nearestUpcomingSession.value.id}`,
+    }
+  }
+
+  if (!onboardingReady.value) {
+    return {
+      title: 'Наступний крок',
+      description: 'Перевірте, чи профіль і розклад готові для клієнтів.',
+      label: 'Перейти до профілю',
+      to: '/cabinet/profile',
+    }
+  }
+
+  if (!nearestUpcomingSession.value) {
+    return {
+      title: 'Наступний крок',
+      description: 'Коли буде зручно, додайте доступні вікна для наступних записів.',
+      label: 'Налаштувати розклад',
+      to: '/cabinet/slots',
+    }
+  }
+
+  return {
+    title: 'Наступний крок',
+    description: 'Найближча сесія є в розкладі. За потреби відкрийте її деталі.',
+    label: 'Відкрити сесію',
+    to: `/cabinet/sessions/${nearestUpcomingSession.value.id}`,
+  }
+})
 
 const nearestSessionMeetingUrl = computed(() => {
   if (!nearestUpcomingSession.value) return ''
@@ -1497,35 +1337,73 @@ onBeforeUnmount(() => {
   background: rgba(7, 47, 71, 0.03);
 }
 
-.panel--action-hub {
+.panel--today {
   gap: 16px;
   border-color: var(--pc-border);
   background: linear-gradient(
     165deg,
-    color-mix(in srgb, var(--pc-bg-card) 92%, var(--pc-blue-soft)),
-    color-mix(in srgb, var(--pc-bg-card) 88%, var(--pc-teal-100))
+    color-mix(in srgb, var(--pc-bg-card) 96%, var(--pc-teal-100)),
+    color-mix(in srgb, var(--pc-bg-card) 94%, var(--pc-blue-soft))
   );
   box-shadow: var(--pc-shadow-soft);
 }
 
-.panel--work-queue {
-  gap: 16px;
-  border-color: var(--pc-border);
-  background: linear-gradient(
-    165deg,
-    color-mix(in srgb, var(--pc-bg-card) 94%, var(--pc-teal-100)),
-    color-mix(in srgb, var(--pc-bg-card) 90%, var(--pc-peach-100))
-  );
-  box-shadow: var(--pc-shadow-soft);
-}
-
-.work-queue {
+.today-panel {
   display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.8fr);
   gap: 14px;
+  align-items: stretch;
   min-width: 0;
 }
 
-.work-queue__state {
+.today-side {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+  min-width: 0;
+}
+
+.today-card {
+  border: 1px solid rgba(7, 47, 71, 0.12);
+  border-radius: var(--pc-radius-panel);
+  background: #fff;
+  padding: 16px;
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.today-card--primary {
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.94), rgba(8, 113, 201, 0.06));
+}
+
+.today-card--soft {
+  background: rgba(255, 255, 255, 0.86);
+}
+
+.today-card--compact {
+  align-content: center;
+}
+
+.today-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.today-card__title {
+  margin: 0;
+  font-size: 18px;
+}
+
+.today-card__copy,
+.today-card__empty {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.today-panel__state {
   border: 1px solid var(--line);
   border-radius: var(--pc-radius-panel);
   padding: 12px;
@@ -1533,231 +1411,26 @@ onBeforeUnmount(() => {
   gap: 10px;
 }
 
-.work-queue__state--loading {
+.today-panel__state--loading {
   background: rgba(8, 113, 201, 0.08);
   color: #11445d;
 }
 
-.work-queue__state--error,
-.work-queue__inline-error {
+.today-panel__state--error,
+.today-panel__inline-error {
   border: 1px solid rgba(179, 29, 29, 0.35);
   background: rgba(250, 232, 232, 0.9);
   color: #7d1f1f;
 }
 
-.work-queue__inline-error {
+.today-panel__inline-error {
+  grid-column: 1 / -1;
   border-radius: var(--pc-radius-control);
   padding: 10px 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-}
-
-.work-queue__summary {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 12px;
-  min-width: 0;
-}
-
-.work-queue-summary-card {
-  border: 1px solid var(--pc-border);
-  border-radius: var(--pc-radius-panel);
-  background: var(--pc-bg-card);
-  padding: 14px 16px;
-  text-decoration: none;
-  color: inherit;
-  display: grid;
-  gap: 6px;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-  min-width: 0;
-}
-
-.work-queue-summary-card:hover {
-  border-color: color-mix(in srgb, var(--pc-navy-900) 28%, var(--pc-border));
-  box-shadow: var(--pc-shadow-soft);
-}
-
-.work-queue-summary-card:focus-visible {
-  outline: 2px solid rgba(31, 74, 96, 0.35);
-  outline-offset: 1px;
-}
-
-.work-queue-summary-card__label {
-  font-size: 13px;
-  color: var(--pc-text-muted);
-}
-
-.work-queue-summary-card__value {
-  font-size: 32px;
-  font-family: var(--font-display);
-  font-weight: 700;
-  line-height: 1.1;
-  color: var(--pc-navy-950);
-}
-
-.work-queue-summary-card__cta {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--pc-navy-900);
-}
-
-.work-queue-summary-card[data-kind="sessions"] {
-  background: color-mix(in srgb, var(--pc-bg-card) 86%, var(--pc-blue-soft));
-}
-
-.work-queue-summary-card[data-kind="notes"] {
-  background: color-mix(in srgb, var(--pc-bg-card) 86%, var(--pc-peach-100));
-}
-
-.work-queue-summary-card[data-kind="guest"] {
-  background: color-mix(in srgb, var(--pc-bg-card) 86%, var(--pc-teal-100));
-}
-
-.work-queue__preview-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 12px;
-  min-width: 0;
-}
-
-.work-queue-list {
-  border: 1px solid rgba(7, 47, 71, 0.12);
-  border-radius: var(--pc-radius-panel);
-  background: #fff;
-  padding: 14px;
-  display: grid;
-  gap: 10px;
-  min-width: 0;
-}
-
-.work-queue-list__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.work-queue-list__title {
-  margin: 0;
-  font-size: 16px;
-}
-
-.work-queue-list__items {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  display: grid;
-  gap: 10px;
-}
-
-.work-queue-list__item {
-  border: 1px solid rgba(7, 47, 71, 0.1);
-  border-radius: var(--pc-radius-control);
-  padding: 10px;
-  display: grid;
-  gap: 6px;
-}
-
-.work-queue-list__row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-}
-
-.work-queue-list__time {
-  font-size: 14px;
-  color: var(--muted);
-}
-
-.work-queue-list__status {
-  font-size: 13px;
-  font-weight: 600;
-  color: #1f4a60;
-}
-
-.work-queue-list__client {
-  font-size: 15px;
-  font-weight: 600;
-}
-
-.work-queue-list__meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  font-size: 13px;
-  color: var(--muted);
-}
-
-.work-queue-list__link {
-  width: fit-content;
-  font-size: 13px;
-  font-weight: 600;
-  color: #1f4a60;
-  text-decoration: none;
-}
-
-.work-queue-list__link:hover {
-  text-decoration: underline;
-}
-
-.work-queue-list__empty {
-  margin: 0;
-  font-size: 13px;
-  line-height: 1.4;
-}
-
-.action-hub {
-  display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
-  gap: 16px;
-  align-items: start;
-  min-width: 0;
-}
-
-.action-hub--fallback {
-  grid-template-columns: minmax(0, 0.78fr) minmax(0, 1.22fr);
-}
-
-.action-hub__nearest {
-  margin: 0;
-  min-width: 0;
-}
-
-.action-hub__nearest--compact {
-  padding: 12px;
-  gap: 8px;
-  background: #fff;
-}
-
-.action-hub__nearest--compact .action-hub__title {
-  font-size: 17px;
-}
-
-.action-hub__workflows {
-  display: grid;
-  gap: 12px;
-  min-width: 0;
-}
-
-.action-hub__title {
-  font-size: 22px;
-}
-
-.action-hub__meta {
-  font-size: 14px;
-}
-
-.action-hub__empty {
-  margin: 0;
-  line-height: 1.45;
-}
-
-.panel--nearest-session {
-  gap: 12px;
-  background: linear-gradient(145deg, rgba(7, 47, 71, 0.03), rgba(8, 113, 201, 0.08));
 }
 
 .nearest-session__grid {
@@ -2170,67 +1843,6 @@ onBeforeUnmount(() => {
   font-size: 13px;
 }
 
-.cabinet-actions {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-  min-width: 0;
-}
-
-.action-group {
-  border: 1px solid var(--line);
-  border-radius: var(--pc-radius-panel);
-  padding: 12px;
-  display: grid;
-  gap: 10px;
-  background: rgba(7, 47, 71, 0.02);
-  min-width: 0;
-}
-
-.action-group__title {
-  margin: 0;
-  font-size: 15px;
-  font-weight: 700;
-}
-
-.action-group__items {
-  display: grid;
-  gap: 8px;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  min-width: 0;
-}
-
-.action-tile {
-  min-height: 48px;
-  padding: 12px 14px;
-  border-radius: var(--pc-radius-panel);
-  border: 1px solid var(--pc-border);
-  background: var(--pc-bg-card);
-  text-decoration: none;
-  color: var(--pc-navy-900);
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
-  min-width: 0;
-}
-
-.action-tile:hover {
-  border-color: color-mix(in srgb, var(--pc-navy-900) 30%, var(--pc-border));
-  box-shadow: var(--pc-shadow-soft);
-  transform: translateY(-1px);
-}
-
-.action-tile:active {
-  transform: translateY(0);
-  box-shadow: 0 4px 10px rgba(16, 33, 50, 0.12);
-}
-
-.action-tile:focus-visible {
-  outline: 2px solid rgba(31, 74, 96, 0.35);
-  outline-offset: 1px;
-}
-
 .cabinet__loading {
   text-align: center;
   padding: 32px;
@@ -2255,18 +1867,15 @@ onBeforeUnmount(() => {
     align-items: flex-start;
   }
 
-  .action-hub {
+  .today-panel {
     grid-template-columns: 1fr;
   }
 
-  .work-queue__inline-error {
+  .today-panel__inline-error {
     flex-direction: column;
     align-items: flex-start;
   }
 
-  .cabinet-actions {
-    grid-template-columns: 1fr;
-  }
 }
 
 @media (max-width: 900px) {
