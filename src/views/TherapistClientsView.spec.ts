@@ -129,6 +129,32 @@ function getPanels(container: Element) {
   return { remindersPanel, clientsPanel }
 }
 
+function getClientRows(container: Element) {
+  return Array.from(container.querySelectorAll('.client-row')) as HTMLElement[]
+}
+
+async function selectClientRowByName(container: Element, name: string) {
+  const row = await waitFor(() => {
+    const item = getClientRows(container).find((node) => node.textContent?.includes(name))
+    expect(item).toBeInstanceOf(HTMLElement)
+    return item as HTMLElement
+  })
+  await fireEvent.click(row)
+  return row
+}
+
+async function openAccordionSection(scope: HTMLElement, name: string) {
+  const button = await waitFor(() => {
+    const item = Array.from(scope.querySelectorAll('.client-accordion__header')).find((node) =>
+      node.textContent?.includes(name)
+    )
+    expect(item).toBeInstanceOf(HTMLButtonElement)
+    return item as HTMLButtonElement
+  })
+  await fireEvent.click(button)
+  return button
+}
+
 function manualClientRecord(overrides: Record<string, unknown> = {}) {
   return {
     id: 201,
@@ -254,6 +280,7 @@ describe('TherapistClientsView', () => {
           },
         ]
       }
+      if (url === CLIENT_RECORDS_URL) return []
       if (url === REMINDERS_URL) return []
       throw new Error(`Unexpected apiGet call: ${url}`)
     })
@@ -270,7 +297,7 @@ describe('TherapistClientsView', () => {
     await fireEvent.click(retryButton)
 
     await waitFor(() => {
-      expect(within(clientsPanel).getByText('Olena')).toBeInTheDocument()
+      expect(within(clientsPanel).getAllByText('Olena').length).toBeGreaterThan(0)
       expect(clientsPanel.querySelector('.empty-state .btn')).toBeFalsy()
     })
   })
@@ -443,12 +470,13 @@ describe('TherapistClientsView', () => {
 
     const { container } = renderView()
 
-    const archiveButton = await waitFor(() => {
-      const buttons = container.querySelectorAll('.client-card .client-actions button')
-      expect(buttons.length).toBeGreaterThanOrEqual(3)
-      return buttons[buttons.length - 1] as HTMLButtonElement
+    const card = await waitFor(() => {
+      const node = container.querySelector('.client-card')
+      expect(node).toBeInstanceOf(HTMLElement)
+      return node as HTMLElement
     })
-    await fireEvent.click(archiveButton)
+    await openAccordionSection(card, 'Керування клієнтом')
+    await fireEvent.click(within(card).getByRole('button', { name: 'Архівувати' }))
 
     await waitFor(() => {
       expect(mockedApiPatch).toHaveBeenCalledWith('/cabinet/clients/44/archive/')
@@ -475,7 +503,13 @@ describe('TherapistClientsView', () => {
     mockedCreatePracticeBoardItem.mockResolvedValue({ id: 901 } as any)
     mockedFetchPracticeBoards.mockResolvedValue([{ id: 1, title: 'Main board', is_default: true }] as any)
 
-    renderView()
+    const { container } = renderView()
+    const card = await waitFor(() => {
+      const node = container.querySelector('.client-card')
+      expect(node).toBeInstanceOf(HTMLElement)
+      return node as HTMLElement
+    })
+    await openAccordionSection(card, 'Керування клієнтом')
 
     const quickAddButton = await waitFor(() => {
       const button = screen.getByRole('button', { name: 'Додати на дошку' })
@@ -522,7 +556,13 @@ describe('TherapistClientsView', () => {
       throw new Error(`Unexpected apiGet call: ${url}`)
     })
 
-    renderView()
+    const { container } = renderView()
+    const card = await waitFor(() => {
+      const node = container.querySelector('.client-card')
+      expect(node).toBeInstanceOf(HTMLElement)
+      return node as HTMLElement
+    })
+    await openAccordionSection(card, 'Керування клієнтом')
 
     const quickAddButton = await waitFor(() => {
       const button = screen.getByRole('button', { name: 'Додати на дошку' })
@@ -562,7 +602,13 @@ describe('TherapistClientsView', () => {
     mockedCreatePracticeBoardItem.mockResolvedValue({ id: 902 } as any)
     mockedFetchPracticeBoards.mockResolvedValue([])
 
-    renderView()
+    const { container } = renderView()
+    const card = await waitFor(() => {
+      const node = container.querySelector('.client-card')
+      expect(node).toBeInstanceOf(HTMLElement)
+      return node as HTMLElement
+    })
+    await openAccordionSection(card, 'Керування клієнтом')
 
     const quickAddButton = await waitFor(() => {
       const button = screen.getByRole('button', { name: 'Додати на дошку' })
@@ -634,12 +680,13 @@ describe('TherapistClientsView', () => {
 
     const { container } = renderView()
 
-    const historyButton = await waitFor(() => {
-      const button = screen.getByRole('button', { name: 'Приватна історія' })
-      expect(button).toBeInstanceOf(HTMLButtonElement)
-      return button as HTMLButtonElement
+    const card = await waitFor(() => {
+      const node = container.querySelector('.client-card')
+      expect(node).toBeInstanceOf(HTMLElement)
+      return node as HTMLElement
     })
-    await fireEvent.click(historyButton)
+    await openAccordionSection(card, 'Приватна історія')
+    await openAccordionSection(card, 'Робочий зошит')
 
     const expandButton = await waitFor(() => {
       const button = container.querySelector('.workbook-block__controls button:last-of-type')
@@ -650,6 +697,11 @@ describe('TherapistClientsView', () => {
 
     await waitFor(() => {
       expect(container.querySelector('textarea.workbook-textarea')).toHaveValue('journal-44')
+    })
+
+    await openAccordionSection(card, 'Нотатки по сесіях')
+
+    await waitFor(() => {
       expect(container.querySelector('a[href="/cabinet/sessions#note-777"]')).toBeInTheDocument()
       expect(container.querySelector('a[href="/cabinet/sessions#note-778"]')).toBeInTheDocument()
       expect(container.querySelector('a[href="/cabinet/clients/44/workbook"]')).toBeInTheDocument()
@@ -693,13 +745,20 @@ describe('TherapistClientsView', () => {
 
     const { container } = renderView()
 
-    const historyButton = await screen.findByRole('button', { name: 'Приватна історія клієнта' })
-    await fireEvent.click(historyButton)
+    const card = await waitFor(() => {
+      const node = container.querySelector('.client-card')
+      expect(node).toBeInstanceOf(HTMLElement)
+      return node as HTMLElement
+    })
+    await openAccordionSection(card, 'Приватна історія')
 
     await waitFor(() => {
-      expect(container.querySelector('.history-title')?.textContent).toContain('Приватна історія клієнта')
-      expect(screen.getByText('Робочий зошит по клієнту')).toBeInTheDocument()
-      expect(screen.getByText('Нотатки по сесіях')).toBeInTheDocument()
+      expect(container.querySelector('.history-title')?.textContent).toContain('Приватна історія')
+    })
+
+    await openAccordionSection(card, 'Нотатки по сесіях')
+
+    await waitFor(() => {
       expect(container.querySelector('a[href="/cabinet/sessions#note-801"]')).toBeInTheDocument()
       expect(container.querySelector('a[href="/cabinet/sessions#note-802"]')).toBeInTheDocument()
       expect(container.querySelector('a[href="/cabinet/sessions#note-803"]')).toBeInTheDocument()
@@ -807,27 +866,32 @@ describe('TherapistClientsView', () => {
     const filterButtons = clientsPanel.querySelectorAll('.filters button')
 
     await waitFor(() => {
-      expect(clientsPanel.querySelectorAll('.client-card')).toHaveLength(3)
+      expect(clientsPanel.querySelectorAll('.client-row')).toHaveLength(3)
+      expect(clientsPanel.querySelectorAll('.client-card')).toHaveLength(1)
     })
 
     await fireEvent.update(searchInput, 'A-101')
     await waitFor(() => {
+      expect(clientsPanel.querySelectorAll('.client-row')).toHaveLength(1)
       expect(clientsPanel.querySelectorAll('.client-card')).toHaveLength(1)
     })
 
     await fireEvent.update(searchInput, '44')
     await waitFor(() => {
+      expect(clientsPanel.querySelectorAll('.client-row')).toHaveLength(1)
       expect(clientsPanel.querySelectorAll('.client-card')).toHaveLength(1)
     })
 
     await fireEvent.click(filterButtons[2] as HTMLButtonElement)
     await waitFor(() => {
+      expect(clientsPanel.querySelectorAll('.client-row')).toHaveLength(0)
       expect(clientsPanel.querySelectorAll('.client-card')).toHaveLength(0)
       expect(clientsPanel.querySelector('.empty-state')).toBeTruthy()
     })
 
     await fireEvent.update(searchInput, 'B-500')
     await waitFor(() => {
+      expect(clientsPanel.querySelectorAll('.client-row')).toHaveLength(1)
       expect(clientsPanel.querySelectorAll('.client-card')).toHaveLength(1)
     })
   })
@@ -874,7 +938,10 @@ describe('TherapistClientsView', () => {
     const { clientsPanel } = getPanels(container)
 
     await waitFor(() => {
-      expect(within(clientsPanel).getByText('Active Client')).toBeInTheDocument()
+      expect(within(clientsPanel).getAllByText('Active Client').length).toBeGreaterThan(0)
+      expect(clientsPanel.querySelectorAll('.client-row')).toHaveLength(3)
+      expect(clientsPanel.querySelectorAll('.client-card')).toHaveLength(1)
+      expect(clientsPanel.querySelector('.client-row--selected')).toHaveTextContent('Active Client')
       expect(clientsPanel.querySelector('.client-status--active')).toHaveTextContent('Активний')
       expect(clientsPanel.querySelector('.client-status--inactive')).toHaveTextContent('Неактивний')
       expect(clientsPanel.querySelector('.client-status--archived')).toHaveTextContent('Архів')
@@ -884,17 +951,82 @@ describe('TherapistClientsView', () => {
     expect(within(firstCard).getByText('Остання сесія')).toBeInTheDocument()
     expect(within(firstCard).getByText('Майбутніх сесій')).toBeInTheDocument()
     expect(within(firstCard).getByText('Остання нотатка')).toBeInTheDocument()
-    expect(within(firstCard).getByText('Робочий зошит')).toBeInTheDocument()
+    expect(within(firstCard).getAllByText('Робочий зошит').length).toBeGreaterThan(0)
     expect(within(firstCard).getByText('Оновлено')).toBeInTheDocument()
     expect(within(firstCard).getByRole('link', { name: 'Відкрити нотатку' })).toHaveAttribute(
       'href',
       '/cabinet/sessions#note-777'
     )
+    expect(within(firstCard).getByText('Редагування, дошка, архів')).toBeInTheDocument()
+    await openAccordionSection(firstCard, 'Керування клієнтом')
     expect(within(firstCard).getByRole('button', { name: 'Додати на дошку' })).toBeInTheDocument()
     expect(within(firstCard).getByRole('button', { name: 'Архівувати' })).toBeInTheDocument()
     expect(clientsPanel).not.toHaveTextContent('ACTIVE')
     expect(clientsPanel).not.toHaveTextContent('INACTIVE')
     expect(clientsPanel).not.toHaveTextContent('ARCHIVED')
+  })
+
+  it('renders compact rows and switches the single details panel on client selection', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL)
+        return [
+          {
+            id: 1,
+            client_id: 44,
+            state: 'ACTIVE',
+            last_session_at: null,
+            upcoming_count: 1,
+            client_display_name: 'First Client',
+          },
+          {
+            id: 2,
+            client_id: 55,
+            state: 'ACTIVE',
+            last_session_at: null,
+            upcoming_count: 0,
+            client_display_name: 'Second Client',
+          },
+        ]
+      if (url === REMINDERS_URL) return []
+      if (url === clientHistoryUrl(55)) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    const { container } = renderView()
+    const { clientsPanel } = getPanels(container)
+
+    await waitFor(() => {
+      expect(clientsPanel.querySelectorAll('.client-row')).toHaveLength(2)
+      expect(clientsPanel.querySelectorAll('.client-card')).toHaveLength(1)
+      expect(clientsPanel.querySelector('.client-row--selected')).toHaveTextContent('First Client')
+      expect(clientsPanel.querySelector('.client-card')).toHaveTextContent('First Client')
+      expect(clientsPanel.querySelector('.client-card')).not.toHaveTextContent('Second Client')
+    })
+
+    await selectClientRowByName(clientsPanel, 'Second Client')
+
+    await waitFor(() => {
+      expect(clientsPanel.querySelectorAll('.client-card')).toHaveLength(1)
+      expect(clientsPanel.querySelector('.client-row--selected')).toHaveTextContent('Second Client')
+      expect(clientsPanel.querySelector('.client-row--selected')).toHaveAttribute('aria-current', 'true')
+      expect(clientsPanel.querySelector('.client-card')).toHaveTextContent('Second Client')
+      expect(clientsPanel.querySelector('.client-card')).not.toHaveTextContent('First Client')
+    })
+
+    const selectedCard = clientsPanel.querySelector('.client-card') as HTMLElement
+    expect(selectedCard).not.toHaveTextContent('Інформація зашифрована')
+    expect(selectedCard).not.toHaveTextContent('Зошит згорнуто')
+    expect(selectedCard).not.toHaveTextContent('Нотаток по цьому клієнту')
+
+    const privateHeader = await openAccordionSection(selectedCard, 'Приватна історія')
+    expect(privateHeader).toHaveAttribute('aria-expanded', 'true')
+    expect(selectedCard).toHaveTextContent('Інформація зашифрована')
+
+    await openAccordionSection(selectedCard, 'Нотатки по сесіях')
+    await waitFor(() => {
+      expect(selectedCard).not.toHaveTextContent('Інформація зашифрована')
+      expect(selectedCard).toHaveTextContent('Нотаток по цьому клієнту ще немає.')
+    })
   })
 
   it('shows useful empty copy for no clients, filtered lists, archive, and search', async () => {
@@ -911,7 +1043,7 @@ describe('TherapistClientsView', () => {
       expect(clientsPanel).toHaveTextContent('Клієнтів поки немає')
       expect(clientsPanel).toHaveTextContent('Клієнти з’являться після перших консультацій')
       expect(clientsPanel).toHaveTextContent(
-        'Клієнта можна додати вручну без кабінету, щоб швидко почати роботу. Кабінет клієнта можна буде підключити пізніше — для власних сесій клієнта, нагадувань, оплати та зручнішої взаємодії.'
+        'Додавайте клієнтів вручну, щоб швидко почати роботу. Коли буде потрібно, запросіть клієнта до кабінету — там він бачитиме розклад своїх сесій, нагадування, інформацію про оплату та матеріали.'
       )
     })
 
@@ -979,9 +1111,9 @@ describe('TherapistClientsView', () => {
         custom_price_currency: 'UAH',
       })
       expect(mockedApiPost.mock.calls[0]?.[1]).not.toHaveProperty('full_name')
-      expect(within(clientsPanel).getByText('Марія Коваль')).toBeInTheDocument()
-      expect(within(clientsPanel).getByText('Без кабінету')).toBeInTheDocument()
-      expect(within(clientsPanel).getByText('maria@example.com')).toBeInTheDocument()
+      expect(within(clientsPanel).getAllByText('Марія Коваль').length).toBeGreaterThan(0)
+      expect(within(clientsPanel).getAllByText('Без реєстрації').length).toBeGreaterThan(0)
+      expect(within(clientsPanel).getAllByText('maria@example.com').length).toBeGreaterThan(0)
     })
   })
 
@@ -1024,7 +1156,6 @@ describe('TherapistClientsView', () => {
       expect(card).toBeInstanceOf(HTMLElement)
       return card as HTMLElement
     })
-
     await fireEvent.click(within(manualCard).getByRole('button', { name: 'Редагувати' }))
 
     const dialog = await screen.findByRole('dialog', { name: 'Редагувати клієнта' })
@@ -1054,8 +1185,8 @@ describe('TherapistClientsView', () => {
         custom_price_currency: 'UAH',
       })
       expect(mockedApiPatch.mock.calls[0]?.[1]).not.toHaveProperty('full_name')
-      expect(within(clientsPanel).getByText('Manual After')).toBeInTheDocument()
-      expect(within(clientsPanel).getByText('after@example.com')).toBeInTheDocument()
+      expect(within(clientsPanel).getAllByText('Manual After').length).toBeGreaterThan(0)
+      expect(within(clientsPanel).getAllByText('after@example.com').length).toBeGreaterThan(0)
       expect(screen.queryByRole('dialog', { name: 'Редагувати клієнта' })).not.toBeInTheDocument()
     })
   })
@@ -1090,6 +1221,9 @@ describe('TherapistClientsView', () => {
     expect(within(manualCard).getByText('З кабінетом')).toBeInTheDocument()
     expect(within(manualCard).getByRole('button', { name: 'Створити сесію' })).toBeInTheDocument()
     expect(within(manualCard).getByRole('button', { name: 'Редагувати' })).toBeInTheDocument()
+    expect(within(manualCard).getByText('Редагування, дошка, архів')).toBeInTheDocument()
+    await openAccordionSection(manualCard, 'Керування клієнтом')
+    expect(within(manualCard).getAllByRole('button', { name: 'Редагувати' })).toHaveLength(1)
     expect(within(manualCard).getByRole('button', { name: 'Архівувати' })).toBeInTheDocument()
     expect(within(manualCard).queryByRole('button', { name: 'Приватна історія клієнта' })).not.toBeInTheDocument()
   })
@@ -1236,9 +1370,10 @@ describe('TherapistClientsView', () => {
       expect(card).toBeInstanceOf(HTMLElement)
       return card as HTMLElement
     })
+    await openAccordionSection(manualCard, 'Запросити до кабінету')
 
     expect(within(manualCard).getByText('Клієнт зможе увійти або зареєструватися і побачити свої сесії в кабінеті.')).toBeInTheDocument()
-    expect(within(manualCard).getByRole('button', { name: 'Запросити до кабінету' })).toBeInTheDocument()
+    expect(within(manualCard).getAllByRole('button', { name: 'Запросити до кабінету' }).length).toBeGreaterThan(0)
   })
 
   it('does not show manual account invite CTA for linked manual client records', async () => {
@@ -1291,7 +1426,7 @@ describe('TherapistClientsView', () => {
     const { clientsPanel } = getPanels(container)
 
     await waitFor(() => {
-      expect(within(clientsPanel).getByText('Registered Client')).toBeInTheDocument()
+      expect(within(clientsPanel).getAllByText('Registered Client').length).toBeGreaterThan(0)
     })
     expect(within(clientsPanel).queryByRole('button', { name: 'Запросити до кабінету' })).not.toBeInTheDocument()
   })
@@ -1384,6 +1519,7 @@ describe('TherapistClientsView', () => {
       expect(card).toBeInstanceOf(HTMLElement)
       return card as HTMLElement
     })
+    await openAccordionSection(manualCard, 'Запросити до кабінету')
 
     const createInviteButton = manualCard.querySelector('.manual-account-invite__cta')
     expect(createInviteButton).toBeInstanceOf(HTMLButtonElement)
@@ -1418,8 +1554,11 @@ describe('TherapistClientsView', () => {
     const manualCard = await waitFor(() => {
       const card = clientsPanel.querySelector('#manual-client-record-211')
       expect(card).toBeInstanceOf(HTMLElement)
-      expect(card?.querySelector('.manual-account-invite__hint')).toBeTruthy()
       return card as HTMLElement
+    })
+    await openAccordionSection(manualCard, 'Запросити до кабінету')
+    await waitFor(() => {
+      expect(manualCard.querySelector('.manual-account-invite__hint')).toBeTruthy()
     })
 
     expect(manualCard.querySelector('.manual-account-invite__link')).toBeFalsy()
@@ -1446,8 +1585,11 @@ describe('TherapistClientsView', () => {
     const manualCard = await waitFor(() => {
       const card = clientsPanel.querySelector('#manual-client-record-212')
       expect(card).toBeInstanceOf(HTMLElement)
-      expect(card?.querySelector('.manual-account-invite__hint')).toBeTruthy()
       return card as HTMLElement
+    })
+    await openAccordionSection(manualCard, 'Запросити до кабінету')
+    await waitFor(() => {
+      expect(manualCard.querySelector('.manual-account-invite__hint')).toBeTruthy()
     })
 
     const regenerateButton = manualCard.querySelector('.manual-account-invite__actions button')
@@ -1477,15 +1619,18 @@ describe('TherapistClientsView', () => {
     const manualCard = await waitFor(() => {
       const card = clientsPanel.querySelector('#manual-client-record-213')
       expect(card).toBeInstanceOf(HTMLElement)
-      expect(card).toHaveTextContent('https://proconsult.space/client/invite/revoke-me')
       return card as HTMLElement
+    })
+    await openAccordionSection(manualCard, 'Запросити до кабінету')
+    await waitFor(() => {
+      expect(manualCard).toHaveTextContent('https://proconsult.space/client/invite/revoke-me')
     })
 
     await fireEvent.click(within(manualCard).getByRole('button', { name: 'Відкликати' }))
 
     await waitFor(() => {
       expect(mockedRevokeClientRecordAccountInvite).toHaveBeenCalledWith(213)
-      expect(within(manualCard).getByRole('button', { name: 'Запросити до кабінету' })).toBeInTheDocument()
+      expect(within(manualCard).getAllByRole('button', { name: 'Запросити до кабінету' }).length).toBeGreaterThan(0)
       expect(manualCard).not.toHaveTextContent('https://proconsult.space/client/invite/revoke-me')
     })
   })
@@ -1509,8 +1654,9 @@ describe('TherapistClientsView', () => {
       expect(card).toBeInstanceOf(HTMLElement)
       return card as HTMLElement
     })
+    await openAccordionSection(manualCard, 'Запросити до кабінету')
 
-    await fireEvent.click(within(manualCard).getByRole('button', { name: 'Запросити до кабінету' }))
+    await fireEvent.click(requireHTMLElement(manualCard.querySelector('.manual-account-invite__cta'), 'invite cta'))
 
     await waitFor(() => {
       expect(within(manualCard).getByText('Клієнт уже має підключений кабінет.')).toBeInTheDocument()
@@ -1609,8 +1755,9 @@ describe('TherapistClientsView', () => {
       return card as HTMLElement
     })
     expect(within(manualCard).queryByRole('button', { name: 'Приватна історія клієнта' })).not.toBeInTheDocument()
-    expect(within(manualCard).queryByRole('button', { name: 'Додати на дошку' })).not.toBeInTheDocument()
     expect(container.querySelector('a[href^="/cabinet/sessions"]')).not.toBeInTheDocument()
+    await openAccordionSection(manualCard, 'Керування клієнтом')
+    expect(within(manualCard).queryByRole('button', { name: 'Додати на дошку' })).not.toBeInTheDocument()
 
     await fireEvent.click(within(manualCard).getByRole('button', { name: 'Архівувати' }))
 
@@ -1651,8 +1798,8 @@ describe('TherapistClientsView', () => {
     const { clientsPanel } = getPanels(container)
 
     await waitFor(() => {
-      expect(within(clientsPanel).getByText('Registered Client')).toBeInTheDocument()
-      expect(container).toHaveTextContent('Не вдалося завантажити клієнтів без кабінету')
+      expect(within(clientsPanel).getAllByText('Registered Client').length).toBeGreaterThan(0)
+      expect(container).toHaveTextContent('Не вдалося завантажити клієнтів без реєстрації')
     })
   })
 
@@ -1671,21 +1818,23 @@ describe('TherapistClientsView', () => {
     const { container } = renderView()
     const { clientsPanel } = getPanels(container)
     const filterButtons = await waitFor(() => {
-      expect(within(clientsPanel).getByText('Manual Active Filter')).toBeInTheDocument()
-      expect(within(clientsPanel).getByText('Manual Archived Filter')).toBeInTheDocument()
+      expect(getClientRows(clientsPanel).map((row) => row.textContent || '').join(' ')).toContain('Manual Active Filter')
+      expect(getClientRows(clientsPanel).map((row) => row.textContent || '').join(' ')).toContain('Manual Archived Filter')
       return clientsPanel.querySelectorAll('.filters button')
     })
 
     await fireEvent.click(filterButtons[1] as HTMLButtonElement)
     await waitFor(() => {
-      expect(within(clientsPanel).getByText('Manual Active Filter')).toBeInTheDocument()
-      expect(within(clientsPanel).queryByText('Manual Archived Filter')).not.toBeInTheDocument()
+      const rowText = getClientRows(clientsPanel).map((row) => row.textContent || '').join(' ')
+      expect(rowText).toContain('Manual Active Filter')
+      expect(rowText).not.toContain('Manual Archived Filter')
     })
 
     await fireEvent.click(filterButtons[3] as HTMLButtonElement)
     await waitFor(() => {
-      expect(within(clientsPanel).queryByText('Manual Active Filter')).not.toBeInTheDocument()
-      expect(within(clientsPanel).getByText('Manual Archived Filter')).toBeInTheDocument()
+      const rowText = getClientRows(clientsPanel).map((row) => row.textContent || '').join(' ')
+      expect(rowText).not.toContain('Manual Active Filter')
+      expect(rowText).toContain('Manual Archived Filter')
     })
   })
 
@@ -1826,9 +1975,12 @@ describe('TherapistClientsView', () => {
 
     await waitFor(() => {
       const targetCard = container.querySelector('#client-card-44')
+      const targetRow = container.querySelector('#client-row-44')
       expect(targetCard).toBeInTheDocument()
       expect(targetCard).toHaveClass('client-card--targeted')
       expect(targetCard?.querySelector('.client-history')).toBeTruthy()
+      expect(targetRow).toHaveClass('client-row--selected')
+      expect(targetRow).toHaveAttribute('aria-current', 'true')
     })
 
     expect(mockedApiGet).toHaveBeenCalledWith(clientHistoryUrl(44), { params: { limit: 10 } })
@@ -1850,6 +2002,7 @@ describe('TherapistClientsView', () => {
       return card as HTMLElement
     })
     expect(within(manualCard).getByText('Матеріали для клієнта')).toBeInTheDocument()
+    await openAccordionSection(manualCard, 'Матеріали для клієнта')
     expect(within(manualCard).getByText('Матеріал можна підготувати зараз. Клієнт побачить його після підключення акаунта.')).toBeInTheDocument()
   })
 
@@ -1869,7 +2022,7 @@ describe('TherapistClientsView', () => {
       expect(card).toBeInstanceOf(HTMLElement)
       return card as HTMLElement
     })
-    await fireEvent.click(within(manualCard).getByRole('button', { name: 'Відкрити' }))
+    await openAccordionSection(manualCard, 'Матеріали для клієнта')
     await fireEvent.update(within(manualCard).getByLabelText('Назва'), 'Новий матеріал')
     await fireEvent.update(within(manualCard).getByLabelText('Текст'), 'Опис')
     await fireEvent.click(within(manualCard).getByRole('button', { name: 'Додати матеріал' }))
@@ -1901,7 +2054,7 @@ describe('TherapistClientsView', () => {
       expect(card).toBeInstanceOf(HTMLElement)
       return card as HTMLElement
     })
-    await fireEvent.click(requireHTMLElement(manualCard.querySelector('.client-materials__header .btn'), 'materials open'))
+    await openAccordionSection(manualCard, 'Матеріали для клієнта')
     const createBlock = requireHTMLElement(manualCard.querySelector('.client-materials__create'), 'create block')
     const titleInput = requireHTMLElement(createBlock.querySelector('input.input:not([type=\"url\"])'), 'title') as HTMLInputElement
     const contentInput = requireHTMLElement(createBlock.querySelector('textarea'), 'content') as HTMLTextAreaElement
@@ -1956,7 +2109,7 @@ describe('TherapistClientsView', () => {
       expect(card).toBeInstanceOf(HTMLElement)
       return card as HTMLElement
     })
-    await fireEvent.click(requireHTMLElement(manualCard.querySelector('.client-materials__header .btn'), 'materials open'))
+    await openAccordionSection(manualCard, 'Матеріали для клієнта')
     const createBlock = requireHTMLElement(manualCard.querySelector('.client-materials__create'), 'create block')
     const titleInput = requireHTMLElement(createBlock.querySelector('input.input:not([type=\"url\"])'), 'title') as HTMLInputElement
     const typeSelect = requireHTMLElement(createBlock.querySelector('select'), 'type') as HTMLSelectElement
@@ -1999,7 +2152,7 @@ describe('TherapistClientsView', () => {
       expect(card).toBeInstanceOf(HTMLElement)
       return card as HTMLElement
     })
-    await fireEvent.click(requireHTMLElement(manualCard.querySelector('.client-materials__header .btn'), 'materials open'))
+    await openAccordionSection(manualCard, 'Матеріали для клієнта')
     const createBlock = requireHTMLElement(manualCard.querySelector('.client-materials__create'), 'create block')
     const titleInput = requireHTMLElement(createBlock.querySelector('input.input:not([type=\"url\"])'), 'title') as HTMLInputElement
     const typeSelect = requireHTMLElement(createBlock.querySelector('select'), 'type') as HTMLSelectElement
@@ -2071,7 +2224,7 @@ describe('TherapistClientsView', () => {
       expect(card).toBeInstanceOf(HTMLElement)
       return card as HTMLElement
     })
-    await fireEvent.click(requireHTMLElement(manualCard.querySelector('.client-materials__header .btn'), 'materials open'))
+    await openAccordionSection(manualCard, 'Матеріали для клієнта')
     const materials = await waitFor(() => {
       const nodes = manualCard.querySelectorAll('.client-material')
       expect(nodes.length).toBe(2)
@@ -2164,7 +2317,7 @@ describe('TherapistClientsView', () => {
       return card as HTMLElement
     })
 
-    await fireEvent.click(within(manualCard).getByRole('button', { name: 'Відкрити' }))
+    await openAccordionSection(manualCard, 'Матеріали для клієнта')
     await fireEvent.click(await within(manualCard).findByRole('button', { name: 'Опублікувати для клієнта' }))
     await waitFor(() => {
       expect(mockedPublishSpecialistClientMaterial).toHaveBeenCalledWith(900)
@@ -2205,9 +2358,7 @@ describe('TherapistClientsView', () => {
     expect(registeredCard.querySelector('.client-materials')).toBeTruthy()
     expect(registeredCard.querySelector('.client-materials__note')).toBeFalsy()
 
-    const openButton = registeredCard.querySelector('.client-materials__header .btn')
-    expect(openButton).toBeInstanceOf(HTMLButtonElement)
-    await fireEvent.click(openButton as HTMLButtonElement)
+    await openAccordionSection(registeredCard, 'Матеріали для клієнта')
 
     await waitFor(() => {
       expect(mockedFetchSpecialistClientMaterials).toHaveBeenCalledWith({ client_id: 44 })
@@ -2241,9 +2392,7 @@ describe('TherapistClientsView', () => {
       return card as HTMLElement
     })
 
-    const openButton = registeredCard.querySelector('.client-materials__header .btn')
-    expect(openButton).toBeInstanceOf(HTMLButtonElement)
-    await fireEvent.click(openButton as HTMLButtonElement)
+    await openAccordionSection(registeredCard, 'Матеріали для клієнта')
 
     const createBlock = await waitFor(() => {
       const node = registeredCard.querySelector('.client-materials__create')
@@ -2307,45 +2456,38 @@ describe('TherapistClientsView', () => {
       expect(card).toBeInstanceOf(HTMLElement)
       return card as HTMLElement
     })
+
+    await openAccordionSection(registeredCard, 'Матеріали для клієнта')
+    const regCreate = requireHTMLElement(registeredCard.querySelector('.client-materials__create'), '.client-materials__create')
+    const regTitle = requireHTMLElement(regCreate.querySelector('input.input:not([type="url"])'), 'registered title') as HTMLInputElement
+    const regContent = requireHTMLElement(regCreate.querySelector('textarea'), 'registered content') as HTMLTextAreaElement
+    const regSubmit = requireHTMLElement(regCreate.querySelector('button.btn'), 'registered submit') as HTMLButtonElement
+
+    await fireEvent.update(regTitle, 'Registered only title')
+    await fireEvent.update(regContent, 'Registered only content')
+    await fireEvent.click(regSubmit)
+
+    await selectClientRowByName(clientsPanel, 'Manual #1')
     const manualCard = await waitFor(() => {
       const card = clientsPanel.querySelector('#manual-client-record-1')
       expect(card).toBeInstanceOf(HTMLElement)
       return card as HTMLElement
     })
+    await openAccordionSection(manualCard, 'Матеріали для клієнта')
+    const manCreate = requireHTMLElement(manualCard.querySelector('.client-materials__create'), '.client-materials__create')
+    const manTitle = requireHTMLElement(manCreate.querySelector('input.input:not([type="url"])'), 'manual title') as HTMLInputElement
+    const manContent = requireHTMLElement(manCreate.querySelector('textarea'), 'manual content') as HTMLTextAreaElement
+    const manSubmit = requireHTMLElement(manCreate.querySelector('button.btn'), 'manual submit') as HTMLButtonElement
+    expect(manTitle.value).toBe('')
+    expect(manContent.value).toBe('')
 
-    await fireEvent.click(requireHTMLElement(registeredCard.querySelector('.client-materials__header .btn'), '.client-materials__header .btn'))
-    await fireEvent.click(requireHTMLElement(manualCard.querySelector('.client-materials__header .btn'), '.client-materials__header .btn'))
+    await fireEvent.update(manTitle, 'Manual only title')
+    await fireEvent.update(manContent, 'Manual only content')
+    await fireEvent.click(manSubmit)
 
     await waitFor(() => {
       expect(mockedFetchSpecialistClientMaterials).toHaveBeenCalledWith({ client_id: 34 })
       expect(mockedFetchSpecialistClientMaterials).toHaveBeenCalledWith({ client_record_id: 1 })
-    })
-
-    const regCreate = requireHTMLElement(registeredCard.querySelector('.client-materials__create'), '.client-materials__create')
-    const manCreate = requireHTMLElement(manualCard.querySelector('.client-materials__create'), '.client-materials__create')
-
-    const regTitle = requireHTMLElement(regCreate.querySelector('input.input:not([type="url"])'), 'registered title') as HTMLInputElement
-    const regContent = requireHTMLElement(regCreate.querySelector('textarea'), 'registered content') as HTMLTextAreaElement
-    const regSubmit = requireHTMLElement(regCreate.querySelector('button.btn'), 'registered submit') as HTMLButtonElement
-
-    const manTitle = requireHTMLElement(manCreate.querySelector('input.input:not([type="url"])'), 'manual title') as HTMLInputElement
-    const manContent = requireHTMLElement(manCreate.querySelector('textarea'), 'manual content') as HTMLTextAreaElement
-    const manSubmit = requireHTMLElement(manCreate.querySelector('button.btn'), 'manual submit') as HTMLButtonElement
-
-    await fireEvent.update(regTitle, 'Registered only title')
-    expect(manTitle.value).toBe('')
-    await fireEvent.update(regContent, 'Registered only content')
-    expect(manContent.value).toBe('')
-
-    await fireEvent.update(manTitle, 'Manual only title')
-    expect(regTitle.value).toBe('Registered only title')
-    await fireEvent.update(manContent, 'Manual only content')
-    expect(regContent.value).toBe('Registered only content')
-
-    await fireEvent.click(regSubmit)
-    await fireEvent.click(manSubmit)
-
-    await waitFor(() => {
       expect(mockedCreateSpecialistClientMaterial).toHaveBeenCalledWith({
         client_id: 34,
         title: 'Registered only title',
@@ -2404,7 +2546,7 @@ describe('TherapistClientsView', () => {
       expect(card).toBeInstanceOf(HTMLElement)
       return card as HTMLElement
     })
-    await fireEvent.click(requireHTMLElement(manualCard.querySelector('.client-materials__header .btn'), 'open'))
+    await openAccordionSection(manualCard, 'Матеріали для клієнта')
     expect(await within(manualCard).findByText('Файли')).toBeInTheDocument()
 
     const fileInput = manualCard.querySelector('input[type=\"file\"]') as HTMLInputElement
@@ -2463,7 +2605,7 @@ describe('TherapistClientsView', () => {
       expect(card).toBeInstanceOf(HTMLElement)
       return card as HTMLElement
     })
-    await fireEvent.click(requireHTMLElement(manualCard.querySelector('.client-materials__header .btn'), 'open'))
+    await openAccordionSection(manualCard, 'Матеріали для клієнта')
     const materialCards = await waitFor(() => {
       const nodes = manualCard.querySelectorAll('.client-material')
       expect(nodes.length).toBe(2)
@@ -2527,7 +2669,7 @@ describe('TherapistClientsView', () => {
       expect(card).toBeInstanceOf(HTMLElement)
       return card as HTMLElement
     })
-    await fireEvent.click(requireHTMLElement(manualCard.querySelector('.client-materials__header .btn'), 'open'))
+    await openAccordionSection(manualCard, 'Матеріали для клієнта')
     await fireEvent.click(await within(manualCard).findByRole('button', { name: 'Видалити файл' }))
     await waitFor(() => {
       expect(mockedDeleteClientMaterialAttachment).toHaveBeenCalledWith(994, 4001)

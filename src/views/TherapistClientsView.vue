@@ -90,7 +90,7 @@
         <div>
           <h2 class="panel__title">Клієнти</h2>
           <p class="clients-panel-hint">
-            Клієнта можна додати вручну без кабінету, щоб швидко почати роботу. Кабінет клієнта можна буде підключити пізніше — для власних сесій клієнта, нагадувань, оплати та зручнішої взаємодії.
+            Додавайте клієнтів вручну, щоб швидко почати роботу. Коли буде потрібно, запросіть клієнта до кабінету — там він бачитиме розклад своїх сесій, нагадування, інформацію про оплату та матеріали.
           </p>
         </div>
         <button class="btn btn--sm clients-add-btn" type="button" @click="openManualClientModal">
@@ -120,7 +120,7 @@
             v-model.trim="searchQuery"
             class="input clients-search__input"
             type="search"
-            placeholder="Ім'я, код або номер клієнта"
+            placeholder="Імʼя, email або телефон"
             autocomplete="off"
           />
         </div>
@@ -141,9 +141,59 @@
         :title="clientsEmptyTitle"
         :description="clientsEmptyDescription"
       />
-      <div v-else class="client-list">
+      <div v-else class="clients-master-detail">
+        <div class="client-list" aria-label="Список клієнтів">
+          <button
+            v-for="client in filteredClients"
+            :id="clientRowDomId(client)"
+            :key="clientListKey(client)"
+            class="client-row"
+            :class="{
+              'client-row--manual': isManualClientRecord(client),
+              'client-row--selected': isClientSelected(client),
+              'client-row--targeted': !isManualClientRecord(client) && targetedClientId === relationClientId(client),
+            }"
+            type="button"
+            :aria-current="isClientSelected(client) ? 'true' : undefined"
+            @click="selectClient(client)"
+          >
+            <span class="client-row__main">
+              <span class="client-row__name">{{ displayClientName(client) }}</span>
+              <span v-if="!isManualClientRecord(client) && client.client_code" class="client-row__code">
+                Код клієнта: {{ client.client_code }}
+              </span>
+            </span>
+            <span class="client-row__badges">
+              <span class="client-account-badge" :class="{ 'client-account-badge--manual': isManualClientRecord(client) && !hasLinkedAccount(client) }">
+                {{ accountBadgeLabel(client) }}
+              </span>
+              <span class="client-status" :class="clientStatusClass(clientListState(client))">
+                {{ clientStatusLabel(clientListState(client)) }}
+              </span>
+            </span>
+            <span class="client-row__meta">
+              <span>
+                <span class="client-row__label">Контакт</span>
+                <span>{{ clientPrimaryContact(client) }}</span>
+              </span>
+              <span>
+                <span class="client-row__label">Найближча</span>
+                <span>{{ clientNearestSessionLabel(client) }}</span>
+              </span>
+              <span>
+                <span class="client-row__label">Останнє</span>
+                <span>{{ clientLastActivityLabel(client) }}</span>
+              </span>
+            </span>
+          </button>
+        </div>
+
+        <aside class="client-detail" aria-live="polite">
+          <div v-if="!selectedVisibleClient" class="client-detail__empty">
+            Виберіть клієнта, щоб переглянути деталі
+          </div>
         <article
-          v-for="client in filteredClients"
+          v-for="client in selectedVisibleClient ? [selectedVisibleClient] : []"
           :id="clientCardDomId(client)"
           :key="clientListKey(client)"
           class="client-card"
@@ -266,6 +316,15 @@
                 Створити сесію
               </button>
 
+              <button
+                class="btn btn--ghost btn--sm"
+                type="button"
+                :disabled="isManualActionLoading(client.id)"
+                @click="openManualClientEditModal(client)"
+              >
+                Редагувати
+              </button>
+
               <RouterLink
                 v-if="manualClientNearestSession(client)"
                 class="btn btn--ghost btn--sm"
@@ -283,7 +342,18 @@
               </RouterLink>
             </div>
 
-            <div v-if="!hasLinkedAccount(client)" class="manual-account-invite">
+            <div class="client-accordion">
+            <section v-if="!hasLinkedAccount(client)" class="client-accordion__section manual-account-invite">
+              <button
+                class="client-accordion__header"
+                type="button"
+                :aria-expanded="isAccordionSectionOpen(client, 'invite')"
+                @click="toggleClientAccordion(client, 'invite')"
+              >
+                <span>Запросити до кабінету</span>
+                <span class="client-accordion__summary">{{ accordionSummary(client, 'invite') }}</span>
+              </button>
+              <div v-if="isAccordionSectionOpen(client, 'invite')" class="client-accordion__body">
               <div class="manual-account-invite__header">
                 <div>
                   <div class="manual-account-invite__title">Запросити до кабінету</div>
@@ -350,19 +420,23 @@
               >
                 {{ accountInviteState(client.id).actionLoading ? 'Створюємо...' : 'Запросити до кабінету' }}
               </button>
-            </div>
-
-            <div class="client-materials">
-              <div class="client-materials__header">
-                <div class="client-materials__title">Матеріали для клієнта</div>
-                <button class="btn btn--ghost btn--sm" type="button" @click="toggleClientMaterials(client)">
-                  {{ clientMaterialsState(clientMaterialsScopeKey(client) || '').open ? 'Сховати' : 'Відкрити' }}
-                </button>
               </div>
-              <p v-if="isManualClientRecord(client) && !hasLinkedAccount(client)" class="client-materials__note">
+            </section>
+
+            <section class="client-accordion__section client-materials">
+              <button
+                class="client-accordion__header"
+                type="button"
+                :aria-expanded="isAccordionSectionOpen(client, 'materials')"
+                @click="toggleClientAccordion(client, 'materials')"
+              >
+                <span>Матеріали для клієнта</span>
+                <span class="client-accordion__summary">{{ accordionSummary(client, 'materials') }}</span>
+              </button>
+              <p v-if="isAccordionSectionOpen(client, 'materials') && isManualClientRecord(client) && !hasLinkedAccount(client)" class="client-materials__note">
                 Матеріал можна підготувати зараз. Клієнт побачить його після підключення акаунта.
               </p>
-              <div v-if="clientMaterialsState(clientMaterialsScopeKey(client) || '').open" class="client-materials__body">
+              <div v-if="isAccordionSectionOpen(client, 'materials')" class="client-materials__body">
                 <p v-if="clientMaterialsState(clientMaterialsScopeKey(client) || '').listError" class="form-error">{{ clientMaterialsState(clientMaterialsScopeKey(client) || '').listError }}</p>
                 <div v-if="clientMaterialsState(clientMaterialsScopeKey(client) || '').loading" class="muted">Завантаження матеріалів...</div>
                 <div v-else class="client-materials__list">
@@ -550,18 +624,19 @@
                   </button>
                 </div>
               </div>
-            </div>
+            </section>
 
-            <div class="client-actions__secondary">
+            <section class="client-accordion__section">
               <button
-                class="btn btn--ghost btn--sm"
+                class="client-accordion__header"
                 type="button"
-                :disabled="isManualActionLoading(client.id)"
-                @click="openManualClientEditModal(client)"
+                :aria-expanded="isAccordionSectionOpen(client, 'settings')"
+                @click="toggleClientAccordion(client, 'settings')"
               >
-                Редагувати
+                <span>Керування клієнтом</span>
+                <span class="client-accordion__summary">{{ accordionSummary(client, 'settings') }}</span>
               </button>
-
+            <div v-if="isAccordionSectionOpen(client, 'settings')" class="client-accordion__body client-actions__secondary">
               <button
                 v-if="client.status !== 'archived'"
                 class="btn btn--ghost btn--sm"
@@ -580,6 +655,8 @@
               >
                 Відновити
               </button>
+            </div>
+            </section>
             </div>
           </div>
           <div v-else class="client-actions">
@@ -601,14 +678,18 @@
                 Приватна історія клієнта
               </button>
             </div>
-            <div class="client-materials">
-              <div class="client-materials__header">
-                <div class="client-materials__title">Матеріали для клієнта</div>
-                <button class="btn btn--ghost btn--sm" type="button" @click="toggleClientMaterials(client)">
-                  {{ clientMaterialsState(clientMaterialsScopeKey(client) || '').open ? 'Сховати' : 'Відкрити' }}
-                </button>
-              </div>
-              <div v-if="clientMaterialsState(clientMaterialsScopeKey(client) || '').open" class="client-materials__body">
+            <div class="client-accordion">
+            <section class="client-accordion__section client-materials">
+              <button
+                class="client-accordion__header"
+                type="button"
+                :aria-expanded="isAccordionSectionOpen(client, 'materials')"
+                @click="toggleClientAccordion(client, 'materials')"
+              >
+                <span>Матеріали для клієнта</span>
+                <span class="client-accordion__summary">{{ accordionSummary(client, 'materials') }}</span>
+              </button>
+              <div v-if="isAccordionSectionOpen(client, 'materials')" class="client-materials__body">
                 <p v-if="clientMaterialsState(clientMaterialsScopeKey(client) || '').listError" class="form-error">{{ clientMaterialsState(clientMaterialsScopeKey(client) || '').listError }}</p>
                 <div v-if="clientMaterialsState(clientMaterialsScopeKey(client) || '').loading" class="muted">Завантаження матеріалів...</div>
                 <div v-else class="client-materials__list">
@@ -796,17 +877,149 @@
                   </button>
                 </div>
               </div>
-            </div>
-            <div class="client-actions__secondary">
+            </section>
+
+            <section class="client-accordion__section">
               <button
-                v-if="client.latest_session_note_session_id"
-                class="btn btn--ghost btn--sm"
+                class="client-accordion__header"
                 type="button"
-                :disabled="!relationClientId(client) || isHistoryLoading(relationClientId(client))"
-                @click="toggleHistory(relationClientId(client))"
+                :aria-expanded="isAccordionSectionOpen(client, 'privateHistory')"
+                @click="toggleClientAccordion(client, 'privateHistory')"
               >
-                Приватна історія
+                <span>Приватна історія</span>
+                <span class="client-accordion__summary">{{ accordionSummary(client, 'privateHistory') }}</span>
               </button>
+              <div v-if="isAccordionSectionOpen(client, 'privateHistory')" class="client-accordion__body client-history">
+                <div class="history-header">
+                  <div>
+                    <div class="history-title">Приватна історія</div>
+                    <div class="muted history-subtitle">Інформація зашифрована. Доступ має лише спеціаліст.</div>
+                  </div>
+                  <span class="history-badge">Зашифровано</span>
+                </div>
+              </div>
+            </section>
+
+            <section class="client-accordion__section">
+              <button
+                class="client-accordion__header"
+                type="button"
+                :aria-expanded="isAccordionSectionOpen(client, 'workbook')"
+                @click="toggleClientAccordion(client, 'workbook')"
+              >
+                <span>Робочий зошит</span>
+                <span class="client-accordion__summary">{{ accordionSummary(client, 'workbook') }}</span>
+              </button>
+              <div v-if="isAccordionSectionOpen(client, 'workbook')" class="client-accordion__body">
+                <div class="workbook-block">
+                  <div class="workbook-block__header">
+                    <div>
+                      <div class="workbook-block__title">Робочий зошит по клієнту</div>
+                      <div class="muted">{{ workbookSummary(client) }}</div>
+                    </div>
+                    <div class="workbook-block__controls">
+                      <button
+                        class="btn btn--ghost btn--sm"
+                        type="button"
+                        @click="openWorkbookWindow(relationClientId(client))"
+                      >
+                        Відкрити в окремому вікні
+                      </button>
+                      <button class="btn btn--ghost btn--sm" type="button" @click="toggleWorkbook(relationClientId(client))">
+                        {{
+                          isWorkbookExpanded(relationClientId(client))
+                            ? 'Згорнути робочий зошит'
+                            : 'Розгорнути робочий зошит'
+                        }}
+                      </button>
+                    </div>
+                  </div>
+                  <div v-if="workbookSavedMessage[relationClientId(client)]" class="workbook-success">
+                    {{ workbookSavedMessage[relationClientId(client)] }}
+                  </div>
+                  <div v-if="isJournalLoading(relationClientId(client))" class="muted">Завантаження робочого зошита...</div>
+                  <div v-else-if="!isWorkbookExpanded(relationClientId(client))" class="muted">
+                    Зошит згорнуто для конфіденційності.
+                  </div>
+                  <template v-else>
+                    <textarea
+                      v-model="clientJournalDrafts[relationClientId(client)]"
+                      class="input workbook-textarea"
+                      rows="10"
+                      placeholder="Основні спостереження, динаміка, плани та робочі гіпотези по клієнту."
+                    ></textarea>
+                    <div class="workbook-actions">
+                      <button
+                        class="btn btn--sm"
+                        type="button"
+                        :disabled="isJournalSaving(relationClientId(client))"
+                        @click="saveClientJournal(relationClientId(client))"
+                      >
+                        Зберегти робочий зошит
+                      </button>
+                    </div>
+                  </template>
+                </div>
+              </div>
+            </section>
+
+            <section class="client-accordion__section">
+              <button
+                class="client-accordion__header"
+                type="button"
+                :aria-expanded="isAccordionSectionOpen(client, 'sessionNotes')"
+                @click="toggleClientAccordion(client, 'sessionNotes')"
+              >
+                <span>Нотатки по сесіях</span>
+                <span class="client-accordion__summary">{{ accordionSummary(client, 'sessionNotes') }}</span>
+              </button>
+              <div v-if="isAccordionSectionOpen(client, 'sessionNotes')" class="client-accordion__body">
+                <div v-if="isHistoryLoading(relationClientId(client))" class="muted">Завантаження історії...</div>
+                <div v-else-if="!clientHistory[relationClientId(client)]?.length" class="muted">
+                  Нотаток по цьому клієнту ще немає.
+                </div>
+                <div v-else class="history-list">
+                  <div
+                    v-for="item in visibleClientHistory(relationClientId(client))"
+                    :key="item.sessionId"
+                    class="history-item"
+                    :class="{ 'history-item--empty': !item.hasNote }"
+                  >
+                    <div class="history-meta">
+                      <div class="history-date">{{ formatDateTime(item.slotStart) }}</div>
+                      <div class="muted">{{ formatDuration(item.slotStart, item.slotEnd) }}</div>
+                      <div class="history-status">{{ sessionStatusLabel(item.status) }}</div>
+                    </div>
+                    <div class="muted history-note-summary">{{ historyNoteSummary(item) }}</div>
+                    <div class="history-actions">
+                      <RouterLink class="btn btn--ghost btn--sm" :to="`/cabinet/sessions#note-${item.sessionId}`">
+                        Відкрити нотатку
+                      </RouterLink>
+                      <RouterLink class="btn btn--ghost btn--sm" :to="`/cabinet/clients/${relationClientId(client)}/workbook`">
+                        Відкрити робочий зошит
+                      </RouterLink>
+                    </div>
+                  </div>
+                  <div v-if="hasMoreClientHistory(relationClientId(client))" class="history-more">
+                    <button class="btn btn--ghost btn--sm" type="button" @click="showMoreClientHistory(relationClientId(client))">
+                      Показати ще
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section class="client-accordion__section">
+              <button
+                class="client-accordion__header"
+                type="button"
+                :aria-expanded="isAccordionSectionOpen(client, 'settings')"
+                @click="toggleClientAccordion(client, 'settings')"
+              >
+                <span>Керування клієнтом</span>
+                <span class="client-accordion__summary">{{ accordionSummary(client, 'settings') }}</span>
+              </button>
+            <div v-if="isAccordionSectionOpen(client, 'settings')" class="client-accordion__body client-actions__secondary">
               <button
                 class="btn btn--ghost btn--sm"
                 type="button"
@@ -834,99 +1047,11 @@
                 Відновити
               </button>
             </div>
-          </div>
-          <div v-if="!isManualClientRecord(client) && expandedClientId === relationClientId(client)" class="client-history">
-            <div class="history-header">
-              <div>
-                <div class="history-title">Приватна історія клієнта</div>
-                <div class="muted history-subtitle">Інформація зашифрована. Доступ має лише спеціаліст.</div>
-              </div>
-              <span class="history-badge">Зашифровано</span>
-            </div>
-            <div class="workbook-block">
-              <div class="workbook-block__header">
-                <div>
-                  <div class="workbook-block__title">Робочий зошит по клієнту</div>
-                  <div class="muted">{{ workbookSummary(client) }}</div>
-                </div>
-                <div class="workbook-block__controls">
-                  <button
-                    class="btn btn--ghost btn--sm"
-                    type="button"
-                    @click="openWorkbookWindow(relationClientId(client))"
-                  >
-                    Відкрити в окремому вікні
-                  </button>
-                  <button class="btn btn--ghost btn--sm" type="button" @click="toggleWorkbook(relationClientId(client))">
-                    {{
-                      isWorkbookExpanded(relationClientId(client))
-                        ? 'Згорнути робочий зошит'
-                        : 'Розгорнути робочий зошит'
-                    }}
-                  </button>
-                </div>
-              </div>
-              <div v-if="workbookSavedMessage[relationClientId(client)]" class="workbook-success">
-                {{ workbookSavedMessage[relationClientId(client)] }}
-              </div>
-              <div v-if="isJournalLoading(relationClientId(client))" class="muted">Завантаження робочого зошита...</div>
-              <div v-else-if="!isWorkbookExpanded(relationClientId(client))" class="muted">
-                Зошит згорнуто для конфіденційності.
-              </div>
-              <template v-else>
-                <textarea
-                  v-model="clientJournalDrafts[relationClientId(client)]"
-                  class="input workbook-textarea"
-                  rows="10"
-                  placeholder="Основні спостереження, динаміка, плани та робочі гіпотези по клієнту."
-                ></textarea>
-                <div class="workbook-actions">
-                  <button
-                    class="btn btn--sm"
-                    type="button"
-                    :disabled="isJournalSaving(relationClientId(client))"
-                    @click="saveClientJournal(relationClientId(client))"
-                  >
-                    Зберегти робочий зошит
-                  </button>
-                </div>
-              </template>
-            </div>
-            <div class="history-list-title">Нотатки по сесіях</div>
-            <div v-if="isHistoryLoading(relationClientId(client))" class="muted">Завантаження історії...</div>
-            <div v-else-if="!clientHistory[relationClientId(client)]?.length" class="muted">
-              Нотаток по цьому клієнту ще немає.
-            </div>
-            <div v-else class="history-list">
-              <div
-                v-for="item in visibleClientHistory(relationClientId(client))"
-                :key="item.sessionId"
-                class="history-item"
-                :class="{ 'history-item--empty': !item.hasNote }"
-              >
-                <div class="history-meta">
-                  <div class="history-date">{{ formatDateTime(item.slotStart) }}</div>
-                  <div class="muted">{{ formatDuration(item.slotStart, item.slotEnd) }}</div>
-                  <div class="history-status">{{ sessionStatusLabel(item.status) }}</div>
-                </div>
-                <div class="muted history-note-summary">{{ historyNoteSummary(item) }}</div>
-                <div class="history-actions">
-                  <RouterLink class="btn btn--ghost btn--sm" :to="`/cabinet/sessions#note-${item.sessionId}`">
-                    Відкрити нотатку
-                  </RouterLink>
-                  <RouterLink class="btn btn--ghost btn--sm" :to="`/cabinet/clients/${relationClientId(client)}/workbook`">
-                    Відкрити робочий зошит
-                  </RouterLink>
-                </div>
-              </div>
-              <div v-if="hasMoreClientHistory(relationClientId(client))" class="history-more">
-                <button class="btn btn--ghost btn--sm" type="button" @click="showMoreClientHistory(relationClientId(client))">
-                  Показати ще
-                </button>
-              </div>
+            </section>
             </div>
           </div>
         </article>
+        </aside>
       </div>
     </section>
     <PracticeBoardQuickAddModal
@@ -955,7 +1080,7 @@
       <form class="manual-client-modal__content" @submit.prevent="submitManualClientSession">
         <div class="manual-client-modal__header">
           <div>
-            <div class="badge badge--soft">Без кабінету</div>
+            <div class="badge badge--soft">Без реєстрації</div>
             <h2 id="manual-session-title" class="manual-client-modal__title">{{ manualSessionModalTitle }}</h2>
           </div>
           <button class="btn btn--ghost btn--sm" type="button" @click="closeManualClientSessionModal">
@@ -966,7 +1091,7 @@
         <div v-if="manualSessionError" class="form-error">{{ manualSessionError }}</div>
 
         <p class="muted">
-          Сесія буде створена для клієнта без кабінету на основі одного з ваших вільних слотів.
+          Сесія буде створена для клієнта без реєстрації на основі одного з ваших вільних слотів.
         </p>
 
         <div v-if="manualSessionSlotsLoading" class="muted">Завантаження вільних слотів…</div>
@@ -1017,7 +1142,7 @@
       <form class="manual-client-modal__content" @submit.prevent="submitManualClient">
         <div class="manual-client-modal__header">
           <div>
-            <div class="badge badge--soft">Без кабінету</div>
+            <div class="badge badge--soft">Без реєстрації</div>
             <h2 id="manual-client-title" class="manual-client-modal__title">{{ manualClientModalTitle }}</h2>
           </div>
           <button class="btn btn--ghost btn--sm" type="button" @click="closeManualClientModal">
@@ -1083,7 +1208,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import {
   apiGet,
@@ -1314,6 +1439,7 @@ type SessionMetadataSource = NameSource & {
 }
 
 type ListResponse<T> = T[] | { results?: T[] } | null | undefined
+type ClientAccordionSection = 'materials' | 'invite' | 'privateHistory' | 'workbook' | 'sessionNotes' | 'settings'
 
 const clients = ref<ClientState[]>([])
 const manualClientRecords = ref<ManualClientRecord[]>([])
@@ -1323,6 +1449,8 @@ const error = ref('')
 const manualClientsWarning = ref('')
 const filter = ref<'ALL' | 'ACTIVE' | 'INACTIVE' | 'ARCHIVED'>('ALL')
 const searchQuery = ref('')
+const selectedClientKey = ref<string | null>(null)
+const openAccordionSectionByClientKey = ref<Record<string, ClientAccordionSection | null>>({})
 const actionLoading = ref<Set<number>>(new Set())
 const manualActionLoading = ref<Set<number>>(new Set())
 const expandedClientId = ref<number | null>(null)
@@ -1391,6 +1519,26 @@ const filteredClients = computed(() => {
   const query = normalizeSearchValue(searchQuery.value)
   if (!query) return byStatus
   return byStatus.filter((client) => matchesClientSearch(client, query))
+})
+
+const selectedVisibleClient = computed(() => {
+  const key = selectedClientKey.value
+  if (!key) return null
+  return filteredClients.value.find((client) => clientSelectionKey(client) === key) || null
+})
+
+watch(filteredClients, (items) => {
+  if (!items.length) {
+    selectedClientKey.value = null
+    return
+  }
+  if (selectedClientKey.value && items.some((client) => clientSelectionKey(client) === selectedClientKey.value)) {
+    return
+  }
+  const firstClient = items[0]
+  if (firstClient) {
+    selectedClientKey.value = clientSelectionKey(firstClient)
+  }
 })
 
 const clientsEmptyTitle = computed(() => {
@@ -1495,7 +1643,7 @@ function manualContactEmailLabel(client: ManualClientRecord): string {
 }
 
 function accountBadgeLabel(client: ClientListItem) {
-  return hasLinkedAccount(client) ? 'З кабінетом' : 'Без кабінету'
+  return hasLinkedAccount(client) ? 'З кабінетом' : 'Без реєстрації'
 }
 
 function defaultAccountInviteState(): AccountInviteState {
@@ -2237,9 +2385,95 @@ function clientListKey(client: ClientListItem) {
   return isManualClientRecord(client) ? `manual-${client.id}` : `registered-${relationClientId(client)}`
 }
 
+function clientSelectionKey(client: ClientListItem) {
+  return clientListKey(client)
+}
+
+function setClientAccordionSection(client: ClientListItem, section: ClientAccordionSection | null) {
+  openAccordionSectionByClientKey.value = {
+    ...openAccordionSectionByClientKey.value,
+    [clientSelectionKey(client)]: section,
+  }
+}
+
+function clientAccordionSection(client: ClientListItem) {
+  return openAccordionSectionByClientKey.value[clientSelectionKey(client)] || null
+}
+
+function isAccordionSectionOpen(client: ClientListItem, section: ClientAccordionSection) {
+  return clientAccordionSection(client) === section
+}
+
+async function toggleClientAccordion(client: ClientListItem, section: ClientAccordionSection) {
+  if (isAccordionSectionOpen(client, section)) {
+    setClientAccordionSection(client, null)
+    return
+  }
+
+  setClientAccordionSection(client, section)
+
+  if (section === 'materials' && !clientMaterialsState(clientMaterialsScopeKey(client) || '').open) {
+    await toggleClientMaterials(client)
+  }
+
+  if (!isManualClientRecord(client) && ['privateHistory', 'workbook', 'sessionNotes'].includes(section)) {
+    const clientId = relationClientId(client)
+    expandedClientId.value = clientId
+    resetClientHistoryVisibleLimit(clientId)
+    if (!clientHistory.value[clientId]) {
+      await loadHistory(clientId)
+    }
+  }
+}
+
+function accordionSummary(client: ClientListItem, section: ClientAccordionSection) {
+  if (section === 'materials') {
+    const state = clientMaterialsState(clientMaterialsScopeKey(client) || '')
+    if (state.loading) return 'Завантаження...'
+    if (state.items.length === 1) return '1 матеріал'
+    if (state.items.length > 1) return `${state.items.length} матеріали`
+    return 'Підготувати або переглянути'
+  }
+  if (section === 'privateHistory') return 'Конфіденційний розділ'
+  if (section === 'workbook') return workbookSummary(client)
+  if (section === 'sessionNotes') {
+    if (isManualClientRecord(client)) return ''
+    const count = clientHistory.value[relationClientId(client)]?.length || 0
+    if (count === 1) return '1 нотатка'
+    if (count > 1) return `${count} нотатки`
+    return 'Нотатки ще немає.'
+  }
+  if (section === 'invite') return 'Підключення кабінету'
+  return 'Редагування, дошка, архів'
+}
+
+function selectClient(client: ClientListItem) {
+  selectedClientKey.value = clientSelectionKey(client)
+  setClientAccordionSection(client, null)
+}
+
+function selectRegisteredClient(clientId: number, resetAccordion = true) {
+  if (!clientId) return
+  selectedClientKey.value = `registered-${clientId}`
+  if (resetAccordion) {
+    openAccordionSectionByClientKey.value = {
+      ...openAccordionSectionByClientKey.value,
+      [`registered-${clientId}`]: null,
+    }
+  }
+}
+
+function isClientSelected(client: ClientListItem) {
+  return selectedClientKey.value === clientSelectionKey(client)
+}
+
 function clientCardDomId(client: ClientListItem | number) {
   if (typeof client === 'number') return `client-card-${client}`
   return isManualClientRecord(client) ? `manual-client-record-${client.id}` : `client-card-${relationClientId(client)}`
+}
+
+function clientRowDomId(client: ClientListItem) {
+  return isManualClientRecord(client) ? `client-row-manual-${client.id}` : `client-row-${relationClientId(client)}`
 }
 
 function relationClientId(client: Pick<ClientState, 'client' | 'client_id'> | ClientListItem) {
@@ -2449,6 +2683,43 @@ function matchesClientSearch(client: ClientListItem, query: string) {
     client.id,
   ]
   return searchable.map((item) => normalizeSearchValue(item)).some((item) => item.includes(query))
+}
+
+function clientPrimaryContact(client: ClientListItem) {
+  if (isManualClientRecord(client)) {
+    return (
+      manualContactEmail(client) ||
+      manualAccountEmail(client) ||
+      client.phone ||
+      client.telegram ||
+      'Контакт не вказано'
+    )
+  }
+
+  return client.client_email || 'Контакт не вказано'
+}
+
+function clientNearestSessionLabel(client: ClientListItem) {
+  if (isManualClientRecord(client)) {
+    return optionalDateLabel(manualClientNearestSession(client)?.slot_start_at, 'Немає запланованих')
+  }
+
+  const count = Number(client.upcoming_count || 0)
+  if (count <= 0) return 'Немає запланованих'
+  if (count === 1) return '1 майбутня сесія'
+  return `${count} майбутніх сесій`
+}
+
+function clientLastActivityLabel(client: ClientListItem) {
+  if (isManualClientRecord(client)) {
+    const lastSession = manualClientLastSession(client)
+    if (lastSession) return optionalDateLabel(lastSession.slot_start_at, 'Ще не було')
+    return manualClientUpdatedLabel(client)
+  }
+
+  const note = latestNoteSummary(client)
+  if (note && note !== 'Нотаток ще немає') return note
+  return optionalDateLabel(client.last_session_at, clientUpdatedLabel(client))
 }
 
 function parseClientDeepLinkClientId(search: string) {
@@ -2709,7 +2980,7 @@ function workbookUpdatedAt(client?: Pick<ClientState, 'workbook_updated_at' | 'c
 }
 
 function workbookSummary(client: ClientListItem) {
-  if (isManualClientRecord(client)) return 'Недоступний без кабінету'
+  if (isManualClientRecord(client)) return 'Недоступний без реєстрації'
   const clientId = relationClientId(client)
   if (workbookMissingByClient.value[clientId] === true) return 'Відсутній'
   if (!resolveHasWorkbookContent(client)) return 'Відсутній'
@@ -2881,7 +3152,7 @@ async function loadManualClientRecords() {
     manualClientRecords.value = []
     manualClientsWarning.value = getApiErrorMessage(
       err,
-      'Не вдалося завантажити клієнтів без кабінету. Зареєстровані клієнти залишаються доступними.'
+      'Не вдалося завантажити клієнтів без реєстрації. Зареєстровані клієнти залишаються доступними.'
     )
   }
 }
@@ -3335,9 +3606,15 @@ async function addClientToPracticeBoard(clientId: number, title: string) {
 
 async function toggleHistory(clientId: number) {
   if (!clientId) return
-  if (expandedClientId.value == clientId) {
-    expandedClientId.value = null
-    return
+  selectRegisteredClient(clientId, false)
+  const client = clientIndex.value.get(clientId)
+  if (client) {
+    if (isAccordionSectionOpen(client, 'privateHistory')) {
+      setClientAccordionSection(client, null)
+      expandedClientId.value = null
+      return
+    }
+    setClientAccordionSection(client, 'privateHistory')
   }
   expandedClientId.value = clientId
   resetClientHistoryVisibleLimit(clientId)
@@ -3354,7 +3631,9 @@ async function openClientFromDeepLinkIfNeeded() {
 
   filter.value = 'ALL'
   searchQuery.value = ''
+  selectRegisteredClient(deepLinkedClientId, false)
   expandedClientId.value = deepLinkedClientId
+  setClientAccordionSection(matchingClient, 'privateHistory')
   resetClientHistoryVisibleLimit(deepLinkedClientId)
   if (!clientHistory.value[deepLinkedClientId]) {
     await loadHistory(deepLinkedClientId)
@@ -3633,11 +3912,120 @@ onBeforeUnmount(() => {
   box-shadow: 0 0 0 3px rgba(18, 52, 90, 0.1);
 }
 
+.clients-master-detail {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(360px, 480px);
+  gap: 14px;
+  align-items: start;
+  margin-top: 10px;
+}
+
 .client-list {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 16px;
-  margin-top: 10px;
+  gap: 8px;
+  min-width: 0;
+}
+
+.client-row {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid color-mix(in srgb, var(--pc-border) 84%, #ffffff);
+  border-radius: var(--pc-radius-control);
+  padding: 11px 12px;
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--pc-navy-900);
+  display: grid;
+  grid-template-columns: minmax(160px, 1.05fr) auto;
+  gap: 8px 12px;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.16s ease, background 0.16s ease, box-shadow 0.16s ease;
+}
+
+.client-row:hover,
+.client-row:focus-visible {
+  border-color: color-mix(in srgb, var(--pc-navy-900) 28%, var(--pc-border));
+  background: #fff;
+  outline: none;
+}
+
+.client-row--selected {
+  border-color: var(--pc-navy-900);
+  background: color-mix(in srgb, var(--pc-blue-soft) 58%, #ffffff);
+  box-shadow: 0 0 0 2px rgba(18, 52, 90, 0.1);
+}
+
+.client-row--targeted {
+  border-color: var(--pc-navy-900);
+  box-shadow:
+    0 0 0 2px rgba(18, 52, 90, 0.14),
+    0 8px 18px rgba(18, 52, 90, 0.08);
+}
+
+.client-row--manual {
+  border-color: color-mix(in srgb, var(--pc-teal-500) 24%, var(--pc-border));
+}
+
+.client-row__main,
+.client-row__meta > span {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.client-row__name {
+  color: var(--pc-navy-950);
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.client-row__code,
+.client-row__label {
+  color: color-mix(in srgb, var(--pc-navy-900) 52%, var(--pc-text-muted));
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.client-row__badges {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.client-row__meta {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) minmax(120px, 1fr) minmax(120px, 1fr);
+  gap: 8px 12px;
+  color: var(--pc-text-muted);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.client-row__meta span span:last-child {
+  color: var(--pc-navy-900);
+  overflow-wrap: anywhere;
+}
+
+.client-detail {
+  min-width: 0;
+  position: sticky;
+  top: 14px;
+  display: grid;
+  gap: 12px;
+}
+
+.client-detail__empty {
+  border: 1px dashed color-mix(in srgb, var(--pc-border) 82%, #ffffff);
+  border-radius: var(--pc-radius-panel);
+  padding: 18px;
+  background: color-mix(in srgb, var(--pc-bg-main) 72%, #ffffff);
+  color: var(--pc-text-muted);
+  font-size: 14px;
+  line-height: 1.45;
 }
 
 .client-card {
@@ -3824,6 +4212,69 @@ onBeforeUnmount(() => {
   min-height: 34px;
 }
 
+.client-accordion {
+  display: grid;
+  gap: 8px;
+}
+
+.client-accordion__section {
+  min-width: 0;
+  border: 1px solid color-mix(in srgb, var(--pc-border) 82%, #ffffff);
+  border-radius: var(--pc-radius-card);
+  background: color-mix(in srgb, var(--pc-bg-main) 84%, #ffffff);
+  overflow: hidden;
+}
+
+.client-accordion__header {
+  width: 100%;
+  min-height: 44px;
+  border: 0;
+  padding: 10px 12px;
+  background: transparent;
+  color: var(--pc-navy-900);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  text-align: left;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.client-accordion__header:hover,
+.client-accordion__header:focus-visible {
+  background: color-mix(in srgb, var(--pc-blue-soft) 46%, #ffffff);
+  outline: none;
+}
+
+.client-accordion__header::after {
+  content: '+';
+  flex: 0 0 auto;
+  color: var(--pc-text-muted);
+  font-weight: 800;
+}
+
+.client-accordion__header[aria-expanded='true']::after {
+  content: '−';
+}
+
+.client-accordion__summary {
+  margin-left: auto;
+  color: var(--pc-text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.client-accordion__body {
+  display: grid;
+  gap: 10px;
+  border-top: 1px solid color-mix(in srgb, var(--pc-border) 78%, #ffffff);
+  padding: 12px;
+}
+
 .manual-account-invite {
   display: grid;
   gap: 9px;
@@ -3893,6 +4344,12 @@ onBeforeUnmount(() => {
   border-radius: var(--pc-radius-card);
   padding: 12px;
   background: color-mix(in srgb, var(--pc-bg-main) 84%, #ffffff);
+}
+
+.client-accordion__section.manual-account-invite,
+.client-accordion__section.client-materials {
+  gap: 0;
+  padding: 0;
 }
 
 .client-materials__header {
@@ -4396,6 +4853,14 @@ onBeforeUnmount(() => {
     flex-direction: column;
   }
 
+  .clients-master-detail {
+    grid-template-columns: 1fr;
+  }
+
+  .client-detail {
+    position: static;
+  }
+
   .client-list {
     grid-template-columns: 1fr;
   }
@@ -4491,6 +4956,18 @@ onBeforeUnmount(() => {
   .clients-toolbar {
     padding: 10px;
     gap: 10px;
+  }
+
+  .client-row {
+    grid-template-columns: 1fr;
+  }
+
+  .client-row__badges {
+    justify-content: flex-start;
+  }
+
+  .client-row__meta {
+    grid-template-columns: 1fr;
   }
 
   .hero-back-link {
