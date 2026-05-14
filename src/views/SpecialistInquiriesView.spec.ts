@@ -1,7 +1,12 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import SpecialistInquiriesView from './SpecialistInquiriesView.vue'
-import { fetchInquiryMessages, fetchInquiryThreads, sendInquiryMessage } from '../lib/api'
+import {
+  fetchInquiryMessages,
+  fetchInquiryThreads,
+  sendInquiryMessage,
+  type InquiryThread,
+} from '../lib/api'
 
 const mockRoute = {
   query: {} as Record<string, string>,
@@ -45,11 +50,48 @@ function renderView() {
       stubs: {
         RouterLink: {
           props: ['to'],
-          template: '<a><slot /></a>',
+          template: '<a :href="to"><slot /></a>',
         },
       },
     },
   })
+}
+
+function buildThread(
+  overrides: Partial<Omit<InquiryThread, 'other_user'>> & {
+    other_user?: Partial<InquiryThread['other_user']>
+  } = {}
+): InquiryThread {
+  const base: InquiryThread = {
+    id: 91,
+    specialist_id: 12,
+    client_id: 7,
+    created_at: '2026-03-11T10:00:00Z',
+    last_message_at: '2026-03-11T10:00:00Z',
+    inquiry_status: 'OPEN',
+    closed_reason: null,
+    other_user: {
+      id: 7,
+      role: 'CLIENT',
+      display_name: 'Олена',
+      photo_url: '',
+    },
+    last_message_preview: 'Чи можна уточнити формат?',
+    unread_count: 0,
+    can_client_send: false,
+    client_send_reason_code: 'FOLLOW_UP_REQUIRES_SPECIALIST_REPLY',
+    can_specialist_reply: true,
+    specialist_reply_reason_code: null,
+  }
+
+  return {
+    ...base,
+    ...overrides,
+    other_user: {
+      ...base.other_user,
+      ...overrides.other_user,
+    },
+  }
 }
 
 describe('SpecialistInquiriesView', () => {
@@ -58,6 +100,80 @@ describe('SpecialistInquiriesView', () => {
     mockedFetchInquiryThreads.mockReset()
     mockedFetchInquiryMessages.mockReset()
     mockedSendInquiryMessage.mockReset()
+    mockedFetchInquiryMessages.mockResolvedValue([])
+  })
+
+  it('shows an intentional avatar fallback and no image when avatar is missing', async () => {
+    mockedFetchInquiryThreads.mockResolvedValue([
+      buildThread({
+        other_user: {
+          display_name: 'Олена',
+          photo_url: null,
+        },
+      }),
+    ])
+
+    const { container } = renderView()
+
+    expect(await screen.findByText('Олена')).toBeInTheDocument()
+    expect(container.querySelector('.thread-item__avatar img')).toBeNull()
+    expect(container.querySelector('.thread-item__avatar-fallback')?.textContent).toContain('ОЛ')
+  })
+
+  it('replaces an unavailable avatar image with fallback initials', async () => {
+    mockedFetchInquiryThreads.mockResolvedValue([
+      buildThread({
+        other_user: {
+          display_name: 'Олена',
+          photo_url: 'https://example.test/missing-avatar.jpg',
+        },
+      }),
+    ])
+
+    const { container } = renderView()
+
+    expect(await screen.findByText('Олена')).toBeInTheDocument()
+    const avatarImage = container.querySelector('.thread-item__avatar img')
+    expect(avatarImage).toHaveAttribute('src', 'https://example.test/missing-avatar.jpg')
+
+    await fireEvent.error(avatarImage as Element)
+
+    expect(container.querySelector('.thread-item__avatar img')).toBeNull()
+    expect(container.querySelector('.thread-item__avatar-fallback')?.textContent).toContain('ОЛ')
+  })
+
+  it('shows client-card CTA for active client state when a stable client id exists', async () => {
+    mockedFetchInquiryThreads.mockResolvedValue([
+      buildThread({
+        client_id: 77,
+        inquiry_status: 'ACTIVE_CLIENT',
+        can_specialist_reply: false,
+        specialist_reply_reason_code: 'ACTIVE_CLIENT_USE_CHAT',
+      }),
+    ])
+
+    renderView()
+
+    expect(await screen.findByText('Повний чат уже доступний')).toBeInTheDocument()
+    const clientCardLink = screen.getByRole('link', { name: 'Відкрити картку клієнта' })
+    expect(clientCardLink).toHaveAttribute('href', '/cabinet/clients?client=77&autoOpen=1')
+  })
+
+  it('hides client-card CTA when the payload has no stable registered client id', async () => {
+    mockedFetchInquiryThreads.mockResolvedValue([
+      buildThread({
+        client_id: null,
+        client_record_id: 501,
+        inquiry_status: 'ACTIVE_CLIENT',
+        can_specialist_reply: false,
+        specialist_reply_reason_code: 'ACTIVE_CLIENT_USE_CHAT',
+      }),
+    ])
+
+    renderView()
+
+    expect(await screen.findByText('Повний чат уже доступний')).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Відкрити картку клієнта' })).not.toBeInTheDocument()
   })
 
   it('opens a selected inquiry and only shows reply action when backend allows it', async () => {

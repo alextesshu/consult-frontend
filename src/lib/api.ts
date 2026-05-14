@@ -1912,7 +1912,9 @@ export type InquiryState = {
 export type InquiryThread = {
   id: number
   specialist_id: number
-  client_id: number
+  client_id?: number | null
+  client_record_id?: number | null
+  client_card_id?: number | null
   created_at: string
   last_message_at: string | null
   inquiry_status: InquiryStatus
@@ -1921,7 +1923,7 @@ export type InquiryThread = {
     id: number
     role: 'SPECIALIST' | 'THERAPIST' | 'CLIENT'
     display_name: string
-    photo_url?: string
+    photo_url?: string | null
   }
   last_message_preview: string
   unread_count: number

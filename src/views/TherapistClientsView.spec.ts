@@ -657,6 +657,67 @@ describe('TherapistClientsView', () => {
     expect(mockedApiGet).not.toHaveBeenCalledWith('/cabinet/clients/44/journal/')
   })
 
+  it('shows client session notes dose-wise and reveals older notes on demand', async () => {
+    const historyItems = Array.from({ length: 8 }, (_, index) => {
+      const sessionId = 801 + index
+      const day = 20 - index
+      return {
+        session_id: sessionId,
+        status: 'COMPLETED',
+        slot_start_at: `2099-06-${String(day).padStart(2, '0')}T10:00:00Z`,
+        slot_end_at: `2099-06-${String(day).padStart(2, '0')}T10:50:00Z`,
+        has_note: sessionId !== 803,
+        note_updated_at: sessionId === 803 ? null : `2099-06-${String(day).padStart(2, '0')}T11:00:00Z`,
+      }
+    })
+
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL)
+        return [
+          {
+            id: 1,
+            client_id: 44,
+            state: 'ACTIVE',
+            last_session_at: null,
+            upcoming_count: 0,
+            client_display_name: 'Compact History Client',
+            client_journal_content: 'private workbook',
+            has_workbook_content: true,
+          },
+        ]
+      if (url === CLIENT_RECORDS_URL) return []
+      if (url === REMINDERS_URL) return []
+      if (url === clientHistoryUrl(44)) return historyItems
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    const { container } = renderView()
+
+    const historyButton = await screen.findByRole('button', { name: 'Приватна історія клієнта' })
+    await fireEvent.click(historyButton)
+
+    await waitFor(() => {
+      expect(container.querySelector('.history-title')?.textContent).toContain('Приватна історія клієнта')
+      expect(screen.getByText('Робочий зошит по клієнту')).toBeInTheDocument()
+      expect(screen.getByText('Нотатки по сесіях')).toBeInTheDocument()
+      expect(container.querySelector('a[href="/cabinet/sessions#note-801"]')).toBeInTheDocument()
+      expect(container.querySelector('a[href="/cabinet/sessions#note-802"]')).toBeInTheDocument()
+      expect(container.querySelector('a[href="/cabinet/sessions#note-803"]')).toBeInTheDocument()
+    })
+
+    expect(container.querySelector('a[href="/cabinet/sessions#note-804"]')).not.toBeInTheDocument()
+    const emptyNote = screen.getByText('Нотатки ще немає.')
+    expect(emptyNote.closest('.history-item')).toHaveClass('history-item--empty')
+    expect(screen.getByRole('button', { name: 'Показати ще' })).toBeInTheDocument()
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Показати ще' }))
+
+    await waitFor(() => {
+      expect(container.querySelector('a[href="/cabinet/sessions#note-808"]')).toBeInTheDocument()
+    })
+    expect(screen.queryByRole('button', { name: 'Показати ще' })).not.toBeInTheDocument()
+  })
+
   it('handles has_workbook_content=false and workbook_updated_at=null without extra workbook fetch', async () => {
     mockedApiGet.mockImplementation(async (url) => {
       if (url === CLIENTS_URL)
@@ -2474,5 +2535,3 @@ describe('TherapistClientsView', () => {
     })
   })
 })
-
-

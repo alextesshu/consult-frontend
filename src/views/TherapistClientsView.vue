@@ -898,13 +898,18 @@
               Нотаток по цьому клієнту ще немає.
             </div>
             <div v-else class="history-list">
-              <div v-for="item in clientHistory[relationClientId(client)]" :key="item.sessionId" class="history-item">
+              <div
+                v-for="item in visibleClientHistory(relationClientId(client))"
+                :key="item.sessionId"
+                class="history-item"
+                :class="{ 'history-item--empty': !item.hasNote }"
+              >
                 <div class="history-meta">
                   <div class="history-date">{{ formatDateTime(item.slotStart) }}</div>
                   <div class="muted">{{ formatDuration(item.slotStart, item.slotEnd) }}</div>
                   <div class="history-status">{{ sessionStatusLabel(item.status) }}</div>
                 </div>
-                <div class="muted">{{ historyNoteSummary(item) }}</div>
+                <div class="muted history-note-summary">{{ historyNoteSummary(item) }}</div>
                 <div class="history-actions">
                   <RouterLink class="btn btn--ghost btn--sm" :to="`/cabinet/sessions#note-${item.sessionId}`">
                     Відкрити нотатку
@@ -913,6 +918,11 @@
                     Відкрити робочий зошит
                   </RouterLink>
                 </div>
+              </div>
+              <div v-if="hasMoreClientHistory(relationClientId(client))" class="history-more">
+                <button class="btn btn--ghost btn--sm" type="button" @click="showMoreClientHistory(relationClientId(client))">
+                  Показати ще
+                </button>
               </div>
             </div>
           </div>
@@ -1319,6 +1329,7 @@ const expandedClientId = ref<number | null>(null)
 const targetedClientId = ref<number | null>(null)
 const historyLoading = ref<Set<number>>(new Set())
 const clientHistory = ref<Record<number, HistoryItem[]>>({})
+const clientHistoryVisibleLimits = ref<Record<number, number>>({})
 const clientJournalDrafts = ref<Record<number, string>>({})
 const workbookExpanded = ref<Record<number, boolean>>({})
 const workbookSavedMessage = ref<Record<number, string>>({})
@@ -1366,6 +1377,8 @@ const materialsStateByScopeKey = ref<Record<string, ClientMaterialsState>>({})
 
 const retryLabel = '\u0421\u043f\u0440\u043e\u0431\u0443\u0432\u0430\u0442\u0438 \u0449\u0435 \u0440\u0430\u0437'
 const remindersErrorTitle = '\u041d\u0435 \u0432\u0434\u0430\u043b\u043e\u0441\u044f \u0437\u0430\u0432\u0430\u043d\u0442\u0430\u0436\u0438\u0442\u0438 \u043d\u0430\u0433\u0430\u0434\u0443\u0432\u0430\u043d\u043d\u044f'
+const CLIENT_HISTORY_INITIAL_VISIBLE = 3
+const CLIENT_HISTORY_REVEAL_BATCH = 5
 const initialDeepLinkClientId = parseClientDeepLinkClientId(window.location.search)
 let clientCardHighlightTimer: number | null = null
 const toast = useToast()
@@ -2485,6 +2498,33 @@ function showMorePendingNotes() {
   pendingNotesVisibleLimit.value += 3
 }
 
+function clientHistoryVisibleLimit(clientId: number) {
+  return clientHistoryVisibleLimits.value[clientId] || CLIENT_HISTORY_INITIAL_VISIBLE
+}
+
+function resetClientHistoryVisibleLimit(clientId: number) {
+  clientHistoryVisibleLimits.value = {
+    ...clientHistoryVisibleLimits.value,
+    [clientId]: CLIENT_HISTORY_INITIAL_VISIBLE,
+  }
+}
+
+function visibleClientHistory(clientId: number) {
+  return (clientHistory.value[clientId] || []).slice(0, clientHistoryVisibleLimit(clientId))
+}
+
+function hasMoreClientHistory(clientId: number) {
+  return clientHistoryVisibleLimit(clientId) < (clientHistory.value[clientId] || []).length
+}
+
+function showMoreClientHistory(clientId: number) {
+  const nextLimit = clientHistoryVisibleLimit(clientId) + CLIENT_HISTORY_REVEAL_BATCH
+  clientHistoryVisibleLimits.value = {
+    ...clientHistoryVisibleLimits.value,
+    [clientId]: nextLimit,
+  }
+}
+
 function noteReminderRoute(sessionId: number) {
   return {
     path: '/cabinet/sessions',
@@ -3169,6 +3209,7 @@ async function loadHistory(clientId: number) {
   setHistoryLoading(clientId, true)
   setJournalLoading(clientId, true)
   error.value = ''
+  resetClientHistoryVisibleLimit(clientId)
   try {
     const client = clientIndex.value.get(clientId)
     const fromClientsList = client?.client_journal_content
@@ -3299,6 +3340,7 @@ async function toggleHistory(clientId: number) {
     return
   }
   expandedClientId.value = clientId
+  resetClientHistoryVisibleLimit(clientId)
   if (!clientHistory.value[clientId]) {
     await loadHistory(clientId)
   }
@@ -3313,6 +3355,7 @@ async function openClientFromDeepLinkIfNeeded() {
   filter.value = 'ALL'
   searchQuery.value = ''
   expandedClientId.value = deepLinkedClientId
+  resetClientHistoryVisibleLimit(deepLinkedClientId)
   if (!clientHistory.value[deepLinkedClientId]) {
     await loadHistory(deepLinkedClientId)
   }
@@ -4064,12 +4107,20 @@ onBeforeUnmount(() => {
 }
 
 .history-item {
-  padding: 10px 12px;
+  padding: 8px 10px;
   border-radius: var(--pc-radius-card);
   background: #f7f8fa;
   border: 1px solid rgba(47, 63, 73, 0.08);
   display: grid;
-  gap: 6px;
+  gap: 5px;
+}
+
+.history-item--empty {
+  background: rgba(247, 248, 250, 0.65);
+}
+
+.history-item--empty .history-actions {
+  margin-top: 0;
 }
 
 .history-meta {
@@ -4106,10 +4157,19 @@ onBeforeUnmount(() => {
   line-height: 1.5;
 }
 
+.history-note-summary {
+  font-size: 13px;
+}
+
 .history-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+.history-more {
+  display: flex;
+  justify-content: flex-start;
 }
 
 .btn--sm {

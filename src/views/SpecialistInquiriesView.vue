@@ -27,8 +27,15 @@
           @click="selectThread(thread.id)"
         >
           <div class="thread-item__avatar">
-            <img v-if="thread.other_user.photo_url" :src="thread.other_user.photo_url" alt="" />
-            <span v-else>{{ initials(thread.other_user.display_name) }}</span>
+            <img
+              v-if="threadAvatarUrl(thread) && !failedThreadAvatarIds.has(thread.id)"
+              :src="threadAvatarUrl(thread)"
+              alt=""
+              @error="markThreadAvatarFailed(thread.id)"
+            />
+            <span v-else class="thread-item__avatar-fallback" title="Клієнт без фото">
+              {{ initials(thread.other_user.display_name) }}
+            </span>
           </div>
           <div class="thread-item__meta">
             <div class="thread-item__name">{{ thread.other_user.display_name }}</div>
@@ -49,6 +56,11 @@
           <div class="inquiry-state" :class="`inquiry-state--${replyStateCopy.tone}`">
             <div class="inquiry-state__title">{{ replyStateCopy.title }}</div>
             <div>{{ replyStateCopy.body }}</div>
+          </div>
+          <div v-if="activeClientCardTarget" class="inquiry-actions">
+            <RouterLink class="btn btn--ghost btn--sm" :to="activeClientCardTarget">
+              Відкрити картку клієнта
+            </RouterLink>
           </div>
 
           <div v-if="messagesLoading" class="muted">Завантажуємо повідомлення...</div>
@@ -117,10 +129,16 @@ const detailError = ref('')
 const draft = ref('')
 const sending = ref(false)
 const sendError = ref('')
+const failedThreadAvatarIds = ref<Set<number>>(new Set())
 
 const activeThread = computed(() =>
   threads.value.find((thread) => thread.id === activeThreadId.value) || null
 )
+
+const activeClientCardTarget = computed(() => {
+  if (!activeThread.value) return null
+  return clientCardTarget(activeThread.value)
+})
 
 const replyStateCopy = computed(() =>
   mapInquiryStateToUi({
@@ -145,6 +163,35 @@ function initials(value: string) {
   if (!parts.length) return '..'
   if (parts.length === 1) return parts[0]?.slice(0, 2).toUpperCase() || '..'
   return `${parts[0]?.[0] || ''}${parts[1]?.[0] || ''}`.toUpperCase()
+}
+
+function normalizeAvatarUrl(raw: unknown) {
+  const value = String(raw || '').trim()
+  if (!value) return ''
+  const normalized = value.toLowerCase()
+  if (normalized === 'null' || normalized === 'none' || normalized === 'undefined') return ''
+  return value
+}
+
+function threadAvatarUrl(thread: InquiryThread) {
+  return normalizeAvatarUrl(thread.other_user.photo_url)
+}
+
+function markThreadAvatarFailed(threadId: number) {
+  if (failedThreadAvatarIds.value.has(threadId)) return
+  failedThreadAvatarIds.value = new Set([...failedThreadAvatarIds.value, threadId])
+}
+
+function positiveNumber(raw: unknown) {
+  const value = Number(raw)
+  if (!Number.isInteger(value) || value <= 0) return null
+  return value
+}
+
+function clientCardTarget(thread: InquiryThread) {
+  const clientId = positiveNumber(thread.client_id)
+  if (!clientId) return null
+  return `/cabinet/clients?client=${clientId}&autoOpen=1`
 }
 
 function formatTime(value: string) {
@@ -306,6 +353,16 @@ watch(
   object-fit: cover;
 }
 
+.thread-item__avatar-fallback {
+  color: var(--ink);
+}
+
+.inquiry-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
 .thread-item__meta {
   min-width: 0;
   display: grid;
@@ -403,5 +460,4 @@ watch(
   }
 }
 </style>
-
 
