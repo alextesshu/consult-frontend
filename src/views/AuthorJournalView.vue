@@ -2,9 +2,9 @@
   <section class="journal-page">
     <header class="journal-hero">
       <div>
-        <h1 class="title journal-title">Авторський журнал</h1>
+        <h1 class="title journal-title">Авторський блог</h1>
         <p class="muted journal-subtitle">
-          Публікуйте нотатки для профілю спеціаліста. Опубліковані записи видно всім.
+          Публікуйте нотатки для профілю спеціаліста. Опубліковані дописи видно всім.
         </p>
       </div>
       <div class="journal-actions">
@@ -16,12 +16,12 @@
     <section class="panel">
       <div class="panel__header">
         <div>
-          <h2 class="panel__title">Новий запис</h2>
+          <h2 class="panel__title">Новий допис</h2>
           <p v-if="isAuthorJournalEnabled" class="panel__hint">
-            Чернетки видно лише вам. Опубліковані записи зʼявляються у публічному профілі.
+            Чернетки видно лише вам. Опубліковані дописи зʼявляються у публічному профілі.
           </p>
           <p v-else class="panel__hint">
-            На плані Start авторський журнал недоступний. Щоб створювати й публікувати записи, перейдіть на
+            На плані Start авторський блог недоступний. Щоб створювати й публікувати дописи, перейдіть на
             Pro або Leader.
           </p>
         </div>
@@ -33,16 +33,16 @@
             type="button"
             @click="createOpen = !createOpen; if (createOpen) cancelInlineEdit()"
           >
-            {{ createOpen ? 'Згорнути' : '+ Новий пост' }}
+            {{ createOpen ? 'Згорнути' : '+ Новий допис' }}
           </button>
           <RouterLink v-else class="btn btn--ghost btn--sm" to="/cabinet/billing">Тарифи</RouterLink>
         </div>
       </div>
 
       <div v-if="!isAuthorJournalEnabled" class="journal-locked" role="status" aria-live="polite">
-        <div class="journal-locked__title">Створення постів наразі недоступне</div>
+        <div class="journal-locked__title">Створення дописів наразі недоступне</div>
         <p class="muted">
-          Після переходу на Pro або Leader ви зможете створювати чернетки та публікувати записи в профілі.
+          Після переходу на Pro або Leader ви зможете створювати чернетки та публікувати дописи в профілі.
         </p>
       </div>
       <div v-else-if="createOpen" class="collapse">
@@ -83,7 +83,7 @@
             </label>
 
           <label class="field field--full">
-            <span class="label">Текст поста</span>
+            <span class="label">Текст допису</span>
             <div class="md-toolbar" role="toolbar" aria-label="Форматування тексту">
               <button
                 class="md-btn"
@@ -137,14 +137,20 @@
                 <div class="cover-controls">
                   <input
                     ref="coverInput"
-                    class="input input--file"
+                    class="cover-file-input"
                     type="file"
                     accept="image/*"
+                    aria-label="Завантажити файл обкладинки"
                     @change="onCoverSelected"
                   />
 
-                  <button class="btn btn--ghost btn--sm" type="button" @click="triggerCoverSelect">
-                    Завантажити
+                  <button
+                    class="btn btn--ghost btn--sm"
+                    type="button"
+                    :disabled="coverUploading"
+                    @click="triggerCoverSelect"
+                  >
+                    Завантажити файл
                   </button>
 
                   <button
@@ -157,11 +163,16 @@
                     Прибрати
                   </button>
 
-                  <span v-if="coverUploading" class="muted">Завантаження…</span>
+                  <span v-if="coverUploading" class="muted" aria-live="polite">
+                    Завантаження: {{ coverFileName }}
+                  </span>
+                  <span v-else-if="coverFileName" class="muted" aria-live="polite">
+                    Файл: {{ coverFileName }}
+                  </span>
                 </div>
 
                 <div v-if="coverPreviewUrl" class="cover-preview">
-                  <img :src="coverPreviewUrl" alt="Обкладинка поста" />
+                  <img :src="coverPreviewUrl" alt="Обкладинка допису" />
                 </div>
 
                 <p class="muted cover-hint">
@@ -173,7 +184,7 @@
             <label class="check field--full">
               <input v-model="journalForm.is_published" type="checkbox" />
               <span>Опублікувати</span>
-              <span class="muted">— запис стане видимим у публічному профілі</span>
+              <span class="muted">— допис стане видимим у публічному профілі</span>
             </label>
           </div>
 
@@ -197,7 +208,7 @@
     <section class="panel">
       <div class="panel__header">
         <div>
-          <h2 class="panel__title">Ваші записи</h2>
+          <h2 class="panel__title">Ваші дописи</h2>
         </div>
       </div>
 
@@ -207,7 +218,7 @@
           :class="{ active: activeTab === 'posts' }"
           @click="activeTab = 'posts'"
         >
-          Записи
+          Дописи
         </button>
 
         <button
@@ -215,14 +226,14 @@
           :class="{ active: activeTab === 'collections' }"
           @click="activeTab = 'collections'"
         >
-          Серії
+          Добірки
         </button>
       </div>
 
       <div v-if="activeTab === 'posts'">
-        <div v-if="journalLoading" class="muted">Завантаження постів...</div>
+        <div v-if="journalLoading" class="muted">Завантаження дописів...</div>
         <div v-else-if="journalPosts.length === 0" class="muted">
-          Ще немає постів.
+          Ще немає дописів.
         </div>
         <div v-else class="journal-admin-list">
         <article v-for="post in journalPosts" :key="post.id" class="journal-admin-card">
@@ -255,7 +266,7 @@
               </label>
 
               <label class="field">
-                <span class="label">Текст поста</span>
+                <span class="label">Текст допису</span>
                 <div class="md-toolbar" role="toolbar" aria-label="Форматування тексту">
                   <button
                     class="md-btn"
@@ -312,13 +323,19 @@
                 <div class="cover-row">
                   <input
                     ref="editCoverInput"
-                    class="input input--file cover-input"
+                    class="cover-file-input"
                     type="file"
                     accept="image/*"
+                    aria-label="Завантажити файл обкладинки"
                     @change="onEditCoverSelected"
                   />
-                  <button class="btn btn--ghost btn--sm" type="button" @click="triggerEditCoverSelect">
-                    Завантажити
+                  <button
+                    class="btn btn--ghost btn--sm"
+                    type="button"
+                    :disabled="editCoverUploading"
+                    @click="triggerEditCoverSelect"
+                  >
+                    Завантажити файл
                   </button>
                   <button
                     v-if="editForm.coverPreviewUrl"
@@ -329,11 +346,16 @@
                   >
                     Прибрати
                   </button>
-                  <span v-if="editCoverUploading" class="muted">Завантаження…</span>
+                  <span v-if="editCoverUploading" class="muted" aria-live="polite">
+                    Завантаження: {{ editCoverFileName }}
+                  </span>
+                  <span v-else-if="editCoverFileName" class="muted" aria-live="polite">
+                    Файл: {{ editCoverFileName }}
+                  </span>
                 </div>
 
                 <div v-if="editForm.coverPreviewUrl" class="cover-preview">
-                  <img :src="editForm.coverPreviewUrl" alt="Обкладинка поста" />
+                  <img :src="editForm.coverPreviewUrl" alt="Обкладинка допису" />
                 </div>
               </div>
 
@@ -407,7 +429,7 @@
               </div>
 
               <div v-if="post.cover_image_url" class="journal-admin-cover">
-                <img :src="post.cover_image_url" alt="Обкладинка поста" />
+                <img :src="post.cover_image_url" alt="Обкладинка допису" />
               </div>
               <div v-else class="journal-admin-cover journal-admin-cover--fallback">
                 <span class="cover-fallback-icon">*</span>
@@ -420,12 +442,12 @@
 
       <div v-if="activeTab === 'collections'">
         <p class="collections-hint">
-          Об’єднуйте записи в серії, щоб клієнтам було легше читати матеріали по порядку.
+          Об’єднуйте дописи в добірки, щоб клієнтам було легше читати матеріали по порядку.
         </p>
 
         <section class="collections-section">
           <div class="collections-section__head">
-            <h3 class="collections-section__title">Ваші серії</h3>
+            <h3 class="collections-section__title">Ваші добірки</h3>
           </div>
 
           <div v-if="collectionError" class="form-error" role="alert">{{ collectionError }}</div>
@@ -436,8 +458,8 @@
           <div v-if="collectionsLoading">Завантаження...</div>
 
           <div v-else-if="!collections.length" class="collections-empty">
-            <strong>У вас ще немає серій</strong><br />
-            Створіть першу серію та додайте до неї потрібні записи.
+            <strong>У вас ще немає добірок</strong><br />
+            Створіть першу добірку та додайте до неї потрібні дописи.
           </div>
 
           <div v-else class="journal-collections-list">
@@ -462,7 +484,7 @@
                     {{ collection.description }}
                   </div>
                   <div v-if="!collection.is_published" class="journal-collection-row__draft-note">
-                    Серію знято з публікації. У публічному профілі її не видно.
+                    Добірку знято з публікації. У публічному профілі її не видно.
                   </div>
                   <ul v-if="collectionPreviewTitles(collection).length" class="journal-collection-row__preview">
                     <li
@@ -479,7 +501,7 @@
                     class="btn btn--ghost btn--sm"
                     :to="`/s/${profileSlug}/journal/collections/${collection.slug}`"
                   >
-                    Переглянути серію
+                    Переглянути добірку
                   </RouterLink>
                   <button
                     v-else
@@ -487,24 +509,24 @@
                     type="button"
                     disabled
                   >
-                    Переглянути серію
+                    Переглянути добірку
                   </button>
                   <button
                     class="btn btn--ghost btn--sm"
                     type="button"
                     @click="startCollectionEdit(collection)"
                   >
-                    Редагувати серію
+                    Редагувати добірку
                   </button>
                   <button
                     class="btn btn--ghost btn--sm btn--danger-soft"
                     type="button"
                     @click="requestDeleteCollection(collection)"
                   >
-                    Видалити серію
+                    Видалити добірку
                   </button>
                   <button class="btn btn--ghost btn--sm" type="button" @click="toggleManageCollection(collection.id)">
-                    {{ managingCollectionId === collection.id ? 'Сховати' : 'Керувати постами' }}
+                    {{ managingCollectionId === collection.id ? 'Сховати' : 'Керувати дописами' }}
                   </button>
                 </div>
               </div>
@@ -516,12 +538,12 @@
               >
                 <div class="form-grid">
                   <label class="field">
-                    <span class="label">Назва серії</span>
+                    <span class="label">Назва добірки</span>
                     <input v-model.trim="collectionEditForm.title" class="input" type="text" required />
                   </label>
 
                   <label class="field field--full">
-                    <span class="label">Опис серії</span>
+                    <span class="label">Опис добірки</span>
                     <textarea v-model.trim="collectionEditForm.description" class="input" rows="3" />
                   </label>
 
@@ -544,13 +566,13 @@
 
             <div v-if="managingCollectionId === collection.id" class="collection-manage">
               <div v-if="collectionDetailsLoadingId === collection.id" class="muted">
-                Завантаження складу серії...
+                Завантаження складу добірки...
               </div>
               <div v-else class="collection-manage__content">
                 <div class="collection-manage__section">
-                  <div class="collection-manage__section-title">У серії</div>
+                  <div class="collection-manage__section-title">У добірці</div>
                   <div v-if="!getCollectionItems(collection.id).length" class="muted">
-                    Серія порожня. Додайте перший запис нижче.
+                    Добірка порожня. Додайте перший допис нижче.
                   </div>
                   <div v-else class="collection-posts-list">
                     <article
@@ -610,12 +632,12 @@
                 </div>
 
                 <div class="collection-manage__section">
-                  <div class="collection-manage__section-title">Додати записи</div>
+                  <div class="collection-manage__section-title">Додати дописи</div>
                   <div v-if="!journalPosts.length" class="muted">
-                    У вас ще немає записів для додавання. Спершу створіть запис у вкладці «Записи».
+                    У вас ще немає дописів для додавання. Спершу створіть допис у вкладці «Дописи».
                   </div>
                   <div v-else-if="!getAvailablePostsForCollection(collection.id).length" class="muted">
-                    Усі записи вже додані в серію.
+                    Усі дописи вже додані в добірку.
                   </div>
                   <div v-else class="collection-posts-list">
                     <article
@@ -663,30 +685,30 @@
 
         <section class="collections-section collections-create">
           <div class="collections-section__head">
-            <h3 class="collections-section__title">Нова серія</h3>
+            <h3 class="collections-section__title">Нова добірка</h3>
           </div>
           <div class="collections-actions">
             <button class="btn" type="button" @click="createCollectionOpen = !createCollectionOpen">
-              {{ createCollectionOpen ? 'Скасувати' : '+ Створити серію' }}
+              {{ createCollectionOpen ? 'Скасувати' : '+ Створити добірку' }}
             </button>
           </div>
 
           <form v-if="createCollectionOpen" class="form collection-form" @submit.prevent="onCreateCollection">
             <div class="collection-form__head">
-              <h4 class="collection-form__title">Створити серію</h4>
+              <h4 class="collection-form__title">Створити добірку</h4>
               <p class="collection-form__subtitle">
-                Об’єднайте кілька записів у спільну тему. Після створення серії ви зможете додати до неї потрібні записи.
+                Об’єднайте кілька дописів у спільну тему. Після створення добірки ви зможете додати до неї потрібні дописи.
               </p>
             </div>
 
             <div class="form-grid">
               <label class="field">
-                <span class="label">Назва серії</span>
+                <span class="label">Назва добірки</span>
                 <input v-model.trim="collectionForm.title" class="input" type="text" required />
               </label>
 
               <label class="field field--full">
-                <span class="label">Опис серії</span>
+                <span class="label">Опис добірки</span>
                 <textarea v-model.trim="collectionForm.description" class="input" rows="3" />
               </label>
 
@@ -698,7 +720,7 @@
 
             <div class="actions">
               <button class="btn" type="submit" :disabled="collectionSubmitting">
-                Створити серію
+                Створити добірку
               </button>
               <span v-if="collectionSubmitting" class="muted">Збереження…</span>
             </div>
@@ -772,6 +794,7 @@ const editBodyInput = ref<HTMLTextAreaElement | null>(null)
 const editSelStart = ref(0)
 const editSelEnd = ref(0)
 const editCoverUploading = ref(false)
+const editCoverFileName = ref('')
 const bodyInput = ref<HTMLTextAreaElement | null>(null)
 const summaryInput = ref<HTMLTextAreaElement | null>(null)
 const router = useRouter()
@@ -786,6 +809,7 @@ const activeMdField = ref<'summary' | 'body'>('body')
 const coverInput = ref<HTMLInputElement | null>(null)
 const coverPreviewUrl = ref('')
 const coverUploading = ref(false)
+const coverFileName = ref('')
 const coverChanged = ref(false)
 const journalForm = reactive({
   category: 'EXPLAIN' as 'TIP' | 'EXPLAIN' | 'FAQ' | 'RESEARCH' | 'PRACTICE',
@@ -819,7 +843,7 @@ const editForm = reactive({
 const journalDeleteModal = useConfirmModal()
 let collectionSuccessTimer: number | null = null
 const AUTHOR_JOURNAL_ENTITLEMENT_MESSAGE =
-  'Авторський журнал недоступний на вашому тарифі. Перейдіть на Pro або Leader, щоб створювати записи.'
+  'Авторський блог недоступний на вашому тарифі. Перейдіть на Pro або Leader, щоб створювати дописи.'
 type PlanCode = 'START' | 'PRO' | 'LEADER'
 
 const planCode = computed<PlanCode | null>(() => {
@@ -840,7 +864,7 @@ async function loadJournal() {
     journalPosts.value = await fetchAuthorJournalPosts()
   } catch (err) {
     journalPosts.value = []
-    journalError.value = getApiErrorMessage(err, 'Не вдалося завантажити авторський журнал')
+    journalError.value = getApiErrorMessage(err, 'Не вдалося завантажити авторський блог')
   } finally {
     journalLoading.value = false
   }
@@ -854,7 +878,7 @@ async function loadCollections() {
     void prefetchCollectionDetails()
   } catch (err) {
     collections.value = []
-    collectionError.value = getApiErrorMessage(err, 'Не вдалося завантажити серії')
+    collectionError.value = getApiErrorMessage(err, 'Не вдалося завантажити добірки')
   } finally {
     collectionsLoading.value = false
   }
@@ -878,6 +902,7 @@ function resetJournalForm() {
   journalForm.cover_image_url = ''
   journalForm.is_published = false
   coverPreviewUrl.value = ''
+  coverFileName.value = ''
   coverChanged.value = false
 }
 
@@ -899,11 +924,11 @@ function slugify(value: string): string {
 }
 
 function recordWord(count: number): string {
-  if (count % 10 === 1 && count % 100 !== 11) return 'запис'
+  if (count % 10 === 1 && count % 100 !== 11) return 'допис'
   if ([2, 3, 4].includes(count % 10) && ![12, 13, 14].includes(count % 100)) {
-    return 'записи'
+    return 'дописи'
   }
-  return 'записів'
+  return 'дописів'
 }
 
 function showCollectionSuccess(message: string) {
@@ -930,9 +955,9 @@ async function onCreateCollection() {
     await loadCollections()
     resetCollectionForm()
     createCollectionOpen.value = false
-    showCollectionSuccess('Серію створено.')
+    showCollectionSuccess('Добірку створено.')
   } catch (err) {
-    collectionError.value = getApiErrorMessage(err, 'Не вдалося створити серію')
+    collectionError.value = getApiErrorMessage(err, 'Не вдалося створити добірку')
   } finally {
     collectionSubmitting.value = false
   }
@@ -968,9 +993,9 @@ async function onSaveCollectionEdit(collectionId: number) {
     })
     await loadCollections()
     cancelCollectionEdit()
-    showCollectionSuccess('Серію оновлено.')
+    showCollectionSuccess('Добірку оновлено.')
   } catch (err) {
-    collectionError.value = getApiErrorMessage(err, 'Не вдалося оновити серію')
+    collectionError.value = getApiErrorMessage(err, 'Не вдалося оновити добірку')
   } finally {
     collectionEditSubmitting.value = false
   }
@@ -978,8 +1003,8 @@ async function onSaveCollectionEdit(collectionId: number) {
 
 function requestDeleteCollection(collection: CabinetJournalCollection) {
   journalDeleteModal.openConfirm({
-    title: 'Видалити серію?',
-    message: 'Серія буде видалена. Записи залишаться у журналі.',
+    title: 'Видалити добірку?',
+    message: 'Добірка буде видалена. Дописи залишаться у блозі.',
     confirmText: 'Видалити',
     cancelText: 'Скасувати',
     tone: 'danger',
@@ -995,9 +1020,9 @@ function requestDeleteCollection(collection: CabinetJournalCollection) {
         if (managingCollectionId.value === collection.id) {
           managingCollectionId.value = null
         }
-        showCollectionSuccess('Серію видалено.')
+        showCollectionSuccess('Добірку видалено.')
       } catch (err) {
-        collectionError.value = getApiErrorMessage(err, 'Не вдалося видалити серію')
+        collectionError.value = getApiErrorMessage(err, 'Не вдалося видалити добірку')
       }
     },
   })
@@ -1040,7 +1065,7 @@ async function loadCollectionDetail(collectionId: number) {
     const detail = await fetchCabinetJournalCollectionDetail(collectionId)
     collectionDetailsById.value[collectionId] = detail
   } catch (err) {
-    collectionError.value = getApiErrorMessage(err, 'Не вдалося завантажити склад серії')
+    collectionError.value = getApiErrorMessage(err, 'Не вдалося завантажити склад добірки')
   } finally {
     collectionDetailsLoadingId.value = null
   }
@@ -1065,7 +1090,7 @@ async function addPostToCollection(collectionId: number, postId: number) {
     collectionDetailsById.value[collectionId] = detail
     await loadCollections()
   } catch (err) {
-    collectionError.value = getApiErrorMessage(err, 'Не вдалося додати пост у серію')
+    collectionError.value = getApiErrorMessage(err, 'Не вдалося додати допис до добірки')
   } finally {
     collectionAddingKey.value = ''
   }
@@ -1115,7 +1140,7 @@ async function moveCollectionItem(collectionId: number, itemId: number, directio
     }
     await loadCollections()
   } catch (err) {
-    collectionError.value = getApiErrorMessage(err, 'Не вдалося змінити порядок у серії')
+    collectionError.value = getApiErrorMessage(err, 'Не вдалося змінити порядок у добірці')
   } finally {
     collectionItemsBusyKey.value = ''
   }
@@ -1130,7 +1155,7 @@ async function removeCollectionItem(collectionId: number, itemId: number) {
     collectionDetailsById.value[collectionId] = detail
     await loadCollections()
   } catch (err) {
-    collectionError.value = getApiErrorMessage(err, 'Не вдалося прибрати пост із серії')
+    collectionError.value = getApiErrorMessage(err, 'Не вдалося прибрати допис із добірки')
   } finally {
     collectionItemsBusyKey.value = ''
   }
@@ -1162,7 +1187,7 @@ async function onSaveJournal() {
     if (isAuthorJournalEntitlementError(err)) {
       journalError.value = AUTHOR_JOURNAL_ENTITLEMENT_MESSAGE
     } else {
-      journalError.value = getApiErrorMessage(err, 'Не вдалося зберегти пост')
+      journalError.value = getApiErrorMessage(err, 'Не вдалося зберегти допис')
     }
   } finally {
     journalSaving.value = false
@@ -1188,6 +1213,7 @@ function startInlineEdit(post: AuthorJournalPost) {
   editForm.cover_image_url = ''
   editForm.coverPreviewUrl = post.cover_image_url || ''
   editForm.coverChanged = false
+  editCoverFileName.value = ''
 }
 
 function cancelInlineEdit() {
@@ -1200,6 +1226,7 @@ function cancelInlineEdit() {
   editForm.cover_image_url = ''
   editForm.coverPreviewUrl = ''
   editForm.coverChanged = false
+  editCoverFileName.value = ''
 }
 
 async function saveInlineEdit(postId: number) {
@@ -1220,7 +1247,7 @@ async function saveInlineEdit(postId: number) {
     await loadJournal()
     cancelInlineEdit()
   } catch (err) {
-    journalError.value = getApiErrorMessage(err, 'Не вдалося оновити пост')
+    journalError.value = getApiErrorMessage(err, 'Не вдалося оновити допис')
   } finally {
     editSaving.value = false
   }
@@ -1237,7 +1264,7 @@ async function pinPost(post: AuthorJournalPost) {
     })
     await loadJournal()
   } catch (err) {
-    journalError.value = getApiErrorMessage(err, 'Не вдалося закріпити пост')
+    journalError.value = getApiErrorMessage(err, 'Не вдалося закріпити допис')
   }
 }
 
@@ -1250,7 +1277,7 @@ async function unpinPost(post: AuthorJournalPost) {
     })
     await loadJournal()
   } catch (err) {
-    journalError.value = getApiErrorMessage(err, 'Не вдалося відкріпити пост')
+    journalError.value = getApiErrorMessage(err, 'Не вдалося відкріпити допис')
   }
 }
 
@@ -1264,6 +1291,7 @@ async function onEditCoverSelected(event: Event) {
   if (!file) return
 
   journalError.value = ''
+  editCoverFileName.value = file.name
   editCoverUploading.value = true
   try {
     const data = await uploadAuthorJournalCover(file)
@@ -1271,6 +1299,7 @@ async function onEditCoverSelected(event: Event) {
     editForm.coverPreviewUrl = data.preview_url || data.blob_name
     editForm.coverChanged = true
   } catch (err) {
+    editCoverFileName.value = ''
     journalError.value = getApiErrorMessage(err, 'Не вдалося завантажити обкладинку')
   } finally {
     editCoverUploading.value = false
@@ -1282,6 +1311,7 @@ function clearEditCover() {
   editForm.cover_image_url = ''
   editForm.coverPreviewUrl = ''
   editForm.coverChanged = true
+  editCoverFileName.value = ''
 }
 
 function previewPost(post: AuthorJournalPost) {
@@ -1292,8 +1322,8 @@ function previewPost(post: AuthorJournalPost) {
 
 function requestDeleteJournal(post: AuthorJournalPost) {
   journalDeleteModal.openConfirm({
-    title: 'Видалити пост?',
-    message: 'Пост зникне з публічного профілю.',
+    title: 'Видалити допис?',
+    message: 'Допис зникне з публічного профілю.',
     confirmText: 'Видалити',
     cancelText: 'Скасувати',
     tone: 'danger',
@@ -1306,7 +1336,7 @@ function requestDeleteJournal(post: AuthorJournalPost) {
           cancelInlineEdit()
         }
       } catch (err) {
-        journalError.value = getApiErrorMessage(err, 'Не вдалося видалити пост')
+        journalError.value = getApiErrorMessage(err, 'Не вдалося видалити допис')
       }
     },
   })
@@ -1482,6 +1512,12 @@ function wrapWithEdgeWhitespace(
 ) {
   const hasSelection = end > start
   const rawSelected = hasSelection ? value.slice(start, end) : fallback
+  if (hasSelection && left === '**' && right === '**' && hasBlankLine(rawSelected)) {
+    const wrapped = wrapNonEmptyBlocks(rawSelected, left, right)
+    const next = value.slice(0, start) + wrapped + value.slice(end)
+    return { next, selStart: start, selEnd: start + wrapped.length }
+  }
+
   const leading = rawSelected.match(/^\s*/)?.[0] || ''
   const trailing = rawSelected.match(/\s*$/)?.[0] || ''
   const core = rawSelected.slice(leading.length, rawSelected.length - trailing.length) || fallback
@@ -1492,6 +1528,23 @@ function wrapWithEdgeWhitespace(
   const selStart = start + leading.length + left.length
   const selEnd = selStart + core.length
   return { next, selStart, selEnd }
+}
+
+function hasBlankLine(value: string) {
+  return /\r?\n[ \t]*\r?\n/.test(value)
+}
+
+function wrapNonEmptyBlocks(value: string, left: string, right: string) {
+  return value
+    .split(/((?:\r?\n[ \t]*){2,})/)
+    .map((part) => {
+      if (!part.trim() || hasBlankLine(part)) return part
+      const leading = part.match(/^\s*/)?.[0] || ''
+      const trailing = part.match(/\s*$/)?.[0] || ''
+      const core = part.slice(leading.length, part.length - trailing.length)
+      return core ? `${leading}${left}${core}${right}${trailing}` : part
+    })
+    .join('')
 }
 
 function mdLink() {
@@ -1553,6 +1606,7 @@ async function onCoverSelected(event: Event) {
   const file = input.files?.[0]
   if (!file) return
   journalError.value = ''
+  coverFileName.value = file.name
   coverUploading.value = true
   try {
     const data = await uploadAuthorJournalCover(file)
@@ -1560,6 +1614,7 @@ async function onCoverSelected(event: Event) {
     coverPreviewUrl.value = data.preview_url || data.blob_name
     coverChanged.value = true
   } catch (err) {
+    coverFileName.value = ''
     journalError.value = getApiErrorMessage(err, 'Не вдалося завантажити обкладинку')
   } finally {
     coverUploading.value = false
@@ -1571,6 +1626,7 @@ function clearCover() {
   journalForm.cover_image_url = ''
   coverPreviewUrl.value = ''
   coverChanged.value = true
+  coverFileName.value = ''
 }
 
 onMounted(() => {
@@ -2168,6 +2224,7 @@ onMounted(() => {
 }
 
 
+.cover-controls,
 .cover-row {
   display: flex;
   align-items: center;
@@ -2175,8 +2232,16 @@ onMounted(() => {
   flex-wrap: wrap;
 }
 
-.cover-input {
-  display: none;
+.cover-file-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .cover-preview {

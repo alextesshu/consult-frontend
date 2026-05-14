@@ -2,7 +2,7 @@
   <div v-if="hasPublicJournalPosts" class="panel panel--journal" id="journal">
     <div class="panel__header">
       <div>
-        <div class="badge badge--soft">Авторський журнал</div>
+        <div class="badge badge--soft">Авторський блог</div>
         <h2 class="panel__title">Статті та матеріали спеціаліста</h2>
         <p class="panel__lead">Матеріали допоможуть краще відчути стиль роботи і теми спеціаліста.</p>
       </div>
@@ -13,12 +13,12 @@
       </div>
     </div>
 
-    <div v-if="journalLoading" class="muted">Завантажуємо журнал...</div>
+    <div v-if="journalLoading" class="muted">Завантажуємо блог...</div>
     <div v-else-if="journalError" class="form-error">{{ journalError }}</div>
     <div v-else>
       <section v-if="previewCollections.length" class="profile-collections">
         <div class="profile-collections__head">
-          <div class="profile-collections__title">Серії</div>
+          <div class="profile-collections__title">Добірки</div>
           <RouterLink class="btn btn--ghost btn--sm" :to="{ name: 'public-journal', params: { slug } }">
             Переглянути всі
           </RouterLink>

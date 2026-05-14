@@ -1061,7 +1061,7 @@ describe('CabinetView', () => {
     expect(view.container).not.toHaveTextContent('Куди перейти далі')
     expect(view.container).not.toHaveTextContent('Перейти до сесій')
     expect(view.container).not.toHaveTextContent('Перейти до клієнтів')
-    expect(view.container).not.toHaveTextContent('Авторський журнал')
+    expect(view.container).not.toHaveTextContent('Авторський блог')
   })
 
   it('renders compact billing summary without duplicating detailed tariff logic', async () => {

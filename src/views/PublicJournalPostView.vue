@@ -2,7 +2,7 @@
   <section class="public-post">
     <header class="post-hero">
       <div>
-        <div class="badge badge--soft">Авторський журнал</div>
+        <div class="badge badge--soft">Авторський блог</div>
         <h1 class="title post-title">{{ post?.title || 'Стаття' }}</h1>
         <p class="muted post-subtitle">
           <span v-if="post">
@@ -15,7 +15,7 @@
       <div class="post-hero__actions">
         <RouterLink class="btn btn--ghost" :to="backTo">← Назад</RouterLink>
         <RouterLink class="btn btn--ghost" :to="`/t/${slug}`">До профілю</RouterLink>
-        <RouterLink class="btn btn--ghost" :to="`/t/${slug}/journal`">До журналу</RouterLink>
+        <RouterLink class="btn btn--ghost" :to="`/t/${slug}/journal`">До блогу</RouterLink>
         <button class="btn btn--ghost btn--sm" type="button" :disabled="shareBusy" @click="onShare">
           {{ shareDone ? 'Скопійовано ✓' : (shareBusy ? '...' : 'Поділитися') }}
         </button>
@@ -42,9 +42,9 @@
           <section
             v-if="post.collection && post.collection.items.length > 1"
             class="collection-card"
-            aria-label="Частина серії"
+            aria-label="Допис у добірці"
           >
-            <div class="collection-card__eyebrow">Частина серії</div>
+            <div class="collection-card__eyebrow">Допис у добірці</div>
             <div class="collection-card__head">
               <div>
                 <h2 class="collection-card__title">
@@ -60,7 +60,7 @@
                 </p>
               </div>
               <div v-if="post.collection.current_post_index" class="collection-card__index">
-                Запис {{ post.collection.current_post_index }} з {{ post.collection.items.length }}
+                Допис {{ post.collection.current_post_index }} з {{ post.collection.items.length }}
               </div>
             </div>
 
@@ -91,14 +91,14 @@
           <nav
             v-if="collectionNav"
             class="collection-nav"
-            aria-label="Навігація по серії"
+            aria-label="Навігація добіркою"
           >
             <RouterLink
               v-if="collectionNav.prev"
               class="collection-nav__link"
               :to="`/${slug}/journal/${collectionNav.prev.slug}`"
             >
-              ← Попередня в серії
+              ← Попередній у добірці
             </RouterLink>
             <span v-else class="collection-nav__spacer"></span>
 
@@ -107,7 +107,7 @@
               class="collection-nav__link collection-nav__link--next"
               :to="`/${slug}/journal/${collectionNav.next.slug}`"
             >
-              Наступна в серії →
+              Наступний у добірці →
             </RouterLink>
             <span v-else class="collection-nav__spacer"></span>
           </nav>

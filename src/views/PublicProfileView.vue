@@ -1098,7 +1098,7 @@ const hasPublicJournalPosts = computed(
   () => journalPosts.value.length > 0 || Boolean(journalEmptyStateCode.value)
 )
 const journalCanonicalEmptyStateTitle = computed(() => {
-  if (journalEmptyStateCode.value === 'JOURNAL_DISABLED') return 'Авторський журнал тимчасово вимкнено'
+  if (journalEmptyStateCode.value === 'JOURNAL_DISABLED') return 'Авторський блог тимчасово вимкнено'
   if (journalEmptyStateCode.value === 'NO_PUBLICATIONS') return 'Поки немає публікацій'
   return ''
 })
@@ -2738,7 +2738,7 @@ async function loadJournal() {
     journalPosts.value = []
     journalCollections.value = []
     journalEmptyStateCode.value = null
-    journalError.value = 'Не вдалося завантажити авторський журнал.'
+    journalError.value = 'Не вдалося завантажити авторський блог.'
   } finally {
     journalLoading.value = false
   }
@@ -5581,4 +5581,3 @@ onMounted(async () => {
   }
 }
 </style>
-

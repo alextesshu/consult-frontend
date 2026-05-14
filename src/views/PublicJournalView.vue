@@ -6,9 +6,9 @@
 
       <div>
 
-        <div class="badge badge--soft">Авторський журнал</div>
+        <div class="badge badge--soft">Авторський блог</div>
 
-        <h1 class="title">{{ publicName || 'Журнал спеціаліста' }}</h1>
+        <h1 class="title">{{ publicName || 'Блог спеціаліста' }}</h1>
 
         <p class="muted">
 
@@ -30,8 +30,8 @@
 
     <section v-if="displayedCollections.length" class="journal-collections">
       <div class="journal-collections__head">
-        <h2 class="journal-collections__title">Серії</h2>
-        <p class="journal-collections__subtitle">Серії матеріалів, зібрані в одному місці</p>
+        <h2 class="journal-collections__title">Добірки</h2>
+        <p class="journal-collections__subtitle">Добірки матеріалів, зібрані в одному місці</p>
       </div>
 
       <div class="journal-collections__grid">
@@ -72,13 +72,13 @@
               </li>
             </ul>
 
-            <div class="journal-collection-card__cta">Відкрити серію →</div>
+            <div class="journal-collection-card__cta">Відкрити добірку →</div>
           </div>
         </RouterLink>
       </div>
     </section>
 
-    <div v-if="journalLoading" class="muted">Завантажуємо журнал...</div>
+    <div v-if="journalLoading" class="muted">Завантажуємо блог...</div>
 
     <div v-else-if="journalError" class="form-error">{{ journalError }}</div>
 
@@ -549,7 +549,7 @@ async function loadJournal() {
     journalPosts.value = []
     collections.value = []
 
-    journalError.value = getApiErrorMessage(err, 'Не вдалося завантажити авторський журнал.')
+    journalError.value = getApiErrorMessage(err, 'Не вдалося завантажити авторський блог.')
 
   } finally {
 
