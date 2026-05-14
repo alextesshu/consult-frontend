@@ -1,4 +1,4 @@
-﻿import { fireEvent, render, screen } from '@testing-library/vue'
+import { fireEvent, render, screen } from '@testing-library/vue'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { apiGet, apiPost } from '../lib/api'
 import SlotsView from './SlotsView.vue'
@@ -67,15 +67,15 @@ function renderView() {
 
 function getCreateFormControls(container: Element) {
   const form = container.querySelector('.slot-form')
-  if (!form) throw new Error('Create slot form not found')
+  if (!form) throw new Error('Create form not found')
 
-  const dateInput = form.querySelector('input[type="date"]')
+  const dateInput = form.querySelector('input[aria-label="Дата"]')
   const timeInput = form.querySelector('input[list="time-options"]')
   const durationInput = form.querySelector('input[type="number"]')
-  const submitButton = form.querySelector('button')
+  const submitButton = form.querySelector('button[type="submit"]')
 
   if (!dateInput || !timeInput || !durationInput || !submitButton) {
-    throw new Error('Create slot controls not found')
+    throw new Error('Create controls not found')
   }
 
   return {
@@ -86,42 +86,79 @@ function getCreateFormControls(container: Element) {
   }
 }
 
+async function openCreateForm(container: Element) {
+  const addButton = screen.getAllByRole('button', { name: 'Додати вільний час' })[0]
+  if (!addButton) throw new Error('Add free time button not found')
+  await fireEvent.click(addButton)
+  await flushAsyncUpdates()
+  return getCreateFormControls(container)
+}
+
 describe('SlotsView', () => {
   beforeEach(() => {
     vi.useFakeTimers()
     vi.setSystemTime(new Date('2026-03-12T10:00:00+02:00'))
     mockedApiGet.mockReset()
     mockedApiPost.mockReset()
+    mockToast.success.mockReset()
+    mockToast.info.mockReset()
+    mockConfirmModal.openConfirm.mockReset()
   })
 
   afterEach(() => {
     vi.useRealTimers()
   })
 
-  it('hides free slots whose start time is already in the past', async () => {
-    mockedApiGet.mockResolvedValue([
-      {
-        id: 1,
-        start_at: '2026-03-12T05:00:00Z',
-        end_at: '2026-03-12T05:50:00Z',
-        is_booked: false,
-      },
-      {
-        id: 2,
-        start_at: '2026-03-12T09:00:00Z',
-        end_at: '2026-03-12T09:50:00Z',
-        is_booked: false,
-      },
-    ])
+  it('renders schedule as a practice calendar with free-time copy', async () => {
+    mockedApiGet.mockResolvedValue([])
 
     const { container } = renderView()
     await flushAsyncUpdates()
 
-    expect(screen.queryByText('07:00')).not.toBeInTheDocument()
-    expect(container.querySelectorAll('.slot-card')).toHaveLength(1)
+    expect(screen.getByRole('heading', { name: 'Розклад' })).toBeInTheDocument()
+    expect(screen.getByText('Тут ви бачите календар практики. Вільний час потрібен лише тоді, коли ви хочете дозволити клієнтам самостійно обирати час у публічному профілі.')).toBeInTheDocument()
+    expect(screen.getByText('09.03.2026 - 15.03.2026')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Деталі вільного часу' })).toBeInTheDocument()
+    expect(screen.getByText('Оберіть вільний час у календарі, щоб переглянути деталі або змінити його.')).toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: 'Додати вільний час' }).length).toBeGreaterThan(0)
+    expect(screen.getAllByRole('button', { name: 'Заповнити тиждень' }).length).toBeGreaterThan(0)
+    expect(screen.queryByRole('button', { name: 'Швидкі дії' })).not.toBeInTheDocument()
+    expect(screen.getByText('На цьому тижні ще немає вільного часу для прямого запису.')).toBeInTheDocument()
+    expect(container.querySelector('.calendar-scroll')).toBeInTheDocument()
+    expect(screen.queryByText(/слот/i)).not.toBeInTheDocument()
   })
 
-  it('shows the exact conflict slot from backend metadata and explains when that slot is already in the past', async () => {
+  it('renders duration-based free-time blocks without repeated visible status labels', async () => {
+    mockedApiGet.mockResolvedValue([
+      {
+        id: 11,
+        start_at: '2026-03-12T09:00:00Z',
+        end_at: '2026-03-12T09:50:00Z',
+        is_booked: false,
+      },
+      {
+        id: 12,
+        start_at: '2026-03-12T11:00:00Z',
+        end_at: '2026-03-12T13:00:00Z',
+        is_booked: false,
+      },
+    ])
+
+    const { container } = renderView()
+    await flushAsyncUpdates()
+
+    const shortBlock = container.querySelector('.week-calendar .calendar-slot[aria-label="Доступно 11:00–11:50"]') as HTMLButtonElement | null
+    const longBlock = container.querySelector('.week-calendar .calendar-slot[aria-label="Доступно 13:00–15:00"]') as HTMLButtonElement | null
+
+    expect(shortBlock).toBeInstanceOf(HTMLButtonElement)
+    expect(longBlock).toBeInstanceOf(HTMLButtonElement)
+    expect(shortBlock as HTMLButtonElement).toHaveAttribute('data-duration-minutes', '50')
+    expect(longBlock as HTMLButtonElement).toHaveAttribute('data-duration-minutes', '120')
+    expect(parseFloat((longBlock as HTMLButtonElement).style.height)).toBeGreaterThan(parseFloat((shortBlock as HTMLButtonElement).style.height))
+    expect(container.querySelector('.calendar-slot__status')).not.toBeInTheDocument()
+  })
+
+  it('opens selected free-time details and keeps actions available', async () => {
     mockedApiGet.mockResolvedValue([
       {
         id: 2,
@@ -130,39 +167,259 @@ describe('SlotsView', () => {
         is_booked: false,
       },
     ])
-    mockedApiPost.mockRejectedValue({
-      response: {
-        data: {
-          code: 'SLOT_OVERLAP',
-          detail: 'overlaps',
-          conflict: {
-            slot_id: 1,
-            start_at: '2026-03-12T01:00:00Z',
-            end_at: '2026-03-12T01:50:00Z',
-          },
-        },
-      },
-    })
 
     const { container } = renderView()
     await flushAsyncUpdates()
 
-    expect(screen.getByText('11:00')).toBeInTheDocument()
-    expect(screen.queryByText('03:00')).not.toBeInTheDocument()
+    const block = container.querySelector('.week-calendar .calendar-slot')
+    expect(block).toBeInstanceOf(HTMLButtonElement)
+    await fireEvent.click(block as HTMLButtonElement)
 
-    const { dateInput, timeInput, durationInput, submitButton } = getCreateFormControls(container)
-    await fireEvent.update(dateInput, '2026-03-12')
-    await fireEvent.update(timeInput, '11:10')
-    await fireEvent.update(durationInput, '15')
+    expect(screen.getByText('Деталі вільного часу')).toBeInTheDocument()
+    expect(screen.getAllByText('11:00–11:50').length).toBeGreaterThan(0)
+    expect(screen.getByRole('button', { name: 'Редагувати вільний час' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: 'Видалити вільний час' })).toBeEnabled()
+  })
+
+  it('renders booked free time without guessing a session route', async () => {
+    mockedApiGet.mockResolvedValue([
+      {
+        id: 3,
+        start_at: '2026-03-12T10:00:00Z',
+        end_at: '2026-03-12T10:50:00Z',
+        is_booked: true,
+      },
+    ])
+
+    const { container } = renderView()
+    await flushAsyncUpdates()
+
+    const block = container.querySelector('.week-calendar .calendar-slot')
+    expect(block).toHaveClass('slot-status--booked')
+    await fireEvent.click(block as HTMLButtonElement)
+
+    expect(screen.getByText('Цей вільний час уже заброньовано. Даних для переходу до сесії в поточному payload немає.')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Редагувати вільний час' })).toBeDisabled()
+    expect(screen.getByRole('button', { name: 'Видалити вільний час' })).toBeDisabled()
+  })
+
+  it('shows Ukrainian date format and an overlay calendar in the add form', async () => {
+    mockedApiGet.mockResolvedValue([])
+
+    const { container } = renderView()
+    await flushAsyncUpdates()
+
+    const { dateInput } = await openCreateForm(container)
+    expect(screen.getByRole('heading', { name: 'Додати вільний час' })).toBeInTheDocument()
+    expect(screen.getByText('Цей проміжок клієнти зможуть обрати для прямого запису у вашому публічному профілі.')).toBeInTheDocument()
+    expect(screen.getByText('Дата')).toBeInTheDocument()
+    expect(screen.getByText('Час початку')).toBeInTheDocument()
+    expect(screen.getByText('Тривалість')).toBeInTheDocument()
+    expect(dateInput).toHaveAttribute('type', 'text')
+    expect(dateInput).toHaveAttribute('placeholder', 'дд.мм.рррр')
+    expect(dateInput.value).toBe('12.03.2026')
+    expect(screen.getByText('Буде доступно: 12.03.2026, 09:00–09:50')).toBeInTheDocument()
+    expect(container.querySelector('input[type="date"]')).not.toBeInTheDocument()
+
+    const calendarButton = container.querySelector('.slot-form .date-picker-trigger') as HTMLButtonElement | null
+    expect(calendarButton).toBeInstanceOf(HTMLButtonElement)
+    await fireEvent.click(calendarButton as HTMLButtonElement)
+
+    const dateShell = container.querySelector('.slot-form .date-input-shell') as HTMLElement | null
+    const popover = container.querySelector('.slot-form .date-picker-popover') as HTMLElement | null
+    expect(container.querySelector('.slot-form--create .slot-form__time-field')).toBeInTheDocument()
+    expect(container.querySelector('.slot-form--create .slot-form__duration-field')).toBeInTheDocument()
+    expect(container.querySelector('.slot-form--create .slot-form__actions')).toBeInTheDocument()
+    expect(dateShell).toContainElement(popover)
+    expect(screen.getByRole('button', { name: 'Додати' })).toBeInTheDocument()
+  })
+
+  it('submits manually typed Ukrainian date as ISO datetime', async () => {
+    mockedApiGet.mockResolvedValue([])
+    mockedApiPost.mockResolvedValue({ detail: 'created' } as any)
+
+    const { container } = renderView()
+    await flushAsyncUpdates()
+
+    const { dateInput, timeInput, durationInput, submitButton } = await openCreateForm(container)
+    await fireEvent.update(dateInput, '15.05.2026')
+    await fireEvent.update(timeInput, '09:30')
+    await fireEvent.update(durationInput, '45')
+    expect(screen.getByText('Буде доступно: 15.05.2026, 09:30–10:15')).toBeInTheDocument()
     await fireEvent.click(submitButton)
     await flushAsyncUpdates()
 
-    expect(
-      screen.getByText('Віконце перетинається з уже існуючим: 12.03.2026, 03:00-03:50. Це вікно вже в минулому, тому не показується у списку за замовчуванням.')
-    ).toBeInTheDocument()
+    expect(mockedApiPost).toHaveBeenCalledWith('/cabinet/slots/', {
+      start_at: new Date(2026, 4, 15, 9, 30, 0, 0).toISOString(),
+      end_at: new Date(2026, 4, 15, 10, 15, 0, 0).toISOString(),
+    })
   })
 
-  it('falls back to the generic overlap copy when backend does not return conflict metadata', async () => {
+  it('updates add form date from the calendar picker', async () => {
+    mockedApiGet.mockResolvedValue([])
+    mockedApiPost.mockResolvedValue({ detail: 'created' } as any)
+
+    const { container } = renderView()
+    await flushAsyncUpdates()
+
+    const { dateInput, timeInput, durationInput, submitButton } = await openCreateForm(container)
+    const calendarButton = container.querySelector('.slot-form .date-picker-trigger') as HTMLButtonElement | null
+    expect(calendarButton).toBeInstanceOf(HTMLButtonElement)
+    await fireEvent.click(calendarButton as HTMLButtonElement)
+    expect(screen.getByRole('dialog', { name: 'Календар вибору дати' })).toBeInTheDocument()
+    await fireEvent.click(screen.getByRole('button', { name: '13.03.2026' }))
+
+    expect(dateInput.value).toBe('13.03.2026')
+    expect(screen.queryByRole('dialog', { name: 'Календар вибору дати' })).not.toBeInTheDocument()
+
+    await fireEvent.update(timeInput, '09:30')
+    await fireEvent.update(durationInput, '45')
+    await fireEvent.click(submitButton)
+    await flushAsyncUpdates()
+
+    expect(mockedApiPost).toHaveBeenCalledWith('/cabinet/slots/', {
+      start_at: new Date(2026, 2, 13, 9, 30, 0, 0).toISOString(),
+      end_at: new Date(2026, 2, 13, 10, 15, 0, 0).toISOString(),
+    })
+  })
+
+  it('closes add form datepicker on outside click, Escape, cancel, and submit', async () => {
+    mockedApiGet.mockResolvedValue([])
+    mockedApiPost.mockResolvedValue({ detail: 'created' } as any)
+
+    const { container } = renderView()
+    await flushAsyncUpdates()
+
+    await openCreateForm(container)
+    const calendarButton = container.querySelector('.slot-form .date-picker-trigger') as HTMLButtonElement | null
+    expect(calendarButton).toBeInstanceOf(HTMLButtonElement)
+
+    await fireEvent.click(calendarButton as HTMLButtonElement)
+    expect(screen.getByRole('dialog', { name: 'Календар вибору дати' })).toBeInTheDocument()
+    await fireEvent.pointerDown(document.body)
+    expect(screen.queryByRole('dialog', { name: 'Календар вибору дати' })).not.toBeInTheDocument()
+
+    await fireEvent.click(calendarButton as HTMLButtonElement)
+    expect(screen.getByRole('dialog', { name: 'Календар вибору дати' })).toBeInTheDocument()
+    await fireEvent.keyDown(document, { key: 'Escape' })
+    expect(screen.queryByRole('dialog', { name: 'Календар вибору дати' })).not.toBeInTheDocument()
+
+    await fireEvent.click(calendarButton as HTMLButtonElement)
+    expect(screen.getByRole('dialog', { name: 'Календар вибору дати' })).toBeInTheDocument()
+    await fireEvent.click(screen.getByRole('button', { name: 'Скасувати' }))
+    expect(screen.queryByRole('dialog', { name: 'Календар вибору дати' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Додати вільний час' })).not.toBeInTheDocument()
+
+    const {
+      dateInput: nextDateInput,
+      timeInput: nextTimeInput,
+      durationInput: nextDurationInput,
+      submitButton: nextSubmitButton,
+    } = await openCreateForm(container)
+    const nextCalendarButton = container.querySelector('.slot-form .date-picker-trigger') as HTMLButtonElement | null
+    expect(nextCalendarButton).toBeInstanceOf(HTMLButtonElement)
+    await fireEvent.click(nextCalendarButton as HTMLButtonElement)
+    expect(screen.getByRole('dialog', { name: 'Календар вибору дати' })).toBeInTheDocument()
+    await fireEvent.update(nextDateInput, '15.05.2026')
+    await fireEvent.update(nextTimeInput, '09:30')
+    await fireEvent.update(nextDurationInput, '45')
+    await fireEvent.click(nextSubmitButton)
+    await flushAsyncUpdates()
+
+    expect(screen.queryByRole('dialog', { name: 'Календар вибору дати' })).not.toBeInTheDocument()
+  })
+
+  it('updates add form preview when time or duration changes', async () => {
+    mockedApiGet.mockResolvedValue([])
+
+    const { container } = renderView()
+    await flushAsyncUpdates()
+
+    const { dateInput, timeInput, durationInput } = await openCreateForm(container)
+    await fireEvent.update(dateInput, '14.05.2026')
+    await fireEvent.update(timeInput, '09:00')
+    await fireEvent.update(durationInput, '50')
+    expect(screen.getByText('Буде доступно: 14.05.2026, 09:00–09:50')).toBeInTheDocument()
+
+    await fireEvent.update(timeInput, '10:15')
+    expect(screen.getByText('Буде доступно: 14.05.2026, 10:15–11:05')).toBeInTheDocument()
+
+    await fireEvent.update(durationInput, '30')
+    expect(screen.getByText('Буде доступно: 14.05.2026, 10:15–10:45')).toBeInTheDocument()
+  })
+
+  it('does not submit malformed slash date input', async () => {
+    mockedApiGet.mockResolvedValue([])
+
+    const { container } = renderView()
+    await flushAsyncUpdates()
+
+    const { dateInput, timeInput, durationInput, submitButton } = await openCreateForm(container)
+    await fireEvent.update(dateInput, '05/15/2026')
+    await fireEvent.update(timeInput, '09:30')
+    await fireEvent.update(durationInput, '45')
+    await fireEvent.click(submitButton)
+    await flushAsyncUpdates()
+
+    expect(mockedApiPost).not.toHaveBeenCalled()
+    expect(screen.getByText('Вкажіть дату, час і тривалість у хвилинах.')).toBeInTheDocument()
+  })
+
+  it('fills the currently visible selected week only after confirmation', async () => {
+    mockedApiGet.mockResolvedValue([])
+    mockedApiPost.mockResolvedValue({ ok: true } as any)
+
+    renderView()
+    await flushAsyncUpdates()
+
+    for (let index = 0; index < 11; index += 1) {
+      await fireEvent.click(screen.getByRole('button', { name: 'Наступний тиждень' }))
+    }
+    expect(screen.getByText('25.05.2026 - 31.05.2026')).toBeInTheDocument()
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Заповнити тиждень' }))
+    await flushAsyncUpdates()
+
+    expect(mockedApiPost).not.toHaveBeenCalled()
+    expect(mockConfirmModal.openConfirm).toHaveBeenCalledWith(expect.objectContaining({
+      title: 'Заповнити тиждень вільним часом?',
+      confirmText: 'Заповнити тиждень',
+      cancelText: 'Скасувати',
+    }))
+    const confirmOptions = mockConfirmModal.openConfirm.mock.calls.at(-1)?.[0]
+    expect(confirmOptions?.message).toContain('Система створить вільний час для прямого запису на основі ваших робочих годин. Клієнти зможуть обрати ці проміжки у публічному профілі.')
+    expect(confirmOptions?.message).toContain('Період: 25.05.2026–31.05.2026')
+    expect(confirmOptions?.message).toContain('Існуючі сесії та записи не буде змінено.')
+    expect(confirmOptions?.message).not.toContain('Минулі години не додаються.')
+
+    mockConfirmModal.closeConfirm()
+    expect(mockedApiPost).not.toHaveBeenCalled()
+
+    await confirmOptions?.onConfirm?.()
+    await flushAsyncUpdates()
+
+    expect(mockedApiPost).toHaveBeenCalledWith('/cabinet/slots/fill-week/', {
+      date: '2026-05-25',
+    })
+  })
+
+  it('navigates calendar weeks and returns to today', async () => {
+    mockedApiGet.mockResolvedValue([])
+
+    renderView()
+    await flushAsyncUpdates()
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Наступний тиждень' }))
+    expect(screen.getByText('16.03.2026 - 22.03.2026')).toBeInTheDocument()
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Попередній тиждень' }))
+    expect(screen.getByText('09.03.2026 - 15.03.2026')).toBeInTheDocument()
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Сьогодні' }))
+    expect(screen.getByText('09.03.2026 - 15.03.2026')).toBeInTheDocument()
+  })
+
+  it('updates edit date from the calendar picker', async () => {
     mockedApiGet.mockResolvedValue([
       {
         id: 2,
@@ -171,29 +428,25 @@ describe('SlotsView', () => {
         is_booked: false,
       },
     ])
-    mockedApiPost.mockRejectedValue({
-      response: {
-        data: {
-          code: 'SLOT_OVERLAP',
-          detail: 'overlaps',
-        },
-      },
-    })
 
     const { container } = renderView()
     await flushAsyncUpdates()
 
-    const { dateInput, timeInput, durationInput, submitButton } = getCreateFormControls(container)
-    await fireEvent.update(dateInput, '2026-03-12')
-    await fireEvent.update(timeInput, '11:10')
-    await fireEvent.update(durationInput, '15')
-    await fireEvent.click(submitButton)
-    await flushAsyncUpdates()
+    const block = container.querySelector('.week-calendar .calendar-slot')
+    expect(block).toBeInstanceOf(HTMLButtonElement)
+    await fireEvent.click(block as HTMLButtonElement)
+    await fireEvent.click(screen.getByRole('button', { name: 'Редагувати вільний час' }))
 
-    expect(screen.getByText('Віконце перетинається з уже існуючим.')).toBeInTheDocument()
+    const editDateInput = screen.getByLabelText('Дата початку редагованого вільного часу') as HTMLInputElement
+    const editCalendarButton = container.querySelector('.slot-card__edit .date-picker-trigger') as HTMLButtonElement | null
+    expect(editCalendarButton).toBeInstanceOf(HTMLButtonElement)
+    await fireEvent.click(editCalendarButton as HTMLButtonElement)
+    await fireEvent.click(screen.getByRole('button', { name: '13.03.2026' }))
+
+    expect(editDateInput.value).toBe('13.03.2026')
   })
 
-  it('reloads the current slots list and shows success feedback after create', async () => {
+  it('reloads the current free-time list and shows success feedback after create', async () => {
     mockedApiGet
       .mockResolvedValueOnce([])
       .mockResolvedValueOnce([
@@ -211,42 +464,15 @@ describe('SlotsView', () => {
     const { container } = renderView()
     await flushAsyncUpdates()
 
-    expect(mockedApiGet).toHaveBeenCalledTimes(1)
-
-    const { dateInput, timeInput, durationInput, submitButton } = getCreateFormControls(container)
-    await fireEvent.update(dateInput, '2026-03-12')
+    const { dateInput, timeInput, durationInput, submitButton } = await openCreateForm(container)
+    await fireEvent.update(dateInput, '12.03.2026')
     await fireEvent.update(timeInput, '11:10')
     await fireEvent.update(durationInput, '30')
     await fireEvent.click(submitButton)
     await flushAsyncUpdates()
 
     expect(mockedApiGet).toHaveBeenCalledTimes(2)
-    expect(screen.getByText('11:10')).toBeInTheDocument()
+    expect(screen.getAllByText('11:10–11:40').length).toBeGreaterThan(0)
     expect(mockToast.success).toHaveBeenCalledWith('Вільне вікно на 12.03.2026, 11:10 створено.')
-  })
-
-  it('switches to the nearest future date after fill-week when selected day has no future slots', async () => {
-    mockedApiGet
-      .mockResolvedValueOnce([])
-      .mockResolvedValueOnce([
-        {
-          id: 9,
-          start_at: '2026-03-13T09:00:00Z',
-          end_at: '2026-03-13T09:50:00Z',
-          is_booked: false,
-        },
-      ])
-    mockedApiPost.mockResolvedValue({ ok: true } as any)
-
-    renderView()
-    await flushAsyncUpdates()
-
-    await fireEvent.click(screen.getByRole('button', { name: 'Заповнити тиждень (Пн-Пт)' }))
-    await flushAsyncUpdates()
-
-    expect(screen.getByText('11:00')).toBeInTheDocument()
-    expect(mockToast.info).toHaveBeenCalledWith(
-      'За 12.03.2026 немає майбутніх вікон. Показано найближчу дату: 13.03.2026.'
-    )
   })
 })

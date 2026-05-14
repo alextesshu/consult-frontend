@@ -2,9 +2,9 @@
   <section class="slots">
     <header class="slots__header">
       <div>
-        <h1 class="title slots__title">Вільні вікна</h1>
+        <h1 class="title slots__title">Розклад</h1>
         <p class="muted slots__subtitle">
-          Переглядайте та оновлюйте вільні вікна, які доступні клієнтам для запису.
+          Тут ви бачите календар практики. Вільний час потрібен лише тоді, коли ви хочете дозволити клієнтам самостійно обирати час у публічному профілі.
         </p>
       </div>
       <RouterLink class="btn btn--ghost" to="/cabinet">Назад до кабінету</RouterLink>
@@ -14,24 +14,33 @@
       <ScheduleSubnav active="slots" />
     </div>
 
-    <section class="panel">
-      <div class="filters-toolbar__row filters-toolbar__row--header">
-        <div>
-          <h2 class="panel__title">Дні та фільтри</h2>
-        </div>
-        <div class="day-nav-actions">
-          <button class="btn btn--ghost btn--sm" type="button" :disabled="dayOffset === 0" @click="shiftDays(-1)">
-            Попередні 7 днів
+    <section class="panel schedule-toolbar">
+      <div class="schedule-toolbar__main">
+        <div class="week-nav" aria-label="Навігація тижнями">
+          <button class="btn btn--ghost btn--sm" type="button" @click="shiftWeek(-1)">
+            Попередній тиждень
           </button>
-          <button class="btn btn--ghost btn--sm" type="button" @click="shiftDays(1)">
-            Наступні 7 днів
+          <div class="week-range" aria-live="polite">{{ weekRangeLabel }}</div>
+          <button class="btn btn--ghost btn--sm" type="button" @click="shiftWeek(1)">
+            Наступний тиждень
+          </button>
+          <button class="btn btn--ghost btn--sm" type="button" @click="goToToday">
+            Сьогодні
+          </button>
+        </div>
+        <div class="schedule-actions">
+          <button class="btn btn--sm" type="button" @click="openCreateForm">
+            Додати вільний час
+          </button>
+          <button class="btn btn--ghost btn--sm" type="button" :disabled="loading" @click="requestFillWeek">
+            Заповнити тиждень
           </button>
         </div>
       </div>
 
-      <div class="day-list">
+      <div class="day-list" aria-label="Дні тижня">
         <button
-          v-for="day in dayOptions"
+          v-for="day in weekDays"
           :key="day.key"
           class="btn btn--ghost btn--sm"
           type="button"
@@ -43,7 +52,7 @@
       </div>
 
       <div class="filters-toolbar__row filters-toolbar__row--controls">
-        <div class="slot-filter" role="group" aria-label="Фільтр за статусом вікон">
+        <div class="slot-filter" role="group" aria-label="Фільтр за статусом вільного часу">
           <button
             class="btn btn--ghost btn--sm"
             type="button"
@@ -58,7 +67,7 @@
             :class="{ 'btn--active': slotStatusFilter === 'FREE' }"
             @click="slotStatusFilter = 'FREE'"
           >
-            Вільні
+            Доступно
           </button>
           <button
             class="btn btn--ghost btn--sm"
@@ -69,244 +78,357 @@
             Заброньовані
           </button>
         </div>
-        <label class="field day-picker day-picker--compact">
-          Дата
-          <input v-model="selectedDate" class="input" type="date" lang="uk-ua" @click="openPicker" />
-        </label>
-      </div>
-
-      <div class="filters-toolbar__row filters-toolbar__row--meta">
-        <div class="muted day-hint">
-          Показано за: {{ formatDateOnly(selectedDate) }}
-          <span v-if="isSelectedToday" class="day-hint__today">· Сьогодні</span>
-        </div>
         <div class="muted slot-summary">
-          {{ slotsForSelectedDay.length }} слотів · {{ selectedDayStatusSummary.free }} вільних · {{ selectedDayStatusSummary.booked }} заброньовані
+          {{ visibleWeekSlots.length }} проміжків · {{ weekStatusSummary.free }} доступно · {{ weekStatusSummary.booked }} заброньовано
+        </div>
+        <div class="calendar-legend" aria-label="Позначення вільного часу">
+          <span><i class="legend-dot legend-dot--available"></i>Доступно</span>
+          <span><i class="legend-dot legend-dot--booked"></i>Заброньовано</span>
+          <span><i class="legend-dot legend-dot--past"></i>Минуло</span>
         </div>
         <button
-          v-if="hasPastSlotsOnSelectedDate"
+          v-if="hasPastSlotsInWeek"
           class="btn btn--ghost btn--sm slot-toggle"
           type="button"
           @click="showPastSlots = !showPastSlots"
         >
-          {{ showPastSlots ? 'Сховати минулі вікна' : `Показати минулі вікна (${hiddenPastSlotsCount})` }}
+          {{ showPastSlots ? 'Сховати минулий вільний час' : `Показати минулий вільний час (${hiddenPastWeekSlotsCount})` }}
         </button>
       </div>
-
-      <p v-if="isSelectedToday" class="slot-note slot-note--quiet">
-        Якщо нічний час для сьогодні вже минув, він не з'явиться у списку. Для перевірки нового нічного розкладу оберіть майбутню дату.
-      </p>
     </section>
 
     <div v-if="loading" class="muted" style="margin-top: 8px;">Завантаження...</div>
 
-    <section class="slot-list">
-      <div v-if="filteredSlots.length === 0" class="muted">Вільних вікон на цей день немає.</div>
-      <article
-        v-for="slot in filteredSlots"
-        :key="slot.id"
-        class="slot-card"
-        :class="{ 'slot-card--editing': isEditing(slot.id), 'slot-card--booked': slot.is_booked }"
-      >
-        <div class="slot-card__top">
-          <div class="slot-card__main">
-            <template v-if="isEditing(slot.id)">
-              <div class="slot-card__edit">
-                <input
-                  v-model="editStartDate"
-                  class="input"
-                  type="date"
-                  lang="uk"
-                  placeholder="ДД.ММ.РРРР"
-                  @click="openPicker"
-                />
-                <input
-                  v-model="editStartTime"
-                  class="input"
-                  type="text"
-                  inputmode="numeric"
-                  placeholder="ГГ:ХХ"
-                  list="time-options"
-                />
-                <input
-                  v-model.number="editDuration"
-                  class="input"
-                  type="number"
-                  min="15"
-                  step="5"
-                  placeholder="хв"
-                  aria-label="Тривалість у хвилинах"
-                />
-              </div>
-            </template>
-            <template v-else>
-              <div class="slot-card__time">{{ formatDate(slot.start_at) }}</div>
-              <div class="slot-card__meta">{{ formatDuration(slot) }}</div>
-            </template>
-          </div>
-          <div class="slot-status" :class="{ 'slot-status--booked': slot.is_booked }">
-            {{ slot.is_booked ? 'Заброньовано' : 'Вільно' }}
-          </div>
-        </div>
-        <div class="slot-actions">
-          <button
-            v-if="!isEditing(slot.id)"
-            class="btn btn--ghost btn--sm"
-            type="button"
-            :disabled="slot.is_booked || loading"
-            @click="startEdit(slot)"
-          >
-            Редагувати
-          </button>
-          <button
-            v-else
-            class="btn btn--sm"
-            type="button"
-            :disabled="loading"
-            @click="saveEdit(slot.id)"
-          >
-            Зберегти
-          </button>
-          <button
-            v-if="isEditing(slot.id)"
-            class="btn btn--ghost btn--sm"
-            type="button"
-            :disabled="loading"
-            @click="cancelEdit"
-          >
-            Скасувати
-          </button>
-          <button
-            class="btn btn--ghost btn--sm"
-            type="button"
-            :disabled="slot.is_booked || loading"
-            @click="requestDeleteSlot(slot.id)"
-          >
-            Видалити
-          </button>
-        </div>
-        <div
-          v-if="isEditing(slot.id) && editErrors[slot.id]"
-          :ref="setEditErrorRef(slot.id)"
-          class="form-error slot-error"
-        >
-          {{ editErrors[slot.id] }}
-        </div>
-        <div v-if="slot.is_booked" class="muted slot-hint">
-          Це вікно вже заброньовано - редагування та видалення недоступні.
-        </div>
-      </article>
-    </section>
+    <div class="schedule-workspace">
+      <section class="panel calendar-panel" aria-label="Календар тижня">
+        <div class="calendar-scroll">
+          <div class="week-calendar" role="grid" :aria-label="`Розклад на тиждень ${weekRangeLabel}`">
+            <div class="calendar-time-gutter calendar-header-cell" aria-hidden="true"></div>
+            <div v-for="day in weekDays" :key="day.key" class="calendar-day-header" role="columnheader">
+              <span>{{ day.weekday }}</span>
+              <strong>{{ day.dateLabel }}</strong>
+            </div>
 
-    <section class="panel panel--split">
-      <div>
-        <h2 class="panel__title">Нове вільне вікно</h2>
-        <p class="muted" style="margin: 6px 0 0;">
-          Вільне вікно - це вільний час для запису клієнта. Вкажіть початок і тривалість, і воно з'явиться у публічному профілі.
-        </p>
-        <p class="slot-note">
-          Робочі години не створюють вільні вікна автоматично. Після зміни розкладу використайте
-          <RouterLink class="slot-note__link" to="/cabinet/availability-rules">генерацію у налаштуваннях розкладу</RouterLink>
-          або масове заповнення нижче.
-        </p>
-      </div>
-      <form class="slot-form" @submit.prevent="createSlot">
-        <label class="field">
-          Початок
-          <div class="datetime-field">
+            <div class="calendar-time-column" :style="{ height: calendarBodyHeightStyle }">
+              <div
+                v-for="hour in calendarHours"
+                :key="hour"
+                class="calendar-time"
+                role="rowheader"
+                :style="{ height: `${CALENDAR_HOUR_HEIGHT}px` }"
+              >
+                {{ formatHourLabel(hour) }}
+              </div>
+            </div>
+            <div
+              v-for="day in weekDays"
+              :key="day.key"
+              class="calendar-day-column"
+              :class="{ 'calendar-cell--selected-day': day.key === selectedDate }"
+              role="gridcell"
+              :style="{ height: calendarBodyHeightStyle }"
+            >
+              <div
+                v-for="(hour, hourIndex) in calendarHours"
+                :key="`${day.key}-${hour}`"
+                class="calendar-hour-line"
+                :style="{ top: `${hourIndex * CALENDAR_HOUR_HEIGHT}px` }"
+                aria-hidden="true"
+              ></div>
+              <button
+                v-for="layout in positionedSlotsForDay(day.key)"
+                :key="layout.slot.id"
+                class="calendar-slot"
+                :class="[slotStatusClass(layout.slot), { 'calendar-slot--selected': selectedSlot?.id === layout.slot.id }]"
+                type="button"
+                :style="calendarSlotStyle(layout)"
+                :data-duration-minutes="layout.durationMinutes"
+                :data-clipped-duration-minutes="layout.clippedDurationMinutes"
+                :data-top-minutes="layout.topMinutes"
+                :aria-label="`${slotStatusLabel(layout.slot)} ${formatSlotTimeRange(layout.slot)}`"
+                :title="`${slotStatusLabel(layout.slot)} · ${formatSlotTimeRange(layout.slot)}`"
+                @click="selectSlot(layout.slot)"
+              >
+                <span class="calendar-slot__time">{{ formatSlotTimeRange(layout.slot) }}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div v-if="visibleWeekSlots.length === 0" class="calendar-empty muted">
+          На цьому тижні ще немає вільного часу для прямого запису.
+        </div>
+
+        <div class="mobile-day-schedule">
+          <div class="mobile-day-schedule__title">
+            {{ formatDateOnly(selectedDate) }}
+            <span v-if="isSelectedToday" class="day-hint__today">· Сьогодні</span>
+          </div>
+          <div v-if="filteredSlots.length === 0" class="muted">На цей день немає вільного часу.</div>
+          <button
+            v-for="slot in filteredSlots"
+            :key="slot.id"
+            class="mobile-slot"
+            :class="[slotStatusClass(slot), { 'calendar-slot--selected': selectedSlot?.id === slot.id }]"
+            type="button"
+            :aria-label="`${slotStatusLabel(slot)} ${formatSlotTimeRange(slot)}`"
+            :title="`${slotStatusLabel(slot)} · ${formatSlotTimeRange(slot)}`"
+            @click="selectSlot(slot)"
+          >
+            <span>{{ formatSlotTimeRange(slot) }}</span>
+          </button>
+        </div>
+      </section>
+
+      <aside class="panel slot-detail-panel" aria-label="Деталі вибраного вільного часу">
+        <template v-if="!selectedSlot">
+          <h2 class="panel__title">Деталі вільного часу</h2>
+          <p class="muted">Оберіть вільний час у календарі, щоб переглянути деталі або змінити його.</p>
+        </template>
+        <template v-else>
+          <div class="slot-detail-panel__header">
+            <div>
+              <h2 class="panel__title">Деталі вільного часу</h2>
+              <p class="muted">{{ formatDateOnly(toLocalDateKey(selectedSlot.start_at)) }}</p>
+            </div>
+            <span class="slot-status" :class="slotStatusClass(selectedSlot)">
+              {{ slotStatusLabel(selectedSlot) }}
+            </span>
+          </div>
+
+          <div v-if="isEditing(selectedSlot.id)" class="slot-card__edit slot-card__edit--panel">
+            <div class="date-input-shell">
+              <input
+                v-model="editStartDate"
+                class="input"
+                type="text"
+                inputmode="numeric"
+                placeholder="дд.мм.рррр"
+                aria-label="Дата початку редагованого вільного часу"
+                @focus="openDatePickerFor('editStartDate')"
+              />
+              <button
+                class="date-picker-trigger"
+                type="button"
+              aria-label="Вибрати дату"
+              @click="openDatePickerFor('editStartDate')"
+            >
+                <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+                  <path d="M7 2v3M17 2v3M4 9h16M6 4h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z" />
+                </svg>
+              </button>
+              <div v-if="activeDatePicker === 'editStartDate'" class="date-picker-popover" role="dialog" aria-label="Календар вибору дати">
+                <div class="date-picker-popover__header">
+                  <button class="btn btn--ghost btn--sm" type="button" aria-label="Попередній місяць" @click="shiftDatePickerMonth(-1)">&lt;</button>
+                  <strong>{{ datePickerMonthLabel }}</strong>
+                  <button class="btn btn--ghost btn--sm" type="button" aria-label="Наступний місяць" @click="shiftDatePickerMonth(1)">&gt;</button>
+                </div>
+                <div class="date-picker-grid" aria-hidden="true">
+                  <span v-for="weekday in DATE_PICKER_WEEKDAYS" :key="weekday">{{ weekday }}</span>
+                </div>
+                <div class="date-picker-grid">
+                  <button
+                    v-for="day in datePickerDays"
+                    :key="day.iso"
+                    class="date-picker-day"
+                    type="button"
+                    :class="{ 'date-picker-day--muted': !day.inMonth, 'date-picker-day--selected': isDatePickerDaySelected(day.iso), 'date-picker-day--today': day.isToday }"
+                    :aria-label="formatDateOnly(day.iso)"
+                    @click="selectDateFromPicker(day.iso)"
+                  >
+                    {{ day.label }}
+                  </button>
+                </div>
+              </div>
+            </div>
             <input
-              v-model="newStartDate"
-              class="input"
-              type="date"
-              lang="uk"
-              placeholder="ДД.ММ.РРРР"
-              aria-label="Дата початку"
-              required
-              @click="openPicker"
-            />
-            <input
-              v-model="newStartTime"
+              v-model="editStartTime"
               class="input"
               type="text"
               inputmode="numeric"
-              placeholder="ГГ:ХХ"
-              aria-label="Час початку"
+              placeholder="09:00"
               list="time-options"
-              required
+              aria-label="Час початку редагованого вільного часу"
+            />
+            <input
+              v-model.number="editDuration"
+              class="input"
+              type="number"
+              min="15"
+              step="5"
+              placeholder="хв"
+              aria-label="Тривалість у хвилинах"
             />
           </div>
+          <dl v-else class="slot-detail-list">
+            <div>
+              <dt>Час</dt>
+              <dd>{{ formatSlotTimeRange(selectedSlot) }}</dd>
+            </div>
+            <div>
+              <dt>Тривалість</dt>
+              <dd>{{ formatDuration(selectedSlot) }}</dd>
+            </div>
+            <div v-if="selectedSlot.is_booked">
+              <dt>Сесія</dt>
+              <dd>Цей вільний час уже заброньовано. Даних для переходу до сесії в поточному payload немає.</dd>
+            </div>
+          </dl>
+
+          <div class="slot-actions">
+            <button
+              v-if="!isEditing(selectedSlot.id)"
+              class="btn btn--ghost btn--sm"
+              type="button"
+              :disabled="selectedSlot.is_booked || loading"
+              @click="startEdit(selectedSlot)"
+            >
+              Редагувати вільний час
+            </button>
+            <button
+              v-else
+              class="btn btn--sm"
+              type="button"
+              :disabled="loading"
+              @click="saveEdit(selectedSlot.id)"
+            >
+              Зберегти
+            </button>
+            <button
+              v-if="isEditing(selectedSlot.id)"
+              class="btn btn--ghost btn--sm"
+              type="button"
+              :disabled="loading"
+              @click="cancelEdit"
+            >
+              Скасувати
+            </button>
+            <button
+              class="btn btn--ghost btn--sm"
+              type="button"
+              :disabled="selectedSlot.is_booked || loading"
+              @click="requestDeleteSlot(selectedSlot.id)"
+            >
+              Видалити вільний час
+            </button>
+          </div>
+          <div
+            v-if="isEditing(selectedSlot.id) && editErrors[selectedSlot.id]"
+            :ref="setEditErrorRef(selectedSlot.id)"
+            class="form-error slot-error"
+          >
+            {{ editErrors[selectedSlot.id] }}
+          </div>
+          <div v-if="selectedSlot.is_booked" class="muted slot-hint">
+            Цей вільний час уже заброньовано - редагування та видалення недоступні.
+          </div>
+        </template>
+      </aside>
+    </div>
+
+    <section v-if="createFormOpen" class="panel create-slot-panel">
+      <div class="create-slot-panel__intro">
+        <h2 class="panel__title">Додати вільний час</h2>
+        <p class="muted" style="margin: 6px 0 0;">
+          Цей проміжок клієнти зможуть обрати для прямого запису у вашому публічному профілі.
+        </p>
+      </div>
+      <form ref="createFormRef" class="slot-form slot-form--create" @submit.prevent="createSlot">
+        <label class="field slot-form__date-field">
+          Дата
+          <div class="date-input-shell">
+            <input
+              v-model="newStartDate"
+              class="input"
+              type="text"
+              inputmode="numeric"
+              placeholder="дд.мм.рррр"
+              aria-label="Дата"
+              required
+              @focus="openDatePickerFor('newStartDate')"
+            />
+            <button
+              class="date-picker-trigger"
+              type="button"
+              aria-label="Вибрати дату"
+              @click="openDatePickerFor('newStartDate')"
+            >
+              <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+                <path d="M7 2v3M17 2v3M4 9h16M6 4h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z" />
+              </svg>
+            </button>
+            <div v-if="activeDatePicker === 'newStartDate'" class="date-picker-popover" role="dialog" aria-label="Календар вибору дати">
+              <div class="date-picker-popover__header">
+                <button class="btn btn--ghost btn--sm" type="button" aria-label="Попередній місяць" @click="shiftDatePickerMonth(-1)">&lt;</button>
+                <strong>{{ datePickerMonthLabel }}</strong>
+                <button class="btn btn--ghost btn--sm" type="button" aria-label="Наступний місяць" @click="shiftDatePickerMonth(1)">&gt;</button>
+              </div>
+              <div class="date-picker-grid" aria-hidden="true">
+                <span v-for="weekday in DATE_PICKER_WEEKDAYS" :key="weekday">{{ weekday }}</span>
+              </div>
+              <div class="date-picker-grid">
+                <button
+                  v-for="day in datePickerDays"
+                  :key="day.iso"
+                  class="date-picker-day"
+                  type="button"
+                  :class="{ 'date-picker-day--muted': !day.inMonth, 'date-picker-day--selected': isDatePickerDaySelected(day.iso), 'date-picker-day--today': day.isToday }"
+                  :aria-label="formatDateOnly(day.iso)"
+                  @click="selectDateFromPicker(day.iso)"
+                >
+                  {{ day.label }}
+                </button>
+              </div>
+            </div>
+          </div>
         </label>
-        <label class="field">
-          Тривалість
+        <label class="field slot-form__time-field">
+          Час початку
           <input
-            v-model.number="newDuration"
+            v-model="newStartTime"
             class="input"
-            type="number"
-            min="15"
-            step="5"
-            placeholder="хв"
-            aria-label="Тривалість у хвилинах"
+            type="text"
+            inputmode="numeric"
+            placeholder="09:00"
+            aria-label="Час початку"
+            list="time-options"
             required
           />
+        </label>
+        <label class="field slot-form__duration-field">
+          Тривалість
+          <span class="duration-input">
+            <input
+              v-model.number="newDuration"
+              class="input"
+              type="number"
+              min="15"
+              step="5"
+              placeholder="50"
+              aria-label="Тривалість у хвилинах"
+              required
+            />
+            <span aria-hidden="true">хв</span>
+          </span>
         </label>
         <datalist id="time-options">
           <option v-for="option in timeOptions" :key="option" :value="option" />
         </datalist>
-        <button class="btn" type="button" @click="createSlot">
-          Створити вільне вікно
-        </button>
+        <div v-if="newSlotPreview" class="slot-form__preview">
+          <strong>Буде доступно: {{ newSlotPreview }}</strong>
+        </div>
+        <div class="slot-form__actions">
+          <button class="btn btn--ghost" type="button" @click="closeCreateForm">
+            Скасувати
+          </button>
+          <button class="btn" type="submit">
+            Додати
+          </button>
+        </div>
         <div v-if="error" class="form-error form-error--inline">{{ error }}</div>
       </form>
     </section>
 
-    <section class="panel">
-      <div class="panel__header">
-        <div>
-          <h2 class="panel__title">Швидкі шаблони</h2>
-        </div>
-      </div>
-      <div class="slot-bulk">
-        <div class="bulk-group">
-          <label class="field">
-            Дата для дня
-            <input v-model="fillDayDate" class="input" type="date" lang="uk" @click="openPicker" />
-          </label>
-          <button
-            class="btn btn--ghost btn--sm"
-            type="button"
-            :disabled="loading || !fillDayDate"
-            @click="fillDay"
-          >
-            Заповнити день
-          </button>
-          <div class="bulk-hint">
-            Формат: {{ formatDateOnly(fillDayDate) }}
-            <span v-if="isFillDayToday" class="bulk-hint__today">· Сьогодні</span>
-          </div>
-        </div>
-        <div class="bulk-group">
-          <label class="field">
-            Дата для тижня
-            <input v-model="fillWeekDate" class="input" type="date" lang="uk" @click="openPicker" />
-          </label>
-          <button
-            class="btn btn--ghost btn--sm"
-            type="button"
-            :disabled="loading || !fillWeekDate"
-            @click="fillWeek"
-          >
-            Заповнити тиждень (Пн-Пт)
-          </button>
-          <div class="bulk-hint">
-            Формат: {{ formatDateOnly(fillWeekDate) }}
-            <span v-if="isFillWeekToday" class="bulk-hint__today">· Сьогодні</span>
-          </div>
-        </div>
-      </div>
-      <p class="slot-note">
-        Якщо обрана дата - сьогодні, система пропускає години, що вже минули. Нічні вікна можна створити лише для майбутнього часу або майбутньої дати.
-      </p>
-    </section>
     <ConfirmModal
       :open="confirmModal.open"
       :title="confirmModal.title"
@@ -321,7 +443,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { apiDelete, apiGet, apiPatch, apiPost } from '../lib/api'
 import { getBookingErrorCode, getBookingErrorMessage } from '../lib/bookingCopy'
 import { useToast } from '../composables/useToast'
@@ -342,6 +464,19 @@ type SlotConflict = {
   end_at?: string
 }
 
+type CalendarSlotLayout = {
+  slot: Slot
+  top: number
+  height: number
+  lane: number
+  laneCount: number
+  durationMinutes: number
+  clippedDurationMinutes: number
+  topMinutes: number
+}
+
+type DatePickerField = 'newStartDate' | 'editStartDate'
+
 const slots = ref<Slot[]>([])
 const loading = ref(false)
 const error = ref('')
@@ -349,9 +484,12 @@ const editErrors = ref<Record<number, string>>({})
 const editErrorRefs = ref<Record<number, HTMLElement | null>>({})
 const toast = useToast()
 const confirmModal = useConfirmModal()
+const createFormRef = ref<HTMLFormElement | null>(null)
+const createFormOpen = ref(false)
+const activeDatePicker = ref<DatePickerField | null>(null)
 
 const newStartDate = ref('')
-const newStartTime = ref('')
+const newStartTime = ref('09:00')
 const newDuration = ref(50)
 const timeOptions = Array.from({ length: 24 * 4 }, (_, index) => {
   const minutes = index * 15
@@ -360,12 +498,12 @@ const timeOptions = Array.from({ length: 24 * 4 }, (_, index) => {
   return `${hours}:${mins}`
 })
 const todayKey = toDateInputValue(new Date())
-const fillDayDate = ref(todayKey)
-const fillWeekDate = ref(todayKey)
-const dayOffset = ref(0)
+const selectedWeekStart = ref(toDateInputValue(startOfWeek(new Date())))
+const datePickerMonth = ref(toDateInputValue(new Date()))
 const selectedDate = ref(todayKey)
 const showPastSlots = ref(false)
 const slotStatusFilter = ref<'ALL' | 'FREE' | 'BOOKED'>('ALL')
+const selectedSlotId = ref<number | null>(null)
 const pastSlotMessage = 'Неможливо створити вікно в минулому. Для нічного часу оберіть майбутню дату або майбутній час.'
 
 const editingId = ref<number | null>(null)
@@ -373,6 +511,35 @@ const editStartDate = ref('')
 const editStartTime = ref('')
 const editDuration = ref(50)
 const WEEKDAY_SHORT_UK = ['нд', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб']
+const WEEKDAY_LONG_UK = ['Неділя', 'Понеділок', 'Вівторок', 'Середа', 'Четвер', 'Пʼятниця', 'Субота']
+const DATE_PICKER_WEEKDAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд']
+const MONTHS_UK = [
+  'січень',
+  'лютий',
+  'березень',
+  'квітень',
+  'травень',
+  'червень',
+  'липень',
+  'серпень',
+  'вересень',
+  'жовтень',
+  'листопад',
+  'грудень',
+]
+const DEFAULT_CALENDAR_START_HOUR = 8
+const DEFAULT_CALENDAR_END_HOUR = 21
+const CALENDAR_HOUR_HEIGHT = 50
+const MIN_CALENDAR_SLOT_HEIGHT = 24
+
+function startOfWeek(value: Date) {
+  const date = new Date(value)
+  date.setHours(0, 0, 0, 0)
+  const day = date.getDay()
+  const diff = day === 0 ? -6 : 1 - day
+  date.setDate(date.getDate() + diff)
+  return date
+}
 
 function parseDateLike(value: string | Date): Date | null {
   if (value instanceof Date) {
@@ -471,6 +638,7 @@ function switchToNearestFutureDateIfNeeded() {
   if (!nearestDateKey || nearestDateKey === selectedDate.value) return
   const previousDateKey = selectedDate.value
   selectedDate.value = nearestDateKey
+  moveWeekToDate(nearestDateKey)
   toast.info(
     `За ${formatDateOnly(previousDateKey)} немає майбутніх вікон. Показано найближчу дату: ${formatDateOnly(nearestDateKey)}.`
   )
@@ -491,25 +659,12 @@ function parseUkDateTime(dateStr: string, timeStr: string) {
   const trimmedDate = dateStr.trim()
   const trimmedTime = timeStr.trim()
   const dateMatch = /^(\d{2})\.(\d{2})\.(\d{4})$/.exec(trimmedDate)
-  const isoMatch = /^(\d{4})-(\d{2})-(\d{2})$/.exec(trimmedDate)
   const timeMatch = /^(\d{1,2}):(\d{1,2})$/.exec(trimmedTime)
-  if (!timeMatch) return null
+  if (!dateMatch || !timeMatch) return null
 
-  let year: number
-  let month: number
-  let day: number
-
-  if (dateMatch) {
-    day = Number(dateMatch[1])
-    month = Number(dateMatch[2])
-    year = Number(dateMatch[3])
-  } else if (isoMatch) {
-    year = Number(isoMatch[1])
-    month = Number(isoMatch[2])
-    day = Number(isoMatch[3])
-  } else {
-    return null
-  }
+  const day = Number(dateMatch[1])
+  const month = Number(dateMatch[2])
+  const year = Number(dateMatch[3])
 
   const hours = Number(timeMatch[1])
   const minutes = Number(timeMatch[2])
@@ -526,6 +681,32 @@ function parseUkDateTime(dateStr: string, timeStr: string) {
     return null
   }
   return candidate
+}
+
+function displayDateToIso(value: string) {
+  const trimmed = value.trim()
+  const match = /^(\d{2})\.(\d{2})\.(\d{4})$/.exec(trimmed)
+  if (!match) return null
+
+  const day = Number(match[1])
+  const month = Number(match[2])
+  const year = Number(match[3])
+  if (month < 1 || month > 12) return null
+
+  const candidate = new Date(year, month - 1, day, 0, 0, 0, 0)
+  if (
+    candidate.getFullYear() !== year ||
+    candidate.getMonth() !== month - 1 ||
+    candidate.getDate() !== day
+  ) {
+    return null
+  }
+
+  return toDateInputValue(candidate)
+}
+
+function isoDateToDisplay(value: string) {
+  return formatDateOnly(value)
 }
 
 function toDateInputValue(date: Date) {
@@ -629,75 +810,373 @@ function getSlotErrorMessage(err: unknown, fallback: string) {
   return getBookingErrorMessage(err, fallback)
 }
 
-function openPicker(event: Event) {
-  const target = event.target as HTMLInputElement | null
-  if (!target) return
-  if (typeof target.showPicker === 'function') {
-    target.showPicker()
-  }
-}
+const weekStartDate = computed(() => parseDateLike(selectedWeekStart.value) || startOfWeek(new Date()))
 
-const dayOptions = computed(() => {
-  const base = new Date()
-  base.setHours(0, 0, 0, 0)
-  const start = new Date(base.getTime() + dayOffset.value * 24 * 60 * 60 * 1000)
+const weekDays = computed(() => {
+  const start = weekStartDate.value
   return Array.from({ length: 7 }, (_, idx) => {
     const d = new Date(start.getTime() + idx * 24 * 60 * 60 * 1000)
     return {
       key: toDateInputValue(d),
       label: formatDayOptionLabel(d),
+      weekday: WEEKDAY_LONG_UK[d.getDay()] || '',
+      dateLabel: `${pad2(d.getDate())}.${pad2(d.getMonth() + 1)}`,
     }
   })
 })
 
-const slotsForSelectedDay = computed(() => {
-  if (!selectedDate.value) {
-    return showPastSlots.value ? slots.value : slots.value.filter(isFutureSlot)
-  }
-  const slotsForDate = getSlotsForDate(selectedDate.value)
-  return showPastSlots.value ? slotsForDate : slotsForDate.filter(isFutureSlot)
+const weekRangeLabel = computed(() => {
+  const first = weekDays.value[0]
+  const last = weekDays.value[6]
+  if (!first || !last) return ''
+  return `${formatDateOnly(first.key)} - ${formatDateOnly(last.key)}`
 })
 
-const selectedDayStatusSummary = computed(() => {
-  const free = slotsForSelectedDay.value.filter((slot) => !slot.is_booked).length
+const weekDateKeys = computed(() => new Set(weekDays.value.map((day) => day.key)))
+
+function matchesSlotStatusFilter(slot: Slot) {
+  if (slotStatusFilter.value === 'FREE') return !slot.is_booked
+  if (slotStatusFilter.value === 'BOOKED') return slot.is_booked
+  return true
+}
+
+function isSlotVisible(slot: Slot) {
+  if (!showPastSlots.value && !isFutureSlot(slot)) return false
+  return matchesSlotStatusFilter(slot)
+}
+
+const visibleWeekSlots = computed(() =>
+  slots.value
+    .filter((slot) => weekDateKeys.value.has(toLocalDateKey(slot.start_at)))
+    .filter(isSlotVisible)
+    .sort((a, b) => String(a.start_at).localeCompare(String(b.start_at)))
+)
+
+const calendarHours = computed(() => {
+  const { startHour, endHour } = calendarHourRange.value
+  return Array.from({ length: endHour - startHour }, (_, index) => startHour + index)
+})
+
+const calendarHourRange = computed(() => {
+  const ranges = visibleWeekSlots.value
+    .map((slot) => slotMinuteRangeForDate(slot, toLocalDateKey(slot.start_at)))
+    .filter((range): range is { startMinutes: number; endMinutes: number } => Boolean(range))
+
+  if (ranges.length === 0) {
+    return {
+      startHour: DEFAULT_CALENDAR_START_HOUR,
+      endHour: Math.min(24, DEFAULT_CALENDAR_END_HOUR + 1),
+    }
+  }
+
+  const minStart = Math.min(...ranges.map((range) => range.startMinutes))
+  const maxEnd = Math.max(...ranges.map((range) => range.endMinutes))
+  const startHour = Math.max(0, Math.floor(minStart / 60) - 1)
+  const endHour = Math.min(24, Math.ceil(maxEnd / 60) + 1)
+
+  return {
+    startHour,
+    endHour: Math.max(startHour + 1, endHour),
+  }
+})
+
+const calendarBodyHeight = computed(() => (
+  (calendarHourRange.value.endHour - calendarHourRange.value.startHour) * CALENDAR_HOUR_HEIGHT
+))
+
+const calendarBodyHeightStyle = computed(() => `${calendarBodyHeight.value}px`)
+
+const weekStatusSummary = computed(() => {
+  const free = visibleWeekSlots.value.filter((slot) => !slot.is_booked).length
   return {
     free,
-    booked: slotsForSelectedDay.value.length - free,
+    booked: visibleWeekSlots.value.length - free,
   }
+})
+
+const slotsForSelectedDay = computed(() => {
+  if (!selectedDate.value) {
+    return slots.value.filter(isSlotVisible)
+  }
+  const slotsForDate = getSlotsForDate(selectedDate.value)
+  return slotsForDate.filter(isSlotVisible).sort((a, b) => String(a.start_at).localeCompare(String(b.start_at)))
 })
 
 const filteredSlots = computed(() => {
-  if (slotStatusFilter.value === 'FREE') {
-    return slotsForSelectedDay.value.filter((slot) => !slot.is_booked)
-  }
-  if (slotStatusFilter.value === 'BOOKED') {
-    return slotsForSelectedDay.value.filter((slot) => slot.is_booked)
-  }
   return slotsForSelectedDay.value
 })
 
-const hiddenPastSlotsCount = computed(() => {
-  if (!selectedDate.value) return 0
-  return getHiddenPastSlotsCount(selectedDate.value)
-})
+const hiddenPastWeekSlotsCount = computed(() =>
+  slots.value.filter((slot) => weekDateKeys.value.has(toLocalDateKey(slot.start_at)) && !isFutureSlot(slot)).length
+)
 
-const hasPastSlotsOnSelectedDate = computed(() => hiddenPastSlotsCount.value > 0)
+const hasPastSlotsInWeek = computed(() => hiddenPastWeekSlotsCount.value > 0)
 
 const isSelectedToday = computed(() => selectedDate.value === todayKey)
-const isFillDayToday = computed(() => fillDayDate.value === todayKey)
-const isFillWeekToday = computed(() => fillWeekDate.value === todayKey)
+const selectedSlot = computed(() => slots.value.find((slot) => slot.id === selectedSlotId.value) || null)
+const newSlotPreview = computed(() => {
+  const startAt = parseUkDateTime(newStartDate.value, newStartTime.value)
+  const durationMinutes = Number(newDuration.value)
+  if (!startAt || !Number.isFinite(durationMinutes) || durationMinutes <= 0) return ''
+  const endAt = new Date(startAt.getTime() + durationMinutes * 60000)
+  return `${formatDateParts(startAt)}, ${formatTimeParts(startAt)}–${formatTimeParts(endAt)}`
+})
+const datePickerMonthDate = computed(() => {
+  const parsed = parseDateLike(datePickerMonth.value) || new Date()
+  return new Date(parsed.getFullYear(), parsed.getMonth(), 1)
+})
+const datePickerMonthLabel = computed(() => {
+  const month = datePickerMonthDate.value.getMonth()
+  const year = datePickerMonthDate.value.getFullYear()
+  return `${MONTHS_UK[month] || ''} ${year}`
+})
+const datePickerDays = computed(() => {
+  const monthStart = datePickerMonthDate.value
+  const gridStart = new Date(monthStart)
+  const day = gridStart.getDay()
+  const mondayOffset = day === 0 ? -6 : 1 - day
+  gridStart.setDate(gridStart.getDate() + mondayOffset)
+
+  return Array.from({ length: 42 }, (_, index) => {
+    const date = new Date(gridStart)
+    date.setDate(gridStart.getDate() + index)
+    const iso = toDateInputValue(date)
+    return {
+      iso,
+      label: String(date.getDate()),
+      inMonth: date.getMonth() === monthStart.getMonth(),
+      isToday: iso === todayKey,
+    }
+  })
+})
 
 function selectDay(key: string) {
   selectedDate.value = key
   showPastSlots.value = false
 }
 
-function shiftDays(direction: number) {
-  dayOffset.value = Math.max(0, dayOffset.value + direction * 7)
-  const first = dayOptions.value[0]
-  if (first) {
-    selectedDate.value = first.key
+function getDatePickerFieldValue(field: DatePickerField) {
+  if (field === 'newStartDate') return newStartDate.value
+  return editStartDate.value
+}
+
+function setDatePickerFieldValue(field: DatePickerField, value: string) {
+  if (field === 'newStartDate') {
+    newStartDate.value = value
+    return
   }
+  if (field === 'editStartDate') {
+    editStartDate.value = value
+  }
+}
+
+function openDatePickerFor(field: DatePickerField) {
+  activeDatePicker.value = field
+  const fieldIso = displayDateToIso(getDatePickerFieldValue(field))
+  const fallbackIso = fieldIso || selectedDate.value || todayKey
+  const parsed = parseDateLike(fallbackIso) || new Date()
+  datePickerMonth.value = toDateInputValue(new Date(parsed.getFullYear(), parsed.getMonth(), 1))
+}
+
+function shiftDatePickerMonth(direction: number) {
+  const current = datePickerMonthDate.value
+  datePickerMonth.value = toDateInputValue(new Date(current.getFullYear(), current.getMonth() + direction, 1))
+}
+
+function selectDateFromPicker(isoDate: string) {
+  if (!activeDatePicker.value) return
+  setDatePickerFieldValue(activeDatePicker.value, isoDateToDisplay(isoDate))
+  activeDatePicker.value = null
+}
+
+function closeDatePicker() {
+  activeDatePicker.value = null
+}
+
+function handleDocumentPointerDown(event: PointerEvent) {
+  if (!activeDatePicker.value) return
+  const target = event.target
+  if (target instanceof Element && target.closest('.date-input-shell')) return
+  closeDatePicker()
+}
+
+function handleDocumentKeydown(event: KeyboardEvent) {
+  if (event.key === 'Escape') closeDatePicker()
+}
+
+function isDatePickerDaySelected(isoDate: string) {
+  if (!activeDatePicker.value) return false
+  return displayDateToIso(getDatePickerFieldValue(activeDatePicker.value)) === isoDate
+}
+
+function moveWeekToDate(value: string | Date) {
+  const parsed = parseDateLike(value)
+  if (!parsed) return
+  selectedWeekStart.value = toDateInputValue(startOfWeek(parsed))
+}
+
+function shiftWeek(direction: number) {
+  const next = new Date(weekStartDate.value)
+  next.setDate(next.getDate() + direction * 7)
+  selectedWeekStart.value = toDateInputValue(next)
+  selectedDate.value = selectedWeekStart.value
+  selectedSlotId.value = null
+  showPastSlots.value = false
+}
+
+function goToToday() {
+  moveWeekToDate(new Date())
+  selectedDate.value = todayKey
+  selectedSlotId.value = null
+  showPastSlots.value = false
+}
+
+function formatHourLabel(hour: number) {
+  return `${pad2(hour)}:00`
+}
+
+function slotDurationMinutes(slot: Slot) {
+  const start = parseDateLike(slot.start_at)
+  const end = parseDateLike(slot.end_at)
+  if (!start || !end) return 0
+  return Math.max(0, Math.round((end.getTime() - start.getTime()) / 60000))
+}
+
+function slotMinuteRangeForDate(slot: Slot, dateKey: string) {
+  const start = parseDateLike(slot.start_at)
+  const end = parseDateLike(slot.end_at)
+  if (!start || !end) return null
+
+  const startKey = toLocalDateKey(slot.start_at)
+  const endKey = toLocalDateKey(slot.end_at)
+  const startMinutes = startKey < dateKey ? 0 : start.getHours() * 60 + start.getMinutes()
+  let endMinutes = endKey > dateKey ? 24 * 60 : end.getHours() * 60 + end.getMinutes()
+
+  if (endKey < dateKey) {
+    endMinutes = 0
+  }
+
+  if (endMinutes <= startMinutes) {
+    endMinutes = Math.min(24 * 60, startMinutes + slotDurationMinutes(slot))
+  }
+
+  return {
+    startMinutes,
+    endMinutes,
+  }
+}
+
+function positionedSlotsForDay(dateKey: string): CalendarSlotLayout[] {
+  const rangeStartMinutes = calendarHourRange.value.startHour * 60
+  const rangeEndMinutes = calendarHourRange.value.endHour * 60
+  const pxPerMinute = CALENDAR_HOUR_HEIGHT / 60
+  const activeLanes: Array<{ endMinutes: number; lane: number }> = []
+
+  const layouts = visibleWeekSlots.value
+    .filter((slot) => toLocalDateKey(slot.start_at) === dateKey)
+    .map((slot) => {
+      const range = slotMinuteRangeForDate(slot, dateKey)
+      if (!range) return null
+      const clippedStart = Math.max(rangeStartMinutes, range.startMinutes)
+      const clippedEnd = Math.min(rangeEndMinutes, range.endMinutes)
+      if (clippedEnd <= clippedStart) return null
+      return {
+        slot,
+        startMinutes: clippedStart,
+        endMinutes: clippedEnd,
+        durationMinutes: slotDurationMinutes(slot),
+        clippedDurationMinutes: clippedEnd - clippedStart,
+      }
+    })
+    .filter((layout): layout is {
+      slot: Slot
+      startMinutes: number
+      endMinutes: number
+      durationMinutes: number
+      clippedDurationMinutes: number
+    } => Boolean(layout))
+    .sort((a, b) => a.startMinutes - b.startMinutes || a.endMinutes - b.endMinutes)
+    .map((layout) => {
+      for (let index = activeLanes.length - 1; index >= 0; index -= 1) {
+        const activeLane = activeLanes[index]
+        if (activeLane && activeLane.endMinutes <= layout.startMinutes) {
+          activeLanes.splice(index, 1)
+        }
+      }
+
+      const usedLanes = new Set(activeLanes.map((lane) => lane.lane))
+      let lane = 0
+      while (usedLanes.has(lane)) lane += 1
+      activeLanes.push({ endMinutes: layout.endMinutes, lane })
+
+      return {
+        slot: layout.slot,
+        top: (layout.startMinutes - rangeStartMinutes) * pxPerMinute,
+        height: Math.max(MIN_CALENDAR_SLOT_HEIGHT, layout.clippedDurationMinutes * pxPerMinute),
+        lane,
+        laneCount: 1,
+        durationMinutes: layout.durationMinutes,
+        clippedDurationMinutes: layout.clippedDurationMinutes,
+        topMinutes: layout.startMinutes - rangeStartMinutes,
+      }
+    })
+
+  const laneCount = Math.max(1, ...layouts.map((layout) => layout.lane + 1))
+  return layouts.map((layout) => ({ ...layout, laneCount }))
+}
+
+function calendarSlotStyle(layout: CalendarSlotLayout) {
+  const laneWidth = 100 / layout.laneCount
+  return {
+    top: `${layout.top}px`,
+    height: `${layout.height}px`,
+    left: `calc(${layout.lane * laneWidth}% + 3px)`,
+    width: `calc(${laneWidth}% - 6px)`,
+  }
+}
+
+function formatSlotTimeRange(slot: Slot) {
+  const start = parseDateLike(slot.start_at)
+  const end = parseDateLike(slot.end_at)
+  if (!start || !end) return formatDate(slot.start_at)
+  return `${formatTimeParts(start)}–${formatTimeParts(end)}`
+}
+
+function slotStatusLabel(slot: Slot) {
+  if (!isFutureSlot(slot)) return 'Минуло'
+  return slot.is_booked ? 'Заброньовано' : 'Доступно'
+}
+
+function slotStatusClass(slot: Slot) {
+  return {
+    'slot-status--booked': slot.is_booked && isFutureSlot(slot),
+    'slot-status--past': !isFutureSlot(slot),
+    'slot-status--available': !slot.is_booked && isFutureSlot(slot),
+  }
+}
+
+function selectSlot(slot: Slot) {
+  selectedSlotId.value = slot.id
+  selectedDate.value = toLocalDateKey(slot.start_at)
+}
+
+async function openCreateForm() {
+  createFormOpen.value = true
+  if (!newStartDate.value) newStartDate.value = isoDateToDisplay(selectedDate.value || todayKey)
+  if (!newStartTime.value) newStartTime.value = '09:00'
+  await nextTick()
+  if (typeof createFormRef.value?.scrollIntoView === 'function') {
+    createFormRef.value.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+  const firstInput = createFormRef.value?.querySelector('input')
+  if (firstInput instanceof HTMLInputElement) {
+    firstInput.focus()
+  }
+}
+
+function closeCreateForm() {
+  closeDatePicker()
+  createFormOpen.value = false
 }
 
 async function loadSlots() {
@@ -737,12 +1216,15 @@ async function createSlot() {
       end_at: endAt.toISOString(),
     }
     await apiPost<Slot>('/cabinet/slots/', payload)
+    closeDatePicker()
     selectedDate.value = toDateInputValue(startAt)
+    moveWeekToDate(startAt)
     showPastSlots.value = false
     await loadSlots()
     newStartDate.value = ''
-    newStartTime.value = ''
+    newStartTime.value = '09:00'
     newDuration.value = 50
+    createFormOpen.value = false
     toast.success(`Вільне вікно на ${formatDateTime(startAt)} створено.`)
   } catch (err: any) {
     error.value = getSlotErrorMessage(err, '\u041d\u0435 \u0432\u0434\u0430\u043b\u043e\u0441\u044f \u0441\u0442\u0432\u043e\u0440\u0438\u0442\u0438 \u0432\u0456\u043b\u044c\u043d\u0435 \u0432\u0456\u043a\u043d\u043e')
@@ -752,42 +1234,26 @@ async function createSlot() {
   }
 }
 
-async function fillDay() {
-  loading.value = true
-  error.value = ''
-  try {
-    await apiPost('/cabinet/slots/fill-day/', {
-      date: fillDayDate.value,
-    })
-    selectedDate.value = fillDayDate.value
-    showPastSlots.value = false
-    await loadSlots()
-    toast.success(
-      isFillDayToday.value
-        ? `День ${formatDateOnly(fillDayDate.value)} заповнено. Додано лише майбутні вікна.`
-        : `День ${formatDateOnly(fillDayDate.value)} заповнено.`,
-    )
-  } catch (err: any) {
-    error.value = getBookingErrorMessage(err, '\u041d\u0435 \u0432\u0434\u0430\u043b\u043e\u0441\u044f \u0437\u0430\u043f\u043e\u0432\u043d\u0438\u0442\u0438 \u0434\u0435\u043d\u044c \u0432\u0456\u043b\u044c\u043d\u0438\u043c\u0438 \u0432\u0456\u043a\u043d\u0430\u043c\u0438')
-  } finally {
-    loading.value = false
-  }
-}
-
 async function fillWeek() {
+  const isoDate = selectedWeekStart.value
+  if (!isoDate) {
+    error.value = 'Не вдалося визначити вибраний тиждень.'
+    return
+  }
   loading.value = true
   error.value = ''
   try {
     await apiPost('/cabinet/slots/fill-week/', {
-      date: fillWeekDate.value,
+      date: isoDate,
     })
-    selectedDate.value = fillWeekDate.value
+    selectedDate.value = isoDate
+    moveWeekToDate(isoDate)
     showPastSlots.value = false
     await loadSlots()
     toast.success(
-      isFillWeekToday.value
-        ? `Тиждень від ${formatDateOnly(fillWeekDate.value)} заповнено. Для сьогодні додано лише майбутні вікна.`
-        : `Тиждень від ${formatDateOnly(fillWeekDate.value)} заповнено.`,
+      weekPeriodIncludesPast(isoDate)
+        ? `Тиждень від ${formatDateOnly(isoDate)} заповнено. Для сьогодні додано лише майбутні вікна.`
+        : `Тиждень від ${formatDateOnly(isoDate)} заповнено.`,
     )
   } catch (err: any) {
     error.value = getBookingErrorMessage(err, '\u041d\u0435 \u0432\u0434\u0430\u043b\u043e\u0441\u044f \u0437\u0430\u043f\u043e\u0432\u043d\u0438\u0442\u0438 \u0442\u0438\u0436\u0434\u0435\u043d\u044c \u0432\u0456\u043b\u044c\u043d\u0438\u043c\u0438 \u0432\u0456\u043a\u043d\u0430\u043c\u0438')
@@ -796,13 +1262,54 @@ async function fillWeek() {
   }
 }
 
+function getWeekPeriodLabel(isoDate: string) {
+  const parsed = parseDateLike(isoDate)
+  if (!parsed) return weekRangeLabel.value
+  const start = startOfWeek(parsed)
+  const end = new Date(start)
+  end.setDate(start.getDate() + 6)
+  return `${formatDateParts(start)}–${formatDateParts(end)}`
+}
+
+function weekPeriodIncludesPast(isoDate: string) {
+  const parsed = parseDateLike(isoDate)
+  if (!parsed) return false
+  return startOfWeek(parsed).getTime() < new Date(todayKey).getTime()
+}
+
+function requestFillWeek() {
+  const isoDate = selectedWeekStart.value
+  if (!isoDate) {
+    error.value = 'Не вдалося визначити вибраний тиждень.'
+    return
+  }
+
+  const messageLines = [
+    'Система створить вільний час для прямого запису на основі ваших робочих годин. Клієнти зможуть обрати ці проміжки у публічному профілі.',
+    `Період: ${getWeekPeriodLabel(isoDate)}`,
+    'Існуючі сесії та записи не буде змінено.',
+  ]
+  if (weekPeriodIncludesPast(isoDate)) {
+    messageLines.push('Минулі години не додаються.')
+  }
+
+  confirmModal.openConfirm({
+    title: 'Заповнити тиждень вільним часом?',
+    message: messageLines.join('\n\n'),
+    confirmText: 'Заповнити тиждень',
+    cancelText: 'Скасувати',
+    tone: 'neutral',
+    onConfirm: fillWeek,
+  })
+}
+
 function startEdit(slot: Slot) {
   editingId.value = slot.id
   editErrors.value[slot.id] = ''
   const start = new Date(slot.start_at)
   const end = new Date(slot.end_at)
   if (!Number.isNaN(start.getTime())) {
-    editStartDate.value = toDateInputValue(start)
+    editStartDate.value = isoDateToDisplay(toDateInputValue(start))
     editStartTime.value = formatUkTime(start)
   }
   if (!Number.isNaN(end.getTime())) {
@@ -859,6 +1366,8 @@ async function saveEdit(slotId: number) {
     }
     const resp = await apiPatch<Slot>(`/cabinet/slots/${slotId}/`, payload)
     slots.value = slots.value.map((slot) => (slot.id === slotId ? resp : slot))
+    selectedDate.value = toLocalDateKey(resp.start_at)
+    moveWeekToDate(resp.start_at)
     cancelEdit()
   } catch (err: any) {
     editErrors.value[slotId] =
@@ -886,6 +1395,7 @@ async function deleteSlot(slotId: number) {
   try {
     await apiDelete(`/cabinet/slots/${slotId}/`)
     slots.value = slots.value.filter((slot) => slot.id !== slotId)
+    if (selectedSlotId.value === slotId) selectedSlotId.value = null
   } catch (err: any) {
     error.value = getBookingErrorMessage(err, '\u041d\u0435 \u0432\u0434\u0430\u043b\u043e\u0441\u044f \u0432\u0438\u0434\u0430\u043b\u0438\u0442\u0438 \u0432\u0456\u043b\u044c\u043d\u0435 \u0432\u0456\u043a\u043d\u043e')
   } finally {
@@ -904,7 +1414,16 @@ function requestDeleteSlot(slotId: number) {
   })
 }
 
-onMounted(loadSlots)
+onMounted(() => {
+  document.addEventListener('pointerdown', handleDocumentPointerDown)
+  document.addEventListener('keydown', handleDocumentKeydown)
+  void loadSlots()
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('pointerdown', handleDocumentPointerDown)
+  document.removeEventListener('keydown', handleDocumentKeydown)
+})
 </script>
 
 <style scoped>
@@ -921,9 +1440,7 @@ onMounted(loadSlots)
   gap: 20px;
   position: relative;
   overflow: hidden;
-  background:
-    radial-gradient(circle at 92% 70%, color-mix(in srgb, var(--pc-peach-100) 70%, transparent) 0 120px, transparent 121px),
-    linear-gradient(135deg, #ffffff 0%, color-mix(in srgb, var(--pc-primary-soft) 70%, #ffffff) 54%, color-mix(in srgb, var(--pc-yellow-soft) 45%, #ffffff) 100%);
+  background: #fff;
   border: 1px solid var(--pc-border);
   border-radius: var(--pc-radius-panel);
   padding: 24px;
@@ -936,15 +1453,7 @@ onMounted(loadSlots)
 }
 
 .slots__header::after {
-  content: "";
-  position: absolute;
-  right: -44px;
-  bottom: -58px;
-  width: 180px;
-  height: 180px;
-  border-radius: 999px;
-  background: rgba(247, 183, 126, 0.18);
-  pointer-events: none;
+  display: none;
 }
 
 .slots__header .btn {
@@ -1032,9 +1541,270 @@ onMounted(loadSlots)
   font-size: 22px;
 }
 
+.schedule-toolbar {
+  gap: 10px;
+}
+
+.schedule-toolbar__main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.week-nav,
+.schedule-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.week-range {
+  min-width: 190px;
+  text-align: center;
+  font-weight: 700;
+  color: var(--pc-navy-900);
+}
+
+.schedule-workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 320px);
+  gap: 12px;
+  align-items: start;
+}
+
+.calendar-panel {
+  overflow: hidden;
+}
+
+.calendar-scroll {
+  max-height: min(62vh, 600px);
+  overflow: auto;
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-card);
+  background: #fff;
+}
+
+.week-calendar {
+  display: grid;
+  grid-template-columns: 52px repeat(7, minmax(92px, 1fr));
+  min-width: 700px;
+  background: #fff;
+}
+
+.calendar-header-cell,
+.calendar-day-header,
+.calendar-time,
+.calendar-time-column,
+.calendar-day-column {
+  border-right: 1px solid rgba(47, 63, 73, 0.08);
+  border-bottom: 1px solid rgba(47, 63, 73, 0.08);
+}
+
+.calendar-day-header {
+  min-height: 44px;
+  padding: 6px 7px;
+  display: grid;
+  gap: 2px;
+  align-content: center;
+  background: color-mix(in srgb, var(--pc-bg-soft) 72%, #ffffff);
+  font-size: 12px;
+  color: var(--pc-text-muted);
+}
+
+.calendar-day-header strong {
+  color: var(--pc-navy-900);
+  font-size: 13px;
+}
+
+.calendar-time {
+  padding: 7px 5px;
+  background: #fff;
+  color: var(--pc-text-muted);
+  font-size: 11px;
+  text-align: right;
+  border-bottom: 1px solid rgba(47, 63, 73, 0.08);
+  box-sizing: border-box;
+}
+
+.calendar-time-column {
+  background: #fff;
+}
+
+.calendar-day-column {
+  position: relative;
+  background: #fff;
+  overflow: hidden;
+}
+
+.calendar-cell--selected-day {
+  background: color-mix(in srgb, var(--pc-blue-soft) 36%, #ffffff);
+}
+
+.calendar-hour-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 1px solid rgba(47, 63, 73, 0.08);
+  pointer-events: none;
+}
+
+.calendar-slot {
+  position: absolute;
+  border: 1px solid color-mix(in srgb, var(--pc-navy-900) 18%, var(--pc-border));
+  border-radius: var(--pc-radius-control);
+  padding: 4px 5px;
+  background: color-mix(in srgb, var(--pc-primary-soft) 68%, #ffffff);
+  color: var(--pc-navy-900);
+  display: block;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: none;
+  min-height: 24px;
+  overflow: hidden;
+  box-sizing: border-box;
+  z-index: 1;
+}
+
+.calendar-slot:hover,
+.calendar-slot:focus-visible {
+  border-color: color-mix(in srgb, var(--pc-navy-900) 38%, var(--pc-border));
+}
+
+.calendar-slot--selected {
+  outline: 2px solid color-mix(in srgb, var(--pc-navy-900) 36%, transparent);
+  outline-offset: 1px;
+}
+
+.calendar-slot__time {
+  font-weight: 700;
+  font-size: 11px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.calendar-legend {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 11px;
+  color: var(--pc-text-muted);
+}
+
+.calendar-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.legend-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  border: 1px solid var(--pc-border);
+  background: color-mix(in srgb, var(--pc-primary-soft) 78%, #ffffff);
+}
+
+.legend-dot--booked {
+  background: #f6e9e9;
+  border-color: rgba(138, 44, 44, 0.18);
+}
+
+.legend-dot--past {
+  background: #f2f4f6;
+  border-color: rgba(90, 103, 114, 0.16);
+}
+
+.slot-status--available {
+  background: color-mix(in srgb, var(--pc-primary-soft) 78%, #ffffff);
+  color: var(--pc-navy-900);
+}
+
+.slot-status--booked,
+.calendar-slot.slot-status--booked {
+  background: #f6e9e9;
+  color: #8a2c2c;
+  border-color: rgba(138, 44, 44, 0.18);
+}
+
+.slot-status--past,
+.calendar-slot.slot-status--past {
+  background: #f2f4f6;
+  color: #6a747c;
+  border-color: rgba(90, 103, 114, 0.16);
+}
+
+.calendar-empty {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border: 1px dashed var(--pc-border);
+  border-radius: var(--pc-radius-card);
+  background: color-mix(in srgb, var(--pc-bg-soft) 64%, #ffffff);
+}
+
+.mobile-day-schedule {
+  display: none;
+}
+
+.mobile-day-schedule__title {
+  font-weight: 700;
+  color: var(--pc-navy-900);
+}
+
+.mobile-slot {
+  width: 100%;
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-control);
+  padding: 7px 9px;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  text-align: left;
+  background: #fff;
+}
+
+.slot-detail-panel {
+  position: sticky;
+  top: 12px;
+  align-content: start;
+  gap: 10px;
+}
+
+.slot-detail-panel__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.slot-detail-list {
+  margin: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.slot-detail-list div {
+  display: grid;
+  gap: 3px;
+}
+
+.slot-detail-list dt {
+  color: var(--pc-text-muted);
+  font-size: 12px;
+}
+
+.slot-detail-list dd {
+  margin: 0;
+  color: var(--pc-navy-900);
+  font-weight: 600;
+}
+
 .slot-form {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 180px);
+  grid-template-columns: minmax(0, 1fr) minmax(120px, 0.4fr) 120px 108px;
   column-gap: 10px;
   row-gap: 8px;
   align-items: start;
@@ -1062,7 +1832,8 @@ onMounted(loadSlots)
 }
 
 .slot-form .btn {
-  align-self: end;
+  align-self: start;
+  margin-top: 22px;
 }
 
 .slot-form .btn {
@@ -1075,11 +1846,148 @@ onMounted(loadSlots)
   min-width: 0;
 }
 
+.slot-form__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  align-self: start;
+  padding-top: 22px;
+}
+
+.slot-form__actions .btn {
+  width: auto;
+  min-width: 132px;
+  margin-top: 0;
+  justify-self: auto;
+}
+
 .datetime-field {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 76px;
+  grid-template-columns: minmax(220px, 260px) 90px;
   gap: 8px;
+  align-items: start;
+}
+
+.date-input-shell {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 42px;
+  gap: 6px;
   align-items: center;
+  min-width: 0;
+}
+
+.date-picker-trigger {
+  height: 40px;
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-control);
+  background: #fff;
+  color: var(--pc-navy-900);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.date-picker-trigger svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.date-picker-trigger:hover,
+.date-picker-trigger:focus-visible {
+  border-color: color-mix(in srgb, var(--pc-navy-900) 28%, var(--pc-border));
+  background: color-mix(in srgb, var(--pc-blue-soft) 76%, #ffffff);
+}
+
+.date-picker-popover {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 40;
+  width: 100%;
+  min-width: 260px;
+  max-width: 300px;
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-card);
+  background: #fff;
+  box-shadow: var(--pc-shadow-soft);
+  padding: 10px;
+}
+
+.date-picker-popover__header {
+  display: grid;
+  grid-template-columns: 34px 1fr 34px;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.date-picker-popover__header strong {
+  text-align: center;
+  color: var(--pc-navy-900);
+  font-size: 13px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.date-picker-popover__header .btn {
+  min-width: 0;
+  width: 34px;
+  height: 32px;
+  padding: 0;
+}
+
+.date-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 3px;
+}
+
+.date-picker-grid span {
+  text-align: center;
+  color: var(--pc-text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 0;
+}
+
+.date-picker-day {
+  height: 30px;
+  border: 1px solid transparent;
+  border-radius: var(--pc-radius-xs);
+  background: #fff;
+  color: var(--pc-navy-900);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.date-picker-day:hover,
+.date-picker-day:focus-visible {
+  border-color: color-mix(in srgb, var(--pc-navy-900) 24%, var(--pc-border));
+  background: color-mix(in srgb, var(--pc-blue-soft) 72%, #ffffff);
+}
+
+.date-picker-day--muted {
+  color: var(--pc-text-muted);
+  background: color-mix(in srgb, var(--pc-bg-soft) 52%, #ffffff);
+}
+
+.date-picker-day--selected {
+  border-color: color-mix(in srgb, var(--pc-navy-900) 38%, var(--pc-border));
+  background: color-mix(in srgb, var(--pc-primary-soft) 80%, #ffffff);
+  font-weight: 800;
+}
+
+.date-picker-day--today {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--pc-navy-900) 18%, transparent);
 }
 
 .slot-list {
@@ -1090,6 +1998,100 @@ onMounted(loadSlots)
 
 .slot-summary {
   font-size: 12px;
+}
+
+.quick-actions-panel {
+  padding: 12px;
+}
+
+.quick-actions-panel .panel__title {
+  font-size: 18px;
+}
+
+.create-slot-panel {
+  display: grid;
+  gap: 16px;
+  width: min(100%, 600px);
+  margin-inline: auto;
+  padding: 18px;
+  overflow: visible;
+}
+
+.create-slot-panel__intro {
+  display: grid;
+  gap: 4px;
+}
+
+.create-slot-panel .panel__title {
+  font-size: 20px;
+}
+
+.slot-form--create {
+  grid-template-columns: 1fr;
+  gap: 14px;
+  align-items: start;
+}
+
+.slot-form--create .field {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--pc-text-muted);
+}
+
+.slot-form--create .form-error--inline,
+.slot-form--create .slot-form__preview,
+.slot-form--create .slot-form__actions {
+  grid-column: 1 / -1;
+}
+
+.duration-input {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-control);
+  background: #fff;
+  padding-right: 12px;
+}
+
+.duration-input .input {
+  border: 0;
+  background: transparent;
+}
+
+.duration-input span {
+  color: var(--pc-text-muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.slot-form__preview {
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-control);
+  background: color-mix(in srgb, var(--pc-bg-soft) 62%, #ffffff);
+  font-size: 13px;
+}
+
+.slot-form__preview span {
+  color: var(--pc-text-muted);
+}
+
+.slot-form__preview strong {
+  color: var(--pc-navy-900);
+}
+
+.slot-form--create .slot-form__actions {
+  justify-content: flex-end;
+  padding-top: 0;
+}
+
+.slot-form--create .slot-form__actions .btn {
+  min-width: 112px;
+  white-space: nowrap;
 }
 
 .day-nav-actions {
@@ -1213,7 +2215,7 @@ onMounted(loadSlots)
 .slot-bulk {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 16px;
+  gap: 12px;
   align-items: start;
 }
 
@@ -1316,6 +2318,10 @@ onMounted(loadSlots)
   grid-template-columns: minmax(0, 1fr) 76px 80px;
   gap: 6px;
   align-items: center;
+}
+
+.slot-card__edit--panel {
+  grid-template-columns: 1fr;
 }
 
 .slot-card__edit .input {
@@ -1431,6 +2437,38 @@ onMounted(loadSlots)
     grid-template-columns: 1fr;
   }
 
+  .schedule-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .schedule-toolbar__main {
+    align-items: flex-start;
+  }
+
+  .week-nav,
+  .schedule-actions {
+    width: 100%;
+  }
+
+  .week-range {
+    min-width: 0;
+    text-align: left;
+  }
+
+  .calendar-scroll,
+  .week-calendar {
+    display: none;
+  }
+
+  .mobile-day-schedule {
+    display: grid;
+    gap: 8px;
+  }
+
+  .slot-detail-panel {
+    position: static;
+  }
+
   .filters-toolbar__row {
     align-items: flex-start;
   }
@@ -1446,6 +2484,20 @@ onMounted(loadSlots)
 
   .slot-card__edit {
     grid-template-columns: minmax(0, 1fr) 84px;
+  }
+
+  .slot-form {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 1180px) {
+  .schedule-workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .slot-detail-panel {
+    position: static;
   }
 }
 
