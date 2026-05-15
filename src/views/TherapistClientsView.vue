@@ -626,6 +626,199 @@
               </div>
             </section>
 
+            <section class="client-accordion__section client-regular-times">
+              <button
+                class="client-accordion__header"
+                type="button"
+                :aria-expanded="isAccordionSectionOpen(client, 'regularTime')"
+                @click="toggleClientAccordion(client, 'regularTime')"
+              >
+                <span>Регулярний час</span>
+                <span class="client-accordion__summary">{{ accordionSummary(client, 'regularTime') }}</span>
+              </button>
+              <div v-if="isAccordionSectionOpen(client, 'regularTime')" class="client-accordion__body client-regular-times__body">
+                <p class="client-regular-times__copy">
+                  Зафіксуйте постійну домовленість із клієнтом: день, час, тривалість і формат зустрічі.
+                </p>
+                <p v-if="!clientRegularTimesScopeKey(client)" class="muted">
+                  Для цього клієнта ще немає картки клієнта, тому регулярний час поки недоступний.
+                </p>
+                <template v-else>
+                  <p v-if="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').listError" class="form-error">
+                    {{ clientRegularTimesState(clientRegularTimesScopeKey(client) || '').listError }}
+                  </p>
+                  <div v-if="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').loading" class="muted">
+                    Завантаження регулярного часу...
+                  </div>
+                  <template v-else>
+                    <div v-if="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').items.length" class="client-regular-times__list">
+                      <article
+                        v-for="regularTime in clientRegularTimesState(clientRegularTimesScopeKey(client) || '').items"
+                        :key="regularTime.id"
+                        class="client-regular-time"
+                      >
+                        <div class="client-regular-time__top">
+                          <div>
+                            <div class="client-regular-time__title">
+                              {{ regularTimeWeekdayLabel(regularTime.weekday) }}, {{ normalizeRegularTimeValue(regularTime.start_time) }}
+                            </div>
+                            <div class="muted">
+                              {{ regularTime.duration_minutes }} хв · {{ regularTimeFrequencyLabel(regularTime.frequency) }} · {{ regularTimeFormatLabel(regularTime.session_format) }}
+                            </div>
+                            <div class="muted">Починаючи з {{ formatRegularTimeDate(regularTime.starts_on) }}</div>
+                          </div>
+                          <span class="regular-time-status" :class="regularTimeStatusClass(regularTime.status)">
+                            {{ regularTimeStatusLabel(regularTime.status) }}
+                          </span>
+                        </div>
+                        <div class="client-regular-time__actions">
+                          <button class="btn btn--ghost btn--sm" type="button" @click="openRegularTimeEditForm(client, regularTime)">
+                            Редагувати
+                          </button>
+                          <button
+                            v-if="regularTime.status === 'paused'"
+                            class="btn btn--ghost btn--sm"
+                            type="button"
+                            :disabled="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').actionLoadingId === regularTime.id"
+                            @click="resumeRegularTime(client, regularTime.id)"
+                          >
+                            Відновити
+                          </button>
+                          <button
+                            v-else
+                            class="btn btn--ghost btn--sm"
+                            type="button"
+                            :disabled="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').actionLoadingId === regularTime.id"
+                            @click="pauseRegularTime(client, regularTime.id)"
+                          >
+                            Поставити на паузу
+                          </button>
+                        </div>
+                      </article>
+                    </div>
+                    <div v-else class="client-regular-times__empty">
+                      <p class="muted">Регулярний час ще не додано.</p>
+                      <button class="btn btn--ghost btn--sm" type="button" @click="openRegularTimeCreateForm(client)">
+                        Додати регулярний час
+                      </button>
+                    </div>
+                    <button
+                      v-if="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').items.length && !clientRegularTimesState(clientRegularTimesScopeKey(client) || '').formOpen"
+                      class="btn btn--ghost btn--sm client-regular-times__add"
+                      type="button"
+                      @click="openRegularTimeCreateForm(client)"
+                    >
+                      Додати регулярний час
+                    </button>
+                    <div v-if="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').formOpen" class="client-regular-times__form">
+                      <p v-if="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').formError" class="form-error">
+                        {{ clientRegularTimesState(clientRegularTimesScopeKey(client) || '').formError }}
+                      </p>
+                      <label class="field">
+                        День тижня
+                        <select
+                          class="input input--select"
+                          :value="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').form.weekday ?? ''"
+                          @change="setRegularTimeFormField(client, { weekday: Number(($event.target as HTMLSelectElement | null)?.value) })"
+                        >
+                          <option v-for="option in regularTimeWeekdayOptions" :key="option.value" :value="option.value">
+                            {{ option.label }}
+                          </option>
+                        </select>
+                      </label>
+                      <label class="field">
+                        Час початку
+                        <input
+                          class="input"
+                          type="time"
+                          :value="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').form.start_time"
+                          @input="setRegularTimeFormField(client, { start_time: String(($event.target as HTMLInputElement | null)?.value || '') })"
+                        />
+                      </label>
+                      <label class="field">
+                        Тривалість
+                        <input
+                          class="input"
+                          type="number"
+                          min="15"
+                          max="240"
+                          step="5"
+                          :value="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').form.duration_minutes"
+                          @input="setRegularTimeFormField(client, { duration_minutes: Number(($event.target as HTMLInputElement | null)?.value || 0) })"
+                        />
+                      </label>
+                      <label class="field">
+                        Частота
+                        <select
+                          class="input input--select"
+                          :value="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').form.frequency"
+                          @change="setRegularTimeFormField(client, { frequency: String(($event.target as HTMLSelectElement | null)?.value || 'weekly') as ClientRegularTimeFrequency })"
+                        >
+                          <option v-for="option in regularTimeFrequencyOptions" :key="option.value" :value="option.value">
+                            {{ option.label }}
+                          </option>
+                        </select>
+                      </label>
+                      <label class="field">
+                        Починаючи з
+                        <input
+                          class="input"
+                          type="text"
+                          inputmode="numeric"
+                          placeholder="20.05.2026"
+                          :value="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').form.starts_on"
+                          @input="setRegularTimeFormField(client, { starts_on: String(($event.target as HTMLInputElement | null)?.value || '') })"
+                        />
+                      </label>
+                      <label class="field">
+                        Формат
+                        <select
+                          class="input input--select"
+                          :value="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').form.session_format"
+                          @change="setRegularTimeFormField(client, { session_format: String(($event.target as HTMLSelectElement | null)?.value || '') as SessionFormat })"
+                        >
+                          <option v-for="option in regularTimeFormatOptions" :key="option.value" :value="option.value">
+                            {{ option.label }}
+                          </option>
+                        </select>
+                      </label>
+                      <label class="field">
+                        Посилання на зустріч
+                        <input
+                          class="input"
+                          type="url"
+                          :value="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').form.meeting_url"
+                          @input="setRegularTimeFormField(client, { meeting_url: String(($event.target as HTMLInputElement | null)?.value || '') })"
+                        />
+                      </label>
+                      <label class="field">
+                        Адреса / місце зустрічі
+                        <input
+                          class="input"
+                          type="text"
+                          :value="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').form.offline_location"
+                          @input="setRegularTimeFormField(client, { offline_location: String(($event.target as HTMLInputElement | null)?.value || '') })"
+                        />
+                      </label>
+                      <div class="client-regular-times__form-actions">
+                        <button
+                          class="btn btn--sm"
+                          type="button"
+                          :disabled="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').saving"
+                          @click="saveRegularTime(client)"
+                        >
+                          Зберегти
+                        </button>
+                        <button class="btn btn--ghost btn--sm" type="button" @click="cancelRegularTimeForm(client)">
+                          Скасувати
+                        </button>
+                      </div>
+                    </div>
+                  </template>
+                </template>
+              </div>
+            </section>
+
             <section class="client-accordion__section">
               <button
                 class="client-accordion__header"
@@ -876,6 +1069,199 @@
                     {{ clientMaterialsState(clientMaterialsScopeKey(client) || '').saving ? 'Зберігаємо...' : 'Додати матеріал' }}
                   </button>
                 </div>
+              </div>
+            </section>
+
+            <section class="client-accordion__section client-regular-times">
+              <button
+                class="client-accordion__header"
+                type="button"
+                :aria-expanded="isAccordionSectionOpen(client, 'regularTime')"
+                @click="toggleClientAccordion(client, 'regularTime')"
+              >
+                <span>Регулярний час</span>
+                <span class="client-accordion__summary">{{ accordionSummary(client, 'regularTime') }}</span>
+              </button>
+              <div v-if="isAccordionSectionOpen(client, 'regularTime')" class="client-accordion__body client-regular-times__body">
+                <p class="client-regular-times__copy">
+                  Зафіксуйте постійну домовленість із клієнтом: день, час, тривалість і формат зустрічі.
+                </p>
+                <p v-if="!clientRegularTimesScopeKey(client)" class="muted">
+                  Для цього клієнта ще немає картки клієнта, тому регулярний час поки недоступний.
+                </p>
+                <template v-else>
+                  <p v-if="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').listError" class="form-error">
+                    {{ clientRegularTimesState(clientRegularTimesScopeKey(client) || '').listError }}
+                  </p>
+                  <div v-if="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').loading" class="muted">
+                    Завантаження регулярного часу...
+                  </div>
+                  <template v-else>
+                    <div v-if="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').items.length" class="client-regular-times__list">
+                      <article
+                        v-for="regularTime in clientRegularTimesState(clientRegularTimesScopeKey(client) || '').items"
+                        :key="regularTime.id"
+                        class="client-regular-time"
+                      >
+                        <div class="client-regular-time__top">
+                          <div>
+                            <div class="client-regular-time__title">
+                              {{ regularTimeWeekdayLabel(regularTime.weekday) }}, {{ normalizeRegularTimeValue(regularTime.start_time) }}
+                            </div>
+                            <div class="muted">
+                              {{ regularTime.duration_minutes }} хв · {{ regularTimeFrequencyLabel(regularTime.frequency) }} · {{ regularTimeFormatLabel(regularTime.session_format) }}
+                            </div>
+                            <div class="muted">Починаючи з {{ formatRegularTimeDate(regularTime.starts_on) }}</div>
+                          </div>
+                          <span class="regular-time-status" :class="regularTimeStatusClass(regularTime.status)">
+                            {{ regularTimeStatusLabel(regularTime.status) }}
+                          </span>
+                        </div>
+                        <div class="client-regular-time__actions">
+                          <button class="btn btn--ghost btn--sm" type="button" @click="openRegularTimeEditForm(client, regularTime)">
+                            Редагувати
+                          </button>
+                          <button
+                            v-if="regularTime.status === 'paused'"
+                            class="btn btn--ghost btn--sm"
+                            type="button"
+                            :disabled="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').actionLoadingId === regularTime.id"
+                            @click="resumeRegularTime(client, regularTime.id)"
+                          >
+                            Відновити
+                          </button>
+                          <button
+                            v-else
+                            class="btn btn--ghost btn--sm"
+                            type="button"
+                            :disabled="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').actionLoadingId === regularTime.id"
+                            @click="pauseRegularTime(client, regularTime.id)"
+                          >
+                            Поставити на паузу
+                          </button>
+                        </div>
+                      </article>
+                    </div>
+                    <div v-else class="client-regular-times__empty">
+                      <p class="muted">Регулярний час ще не додано.</p>
+                      <button class="btn btn--ghost btn--sm" type="button" @click="openRegularTimeCreateForm(client)">
+                        Додати регулярний час
+                      </button>
+                    </div>
+                    <button
+                      v-if="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').items.length && !clientRegularTimesState(clientRegularTimesScopeKey(client) || '').formOpen"
+                      class="btn btn--ghost btn--sm client-regular-times__add"
+                      type="button"
+                      @click="openRegularTimeCreateForm(client)"
+                    >
+                      Додати регулярний час
+                    </button>
+                    <div v-if="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').formOpen" class="client-regular-times__form">
+                      <p v-if="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').formError" class="form-error">
+                        {{ clientRegularTimesState(clientRegularTimesScopeKey(client) || '').formError }}
+                      </p>
+                      <label class="field">
+                        День тижня
+                        <select
+                          class="input input--select"
+                          :value="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').form.weekday ?? ''"
+                          @change="setRegularTimeFormField(client, { weekday: Number(($event.target as HTMLSelectElement | null)?.value) })"
+                        >
+                          <option v-for="option in regularTimeWeekdayOptions" :key="option.value" :value="option.value">
+                            {{ option.label }}
+                          </option>
+                        </select>
+                      </label>
+                      <label class="field">
+                        Час початку
+                        <input
+                          class="input"
+                          type="time"
+                          :value="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').form.start_time"
+                          @input="setRegularTimeFormField(client, { start_time: String(($event.target as HTMLInputElement | null)?.value || '') })"
+                        />
+                      </label>
+                      <label class="field">
+                        Тривалість
+                        <input
+                          class="input"
+                          type="number"
+                          min="15"
+                          max="240"
+                          step="5"
+                          :value="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').form.duration_minutes"
+                          @input="setRegularTimeFormField(client, { duration_minutes: Number(($event.target as HTMLInputElement | null)?.value || 0) })"
+                        />
+                      </label>
+                      <label class="field">
+                        Частота
+                        <select
+                          class="input input--select"
+                          :value="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').form.frequency"
+                          @change="setRegularTimeFormField(client, { frequency: String(($event.target as HTMLSelectElement | null)?.value || 'weekly') as ClientRegularTimeFrequency })"
+                        >
+                          <option v-for="option in regularTimeFrequencyOptions" :key="option.value" :value="option.value">
+                            {{ option.label }}
+                          </option>
+                        </select>
+                      </label>
+                      <label class="field">
+                        Починаючи з
+                        <input
+                          class="input"
+                          type="text"
+                          inputmode="numeric"
+                          placeholder="20.05.2026"
+                          :value="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').form.starts_on"
+                          @input="setRegularTimeFormField(client, { starts_on: String(($event.target as HTMLInputElement | null)?.value || '') })"
+                        />
+                      </label>
+                      <label class="field">
+                        Формат
+                        <select
+                          class="input input--select"
+                          :value="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').form.session_format"
+                          @change="setRegularTimeFormField(client, { session_format: String(($event.target as HTMLSelectElement | null)?.value || '') as SessionFormat })"
+                        >
+                          <option v-for="option in regularTimeFormatOptions" :key="option.value" :value="option.value">
+                            {{ option.label }}
+                          </option>
+                        </select>
+                      </label>
+                      <label class="field">
+                        Посилання на зустріч
+                        <input
+                          class="input"
+                          type="url"
+                          :value="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').form.meeting_url"
+                          @input="setRegularTimeFormField(client, { meeting_url: String(($event.target as HTMLInputElement | null)?.value || '') })"
+                        />
+                      </label>
+                      <label class="field">
+                        Адреса / місце зустрічі
+                        <input
+                          class="input"
+                          type="text"
+                          :value="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').form.offline_location"
+                          @input="setRegularTimeFormField(client, { offline_location: String(($event.target as HTMLInputElement | null)?.value || '') })"
+                        />
+                      </label>
+                      <div class="client-regular-times__form-actions">
+                        <button
+                          class="btn btn--sm"
+                          type="button"
+                          :disabled="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').saving"
+                          @click="saveRegularTime(client)"
+                        >
+                          Зберегти
+                        </button>
+                        <button class="btn btn--ghost btn--sm" type="button" @click="cancelRegularTimeForm(client)">
+                          Скасувати
+                        </button>
+                      </div>
+                    </div>
+                  </template>
+                </template>
               </div>
             </section>
 
@@ -1214,9 +1600,11 @@ import {
   apiGet,
   apiPatch,
   apiPost,
+  createClientRegularTime,
   createSpecialistClientMaterial,
   deleteClientMaterialAttachment,
   createClientRecordAccountInvite,
+  fetchClientRegularTimes,
   fetchSpecialistClientMaterials,
   fetchChatThreads,
   fetchClientRecordAccountInvite,
@@ -1224,11 +1612,18 @@ import {
   listClientMaterialAttachments,
   publishSpecialistClientMaterial,
   regenerateClientRecordAccountInvite,
+  pauseClientRegularTime,
+  resumeClientRegularTime,
   revokeSpecialistClientMaterial,
   revokeClientRecordAccountInvite,
   uploadClientMaterialAttachment,
+  updateClientRegularTime,
   updateSpecialistClientMaterial,
   type ChatThread,
+  type ClientRegularTime,
+  type ClientRegularTimeFrequency,
+  type ClientRegularTimePayload,
+  type ClientRegularTimeStatus,
   type ClientMaterialAttachment,
   type ClientMaterialSpecialistRecord,
   type ClientMaterialStatus,
@@ -1240,7 +1635,7 @@ import {
 import EmptyState from '../components/EmptyState.vue'
 import LoadingSkeleton from '../components/LoadingSkeleton.vue'
 import PracticeBoardQuickAddModal from '../components/PracticeBoardQuickAddModal.vue'
-import { formatUkDateTimeCompact } from '../lib/dateTime'
+import { formatUkDateCompact, formatUkDateTimeCompact } from '../lib/dateTime'
 import { getApiErrorMessage } from '../lib/errors'
 import { openClientWorkbookWindow } from '../lib/workbookWindow'
 import { useToast } from '../composables/useToast'
@@ -1261,6 +1656,7 @@ type ClientState = {
   id: number
   client?: number
   client_id?: number
+  client_record_id?: number | null
   client_email?: string | null
   state: 'CREATED' | 'ACTIVE' | 'INACTIVE' | 'ARCHIVED'
   last_session_at: string | null
@@ -1359,6 +1755,30 @@ type ClientMaterialsState = {
   open: boolean
 }
 
+type ClientRegularTimeDraft = {
+  weekday: number | null
+  start_time: string
+  duration_minutes: number
+  frequency: ClientRegularTimeFrequency
+  starts_on: string
+  session_format: SessionFormat | ''
+  meeting_url: string
+  offline_location: string
+}
+
+type ClientRegularTimesState = {
+  loading: boolean
+  saving: boolean
+  actionLoadingId: number | null
+  listError: string
+  formError: string
+  items: ClientRegularTime[]
+  form: ClientRegularTimeDraft
+  editingId: number | null
+  formOpen: boolean
+  open: boolean
+}
+
 
 type SessionItem = {
   id: number
@@ -1439,7 +1859,14 @@ type SessionMetadataSource = NameSource & {
 }
 
 type ListResponse<T> = T[] | { results?: T[] } | null | undefined
-type ClientAccordionSection = 'materials' | 'invite' | 'privateHistory' | 'workbook' | 'sessionNotes' | 'settings'
+type ClientAccordionSection =
+  | 'materials'
+  | 'regularTime'
+  | 'invite'
+  | 'privateHistory'
+  | 'workbook'
+  | 'sessionNotes'
+  | 'settings'
 
 const clients = ref<ClientState[]>([])
 const manualClientRecords = ref<ManualClientRecord[]>([])
@@ -1502,6 +1929,7 @@ const manualSessionDraft = ref<ManualClientSessionFormState>({
 })
 const accountInviteStateByRecordId = ref<Record<number, AccountInviteState>>({})
 const materialsStateByScopeKey = ref<Record<string, ClientMaterialsState>>({})
+const regularTimesStateByScopeKey = ref<Record<string, ClientRegularTimesState>>({})
 
 const retryLabel = '\u0421\u043f\u0440\u043e\u0431\u0443\u0432\u0430\u0442\u0438 \u0449\u0435 \u0440\u0430\u0437'
 const remindersErrorTitle = '\u041d\u0435 \u0432\u0434\u0430\u043b\u043e\u0441\u044f \u0437\u0430\u0432\u0430\u043d\u0442\u0430\u0436\u0438\u0442\u0438 \u043d\u0430\u0433\u0430\u0434\u0443\u0432\u0430\u043d\u043d\u044f'
@@ -1858,6 +2286,354 @@ function updateClientMaterialsState(scopeKey: string, patch: Partial<ClientMater
       ...clientMaterialsState(scopeKey),
       ...patch,
     },
+  }
+}
+
+const regularTimeWeekdayOptions = [
+  { value: 0, label: 'Понеділок' },
+  { value: 1, label: 'Вівторок' },
+  { value: 2, label: 'Середа' },
+  { value: 3, label: 'Четвер' },
+  { value: 4, label: 'Пʼятниця' },
+  { value: 5, label: 'Субота' },
+  { value: 6, label: 'Неділя' },
+]
+
+const regularTimeFrequencyOptions: Array<{ value: ClientRegularTimeFrequency; label: string }> = [
+  { value: 'weekly', label: 'Щотижня' },
+  { value: 'every_two_weeks', label: 'Раз на два тижні' },
+]
+
+const regularTimeFormatOptions: Array<{ value: SessionFormat; label: string }> = [
+  { value: 'online', label: 'Онлайн' },
+  { value: 'offline', label: 'Офлайн' },
+]
+
+function defaultRegularTimeDraft(): ClientRegularTimeDraft {
+  return {
+    weekday: 0,
+    start_time: '09:00',
+    duration_minutes: 50,
+    frequency: 'weekly',
+    starts_on: '',
+    session_format: 'online',
+    meeting_url: '',
+    offline_location: '',
+  }
+}
+
+function defaultRegularTimesState(): ClientRegularTimesState {
+  return {
+    loading: false,
+    saving: false,
+    actionLoadingId: null,
+    listError: '',
+    formError: '',
+    items: [],
+    form: defaultRegularTimeDraft(),
+    editingId: null,
+    formOpen: false,
+    open: false,
+  }
+}
+
+function clientRegularTimeRecordId(client: ClientListItem): number {
+  if (isManualClientRecord(client)) return Number(client.id || 0)
+  return Number(client.client_record_id || 0)
+}
+
+function clientRegularTimesScopeKey(client: ClientListItem): string | null {
+  const recordId = clientRegularTimeRecordId(client)
+  return recordId ? `client-record:${recordId}` : null
+}
+
+function clientRegularTimesState(scopeKey: string): ClientRegularTimesState {
+  const existing = regularTimesStateByScopeKey.value[scopeKey]
+  if (existing) return existing
+  const next = defaultRegularTimesState()
+  regularTimesStateByScopeKey.value = {
+    ...regularTimesStateByScopeKey.value,
+    [scopeKey]: next,
+  }
+  return next
+}
+
+function updateClientRegularTimesState(scopeKey: string, patch: Partial<ClientRegularTimesState>) {
+  regularTimesStateByScopeKey.value = {
+    ...regularTimesStateByScopeKey.value,
+    [scopeKey]: {
+      ...clientRegularTimesState(scopeKey),
+      ...patch,
+    },
+  }
+}
+
+function regularTimeWeekdayLabel(value: number): string {
+  return regularTimeWeekdayOptions.find((option) => option.value === Number(value))?.label || String(value)
+}
+
+function regularTimeFrequencyLabel(value: ClientRegularTimeFrequency | string): string {
+  if (value === 'weekly') return 'щотижня'
+  if (value === 'every_two_weeks') return 'раз на два тижні'
+  return String(value || '')
+}
+
+function regularTimeFormatLabel(value: SessionFormat | string): string {
+  if (value === 'offline') return 'офлайн'
+  return 'онлайн'
+}
+
+function regularTimeStatusLabel(status: ClientRegularTimeStatus | string): string {
+  return status === 'paused' ? 'На паузі' : 'Активний'
+}
+
+function regularTimeStatusClass(status: ClientRegularTimeStatus | string): string {
+  return status === 'paused' ? 'regular-time-status--paused' : 'regular-time-status--active'
+}
+
+function normalizeRegularTimeValue(value: string): string {
+  const trimmed = String(value || '').trim()
+  const match = /^(\d{1,2}):(\d{2})(?::\d{2})?$/.exec(trimmed)
+  if (!match) return trimmed
+  return `${String(Number(match[1])).padStart(2, '0')}:${match[2]}`
+}
+
+function formatRegularTimeDate(value?: string | null): string {
+  const raw = String(value || '').trim()
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(raw)
+  if (match) return `${match[3]}.${match[2]}.${match[1]}`
+  return formatUkDateCompact(value, '')
+}
+
+function parseRegularTimeDate(value: string): string {
+  const trimmed = String(value || '').trim()
+  const match = /^(\d{2})\.(\d{2})\.(\d{4})$/.exec(trimmed)
+  if (!match) return ''
+  const day = Number(match[1])
+  const month = Number(match[2])
+  const year = Number(match[3])
+  const date = new Date(Date.UTC(year, month - 1, day))
+  if (
+    date.getUTCFullYear() !== year ||
+    date.getUTCMonth() !== month - 1 ||
+    date.getUTCDate() !== day
+  ) {
+    return ''
+  }
+  return `${match[3]}-${match[2]}-${match[1]}`
+}
+
+function regularTimeFormFromItem(item: ClientRegularTime): ClientRegularTimeDraft {
+  return {
+    weekday: item.weekday,
+    start_time: normalizeRegularTimeValue(item.start_time),
+    duration_minutes: item.duration_minutes,
+    frequency: item.frequency,
+    starts_on: formatRegularTimeDate(item.starts_on),
+    session_format: item.session_format,
+    meeting_url: item.meeting_url || '',
+    offline_location: item.offline_location || '',
+  }
+}
+
+function regularTimePayloadFromDraft(draft: ClientRegularTimeDraft): ClientRegularTimePayload | null {
+  if (draft.weekday === null || draft.weekday === undefined || draft.weekday < 0 || draft.weekday > 6) return null
+  const startTime = normalizeRegularTimeValue(draft.start_time)
+  if (!startTime) return null
+  const duration = Number(draft.duration_minutes)
+  if (!Number.isFinite(duration) || duration < 15 || duration > 240) return null
+  const startsOn = parseRegularTimeDate(draft.starts_on)
+  if (!startsOn) return null
+  if (draft.session_format !== 'online' && draft.session_format !== 'offline') return null
+  return {
+    weekday: Number(draft.weekday),
+    start_time: startTime,
+    duration_minutes: duration,
+    frequency: draft.frequency,
+    starts_on: startsOn,
+    session_format: draft.session_format,
+    meeting_url: draft.meeting_url.trim() || null,
+    offline_location: draft.offline_location.trim() || null,
+  }
+}
+
+function regularTimeValidationMessage(draft: ClientRegularTimeDraft): string {
+  if (draft.weekday === null || draft.weekday === undefined || draft.weekday < 0 || draft.weekday > 6) {
+    return 'Оберіть день тижня.'
+  }
+  if (!normalizeRegularTimeValue(draft.start_time)) return 'Вкажіть час початку.'
+  const duration = Number(draft.duration_minutes)
+  if (!Number.isFinite(duration) || duration < 15 || duration > 240) {
+    return 'Тривалість має бути від 15 до 240 хв.'
+  }
+  if (!parseRegularTimeDate(draft.starts_on)) return 'Вкажіть дату початку у форматі ДД.ММ.РРРР.'
+  if (draft.session_format !== 'online' && draft.session_format !== 'offline') return 'Оберіть формат зустрічі.'
+  return 'Перевірте дані й спробуйте ще раз.'
+}
+
+function regularTimeErrorCode(err: unknown): string {
+  const data = (err as any)?.response?.data || {}
+  const candidates = [
+    data.code,
+    data.reason_code,
+    data.detail?.code,
+    data.detail,
+    Array.isArray(data.non_field_errors) ? data.non_field_errors[0] : '',
+  ]
+  return candidates.map((item) => String(item || '').trim().toUpperCase()).find(Boolean) || ''
+}
+
+function regularTimeSaveErrorMessage(err: unknown): string {
+  const code = regularTimeErrorCode(err)
+  if (code === 'CLIENT_RECORD_ARCHIVED') {
+    return 'Картка клієнта в архіві. Регулярний час не можна змінити.'
+  }
+  if (code === 'CLIENT_REGULAR_TIME_DUPLICATE') {
+    return 'Такий регулярний час уже додано для цього клієнта.'
+  }
+  return getApiErrorMessage(err, 'Не вдалося зберегти регулярний час. Перевірте дані й спробуйте ще раз.')
+}
+
+async function loadClientRegularTimes(client: ClientListItem) {
+  const scopeKey = clientRegularTimesScopeKey(client)
+  const recordId = clientRegularTimeRecordId(client)
+  if (!scopeKey || !recordId) return
+  updateClientRegularTimesState(scopeKey, { loading: true, listError: '' })
+  try {
+    const items = await fetchClientRegularTimes(recordId)
+    updateClientRegularTimesState(scopeKey, {
+      items,
+      loading: false,
+      listError: '',
+    })
+  } catch {
+    updateClientRegularTimesState(scopeKey, {
+      loading: false,
+      listError: 'Не вдалося завантажити регулярний час. Спробуйте оновити сторінку.',
+    })
+  }
+}
+
+async function toggleClientRegularTimes(client: ClientListItem) {
+  const scopeKey = clientRegularTimesScopeKey(client)
+  if (!scopeKey) return
+  const state = clientRegularTimesState(scopeKey)
+  updateClientRegularTimesState(scopeKey, { open: true })
+  if (!state.items.length && !state.loading) {
+    await loadClientRegularTimes(client)
+  }
+}
+
+function openRegularTimeCreateForm(client: ClientListItem) {
+  const scopeKey = clientRegularTimesScopeKey(client)
+  if (!scopeKey) return
+  updateClientRegularTimesState(scopeKey, {
+    formOpen: true,
+    editingId: null,
+    formError: '',
+    form: defaultRegularTimeDraft(),
+  })
+}
+
+function openRegularTimeEditForm(client: ClientListItem, item: ClientRegularTime) {
+  const scopeKey = clientRegularTimesScopeKey(client)
+  if (!scopeKey) return
+  updateClientRegularTimesState(scopeKey, {
+    formOpen: true,
+    editingId: item.id,
+    formError: '',
+    form: regularTimeFormFromItem(item),
+  })
+}
+
+function cancelRegularTimeForm(client: ClientListItem) {
+  const scopeKey = clientRegularTimesScopeKey(client)
+  if (!scopeKey) return
+  updateClientRegularTimesState(scopeKey, {
+    formOpen: false,
+    editingId: null,
+    formError: '',
+    form: defaultRegularTimeDraft(),
+  })
+}
+
+function setRegularTimeFormField(
+  client: ClientListItem,
+  patch: Partial<ClientRegularTimeDraft>
+) {
+  const scopeKey = clientRegularTimesScopeKey(client)
+  if (!scopeKey) return
+  const state = clientRegularTimesState(scopeKey)
+  updateClientRegularTimesState(scopeKey, {
+    formError: '',
+    form: {
+      ...state.form,
+      ...patch,
+    },
+  })
+}
+
+async function saveRegularTime(client: ClientListItem) {
+  const scopeKey = clientRegularTimesScopeKey(client)
+  const recordId = clientRegularTimeRecordId(client)
+  if (!scopeKey || !recordId) return
+  const state = clientRegularTimesState(scopeKey)
+  const payload = regularTimePayloadFromDraft(state.form)
+  if (!payload) {
+    updateClientRegularTimesState(scopeKey, { formError: regularTimeValidationMessage(state.form) })
+    return
+  }
+  updateClientRegularTimesState(scopeKey, { saving: true, formError: '' })
+  try {
+    if (state.editingId) {
+      await updateClientRegularTime(recordId, state.editingId, payload)
+    } else {
+      await createClientRegularTime(recordId, payload)
+    }
+    updateClientRegularTimesState(scopeKey, {
+      formOpen: false,
+      editingId: null,
+      form: defaultRegularTimeDraft(),
+    })
+    await loadClientRegularTimes(client)
+  } catch (err) {
+    updateClientRegularTimesState(scopeKey, { formError: regularTimeSaveErrorMessage(err) })
+  } finally {
+    updateClientRegularTimesState(scopeKey, { saving: false })
+  }
+}
+
+async function pauseRegularTime(client: ClientListItem, regularTimeId: number) {
+  const scopeKey = clientRegularTimesScopeKey(client)
+  const recordId = clientRegularTimeRecordId(client)
+  if (!scopeKey || !recordId) return
+  updateClientRegularTimesState(scopeKey, { actionLoadingId: regularTimeId, listError: '' })
+  try {
+    await pauseClientRegularTime(recordId, regularTimeId)
+    await loadClientRegularTimes(client)
+  } catch (err) {
+    updateClientRegularTimesState(scopeKey, { listError: regularTimeSaveErrorMessage(err) })
+  } finally {
+    if (clientRegularTimesState(scopeKey).actionLoadingId === regularTimeId) {
+      updateClientRegularTimesState(scopeKey, { actionLoadingId: null })
+    }
+  }
+}
+
+async function resumeRegularTime(client: ClientListItem, regularTimeId: number) {
+  const scopeKey = clientRegularTimesScopeKey(client)
+  const recordId = clientRegularTimeRecordId(client)
+  if (!scopeKey || !recordId) return
+  updateClientRegularTimesState(scopeKey, { actionLoadingId: regularTimeId, listError: '' })
+  try {
+    await resumeClientRegularTime(recordId, regularTimeId)
+    await loadClientRegularTimes(client)
+  } catch (err) {
+    updateClientRegularTimesState(scopeKey, { listError: regularTimeSaveErrorMessage(err) })
+  } finally {
+    if (clientRegularTimesState(scopeKey).actionLoadingId === regularTimeId) {
+      updateClientRegularTimesState(scopeKey, { actionLoadingId: null })
+    }
   }
 }
 
@@ -2416,6 +3192,10 @@ async function toggleClientAccordion(client: ClientListItem, section: ClientAcco
     await toggleClientMaterials(client)
   }
 
+  if (section === 'regularTime') {
+    await toggleClientRegularTimes(client)
+  }
+
   if (!isManualClientRecord(client) && ['privateHistory', 'workbook', 'sessionNotes'].includes(section)) {
     const clientId = relationClientId(client)
     expandedClientId.value = clientId
@@ -2433,6 +3213,15 @@ function accordionSummary(client: ClientListItem, section: ClientAccordionSectio
     if (state.items.length === 1) return '1 матеріал'
     if (state.items.length > 1) return `${state.items.length} матеріали`
     return 'Підготувати або переглянути'
+  }
+  if (section === 'regularTime') {
+    const scopeKey = clientRegularTimesScopeKey(client)
+    if (!scopeKey) return 'Недоступний'
+    const state = clientRegularTimesState(scopeKey)
+    if (state.loading) return 'Завантаження...'
+    if (state.items.length === 1) return '1 домовленість'
+    if (state.items.length > 1) return `${state.items.length} домовленості`
+    return 'День і час зустрічі'
   }
   if (section === 'privateHistory') return 'Конфіденційний розділ'
   if (section === 'workbook') return workbookSummary(client)
@@ -4347,7 +5136,8 @@ onBeforeUnmount(() => {
 }
 
 .client-accordion__section.manual-account-invite,
-.client-accordion__section.client-materials {
+.client-accordion__section.client-materials,
+.client-accordion__section.client-regular-times {
   gap: 0;
   padding: 0;
 }
@@ -4471,6 +5261,73 @@ onBeforeUnmount(() => {
 .client-materials__create h4 {
   margin: 0;
   font-size: 13px;
+}
+
+.client-regular-times__body,
+.client-regular-times__list,
+.client-regular-times__form {
+  display: grid;
+  gap: 10px;
+}
+
+.client-regular-times__copy {
+  margin: 0;
+  color: var(--pc-text-muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.client-regular-time {
+  border: 1px solid color-mix(in srgb, var(--pc-border) 82%, #ffffff);
+  border-radius: var(--pc-radius-control);
+  padding: 10px;
+  display: grid;
+  gap: 8px;
+  background: #fff;
+}
+
+.client-regular-time__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.client-regular-time__title {
+  color: var(--pc-navy-900);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.client-regular-time__actions,
+.client-regular-times__form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.client-regular-times__empty {
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+}
+
+.client-regular-times__add {
+  justify-self: start;
+}
+
+.regular-time-status {
+  flex: 0 0 auto;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.regular-time-status--active {
+  color: #0a7a3f;
+}
+
+.regular-time-status--paused {
+  color: #b45309;
 }
 
 .client-history {

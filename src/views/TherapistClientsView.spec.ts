@@ -4,18 +4,23 @@ import {
   apiGet,
   apiPatch,
   apiPost,
+  createClientRegularTime,
   createSpecialistClientMaterial,
   deleteClientMaterialAttachment,
   createClientRecordAccountInvite,
+  fetchClientRegularTimes,
   fetchSpecialistClientMaterials,
   fetchChatThreads,
   fetchClientRecordAccountInvite,
   listClientMaterialAttachments,
+  pauseClientRegularTime,
   publishSpecialistClientMaterial,
   regenerateClientRecordAccountInvite,
+  resumeClientRegularTime,
   revokeSpecialistClientMaterial,
   revokeClientRecordAccountInvite,
   uploadClientMaterialAttachment,
+  updateClientRegularTime,
   updateSpecialistClientMaterial,
 } from '../lib/api'
 import TherapistClientsView from './TherapistClientsView.vue'
@@ -30,19 +35,24 @@ vi.mock('../lib/api', () => ({
   apiGet: vi.fn(),
   apiPatch: vi.fn(),
   apiPost: vi.fn(),
+  createClientRegularTime: vi.fn(),
   createSpecialistClientMaterial: vi.fn(),
   deleteClientMaterialAttachment: vi.fn(),
   createClientRecordAccountInvite: vi.fn(),
+  fetchClientRegularTimes: vi.fn(),
   fetchSpecialistClientMaterials: vi.fn(),
   fetchChatThreads: vi.fn(),
   fetchClientRecordAccountInvite: vi.fn(),
   listClientMaterialAttachments: vi.fn(),
+  pauseClientRegularTime: vi.fn(),
   hasMaterialUrl: (material: { url?: string | null }) => Boolean(String(material?.url || '').trim()),
   publishSpecialistClientMaterial: vi.fn(),
   regenerateClientRecordAccountInvite: vi.fn(),
+  resumeClientRegularTime: vi.fn(),
   revokeSpecialistClientMaterial: vi.fn(),
   revokeClientRecordAccountInvite: vi.fn(),
   uploadClientMaterialAttachment: vi.fn(),
+  updateClientRegularTime: vi.fn(),
   updateSpecialistClientMaterial: vi.fn(),
 }))
 vi.mock('../lib/specialistPracticeBoard', () => ({
@@ -65,18 +75,23 @@ vi.mock('../composables/useToast', () => ({
 const mockedApiGet = vi.mocked(apiGet)
 const mockedApiPatch = vi.mocked(apiPatch)
 const mockedApiPost = vi.mocked(apiPost)
+const mockedCreateClientRegularTime = vi.mocked(createClientRegularTime)
 const mockedCreateSpecialistClientMaterial = vi.mocked(createSpecialistClientMaterial)
 const mockedDeleteClientMaterialAttachment = vi.mocked(deleteClientMaterialAttachment)
 const mockedCreateClientRecordAccountInvite = vi.mocked(createClientRecordAccountInvite)
+const mockedFetchClientRegularTimes = vi.mocked(fetchClientRegularTimes)
 const mockedFetchSpecialistClientMaterials = vi.mocked(fetchSpecialistClientMaterials)
 const mockedFetchChatThreads = vi.mocked(fetchChatThreads)
 const mockedFetchClientRecordAccountInvite = vi.mocked(fetchClientRecordAccountInvite)
 const mockedListClientMaterialAttachments = vi.mocked(listClientMaterialAttachments)
+const mockedPauseClientRegularTime = vi.mocked(pauseClientRegularTime)
 const mockedPublishSpecialistClientMaterial = vi.mocked(publishSpecialistClientMaterial)
 const mockedRegenerateClientRecordAccountInvite = vi.mocked(regenerateClientRecordAccountInvite)
+const mockedResumeClientRegularTime = vi.mocked(resumeClientRegularTime)
 const mockedRevokeSpecialistClientMaterial = vi.mocked(revokeSpecialistClientMaterial)
 const mockedRevokeClientRecordAccountInvite = vi.mocked(revokeClientRecordAccountInvite)
 const mockedUploadClientMaterialAttachment = vi.mocked(uploadClientMaterialAttachment)
+const mockedUpdateClientRegularTime = vi.mocked(updateClientRegularTime)
 const mockedUpdateSpecialistClientMaterial = vi.mocked(updateSpecialistClientMaterial)
 const mockedCreatePracticeBoardItem = vi.mocked(createPracticeBoardItem)
 const mockedFetchPracticeBoards = vi.mocked(fetchPracticeBoards)
@@ -193,11 +208,34 @@ function accountInviteResponse(overrides: Record<string, unknown> = {}, inviteUr
   }
 }
 
+function regularTimeRecord(overrides: Record<string, unknown> = {}) {
+  return {
+    id: 801,
+    client_record: 201,
+    weekday: 2,
+    start_time: '15:00',
+    duration_minutes: 50,
+    frequency: 'weekly',
+    starts_on: '2026-05-20',
+    timezone: 'Europe/Kyiv',
+    session_format: 'online',
+    meeting_url: '',
+    offline_location: '',
+    status: 'active',
+    paused_at: null,
+    created_at: '2026-05-15T10:00:00Z',
+    updated_at: '2026-05-15T10:00:00Z',
+    ...overrides,
+  }
+}
+
 describe('TherapistClientsView', () => {
   beforeEach(() => {
     mockedApiGet.mockReset()
     mockedApiPatch.mockReset()
     mockedApiPost.mockReset()
+    mockedCreateClientRegularTime.mockReset()
+    mockedCreateClientRegularTime.mockResolvedValue({} as any)
     mockedCreateSpecialistClientMaterial.mockReset()
     mockedCreateSpecialistClientMaterial.mockResolvedValue({} as any)
     mockedDeleteClientMaterialAttachment.mockReset()
@@ -208,20 +246,28 @@ describe('TherapistClientsView', () => {
     mockedFetchChatThreads.mockResolvedValue([])
     mockedFetchClientRecordAccountInvite.mockReset()
     mockedFetchClientRecordAccountInvite.mockResolvedValue(null)
+    mockedFetchClientRegularTimes.mockReset()
+    mockedFetchClientRegularTimes.mockResolvedValue([])
     mockedListClientMaterialAttachments.mockReset()
     mockedListClientMaterialAttachments.mockResolvedValue([])
+    mockedPauseClientRegularTime.mockReset()
+    mockedPauseClientRegularTime.mockResolvedValue({} as any)
     mockedFetchSpecialistClientMaterials.mockReset()
     mockedFetchSpecialistClientMaterials.mockResolvedValue([])
     mockedPublishSpecialistClientMaterial.mockReset()
     mockedPublishSpecialistClientMaterial.mockResolvedValue({} as any)
     mockedRegenerateClientRecordAccountInvite.mockReset()
     mockedRegenerateClientRecordAccountInvite.mockResolvedValue({ invite: null, invite_url: null } as any)
+    mockedResumeClientRegularTime.mockReset()
+    mockedResumeClientRegularTime.mockResolvedValue({} as any)
     mockedRevokeSpecialistClientMaterial.mockReset()
     mockedRevokeSpecialistClientMaterial.mockResolvedValue({} as any)
     mockedRevokeClientRecordAccountInvite.mockReset()
     mockedRevokeClientRecordAccountInvite.mockResolvedValue({ invite: null, invite_url: null } as any)
     mockedUploadClientMaterialAttachment.mockReset()
     mockedUploadClientMaterialAttachment.mockResolvedValue({} as any)
+    mockedUpdateClientRegularTime.mockReset()
+    mockedUpdateClientRegularTime.mockResolvedValue({} as any)
     mockedUpdateSpecialistClientMaterial.mockReset()
     mockedUpdateSpecialistClientMaterial.mockResolvedValue({} as any)
     mockedCreatePracticeBoardItem.mockReset()
@@ -2674,6 +2720,389 @@ describe('TherapistClientsView', () => {
     await waitFor(() => {
       expect(mockedDeleteClientMaterialAttachment).toHaveBeenCalledWith(994, 4001)
       expect(manualCard.textContent || '').toContain('Файл видалено')
+    })
+  })
+
+  it('loads regular times for manual client using client record id', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL) return [manualClientRecord({ id: 901 })]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedFetchClientRegularTimes.mockResolvedValue([])
+
+    const { container } = renderView()
+    const manualCard = await waitFor(() => {
+      const card = container.querySelector('#manual-client-record-901')
+      expect(card).toBeInstanceOf(HTMLElement)
+      return card as HTMLElement
+    })
+    await openAccordionSection(manualCard, 'Регулярний час')
+
+    await waitFor(() => {
+      expect(mockedFetchClientRegularTimes).toHaveBeenCalledWith(901)
+    })
+  })
+
+  it('loads regular times for registered client using client_record_id', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL)
+        return [
+          {
+            id: 1,
+            client_id: 44,
+            client_record_id: 902,
+            state: 'ACTIVE',
+            last_session_at: null,
+            upcoming_count: 0,
+            client_display_name: 'Registered Regular',
+          },
+        ]
+      if (url === CLIENT_RECORDS_URL) return []
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedFetchClientRegularTimes.mockResolvedValue([])
+
+    const { container } = renderView()
+    const registeredCard = await waitFor(() => {
+      const card = container.querySelector('#client-card-44')
+      expect(card).toBeInstanceOf(HTMLElement)
+      return card as HTMLElement
+    })
+    await openAccordionSection(registeredCard, 'Регулярний час')
+
+    await waitFor(() => {
+      expect(mockedFetchClientRegularTimes).toHaveBeenCalledWith(902)
+    })
+  })
+
+  it('does not call regular-times endpoints for registered client without client_record_id', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL)
+        return [
+          {
+            id: 1,
+            client_id: 44,
+            client_record_id: null,
+            state: 'ACTIVE',
+            last_session_at: null,
+            upcoming_count: 0,
+            client_display_name: 'Registered Missing Record',
+          },
+        ]
+      if (url === CLIENT_RECORDS_URL) return []
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    const { container } = renderView()
+    const registeredCard = await waitFor(() => {
+      const card = container.querySelector('#client-card-44')
+      expect(card).toBeInstanceOf(HTMLElement)
+      return card as HTMLElement
+    })
+    await openAccordionSection(registeredCard, 'Регулярний час')
+
+    expect(registeredCard.textContent || '').toContain(
+      'Для цього клієнта ще немає картки клієнта, тому регулярний час поки недоступний.'
+    )
+    expect(within(registeredCard).queryByRole('button', { name: 'Додати регулярний час' })).not.toBeInTheDocument()
+    expect(within(registeredCard).queryByRole('button', { name: 'Редагувати' })).not.toBeInTheDocument()
+    expect(within(registeredCard).queryByRole('button', { name: 'Поставити на паузу' })).not.toBeInTheDocument()
+    expect(within(registeredCard).queryByRole('button', { name: 'Відновити' })).not.toBeInTheDocument()
+    expect(mockedFetchClientRegularTimes).not.toHaveBeenCalled()
+    expect(mockedCreateClientRegularTime).not.toHaveBeenCalled()
+    expect(mockedUpdateClientRegularTime).not.toHaveBeenCalled()
+    expect(mockedPauseClientRegularTime).not.toHaveBeenCalled()
+    expect(mockedResumeClientRegularTime).not.toHaveBeenCalled()
+  })
+
+  it('shows regular time loading state while section request is pending', async () => {
+    const regularTimesDeferred = deferred<any[]>()
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL) return [manualClientRecord({ id: 903 })]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedFetchClientRegularTimes.mockReturnValue(regularTimesDeferred.promise as any)
+
+    const { container } = renderView()
+    const manualCard = await waitFor(() => {
+      const card = container.querySelector('#manual-client-record-903')
+      expect(card).toBeInstanceOf(HTMLElement)
+      return card as HTMLElement
+    })
+    await openAccordionSection(manualCard, 'Регулярний час')
+
+    expect(manualCard.textContent || '').toContain('Завантаження регулярного часу')
+    regularTimesDeferred.resolve([])
+    await waitFor(() => {
+      expect(manualCard.textContent || '').toContain('Регулярний час ще не додано.')
+    })
+  })
+
+  it('shows regular time empty state with create CTA', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL) return [manualClientRecord({ id: 904 })]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedFetchClientRegularTimes.mockResolvedValue([])
+
+    const { container } = renderView()
+    const manualCard = await waitFor(() => {
+      const card = container.querySelector('#manual-client-record-904')
+      expect(card).toBeInstanceOf(HTMLElement)
+      return card as HTMLElement
+    })
+    await openAccordionSection(manualCard, 'Регулярний час')
+
+    await waitFor(() => {
+      expect(manualCard.textContent || '').toContain('Регулярний час ще не додано.')
+      expect(within(manualCard).getByRole('button', { name: 'Додати регулярний час' })).toBeInTheDocument()
+    })
+  })
+
+  it('renders active regular time details', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL) return [manualClientRecord({ id: 905 })]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedFetchClientRegularTimes.mockResolvedValue([regularTimeRecord({ client_record: 905 })] as any)
+
+    const { container } = renderView()
+    const manualCard = await waitFor(() => {
+      const card = container.querySelector('#manual-client-record-905')
+      expect(card).toBeInstanceOf(HTMLElement)
+      return card as HTMLElement
+    })
+    await openAccordionSection(manualCard, 'Регулярний час')
+
+    await waitFor(() => {
+      expect(manualCard.textContent || '').toContain('Середа, 15:00')
+      expect(manualCard.textContent || '').toContain('50 хв')
+      expect(manualCard.textContent || '').toContain('щотижня')
+      expect(manualCard.textContent || '').toContain('онлайн')
+      expect(manualCard.textContent || '').toContain('Активний')
+      expect(manualCard.textContent || '').toContain('20.05.2026')
+    })
+  })
+
+  it('renders paused regular time with resume action', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL) return [manualClientRecord({ id: 906 })]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedFetchClientRegularTimes.mockResolvedValue([
+      regularTimeRecord({
+        client_record: 906,
+        weekday: 4,
+        frequency: 'every_two_weeks',
+        session_format: 'offline',
+        status: 'paused',
+        paused_at: '2026-05-16T10:00:00Z',
+      }),
+    ] as any)
+
+    const { container } = renderView()
+    const manualCard = await waitFor(() => {
+      const card = container.querySelector('#manual-client-record-906')
+      expect(card).toBeInstanceOf(HTMLElement)
+      return card as HTMLElement
+    })
+    await openAccordionSection(manualCard, 'Регулярний час')
+
+    await waitFor(() => {
+      expect(manualCard.textContent || '').toContain('Пʼятниця')
+      expect(manualCard.textContent || '').toContain('раз на два тижні')
+      expect(manualCard.textContent || '').toContain('офлайн')
+      expect(manualCard.textContent || '').toContain('На паузі')
+      expect(within(manualCard).getByRole('button', { name: 'Відновити' })).toBeInTheDocument()
+    })
+  })
+
+  it('creates regular time without timezone field', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL) return [manualClientRecord({ id: 907 })]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedFetchClientRegularTimes.mockResolvedValue([])
+
+    const { container } = renderView()
+    const manualCard = await waitFor(() => {
+      const card = container.querySelector('#manual-client-record-907')
+      expect(card).toBeInstanceOf(HTMLElement)
+      return card as HTMLElement
+    })
+    await openAccordionSection(manualCard, 'Регулярний час')
+    await fireEvent.click(await within(manualCard).findByRole('button', { name: 'Додати регулярний час' }))
+    await fireEvent.update(within(manualCard).getByLabelText('Починаючи з'), '20.05.2026')
+    await fireEvent.update(within(manualCard).getByLabelText('Посилання на зустріч'), 'https://meet.example/one')
+    await fireEvent.click(within(manualCard).getByRole('button', { name: 'Зберегти' }))
+
+    await waitFor(() => {
+      expect(mockedCreateClientRegularTime).toHaveBeenCalledWith(907, {
+        weekday: 0,
+        start_time: '09:00',
+        duration_minutes: 50,
+        frequency: 'weekly',
+        starts_on: '2026-05-20',
+        session_format: 'online',
+        meeting_url: 'https://meet.example/one',
+        offline_location: null,
+      })
+      expect(mockedCreateClientRegularTime.mock.calls[0]?.[1]).not.toHaveProperty('timezone')
+    })
+  })
+
+  it('updates regular time', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL) return [manualClientRecord({ id: 908 })]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedFetchClientRegularTimes.mockResolvedValue([regularTimeRecord({ id: 810, client_record: 908 })] as any)
+
+    const { container } = renderView()
+    const manualCard = await waitFor(() => {
+      const card = container.querySelector('#manual-client-record-908')
+      expect(card).toBeInstanceOf(HTMLElement)
+      return card as HTMLElement
+    })
+    await openAccordionSection(manualCard, 'Регулярний час')
+    const regularTimeBlock = await waitFor(() => {
+      const block = manualCard.querySelector('.client-regular-time')
+      expect(block).toBeInstanceOf(HTMLElement)
+      return block as HTMLElement
+    })
+    await fireEvent.click(within(regularTimeBlock).getByRole('button', { name: 'Редагувати' }))
+    await fireEvent.update(within(manualCard).getByLabelText('Тривалість'), '60')
+    await fireEvent.click(within(manualCard).getByRole('button', { name: 'Зберегти' }))
+
+    await waitFor(() => {
+      expect(mockedUpdateClientRegularTime).toHaveBeenCalledWith(
+        908,
+        810,
+        expect.objectContaining({
+          duration_minutes: 60,
+          starts_on: '2026-05-20',
+        })
+      )
+    })
+  })
+
+  it('pauses regular time', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL) return [manualClientRecord({ id: 909 })]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedFetchClientRegularTimes.mockResolvedValue([regularTimeRecord({ id: 811, client_record: 909 })] as any)
+
+    const { container } = renderView()
+    const manualCard = await waitFor(() => {
+      const card = container.querySelector('#manual-client-record-909')
+      expect(card).toBeInstanceOf(HTMLElement)
+      return card as HTMLElement
+    })
+    await openAccordionSection(manualCard, 'Регулярний час')
+    await fireEvent.click(await within(manualCard).findByRole('button', { name: 'Поставити на паузу' }))
+
+    await waitFor(() => {
+      expect(mockedPauseClientRegularTime).toHaveBeenCalledWith(909, 811)
+    })
+  })
+
+  it('resumes regular time', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL) return [manualClientRecord({ id: 910 })]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedFetchClientRegularTimes.mockResolvedValue([
+      regularTimeRecord({ id: 812, client_record: 910, status: 'paused' }),
+    ] as any)
+
+    const { container } = renderView()
+    const manualCard = await waitFor(() => {
+      const card = container.querySelector('#manual-client-record-910')
+      expect(card).toBeInstanceOf(HTMLElement)
+      return card as HTMLElement
+    })
+    await openAccordionSection(manualCard, 'Регулярний час')
+    await fireEvent.click(await within(manualCard).findByRole('button', { name: 'Відновити' }))
+
+    await waitFor(() => {
+      expect(mockedResumeClientRegularTime).toHaveBeenCalledWith(910, 812)
+    })
+  })
+
+  it('shows duplicate regular time backend error copy', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL) return [manualClientRecord({ id: 911 })]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedFetchClientRegularTimes.mockResolvedValue([])
+    mockedCreateClientRegularTime.mockRejectedValueOnce({
+      response: { data: { code: 'CLIENT_REGULAR_TIME_DUPLICATE' } },
+    })
+
+    const { container } = renderView()
+    const manualCard = await waitFor(() => {
+      const card = container.querySelector('#manual-client-record-911')
+      expect(card).toBeInstanceOf(HTMLElement)
+      return card as HTMLElement
+    })
+    await openAccordionSection(manualCard, 'Регулярний час')
+    await fireEvent.click(await within(manualCard).findByRole('button', { name: 'Додати регулярний час' }))
+    await fireEvent.update(within(manualCard).getByLabelText('Починаючи з'), '20.05.2026')
+    await fireEvent.click(within(manualCard).getByRole('button', { name: 'Зберегти' }))
+
+    await waitFor(() => {
+      expect(manualCard.textContent || '').toContain('Такий регулярний час уже додано для цього клієнта.')
+    })
+  })
+
+  it('shows archived client regular time backend error copy', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL) return [manualClientRecord({ id: 912 })]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedFetchClientRegularTimes.mockResolvedValue([])
+    mockedCreateClientRegularTime.mockRejectedValueOnce({
+      response: { data: { code: 'CLIENT_RECORD_ARCHIVED' } },
+    })
+
+    const { container } = renderView()
+    const manualCard = await waitFor(() => {
+      const card = container.querySelector('#manual-client-record-912')
+      expect(card).toBeInstanceOf(HTMLElement)
+      return card as HTMLElement
+    })
+    await openAccordionSection(manualCard, 'Регулярний час')
+    await fireEvent.click(await within(manualCard).findByRole('button', { name: 'Додати регулярний час' }))
+    await fireEvent.update(within(manualCard).getByLabelText('Починаючи з'), '20.05.2026')
+    await fireEvent.click(within(manualCard).getByRole('button', { name: 'Зберегти' }))
+
+    await waitFor(() => {
+      expect(manualCard.textContent || '').toContain('Картка клієнта в архіві. Регулярний час не можна змінити.')
     })
   })
 })

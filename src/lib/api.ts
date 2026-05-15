@@ -2424,6 +2424,38 @@ export type ClientRecordAccountInvite = {
   updated_at?: string | null
 }
 
+export type ClientRegularTimeStatus = 'active' | 'paused'
+export type ClientRegularTimeFrequency = 'weekly' | 'every_two_weeks'
+
+export type ClientRegularTime = {
+  id: number
+  client_record: number
+  weekday: number
+  start_time: string
+  duration_minutes: number
+  frequency: ClientRegularTimeFrequency
+  starts_on: string
+  timezone?: string | null
+  session_format: SessionFormat
+  meeting_url?: string | null
+  offline_location?: string | null
+  status: ClientRegularTimeStatus
+  paused_at: string | null
+  created_at: string
+  updated_at: string
+}
+
+export type ClientRegularTimePayload = {
+  weekday: number
+  start_time: string
+  duration_minutes: number
+  frequency: ClientRegularTimeFrequency
+  starts_on: string
+  session_format: SessionFormat
+  meeting_url?: string | null
+  offline_location?: string | null
+}
+
 export type ClientMaterialStatus = 'draft' | 'published' | 'revoked'
 export type ClientMaterialType =
   | 'recommendation'
@@ -2621,6 +2653,66 @@ export async function acceptClientRecordAccountInvite(
   const resp = await http.post<AcceptClientRecordAccountInviteResponse>(
     `/client/client-record-account-invites/${token}/accept/`,
     payload ?? {}
+  )
+  return resp.data
+}
+
+function clientRegularTimesFromPayload(
+  payload: ClientRegularTime[] | { results?: ClientRegularTime[] } | null | undefined
+) {
+  if (Array.isArray(payload)) return payload
+  if (Array.isArray(payload?.results)) return payload.results
+  return []
+}
+
+export async function fetchClientRegularTimes(recordId: number): Promise<ClientRegularTime[]> {
+  const resp = await http.get<ClientRegularTime[] | { results?: ClientRegularTime[] }>(
+    `/cabinet/client-records/${recordId}/regular-times/`
+  )
+  return clientRegularTimesFromPayload(resp.data)
+}
+
+export async function createClientRegularTime(
+  recordId: number,
+  payload: ClientRegularTimePayload
+): Promise<ClientRegularTime> {
+  const resp = await http.post<ClientRegularTime>(
+    `/cabinet/client-records/${recordId}/regular-times/`,
+    payload
+  )
+  return resp.data
+}
+
+export async function updateClientRegularTime(
+  recordId: number,
+  regularTimeId: number,
+  payload: Partial<ClientRegularTimePayload>
+): Promise<ClientRegularTime> {
+  const resp = await http.patch<ClientRegularTime>(
+    `/cabinet/client-records/${recordId}/regular-times/${regularTimeId}/`,
+    payload
+  )
+  return resp.data
+}
+
+export async function pauseClientRegularTime(
+  recordId: number,
+  regularTimeId: number
+): Promise<ClientRegularTime> {
+  const resp = await http.post<ClientRegularTime>(
+    `/cabinet/client-records/${recordId}/regular-times/${regularTimeId}/pause/`,
+    {}
+  )
+  return resp.data
+}
+
+export async function resumeClientRegularTime(
+  recordId: number,
+  regularTimeId: number
+): Promise<ClientRegularTime> {
+  const resp = await http.post<ClientRegularTime>(
+    `/cabinet/client-records/${recordId}/regular-times/${regularTimeId}/resume/`,
+    {}
   )
   return resp.data
 }
