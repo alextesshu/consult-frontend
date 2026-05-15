@@ -141,12 +141,10 @@
         :title="clientsEmptyTitle"
         :description="clientsEmptyDescription"
       />
-      <div v-else class="clients-master-detail">
-        <div class="client-list" aria-label="Список клієнтів">
+      <div v-else class="clients-master-detail" aria-label="Список клієнтів">
+        <template v-for="client in filteredClients" :key="clientListKey(client)">
           <button
-            v-for="client in filteredClients"
             :id="clientRowDomId(client)"
-            :key="clientListKey(client)"
             class="client-row"
             :class="{
               'client-row--manual': isManualClientRecord(client),
@@ -186,16 +184,10 @@
               </span>
             </span>
           </button>
-        </div>
 
-        <aside class="client-detail" aria-live="polite">
-          <div v-if="!selectedVisibleClient" class="client-detail__empty">
-            Виберіть клієнта, щоб переглянути деталі
-          </div>
+        <aside v-if="isClientSelected(client)" class="client-detail" aria-live="polite">
         <article
-          v-for="client in selectedVisibleClient ? [selectedVisibleClient] : []"
           :id="clientCardDomId(client)"
-          :key="clientListKey(client)"
           class="client-card"
           :class="{
             'client-card--manual': isManualClientRecord(client),
@@ -1438,6 +1430,7 @@
           </div>
         </article>
         </aside>
+        </template>
       </div>
     </section>
     <PracticeBoardQuickAddModal
@@ -1947,12 +1940,6 @@ const filteredClients = computed(() => {
   const query = normalizeSearchValue(searchQuery.value)
   if (!query) return byStatus
   return byStatus.filter((client) => matchesClientSearch(client, query))
-})
-
-const selectedVisibleClient = computed(() => {
-  const key = selectedClientKey.value
-  if (!key) return null
-  return filteredClients.value.find((client) => clientSelectionKey(client) === key) || null
 })
 
 watch(filteredClients, (items) => {
@@ -4703,19 +4690,15 @@ onBeforeUnmount(() => {
 
 .clients-master-detail {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(360px, 480px);
-  gap: 14px;
+  grid-template-columns: 1fr;
+  gap: 8px 14px;
   align-items: start;
   margin-top: 10px;
 }
 
-.client-list {
-  display: grid;
-  gap: 8px;
-  min-width: 0;
-}
-
 .client-row {
+  grid-column: 1;
+  order: 0;
   width: 100%;
   min-width: 0;
   border: 1px solid color-mix(in srgb, var(--pc-border) 84%, #ffffff);
@@ -4800,21 +4783,14 @@ onBeforeUnmount(() => {
 }
 
 .client-detail {
+  grid-column: 1;
+  grid-row: auto;
+  order: 1;
   min-width: 0;
-  position: sticky;
+  position: static;
   top: 14px;
   display: grid;
   gap: 12px;
-}
-
-.client-detail__empty {
-  border: 1px dashed color-mix(in srgb, var(--pc-border) 82%, #ffffff);
-  border-radius: var(--pc-radius-panel);
-  padding: 18px;
-  background: color-mix(in srgb, var(--pc-bg-main) 72%, #ffffff);
-  color: var(--pc-text-muted);
-  font-size: 14px;
-  line-height: 1.45;
 }
 
 .client-card {
@@ -4848,6 +4824,19 @@ onBeforeUnmount(() => {
   display: grid;
   gap: 13px;
   min-width: 0;
+}
+
+@media (min-width: 1180px) {
+  .clients-master-detail {
+    grid-template-columns: minmax(0, 1fr) minmax(360px, 480px);
+  }
+
+  .client-detail {
+    grid-column: 2;
+    grid-row: 1 / span 999;
+    order: 0;
+    position: sticky;
+  }
 }
 
 .client-card__identity {
@@ -5710,18 +5699,6 @@ onBeforeUnmount(() => {
     flex-direction: column;
   }
 
-  .clients-master-detail {
-    grid-template-columns: 1fr;
-  }
-
-  .client-detail {
-    position: static;
-  }
-
-  .client-list {
-    grid-template-columns: 1fr;
-  }
-
   .client-card__identity {
     flex-direction: column;
   }
@@ -5763,6 +5740,23 @@ onBeforeUnmount(() => {
 
   .manual-client-modal__actions .btn {
     width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .clients-master-detail {
+    grid-template-columns: 1fr;
+  }
+
+  .client-row,
+  .client-detail {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .client-detail {
+    order: 0;
+    position: static;
   }
 }
 

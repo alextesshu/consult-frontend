@@ -1075,6 +1075,122 @@ describe('TherapistClientsView', () => {
     })
   })
 
+  it('places selected client details directly after the selected row in DOM order', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL)
+        return [
+          {
+            id: 1,
+            client_id: 44,
+            state: 'ACTIVE',
+            last_session_at: null,
+            upcoming_count: 0,
+            client_display_name: 'First Client',
+          },
+          {
+            id: 2,
+            client_id: 55,
+            state: 'ACTIVE',
+            last_session_at: null,
+            upcoming_count: 0,
+            client_display_name: 'Second Client',
+          },
+          {
+            id: 3,
+            client_id: 66,
+            state: 'ACTIVE',
+            last_session_at: null,
+            upcoming_count: 0,
+            client_display_name: 'Third Client',
+          },
+        ]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    const { container } = renderView()
+    const { clientsPanel } = getPanels(container)
+
+    await selectClientRowByName(clientsPanel, 'Second Client')
+
+    await waitFor(() => {
+      const master = clientsPanel.querySelector('.clients-master-detail')
+      expect(master).toBeInstanceOf(HTMLElement)
+      const children = Array.from(master?.children || []) as HTMLElement[]
+      const secondRow = children.find((node) => node.classList.contains('client-row') && node.textContent?.includes('Second Client'))
+      const thirdRow = children.find((node) => node.classList.contains('client-row') && node.textContent?.includes('Third Client'))
+      const detail = children.find((node) => node.classList.contains('client-detail'))
+
+      expect(detail).toBeInstanceOf(HTMLElement)
+      expect(detail).toHaveTextContent('Second Client')
+      expect(detail).not.toHaveTextContent('First Client')
+      expect(detail).not.toHaveTextContent('Third Client')
+      expect(children.indexOf(detail as HTMLElement)).toBe(children.indexOf(secondRow as HTMLElement) + 1)
+      expect(children.indexOf(detail as HTMLElement)).toBeLessThan(children.indexOf(thirdRow as HTMLElement))
+      expect(clientsPanel.querySelectorAll('.client-detail')).toHaveLength(1)
+    })
+  })
+
+  it('keeps regular time accordion available inside inline selected client details', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL)
+        return [
+          {
+            id: 1,
+            client_id: 44,
+            client_record_id: 901,
+            state: 'ACTIVE',
+            last_session_at: null,
+            upcoming_count: 0,
+            client_display_name: 'First Client',
+          },
+          {
+            id: 2,
+            client_id: 55,
+            client_record_id: 902,
+            state: 'ACTIVE',
+            last_session_at: null,
+            upcoming_count: 0,
+            client_display_name: 'Second Client',
+          },
+          {
+            id: 3,
+            client_id: 66,
+            client_record_id: 903,
+            state: 'ACTIVE',
+            last_session_at: null,
+            upcoming_count: 0,
+            client_display_name: 'Third Client',
+          },
+        ]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedFetchClientRegularTimes.mockResolvedValue([
+      regularTimeRecord({ client_record: 902, weekday: 2, start_time: '15:00' }),
+    ] as any)
+
+    const { container } = renderView()
+    const { clientsPanel } = getPanels(container)
+
+    const selectedRow = await selectClientRowByName(clientsPanel, 'Second Client')
+    const inlineDetail = await waitFor(() => {
+      const detail = selectedRow.nextElementSibling
+      expect(detail).toBeInstanceOf(HTMLElement)
+      expect(detail).toHaveClass('client-detail')
+      return detail as HTMLElement
+    })
+    const selectedCard = inlineDetail.querySelector('.client-card') as HTMLElement
+
+    await openAccordionSection(selectedCard, 'Регулярний час')
+
+    await waitFor(() => {
+      expect(mockedFetchClientRegularTimes).toHaveBeenCalledWith(902)
+      expect(selectedCard).toHaveTextContent('Середа, 15:00')
+      expect(selectedCard).toHaveTextContent('щотижня')
+    })
+  })
+
   it('shows useful empty copy for no clients, filtered lists, archive, and search', async () => {
     mockedApiGet.mockImplementation(async (url) => {
       if (url === CLIENTS_URL) return []
