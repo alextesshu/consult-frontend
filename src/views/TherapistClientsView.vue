@@ -720,12 +720,16 @@
                       </label>
                       <label class="field">
                         Час початку
-                        <input
-                          class="input"
-                          type="time"
+                        <select
+                          class="input input--select"
                           :value="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').form.start_time"
-                          @input="setRegularTimeFormField(client, { start_time: String(($event.target as HTMLInputElement | null)?.value || '') })"
-                        />
+                          @change="setRegularTimeFormField(client, { start_time: String(($event.target as HTMLSelectElement | null)?.value || '') })"
+                        >
+                          <option value="" disabled>Оберіть час</option>
+                          <option v-for="option in regularTimeTimeOptions" :key="option" :value="option">
+                            {{ option }}
+                          </option>
+                        </select>
                       </label>
                       <label class="field">
                         Тривалість
@@ -753,14 +757,55 @@
                       </label>
                       <label class="field">
                         Починаючи з
-                        <input
-                          class="input"
-                          type="text"
-                          inputmode="numeric"
-                          placeholder="20.05.2026"
-                          :value="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').form.starts_on"
-                          @input="setRegularTimeFormField(client, { starts_on: String(($event.target as HTMLInputElement | null)?.value || '') })"
-                        />
+                        <div class="date-input-shell client-regular-times__date">
+                          <input
+                            class="input"
+                            type="text"
+                            inputmode="numeric"
+                            placeholder="дд.мм.рррр"
+                            readonly
+                            :value="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').form.starts_on"
+                            @focus="openRegularTimeDatePicker(client)"
+                          />
+                          <button
+                            class="date-picker-trigger"
+                            type="button"
+                            aria-label="Вибрати дату"
+                            @click="openRegularTimeDatePicker(client)"
+                          >
+                            <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+                              <path d="M7 2v3M17 2v3M4 9h16M6 4h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z" />
+                            </svg>
+                          </button>
+                          <div
+                            v-if="regularTimeDatePickerScopeKey === clientRegularTimesScopeKey(client)"
+                            class="date-picker-popover"
+                            role="dialog"
+                            aria-label="Календар вибору дати"
+                          >
+                            <div class="date-picker-popover__header">
+                              <button class="btn btn--ghost btn--sm" type="button" aria-label="Попередній місяць" @click="shiftRegularTimeDatePickerMonth(-1)">&lt;</button>
+                              <strong>{{ regularTimeDatePickerMonthLabel }}</strong>
+                              <button class="btn btn--ghost btn--sm" type="button" aria-label="Наступний місяць" @click="shiftRegularTimeDatePickerMonth(1)">&gt;</button>
+                            </div>
+                            <div class="date-picker-grid" aria-hidden="true">
+                              <span v-for="weekday in regularTimeDatePickerWeekdays" :key="weekday">{{ weekday }}</span>
+                            </div>
+                            <div class="date-picker-grid">
+                              <button
+                                v-for="day in regularTimeDatePickerDays"
+                                :key="day.iso"
+                                class="date-picker-day"
+                                type="button"
+                                :class="{ 'date-picker-day--muted': !day.inMonth, 'date-picker-day--selected': isRegularTimeDatePickerDaySelected(client, day.iso), 'date-picker-day--today': day.isToday }"
+                                :aria-label="regularTimeIsoDateToDisplay(day.iso)"
+                                @click="selectRegularTimeDateFromPicker(client, day.iso)"
+                              >
+                                {{ day.label }}
+                              </button>
+                            </div>
+                          </div>
+                        </div>
                       </label>
                       <label class="field">
                         Формат
@@ -1166,12 +1211,16 @@
                       </label>
                       <label class="field">
                         Час початку
-                        <input
-                          class="input"
-                          type="time"
+                        <select
+                          class="input input--select"
                           :value="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').form.start_time"
-                          @input="setRegularTimeFormField(client, { start_time: String(($event.target as HTMLInputElement | null)?.value || '') })"
-                        />
+                          @change="setRegularTimeFormField(client, { start_time: String(($event.target as HTMLSelectElement | null)?.value || '') })"
+                        >
+                          <option value="" disabled>Оберіть час</option>
+                          <option v-for="option in regularTimeTimeOptions" :key="option" :value="option">
+                            {{ option }}
+                          </option>
+                        </select>
                       </label>
                       <label class="field">
                         Тривалість
@@ -1199,14 +1248,55 @@
                       </label>
                       <label class="field">
                         Починаючи з
-                        <input
-                          class="input"
-                          type="text"
-                          inputmode="numeric"
-                          placeholder="20.05.2026"
-                          :value="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').form.starts_on"
-                          @input="setRegularTimeFormField(client, { starts_on: String(($event.target as HTMLInputElement | null)?.value || '') })"
-                        />
+                        <div class="date-input-shell client-regular-times__date">
+                          <input
+                            class="input"
+                            type="text"
+                            inputmode="numeric"
+                            placeholder="дд.мм.рррр"
+                            readonly
+                            :value="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').form.starts_on"
+                            @focus="openRegularTimeDatePicker(client)"
+                          />
+                          <button
+                            class="date-picker-trigger"
+                            type="button"
+                            aria-label="Вибрати дату"
+                            @click="openRegularTimeDatePicker(client)"
+                          >
+                            <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+                              <path d="M7 2v3M17 2v3M4 9h16M6 4h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z" />
+                            </svg>
+                          </button>
+                          <div
+                            v-if="regularTimeDatePickerScopeKey === clientRegularTimesScopeKey(client)"
+                            class="date-picker-popover"
+                            role="dialog"
+                            aria-label="Календар вибору дати"
+                          >
+                            <div class="date-picker-popover__header">
+                              <button class="btn btn--ghost btn--sm" type="button" aria-label="Попередній місяць" @click="shiftRegularTimeDatePickerMonth(-1)">&lt;</button>
+                              <strong>{{ regularTimeDatePickerMonthLabel }}</strong>
+                              <button class="btn btn--ghost btn--sm" type="button" aria-label="Наступний місяць" @click="shiftRegularTimeDatePickerMonth(1)">&gt;</button>
+                            </div>
+                            <div class="date-picker-grid" aria-hidden="true">
+                              <span v-for="weekday in regularTimeDatePickerWeekdays" :key="weekday">{{ weekday }}</span>
+                            </div>
+                            <div class="date-picker-grid">
+                              <button
+                                v-for="day in regularTimeDatePickerDays"
+                                :key="day.iso"
+                                class="date-picker-day"
+                                type="button"
+                                :class="{ 'date-picker-day--muted': !day.inMonth, 'date-picker-day--selected': isRegularTimeDatePickerDaySelected(client, day.iso), 'date-picker-day--today': day.isToday }"
+                                :aria-label="regularTimeIsoDateToDisplay(day.iso)"
+                                @click="selectRegularTimeDateFromPicker(client, day.iso)"
+                              >
+                                {{ day.label }}
+                              </button>
+                            </div>
+                          </div>
+                        </div>
                       </label>
                       <label class="field">
                         Формат
@@ -1923,6 +2013,8 @@ const manualSessionDraft = ref<ManualClientSessionFormState>({
 const accountInviteStateByRecordId = ref<Record<number, AccountInviteState>>({})
 const materialsStateByScopeKey = ref<Record<string, ClientMaterialsState>>({})
 const regularTimesStateByScopeKey = ref<Record<string, ClientRegularTimesState>>({})
+const regularTimeDatePickerScopeKey = ref<string | null>(null)
+const regularTimeDatePickerMonth = ref(regularTimeToIsoDate(new Date()))
 
 const retryLabel = '\u0421\u043f\u0440\u043e\u0431\u0443\u0432\u0430\u0442\u0438 \u0449\u0435 \u0440\u0430\u0437'
 const remindersErrorTitle = '\u041d\u0435 \u0432\u0434\u0430\u043b\u043e\u0441\u044f \u0437\u0430\u0432\u0430\u043d\u0442\u0430\u0436\u0438\u0442\u0438 \u043d\u0430\u0433\u0430\u0434\u0443\u0432\u0430\u043d\u043d\u044f'
@@ -2296,6 +2388,29 @@ const regularTimeFormatOptions: Array<{ value: SessionFormat; label: string }> =
   { value: 'offline', label: 'Офлайн' },
 ]
 
+const regularTimeTimeOptions = Array.from({ length: 24 * 4 }, (_, index) => {
+  const minutes = index * 15
+  const hours = String(Math.floor(minutes / 60)).padStart(2, '0')
+  const mins = String(minutes % 60).padStart(2, '0')
+  return `${hours}:${mins}`
+})
+
+const regularTimeDatePickerWeekdays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд']
+const regularTimeDatePickerMonths = [
+  'січень',
+  'лютий',
+  'березень',
+  'квітень',
+  'травень',
+  'червень',
+  'липень',
+  'серпень',
+  'вересень',
+  'жовтень',
+  'листопад',
+  'грудень',
+]
+
 function defaultRegularTimeDraft(): ClientRegularTimeDraft {
   return {
     weekday: 0,
@@ -2308,6 +2423,62 @@ function defaultRegularTimeDraft(): ClientRegularTimeDraft {
     offline_location: '',
   }
 }
+
+function regularTimeToIsoDate(date: Date): string {
+  const offset = date.getTimezoneOffset() * 60000
+  return new Date(date.getTime() - offset).toISOString().slice(0, 10)
+}
+
+function regularTimeParseIsoDate(value: string): Date | null {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value || '').trim())
+  if (!match) return null
+  const year = Number(match[1])
+  const month = Number(match[2])
+  const day = Number(match[3])
+  const date = new Date(year, month - 1, day, 0, 0, 0, 0)
+  if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) return null
+  return date
+}
+
+function regularTimeIsoDateToDisplay(value: string): string {
+  const parsed = regularTimeParseIsoDate(value)
+  if (!parsed) return formatRegularTimeDate(value)
+  const day = String(parsed.getDate()).padStart(2, '0')
+  const month = String(parsed.getMonth() + 1).padStart(2, '0')
+  return `${day}.${month}.${parsed.getFullYear()}`
+}
+
+const regularTimeDatePickerMonthDate = computed(() => {
+  const parsed = regularTimeParseIsoDate(regularTimeDatePickerMonth.value) || new Date()
+  return new Date(parsed.getFullYear(), parsed.getMonth(), 1)
+})
+
+const regularTimeDatePickerMonthLabel = computed(() => {
+  const month = regularTimeDatePickerMonthDate.value.getMonth()
+  const year = regularTimeDatePickerMonthDate.value.getFullYear()
+  return `${regularTimeDatePickerMonths[month] || ''} ${year}`
+})
+
+const regularTimeDatePickerDays = computed(() => {
+  const monthStart = regularTimeDatePickerMonthDate.value
+  const gridStart = new Date(monthStart)
+  const day = gridStart.getDay()
+  const mondayOffset = day === 0 ? -6 : 1 - day
+  const todayIso = regularTimeToIsoDate(new Date())
+  gridStart.setDate(gridStart.getDate() + mondayOffset)
+
+  return Array.from({ length: 42 }, (_, index) => {
+    const date = new Date(gridStart)
+    date.setDate(gridStart.getDate() + index)
+    const iso = regularTimeToIsoDate(date)
+    return {
+      iso,
+      label: String(date.getDate()),
+      inMonth: date.getMonth() === monthStart.getMonth(),
+      isToday: iso === todayIso,
+    }
+  })
+})
 
 function defaultRegularTimesState(): ClientRegularTimesState {
   return {
@@ -2355,6 +2526,49 @@ function updateClientRegularTimesState(scopeKey: string, patch: Partial<ClientRe
   }
 }
 
+function openRegularTimeDatePicker(client: ClientListItem) {
+  const scopeKey = clientRegularTimesScopeKey(client)
+  if (!scopeKey) return
+  const isoDate = parseRegularTimeDate(clientRegularTimesState(scopeKey).form.starts_on)
+  const parsed = regularTimeParseIsoDate(isoDate) || new Date()
+  regularTimeDatePickerScopeKey.value = scopeKey
+  regularTimeDatePickerMonth.value = regularTimeToIsoDate(new Date(parsed.getFullYear(), parsed.getMonth(), 1))
+}
+
+function shiftRegularTimeDatePickerMonth(direction: number) {
+  const current = regularTimeDatePickerMonthDate.value
+  regularTimeDatePickerMonth.value = regularTimeToIsoDate(
+    new Date(current.getFullYear(), current.getMonth() + direction, 1)
+  )
+}
+
+function selectRegularTimeDateFromPicker(client: ClientListItem, isoDate: string) {
+  if (!regularTimeParseIsoDate(isoDate)) return
+  setRegularTimeFormField(client, { starts_on: regularTimeIsoDateToDisplay(isoDate) })
+  closeRegularTimeDatePicker()
+}
+
+function closeRegularTimeDatePicker() {
+  regularTimeDatePickerScopeKey.value = null
+}
+
+function handleRegularTimeDatePickerPointerDown(event: PointerEvent) {
+  if (!regularTimeDatePickerScopeKey.value) return
+  const target = event.target
+  if (target instanceof Element && target.closest('.client-regular-times__date')) return
+  closeRegularTimeDatePicker()
+}
+
+function handleRegularTimeDatePickerKeydown(event: KeyboardEvent) {
+  if (event.key === 'Escape') closeRegularTimeDatePicker()
+}
+
+function isRegularTimeDatePickerDaySelected(client: ClientListItem, isoDate: string) {
+  const scopeKey = clientRegularTimesScopeKey(client)
+  if (!scopeKey || regularTimeDatePickerScopeKey.value !== scopeKey) return false
+  return parseRegularTimeDate(clientRegularTimesState(scopeKey).form.starts_on) === isoDate
+}
+
 function regularTimeWeekdayLabel(value: number): string {
   return regularTimeWeekdayOptions.find((option) => option.value === Number(value))?.label || String(value)
 }
@@ -2381,7 +2595,10 @@ function regularTimeStatusClass(status: ClientRegularTimeStatus | string): strin
 function normalizeRegularTimeValue(value: string): string {
   const trimmed = String(value || '').trim()
   const match = /^(\d{1,2}):(\d{2})(?::\d{2})?$/.exec(trimmed)
-  if (!match) return trimmed
+  if (!match) return ''
+  const hours = Number(match[1])
+  const minutes = Number(match[2])
+  if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) return ''
   return `${String(Number(match[1])).padStart(2, '0')}:${match[2]}`
 }
 
@@ -2439,8 +2656,8 @@ function regularTimePayloadFromDraft(draft: ClientRegularTimeDraft): ClientRegul
     frequency: draft.frequency,
     starts_on: startsOn,
     session_format: draft.session_format,
-    meeting_url: draft.meeting_url.trim() || null,
-    offline_location: draft.offline_location.trim() || null,
+    meeting_url: draft.meeting_url.trim(),
+    offline_location: draft.offline_location.trim(),
   }
 }
 
@@ -2536,6 +2753,7 @@ function openRegularTimeEditForm(client: ClientListItem, item: ClientRegularTime
 function cancelRegularTimeForm(client: ClientListItem) {
   const scopeKey = clientRegularTimesScopeKey(client)
   if (!scopeKey) return
+  closeRegularTimeDatePicker()
   updateClientRegularTimesState(scopeKey, {
     formOpen: false,
     editingId: null,
@@ -2570,9 +2788,10 @@ async function saveRegularTime(client: ClientListItem) {
     updateClientRegularTimesState(scopeKey, { formError: regularTimeValidationMessage(state.form) })
     return
   }
+  const isUpdate = Boolean(state.editingId)
   updateClientRegularTimesState(scopeKey, { saving: true, formError: '' })
   try {
-    if (state.editingId) {
+    if (isUpdate && state.editingId) {
       await updateClientRegularTime(recordId, state.editingId, payload)
     } else {
       await createClientRegularTime(recordId, payload)
@@ -2582,7 +2801,9 @@ async function saveRegularTime(client: ClientListItem) {
       editingId: null,
       form: defaultRegularTimeDraft(),
     })
+    closeRegularTimeDatePicker()
     await loadClientRegularTimes(client)
+    toast.success(isUpdate ? 'Регулярний час оновлено.' : 'Регулярний час додано.')
   } catch (err) {
     updateClientRegularTimesState(scopeKey, { formError: regularTimeSaveErrorMessage(err) })
   } finally {
@@ -2598,6 +2819,7 @@ async function pauseRegularTime(client: ClientListItem, regularTimeId: number) {
   try {
     await pauseClientRegularTime(recordId, regularTimeId)
     await loadClientRegularTimes(client)
+    toast.success('Регулярний час поставлено на паузу.')
   } catch (err) {
     updateClientRegularTimesState(scopeKey, { listError: regularTimeSaveErrorMessage(err) })
   } finally {
@@ -2615,6 +2837,7 @@ async function resumeRegularTime(client: ClientListItem, regularTimeId: number) 
   try {
     await resumeClientRegularTime(recordId, regularTimeId)
     await loadClientRegularTimes(client)
+    toast.success('Регулярний час відновлено.')
   } catch (err) {
     updateClientRegularTimesState(scopeKey, { listError: regularTimeSaveErrorMessage(err) })
   } finally {
@@ -4418,6 +4641,8 @@ async function openClientFromDeepLinkIfNeeded() {
 }
 
 onMounted(async () => {
+  document.addEventListener('pointerdown', handleRegularTimeDatePickerPointerDown)
+  document.addEventListener('keydown', handleRegularTimeDatePickerKeydown)
   await Promise.all([
     loadClients(),
     loadManualClientRecords(),
@@ -4429,6 +4654,8 @@ onMounted(async () => {
 })
 
 onBeforeUnmount(() => {
+  document.removeEventListener('pointerdown', handleRegularTimeDatePickerPointerDown)
+  document.removeEventListener('keydown', handleRegularTimeDatePickerKeydown)
   clearClientCardHighlightTimer()
 })
 </script>
@@ -4836,6 +5063,9 @@ onBeforeUnmount(() => {
     grid-row: 1 / span 999;
     order: 0;
     position: sticky;
+    max-height: calc(100dvh - 28px);
+    overflow-y: auto;
+    scrollbar-gutter: stable;
   }
 }
 
@@ -5293,6 +5523,126 @@ onBeforeUnmount(() => {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+.client-regular-times__date {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 42px;
+  gap: 6px;
+  align-items: center;
+  min-width: 0;
+}
+
+.date-picker-trigger {
+  height: 40px;
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-control);
+  background: #fff;
+  color: var(--pc-navy-900);
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.date-picker-trigger svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.date-picker-trigger:hover,
+.date-picker-trigger:focus-visible {
+  border-color: color-mix(in srgb, var(--pc-navy-900) 28%, var(--pc-border));
+  background: color-mix(in srgb, var(--pc-blue-soft) 76%, #ffffff);
+}
+
+.date-picker-popover {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 40;
+  width: 100%;
+  min-width: min(260px, calc(100vw - 48px));
+  max-width: 300px;
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-card);
+  background: #fff;
+  box-shadow: var(--pc-shadow-soft);
+  padding: 10px;
+}
+
+.date-picker-popover__header {
+  display: grid;
+  grid-template-columns: 34px 1fr 34px;
+  gap: 6px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.date-picker-popover__header strong {
+  text-align: center;
+  color: var(--pc-navy-900);
+  font-size: 13px;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.date-picker-popover__header .btn {
+  min-width: 0;
+  width: 34px;
+  height: 32px;
+  padding: 0;
+}
+
+.date-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 3px;
+}
+
+.date-picker-grid span {
+  text-align: center;
+  color: var(--pc-text-muted);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 0;
+}
+
+.date-picker-day {
+  height: 30px;
+  border: 1px solid transparent;
+  border-radius: var(--pc-radius-xs);
+  background: #fff;
+  color: var(--pc-navy-900);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.date-picker-day:hover,
+.date-picker-day:focus-visible {
+  border-color: color-mix(in srgb, var(--pc-navy-900) 24%, var(--pc-border));
+  background: color-mix(in srgb, var(--pc-blue-soft) 72%, #ffffff);
+}
+
+.date-picker-day--muted {
+  color: var(--pc-text-muted);
+  background: color-mix(in srgb, var(--pc-bg-soft) 52%, #ffffff);
+}
+
+.date-picker-day--selected {
+  border-color: color-mix(in srgb, var(--pc-navy-900) 38%, var(--pc-border));
+  background: color-mix(in srgb, var(--pc-primary-soft) 80%, #ffffff);
+  font-weight: 800;
+}
+
+.date-picker-day--today {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--pc-navy-900) 18%, transparent);
 }
 
 .client-regular-times__empty {
