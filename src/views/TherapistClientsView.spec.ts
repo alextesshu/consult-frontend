@@ -2370,7 +2370,11 @@ describe('TherapistClientsView', () => {
     })
     expect(within(manualCard).getByText('Матеріали для клієнта')).toBeInTheDocument()
     await openAccordionSection(manualCard, 'Матеріали для клієнта')
-    expect(within(manualCard).getByText('Матеріал можна підготувати зараз. Клієнт побачить його після підключення акаунта.')).toBeInTheDocument()
+    expect(
+      within(manualCard).getByText(
+        'Клієнт побачить матеріали після підключення кабінету. Для клієнтів без кабінету спершу надішліть запрошення в “Керування клієнтом”.'
+      )
+    ).toBeInTheDocument()
   })
 
   it('creates draft material via specialist endpoint', async () => {

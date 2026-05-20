@@ -337,7 +337,7 @@
                 <span class="client-accordion__summary">{{ accordionSummary(client, 'materials') }}</span>
               </button>
               <p v-if="isAccordionSectionOpen(client, 'materials') && isManualClientRecord(client) && !hasLinkedAccount(client)" class="client-materials__note">
-                Матеріал можна підготувати зараз. Клієнт побачить його після підключення акаунта.
+                Клієнт побачить матеріали після підключення кабінету. Для клієнтів без кабінету спершу надішліть запрошення в “Керування клієнтом”.
               </p>
               <div v-if="isAccordionSectionOpen(client, 'materials')" class="client-materials__body">
                 <p v-if="clientMaterialsState(clientMaterialsScopeKey(client) || '').listError" class="form-error">{{ clientMaterialsState(clientMaterialsScopeKey(client) || '').listError }}</p>
