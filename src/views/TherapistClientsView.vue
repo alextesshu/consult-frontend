@@ -5232,7 +5232,7 @@ onBeforeUnmount(() => {
 .client-detail {
   grid-column: 1;
   grid-row: auto;
-  order: 1;
+  order: 0;
   min-width: 0;
   position: static;
   top: 14px;

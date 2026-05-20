@@ -1166,6 +1166,111 @@ describe('TherapistClientsView', () => {
     })
   })
 
+  it('keeps selected client detail in inline visual order on tablet-width layouts', async () => {
+    Object.defineProperty(window, 'innerWidth', {
+      configurable: true,
+      value: 820,
+    })
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL)
+        return [
+          {
+            id: 1,
+            client_id: 44,
+            state: 'ACTIVE',
+            last_session_at: null,
+            upcoming_count: 0,
+            client_display_name: 'Tablet First',
+          },
+          {
+            id: 2,
+            client_id: 55,
+            state: 'ACTIVE',
+            last_session_at: null,
+            upcoming_count: 0,
+            client_display_name: 'Tablet Second',
+          },
+        ]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    const { container } = renderView()
+    const { clientsPanel } = getPanels(container)
+
+    const selectedRow = await selectClientRowByName(clientsPanel, 'Tablet First')
+    const detail = await waitFor(() => {
+      const node = selectedRow.nextElementSibling
+      expect(node).toBeInstanceOf(HTMLElement)
+      expect(node).toHaveClass('client-detail')
+      return node as HTMLElement
+    })
+    const secondRow = await waitFor(() => {
+      const node = Array.from(clientsPanel.querySelectorAll('.client-row')).find((item) =>
+        item.textContent?.includes('Tablet Second')
+      )
+      expect(node).toBeInstanceOf(HTMLElement)
+      return node as HTMLElement
+    })
+
+    expect(detail.compareDocumentPosition(secondRow) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+
+  it('moves inline selected client detail under the newly selected row', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL)
+        return [
+          {
+            id: 1,
+            client_id: 44,
+            state: 'ACTIVE',
+            last_session_at: null,
+            upcoming_count: 0,
+            client_display_name: 'Move First',
+          },
+          {
+            id: 2,
+            client_id: 55,
+            state: 'ACTIVE',
+            last_session_at: null,
+            upcoming_count: 0,
+            client_display_name: 'Move Second',
+          },
+          {
+            id: 3,
+            client_id: 66,
+            state: 'ACTIVE',
+            last_session_at: null,
+            upcoming_count: 0,
+            client_display_name: 'Move Third',
+          },
+        ]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    const { container } = renderView()
+    const { clientsPanel } = getPanels(container)
+
+    const firstRow = await selectClientRowByName(clientsPanel, 'Move First')
+    await waitFor(() => {
+      expect(firstRow.nextElementSibling).toBeInstanceOf(HTMLElement)
+      expect(firstRow.nextElementSibling).toHaveClass('client-detail')
+      expect(firstRow.nextElementSibling).toHaveTextContent('Move First')
+    })
+
+    const secondRow = await selectClientRowByName(clientsPanel, 'Move Second')
+
+    await waitFor(() => {
+      expect(firstRow.nextElementSibling).toHaveClass('client-row')
+      expect(firstRow.nextElementSibling).toHaveTextContent('Move Second')
+      expect(secondRow.nextElementSibling).toBeInstanceOf(HTMLElement)
+      expect(secondRow.nextElementSibling).toHaveClass('client-detail')
+      expect(secondRow.nextElementSibling).toHaveTextContent('Move Second')
+      expect(clientsPanel.querySelectorAll('.client-detail')).toHaveLength(1)
+    })
+  })
+
   it('keeps regular time accordion available inside inline selected client details', async () => {
     mockedApiGet.mockImplementation(async (url) => {
       if (url === CLIENTS_URL)
