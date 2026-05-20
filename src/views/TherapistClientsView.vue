@@ -308,15 +308,6 @@
                 Створити сесію
               </button>
 
-              <button
-                class="btn btn--ghost btn--sm"
-                type="button"
-                :disabled="isManualActionLoading(client.id)"
-                @click="openManualClientEditModal(client)"
-              >
-                Редагувати
-              </button>
-
               <RouterLink
                 v-if="manualClientNearestSession(client)"
                 class="btn btn--ghost btn--sm"
@@ -335,86 +326,6 @@
             </div>
 
             <div class="client-accordion">
-            <section v-if="!hasLinkedAccount(client)" class="client-accordion__section manual-account-invite">
-              <button
-                class="client-accordion__header"
-                type="button"
-                :aria-expanded="isAccordionSectionOpen(client, 'invite')"
-                @click="toggleClientAccordion(client, 'invite')"
-              >
-                <span>Запросити до кабінету</span>
-                <span class="client-accordion__summary">{{ accordionSummary(client, 'invite') }}</span>
-              </button>
-              <div v-if="isAccordionSectionOpen(client, 'invite')" class="client-accordion__body">
-              <div class="manual-account-invite__header">
-                <div>
-                  <div class="manual-account-invite__title">Запросити до кабінету</div>
-                  <p class="manual-account-invite__copy">
-                    Клієнт зможе увійти або зареєструватися і побачити свої сесії в кабінеті.
-                  </p>
-                </div>
-                <span v-if="accountInviteState(client.id).loading" class="manual-account-invite__status">
-                  Перевіряємо...
-                </span>
-              </div>
-
-              <p v-if="accountInviteState(client.id).error" class="manual-account-invite__error">
-                {{ accountInviteState(client.id).error }}
-              </p>
-
-              <template v-if="activeAccountInvite(client.id)">
-                <p class="manual-account-invite__status">
-                  {{ accountInviteStatusLabel(activeAccountInvite(client.id)) }}
-                </p>
-
-                <div v-if="accountInviteUrl(client.id)" class="manual-account-invite__link">
-                  {{ accountInviteUrl(client.id) }}
-                </div>
-                <p v-else class="manual-account-invite__hint">
-                  Запрошення вже було відкрито, але клієнт ще не підключив акаунт.
-                </p>
-
-                <div class="manual-account-invite__actions">
-                  <button
-                    v-if="accountInviteUrl(client.id)"
-                    class="btn btn--ghost btn--sm"
-                    type="button"
-                    :disabled="accountInviteState(client.id).actionLoading"
-                    @click="copyAccountInviteLink(client.id)"
-                  >
-                    {{ accountInviteState(client.id).copied ? 'Посилання скопійовано' : 'Скопіювати посилання' }}
-                  </button>
-                  <button
-                    class="btn btn--ghost btn--sm"
-                    type="button"
-                    :disabled="accountInviteState(client.id).actionLoading"
-                    @click="regenerateAccountInvite(client.id)"
-                  >
-                    {{ accountInviteUrl(client.id) ? 'Створити нове посилання' : 'Отримати нове посилання' }}
-                  </button>
-                  <button
-                    class="btn btn--ghost btn--sm"
-                    type="button"
-                    :disabled="accountInviteState(client.id).actionLoading"
-                    @click="revokeAccountInvite(client.id)"
-                  >
-                    Відкликати
-                  </button>
-                </div>
-              </template>
-
-              <button
-                v-else
-                class="btn btn--ghost btn--sm manual-account-invite__cta"
-                type="button"
-                :disabled="accountInviteState(client.id).actionLoading || accountInviteState(client.id).loading"
-                @click="createAccountInvite(client.id)"
-              >
-                {{ accountInviteState(client.id).actionLoading ? 'Створюємо...' : 'Запросити до кабінету' }}
-              </button>
-              </div>
-            </section>
-
             <section class="client-accordion__section client-materials">
               <button
                 class="client-accordion__header"
@@ -633,23 +544,10 @@
                   Зафіксуйте постійну домовленість із клієнтом: день, час, тривалість і формат зустрічі.
                 </p>
                 <div v-if="!clientRegularTimesScopeKey(client)" class="client-regular-times__activation">
-                  <template v-if="canActivateRegisteredClientRecord(client)">
-                    <p class="muted">
-                      Регулярний час недоступний, бо клієнт не має активної робочої картки.
-                      Активуйте клієнта, щоб додавати регулярний час, матеріали й сесії.
-                    </p>
-                    <p v-if="activateClientRecordError(client)" class="form-error">
-                      {{ activateClientRecordError(client) }}
-                    </p>
-                    <button
-                      class="btn btn--ghost btn--sm"
-                      type="button"
-                      :disabled="isActivatingClientRecord(client)"
-                      @click="activateClientRecord(client)"
-                    >
-                      {{ isActivatingClientRecord(client) ? 'Активуємо...' : 'Активувати клієнта' }}
-                    </button>
-                  </template>
+                  <p v-if="canActivateRegisteredClientRecord(client)" class="muted">
+                    Регулярний час недоступний, бо клієнт не має активної робочої картки.
+                    Активуйте клієнта в розділі “Керування клієнтом”.
+                  </p>
                   <p v-else class="muted">
                     Регулярний час можна буде додати після створення картки клієнта.
                   </p>
@@ -903,16 +801,96 @@
               >
                 <span>Керування клієнтом</span>
                 <span class="client-accordion__summary">{{ accordionSummary(client, 'settings') }}</span>
-              </button>
+            </button>
             <div v-if="isAccordionSectionOpen(client, 'settings')" class="client-accordion__body client-actions__secondary">
+              <div v-if="!hasLinkedAccount(client)" class="manual-account-invite">
+                <div class="manual-account-invite__header">
+                  <div>
+                    <div class="manual-account-invite__title">Доступ до кабінету</div>
+                    <p class="manual-account-invite__copy">
+                      Клієнт ще не має доступу до кабінету. Надішліть запрошення, щоб він міг бачити свої сесії, нагадування й матеріали.
+                    </p>
+                  </div>
+                  <span v-if="accountInviteState(client.id).loading" class="manual-account-invite__status">
+                    Перевіряємо...
+                  </span>
+                </div>
+
+                <p v-if="accountInviteState(client.id).error" class="manual-account-invite__error">
+                  {{ accountInviteState(client.id).error }}
+                </p>
+
+                <template v-if="activeAccountInvite(client.id)">
+                  <p class="manual-account-invite__status">
+                    {{ accountInviteStatusLabel(activeAccountInvite(client.id)) }}
+                  </p>
+
+                  <div v-if="accountInviteUrl(client.id)" class="manual-account-invite__link">
+                    {{ accountInviteUrl(client.id) }}
+                  </div>
+                  <p v-else class="manual-account-invite__hint">
+                    Запрошення вже було відкрито, але клієнт ще не підключив акаунт.
+                  </p>
+
+                  <div class="manual-account-invite__actions">
+                    <button
+                      v-if="accountInviteUrl(client.id)"
+                      class="btn btn--ghost btn--sm"
+                      type="button"
+                      :disabled="accountInviteState(client.id).actionLoading"
+                      @click="copyAccountInviteLink(client.id)"
+                    >
+                      {{ accountInviteState(client.id).copied ? 'Посилання скопійовано' : 'Скопіювати посилання' }}
+                    </button>
+                    <button
+                      class="btn btn--ghost btn--sm"
+                      type="button"
+                      :disabled="accountInviteState(client.id).actionLoading"
+                      @click="regenerateAccountInvite(client.id)"
+                    >
+                      {{ accountInviteUrl(client.id) ? 'Створити нове посилання' : 'Отримати нове посилання' }}
+                    </button>
+                    <button
+                      class="btn btn--ghost btn--sm"
+                      type="button"
+                      :disabled="accountInviteState(client.id).actionLoading"
+                      @click="revokeAccountInvite(client.id)"
+                    >
+                      Відкликати
+                    </button>
+                  </div>
+                </template>
+
+                <button
+                  v-else
+                  class="btn btn--ghost btn--sm manual-account-invite__cta"
+                  type="button"
+                  :disabled="accountInviteState(client.id).actionLoading || accountInviteState(client.id).loading"
+                  @click="createAccountInvite(client.id)"
+                >
+                  {{ accountInviteState(client.id).actionLoading ? 'Надсилаємо...' : 'Надіслати запрошення' }}
+                </button>
+              </div>
+              <div v-else class="client-management__access-status">
+                <div class="manual-account-invite__title">Доступ до кабінету</div>
+                <p class="muted">Клієнт має доступ до кабінету.</p>
+              </div>
+              <button
+                class="btn btn--ghost btn--sm"
+                type="button"
+                :disabled="isManualActionLoading(client.id)"
+                @click="openManualClientEditModal(client)"
+              >
+                Редагувати дані клієнта
+              </button>
               <button
                 v-if="client.status !== 'archived'"
                 class="btn btn--ghost btn--sm"
                 type="button"
                 :disabled="isManualActionLoading(client.id)"
-                @click="archiveManualClient(client.id)"
+                @click="openArchiveClientConfirm({ type: 'manual', id: client.id })"
               >
-                Архівувати
+                Завершити роботу
               </button>
               <button
                 v-else
@@ -921,7 +899,7 @@
                 :disabled="isManualActionLoading(client.id)"
                 @click="restoreManualClient(client.id)"
               >
-                Відновити
+                Повернути в роботу
               </button>
             </div>
             </section>
@@ -1162,23 +1140,10 @@
                   Зафіксуйте постійну домовленість із клієнтом: день, час, тривалість і формат зустрічі.
                 </p>
                 <div v-if="!clientRegularTimesScopeKey(client)" class="client-regular-times__activation">
-                  <template v-if="canActivateRegisteredClientRecord(client)">
-                    <p class="muted">
-                      Регулярний час недоступний, бо клієнт не має активної робочої картки.
-                      Активуйте клієнта, щоб додавати регулярний час, матеріали й сесії.
-                    </p>
-                    <p v-if="activateClientRecordError(client)" class="form-error">
-                      {{ activateClientRecordError(client) }}
-                    </p>
-                    <button
-                      class="btn btn--ghost btn--sm"
-                      type="button"
-                      :disabled="isActivatingClientRecord(client)"
-                      @click="activateClientRecord(client)"
-                    >
-                      {{ isActivatingClientRecord(client) ? 'Активуємо...' : 'Активувати клієнта' }}
-                    </button>
-                  </template>
+                  <p v-if="canActivateRegisteredClientRecord(client)" class="muted">
+                    Регулярний час недоступний, бо клієнт не має активної робочої картки.
+                    Активуйте клієнта в розділі “Керування клієнтом”.
+                  </p>
                   <p v-else class="muted">
                     Регулярний час можна буде додати після створення картки клієнта.
                   </p>
@@ -1564,6 +1529,26 @@
                 <span class="client-accordion__summary">{{ accordionSummary(client, 'settings') }}</span>
               </button>
             <div v-if="isAccordionSectionOpen(client, 'settings')" class="client-accordion__body client-actions__secondary">
+              <div v-if="canActivateRegisteredClientRecord(client)" class="client-management__activation">
+                <p class="muted">
+                  Клієнт неактивний. Активуйте клієнта, щоб додавати сесії, регулярний час, матеріали й робочі записи.
+                </p>
+                <p v-if="activateClientRecordError(client)" class="form-error">
+                  {{ activateClientRecordError(client) }}
+                </p>
+                <button
+                  class="btn btn--sm"
+                  type="button"
+                  :disabled="isActivatingClientRecord(client)"
+                  @click="activateClientRecord(client)"
+                >
+                  {{ isActivatingClientRecord(client) ? 'Активуємо...' : 'Активувати клієнта' }}
+                </button>
+              </div>
+              <div class="client-management__access-status">
+                <div class="manual-account-invite__title">Доступ до кабінету</div>
+                <p class="muted">Клієнт має доступ до кабінету.</p>
+              </div>
               <button
                 class="btn btn--ghost btn--sm"
                 type="button"
@@ -1577,9 +1562,9 @@
                 class="btn btn--ghost btn--sm"
                 type="button"
                 :disabled="!relationClientId(client) || isActionLoading(relationClientId(client))"
-                @click="archiveClient(relationClientId(client))"
+                @click="openArchiveClientConfirm({ type: 'registered', id: relationClientId(client) })"
               >
-                Архівувати
+                Завершити роботу
               </button>
               <button
                 v-else
@@ -1588,7 +1573,7 @@
                 :disabled="!relationClientId(client) || isActionLoading(relationClientId(client))"
                 @click="restoreClient(relationClientId(client))"
               >
-                Відновити
+                Повернути в роботу
               </button>
             </div>
             </section>
@@ -1607,6 +1592,38 @@
       @cancel="closeClientPracticeBoardModal"
       @submit="submitClientPracticeBoardQuickAdd"
     />
+
+    <div
+      v-if="archiveClientConfirm"
+      class="manual-client-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="archive-client-title"
+    >
+      <button
+        class="manual-client-modal__backdrop"
+        type="button"
+        aria-label="Скасувати завершення роботи"
+        @click="closeArchiveClientConfirm"
+      ></button>
+      <div class="manual-client-modal__content">
+        <div class="manual-client-modal__header">
+          <div>
+            <h2 id="archive-client-title" class="manual-client-modal__title">Завершити роботу з клієнтом?</h2>
+            <p class="muted">
+              Клієнт буде перенесений в архів. Його історія, нотатки й матеріали залишаться доступними. Ви зможете повернути клієнта в роботу пізніше.
+            </p>
+          </div>
+          <button class="icon-btn" type="button" aria-label="Закрити" @click="closeArchiveClientConfirm">×</button>
+        </div>
+        <div class="manual-client-modal__actions">
+          <button class="btn btn--ghost" type="button" @click="closeArchiveClientConfirm">Скасувати</button>
+          <button class="btn" type="button" :disabled="isArchiveClientConfirmLoading" @click="confirmArchiveClient">
+            {{ isArchiveClientConfirmLoading ? 'Завершуємо...' : 'Завершити роботу' }}
+          </button>
+        </div>
+      </div>
+    </div>
 
     <div
       v-if="manualSessionModalOpen"
@@ -1879,6 +1896,11 @@ type ManualClientSessionCreateResponse = {
   session_id?: number
 }
 
+type ArchiveClientConfirmState = {
+  type: 'registered' | 'manual'
+  id: number
+}
+
 type AccountInviteState = {
   loading: boolean
   actionLoading: boolean
@@ -2025,7 +2047,6 @@ type ListResponse<T> = T[] | { results?: T[] } | null | undefined
 type ClientAccordionSection =
   | 'materials'
   | 'regularTime'
-  | 'invite'
   | 'privateHistory'
   | 'workbook'
   | 'sessionNotes'
@@ -2090,6 +2111,7 @@ const manualSessionDraft = ref<ManualClientSessionFormState>({
   slot_id: 0,
   session_format: 'online',
 })
+const archiveClientConfirm = ref<ArchiveClientConfirmState | null>(null)
 const accountInviteStateByRecordId = ref<Record<number, AccountInviteState>>({})
 const materialsStateByScopeKey = ref<Record<string, ClientMaterialsState>>({})
 const regularTimesStateByScopeKey = ref<Record<string, ClientRegularTimesState>>({})
@@ -2199,6 +2221,11 @@ const isJournalSaving = (id: number) => journalSaving.value.has(id)
 const isQuickAddLoading = (id: number) => quickAddLoading.value.has(id)
 const isNoteSkipping = (id: number) => noteSkipping.value.has(id)
 const isWorkbookExpanded = (id: number) => Boolean(workbookExpanded.value[id])
+const isArchiveClientConfirmLoading = computed(() => {
+  const pending = archiveClientConfirm.value
+  if (!pending) return false
+  return pending.type === 'manual' ? isManualActionLoading(pending.id) : isActionLoading(pending.id)
+})
 function isManualClientRecord(client: ClientListItem): client is ManualClientRecord {
   return client.__clientListSource === 'manual'
 }
@@ -3745,8 +3772,8 @@ function accordionSummary(client: ClientListItem, section: ClientAccordionSectio
     if (count > 1) return `${count} нотатки`
     return 'Нотатки ще немає.'
   }
-  if (section === 'invite') return 'Підключення кабінету'
-  return 'Редагування, дошка, архів'
+  if (section === 'settings') return isManualClientRecord(client) ? 'Дані, доступ, архів' : 'Доступ, статус, завершення'
+  return ''
 }
 
 function selectClient(client: ClientListItem) {
@@ -4617,6 +4644,27 @@ function manualClientErrorMessage(err: unknown, fallback: string) {
     return 'Досягнуто ліміт активних клієнтів для вашого тарифу.'
   }
   return getApiErrorMessage(err, fallback)
+}
+
+function openArchiveClientConfirm(payload: ArchiveClientConfirmState) {
+  if (!payload.id) return
+  archiveClientConfirm.value = payload
+}
+
+function closeArchiveClientConfirm() {
+  if (isArchiveClientConfirmLoading.value) return
+  archiveClientConfirm.value = null
+}
+
+async function confirmArchiveClient() {
+  const pending = archiveClientConfirm.value
+  if (!pending) return
+  if (pending.type === 'manual') {
+    await archiveManualClient(pending.id)
+  } else {
+    await archiveClient(pending.id)
+  }
+  archiveClientConfirm.value = null
 }
 
 async function submitManualClient() {
@@ -5524,6 +5572,26 @@ onBeforeUnmount(() => {
 
 .client-actions__secondary .btn {
   min-height: 34px;
+}
+
+.client-management__activation {
+  flex: 1 1 100%;
+  display: grid;
+  gap: 8px;
+}
+
+.client-management__activation .btn {
+  justify-self: start;
+}
+
+.client-management__access-status,
+.client-actions__secondary .manual-account-invite {
+  flex: 1 1 100%;
+}
+
+.client-management__access-status {
+  display: grid;
+  gap: 4px;
 }
 
 .client-accordion {

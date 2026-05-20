@@ -531,7 +531,7 @@ describe('TherapistClientsView', () => {
     expect(mockedApiGet).toHaveBeenCalledWith(REMINDERS_URL)
   })
 
-  it('archives client using client_id from relation payload', async () => {
+  it('confirms ending work before archiving client using client_id from relation payload', async () => {
     mockedApiGet.mockImplementation(async (url) => {
       if (url === CLIENTS_URL)
         return [
@@ -557,11 +557,56 @@ describe('TherapistClientsView', () => {
       return node as HTMLElement
     })
     await openAccordionSection(card, 'Керування клієнтом')
-    await fireEvent.click(within(card).getByRole('button', { name: 'Архівувати' }))
+    expect(within(card).queryByText('Клієнт буде перенесений в архів. Історія, нотатки й матеріали збережуться.')).not.toBeInTheDocument()
+    expect(within(card).queryByRole('button', { name: 'Архівувати' })).not.toBeInTheDocument()
+    await fireEvent.click(within(card).getByRole('button', { name: 'Завершити роботу' }))
+
+    const dialog = await screen.findByRole('dialog', { name: 'Завершити роботу з клієнтом?' })
+    expect(dialog).toHaveTextContent(
+      'Клієнт буде перенесений в архів. Його історія, нотатки й матеріали залишаться доступними. Ви зможете повернути клієнта в роботу пізніше.'
+    )
+    expect(mockedApiPatch).not.toHaveBeenCalled()
+    await fireEvent.click(within(dialog).getByRole('button', { name: 'Завершити роботу' }))
 
     await waitFor(() => {
       expect(mockedApiPatch).toHaveBeenCalledWith('/cabinet/clients/44/archive/')
     })
+  })
+
+  it('cancels ending work without calling archive endpoint', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL)
+        return [
+          {
+            id: 1,
+            client_id: 44,
+            state: 'ACTIVE',
+            last_session_at: null,
+            upcoming_count: 0,
+            client_name: 'Test Client',
+          },
+        ]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    const { container } = renderView()
+
+    const card = await waitFor(() => {
+      const node = container.querySelector('.client-card')
+      expect(node).toBeInstanceOf(HTMLElement)
+      return node as HTMLElement
+    })
+    await openAccordionSection(card, 'Керування клієнтом')
+    await fireEvent.click(within(card).getByRole('button', { name: 'Завершити роботу' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Завершити роботу з клієнтом?' })
+
+    await fireEvent.click(within(dialog).getByRole('button', { name: 'Скасувати' }))
+
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog', { name: 'Завершити роботу з клієнтом?' })).not.toBeInTheDocument()
+    })
+    expect(mockedApiPatch).not.toHaveBeenCalled()
   })
 
   it('creates board task from client quick-add modal with custom title and client context', async () => {
@@ -1038,10 +1083,11 @@ describe('TherapistClientsView', () => {
       'href',
       '/cabinet/sessions#note-777'
     )
-    expect(within(firstCard).getByText('Редагування, дошка, архів')).toBeInTheDocument()
+    expect(within(firstCard).getByText('Доступ, статус, завершення')).toBeInTheDocument()
     await openAccordionSection(firstCard, 'Керування клієнтом')
     expect(within(firstCard).getByRole('button', { name: 'Додати на дошку' })).toBeInTheDocument()
-    expect(within(firstCard).getByRole('button', { name: 'Архівувати' })).toBeInTheDocument()
+    expect(within(firstCard).getByRole('button', { name: 'Завершити роботу' })).toBeInTheDocument()
+    expect(within(firstCard).queryByRole('button', { name: 'Архівувати' })).not.toBeInTheDocument()
     expect(clientsPanel).not.toHaveTextContent('ACTIVE')
     expect(clientsPanel).not.toHaveTextContent('INACTIVE')
     expect(clientsPanel).not.toHaveTextContent('ARCHIVED')
@@ -1458,7 +1504,11 @@ describe('TherapistClientsView', () => {
       expect(card).toBeInstanceOf(HTMLElement)
       return card as HTMLElement
     })
-    await fireEvent.click(within(manualCard).getByRole('button', { name: 'Редагувати' }))
+    expect(within(manualCard).getByRole('button', { name: 'Створити сесію' })).toBeInTheDocument()
+    expect(within(manualCard).queryByRole('button', { name: 'Редагувати' })).not.toBeInTheDocument()
+
+    await openAccordionSection(manualCard, 'Керування клієнтом')
+    await fireEvent.click(within(manualCard).getByRole('button', { name: 'Редагувати дані клієнта' }))
 
     const dialog = await screen.findByRole('dialog', { name: 'Редагувати клієнта' })
 
@@ -1522,11 +1572,11 @@ describe('TherapistClientsView', () => {
     expect(manualCard).toHaveClass('client-card--manual')
     expect(within(manualCard).getByText('З кабінетом')).toBeInTheDocument()
     expect(within(manualCard).getByRole('button', { name: 'Створити сесію' })).toBeInTheDocument()
-    expect(within(manualCard).getByRole('button', { name: 'Редагувати' })).toBeInTheDocument()
-    expect(within(manualCard).getByText('Редагування, дошка, архів')).toBeInTheDocument()
+    expect(within(manualCard).queryByRole('button', { name: 'Редагувати' })).not.toBeInTheDocument()
+    expect(within(manualCard).getByText('Дані, доступ, архів')).toBeInTheDocument()
     await openAccordionSection(manualCard, 'Керування клієнтом')
-    expect(within(manualCard).getAllByRole('button', { name: 'Редагувати' })).toHaveLength(1)
-    expect(within(manualCard).getByRole('button', { name: 'Архівувати' })).toBeInTheDocument()
+    expect(within(manualCard).getByRole('button', { name: 'Редагувати дані клієнта' })).toBeInTheDocument()
+    expect(within(manualCard).getByRole('button', { name: 'Завершити роботу' })).toBeInTheDocument()
     expect(within(manualCard).queryByRole('button', { name: 'Приватна історія клієнта' })).not.toBeInTheDocument()
   })
 
@@ -1650,7 +1700,7 @@ describe('TherapistClientsView', () => {
     expect(within(manualCard).queryAllByText('same274@example.com')).toHaveLength(1)
   })
 
-  it('shows manual account invite CTA for manual client records without account', async () => {
+  it('shows cabinet access invite block inside client management for manual client records without account', async () => {
     mockedApiGet.mockImplementation(async (url) => {
       if (url === CLIENTS_URL) return []
       if (url === CLIENT_RECORDS_URL)
@@ -1672,10 +1722,16 @@ describe('TherapistClientsView', () => {
       expect(card).toBeInstanceOf(HTMLElement)
       return card as HTMLElement
     })
-    await openAccordionSection(manualCard, 'Запросити до кабінету')
+    expect(within(manualCard).queryByRole('button', { name: 'Запросити до кабінету' })).not.toBeInTheDocument()
+    await openAccordionSection(manualCard, 'Керування клієнтом')
 
-    expect(within(manualCard).getByText('Клієнт зможе увійти або зареєструватися і побачити свої сесії в кабінеті.')).toBeInTheDocument()
-    expect(within(manualCard).getAllByRole('button', { name: 'Запросити до кабінету' }).length).toBeGreaterThan(0)
+    expect(within(manualCard).getByText('Доступ до кабінету')).toBeInTheDocument()
+    expect(
+      within(manualCard).getByText(
+        'Клієнт ще не має доступу до кабінету. Надішліть запрошення, щоб він міг бачити свої сесії, нагадування й матеріали.'
+      )
+    ).toBeInTheDocument()
+    expect(within(manualCard).getByRole('button', { name: 'Надіслати запрошення' })).toBeInTheDocument()
   })
 
   it('does not show manual account invite CTA for linked manual client records', async () => {
@@ -1703,7 +1759,10 @@ describe('TherapistClientsView', () => {
       return card as HTMLElement
     })
 
-    expect(within(manualCard).queryByRole('button', { name: 'Запросити до кабінету' })).not.toBeInTheDocument()
+    await openAccordionSection(manualCard, 'Керування клієнтом')
+
+    expect(within(manualCard).getByText('Клієнт має доступ до кабінету.')).toBeInTheDocument()
+    expect(within(manualCard).queryByRole('button', { name: 'Надіслати запрошення' })).not.toBeInTheDocument()
   })
 
   it('does not show manual account invite CTA for registered client relations', async () => {
@@ -1731,6 +1790,10 @@ describe('TherapistClientsView', () => {
       expect(within(clientsPanel).getAllByText('Registered Client').length).toBeGreaterThan(0)
     })
     expect(within(clientsPanel).queryByRole('button', { name: 'Запросити до кабінету' })).not.toBeInTheDocument()
+    const registeredCard = clientsPanel.querySelector('#client-card-44') as HTMLElement
+    await openAccordionSection(registeredCard, 'Керування клієнтом')
+    expect(within(registeredCard).getByText('Клієнт має доступ до кабінету.')).toBeInTheDocument()
+    expect(within(registeredCard).queryByRole('button', { name: 'Надіслати запрошення' })).not.toBeInTheDocument()
   })
 
   it('renders registered client email when client_email exists', async () => {
@@ -1821,7 +1884,7 @@ describe('TherapistClientsView', () => {
       expect(card).toBeInstanceOf(HTMLElement)
       return card as HTMLElement
     })
-    await openAccordionSection(manualCard, 'Запросити до кабінету')
+    await openAccordionSection(manualCard, 'Керування клієнтом')
 
     const createInviteButton = manualCard.querySelector('.manual-account-invite__cta')
     expect(createInviteButton).toBeInstanceOf(HTMLButtonElement)
@@ -1858,7 +1921,7 @@ describe('TherapistClientsView', () => {
       expect(card).toBeInstanceOf(HTMLElement)
       return card as HTMLElement
     })
-    await openAccordionSection(manualCard, 'Запросити до кабінету')
+    await openAccordionSection(manualCard, 'Керування клієнтом')
     await waitFor(() => {
       expect(manualCard.querySelector('.manual-account-invite__hint')).toBeTruthy()
     })
@@ -1889,7 +1952,7 @@ describe('TherapistClientsView', () => {
       expect(card).toBeInstanceOf(HTMLElement)
       return card as HTMLElement
     })
-    await openAccordionSection(manualCard, 'Запросити до кабінету')
+    await openAccordionSection(manualCard, 'Керування клієнтом')
     await waitFor(() => {
       expect(manualCard.querySelector('.manual-account-invite__hint')).toBeTruthy()
     })
@@ -1923,7 +1986,7 @@ describe('TherapistClientsView', () => {
       expect(card).toBeInstanceOf(HTMLElement)
       return card as HTMLElement
     })
-    await openAccordionSection(manualCard, 'Запросити до кабінету')
+    await openAccordionSection(manualCard, 'Керування клієнтом')
     await waitFor(() => {
       expect(manualCard).toHaveTextContent('https://proconsult.space/client/invite/revoke-me')
     })
@@ -1932,7 +1995,7 @@ describe('TherapistClientsView', () => {
 
     await waitFor(() => {
       expect(mockedRevokeClientRecordAccountInvite).toHaveBeenCalledWith(213)
-      expect(within(manualCard).getAllByRole('button', { name: 'Запросити до кабінету' }).length).toBeGreaterThan(0)
+      expect(within(manualCard).getByRole('button', { name: 'Надіслати запрошення' })).toBeInTheDocument()
       expect(manualCard).not.toHaveTextContent('https://proconsult.space/client/invite/revoke-me')
     })
   })
@@ -1956,7 +2019,7 @@ describe('TherapistClientsView', () => {
       expect(card).toBeInstanceOf(HTMLElement)
       return card as HTMLElement
     })
-    await openAccordionSection(manualCard, 'Запросити до кабінету')
+    await openAccordionSection(manualCard, 'Керування клієнтом')
 
     await fireEvent.click(requireHTMLElement(manualCard.querySelector('.manual-account-invite__cta'), 'invite cta'))
 
@@ -2061,20 +2124,22 @@ describe('TherapistClientsView', () => {
     await openAccordionSection(manualCard, 'Керування клієнтом')
     expect(within(manualCard).queryByRole('button', { name: 'Додати на дошку' })).not.toBeInTheDocument()
 
-    await fireEvent.click(within(manualCard).getByRole('button', { name: 'Архівувати' }))
+    await fireEvent.click(within(manualCard).getByRole('button', { name: 'Завершити роботу' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Завершити роботу з клієнтом?' })
+    await fireEvent.click(within(dialog).getByRole('button', { name: 'Завершити роботу' }))
 
     await waitFor(() => {
       expect(mockedApiPost).toHaveBeenCalledWith('/cabinet/client-records/203/archive/', {})
       expect(within(manualCard).getByText('Архів')).toBeInTheDocument()
-      expect(within(manualCard).getByRole('button', { name: 'Відновити' })).toBeInTheDocument()
+      expect(within(manualCard).getByRole('button', { name: 'Повернути в роботу' })).toBeInTheDocument()
     })
 
-    await fireEvent.click(within(manualCard).getByRole('button', { name: 'Відновити' }))
+    await fireEvent.click(within(manualCard).getByRole('button', { name: 'Повернути в роботу' }))
 
     await waitFor(() => {
       expect(mockedApiPost).toHaveBeenCalledWith('/cabinet/client-records/203/restore/', {})
       expect(within(manualCard).getByText('Активний')).toBeInTheDocument()
-      expect(within(manualCard).getByRole('button', { name: 'Архівувати' })).toBeInTheDocument()
+      expect(within(manualCard).getByRole('button', { name: 'Завершити роботу' })).toBeInTheDocument()
     })
   })
 
@@ -3079,7 +3144,7 @@ describe('TherapistClientsView', () => {
     expect(mockedResumeClientRegularTime).not.toHaveBeenCalled()
   })
 
-  it('shows activation helper for inactive registered client without client_record_id', async () => {
+  it('shows neutral regular-time helper for inactive registered client without client_record_id', async () => {
     mockedApiGet.mockImplementation(async (url) => {
       if (url === CLIENTS_URL)
         return [
@@ -3110,13 +3175,49 @@ describe('TherapistClientsView', () => {
       'Регулярний час недоступний, бо клієнт не має активної робочої картки.'
     )
     expect(registeredCard.textContent || '').toContain(
-      'Активуйте клієнта, щоб додавати регулярний час, матеріали й сесії.'
+      'Активуйте клієнта в розділі “Керування клієнтом”.'
     )
-    expect(within(registeredCard).getByRole('button', { name: 'Активувати клієнта' })).toBeInTheDocument()
+    const regularTimeSection = within(registeredCard)
+      .getByText(/Регулярний час недоступний/)
+      .closest('.client-accordion__section') as HTMLElement
+    expect(within(regularTimeSection).queryByRole('button', { name: 'Активувати клієнта' })).not.toBeInTheDocument()
     expect(mockedFetchClientRegularTimes).not.toHaveBeenCalled()
   })
 
-  it('activates inactive registered client and enables regular time section', async () => {
+  it('shows activation CTA in client management for inactive registered client without client_record_id', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL)
+        return [
+          {
+            id: 1,
+            client_id: 44,
+            client_record_id: null,
+            state: 'INACTIVE',
+            last_session_at: null,
+            upcoming_count: 0,
+            client_display_name: 'Inactive Registered',
+          },
+        ]
+      if (url === CLIENT_RECORDS_URL) return []
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    const { container } = renderView()
+    const registeredCard = await waitFor(() => {
+      const card = container.querySelector('#client-card-44')
+      expect(card).toBeInstanceOf(HTMLElement)
+      return card as HTMLElement
+    })
+    await openAccordionSection(registeredCard, 'Керування клієнтом')
+
+    expect(registeredCard.textContent || '').toContain(
+      'Клієнт неактивний. Активуйте клієнта, щоб додавати сесії, регулярний час, матеріали й робочі записи.'
+    )
+    expect(within(registeredCard).getByRole('button', { name: 'Активувати клієнта' })).toBeInTheDocument()
+  })
+
+  it('activates inactive registered client from management and enables regular time section', async () => {
     let activated = false
     mockedApiGet.mockImplementation(async (url) => {
       if (url === CLIENTS_URL)
@@ -3157,19 +3258,89 @@ describe('TherapistClientsView', () => {
       expect(card).toBeInstanceOf(HTMLElement)
       return card as HTMLElement
     })
-    await openAccordionSection(registeredCard, 'Регулярний час')
+    await openAccordionSection(registeredCard, 'Керування клієнтом')
 
     await fireEvent.click(within(registeredCard).getByRole('button', { name: 'Активувати клієнта' }))
 
     await waitFor(() => {
       expect(mockedApiPost).toHaveBeenCalledWith('/cabinet/clients/44/activate-record/', {})
-      expect(mockedFetchClientRegularTimes).toHaveBeenCalledWith(701)
-      const activeCard = Array.from(container.querySelectorAll('#client-card-44')).find((node) =>
-        within(node as HTMLElement).queryByRole('button', { name: 'Додати регулярний час' })
-      )
-      expect(activeCard).toBeInstanceOf(HTMLElement)
       expect(mockToast.success).toHaveBeenCalledWith('Клієнта активовано.')
     })
+
+    const activeCard = await waitFor(() => {
+      const card = Array.from(container.querySelectorAll('#client-card-44')).find((node) =>
+        (node.textContent || '').includes('Активний')
+      )
+      expect(card).toBeInstanceOf(HTMLElement)
+      return card as HTMLElement
+    })
+    await openAccordionSection(activeCard, 'Регулярний час')
+
+    await waitFor(() => {
+      expect(mockedFetchClientRegularTimes).toHaveBeenCalledWith(701)
+      expect(within(activeCard).getByRole('button', { name: 'Додати регулярний час' })).toBeInTheDocument()
+    })
+  })
+
+  it('does not show activation CTA for active registered client', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL)
+        return [
+          {
+            id: 1,
+            client_id: 44,
+            client_record_id: 701,
+            state: 'ACTIVE',
+            last_session_at: null,
+            upcoming_count: 0,
+            client_display_name: 'Active Registered',
+          },
+        ]
+      if (url === CLIENT_RECORDS_URL) return []
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    const { container } = renderView()
+    const registeredCard = await waitFor(() => {
+      const card = container.querySelector('#client-card-44')
+      expect(card).toBeInstanceOf(HTMLElement)
+      return card as HTMLElement
+    })
+    await openAccordionSection(registeredCard, 'Керування клієнтом')
+
+    expect(within(registeredCard).queryByRole('button', { name: 'Активувати клієнта' })).not.toBeInTheDocument()
+  })
+
+  it('shows return-to-work copy for archived registered client', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL)
+        return [
+          {
+            id: 1,
+            client_id: 44,
+            client_record_id: 701,
+            state: 'ARCHIVED',
+            last_session_at: null,
+            upcoming_count: 0,
+            client_display_name: 'Archived Registered',
+          },
+        ]
+      if (url === CLIENT_RECORDS_URL) return []
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    const { container } = renderView()
+    const registeredCard = await waitFor(() => {
+      const card = container.querySelector('#client-card-44')
+      expect(card).toBeInstanceOf(HTMLElement)
+      return card as HTMLElement
+    })
+    await openAccordionSection(registeredCard, 'Керування клієнтом')
+
+    expect(within(registeredCard).getByRole('button', { name: 'Повернути в роботу' })).toBeInTheDocument()
+    expect(within(registeredCard).queryByRole('button', { name: 'Відновити' })).not.toBeInTheDocument()
   })
 
   it('does not fallback to client id for registered client without client_record_id even when payload is manual-like', async () => {
