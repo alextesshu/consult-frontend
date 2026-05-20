@@ -633,13 +633,13 @@
                   Зафіксуйте постійну домовленість із клієнтом: день, час, тривалість і формат зустрічі.
                 </p>
                 <p v-if="!clientRegularTimesScopeKey(client)" class="muted">
-                  Для цього клієнта ще немає картки клієнта, тому регулярний час поки недоступний.
+                  Регулярний час можна буде додати після створення картки клієнта.
                 </p>
                 <template v-else>
                   <p v-if="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').listError" class="form-error">
                     {{ clientRegularTimesState(clientRegularTimesScopeKey(client) || '').listError }}
                   </p>
-                  <div v-if="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').loading" class="muted">
+                  <div v-else-if="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').loading" class="muted">
                     Завантаження регулярного часу...
                   </div>
                   <template v-else>
@@ -663,6 +663,25 @@
                             {{ regularTimeStatusLabel(regularTime.status) }}
                           </span>
                         </div>
+                        <div v-if="regularTime.status === 'active'" class="client-regular-time__next-session">
+                          <p class="muted client-regular-time__next-session-copy">
+                            Створить одну найближчу майбутню сесію за цим регулярним часом.
+                          </p>
+                          <button
+                            class="btn btn--sm"
+                            type="button"
+                            :disabled="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').actionLoadingId === regularTime.id || regularTimeHasAnchorMismatch(regularTime)"
+                            @click="createNextRegularTimeSession(client, regularTime.id)"
+                          >
+                            {{ clientRegularTimesState(clientRegularTimesScopeKey(client) || '').actionLoadingId === regularTime.id ? 'Створюємо...' : 'Створити наступну сесію' }}
+                          </button>
+                        </div>
+                        <p v-if="regularTimeHasAnchorMismatch(regularTime)" class="form-error client-regular-time__action-error">
+                          Дата початку не відповідає дню тижня. Відредагуйте регулярний час.
+                        </p>
+                        <p v-if="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').actionErrorsById[regularTime.id]" class="form-error client-regular-time__action-error">
+                          {{ clientRegularTimesState(clientRegularTimesScopeKey(client) || '').actionErrorsById[regularTime.id] }}
+                        </p>
                         <div class="client-regular-time__actions">
                           <button class="btn btn--ghost btn--sm" type="button" @click="openRegularTimeEditForm(client, regularTime)">
                             Редагувати
@@ -1124,13 +1143,13 @@
                   Зафіксуйте постійну домовленість із клієнтом: день, час, тривалість і формат зустрічі.
                 </p>
                 <p v-if="!clientRegularTimesScopeKey(client)" class="muted">
-                  Для цього клієнта ще немає картки клієнта, тому регулярний час поки недоступний.
+                  Регулярний час можна буде додати після створення картки клієнта.
                 </p>
                 <template v-else>
                   <p v-if="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').listError" class="form-error">
                     {{ clientRegularTimesState(clientRegularTimesScopeKey(client) || '').listError }}
                   </p>
-                  <div v-if="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').loading" class="muted">
+                  <div v-else-if="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').loading" class="muted">
                     Завантаження регулярного часу...
                   </div>
                   <template v-else>
@@ -1154,6 +1173,25 @@
                             {{ regularTimeStatusLabel(regularTime.status) }}
                           </span>
                         </div>
+                        <div v-if="regularTime.status === 'active'" class="client-regular-time__next-session">
+                          <p class="muted client-regular-time__next-session-copy">
+                            Створить одну найближчу майбутню сесію за цим регулярним часом.
+                          </p>
+                          <button
+                            class="btn btn--sm"
+                            type="button"
+                            :disabled="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').actionLoadingId === regularTime.id || regularTimeHasAnchorMismatch(regularTime)"
+                            @click="createNextRegularTimeSession(client, regularTime.id)"
+                          >
+                            {{ clientRegularTimesState(clientRegularTimesScopeKey(client) || '').actionLoadingId === regularTime.id ? 'Створюємо...' : 'Створити наступну сесію' }}
+                          </button>
+                        </div>
+                        <p v-if="regularTimeHasAnchorMismatch(regularTime)" class="form-error client-regular-time__action-error">
+                          Дата початку не відповідає дню тижня. Відредагуйте регулярний час.
+                        </p>
+                        <p v-if="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').actionErrorsById[regularTime.id]" class="form-error client-regular-time__action-error">
+                          {{ clientRegularTimesState(clientRegularTimesScopeKey(client) || '').actionErrorsById[regularTime.id] }}
+                        </p>
                         <div class="client-regular-time__actions">
                           <button class="btn btn--ghost btn--sm" type="button" @click="openRegularTimeEditForm(client, regularTime)">
                             Редагувати
@@ -1684,6 +1722,7 @@ import {
   apiPatch,
   apiPost,
   createClientRegularTime,
+  createNextSessionFromClientRegularTime,
   createSpecialistClientMaterial,
   deleteClientMaterialAttachment,
   createClientRecordAccountInvite,
@@ -1737,6 +1776,7 @@ import {
 
 type ClientState = {
   id: number
+  __clientListSource?: 'registered'
   client?: number
   client_id?: number
   client_record_id?: number | null
@@ -1764,6 +1804,7 @@ type ClientState = {
 
 type ManualClientRecord = {
   id: number
+  __clientListSource?: 'manual'
   user_id: number | null
   display_name: string
   email: string | null
@@ -1855,6 +1896,7 @@ type ClientRegularTimesState = {
   actionLoadingId: number | null
   listError: string
   formError: string
+  actionErrorsById: Record<number, string>
   items: ClientRegularTime[]
   form: ClientRegularTimeDraft
   editingId: number | null
@@ -2118,7 +2160,30 @@ const isQuickAddLoading = (id: number) => quickAddLoading.value.has(id)
 const isNoteSkipping = (id: number) => noteSkipping.value.has(id)
 const isWorkbookExpanded = (id: number) => Boolean(workbookExpanded.value[id])
 function isManualClientRecord(client: ClientListItem): client is ManualClientRecord {
-  return (client as ManualClientRecord).source === 'manual'
+  return client.__clientListSource === 'manual'
+}
+
+function isTrulyManualClientRecord(client: ClientListItem): client is ManualClientRecord {
+  return isManualClientRecord(client)
+}
+
+function isCurrentRegisteredClient(client: ClientListItem): client is ClientState {
+  return client.__clientListSource === 'registered' && clients.value.some((item) => item === client)
+}
+
+function isCurrentManualClientRecord(client: ClientListItem): client is ManualClientRecord {
+  if (!isTrulyManualClientRecord(client)) return false
+  const manualId = Number(client.id || 0)
+  if (!Number.isFinite(manualId) || manualId <= 0) return false
+  return manualClientRecords.value.some((record) => Number(record.id || 0) === manualId)
+}
+
+function markRegisteredClient(client: ClientState): ClientState {
+  return { ...client, __clientListSource: 'registered' }
+}
+
+function markManualClientRecord(record: ManualClientRecord): ManualClientRecord {
+  return { ...record, __clientListSource: 'manual' }
 }
 
 function hasLinkedAccount(client: ClientListItem): boolean {
@@ -2487,6 +2552,7 @@ function defaultRegularTimesState(): ClientRegularTimesState {
     actionLoadingId: null,
     listError: '',
     formError: '',
+    actionErrorsById: {},
     items: [],
     form: defaultRegularTimeDraft(),
     editingId: null,
@@ -2495,14 +2561,27 @@ function defaultRegularTimesState(): ClientRegularTimesState {
   }
 }
 
-function clientRegularTimeRecordId(client: ClientListItem): number {
-  if (isManualClientRecord(client)) return Number(client.id || 0)
-  return Number(client.client_record_id || 0)
+function resolveRegularTimeRecordId(client: ClientListItem): number | null {
+  const clientRecordId = Number((client as ClientState).client_record_id || 0)
+  if (Number.isFinite(clientRecordId) && clientRecordId > 0 && isCurrentRegisteredClient(client)) {
+    return clientRecordId
+  }
+
+  if (isCurrentManualClientRecord(client)) {
+    const manualId = Number(client.id || 0)
+    return Number.isFinite(manualId) && manualId > 0 ? manualId : null
+  }
+
+  return null
+}
+
+function clientRegularTimesScope(client: ClientListItem): { scopeKey: string; recordId: number } | null {
+  const recordId = resolveRegularTimeRecordId(client)
+  return recordId ? { scopeKey: `client-record:${recordId}`, recordId } : null
 }
 
 function clientRegularTimesScopeKey(client: ClientListItem): string | null {
-  const recordId = clientRegularTimeRecordId(client)
-  return recordId ? `client-record:${recordId}` : null
+  return clientRegularTimesScope(client)?.scopeKey || null
 }
 
 function clientRegularTimesState(scopeKey: string): ClientRegularTimesState {
@@ -2524,6 +2603,23 @@ function updateClientRegularTimesState(scopeKey: string, patch: Partial<ClientRe
       ...patch,
     },
   }
+}
+
+function setRegularTimeActionError(scopeKey: string, regularTimeId: number, message: string) {
+  const state = clientRegularTimesState(scopeKey)
+  updateClientRegularTimesState(scopeKey, {
+    actionErrorsById: {
+      ...state.actionErrorsById,
+      [regularTimeId]: message,
+    },
+  })
+}
+
+function clearRegularTimeActionError(scopeKey: string, regularTimeId: number) {
+  const state = clientRegularTimesState(scopeKey)
+  const nextErrors = { ...state.actionErrorsById }
+  delete nextErrors[regularTimeId]
+  updateClientRegularTimesState(scopeKey, { actionErrorsById: nextErrors })
 }
 
 function openRegularTimeDatePicker(client: ClientListItem) {
@@ -2627,6 +2723,31 @@ function parseRegularTimeDate(value: string): string {
   return `${match[3]}-${match[2]}-${match[1]}`
 }
 
+function regularTimeIsoWeekday(value: string): number | null {
+  const parsed = regularTimeParseIsoDate(value)
+  if (!parsed) return null
+  return (parsed.getDay() + 6) % 7
+}
+
+function regularTimeWeekdayMatchesDate(weekday: number | null | undefined, isoDate: string): boolean {
+  const parsedWeekday = Number(weekday)
+  if (!Number.isFinite(parsedWeekday) || parsedWeekday < 0 || parsedWeekday > 6) return false
+  return regularTimeIsoWeekday(isoDate) === parsedWeekday
+}
+
+function nearestRegularTimeIsoDateForWeekday(weekday: number): string {
+  const today = new Date()
+  const todayWeekday = (today.getDay() + 6) % 7
+  const daysUntil = (weekday - todayWeekday + 7) % 7
+  const date = new Date(today.getFullYear(), today.getMonth(), today.getDate())
+  date.setDate(date.getDate() + daysUntil)
+  return regularTimeToIsoDate(date)
+}
+
+function regularTimeHasAnchorMismatch(item: ClientRegularTime): boolean {
+  return !regularTimeWeekdayMatchesDate(item.weekday, String(item.starts_on || ''))
+}
+
 function regularTimeFormFromItem(item: ClientRegularTime): ClientRegularTimeDraft {
   return {
     weekday: item.weekday,
@@ -2648,6 +2769,7 @@ function regularTimePayloadFromDraft(draft: ClientRegularTimeDraft): ClientRegul
   if (!Number.isFinite(duration) || duration < 15 || duration > 240) return null
   const startsOn = parseRegularTimeDate(draft.starts_on)
   if (!startsOn) return null
+  if (!regularTimeWeekdayMatchesDate(draft.weekday, startsOn)) return null
   if (draft.session_format !== 'online' && draft.session_format !== 'offline') return null
   return {
     weekday: Number(draft.weekday),
@@ -2671,6 +2793,9 @@ function regularTimeValidationMessage(draft: ClientRegularTimeDraft): string {
     return 'Тривалість має бути від 15 до 240 хв.'
   }
   if (!parseRegularTimeDate(draft.starts_on)) return 'Вкажіть дату початку у форматі ДД.ММ.РРРР.'
+  if (!regularTimeWeekdayMatchesDate(draft.weekday, parseRegularTimeDate(draft.starts_on))) {
+    return 'Дата початку має відповідати обраному дню тижня.'
+  }
   if (draft.session_format !== 'online' && draft.session_format !== 'offline') return 'Оберіть формат зустрічі.'
   return 'Перевірте дані й спробуйте ще раз.'
 }
@@ -2695,13 +2820,44 @@ function regularTimeSaveErrorMessage(err: unknown): string {
   if (code === 'CLIENT_REGULAR_TIME_DUPLICATE') {
     return 'Такий регулярний час уже додано для цього клієнта.'
   }
+  if (code === 'CLIENT_REGULAR_TIME_ANCHOR_MISMATCH') {
+    return 'Дата початку має відповідати обраному дню тижня.'
+  }
   return getApiErrorMessage(err, 'Не вдалося зберегти регулярний час. Перевірте дані й спробуйте ще раз.')
 }
 
+const regularTimeNextSessionErrorMessages: Record<string, string> = {
+  CLIENT_RECORD_NOT_FOUND: 'Картку клієнта не знайдено.',
+  CLIENT_RECORD_ARCHIVED: 'Картку клієнта архівовано. Спершу відновіть її.',
+  CLIENT_REGULAR_TIME_NOT_FOUND: 'Регулярний час не знайдено.',
+  CLIENT_REGULAR_TIME_PAUSED: 'Регулярний час на паузі.',
+  CLIENT_REGULAR_TIME_ANCHOR_MISMATCH: 'Регулярний час має некоректну дату початку. Відредагуйте його.',
+  CLIENT_REGULAR_TIME_INVALID_FREQUENCY: 'Непідтримувана частота регулярного часу.',
+  SESSION_TIME_CONFLICT: 'На цей час уже є інша сесія.',
+  CLIENT_TIME_CONFLICT: 'У клієнта вже є сесія на цей час.',
+  CLIENT_RECORD_TIME_CONFLICT: 'У цій картці клієнта вже є сесія на цей час.',
+  AVAILABILITY_EXCEPTION_CONFLICT: 'Цей час позначений як недоступний.',
+  SESSION_FORMAT_INVALID: 'Некоректний формат сесії.',
+}
+
+function regularTimeNextSessionErrorMessage(err: unknown): string {
+  const code = regularTimeErrorCode(err)
+  return regularTimeNextSessionErrorMessages[code] || 'Не вдалося створити наступну сесію. Спробуйте ще раз.'
+}
+
+function regularTimeLoadErrorMessage(err: unknown): string {
+  const status = Number((err as any)?.response?.status || 0)
+  const code = regularTimeErrorCode(err)
+  if (status === 404 || code === 'CLIENT_RECORD_NOT_FOUND') {
+    return 'Картку клієнта не знайдено або вона недоступна.'
+  }
+  return 'Не вдалося завантажити регулярний час. Спробуйте оновити сторінку.'
+}
+
 async function loadClientRegularTimes(client: ClientListItem) {
-  const scopeKey = clientRegularTimesScopeKey(client)
-  const recordId = clientRegularTimeRecordId(client)
-  if (!scopeKey || !recordId) return
+  const scope = clientRegularTimesScope(client)
+  if (!scope) return
+  const { scopeKey, recordId } = scope
   updateClientRegularTimesState(scopeKey, { loading: true, listError: '' })
   try {
     const items = await fetchClientRegularTimes(recordId)
@@ -2709,11 +2865,12 @@ async function loadClientRegularTimes(client: ClientListItem) {
       items,
       loading: false,
       listError: '',
+      actionErrorsById: {},
     })
-  } catch {
+  } catch (err) {
     updateClientRegularTimesState(scopeKey, {
       loading: false,
-      listError: 'Не вдалося завантажити регулярний час. Спробуйте оновити сторінку.',
+      listError: regularTimeLoadErrorMessage(err),
     })
   }
 }
@@ -2769,19 +2926,29 @@ function setRegularTimeFormField(
   const scopeKey = clientRegularTimesScopeKey(client)
   if (!scopeKey) return
   const state = clientRegularTimesState(scopeKey)
+  const nextForm = {
+    ...state.form,
+    ...patch,
+  }
+  if (Object.prototype.hasOwnProperty.call(patch, 'weekday')) {
+    const weekday = Number(nextForm.weekday)
+    if (Number.isFinite(weekday) && weekday >= 0 && weekday <= 6) {
+      const startsOn = parseRegularTimeDate(nextForm.starts_on)
+      if (!startsOn || !regularTimeWeekdayMatchesDate(weekday, startsOn)) {
+        nextForm.starts_on = regularTimeIsoDateToDisplay(nearestRegularTimeIsoDateForWeekday(weekday))
+      }
+    }
+  }
   updateClientRegularTimesState(scopeKey, {
     formError: '',
-    form: {
-      ...state.form,
-      ...patch,
-    },
+    form: nextForm,
   })
 }
 
 async function saveRegularTime(client: ClientListItem) {
-  const scopeKey = clientRegularTimesScopeKey(client)
-  const recordId = clientRegularTimeRecordId(client)
-  if (!scopeKey || !recordId) return
+  const scope = clientRegularTimesScope(client)
+  if (!scope) return
+  const { scopeKey, recordId } = scope
   const state = clientRegularTimesState(scopeKey)
   const payload = regularTimePayloadFromDraft(state.form)
   if (!payload) {
@@ -2812,16 +2979,17 @@ async function saveRegularTime(client: ClientListItem) {
 }
 
 async function pauseRegularTime(client: ClientListItem, regularTimeId: number) {
-  const scopeKey = clientRegularTimesScopeKey(client)
-  const recordId = clientRegularTimeRecordId(client)
-  if (!scopeKey || !recordId) return
-  updateClientRegularTimesState(scopeKey, { actionLoadingId: regularTimeId, listError: '' })
+  const scope = clientRegularTimesScope(client)
+  if (!scope) return
+  const { scopeKey, recordId } = scope
+  clearRegularTimeActionError(scopeKey, regularTimeId)
+  updateClientRegularTimesState(scopeKey, { actionLoadingId: regularTimeId })
   try {
     await pauseClientRegularTime(recordId, regularTimeId)
     await loadClientRegularTimes(client)
     toast.success('Регулярний час поставлено на паузу.')
   } catch (err) {
-    updateClientRegularTimesState(scopeKey, { listError: regularTimeSaveErrorMessage(err) })
+    setRegularTimeActionError(scopeKey, regularTimeId, regularTimeSaveErrorMessage(err))
   } finally {
     if (clientRegularTimesState(scopeKey).actionLoadingId === regularTimeId) {
       updateClientRegularTimesState(scopeKey, { actionLoadingId: null })
@@ -2830,16 +2998,65 @@ async function pauseRegularTime(client: ClientListItem, regularTimeId: number) {
 }
 
 async function resumeRegularTime(client: ClientListItem, regularTimeId: number) {
-  const scopeKey = clientRegularTimesScopeKey(client)
-  const recordId = clientRegularTimeRecordId(client)
-  if (!scopeKey || !recordId) return
-  updateClientRegularTimesState(scopeKey, { actionLoadingId: regularTimeId, listError: '' })
+  const scope = clientRegularTimesScope(client)
+  if (!scope) return
+  const { scopeKey, recordId } = scope
+  clearRegularTimeActionError(scopeKey, regularTimeId)
+  updateClientRegularTimesState(scopeKey, { actionLoadingId: regularTimeId })
   try {
     await resumeClientRegularTime(recordId, regularTimeId)
     await loadClientRegularTimes(client)
     toast.success('Регулярний час відновлено.')
   } catch (err) {
-    updateClientRegularTimesState(scopeKey, { listError: regularTimeSaveErrorMessage(err) })
+    setRegularTimeActionError(scopeKey, regularTimeId, regularTimeSaveErrorMessage(err))
+  } finally {
+    if (clientRegularTimesState(scopeKey).actionLoadingId === regularTimeId) {
+      updateClientRegularTimesState(scopeKey, { actionLoadingId: null })
+    }
+  }
+}
+
+async function refreshSessionsCache() {
+  const previous = sessionsCache.value
+  sessionsCache.value = null
+  try {
+    await loadSessionsIfNeeded()
+  } catch {
+    sessionsCache.value = previous
+  }
+}
+
+async function createNextRegularTimeSession(client: ClientListItem, regularTimeId: number) {
+  const scope = clientRegularTimesScope(client)
+  if (!scope) return
+  const { scopeKey, recordId } = scope
+
+  const state = clientRegularTimesState(scopeKey)
+  if (state.actionLoadingId === regularTimeId) return
+  const regularTime = state.items.find((item) => item.id === regularTimeId)
+  if (regularTime && regularTimeHasAnchorMismatch(regularTime)) {
+    setRegularTimeActionError(
+      scopeKey,
+      regularTimeId,
+      'Дата початку не відповідає дню тижня. Відредагуйте регулярний час.'
+    )
+    return
+  }
+
+  clearRegularTimeActionError(scopeKey, regularTimeId)
+  updateClientRegularTimesState(scopeKey, { actionLoadingId: regularTimeId })
+  try {
+    const result = await createNextSessionFromClientRegularTime(recordId, regularTimeId)
+    await Promise.all([loadClientRegularTimes(client), refreshSessionsCache()])
+    if (result.created) {
+      toast.success('Наступну сесію створено.')
+    } else {
+      toast.info('Наступна сесія вже була створена.')
+    }
+  } catch (err) {
+    const message = regularTimeNextSessionErrorMessage(err)
+    setRegularTimeActionError(scopeKey, regularTimeId, message)
+    toast.error(message)
   } finally {
     if (clientRegularTimesState(scopeKey).actionLoadingId === regularTimeId) {
       updateClientRegularTimesState(scopeKey, { actionLoadingId: null })
@@ -4119,7 +4336,7 @@ async function loadClients() {
   clientsError.value = ''
   try {
     const resp = await apiGet<ClientState[]>('/cabinet/clients/')
-    clients.value = resp || []
+    clients.value = (resp || []).map(markRegisteredClient)
     const seededDrafts: Record<number, string> = { ...clientJournalDrafts.value }
     for (const item of clients.value) {
       const id = relationClientId(item)
@@ -4144,7 +4361,7 @@ async function loadManualClientRecords() {
   manualClientsWarning.value = ''
   try {
     const resp = await apiGet<ListResponse<ManualClientRecord>>('/cabinet/client-records/')
-    const records = listFromResponse(resp)
+    const records = listFromResponse(resp).map(markManualClientRecord)
     manualClientRecords.value = records
     preloadAccountInvites(records)
   } catch (err: any) {
@@ -4331,9 +4548,10 @@ async function submitManualClient() {
   error.value = ''
 
   try {
-    const saved = editingId
+    const savedRaw = editingId
       ? await apiPatch<ManualClientRecord>(`/cabinet/client-records/${editingId}/`, payload)
       : await apiPost<ManualClientRecord>('/cabinet/client-records/', payload)
+    const saved = markManualClientRecord(savedRaw)
 
     manualClientRecords.value = editingId
       ? manualClientRecords.value.map((item) => (item.id === saved.id ? saved : item))
@@ -4387,7 +4605,8 @@ async function archiveManualClient(id: number) {
   try {
     const updated = await apiPost<ManualClientRecord | null>(`/cabinet/client-records/${id}/archive/`, {})
     if (updated?.id) {
-      manualClientRecords.value = manualClientRecords.value.map((item) => (item.id === id ? updated : item))
+      const marked = markManualClientRecord(updated)
+      manualClientRecords.value = manualClientRecords.value.map((item) => (item.id === id ? marked : item))
     } else {
       await loadManualClientRecords()
     }
@@ -4405,7 +4624,8 @@ async function restoreManualClient(id: number) {
   try {
     const updated = await apiPost<ManualClientRecord | null>(`/cabinet/client-records/${id}/restore/`, {})
     if (updated?.id) {
-      manualClientRecords.value = manualClientRecords.value.map((item) => (item.id === id ? updated : item))
+      const marked = markManualClientRecord(updated)
+      manualClientRecords.value = manualClientRecords.value.map((item) => (item.id === id ? marked : item))
     } else {
       await loadManualClientRecords()
     }
@@ -5516,6 +5736,23 @@ onBeforeUnmount(() => {
   color: var(--pc-navy-900);
   font-size: 13px;
   font-weight: 800;
+}
+
+.client-regular-time__next-session {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.client-regular-time__next-session-copy {
+  margin: 0;
+  max-width: 420px;
+}
+
+.client-regular-time__action-error {
+  margin: 0;
 }
 
 .client-regular-time__actions,

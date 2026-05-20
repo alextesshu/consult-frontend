@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { http } from './http'
 import {
   createClientRegularTime,
+  createNextSessionFromClientRegularTime,
   fetchClientRegularTimes,
   pauseClientRegularTime,
   resumeClientRegularTime,
@@ -109,5 +110,24 @@ describe('client regular times api', () => {
       '/cabinet/client-records/5/regular-times/1/resume/',
       {}
     )
+  })
+
+  it('creates next session from regular time', async () => {
+    const response = {
+      created: true,
+      regular_time_id: 1,
+      occurrence_start_at: '2026-05-20T15:00:00+03:00',
+      occurrence_end_at: '2026-05-20T15:50:00+03:00',
+      session: { id: 99 },
+    }
+    mockedHttp.post.mockResolvedValue({ data: response } as any)
+
+    const result = await createNextSessionFromClientRegularTime(5, 1)
+
+    expect(mockedHttp.post).toHaveBeenCalledWith(
+      '/cabinet/client-records/5/regular-times/1/create-next-session/',
+      {}
+    )
+    expect(result).toEqual(response)
   })
 })

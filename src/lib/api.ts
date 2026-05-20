@@ -820,6 +820,11 @@ export type PublicSpecialistProfile = PublicTherapistProfile
 
 export type SessionFormat = 'online' | 'offline'
 
+export type Session = {
+  id: number
+  [key: string]: unknown
+}
+
 export type PracticeBoardStatus = 'todo' | 'in_progress' | 'done'
 
 export type PracticeBoardSourceType =
@@ -2456,6 +2461,14 @@ export type ClientRegularTimePayload = {
   offline_location?: string | null
 }
 
+export type ClientRegularTimeNextSessionResponse = {
+  created: boolean
+  regular_time_id: number
+  occurrence_start_at: string
+  occurrence_end_at: string
+  session: Session
+}
+
 export type ClientMaterialStatus = 'draft' | 'published' | 'revoked'
 export type ClientMaterialType =
   | 'recommendation'
@@ -2712,6 +2725,17 @@ export async function resumeClientRegularTime(
 ): Promise<ClientRegularTime> {
   const resp = await http.post<ClientRegularTime>(
     `/cabinet/client-records/${recordId}/regular-times/${regularTimeId}/resume/`,
+    {}
+  )
+  return resp.data
+}
+
+export async function createNextSessionFromClientRegularTime(
+  recordId: number,
+  regularTimeId: number
+): Promise<ClientRegularTimeNextSessionResponse> {
+  const resp = await http.post<ClientRegularTimeNextSessionResponse>(
+    `/cabinet/client-records/${recordId}/regular-times/${regularTimeId}/create-next-session/`,
     {}
   )
   return resp.data
