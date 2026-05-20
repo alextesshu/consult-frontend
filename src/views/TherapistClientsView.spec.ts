@@ -3079,6 +3079,99 @@ describe('TherapistClientsView', () => {
     expect(mockedResumeClientRegularTime).not.toHaveBeenCalled()
   })
 
+  it('shows activation helper for inactive registered client without client_record_id', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL)
+        return [
+          {
+            id: 1,
+            client_id: 44,
+            client_record_id: null,
+            state: 'INACTIVE',
+            last_session_at: null,
+            upcoming_count: 0,
+            client_display_name: 'Inactive Registered',
+          },
+        ]
+      if (url === CLIENT_RECORDS_URL) return []
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    const { container } = renderView()
+    const registeredCard = await waitFor(() => {
+      const card = container.querySelector('#client-card-44')
+      expect(card).toBeInstanceOf(HTMLElement)
+      return card as HTMLElement
+    })
+    await openAccordionSection(registeredCard, 'Регулярний час')
+
+    expect(registeredCard.textContent || '').toContain(
+      'Регулярний час недоступний, бо клієнт не має активної робочої картки.'
+    )
+    expect(registeredCard.textContent || '').toContain(
+      'Активуйте клієнта, щоб додавати регулярний час, матеріали й сесії.'
+    )
+    expect(within(registeredCard).getByRole('button', { name: 'Активувати клієнта' })).toBeInTheDocument()
+    expect(mockedFetchClientRegularTimes).not.toHaveBeenCalled()
+  })
+
+  it('activates inactive registered client and enables regular time section', async () => {
+    let activated = false
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL)
+        return [
+          {
+            id: 1,
+            client_id: 44,
+            client_record_id: activated ? 701 : null,
+            state: activated ? 'ACTIVE' : 'INACTIVE',
+            last_session_at: null,
+            upcoming_count: 0,
+            client_display_name: 'Inactive Registered',
+          },
+        ]
+      if (url === CLIENT_RECORDS_URL) return []
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedApiPost.mockImplementation(async (url) => {
+      if (url === '/cabinet/clients/44/activate-record/') {
+        activated = true
+        return {
+          id: 1,
+          client_id: 44,
+          client_record_id: 701,
+          state: 'ACTIVE',
+          last_session_at: null,
+          upcoming_count: 0,
+          client_display_name: 'Inactive Registered',
+        } as any
+      }
+      throw new Error(`Unexpected apiPost call: ${url}`)
+    })
+
+    const { container } = renderView()
+    const registeredCard = await waitFor(() => {
+      const card = container.querySelector('#client-card-44')
+      expect(card).toBeInstanceOf(HTMLElement)
+      return card as HTMLElement
+    })
+    await openAccordionSection(registeredCard, 'Регулярний час')
+
+    await fireEvent.click(within(registeredCard).getByRole('button', { name: 'Активувати клієнта' }))
+
+    await waitFor(() => {
+      expect(mockedApiPost).toHaveBeenCalledWith('/cabinet/clients/44/activate-record/', {})
+      expect(mockedFetchClientRegularTimes).toHaveBeenCalledWith(701)
+      const activeCard = Array.from(container.querySelectorAll('#client-card-44')).find((node) =>
+        within(node as HTMLElement).queryByRole('button', { name: 'Додати регулярний час' })
+      )
+      expect(activeCard).toBeInstanceOf(HTMLElement)
+      expect(mockToast.success).toHaveBeenCalledWith('Клієнта активовано.')
+    })
+  })
+
   it('does not fallback to client id for registered client without client_record_id even when payload is manual-like', async () => {
     mockedApiGet.mockImplementation(async (url) => {
       if (url === CLIENTS_URL)

@@ -632,9 +632,28 @@
                 <p class="client-regular-times__copy">
                   Зафіксуйте постійну домовленість із клієнтом: день, час, тривалість і формат зустрічі.
                 </p>
-                <p v-if="!clientRegularTimesScopeKey(client)" class="muted">
-                  Регулярний час можна буде додати після створення картки клієнта.
-                </p>
+                <div v-if="!clientRegularTimesScopeKey(client)" class="client-regular-times__activation">
+                  <template v-if="canActivateRegisteredClientRecord(client)">
+                    <p class="muted">
+                      Регулярний час недоступний, бо клієнт не має активної робочої картки.
+                      Активуйте клієнта, щоб додавати регулярний час, матеріали й сесії.
+                    </p>
+                    <p v-if="activateClientRecordError(client)" class="form-error">
+                      {{ activateClientRecordError(client) }}
+                    </p>
+                    <button
+                      class="btn btn--ghost btn--sm"
+                      type="button"
+                      :disabled="isActivatingClientRecord(client)"
+                      @click="activateClientRecord(client)"
+                    >
+                      {{ isActivatingClientRecord(client) ? 'Активуємо...' : 'Активувати клієнта' }}
+                    </button>
+                  </template>
+                  <p v-else class="muted">
+                    Регулярний час можна буде додати після створення картки клієнта.
+                  </p>
+                </div>
                 <template v-else>
                   <p v-if="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').listError" class="form-error">
                     {{ clientRegularTimesState(clientRegularTimesScopeKey(client) || '').listError }}
@@ -1142,9 +1161,28 @@
                 <p class="client-regular-times__copy">
                   Зафіксуйте постійну домовленість із клієнтом: день, час, тривалість і формат зустрічі.
                 </p>
-                <p v-if="!clientRegularTimesScopeKey(client)" class="muted">
-                  Регулярний час можна буде додати після створення картки клієнта.
-                </p>
+                <div v-if="!clientRegularTimesScopeKey(client)" class="client-regular-times__activation">
+                  <template v-if="canActivateRegisteredClientRecord(client)">
+                    <p class="muted">
+                      Регулярний час недоступний, бо клієнт не має активної робочої картки.
+                      Активуйте клієнта, щоб додавати регулярний час, матеріали й сесії.
+                    </p>
+                    <p v-if="activateClientRecordError(client)" class="form-error">
+                      {{ activateClientRecordError(client) }}
+                    </p>
+                    <button
+                      class="btn btn--ghost btn--sm"
+                      type="button"
+                      :disabled="isActivatingClientRecord(client)"
+                      @click="activateClientRecord(client)"
+                    >
+                      {{ isActivatingClientRecord(client) ? 'Активуємо...' : 'Активувати клієнта' }}
+                    </button>
+                  </template>
+                  <p v-else class="muted">
+                    Регулярний час можна буде додати після створення картки клієнта.
+                  </p>
+                </div>
                 <template v-else>
                   <p v-if="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').listError" class="form-error">
                     {{ clientRegularTimesState(clientRegularTimesScopeKey(client) || '').listError }}
@@ -2055,6 +2093,8 @@ const manualSessionDraft = ref<ManualClientSessionFormState>({
 const accountInviteStateByRecordId = ref<Record<number, AccountInviteState>>({})
 const materialsStateByScopeKey = ref<Record<string, ClientMaterialsState>>({})
 const regularTimesStateByScopeKey = ref<Record<string, ClientRegularTimesState>>({})
+const activatingClientRecordKey = ref<string | null>(null)
+const activateClientRecordErrors = ref<Record<string, string>>({})
 const regularTimeDatePickerScopeKey = ref<string | null>(null)
 const regularTimeDatePickerMonth = ref(regularTimeToIsoDate(new Date()))
 
@@ -2379,6 +2419,28 @@ async function copyAccountInviteLink(recordId: number) {
 function clientListState(client: ClientListItem): ClientState['state'] {
   if (isManualClientRecord(client)) return client.status === 'archived' ? 'ARCHIVED' : 'ACTIVE'
   return client.state
+}
+
+function canActivateRegisteredClientRecord(client: ClientListItem): boolean {
+  if (!isCurrentRegisteredClient(client)) return false
+  if (resolveRegularTimeRecordId(client)) return false
+  return clientListState(client) === 'INACTIVE' && relationClientId(client) > 0
+}
+
+function activateClientRecordError(client: ClientListItem): string {
+  return activateClientRecordErrors.value[clientSelectionKey(client)] || ''
+}
+
+function isActivatingClientRecord(client: ClientListItem): boolean {
+  return activatingClientRecordKey.value === clientSelectionKey(client)
+}
+
+function setActivateClientRecordError(client: ClientListItem, message: string) {
+  const key = clientSelectionKey(client)
+  activateClientRecordErrors.value = {
+    ...activateClientRecordErrors.value,
+    [key]: message,
+  }
 }
 
 function defaultMaterialDraft(): ClientMaterialDraft {
@@ -2872,6 +2934,30 @@ async function loadClientRegularTimes(client: ClientListItem) {
       loading: false,
       listError: regularTimeLoadErrorMessage(err),
     })
+  }
+}
+
+async function activateClientRecord(client: ClientListItem) {
+  if (!canActivateRegisteredClientRecord(client)) return
+  const clientId = relationClientId(client)
+  if (!clientId) return
+  const key = clientSelectionKey(client)
+  activatingClientRecordKey.value = key
+  setActivateClientRecordError(client, '')
+  try {
+    await apiPost<ClientState>(`/cabinet/clients/${clientId}/activate-record/`, {})
+    toast.success('Клієнта активовано.')
+    await loadClients()
+    const nextClient = clients.value.find((item) => clientSelectionKey(item) === key)
+    if (nextClient && clientRegularTimesScopeKey(nextClient) && isAccordionSectionOpen(nextClient, 'regularTime')) {
+      await loadClientRegularTimes(nextClient)
+    }
+  } catch (err) {
+    setActivateClientRecordError(client, getApiErrorMessage(err, 'Не вдалося активувати клієнта. Спробуйте ще раз.'))
+  } finally {
+    if (activatingClientRecordKey.value === key) {
+      activatingClientRecordKey.value = null
+    }
   }
 }
 
