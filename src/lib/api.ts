@@ -176,6 +176,7 @@ export type TherapistProfile = {
   experience_years: number
   price: string | null
   price_currency: string
+  standard_session_duration_minutes: number
   intro_duration_minutes: number
   intro_price: string | null
   intro_price_currency: string
@@ -796,6 +797,7 @@ export type PublicTherapistProfile = {
   experience_years?: number
   price?: string
   price_currency?: string
+  standard_session_duration_minutes?: number
   intro_duration_minutes?: number
   intro_price?: string
   intro_price_currency?: string

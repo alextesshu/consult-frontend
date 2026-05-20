@@ -13,6 +13,7 @@ import {
   fetchSpecialistClientMaterials,
   fetchChatThreads,
   fetchClientRecordAccountInvite,
+  fetchSpecialistProfile,
   listClientMaterialAttachments,
   pauseClientRegularTime,
   publishSpecialistClientMaterial,
@@ -47,6 +48,7 @@ vi.mock('../lib/api', () => ({
   fetchSpecialistClientMaterials: vi.fn(),
   fetchChatThreads: vi.fn(),
   fetchClientRecordAccountInvite: vi.fn(),
+  fetchSpecialistProfile: vi.fn(),
   listClientMaterialAttachments: vi.fn(),
   pauseClientRegularTime: vi.fn(),
   hasMaterialUrl: (material: { url?: string | null }) => Boolean(String(material?.url || '').trim()),
@@ -88,6 +90,7 @@ const mockedFetchClientRegularTimes = vi.mocked(fetchClientRegularTimes)
 const mockedFetchSpecialistClientMaterials = vi.mocked(fetchSpecialistClientMaterials)
 const mockedFetchChatThreads = vi.mocked(fetchChatThreads)
 const mockedFetchClientRecordAccountInvite = vi.mocked(fetchClientRecordAccountInvite)
+const mockedFetchSpecialistProfile = vi.mocked(fetchSpecialistProfile)
 const mockedListClientMaterialAttachments = vi.mocked(listClientMaterialAttachments)
 const mockedPauseClientRegularTime = vi.mocked(pauseClientRegularTime)
 const mockedPublishSpecialistClientMaterial = vi.mocked(publishSpecialistClientMaterial)
@@ -279,6 +282,8 @@ describe('TherapistClientsView', () => {
     mockedFetchChatThreads.mockResolvedValue([])
     mockedFetchClientRecordAccountInvite.mockReset()
     mockedFetchClientRecordAccountInvite.mockResolvedValue(null)
+    mockedFetchSpecialistProfile.mockReset()
+    mockedFetchSpecialistProfile.mockResolvedValue({ standard_session_duration_minutes: 50 } as any)
     mockedFetchClientRegularTimes.mockReset()
     mockedFetchClientRegularTimes.mockResolvedValue([])
     mockedListClientMaterialAttachments.mockReset()
@@ -3554,6 +3559,41 @@ describe('TherapistClientsView', () => {
         })
       )
       expect(mockedCreateClientRegularTime).not.toHaveBeenCalledWith(6, expect.anything())
+    })
+  })
+
+  it('uses specialist standard session duration as new regular time default', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValueOnce({ standard_session_duration_minutes: 75 } as any)
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL) return [manualClientRecord({ id: 927 })]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedFetchClientRegularTimes.mockResolvedValue([])
+
+    const { container } = renderView()
+    const manualCard = await waitFor(() => {
+      const card = container.querySelector('#manual-client-record-927')
+      expect(card).toBeInstanceOf(HTMLElement)
+      return card as HTMLElement
+    })
+    await openAccordionSection(manualCard, 'Регулярний час')
+    await fireEvent.click(await within(manualCard).findByRole('button', { name: 'Додати регулярний час' }))
+
+    expect(within(manualCard).getByLabelText('Тривалість')).toHaveValue(75)
+
+    await fireEvent.update(within(manualCard).getByLabelText('День тижня'), '2')
+    await selectRegularTimeDate(manualCard, '2026-05-20')
+    await fireEvent.click(within(manualCard).getByRole('button', { name: 'Зберегти' }))
+
+    await waitFor(() => {
+      expect(mockedCreateClientRegularTime).toHaveBeenCalledWith(
+        927,
+        expect.objectContaining({
+          duration_minutes: 75,
+        })
+      )
     })
   })
 

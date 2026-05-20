@@ -99,6 +99,7 @@ function makeProfile(): SpecialistProfile {
     experience_years: 6,
     price: '1500',
     price_currency: 'UAH',
+    standard_session_duration_minutes: 50,
     intro_duration_minutes: 30,
     intro_price: '600',
     intro_price_currency: 'UAH',
@@ -171,6 +172,8 @@ describe('TherapistProfileView', () => {
     expect(screen.getByLabelText('Доступно онлайн')).toBeChecked()
     expect(screen.getByLabelText('Доступно офлайн')).toBeChecked()
     expect(screen.getByDisplayValue('Львів, офіс 12')).toBeInTheDocument()
+    expect(screen.getByLabelText('Стандартна сесія (тривалість)')).toHaveValue('50')
+    expect(screen.getByText('Ця тривалість використовується як типова для звичайних сесій.')).toBeInTheDocument()
     expect(
       screen.getByDisplayValue('Будь ласка, попереджайте про перенесення щонайменше за 24 години.')
     ).toBeInTheDocument()
@@ -434,6 +437,8 @@ describe('TherapistProfileView', () => {
 
     const introPriceInput = screen.getByDisplayValue('600') as HTMLInputElement
     await fireEvent.update(introPriceInput, '')
+    const standardDurationSelect = screen.getByLabelText('Стандартна сесія (тривалість)') as HTMLSelectElement
+    await fireEvent.update(standardDurationSelect, '75')
     const summaryInput = screen.getByDisplayValue('Короткий опис для hero-блоку.') as HTMLTextAreaElement
     await fireEvent.update(summaryInput, 'Оновлений короткий опис.   ')
     const rulesInput = screen.getByLabelText('Умови спеціаліста перед записом') as HTMLTextAreaElement
@@ -463,6 +468,8 @@ describe('TherapistProfileView', () => {
         languages: ['Українська', 'English'],
         location: 'Львів',
         price: '1500',
+        standard_session_duration_minutes: 75,
+        intro_duration_minutes: 30,
         intro_price: null,
         show_email: true,
         show_messenger: true,

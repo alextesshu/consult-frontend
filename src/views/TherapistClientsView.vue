@@ -1785,6 +1785,7 @@ import {
   fetchSpecialistClientMaterials,
   fetchChatThreads,
   fetchClientRecordAccountInvite,
+  fetchSpecialistProfile,
   hasMaterialUrl,
   listClientMaterialAttachments,
   publishSpecialistClientMaterial,
@@ -2564,12 +2565,14 @@ const regularTimeDatePickerMonths = [
   'листопад',
   'грудень',
 ]
+const STANDARD_SESSION_DURATION_FALLBACK = 50
+const standardSessionDurationMinutes = ref(STANDARD_SESSION_DURATION_FALLBACK)
 
 function defaultRegularTimeDraft(): ClientRegularTimeDraft {
   return {
     weekday: 0,
     start_time: '09:00',
-    duration_minutes: 50,
+    duration_minutes: standardSessionDurationMinutes.value,
     frequency: 'weekly',
     starts_on: '',
     session_format: 'online',
@@ -2961,6 +2964,17 @@ async function loadClientRegularTimes(client: ClientListItem) {
       loading: false,
       listError: regularTimeLoadErrorMessage(err),
     })
+  }
+}
+
+async function loadStandardSessionDuration() {
+  try {
+    const profile = await fetchSpecialistProfile()
+    const value = Number(profile.standard_session_duration_minutes)
+    if (!Number.isFinite(value) || value <= 0) return
+    standardSessionDurationMinutes.value = value
+  } catch {
+    standardSessionDurationMinutes.value = STANDARD_SESSION_DURATION_FALLBACK
   }
 }
 
@@ -4998,6 +5012,7 @@ onMounted(async () => {
   document.addEventListener('pointerdown', handleRegularTimeDatePickerPointerDown)
   document.addEventListener('keydown', handleRegularTimeDatePickerKeydown)
   await Promise.all([
+    loadStandardSessionDuration(),
     loadClients(),
     loadManualClientRecords(),
     loadChatClientNames(),

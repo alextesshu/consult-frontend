@@ -303,6 +303,21 @@
               </div>
             </label>
             <label class="field">
+              <span class="field-label">Стандартна сесія (тривалість)</span>
+              <select
+                v-model.number="profile.standard_session_duration_minutes"
+                class="input input--select"
+                aria-label="Стандартна сесія (тривалість)"
+              >
+                <option v-for="option in standardDurationOptions" :key="option" :value="option">
+                  {{ option }} хв
+                </option>
+              </select>
+              <div class="field-help">
+                Ця тривалість використовується як типова для звичайних сесій.
+              </div>
+            </label>
+            <label class="field">
               <span class="field-label">Ознайомча сесія (тривалість)</span>
               <select v-model.number="profile.intro_duration_minutes" class="input input--select">
                 <option :value="15">15 хв</option>
@@ -1102,6 +1117,7 @@ const experienceOptions = Array.from({ length: 31 }, (_, value) => ({
   value,
   label: experienceLabel(value),
 }))
+const standardDurationOptions = [30, 40, 50, 60, 75, 90]
 
 const languageInput = ref('')
 const languageList = ref<string[]>([])
@@ -1507,6 +1523,7 @@ function buildProfilePayload() {
     location: profile.location,
     price: normalizeDecimal(profile.price),
     price_currency: profile.price_currency || 'UAH',
+    standard_session_duration_minutes: profile.standard_session_duration_minutes,
     intro_duration_minutes: profile.intro_duration_minutes,
     intro_price: normalizeDecimal(profile.intro_price),
     intro_price_currency: profile.intro_price_currency || 'UAH',
@@ -1564,6 +1581,7 @@ const profile = reactive<SpecialistProfile>({
   experience_years: 0,
   price: '',
   price_currency: 'UAH',
+  standard_session_duration_minutes: 50,
   intro_duration_minutes: 30,
   intro_price: '',
   intro_price_currency: 'UAH',
@@ -1747,6 +1765,7 @@ type ProfileFormSnapshot = {
   location: string
   price: string
   price_currency: string
+  standard_session_duration_minutes: number
   intro_duration_minutes: number
   intro_price: string
   intro_price_currency: string
@@ -1798,6 +1817,7 @@ function createProfileFormSnapshot(): ProfileFormSnapshot {
     location: profile.location || '',
     price: profile.price || '',
     price_currency: profile.price_currency || 'UAH',
+    standard_session_duration_minutes: profile.standard_session_duration_minutes,
     intro_duration_minutes: profile.intro_duration_minutes,
     intro_price: profile.intro_price || '',
     intro_price_currency: profile.intro_price_currency || 'UAH',
@@ -2176,6 +2196,10 @@ function normalizeProfile(data: SpecialistProfile): SpecialistProfile {
     experience_years: typeof data.experience_years === 'number' ? data.experience_years : 0,
     price: data.price || '',
     price_currency: data.price_currency || 'UAH',
+    standard_session_duration_minutes:
+      typeof data.standard_session_duration_minutes === 'number'
+        ? data.standard_session_duration_minutes
+        : 50,
     intro_duration_minutes: typeof data.intro_duration_minutes === 'number' ? data.intro_duration_minutes : 30,
     intro_price: data.intro_price || '',
     intro_price_currency: data.intro_price_currency || 'UAH',

@@ -479,7 +479,7 @@
 <script setup lang="ts">
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { apiDelete, apiGet, apiPatch, apiPost } from '../lib/api'
+import { apiDelete, apiGet, apiPatch, apiPost, fetchSpecialistProfile } from '../lib/api'
 import ConfirmModal from '../components/ConfirmModal.vue'
 import ScheduleSubnav from '../components/ScheduleSubnav.vue'
 import { useConfirmModal } from '../composables/useConfirmModal'
@@ -573,12 +573,14 @@ const exceptionsLoading = ref(false)
 const exceptionError = ref('')
 const editingExceptionId = ref<number | null>(null)
 const exceptionSubmitting = ref(false)
+const STANDARD_SESSION_DURATION_FALLBACK = 50
+const standardSessionDurationMinutes = ref(STANDARD_SESSION_DURATION_FALLBACK)
 
 const createForm = reactive({
   weekday: 0,
   start_time: '09:00',
   end_time: '18:00',
-  session_duration_minutes: 50,
+  session_duration_minutes: STANDARD_SESSION_DURATION_FALLBACK,
   buffer_minutes: 10,
   is_active: true,
 })
@@ -589,7 +591,7 @@ const editForm = reactive({
   weekday: 0,
   start_time: '09:00',
   end_time: '18:00',
-  session_duration_minutes: 50,
+  session_duration_minutes: STANDARD_SESSION_DURATION_FALLBACK,
   buffer_minutes: 10,
   is_active: true,
 })
@@ -679,6 +681,18 @@ async function loadRules() {
     error.value = getApiErrorMessage(err, 'Не вдалося завантажити налаштування розкладу.')
   } finally {
     loading.value = false
+  }
+}
+
+async function loadStandardSessionDuration() {
+  try {
+    const profile = await fetchSpecialistProfile()
+    const value = Number(profile.standard_session_duration_minutes)
+    if (!Number.isFinite(value) || value <= 0) return
+    standardSessionDurationMinutes.value = value
+    createForm.session_duration_minutes = value
+  } catch {
+    standardSessionDurationMinutes.value = STANDARD_SESSION_DURATION_FALLBACK
   }
 }
 
@@ -831,7 +845,7 @@ function resetCreateForm() {
   createForm.weekday = 0
   createForm.start_time = '09:00'
   createForm.end_time = '18:00'
-  createForm.session_duration_minutes = 50
+  createForm.session_duration_minutes = standardSessionDurationMinutes.value
   createForm.buffer_minutes = 10
   createForm.is_active = true
 }
@@ -1025,7 +1039,7 @@ async function loadScheduleContext() {
     await loadExceptions()
     return
   }
-  await loadRules()
+  await Promise.all([loadStandardSessionDuration(), loadRules()])
 }
 
 watch(
