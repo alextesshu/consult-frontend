@@ -1,6 +1,12 @@
 import { fireEvent, render, screen, within } from '@testing-library/vue'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { apiGet, apiPost, createClientRegularTime, fetchSpecialistProfile } from '../lib/api'
+import {
+  apiGet,
+  apiPost,
+  createClientRegularTime,
+  fetchSpecialistProfile,
+  updateSpecialistProfile,
+} from '../lib/api'
 import SlotsView from './SlotsView.vue'
 
 const mockToast = {
@@ -30,6 +36,7 @@ vi.mock('../lib/api', () => ({
   apiDelete: vi.fn(),
   createClientRegularTime: vi.fn(),
   fetchSpecialistProfile: vi.fn(),
+  updateSpecialistProfile: vi.fn(),
   getApiErrorMessage: vi.fn((err: any, fallback: string) => err?.message || fallback),
 }))
 
@@ -45,6 +52,7 @@ const mockedApiGet = vi.mocked(apiGet)
 const mockedApiPost = vi.mocked(apiPost)
 const mockedCreateClientRegularTime = vi.mocked(createClientRegularTime)
 const mockedFetchSpecialistProfile = vi.mocked(fetchSpecialistProfile)
+const mockedUpdateSpecialistProfile = vi.mocked(updateSpecialistProfile)
 
 async function flushAsyncUpdates() {
   await Promise.resolve()
@@ -155,10 +163,25 @@ describe('SlotsView', () => {
     mockedApiPost.mockReset()
     mockedCreateClientRegularTime.mockReset()
     mockedFetchSpecialistProfile.mockReset()
+    mockedUpdateSpecialistProfile.mockReset()
     mockedCreateClientRegularTime.mockResolvedValue({} as any)
     mockedFetchSpecialistProfile.mockResolvedValue({
       standard_session_duration_minutes: 50,
       timezone: 'Europe/Kyiv',
+      public_booking_mode: 'request_only',
+      show_public_availability: false,
+      public_booking_min_lead_time_hours: 24,
+      public_booking_horizon_days: 14,
+      public_booking_requires_confirmation: true,
+    } as any)
+    mockedUpdateSpecialistProfile.mockResolvedValue({
+      standard_session_duration_minutes: 50,
+      timezone: 'Europe/Kyiv',
+      public_booking_mode: 'request_only',
+      show_public_availability: false,
+      public_booking_min_lead_time_hours: 24,
+      public_booking_horizon_days: 14,
+      public_booking_requires_confirmation: true,
     } as any)
     mockToast.success.mockReset()
     mockToast.info.mockReset()
@@ -195,6 +218,120 @@ describe('SlotsView', () => {
     expect(screen.getByRole('button', { name: 'Додати вільний час' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Заповнити тиждень' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Створити сесію' })).not.toBeInTheDocument()
+  })
+
+  it('renders public booking settings in settings tab with profile values', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValueOnce({
+      standard_session_duration_minutes: 50,
+      timezone: 'Europe/Kyiv',
+      public_booking_mode: 'direct_booking',
+      show_public_availability: true,
+      public_booking_min_lead_time_hours: 48,
+      public_booking_horizon_days: 30,
+      public_booking_requires_confirmation: false,
+    } as any)
+    mockScheduleApi()
+
+    renderView()
+    await flushAsyncUpdates()
+
+    await fireEvent.click(screen.getByRole('tab', { name: 'Налаштування' }))
+    await flushAsyncUpdates()
+
+    expect(screen.getByRole('heading', { name: 'Публічний запис' })).toBeInTheDocument()
+    expect((screen.getByLabelText('Режим запису') as HTMLSelectElement).value).toBe('direct_booking')
+    expect((screen.getByLabelText('Показувати вільний час у публічному профілі') as HTMLInputElement).checked).toBe(true)
+    expect((screen.getByLabelText('Мінімальний час до бронювання') as HTMLSelectElement).value).toBe('48')
+    expect((screen.getByLabelText('Показувати вільний час наперед') as HTMLSelectElement).value).toBe('30')
+    expect((screen.getByLabelText('Підтвердження спеціаліста') as HTMLSelectElement).value).toBe('auto')
+  })
+
+  it('saves public booking settings with expected profile patch payload', async () => {
+    mockScheduleApi()
+    mockedUpdateSpecialistProfile.mockResolvedValueOnce({
+      standard_session_duration_minutes: 50,
+      timezone: 'Europe/Kyiv',
+      public_booking_mode: 'direct_booking',
+      show_public_availability: true,
+      public_booking_min_lead_time_hours: 72,
+      public_booking_horizon_days: 7,
+      public_booking_requires_confirmation: false,
+    } as any)
+
+    renderView()
+    await flushAsyncUpdates()
+
+    await fireEvent.click(screen.getByRole('tab', { name: 'Налаштування' }))
+    await flushAsyncUpdates()
+
+    await fireEvent.update(screen.getByLabelText('Режим запису'), 'direct_booking')
+    await fireEvent.click(screen.getByLabelText('Показувати вільний час у публічному профілі'))
+    await fireEvent.update(screen.getByLabelText('Мінімальний час до бронювання'), '72')
+    await fireEvent.update(screen.getByLabelText('Показувати вільний час наперед'), '7')
+    await fireEvent.update(screen.getByLabelText('Підтвердження спеціаліста'), 'auto')
+    await fireEvent.click(screen.getByRole('button', { name: 'Зберегти налаштування' }))
+    await flushAsyncUpdates()
+
+    expect(mockedUpdateSpecialistProfile).toHaveBeenCalledWith({
+      public_booking_mode: 'direct_booking',
+      show_public_availability: true,
+      public_booking_min_lead_time_hours: 72,
+      public_booking_horizon_days: 7,
+      public_booking_requires_confirmation: false,
+    })
+    expect(mockToast.success).toHaveBeenCalledWith('Налаштування публічного запису збережено.')
+  })
+
+  it('disables public availability toggle in request-only mode', async () => {
+    mockScheduleApi()
+
+    renderView()
+    await flushAsyncUpdates()
+    await fireEvent.click(screen.getByRole('tab', { name: 'Налаштування' }))
+    await flushAsyncUpdates()
+
+    expect((screen.getByLabelText('Режим запису') as HTMLSelectElement).value).toBe('request_only')
+    expect((screen.getByLabelText('Показувати вільний час у публічному профілі') as HTMLInputElement).disabled).toBe(true)
+  })
+
+  it('updates availability helper copy according to public booking settings', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValueOnce({
+      standard_session_duration_minutes: 50,
+      timezone: 'Europe/Kyiv',
+      public_booking_mode: 'request_only',
+      show_public_availability: false,
+      public_booking_min_lead_time_hours: 24,
+      public_booking_horizon_days: 14,
+      public_booking_requires_confirmation: true,
+    } as any)
+    mockScheduleApi()
+
+    renderView()
+    await flushAsyncUpdates()
+    await fireEvent.click(screen.getByRole('tab', { name: 'Вільний час для запису' }))
+    await flushAsyncUpdates()
+    expect(
+      screen.getByText('Вільний час збережено, але клієнти не бачать його, доки прямий запис вимкнено.')
+    ).toBeInTheDocument()
+
+    await fireEvent.click(screen.getByRole('tab', { name: 'Налаштування' }))
+    await flushAsyncUpdates()
+    await fireEvent.update(screen.getByLabelText('Режим запису'), 'direct_booking')
+    await fireEvent.click(screen.getByLabelText('Показувати вільний час у публічному профілі'))
+    await fireEvent.click(screen.getByRole('tab', { name: 'Вільний час для запису' }))
+    await flushAsyncUpdates()
+    expect(
+      screen.getByText('Цей час бачать клієнти в публічному профілі та можуть обрати для запису.')
+    ).toBeInTheDocument()
+
+    await fireEvent.click(screen.getByRole('tab', { name: 'Налаштування' }))
+    await flushAsyncUpdates()
+    await fireEvent.click(screen.getByLabelText('Показувати вільний час у публічному профілі'))
+    await fireEvent.click(screen.getByRole('tab', { name: 'Вільний час для запису' }))
+    await flushAsyncUpdates()
+    expect(
+      screen.getByText('Прямий запис увімкнено, але показ вільного часу в публічному профілі вимкнено.')
+    ).toBeInTheDocument()
   })
 
   it('opens regular sessions modal and loads selectable clients with usable record ids', async () => {

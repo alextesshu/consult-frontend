@@ -144,6 +144,11 @@ export async function enableSpecialist(): Promise<void> {
 export type TherapistProfile = {
   id: number
   public_profile_enabled: boolean
+  public_booking_mode?: 'request_only' | 'direct_booking'
+  show_public_availability?: boolean
+  public_booking_min_lead_time_hours?: number
+  public_booking_horizon_days?: number
+  public_booking_requires_confirmation?: boolean
   slug?: string
   public_profile_path?: string
   public_profile_url?: string
@@ -775,6 +780,12 @@ export type PublicTherapistProfile = {
   slug?: string
   public_slug?: string
   therapist_id: number
+  public_booking_mode?: 'request_only' | 'direct_booking'
+  show_public_availability?: boolean
+  public_booking_min_lead_time_hours?: number
+  public_booking_horizon_days?: number
+  public_booking_requires_confirmation?: boolean
+  public_direct_booking_enabled?: boolean
   professional_focus?: ProfessionalFocus | null
   display_name: string
   completed_sessions_count?: number

@@ -32,16 +32,23 @@
         >
           Вільний час для запису
         </button>
+        <button
+          class="btn btn--ghost btn--sm schedule-tabs__item"
+          :class="{ 'btn--active': scheduleTab === 'SETTINGS' }"
+          type="button"
+          role="tab"
+          :aria-selected="scheduleTab === 'SETTINGS'"
+          @click="setScheduleTab('SETTINGS')"
+        >
+          Налаштування
+        </button>
         <RouterLink class="btn btn--ghost btn--sm schedule-tabs__item" to="/cabinet/availability-exceptions">
           Відпустка
-        </RouterLink>
-        <RouterLink class="btn btn--ghost btn--sm schedule-tabs__item" to="/cabinet/availability-rules">
-          Налаштування
         </RouterLink>
       </div>
     </div>
 
-    <section class="panel schedule-toolbar">
+    <section v-if="!isSettingsTab" class="panel schedule-toolbar">
       <div class="schedule-toolbar__main">
         <div class="week-nav" aria-label="Навігація тижнями">
           <button class="btn btn--ghost btn--sm" type="button" @click="shiftWeek(-1)">
@@ -70,7 +77,7 @@
           </div>
           <div v-else class="action-group action-group--availability">
             <div class="action-group__title">Вільний час для запису</div>
-            <p class="muted action-group__hint">Цей час бачать клієнти в публічному профілі, якщо прямий запис увімкнено.</p>
+            <p class="muted action-group__hint">{{ availabilityTabHelperText }}</p>
             <div class="action-group__buttons">
               <button class="btn btn--ghost btn--sm" type="button" @click="openCreateForm">
                 Додати вільний час
@@ -149,7 +156,7 @@
 
     <div v-if="loading" class="muted" style="margin-top: 8px;">Завантаження...</div>
 
-    <div class="schedule-workspace">
+    <div v-if="!isSettingsTab" class="schedule-workspace">
       <section class="panel calendar-panel" aria-label="Календар">
         <div class="calendar-scroll">
           <div class="week-calendar" role="grid" :aria-label="`Календар на тиждень ${weekRangeLabel}`">
@@ -462,6 +469,100 @@
         </template>
       </aside>
     </div>
+
+    <section v-else class="panel settings-panel">
+      <div class="settings-panel__intro">
+        <h2 class="panel__title">Публічний запис</h2>
+        <p class="muted">
+          Оберіть, як нові клієнти можуть звертатися до вас через публічний профіль.
+        </p>
+      </div>
+
+      <div v-if="settingsLoading" class="muted">Завантаження налаштувань...</div>
+      <form v-else class="settings-form" @submit.prevent="savePublicBookingSettings">
+        <div v-if="settingsError" class="form-error" role="alert">{{ settingsError }}</div>
+        <label class="field">
+          Режим запису
+          <select v-model="publicBookingMode" class="input" aria-label="Режим запису">
+            <option
+              v-for="option in publicBookingModeOptions"
+              :key="option.value"
+              :value="option.value"
+            >
+              {{ option.label }}
+            </option>
+          </select>
+          <span class="muted settings-form__hint">{{ bookingModeHelperText }}</span>
+        </label>
+
+        <label class="field settings-form__checkbox-row">
+          <span class="settings-form__checkbox-label">Показувати вільний час у публічному профілі</span>
+          <input
+            v-model="showPublicAvailability"
+            type="checkbox"
+            :disabled="publicBookingMode !== 'direct_booking'"
+            aria-label="Показувати вільний час у публічному профілі"
+          />
+          <span class="muted settings-form__hint">
+            Коли опція вимкнена, клієнти не бачать календар вільного часу.
+          </span>
+        </label>
+
+        <label class="field">
+          Мінімальний час до бронювання
+          <select
+            v-model.number="publicBookingMinLeadTimeHours"
+            class="input"
+            aria-label="Мінімальний час до бронювання"
+          >
+            <option v-for="hours in publicBookingLeadTimeOptions" :key="hours" :value="hours">
+              {{ hours }} год
+            </option>
+          </select>
+          <span class="muted settings-form__hint">
+            Клієнти не зможуть забронювати сесію раніше цього часу.
+          </span>
+        </label>
+
+        <label class="field">
+          Показувати вільний час наперед
+          <select
+            v-model.number="publicBookingHorizonDays"
+            class="input"
+            aria-label="Показувати вільний час наперед"
+          >
+            <option v-for="days in publicBookingHorizonOptions" :key="days" :value="days">
+              {{ days }} днів
+            </option>
+          </select>
+          <span class="muted settings-form__hint">
+            Це обмежує, наскільки далеко вперед клієнти бачать доступний час.
+          </span>
+        </label>
+
+        <label class="field">
+          Підтвердження спеціаліста
+          <select
+            :value="publicBookingRequiresConfirmation ? 'required' : 'auto'"
+            class="input"
+            aria-label="Підтвердження спеціаліста"
+            @change="onPublicBookingConfirmationChange"
+          >
+            <option value="required">Потрібне підтвердження</option>
+            <option value="auto">Автоматично підтверджувати</option>
+          </select>
+          <span class="muted settings-form__hint">
+            Під час beta рекомендуємо залишити підтвердження увімкненим.
+          </span>
+        </label>
+
+        <div class="settings-form__actions">
+          <button class="btn" type="submit" :disabled="settingsSaving || settingsLoading || !settingsLoaded">
+            {{ settingsSaving ? 'Зберігаємо...' : 'Зберегти налаштування' }}
+          </button>
+        </div>
+      </form>
+    </section>
 
     <section v-if="isAvailabilityTab && createFormOpen" class="panel create-slot-panel">
       <div class="create-slot-panel__intro">
@@ -898,8 +999,14 @@ import {
   createClientRegularTime,
   fetchSpecialistProfile,
   getApiErrorMessage,
+  updateSpecialistProfile,
 } from '../lib/api'
-import type { ClientRegularTimeFrequency, ClientRegularTimePayload, SessionFormat } from '../lib/api'
+import type {
+  ClientRegularTimeFrequency,
+  ClientRegularTimePayload,
+  SessionFormat,
+  SpecialistProfile,
+} from '../lib/api'
 import { getBookingErrorCode, getBookingErrorMessage } from '../lib/bookingCopy'
 import { useToast } from '../composables/useToast'
 import ConfirmModal from '../components/ConfirmModal.vue'
@@ -988,7 +1095,8 @@ type RegularClientOption = {
   label: string
 }
 
-type ScheduleTab = 'CALENDAR' | 'AVAILABILITY'
+type ScheduleTab = 'CALENDAR' | 'AVAILABILITY' | 'SETTINGS'
+type PublicBookingMode = 'request_only' | 'direct_booking'
 
 const slots = ref<Slot[]>([])
 const sessions = ref<ScheduleSession[]>([])
@@ -1052,6 +1160,15 @@ const slotStatusFilter = ref<'ALL' | 'FREE' | 'BOOKED'>('ALL')
 const selectedSlotId = ref<number | null>(null)
 const selectedSessionId = ref<number | null>(null)
 const scheduleTab = ref<ScheduleTab>('CALENDAR')
+const settingsLoading = ref(false)
+const settingsSaving = ref(false)
+const settingsError = ref('')
+const settingsLoaded = ref(false)
+const publicBookingMode = ref<PublicBookingMode>('request_only')
+const showPublicAvailability = ref(false)
+const publicBookingMinLeadTimeHours = ref(24)
+const publicBookingHorizonDays = ref(14)
+const publicBookingRequiresConfirmation = ref(true)
 const pastSlotMessage = 'Неможливо створити вікно в минулому. Для нічного часу оберіть майбутню дату або майбутній час.'
 
 const editingId = ref<number | null>(null)
@@ -1093,6 +1210,12 @@ const regularFrequencyOptions: Array<{ value: ClientRegularTimeFrequency; label:
   { value: 'weekly', label: 'Щотижня' },
   { value: 'every_two_weeks', label: 'Раз на два тижні' },
 ]
+const publicBookingModeOptions: Array<{ value: PublicBookingMode; label: string }> = [
+  { value: 'request_only', label: 'Тільки запити' },
+  { value: 'direct_booking', label: 'Пряме бронювання вільного часу' },
+]
+const publicBookingLeadTimeOptions = [12, 24, 48, 72]
+const publicBookingHorizonOptions = [7, 14, 30]
 const regularFormatOptions: Array<{ value: SessionFormat; label: string }> = [
   { value: 'online', label: 'Онлайн' },
   { value: 'offline', label: 'Офлайн' },
@@ -1489,6 +1612,21 @@ const weekRangeLabel = computed(() => {
 const weekDateKeys = computed(() => new Set(weekDays.value.map((day) => day.key)))
 const isCalendarTab = computed(() => scheduleTab.value === 'CALENDAR')
 const isAvailabilityTab = computed(() => scheduleTab.value === 'AVAILABILITY')
+const isSettingsTab = computed(() => scheduleTab.value === 'SETTINGS')
+const bookingModeHelperText = computed(() => (
+  publicBookingMode.value === 'direct_booking'
+    ? 'Клієнти можуть обрати доступний час у вашому публічному профілі.'
+    : 'Клієнти залишають запит, а ви самі домовляєтесь про час.'
+))
+const availabilityTabHelperText = computed(() => {
+  if (publicBookingMode.value === 'request_only') {
+    return 'Вільний час збережено, але клієнти не бачать його, доки прямий запис вимкнено.'
+  }
+  if (showPublicAvailability.value) {
+    return 'Цей час бачать клієнти в публічному профілі та можуть обрати для запису.'
+  }
+  return 'Прямий запис увімкнено, але показ вільного часу в публічному профілі вимкнено.'
+})
 
 function matchesSlotStatusFilter(slot: Slot) {
   if (slotStatusFilter.value === 'FREE') return !slot.is_booked
@@ -1639,6 +1777,12 @@ function setScheduleTab(tab: ScheduleTab) {
   if (tab === 'CALENDAR') {
     createFormOpen.value = false
     selectedSlotId.value = null
+    return
+  }
+  if (tab === 'SETTINGS') {
+    createFormOpen.value = false
+    selectedSlotId.value = null
+    selectedSessionId.value = null
     return
   }
   selectedSessionId.value = null
@@ -2131,18 +2275,90 @@ async function loadOneOffProfileDefaults() {
   if (oneOffProfileLoaded.value) return
   try {
     const profile = await fetchSpecialistProfile()
-    const duration = Number(profile.standard_session_duration_minutes)
-    const profileTimezone = normalizeOneOffTimezone(String((profile as any)?.timezone || '').trim())
-    if (Number.isFinite(duration) && duration > 0 && duration <= 480) {
-      oneOffDuration.value = Math.round(duration)
-    }
-    if (profileTimezone) {
-      oneOffProfileTimezone.value = profileTimezone
-    }
+    applyOneOffProfileDefaults(profile)
   } catch {
     oneOffDuration.value = 50
   } finally {
     oneOffProfileLoaded.value = true
+  }
+}
+
+function applyOneOffProfileDefaults(profile: Pick<SpecialistProfile, 'standard_session_duration_minutes'> & { timezone?: string | null }) {
+  const duration = Number(profile.standard_session_duration_minutes)
+  const profileTimezone = normalizeOneOffTimezone(String(profile.timezone || '').trim())
+  if (Number.isFinite(duration) && duration > 0 && duration <= 480) {
+    oneOffDuration.value = Math.round(duration)
+  }
+  if (profileTimezone) {
+    oneOffProfileTimezone.value = profileTimezone
+  }
+}
+
+function normalizePublicBookingMode(value: unknown): PublicBookingMode {
+  return value === 'direct_booking' ? 'direct_booking' : 'request_only'
+}
+
+function normalizePublicBookingLeadTime(value: unknown): number {
+  const parsed = Number(value)
+  return publicBookingLeadTimeOptions.includes(parsed) ? parsed : 24
+}
+
+function normalizePublicBookingHorizon(value: unknown): number {
+  const parsed = Number(value)
+  return publicBookingHorizonOptions.includes(parsed) ? parsed : 14
+}
+
+function applyPublicBookingSettings(profile: Partial<SpecialistProfile>) {
+  publicBookingMode.value = normalizePublicBookingMode(profile.public_booking_mode)
+  showPublicAvailability.value = Boolean(profile.show_public_availability)
+  publicBookingMinLeadTimeHours.value = normalizePublicBookingLeadTime(
+    profile.public_booking_min_lead_time_hours
+  )
+  publicBookingHorizonDays.value = normalizePublicBookingHorizon(profile.public_booking_horizon_days)
+  publicBookingRequiresConfirmation.value = profile.public_booking_requires_confirmation !== false
+}
+
+function onPublicBookingConfirmationChange(event: Event) {
+  const target = event.target
+  if (!(target instanceof HTMLSelectElement)) return
+  publicBookingRequiresConfirmation.value = target.value === 'required'
+}
+
+async function loadPublicBookingSettings() {
+  settingsLoading.value = true
+  settingsError.value = ''
+  try {
+    const profile = await fetchSpecialistProfile()
+    applyPublicBookingSettings(profile)
+    applyOneOffProfileDefaults(profile)
+    oneOffProfileLoaded.value = true
+    settingsLoaded.value = true
+  } catch (err) {
+    settingsError.value = getApiErrorMessage(err, 'Не вдалося завантажити налаштування профілю.')
+  } finally {
+    settingsLoading.value = false
+  }
+}
+
+async function savePublicBookingSettings() {
+  settingsSaving.value = true
+  settingsError.value = ''
+  try {
+    const updatedProfile = await updateSpecialistProfile({
+      public_booking_mode: publicBookingMode.value,
+      show_public_availability:
+        publicBookingMode.value === 'direct_booking' ? showPublicAvailability.value : false,
+      public_booking_min_lead_time_hours: publicBookingMinLeadTimeHours.value,
+      public_booking_horizon_days: publicBookingHorizonDays.value,
+      public_booking_requires_confirmation: publicBookingRequiresConfirmation.value,
+    })
+    applyPublicBookingSettings(updatedProfile)
+    settingsLoaded.value = true
+    toast.success('Налаштування публічного запису збережено.')
+  } catch (err) {
+    settingsError.value = getApiErrorMessage(err, 'Не вдалося зберегти налаштування публічного запису.')
+  } finally {
+    settingsSaving.value = false
   }
 }
 
@@ -2585,6 +2801,7 @@ onMounted(() => {
   document.addEventListener('pointerdown', handleDocumentPointerDown)
   document.addEventListener('keydown', handleDocumentKeydown)
   void loadSlots()
+  void loadPublicBookingSettings()
 })
 
 onBeforeUnmount(() => {
@@ -2778,6 +2995,44 @@ onBeforeUnmount(() => {
   grid-template-columns: minmax(0, 1fr) minmax(280px, 320px);
   gap: 12px;
   align-items: start;
+}
+
+.settings-panel {
+  gap: 14px;
+}
+
+.settings-panel__intro {
+  display: grid;
+  gap: 6px;
+}
+
+.settings-form {
+  display: grid;
+  gap: 12px;
+  max-width: 640px;
+}
+
+.settings-form__hint {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.settings-form__checkbox-row {
+  display: grid;
+  gap: 6px;
+}
+
+.settings-form__checkbox-label {
+  font-weight: 600;
+  color: var(--pc-navy-900);
+}
+
+.settings-form__actions {
+  margin-top: 4px;
+  display: flex;
+  justify-content: flex-start;
 }
 
 .calendar-panel {
