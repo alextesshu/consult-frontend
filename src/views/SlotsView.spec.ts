@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/vue'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { apiGet, apiPost, createClientRegularTime } from '../lib/api'
+import { apiGet, apiPost, createClientRegularTime, fetchSpecialistProfile } from '../lib/api'
 import SlotsView from './SlotsView.vue'
 
 const mockToast = {
@@ -29,6 +29,7 @@ vi.mock('../lib/api', () => ({
   apiPatch: vi.fn(),
   apiDelete: vi.fn(),
   createClientRegularTime: vi.fn(),
+  fetchSpecialistProfile: vi.fn(),
   getApiErrorMessage: vi.fn((err: any, fallback: string) => err?.message || fallback),
 }))
 
@@ -43,6 +44,7 @@ vi.mock('../composables/useConfirmModal', () => ({
 const mockedApiGet = vi.mocked(apiGet)
 const mockedApiPost = vi.mocked(apiPost)
 const mockedCreateClientRegularTime = vi.mocked(createClientRegularTime)
+const mockedFetchSpecialistProfile = vi.mocked(fetchSpecialistProfile)
 
 async function flushAsyncUpdates() {
   await Promise.resolve()
@@ -150,7 +152,12 @@ describe('SlotsView', () => {
     mockedApiGet.mockReset()
     mockedApiPost.mockReset()
     mockedCreateClientRegularTime.mockReset()
+    mockedFetchSpecialistProfile.mockReset()
     mockedCreateClientRegularTime.mockResolvedValue({} as any)
+    mockedFetchSpecialistProfile.mockResolvedValue({
+      standard_session_duration_minutes: 50,
+      timezone: 'Europe/Kyiv',
+    } as any)
     mockToast.success.mockReset()
     mockToast.info.mockReset()
     mockConfirmModal.openConfirm.mockReset()
@@ -311,7 +318,7 @@ describe('SlotsView', () => {
     expect(mockedApiPost).not.toHaveBeenCalledWith('/cabinet/slots/', expect.anything())
   })
 
-  it('opens one-off session modal and creates session via existing client-record endpoint', async () => {
+  it('opens one-off session modal and creates no-slot session via client-record endpoint', async () => {
     mockedApiGet.mockImplementation(async (url) => {
       if (url === '/cabinet/slots/') {
         return [
@@ -338,17 +345,60 @@ describe('SlotsView', () => {
     expect(screen.getByRole('dialog', { name: 'Створити сесію' })).toBeInTheDocument()
     const clientSelect = await screen.findByLabelText('Клієнт')
     await fireEvent.update(clientSelect, '71')
-    await fireEvent.update(await screen.findByLabelText('Вільний час'), '91')
+    expect(screen.queryByLabelText('Вільний час')).not.toBeInTheDocument()
+    await fireEvent.update(await screen.findByLabelText('Дата'), '13.03.2026')
+    await fireEvent.update(await screen.findByLabelText('Час початку'), '14:00')
+    await fireEvent.update(await screen.findByLabelText('Тривалість'), '50')
     await fireEvent.update(await screen.findByLabelText('Формат зустрічі'), 'offline')
     const submitButtons = screen.getAllByRole('button', { name: 'Створити сесію' })
     await fireEvent.click(submitButtons[submitButtons.length - 1] as HTMLButtonElement)
     await flushAsyncUpdates()
 
-    expect(mockedApiPost).toHaveBeenCalledWith('/cabinet/client-records/71/sessions/', {
-      slot_id: 91,
-      session_format: 'offline',
-    })
+    const createCall = mockedApiPost.mock.calls.find(
+      (call) => call[0] === '/cabinet/client-records/71/sessions/'
+    )
+    expect(createCall).toBeTruthy()
+    const payload = (createCall?.[1] || {}) as Record<string, unknown>
+    expect(payload.session_format).toBe('offline')
+    expect(payload.timezone).toBe('Europe/Kyiv')
+    expect(payload.meeting_url).toBe('')
+    expect(payload.offline_location).toBe('')
+    expect(typeof payload.starts_at).toBe('string')
+    expect(typeof payload.ends_at).toBe('string')
+    expect(payload).not.toHaveProperty('slot_id')
     expect(mockToast.success).toHaveBeenCalledWith('Сесію створено.')
+  })
+
+  it('shows friendly conflict copy for one-off no-slot session create', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/cabinet/slots/') return [] as any
+      if (url === '/booking/sessions/') return [] as any
+      if (url === '/cabinet/client-records/') return [manualClientRecord({ id: 71, display_name: 'Manual Regular' })] as any
+      if (url === '/cabinet/clients/') return [] as any
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedApiPost.mockRejectedValueOnce({
+      response: { data: { code: 'MANUAL_SESSION_TIME_CONFLICT' } },
+    })
+
+    renderView()
+    await flushAsyncUpdates()
+    await fireEvent.click(screen.getByRole('button', { name: 'Створити сесію' }))
+    await flushAsyncUpdates()
+
+    await fireEvent.update(await screen.findByLabelText('Клієнт'), '71')
+    await fireEvent.update(await screen.findByLabelText('Дата'), '13.03.2026')
+    await fireEvent.update(await screen.findByLabelText('Час початку'), '14:00')
+    await fireEvent.update(await screen.findByLabelText('Тривалість'), '50')
+    const submitButtons = screen.getAllByRole('button', { name: 'Створити сесію' })
+    await fireEvent.click(submitButtons[submitButtons.length - 1] as HTMLButtonElement)
+    await flushAsyncUpdates()
+
+    expect(
+      screen.getByText(
+        'Не вдалося створити сесію: цей час перетинається з іншою сесією або недоступністю.'
+      )
+    ).toBeInTheDocument()
   })
 
   it('shows session-only blocks when filter Сесії is selected', async () => {

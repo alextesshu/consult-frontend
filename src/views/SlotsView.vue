@@ -707,7 +707,7 @@
           <div>
             <h2 id="one-off-session-modal-title" class="panel__title">Створити сесію</h2>
             <p class="muted">
-              Створіть разову сесію для клієнта: консультацію, ознайомчу зустріч або іншу домовленість.
+              Створіть разову сесію для клієнта без відкриття публічного вільного часу.
             </p>
           </div>
           <button class="icon-btn" type="button" aria-label="Закрити" @click="closeOneOffSessionModal">×</button>
@@ -732,18 +732,39 @@
             </label>
 
             <label class="field">
-              Вільний час
-              <select
-                v-model.number="oneOffSlotId"
-                class="input input--select"
-                :disabled="oneOffAvailableSlots.length === 0"
+              Дата
+              <input
+                v-model.trim="oneOffDate"
+                class="input"
+                type="text"
+                inputmode="numeric"
+                placeholder="ДД.ММ.РРРР"
                 required
-              >
-                <option value="" disabled>Оберіть вільний час</option>
-                <option v-for="slot in oneOffAvailableSlots" :key="slot.id" :value="slot.id">
-                  {{ formatOneOffSlotOption(slot) }}
-                </option>
-              </select>
+              />
+            </label>
+
+            <label class="field">
+              Час початку
+              <input
+                v-model.trim="oneOffStartTime"
+                class="input"
+                list="time-options"
+                placeholder="09:00"
+                required
+              />
+            </label>
+
+            <label class="field">
+              Тривалість
+              <input
+                v-model.number="oneOffDuration"
+                class="input"
+                type="number"
+                min="15"
+                max="480"
+                step="5"
+                required
+              />
             </label>
 
             <label class="field">
@@ -754,13 +775,29 @@
                 </option>
               </select>
             </label>
+
+            <label class="field">
+              Посилання на онлайн-зустріч
+              <input
+                v-model.trim="oneOffMeetingUrl"
+                class="input"
+                type="url"
+                placeholder="https://"
+              />
+            </label>
+
+            <label class="field">
+              Місце зустрічі
+              <input
+                v-model.trim="oneOffOfflineLocation"
+                class="input"
+                type="text"
+              />
+            </label>
           </template>
 
           <p v-if="!oneOffSessionLoading && regularClientOptions.length === 0" class="muted">
             Немає активних клієнтів із робочою карткою.
-          </p>
-          <p v-if="!oneOffSessionLoading && oneOffAvailableSlots.length === 0" class="muted">
-            Немає доступного вільного часу для разової сесії.
           </p>
 
           <div class="slot-form__actions">
@@ -770,7 +807,7 @@
             <button
               class="btn"
               type="submit"
-              :disabled="oneOffSessionLoading || oneOffSessionSaving || regularClientOptions.length === 0 || oneOffAvailableSlots.length === 0"
+              :disabled="oneOffSessionLoading || oneOffSessionSaving || regularClientOptions.length === 0"
             >
               {{ oneOffSessionSaving ? 'Створюємо...' : 'Створити сесію' }}
             </button>
@@ -801,6 +838,7 @@ import {
   apiPatch,
   apiPost,
   createClientRegularTime,
+  fetchSpecialistProfile,
   getApiErrorMessage,
 } from '../lib/api'
 import type { ClientRegularTimeFrequency, ClientRegularTimePayload, SessionFormat } from '../lib/api'
@@ -906,6 +944,7 @@ const oneOffSessionModalOpen = ref(false)
 const oneOffSessionLoading = ref(false)
 const oneOffSessionSaving = ref(false)
 const oneOffSessionError = ref('')
+const oneOffProfileLoaded = ref(false)
 const regularClientsLoading = ref(false)
 const regularSessionsSaving = ref(false)
 const regularSessionsError = ref('')
@@ -926,8 +965,13 @@ const regularStartsOn = ref('')
 const regularMeetingUrl = ref('')
 const regularOfflineLocation = ref('')
 const oneOffClientRecordId = ref<number | ''>('')
-const oneOffSlotId = ref<number | ''>('')
+const oneOffDate = ref('')
+const oneOffStartTime = ref('09:00')
+const oneOffDuration = ref(50)
+const oneOffTimezone = ref(Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/Kyiv')
 const oneOffSessionFormat = ref<SessionFormat>('online')
+const oneOffMeetingUrl = ref('')
+const oneOffOfflineLocation = ref('')
 const timeOptions = Array.from({ length: 24 * 4 }, (_, index) => {
   const minutes = index * 15
   const hours = String(Math.floor(minutes / 60)).padStart(2, '0')
@@ -1457,13 +1501,6 @@ const filteredNoSlotSessions = computed(() =>
     .filter(() => slotStatusFilter.value === 'SESSIONS' || slotStatusFilter.value === 'ALL')
 )
 
-const oneOffAvailableSlots = computed(() =>
-  slots.value
-    .filter((slot) => !slot.is_booked)
-    .filter(isFutureSlot)
-    .sort((a, b) => String(a.start_at).localeCompare(String(b.start_at)))
-)
-
 const hiddenPastWeekSlotsCount = computed(() =>
   slots.value.filter((slot) => weekDateKeys.value.has(toLocalDateKey(slot.start_at)) && !isFutureSlot(slot)).length
 )
@@ -1955,17 +1992,61 @@ function closeRegularSessionsModal() {
 }
 
 function resetOneOffSessionForm() {
+  const baseDate = selectedDate.value || todayKey
   oneOffClientRecordId.value = regularClientOptions.value[0]?.recordId ?? ''
-  oneOffSlotId.value = oneOffAvailableSlots.value[0]?.id ?? ''
+  oneOffDate.value = isoDateToDisplay(baseDate)
+  oneOffStartTime.value = '09:00'
+  oneOffDuration.value = oneOffDuration.value > 0 ? oneOffDuration.value : 50
   oneOffSessionFormat.value = 'online'
+  oneOffMeetingUrl.value = ''
+  oneOffOfflineLocation.value = ''
   oneOffSessionError.value = ''
 }
 
-function formatOneOffSlotOption(slot: Slot) {
-  const startAt = parseDateLike(slot.start_at)
-  const endAt = parseDateLike(slot.end_at)
-  if (!startAt || !endAt) return `Вільний час #${slot.id}`
-  return `${formatDateParts(startAt)}, ${formatTimeParts(startAt)}–${formatTimeParts(endAt)}`
+function oneOffSessionErrorCode(err: unknown): string {
+  const data = (err as any)?.response?.data || {}
+  const candidates = [
+    data.code,
+    data.reason_code,
+    data.detail?.code,
+    data.detail,
+    Array.isArray(data.non_field_errors) ? data.non_field_errors[0] : '',
+  ]
+  return candidates.map((item) => String(item || '').trim().toUpperCase()).find(Boolean) || ''
+}
+
+function oneOffSessionCreateErrorMessage(err: unknown): string {
+  const code = oneOffSessionErrorCode(err)
+  const messages: Record<string, string> = {
+    CLIENT_RECORD_ARCHIVED: 'Картку клієнта архівовано. Спершу відновіть її.',
+    MANUAL_SESSION_TIME_CONFLICT: 'Не вдалося створити сесію: цей час перетинається з іншою сесією або недоступністю.',
+    SESSION_OVERLAP: 'Не вдалося створити сесію: цей час перетинається з іншою сесією або недоступністю.',
+    MANUAL_SESSION_IN_PAST: 'Не можна створити сесію в минулому.',
+    MANUAL_SESSION_TIME_RANGE_INVALID: 'Час завершення має бути пізніше за час початку.',
+    MANUAL_SESSION_TIMEZONE_INVALID: 'Некоректний часовий пояс.',
+    MANUAL_SESSION_TIMEZONE_REQUIRED: 'Вкажіть часовий пояс.',
+    MANUAL_SESSION_TIME_REQUIRED: 'Вкажіть дату, час початку та завершення сесії.',
+  }
+  return messages[code] || getApiErrorMessage(err, 'Не вдалося створити сесію.')
+}
+
+async function loadOneOffProfileDefaults() {
+  if (oneOffProfileLoaded.value) return
+  try {
+    const profile = await fetchSpecialistProfile()
+    const duration = Number(profile.standard_session_duration_minutes)
+    const profileTimezone = String((profile as any)?.timezone || '').trim()
+    if (Number.isFinite(duration) && duration > 0 && duration <= 480) {
+      oneOffDuration.value = Math.round(duration)
+    }
+    if (profileTimezone) {
+      oneOffTimezone.value = profileTimezone
+    }
+  } catch {
+    oneOffDuration.value = 50
+  } finally {
+    oneOffProfileLoaded.value = true
+  }
 }
 
 async function openOneOffSessionModal() {
@@ -1982,7 +2063,7 @@ async function openOneOffSessionModal() {
         oneOffSessionError.value = regularSessionsError.value
       }
     }
-    await loadSlots()
+    await loadOneOffProfileDefaults()
     resetOneOffSessionForm()
     await nextTick()
   } finally {
@@ -1998,28 +2079,38 @@ function closeOneOffSessionModal() {
 
 async function createOneOffSession() {
   const recordId = Number(oneOffClientRecordId.value || 0)
-  const slotId = Number(oneOffSlotId.value || 0)
+  const startsAt = parseUkDateTime(oneOffDate.value, oneOffStartTime.value)
+  const duration = Number(oneOffDuration.value)
   if (recordId <= 0) {
     oneOffSessionError.value = 'Оберіть клієнта.'
     return
   }
-  if (slotId <= 0) {
-    oneOffSessionError.value = 'Оберіть вільний час.'
+  if (!startsAt) {
+    oneOffSessionError.value = 'Вкажіть дату та час початку у форматі ДД.ММ.РРРР і ГГ:ХХ.'
     return
   }
+  if (!Number.isFinite(duration) || duration <= 0) {
+    oneOffSessionError.value = 'Вкажіть тривалість у хвилинах.'
+    return
+  }
+  const endsAt = new Date(startsAt.getTime() + duration * 60000)
 
   oneOffSessionSaving.value = true
   oneOffSessionError.value = ''
   try {
     await apiPost<OneOffSessionCreateResponse>(`/cabinet/client-records/${recordId}/sessions/`, {
-      slot_id: slotId,
+      starts_at: startsAt.toISOString(),
+      ends_at: endsAt.toISOString(),
+      timezone: oneOffTimezone.value || 'Europe/Kyiv',
       session_format: oneOffSessionFormat.value,
+      meeting_url: oneOffMeetingUrl.value.trim(),
+      offline_location: oneOffOfflineLocation.value.trim(),
     })
     closeOneOffSessionModal()
     await loadSlots()
     toast.success('Сесію створено.')
   } catch (err) {
-    oneOffSessionError.value = getApiErrorMessage(err, 'Не вдалося створити сесію.')
+    oneOffSessionError.value = oneOffSessionCreateErrorMessage(err)
   } finally {
     oneOffSessionSaving.value = false
   }
