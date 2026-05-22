@@ -702,13 +702,23 @@
         aria-label="Закрити"
         @click="closeOneOffSessionModal"
       ></button>
-      <div class="regular-sessions-modal__content">
+      <div ref="oneOffSessionModalContentRef" class="regular-sessions-modal__content">
         <div class="regular-sessions-modal__header">
           <div>
             <h2 id="one-off-session-modal-title" class="panel__title">Створити сесію</h2>
             <p class="muted">
               Створіть разову сесію для клієнта без відкриття публічного вільного часу.
             </p>
+            <div
+              v-if="oneOffSessionError"
+              ref="oneOffSessionAlertRef"
+              class="form-error form-error--inline"
+              role="alert"
+              aria-live="polite"
+              tabindex="-1"
+            >
+              {{ oneOffSessionError }}
+            </div>
           </div>
           <button class="icon-btn" type="button" aria-label="Закрити" @click="closeOneOffSessionModal">×</button>
         </div>
@@ -812,7 +822,6 @@
               {{ oneOffSessionSaving ? 'Створюємо...' : 'Створити сесію' }}
             </button>
           </div>
-          <div v-if="oneOffSessionError" class="form-error form-error--inline">{{ oneOffSessionError }}</div>
         </form>
       </div>
     </div>
@@ -945,6 +954,9 @@ const oneOffSessionLoading = ref(false)
 const oneOffSessionSaving = ref(false)
 const oneOffSessionError = ref('')
 const oneOffProfileLoaded = ref(false)
+const oneOffProfileTimezone = ref('')
+const oneOffSessionAlertRef = ref<HTMLElement | null>(null)
+const oneOffSessionModalContentRef = ref<HTMLElement | null>(null)
 const regularClientsLoading = ref(false)
 const regularSessionsSaving = ref(false)
 const regularSessionsError = ref('')
@@ -1218,6 +1230,34 @@ function getHiddenPastSlotsCount(dateKey: string, excludedSlotId?: number) {
 
 function formatUkTime(value: Date) {
   return formatTimeParts(value)
+}
+
+function normalizeOneOffTimezone(value: string) {
+  const normalized = String(value || '').trim()
+  if (!normalized) return ''
+  if (normalized === 'Europe/Kiev') return 'Europe/Kyiv'
+  return normalized
+}
+
+function resolvedOneOffTimezone() {
+  const timezoneName =
+    normalizeOneOffTimezone(oneOffProfileTimezone.value) ||
+    normalizeOneOffTimezone(oneOffTimezone.value) ||
+    'Europe/Kyiv'
+  return timezoneName || 'Europe/Kyiv'
+}
+
+function showOneOffSessionError(message: string) {
+  oneOffSessionError.value = message
+  void nextTick(() => {
+    if (
+      oneOffSessionModalContentRef.value &&
+      typeof oneOffSessionModalContentRef.value.scrollTo === 'function'
+    ) {
+      oneOffSessionModalContentRef.value.scrollTo({ top: 0, behavior: 'smooth' })
+    }
+    oneOffSessionAlertRef.value?.focus()
+  })
 }
 
 function parseUkDateTime(dateStr: string, timeStr: string) {
@@ -2010,6 +2050,7 @@ function oneOffSessionErrorCode(err: unknown): string {
     data.reason_code,
     data.detail?.code,
     data.detail,
+    Array.isArray(data.timezone) ? data.timezone[0] : '',
     Array.isArray(data.non_field_errors) ? data.non_field_errors[0] : '',
   ]
   return candidates.map((item) => String(item || '').trim().toUpperCase()).find(Boolean) || ''
@@ -2023,9 +2064,15 @@ function oneOffSessionCreateErrorMessage(err: unknown): string {
     SESSION_OVERLAP: 'Не вдалося створити сесію: цей час перетинається з іншою сесією або недоступністю.',
     MANUAL_SESSION_IN_PAST: 'Не можна створити сесію в минулому.',
     MANUAL_SESSION_TIME_RANGE_INVALID: 'Час завершення має бути пізніше за час початку.',
-    MANUAL_SESSION_TIMEZONE_INVALID: 'Некоректний часовий пояс.',
-    MANUAL_SESSION_TIMEZONE_REQUIRED: 'Вкажіть часовий пояс.',
+    MANUAL_SESSION_TIMEZONE_INVALID:
+      'Не вдалося створити сесію: некоректний часовий пояс. Оновіть сторінку або перевірте налаштування профілю.',
+    MANUAL_SESSION_TIMEZONE_REQUIRED:
+      'Не вдалося створити сесію: некоректний часовий пояс. Оновіть сторінку або перевірте налаштування профілю.',
     MANUAL_SESSION_TIME_REQUIRED: 'Вкажіть дату, час початку та завершення сесії.',
+    'INVALID TIMEZONE.':
+      'Не вдалося створити сесію: некоректний часовий пояс. Оновіть сторінку або перевірте налаштування профілю.',
+    'THIS FIELD MAY NOT BE BLANK.':
+      'Не вдалося створити сесію: некоректний часовий пояс. Оновіть сторінку або перевірте налаштування профілю.',
   }
   return messages[code] || getApiErrorMessage(err, 'Не вдалося створити сесію.')
 }
@@ -2035,12 +2082,12 @@ async function loadOneOffProfileDefaults() {
   try {
     const profile = await fetchSpecialistProfile()
     const duration = Number(profile.standard_session_duration_minutes)
-    const profileTimezone = String((profile as any)?.timezone || '').trim()
+    const profileTimezone = normalizeOneOffTimezone(String((profile as any)?.timezone || '').trim())
     if (Number.isFinite(duration) && duration > 0 && duration <= 480) {
       oneOffDuration.value = Math.round(duration)
     }
     if (profileTimezone) {
-      oneOffTimezone.value = profileTimezone
+      oneOffProfileTimezone.value = profileTimezone
     }
   } catch {
     oneOffDuration.value = 50
@@ -2064,6 +2111,7 @@ async function openOneOffSessionModal() {
       }
     }
     await loadOneOffProfileDefaults()
+    oneOffTimezone.value = resolvedOneOffTimezone()
     resetOneOffSessionForm()
     await nextTick()
   } finally {
@@ -2071,10 +2119,17 @@ async function openOneOffSessionModal() {
   }
 }
 
-function closeOneOffSessionModal() {
-  if (oneOffSessionSaving.value) return
+function forceCloseOneOffSessionModal(options?: { reset?: boolean }) {
   oneOffSessionModalOpen.value = false
   oneOffSessionError.value = ''
+  if (options?.reset) {
+    resetOneOffSessionForm()
+  }
+}
+
+function closeOneOffSessionModal() {
+  if (oneOffSessionSaving.value) return
+  forceCloseOneOffSessionModal()
 }
 
 async function createOneOffSession() {
@@ -2082,15 +2137,15 @@ async function createOneOffSession() {
   const startsAt = parseUkDateTime(oneOffDate.value, oneOffStartTime.value)
   const duration = Number(oneOffDuration.value)
   if (recordId <= 0) {
-    oneOffSessionError.value = 'Оберіть клієнта.'
+    showOneOffSessionError('Оберіть клієнта.')
     return
   }
   if (!startsAt) {
-    oneOffSessionError.value = 'Вкажіть дату та час початку у форматі ДД.ММ.РРРР і ГГ:ХХ.'
+    showOneOffSessionError('Вкажіть дату та час початку у форматі ДД.ММ.РРРР і ГГ:ХХ.')
     return
   }
   if (!Number.isFinite(duration) || duration <= 0) {
-    oneOffSessionError.value = 'Вкажіть тривалість у хвилинах.'
+    showOneOffSessionError('Вкажіть тривалість у хвилинах.')
     return
   }
   const endsAt = new Date(startsAt.getTime() + duration * 60000)
@@ -2101,16 +2156,21 @@ async function createOneOffSession() {
     await apiPost<OneOffSessionCreateResponse>(`/cabinet/client-records/${recordId}/sessions/`, {
       starts_at: startsAt.toISOString(),
       ends_at: endsAt.toISOString(),
-      timezone: oneOffTimezone.value || 'Europe/Kyiv',
+      timezone: resolvedOneOffTimezone(),
       session_format: oneOffSessionFormat.value,
       meeting_url: oneOffMeetingUrl.value.trim(),
       offline_location: oneOffOfflineLocation.value.trim(),
     })
-    closeOneOffSessionModal()
-    await loadSlots()
+    oneOffSessionSaving.value = false
+    forceCloseOneOffSessionModal({ reset: true })
     toast.success('Сесію створено.')
+    try {
+      await loadSlots()
+    } catch {
+      // Best-effort refresh: keep successful creation state and closed modal.
+    }
   } catch (err) {
-    oneOffSessionError.value = oneOffSessionCreateErrorMessage(err)
+    showOneOffSessionError(oneOffSessionCreateErrorMessage(err))
   } finally {
     oneOffSessionSaving.value = false
   }

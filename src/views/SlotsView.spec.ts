@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/vue'
+import { fireEvent, render, screen, within } from '@testing-library/vue'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { apiGet, apiPost, createClientRegularTime, fetchSpecialistProfile } from '../lib/api'
 import SlotsView from './SlotsView.vue'
@@ -367,6 +367,77 @@ describe('SlotsView', () => {
     expect(typeof payload.ends_at).toBe('string')
     expect(payload).not.toHaveProperty('slot_id')
     expect(mockToast.success).toHaveBeenCalledWith('Сесію створено.')
+    expect(screen.queryByRole('dialog', { name: 'Створити сесію' })).not.toBeInTheDocument()
+  })
+
+  it('keeps modal closed when schedule refresh fails after successful one-off create', async () => {
+    let slotsCallCount = 0
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/cabinet/slots/') {
+        slotsCallCount += 1
+        if (slotsCallCount >= 2) {
+          throw new Error('refresh failed')
+        }
+        return [] as any
+      }
+      if (url === '/booking/sessions/') return [] as any
+      if (url === '/cabinet/client-records/') return [manualClientRecord({ id: 71, display_name: 'Manual Regular' })] as any
+      if (url === '/cabinet/clients/') return [] as any
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedApiPost.mockResolvedValue({ id: 503 } as any)
+
+    renderView()
+    await flushAsyncUpdates()
+    await fireEvent.click(screen.getByRole('button', { name: 'Створити сесію' }))
+    await flushAsyncUpdates()
+
+    await fireEvent.update(await screen.findByLabelText('Клієнт'), '71')
+    await fireEvent.update(await screen.findByLabelText('Дата'), '13.03.2026')
+    await fireEvent.update(await screen.findByLabelText('Час початку'), '14:00')
+    await fireEvent.update(await screen.findByLabelText('Тривалість'), '50')
+    const submitButtons = screen.getAllByRole('button', { name: 'Створити сесію' })
+    await fireEvent.click(submitButtons[submitButtons.length - 1] as HTMLButtonElement)
+    await flushAsyncUpdates()
+
+    expect(mockToast.success).toHaveBeenCalledWith('Сесію створено.')
+    expect(screen.queryByRole('dialog', { name: 'Створити сесію' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+  })
+
+  it('normalizes Europe/Kiev timezone alias to Europe/Kyiv in one-off session payload', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValueOnce({
+      standard_session_duration_minutes: 50,
+      timezone: 'Europe/Kiev',
+    } as any)
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/cabinet/slots/') return [] as any
+      if (url === '/booking/sessions/') return [] as any
+      if (url === '/cabinet/client-records/') return [manualClientRecord({ id: 71, display_name: 'Manual Regular' })] as any
+      if (url === '/cabinet/clients/') return [] as any
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedApiPost.mockResolvedValue({ id: 502 } as any)
+
+    renderView()
+    await flushAsyncUpdates()
+    await fireEvent.click(screen.getByRole('button', { name: 'Створити сесію' }))
+    await flushAsyncUpdates()
+
+    await fireEvent.update(await screen.findByLabelText('Клієнт'), '71')
+    await fireEvent.update(await screen.findByLabelText('Дата'), '13.03.2026')
+    await fireEvent.update(await screen.findByLabelText('Час початку'), '14:00')
+    await fireEvent.update(await screen.findByLabelText('Тривалість'), '50')
+    const submitButtons = screen.getAllByRole('button', { name: 'Створити сесію' })
+    await fireEvent.click(submitButtons[submitButtons.length - 1] as HTMLButtonElement)
+    await flushAsyncUpdates()
+
+    const createCall = mockedApiPost.mock.calls.find(
+      (call) => call[0] === '/cabinet/client-records/71/sessions/'
+    )
+    expect(createCall).toBeTruthy()
+    const payload = (createCall?.[1] || {}) as Record<string, unknown>
+    expect(payload.timezone).toBe('Europe/Kyiv')
   })
 
   it('shows friendly conflict copy for one-off no-slot session create', async () => {
@@ -397,6 +468,43 @@ describe('SlotsView', () => {
     expect(
       screen.getByText(
         'Не вдалося створити сесію: цей час перетинається з іншою сесією або недоступністю.'
+      )
+    ).toBeInTheDocument()
+    const dialog = screen.getByRole('dialog', { name: 'Створити сесію' })
+    const alert = within(dialog).getByRole('alert')
+    const firstField = within(dialog).getByLabelText('Клієнт')
+    expect(alert.compareDocumentPosition(firstField) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(screen.getByRole('dialog', { name: 'Створити сесію' })).toBeInTheDocument()
+  })
+
+  it('shows friendly timezone copy when backend returns Invalid timezone', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/cabinet/slots/') return [] as any
+      if (url === '/booking/sessions/') return [] as any
+      if (url === '/cabinet/client-records/') return [manualClientRecord({ id: 71, display_name: 'Manual Regular' })] as any
+      if (url === '/cabinet/clients/') return [] as any
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedApiPost.mockRejectedValueOnce({
+      response: { data: { detail: ['Invalid timezone.'] } },
+    })
+
+    renderView()
+    await flushAsyncUpdates()
+    await fireEvent.click(screen.getByRole('button', { name: 'Створити сесію' }))
+    await flushAsyncUpdates()
+
+    await fireEvent.update(await screen.findByLabelText('Клієнт'), '71')
+    await fireEvent.update(await screen.findByLabelText('Дата'), '13.03.2026')
+    await fireEvent.update(await screen.findByLabelText('Час початку'), '14:00')
+    await fireEvent.update(await screen.findByLabelText('Тривалість'), '50')
+    const submitButtons = screen.getAllByRole('button', { name: 'Створити сесію' })
+    await fireEvent.click(submitButtons[submitButtons.length - 1] as HTMLButtonElement)
+    await flushAsyncUpdates()
+
+    expect(
+      screen.getByText(
+        'Не вдалося створити сесію: некоректний часовий пояс. Оновіть сторінку або перевірте налаштування профілю.'
       )
     ).toBeInTheDocument()
   })
