@@ -93,7 +93,9 @@ function getCreateFormControls(container: Element) {
 }
 
 async function openCreateForm(container: Element) {
-  const addButton = screen.getAllByRole('button', { name: 'Додати вільний час' })[0]
+  await fireEvent.click(screen.getByRole('tab', { name: 'Вільний час для запису' }))
+  await flushAsyncUpdates()
+  const addButton = screen.getByRole('button', { name: 'Додати вільний час' })
   if (!addButton) throw new Error('Add free time button not found')
   await fireEvent.click(addButton)
   await flushAsyncUpdates()
@@ -172,18 +174,12 @@ describe('SlotsView', () => {
 
     const { container } = renderView()
     await flushAsyncUpdates()
-
-    expect(screen.getByRole('heading', { name: 'Розклад' })).toBeInTheDocument()
-    expect(screen.getByText('Тут ви бачите календар практики. Вільний час потрібен лише тоді, коли ви хочете дозволити клієнтам самостійно обирати час у публічному профілі.')).toBeInTheDocument()
-    expect(screen.getByText('09.03.2026 - 15.03.2026')).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Деталі вільного часу' })).toBeInTheDocument()
-    expect(screen.getByText('Оберіть вільний час у календарі, щоб переглянути деталі або змінити його.')).toBeInTheDocument()
-    expect(screen.getAllByRole('button', { name: 'Додати вільний час' }).length).toBeGreaterThan(0)
-    expect(screen.getAllByRole('button', { name: 'Заповнити тиждень' }).length).toBeGreaterThan(0)
-    expect(screen.queryByRole('button', { name: 'Швидкі дії' })).not.toBeInTheDocument()
-    expect(screen.getByText('На цьому тижні ще немає вільного часу для прямого запису.')).toBeInTheDocument()
+    expect(screen.getByRole('tab', { name: 'Календар' })).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByRole('heading', { name: 'Деталі сесії' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Створити сесію' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Додати вільний час' })).not.toBeInTheDocument()
+    expect(screen.getByText('На цьому тижні ще немає сесій.')).toBeInTheDocument()
     expect(container.querySelector('.calendar-scroll')).toBeInTheDocument()
-    expect(screen.queryByText(/слот/i)).not.toBeInTheDocument()
   })
 
   it('renders grouped session and availability actions', async () => {
@@ -191,14 +187,14 @@ describe('SlotsView', () => {
 
     renderView()
     await flushAsyncUpdates()
-
-    expect(screen.getAllByText('Сесії').length).toBeGreaterThan(0)
     expect(screen.getByRole('button', { name: 'Створити сесію' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Закріпити регулярний час' })).toBeInTheDocument()
-    expect(screen.getByText('Вільний час для запису')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Додати вільний час' })).not.toBeInTheDocument()
+    await fireEvent.click(screen.getByRole('tab', { name: 'Вільний час для запису' }))
+    await flushAsyncUpdates()
     expect(screen.getByRole('button', { name: 'Додати вільний час' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Заповнити тиждень' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Сесії' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Створити сесію' })).not.toBeInTheDocument()
   })
 
   it('opens regular sessions modal and loads selectable clients with usable record ids', async () => {
@@ -530,9 +526,6 @@ describe('SlotsView', () => {
 
     const { container } = renderView()
     await flushAsyncUpdates()
-    await fireEvent.click(screen.getByRole('button', { name: 'Сесії' }))
-    await flushAsyncUpdates()
-
     expect(container.querySelector('.week-calendar .calendar-session')).toBeInTheDocument()
     expect(container.querySelector('.week-calendar .calendar-slot:not(.calendar-session)')).not.toBeInTheDocument()
   })
@@ -558,8 +551,10 @@ describe('SlotsView', () => {
 
     renderView()
     await flushAsyncUpdates()
+    await fireEvent.click(screen.getByRole('tab', { name: 'Вільний час для запису' }))
+    await flushAsyncUpdates()
 
-    expect(screen.getByText('1 вільних вікон · 1 заброньованих · 1 сесія')).toBeInTheDocument()
+    expect(screen.getByText('1 вільних вікон · 1 заброньованих')).toBeInTheDocument()
   })
 
   it('renders duration-based free-time blocks without repeated visible status labels', async () => {
@@ -579,6 +574,8 @@ describe('SlotsView', () => {
     ])
 
     const { container } = renderView()
+    await flushAsyncUpdates()
+    await fireEvent.click(screen.getByRole('tab', { name: 'Вільний час для запису' }))
     await flushAsyncUpdates()
 
     const shortBlock = container.querySelector('.week-calendar .calendar-slot[aria-label="Доступно 11:00–11:50"]') as HTMLButtonElement | null
@@ -604,6 +601,8 @@ describe('SlotsView', () => {
 
     const { container } = renderView()
     await flushAsyncUpdates()
+    await fireEvent.click(screen.getByRole('tab', { name: 'Вільний час для запису' }))
+    await flushAsyncUpdates()
 
     const block = container.querySelector('.week-calendar .calendar-slot')
     expect(block).toBeInstanceOf(HTMLButtonElement)
@@ -626,6 +625,8 @@ describe('SlotsView', () => {
     ])
 
     const { container } = renderView()
+    await flushAsyncUpdates()
+    await fireEvent.click(screen.getByRole('tab', { name: 'Вільний час для запису' }))
     await flushAsyncUpdates()
 
     const block = container.querySelector('.week-calendar .calendar-slot')
@@ -693,7 +694,7 @@ describe('SlotsView', () => {
     await flushAsyncUpdates()
 
     expect(container.querySelector('.week-calendar .calendar-session')).not.toBeInTheDocument()
-    expect(screen.getByText('На цьому тижні ще немає вільного часу для прямого запису.')).toBeInTheDocument()
+    expect(screen.getByText('На цьому тижні ще немає сесій.')).toBeInTheDocument()
   })
 
   it('renders a no-slot session instead of a duplicate booked Slot when they overlap', async () => {
@@ -918,6 +919,8 @@ describe('SlotsView', () => {
       await fireEvent.click(screen.getByRole('button', { name: 'Наступний тиждень' }))
     }
     expect(screen.getByText('25.05.2026 - 31.05.2026')).toBeInTheDocument()
+    await fireEvent.click(screen.getByRole('tab', { name: 'Вільний час для запису' }))
+    await flushAsyncUpdates()
 
     await fireEvent.click(screen.getByRole('button', { name: 'Заповнити тиждень' }))
     await flushAsyncUpdates()
@@ -972,6 +975,8 @@ describe('SlotsView', () => {
     ])
 
     const { container } = renderView()
+    await flushAsyncUpdates()
+    await fireEvent.click(screen.getByRole('tab', { name: 'Вільний час для запису' }))
     await flushAsyncUpdates()
 
     const block = container.querySelector('.week-calendar .calendar-slot')

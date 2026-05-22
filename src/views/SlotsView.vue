@@ -11,7 +11,34 @@
     </header>
 
     <div class="slots__subnav">
-      <ScheduleSubnav active="slots" />
+      <div class="schedule-tabs" role="tablist" aria-label="Режими розкладу">
+        <button
+          class="btn btn--ghost btn--sm schedule-tabs__item"
+          :class="{ 'btn--active': scheduleTab === 'CALENDAR' }"
+          type="button"
+          role="tab"
+          :aria-selected="scheduleTab === 'CALENDAR'"
+          @click="setScheduleTab('CALENDAR')"
+        >
+          Календар
+        </button>
+        <button
+          class="btn btn--ghost btn--sm schedule-tabs__item"
+          :class="{ 'btn--active': scheduleTab === 'AVAILABILITY' }"
+          type="button"
+          role="tab"
+          :aria-selected="scheduleTab === 'AVAILABILITY'"
+          @click="setScheduleTab('AVAILABILITY')"
+        >
+          Вільний час для запису
+        </button>
+        <RouterLink class="btn btn--ghost btn--sm schedule-tabs__item" to="/cabinet/availability-exceptions">
+          Відпустка
+        </RouterLink>
+        <RouterLink class="btn btn--ghost btn--sm schedule-tabs__item" to="/cabinet/availability-rules">
+          Налаштування
+        </RouterLink>
+      </div>
     </div>
 
     <section class="panel schedule-toolbar">
@@ -29,8 +56,8 @@
           </button>
         </div>
         <div class="schedule-actions">
-          <div class="action-group">
-            <div class="action-group__title">Сесії</div>
+          <div v-if="isCalendarTab" class="action-group">
+            <div class="action-group__title">Календар</div>
             <p class="muted action-group__hint">Створюйте разові або регулярні сесії для конкретних клієнтів.</p>
             <div class="action-group__buttons">
               <button class="btn btn--ghost btn--sm" type="button" @click="openOneOffSessionModal">
@@ -41,9 +68,9 @@
               </button>
             </div>
           </div>
-          <div class="action-group action-group--availability">
+          <div v-else class="action-group action-group--availability">
             <div class="action-group__title">Вільний час для запису</div>
-            <p class="muted action-group__hint">Вільний час бачать клієнти в публічному профілі та можуть обрати для запису.</p>
+            <p class="muted action-group__hint">Цей час бачать клієнти в публічному профілі, якщо прямий запис увімкнено.</p>
             <div class="action-group__buttons">
               <button class="btn btn--ghost btn--sm" type="button" @click="openCreateForm">
                 Додати вільний час
@@ -69,7 +96,7 @@
         </button>
       </div>
 
-      <div class="filters-toolbar__row filters-toolbar__row--controls">
+      <div v-if="isAvailabilityTab" class="filters-toolbar__row filters-toolbar__row--controls">
         <div class="slot-filter" role="group" aria-label="Фільтр за статусом вільного часу">
           <button
             class="btn btn--ghost btn--sm"
@@ -95,22 +122,13 @@
           >
             Заброньовані
           </button>
-          <button
-            class="btn btn--ghost btn--sm"
-            type="button"
-            :class="{ 'btn--active': slotStatusFilter === 'SESSIONS' }"
-            @click="slotStatusFilter = 'SESSIONS'"
-          >
-            Сесії
-          </button>
         </div>
         <div class="muted slot-summary">
-          {{ weekStatusSummary.free }} вільних вікон · {{ weekStatusSummary.booked }} заброньованих · {{ visibleWeekNoSlotSessions.length }} сесія
+          {{ weekStatusSummary.free }} вільних вікон · {{ weekStatusSummary.booked }} заброньованих
         </div>
         <div class="calendar-legend" aria-label="Позначення вільного часу">
           <span><i class="legend-dot legend-dot--available"></i>Доступно</span>
           <span><i class="legend-dot legend-dot--booked"></i>Заброньовано</span>
-          <span><i class="legend-dot legend-dot--session"></i>Сесія</span>
           <span><i class="legend-dot legend-dot--past"></i>Минуло</span>
         </div>
         <button
@@ -121,6 +139,11 @@
         >
           {{ showPastSlots ? 'Сховати минулий вільний час' : `Показати минулий вільний час (${hiddenPastWeekSlotsCount})` }}
         </button>
+      </div>
+      <div v-else class="filters-toolbar__row filters-toolbar__row--controls">
+        <p class="muted action-group__hint">
+          Календар показує створені сесії. Вільні вікна не відображаються тут, щоб не перевантажувати розклад.
+        </p>
       </div>
     </section>
 
@@ -163,6 +186,7 @@
                 aria-hidden="true"
               ></div>
               <button
+                v-if="isAvailabilityTab"
                 v-for="layout in positionedSlotsForDay(day.key)"
                 :key="layout.slot.id"
                 class="calendar-slot"
@@ -179,7 +203,8 @@
                 <span class="calendar-slot__time">{{ formatSlotTimeRange(layout.slot) }}</span>
               </button>
               <button
-                v-for="layout in positionedSessionsForDay(day.key)"
+                v-if="isCalendarTab"
+                v-for="layout in positionedCalendarSessionsForDay(day.key)"
                 :key="`session-${layout.session.id}`"
                 class="calendar-slot calendar-session"
                 :class="{ 'calendar-slot--selected': selectedScheduleSession?.id === layout.session.id }"
@@ -200,7 +225,12 @@
           </div>
         </div>
 
-        <div v-if="visibleWeekSlots.length === 0 && visibleWeekNoSlotSessions.length === 0" class="calendar-empty muted">
+        <div v-if="isCalendarTab && visibleWeekCalendarSessions.length === 0" class="calendar-empty muted">
+          На цьому тижні ще немає сесій.
+          <br />
+          <span>Створіть разову сесію або закріпіть регулярний час для клієнта.</span>
+        </div>
+        <div v-if="isAvailabilityTab && visibleWeekSlots.length === 0" class="calendar-empty muted">
           На цьому тижні ще немає вільного часу для прямого запису.
         </div>
 
@@ -209,8 +239,10 @@
             {{ formatDateOnly(selectedDate) }}
             <span v-if="isSelectedToday" class="day-hint__today">· Сьогодні</span>
           </div>
-          <div v-if="filteredSlots.length === 0 && filteredNoSlotSessions.length === 0" class="muted">На цей день немає вільного часу або сесій.</div>
+          <div v-if="isCalendarTab && filteredCalendarSessions.length === 0" class="muted">На цей день немає сесій.</div>
+          <div v-if="isAvailabilityTab && filteredSlots.length === 0" class="muted">На цей день немає вільного часу.</div>
           <button
+            v-if="isAvailabilityTab"
             v-for="slot in filteredSlots"
             :key="slot.id"
             class="mobile-slot"
@@ -223,7 +255,8 @@
             <span>{{ formatSlotTimeRange(slot) }}</span>
           </button>
           <button
-            v-for="session in filteredNoSlotSessions"
+            v-if="isCalendarTab"
+            v-for="session in filteredCalendarSessions"
             :key="`session-${session.id}`"
             class="mobile-slot mobile-slot--session"
             :class="{ 'calendar-slot--selected': selectedScheduleSession?.id === session.id }"
@@ -239,11 +272,11 @@
       </section>
 
       <aside class="panel slot-detail-panel" aria-label="Деталі вибраного елемента розкладу">
-        <template v-if="!selectedSlot && !selectedScheduleSession">
-          <h2 class="panel__title">Деталі вільного часу</h2>
-          <p class="muted">Оберіть вільний час у календарі, щоб переглянути деталі або змінити його.</p>
+        <template v-if="isCalendarTab && !selectedScheduleSession">
+          <h2 class="panel__title">Деталі сесії</h2>
+          <p class="muted">Оберіть сесію в календарі, щоб переглянути деталі.</p>
         </template>
-        <template v-else-if="selectedScheduleSession">
+        <template v-else-if="isCalendarTab && selectedScheduleSession">
           <div class="slot-detail-panel__header">
             <div>
               <h2 class="panel__title">Деталі сесії</h2>
@@ -265,6 +298,18 @@
               <dt>Статус</dt>
               <dd>{{ sessionStatusLabel(selectedScheduleSession.status) }}</dd>
             </div>
+            <div v-if="selectedScheduleSession.session_format">
+              <dt>Формат</dt>
+              <dd>{{ sessionFormatLabel(selectedScheduleSession.session_format) }}</dd>
+            </div>
+            <div v-if="selectedScheduleSession.meeting_url">
+              <dt>Онлайн-зустріч</dt>
+              <dd>{{ selectedScheduleSession.meeting_url }}</dd>
+            </div>
+            <div v-if="selectedScheduleSession.offline_location">
+              <dt>Місце зустрічі</dt>
+              <dd>{{ selectedScheduleSession.offline_location }}</dd>
+            </div>
           </dl>
 
           <div class="slot-actions">
@@ -273,7 +318,11 @@
             </RouterLink>
           </div>
         </template>
-        <template v-else-if="selectedSlot">
+        <template v-else-if="isAvailabilityTab && !selectedSlot">
+          <h2 class="panel__title">Деталі вільного часу</h2>
+          <p class="muted">Оберіть вільний час у календарі, щоб переглянути деталі або змінити його.</p>
+        </template>
+        <template v-else-if="isAvailabilityTab && selectedSlot">
           <div class="slot-detail-panel__header">
             <div>
               <h2 class="panel__title">Деталі вільного часу</h2>
@@ -414,7 +463,7 @@
       </aside>
     </div>
 
-    <section v-if="createFormOpen" class="panel create-slot-panel">
+    <section v-if="isAvailabilityTab && createFormOpen" class="panel create-slot-panel">
       <div class="create-slot-panel__intro">
         <h2 class="panel__title">Додати вільний час</h2>
         <p class="muted" style="margin: 6px 0 0;">
@@ -854,7 +903,6 @@ import type { ClientRegularTimeFrequency, ClientRegularTimePayload, SessionForma
 import { getBookingErrorCode, getBookingErrorMessage } from '../lib/bookingCopy'
 import { useToast } from '../composables/useToast'
 import ConfirmModal from '../components/ConfirmModal.vue'
-import ScheduleSubnav from '../components/ScheduleSubnav.vue'
 import { useConfirmModal } from '../composables/useConfirmModal'
 
 type Slot = {
@@ -875,6 +923,9 @@ type ScheduleSession = {
   client_username?: string | null
   client_email?: string | null
   client_record_id?: number | null
+  session_format?: SessionFormat | string | null
+  meeting_url?: string | null
+  offline_location?: string | null
 }
 
 type SlotConflict = {
@@ -937,6 +988,8 @@ type RegularClientOption = {
   label: string
 }
 
+type ScheduleTab = 'CALENDAR' | 'AVAILABILITY'
+
 const slots = ref<Slot[]>([])
 const sessions = ref<ScheduleSession[]>([])
 const loading = ref(false)
@@ -995,9 +1048,10 @@ const selectedWeekStart = ref(toDateInputValue(startOfWeek(new Date())))
 const datePickerMonth = ref(toDateInputValue(new Date()))
 const selectedDate = ref(todayKey)
 const showPastSlots = ref(false)
-const slotStatusFilter = ref<'ALL' | 'FREE' | 'BOOKED' | 'SESSIONS'>('ALL')
+const slotStatusFilter = ref<'ALL' | 'FREE' | 'BOOKED'>('ALL')
 const selectedSlotId = ref<number | null>(null)
 const selectedSessionId = ref<number | null>(null)
+const scheduleTab = ref<ScheduleTab>('CALENDAR')
 const pastSlotMessage = 'Неможливо створити вікно в минулому. Для нічного часу оберіть майбутню дату або майбутній час.'
 
 const editingId = ref<number | null>(null)
@@ -1139,10 +1193,6 @@ function sessionEndAt(session: ScheduleSession) {
   return session.slot_end_at || ''
 }
 
-function isNoSlotSession(session: ScheduleSession) {
-  return session.slot === null || session.slot === undefined
-}
-
 function isActiveScheduleSession(session: ScheduleSession) {
   return ACTIVE_SESSION_STATUSES.has(String(session.status || '').toUpperCase())
 }
@@ -1164,6 +1214,13 @@ function sessionStatusLabel(status: string) {
   return status || 'Сесія'
 }
 
+function sessionFormatLabel(format: string | null | undefined) {
+  const normalized = String(format || '').toLowerCase()
+  if (normalized === 'offline') return 'Офлайн'
+  if (normalized === 'online') return 'Онлайн'
+  return '-'
+}
+
 function formatSessionTimeRange(session: ScheduleSession) {
   const start = parseDateLike(sessionStartAt(session))
   const end = parseDateLike(sessionEndAt(session))
@@ -1180,20 +1237,6 @@ function sessionDurationMinutes(session: ScheduleSession) {
   const end = parseDateLike(sessionEndAt(session))
   if (!start || !end) return 0
   return Math.max(0, Math.round((end.getTime() - start.getTime()) / 60000))
-}
-
-function sessionOverlapsSlot(session: ScheduleSession, slot: Slot) {
-  const sessionStart = parseDateLike(sessionStartAt(session))
-  const sessionEnd = parseDateLike(sessionEndAt(session))
-  const slotStart = parseDateLike(slot.start_at)
-  const slotEnd = parseDateLike(slot.end_at)
-  if (!sessionStart || !sessionEnd || !slotStart || !slotEnd) return false
-  return sessionStart < slotEnd && sessionEnd > slotStart
-}
-
-function isSlotCoveredByNoSlotSession(slot: Slot) {
-  if (!slot.is_booked) return false
-  return visibleWeekNoSlotSessions.value.some((session) => sessionOverlapsSlot(session, slot))
 }
 
 function getSlotsForDate(dateKey: string) {
@@ -1444,23 +1487,22 @@ const weekRangeLabel = computed(() => {
 })
 
 const weekDateKeys = computed(() => new Set(weekDays.value.map((day) => day.key)))
+const isCalendarTab = computed(() => scheduleTab.value === 'CALENDAR')
+const isAvailabilityTab = computed(() => scheduleTab.value === 'AVAILABILITY')
 
 function matchesSlotStatusFilter(slot: Slot) {
-  if (slotStatusFilter.value === 'SESSIONS') return false
   if (slotStatusFilter.value === 'FREE') return !slot.is_booked
   if (slotStatusFilter.value === 'BOOKED') return slot.is_booked
   return true
 }
 
 function isSlotVisible(slot: Slot) {
-  if (isSlotCoveredByNoSlotSession(slot)) return false
   if (!showPastSlots.value && !isFutureSlot(slot)) return false
   return matchesSlotStatusFilter(slot)
 }
 
-const visibleWeekNoSlotSessions = computed(() =>
+const visibleWeekCalendarSessions = computed(() =>
   sessions.value
-    .filter(isNoSlotSession)
     .filter(isActiveScheduleSession)
     .filter((session) => {
       const startAt = sessionStartAt(session)
@@ -1483,13 +1525,12 @@ const calendarHours = computed(() => {
 })
 
 const calendarHourRange = computed(() => {
-  const slotRanges = visibleWeekSlots.value
-    .map((slot) => slotMinuteRangeForDate(slot, toLocalDateKey(slot.start_at)))
+  const ranges = (isCalendarTab.value ? visibleWeekCalendarSessions.value : visibleWeekSlots.value)
+    .map((item) => {
+      if ('start_at' in item) return slotMinuteRangeForDate(item, toLocalDateKey(item.start_at))
+      return sessionMinuteRangeForDate(item, toLocalDateKey(sessionStartAt(item)))
+    })
     .filter((range): range is { startMinutes: number; endMinutes: number } => Boolean(range))
-  const sessionRanges = visibleWeekNoSlotSessions.value
-    .map((session) => sessionMinuteRangeForDate(session, toLocalDateKey(sessionStartAt(session))))
-    .filter((range): range is { startMinutes: number; endMinutes: number } => Boolean(range))
-  const ranges = [...slotRanges, ...sessionRanges]
 
   if (ranges.length === 0) {
     return {
@@ -1535,10 +1576,9 @@ const filteredSlots = computed(() => {
   return slotsForSelectedDay.value
 })
 
-const filteredNoSlotSessions = computed(() =>
-  visibleWeekNoSlotSessions.value
+const filteredCalendarSessions = computed(() =>
+  visibleWeekCalendarSessions.value
     .filter((session) => toLocalDateKey(sessionStartAt(session)) === selectedDate.value)
-    .filter(() => slotStatusFilter.value === 'SESSIONS' || slotStatusFilter.value === 'ALL')
 )
 
 const hiddenPastWeekSlotsCount = computed(() =>
@@ -1591,6 +1631,17 @@ const datePickerDays = computed(() => {
 function selectDay(key: string) {
   selectedDate.value = key
   showPastSlots.value = false
+}
+
+function setScheduleTab(tab: ScheduleTab) {
+  scheduleTab.value = tab
+  closeDatePicker()
+  if (tab === 'CALENDAR') {
+    createFormOpen.value = false
+    selectedSlotId.value = null
+    return
+  }
+  selectedSessionId.value = null
 }
 
 function getDatePickerFieldValue(field: DatePickerField) {
@@ -1800,14 +1851,13 @@ function positionedSlotsForDay(dateKey: string): CalendarSlotLayout[] {
   return layouts.map((layout) => ({ ...layout, laneCount }))
 }
 
-function positionedSessionsForDay(dateKey: string): CalendarSessionLayout[] {
-  if (slotStatusFilter.value === 'FREE' || slotStatusFilter.value === 'BOOKED') return []
+function positionedCalendarSessionsForDay(dateKey: string): CalendarSessionLayout[] {
   const rangeStartMinutes = calendarHourRange.value.startHour * 60
   const rangeEndMinutes = calendarHourRange.value.endHour * 60
   const pxPerMinute = CALENDAR_HOUR_HEIGHT / 60
   const activeLanes: Array<{ endMinutes: number; lane: number }> = []
 
-  const layouts = visibleWeekNoSlotSessions.value
+  const layouts = visibleWeekCalendarSessions.value
     .filter((session) => toLocalDateKey(sessionStartAt(session)) === dateKey)
     .map((session) => {
       const range = sessionMinuteRangeForDate(session, dateKey)
@@ -2604,7 +2654,14 @@ onBeforeUnmount(() => {
   margin-top: -2px;
 }
 
-.slots__subnav :deep(.schedule-subnav__link) {
+.schedule-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.schedule-tabs__item {
+  text-decoration: none;
   border: 1px solid var(--pc-border);
   border-radius: var(--pc-radius-control);
   background: #fff;
@@ -2612,16 +2669,10 @@ onBeforeUnmount(() => {
   font-weight: 700;
 }
 
-.slots__subnav :deep(.schedule-subnav__link:hover),
-.slots__subnav :deep(.schedule-subnav__link:focus-visible) {
+.schedule-tabs__item:hover,
+.schedule-tabs__item:focus-visible {
   border-color: color-mix(in srgb, var(--pc-navy-900) 28%, var(--pc-border));
   background: color-mix(in srgb, var(--pc-blue-soft) 76%, #ffffff);
-  color: var(--pc-navy-900);
-}
-
-.slots__subnav :deep(.schedule-subnav__link.is-active) {
-  border-color: color-mix(in srgb, var(--pc-navy-900) 36%, var(--pc-border));
-  background: color-mix(in srgb, var(--pc-primary-soft) 80%, #ffffff);
   color: var(--pc-navy-900);
 }
 
