@@ -79,11 +79,12 @@
           </button>
         </div>
         <div class="muted slot-summary">
-          {{ visibleWeekSlots.length }} проміжків · {{ weekStatusSummary.free }} доступно · {{ weekStatusSummary.booked }} заброньовано
+          {{ visibleWeekSlots.length }} проміжків · {{ weekStatusSummary.free }} доступно · {{ weekStatusSummary.booked }} заброньовано · {{ visibleWeekNoSlotSessions.length }} сесій
         </div>
         <div class="calendar-legend" aria-label="Позначення вільного часу">
           <span><i class="legend-dot legend-dot--available"></i>Доступно</span>
           <span><i class="legend-dot legend-dot--booked"></i>Заброньовано</span>
+          <span><i class="legend-dot legend-dot--session"></i>Сесія</span>
           <span><i class="legend-dot legend-dot--past"></i>Минуло</span>
         </div>
         <button
@@ -151,11 +152,29 @@
               >
                 <span class="calendar-slot__time">{{ formatSlotTimeRange(layout.slot) }}</span>
               </button>
+              <button
+                v-for="layout in positionedSessionsForDay(day.key)"
+                :key="`session-${layout.session.id}`"
+                class="calendar-slot calendar-session"
+                :class="{ 'calendar-slot--selected': selectedScheduleSession?.id === layout.session.id }"
+                type="button"
+                :style="calendarSlotStyle(layout)"
+                :data-duration-minutes="layout.durationMinutes"
+                :data-clipped-duration-minutes="layout.clippedDurationMinutes"
+                :data-top-minutes="layout.topMinutes"
+                :aria-label="sessionBlockLabel(layout.session)"
+                :title="sessionBlockLabel(layout.session)"
+                @click="selectSession(layout.session)"
+              >
+                <span class="calendar-session__kind">Сесія</span>
+                <span class="calendar-slot__time">{{ formatSessionTimeRange(layout.session) }}</span>
+                <span class="calendar-session__client">{{ sessionClientLabel(layout.session) }}</span>
+              </button>
             </div>
           </div>
         </div>
 
-        <div v-if="visibleWeekSlots.length === 0" class="calendar-empty muted">
+        <div v-if="visibleWeekSlots.length === 0 && visibleWeekNoSlotSessions.length === 0" class="calendar-empty muted">
           На цьому тижні ще немає вільного часу для прямого запису.
         </div>
 
@@ -164,7 +183,7 @@
             {{ formatDateOnly(selectedDate) }}
             <span v-if="isSelectedToday" class="day-hint__today">· Сьогодні</span>
           </div>
-          <div v-if="filteredSlots.length === 0" class="muted">На цей день немає вільного часу.</div>
+          <div v-if="filteredSlots.length === 0 && filteredNoSlotSessions.length === 0" class="muted">На цей день немає вільного часу або сесій.</div>
           <button
             v-for="slot in filteredSlots"
             :key="slot.id"
@@ -177,15 +196,58 @@
           >
             <span>{{ formatSlotTimeRange(slot) }}</span>
           </button>
+          <button
+            v-for="session in filteredNoSlotSessions"
+            :key="`session-${session.id}`"
+            class="mobile-slot mobile-slot--session"
+            :class="{ 'calendar-slot--selected': selectedScheduleSession?.id === session.id }"
+            type="button"
+            :aria-label="sessionBlockLabel(session)"
+            :title="sessionBlockLabel(session)"
+            @click="selectSession(session)"
+          >
+            <span>{{ formatSessionTimeRange(session) }}</span>
+            <span>Сесія · {{ sessionClientLabel(session) }}</span>
+          </button>
         </div>
       </section>
 
       <aside class="panel slot-detail-panel" aria-label="Деталі вибраного вільного часу">
-        <template v-if="!selectedSlot">
+        <template v-if="!selectedSlot && !selectedScheduleSession">
           <h2 class="panel__title">Деталі вільного часу</h2>
           <p class="muted">Оберіть вільний час у календарі, щоб переглянути деталі або змінити його.</p>
         </template>
-        <template v-else>
+        <template v-else-if="selectedScheduleSession">
+          <div class="slot-detail-panel__header">
+            <div>
+              <h2 class="panel__title">Деталі сесії</h2>
+              <p class="muted">{{ formatDateOnly(toLocalDateKey(sessionStartAt(selectedScheduleSession) || '')) }}</p>
+            </div>
+            <span class="slot-status slot-status--booked">Сесія</span>
+          </div>
+
+          <dl class="slot-detail-list">
+            <div>
+              <dt>Час</dt>
+              <dd>{{ formatSessionTimeRange(selectedScheduleSession) }}</dd>
+            </div>
+            <div>
+              <dt>Клієнт</dt>
+              <dd>{{ sessionClientLabel(selectedScheduleSession) }}</dd>
+            </div>
+            <div>
+              <dt>Статус</dt>
+              <dd>{{ sessionStatusLabel(selectedScheduleSession.status) }}</dd>
+            </div>
+          </dl>
+
+          <div class="slot-actions">
+            <RouterLink class="btn btn--sm" :to="`/cabinet/sessions/${selectedScheduleSession.id}`">
+              Відкрити сесію
+            </RouterLink>
+          </div>
+        </template>
+        <template v-else-if="selectedSlot">
           <div class="slot-detail-panel__header">
             <div>
               <h2 class="panel__title">Деталі вільного часу</h2>
@@ -458,6 +520,19 @@ type Slot = {
   is_booked: boolean
 }
 
+type ScheduleSession = {
+  id: number
+  slot: number | null
+  slot_start_at: string | null
+  slot_end_at: string | null
+  status: string
+  client_name?: string | null
+  client_display_name?: string | null
+  client_username?: string | null
+  client_email?: string | null
+  client_record_id?: number | null
+}
+
 type SlotConflict = {
   slot_id?: number
   start_at?: string
@@ -475,9 +550,21 @@ type CalendarSlotLayout = {
   topMinutes: number
 }
 
+type CalendarSessionLayout = {
+  session: ScheduleSession
+  top: number
+  height: number
+  lane: number
+  laneCount: number
+  durationMinutes: number
+  clippedDurationMinutes: number
+  topMinutes: number
+}
+
 type DatePickerField = 'newStartDate' | 'editStartDate'
 
 const slots = ref<Slot[]>([])
+const sessions = ref<ScheduleSession[]>([])
 const loading = ref(false)
 const error = ref('')
 const editErrors = ref<Record<number, string>>({})
@@ -504,6 +591,7 @@ const selectedDate = ref(todayKey)
 const showPastSlots = ref(false)
 const slotStatusFilter = ref<'ALL' | 'FREE' | 'BOOKED'>('ALL')
 const selectedSlotId = ref<number | null>(null)
+const selectedSessionId = ref<number | null>(null)
 const pastSlotMessage = 'Неможливо створити вікно в минулому. Для нічного часу оберіть майбутню дату або майбутній час.'
 
 const editingId = ref<number | null>(null)
@@ -531,6 +619,7 @@ const DEFAULT_CALENDAR_START_HOUR = 8
 const DEFAULT_CALENDAR_END_HOUR = 21
 const CALENDAR_HOUR_HEIGHT = 50
 const MIN_CALENDAR_SLOT_HEIGHT = 24
+const ACTIVE_SESSION_STATUSES = new Set(['SCHEDULED', 'CONFIRMED'])
 
 function startOfWeek(value: Date) {
   const date = new Date(value)
@@ -617,6 +706,71 @@ function toLocalDateKey(value: string) {
 function isFutureSlot(slot: Slot) {
   const start = new Date(slot.start_at).getTime()
   return !Number.isNaN(start) && start > Date.now()
+}
+
+function sessionStartAt(session: ScheduleSession) {
+  return session.slot_start_at || ''
+}
+
+function sessionEndAt(session: ScheduleSession) {
+  return session.slot_end_at || ''
+}
+
+function isNoSlotSession(session: ScheduleSession) {
+  return session.slot === null || session.slot === undefined
+}
+
+function isActiveScheduleSession(session: ScheduleSession) {
+  return ACTIVE_SESSION_STATUSES.has(String(session.status || '').toUpperCase())
+}
+
+function sessionClientLabel(session: ScheduleSession) {
+  return (
+    session.client_display_name ||
+    session.client_name ||
+    session.client_username ||
+    session.client_email ||
+    (session.client_record_id ? `Клієнт #${session.client_record_id}` : 'Клієнт')
+  )
+}
+
+function sessionStatusLabel(status: string) {
+  const normalized = String(status || '').toUpperCase()
+  if (normalized === 'CONFIRMED') return 'Підтверджено'
+  if (normalized === 'SCHEDULED') return 'Заплановано'
+  return status || 'Сесія'
+}
+
+function formatSessionTimeRange(session: ScheduleSession) {
+  const start = parseDateLike(sessionStartAt(session))
+  const end = parseDateLike(sessionEndAt(session))
+  if (!start || !end) return formatDate(sessionStartAt(session))
+  return `${formatTimeParts(start)}–${formatTimeParts(end)}`
+}
+
+function sessionBlockLabel(session: ScheduleSession) {
+  return `Сесія · ${sessionClientLabel(session)} · ${formatSessionTimeRange(session)}`
+}
+
+function sessionDurationMinutes(session: ScheduleSession) {
+  const start = parseDateLike(sessionStartAt(session))
+  const end = parseDateLike(sessionEndAt(session))
+  if (!start || !end) return 0
+  return Math.max(0, Math.round((end.getTime() - start.getTime()) / 60000))
+}
+
+function sessionOverlapsSlot(session: ScheduleSession, slot: Slot) {
+  const sessionStart = parseDateLike(sessionStartAt(session))
+  const sessionEnd = parseDateLike(sessionEndAt(session))
+  const slotStart = parseDateLike(slot.start_at)
+  const slotEnd = parseDateLike(slot.end_at)
+  if (!sessionStart || !sessionEnd || !slotStart || !slotEnd) return false
+  return sessionStart < slotEnd && sessionEnd > slotStart
+}
+
+function isSlotCoveredByNoSlotSession(slot: Slot) {
+  if (!slot.is_booked) return false
+  return visibleWeekNoSlotSessions.value.some((session) => sessionOverlapsSlot(session, slot))
 }
 
 function getSlotsForDate(dateKey: string) {
@@ -841,9 +995,22 @@ function matchesSlotStatusFilter(slot: Slot) {
 }
 
 function isSlotVisible(slot: Slot) {
+  if (isSlotCoveredByNoSlotSession(slot)) return false
   if (!showPastSlots.value && !isFutureSlot(slot)) return false
   return matchesSlotStatusFilter(slot)
 }
+
+const visibleWeekNoSlotSessions = computed(() =>
+  sessions.value
+    .filter(isNoSlotSession)
+    .filter(isActiveScheduleSession)
+    .filter((session) => {
+      const startAt = sessionStartAt(session)
+      const endAt = sessionEndAt(session)
+      return Boolean(startAt && endAt && weekDateKeys.value.has(toLocalDateKey(startAt)))
+    })
+    .sort((a, b) => String(sessionStartAt(a)).localeCompare(String(sessionStartAt(b))))
+)
 
 const visibleWeekSlots = computed(() =>
   slots.value
@@ -858,9 +1025,13 @@ const calendarHours = computed(() => {
 })
 
 const calendarHourRange = computed(() => {
-  const ranges = visibleWeekSlots.value
+  const slotRanges = visibleWeekSlots.value
     .map((slot) => slotMinuteRangeForDate(slot, toLocalDateKey(slot.start_at)))
     .filter((range): range is { startMinutes: number; endMinutes: number } => Boolean(range))
+  const sessionRanges = visibleWeekNoSlotSessions.value
+    .map((session) => sessionMinuteRangeForDate(session, toLocalDateKey(sessionStartAt(session))))
+    .filter((range): range is { startMinutes: number; endMinutes: number } => Boolean(range))
+  const ranges = [...slotRanges, ...sessionRanges]
 
   if (ranges.length === 0) {
     return {
@@ -906,6 +1077,10 @@ const filteredSlots = computed(() => {
   return slotsForSelectedDay.value
 })
 
+const filteredNoSlotSessions = computed(() =>
+  visibleWeekNoSlotSessions.value.filter((session) => toLocalDateKey(sessionStartAt(session)) === selectedDate.value)
+)
+
 const hiddenPastWeekSlotsCount = computed(() =>
   slots.value.filter((slot) => weekDateKeys.value.has(toLocalDateKey(slot.start_at)) && !isFutureSlot(slot)).length
 )
@@ -914,6 +1089,9 @@ const hasPastSlotsInWeek = computed(() => hiddenPastWeekSlotsCount.value > 0)
 
 const isSelectedToday = computed(() => selectedDate.value === todayKey)
 const selectedSlot = computed(() => slots.value.find((slot) => slot.id === selectedSlotId.value) || null)
+const selectedScheduleSession = computed(() =>
+  sessions.value.find((session) => session.id === selectedSessionId.value) || null
+)
 const newSlotPreview = computed(() => {
   const startAt = parseUkDateTime(newStartDate.value, newStartTime.value)
   const durationMinutes = Number(newDuration.value)
@@ -1021,14 +1199,18 @@ function shiftWeek(direction: number) {
   selectedWeekStart.value = toDateInputValue(next)
   selectedDate.value = selectedWeekStart.value
   selectedSlotId.value = null
+  selectedSessionId.value = null
   showPastSlots.value = false
+  void loadWeekSessions()
 }
 
 function goToToday() {
   moveWeekToDate(new Date())
   selectedDate.value = todayKey
   selectedSlotId.value = null
+  selectedSessionId.value = null
   showPastSlots.value = false
+  void loadWeekSessions()
 }
 
 function formatHourLabel(hour: number) {
@@ -1058,6 +1240,32 @@ function slotMinuteRangeForDate(slot: Slot, dateKey: string) {
 
   if (endMinutes <= startMinutes) {
     endMinutes = Math.min(24 * 60, startMinutes + slotDurationMinutes(slot))
+  }
+
+  return {
+    startMinutes,
+    endMinutes,
+  }
+}
+
+function sessionMinuteRangeForDate(session: ScheduleSession, dateKey: string) {
+  const startAt = sessionStartAt(session)
+  const endAt = sessionEndAt(session)
+  const start = parseDateLike(startAt)
+  const end = parseDateLike(endAt)
+  if (!start || !end) return null
+
+  const startKey = toLocalDateKey(startAt)
+  const endKey = toLocalDateKey(endAt)
+  const startMinutes = startKey < dateKey ? 0 : start.getHours() * 60 + start.getMinutes()
+  let endMinutes = endKey > dateKey ? 24 * 60 : end.getHours() * 60 + end.getMinutes()
+
+  if (endKey < dateKey) {
+    endMinutes = 0
+  }
+
+  if (endMinutes <= startMinutes) {
+    endMinutes = Math.min(24 * 60, startMinutes + sessionDurationMinutes(session))
   }
 
   return {
@@ -1125,7 +1333,66 @@ function positionedSlotsForDay(dateKey: string): CalendarSlotLayout[] {
   return layouts.map((layout) => ({ ...layout, laneCount }))
 }
 
-function calendarSlotStyle(layout: CalendarSlotLayout) {
+function positionedSessionsForDay(dateKey: string): CalendarSessionLayout[] {
+  const rangeStartMinutes = calendarHourRange.value.startHour * 60
+  const rangeEndMinutes = calendarHourRange.value.endHour * 60
+  const pxPerMinute = CALENDAR_HOUR_HEIGHT / 60
+  const activeLanes: Array<{ endMinutes: number; lane: number }> = []
+
+  const layouts = visibleWeekNoSlotSessions.value
+    .filter((session) => toLocalDateKey(sessionStartAt(session)) === dateKey)
+    .map((session) => {
+      const range = sessionMinuteRangeForDate(session, dateKey)
+      if (!range) return null
+      const clippedStart = Math.max(rangeStartMinutes, range.startMinutes)
+      const clippedEnd = Math.min(rangeEndMinutes, range.endMinutes)
+      if (clippedEnd <= clippedStart) return null
+      return {
+        session,
+        startMinutes: clippedStart,
+        endMinutes: clippedEnd,
+        durationMinutes: sessionDurationMinutes(session),
+        clippedDurationMinutes: clippedEnd - clippedStart,
+      }
+    })
+    .filter((layout): layout is {
+      session: ScheduleSession
+      startMinutes: number
+      endMinutes: number
+      durationMinutes: number
+      clippedDurationMinutes: number
+    } => Boolean(layout))
+    .sort((a, b) => a.startMinutes - b.startMinutes || a.endMinutes - b.endMinutes)
+    .map((layout) => {
+      for (let index = activeLanes.length - 1; index >= 0; index -= 1) {
+        const activeLane = activeLanes[index]
+        if (activeLane && activeLane.endMinutes <= layout.startMinutes) {
+          activeLanes.splice(index, 1)
+        }
+      }
+
+      const usedLanes = new Set(activeLanes.map((lane) => lane.lane))
+      let lane = 0
+      while (usedLanes.has(lane)) lane += 1
+      activeLanes.push({ endMinutes: layout.endMinutes, lane })
+
+      return {
+        session: layout.session,
+        top: (layout.startMinutes - rangeStartMinutes) * pxPerMinute,
+        height: Math.max(MIN_CALENDAR_SLOT_HEIGHT, layout.clippedDurationMinutes * pxPerMinute),
+        lane,
+        laneCount: 1,
+        durationMinutes: layout.durationMinutes,
+        clippedDurationMinutes: layout.clippedDurationMinutes,
+        topMinutes: layout.startMinutes - rangeStartMinutes,
+      }
+    })
+
+  const laneCount = Math.max(1, ...layouts.map((layout) => layout.lane + 1))
+  return layouts.map((layout) => ({ ...layout, laneCount }))
+}
+
+function calendarSlotStyle(layout: CalendarSlotLayout | CalendarSessionLayout) {
   const laneWidth = 100 / layout.laneCount
   return {
     top: `${layout.top}px`,
@@ -1157,7 +1424,14 @@ function slotStatusClass(slot: Slot) {
 
 function selectSlot(slot: Slot) {
   selectedSlotId.value = slot.id
+  selectedSessionId.value = null
   selectedDate.value = toLocalDateKey(slot.start_at)
+}
+
+function selectSession(session: ScheduleSession) {
+  selectedSessionId.value = session.id
+  selectedSlotId.value = null
+  selectedDate.value = toLocalDateKey(sessionStartAt(session))
 }
 
 async function openCreateForm() {
@@ -1179,12 +1453,38 @@ function closeCreateForm() {
   createFormOpen.value = false
 }
 
+async function fetchWeekSessions() {
+  const firstDay = weekDays.value[0]?.key
+  const lastDay = weekDays.value[6]?.key
+  if (!firstDay || !lastDay) return []
+  const resp = await apiGet<ScheduleSession[]>('/booking/sessions/', {
+    params: {
+      date_from: firstDay,
+      date_to: lastDay,
+      status: 'SCHEDULED,CONFIRMED',
+    },
+  })
+  return (resp || []).filter((session) => sessionStartAt(session) && sessionEndAt(session))
+}
+
+async function loadWeekSessions() {
+  try {
+    sessions.value = await fetchWeekSessions()
+  } catch (err: any) {
+    error.value = getBookingErrorMessage(err, 'Не вдалося завантажити сесії')
+  }
+}
+
 async function loadSlots() {
   loading.value = true
   error.value = ''
   try {
-    const resp = await apiGet<Slot[]>('/cabinet/slots/')
-    slots.value = resp || []
+    const [slotResp, sessionResp] = await Promise.all([
+      apiGet<Slot[]>('/cabinet/slots/'),
+      fetchWeekSessions(),
+    ])
+    slots.value = slotResp || []
+    sessions.value = sessionResp
     switchToNearestFutureDateIfNeeded()
     if (selectedDate.value && getHiddenPastSlotsCount(selectedDate.value) === 0) {
       showPastSlots.value = false
@@ -1219,6 +1519,7 @@ async function createSlot() {
     closeDatePicker()
     selectedDate.value = toDateInputValue(startAt)
     moveWeekToDate(startAt)
+    selectedSessionId.value = null
     showPastSlots.value = false
     await loadSlots()
     newStartDate.value = ''
@@ -1248,6 +1549,7 @@ async function fillWeek() {
     })
     selectedDate.value = isoDate
     moveWeekToDate(isoDate)
+    selectedSessionId.value = null
     showPastSlots.value = false
     await loadSlots()
     toast.success(
@@ -1368,6 +1670,7 @@ async function saveEdit(slotId: number) {
     slots.value = slots.value.map((slot) => (slot.id === slotId ? resp : slot))
     selectedDate.value = toLocalDateKey(resp.start_at)
     moveWeekToDate(resp.start_at)
+    selectedSessionId.value = null
     cancelEdit()
   } catch (err: any) {
     editErrors.value[slotId] =
@@ -1713,6 +2016,11 @@ onBeforeUnmount(() => {
   border-color: rgba(138, 44, 44, 0.18);
 }
 
+.legend-dot--session {
+  background: #e7f2f1;
+  border-color: rgba(31, 92, 87, 0.24);
+}
+
 .legend-dot--past {
   background: #f2f4f6;
   border-color: rgba(90, 103, 114, 0.16);
@@ -1735,6 +2043,31 @@ onBeforeUnmount(() => {
   background: #f2f4f6;
   color: #6a747c;
   border-color: rgba(90, 103, 114, 0.16);
+}
+
+.calendar-session,
+.mobile-slot--session {
+  background: #e7f2f1;
+  color: #1f5c57;
+  border-color: rgba(31, 92, 87, 0.24);
+}
+
+.calendar-session__kind,
+.calendar-session__client {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 10px;
+  line-height: 1.2;
+}
+
+.calendar-session__kind {
+  font-weight: 800;
+}
+
+.calendar-session__client {
+  color: color-mix(in srgb, #1f5c57 76%, var(--pc-text-muted));
 }
 
 .calendar-empty {
