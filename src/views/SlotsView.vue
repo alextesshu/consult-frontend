@@ -29,15 +29,30 @@
           </button>
         </div>
         <div class="schedule-actions">
-          <button class="btn btn--sm" type="button" @click="openCreateForm">
-            Додати вільний час
-          </button>
-          <button class="btn btn--ghost btn--sm" type="button" @click="openRegularSessionsModal">
-            Додати регулярні сесії
-          </button>
-          <button class="btn btn--ghost btn--sm" type="button" :disabled="loading" @click="requestFillWeek">
-            Заповнити тиждень
-          </button>
+          <div class="action-group">
+            <div class="action-group__title">Сесії</div>
+            <p class="muted action-group__hint">Створюйте разові або регулярні сесії для конкретних клієнтів.</p>
+            <div class="action-group__buttons">
+              <button class="btn btn--ghost btn--sm" type="button" @click="openOneOffSessionModal">
+                Створити сесію
+              </button>
+              <button class="btn btn--sm" type="button" @click="openRegularSessionsModal">
+                Закріпити регулярний час
+              </button>
+            </div>
+          </div>
+          <div class="action-group action-group--availability">
+            <div class="action-group__title">Вільний час для запису</div>
+            <p class="muted action-group__hint">Вільний час бачать клієнти в публічному профілі та можуть обрати для запису.</p>
+            <div class="action-group__buttons">
+              <button class="btn btn--ghost btn--sm" type="button" @click="openCreateForm">
+                Додати вільний час
+              </button>
+              <button class="btn btn--ghost btn--sm" type="button" :disabled="loading" @click="requestFillWeek">
+                Заповнити тиждень
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -80,9 +95,17 @@
           >
             Заброньовані
           </button>
+          <button
+            class="btn btn--ghost btn--sm"
+            type="button"
+            :class="{ 'btn--active': slotStatusFilter === 'SESSIONS' }"
+            @click="slotStatusFilter = 'SESSIONS'"
+          >
+            Сесії
+          </button>
         </div>
         <div class="muted slot-summary">
-          {{ visibleWeekSlots.length }} проміжків · {{ weekStatusSummary.free }} доступно · {{ weekStatusSummary.booked }} заброньовано · {{ visibleWeekNoSlotSessions.length }} сесій
+          {{ weekStatusSummary.free }} вільних вікон · {{ weekStatusSummary.booked }} заброньованих · {{ visibleWeekNoSlotSessions.length }} сесія
         </div>
         <div class="calendar-legend" aria-label="Позначення вільного часу">
           <span><i class="legend-dot legend-dot--available"></i>Доступно</span>
@@ -104,9 +127,9 @@
     <div v-if="loading" class="muted" style="margin-top: 8px;">Завантаження...</div>
 
     <div class="schedule-workspace">
-      <section class="panel calendar-panel" aria-label="Календар тижня">
+      <section class="panel calendar-panel" aria-label="Календар">
         <div class="calendar-scroll">
-          <div class="week-calendar" role="grid" :aria-label="`Розклад на тиждень ${weekRangeLabel}`">
+          <div class="week-calendar" role="grid" :aria-label="`Календар на тиждень ${weekRangeLabel}`">
             <div class="calendar-time-gutter calendar-header-cell" aria-hidden="true"></div>
             <div v-for="day in weekDays" :key="day.key" class="calendar-day-header" role="columnheader">
               <span>{{ day.weekday }}</span>
@@ -215,7 +238,7 @@
         </div>
       </section>
 
-      <aside class="panel slot-detail-panel" aria-label="Деталі вибраного вільного часу">
+      <aside class="panel slot-detail-panel" aria-label="Деталі вибраного елемента розкладу">
         <template v-if="!selectedSlot && !selectedScheduleSession">
           <h2 class="panel__title">Деталі вільного часу</h2>
           <p class="muted">Оберіть вільний час у календарі, щоб переглянути деталі або змінити його.</p>
@@ -510,9 +533,9 @@
       <div class="regular-sessions-modal__content">
         <div class="regular-sessions-modal__header">
           <div>
-            <h2 id="regular-sessions-modal-title" class="panel__title">Додати регулярні сесії</h2>
+            <h2 id="regular-sessions-modal-title" class="panel__title">Закріпити регулярний час</h2>
             <p class="muted">
-              Закріпіть постійний день і час для клієнта. Майбутні сесії створяться автоматично на кілька тижнів наперед.
+              Оберіть клієнта, день і час. Майбутні сесії створяться автоматично на кілька тижнів наперед.
             </p>
           </div>
           <button class="icon-btn" type="button" aria-label="Закрити" @click="closeRegularSessionsModal">×</button>
@@ -666,6 +689,97 @@
       </div>
     </div>
 
+    <div
+      v-if="oneOffSessionModalOpen"
+      class="regular-sessions-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="one-off-session-modal-title"
+    >
+      <button
+        class="regular-sessions-modal__backdrop"
+        type="button"
+        aria-label="Закрити"
+        @click="closeOneOffSessionModal"
+      ></button>
+      <div class="regular-sessions-modal__content">
+        <div class="regular-sessions-modal__header">
+          <div>
+            <h2 id="one-off-session-modal-title" class="panel__title">Створити сесію</h2>
+            <p class="muted">
+              Створіть разову сесію для клієнта: консультацію, ознайомчу зустріч або іншу домовленість.
+            </p>
+          </div>
+          <button class="icon-btn" type="button" aria-label="Закрити" @click="closeOneOffSessionModal">×</button>
+        </div>
+
+        <form class="slot-form regular-sessions-form" @submit.prevent="createOneOffSession">
+          <div v-if="oneOffSessionLoading" class="muted">Завантаження даних...</div>
+          <template v-else>
+            <label class="field">
+              Клієнт
+              <select
+                v-model.number="oneOffClientRecordId"
+                class="input input--select"
+                :disabled="regularClientOptions.length === 0"
+                required
+              >
+                <option value="" disabled>Оберіть клієнта</option>
+                <option v-for="client in regularClientOptions" :key="client.recordId" :value="client.recordId">
+                  {{ client.label }}
+                </option>
+              </select>
+            </label>
+
+            <label class="field">
+              Вільний час
+              <select
+                v-model.number="oneOffSlotId"
+                class="input input--select"
+                :disabled="oneOffAvailableSlots.length === 0"
+                required
+              >
+                <option value="" disabled>Оберіть вільний час</option>
+                <option v-for="slot in oneOffAvailableSlots" :key="slot.id" :value="slot.id">
+                  {{ formatOneOffSlotOption(slot) }}
+                </option>
+              </select>
+            </label>
+
+            <label class="field">
+              Формат зустрічі
+              <select v-model="oneOffSessionFormat" class="input input--select">
+                <option v-for="option in regularFormatOptions" :key="option.value" :value="option.value">
+                  {{ option.label }}
+                </option>
+              </select>
+            </label>
+          </template>
+
+          <p v-if="!oneOffSessionLoading && regularClientOptions.length === 0" class="muted">
+            Немає активних клієнтів із робочою карткою.
+          </p>
+          <p v-if="!oneOffSessionLoading && oneOffAvailableSlots.length === 0" class="muted">
+            Немає доступного вільного часу для разової сесії.
+          </p>
+
+          <div class="slot-form__actions">
+            <button class="btn btn--ghost" type="button" @click="closeOneOffSessionModal">
+              Скасувати
+            </button>
+            <button
+              class="btn"
+              type="submit"
+              :disabled="oneOffSessionLoading || oneOffSessionSaving || regularClientOptions.length === 0 || oneOffAvailableSlots.length === 0"
+            >
+              {{ oneOffSessionSaving ? 'Створюємо...' : 'Створити сесію' }}
+            </button>
+          </div>
+          <div v-if="oneOffSessionError" class="form-error form-error--inline">{{ oneOffSessionError }}</div>
+        </form>
+      </div>
+    </div>
+
     <ConfirmModal
       :open="confirmModal.open"
       :title="confirmModal.title"
@@ -720,6 +834,11 @@ type SlotConflict = {
   slot_id?: number
   start_at?: string
   end_at?: string
+}
+
+type OneOffSessionCreateResponse = {
+  id?: number
+  session_id?: number
 }
 
 type CalendarSlotLayout = {
@@ -783,6 +902,10 @@ const createFormRef = ref<HTMLFormElement | null>(null)
 const createFormOpen = ref(false)
 const regularSessionsFormRef = ref<HTMLFormElement | null>(null)
 const regularSessionsModalOpen = ref(false)
+const oneOffSessionModalOpen = ref(false)
+const oneOffSessionLoading = ref(false)
+const oneOffSessionSaving = ref(false)
+const oneOffSessionError = ref('')
 const regularClientsLoading = ref(false)
 const regularSessionsSaving = ref(false)
 const regularSessionsError = ref('')
@@ -802,6 +925,9 @@ const regularSessionFormat = ref<SessionFormat>('online')
 const regularStartsOn = ref('')
 const regularMeetingUrl = ref('')
 const regularOfflineLocation = ref('')
+const oneOffClientRecordId = ref<number | ''>('')
+const oneOffSlotId = ref<number | ''>('')
+const oneOffSessionFormat = ref<SessionFormat>('online')
 const timeOptions = Array.from({ length: 24 * 4 }, (_, index) => {
   const minutes = index * 15
   const hours = String(Math.floor(minutes / 60)).padStart(2, '0')
@@ -813,7 +939,7 @@ const selectedWeekStart = ref(toDateInputValue(startOfWeek(new Date())))
 const datePickerMonth = ref(toDateInputValue(new Date()))
 const selectedDate = ref(todayKey)
 const showPastSlots = ref(false)
-const slotStatusFilter = ref<'ALL' | 'FREE' | 'BOOKED'>('ALL')
+const slotStatusFilter = ref<'ALL' | 'FREE' | 'BOOKED' | 'SESSIONS'>('ALL')
 const selectedSlotId = ref<number | null>(null)
 const selectedSessionId = ref<number | null>(null)
 const pastSlotMessage = 'Неможливо створити вікно в минулому. Для нічного часу оберіть майбутню дату або майбутній час.'
@@ -1236,6 +1362,7 @@ const weekRangeLabel = computed(() => {
 const weekDateKeys = computed(() => new Set(weekDays.value.map((day) => day.key)))
 
 function matchesSlotStatusFilter(slot: Slot) {
+  if (slotStatusFilter.value === 'SESSIONS') return false
   if (slotStatusFilter.value === 'FREE') return !slot.is_booked
   if (slotStatusFilter.value === 'BOOKED') return slot.is_booked
   return true
@@ -1325,7 +1452,16 @@ const filteredSlots = computed(() => {
 })
 
 const filteredNoSlotSessions = computed(() =>
-  visibleWeekNoSlotSessions.value.filter((session) => toLocalDateKey(sessionStartAt(session)) === selectedDate.value)
+  visibleWeekNoSlotSessions.value
+    .filter((session) => toLocalDateKey(sessionStartAt(session)) === selectedDate.value)
+    .filter(() => slotStatusFilter.value === 'SESSIONS' || slotStatusFilter.value === 'ALL')
+)
+
+const oneOffAvailableSlots = computed(() =>
+  slots.value
+    .filter((slot) => !slot.is_booked)
+    .filter(isFutureSlot)
+    .sort((a, b) => String(a.start_at).localeCompare(String(b.start_at)))
 )
 
 const hiddenPastWeekSlotsCount = computed(() =>
@@ -1588,6 +1724,7 @@ function positionedSlotsForDay(dateKey: string): CalendarSlotLayout[] {
 }
 
 function positionedSessionsForDay(dateKey: string): CalendarSessionLayout[] {
+  if (slotStatusFilter.value === 'FREE' || slotStatusFilter.value === 'BOOKED') return []
   const rangeStartMinutes = calendarHourRange.value.startHour * 60
   const rangeEndMinutes = calendarHourRange.value.endHour * 60
   const pxPerMinute = CALENDAR_HOUR_HEIGHT / 60
@@ -1797,6 +1934,7 @@ function resetRegularSessionsForm() {
 
 async function openRegularSessionsModal() {
   regularSessionsModalOpen.value = true
+  oneOffSessionModalOpen.value = false
   createFormOpen.value = false
   closeDatePicker()
   if (!regularClientsLoaded.value) {
@@ -1814,6 +1952,77 @@ function closeRegularSessionsModal() {
   closeDatePicker()
   regularSessionsModalOpen.value = false
   regularSessionsError.value = ''
+}
+
+function resetOneOffSessionForm() {
+  oneOffClientRecordId.value = regularClientOptions.value[0]?.recordId ?? ''
+  oneOffSlotId.value = oneOffAvailableSlots.value[0]?.id ?? ''
+  oneOffSessionFormat.value = 'online'
+  oneOffSessionError.value = ''
+}
+
+function formatOneOffSlotOption(slot: Slot) {
+  const startAt = parseDateLike(slot.start_at)
+  const endAt = parseDateLike(slot.end_at)
+  if (!startAt || !endAt) return `Вільний час #${slot.id}`
+  return `${formatDateParts(startAt)}, ${formatTimeParts(startAt)}–${formatTimeParts(endAt)}`
+}
+
+async function openOneOffSessionModal() {
+  oneOffSessionModalOpen.value = true
+  regularSessionsModalOpen.value = false
+  createFormOpen.value = false
+  closeDatePicker()
+  oneOffSessionLoading.value = true
+  oneOffSessionError.value = ''
+  try {
+    if (!regularClientsLoaded.value) {
+      await loadRegularClientOptions()
+      if (regularSessionsError.value) {
+        oneOffSessionError.value = regularSessionsError.value
+      }
+    }
+    await loadSlots()
+    resetOneOffSessionForm()
+    await nextTick()
+  } finally {
+    oneOffSessionLoading.value = false
+  }
+}
+
+function closeOneOffSessionModal() {
+  if (oneOffSessionSaving.value) return
+  oneOffSessionModalOpen.value = false
+  oneOffSessionError.value = ''
+}
+
+async function createOneOffSession() {
+  const recordId = Number(oneOffClientRecordId.value || 0)
+  const slotId = Number(oneOffSlotId.value || 0)
+  if (recordId <= 0) {
+    oneOffSessionError.value = 'Оберіть клієнта.'
+    return
+  }
+  if (slotId <= 0) {
+    oneOffSessionError.value = 'Оберіть вільний час.'
+    return
+  }
+
+  oneOffSessionSaving.value = true
+  oneOffSessionError.value = ''
+  try {
+    await apiPost<OneOffSessionCreateResponse>(`/cabinet/client-records/${recordId}/sessions/`, {
+      slot_id: slotId,
+      session_format: oneOffSessionFormat.value,
+    })
+    closeOneOffSessionModal()
+    await loadSlots()
+    toast.success('Сесію створено.')
+  } catch (err) {
+    oneOffSessionError.value = getApiErrorMessage(err, 'Не вдалося створити сесію.')
+  } finally {
+    oneOffSessionSaving.value = false
+  }
 }
 
 function regularSessionsPayload(): ClientRegularTimePayload | null {
@@ -2314,6 +2523,43 @@ onBeforeUnmount(() => {
 .schedule-actions {
   display: flex;
   align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.schedule-actions {
+  align-items: stretch;
+  gap: 10px;
+}
+
+.action-group {
+  display: grid;
+  gap: 6px;
+  min-width: 280px;
+  padding: 10px;
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-card);
+  background: color-mix(in srgb, var(--pc-bg-soft) 62%, #ffffff);
+}
+
+.action-group--availability {
+  background: #fff;
+}
+
+.action-group__title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--pc-navy-900);
+}
+
+.action-group__hint {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.action-group__buttons {
+  display: flex;
   gap: 8px;
   flex-wrap: wrap;
 }
@@ -3308,6 +3554,15 @@ onBeforeUnmount(() => {
   .week-nav,
   .schedule-actions {
     width: 100%;
+  }
+
+  .action-group {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .action-group__buttons .btn {
+    flex: 1 1 170px;
   }
 
   .week-range {

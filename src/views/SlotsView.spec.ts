@@ -179,14 +179,19 @@ describe('SlotsView', () => {
     expect(screen.queryByText(/слот/i)).not.toBeInTheDocument()
   })
 
-  it('renders add regular sessions action near free-time action', async () => {
+  it('renders grouped session and availability actions', async () => {
     mockScheduleApi()
 
     renderView()
     await flushAsyncUpdates()
 
-    expect(screen.getByRole('button', { name: 'Додати регулярні сесії' })).toBeInTheDocument()
-    expect(screen.getAllByRole('button', { name: 'Додати вільний час' }).length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Сесії').length).toBeGreaterThan(0)
+    expect(screen.getByRole('button', { name: 'Створити сесію' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Закріпити регулярний час' })).toBeInTheDocument()
+    expect(screen.getByText('Вільний час для запису')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Додати вільний час' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Заповнити тиждень' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Сесії' })).toBeInTheDocument()
   })
 
   it('opens regular sessions modal and loads selectable clients with usable record ids', async () => {
@@ -211,11 +216,11 @@ describe('SlotsView', () => {
 
     const { container } = renderView()
     await flushAsyncUpdates()
-    await fireEvent.click(screen.getByRole('button', { name: 'Додати регулярні сесії' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Закріпити регулярний час' }))
     await flushAsyncUpdates()
 
-    expect(screen.getByRole('dialog', { name: 'Додати регулярні сесії' })).toBeInTheDocument()
-    expect(screen.getByText('Закріпіть постійний день і час для клієнта. Майбутні сесії створяться автоматично на кілька тижнів наперед.')).toBeInTheDocument()
+    expect(screen.getByRole('dialog', { name: 'Закріпити регулярний час' })).toBeInTheDocument()
+    expect(screen.getByText('Оберіть клієнта, день і час. Майбутні сесії створяться автоматично на кілька тижнів наперед.')).toBeInTheDocument()
     const clientSelect = screen.getByLabelText('Клієнт') as HTMLSelectElement
     const optionText = Array.from(clientSelect.options).map((option) => option.textContent || '').join(' ')
     expect(optionText).toContain('Manual Regular')
@@ -251,7 +256,7 @@ describe('SlotsView', () => {
 
     const { container } = renderView()
     await flushAsyncUpdates()
-    await fireEvent.click(screen.getByRole('button', { name: 'Додати регулярні сесії' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Закріпити регулярний час' }))
     await flushAsyncUpdates()
 
     await fireEvent.update(screen.getByLabelText('Клієнт'), '71')
@@ -275,7 +280,7 @@ describe('SlotsView', () => {
       offline_location: 'Кабінет 4',
     })
     expect(mockToast.success).toHaveBeenCalledWith('Регулярні сесії додано.')
-    expect(screen.queryByRole('dialog', { name: 'Додати регулярні сесії' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('dialog', { name: 'Закріпити регулярний час' })).not.toBeInTheDocument()
     const sessionBlock = container.querySelector('.week-calendar .calendar-session') as HTMLElement | null
     expect(sessionBlock).toBeInTheDocument()
     expect(sessionBlock?.getAttribute('aria-label') || '').toContain('09:30')
@@ -297,13 +302,106 @@ describe('SlotsView', () => {
 
     renderView()
     await flushAsyncUpdates()
-    await fireEvent.click(screen.getByRole('button', { name: 'Додати регулярні сесії' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Закріпити регулярний час' }))
     await flushAsyncUpdates()
     await fireEvent.click(screen.getByRole('button', { name: 'Додати' }))
     await flushAsyncUpdates()
 
     expect(screen.getByText('Такий регулярний час уже додано для цього клієнта.')).toBeInTheDocument()
     expect(mockedApiPost).not.toHaveBeenCalledWith('/cabinet/slots/', expect.anything())
+  })
+
+  it('opens one-off session modal and creates session via existing client-record endpoint', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/cabinet/slots/') {
+        return [
+          {
+            id: 91,
+            start_at: '2026-03-12T09:00:00Z',
+            end_at: '2026-03-12T09:50:00Z',
+            is_booked: false,
+          },
+        ] as any
+      }
+      if (url === '/booking/sessions/') return [] as any
+      if (url === '/cabinet/client-records/') return [manualClientRecord({ id: 71, display_name: 'Manual Regular' })] as any
+      if (url === '/cabinet/clients/') return [] as any
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedApiPost.mockResolvedValue({ id: 501 } as any)
+
+    renderView()
+    await flushAsyncUpdates()
+    await fireEvent.click(screen.getByRole('button', { name: 'Створити сесію' }))
+    await flushAsyncUpdates()
+
+    expect(screen.getByRole('dialog', { name: 'Створити сесію' })).toBeInTheDocument()
+    const clientSelect = await screen.findByLabelText('Клієнт')
+    await fireEvent.update(clientSelect, '71')
+    await fireEvent.update(await screen.findByLabelText('Вільний час'), '91')
+    await fireEvent.update(await screen.findByLabelText('Формат зустрічі'), 'offline')
+    const submitButtons = screen.getAllByRole('button', { name: 'Створити сесію' })
+    await fireEvent.click(submitButtons[submitButtons.length - 1] as HTMLButtonElement)
+    await flushAsyncUpdates()
+
+    expect(mockedApiPost).toHaveBeenCalledWith('/cabinet/client-records/71/sessions/', {
+      slot_id: 91,
+      session_format: 'offline',
+    })
+    expect(mockToast.success).toHaveBeenCalledWith('Сесію створено.')
+  })
+
+  it('shows session-only blocks when filter Сесії is selected', async () => {
+    mockScheduleApi(
+      [
+        {
+          id: 12,
+          start_at: '2026-03-12T11:00:00Z',
+          end_at: '2026-03-12T13:00:00Z',
+          is_booked: false,
+        },
+      ],
+      [
+        scheduleSession({
+          id: 601,
+          slot_start_at: '2026-03-12T07:00:00Z',
+          slot_end_at: '2026-03-12T07:50:00Z',
+        }),
+      ]
+    )
+
+    const { container } = renderView()
+    await flushAsyncUpdates()
+    await fireEvent.click(screen.getByRole('button', { name: 'Сесії' }))
+    await flushAsyncUpdates()
+
+    expect(container.querySelector('.week-calendar .calendar-session')).toBeInTheDocument()
+    expect(container.querySelector('.week-calendar .calendar-slot:not(.calendar-session)')).not.toBeInTheDocument()
+  })
+
+  it('renders slot/session summary with updated human copy', async () => {
+    mockScheduleApi(
+      [
+        {
+          id: 21,
+          start_at: '2026-03-12T09:00:00Z',
+          end_at: '2026-03-12T09:50:00Z',
+          is_booked: false,
+        },
+        {
+          id: 22,
+          start_at: '2026-03-12T10:00:00Z',
+          end_at: '2026-03-12T10:50:00Z',
+          is_booked: true,
+        },
+      ],
+      [scheduleSession({ id: 900, slot_start_at: '2026-03-12T12:00:00Z', slot_end_at: '2026-03-12T12:50:00Z' })]
+    )
+
+    renderView()
+    await flushAsyncUpdates()
+
+    expect(screen.getByText('1 вільних вікон · 1 заброньованих · 1 сесія')).toBeInTheDocument()
   })
 
   it('renders duration-based free-time blocks without repeated visible status labels', async () => {
