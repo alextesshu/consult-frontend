@@ -2471,6 +2471,26 @@ export type ClientRegularTimeNextSessionResponse = {
   session: Session
 }
 
+export type ClientRegularTimeMaterializeSessionsConflict = {
+  occurrence_start_at: string
+  occurrence_end_at: string
+  code: string
+  detail: string
+}
+
+export type ClientRegularTimeMaterializeSessionsResponse = {
+  regular_time_id: number
+  horizon_weeks: number
+  max_occurrences: number
+  occurrences_considered: number
+  created_count: number
+  skipped_existing_count: number
+  skipped_conflicts_count: number
+  created_sessions: Session[]
+  skipped_existing_sessions: Session[]
+  skipped_conflicts: ClientRegularTimeMaterializeSessionsConflict[]
+}
+
 export type ClientMaterialStatus = 'draft' | 'published' | 'revoked'
 export type ClientMaterialType =
   | 'recommendation'
@@ -2738,6 +2758,17 @@ export async function createNextSessionFromClientRegularTime(
 ): Promise<ClientRegularTimeNextSessionResponse> {
   const resp = await http.post<ClientRegularTimeNextSessionResponse>(
     `/cabinet/client-records/${recordId}/regular-times/${regularTimeId}/create-next-session/`,
+    {}
+  )
+  return resp.data
+}
+
+export async function materializeClientRegularTimeSessions(
+  recordId: number,
+  regularTimeId: number
+): Promise<ClientRegularTimeMaterializeSessionsResponse> {
+  const resp = await http.post<ClientRegularTimeMaterializeSessionsResponse>(
+    `/cabinet/client-records/${recordId}/regular-times/${regularTimeId}/materialize-sessions/`,
     {}
   )
   return resp.data

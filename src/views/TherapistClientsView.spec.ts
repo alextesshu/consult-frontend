@@ -5,7 +5,6 @@ import {
   apiPatch,
   apiPost,
   createClientRegularTime,
-  createNextSessionFromClientRegularTime,
   createSpecialistClientMaterial,
   deleteClientMaterialAttachment,
   createClientRecordAccountInvite,
@@ -15,6 +14,7 @@ import {
   fetchClientRecordAccountInvite,
   fetchSpecialistProfile,
   listClientMaterialAttachments,
+  materializeClientRegularTimeSessions,
   pauseClientRegularTime,
   publishSpecialistClientMaterial,
   regenerateClientRecordAccountInvite,
@@ -40,7 +40,7 @@ vi.mock('../lib/api', () => ({
   apiPatch: vi.fn(),
   apiPost: vi.fn(),
   createClientRegularTime: vi.fn(),
-  createNextSessionFromClientRegularTime: vi.fn(),
+  materializeClientRegularTimeSessions: vi.fn(),
   createSpecialistClientMaterial: vi.fn(),
   deleteClientMaterialAttachment: vi.fn(),
   createClientRecordAccountInvite: vi.fn(),
@@ -82,7 +82,7 @@ const mockedApiGet = vi.mocked(apiGet)
 const mockedApiPatch = vi.mocked(apiPatch)
 const mockedApiPost = vi.mocked(apiPost)
 const mockedCreateClientRegularTime = vi.mocked(createClientRegularTime)
-const mockedCreateNextSessionFromClientRegularTime = vi.mocked(createNextSessionFromClientRegularTime)
+const mockedMaterializeClientRegularTimeSessions = vi.mocked(materializeClientRegularTimeSessions)
 const mockedCreateSpecialistClientMaterial = vi.mocked(createSpecialistClientMaterial)
 const mockedDeleteClientMaterialAttachment = vi.mocked(deleteClientMaterialAttachment)
 const mockedCreateClientRecordAccountInvite = vi.mocked(createClientRecordAccountInvite)
@@ -264,13 +264,18 @@ describe('TherapistClientsView', () => {
     mockedApiPost.mockReset()
     mockedCreateClientRegularTime.mockReset()
     mockedCreateClientRegularTime.mockResolvedValue({} as any)
-    mockedCreateNextSessionFromClientRegularTime.mockReset()
-    mockedCreateNextSessionFromClientRegularTime.mockResolvedValue({
-      created: true,
+    mockedMaterializeClientRegularTimeSessions.mockReset()
+    mockedMaterializeClientRegularTimeSessions.mockResolvedValue({
       regular_time_id: 801,
-      occurrence_start_at: '2026-05-20T15:00:00+03:00',
-      occurrence_end_at: '2026-05-20T15:50:00+03:00',
-      session: { id: 9901 },
+      horizon_weeks: 4,
+      max_occurrences: 4,
+      occurrences_considered: 4,
+      created_count: 1,
+      skipped_existing_count: 0,
+      skipped_conflicts_count: 0,
+      created_sessions: [{ id: 9901 }],
+      skipped_existing_sessions: [],
+      skipped_conflicts: [],
     } as any)
     mockedCreateSpecialistClientMaterial.mockReset()
     mockedCreateSpecialistClientMaterial.mockResolvedValue({} as any)
@@ -3147,7 +3152,7 @@ describe('TherapistClientsView', () => {
     expect(within(registeredCard).queryByRole('button', { name: 'Відновити' })).not.toBeInTheDocument()
     expect(mockedFetchClientRegularTimes).not.toHaveBeenCalled()
     expect(mockedCreateClientRegularTime).not.toHaveBeenCalled()
-    expect(mockedCreateNextSessionFromClientRegularTime).not.toHaveBeenCalled()
+    expect(mockedMaterializeClientRegularTimeSessions).not.toHaveBeenCalled()
     expect(mockedUpdateClientRegularTime).not.toHaveBeenCalled()
     expect(mockedPauseClientRegularTime).not.toHaveBeenCalled()
     expect(mockedResumeClientRegularTime).not.toHaveBeenCalled()
@@ -3632,6 +3637,8 @@ describe('TherapistClientsView', () => {
     await fireEvent.click(within(regularTimeBlock).getByRole('button', { name: 'Редагувати' }))
     await fireEvent.update(within(registeredCard).getByLabelText('Тривалість'), '60')
     await fireEvent.click(within(registeredCard).getByRole('button', { name: 'Зберегти' }))
+    expect(await screen.findByRole('heading', { name: 'Оновити майбутні сесії?' })).toBeInTheDocument()
+    await fireEvent.click(screen.getByRole('button', { name: 'Оновити майбутні сесії' }))
 
     await waitFor(() => {
       expect(mockedUpdateClientRegularTime).toHaveBeenCalledWith(
@@ -3673,11 +3680,11 @@ describe('TherapistClientsView', () => {
       return card as HTMLElement
     })
     await openAccordionSection(registeredCard, 'Регулярний час')
-    await fireEvent.click(await within(registeredCard).findByRole('button', { name: 'Створити наступну сесію' }))
+    await fireEvent.click(await within(registeredCard).findByRole('button', { name: 'Створити майбутні сесії' }))
 
     await waitFor(() => {
-      expect(mockedCreateNextSessionFromClientRegularTime).toHaveBeenCalledWith(5, 831)
-      expect(mockedCreateNextSessionFromClientRegularTime).not.toHaveBeenCalledWith(6, 831)
+      expect(mockedMaterializeClientRegularTimeSessions).toHaveBeenCalledWith(5, 831)
+      expect(mockedMaterializeClientRegularTimeSessions).not.toHaveBeenCalledWith(6, 831)
     })
 
     await fireEvent.click(await within(registeredCard).findByRole('button', { name: 'Поставити на паузу' }))
@@ -3749,8 +3756,8 @@ describe('TherapistClientsView', () => {
       expect(manualCard.textContent || '').toContain('онлайн')
       expect(manualCard.textContent || '').toContain('Активний')
       expect(manualCard.textContent || '').toContain('20.05.2026')
-      expect(within(manualCard).getByRole('button', { name: 'Створити наступну сесію' })).toBeInTheDocument()
-      expect(manualCard.textContent || '').toContain('Створить одну найближчу майбутню сесію за цим регулярним часом.')
+      expect(within(manualCard).getByRole('button', { name: 'Створити майбутні сесії' })).toBeInTheDocument()
+      expect(manualCard.textContent || '').toContain('Майбутні сесії створюються автоматично на кілька тижнів наперед.')
     })
   })
 
@@ -3786,7 +3793,151 @@ describe('TherapistClientsView', () => {
       expect(manualCard.textContent || '').toContain('офлайн')
       expect(manualCard.textContent || '').toContain('На паузі')
       expect(within(manualCard).getByRole('button', { name: 'Відновити' })).toBeInTheDocument()
-      expect(within(manualCard).queryByRole('button', { name: 'Створити наступну сесію' })).not.toBeInTheDocument()
+      expect(within(manualCard).queryByRole('button', { name: 'Створити майбутні сесії' })).not.toBeInTheDocument()
+    })
+  })
+
+  it('renders regular time edit form after first selected card and before second card', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL) return [manualClientRecord({ id: 940 })]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedFetchClientRegularTimes.mockResolvedValue([
+      regularTimeRecord({ id: 840, client_record: 940, weekday: 2, start_time: '09:00' }),
+      regularTimeRecord({ id: 841, client_record: 940, weekday: 4, start_time: '11:00' }),
+    ] as any)
+
+    const { container } = renderView()
+    const manualCard = await waitFor(() => {
+      const card = container.querySelector('#manual-client-record-940')
+      expect(card).toBeInstanceOf(HTMLElement)
+      return card as HTMLElement
+    })
+    await openAccordionSection(manualCard, 'Регулярний час')
+    const list = await waitFor(() => {
+      const node = manualCard.querySelector('.client-regular-times__list')
+      expect(node).toBeInstanceOf(HTMLElement)
+      return node as HTMLElement
+    })
+    const regularTimeCards = Array.from(list.querySelectorAll('.client-regular-time')) as HTMLElement[]
+    expect(regularTimeCards).toHaveLength(2)
+
+    await fireEvent.click(within(regularTimeCards[0]!).getByRole('button', { name: 'Редагувати' }))
+
+    const form = await waitFor(() => {
+      const node = list.querySelector('.client-regular-times__form')
+      expect(node).toBeInstanceOf(HTMLElement)
+      return node as HTMLElement
+    })
+    expect(Array.from(list.children).slice(0, 3)).toEqual([regularTimeCards[0], form, regularTimeCards[1]])
+  })
+
+  it('moves regular time edit form under second card when editing another regular time', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL) return [manualClientRecord({ id: 941 })]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedFetchClientRegularTimes.mockResolvedValue([
+      regularTimeRecord({ id: 842, client_record: 941, weekday: 2, start_time: '09:00' }),
+      regularTimeRecord({ id: 843, client_record: 941, weekday: 4, start_time: '11:00' }),
+    ] as any)
+
+    const { container } = renderView()
+    const manualCard = await waitFor(() => {
+      const card = container.querySelector('#manual-client-record-941')
+      expect(card).toBeInstanceOf(HTMLElement)
+      return card as HTMLElement
+    })
+    await openAccordionSection(manualCard, 'Регулярний час')
+    const list = await waitFor(() => {
+      const node = manualCard.querySelector('.client-regular-times__list')
+      expect(node).toBeInstanceOf(HTMLElement)
+      return node as HTMLElement
+    })
+    const regularTimeCards = Array.from(list.querySelectorAll('.client-regular-time')) as HTMLElement[]
+    expect(regularTimeCards).toHaveLength(2)
+
+    await fireEvent.click(within(regularTimeCards[0]!).getByRole('button', { name: 'Редагувати' }))
+    await fireEvent.click(within(regularTimeCards[1]!).getByRole('button', { name: 'Редагувати' }))
+
+    const form = await waitFor(() => {
+      const nodes = list.querySelectorAll('.client-regular-times__form')
+      expect(nodes).toHaveLength(1)
+      return nodes[0] as HTMLElement
+    })
+    expect(Array.from(list.children).slice(0, 3)).toEqual([regularTimeCards[0], regularTimeCards[1], form])
+  })
+
+  it('keeps only one regular time edit form visible', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL) return [manualClientRecord({ id: 942 })]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedFetchClientRegularTimes.mockResolvedValue([
+      regularTimeRecord({ id: 844, client_record: 942, weekday: 2, start_time: '09:00' }),
+      regularTimeRecord({ id: 845, client_record: 942, weekday: 4, start_time: '11:00' }),
+    ] as any)
+
+    const { container } = renderView()
+    const manualCard = await waitFor(() => {
+      const card = container.querySelector('#manual-client-record-942')
+      expect(card).toBeInstanceOf(HTMLElement)
+      return card as HTMLElement
+    })
+    await openAccordionSection(manualCard, 'Регулярний час')
+    const list = await waitFor(() => {
+      const node = manualCard.querySelector('.client-regular-times__list')
+      expect(node).toBeInstanceOf(HTMLElement)
+      return node as HTMLElement
+    })
+    const regularTimeCards = Array.from(list.querySelectorAll('.client-regular-time')) as HTMLElement[]
+    expect(regularTimeCards).toHaveLength(2)
+
+    await fireEvent.click(within(regularTimeCards[0]!).getByRole('button', { name: 'Редагувати' }))
+    expect(list.querySelectorAll('.client-regular-times__form')).toHaveLength(1)
+
+    await fireEvent.click(within(regularTimeCards[1]!).getByRole('button', { name: 'Редагувати' }))
+    expect(list.querySelectorAll('.client-regular-times__form')).toHaveLength(1)
+  })
+
+  it('closes regular time edit form when cancel is clicked', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL) return [manualClientRecord({ id: 943 })]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedFetchClientRegularTimes.mockResolvedValue([
+      regularTimeRecord({ id: 846, client_record: 943 }),
+      regularTimeRecord({ id: 847, client_record: 943, weekday: 4, start_time: '11:00' }),
+    ] as any)
+
+    const { container } = renderView()
+    const manualCard = await waitFor(() => {
+      const card = container.querySelector('#manual-client-record-943')
+      expect(card).toBeInstanceOf(HTMLElement)
+      return card as HTMLElement
+    })
+    await openAccordionSection(manualCard, 'Регулярний час')
+    const list = await waitFor(() => {
+      const node = manualCard.querySelector('.client-regular-times__list')
+      expect(node).toBeInstanceOf(HTMLElement)
+      return node as HTMLElement
+    })
+    const regularTimeCards = Array.from(list.querySelectorAll('.client-regular-time')) as HTMLElement[]
+    await fireEvent.click(within(regularTimeCards[0]!).getByRole('button', { name: 'Редагувати' }))
+    expect(list.querySelectorAll('.client-regular-times__form')).toHaveLength(1)
+
+    await fireEvent.click(within(list).getByRole('button', { name: 'Скасувати' }))
+
+    await waitFor(() => {
+      expect(list.querySelector('.client-regular-times__form')).not.toBeInTheDocument()
     })
   })
 
@@ -3807,12 +3958,12 @@ describe('TherapistClientsView', () => {
       return card as HTMLElement
     })
     await openAccordionSection(manualCard, 'Регулярний час')
-    await fireEvent.click(await within(manualCard).findByRole('button', { name: 'Створити наступну сесію' }))
+    await fireEvent.click(await within(manualCard).findByRole('button', { name: 'Створити майбутні сесії' }))
 
     await waitFor(() => {
-      expect(mockedCreateNextSessionFromClientRegularTime).toHaveBeenCalledWith(913, 813)
+      expect(mockedMaterializeClientRegularTimeSessions).toHaveBeenCalledWith(913, 813)
       expect(mockedFetchClientRegularTimes).toHaveBeenCalledTimes(2)
-      expect(mockToast.success).toHaveBeenCalledWith('Наступну сесію створено.')
+      expect(mockToast.success).toHaveBeenCalledWith('Майбутні сесії створено.')
     })
   })
 
@@ -3826,7 +3977,7 @@ describe('TherapistClientsView', () => {
       throw new Error(`Unexpected apiGet call: ${url}`)
     })
     mockedFetchClientRegularTimes.mockResolvedValue([regularTimeRecord({ id: 814, client_record: 914 })] as any)
-    mockedCreateNextSessionFromClientRegularTime.mockReturnValue(createDeferred.promise as any)
+    mockedMaterializeClientRegularTimeSessions.mockReturnValue(createDeferred.promise as any)
 
     const { container } = renderView()
     const manualCard = await waitFor(() => {
@@ -3835,24 +3986,29 @@ describe('TherapistClientsView', () => {
       return card as HTMLElement
     })
     await openAccordionSection(manualCard, 'Регулярний час')
-    const button = await within(manualCard).findByRole('button', { name: 'Створити наступну сесію' })
+    const button = await within(manualCard).findByRole('button', { name: 'Створити майбутні сесії' })
     await fireEvent.click(button)
     await fireEvent.click(button)
 
-    expect(mockedCreateNextSessionFromClientRegularTime).toHaveBeenCalledTimes(1)
+    expect(mockedMaterializeClientRegularTimeSessions).toHaveBeenCalledTimes(1)
     expect(button).toBeDisabled()
     expect(button).toHaveTextContent('Створюємо...')
 
     createDeferred.resolve({
-      created: true,
       regular_time_id: 814,
-      occurrence_start_at: '2026-05-20T15:00:00+03:00',
-      occurrence_end_at: '2026-05-20T15:50:00+03:00',
-      session: { id: 9902 },
+      horizon_weeks: 4,
+      max_occurrences: 4,
+      occurrences_considered: 4,
+      created_count: 1,
+      skipped_existing_count: 0,
+      skipped_conflicts_count: 0,
+      created_sessions: [{ id: 9902 }],
+      skipped_existing_sessions: [],
+      skipped_conflicts: [],
     })
 
     await waitFor(() => {
-      expect(within(manualCard).getByRole('button', { name: 'Створити наступну сесію' })).not.toBeDisabled()
+      expect(within(manualCard).getByRole('button', { name: 'Створити майбутні сесії' })).not.toBeDisabled()
     })
   })
 
@@ -3865,12 +4021,17 @@ describe('TherapistClientsView', () => {
       throw new Error(`Unexpected apiGet call: ${url}`)
     })
     mockedFetchClientRegularTimes.mockResolvedValue([regularTimeRecord({ id: 815, client_record: 915 })] as any)
-    mockedCreateNextSessionFromClientRegularTime.mockResolvedValueOnce({
-      created: false,
+    mockedMaterializeClientRegularTimeSessions.mockResolvedValueOnce({
       regular_time_id: 815,
-      occurrence_start_at: '2026-05-20T15:00:00+03:00',
-      occurrence_end_at: '2026-05-20T15:50:00+03:00',
-      session: { id: 9903 },
+      horizon_weeks: 4,
+      max_occurrences: 4,
+      occurrences_considered: 4,
+      created_count: 0,
+      skipped_existing_count: 4,
+      skipped_conflicts_count: 0,
+      created_sessions: [],
+      skipped_existing_sessions: [{ id: 9903 }],
+      skipped_conflicts: [],
     } as any)
 
     const { container } = renderView()
@@ -3880,10 +4041,10 @@ describe('TherapistClientsView', () => {
       return card as HTMLElement
     })
     await openAccordionSection(manualCard, 'Регулярний час')
-    await fireEvent.click(await within(manualCard).findByRole('button', { name: 'Створити наступну сесію' }))
+    await fireEvent.click(await within(manualCard).findByRole('button', { name: 'Створити майбутні сесії' }))
 
     await waitFor(() => {
-      expect(mockToast.info).toHaveBeenCalledWith('Наступна сесія вже була створена.')
+      expect(mockToast.info).toHaveBeenCalledWith('Майбутні сесії вже створені.')
     })
   })
 
@@ -3895,7 +4056,7 @@ describe('TherapistClientsView', () => {
       throw new Error(`Unexpected apiGet call: ${url}`)
     })
     mockedFetchClientRegularTimes.mockResolvedValue([regularTimeRecord({ id: 816, client_record: 916 })] as any)
-    mockedCreateNextSessionFromClientRegularTime.mockRejectedValueOnce({
+    mockedMaterializeClientRegularTimeSessions.mockRejectedValueOnce({
       response: { data: { code: 'SESSION_TIME_CONFLICT' } },
     })
 
@@ -3906,7 +4067,7 @@ describe('TherapistClientsView', () => {
       return card as HTMLElement
     })
     await openAccordionSection(manualCard, 'Регулярний час')
-    await fireEvent.click(await within(manualCard).findByRole('button', { name: 'Створити наступну сесію' }))
+    await fireEvent.click(await within(manualCard).findByRole('button', { name: 'Створити майбутні сесії' }))
 
     await waitFor(() => {
       expect(manualCard).toHaveTextContent('На цей час уже є інша сесія.')
@@ -3922,7 +4083,7 @@ describe('TherapistClientsView', () => {
       throw new Error(`Unexpected apiGet call: ${url}`)
     })
     mockedFetchClientRegularTimes.mockResolvedValue([regularTimeRecord({ id: 823, client_record: 923 })] as any)
-    mockedCreateNextSessionFromClientRegularTime.mockRejectedValueOnce({
+    mockedMaterializeClientRegularTimeSessions.mockRejectedValueOnce({
       response: { data: { code: 'CLIENT_REGULAR_TIME_ANCHOR_MISMATCH' } },
     })
 
@@ -3933,7 +4094,7 @@ describe('TherapistClientsView', () => {
       return card as HTMLElement
     })
     await openAccordionSection(manualCard, 'Регулярний час')
-    await fireEvent.click(await within(manualCard).findByRole('button', { name: 'Створити наступну сесію' }))
+    await fireEvent.click(await within(manualCard).findByRole('button', { name: 'Створити майбутні сесії' }))
 
     await waitFor(() => {
       const regularTimeBlock = manualCard.querySelector('.client-regular-time') as HTMLElement | null
@@ -3969,9 +4130,9 @@ describe('TherapistClientsView', () => {
       const regularTimeBlock = manualCard.querySelector('.client-regular-time') as HTMLElement | null
       expect(regularTimeBlock).toBeInstanceOf(HTMLElement)
       expect(manualCard).toHaveTextContent('Дата початку не відповідає дню тижня. Відредагуйте регулярний час.')
-      expect(within(manualCard).getByRole('button', { name: 'Створити наступну сесію' })).toBeDisabled()
+      expect(within(manualCard).getByRole('button', { name: 'Створити майбутні сесії' })).toBeDisabled()
       expect(within(regularTimeBlock as HTMLElement).getByRole('button', { name: 'Редагувати' })).toBeInTheDocument()
-      expect(mockedCreateNextSessionFromClientRegularTime).not.toHaveBeenCalled()
+      expect(mockedMaterializeClientRegularTimeSessions).not.toHaveBeenCalled()
     })
   })
 
@@ -3986,7 +4147,7 @@ describe('TherapistClientsView', () => {
       throw new Error(`Unexpected apiGet call: ${url}`)
     })
     mockedFetchClientRegularTimes.mockResolvedValue([regularTimeRecord({ id: 820, client_record: 920 })] as any)
-    mockedCreateNextSessionFromClientRegularTime.mockRejectedValueOnce({
+    mockedMaterializeClientRegularTimeSessions.mockRejectedValueOnce({
       response: { data: { code } },
     })
 
@@ -3997,7 +4158,7 @@ describe('TherapistClientsView', () => {
       return card as HTMLElement
     })
     await openAccordionSection(manualCard, 'Регулярний час')
-    await fireEvent.click(await within(manualCard).findByRole('button', { name: 'Створити наступну сесію' }))
+    await fireEvent.click(await within(manualCard).findByRole('button', { name: 'Створити майбутні сесії' }))
 
     await waitFor(() => {
       expect(manualCard).toHaveTextContent(message)
@@ -4050,7 +4211,7 @@ describe('TherapistClientsView', () => {
         offline_location: '',
       })
       expect(mockedCreateClientRegularTime.mock.calls[0]?.[1]).not.toHaveProperty('timezone')
-      expect(mockToast.success).toHaveBeenCalledWith('Регулярний час додано.')
+      expect(mockToast.success).toHaveBeenCalledWith('Регулярний час додано, майбутні сесії створено.')
     })
   })
 
@@ -4224,6 +4385,8 @@ describe('TherapistClientsView', () => {
     await fireEvent.click(within(regularTimeBlock).getByRole('button', { name: 'Редагувати' }))
     await fireEvent.update(within(manualCard).getByLabelText('Тривалість'), '60')
     await fireEvent.click(within(manualCard).getByRole('button', { name: 'Зберегти' }))
+    expect(await screen.findByRole('heading', { name: 'Оновити майбутні сесії?' })).toBeInTheDocument()
+    await fireEvent.click(screen.getByRole('button', { name: 'Оновити майбутні сесії' }))
 
     await waitFor(() => {
       expect(mockedUpdateClientRegularTime).toHaveBeenCalledWith(
@@ -4234,7 +4397,79 @@ describe('TherapistClientsView', () => {
           starts_on: '2026-05-20',
         })
       )
-      expect(mockToast.success).toHaveBeenCalledWith('Регулярний час оновлено.')
+      expect(mockToast.success).toHaveBeenCalledWith('Регулярний час оновлено. Майбутні сесії перенесено.')
+    })
+  })
+
+  it('does not submit regular time update when user cancels future-session move confirm', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL) return [manualClientRecord({ id: 929 })]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedFetchClientRegularTimes.mockResolvedValue([regularTimeRecord({ id: 829, client_record: 929 })] as any)
+
+    const { container } = renderView()
+    const manualCard = await waitFor(() => {
+      const card = container.querySelector('#manual-client-record-929')
+      expect(card).toBeInstanceOf(HTMLElement)
+      return card as HTMLElement
+    })
+    await openAccordionSection(manualCard, 'Регулярний час')
+    const regularTimeBlock = await waitFor(() => {
+      const block = manualCard.querySelector('.client-regular-time')
+      expect(block).toBeInstanceOf(HTMLElement)
+      return block as HTMLElement
+    })
+    await fireEvent.click(within(regularTimeBlock).getByRole('button', { name: 'Редагувати' }))
+    await fireEvent.update(within(manualCard).getByLabelText('Тривалість'), '60')
+    await fireEvent.click(within(manualCard).getByRole('button', { name: 'Зберегти' }))
+
+    expect(await screen.findByRole('heading', { name: 'Оновити майбутні сесії?' })).toBeInTheDocument()
+    const confirmDialog = await screen.findByRole('dialog', { name: 'Оновити майбутні сесії?' })
+    await fireEvent.click(within(confirmDialog).getByRole('button', { name: 'Скасувати' }))
+
+    await waitFor(() => {
+      expect(mockedUpdateClientRegularTime).not.toHaveBeenCalled()
+      expect(screen.queryByRole('heading', { name: 'Оновити майбутні сесії?' })).not.toBeInTheDocument()
+    })
+  })
+
+  it('shows update-conflict copy when future-session move fails', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL) return [manualClientRecord({ id: 930 })]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedFetchClientRegularTimes.mockResolvedValue([regularTimeRecord({ id: 830, client_record: 930 })] as any)
+    mockedUpdateClientRegularTime.mockRejectedValueOnce({
+      response: { data: { code: 'CLIENT_REGULAR_TIME_UPDATE_CONFLICT' } },
+    })
+
+    const { container } = renderView()
+    const manualCard = await waitFor(() => {
+      const card = container.querySelector('#manual-client-record-930')
+      expect(card).toBeInstanceOf(HTMLElement)
+      return card as HTMLElement
+    })
+    await openAccordionSection(manualCard, 'Регулярний час')
+    const regularTimeBlock = await waitFor(() => {
+      const block = manualCard.querySelector('.client-regular-time')
+      expect(block).toBeInstanceOf(HTMLElement)
+      return block as HTMLElement
+    })
+    await fireEvent.click(within(regularTimeBlock).getByRole('button', { name: 'Редагувати' }))
+    await fireEvent.update(within(manualCard).getByLabelText('Тривалість'), '60')
+    await fireEvent.click(within(manualCard).getByRole('button', { name: 'Зберегти' }))
+    await fireEvent.click(await screen.findByRole('button', { name: 'Оновити майбутні сесії' }))
+
+    await waitFor(() => {
+      expect(manualCard.textContent || '').toContain(
+        'Не вдалося оновити майбутні сесії: новий час перетинається з іншою сесією або недоступністю.'
+      )
+      expect(mockedUpdateClientRegularTime).toHaveBeenCalledTimes(1)
     })
   })
 
@@ -4284,7 +4519,7 @@ describe('TherapistClientsView', () => {
 
     await waitFor(() => {
       expect(mockedResumeClientRegularTime).toHaveBeenCalledWith(910, 812)
-      expect(mockToast.success).toHaveBeenCalledWith('Регулярний час відновлено.')
+      expect(mockToast.success).toHaveBeenCalledWith('Регулярний час відновлено. Майбутні сесії створено.')
     })
   })
 

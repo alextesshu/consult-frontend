@@ -4,6 +4,7 @@ import {
   createClientRegularTime,
   createNextSessionFromClientRegularTime,
   fetchClientRegularTimes,
+  materializeClientRegularTimeSessions,
   pauseClientRegularTime,
   resumeClientRegularTime,
   updateClientRegularTime,
@@ -126,6 +127,30 @@ describe('client regular times api', () => {
 
     expect(mockedHttp.post).toHaveBeenCalledWith(
       '/cabinet/client-records/5/regular-times/1/create-next-session/',
+      {}
+    )
+    expect(result).toEqual(response)
+  })
+
+  it('materializes future sessions from regular time', async () => {
+    const response = {
+      regular_time_id: 1,
+      horizon_weeks: 4,
+      max_occurrences: 4,
+      occurrences_considered: 4,
+      created_count: 3,
+      skipped_existing_count: 1,
+      skipped_conflicts_count: 0,
+      created_sessions: [{ id: 99 }],
+      skipped_existing_sessions: [{ id: 98 }],
+      skipped_conflicts: [],
+    }
+    mockedHttp.post.mockResolvedValue({ data: response } as any)
+
+    const result = await materializeClientRegularTimeSessions(5, 1)
+
+    expect(mockedHttp.post).toHaveBeenCalledWith(
+      '/cabinet/client-records/5/regular-times/1/materialize-sessions/',
       {}
     )
     expect(result).toEqual(response)

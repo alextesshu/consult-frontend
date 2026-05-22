@@ -561,11 +561,11 @@
                   </div>
                   <template v-else>
                     <div v-if="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').items.length" class="client-regular-times__list">
-                      <article
+                      <template
                         v-for="regularTime in clientRegularTimesState(clientRegularTimesScopeKey(client) || '').items"
                         :key="regularTime.id"
-                        class="client-regular-time"
                       >
+                        <article class="client-regular-time">
                         <div class="client-regular-time__top">
                           <div>
                             <div class="client-regular-time__title">
@@ -582,15 +582,15 @@
                         </div>
                         <div v-if="regularTime.status === 'active'" class="client-regular-time__next-session">
                           <p class="muted client-regular-time__next-session-copy">
-                            Створить одну найближчу майбутню сесію за цим регулярним часом.
+                            Майбутні сесії створюються автоматично на кілька тижнів наперед.
                           </p>
                           <button
                             class="btn btn--sm"
                             type="button"
                             :disabled="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').actionLoadingId === regularTime.id || regularTimeHasAnchorMismatch(regularTime)"
-                            @click="createNextRegularTimeSession(client, regularTime.id)"
+                            @click="materializeRegularTimeSessions(client, regularTime.id)"
                           >
-                            {{ clientRegularTimesState(clientRegularTimesScopeKey(client) || '').actionLoadingId === regularTime.id ? 'Створюємо...' : 'Створити наступну сесію' }}
+                            {{ clientRegularTimesState(clientRegularTimesScopeKey(client) || '').actionLoadingId === regularTime.id ? 'Створюємо...' : 'Створити майбутні сесії' }}
                           </button>
                         </div>
                         <p v-if="regularTimeHasAnchorMismatch(regularTime)" class="form-error client-regular-time__action-error">
@@ -622,7 +622,160 @@
                             Поставити на паузу
                           </button>
                         </div>
-                      </article>
+                        </article>
+                        <div
+                          v-if="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').formOpen && clientRegularTimesState(clientRegularTimesScopeKey(client) || '').editingId === regularTime.id"
+                          class="client-regular-times__form"
+                        >
+                          <p v-if="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').formError" class="form-error">
+                            {{ clientRegularTimesState(clientRegularTimesScopeKey(client) || '').formError }}
+                          </p>
+                          <label class="field">
+                            День тижня
+                            <select
+                              class="input input--select"
+                              :value="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').form.weekday ?? ''"
+                              @change="setRegularTimeFormField(client, { weekday: Number(($event.target as HTMLSelectElement | null)?.value) })"
+                            >
+                              <option v-for="option in regularTimeWeekdayOptions" :key="option.value" :value="option.value">
+                                {{ option.label }}
+                              </option>
+                            </select>
+                          </label>
+                          <label class="field">
+                            Час початку
+                            <select
+                              class="input input--select"
+                              :value="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').form.start_time"
+                              @change="setRegularTimeFormField(client, { start_time: String(($event.target as HTMLSelectElement | null)?.value || '') })"
+                            >
+                              <option value="" disabled>Оберіть час</option>
+                              <option v-for="option in regularTimeTimeOptions" :key="option" :value="option">
+                                {{ option }}
+                              </option>
+                            </select>
+                          </label>
+                          <label class="field">
+                            Тривалість
+                            <input
+                              class="input"
+                              type="number"
+                              min="15"
+                              max="240"
+                              step="5"
+                              :value="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').form.duration_minutes"
+                              @input="setRegularTimeFormField(client, { duration_minutes: Number(($event.target as HTMLInputElement | null)?.value || 0) })"
+                            />
+                          </label>
+                          <label class="field">
+                            Частота
+                            <select
+                              class="input input--select"
+                              :value="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').form.frequency"
+                              @change="setRegularTimeFormField(client, { frequency: String(($event.target as HTMLSelectElement | null)?.value || 'weekly') as ClientRegularTimeFrequency })"
+                            >
+                              <option v-for="option in regularTimeFrequencyOptions" :key="option.value" :value="option.value">
+                                {{ option.label }}
+                              </option>
+                            </select>
+                          </label>
+                          <label class="field">
+                            Починаючи з
+                            <div class="date-input-shell client-regular-times__date">
+                              <input
+                                class="input"
+                                type="text"
+                                inputmode="numeric"
+                                placeholder="дд.мм.рррр"
+                                readonly
+                                :value="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').form.starts_on"
+                                @focus="openRegularTimeDatePicker(client)"
+                              />
+                              <button
+                                class="date-picker-trigger"
+                                type="button"
+                                aria-label="Вибрати дату"
+                                @click="openRegularTimeDatePicker(client)"
+                              >
+                                <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+                                  <path d="M7 2v3M17 2v3M4 9h16M6 4h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z" />
+                                </svg>
+                              </button>
+                              <div
+                                v-if="regularTimeDatePickerScopeKey === clientRegularTimesScopeKey(client)"
+                                class="date-picker-popover"
+                                role="dialog"
+                                aria-label="Календар вибору дати"
+                              >
+                                <div class="date-picker-popover__header">
+                                  <button class="btn btn--ghost btn--sm" type="button" aria-label="Попередній місяць" @click="shiftRegularTimeDatePickerMonth(-1)">&lt;</button>
+                                  <strong>{{ regularTimeDatePickerMonthLabel }}</strong>
+                                  <button class="btn btn--ghost btn--sm" type="button" aria-label="Наступний місяць" @click="shiftRegularTimeDatePickerMonth(1)">&gt;</button>
+                                </div>
+                                <div class="date-picker-grid" aria-hidden="true">
+                                  <span v-for="weekday in regularTimeDatePickerWeekdays" :key="weekday">{{ weekday }}</span>
+                                </div>
+                                <div class="date-picker-grid">
+                                  <button
+                                    v-for="day in regularTimeDatePickerDays"
+                                    :key="day.iso"
+                                    class="date-picker-day"
+                                    type="button"
+                                    :class="{ 'date-picker-day--muted': !day.inMonth, 'date-picker-day--selected': isRegularTimeDatePickerDaySelected(client, day.iso), 'date-picker-day--today': day.isToday }"
+                                    :aria-label="regularTimeIsoDateToDisplay(day.iso)"
+                                    @click="selectRegularTimeDateFromPicker(client, day.iso)"
+                                  >
+                                    {{ day.label }}
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          </label>
+                          <label class="field">
+                            Формат
+                            <select
+                              class="input input--select"
+                              :value="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').form.session_format"
+                              @change="setRegularTimeFormField(client, { session_format: String(($event.target as HTMLSelectElement | null)?.value || '') as SessionFormat })"
+                            >
+                              <option v-for="option in regularTimeFormatOptions" :key="option.value" :value="option.value">
+                                {{ option.label }}
+                              </option>
+                            </select>
+                          </label>
+                          <label class="field">
+                            Посилання на зустріч
+                            <input
+                              class="input"
+                              type="url"
+                              :value="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').form.meeting_url"
+                              @input="setRegularTimeFormField(client, { meeting_url: String(($event.target as HTMLInputElement | null)?.value || '') })"
+                            />
+                          </label>
+                          <label class="field">
+                            Адреса / місце зустрічі
+                            <input
+                              class="input"
+                              type="text"
+                              :value="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').form.offline_location"
+                              @input="setRegularTimeFormField(client, { offline_location: String(($event.target as HTMLInputElement | null)?.value || '') })"
+                            />
+                          </label>
+                          <div class="client-regular-times__form-actions">
+                            <button
+                              class="btn btn--sm"
+                              type="button"
+                              :disabled="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').saving"
+                              @click="saveRegularTime(client)"
+                            >
+                              Зберегти
+                            </button>
+                            <button class="btn btn--ghost btn--sm" type="button" @click="cancelRegularTimeForm(client)">
+                              Скасувати
+                            </button>
+                          </div>
+                        </div>
+                      </template>
                     </div>
                     <div v-else class="client-regular-times__empty">
                       <p class="muted">Регулярний час ще не додано.</p>
@@ -638,7 +791,10 @@
                     >
                       Додати регулярний час
                     </button>
-                    <div v-if="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').formOpen" class="client-regular-times__form">
+                    <div
+                      v-if="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').formOpen && clientRegularTimesState(clientRegularTimesScopeKey(client) || '').editingId === null"
+                      class="client-regular-times__form"
+                    >
                       <p v-if="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').formError" class="form-error">
                         {{ clientRegularTimesState(clientRegularTimesScopeKey(client) || '').formError }}
                       </p>
@@ -1157,11 +1313,11 @@
                   </div>
                   <template v-else>
                     <div v-if="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').items.length" class="client-regular-times__list">
-                      <article
+                      <template
                         v-for="regularTime in clientRegularTimesState(clientRegularTimesScopeKey(client) || '').items"
                         :key="regularTime.id"
-                        class="client-regular-time"
                       >
+                        <article class="client-regular-time">
                         <div class="client-regular-time__top">
                           <div>
                             <div class="client-regular-time__title">
@@ -1178,15 +1334,15 @@
                         </div>
                         <div v-if="regularTime.status === 'active'" class="client-regular-time__next-session">
                           <p class="muted client-regular-time__next-session-copy">
-                            Створить одну найближчу майбутню сесію за цим регулярним часом.
+                            Майбутні сесії створюються автоматично на кілька тижнів наперед.
                           </p>
                           <button
                             class="btn btn--sm"
                             type="button"
                             :disabled="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').actionLoadingId === regularTime.id || regularTimeHasAnchorMismatch(regularTime)"
-                            @click="createNextRegularTimeSession(client, regularTime.id)"
+                            @click="materializeRegularTimeSessions(client, regularTime.id)"
                           >
-                            {{ clientRegularTimesState(clientRegularTimesScopeKey(client) || '').actionLoadingId === regularTime.id ? 'Створюємо...' : 'Створити наступну сесію' }}
+                            {{ clientRegularTimesState(clientRegularTimesScopeKey(client) || '').actionLoadingId === regularTime.id ? 'Створюємо...' : 'Створити майбутні сесії' }}
                           </button>
                         </div>
                         <p v-if="regularTimeHasAnchorMismatch(regularTime)" class="form-error client-regular-time__action-error">
@@ -1218,7 +1374,160 @@
                             Поставити на паузу
                           </button>
                         </div>
-                      </article>
+                        </article>
+                        <div
+                          v-if="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').formOpen && clientRegularTimesState(clientRegularTimesScopeKey(client) || '').editingId === regularTime.id"
+                          class="client-regular-times__form"
+                        >
+                          <p v-if="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').formError" class="form-error">
+                            {{ clientRegularTimesState(clientRegularTimesScopeKey(client) || '').formError }}
+                          </p>
+                          <label class="field">
+                            День тижня
+                            <select
+                              class="input input--select"
+                              :value="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').form.weekday ?? ''"
+                              @change="setRegularTimeFormField(client, { weekday: Number(($event.target as HTMLSelectElement | null)?.value) })"
+                            >
+                              <option v-for="option in regularTimeWeekdayOptions" :key="option.value" :value="option.value">
+                                {{ option.label }}
+                              </option>
+                            </select>
+                          </label>
+                          <label class="field">
+                            Час початку
+                            <select
+                              class="input input--select"
+                              :value="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').form.start_time"
+                              @change="setRegularTimeFormField(client, { start_time: String(($event.target as HTMLSelectElement | null)?.value || '') })"
+                            >
+                              <option value="" disabled>Оберіть час</option>
+                              <option v-for="option in regularTimeTimeOptions" :key="option" :value="option">
+                                {{ option }}
+                              </option>
+                            </select>
+                          </label>
+                          <label class="field">
+                            Тривалість
+                            <input
+                              class="input"
+                              type="number"
+                              min="15"
+                              max="240"
+                              step="5"
+                              :value="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').form.duration_minutes"
+                              @input="setRegularTimeFormField(client, { duration_minutes: Number(($event.target as HTMLInputElement | null)?.value || 0) })"
+                            />
+                          </label>
+                          <label class="field">
+                            Частота
+                            <select
+                              class="input input--select"
+                              :value="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').form.frequency"
+                              @change="setRegularTimeFormField(client, { frequency: String(($event.target as HTMLSelectElement | null)?.value || 'weekly') as ClientRegularTimeFrequency })"
+                            >
+                              <option v-for="option in regularTimeFrequencyOptions" :key="option.value" :value="option.value">
+                                {{ option.label }}
+                              </option>
+                            </select>
+                          </label>
+                          <label class="field">
+                            Починаючи з
+                            <div class="date-input-shell client-regular-times__date">
+                              <input
+                                class="input"
+                                type="text"
+                                inputmode="numeric"
+                                placeholder="дд.мм.рррр"
+                                readonly
+                                :value="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').form.starts_on"
+                                @focus="openRegularTimeDatePicker(client)"
+                              />
+                              <button
+                                class="date-picker-trigger"
+                                type="button"
+                                aria-label="Вибрати дату"
+                                @click="openRegularTimeDatePicker(client)"
+                              >
+                                <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+                                  <path d="M7 2v3M17 2v3M4 9h16M6 4h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z" />
+                                </svg>
+                              </button>
+                              <div
+                                v-if="regularTimeDatePickerScopeKey === clientRegularTimesScopeKey(client)"
+                                class="date-picker-popover"
+                                role="dialog"
+                                aria-label="Календар вибору дати"
+                              >
+                                <div class="date-picker-popover__header">
+                                  <button class="btn btn--ghost btn--sm" type="button" aria-label="Попередній місяць" @click="shiftRegularTimeDatePickerMonth(-1)">&lt;</button>
+                                  <strong>{{ regularTimeDatePickerMonthLabel }}</strong>
+                                  <button class="btn btn--ghost btn--sm" type="button" aria-label="Наступний місяць" @click="shiftRegularTimeDatePickerMonth(1)">&gt;</button>
+                                </div>
+                                <div class="date-picker-grid" aria-hidden="true">
+                                  <span v-for="weekday in regularTimeDatePickerWeekdays" :key="weekday">{{ weekday }}</span>
+                                </div>
+                                <div class="date-picker-grid">
+                                  <button
+                                    v-for="day in regularTimeDatePickerDays"
+                                    :key="day.iso"
+                                    class="date-picker-day"
+                                    type="button"
+                                    :class="{ 'date-picker-day--muted': !day.inMonth, 'date-picker-day--selected': isRegularTimeDatePickerDaySelected(client, day.iso), 'date-picker-day--today': day.isToday }"
+                                    :aria-label="regularTimeIsoDateToDisplay(day.iso)"
+                                    @click="selectRegularTimeDateFromPicker(client, day.iso)"
+                                  >
+                                    {{ day.label }}
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          </label>
+                          <label class="field">
+                            Формат
+                            <select
+                              class="input input--select"
+                              :value="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').form.session_format"
+                              @change="setRegularTimeFormField(client, { session_format: String(($event.target as HTMLSelectElement | null)?.value || '') as SessionFormat })"
+                            >
+                              <option v-for="option in regularTimeFormatOptions" :key="option.value" :value="option.value">
+                                {{ option.label }}
+                              </option>
+                            </select>
+                          </label>
+                          <label class="field">
+                            Посилання на зустріч
+                            <input
+                              class="input"
+                              type="url"
+                              :value="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').form.meeting_url"
+                              @input="setRegularTimeFormField(client, { meeting_url: String(($event.target as HTMLInputElement | null)?.value || '') })"
+                            />
+                          </label>
+                          <label class="field">
+                            Адреса / місце зустрічі
+                            <input
+                              class="input"
+                              type="text"
+                              :value="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').form.offline_location"
+                              @input="setRegularTimeFormField(client, { offline_location: String(($event.target as HTMLInputElement | null)?.value || '') })"
+                            />
+                          </label>
+                          <div class="client-regular-times__form-actions">
+                            <button
+                              class="btn btn--sm"
+                              type="button"
+                              :disabled="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').saving"
+                              @click="saveRegularTime(client)"
+                            >
+                              Зберегти
+                            </button>
+                            <button class="btn btn--ghost btn--sm" type="button" @click="cancelRegularTimeForm(client)">
+                              Скасувати
+                            </button>
+                          </div>
+                        </div>
+                      </template>
                     </div>
                     <div v-else class="client-regular-times__empty">
                       <p class="muted">Регулярний час ще не додано.</p>
@@ -1234,7 +1543,10 @@
                     >
                       Додати регулярний час
                     </button>
-                    <div v-if="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').formOpen" class="client-regular-times__form">
+                    <div
+                      v-if="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').formOpen && clientRegularTimesState(clientRegularTimesScopeKey(client) || '').editingId === null"
+                      class="client-regular-times__form"
+                    >
                       <p v-if="clientRegularTimesState(clientRegularTimesScopeKey(client) || '').formError" class="form-error">
                         {{ clientRegularTimesState(clientRegularTimesScopeKey(client) || '').formError }}
                       </p>
@@ -1626,6 +1938,47 @@
     </div>
 
     <div
+      v-if="regularTimeUpdateConfirm"
+      class="manual-client-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="regular-time-update-confirm-title"
+    >
+      <button
+        class="manual-client-modal__backdrop"
+        type="button"
+        aria-label="Скасувати оновлення майбутніх сесій"
+        @click="closeRegularTimeUpdateConfirm"
+      ></button>
+      <div class="manual-client-modal__content">
+        <div class="manual-client-modal__header">
+          <div>
+            <h2 id="regular-time-update-confirm-title" class="manual-client-modal__title">Оновити майбутні сесії?</h2>
+            <p class="muted">
+              Майбутні сесії цього регулярного часу буде перенесено на новий час. Минулі, завершені або скасовані сесії не зміняться.
+            </p>
+          </div>
+          <button class="icon-btn" type="button" aria-label="Закрити" @click="closeRegularTimeUpdateConfirm">×</button>
+        </div>
+        <div class="manual-client-modal__actions">
+          <button class="btn btn--ghost" type="button" @click="closeRegularTimeUpdateConfirm">Скасувати</button>
+          <button
+            class="btn"
+            type="button"
+            :disabled="clientRegularTimesState(regularTimeUpdateConfirm.scopeKey).saving"
+            @click="confirmRegularTimeUpdate"
+          >
+            {{
+              clientRegularTimesState(regularTimeUpdateConfirm.scopeKey).saving
+                ? 'Оновлюємо...'
+                : 'Оновити майбутні сесії'
+            }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div
       v-if="manualSessionModalOpen"
       class="manual-client-modal"
       role="dialog"
@@ -1777,7 +2130,6 @@ import {
   apiPatch,
   apiPost,
   createClientRegularTime,
-  createNextSessionFromClientRegularTime,
   createSpecialistClientMaterial,
   deleteClientMaterialAttachment,
   createClientRecordAccountInvite,
@@ -1786,6 +2138,7 @@ import {
   fetchChatThreads,
   fetchClientRecordAccountInvite,
   fetchSpecialistProfile,
+  materializeClientRegularTimeSessions,
   hasMaterialUrl,
   listClientMaterialAttachments,
   publishSpecialistClientMaterial,
@@ -1900,6 +2253,13 @@ type ManualClientSessionCreateResponse = {
 type ArchiveClientConfirmState = {
   type: 'registered' | 'manual'
   id: number
+}
+
+type RegularTimeUpdateConfirmState = {
+  scopeKey: string
+  recordId: number
+  regularTimeId: number
+  payload: ClientRegularTimePayload
 }
 
 type AccountInviteState = {
@@ -2113,6 +2473,7 @@ const manualSessionDraft = ref<ManualClientSessionFormState>({
   session_format: 'online',
 })
 const archiveClientConfirm = ref<ArchiveClientConfirmState | null>(null)
+const regularTimeUpdateConfirm = ref<RegularTimeUpdateConfirmState | null>(null)
 const accountInviteStateByRecordId = ref<Record<number, AccountInviteState>>({})
 const materialsStateByScopeKey = ref<Record<string, ClientMaterialsState>>({})
 const regularTimesStateByScopeKey = ref<Record<string, ClientRegularTimesState>>({})
@@ -2915,10 +3276,13 @@ function regularTimeSaveErrorMessage(err: unknown): string {
   if (code === 'CLIENT_REGULAR_TIME_ANCHOR_MISMATCH') {
     return 'Дата початку має відповідати обраному дню тижня.'
   }
+  if (code === 'CLIENT_REGULAR_TIME_UPDATE_CONFLICT') {
+    return 'Не вдалося оновити майбутні сесії: новий час перетинається з іншою сесією або недоступністю.'
+  }
   return getApiErrorMessage(err, 'Не вдалося зберегти регулярний час. Перевірте дані й спробуйте ще раз.')
 }
 
-const regularTimeNextSessionErrorMessages: Record<string, string> = {
+const regularTimeMaterializeErrorMessages: Record<string, string> = {
   CLIENT_RECORD_NOT_FOUND: 'Картку клієнта не знайдено.',
   CLIENT_RECORD_ARCHIVED: 'Картку клієнта архівовано. Спершу відновіть її.',
   CLIENT_REGULAR_TIME_NOT_FOUND: 'Регулярний час не знайдено.',
@@ -2932,9 +3296,9 @@ const regularTimeNextSessionErrorMessages: Record<string, string> = {
   SESSION_FORMAT_INVALID: 'Некоректний формат сесії.',
 }
 
-function regularTimeNextSessionErrorMessage(err: unknown): string {
+function regularTimeMaterializeErrorMessage(err: unknown): string {
   const code = regularTimeErrorCode(err)
-  return regularTimeNextSessionErrorMessages[code] || 'Не вдалося створити наступну сесію. Спробуйте ще раз.'
+  return regularTimeMaterializeErrorMessages[code] || 'Не вдалося створити майбутні сесії. Спробуйте ще раз.'
 }
 
 function regularTimeLoadErrorMessage(err: unknown): string {
@@ -3072,6 +3436,69 @@ function setRegularTimeFormField(
   })
 }
 
+function shouldConfirmRegularTimeFutureSessionsUpdate(
+  {
+    state,
+    payload,
+  }: {
+    state: ClientRegularTimesState
+    payload: ClientRegularTimePayload
+  }
+): boolean {
+  if (!state.editingId) return false
+  const current = state.items.find((item) => item.id === state.editingId)
+  if (!current || current.status !== 'active') return false
+  return (
+    current.weekday !== payload.weekday ||
+    normalizeRegularTimeValue(current.start_time) !== normalizeRegularTimeValue(payload.start_time) ||
+    current.duration_minutes !== payload.duration_minutes ||
+    current.frequency !== payload.frequency ||
+    current.starts_on !== payload.starts_on
+  )
+}
+
+async function submitRegularTimeSave(
+  {
+    client,
+    scopeKey,
+    recordId,
+    payload,
+    editingId,
+  }: {
+    client: ClientListItem
+    scopeKey: string
+    recordId: number
+    payload: ClientRegularTimePayload
+    editingId: number | null
+  }
+) {
+  const isUpdate = Boolean(editingId)
+  updateClientRegularTimesState(scopeKey, { saving: true, formError: '' })
+  try {
+    if (isUpdate && editingId) {
+      await updateClientRegularTime(recordId, editingId, payload)
+    } else {
+      await createClientRegularTime(recordId, payload)
+    }
+    updateClientRegularTimesState(scopeKey, {
+      formOpen: false,
+      editingId: null,
+      form: defaultRegularTimeDraft(),
+    })
+    closeRegularTimeDatePicker()
+    await Promise.all([loadClientRegularTimes(client), refreshSessionsCache()])
+    toast.success(
+      isUpdate
+        ? 'Регулярний час оновлено. Майбутні сесії перенесено.'
+        : 'Регулярний час додано, майбутні сесії створено.'
+    )
+  } catch (err) {
+    updateClientRegularTimesState(scopeKey, { formError: regularTimeSaveErrorMessage(err) })
+  } finally {
+    updateClientRegularTimesState(scopeKey, { saving: false })
+  }
+}
+
 async function saveRegularTime(client: ClientListItem) {
   const scope = clientRegularTimesScope(client)
   if (!scope) return
@@ -3082,27 +3509,55 @@ async function saveRegularTime(client: ClientListItem) {
     updateClientRegularTimesState(scopeKey, { formError: regularTimeValidationMessage(state.form) })
     return
   }
-  const isUpdate = Boolean(state.editingId)
-  updateClientRegularTimesState(scopeKey, { saving: true, formError: '' })
-  try {
-    if (isUpdate && state.editingId) {
-      await updateClientRegularTime(recordId, state.editingId, payload)
-    } else {
-      await createClientRegularTime(recordId, payload)
+  if (
+    shouldConfirmRegularTimeFutureSessionsUpdate({
+      state,
+      payload,
+    }) &&
+    state.editingId
+  ) {
+    regularTimeUpdateConfirm.value = {
+      scopeKey,
+      recordId,
+      regularTimeId: state.editingId,
+      payload,
     }
-    updateClientRegularTimesState(scopeKey, {
-      formOpen: false,
-      editingId: null,
-      form: defaultRegularTimeDraft(),
-    })
-    closeRegularTimeDatePicker()
-    await loadClientRegularTimes(client)
-    toast.success(isUpdate ? 'Регулярний час оновлено.' : 'Регулярний час додано.')
-  } catch (err) {
-    updateClientRegularTimesState(scopeKey, { formError: regularTimeSaveErrorMessage(err) })
-  } finally {
-    updateClientRegularTimesState(scopeKey, { saving: false })
+    return
   }
+  await submitRegularTimeSave(
+    {
+      client,
+      scopeKey,
+      recordId,
+      payload,
+      editingId: state.editingId,
+    }
+  )
+}
+
+function closeRegularTimeUpdateConfirm() {
+  regularTimeUpdateConfirm.value = null
+}
+
+async function confirmRegularTimeUpdate() {
+  const pending = regularTimeUpdateConfirm.value
+  if (!pending) return
+  const client = filteredClients.value.find(
+    (item) => clientRegularTimesScopeKey(item) === pending.scopeKey
+  )
+  closeRegularTimeUpdateConfirm()
+  if (!client) {
+    return
+  }
+  await submitRegularTimeSave(
+    {
+      client,
+      scopeKey: pending.scopeKey,
+      recordId: pending.recordId,
+      payload: pending.payload,
+      editingId: pending.regularTimeId,
+    }
+  )
 }
 
 async function pauseRegularTime(client: ClientListItem, regularTimeId: number) {
@@ -3132,8 +3587,8 @@ async function resumeRegularTime(client: ClientListItem, regularTimeId: number) 
   updateClientRegularTimesState(scopeKey, { actionLoadingId: regularTimeId })
   try {
     await resumeClientRegularTime(recordId, regularTimeId)
-    await loadClientRegularTimes(client)
-    toast.success('Регулярний час відновлено.')
+    await Promise.all([loadClientRegularTimes(client), refreshSessionsCache()])
+    toast.success('Регулярний час відновлено. Майбутні сесії створено.')
   } catch (err) {
     setRegularTimeActionError(scopeKey, regularTimeId, regularTimeSaveErrorMessage(err))
   } finally {
@@ -3153,7 +3608,7 @@ async function refreshSessionsCache() {
   }
 }
 
-async function createNextRegularTimeSession(client: ClientListItem, regularTimeId: number) {
+async function materializeRegularTimeSessions(client: ClientListItem, regularTimeId: number) {
   const scope = clientRegularTimesScope(client)
   if (!scope) return
   const { scopeKey, recordId } = scope
@@ -3173,15 +3628,17 @@ async function createNextRegularTimeSession(client: ClientListItem, regularTimeI
   clearRegularTimeActionError(scopeKey, regularTimeId)
   updateClientRegularTimesState(scopeKey, { actionLoadingId: regularTimeId })
   try {
-    const result = await createNextSessionFromClientRegularTime(recordId, regularTimeId)
+    const result = await materializeClientRegularTimeSessions(recordId, regularTimeId)
     await Promise.all([loadClientRegularTimes(client), refreshSessionsCache()])
-    if (result.created) {
-      toast.success('Наступну сесію створено.')
+    if (result.created_count > 0) {
+      toast.success('Майбутні сесії створено.')
+    } else if (result.skipped_existing_count > 0 && result.skipped_conflicts_count === 0) {
+      toast.info('Майбутні сесії вже створені.')
     } else {
-      toast.info('Наступна сесія вже була створена.')
+      toast.info('Нові сесії не створено через конфлікти у розкладі.')
     }
   } catch (err) {
-    const message = regularTimeNextSessionErrorMessage(err)
+    const message = regularTimeMaterializeErrorMessage(err)
     setRegularTimeActionError(scopeKey, regularTimeId, message)
     toast.error(message)
   } finally {
