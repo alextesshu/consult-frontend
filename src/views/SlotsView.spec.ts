@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/vue'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { apiGet, apiPost } from '../lib/api'
+import { apiGet, apiPost, createClientRegularTime } from '../lib/api'
 import SlotsView from './SlotsView.vue'
 
 const mockToast = {
@@ -28,6 +28,8 @@ vi.mock('../lib/api', () => ({
   apiPost: vi.fn(),
   apiPatch: vi.fn(),
   apiDelete: vi.fn(),
+  createClientRegularTime: vi.fn(),
+  getApiErrorMessage: vi.fn((err: any, fallback: string) => err?.message || fallback),
 }))
 
 vi.mock('../composables/useToast', () => ({
@@ -40,6 +42,7 @@ vi.mock('../composables/useConfirmModal', () => ({
 
 const mockedApiGet = vi.mocked(apiGet)
 const mockedApiPost = vi.mocked(apiPost)
+const mockedCreateClientRegularTime = vi.mocked(createClientRegularTime)
 
 async function flushAsyncUpdates() {
   await Promise.resolve()
@@ -111,6 +114,27 @@ function scheduleSession(overrides: Record<string, unknown> = {}) {
   }
 }
 
+function manualClientRecord(overrides: Record<string, unknown> = {}) {
+  return {
+    id: 71,
+    display_name: 'Manual Regular',
+    status: 'active',
+    archived_at: null,
+    ...overrides,
+  }
+}
+
+function registeredClient(overrides: Record<string, unknown> = {}) {
+  return {
+    id: 81,
+    client_record_id: 72,
+    state: 'ACTIVE',
+    client_display_name: 'Registered Regular',
+    client_name: 'Registered Regular',
+    ...overrides,
+  }
+}
+
 function mockScheduleApi(slots: unknown[] = [], sessions: unknown[] = []) {
   mockedApiGet.mockImplementation(async (url) => {
     if (url === '/cabinet/slots/') return slots as any
@@ -125,6 +149,8 @@ describe('SlotsView', () => {
     vi.setSystemTime(new Date('2026-03-12T10:00:00+02:00'))
     mockedApiGet.mockReset()
     mockedApiPost.mockReset()
+    mockedCreateClientRegularTime.mockReset()
+    mockedCreateClientRegularTime.mockResolvedValue({} as any)
     mockToast.success.mockReset()
     mockToast.info.mockReset()
     mockConfirmModal.openConfirm.mockReset()
@@ -151,6 +177,133 @@ describe('SlotsView', () => {
     expect(screen.getByText('На цьому тижні ще немає вільного часу для прямого запису.')).toBeInTheDocument()
     expect(container.querySelector('.calendar-scroll')).toBeInTheDocument()
     expect(screen.queryByText(/слот/i)).not.toBeInTheDocument()
+  })
+
+  it('renders add regular sessions action near free-time action', async () => {
+    mockScheduleApi()
+
+    renderView()
+    await flushAsyncUpdates()
+
+    expect(screen.getByRole('button', { name: 'Додати регулярні сесії' })).toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: 'Додати вільний час' }).length).toBeGreaterThan(0)
+  })
+
+  it('opens regular sessions modal and loads selectable clients with usable record ids', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/cabinet/slots/') return []
+      if (url === '/booking/sessions/') return []
+      if (url === '/cabinet/client-records/') {
+        return [
+          manualClientRecord({ id: 71, display_name: 'Manual Regular' }),
+          manualClientRecord({ id: 73, display_name: 'Archived Manual', status: 'archived', archived_at: '2026-03-01T00:00:00Z' }),
+        ] as any
+      }
+      if (url === '/cabinet/clients/') {
+        return [
+          registeredClient({ id: 81, client_record_id: 72, client_display_name: 'Registered Regular' }),
+          registeredClient({ id: 82, client_record_id: null, client_display_name: 'Inactive Without Record', state: 'INACTIVE' }),
+          registeredClient({ id: 83, client_record_id: 74, client_display_name: 'Archived Registered', state: 'ARCHIVED' }),
+        ] as any
+      }
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    const { container } = renderView()
+    await flushAsyncUpdates()
+    await fireEvent.click(screen.getByRole('button', { name: 'Додати регулярні сесії' }))
+    await flushAsyncUpdates()
+
+    expect(screen.getByRole('dialog', { name: 'Додати регулярні сесії' })).toBeInTheDocument()
+    expect(screen.getByText('Закріпіть постійний день і час для клієнта. Майбутні сесії створяться автоматично на кілька тижнів наперед.')).toBeInTheDocument()
+    const clientSelect = screen.getByLabelText('Клієнт') as HTMLSelectElement
+    const optionText = Array.from(clientSelect.options).map((option) => option.textContent || '').join(' ')
+    expect(optionText).toContain('Manual Regular')
+    expect(optionText).toContain('Registered Regular')
+    expect(optionText).not.toContain('Inactive Without Record')
+    expect(optionText).not.toContain('Archived Manual')
+    expect(optionText).not.toContain('Archived Registered')
+    expect(container.querySelector('.regular-sessions-form')).toBeInTheDocument()
+  })
+
+  it('creates regular sessions through client regular time API and refreshes schedule', async () => {
+    const sessionResponses = [
+      [],
+      [
+        scheduleSession({
+          id: 177,
+          slot: null,
+          slot_start_at: '2026-03-12T07:30:00Z',
+          slot_end_at: '2026-03-12T08:15:00Z',
+          client_display_name: 'Manual Regular',
+          client_name: 'Manual Regular',
+          client_record_id: 71,
+        }),
+      ],
+    ]
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/cabinet/slots/') return []
+      if (url === '/booking/sessions/') return (sessionResponses.shift() || sessionResponses[0] || []) as any
+      if (url === '/cabinet/client-records/') return [manualClientRecord({ id: 71, display_name: 'Manual Regular' })] as any
+      if (url === '/cabinet/clients/') return [registeredClient({ id: 81, client_record_id: 72, client_display_name: 'Registered Regular' })] as any
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    const { container } = renderView()
+    await flushAsyncUpdates()
+    await fireEvent.click(screen.getByRole('button', { name: 'Додати регулярні сесії' }))
+    await flushAsyncUpdates()
+
+    await fireEvent.update(screen.getByLabelText('Клієнт'), '71')
+    await fireEvent.update(screen.getByLabelText('День тижня'), '3')
+    await fireEvent.update(screen.getByLabelText('Час початку'), '09:30')
+    await fireEvent.update(screen.getByLabelText('Тривалість регулярної сесії'), '45')
+    await fireEvent.update(screen.getByLabelText('Частота'), 'every_two_weeks')
+    await fireEvent.update(screen.getByLabelText('Формат зустрічі'), 'offline')
+    await fireEvent.update(screen.getByLabelText('Місце зустрічі'), 'Кабінет 4')
+    await fireEvent.click(screen.getByRole('button', { name: 'Додати' }))
+    await flushAsyncUpdates()
+
+    expect(mockedCreateClientRegularTime).toHaveBeenCalledWith(71, {
+      weekday: 3,
+      start_time: '09:30',
+      duration_minutes: 45,
+      frequency: 'every_two_weeks',
+      starts_on: '2026-03-12',
+      session_format: 'offline',
+      meeting_url: '',
+      offline_location: 'Кабінет 4',
+    })
+    expect(mockToast.success).toHaveBeenCalledWith('Регулярні сесії додано.')
+    expect(screen.queryByRole('dialog', { name: 'Додати регулярні сесії' })).not.toBeInTheDocument()
+    const sessionBlock = container.querySelector('.week-calendar .calendar-session') as HTMLElement | null
+    expect(sessionBlock).toBeInTheDocument()
+    expect(sessionBlock?.getAttribute('aria-label') || '').toContain('09:30')
+    expect(sessionBlock?.getAttribute('aria-label') || '').toContain('10:15')
+    expect(screen.getAllByText('Manual Regular').length).toBeGreaterThan(0)
+  })
+
+  it('shows regular time create errors without creating free Slot rows', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/cabinet/slots/') return []
+      if (url === '/booking/sessions/') return []
+      if (url === '/cabinet/client-records/') return [manualClientRecord({ id: 71, display_name: 'Manual Regular' })] as any
+      if (url === '/cabinet/clients/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedCreateClientRegularTime.mockRejectedValueOnce({
+      response: { data: { code: 'CLIENT_REGULAR_TIME_DUPLICATE' } },
+    })
+
+    renderView()
+    await flushAsyncUpdates()
+    await fireEvent.click(screen.getByRole('button', { name: 'Додати регулярні сесії' }))
+    await flushAsyncUpdates()
+    await fireEvent.click(screen.getByRole('button', { name: 'Додати' }))
+    await flushAsyncUpdates()
+
+    expect(screen.getByText('Такий регулярний час уже додано для цього клієнта.')).toBeInTheDocument()
+    expect(mockedApiPost).not.toHaveBeenCalledWith('/cabinet/slots/', expect.anything())
   })
 
   it('renders duration-based free-time blocks without repeated visible status labels', async () => {

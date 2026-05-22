@@ -32,6 +32,9 @@
           <button class="btn btn--sm" type="button" @click="openCreateForm">
             Додати вільний час
           </button>
+          <button class="btn btn--ghost btn--sm" type="button" @click="openRegularSessionsModal">
+            Додати регулярні сесії
+          </button>
           <button class="btn btn--ghost btn--sm" type="button" :disabled="loading" @click="requestFillWeek">
             Заповнити тиждень
           </button>
@@ -491,6 +494,178 @@
       </form>
     </section>
 
+    <div
+      v-if="regularSessionsModalOpen"
+      class="regular-sessions-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="regular-sessions-modal-title"
+    >
+      <button
+        class="regular-sessions-modal__backdrop"
+        type="button"
+        aria-label="Закрити"
+        @click="closeRegularSessionsModal"
+      ></button>
+      <div class="regular-sessions-modal__content">
+        <div class="regular-sessions-modal__header">
+          <div>
+            <h2 id="regular-sessions-modal-title" class="panel__title">Додати регулярні сесії</h2>
+            <p class="muted">
+              Закріпіть постійний день і час для клієнта. Майбутні сесії створяться автоматично на кілька тижнів наперед.
+            </p>
+          </div>
+          <button class="icon-btn" type="button" aria-label="Закрити" @click="closeRegularSessionsModal">×</button>
+        </div>
+
+        <form ref="regularSessionsFormRef" class="slot-form regular-sessions-form" @submit.prevent="createRegularSessions">
+          <div v-if="regularClientsLoading" class="muted">Завантаження клієнтів...</div>
+          <label v-else class="field">
+            Клієнт
+            <select
+              v-model.number="regularClientRecordId"
+              class="input input--select"
+              :disabled="regularClientOptions.length === 0"
+              required
+            >
+              <option value="" disabled>Оберіть клієнта</option>
+              <option v-for="client in regularClientOptions" :key="client.recordId" :value="client.recordId">
+                {{ client.label }}
+              </option>
+            </select>
+          </label>
+          <p v-if="!regularClientsLoading && regularClientOptions.length === 0" class="muted">
+            Немає активних клієнтів із робочою карткою.
+          </p>
+
+          <label class="field">
+            День тижня
+            <select v-model.number="regularWeekday" class="input input--select">
+              <option v-for="option in regularWeekdayOptions" :key="option.value" :value="option.value">
+                {{ option.label }}
+              </option>
+            </select>
+          </label>
+          <label class="field">
+            Час початку
+            <select v-model="regularStartTime" class="input input--select" required>
+              <option value="" disabled>Оберіть час</option>
+              <option v-for="option in timeOptions" :key="option" :value="option">
+                {{ option }}
+              </option>
+            </select>
+          </label>
+          <label class="field">
+            Тривалість
+            <span class="duration-input">
+              <input
+                v-model.number="regularDuration"
+                class="input"
+                type="number"
+                min="15"
+                max="240"
+                step="5"
+                aria-label="Тривалість регулярної сесії"
+                required
+              />
+              <span aria-hidden="true">хв</span>
+            </span>
+          </label>
+          <label class="field">
+            Частота
+            <select v-model="regularFrequency" class="input input--select">
+              <option v-for="option in regularFrequencyOptions" :key="option.value" :value="option.value">
+                {{ option.label }}
+              </option>
+            </select>
+          </label>
+          <label class="field">
+            Формат зустрічі
+            <select v-model="regularSessionFormat" class="input input--select">
+              <option v-for="option in regularFormatOptions" :key="option.value" :value="option.value">
+                {{ option.label }}
+              </option>
+            </select>
+          </label>
+          <label class="field">
+            Починаючи з
+            <div class="date-input-shell">
+              <input
+                v-model="regularStartsOn"
+                class="input"
+                type="text"
+                inputmode="numeric"
+                placeholder="дд.мм.рррр"
+                aria-label="Починаючи з"
+                readonly
+                required
+                @focus="openDatePickerFor('regularStartsOn')"
+              />
+              <button
+                class="date-picker-trigger"
+                type="button"
+                aria-label="Вибрати дату початку регулярних сесій"
+                @click="openDatePickerFor('regularStartsOn')"
+              >
+                <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+                  <path d="M7 2v3M17 2v3M4 9h16M6 4h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z" />
+                </svg>
+              </button>
+              <div v-if="activeDatePicker === 'regularStartsOn'" class="date-picker-popover" role="dialog" aria-label="Календар вибору дати">
+                <div class="date-picker-popover__header">
+                  <button class="btn btn--ghost btn--sm" type="button" aria-label="Попередній місяць" @click="shiftDatePickerMonth(-1)">&lt;</button>
+                  <strong>{{ datePickerMonthLabel }}</strong>
+                  <button class="btn btn--ghost btn--sm" type="button" aria-label="Наступний місяць" @click="shiftDatePickerMonth(1)">&gt;</button>
+                </div>
+                <div class="date-picker-grid" aria-hidden="true">
+                  <span v-for="weekday in DATE_PICKER_WEEKDAYS" :key="weekday">{{ weekday }}</span>
+                </div>
+                <div class="date-picker-grid">
+                  <button
+                    v-for="day in datePickerDays"
+                    :key="day.iso"
+                    class="date-picker-day"
+                    type="button"
+                    :class="{ 'date-picker-day--muted': !day.inMonth, 'date-picker-day--selected': isDatePickerDaySelected(day.iso), 'date-picker-day--today': day.isToday }"
+                    :aria-label="formatDateOnly(day.iso)"
+                    @click="selectDateFromPicker(day.iso)"
+                  >
+                    {{ day.label }}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </label>
+          <label class="field">
+            Посилання на онлайн-зустріч
+            <input
+              v-model.trim="regularMeetingUrl"
+              class="input"
+              type="url"
+              placeholder="https://..."
+            />
+          </label>
+          <label class="field">
+            Місце зустрічі
+            <input
+              v-model.trim="regularOfflineLocation"
+              class="input"
+              type="text"
+            />
+          </label>
+          <div class="slot-form__actions">
+            <button class="btn btn--ghost" type="button" @click="closeRegularSessionsModal">
+              Скасувати
+            </button>
+            <button class="btn" type="submit" :disabled="regularClientsLoading || regularSessionsSaving || regularClientOptions.length === 0">
+              {{ regularSessionsSaving ? 'Додаємо...' : 'Додати' }}
+            </button>
+          </div>
+          <div v-if="regularSessionsError" class="form-error form-error--inline">{{ regularSessionsError }}</div>
+        </form>
+      </div>
+    </div>
+
     <ConfirmModal
       :open="confirmModal.open"
       :title="confirmModal.title"
@@ -506,7 +681,15 @@
 
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
-import { apiDelete, apiGet, apiPatch, apiPost } from '../lib/api'
+import {
+  apiDelete,
+  apiGet,
+  apiPatch,
+  apiPost,
+  createClientRegularTime,
+  getApiErrorMessage,
+} from '../lib/api'
+import type { ClientRegularTimeFrequency, ClientRegularTimePayload, SessionFormat } from '../lib/api'
 import { getBookingErrorCode, getBookingErrorMessage } from '../lib/bookingCopy'
 import { useToast } from '../composables/useToast'
 import ConfirmModal from '../components/ConfirmModal.vue'
@@ -561,7 +744,32 @@ type CalendarSessionLayout = {
   topMinutes: number
 }
 
-type DatePickerField = 'newStartDate' | 'editStartDate'
+type DatePickerField = 'newStartDate' | 'editStartDate' | 'regularStartsOn'
+
+type ManualClientRecord = {
+  id: number
+  display_name?: string | null
+  status?: string | null
+  archived_at?: string | null
+}
+
+type RegisteredClientRecord = {
+  id: number
+  client_record_id?: number | null
+  state?: string | null
+  client_name?: string | null
+  client_display_name?: string | null
+  display_name?: string | null
+  client_username?: string | null
+  client_email?: string | null
+}
+
+type ListResponse<T> = T[] | { results?: T[] } | null | undefined
+
+type RegularClientOption = {
+  recordId: number
+  label: string
+}
 
 const slots = ref<Slot[]>([])
 const sessions = ref<ScheduleSession[]>([])
@@ -573,11 +781,27 @@ const toast = useToast()
 const confirmModal = useConfirmModal()
 const createFormRef = ref<HTMLFormElement | null>(null)
 const createFormOpen = ref(false)
+const regularSessionsFormRef = ref<HTMLFormElement | null>(null)
+const regularSessionsModalOpen = ref(false)
+const regularClientsLoading = ref(false)
+const regularSessionsSaving = ref(false)
+const regularSessionsError = ref('')
+const regularClientOptions = ref<RegularClientOption[]>([])
+const regularClientsLoaded = ref(false)
 const activeDatePicker = ref<DatePickerField | null>(null)
 
 const newStartDate = ref('')
 const newStartTime = ref('09:00')
 const newDuration = ref(50)
+const regularClientRecordId = ref<number | ''>('')
+const regularWeekday = ref(0)
+const regularStartTime = ref('09:00')
+const regularDuration = ref(50)
+const regularFrequency = ref<ClientRegularTimeFrequency>('weekly')
+const regularSessionFormat = ref<SessionFormat>('online')
+const regularStartsOn = ref('')
+const regularMeetingUrl = ref('')
+const regularOfflineLocation = ref('')
 const timeOptions = Array.from({ length: 24 * 4 }, (_, index) => {
   const minutes = index * 15
   const hours = String(Math.floor(minutes / 60)).padStart(2, '0')
@@ -620,6 +844,23 @@ const DEFAULT_CALENDAR_END_HOUR = 21
 const CALENDAR_HOUR_HEIGHT = 50
 const MIN_CALENDAR_SLOT_HEIGHT = 24
 const ACTIVE_SESSION_STATUSES = new Set(['SCHEDULED', 'CONFIRMED'])
+const regularWeekdayOptions = [
+  { value: 0, label: 'Понеділок' },
+  { value: 1, label: 'Вівторок' },
+  { value: 2, label: 'Середа' },
+  { value: 3, label: 'Четвер' },
+  { value: 4, label: 'Пʼятниця' },
+  { value: 5, label: 'Субота' },
+  { value: 6, label: 'Неділя' },
+]
+const regularFrequencyOptions: Array<{ value: ClientRegularTimeFrequency; label: string }> = [
+  { value: 'weekly', label: 'Щотижня' },
+  { value: 'every_two_weeks', label: 'Раз на два тижні' },
+]
+const regularFormatOptions: Array<{ value: SessionFormat; label: string }> = [
+  { value: 'online', label: 'Онлайн' },
+  { value: 'offline', label: 'Офлайн' },
+]
 
 function startOfWeek(value: Date) {
   const date = new Date(value)
@@ -861,6 +1102,12 @@ function displayDateToIso(value: string) {
 
 function isoDateToDisplay(value: string) {
   return formatDateOnly(value)
+}
+
+function regularTimeWeekdayFromIso(value: string): number | null {
+  const parsed = parseDateLike(value)
+  if (!parsed) return null
+  return (parsed.getDay() + 6) % 7
 }
 
 function toDateInputValue(date: Date) {
@@ -1135,6 +1382,7 @@ function selectDay(key: string) {
 
 function getDatePickerFieldValue(field: DatePickerField) {
   if (field === 'newStartDate') return newStartDate.value
+  if (field === 'regularStartsOn') return regularStartsOn.value
   return editStartDate.value
 }
 
@@ -1145,6 +1393,12 @@ function setDatePickerFieldValue(field: DatePickerField, value: string) {
   }
   if (field === 'editStartDate') {
     editStartDate.value = value
+  }
+  if (field === 'regularStartsOn') {
+    regularStartsOn.value = value
+    const isoDate = displayDateToIso(value)
+    const weekday = isoDate ? regularTimeWeekdayFromIso(isoDate) : null
+    if (weekday !== null) regularWeekday.value = weekday
   }
 }
 
@@ -1451,6 +1705,206 @@ async function openCreateForm() {
 function closeCreateForm() {
   closeDatePicker()
   createFormOpen.value = false
+}
+
+function listFromResponse<T>(response: ListResponse<T>): T[] {
+  if (Array.isArray(response)) return response
+  if (Array.isArray(response?.results)) return response.results
+  return []
+}
+
+function clientOptionLabel(value: RegisteredClientRecord | ManualClientRecord) {
+  const source = value as RegisteredClientRecord & ManualClientRecord
+  return (
+    source.client_display_name ||
+    source.display_name ||
+    source.client_name ||
+    source.client_username ||
+    source.client_email ||
+    `Клієнт #${source.id}`
+  )
+}
+
+function normalizeRegularClientOptions(
+  manualRecords: ManualClientRecord[],
+  registeredClients: RegisteredClientRecord[]
+) {
+  const options = new Map<number, RegularClientOption>()
+  manualRecords
+    .filter((record) => String(record.status || 'active').toLowerCase() !== 'archived' && !record.archived_at)
+    .forEach((record) => {
+      const recordId = Number(record.id || 0)
+      if (recordId > 0) {
+        options.set(recordId, {
+          recordId,
+          label: clientOptionLabel(record),
+        })
+      }
+    })
+  registeredClients
+    .filter((client) => String(client.state || '').toUpperCase() !== 'ARCHIVED')
+    .forEach((client) => {
+      const recordId = Number(client.client_record_id || 0)
+      if (recordId > 0 && !options.has(recordId)) {
+        options.set(recordId, {
+          recordId,
+          label: clientOptionLabel(client),
+        })
+      }
+    })
+  return Array.from(options.values()).sort((a, b) => a.label.localeCompare(b.label, 'uk'))
+}
+
+async function loadRegularClientOptions() {
+  regularClientsLoading.value = true
+  regularSessionsError.value = ''
+  try {
+    const [manualResp, registeredResp] = await Promise.all([
+      apiGet<ListResponse<ManualClientRecord>>('/cabinet/client-records/'),
+      apiGet<ListResponse<RegisteredClientRecord>>('/cabinet/clients/'),
+    ])
+    regularClientOptions.value = normalizeRegularClientOptions(
+      listFromResponse(manualResp),
+      listFromResponse(registeredResp)
+    )
+    regularClientsLoaded.value = true
+    if (
+      regularClientOptions.value.length > 0 &&
+      !regularClientOptions.value.some((option) => option.recordId === regularClientRecordId.value)
+    ) {
+      regularClientRecordId.value = regularClientOptions.value[0]?.recordId ?? ''
+    }
+  } catch (err) {
+    regularSessionsError.value = getApiErrorMessage(err, 'Не вдалося завантажити клієнтів.')
+  } finally {
+    regularClientsLoading.value = false
+  }
+}
+
+function resetRegularSessionsForm() {
+  const baseDate = selectedDate.value || todayKey
+  regularClientRecordId.value = regularClientOptions.value[0]?.recordId ?? ''
+  regularWeekday.value = regularTimeWeekdayFromIso(baseDate) ?? 0
+  regularStartTime.value = '09:00'
+  regularDuration.value = 50
+  regularFrequency.value = 'weekly'
+  regularSessionFormat.value = 'online'
+  regularStartsOn.value = isoDateToDisplay(baseDate)
+  regularMeetingUrl.value = ''
+  regularOfflineLocation.value = ''
+  regularSessionsError.value = ''
+}
+
+async function openRegularSessionsModal() {
+  regularSessionsModalOpen.value = true
+  createFormOpen.value = false
+  closeDatePicker()
+  if (!regularClientsLoaded.value) {
+    await loadRegularClientOptions()
+  }
+  resetRegularSessionsForm()
+  await nextTick()
+  const firstControl = regularSessionsFormRef.value?.querySelector('select, input')
+  if (firstControl instanceof HTMLElement) {
+    firstControl.focus()
+  }
+}
+
+function closeRegularSessionsModal() {
+  closeDatePicker()
+  regularSessionsModalOpen.value = false
+  regularSessionsError.value = ''
+}
+
+function regularSessionsPayload(): ClientRegularTimePayload | null {
+  const startsOn = displayDateToIso(regularStartsOn.value)
+  const duration = Number(regularDuration.value)
+  if (!regularClientRecordId.value) {
+    regularSessionsError.value = 'Оберіть клієнта.'
+    return null
+  }
+  if (regularWeekday.value < 0 || regularWeekday.value > 6) {
+    regularSessionsError.value = 'Оберіть день тижня.'
+    return null
+  }
+  if (!regularStartTime.value) {
+    regularSessionsError.value = 'Вкажіть час початку.'
+    return null
+  }
+  if (!Number.isFinite(duration) || duration <= 0) {
+    regularSessionsError.value = 'Вкажіть тривалість у хвилинах.'
+    return null
+  }
+  if (!startsOn) {
+    regularSessionsError.value = 'Вкажіть дату початку у форматі ДД.ММ.РРРР.'
+    return null
+  }
+  if (regularTimeWeekdayFromIso(startsOn) !== regularWeekday.value) {
+    regularSessionsError.value = 'Дата початку має відповідати обраному дню тижня.'
+    return null
+  }
+  return {
+    weekday: regularWeekday.value,
+    start_time: regularStartTime.value,
+    duration_minutes: duration,
+    frequency: regularFrequency.value,
+    starts_on: startsOn,
+    session_format: regularSessionFormat.value,
+    meeting_url: regularMeetingUrl.value.trim(),
+    offline_location: regularOfflineLocation.value.trim(),
+  }
+}
+
+function regularTimeErrorCode(err: unknown): string {
+  const data = (err as any)?.response?.data || {}
+  const candidates = [
+    data.code,
+    data.reason_code,
+    data.detail?.code,
+    data.detail,
+    Array.isArray(data.non_field_errors) ? data.non_field_errors[0] : '',
+  ]
+  return candidates.map((item) => String(item || '').trim().toUpperCase()).find(Boolean) || ''
+}
+
+function regularTimeCreateErrorMessage(err: unknown) {
+  const code = regularTimeErrorCode(err)
+  const messages: Record<string, string> = {
+    CLIENT_RECORD_ARCHIVED: 'Картку клієнта архівовано. Спершу відновіть її.',
+    CLIENT_REGULAR_TIME_DUPLICATE: 'Такий регулярний час уже додано для цього клієнта.',
+    CLIENT_REGULAR_TIME_ANCHOR_MISMATCH: 'Дата початку має відповідати обраному дню тижня.',
+    SESSION_TIME_CONFLICT: 'На цей час уже є інша сесія.',
+    CLIENT_TIME_CONFLICT: 'У клієнта вже є сесія на цей час.',
+    CLIENT_RECORD_TIME_CONFLICT: 'У цій картці клієнта вже є сесія на цей час.',
+    AVAILABILITY_EXCEPTION_CONFLICT: 'Цей час позначений як недоступний.',
+    SESSION_FORMAT_INVALID: 'Некоректний формат зустрічі.',
+  }
+  return messages[code] || getApiErrorMessage(err, 'Не вдалося додати регулярні сесії. Перевірте дані й спробуйте ще раз.')
+}
+
+async function createRegularSessions() {
+  const payload = regularSessionsPayload()
+  if (!payload || !regularClientRecordId.value) return
+  regularSessionsSaving.value = true
+  regularSessionsError.value = ''
+  try {
+    await createClientRegularTime(Number(regularClientRecordId.value), payload)
+    const startsOn = parseDateLike(payload.starts_on)
+    if (startsOn) {
+      selectedDate.value = toDateInputValue(startsOn)
+      moveWeekToDate(startsOn)
+    }
+    selectedSlotId.value = null
+    selectedSessionId.value = null
+    showPastSlots.value = false
+    closeRegularSessionsModal()
+    await loadSlots()
+    toast.success('Регулярні сесії додано.')
+  } catch (err) {
+    regularSessionsError.value = regularTimeCreateErrorMessage(err)
+  } finally {
+    regularSessionsSaving.value = false
+  }
 }
 
 async function fetchWeekSessions() {
@@ -2423,6 +2877,79 @@ onBeforeUnmount(() => {
 }
 
 .slot-form--create .slot-form__actions .btn {
+  min-width: 112px;
+  white-space: nowrap;
+}
+
+.regular-sessions-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+}
+
+.regular-sessions-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: rgba(15, 23, 42, 0.34);
+  cursor: pointer;
+}
+
+.regular-sessions-modal__content {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 16px;
+  width: min(100%, 620px);
+  max-height: min(780px, calc(100vh - 36px));
+  overflow: auto;
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-panel);
+  background: #fff;
+  padding: 18px;
+  box-shadow: var(--pc-shadow-strong);
+}
+
+.regular-sessions-modal__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.regular-sessions-modal__header .panel__title {
+  font-size: 20px;
+}
+
+.regular-sessions-modal__header .muted {
+  margin: 6px 0 0;
+}
+
+.regular-sessions-form {
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+.regular-sessions-form .field {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--pc-text-muted);
+}
+
+.regular-sessions-form .form-error--inline,
+.regular-sessions-form .slot-form__actions {
+  grid-column: 1 / -1;
+}
+
+.regular-sessions-form .slot-form__actions {
+  justify-content: flex-end;
+  padding-top: 0;
+}
+
+.regular-sessions-form .slot-form__actions .btn {
   min-width: 112px;
   white-space: nowrap;
 }
