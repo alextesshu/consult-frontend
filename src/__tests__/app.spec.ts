@@ -583,6 +583,55 @@ describe('App shell', () => {
     })
   })
 
+  it('renders public guest request notifications with slot-less copy and routes to external sessions', async () => {
+    const { router } = await renderWithProviders({
+      initialPath: '/cabinet',
+      roles: ['SPECIALIST'],
+      notifications: [
+        buildNotification({
+          id: 'public_guest_request:501',
+          kind: 'public_guest_request',
+          source_kind: 'public_guest_request',
+          source_id: 501,
+          code: 'PUBLIC_GUEST_REQUEST_SLOTLESS_CREATED',
+          session_id: null,
+          title: 'Новий запит без реєстрації',
+          body: 'Клієнт залишив запит без вибору часу. Узгодьте час і створіть сесію або закрийте запит.',
+          target_url: '/cabinet/external-sessions',
+          slot_start_at: null,
+          scheduled_for: null,
+        }),
+      ],
+    })
+
+    const notificationsButton = document.querySelector('.nav__notifications .icon-btn') as HTMLButtonElement | null
+    expect(notificationsButton).not.toBeNull()
+    await fireEvent.click(notificationsButton as HTMLButtonElement)
+
+    expect(await screen.findByText('Новий запит без реєстрації')).toBeInTheDocument()
+    expect(
+      screen.getByText('Клієнт залишив запит без вибору часу. Узгодьте час і створіть сесію або закрийте запит.')
+    ).toBeInTheDocument()
+
+    const panelText = document.querySelector('.notif-panel')?.textContent || ''
+    expect(panelText).not.toContain('Нагадування про сесію')
+    expect(panelText).not.toContain('Перевірте деталі сесії')
+
+    const notificationLink = screen.getByText('Новий запит без реєстрації').closest('a')
+    expect(notificationLink).not.toBeNull()
+    expect(notificationLink).toHaveAttribute('href', '/cabinet/external-sessions')
+
+    await fireEvent.click(notificationLink as HTMLAnchorElement)
+
+    await waitFor(() => {
+      expect(mockedMarkNotificationRead).toHaveBeenCalledWith({
+        source_kind: 'public_guest_request',
+        source_id: 501,
+      })
+      expect(router.currentRoute.value.fullPath).toBe('/cabinet/external-sessions')
+    })
+  })
+
   it('renders payment-proof request notification for client and routes to session detail after refresh', async () => {
     const { router } = await renderWithProviders({
       initialPath: '/client',

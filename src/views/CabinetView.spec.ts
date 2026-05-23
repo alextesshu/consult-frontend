@@ -318,7 +318,8 @@ describe('CabinetView', () => {
       'Клієнт залишив запит без вибору часу. Узгодьте час і створіть сесію або закрийте запит.',
     )
     expect(attentionCard).toHaveTextContent('Опрацювати запит')
-    expect(view.container.querySelectorAll('a[href="/cabinet/external-sessions#guest-requests"]')).toHaveLength(2)
+    expect(view.container.querySelectorAll('a[href="/cabinet/external-sessions#guest-requests"]')).toHaveLength(1)
+    expect(view.container.querySelector('[data-kind="guest-requests"]')).not.toBeInTheDocument()
   })
 
   it('shows count and plural copy for multiple pending slot-less guest requests', async () => {
@@ -454,12 +455,12 @@ describe('CabinetView', () => {
       expect(view.container.querySelector('.panel--today')).toBeInTheDocument()
       expect(view.container).toHaveTextContent('На сьогодні сесій немає.')
       expect(view.container).toHaveTextContent('Можна спокійно підготувати розклад або перевірити публічний профіль.')
-      expect(view.container).toHaveTextContent('Нових запитів без реєстрації немає.')
     })
 
     expect(view.container.querySelector('a[href="/cabinet/slots"]')).toHaveTextContent('Налаштувати розклад')
     expect(view.container.querySelectorAll('a[href="/cabinet/slots"]')).toHaveLength(1)
     expect(view.container.querySelector('[data-kind="next-action"]')).not.toBeInTheDocument()
+    expect(view.container.querySelector('[data-kind="guest-requests"]')).not.toBeInTheDocument()
     expect(view.container.querySelector('.guest-request-attention-card')).not.toBeInTheDocument()
     expect(view.container).not.toHaveTextContent('Нотатки не потребують уваги.')
     expect(view.container).not.toHaveTextContent('Додати клієнта')

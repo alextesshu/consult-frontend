@@ -66,6 +66,14 @@ export function useNotifications({
     return item.source_kind === 'payment_proof_event'
   }
 
+  function isPublicGuestRequest(item: NotificationFeedItem) {
+    return (
+      item.source_kind === 'public_guest_request' ||
+      item.kind === 'public_guest_request' ||
+      item.code === 'PUBLIC_GUEST_REQUEST_SLOTLESS_CREATED'
+    )
+  }
+
   function notificationJoinUrl(item: NotificationFeedItem) {
     const url = normalizeMeetingUrl(item.meeting_url)
     if (!url) return null
@@ -90,6 +98,9 @@ export function useNotifications({
   function notificationText(item: NotificationFeedItem) {
     const clientLabel = notificationClientLabel(item)
     const counterpartyLabel = notificationCounterpartyLabel(item)
+    if (isPublicGuestRequest(item)) {
+      return item.title?.trim() || 'Новий запит без реєстрації'
+    }
     if (item.source_kind === 'inquiry_message') {
       if (item.code === 'INQUIRY_CREATED') return `Запит до бронювання від ${counterpartyLabel}`
       if (item.code === 'INQUIRY_REPLIED') return `Відповідь на запит від ${counterpartyLabel}`
@@ -138,6 +149,12 @@ export function useNotifications({
   function notificationHint(item: NotificationFeedItem) {
     const email = item.client_email ? ` · ${item.client_email}` : ''
     const time = formatDateTime(item.slot_start_at || item.scheduled_for)
+    if (isPublicGuestRequest(item)) {
+      return (
+        item.body?.trim() ||
+        'Клієнт залишив запит без вибору часу. Узгодьте час і створіть сесію або закрийте запит.'
+      )
+    }
     if (item.source_kind === 'inquiry_message') {
       return notificationPreview(item)
     }
@@ -171,6 +188,9 @@ export function useNotifications({
   }
 
   function notificationTarget(item: NotificationFeedItem) {
+    if (isPublicGuestRequest(item)) {
+      return item.target_url?.trim() || '/cabinet/external-sessions'
+    }
     if (item.target_type === 'session_detail' && typeof item.target_id === 'number') {
       const focusSuffix = item.focus ? `?focus=${encodeURIComponent(String(item.focus).trim())}` : ''
       if (isClient.value) return `/client/sessions/${item.target_id}${focusSuffix}`
@@ -300,4 +320,3 @@ export function useNotifications({
     reset,
   }
 }
-

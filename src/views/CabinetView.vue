@@ -164,16 +164,16 @@
           </RouterLink>
 
           <section class="today-side">
-            <article class="today-card today-card--soft" data-kind="guest-requests">
+            <article
+              v-if="showGuestRequestsTodayCard"
+              class="today-card today-card--soft"
+              data-kind="guest-requests"
+            >
               <h3 class="today-card__title">Запити без реєстрації</h3>
-              <p v-if="workQueue.pendingGuestRequestsCount > 0" class="muted today-card__copy">
+              <p class="muted today-card__copy">
                 Є нові запити від клієнтів, які записалися без створення акаунта.
               </p>
-              <p v-else class="muted today-card__copy">
-                Нових запитів без реєстрації немає.
-              </p>
               <RouterLink
-                v-if="workQueue.pendingGuestRequestsCount > 0"
                 class="btn btn--sm"
                 to="/cabinet/external-sessions#guest-requests"
               >
@@ -901,6 +901,11 @@ const showDailyNextAction = computed(() => {
 const slotlessGuestRequestAttentionCount = computed(() => workQueue.value.pendingSlotlessGuestRequestsCount)
 
 const showSlotlessGuestRequestAttention = computed(() => slotlessGuestRequestAttentionCount.value > 0)
+
+const showGuestRequestsTodayCard = computed(() => {
+  if (showSlotlessGuestRequestAttention.value) return false
+  return workQueue.value.pendingGuestRequestsCount > 0
+})
 
 const slotlessGuestRequestAttentionTitle = computed(() => {
   const count = slotlessGuestRequestAttentionCount.value
