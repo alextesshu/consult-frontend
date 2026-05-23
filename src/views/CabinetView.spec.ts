@@ -30,6 +30,7 @@ function createWorkQueuePayload(overrides?: Record<string, unknown>) {
     today_sessions_count: 2,
     notes_reminders_count: 1,
     pending_guest_requests_count: 1,
+    pending_slotless_guest_requests_count: 0,
     today_sessions: [
       {
         id: 501,
@@ -280,13 +281,72 @@ describe('CabinetView', () => {
       expect(view.container).toHaveTextContent('Є нові запити від клієнтів, які записалися без створення акаунта.')
     })
 
-    expect(view.container.querySelector('a[href="/cabinet/external-sessions"]')).toHaveTextContent('Опрацювати запити')
-    expect(view.container.querySelectorAll('a[href="/cabinet/external-sessions"]')).toHaveLength(1)
+    expect(view.container.querySelector('a[href="/cabinet/external-sessions#guest-requests"]')).toHaveTextContent('Опрацювати запити')
+    expect(view.container.querySelectorAll('a[href="/cabinet/external-sessions#guest-requests"]')).toHaveLength(1)
+    expect(view.container.querySelector('.guest-request-attention-card')).not.toBeInTheDocument()
     expect(view.container.querySelector('[data-kind="next-action"]')).not.toBeInTheDocument()
     expect(view.container.querySelector('.work-queue-summary-card')).not.toBeInTheDocument()
     expect(view.container.querySelector('.work-queue-list')).not.toBeInTheDocument()
     expect(view.container).not.toHaveTextContent('Робочий огляд')
     expect(view.container).not.toHaveTextContent('Нотатки до завершення')
+  })
+
+  it('shows a prominent attention card for one pending slot-less guest request', async () => {
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/cabinet/work-queue/') {
+        return createWorkQueuePayload({
+          pending_guest_requests_count: 1,
+          pending_slotless_guest_requests_count: 1,
+        })
+      }
+      if (url === '/cabinet/entitlements/') return {}
+      if (config?.params?.upcoming === true) return []
+      if (config?.params?.upcoming === false) return []
+      return []
+    })
+
+    const view = renderView()
+
+    await waitFor(() => {
+      expect(view.container.querySelector('.guest-request-attention-card')).toBeInTheDocument()
+    })
+
+    const attentionCard = view.container.querySelector('.guest-request-attention-card')
+    expect(attentionCard).toHaveAttribute('href', '/cabinet/external-sessions#guest-requests')
+    expect(attentionCard).toHaveTextContent('Новий запит без реєстрації')
+    expect(attentionCard).toHaveTextContent(
+      'Клієнт залишив запит без вибору часу. Узгодьте час і створіть сесію або закрийте запит.',
+    )
+    expect(attentionCard).toHaveTextContent('Опрацювати запит')
+    expect(view.container.querySelectorAll('a[href="/cabinet/external-sessions#guest-requests"]')).toHaveLength(2)
+  })
+
+  it('shows count and plural copy for multiple pending slot-less guest requests', async () => {
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/cabinet/work-queue/') {
+        return createWorkQueuePayload({
+          pending_guest_requests_count: 3,
+          pending_slotless_guest_requests_count: 3,
+        })
+      }
+      if (url === '/cabinet/entitlements/') return {}
+      if (config?.params?.upcoming === true) return []
+      if (config?.params?.upcoming === false) return []
+      return []
+    })
+
+    const view = renderView()
+
+    await waitFor(() => {
+      expect(view.container.querySelector('.guest-request-attention-card')).toBeInTheDocument()
+    })
+
+    const attentionCard = view.container.querySelector('.guest-request-attention-card')
+    expect(attentionCard).toHaveTextContent('Нові запити без реєстрації: 3')
+    expect(attentionCard).toHaveTextContent(
+      'Клієнти залишили запити без вибору часу. Опрацюйте їх, щоб узгодити час або закрити зайві звернення.',
+    )
+    expect(attentionCard).toHaveTextContent('Опрацювати запити')
   })
 
   it('does not surface notes reminders as a prominent dashboard block', async () => {
@@ -376,6 +436,7 @@ describe('CabinetView', () => {
           today_sessions_count: 0,
           notes_reminders_count: 0,
           pending_guest_requests_count: 0,
+          pending_slotless_guest_requests_count: 0,
           today_sessions: [],
           notes_reminders_preview: [],
           guest_requests_preview: [],
@@ -399,6 +460,7 @@ describe('CabinetView', () => {
     expect(view.container.querySelector('a[href="/cabinet/slots"]')).toHaveTextContent('Налаштувати розклад')
     expect(view.container.querySelectorAll('a[href="/cabinet/slots"]')).toHaveLength(1)
     expect(view.container.querySelector('[data-kind="next-action"]')).not.toBeInTheDocument()
+    expect(view.container.querySelector('.guest-request-attention-card')).not.toBeInTheDocument()
     expect(view.container).not.toHaveTextContent('Нотатки не потребують уваги.')
     expect(view.container).not.toHaveTextContent('Додати клієнта')
     expect(view.container.querySelector('.work-queue-list__empty')).not.toBeInTheDocument()

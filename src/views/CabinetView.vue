@@ -148,6 +148,21 @@
             </template>
           </section>
 
+          <RouterLink
+            v-if="showSlotlessGuestRequestAttention"
+            class="guest-request-attention-card"
+            to="/cabinet/external-sessions#guest-requests"
+          >
+            <div class="guest-request-attention-card__content">
+              <p class="guest-request-attention-card__eyebrow">Запити без реєстрації</p>
+              <h3 class="guest-request-attention-card__title">{{ slotlessGuestRequestAttentionTitle }}</h3>
+              <p class="guest-request-attention-card__copy">{{ slotlessGuestRequestAttentionBody }}</p>
+            </div>
+            <span class="btn btn--sm guest-request-attention-card__cta">
+              {{ slotlessGuestRequestAttentionCta }}
+            </span>
+          </RouterLink>
+
           <section class="today-side">
             <article class="today-card today-card--soft" data-kind="guest-requests">
               <h3 class="today-card__title">Запити без реєстрації</h3>
@@ -160,7 +175,7 @@
               <RouterLink
                 v-if="workQueue.pendingGuestRequestsCount > 0"
                 class="btn btn--sm"
-                to="/cabinet/external-sessions"
+                to="/cabinet/external-sessions#guest-requests"
               >
                 Опрацювати запити
               </RouterLink>
@@ -455,6 +470,7 @@ type CabinetWorkQueuePayload = {
   today_sessions_count?: number | null
   notes_reminders_count?: number | null
   pending_guest_requests_count?: number | null
+  pending_slotless_guest_requests_count?: number | null
   today_sessions?: WorkQueueSessionPreviewItem[] | null
   notes_reminders_preview?: WorkQueueNoteReminderPreviewItem[] | null
   guest_requests_preview?: WorkQueueGuestRequestPreviewItem[] | null
@@ -464,6 +480,7 @@ type CabinetWorkQueue = {
   todaySessionsCount: number
   notesRemindersCount: number
   pendingGuestRequestsCount: number
+  pendingSlotlessGuestRequestsCount: number
   todaySessions: WorkQueueSessionPreviewItem[]
   notesRemindersPreview: WorkQueueNoteReminderPreviewItem[]
   guestRequestsPreview: WorkQueueGuestRequestPreviewItem[]
@@ -474,6 +491,7 @@ function createEmptyWorkQueue(): CabinetWorkQueue {
     todaySessionsCount: 0,
     notesRemindersCount: 0,
     pendingGuestRequestsCount: 0,
+    pendingSlotlessGuestRequestsCount: 0,
     todaySessions: [],
     notesRemindersPreview: [],
     guestRequestsPreview: [],
@@ -666,6 +684,7 @@ function normalizeWorkQueuePayload(payload: unknown): CabinetWorkQueue {
     todaySessionsCount: normalizeCount(source.today_sessions_count),
     notesRemindersCount: normalizeCount(source.notes_reminders_count),
     pendingGuestRequestsCount: normalizeCount(source.pending_guest_requests_count),
+    pendingSlotlessGuestRequestsCount: normalizeCount(source.pending_slotless_guest_requests_count),
     todaySessions: normalizePreviewList<WorkQueueSessionPreviewItem>(source.today_sessions, 5),
     notesRemindersPreview: normalizePreviewList<WorkQueueNoteReminderPreviewItem>(source.notes_reminders_preview, 3),
     guestRequestsPreview: normalizePreviewList<WorkQueueGuestRequestPreviewItem>(source.guest_requests_preview, 3),
@@ -877,6 +896,27 @@ const nearestUpcomingSession = computed(() => upcomingSorted.value[0] || null)
 const showDailyNextAction = computed(() => {
   if (workQueue.value.pendingGuestRequestsCount > 0) return false
   return Boolean(nearestUpcomingSession.value)
+})
+
+const slotlessGuestRequestAttentionCount = computed(() => workQueue.value.pendingSlotlessGuestRequestsCount)
+
+const showSlotlessGuestRequestAttention = computed(() => slotlessGuestRequestAttentionCount.value > 0)
+
+const slotlessGuestRequestAttentionTitle = computed(() => {
+  const count = slotlessGuestRequestAttentionCount.value
+  if (count === 1) return 'Новий запит без реєстрації'
+  return `Нові запити без реєстрації: ${count}`
+})
+
+const slotlessGuestRequestAttentionBody = computed(() => {
+  if (slotlessGuestRequestAttentionCount.value === 1) {
+    return 'Клієнт залишив запит без вибору часу. Узгодьте час і створіть сесію або закрийте запит.'
+  }
+  return 'Клієнти залишили запити без вибору часу. Опрацюйте їх, щоб узгодити час або закрити зайві звернення.'
+})
+
+const slotlessGuestRequestAttentionCta = computed(() => {
+  return slotlessGuestRequestAttentionCount.value === 1 ? 'Опрацювати запит' : 'Опрацювати запити'
 })
 
 const dailyNextAction = computed<DailyNextAction>(() => {
@@ -1385,6 +1425,67 @@ onBeforeUnmount(() => {
   align-content: center;
 }
 
+.guest-request-attention-card {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid rgba(217, 126, 28, 0.48);
+  border-radius: var(--pc-radius-panel);
+  background:
+    linear-gradient(135deg, rgba(255, 248, 232, 0.98), rgba(255, 237, 212, 0.92)),
+    #fff7ed;
+  color: #3f2a13;
+  text-decoration: none;
+  box-shadow: 0 14px 30px rgba(139, 86, 23, 0.12);
+}
+
+.guest-request-attention-card:hover {
+  border-color: rgba(195, 91, 16, 0.62);
+  color: #2c1d0e;
+  transform: translateY(-1px);
+}
+
+.guest-request-attention-card__content {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.guest-request-attention-card__eyebrow,
+.guest-request-attention-card__title,
+.guest-request-attention-card__copy {
+  margin: 0;
+}
+
+.guest-request-attention-card__eyebrow {
+  color: #8a4a0b;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.guest-request-attention-card__title {
+  font-size: 20px;
+  line-height: 1.25;
+}
+
+.guest-request-attention-card__copy {
+  max-width: 780px;
+  color: #5b3b18;
+  line-height: 1.5;
+}
+
+.guest-request-attention-card__cta {
+  flex: 0 0 auto;
+  background: #8a4a0b;
+  border-color: #8a4a0b;
+  color: #fff;
+}
+
 .today-card__header {
   display: flex;
   align-items: flex-start;
@@ -1874,6 +1975,15 @@ onBeforeUnmount(() => {
   .today-panel__inline-error {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .guest-request-attention-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .guest-request-attention-card__cta {
+    width: 100%;
   }
 
 }

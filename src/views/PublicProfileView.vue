@@ -52,6 +52,7 @@
           chat-cta-label="Написати в чат"
           :show-request-cta="canMessageSpecialist"
           request-cta-label="Залишити запит"
+          :show-slots-cta="publicDirectBookingEnabled"
           @primary-action="handleHeroPrimaryAction"
           @chat-action="openClientChat"
           @request-action="handlePublicRequestAction"
@@ -530,7 +531,7 @@
       <div class="setting-modal__backdrop" @click="closeGuestBookingModal"></div>
       <div class="setting-modal__content guest-booking-modal">
         <div class="setting-modal__header">
-          <h3>Запит на бронювання</h3>
+          <h3>{{ guestBookingModalTitle }}</h3>
           <button class="btn btn--ghost btn--sm" type="button" @click="closeGuestBookingModal">
             Закрити
           </button>
@@ -569,7 +570,7 @@
               <div class="booking-next__item">• Це м’який перший крок без створення кабінету.</div>
               <div class="booking-next__item">• Спеціаліст окремо підтвердить час або запропонує інший.</div>
               <div v-if="shouldShowGuestBookingRulesPrompt" class="booking-next__item">
-                • Якщо перед записом є правила, підтвердіть їх чекбоксом перед надсиланням цього запиту.
+                • {{ guestBookingRulesPromptHint }}
               </div>
               <div v-if="shouldShowGuestBookingRulesPrompt" class="booking-next__item">
                 • Для клієнта без акаунта підтвердження діє лише для поточного запиту і не зберігається для майбутніх звернень.
@@ -606,7 +607,7 @@
 
             <label v-if="shouldShowGuestBookingRulesPrompt" class="setting-check booking-gate__check">
               <input type="checkbox" v-model="guestBookingRulesAccepted" :disabled="guestBookingSubmitting" />
-              <span>Підтверджую правила перед відправкою цього запиту</span>
+              <span>{{ guestBookingRulesCheckboxLabel }}</span>
             </label>
 
             <label class="setting-label" for="guestBookingName">
@@ -1036,10 +1037,13 @@ const canBook = computed(() => isAuthenticated.value && isClient.value)
 const publicBookingMode = computed(() => String(profile.value?.public_booking_mode || 'request_only').trim())
 const showPublicAvailability = computed(() => Boolean(profile.value?.show_public_availability))
 const publicDirectBookingEnabled = computed(() => {
+  if (publicBookingMode.value !== 'direct_booking' || !showPublicAvailability.value) {
+    return false
+  }
   if (typeof profile.value?.public_direct_booking_enabled === 'boolean') {
     return profile.value.public_direct_booking_enabled
   }
-  return publicBookingMode.value === 'direct_booking' && showPublicAvailability.value
+  return true
 })
 const hasOnlineBooking = computed(() => Boolean(profile.value?.offers_online))
 const hasOfflineBooking = computed(() => Boolean(profile.value?.offers_offline))
@@ -1145,6 +1149,19 @@ const guestBookingSubmitDisabled = computed(
   () =>
     guestBookingSubmitting.value ||
     (shouldShowGuestBookingRulesPrompt.value && !guestBookingRulesAccepted.value)
+)
+const guestBookingModalTitle = computed(() =>
+  publicDirectBookingEnabled.value ? 'Запит на бронювання' : 'Запит до спеціаліста'
+)
+const guestBookingRulesPromptHint = computed(() =>
+  publicDirectBookingEnabled.value
+    ? 'Якщо перед записом є правила, підтвердіть їх чекбоксом перед надсиланням цього запиту.'
+    : 'Якщо перед надсиланням запиту є правила, підтвердіть їх чекбоксом перед надсиланням цього запиту.'
+)
+const guestBookingRulesCheckboxLabel = computed(() =>
+  publicDirectBookingEnabled.value
+    ? 'Підтверджую правила перед відправкою цього запиту'
+    : 'Підтверджую правила перед надсиланням цього запиту'
 )
 
 const isSlotBusy = (slotId: number) =>
@@ -1626,6 +1643,7 @@ const feedbackLink = computed(() => ({
 }))
 const heroCtaTitle = computed(() => {
   if (canMessageSpecialist.value) return 'Продовжити спілкування'
+  if (!publicDirectBookingEnabled.value) return 'Залиште запит на консультацію'
   if (showInquiryEntry.value) return 'Почніть із короткого запиту'
   return 'Запишіться на консультацію'
 })
@@ -1683,8 +1701,9 @@ const closingCtaSupportLine = computed(() => {
 const closingSecondaryKind = computed<'sessions' | 'reviews' | 'slots' | 'contact'>(() => {
   if (showClientSessionsCta.value) return 'sessions'
   if (canMessageSpecialist.value) return 'reviews'
-  if (showInquiryEntry.value) return 'slots'
+  if (showInquiryEntry.value && publicDirectBookingEnabled.value) return 'slots'
   if (hasPublicContactCta.value) return 'contact'
+  if (publicDirectBookingEnabled.value) return 'slots'
   return 'reviews'
 })
 
@@ -5316,8 +5335,15 @@ onMounted(async () => {
     position: fixed;
     inset: 0;
     z-index: 60;
-    display: grid;
-    place-items: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100dvh;
+    box-sizing: border-box;
+    padding: max(16px, env(safe-area-inset-top)) 16px max(16px, env(safe-area-inset-bottom));
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
   }
 
   @media (max-width: 640px) {
@@ -5341,16 +5367,22 @@ onMounted(async () => {
     position: relative;
     z-index: 1;
     width: min(640px, 92vw);
+    max-height: 100%;
+    min-height: 0;
     background: #fff;
     border-radius: 16px;
     border: 1px solid var(--line);
     padding: 20px;
-    display: grid;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
     gap: 16px;
+    overflow: hidden;
     box-shadow: 0 18px 40px rgba(15, 35, 48, 0.2);
   }
 
   .setting-modal__header {
+    flex: 0 0 auto;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -5358,11 +5390,18 @@ onMounted(async () => {
   }
 
   .setting-modal__body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
     display: grid;
     gap: 12px;
+    padding-right: 2px;
   }
 
   .setting-modal__footer {
+    flex: 0 0 auto;
     display: flex;
     justify-content: flex-end;
     flex-wrap: wrap;
@@ -5551,6 +5590,7 @@ onMounted(async () => {
   .guest-booking-form {
     display: grid;
     gap: 12px;
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
   }
 
   .guest-booking-form__message {
@@ -5642,6 +5682,23 @@ onMounted(async () => {
 
   .first-session-flow {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .setting-modal {
+    align-items: stretch;
+    padding: max(12px, env(safe-area-inset-top)) 12px max(12px, env(safe-area-inset-bottom));
+  }
+
+  .setting-modal__content {
+    width: 100%;
+    padding: 14px;
+    border-radius: 14px;
+  }
+
+  .setting-modal__header {
+    align-items: flex-start;
   }
 }
 

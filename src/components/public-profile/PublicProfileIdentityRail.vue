@@ -42,7 +42,7 @@
           <button class="btn btn--primary" type="button" @click="$emit('primary-action')">
             {{ heroPrimaryLabel }}
           </button>
-          <a class="btn btn--ghost" href="#slots">Переглянути вільні вікна</a>
+          <a v-if="showSlotsCta" class="btn btn--ghost" href="#slots">Переглянути вільні вікна</a>
         </template>
       </div>
 
@@ -101,6 +101,7 @@ type Props = {
   chatCtaLabel?: string
   showRequestCta?: boolean
   requestCtaLabel?: string
+  showSlotsCta?: boolean
 }
 
 withDefaults(defineProps<Props>(), {
@@ -108,6 +109,7 @@ withDefaults(defineProps<Props>(), {
   chatCtaLabel: 'Написати в чат',
   showRequestCta: false,
   requestCtaLabel: 'Залишити запит',
+  showSlotsCta: false,
 })
 
 defineEmits<{

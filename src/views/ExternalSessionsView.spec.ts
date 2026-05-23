@@ -277,6 +277,39 @@ describe('ExternalSessionsView', () => {
     expect(options[95]).toBe('23:45')
     expect(screen.getAllByText('Сесії без реєстрації').length).toBeGreaterThan(0)
     expect(detailLink).toHaveAttribute('href', '/cabinet/external-sessions/8')
+    expect(container.querySelector('.external-sessions')).not.toHaveClass('external-sessions--requests-first')
+    expect(container.querySelector('#guest-requests')).toBeInTheDocument()
+  })
+
+  it('prioritizes guest requests section when a pending slot-less request exists', async () => {
+    mockedFetchCabinetGuestBookingRequests.mockResolvedValue([
+      buildGuestRequest({
+        id: 61,
+        slot_id: null,
+        has_slot: false,
+        is_slotless_request: true,
+        requested_slot_start: null,
+        requested_slot_end: null,
+        client_name: 'Slotless Guest',
+        client_email: 'slotless@example.com',
+      }),
+    ] as any)
+
+    const { container } = renderView()
+
+    await screen.findByText('Запит без обраного часу')
+
+    const page = container.querySelector('.external-sessions')
+    const guestRequestsPanel = container.querySelector('#guest-requests')
+    const createPanel = screen.getByText('Нова сесія без реєстрації').closest('.panel')
+
+    expect(page).toHaveClass('external-sessions--requests-first')
+    expect(guestRequestsPanel).toHaveClass('external-sessions__guest-requests-panel')
+    expect(createPanel).toHaveClass('external-sessions__create-panel')
+    expect(guestRequestsPanel).toHaveTextContent('Запит без обраного часу')
+    expect(guestRequestsPanel).toHaveTextContent('Клієнт залишив запит без бронювання конкретного слота.')
+    expect(within(guestRequestsPanel as HTMLElement).getByRole('button', { name: 'Створити сесію' })).toBeInTheDocument()
+    expect(within(guestRequestsPanel as HTMLElement).getByRole('button', { name: 'Закрити запит' })).toBeInTheDocument()
   })
 
   it('shows guest quota summary when entitlements are available', async () => {

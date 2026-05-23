@@ -1,5 +1,5 @@
 ﻿<template>
-  <section class="external-sessions">
+  <section class="external-sessions" :class="{ 'external-sessions--requests-first': hasPendingGuestRequests }">
     <header class="external-sessions__hero">
       <div>
         <h1 class="title external-sessions__title">Сесії без реєстрації</h1>
@@ -10,7 +10,7 @@
       <RouterLink class="btn btn--ghost" to="/cabinet/sessions">Назад до сесій</RouterLink>
     </header>
 
-    <section class="panel">
+    <section class="panel external-sessions__create-panel">
       <div class="panel__header">
         <div>
           <h2 class="panel__title">Нова сесія без реєстрації</h2>
@@ -116,7 +116,7 @@
     </section>
 
     <div class="external-sessions__operational">
-      <section class="panel">
+      <section class="panel external-sessions__sessions-panel">
         <div class="panel__header">
           <div>
             <h2 class="panel__title">Ваші сесії без реєстрації</h2>
@@ -145,7 +145,7 @@
         </div>
       </section>
 
-      <section class="panel">
+      <section id="guest-requests" class="panel external-sessions__guest-requests-panel">
         <div class="panel__header">
           <div>
             <h2 class="panel__title">Запити без реєстрації</h2>
@@ -551,6 +551,8 @@ function formatDateTime(value: string | null | undefined) {
 function isPendingRequest(status: string | null | undefined) {
   return String(status || '').toLowerCase() === 'pending'
 }
+
+const hasPendingGuestRequests = computed(() => guestRequests.value.some((request) => isPendingRequest(request.status)))
 
 function requestStatusLabel(status: string | null | undefined) {
   const normalized = String(status || '').toLowerCase()
@@ -1164,6 +1166,26 @@ onMounted(async () => {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 18px;
   align-items: start;
+}
+
+.external-sessions--requests-first .external-sessions__operational {
+  display: contents;
+}
+
+.external-sessions--requests-first .external-sessions__guest-requests-panel {
+  order: 1;
+}
+
+.external-sessions--requests-first .external-sessions__create-panel {
+  order: 2;
+}
+
+.external-sessions--requests-first .external-sessions__sessions-panel {
+  order: 3;
+}
+
+.external-sessions__guest-requests-panel {
+  scroll-margin-top: 18px;
 }
 
 .panel__header {
