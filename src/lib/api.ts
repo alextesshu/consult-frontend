@@ -2268,6 +2268,14 @@ export type ExternalGuestPaymentAvailableActions = {
   can_request_clarification?: boolean
 }
 
+export type GuestBookingRequestSlotSnapshot = {
+  id?: number | null
+  start_at?: string | null
+  end_at?: string | null
+  starts_at?: string | null
+  ends_at?: string | null
+}
+
 export type ExternalSessionRecord = {
   id: number
   starts_at: string
@@ -2312,12 +2320,18 @@ export type GuestBookingRequestRecord = {
   id: number
   status: GuestBookingRequestStatus
   specialist_id: number
-  slot_id: number
+  slot_id: number | null
+  has_slot?: boolean | null
+  is_slotless_request?: boolean | null
+  slot?: GuestBookingRequestSlotSnapshot | null
   requested_slot_start: string | null
   requested_slot_end: string | null
   duration_minutes: number | null
   session_format: SessionFormat | null
   offline_location_snapshot: string | null
+  client_name?: string | null
+  client_email?: string | null
+  client_phone?: string | null
   guest_name: string | null
   contact_channel: string | null
   contact_value: string | null
@@ -2330,6 +2344,7 @@ export type GuestBookingRequestRecord = {
   cancelled_at: string | null
   decline_reason: string | null
   external_session_id: number | null
+  session_id?: number | null
   created_at: string | null
   updated_at: string | null
 }
@@ -2348,6 +2363,20 @@ export type GuestBookingRequestApproveResponse = {
   request: GuestBookingRequestRecord
   external_session: ExternalSessionRecord | null
   invite: GuestBookingRequestInviteSnapshot | null
+}
+
+export type GuestBookingRequestCreateSessionPayload = {
+  starts_at: string
+  ends_at: string
+  timezone: string
+  session_format: SessionFormat
+  meeting_url?: string
+  offline_location?: string
+}
+
+export type GuestBookingRequestCreateSessionResponse = {
+  request: GuestBookingRequestRecord
+  session: Session | null
 }
 
 export type ExternalSessionInviteCreateResponse = {
@@ -2951,6 +2980,17 @@ export async function declineCabinetGuestBookingRequest(
   const resp = await http.post<GuestBookingRequestRecord>(
     `/cabinet/guest-booking-requests/${requestId}/decline/`,
     payload ?? {}
+  )
+  return resp.data
+}
+
+export async function createSessionFromCabinetGuestBookingRequest(
+  requestId: number,
+  payload: GuestBookingRequestCreateSessionPayload
+): Promise<GuestBookingRequestCreateSessionResponse> {
+  const resp = await http.post<GuestBookingRequestCreateSessionResponse>(
+    `/cabinet/guest-booking-requests/${requestId}/create-session/`,
+    payload
   )
   return resp.data
 }

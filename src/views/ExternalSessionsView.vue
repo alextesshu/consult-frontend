@@ -160,12 +160,24 @@
           <article v-for="request in guestRequests" :key="request.id" class="request-card">
             <div class="request-card__main">
               <div class="request-card__title">
-                {{ request.guest_name || 'Клієнт' }}
+                {{ isSlotlessRequest(request) ? 'Запит без обраного часу' : requestClientName(request) }}
+              </div>
+              <div v-if="isSlotlessRequest(request)" class="request-card__helper">
+                Клієнт залишив запит без бронювання конкретного слота. Узгодьте час і створіть сесію вручну.
               </div>
               <div class="muted">
+                Клієнт: {{ requestClientName(request) }}
+              </div>
+              <div v-if="requestClientEmail(request)" class="muted">
+                Ел. пошта: {{ requestClientEmail(request) }}
+              </div>
+              <div v-if="requestClientPhone(request)" class="muted">
+                Телефон: {{ requestClientPhone(request) }}
+              </div>
+              <div v-if="!isSlotlessRequest(request)" class="muted">
                 Контакт: {{ contactChannelLabel(request.contact_channel) }} · {{ request.contact_value || '—' }}
               </div>
-              <div class="muted">
+              <div v-if="!isSlotlessRequest(request)" class="muted">
                 Запитаний слот: {{ formatDateTime(request.requested_slot_start) }}
                 <span v-if="request.duration_minutes"> · {{ request.duration_minutes }} хв</span>
               </div>
@@ -176,11 +188,21 @@
                 </span>
               </div>
               <div v-if="request.message" class="muted">Коментар: {{ request.message }}</div>
+              <div v-if="request.created_at" class="muted">Створено: {{ formatDateTime(request.created_at) }}</div>
               <div class="status-pill" :class="requestStatusClass(request.status)">
                 {{ requestStatusLabel(request.status) }}
               </div>
               <div v-if="requestDecisionAt(request)" class="muted">
                 {{ requestDecisionLabel(request.status) }}: {{ formatDateTime(requestDecisionAt(request)) }}
+              </div>
+              <div v-if="request.session_id" class="muted">На основі цього запиту створено сесію.</div>
+              <div v-if="request.session_id" class="request-next-step">
+                <RouterLink
+                  class="btn btn--ghost btn--sm"
+                  :to="`/cabinet/sessions/${request.session_id}`"
+                >
+                  Відкрити сесію
+                </RouterLink>
               </div>
               <div v-if="request.external_session_id" class="muted">На основі цього запиту створено сесію без реєстрації.</div>
               <div v-if="request.external_session_id" class="request-next-step">
@@ -203,35 +225,55 @@
             </div>
 
             <div v-if="isPendingRequest(request.status)" class="request-actions">
-              <label v-if="request.session_format === 'online'" class="field request-meeting-field">
-                <span>Посилання на онлайн-зустріч</span>
-                <input
-                  v-model="approveMeetingUrls[request.id]"
-                  class="input"
-                  type="url"
-                  placeholder="https://meet.google.com/..."
-                  :disabled="isRequestActionLoading(request.id, 'approve')"
-                />
-              </label>
-              <div v-if="shouldShowApproveMeetingHint(request)" class="muted request-meeting-hint">
-                Щоб погодити онлайн-запит, додайте посилання на зустріч.
-              </div>
-              <button
-                class="btn btn--ghost btn--sm"
-                type="button"
-                :disabled="isApproveRequestDisabled(request)"
-                @click="approveRequest(request)"
-              >
-                {{ isRequestActionLoading(request.id, 'approve') ? 'Погоджуємо…' : 'Погодити' }}
-              </button>
-              <button
-                class="btn btn--ghost btn--sm"
-                type="button"
-                :disabled="isRequestActionLoading(request.id, 'decline')"
-                @click="declineRequest(request.id)"
-              >
-                {{ isRequestActionLoading(request.id, 'decline') ? 'Відхиляємо…' : 'Відхилити' }}
-              </button>
+              <template v-if="isSlotlessRequest(request)">
+                <button
+                  class="btn btn--ghost btn--sm"
+                  type="button"
+                  :disabled="isRequestActionLoading(request.id, 'create-session')"
+                  @click="openSlotlessSessionModal(request)"
+                >
+                  Створити сесію
+                </button>
+                <button
+                  class="btn btn--ghost btn--sm"
+                  type="button"
+                  :disabled="isRequestActionLoading(request.id, 'decline')"
+                  @click="declineRequest(request.id, { successMessage: 'Запит закрито.' })"
+                >
+                  {{ isRequestActionLoading(request.id, 'decline') ? 'Закриваємо…' : 'Закрити запит' }}
+                </button>
+              </template>
+              <template v-else>
+                <label v-if="request.session_format === 'online'" class="field request-meeting-field">
+                  <span>Посилання на онлайн-зустріч</span>
+                  <input
+                    v-model="approveMeetingUrls[request.id]"
+                    class="input"
+                    type="url"
+                    placeholder="https://meet.google.com/..."
+                    :disabled="isRequestActionLoading(request.id, 'approve')"
+                  />
+                </label>
+                <div v-if="shouldShowApproveMeetingHint(request)" class="muted request-meeting-hint">
+                  Щоб погодити онлайн-запит, додайте посилання на зустріч.
+                </div>
+                <button
+                  class="btn btn--ghost btn--sm"
+                  type="button"
+                  :disabled="isApproveRequestDisabled(request)"
+                  @click="approveRequest(request)"
+                >
+                  {{ isRequestActionLoading(request.id, 'approve') ? 'Погоджуємо…' : 'Погодити' }}
+                </button>
+                <button
+                  class="btn btn--ghost btn--sm"
+                  type="button"
+                  :disabled="isRequestActionLoading(request.id, 'decline')"
+                  @click="declineRequest(request.id)"
+                >
+                  {{ isRequestActionLoading(request.id, 'decline') ? 'Відхиляємо…' : 'Відхилити' }}
+                </button>
+              </template>
               <div v-if="requestActionError(request.id)" class="form-error request-card__error">
                 {{ requestActionError(request.id) }}
               </div>
@@ -239,6 +281,128 @@
           </article>
         </div>
       </section>
+    </div>
+
+    <div
+      v-if="slotlessSessionModalOpen"
+      class="request-session-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="slotless-session-modal-title"
+    >
+      <button
+        class="request-session-modal__backdrop"
+        type="button"
+        aria-label="Закрити"
+        @click="closeSlotlessSessionModal"
+      ></button>
+      <div class="request-session-modal__content">
+        <div class="request-session-modal__header">
+          <div>
+            <h2 id="slotless-session-modal-title" class="panel__title">Створити сесію</h2>
+            <p v-if="slotlessSessionRequest" class="muted">
+              {{ requestClientName(slotlessSessionRequest) }}
+            </p>
+          </div>
+          <button
+            class="btn btn--ghost btn--sm"
+            type="button"
+            :disabled="slotlessSessionSaving"
+            @click="closeSlotlessSessionModal"
+          >
+            Закрити
+          </button>
+        </div>
+
+        <div v-if="slotlessSessionError" class="form-error">{{ slotlessSessionError }}</div>
+
+        <div class="form-grid request-session-form">
+          <label class="field">
+            <span>Дата</span>
+            <input
+              v-model="slotlessSessionDraft.start_date"
+              class="input"
+              type="date"
+              lang="uk"
+              :disabled="slotlessSessionSaving"
+              @click="openDatePicker"
+              @focus="openDatePicker"
+            />
+          </label>
+
+          <label class="field">
+            <span>Час початку</span>
+            <input
+              v-model="slotlessSessionDraft.start_time"
+              class="input"
+              type="text"
+              inputmode="numeric"
+              maxlength="5"
+              placeholder="ГГ:ХХ"
+              list="external-session-time-options"
+              :disabled="slotlessSessionSaving"
+              @blur="normalizeSlotlessSessionStartTime"
+            />
+          </label>
+
+          <label class="field">
+            <span>Тривалість</span>
+            <input
+              v-model.number="slotlessSessionDraft.duration_minutes"
+              class="input"
+              type="number"
+              min="1"
+              max="480"
+              :disabled="slotlessSessionSaving"
+            />
+          </label>
+
+          <label class="field">
+            <span>Формат зустрічі</span>
+            <select
+              v-model="slotlessSessionDraft.session_format"
+              class="input input--select"
+              :disabled="slotlessSessionSaving"
+            >
+              <option value="online">Онлайн</option>
+              <option value="offline">Офлайн</option>
+            </select>
+          </label>
+
+          <label v-if="isSlotlessSessionOnline" class="field">
+            <span>Посилання на онлайн-зустріч</span>
+            <input
+              v-model="slotlessSessionDraft.meeting_url"
+              class="input"
+              type="url"
+              placeholder="https://meet.google.com/..."
+              :disabled="slotlessSessionSaving"
+            />
+          </label>
+
+          <label v-else class="field">
+            <span>Місце зустрічі</span>
+            <input
+              v-model="slotlessSessionDraft.offline_location"
+              class="input"
+              type="text"
+              placeholder="Київ, вул. ..."
+              :disabled="slotlessSessionSaving"
+            />
+          </label>
+        </div>
+
+        <div class="actions-row">
+          <button
+            class="btn"
+            type="button"
+            :disabled="slotlessSessionSaving"
+            @click="submitSlotlessSession"
+          >
+            {{ slotlessSessionSaving ? 'Створюємо…' : 'Створити сесію' }}
+          </button>
+        </div>
+      </div>
     </div>
   </section>
 </template>
@@ -252,13 +416,16 @@ import {
   approveCabinetGuestBookingRequest,
   createExternalSession,
   createExternalSessionInvite,
+  createSessionFromCabinetGuestBookingRequest,
   declineCabinetGuestBookingRequest,
   fetchCabinetGuestBookingRequests,
   fetchExternalSessions,
+  fetchSpecialistProfile,
   getApiErrorMessage,
   type ExternalSessionRecord,
   type GuestBookingRequestRecord,
   type SessionFormat,
+  type SpecialistProfile,
 } from '../lib/api'
 import { formatUkDateTimeCompact } from '../lib/dateTime'
 
@@ -273,10 +440,19 @@ type CreateDraft = {
   guest_email: string
   price_amount: string
 }
-type RequestActionType = 'approve' | 'decline'
+type SlotlessSessionDraft = {
+  start_date: string
+  start_time: string
+  duration_minutes: number
+  session_format: SessionFormat
+  meeting_url: string
+  offline_location: string
+}
+type RequestActionType = 'approve' | 'decline' | 'create-session'
 type RequestActionLoadingState = {
   approve?: boolean
   decline?: boolean
+  'create-session'?: boolean
 }
 type GuestQuotaSnapshot = {
   guest_sessions_enabled?: boolean | null
@@ -301,6 +477,15 @@ const requestActionLoading = ref<Record<number, RequestActionLoadingState>>({})
 const requestActionErrors = ref<Record<number, string>>({})
 const approveMeetingUrls = ref<Record<number, string>>({})
 const latestInviteUrlByRequestId = ref<Record<number, string>>({})
+const slotlessSessionModalOpen = ref(false)
+const slotlessSessionRequest = ref<GuestBookingRequestRecord | null>(null)
+const slotlessSessionSaving = ref(false)
+const slotlessSessionError = ref('')
+const slotlessProfileLoaded = ref(false)
+const slotlessProfileTimezone = ref('')
+const slotlessSessionTimezone = ref(
+  Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/Kyiv'
+)
 
 const createDraft = ref<CreateDraft>({
   start_date: '',
@@ -314,7 +499,17 @@ const createDraft = ref<CreateDraft>({
   price_amount: '',
 })
 
+const slotlessSessionDraft = ref<SlotlessSessionDraft>({
+  start_date: '',
+  start_time: '09:00',
+  duration_minutes: 50,
+  session_format: 'online',
+  meeting_url: '',
+  offline_location: '',
+})
+
 const isCreateOnline = computed(() => createDraft.value.session_format === 'online')
+const isSlotlessSessionOnline = computed(() => slotlessSessionDraft.value.session_format === 'online')
 const isGuestQuotaBlocked = computed(() => {
   const quota = guestQuota.value
   if (!quota) return false
@@ -394,11 +589,31 @@ function requestDecisionLabel(status: string | null | undefined) {
   return 'Оновлено'
 }
 
+function isSlotlessRequest(request: GuestBookingRequestRecord) {
+  if (request.is_slotless_request === true) return true
+  if (request.has_slot === false) return true
+  return request.slot_id == null && !request.slot && !request.requested_slot_start && !request.requested_slot_end
+}
+
+function requestClientName(request: GuestBookingRequestRecord) {
+  return request.client_name || request.guest_name || 'Клієнт'
+}
+
+function requestClientEmail(request: GuestBookingRequestRecord) {
+  if (request.client_email) return request.client_email
+  return String(request.contact_channel || '').toLowerCase() === 'email' ? request.contact_value || '' : ''
+}
+
+function requestClientPhone(request: GuestBookingRequestRecord) {
+  if (request.client_phone) return request.client_phone
+  return String(request.contact_channel || '').toLowerCase() === 'phone' ? request.contact_value || '' : ''
+}
+
 function setRequestActionLoading(id: number, action: RequestActionType, value: boolean) {
   const next = { ...requestActionLoading.value }
   const current = { ...next[id] }
   current[action] = value
-  if (!current.approve && !current.decline) {
+  if (!current.approve && !current.decline && !current['create-session']) {
     delete next[id]
   } else {
     next[id] = current
@@ -454,10 +669,21 @@ function localizeGuestRequestActionError(message: string) {
   return normalized
 }
 
+function localizeGuestRequestApiError(err: unknown, fallback: string) {
+  const code = getApiErrorCode(err)
+  if (code === 'MANUAL_SESSION_TIME_CONFLICT' || code === 'SESSION_OVERLAP') {
+    return 'Не вдалося створити сесію: цей час перетинається з іншою сесією або недоступністю.'
+  }
+  if (code === 'REQUEST_SLOT_REQUIRED_FOR_APPROVAL') {
+    return 'Цей запит не має обраного часу. Узгодьте час із клієнтом і створіть сесію вручну.'
+  }
+  return localizeGuestRequestActionError(getApiErrorMessage(err, fallback))
+}
+
 function syncApproveMeetingDrafts(payload: GuestBookingRequestRecord[]) {
   const next: Record<number, string> = {}
   payload.forEach((request) => {
-    if (isPendingRequest(request.status) && request.session_format === 'online') {
+    if (isPendingRequest(request.status) && !isSlotlessRequest(request) && request.session_format === 'online') {
       next[request.id] = approveMeetingUrls.value[request.id] || ''
     }
   })
@@ -485,8 +711,9 @@ function syncRequestActionMeta(payload: GuestBookingRequestRecord[]) {
     const state = {
       approve: Boolean(value?.approve),
       decline: Boolean(value?.decline),
+      'create-session': Boolean(value?.['create-session']),
     }
-    if (state.approve || state.decline) {
+    if (state.approve || state.decline || state['create-session']) {
       nextLoading[id] = state
     }
   })
@@ -494,6 +721,7 @@ function syncRequestActionMeta(payload: GuestBookingRequestRecord[]) {
 }
 
 function isApproveRequestDisabled(request: GuestBookingRequestRecord) {
+  if (isSlotlessRequest(request)) return true
   if (isRequestActionLoading(request.id, 'approve')) return true
   if (request.session_format !== 'online') return false
   return !String(approveMeetingUrls.value[request.id] || '').trim()
@@ -501,6 +729,7 @@ function isApproveRequestDisabled(request: GuestBookingRequestRecord) {
 
 function shouldShowApproveMeetingHint(request: GuestBookingRequestRecord) {
   if (!isPendingRequest(request.status)) return false
+  if (isSlotlessRequest(request)) return false
   if (request.session_format !== 'online') return false
   return !String(approveMeetingUrls.value[request.id] || '').trim()
 }
@@ -533,6 +762,17 @@ function normalizeCreateStartTime() {
   createDraft.value.start_time = normalizeTimeValue(createDraft.value.start_time)
 }
 
+function normalizeSlotlessSessionStartTime() {
+  slotlessSessionDraft.value.start_time = normalizeTimeValue(slotlessSessionDraft.value.start_time)
+}
+
+function localDateInputValue(value: Date) {
+  const year = value.getFullYear()
+  const month = String(value.getMonth() + 1).padStart(2, '0')
+  const day = String(value.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
 function combineDateTimeToIso(dateValue: string, timeValue: string) {
   if (!dateValue || !timeValue) return ''
   const normalizedTime = normalizeTimeValue(timeValue)
@@ -540,6 +780,94 @@ function combineDateTimeToIso(dateValue: string, timeValue: string) {
   const parsed = new Date(`${dateValue}T${normalizedTime}`)
   if (Number.isNaN(parsed.getTime())) return ''
   return parsed.toISOString()
+}
+
+function normalizeSlotlessTimezone(value: string) {
+  const normalized = String(value || '').trim()
+  if (!normalized) return ''
+  if (normalized === 'Europe/Kiev') return 'Europe/Kyiv'
+  return normalized
+}
+
+function resolvedSlotlessSessionTimezone() {
+  return (
+    normalizeSlotlessTimezone(slotlessProfileTimezone.value) ||
+    normalizeSlotlessTimezone(slotlessSessionTimezone.value) ||
+    'Europe/Kyiv'
+  )
+}
+
+function applySlotlessProfileDefaults(
+  profile: Pick<SpecialistProfile, 'standard_session_duration_minutes'> & { timezone?: string | null }
+) {
+  const duration = Number(profile.standard_session_duration_minutes)
+  const profileTimezone = normalizeSlotlessTimezone(String(profile.timezone || '').trim())
+  if (Number.isFinite(duration) && duration > 0 && duration <= 480) {
+    slotlessSessionDraft.value.duration_minutes = Math.round(duration)
+  }
+  if (profileTimezone) {
+    slotlessProfileTimezone.value = profileTimezone
+  }
+}
+
+async function loadSlotlessProfileDefaults() {
+  if (slotlessProfileLoaded.value) return
+  try {
+    const profile = await fetchSpecialistProfile()
+    applySlotlessProfileDefaults(profile)
+  } catch {
+    if (!Number.isFinite(slotlessSessionDraft.value.duration_minutes) || slotlessSessionDraft.value.duration_minutes <= 0) {
+      slotlessSessionDraft.value.duration_minutes = 50
+    }
+  } finally {
+    slotlessProfileLoaded.value = true
+  }
+}
+
+function resetSlotlessSessionForm(request: GuestBookingRequestRecord) {
+  const duration = Number(request.duration_minutes || slotlessSessionDraft.value.duration_minutes || 50)
+  slotlessSessionDraft.value = {
+    start_date: localDateInputValue(new Date()),
+    start_time: '09:00',
+    duration_minutes: Number.isFinite(duration) && duration > 0 ? Math.min(Math.round(duration), 480) : 50,
+    session_format: request.session_format === 'offline' ? 'offline' : 'online',
+    meeting_url: '',
+    offline_location: request.offline_location_snapshot || '',
+  }
+  slotlessSessionTimezone.value = resolvedSlotlessSessionTimezone()
+  slotlessSessionError.value = ''
+}
+
+async function openSlotlessSessionModal(request: GuestBookingRequestRecord) {
+  slotlessSessionRequest.value = request
+  slotlessSessionModalOpen.value = true
+  slotlessSessionSaving.value = false
+  slotlessSessionError.value = ''
+  resetSlotlessSessionForm(request)
+  await loadSlotlessProfileDefaults()
+  resetSlotlessSessionForm(request)
+}
+
+function closeSlotlessSessionModal() {
+  if (slotlessSessionSaving.value) return
+  slotlessSessionModalOpen.value = false
+  slotlessSessionError.value = ''
+  slotlessSessionRequest.value = null
+}
+
+function validateSlotlessSessionDraft() {
+  const startsAtIso = combineDateTimeToIso(
+    slotlessSessionDraft.value.start_date,
+    slotlessSessionDraft.value.start_time
+  )
+  if (!startsAtIso) return 'Вкажіть коректний час початку.'
+  if (
+    !Number.isFinite(slotlessSessionDraft.value.duration_minutes) ||
+    slotlessSessionDraft.value.duration_minutes < 1
+  ) {
+    return 'Вкажіть коректну тривалість.'
+  }
+  return ''
 }
 
 async function loadSessions() {
@@ -661,6 +989,13 @@ async function submitCreate() {
 
 async function approveRequest(request: GuestBookingRequestRecord) {
   if (!isPendingRequest(request.status)) return
+  if (isSlotlessRequest(request)) {
+    setRequestActionError(
+      request.id,
+      'Цей запит не має обраного часу. Узгодьте час із клієнтом і створіть сесію вручну.'
+    )
+    return
+  }
   setRequestActionError(request.id, '')
   const meetingUrl = String(approveMeetingUrls.value[request.id] || '').trim()
   if (request.session_format === 'online' && !meetingUrl) {
@@ -681,25 +1016,67 @@ async function approveRequest(request: GuestBookingRequestRecord) {
     toast.success('Запит без реєстрації погоджено.')
     await Promise.all([loadGuestRequests(), loadSessions()])
   } catch (err) {
-    const message = getApiErrorMessage(err, 'Не вдалося погодити запит без реєстрації.')
-    setRequestActionError(request.id, localizeGuestRequestActionError(message))
+    setRequestActionError(request.id, localizeGuestRequestApiError(err, 'Не вдалося погодити запит без реєстрації.'))
   } finally {
     setRequestActionLoading(request.id, 'approve', false)
   }
 }
 
-async function declineRequest(requestId: number) {
+async function declineRequest(requestId: number, options?: { successMessage?: string }) {
   setRequestActionError(requestId, '')
   setRequestActionLoading(requestId, 'decline', true)
   try {
     await declineCabinetGuestBookingRequest(requestId)
-    toast.success('Запит без реєстрації відхилено.')
+    toast.success(options?.successMessage || 'Запит без реєстрації відхилено.')
     await loadGuestRequests()
   } catch (err) {
-    const message = getApiErrorMessage(err, 'Не вдалося відхилити запит без реєстрації.')
-    setRequestActionError(requestId, localizeGuestRequestActionError(message))
+    setRequestActionError(requestId, localizeGuestRequestApiError(err, 'Не вдалося відхилити запит без реєстрації.'))
   } finally {
     setRequestActionLoading(requestId, 'decline', false)
+  }
+}
+
+async function submitSlotlessSession() {
+  const request = slotlessSessionRequest.value
+  if (!request) return
+
+  slotlessSessionError.value = ''
+  const validationError = validateSlotlessSessionDraft()
+  if (validationError) {
+    slotlessSessionError.value = validationError
+    return
+  }
+
+  const startsAtIso = combineDateTimeToIso(
+    slotlessSessionDraft.value.start_date,
+    slotlessSessionDraft.value.start_time
+  )
+  const duration = Number(slotlessSessionDraft.value.duration_minutes)
+  const endsAtIso = new Date(new Date(startsAtIso).getTime() + duration * 60000).toISOString()
+
+  slotlessSessionSaving.value = true
+  setRequestActionError(request.id, '')
+  setRequestActionLoading(request.id, 'create-session', true)
+  try {
+    await createSessionFromCabinetGuestBookingRequest(request.id, {
+      starts_at: startsAtIso,
+      ends_at: endsAtIso,
+      timezone: resolvedSlotlessSessionTimezone(),
+      session_format: slotlessSessionDraft.value.session_format,
+      meeting_url: slotlessSessionDraft.value.meeting_url.trim(),
+      offline_location: slotlessSessionDraft.value.offline_location.trim(),
+    })
+    slotlessSessionSaving.value = false
+    closeSlotlessSessionModal()
+    toast.success('Сесію створено. Запит закрито.')
+    await Promise.all([loadGuestRequests(), loadSessions()])
+  } catch (err) {
+    const message = localizeGuestRequestApiError(err, 'Не вдалося створити сесію.')
+    slotlessSessionError.value = message
+    setRequestActionError(request.id, message)
+  } finally {
+    slotlessSessionSaving.value = false
+    setRequestActionLoading(request.id, 'create-session', false)
   }
 }
 
@@ -929,6 +1306,12 @@ onMounted(async () => {
   font-weight: 700;
 }
 
+.request-card__helper {
+  max-width: 620px;
+  color: var(--pc-text-muted);
+  line-height: 1.45;
+}
+
 .request-actions {
   min-width: 240px;
   display: grid;
@@ -1007,6 +1390,48 @@ onMounted(async () => {
   cursor: default;
 }
 
+.request-session-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+}
+
+.request-session-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: rgba(17, 24, 39, 0.48);
+}
+
+.request-session-modal__content {
+  position: relative;
+  z-index: 1;
+  width: min(720px, 100%);
+  max-height: calc(100vh - 36px);
+  overflow: auto;
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-card);
+  background: #fff;
+  box-shadow: var(--pc-shadow-soft);
+}
+
+.request-session-modal__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.request-session-form {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 @media (max-width: 1100px) {
   .external-sessions__operational {
     grid-template-columns: 1fr;
@@ -1053,6 +1478,14 @@ onMounted(async () => {
   .request-actions {
     min-width: unset;
     width: 100%;
+  }
+
+  .request-session-form {
+    grid-template-columns: 1fr;
+  }
+
+  .request-session-modal__header {
+    flex-direction: column;
   }
 }
 </style>

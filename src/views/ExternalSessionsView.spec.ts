@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/vue'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import ExternalSessionsView from './ExternalSessionsView.vue'
 import {
@@ -6,9 +6,11 @@ import {
   approveCabinetGuestBookingRequest,
   createExternalSession,
   createExternalSessionInvite,
+  createSessionFromCabinetGuestBookingRequest,
   declineCabinetGuestBookingRequest,
   fetchCabinetGuestBookingRequests,
   fetchExternalSessions,
+  fetchSpecialistProfile,
   getApiErrorMessage,
 } from '../lib/api'
 
@@ -47,6 +49,8 @@ vi.mock('../lib/api', async () => {
     fetchCabinetGuestBookingRequests: vi.fn(),
     createExternalSession: vi.fn(),
     declineCabinetGuestBookingRequest: vi.fn(),
+    createSessionFromCabinetGuestBookingRequest: vi.fn(),
+    fetchSpecialistProfile: vi.fn(),
     getApiErrorMessage: vi.fn((_error: unknown, fallback: string) => fallback),
   }
 })
@@ -58,6 +62,8 @@ const mockedFetchCabinetGuestBookingRequests = vi.mocked(fetchCabinetGuestBookin
 const mockedCreateExternalSession = vi.mocked(createExternalSession)
 const mockedCreateExternalSessionInvite = vi.mocked(createExternalSessionInvite)
 const mockedDeclineCabinetGuestBookingRequest = vi.mocked(declineCabinetGuestBookingRequest)
+const mockedCreateSessionFromCabinetGuestBookingRequest = vi.mocked(createSessionFromCabinetGuestBookingRequest)
+const mockedFetchSpecialistProfile = vi.mocked(fetchSpecialistProfile)
 const mockedGetApiErrorMessage = vi.mocked(getApiErrorMessage)
 
 function createDeferred<T>() {
@@ -90,17 +96,32 @@ function getGuestRequestCardByName(guestName: string) {
   }
 }
 
+function getGuestRequestCardByText(text: string) {
+  const node = screen.getByText(text)
+  const card = node.closest('.request-card')
+  if (!card) {
+    throw new Error(`Guest request card not found for ${text}`)
+  }
+  return card
+}
+
 function buildGuestRequest(overrides: Record<string, unknown>) {
   return {
     id: 51,
     status: 'pending',
     specialist_id: 10,
     slot_id: 301,
+    has_slot: true,
+    is_slotless_request: false,
+    slot: null,
     requested_slot_start: '2099-06-17T13:00:00Z',
     requested_slot_end: '2099-06-17T13:50:00Z',
     duration_minutes: 50,
     session_format: 'online',
     offline_location_snapshot: '',
+    client_name: null,
+    client_email: null,
+    client_phone: null,
     guest_name: 'Guest',
     contact_channel: 'email',
     contact_value: 'guest@example.com',
@@ -113,6 +134,7 @@ function buildGuestRequest(overrides: Record<string, unknown>) {
     cancelled_at: null,
     decline_reason: '',
     external_session_id: null,
+    session_id: null,
     created_at: '2099-06-16T10:00:00Z',
     updated_at: '2099-06-16T10:00:00Z',
     ...overrides,
@@ -206,6 +228,23 @@ describe('ExternalSessionsView', () => {
     mockedDeclineCabinetGuestBookingRequest.mockResolvedValue({
       id: 51,
       status: 'declined',
+    } as any)
+    mockedCreateSessionFromCabinetGuestBookingRequest.mockResolvedValue({
+      request: buildGuestRequest({
+        id: 51,
+        status: 'approved',
+        slot_id: null,
+        has_slot: false,
+        is_slotless_request: true,
+        session_id: 701,
+      }),
+      session: {
+        id: 701,
+      },
+    } as any)
+    mockedFetchSpecialistProfile.mockResolvedValue({
+      standard_session_duration_minutes: 50,
+      timezone: 'Europe/Kyiv',
     } as any)
   })
 
@@ -641,6 +680,148 @@ describe('ExternalSessionsView', () => {
     })
     expect(await screen.findByText('Відхилено')).toBeInTheDocument()
     expect(await screen.findByText(/Відхилено:/)).toBeInTheDocument()
+  })
+
+  it('renders slot-less guest request without slot approve action', async () => {
+    mockedFetchCabinetGuestBookingRequests.mockResolvedValue([
+      buildGuestRequest({
+        id: 61,
+        slot_id: null,
+        has_slot: false,
+        is_slotless_request: true,
+        requested_slot_start: null,
+        requested_slot_end: null,
+        guest_name: 'Fallback Guest',
+        client_name: 'Slotless Guest',
+        client_email: 'slotless@example.com',
+        client_phone: '+380501234567',
+        message: 'Можу після обіду',
+      }),
+    ] as any)
+
+    renderView()
+    await screen.findByText('Запит без обраного часу')
+
+    const card = getGuestRequestCardByText('Запит без обраного часу')
+    expect(card).toHaveTextContent('Клієнт залишив запит без бронювання конкретного слота. Узгодьте час і створіть сесію вручну.')
+    expect(card).toHaveTextContent('Клієнт: Slotless Guest')
+    expect(card).toHaveTextContent('Ел. пошта: slotless@example.com')
+    expect(card).toHaveTextContent('Телефон: +380501234567')
+    expect(card).toHaveTextContent('Коментар: Можу після обіду')
+    expect(within(card as HTMLElement).getByRole('button', { name: 'Створити сесію' })).toBeInTheDocument()
+    expect(within(card as HTMLElement).getByRole('button', { name: 'Закрити запит' })).toBeInTheDocument()
+    expect(within(card as HTMLElement).queryByRole('button', { name: 'Погодити' })).not.toBeInTheDocument()
+    expect(card).not.toHaveTextContent('Запитаний слот:')
+  })
+
+  it('creates manual session from slot-less guest request and refreshes data', async () => {
+    mockedFetchCabinetGuestBookingRequests.mockResolvedValue([
+      buildGuestRequest({
+        id: 62,
+        slot_id: null,
+        has_slot: false,
+        is_slotless_request: true,
+        requested_slot_start: null,
+        requested_slot_end: null,
+        client_name: 'Manual Session Guest',
+        client_email: 'manual@example.com',
+        session_format: 'online',
+      }),
+    ] as any)
+
+    renderView()
+    await screen.findByText('Запит без обраного часу')
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Створити сесію' }))
+
+    const dialog = await screen.findByRole('dialog', { name: 'Створити сесію' })
+    const modal = within(dialog)
+    expect(modal.getByLabelText('Дата')).toBeInTheDocument()
+
+    await fireEvent.update(modal.getByLabelText('Дата'), '2099-06-20')
+    await fireEvent.update(modal.getByLabelText('Час початку'), '10:00')
+    await fireEvent.update(modal.getByLabelText('Тривалість'), '50')
+    await fireEvent.update(modal.getByLabelText('Посилання на онлайн-зустріч'), 'https://meet.google.com/manual')
+    await fireEvent.click(modal.getByRole('button', { name: 'Створити сесію' }))
+
+    const expectedStartsAt = new Date('2099-06-20T10:00').toISOString()
+    const expectedEndsAt = new Date(new Date('2099-06-20T10:00').getTime() + 50 * 60000).toISOString()
+
+    await waitFor(() => {
+      expect(mockedCreateSessionFromCabinetGuestBookingRequest).toHaveBeenCalledWith(62, {
+        starts_at: expectedStartsAt,
+        ends_at: expectedEndsAt,
+        timezone: 'Europe/Kyiv',
+        session_format: 'online',
+        meeting_url: 'https://meet.google.com/manual',
+        offline_location: '',
+      })
+    })
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog', { name: 'Створити сесію' })).not.toBeInTheDocument()
+    })
+    expect(toast.success).toHaveBeenCalledWith('Сесію створено. Запит закрито.')
+    expect(mockedFetchCabinetGuestBookingRequests).toHaveBeenCalledTimes(2)
+    expect(mockedFetchExternalSessions).toHaveBeenCalledTimes(2)
+  })
+
+  it('closes slot-less guest request through decline endpoint', async () => {
+    mockedFetchCabinetGuestBookingRequests.mockResolvedValue([
+      buildGuestRequest({
+        id: 63,
+        slot_id: null,
+        has_slot: false,
+        is_slotless_request: true,
+        requested_slot_start: null,
+        requested_slot_end: null,
+        client_name: 'Close Request Guest',
+      }),
+    ] as any)
+
+    renderView()
+    await screen.findByText('Запит без обраного часу')
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Закрити запит' }))
+
+    await waitFor(() => {
+      expect(mockedDeclineCabinetGuestBookingRequest).toHaveBeenCalledWith(63)
+    })
+    expect(toast.success).toHaveBeenCalledWith('Запит закрито.')
+  })
+
+  it('shows Ukrainian conflict error for slot-less create-session failure', async () => {
+    mockedFetchCabinetGuestBookingRequests.mockResolvedValue([
+      buildGuestRequest({
+        id: 64,
+        slot_id: null,
+        has_slot: false,
+        is_slotless_request: true,
+        requested_slot_start: null,
+        requested_slot_end: null,
+        client_name: 'Conflict Guest',
+      }),
+    ] as any)
+    mockedCreateSessionFromCabinetGuestBookingRequest.mockRejectedValueOnce({
+      response: {
+        data: {
+          code: 'MANUAL_SESSION_TIME_CONFLICT',
+        },
+      },
+    })
+
+    renderView()
+    await screen.findByText('Запит без обраного часу')
+    await fireEvent.click(screen.getByRole('button', { name: 'Створити сесію' }))
+
+    const dialog = await screen.findByRole('dialog', { name: 'Створити сесію' })
+    const modal = within(dialog)
+    await fireEvent.update(modal.getByLabelText('Дата'), '2099-06-20')
+    await fireEvent.update(modal.getByLabelText('Час початку'), '10:00')
+    await fireEvent.click(modal.getByRole('button', { name: 'Створити сесію' }))
+
+    expect(
+      await screen.findAllByText('Не вдалося створити сесію: цей час перетинається з іншою сесією або недоступністю.')
+    ).toHaveLength(2)
   })
 })
 
