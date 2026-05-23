@@ -19,8 +19,8 @@
 
       <div v-if="guestQuotaSummary" class="quota-summary" :class="{ 'quota-summary--blocked': isGuestQuotaBlocked }">
         <div class="quota-summary__title">{{ guestQuotaSummary }}</div>
+        <div v-if="guestQuotaMessage" class="quota-summary__message">{{ guestQuotaMessage }}</div>
         <template v-if="isGuestQuotaBlocked">
-          <div class="quota-summary__message">{{ guestQuotaBlockMessage }}</div>
           <RouterLink class="btn btn--ghost btn--sm quota-summary__link" to="/cabinet/billing">Перейти до тарифів</RouterLink>
         </template>
       </div>
@@ -459,6 +459,15 @@ type GuestQuotaSnapshot = {
   guest_sessions_used_in_period?: number | null
   guest_sessions_limit_per_period?: number | null
   guest_sessions_period_days?: number | null
+  guest_sessions_remaining?: number | null
+  guest_sessions_next_available_at?: string | null
+  guest_sessions_quota?: {
+    used?: number | null
+    limit?: number | null
+    remaining?: number | null
+    window_days?: number | null
+    next_available_at?: string | null
+  } | null
 }
 
 const router = useRouter()
@@ -523,19 +532,48 @@ const guestQuotaSummary = computed(() => {
   const quota = guestQuota.value
   if (!quota) return ''
   if (quota.guest_sessions_enabled === false) return 'Сесії без реєстрації недоступні на вашому тарифі.'
-  const used = quota.guest_sessions_used_in_period
-  const limit = quota.guest_sessions_limit_per_period
-  const period = quota.guest_sessions_period_days
+  const used = quota.guest_sessions_quota?.used ?? quota.guest_sessions_used_in_period
+  const limit = quota.guest_sessions_quota?.limit ?? quota.guest_sessions_limit_per_period
+  const period = quota.guest_sessions_quota?.window_days ?? quota.guest_sessions_period_days
   if (typeof limit !== 'number') return 'Сесії без реєстрації доступні'
   if (typeof used !== 'number') return 'Сесії без реєстрації доступні'
   const periodLabel = typeof period === 'number' && Number.isFinite(period) ? period : 30
-  return `Сесії без реєстрації: ${used} з ${limit} за ${periodLabel} днів`
+  return `Сесії без реєстрації: ${used} з ${limit} за останні ${periodLabel} днів`
 })
-const guestQuotaBlockMessage = computed(() => {
-  if (guestQuota.value?.guest_sessions_enabled === false) {
+
+function formatQuotaDate(value: string | null | undefined) {
+  const raw = String(value || '').trim()
+  const dateOnly = raw.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+  if (dateOnly) return `${dateOnly[3]}.${dateOnly[2]}.${dateOnly[1]}`
+  const parsed = new Date(raw)
+  if (Number.isNaN(parsed.getTime())) return ''
+  return new Intl.DateTimeFormat('uk-UA', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  }).format(parsed)
+}
+
+const guestQuotaMessage = computed(() => {
+  const quota = guestQuota.value
+  if (!quota) return ''
+  if (quota.guest_sessions_enabled === false) {
     return 'Сесії без реєстрації недоступні на вашому тарифі.'
   }
-  return 'Ви використали доступні сесії без реєстрації за поточний період. Щоб створити нову сесію без реєстрації, дочекайтесь оновлення ліміту або змініть тариф.'
+  const used = quota.guest_sessions_quota?.used ?? quota.guest_sessions_used_in_period
+  const limit = quota.guest_sessions_quota?.limit ?? quota.guest_sessions_limit_per_period
+  const remaining = quota.guest_sessions_quota?.remaining ?? quota.guest_sessions_remaining
+  if (typeof used !== 'number' || typeof limit !== 'number' || typeof remaining !== 'number') return ''
+  const nextAvailableRaw = quota.guest_sessions_quota?.next_available_at ?? quota.guest_sessions_next_available_at
+  const nextAvailable = formatQuotaDate(nextAvailableRaw)
+  if (remaining <= 0) {
+    return nextAvailable
+      ? `Ліміт вичерпано. Наступне місце звільниться ${nextAvailable}.`
+      : 'Ліміт вичерпано.'
+  }
+  return nextAvailable
+    ? `Доступно ще ${remaining}. Найближче оновлення ліміту: ${nextAvailable}.`
+    : `Доступно ще ${remaining}.`
 })
 const timeOptions = Array.from({ length: 24 * 4 }, (_, index) => {
   const minutes = index * 15
@@ -651,7 +689,12 @@ function getApiErrorCode(err: unknown) {
 function localizeGuestQuotaCreateError(err: unknown, fallback: string) {
   const code = getApiErrorCode(err)
   if (code === 'GUEST_SESSIONS_LIMIT_REACHED') {
-    return 'Ліміт сесій без реєстрації вичерпано. Ви використали доступні сесії без реєстрації за поточний період. Щоб створити нову сесію без реєстрації, дочекайтесь оновлення ліміту або змініть тариф.'
+    const nextAvailableRaw =
+      guestQuota.value?.guest_sessions_quota?.next_available_at ?? guestQuota.value?.guest_sessions_next_available_at
+    const nextAvailable = formatQuotaDate(nextAvailableRaw)
+    return nextAvailable
+      ? `Ліміт вичерпано. Наступне місце звільниться ${nextAvailable}.`
+      : 'Ліміт вичерпано.'
   }
   if (code === 'GUEST_SESSIONS_DISABLED') {
     return 'Сесії без реєстрації недоступні на вашому тарифі.'
@@ -937,7 +980,7 @@ async function submitCreate() {
     createError.value =
       guestQuota.value?.guest_sessions_enabled === false
         ? 'Сесії без реєстрації недоступні на вашому тарифі.'
-        : 'Ліміт сесій без реєстрації вичерпано. Ви використали доступні сесії без реєстрації за поточний період. Щоб створити нову сесію без реєстрації, дочекайтесь оновлення ліміту або змініть тариф.'
+        : guestQuotaMessage.value || 'Ліміт сесій без реєстрації вичерпано.'
     return
   }
   const validationError = validateCreateDraft()

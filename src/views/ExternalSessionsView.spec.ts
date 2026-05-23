@@ -208,6 +208,15 @@ describe('ExternalSessionsView', () => {
       guest_sessions_used_in_period: 1,
       guest_sessions_limit_per_period: 5,
       guest_sessions_period_days: 30,
+      guest_sessions_remaining: 4,
+      guest_sessions_next_available_at: '2099-06-20',
+      guest_sessions_quota: {
+        used: 1,
+        limit: 5,
+        remaining: 4,
+        window_days: 30,
+        next_available_at: '2099-06-20',
+      },
     } as any)
     mockedFetchCabinetGuestBookingRequests.mockResolvedValue([])
     mockedCreateExternalSession.mockReset()
@@ -315,8 +324,35 @@ describe('ExternalSessionsView', () => {
   it('shows guest quota summary when entitlements are available', async () => {
     renderView()
 
-    expect(await screen.findByText('Сесії без реєстрації: 1 з 5 за 30 днів')).toBeInTheDocument()
+    expect(await screen.findByText('Сесії без реєстрації: 1 з 5 за останні 30 днів')).toBeInTheDocument()
+    expect(
+      await screen.findByText('Доступно ще 4. Найближче оновлення ліміту: 20.06.2099.'),
+    ).toBeInTheDocument()
     expect(mockedApiGet).toHaveBeenCalledWith('/cabinet/entitlements/')
+  })
+
+  it('falls back safely when guest quota renewal date is missing', async () => {
+    mockedApiGet.mockResolvedValueOnce({
+      guest_sessions_enabled: true,
+      guest_sessions_used_in_period: 1,
+      guest_sessions_limit_per_period: 5,
+      guest_sessions_period_days: 30,
+      guest_sessions_remaining: 4,
+      guest_sessions_next_available_at: null,
+      guest_sessions_quota: {
+        used: 1,
+        limit: 5,
+        remaining: 4,
+        window_days: 30,
+        next_available_at: null,
+      },
+    } as any)
+
+    renderView()
+
+    expect(await screen.findByText('Сесії без реєстрації: 1 з 5 за останні 30 днів')).toBeInTheDocument()
+    expect(screen.getByText('Доступно ще 4.')).toBeInTheDocument()
+    expect(screen.queryByText(/Найближче оновлення ліміту/)).not.toBeInTheDocument()
   })
 
   it('disables create button and shows exhausted quota message when quota is exhausted', async () => {
@@ -325,13 +361,22 @@ describe('ExternalSessionsView', () => {
       guest_sessions_used_in_period: 5,
       guest_sessions_limit_per_period: 5,
       guest_sessions_period_days: 30,
+      guest_sessions_remaining: 0,
+      guest_sessions_next_available_at: '2099-06-20',
+      guest_sessions_quota: {
+        used: 5,
+        limit: 5,
+        remaining: 0,
+        window_days: 30,
+        next_available_at: '2099-06-20',
+      },
     } as any)
 
     renderView()
 
-    expect(await screen.findByText('Сесії без реєстрації: 5 з 5 за 30 днів')).toBeInTheDocument()
+    expect(await screen.findByText('Сесії без реєстрації: 5 з 5 за останні 30 днів')).toBeInTheDocument()
+    expect(await screen.findByText('Ліміт вичерпано. Наступне місце звільниться 20.06.2099.')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Створити сесію без реєстрації' })).toBeDisabled()
-    expect(await screen.findByText('Ви використали доступні сесії без реєстрації за поточний період. Щоб створити нову сесію без реєстрації, дочекайтесь оновлення ліміту або змініть тариф.')).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Перейти до тарифів' })).toHaveAttribute('href', '/cabinet/billing')
   })
 
@@ -341,7 +386,7 @@ describe('ExternalSessionsView', () => {
     })
 
     const { container } = renderView()
-    await screen.findByText('Сесії без реєстрації: 1 з 5 за 30 днів')
+    await screen.findByText('Сесії без реєстрації: 1 з 5 за останні 30 днів')
 
     const dateInput = container.querySelector('input[type="date"]')
     const timeInput = container.querySelector('input[inputmode="numeric"]')
@@ -354,7 +399,7 @@ describe('ExternalSessionsView', () => {
     await fireEvent.update(screen.getByLabelText('Посилання на зустріч'), 'https://meet.google.com/quota-limit')
     await fireEvent.click(screen.getByRole('button', { name: 'Створити сесію без реєстрації' }))
 
-    expect(await screen.findByText('Ліміт сесій без реєстрації вичерпано. Ви використали доступні сесії без реєстрації за поточний період. Щоб створити нову сесію без реєстрації, дочекайтесь оновлення ліміту або змініть тариф.')).toBeInTheDocument()
+    expect(await screen.findByText('Ліміт вичерпано. Наступне місце звільниться 20.06.2099.')).toBeInTheDocument()
   })
 
   it('handles GUEST_SESSIONS_DISABLED from backend create response', async () => {
@@ -363,7 +408,7 @@ describe('ExternalSessionsView', () => {
     })
 
     const { container } = renderView()
-    await screen.findByText('Сесії без реєстрації: 1 з 5 за 30 днів')
+    await screen.findByText('Сесії без реєстрації: 1 з 5 за останні 30 днів')
 
     const dateInput = container.querySelector('input[type="date"]')
     const timeInput = container.querySelector('input[inputmode="numeric"]')
