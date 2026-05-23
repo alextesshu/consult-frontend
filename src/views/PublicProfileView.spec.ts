@@ -16,6 +16,7 @@ import {
   fetchSpecialistProfile,
   sendInquiryMessage,
   type InquiryState,
+  type PublicSpecialistProfile,
 } from '../lib/api'
 
 const mockRoute = {
@@ -96,10 +97,15 @@ async function flushAsyncUpdates() {
   await Promise.resolve()
 }
 
-function buildProfile(overrides: Record<string, unknown> = {}) {
-  return {
+function buildProfile(
+  overrides: Partial<PublicSpecialistProfile> & Record<string, unknown> = {}
+): PublicSpecialistProfile {
+  const base: PublicSpecialistProfile = {
     therapist_id: 12,
     public_slug: 'olena',
+    public_booking_mode: 'direct_booking',
+    show_public_availability: true,
+    public_direct_booking_enabled: true,
     display_name: 'Олена',
     offers_online: true,
     offers_offline: true,
@@ -151,6 +157,10 @@ function buildProfile(overrides: Record<string, unknown> = {}) {
     },
     platform_setting_text: 'Platform setting',
     setting_text: 'Therapist setting',
+  }
+
+  return {
+    ...base,
     ...overrides,
   }
 }
@@ -2052,6 +2062,133 @@ describe('PublicProfileView', () => {
     expect(formatErrors.length).toBeGreaterThan(0)
   })
 
+  it('hides booking calendar and shows request CTA in request-only mode', async () => {
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(
+      buildProfile({
+        public_booking_mode: 'request_only',
+        show_public_availability: false,
+        public_direct_booking_enabled: false,
+      })
+    )
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/public/specialists/olena/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    expect(await screen.findByRole('heading', { name: 'Залишити запит' })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Оберіть дату і час' })).not.toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: 'Залишити запит' }).length).toBeGreaterThan(0)
+    const slotCalls = mockedApiGet.mock.calls.filter((call) => call[0] === '/booking/slots/')
+    expect(slotCalls).toHaveLength(0)
+  })
+
+  it('shows booking calendar and request fallback in direct booking mode', async () => {
+    mockCommonPublicData()
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockBookingPageDataWithSingleSlot()
+
+    renderView()
+
+    expect(await screen.findByRole('heading', { name: 'Оберіть дату і час' })).toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: 'Залишити запит' }).length).toBeGreaterThan(0)
+  })
+
+  it('shows no-slots helper and request CTA when direct booking has no available slots', async () => {
+    mockCommonPublicData()
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/slots/') return []
+      if (url === '/public/specialists/olena/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    expect(await screen.findByRole('heading', { name: 'Оберіть дату і час' })).toBeInTheDocument()
+    await waitFor(() => {
+      expect(screen.queryByText('Завантажуємо вільні вікна')).not.toBeInTheDocument()
+    })
+    expect(
+      screen.getByText(/Наразі немає доступного часу для прямого запису/)
+    ).toBeInTheDocument()
+    expect(screen.getAllByRole('button', { name: 'Залишити запит' }).length).toBeGreaterThan(0)
+  })
+
+  it('hides booking calendar when direct booking mode has hidden public availability', async () => {
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(
+      buildProfile({
+        public_booking_mode: 'direct_booking',
+        show_public_availability: false,
+        public_direct_booking_enabled: false,
+      })
+    )
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/public/specialists/olena/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    expect(await screen.findByRole('heading', { name: 'Залишити запит' })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Оберіть дату і час' })).not.toBeInTheDocument()
+    expect(screen.getByText('Спеціаліст зараз не показує вільний час для прямого запису. Залиште запит, щоб узгодити час.')).toBeInTheDocument()
+  })
+
+  it('submits request-only guest booking request without slot_id', async () => {
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(
+      buildProfile({
+        public_booking_mode: 'request_only',
+        show_public_availability: false,
+        public_direct_booking_enabled: false,
+      })
+    )
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/public/specialists/olena/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedApiPost.mockResolvedValue({
+      request: {
+        id: 1,
+        status: 'pending',
+        created_at: '2026-05-20T12:00:00Z',
+        next_step: 'Request sent.',
+      },
+    })
+
+    renderView()
+
+    await fireEvent.click((await screen.findAllByRole('button', { name: 'Залишити запит' }))[0]!)
+    await screen.findByRole('heading', { name: 'Запит на бронювання' })
+    await fireEvent.update(screen.getByLabelText('Ім’я'), 'Guest Person')
+    await fireEvent.update(screen.getByLabelText('Контакт'), 'guest@example.com')
+    await fireEvent.click(screen.getByRole('button', { name: 'Надіслати запит' }))
+
+    expect(mockedApiPost).toHaveBeenCalledWith(
+      '/public/specialists/olena/guest-booking-requests/',
+      expect.objectContaining({
+        session_format: 'online',
+        guest_name: 'Guest Person',
+        contact_channel: 'email',
+        contact_value: 'guest@example.com',
+      })
+    )
+    expect(mockedApiPost).not.toHaveBeenCalledWith(
+      '/public/specialists/olena/guest-booking-requests/',
+      expect.objectContaining({ slot_id: expect.any(Number) })
+    )
+  })
+
   it('renders a monthly booking calendar and marks available days from month slots', async () => {
     vi.useFakeTimers()
     vi.setSystemTime(new Date('2026-03-12T10:00:00+02:00'))
@@ -2088,13 +2225,17 @@ describe('PublicProfileView', () => {
         name: /14 березня 2026.*доступно слотів: 1/i,
       })
       expect(availableDay).toHaveClass('booking-calendar__day--available')
-      expect(screen.getByText('На цю дату вільних слотів немає.')).toBeInTheDocument()
+      expect(
+        screen.getByText('Наразі немає доступного часу для прямого запису. Ви можете залишити запит.')
+      ).toBeInTheDocument()
 
       await fireEvent.click(availableDay)
 
       expect(availableDay).toHaveClass('booking-calendar__day--selected')
       expect(await screen.findByText('10:00')).toBeInTheDocument()
-      expect(screen.queryByText('На цю дату вільних слотів немає.')).not.toBeInTheDocument()
+      expect(
+        screen.queryByText('Наразі немає доступного часу для прямого запису. Ви можете залишити запит.')
+      ).not.toBeInTheDocument()
     } finally {
       vi.useRealTimers()
     }
@@ -2169,7 +2310,9 @@ describe('PublicProfileView', () => {
       expect(slotCalls).toHaveLength(1)
     })
     await flushAsyncUpdates()
-    expect(screen.getByText('У цьому місяці поки немає доступних слотів.')).toBeInTheDocument()
+    expect(
+      screen.getByText('Наразі немає доступного часу для прямого запису. Ви можете залишити запит.')
+    ).toBeInTheDocument()
     const slotCalls = mockedApiGet.mock.calls.filter((call) => call[0] === '/booking/slots/')
     expect(slotCalls).toHaveLength(1)
   })
@@ -2211,7 +2354,9 @@ describe('PublicProfileView', () => {
       await flushAsyncUpdates()
 
       expect(screen.getByText('00:30')).toBeInTheDocument()
-      expect(screen.queryByText('На цю дату вільних слотів немає.')).not.toBeInTheDocument()
+      expect(
+        screen.queryByText('Наразі немає доступного часу для прямого запису. Ви можете залишити запит.')
+      ).not.toBeInTheDocument()
     } finally {
       vi.useRealTimers()
     }

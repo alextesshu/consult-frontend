@@ -136,13 +136,31 @@
         </template>
       </section>
 
-      <div class="panel panel--slots" id="slots">
+      <section v-if="!publicDirectBookingEnabled" class="panel panel--slots panel--request-only" id="slots">
+        <div class="panel__header">
+          <div>
+            <p class="panel__eyebrow">Запит до спеціаліста</p>
+            <h2 class="panel__title">Залишити запит</h2>
+            <p class="panel__lead">{{ requestOnlyHelperText }}</p>
+          </div>
+        </div>
+        <div class="slot-request-only__actions">
+          <button class="btn btn--primary" type="button" @click="handlePublicRequestAction">
+            Залишити запит
+          </button>
+        </div>
+      </section>
+
+      <div v-else class="panel panel--slots" id="slots">
         <div class="panel__header">
           <div>
             <p class="panel__eyebrow">Доступні вільні вікна</p>
             <h2 class="panel__title">Оберіть дату і час</h2>
-            <p class="panel__lead">Оберіть день у календарі, а потім зручний час для сесії.</p>
+            <p class="panel__lead">Оберіть доступний час для запису.</p>
           </div>
+          <button class="btn btn--ghost btn--sm" type="button" @click="handlePublicRequestAction">
+            Залишити запит
+          </button>
         </div>
 
         <div class="slot-top">
@@ -269,10 +287,10 @@
         <div v-if="slotsLoading" class="muted">Завантажуємо вільні вікна</div>
         <div v-else-if="slotsError" class="form-error">{{ slotsError }}</div>
         <div v-else-if="!monthHasSlots" class="slot-empty muted">
-          У цьому місяці поки немає доступних слотів.
+          Наразі немає доступного часу для прямого запису. Ви можете залишити запит.
         </div>
         <div v-else-if="slots.length === 0" class="slot-empty muted">
-          На цю дату вільних слотів немає.
+          Наразі немає доступного часу для прямого запису. Ви можете залишити запит.
         </div>
         <div v-else class="slot-list">
           <button
@@ -810,7 +828,7 @@ type PublicSlot = {
 }
 
 type PublicGuestBookingRequestPayload = {
-  slot_id: number
+  slot_id?: number
   session_format: SessionFormat
   guest_name: string
   contact_channel: GuestContactChannel
@@ -988,6 +1006,14 @@ const isClient = computed(() => roles.value.includes('CLIENT'))
 const isGuestVisitor = computed(() => !isAuthenticated.value)
 const isUnsupportedBookingRole = computed(() => isAuthenticated.value && !isClient.value)
 const canBook = computed(() => isAuthenticated.value && isClient.value)
+const publicBookingMode = computed(() => String(profile.value?.public_booking_mode || 'request_only').trim())
+const showPublicAvailability = computed(() => Boolean(profile.value?.show_public_availability))
+const publicDirectBookingEnabled = computed(() => {
+  if (typeof profile.value?.public_direct_booking_enabled === 'boolean') {
+    return profile.value.public_direct_booking_enabled
+  }
+  return publicBookingMode.value === 'direct_booking' && showPublicAvailability.value
+})
 const hasOnlineBooking = computed(() => Boolean(profile.value?.offers_online))
 const hasOfflineBooking = computed(() => Boolean(profile.value?.offers_offline))
 const needsSessionFormatChoice = computed(
@@ -1007,6 +1033,12 @@ const sessionFormatLabelForBooking = computed(() => {
 const bookingOfflineLocationHint = computed(() => {
   if (resolvedSessionFormat.value !== 'offline') return ''
   return offlineMeetingLocation.value
+})
+const requestOnlyHelperText = computed(() => {
+  if (publicBookingMode.value === 'direct_booking' && !showPublicAvailability.value) {
+    return 'Спеціаліст зараз не показує вільний час для прямого запису. Залиште запит, щоб узгодити час.'
+  }
+  return 'Опишіть коротко ваш запит, і спеціаліст зв’яжеться з вами, щоб узгодити час.'
 })
 
 function resolveBookingRuleScope(rule: PublicBookingRuleItem): 'PLATFORM' | 'SPECIALIST' {
@@ -1575,6 +1607,7 @@ const heroPrimaryLabel = computed(() => {
   if (showInquiryEntry.value) {
     return inquiryState.value?.inquiry_exists ? 'Уточнити деталі' : 'Поставити запитання'
   }
+  if (!publicDirectBookingEnabled.value) return 'Залишити запит'
   return 'Записатися на ознайомчу сесію'
 })
 
@@ -1584,6 +1617,9 @@ const primaryActionNextStepCopy = computed(() => {
   }
   if (showInquiryEntry.value) {
     return 'Після натискання відкриється короткий запит до бронювання. Це м’який старт без фіксації слота.'
+  }
+  if (!publicDirectBookingEnabled.value) {
+    return 'Після натискання відкриється форма запиту: залиште контакт і коротко опишіть запит.'
   }
   if (!isAuthenticated.value) {
     return 'Після вибору часу відкриється короткий запит: залиште ім’я та контакт без реєстрації.'
@@ -1599,6 +1635,7 @@ const closingPrimaryLabel = computed(() => {
   if (showInquiryEntry.value) {
     return inquiryState.value?.inquiry_exists ? 'Уточнити деталі' : 'Поставити запитання'
   }
+  if (!publicDirectBookingEnabled.value) return 'Залишити запит'
   return 'Записатися на ознайомчу сесію'
 })
 
@@ -2556,6 +2593,10 @@ function handleHeroPrimaryAction() {
     scrollToInquiry()
     return
   }
+  if (!publicDirectBookingEnabled.value) {
+    openGuestBookingModal()
+    return
+  }
   scrollToSlots()
 }
 
@@ -2568,11 +2609,27 @@ function handleClosingPrimaryAction() {
     scrollToInquiry()
     return
   }
+  if (!publicDirectBookingEnabled.value) {
+    openGuestBookingModal()
+    return
+  }
   if (hasPublicContactCta.value) {
     openPublicContactCta()
     return
   }
   scrollToSlots()
+}
+
+function handlePublicRequestAction() {
+  if (canMessageSpecialist.value) {
+    openClientChat()
+    return
+  }
+  if (showInquiryEntry.value) {
+    scrollToInquiry()
+    return
+  }
+  openGuestBookingModal()
 }
 
 function isMyInquiryMessage(senderId: number) {
@@ -2621,6 +2678,14 @@ async function loadProfile() {
 
 async function loadSlots(options: { preferFirstAvailable?: boolean; forceRefresh?: boolean } = {}) {
   if (!profile.value?.therapist_id) return
+  if (!publicDirectBookingEnabled.value) {
+    slots.value = []
+    monthSlots.value = []
+    slotsError.value = ''
+    slotsLoading.value = false
+    monthSlotsCache.clear()
+    return
+  }
   slotsLoading.value = true
   slotsError.value = ''
   try {
@@ -2983,9 +3048,12 @@ function closeGuestBookingModal() {
   resetGuestBookingForm()
 }
 
-function openGuestBookingModal(slotId: number) {
-  const selectedSlot = slots.value.find((slot) => slot.id === slotId) || null
-  if (!selectedSlot) {
+function openGuestBookingModal(slotId?: number) {
+  const selectedSlot =
+    typeof slotId === 'number'
+      ? slots.value.find((slot) => slot.id === slotId) || null
+      : null
+  if (typeof slotId === 'number' && !selectedSlot) {
     bookingError.value = SLOT_UNAVAILABLE_MESSAGE
     return
   }
@@ -2994,7 +3062,7 @@ function openGuestBookingModal(slotId: number) {
   guestBookingSlot.value = selectedSlot
   guestBookingError.value = ''
   guestBookingSuccess.value = null
-  guestBookingSubmitSlotId.value = slotId
+  guestBookingSubmitSlotId.value = selectedSlot?.id || null
   guestBookingRulesAccepted.value = false
   resetGuestBookingForm()
   showGuestBookingModal.value = true
@@ -3136,7 +3204,7 @@ async function createPublicGuestBookingRequest(
 async function submitGuestBookingRequest() {
   const slot = guestBookingSlot.value
   const profileSlug = String(profile.value?.public_slug || profile.value?.slug || slug.value).trim()
-  if (!slot || !profileSlug) return
+  if (!profileSlug) return
 
   const guestName = guestBookingForm.value.guest_name.trim()
   const contactChannelRaw = guestBookingForm.value.contact_channel.trim().toLowerCase()
@@ -3166,15 +3234,17 @@ async function submitGuestBookingRequest() {
 
   guestBookingSubmitting.value = true
   guestBookingError.value = ''
-  guestBookingSubmitSlotId.value = slot.id
+  guestBookingSubmitSlotId.value = slot?.id || null
 
   try {
     const payload: PublicGuestBookingRequestPayload = {
-      slot_id: slot.id,
       session_format: sessionFormat,
       guest_name: guestName,
       contact_channel: contactChannel,
       contact_value: contactValue,
+    }
+    if (slot) {
+      payload.slot_id = slot.id
     }
     if (message) {
       payload.message = message
@@ -3797,6 +3867,11 @@ onMounted(async () => {
   );
   border-color: color-mix(in srgb, var(--line) 88%, #d9d0bd);
   box-shadow: var(--pc-shadow-soft);
+}
+
+.slot-request-only__actions {
+  display: flex;
+  justify-content: flex-start;
 }
 
 .panel--profile {
