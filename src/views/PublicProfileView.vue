@@ -48,7 +48,13 @@
           :standard-session-duration-label="standardSessionDurationLabel"
           :show-contact-actions="showDirectContactActions"
           :contact-actions="contactActions"
+          :show-chat-cta="canMessageSpecialist"
+          chat-cta-label="Написати в чат"
+          :show-request-cta="canMessageSpecialist"
+          request-cta-label="Залишити запит"
           @primary-action="handleHeroPrimaryAction"
+          @chat-action="openClientChat"
+          @request-action="handlePublicRequestAction"
           @direct-contact-action="handleDirectContactAction"
         />
       </aside>
@@ -145,7 +151,15 @@
           </div>
         </div>
         <div class="slot-request-only__actions">
-          <button class="btn btn--primary" type="button" @click="handlePublicRequestAction">
+          <button v-if="canMessageSpecialist" class="btn btn--primary" type="button" @click="openClientChat">
+            Написати в чат
+          </button>
+          <button
+            class="btn"
+            :class="canMessageSpecialist ? 'btn--ghost' : 'btn--primary'"
+            type="button"
+            @click="handlePublicRequestAction"
+          >
             Залишити запит
           </button>
         </div>
@@ -158,9 +172,14 @@
             <h2 class="panel__title">Оберіть дату і час</h2>
             <p class="panel__lead">Оберіть доступний час для запису.</p>
           </div>
-          <button class="btn btn--ghost btn--sm" type="button" @click="handlePublicRequestAction">
-            Залишити запит
-          </button>
+          <div class="slot-request-actions">
+            <button class="btn btn--ghost btn--sm" type="button" @click="handlePublicRequestAction">
+              Залишити запит
+            </button>
+            <button v-if="canMessageSpecialist" class="btn btn--ghost btn--sm" type="button" @click="openClientChat">
+              Написати в чат
+            </button>
+          </div>
         </div>
 
         <div class="slot-top">
@@ -431,7 +450,13 @@
         :closing-secondary-kind="closingSecondaryKind"
         :feedback-link="feedbackLink"
         :contact-cta-label="CONTACT_CHOOSER_COPY.ctaLabel"
+        :show-chat-cta="canMessageSpecialist"
+        chat-cta-label="Написати в чат"
+        :show-request-cta="canMessageSpecialist"
+        request-cta-label="Залишити запит"
         @primary-action="handleClosingPrimaryAction"
+        @chat-action="openClientChat"
+        @request-action="handlePublicRequestAction"
         @scroll-slots="scrollToSlots"
         @open-contact="openPublicContactCta"
       />
@@ -513,7 +538,7 @@
         <div class="setting-modal__body">
           <template v-if="guestBookingSuccess">
             <div class="success">
-              Запит надіслано. Спеціаліст підтвердить час або зв’яжеться з вами.
+              Запит надіслано. Спеціаліст зв’яжеться з вами, щоб узгодити час.
             </div>
             <div class="booking-slot" v-if="guestBookingSlot">
               <div class="muted">Обраний слот</div>
@@ -846,8 +871,10 @@ type PublicGuestBookingRequestResponse = {
 }
 
 type GuestContactChannel = 'email' | 'phone' | 'telegram'
+const GUEST_BOOKING_SUCCESS_TEXT =
+  'Запит надіслано. Спеціаліст зв’яжеться з вами, щоб узгодити час.'
 const GUEST_BOOKING_SUCCESS_NEXT_STEP_COPY =
-  'Спеціаліст перегляне запит і зв’яжеться з вами найближчим часом.'
+  'Спеціаліст зв’яжеться з вами, щоб узгодити час.'
 
 type ClientSession = {
   id: number
@@ -1603,7 +1630,6 @@ const heroCtaTitle = computed(() => {
   return 'Запишіться на консультацію'
 })
 const heroPrimaryLabel = computed(() => {
-  if (canMessageSpecialist.value) return 'Написати повідомлення'
   if (showInquiryEntry.value) {
     return inquiryState.value?.inquiry_exists ? 'Уточнити деталі' : 'Поставити запитання'
   }
@@ -1613,7 +1639,7 @@ const heroPrimaryLabel = computed(() => {
 
 const primaryActionNextStepCopy = computed(() => {
   if (canMessageSpecialist.value) {
-    return 'Після натискання відкриється чат у кабінеті клієнта, де можна узгодити деталі у зручному темпі.'
+    return 'Ви вже працюєте з цим спеціалістом. Можете продовжити спілкування або переглянути свої сесії.'
   }
   if (showInquiryEntry.value) {
     return 'Після натискання відкриється короткий запит до бронювання. Це м’який старт без фіксації слота.'
@@ -1631,7 +1657,6 @@ const primaryActionNextStepCopy = computed(() => {
 })
 
 const closingPrimaryLabel = computed(() => {
-  if (canMessageSpecialist.value) return 'Написати спеціалісту'
   if (showInquiryEntry.value) {
     return inquiryState.value?.inquiry_exists ? 'Уточнити деталі' : 'Поставити запитання'
   }
@@ -2585,10 +2610,6 @@ function retryContactActionFallback() {
 }
 
 function handleHeroPrimaryAction() {
-  if (canMessageSpecialist.value) {
-    openClientChat()
-    return
-  }
   if (showInquiryEntry.value) {
     scrollToInquiry()
     return
@@ -2601,10 +2622,6 @@ function handleHeroPrimaryAction() {
 }
 
 function handleClosingPrimaryAction() {
-  if (canMessageSpecialist.value) {
-    openClientChat()
-    return
-  }
   if (showInquiryEntry.value) {
     scrollToInquiry()
     return
@@ -2621,14 +2638,6 @@ function handleClosingPrimaryAction() {
 }
 
 function handlePublicRequestAction() {
-  if (canMessageSpecialist.value) {
-    openClientChat()
-    return
-  }
-  if (showInquiryEntry.value) {
-    scrollToInquiry()
-    return
-  }
   openGuestBookingModal()
 }
 
@@ -3251,7 +3260,7 @@ async function submitGuestBookingRequest() {
     }
     const response = await createPublicGuestBookingRequest(profileSlug, payload)
     guestBookingSuccess.value = response.request
-    toast.success('Запит надіслано.')
+    toast.success(GUEST_BOOKING_SUCCESS_TEXT)
   } catch (err: any) {
     guestBookingError.value = getGuestBookingErrorMessage(err)
     toast.error(guestBookingError.value)
@@ -3871,7 +3880,16 @@ onMounted(async () => {
 
 .slot-request-only__actions {
   display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
   justify-content: flex-start;
+}
+
+.slot-request-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
 }
 
 .panel--profile {

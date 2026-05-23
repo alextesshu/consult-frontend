@@ -1306,15 +1306,15 @@ describe('PublicProfileView', () => {
       }
     )
     expect(
-      await screen.findByText('Запит надіслано. Спеціаліст підтвердить час або зв’яжеться з вами.')
+      await screen.findByText('Запит надіслано. Спеціаліст зв’яжеться з вами, щоб узгодити час.')
     ).toBeInTheDocument()
     expect(screen.getByText(/Реєстрація не потрібна для цього кроку\./)).toBeInTheDocument()
     expect(
       screen.getByText(/Натискання кнопки не означає автоматичне списання оплати\./)
     ).toBeInTheDocument()
     expect(
-      screen.getByText(/Спеціаліст перегляне запит і зв’яжеться з вами найближчим часом\./)
-    ).toBeInTheDocument()
+      screen.getAllByText(/Спеціаліст зв’яжеться з вами, щоб узгодити час\./).length
+    ).toBeGreaterThan(0)
     expect(
       screen.queryByText(/Request sent\. Specialist will review and contact you soon\./)
     ).not.toBeInTheDocument()
@@ -2082,9 +2082,36 @@ describe('PublicProfileView', () => {
 
     expect(await screen.findByRole('heading', { name: 'Залишити запит' })).toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Оберіть дату і час' })).not.toBeInTheDocument()
-    expect(screen.getAllByRole('button', { name: 'Залишити запит' }).length).toBeGreaterThan(0)
+    const requestButtons = screen.getAllByRole('button', { name: 'Залишити запит' })
+    expect(requestButtons.length).toBeGreaterThan(0)
+    expect(requestButtons[0]).toHaveClass('btn--primary')
     const slotCalls = mockedApiGet.mock.calls.filter((call) => call[0] === '/booking/slots/')
     expect(slotCalls).toHaveLength(0)
+  })
+
+  it('opens request form from request-only CTA for a guest visitor', async () => {
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(
+      buildProfile({
+        public_booking_mode: 'request_only',
+        show_public_availability: false,
+        public_direct_booking_enabled: false,
+      })
+    )
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/public/specialists/olena/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    await fireEvent.click((await screen.findAllByRole('button', { name: 'Залишити запит' }))[0]!)
+
+    expect(await screen.findByRole('heading', { name: 'Запит на бронювання' })).toBeInTheDocument()
+    expect(screen.getByText('Опишіть коротко ваш запит, і спеціаліст зв’яжеться з вами, щоб узгодити час.')).toBeInTheDocument()
+    expect(mockRouter.push).not.toHaveBeenCalled()
   })
 
   it('shows booking calendar and request fallback in direct booking mode', async () => {
@@ -2187,6 +2214,244 @@ describe('PublicProfileView', () => {
       '/public/specialists/olena/guest-booking-requests/',
       expect.objectContaining({ slot_id: expect.any(Number) })
     )
+  })
+
+  it('opens request form from request-only CTA for an active client instead of chat', async () => {
+    mockAuth.accessToken = 'token'
+    mockAuth.me = { user: { id: 7, roles: ['CLIENT'] } }
+
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(
+      buildProfile({
+        public_booking_mode: 'request_only',
+        show_public_availability: false,
+        public_direct_booking_enabled: false,
+      })
+    )
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([
+      {
+        id: 44,
+        therapist_id: 12,
+        client_id: 7,
+        last_message_at: null,
+        last_message_preview: '',
+        unread_count: 0,
+        other_user: {
+          id: 12,
+          role: 'THERAPIST',
+          display_name: 'Олена',
+          photo_url: '',
+        },
+      },
+    ])
+    mockedFetchInquiryState.mockResolvedValue(
+      buildInquiryState({
+        inquiry_status: 'ACTIVE_CLIENT',
+        can_create_inquiry: false,
+        create_reason_code: 'ACTIVE_CLIENT_USE_CHAT',
+      })
+    )
+    mockClientPageData()
+
+    renderView()
+
+    const chatButtons = await screen.findAllByRole('button', { name: 'Написати в чат' })
+    expect(chatButtons.length).toBeGreaterThan(0)
+    expect(chatButtons[0]).toHaveClass('btn--primary')
+    expect(
+      screen.getAllByRole('button', { name: 'Залишити запит' }).some((button) =>
+        button.classList.contains('btn--primary')
+      )
+    ).toBe(false)
+    await fireEvent.click((await screen.findAllByRole('button', { name: 'Залишити запит' }))[0]!)
+
+    expect(await screen.findByRole('heading', { name: 'Запит на бронювання' })).toBeInTheDocument()
+    expect(mockRouter.push).not.toHaveBeenCalled()
+  })
+
+  it('opens request form from request-only CTA for an authenticated client without active chat', async () => {
+    mockAuth.accessToken = 'token'
+    mockAuth.me = { user: { id: 7, roles: ['CLIENT'] } }
+
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(
+      buildProfile({
+        public_booking_mode: 'request_only',
+        show_public_availability: false,
+        public_direct_booking_enabled: false,
+      })
+    )
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedFetchInquiryState.mockResolvedValue(buildInquiryState())
+    mockClientPageData()
+
+    renderView()
+
+    await fireEvent.click((await screen.findAllByRole('button', { name: 'Залишити запит' }))[0]!)
+
+    expect(await screen.findByRole('heading', { name: 'Запит на бронювання' })).toBeInTheDocument()
+    expect(mockRouter.push).not.toHaveBeenCalled()
+  })
+
+  it('keeps chat as a separate CTA for an active client', async () => {
+    mockAuth.accessToken = 'token'
+    mockAuth.me = { user: { id: 7, roles: ['CLIENT'] } }
+
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(
+      buildProfile({
+        public_booking_mode: 'request_only',
+        show_public_availability: false,
+        public_direct_booking_enabled: false,
+      })
+    )
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([
+      {
+        id: 44,
+        therapist_id: 12,
+        client_id: 7,
+        last_message_at: null,
+        last_message_preview: '',
+        unread_count: 0,
+        other_user: {
+          id: 12,
+          role: 'THERAPIST',
+          display_name: 'Олена',
+          photo_url: '',
+        },
+      },
+    ])
+    mockedFetchInquiryState.mockResolvedValue(
+      buildInquiryState({
+        inquiry_status: 'ACTIVE_CLIENT',
+        can_create_inquiry: false,
+        create_reason_code: 'ACTIVE_CLIENT_USE_CHAT',
+      })
+    )
+    mockClientPageData()
+
+    renderView()
+
+    const chatButtons = await screen.findAllByRole('button', { name: 'Написати в чат' })
+    expect(chatButtons.length).toBeGreaterThan(0)
+    expect(chatButtons[0]).toHaveClass('btn--primary')
+
+    await fireEvent.click(chatButtons[0]!)
+
+    expect(mockRouter.push).toHaveBeenCalledWith({
+      name: 'client-chat',
+      query: { therapist_id: '12' },
+    })
+  })
+
+  it('submits active-client request-only booking request without slot_id', async () => {
+    mockAuth.accessToken = 'token'
+    mockAuth.me = { user: { id: 7, roles: ['CLIENT'] } }
+
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(
+      buildProfile({
+        public_booking_mode: 'request_only',
+        show_public_availability: false,
+        public_direct_booking_enabled: false,
+      })
+    )
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([
+      {
+        id: 44,
+        therapist_id: 12,
+        client_id: 7,
+        last_message_at: null,
+        last_message_preview: '',
+        unread_count: 0,
+        other_user: {
+          id: 12,
+          role: 'THERAPIST',
+          display_name: 'Олена',
+          photo_url: '',
+        },
+      },
+    ])
+    mockedFetchInquiryState.mockResolvedValue(
+      buildInquiryState({
+        inquiry_status: 'ACTIVE_CLIENT',
+        can_create_inquiry: false,
+        create_reason_code: 'ACTIVE_CLIENT_USE_CHAT',
+      })
+    )
+    mockClientPageData()
+    mockedApiPost.mockResolvedValue({
+      request: {
+        id: 2,
+        status: 'pending',
+        created_at: '2026-05-20T12:00:00Z',
+        next_step: null,
+      },
+    })
+
+    renderView()
+
+    await fireEvent.click((await screen.findAllByRole('button', { name: 'Залишити запит' }))[0]!)
+    await fireEvent.update(await screen.findByLabelText('Ім’я'), 'Client Person')
+    await fireEvent.update(screen.getByLabelText('Контакт'), 'client@example.com')
+    await fireEvent.click(screen.getByRole('button', { name: 'Надіслати запит' }))
+
+    expect(mockedApiPost).toHaveBeenCalledWith(
+      '/public/specialists/olena/guest-booking-requests/',
+      expect.objectContaining({
+        session_format: 'online',
+        guest_name: 'Client Person',
+        contact_channel: 'email',
+        contact_value: 'client@example.com',
+      })
+    )
+    expect(mockedApiPost).not.toHaveBeenCalledWith(
+      '/public/specialists/olena/guest-booking-requests/',
+      expect.objectContaining({ slot_id: expect.any(Number) })
+    )
+  })
+
+  it('opens request form from direct booking fallback CTA for an active client instead of chat', async () => {
+    mockAuth.accessToken = 'token'
+    mockAuth.me = { user: { id: 7, roles: ['CLIENT'] } }
+
+    mockCommonPublicData()
+    mockedFetchChatThreads.mockResolvedValue([
+      {
+        id: 44,
+        therapist_id: 12,
+        client_id: 7,
+        last_message_at: null,
+        last_message_preview: '',
+        unread_count: 0,
+        other_user: {
+          id: 12,
+          role: 'THERAPIST',
+          display_name: 'Олена',
+          photo_url: '',
+        },
+      },
+    ])
+    mockedFetchInquiryState.mockResolvedValue(
+      buildInquiryState({
+        inquiry_status: 'ACTIVE_CLIENT',
+        can_create_inquiry: false,
+        create_reason_code: 'ACTIVE_CLIENT_USE_CHAT',
+      })
+    )
+    mockBookingPageDataWithSingleSlot()
+
+    renderView()
+
+    const fallbackButton = await screen.findByRole('button', { name: 'Залишити запит' })
+    await fireEvent.click(fallbackButton)
+
+    expect(await screen.findByRole('heading', { name: 'Запит на бронювання' })).toBeInTheDocument()
+    expect(mockRouter.push).not.toHaveBeenCalled()
   })
 
   it('renders a monthly booking calendar and marks available days from month slots', async () => {
@@ -2362,7 +2627,7 @@ describe('PublicProfileView', () => {
     }
   })
 
-  it('switches public profile CTA to internal chat for an active client relation', async () => {
+  it('shows internal chat as a separate CTA for an active client relation', async () => {
     mockAuth.accessToken = 'token'
     mockAuth.me = { user: { id: 7, roles: ['CLIENT'] } }
 
@@ -2419,17 +2684,24 @@ describe('PublicProfileView', () => {
 
     renderView()
 
-    const chatButton = await screen.findByRole('button', { name: 'Написати повідомлення' })
-    expect(chatButton).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Написати спеціалісту' })).toBeInTheDocument()
-    const bookingCta = screen.getByRole('link', { name: 'Записатися на сесію' })
-    expect(bookingCta).toHaveAttribute('href', '#slots')
-    expect(bookingCta).toHaveClass('btn--primary')
+    const chatButtons = await screen.findAllByRole('button', { name: 'Написати в чат' })
+    expect(chatButtons.length).toBeGreaterThan(0)
+    expect(chatButtons[0]).toHaveClass('btn--primary')
+    expect(screen.queryByRole('button', { name: 'Написати повідомлення' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Написати спеціалісту' })).not.toBeInTheDocument()
     expect(screen.getAllByText('Мої сесії')).toHaveLength(2)
     expect(screen.getAllByText('Відгуки').length).toBeGreaterThan(0)
+    expect(
+      screen.getAllByRole('button', { name: 'Залишити запит' }).some((button) =>
+        button.classList.contains('btn--primary')
+      )
+    ).toBe(false)
+    expect(
+      screen.getAllByText('Ви вже працюєте з цим спеціалістом. Можете продовжити спілкування або переглянути свої сесії.').length
+    ).toBeGreaterThan(0)
     expect(screen.queryByText('Поставити запитання')).not.toBeInTheDocument()
 
-    await fireEvent.click(chatButton as HTMLButtonElement)
+    await fireEvent.click(chatButtons[0] as HTMLButtonElement)
 
     expect(mockRouter.push).toHaveBeenCalledWith({
       name: 'client-chat',
@@ -2452,6 +2724,7 @@ describe('PublicProfileView', () => {
     expect(inquiryButtons).toHaveLength(2)
     expect(screen.queryByRole('button', { name: 'Написати повідомлення' })).not.toBeInTheDocument()
     expect(screen.queryByText('Написати спеціалісту')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Написати в чат' })).not.toBeInTheDocument()
     expect(screen.queryByText('Відгуки')).not.toBeInTheDocument()
   })
 

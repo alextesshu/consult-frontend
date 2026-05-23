@@ -16,7 +16,19 @@
       </div>
 
       <div class="identity-rail__actions">
-        <template v-if="showClientSessionsCta">
+        <template v-if="showChatCta">
+          <button class="btn btn--primary" type="button" @click="$emit('chat-action')">
+            {{ chatCtaLabel }}
+          </button>
+          <RouterLink class="btn btn--ghost" to="/client">
+            Мої сесії
+          </RouterLink>
+          <button v-if="showRequestCta" class="btn btn--ghost" type="button" @click="$emit('request-action')">
+            {{ requestCtaLabel }}
+          </button>
+          <RouterLink class="btn btn--ghost" :to="feedbackLink">Відгуки</RouterLink>
+        </template>
+        <template v-else-if="showClientSessionsCta">
           <a class="btn btn--primary" href="#slots">Записатися на сесію</a>
           <button class="btn btn--ghost" type="button" @click="$emit('primary-action')">
             {{ heroPrimaryLabel }}
@@ -85,12 +97,23 @@ type Props = {
   standardSessionDurationLabel: string
   showContactActions: boolean
   contactActions: ContactAction[]
+  showChatCta?: boolean
+  chatCtaLabel?: string
+  showRequestCta?: boolean
+  requestCtaLabel?: string
 }
 
-defineProps<Props>()
+withDefaults(defineProps<Props>(), {
+  showChatCta: false,
+  chatCtaLabel: 'Написати в чат',
+  showRequestCta: false,
+  requestCtaLabel: 'Залишити запит',
+})
 
 defineEmits<{
   (event: 'primary-action'): void
+  (event: 'chat-action'): void
+  (event: 'request-action'): void
   (event: 'direct-contact-action', item: ContactAction): void
 }>()
 </script>

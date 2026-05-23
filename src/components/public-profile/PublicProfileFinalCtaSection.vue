@@ -7,7 +7,10 @@
         <p class="closing-cta__next-step">{{ primaryActionNextStepCopy }}</p>
       </div>
       <div class="closing-cta__actions">
-        <button class="btn btn--primary" type="button" @click="$emit('primary-action')">
+        <button v-if="showChatCta" class="btn btn--primary" type="button" @click="$emit('chat-action')">
+          {{ chatCtaLabel }}
+        </button>
+        <button v-else class="btn btn--primary" type="button" @click="$emit('primary-action')">
           {{ closingPrimaryLabel }}
         </button>
         <RouterLink
@@ -17,15 +20,18 @@
         >
           Мої сесії
         </RouterLink>
+        <button v-if="showChatCta && showRequestCta" class="btn btn--ghost" type="button" @click="$emit('request-action')">
+          {{ requestCtaLabel }}
+        </button>
         <RouterLink
-          v-else-if="closingSecondaryKind === 'reviews'"
+          v-if="!showChatCta && closingSecondaryKind === 'reviews'"
           class="btn btn--ghost"
           :to="feedbackLink"
         >
           Відгуки
         </RouterLink>
         <button
-          v-else-if="closingSecondaryKind === 'slots'"
+          v-else-if="!showChatCta && closingSecondaryKind === 'slots'"
           class="btn btn--ghost"
           type="button"
           @click="$emit('scroll-slots')"
@@ -33,7 +39,7 @@
           Переглянути вільні вікна
         </button>
         <button
-          v-else-if="closingSecondaryKind === 'contact'"
+          v-else-if="!showChatCta && closingSecondaryKind === 'contact'"
           class="btn btn--ghost"
           type="button"
           @click="$emit('open-contact')"
@@ -55,12 +61,23 @@ type Props = {
   closingSecondaryKind: ClosingSecondaryKind
   feedbackLink: string | Record<string, unknown>
   contactCtaLabel: string
+  showChatCta?: boolean
+  chatCtaLabel?: string
+  showRequestCta?: boolean
+  requestCtaLabel?: string
 }
 
-defineProps<Props>()
+withDefaults(defineProps<Props>(), {
+  showChatCta: false,
+  chatCtaLabel: 'Написати в чат',
+  showRequestCta: false,
+  requestCtaLabel: 'Залишити запит',
+})
 
 defineEmits<{
   (event: 'primary-action'): void
+  (event: 'chat-action'): void
+  (event: 'request-action'): void
   (event: 'scroll-slots'): void
   (event: 'open-contact'): void
 }>()
