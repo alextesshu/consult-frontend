@@ -1,7 +1,6 @@
 <template>
   <aside v-if="profile" class="identity-rail">
     <div class="identity-rail__card">
-      <p class="identity-rail__eyebrow">Швидкий огляд</p>
       <h2 class="identity-rail__title">{{ heroCtaTitle }}</h2>
 
       <div class="identity-rail__services" v-if="introPriceDisplay || priceDisplay" aria-label="Послуги та вартість">
@@ -139,16 +138,6 @@ defineEmits<{
   padding: 18px;
   box-shadow: var(--pc-shadow-card);
   color: var(--pc-text-main);
-}
-
-.identity-rail__eyebrow {
-  margin: 0;
-  width: fit-content;
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  font-weight: 700;
-  color: color-mix(in srgb, var(--pc-navy-900) 78%, var(--pc-text-muted));
 }
 
 .identity-rail__title {

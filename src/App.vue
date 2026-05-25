@@ -6,6 +6,7 @@
         'shell--home': isHome,
         'shell--minimal': useMinimalShell,
         'shell--authenticated': isAuthenticatedLayout,
+        'shell--public-profile': isPublicProfilePage,
       },
     ]"
   >
@@ -974,6 +975,12 @@ watch(isChatCapable, (value) => {
   gap: 30px;
 }
 
+.shell--public-profile {
+  --shell-inline-pad: clamp(10px, 1.2vw, 16px);
+  padding: 0 var(--shell-inline-pad) 28px;
+  gap: 12px;
+}
+
 .shell--home {
   max-width: none;
   padding: 0;
@@ -1815,7 +1822,7 @@ watch(isChatCapable, (value) => {
 }
 
 .main--public-profile {
-  width: min(1720px, 94vw);
+  width: min(1720px, 100%);
 }
 
 .shell--minimal .main {
@@ -1977,6 +1984,12 @@ body.body--home .footer__link:hover {
 }
 
 @media (max-width: 1024px) {
+  .shell--public-profile {
+    --shell-inline-pad: 10px;
+    gap: 8px;
+    padding-bottom: 20px;
+  }
+
   .topbar__inner {
     align-items: flex-start;
     gap: 10px;
@@ -2106,6 +2119,12 @@ body.body--home .footer__link:hover {
 }
 
 @media (max-width: 640px) {
+  .shell--public-profile {
+    --shell-inline-pad: 8px;
+    gap: 6px;
+    padding-bottom: 16px;
+  }
+
   .main {
     width: 100%;
   }
@@ -2275,6 +2294,14 @@ body.body--home .footer__link:hover {
     right: 8px;
     bottom: 8px;
     max-width: calc(100vw - 16px);
+  }
+}
+
+@media (max-width: 1024px) and (max-height: 560px) {
+  .shell--public-profile {
+    --shell-inline-pad: 6px;
+    gap: 6px;
+    padding-bottom: 12px;
   }
 }
 </style>

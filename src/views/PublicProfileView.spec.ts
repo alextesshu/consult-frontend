@@ -363,7 +363,9 @@ describe('PublicProfileView', () => {
     const { container } = renderView()
 
     expect(await screen.findByText('Загальна інформація')).toBeInTheDocument()
-    expect(screen.getByText('Швидкий огляд')).toBeInTheDocument()
+    expect(screen.queryByText('Профіль спеціаліста')).not.toBeInTheDocument()
+    expect(screen.queryByText('Швидкий огляд')).not.toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Запишіться на консультацію' })).toBeInTheDocument()
     expect(screen.getByText('Документи та сертифікати')).toBeInTheDocument()
     expect(screen.getByText('Сертифікат CBT')).toBeInTheDocument()
     expect(screen.getByText('Зв’язок зі спеціалістом')).toBeInTheDocument()
@@ -428,6 +430,47 @@ describe('PublicProfileView', () => {
     expect(screen.getAllByText(/Ознайомча сесія:/i).length).toBeGreaterThan(0)
   })
 
+  it('replaces the hero video player with a video business card button that opens a modal', async () => {
+    mockCommonPublicData()
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/slots/') return [buildTodayLocalSlot()]
+      if (url === '/public/specialists/olena/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    const { container } = renderView()
+
+    const videoButton = await screen.findByRole('button', { name: 'Відеовізитка' })
+    expect(container.querySelector('.hero-video')).toBeNull()
+
+    await fireEvent.click(videoButton)
+
+    const modalTitle = await screen.findByRole('heading', { name: 'Відеовізитка' })
+    const modal = modalTitle.closest('.profile-video-modal')
+    expect(modal).not.toBeNull()
+    const modalVideo = modal?.querySelector('video')
+    expect(modalVideo).not.toBeNull()
+    expect(modalVideo).toHaveAttribute('src', 'https://example.com/video.mp4')
+  })
+
+  it('does not render the video business card button when profile video is absent', async () => {
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(buildProfile({ video_url: '' }))
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/slots/') return [buildTodayLocalSlot()]
+      if (url === '/public/specialists/olena/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    await screen.findByText('Загальна інформація')
+    expect(screen.queryByRole('button', { name: 'Відеовізитка' })).not.toBeInTheDocument()
+  })
+
   it('shows back-to-top button only after scroll and scrolls to top on click', async () => {
     mockCommonPublicData()
     mockedFetchChatThreads.mockResolvedValue([])
@@ -454,7 +497,7 @@ describe('PublicProfileView', () => {
     scrollToSpy.mockRestore()
   })
 
-  it('shows "Докладніше про мене" in hero and scrolls smoothly to "Про мене" section', async () => {
+  it('does not show the hero read-more link when about section is available below', async () => {
     mockCommonPublicData()
     const profileWithSummary = buildProfile()
     ;(profileWithSummary as Record<string, any>).public_profile_summary = 'Short hero summary for read more action.'
@@ -475,12 +518,7 @@ describe('PublicProfileView', () => {
 
     const aboutSection = container.querySelector('#about-me')
     expect(aboutSection).toBeTruthy()
-    const readMoreButton = screen.getByRole('button', { name: 'Докладніше про мене' })
-
-    scrollIntoViewSpy.mockClear()
-    await fireEvent.click(readMoreButton)
-
-    expect(scrollIntoViewSpy).toHaveBeenCalledWith({ behavior: 'smooth', block: 'start' })
+    expect(screen.queryByRole('button', { name: 'Докладніше про мене' })).not.toBeInTheDocument()
   })
 
   it('shows compact specialist terms reminder in booking sidebar when setting_text is present', async () => {

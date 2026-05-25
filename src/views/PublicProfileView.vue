@@ -26,11 +26,10 @@
           :hero-role-line="heroRoleLine"
           :hero-lead-text="heroLeadText"
           :hero-support-text="heroSupportText"
-          :show-read-more="showHeroReadMore"
           :completed-sessions-badge="completedSessionsBadge"
           :display-specialization-chips="displaySpecializationChips"
           :general-info-items="trustItems"
-          @read-more="focusAboutSection"
+          @video-action="openProfileVideoModal"
         />
       </section>
 
@@ -527,6 +526,27 @@
       </div>
     </div>
 
+    <div v-if="showProfileVideoModal && profileVideoUrl" class="setting-modal">
+      <div class="setting-modal__backdrop" @click="closeProfileVideoModal"></div>
+      <div class="setting-modal__content profile-video-modal">
+        <div class="setting-modal__header">
+          <h3>Відеовізитка</h3>
+          <button class="btn btn--ghost btn--sm" type="button" @click="closeProfileVideoModal">
+            Закрити
+          </button>
+        </div>
+        <div class="setting-modal__body">
+          <video
+            class="profile-video-modal__player"
+            :src="profileVideoUrl"
+            controls
+            autoplay
+            preload="metadata"
+          ></video>
+        </div>
+      </div>
+    </div>
+
     <div v-if="showGuestBookingModal" class="setting-modal">
       <div class="setting-modal__backdrop" @click="closeGuestBookingModal"></div>
       <div class="setting-modal__content guest-booking-modal">
@@ -993,6 +1013,7 @@ const bookingRulesPromptRef = ref<HTMLElement | null>(null)
 const guestBookingRulesAccepted = ref(false)
 const showContactChooserModal = ref(false)
 const contactActionFallback = ref<ContactActionFallbackViewModel | null>(null)
+const showProfileVideoModal = ref(false)
 let contactActionFallbackTimer: number | null = null
 const clientSessions = ref<ClientSession[]>([])
 const pastClientSessions = ref<ClientSession[]>([])
@@ -1345,6 +1366,8 @@ const heroMediaProfile = computed<{ photo_url?: string | null; video_url?: strin
     video_url: firstFilledText(sectionHeroMedia?.videoUrl, toDisplayText(profile.value.video_url)) || null,
   }
 })
+
+const profileVideoUrl = computed(() => heroMediaProfile.value?.video_url || '')
 
 function firstFilledText(...values: Array<string | null | undefined>) {
   return values
@@ -1812,8 +1835,6 @@ const aboutNarrativeText = computed(() =>
     )
   )
 )
-
-const showHeroReadMore = computed(() => Boolean(heroLeadText.value && aboutNarrativeText.value))
 
 const workStyleText = computed(() => {
   const source = normalizeMultilineText(
@@ -2526,16 +2547,21 @@ function scrollToInquiry() {
   focusInquirySection()
 }
 
-function focusAboutSection() {
-  document.getElementById('about-me')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-}
-
 function focusInquirySection() {
   document.getElementById('inquiry')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 }
 
 function focusSlotsSection() {
   document.getElementById('slots')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
+
+function openProfileVideoModal() {
+  if (!profileVideoUrl.value) return
+  showProfileVideoModal.value = true
+}
+
+function closeProfileVideoModal() {
+  showProfileVideoModal.value = false
 }
 
 function openClientChat() {
@@ -3538,6 +3564,7 @@ watch(slug, () => {
   resetGuestBookingForm()
   showContactChooserModal.value = false
   closeContactActionFallbackModal()
+  closeProfileVideoModal()
   showAllSlots.value = false
   selectedDate.value = toLocalDate(new Date())
   visibleMonthStart.value = toLocalMonthStart(selectedDate.value)
@@ -3629,21 +3656,18 @@ onMounted(async () => {
 <style scoped>
 .public {
   display: grid;
-  gap: 18px;
-  background:
-    radial-gradient(820px 420px at 10% 0%, color-mix(in srgb, var(--pc-teal-100) 72%, transparent), transparent 68%),
-    radial-gradient(760px 420px at 90% 4%, color-mix(in srgb, var(--pc-peach-100) 78%, transparent), transparent 70%),
-    var(--pc-bg-main);
-  border-radius: var(--radius-xl);
-  padding: clamp(14px, 2vw, 22px);
+  gap: 9px;
+  background: transparent;
+  border-radius: 0;
+  padding: clamp(7px, 1vw, 11px) 0;
   color: var(--pc-text-main);
 }
 
 .public__layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) clamp(300px, 22vw, 340px);
-  column-gap: clamp(20px, 2.2vw, 32px);
-  row-gap: 16px;
+  column-gap: clamp(10px, 1.1vw, 16px);
+  row-gap: 8px;
   align-items: start;
 }
 
@@ -3662,196 +3686,6 @@ onMounted(async () => {
   min-width: 0;
 }
 
-.public__hero {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 350px;
-  align-items: start;
-  gap: 18px;
-  background: linear-gradient(
-    140deg,
-    color-mix(in srgb, var(--color-primary-100) 65%, #ffffff),
-    color-mix(in srgb, var(--color-neutral-100) 52%, #ffffff)
-  );
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 20px 22px;
-  box-shadow: var(--shadow);
-}
-
-.hero-profile {
-  display: grid;
-  grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
-  gap: 18px;
-  min-width: 0;
-}
-
-.hero-media {
-  width: 100%;
-  max-width: 280px;
-  display: grid;
-  gap: 10px;
-  align-content: start;
-}
-
-.hero-photo {
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  object-fit: cover;
-  border-radius: 16px;
-  border: 1px solid var(--line);
-  background: #fff;
-}
-
-.hero-photo-placeholder {
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  border-radius: 16px;
-  border: 1px dashed var(--line);
-  display: grid;
-  place-items: center;
-  font-size: 12px;
-  color: var(--muted);
-  background: rgba(255, 255, 255, 0.65);
-}
-
-.hero-video {
-  width: 100%;
-  border-radius: 12px;
-  border: 1px solid var(--line);
-  background: #0f2b3a;
-}
-
-.public__title {
-  font-size: clamp(30px, 4vw, 40px);
-  line-height: 1.15;
-}
-
-.hero-main {
-  display: grid;
-  gap: 12px;
-  align-content: start;
-  min-width: 0;
-}
-
-.hero-main__role {
-  margin: -2px 0 0;
-  font-size: 14px;
-  color: color-mix(in srgb, var(--text) 72%, var(--muted));
-  font-weight: 600;
-}
-
-.hero-main__lead {
-  margin: 0;
-  font-size: 16px;
-  line-height: 1.66;
-  color: var(--deep);
-  max-width: 66ch;
-}
-
-.hero-main__support {
-  margin: -4px 0 0;
-  font-size: 14px;
-  line-height: 1.6;
-  color: var(--muted);
-}
-
-.hero-main__sessions {
-  margin: -2px 0 0;
-  font-size: 14px;
-  line-height: 1.5;
-  font-weight: 600;
-  color: color-mix(in srgb, var(--text) 86%, var(--muted));
-}
-
-.hero-main__meta {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-}
-
-.hero-meta-card {
-  border: 1px solid color-mix(in srgb, var(--line) 86%, #ffffff);
-  border-radius: var(--radius-sm);
-  padding: 9px 10px;
-  background: color-mix(in srgb, #ffffff 80%, var(--surface));
-  display: grid;
-  gap: 2px;
-}
-
-.hero-meta-card__label {
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.07em;
-  color: var(--muted);
-}
-
-.hero-meta-card__value {
-  font-weight: 600;
-  color: var(--ink);
-}
-
-.hero-trust {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.hero-trust span {
-  padding: 6px 10px;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.82);
-  border: 1px solid var(--line);
-  font-size: 12px;
-}
-
-.hero-cta {
-  width: 100%;
-  min-width: 0;
-  max-width: 350px;
-  display: grid;
-  gap: 12px;
-  border: 1px solid color-mix(in srgb, var(--line) 64%, #fff);
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: var(--radius-md);
-  padding: 14px 14px 15px;
-}
-
-.hero-cta__head {
-  display: grid;
-  gap: 6px;
-}
-
-.hero-cta__title {
-  margin: 0;
-  font-size: 22px;
-  line-height: 1.25;
-}
-
-.hero-cta__hint {
-  margin: 0;
-  font-size: 13px;
-  line-height: 1.5;
-  color: var(--muted);
-}
-
-.hero-cta__prices {
-  display: grid;
-  gap: 8px;
-}
-
-.hero-cta__price {
-  padding: 8px 10px;
-  border-radius: 10px;
-  border: 1px solid var(--line);
-  background: #fff;
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.hero-cta__price--intro {
-  border-color: color-mix(in srgb, var(--color-primary-500) 20%, var(--line));
-}
-
 .hero-cta__actions {
   display: grid;
   gap: 8px;
@@ -3861,27 +3695,10 @@ onMounted(async () => {
   width: 100%;
 }
 
-.hero-cta__next-step {
-  margin: 0;
-  font-size: 12px;
-  line-height: 1.45;
-  color: color-mix(in srgb, var(--text) 78%, var(--muted));
-}
-
-.hero-cta__trust-list {
-  margin: 0;
-  padding-left: 16px;
-  display: grid;
-  gap: 4px;
-  font-size: 12px;
-  line-height: 1.4;
-  color: var(--muted);
-}
-
 .public__grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 14px;
+  gap: 7px;
   min-width: 0;
 }
 
@@ -5457,6 +5274,18 @@ onMounted(async () => {
     width: min(560px, 92vw);
   }
 
+  .profile-video-modal {
+    width: min(780px, 94vw);
+  }
+
+  .profile-video-modal__player {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: #071821;
+  }
+
   .contact-fallback-modal__helper {
     margin: 0;
   }
@@ -5600,7 +5429,7 @@ onMounted(async () => {
 @media (max-width: 1100px) {
   .public__layout {
     grid-template-columns: 1fr;
-    gap: 12px;
+    gap: 8px;
   }
 
   .public__hero-col,
@@ -5615,33 +5444,6 @@ onMounted(async () => {
     top: auto;
     max-height: none;
     overflow: visible;
-  }
-
-  .public__hero {
-    grid-template-columns: 1fr;
-    gap: 14px;
-  }
-
-  .hero-profile {
-    grid-template-columns: 1fr;
-  }
-
-  .hero-media {
-    width: 100%;
-    max-width: 320px;
-  }
-
-  .hero-main {
-    width: 100%;
-  }
-
-  .hero-main__meta {
-    grid-template-columns: 1fr;
-  }
-
-  .hero-cta {
-    width: 100%;
-    max-width: 100%;
   }
 
   .public__grid {
@@ -5682,6 +5484,21 @@ onMounted(async () => {
 
   .first-session-flow {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 1024px) and (max-height: 560px) {
+  .public {
+    gap: 6px;
+    padding: 4px 0;
+  }
+
+  .public__layout {
+    gap: 6px;
+  }
+
+  .public__grid {
+    gap: 6px;
   }
 }
 
