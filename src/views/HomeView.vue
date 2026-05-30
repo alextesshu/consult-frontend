@@ -2,21 +2,52 @@
   <section class="home-lite">
     <div class="home-lite__container">
       <section class="home-hero reveal" aria-labelledby="home-hero-title">
+        <span class="home-hero__wash home-hero__wash--teal" aria-hidden="true"></span>
+        <span class="home-hero__wash home-hero__wash--peach" aria-hidden="true"></span>
         <div class="home-hero__content">
-          <p class="home-hero__eyebrow">ДЛЯ СПЕЦІАЛІСТІВ ПРИВАТНОЇ ПРАКТИКИ</p>
+          <p class="home-hero__eyebrow">
+            <span class="home-hero__eyebrow-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="M8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"></path>
+                <path d="M16.5 11.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"></path>
+                <path d="M3.5 20a5 5 0 0 1 9 0"></path>
+                <path d="M13.5 20a4 4 0 0 1 7 0"></path>
+              </svg>
+            </span>
+            ДЛЯ СПЕЦІАЛІСТІВ ПРИВАТНОЇ ПРАКТИКИ
+          </p>
           <h1 id="home-hero-title" class="home-hero__title">Простір для ведення консультацій</h1>
           <p class="home-hero__subtitle">
             Публічний профіль, сесії, календар, власний блог та багато іншого — щоб впевнено презентувати себе,
             приймати клієнтів і працювати системно.
           </p>
-          <p class="home-hero__support">Без комісій з консультацій і без залежності від зовнішнього майданчика.</p>
+          <p class="home-hero__support">
+            <span aria-hidden="true"></span>
+            Без комісій з консультацій і без залежності від зовнішнього майданчика.
+          </p>
           <div class="home-hero__actions">
-            <button v-if="isAuthenticated" class="btn" type="button" @click="goToCabinet">Перейти в кабінет</button>
-            <RouterLink v-else class="btn" to="/signup">Створити свій простір</RouterLink>
-            <a class="btn btn--ghost" href="#features">Подивитися можливості</a>
+            <button v-if="isAuthenticated" class="btn" type="button" @click="goToCabinet">
+              Створити свій простір
+              <span class="btn__arrow" aria-hidden="true">→</span>
+            </button>
+            <RouterLink v-else class="btn" to="/signup">
+              Створити свій простір
+              <span class="btn__arrow" aria-hidden="true">→</span>
+            </RouterLink>
+            <a class="btn btn--ghost" href="#features">
+              <span class="btn__play" aria-hidden="true"></span>
+              Подивитися можливості
+            </a>
           </div>
-          <ul class="hero-trust" aria-label="Переваги платформи">
-            <li v-for="marker in trustMarkers" :key="marker">{{ marker }}</li>
+          <ul class="hero-features" aria-label="Переваги платформи">
+            <li v-for="feature in heroFeatures" :key="feature.title" class="hero-feature-tile">
+              <span class="hero-feature-tile__icon" :class="`hero-feature-tile__icon--${feature.tone}`" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path v-for="path in iconPaths[feature.icon]" :key="path" :d="path"></path>
+                </svg>
+              </span>
+              <span>{{ feature.title }}</span>
+            </li>
           </ul>
         </div>
 
@@ -24,16 +55,17 @@
           <article class="product-story">
             <span class="product-story__accent product-story__accent--peach"></span>
             <span class="product-story__accent product-story__accent--teal"></span>
+            <span class="product-story__accent product-story__accent--dots"></span>
             <div class="product-story__dashboard-card">
               <header class="product-story__dashboard-header">
                 <span class="product-story__dashboard-mark">
                   <i></i><i></i><i></i><i></i>
                 </span>
-                <strong>Мій кабінет</strong>
+                <strong>Кабінет спеціаліста</strong>
                 <span class="product-story__top-actions">
-                  <i></i>
-                  <i></i>
-                  <span class="product-story__dashboard-dot"></span>
+                  <i class="product-story__top-icon product-story__top-icon--search"></i>
+                  <i class="product-story__top-icon product-story__top-icon--notification"></i>
+                  <span class="product-story__top-icon product-story__top-icon--avatar"></span>
                 </span>
               </header>
               <div class="product-story__dashboard-shell">
@@ -41,25 +73,45 @@
                   <span class="is-active"></span>
                   <span></span>
                   <span></span>
+                  <span></span>
                 </aside>
-                <div class="product-story__dashboard-body">
-                  <div class="product-story__stat product-story__stat--teal">
-                    <span>Нові запити</span>
-                    <strong>2</strong>
+                <div class="product-story__dashboard-main">
+                  <div class="product-story__overview-label">Огляд</div>
+                  <div class="product-story__dashboard-body">
+                    <div class="product-story__stat product-story__stat--teal">
+                      <span>Нових запитів</span>
+                      <strong>2</strong>
+                      <em>за сьогодні</em>
+                    </div>
+                    <div class="product-story__stat product-story__stat--peach">
+                      <span>Сесій цього тижня</span>
+                      <strong>5</strong>
+                    </div>
+                    <div class="product-story__stat product-story__stat--lavender">
+                      <span>Клієнтів</span>
+                      <strong>24</strong>
+                      <em>активних</em>
+                    </div>
                   </div>
-                  <div class="product-story__stat product-story__stat--peach">
-                    <span>Сесії сьогодні</span>
-                    <strong>3</strong>
+                  <div class="product-story__requests">
+                    <span>Останні запити</span>
+                    <p>
+                      <strong>Марія П.</strong>
+                      <small>Тривога, стрес</small>
+                      <em>10 хв тому</em>
+                    </p>
+                    <p>
+                      <strong>Андрій К.</strong>
+                      <small>Самооцінка</small>
+                      <em>1 год тому</em>
+                    </p>
+                    <p>
+                      <strong>Ірина С.</strong>
+                      <small>Стосунки</small>
+                      <em>2 год тому</em>
+                    </p>
+                    <span class="product-story__requests-link">Всі запити →</span>
                   </div>
-                  <div class="product-story__schedule">
-                    <span>Календар</span>
-                    <strong>15:00</strong>
-                  </div>
-                </div>
-                <div class="product-story__requests">
-                  <span>Останні запити</span>
-                  <p><strong>Наталія М.</strong><em>5 хв тому</em></p>
-                  <p><strong>Ігор Л.</strong><em>вчора</em></p>
                 </div>
               </div>
             </div>
@@ -77,9 +129,13 @@
                   decoding="async"
                 />
                 <div class="product-story__copy">
-                  <strong>Олена К.</strong>
+                  <strong>Олена Коваль</strong>
                   <span>Психолог, гештальт-терапевт</span>
-                  <p>Підтримую у складних емоціях, стосунках і пошуку внутрішньої опори.</p>
+                  <div class="product-story__meta">
+                    <span>12 років досвіду</span>
+                    <span>Онлайн і офлайн</span>
+                  </div>
+                  <p>Допомагаю знаходити опору, краще розуміти себе та будувати гармонійні стосунки.</p>
                 </div>
               </div>
               <div class="product-story__chips">
@@ -88,27 +144,30 @@
                 <span>Стосунки</span>
               </div>
               <div class="product-story__profile-actions">
-                <button type="button">Залишити запит</button>
-                <span></span>
+                <span class="product-story__profile-cta">Залишити запит</span>
+                <span class="product-story__profile-save"></span>
               </div>
             </div>
 
             <div class="product-story__request-card">
-              <span class="product-story__request-icon"></span>
+              <span class="product-story__request-icon"><i></i></span>
+              <span class="product-story__request-badge">2</span>
               <span class="product-story__request-label">Новий запит</span>
               <p>Клієнт залишив контакт і повідомлення.</p>
-              <button type="button">Опрацювати</button>
+              <span class="product-story__request-action">Опрацювати →</span>
             </div>
 
             <div class="product-story__calendar-card">
               <span class="product-story__calendar-icon"></span>
               <span class="product-story__calendar-label">Сьогодні</span>
               <strong>15:00</strong>
-              <p>консультація з клієнтом</p>
+              <p>Консультація з клієнтом</p>
+              <span class="product-story__calendar-status">Підтверджено</span>
               <div class="product-story__time-rail">
                 <span>14:00</span>
                 <span class="is-current">15:00</span>
                 <span>16:00</span>
+                <span>17:00</span>
               </div>
             </div>
           </article>
@@ -335,7 +394,13 @@ const iconPaths: Record<IconKey, string[]> = {
   support: ['M12 18v2', 'M8.5 9.5a3.5 3.5 0 1 1 6.2 2.2c-.9.8-1.7 1.3-1.7 2.3v.5', 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z'],
 }
 
-const trustMarkers = ['Публічний профіль', 'Запити без реєстрації', 'Сесії та календар', 'Власний блог', 'Без комісій']
+const heroFeatures: Array<{ icon: IconKey; title: string; tone: 'teal' | 'blue' | 'peach' | 'violet' | 'green' }> = [
+  { icon: 'profile', title: 'Публічний профіль', tone: 'teal' },
+  { icon: 'booking', title: 'Запити без реєстрації', tone: 'blue' },
+  { icon: 'session', title: 'Сесії та календар', tone: 'peach' },
+  { icon: 'feedback', title: 'Власний блог', tone: 'violet' },
+  { icon: 'security', title: 'Без комісій', tone: 'green' },
+]
 
 const valueCards: Array<{ icon: IconKey; title: string; copy: string }> = [
   {
@@ -529,6 +594,7 @@ onBeforeUnmount(() => {
 .home-lite {
   position: relative;
   isolation: isolate;
+  overflow-x: hidden;
   padding: 28px 0 68px;
 }
 
@@ -1178,6 +1244,998 @@ onBeforeUnmount(() => {
 .product-story__time-rail .is-current {
   color: var(--pc-navy-900);
   font-weight: 800;
+}
+
+.home-hero {
+  position: relative;
+  grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
+  gap: clamp(28px, 4vw, 62px);
+  align-items: center;
+  min-height: min(680px, calc(100vh - 128px));
+  border: 0;
+  border-radius: 0;
+  padding: clamp(36px, 5vw, 64px) 0 clamp(30px, 4.4vw, 58px);
+  background:
+    radial-gradient(740px 360px at 72% 8%, rgba(247, 183, 126, 0.13), transparent 72%),
+    radial-gradient(720px 360px at 18% 88%, rgba(143, 203, 200, 0.15), transparent 72%);
+  box-shadow: none;
+  overflow: visible;
+}
+
+.home-hero__wash {
+  position: absolute;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: 999px;
+  filter: blur(1px);
+}
+
+.home-hero__wash--teal {
+  width: 240px;
+  height: 240px;
+  left: -150px;
+  bottom: 12%;
+  background: radial-gradient(circle, rgba(143, 203, 200, 0.34), rgba(143, 203, 200, 0));
+}
+
+.home-hero__wash--peach {
+  width: 300px;
+  height: 300px;
+  right: -160px;
+  top: 4%;
+  background: radial-gradient(circle, rgba(247, 183, 126, 0.28), rgba(247, 183, 126, 0));
+}
+
+.home-hero__content,
+.home-hero__visual {
+  position: relative;
+  z-index: 1;
+}
+
+.home-hero__content {
+  align-content: center;
+  gap: 18px;
+  min-width: 0;
+}
+
+.home-hero__eyebrow {
+  width: max-content;
+  max-width: 100%;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  border: 1px solid rgba(32, 139, 122, 0.16);
+  border-radius: var(--radius-pill);
+  padding: 8px 14px;
+  background: color-mix(in srgb, var(--pc-teal-100) 76%, #fff);
+  color: color-mix(in srgb, var(--pc-navy-900) 72%, #008375);
+  box-shadow: 0 10px 28px rgba(39, 131, 119, 0.1);
+}
+
+.home-hero__eyebrow-icon {
+  width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  color: #008375;
+}
+
+.home-hero__eyebrow-icon svg,
+.hero-feature-tile__icon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.home-hero__eyebrow-icon path,
+.hero-feature-tile__icon path {
+  stroke: currentcolor;
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.home-hero__title {
+  max-width: 12.8ch;
+  font-size: clamp(46px, 5vw, 74px);
+  line-height: 1.03;
+  letter-spacing: -0.035em;
+}
+
+.home-hero__subtitle {
+  max-width: 54ch;
+  font-size: clamp(16px, 1.25vw, 19px);
+  line-height: 1.55;
+  color: color-mix(in srgb, var(--text) 74%, #526672);
+}
+
+.home-hero__support {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  max-width: 56ch;
+  font-size: 14px;
+  font-weight: 600;
+  color: color-mix(in srgb, var(--pc-navy-900) 78%, #3c5966);
+}
+
+.home-hero__support span {
+  width: 18px;
+  height: 18px;
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  margin-top: 1px;
+  background: #1aa785;
+  color: #fff;
+}
+
+.home-hero__support span::before {
+  content: '';
+  width: 8px;
+  height: 5px;
+  border-left: 2px solid currentcolor;
+  border-bottom: 2px solid currentcolor;
+  transform: rotate(-45deg) translate(1px, -1px);
+}
+
+.home-hero__actions {
+  gap: 12px;
+  margin-top: 2px;
+}
+
+.home-hero__actions .btn {
+  min-height: 48px;
+  border-radius: var(--radius-sm);
+  padding: 0 20px;
+  gap: 10px;
+}
+
+.home-hero__actions .btn--ghost {
+  background: rgba(255, 255, 255, 0.72);
+  border-color: rgba(18, 52, 90, 0.14);
+  box-shadow: 0 12px 28px rgba(18, 35, 58, 0.06);
+}
+
+.btn__arrow {
+  font-size: 18px;
+  line-height: 1;
+}
+
+.btn__play {
+  position: relative;
+  width: 24px;
+  height: 24px;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid rgba(18, 52, 90, 0.18);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.btn__play::before {
+  content: '';
+  width: 0;
+  height: 0;
+  margin-left: 2px;
+  border-top: 5px solid transparent;
+  border-bottom: 5px solid transparent;
+  border-left: 7px solid currentcolor;
+}
+
+.hero-features {
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(72px, 1fr));
+  gap: 10px;
+}
+
+.hero-feature-tile {
+  min-height: 98px;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 8px;
+  border: 1px solid rgba(18, 52, 90, 0.09);
+  border-radius: 16px;
+  padding: 10px 8px;
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 16px 36px rgba(18, 35, 58, 0.08);
+  color: var(--pc-navy-900);
+  text-align: center;
+  font-size: 12px;
+  font-weight: 750;
+  line-height: 1.22;
+}
+
+.hero-feature-tile__icon {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  border: 1px solid rgba(18, 52, 90, 0.08);
+}
+
+.hero-feature-tile__icon--teal {
+  background: color-mix(in srgb, var(--pc-teal-100) 82%, #fff);
+  color: #007c72;
+}
+
+.hero-feature-tile__icon--blue {
+  background: #eef4ff;
+  color: #21508f;
+}
+
+.hero-feature-tile__icon--peach {
+  background: color-mix(in srgb, var(--pc-peach-100) 72%, #fff);
+  color: #a15c20;
+}
+
+.hero-feature-tile__icon--violet {
+  background: #f0ecff;
+  color: #5b46a5;
+}
+
+.hero-feature-tile__icon--green {
+  background: #eaf8f2;
+  color: #14805f;
+}
+
+.home-hero__visual {
+  min-height: clamp(500px, 46vw, 620px);
+}
+
+.product-story {
+  width: min(100%, 760px);
+  min-height: clamp(500px, 46vw, 620px);
+  background: none;
+}
+
+.product-story__accent--peach {
+  width: 230px;
+  height: 230px;
+  top: 0;
+  right: -86px;
+  background: radial-gradient(circle, rgba(247, 183, 126, 0.42), rgba(247, 183, 126, 0.08) 70%);
+}
+
+.product-story__accent--teal {
+  width: 150px;
+  height: 150px;
+  right: -52px;
+  bottom: 132px;
+  background: radial-gradient(circle, rgba(143, 203, 200, 0.52), rgba(143, 203, 200, 0.06) 72%);
+}
+
+.product-story__accent--dots {
+  width: 116px;
+  height: 130px;
+  right: -12px;
+  top: 184px;
+  border-radius: 0;
+  background-image: radial-gradient(rgba(32, 116, 108, 0.4) 1.2px, transparent 1.2px);
+  background-size: 12px 12px;
+  opacity: 0.42;
+}
+
+.product-story__dashboard-card,
+.product-story__public-card,
+.product-story__request-card,
+.product-story__calendar-card {
+  border: 1px solid rgba(18, 52, 90, 0.08);
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 30px 80px rgba(18, 35, 58, 0.13);
+  backdrop-filter: blur(10px);
+}
+
+.product-story__dashboard-card {
+  top: 24px;
+  right: 4px;
+  width: min(86%, 620px);
+  min-height: 430px;
+  gap: 16px;
+  border-radius: 26px;
+  padding: 18px;
+  background:
+    radial-gradient(420px 220px at 92% 10%, rgba(247, 183, 126, 0.16), transparent 70%),
+    radial-gradient(360px 220px at 0% 18%, rgba(143, 203, 200, 0.14), transparent 70%),
+    rgba(255, 255, 255, 0.94);
+  opacity: 1;
+}
+
+.product-story__dashboard-header {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 12px;
+  align-items: center;
+  min-height: 34px;
+  color: var(--pc-navy-950);
+}
+
+.product-story__dashboard-header strong {
+  font-size: 14px;
+}
+
+.product-story__dashboard-mark {
+  width: 32px;
+  height: 32px;
+  grid-template-columns: repeat(2, 5px);
+  border-radius: 10px;
+  background: transparent;
+}
+
+.product-story__top-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.product-story__top-icon {
+  position: relative;
+  width: 26px;
+  height: 26px;
+  display: inline-grid;
+  place-items: center;
+  border: 1px solid rgba(18, 52, 90, 0.1);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--pc-navy-900);
+}
+
+.product-story__top-icon--search::before {
+  content: '';
+  position: absolute;
+  left: 7px;
+  top: 7px;
+  width: 8px;
+  height: 8px;
+  border: 2px solid currentcolor;
+  border-radius: 50%;
+}
+
+.product-story__top-icon--search::after {
+  content: '';
+  position: absolute;
+  right: 7px;
+  bottom: 7px;
+  width: 6px;
+  height: 2px;
+  border-radius: 999px;
+  background: currentcolor;
+  transform: rotate(45deg);
+}
+
+.product-story__top-icon--notification::before {
+  content: '';
+  position: absolute;
+  left: 8px;
+  top: 6px;
+  width: 9px;
+  height: 11px;
+  border: 2px solid currentcolor;
+  border-radius: 8px 8px 5px 5px;
+}
+
+.product-story__top-icon--notification::after {
+  content: '2';
+  position: absolute;
+  right: -4px;
+  top: -5px;
+  width: 14px;
+  height: 14px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #ef4444;
+  color: #fff;
+  font-size: 8px;
+  font-weight: 800;
+  box-shadow: 0 0 0 2px #fff;
+}
+
+.product-story__top-icon--avatar {
+  width: 30px;
+  height: 30px;
+  border: 0;
+  background:
+    radial-gradient(circle at 50% 34%, #fff 0 12%, transparent 13%),
+    linear-gradient(145deg, #f3c193, #8fcbc8);
+  box-shadow: 0 10px 22px rgba(18, 35, 58, 0.12);
+}
+
+.product-story__dashboard-shell {
+  grid-template-columns: 44px minmax(0, 1fr);
+  gap: 14px;
+  opacity: 1;
+}
+
+.product-story__rail {
+  position: relative;
+  inset: auto;
+  display: grid;
+  align-content: start;
+  justify-items: center;
+  gap: 14px;
+  width: 44px;
+  min-height: 332px;
+  border-radius: 16px;
+  padding: 12px 8px;
+  background: rgba(255, 255, 255, 0.7);
+  box-shadow: inset 0 0 0 1px rgba(18, 52, 90, 0.06);
+}
+
+.product-story__rail span {
+  width: 28px;
+  height: 28px;
+  border-radius: 10px;
+  background:
+    linear-gradient(90deg, transparent 45%, color-mix(in srgb, var(--pc-navy-900) 58%, #fff) 45% 55%, transparent 55%),
+    linear-gradient(0deg, transparent 45%, color-mix(in srgb, var(--pc-navy-900) 58%, #fff) 45% 55%, transparent 55%),
+    rgba(255, 255, 255, 0.72);
+  opacity: 0.45;
+}
+
+.product-story__rail span.is-active {
+  background:
+    linear-gradient(90deg, transparent 45%, var(--pc-navy-900) 45% 55%, transparent 55%),
+    linear-gradient(0deg, transparent 45%, var(--pc-navy-900) 45% 55%, transparent 55%),
+    color-mix(in srgb, var(--pc-teal-100) 78%, #fff);
+  opacity: 1;
+}
+
+.product-story__dashboard-main {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.product-story__overview-label,
+.product-story__requests > span:first-child {
+  color: var(--pc-navy-950);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.product-story__dashboard-body {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  filter: none;
+}
+
+.product-story__stat {
+  min-height: 94px;
+  align-content: center;
+  gap: 7px;
+  border-radius: 16px;
+  padding: 14px;
+  border: 1px solid rgba(18, 52, 90, 0.06);
+}
+
+.product-story__stat--teal {
+  background: linear-gradient(145deg, #eefaf7, rgba(255, 255, 255, 0.94));
+}
+
+.product-story__stat--peach {
+  background: linear-gradient(145deg, #fff4ea, rgba(255, 255, 255, 0.94));
+}
+
+.product-story__stat--lavender {
+  background: linear-gradient(145deg, #f1efff, rgba(255, 255, 255, 0.94));
+}
+
+.product-story__stat span {
+  color: color-mix(in srgb, var(--pc-navy-900) 68%, #657380);
+  font-size: 11px;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.product-story__stat strong {
+  font-size: 30px;
+}
+
+.product-story__stat em {
+  color: color-mix(in srgb, var(--pc-navy-900) 72%, #62717a);
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 700;
+}
+
+.product-story__requests {
+  gap: 8px;
+  margin-left: clamp(150px, 18vw, 220px);
+  border-radius: 18px;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.72);
+  filter: none;
+}
+
+.product-story__requests p {
+  position: relative;
+  grid-template-columns: 1fr auto;
+  gap: 2px 8px;
+  min-height: 48px;
+  padding: 9px 10px 9px 42px;
+  background: linear-gradient(145deg, #f4f7ff, rgba(255, 255, 255, 0.92));
+  font-size: 12px;
+}
+
+.product-story__requests p::before {
+  content: '';
+  position: absolute;
+  left: 11px;
+  top: 11px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 36%, var(--pc-navy-900) 0 10%, transparent 11%),
+    radial-gradient(circle at 50% 88%, transparent 0 28%, var(--pc-navy-900) 29% 36%, transparent 37%),
+    color-mix(in srgb, var(--pc-teal-100) 80%, #fff);
+}
+
+.product-story__requests p small {
+  grid-column: 1;
+  color: color-mix(in srgb, var(--text) 70%, #697780);
+  font-size: 11px;
+}
+
+.product-story__requests p em {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: center;
+  font-size: 10px;
+}
+
+.product-story__requests-link {
+  justify-self: end;
+  color: var(--pc-navy-900);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.product-story__public-card {
+  left: 0;
+  bottom: 46px;
+  width: min(55%, 386px);
+  gap: 15px;
+  border-radius: 24px;
+  padding: 18px;
+  background:
+    radial-gradient(300px 180px at 94% 4%, rgba(143, 203, 200, 0.22), transparent 72%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(250, 247, 242, 0.92));
+  box-shadow: 0 34px 82px rgba(18, 35, 58, 0.18);
+}
+
+.product-story__header span {
+  gap: 6px;
+  padding: 7px 10px;
+  background: color-mix(in srgb, var(--pc-teal-100) 76%, #fff);
+  color: color-mix(in srgb, var(--pc-navy-900) 78%, #008375);
+  letter-spacing: 0.06em;
+}
+
+.product-story__profile {
+  grid-template-columns: 1fr;
+  gap: 13px;
+}
+
+.product-story__portrait-photo {
+  width: 100%;
+  max-width: none;
+  max-height: 250px;
+  aspect-ratio: 1.42 / 1;
+  object-position: center 24%;
+  border-radius: 18px;
+  box-shadow:
+    0 20px 42px rgba(18, 35, 58, 0.12),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.42);
+}
+
+.product-story__copy {
+  gap: 7px;
+}
+
+.product-story__copy strong {
+  font-size: clamp(26px, 2.5vw, 34px);
+}
+
+.product-story__copy p {
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.product-story__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.product-story__meta span {
+  min-height: 24px;
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--radius-pill);
+  padding: 0 9px;
+  background: rgba(255, 255, 255, 0.72);
+  color: color-mix(in srgb, var(--pc-navy-900) 72%, #4f6570);
+  font-size: 11px;
+  font-weight: 750;
+}
+
+.product-story__chips span {
+  background: color-mix(in srgb, var(--pc-teal-100) 72%, #fff);
+  border-color: rgba(32, 139, 122, 0.12);
+}
+
+.product-story__profile-actions {
+  grid-template-columns: 1fr 42px;
+  position: relative;
+}
+
+.product-story__profile-actions .product-story__profile-cta {
+  position: relative;
+  z-index: 1;
+  min-height: 44px;
+  display: inline-grid;
+  place-items: center;
+  padding: 0 12px;
+  border: 1px solid var(--pc-navy-900);
+  border-radius: var(--radius-sm);
+  background: var(--pc-navy-900);
+  color: #fff;
+  font-weight: 800;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+  box-shadow: 0 14px 26px rgba(18, 52, 90, 0.18);
+}
+
+.product-story__profile-actions .product-story__profile-save {
+  position: relative;
+  border: 1px solid color-mix(in srgb, var(--pc-border) 82%, #fff);
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.86);
+}
+
+.product-story__profile-save::before {
+  content: '';
+  position: absolute;
+  inset: 10px 13px;
+  border: 2px solid var(--pc-navy-900);
+  border-top-width: 7px;
+  border-radius: 3px 3px 6px 6px;
+}
+
+.product-story__request-card {
+  right: 208px;
+  bottom: 0;
+  width: 178px;
+  gap: 9px;
+  border-radius: 20px;
+  padding: 16px;
+  background:
+    radial-gradient(170px 110px at 100% 0%, rgba(143, 203, 200, 0.28), transparent 70%),
+    rgba(255, 255, 255, 0.96);
+}
+
+.product-story__request-icon,
+.product-story__calendar-icon {
+  width: 44px;
+  height: 44px;
+}
+
+.product-story__request-icon {
+  position: relative;
+}
+
+.product-story__request-icon::before,
+.product-story__calendar-icon::before {
+  border-color: var(--pc-navy-900);
+}
+
+.product-story__request-icon::before {
+  border-top-color: transparent;
+}
+
+.product-story__request-badge {
+  position: absolute;
+  right: 14px;
+  top: 12px;
+  width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #ef4444;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 800;
+  box-shadow: 0 0 0 2px #fff;
+}
+
+.product-story__request-action {
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--pc-teal-100) 84%, #fff);
+  color: var(--pc-navy-900);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.product-story__calendar-card {
+  right: 4px;
+  bottom: 4px;
+  width: 220px;
+  grid-template-columns: 1fr auto;
+  padding: 17px;
+  border-radius: 22px;
+  background:
+    radial-gradient(180px 110px at 15% 10%, rgba(170, 183, 228, 0.26), transparent 72%),
+    rgba(255, 255, 255, 0.96);
+}
+
+.product-story__calendar-card strong {
+  font-size: 34px;
+}
+
+.product-story__calendar-card p {
+  font-size: 14px;
+}
+
+.product-story__calendar-status {
+  grid-column: 1;
+  width: max-content;
+  border-radius: var(--radius-pill);
+  padding: 5px 9px;
+  background: color-mix(in srgb, var(--pc-teal-100) 78%, #fff);
+  color: #14805f;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.product-story__time-rail {
+  gap: 9px;
+  padding-left: 14px;
+}
+
+.product-story__time-rail .is-current {
+  position: relative;
+  padding: 5px 8px;
+  border-radius: 8px;
+  background: #eef7f5;
+}
+
+.product-story__time-rail .is-current::before {
+  content: '';
+  position: absolute;
+  left: -16px;
+  top: 4px;
+  bottom: 4px;
+  width: 3px;
+  border-radius: 999px;
+  background: #1aa785;
+}
+
+.home-hero {
+  min-height: 0;
+  height: clamp(536px, calc(100vh - 170px), 590px);
+  padding: clamp(14px, 2.1vw, 26px) 0 clamp(16px, 2.2vw, 26px);
+  gap: clamp(22px, 3vw, 44px);
+}
+
+.home-hero__content {
+  gap: 0;
+}
+
+.home-hero__eyebrow {
+  padding: 6px 11px;
+  margin-bottom: 12px;
+}
+
+.home-hero__title {
+  max-width: 12.5ch;
+  font-size: clamp(40px, 4.05vw, 54px);
+  line-height: 1;
+  margin-bottom: 13px;
+}
+
+.home-hero__subtitle {
+  max-width: 43ch;
+  font-size: clamp(14px, 1.02vw, 16px);
+  line-height: 1.46;
+  color: color-mix(in srgb, var(--text) 78%, #526672);
+  margin-bottom: 13px;
+}
+
+.home-hero__support {
+  gap: 8px;
+  max-width: 52ch;
+  font-size: 12px;
+  line-height: 1.25;
+  font-weight: 750;
+  margin-bottom: 14px;
+}
+
+.home-hero__actions {
+  gap: 10px;
+  margin-top: 0;
+  margin-bottom: 13px;
+}
+
+.home-hero__actions .btn {
+  min-height: 42px;
+  padding: 0 16px;
+}
+
+.hero-features {
+  margin-top: 0;
+  gap: 8px;
+}
+
+.hero-feature-tile {
+  min-height: 68px;
+  gap: 5px;
+  border-radius: 13px;
+  padding: 7px 6px;
+  font-size: 10px;
+}
+
+.hero-feature-tile__icon {
+  width: 27px;
+  height: 27px;
+  border-radius: 9px;
+}
+
+.home-hero__visual {
+  min-height: 0;
+  height: clamp(500px, calc(100vh - 190px), 548px);
+}
+
+.product-story {
+  width: min(100%, 720px);
+  min-height: 0;
+  height: 100%;
+  margin-left: 0;
+}
+
+.product-story__dashboard-card {
+  top: 0;
+  right: 0;
+  width: min(84%, 604px);
+  min-height: 360px;
+  padding: 14px;
+}
+
+.product-story__rail {
+  min-height: 260px;
+}
+
+.product-story__dashboard-body {
+  gap: 8px;
+}
+
+.product-story__stat {
+  min-height: 72px;
+  padding: 10px;
+}
+
+.product-story__stat strong {
+  font-size: 24px;
+}
+
+.product-story__requests {
+  gap: 7px;
+  margin-left: clamp(118px, 13vw, 166px);
+  padding: 10px;
+}
+
+.product-story__requests p {
+  min-height: 38px;
+  padding-block: 7px;
+}
+
+.product-story__public-card {
+  left: -24px;
+  bottom: 30px;
+  width: min(47%, 322px);
+  gap: 10px;
+  padding: 14px;
+}
+
+.product-story__portrait-photo {
+  max-height: 178px;
+  aspect-ratio: 1.56 / 1;
+}
+
+.product-story__copy {
+  gap: 5px;
+}
+
+.product-story__copy strong {
+  font-size: clamp(22px, 2vw, 27px);
+}
+
+.product-story__copy span,
+.product-story__copy p {
+  line-height: 1.36;
+}
+
+.product-story__copy p {
+  font-size: 11px;
+}
+
+.product-story__meta {
+  gap: 6px;
+}
+
+.product-story__meta span {
+  min-height: 22px;
+  padding: 0 8px;
+  font-size: 10px;
+}
+
+.product-story__chips {
+  gap: 6px;
+}
+
+.product-story__chips span {
+  min-height: 24px;
+  padding: 0 8px;
+  font-size: 10px;
+}
+
+.product-story__profile-actions .product-story__profile-cta {
+  min-height: 38px;
+}
+
+.product-story__request-card {
+  right: 188px;
+  bottom: 2px;
+  width: 154px;
+  gap: 6px;
+  padding: 12px;
+}
+
+.product-story__request-icon,
+.product-story__calendar-icon {
+  width: 36px;
+  height: 36px;
+}
+
+.product-story__request-card p {
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+.product-story__request-action {
+  min-height: 32px;
+}
+
+.product-story__calendar-card {
+  right: -10px;
+  bottom: 4px;
+  width: 184px;
+  padding: 13px;
+}
+
+.product-story__calendar-card strong {
+  font-size: 27px;
+}
+
+.product-story__calendar-card p {
+  font-size: 12px;
+}
+
+.product-story__time-rail {
+  gap: 7px;
+  padding-left: 11px;
 }
 
 .hero-blob {
@@ -2198,6 +3256,228 @@ onBeforeUnmount(() => {
     width: 100%;
     position: relative;
     margin: 0;
+  }
+}
+
+@media (max-width: 1180px) {
+  .home-hero {
+    grid-template-columns: minmax(0, 0.78fr) minmax(0, 1.22fr);
+    gap: clamp(20px, 2.5vw, 32px);
+  }
+
+  .home-hero__title {
+    font-size: clamp(38px, 4vw, 52px);
+  }
+
+  .product-story {
+    width: min(100%, 680px);
+  }
+
+  .product-story__public-card {
+    width: min(48%, 310px);
+  }
+
+  .product-story__request-card {
+    right: 176px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .product-story__portrait-photo {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+@media (max-width: 920px) {
+  .home-hero {
+    grid-template-columns: 1fr;
+    min-height: auto;
+    height: auto;
+    padding-top: 30px;
+  }
+
+  .home-hero__title,
+  .home-hero__subtitle,
+  .home-hero__support {
+    max-width: 720px;
+  }
+
+  .hero-features {
+    grid-template-columns: repeat(5, minmax(82px, 1fr));
+  }
+
+  .home-hero__visual {
+    height: 500px;
+    min-height: 0;
+  }
+
+  .product-story {
+    width: min(100%, 700px);
+    min-height: 0;
+    height: 100%;
+    margin: 0 auto;
+  }
+}
+
+@media (max-width: 760px) {
+  .hero-features {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .product-story__dashboard-card {
+    width: min(92%, 620px);
+  }
+
+  .product-story__public-card {
+    width: min(55%, 330px);
+    left: 0;
+  }
+
+  .product-story__request-card {
+    right: 174px;
+    width: 158px;
+  }
+
+  .product-story__calendar-card {
+    width: 190px;
+    right: 0;
+  }
+}
+
+@media (max-width: 680px) {
+  .home-hero {
+    padding: 22px 0 4px;
+  }
+
+  .home-hero__eyebrow {
+    width: fit-content;
+    padding: 7px 11px;
+    font-size: 10px;
+  }
+
+  .home-hero__title {
+    font-size: clamp(34px, 10.5vw, 44px);
+  }
+
+  .home-hero__actions .btn {
+    justify-content: center;
+  }
+
+  .hero-features {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .hero-feature-tile {
+    min-height: 70px;
+    grid-template-columns: auto 1fr;
+    align-content: center;
+    justify-items: start;
+    text-align: left;
+  }
+
+  .home-hero__visual {
+    min-height: auto;
+    height: auto;
+  }
+
+  .product-story {
+    display: grid;
+    gap: 12px;
+    min-height: auto;
+    height: auto;
+  }
+
+  .product-story__accent {
+    display: none;
+  }
+
+  .product-story__dashboard-card,
+  .product-story__public-card,
+  .product-story__request-card,
+  .product-story__calendar-card {
+    position: relative;
+    inset: auto;
+    width: 100%;
+  }
+
+  .product-story__public-card {
+    order: 1;
+    padding: 14px;
+  }
+
+  .product-story__dashboard-card {
+    order: 2;
+    min-height: auto;
+    padding: 14px;
+  }
+
+  .product-story__request-card {
+    order: 3;
+  }
+
+  .product-story__calendar-card {
+    order: 4;
+  }
+
+  .product-story__dashboard-shell {
+    grid-template-columns: 38px minmax(0, 1fr);
+  }
+
+  .product-story__rail {
+    width: 38px;
+    min-height: 100%;
+  }
+
+  .product-story__dashboard-body {
+    grid-template-columns: 1fr;
+  }
+
+  .product-story__requests p {
+    grid-template-columns: 1fr;
+  }
+
+  .product-story__requests {
+    margin-left: 0;
+  }
+
+  .product-story__requests p em {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .product-story__profile {
+    grid-template-columns: 1fr;
+  }
+
+  .product-story__portrait-photo {
+    width: 100%;
+    max-width: none;
+    max-height: none;
+    aspect-ratio: 4 / 3;
+  }
+}
+
+@media (max-width: 420px) {
+  .hero-features {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .product-story__dashboard-header {
+    grid-template-columns: auto 1fr;
+  }
+
+  .product-story__top-actions {
+    grid-column: 1 / -1;
+    justify-content: flex-end;
+  }
+
+  .product-story__dashboard-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .product-story__rail {
+    display: none;
   }
 }
 

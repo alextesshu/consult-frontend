@@ -54,7 +54,7 @@ async function renderHome(options?: { authenticated?: boolean; roles?: string[] 
 }
 
 describe('HomeView', () => {
-  it('renders simplified hero with primary value and trust markers', async () => {
+  it('renders rebuilt hero with product collage and feature tiles', async () => {
     await renderHome()
 
     expect(screen.getByText('ДЛЯ СПЕЦІАЛІСТІВ ПРИВАТНОЇ ПРАКТИКИ')).toBeInTheDocument()
@@ -63,15 +63,24 @@ describe('HomeView', () => {
       screen.getByText(/Публічний профіль, сесії, календар, власний блог та багато іншого/)
     ).toBeInTheDocument()
     expect(screen.getByText(/приймати клієнтів і працювати системно/)).toBeInTheDocument()
-    const heroTrust = screen.getByRole('list', { name: 'Переваги платформи' })
-    expect(within(heroTrust).getByText('Публічний профіль')).toBeInTheDocument()
-    expect(within(heroTrust).getByText('Запити без реєстрації')).toBeInTheDocument()
-    expect(within(heroTrust).getByText('Власний блог')).toBeInTheDocument()
-    expect(screen.getByText('Мій кабінет')).toBeInTheDocument()
+    expect(screen.getByText(/Без комісій з консультацій і без залежності/)).toBeInTheDocument()
+    const heroFeatures = screen.getByRole('list', { name: 'Переваги платформи' })
+    expect(within(heroFeatures).getByText('Публічний профіль')).toBeInTheDocument()
+    expect(within(heroFeatures).getByText('Запити без реєстрації')).toBeInTheDocument()
+    expect(within(heroFeatures).getByText('Сесії та календар')).toBeInTheDocument()
+    expect(within(heroFeatures).getByText('Власний блог')).toBeInTheDocument()
+    expect(within(heroFeatures).getByText('Без комісій')).toBeInTheDocument()
+    expect(screen.getByText('Кабінет спеціаліста')).toBeInTheDocument()
+    expect(screen.getByText('Нових запитів')).toBeInTheDocument()
+    expect(screen.getByText('Сесій цього тижня')).toBeInTheDocument()
+    expect(screen.getByText('Клієнтів')).toBeInTheDocument()
     expect(screen.getByText('Останні запити')).toBeInTheDocument()
+    expect(screen.getAllByText('Олена Коваль').length).toBeGreaterThan(0)
+    expect(screen.getByText('12 років досвіду')).toBeInTheDocument()
     expect(screen.getByText('Новий запит')).toBeInTheDocument()
     expect(screen.getAllByText('15:00').length).toBeGreaterThan(0)
-    expect(screen.getByText('консультація з клієнтом')).toBeInTheDocument()
+    expect(screen.getByText('Консультація з клієнтом')).toBeInTheDocument()
+    expect(screen.getByText('Підтверджено')).toBeInTheDocument()
     expect(screen.getAllByRole('link', { name: 'Створити свій простір' }).length).toBeGreaterThan(0)
   })
 
@@ -90,10 +99,9 @@ describe('HomeView', () => {
   it('routes authenticated primary cta to cabinet', async () => {
     const { router } = await renderHome({ authenticated: true, roles: ['SPECIALIST'] })
 
-    const cabinetButtons = screen.getAllByRole('button', { name: 'Перейти в кабінет' })
-    expect(cabinetButtons.length).toBeGreaterThan(0)
+    const heroButton = screen.getByRole('button', { name: /Створити свій простір/ })
 
-    await fireEvent.click(cabinetButtons[0] as HTMLElement)
+    await fireEvent.click(heroButton)
 
     await waitFor(() => {
       expect(router.currentRoute.value.fullPath).toBe('/cabinet')
