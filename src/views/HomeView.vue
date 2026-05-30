@@ -302,7 +302,7 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
-import heroSpecialistDemo from '@/assets/home/hero-specialist-demo.png'
+import heroSpecialistDemo from '../assets/home/hero-specialist-demo.png'
 
 type IconKey =
   | 'profile'
