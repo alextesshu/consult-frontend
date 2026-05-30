@@ -57,12 +57,22 @@ describe('HomeView', () => {
   it('renders simplified hero with primary value and trust markers', async () => {
     await renderHome()
 
-    expect(screen.getByText('Платформа для приватної практики')).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Приватна практика на ваших умовах — без комісій' })).toBeInTheDocument()
+    expect(screen.getByText('ДЛЯ СПЕЦІАЛІСТІВ ПРИВАТНОЇ ПРАКТИКИ')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Простір для ведення консультацій' })).toBeInTheDocument()
+    expect(
+      screen.getByText(/Публічний профіль, сесії, календар, власний блог та багато іншого/)
+    ).toBeInTheDocument()
+    expect(screen.getByText(/приймати клієнтів і працювати системно/)).toBeInTheDocument()
     const heroTrust = screen.getByRole('list', { name: 'Переваги платформи' })
-    expect(within(heroTrust).getByText('Без комісій з оплат')).toBeInTheDocument()
-    expect(within(heroTrust).getByText('Онлайн і офлайн сесії')).toBeInTheDocument()
-    expect(screen.getAllByRole('link', { name: 'Почати безкоштовно' }).length).toBeGreaterThan(0)
+    expect(within(heroTrust).getByText('Публічний профіль')).toBeInTheDocument()
+    expect(within(heroTrust).getByText('Запити без реєстрації')).toBeInTheDocument()
+    expect(within(heroTrust).getByText('Власний блог')).toBeInTheDocument()
+    expect(screen.getByText('Мій кабінет')).toBeInTheDocument()
+    expect(screen.getByText('Останні запити')).toBeInTheDocument()
+    expect(screen.getByText('Новий запит')).toBeInTheDocument()
+    expect(screen.getAllByText('15:00').length).toBeGreaterThan(0)
+    expect(screen.getByText('консультація з клієнтом')).toBeInTheDocument()
+    expect(screen.getAllByRole('link', { name: 'Створити свій простір' }).length).toBeGreaterThan(0)
   })
 
   it('switches pricing values for yearly billing', async () => {
@@ -90,5 +100,3 @@ describe('HomeView', () => {
     })
   })
 })
-
-
