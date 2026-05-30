@@ -181,6 +181,15 @@
                 Запитаний слот: {{ formatDateTime(request.requested_slot_start) }}
                 <span v-if="request.duration_minutes"> · {{ request.duration_minutes }} хв</span>
               </div>
+              <div v-if="requestTopicLabels(request).length" class="request-topic-row" aria-label="Теми запиту">
+                <span
+                  v-for="topicLabel in requestTopicLabels(request)"
+                  :key="topicLabel"
+                  class="request-topic-chip"
+                >
+                  {{ topicLabel }}
+                </span>
+              </div>
               <div class="muted">
                 Формат: {{ request.session_format === 'offline' ? 'Офлайн' : 'Онлайн' }}
                 <span v-if="request.session_format === 'offline' && request.offline_location_snapshot">
@@ -422,6 +431,7 @@ import {
   fetchExternalSessions,
   fetchSpecialistProfile,
   getApiErrorMessage,
+  requestTopicLabel,
   type ExternalSessionRecord,
   type GuestBookingRequestRecord,
   type SessionFormat,
@@ -647,6 +657,10 @@ function requestClientEmail(request: GuestBookingRequestRecord) {
 function requestClientPhone(request: GuestBookingRequestRecord) {
   if (request.client_phone) return request.client_phone
   return String(request.contact_channel || '').toLowerCase() === 'phone' ? request.contact_value || '' : ''
+}
+
+function requestTopicLabels(request: GuestBookingRequestRecord) {
+  return (request.request_topics || []).map((topic) => requestTopicLabel(topic)).filter(Boolean)
 }
 
 function setRequestActionLoading(id: number, action: RequestActionType, value: boolean) {
@@ -1375,6 +1389,23 @@ onMounted(async () => {
   max-width: 620px;
   color: var(--pc-text-muted);
   line-height: 1.45;
+}
+
+.request-topic-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.request-topic-chip {
+  padding: 4px 8px;
+  border: 1px solid color-mix(in srgb, var(--pc-navy-900) 16%, var(--pc-border));
+  border-radius: var(--pc-radius-control);
+  background: color-mix(in srgb, var(--pc-blue-soft) 58%, #ffffff);
+  color: var(--pc-navy-900);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.2;
 }
 
 .request-actions {

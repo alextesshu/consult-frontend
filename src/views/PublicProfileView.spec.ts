@@ -61,6 +61,17 @@ vi.mock('../composables/useToast', () => ({
 }))
 
 vi.mock('../lib/api', () => ({
+  REQUEST_TOPIC_OPTIONS: [
+    { value: 'anxiety', label: 'Тривога' },
+    { value: 'stress', label: 'Стрес' },
+    { value: 'self_esteem', label: 'Самооцінка' },
+    { value: 'relationships', label: 'Стосунки' },
+    { value: 'burnout', label: 'Вигорання' },
+    { value: 'discipline', label: 'Дисципліна' },
+    { value: 'career', label: 'Кар’єра / робота' },
+    { value: 'life_changes', label: 'Зміни в житті' },
+    { value: 'not_sure', label: 'Не знаю' },
+  ],
   acceptBookingRules: vi.fn(),
   apiGet: vi.fn(),
   apiPost: vi.fn(),
@@ -1314,6 +1325,53 @@ describe('PublicProfileView', () => {
     expect(screen.getByLabelText('Контакт')).toBeInTheDocument()
   })
 
+  it('allows selecting up to three optional request topics and sends stable values', async () => {
+    mockCommonPublicData()
+    mockBookingPageDataWithSingleSlot()
+    mockedApiPost.mockResolvedValue({
+      request: {
+        id: 504,
+        status: 'PENDING',
+        created_at: '2026-04-07T10:00:00Z',
+        next_step: null,
+      },
+    })
+
+    renderView()
+
+    await fireEvent.click(await screen.findByRole('button', { name: 'Записатися' }))
+    expect(await screen.findByText('Що хочете обговорити?')).toBeInTheDocument()
+
+    const anxiety = screen.getByRole('button', { name: 'Тривога' })
+    const stress = screen.getByRole('button', { name: 'Стрес' })
+    const relationships = screen.getByRole('button', { name: 'Стосунки' })
+    const burnout = screen.getByRole('button', { name: 'Вигорання' })
+
+    await fireEvent.click(anxiety)
+    await fireEvent.click(stress)
+    await fireEvent.click(relationships)
+
+    expect(anxiety).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByText('Можна обрати до 3 тем.')).toBeInTheDocument()
+    expect(burnout).toBeDisabled()
+
+    await fireEvent.click(stress)
+    expect(stress).toHaveAttribute('aria-pressed', 'false')
+    expect(burnout).not.toBeDisabled()
+
+    await fireEvent.click(burnout)
+    await fireEvent.update(screen.getByLabelText('Ім’я'), 'Ірина')
+    await fireEvent.update(screen.getByLabelText('Контакт'), 'iryna@example.com')
+    await fireEvent.click(screen.getByRole('button', { name: 'Надіслати запит' }))
+
+    expect(mockedApiPost).toHaveBeenCalledWith(
+      '/public/specialists/olena/guest-booking-requests/',
+      expect.objectContaining({
+        request_topics: ['anxiety', 'relationships', 'burnout'],
+      })
+    )
+  })
+
   it('submits a valid guest booking request and renders success state copy', async () => {
     mockCommonPublicData()
     mockBookingPageDataWithSingleSlot()
@@ -1341,6 +1399,7 @@ describe('PublicProfileView', () => {
         guest_name: 'Ірина',
         contact_channel: 'email',
         contact_value: 'iryna@example.com',
+        request_topics: [],
       }
     )
     expect(

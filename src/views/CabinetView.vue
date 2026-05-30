@@ -459,6 +459,7 @@ type WorkQueueGuestRequestPreviewItem = {
   status?: string | null
   client_display_name?: string | null
   guest_name?: string | null
+  request_topics?: string[] | null
   session_format?: SessionFormat | null
   meeting_mode?: 'ONLINE' | 'OFFLINE' | null
   requested_slot_start?: string | null

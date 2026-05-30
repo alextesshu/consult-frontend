@@ -125,6 +125,7 @@ function buildGuestRequest(overrides: Record<string, unknown>) {
     guest_name: 'Guest',
     contact_channel: 'email',
     contact_value: 'guest@example.com',
+    request_topics: [],
     message: 'Please confirm',
     source: 'public_profile',
     public_profile_slug_snapshot: 'slug',
@@ -301,6 +302,7 @@ describe('ExternalSessionsView', () => {
         requested_slot_end: null,
         client_name: 'Slotless Guest',
         client_email: 'slotless@example.com',
+        request_topics: ['anxiety', 'relationships'],
       }),
     ] as any)
 
@@ -317,6 +319,8 @@ describe('ExternalSessionsView', () => {
     expect(createPanel).toHaveClass('external-sessions__create-panel')
     expect(guestRequestsPanel).toHaveTextContent('Запит без обраного часу')
     expect(guestRequestsPanel).toHaveTextContent('Клієнт залишив запит без бронювання конкретного слота.')
+    expect(guestRequestsPanel).toHaveTextContent('Тривога')
+    expect(guestRequestsPanel).toHaveTextContent('Стосунки')
     expect(within(guestRequestsPanel as HTMLElement).getByRole('button', { name: 'Створити сесію' })).toBeInTheDocument()
     expect(within(guestRequestsPanel as HTMLElement).getByRole('button', { name: 'Закрити запит' })).toBeInTheDocument()
   })

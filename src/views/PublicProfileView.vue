@@ -675,13 +675,41 @@
               />
             </label>
 
+            <section class="guest-request-topics" aria-labelledby="guestRequestTopicsTitle">
+              <div class="guest-request-topics__header">
+                <div id="guestRequestTopicsTitle" class="guest-request-topics__title">
+                  Що хочете обговорити?
+                </div>
+                <p class="guest-request-topics__helper">
+                  Оберіть до 3 тем — це допоможе спеціалісту швидше зрозуміти запит.
+                </p>
+              </div>
+              <div class="guest-request-topics__chips">
+                <button
+                  v-for="topic in REQUEST_TOPIC_OPTIONS"
+                  :key="topic.value"
+                  class="guest-request-topic-chip"
+                  :class="{ 'guest-request-topic-chip--active': isGuestRequestTopicSelected(topic.value) }"
+                  type="button"
+                  :aria-pressed="isGuestRequestTopicSelected(topic.value)"
+                  :disabled="isGuestRequestTopicDisabled(topic.value)"
+                  @click="toggleGuestRequestTopic(topic.value)"
+                >
+                  {{ topic.label }}
+                </button>
+              </div>
+              <div v-if="guestRequestTopicLimitReached" class="guest-request-topics__limit">
+                Можна обрати до 3 тем.
+              </div>
+            </section>
+
             <label class="setting-label" for="guestBookingMessage">
               Повідомлення (необов’язково)
               <textarea
                 id="guestBookingMessage"
                 v-model="guestBookingForm.message"
                 class="input guest-booking-form__message"
-                rows="3"
+                rows="2"
                 :disabled="guestBookingSubmitting"
                 placeholder="Коротко опишіть, що важливо уточнити перед першою сесією."
               ></textarea>
@@ -689,9 +717,11 @@
 
             <div v-if="guestBookingError" class="form-error">{{ guestBookingError }}</div>
 
-            <button class="btn btn--primary" type="submit" :disabled="guestBookingSubmitDisabled">
-              {{ guestBookingSubmitting ? 'Надсилаємо...' : 'Надіслати запит' }}
-            </button>
+            <div class="guest-booking-form__submit">
+              <button class="btn btn--primary" type="submit" :disabled="guestBookingSubmitDisabled">
+                {{ guestBookingSubmitting ? 'Надсилаємо...' : 'Надіслати запит' }}
+              </button>
+            </div>
           </form>
         </div>
       </div>
@@ -858,6 +888,8 @@ import {
   type PublicProfileTrustItem,
   type PublicProfileTrustSection as PublicProfileTrustSectionData,
   type PublicBookingRuleItem,
+  REQUEST_TOPIC_OPTIONS,
+  type PublicGuestRequestTopic,
   type PublicSpecialistProfile,
   type PublicSpecialistProfileDocument,
   type PublicAuthorJournalPost,
@@ -879,6 +911,7 @@ type PublicGuestBookingRequestPayload = {
   guest_name: string
   contact_channel: GuestContactChannel
   contact_value: string
+  request_topics: PublicGuestRequestTopic[]
   message?: string
 }
 
@@ -1007,6 +1040,7 @@ const guestBookingForm = ref({
   contact_value: '',
   message: '',
 })
+const selectedGuestRequestTopics = ref<PublicGuestRequestTopic[]>([])
 const bookingRulesAccepting = ref(false)
 const pendingClientBookingSlotId = ref<number | null>(null)
 const bookingRulesPromptRef = ref<HTMLElement | null>(null)
@@ -1171,6 +1205,7 @@ const guestBookingSubmitDisabled = computed(
     guestBookingSubmitting.value ||
     (shouldShowGuestBookingRulesPrompt.value && !guestBookingRulesAccepted.value)
 )
+const guestRequestTopicLimitReached = computed(() => selectedGuestRequestTopics.value.length >= 3)
 const guestBookingModalTitle = computed(() =>
   publicDirectBookingEnabled.value ? 'Запит на бронювання' : 'Запит до спеціаліста'
 )
@@ -2205,6 +2240,24 @@ const GUEST_CONTACT_CHANNEL_OPTIONS: Array<{ value: GuestContactChannel; label: 
   { value: 'telegram', label: 'Telegram' },
 ]
 
+function isGuestRequestTopicSelected(topic: PublicGuestRequestTopic) {
+  return selectedGuestRequestTopics.value.includes(topic)
+}
+
+function isGuestRequestTopicDisabled(topic: PublicGuestRequestTopic) {
+  return guestBookingSubmitting.value || (guestRequestTopicLimitReached.value && !isGuestRequestTopicSelected(topic))
+}
+
+function toggleGuestRequestTopic(topic: PublicGuestRequestTopic) {
+  if (guestBookingSubmitting.value) return
+  if (isGuestRequestTopicSelected(topic)) {
+    selectedGuestRequestTopics.value = selectedGuestRequestTopics.value.filter((item) => item !== topic)
+    return
+  }
+  if (guestRequestTopicLimitReached.value) return
+  selectedGuestRequestTopics.value = [...selectedGuestRequestTopics.value, topic]
+}
+
 const GUEST_BOOKING_UNAVAILABLE_CODES = new Set([
   'SLOT_NOT_FOUND',
   'SLOT_ALREADY_BOOKED',
@@ -3089,6 +3142,7 @@ function resetGuestBookingForm() {
     contact_value: '',
     message: '',
   }
+  selectedGuestRequestTopics.value = []
 }
 
 function closeGuestBookingModal() {
@@ -3296,6 +3350,7 @@ async function submitGuestBookingRequest() {
       guest_name: guestName,
       contact_channel: contactChannel,
       contact_value: contactValue,
+      request_topics: [...selectedGuestRequestTopics.value],
     }
     if (slot) {
       payload.slot_id = slot.id
@@ -5414,16 +5469,119 @@ onMounted(async () => {
 
   .guest-booking-modal {
     width: min(620px, 92vw);
+    padding: 16px;
+    gap: 10px;
+  }
+
+  .guest-booking-modal .setting-modal__body {
+    gap: 8px;
+    padding-right: 0;
+  }
+
+  .guest-booking-modal .booking-next {
+    gap: 4px;
+    padding: 8px 10px;
+    border-radius: 10px;
+  }
+
+  .guest-booking-modal .booking-next__title {
+    font-size: 13px;
+  }
+
+  .guest-booking-modal .booking-next__item {
+    font-size: 12px;
+    line-height: 1.35;
+  }
+
+  .guest-booking-modal .setting-label {
+    gap: 4px;
   }
 
   .guest-booking-form {
     display: grid;
-    gap: 12px;
-    padding-bottom: max(8px, env(safe-area-inset-bottom));
+    gap: 9px;
+    padding-bottom: max(4px, env(safe-area-inset-bottom));
   }
 
   .guest-booking-form__message {
+    min-height: 58px;
     resize: vertical;
+  }
+
+  .guest-booking-form__submit {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 8px;
+    padding-bottom: max(2px, env(safe-area-inset-bottom));
+    background: linear-gradient(
+      180deg,
+      rgba(255, 255, 255, 0),
+      #fff 34%,
+      #fff
+    );
+  }
+
+  .guest-request-topics {
+    display: grid;
+    gap: 7px;
+  }
+
+  .guest-request-topics__header {
+    display: grid;
+    gap: 2px;
+  }
+
+  .guest-request-topics__title {
+    color: var(--ink);
+    font-weight: 700;
+  }
+
+  .guest-request-topics__helper,
+  .guest-request-topics__limit {
+    margin: 0;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.35;
+  }
+
+  .guest-request-topics__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .guest-request-topic-chip {
+    min-height: 30px;
+    padding: 5px 9px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #fff;
+    color: var(--ink);
+    font: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: border-color 0.16s ease, background 0.16s ease, color 0.16s ease;
+  }
+
+  .guest-request-topic-chip:hover,
+  .guest-request-topic-chip:focus-visible {
+    border-color: color-mix(in srgb, var(--deep) 28%, var(--line));
+    outline: none;
+  }
+
+  .guest-request-topic-chip--active {
+    border-color: color-mix(in srgb, var(--deep) 42%, var(--line));
+    background: color-mix(in srgb, var(--accent) 18%, #ffffff);
+    color: var(--deep);
+  }
+
+  .guest-request-topic-chip:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
   }
 
 @media (max-width: 1100px) {
@@ -5512,6 +5670,19 @@ onMounted(async () => {
     width: 100%;
     padding: 14px;
     border-radius: 14px;
+  }
+
+  .guest-booking-modal {
+    padding: 12px;
+    gap: 8px;
+  }
+
+  .guest-booking-form {
+    gap: 8px;
+  }
+
+  .guest-booking-form__submit .btn {
+    width: 100%;
   }
 
   .setting-modal__header {

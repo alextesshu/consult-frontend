@@ -257,6 +257,7 @@ export type NotificationFeedItem = {
   target_type?: string | null
   target_id?: number | null
   focus?: string | null
+  request_topics?: PublicGuestRequestTopic[] | null
 }
 
 export type NotificationFeedResponse = {
@@ -842,6 +843,37 @@ export type PublicTherapistProfile = {
 export type PublicSpecialistProfile = PublicTherapistProfile
 
 export type SessionFormat = 'online' | 'offline'
+
+export type PublicGuestRequestTopic =
+  | 'anxiety'
+  | 'stress'
+  | 'self_esteem'
+  | 'relationships'
+  | 'burnout'
+  | 'discipline'
+  | 'career'
+  | 'life_changes'
+  | 'not_sure'
+
+export const REQUEST_TOPIC_LABELS: Record<PublicGuestRequestTopic, string> = {
+  anxiety: 'Тривога',
+  stress: 'Стрес',
+  self_esteem: 'Самооцінка',
+  relationships: 'Стосунки',
+  burnout: 'Вигорання',
+  discipline: 'Дисципліна',
+  career: 'Кар’єра / робота',
+  life_changes: 'Зміни в житті',
+  not_sure: 'Не знаю',
+}
+
+export const REQUEST_TOPIC_OPTIONS: Array<{ value: PublicGuestRequestTopic; label: string }> = (
+  Object.entries(REQUEST_TOPIC_LABELS) as Array<[PublicGuestRequestTopic, string]>
+).map(([value, label]) => ({ value, label }))
+
+export function requestTopicLabel(topic: string | null | undefined) {
+  return REQUEST_TOPIC_LABELS[topic as PublicGuestRequestTopic] || ''
+}
 
 export type Session = {
   id: number
@@ -2345,6 +2377,7 @@ export type GuestBookingRequestRecord = {
   guest_name: string | null
   contact_channel: string | null
   contact_value: string | null
+  request_topics?: PublicGuestRequestTopic[] | null
   message: string | null
   source: string | null
   public_profile_slug_snapshot: string | null
