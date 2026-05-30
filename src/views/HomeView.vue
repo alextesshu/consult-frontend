@@ -302,7 +302,7 @@
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
-import heroSpecialistDemo from '../assets/home/hero-specialist-demo.png'
+import heroSpecialistDemo from '../assets/home/hero-specialist-demo.webp'
 
 type IconKey =
   | 'profile'
@@ -709,19 +709,22 @@ onBeforeUnmount(() => {
 .product-story__dashboard-card {
   position: absolute;
   z-index: 1;
-  top: 0;
+  top: 18px;
   right: 0;
   display: grid;
-  gap: 16px;
-  width: min(92%, 560px);
-  min-height: 360px;
-  border-radius: 22px;
-  padding: 18px 18px 18px 72px;
+  gap: 14px;
+  width: min(86%, 540px);
+  min-height: 340px;
+  border-radius: 28px;
+  padding: 24px;
   background:
-    radial-gradient(380px 190px at 84% 20%, rgba(170, 183, 228, 0.24), transparent 70%),
+    radial-gradient(380px 190px at 84% 20%, rgba(170, 183, 228, 0.2), transparent 70%),
     radial-gradient(340px 180px at 22% 0%, rgba(143, 203, 200, 0.18), transparent 68%),
-    linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(245, 247, 242, 0.9));
+    linear-gradient(145deg, rgba(255, 255, 255, 0.94), rgba(245, 247, 242, 0.82));
+  border: 1px solid rgba(18, 52, 90, 0.07);
+  box-shadow: 0 28px 76px rgba(18, 35, 58, 0.13);
   backdrop-filter: blur(8px);
+  opacity: 0.9;
 }
 
 .product-story__dashboard-header {
@@ -793,8 +796,9 @@ onBeforeUnmount(() => {
 
 .product-story__dashboard-shell {
   display: grid;
-  grid-template-columns: 1fr minmax(170px, 0.76fr);
+  grid-template-columns: minmax(0, 1fr) minmax(150px, 0.74fr);
   gap: 14px;
+  opacity: 0.58;
 }
 
 .product-story__rail {
@@ -830,10 +834,20 @@ onBeforeUnmount(() => {
   opacity: 1;
 }
 
+.product-story__dashboard-header,
+.product-story__rail {
+  display: none;
+}
+
 .product-story__dashboard-body {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
+}
+
+.product-story__dashboard-body,
+.product-story__requests {
+  filter: saturate(0.9);
 }
 
 .product-story__stat,
@@ -915,7 +929,7 @@ onBeforeUnmount(() => {
   bottom: 40px;
   display: grid;
   gap: 16px;
-  width: min(68%, 430px);
+  width: min(72%, 470px);
   border-radius: 24px;
   padding: clamp(16px, 2.2vw, 24px);
   background:
@@ -946,23 +960,24 @@ onBeforeUnmount(() => {
 
 .product-story__profile {
   display: grid;
-  grid-template-columns: minmax(132px, 0.44fr) minmax(0, 1fr);
+  grid-template-columns: minmax(118px, 150px) minmax(0, 1fr);
   gap: 16px;
-  align-items: stretch;
+  align-items: center;
 }
 
 .product-story__portrait-photo {
   display: block;
-  width: clamp(132px, 13vw, 176px);
+  width: 100%;
+  max-width: 150px;
   aspect-ratio: 4 / 5;
   object-fit: cover;
-  object-position: center 28%;
+  object-position: center 24%;
   flex: 0 0 auto;
   border-radius: 22px;
   background: #f7efe7;
   border: 1px solid rgba(13, 47, 83, 0.08);
   box-shadow:
-    0 24px 54px rgba(18, 35, 58, 0.16),
+    0 22px 48px rgba(18, 35, 58, 0.14),
     inset 0 0 0 1px rgba(255, 255, 255, 0.42);
 }
 
@@ -1038,13 +1053,13 @@ onBeforeUnmount(() => {
 .product-story__request-card {
   position: absolute;
   z-index: 4;
-  right: 132px;
-  bottom: 92px;
+  right: 18px;
+  bottom: 142px;
   display: grid;
   gap: 8px;
-  width: 210px;
+  width: 198px;
   border-radius: 22px;
-  padding: 16px;
+  padding: 15px;
   background:
     radial-gradient(180px 110px at 100% 0%, rgba(143, 203, 200, 0.24), transparent 70%),
     rgba(255, 255, 255, 0.96);
@@ -1058,7 +1073,7 @@ onBeforeUnmount(() => {
   grid-template-columns: 1fr auto;
   gap: 8px;
   border-radius: 22px;
-  padding: 16px;
+  padding: 14px;
 }
 
 .product-story__request-icon,
@@ -1138,9 +1153,9 @@ onBeforeUnmount(() => {
 }
 
 .product-story__calendar-card {
-  right: 0;
-  bottom: 4px;
-  width: 250px;
+  right: -10px;
+  bottom: -2px;
+  width: 228px;
   background: linear-gradient(145deg, rgba(255, 255, 255, 0.98), rgba(245, 247, 242, 0.9));
   box-shadow: 0 28px 62px rgba(83, 71, 140, 0.16);
 }
@@ -2132,9 +2147,9 @@ onBeforeUnmount(() => {
     grid-template-columns: 1fr;
   }
 
-  .product-story__avatar {
-    max-height: 220px;
-    width: min(100%, 180px);
+  .product-story__portrait-photo {
+  width: min(100%, 180px);
+  max-width: 180px;
   }
 
   .product-story__request-card {
