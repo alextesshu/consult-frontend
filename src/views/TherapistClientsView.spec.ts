@@ -184,13 +184,34 @@ async function selectRegularTimeDate(scope: HTMLElement, isoDate: string) {
   const month = Number(monthRaw)
   const day = Number(dayRaw)
   const displayDate = `${String(day).padStart(2, '0')}.${String(month).padStart(2, '0')}.${year}`
+  const targetTime = new Date(year, month - 1, day).getTime()
 
   await fireEvent.click(within(scope).getByLabelText('Вибрати дату'))
 
-  const current = new Date()
-  const monthDelta = (year - current.getFullYear()) * 12 + (month - 1 - current.getMonth())
-  const directionName = monthDelta >= 0 ? 'Наступний місяць' : 'Попередній місяць'
-  for (let index = 0; index < Math.abs(monthDelta); index += 1) {
+  for (let index = 0; index < 24; index += 1) {
+    const targetButton = within(scope).queryByRole('button', { name: displayDate })
+    if (targetButton) {
+      await fireEvent.click(targetButton)
+      return displayDate
+    }
+
+    const pickerDays = Array.from(scope.querySelectorAll('.date-picker-day')) as HTMLButtonElement[]
+    const visibleTimes = pickerDays
+      .map((button) => {
+        const label = button.getAttribute('aria-label') || ''
+        const [dayValue, monthValue, yearValue] = label.split('.').map(Number)
+        return new Date(yearValue, monthValue - 1, dayValue).getTime()
+      })
+      .filter((value) => Number.isFinite(value))
+
+    if (!visibleTimes.length) break
+
+    const minVisibleTime = Math.min(...visibleTimes)
+    const maxVisibleTime = Math.max(...visibleTimes)
+    const directionName = targetTime < minVisibleTime ? 'Попередній місяць' : 'Наступний місяць'
+
+    if (targetTime >= minVisibleTime && targetTime <= maxVisibleTime) break
+
     await fireEvent.click(within(scope).getByLabelText(directionName))
   }
 
