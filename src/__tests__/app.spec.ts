@@ -98,6 +98,8 @@ async function renderWithProviders(options?: {
   const routes = [
     { path: '/', component: { template: '<div>Home</div>' } },
     { path: '/login', component: { template: '<div>Login</div>' } },
+    { path: '/signup', component: { template: '<div>Signup</div>' } },
+    { path: '/pricing', component: { template: '<div>Pricing</div>' } },
     { path: '/admin/inbox', component: { template: '<div>Admin Inbox</div>' } },
     { path: '/faq', component: { template: '<div>Faq</div>' } },
     { path: '/terms', component: { template: '<div>Terms</div>' } },
@@ -218,9 +220,67 @@ describe('App shell', () => {
     mockToast.info.mockReset()
   })
 
-  it('renders footer text', async () => {
+  it('renders product footer on public routes', async () => {
     await renderWithProviders()
-    expect(screen.getByText(/Без комісій\. Без посередників\./i)).toBeInTheDocument()
+
+    const footer = document.querySelector('footer.footer--public') as HTMLElement | null
+    expect(footer).toBeInTheDocument()
+    expect(within(footer as HTMLElement).getByText('PRO CONSULT')).toBeInTheDocument()
+    expect(within(footer as HTMLElement).getByText('Простір для ведення консультацій.')).toBeInTheDocument()
+    expect(within(footer as HTMLElement).getByText(/Публічний профіль, запити, сесії, календар/i)).toBeInTheDocument()
+    expect(within(footer as HTMLElement).getByRole('link', { name: 'Можливості' })).toHaveAttribute(
+      'href',
+      '/#features'
+    )
+    expect(within(footer as HTMLElement).getByRole('link', { name: 'Тарифи' })).toHaveAttribute('href', '/pricing')
+    expect(within(footer as HTMLElement).getByRole('link', { name: 'Підтримка та запити щодо даних' })).toHaveAttribute(
+      'href',
+      '/support-and-data-requests'
+    )
+    expect(footer?.textContent || '').not.toContain('вашої справи')
+  })
+
+  it('keeps the public home header in normal document flow', async () => {
+    await renderWithProviders()
+
+    const topbar = document.querySelector('header.topbar') as HTMLElement | null
+    expect(topbar).toBeInTheDocument()
+    expect(topbar).toHaveClass('topbar--guest')
+    expect(topbar).not.toHaveClass('topbar--overlay')
+  })
+
+  it('keeps the specialist home header out of overlay mode', async () => {
+    await renderWithProviders({
+      initialPath: '/',
+      roles: ['SPECIALIST'],
+    })
+
+    const topbar = document.querySelector('header.topbar') as HTMLElement | null
+    expect(topbar).toBeInTheDocument()
+    expect(topbar).toHaveClass('topbar--specialist')
+    expect(topbar).not.toHaveClass('topbar--overlay')
+  })
+
+  it('renders compact service footer on cabinet routes', async () => {
+    await renderWithProviders({
+      initialPath: '/cabinet',
+      roles: ['SPECIALIST'],
+    })
+
+    const footer = document.querySelector('footer.footer--cabinet') as HTMLElement | null
+    expect(footer).toBeInTheDocument()
+    expect(within(footer as HTMLElement).getByText('Pro Consult')).toBeInTheDocument()
+    expect(within(footer as HTMLElement).getByText(/Без комісій\. Без посередників\./i)).toBeInTheDocument()
+    expect(within(footer as HTMLElement).getByRole('link', { name: 'Умови користування' })).toHaveAttribute(
+      'href',
+      '/terms'
+    )
+    expect(within(footer as HTMLElement).getByRole('link', { name: 'Підтримка' })).toHaveAttribute(
+      'href',
+      '/support-and-data-requests'
+    )
+    expect(within(footer as HTMLElement).queryByText('Продукт')).not.toBeInTheDocument()
+    expect(within(footer as HTMLElement).queryByRole('link', { name: 'Створити простір' })).not.toBeInTheDocument()
   })
 
   it('renders technical build probe for deploy verification', async () => {
@@ -613,7 +673,7 @@ describe('App shell', () => {
     })
   })
 
-  it('renders public guest request notifications with slot-less copy and routes to external sessions', async () => {
+  it('renders public guest request notifications without a selected slot and routes to external sessions', async () => {
     const { router } = await renderWithProviders({
       initialPath: '/cabinet',
       roles: ['SPECIALIST'],

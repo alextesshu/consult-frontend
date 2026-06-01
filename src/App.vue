@@ -328,24 +328,74 @@
     </main>
     <ScrollToTopButton v-if="showGlobalScrollTopButton" />
     <ToastHost />
-    <footer v-if="!useMinimalShell" class="footer">
-      <div class="footer__brand">
-        <span>Pro Consult — Простір для вашої справи</span>
-        <RouterLink class="footer__link" to="/faq">FAQ</RouterLink>
-      </div>
-      <div class="footer__meta">
-        <span>Без комісій. Без посередників. З повагою до практики.</span>
-      </div>
-      <div v-if="showStagingDeployMarker" class="footer__deploy" aria-label="staging-deploy-marker">
-        <span class="footer__deploy-env">Staging</span>
-        <span class="footer__deploy-build">FE {{ buildMarkerText }}</span>
-      </div>
-      <div class="footer__legal">
-        <RouterLink class="footer__link" to="/terms">Умови користування</RouterLink>
-        <RouterLink class="footer__link" to="/privacy">Політика конфіденційності</RouterLink>
-        <RouterLink class="footer__link" to="/disclaimer">Дисклеймер</RouterLink>
-        <RouterLink class="footer__link" to="/support-and-data-requests">Підтримка та запити щодо даних</RouterLink>
-      </div>
+    <footer
+      v-if="!useMinimalShell"
+      :class="[
+        'footer',
+        {
+          'footer--cabinet': isCabinetRoute,
+          'footer--public': !isCabinetRoute,
+        },
+      ]"
+    >
+      <template v-if="isCabinetRoute">
+        <div class="footer__cabinet-brand">
+          <span class="footer__name">Pro Consult</span>
+          <span>Без комісій. Без посередників. З повагою до практики.</span>
+        </div>
+        <div v-if="showStagingDeployMarker" class="footer__deploy" aria-label="staging-deploy-marker">
+          <span class="footer__deploy-env">Staging</span>
+          <span class="footer__deploy-build">FE {{ buildMarkerText }}</span>
+        </div>
+        <div class="footer__legal footer__legal--compact">
+          <RouterLink class="footer__link" to="/terms">Умови користування</RouterLink>
+          <RouterLink class="footer__link" to="/privacy">Політика конфіденційності</RouterLink>
+          <RouterLink class="footer__link" to="/support-and-data-requests">Підтримка</RouterLink>
+        </div>
+      </template>
+      <template v-else>
+        <div class="footer__intro">
+          <div>
+            <div class="footer__eyebrow">PRO CONSULT</div>
+            <p class="footer__lead">Простір для ведення консультацій.</p>
+          </div>
+          <p class="footer__description">
+            Публічний профіль, запити, сесії, календар, власний блог і робочі матеріали без комісій з консультацій.
+          </p>
+        </div>
+        <nav class="footer__columns" aria-label="Навігація footer">
+          <section class="footer__column" aria-labelledby="footer-product-title">
+            <h2 id="footer-product-title" class="footer__column-title">Продукт</h2>
+            <RouterLink class="footer__link" to="/#features">Можливості</RouterLink>
+            <span class="footer__text">Публічний профіль</span>
+            <span class="footer__text">Запити без реєстрації</span>
+            <span class="footer__text">Сесії та календар</span>
+            <span class="footer__text">Власний блог</span>
+            <span class="footer__text">Задачі</span>
+            <RouterLink class="footer__link" to="/#pricing">Без комісій</RouterLink>
+          </section>
+          <section class="footer__column" aria-labelledby="footer-specialists-title">
+            <h2 id="footer-specialists-title" class="footer__column-title">Для спеціалістів</h2>
+            <RouterLink class="footer__link" to="/pricing">Тарифи</RouterLink>
+            <RouterLink class="footer__link" to="/login">Увійти</RouterLink>
+            <RouterLink class="footer__link" to="/signup">Створити простір</RouterLink>
+          </section>
+          <section class="footer__column" aria-labelledby="footer-legal-title">
+            <h2 id="footer-legal-title" class="footer__column-title">Правова інформація</h2>
+            <RouterLink class="footer__link" to="/terms">Умови користування</RouterLink>
+            <RouterLink class="footer__link" to="/privacy">Політика конфіденційності</RouterLink>
+            <RouterLink class="footer__link" to="/disclaimer">Дисклеймер</RouterLink>
+            <RouterLink class="footer__link" to="/support-and-data-requests">Підтримка та запити щодо даних</RouterLink>
+          </section>
+        </nav>
+        <div class="footer__bottom">
+          <span>Без комісій. Без посередників. З повагою до практики.</span>
+          <div v-if="showStagingDeployMarker" class="footer__deploy" aria-label="staging-deploy-marker">
+            <span class="footer__deploy-env">Staging</span>
+            <span class="footer__deploy-build">FE {{ buildMarkerText }}</span>
+          </div>
+        </div>
+      </template>
     </footer>
     <div
       v-if="showMinimalShellDeployMarker"
@@ -384,6 +434,7 @@ const auth = useAuthStore()
 const isAuthenticated = computed(() => Boolean(auth.accessToken))
 const isHome = computed(() => route.path === '/')
 const isTour = computed(() => route.path === '/tour')
+const isCabinetRoute = computed(() => route.path.startsWith('/cabinet'))
 const useMinimalShell = computed(() => Boolean(route.meta?.minimalShell))
 const isAuthenticatedLayout = computed(
   () => isAuthenticated.value && !useMinimalShell.value && !isHome.value
@@ -503,7 +554,6 @@ const topbarClass = computed(() => [
     'topbar--specialist': isSpecialist.value,
     'topbar--client': isClient.value,
     'topbar--guest': !isAuthenticated.value,
-    'topbar--overlay': isHome.value && !isAuthenticated.value,
   },
 ])
 
@@ -1120,17 +1170,6 @@ watch(isChatCapable, (value) => {
   padding: 14px 0;
 }
 
-.topbar--overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-}
-
-.topbar--overlay:not(.topbar--guest) .topbar__inner {
-  width: 100%;
-}
-
 .brand {
   display: grid;
   gap: 3px;
@@ -1153,12 +1192,6 @@ watch(isChatCapable, (value) => {
   text-transform: uppercase;
   color: color-mix(in srgb, var(--topbar-text) 76%, transparent);
   line-height: 1.2;
-}
-
-.topbar--overlay .brand {
-  position: static;
-  transform: none;
-  text-align: left;
 }
 
 .topbar--guest .brand,
@@ -1830,50 +1863,107 @@ watch(isChatCapable, (value) => {
   width: 100%;
 }
 
-body.body--home .footer {
-  position: static;
-  margin: 0;
-  padding: 36px max(24px, calc((100vw - var(--pc-container-wide)) / 2)) 28px;
-  z-index: auto;
-  border-top: 0;
-  background:
-    radial-gradient(520px 260px at 92% 12%, rgba(143, 203, 200, 0.12), transparent 72%),
-    linear-gradient(180deg, var(--pc-navy-900), var(--pc-navy-950));
-  backdrop-filter: none;
-  color: rgba(255, 255, 255, 0.82);
-  font-size: 13px;
-  font-weight: 400;
-  line-height: 1.45;
-  box-shadow: 0 -18px 48px rgba(18, 35, 58, 0.1);
-}
-
 .footer {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  padding-top: 12px;
+  display: grid;
+  gap: 18px;
+  padding-top: 18px;
   border-top: 1px solid var(--border);
   color: var(--text-2);
   font-size: 13px;
   font-weight: 400;
   line-height: 1.45;
-  flex-wrap: wrap;
   max-width: 100%;
   min-width: 0;
 }
 
-.footer__brand {
+.footer--public {
+  grid-template-columns: minmax(220px, 0.95fr) minmax(0, 1.6fr);
+  align-items: start;
+  padding-bottom: 24px;
+}
+
+.footer--cabinet {
   display: flex;
-  gap: 10px;
   align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding-bottom: 14px;
+}
+
+.footer__intro {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.footer__eyebrow {
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.footer__lead {
+  margin: 4px 0 0;
+  color: var(--text);
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.footer__description {
+  margin: 0;
+  max-width: 560px;
+}
+
+.footer__columns {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 22px;
+  min-width: 0;
+}
+
+.footer__column {
+  display: grid;
+  align-content: start;
+  gap: 7px;
+  min-width: 0;
+}
+
+.footer__column-title {
+  margin: 0 0 2px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.footer__text {
+  color: var(--text-2);
+}
+
+.footer__bottom {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding-top: 12px;
+  border-top: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
+}
+
+.footer__cabinet-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   flex-wrap: wrap;
 }
 
-.footer__meta {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  flex-wrap: wrap;
+.footer__name {
+  color: var(--text);
+  font-weight: 800;
 }
 
 .footer__deploy {
@@ -1949,6 +2039,18 @@ body.body--home .footer {
   align-items: center;
   flex-wrap: wrap;
 }
+
+.footer__legal--compact {
+  gap: 8px;
+}
+
+.footer__legal--compact .footer__link + .footer__link::before {
+  content: "·";
+  margin-right: 8px;
+  color: var(--text-2);
+  text-decoration: none;
+}
+
 .footer__link {
   color: var(--text);
   font-weight: 500;
@@ -1961,17 +2063,30 @@ body.body--home .footer {
   text-decoration-color: color-mix(in srgb, var(--text) 80%, transparent);
 }
 
-body.body--home .footer__brand {
-  color: #ffffff;
-  font-weight: 700;
+body.body--home .footer--public {
+  position: static;
+  margin: 0;
+  padding: 36px max(24px, calc((100vw - var(--pc-container-wide)) / 2)) 28px;
+  z-index: auto;
+  border-top: 0;
+  background:
+    radial-gradient(520px 260px at 92% 12%, rgba(143, 203, 200, 0.12), transparent 72%),
+    linear-gradient(180deg, var(--pc-navy-900), var(--pc-navy-950));
+  backdrop-filter: none;
+  color: rgba(255, 255, 255, 0.82);
+  box-shadow: 0 -18px 48px rgba(18, 35, 58, 0.1);
 }
 
-body.body--home .footer__meta {
+body.body--home .footer__description,
+body.body--home .footer__text,
+body.body--home .footer__bottom {
   color: rgba(255, 255, 255, 0.72);
 }
 
-body.body--home .footer__legal {
-  color: rgba(255, 255, 255, 0.78);
+body.body--home .footer__eyebrow,
+body.body--home .footer__lead,
+body.body--home .footer__column-title {
+  color: #ffffff;
 }
 
 body.body--home .footer__link {
@@ -1982,6 +2097,10 @@ body.body--home .footer__link {
 body.body--home .footer__link:hover {
   color: #ffffff;
   text-decoration-color: rgba(255, 255, 255, 0.72);
+}
+
+body.body--home .footer__bottom {
+  border-top-color: rgba(255, 255, 255, 0.14);
 }
 
 @media (max-width: 1024px) {
@@ -2015,6 +2134,20 @@ body.body--home .footer__link:hover {
 @media (max-width: 900px) {
   .shell--authenticated {
     gap: 12px;
+  }
+
+  .footer--public {
+    grid-template-columns: 1fr;
+  }
+
+  .footer__columns {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .footer--cabinet,
+  .footer__bottom {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .main--specialist-shell {
@@ -2124,6 +2257,19 @@ body.body--home .footer__link:hover {
     --shell-inline-pad: 8px;
     gap: 6px;
     padding-bottom: 16px;
+  }
+
+  .footer {
+    gap: 14px;
+  }
+
+  .footer__columns {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  body.body--home .footer--public {
+    padding: 28px 16px 24px;
   }
 
   .main {
