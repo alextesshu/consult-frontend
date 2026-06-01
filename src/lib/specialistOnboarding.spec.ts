@@ -23,7 +23,7 @@ describe('specialist onboarding mapping', () => {
     expect(WARNING_CODE_COPY.PUBLIC_PROFILE_OFF).toBeTruthy()
 
     expect(PRIMARY_CTA_CODE_COPY.COMPLETE_PROFILE).toBeTruthy()
-    expect(PRIMARY_CTA_CODE_COPY.ADD_AVAILABILITY).toBeTruthy()
+    expect(PRIMARY_CTA_CODE_COPY.ADD_AVAILABILITY).toBe('Додати вільний час')
     expect(PRIMARY_CTA_CODE_COPY.OPEN_PUBLIC_PROFILE).toBeTruthy()
     expect(PRIMARY_CTA_CODE_COPY.VIEW_PUBLIC_PROFILE).toBeTruthy()
 
@@ -56,6 +56,7 @@ describe('specialist onboarding mapping', () => {
     const viewModel = buildSpecialistOnboardingViewModel(normalized!)
     expect(viewModel.readiness).toBe(false)
     expect(viewModel.primaryCta?.code).toBe('ADD_AVAILABILITY')
+    expect(viewModel.primaryCta?.label).toBe('Додати вільний час')
     expect(viewModel.primaryCta?.to).toBe('/cabinet/availability-rules')
     expect(viewModel.warnings[0]).toContain('клієнти поки не можуть')
   })

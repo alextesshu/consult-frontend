@@ -7,34 +7,7 @@
           Тут видно найближчі сесії, нові запити та підказки для роботи з практикою.
         </p>
       </div>
-      <RouterLink
-        v-if="dashboardHeroSignal"
-        :class="[
-          'hero-signal',
-          `hero-signal--${dashboardHeroSignal.type}`,
-          `hero-signal--${dashboardHeroSignal.tone}`,
-        ]"
-        :to="dashboardHeroSignal.to"
-      >
-        <div class="hero-signal__title">{{ dashboardHeroSignal.title }}</div>
-        <div class="hero-signal__meta">
-          {{ sessionClientLabel(dashboardHeroSignal.session) }}
-        </div>
-        <div v-if="dashboardHeroSignal.message" class="hero-signal__hint">
-          {{ dashboardHeroSignal.message }}
-        </div>
-        <a
-          v-if="canShowHeroJoinAction && heroMeetingUrl"
-          class="btn btn--sm hero-signal__join"
-          :href="heroMeetingUrl"
-          target="_blank"
-          rel="noopener noreferrer"
-          @click.stop
-        >
-          Приєднатися
-        </a>
-      </RouterLink>
-      <div v-else-if="heroSessionsLoading" class="hero-status hero-status--loading">
+      <div v-if="heroSessionsLoading" class="hero-status hero-status--loading">
         Завантажуємо статус найближчої сесії...
       </div>
       <div v-else-if="heroSessionsError" class="hero-status hero-status--error">
@@ -46,6 +19,48 @@
     </header>
 
     <div v-if="me && hasCabinetDataSnapshot" class="cabinet__grid">
+      <section v-if="attentionItems.length" class="panel panel--wide panel--attention" aria-label="Потребує уваги">
+        <div class="panel__header panel__header--compact">
+          <div>
+            <h2 class="panel__title panel__title--compact">Потребує уваги</h2>
+          </div>
+        </div>
+
+        <div class="attention-list">
+          <RouterLink
+            v-for="item in attentionItems"
+            :key="item.key"
+            :class="[
+              'attention-row',
+              `attention-row--${item.tone}`,
+              item.heroType ? 'hero-signal' : '',
+              item.heroType ? `hero-signal--${item.heroType}` : '',
+              item.heroTone ? `hero-signal--${item.heroTone}` : '',
+            ]"
+            :to="item.to"
+          >
+            <div class="attention-row__content">
+              <div class="attention-row__title">{{ item.title }}</div>
+              <div class="attention-row__body">{{ item.body }}</div>
+              <div v-if="item.topics.length" class="attention-row__topics" aria-label="Теми запиту">
+                <span v-for="topic in item.topics" :key="topic" class="attention-topic">{{ topic }}</span>
+              </div>
+            </div>
+            <a
+              v-if="item.key === 'hero-signal' && canShowHeroJoinAction && heroMeetingUrl"
+              class="btn btn--sm hero-signal__join"
+              :href="heroMeetingUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+              @click.stop
+            >
+              Приєднатися
+            </a>
+            <span class="btn btn--sm attention-row__cta">{{ item.label }}</span>
+          </RouterLink>
+        </div>
+      </section>
+
       <section class="panel panel--wide panel--today">
         <div class="panel__header">
           <div>
@@ -95,29 +110,13 @@
               </div>
             </div>
             <template v-if="nearestUpcomingSession">
-              <div class="nearest-session__grid">
-                <div class="nearest-session__item">
-                  <div class="nearest-session__label">Дата і час</div>
-                  <div class="nearest-session__value">{{ formatDateTime(sessionJoinStartAt(nearestUpcomingSession)) }}</div>
-                </div>
-                <div class="nearest-session__item">
-                  <div class="nearest-session__label">Клієнт</div>
-                  <div class="nearest-session__value">
-                    {{ sessionClientLabel(nearestUpcomingSession) }}
-                  </div>
-                </div>
-                <div class="nearest-session__item">
-                  <div class="nearest-session__label">Формат</div>
-                  <div class="nearest-session__value">{{ nearestSessionFormatLabel }}</div>
-                  <div v-if="isNearestSessionOffline && nearestSessionOfflineLocation" class="muted nearest-session__meta">
-                    Локація: {{ nearestSessionOfflineLocation }}
-                  </div>
-                </div>
+              <div class="nearest-session__summary">
+                {{ nearestSessionSummary }}
               </div>
-              <div v-if="isNearestSessionOffline" class="muted nearest-session__hint">
-                {{ nearestSessionOfflineLocation ? 'Офлайн-сесія без посилання для входу.' : 'Офлайн-сесія. Локацію уточнено у деталях.' }}
+              <div v-if="nearestSessionSecondaryLine" class="muted nearest-session__hint">
+                {{ nearestSessionSecondaryLine }}
               </div>
-              <div v-else class="muted nearest-session__hint">
+              <div v-else-if="!isNearestSessionOffline" class="muted nearest-session__hint">
                 {{ nearestSessionOnlineHint }}
               </div>
               <div class="nearest-session__actions">
@@ -133,14 +132,24 @@
                 >
                   Приєднатися
                 </a>
+                <RouterLink
+                  v-else-if="shouldShowAddMeetingLinkAction"
+                  class="btn btn--ghost btn--sm"
+                  :to="`/cabinet/sessions/${nearestUpcomingSession.id}?focus=meeting_link`"
+                >
+                  Додати посилання
+                </RouterLink>
               </div>
             </template>
             <template v-else>
+              <h3 class="today-card__title">Сьогодні сесій немає</h3>
               <p class="muted today-card__empty">
-                На сьогодні сесій немає.<br>
-                Можна спокійно підготувати розклад або перевірити публічний профіль.
+                Можна перевірити запити або налаштувати розклад.
               </p>
               <div class="nearest-session__actions">
+                <RouterLink class="btn btn--ghost btn--sm" to="/cabinet/external-sessions#guest-requests">
+                  Перейти до запитів
+                </RouterLink>
                 <RouterLink class="btn btn--sm" to="/cabinet/slots">
                   Налаштувати розклад
                 </RouterLink>
@@ -148,44 +157,32 @@
             </template>
           </section>
 
-          <RouterLink
-            v-if="showSlotlessGuestRequestAttention"
-            class="guest-request-attention-card"
-            to="/cabinet/external-sessions#guest-requests"
-          >
-            <div class="guest-request-attention-card__content">
-              <p class="guest-request-attention-card__eyebrow">Запити без реєстрації</p>
-              <h3 class="guest-request-attention-card__title">{{ slotlessGuestRequestAttentionTitle }}</h3>
-              <p class="guest-request-attention-card__copy">{{ slotlessGuestRequestAttentionBody }}</p>
-            </div>
-            <span class="btn btn--sm guest-request-attention-card__cta">
-              {{ slotlessGuestRequestAttentionCta }}
-            </span>
-          </RouterLink>
-
           <section class="today-side">
             <article
-              v-if="showGuestRequestsTodayCard"
+              v-if="pendingGuestRequestsCount > 0"
               class="today-card today-card--soft"
               data-kind="guest-requests"
             >
               <h3 class="today-card__title">Запити без реєстрації</h3>
               <p class="muted today-card__copy">
-                Є нові запити від клієнтів, які записалися без створення акаунта.
+                {{ pendingGuestRequestsSummary }}
               </p>
+              <div v-if="firstGuestRequestTopicLabels.length" class="today-topic-row" aria-label="Теми запиту">
+                <span v-for="topic in firstGuestRequestTopicLabels" :key="topic" class="today-topic-chip">{{ topic }}</span>
+              </div>
               <RouterLink
                 class="btn btn--sm"
                 to="/cabinet/external-sessions#guest-requests"
               >
-                Опрацювати запити
+                {{ pendingGuestRequestsCta }}
               </RouterLink>
             </article>
 
-            <article v-if="showDailyNextAction" class="today-card today-card--soft" data-kind="next-action">
-              <h3 class="today-card__title">{{ dailyNextAction.title }}</h3>
-              <p class="muted today-card__copy">{{ dailyNextAction.description }}</p>
-              <RouterLink v-if="dailyNextAction.to" class="btn btn--ghost btn--sm" :to="dailyNextAction.to">
-                {{ dailyNextAction.label }}
+            <article v-if="onboardingViewModel" class="today-card today-card--soft" data-kind="readiness-summary">
+              <h3 class="today-card__title">Готовність профілю</h3>
+              <p class="muted today-card__copy">{{ profileReadinessSummary }}</p>
+              <RouterLink v-if="readinessPrimaryAction" class="btn btn--ghost btn--sm" :to="readinessPrimaryAction.to">
+                {{ readinessPrimaryAction.label }}
               </RouterLink>
             </article>
           </section>
@@ -207,39 +204,14 @@
         </div>
 
         <div v-else-if="onboardingViewModel" class="onboarding-layout">
-          <ol class="onboarding-steps">
-            <li
-              v-for="step in onboardingViewModel.steps"
-              :key="step.key"
-              class="onboarding-step-item"
-            >
-              <RouterLink
-                class="onboarding-step onboarding-step--link"
-                :class="step.done ? 'onboarding-step--done' : 'onboarding-step--pending'"
-                :to="onboardingStepTo(step)"
-              >
-                <div class="onboarding-step__title">{{ step.title }}</div>
-                <div class="onboarding-step__hint">{{ step.hint }}</div>
-                <div class="onboarding-step__action">{{ onboardingStepActionLabel(step) }}</div>
-              </RouterLink>
-            </li>
-          </ol>
-
-          <div v-if="onboardingViewModel.missingItems.length > 0" class="onboarding-list-wrap">
-            <h3 class="onboarding-list-title">Що потрібно заповнити</h3>
-            <ul class="onboarding-list">
-              <li v-for="item in onboardingViewModel.missingItems" :key="item">{{ item }}</li>
-            </ul>
+          <div class="onboarding-summary">
+            <div class="onboarding-summary__text">{{ profileReadinessSummary }}</div>
+            <button class="btn btn--ghost btn--sm" type="button" @click="readinessDetailsOpen = !readinessDetailsOpen">
+              {{ readinessDetailsOpen ? 'Сховати деталі' : 'Показати деталі' }}
+            </button>
           </div>
 
-          <div v-if="onboardingViewModel.warnings.length > 0" class="onboarding-list-wrap onboarding-list-wrap--warning">
-            <h3 class="onboarding-list-title">Попередження</h3>
-            <ul class="onboarding-list">
-              <li v-for="item in onboardingViewModel.warnings" :key="item">{{ item }}</li>
-            </ul>
-          </div>
-
-          <div class="onboarding-actions">
+          <div class="onboarding-actions onboarding-actions--summary">
             <RouterLink
               v-if="onboardingViewModel.primaryCta"
               class="btn"
@@ -255,6 +227,40 @@
             >
               {{ action.label }}
             </RouterLink>
+          </div>
+
+          <div v-if="readinessDetailsOpen" class="onboarding-details">
+            <ol class="onboarding-steps">
+              <li
+                v-for="step in onboardingViewModel.steps"
+                :key="step.key"
+                class="onboarding-step-item"
+              >
+                <RouterLink
+                  class="onboarding-step onboarding-step--link"
+                  :class="step.done ? 'onboarding-step--done' : 'onboarding-step--pending'"
+                  :to="onboardingStepTo(step)"
+                >
+                  <div class="onboarding-step__title">{{ step.title }}</div>
+                  <div class="onboarding-step__hint">{{ step.hint }}</div>
+                  <div class="onboarding-step__action">{{ onboardingStepActionLabel(step) }}</div>
+                </RouterLink>
+              </li>
+            </ol>
+
+            <div v-if="onboardingViewModel.missingItems.length > 0" class="onboarding-list-wrap">
+              <h3 class="onboarding-list-title">Що потрібно заповнити</h3>
+              <ul class="onboarding-list">
+                <li v-for="item in onboardingViewModel.missingItems" :key="item">{{ item }}</li>
+              </ul>
+            </div>
+
+            <div v-if="onboardingViewModel.warnings.length > 0" class="onboarding-list-wrap onboarding-list-wrap--warning">
+              <h3 class="onboarding-list-title">Попередження</h3>
+              <ul class="onboarding-list">
+                <li v-for="item in onboardingViewModel.warnings" :key="item">{{ item }}</li>
+              </ul>
+            </div>
           </div>
         </div>
 
@@ -344,6 +350,7 @@ import {
   apiGet,
   fetchChatThreads,
   fetchSpecialistOnboardingState,
+  requestTopicLabel,
   type ChatThread,
   type SessionFormat,
 } from '../lib/api'
@@ -398,11 +405,16 @@ type DashboardHeroSignal = {
   to: string
 }
 
-type DailyNextAction = {
+type AttentionItem = {
+  key: string
   title: string
-  description: string
   label: string
+  body: string
   to: string
+  tone: 'warning' | 'info' | 'live'
+  topics: string[]
+  heroType?: DashboardHeroSignalType
+  heroTone?: DashboardHeroSignal['tone']
 }
 
 type CabinetEntitlementsSnapshot = {
@@ -513,6 +525,7 @@ const profileError = ref('')
 const cabinetDataLoading = ref(false)
 const cabinetDataError = ref('')
 const nowTs = ref(Date.now())
+const readinessDetailsOpen = ref(false)
 const LIVE_STATUS_REFRESH_MS = 30 * 1000
 const HERO_SIGNAL_SOON_WINDOW_MS = 60 * 60 * 1000
 const HERO_SIGNAL_CONFIRMED_SOON_WINDOW_MS = 30 * 60 * 1000
@@ -601,7 +614,7 @@ function onboardingStepTo(step: OnboardingStep) {
 
 function onboardingStepActionLabel(step: OnboardingStep) {
   if (step.key === 'profile_core') return 'Керувати профілем'
-  if (step.key === 'availability') return 'Налаштувати доступність'
+  if (step.key === 'availability') return 'Налаштувати вільний час'
   if (step.key === 'public_profile') return 'Відкрити публічний профіль'
   if (step.key === 'inbound_readiness') return 'Перейти до звернень'
   return 'Відкрити'
@@ -894,71 +907,85 @@ const upcomingSorted = computed(() => {
 
 const nearestUpcomingSession = computed(() => upcomingSorted.value[0] || null)
 
-const showDailyNextAction = computed(() => {
-  if (workQueue.value.pendingGuestRequestsCount > 0) return false
-  return Boolean(nearestUpcomingSession.value)
+const pendingGuestRequestsCount = computed(() => workQueue.value.pendingGuestRequestsCount)
+
+const firstGuestRequestPreview = computed(() => workQueue.value.guestRequestsPreview[0] || null)
+
+function guestRequestTopicLabels(request: WorkQueueGuestRequestPreviewItem | null) {
+  return (request?.request_topics || []).map((topic) => requestTopicLabel(topic)).filter(Boolean)
+}
+
+const firstGuestRequestTopicLabels = computed(() => guestRequestTopicLabels(firstGuestRequestPreview.value))
+
+const pendingGuestRequestsCta = computed(() => {
+  return pendingGuestRequestsCount.value === 1 ? 'Опрацювати запит' : 'Опрацювати запити'
 })
 
-const slotlessGuestRequestAttentionCount = computed(() => workQueue.value.pendingSlotlessGuestRequestsCount)
-
-const showSlotlessGuestRequestAttention = computed(() => slotlessGuestRequestAttentionCount.value > 0)
-
-const showGuestRequestsTodayCard = computed(() => {
-  if (showSlotlessGuestRequestAttention.value) return false
-  return workQueue.value.pendingGuestRequestsCount > 0
+const pendingGuestRequestsSummary = computed(() => {
+  const count = pendingGuestRequestsCount.value
+  if (count <= 0) return ''
+  if (count === 1) return '1 новий запит очікує рішення.'
+  const lastDigit = count % 10
+  const lastTwoDigits = count % 100
+  const noun = lastDigit >= 2 && lastDigit <= 4 && (lastTwoDigits < 12 || lastTwoDigits > 14) ? 'нові запити' : 'нових запитів'
+  return `${count} ${noun} очікують рішення.`
 })
 
-const slotlessGuestRequestAttentionTitle = computed(() => {
-  const count = slotlessGuestRequestAttentionCount.value
-  if (count === 1) return 'Новий запит без реєстрації'
-  return `Нові запити без реєстрації: ${count}`
+const readinessPrimaryAction = computed(() => onboardingViewModel.value?.primaryCta || null)
+
+const profileReadinessSummary = computed(() => {
+  const viewModel = onboardingViewModel.value
+  if (!viewModel) return ''
+  if (viewModel.readiness) return 'Профіль готовий до звернень.'
+  if (viewModel.primaryCta?.code === 'ADD_AVAILABILITY') return 'Потрібна дія: додайте вільний час для запису.'
+  if (viewModel.primaryCta?.code === 'COMPLETE_PROFILE') return 'Потрібна дія: заповніть базовий профіль.'
+  if (viewModel.primaryCta?.code === 'OPEN_PUBLIC_PROFILE') return 'Потрібна дія: налаштуйте публічний профіль.'
+  return viewModel.warnings[0] || viewModel.missingItems[0] || 'Потрібна дія: перевірте налаштування профілю.'
 })
 
-const slotlessGuestRequestAttentionBody = computed(() => {
-  if (slotlessGuestRequestAttentionCount.value === 1) {
-    return 'Клієнт залишив запит без вибору часу. Узгодьте час і створіть сесію або закрийте запит.'
-  }
-  return 'Клієнти залишили запити без вибору часу. Опрацюйте їх, щоб узгодити час або закрити зайві звернення.'
-})
-
-const slotlessGuestRequestAttentionCta = computed(() => {
-  return slotlessGuestRequestAttentionCount.value === 1 ? 'Опрацювати запит' : 'Опрацювати запити'
-})
-
-const dailyNextAction = computed<DailyNextAction>(() => {
-  if (nearestUpcomingSession.value?.status === 'SCHEDULED') {
-    return {
-      title: 'Наступний крок',
-      description: 'Найближча сесія ще очікує підтвердження.',
-      label: 'Відкрити сесію',
-      to: `/cabinet/sessions/${nearestUpcomingSession.value.id}`,
-    }
+const attentionItems = computed<AttentionItem[]>(() => {
+  const items: AttentionItem[] = []
+  const signal = dashboardHeroSignal.value
+  if (signal) {
+    items.push({
+      key: 'hero-signal',
+      title: signal.title,
+      body: [sessionClientLabel(signal.session), signal.message].filter(Boolean).join(' · '),
+      label: signal.type === 'missing_meeting_link' ? 'Відкрити сесію' : 'Відкрити сесію',
+      to: signal.to,
+      tone: signal.tone === 'live' ? 'live' : signal.tone === 'warning' ? 'warning' : 'info',
+      topics: [],
+      heroType: signal.type,
+      heroTone: signal.tone,
+    })
   }
 
-  if (!onboardingReady.value) {
-    return {
-      title: 'Наступний крок',
-      description: 'Перевірте, чи профіль і розклад готові для клієнтів.',
-      label: 'Перейти до профілю',
-      to: '/cabinet/profile',
-    }
+  if (pendingGuestRequestsCount.value > 0) {
+    items.push({
+      key: 'guest-requests',
+      title: pendingGuestRequestsCount.value === 1 ? 'Новий запит без реєстрації' : 'Запити без реєстрації',
+      body: pendingGuestRequestsSummary.value,
+      label: pendingGuestRequestsCta.value,
+      to: '/cabinet/external-sessions#guest-requests',
+      tone: 'warning',
+      topics: firstGuestRequestTopicLabels.value,
+    })
   }
 
-  if (!nearestUpcomingSession.value) {
-    return {
-      title: 'Наступний крок',
-      description: 'Коли буде зручно, додайте доступні вікна для наступних записів.',
-      label: 'Налаштувати розклад',
-      to: '/cabinet/slots',
-    }
+  const viewModel = onboardingViewModel.value
+  if (viewModel && !viewModel.readiness) {
+    items.push({
+      key: 'readiness',
+      title: viewModel.primaryCta?.code === 'ADD_AVAILABILITY' ? 'Потрібно додати вільний час' : 'Готовність профілю',
+      body: profileReadinessSummary.value,
+      label: viewModel.primaryCta?.label || 'Показати деталі',
+      to: viewModel.primaryCta?.to || '/cabinet/profile',
+      tone: 'warning',
+      topics: [],
+    })
   }
 
-  return {
-    title: 'Наступний крок',
-    description: 'Найближча сесія є в розкладі. За потреби відкрийте її деталі.',
-    label: 'Відкрити сесію',
-    to: `/cabinet/sessions/${nearestUpcomingSession.value.id}`,
-  }
+  return items.slice(0, 3)
 })
 
 const nearestSessionMeetingUrl = computed(() => {
@@ -1015,6 +1042,31 @@ const nearestSessionOnlineHint = computed(() => {
     return 'Приєднання доступне. Можна перейти у зустріч.'
   }
   return 'Посилання на зустріч додано. Приєднання стане доступним ближче до початку.'
+})
+
+const shouldShowAddMeetingLinkAction = computed(() => {
+  return Boolean(nearestUpcomingSession.value && !isNearestSessionOffline.value && !nearestSessionMeetingUrl.value)
+})
+
+const nearestSessionSummary = computed(() => {
+  const session = nearestUpcomingSession.value
+  if (!session) return ''
+  return [
+    formatDateTime(sessionJoinStartAt(session)),
+    sessionClientLabel(session),
+    nearestSessionFormatLabel.value,
+    nearestSessionStatusLabel.value,
+  ].filter(Boolean).join(' · ')
+})
+
+const nearestSessionSecondaryLine = computed(() => {
+  if (!nearestUpcomingSession.value) return ''
+  if (isNearestSessionOffline.value) {
+    return nearestSessionOfflineLocation.value
+      ? `Локація: ${nearestSessionOfflineLocation.value}`
+      : 'Офлайн-сесія. Локацію уточнено у деталях.'
+  }
+  return ''
 })
 
 function formatDateTime(value?: string | null) {
@@ -1384,7 +1436,7 @@ onBeforeUnmount(() => {
 }
 
 .panel--today {
-  gap: 16px;
+  gap: 12px;
   border-color: var(--pc-border);
   background: linear-gradient(
     165deg,
@@ -1392,6 +1444,94 @@ onBeforeUnmount(() => {
     color-mix(in srgb, var(--pc-bg-card) 94%, var(--pc-blue-soft))
   );
   box-shadow: var(--pc-shadow-soft);
+}
+
+.panel--attention {
+  gap: 10px;
+  padding: 14px;
+  border-color: color-mix(in srgb, var(--pc-warning) 24%, var(--pc-border));
+  box-shadow: var(--pc-shadow-soft);
+}
+
+.attention-list {
+  display: grid;
+  gap: 8px;
+}
+
+.attention-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--pc-border);
+  border-left-width: 4px;
+  border-radius: var(--pc-radius-control);
+  background: #fff;
+  color: var(--pc-navy-900);
+  text-decoration: none;
+  box-shadow: none;
+}
+
+.attention-row--warning {
+  border-left-color: var(--pc-warning);
+  background: color-mix(in srgb, var(--pc-yellow-soft) 55%, #ffffff);
+}
+
+.attention-row--info {
+  border-left-color: var(--pc-navy-900);
+  background: color-mix(in srgb, var(--pc-blue-soft) 62%, #ffffff);
+}
+
+.attention-row--live {
+  border-left-color: var(--pc-danger);
+  background: color-mix(in srgb, var(--pc-red-soft) 72%, #ffffff);
+}
+
+.attention-row:hover,
+.attention-row:focus-visible {
+  border-color: color-mix(in srgb, var(--pc-navy-900) 28%, var(--pc-border));
+  color: var(--pc-navy-900);
+}
+
+.attention-row__content {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.attention-row__title {
+  font-weight: 700;
+}
+
+.attention-row__body {
+  color: var(--pc-text-muted);
+  font-size: 14px;
+  line-height: 1.35;
+}
+
+.attention-row__topics,
+.today-topic-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.attention-topic,
+.today-topic-chip {
+  padding: 3px 7px;
+  border: 1px solid color-mix(in srgb, var(--pc-navy-900) 14%, var(--pc-border));
+  border-radius: var(--pc-radius-control);
+  background: #fff;
+  color: var(--pc-navy-900);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.attention-row__cta,
+.hero-signal__join {
+  flex: 0 0 auto;
 }
 
 .today-panel {
@@ -1411,11 +1551,11 @@ onBeforeUnmount(() => {
 
 .today-card {
   border: 1px solid rgba(7, 47, 71, 0.12);
-  border-radius: var(--pc-radius-panel);
+  border-radius: var(--pc-radius-control);
   background: #fff;
-  padding: 16px;
+  padding: 12px;
   display: grid;
-  gap: 12px;
+  gap: 8px;
   min-width: 0;
 }
 
@@ -1501,7 +1641,7 @@ onBeforeUnmount(() => {
 
 .today-card__title {
   margin: 0;
-  font-size: 18px;
+  font-size: 16px;
 }
 
 .today-card__copy,
@@ -1540,31 +1680,10 @@ onBeforeUnmount(() => {
   gap: 10px;
 }
 
-.nearest-session__grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 12px;
-  min-width: 0;
-}
-
-.nearest-session__item {
-  border: 1px solid rgba(7, 47, 71, 0.12);
-  border-radius: var(--pc-radius-panel);
-  background: #fff;
-  padding: 12px 14px;
-  display: grid;
-  gap: 5px;
-}
-
-.nearest-session__label {
-  font-size: 13px;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-}
-
-.nearest-session__value {
+.nearest-session__summary {
   font-weight: 600;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
 }
 
 .nearest-session__meta {
@@ -1572,8 +1691,8 @@ onBeforeUnmount(() => {
 }
 
 .nearest-session__hint {
-  font-size: 15px;
-  line-height: 1.5;
+  font-size: 14px;
+  line-height: 1.4;
 }
 
 .nearest-session__actions {
@@ -1584,11 +1703,11 @@ onBeforeUnmount(() => {
 
 .nearest-session__status {
   width: fit-content;
-  padding: 6px 10px;
-  border-radius: var(--radius-pill);
+  padding: 5px 8px;
+  border-radius: var(--pc-radius-control);
   font-size: 12px;
   font-weight: 600;
-  letter-spacing: 0.04em;
+  letter-spacing: 0;
   text-transform: uppercase;
   background: rgba(7, 47, 71, 0.08);
   color: #1c4c66;
@@ -1638,7 +1757,26 @@ onBeforeUnmount(() => {
 
 .onboarding-layout {
   display: grid;
-  gap: 14px;
+  gap: 12px;
+}
+
+.onboarding-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.onboarding-summary__text {
+  color: var(--pc-text-muted);
+  line-height: 1.45;
+}
+
+.onboarding-details {
+  display: grid;
+  gap: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--pc-border);
 }
 
 .onboarding-steps {
@@ -1978,6 +2116,16 @@ onBeforeUnmount(() => {
     grid-template-columns: 1fr;
   }
 
+  .attention-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .attention-row__cta,
+  .hero-signal__join {
+    width: 100%;
+  }
+
   .today-panel__inline-error {
     flex-direction: column;
     align-items: flex-start;
@@ -1990,6 +2138,11 @@ onBeforeUnmount(() => {
 
   .guest-request-attention-card__cta {
     width: 100%;
+  }
+
+  .onboarding-summary {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
 }

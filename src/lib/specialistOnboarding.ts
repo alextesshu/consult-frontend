@@ -76,7 +76,7 @@ export const WARNING_CODE_COPY: Record<string, string> = {
 
 export const PRIMARY_CTA_CODE_COPY: Record<string, string> = {
   COMPLETE_PROFILE: 'Заповнити профіль',
-  ADD_AVAILABILITY: 'Додати доступність',
+  ADD_AVAILABILITY: 'Додати вільний час',
   OPEN_PUBLIC_PROFILE: 'Налаштувати публічний профіль',
   VIEW_PUBLIC_PROFILE: 'Переглянути публічний профіль',
 }

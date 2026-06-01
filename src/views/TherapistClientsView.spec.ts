@@ -199,7 +199,11 @@ async function selectRegularTimeDate(scope: HTMLElement, isoDate: string) {
     const visibleTimes = pickerDays
       .map((button) => {
         const label = button.getAttribute('aria-label') || ''
-        const [dayValue, monthValue, yearValue] = label.split('.').map(Number)
+        const [dayText, monthText, yearText] = label.split('.')
+        if (!dayText || !monthText || !yearText) return Number.NaN
+        const dayValue = Number(dayText)
+        const monthValue = Number(monthText)
+        const yearValue = Number(yearText)
         return new Date(yearValue, monthValue - 1, dayValue).getTime()
       })
       .filter((value) => Number.isFinite(value))
