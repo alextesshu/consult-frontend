@@ -523,9 +523,7 @@ describe('TherapistClientsView', () => {
         noteReminderHref(802),
       ])
       expect(screen.getByRole('button', { name: 'Показати ще' })).toBeInTheDocument()
-      expect(screen.getByText('Клієнт #54')).toBeInTheDocument()
-      expect(screen.getByText('Клієнт #53')).toBeInTheDocument()
-      expect(screen.getByText('Клієнт #52')).toBeInTheDocument()
+      expect(screen.getAllByText('Клієнт без імені')).toHaveLength(3)
     })
 
     await fireEvent.click(screen.getByRole('button', { name: 'Показати ще' }))
@@ -673,7 +671,7 @@ describe('TherapistClientsView', () => {
     await openAccordionSection(card, 'Керування клієнтом')
 
     const quickAddButton = await waitFor(() => {
-      const button = screen.getByRole('button', { name: 'Додати на дошку' })
+      const button = screen.getByRole('button', { name: 'Додати задачу' })
       expect(button).toBeInstanceOf(HTMLButtonElement)
       return button as HTMLButtonElement
     })
@@ -692,10 +690,12 @@ describe('TherapistClientsView', () => {
         board_id: 1,
         title: 'Client follow-up task',
         related_client_id: 44,
-        source_type: 'manual',
       })
+      const payload = mockedCreatePracticeBoardItem.mock.calls[0]?.[0] || {}
+      expect(payload).not.toHaveProperty('source_type')
+      expect(payload).not.toHaveProperty('source_id')
       expect(mockedFetchPracticeBoards).toHaveBeenCalledTimes(1)
-      expect(mockToast.success).toHaveBeenCalledWith('\u0417\u0430\u0434\u0430\u0447\u0443 \u0434\u043e\u0434\u0430\u043d\u043e \u043d\u0430 \u0434\u043e\u0448\u043a\u0443')
+      expect(mockToast.success).toHaveBeenCalledWith('Задачу додано. Вона доступна в розділі «Задачі».')
     })
   })
 
@@ -726,7 +726,7 @@ describe('TherapistClientsView', () => {
     await openAccordionSection(card, 'Керування клієнтом')
 
     const quickAddButton = await waitFor(() => {
-      const button = screen.getByRole('button', { name: 'Додати на дошку' })
+      const button = screen.getByRole('button', { name: 'Додати задачу' })
       expect(button).toBeInstanceOf(HTMLButtonElement)
       return button as HTMLButtonElement
     })
@@ -772,7 +772,7 @@ describe('TherapistClientsView', () => {
     await openAccordionSection(card, 'Керування клієнтом')
 
     const quickAddButton = await waitFor(() => {
-      const button = screen.getByRole('button', { name: 'Додати на дошку' })
+      const button = screen.getByRole('button', { name: 'Додати задачу' })
       expect(button).toBeInstanceOf(HTMLButtonElement)
       return button as HTMLButtonElement
     })
@@ -790,9 +790,11 @@ describe('TherapistClientsView', () => {
       expect(mockedCreatePracticeBoardItem).toHaveBeenCalledWith({
         title: 'No-board client task',
         related_client_id: 44,
-        source_type: 'manual',
       })
-      expect(mockToast.success).toHaveBeenCalledWith('\u0417\u0430\u0434\u0430\u0447\u0443 \u0434\u043e\u0434\u0430\u043d\u043e \u043d\u0430 \u0434\u043e\u0448\u043a\u0443')
+      const payload = mockedCreatePracticeBoardItem.mock.calls[0]?.[0] || {}
+      expect(payload).not.toHaveProperty('source_type')
+      expect(payload).not.toHaveProperty('source_id')
+      expect(mockToast.success).toHaveBeenCalledWith('Задачу додано. Вона доступна в розділі «Задачі».')
     })
   })
 
@@ -1120,7 +1122,7 @@ describe('TherapistClientsView', () => {
     )
     expect(within(firstCard).getByText('Доступ, статус, завершення')).toBeInTheDocument()
     await openAccordionSection(firstCard, 'Керування клієнтом')
-    expect(within(firstCard).getByRole('button', { name: 'Додати на дошку' })).toBeInTheDocument()
+    expect(within(firstCard).getByRole('button', { name: 'Додати задачу' })).toBeInTheDocument()
     expect(within(firstCard).getByRole('button', { name: 'Завершити роботу' })).toBeInTheDocument()
     expect(within(firstCard).queryByRole('button', { name: 'Архівувати' })).not.toBeInTheDocument()
     expect(clientsPanel).not.toHaveTextContent('ACTIVE')
@@ -2157,7 +2159,7 @@ describe('TherapistClientsView', () => {
     expect(within(manualCard).queryByRole('button', { name: 'Приватна історія клієнта' })).not.toBeInTheDocument()
     expect(container.querySelector('a[href^="/cabinet/sessions"]')).not.toBeInTheDocument()
     await openAccordionSection(manualCard, 'Керування клієнтом')
-    expect(within(manualCard).queryByRole('button', { name: 'Додати на дошку' })).not.toBeInTheDocument()
+    expect(within(manualCard).queryByRole('button', { name: 'Додати задачу' })).not.toBeInTheDocument()
 
     await fireEvent.click(within(manualCard).getByRole('button', { name: 'Завершити роботу' }))
     const dialog = await screen.findByRole('dialog', { name: 'Завершити роботу з клієнтом?' })
@@ -2240,7 +2242,7 @@ describe('TherapistClientsView', () => {
     })
   })
 
-  it('shows fallback client title with relation id when name and code are missing', async () => {
+  it('shows human fallback client title when name and code are missing', async () => {
     mockedApiGet.mockImplementation(async (url) => {
       if (url === CLIENTS_URL)
         return [
@@ -2259,7 +2261,8 @@ describe('TherapistClientsView', () => {
     const { container } = renderView()
 
     await waitFor(() => {
-      expect(container.textContent).toContain('#44')
+      expect(container.textContent).toContain('Клієнт без імені')
+      expect(container.textContent).not.toContain('#44')
     })
   })
 

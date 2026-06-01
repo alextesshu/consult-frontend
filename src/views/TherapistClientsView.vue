@@ -1867,7 +1867,7 @@
                 :disabled="!relationClientId(client) || isQuickAddLoading(relationClientId(client))"
                 @click="openClientPracticeBoardModal(relationClientId(client))"
               >
-                {{ isQuickAddLoading(relationClientId(client)) ? 'Додаємо…' : 'Додати на дошку' }}
+                {{ isQuickAddLoading(relationClientId(client)) ? 'Додаємо…' : 'Додати задачу' }}
               </button>
               <button
                 v-if="client.state !== 'ARCHIVED'"
@@ -4743,8 +4743,7 @@ function clientLabel(clientId: number) {
   const fromSessions = sessionClientNames.value[clientId]
   if (fromSessions) return fromSessions
   if (client?.client_code) return `Код: ${client.client_code}`
-  if (clientId > 0) return `Клієнт #${clientId}`
-  return '\u041a\u043b\u0456\u0454\u043d\u0442'
+  return 'Клієнт без імені'
 }
 function isMetadataEndpointUnsupported(err: any) {
   const status = Number(err?.response?.status || 0)
@@ -4873,7 +4872,7 @@ function preferredClientName(source?: NameSource | null) {
 function displayClientName(
   client: ClientListItem
 ) {
-  if (isManualClientRecord(client)) return normalizeClientName(client.display_name) || `Клієнт #${client.id}`
+  if (isManualClientRecord(client)) return normalizeClientName(client.display_name) || 'Клієнт без імені'
   const id = relationClientId(client)
   const fromChat = chatClientNames.value[id]
   if (fromChat) return fromChat
@@ -4882,8 +4881,7 @@ function displayClientName(
   const fromSessions = sessionClientNames.value[id]
   if (fromSessions) return fromSessions
   if (client.client_code) return `Код: ${client.client_code}`
-  if (id > 0) return `Клієнт #${id}`
-  return '\u041a\u043b\u0456\u0454\u043d\u0442'
+  return 'Клієнт без імені'
 }
 
 function manualClientUpdatedLabel(client: ManualClientRecord) {
@@ -5413,15 +5411,14 @@ async function addClientToPracticeBoard(clientId: number, title: string) {
       ...(boardId ? { board_id: boardId } : {}),
       title: title.trim(),
       related_client_id: clientId,
-      source_type: 'manual',
     })
     quickAddModalOpen.value = false
     quickAddDraftClientId.value = null
-    toast.success('\u0417\u0430\u0434\u0430\u0447\u0443 \u0434\u043e\u0434\u0430\u043d\u043e \u043d\u0430 \u0434\u043e\u0448\u043a\u0443')
+    toast.success('Задачу додано. Вона доступна в розділі «Задачі».')
   } catch (err: any) {
     quickAddModalError.value = getApiErrorMessage(
       err,
-      '\u041d\u0435 \u0432\u0434\u0430\u043b\u043e\u0441\u044f \u0434\u043e\u0434\u0430\u0442\u0438 \u0437\u0430\u0434\u0430\u0447\u0443 \u043d\u0430 \u0434\u043e\u0448\u043a\u0443.'
+      'Не вдалося додати задачу.'
     )
   } finally {
     setQuickAddLoading(clientId, false)

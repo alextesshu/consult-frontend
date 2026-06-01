@@ -2324,7 +2324,7 @@ async function submitSessionPracticeBoardQuickAdd(title: string) {
       source_id: session.value.id,
     })
     quickAddModalOpen.value = false
-    toast.success('Задачу додано на дошку')
+    toast.success('Задачу додано. Вона доступна в розділі «Задачі».')
   } catch (err: any) {
     quickAddModalError.value = getBookingErrorMessage(err, 'Не вдалося додати задачу на дошку.')
   } finally {

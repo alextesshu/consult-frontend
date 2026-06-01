@@ -2,10 +2,10 @@
   <section class="practice-board">
     <header class="practice-board__hero">
       <div>
-        <div class="badge">Робоча дошка</div>
-        <h1 class="title practice-board__title">Робоча дошка</h1>
+        <div class="badge">ЗАДАЧІ</div>
+        <h1 class="title practice-board__title">Задачі</h1>
         <p class="muted practice-board__subtitle">
-          Місце для ваших робочих задач, нагадувань і важливих кроків у роботі з клієнтами.
+          Наступні кроки, нагадування й задачі по клієнтах та сесіях — в одному місці.
         </p>
       </div>
       <button class="btn" type="button" @click="handlePrimaryAction">
@@ -16,7 +16,7 @@
     <section v-if="!loading && boards.length" class="panel practice-board__boards">
       <div class="practice-board__boards-header">
         <div>
-          <div class="badge badge--soft">Дошки</div>
+          <div class="badge badge--soft">СПИСКИ ЗАДАЧ</div>
           <h2 class="panel__title">{{ currentBoardDisplayTitle }}</h2>
         </div>
         <div class="practice-board__boards-actions">
@@ -24,12 +24,12 @@
             {{ showRenameBoardForm ? 'Скасувати' : 'Редагувати назву' }}
           </button>
           <button class="btn btn--ghost btn--sm" type="button" @click="toggleCreateBoardForm">
-            {{ showCreateBoardForm ? 'Скасувати' : 'Створити дошку' }}
+            {{ showCreateBoardForm ? 'Скасувати' : 'Створити список' }}
           </button>
         </div>
       </div>
 
-      <div v-if="boards.length > 1" class="practice-board__switcher" role="tablist" aria-label="Вибір дошки">
+      <div v-if="boards.length > 1" class="practice-board__switcher" role="tablist" aria-label="Вибір списку">
         <button
           v-for="board in boards"
           :key="board.id"
@@ -44,7 +44,7 @@
 
       <form v-if="showRenameBoardForm && currentBoard" class="practice-board__board-form" @submit.prevent="submitRenameBoard">
         <label class="field">
-          <span>Нова назва дошки</span>
+          <span>Нова назва списку</span>
           <input v-model.trim="renameBoardTitle" class="input" type="text" maxlength="120" />
         </label>
         <div v-if="boardFormError" class="form-error">{{ boardFormError }}</div>
@@ -61,7 +61,7 @@
 
     <form v-if="showCreateBoardForm" class="panel practice-board__board-form" @submit.prevent="submitCreateBoard">
       <label class="field">
-        <span>Назва дошки</span>
+        <span>Назва списку</span>
         <input v-model.trim="createBoardTitle" class="input" type="text" maxlength="120" />
       </label>
       <div v-if="boardFormError" class="form-error">{{ boardFormError }}</div>
@@ -112,18 +112,18 @@
 
     <EmptyState
       v-else-if="showEmptyBoardState"
-      title="Поки що немає дошок"
-      description="Створіть першу дошку, щоб додавати задачі та організовувати роботу."
+      title="Поки що немає списків"
+      description="Створіть перший список, щоб додавати задачі та організовувати роботу."
     >
       <template #actions>
-        <button class="btn" type="button" @click="toggleCreateBoardForm">Створити дошку</button>
+        <button class="btn" type="button" @click="toggleCreateBoardForm">Створити список</button>
       </template>
     </EmptyState>
 
     <EmptyState
       v-else-if="hasNoItems"
       title="Поки що тут порожньо"
-      description="У цій дошці ще немає задач. Додайте першу задачу, щоб зафіксувати важливий крок, follow-up або нагадування."
+      description="У цьому списку ще немає задач. Додайте першу задачу, щоб зафіксувати важливий крок, follow-up або нагадування."
     />
 
     <section v-else class="practice-board__columns">
@@ -180,9 +180,8 @@
             </template>
 
             <template v-else>
-              <div v-if="hasMetadata(item)" class="board-card__meta muted">
-                <span v-if="item.related_client_id">Клієнт #{{ item.related_client_id }}</span>
-                <span v-if="item.related_session_id">Сесія #{{ item.related_session_id }}</span>
+              <div v-if="itemContextLabel(item)" class="board-card__meta muted">
+                {{ itemContextLabel(item) }}
               </div>
 
               <div v-if="isArchiveConfirmOpen(item.id)" class="board-card__confirm">
@@ -229,6 +228,9 @@
         <div class="panel__header practice-board__details-header">
           <h2 class="panel__title practice-board__details-title">{{ detailsItem.title }}</h2>
           <button class="btn btn--ghost btn--sm practice-board__details-cancel" type="button" @click="closeDetails">Скасувати</button>
+        </div>
+        <div v-if="itemContextLabel(detailsItem)" class="board-card__meta muted">
+          {{ itemContextLabel(detailsItem) }}
         </div>
         <p class="practice-board__details-text muted">{{ detailsItem.description }}</p>
       </section>
@@ -336,7 +338,7 @@ const hasCurrentBoard = computed(() => Boolean(currentBoardId.value && currentBo
 const showEmptyBoardState = computed(() => !hasCurrentBoard.value)
 const primaryActionLabel = computed(() => {
   if (hasCurrentBoard.value) return showCreateForm.value ? 'Скасувати' : 'Створити задачу'
-  return showCreateBoardForm.value ? 'Скасувати' : 'Створити дошку'
+  return showCreateBoardForm.value ? 'Скасувати' : 'Створити список'
 })
 const hasNoItems = computed(
   () => boardColumns.value.todo.length === 0 && boardColumns.value.in_progress.length === 0 && boardColumns.value.done.length === 0
@@ -344,8 +346,8 @@ const hasNoItems = computed(
 
 function displayBoardTitle(title?: string | null) {
   const normalized = title?.trim() ?? ''
-  if (!normalized) return 'Робоча дошка'
-  if (normalized.toLowerCase() === 'board') return 'Робоча дошка'
+  if (!normalized) return 'Основний список'
+  if (normalized.toLowerCase() === 'board') return 'Основний список'
   return normalized
 }
 
@@ -365,8 +367,32 @@ function setMovePending(itemId: number | string, value: boolean) {
   movePending.value = next
 }
 
-function hasMetadata(item: PracticeBoardItem) {
-  return Boolean(item.related_client_id || item.related_session_id)
+function formatSessionDateTime(value?: string | null) {
+  if (!value) return ''
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return ''
+  return new Intl.DateTimeFormat('uk-UA', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(date)
+}
+
+function itemContextLabel(item: PracticeBoardItem | null) {
+  if (!item) return ''
+  const parts: string[] = []
+  const clientName = item.related_client_display_name?.trim()
+  const sessionLabel = item.related_session_label?.trim()
+  const sessionTime = formatSessionDateTime(item.related_session_starts_at)
+  if (clientName) parts.push(`Клієнт: ${clientName}`)
+  if (sessionLabel) parts.push(`Сесія: ${sessionLabel}`)
+  else if (sessionTime) parts.push(`Сесія: ${sessionTime}`)
+  if (parts.length) return parts.join(' · ')
+  if (item.related_session_id || item.source_type === 'session') return 'Задача з сесії'
+  if (item.related_client_id) return 'Пов’язано з клієнтом'
+  return ''
 }
 
 function moveActions(status: PracticeBoardStatus) {
@@ -493,7 +519,7 @@ function toggleCreateBoardForm() {
   if (showCreateBoardForm.value) {
     showRenameBoardForm.value = false
     showCreateForm.value = false
-    createBoardTitle.value = 'Нова дошка'
+    createBoardTitle.value = 'Новий список'
   } else {
     createBoardTitle.value = ''
   }
@@ -551,7 +577,7 @@ async function loadPage() {
     await loadBoards()
     await loadBoardItems()
   } catch {
-    boardError.value = 'Не вдалося завантажити дані дошки.'
+    boardError.value = 'Не вдалося завантажити задачі.'
   } finally {
     loading.value = false
   }
@@ -565,7 +591,7 @@ async function selectBoard(boardId: number | string) {
   try {
     await loadBoardItems()
   } catch {
-    boardError.value = 'Не вдалося завантажити задачі для вибраної дошки.'
+    boardError.value = 'Не вдалося завантажити задачі для вибраного списку.'
   }
 }
 
@@ -573,7 +599,7 @@ async function submitCreateBoard() {
   boardFormError.value = ''
   const title = createBoardTitle.value.trim()
   if (!title) {
-    boardFormError.value = 'Вкажіть назву дошки.'
+    boardFormError.value = 'Вкажіть назву списку.'
     return
   }
 
@@ -587,8 +613,8 @@ async function submitCreateBoard() {
     await loadBoardItems()
   } catch (error) {
     boardFormError.value = isBoardLimitReachedError(error)
-      ? 'Ліміт дощок для вашого тарифу вичерпано.'
-      : 'Не вдалося створити дошку.'
+      ? 'Ліміт списків для вашого тарифу вичерпано.'
+      : 'Не вдалося створити список.'
   } finally {
     createBoardPending.value = false
   }
@@ -599,11 +625,11 @@ async function submitRenameBoard() {
   const boardId = currentBoardId.value
   const title = renameBoardTitle.value.trim()
   if (!boardId) {
-    boardFormError.value = 'Оберіть дошку.'
+    boardFormError.value = 'Оберіть список.'
     return
   }
   if (!title) {
-    boardFormError.value = 'Вкажіть назву дошки.'
+    boardFormError.value = 'Вкажіть назву списку.'
     return
   }
 
@@ -612,9 +638,9 @@ async function submitRenameBoard() {
     await updatePracticeBoard(boardId, { title })
     await loadBoards()
     showRenameBoardForm.value = false
-    toast.success('Назву дошки оновлено')
+    toast.success('Назву списку оновлено')
   } catch {
-    boardFormError.value = 'Не вдалося оновити назву дошки.'
+    boardFormError.value = 'Не вдалося оновити назву списку.'
   } finally {
     renameBoardPending.value = false
   }
@@ -638,14 +664,14 @@ async function submitCreate() {
   moveError.value = ''
   const payload = createPayloadFromDraft()
   if (!payload) {
-    createError.value = currentBoardId.value ? 'Вкажіть заголовок задачі.' : 'Оберіть дошку для створення задачі.'
+    createError.value = currentBoardId.value ? 'Вкажіть заголовок задачі.' : 'Оберіть список для створення задачі.'
     return
   }
 
   createPending.value = true
   try {
     await createPracticeBoardItem(payload)
-    toast.success('Задачу додано на дошку')
+    toast.success('Задачу додано')
     cancelCreate()
     await loadBoardItems()
   } catch {
@@ -676,35 +702,38 @@ onMounted(async () => {
 <style scoped>
 .practice-board {
   display: grid;
-  gap: 16px;
+  gap: 14px;
 }
 
 .practice-board__hero {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 16px;
-  background: linear-gradient(135deg, rgba(8, 113, 201, 0.14), rgba(7, 47, 71, 0.06));
+  gap: 14px;
+  background: #fff;
   border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 18px 20px;
+  border-radius: var(--pc-radius-control, var(--radius-sm));
+  padding: 14px 16px;
+  box-shadow: var(--pc-shadow-soft);
 }
 
 .practice-board__title {
-  font-size: 30px;
+  font-size: 28px;
+  line-height: 1.12;
 }
 
 .practice-board__subtitle {
   max-width: 680px;
+  margin: 4px 0 0;
 }
 
 .panel {
   border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
-  padding: 14px;
+  border-radius: var(--pc-radius-control, var(--radius-sm));
+  padding: 12px;
   background: #fff;
   display: grid;
-  gap: 12px;
+  gap: 10px;
 }
 
 .panel__header {
@@ -774,17 +803,17 @@ onMounted(async () => {
 
 .practice-board__columns {
   display: grid;
-  gap: 10px;
+  gap: 8px;
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .board-column {
   border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
+  border-radius: var(--pc-radius-control, var(--radius-sm));
   background: #fff;
-  padding: 12px;
+  padding: 10px;
   display: grid;
-  gap: 10px;
+  gap: 8px;
   align-content: start;
 }
 
@@ -806,7 +835,7 @@ onMounted(async () => {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: var(--radius-pill);
+  border-radius: var(--pc-radius-control, var(--radius-sm));
   background: rgba(8, 113, 201, 0.12);
   font-size: 12px;
   font-weight: 600;
@@ -823,12 +852,12 @@ onMounted(async () => {
 
 .board-card {
   border: 1px solid rgba(7, 47, 71, 0.14);
-  border-radius: var(--radius-md);
+  border-radius: var(--pc-radius-control, var(--radius-sm));
   background: rgba(7, 47, 71, 0.02);
-  padding: 10px;
+  padding: 9px;
   display: grid;
   gap: 8px;
-  min-height: 110px;
+  min-height: 96px;
 }
 
 .board-card__header {

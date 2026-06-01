@@ -1,9 +1,9 @@
 <template>
   <div v-if="open" class="quick-add-modal" @keydown.esc="emit('cancel')">
     <div class="quick-add-modal__backdrop" @click="emit('cancel')"></div>
-    <section class="quick-add-modal__content panel" role="dialog" aria-modal="true" aria-label="Додати задачу на дошку">
+    <section class="quick-add-modal__content panel" role="dialog" aria-modal="true" aria-label="Додати задачу">
       <div class="quick-add-modal__header">
-        <h3 class="quick-add-modal__title">Додати задачу на дошку</h3>
+        <h3 class="quick-add-modal__title">Додати задачу</h3>
         <p class="muted quick-add-modal__subtitle">{{ subtitle }}</p>
       </div>
 

@@ -85,7 +85,13 @@ describe('SpecialistPracticeBoardView', () => {
 
     const { container } = render(SpecialistPracticeBoardView)
 
-    await screen.findByRole('heading', { level: 1 })
+    expect(await screen.findByRole('heading', { level: 1, name: 'Задачі' })).toBeInTheDocument()
+    expect(screen.getByText('ЗАДАЧІ')).toBeInTheDocument()
+    expect(
+      screen.getByText('Наступні кроки, нагадування й задачі по клієнтах та сесіях — в одному місці.')
+    ).toBeInTheDocument()
+    expect(await screen.findByText('Todo task')).toBeInTheDocument()
+    expect(screen.getByText('СПИСКИ ЗАДАЧ')).toBeInTheDocument()
     await waitFor(() => {
       expect(container.querySelectorAll('.practice-board__board-chip').length).toBe(2)
     })
@@ -111,16 +117,16 @@ describe('SpecialistPracticeBoardView', () => {
 
     render(SpecialistPracticeBoardView)
 
-    expect(await screen.findByText('Поки що немає дошок')).toBeInTheDocument()
+    expect(await screen.findByText('Поки що немає списків')).toBeInTheDocument()
     expect(mockedFetchPracticeBoardItems).not.toHaveBeenCalled()
     expect(
-      screen.getByText('Створіть першу дошку, щоб додавати задачі та організовувати роботу.')
+      screen.getByText('Створіть перший список, щоб додавати задачі та організовувати роботу.')
     ).toBeInTheDocument()
     expect(screen.queryByRole('heading', { level: 2, name: 'Нова задача' })).not.toBeInTheDocument()
-    expect(screen.getAllByRole('button', { name: 'Створити дошку' }).length).toBeGreaterThan(0)
+    expect(screen.getAllByRole('button', { name: 'Створити список' }).length).toBeGreaterThan(0)
 
-    await fireEvent.click(screen.getAllByRole('button', { name: 'Створити дошку' })[0]!)
-    expect(screen.getByLabelText('Назва дошки')).toBeInTheDocument()
+    await fireEvent.click(screen.getAllByRole('button', { name: 'Створити список' })[0]!)
+    expect(screen.getByLabelText('Назва списку')).toBeInTheDocument()
   })
 
   it('switches board and refetches board-scoped items', async () => {
@@ -176,8 +182,8 @@ describe('SpecialistPracticeBoardView', () => {
     render(SpecialistPracticeBoardView)
     await screen.findByText('Todo task')
 
-    await fireEvent.click(screen.getByRole('button', { name: 'Створити дошку' }))
-    await fireEvent.update(screen.getByLabelText('Назва дошки'), 'Тиждень')
+    await fireEvent.click(screen.getByRole('button', { name: 'Створити список' }))
+    await fireEvent.update(screen.getByLabelText('Назва списку'), 'Тиждень')
     await fireEvent.click(screen.getAllByRole('button', { name: 'Зберегти' })[0]!)
 
     await waitFor(() => {
@@ -195,7 +201,7 @@ describe('SpecialistPracticeBoardView', () => {
     await screen.findByText('Todo task')
 
     await fireEvent.click(screen.getByRole('button', { name: 'Редагувати назву' }))
-    await fireEvent.update(screen.getByLabelText('Нова назва дошки'), 'Оновлена')
+    await fireEvent.update(screen.getByLabelText('Нова назва списку'), 'Оновлена')
     await fireEvent.click(screen.getAllByRole('button', { name: 'Зберегти' })[0]!)
 
     await waitFor(() => expect(mockedUpdatePracticeBoard).toHaveBeenCalledWith('1', { title: 'Оновлена' }))
@@ -211,11 +217,11 @@ describe('SpecialistPracticeBoardView', () => {
     render(SpecialistPracticeBoardView)
     await screen.findByText('Todo task')
 
-    await fireEvent.click(screen.getByRole('button', { name: 'Створити дошку' }))
-    await fireEvent.update(screen.getByLabelText('Назва дошки'), 'Нова дошка')
+    await fireEvent.click(screen.getByRole('button', { name: 'Створити список' }))
+    await fireEvent.update(screen.getByLabelText('Назва списку'), 'Нова дошка')
     await fireEvent.click(screen.getAllByRole('button', { name: 'Зберегти' })[0]!)
 
-    expect(await screen.findByText('Ліміт дощок для вашого тарифу вичерпано.')).toBeInTheDocument()
+    expect(await screen.findByText('Ліміт списків для вашого тарифу вичерпано.')).toBeInTheDocument()
   })
 
   it('renders simple single-board UX without switcher chips', async () => {
@@ -236,7 +242,8 @@ describe('SpecialistPracticeBoardView', () => {
     const { container } = render(SpecialistPracticeBoardView)
     await screen.findByText('Todo task')
 
-    expect(container.querySelector('.practice-board__boards .panel__title')?.textContent).toContain('Робоча дошка')
+    expect(container.querySelector('.practice-board__boards .panel__title')?.textContent).toContain('Основний список')
+    expect(container.querySelector('.practice-board__boards .panel__title')?.textContent).not.toContain('Робоча дошка')
   })
 
   it('prefills new board form with Ukrainian default title', async () => {
@@ -246,9 +253,44 @@ describe('SpecialistPracticeBoardView', () => {
     render(SpecialistPracticeBoardView)
     await screen.findByText('Todo task')
 
-    await fireEvent.click(screen.getByRole('button', { name: 'Створити дошку' }))
-    const input = screen.getByLabelText('Назва дошки') as HTMLInputElement
-    expect(input.value).toBe('Нова дошка')
+    await fireEvent.click(screen.getByRole('button', { name: 'Створити список' }))
+    const input = screen.getByLabelText('Назва списку') as HTMLInputElement
+    expect(input.value).toBe('Новий список')
+  })
+
+  it('renders human task context without internal client or session ids', async () => {
+    mockedFetchPracticeBoards.mockResolvedValue(buildBoards() as any)
+    mockedFetchPracticeBoardItems.mockResolvedValue({
+      todo: [
+        {
+          ...buildColumns().todo[0],
+          id: 10,
+          title: 'Session fallback task',
+          related_client_id: 41,
+          related_session_id: 77,
+          source_type: 'session',
+        },
+        {
+          ...buildColumns().todo[0],
+          id: 11,
+          title: 'Named client task',
+          related_client_id: 42,
+          related_session_id: 78,
+          related_client_display_name: 'Олена Коваль',
+          related_session_starts_at: '2026-06-01T09:00:00Z',
+        },
+      ],
+      in_progress: [],
+      done: [],
+    } as any)
+
+    render(SpecialistPracticeBoardView)
+    await screen.findByText('Session fallback task')
+
+    expect(screen.getByText('Задача з сесії')).toBeInTheDocument()
+    expect(screen.getByText(/Клієнт: Олена Коваль/)).toBeInTheDocument()
+    expect(document.body).not.toHaveTextContent(/Клієнт\s#/)
+    expect(document.body).not.toHaveTextContent(/Сесія\s#/)
   })
 
   it('keeps move, edit, and archive behavior', async () => {

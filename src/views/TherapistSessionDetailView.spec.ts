@@ -859,7 +859,9 @@ describe('TherapistSessionDetailView', () => {
         source_type: 'session',
         source_id: 42,
       })
-      expect(mockToast.success).toHaveBeenCalledWith('\u0417\u0430\u0434\u0430\u0447\u0443 \u0434\u043e\u0434\u0430\u043d\u043e \u043d\u0430 \u0434\u043e\u0448\u043a\u0443')
+      expect(mockToast.success).toHaveBeenCalledWith(
+        'Задачу додано. Вона доступна в розділі «Задачі».'
+      )
     })
   })
 
@@ -904,7 +906,9 @@ describe('TherapistSessionDetailView', () => {
         source_type: 'session',
         source_id: 42,
       })
-      expect(mockToast.success).toHaveBeenCalledWith('\u0417\u0430\u0434\u0430\u0447\u0443 \u0434\u043e\u0434\u0430\u043d\u043e \u043d\u0430 \u0434\u043e\u0448\u043a\u0443')
+      expect(mockToast.success).toHaveBeenCalledWith(
+        'Задачу додано. Вона доступна в розділі «Задачі».'
+      )
     })
   })
 

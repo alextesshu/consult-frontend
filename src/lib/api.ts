@@ -900,6 +900,9 @@ export type PracticeBoardItem = {
   priority?: string | null
   related_client_id?: number | null
   related_session_id?: number | null
+  related_client_display_name?: string | null
+  related_session_starts_at?: string | null
+  related_session_label?: string | null
   source_type?: PracticeBoardSourceType
   source_id?: number | string | null
   created_at: string
