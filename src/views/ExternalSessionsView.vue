@@ -157,55 +157,80 @@
         <div v-else-if="guestRequests.length === 0" class="muted">Запитів без реєстрації поки немає.</div>
 
         <div v-else class="list-grid">
-          <article v-for="request in guestRequests" :key="request.id" class="request-card">
+          <article
+            v-for="request in guestRequests"
+            :key="request.id"
+            class="request-card"
+            :class="{ 'request-card--expanded': isRequestDetailsOpen(request.id) }"
+          >
             <div class="request-card__main">
-              <div class="request-card__title">
-                {{ isSlotlessRequest(request) ? 'Запит без обраного часу' : requestClientName(request) }}
-              </div>
-              <div v-if="isSlotlessRequest(request)" class="request-card__helper">
-                Клієнт залишив запит без бронювання конкретного слота. Узгодьте час і створіть сесію вручну.
-              </div>
-              <div class="muted">
-                Клієнт: {{ requestClientName(request) }}
-              </div>
-              <div v-if="requestClientEmail(request)" class="muted">
-                Ел. пошта: {{ requestClientEmail(request) }}
-              </div>
-              <div v-if="requestClientPhone(request)" class="muted">
-                Телефон: {{ requestClientPhone(request) }}
-              </div>
-              <div v-if="!isSlotlessRequest(request)" class="muted">
-                Контакт: {{ contactChannelLabel(request.contact_channel) }} · {{ request.contact_value || '—' }}
-              </div>
-              <div v-if="!isSlotlessRequest(request)" class="muted">
-                Запитаний слот: {{ formatDateTime(request.requested_slot_start) }}
-                <span v-if="request.duration_minutes"> · {{ request.duration_minutes }} хв</span>
-              </div>
-              <div v-if="requestTopicLabels(request).length" class="request-topic-row" aria-label="Теми запиту">
-                <span
-                  v-for="topicLabel in requestTopicLabels(request)"
-                  :key="topicLabel"
-                  class="request-topic-chip"
+              <div class="request-card__summary">
+                <div class="request-card__summary-main">
+                  <div class="request-card__title">
+                    {{ isSlotlessRequest(request) ? 'Запит без обраного часу' : requestClientName(request) }}
+                  </div>
+                  <div class="request-card__meta-grid">
+                    <div class="muted">Клієнт: {{ requestClientName(request) }}</div>
+                    <div class="muted">Контакт: {{ requestCompactContact(request) }}</div>
+                    <div v-if="request.created_at" class="muted">Створено: {{ formatDateTime(request.created_at) }}</div>
+                    <div class="request-card__status-row">
+                      <span class="muted">Статус:</span>
+                      <span class="status-pill" :class="requestStatusClass(request.status)">
+                        {{ requestStatusLabel(request.status) }}
+                      </span>
+                    </div>
+                  </div>
+                  <div v-if="requestTopicLabels(request).length" class="request-topic-row" aria-label="Теми запиту">
+                    <span
+                      v-for="topicLabel in requestTopicLabels(request)"
+                      :key="topicLabel"
+                      class="request-topic-chip"
+                    >
+                      {{ topicLabel }}
+                    </span>
+                  </div>
+                </div>
+                <button
+                  class="btn btn--ghost btn--sm request-details-toggle"
+                  type="button"
+                  :aria-expanded="isRequestDetailsOpen(request.id)"
+                  @click="toggleRequestDetails(request.id)"
                 >
-                  {{ topicLabel }}
-                </span>
+                  {{ isRequestDetailsOpen(request.id) ? 'Сховати деталі' : 'Показати деталі' }}
+                </button>
               </div>
-              <div class="muted">
-                Формат: {{ request.session_format === 'offline' ? 'Офлайн' : 'Онлайн' }}
-                <span v-if="request.session_format === 'offline' && request.offline_location_snapshot">
-                  · {{ request.offline_location_snapshot }}
-                </span>
+
+              <div v-if="isRequestDetailsOpen(request.id)" class="request-card__details">
+                <div v-if="isSlotlessRequest(request)" class="request-card__helper">
+                  Клієнт залишив запит без бронювання конкретного слота. Узгодьте час і створіть сесію вручну.
+                </div>
+                <div v-if="requestClientEmail(request)" class="muted">
+                  Ел. пошта: {{ requestClientEmail(request) }}
+                </div>
+                <div v-if="requestClientPhone(request)" class="muted">
+                  Телефон: {{ requestClientPhone(request) }}
+                </div>
+                <div class="muted">
+                  Контакт: {{ contactChannelLabel(request.contact_channel) }} · {{ request.contact_value || '—' }}
+                </div>
+                <div v-if="!isSlotlessRequest(request)" class="muted">
+                  Запитаний слот: {{ formatDateTime(request.requested_slot_start) }}
+                  <span v-if="request.duration_minutes"> · {{ request.duration_minutes }} хв</span>
+                </div>
+                <div class="muted">
+                  Формат: {{ request.session_format === 'offline' ? 'Офлайн' : 'Онлайн' }}
+                  <span v-if="request.session_format === 'offline' && request.offline_location_snapshot">
+                    · {{ request.offline_location_snapshot }}
+                  </span>
+                </div>
+                <div v-if="request.message" class="muted">Коментар: {{ request.message }}</div>
+                <div v-if="requestDecisionAt(request)" class="muted">
+                  {{ requestDecisionLabel(request.status) }}: {{ formatDateTime(requestDecisionAt(request)) }}
+                </div>
               </div>
-              <div v-if="request.message" class="muted">Коментар: {{ request.message }}</div>
-              <div v-if="request.created_at" class="muted">Створено: {{ formatDateTime(request.created_at) }}</div>
-              <div class="status-pill" :class="requestStatusClass(request.status)">
-                {{ requestStatusLabel(request.status) }}
-              </div>
-              <div v-if="requestDecisionAt(request)" class="muted">
-                {{ requestDecisionLabel(request.status) }}: {{ formatDateTime(requestDecisionAt(request)) }}
-              </div>
-              <div v-if="request.session_id" class="muted">На основі цього запиту створено сесію.</div>
+
               <div v-if="request.session_id" class="request-next-step">
+                <div class="muted">На основі цього запиту створено сесію.</div>
                 <RouterLink
                   class="btn btn--ghost btn--sm"
                   :to="`/cabinet/sessions/${request.session_id}`"
@@ -213,8 +238,8 @@
                   Відкрити сесію
                 </RouterLink>
               </div>
-              <div v-if="request.external_session_id" class="muted">На основі цього запиту створено сесію без реєстрації.</div>
               <div v-if="request.external_session_id" class="request-next-step">
+                <div class="muted">На основі цього запиту створено сесію без реєстрації.</div>
                 <RouterLink
                   class="btn btn--ghost btn--sm"
                   :to="`/cabinet/external-sessions/${request.external_session_id}`"
@@ -494,6 +519,7 @@ const sessions = ref<ExternalSessionRecord[]>([])
 const guestRequests = ref<GuestBookingRequestRecord[]>([])
 const requestActionLoading = ref<Record<number, RequestActionLoadingState>>({})
 const requestActionErrors = ref<Record<number, string>>({})
+const expandedRequestDetails = ref<Record<number, boolean>>({})
 const approveMeetingUrls = ref<Record<number, string>>({})
 const latestInviteUrlByRequestId = ref<Record<number, string>>({})
 const slotlessSessionModalOpen = ref(false)
@@ -624,7 +650,17 @@ function contactChannelLabel(channel: string | null | undefined) {
   if (normalized === 'email') return 'Ел. пошта'
   if (normalized === 'phone') return 'Телефон'
   if (normalized === 'telegram') return 'Telegram'
+  if (normalized === 'viber') return 'Viber'
   return channel || 'Контакт'
+}
+
+function requestCompactContact(request: GuestBookingRequestRecord) {
+  const email = requestClientEmail(request)
+  const phone = requestClientPhone(request)
+  const normalizedChannel = String(request.contact_channel || '').toLowerCase()
+  const channelLabel = normalizedChannel ? contactChannelLabel(request.contact_channel) : email ? 'Ел. пошта' : phone ? 'Телефон' : 'Контакт'
+  const value = email || phone || request.contact_value
+  return value ? `${channelLabel} · ${value}` : channelLabel
 }
 
 function requestDecisionAt(request: GuestBookingRequestRecord) {
@@ -661,6 +697,17 @@ function requestClientPhone(request: GuestBookingRequestRecord) {
 
 function requestTopicLabels(request: GuestBookingRequestRecord) {
   return (request.request_topics || []).map((topic) => requestTopicLabel(topic)).filter(Boolean)
+}
+
+function isRequestDetailsOpen(id: number) {
+  return expandedRequestDetails.value[id] === true
+}
+
+function toggleRequestDetails(id: number) {
+  expandedRequestDetails.value = {
+    ...expandedRequestDetails.value,
+    [id]: !expandedRequestDetails.value[id],
+  }
 }
 
 function setRequestActionLoading(id: number, action: RequestActionType, value: boolean) {
@@ -1378,10 +1425,61 @@ onMounted(async () => {
 
 .request-card__main {
   display: grid;
-  gap: 6px;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
 }
 
 .request-card__title {
+  font-weight: 700;
+}
+
+.request-card__summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0;
+}
+
+.request-card__summary-main {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.request-card__meta-grid {
+  display: grid;
+  gap: 6px 14px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.request-card__meta-grid .muted {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.request-card__status-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.request-card__details {
+  display: grid;
+  gap: 6px;
+  padding-top: 10px;
+  border-top: 1px solid var(--pc-border);
+}
+
+.request-details-toggle {
+  flex: 0 0 auto;
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-control);
+  background: #fff;
+  color: var(--pc-navy-900);
+  box-shadow: none;
   font-weight: 700;
 }
 
@@ -1424,6 +1522,7 @@ onMounted(async () => {
 
 .request-next-step {
   display: flex;
+  align-items: center;
   flex-wrap: wrap;
   gap: 8px;
 }
@@ -1569,6 +1668,18 @@ onMounted(async () => {
 
   .request-card {
     flex-direction: column;
+  }
+
+  .request-card__summary {
+    flex-direction: column;
+  }
+
+  .request-card__meta-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .request-details-toggle {
+    width: 100%;
   }
 
   .request-actions {

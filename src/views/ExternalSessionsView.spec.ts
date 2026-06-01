@@ -83,15 +83,17 @@ function getGuestRequestCardByName(guestName: string) {
     throw new Error(`Guest request card not found for ${guestName}`)
   }
 
-  const buttons = card.querySelectorAll('button')
-  if (buttons.length < 2) {
+  const scoped = within(card as HTMLElement)
+  const approveButton = scoped.queryByRole('button', { name: 'Погодити' }) as HTMLButtonElement | null
+  const declineButton = scoped.queryByRole('button', { name: 'Відхилити' }) as HTMLButtonElement | null
+  if (!approveButton || !declineButton) {
     throw new Error(`Expected approve/decline buttons for ${guestName}`)
   }
 
   return {
     card,
-    approveButton: buttons[0] as HTMLButtonElement,
-    declineButton: buttons[1] as HTMLButtonElement,
+    approveButton,
+    declineButton,
     meetingInput: card.querySelector('input[type="url"]') as HTMLInputElement | null,
   }
 }
@@ -318,9 +320,10 @@ describe('ExternalSessionsView', () => {
     expect(guestRequestsPanel).toHaveClass('external-sessions__guest-requests-panel')
     expect(createPanel).toHaveClass('external-sessions__create-panel')
     expect(guestRequestsPanel).toHaveTextContent('Запит без обраного часу')
-    expect(guestRequestsPanel).toHaveTextContent('Клієнт залишив запит без бронювання конкретного слота.')
+    expect(guestRequestsPanel).not.toHaveTextContent('Клієнт залишив запит без бронювання конкретного слота.')
     expect(guestRequestsPanel).toHaveTextContent('Тривога')
     expect(guestRequestsPanel).toHaveTextContent('Стосунки')
+    expect(within(guestRequestsPanel as HTMLElement).getByRole('button', { name: 'Показати деталі' })).toBeInTheDocument()
     expect(within(guestRequestsPanel as HTMLElement).getByRole('button', { name: 'Створити сесію' })).toBeInTheDocument()
     expect(within(guestRequestsPanel as HTMLElement).getByRole('button', { name: 'Закрити запит' })).toBeInTheDocument()
   })
@@ -761,6 +764,9 @@ describe('ExternalSessionsView', () => {
       expect(mockedDeclineCabinetGuestBookingRequest).toHaveBeenCalledWith(52)
     })
     expect(await screen.findByText('Відхилено')).toBeInTheDocument()
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Показати деталі' }))
+
     expect(await screen.findByText(/Відхилено:/)).toBeInTheDocument()
   })
 
@@ -785,15 +791,25 @@ describe('ExternalSessionsView', () => {
     await screen.findByText('Запит без обраного часу')
 
     const card = getGuestRequestCardByText('Запит без обраного часу')
-    expect(card).toHaveTextContent('Клієнт залишив запит без бронювання конкретного слота. Узгодьте час і створіть сесію вручну.')
     expect(card).toHaveTextContent('Клієнт: Slotless Guest')
-    expect(card).toHaveTextContent('Ел. пошта: slotless@example.com')
-    expect(card).toHaveTextContent('Телефон: +380501234567')
-    expect(card).toHaveTextContent('Коментар: Можу після обіду')
+    expect(card).toHaveTextContent('Контакт: Ел. пошта · slotless@example.com')
+    expect(card).toHaveTextContent(/Статус:\s*Очікує рішення/)
+    expect(card).not.toHaveTextContent('Клієнт залишив запит без бронювання конкретного слота.')
+    expect(card).not.toHaveTextContent('Телефон: +380501234567')
+    expect(card).not.toHaveTextContent('Коментар: Можу після обіду')
+    expect(card.querySelector('.request-topic-row')).toBeNull()
     expect(within(card as HTMLElement).getByRole('button', { name: 'Створити сесію' })).toBeInTheDocument()
     expect(within(card as HTMLElement).getByRole('button', { name: 'Закрити запит' })).toBeInTheDocument()
     expect(within(card as HTMLElement).queryByRole('button', { name: 'Погодити' })).not.toBeInTheDocument()
     expect(card).not.toHaveTextContent('Запитаний слот:')
+
+    await fireEvent.click(within(card as HTMLElement).getByRole('button', { name: 'Показати деталі' }))
+
+    expect(card).toHaveTextContent('Клієнт залишив запит без бронювання конкретного слота. Узгодьте час і створіть сесію вручну.')
+    expect(card).toHaveTextContent('Ел. пошта: slotless@example.com')
+    expect(card).toHaveTextContent('Телефон: +380501234567')
+    expect(card).toHaveTextContent('Коментар: Можу після обіду')
+    expect(within(card as HTMLElement).getByRole('button', { name: 'Сховати деталі' })).toBeInTheDocument()
   })
 
   it('creates manual session from slot-less guest request and refreshes data', async () => {
