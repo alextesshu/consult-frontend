@@ -4,6 +4,12 @@
       <div>
         <div class="badge badge--soft">Конфіденційно</div>
         <h1 class="title workbook-page__title">Приватний зошит</h1>
+        <p class="workbook-page__client">
+          Клієнт: <strong>{{ clientIdentityLabel }}</strong>
+        </p>
+        <p v-if="clientIdentitySecondary" class="muted workbook-page__client-secondary">
+          {{ clientIdentitySecondary }}
+        </p>
         <p class="muted workbook-page__subtitle">
           Робочий простір спеціаліста по цьому клієнту. Клієнт не бачить ці записи.
         </p>
@@ -27,12 +33,24 @@
         </div>
 
         <div class="workbook-editor__helper">
-          Ведіть зошит у вільній формі або використовуйте структуру: запит, спостереження, динаміка, план.
+          Оберіть секцію або пишіть у вільній формі. Клієнт не бачить ці записи.
         </div>
 
         <div class="workbook-editor__toolbar">
+          <div class="workbook-section-tools" aria-label="Додати секцію">
+            <span class="workbook-section-tools__label">Додати секцію:</span>
+            <button
+              v-for="section in workbookSections"
+              :key="section"
+              class="workbook-section-chip"
+              type="button"
+              @click="insertSection(section)"
+            >
+              {{ section }}
+            </button>
+          </div>
           <button class="btn btn--ghost btn--sm" type="button" @click="insertTemplate">
-            Вставити структуру
+            Вставити базову структуру
           </button>
         </div>
 
@@ -59,11 +77,38 @@
 import { computed, nextTick, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import LoadingSkeleton from '../components/LoadingSkeleton.vue'
+import { apiGet } from '../lib/api'
 import { getApiErrorMessage } from '../lib/errors'
 import { fetchSpecialistClientWorkbookSnapshot, saveSpecialistClientJournal } from '../lib/specialistSessions'
 import { workbookContentStateLabel as getWorkbookContentStateLabel } from '../lib/noteWorkbookCopy'
 
-const WORKBOOK_TEMPLATE = 'Запит:\n\nСпостереження:\n\nДинаміка:\n\nПлан:'
+type ClientIdentityPayload = {
+  client?: number | null
+  client_id?: number | null
+  client_display_name?: string | null
+  client_name?: string | null
+  client_username?: string | null
+  name?: string | null
+  client_email?: string | null
+  email?: string | null
+  client_phone?: string | null
+  phone?: string | null
+}
+
+type ListResponse<T> = T[] | { results?: T[] } | null | undefined
+
+const workbookSections = [
+  'Запит',
+  'Спостереження',
+  'Динаміка',
+  'План',
+  'Домовленості',
+  'Наступні кроки',
+] as const
+
+const WORKBOOK_TEMPLATE = ['Запит', 'Спостереження', 'Динаміка', 'План']
+  .map(formatSectionHeading)
+  .join('')
 
 const route = useRoute()
 const clientId = Number(route.params.clientId || 0)
@@ -77,8 +122,23 @@ const savedMessage = ref('')
 const isWorkbookMissing = ref(true)
 const updatedAt = ref<string | null>(null)
 const textareaRef = ref<HTMLTextAreaElement | null>(null)
+const clientIdentity = ref<{
+  displayName: string
+  email: string | null
+  phone: string | null
+}>({
+  displayName: clientId ? `Клієнт #${clientId}` : 'Клієнт',
+  email: null,
+  phone: null,
+})
 
 const isDirty = computed(() => content.value !== initialContent.value)
+
+const clientIdentityLabel = computed(() => clientIdentity.value.displayName)
+
+const clientIdentitySecondary = computed(() => {
+  return [clientIdentity.value.email, clientIdentity.value.phone].filter(Boolean).join(' · ')
+})
 
 const clientBackLink = computed(() => {
   if (!clientId) return '/cabinet/clients'
@@ -137,7 +197,10 @@ async function load() {
   loading.value = true
   error.value = ''
   try {
-    const snapshot = await fetchSpecialistClientWorkbookSnapshot(clientId)
+    const [snapshot] = await Promise.all([
+      fetchSpecialistClientWorkbookSnapshot(clientId),
+      loadClientIdentity(),
+    ])
     content.value = snapshot.content
     initialContent.value = snapshot.content
     isWorkbookMissing.value = snapshot.isMissing
@@ -149,30 +212,76 @@ async function load() {
   }
 }
 
-async function insertTemplate() {
+function readListResponse<T>(response: ListResponse<T>) {
+  if (Array.isArray(response)) return response
+  return response?.results || []
+}
+
+function readText(value: unknown) {
+  return typeof value === 'string' ? value.trim() : ''
+}
+
+function resolveClientName(item: ClientIdentityPayload) {
+  return (
+    readText(item.client_display_name) ||
+    readText(item.client_name) ||
+    readText(item.name) ||
+    readText(item.client_username)
+  )
+}
+
+async function loadClientIdentity() {
+  try {
+    const response = await apiGet<ListResponse<ClientIdentityPayload>>('/cabinet/clients/')
+    const match = readListResponse(response).find((item) => {
+      return Number(item.client_id ?? item.client ?? 0) === clientId
+    })
+    if (!match) return
+
+    const displayName = resolveClientName(match)
+    clientIdentity.value = {
+      displayName: displayName || clientIdentity.value.displayName,
+      email: readText(match.client_email) || readText(match.email) || null,
+      phone: readText(match.client_phone) || readText(match.phone) || null,
+    }
+  } catch {
+    // Client identity is helpful context, but workbook loading should not depend on it.
+  }
+}
+
+function formatSectionHeading(section: string) {
+  return `**${section}:**\n\n`
+}
+
+async function insertTextAtEditor(insertionText: string) {
   const current = content.value
   const textarea = textareaRef.value
+  const canUseSelection = textarea !== null && textarea === document.activeElement
+  const start = canUseSelection ? textarea.selectionStart ?? current.length : current.length
+  const end = canUseSelection ? textarea.selectionEnd ?? current.length : current.length
+  const beforeSelection = current.slice(0, start)
+  const afterSelection = current.slice(end)
+  const prefix = beforeSelection.length && !beforeSelection.endsWith('\n\n')
+    ? beforeSelection.endsWith('\n')
+      ? '\n'
+      : '\n\n'
+    : ''
+  const before = `${beforeSelection}${prefix}`
+
   savedMessage.value = ''
-  if (!current.trim()) {
-    content.value = WORKBOOK_TEMPLATE
-    await nextTick()
-    textareaRef.value?.focus()
-    return
-  }
-
-  const insertion = `\n\n${WORKBOOK_TEMPLATE}`
-  if (!textarea) {
-    content.value = `${current}${insertion}`
-    return
-  }
-
-  const start = textarea.selectionStart ?? current.length
-  const end = textarea.selectionEnd ?? current.length
-  content.value = `${current.slice(0, start)}${insertion}${current.slice(end)}`
+  content.value = `${before}${insertionText}${afterSelection}`
   await nextTick()
-  textarea.focus()
-  const nextPosition = start + insertion.length
-  textarea.setSelectionRange(nextPosition, nextPosition)
+  textareaRef.value?.focus()
+  const nextPosition = before.length + insertionText.length
+  textareaRef.value?.setSelectionRange(nextPosition, nextPosition)
+}
+
+async function insertSection(section: string) {
+  await insertTextAtEditor(formatSectionHeading(section))
+}
+
+async function insertTemplate() {
+  await insertTextAtEditor(WORKBOOK_TEMPLATE)
 }
 
 async function save() {
@@ -213,7 +322,19 @@ onMounted(load)
   margin-bottom: 6px;
 }
 
+.workbook-page__client {
+  margin: 0;
+  color: var(--text);
+  font-size: 16px;
+}
+
+.workbook-page__client-secondary {
+  margin: 3px 0 0;
+  font-size: 13px;
+}
+
 .workbook-page__subtitle {
+  margin-top: 8px;
   max-width: 680px;
 }
 
@@ -250,7 +371,51 @@ onMounted(load)
 
 .workbook-editor__toolbar {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.workbook-section-tools {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.workbook-section-tools__label {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.workbook-section-chip {
+  border: 1px solid rgba(7, 47, 71, 0.14);
+  border-radius: var(--radius-xs, 6px);
+  background: #fff;
+  color: var(--text);
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1;
+  min-height: 30px;
+  padding: 6px 9px;
+  transition:
+    border-color 0.16s ease,
+    background 0.16s ease,
+    color 0.16s ease;
+}
+
+.workbook-section-chip:hover,
+.workbook-section-chip:focus-visible {
+  border-color: rgba(7, 47, 71, 0.32);
+  background: rgba(7, 47, 71, 0.06);
+}
+
+.workbook-section-chip:focus-visible {
+  outline: 2px solid rgba(31, 111, 82, 0.24);
+  outline-offset: 2px;
 }
 
 .workbook-page__textarea {
@@ -324,6 +489,10 @@ onMounted(load)
 
   .workbook-editor__toolbar {
     justify-content: flex-start;
+  }
+
+  .workbook-section-tools {
+    width: 100%;
   }
 
   .workbook-page__textarea {
