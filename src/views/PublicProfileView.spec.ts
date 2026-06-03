@@ -1402,15 +1402,16 @@ describe('PublicProfileView', () => {
         request_topics: [],
       }
     )
+    expect(await screen.findByText('Запит надіслано')).toBeInTheDocument()
     expect(
-      await screen.findByText('Запит надіслано. Спеціаліст зв’яжеться з вами, щоб узгодити час.')
+      await screen.findByText('Спеціаліст отримає ваш запит і зможе зв’язатися з вами для узгодження деталей.')
     ).toBeInTheDocument()
     expect(screen.getByText(/Реєстрація не потрібна для цього кроку\./)).toBeInTheDocument()
     expect(
       screen.getByText(/Натискання кнопки не означає автоматичне списання оплати\./)
     ).toBeInTheDocument()
     expect(
-      screen.getAllByText(/Спеціаліст зв’яжеться з вами, щоб узгодити час\./).length
+      screen.getAllByText(/Спеціаліст отримає ваш запит і зможе зв’язатися з вами для узгодження деталей\./).length
     ).toBeGreaterThan(0)
     expect(
       screen.queryByText(/Request sent\. Specialist will review and contact you soon\./)
@@ -2220,7 +2221,7 @@ describe('PublicProfileView', () => {
     expect(mockRouter.push).not.toHaveBeenCalled()
   })
 
-  it('uses request-first copy for an authenticated specialist previewing own request-only profile', async () => {
+  it('uses request-only copy for an authenticated specialist previewing own request-only profile', async () => {
     mockRoute.params.slug = 'specialist-2'
     mockAuth.accessToken = 'token'
     mockAuth.user = { roles: ['SPECIALIST'] }
@@ -2284,7 +2285,7 @@ describe('PublicProfileView', () => {
     expect(within(modalBody as HTMLElement).getByRole('button', { name: 'Надіслати запит' })).toBeInTheDocument()
   })
 
-  it('shows booking calendar and request fallback in direct booking mode', async () => {
+  it('shows booking calendar without generic request CTA when slots are available', async () => {
     mockCommonPublicData()
     mockedFetchChatThreads.mockResolvedValue([])
     mockBookingPageDataWithSingleSlot()
@@ -2292,11 +2293,12 @@ describe('PublicProfileView', () => {
     renderView()
 
     expect(await screen.findByRole('heading', { name: 'Оберіть дату і час' })).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Переглянути вільні вікна' })).toHaveAttribute('href', '#slots')
-    expect(screen.getAllByRole('button', { name: 'Залишити запит' }).length).toBeGreaterThan(0)
+    expect(screen.getAllByRole('button', { name: 'Записатися на сесію' }).length).toBeGreaterThan(0)
+    expect(screen.queryByRole('link', { name: 'Переглянути вільні вікна' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Залишити запит' })).not.toBeInTheDocument()
   })
 
-  it('shows no-slots helper and request CTA when direct booking has no available slots', async () => {
+  it('shows no-slots helper and request CTA when no public slots are available', async () => {
     mockCommonPublicData()
     mockedFetchChatThreads.mockResolvedValue([])
     mockedApiGet.mockImplementation(async (url) => {
@@ -2312,12 +2314,12 @@ describe('PublicProfileView', () => {
       expect(screen.queryByText('Завантажуємо вільні вікна')).not.toBeInTheDocument()
     })
     expect(
-      screen.getByText(/Наразі немає доступного часу для прямого запису/)
+      screen.getByText(/Наразі немає доступного часу для запису/)
     ).toBeInTheDocument()
     expect(screen.getAllByRole('button', { name: 'Залишити запит' }).length).toBeGreaterThan(0)
   })
 
-  it('hides booking calendar when direct booking mode has hidden public availability', async () => {
+  it('hides booking calendar when public availability is hidden', async () => {
     mockedFetchPublicSpecialistProfile.mockResolvedValue(
       buildProfile({
         public_booking_mode: 'direct_booking',
@@ -2587,7 +2589,7 @@ describe('PublicProfileView', () => {
     )
   })
 
-  it('opens request form from direct booking fallback CTA for an active client instead of chat', async () => {
+  it('opens request form from no-slots fallback CTA for an active client instead of chat', async () => {
     mockAuth.accessToken = 'token'
     mockAuth.me = { user: { id: 7, roles: ['CLIENT'] } }
 
@@ -2615,7 +2617,17 @@ describe('PublicProfileView', () => {
         create_reason_code: 'ACTIVE_CLIENT_USE_CHAT',
       })
     )
-    mockBookingPageDataWithSingleSlot()
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/booking/slots/') return []
+      if (url === '/booking/sessions/') {
+        if ((config as { params?: { upcoming?: boolean } } | undefined)?.params?.upcoming === true) {
+          return []
+        }
+        return []
+      }
+      if (url === '/public/specialists/olena/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
 
     renderView()
 
@@ -2663,7 +2675,7 @@ describe('PublicProfileView', () => {
       })
       expect(availableDay).toHaveClass('booking-calendar__day--available')
       expect(
-        screen.getByText('Наразі немає доступного часу для прямого запису. Ви можете залишити запит.')
+        screen.getByText(/На обрану дату немає вільного часу/)
       ).toBeInTheDocument()
 
       await fireEvent.click(availableDay)
@@ -2671,7 +2683,7 @@ describe('PublicProfileView', () => {
       expect(availableDay).toHaveClass('booking-calendar__day--selected')
       expect(await screen.findByText('10:00')).toBeInTheDocument()
       expect(
-        screen.queryByText('Наразі немає доступного часу для прямого запису. Ви можете залишити запит.')
+        screen.queryByText(/На обрану дату немає вільного часу/)
       ).not.toBeInTheDocument()
     } finally {
       vi.useRealTimers()
@@ -2748,7 +2760,7 @@ describe('PublicProfileView', () => {
     })
     await flushAsyncUpdates()
     expect(
-      screen.getByText('Наразі немає доступного часу для прямого запису. Ви можете залишити запит.')
+      screen.getByText(/Наразі немає доступного часу для запису/)
     ).toBeInTheDocument()
     const slotCalls = mockedApiGet.mock.calls.filter((call) => call[0] === '/booking/slots/')
     expect(slotCalls).toHaveLength(1)
@@ -2792,7 +2804,7 @@ describe('PublicProfileView', () => {
 
       expect(screen.getByText('00:30')).toBeInTheDocument()
       expect(
-        screen.queryByText('Наразі немає доступного часу для прямого запису. Ви можете залишити запит.')
+        screen.queryByText(/На обрану дату немає вільного часу/)
       ).not.toBeInTheDocument()
     } finally {
       vi.useRealTimers()
@@ -2862,12 +2874,8 @@ describe('PublicProfileView', () => {
     expect(screen.queryByRole('button', { name: 'Написати повідомлення' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Написати спеціалісту' })).not.toBeInTheDocument()
     expect(screen.getAllByText('Мої сесії')).toHaveLength(2)
-    expect(screen.getAllByText('Відгуки').length).toBeGreaterThan(0)
-    expect(
-      screen.getAllByRole('button', { name: 'Залишити запит' }).some((button) =>
-        button.classList.contains('btn--primary')
-      )
-    ).toBe(false)
+    expect(screen.queryByText('Відгуки')).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Залишити запит' })).not.toBeInTheDocument()
     expect(
       screen.getAllByText('Ви вже працюєте з цим спеціалістом. Можете продовжити спілкування або переглянути свої сесії.').length
     ).toBeGreaterThan(0)
@@ -2881,6 +2889,64 @@ describe('PublicProfileView', () => {
     })
   })
 
+  it('shows feedback CTA only when the client has a completed session with this specialist', async () => {
+    mockAuth.accessToken = 'token'
+    mockAuth.me = { user: { id: 7, roles: ['CLIENT'] } }
+
+    mockCommonPublicData()
+    mockedFetchChatThreads.mockResolvedValue([
+      {
+        id: 44,
+        therapist_id: 12,
+        client_id: 7,
+        last_message_at: null,
+        last_message_preview: '',
+        unread_count: 0,
+        other_user: {
+          id: 12,
+          role: 'THERAPIST',
+          display_name: 'Олена',
+          photo_url: '',
+        },
+      },
+    ])
+    mockedFetchInquiryState.mockResolvedValue(
+      buildInquiryState({
+        inquiry_status: 'ACTIVE_CLIENT',
+        can_create_inquiry: false,
+        create_reason_code: 'ACTIVE_CLIENT_USE_CHAT',
+      })
+    )
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/booking/slots/') return [buildTodayLocalSlot()]
+
+      if (url === '/booking/sessions/') {
+        if ((config as { params?: { upcoming?: boolean } } | undefined)?.params?.upcoming === true) {
+          return []
+        }
+
+        return [
+          {
+            id: 202,
+            status: 'COMPLETED',
+            therapist: 12,
+            therapist_public_slug: 'olena',
+            slot_start_at: '2026-05-20T10:00:00Z',
+            slot_end_at: '2026-05-20T10:50:00Z',
+          },
+        ]
+      }
+
+      if (url === '/public/specialists/olena/reviews/') return []
+
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    expect(await screen.findAllByText('Відгуки')).toHaveLength(1)
+  })
+
   it('shows inquiry CTA instead of full-chat CTA for a non-active client', async () => {
     mockAuth.accessToken = 'token'
     mockAuth.me = { user: { id: 7, roles: ['CLIENT'] } }
@@ -2888,12 +2954,12 @@ describe('PublicProfileView', () => {
     mockCommonPublicData()
     mockedFetchChatThreads.mockResolvedValue([])
     mockedFetchInquiryState.mockResolvedValue(buildInquiryState())
-    mockClientPageData()
+    mockBookingPageDataWithSingleSlot()
 
     renderView()
 
     const inquiryButtons = await screen.findAllByRole('button', { name: 'Поставити запитання' })
-    expect(inquiryButtons).toHaveLength(2)
+    expect(inquiryButtons).toHaveLength(1)
     expect(screen.queryByRole('button', { name: 'Написати повідомлення' })).not.toBeInTheDocument()
     expect(screen.queryByText('Написати спеціалісту')).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Написати в чат' })).not.toBeInTheDocument()
@@ -2907,14 +2973,13 @@ describe('PublicProfileView', () => {
     mockCommonPublicData()
     mockedFetchChatThreads.mockResolvedValue([])
     mockedFetchInquiryState.mockResolvedValue(buildInquiryState())
-    mockClientPageData()
+    mockBookingPageDataWithSingleSlot()
 
     renderView()
 
-    expect(await screen.findByText('Почніть із короткого запиту')).toBeInTheDocument()
-    expect(
-      screen.getAllByText('Після натискання відкриється короткий запит до бронювання. Це м’який старт без фіксації слота.')
-    ).toHaveLength(2)
+    expect(await screen.findByText('Запишіться на консультацію')).toBeInTheDocument()
+    expect(await screen.findByText('Коротке запитання до бронювання')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Поставити запитання' })).toBeInTheDocument()
     expect(screen.getByText('Почніть без тиску')).toBeInTheDocument()
     expect(
       screen.getByText('Короткий запит не фіксує слот і не потребує оплати. Можна спокійно уточнити деталі перед рішенням.')
@@ -2972,7 +3037,7 @@ describe('PublicProfileView', () => {
         created_at: '2026-03-11T10:00:00Z',
       },
     ])
-    mockClientPageData()
+    mockBookingPageDataWithSingleSlot()
 
     renderView()
 
@@ -3029,7 +3094,7 @@ describe('PublicProfileView', () => {
         created_at: '2026-03-11T10:20:00Z',
       },
     ])
-    mockClientPageData()
+    mockBookingPageDataWithSingleSlot()
 
     renderView()
 
@@ -3052,7 +3117,7 @@ describe('PublicProfileView', () => {
         create_reason_code: 'RELATION_BLOCKED',
       })
     )
-    mockClientPageData()
+    mockBookingPageDataWithSingleSlot()
 
     renderView()
 

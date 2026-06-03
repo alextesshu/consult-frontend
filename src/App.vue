@@ -501,7 +501,7 @@ const specialistSidebarItems: SpecialistSidebarItem[] = [
   { label: 'Клієнти', to: '/cabinet/clients', match: ['/cabinet/clients'] },
   { label: 'Відгуки', to: '/cabinet/reviews', match: ['/cabinet/reviews'] },
   { label: 'Чати', to: '/cabinet/chat', match: ['/cabinet/chat'] },
-  { label: 'Авторський блог', to: '/cabinet/journal', match: ['/cabinet/journal'] },
+  { label: 'Власний блог', to: '/cabinet/journal', match: ['/cabinet/journal'] },
   { label: 'Аналітика', to: '/cabinet/analytics', match: ['/cabinet/analytics'] },
   { label: 'Тарифи і доступ', to: '/cabinet/billing', match: ['/cabinet/billing'] },
   { label: 'Налаштування', to: '/cabinet/settings', match: ['/cabinet/settings'] },

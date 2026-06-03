@@ -875,8 +875,17 @@ export function requestTopicLabel(topic: string | null | undefined) {
   return REQUEST_TOPIC_LABELS[topic as PublicGuestRequestTopic] || ''
 }
 
+export type SessionTaskContext = {
+  source_type?: PracticeBoardSourceType
+  source_id?: number | string | null
+  related_session_id?: number | null
+  related_client_id?: number | null
+  related_client_record_id?: number | null
+}
+
 export type Session = {
   id: number
+  task_context?: SessionTaskContext | null
   [key: string]: unknown
 }
 

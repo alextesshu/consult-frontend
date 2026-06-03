@@ -365,7 +365,7 @@ describe('App shell', () => {
     expect(within(sidebar).getByRole('link', { name: 'Відгуки' })).toHaveAttribute('href', '/cabinet/reviews')
     expect(within(sidebar).queryByRole('link', { name: 'Сесії без реєстрації' })).not.toBeInTheDocument()
     expect(within(sidebar).getByRole('link', { name: 'Чати' })).toHaveAttribute('href', '/cabinet/chat')
-    expect(within(sidebar).getByRole('link', { name: 'Авторський блог' })).toHaveAttribute(
+    expect(within(sidebar).getByRole('link', { name: 'Власний блог' })).toHaveAttribute(
       'href',
       '/cabinet/journal'
     )
@@ -421,7 +421,7 @@ describe('App shell', () => {
     })
 
     const sidebar = screen.getByRole('navigation', { name: 'Навігація кабінету спеціаліста' })
-    expect(within(sidebar).getByRole('link', { name: 'Авторський блог' })).toHaveClass('is-active')
+    expect(within(sidebar).getByRole('link', { name: 'Власний блог' })).toHaveClass('is-active')
   })
 
   it('does not show specialist sidebar for client users', async () => {
@@ -465,7 +465,7 @@ describe('App shell', () => {
     expect(within(drawer).getByRole('link', { name: 'Відгуки' })).toHaveAttribute('href', '/cabinet/reviews')
     expect(within(drawer).queryByRole('link', { name: 'Сесії без реєстрації' })).not.toBeInTheDocument()
     expect(within(drawer).getByRole('link', { name: 'Чати' })).toHaveAttribute('href', '/cabinet/chat')
-    expect(within(drawer).getByRole('link', { name: 'Авторський блог' })).toHaveAttribute(
+    expect(within(drawer).getByRole('link', { name: 'Власний блог' })).toHaveAttribute(
       'href',
       '/cabinet/journal'
     )

@@ -19,27 +19,32 @@
           <button class="btn btn--primary" type="button" @click="$emit('chat-action')">
             {{ chatCtaLabel }}
           </button>
-          <RouterLink class="btn btn--ghost" to="/client">
+          <RouterLink v-if="showClientSessionsCta" class="btn btn--ghost" to="/client">
             Мої сесії
           </RouterLink>
           <button v-if="showRequestCta" class="btn btn--ghost" type="button" @click="$emit('request-action')">
             {{ requestCtaLabel }}
           </button>
-          <RouterLink class="btn btn--ghost" :to="feedbackLink">Відгуки</RouterLink>
+          <RouterLink v-if="showFeedbackCta" class="btn btn--ghost" :to="feedbackLink">Відгуки</RouterLink>
         </template>
         <template v-else-if="showClientSessionsCta">
-          <a class="btn btn--primary" href="#slots">Записатися на сесію</a>
-          <button class="btn btn--ghost" type="button" @click="$emit('primary-action')">
+          <button class="btn btn--primary" type="button" @click="$emit('primary-action')">
             {{ heroPrimaryLabel }}
+          </button>
+          <button v-if="showInquiryCta" class="btn btn--ghost" type="button" @click="$emit('inquiry-action')">
+            {{ inquiryCtaLabel }}
           </button>
           <RouterLink class="btn btn--ghost" to="/client">
             Мої сесії
           </RouterLink>
-          <RouterLink class="btn btn--ghost" :to="feedbackLink">Відгуки</RouterLink>
+          <RouterLink v-if="showFeedbackCta" class="btn btn--ghost" :to="feedbackLink">Відгуки</RouterLink>
         </template>
         <template v-else>
           <button class="btn btn--primary" type="button" @click="$emit('primary-action')">
             {{ heroPrimaryLabel }}
+          </button>
+          <button v-if="showInquiryCta" class="btn btn--ghost" type="button" @click="$emit('inquiry-action')">
+            {{ inquiryCtaLabel }}
           </button>
           <a v-if="showSlotsCta" class="btn btn--ghost" href="#slots">Переглянути вільні вікна</a>
         </template>
@@ -101,6 +106,9 @@ type Props = {
   showRequestCta?: boolean
   requestCtaLabel?: string
   showSlotsCta?: boolean
+  showInquiryCta?: boolean
+  inquiryCtaLabel?: string
+  showFeedbackCta?: boolean
 }
 
 withDefaults(defineProps<Props>(), {
@@ -109,12 +117,16 @@ withDefaults(defineProps<Props>(), {
   showRequestCta: false,
   requestCtaLabel: 'Залишити запит',
   showSlotsCta: false,
+  showInquiryCta: false,
+  inquiryCtaLabel: 'Поставити запитання',
+  showFeedbackCta: false,
 })
 
 defineEmits<{
   (event: 'primary-action'): void
   (event: 'chat-action'): void
   (event: 'request-action'): void
+  (event: 'inquiry-action'): void
   (event: 'direct-contact-action', item: ContactAction): void
 }>()
 </script>

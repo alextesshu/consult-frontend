@@ -64,7 +64,7 @@
               {{ showRecurringPanel ? 'Сховати серію' : 'Повторювати щотижня' }}
             </button>
             <button
-              v-if="!isManualClientSession"
+              v-if="canQuickAddSessionTask"
               class="btn btn--ghost btn--sm"
               type="button"
               :disabled="actionLoading || quickAddPending"
@@ -772,6 +772,7 @@ import {
   updateSpecialistSessionMeeting,
   type SessionFormat,
   type SessionPaymentProof,
+  type SessionTaskContext,
 } from '../lib/api'
 import {
   BOOKING_ERROR_FALLBACKS,
@@ -923,6 +924,7 @@ type SessionDetail = {
   payment_resolution_state?: 'pending' | 'refunded' | 'credited' | 'retained' | string | null
   payment_resolution_note?: string | null
   payment_resolution_updated_at?: string | null
+  task_context?: SessionTaskContext | null
   workspace?: SessionWorkspace | null
 }
 
@@ -1118,6 +1120,21 @@ const isManualClientSession = computed(() => {
   if (detail.client_identity_type === 'manual') return true
   if (detail.client_source === 'manual') return true
   return detail.client_has_account === false && Boolean(detail.client_record_id)
+})
+
+const sessionTaskContext = computed<SessionTaskContext | null>(() => {
+  const raw = session.value?.task_context
+  if (!raw || typeof raw !== 'object') return null
+  const sourceId = raw.source_id ?? null
+  const relatedSessionId = Number(raw.related_session_id || 0)
+  if (!raw.source_type || !sourceId || !Number.isFinite(relatedSessionId) || relatedSessionId <= 0) return null
+  return raw
+})
+
+const canQuickAddSessionTask = computed(() => {
+  if (!session.value) return false
+  if (sessionTaskContext.value) return true
+  return !isManualClientSession.value
 })
 
 const canUseClientAccountFeatures = computed(() => Boolean(session.value?.client && !isManualClientSession.value))
@@ -2297,7 +2314,7 @@ async function saveMeetingLink() {
 }
 
 function openSessionPracticeBoardModal() {
-  if (isManualClientSession.value) return
+  if (!canQuickAddSessionTask.value) return
   quickAddModalError.value = ''
   quickAddModalOpen.value = true
 }
@@ -2315,13 +2332,15 @@ async function submitSessionPracticeBoardQuickAdd(title: string) {
   try {
     const boards = await fetchPracticeBoards()
     const boardId = resolveDefaultPracticeBoardId(boards)
+    const context = sessionTaskContext.value
+    const relatedClientId = context?.related_client_id ?? session.value.client ?? null
     await createPracticeBoardItem({
       ...(boardId ? { board_id: boardId } : {}),
       title: title.trim(),
-      related_client_id: session.value.client || null,
-      related_session_id: session.value.id,
-      source_type: 'session',
-      source_id: session.value.id,
+      ...(relatedClientId ? { related_client_id: relatedClientId } : {}),
+      related_session_id: context?.related_session_id ?? session.value.id,
+      source_type: context?.source_type || 'session',
+      source_id: context?.source_id ?? session.value.id,
     })
     quickAddModalOpen.value = false
     toast.success('Задачу додано. Вона доступна в розділі «Задачі».')

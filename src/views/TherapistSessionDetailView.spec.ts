@@ -333,6 +333,13 @@ describe('TherapistSessionDetailView', () => {
       client_has_account: false,
       client_source: 'manual',
       client_identity_type: 'manual',
+      task_context: {
+        source_type: 'session',
+        source_id: 42,
+        related_session_id: 42,
+        related_client_id: null,
+        related_client_record_id: 501,
+      },
       workspace: buildWorkspace({
         payment_state: 'unpaid',
         note_state: 'missing',
@@ -360,7 +367,7 @@ describe('TherapistSessionDetailView', () => {
     expect(container).not.toHaveTextContent('null')
     expect(container).not.toHaveTextContent('ID: #null')
     expect(screen.queryByRole('button', { name: 'Повторювати щотижня' })).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Додати на дошку' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Додати на дошку' })).toBeInTheDocument()
     expect(screen.queryByRole('link', { name: 'До картки клієнта' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'До робочого зошита' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /Відкрити.*робоч/ })).not.toBeInTheDocument()
@@ -855,6 +862,61 @@ describe('TherapistSessionDetailView', () => {
         board_id: 1,
         title: 'Custom follow-up task',
         related_client_id: 77,
+        related_session_id: 42,
+        source_type: 'session',
+        source_id: 42,
+      })
+      expect(mockToast.success).toHaveBeenCalledWith(
+        'Задачу додано. Вона доступна в розділі «Задачі».'
+      )
+    })
+  })
+
+  it('creates board task from manual no-registration session task context without client id', async () => {
+    const sessionDetail = buildSession({
+      id: 42,
+      client: null,
+      client_user_id: null,
+      client_record_id: 501,
+      client_display_name: 'Manual Detail Client',
+      client_has_account: false,
+      client_source: 'manual',
+      client_identity_type: 'manual',
+      task_context: {
+        source_type: 'session',
+        source_id: 42,
+        related_session_id: 42,
+        related_client_id: null,
+        related_client_record_id: 501,
+      },
+      status: 'CONFIRMED',
+      workspace: buildWorkspace({
+        payment_state: 'not_applicable',
+        workbook_state: 'hidden',
+        permissions: {
+          can_edit_note: true,
+          can_view_note: true,
+          can_edit_workbook: false,
+          can_view_workbook: false,
+        },
+        pending_task_items: [{ code: 'COMPLETE_NOTE', label: 'Complete note', classification: 'recommended' }],
+        available_action_items: [{ code: 'OPEN_NOTE', label: 'Open note', classification: 'capability' }],
+      }),
+    })
+    mockDetailContext(() => sessionDetail, { requests: [] })
+    mockedCreatePracticeBoardItem.mockResolvedValue({ id: 903 } as any)
+    mockedFetchPracticeBoards.mockResolvedValue([{ id: 1, title: 'Main board', is_default: true }] as any)
+
+    renderView()
+
+    await fireEvent.click(await screen.findByRole('button', { name: 'Додати на дошку' }))
+    await fireEvent.update(screen.getByLabelText('Назва задачі'), 'Manual request follow-up')
+    await fireEvent.click(screen.getByRole('button', { name: 'Додати' }))
+
+    await waitFor(() => {
+      expect(mockedCreatePracticeBoardItem).toHaveBeenCalledWith({
+        board_id: 1,
+        title: 'Manual request follow-up',
         related_session_id: 42,
         source_type: 'session',
         source_id: 42,

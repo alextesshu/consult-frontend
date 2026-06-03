@@ -432,7 +432,7 @@ const compactValueStrip: Array<{ icon: IconKey; title: string }> = [
   { icon: 'clients', title: 'Клієнти й історія роботи' },
   { icon: 'security', title: 'Приватні нотатки' },
   { icon: 'materials', title: 'Матеріали для клієнта' },
-  { icon: 'feedback', title: 'Авторський блог' },
+  { icon: 'feedback', title: 'Власний блог' },
   { icon: 'payments', title: 'Тарифи без комісій' },
 ]
 
@@ -511,7 +511,7 @@ const pricingPlans = computed(() => [
     features: [
       'Усе зі Start',
       'До 20 постійних клієнтів',
-      'Авторський блог у профілі',
+      'Власний блог у профілі',
       'Розширена аналітика',
       'Більше сесій без реєстрації',
     ],

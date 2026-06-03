@@ -2,7 +2,7 @@
   <section class="public-post">
     <header class="post-hero">
       <div>
-        <div class="badge badge--soft">Авторський блог</div>
+        <div class="badge badge--soft">Власний блог</div>
         <h1 class="title post-title">{{ post?.title || 'Стаття' }}</h1>
         <p class="muted post-subtitle">
           <span v-if="post">

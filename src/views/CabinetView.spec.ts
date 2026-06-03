@@ -327,7 +327,7 @@ describe('CabinetView', () => {
     })
 
     const attentionRow = view.container.querySelector('.attention-row[href="/cabinet/external-sessions#guest-requests"]')
-    expect(attentionRow).toHaveTextContent('Новий запит без реєстрації')
+    expect(attentionRow).toHaveTextContent('Запит без обраного часу')
     expect(attentionRow).toHaveTextContent('1 новий запит очікує рішення.')
     expect(attentionRow).toHaveTextContent('Опрацювати запит')
     expect(view.container.querySelector('.guest-request-attention-card')).not.toBeInTheDocument()
@@ -1136,7 +1136,6 @@ describe('CabinetView', () => {
     expect(view.container).not.toHaveTextContent('Куди перейти далі')
     expect(view.container).not.toHaveTextContent('Перейти до сесій')
     expect(view.container).not.toHaveTextContent('Перейти до клієнтів')
-    expect(view.container).not.toHaveTextContent('Авторський блог')
   })
 
   it('renders compact billing summary without duplicating detailed tariff logic', async () => {

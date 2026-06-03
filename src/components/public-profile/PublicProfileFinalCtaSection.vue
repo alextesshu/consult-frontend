@@ -24,7 +24,7 @@
           {{ requestCtaLabel }}
         </button>
         <RouterLink
-          v-if="!showChatCta && closingSecondaryKind === 'reviews'"
+          v-if="!showChatCta && showFeedbackCta && closingSecondaryKind === 'reviews'"
           class="btn btn--ghost"
           :to="feedbackLink"
         >
@@ -52,7 +52,7 @@
 </template>
 
 <script setup lang="ts">
-type ClosingSecondaryKind = 'sessions' | 'reviews' | 'slots' | 'contact'
+type ClosingSecondaryKind = 'sessions' | 'reviews' | 'slots' | 'contact' | 'none'
 
 type Props = {
   closingCtaSupportLine: string
@@ -65,6 +65,7 @@ type Props = {
   chatCtaLabel?: string
   showRequestCta?: boolean
   requestCtaLabel?: string
+  showFeedbackCta?: boolean
 }
 
 withDefaults(defineProps<Props>(), {
@@ -72,6 +73,7 @@ withDefaults(defineProps<Props>(), {
   chatCtaLabel: 'Написати в чат',
   showRequestCta: false,
   requestCtaLabel: 'Залишити запит',
+  showFeedbackCta: false,
 })
 
 defineEmits<{

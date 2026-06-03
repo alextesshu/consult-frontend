@@ -6,7 +6,7 @@
 
       <div>
 
-        <div class="badge badge--soft">Авторський блог</div>
+        <div class="badge badge--soft">Власний блог</div>
 
         <h1 class="title">{{ publicName || 'Блог спеціаліста' }}</h1>
 

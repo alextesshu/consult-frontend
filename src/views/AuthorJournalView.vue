@@ -2,7 +2,7 @@
   <section class="journal-page">
     <header class="journal-hero">
       <div>
-        <h1 class="title journal-title">Авторський блог</h1>
+        <h1 class="title journal-title">Власний блог</h1>
         <p class="muted journal-subtitle">
           Публікуйте нотатки для профілю спеціаліста. Опубліковані дописи видно всім.
         </p>
@@ -843,7 +843,7 @@ const editForm = reactive({
 const journalDeleteModal = useConfirmModal()
 let collectionSuccessTimer: number | null = null
 const AUTHOR_JOURNAL_ENTITLEMENT_MESSAGE =
-  'Авторський блог недоступний на вашому тарифі. Перейдіть на Pro або Leader, щоб створювати дописи.'
+  'Власний блог недоступний на вашому тарифі. Перейдіть на Pro або Leader, щоб створювати дописи.'
 type PlanCode = 'START' | 'PRO' | 'LEADER'
 
 const planCode = computed<PlanCode | null>(() => {

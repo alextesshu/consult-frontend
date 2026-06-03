@@ -159,11 +159,11 @@
 
           <section class="today-side">
             <article
-              v-if="pendingGuestRequestsCount > 0"
+              v-if="visiblePendingGuestRequestsCount > 0"
               class="today-card today-card--soft"
               data-kind="guest-requests"
             >
-              <h3 class="today-card__title">Запити без реєстрації</h3>
+              <h3 class="today-card__title">{{ pendingGuestRequestsTitle }}</h3>
               <p class="muted today-card__copy">
                 {{ pendingGuestRequestsSummary }}
               </p>
@@ -908,6 +908,11 @@ const upcomingSorted = computed(() => {
 const nearestUpcomingSession = computed(() => upcomingSorted.value[0] || null)
 
 const pendingGuestRequestsCount = computed(() => workQueue.value.pendingGuestRequestsCount)
+const pendingSlotlessGuestRequestsCount = computed(() => workQueue.value.pendingSlotlessGuestRequestsCount)
+const visiblePendingGuestRequestsCount = computed(() =>
+  pendingSlotlessGuestRequestsCount.value > 0 ? pendingSlotlessGuestRequestsCount.value : pendingGuestRequestsCount.value
+)
+const hasPendingSlotlessGuestRequests = computed(() => pendingSlotlessGuestRequestsCount.value > 0)
 
 const firstGuestRequestPreview = computed(() => workQueue.value.guestRequestsPreview[0] || null)
 
@@ -918,11 +923,18 @@ function guestRequestTopicLabels(request: WorkQueueGuestRequestPreviewItem | nul
 const firstGuestRequestTopicLabels = computed(() => guestRequestTopicLabels(firstGuestRequestPreview.value))
 
 const pendingGuestRequestsCta = computed(() => {
-  return pendingGuestRequestsCount.value === 1 ? 'Опрацювати запит' : 'Опрацювати запити'
+  return visiblePendingGuestRequestsCount.value === 1 ? 'Опрацювати запит' : 'Опрацювати запити'
+})
+
+const pendingGuestRequestsTitle = computed(() => {
+  if (hasPendingSlotlessGuestRequests.value && visiblePendingGuestRequestsCount.value === 1) {
+    return 'Запит без обраного часу'
+  }
+  return 'Запити без реєстрації'
 })
 
 const pendingGuestRequestsSummary = computed(() => {
-  const count = pendingGuestRequestsCount.value
+  const count = visiblePendingGuestRequestsCount.value
   if (count <= 0) return ''
   if (count === 1) return '1 новий запит очікує рішення.'
   const lastDigit = count % 10
@@ -960,10 +972,10 @@ const attentionItems = computed<AttentionItem[]>(() => {
     })
   }
 
-  if (pendingGuestRequestsCount.value > 0) {
+  if (visiblePendingGuestRequestsCount.value > 0) {
     items.push({
       key: 'guest-requests',
-      title: pendingGuestRequestsCount.value === 1 ? 'Новий запит без реєстрації' : 'Запити без реєстрації',
+      title: pendingGuestRequestsTitle.value,
       body: pendingGuestRequestsSummary.value,
       label: pendingGuestRequestsCta.value,
       to: '/cabinet/external-sessions#guest-requests',
