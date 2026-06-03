@@ -11,7 +11,7 @@ export const BOOKING_SUCCESS_MESSAGES = {
   rescheduleRequestApproved: 'Запит на перенесення погоджено.',
   rescheduleRequestDeclined: 'Запит на перенесення відхилено.',
   noteSaved: 'Нотатку збережено.',
-  workbookSaved: 'Робочий зошит збережено.',
+  workbookSaved: 'Приватний зошит збережено.',
 } as const
 
 export const BOOKING_ERROR_FALLBACKS = {
@@ -29,8 +29,8 @@ export const BOOKING_ERROR_FALLBACKS = {
   declineRescheduleRequest: 'Не вдалося відхилити запит на перенесення.',
   loadSessionNote: 'Не вдалося завантажити нотатку.',
   saveSessionNote: 'Не вдалося зберегти нотатку.',
-  loadWorkbook: 'Не вдалося завантажити робочий зошит.',
-  saveWorkbook: 'Не вдалося зберегти робочий зошит.',
+  loadWorkbook: 'Не вдалося завантажити приватний зошит.',
+  saveWorkbook: 'Не вдалося зберегти приватний зошит.',
 } as const
 
 export const BOOKING_UI_MESSAGES = {

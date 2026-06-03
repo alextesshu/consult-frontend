@@ -288,7 +288,7 @@
                 <dd>{{ latestNoteSummary(client) }}</dd>
               </div>
               <div class="client-meta__item">
-                <dt>Робочий зошит</dt>
+                <dt>Приватний зошит</dt>
                 <dd>{{ workbookSummary(client) }}</dd>
               </div>
               <div class="client-meta__item">
@@ -1077,7 +1077,7 @@
                 :disabled="!relationClientId(client) || isHistoryLoading(relationClientId(client))"
                 @click="toggleHistory(relationClientId(client))"
               >
-                Приватна історія клієнта
+                Відкрити приватний зошит
               </button>
             </div>
             <div class="client-accordion">
@@ -1704,39 +1704,21 @@
               <button
                 class="client-accordion__header"
                 type="button"
-                :aria-expanded="isAccordionSectionOpen(client, 'privateHistory')"
-                @click="toggleClientAccordion(client, 'privateHistory')"
-              >
-                <span>Приватна історія</span>
-                <span class="client-accordion__summary">{{ accordionSummary(client, 'privateHistory') }}</span>
-              </button>
-              <div v-if="isAccordionSectionOpen(client, 'privateHistory')" class="client-accordion__body client-history">
-                <div class="history-header">
-                  <div>
-                    <div class="history-title">Приватна історія</div>
-                    <div class="muted history-subtitle">Інформація зашифрована. Доступ має лише спеціаліст.</div>
-                  </div>
-                  <span class="history-badge">Зашифровано</span>
-                </div>
-              </div>
-            </section>
-
-            <section class="client-accordion__section">
-              <button
-                class="client-accordion__header"
-                type="button"
                 :aria-expanded="isAccordionSectionOpen(client, 'workbook')"
                 @click="toggleClientAccordion(client, 'workbook')"
               >
-                <span>Робочий зошит</span>
+                <span>Приватний зошит</span>
                 <span class="client-accordion__summary">{{ accordionSummary(client, 'workbook') }}</span>
               </button>
               <div v-if="isAccordionSectionOpen(client, 'workbook')" class="client-accordion__body">
                 <div class="workbook-block">
                   <div class="workbook-block__header">
                     <div>
-                      <div class="workbook-block__title">Робочий зошит по клієнту</div>
+                      <div class="workbook-block__title">Приватний зошит</div>
                       <div class="muted">{{ workbookSummary(client) }}</div>
+                      <div class="muted workbook-block__helper">
+                        Робочий простір спеціаліста по цьому клієнту. Клієнт не бачить ці записи.
+                      </div>
                     </div>
                     <div class="workbook-block__controls">
                       <button
@@ -1749,8 +1731,8 @@
                       <button class="btn btn--ghost btn--sm" type="button" @click="toggleWorkbook(relationClientId(client))">
                         {{
                           isWorkbookExpanded(relationClientId(client))
-                            ? 'Згорнути робочий зошит'
-                            : 'Розгорнути робочий зошит'
+                            ? 'Згорнути приватний зошит'
+                            : 'Розгорнути приватний зошит'
                         }}
                       </button>
                     </div>
@@ -1758,7 +1740,7 @@
                   <div v-if="workbookSavedMessage[relationClientId(client)]" class="workbook-success">
                     {{ workbookSavedMessage[relationClientId(client)] }}
                   </div>
-                  <div v-if="isJournalLoading(relationClientId(client))" class="muted">Завантаження робочого зошита...</div>
+                  <div v-if="isJournalLoading(relationClientId(client))" class="muted">Завантаження приватного зошита...</div>
                   <div v-else-if="!isWorkbookExpanded(relationClientId(client))" class="muted">
                     Зошит згорнуто для конфіденційності.
                   </div>
@@ -1776,7 +1758,7 @@
                         :disabled="isJournalSaving(relationClientId(client))"
                         @click="saveClientJournal(relationClientId(client))"
                       >
-                        Зберегти робочий зошит
+                        Зберегти приватний зошит
                       </button>
                     </div>
                   </template>
@@ -1795,6 +1777,9 @@
                 <span class="client-accordion__summary">{{ accordionSummary(client, 'sessionNotes') }}</span>
               </button>
               <div v-if="isAccordionSectionOpen(client, 'sessionNotes')" class="client-accordion__body">
+                <p class="muted session-notes-helper">
+                  Нотатки по сесіях зберігають окремі робочі записи до конкретних зустрічей.
+                </p>
                 <div v-if="isHistoryLoading(relationClientId(client))" class="muted">Завантаження історії...</div>
                 <div v-else-if="!clientHistory[relationClientId(client)]?.length" class="muted">
                   Нотаток по цьому клієнту ще немає.
@@ -1817,7 +1802,7 @@
                         Відкрити нотатку
                       </RouterLink>
                       <RouterLink class="btn btn--ghost btn--sm" :to="`/cabinet/clients/${relationClientId(client)}/workbook`">
-                        Відкрити робочий зошит
+                        Відкрити приватний зошит
                       </RouterLink>
                     </div>
                   </div>
@@ -2408,7 +2393,6 @@ type ListResponse<T> = T[] | { results?: T[] } | null | undefined
 type ClientAccordionSection =
   | 'materials'
   | 'regularTime'
-  | 'privateHistory'
   | 'workbook'
   | 'sessionNotes'
   | 'settings'
@@ -4207,7 +4191,7 @@ async function toggleClientAccordion(client: ClientListItem, section: ClientAcco
     await toggleClientRegularTimes(client)
   }
 
-  if (!isManualClientRecord(client) && ['privateHistory', 'workbook', 'sessionNotes'].includes(section)) {
+  if (!isManualClientRecord(client) && ['workbook', 'sessionNotes'].includes(section)) {
     const clientId = relationClientId(client)
     expandedClientId.value = clientId
     resetClientHistoryVisibleLimit(clientId)
@@ -4234,7 +4218,6 @@ function accordionSummary(client: ClientListItem, section: ClientAccordionSectio
     if (state.items.length > 1) return `${state.items.length} домовленості`
     return 'День і час зустрічі'
   }
-  if (section === 'privateHistory') return 'Конфіденційний розділ'
   if (section === 'workbook') return workbookSummary(client)
   if (section === 'sessionNotes') {
     if (isManualClientRecord(client)) return ''
@@ -5375,7 +5358,7 @@ async function saveClientJournal(clientId: number) {
       [clientId]: !Boolean((clientJournalDrafts.value[clientId] || '').trim()),
     }
   } catch (err: any) {
-    error.value = getApiErrorMessage(err, 'Не вдалося зберегти робочий зошит клієнта')
+    error.value = getApiErrorMessage(err, 'Не вдалося зберегти приватний зошит клієнта')
   } finally {
     setJournalSaving(clientId, false)
   }
@@ -5430,12 +5413,12 @@ async function toggleHistory(clientId: number) {
   selectRegisteredClient(clientId, false)
   const client = clientIndex.value.get(clientId)
   if (client) {
-    if (isAccordionSectionOpen(client, 'privateHistory')) {
+    if (isAccordionSectionOpen(client, 'workbook')) {
       setClientAccordionSection(client, null)
       expandedClientId.value = null
       return
     }
-    setClientAccordionSection(client, 'privateHistory')
+    setClientAccordionSection(client, 'workbook')
   }
   expandedClientId.value = clientId
   resetClientHistoryVisibleLimit(clientId)
@@ -5454,7 +5437,7 @@ async function openClientFromDeepLinkIfNeeded() {
   searchQuery.value = ''
   selectRegisteredClient(deepLinkedClientId, false)
   expandedClientId.value = deepLinkedClientId
-  setClientAccordionSection(matchingClient, 'privateHistory')
+  setClientAccordionSection(matchingClient, 'workbook')
   resetClientHistoryVisibleLimit(deepLinkedClientId)
   if (!clientHistory.value[deepLinkedClientId]) {
     await loadHistory(deepLinkedClientId)
@@ -6593,6 +6576,11 @@ onBeforeUnmount(() => {
 
 .workbook-block__title {
   font-weight: 600;
+}
+
+.workbook-block__helper,
+.session-notes-helper {
+  margin-top: 4px;
 }
 
 .workbook-block__controls {

@@ -963,7 +963,7 @@ describe('TherapistSessionsView', () => {
     expect(await screen.findByDisplayValue('Updated completion note')).toBeInTheDocument()
     expect(await screen.findByDisplayValue('Client journal note')).toBeInTheDocument()
     expect(document.querySelector('a[href="/cabinet/clients?client=105&autoOpen=1"]')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Відкрити робочий зошит' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Відкрити приватний зошит' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Додати / відкрити нотатку' })).not.toBeInTheDocument()
     expect(screen.getByText('Нотатки після сесії')).toBeInTheDocument()
 
@@ -1093,7 +1093,7 @@ describe('TherapistSessionsView', () => {
     const workbookPanel = document.querySelector('.note-panel--workbook') as HTMLElement | null
     expect(workbookPanel).not.toBeNull()
     const saveWorkbookButton = within(workbookPanel as HTMLElement).getByRole('button', {
-      name: 'Зберегти робочий зошит',
+      name: 'Зберегти приватний зошит',
     })
     expect(saveWorkbookButton).toBeTruthy()
     await fireEvent.click(saveWorkbookButton as HTMLButtonElement)

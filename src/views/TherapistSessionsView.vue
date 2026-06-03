@@ -24,7 +24,7 @@
       </div>
       <div class="next-step-rail">
         <button class="btn btn--sm" type="button" @click="openPostSessionWorkbook">
-          Відкрити робочий зошит
+          Відкрити приватний зошит
         </button>
         <RouterLink class="btn btn--ghost btn--sm" :to="postSessionClientLink">
           Відкрити клієнта
@@ -674,7 +674,7 @@
             </div>
             <div class="note-panel note-panel--workbook">
               <label class="field">
-                <span class="note-title">Робочий зошит</span>
+                <span class="note-title">Приватний зошит</span>
                 <span class="note-badge">Внутрішній</span>
                 <span class="note-state muted">Стан: {{ workbookContentStateLabel() }}</span>
                 <textarea
@@ -688,8 +688,8 @@
                 <div class="note-helper muted">
                   {{
                     journalIsMissing
-                      ? 'Робочий зошит ще відсутній. Додайте перший змістовний запис.'
-                      : 'Внутрішній розділ спеціаліста, не видимий клієнту.'
+                      ? 'Приватний зошит ще відсутній. Додайте перший змістовний запис.'
+                      : 'Робочий простір спеціаліста. Клієнт не бачить ці записи.'
                   }}
                 </div>
               </label>
@@ -700,7 +700,7 @@
                   :disabled="journalSaving || journalLoading || !journalClientId"
                   @click="journalClientId ? saveClientJournal(journalClientId) : null"
                 >
-                  Зберегти робочий зошит
+                  Зберегти приватний зошит
                 </button>
                 <div v-if="journalSaveMessage" class="note-save-feedback">{{ journalSaveMessage }}</div>
               </div>

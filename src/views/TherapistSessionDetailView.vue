@@ -211,7 +211,7 @@
         </div>
         <div class="next-step-rail">
           <button v-if="canUseClientAccountFeatures" class="btn btn--sm" type="button" @click="openPostSessionWorkbook">
-            Відкрити робочий зошит
+            Відкрити приватний зошит
           </button>
           <RouterLink v-if="canUseClientAccountFeatures" class="btn btn--ghost btn--sm" :to="postSessionClientLink">
             Відкрити клієнта
@@ -323,7 +323,7 @@
             type="button"
             @click="openPostSessionWorkbook"
           >
-            До робочого зошита
+            До приватного зошита
           </button>
           <button class="btn btn--ghost btn--sm" type="button" @click="focusSessionNote">
             До нотатки
@@ -682,7 +682,7 @@
       <section class="panel">
         <div class="panel__header">
           <div>
-            <h2 class="panel__title">Приватна історія по сесії</h2>
+            <h2 class="panel__title">Приватна нотатка по сесії</h2>
           </div>
           <div class="note-header-actions">
             <button
@@ -974,9 +974,9 @@ const WORKSPACE_ACTION_LABEL: Record<WorkspaceActionCode, string> = {
   OPEN_NOTE: 'Відкрити нотатку',
   CONTINUE_NOTE: 'Продовжити нотатку',
   COMPLETE_NOTE: 'Заповнити нотатку',
-  OPEN_WORKBOOK: 'Відкрити робочий зошит',
-  CONTINUE_WORKBOOK: 'Продовжити робочий зошит',
-  COMPLETE_WORKBOOK: 'Заповнити робочий зошит',
+  OPEN_WORKBOOK: 'Відкрити приватний зошит',
+  CONTINUE_WORKBOOK: 'Продовжити приватний зошит',
+  COMPLETE_WORKBOOK: 'Заповнити приватний зошит',
   REVIEW_PAYMENT: 'Перевірити оплату',
   REQUEST_PAYMENT_PROOF: 'Запросити підтвердження оплати',
   UPLOAD_PAYMENT_PROOF: 'Відкрити блок оплати',
@@ -1299,7 +1299,7 @@ const workspaceSummaryItems = computed<WorkspaceSummaryItem[]>(() => {
   if (!isManualClientSession.value && workbookState) {
     items.push({
       key: 'workbook',
-      title: 'Робочий зошит',
+      title: 'Приватний зошит',
       statusLabel: workbookStateLabel(workbookState),
       pillClass: noteStateClass(workbookState),
       updatedAtLabel: formatWorkspaceUpdatedAt(workspace.value.workbook_updated_at),

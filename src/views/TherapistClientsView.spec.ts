@@ -848,8 +848,7 @@ describe('TherapistClientsView', () => {
       expect(node).toBeInstanceOf(HTMLElement)
       return node as HTMLElement
     })
-    await openAccordionSection(card, 'Приватна історія')
-    await openAccordionSection(card, 'Робочий зошит')
+    await openAccordionSection(card, 'Приватний зошит')
 
     const expandButton = await waitFor(() => {
       const button = container.querySelector('.workbook-block__controls button:last-of-type')
@@ -913,12 +912,6 @@ describe('TherapistClientsView', () => {
       expect(node).toBeInstanceOf(HTMLElement)
       return node as HTMLElement
     })
-    await openAccordionSection(card, 'Приватна історія')
-
-    await waitFor(() => {
-      expect(container.querySelector('.history-title')?.textContent).toContain('Приватна історія')
-    })
-
     await openAccordionSection(card, 'Нотатки по сесіях')
 
     await waitFor(() => {
@@ -957,6 +950,7 @@ describe('TherapistClientsView', () => {
             latest_session_note_session_id: null,
           },
         ]
+      if (url === CLIENT_RECORDS_URL) return []
       if (url === REMINDERS_URL) return []
       if (url === clientHistoryUrl(44)) return []
       throw new Error(`Unexpected apiGet call: ${url}`)
@@ -977,7 +971,7 @@ describe('TherapistClientsView', () => {
     await fireEvent.click(historyButton)
 
     await waitFor(() => {
-      expect(container.querySelector('.client-history')).toBeInTheDocument()
+      expect(container.querySelector('.workbook-block')).toBeInTheDocument()
     })
     expect(mockedApiGet).not.toHaveBeenCalledWith('/cabinet/clients/44/journal/')
   })
@@ -1014,6 +1008,7 @@ describe('TherapistClientsView', () => {
             client_code: 'C-900',
           },
         ]
+      if (url === CLIENT_RECORDS_URL) return []
       if (url === REMINDERS_URL) return []
       throw new Error(`Unexpected apiGet call: ${url}`)
     })
@@ -1114,7 +1109,7 @@ describe('TherapistClientsView', () => {
     expect(within(firstCard).getByText('Остання сесія')).toBeInTheDocument()
     expect(within(firstCard).getByText('Майбутніх сесій')).toBeInTheDocument()
     expect(within(firstCard).getByText('Остання нотатка')).toBeInTheDocument()
-    expect(within(firstCard).getAllByText('Робочий зошит').length).toBeGreaterThan(0)
+    expect(within(firstCard).getAllByText('Приватний зошит').length).toBeGreaterThan(0)
     expect(within(firstCard).getByText('Оновлено')).toBeInTheDocument()
     expect(within(firstCard).getByRole('link', { name: 'Відкрити нотатку' })).toHaveAttribute(
       'href',
@@ -1182,13 +1177,13 @@ describe('TherapistClientsView', () => {
     expect(selectedCard).not.toHaveTextContent('Зошит згорнуто')
     expect(selectedCard).not.toHaveTextContent('Нотаток по цьому клієнту')
 
-    const privateHeader = await openAccordionSection(selectedCard, 'Приватна історія')
+    const privateHeader = await openAccordionSection(selectedCard, 'Приватний зошит')
     expect(privateHeader).toHaveAttribute('aria-expanded', 'true')
-    expect(selectedCard).toHaveTextContent('Інформація зашифрована')
+    expect(selectedCard).toHaveTextContent('Клієнт не бачить ці записи')
 
     await openAccordionSection(selectedCard, 'Нотатки по сесіях')
     await waitFor(() => {
-      expect(selectedCard).not.toHaveTextContent('Інформація зашифрована')
+      expect(selectedCard).not.toHaveTextContent('Клієнт не бачить ці записи')
       expect(selectedCard).toHaveTextContent('Нотаток по цьому клієнту ще немає.')
     })
   })
@@ -1614,7 +1609,7 @@ describe('TherapistClientsView', () => {
     await openAccordionSection(manualCard, 'Керування клієнтом')
     expect(within(manualCard).getByRole('button', { name: 'Редагувати дані клієнта' })).toBeInTheDocument()
     expect(within(manualCard).getByRole('button', { name: 'Завершити роботу' })).toBeInTheDocument()
-    expect(within(manualCard).queryByRole('button', { name: 'Приватна історія клієнта' })).not.toBeInTheDocument()
+    expect(within(manualCard).queryByRole('button', { name: 'Відкрити приватний зошит' })).not.toBeInTheDocument()
   })
 
   it('shows contact and account email separately for linked manual client when they differ', async () => {
@@ -2156,7 +2151,7 @@ describe('TherapistClientsView', () => {
       expect(card).toBeInstanceOf(HTMLElement)
       return card as HTMLElement
     })
-    expect(within(manualCard).queryByRole('button', { name: 'Приватна історія клієнта' })).not.toBeInTheDocument()
+    expect(within(manualCard).queryByRole('button', { name: 'Відкрити приватний зошит' })).not.toBeInTheDocument()
     expect(container.querySelector('a[href^="/cabinet/sessions"]')).not.toBeInTheDocument()
     await openAccordionSection(manualCard, 'Керування клієнтом')
     expect(within(manualCard).queryByRole('button', { name: 'Додати задачу' })).not.toBeInTheDocument()
@@ -2383,7 +2378,7 @@ describe('TherapistClientsView', () => {
       const targetRow = container.querySelector('#client-row-44')
       expect(targetCard).toBeInTheDocument()
       expect(targetCard).toHaveClass('client-card--targeted')
-      expect(targetCard?.querySelector('.client-history')).toBeTruthy()
+      expect(targetCard?.querySelector('.workbook-block')).toBeTruthy()
       expect(targetRow).toHaveClass('client-row--selected')
       expect(targetRow).toHaveAttribute('aria-current', 'true')
     })

@@ -369,13 +369,13 @@ describe('TherapistSessionDetailView', () => {
     expect(screen.queryByRole('button', { name: 'Повторювати щотижня' })).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Додати на дошку' })).toBeInTheDocument()
     expect(screen.queryByRole('link', { name: 'До картки клієнта' })).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'До робочого зошита' })).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: /Відкрити.*робоч/ })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'До приватного зошита' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Відкрити.*приват/ })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Запросити підтвердження оплати' })).not.toBeInTheDocument()
     expect(screen.getByText('Оплата сесії')).toBeInTheDocument()
     expect(screen.getByText('Не оплачено')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Позначити оплаченою' })).toBeInTheDocument()
-    expect(screen.queryByText('Робочий зошит')).not.toBeInTheDocument()
+    expect(screen.queryByText('Приватний зошит')).not.toBeInTheDocument()
     expect(screen.queryByDisplayValue('Progress note')).not.toBeInTheDocument()
     expect(await screen.findByText('Приватна нотатка прихована. Доступ має лише спеціаліст.')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Заповнити нотатку' })).toBeInTheDocument()
@@ -389,7 +389,7 @@ describe('TherapistSessionDetailView', () => {
     renderView()
 
     const noteSection = await waitFor(() => {
-      const heading = screen.getByRole('heading', { name: 'Приватна історія по сесії' })
+      const heading = screen.getByRole('heading', { name: 'Приватна нотатка по сесії' })
       const section = heading.closest('section')
       expect(section).toBeInstanceOf(HTMLElement)
       return section as HTMLElement
@@ -627,7 +627,7 @@ describe('TherapistSessionDetailView', () => {
     expect(screen.getByTestId('workspace-zone-recommended')).toBeInTheDocument()
     expect(screen.getByTestId('workspace-zone-capability')).toBeInTheDocument()
     expect(screen.getByTestId('workspace-action-open_note')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Відкрити робочий зошит' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Відкрити приватний зошит' })).toBeInTheDocument()
   })
 
   it('keeps next-step continuity inside workspace rail when actionable workspace zones are present', async () => {
@@ -646,7 +646,7 @@ describe('TherapistSessionDetailView', () => {
     expect(await screen.findByTestId('session-workspace')).toBeInTheDocument()
     expect(screen.getByTestId('workspace-navigation-rail')).toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Наступні кроки' })).not.toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'До робочого зошита' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'До приватного зошита' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'До нотатки' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'До блоку оплати' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'До картки клієнта' })).toHaveAttribute(
@@ -705,7 +705,7 @@ describe('TherapistSessionDetailView', () => {
     expect(await screen.findByTestId('session-workspace')).toBeInTheDocument()
     expect(screen.getByTestId('workspace-summary-note')).toHaveTextContent('Чернетка')
     expect(screen.getByRole('button', { name: 'Продовжити нотатку' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Відкрити робочий зошит' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Відкрити приватний зошит' })).toBeInTheDocument()
   })
 
   it('shows done states without noisy pending actions when workspace is complete', async () => {
@@ -778,7 +778,7 @@ describe('TherapistSessionDetailView', () => {
     expect(screen.getByTestId('workspace-summary-workbook')).toHaveTextContent('Недоступний')
     expect(screen.queryByText('Відсутня')).not.toBeInTheDocument()
     expect(within(screen.getByTestId('session-workspace')).queryByRole('button', { name: 'Відкрити нотатку' })).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Відкрити робочий зошит' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Відкрити приватний зошит' })).not.toBeInTheDocument()
   })
   it('uses pending_task_items as primary source over legacy pending_tasks', async () => {
     const sessionDetail = buildSession({
@@ -1051,7 +1051,7 @@ describe('TherapistSessionDetailView', () => {
     expect(await screen.findByTestId('session-workspace')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Перевірити оплату' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Заповнити нотатку' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Заповнити робочий зошит' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Заповнити приватний зошит' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Позначити як оплачено' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Запросити підтвердження оплати' })).toBeInTheDocument()
 
@@ -1517,7 +1517,7 @@ describe('TherapistSessionDetailView', () => {
         .queryAllByRole('button')
         .some((button) => button.textContent?.includes('Завершити'))
     ).toBe(false)
-    expect(screen.getByRole('button', { name: 'Відкрити робочий зошит' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Відкрити приватний зошит' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Додати / відкрити нотатку' })).not.toBeInTheDocument()
     expect(await screen.findByDisplayValue('Completed session note (reloaded)')).toBeInTheDocument()
     expect(document.querySelector('a[href="/cabinet/clients?client=77&autoOpen=1"]')).toBeInTheDocument()

@@ -341,13 +341,14 @@ export async function fetchSpecialistClientJournalContent(clientId: number) {
 export type SpecialistClientWorkbookSnapshot = {
   content: string
   isMissing: boolean
+  updatedAt?: string | null
 }
 
 export async function fetchSpecialistClientWorkbookSnapshot(
   clientId: number
 ): Promise<SpecialistClientWorkbookSnapshot> {
   try {
-    const resp = await apiGet<{ content?: string; is_missing?: boolean } | null>(
+    const resp = await apiGet<{ content?: string; is_missing?: boolean; updated_at?: string | null } | null>(
       `/cabinet/clients/${clientId}/journal/`
     )
     const content = typeof resp?.content === 'string' ? resp.content : ''
@@ -356,10 +357,11 @@ export async function fetchSpecialistClientWorkbookSnapshot(
     return {
       content,
       isMissing: isMissingFlag || !hasContent,
+      updatedAt: resp?.updated_at || null,
     }
   } catch (err: any) {
     if (err?.response?.status === 404) {
-      return { content: '', isMissing: true }
+      return { content: '', isMissing: true, updatedAt: null }
     }
     throw err
   }
