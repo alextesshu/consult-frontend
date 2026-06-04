@@ -442,12 +442,14 @@
                           <input
                             class="sr-only"
                             type="file"
+                            multiple
                             :disabled="clientMaterialsState(clientMaterialsScopeKey(client) || '').attachmentUploadingByMaterialId[material.id]"
                             @change="attachmentFileChange(clientMaterialsScopeKey(client) || '', material.id, $event)"
                           />
                         </label>
                         <span v-if="clientMaterialsState(clientMaterialsScopeKey(client) || '').attachmentUploadingByMaterialId[material.id]" class="muted">Файл завантажується…</span>
                       </div>
+                      <p class="muted">Додайте файл, якщо хочете передати клієнту документ, вправу або інструкцію.</p>
                       <div v-if="clientMaterialsState(clientMaterialsScopeKey(client) || '').attachmentLoadingByMaterialId[material.id]" class="muted">
                         Завантаження файлів...
                       </div>
@@ -471,7 +473,7 @@
                           </button>
                         </li>
                       </ul>
-                      <p v-else class="muted">До цього матеріалу ще не додано файлів.</p>
+                      <p v-else class="muted">Файлів ще немає</p>
                     </div>
                   </article>
                 </div>
@@ -1194,12 +1196,14 @@
                           <input
                             class="sr-only"
                             type="file"
+                            multiple
                             :disabled="clientMaterialsState(clientMaterialsScopeKey(client) || '').attachmentUploadingByMaterialId[material.id]"
                             @change="attachmentFileChange(clientMaterialsScopeKey(client) || '', material.id, $event)"
                           />
                         </label>
                         <span v-if="clientMaterialsState(clientMaterialsScopeKey(client) || '').attachmentUploadingByMaterialId[material.id]" class="muted">Файл завантажується…</span>
                       </div>
+                      <p class="muted">Додайте файл, якщо хочете передати клієнту документ, вправу або інструкцію.</p>
                       <div v-if="clientMaterialsState(clientMaterialsScopeKey(client) || '').attachmentLoadingByMaterialId[material.id]" class="muted">
                         Завантаження файлів...
                       </div>
@@ -1223,7 +1227,7 @@
                           </button>
                         </li>
                       </ul>
-                      <p v-else class="muted">До цього матеріалу ще не додано файлів.</p>
+                      <p v-else class="muted">Файлів ще немає</p>
                     </div>
                   </article>
                 </div>
@@ -3675,6 +3679,25 @@ function attachmentActionErrorMessage(err: unknown, fallback: string): string {
   return getApiErrorMessage(err, fallback)
 }
 
+function attachmentValidationErrorMessage(file: File): string | null {
+  const extension = file.name.includes('.') ? file.name.split('.').pop()?.toLowerCase() || '' : ''
+  if (!attachmentAllowedExtensions.has(extension)) {
+    return 'Цей тип файлу не підтримується. Дозволені PDF, DOC, DOCX, JPG, PNG, WEBP або TXT.'
+  }
+
+  if (file.size > attachmentMaxSizeBytes) {
+    return 'Файл завеликий. Максимальний розмір одного файлу — 20 МБ.'
+  }
+
+  return null
+}
+
+function combinedAttachmentErrorMessage(errors: string[]): string {
+  const uniqueErrors = Array.from(new Set(errors.map((item) => item.trim()).filter(Boolean)))
+  if (uniqueErrors.length === 1) return uniqueErrors[0] || 'Не вдалося виконати дію з файлом. Спробуйте ще раз.'
+  return `Не всі файли вдалося додати: ${uniqueErrors.join(' ')}`
+}
+
 function clearAttachmentMessage(scopeKey: string, materialId: number) {
   const state = clientMaterialsState(scopeKey)
   const errors = { ...state.attachmentErrorByMaterialId }
@@ -4046,8 +4069,8 @@ async function revokeMaterial(client: ClientListItem, materialId: number) {
 
 function attachmentFileChange(scopeKey: string, materialId: number, event: Event) {
   const input = event.target as HTMLInputElement | null
-  const file = input?.files?.[0]
-  if (!file) {
+  const files = Array.from(input?.files || [])
+  if (!files.length) {
     updateClientMaterialsState(scopeKey, {
       attachmentErrorByMaterialId: {
         ...clientMaterialsState(scopeKey).attachmentErrorByMaterialId,
@@ -4057,56 +4080,77 @@ function attachmentFileChange(scopeKey: string, materialId: number, event: Event
     return
   }
 
-  const extension = file.name.includes('.') ? file.name.split('.').pop()?.toLowerCase() || '' : ''
-  if (!attachmentAllowedExtensions.has(extension)) {
-    updateClientMaterialsState(scopeKey, {
-      attachmentErrorByMaterialId: {
-        ...clientMaterialsState(scopeKey).attachmentErrorByMaterialId,
-        [materialId]: 'Цей тип файлу не підтримується. Дозволені PDF, DOC, DOCX, JPG, PNG, WEBP або TXT.',
-      },
-    })
-    return
-  }
+  const validFiles: File[] = []
+  const errors: string[] = []
+  files.forEach((file) => {
+    const validationError = attachmentValidationErrorMessage(file)
+    if (validationError) {
+      errors.push(`${file.name}: ${validationError}`)
+    } else {
+      validFiles.push(file)
+    }
+  })
 
-  if (file.size > attachmentMaxSizeBytes) {
-    updateClientMaterialsState(scopeKey, {
-      attachmentErrorByMaterialId: {
-        ...clientMaterialsState(scopeKey).attachmentErrorByMaterialId,
-        [materialId]: 'Файл завеликий. Максимальний розмір одного файлу — 20 МБ.',
-      },
-    })
-    return
-  }
-
-  void uploadAttachment(scopeKey, materialId, file).finally(() => {
+  void uploadAttachments(scopeKey, materialId, validFiles, errors).finally(() => {
     if (input) input.value = ''
   })
 }
 
-async function uploadAttachment(scopeKey: string, materialId: number, file: File) {
+async function uploadAttachments(
+  scopeKey: string,
+  materialId: number,
+  files: File[],
+  initialErrors: string[] = []
+) {
   clearAttachmentMessage(scopeKey, materialId)
+  if (!files.length) {
+    if (initialErrors.length) {
+      updateClientMaterialsState(scopeKey, {
+        attachmentErrorByMaterialId: {
+          ...clientMaterialsState(scopeKey).attachmentErrorByMaterialId,
+          [materialId]: combinedAttachmentErrorMessage(initialErrors),
+        },
+      })
+    }
+    return
+  }
+
   updateClientMaterialsState(scopeKey, {
     attachmentUploadingByMaterialId: {
       ...clientMaterialsState(scopeKey).attachmentUploadingByMaterialId,
       [materialId]: true,
     },
   })
+  const errors = [...initialErrors]
+  let uploadedCount = 0
   try {
-    await uploadClientMaterialAttachment(materialId, file)
-    await loadMaterialAttachments(scopeKey, materialId)
-    updateClientMaterialsState(scopeKey, {
-      attachmentSuccessByMaterialId: {
-        ...clientMaterialsState(scopeKey).attachmentSuccessByMaterialId,
-        [materialId]: 'Файл додано',
-      },
-    })
-  } catch (err) {
-    updateClientMaterialsState(scopeKey, {
-      attachmentErrorByMaterialId: {
-        ...clientMaterialsState(scopeKey).attachmentErrorByMaterialId,
-        [materialId]: attachmentActionErrorMessage(err, 'Не вдалося виконати дію з файлом. Спробуйте ще раз.'),
-      },
-    })
+    for (const file of files) {
+      try {
+        await uploadClientMaterialAttachment(materialId, file)
+        uploadedCount += 1
+      } catch (err) {
+        errors.push(`${file.name}: ${attachmentActionErrorMessage(err, 'Не вдалося виконати дію з файлом. Спробуйте ще раз.')}`)
+      }
+    }
+
+    if (uploadedCount > 0) {
+      await loadMaterialAttachments(scopeKey, materialId)
+      updateClientMaterialsState(scopeKey, {
+        attachmentSuccessByMaterialId: {
+          ...clientMaterialsState(scopeKey).attachmentSuccessByMaterialId,
+          [materialId]: uploadedCount === 1 ? 'Файл додано' : `Файлів додано: ${uploadedCount}`,
+        },
+      })
+    }
+
+    if (errors.length) {
+      updateClientMaterialsState(scopeKey, {
+        attachmentErrorByMaterialId: {
+          ...clientMaterialsState(scopeKey).attachmentErrorByMaterialId,
+          [materialId]: combinedAttachmentErrorMessage(errors),
+        },
+      })
+    }
   } finally {
     updateClientMaterialsState(scopeKey, {
       attachmentUploadingByMaterialId: {

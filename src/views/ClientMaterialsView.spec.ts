@@ -100,6 +100,7 @@ describe('ClientMaterialsView', () => {
 
     await waitFor(() => {
       expect(mockedFetchClientMaterialDetail).toHaveBeenCalledWith(10)
+      expect(screen.getByText('Файли доступні тільки для опублікованих матеріалів від спеціаліста.')).toBeInTheDocument()
       expect(screen.getByText('exercise.pdf')).toBeInTheDocument()
       expect(screen.getByRole('button', { name: 'Завантажити файл' })).toBeInTheDocument()
     })
@@ -148,6 +149,7 @@ describe('ClientMaterialsView', () => {
 
     expect(mockedGetClientMaterialAttachmentDownloadUrl).toHaveBeenCalledWith(10, 1)
     expect(window.open).toHaveBeenCalledWith('https://signed-url', '_blank', 'noopener,noreferrer')
+    expect(screen.getByText('Файли доступні тільки для опублікованих матеріалів від спеціаліста.')).toBeInTheDocument()
   })
 
   it('does not render raw signed URL visibly', async () => {
@@ -306,6 +308,5 @@ describe('ClientMaterialsView', () => {
     expect(mockedFetchClientMaterials).toHaveBeenNthCalledWith(2, 'cursor-2')
   })
 })
-
 
 

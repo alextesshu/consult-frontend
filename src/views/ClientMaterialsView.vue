@@ -48,7 +48,7 @@
           <p v-if="downloadErrorByMaterialId[item.id]" class="form-error">{{ downloadErrorByMaterialId[item.id] }}</p>
           <p v-if="isDetailLoading(item.id)" class="muted">Завантаження файлів...</p>
           <template v-else-if="isDetailOpen(item.id)">
-            <p class="muted">Файл відкриється за безпечним тимчасовим посиланням.</p>
+            <p class="muted">Файли доступні тільки для опублікованих матеріалів від спеціаліста.</p>
             <ul v-if="(detailByMaterialId[item.id]?.attachments || []).length" class="attachments-list">
               <li v-for="attachment in detailByMaterialId[item.id]?.attachments || []" :key="attachment.id" class="attachments-item">
                 <div>
@@ -364,4 +364,3 @@ onMounted(() => {
   }
 }
 </style>
-

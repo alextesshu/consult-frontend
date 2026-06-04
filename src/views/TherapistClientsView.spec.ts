@@ -2909,7 +2909,7 @@ describe('TherapistClientsView', () => {
     })
   })
 
-  it('renders attachment section for material cards and uploads file', async () => {
+  it('renders attachment helper and uploads multiple selected files one by one', async () => {
     mockedApiGet.mockImplementation(async (url) => {
       if (url === CLIENTS_URL) return []
       if (url === CLIENT_RECORDS_URL) return [manualClientRecord({ id: 701 })]
@@ -2942,6 +2942,13 @@ describe('TherapistClientsView', () => {
         size_bytes: 245000,
         created_at: '2026-05-01T00:00:00Z',
       },
+      {
+        id: 3002,
+        original_filename: 'instruction.txt',
+        mime_type: 'text/plain',
+        size_bytes: 1200,
+        created_at: '2026-05-01T00:00:00Z',
+      },
     ] as any)
 
     const { container } = renderView()
@@ -2952,18 +2959,25 @@ describe('TherapistClientsView', () => {
     })
     await openAccordionSection(manualCard, 'Матеріали для клієнта')
     expect(await within(manualCard).findByText('Файли')).toBeInTheDocument()
+    expect(within(manualCard).getByText('Додайте файл, якщо хочете передати клієнту документ, вправу або інструкцію.')).toBeInTheDocument()
+    expect(within(manualCard).getByText('Файлів ще немає')).toBeInTheDocument()
 
     const fileInput = manualCard.querySelector('input[type=\"file\"]') as HTMLInputElement
-    const file = new File(['x'], 'exercise.pdf', { type: 'application/pdf' })
-    await fireEvent.change(fileInput, { target: { files: [file] } })
+    expect(fileInput.multiple).toBe(true)
+    const firstFile = new File(['x'], 'exercise.pdf', { type: 'application/pdf' })
+    const secondFile = new File(['x'], 'instruction.txt', { type: 'text/plain' })
+    await fireEvent.change(fileInput, { target: { files: [firstFile, secondFile] } })
 
     await waitFor(() => {
-      expect(mockedUploadClientMaterialAttachment).toHaveBeenCalledWith(991, expect.any(File))
+      expect(mockedUploadClientMaterialAttachment).toHaveBeenNthCalledWith(1, 991, firstFile)
+      expect(mockedUploadClientMaterialAttachment).toHaveBeenNthCalledWith(2, 991, secondFile)
       expect(within(manualCard).getByText('exercise.pdf · 239 КБ')).toBeInTheDocument()
+      expect(within(manualCard).getByText('instruction.txt · 1 КБ')).toBeInTheDocument()
     })
+    expect(fileInput.value).toBe('')
   })
 
-  it('shows scoped upload validation errors and does not leak between materials', async () => {
+  it('keeps upload failures scoped and still uploads valid files from the same selection', async () => {
     mockedApiGet.mockImplementation(async (url) => {
       if (url === CLIENTS_URL) return []
       if (url === CLIENT_RECORDS_URL) return [manualClientRecord({ id: 702 })]
@@ -3019,18 +3033,31 @@ describe('TherapistClientsView', () => {
     const secondFile = materialCards[1]! .querySelector('input[type=\"file\"]') as HTMLInputElement
     const bigFile = new File([new Uint8Array(21 * 1024 * 1024)], 'big.pdf', { type: 'application/pdf' })
     const badExt = new File(['x'], 'bad.exe', { type: 'application/octet-stream' })
+    const validFile = new File(['x'], 'valid.pdf', { type: 'application/pdf' })
+    mockedUploadClientMaterialAttachment.mockResolvedValueOnce({} as any)
+    mockedUploadClientMaterialAttachment.mockRejectedValueOnce({
+      response: { data: { code: 'ATTACHMENT_COUNT_LIMIT_REACHED' } },
+    })
 
-    await fireEvent.change(firstFile, { target: { files: [bigFile] } })
+    await fireEvent.change(firstFile, { target: { files: [bigFile, badExt, validFile] } })
     await waitFor(() => {
-      expect(materialCards[0]! .textContent || '').toContain('Файл завеликий. Максимальний розмір одного файлу — 20 МБ.')
+      expect(mockedUploadClientMaterialAttachment).toHaveBeenCalledWith(992, validFile)
+      expect(materialCards[0]! .textContent || '').toContain('Не всі файли вдалося додати:')
+      expect(materialCards[0]! .textContent || '').toContain('big.pdf: Файл завеликий. Максимальний розмір одного файлу — 20 МБ.')
+      expect(materialCards[0]! .textContent || '').toContain('bad.exe: Цей тип файлу не підтримується.')
     })
     expect(materialCards[1]! .textContent || '').not.toContain('Файл завеликий')
+    expect(firstFile.value).toBe('')
 
-    await fireEvent.change(secondFile, { target: { files: [badExt] } })
+    await fireEvent.change(secondFile, { target: { files: [badExt, validFile] } })
     await waitFor(() => {
-      expect(materialCards[1]! .textContent || '').toContain('Цей тип файлу не підтримується.')
+      expect(mockedUploadClientMaterialAttachment).toHaveBeenCalledWith(993, validFile)
+      expect(materialCards[1]! .textContent || '').toContain('Не всі файли вдалося додати:')
+      expect(materialCards[1]! .textContent || '').toContain('bad.exe: Цей тип файлу не підтримується.')
+      expect(materialCards[1]! .textContent || '').toContain('valid.pdf: До одного матеріалу можна додати не більше 10 файлів.')
     })
-    expect(materialCards[0]! .textContent || '').not.toContain('Цей тип файлу не підтримується.')
+    expect(materialCards[0]! .textContent || '').not.toContain('До одного матеріалу можна додати не більше 10 файлів.')
+    expect(secondFile.value).toBe('')
   })
 
   it('deletes attachment from the correct material', async () => {
