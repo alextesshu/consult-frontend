@@ -1223,6 +1223,7 @@ describe('TherapistClientsView', () => {
             last_session_at: null,
             upcoming_count: 0,
             client_display_name: 'Second Client',
+            client_email: 'second@example.com',
           },
         ]
       if (url === REMINDERS_URL) return []
@@ -1305,6 +1306,7 @@ describe('TherapistClientsView', () => {
             last_session_at: null,
             upcoming_count: 0,
             client_display_name: 'Second Client',
+            client_email: 'second@example.com',
           },
         ]
       if (url === REMINDERS_URL) return []
@@ -1321,6 +1323,42 @@ describe('TherapistClientsView', () => {
     const dialog = await screen.findByRole('dialog', { name: 'Картка клієнта' })
     expect(within(dialog).getByText('Second Client')).toBeInTheDocument()
     expect(clientsPanel.querySelector('.client-row--selected')).toHaveTextContent('Second Client')
+    expect(within(dialog).getAllByRole('tab').map((tab) => tab.textContent?.trim())).toEqual([
+      'Огляд',
+      'Контакти',
+      'Сесії',
+      'Матеріали',
+      'Регулярний час',
+      'Приватний зошит',
+      'Нотатки',
+      'Доступ',
+    ])
+    expect(within(dialog).getByRole('tab', { name: 'Огляд' })).toHaveAttribute('aria-selected', 'true')
+    expect(within(dialog).getByRole('tab', { name: 'Контакти' })).toBeInTheDocument()
+    expect(within(dialog).getByRole('tab', { name: 'Сесії' })).toBeInTheDocument()
+    expect(within(dialog).getByRole('tab', { name: 'Матеріали' })).toBeInTheDocument()
+    expect(within(dialog).getByRole('tab', { name: 'Регулярний час' })).toBeInTheDocument()
+    expect(within(dialog).getByRole('tab', { name: 'Приватний зошит' })).toBeInTheDocument()
+    expect(within(dialog).getByRole('tab', { name: 'Нотатки' })).toBeInTheDocument()
+    expect(within(dialog).getByRole('tab', { name: 'Доступ' })).toBeInTheDocument()
+    expect(within(dialog).getByText('Статус')).toBeInTheDocument()
+    expect(within(dialog).getByText('Кабінет')).toBeInTheDocument()
+    expect(within(dialog).getByText('second@example.com')).toBeInTheDocument()
+    expect(within(dialog).getByText('Немає запланованих')).toBeInTheDocument()
+    expect(within(dialog).getByText('Матеріалів немає')).toBeInTheDocument()
+
+    await fireEvent.click(within(dialog).getByRole('tab', { name: 'Контакти' }))
+    expect(within(dialog).getByRole('heading', { name: 'Контакти' })).toBeInTheDocument()
+    expect(within(dialog).getByText('Email')).toBeInTheDocument()
+    expect(within(dialog).getByText('second@example.com')).toBeInTheDocument()
+    expect(within(dialog).getByText('Телефон')).toBeInTheDocument()
+    expect(within(dialog).getByText('Не вказано')).toBeInTheDocument()
+    expect(within(dialog).getByText('Клієнт з кабінетом')).toBeInTheDocument()
+    expect(dialog).not.toHaveTextContent('У Phase 1 цей розділ залишається доступним у правій панелі')
+
+    await fireEvent.click(within(dialog).getByRole('tab', { name: 'Сесії' }))
+    expect(within(dialog).getByText('Розділ буде перенесено в картку клієнта наступним кроком. Наявні робочі дані збережені без зміни API.')).toBeInTheDocument()
+    expect(dialog).not.toHaveTextContent('У Phase 1 цей розділ залишається доступним у правій панелі')
 
     await selectClientRowByName(clientsPanel, 'First Client')
 
@@ -1337,7 +1375,13 @@ describe('TherapistClientsView', () => {
       if (url === CLIENT_RECORDS_URL)
         return [
           manualClientRecord({ id: 620, display_name: 'Manual First' }),
-          manualClientRecord({ id: 621, display_name: 'Manual Second' }),
+          manualClientRecord({
+            id: 621,
+            display_name: 'Manual Second',
+            email: 'manual@example.com',
+            phone: '+380501112233',
+            telegram: '@manual_second',
+          }),
         ]
       if (url === REMINDERS_URL) return []
       throw new Error(`Unexpected apiGet call: ${url}`)
@@ -1353,6 +1397,20 @@ describe('TherapistClientsView', () => {
     const dialog = await screen.findByRole('dialog', { name: 'Картка клієнта' })
     expect(within(dialog).getByText('Manual Second')).toBeInTheDocument()
     expect(clientsPanel.querySelector('.client-row--selected')).toHaveTextContent('Manual Second')
+    expect(within(dialog).getByRole('tab', { name: 'Огляд' })).toBeInTheDocument()
+    expect(within(dialog).getByRole('tab', { name: 'Контакти' })).toBeInTheDocument()
+    expect(within(dialog).getByText('Без реєстрації')).toBeInTheDocument()
+    expect(within(dialog).getByText('manual@example.com')).toBeInTheDocument()
+
+    await fireEvent.click(within(dialog).getByRole('tab', { name: 'Контакти' }))
+    expect(within(dialog).getByText('Контактний email')).toBeInTheDocument()
+    expect(within(dialog).getByText('manual@example.com')).toBeInTheDocument()
+    expect(within(dialog).getByText('Телефон')).toBeInTheDocument()
+    expect(within(dialog).getByText('+380501112233')).toBeInTheDocument()
+    expect(within(dialog).getByText('Telegram')).toBeInTheDocument()
+    expect(within(dialog).getByText('@manual_second')).toBeInTheDocument()
+    expect(within(dialog).getByText('Вручну створена картка')).toBeInTheDocument()
+    expect(dialog).not.toHaveTextContent('internal_note')
   })
 
   it('does not open client management modal when nested right-panel controls are clicked', async () => {

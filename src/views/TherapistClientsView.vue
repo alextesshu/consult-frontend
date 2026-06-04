@@ -1568,30 +1568,35 @@
         <div class="client-management-modal__body">
           <section v-if="clientManagementModal.section === 'overview'" class="client-management-overview">
             <div class="client-management-overview__grid">
-              <div class="client-summary-card">
-                <div class="client-summary-card__title">Статус</div>
-                <p class="client-summary-card__value">{{ clientStatusLabel(clientListState(clientManagementClient)) }}</p>
-                <p class="client-summary-card__hint">{{ accountBadgeLabel(clientManagementClient) }}</p>
-              </div>
-              <div class="client-summary-card">
-                <div class="client-summary-card__title">Матеріали</div>
-                <p class="client-summary-card__value">{{ clientMaterialsCompactSummary(clientManagementClient) }}</p>
-                <p v-if="clientMaterialsCompactFileSummary(clientManagementClient)" class="client-summary-card__hint">
-                  {{ clientMaterialsCompactFileSummary(clientManagementClient) }}
-                </p>
-              </div>
-              <div class="client-summary-card">
-                <div class="client-summary-card__title">Регулярний час</div>
-                <p class="client-summary-card__value">{{ accordionSummary(clientManagementClient, 'regularTime') }}</p>
-              </div>
-              <div class="client-summary-card">
-                <div class="client-summary-card__title">Нотатки</div>
-                <p class="client-summary-card__value">{{ accordionSummary(clientManagementClient, 'sessionNotes') || latestNoteSummary(clientManagementClient) }}</p>
+              <div v-for="item in clientManagementOverviewRows(clientManagementClient)" :key="item.key" class="client-summary-card">
+                <div class="client-summary-card__title">{{ item.title }}</div>
+                <p class="client-summary-card__value">{{ item.value }}</p>
+                <p v-if="item.hint" class="client-summary-card__hint">{{ item.hint }}</p>
               </div>
             </div>
-            <button class="btn btn--sm" type="button" @click="setClientManagementSection('materials')">
-              Перейти до матеріалів
-            </button>
+            <div class="client-management-overview__actions">
+              <button class="btn btn--ghost btn--sm" type="button" @click="setClientManagementSection('contacts')">
+                Перейти до контактів
+              </button>
+              <button class="btn btn--sm" type="button" @click="setClientManagementSection('materials')">
+                Перейти до матеріалів
+              </button>
+            </div>
+          </section>
+
+          <section v-else-if="clientManagementModal.section === 'contacts'" class="client-management-contacts">
+            <div class="client-management-modal__section-head">
+              <div>
+                <h3>Контакти</h3>
+                <p class="muted">Контактні дані з картки клієнта та звʼязку з кабінетом.</p>
+              </div>
+            </div>
+            <dl class="client-management-contacts__list">
+              <div v-for="item in clientManagementContactRows(clientManagementClient)" :key="item.key" class="client-management-contacts__item">
+                <dt>{{ item.label }}</dt>
+                <dd>{{ item.value }}</dd>
+              </div>
+            </dl>
           </section>
 
           <section v-else-if="clientManagementModal.section === 'materials'" class="client-management-materials">
@@ -1676,7 +1681,7 @@
           <section v-else class="client-management-modal__placeholder">
             <h3>{{ clientManagementTabs.find((tab) => tab.key === clientManagementModal.section)?.label }}</h3>
             <p class="muted">
-              У Phase 1 цей розділ залишається доступним у правій панелі. Повний перенос зробимо окремим кроком без зміни API.
+              Розділ буде перенесено в картку клієнта наступним кроком. Наявні робочі дані збережені без зміни API.
             </p>
           </section>
         </div>
@@ -2361,6 +2366,7 @@ type ClientAccordionSection =
 
 type ClientManagementSection =
   | 'overview'
+  | 'contacts'
   | 'sessions'
   | 'materials'
   | 'regularTime'
@@ -2558,6 +2564,7 @@ const clientManagementClient = computed(() => clientManagementModal.value.client
 
 const clientManagementTabs: Array<{ key: ClientManagementSection; label: string }> = [
   { key: 'overview', label: 'Огляд' },
+  { key: 'contacts', label: 'Контакти' },
   { key: 'sessions', label: 'Сесії' },
   { key: 'materials', label: 'Матеріали' },
   { key: 'regularTime', label: 'Регулярний час' },
@@ -4889,6 +4896,96 @@ function clientPrimaryContact(client: ClientListItem) {
 function clientRowContactLabel(client: ClientListItem) {
   const contact = clientPrimaryContact(client)
   return contact === 'Контакт не вказано' ? 'Немає контакту' : contact
+}
+
+function modalFieldValue(value: string | number | null | undefined) {
+  const normalized = String(value ?? '').trim()
+  return normalized || 'Не вказано'
+}
+
+function clientManagementContactSummary(client: ClientListItem) {
+  const contact = clientPrimaryContact(client)
+  return contact === 'Контакт не вказано' ? 'Не вказано' : contact
+}
+
+function clientManagementNotesSummary(client: ClientListItem) {
+  const summary = accordionSummary(client, 'sessionNotes') || latestNoteSummary(client)
+  return summary || 'Не вказано'
+}
+
+function clientManagementOverviewRows(client: ClientListItem) {
+  return [
+    {
+      key: 'status',
+      title: 'Статус',
+      value: clientStatusLabel(clientListState(client)),
+    },
+    {
+      key: 'account',
+      title: 'Кабінет',
+      value: accountBadgeLabel(client),
+    },
+    {
+      key: 'contacts',
+      title: 'Контакти',
+      value: clientManagementContactSummary(client),
+    },
+    {
+      key: 'nearest-session',
+      title: 'Найближча сесія',
+      value: clientNearestSessionLabel(client),
+    },
+    {
+      key: 'last-activity',
+      title: 'Останнє',
+      value: clientLastActivityLabel(client),
+    },
+    {
+      key: 'materials',
+      title: 'Матеріали',
+      value: clientMaterialsCompactSummary(client),
+      hint: clientMaterialsCompactFileSummary(client),
+    },
+    {
+      key: 'regular-time',
+      title: 'Регулярний час',
+      value: accordionSummary(client, 'regularTime'),
+    },
+    {
+      key: 'workbook',
+      title: 'Приватний зошит',
+      value: workbookSummary(client),
+    },
+    {
+      key: 'notes',
+      title: 'Нотатки',
+      value: clientManagementNotesSummary(client),
+    },
+  ]
+}
+
+function clientManagementContactRows(client: ClientListItem) {
+  if (isManualClientRecord(client)) {
+    return [
+      { key: 'name', label: 'Імʼя', value: modalFieldValue(displayClientName(client)) },
+      { key: 'email', label: 'Контактний email', value: modalFieldValue(manualContactEmail(client)) },
+      { key: 'account-email', label: 'Email акаунта', value: modalFieldValue(manualAccountEmail(client)) },
+      { key: 'phone', label: 'Телефон', value: modalFieldValue(client.phone) },
+      { key: 'telegram', label: 'Telegram', value: modalFieldValue(client.telegram) },
+      { key: 'account', label: 'Реєстрація', value: accountBadgeLabel(client) },
+      { key: 'status', label: 'Статус', value: clientStatusLabel(clientListState(client)) },
+      { key: 'source', label: 'Тип картки', value: 'Вручну створена картка' },
+    ]
+  }
+
+  return [
+    { key: 'name', label: 'Імʼя', value: modalFieldValue(displayClientName(client)) },
+    { key: 'email', label: 'Email', value: modalFieldValue(client.client_email) },
+    { key: 'phone', label: 'Телефон', value: 'Не вказано' },
+    { key: 'account', label: 'Реєстрація', value: accountBadgeLabel(client) },
+    { key: 'status', label: 'Статус', value: clientStatusLabel(clientListState(client)) },
+    { key: 'source', label: 'Тип картки', value: 'Клієнт з кабінетом' },
+  ]
 }
 
 function clientNearestSessionLabel(client: ClientListItem) {
@@ -7428,6 +7525,7 @@ onBeforeUnmount(() => {
 }
 
 .client-management-overview,
+.client-management-contacts,
 .client-management-materials,
 .client-management-modal__placeholder,
 .client-management-modal__empty {
@@ -7439,6 +7537,42 @@ onBeforeUnmount(() => {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 12px;
+}
+
+.client-management-overview__actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.client-management-contacts__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+
+.client-management-contacts__item {
+  border: 1px solid color-mix(in srgb, var(--pc-border) 82%, #ffffff);
+  border-radius: 14px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.9);
+  display: grid;
+  gap: 4px;
+}
+
+.client-management-contacts__item dt {
+  color: color-mix(in srgb, var(--pc-navy-900) 58%, var(--pc-text-muted));
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.client-management-contacts__item dd {
+  margin: 0;
+  color: var(--pc-navy-950);
+  font-size: 14px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
 }
 
 .client-management-materials__list {
