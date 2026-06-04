@@ -1592,7 +1592,12 @@
               </div>
             </div>
             <dl class="client-management-contacts__list">
-              <div v-for="item in clientManagementContactRows(clientManagementClient)" :key="item.key" class="client-management-contacts__item">
+              <div
+                v-for="item in clientManagementContactRows(clientManagementClient)"
+                :key="item.key"
+                class="client-management-contacts__item"
+                :class="{ 'client-management-contacts__item--secondary': item.key === 'source' }"
+              >
                 <dt>{{ item.label }}</dt>
                 <dd>{{ item.value }}</dd>
               </div>
@@ -1640,6 +1645,9 @@
                   </div>
                   <span class="material-status" :class="materialStatusClass(material.status)">{{ materialStatusLabel(material.status) }}</span>
                 </div>
+                <p v-if="material.status === 'revoked'" class="client-material__access-note">
+                  Клієнт більше не бачить цей матеріал.
+                </p>
                 <p v-if="clientMaterialsState(clientMaterialsScopeKey(clientManagementClient) || '').actionErrorsById[material.id]" class="form-error">
                   {{ clientMaterialsState(clientMaterialsScopeKey(clientManagementClient) || '').actionErrorsById[material.id] }}
                 </p>
@@ -3857,7 +3865,7 @@ function materialTypeLabel(value: ClientMaterialType): string {
 function materialStatusLabel(value: ClientMaterialStatus): string {
   if (value === 'draft') return 'Чернетка'
   if (value === 'published') return 'Опубліковано'
-  return 'Відкликано'
+  return 'Доступ відкликано'
 }
 
 function materialStatusClass(value: ClientMaterialStatus): string {
@@ -4968,13 +4976,13 @@ function clientManagementContactRows(client: ClientListItem) {
   if (isManualClientRecord(client)) {
     return [
       { key: 'name', label: 'Імʼя', value: modalFieldValue(displayClientName(client)) },
-      { key: 'email', label: 'Контактний email', value: modalFieldValue(manualContactEmail(client)) },
+      { key: 'email', label: 'Email', value: modalFieldValue(manualContactEmail(client)) },
       { key: 'account-email', label: 'Email акаунта', value: modalFieldValue(manualAccountEmail(client)) },
       { key: 'phone', label: 'Телефон', value: modalFieldValue(client.phone) },
       { key: 'telegram', label: 'Telegram', value: modalFieldValue(client.telegram) },
-      { key: 'account', label: 'Реєстрація', value: accountBadgeLabel(client) },
+      { key: 'account', label: 'Кабінет', value: accountBadgeLabel(client) },
       { key: 'status', label: 'Статус', value: clientStatusLabel(clientListState(client)) },
-      { key: 'source', label: 'Тип картки', value: 'Вручну створена картка' },
+      { key: 'source', label: 'Джерело картки', value: 'Створено вручну' },
     ]
   }
 
@@ -4982,9 +4990,9 @@ function clientManagementContactRows(client: ClientListItem) {
     { key: 'name', label: 'Імʼя', value: modalFieldValue(displayClientName(client)) },
     { key: 'email', label: 'Email', value: modalFieldValue(client.client_email) },
     { key: 'phone', label: 'Телефон', value: 'Не вказано' },
-    { key: 'account', label: 'Реєстрація', value: accountBadgeLabel(client) },
+    { key: 'account', label: 'Кабінет', value: accountBadgeLabel(client) },
     { key: 'status', label: 'Статус', value: clientStatusLabel(clientListState(client)) },
-    { key: 'source', label: 'Тип картки', value: 'Клієнт з кабінетом' },
+    { key: 'source', label: 'Джерело картки', value: 'Підключено до кабінету клієнта' },
   ]
 }
 
@@ -6230,9 +6238,13 @@ onBeforeUnmount(() => {
   gap: 8px;
   flex-wrap: wrap;
   align-items: stretch;
+  justify-content: center;
+  width: 100%;
 }
 
 .client-counts__item {
+  flex: 1 1 118px;
+  max-width: 168px;
   min-width: 104px;
   border: 1px solid color-mix(in srgb, var(--pc-border) 82%, #ffffff);
   border-radius: 14px;
@@ -6860,6 +6872,13 @@ onBeforeUnmount(() => {
 
 .client-material__file-summary {
   justify-self: flex-start;
+}
+
+.client-material__access-note {
+  margin: 0;
+  color: var(--pc-text-muted);
+  font-size: 13px;
+  line-height: 1.4;
 }
 
 .material-status {
@@ -7573,6 +7592,15 @@ onBeforeUnmount(() => {
   font-size: 14px;
   font-weight: 700;
   overflow-wrap: anywhere;
+}
+
+.client-management-contacts__item--secondary {
+  background: color-mix(in srgb, var(--pc-bg-main) 72%, #ffffff);
+}
+
+.client-management-contacts__item--secondary dd {
+  color: var(--pc-text-muted);
+  font-weight: 600;
 }
 
 .client-management-materials__list {

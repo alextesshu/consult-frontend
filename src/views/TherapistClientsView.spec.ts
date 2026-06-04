@@ -1114,6 +1114,8 @@ describe('TherapistClientsView', () => {
 
     await waitFor(() => {
       expect(clientsPanel.querySelectorAll('.client-row')).toHaveLength(6)
+      expect(clientsPanel.querySelector('.client-counts')).toBeInTheDocument()
+      expect(clientsPanel.querySelectorAll('.client-counts__item')).toHaveLength(6)
       expectSummaryCount(clientsPanel, 'Усього', 6)
       expectSummaryCount(clientsPanel, 'Активні', 3)
       expectSummaryCount(clientsPanel, 'Неактивні', 1)
@@ -1353,7 +1355,12 @@ describe('TherapistClientsView', () => {
     expect(within(dialog).getByText('second@example.com')).toBeInTheDocument()
     expect(within(dialog).getByText('Телефон')).toBeInTheDocument()
     expect(within(dialog).getByText('Не вказано')).toBeInTheDocument()
-    expect(within(dialog).getByText('Клієнт з кабінетом')).toBeInTheDocument()
+    expect(within(dialog).getByText('Кабінет')).toBeInTheDocument()
+    expect(within(dialog).getByText('З кабінетом')).toBeInTheDocument()
+    expect(within(dialog).getByText('Джерело картки')).toBeInTheDocument()
+    expect(within(dialog).getByText('Підключено до кабінету клієнта')).toBeInTheDocument()
+    expect(dialog).not.toHaveTextContent('Тип картки')
+    expect(dialog).not.toHaveTextContent('Клієнт з кабінетом')
     expect(dialog).not.toHaveTextContent('У Phase 1 цей розділ залишається доступним у правій панелі')
 
     await fireEvent.click(within(dialog).getByRole('tab', { name: 'Сесії' }))
@@ -1403,13 +1410,17 @@ describe('TherapistClientsView', () => {
     expect(within(dialog).getByText('manual@example.com')).toBeInTheDocument()
 
     await fireEvent.click(within(dialog).getByRole('tab', { name: 'Контакти' }))
-    expect(within(dialog).getByText('Контактний email')).toBeInTheDocument()
+    expect(within(dialog).getByText('Email')).toBeInTheDocument()
     expect(within(dialog).getByText('manual@example.com')).toBeInTheDocument()
     expect(within(dialog).getByText('Телефон')).toBeInTheDocument()
     expect(within(dialog).getByText('+380501112233')).toBeInTheDocument()
     expect(within(dialog).getByText('Telegram')).toBeInTheDocument()
     expect(within(dialog).getByText('@manual_second')).toBeInTheDocument()
-    expect(within(dialog).getByText('Вручну створена картка')).toBeInTheDocument()
+    expect(within(dialog).getByText('Кабінет')).toBeInTheDocument()
+    expect(within(dialog).getByText('Без реєстрації')).toBeInTheDocument()
+    expect(within(dialog).getByText('Джерело картки')).toBeInTheDocument()
+    expect(within(dialog).getByText('Створено вручну')).toBeInTheDocument()
+    expect(dialog).not.toHaveTextContent('Тип картки')
     expect(dialog).not.toHaveTextContent('internal_note')
   })
 
@@ -3128,6 +3139,9 @@ describe('TherapistClientsView', () => {
     await waitFor(() => {
       expect(mockedRevokeSpecialistClientMaterial).toHaveBeenCalledWith(900)
     })
+    expect(await within(managementDialog).findByText('Доступ відкликано')).toBeInTheDocument()
+    expect(within(managementDialog).getByText('Клієнт більше не бачить цей матеріал.')).toBeInTheDocument()
+    expect(within(managementDialog).queryByText('Відкликано')).not.toBeInTheDocument()
   })
 
   it('shows materials block for registered client and fetches materials via client_id', async () => {
