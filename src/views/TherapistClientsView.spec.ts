@@ -109,6 +109,7 @@ const CLIENTS_URL = '/cabinet/clients/'
 const CLIENT_RECORDS_URL = '/cabinet/client-records/'
 const REMINDERS_URL = '/cabinet/notes/reminders/'
 const SLOTS_URL = '/cabinet/slots/'
+const SESSIONS_URL = '/booking/sessions/'
 const clientHistoryUrl = (clientId: number) => `/cabinet/clients/${clientId}/notes/history/`
 const noteReminderHref = (sessionId: number) => `/cabinet/sessions?returnTo=%2Fcabinet%2Fclients#note-${sessionId}`
 
@@ -298,6 +299,19 @@ function regularTimeRecord(overrides: Record<string, unknown> = {}) {
     paused_at: null,
     created_at: '2026-05-15T10:00:00Z',
     updated_at: '2026-05-15T10:00:00Z',
+    ...overrides,
+  }
+}
+
+function sessionRecord(overrides: Record<string, unknown> = {}) {
+  return {
+    id: 7001,
+    client_id: 44,
+    client_record_id: null,
+    status: 'SCHEDULED',
+    slot_start_at: '2099-06-15T10:00:00Z',
+    slot_end_at: '2099-06-15T10:50:00Z',
+    session_format: 'online',
     ...overrides,
   }
 }
@@ -1312,6 +1326,17 @@ describe('TherapistClientsView', () => {
           },
         ]
       if (url === REMINDERS_URL) return []
+      if (url === SESSIONS_URL)
+        return [
+          sessionRecord({
+            id: 7101,
+            client_id: 55,
+            status: 'SCHEDULED',
+            slot_start_at: '2099-06-20T10:00:00Z',
+            slot_end_at: '2099-06-20T10:50:00Z',
+            session_format: 'online',
+          }),
+        ]
       throw new Error(`Unexpected apiGet call: ${url}`)
     })
     mockedFetchSpecialistClientMaterials.mockResolvedValue([])
@@ -1364,7 +1389,13 @@ describe('TherapistClientsView', () => {
     expect(dialog).not.toHaveTextContent('У Phase 1 цей розділ залишається доступним у правій панелі')
 
     await fireEvent.click(within(dialog).getByRole('tab', { name: 'Сесії' }))
-    expect(within(dialog).getByText('Розділ буде перенесено в картку клієнта наступним кроком. Наявні робочі дані збережені без зміни API.')).toBeInTheDocument()
+    expect(within(dialog).getByRole('heading', { name: 'Сесії' })).toBeInTheDocument()
+    expect(await within(dialog).findByText('20.06.2099, 13:00')).toBeInTheDocument()
+    expect(within(dialog).getByText('50 хв · Формат: онлайн')).toBeInTheDocument()
+    expect(within(dialog).getByRole('link', { name: 'Відкрити сесію' })).toHaveAttribute(
+      'href',
+      '/cabinet/sessions/7101'
+    )
     expect(dialog).not.toHaveTextContent('У Phase 1 цей розділ залишається доступним у правій панелі')
 
     await selectClientRowByName(clientsPanel, 'First Client')
@@ -1422,6 +1453,90 @@ describe('TherapistClientsView', () => {
     expect(within(dialog).getByText('Створено вручну')).toBeInTheDocument()
     expect(dialog).not.toHaveTextContent('Тип картки')
     expect(dialog).not.toHaveTextContent('internal_note')
+  })
+
+  it('shows read-only sessions tab for manual client using client_record_id session rows', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL) return [manualClientRecord({ id: 622, display_name: 'Manual Sessions' })]
+      if (url === REMINDERS_URL) return []
+      if (url === SESSIONS_URL)
+        return [
+          sessionRecord({
+            id: 7201,
+            client_id: null,
+            client_record_id: 622,
+            status: 'CONFIRMED',
+            slot_start_at: '2099-07-01T09:00:00Z',
+            slot_end_at: '2099-07-01T09:50:00Z',
+            session_format: 'offline',
+          }),
+          sessionRecord({
+            id: 7202,
+            client_id: null,
+            client_record_id: 622,
+            status: 'COMPLETED',
+            slot_start_at: '2026-05-01T09:00:00Z',
+            slot_end_at: '2026-05-01T09:50:00Z',
+            session_format: 'online',
+          }),
+        ]
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedFetchSpecialistClientMaterials.mockResolvedValue([])
+
+    const { container } = renderView()
+    const { clientsPanel } = getPanels(container)
+
+    await selectClientRowByName(clientsPanel, 'Manual Sessions')
+    const dialog = await screen.findByRole('dialog', { name: 'Картка клієнта' })
+    await fireEvent.click(within(dialog).getByRole('tab', { name: 'Сесії' }))
+
+    expect(await within(dialog).findByText('01.07.2099, 12:00')).toBeInTheDocument()
+    expect(within(dialog).getByText('01.05.2026, 12:00')).toBeInTheDocument()
+    expect(within(dialog).getByText('Підтверджено')).toBeInTheDocument()
+    expect(within(dialog).getByText('Завершено')).toBeInTheDocument()
+    expect(within(dialog).getByText('50 хв · Формат: офлайн')).toBeInTheDocument()
+    expect(within(dialog).getByText('50 хв · Формат: онлайн')).toBeInTheDocument()
+    expect(within(dialog).getAllByRole('link', { name: 'Відкрити сесію' }).map((link) => link.getAttribute('href'))).toEqual([
+      '/cabinet/sessions/7201',
+      '/cabinet/sessions/7202',
+    ])
+    expect(dialog).not.toHaveTextContent('internal_note')
+    expect(dialog).not.toHaveTextContent('session note body')
+  })
+
+  it('shows truthful limited sessions summary for registered client without session ids', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL)
+        return [
+          {
+            id: 1,
+            client_id: 88,
+            state: 'ACTIVE',
+            last_session_at: '2026-05-15T11:00:00Z',
+            upcoming_count: 2,
+            client_display_name: 'Registered Limited Sessions',
+          },
+        ]
+      if (url === CLIENT_RECORDS_URL) return []
+      if (url === REMINDERS_URL) return []
+      if (url === SESSIONS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedFetchSpecialistClientMaterials.mockResolvedValue([])
+
+    const { container } = renderView()
+    const { clientsPanel } = getPanels(container)
+
+    await selectClientRowByName(clientsPanel, 'Registered Limited Sessions')
+    const dialog = await screen.findByRole('dialog', { name: 'Картка клієнта' })
+    await fireEvent.click(within(dialog).getByRole('tab', { name: 'Сесії' }))
+
+    expect(within(dialog).getByText('Деталі майбутніх сесій не передані в цю картку.')).toBeInTheDocument()
+    expect(within(dialog).getByText('Деталі останніх сесій не передані в цю картку.')).toBeInTheDocument()
+    expect(within(dialog).getByText(/Є 2 майбутні сесії; остання сесія:/)).toBeInTheDocument()
+    expect(within(dialog).queryByRole('link', { name: 'Відкрити сесію' })).not.toBeInTheDocument()
   })
 
   it('does not open client management modal when nested right-panel controls are clicked', async () => {

@@ -1604,6 +1604,88 @@
             </dl>
           </section>
 
+          <section v-else-if="clientManagementModal.section === 'sessions'" class="client-management-sessions">
+            <div class="client-management-modal__section-head">
+              <div>
+                <h3>Сесії</h3>
+                <p class="muted">Найближчі та останні сесії з цією карткою клієнта.</p>
+              </div>
+              <RouterLink class="btn btn--ghost btn--sm" to="/cabinet/sessions">
+                Усі сесії
+              </RouterLink>
+            </div>
+
+            <p v-if="clientSessionsLoadError && !clientSessionRows(clientManagementClient).length" class="form-error">
+              {{ clientSessionsLoadError }}
+            </p>
+
+            <div class="client-management-sessions__grid">
+              <section class="client-management-sessions__block">
+                <div class="client-management-sessions__block-head">
+                  <h4>Майбутні сесії</h4>
+                  <span class="muted">{{ clientUpcomingSessions(clientManagementClient).length }}</span>
+                </div>
+                <div v-if="clientUpcomingSessions(clientManagementClient).length" class="client-management-sessions__list">
+                  <article
+                    v-for="session in clientUpcomingSessions(clientManagementClient)"
+                    :key="`upcoming-${session.id}`"
+                    class="client-management-session"
+                  >
+                    <div>
+                      <div class="client-management-session__time">{{ formatDateTime(session.slot_start_at) }}</div>
+                      <div class="muted">{{ clientSessionMeta(session) }}</div>
+                    </div>
+                    <div class="client-management-session__side">
+                      <span class="client-management-session__status">{{ sessionStatusLabel(session.status) }}</span>
+                      <RouterLink
+                        v-if="session.id"
+                        class="btn btn--ghost btn--sm"
+                        :to="manualClientSessionRoute(session)"
+                      >
+                        Відкрити сесію
+                      </RouterLink>
+                    </div>
+                  </article>
+                </div>
+                <p v-else class="muted">{{ clientSessionsEmptyMessage(clientManagementClient, 'upcoming') }}</p>
+              </section>
+
+              <section class="client-management-sessions__block">
+                <div class="client-management-sessions__block-head">
+                  <h4>Останні сесії</h4>
+                  <span class="muted">{{ clientRecentSessions(clientManagementClient).length }}</span>
+                </div>
+                <div v-if="clientRecentSessions(clientManagementClient).length" class="client-management-sessions__list">
+                  <article
+                    v-for="session in clientRecentSessions(clientManagementClient)"
+                    :key="`recent-${session.id}`"
+                    class="client-management-session"
+                  >
+                    <div>
+                      <div class="client-management-session__time">{{ formatDateTime(session.slot_start_at) }}</div>
+                      <div class="muted">{{ clientSessionMeta(session) }}</div>
+                    </div>
+                    <div class="client-management-session__side">
+                      <span class="client-management-session__status">{{ sessionStatusLabel(session.status) }}</span>
+                      <RouterLink
+                        v-if="session.id"
+                        class="btn btn--ghost btn--sm"
+                        :to="manualClientSessionRoute(session)"
+                      >
+                        Відкрити сесію
+                      </RouterLink>
+                    </div>
+                  </article>
+                </div>
+                <p v-else class="muted">{{ clientSessionsEmptyMessage(clientManagementClient, 'recent') }}</p>
+              </section>
+            </div>
+
+            <p v-if="clientSessionsLimitedSummary(clientManagementClient)" class="client-management-sessions__limited">
+              {{ clientSessionsLimitedSummary(clientManagementClient) }}
+            </p>
+          </section>
+
           <section v-else-if="clientManagementModal.section === 'materials'" class="client-management-materials">
             <div class="client-management-modal__section-head">
               <div>
@@ -2297,6 +2379,8 @@ type SessionItem = {
   status: string
   slot_start_at: string
   slot_end_at: string
+  session_format?: SessionFormat | null
+  meeting_mode?: string | null
   client_name?: string | null
   client_username?: string | null
   client_display_name?: string | null
@@ -2410,6 +2494,8 @@ const workbookExpanded = ref<Record<number, boolean>>({})
 const workbookSavedMessage = ref<Record<number, string>>({})
 const workbookMissingByClient = ref<Record<number, boolean>>({})
 const sessionsCache = ref<SessionItem[] | null>(null)
+const sessionsCacheLoading = ref(false)
+const clientSessionsLoadError = ref('')
 const sessionClientNames = ref<Record<number, string>>({})
 const chatClientNames = ref<Record<number, string>>({})
 const journalLoading = ref<Set<number>>(new Set())
@@ -4244,6 +4330,9 @@ function openClientManagementModal(client: ClientListItem, section: ClientManage
   if (section === 'materials') {
     void ensureClientMaterialsLoaded(client)
   }
+  if (section === 'sessions') {
+    void loadSessionsIfNeeded().catch(() => [])
+  }
 }
 
 function closeClientManagementModal() {
@@ -4263,6 +4352,9 @@ function setClientManagementSection(section: ClientManagementSection) {
   }
   if (section === 'materials') {
     void ensureClientMaterialsLoaded(client)
+  }
+  if (section === 'sessions') {
+    void loadSessionsIfNeeded().catch(() => [])
   }
 }
 
@@ -4838,6 +4930,91 @@ function manualClientSessionRoute(session: SessionItem | null | undefined) {
   return `/cabinet/sessions/${session.id}`
 }
 
+function clientSessionRows(client: ClientListItem) {
+  const sessions = sessionsCache.value || []
+
+  if (isManualClientRecord(client)) {
+    return sessions
+      .filter((session) => relationSessionClientRecordId(session) === client.id)
+      .sort((a, b) => String(a.slot_start_at || '').localeCompare(String(b.slot_start_at || '')))
+  }
+
+  const clientId = relationClientId(client)
+  if (!clientId) return []
+
+  return sessions
+    .filter((session) => relationSessionClientId(session) === clientId)
+    .sort((a, b) => String(a.slot_start_at || '').localeCompare(String(b.slot_start_at || '')))
+}
+
+function clientUpcomingSessions(client: ClientListItem) {
+  const now = Date.now()
+
+  return clientSessionRows(client)
+    .filter((session) => {
+      const start = new Date(session.slot_start_at).getTime()
+      return isActiveSessionStatus(session.status) && Number.isFinite(start) && start > now
+    })
+    .slice(0, 5)
+}
+
+function isRecentSession(session: SessionItem) {
+  const status = String(session.status || '').toUpperCase()
+  if (['COMPLETED', 'CANCELLED', 'NO_SHOW'].includes(status)) return true
+  return isCompletedOrPastSession(session)
+}
+
+function clientRecentSessions(client: ClientListItem) {
+  return clientSessionRows(client)
+    .filter((session) => isRecentSession(session))
+    .sort((a, b) => String(b.slot_start_at || '').localeCompare(String(a.slot_start_at || '')))
+    .slice(0, 5)
+}
+
+function clientSessionsLimitedSummary(client: ClientListItem) {
+  if (isManualClientRecord(client) || clientSessionRows(client).length) return ''
+
+  const upcomingCount = Number(client.upcoming_count || 0)
+  const lastSessionLabel = optionalDateLabel(client.last_session_at, '')
+  const parts: string[] = []
+
+  if (upcomingCount > 0) parts.push(upcomingSessionsSummaryLabel(upcomingCount))
+  if (lastSessionLabel) parts.push(`остання сесія: ${lastSessionLabel}`)
+
+  if (!parts.length) return ''
+  return `${parts.join('; ')}. Детальні рядки з діями зʼявляться, коли ця картка отримає деталі сесій.`
+}
+
+function upcomingSessionsSummaryLabel(count: number) {
+  if (count === 1) return 'Є 1 майбутня сесія'
+  const mod10 = count % 10
+  const mod100 = count % 100
+  if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return `Є ${count} майбутні сесії`
+  return `Є ${count} майбутніх сесій`
+}
+
+function clientSessionsEmptyMessage(client: ClientListItem, group: 'upcoming' | 'recent') {
+  if (clientSessionsLimitedSummary(client)) {
+    return group === 'upcoming'
+      ? 'Деталі майбутніх сесій не передані в цю картку.'
+      : 'Деталі останніх сесій не передані в цю картку.'
+  }
+
+  return group === 'upcoming' ? 'Майбутніх сесій немає.' : 'Останніх сесій ще немає.'
+}
+
+function sessionFormatLabel(session: SessionItem) {
+  if (session.session_format === 'offline' || session.meeting_mode === 'OFFLINE') return 'Формат: офлайн'
+  if (session.session_format === 'online' || session.meeting_mode === 'ONLINE') return 'Формат: онлайн'
+  return ''
+}
+
+function clientSessionMeta(session: SessionItem) {
+  return [formatDuration(session.slot_start_at, session.slot_end_at), sessionFormatLabel(session)]
+    .filter(Boolean)
+    .join(' · ')
+}
+
 function rememberSessionClientNames(sessions: SessionItem[]) {
   const next = { ...sessionClientNames.value }
   sessions.forEach((session) => {
@@ -5114,7 +5291,8 @@ const SESSION_STATUS_LABELS: Record<string, string> = {
 }
 
 function sessionStatusLabel(status: string) {
-  return SESSION_STATUS_LABELS[status] || status
+  const normalized = String(status || '').toUpperCase()
+  return SESSION_STATUS_LABELS[normalized] || status || 'Статус не вказано'
 }
 
 const CLIENT_STATUS_LABELS: Record<ClientState['state'], string> = {
@@ -5738,10 +5916,20 @@ async function restoreManualClient(id: number) {
 
 async function loadSessionsIfNeeded() {
   if (sessionsCache.value) return sessionsCache.value
-  const resp = await apiGet<SessionItem[]>('/booking/sessions/')
-  sessionsCache.value = resp || []
-  rememberSessionClientNames(sessionsCache.value)
-  return sessionsCache.value
+  if (sessionsCacheLoading.value) return sessionsCache.value || []
+  sessionsCacheLoading.value = true
+  clientSessionsLoadError.value = ''
+  try {
+    const resp = await apiGet<SessionItem[]>('/booking/sessions/')
+    sessionsCache.value = resp || []
+    rememberSessionClientNames(sessionsCache.value)
+    return sessionsCache.value
+  } catch (err: any) {
+    clientSessionsLoadError.value = getApiErrorMessage(err, 'Не вдалося завантажити сесії клієнта.')
+    throw err
+  } finally {
+    sessionsCacheLoading.value = false
+  }
 }
 
 async function loadPendingNotes() {
@@ -7545,6 +7733,7 @@ onBeforeUnmount(() => {
 
 .client-management-overview,
 .client-management-contacts,
+.client-management-sessions,
 .client-management-materials,
 .client-management-modal__placeholder,
 .client-management-modal__empty {
@@ -7601,6 +7790,84 @@ onBeforeUnmount(() => {
 .client-management-contacts__item--secondary dd {
   color: var(--pc-text-muted);
   font-weight: 600;
+}
+
+.client-management-sessions__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 12px;
+}
+
+.client-management-sessions__block {
+  border: 1px solid color-mix(in srgb, var(--pc-border) 82%, #ffffff);
+  border-radius: 16px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.92);
+  display: grid;
+  align-content: start;
+  gap: 10px;
+}
+
+.client-management-sessions__block-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+}
+
+.client-management-sessions__block-head h4 {
+  margin: 0;
+  color: var(--pc-navy-900);
+  font-size: 15px;
+}
+
+.client-management-sessions__list {
+  display: grid;
+  gap: 8px;
+}
+
+.client-management-session {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+  border: 1px solid color-mix(in srgb, var(--pc-border) 74%, #ffffff);
+  border-radius: 14px;
+  padding: 10px;
+  background: color-mix(in srgb, var(--pc-bg-main) 42%, #ffffff);
+}
+
+.client-management-session__time {
+  color: var(--pc-navy-950);
+  font-weight: 800;
+}
+
+.client-management-session__side {
+  display: grid;
+  justify-items: end;
+  gap: 8px;
+  text-align: right;
+}
+
+.client-management-session__status {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  border-radius: 999px;
+  padding: 3px 9px;
+  background: color-mix(in srgb, var(--pc-blue-soft) 46%, #ffffff);
+  color: var(--pc-navy-900);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.client-management-sessions__limited {
+  border: 1px dashed color-mix(in srgb, var(--pc-border) 88%, #ffffff);
+  border-radius: 14px;
+  padding: 10px 12px;
+  background: color-mix(in srgb, var(--pc-bg-main) 62%, #ffffff);
+  color: var(--pc-text-muted);
+  font-size: 13px;
 }
 
 .client-management-materials__list {
