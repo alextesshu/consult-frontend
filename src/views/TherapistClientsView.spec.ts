@@ -156,6 +156,15 @@ function getClientRows(container: Element) {
   return Array.from(container.querySelectorAll('.client-row')) as HTMLElement[]
 }
 
+function expectSummaryCount(container: Element, label: string, value: number) {
+  const item = Array.from(container.querySelectorAll('.client-counts__item')).find((node) =>
+    node.textContent?.includes(label)
+  )
+  expect(item).toBeInstanceOf(HTMLElement)
+  expect(item).toHaveTextContent(label)
+  expect(item).toHaveTextContent(String(value))
+}
+
 async function selectClientRowByName(container: Element, name: string) {
   const row = await waitFor(() => {
     const item = getClientRows(container).find((node) => node.textContent?.includes(name))
@@ -176,6 +185,17 @@ async function openAccordionSection(scope: HTMLElement, name: string) {
   })
   await fireEvent.click(button)
   return button
+}
+
+async function openMaterialsManagement(scope: HTMLElement) {
+  const summary = await waitFor(() => {
+    const title = within(scope).getByText('Матеріали для клієнта')
+    const card = title.closest('.client-summary-card')
+    expect(card).toBeInstanceOf(HTMLElement)
+    return card as HTMLElement
+  })
+  await fireEvent.click(within(summary).getByRole('button', { name: 'Відкрити' }))
+  return screen.findByRole('dialog', { name: 'Картка клієнта' })
 }
 
 async function selectRegularTimeDate(scope: HTMLElement, isoDate: string) {
@@ -404,11 +424,7 @@ describe('TherapistClientsView', () => {
     const { container } = renderView()
     const { clientsPanel } = getPanels(container)
 
-    const retryButton = await waitFor(() => {
-      const button = clientsPanel.querySelector('.empty-state .btn')
-      expect(button).toBeInstanceOf(HTMLButtonElement)
-      return button as HTMLButtonElement
-    })
+    const retryButton = await within(clientsPanel).findByRole('button', { name: 'Спробувати ще раз' })
 
     await fireEvent.click(retryButton)
 
@@ -963,12 +979,12 @@ describe('TherapistClientsView', () => {
       expect(container.querySelector('a[href^="/cabinet/sessions#note-"]')).not.toBeInTheDocument()
     })
 
-    const historyButton = await waitFor(() => {
-      const button = container.querySelector('.client-card .client-actions button')
-      expect(button).toBeInstanceOf(HTMLButtonElement)
-      return button as HTMLButtonElement
+    const card = await waitFor(() => {
+      const node = container.querySelector('#client-card-44')
+      expect(node).toBeInstanceOf(HTMLElement)
+      return node as HTMLElement
     })
-    await fireEvent.click(historyButton)
+    await openAccordionSection(card, 'Приватний зошит')
 
     await waitFor(() => {
       expect(container.querySelector('.workbook-block')).toBeInTheDocument()
@@ -1054,6 +1070,68 @@ describe('TherapistClientsView', () => {
     })
   })
 
+  it('renders summary counts from currently loaded registered and manual clients', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL)
+        return [
+          {
+            id: 1,
+            client_id: 44,
+            state: 'ACTIVE',
+            last_session_at: null,
+            upcoming_count: 0,
+            client_display_name: 'Active Registered',
+          },
+          {
+            id: 2,
+            client_id: 55,
+            state: 'INACTIVE',
+            last_session_at: null,
+            upcoming_count: 0,
+            client_display_name: 'Inactive Registered',
+          },
+          {
+            id: 3,
+            client_id: 66,
+            state: 'ARCHIVED',
+            last_session_at: null,
+            upcoming_count: 0,
+            client_display_name: 'Archived Registered',
+          },
+        ]
+      if (url === CLIENT_RECORDS_URL)
+        return [
+          manualClientRecord({ id: 610, display_name: 'Manual Active', status: 'active' }),
+          manualClientRecord({ id: 611, display_name: 'Manual Linked', status: 'active', has_account: true, user_id: 700 }),
+          manualClientRecord({ id: 612, display_name: 'Manual Archived', status: 'archived' }),
+        ]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    const { container } = renderView()
+    const { clientsPanel } = getPanels(container)
+
+    await waitFor(() => {
+      expect(clientsPanel.querySelectorAll('.client-row')).toHaveLength(6)
+      expectSummaryCount(clientsPanel, 'Усього', 6)
+      expectSummaryCount(clientsPanel, 'Активні', 3)
+      expectSummaryCount(clientsPanel, 'Неактивні', 1)
+      expectSummaryCount(clientsPanel, 'З кабінетом', 4)
+      expectSummaryCount(clientsPanel, 'Без реєстрації', 2)
+      expectSummaryCount(clientsPanel, 'Архів', 2)
+    })
+
+    const searchInput = clientsPanel.querySelector('#clients-search-input') as HTMLInputElement
+    await fireEvent.update(searchInput, 'Manual Active')
+    await waitFor(() => {
+      expect(clientsPanel.querySelectorAll('.client-row')).toHaveLength(1)
+      expectSummaryCount(clientsPanel, 'Усього', 6)
+    })
+
+    expect(container).toHaveTextContent('Швидкий список клієнтів. Натисніть на рядок, щоб відкрити повну картку клієнта.')
+  })
+
   it('renders Ukrainian status badges and key client metadata without raw status values', async () => {
     mockedApiGet.mockImplementation(async (url) => {
       if (url === CLIENTS_URL)
@@ -1111,10 +1189,11 @@ describe('TherapistClientsView', () => {
     expect(within(firstCard).getByText('Остання нотатка')).toBeInTheDocument()
     expect(within(firstCard).getAllByText('Приватний зошит').length).toBeGreaterThan(0)
     expect(within(firstCard).getByText('Оновлено')).toBeInTheDocument()
-    expect(within(firstCard).getByRole('link', { name: 'Відкрити нотатку' })).toHaveAttribute(
-      'href',
-      '/cabinet/sessions#note-777'
-    )
+    const primaryActions = requireHTMLElement(firstCard.querySelector('.client-actions__primary'), '.client-actions__primary')
+    expect(within(primaryActions).getByRole('button', { name: 'Керувати клієнтом' })).toHaveClass('btn--sm')
+    expect(within(primaryActions).queryByRole('link', { name: 'Відкрити нотатку' })).not.toBeInTheDocument()
+    expect(within(primaryActions).queryByRole('button', { name: 'Відкрити приватний зошит' })).not.toBeInTheDocument()
+    expect(within(firstCard).queryByRole('button', { name: 'Відкрити зошит' })).not.toBeInTheDocument()
     expect(within(firstCard).getByText('Доступ, статус, завершення')).toBeInTheDocument()
     await openAccordionSection(firstCard, 'Керування клієнтом')
     expect(within(firstCard).getByRole('button', { name: 'Додати задачу' })).toBeInTheDocument()
@@ -1125,7 +1204,7 @@ describe('TherapistClientsView', () => {
     expect(clientsPanel).not.toHaveTextContent('ARCHIVED')
   })
 
-  it('renders compact rows and switches the single details panel on client selection', async () => {
+  it('renders compact rows and keeps the old selected-client panel out of the page layout', async () => {
     mockedApiGet.mockImplementation(async (url) => {
       if (url === CLIENTS_URL)
         return [
@@ -1157,15 +1236,34 @@ describe('TherapistClientsView', () => {
     await waitFor(() => {
       expect(clientsPanel.querySelectorAll('.client-row')).toHaveLength(2)
       expect(clientsPanel.querySelectorAll('.client-card')).toHaveLength(1)
+      expect(clientsPanel.querySelector('.clients-list-header')).toHaveTextContent('Клієнт')
+      expect(clientsPanel.querySelector('.clients-list-header')).toHaveTextContent('Контакт')
+      expect(clientsPanel.querySelector('.clients-list-header')).toHaveTextContent('Статус')
+      expect(clientsPanel.querySelector('.clients-list-header')).toHaveTextContent('Найближча сесія')
+      expect(clientsPanel.querySelector('.clients-list-header')).toHaveTextContent('Останнє')
+      expect(clientsPanel.querySelector('.client-detail')).toHaveClass('client-detail--legacy-cache')
       expect(clientsPanel.querySelector('.client-row--selected')).toHaveTextContent('First Client')
       expect(clientsPanel.querySelector('.client-card')).toHaveTextContent('First Client')
       expect(clientsPanel.querySelector('.client-card')).not.toHaveTextContent('Second Client')
     })
 
+    const firstRow = clientsPanel.querySelector('.client-row--selected') as HTMLElement
+    expect(firstRow).toHaveTextContent('First Client')
+    expect(firstRow.querySelector('.client-row__main')).toHaveTextContent('First Client')
+    expect(firstRow.querySelector('.client-row__contact')).toHaveTextContent('Немає контакту')
+    expect(firstRow.querySelector('.client-row__badges')).toHaveTextContent('З кабінетом')
+    expect(firstRow.querySelector('.client-row__badges')).toHaveTextContent('Активний')
+    expect(firstRow.querySelector('.client-row__next')).toHaveTextContent('1 майбутня сесія')
+    expect(firstRow.querySelector('.client-row__last')).toHaveTextContent('Немає оновлень')
+    expect(firstRow).not.toHaveTextContent('Контакт')
+    expect(firstRow).not.toHaveTextContent('Найближча')
+    expect(firstRow).not.toHaveTextContent('Останнє')
+
     await selectClientRowByName(clientsPanel, 'Second Client')
 
     await waitFor(() => {
       expect(clientsPanel.querySelectorAll('.client-card')).toHaveLength(1)
+      expect(clientsPanel.querySelector('.client-detail')).toHaveClass('client-detail--legacy-cache')
       expect(clientsPanel.querySelector('.client-row--selected')).toHaveTextContent('Second Client')
       expect(clientsPanel.querySelector('.client-row--selected')).toHaveAttribute('aria-current', 'true')
       expect(clientsPanel.querySelector('.client-card')).toHaveTextContent('Second Client')
@@ -1186,6 +1284,108 @@ describe('TherapistClientsView', () => {
       expect(selectedCard).not.toHaveTextContent('Клієнт не бачить ці записи')
       expect(selectedCard).toHaveTextContent('Нотаток по цьому клієнту ще немає.')
     })
+  })
+
+  it('opens client management modal when a registered client row is clicked and updates it for another client', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL)
+        return [
+          {
+            id: 1,
+            client_id: 44,
+            state: 'ACTIVE',
+            last_session_at: null,
+            upcoming_count: 1,
+            client_display_name: 'First Client',
+          },
+          {
+            id: 2,
+            client_id: 55,
+            state: 'ACTIVE',
+            last_session_at: null,
+            upcoming_count: 0,
+            client_display_name: 'Second Client',
+          },
+        ]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedFetchSpecialistClientMaterials.mockResolvedValue([])
+
+    const { container } = renderView()
+    const { clientsPanel } = getPanels(container)
+
+    expect(screen.queryByRole('dialog', { name: 'Картка клієнта' })).not.toBeInTheDocument()
+    await selectClientRowByName(clientsPanel, 'Second Client')
+
+    const dialog = await screen.findByRole('dialog', { name: 'Картка клієнта' })
+    expect(within(dialog).getByText('Second Client')).toBeInTheDocument()
+    expect(clientsPanel.querySelector('.client-row--selected')).toHaveTextContent('Second Client')
+
+    await selectClientRowByName(clientsPanel, 'First Client')
+
+    await waitFor(() => {
+      expect(within(dialog).getByText('First Client')).toBeInTheDocument()
+      expect(within(dialog).queryByText('Second Client')).not.toBeInTheDocument()
+      expect(clientsPanel.querySelector('.client-row--selected')).toHaveTextContent('First Client')
+    })
+  })
+
+  it('opens client management modal when a manual client row is clicked', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL)
+        return [
+          manualClientRecord({ id: 620, display_name: 'Manual First' }),
+          manualClientRecord({ id: 621, display_name: 'Manual Second' }),
+        ]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedFetchSpecialistClientMaterials.mockResolvedValue([])
+
+    const { container } = renderView()
+    const { clientsPanel } = getPanels(container)
+
+    expect(screen.queryByRole('dialog', { name: 'Картка клієнта' })).not.toBeInTheDocument()
+    await selectClientRowByName(clientsPanel, 'Manual Second')
+
+    const dialog = await screen.findByRole('dialog', { name: 'Картка клієнта' })
+    expect(within(dialog).getByText('Manual Second')).toBeInTheDocument()
+    expect(clientsPanel.querySelector('.client-row--selected')).toHaveTextContent('Manual Second')
+  })
+
+  it('does not open client management modal when nested right-panel controls are clicked', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL)
+        return [
+          {
+            id: 1,
+            client_id: 44,
+            state: 'ACTIVE',
+            last_session_at: null,
+            upcoming_count: 0,
+            client_display_name: 'Nested Control Client',
+          },
+        ]
+      if (url === REMINDERS_URL) return []
+      if (url === clientHistoryUrl(44)) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedFetchSpecialistClientMaterials.mockResolvedValue([])
+
+    const { container } = renderView()
+    const { clientsPanel } = getPanels(container)
+    const card = await waitFor(() => {
+      const node = clientsPanel.querySelector('#client-card-44')
+      expect(node).toBeInstanceOf(HTMLElement)
+      return node as HTMLElement
+    })
+
+    await openAccordionSection(card, 'Нотатки по сесіях')
+
+    expect(screen.queryByRole('dialog', { name: 'Картка клієнта' })).not.toBeInTheDocument()
+    expect(card).toHaveTextContent('Нотаток по цьому клієнту ще немає.')
   })
 
   it('places selected client details directly after the selected row in DOM order', async () => {
@@ -1420,17 +1620,16 @@ describe('TherapistClientsView', () => {
     const { clientsPanel } = getPanels(container)
 
     await waitFor(() => {
-      expect(clientsPanel).toHaveTextContent('Клієнтів поки немає')
+      expect(clientsPanel).toHaveTextContent('Клієнтів не знайдено')
       expect(clientsPanel).toHaveTextContent('Клієнти з’являться після перших консультацій')
-      expect(clientsPanel).toHaveTextContent(
-        'Додавайте клієнтів вручну, щоб швидко почати роботу. Коли буде потрібно, запросіть клієнта до кабінету — там він бачитиме розклад своїх сесій, нагадування, інформацію про оплату та матеріали.'
-      )
+      expect(within(clientsPanel).getByRole('button', { name: 'Додати клієнта' })).toBeInTheDocument()
+      expect(container).toHaveTextContent('Швидкий список клієнтів. Натисніть на рядок, щоб відкрити повну картку клієнта.')
     })
 
     const searchInput = clientsPanel.querySelector('#clients-search-input') as HTMLInputElement
     await fireEvent.update(searchInput, 'олена')
     await waitFor(() => {
-      expect(clientsPanel).toHaveTextContent('Нічого не знайдено')
+      expect(clientsPanel).toHaveTextContent('Клієнтів не знайдено')
       expect(clientsPanel).toHaveTextContent('Перевірте написання або змініть фільтр')
     })
 
@@ -1438,11 +1637,13 @@ describe('TherapistClientsView', () => {
     const filterButtons = clientsPanel.querySelectorAll('.filters button')
     await fireEvent.click(filterButtons[1] as HTMLButtonElement)
     await waitFor(() => {
-      expect(clientsPanel).toHaveTextContent('Активних клієнтів поки немає')
+      expect(clientsPanel).toHaveTextContent('Клієнтів не знайдено')
+      expect(clientsPanel).toHaveTextContent('Активні клієнти з’являться тут')
     })
     await fireEvent.click(filterButtons[3] as HTMLButtonElement)
     await waitFor(() => {
-      expect(clientsPanel).toHaveTextContent('Архів порожній')
+      expect(clientsPanel).toHaveTextContent('Клієнтів не знайдено')
+      expect(clientsPanel).toHaveTextContent('Архівовані клієнти зберігатимуться тут')
     })
   })
 
@@ -2402,12 +2603,101 @@ describe('TherapistClientsView', () => {
       return card as HTMLElement
     })
     expect(within(manualCard).getByText('Матеріали для клієнта')).toBeInTheDocument()
-    await openAccordionSection(manualCard, 'Матеріали для клієнта')
+    expect(within(manualCard).getByText('Клієнт побачить матеріали після підключення кабінету.')).toBeInTheDocument()
+    const dialog = await openMaterialsManagement(manualCard)
     expect(
-      within(manualCard).getByText(
-        'Клієнт побачить матеріали після підключення кабінету. Для клієнтів без кабінету спершу надішліть запрошення в “Керування клієнтом”.'
+      within(dialog).getByText(
+        'Клієнт побачить матеріали після підключення кабінету. Для клієнтів без кабінету спершу надішліть запрошення в розділі “Доступ”.'
       )
     ).toBeInTheDocument()
+  })
+
+  it('keeps right panel compact and opens full client management modal from selected manual client', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL) return [manualClientRecord({ id: 509, display_name: 'Manual Compact' })]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedFetchSpecialistClientMaterials.mockResolvedValue([
+      {
+        id: 930,
+        client_record_id: 509,
+        session_id: null,
+        status: 'published',
+        material_type: 'homework',
+        title: 'Breathing homework',
+        content: 'Short practice',
+        content_preview: 'Short practice',
+        url: null,
+        published_at: '2026-04-30T01:00:00Z',
+        revoked_at: null,
+        created_at: '2026-04-30T00:00:00Z',
+        updated_at: '2026-04-30T01:00:00Z',
+      } as any,
+    ])
+
+    const { container } = renderView()
+    const manualCard = await waitFor(() => {
+      const card = container.querySelector('#manual-client-record-509')
+      expect(card).toBeInstanceOf(HTMLElement)
+      return card as HTMLElement
+    })
+
+    expect(within(manualCard).getByText('Матеріали для клієнта')).toBeInTheDocument()
+    expect(manualCard.querySelector('.client-material')).toBeFalsy()
+    expect(manualCard.querySelector('.client-material input')).toBeFalsy()
+    expect(manualCard.querySelector('.client-material textarea')).toBeFalsy()
+    expect(await within(manualCard).findByText('1 матеріал')).toBeInTheDocument()
+    expect(within(manualCard).getByText('Останній матеріал: Breathing homework')).toBeInTheDocument()
+    const primaryActions = requireHTMLElement(manualCard.querySelector('.client-actions__primary'), '.client-actions__primary')
+    const primaryButtons = within(primaryActions).getAllByRole('button')
+    expect(primaryButtons[0]).toHaveTextContent('Керувати клієнтом')
+    expect(primaryButtons[0]).toHaveClass('btn--sm')
+    expect(within(primaryActions).queryByRole('link', { name: 'Відкрити нотатку' })).not.toBeInTheDocument()
+
+    await fireEvent.click(within(manualCard).getByRole('button', { name: 'Керувати клієнтом' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Картка клієнта' })
+    expect(within(dialog).getByText('Manual Compact')).toBeInTheDocument()
+    expect(within(dialog).getByRole('tab', { name: 'Огляд' })).toBeInTheDocument()
+    expect(within(dialog).getByRole('tab', { name: 'Матеріали' })).toBeInTheDocument()
+
+    await fireEvent.click(within(dialog).getByRole('tab', { name: 'Матеріали' }))
+    expect(await within(dialog).findByText('Breathing homework')).toBeInTheDocument()
+    expect(within(dialog).getByText('Домашнє завдання')).toBeInTheDocument()
+  })
+
+  it('opens full client management modal for registered client branch', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL)
+        return [
+          {
+            id: 1,
+            client_id: 45,
+            state: 'ACTIVE',
+            last_session_at: null,
+            upcoming_count: 0,
+            client_display_name: 'Registered Compact',
+          },
+        ]
+      if (url === CLIENT_RECORDS_URL) return []
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedFetchSpecialistClientMaterials.mockResolvedValue([])
+
+    const { container } = renderView()
+    const registeredCard = await waitFor(() => {
+      const card = container.querySelector('#client-card-45')
+      expect(card).toBeInstanceOf(HTMLElement)
+      return card as HTMLElement
+    })
+
+    expect(registeredCard.querySelector('.client-materials-summary')).toBeTruthy()
+    await fireEvent.click(within(registeredCard).getByRole('button', { name: 'Керувати клієнтом' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Картка клієнта' })
+    expect(within(dialog).getByText('Registered Compact')).toBeInTheDocument()
+    expect(within(dialog).getByRole('tab', { name: 'Матеріали' })).toBeInTheDocument()
   })
 
   it('creates draft material via specialist endpoint', async () => {
@@ -2426,10 +2716,12 @@ describe('TherapistClientsView', () => {
       expect(card).toBeInstanceOf(HTMLElement)
       return card as HTMLElement
     })
-    await openAccordionSection(manualCard, 'Матеріали для клієнта')
-    await fireEvent.update(within(manualCard).getByLabelText('Назва'), 'Новий матеріал')
-    await fireEvent.update(within(manualCard).getByLabelText('Текст'), 'Опис')
-    await fireEvent.click(within(manualCard).getByRole('button', { name: 'Додати матеріал' }))
+    const managementDialog = await openMaterialsManagement(manualCard)
+    await fireEvent.click(within(managementDialog).getByRole('button', { name: '+ Додати матеріал' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Новий матеріал для клієнта' })
+    await fireEvent.update(within(dialog).getByLabelText('Назва'), 'Новий матеріал')
+    await fireEvent.update(within(dialog).getByLabelText('Текст'), 'Опис')
+    await fireEvent.click(within(dialog).getByRole('button', { name: 'Зберегти' }))
 
     await waitFor(() => {
       expect(mockedCreateSpecialistClientMaterial).toHaveBeenCalledWith({
@@ -2440,6 +2732,65 @@ describe('TherapistClientsView', () => {
         url: null,
       })
     })
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog', { name: 'Новий матеріал для клієнта' })).not.toBeInTheDocument()
+    })
+  })
+
+  it('keeps add-material modal closed until requested and cancel resets it', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL) return [manualClientRecord({ id: 508 })]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedFetchSpecialistClientMaterials.mockResolvedValue([
+      {
+        id: 920,
+        client_record_id: 508,
+        session_id: null,
+        status: 'draft',
+        material_type: 'recommendation',
+        title: 'Existing advice',
+        content: 'Existing content',
+        content_preview: 'Existing content',
+        url: null,
+        published_at: null,
+        revoked_at: null,
+        created_at: '2026-04-30T00:00:00Z',
+        updated_at: '2026-04-30T00:00:00Z',
+      } as any,
+    ])
+
+    const { container } = renderView()
+    const { clientsPanel } = getPanels(container)
+    const manualCard = await waitFor(() => {
+      const card = clientsPanel.querySelector('#manual-client-record-508')
+      expect(card).toBeInstanceOf(HTMLElement)
+      return card as HTMLElement
+    })
+    const managementDialog = await openMaterialsManagement(manualCard)
+
+    expect(await within(managementDialog).findByText('Existing advice')).toBeInTheDocument()
+    expect(within(managementDialog).getByText('Рекомендація')).toBeInTheDocument()
+    expect(within(managementDialog).getByText('Чернетка')).toBeInTheDocument()
+    expect(within(managementDialog).getByText('Existing content')).toBeInTheDocument()
+    expect(manualCard.querySelector('.client-materials__create')).toBeFalsy()
+    expect(manualCard.querySelector('.client-material')).toBeFalsy()
+    expect(manualCard.querySelector('.client-material input')).toBeFalsy()
+
+    await fireEvent.click(within(managementDialog).getByRole('button', { name: '+ Додати матеріал' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Новий матеріал для клієнта' })
+    await fireEvent.update(within(dialog).getByLabelText('Назва'), 'Draft to cancel')
+    await fireEvent.click(within(dialog).getByRole('button', { name: 'Скасувати' }))
+
+    expect(manualCard.querySelector('.client-materials__create')).toBeFalsy()
+    expect(screen.queryByRole('dialog', { name: 'Новий матеріал для клієнта' })).not.toBeInTheDocument()
+    expect(within(managementDialog).getByText('Existing advice')).toBeInTheDocument()
+
+    await fireEvent.click(within(managementDialog).getByRole('button', { name: '+ Додати матеріал' }))
+    const reopenedDialog = await screen.findByRole('dialog', { name: 'Новий матеріал для клієнта' })
+    expect(within(reopenedDialog).getByLabelText('Назва')).toHaveValue('')
   })
 
   it('normalizes create material URL without protocol to https', async () => {
@@ -2458,16 +2809,13 @@ describe('TherapistClientsView', () => {
       expect(card).toBeInstanceOf(HTMLElement)
       return card as HTMLElement
     })
-    await openAccordionSection(manualCard, 'Матеріали для клієнта')
-    const createBlock = requireHTMLElement(manualCard.querySelector('.client-materials__create'), 'create block')
-    const titleInput = requireHTMLElement(createBlock.querySelector('input.input:not([type=\"url\"])'), 'title') as HTMLInputElement
-    const contentInput = requireHTMLElement(createBlock.querySelector('textarea'), 'content') as HTMLTextAreaElement
-    const urlInput = requireHTMLElement(createBlock.querySelector('input[type=\"url\"]'), 'url') as HTMLInputElement
-    const createButton = requireHTMLElement(createBlock.querySelector('button.btn'), 'create') as HTMLButtonElement
-    await fireEvent.update(titleInput, 'Link material')
-    await fireEvent.update(contentInput, 'Link content')
-    await fireEvent.update(urlInput, 'kendo.com.ua')
-    await fireEvent.click(createButton)
+    const managementDialog = await openMaterialsManagement(manualCard)
+    await fireEvent.click(within(managementDialog).getByRole('button', { name: '+ Додати матеріал' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Новий матеріал для клієнта' })
+    await fireEvent.update(within(dialog).getByLabelText('Назва'), 'Link material')
+    await fireEvent.update(within(dialog).getByLabelText('Текст'), 'Link content')
+    await fireEvent.update(within(dialog).getByLabelText(/URL/), 'kendo.com.ua')
+    await fireEvent.click(within(dialog).getByRole('button', { name: 'Зберегти' }))
 
     await waitFor(() => {
       expect(mockedCreateSpecialistClientMaterial).toHaveBeenCalledWith({
@@ -2513,28 +2861,24 @@ describe('TherapistClientsView', () => {
       expect(card).toBeInstanceOf(HTMLElement)
       return card as HTMLElement
     })
-    await openAccordionSection(manualCard, 'Матеріали для клієнта')
-    const createBlock = requireHTMLElement(manualCard.querySelector('.client-materials__create'), 'create block')
-    const titleInput = requireHTMLElement(createBlock.querySelector('input.input:not([type=\"url\"])'), 'title') as HTMLInputElement
-    const typeSelect = requireHTMLElement(createBlock.querySelector('select'), 'type') as HTMLSelectElement
-    const contentInput = requireHTMLElement(createBlock.querySelector('textarea'), 'content') as HTMLTextAreaElement
-    const createButton = requireHTMLElement(createBlock.querySelector('button.btn'), 'create') as HTMLButtonElement
-
-    await fireEvent.update(titleInput, 'Link title')
-    await fireEvent.change(typeSelect, { target: { value: 'link' } })
-    await fireEvent.update(contentInput, 'Link body')
-    await fireEvent.click(createButton)
+    const managementDialog = await openMaterialsManagement(manualCard)
+    await fireEvent.click(within(managementDialog).getByRole('button', { name: '+ Додати матеріал' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Новий матеріал для клієнта' })
+    await fireEvent.update(within(dialog).getByLabelText('Назва'), 'Link title')
+    await fireEvent.change(within(dialog).getByLabelText('Тип'), { target: { value: 'link' } })
+    await fireEvent.update(within(dialog).getByLabelText('Текст'), 'Link body')
+    await fireEvent.click(within(dialog).getByRole('button', { name: 'Зберегти' }))
 
     expect(mockedCreateSpecialistClientMaterial).not.toHaveBeenCalled()
     await waitFor(() => {
-      const createError = createBlock.querySelector('.form-error')
+      const createError = dialog.querySelector('.form-error')
       expect(createError).toBeTruthy()
       expect(createError?.textContent || '').toContain('Додайте посилання')
     })
-    const listBlockError = manualCard.querySelector('.client-materials__body > .form-error')
+    const listBlockError = managementDialog.querySelector('.client-management-materials > .form-error')
     expect(listBlockError).toBeFalsy()
-    const publishedMaterialTitleInput = manualCard.querySelector('.client-material input.input') as HTMLInputElement | null
-    expect(publishedMaterialTitleInput?.value).toBe('Published')
+    expect(manualCard.querySelector('.client-material input.input')).toBeFalsy()
+    expect(within(managementDialog).getByText('Published')).toBeInTheDocument()
   })
 
   it('localizes backend URL validation error in create form', async () => {
@@ -2556,22 +2900,17 @@ describe('TherapistClientsView', () => {
       expect(card).toBeInstanceOf(HTMLElement)
       return card as HTMLElement
     })
-    await openAccordionSection(manualCard, 'Матеріали для клієнта')
-    const createBlock = requireHTMLElement(manualCard.querySelector('.client-materials__create'), 'create block')
-    const titleInput = requireHTMLElement(createBlock.querySelector('input.input:not([type=\"url\"])'), 'title') as HTMLInputElement
-    const typeSelect = requireHTMLElement(createBlock.querySelector('select'), 'type') as HTMLSelectElement
-    const contentInput = requireHTMLElement(createBlock.querySelector('textarea'), 'content') as HTMLTextAreaElement
-    const urlInput = requireHTMLElement(createBlock.querySelector('input[type=\"url\"]'), 'url') as HTMLInputElement
-    const createButton = requireHTMLElement(createBlock.querySelector('button.btn'), 'create') as HTMLButtonElement
-
-    await fireEvent.update(titleInput, 'Link title')
-    await fireEvent.change(typeSelect, { target: { value: 'link' } })
-    await fireEvent.update(contentInput, 'Link body')
-    await fireEvent.update(urlInput, 'https://')
-    await fireEvent.click(createButton)
+    const managementDialog = await openMaterialsManagement(manualCard)
+    await fireEvent.click(within(managementDialog).getByRole('button', { name: '+ Додати матеріал' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Новий матеріал для клієнта' })
+    await fireEvent.update(within(dialog).getByLabelText('Назва'), 'Link title')
+    await fireEvent.change(within(dialog).getByLabelText('Тип'), { target: { value: 'link' } })
+    await fireEvent.update(within(dialog).getByLabelText('Текст'), 'Link body')
+    await fireEvent.update(within(dialog).getByLabelText(/URL/), 'https://')
+    await fireEvent.click(within(dialog).getByRole('button', { name: 'Зберегти' }))
 
     await waitFor(() => {
-      const createError = createBlock.querySelector('.form-error')
+      const createError = dialog.querySelector('.form-error')
       expect(createError).toBeTruthy()
       expect(createError?.textContent || '').toContain('Введіть коректне посилання')
     })
@@ -2628,27 +2967,26 @@ describe('TherapistClientsView', () => {
       expect(card).toBeInstanceOf(HTMLElement)
       return card as HTMLElement
     })
-    await openAccordionSection(manualCard, 'Матеріали для клієнта')
+    const managementDialog = await openMaterialsManagement(manualCard)
     const materials = await waitFor(() => {
-      const nodes = manualCard.querySelectorAll('.client-material')
+      const nodes = managementDialog.querySelectorAll('.client-material')
       expect(nodes.length).toBe(2)
       return nodes
     })
     const first = materials[0] as HTMLElement
     const second = materials[1] as HTMLElement
-    const firstUrl = requireHTMLElement(first.querySelector('input[type=\"url\"]'), 'first url') as HTMLInputElement
-    const firstSave = requireHTMLElement(first.querySelector('.client-material__actions button.btn--ghost'), 'first save') as HTMLButtonElement
-    await fireEvent.update(firstUrl, 'https://')
-    await fireEvent.click(firstSave)
+    await fireEvent.click(within(first).getByRole('button', { name: 'Редагувати' }))
+    const editDialog = await screen.findByRole('dialog', { name: 'Матеріал для клієнта' })
+    await fireEvent.update(within(editDialog).getByLabelText(/URL/), 'https://')
+    await fireEvent.click(within(editDialog).getByRole('button', { name: 'Зберегти' }))
     await waitFor(() => {
-      expect(first.querySelector('.form-error')?.textContent || '').toContain('Введіть коректне посилання')
+      expect(editDialog.querySelector('.form-error')?.textContent || '').toContain('Введіть коректне посилання')
     })
     expect(second.querySelector('.form-error')).toBeFalsy()
 
-    const firstPublish = within(first).getByRole('button', { name: 'Опублікувати для клієнта' })
-    await fireEvent.click(firstPublish)
+    await fireEvent.click(within(editDialog).getByRole('button', { name: 'Опублікувати' }))
     await waitFor(() => {
-      expect(first.textContent || '').toContain('publish failed')
+      expect(editDialog.textContent || '').toContain('publish failed')
     })
     expect(second.querySelector('.form-error')).toBeFalsy()
   })
@@ -2721,12 +3059,14 @@ describe('TherapistClientsView', () => {
       return card as HTMLElement
     })
 
-    await openAccordionSection(manualCard, 'Матеріали для клієнта')
-    await fireEvent.click(await within(manualCard).findByRole('button', { name: 'Опублікувати для клієнта' }))
+    const managementDialog = await openMaterialsManagement(manualCard)
+    await fireEvent.click(await within(managementDialog).findByRole('button', { name: 'Редагувати' }))
+    const editDialog = await screen.findByRole('dialog', { name: 'Матеріал для клієнта' })
+    await fireEvent.click(within(editDialog).getByRole('button', { name: 'Опублікувати' }))
     await waitFor(() => {
       expect(mockedPublishSpecialistClientMaterial).toHaveBeenCalledWith(900)
     })
-    await fireEvent.click(await within(manualCard).findByRole('button', { name: 'Відкликати доступ' }))
+    await fireEvent.click(await within(editDialog).findByRole('button', { name: 'Відкликати доступ' }))
     await waitFor(() => {
       expect(mockedRevokeSpecialistClientMaterial).toHaveBeenCalledWith(900)
     })
@@ -2759,10 +3099,10 @@ describe('TherapistClientsView', () => {
       return card as HTMLElement
     })
 
-    expect(registeredCard.querySelector('.client-materials')).toBeTruthy()
+    expect(registeredCard.querySelector('.client-materials-summary')).toBeTruthy()
     expect(registeredCard.querySelector('.client-materials__note')).toBeFalsy()
 
-    await openAccordionSection(registeredCard, 'Матеріали для клієнта')
+    await openMaterialsManagement(registeredCard)
 
     await waitFor(() => {
       expect(mockedFetchSpecialistClientMaterials).toHaveBeenCalledWith({ client_id: 44 })
@@ -2796,23 +3136,13 @@ describe('TherapistClientsView', () => {
       return card as HTMLElement
     })
 
-    await openAccordionSection(registeredCard, 'Матеріали для клієнта')
+    const managementDialog = await openMaterialsManagement(registeredCard)
+    await fireEvent.click(within(managementDialog).getByRole('button', { name: '+ Додати матеріал' }))
 
-    const createBlock = await waitFor(() => {
-      const node = registeredCard.querySelector('.client-materials__create')
-      expect(node).toBeTruthy()
-      return node as HTMLElement
-    })
-    const titleInput = createBlock.querySelector('input.input:not([type=\"url\"])')
-    const contentInput = createBlock.querySelector('textarea')
-    const createButton = createBlock.querySelector('button.btn')
-    expect(titleInput).toBeInstanceOf(HTMLInputElement)
-    expect(contentInput).toBeInstanceOf(HTMLTextAreaElement)
-    expect(createButton).toBeInstanceOf(HTMLButtonElement)
-
-    await fireEvent.update(titleInput as HTMLInputElement, 'Registered material')
-    await fireEvent.update(contentInput as HTMLTextAreaElement, 'Registered content')
-    await fireEvent.click(createButton as HTMLButtonElement)
+    const dialog = await screen.findByRole('dialog', { name: 'Новий матеріал для клієнта' })
+    await fireEvent.update(within(dialog).getByLabelText('Назва'), 'Registered material')
+    await fireEvent.update(within(dialog).getByLabelText('Текст'), 'Registered content')
+    await fireEvent.click(within(dialog).getByRole('button', { name: 'Зберегти' }))
 
     await waitFor(() => {
       expect(mockedCreateSpecialistClientMaterial).toHaveBeenCalledWith({
@@ -2861,15 +3191,16 @@ describe('TherapistClientsView', () => {
       return card as HTMLElement
     })
 
-    await openAccordionSection(registeredCard, 'Матеріали для клієнта')
-    const regCreate = requireHTMLElement(registeredCard.querySelector('.client-materials__create'), '.client-materials__create')
-    const regTitle = requireHTMLElement(regCreate.querySelector('input.input:not([type="url"])'), 'registered title') as HTMLInputElement
-    const regContent = requireHTMLElement(regCreate.querySelector('textarea'), 'registered content') as HTMLTextAreaElement
-    const regSubmit = requireHTMLElement(regCreate.querySelector('button.btn'), 'registered submit') as HTMLButtonElement
+    const registeredDialog = await openMaterialsManagement(registeredCard)
+    await fireEvent.click(within(registeredDialog).getByRole('button', { name: '+ Додати матеріал' }))
+    const regDialog = await screen.findByRole('dialog', { name: 'Новий матеріал для клієнта' })
 
-    await fireEvent.update(regTitle, 'Registered only title')
-    await fireEvent.update(regContent, 'Registered only content')
-    await fireEvent.click(regSubmit)
+    await fireEvent.update(within(regDialog).getByLabelText('Назва'), 'Registered only title')
+    await fireEvent.update(within(regDialog).getByLabelText('Текст'), 'Registered only content')
+    await fireEvent.click(within(regDialog).getByRole('button', { name: 'Зберегти' }))
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog', { name: 'Новий матеріал для клієнта' })).not.toBeInTheDocument()
+    })
 
     await selectClientRowByName(clientsPanel, 'Manual #1')
     const manualCard = await waitFor(() => {
@@ -2877,17 +3208,15 @@ describe('TherapistClientsView', () => {
       expect(card).toBeInstanceOf(HTMLElement)
       return card as HTMLElement
     })
-    await openAccordionSection(manualCard, 'Матеріали для клієнта')
-    const manCreate = requireHTMLElement(manualCard.querySelector('.client-materials__create'), '.client-materials__create')
-    const manTitle = requireHTMLElement(manCreate.querySelector('input.input:not([type="url"])'), 'manual title') as HTMLInputElement
-    const manContent = requireHTMLElement(manCreate.querySelector('textarea'), 'manual content') as HTMLTextAreaElement
-    const manSubmit = requireHTMLElement(manCreate.querySelector('button.btn'), 'manual submit') as HTMLButtonElement
-    expect(manTitle.value).toBe('')
-    expect(manContent.value).toBe('')
+    const manualDialog = await openMaterialsManagement(manualCard)
+    await fireEvent.click(within(manualDialog).getByRole('button', { name: '+ Додати матеріал' }))
+    const manDialog = await screen.findByRole('dialog', { name: 'Новий матеріал для клієнта' })
+    expect(within(manDialog).getByLabelText('Назва')).toHaveValue('')
+    expect(within(manDialog).getByLabelText('Текст')).toHaveValue('')
 
-    await fireEvent.update(manTitle, 'Manual only title')
-    await fireEvent.update(manContent, 'Manual only content')
-    await fireEvent.click(manSubmit)
+    await fireEvent.update(within(manDialog).getByLabelText('Назва'), 'Manual only title')
+    await fireEvent.update(within(manDialog).getByLabelText('Текст'), 'Manual only content')
+    await fireEvent.click(within(manDialog).getByRole('button', { name: 'Зберегти' }))
 
     await waitFor(() => {
       expect(mockedFetchSpecialistClientMaterials).toHaveBeenCalledWith({ client_id: 34 })
@@ -2934,6 +3263,7 @@ describe('TherapistClientsView', () => {
       } as any,
     ])
     mockedListClientMaterialAttachments.mockResolvedValueOnce([])
+    mockedListClientMaterialAttachments.mockResolvedValueOnce([])
     mockedListClientMaterialAttachments.mockResolvedValueOnce([
       {
         id: 3001,
@@ -2957,12 +3287,16 @@ describe('TherapistClientsView', () => {
       expect(card).toBeInstanceOf(HTMLElement)
       return card as HTMLElement
     })
-    await openAccordionSection(manualCard, 'Матеріали для клієнта')
-    expect(await within(manualCard).findByText('Файли')).toBeInTheDocument()
-    expect(within(manualCard).getByText('Додайте файл, якщо хочете передати клієнту документ, вправу або інструкцію.')).toBeInTheDocument()
-    expect(within(manualCard).getByText('Файлів ще немає')).toBeInTheDocument()
+    const managementDialog = await openMaterialsManagement(manualCard)
+    expect(await within(managementDialog).findByText('M1')).toBeInTheDocument()
+    expect(manualCard.querySelector('.client-material input')).toBeFalsy()
+    await fireEvent.click(within(managementDialog).getByRole('button', { name: 'Редагувати' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Матеріал для клієнта' })
+    expect(within(dialog).getByText('Прикріплені файли')).toBeInTheDocument()
+    expect(within(dialog).getByText('Додайте файл, якщо хочете передати клієнту документ, вправу або інструкцію.')).toBeInTheDocument()
+    expect(within(dialog).getByText('Файлів ще немає')).toBeInTheDocument()
 
-    const fileInput = manualCard.querySelector('input[type=\"file\"]') as HTMLInputElement
+    const fileInput = dialog.querySelector('input[type=\"file\"]') as HTMLInputElement
     expect(fileInput.multiple).toBe(true)
     const firstFile = new File(['x'], 'exercise.pdf', { type: 'application/pdf' })
     const secondFile = new File(['x'], 'instruction.txt', { type: 'text/plain' })
@@ -2971,9 +3305,12 @@ describe('TherapistClientsView', () => {
     await waitFor(() => {
       expect(mockedUploadClientMaterialAttachment).toHaveBeenNthCalledWith(1, 991, firstFile)
       expect(mockedUploadClientMaterialAttachment).toHaveBeenNthCalledWith(2, 991, secondFile)
-      expect(within(manualCard).getByText('exercise.pdf · 239 КБ')).toBeInTheDocument()
-      expect(within(manualCard).getByText('instruction.txt · 1 КБ')).toBeInTheDocument()
+      expect(within(dialog).getByText('exercise.pdf')).toBeInTheDocument()
+      expect(within(dialog).getByText('239 КБ')).toBeInTheDocument()
+      expect(within(dialog).getByText('instruction.txt')).toBeInTheDocument()
+      expect(within(dialog).getByText('1 КБ')).toBeInTheDocument()
     })
+    expect(dialog.querySelectorAll('.client-material__attachments-item').length).toBe(2)
     expect(fileInput.value).toBe('')
   })
 
@@ -3023,14 +3360,12 @@ describe('TherapistClientsView', () => {
       expect(card).toBeInstanceOf(HTMLElement)
       return card as HTMLElement
     })
-    await openAccordionSection(manualCard, 'Матеріали для клієнта')
+    const managementDialog = await openMaterialsManagement(manualCard)
     const materialCards = await waitFor(() => {
-      const nodes = manualCard.querySelectorAll('.client-material')
+      const nodes = managementDialog.querySelectorAll('.client-material')
       expect(nodes.length).toBe(2)
       return nodes
     })
-    const firstFile = materialCards[0]! .querySelector('input[type=\"file\"]') as HTMLInputElement
-    const secondFile = materialCards[1]! .querySelector('input[type=\"file\"]') as HTMLInputElement
     const bigFile = new File([new Uint8Array(21 * 1024 * 1024)], 'big.pdf', { type: 'application/pdf' })
     const badExt = new File(['x'], 'bad.exe', { type: 'application/octet-stream' })
     const validFile = new File(['x'], 'valid.pdf', { type: 'application/pdf' })
@@ -3039,22 +3374,32 @@ describe('TherapistClientsView', () => {
       response: { data: { code: 'ATTACHMENT_COUNT_LIMIT_REACHED' } },
     })
 
+    await fireEvent.click(within(materialCards[0] as HTMLElement).getByRole('button', { name: 'Додати файл' }))
+    const firstDialog = await screen.findByRole('dialog', { name: 'Матеріал для клієнта' })
+    const firstFile = firstDialog.querySelector('input[type=\"file\"]') as HTMLInputElement
     await fireEvent.change(firstFile, { target: { files: [bigFile, badExt, validFile] } })
     await waitFor(() => {
       expect(mockedUploadClientMaterialAttachment).toHaveBeenCalledWith(992, validFile)
-      expect(materialCards[0]! .textContent || '').toContain('Не всі файли вдалося додати:')
-      expect(materialCards[0]! .textContent || '').toContain('big.pdf: Файл завеликий. Максимальний розмір одного файлу — 20 МБ.')
-      expect(materialCards[0]! .textContent || '').toContain('bad.exe: Цей тип файлу не підтримується.')
+      expect(firstDialog.textContent || '').toContain('Не всі файли вдалося додати:')
+      expect(firstDialog.textContent || '').toContain('big.pdf: Файл завеликий. Максимальний розмір одного файлу — 20 МБ.')
+      expect(firstDialog.textContent || '').toContain('bad.exe: Цей тип файлу не підтримується.')
     })
     expect(materialCards[1]! .textContent || '').not.toContain('Файл завеликий')
     expect(firstFile.value).toBe('')
+    await fireEvent.click(within(firstDialog).getByRole('button', { name: 'Скасувати' }))
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog', { name: 'Матеріал для клієнта' })).not.toBeInTheDocument()
+    })
 
+    await fireEvent.click(within(materialCards[1] as HTMLElement).getByRole('button', { name: 'Додати файл' }))
+    const secondDialog = await screen.findByRole('dialog', { name: 'Матеріал для клієнта' })
+    const secondFile = secondDialog.querySelector('input[type=\"file\"]') as HTMLInputElement
     await fireEvent.change(secondFile, { target: { files: [badExt, validFile] } })
     await waitFor(() => {
       expect(mockedUploadClientMaterialAttachment).toHaveBeenCalledWith(993, validFile)
-      expect(materialCards[1]! .textContent || '').toContain('Не всі файли вдалося додати:')
-      expect(materialCards[1]! .textContent || '').toContain('bad.exe: Цей тип файлу не підтримується.')
-      expect(materialCards[1]! .textContent || '').toContain('valid.pdf: До одного матеріалу можна додати не більше 10 файлів.')
+      expect(secondDialog.textContent || '').toContain('Не всі файли вдалося додати:')
+      expect(secondDialog.textContent || '').toContain('bad.exe: Цей тип файлу не підтримується.')
+      expect(secondDialog.textContent || '').toContain('valid.pdf: До одного матеріалу можна додати не більше 10 файлів.')
     })
     expect(materialCards[0]! .textContent || '').not.toContain('До одного матеріалу можна додати не більше 10 файлів.')
     expect(secondFile.value).toBe('')
@@ -3100,11 +3445,14 @@ describe('TherapistClientsView', () => {
       expect(card).toBeInstanceOf(HTMLElement)
       return card as HTMLElement
     })
-    await openAccordionSection(manualCard, 'Матеріали для клієнта')
-    await fireEvent.click(await within(manualCard).findByRole('button', { name: 'Видалити файл' }))
+    const managementDialog = await openMaterialsManagement(manualCard)
+    expect(await within(manualCard).findByText('1 файл')).toBeInTheDocument()
+    await fireEvent.click(await within(managementDialog).findByRole('button', { name: 'Редагувати' }))
+    const dialog = await screen.findByRole('dialog', { name: 'Матеріал для клієнта' })
+    await fireEvent.click(await within(dialog).findByRole('button', { name: 'Видалити файл' }))
     await waitFor(() => {
       expect(mockedDeleteClientMaterialAttachment).toHaveBeenCalledWith(994, 4001)
-      expect(manualCard.textContent || '').toContain('Файл видалено')
+      expect(dialog.textContent || '').toContain('Файл видалено')
     })
   })
 

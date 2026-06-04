@@ -102,7 +102,8 @@ describe('ClientMaterialsView', () => {
       expect(mockedFetchClientMaterialDetail).toHaveBeenCalledWith(10)
       expect(screen.getByText('Файли доступні тільки для опублікованих матеріалів від спеціаліста.')).toBeInTheDocument()
       expect(screen.getByText('exercise.pdf')).toBeInTheDocument()
-      expect(screen.getByRole('button', { name: 'Завантажити файл' })).toBeInTheDocument()
+      expect(screen.getByText('239 КБ')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: 'Завантажити' })).toBeInTheDocument()
     })
   })
 
@@ -145,11 +146,12 @@ describe('ClientMaterialsView', () => {
 
     render(ClientMaterialsView)
     await fireEvent.click(await screen.findByRole('button', { name: 'Відкрити матеріал' }))
-    await fireEvent.click(await screen.findByRole('button', { name: 'Завантажити файл' }))
+    await fireEvent.click(await screen.findByRole('button', { name: 'Завантажити' }))
 
     expect(mockedGetClientMaterialAttachmentDownloadUrl).toHaveBeenCalledWith(10, 1)
     expect(window.open).toHaveBeenCalledWith('https://signed-url', '_blank', 'noopener,noreferrer')
     expect(screen.getByText('Файли доступні тільки для опублікованих матеріалів від спеціаліста.')).toBeInTheDocument()
+    expect(document.body.textContent || '').not.toContain('https://signed-url')
   })
 
   it('does not render raw signed URL visibly', async () => {
@@ -226,7 +228,7 @@ describe('ClientMaterialsView', () => {
 
     render(ClientMaterialsView)
     await fireEvent.click(await screen.findByRole('button', { name: 'Відкрити матеріал' }))
-    await fireEvent.click(await screen.findByRole('button', { name: 'Завантажити файл' }))
+    await fireEvent.click(await screen.findByRole('button', { name: 'Завантажити' }))
 
     expect(await screen.findByText('Не вдалося підготувати посилання для завантаження. Спробуйте пізніше.')).toBeInTheDocument()
   })
@@ -261,8 +263,9 @@ describe('ClientMaterialsView', () => {
 
     render(ClientMaterialsView)
     await fireEvent.click(await screen.findByRole('button', { name: 'Відкрити матеріал' }))
-    expect(await screen.findByText('До цього матеріалу немає прикріплених файлів.')).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Завантажити файл' })).not.toBeInTheDocument()
+    expect(await screen.findByText('Файлів до цього матеріалу немає.')).toBeInTheDocument()
+    expect(screen.getByText('Файли доступні тільки для опублікованих матеріалів від спеціаліста.')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Завантажити' })).not.toBeInTheDocument()
   })
 
   it('loads next page when next_cursor exists', async () => {
@@ -308,5 +311,3 @@ describe('ClientMaterialsView', () => {
     expect(mockedFetchClientMaterials).toHaveBeenNthCalledWith(2, 'cursor-2')
   })
 })
-
-

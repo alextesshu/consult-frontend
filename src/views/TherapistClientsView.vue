@@ -2,12 +2,17 @@
   <section class="clients">
     <header class="clients__hero">
       <div>
-        <h1 class="title clients__title">Робота з клієнтами</h1>
+        <h1 class="title clients__title">Клієнти</h1>
         <p class="muted clients__subtitle">
-          Управління статусами клієнтів та доступом до активної роботи.
+          Швидкий список клієнтів. Натисніть на рядок, щоб відкрити повну картку клієнта.
         </p>
       </div>
-      <RouterLink class="btn btn--ghost hero-back-link" to="/cabinet">Назад до кабінету</RouterLink>
+      <div class="clients__hero-actions">
+        <button class="btn btn--sm clients-add-btn" type="button" @click="openManualClientModal">
+          Додати клієнта
+        </button>
+        <RouterLink class="btn btn--ghost hero-back-link" to="/cabinet">Назад до кабінету</RouterLink>
+      </div>
     </header>
 
     <div v-if="error" class="form-error">{{ error }}</div>
@@ -86,17 +91,6 @@
     </section>
 
     <section class="panel panel--clients">
-      <div class="panel__header">
-        <div>
-          <h2 class="panel__title">Клієнти</h2>
-          <p class="clients-panel-hint">
-            Додавайте клієнтів вручну, щоб швидко почати роботу. Коли буде потрібно, запросіть клієнта до кабінету — там він бачитиме розклад своїх сесій, нагадування, інформацію про оплату та матеріали.
-          </p>
-        </div>
-        <button class="btn btn--sm clients-add-btn" type="button" @click="openManualClientModal">
-          Додати клієнта
-        </button>
-      </div>
       <div class="clients-toolbar">
         <div class="filters" aria-label="Фільтр клієнтів">
           <button class="filters__item" :class="{ 'is-active': filter === 'ALL' }" @click="setFilter('ALL')">
@@ -126,6 +120,13 @@
         </div>
       </div>
 
+      <div class="client-counts" aria-label="Підсумок клієнтів">
+        <div v-for="item in clientSummaryCounts" :key="item.key" class="client-counts__item">
+          <span class="client-counts__label">{{ item.label }}</span>
+          <span class="client-counts__value">{{ item.value }}</span>
+        </div>
+      </div>
+
       <LoadingSkeleton v-if="clientsLoading" variant="list" :count="4" height="110px" />
       <EmptyState
         v-else-if="clientsError"
@@ -140,8 +141,19 @@
         v-else-if="filteredClients.length === 0"
         :title="clientsEmptyTitle"
         :description="clientsEmptyDescription"
-      />
+      >
+        <template #actions>
+          <button class="btn btn--sm" type="button" @click="openManualClientModal">Додати клієнта</button>
+        </template>
+      </EmptyState>
       <div v-else class="clients-master-detail" aria-label="Список клієнтів">
+        <div class="clients-list-header" aria-hidden="true">
+          <span>Клієнт</span>
+          <span>Контакт</span>
+          <span>Статус</span>
+          <span>Найближча сесія</span>
+          <span>Останнє</span>
+        </div>
         <template v-for="client in filteredClients" :key="clientListKey(client)">
           <button
             :id="clientRowDomId(client)"
@@ -153,15 +165,16 @@
             }"
             type="button"
             :aria-current="isClientSelected(client) ? 'true' : undefined"
-            @click="selectClient(client)"
+            @click="openClientFromList(client)"
           >
-            <span class="client-row__main">
+            <span class="client-row__cell client-row__main">
               <span class="client-row__name">{{ displayClientName(client) }}</span>
               <span v-if="!isManualClientRecord(client) && client.client_code" class="client-row__code">
                 Код клієнта: {{ client.client_code }}
               </span>
             </span>
-            <span class="client-row__badges">
+            <span class="client-row__cell client-row__contact">{{ clientRowContactLabel(client) }}</span>
+            <span class="client-row__cell client-row__badges">
               <span class="client-account-badge" :class="{ 'client-account-badge--manual': isManualClientRecord(client) && !hasLinkedAccount(client) }">
                 {{ accountBadgeLabel(client) }}
               </span>
@@ -169,23 +182,11 @@
                 {{ clientStatusLabel(clientListState(client)) }}
               </span>
             </span>
-            <span class="client-row__meta">
-              <span>
-                <span class="client-row__label">Контакт</span>
-                <span>{{ clientPrimaryContact(client) }}</span>
-              </span>
-              <span>
-                <span class="client-row__label">Найближча</span>
-                <span>{{ clientNearestSessionLabel(client) }}</span>
-              </span>
-              <span>
-                <span class="client-row__label">Останнє</span>
-                <span>{{ clientLastActivityLabel(client) }}</span>
-              </span>
-            </span>
+            <span class="client-row__cell client-row__next">{{ clientNearestSessionLabel(client) }}</span>
+            <span class="client-row__cell client-row__last">{{ clientLastActivityLabel(client) }}</span>
           </button>
 
-        <aside v-if="isClientSelected(client)" class="client-detail" aria-live="polite">
+        <aside v-if="isClientSelected(client)" class="client-detail client-detail--legacy-cache" aria-live="polite">
         <article
           :id="clientCardDomId(client)"
           class="client-card"
@@ -298,18 +299,23 @@
             </dl>
           </div>
           <div v-if="isManualClientRecord(client)" class="client-actions">
-            <div v-if="client.status !== 'archived'" class="client-actions__primary">
+            <div class="client-actions__primary">
+              <button class="btn btn--sm" type="button" @click.stop="openClientManagementModal(client)">
+                Керувати клієнтом
+              </button>
+
               <button
-                class="btn btn--sm"
+                v-if="client.status !== 'archived'"
+                class="btn btn--ghost btn--sm"
                 type="button"
                 :disabled="isManualActionLoading(client.id)"
-                @click="openManualClientSessionModal(client)"
+                @click.stop="openManualClientSessionModal(client)"
               >
                 Створити сесію
               </button>
 
               <RouterLink
-                v-if="manualClientNearestSession(client)"
+                v-if="client.status !== 'archived' && manualClientNearestSession(client)"
                 class="btn btn--ghost btn--sm"
                 :to="manualClientSessionRoute(manualClientNearestSession(client))"
               >
@@ -317,7 +323,7 @@
               </RouterLink>
 
               <RouterLink
-                v-else-if="manualClientLastSession(client)"
+                v-else-if="client.status !== 'archived' && manualClientLastSession(client)"
                 class="btn btn--ghost btn--sm"
                 :to="manualClientSessionRoute(manualClientLastSession(client))"
               >
@@ -326,209 +332,28 @@
             </div>
 
             <div class="client-accordion">
-            <section class="client-accordion__section client-materials">
-              <button
-                class="client-accordion__header"
-                type="button"
-                :aria-expanded="isAccordionSectionOpen(client, 'materials')"
-                @click="toggleClientAccordion(client, 'materials')"
-              >
-                <span>Матеріали для клієнта</span>
-                <span class="client-accordion__summary">{{ accordionSummary(client, 'materials') }}</span>
-              </button>
-              <p v-if="isAccordionSectionOpen(client, 'materials') && isManualClientRecord(client) && !hasLinkedAccount(client)" class="client-materials__note">
-                Клієнт побачить матеріали після підключення кабінету. Для клієнтів без кабінету спершу надішліть запрошення в “Керування клієнтом”.
-              </p>
-              <div v-if="isAccordionSectionOpen(client, 'materials')" class="client-materials__body">
-                <p v-if="clientMaterialsState(clientMaterialsScopeKey(client) || '').listError" class="form-error">{{ clientMaterialsState(clientMaterialsScopeKey(client) || '').listError }}</p>
-                <div v-if="clientMaterialsState(clientMaterialsScopeKey(client) || '').loading" class="muted">Завантаження матеріалів...</div>
-                <div v-else class="client-materials__list">
-                  <article v-for="material in clientMaterialsState(clientMaterialsScopeKey(client) || '').items" :key="material.id" class="client-material">
-                    <div class="client-material__top">
-                      <span class="client-material__type">{{ materialTypeLabel(material.material_type) }}</span>
-                      <span class="material-status" :class="materialStatusClass(material.status)">{{ materialStatusLabel(material.status) }}</span>
-                    </div>
-                    <label class="field">
-                      Назва
-                      <input
-                        class="input"
-                        :value="materialFormById(clientMaterialsScopeKey(client) || '', material.id).title"
-                        @input="onMaterialTitleInput(clientMaterialsScopeKey(client) || '', material.id, $event)"
-                      />
-                    </label>
-                    <label class="field">
-                      Тип
-                      <select
-                        class="input input--select"
-                        :value="materialFormById(clientMaterialsScopeKey(client) || '', material.id).material_type"
-                        @change="onMaterialTypeInput(clientMaterialsScopeKey(client) || '', material.id, $event)"
-                      >
-                        <option value="recommendation">Рекомендація</option>
-                        <option value="homework">Домашнє завдання</option>
-                        <option value="exercise">Вправа</option>
-                        <option value="instruction">Інструкція</option>
-                        <option value="link">Посилання</option>
-                        <option value="document">Документ</option>
-                        <option value="other">Інше</option>
-                      </select>
-                    </label>
-                    <label class="field">
-                      Текст
-                      <textarea
-                        class="input manual-client-form__textarea"
-                        rows="4"
-                        :value="materialFormById(clientMaterialsScopeKey(client) || '', material.id).content"
-                        @input="onMaterialContentInput(clientMaterialsScopeKey(client) || '', material.id, $event)"
-                      ></textarea>
-                    </label>
-                    <label class="field">
-                      URL
-                      <input
-                        class="input"
-                        type="url"
-                        :value="materialFormById(clientMaterialsScopeKey(client) || '', material.id).url"
-                        @input="onMaterialUrlInput(clientMaterialsScopeKey(client) || '', material.id, $event)"
-                      />
-                    </label>
-                    <p v-if="clientMaterialsState(clientMaterialsScopeKey(client) || '').editErrorsById[material.id]" class="form-error">
-                      {{ clientMaterialsState(clientMaterialsScopeKey(client) || '').editErrorsById[material.id] }}
-                    </p>
-                    <p v-if="clientMaterialsState(clientMaterialsScopeKey(client) || '').actionErrorsById[material.id]" class="form-error">
-                      {{ clientMaterialsState(clientMaterialsScopeKey(client) || '').actionErrorsById[material.id] }}
-                    </p>
-                    <div class="client-material__actions">
-                      <button class="btn btn--ghost btn--sm" type="button" :disabled="clientMaterialsState(clientMaterialsScopeKey(client) || '').actionLoadingId === material.id" @click="saveMaterial(client, material.id)">
-                        Зберегти
-                      </button>
-                      <button
-                        v-if="material.status === 'draft'"
-                        class="btn btn--sm"
-                        type="button"
-                        :disabled="clientMaterialsState(clientMaterialsScopeKey(client) || '').actionLoadingId === material.id"
-                        @click="publishMaterial(client, material.id)"
-                      >
-                        Опублікувати для клієнта
-                      </button>
-                      <button
-                        v-if="material.status === 'published'"
-                        class="btn btn--ghost btn--sm"
-                        type="button"
-                        :disabled="clientMaterialsState(clientMaterialsScopeKey(client) || '').actionLoadingId === material.id"
-                        @click="revokeMaterial(client, material.id)"
-                      >
-                        Відкликати доступ
-                      </button>
-                      <a
-                        v-if="hasMaterialUrl(material)"
-                        class="btn btn--ghost btn--sm"
-                        :href="material.url || '#'"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        Відкрити посилання
-                      </a>
-                    </div>
-                    <div class="client-material__attachments">
-                      <div class="client-material__attachments-title">Файли</div>
-                      <p v-if="clientMaterialsState(clientMaterialsScopeKey(client) || '').attachmentErrorByMaterialId[material.id]" class="form-error">
-                        {{ clientMaterialsState(clientMaterialsScopeKey(client) || '').attachmentErrorByMaterialId[material.id] }}
-                      </p>
-                      <p v-if="clientMaterialsState(clientMaterialsScopeKey(client) || '').attachmentSuccessByMaterialId[material.id]" class="muted">
-                        {{ clientMaterialsState(clientMaterialsScopeKey(client) || '').attachmentSuccessByMaterialId[material.id] }}
-                      </p>
-                      <div class="client-material__attachments-upload">
-                        <label class="btn btn--ghost btn--sm">
-                          Додати файл
-                          <input
-                            class="sr-only"
-                            type="file"
-                            multiple
-                            :disabled="clientMaterialsState(clientMaterialsScopeKey(client) || '').attachmentUploadingByMaterialId[material.id]"
-                            @change="attachmentFileChange(clientMaterialsScopeKey(client) || '', material.id, $event)"
-                          />
-                        </label>
-                        <span v-if="clientMaterialsState(clientMaterialsScopeKey(client) || '').attachmentUploadingByMaterialId[material.id]" class="muted">Файл завантажується…</span>
-                      </div>
-                      <p class="muted">Додайте файл, якщо хочете передати клієнту документ, вправу або інструкцію.</p>
-                      <div v-if="clientMaterialsState(clientMaterialsScopeKey(client) || '').attachmentLoadingByMaterialId[material.id]" class="muted">
-                        Завантаження файлів...
-                      </div>
-                      <ul
-                        v-else-if="(clientMaterialsState(clientMaterialsScopeKey(client) || '').attachmentsByMaterialId[material.id] || []).length"
-                        class="client-material__attachments-list"
-                      >
-                        <li
-                          v-for="attachment in clientMaterialsState(clientMaterialsScopeKey(client) || '').attachmentsByMaterialId[material.id]"
-                          :key="attachment.id"
-                          class="client-material__attachments-item"
-                        >
-                          <span>{{ attachment.original_filename }} · {{ humanFileSize(attachment.size_bytes) }}</span>
-                          <button
-                            class="btn btn--ghost btn--sm"
-                            type="button"
-                            :disabled="Boolean(clientMaterialsState(clientMaterialsScopeKey(client) || '').attachmentDeletingByAttachmentId[attachment.id])"
-                            @click="deleteAttachment(clientMaterialsScopeKey(client) || '', material.id, attachment.id)"
-                          >
-                            Видалити файл
-                          </button>
-                        </li>
-                      </ul>
-                      <p v-else class="muted">Файлів ще немає</p>
-                    </div>
-                  </article>
+            <section class="client-summary-card client-materials-summary">
+              <div class="client-summary-card__top">
+                <div>
+                  <div class="client-summary-card__title">Матеріали для клієнта</div>
+                  <p class="client-summary-card__value">{{ clientMaterialsCompactSummary(client) }}</p>
                 </div>
-                <div class="client-materials__create">
-                  <h4>Додати матеріал</h4>
-                  <p v-if="clientMaterialsState(clientMaterialsScopeKey(client) || '').createError" class="form-error">
-                    {{ clientMaterialsState(clientMaterialsScopeKey(client) || '').createError }}
-                  </p>
-                  <label class="field">
-                    Назва
-                    <input
-                      class="input"
-                      :value="clientMaterialsState(clientMaterialsScopeKey(client) || '').create.title"
-                      @input="setCreateMaterialField(clientMaterialsScopeKey(client) || '', { title: String(($event.target as HTMLInputElement | null)?.value || '') })"
-                    />
-                  </label>
-                  <label class="field">
-                    Тип
-                    <select
-                      class="input input--select"
-                      :value="clientMaterialsState(clientMaterialsScopeKey(client) || '').create.material_type"
-                      @change="setCreateMaterialField(clientMaterialsScopeKey(client) || '', { material_type: String(($event.target as HTMLSelectElement | null)?.value || 'recommendation') as ClientMaterialType })"
-                    >
-                      <option value="recommendation">Рекомендація</option>
-                      <option value="homework">Домашнє завдання</option>
-                      <option value="exercise">Вправа</option>
-                      <option value="instruction">Інструкція</option>
-                      <option value="link">Посилання</option>
-                      <option value="document">Документ</option>
-                      <option value="other">Інше</option>
-                    </select>
-                  </label>
-                  <label class="field">
-                    Текст
-                    <textarea
-                      class="input manual-client-form__textarea"
-                      rows="4"
-                      :value="clientMaterialsState(clientMaterialsScopeKey(client) || '').create.content"
-                      @input="setCreateMaterialField(clientMaterialsScopeKey(client) || '', { content: String(($event.target as HTMLTextAreaElement | null)?.value || '') })"
-                    ></textarea>
-                  </label>
-                  <label class="field">
-                    URL
-                    <input
-                      class="input"
-                      type="url"
-                      :value="clientMaterialsState(clientMaterialsScopeKey(client) || '').create.url"
-                      @input="setCreateMaterialField(clientMaterialsScopeKey(client) || '', { url: String(($event.target as HTMLInputElement | null)?.value || '') })"
-                    />
-                  </label>
-                  <button class="btn btn--sm" type="button" :disabled="clientMaterialsState(clientMaterialsScopeKey(client) || '').saving" @click="createMaterial(client)">
-                    {{ clientMaterialsState(clientMaterialsScopeKey(client) || '').saving ? 'Зберігаємо...' : 'Додати матеріал' }}
-                  </button>
-                </div>
+                <button class="btn btn--ghost btn--sm" type="button" @click.stop="openClientManagementModal(client, 'materials')">
+                  Відкрити
+                </button>
               </div>
+              <p v-if="isManualClientRecord(client) && !hasLinkedAccount(client)" class="client-materials__note">
+                Клієнт побачить матеріали після підключення кабінету.
+              </p>
+              <p v-if="clientMaterialsState(clientMaterialsScopeKey(client) || '').listError" class="form-error">
+                {{ clientMaterialsState(clientMaterialsScopeKey(client) || '').listError }}
+              </p>
+              <p v-if="clientMaterialsLastTitle(client)" class="client-summary-card__hint">
+                Останній матеріал: {{ clientMaterialsLastTitle(client) }}
+              </p>
+              <p v-if="clientMaterialsCompactFileSummary(client)" class="client-summary-card__hint">
+                {{ clientMaterialsCompactFileSummary(client) }}
+              </p>
             </section>
 
             <section class="client-accordion__section client-regular-times">
@@ -1065,224 +890,30 @@
           </div>
           <div v-else class="client-actions">
             <div class="client-actions__primary">
-              <RouterLink
-                v-if="client.latest_session_note_session_id"
-                class="btn btn--sm"
-                :to="`/cabinet/sessions#note-${client.latest_session_note_session_id}`"
-              >
-                Відкрити нотатку
-              </RouterLink>
-              <button
-                v-else
-                class="btn btn--sm"
-                type="button"
-                :disabled="!relationClientId(client) || isHistoryLoading(relationClientId(client))"
-                @click="toggleHistory(relationClientId(client))"
-              >
-                Відкрити приватний зошит
+              <button class="btn btn--sm" type="button" @click.stop="openClientManagementModal(client)">
+                Керувати клієнтом
               </button>
             </div>
             <div class="client-accordion">
-            <section class="client-accordion__section client-materials">
-              <button
-                class="client-accordion__header"
-                type="button"
-                :aria-expanded="isAccordionSectionOpen(client, 'materials')"
-                @click="toggleClientAccordion(client, 'materials')"
-              >
-                <span>Матеріали для клієнта</span>
-                <span class="client-accordion__summary">{{ accordionSummary(client, 'materials') }}</span>
-              </button>
-              <div v-if="isAccordionSectionOpen(client, 'materials')" class="client-materials__body">
-                <p v-if="clientMaterialsState(clientMaterialsScopeKey(client) || '').listError" class="form-error">{{ clientMaterialsState(clientMaterialsScopeKey(client) || '').listError }}</p>
-                <div v-if="clientMaterialsState(clientMaterialsScopeKey(client) || '').loading" class="muted">Завантаження матеріалів...</div>
-                <div v-else class="client-materials__list">
-                  <article v-for="material in clientMaterialsState(clientMaterialsScopeKey(client) || '').items" :key="material.id" class="client-material">
-                    <div class="client-material__top">
-                      <span class="client-material__type">{{ materialTypeLabel(material.material_type) }}</span>
-                      <span class="material-status" :class="materialStatusClass(material.status)">{{ materialStatusLabel(material.status) }}</span>
-                    </div>
-                    <label class="field">
-                      Назва
-                      <input
-                        class="input"
-                        :value="materialFormById(clientMaterialsScopeKey(client) || '', material.id).title"
-                        @input="onMaterialTitleInput(clientMaterialsScopeKey(client) || '', material.id, $event)"
-                      />
-                    </label>
-                    <label class="field">
-                      Тип
-                      <select
-                        class="input input--select"
-                        :value="materialFormById(clientMaterialsScopeKey(client) || '', material.id).material_type"
-                        @change="onMaterialTypeInput(clientMaterialsScopeKey(client) || '', material.id, $event)"
-                      >
-                        <option value="recommendation">Рекомендація</option>
-                        <option value="homework">Домашнє завдання</option>
-                        <option value="exercise">Вправа</option>
-                        <option value="instruction">Інструкція</option>
-                        <option value="link">Посилання</option>
-                        <option value="document">Документ</option>
-                        <option value="other">Інше</option>
-                      </select>
-                    </label>
-                    <label class="field">
-                      Текст
-                      <textarea
-                        class="input manual-client-form__textarea"
-                        rows="4"
-                        :value="materialFormById(clientMaterialsScopeKey(client) || '', material.id).content"
-                        @input="onMaterialContentInput(clientMaterialsScopeKey(client) || '', material.id, $event)"
-                      ></textarea>
-                    </label>
-                    <label class="field">
-                      URL
-                      <input
-                        class="input"
-                        type="url"
-                        :value="materialFormById(clientMaterialsScopeKey(client) || '', material.id).url"
-                        @input="onMaterialUrlInput(clientMaterialsScopeKey(client) || '', material.id, $event)"
-                      />
-                    </label>
-                    <p v-if="clientMaterialsState(clientMaterialsScopeKey(client) || '').editErrorsById[material.id]" class="form-error">
-                      {{ clientMaterialsState(clientMaterialsScopeKey(client) || '').editErrorsById[material.id] }}
-                    </p>
-                    <p v-if="clientMaterialsState(clientMaterialsScopeKey(client) || '').actionErrorsById[material.id]" class="form-error">
-                      {{ clientMaterialsState(clientMaterialsScopeKey(client) || '').actionErrorsById[material.id] }}
-                    </p>
-                    <div class="client-material__actions">
-                      <button class="btn btn--ghost btn--sm" type="button" :disabled="clientMaterialsState(clientMaterialsScopeKey(client) || '').actionLoadingId === material.id" @click="saveMaterial(client, material.id)">
-                        Зберегти
-                      </button>
-                      <button
-                        v-if="material.status === 'draft'"
-                        class="btn btn--sm"
-                        type="button"
-                        :disabled="clientMaterialsState(clientMaterialsScopeKey(client) || '').actionLoadingId === material.id"
-                        @click="publishMaterial(client, material.id)"
-                      >
-                        Опублікувати для клієнта
-                      </button>
-                      <button
-                        v-if="material.status === 'published'"
-                        class="btn btn--ghost btn--sm"
-                        type="button"
-                        :disabled="clientMaterialsState(clientMaterialsScopeKey(client) || '').actionLoadingId === material.id"
-                        @click="revokeMaterial(client, material.id)"
-                      >
-                        Відкликати доступ
-                      </button>
-                      <a
-                        v-if="hasMaterialUrl(material)"
-                        class="btn btn--ghost btn--sm"
-                        :href="material.url || '#'"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        Відкрити посилання
-                      </a>
-                    </div>
-                    <div class="client-material__attachments">
-                      <div class="client-material__attachments-title">Файли</div>
-                      <p v-if="clientMaterialsState(clientMaterialsScopeKey(client) || '').attachmentErrorByMaterialId[material.id]" class="form-error">
-                        {{ clientMaterialsState(clientMaterialsScopeKey(client) || '').attachmentErrorByMaterialId[material.id] }}
-                      </p>
-                      <p v-if="clientMaterialsState(clientMaterialsScopeKey(client) || '').attachmentSuccessByMaterialId[material.id]" class="muted">
-                        {{ clientMaterialsState(clientMaterialsScopeKey(client) || '').attachmentSuccessByMaterialId[material.id] }}
-                      </p>
-                      <div class="client-material__attachments-upload">
-                        <label class="btn btn--ghost btn--sm">
-                          Додати файл
-                          <input
-                            class="sr-only"
-                            type="file"
-                            multiple
-                            :disabled="clientMaterialsState(clientMaterialsScopeKey(client) || '').attachmentUploadingByMaterialId[material.id]"
-                            @change="attachmentFileChange(clientMaterialsScopeKey(client) || '', material.id, $event)"
-                          />
-                        </label>
-                        <span v-if="clientMaterialsState(clientMaterialsScopeKey(client) || '').attachmentUploadingByMaterialId[material.id]" class="muted">Файл завантажується…</span>
-                      </div>
-                      <p class="muted">Додайте файл, якщо хочете передати клієнту документ, вправу або інструкцію.</p>
-                      <div v-if="clientMaterialsState(clientMaterialsScopeKey(client) || '').attachmentLoadingByMaterialId[material.id]" class="muted">
-                        Завантаження файлів...
-                      </div>
-                      <ul
-                        v-else-if="(clientMaterialsState(clientMaterialsScopeKey(client) || '').attachmentsByMaterialId[material.id] || []).length"
-                        class="client-material__attachments-list"
-                      >
-                        <li
-                          v-for="attachment in clientMaterialsState(clientMaterialsScopeKey(client) || '').attachmentsByMaterialId[material.id]"
-                          :key="attachment.id"
-                          class="client-material__attachments-item"
-                        >
-                          <span>{{ attachment.original_filename }} · {{ humanFileSize(attachment.size_bytes) }}</span>
-                          <button
-                            class="btn btn--ghost btn--sm"
-                            type="button"
-                            :disabled="Boolean(clientMaterialsState(clientMaterialsScopeKey(client) || '').attachmentDeletingByAttachmentId[attachment.id])"
-                            @click="deleteAttachment(clientMaterialsScopeKey(client) || '', material.id, attachment.id)"
-                          >
-                            Видалити файл
-                          </button>
-                        </li>
-                      </ul>
-                      <p v-else class="muted">Файлів ще немає</p>
-                    </div>
-                  </article>
+            <section class="client-summary-card client-materials-summary">
+              <div class="client-summary-card__top">
+                <div>
+                  <div class="client-summary-card__title">Матеріали для клієнта</div>
+                  <p class="client-summary-card__value">{{ clientMaterialsCompactSummary(client) }}</p>
                 </div>
-                <div class="client-materials__create">
-                  <h4>Додати матеріал</h4>
-                  <p v-if="clientMaterialsState(clientMaterialsScopeKey(client) || '').createError" class="form-error">
-                    {{ clientMaterialsState(clientMaterialsScopeKey(client) || '').createError }}
-                  </p>
-                  <label class="field">
-                    Назва
-                    <input
-                      class="input"
-                      :value="clientMaterialsState(clientMaterialsScopeKey(client) || '').create.title"
-                      @input="setCreateMaterialField(clientMaterialsScopeKey(client) || '', { title: String(($event.target as HTMLInputElement | null)?.value || '') })"
-                    />
-                  </label>
-                  <label class="field">
-                    Тип
-                    <select
-                      class="input input--select"
-                      :value="clientMaterialsState(clientMaterialsScopeKey(client) || '').create.material_type"
-                      @change="setCreateMaterialField(clientMaterialsScopeKey(client) || '', { material_type: String(($event.target as HTMLSelectElement | null)?.value || 'recommendation') as ClientMaterialType })"
-                    >
-                      <option value="recommendation">Рекомендація</option>
-                      <option value="homework">Домашнє завдання</option>
-                      <option value="exercise">Вправа</option>
-                      <option value="instruction">Інструкція</option>
-                      <option value="link">Посилання</option>
-                      <option value="document">Документ</option>
-                      <option value="other">Інше</option>
-                    </select>
-                  </label>
-                  <label class="field">
-                    Текст
-                    <textarea
-                      class="input manual-client-form__textarea"
-                      rows="4"
-                      :value="clientMaterialsState(clientMaterialsScopeKey(client) || '').create.content"
-                      @input="setCreateMaterialField(clientMaterialsScopeKey(client) || '', { content: String(($event.target as HTMLTextAreaElement | null)?.value || '') })"
-                    ></textarea>
-                  </label>
-                  <label class="field">
-                    URL
-                    <input
-                      class="input"
-                      type="url"
-                      :value="clientMaterialsState(clientMaterialsScopeKey(client) || '').create.url"
-                      @input="setCreateMaterialField(clientMaterialsScopeKey(client) || '', { url: String(($event.target as HTMLInputElement | null)?.value || '') })"
-                    />
-                  </label>
-                  <button class="btn btn--sm" type="button" :disabled="clientMaterialsState(clientMaterialsScopeKey(client) || '').saving" @click="createMaterial(client)">
-                    {{ clientMaterialsState(clientMaterialsScopeKey(client) || '').saving ? 'Зберігаємо...' : 'Додати матеріал' }}
-                  </button>
-                </div>
+                <button class="btn btn--ghost btn--sm" type="button" @click.stop="openClientManagementModal(client, 'materials')">
+                  Відкрити
+                </button>
               </div>
+              <p v-if="clientMaterialsState(clientMaterialsScopeKey(client) || '').listError" class="form-error">
+                {{ clientMaterialsState(clientMaterialsScopeKey(client) || '').listError }}
+              </p>
+              <p v-if="clientMaterialsLastTitle(client)" class="client-summary-card__hint">
+                Останній матеріал: {{ clientMaterialsLastTitle(client) }}
+              </p>
+              <p v-if="clientMaterialsCompactFileSummary(client)" class="client-summary-card__hint">
+                {{ clientMaterialsCompactFileSummary(client) }}
+              </p>
             </section>
 
             <section class="client-accordion__section client-regular-times">
@@ -1895,6 +1526,164 @@
     />
 
     <div
+      v-if="clientManagementModal.open && clientManagementClient"
+      class="manual-client-modal client-management-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="client-management-title"
+    >
+      <button
+        class="manual-client-modal__backdrop"
+        type="button"
+        aria-label="Закрити картку клієнта"
+        @click="closeClientManagementModal"
+      ></button>
+      <div class="manual-client-modal__content client-management-modal__content">
+        <div class="manual-client-modal__header client-management-modal__header">
+          <div>
+            <div class="badge badge--soft">Клієнт</div>
+            <h2 id="client-management-title" class="manual-client-modal__title">Картка клієнта</h2>
+            <p class="muted">{{ displayClientName(clientManagementClient) }}</p>
+          </div>
+          <button class="btn btn--ghost btn--sm" type="button" @click="closeClientManagementModal">
+            Закрити
+          </button>
+        </div>
+
+        <div class="client-management-modal__tabs" role="tablist" aria-label="Розділи картки клієнта">
+          <button
+            v-for="tab in clientManagementTabs"
+            :key="tab.key"
+            class="client-management-modal__tab"
+            :class="{ 'is-active': clientManagementModal.section === tab.key }"
+            type="button"
+            role="tab"
+            :aria-selected="clientManagementModal.section === tab.key"
+            @click="setClientManagementSection(tab.key)"
+          >
+            {{ tab.label }}
+          </button>
+        </div>
+
+        <div class="client-management-modal__body">
+          <section v-if="clientManagementModal.section === 'overview'" class="client-management-overview">
+            <div class="client-management-overview__grid">
+              <div class="client-summary-card">
+                <div class="client-summary-card__title">Статус</div>
+                <p class="client-summary-card__value">{{ clientStatusLabel(clientListState(clientManagementClient)) }}</p>
+                <p class="client-summary-card__hint">{{ accountBadgeLabel(clientManagementClient) }}</p>
+              </div>
+              <div class="client-summary-card">
+                <div class="client-summary-card__title">Матеріали</div>
+                <p class="client-summary-card__value">{{ clientMaterialsCompactSummary(clientManagementClient) }}</p>
+                <p v-if="clientMaterialsCompactFileSummary(clientManagementClient)" class="client-summary-card__hint">
+                  {{ clientMaterialsCompactFileSummary(clientManagementClient) }}
+                </p>
+              </div>
+              <div class="client-summary-card">
+                <div class="client-summary-card__title">Регулярний час</div>
+                <p class="client-summary-card__value">{{ accordionSummary(clientManagementClient, 'regularTime') }}</p>
+              </div>
+              <div class="client-summary-card">
+                <div class="client-summary-card__title">Нотатки</div>
+                <p class="client-summary-card__value">{{ accordionSummary(clientManagementClient, 'sessionNotes') || latestNoteSummary(clientManagementClient) }}</p>
+              </div>
+            </div>
+            <button class="btn btn--sm" type="button" @click="setClientManagementSection('materials')">
+              Перейти до матеріалів
+            </button>
+          </section>
+
+          <section v-else-if="clientManagementModal.section === 'materials'" class="client-management-materials">
+            <div class="client-management-modal__section-head">
+              <div>
+                <h3>Матеріали</h3>
+                <p class="muted">
+                  Поради, домашні завдання та інструкції, які явно створені як матеріали для клієнта.
+                </p>
+              </div>
+              <button
+                class="btn btn--sm"
+                type="button"
+                @click="openMaterialCreator(clientManagementClient)"
+              >
+                + Додати матеріал
+              </button>
+            </div>
+            <p v-if="isManualClientRecord(clientManagementClient) && !hasLinkedAccount(clientManagementClient)" class="client-materials__note">
+              Клієнт побачить матеріали після підключення кабінету. Для клієнтів без кабінету спершу надішліть запрошення в розділі “Доступ”.
+            </p>
+            <p v-if="clientMaterialsState(clientMaterialsScopeKey(clientManagementClient) || '').listError" class="form-error">
+              {{ clientMaterialsState(clientMaterialsScopeKey(clientManagementClient) || '').listError }}
+            </p>
+            <div v-if="clientMaterialsState(clientMaterialsScopeKey(clientManagementClient) || '').loading" class="muted">
+              Завантаження матеріалів...
+            </div>
+            <div v-else-if="clientMaterialsState(clientMaterialsScopeKey(clientManagementClient) || '').items.length" class="client-materials__list client-management-materials__list">
+              <article
+                v-for="material in clientMaterialsState(clientMaterialsScopeKey(clientManagementClient) || '').items"
+                :key="material.id"
+                class="client-material"
+              >
+                <div class="client-material__top">
+                  <div class="client-material__summary">
+                    <h4 class="client-material__title">{{ material.title }}</h4>
+                    <div class="client-material__meta">
+                      <span class="client-material__type">{{ materialTypeLabel(material.material_type) }}</span>
+                      <span v-if="hasMaterialUrl(material)" class="client-material__meta-pill">Є посилання</span>
+                    </div>
+                  </div>
+                  <span class="material-status" :class="materialStatusClass(material.status)">{{ materialStatusLabel(material.status) }}</span>
+                </div>
+                <p v-if="clientMaterialsState(clientMaterialsScopeKey(clientManagementClient) || '').actionErrorsById[material.id]" class="form-error">
+                  {{ clientMaterialsState(clientMaterialsScopeKey(clientManagementClient) || '').actionErrorsById[material.id] }}
+                </p>
+                <p class="client-material__preview">{{ materialPreview(material) }}</p>
+                <div
+                  v-if="materialAttachmentCount(clientMaterialsScopeKey(clientManagementClient) || '', material.id) > 0"
+                  class="client-material__file-summary"
+                >
+                  {{ materialAttachmentSummary(clientMaterialsScopeKey(clientManagementClient) || '', material.id) }}
+                </div>
+                <div class="client-material__actions">
+                  <button class="btn btn--ghost btn--sm" type="button" @click="openMaterialEditor(clientManagementClient, material.id)">
+                    Редагувати
+                  </button>
+                  <button
+                    class="btn btn--ghost btn--sm"
+                    type="button"
+                    @click="openMaterialEditor(clientManagementClient, material.id, true)"
+                  >
+                    Додати файл
+                  </button>
+                  <button
+                    v-if="material.status === 'published'"
+                    class="btn btn--ghost btn--sm"
+                    type="button"
+                    :disabled="clientMaterialsState(clientMaterialsScopeKey(clientManagementClient) || '').actionLoadingId === material.id"
+                    @click="revokeMaterial(clientManagementClient, material.id)"
+                  >
+                    Відкликати доступ
+                  </button>
+                </div>
+              </article>
+            </div>
+            <div v-else class="client-management-modal__empty">
+              <p class="muted">Матеріалів ще немає.</p>
+            </div>
+          </section>
+
+          <section v-else class="client-management-modal__placeholder">
+            <h3>{{ clientManagementTabs.find((tab) => tab.key === clientManagementModal.section)?.label }}</h3>
+            <p class="muted">
+              У Phase 1 цей розділ залишається доступним у правій панелі. Повний перенос зробимо окремим кроком без зміни API.
+            </p>
+          </section>
+        </div>
+      </div>
+    </div>
+
+    <div
       v-if="archiveClientConfirm"
       class="manual-client-modal"
       role="dialog"
@@ -1965,6 +1754,155 @@
           </button>
         </div>
       </div>
+    </div>
+
+    <div
+      v-if="materialEditor.open && materialEditor.client"
+      class="manual-client-modal client-material-editor-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="client-material-editor-title"
+    >
+      <button
+        class="manual-client-modal__backdrop"
+        type="button"
+        aria-label="Закрити редактор матеріалу"
+        @click="closeMaterialEditor"
+      ></button>
+
+      <form class="manual-client-modal__content client-material-editor-modal__content" novalidate @submit.prevent="submitMaterialEditor">
+        <div class="manual-client-modal__header">
+          <div>
+            <div class="badge badge--soft">Матеріали</div>
+            <h2 id="client-material-editor-title" class="manual-client-modal__title">{{ materialEditorTitle }}</h2>
+          </div>
+          <button class="btn btn--ghost btn--sm" type="button" @click="closeMaterialEditor">
+            Закрити
+          </button>
+        </div>
+
+        <p v-if="materialEditorError" class="form-error">{{ materialEditorError }}</p>
+
+        <div class="manual-client-form client-material-editor-modal__form">
+          <label class="field">
+            Назва
+            <input
+              class="input"
+              :value="materialEditorDraft.title"
+              @input="setMaterialEditorField({ title: String(($event.target as HTMLInputElement | null)?.value || '') })"
+            />
+          </label>
+          <label class="field">
+            Тип
+            <select
+              class="input input--select"
+              :value="materialEditorDraft.material_type"
+              @change="setMaterialEditorField({ material_type: String(($event.target as HTMLSelectElement | null)?.value || 'recommendation') as ClientMaterialType })"
+            >
+              <option value="recommendation">Рекомендація</option>
+              <option value="homework">Домашнє завдання</option>
+              <option value="exercise">Вправа</option>
+              <option value="instruction">Інструкція</option>
+              <option value="link">Посилання</option>
+              <option value="document">Документ</option>
+              <option value="other">Інше</option>
+            </select>
+          </label>
+          <label class="field manual-client-form__note">
+            Текст
+            <textarea
+              class="input manual-client-form__textarea"
+              rows="7"
+              :value="materialEditorDraft.content"
+              @input="setMaterialEditorField({ content: String(($event.target as HTMLTextAreaElement | null)?.value || '') })"
+            ></textarea>
+          </label>
+          <label class="field manual-client-form__note field--secondary">
+            URL
+            <input
+              class="input"
+              type="url"
+              :value="materialEditorDraft.url"
+              @input="setMaterialEditorField({ url: String(($event.target as HTMLInputElement | null)?.value || '') })"
+            />
+            <span class="field-hint">Необовʼязково. Файл можна додати без посилання.</span>
+          </label>
+        </div>
+
+        <div class="client-material__attachments client-material-editor-modal__attachments">
+          <div class="client-material__attachments-title">Прикріплені файли</div>
+          <p v-if="materialEditor.mode === 'create'" class="muted">
+            Файли буде додано після створення матеріалу.
+          </p>
+          <p v-else class="muted">Додайте файл, якщо хочете передати клієнту документ, вправу або інструкцію.</p>
+          <p v-if="materialEditorAttachmentError" class="form-error">{{ materialEditorAttachmentError }}</p>
+          <p v-if="materialEditorAttachmentSuccess" class="muted">{{ materialEditorAttachmentSuccess }}</p>
+          <div class="client-material__attachments-upload">
+            <label class="btn btn--ghost btn--sm">
+              Додати файл
+              <input
+                class="sr-only"
+                type="file"
+                multiple
+                :disabled="materialEditorUploading"
+                @change="materialEditorFileChange"
+              />
+            </label>
+            <span v-if="materialEditorUploading" class="muted">Файл завантажується…</span>
+          </div>
+          <div v-if="materialEditor.mode === 'edit' && materialEditorAttachmentLoading" class="muted">
+            Завантаження файлів...
+          </div>
+          <ul v-else-if="materialEditorAttachmentRows.length" class="client-material__attachments-list">
+            <li
+              v-for="attachment in materialEditorAttachmentRows"
+              :key="attachment.key"
+              class="client-material__attachments-item"
+            >
+              <div class="client-material__attachment-main">
+                <span class="client-material__attachment-name">{{ attachment.name }}</span>
+                <span class="client-material__attachment-size">{{ attachment.size }}</span>
+              </div>
+              <button
+                class="btn btn--ghost btn--sm"
+                type="button"
+                :disabled="attachment.deleting"
+                @click="removeMaterialEditorAttachment(attachment)"
+              >
+                Видалити файл
+              </button>
+            </li>
+          </ul>
+          <p v-else class="muted">Файлів ще немає</p>
+        </div>
+
+        <div class="manual-client-modal__actions client-material-editor-modal__actions">
+          <button class="btn btn--sm" type="submit" :disabled="materialEditorSaving">
+            {{ materialEditorSaving ? 'Зберігаємо...' : 'Зберегти' }}
+          </button>
+          <button
+            v-if="materialEditor.mode === 'edit' && materialEditorMaterial?.status === 'draft'"
+            class="btn btn--sm"
+            type="button"
+            :disabled="materialEditorSaving || materialEditorActionLoading"
+            @click="publishMaterialFromEditor"
+          >
+            Опублікувати
+          </button>
+          <button
+            v-if="materialEditor.mode === 'edit' && materialEditorMaterial?.status === 'published'"
+            class="btn btn--ghost btn--sm"
+            type="button"
+            :disabled="materialEditorSaving || materialEditorActionLoading"
+            @click="revokeMaterialFromEditor"
+          >
+            Відкликати доступ
+          </button>
+          <button class="btn btn--ghost btn--sm" type="button" :disabled="materialEditorSaving" @click="closeMaterialEditor">
+            Скасувати
+          </button>
+        </div>
+      </form>
     </div>
 
     <div
@@ -2279,6 +2217,8 @@ type ClientMaterialsState = {
   actionErrorsById: Record<number, string>
   items: ClientMaterialSpecialistRecord[]
   create: ClientMaterialDraft
+  createAttachmentFiles: File[]
+  createAttachmentError: string
   editById: Record<number, ClientMaterialDraft>
   attachmentsByMaterialId: Record<number, ClientMaterialAttachment[]>
   attachmentLoadingByMaterialId: Record<number, boolean>
@@ -2287,6 +2227,24 @@ type ClientMaterialsState = {
   attachmentUploadingByMaterialId: Record<number, boolean>
   attachmentDeletingByAttachmentId: Record<number, boolean>
   open: boolean
+}
+
+type MaterialEditorState = {
+  open: boolean
+  mode: 'create' | 'edit'
+  scopeKey: string
+  client: ClientListItem | null
+  materialId: number | null
+  focusAttachments: boolean
+}
+
+type MaterialEditorAttachmentRow = {
+  key: string
+  id?: number
+  index?: number
+  name: string
+  size: string
+  deleting: boolean
 }
 
 type ClientRegularTimeDraft = {
@@ -2401,6 +2359,21 @@ type ClientAccordionSection =
   | 'sessionNotes'
   | 'settings'
 
+type ClientManagementSection =
+  | 'overview'
+  | 'sessions'
+  | 'materials'
+  | 'regularTime'
+  | 'workbook'
+  | 'sessionNotes'
+  | 'settings'
+
+type ClientManagementModalState = {
+  open: boolean
+  client: ClientListItem | null
+  section: ClientManagementSection
+}
+
 const clients = ref<ClientState[]>([])
 const manualClientRecords = ref<ManualClientRecord[]>([])
 const clientsLoading = ref(false)
@@ -2464,6 +2437,19 @@ const archiveClientConfirm = ref<ArchiveClientConfirmState | null>(null)
 const regularTimeUpdateConfirm = ref<RegularTimeUpdateConfirmState | null>(null)
 const accountInviteStateByRecordId = ref<Record<number, AccountInviteState>>({})
 const materialsStateByScopeKey = ref<Record<string, ClientMaterialsState>>({})
+const materialEditor = ref<MaterialEditorState>({
+  open: false,
+  mode: 'create',
+  scopeKey: '',
+  client: null,
+  materialId: null,
+  focusAttachments: false,
+})
+const clientManagementModal = ref<ClientManagementModalState>({
+  open: false,
+  client: null,
+  section: 'overview',
+})
 const regularTimesStateByScopeKey = ref<Record<string, ClientRegularTimesState>>({})
 const activatingClientRecordKey = ref<string | null>(null)
 const activateClientRecordErrors = ref<Record<string, string>>({})
@@ -2479,8 +2465,22 @@ let clientCardHighlightTimer: number | null = null
 const toast = useToast()
 const router = useRouter()
 
+const loadedClientItems = computed<ClientListItem[]>(() => [...clients.value, ...manualClientRecords.value])
+
+const clientSummaryCounts = computed(() => {
+  const items = loadedClientItems.value
+  return [
+    { key: 'total', label: 'Усього', value: items.length },
+    { key: 'active', label: 'Активні', value: items.filter((client) => clientListState(client) === 'ACTIVE').length },
+    { key: 'inactive', label: 'Неактивні', value: items.filter((client) => clientListState(client) === 'INACTIVE').length },
+    { key: 'with-account', label: 'З кабінетом', value: items.filter((client) => !isManualClientRecord(client) || hasLinkedAccount(client)).length },
+    { key: 'manual', label: 'Без реєстрації', value: items.filter((client) => isManualClientRecord(client) && !hasLinkedAccount(client)).length },
+    { key: 'archived', label: 'Архів', value: items.filter((client) => clientListState(client) === 'ARCHIVED').length },
+  ]
+})
+
 const filteredClients = computed(() => {
-  const items: ClientListItem[] = [...clients.value, ...manualClientRecords.value]
+  const items = loadedClientItems.value
   const byStatus =
     filter.value === 'ALL' ? items : items.filter((client) => clientListState(client) === filter.value)
   const query = normalizeSearchValue(searchQuery.value)
@@ -2499,16 +2499,11 @@ watch(filteredClients, (items) => {
   const firstClient = items[0]
   if (firstClient) {
     selectedClientKey.value = clientSelectionKey(firstClient)
+    void preloadClientCardSummary(firstClient)
   }
 })
 
-const clientsEmptyTitle = computed(() => {
-  if (searchQuery.value.trim()) return 'Нічого не знайдено'
-  if (filter.value === 'ACTIVE') return 'Активних клієнтів поки немає'
-  if (filter.value === 'INACTIVE') return 'Неактивних клієнтів поки немає'
-  if (filter.value === 'ARCHIVED') return 'Архів порожній'
-  return 'Клієнтів поки немає'
-})
+const clientsEmptyTitle = computed(() => 'Клієнтів не знайдено')
 
 const clientsEmptyDescription = computed(() => {
   if (searchQuery.value.trim()) return 'Перевірте написання або змініть фільтр, щоб побачити більше клієнтів.'
@@ -2559,8 +2554,112 @@ const manualSessionModalTitle = computed(() => {
   return `Створити сесію для ${displayClientName(client)}`
 })
 
+const clientManagementClient = computed(() => clientManagementModal.value.client)
+
+const clientManagementTabs: Array<{ key: ClientManagementSection; label: string }> = [
+  { key: 'overview', label: 'Огляд' },
+  { key: 'sessions', label: 'Сесії' },
+  { key: 'materials', label: 'Матеріали' },
+  { key: 'regularTime', label: 'Регулярний час' },
+  { key: 'workbook', label: 'Приватний зошит' },
+  { key: 'sessionNotes', label: 'Нотатки' },
+  { key: 'settings', label: 'Доступ' },
+]
+
 const manualSessionSubmitDisabled = computed(() => {
   return manualSessionSaving.value || manualSessionSlotsLoading.value || !manualSessionDraft.value.slot_id
+})
+
+const materialEditorTitle = computed(() =>
+  materialEditor.value.mode === 'create' ? 'Новий матеріал для клієнта' : 'Матеріал для клієнта'
+)
+
+const materialEditorMaterial = computed(() => {
+  const editor = materialEditor.value
+  if (editor.mode !== 'edit' || !editor.materialId) return null
+  return clientMaterialsState(editor.scopeKey).items.find((item) => item.id === editor.materialId) || null
+})
+
+const materialEditorDraft = computed(() => {
+  const editor = materialEditor.value
+  if (!editor.scopeKey) return defaultMaterialDraft()
+  if (editor.mode === 'create') return clientMaterialsState(editor.scopeKey).create
+  if (!editor.materialId) return defaultMaterialDraft()
+  return materialFormById(editor.scopeKey, editor.materialId)
+})
+
+const materialEditorError = computed(() => {
+  const editor = materialEditor.value
+  if (!editor.scopeKey) return ''
+  const state = clientMaterialsState(editor.scopeKey)
+  if (editor.mode === 'create') return state.createError
+  if (!editor.materialId) return ''
+  return state.actionErrorsById[editor.materialId] || state.editErrorsById[editor.materialId] || ''
+})
+
+const materialEditorAttachmentError = computed(() => {
+  const editor = materialEditor.value
+  if (!editor.scopeKey) return ''
+  const state = clientMaterialsState(editor.scopeKey)
+  if (editor.mode === 'create') return state.createAttachmentError
+  if (!editor.materialId) return ''
+  return state.attachmentErrorByMaterialId[editor.materialId] || ''
+})
+
+const materialEditorAttachmentSuccess = computed(() => {
+  const editor = materialEditor.value
+  if (!editor.scopeKey || editor.mode !== 'edit' || !editor.materialId) return ''
+  return clientMaterialsState(editor.scopeKey).attachmentSuccessByMaterialId[editor.materialId] || ''
+})
+
+const materialEditorUploading = computed(() => {
+  const editor = materialEditor.value
+  if (!editor.scopeKey) return false
+  if (editor.mode === 'create') return clientMaterialsState(editor.scopeKey).saving
+  if (!editor.materialId) return false
+  return Boolean(clientMaterialsState(editor.scopeKey).attachmentUploadingByMaterialId[editor.materialId])
+})
+
+const materialEditorAttachmentLoading = computed(() => {
+  const editor = materialEditor.value
+  if (!editor.scopeKey || editor.mode !== 'edit' || !editor.materialId) return false
+  return Boolean(clientMaterialsState(editor.scopeKey).attachmentLoadingByMaterialId[editor.materialId])
+})
+
+const materialEditorSaving = computed(() => {
+  const editor = materialEditor.value
+  if (!editor.scopeKey) return false
+  const state = clientMaterialsState(editor.scopeKey)
+  return editor.mode === 'create' ? state.saving : Boolean(editor.materialId && state.actionLoadingId === editor.materialId)
+})
+
+const materialEditorActionLoading = computed(() => {
+  const editor = materialEditor.value
+  if (!editor.scopeKey || !editor.materialId) return false
+  return clientMaterialsState(editor.scopeKey).actionLoadingId === editor.materialId
+})
+
+const materialEditorAttachmentRows = computed<MaterialEditorAttachmentRow[]>(() => {
+  const editor = materialEditor.value
+  if (!editor.scopeKey) return []
+  const state = clientMaterialsState(editor.scopeKey)
+  if (editor.mode === 'create') {
+    return state.createAttachmentFiles.map((file, index) => ({
+      key: `pending:${index}:${file.name}`,
+      index,
+      name: materialAttachmentDisplayName({ original_filename: file.name, mime_type: file.type, size_bytes: file.size }),
+      size: humanFileSize(file.size),
+      deleting: state.saving,
+    }))
+  }
+  if (!editor.materialId) return []
+  return (state.attachmentsByMaterialId[editor.materialId] || []).map((attachment) => ({
+    key: `attachment:${attachment.id}`,
+    id: attachment.id,
+    name: materialAttachmentDisplayName(attachment),
+    size: humanFileSize(attachment.size_bytes),
+    deleting: Boolean(state.attachmentDeletingByAttachmentId[attachment.id]),
+  }))
 })
 
 const isActionLoading = (id: number) => actionLoading.value.has(id)
@@ -2840,6 +2939,8 @@ function defaultMaterialsState(): ClientMaterialsState {
     actionErrorsById: {},
     items: [],
     create: defaultMaterialDraft(),
+    createAttachmentFiles: [],
+    createAttachmentError: '',
     editById: {},
     attachmentsByMaterialId: {},
     attachmentLoadingByMaterialId: {},
@@ -3792,34 +3893,6 @@ function setMaterialFormById(scopeKey: string, materialId: number, patch: Partia
   })
 }
 
-function onMaterialTitleInput(scopeKey: string, materialId: number, event: Event) {
-  clearMaterialEditError(scopeKey, materialId)
-  setMaterialFormById(scopeKey, materialId, {
-    title: String((event.target as HTMLInputElement | null)?.value || ''),
-  })
-}
-
-function onMaterialTypeInput(scopeKey: string, materialId: number, event: Event) {
-  clearMaterialEditError(scopeKey, materialId)
-  setMaterialFormById(scopeKey, materialId, {
-    material_type: String((event.target as HTMLSelectElement | null)?.value || 'recommendation') as ClientMaterialType,
-  })
-}
-
-function onMaterialContentInput(scopeKey: string, materialId: number, event: Event) {
-  clearMaterialEditError(scopeKey, materialId)
-  setMaterialFormById(scopeKey, materialId, {
-    content: String((event.target as HTMLTextAreaElement | null)?.value || ''),
-  })
-}
-
-function onMaterialUrlInput(scopeKey: string, materialId: number, event: Event) {
-  clearMaterialEditError(scopeKey, materialId)
-  setMaterialFormById(scopeKey, materialId, {
-    url: String((event.target as HTMLInputElement | null)?.value || ''),
-  })
-}
-
 function setCreateMaterialField(
   scopeKey: string,
   patch: Partial<ClientMaterialDraft>
@@ -3834,6 +3907,204 @@ function setCreateMaterialField(
       ...patch,
     },
   })
+}
+
+function openMaterialCreator(client: ClientListItem) {
+  const scopeKey = clientMaterialsScopeKey(client)
+  if (!scopeKey) return
+  updateClientMaterialsState(scopeKey, {
+    createError: '',
+    createAttachmentError: '',
+    createAttachmentFiles: [],
+  })
+  materialEditor.value = {
+    open: true,
+    mode: 'create',
+    scopeKey,
+    client,
+    materialId: null,
+    focusAttachments: false,
+  }
+}
+
+function openMaterialEditor(client: ClientListItem, materialId: number, focusAttachments = false) {
+  const scopeKey = clientMaterialsScopeKey(client)
+  if (!scopeKey) return
+  materialFormById(scopeKey, materialId)
+  clearMaterialEditError(scopeKey, materialId)
+  clearMaterialActionError(scopeKey, materialId)
+  clearAttachmentMessage(scopeKey, materialId)
+  materialEditor.value = {
+    open: true,
+    mode: 'edit',
+    scopeKey,
+    client,
+    materialId,
+    focusAttachments,
+  }
+  void loadMaterialAttachments(scopeKey, materialId)
+}
+
+function closeMaterialEditor() {
+  const editor = materialEditor.value
+  if (editor.scopeKey && editor.mode === 'create') {
+    updateClientMaterialsState(editor.scopeKey, {
+      create: defaultMaterialDraft(),
+      createError: '',
+      createAttachmentFiles: [],
+      createAttachmentError: '',
+    })
+  }
+  materialEditor.value = {
+    open: false,
+    mode: 'create',
+    scopeKey: '',
+    client: null,
+    materialId: null,
+    focusAttachments: false,
+  }
+}
+
+function setMaterialEditorField(patch: Partial<ClientMaterialDraft>) {
+  const editor = materialEditor.value
+  if (!editor.scopeKey) return
+  if (editor.mode === 'create') {
+    setCreateMaterialField(editor.scopeKey, patch)
+    return
+  }
+  if (!editor.materialId) return
+  clearMaterialEditError(editor.scopeKey, editor.materialId)
+  setMaterialFormById(editor.scopeKey, editor.materialId, patch)
+}
+
+function createAttachmentFileChange(scopeKey: string, event: Event) {
+  const input = event.target as HTMLInputElement | null
+  const files = Array.from(input?.files || [])
+  if (!files.length) {
+    updateClientMaterialsState(scopeKey, { createAttachmentError: 'Оберіть файл для завантаження.' })
+    return
+  }
+
+  const validFiles: File[] = []
+  const errors: string[] = []
+  files.forEach((file) => {
+    const validationError = attachmentValidationErrorMessage(file)
+    if (validationError) {
+      errors.push(`${file.name}: ${validationError}`)
+    } else {
+      validFiles.push(file)
+    }
+  })
+
+  const state = clientMaterialsState(scopeKey)
+  updateClientMaterialsState(scopeKey, {
+    createAttachmentFiles: [...state.createAttachmentFiles, ...validFiles],
+    createAttachmentError: errors.length ? combinedAttachmentErrorMessage(errors) : '',
+  })
+  if (input) input.value = ''
+}
+
+function removePendingCreateAttachment(scopeKey: string, index: number) {
+  const state = clientMaterialsState(scopeKey)
+  updateClientMaterialsState(scopeKey, {
+    createAttachmentFiles: state.createAttachmentFiles.filter((_, fileIndex) => fileIndex !== index),
+  })
+}
+
+function materialEditorFileChange(event: Event) {
+  const editor = materialEditor.value
+  if (!editor.scopeKey) return
+  if (editor.mode === 'create') {
+    createAttachmentFileChange(editor.scopeKey, event)
+    return
+  }
+  if (!editor.materialId) return
+  attachmentFileChange(editor.scopeKey, editor.materialId, event)
+}
+
+function removeMaterialEditorAttachment(row: MaterialEditorAttachmentRow) {
+  const editor = materialEditor.value
+  if (!editor.scopeKey) return
+  if (editor.mode === 'create') {
+    if (typeof row.index === 'number') removePendingCreateAttachment(editor.scopeKey, row.index)
+    return
+  }
+  if (!editor.materialId || !row.id) return
+  void deleteAttachment(editor.scopeKey, editor.materialId, row.id)
+}
+
+function materialPreview(material: ClientMaterialSpecialistRecord): string {
+  const value = String(material.content_preview || material.content || '').trim()
+  if (!value) return 'Без опису'
+  return value.length > 140 ? `${value.slice(0, 137).trim()}...` : value
+}
+
+function materialAttachmentCount(scopeKey: string, materialId: number): number {
+  return (clientMaterialsState(scopeKey).attachmentsByMaterialId[materialId] || []).length
+}
+
+function materialAttachmentSummary(scopeKey: string, materialId: number): string {
+  return fileCountLabel(materialAttachmentCount(scopeKey, materialId))
+}
+
+function clientMaterialsCompactSummary(client: ClientListItem): string {
+  const scopeKey = clientMaterialsScopeKey(client)
+  if (!scopeKey) return 'Матеріали недоступні'
+  const state = clientMaterialsState(scopeKey)
+  if (state.loading) return 'Завантаження...'
+  return materialCountLabel(state.items.length)
+}
+
+function clientMaterialsLastTitle(client: ClientListItem): string {
+  const scopeKey = clientMaterialsScopeKey(client)
+  if (!scopeKey) return ''
+  const state = clientMaterialsState(scopeKey)
+  return state.items[0]?.title || ''
+}
+
+function clientMaterialsTotalAttachmentCount(client: ClientListItem): number {
+  const scopeKey = clientMaterialsScopeKey(client)
+  if (!scopeKey) return 0
+  const state = clientMaterialsState(scopeKey)
+  return state.items.reduce((count, material) => {
+    return count + (state.attachmentsByMaterialId[material.id] || []).length
+  }, 0)
+}
+
+function clientMaterialsCompactFileSummary(client: ClientListItem): string {
+  const count = clientMaterialsTotalAttachmentCount(client)
+  return count > 0 ? fileCountLabel(count) : ''
+}
+
+function fileCountLabel(count: number): string {
+  if (count === 1) return '1 файл'
+  if (count > 1 && count < 5) return `${count} файли`
+  return `${count} файлів`
+}
+
+function materialCountLabel(count: number): string {
+  if (count === 1) return '1 матеріал'
+  if (count > 1 && count < 5) return `${count} матеріали`
+  if (count > 0) return `${count} матеріалів`
+  return 'Матеріалів немає'
+}
+
+function materialAttachmentDisplayName(
+  attachment: Pick<ClientMaterialAttachment, 'original_filename' | 'mime_type' | 'size_bytes'>
+): string {
+  const rawName = String(attachment.original_filename || '').trim()
+  if (rawName && !isHashLikeFilename(rawName)) return rawName
+  const mimeType = String(attachment.mime_type || '').toLowerCase()
+  if (mimeType.startsWith('image/')) return 'Зображення'
+  if (mimeType.includes('pdf')) return 'Файл PDF'
+  if (mimeType.includes('text')) return 'Текстовий файл'
+  return 'Файл'
+}
+
+function isHashLikeFilename(value: string): boolean {
+  const name = value.split(/[\\/]/).pop() || value
+  const base = name.replace(/\.[a-z0-9]+$/i, '')
+  return base.length >= 20 && /^[a-f0-9_-]+$/i.test(base)
 }
 
 type ClientMaterialScope = { client_record_id?: number; client_id?: number }
@@ -3931,47 +4202,106 @@ async function toggleClientMaterials(client: ClientListItem) {
   }
 }
 
-async function createMaterial(client: ClientListItem) {
+async function ensureClientMaterialsLoaded(client: ClientListItem) {
   const scopeKey = clientMaterialsScopeKey(client)
   if (!scopeKey) return
   const scope = resolveClientMaterialScope(client)
   if (!scope) return
   const state = clientMaterialsState(scopeKey)
+  updateClientMaterialsState(scopeKey, { open: true })
+  if (!state.open && !state.items.length && !state.loading) {
+    await loadClientMaterials(scopeKey, scope)
+  }
+}
+
+function preloadClientCardSummary(client: ClientListItem) {
+  void ensureClientMaterialsLoaded(client)
+}
+
+function openClientManagementModal(client: ClientListItem, section: ClientManagementSection = 'overview') {
+  selectedClientKey.value = clientSelectionKey(client)
+  clientManagementModal.value = {
+    open: true,
+    client,
+    section,
+  }
+  void preloadClientCardSummary(client)
+  if (section === 'materials') {
+    void ensureClientMaterialsLoaded(client)
+  }
+}
+
+function closeClientManagementModal() {
+  clientManagementModal.value = {
+    open: false,
+    client: null,
+    section: 'overview',
+  }
+}
+
+function setClientManagementSection(section: ClientManagementSection) {
+  const client = clientManagementModal.value.client
+  if (!client) return
+  clientManagementModal.value = {
+    ...clientManagementModal.value,
+    section,
+  }
+  if (section === 'materials') {
+    void ensureClientMaterialsLoaded(client)
+  }
+}
+
+async function createMaterial(client: ClientListItem): Promise<ClientMaterialSpecialistRecord | null> {
+  const scopeKey = clientMaterialsScopeKey(client)
+  if (!scopeKey) return null
+  const scope = resolveClientMaterialScope(client)
+  if (!scope) return null
+  const state = clientMaterialsState(scopeKey)
   const draft = state.create
   if (!draft.title.trim() || !draft.content.trim()) {
     updateClientMaterialsState(scopeKey, { createError: 'Заповніть назву і текст матеріалу.' })
-    return
+    return null
   }
   if (draft.material_type === 'link' && !draft.url.trim()) {
     updateClientMaterialsState(scopeKey, { createError: 'Додайте посилання для матеріалу цього типу.' })
-    return
+    return null
   }
   const normalizedUrl = normalizeMaterialUrl(draft.url)
   updateClientMaterialsState(scopeKey, { saving: true, createError: '' })
   try {
-    await createSpecialistClientMaterial({
+    const pendingFiles = [...state.createAttachmentFiles]
+    const created = await createSpecialistClientMaterial({
       ...scope,
       title: draft.title.trim(),
       content: draft.content.trim(),
       material_type: draft.material_type,
       url: normalizedUrl || null,
     })
-    updateClientMaterialsState(scopeKey, { create: defaultMaterialDraft() })
+    if (pendingFiles.length) {
+      await uploadAttachments(scopeKey, created.id, pendingFiles)
+    }
+    updateClientMaterialsState(scopeKey, {
+      create: defaultMaterialDraft(),
+      createAttachmentFiles: [],
+      createAttachmentError: '',
+    })
     await loadClientMaterials(scopeKey, scope)
+    return created
   } catch (err) {
     updateClientMaterialsState(scopeKey, {
       createError: materialValidationErrorMessage(err, 'Не вдалося створити матеріал.'),
     })
+    return null
   } finally {
     updateClientMaterialsState(scopeKey, { saving: false })
   }
 }
 
-async function saveMaterial(client: ClientListItem, materialId: number) {
+async function saveMaterial(client: ClientListItem, materialId: number): Promise<boolean> {
   const scopeKey = clientMaterialsScopeKey(client)
-  if (!scopeKey) return
+  if (!scopeKey) return false
   const scope = resolveClientMaterialScope(client)
-  if (!scope) return
+  if (!scope) return false
   const form = materialFormById(scopeKey, materialId)
   if (!form.title.trim() || !form.content.trim()) {
     updateClientMaterialsState(scopeKey, {
@@ -3980,7 +4310,7 @@ async function saveMaterial(client: ClientListItem, materialId: number) {
         [materialId]: 'Заповніть назву і текст матеріалу.',
       },
     })
-    return
+    return false
   }
   if (form.material_type === 'link' && !form.url.trim()) {
     updateClientMaterialsState(scopeKey, {
@@ -3989,7 +4319,7 @@ async function saveMaterial(client: ClientListItem, materialId: number) {
         [materialId]: 'Додайте посилання для матеріалу цього типу.',
       },
     })
-    return
+    return false
   }
   clearMaterialEditError(scopeKey, materialId)
   const normalizedUrl = normalizeMaterialUrl(form.url)
@@ -4002,6 +4332,7 @@ async function saveMaterial(client: ClientListItem, materialId: number) {
       url: normalizedUrl || null,
     })
     await loadClientMaterials(scopeKey, scope)
+    return true
   } catch (err) {
     const state = clientMaterialsState(scopeKey)
     updateClientMaterialsState(scopeKey, {
@@ -4010,11 +4341,38 @@ async function saveMaterial(client: ClientListItem, materialId: number) {
         [materialId]: materialValidationErrorMessage(err, 'Не вдалося зберегти матеріал.'),
       },
     })
+    return false
   } finally {
     if (clientMaterialsState(scopeKey).actionLoadingId === materialId) {
       updateClientMaterialsState(scopeKey, { actionLoadingId: null })
     }
   }
+}
+
+async function submitMaterialEditor() {
+  const editor = materialEditor.value
+  const client = editor.client
+  if (!client) return
+  if (editor.mode === 'create') {
+    const created = await createMaterial(client)
+    if (created) closeMaterialEditor()
+    return
+  }
+  if (!editor.materialId) return
+  const saved = await saveMaterial(client, editor.materialId)
+  if (saved) closeMaterialEditor()
+}
+
+async function publishMaterialFromEditor() {
+  const editor = materialEditor.value
+  if (!editor.client || !editor.materialId) return
+  await publishMaterial(editor.client, editor.materialId)
+}
+
+async function revokeMaterialFromEditor() {
+  const editor = materialEditor.value
+  if (!editor.client || !editor.materialId) return
+  await revokeMaterial(editor.client, editor.materialId)
 }
 
 async function publishMaterial(client: ClientListItem, materialId: number) {
@@ -4171,12 +4529,8 @@ async function deleteAttachment(scopeKey: string, materialId: number, attachment
   })
   try {
     await deleteClientMaterialAttachment(materialId, attachmentId)
-    const existing = clientMaterialsState(scopeKey).attachmentsByMaterialId[materialId] || []
+    await loadMaterialAttachments(scopeKey, materialId)
     updateClientMaterialsState(scopeKey, {
-      attachmentsByMaterialId: {
-        ...clientMaterialsState(scopeKey).attachmentsByMaterialId,
-        [materialId]: existing.filter((item) => item.id !== attachmentId),
-      },
       attachmentSuccessByMaterialId: {
         ...clientMaterialsState(scopeKey).attachmentSuccessByMaterialId,
         [materialId]: 'Файл видалено',
@@ -4249,9 +4603,7 @@ function accordionSummary(client: ClientListItem, section: ClientAccordionSectio
   if (section === 'materials') {
     const state = clientMaterialsState(clientMaterialsScopeKey(client) || '')
     if (state.loading) return 'Завантаження...'
-    if (state.items.length === 1) return '1 матеріал'
-    if (state.items.length > 1) return `${state.items.length} матеріали`
-    return 'Підготувати або переглянути'
+    return materialCountLabel(state.items.length)
   }
   if (section === 'regularTime') {
     const scopeKey = clientRegularTimesScopeKey(client)
@@ -4277,6 +4629,12 @@ function accordionSummary(client: ClientListItem, section: ClientAccordionSectio
 function selectClient(client: ClientListItem) {
   selectedClientKey.value = clientSelectionKey(client)
   setClientAccordionSection(client, null)
+  preloadClientCardSummary(client)
+}
+
+function openClientFromList(client: ClientListItem) {
+  selectClient(client)
+  openClientManagementModal(client)
 }
 
 function selectRegisteredClient(clientId: number, resetAccordion = true) {
@@ -4288,6 +4646,8 @@ function selectRegisteredClient(clientId: number, resetAccordion = true) {
       [`registered-${clientId}`]: null,
     }
   }
+  const client = clients.value.find((item) => relationClientId(item) === clientId)
+  if (client) preloadClientCardSummary(client)
 }
 
 function isClientSelected(client: ClientListItem) {
@@ -4524,6 +4884,11 @@ function clientPrimaryContact(client: ClientListItem) {
   }
 
   return client.client_email || 'Контакт не вказано'
+}
+
+function clientRowContactLabel(client: ClientListItem) {
+  const contact = clientPrimaryContact(client)
+  return contact === 'Контакт не вказано' ? 'Немає контакту' : contact
 }
 
 function clientNearestSessionLabel(client: ClientListItem) {
@@ -5524,13 +5889,11 @@ onBeforeUnmount(() => {
   order: 0;
   position: relative;
   overflow: hidden;
-  background:
-    radial-gradient(circle at 92% 70%, color-mix(in srgb, var(--pc-peach-100) 70%, transparent) 0 120px, transparent 121px),
-    linear-gradient(135deg, #ffffff 0%, color-mix(in srgb, var(--pc-primary-soft) 70%, #ffffff) 54%, color-mix(in srgb, var(--pc-yellow-soft) 45%, #ffffff) 100%);
+  background: #fff;
   border: 1px solid var(--pc-border);
-  border-radius: var(--pc-radius-panel);
-  padding: 24px;
-  box-shadow: var(--pc-shadow-soft);
+  border-radius: 18px;
+  padding: 18px 20px;
+  box-shadow: 0 10px 24px rgba(18, 52, 90, 0.06);
 }
 
 .clients__hero > * {
@@ -5539,21 +5902,13 @@ onBeforeUnmount(() => {
 }
 
 .clients__hero::after {
-  content: "";
-  position: absolute;
-  right: -44px;
-  bottom: -58px;
-  width: 180px;
-  height: 180px;
-  border-radius: 999px;
-  background: rgba(247, 183, 126, 0.18);
-  pointer-events: none;
+  content: none;
 }
 
 .clients__title {
-  margin: 8px 0 8px;
+  margin: 0 0 6px;
   color: var(--pc-navy-950);
-  font-size: 32px;
+  font-size: 28px;
   line-height: 1.15;
 }
 
@@ -5572,6 +5927,13 @@ onBeforeUnmount(() => {
   border-color: var(--pc-border);
   background: #fff;
   color: var(--pc-navy-900);
+}
+
+.clients__hero-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .panel {
@@ -5639,6 +6001,7 @@ onBeforeUnmount(() => {
 
 .panel--clients {
   order: 1;
+  gap: 10px;
 }
 
 .badge--soft {
@@ -5648,13 +6011,13 @@ onBeforeUnmount(() => {
 .clients-toolbar {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(240px, 360px);
-  gap: 14px;
+  gap: 10px;
   align-items: end;
-  padding: 12px;
+  padding: 10px;
   border: 1px solid var(--pc-border);
-  border-radius: var(--pc-radius-panel);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(255, 250, 239, 0.78));
-  box-shadow: 0 8px 18px rgba(18, 52, 90, 0.06);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--pc-blue-soft) 28%, #ffffff);
+  box-shadow: none;
 }
 
 .clients-panel-hint {
@@ -5670,17 +6033,17 @@ onBeforeUnmount(() => {
   width: fit-content;
   gap: 5px;
   flex-wrap: wrap;
-  padding: 5px;
+  padding: 4px;
   border: 1px solid color-mix(in srgb, var(--pc-border) 82%, #ffffff);
   border-radius: var(--radius-pill);
   background: rgba(255, 255, 255, 0.82);
 }
 
 .filters__item {
-  min-height: 36px;
+  min-height: 32px;
   border: 1px solid transparent;
   border-radius: var(--radius-pill);
-  padding: 7px 12px;
+  padding: 6px 10px;
   background: transparent;
   color: var(--pc-navy-900);
   font: inherit;
@@ -5755,7 +6118,7 @@ onBeforeUnmount(() => {
 
 .clients-search__input {
   width: 100%;
-  min-height: 42px;
+  min-height: 38px;
   border-color: color-mix(in srgb, var(--pc-border) 82%, #ffffff);
   background: rgba(255, 255, 255, 0.94);
 }
@@ -5765,12 +6128,57 @@ onBeforeUnmount(() => {
   box-shadow: 0 0 0 3px rgba(18, 52, 90, 0.1);
 }
 
+.client-counts {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: stretch;
+}
+
+.client-counts__item {
+  min-width: 104px;
+  border: 1px solid color-mix(in srgb, var(--pc-border) 82%, #ffffff);
+  border-radius: 14px;
+  padding: 8px 10px;
+  background: rgba(255, 255, 255, 0.84);
+  display: grid;
+  gap: 3px;
+}
+
+.client-counts__label {
+  color: color-mix(in srgb, var(--pc-navy-900) 56%, var(--pc-text-muted));
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+}
+
+.client-counts__value {
+  color: var(--pc-navy-950);
+  font-size: 18px;
+  font-weight: 900;
+  line-height: 1;
+}
+
 .clients-master-detail {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 8px 14px;
+  gap: 6px;
   align-items: start;
-  margin-top: 10px;
+  margin-top: 4px;
+}
+
+.clients-list-header {
+  display: grid;
+  grid-template-columns: minmax(190px, 1.2fr) minmax(150px, 0.95fr) minmax(180px, 1fr) minmax(150px, 0.9fr) minmax(150px, 0.9fr);
+  gap: 10px;
+  align-items: center;
+  padding: 0 12px 4px;
+  color: color-mix(in srgb, var(--pc-navy-900) 58%, var(--pc-text-muted));
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
 }
 
 .client-row {
@@ -5779,13 +6187,14 @@ onBeforeUnmount(() => {
   width: 100%;
   min-width: 0;
   border: 1px solid color-mix(in srgb, var(--pc-border) 84%, #ffffff);
-  border-radius: var(--pc-radius-control);
-  padding: 11px 12px;
+  border-radius: 12px;
+  padding: 9px 12px;
   background: rgba(255, 255, 255, 0.92);
   color: var(--pc-navy-900);
   display: grid;
-  grid-template-columns: minmax(160px, 1.05fr) auto;
-  gap: 8px 12px;
+  grid-template-columns: minmax(190px, 1.2fr) minmax(150px, 0.95fr) minmax(180px, 1fr) minmax(150px, 0.9fr) minmax(150px, 0.9fr);
+  gap: 10px;
+  align-items: center;
   text-align: left;
   cursor: pointer;
   transition: border-color 0.16s ease, background 0.16s ease, box-shadow 0.16s ease;
@@ -5815,11 +6224,17 @@ onBeforeUnmount(() => {
   border-color: color-mix(in srgb, var(--pc-teal-500) 24%, var(--pc-border));
 }
 
-.client-row__main,
-.client-row__meta > span {
+.client-row__cell {
   min-width: 0;
+  color: var(--pc-navy-900);
+  font-size: 12px;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.client-row__main {
   display: grid;
-  gap: 3px;
+  gap: 2px;
 }
 
 .client-row__name {
@@ -5839,35 +6254,25 @@ onBeforeUnmount(() => {
 
 .client-row__badges {
   display: flex;
-  justify-content: flex-end;
+  justify-content: flex-start;
   gap: 6px;
   flex-wrap: wrap;
+  align-items: center;
 }
 
-.client-row__meta {
-  grid-column: 1 / -1;
-  display: grid;
-  grid-template-columns: minmax(120px, 1fr) minmax(120px, 1fr) minmax(120px, 1fr);
-  gap: 8px 12px;
+.client-row__contact,
+.client-row__next,
+.client-row__last {
   color: var(--pc-text-muted);
-  font-size: 12px;
-  line-height: 1.35;
-}
-
-.client-row__meta span span:last-child {
-  color: var(--pc-navy-900);
-  overflow-wrap: anywhere;
 }
 
 .client-detail {
-  grid-column: 1;
-  grid-row: auto;
-  order: 0;
-  min-width: 0;
-  position: static;
-  top: 14px;
-  display: grid;
-  gap: 12px;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 .client-card {
@@ -5905,17 +6310,13 @@ onBeforeUnmount(() => {
 
 @media (min-width: 1180px) {
   .clients-master-detail {
-    grid-template-columns: minmax(0, 1fr) minmax(360px, 480px);
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .client-detail {
-    grid-column: 2;
-    grid-row: 1 / span 999;
-    order: 0;
-    position: sticky;
-    max-height: calc(100dvh - 28px);
-    overflow-y: auto;
-    scrollbar-gutter: stable;
+    position: absolute;
+    max-height: none;
+    overflow: hidden;
   }
 }
 
@@ -6090,6 +6491,47 @@ onBeforeUnmount(() => {
   gap: 4px;
 }
 
+.client-summary-card {
+  min-width: 0;
+  display: grid;
+  gap: 8px;
+  border: 1px solid color-mix(in srgb, var(--pc-border) 82%, #ffffff);
+  border-radius: var(--pc-radius-card);
+  padding: 12px;
+  background: color-mix(in srgb, var(--pc-bg-main) 84%, #ffffff);
+}
+
+.client-summary-card__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.client-summary-card__title {
+  color: var(--pc-navy-900);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.client-summary-card__value,
+.client-summary-card__hint {
+  margin: 0;
+  line-height: 1.4;
+}
+
+.client-summary-card__value {
+  color: var(--pc-navy-900);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.client-summary-card__hint {
+  color: var(--pc-text-muted);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
 .client-accordion {
   display: grid;
   gap: 8px;
@@ -6254,23 +6696,38 @@ onBeforeUnmount(() => {
 .client-materials__list,
 .client-materials__create {
   display: grid;
-  gap: 10px;
+  gap: 12px;
 }
 
 .client-material {
-  border: 1px solid color-mix(in srgb, var(--pc-border) 82%, #ffffff);
-  border-radius: var(--pc-radius-control);
-  padding: 10px;
+  border: 1px solid color-mix(in srgb, var(--pc-border) 88%, #ffffff);
+  border-radius: 14px;
+  padding: 12px;
   display: grid;
-  gap: 8px;
-  background: #fff;
+  gap: 10px;
+  background: linear-gradient(180deg, #ffffff 0%, color-mix(in srgb, var(--pc-surface, #f8fafc) 42%, #ffffff) 100%);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 }
 
 .client-material__top {
   display: flex;
   justify-content: space-between;
   gap: 8px;
-  align-items: center;
+  align-items: flex-start;
+}
+
+.client-material__summary {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.client-material__title {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.25;
+  color: var(--pc-navy-900);
+  overflow-wrap: anywhere;
 }
 
 .client-material__type {
@@ -6278,9 +6735,43 @@ onBeforeUnmount(() => {
   color: var(--pc-text-muted);
 }
 
+.client-material__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.client-material__meta-pill,
+.client-material__file-summary {
+  border: 1px solid color-mix(in srgb, var(--pc-border) 78%, #ffffff);
+  border-radius: var(--radius-xs, 6px);
+  padding: 3px 7px;
+  background: #fff;
+  color: var(--pc-text-muted);
+  font-size: 12px;
+  line-height: 1.25;
+}
+
+.client-material__preview {
+  margin: 0;
+  color: var(--pc-text-muted);
+  font-size: 13px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.client-material__file-summary {
+  justify-self: flex-start;
+}
+
 .material-status {
+  flex: 0 0 auto;
   font-size: 12px;
   font-weight: 700;
+  border-radius: var(--radius-xs, 6px);
+  padding: 3px 8px;
+  background: color-mix(in srgb, var(--pc-border) 32%, #ffffff);
 }
 
 .material-status--draft {
@@ -6301,11 +6792,17 @@ onBeforeUnmount(() => {
   gap: 8px;
 }
 
+.field--secondary {
+  opacity: 0.88;
+}
+
 .client-material__attachments {
   display: grid;
   gap: 8px;
-  padding-top: 6px;
+  padding: 10px;
   border-top: 1px solid color-mix(in srgb, var(--pc-border) 82%, #ffffff);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--pc-surface, #f8fafc) 62%, #ffffff);
 }
 
 .client-material__attachments-title {
@@ -6334,6 +6831,28 @@ onBeforeUnmount(() => {
   justify-content: space-between;
   gap: 8px;
   flex-wrap: wrap;
+  padding: 8px 10px;
+  border: 1px solid color-mix(in srgb, var(--pc-border) 78%, #ffffff);
+  border-radius: 10px;
+  background: #fff;
+}
+
+.client-material__attachment-main {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.client-material__attachment-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--pc-navy-900);
+  overflow-wrap: anywhere;
+}
+
+.client-material__attachment-size {
+  font-size: 12px;
+  color: var(--pc-text-muted);
 }
 
 .sr-only {
@@ -6347,9 +6866,8 @@ onBeforeUnmount(() => {
   border: 0;
 }
 
-.client-materials__create h4 {
-  margin: 0;
-  font-size: 13px;
+.client-materials__create-toggle {
+  justify-self: flex-start;
 }
 
 .client-regular-times__body,
@@ -6843,6 +7361,112 @@ onBeforeUnmount(() => {
   color: #fff;
 }
 
+.client-management-modal__content {
+  width: min(1120px, calc(100vw - 32px));
+  max-height: calc(100vh - 32px);
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  padding: 0;
+  overflow: hidden;
+}
+
+.client-management-modal__header {
+  padding: 18px 20px 14px;
+}
+
+.client-management-modal__tabs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  border-block: 1px solid color-mix(in srgb, var(--pc-border) 78%, #ffffff);
+  padding: 10px 20px;
+  background: color-mix(in srgb, var(--pc-bg-main) 70%, #ffffff);
+}
+
+.client-management-modal__tab {
+  flex: 0 0 auto;
+  min-height: 34px;
+  border: 1px solid color-mix(in srgb, var(--pc-border) 82%, #ffffff);
+  border-radius: var(--radius-xs, 6px);
+  padding: 6px 11px;
+  background: #fff;
+  color: var(--pc-text-muted);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.client-management-modal__tab:hover,
+.client-management-modal__tab:focus-visible,
+.client-management-modal__tab.is-active {
+  border-color: color-mix(in srgb, var(--pc-navy-900) 26%, var(--pc-border));
+  background: color-mix(in srgb, var(--pc-blue-soft) 44%, #ffffff);
+  color: var(--pc-navy-900);
+  outline: none;
+}
+
+.client-management-modal__body {
+  min-height: 0;
+  overflow: auto;
+  padding: 20px;
+}
+
+.client-management-modal__section-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.client-management-modal__section-head h3,
+.client-management-modal__placeholder h3 {
+  margin: 0;
+  color: var(--pc-navy-900);
+  font-size: 18px;
+}
+
+.client-management-overview,
+.client-management-materials,
+.client-management-modal__placeholder,
+.client-management-modal__empty {
+  display: grid;
+  gap: 14px;
+}
+
+.client-management-overview__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.client-management-materials__list {
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.client-material-editor-modal__content {
+  width: min(760px, 100%);
+  max-height: min(92vh, 860px);
+}
+
+.client-material-editor-modal__form {
+  grid-template-columns: minmax(0, 1fr) minmax(180px, 240px);
+}
+
+.client-material-editor-modal__attachments {
+  margin-top: 2px;
+}
+
+.client-material-editor-modal__actions {
+  position: sticky;
+  bottom: -22px;
+  z-index: 1;
+  margin: 4px -2px -22px;
+  padding: 12px 0 22px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0), var(--pc-bg-card) 32%);
+}
+
 .manual-payment-status {
   display: inline-flex;
   width: fit-content;
@@ -6964,6 +7588,28 @@ onBeforeUnmount(() => {
     border-radius: var(--pc-radius-panel);
   }
 
+  .client-management-modal__content {
+    width: calc(100vw - 28px);
+    max-height: calc(100vh - 28px);
+    padding: 0;
+  }
+
+  .client-management-modal__header {
+    padding: 16px;
+  }
+
+  .client-management-modal__tabs {
+    padding: 10px 16px;
+  }
+
+  .client-management-modal__body {
+    padding: 16px;
+  }
+
+  .client-management-modal__section-head {
+    flex-direction: column;
+  }
+
   .manual-client-modal__header {
     flex-direction: column;
   }
@@ -6983,6 +7629,12 @@ onBeforeUnmount(() => {
   .manual-client-modal__actions .btn {
     width: 100%;
   }
+
+  .client-material-editor-modal__actions {
+    bottom: -18px;
+    margin-bottom: -18px;
+    padding-bottom: 18px;
+  }
 }
 
 @media (max-width: 640px) {
@@ -6990,15 +7642,29 @@ onBeforeUnmount(() => {
     grid-template-columns: 1fr;
   }
 
-  .client-row,
-  .client-detail {
-    grid-column: 1;
-    grid-row: auto;
+  .clients-list-header {
+    display: none;
   }
 
-  .client-detail {
-    order: 0;
-    position: static;
+  .client-row {
+    grid-column: 1;
+    grid-row: auto;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 7px 10px;
+  }
+
+  .client-row__main,
+  .client-row__contact,
+  .client-row__next,
+  .client-row__last {
+    grid-column: 1;
+  }
+
+  .client-row__badges {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    align-self: start;
+    justify-content: flex-end;
   }
 }
 
@@ -7055,12 +7721,21 @@ onBeforeUnmount(() => {
     grid-template-columns: 1fr;
   }
 
+  .client-row__main,
+  .client-row__contact,
+  .client-row__badges,
+  .client-row__next,
+  .client-row__last {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
   .client-row__badges {
     justify-content: flex-start;
   }
 
-  .client-row__meta {
-    grid-template-columns: 1fr;
+  .client-counts__item {
+    flex: 1 1 120px;
   }
 
   .hero-back-link {

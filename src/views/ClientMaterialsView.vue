@@ -4,7 +4,7 @@
       <div class="badge">Матеріали</div>
       <h1 class="title">Матеріали від спеціаліста</h1>
       <p class="muted">
-        Тут з?являються рекомендації, вправи, інструкції або посилання, які спеціаліст відкриє для вас.
+        Тут з’являються рекомендації, вправи, інструкції або посилання, які спеціаліст відкриє для вас.
       </p>
     </header>
 
@@ -34,7 +34,7 @@
 
         <div class="client-material-card__attachments">
           <div class="client-material-card__attachments-head">
-            <div class="client-material-card__link-label">Файли до цього матеріалу</div>
+            <div class="client-material-card__link-label">Файли</div>
             <button
               class="btn btn--sm client-materials-btn"
               :class="isDetailOpen(item.id) ? 'client-materials-btn--secondary' : 'client-materials-btn--primary'"
@@ -49,23 +49,25 @@
           <p v-if="isDetailLoading(item.id)" class="muted">Завантаження файлів...</p>
           <template v-else-if="isDetailOpen(item.id)">
             <p class="muted">Файли доступні тільки для опублікованих матеріалів від спеціаліста.</p>
-            <ul v-if="(detailByMaterialId[item.id]?.attachments || []).length" class="attachments-list">
-              <li v-for="attachment in detailByMaterialId[item.id]?.attachments || []" :key="attachment.id" class="attachments-item">
-                <div>
-                  <div>{{ attachment.original_filename }}</div>
-                  <div class="muted">{{ humanFileSize(attachment.size_bytes) }}</div>
-                </div>
-                <button
-                  class="btn btn--sm client-materials-btn client-materials-btn--primary"
-                  type="button"
-                  :disabled="Boolean(downloadingByAttachmentId[attachment.id])"
-                  @click="downloadAttachment(item.id, attachment.id)"
-                >
-                  Завантажити файл
-                </button>
-              </li>
-            </ul>
-            <p v-else class="muted">До цього матеріалу немає прикріплених файлів.</p>
+            <template v-if="(detailByMaterialId[item.id]?.attachments || []).length">
+              <ul class="attachments-list">
+                <li v-for="attachment in detailByMaterialId[item.id]?.attachments || []" :key="attachment.id" class="attachments-item">
+                  <div class="attachments-item__main">
+                    <div class="attachments-item__name">{{ attachment.original_filename }}</div>
+                    <div class="attachments-item__size">{{ humanFileSize(attachment.size_bytes) }}</div>
+                  </div>
+                  <button
+                    class="btn btn--sm client-materials-btn client-materials-btn--primary"
+                    type="button"
+                    :disabled="Boolean(downloadingByAttachmentId[attachment.id])"
+                    @click="downloadAttachment(item.id, attachment.id)"
+                  >
+                    Завантажити
+                  </button>
+                </li>
+              </ul>
+            </template>
+            <p v-else class="muted">Файлів до цього матеріалу немає.</p>
           </template>
         </div>
       </article>
@@ -310,6 +312,27 @@ onMounted(() => {
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #fff;
+}
+
+.attachments-item__main {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.attachments-item__name {
+  font-weight: 700;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.attachments-item__size {
+  font-size: 13px;
+  color: var(--text-muted);
 }
 
 .client-materials-btn {
