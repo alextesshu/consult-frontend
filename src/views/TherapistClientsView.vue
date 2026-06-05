@@ -1611,7 +1611,7 @@
                 <p class="muted">Найближчі та останні сесії з цією карткою клієнта.</p>
               </div>
               <RouterLink class="btn btn--ghost btn--sm" to="/cabinet/sessions">
-                Усі сесії
+                Перейти до списку сесій
               </RouterLink>
             </div>
 
@@ -1619,8 +1619,8 @@
               {{ clientSessionsLoadError }}
             </p>
 
-            <div class="client-management-sessions__grid">
-              <section class="client-management-sessions__block">
+            <div class="client-management-sessions__grid" :class="clientSessionsLayoutClass(clientManagementClient)">
+              <section :class="clientSessionsBlockClass(clientManagementClient, 'upcoming')">
                 <div class="client-management-sessions__block-head">
                   <h4>Майбутні сесії</h4>
                   <span class="muted">{{ clientUpcomingSessions(clientManagementClient).length }}</span>
@@ -1650,7 +1650,7 @@
                 <p v-else class="muted">{{ clientSessionsEmptyMessage(clientManagementClient, 'upcoming') }}</p>
               </section>
 
-              <section class="client-management-sessions__block">
+              <section :class="clientSessionsBlockClass(clientManagementClient, 'recent')">
                 <div class="client-management-sessions__block-head">
                   <h4>Останні сесії</h4>
                   <span class="muted">{{ clientRecentSessions(clientManagementClient).length }}</span>
@@ -4971,6 +4971,39 @@ function clientRecentSessions(client: ClientListItem) {
     .slice(0, 5)
 }
 
+function clientSessionsCounts(client: ClientListItem) {
+  return {
+    upcoming: clientUpcomingSessions(client).length,
+    recent: clientRecentSessions(client).length,
+  }
+}
+
+function clientSessionsLayoutClass(client: ClientListItem) {
+  const counts = clientSessionsCounts(client)
+
+  return {
+    'client-management-sessions__grid--split': counts.upcoming > 0 && counts.recent > 0,
+    'client-management-sessions__grid--upcoming-main': counts.upcoming > 0 && counts.recent === 0,
+    'client-management-sessions__grid--recent-main': counts.upcoming === 0 && counts.recent > 0,
+    'client-management-sessions__grid--empty': counts.upcoming === 0 && counts.recent === 0,
+  }
+}
+
+function clientSessionsBlockClass(client: ClientListItem, group: 'upcoming' | 'recent') {
+  const counts = clientSessionsCounts(client)
+  const hasItems = counts[group] > 0
+  const siblingHasItems = group === 'upcoming' ? counts.recent > 0 : counts.upcoming > 0
+
+  return {
+    'client-management-sessions__block': true,
+    'client-management-sessions__block--upcoming': group === 'upcoming',
+    'client-management-sessions__block--recent': group === 'recent',
+    'client-management-sessions__block--main': hasItems && !siblingHasItems,
+    'client-management-sessions__block--compact-empty': !hasItems && siblingHasItems,
+    'client-management-sessions__block--empty': !hasItems,
+  }
+}
+
 function clientSessionsLimitedSummary(client: ClientListItem) {
   if (isManualClientRecord(client) || clientSessionRows(client).length) return ''
 
@@ -5000,7 +5033,7 @@ function clientSessionsEmptyMessage(client: ClientListItem, group: 'upcoming' | 
       : 'Деталі останніх сесій не передані в цю картку.'
   }
 
-  return group === 'upcoming' ? 'Майбутніх сесій немає.' : 'Останніх сесій ще немає.'
+  return group === 'upcoming' ? 'Майбутніх сесій немає.' : 'Минулі сесії ще не зафіксовані.'
 }
 
 function sessionFormatLabel(session: SessionItem) {
@@ -7795,7 +7828,20 @@ onBeforeUnmount(() => {
 .client-management-sessions__grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-areas: "upcoming recent";
   gap: 12px;
+}
+
+.client-management-sessions__grid--recent-main {
+  grid-template-columns: minmax(180px, 240px) minmax(0, 1fr);
+}
+
+.client-management-sessions__grid--upcoming-main {
+  grid-template-columns: minmax(0, 1fr) minmax(180px, 240px);
+}
+
+.client-management-sessions__grid--empty {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
 .client-management-sessions__block {
@@ -7806,6 +7852,29 @@ onBeforeUnmount(() => {
   display: grid;
   align-content: start;
   gap: 10px;
+}
+
+.client-management-sessions__block--upcoming {
+  grid-area: upcoming;
+}
+
+.client-management-sessions__block--recent {
+  grid-area: recent;
+}
+
+.client-management-sessions__block--compact-empty {
+  min-height: auto;
+  padding: 10px 12px;
+  background: color-mix(in srgb, var(--pc-bg-main) 64%, #ffffff);
+}
+
+.client-management-sessions__block--compact-empty .client-management-sessions__block-head {
+  margin-bottom: 0;
+}
+
+.client-management-sessions__block--compact-empty .muted {
+  font-size: 13px;
+  line-height: 1.4;
 }
 
 .client-management-sessions__block-head {
@@ -7868,6 +7937,18 @@ onBeforeUnmount(() => {
   background: color-mix(in srgb, var(--pc-bg-main) 62%, #ffffff);
   color: var(--pc-text-muted);
   font-size: 13px;
+}
+
+@media (max-width: 720px) {
+  .client-management-sessions__grid,
+  .client-management-sessions__grid--recent-main,
+  .client-management-sessions__grid--upcoming-main,
+  .client-management-sessions__grid--empty {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "upcoming"
+      "recent";
+  }
 }
 
 .client-management-materials__list {

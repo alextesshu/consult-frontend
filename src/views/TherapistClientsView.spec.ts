@@ -1390,12 +1390,24 @@ describe('TherapistClientsView', () => {
 
     await fireEvent.click(within(dialog).getByRole('tab', { name: 'Сесії' }))
     expect(within(dialog).getByRole('heading', { name: 'Сесії' })).toBeInTheDocument()
+    expect(within(dialog).getByRole('link', { name: 'Перейти до списку сесій' })).toHaveAttribute(
+      'href',
+      '/cabinet/sessions'
+    )
+    expect(within(dialog).queryByRole('link', { name: 'Усі сесії' })).not.toBeInTheDocument()
     expect(await within(dialog).findByText('20.06.2099, 13:00')).toBeInTheDocument()
     expect(within(dialog).getByText('50 хв · Формат: онлайн')).toBeInTheDocument()
     expect(within(dialog).getByRole('link', { name: 'Відкрити сесію' })).toHaveAttribute(
       'href',
       '/cabinet/sessions/7101'
     )
+    expect(dialog.querySelector('.client-management-sessions__grid')).toHaveClass(
+      'client-management-sessions__grid--upcoming-main'
+    )
+    expect(dialog.querySelector('.client-management-sessions__block--recent')).toHaveClass(
+      'client-management-sessions__block--compact-empty'
+    )
+    expect(within(dialog).getByText('Минулі сесії ще не зафіксовані.')).toBeInTheDocument()
     expect(dialog).not.toHaveTextContent('У Phase 1 цей розділ залишається доступним у правій панелі')
 
     await selectClientRowByName(clientsPanel, 'First Client')
@@ -1502,8 +1514,92 @@ describe('TherapistClientsView', () => {
       '/cabinet/sessions/7201',
       '/cabinet/sessions/7202',
     ])
+    expect(dialog.querySelector('.client-management-sessions__grid')).toHaveClass(
+      'client-management-sessions__grid--split'
+    )
     expect(dialog).not.toHaveTextContent('internal_note')
     expect(dialog).not.toHaveTextContent('session note body')
+  })
+
+  it('lets recent sessions use the main area when upcoming sessions are empty', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL) return [manualClientRecord({ id: 623, display_name: 'Recent Only Sessions' })]
+      if (url === REMINDERS_URL) return []
+      if (url === SESSIONS_URL)
+        return [
+          sessionRecord({
+            id: 7301,
+            client_id: null,
+            client_record_id: 623,
+            status: 'COMPLETED',
+            slot_start_at: '2026-05-10T09:00:00Z',
+            slot_end_at: '2026-05-10T09:50:00Z',
+            session_format: 'online',
+          }),
+          sessionRecord({
+            id: 7302,
+            client_id: null,
+            client_record_id: 623,
+            status: 'COMPLETED',
+            slot_start_at: '2026-05-03T09:00:00Z',
+            slot_end_at: '2026-05-03T09:50:00Z',
+            session_format: 'offline',
+          }),
+        ]
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedFetchSpecialistClientMaterials.mockResolvedValue([])
+
+    const { container } = renderView()
+    const { clientsPanel } = getPanels(container)
+
+    await selectClientRowByName(clientsPanel, 'Recent Only Sessions')
+    const dialog = await screen.findByRole('dialog', { name: 'Картка клієнта' })
+    await fireEvent.click(within(dialog).getByRole('tab', { name: 'Сесії' }))
+
+    expect(await within(dialog).findByText('10.05.2026, 12:00')).toBeInTheDocument()
+    expect(within(dialog).getByText('03.05.2026, 12:00')).toBeInTheDocument()
+    expect(dialog.querySelector('.client-management-sessions__grid')).toHaveClass(
+      'client-management-sessions__grid--recent-main'
+    )
+    expect(dialog.querySelector('.client-management-sessions__block--upcoming')).toHaveClass(
+      'client-management-sessions__block--compact-empty'
+    )
+    expect(dialog.querySelector('.client-management-sessions__block--recent')).toHaveClass(
+      'client-management-sessions__block--main'
+    )
+    expect(within(dialog).getByText('Майбутніх сесій немає.')).toBeInTheDocument()
+    expect(within(dialog).getAllByRole('link', { name: 'Відкрити сесію' }).map((link) => link.getAttribute('href'))).toEqual([
+      '/cabinet/sessions/7301',
+      '/cabinet/sessions/7302',
+    ])
+  })
+
+  it('renders compact calm empty states when both session groups are empty', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL) return [manualClientRecord({ id: 624, display_name: 'No Sessions Yet' })]
+      if (url === REMINDERS_URL) return []
+      if (url === SESSIONS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedFetchSpecialistClientMaterials.mockResolvedValue([])
+
+    const { container } = renderView()
+    const { clientsPanel } = getPanels(container)
+
+    await selectClientRowByName(clientsPanel, 'No Sessions Yet')
+    const dialog = await screen.findByRole('dialog', { name: 'Картка клієнта' })
+    await fireEvent.click(within(dialog).getByRole('tab', { name: 'Сесії' }))
+
+    expect(dialog.querySelector('.client-management-sessions__grid')).toHaveClass(
+      'client-management-sessions__grid--empty'
+    )
+    expect(dialog.querySelectorAll('.client-management-sessions__block--empty')).toHaveLength(2)
+    expect(within(dialog).getByText('Майбутніх сесій немає.')).toBeInTheDocument()
+    expect(within(dialog).getByText('Минулі сесії ще не зафіксовані.')).toBeInTheDocument()
+    expect(within(dialog).queryByRole('link', { name: 'Відкрити сесію' })).not.toBeInTheDocument()
   })
 
   it('shows truthful limited sessions summary for registered client without session ids', async () => {
