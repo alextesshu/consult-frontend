@@ -2102,6 +2102,81 @@
             </article>
           </section>
 
+          <section v-else-if="clientManagementModal.section === 'sessionNotes'" class="client-management-session-notes">
+            <div class="client-management-modal__section-head">
+              <div>
+                <h3>Нотатки по сесіях</h3>
+                <p class="muted">
+                  Це приватні нотатки спеціаліста, привʼязані до сесій. Клієнт не бачить ці записи.
+                </p>
+              </div>
+            </div>
+
+            <div v-if="clientSessionNotesLoading(clientManagementClient)" class="muted">
+              Завантаження нотаток...
+            </div>
+            <div v-else-if="!clientSessionNoteRows(clientManagementClient).length" class="client-management-modal__empty">
+              <p class="muted">Нотаток по сесіях ще немає.</p>
+              <p class="muted">Нотатки створюються в картці конкретної сесії.</p>
+            </div>
+            <div v-else class="client-management-session-notes__list">
+              <article
+                v-for="item in clientSessionNoteRows(clientManagementClient)"
+                :key="item.sessionId"
+                class="client-management-session-note"
+                :class="{ 'client-management-session-note--empty': !item.hasNote }"
+              >
+                <div class="client-management-session-note__top">
+                  <div>
+                    <div class="client-management-session-note__date">{{ formatDateTime(item.slotStart) }}</div>
+                    <div class="muted">{{ formatDuration(item.slotStart, item.slotEnd) }}</div>
+                  </div>
+                  <span class="history-status">{{ sessionStatusLabel(item.status) }}</span>
+                </div>
+                <div class="client-management-session-note__meta">
+                  <span class="client-management-session-note__status">
+                    {{ sessionNoteStatusLabel(item) }}
+                  </span>
+                  <span v-if="sessionNoteUpdatedDateLabel(item)" class="muted">
+                    Оновлено {{ sessionNoteUpdatedDateLabel(item) }}
+                  </span>
+                </div>
+                <div class="history-actions">
+                  <RouterLink class="btn btn--ghost btn--sm" :to="`/cabinet/sessions/${item.sessionId}`">
+                    Відкрити сесію
+                  </RouterLink>
+                </div>
+              </article>
+            </div>
+
+            <div
+              v-if="!clientSessionNotesLoading(clientManagementClient) && clientSessionWithoutNoteRows(clientManagementClient).length"
+              class="client-management-session-notes__secondary"
+            >
+              <h4>Останні сесії без нотаток</h4>
+              <div class="client-management-session-notes__list client-management-session-notes__list--compact">
+                <article
+                  v-for="item in clientSessionWithoutNoteRows(clientManagementClient)"
+                  :key="item.sessionId"
+                  class="client-management-session-note client-management-session-note--empty"
+                >
+                  <div class="client-management-session-note__top">
+                    <div>
+                      <div class="client-management-session-note__date">{{ formatDateTime(item.slotStart) }}</div>
+                      <div class="muted">{{ formatDuration(item.slotStart, item.slotEnd) }}</div>
+                    </div>
+                    <span class="history-status">{{ sessionStatusLabel(item.status) }}</span>
+                  </div>
+                  <div class="history-actions">
+                    <RouterLink class="btn btn--ghost btn--sm" :to="`/cabinet/sessions/${item.sessionId}`">
+                      Відкрити сесію
+                    </RouterLink>
+                  </div>
+                </article>
+              </div>
+            </div>
+          </section>
+
           <section v-else class="client-management-modal__placeholder">
             <h3>{{ clientManagementTabs.find((tab) => tab.key === clientManagementModal.section)?.label }}</h3>
             <p class="muted">
@@ -4677,6 +4752,9 @@ function openClientManagementModal(client: ClientListItem, section: ClientManage
   if (section === 'regularTime') {
     void toggleClientRegularTimes(client)
   }
+  if (section === 'sessionNotes') {
+    void ensureClientSessionNotesLoaded(client)
+  }
 }
 
 function closeClientManagementModal() {
@@ -4702,6 +4780,9 @@ function setClientManagementSection(section: ClientManagementSection) {
   }
   if (section === 'regularTime') {
     void toggleClientRegularTimes(client)
+  }
+  if (section === 'sessionNotes') {
+    void ensureClientSessionNotesLoaded(client)
   }
 }
 
@@ -5656,6 +5737,67 @@ function noteReminderRoute(sessionId: number) {
     query: { returnTo: '/cabinet/clients' },
     hash: `#note-${sessionId}`,
   }
+}
+
+async function ensureClientSessionNotesLoaded(client: ClientListItem) {
+  if (isManualClientRecord(client)) {
+    await loadSessionsIfNeeded().catch(() => [])
+    return
+  }
+
+  const clientId = relationClientId(client)
+  if (!clientId) return
+  resetClientHistoryVisibleLimit(clientId)
+  if (!clientHistory.value[clientId]) {
+    await loadHistory(clientId)
+  }
+}
+
+function sessionHistoryItemsFromRows(client: ClientListItem) {
+  return clientSessionRows(client)
+    .filter((item) => item.has_note !== undefined || item.note_updated_at !== undefined)
+    .map((item) => mapHistoryItem(item))
+    .filter((item): item is HistoryItem => Boolean(item))
+    .sort((a, b) => b.slotStart.localeCompare(a.slotStart))
+    .slice(0, 10)
+}
+
+function clientSessionNoteCandidateRows(client: ClientListItem) {
+  if (isManualClientRecord(client)) return sessionHistoryItemsFromRows(client)
+  const clientId = relationClientId(client)
+  if (!clientId) return []
+  return clientHistory.value[clientId] || sessionHistoryItemsFromRows(client)
+}
+
+function hasSessionNoteMetadata(item: Pick<HistoryItem, 'hasNote' | 'noteUpdatedAt'>) {
+  return item.hasNote || Boolean(item.noteUpdatedAt)
+}
+
+function clientSessionNoteRows(client: ClientListItem) {
+  return clientSessionNoteCandidateRows(client).filter((item) => hasSessionNoteMetadata(item))
+}
+
+function clientSessionWithoutNoteRows(client: ClientListItem) {
+  return clientSessionNoteCandidateRows(client)
+    .filter((item) => !hasSessionNoteMetadata(item))
+    .slice(0, 3)
+}
+
+function clientSessionNotesLoading(client: ClientListItem) {
+  if (isManualClientRecord(client)) return sessionsCacheLoading.value && !clientSessionNoteCandidateRows(client).length
+  const clientId = relationClientId(client)
+  return clientId > 0 && isHistoryLoading(clientId)
+}
+
+function sessionNoteStatusLabel(item: Pick<HistoryItem, 'hasNote' | 'noteUpdatedAt'>) {
+  if (item.hasNote) return 'Є нотатка'
+  if (item.noteUpdatedAt) return 'Є дані нотатки'
+  return 'Нотатки немає'
+}
+
+function sessionNoteUpdatedDateLabel(item: Pick<HistoryItem, 'hasNote' | 'noteUpdatedAt'>) {
+  if (!item.hasNote || !item.noteUpdatedAt) return ''
+  return formatUkDateCompact(item.noteUpdatedAt, '')
 }
 
 function formatDateTime(value?: string | null) {
@@ -7927,6 +8069,62 @@ onBeforeUnmount(() => {
   font-size: 13px;
 }
 
+.client-management-session-notes__list {
+  display: grid;
+  gap: 10px;
+}
+
+.client-management-session-notes__secondary {
+  display: grid;
+  gap: 10px;
+  margin-top: 6px;
+  padding-top: 12px;
+  border-top: 1px solid color-mix(in srgb, var(--pc-border) 70%, transparent);
+}
+
+.client-management-session-notes__secondary h4 {
+  margin: 0;
+  color: var(--pc-navy-800);
+  font-size: 14px;
+}
+
+.client-management-session-notes__list--compact {
+  gap: 8px;
+}
+
+.client-management-session-note {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid color-mix(in srgb, var(--pc-border) 82%, #ffffff);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.client-management-session-note--empty {
+  background: color-mix(in srgb, var(--pc-bg-main) 66%, #ffffff);
+}
+
+.client-management-session-note__top,
+.client-management-session-note__meta {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.client-management-session-note__date {
+  color: var(--pc-navy-950);
+  font-weight: 800;
+}
+
+.client-management-session-note__status {
+  color: var(--pc-navy-900);
+  font-size: 13px;
+  font-weight: 800;
+}
+
 .history-actions {
   display: flex;
   flex-wrap: wrap;
@@ -8147,6 +8345,7 @@ onBeforeUnmount(() => {
 .client-management-materials,
 .client-management-regular-time,
 .client-management-workbook,
+.client-management-session-notes,
 .client-management-modal__placeholder,
 .client-management-modal__empty {
   display: grid;

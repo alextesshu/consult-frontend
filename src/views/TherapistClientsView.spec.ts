@@ -1570,6 +1570,150 @@ describe('TherapistClientsView', () => {
     expect(mockedApiGet.mock.calls.some(([url]) => url === '/cabinet/clients/0/journal/')).toBe(false)
   })
 
+  it('shows registered session-note metadata in client management without private note body', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL)
+        return [
+          {
+            id: 1,
+            client_id: 44,
+            state: 'ACTIVE',
+            last_session_at: null,
+            upcoming_count: 0,
+            client_display_name: 'Registered Notes',
+            latest_session_note_at: '2099-06-15T12:20:00Z',
+            latest_session_note_session_id: 777,
+          },
+        ]
+      if (url === CLIENT_RECORDS_URL) return []
+      if (url === REMINDERS_URL) return []
+      if (url === SESSIONS_URL) return []
+      if (url === clientHistoryUrl(44))
+        return [
+          {
+            session_id: 777,
+            status: 'COMPLETED',
+            slot_start_at: '2099-06-15T10:00:00Z',
+            slot_end_at: '2099-06-15T10:50:00Z',
+            has_note: true,
+            note_updated_at: '2099-06-15T12:20:00Z',
+            note_body: 'private note body must stay hidden',
+          },
+          {
+            session_id: 778,
+            status: 'COMPLETED',
+            slot_start_at: '2099-06-14T10:00:00Z',
+            slot_end_at: '2099-06-14T10:50:00Z',
+            has_note: false,
+            note_updated_at: null,
+          },
+        ]
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    const { container } = renderView()
+    const { clientsPanel } = getPanels(container)
+    await selectClientRowByName(clientsPanel, 'Registered Notes')
+
+    const dialog = await screen.findByRole('dialog', { name: 'Картка клієнта' })
+    await fireEvent.click(within(dialog).getByRole('tab', { name: 'Нотатки' }))
+
+    expect(await within(dialog).findByRole('heading', { name: 'Нотатки по сесіях' })).toBeInTheDocument()
+    expect(
+      within(dialog).getByText('Це приватні нотатки спеціаліста, привʼязані до сесій. Клієнт не бачить ці записи.')
+    ).toBeInTheDocument()
+    expect(within(dialog).getByText('15.06.2099, 13:00')).toBeInTheDocument()
+    expect(within(dialog).getAllByText('50 хв')).toHaveLength(2)
+    expect(within(dialog).getByText('Є нотатка')).toBeInTheDocument()
+    expect(within(dialog).getByText('Оновлено 15.06.2099')).toBeInTheDocument()
+    expect(within(dialog).queryByText('Нотатки немає')).not.toBeInTheDocument()
+    expect(within(dialog).getByText('Останні сесії без нотаток')).toBeInTheDocument()
+    expect(within(dialog).getAllByRole('link', { name: 'Відкрити сесію' }).map((link) => link.getAttribute('href'))).toEqual([
+      '/cabinet/sessions/777',
+      '/cabinet/sessions/778',
+    ])
+    expect(dialog).not.toHaveTextContent('Розділ буде перенесено')
+    expect(dialog).not.toHaveTextContent('private note body must stay hidden')
+  })
+
+  it('shows manual client session-note metadata from session rows', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL) return [manualClientRecord({ id: 622, display_name: 'Manual Notes' })]
+      if (url === REMINDERS_URL) return []
+      if (url === SESSIONS_URL)
+        return [
+          sessionRecord({
+            id: 7201,
+            client_id: null,
+            client_record_id: 622,
+            status: 'COMPLETED',
+            slot_start_at: '2099-06-16T10:00:00Z',
+            slot_end_at: '2099-06-16T10:50:00Z',
+            has_note: true,
+            note_updated_at: '2099-06-16T11:00:00Z',
+          }),
+        ]
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    const { clientsPanel } = getPanels(renderView().container)
+    await selectClientRowByName(clientsPanel, 'Manual Notes')
+
+    const dialog = await screen.findByRole('dialog', { name: 'Картка клієнта' })
+    await fireEvent.click(within(dialog).getByRole('tab', { name: 'Нотатки' }))
+
+    expect(await within(dialog).findByText('16.06.2099, 13:00')).toBeInTheDocument()
+    expect(within(dialog).getByText('Є нотатка')).toBeInTheDocument()
+    expect(within(dialog).getByText('Оновлено 16.06.2099')).toBeInTheDocument()
+    expect(within(dialog).getByRole('link', { name: 'Відкрити сесію' })).toHaveAttribute(
+      'href',
+      '/cabinet/sessions/7201'
+    )
+    expect(mockedApiGet.mock.calls.some(([url]) => url === '/cabinet/clients/622/notes/history/')).toBe(false)
+  })
+
+  it('shows notes empty state and avoids fake session links when note session id is unavailable', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL)
+        return [
+          {
+            id: 1,
+            client_id: 46,
+            state: 'ACTIVE',
+            last_session_at: null,
+            upcoming_count: 0,
+            client_display_name: 'No Note Link',
+          },
+        ]
+      if (url === CLIENT_RECORDS_URL) return []
+      if (url === REMINDERS_URL) return []
+      if (url === SESSIONS_URL) return []
+      if (url === clientHistoryUrl(46))
+        return [
+          {
+            session_id: null,
+            status: 'COMPLETED',
+            slot_start_at: '2099-06-15T10:00:00Z',
+            slot_end_at: '2099-06-15T10:50:00Z',
+            has_note: true,
+            note_updated_at: '2099-06-15T12:20:00Z',
+          },
+        ]
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    const { clientsPanel } = getPanels(renderView().container)
+    await selectClientRowByName(clientsPanel, 'No Note Link')
+
+    const dialog = await screen.findByRole('dialog', { name: 'Картка клієнта' })
+    await fireEvent.click(within(dialog).getByRole('tab', { name: 'Нотатки' }))
+
+    expect(await within(dialog).findByText('Нотаток по сесіях ще немає.')).toBeInTheDocument()
+    expect(within(dialog).getByText('Нотатки створюються в картці конкретної сесії.')).toBeInTheDocument()
+    expect(within(dialog).queryByRole('link', { name: 'Відкрити сесію' })).not.toBeInTheDocument()
+  })
+
   it('shows read-only sessions tab for manual client using client_record_id session rows', async () => {
     mockedApiGet.mockImplementation(async (url) => {
       if (url === CLIENTS_URL) return []
