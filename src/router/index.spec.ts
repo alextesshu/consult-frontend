@@ -87,6 +87,14 @@ describe('router specialist session routes', () => {
     expect(invalidDetail.name).not.toBe('admin-billing-access-request-detail')
   })
 
+  it('matches admin work queue route and requires admin role', () => {
+    const resolved = router.resolve('/admin/work-queue')
+
+    expect(resolved.name).toBe('admin-work-queue')
+    expect(resolved.meta.requiresAuth).toBe(true)
+    expect(resolved.meta.requiresRole).toBe('ADMIN')
+  })
+
   it('matches admin specialist detail route and rejects non-numeric id', () => {
     const list = router.resolve('/admin/specialists')
     const detail = router.resolve('/admin/specialists/77')
@@ -136,9 +144,9 @@ describe('router specialist session routes', () => {
       return true
     })
 
-    await router.push('/admin/inbox')
+    await router.push('/admin/work-queue')
 
-    expect(router.currentRoute.value.name).toBe('admin-inbox')
+    expect(router.currentRoute.value.name).toBe('admin-work-queue')
   })
 
   it('treats singular role=ADMIN as admin access for route guard', async () => {

@@ -45,6 +45,7 @@ import ExternalSessionsView from '../views/ExternalSessionsView.vue'
 import ExternalSessionDetailView from '../views/ExternalSessionDetailView.vue'
 import ExternalGuestSessionInviteView from '../views/ExternalGuestSessionInviteView.vue'
 import SpecialistPracticeBoardView from '../views/SpecialistPracticeBoardView.vue'
+import AdminWorkQueueView from '../views/AdminWorkQueueView.vue'
 import AdminInboxView from '../views/AdminInboxView.vue'
 import AdminBillingAccessRequestsView from '../views/AdminBillingAccessRequestsView.vue'
 import AdminBillingAccessRequestDetailView from '../views/AdminBillingAccessRequestDetailView.vue'
@@ -79,6 +80,12 @@ const routes = [
     name: 'guest-external-session',
     component: ExternalGuestSessionInviteView,
     meta: { minimalShell: true },
+  },
+  {
+    path: '/admin/work-queue',
+    name: 'admin-work-queue',
+    component: AdminWorkQueueView,
+    meta: { requiresAuth: true, requiresRole: 'ADMIN' },
   },
   {
     path: '/admin/inbox',

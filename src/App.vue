@@ -24,6 +24,9 @@
         >
           {{ cabinetLabel }}
         </RouterLink>
+        <RouterLink v-if="isAuthenticated && isAdmin" class="nav__desktop-only" to="/admin/inbox">
+          Адмін-запити
+        </RouterLink>
         <RouterLink v-if="isAuthenticated && isAdmin" class="nav__desktop-only" to="/admin/specialists">
           Спеціалісти
         </RouterLink>
@@ -190,6 +193,14 @@
             @click="closeMobileMenu"
           >
             {{ cabinetLabel }}
+          </RouterLink>
+          <RouterLink
+            v-if="isAdmin"
+            class="mobile-menu__item"
+            to="/admin/inbox"
+            @click="closeMobileMenu"
+          >
+            Адмін-запити
           </RouterLink>
           <RouterLink
             v-if="isAdmin"
@@ -520,13 +531,13 @@ watchEffect(() => {
   document.documentElement.setAttribute('data-role', role)
 })
 const cabinetRoute = computed(() => {
-  if (isAdmin.value) return '/admin/inbox'
+  if (isAdmin.value) return '/admin/work-queue'
   if (isSpecialist.value) return '/cabinet'
   if (isClient.value) return '/client'
   return '/403'
 })
 const cabinetLabel = computed(() => {
-  if (isAdmin.value) return 'Адмін-запити'
+  if (isAdmin.value) return 'Черга роботи'
   if (isSpecialist.value) return 'Мій кабінет'
   if (isClient.value) return 'Кабінет'
   return 'Кабінет'

@@ -441,6 +441,46 @@ export type AdminBillingAccessRequestListFilters = {
   open_inbox_only?: boolean
 }
 
+export interface AdminWorkQueueSummary {
+  total_open: number
+  public_requests_pending: number
+  public_requests_stale: number
+  specialists_pending_review: number
+  notification_issues: number
+  client_invites_pending: number
+  billing_issues: number
+}
+
+export interface AdminWorkQueueRelated {
+  object_type?: string
+  object_id?: number | string
+  specialist_id?: number | null
+  client_id?: number | null
+}
+
+export interface AdminWorkQueueItem {
+  id: string
+  type: string
+  severity: 'info' | 'normal' | 'warning' | 'critical' | string
+  status: 'open' | 'new' | 'in_progress' | 'problem' | 'resolved' | string
+  title: string
+  description?: string
+  created_at?: string
+  updated_at?: string | null
+  target_url?: string | null
+  related?: AdminWorkQueueRelated | null
+  actions?: Array<{
+    code: string
+    label: string
+    kind?: 'link' | 'mutation' | string
+  }>
+}
+
+export interface AdminWorkQueueResponse {
+  summary: AdminWorkQueueSummary
+  items: AdminWorkQueueItem[]
+}
+
 export type AdminSpecialistSearchItem = {
   id: number
   username: string
@@ -1403,6 +1443,11 @@ export async function resolveAdminInboxItem(itemId: number): Promise<AdminInboxI
 
 export async function dismissAdminInboxItem(itemId: number): Promise<AdminInboxItem> {
   const resp = await http.post<AdminInboxItem>(`/admin/inbox/${itemId}/dismiss/`, {})
+  return resp.data
+}
+
+export async function fetchAdminWorkQueue(): Promise<AdminWorkQueueResponse> {
+  const resp = await http.get<AdminWorkQueueResponse>('/admin/work-queue/')
   return resp.data
 }
 

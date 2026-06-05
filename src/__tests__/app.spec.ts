@@ -100,7 +100,10 @@ async function renderWithProviders(options?: {
     { path: '/login', component: { template: '<div>Login</div>' } },
     { path: '/signup', component: { template: '<div>Signup</div>' } },
     { path: '/pricing', component: { template: '<div>Pricing</div>' } },
+    { path: '/admin/work-queue', component: { template: '<div>Admin Work Queue</div>' } },
     { path: '/admin/inbox', component: { template: '<div>Admin Inbox</div>' } },
+    { path: '/admin/billing-access-requests', component: { template: '<div>Admin Billing Requests</div>' } },
+    { path: '/admin/specialists', component: { template: '<div>Admin Specialists</div>' } },
     { path: '/faq', component: { template: '<div>Faq</div>' } },
     { path: '/terms', component: { template: '<div>Terms</div>' } },
     { path: '/privacy', component: { template: '<div>Privacy</div>' } },
@@ -527,7 +530,9 @@ describe('App shell', () => {
 
     const nav = document.querySelector('header.topbar .nav') as HTMLElement
     expect(nav).toBeInTheDocument()
+    expect(within(nav).getByRole('link', { name: 'Черга роботи' })).toHaveAttribute('href', '/admin/work-queue')
     expect(within(nav).getByRole('link', { name: 'Адмін-запити' })).toHaveAttribute('href', '/admin/inbox')
+    expect(within(nav).getByRole('link', { name: 'Спеціалісти' })).toHaveAttribute('href', '/admin/specialists')
     expect(nav.querySelector('a[href="/specialists"]')).not.toBeInTheDocument()
     expect(nav.querySelector('a[href="/public"]')).not.toBeInTheDocument()
     expect(nav.querySelector('a[href="/client/chat"]')).not.toBeInTheDocument()
@@ -543,6 +548,7 @@ describe('App shell', () => {
     })
 
     const nav = document.querySelector('header.topbar .nav') as HTMLElement
+    expect(within(nav).getByRole('link', { name: 'Черга роботи' })).toHaveAttribute('href', '/admin/work-queue')
     expect(within(nav).getByRole('link', { name: 'Адмін-запити' })).toHaveAttribute('href', '/admin/inbox')
     expect(nav.querySelector('a[href="/specialists"]')).toBeInTheDocument()
     expect(nav.querySelector('a[href="/client/materials"]')).toBeInTheDocument()
@@ -556,10 +562,23 @@ describe('App shell', () => {
     })
 
     const nav = document.querySelector('header.topbar .nav') as HTMLElement
+    expect(within(nav).getByRole('link', { name: 'Черга роботи' })).toHaveAttribute('href', '/admin/work-queue')
     expect(within(nav).getByRole('link', { name: 'Адмін-запити' })).toHaveAttribute('href', '/admin/inbox')
     expect(nav.querySelector('a[href="/public"]')).toBeInTheDocument()
     expect(nav.querySelector('a[href="/cabinet/chat"]')).toBeInTheDocument()
     expect(nav.querySelector('.nav__settings')).toBeInTheDocument()
+  })
+
+  it('does not show admin work queue navigation for non-admin users', async () => {
+    await renderWithProviders({
+      initialPath: '/cabinet',
+      roles: ['SPECIALIST'],
+    })
+
+    const nav = document.querySelector('header.topbar .nav') as HTMLElement
+    expect(nav).toBeInTheDocument()
+    expect(within(nav).queryByRole('link', { name: 'Черга роботи' })).not.toBeInTheDocument()
+    expect(nav.querySelector('a[href="/admin/work-queue"]')).not.toBeInTheDocument()
   })
 
   it('refreshes me on visibilitychange when specialist tab becomes visible', async () => {
