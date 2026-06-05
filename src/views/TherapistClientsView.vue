@@ -2017,6 +2017,48 @@
             </template>
           </section>
 
+          <section v-else-if="clientManagementModal.section === 'workbook'" class="client-management-workbook">
+            <div class="client-management-modal__section-head">
+              <div>
+                <h3>Приватний зошит</h3>
+                <p class="muted">
+                  Це приватний робочий зошит спеціаліста. Клієнт не бачить ці записи.
+                </p>
+              </div>
+            </div>
+
+            <article
+              class="client-management-workbook__card"
+              :class="{ 'client-management-workbook__card--unavailable': !canOpenClientWorkbook(clientManagementClient) }"
+            >
+              <div class="client-management-workbook__top">
+                <div>
+                  <div class="client-management-workbook__label">Стан</div>
+                  <div class="client-management-workbook__status">{{ workbookStatusLabel(clientManagementClient) }}</div>
+                  <p v-if="workbookUpdatedDateLabel(clientManagementClient)" class="muted client-management-workbook__updated">
+                    Оновлено {{ workbookUpdatedDateLabel(clientManagementClient) }}
+                  </p>
+                </div>
+                <span class="client-management-workbook__badge">Тільки для спеціаліста</span>
+              </div>
+
+              <p class="muted client-management-workbook__privacy">
+                Клієнт не бачить ці записи. Для порад і матеріалів, які бачить клієнт, використовуйте окремі матеріали для клієнта.
+              </p>
+
+              <RouterLink
+                v-if="canOpenClientWorkbook(clientManagementClient)"
+                class="btn btn--sm client-management-workbook__action"
+                :to="clientWorkbookRoute(clientManagementClient)"
+              >
+                Відкрити приватний зошит
+              </RouterLink>
+              <p v-else class="client-management-workbook__unavailable">
+                Для цієї картки приватний зошит поки недоступний.
+              </p>
+            </article>
+          </section>
+
           <section v-else class="client-management-modal__placeholder">
             <h3>{{ clientManagementTabs.find((tab) => tab.key === clientManagementModal.section)?.label }}</h3>
             <p class="muted">
@@ -5748,14 +5790,33 @@ function workbookUpdatedAt(client?: Pick<ClientState, 'workbook_updated_at' | 'c
   return client?.workbook_updated_at || client?.client_journal_updated_at || null
 }
 
-function workbookSummary(client: ClientListItem) {
-  if (isManualClientRecord(client)) return 'Недоступний без реєстрації'
+function clientWorkbookRoute(client: ClientListItem) {
+  if (isManualClientRecord(client)) return ''
   const clientId = relationClientId(client)
-  if (workbookMissingByClient.value[clientId] === true) return 'Відсутній'
-  if (!resolveHasWorkbookContent(client)) return 'Відсутній'
-  const updatedAt = workbookUpdatedAt(client)
-  if (!updatedAt) return 'Заповнений'
-  return `Заповнений, оновлено ${formatDateTime(updatedAt)}`
+  return clientId > 0 ? `/cabinet/clients/${clientId}/workbook` : ''
+}
+
+function canOpenClientWorkbook(client: ClientListItem) {
+  return Boolean(clientWorkbookRoute(client))
+}
+
+function workbookStatusLabel(client: ClientListItem) {
+  if (!canOpenClientWorkbook(client)) return 'Недоступний'
+  const clientId = relationClientId(client)
+  if (workbookMissingByClient.value[clientId] === true) return 'Ще не заповнений'
+  return resolveHasWorkbookContent(client as Partial<ClientState>) ? 'Заповнений' : 'Ще не заповнений'
+}
+
+function workbookUpdatedDateLabel(client: ClientListItem) {
+  if (workbookStatusLabel(client) !== 'Заповнений') return ''
+  return formatUkDateCompact(workbookUpdatedAt(client as Partial<ClientState>), '')
+}
+
+function workbookSummary(client: ClientListItem) {
+  const status = workbookStatusLabel(client)
+  if (status !== 'Заповнений') return status
+  const updatedAt = workbookUpdatedDateLabel(client)
+  return updatedAt ? `Заповнений, оновлено ${updatedAt}` : 'Заповнений'
 }
 
 function latestNoteSummary(client: ClientListItem) {
@@ -8042,6 +8103,7 @@ onBeforeUnmount(() => {
 .client-management-sessions,
 .client-management-materials,
 .client-management-regular-time,
+.client-management-workbook,
 .client-management-modal__placeholder,
 .client-management-modal__empty {
   display: grid;
@@ -8227,6 +8289,69 @@ onBeforeUnmount(() => {
 
 .client-management-materials__list {
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.client-management-workbook__card {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid color-mix(in srgb, var(--pc-border) 82%, #ffffff);
+  border-radius: 16px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.96), color-mix(in srgb, var(--pc-bg-main) 58%, #ffffff)),
+    #ffffff;
+}
+
+.client-management-workbook__card--unavailable {
+  background: color-mix(in srgb, var(--pc-bg-main) 72%, #ffffff);
+}
+
+.client-management-workbook__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.client-management-workbook__label {
+  color: color-mix(in srgb, var(--pc-navy-900) 58%, var(--pc-text-muted));
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.client-management-workbook__status {
+  margin-top: 3px;
+  color: var(--pc-navy-950);
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.client-management-workbook__updated,
+.client-management-workbook__privacy,
+.client-management-workbook__unavailable {
+  margin: 0;
+}
+
+.client-management-workbook__badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  border-radius: 999px;
+  padding: 3px 9px;
+  background: color-mix(in srgb, var(--pc-blue-soft) 46%, #ffffff);
+  color: var(--pc-navy-900);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.client-management-workbook__action {
+  justify-self: start;
+}
+
+.client-management-workbook__unavailable {
+  color: var(--pc-text-muted);
+  font-size: 13px;
 }
 
 .client-management-regular-time__form,

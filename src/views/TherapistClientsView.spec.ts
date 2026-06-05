@@ -1467,6 +1467,109 @@ describe('TherapistClientsView', () => {
     expect(dialog).not.toHaveTextContent('internal_note')
   })
 
+  it('shows registered private notebook status and opens the existing workbook route', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL)
+        return [
+          {
+            id: 1,
+            client_id: 44,
+            state: 'ACTIVE',
+            last_session_at: null,
+            upcoming_count: 0,
+            client_display_name: 'Workbook Modal Client',
+            client_journal_content: 'Private workbook body must stay hidden',
+            has_workbook_content: true,
+            workbook_updated_at: '2099-06-15T11:20:00Z',
+          },
+        ]
+      if (url === CLIENT_RECORDS_URL) return []
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    const { container } = renderView()
+    const { clientsPanel } = getPanels(container)
+    await selectClientRowByName(clientsPanel, 'Workbook Modal Client')
+
+    const dialog = await screen.findByRole('dialog', { name: 'Картка клієнта' })
+    expect(within(dialog).getByText('Заповнений, оновлено 15.06.2099')).toBeInTheDocument()
+
+    await fireEvent.click(within(dialog).getByRole('tab', { name: 'Приватний зошит' }))
+
+    expect(within(dialog).getByRole('heading', { name: 'Приватний зошит' })).toBeInTheDocument()
+    expect(within(dialog).getByText('Це приватний робочий зошит спеціаліста. Клієнт не бачить ці записи.')).toBeInTheDocument()
+    expect(within(dialog).getByText('Тільки для спеціаліста')).toBeInTheDocument()
+    expect(within(dialog).getByText('Заповнений')).toBeInTheDocument()
+    expect(within(dialog).getByText('Оновлено 15.06.2099')).toBeInTheDocument()
+    expect(within(dialog).getByRole('link', { name: 'Відкрити приватний зошит' })).toHaveAttribute(
+      'href',
+      '/cabinet/clients/44/workbook'
+    )
+    expect(dialog).not.toHaveTextContent('Розділ буде перенесено')
+    expect(dialog).not.toHaveTextContent('Private workbook body must stay hidden')
+    expect(container).not.toHaveTextContent('/client/materials')
+  })
+
+  it('shows empty private notebook state for registered clients without exposing private body', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL)
+        return [
+          {
+            id: 1,
+            client_id: 45,
+            state: 'ACTIVE',
+            last_session_at: null,
+            upcoming_count: 0,
+            client_display_name: 'Empty Workbook Client',
+            has_workbook_content: false,
+            workbook_updated_at: null,
+          },
+        ]
+      if (url === CLIENT_RECORDS_URL) return []
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    const { clientsPanel } = getPanels(renderView().container)
+    await selectClientRowByName(clientsPanel, 'Empty Workbook Client')
+
+    const dialog = await screen.findByRole('dialog', { name: 'Картка клієнта' })
+    expect(within(dialog).getByText('Ще не заповнений')).toBeInTheDocument()
+
+    await fireEvent.click(within(dialog).getByRole('tab', { name: 'Приватний зошит' }))
+
+    expect(within(dialog).getByText('Ще не заповнений')).toBeInTheDocument()
+    expect(within(dialog).queryByText(/^Оновлено /)).not.toBeInTheDocument()
+    expect(within(dialog).getByRole('link', { name: 'Відкрити приватний зошит' })).toHaveAttribute(
+      'href',
+      '/cabinet/clients/45/workbook'
+    )
+  })
+
+  it('shows unavailable private notebook state for manual clients without unsupported workbook calls', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL) return [manualClientRecord({ id: 621, display_name: 'Manual Workbook' })]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    const { clientsPanel } = getPanels(renderView().container)
+    await selectClientRowByName(clientsPanel, 'Manual Workbook')
+
+    const dialog = await screen.findByRole('dialog', { name: 'Картка клієнта' })
+    expect(within(dialog).getByText('Недоступний')).toBeInTheDocument()
+
+    await fireEvent.click(within(dialog).getByRole('tab', { name: 'Приватний зошит' }))
+
+    expect(within(dialog).getByText('Недоступний')).toBeInTheDocument()
+    expect(within(dialog).getByText('Для цієї картки приватний зошит поки недоступний.')).toBeInTheDocument()
+    expect(within(dialog).queryByRole('link', { name: 'Відкрити приватний зошит' })).not.toBeInTheDocument()
+    expect(mockedApiGet.mock.calls.some(([url]) => url === '/cabinet/clients/621/journal/')).toBe(false)
+    expect(mockedApiGet.mock.calls.some(([url]) => url === '/cabinet/clients/0/journal/')).toBe(false)
+  })
+
   it('shows read-only sessions tab for manual client using client_record_id session rows', async () => {
     mockedApiGet.mockImplementation(async (url) => {
       if (url === CLIENTS_URL) return []
