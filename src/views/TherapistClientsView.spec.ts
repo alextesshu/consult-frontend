@@ -1635,6 +1635,284 @@ describe('TherapistClientsView', () => {
     expect(within(dialog).queryByRole('link', { name: 'Відкрити сесію' })).not.toBeInTheDocument()
   })
 
+  it('loads regular time tab in client management for manual client using client record id', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL) return [manualClientRecord({ id: 625, display_name: 'Manual Regular Time' })]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedFetchClientRegularTimes.mockResolvedValue([
+      regularTimeRecord({
+        id: 850,
+        client_record: 625,
+        weekday: 2,
+        start_time: '15:00',
+        starts_on: '2026-05-20',
+        meeting_url: 'meet.example.com/manual',
+      }),
+    ] as any)
+
+    const { container } = renderView()
+    const { clientsPanel } = getPanels(container)
+
+    await selectClientRowByName(clientsPanel, 'Manual Regular Time')
+    const dialog = await screen.findByRole('dialog', { name: 'Картка клієнта' })
+    await fireEvent.click(within(dialog).getByRole('tab', { name: 'Регулярний час' }))
+
+    expect(mockedFetchClientRegularTimes).toHaveBeenCalledWith(625)
+    expect(within(dialog).queryByRole('heading', { name: 'Новий регулярний час' })).not.toBeInTheDocument()
+    expect(within(dialog).queryByRole('heading', { name: 'Редагувати регулярний час' })).not.toBeInTheDocument()
+    expect(await within(dialog).findByText('Середа, 15:00')).toBeInTheDocument()
+    expect(within(dialog).getByText('50 хв · щотижня · онлайн')).toBeInTheDocument()
+    expect(within(dialog).getByText('Початок: 20.05.2026')).toBeInTheDocument()
+    expect(within(dialog).getByRole('link', { name: 'Відкрити посилання' })).toHaveAttribute(
+      'href',
+      'https://meet.example.com/manual'
+    )
+    const regularTimeSection = dialog.querySelector('.client-management-regular-time') as HTMLElement
+    expect(regularTimeSection).toBeInstanceOf(HTMLElement)
+    expect(regularTimeSection).not.toHaveTextContent('meet.example.com/manual')
+    expect(within(dialog).queryByRole('button', { name: 'Створити майбутні сесії' })).not.toBeInTheDocument()
+    expect(regularTimeSection).not.toHaveTextContent('Опублікувати слот')
+    expect(regularTimeSection).not.toHaveTextContent('SessionNote')
+    expect(regularTimeSection).not.toHaveTextContent('Приватний зошит')
+  })
+
+  it('loads regular time tab in client management for registered client using client_record_id', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL)
+        return [
+          {
+            id: 1,
+            client_id: 91,
+            client_record_id: 626,
+            state: 'ACTIVE',
+            last_session_at: null,
+            upcoming_count: 0,
+            client_display_name: 'Registered Regular Time',
+          },
+        ]
+      if (url === CLIENT_RECORDS_URL) return []
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedFetchClientRegularTimes.mockResolvedValue([
+      regularTimeRecord({
+        id: 851,
+        client_record: 626,
+        weekday: 4,
+        start_time: '11:30',
+        starts_on: '2026-05-22',
+        session_format: 'offline',
+        offline_location: 'Кабінет 12',
+      }),
+    ] as any)
+
+    const { container } = renderView()
+    const { clientsPanel } = getPanels(container)
+
+    await selectClientRowByName(clientsPanel, 'Registered Regular Time')
+    const dialog = await screen.findByRole('dialog', { name: 'Картка клієнта' })
+    await fireEvent.click(within(dialog).getByRole('tab', { name: 'Регулярний час' }))
+
+    expect(mockedFetchClientRegularTimes).toHaveBeenCalledWith(626)
+    expect(await within(dialog).findByText('Пʼятниця, 11:30')).toBeInTheDocument()
+    expect(within(dialog).getByText('50 хв · щотижня · офлайн')).toBeInTheDocument()
+    expect(within(dialog).getByText('Локація: Кабінет 12')).toBeInTheDocument()
+  })
+
+  it('shows graceful regular time copy for registered client without client_record_id', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL)
+        return [
+          {
+            id: 1,
+            client_id: 92,
+            state: 'ACTIVE',
+            last_session_at: null,
+            upcoming_count: 0,
+            client_display_name: 'Registered No Record',
+          },
+        ]
+      if (url === CLIENT_RECORDS_URL) return []
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    const { container } = renderView()
+    const { clientsPanel } = getPanels(container)
+
+    await selectClientRowByName(clientsPanel, 'Registered No Record')
+    const dialog = await screen.findByRole('dialog', { name: 'Картка клієнта' })
+    mockedFetchClientRegularTimes.mockClear()
+    await fireEvent.click(within(dialog).getByRole('tab', { name: 'Регулярний час' }))
+
+    expect(within(dialog).getByText('Для цього клієнта ще немає активної картки клієнта, тому регулярний час поки недоступний.')).toBeInTheDocument()
+    expect(mockedFetchClientRegularTimes).not.toHaveBeenCalled()
+    expect(within(dialog).queryByRole('button', { name: 'Додати регулярний час' })).not.toBeInTheDocument()
+  })
+
+  it('shows regular time empty state and creates a modal regular time', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL) return [manualClientRecord({ id: 627, display_name: 'Create Regular Time' })]
+      if (url === REMINDERS_URL) return []
+      if (url === SESSIONS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedFetchClientRegularTimes.mockResolvedValue([])
+
+    const { container } = renderView()
+    const { clientsPanel } = getPanels(container)
+
+    await selectClientRowByName(clientsPanel, 'Create Regular Time')
+    const dialog = await screen.findByRole('dialog', { name: 'Картка клієнта' })
+    await fireEvent.click(within(dialog).getByRole('tab', { name: 'Регулярний час' }))
+
+    expect(await within(dialog).findByText('Регулярний час ще не додано.')).toBeInTheDocument()
+    expect(within(dialog).queryByRole('heading', { name: 'Новий регулярний час' })).not.toBeInTheDocument()
+    await fireEvent.click(within(dialog).getAllByRole('button', { name: 'Додати регулярний час' })[0]!)
+    expect(within(dialog).getByRole('heading', { name: 'Новий регулярний час' })).toBeInTheDocument()
+    const modalContent = dialog.querySelector('.client-management-modal__content') as HTMLElement | null
+    const modalHeader = dialog.querySelector('.client-management-modal__header') as HTMLElement | null
+    const modalTabs = dialog.querySelector('.client-management-modal__tabs') as HTMLElement | null
+    const modalBody = dialog.querySelector('.client-management-modal__body') as HTMLElement | null
+    const regularTimeForm = dialog.querySelector('.client-management-regular-time__form') as HTMLElement | null
+    expect(modalContent).toBeInstanceOf(HTMLElement)
+    expect(modalHeader).toBeInstanceOf(HTMLElement)
+    expect(modalTabs).toBeInstanceOf(HTMLElement)
+    expect(modalBody).toBeInstanceOf(HTMLElement)
+    expect(regularTimeForm).toBeInstanceOf(HTMLElement)
+    expect(modalContent).toContainElement(modalHeader as HTMLElement)
+    expect(modalContent).toContainElement(modalTabs as HTMLElement)
+    expect(modalContent).toContainElement(modalBody as HTMLElement)
+    expect(modalBody).toContainElement(regularTimeForm as HTMLElement)
+    expect(modalBody).not.toContainElement(modalHeader as HTMLElement)
+    expect(modalBody).not.toContainElement(modalTabs as HTMLElement)
+    expect(within(regularTimeForm as HTMLElement).getByRole('button', { name: 'Зберегти' })).toBeInTheDocument()
+    expect(within(regularTimeForm as HTMLElement).getByRole('button', { name: 'Скасувати' })).toBeInTheDocument()
+    expect(within(dialog).getByLabelText('День тижня')).toBeInTheDocument()
+    expect(within(dialog).getByLabelText('Тривалість, хв')).toBeInTheDocument()
+    expect(within(dialog).getByLabelText('Повторення')).toBeInTheDocument()
+    expect(within(dialog).getByLabelText('Формат')).toBeInTheDocument()
+    const timeControl = within(dialog).getByLabelText('Час початку') as HTMLSelectElement
+    expect(timeControl.tagName).toBe('SELECT')
+    expect(timeControl).toHaveValue('09:00')
+    const timeOptionText = Array.from(timeControl.options).map((option) => option.textContent || '').join(' ')
+    expect(timeOptionText).toContain('09:00')
+    expect(timeOptionText).toContain('14:30')
+    expect(timeOptionText).toContain('18:00')
+    expect(timeOptionText).not.toMatch(/\b(?:AM|PM)\b/i)
+    const startsOnInput = within(dialog).getByLabelText('Дата початку') as HTMLInputElement
+    expect(startsOnInput).toHaveAttribute('placeholder', 'ДД.ММ.РРРР')
+    expect(startsOnInput).not.toHaveAttribute('type', 'date')
+    expect(within(dialog).getByLabelText('Посилання на зустріч')).toBeInTheDocument()
+    expect(within(dialog).queryByLabelText('Локація')).not.toBeInTheDocument()
+    await fireEvent.update(within(dialog).getByLabelText('Формат'), 'offline')
+    expect(within(dialog).getByLabelText('Локація')).toBeInTheDocument()
+    expect(within(dialog).queryByLabelText('Посилання на зустріч')).not.toBeInTheDocument()
+    await fireEvent.click(within(dialog).getByRole('button', { name: 'Скасувати' }))
+    expect(within(dialog).queryByRole('heading', { name: 'Новий регулярний час' })).not.toBeInTheDocument()
+    await fireEvent.click(within(dialog).getAllByRole('button', { name: 'Додати регулярний час' })[0]!)
+    await fireEvent.update(within(dialog).getByLabelText('Формат'), 'online')
+    await fireEvent.update(within(dialog).getByLabelText('День тижня'), '2')
+    await fireEvent.update(within(dialog).getByLabelText('Час початку'), '14:30')
+    await fireEvent.update(within(dialog).getByLabelText('Дата початку'), '20.05.2026')
+    await fireEvent.update(within(dialog).getByLabelText('Посилання на зустріч'), 'https://meet.example.com/create')
+    await fireEvent.click(within(dialog).getByRole('button', { name: 'Зберегти' }))
+
+    await waitFor(() => {
+      expect(mockedCreateClientRegularTime).toHaveBeenCalledWith(627, {
+        weekday: 2,
+        start_time: '14:30',
+        duration_minutes: 50,
+        frequency: 'weekly',
+        starts_on: '2026-05-20',
+        session_format: 'online',
+        meeting_url: 'https://meet.example.com/create',
+        offline_location: '',
+      })
+    })
+  })
+
+  it('edits, pauses and resumes regular time from client management modal', async () => {
+    const activeRecord = regularTimeRecord({
+      id: 852,
+      client_record: 628,
+      weekday: 2,
+      start_time: '15:00',
+      starts_on: '2026-05-20',
+      status: 'active',
+    })
+    const pausedRecord = regularTimeRecord({
+      id: 852,
+      client_record: 628,
+      weekday: 2,
+      start_time: '15:00',
+      starts_on: '2026-05-20',
+      status: 'paused',
+    })
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL) return [manualClientRecord({ id: 628, display_name: 'Manage Regular Time' })]
+      if (url === REMINDERS_URL) return []
+      if (url === SESSIONS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedFetchClientRegularTimes
+      .mockResolvedValueOnce([activeRecord] as any)
+      .mockResolvedValueOnce([activeRecord] as any)
+      .mockResolvedValueOnce([pausedRecord] as any)
+      .mockResolvedValueOnce([activeRecord] as any)
+
+    const { container } = renderView()
+    const { clientsPanel } = getPanels(container)
+
+    await selectClientRowByName(clientsPanel, 'Manage Regular Time')
+    const dialog = await screen.findByRole('dialog', { name: 'Картка клієнта' })
+    await fireEvent.click(within(dialog).getByRole('tab', { name: 'Регулярний час' }))
+
+    expect(await within(dialog).findByText('Середа, 15:00')).toBeInTheDocument()
+    await fireEvent.click(within(dialog).getByRole('button', { name: 'Редагувати' }))
+    expect(within(dialog).getByRole('heading', { name: 'Редагувати регулярний час' })).toBeInTheDocument()
+    const editTimeControl = within(dialog).getByLabelText('Час початку') as HTMLSelectElement
+    expect(editTimeControl.tagName).toBe('SELECT')
+    expect(editTimeControl).toHaveValue('15:00')
+    expect(Array.from(editTimeControl.options).map((option) => option.textContent || '').join(' ')).not.toMatch(
+      /\b(?:AM|PM)\b/i
+    )
+    expect(within(dialog).getByLabelText('Дата початку')).toHaveValue('20.05.2026')
+    await fireEvent.update(within(dialog).getByLabelText('Посилання на зустріч'), 'https://meet.example.com/edit')
+    await fireEvent.click(within(dialog).getByRole('button', { name: 'Зберегти' }))
+
+    await waitFor(() => {
+      expect(mockedUpdateClientRegularTime).toHaveBeenCalledWith(628, 852, {
+        weekday: 2,
+        start_time: '15:00',
+        duration_minutes: 50,
+        frequency: 'weekly',
+        starts_on: '2026-05-20',
+        session_format: 'online',
+        meeting_url: 'https://meet.example.com/edit',
+        offline_location: '',
+      })
+    })
+
+    await fireEvent.click(await within(dialog).findByRole('button', { name: 'Призупинити' }))
+    await waitFor(() => {
+      expect(mockedPauseClientRegularTime).toHaveBeenCalledWith(628, 852)
+    })
+    expect(await within(dialog).findByText('Призупинено')).toBeInTheDocument()
+
+    await fireEvent.click(await within(dialog).findByRole('button', { name: 'Відновити' }))
+    await waitFor(() => {
+      expect(mockedResumeClientRegularTime).toHaveBeenCalledWith(628, 852)
+    })
+    expect(await within(dialog).findByText('Активний')).toBeInTheDocument()
+    expect(within(dialog).queryByRole('button', { name: 'Створити майбутні сесії' })).not.toBeInTheDocument()
+  })
+
   it('does not open client management modal when nested right-panel controls are clicked', async () => {
     mockedApiGet.mockImplementation(async (url) => {
       if (url === CLIENTS_URL)
@@ -4472,7 +4750,7 @@ describe('TherapistClientsView', () => {
       expect(manualCard.textContent || '').toContain('Пʼятниця')
       expect(manualCard.textContent || '').toContain('раз на два тижні')
       expect(manualCard.textContent || '').toContain('офлайн')
-      expect(manualCard.textContent || '').toContain('На паузі')
+      expect(manualCard.textContent || '').toContain('Призупинено')
       expect(within(manualCard).getByRole('button', { name: 'Відновити' })).toBeInTheDocument()
       expect(within(manualCard).queryByRole('button', { name: 'Створити майбутні сесії' })).not.toBeInTheDocument()
     })

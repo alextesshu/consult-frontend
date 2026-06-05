@@ -1768,6 +1768,255 @@
             </div>
           </section>
 
+          <section v-else-if="clientManagementModal.section === 'regularTime'" class="client-management-regular-time">
+            <div class="client-management-modal__section-head">
+              <div>
+                <h3>Регулярний час</h3>
+                <p class="muted">
+                  Постійна домовленість із клієнтом про день, час, тривалість і формат зустрічі.
+                </p>
+              </div>
+              <button
+                v-if="clientRegularTimesScopeKey(clientManagementClient) && !clientRegularTimesState(clientRegularTimesScopeKey(clientManagementClient) || '').formOpen"
+                class="btn btn--sm"
+                type="button"
+                @click="openRegularTimeCreateForm(clientManagementClient)"
+              >
+                Додати регулярний час
+              </button>
+            </div>
+
+            <p class="client-regular-times__copy">
+              Це внутрішня домовленість із клієнтом, а не публічний час для бронювання.
+            </p>
+
+            <div v-if="!clientRegularTimesScopeKey(clientManagementClient)" class="client-regular-times__activation">
+              <p class="muted">{{ clientRegularTimeUnavailableMessage(clientManagementClient) }}</p>
+            </div>
+
+            <template v-else>
+              <p v-if="clientRegularTimesState(clientRegularTimesScopeKey(clientManagementClient) || '').listError" class="form-error">
+                {{ clientRegularTimesState(clientRegularTimesScopeKey(clientManagementClient) || '').listError }}
+              </p>
+              <div v-else-if="clientRegularTimesState(clientRegularTimesScopeKey(clientManagementClient) || '').loading" class="muted">
+                Завантаження регулярного часу...
+              </div>
+
+              <template v-else>
+                <div
+                  v-if="clientRegularTimesState(clientRegularTimesScopeKey(clientManagementClient) || '').formOpen"
+                  class="client-regular-times__form client-management-regular-time__form"
+                >
+                  <div class="client-management-regular-time__form-head">
+                    <h4>
+                      {{
+                        clientRegularTimesState(clientRegularTimesScopeKey(clientManagementClient) || '').editingId
+                          ? 'Редагувати регулярний час'
+                          : 'Новий регулярний час'
+                      }}
+                    </h4>
+                  </div>
+                  <p v-if="clientRegularTimesState(clientRegularTimesScopeKey(clientManagementClient) || '').formError" class="form-error">
+                    {{ clientRegularTimesState(clientRegularTimesScopeKey(clientManagementClient) || '').formError }}
+                  </p>
+                  <div class="client-management-regular-time__form-row client-management-regular-time__form-row--primary">
+                    <label class="field client-management-regular-time__field">
+                      <span>День тижня</span>
+                      <select
+                        class="client-management-regular-time__control client-management-regular-time__control--select"
+                        :value="clientRegularTimesState(clientRegularTimesScopeKey(clientManagementClient) || '').form.weekday ?? ''"
+                        @change="setRegularTimeFormField(clientManagementClient, { weekday: Number(($event.target as HTMLSelectElement).value) })"
+                      >
+                        <option disabled value="">Оберіть день</option>
+                        <option
+                          v-for="option in regularTimeWeekdayOptions"
+                          :key="option.value"
+                          :value="option.value"
+                        >
+                          {{ option.label }}
+                        </option>
+                      </select>
+                    </label>
+                    <label class="field client-management-regular-time__field">
+                      <span>Час початку</span>
+                      <select
+                        class="client-management-regular-time__control client-management-regular-time__control--select client-management-regular-time__control--time"
+                        :value="clientRegularTimesState(clientRegularTimesScopeKey(clientManagementClient) || '').form.start_time"
+                        @change="setRegularTimeFormField(clientManagementClient, { start_time: String(($event.target as HTMLSelectElement | null)?.value || '') })"
+                      >
+                        <option v-for="option in regularTimeTimeOptions" :key="option" :value="option">
+                          {{ option }}
+                        </option>
+                      </select>
+                    </label>
+                    <label class="field client-management-regular-time__field">
+                      <span>Тривалість, хв</span>
+                      <input
+                        class="client-management-regular-time__control"
+                        :value="clientRegularTimesState(clientRegularTimesScopeKey(clientManagementClient) || '').form.duration_minutes"
+                        min="15"
+                        max="240"
+                        step="5"
+                        type="number"
+                        @input="setRegularTimeFormField(clientManagementClient, { duration_minutes: Number(($event.target as HTMLInputElement).value) })"
+                      />
+                    </label>
+                    <label class="field client-management-regular-time__field">
+                      <span>Повторення</span>
+                      <select
+                        class="client-management-regular-time__control client-management-regular-time__control--select"
+                        :value="clientRegularTimesState(clientRegularTimesScopeKey(clientManagementClient) || '').form.frequency"
+                        @change="setRegularTimeFormField(clientManagementClient, { frequency: String(($event.target as HTMLSelectElement | null)?.value || 'weekly') as ClientRegularTimeFrequency })"
+                      >
+                        <option value="weekly">Щотижня</option>
+                        <option value="every_two_weeks">Раз на два тижні</option>
+                      </select>
+                    </label>
+                  </div>
+                  <div class="client-management-regular-time__form-row client-management-regular-time__form-row--secondary">
+                    <label class="field client-management-regular-time__field">
+                      <span>Дата початку</span>
+                      <input
+                        class="client-management-regular-time__control"
+                        :value="clientRegularTimesState(clientRegularTimesScopeKey(clientManagementClient) || '').form.starts_on"
+                        autocomplete="off"
+                        inputmode="numeric"
+                        placeholder="ДД.ММ.РРРР"
+                        @input="setRegularTimeFormField(clientManagementClient, { starts_on: ($event.target as HTMLInputElement).value })"
+                      />
+                    </label>
+                    <label class="field client-management-regular-time__field">
+                      <span>Формат</span>
+                      <select
+                        class="client-management-regular-time__control client-management-regular-time__control--select"
+                        :value="clientRegularTimesState(clientRegularTimesScopeKey(clientManagementClient) || '').form.session_format"
+                        @change="setRegularTimeFormField(clientManagementClient, { session_format: String(($event.target as HTMLSelectElement | null)?.value || '') as SessionFormat })"
+                      >
+                        <option value="online">Онлайн</option>
+                        <option value="offline">Офлайн</option>
+                      </select>
+                    </label>
+                  </div>
+                  <div class="client-management-regular-time__form-row client-management-regular-time__form-row--wide">
+                    <label
+                      v-if="clientRegularTimesState(clientRegularTimesScopeKey(clientManagementClient) || '').form.session_format === 'online'"
+                      class="field client-management-regular-time__field"
+                    >
+                      <span>Посилання на зустріч</span>
+                      <input
+                        class="client-management-regular-time__control"
+                        :value="clientRegularTimesState(clientRegularTimesScopeKey(clientManagementClient) || '').form.meeting_url"
+                        placeholder="https://..."
+                        @input="setRegularTimeFormField(clientManagementClient, { meeting_url: ($event.target as HTMLInputElement).value })"
+                      />
+                    </label>
+                    <label
+                      v-else
+                      class="field client-management-regular-time__field"
+                    >
+                      <span>Локація</span>
+                      <input
+                        class="client-management-regular-time__control"
+                        :value="clientRegularTimesState(clientRegularTimesScopeKey(clientManagementClient) || '').form.offline_location"
+                        placeholder="Адреса або короткий опис"
+                        @input="setRegularTimeFormField(clientManagementClient, { offline_location: ($event.target as HTMLInputElement).value })"
+                      />
+                    </label>
+                  </div>
+                  <div class="client-regular-times__form-actions client-management-regular-time__wide-field">
+                    <button
+                      class="btn btn--sm"
+                      type="button"
+                      :disabled="clientRegularTimesState(clientRegularTimesScopeKey(clientManagementClient) || '').saving"
+                      @click="saveRegularTime(clientManagementClient)"
+                    >
+                      {{
+                        clientRegularTimesState(clientRegularTimesScopeKey(clientManagementClient) || '').saving
+                          ? 'Збереження...'
+                          : 'Зберегти'
+                      }}
+                    </button>
+                    <button class="btn btn--ghost btn--sm" type="button" @click="cancelRegularTimeForm(clientManagementClient)">
+                      Скасувати
+                    </button>
+                  </div>
+                </div>
+
+                <div v-if="clientRegularTimesState(clientRegularTimesScopeKey(clientManagementClient) || '').items.length" class="client-regular-times__list client-management-regular-time__list">
+                  <article
+                    v-for="regularTime in clientRegularTimesState(clientRegularTimesScopeKey(clientManagementClient) || '').items"
+                    :key="regularTime.id"
+                    class="client-regular-time client-management-regular-time__card"
+                  >
+                    <div class="client-regular-time__top">
+                      <div>
+                        <div class="client-regular-time__title">
+                          {{ regularTimeWeekdayLabel(regularTime.weekday) }}, {{ normalizeRegularTimeValue(regularTime.start_time) }}
+                        </div>
+                        <div class="muted client-management-regular-time__summary">
+                          {{ regularTime.duration_minutes }} хв · {{ regularTimeFrequencyLabel(regularTime.frequency) }} · {{ regularTimeFormatLabel(regularTime.session_format) }}
+                        </div>
+                      </div>
+                      <span class="regular-time-status" :class="regularTimeStatusClass(regularTime.status)">
+                        {{ regularTimeStatusLabel(regularTime.status) }}
+                      </span>
+                    </div>
+                    <div class="client-management-regular-time__details">
+                      <span>Початок: {{ formatRegularTimeDate(regularTime.starts_on) }}</span>
+                      <a
+                        v-if="regularTime.session_format === 'online' && regularTime.meeting_url"
+                        :href="normalizeMaterialUrl(regularTime.meeting_url)"
+                        target="_blank"
+                        rel="noopener"
+                      >
+                        Відкрити посилання
+                      </a>
+                      <span v-if="regularTime.session_format === 'offline' && regularTime.offline_location">
+                        Локація: {{ regularTime.offline_location }}
+                      </span>
+                    </div>
+                    <p v-if="regularTimeHasAnchorMismatch(regularTime)" class="form-error client-regular-time__action-error">
+                      Дата початку не відповідає дню тижня. Відредагуйте регулярний час.
+                    </p>
+                    <p v-if="clientRegularTimesState(clientRegularTimesScopeKey(clientManagementClient) || '').actionErrorsById[regularTime.id]" class="form-error client-regular-time__action-error">
+                      {{ clientRegularTimesState(clientRegularTimesScopeKey(clientManagementClient) || '').actionErrorsById[regularTime.id] }}
+                    </p>
+                    <div class="client-regular-time__actions">
+                      <button class="btn btn--ghost btn--sm" type="button" @click="openRegularTimeEditForm(clientManagementClient, regularTime)">
+                        Редагувати
+                      </button>
+                      <button
+                        v-if="regularTime.status === 'paused'"
+                        class="btn btn--ghost btn--sm"
+                        type="button"
+                        :disabled="clientRegularTimesState(clientRegularTimesScopeKey(clientManagementClient) || '').actionLoadingId === regularTime.id"
+                        @click="resumeRegularTime(clientManagementClient, regularTime.id)"
+                      >
+                        Відновити
+                      </button>
+                      <button
+                        v-else
+                        class="btn btn--ghost btn--sm"
+                        type="button"
+                        :disabled="clientRegularTimesState(clientRegularTimesScopeKey(clientManagementClient) || '').actionLoadingId === regularTime.id"
+                        @click="pauseRegularTime(clientManagementClient, regularTime.id)"
+                      >
+                        Призупинити
+                      </button>
+                    </div>
+                  </article>
+                </div>
+
+                <div v-else class="client-regular-times__empty">
+                  <p class="muted">Регулярний час ще не додано.</p>
+                  <button class="btn btn--ghost btn--sm" type="button" @click="openRegularTimeCreateForm(clientManagementClient)">
+                    Додати регулярний час
+                  </button>
+                </div>
+              </template>
+            </template>
+          </section>
+
           <section v-else class="client-management-modal__placeholder">
             <h3>{{ clientManagementTabs.find((tab) => tab.key === clientManagementModal.section)?.label }}</h3>
             <p class="muted">
@@ -3324,7 +3573,7 @@ function regularTimeFormatLabel(value: SessionFormat | string): string {
 }
 
 function regularTimeStatusLabel(status: ClientRegularTimeStatus | string): string {
-  return status === 'paused' ? 'На паузі' : 'Активний'
+  return status === 'paused' ? 'Призупинено' : 'Активний'
 }
 
 function regularTimeStatusClass(status: ClientRegularTimeStatus | string): string {
@@ -3564,6 +3813,13 @@ async function toggleClientRegularTimes(client: ClientListItem) {
   if (!state.items.length && !state.loading) {
     await loadClientRegularTimes(client)
   }
+}
+
+function clientRegularTimeUnavailableMessage(client: ClientListItem): string {
+  if (isCurrentRegisteredClient(client) && !clientRegularTimesScopeKey(client)) {
+    return 'Для цього клієнта ще немає активної картки клієнта, тому регулярний час поки недоступний.'
+  }
+  return 'Регулярний час можна буде додати після створення картки клієнта.'
 }
 
 function openRegularTimeCreateForm(client: ClientListItem) {
@@ -4333,6 +4589,9 @@ function openClientManagementModal(client: ClientListItem, section: ClientManage
   if (section === 'sessions') {
     void loadSessionsIfNeeded().catch(() => [])
   }
+  if (section === 'regularTime') {
+    void toggleClientRegularTimes(client)
+  }
 }
 
 function closeClientManagementModal() {
@@ -4355,6 +4614,9 @@ function setClientManagementSection(section: ClientManagementSection) {
   }
   if (section === 'sessions') {
     void loadSessionsIfNeeded().catch(() => [])
+  }
+  if (section === 'regularTime') {
+    void toggleClientRegularTimes(client)
   }
 }
 
@@ -7698,20 +7960,28 @@ onBeforeUnmount(() => {
   color: #fff;
 }
 
+.client-management-modal {
+  padding: 16px;
+  place-items: center;
+}
+
 .client-management-modal__content {
   width: min(1120px, calc(100vw - 32px));
-  max-height: calc(100vh - 32px);
-  display: grid;
-  grid-template-rows: auto auto minmax(0, 1fr);
+  height: min(880px, calc(100dvh - 32px));
+  max-height: calc(100dvh - 32px);
+  display: flex;
+  flex-direction: column;
   padding: 0;
   overflow: hidden;
 }
 
 .client-management-modal__header {
+  flex: 0 0 auto;
   padding: 18px 20px 14px;
 }
 
 .client-management-modal__tabs {
+  flex: 0 0 auto;
   display: flex;
   gap: 8px;
   overflow-x: auto;
@@ -7744,8 +8014,11 @@ onBeforeUnmount(() => {
 }
 
 .client-management-modal__body {
+  flex: 1 1 auto;
   min-height: 0;
-  overflow: auto;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
   padding: 20px;
 }
 
@@ -7768,6 +8041,7 @@ onBeforeUnmount(() => {
 .client-management-contacts,
 .client-management-sessions,
 .client-management-materials,
+.client-management-regular-time,
 .client-management-modal__placeholder,
 .client-management-modal__empty {
   display: grid;
@@ -7955,6 +8229,163 @@ onBeforeUnmount(() => {
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
 }
 
+.client-management-regular-time__form,
+.client-management-regular-time__list {
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.client-management-regular-time__form {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid color-mix(in srgb, var(--pc-border) 82%, #ffffff);
+  border-radius: 16px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.94), color-mix(in srgb, var(--pc-bg-main) 54%, #ffffff)),
+    #ffffff;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.05);
+}
+
+.client-management-regular-time__form .client-regular-times__form-actions {
+  position: sticky;
+  bottom: -20px;
+  z-index: 1;
+  margin: 2px -12px -12px;
+  padding: 10px 12px 12px;
+  border-top: 1px solid color-mix(in srgb, var(--pc-border) 72%, #ffffff);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.78), #ffffff 46%);
+}
+
+.client-management-regular-time__form-head,
+.client-management-regular-time__wide-field {
+  grid-column: 1 / -1;
+}
+
+.client-management-regular-time__form-head h4 {
+  margin: 0;
+  color: var(--pc-navy-900);
+  font-size: 16px;
+}
+
+.client-management-regular-time__form-row {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.client-management-regular-time__form-row--primary {
+  grid-template-columns: minmax(160px, 1.2fr) minmax(120px, 0.8fr) minmax(120px, 0.8fr) minmax(160px, 1fr);
+}
+
+.client-management-regular-time__form-row--secondary {
+  grid-template-columns: minmax(160px, 1fr) minmax(160px, 1fr);
+}
+
+.client-management-regular-time__form-row--wide {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.client-management-regular-time__field {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.client-management-regular-time__field span {
+  color: color-mix(in srgb, var(--pc-navy-900) 76%, var(--pc-text-muted));
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+}
+
+.client-management-regular-time__control {
+  width: 100%;
+  min-width: 0;
+  height: 38px;
+  border: 1px solid color-mix(in srgb, var(--pc-border) 88%, var(--pc-navy-900));
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.96);
+  color: var(--pc-navy-950);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 650;
+  line-height: 1.3;
+  padding: 0 12px;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    background 0.18s ease;
+}
+
+.client-management-regular-time__control--select {
+  appearance: none;
+  padding-right: 36px;
+  background-image:
+    linear-gradient(45deg, transparent 50%, color-mix(in srgb, var(--pc-navy-900) 74%, var(--pc-text-muted)) 50%),
+    linear-gradient(135deg, color-mix(in srgb, var(--pc-navy-900) 74%, var(--pc-text-muted)) 50%, transparent 50%);
+  background-position:
+    calc(100% - 17px) 16px,
+    calc(100% - 12px) 16px;
+  background-size:
+    5px 5px,
+    5px 5px;
+  background-repeat: no-repeat;
+}
+
+.client-management-regular-time__control--time {
+  font-variant-numeric: tabular-nums;
+}
+
+.client-management-regular-time__control:hover {
+  border-color: color-mix(in srgb, var(--pc-navy-900) 22%, var(--pc-border));
+  background: #ffffff;
+}
+
+.client-management-regular-time__control:focus {
+  border-color: color-mix(in srgb, var(--pc-navy-900) 42%, var(--pc-border));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--pc-blue-soft) 66%, transparent);
+  outline: none;
+}
+
+.client-management-regular-time__details {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+  overflow-wrap: anywhere;
+  color: var(--pc-text-muted);
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.client-management-regular-time__details a {
+  color: var(--pc-blue, #1d4ed8);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.client-management-regular-time__details a:hover,
+.client-management-regular-time__details a:focus-visible {
+  text-decoration: underline;
+}
+
+@media (max-width: 900px) {
+  .client-management-regular-time__form-row--primary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .client-management-regular-time__form {
+    padding: 12px;
+  }
+
+  .client-management-regular-time__form-row--primary,
+  .client-management-regular-time__form-row--secondary {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 .client-material-editor-modal__content {
   width: min(760px, 100%);
   max-height: min(92vh, 860px);
@@ -8092,6 +8523,11 @@ onBeforeUnmount(() => {
     place-items: start center;
   }
 
+  .client-management-modal {
+    padding: 14px;
+    place-items: center;
+  }
+
   .manual-client-modal__content {
     max-height: calc(100vh - 28px);
     padding: 18px;
@@ -8100,7 +8536,8 @@ onBeforeUnmount(() => {
 
   .client-management-modal__content {
     width: calc(100vw - 28px);
-    max-height: calc(100vh - 28px);
+    height: calc(100dvh - 28px);
+    max-height: calc(100dvh - 28px);
     padding: 0;
   }
 
