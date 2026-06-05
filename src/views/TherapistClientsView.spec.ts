@@ -1910,6 +1910,11 @@ describe('TherapistClientsView', () => {
     const startsOnInput = within(dialog).getByLabelText('Дата початку') as HTMLInputElement
     expect(startsOnInput).toHaveAttribute('placeholder', 'ДД.ММ.РРРР')
     expect(startsOnInput).not.toHaveAttribute('type', 'date')
+    await fireEvent.click(startsOnInput)
+    expect(within(dialog).getByRole('dialog', { name: 'Календар вибору дати' })).toBeInTheDocument()
+    await selectRegularTimeDate(dialog, '2026-05-20')
+    expect(startsOnInput).toHaveValue('20.05.2026')
+    expect(within(dialog).queryByRole('dialog', { name: 'Календар вибору дати' })).not.toBeInTheDocument()
     expect(within(dialog).getByLabelText('Посилання на зустріч')).toBeInTheDocument()
     expect(within(dialog).queryByLabelText('Локація')).not.toBeInTheDocument()
     await fireEvent.update(within(dialog).getByLabelText('Формат'), 'offline')
@@ -1921,7 +1926,7 @@ describe('TherapistClientsView', () => {
     await fireEvent.update(within(dialog).getByLabelText('Формат'), 'online')
     await fireEvent.update(within(dialog).getByLabelText('День тижня'), '2')
     await fireEvent.update(within(dialog).getByLabelText('Час початку'), '14:30')
-    await fireEvent.update(within(dialog).getByLabelText('Дата початку'), '20.05.2026')
+    await selectRegularTimeDate(dialog, '2026-05-20')
     await fireEvent.update(within(dialog).getByLabelText('Посилання на зустріч'), 'https://meet.example.com/create')
     await fireEvent.click(within(dialog).getByRole('button', { name: 'Зберегти' }))
 
@@ -1936,6 +1941,46 @@ describe('TherapistClientsView', () => {
         meeting_url: 'https://meet.example.com/create',
         offline_location: '',
       })
+    })
+  })
+
+  it('keeps manual modal regular time date typing and validates invalid dates', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL) return [manualClientRecord({ id: 629, display_name: 'Typed Regular Time' })]
+      if (url === REMINDERS_URL) return []
+      if (url === SESSIONS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedFetchClientRegularTimes.mockResolvedValue([])
+
+    const { container } = renderView()
+    const { clientsPanel } = getPanels(container)
+
+    await selectClientRowByName(clientsPanel, 'Typed Regular Time')
+    const dialog = await screen.findByRole('dialog', { name: 'Картка клієнта' })
+    await fireEvent.click(within(dialog).getByRole('tab', { name: 'Регулярний час' }))
+    await fireEvent.click((await within(dialog).findAllByRole('button', { name: 'Додати регулярний час' }))[0]!)
+
+    const startsOnInput = within(dialog).getByLabelText('Дата початку') as HTMLInputElement
+    expect(startsOnInput).toHaveAttribute('type', 'text')
+    await fireEvent.update(within(dialog).getByLabelText('День тижня'), '2')
+    await fireEvent.update(startsOnInput, '31.02.2026')
+    await fireEvent.click(within(dialog).getByRole('button', { name: 'Зберегти' }))
+
+    expect(within(dialog).getByText('Вкажіть дату початку у форматі ДД.ММ.РРРР.')).toBeInTheDocument()
+    expect(mockedCreateClientRegularTime).not.toHaveBeenCalled()
+
+    await fireEvent.update(startsOnInput, '20.05.2026')
+    await fireEvent.click(within(dialog).getByRole('button', { name: 'Зберегти' }))
+
+    await waitFor(() => {
+      expect(mockedCreateClientRegularTime).toHaveBeenCalledWith(
+        629,
+        expect.objectContaining({
+          starts_on: '2026-05-20',
+        })
+      )
     })
   })
 

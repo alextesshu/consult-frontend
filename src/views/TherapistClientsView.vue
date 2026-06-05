@@ -1876,14 +1876,57 @@
                   <div class="client-management-regular-time__form-row client-management-regular-time__form-row--secondary">
                     <label class="field client-management-regular-time__field">
                       <span>Дата початку</span>
-                      <input
-                        class="client-management-regular-time__control"
-                        :value="clientRegularTimesState(clientRegularTimesScopeKey(clientManagementClient) || '').form.starts_on"
-                        autocomplete="off"
-                        inputmode="numeric"
-                        placeholder="ДД.ММ.РРРР"
-                        @input="setRegularTimeFormField(clientManagementClient, { starts_on: ($event.target as HTMLInputElement).value })"
-                      />
+                      <div class="date-input-shell client-regular-times__date">
+                        <input
+                          class="client-management-regular-time__control"
+                          :value="clientRegularTimesState(clientRegularTimesScopeKey(clientManagementClient) || '').form.starts_on"
+                          autocomplete="off"
+                          inputmode="numeric"
+                          placeholder="ДД.ММ.РРРР"
+                          type="text"
+                          @click="openRegularTimeDatePicker(clientManagementClient)"
+                          @focus="openRegularTimeDatePicker(clientManagementClient)"
+                          @input="setRegularTimeFormField(clientManagementClient, { starts_on: ($event.target as HTMLInputElement).value })"
+                        />
+                        <button
+                          class="date-picker-trigger"
+                          type="button"
+                          aria-label="Вибрати дату"
+                          @click="openRegularTimeDatePicker(clientManagementClient)"
+                        >
+                          <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+                            <path d="M7 2v3M17 2v3M4 9h16M6 4h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z" />
+                          </svg>
+                        </button>
+                        <div
+                          v-if="regularTimeDatePickerScopeKey === clientRegularTimesScopeKey(clientManagementClient)"
+                          class="date-picker-popover"
+                          role="dialog"
+                          aria-label="Календар вибору дати"
+                        >
+                          <div class="date-picker-popover__header">
+                            <button class="btn btn--ghost btn--sm" type="button" aria-label="Попередній місяць" @click="shiftRegularTimeDatePickerMonth(-1)">&lt;</button>
+                            <strong>{{ regularTimeDatePickerMonthLabel }}</strong>
+                            <button class="btn btn--ghost btn--sm" type="button" aria-label="Наступний місяць" @click="shiftRegularTimeDatePickerMonth(1)">&gt;</button>
+                          </div>
+                          <div class="date-picker-grid" aria-hidden="true">
+                            <span v-for="weekday in regularTimeDatePickerWeekdays" :key="weekday">{{ weekday }}</span>
+                          </div>
+                          <div class="date-picker-grid">
+                            <button
+                              v-for="day in regularTimeDatePickerDays"
+                              :key="day.iso"
+                              class="date-picker-day"
+                              type="button"
+                              :class="{ 'date-picker-day--muted': !day.inMonth, 'date-picker-day--selected': isRegularTimeDatePickerDaySelected(clientManagementClient, day.iso), 'date-picker-day--today': day.isToday }"
+                              :aria-label="regularTimeIsoDateToDisplay(day.iso)"
+                              @click="selectRegularTimeDateFromPicker(clientManagementClient, day.iso)"
+                            >
+                              {{ day.label }}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
                     </label>
                     <label class="field client-management-regular-time__field">
                       <span>Формат</span>
