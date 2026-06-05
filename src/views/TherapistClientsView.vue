@@ -845,7 +845,7 @@
                 </template>
 
                 <button
-                  v-else
+                  v-else-if="!accountInviteAlreadyLinked(client.id)"
                   class="btn btn--ghost btn--sm manual-account-invite__cta"
                   type="button"
                   :disabled="accountInviteState(client.id).actionLoading || accountInviteState(client.id).loading"
@@ -2177,6 +2177,175 @@
             </div>
           </section>
 
+          <section v-else-if="clientManagementModal.section === 'settings'" class="client-management-access">
+            <div class="client-management-modal__section-head">
+              <div>
+                <h3>Доступ клієнта</h3>
+                <p class="muted">
+                  Тут видно, чи має клієнт кабінет у Pro Consult, і можна керувати запрошенням.
+                </p>
+              </div>
+            </div>
+
+            <article class="client-management-access__card">
+              <h4>Кабінет клієнта</h4>
+              <div class="client-management-access__top">
+                <div>
+                  <div class="client-management-access__label">Кабінет</div>
+                  <div class="client-management-access__value">{{ accountBadgeLabel(clientManagementClient) }}</div>
+                </div>
+              </div>
+
+              <dl class="client-management-access__meta">
+                <div v-for="item in clientAccessRows(clientManagementClient)" :key="item.key">
+                  <dt>{{ item.label }}</dt>
+                  <dd>{{ item.value }}</dd>
+                </div>
+              </dl>
+
+              <p class="muted client-management-access__copy">{{ clientAccessDescription(clientManagementClient) }}</p>
+            </article>
+
+            <div v-if="isManualClientRecord(clientManagementClient) && !hasLinkedAccount(clientManagementClient)" class="manual-account-invite client-management-access__invite">
+              <div class="manual-account-invite__header">
+                <div>
+                  <div class="manual-account-invite__title">Запрошення до кабінету</div>
+                  <p class="manual-account-invite__copy">
+                    Це внутрішня картка клієнта. Клієнт не має власного кабінету, доки ви не надішлете запрошення.
+                  </p>
+                </div>
+                <span v-if="accountInviteState(clientManagementClient.id).loading" class="manual-account-invite__status">
+                  Перевіряємо...
+                </span>
+              </div>
+
+              <p v-if="accountInviteState(clientManagementClient.id).error" class="manual-account-invite__error">
+                {{ accountInviteState(clientManagementClient.id).error }}
+              </p>
+
+              <template v-if="activeAccountInvite(clientManagementClient.id)">
+                <p class="manual-account-invite__status">
+                  {{ accountInviteStatusLabel(activeAccountInvite(clientManagementClient.id)) }}
+                </p>
+
+                <div v-if="accountInviteUrl(clientManagementClient.id)" class="manual-account-invite__link">
+                  {{ accountInviteUrl(clientManagementClient.id) }}
+                </div>
+                <p v-else class="manual-account-invite__hint">
+                  Запрошення вже було відкрито, але клієнт ще не підключив акаунт. Створіть нове посилання, якщо потрібно надіслати його повторно.
+                </p>
+
+                <div class="manual-account-invite__actions">
+                  <button
+                    v-if="accountInviteUrl(clientManagementClient.id)"
+                    class="btn btn--ghost btn--sm"
+                    type="button"
+                    :disabled="accountInviteState(clientManagementClient.id).actionLoading"
+                    @click="copyAccountInviteLink(clientManagementClient.id)"
+                  >
+                    {{ accountInviteState(clientManagementClient.id).copied ? 'Посилання скопійовано' : 'Скопіювати посилання' }}
+                  </button>
+                  <button
+                    class="btn btn--ghost btn--sm"
+                    type="button"
+                    :disabled="accountInviteState(clientManagementClient.id).actionLoading"
+                    @click="regenerateAccountInvite(clientManagementClient.id)"
+                  >
+                    {{ accountInviteUrl(clientManagementClient.id) ? 'Створити нове посилання' : 'Отримати нове посилання' }}
+                  </button>
+                  <button
+                    class="btn btn--ghost btn--sm"
+                    type="button"
+                    :disabled="accountInviteState(clientManagementClient.id).actionLoading"
+                    @click="revokeAccountInvite(clientManagementClient.id)"
+                  >
+                    Відкликати запрошення
+                  </button>
+                </div>
+              </template>
+
+              <button
+                v-else-if="!accountInviteAlreadyLinked(clientManagementClient.id)"
+                class="btn btn--sm manual-account-invite__cta"
+                type="button"
+                :disabled="accountInviteState(clientManagementClient.id).actionLoading || accountInviteState(clientManagementClient.id).loading"
+                @click="createAccountInvite(clientManagementClient.id)"
+              >
+                {{ accountInviteState(clientManagementClient.id).actionLoading ? 'Створюємо...' : 'Запросити до кабінету' }}
+              </button>
+            </div>
+
+            <div v-else-if="isManualClientRecord(clientManagementClient)" class="client-management-access__linked">
+              <div class="manual-account-invite__title">Картка вже повʼязана з кабінетом клієнта.</div>
+              <p class="muted">Клієнт уже має кабінет.</p>
+            </div>
+
+            <article class="client-management-access__card client-management-access__work-status">
+              <div class="client-management-access__top">
+                <div>
+                  <h4>Статус роботи</h4>
+                  <p class="muted client-management-access__copy">{{ clientWorkStatusDescription(clientManagementClient) }}</p>
+                </div>
+                <span class="client-status" :class="clientStatusClass(clientListState(clientManagementClient))">
+                  {{ clientStatusLabel(clientListState(clientManagementClient)) }}
+                </span>
+              </div>
+
+              <div class="client-management-access__actions">
+                <div v-if="canActivateRegisteredClientRecord(clientManagementClient)" class="client-management__activation">
+                <p v-if="activateClientRecordError(clientManagementClient)" class="form-error">
+                  {{ activateClientRecordError(clientManagementClient) }}
+                </p>
+                <button
+                  class="btn btn--sm"
+                  type="button"
+                  :disabled="isActivatingClientRecord(clientManagementClient)"
+                  @click="activateClientRecord(clientManagementClient)"
+                >
+                  {{ isActivatingClientRecord(clientManagementClient) ? 'Активуємо...' : 'Активувати клієнта' }}
+                </button>
+              </div>
+
+                <button
+                  v-if="isManualClientRecord(clientManagementClient) && clientManagementClient.status !== 'archived'"
+                  class="btn btn--ghost btn--sm"
+                  type="button"
+                  :disabled="isManualActionLoading(clientManagementClient.id)"
+                  @click="openArchiveClientConfirm({ type: 'manual', id: clientManagementClient.id })"
+                >
+                  Завершити роботу
+                </button>
+                <button
+                  v-else-if="isManualClientRecord(clientManagementClient)"
+                  class="btn btn--ghost btn--sm"
+                  type="button"
+                  :disabled="isManualActionLoading(clientManagementClient.id)"
+                  @click="restoreManualClient(clientManagementClient.id)"
+                >
+                  Повернути до роботи
+                </button>
+                <button
+                  v-else-if="clientManagementClient.state !== 'ARCHIVED'"
+                  class="btn btn--ghost btn--sm"
+                  type="button"
+                  :disabled="!relationClientId(clientManagementClient) || isActionLoading(relationClientId(clientManagementClient))"
+                  @click="openArchiveClientConfirm({ type: 'registered', id: relationClientId(clientManagementClient) })"
+                >
+                  Завершити роботу
+                </button>
+                <button
+                  v-else
+                  class="btn btn--ghost btn--sm"
+                  type="button"
+                  :disabled="!relationClientId(clientManagementClient) || isActionLoading(relationClientId(clientManagementClient))"
+                  @click="restoreClient(relationClientId(clientManagementClient))"
+                >
+                  Повернути до роботи
+                </button>
+              </div>
+            </article>
+          </section>
+
           <section v-else class="client-management-modal__placeholder">
             <h3>{{ clientManagementTabs.find((tab) => tab.key === clientManagementModal.section)?.label }}</h3>
             <p class="muted">
@@ -3303,6 +3472,10 @@ function accountInviteStatusLabel(invite: ClientRecordAccountInvite | null) {
   const expiresAt = formatDateTime(invite?.expires_at || null)
   if (expiresAt && expiresAt !== '—') return `Запрошення активне до ${expiresAt}`
   return 'Запрошення активне'
+}
+
+function accountInviteAlreadyLinked(recordId: number) {
+  return accountInviteState(recordId).error === 'Клієнт уже має підключений кабінет.'
 }
 
 function accountInviteErrorMessage(err: unknown) {
@@ -4755,6 +4928,9 @@ function openClientManagementModal(client: ClientListItem, section: ClientManage
   if (section === 'sessionNotes') {
     void ensureClientSessionNotesLoaded(client)
   }
+  if (section === 'settings') {
+    void ensureClientAccessLoaded(client)
+  }
 }
 
 function closeClientManagementModal() {
@@ -4783,6 +4959,9 @@ function setClientManagementSection(section: ClientManagementSection) {
   }
   if (section === 'sessionNotes') {
     void ensureClientSessionNotesLoaded(client)
+  }
+  if (section === 'settings') {
+    void ensureClientAccessLoaded(client)
   }
 }
 
@@ -5632,6 +5811,52 @@ function clientManagementContactRows(client: ClientListItem) {
     { key: 'status', label: 'Статус', value: clientStatusLabel(clientListState(client)) },
     { key: 'source', label: 'Джерело картки', value: 'Підключено до кабінету клієнта' },
   ]
+}
+
+function clientAccessRows(client: ClientListItem) {
+  if (isManualClientRecord(client)) {
+    const rows = [
+      { key: 'contact-email', label: manualContactEmailLabel(client), value: modalFieldValue(manualContactEmail(client)) },
+      { key: 'phone', label: 'Телефон', value: modalFieldValue(client.phone) },
+    ]
+    if (shouldShowManualAccountEmail(client)) {
+      rows.splice(2, 0, { key: 'account-email', label: 'Email акаунта', value: manualAccountEmail(client) })
+    }
+    return rows
+  }
+
+  return [
+    { key: 'email', label: 'Email', value: modalFieldValue(client.client_email) },
+  ]
+}
+
+function clientAccessDescription(client: ClientListItem) {
+  if (isManualClientRecord(client)) {
+    if (hasLinkedAccount(client)) return 'Ця картка вже повʼязана з кабінетом клієнта.'
+    return 'Це внутрішня картка клієнта. Клієнт не має власного кабінету, доки ви не надішлете запрошення.'
+  }
+  return 'Клієнт уже має кабінет і може бачити свої сесії, матеріали та нагадування.'
+}
+
+function clientWorkStatusDescription(client: ClientListItem) {
+  const status = clientListState(client)
+  if (status === 'ARCHIVED') {
+    return 'Картка клієнта в архіві. Поверніть її до роботи, якщо співпрацю потрібно продовжити.'
+  }
+  if (canActivateRegisteredClientRecord(client)) {
+    return 'Клієнт неактивний. Активуйте клієнта, щоб додавати сесії, регулярний час, матеріали й робочі записи.'
+  }
+  if (status === 'INACTIVE' || status === 'CREATED') {
+    return 'Клієнт неактивний. Дії з робочою карткою можуть бути обмежені.'
+  }
+  return 'Клієнт активний. Якщо роботу завершено, переведіть картку в неактивний стан.'
+}
+
+async function ensureClientAccessLoaded(client: ClientListItem) {
+  if (!isManualClientRecord(client) || hasLinkedAccount(client)) return
+  const state = accountInviteState(client.id)
+  if (state.loading || state.invite || state.error) return
+  await loadAccountInvite(client.id)
 }
 
 function clientNearestSessionLabel(client: ClientListItem) {
@@ -8346,6 +8571,7 @@ onBeforeUnmount(() => {
 .client-management-regular-time,
 .client-management-workbook,
 .client-management-session-notes,
+.client-management-access,
 .client-management-modal__placeholder,
 .client-management-modal__empty {
   display: grid;
@@ -8401,6 +8627,83 @@ onBeforeUnmount(() => {
 .client-management-contacts__item--secondary dd {
   color: var(--pc-text-muted);
   font-weight: 600;
+}
+
+.client-management-access__card,
+.client-management-access__linked {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid color-mix(in srgb, var(--pc-border) 82%, #ffffff);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.92);
+}
+
+.client-management-access__card h4 {
+  margin: 0;
+  color: var(--pc-navy-900);
+  font-size: 15px;
+}
+
+.client-management-access__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.client-management-access__label,
+.client-management-access__meta dt {
+  color: var(--pc-text-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.client-management-access__value {
+  margin-top: 2px;
+  color: var(--pc-navy-950);
+  font-size: 18px;
+  font-weight: 850;
+}
+
+.client-management-access__meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+
+.client-management-access__meta div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.client-management-access__meta dd {
+  margin: 0;
+  color: var(--pc-navy-900);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.client-management-access__copy {
+  margin: 0;
+}
+
+.client-management-access__invite {
+  margin: 0;
+}
+
+.client-management-access__actions {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.client-management-access__actions .client-management__activation {
+  flex-basis: 100%;
 }
 
 .client-management-sessions__grid {

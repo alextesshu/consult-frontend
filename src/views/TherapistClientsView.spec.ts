@@ -1467,6 +1467,214 @@ describe('TherapistClientsView', () => {
     expect(dialog).not.toHaveTextContent('internal_note')
   })
 
+  it('shows registered client access state in management modal without invite controls', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL)
+        return [
+          {
+            id: 1,
+            client_id: 44,
+            client_email: 'registered44@example.com',
+            state: 'ACTIVE',
+            last_session_at: null,
+            upcoming_count: 0,
+            client_display_name: 'Registered Access',
+            internal_note: 'private internal note must stay hidden',
+          },
+        ]
+      if (url === CLIENT_RECORDS_URL) return []
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    const { clientsPanel } = getPanels(renderView().container)
+    await selectClientRowByName(clientsPanel, 'Registered Access')
+
+    const dialog = await screen.findByRole('dialog', { name: 'Картка клієнта' })
+    await fireEvent.click(within(dialog).getByRole('tab', { name: 'Доступ' }))
+
+    expect(within(dialog).getByRole('heading', { name: 'Доступ клієнта' })).toBeInTheDocument()
+    expect(
+      within(dialog).getByText('Тут видно, чи має клієнт кабінет у Pro Consult, і можна керувати запрошенням.')
+    ).toBeInTheDocument()
+    expect(within(dialog).getByRole('heading', { name: 'Кабінет клієнта' })).toBeInTheDocument()
+    expect(within(dialog).getByRole('heading', { name: 'Статус роботи' })).toBeInTheDocument()
+    expect(dialog).not.toHaveTextContent('Розділ буде перенесено')
+    expect(within(dialog).getByText('З кабінетом')).toBeInTheDocument()
+    expect(within(dialog).getByText('registered44@example.com')).toBeInTheDocument()
+    expect(within(dialog).getAllByText('Активний').length).toBeGreaterThan(0)
+    expect(
+      within(dialog).getByText('Клієнт активний. Якщо роботу завершено, переведіть картку в неактивний стан.')
+    ).toBeInTheDocument()
+    expect(
+      within(dialog).getByText('Клієнт уже має кабінет і може бачити свої сесії, матеріали та нагадування.')
+    ).toBeInTheDocument()
+    expect(within(dialog).queryByRole('button', { name: 'Запросити до кабінету' })).not.toBeInTheDocument()
+    expect(dialog).not.toHaveTextContent('ACTIVE')
+    expect(dialog).not.toHaveTextContent('private internal note must stay hidden')
+  })
+
+  it('shows manual access invite CTA in management modal for records without account', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL)
+        return [
+          manualClientRecord({
+            id: 630,
+            display_name: 'Manual Access',
+            email: 'manual-access@example.com',
+            phone: '+380501234567',
+          }),
+        ]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    const { clientsPanel } = getPanels(renderView().container)
+    await selectClientRowByName(clientsPanel, 'Manual Access')
+
+    const dialog = await screen.findByRole('dialog', { name: 'Картка клієнта' })
+    await fireEvent.click(within(dialog).getByRole('tab', { name: 'Доступ' }))
+
+    expect(within(dialog).getByRole('heading', { name: 'Доступ клієнта' })).toBeInTheDocument()
+    expect(within(dialog).getByRole('heading', { name: 'Кабінет клієнта' })).toBeInTheDocument()
+    expect(within(dialog).getByRole('heading', { name: 'Статус роботи' })).toBeInTheDocument()
+    expect(within(dialog).getByText('Без реєстрації')).toBeInTheDocument()
+    expect(within(dialog).getByText('manual-access@example.com')).toBeInTheDocument()
+    expect(within(dialog).getByText('+380501234567')).toBeInTheDocument()
+    expect(
+      within(dialog).getAllByText(
+        'Це внутрішня картка клієнта. Клієнт не має власного кабінету, доки ви не надішлете запрошення.'
+      ).length
+    ).toBeGreaterThan(0)
+    expect(within(dialog).getByRole('button', { name: 'Запросити до кабінету' })).toBeInTheDocument()
+  })
+
+  it('does not show invite CTA in management modal for linked manual records', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL)
+        return [
+          manualClientRecord({
+            id: 631,
+            user_id: 57,
+            has_account: true,
+            display_name: 'Linked Access',
+            email: 'contact631@example.com',
+            account_email: 'account631@example.com',
+          }),
+        ]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    const { clientsPanel } = getPanels(renderView().container)
+    await selectClientRowByName(clientsPanel, 'Linked Access')
+
+    const dialog = await screen.findByRole('dialog', { name: 'Картка клієнта' })
+    await fireEvent.click(within(dialog).getByRole('tab', { name: 'Доступ' }))
+
+    expect(within(dialog).getByText('З кабінетом')).toBeInTheDocument()
+    expect(within(dialog).getByText('account631@example.com')).toBeInTheDocument()
+    expect(within(dialog).getByText('contact631@example.com')).toBeInTheDocument()
+    expect(within(dialog).getByText('Картка вже повʼязана з кабінетом клієнта.')).toBeInTheDocument()
+    expect(within(dialog).queryByRole('button', { name: 'Запросити до кабінету' })).not.toBeInTheDocument()
+  })
+
+  it('shows active invite URL and copy action in management access tab', async () => {
+    const clipboardWrite = vi.fn().mockResolvedValue(undefined)
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText: clipboardWrite },
+    })
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL) return [manualClientRecord({ id: 632, display_name: 'Manual Active Invite' })]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedFetchClientRecordAccountInvite.mockResolvedValue(
+      accountInviteResponse({ id: 332, client_record_id: 632 }, 'https://proconsult.space/client/invite/modal-token') as any
+    )
+
+    const { clientsPanel } = getPanels(renderView().container)
+    await selectClientRowByName(clientsPanel, 'Manual Active Invite')
+
+    const dialog = await screen.findByRole('dialog', { name: 'Картка клієнта' })
+    await fireEvent.click(within(dialog).getByRole('tab', { name: 'Доступ' }))
+
+    expect(await within(dialog).findByText('https://proconsult.space/client/invite/modal-token')).toBeInTheDocument()
+    await fireEvent.click(within(dialog).getByRole('button', { name: 'Скопіювати посилання' }))
+    expect(clipboardWrite).toHaveBeenCalledWith('https://proconsult.space/client/invite/modal-token')
+  })
+
+  it('regenerates active invite without URL from management access tab', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL) return [manualClientRecord({ id: 633, display_name: 'Manual Regenerate Modal' })]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedFetchClientRecordAccountInvite.mockResolvedValue(
+      accountInviteResponse({ id: 333, client_record_id: 633, invite_url: null }, null) as any
+    )
+    mockedRegenerateClientRecordAccountInvite.mockResolvedValue(
+      accountInviteResponse({ id: 334, client_record_id: 633 }, 'https://proconsult.space/client/invite/modal-regenerated') as any
+    )
+
+    const { clientsPanel } = getPanels(renderView().container)
+    await selectClientRowByName(clientsPanel, 'Manual Regenerate Modal')
+
+    const dialog = await screen.findByRole('dialog', { name: 'Картка клієнта' })
+    await fireEvent.click(within(dialog).getByRole('tab', { name: 'Доступ' }))
+
+    expect(
+      await within(dialog).findByText(
+        'Запрошення вже було відкрито, але клієнт ще не підключив акаунт. Створіть нове посилання, якщо потрібно надіслати його повторно.'
+      )
+    ).toBeInTheDocument()
+    await fireEvent.click(within(dialog).getByRole('button', { name: 'Отримати нове посилання' }))
+
+    await waitFor(() => {
+      expect(mockedRegenerateClientRecordAccountInvite).toHaveBeenCalledWith(633)
+      expect(within(dialog).getByText('https://proconsult.space/client/invite/modal-regenerated')).toBeInTheDocument()
+    })
+  })
+
+  it('revokes active invite and handles already-linked errors in management access tab', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL) return [manualClientRecord({ id: 634, display_name: 'Manual Revoke Modal' })]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedFetchClientRecordAccountInvite.mockResolvedValue(
+      accountInviteResponse({ id: 335, client_record_id: 634 }, 'https://proconsult.space/client/invite/modal-revoke') as any
+    )
+    mockedCreateClientRecordAccountInvite.mockRejectedValue({
+      response: { data: { code: 'CLIENT_RECORD_ALREADY_LINKED' } },
+    })
+
+    const { clientsPanel } = getPanels(renderView().container)
+    await selectClientRowByName(clientsPanel, 'Manual Revoke Modal')
+
+    const dialog = await screen.findByRole('dialog', { name: 'Картка клієнта' })
+    await fireEvent.click(within(dialog).getByRole('tab', { name: 'Доступ' }))
+    expect(await within(dialog).findByText('https://proconsult.space/client/invite/modal-revoke')).toBeInTheDocument()
+
+    await fireEvent.click(within(dialog).getByRole('button', { name: 'Відкликати запрошення' }))
+    await waitFor(() => {
+      expect(mockedRevokeClientRecordAccountInvite).toHaveBeenCalledWith(634)
+      expect(within(dialog).getByRole('button', { name: 'Запросити до кабінету' })).toBeInTheDocument()
+    })
+
+    await fireEvent.click(within(dialog).getByRole('button', { name: 'Запросити до кабінету' }))
+    await waitFor(() => {
+      expect(within(dialog).getByText('Клієнт уже має підключений кабінет.')).toBeInTheDocument()
+      expect(within(dialog).queryByRole('button', { name: 'Запросити до кабінету' })).not.toBeInTheDocument()
+    })
+  })
+
   it('shows registered private notebook status and opens the existing workbook route', async () => {
     mockedApiGet.mockImplementation(async (url) => {
       if (url === CLIENTS_URL)
