@@ -1620,14 +1620,14 @@ describe('TherapistClientsView', () => {
 
     expect(await within(dialog).findByRole('heading', { name: 'Нотатки по сесіях' })).toBeInTheDocument()
     expect(
-      within(dialog).getByText('Це приватні нотатки спеціаліста, привʼязані до сесій. Клієнт не бачить ці записи.')
+      within(dialog).getByText('Приватні записи спеціаліста, привʼязані до конкретних сесій. Клієнт їх не бачить.')
     ).toBeInTheDocument()
     expect(within(dialog).getByText('15.06.2099, 13:00')).toBeInTheDocument()
     expect(within(dialog).getAllByText('50 хв')).toHaveLength(2)
     expect(within(dialog).getByText('Є нотатка')).toBeInTheDocument()
     expect(within(dialog).getByText('Оновлено 15.06.2099')).toBeInTheDocument()
     expect(within(dialog).queryByText('Нотатки немає')).not.toBeInTheDocument()
-    expect(within(dialog).getByText('Останні сесії без нотаток')).toBeInTheDocument()
+    expect(within(dialog).getByText('Останні сесії, де можна додати нотатку')).toBeInTheDocument()
     expect(within(dialog).getAllByRole('link', { name: 'Відкрити сесію' }).map((link) => link.getAttribute('href'))).toEqual([
       '/cabinet/sessions/777',
       '/cabinet/sessions/778',
@@ -1709,8 +1709,10 @@ describe('TherapistClientsView', () => {
     const dialog = await screen.findByRole('dialog', { name: 'Картка клієнта' })
     await fireEvent.click(within(dialog).getByRole('tab', { name: 'Нотатки' }))
 
-    expect(await within(dialog).findByText('Нотаток по сесіях ще немає.')).toBeInTheDocument()
-    expect(within(dialog).getByText('Нотатки створюються в картці конкретної сесії.')).toBeInTheDocument()
+    expect(await within(dialog).findByRole('heading', { name: 'Нотаток ще немає' })).toBeInTheDocument()
+    expect(within(dialog).getByText('Щоб додати нотатку, відкрийте потрібну сесію.')).toBeInTheDocument()
+    expect(within(dialog).queryByText('Нотаток по сесіях ще немає.')).not.toBeInTheDocument()
+    expect(within(dialog).queryByText('Нотатки створюються в картці конкретної сесії.')).not.toBeInTheDocument()
     expect(within(dialog).queryByRole('link', { name: 'Відкрити сесію' })).not.toBeInTheDocument()
   })
 

@@ -2107,7 +2107,7 @@
               <div>
                 <h3>Нотатки по сесіях</h3>
                 <p class="muted">
-                  Це приватні нотатки спеціаліста, привʼязані до сесій. Клієнт не бачить ці записи.
+                  Приватні записи спеціаліста, привʼязані до конкретних сесій. Клієнт їх не бачить.
                 </p>
               </div>
             </div>
@@ -2116,8 +2116,8 @@
               Завантаження нотаток...
             </div>
             <div v-else-if="!clientSessionNoteRows(clientManagementClient).length" class="client-management-modal__empty">
-              <p class="muted">Нотаток по сесіях ще немає.</p>
-              <p class="muted">Нотатки створюються в картці конкретної сесії.</p>
+              <h4>Нотаток ще немає</h4>
+              <p class="muted">Щоб додати нотатку, відкрийте потрібну сесію.</p>
             </div>
             <div v-else class="client-management-session-notes__list">
               <article
@@ -2153,7 +2153,7 @@
               v-if="!clientSessionNotesLoading(clientManagementClient) && clientSessionWithoutNoteRows(clientManagementClient).length"
               class="client-management-session-notes__secondary"
             >
-              <h4>Останні сесії без нотаток</h4>
+              <h4>Останні сесії, де можна додати нотатку</h4>
               <div class="client-management-session-notes__list client-management-session-notes__list--compact">
                 <article
                   v-for="item in clientSessionWithoutNoteRows(clientManagementClient)"
