@@ -1,6 +1,6 @@
 # Handoff
 
-Last updated: 2026-04-28
+Last updated: 2026-06-05
 Owner: agent-maintained  
 Canonical file: `docs/HANDOFF.md`  
 Governance: `docs/HANDOFF_RULES.md`  
@@ -49,6 +49,14 @@ Frontend production-readiness slice is now integrated:
   - basic specialist lifecycle smoke passed: create, confirm, meeting link add/edit/copy, cancel, complete
   - private session note is hidden by default on detail page
   - manual session creation UI from client card is active
+- clients index and client modal workspace: done
+  - production smoke passed after staging promotion
+  - `origin/frontend dev` and `origin/frontend main` are both at `0f11eb2 Add client modal access tab`
+  - local frontend repo, server frontend repo, and server backend repo were returned to `dev`
+  - backend/API were not changed for this frontend phase
+  - `/cabinet/clients` is now a compact client index: top count chips, table-like rows, no persistent right-side selected-client panel
+  - clicking a client row opens modal `Картка клієнта`; full client management now lives in the modal
+  - implemented modal tabs: `Огляд`, `Контакти`, `Сесії`, `Матеріали`, `Регулярний час`, `Приватний зошит`, `Нотатки`, `Доступ`
 
 ## System State
 
@@ -125,6 +133,31 @@ Frontend production-readiness slice is now integrated:
     - authenticated CLIENT users accept through `/api/client/client-record-account-invites/{token}/accept/`
     - after accept, frontend refreshes `me` and redirects to `/client`
     - the invite page must not expose `SessionNote`, `ClientJournal`, workbook content, `ClientRecord.internal_note`, or practice-board items
+- `/cabinet/clients` current modal workspace:
+  - the page is a compact client index, not a persistent two-pane client workspace
+  - top count chips are frontend-derived from currently loaded registered/manual rows
+  - client rows open `Картка клієнта`
+  - `Огляд` summarizes status, cabinet state, contacts, sessions, materials, regular time, workbook, and notes
+  - `Контакти` shows safe contact/account metadata; registered client phone is `Не вказано` when backend payload does not include it
+  - `Сесії` is read-only and uses existing session cache/API data; it renders safe metadata only and links `Відкрити сесію` only when a real session id exists
+  - `Перейти до списку сесій` links to generic `/cabinet/sessions`; there is no client-specific deep filter yet
+  - `Матеріали` manages explicit `ClientMaterial` records only
+  - ClientMaterial attachments are integrated: specialist can select multiple local files, frontend uploads them through repeated single-file attachment uploads, and refreshes attachment lists after upload/delete
+  - client material download uses backend JSON `{ "download_url": "<signed-url>" }`; raw signed URLs/blob paths are not rendered in the DOM
+  - `Регулярний час` uses existing ClientRegularTime helpers: `fetchClientRegularTimes`, `createClientRegularTime`, `updateClientRegularTime`, `pauseClientRegularTime`, `resumeClientRegularTime`
+  - regular time UI preserves `HH:mm` visible time, `DD.MM.YYYY` visible dates, custom calendar popover for `Дата початку`, and viewport-safe modal scrolling
+  - regular time does not generate sessions, slots, public booking behavior, or public profile behavior
+  - `Приватний зошит` is specialist-only metadata in the modal; registered clients can open `/cabinet/clients/:clientId/workbook`
+  - manual/no-registration workbook is unavailable until backend/API contract exists for manual client records
+  - `Нотатки` is specialist-only session-note metadata; main list shows sessions with note metadata, with a secondary list for recent sessions where a note can be added
+  - session note bodies are not rendered in the modal
+  - `Доступ` is split into `Кабінет клієнта` and `Статус роботи`
+  - registered clients show cabinet/access state without invite CTA
+  - manual clients without account use the existing invite flow; linked manual clients do not show invite CTA
+  - access tab reuses existing invite helpers: `fetchClientRecordAccountInvite`, `createClientRecordAccountInvite`, `regenerateClientRecordAccountInvite`, `revokeClientRecordAccountInvite`
+  - existing archive/restore/activate behavior and confirmations are preserved
+  - private `SessionNote`, `ClientJournal`, `Приватний зошит`, internal notes, private client history, and session-note bodies must not be exposed to client-facing UI
+  - client-visible advice/materials remain explicit `ClientMaterial` artifacts only
 - Manual client records architecture guardrail:
   - `ClientRecord` is not a parallel manual-client system
   - `ClientRecord` is the future specialist-owned client identity layer

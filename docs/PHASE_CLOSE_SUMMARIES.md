@@ -10,6 +10,52 @@ Usage:
 
 ---
 
+## 2026-06-05 - Clients Index / Client Modal Workspace Phase
+
+### Context
+- Frontend clients page phase was completed, deployed to staging, promoted to production, and production smoke-check passed.
+- `origin/frontend dev` and `origin/frontend main` are both at `0f11eb2 Add client modal access tab`.
+- Local frontend repo, server frontend repo, and server backend repo were returned to `dev`.
+- Backend/API were not changed in this phase.
+
+### Done
+- Reworked `/cabinet/clients` into a compact client index with top count chips and table-like rows.
+- Removed the persistent right-side selected-client summary panel.
+- Moved full specialist-side client management into modal `Картка клієнта`.
+- Implemented modal tabs: `Огляд`, `Контакти`, `Сесії`, `Матеріали`, `Регулярний час`, `Приватний зошит`, `Нотатки`, `Доступ`.
+- Integrated ClientMaterial attachment UI with repeated single-file uploads and client signed-URL download flow.
+- Added regular-time modal workspace polish, Ukrainian/European date/time handling, and viewport-safe modal scrolling.
+- Added specialist-only workbook and session-note metadata tabs without exposing private bodies.
+- Added access/cabinet invite management tab using existing invite helpers and existing archive/restore/activate behavior.
+
+### Changed files
+- `src/views/TherapistClientsView.vue`
+- `src/views/TherapistClientsView.spec.ts`
+- `src/views/ClientMaterialsView.vue`
+- `src/views/ClientMaterialsView.spec.ts`
+- `src/lib/api.ts`
+- `src/lib/api.clientMaterials.spec.ts`
+- `docs/HANDOFF.md`
+- `docs/PHASE_CLOSE_SUMMARIES.md`
+
+### Validation
+- Production smoke-check passed after staging promotion.
+- Final frontend validation during phase included targeted material/client specs, typecheck, build, `git diff --check`, and encoding scans.
+
+### Deferred / Not in Scope
+- Manual/no-registration private notebook support needs backend/API contract if product decides to support it.
+- `/cabinet/sessions` does not yet support client-specific modal deep filtering.
+- Registered/client relation payload does not expose phone; contacts show `Не вказано`.
+- `TherapistClientsView.vue` should be split into modal section components in a later frontend refactor.
+- Existing `TherapistClientsView.spec.ts` router injection warnings should be cleaned up with a proper router mock/provide.
+- If client list pagination is added, top count chips will need backend aggregate counts.
+
+### Merge Readiness
+- Phase is closed and production-verified.
+- Current operational state is documented in `docs/HANDOFF.md`.
+
+---
+
 ## 2026-04-28 - Manual Clients / Confidentiality / Payment Docs Refresh
 
 ### Context
