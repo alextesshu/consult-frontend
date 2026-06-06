@@ -8,13 +8,15 @@ Phase archive: `docs/PHASE_CLOSE_SUMMARIES.md`
 
 ## Current Phase
 
-Frontend production-readiness slice is now integrated:
+Frontend production-closure slice is now integrated:
 
-- Founder Beta Email / Notification Readiness: staging-smoke-passed
+- Founder Beta Email / Notification Readiness: production-closed
   - frontend did not change runtime code or backend/API contracts
   - current staging backend direct email smoke returned `sent: 1` from
     `notifications@proconsult.space`
-  - production readiness is not claimed beyond actual smoke results
+  - backend and frontend `dev` were promoted to `main`, production deploys
+    completed, and local/server repos were returned to `dev`
+  - production smoke passed for the same request-first flow
   - the most critical request-first smoke passed on staging:
     guest slot-less request -> specialist email -> bell notification ->
     `/cabinet/external-sessions` item -> Admin Work Queue operational
@@ -24,14 +26,18 @@ Frontend production-readiness slice is now integrated:
     - `/cabinet/external-sessions` showed the new pending request
     - `/admin/work-queue` showed the new public request as an operational item
     - no missing-marker email failure was shown for the smoked request
+  - `PLATFORM_SETTING_TEXT` was corrected in staging and production env to
+    Ukrainian copy; historical `BookingRuleAcceptance.text_snapshot` rows were
+    left untouched
   - remaining non-blocking polish:
     - public request modal is too text-heavy
     - public request modal contains leftover English text
     - email still shows raw request topic values like `anxiety`,
       `relationships`, and `not_sure`
     - topic labels should be Ukrainian in email/admin/specialist surfaces
-- Admin Work Queue Phase Admin-1: done and staging-smoke-checked
-  - production deployment is not confirmed in this handoff
+- Admin Work Queue Phase Admin-1: done, production-deployed, and smoke-checked
+  - backend and frontend `dev` were promoted to `main`, production deploys
+    completed, and local/server repos were returned to `dev`
   - route: `/admin/work-queue`
   - admin nav label: `Р§РµСЂРіР° СЂРѕР±РѕС‚Рё`
   - backend endpoint consumed: `GET /api/admin/work-queue/`
@@ -45,7 +51,7 @@ Frontend production-readiness slice is now integrated:
   - no fake action button is shown for `null`, empty, or `/` `target_url`
   - frontend does not add mutations; queue actions are deferred until backend
     contracts exist
-- Admin specialist detail polish: done and staging-smoke-checked
+- Admin specialist detail polish: production-deployed as part of the founder-beta readiness package; access modals now clarify test access vs service override and use Ukrainian/European date-time formatting
   - `РљРµСЂСѓРІР°С‚Рё С‚РµСЃС‚РѕРІРёРј РґРѕСЃС‚СѓРїРѕРј` means normal temporary
     beta/demo Pro access
   - `РЎР»СѓР¶Р±РѕРІРµ РїРµСЂРµРІРёР·РЅР°С‡РµРЅРЅСЏ` means exceptional manual override
@@ -402,14 +408,67 @@ Do not add payment buttons for guest sessions until backend contract is confirme
 
 Use the canonical Vitest run script and keep these three specs in scope for related manual-client/session/payment copy changes:
 
-```powershell
-cd C:\Users\admin\dev\portfolio\consult\frontend
+- `cd C:\Users\admin\dev\portfolio\consult\frontend`
+- `npm run test:run -- src/views/TherapistClientsView.spec.ts src/views/TherapistSessionDetailView.spec.ts src/views/TherapistSessionsView.spec.ts`
+- `npm run typecheck`
+- `npm run build`
+- `git diff --check`
+- CP1251-style scan:
 
-npm run test:run -- src/views/TherapistClientsView.spec.ts src/views/TherapistSessionDetailView.spec.ts src/views/TherapistSessionsView.spec.ts
-npm run typecheck
-npm run build
+```powershell
+@'
+from pathlib import Path
+
+roots = [Path("README.md"), Path("docs")]
+patterns = [
+    "\uFFFD",
+    "\u0420\u00a7",
+    "\u0420\u0408",
+    "\u0420\u2014",
+    "\u0420\u040e",
+    "\u0420\u045f",
+    "\u0420\u0459",
+    "\u0420\u00b5",
+    "\u0420\u00b0",
+    "\u0420\u0455",
+    "\u0420\u2018",
+    "\u0420\u0491",
+    "\u0420\u00bb",
+    "\u0420\u2026",
+    "\u0421\u201a",
+    "\u0421\u2013",
+    "\u0421\u0453",
+    "\u0421\u040f",
+    "\u0421\u0409",
+    "\u0421\u20ac",
+    "\u0421\u2020",
+]
+
+files = []
+for root in roots:
+    if root.is_file():
+        files.append(root)
+    elif root.is_dir():
+        files.extend(root.rglob("*"))
+
+matches = []
+for path in files:
+    if path.is_dir() or path.suffix.lower() not in {".md", ".txt"}:
+        continue
+    text = path.read_text(encoding="utf-8", errors="replace")
+    for lineno, line in enumerate(text.splitlines(), start=1):
+        if any(pattern in line for pattern in patterns):
+            matches.append(f"{path}:{lineno}:{line}")
+
+if matches:
+    print("\n".join(matches))
+    raise SystemExit(1)
+
+print("No CP1251-style mojibake found.")
+'@ | python -
 ```
 
+- `git status --short --branch`
 ## Critical Rules
 
 - Do not invent API fields or change contracts without explicit backend confirmation.

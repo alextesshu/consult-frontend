@@ -10,17 +10,20 @@ Usage:
 
 ---
 
-## 2026-06-06 - Founder Beta Email / Notification Readiness Staging Smoke
+## 2026-06-06 - Founder Beta Email / Notification Readiness Production Close
 
 ### Context
-- Docs-only closure after backend email/notification discovery and staging
-  founder-beta smoke.
+- Docs-only closure after backend email/notification discovery, staging
+  founder-beta smoke, production deploy, and production smoke.
 - Frontend runtime code, backend/API contracts, styles, and tests were not
   changed.
 - Current staging backend direct email smoke returned `sent: 1` from
   `notifications@proconsult.space`.
 - The most critical request-first flow passed on staging.
-- Production readiness is not claimed beyond actual smoke results.
+- Production smoke passed for the same request-first flow.
+- Backend and frontend `dev` were promoted to `main`, production deploys
+  completed, and local/server repos were returned to `dev`.
+- This is a controlled founder-beta closure, not a blanket public-launch claim.
 
 ### Documented
 - Email delivery is backend-owned:
@@ -45,7 +48,7 @@ Usage:
   - billing/access request smoke, when run, appears in Admin Work Queue with a
     useful target.
 - Admin Work Queue state:
-  - `/admin/work-queue` is staging-smoke-checked;
+  - `/admin/work-queue` is production-deployed and smoke-checked;
   - notification issues are grouped/classified by backend;
   - historical notification issues older than 7 days without recent failures
     can be downgraded by backend and shown as historical;
@@ -68,9 +71,9 @@ Usage:
   - check reminder failed/pending/sent counts and recent failure absence;
   - if billing/access smoke is safe, verify Admin Work Queue target.
 - Production:
-  - direct email smoke to internal address only;
-  - one controlled founder-specialist public request smoke;
-  - read-only Admin Work Queue check after smoke;
+  - direct email smoke to internal address only: passed;
+  - one controlled founder-specialist public request smoke: passed;
+  - read-only Admin Work Queue check after smoke: passed;
   - avoid synthetic production failures unless explicitly approved.
 
 ### Deferred / Not in Scope
@@ -88,16 +91,17 @@ Usage:
 
 ### Founder-Beta Decision
 - Current state is acceptable for controlled founder-beta based on the passed
-  staging smoke above.
-- Production smoke is not claimed here.
+  staging smoke above and the confirmed production smoke for the same flow.
+- This remains a controlled founder-beta closure, not a blanket public-launch
+  claim.
 
 ---
 
-## 2026-06-06 - Admin Work Queue Phase Admin-1 Staging Closure
+## 2026-06-06 - Admin Work Queue Phase Admin-1 Production Closure
 
 ### Context
-- Frontend Admin Work Queue Phase Admin-1 was implemented and staging-smoke-checked.
-- Production deployment is not confirmed in this docs closure.
+- Frontend Admin Work Queue Phase Admin-1 was implemented and production-deployed/
+  smoke-checked.
 - Backend/API contracts were already provided by the backend phase; this frontend phase did not change backend runtime behavior.
 
 ### Done
@@ -167,8 +171,7 @@ git diff --check
 - More precise admin detail pages can replace list/context targets after those routes exist.
 
 ### Merge Readiness
-- Phase is closed as staging-smoke-checked and documented.
-- Production deployment is not claimed here.
+- Phase is closed as production-deployed and smoke-checked.
 
 ---
 
@@ -202,9 +205,58 @@ git diff --check
 
 ### Validation
 - Production smoke-check passed after staging promotion.
-- Final frontend validation during phase included targeted material/client specs, typecheck, build, `git diff --check`, and encoding scans.
+- Final frontend validation during phase included targeted material/client specs, typecheck, build, `git diff --check`, and the docs mojibake scans below:
+  - `@'`
+    from pathlib import Path
 
-### Deferred / Not in Scope
+    roots = [Path("README.md"), Path("docs")]
+    patterns = [
+        "\uFFFD",
+        "\u0420\u00a7",
+        "\u0420\u0408",
+        "\u0420\u2014",
+        "\u0420\u040e",
+        "\u0420\u045f",
+        "\u0420\u0459",
+        "\u0420\u00b5",
+        "\u0420\u00b0",
+        "\u0420\u0455",
+        "\u0420\u2018",
+        "\u0420\u0491",
+        "\u0420\u00bb",
+        "\u0420\u2026",
+        "\u0421\u201a",
+        "\u0421\u2013",
+        "\u0421\u0453",
+        "\u0421\u040f",
+        "\u0421\u0409",
+        "\u0421\u20ac",
+        "\u0421\u2020",
+    ]
+
+    files = []
+    for root in roots:
+        if root.is_file():
+            files.append(root)
+        elif root.is_dir():
+            files.extend(root.rglob("*"))
+
+    matches = []
+    for path in files:
+        if path.is_dir() or path.suffix.lower() not in {".md", ".txt"}:
+            continue
+        text = path.read_text(encoding="utf-8", errors="replace")
+        for lineno, line in enumerate(text.splitlines(), start=1):
+            if any(pattern in line for pattern in patterns):
+                matches.append(f"{path}:{lineno}:{line}")
+
+    if matches:
+        print("\n".join(matches))
+        raise SystemExit(1)
+
+    print("No CP1251-style mojibake found.")
+'@ | python -
+  - `git status --short --branch`
 - Manual/no-registration private notebook support needs backend/API contract if product decides to support it.
 - `/cabinet/sessions` does not yet support client-specific modal deep filtering.
 - Registered/client relation payload does not expose phone; contacts show `Не вказано`.
