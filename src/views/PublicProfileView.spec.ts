@@ -491,7 +491,7 @@ describe('PublicProfileView', () => {
       throw new Error(`Unexpected apiGet call: ${url}`)
     })
 
-    const scrollToSpy = vi.spyOn(window, 'scrollTo').mockImplementation(() => {})
+    const scrollToSpy = vi.spyOn(window, 'scrollTo').mockImplementation(() => { })
     Object.defineProperty(window, 'scrollY', { value: 0, configurable: true })
 
     renderView()
@@ -511,9 +511,9 @@ describe('PublicProfileView', () => {
   it('does not show the hero read-more link when about section is available below', async () => {
     mockCommonPublicData()
     const profileWithSummary = buildProfile()
-    ;(profileWithSummary as Record<string, any>).public_profile_summary = 'Short hero summary for read more action.'
+      ; (profileWithSummary as Record<string, any>).public_profile_summary = 'Short hero summary for read more action.'
     if ((profileWithSummary as Record<string, any>).sections?.about) {
-      ;(profileWithSummary as Record<string, any>).sections.about.public_profile_summary =
+      ; (profileWithSummary as Record<string, any>).sections.about.public_profile_summary =
         'Short hero summary for read more action.'
     }
     mockedFetchPublicSpecialistProfile.mockResolvedValue(profileWithSummary)
@@ -1950,9 +1950,7 @@ describe('PublicProfileView', () => {
     await fireEvent.click(await screen.findByRole('button', { name: 'Записатися' }))
     expect(await screen.findByText('Загальні правила платформи')).toBeInTheDocument()
     expect(screen.getAllByText('Умови спеціаліста').length).toBeGreaterThan(0)
-    expect(
-      screen.getByText(/Для клієнта без акаунта підтвердження діє лише для поточного запиту/i)
-    ).toBeInTheDocument()
+    expect(screen.getByText(/Підтвердьте правила перед надсиланням/i)).toBeInTheDocument()
 
     await fireEvent.update(screen.getByLabelText('Ім’я'), 'Ірина')
     await fireEvent.update(screen.getByLabelText('Контакт'), 'iryna@example.com')
@@ -2216,7 +2214,7 @@ describe('PublicProfileView', () => {
     expect(
       screen.getByRole('checkbox', { name: 'Підтверджую правила перед надсиланням цього запиту' })
     ).toBeInTheDocument()
-    expect(screen.getByText(/Якщо перед надсиланням запиту є правила/)).toBeInTheDocument()
+    expect(screen.getByText(/Підтвердьте правила перед надсиланням/i)).toBeInTheDocument()
     expect(screen.getByText('Опишіть коротко ваш запит, і спеціаліст зв’яжеться з вами, щоб узгодити час.')).toBeInTheDocument()
     expect(mockRouter.push).not.toHaveBeenCalled()
   })

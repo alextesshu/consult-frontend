@@ -599,20 +599,17 @@
 
             <div class="booking-next">
               <div class="booking-next__title">Перед надсиланням</div>
-              <div class="booking-next__item">• Це м’який перший крок без створення кабінету.</div>
-              <div class="booking-next__item">• Спеціаліст окремо підтвердить час або запропонує інший.</div>
+              <div class="booking-next__item">• Це перший запит до спеціаліста, а не автоматичний запис на сесію.</div>
+              <div class="booking-next__item">• Спеціаліст перегляне запит і відповість вам у зручний спосіб.</div>
               <div v-if="shouldShowGuestBookingRulesPrompt" class="booking-next__item">
-                • {{ guestBookingRulesPromptHint }}
-              </div>
-              <div v-if="shouldShowGuestBookingRulesPrompt" class="booking-next__item">
-                • Для клієнта без акаунта підтвердження діє лише для поточного запиту і не зберігається для майбутніх звернень.
+                • Підтвердьте правила перед надсиланням.
               </div>
             </div>
 
             <article v-if="shouldShowGuestBookingRulesPrompt && activePlatformBookingRules.length" class="booking-rules-block">
               <div class="booking-rules-block__title">Загальні правила платформи</div>
               <p class="muted" style="margin: 6px 0 10px;">
-                Ви підтверджуєте поточну версію загальних правил платформи для цього запиту.
+                Ці правила діють для надсилання запиту через Pro Consult.
               </p>
               <p
                 v-for="rule in activePlatformBookingRules"
@@ -626,7 +623,7 @@
             <article v-if="shouldShowGuestBookingRulesPrompt && activeSpecialistBookingRules.length" class="booking-rules-block">
               <div class="booking-rules-block__title">Умови спеціаліста</div>
               <p class="muted" style="margin: 6px 0 10px;">
-                Це індивідуальні умови цього спеціаліста для поточного запиту. Якщо умови зміняться, перед новим запитом потрібно підтвердити їх повторно.
+                Ознайомтесь з умовами спеціаліста перед надсиланням запиту.
               </p>
               <p
                 v-for="rule in activeSpecialistBookingRules"
@@ -1222,11 +1219,7 @@ const guestRequestTopicLimitReached = computed(() => selectedGuestRequestTopics.
 const guestBookingModalTitle = computed(() =>
   publicDirectBookingEnabled.value ? 'Запит на бронювання' : 'Запит до спеціаліста'
 )
-const guestBookingRulesPromptHint = computed(() =>
-  publicDirectBookingEnabled.value
-    ? 'Якщо перед записом є правила, підтвердіть їх чекбоксом перед надсиланням цього запиту.'
-    : 'Якщо перед надсиланням запиту є правила, підтвердіть їх чекбоксом перед надсиланням цього запиту.'
-)
+
 const guestBookingRulesCheckboxLabel = computed(() =>
   publicDirectBookingEnabled.value
     ? 'Підтверджую правила перед відправкою цього запиту'
