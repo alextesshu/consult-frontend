@@ -10,6 +10,85 @@ Usage:
 
 ---
 
+## 2026-06-06 - Admin Work Queue Phase Admin-1 Staging Closure
+
+### Context
+- Frontend Admin Work Queue Phase Admin-1 was implemented and staging-smoke-checked.
+- Production deployment is not confirmed in this docs closure.
+- Backend/API contracts were already provided by the backend phase; this frontend phase did not change backend runtime behavior.
+
+### Done
+- Added `/admin/work-queue` as the read-only admin queue surface.
+- Added admin navigation entry `Р§РµСЂРіР° СЂРѕР±РѕС‚Рё`.
+- Consumes `GET /api/admin/work-queue/` with response shape `summary` / `items`.
+- Added summary counters, filter tabs, actionable cards, and empty/loading/error states.
+- Added filters for `РЈСЃС–`, `Р—Р°РїРёС‚Рё`, `РЎРїРµС†С–Р°Р»С–СЃС‚Рё`, `РџРѕРІС–РґРѕРјР»РµРЅРЅСЏ`, `Р—Р°РїСЂРѕС€РµРЅРЅСЏ`, `Billing`, and `РџСЂРѕР±Р»РµРјРё`.
+- Work queue cards prefer safe human-readable metadata from the backend:
+  - specialist display/name and email
+  - client display name and client email
+  - public request id/status
+  - invite id
+- ID-only specialist fallback is shown only when no safe specialist name/email exists.
+- Duplicate related labels are suppressed.
+- Notification grouped issues render operational copy and hints without pretending to have an entity detail target.
+- `Р’С–РґРєСЂРёС‚Рё` action renders only for useful non-empty `target_url` values that are not `/`.
+- Confirmed useful targets include `/admin/specialists/{id}`, `/admin/inbox`, and `/admin/billing-access-requests/{id}`.
+- `target_url: null`, empty string, or `/` does not render a fake action button.
+- Polished `AdminSpecialistDetailView` access-control copy:
+  - `РљРµСЂСѓРІР°С‚Рё С‚РµСЃС‚РѕРІРёРј РґРѕСЃС‚СѓРїРѕРј` for normal temporary beta/demo Pro access
+  - `РЎР»СѓР¶Р±РѕРІРµ РїРµСЂРµРІРёР·РЅР°С‡РµРЅРЅСЏ` for exceptional manual override
+- Admin specialist detail dates/times use Ukrainian/European display format, not US/AM-PM format.
+- No admin queue mutations or Admin-2 actions were added.
+
+### Privacy Boundary
+- Work queue UI must not render private/raw fields such as:
+  - `payload`
+  - `message`
+  - `last_error`
+  - `content`
+  - `internal_note`
+  - `note_body`
+  - `journal`
+  - `token_hash`
+  - private notebook body
+  - session note body
+  - public request message body
+  - private client history
+  - consultation content
+
+### Changed files
+- `src/views/AdminWorkQueueView.vue`
+- `src/views/AdminWorkQueueView.spec.ts`
+- `src/views/AdminSpecialistDetailView.vue`
+- `src/views/AdminSpecialistDetailView.spec.ts`
+- `src/router/index.ts`
+- `src/router/index.spec.ts`
+- `src/__tests__/app.spec.ts`
+- `docs/HANDOFF.md`
+- `docs/PHASE_CLOSE_SUMMARIES.md`
+
+### Validation
+- Staging smoke-check completed for the frontend phase.
+- This docs closure should be validated with `git diff --check` and repository encoding scans for known mojibake/replacement-character signatures.
+
+```powershell
+cd C:\Users\admin\dev\portfolio\consult\frontend
+
+git diff --check
+```
+
+### Deferred / Not in Scope
+- Admin-2 mutation actions remain deferred until explicit backend contracts exist.
+- Resend/domain readiness remains an operational prerequisite for notification closure.
+- Queue freshness/pagination may be needed if operational volume grows.
+- More precise admin detail pages can replace list/context targets after those routes exist.
+
+### Merge Readiness
+- Phase is closed as staging-smoke-checked and documented.
+- Production deployment is not claimed here.
+
+---
+
 ## 2026-06-05 - Clients Index / Client Modal Workspace Phase
 
 ### Context

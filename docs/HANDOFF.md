@@ -10,6 +10,28 @@ Phase archive: `docs/PHASE_CLOSE_SUMMARIES.md`
 
 Frontend production-readiness slice is now integrated:
 
+- Admin Work Queue Phase Admin-1: done and staging-smoke-checked
+  - production deployment is not confirmed in this handoff
+  - route: `/admin/work-queue`
+  - admin nav label: `Р§РµСЂРіР° СЂРѕР±РѕС‚Рё`
+  - backend endpoint consumed: `GET /api/admin/work-queue/`
+  - backend response shape: `summary/items`
+  - frontend added counters, filters, cards, empty/loading/error states
+  - filters: `РЈСЃС–`, `Р—Р°РїРёС‚Рё`, `РЎРїРµС†С–Р°Р»С–СЃС‚Рё`,
+    `РџРѕРІС–РґРѕРјР»РµРЅРЅСЏ`, `Р—Р°РїСЂРѕС€РµРЅРЅСЏ`, `Billing`, `РџСЂРѕР±Р»РµРјРё`
+  - cards render safe human-readable related metadata when available:
+    specialist name/email, client display name/email, request ids, invite ids
+  - grouped notification issues render operational copy and next-step hints
+  - no fake action button is shown for `null`, empty, or `/` `target_url`
+  - frontend does not add mutations; queue actions are deferred until backend
+    contracts exist
+- Admin specialist detail polish: done and staging-smoke-checked
+  - `РљРµСЂСѓРІР°С‚Рё С‚РµСЃС‚РѕРІРёРј РґРѕСЃС‚СѓРїРѕРј` means normal temporary
+    beta/demo Pro access
+  - `РЎР»СѓР¶Р±РѕРІРµ РїРµСЂРµРІРёР·РЅР°С‡РµРЅРЅСЏ` means exceptional manual override
+    of effective access
+  - visible date/time uses Ukrainian/European `DD.MM.YYYY` and `HH:mm`;
+    browser US/AM-PM formatting should not be shown
 - cookie-based auth hardening: done (refresh token only in httpOnly cookie, silent restore, no token persistence in localStorage)
 - production container baseline: done (Docker multi-stage build + nginx SPA routing)
 - production API wiring: done (`VITE_API_BASE_URL` build-time injection for deploy artifacts)
@@ -88,6 +110,34 @@ Frontend production-readiness slice is now integrated:
   - access token is memory-only
   - refresh token is cookie-only (`httpOnly`) and never exposed to JS storage
   - axios requests run with credentials
+- Admin Work Queue frontend contract:
+  - route: `/admin/work-queue`
+  - visible admin navigation label: `Р§РµСЂРіР° СЂРѕР±РѕС‚Рё`
+  - consumes backend read-only `GET /api/admin/work-queue/` with
+    `summary/items`
+  - backend permission is `IsPlatformAdmin`; frontend route requires admin
+    role
+  - queue cards must prefer safe human-readable related metadata:
+    - `specialist_display_name || specialist_name`, plus `specialist_email`
+    - `client_display_name`, plus `client_email`
+    - `request_id`
+    - `invite_id`
+  - ID-only fallback such as `РЎРїРµС†С–Р°Р»С–СЃС‚ #id` is allowed only when safe
+    name/email data is absent
+  - no duplicate related labels should be rendered
+  - target links are rendered only for useful non-empty, non-`/` URLs
+  - supported queue target examples:
+    - `/admin/specialists/{id}`
+    - `/admin/inbox`
+    - `/admin/billing-access-requests/{id}`
+  - grouped notification issue items can have `target_url=null`; no fake
+    button should be shown
+  - privacy boundary: do not render `payload`, `message`, `last_error`,
+    `content`, `internal_note`, `note_body`, `journal`, `token_hash`,
+    private notebook body, session note body, public request message body,
+    private client history, or consultation content
+  - Admin-2 mutation actions such as acknowledge/resolve/resend/grant/revoke
+    are deferred until explicit backend contracts exist
 - Manual client records and manual sessions are active:
   - specialists can manually create client cards without requiring a registered client account
   - frontend page: `/cabinet/clients`
