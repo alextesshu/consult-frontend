@@ -10,6 +10,74 @@ Usage:
 
 ---
 
+## 2026-06-06 - Founder Beta Email / Notification Readiness Runbook
+
+### Context
+- Docs-only closure after backend email/notification discovery.
+- Frontend runtime code, backend/API contracts, styles, and tests were not
+  changed.
+- Current staging backend direct email smoke returned `sent: 1` from
+  `notifications@proconsult.space`.
+- Production readiness is not claimed beyond actual smoke results.
+
+### Documented
+- Email delivery is backend-owned:
+  - Django SMTP email backend;
+  - expected sender: `notifications@proconsult.space`;
+  - Resend SMTP is the production baseline;
+  - backend `send_mail_async(..., fail_silently=False)` uses synchronous
+    failure-observable sending.
+- Critical founder-beta flows relevant to frontend smoke:
+  - slot-less public request specialist email plus bell notification;
+  - reminder delivery surfaced through notification feed;
+  - billing/access request surfaced through Admin Work Queue;
+  - manual client invite link sharing, with no automatic email expected;
+  - onboarding/welcome emails are useful but weaker in DB observability.
+- Frontend smoke expectations:
+  - specialist bell panel shows slot-less public request notification and
+    routes to `/cabinet/external-sessions`;
+  - `/admin/work-queue` does not show a missing-marker item for the smoked
+    public request after successful backend email marker;
+  - manual client invite UI displays/copies `invite_url` after create or
+    regenerate and does not imply automatic email;
+  - billing/access request smoke, when run, appears in Admin Work Queue with a
+    useful target.
+- Admin Work Queue state:
+  - `/admin/work-queue` is staging-smoke-checked;
+  - notification issues are grouped/classified by backend;
+  - historical notification issues older than 7 days without recent failures
+    can be downgraded by backend and shown as historical;
+  - Admin-2 mutations remain deferred.
+
+### Smoke Checklist
+- Staging:
+  - direct backend email smoke to controlled mailbox;
+  - create one slot-less public request and verify request pending,
+    specialist email receipt, backend marker, specialist bell item, and no
+    missing-marker queue item;
+  - create/regenerate a manual client invite and verify returned/copyable
+    invite URL, with no automatic email expected;
+  - check reminder failed/pending/sent counts and recent failure absence;
+  - if billing/access smoke is safe, verify Admin Work Queue target.
+- Production:
+  - direct email smoke to internal address only;
+  - one controlled founder-specialist public request smoke;
+  - read-only Admin Work Queue check after smoke;
+  - avoid synthetic production failures unless explicitly approved.
+
+### Deferred / Not in Scope
+- Optional durable backend `OutboundEmailAudit` / outbound email receipt model
+  for non-`ReminderDelivery` sends.
+- That backend follow-up would require a migration if implemented.
+- No frontend runtime work is required unless backend exposes a new audit
+  surface or action contract.
+
+### Founder-Beta Decision
+- Current state is acceptable for controlled founder-beta if the slot-less
+  public request smoke passes and direct email smoke is confirmed received.
+
+---
+
 ## 2026-06-06 - Admin Work Queue Phase Admin-1 Staging Closure
 
 ### Context

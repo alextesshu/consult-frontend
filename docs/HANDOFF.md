@@ -1,6 +1,6 @@
 # Handoff
 
-Last updated: 2026-06-05
+Last updated: 2026-06-06
 Owner: agent-maintained  
 Canonical file: `docs/HANDOFF.md`  
 Governance: `docs/HANDOFF_RULES.md`  
@@ -10,6 +10,23 @@ Phase archive: `docs/PHASE_CLOSE_SUMMARIES.md`
 
 Frontend production-readiness slice is now integrated:
 
+- Founder Beta Email / Notification Readiness: docs-only runbook state
+  - frontend did not change runtime code or backend/API contracts
+  - current staging backend direct email smoke returned `sent: 1` from
+    `notifications@proconsult.space`
+  - production readiness is not claimed beyond actual smoke results
+  - frontend smoke responsibility is to verify user-visible notification and
+    admin monitoring surfaces after backend smoke:
+    - specialist bell panel shows slot-less public request notification and
+      routes to `/cabinet/external-sessions`
+    - `/admin/work-queue` has no missing-marker item for the smoked public
+      request after successful email marker
+    - manual client invite UI returns/copies an invite URL and does not imply
+      automatic email delivery
+    - billing/access request smoke, when run, surfaces in admin work queue with
+      a useful target
+  - controlled founder-beta is acceptable only if the slot-less public request
+    smoke passes and direct email smoke is confirmed received
 - Admin Work Queue Phase Admin-1: done and staging-smoke-checked
   - production deployment is not confirmed in this handoff
   - route: `/admin/work-queue`
@@ -138,6 +155,19 @@ Frontend production-readiness slice is now integrated:
     private client history, or consultation content
   - Admin-2 mutation actions such as acknowledge/resolve/resend/grant/revoke
     are deferred until explicit backend contracts exist
+- Founder-beta notification smoke contract:
+  - frontend does not send email directly; email delivery is backend-owned
+  - slot-less public request smoke must verify the specialist bell item from
+    `/api/notifications/` and navigation to `/cabinet/external-sessions`
+  - client account invite UI is manual sharing only:
+    - create/regenerate should surface `invite_url` when backend returns it
+    - no automatic email should be promised in UI or docs
+  - Admin Work Queue should remain read-only:
+    - grouped notification issues are displayed from backend payload
+    - historical grouped notification issues may be downgraded by backend
+    - no fake action button for `target_url=null`, empty string, or `/`
+  - production smoke should use one controlled founder-specialist and internal
+    email recipients only
 - Manual client records and manual sessions are active:
   - specialists can manually create client cards without requiring a registered client account
   - frontend page: `/cabinet/clients`
