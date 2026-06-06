@@ -10,14 +10,16 @@ Usage:
 
 ---
 
-## 2026-06-06 - Founder Beta Email / Notification Readiness Runbook
+## 2026-06-06 - Founder Beta Email / Notification Readiness Staging Smoke
 
 ### Context
-- Docs-only closure after backend email/notification discovery.
+- Docs-only closure after backend email/notification discovery and staging
+  founder-beta smoke.
 - Frontend runtime code, backend/API contracts, styles, and tests were not
   changed.
 - Current staging backend direct email smoke returned `sent: 1` from
   `notifications@proconsult.space`.
+- The most critical request-first flow passed on staging.
 - Production readiness is not claimed beyond actual smoke results.
 
 ### Documented
@@ -51,10 +53,16 @@ Usage:
 
 ### Smoke Checklist
 - Staging:
-  - direct backend email smoke to controlled mailbox;
-  - create one slot-less public request and verify request pending,
-    specialist email receipt, backend marker, specialist bell item, and no
-    missing-marker queue item;
+  - direct backend email smoke to controlled mailbox: passed with `sent: 1`;
+  - create one slot-less public request and verify request pending: passed;
+  - verify specialist email receipt: passed;
+  - verify backend marker: passed;
+  - verify specialist bell item: passed;
+  - verify `/cabinet/external-sessions` showed the new pending request:
+    passed;
+  - verify `/admin/work-queue` showed the new public request as an operational
+    item: passed;
+  - verify no missing-marker queue item was created for the request: passed;
   - create/regenerate a manual client invite and verify returned/copyable
     invite URL, with no automatic email expected;
   - check reminder failed/pending/sent counts and recent failure absence;
@@ -66,6 +74,12 @@ Usage:
   - avoid synthetic production failures unless explicitly approved.
 
 ### Deferred / Not in Scope
+- Remaining non-blocking polish:
+  - public request modal is too text-heavy;
+  - public request modal contains leftover English text;
+  - email still shows raw request topic values like `anxiety`,
+    `relationships`, and `not_sure`;
+  - topic labels should be Ukrainian in email/admin/specialist surfaces.
 - Optional durable backend `OutboundEmailAudit` / outbound email receipt model
   for non-`ReminderDelivery` sends.
 - That backend follow-up would require a migration if implemented.
@@ -73,8 +87,9 @@ Usage:
   surface or action contract.
 
 ### Founder-Beta Decision
-- Current state is acceptable for controlled founder-beta if the slot-less
-  public request smoke passes and direct email smoke is confirmed received.
+- Current state is acceptable for controlled founder-beta based on the passed
+  staging smoke above.
+- Production smoke is not claimed here.
 
 ---
 

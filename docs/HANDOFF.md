@@ -10,23 +10,26 @@ Phase archive: `docs/PHASE_CLOSE_SUMMARIES.md`
 
 Frontend production-readiness slice is now integrated:
 
-- Founder Beta Email / Notification Readiness: docs-only runbook state
+- Founder Beta Email / Notification Readiness: staging-smoke-passed
   - frontend did not change runtime code or backend/API contracts
   - current staging backend direct email smoke returned `sent: 1` from
     `notifications@proconsult.space`
   - production readiness is not claimed beyond actual smoke results
-  - frontend smoke responsibility is to verify user-visible notification and
-    admin monitoring surfaces after backend smoke:
-    - specialist bell panel shows slot-less public request notification and
-      routes to `/cabinet/external-sessions`
-    - `/admin/work-queue` has no missing-marker item for the smoked public
-      request after successful email marker
-    - manual client invite UI returns/copies an invite URL and does not imply
-      automatic email delivery
-    - billing/access request smoke, when run, surfaces in admin work queue with
-      a useful target
-  - controlled founder-beta is acceptable only if the slot-less public request
-    smoke passes and direct email smoke is confirmed received
+  - the most critical request-first smoke passed on staging:
+    guest slot-less request -> specialist email -> bell notification ->
+    `/cabinet/external-sessions` item -> Admin Work Queue operational
+    visibility
+  - confirmed frontend-visible results:
+    - specialist bell panel showed slot-less public request notification
+    - `/cabinet/external-sessions` showed the new pending request
+    - `/admin/work-queue` showed the new public request as an operational item
+    - no missing-marker email failure was shown for the smoked request
+  - remaining non-blocking polish:
+    - public request modal is too text-heavy
+    - public request modal contains leftover English text
+    - email still shows raw request topic values like `anxiety`,
+      `relationships`, and `not_sure`
+    - topic labels should be Ukrainian in email/admin/specialist surfaces
 - Admin Work Queue Phase Admin-1: done and staging-smoke-checked
   - production deployment is not confirmed in this handoff
   - route: `/admin/work-queue`
@@ -168,6 +171,8 @@ Frontend production-readiness slice is now integrated:
     - no fake action button for `target_url=null`, empty string, or `/`
   - production smoke should use one controlled founder-specialist and internal
     email recipients only
+  - latest staging smoke for the critical request-first path passed; production
+    smoke is not claimed in this handoff
 - Manual client records and manual sessions are active:
   - specialists can manually create client cards without requiring a registered client account
   - frontend page: `/cabinet/clients`
