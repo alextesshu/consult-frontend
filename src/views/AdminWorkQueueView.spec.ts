@@ -85,6 +85,7 @@ async function renderView() {
         component: AdminWorkQueueView,
       },
       { path: '/admin/specialists', name: 'admin-specialists', component: AdminWorkQueueView },
+      { path: '/admin/specialists/:id(\\d+)', name: 'admin-specialist-detail', component: AdminWorkQueueView },
     ],
   })
 
@@ -206,8 +207,8 @@ describe('AdminWorkQueueView', () => {
     expect(screen.getByText('Клієнт ще не використав запрошення до кабінету.')).toBeInTheDocument()
     expect(screen.getByText('Запрошення клієнта прострочене')).toBeInTheDocument()
     expect(screen.getByText('Запрошення не було використано вчасно.')).toBeInTheDocument()
-    expect(screen.getByText('Спеціаліст очікує Beta / Pro доступ')).toBeInTheDocument()
-    expect(screen.getByText('Перевірте, чи потрібно надати спеціалісту доступ.')).toBeInTheDocument()
+    expect(screen.getByText('Спеціаліст потребує перевірки доступу')).toBeInTheDocument()
+    expect(screen.getByText('Спеціаліст активний, але не має явно наданого Beta / Pro доступу. Перевірте, чи потрібно надати доступ.')).toBeInTheDocument()
     expect(screen.getByText('Помилка billing-події')).toBeInTheDocument()
     expect(screen.getByText('Billing-подія потребує перевірки або повторної обробки.')).toBeInTheDocument()
     expect(screen.getAllByText('Звичайна увага').length).toBeGreaterThan(0)
@@ -262,12 +263,12 @@ describe('AdminWorkQueueView', () => {
 
     expect(screen.getByText('Спеціаліст очікує beta-доступ')).toBeInTheDocument()
     expect(screen.queryByText('Новий публічний запит')).not.toBeInTheDocument()
-    expect(screen.queryByText('Помилка повідомлення')).not.toBeInTheDocument()
+    expect(screen.queryByText('Проблема повідомлень')).not.toBeInTheDocument()
 
     await fireEvent.click(screen.getByRole('button', { name: 'Проблеми' }))
 
     expect(screen.getByText('Новий публічний запит')).toBeInTheDocument()
-    expect(screen.getAllByText('Помилка повідомлення').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('Проблема повідомлень').length).toBeGreaterThan(0)
     expect(screen.queryByText('Спеціаліст очікує beta-доступ')).not.toBeInTheDocument()
   })
 
@@ -277,6 +278,286 @@ describe('AdminWorkQueueView', () => {
     const links = await screen.findAllByRole('link', { name: 'Відкрити' })
     expect(links[0]).toHaveAttribute('href', '/admin/inbox/33')
     expect(links[1]).toHaveAttribute('href', '/admin/billing-access-requests/21')
+  })
+
+  it('renders grouped email domain notification issue as operational copy without raw provider error', async () => {
+    const rawDomainError = 'The proconsult.space domain' + ' is not verified'
+    const rawProviderUrl = 'resend.com' + '/domains'
+    mockedFetchAdminWorkQueue.mockResolvedValueOnce({
+      summary: baseResponse.summary,
+      items: [
+        {
+          id: 'reminder_delivery_issue:email_domain_not_verified:email',
+          type: 'reminder_delivery_issue',
+          severity: 'critical',
+          status: 'problem',
+          title: rawDomainError,
+          description: `See ${rawProviderUrl} for raw provider details`,
+          created_at: '2026-06-05T10:00:00Z',
+          updated_at: '2026-06-05T12:30:00Z',
+          target_url: null,
+          related: {
+            object_type: 'reminder_delivery',
+            object_id: 44,
+            category: 'email_domain_not_verified',
+            channel: 'email',
+            count: 7,
+            last_error: `${rawDomainError}. Visit ${rawProviderUrl}`,
+          } as any,
+        },
+      ],
+    })
+
+    await renderView()
+
+    expect(await screen.findByText('Глобальна проблема email')).toBeInTheDocument()
+    expect(screen.getByText('Email-домен не підтверджено')).toBeInTheDocument()
+    expect(screen.getByText('Email-доставки не проходять, бо домен відправника не підтверджено у провайдера.')).toBeInTheDocument()
+    expect(screen.getByText('Що зробити: перевірити домен proconsult.space у Resend і DNS-записи для відправки email.')).toBeInTheDocument()
+    expect(screen.getByText('Канал: email')).toBeInTheDocument()
+    expect(screen.getByText('Невдалих доставок: 7')).toBeInTheDocument()
+    expect(screen.getByText(/Остання: 05\.06\.2026, \d{2}:\d{2}/)).toBeInTheDocument()
+    expect(document.body).not.toHaveTextContent('Обʼєкт #44')
+    expect(document.body).not.toHaveTextContent('reminder_delivery #44')
+    expect(document.body).not.toHaveTextContent(rawDomainError)
+    expect(document.body).not.toHaveTextContent(rawProviderUrl)
+  })
+
+  it('does not render a fake action for notification issue without target url', async () => {
+    mockedFetchAdminWorkQueue.mockResolvedValueOnce({
+      summary: baseResponse.summary,
+      items: [
+        {
+          id: 'notification-issue-1',
+          type: 'notification_issue',
+          severity: 'warning',
+          status: 'problem',
+          title: 'Raw notification issue',
+          target_url: null,
+          related: {
+            category: 'unknown_delivery_failure',
+          } as any,
+        },
+      ],
+    })
+
+    await renderView()
+
+    expect(await screen.findByText('Проблема повідомлень')).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Відкрити' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Відкрити' })).not.toBeInTheDocument()
+    expect(screen.getByText('Що зробити: перевірити останні невдалі доставки та налаштування email-повідомлень.')).toBeInTheDocument()
+  })
+
+  it('renders notification issue metadata from whitelisted fields', async () => {
+    mockedFetchAdminWorkQueue.mockResolvedValueOnce({
+      summary: baseResponse.summary,
+      items: [
+        {
+          id: 'reminder_delivery_issue:provider_error:email',
+          type: 'reminder_delivery_issue',
+          severity: 'warning',
+          status: 'problem',
+          title: 'Raw provider issue',
+          updated_at: '2026-06-05T12:30:00Z',
+          related: {
+            category: 'provider_error',
+            channel: 'email',
+            count: 3,
+          } as any,
+        },
+      ],
+    })
+
+    await renderView()
+
+    expect(await screen.findByText('Помилка провайдера email')).toBeInTheDocument()
+    expect(screen.getByText('Канал: email')).toBeInTheDocument()
+    expect(screen.getByText('Невдалих доставок: 3')).toBeInTheDocument()
+    expect(screen.getByText(/Остання: 05\.06\.2026, \d{2}:\d{2}/)).toBeInTheDocument()
+  })
+
+  it('renders specialist access review item with Ukrainian copy and safe metadata', async () => {
+    const rawSpecialistTitle = 'Specialist access' + ' may need review'
+    const rawSpecialistDescription = 'Specialist is active without explicit' + ' beta PRO access.'
+    mockedFetchAdminWorkQueue.mockResolvedValueOnce({
+      summary: baseResponse.summary,
+      items: [
+        {
+          id: 'specialist-access-61',
+          type: 'specialist_beta_access_review',
+          severity: 'normal',
+          status: 'open',
+          title: rawSpecialistTitle,
+          description: rawSpecialistDescription,
+          related: {
+            object_type: 'specialist',
+            object_id: 61,
+            specialist_id: 61,
+          },
+        },
+      ],
+    })
+
+    await renderView()
+
+    expect(await screen.findByText('СПЕЦІАЛІСТ')).toBeInTheDocument()
+    expect(screen.getByText('Спеціаліст потребує перевірки доступу')).toBeInTheDocument()
+    expect(screen.getByText('Спеціаліст активний, але не має явно наданого Beta / Pro доступу. Перевірте, чи потрібно надати доступ.')).toBeInTheDocument()
+    expect(screen.getByText('Спеціаліст #61')).toBeInTheDocument()
+    expect(document.body).not.toHaveTextContent(rawSpecialistTitle)
+    expect(document.body).not.toHaveTextContent(rawSpecialistDescription)
+    expect(document.body).not.toHaveTextContent('Спеціаліст #61 · Спеціаліст #61')
+  })
+
+  it('prefers specialist display metadata over specialist id fallback', async () => {
+    mockedFetchAdminWorkQueue.mockResolvedValueOnce({
+      summary: baseResponse.summary,
+      items: [
+        {
+          id: 'specialist-access-61',
+          type: 'specialist_beta_access_review',
+          severity: 'normal',
+          status: 'open',
+          title: 'Raw specialist title',
+          description: 'Raw specialist description',
+          target_url: '/admin/specialists/61',
+          related: {
+            object_type: 'specialist',
+            object_id: 61,
+            specialist_id: 61,
+            specialist_display_name: 'Ірина Бондар',
+            specialist_name: 'Fallback Specialist Name',
+            specialist_email: 'iryna@example.com',
+          } as any,
+        },
+      ],
+    })
+
+    await renderView()
+
+    expect(await screen.findByText('Спеціаліст: Ірина Бондар')).toBeInTheDocument()
+    expect(screen.getByText('Email: iryna@example.com')).toBeInTheDocument()
+    expect(screen.queryByText('Спеціаліст #61')).not.toBeInTheDocument()
+    expect(document.body).not.toHaveTextContent('Спеціаліст #61 · Спеціаліст #61')
+    expect(screen.getByRole('link', { name: 'Відкрити' })).toHaveAttribute('href', '/admin/specialists/61')
+  })
+
+  it('renders public request id and safe specialist metadata', async () => {
+    mockedFetchAdminWorkQueue.mockResolvedValueOnce({
+      summary: baseResponse.summary,
+      items: [
+        {
+          id: 'public-6',
+          type: 'public_guest_request_pending',
+          severity: 'warning',
+          status: 'open',
+          title: 'Raw public request title',
+          target_url: '/admin/inbox',
+          related: {
+            object_type: 'public_guest_request',
+            object_id: 6,
+            request_id: 6,
+            request_status: 'pending',
+            specialist_id: 10,
+            specialist_name: 'Назар Петренко',
+            specialist_email: 'nazar@example.com',
+          } as any,
+        },
+      ],
+    })
+
+    await renderView()
+
+    expect(await screen.findByText('Публічний запит #6')).toBeInTheDocument()
+    expect(screen.getByText('Спеціаліст: Назар Петренко')).toBeInTheDocument()
+    expect(screen.getByText('Email: nazar@example.com')).toBeInTheDocument()
+    expect(screen.queryByText('Спеціаліст #10')).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Відкрити' })).toHaveAttribute('href', '/admin/inbox')
+  })
+
+  it('renders client invite context with client and specialist metadata', async () => {
+    mockedFetchAdminWorkQueue.mockResolvedValueOnce({
+      summary: baseResponse.summary,
+      items: [
+        {
+          id: 'invite-5',
+          type: 'client_record_invite_pending',
+          severity: 'normal',
+          status: 'open',
+          title: 'Raw invite title',
+          target_url: '/admin/specialists/2',
+          related: {
+            object_type: 'client_record_account_invite',
+            object_id: 5,
+            invite_id: 5,
+            client_record_id: 8,
+            client_display_name: 'Марія Клименко',
+            client_email: 'maria@example.com',
+            specialist_id: 2,
+            specialist_display_name: 'Олена Савчук',
+            specialist_email: 'olena@example.com',
+          } as any,
+        },
+      ],
+    })
+
+    await renderView()
+
+    expect(await screen.findByText('Запрошення клієнта #5')).toBeInTheDocument()
+    expect(screen.getByText('Клієнт: Марія Клименко')).toBeInTheDocument()
+    expect(screen.getByText('Email клієнта: maria@example.com')).toBeInTheDocument()
+    expect(screen.getByText('Спеціаліст: Олена Савчук')).toBeInTheDocument()
+    expect(screen.getByText('Email: olena@example.com')).toBeInTheDocument()
+    expect(screen.queryByText('Спеціаліст #2')).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Відкрити' })).toHaveAttribute('href', '/admin/specialists/2')
+  })
+
+  it('keeps specialist id fallback only when no safe specialist name or email exists', async () => {
+    mockedFetchAdminWorkQueue.mockResolvedValueOnce({
+      summary: baseResponse.summary,
+      items: [
+        {
+          id: 'specialist-fallback-77',
+          type: 'specialist_access_review',
+          severity: 'normal',
+          status: 'open',
+          title: 'Raw fallback specialist title',
+          related: {
+            object_type: 'specialist',
+            object_id: 77,
+            specialist_id: 77,
+          },
+        },
+      ],
+    })
+
+    await renderView()
+
+    expect(await screen.findByText('Спеціаліст #77')).toBeInTheDocument()
+    expect(document.body).not.toHaveTextContent('Спеціаліст #77 · Спеціаліст #77')
+  })
+
+  it('does not render a fake action for root target url', async () => {
+    mockedFetchAdminWorkQueue.mockResolvedValueOnce({
+      summary: baseResponse.summary,
+      items: [
+        {
+          id: 'root-target-1',
+          type: 'admin_inbox_item',
+          severity: 'warning',
+          status: 'open',
+          title: 'Root target item',
+          target_url: '/',
+        } as any,
+      ],
+    })
+
+    await renderView()
+
+    expect(await screen.findByText('Root target item')).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Відкрити' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Відкрити' })).not.toBeInTheDocument()
   })
 
   it('does not render private body-like fields from mocked payload', async () => {
@@ -297,6 +578,7 @@ describe('AdminWorkQueueView', () => {
           token_hash: 'PRIVATE_TOKEN_HASH',
           payload: { raw: 'PRIVATE_RAW_PAYLOAD' },
           message: 'PRIVATE_RAW_MESSAGE',
+          last_error: 'PRIVATE_LAST_ERROR',
         } as any,
       ],
     })
@@ -311,6 +593,7 @@ describe('AdminWorkQueueView', () => {
     expect(document.body).not.toHaveTextContent('PRIVATE_TOKEN_HASH')
     expect(document.body).not.toHaveTextContent('PRIVATE_RAW_PAYLOAD')
     expect(document.body).not.toHaveTextContent('PRIVATE_RAW_MESSAGE')
+    expect(document.body).not.toHaveTextContent('PRIVATE_LAST_ERROR')
   })
 
   it('does not expose unsupported mutation actions as clickable behavior', async () => {

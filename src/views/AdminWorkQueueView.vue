@@ -84,7 +84,7 @@
         >
           <div class="queue-item__main">
             <div class="queue-item__topline">
-              <span class="queue-item__type">{{ typeLabel(item.type) }}</span>
+              <span class="queue-item__type">{{ displayTypeLabel(item) }}</span>
               <span class="status-pill" :class="severityClass(item.severity)">
                 {{ severityLabel(item.severity) }}
               </span>
@@ -97,11 +97,12 @@
             <p v-if="displayItemDescription(item)" class="muted queue-item__description">
               {{ displayItemDescription(item) }}
             </p>
+            <p v-if="displayItemHint(item)" class="queue-item__hint">
+              {{ displayItemHint(item) }}
+            </p>
 
             <div class="queue-item__meta">
-              <span v-if="formatDate(item.created_at)">Створено: {{ formatDate(item.created_at) }}</span>
-              <span v-if="formatDate(item.updated_at)">Оновлено: {{ formatDate(item.updated_at) }}</span>
-              <span v-if="relatedLabel(item.related)">{{ relatedLabel(item.related) }}</span>
+              <span v-for="meta in displayItemMeta(item)" :key="meta">{{ meta }}</span>
             </div>
           </div>
 
@@ -143,6 +144,7 @@ import {
 import { formatUkDateTimeCompact } from '../lib/dateTime'
 
 type FilterKey = 'all' | 'requests' | 'specialists' | 'notifications' | 'invites' | 'billing' | 'problems'
+type ItemCopy = { title: string; description: string; hint?: string; typeLabel?: string }
 
 const emptySummary: AdminWorkQueueSummary = {
   total_open: 0,
@@ -162,6 +164,28 @@ const loading = ref(false)
 const loaded = ref(false)
 const error = ref('')
 const activeFilter = ref<FilterKey>('all')
+
+const notificationIssueTypes = new Set([
+  'reminder_delivery_issue',
+  'reminder_delivery_failed',
+  'notification_issue',
+])
+
+const notificationIssueCategories = new Set([
+  'email_domain_not_verified',
+  'recipient_invalid_or_missing',
+  'provider_error',
+  'unknown_delivery_failure',
+])
+
+const specialistAccessReviewTypes = new Set([
+  'specialist_beta_access_missing',
+  'specialist_beta_access_review',
+  'specialist_access_review',
+  'specialist_access_needs_review',
+  'specialist_pending_review',
+  'specialist_profile_incomplete',
+])
 
 const filterItems: Array<{ key: FilterKey; label: string }> = [
   { key: 'all', label: 'Усі' },
@@ -213,6 +237,16 @@ function itemMatchesFilter(item: AdminWorkQueueItem, filter: FilterKey) {
   return true
 }
 
+function displayTypeLabel(item: AdminWorkQueueItem) {
+  if (isNotificationIssueItem(item)) {
+    const copy = notificationIssueCopy(item)
+    if (copy.typeLabel) return copy.typeLabel
+    return 'ПОВІДОМЛЕННЯ'
+  }
+  if (isSpecialistAccessReviewItem(item)) return 'СПЕЦІАЛІСТ'
+  return typeLabel(item.type)
+}
+
 function typeLabel(type: string) {
   const labels: Record<string, string> = {
     admin_inbox_item: 'Адмін-запит',
@@ -222,17 +256,32 @@ function typeLabel(type: string) {
     public_guest_request_stale: 'Запит очікує реакції',
     public_guest_request_notification_missing: 'Повідомлення',
     reminder_delivery_failed: 'Помилка повідомлення',
+    reminder_delivery_issue: 'Повідомлення',
+    notification_issue: 'Повідомлення',
     client_record_invite_pending: 'Запрошення клієнта',
     client_record_invite_expired: 'Запрошення клієнта',
     specialist_beta_access_missing: 'Beta / Pro доступ',
+    specialist_beta_access_review: 'Beta / Pro доступ',
+    specialist_access_review: 'Beta / Pro доступ',
+    specialist_access_needs_review: 'Beta / Pro доступ',
+    specialist_pending_review: 'Beta / Pro доступ',
     specialist_profile_incomplete: 'Профіль спеціаліста',
     specialist_has_unanswered_requests: 'Запити спеціаліста',
   }
   return labels[type] || 'Подія'
 }
 
-function itemCopy(item: AdminWorkQueueItem) {
-  const copy: Record<string, { title: string; description: string }> = {
+function itemCopy(item: AdminWorkQueueItem): ItemCopy | null {
+  if (isNotificationIssueItem(item)) return notificationIssueCopy(item)
+  if (isSpecialistAccessReviewItem(item)) {
+    return {
+      title: 'Спеціаліст потребує перевірки доступу',
+      description:
+        'Спеціаліст активний, але не має явно наданого Beta / Pro доступу. Перевірте, чи потрібно надати доступ.',
+    }
+  }
+
+  const copy: Record<string, ItemCopy> = {
     public_guest_request_stale: {
       title: 'Запит очікує реакції',
       description: 'Публічний запит досі не опрацьований. Перевірте, чи спеціаліст відреагував.',
@@ -275,6 +324,61 @@ function displayItemTitle(item: AdminWorkQueueItem) {
 
 function displayItemDescription(item: AdminWorkQueueItem) {
   return itemCopy(item)?.description || item.description || ''
+}
+
+function displayItemHint(item: AdminWorkQueueItem) {
+  return itemCopy(item)?.hint || ''
+}
+
+function isNotificationIssueItem(item: AdminWorkQueueItem) {
+  const type = normalizeToken(item.type)
+  const category = notificationCategory(item)
+  const objectType = normalizeToken(String(relatedValue(item.related, 'object_type') || ''))
+  return (
+    notificationIssueTypes.has(type) ||
+    type.includes('notification_issue') ||
+    objectType === 'reminder_delivery' ||
+    notificationIssueCategories.has(category)
+  )
+}
+
+function isSpecialistAccessReviewItem(item: AdminWorkQueueItem) {
+  return specialistAccessReviewTypes.has(normalizeToken(item.type))
+}
+
+function notificationCategory(item: AdminWorkQueueItem) {
+  return normalizeToken(String(relatedValue(item.related, 'category') || ''))
+}
+
+function notificationIssueCopy(item: AdminWorkQueueItem): ItemCopy {
+  const category = notificationCategory(item)
+  if (category === 'email_domain_not_verified') {
+    return {
+      title: 'Email-домен не підтверджено',
+      description: 'Email-доставки не проходять, бо домен відправника не підтверджено у провайдера.',
+      hint: 'Що зробити: перевірити домен proconsult.space у Resend і DNS-записи для відправки email.',
+      typeLabel: 'Глобальна проблема email',
+    }
+  }
+  if (category === 'recipient_invalid_or_missing') {
+    return {
+      title: 'Некоректний email отримувача',
+      description: 'Частина повідомлень не доставлена через відсутній або некоректний email отримувача.',
+      hint: 'Що зробити: перевірити контактні дані отримувача або картку спеціаліста/клієнта.',
+    }
+  }
+  if (category === 'provider_error') {
+    return {
+      title: 'Помилка провайдера email',
+      description: 'Email-провайдер повернув помилку під час відправки повідомлень.',
+      hint: 'Що зробити: перевірити налаштування email-провайдера і повторити перевірку пізніше.',
+    }
+  }
+  return {
+    title: 'Проблема повідомлень',
+    description: 'Є невдалі доставки повідомлень або нагадувань, які потребують перевірки.',
+    hint: 'Що зробити: перевірити останні невдалі доставки та налаштування email-повідомлень.',
+  }
 }
 
 function statusLabel(status: string) {
@@ -324,15 +428,96 @@ function formatDate(value: string | null | undefined) {
   return formatUkDateTimeCompact(value)
 }
 
-function relatedLabel(related: AdminWorkQueueRelated | null | undefined) {
-  if (!related) return ''
+function displayItemMeta(item: AdminWorkQueueItem) {
+  if (isNotificationIssueItem(item)) return notificationIssueMeta(item)
+
   const parts: string[] = []
-  if (related.object_type && related.object_id !== undefined && related.object_id !== null) {
-    parts.push(`${relatedObjectTypeLabel(related.object_type)} #${related.object_id}`)
+  if (formatDate(item.created_at)) parts.push(`Створено: ${formatDate(item.created_at)}`)
+  if (formatDate(item.updated_at)) parts.push(`Оновлено: ${formatDate(item.updated_at)}`)
+  parts.push(...relatedMetaParts(item))
+  return parts
+}
+
+function notificationIssueMeta(item: AdminWorkQueueItem) {
+  const parts: string[] = []
+  const channel = relatedValue(item.related, 'channel')
+  const count = relatedValue(item.related, 'count')
+  if (typeof channel === 'string' && channel.trim()) parts.push(`Канал: ${channel.trim()}`)
+  if (typeof count === 'number' && Number.isFinite(count)) parts.push(`Невдалих доставок: ${count}`)
+  if (typeof count === 'string' && count.trim()) parts.push(`Невдалих доставок: ${count.trim()}`)
+  if (formatDate(item.updated_at)) parts.push(`Остання: ${formatDate(item.updated_at)}`)
+  return parts
+}
+
+function relatedMetaParts(item: AdminWorkQueueItem) {
+  const related = item.related
+  if (!related) return []
+
+  const parts: string[] = []
+  const objectType = normalizeToken(String(relatedValue(related, 'object_type') || '')).replace(/[^a-z0-9]/g, '')
+  const objectId = relatedValue(related, 'object_id')
+  const requestId = relatedValue(related, 'request_id')
+  const inviteId = relatedValue(related, 'invite_id')
+
+  const requestLabelId = relatedId(requestId) || (isPublicRequestObjectType(objectType) ? relatedId(objectId) : '')
+  if (requestLabelId) parts.push(`Публічний запит #${requestLabelId}`)
+
+  const inviteLabelId = relatedId(inviteId) || (isClientInviteObjectType(objectType) ? relatedId(objectId) : '')
+  if (inviteLabelId) parts.push(`Запрошення клієнта #${inviteLabelId}`)
+
+  if (!requestLabelId && !inviteLabelId && objectType && objectType !== 'specialist' && relatedId(objectId)) {
+    parts.push(`${relatedObjectTypeLabel(String(relatedValue(related, 'object_type') || ''))} #${relatedId(objectId)}`)
   }
-  if (typeof related.specialist_id === 'number') parts.push(`Спеціаліст #${related.specialist_id}`)
-  if (typeof related.client_id === 'number') parts.push(`Клієнт #${related.client_id}`)
-  return parts.join(' · ')
+
+  const clientName = safeRelatedText(relatedValue(related, 'client_display_name'))
+  const clientEmail = safeRelatedText(relatedValue(related, 'client_email'))
+  if (clientName) parts.push(`Клієнт: ${clientName}`)
+  if (clientEmail) parts.push(`Email клієнта: ${clientEmail}`)
+  if (!clientName && !clientEmail && relatedId(relatedValue(related, 'client_id'))) {
+    parts.push(`Клієнт #${relatedId(relatedValue(related, 'client_id'))}`)
+  }
+
+  const specialistName =
+    safeRelatedText(relatedValue(related, 'specialist_display_name')) ||
+    safeRelatedText(relatedValue(related, 'specialist_name'))
+  const specialistEmail = safeRelatedText(relatedValue(related, 'specialist_email'))
+  if (specialistName) parts.push(`Спеціаліст: ${specialistName}`)
+  if (specialistEmail) parts.push(`Email: ${specialistEmail}`)
+  if (!specialistName && !specialistEmail) {
+    const specialistFallbackId = relatedId(relatedValue(related, 'specialist_id')) || (
+      objectType === 'specialist' ? relatedId(objectId) : ''
+    )
+    if (specialistFallbackId) parts.push(`Спеціаліст #${specialistFallbackId}`)
+  }
+
+  return uniqueMetaParts(parts)
+}
+
+function safeRelatedText(value: unknown) {
+  return typeof value === 'string' ? value.trim() : ''
+}
+
+function relatedId(value: unknown) {
+  if (typeof value === 'number' && Number.isFinite(value)) return String(value)
+  if (typeof value === 'string' && value.trim()) return value.trim()
+  return ''
+}
+
+function isPublicRequestObjectType(objectType: string) {
+  return objectType === 'publicguestrequest' || objectType === 'adminguestrequest'
+}
+
+function isClientInviteObjectType(objectType: string) {
+  return objectType === 'clientrecordinvite' || objectType === 'clientrecordaccountinvite'
+}
+
+function uniqueMetaParts(parts: string[]) {
+  return parts.filter((part, index) => part && parts.indexOf(part) === index)
+}
+
+function relatedValue(related: AdminWorkQueueRelated | null | undefined, key: string): unknown {
+  if (!related) return undefined
+  return (related as Record<string, unknown>)[key]
 }
 
 function relatedObjectTypeLabel(type: string) {
@@ -353,7 +538,7 @@ function relatedObjectTypeLabel(type: string) {
 
 function internalTargetPath(value: string | null | undefined) {
   const target = String(value || '').trim()
-  if (!target) return ''
+  if (!target || target === '/') return ''
   if (target.startsWith('/') && !target.startsWith('//') && !target.startsWith('/api/')) return target
   if (!/^https?:\/\//i.test(target) || typeof window === 'undefined') return ''
   try {
@@ -367,7 +552,7 @@ function internalTargetPath(value: string | null | undefined) {
 
 function externalTargetUrl(value: string | null | undefined) {
   const target = String(value || '').trim()
-  if (!target || internalTargetPath(target)) return ''
+  if (!target || target === '/' || internalTargetPath(target)) return ''
   return target
 }
 
@@ -562,6 +747,14 @@ onMounted(() => {
 
 .queue-item__description {
   margin: 0;
+  line-height: 1.45;
+}
+
+.queue-item__hint {
+  margin: 0;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 700;
   line-height: 1.45;
 }
 
