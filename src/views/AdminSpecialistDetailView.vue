@@ -27,8 +27,22 @@
           </div>
           <div class="summary-actions">
             <button class="btn btn--sm" type="button" @click="openPlanModal">Змінити базовий тариф</button>
-            <button class="btn btn--ghost btn--sm" type="button" @click="openTrialModal">Керувати тестовим доступом</button>
-            <button class="btn btn--ghost btn--sm" type="button" @click="openOverrideModal">Керувати перевизначенням доступу</button>
+            <div class="access-action access-action--primary">
+              <button class="btn btn--ghost btn--sm" type="button" @click="openTrialModal">
+                Керувати тестовим доступом
+              </button>
+              <p class="muted access-action__hint">
+                Тестовий доступ — тимчасовий Pro-доступ для beta, демо або перевірки.
+              </p>
+            </div>
+            <div class="access-action access-action--service">
+              <button class="btn btn--ghost btn--sm" type="button" @click="openOverrideModal">
+                Службове перевизначення
+              </button>
+              <p class="muted access-action__hint">
+                Ручна службова дія для виняткових випадків, поза звичайним тестовим сценарієм.
+              </p>
+            </div>
           </div>
         </div>
 
@@ -65,7 +79,7 @@
           <div>
             <div class="muted">Статус тестового доступу</div>
             <span :class="pillClass(detail.tariff_access.trial.active)">
-              {{ detail.tariff_access.trial.active ? 'ТЕСТОВИЙ ДОСТУП АКТИВНИЙ' : 'ТЕСТОВИЙ ДОСТУП НЕАКТИВНИЙ' }}
+              {{ detail.tariff_access.trial.active ? 'Тестовий доступ активний' : 'Тестовий доступ неактивний' }}
             </span>
             <div v-if="detail.tariff_access.trial.active" class="muted">
               {{ detail.tariff_access.trial.trial_plan || '—' }} ·
@@ -73,9 +87,13 @@
             </div>
           </div>
           <div>
-            <div class="muted">Статус перевизначення</div>
+            <div class="muted">Статус службового перевизначення</div>
             <span :class="pillClass(detail.tariff_access.override.active)">
-              {{ detail.tariff_access.override.active ? 'ПЕРЕВИЗНАЧЕННЯ АКТИВНЕ' : 'ПЕРЕВИЗНАЧЕННЯ НЕАКТИВНЕ' }}
+              {{
+                detail.tariff_access.override.active
+                  ? 'Службове перевизначення активне'
+                  : 'Службове перевизначення неактивне'
+              }}
             </span>
             <div v-if="detail.tariff_access.override.active" class="muted">
               {{ detail.tariff_access.override.override_plan || '—' }} ·
@@ -86,15 +104,16 @@
 
         <div class="summary-list">
           <div><strong>Базовий тариф:</strong> {{ planLabel(detail.tariff_access.base_plan) }}</div>
+          <div><strong>Фактичний тариф:</strong> {{ planLabel(detail.tariff_access.effective_plan) }}</div>
           <div>
-            <strong>Активний тестовий доступ:</strong>
+            <strong>Тестовий доступ:</strong>
             <template v-if="detail.tariff_access.trial.active">
               {{ planLabel(detail.tariff_access.trial.trial_plan || '—') }} до {{ formatDate(detail.tariff_access.trial.ends_at) }}
             </template>
             <template v-else>немає</template>
           </div>
           <div>
-            <strong>Активне перевизначення:</strong>
+            <strong>Службове перевизначення:</strong>
             <template v-if="detail.tariff_access.override.active">
               {{ planLabel(detail.tariff_access.override.override_plan || '—') }}
               <template v-if="detail.tariff_access.override.ends_at">
@@ -110,7 +129,7 @@
           v-if="detail.tariff_access.override.active && detail.tariff_access.base_plan !== detail.tariff_access.effective_plan"
           class="access-warning"
         >
-          Активне перевизначення перекриває базовий тариф.
+          Службове перевизначення перекриває базовий тариф.
         </div>
       </section>
 
@@ -215,6 +234,9 @@
           <div>
             <div class="badge badge--soft">ТЕСТОВИЙ ДОСТУП</div>
             <h3 class="panel__title">Керувати тестовим доступом</h3>
+            <p class="muted modal-helper">
+              Тестовий доступ — тимчасовий Pro-доступ для beta, демо або перевірки.
+            </p>
           </div>
           <button class="btn btn--ghost btn--sm" type="button" @click="closeTrialModal">Закрити</button>
         </div>
@@ -235,14 +257,44 @@
               <option value="LEADER">LEADER</option>
             </select>
           </label>
-          <label class="field">
+          <div class="field">
             <span>Початок дії</span>
-            <input v-model="trialForm.starts_at" type="datetime-local" class="input" />
-          </label>
-          <label class="field">
+            <div class="date-time-grid">
+              <label class="field field--compact">
+                <span>Дата початку</span>
+                <input
+                  v-model="trialForm.starts_date"
+                  type="text"
+                  inputmode="numeric"
+                  class="input"
+                  placeholder="ДД.ММ.РРРР"
+                />
+              </label>
+              <label class="field field--compact">
+                <span>Час початку</span>
+                <input v-model="trialForm.starts_time" type="text" inputmode="numeric" class="input" placeholder="HH:mm" />
+              </label>
+            </div>
+          </div>
+          <div class="field">
             <span>Завершення дії</span>
-            <input v-model="trialForm.ends_at" type="datetime-local" class="input" />
-          </label>
+            <div class="date-time-grid">
+              <label class="field field--compact">
+                <span>Дата завершення</span>
+                <input
+                  v-model="trialForm.ends_date"
+                  type="text"
+                  inputmode="numeric"
+                  class="input"
+                  placeholder="ДД.ММ.РРРР"
+                />
+              </label>
+              <label class="field field--compact">
+                <span>Час завершення</span>
+                <input v-model="trialForm.ends_time" type="text" inputmode="numeric" class="input" placeholder="HH:mm" />
+              </label>
+            </div>
+          </div>
         </template>
 
         <label class="field">
@@ -263,11 +315,15 @@
 
     <div v-if="overrideModalOpen" class="setting-modal" @keydown.esc="closeOverrideModal">
       <div class="setting-modal__backdrop" @click="closeOverrideModal"></div>
-      <section class="setting-modal__content panel" role="dialog" aria-modal="true" aria-label="Керувати перевизначенням доступу">
+      <section class="setting-modal__content panel" role="dialog" aria-modal="true" aria-label="Службове перевизначення доступу">
         <div class="panel__header">
           <div>
-            <div class="badge badge--soft">ПЕРЕВИЗНАЧЕННЯ</div>
-            <h3 class="panel__title">Керувати перевизначенням доступу</h3>
+            <div class="badge badge--soft">СЛУЖБОВА ДІЯ</div>
+            <h3 class="panel__title">Службове перевизначення доступу</h3>
+            <p class="muted modal-helper">
+              Це ручна адмінська дія, яка примусово змінює фактичний доступ незалежно від тарифу, оплати чи
+              тестового доступу. Використовуйте лише для виняткових випадків.
+            </p>
           </div>
           <button class="btn btn--ghost btn--sm" type="button" @click="closeOverrideModal">Закрити</button>
         </div>
@@ -275,9 +331,9 @@
         <label class="field">
           <span>Дія</span>
           <select v-model="overrideForm.action" class="input input--select">
-            <option value="ENABLE">Увімкнути перевизначення</option>
-            <option value="UPDATE">Оновити перевизначення</option>
-            <option value="DISABLE">Вимкнути перевизначення</option>
+            <option value="ENABLE">Увімкнути службове перевизначення</option>
+            <option value="UPDATE">Оновити службове перевизначення</option>
+            <option value="DISABLE">Вимкнути службове перевизначення</option>
           </select>
         </label>
 
@@ -290,14 +346,44 @@
               <option value="LEADER">LEADER</option>
             </select>
           </label>
-          <label class="field">
+          <div class="field">
             <span>Початок дії (необов’язково)</span>
-            <input v-model="overrideForm.starts_at" type="datetime-local" class="input" />
-          </label>
-          <label class="field">
+            <div class="date-time-grid">
+              <label class="field field--compact">
+                <span>Дата початку</span>
+                <input
+                  v-model="overrideForm.starts_date"
+                  type="text"
+                  inputmode="numeric"
+                  class="input"
+                  placeholder="ДД.ММ.РРРР"
+                />
+              </label>
+              <label class="field field--compact">
+                <span>Час початку</span>
+                <input v-model="overrideForm.starts_time" type="text" inputmode="numeric" class="input" placeholder="HH:mm" />
+              </label>
+            </div>
+          </div>
+          <div class="field">
             <span>Завершення дії (необов’язково)</span>
-            <input v-model="overrideForm.expires_at" type="datetime-local" class="input" />
-          </label>
+            <div class="date-time-grid">
+              <label class="field field--compact">
+                <span>Дата завершення</span>
+                <input
+                  v-model="overrideForm.expires_date"
+                  type="text"
+                  inputmode="numeric"
+                  class="input"
+                  placeholder="ДД.ММ.РРРР"
+                />
+              </label>
+              <label class="field field--compact">
+                <span>Час завершення</span>
+                <input v-model="overrideForm.expires_time" type="text" inputmode="numeric" class="input" placeholder="HH:mm" />
+              </label>
+            </div>
+          </div>
         </template>
 
         <label class="field">
@@ -343,6 +429,11 @@ import { formatUkDateTimeCompact } from '../lib/dateTime'
 
 type TrialAction = 'START' | 'END'
 type OverrideAction = 'ENABLE' | 'UPDATE' | 'DISABLE'
+type DateTimeParts = { date: string; time: string }
+type DateTimeParseResult = { iso: string | null; error: string }
+
+const dateFormatError = 'Вкажіть дату у форматі ДД.ММ.РРРР.'
+const timeFormatError = 'Вкажіть час у форматі HH:mm.'
 
 const route = useRoute()
 const toast = useToast()
@@ -366,14 +457,18 @@ const trialFormError = ref('')
 const trialForm = ref<{
   action: TrialAction
   trial_plan: 'PRO' | 'LEADER'
-  starts_at: string
-  ends_at: string
+  starts_date: string
+  starts_time: string
+  ends_date: string
+  ends_time: string
   reason: string
 }>({
   action: 'START',
   trial_plan: 'PRO',
-  starts_at: '',
-  ends_at: '',
+  starts_date: '',
+  starts_time: '',
+  ends_date: '',
+  ends_time: '',
   reason: '',
 })
 
@@ -383,14 +478,18 @@ const overrideFormError = ref('')
 const overrideForm = ref<{
   action: OverrideAction
   forced_plan: 'START' | 'PRO' | 'LEADER'
-  starts_at: string
-  expires_at: string
+  starts_date: string
+  starts_time: string
+  expires_date: string
+  expires_time: string
   reason: string
 }>({
   action: 'ENABLE',
   forced_plan: 'PRO',
-  starts_at: '',
-  expires_at: '',
+  starts_date: '',
+  starts_time: '',
+  expires_date: '',
+  expires_time: '',
   reason: '',
 })
 
@@ -400,25 +499,51 @@ function formatDate(value: string | null | undefined) {
   return formatUkDateTimeCompact(value)
 }
 
-function toInputDateTime(value?: string | null) {
-  if (!value) return ''
-  const date = new Date(value)
-  if (Number.isNaN(date.getTime())) return ''
-  const pad = (num: number) => String(num).padStart(2, '0')
-  const y = date.getFullYear()
-  const m = pad(date.getMonth() + 1)
-  const d = pad(date.getDate())
-  const hh = pad(date.getHours())
-  const mm = pad(date.getMinutes())
-  return `${y}-${m}-${d}T${hh}:${mm}`
+function padDatePart(num: number) {
+  return String(num).padStart(2, '0')
 }
 
-function toIsoOrNull(value?: string) {
-  const normalized = String(value || '').trim()
-  if (!normalized) return null
-  const date = new Date(normalized)
-  if (Number.isNaN(date.getTime())) return null
-  return date.toISOString()
+function toDisplayDateTimeParts(value?: string | null): DateTimeParts {
+  if (!value) return { date: '', time: '' }
+  const date = new Date(value)
+  if (Number.isNaN(date.getTime())) return { date: '', time: '' }
+  return {
+    date: `${padDatePart(date.getDate())}.${padDatePart(date.getMonth() + 1)}.${date.getFullYear()}`,
+    time: `${padDatePart(date.getHours())}:${padDatePart(date.getMinutes())}`,
+  }
+}
+
+function parseDisplayDateTime(dateValue: string, timeValue: string, required: boolean): DateTimeParseResult {
+  const dateText = dateValue.trim()
+  const timeText = timeValue.trim()
+
+  if (!dateText && !timeText) {
+    return required ? { iso: null, error: dateFormatError } : { iso: null, error: '' }
+  }
+
+  const dateMatch = dateText.match(/^(\d{2})\.(\d{2})\.(\d{4})$/)
+  if (!dateMatch) return { iso: null, error: dateFormatError }
+
+  const timeMatch = timeText.match(/^([01]\d|2[0-3]):([0-5]\d)$/)
+  if (!timeMatch) return { iso: null, error: timeFormatError }
+
+  const day = Number(dateMatch[1])
+  const month = Number(dateMatch[2])
+  const year = Number(dateMatch[3])
+  const hours = Number(timeMatch[1])
+  const minutes = Number(timeMatch[2])
+  const date = new Date(year, month - 1, day, hours, minutes, 0, 0)
+
+  if (
+    Number.isNaN(date.getTime()) ||
+    date.getFullYear() !== year ||
+    date.getMonth() !== month - 1 ||
+    date.getDate() !== day
+  ) {
+    return { iso: null, error: dateFormatError }
+  }
+
+  return { iso: date.toISOString(), error: '' }
 }
 
 function pillClass(active: boolean) {
@@ -555,10 +680,14 @@ function openTrialModal() {
   trialFormError.value = ''
   trialForm.value.action = detail.value?.tariff_access.trial.active ? 'END' : 'START'
   trialForm.value.trial_plan = (detail.value?.tariff_access.trial.trial_plan || 'PRO') as 'PRO' | 'LEADER'
-  trialForm.value.starts_at = toInputDateTime(detail.value?.tariff_access.trial.starts_at) || toInputDateTime(new Date().toISOString())
+  const trialStart = toDisplayDateTimeParts(detail.value?.tariff_access.trial.starts_at || new Date().toISOString())
+  trialForm.value.starts_date = trialStart.date
+  trialForm.value.starts_time = trialStart.time
   const plus7d = new Date()
   plus7d.setDate(plus7d.getDate() + 7)
-  trialForm.value.ends_at = toInputDateTime(detail.value?.tariff_access.trial.ends_at) || toInputDateTime(plus7d.toISOString())
+  const trialEnd = toDisplayDateTimeParts(detail.value?.tariff_access.trial.ends_at || plus7d.toISOString())
+  trialForm.value.ends_date = trialEnd.date
+  trialForm.value.ends_time = trialEnd.time
   trialForm.value.reason = ''
   trialModalOpen.value = true
 }
@@ -575,15 +704,26 @@ async function submitTrialAction() {
     return
   }
   trialFormError.value = ''
+  let startsAt: string | null = null
+  let endsAt = ''
+  if (trialForm.value.action === 'START') {
+    const startsAtResult = parseDisplayDateTime(trialForm.value.starts_date, trialForm.value.starts_time, false)
+    if (startsAtResult.error) {
+      trialFormError.value = startsAtResult.error
+      return
+    }
+    const endsAtResult = parseDisplayDateTime(trialForm.value.ends_date, trialForm.value.ends_time, true)
+    if (endsAtResult.error || !endsAtResult.iso) {
+      trialFormError.value = endsAtResult.error || dateFormatError
+      return
+    }
+    startsAt = startsAtResult.iso
+    endsAt = endsAtResult.iso
+  }
+
   trialSaving.value = true
   try {
     if (trialForm.value.action === 'START') {
-      const startsAt = toIsoOrNull(trialForm.value.starts_at)
-      const endsAt = toIsoOrNull(trialForm.value.ends_at)
-      if (!endsAt) {
-        trialFormError.value = 'Для запуску тестового доступу потрібно вказати завершення дії.'
-        return
-      }
       await applyAdminSpecialistTrialAction(specialistId.value, {
         action: 'START',
         trial_plan: trialForm.value.trial_plan,
@@ -613,8 +753,14 @@ function openOverrideModal() {
   const overridePlan = String(detail.value?.tariff_access.override.override_plan || 'PRO').toUpperCase()
   overrideForm.value.forced_plan =
     overridePlan === 'START' || overridePlan === 'LEADER' ? overridePlan : 'PRO'
-  overrideForm.value.starts_at = toInputDateTime(detail.value?.tariff_access.override.starts_at) || toInputDateTime(new Date().toISOString())
-  overrideForm.value.expires_at = toInputDateTime(detail.value?.tariff_access.override.ends_at)
+  const overrideStart = toDisplayDateTimeParts(
+    detail.value?.tariff_access.override.starts_at || new Date().toISOString()
+  )
+  overrideForm.value.starts_date = overrideStart.date
+  overrideForm.value.starts_time = overrideStart.time
+  const overrideEnd = toDisplayDateTimeParts(detail.value?.tariff_access.override.ends_at)
+  overrideForm.value.expires_date = overrideEnd.date
+  overrideForm.value.expires_time = overrideEnd.time
   overrideForm.value.reason = ''
   overrideModalOpen.value = true
 }
@@ -631,6 +777,23 @@ async function submitOverrideAction() {
     return
   }
   overrideFormError.value = ''
+  let startsAt: string | null = null
+  let expiresAt: string | null = null
+  if (overrideForm.value.action !== 'DISABLE') {
+    const startsAtResult = parseDisplayDateTime(overrideForm.value.starts_date, overrideForm.value.starts_time, false)
+    if (startsAtResult.error) {
+      overrideFormError.value = startsAtResult.error
+      return
+    }
+    const expiresAtResult = parseDisplayDateTime(overrideForm.value.expires_date, overrideForm.value.expires_time, false)
+    if (expiresAtResult.error) {
+      overrideFormError.value = expiresAtResult.error
+      return
+    }
+    startsAt = startsAtResult.iso
+    expiresAt = expiresAtResult.iso
+  }
+
   overrideSaving.value = true
   try {
     if (overrideForm.value.action === 'DISABLE') {
@@ -642,8 +805,8 @@ async function submitOverrideAction() {
       await applyAdminSpecialistOverrideAction(specialistId.value, {
         action: overrideForm.value.action,
         forced_plan: overrideForm.value.forced_plan,
-        starts_at: toIsoOrNull(overrideForm.value.starts_at),
-        expires_at: toIsoOrNull(overrideForm.value.expires_at),
+        starts_at: startsAt,
+        expires_at: expiresAt,
         reason,
       })
     }
@@ -723,6 +886,25 @@ watch(
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: flex-end;
+}
+
+.access-action {
+  max-width: 260px;
+  display: grid;
+  gap: 6px;
+}
+
+.access-action--service {
+  border-left: 1px solid var(--line);
+  padding-left: 10px;
+}
+
+.access-action__hint {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.35;
 }
 
 .summary-grid,
@@ -782,8 +964,7 @@ watch(
   padding: 6px 10px;
   border-radius: var(--radius-sm);
   font-size: 12px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0;
 }
 
 .status-pill--ok {
@@ -818,6 +999,21 @@ watch(
   overflow: auto;
 }
 
+.modal-helper {
+  margin: 6px 0 0;
+  max-width: 520px;
+}
+
+.date-time-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(120px, 0.5fr);
+  gap: 10px;
+}
+
+.field--compact {
+  gap: 4px;
+}
+
 .setting-modal__footer {
   display: flex;
   gap: 8px;
@@ -837,6 +1033,19 @@ watch(
   .admin-specialist-detail__hero {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .summary-actions {
+    justify-content: flex-start;
+  }
+
+  .access-action--service {
+    border-left: 0;
+    padding-left: 0;
+  }
+
+  .date-time-grid {
+    grid-template-columns: 1fr;
   }
 }
 </style>
