@@ -6,6 +6,9 @@ const heading = '\u041e\u0441\u043d\u043e\u0432\u043d\u0456 \u0437\u0430\u043f\u
 const anxiety = '\u0422\u0440\u0438\u0432\u043e\u0433\u0430'
 const stress = '\u0421\u0442\u0440\u0435\u0441'
 const selfEsteem = '\u0421\u0430\u043c\u043e\u043e\u0446\u0456\u043d\u043a\u0430'
+const goalSetting = '\u041f\u043e\u0441\u0442\u0430\u043d\u043e\u0432\u043a\u0430 \u0446\u0456\u043b\u0435\u0439'
+const motivation = '\u041c\u043e\u0442\u0438\u0432\u0430\u0446\u0456\u044f'
+const selfDiscipline = '\u0421\u0430\u043c\u043e\u0434\u0438\u0441\u0446\u0438\u043f\u043b\u0456\u043d\u0430'
 const paragraph =
   '\u042f \u043f\u0440\u0430\u0446\u044e\u044e \u0456\u0437 \u0437\u0430\u043f\u0438\u0442\u0430\u043c\u0438, ' +
   '\u043f\u043e\u0432\u02bc\u044f\u0437\u0430\u043d\u0438\u043c\u0438 \u0437 \u0442\u0440\u0438\u0432\u043e\u0433\u043e\u044e, ' +
@@ -17,13 +20,13 @@ const secondLine =
   '\u044f\u043a\u0449\u043e \u0441\u043a\u043b\u0430\u0434\u043d\u043e \u043f\u0440\u0438\u0439\u043c\u0430\u0442\u0438 ' +
   '\u0440\u0456\u0448\u0435\u043d\u043d\u044f.'
 
-function renderSection(workWithText: string) {
+function renderSection(workWithText: string, workWithChips: string[] = []) {
   return render(PublicProfileAboutSection, {
     props: {
       aboutNarrativeText: '',
       workStyleText: '',
       workWithText,
-      workWithChips: [],
+      workWithChips,
       whoIsNotSuitableText: '',
     },
   })
@@ -66,5 +69,16 @@ describe('PublicProfileAboutSection', () => {
     const items = within(getMainRequestsSection()).getAllByRole('listitem')
 
     expect(items.map((item) => item.textContent)).toEqual([anxiety, stress, selfEsteem])
+  })
+
+  it('renders concrete request chips separately before authored paragraph text', () => {
+    renderSection(paragraph, [goalSetting, motivation, selfDiscipline])
+    const section = getMainRequestsSection()
+    const chipTexts = Array.from(section.querySelectorAll('.work-with__chip')).map((item) => item.textContent)
+
+    expect(chipTexts).toEqual([goalSetting, motivation, selfDiscipline])
+    expect(within(section).getByText(paragraph)).toHaveClass('scope-text')
+    expect(section.querySelector('.work-with__chips')?.compareDocumentPosition(section.querySelector('.scope-text') as Node))
+      .toBe(Node.DOCUMENT_POSITION_FOLLOWING)
   })
 })

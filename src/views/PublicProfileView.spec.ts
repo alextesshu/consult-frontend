@@ -750,6 +750,132 @@ describe('PublicProfileView', () => {
     expect(screen.queryByText('hello@example.com')).not.toBeInTheDocument()
   })
 
+  it('renders concrete request chips in main requests without category chips or duplicated text suffix', async () => {
+    const heading = '\u041e\u0441\u043d\u043e\u0432\u043d\u0456 \u0437\u0430\u043f\u0438\u0442\u0438'
+    const goalSetting = '\u041f\u043e\u0441\u0442\u0430\u043d\u043e\u0432\u043a\u0430 \u0446\u0456\u043b\u0435\u0439'
+    const motivation = '\u041c\u043e\u0442\u0438\u0432\u0430\u0446\u0456\u044f'
+    const selfDiscipline = '\u0421\u0430\u043c\u043e\u0434\u0438\u0441\u0446\u0438\u043f\u043b\u0456\u043d\u0430'
+    const coaching = '\u041a\u043e\u0443\u0447\u0438\u043d\u0433'
+    const psychology = '\u041f\u0441\u0438\u0445\u043e\u043b\u043e\u0433\u0456\u044f / \u0442\u0435\u0440\u0430\u043f\u0456\u044f'
+    const authoredText =
+      '\u042f \u043f\u0440\u0430\u0446\u044e\u044e \u0437 \u043b\u044e\u0434\u044c\u043c\u0438, ' +
+      '\u044f\u043a\u0456 \u043f\u0435\u0440\u0435\u0436\u0438\u0432\u0430\u044e\u0442\u044c ' +
+      '\u0442\u0440\u0438\u0432\u043e\u0433\u0443.'
+
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(
+      buildProfile({
+        specializations: [psychology],
+        sections_version: 1,
+        sections: {
+          topics: {
+            chips: [coaching],
+            specializations: [psychology],
+            who_this_is_for: `${authoredText}\n\u2022 ${goalSetting} \u2022 ${motivation} \u2022 ${selfDiscipline}`,
+          },
+        },
+      })
+    )
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/slots/') return [buildTodayLocalSlot()]
+      if (url === '/public/specialists/olena/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    const section = (await screen.findByRole('heading', { name: heading })).closest('section') as HTMLElement
+    const chipTexts = Array.from(section.querySelectorAll('.work-with__chip')).map((item) => item.textContent)
+    const bodyText = section.querySelector('.scope-text')?.textContent || ''
+
+    expect(chipTexts).toEqual([goalSetting, motivation, selfDiscipline])
+    expect(chipTexts).not.toContain(coaching)
+    expect(chipTexts).not.toContain(psychology)
+    expect(bodyText).toBe(authoredText)
+    expect(bodyText).not.toContain(goalSetting)
+    expect(bodyText).not.toContain(motivation)
+    expect(bodyText).not.toContain(selfDiscipline)
+  })
+
+  it('deduplicates structured request chips from an appended text tail', async () => {
+    const heading = '\u041e\u0441\u043d\u043e\u0432\u043d\u0456 \u0437\u0430\u043f\u0438\u0442\u0438'
+    const goalSetting = '\u041f\u043e\u0441\u0442\u0430\u043d\u043e\u0432\u043a\u0430 \u0446\u0456\u043b\u0435\u0439'
+    const motivation = '\u041c\u043e\u0442\u0438\u0432\u0430\u0446\u0456\u044f'
+    const selfDiscipline = '\u0421\u0430\u043c\u043e\u0434\u0438\u0441\u0446\u0438\u043f\u043b\u0456\u043d\u0430'
+    const authoredText =
+      '\u042f \u043f\u0440\u0430\u0446\u044e\u044e \u0437 \u043b\u044e\u0434\u044c\u043c\u0438, ' +
+      '\u044f\u043a\u0456 \u0445\u043e\u0447\u0443\u0442\u044c \u0441\u0444\u043e\u043a\u0443\u0441\u0443\u0432\u0430\u0442\u0438\u0441\u044f.'
+
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(
+      buildProfile({
+        sections_version: 1,
+        sections: {
+          topics: {
+            request_chips: [goalSetting, motivation, selfDiscipline],
+            who_this_is_for: `${authoredText} \u2022 ${goalSetting} \u2022 ${motivation} \u2022 ${selfDiscipline}`,
+          },
+        },
+      })
+    )
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/slots/') return [buildTodayLocalSlot()]
+      if (url === '/public/specialists/olena/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    const section = (await screen.findByRole('heading', { name: heading })).closest('section') as HTMLElement
+    const chipTexts = Array.from(section.querySelectorAll('.work-with__chip')).map((item) => item.textContent)
+    const bodyText = section.querySelector('.scope-text')?.textContent || ''
+
+    expect(chipTexts).toEqual([goalSetting, motivation, selfDiscipline])
+    expect(bodyText).toBe(authoredText)
+    expect(bodyText).not.toContain(goalSetting)
+  })
+
+  it('keeps author-written bullet content as text and does not fall back to category chips', async () => {
+    const heading = '\u041e\u0441\u043d\u043e\u0432\u043d\u0456 \u0437\u0430\u043f\u0438\u0442\u0438'
+    const coaching = '\u041a\u043e\u0443\u0447\u0438\u043d\u0433'
+    const authorBulletText =
+      '\u0423 \u0440\u043e\u0431\u043e\u0442\u0456 \u043c\u043e\u0436\u0443 ' +
+      '\u0432\u0438\u043a\u043e\u0440\u0438\u0441\u0442\u043e\u0432\u0443\u0432\u0430\u0442\u0438 \u2022 ' +
+      '\u043a\u043e\u0440\u043e\u0442\u043a\u0435 \u0444\u043e\u0440\u043c\u0443\u043b\u044e\u0432\u0430\u043d\u043d\u044f ' +
+      '\u0437\u0430\u043f\u0438\u0442\u0443 \u0431\u0435\u0437 \u0442\u0438\u0441\u043a\u0443.'
+
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(
+      buildProfile({
+        sections_version: 1,
+        sections: {
+          topics: {
+            chips: [coaching],
+            who_this_is_for: authorBulletText,
+          },
+        },
+      })
+    )
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/slots/') return [buildTodayLocalSlot()]
+      if (url === '/public/specialists/olena/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    const section = (await screen.findByRole('heading', { name: heading })).closest('section') as HTMLElement
+
+    expect(section.querySelectorAll('.work-with__chip')).toHaveLength(0)
+    expect(section.querySelector('.scope-text')).toHaveTextContent(authorBulletText)
+  })
+
   it('falls back to flat trust/topics/formats/contact_actions when related sections are empty', async () => {
     mockedFetchPublicSpecialistProfile.mockResolvedValue(
       buildProfile({

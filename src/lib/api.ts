@@ -721,6 +721,11 @@ export type PublicProfileTopicsSection = {
   who_this_is_for?: string | null
   items?: string[] | null
   chips?: string[] | null
+  // Compatibility aliases for lower-level client-facing request chips.
+  request_chips?: string[] | null
+  request_topics?: string[] | null
+  client_request_chips?: string[] | null
+  selected_request_chips?: string[] | null
   specializations?: string[] | string | null
 }
 

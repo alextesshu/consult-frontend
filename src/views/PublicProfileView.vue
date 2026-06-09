@@ -68,7 +68,7 @@
           :about-narrative-text="aboutNarrativeText"
           :work-style-text="workStyleText"
           :work-with-text="whoThisIsForText"
-          :work-with-chips="specializationChips"
+          :work-with-chips="mainRequestChips"
           :who-is-not-suitable-text="whoIsNotSuitableText"
         />
 
@@ -1463,6 +1463,93 @@ function normalizeTopicChip(item: unknown): string {
   return toDisplayText(value.label ?? value.title ?? value.name)
 }
 
+function normalizeComparableText(value: string): string {
+  return value.replace(/\s+/g, ' ').trim().toLowerCase()
+}
+
+function parseInlineBulletLabels(value: string): string[] {
+  return value
+    .split('\u2022')
+    .map((item) => item.trim())
+    .filter(Boolean)
+}
+
+function isLikelyGeneratedTopicTail(prefix: string, labels: string[]): boolean {
+  if (labels.length < 2) return false
+  return /[.!?:;…)]$/.test(prefix.trim())
+}
+
+function extractAppendedTopicLabels(value: unknown): string[] {
+  const text = normalizeMultilineText(value)
+  if (!text) return []
+
+  const lines = text
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+  const lastLine = lines[lines.length - 1] || ''
+  if (lastLine.startsWith('\u2022') && lines.slice(0, -1).some((line) => !line.startsWith('\u2022'))) {
+    const labels = parseInlineBulletLabels(lastLine)
+    return labels.length >= 2 ? labels : []
+  }
+
+  const bulletIndex = lastLine.indexOf('\u2022')
+  if (bulletIndex > 0) {
+    const labels = parseInlineBulletLabels(lastLine.slice(bulletIndex))
+    return isLikelyGeneratedTopicTail(lastLine.slice(0, bulletIndex), labels) ? labels : []
+  }
+
+  return []
+}
+
+function areDuplicatedTopicLabels(labels: string[], chips: string[]): boolean {
+  if (!labels.length || !chips.length) return false
+  const chipSet = new Set(chips.map(normalizeComparableText).filter(Boolean))
+  return labels.every((label) => chipSet.has(normalizeComparableText(label)))
+}
+
+function removeDuplicatedTopicChipLine(text: string, chips: string[]): string {
+  if (!text || !chips.length) return text
+
+  const lines = text.split('\n')
+  const lastContentLineIndex = lines.reduce((lastIndex, line, index) => (line.trim() ? index : lastIndex), -1)
+
+  return lines
+    .map((line, index) => {
+      const trimmed = line.trim()
+      if (!trimmed) return line
+
+      if (trimmed.startsWith('\u2022')) {
+        const hasParagraphBefore = lines
+          .slice(0, lastContentLineIndex)
+          .some((previousLine) => previousLine.trim() && !previousLine.trim().startsWith('\u2022'))
+        return index === lastContentLineIndex &&
+          hasParagraphBefore &&
+          areDuplicatedTopicLabels(parseInlineBulletLabels(trimmed), chips)
+          ? ''
+          : line
+      }
+
+      const bulletIndex = line.indexOf('\u2022')
+      if (bulletIndex === -1) return line
+
+      const beforeBullets = line.slice(0, bulletIndex).trimEnd()
+      const duplicatedLabels = parseInlineBulletLabels(line.slice(bulletIndex))
+      if (
+        !beforeBullets ||
+        !isLikelyGeneratedTopicTail(beforeBullets, duplicatedLabels) ||
+        !areDuplicatedTopicLabels(duplicatedLabels, chips)
+      ) {
+        return line
+      }
+
+      return beforeBullets
+    })
+    .filter((line) => line.trim())
+    .join('\n')
+    .trim()
+}
+
 function normalizeReviewItemFromSection(
   item: PublicProfileReviewItem | null | undefined,
   index: number
@@ -1652,6 +1739,51 @@ const sectionTopicChips = computed<string[]>(() => {
       .filter(Boolean)
   }
   return toTextList(sectionsTopics.value?.specializations)
+})
+
+function normalizeTopicChipList(value: unknown): string[] {
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => normalizeTopicChip(item))
+      .filter(Boolean)
+  }
+  return toTextList(value)
+}
+
+const sectionMainRequestChips = computed<string[]>(() => {
+  const source = sectionsTopics.value as (PublicProfileTopicsSection & Record<string, unknown>) | null
+  if (!source) return []
+
+  const explicitSources = [
+    source.request_chips,
+    source.request_topics,
+    source.client_request_chips,
+    source.selected_request_chips,
+    source.requestChips,
+    source.requestTopics,
+    source.clientRequestChips,
+    source.selectedRequestChips,
+  ]
+
+  for (const candidate of explicitSources) {
+    const items = normalizeTopicChipList(candidate)
+    if (items.length) return items
+  }
+
+  const appendedTextSources = [
+    (sectionsAbout.value as Record<string, unknown> | null)?.bio_for_whom,
+    source.who_this_is_for,
+    source.for_whom,
+    source.text,
+    source.description,
+    profile.value?.bio_for_whom,
+  ]
+  for (const candidate of appendedTextSources) {
+    const items = extractAppendedTopicLabels(candidate)
+    if (items.length) return items
+  }
+
+  return []
 })
 
 type AboutNarrativeField = 'bio' | 'bio_about' | 'bio_work' | 'bio_approach' | 'bio_for_whom' | 'bio_other'
@@ -1850,9 +1982,13 @@ const specializationChips = computed(() => {
   return toTextList(profile.value?.specializations)
 })
 const displaySpecializationChips = computed(() => specializationChips.value.slice(0, 4))
+const mainRequestChips = computed(() => sectionMainRequestChips.value)
 
 const whoThisIsForText = computed(() =>
-  normalizeMultilineText(sectionWhoThisIsForText.value || profile.value?.bio_for_whom || '')
+  removeDuplicatedTopicChipLine(
+    normalizeMultilineText(sectionWhoThisIsForText.value || profile.value?.bio_for_whom || ''),
+    mainRequestChips.value
+  )
 )
 
 const whoIsNotSuitableText = computed(() => {
