@@ -1440,6 +1440,12 @@ function firstFilledText(...values: Array<string | null | undefined>) {
     .find(Boolean) || ''
 }
 
+function firstFilledMultilineText(...values: unknown[]) {
+  return values
+    .map((value) => normalizeMultilineText(value))
+    .find(Boolean) || ''
+}
+
 function normalizeTrustItem(item: PublicProfileTrustItem | null | undefined): ProfileKeyValueItem | null {
   if (!item || typeof item !== 'object') return null
   const label = toDisplayText(item.label)
@@ -1795,12 +1801,12 @@ function resolveSectionAboutField(field: AboutNarrativeField): string {
 
 const sectionWhoThisIsForText = computed(() => {
   const source = sectionsTopics.value as (PublicProfileTopicsSection & Record<string, unknown>) | null
-  return firstFilledText(
+  return firstFilledMultilineText(
     resolveSectionAboutField('bio_for_whom'),
-    toDisplayText(source?.who_this_is_for),
-    toDisplayText(source?.for_whom),
-    toDisplayText(source?.text),
-    toDisplayText(source?.description)
+    source?.who_this_is_for,
+    source?.for_whom,
+    source?.text,
+    source?.description
   )
 })
 

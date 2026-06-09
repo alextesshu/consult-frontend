@@ -876,6 +876,46 @@ describe('PublicProfileView', () => {
     expect(section.querySelector('.scope-text')).toHaveTextContent(authorBulletText)
   })
 
+  it('preserves mixed paragraph and bullet formatting from section topics text', async () => {
+    const heading = '\u041e\u0441\u043d\u043e\u0432\u043d\u0456 \u0437\u0430\u043f\u0438\u0442\u0438'
+    const firstParagraph = '\u041f\u0435\u0440\u0448\u0438\u0439 \u0430\u0431\u0437\u0430\u0446 \u0442\u0435\u043a\u0441\u0442\u0443.'
+    const secondParagraph = '\u0414\u0440\u0443\u0433\u0438\u0439 \u0430\u0431\u0437\u0430\u0446 \u0442\u0435\u043a\u0441\u0442\u0443.'
+    const goalSetting = '\u041f\u043e\u0441\u0442\u0430\u043d\u043e\u0432\u043a\u0430 \u0446\u0456\u043b\u0435\u0439'
+    const motivation = '\u041c\u043e\u0442\u0438\u0432\u0430\u0446\u0456\u044f'
+    const selfDiscipline = '\u0421\u0430\u043c\u043e\u0434\u0438\u0441\u0446\u0438\u043f\u043b\u0456\u043d\u0430'
+
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(
+      buildProfile({
+        sections_version: 1,
+        sections: {
+          topics: {
+            who_this_is_for:
+              `${firstParagraph}\n\n${secondParagraph}\n\n` +
+              `\u2022 ${goalSetting}\n\u2022 ${motivation}\n\u2022 ${selfDiscipline}`,
+          },
+        },
+      })
+    )
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/slots/') return [buildTodayLocalSlot()]
+      if (url === '/public/specialists/olena/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    const section = (await screen.findByRole('heading', { name: heading })).closest('section') as HTMLElement
+    const paragraphs = Array.from(section.querySelectorAll('.scope-text')).map((item) => item.textContent)
+    const items = within(section).getAllByRole('listitem')
+
+    expect(paragraphs).toEqual([firstParagraph, secondParagraph])
+    expect(items.map((item) => item.textContent)).toEqual([goalSetting, motivation, selfDiscipline])
+    expect(paragraphs.join(' ')).not.toContain(goalSetting)
+  })
+
   it('falls back to flat trust/topics/formats/contact_actions when related sections are empty', async () => {
     mockedFetchPublicSpecialistProfile.mockResolvedValue(
       buildProfile({

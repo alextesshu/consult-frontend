@@ -40,10 +40,14 @@
         {{ chip }}
       </span>
     </div>
-    <ul v-if="workWithBlock.kind === 'list'" class="scope-list">
-      <li v-for="(item, index) in workWithBlock.items" :key="`work-with-${index}`">{{ item }}</li>
-    </ul>
-    <p v-else-if="workWithBlock.text" class="scope-text">{{ workWithBlock.text }}</p>
+    <div v-if="workWithBlocks.length" class="scope-blocks">
+      <template v-for="(block, index) in workWithBlocks" :key="`work-with-block-${index}`">
+        <ul v-if="block.kind === 'list'" class="scope-list">
+          <li v-for="(item, itemIndex) in block.items" :key="`work-with-${index}-${itemIndex}`">{{ item }}</li>
+        </ul>
+        <p v-else class="scope-text">{{ block.text }}</p>
+      </template>
+    </div>
   </section>
 
   <section class="panel panel--who structured-section structured-section--soft" v-if="whoIsNotSuitableText">
@@ -88,31 +92,54 @@ function normalizeScopeText(rawValue: string): string {
     .trim()
 }
 
-function parseExplicitBulletList(rawValue: string): string[] | null {
-  const normalized = normalizeScopeText(rawValue)
-  if (!normalized) return null
-
-  const lines = normalized
-    .split('\n')
-    .map((line) => line.trim())
-    .filter(Boolean)
-
-  if (!lines.length || lines.some((line) => !/^[-*•]\s+/.test(line))) return null
-
-  return Array.from(
-    new Set(
-      lines
-        .map((line) => line.replace(/^[-*•]\s+/, '').trim())
-        .filter(Boolean)
-    )
-  )
+function parseBulletLine(line: string): string | null {
+  const match = line.match(/^\s*[-*\u2022]\s+(.+)$/)
+  return match?.[1]?.trim() || null
 }
 
-function formatWorkWithText(rawValue: string): ScopeTextBlock {
-  const explicitListItems = parseExplicitBulletList(rawValue)
-  if (explicitListItems?.length) return { kind: 'list', items: explicitListItems }
+function parseScopeTextBlocks(rawValue: string): ScopeTextBlock[] {
+  const normalized = normalizeScopeText(rawValue)
+  if (!normalized) return []
 
-  return { kind: 'paragraph', text: normalizeScopeText(rawValue) }
+  const blocks: ScopeTextBlock[] = []
+  let paragraphLines: string[] = []
+  let listItems: string[] = []
+
+  function flushParagraph() {
+    if (!paragraphLines.length) return
+    blocks.push({ kind: 'paragraph', text: paragraphLines.join(' ').trim() })
+    paragraphLines = []
+  }
+
+  function flushList() {
+    if (!listItems.length) return
+    blocks.push({ kind: 'list', items: [...listItems] })
+    listItems = []
+  }
+
+  normalized.split('\n').forEach((line) => {
+    const trimmed = line.trim()
+    if (!trimmed) {
+      flushParagraph()
+      flushList()
+      return
+    }
+
+    const bulletText = parseBulletLine(line)
+    if (bulletText) {
+      flushParagraph()
+      listItems.push(bulletText)
+      return
+    }
+
+    flushList()
+    paragraphLines.push(trimmed)
+  })
+
+  flushParagraph()
+  flushList()
+
+  return blocks
 }
 
 function splitScopeText(rawValue: string): string[] {
@@ -128,7 +155,7 @@ function splitScopeText(rawValue: string): string[] {
   return [normalized]
 }
 
-const workWithBlock = computed(() => formatWorkWithText(props.workWithText))
+const workWithBlocks = computed(() => parseScopeTextBlocks(props.workWithText))
 const whoIsNotSuitableItems = computed(() => splitScopeText(props.whoIsNotSuitableText))
 </script>
 
@@ -312,6 +339,11 @@ const whoIsNotSuitableItems = computed(() => splitScopeText(props.whoIsNotSuitab
   color: color-mix(in srgb, var(--text) 90%, var(--muted));
   font-size: 14px;
   line-height: 1.5;
+}
+
+.scope-blocks {
+  display: grid;
+  gap: 10px;
 }
 
 .scope-list li::marker {
