@@ -195,6 +195,18 @@ describe('TherapistProfileView', () => {
     expect(screen.getByDisplayValue('Короткий опис для hero-блоку.')).toBeInTheDocument()
   })
 
+  it('keeps work boundaries helper text in profile management', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValue(makeProfile())
+
+    renderView()
+
+    expect(
+      await screen.findByPlaceholderText(
+        '\u0422\u0435\u043c\u0438 \u0430\u0431\u043e \u0437\u0430\u043f\u0438\u0442\u0438, \u0437 \u044f\u043a\u0438\u043c\u0438 \u0432\u0438 \u043d\u0435 \u043f\u0440\u0430\u0446\u044e\u0454\u0442\u0435.'
+      )
+    ).toBeInTheDocument()
+  })
+
   it('shows owner guidance when redirected from /public with unpublished profile', async () => {
     mockedFetchSpecialistProfile.mockResolvedValue({
       ...makeProfile(),

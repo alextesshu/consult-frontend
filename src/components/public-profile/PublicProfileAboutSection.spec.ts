@@ -4,6 +4,10 @@ import PublicProfileAboutSection from './PublicProfileAboutSection.vue'
 
 const heading = '\u041e\u0441\u043d\u043e\u0432\u043d\u0456 \u0437\u0430\u043f\u0438\u0442\u0438'
 const aboutHeading = '\u041f\u0440\u043e \u043c\u0435\u043d\u0435'
+const boundariesHeading =
+  '\u0417 \u0447\u0438\u043c \u044f \u043d\u0435 \u043f\u0440\u0430\u0446\u044e\u044e'
+const boundariesHelperText =
+  '\u0422\u0443\u0442 \u0441\u043f\u0435\u0446\u0456\u0430\u043b\u0456\u0441\u0442 \u043f\u043e\u044f\u0441\u043d\u044e\u0454, \u0443 \u044f\u043a\u0438\u0445 \u0432\u0438\u043f\u0430\u0434\u043a\u0430\u0445 \u043a\u0440\u0430\u0449\u0435 \u0437\u0432\u0435\u0440\u043d\u0443\u0442\u0438\u0441\u044f \u0434\u043e \u0456\u043d\u0448\u043e\u0433\u043e \u0444\u0430\u0445\u0456\u0432\u0446\u044f \u0430\u0431\u043e \u043e\u0442\u0440\u0438\u043c\u0430\u0442\u0438 \u043c\u0435\u0434\u0438\u0447\u043d\u0443 \u0434\u043e\u043f\u043e\u043c\u043e\u0433\u0443.'
 const anxiety = '\u0422\u0440\u0438\u0432\u043e\u0433\u0430'
 const stress = '\u0421\u0442\u0440\u0435\u0441'
 const selfEsteem = '\u0421\u0430\u043c\u043e\u043e\u0446\u0456\u043d\u043a\u0430'
@@ -52,6 +56,18 @@ function renderAboutSection(aboutNarrativeText: string) {
   })
 }
 
+function renderBoundariesSection(whoIsNotSuitableText: string) {
+  return render(PublicProfileAboutSection, {
+    props: {
+      aboutNarrativeText: '',
+      workStyleText: '',
+      workWithText: '',
+      workWithChips: [],
+      whoIsNotSuitableText,
+    },
+  })
+}
+
 function getAboutSection() {
   const section = screen.getByRole('heading', { name: aboutHeading }).closest('section')
   expect(section).not.toBeNull()
@@ -81,6 +97,25 @@ describe('PublicProfileAboutSection', () => {
 
     expect(section.querySelector('.narrative-text')).toHaveTextContent(aboutParagraphs[0]!)
     expect(within(section).getAllByRole('listitem').map((item) => item.textContent)).toEqual([anxiety, stress])
+  })
+
+  it('renders authored work boundaries without public helper copy', () => {
+    renderBoundariesSection(`- ${anxiety}\n- ${stress}`)
+    const section = screen.getByRole('heading', { name: boundariesHeading }).closest('section')
+
+    expect(section).not.toBeNull()
+    expect(within(section as HTMLElement).getAllByRole('listitem').map((item) => item.textContent)).toEqual([
+      anxiety,
+      stress,
+    ])
+    expect(screen.queryByText(boundariesHelperText)).not.toBeInTheDocument()
+  })
+
+  it('hides work boundaries when there is no authored content', () => {
+    renderBoundariesSection('')
+
+    expect(screen.queryByRole('heading', { name: boundariesHeading })).not.toBeInTheDocument()
+    expect(screen.queryByText(boundariesHelperText)).not.toBeInTheDocument()
   })
 
   it('renders main request paragraph text without forcing a list', () => {

@@ -59,9 +59,6 @@
     <div class="panel__header">
       <div>
         <h2 class="panel__title">З чим я не працюю</h2>
-        <p class="panel__lead">
-          Тут спеціаліст пояснює, у яких випадках краще звернутися до іншого фахівця або отримати медичну допомогу.
-        </p>
       </div>
     </div>
     <ul v-if="whoIsNotSuitableItems.length" class="scope-list scope-list--warning">

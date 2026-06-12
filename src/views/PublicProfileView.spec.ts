@@ -101,6 +101,8 @@ const mockedSendInquiryMessage = vi.mocked(sendInquiryMessage)
 const windowOpenSpy = vi.spyOn(window, 'open').mockImplementation(() => null)
 const clipboardWriteTextSpy = vi.fn().mockResolvedValue(undefined)
 const scrollIntoViewSpy = vi.fn()
+const publicBoundariesHelperText =
+  '\u0422\u0443\u0442 \u0441\u043f\u0435\u0446\u0456\u0430\u043b\u0456\u0441\u0442 \u043f\u043e\u044f\u0441\u043d\u044e\u0454, \u0443 \u044f\u043a\u0438\u0445 \u0432\u0438\u043f\u0430\u0434\u043a\u0430\u0445 \u043a\u0440\u0430\u0449\u0435 \u0437\u0432\u0435\u0440\u043d\u0443\u0442\u0438\u0441\u044f \u0434\u043e \u0456\u043d\u0448\u043e\u0433\u043e \u0444\u0430\u0445\u0456\u0432\u0446\u044f \u0430\u0431\u043e \u043e\u0442\u0440\u0438\u043c\u0430\u0442\u0438 \u043c\u0435\u0434\u0438\u0447\u043d\u0443 \u0434\u043e\u043f\u043e\u043c\u043e\u0433\u0443.'
 
 async function flushAsyncUpdates() {
   await Promise.resolve()
@@ -573,6 +575,26 @@ describe('PublicProfileView', () => {
     expect(screen.getByRole('heading', { name: 'Формат роботи' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Основні запити' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'З чим я не працюю' })).toBeInTheDocument()
+    expect(screen.getByText('Не працюю з кризовими станами.')).toBeInTheDocument()
+    expect(screen.queryByText(publicBoundariesHelperText)).not.toBeInTheDocument()
+  })
+
+  it('hides work boundaries when the public profile has no authored content', async () => {
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(buildProfile({ bio_other: '' }))
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/slots/') return [buildTodayLocalSlot()]
+      if (url === '/public/specialists/olena/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    await screen.findByRole('heading', { name: 'Про мене' })
+    expect(screen.queryByRole('heading', { name: 'З чим я не працюю' })).not.toBeInTheDocument()
+    expect(screen.queryByText(publicBoundariesHelperText)).not.toBeInTheDocument()
   })
 
   it('preserves public about paragraph breaks from profile data', async () => {
