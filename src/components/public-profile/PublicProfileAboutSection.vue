@@ -61,9 +61,16 @@
         <h2 class="panel__title">З чим я не працюю</h2>
       </div>
     </div>
-    <ul v-if="whoIsNotSuitableItems.length" class="scope-list scope-list--warning">
-      <li v-for="(item, index) in whoIsNotSuitableItems" :key="`not-suitable-${index}`">{{ item }}</li>
-    </ul>
+    <div v-if="whoIsNotSuitableBlocks.length" class="scope-blocks">
+      <template v-for="(block, index) in whoIsNotSuitableBlocks" :key="`not-suitable-block-${index}`">
+        <ul v-if="block.kind === 'list'" class="scope-list scope-list--warning">
+          <li v-for="(item, itemIndex) in block.items" :key="`not-suitable-${index}-${itemIndex}`">
+            {{ item }}
+          </li>
+        </ul>
+        <p v-else class="scope-text">{{ block.text }}</p>
+      </template>
+    </div>
   </section>
 </template>
 
@@ -144,22 +151,9 @@ function parseAuthoredTextBlocks(rawValue: string): AuthoredTextBlock[] {
   return blocks
 }
 
-function splitScopeText(rawValue: string): string[] {
-  const normalized = normalizeAuthoredText(rawValue)
-  if (!normalized) return []
-  const splitByMarkers = normalized
-    .split(/\n|[;\u2022]+/g)
-    .map((item) => item.replace(/^[\s\-\u2013\u2014]+/, '').trim())
-    .filter(Boolean)
-  if (splitByMarkers.length > 0) {
-    return Array.from(new Set(splitByMarkers))
-  }
-  return [normalized]
-}
-
 const aboutNarrativeBlocks = computed(() => parseAuthoredTextBlocks(props.aboutNarrativeText))
 const workWithBlocks = computed(() => parseAuthoredTextBlocks(props.workWithText))
-const whoIsNotSuitableItems = computed(() => splitScopeText(props.whoIsNotSuitableText))
+const whoIsNotSuitableBlocks = computed(() => parseAuthoredTextBlocks(props.whoIsNotSuitableText))
 </script>
 
 <style scoped>

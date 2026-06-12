@@ -597,6 +597,40 @@ describe('PublicProfileView', () => {
     expect(screen.queryByText(publicBoundariesHelperText)).not.toBeInTheDocument()
   })
 
+  it('preserves public work boundary paragraph breaks from profile data', async () => {
+    const boundaryParagraphs = [
+      '\u042f \u043d\u0435 \u043f\u0440\u0430\u0446\u044e\u044e \u0437 \u0433\u043e\u0441\u0442\u0440\u0438\u043c\u0438 \u043a\u0440\u0438\u0437\u043e\u0432\u0438\u043c\u0438 \u0441\u0442\u0430\u043d\u0430\u043c\u0438.',
+      '\u0422\u0430\u043a\u043e\u0436 \u044f \u043d\u0435 \u043f\u0440\u043e\u0432\u043e\u0434\u0436\u0443 \u043a\u043e\u043d\u0441\u0443\u043b\u044c\u0442\u0430\u0446\u0456\u0457 \u043f\u0456\u0434 \u0447\u0430\u0441 \u0441\u043f\u02bc\u044f\u043d\u0456\u043d\u043d\u044f.',
+      '\u042f\u043a\u0449\u043e \u043f\u043e\u0442\u0440\u0456\u0431\u043d\u0430 \u0434\u043e\u043f\u043e\u043c\u043e\u0433\u0430 \u0456\u043d\u0448\u043e\u0433\u043e \u0444\u0430\u0445\u0456\u0432\u0446\u044f, \u044f \u0447\u0435\u0441\u043d\u043e \u0441\u043a\u0430\u0436\u0443 \u043f\u0440\u043e \u0446\u0435.',
+    ]
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(
+      buildProfile({
+        bio_other: boundaryParagraphs.join('\n\n'),
+      })
+    )
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/slots/') return [buildTodayLocalSlot()]
+      if (url === '/public/specialists/olena/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    const { container } = renderView()
+
+    const heading = await screen.findByRole('heading', {
+      name: '\u0417 \u0447\u0438\u043c \u044f \u043d\u0435 \u043f\u0440\u0430\u0446\u044e\u044e',
+    })
+    const section = heading.closest('section') as HTMLElement
+    const paragraphs = Array.from(section.querySelectorAll('.scope-text')).map((item) => item.textContent)
+
+    expect(paragraphs).toEqual(boundaryParagraphs)
+    expect(section.querySelector('.scope-list')).toBeNull()
+    expect(container).toHaveTextContent(boundaryParagraphs[0]!)
+    expect(screen.queryByText(publicBoundariesHelperText)).not.toBeInTheDocument()
+  })
+
   it('preserves public about paragraph breaks from profile data', async () => {
     const aboutParagraphs = [
       '\u042f \u043f\u0441\u0438\u0445\u043e\u043b\u043e\u0433 \u0442\u0430 \u0433\u0435\u0448\u0442\u0430\u043b\u044c\u0442-\u0442\u0435\u0440\u0430\u043f\u0435\u0432\u0442.',

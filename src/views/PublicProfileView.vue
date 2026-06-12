@@ -2000,13 +2000,13 @@ const whoThisIsForText = computed(() =>
 const whoIsNotSuitableText = computed(() => {
   const source = sectionsTopics.value as (PublicProfileTopicsSection & Record<string, unknown>) | null
   return normalizeMultilineText(
-    firstFilledText(
+    firstFilledMultilineText(
       resolveSectionAboutField('bio_other'),
-      toDisplayText(source?.who_this_is_not_for),
-      toDisplayText(source?.who_is_not_for),
-      toDisplayText(source?.not_for_whom),
-      toDisplayText(source?.not_suitable_for),
-      toDisplayText(source?.exclusions),
+      source?.who_this_is_not_for,
+      source?.who_is_not_for,
+      source?.not_for_whom,
+      source?.not_suitable_for,
+      source?.exclusions,
       profile.value?.bio_other
     )
   )

@@ -80,6 +80,12 @@ function getMainRequestsSection() {
   return section as HTMLElement
 }
 
+function getBoundariesSection() {
+  const section = screen.getByRole('heading', { name: boundariesHeading }).closest('section')
+  expect(section).not.toBeNull()
+  return section as HTMLElement
+}
+
 describe('PublicProfileAboutSection', () => {
   it('renders about text as separate paragraph blocks without changing Ukrainian text', () => {
     renderAboutSection(aboutParagraphs.join('\n\n'))
@@ -99,16 +105,27 @@ describe('PublicProfileAboutSection', () => {
     expect(within(section).getAllByRole('listitem').map((item) => item.textContent)).toEqual([anxiety, stress])
   })
 
-  it('renders authored work boundaries without public helper copy', () => {
-    renderBoundariesSection(`- ${anxiety}\n- ${stress}`)
-    const section = screen.getByRole('heading', { name: boundariesHeading }).closest('section')
+  it('renders authored work boundaries as separate paragraphs without forcing a list', () => {
+    renderBoundariesSection(aboutParagraphs.join('\n\n'))
+    const section = getBoundariesSection()
+    const paragraphs = Array.from(section.querySelectorAll('.scope-text')).map((item) => item.textContent)
 
-    expect(section).not.toBeNull()
-    expect(within(section as HTMLElement).getAllByRole('listitem').map((item) => item.textContent)).toEqual([
+    expect(paragraphs).toEqual(aboutParagraphs)
+    expect(section.querySelector('.scope-list')).toBeNull()
+    expect(section).toHaveTextContent(aboutParagraphs[0]!)
+    expect(screen.queryByText(boundariesHelperText)).not.toBeInTheDocument()
+  })
+
+  it('renders explicit work boundary bullets as a vertical list', () => {
+    renderBoundariesSection(`\u2022 ${anxiety}\n- ${stress}\n* ${selfEsteem}`)
+    const section = getBoundariesSection()
+
+    expect(within(section).getAllByRole('listitem').map((item) => item.textContent)).toEqual([
       anxiety,
       stress,
+      selfEsteem,
     ])
-    expect(screen.queryByText(boundariesHelperText)).not.toBeInTheDocument()
+    expect(section.querySelector('.scope-text')).toBeNull()
   })
 
   it('hides work boundaries when there is no authored content', () => {
