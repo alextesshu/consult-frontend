@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import PublicProfileAboutSection from './PublicProfileAboutSection.vue'
 
 const heading = '\u041e\u0441\u043d\u043e\u0432\u043d\u0456 \u0437\u0430\u043f\u0438\u0442\u0438'
+const aboutHeading = '\u041f\u0440\u043e \u043c\u0435\u043d\u0435'
 const anxiety = '\u0422\u0440\u0438\u0432\u043e\u0433\u0430'
 const stress = '\u0421\u0442\u0440\u0435\u0441'
 const selfEsteem = '\u0421\u0430\u043c\u043e\u043e\u0446\u0456\u043d\u043a\u0430'
@@ -21,6 +22,11 @@ const secondLine =
   '\u0422\u0430\u043a\u043e\u0436 \u043c\u043e\u0436\u043d\u0430 \u0437\u0432\u0435\u0440\u0442\u0430\u0442\u0438\u0441\u044f, ' +
   '\u044f\u043a\u0449\u043e \u0441\u043a\u043b\u0430\u0434\u043d\u043e \u043f\u0440\u0438\u0439\u043c\u0430\u0442\u0438 ' +
   '\u0440\u0456\u0448\u0435\u043d\u043d\u044f.'
+const aboutParagraphs = [
+  '\u042f \u043f\u0441\u0438\u0445\u043e\u043b\u043e\u0433 \u0442\u0430 \u0433\u0435\u0448\u0442\u0430\u043b\u044c\u0442-\u0442\u0435\u0440\u0430\u043f\u0435\u0432\u0442.',
+  '\u0414\u043e \u043c\u0435\u043d\u0435 \u0447\u0430\u0441\u0442\u043e \u0437\u0432\u0435\u0440\u0442\u0430\u044e\u0442\u044c\u0441\u044f \u0437 \u0442\u0435\u043c\u0430\u043c\u0438 \u0442\u0440\u0438\u0432\u043e\u0433\u0438.',
+  '\u042f \u043d\u0435 \u0434\u0430\u044e \u0443\u043d\u0456\u0432\u0435\u0440\u0441\u0430\u043b\u044c\u043d\u0438\u0445 \u043f\u043e\u0440\u0430\u0434.',
+]
 
 function renderSection(workWithText: string, workWithChips: string[] = []) {
   return render(PublicProfileAboutSection, {
@@ -34,6 +40,24 @@ function renderSection(workWithText: string, workWithChips: string[] = []) {
   })
 }
 
+function renderAboutSection(aboutNarrativeText: string) {
+  return render(PublicProfileAboutSection, {
+    props: {
+      aboutNarrativeText,
+      workStyleText: '',
+      workWithText: '',
+      workWithChips: [],
+      whoIsNotSuitableText: '',
+    },
+  })
+}
+
+function getAboutSection() {
+  const section = screen.getByRole('heading', { name: aboutHeading }).closest('section')
+  expect(section).not.toBeNull()
+  return section as HTMLElement
+}
+
 function getMainRequestsSection() {
   const section = screen.getByRole('heading', { name: heading }).closest('section')
   expect(section).not.toBeNull()
@@ -41,6 +65,24 @@ function getMainRequestsSection() {
 }
 
 describe('PublicProfileAboutSection', () => {
+  it('renders about text as separate paragraph blocks without changing Ukrainian text', () => {
+    renderAboutSection(aboutParagraphs.join('\n\n'))
+    const paragraphs = Array.from(getAboutSection().querySelectorAll('.narrative-text')).map(
+      (item) => item.textContent
+    )
+
+    expect(paragraphs).toEqual(aboutParagraphs)
+    expect(paragraphs).toHaveLength(3)
+  })
+
+  it('renders manual bullets in about text through the shared authored text parser', () => {
+    renderAboutSection(`${aboutParagraphs[0]}\n\n- ${anxiety}\n- ${stress}`)
+    const section = getAboutSection()
+
+    expect(section.querySelector('.narrative-text')).toHaveTextContent(aboutParagraphs[0]!)
+    expect(within(section).getAllByRole('listitem').map((item) => item.textContent)).toEqual([anxiety, stress])
+  })
+
   it('renders main request paragraph text without forcing a list', () => {
     const { container } = renderSection(paragraph)
     const section = getMainRequestsSection()

@@ -575,6 +575,36 @@ describe('PublicProfileView', () => {
     expect(screen.getByRole('heading', { name: 'З чим я не працюю' })).toBeInTheDocument()
   })
 
+  it('preserves public about paragraph breaks from profile data', async () => {
+    const aboutParagraphs = [
+      '\u042f \u043f\u0441\u0438\u0445\u043e\u043b\u043e\u0433 \u0442\u0430 \u0433\u0435\u0448\u0442\u0430\u043b\u044c\u0442-\u0442\u0435\u0440\u0430\u043f\u0435\u0432\u0442.',
+      '\u0414\u043e \u043c\u0435\u043d\u0435 \u0447\u0430\u0441\u0442\u043e \u0437\u0432\u0435\u0440\u0442\u0430\u044e\u0442\u044c\u0441\u044f \u0437 \u0442\u0435\u043c\u0430\u043c\u0438 \u0442\u0440\u0438\u0432\u043e\u0433\u0438.',
+      '\u042f \u043d\u0435 \u0434\u0430\u044e \u0443\u043d\u0456\u0432\u0435\u0440\u0441\u0430\u043b\u044c\u043d\u0438\u0445 \u043f\u043e\u0440\u0430\u0434.',
+    ]
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(
+      buildProfile({
+        bio_about: aboutParagraphs.join('\n\n'),
+      })
+    )
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/slots/') return [buildTodayLocalSlot()]
+      if (url === '/public/specialists/olena/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    const { container } = renderView()
+
+    await screen.findByRole('heading', { name: '\u041f\u0440\u043e \u043c\u0435\u043d\u0435' })
+    const paragraphs = Array.from(container.querySelectorAll('#about-me .narrative-text')).map(
+      (item) => item.textContent
+    )
+
+    expect(paragraphs).toEqual(aboutParagraphs)
+  })
+
   it('uses sections.publications_preview as primary source for journal preview', async () => {
     mockedFetchPublicSpecialistProfile.mockResolvedValue(
       buildProfile({

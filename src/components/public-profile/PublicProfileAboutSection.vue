@@ -9,8 +9,13 @@
         <h2 class="panel__title">Про мене</h2>
       </div>
     </div>
-    <div class="text-section__content">
-      <p class="narrative-text">{{ aboutNarrativeText }}</p>
+    <div class="text-section__content authored-text-blocks">
+      <template v-for="(block, index) in aboutNarrativeBlocks" :key="`about-block-${index}`">
+        <ul v-if="block.kind === 'list'" class="scope-list narrative-list">
+          <li v-for="(item, itemIndex) in block.items" :key="`about-${index}-${itemIndex}`">{{ item }}</li>
+        </ul>
+        <p v-else class="narrative-text">{{ block.text }}</p>
+      </template>
     </div>
   </section>
 
@@ -78,13 +83,13 @@ type Props = {
 
 const props = defineProps<Props>()
 
-type ScopeTextBlock =
+type AuthoredTextBlock =
   | { kind: 'list'; items: string[] }
   | { kind: 'paragraph'; text: string }
 
-function normalizeScopeText(rawValue: string): string {
+function normalizeAuthoredText(rawValue: string): string {
   return String(rawValue || '')
-    .replace(/\r/g, '\n')
+    .replace(/\r\n?/g, '\n')
     .split('\n')
     .map((line) => line.trim())
     .join('\n')
@@ -97,11 +102,11 @@ function parseBulletLine(line: string): string | null {
   return match?.[1]?.trim() || null
 }
 
-function parseScopeTextBlocks(rawValue: string): ScopeTextBlock[] {
-  const normalized = normalizeScopeText(rawValue)
+function parseAuthoredTextBlocks(rawValue: string): AuthoredTextBlock[] {
+  const normalized = normalizeAuthoredText(rawValue)
   if (!normalized) return []
 
-  const blocks: ScopeTextBlock[] = []
+  const blocks: AuthoredTextBlock[] = []
   let paragraphLines: string[] = []
   let listItems: string[] = []
 
@@ -143,7 +148,7 @@ function parseScopeTextBlocks(rawValue: string): ScopeTextBlock[] {
 }
 
 function splitScopeText(rawValue: string): string[] {
-  const normalized = normalizeScopeText(rawValue)
+  const normalized = normalizeAuthoredText(rawValue)
   if (!normalized) return []
   const splitByMarkers = normalized
     .split(/\n|[;\u2022]+/g)
@@ -155,7 +160,8 @@ function splitScopeText(rawValue: string): string[] {
   return [normalized]
 }
 
-const workWithBlocks = computed(() => parseScopeTextBlocks(props.workWithText))
+const aboutNarrativeBlocks = computed(() => parseAuthoredTextBlocks(props.aboutNarrativeText))
+const workWithBlocks = computed(() => parseAuthoredTextBlocks(props.workWithText))
 const whoIsNotSuitableItems = computed(() => splitScopeText(props.whoIsNotSuitableText))
 </script>
 
@@ -241,6 +247,11 @@ const whoIsNotSuitableItems = computed(() => splitScopeText(props.whoIsNotSuitab
 
 .text-section__content {
   max-width: 72ch;
+}
+
+.authored-text-blocks {
+  display: grid;
+  gap: 8px;
 }
 
 .text-section--compact {
@@ -339,6 +350,12 @@ const whoIsNotSuitableItems = computed(() => splitScopeText(props.whoIsNotSuitab
   color: color-mix(in srgb, var(--text) 90%, var(--muted));
   font-size: 14px;
   line-height: 1.5;
+}
+
+.narrative-list {
+  gap: 5px;
+  font-size: 13px;
+  line-height: 1.46;
 }
 
 .scope-blocks {

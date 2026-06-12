@@ -2025,7 +2025,7 @@ function sectionAboutBodyByKeywords(keywords: string[]): string {
 
 const aboutNarrativeText = computed(() =>
   normalizeMultilineText(
-    firstFilledText(
+    firstFilledMultilineText(
       resolveSectionAboutField('bio_about'),
       resolveSectionAboutField('bio'),
       sectionAboutSections.value[0]?.body,
