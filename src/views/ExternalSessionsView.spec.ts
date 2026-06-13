@@ -325,6 +325,10 @@ describe('ExternalSessionsView', () => {
     expect(guestRequestsPanel).toHaveTextContent('Стосунки')
     expect(within(guestRequestsPanel as HTMLElement).getByRole('button', { name: 'Показати деталі' })).toBeInTheDocument()
     expect(within(guestRequestsPanel as HTMLElement).getByRole('button', { name: 'Створити сесію' })).toBeInTheDocument()
+    expect(within(guestRequestsPanel as HTMLElement).getByRole('link', { name: 'Обрати час у календарі' })).toHaveAttribute(
+      'href',
+      '/cabinet/slots?request_id=61&client_name=Slotless+Guest&contact=guest%40example.com&format=online&source=public_guest_request'
+    )
     expect(within(guestRequestsPanel as HTMLElement).getByRole('button', { name: 'Закрити запит' })).toBeInTheDocument()
   })
 
@@ -834,10 +838,18 @@ describe('ExternalSessionsView', () => {
 
     const dialog = await screen.findByRole('dialog', { name: 'Створити сесію' })
     const modal = within(dialog)
-    expect(modal.getByLabelText('Дата')).toBeInTheDocument()
+    const dateInput = modal.getByLabelText('Дата')
+    const timeSelect = modal.getByLabelText('Час початку')
+    expect(dateInput).toHaveAttribute('placeholder', 'дд.мм.рррр')
+    expect((dateInput as HTMLInputElement).value).toMatch(/^\d{2}\.\d{2}\.\d{4}$/)
+    expect(timeSelect.tagName).toBe('SELECT')
+    expect(within(timeSelect).getAllByRole('option')).toHaveLength(65)
+    expect(within(timeSelect).getAllByRole('option')[0]).toHaveTextContent('07:00')
+    expect(within(timeSelect).getAllByRole('option')[1]).toHaveTextContent('07:15')
+    expect(within(timeSelect).getAllByRole('option')[64]).toHaveTextContent('23:00')
 
-    await fireEvent.update(modal.getByLabelText('Дата'), '2099-06-20')
-    await fireEvent.update(modal.getByLabelText('Час початку'), '10:00')
+    await fireEvent.update(dateInput, '20.06.2099')
+    await fireEvent.update(timeSelect, '10:00')
     await fireEvent.update(modal.getByLabelText('Тривалість'), '50')
     await fireEvent.update(modal.getByLabelText('Посилання на онлайн-зустріч'), 'https://meet.google.com/manual')
     await fireEvent.click(modal.getByRole('button', { name: 'Створити сесію' }))
@@ -913,7 +925,7 @@ describe('ExternalSessionsView', () => {
 
     const dialog = await screen.findByRole('dialog', { name: 'Створити сесію' })
     const modal = within(dialog)
-    await fireEvent.update(modal.getByLabelText('Дата'), '2099-06-20')
+    await fireEvent.update(modal.getByLabelText('Дата'), '20.06.2099')
     await fireEvent.update(modal.getByLabelText('Час початку'), '10:00')
     await fireEvent.click(modal.getByRole('button', { name: 'Створити сесію' }))
 

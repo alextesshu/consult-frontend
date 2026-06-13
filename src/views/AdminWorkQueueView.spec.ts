@@ -272,12 +272,39 @@ describe('AdminWorkQueueView', () => {
     expect(screen.queryByText('Спеціаліст очікує beta-доступ')).not.toBeInTheDocument()
   })
 
-  it('renders target link when target_url exists', async () => {
+  it('uses type-aware target links and suppresses unsupported public request targets', async () => {
     await renderView()
 
     const links = await screen.findAllByRole('link', { name: 'Відкрити' })
-    expect(links[0]).toHaveAttribute('href', '/admin/inbox/33')
-    expect(links[1]).toHaveAttribute('href', '/admin/billing-access-requests/21')
+    expect(links).toHaveLength(1)
+    expect(links[0]).toHaveAttribute('href', '/admin/billing-access-requests/21')
+    expect(
+      screen.getByText('Деталі запиту наведені в черзі. Окремої адмін-сторінки для цього типу запиту ще немає.')
+    ).toBeInTheDocument()
+  })
+
+  it('keeps admin inbox navigation for actual admin inbox items', async () => {
+    mockedFetchAdminWorkQueue.mockResolvedValueOnce({
+      summary: baseResponse.summary,
+      items: [
+        {
+          id: 'admin-inbox-33',
+          type: 'admin_inbox_item',
+          severity: 'warning',
+          status: 'open',
+          title: 'Адмін-запит потребує уваги',
+          target_url: '/admin/inbox/33',
+          related: {
+            object_type: 'admin_inbox_item',
+            object_id: 33,
+          },
+        },
+      ],
+    })
+
+    await renderView()
+
+    expect(await screen.findByRole('link', { name: 'Відкрити' })).toHaveAttribute('href', '/admin/inbox/33')
   })
 
   it('renders grouped email domain notification issue as operational copy without raw provider error', async () => {
@@ -473,7 +500,10 @@ describe('AdminWorkQueueView', () => {
     expect(screen.getByText('Спеціаліст: Назар Петренко')).toBeInTheDocument()
     expect(screen.getByText('Email: nazar@example.com')).toBeInTheDocument()
     expect(screen.queryByText('Спеціаліст #10')).not.toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Відкрити' })).toHaveAttribute('href', '/admin/inbox')
+    expect(screen.queryByRole('link', { name: 'Відкрити' })).not.toBeInTheDocument()
+    expect(
+      screen.getByText('Деталі запиту наведені в черзі. Окремої адмін-сторінки для цього типу запиту ще немає.')
+    ).toBeInTheDocument()
   })
 
   it('renders client invite context with client and specialist metadata', async () => {

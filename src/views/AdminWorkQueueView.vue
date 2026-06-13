@@ -108,21 +108,24 @@
 
           <div class="queue-item__actions">
             <RouterLink
-              v-if="internalTargetPath(item.target_url)"
+              v-if="internalTargetPath(workQueueTargetUrl(item))"
               class="btn btn--sm"
-              :to="internalTargetPath(item.target_url)"
+              :to="internalTargetPath(workQueueTargetUrl(item))"
             >
               Відкрити
             </RouterLink>
             <a
-              v-else-if="externalTargetUrl(item.target_url)"
+              v-else-if="externalTargetUrl(workQueueTargetUrl(item))"
               class="btn btn--sm"
-              :href="externalTargetUrl(item.target_url)"
+              :href="externalTargetUrl(workQueueTargetUrl(item))"
               target="_blank"
               rel="noopener noreferrer"
             >
               Відкрити
             </a>
+            <p v-else-if="unsupportedTargetMessage(item)" class="muted queue-item__action-note">
+              {{ unsupportedTargetMessage(item) }}
+            </p>
           </div>
         </article>
       </div>
@@ -507,6 +510,12 @@ function isPublicRequestObjectType(objectType: string) {
   return objectType === 'publicguestrequest' || objectType === 'adminguestrequest'
 }
 
+function isPublicGuestRequestItem(item: AdminWorkQueueItem) {
+  const type = normalizeToken(item.type)
+  const objectType = normalizeToken(String(relatedValue(item.related, 'object_type') || '')).replace(/[^a-z0-9]/g, '')
+  return type.includes('public_guest_request') || type.includes('public_request') || isPublicRequestObjectType(objectType)
+}
+
 function isClientInviteObjectType(objectType: string) {
   return objectType === 'clientrecordinvite' || objectType === 'clientrecordaccountinvite'
 }
@@ -534,6 +543,28 @@ function relatedObjectTypeLabel(type: string) {
     client: 'Клієнт',
   }
   return labels[normalized] || 'Обʼєкт'
+}
+
+function workQueueTargetUrl(item: AdminWorkQueueItem) {
+  const target = item.target_url || ''
+  if (isPublicGuestRequestItem(item) && isAdminInboxTarget(target)) return ''
+  return target
+}
+
+function unsupportedTargetMessage(item: AdminWorkQueueItem) {
+  if (!isPublicGuestRequestItem(item) || workQueueTargetUrl(item)) return ''
+  return 'Деталі запиту наведені в черзі. Окремої адмін-сторінки для цього типу запиту ще немає.'
+}
+
+function isAdminInboxTarget(value: string | null | undefined) {
+  const target = String(value || '').trim()
+  if (/^\/admin\/inbox(?:[/?#]|$)/.test(target)) return true
+  if (!/^https?:\/\//i.test(target)) return false
+  try {
+    return /^\/admin\/inbox(?:[/?#]|$)/.test(new URL(target).pathname)
+  } catch {
+    return false
+  }
 }
 
 function internalTargetPath(value: string | null | undefined) {
@@ -604,6 +635,13 @@ onMounted(() => {
   gap: 8px;
   flex-wrap: wrap;
   justify-content: flex-end;
+}
+
+.queue-item__action-note {
+  max-width: 260px;
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.4;
 }
 
 .admin-work-queue__counters {

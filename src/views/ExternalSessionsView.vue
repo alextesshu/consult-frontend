@@ -268,6 +268,12 @@
                 >
                   Створити сесію
                 </button>
+                <RouterLink
+                  class="btn btn--ghost btn--sm"
+                  :to="scheduleRouteForRequest(request)"
+                >
+                  Обрати час у календарі
+                </RouterLink>
                 <button
                   class="btn btn--ghost btn--sm"
                   type="button"
@@ -354,29 +360,29 @@
           <label class="field">
             <span>Дата</span>
             <input
-              v-model="slotlessSessionDraft.start_date"
+              :value="slotlessSessionDateDisplay"
               class="input"
-              type="date"
-              lang="uk"
+              type="text"
+              inputmode="numeric"
+              maxlength="10"
+              placeholder="дд.мм.рррр"
               :disabled="slotlessSessionSaving"
-              @click="openDatePicker"
-              @focus="openDatePicker"
+              @input="updateSlotlessSessionDate"
+              @blur="normalizeSlotlessSessionDate"
             />
           </label>
 
           <label class="field">
             <span>Час початку</span>
-            <input
+            <select
               v-model="slotlessSessionDraft.start_time"
-              class="input"
-              type="text"
-              inputmode="numeric"
-              maxlength="5"
-              placeholder="ГГ:ХХ"
-              list="external-session-time-options"
+              class="input input--select"
               :disabled="slotlessSessionSaving"
-              @blur="normalizeSlotlessSessionStartTime"
-            />
+            >
+              <option v-for="option in slotlessTimeOptions" :key="option" :value="option">
+                {{ option }}
+              </option>
+            </select>
           </label>
 
           <label class="field">
@@ -526,6 +532,7 @@ const slotlessSessionModalOpen = ref(false)
 const slotlessSessionRequest = ref<GuestBookingRequestRecord | null>(null)
 const slotlessSessionSaving = ref(false)
 const slotlessSessionError = ref('')
+const slotlessSessionDateDisplay = ref('')
 const slotlessProfileLoaded = ref(false)
 const slotlessProfileTimezone = ref('')
 const slotlessSessionTimezone = ref(
@@ -617,6 +624,12 @@ const timeOptions = Array.from({ length: 24 * 4 }, (_, index) => {
   const mins = String(minutes % 60).padStart(2, '0')
   return `${hours}:${mins}`
 })
+const slotlessTimeOptions = Array.from({ length: ((23 - 7) * 60) / 15 + 1 }, (_, index) => {
+  const minutes = 7 * 60 + index * 15
+  const hours = String(Math.floor(minutes / 60)).padStart(2, '0')
+  const mins = String(minutes % 60).padStart(2, '0')
+  return `${hours}:${mins}`
+})
 
 function formatDateTime(value: string | null | undefined) {
   return formatUkDateTimeCompact(value)
@@ -693,6 +706,17 @@ function requestClientEmail(request: GuestBookingRequestRecord) {
 function requestClientPhone(request: GuestBookingRequestRecord) {
   if (request.client_phone) return request.client_phone
   return String(request.contact_channel || '').toLowerCase() === 'phone' ? request.contact_value || '' : ''
+}
+
+function scheduleRouteForRequest(request: GuestBookingRequestRecord) {
+  const query = new URLSearchParams({
+    request_id: String(request.id),
+    client_name: requestClientName(request),
+    contact: request.contact_value || requestClientEmail(request) || requestClientPhone(request),
+    format: request.session_format === 'offline' ? 'offline' : 'online',
+    source: 'public_guest_request',
+  })
+  return `/cabinet/slots?${query.toString()}`
 }
 
 function requestTopicLabels(request: GuestBookingRequestRecord) {
@@ -868,15 +892,47 @@ function normalizeCreateStartTime() {
   createDraft.value.start_time = normalizeTimeValue(createDraft.value.start_time)
 }
 
-function normalizeSlotlessSessionStartTime() {
-  slotlessSessionDraft.value.start_time = normalizeTimeValue(slotlessSessionDraft.value.start_time)
-}
-
 function localDateInputValue(value: Date) {
   const year = value.getFullYear()
   const month = String(value.getMonth() + 1).padStart(2, '0')
   const day = String(value.getDate()).padStart(2, '0')
   return `${year}-${month}-${day}`
+}
+
+function formatIsoDateForDisplay(value: string) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value || '').trim())
+  if (!match) return ''
+  return `${match[3]}.${match[2]}.${match[1]}`
+}
+
+function parseDisplayDateToIso(value: string) {
+  const match = /^(\d{2})\.(\d{2})\.(\d{4})$/.exec(String(value || '').trim())
+  if (!match) return ''
+  const day = Number(match[1])
+  const month = Number(match[2])
+  const year = Number(match[3])
+  const parsed = new Date(Date.UTC(year, month - 1, day))
+  if (
+    parsed.getUTCFullYear() !== year ||
+    parsed.getUTCMonth() !== month - 1 ||
+    parsed.getUTCDate() !== day
+  ) {
+    return ''
+  }
+  return `${match[3]}-${match[2]}-${match[1]}`
+}
+
+function updateSlotlessSessionDate(event: Event) {
+  const target = event.target as HTMLInputElement | null
+  slotlessSessionDateDisplay.value = target?.value || ''
+  slotlessSessionDraft.value.start_date = parseDisplayDateToIso(slotlessSessionDateDisplay.value)
+}
+
+function normalizeSlotlessSessionDate() {
+  const isoDate = parseDisplayDateToIso(slotlessSessionDateDisplay.value)
+  if (!isoDate) return
+  slotlessSessionDraft.value.start_date = isoDate
+  slotlessSessionDateDisplay.value = formatIsoDateForDisplay(isoDate)
 }
 
 function combineDateTimeToIso(dateValue: string, timeValue: string) {
@@ -932,14 +988,16 @@ async function loadSlotlessProfileDefaults() {
 
 function resetSlotlessSessionForm(request: GuestBookingRequestRecord) {
   const duration = Number(request.duration_minutes || slotlessSessionDraft.value.duration_minutes || 50)
+  const startDate = localDateInputValue(new Date())
   slotlessSessionDraft.value = {
-    start_date: localDateInputValue(new Date()),
+    start_date: startDate,
     start_time: '09:00',
     duration_minutes: Number.isFinite(duration) && duration > 0 ? Math.min(Math.round(duration), 480) : 50,
     session_format: request.session_format === 'offline' ? 'offline' : 'online',
     meeting_url: '',
     offline_location: request.offline_location_snapshot || '',
   }
+  slotlessSessionDateDisplay.value = formatIsoDateForDisplay(startDate)
   slotlessSessionTimezone.value = resolvedSlotlessSessionTimezone()
   slotlessSessionError.value = ''
 }
