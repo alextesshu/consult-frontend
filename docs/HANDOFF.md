@@ -54,6 +54,10 @@ Frontend production-closure slice is now integrated:
     and start/resolve/ignore/reopen actions
   - billing access items open `/admin/billing-access-requests/{id}` and show
     their domain status without duplicating billing approve/reject controls
+  - public request cards show safe client/contact/topic/format/message-preview
+    context directly and repeat it in the expanded `Що це за запит` block
+  - missing public request context uses explicit fallbacks such as
+    `не вказано` and `немає тексту`
 - Admin specialist detail polish: production-deployed as part of the founder-beta readiness package; access modals now clarify test access vs service override and use Ukrainian/European date-time formatting
   - `РљРµСЂСѓРІР°С‚Рё С‚РµСЃС‚РѕРІРёРј РґРѕСЃС‚СѓРїРѕРј` means normal temporary
     beta/demo Pro access
@@ -166,6 +170,8 @@ Frontend production-closure slice is now integrated:
     `content`, `internal_note`, `note_body`, `journal`, `token_hash`,
     private notebook body, session note body, public request message body,
     private client history, or consultation content
+  - public request `message_preview` is the only allowed request-message field
+    on this surface; it is backend-normalized and capped at 200 characters
   - lifecycle actions are operational tracking only; domain actions such as
     billing approve/reject remain on their dedicated screens
 - Founder-beta notification smoke contract:

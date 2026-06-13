@@ -29,6 +29,7 @@ const baseResponse = {
   items: [
     {
       id: 'public-1',
+      item_key: 'public_guest_request:33',
       type: 'public_guest_request_pending',
       severity: 'warning',
       status: 'new',
@@ -40,11 +41,20 @@ const baseResponse = {
       related: {
         object_type: 'public_guest_request',
         object_id: 33,
+        public_request_id: 33,
+        client_name: 'Оксана Мельник',
+        client_contact: 'oksana@example.com',
+        contact_type: 'email',
+        request_topics: ['stress'],
+        request_topic_labels: ['Стрес'],
+        format: 'online',
+        message_preview: 'Потрібна консультація щодо тривалого робочого стресу.',
         specialist_id: 12,
       },
       actions: [
-        { code: 'open', label: 'Відкрити', kind: 'link' },
+        { code: 'start', label: 'Mark in progress', kind: 'mutation' },
         { code: 'resolve', label: 'Вирішити', kind: 'mutation' },
+        { code: 'ignore', label: 'Ignore', kind: 'mutation' },
       ],
     },
     {
@@ -154,6 +164,13 @@ describe('AdminWorkQueueView', () => {
     expect(screen.getByText('Увага')).toBeInTheDocument()
     expect(screen.getAllByText('Відкрите').length).toBeGreaterThan(0)
     expect(screen.getByText(/Публічний запит #33/)).toBeInTheDocument()
+    expect(screen.getByText('Клієнт: Оксана Мельник')).toBeInTheDocument()
+    expect(screen.getByText('Контакт: oksana@example.com (Email)')).toBeInTheDocument()
+    expect(screen.getByText('Категорія: Стрес')).toBeInTheDocument()
+    expect(screen.getByText('Формат: Онлайн')).toBeInTheDocument()
+    expect(
+      screen.getByText('Коротко: Потрібна консультація щодо тривалого робочого стресу.')
+    ).toBeInTheDocument()
     expect(screen.getByText(/Спеціаліст #12/)).toBeInTheDocument()
     expect(document.body).not.toHaveTextContent('public_guest_request #33')
   })
@@ -595,6 +612,84 @@ describe('AdminWorkQueueView', () => {
     expect(
       screen.getByText('Деталі запиту наведені в черзі. Окремої адмін-сторінки для цього типу запиту ще немає.')
     ).toBeInTheDocument()
+  })
+
+  it('shows public request context in expanded detail and keeps lifecycle actions working', async () => {
+    await renderView()
+
+    const title = await screen.findByText('Новий публічний запит')
+    const card = title.closest('article')
+    expect(card).not.toBeNull()
+
+    await fireEvent.click(within(card as HTMLElement).getByRole('button', { name: 'Деталі' }))
+
+    expect(within(card as HTMLElement).getByText('Що це за запит')).toBeInTheDocument()
+    expect(within(card as HTMLElement).getByText('Оксана Мельник')).toBeInTheDocument()
+    expect(
+      within(card as HTMLElement).getByText('oksana@example.com (Email)')
+    ).toBeInTheDocument()
+    expect(within(card as HTMLElement).getByText('Стрес')).toBeInTheDocument()
+    expect(within(card as HTMLElement).getByText('Онлайн')).toBeInTheDocument()
+    expect(
+      within(card as HTMLElement).getByText(
+        'Потрібна консультація щодо тривалого робочого стресу.'
+      )
+    ).toBeInTheDocument()
+
+    await fireEvent.click(
+      within(card as HTMLElement).getByRole('button', { name: 'Позначити в роботі' })
+    )
+
+    await waitFor(() => {
+      expect(mockedTransitionAdminWorkQueueItem).toHaveBeenCalledWith(
+        'public_guest_request:33',
+        'start',
+        ''
+      )
+    })
+  })
+
+  it('renders explicit fallbacks for missing public request context', async () => {
+    mockedFetchAdminWorkQueue.mockResolvedValueOnce({
+      summary: baseResponse.summary,
+      items: [
+        {
+          id: 'public-missing-7',
+          item_key: 'public_guest_request:7',
+          type: 'public_guest_request_pending',
+          severity: 'normal',
+          status: 'open',
+          title: 'Raw public request title',
+          related: {
+            object_type: 'public_guest_request',
+            object_id: 7,
+            public_request_id: 7,
+            client_name: null,
+            client_contact: null,
+            contact_type: 'email',
+            request_topics: [],
+            request_topic_labels: [],
+            format: null,
+            message_preview: '',
+          },
+          actions: [],
+        },
+      ],
+    })
+
+    await renderView()
+
+    expect(await screen.findByText('Клієнт: не вказано')).toBeInTheDocument()
+    expect(screen.getByText('Контакт: не вказано')).toBeInTheDocument()
+    expect(screen.getByText('Категорія: не вказано')).toBeInTheDocument()
+    expect(screen.getByText('Формат: не вказано')).toBeInTheDocument()
+    expect(screen.getByText('Коротко: немає тексту')).toBeInTheDocument()
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Деталі' }))
+    const detail = screen.getByText('Що це за запит').closest('.queue-item__request-context')
+    expect(detail).not.toBeNull()
+    expect(within(detail as HTMLElement).getAllByText('не вказано')).toHaveLength(4)
+    expect(within(detail as HTMLElement).getByText('немає тексту')).toBeInTheDocument()
   })
 
   it('renders client invite context with client and specialist metadata', async () => {

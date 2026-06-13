@@ -127,8 +127,46 @@
             <div class="queue-item__meta">
               <span v-for="meta in displayItemMeta(item)" :key="meta">{{ meta }}</span>
             </div>
+            <div
+              v-if="isPublicGuestRequestItem(item)"
+              class="queue-item__request-summary"
+            >
+              <span>{{ publicRequestClientLabel(item) }}</span>
+              <span>{{ publicRequestContactLabel(item) }}</span>
+              <span>{{ publicRequestCategoryLabel(item) }}</span>
+              <span>{{ publicRequestFormatLabel(item) }}</span>
+              <span>{{ publicRequestMessageLabel(item) }}</span>
+            </div>
 
             <div v-if="expandedItemKey === itemKey(item)" class="queue-item__detail">
+              <div
+                v-if="isPublicGuestRequestItem(item)"
+                class="queue-item__request-context"
+              >
+                <strong>Що це за запит</strong>
+                <dl>
+                  <div>
+                    <dt>Клієнт</dt>
+                    <dd>{{ publicRequestClientValue(item) }}</dd>
+                  </div>
+                  <div>
+                    <dt>Контакт</dt>
+                    <dd>{{ publicRequestContactValue(item) }}</dd>
+                  </div>
+                  <div>
+                    <dt>Категорія</dt>
+                    <dd>{{ publicRequestCategoryValue(item) }}</dd>
+                  </div>
+                  <div>
+                    <dt>Формат</dt>
+                    <dd>{{ publicRequestFormatValue(item) }}</dd>
+                  </div>
+                  <div>
+                    <dt>Повідомлення</dt>
+                    <dd>{{ publicRequestMessageValue(item) }}</dd>
+                  </div>
+                </dl>
+              </div>
               <div>
                 <strong>Чому це в черзі</strong>
                 <p>{{ detailWhy(item) }}</p>
@@ -565,7 +603,9 @@ function relatedMetaParts(item: AdminWorkQueueItem) {
   const parts: string[] = []
   const objectType = normalizeToken(String(relatedValue(related, 'object_type') || '')).replace(/[^a-z0-9]/g, '')
   const objectId = relatedValue(related, 'object_id')
-  const requestId = relatedValue(related, 'request_id')
+  const requestId =
+    relatedValue(related, 'public_request_id') ||
+    relatedValue(related, 'request_id')
   const inviteId = relatedValue(related, 'invite_id')
 
   const requestLabelId = relatedId(requestId) || (isPublicRequestObjectType(objectType) ? relatedId(objectId) : '')
@@ -600,6 +640,81 @@ function relatedMetaParts(item: AdminWorkQueueItem) {
   }
 
   return uniqueMetaParts(parts)
+}
+
+function publicRequestClientValue(item: AdminWorkQueueItem) {
+  return safeRelatedText(relatedValue(item.related, 'client_name')) || 'не вказано'
+}
+
+function publicRequestContactValue(item: AdminWorkQueueItem) {
+  const contact = safeRelatedText(relatedValue(item.related, 'client_contact'))
+  const contactType =
+    safeRelatedText(relatedValue(item.related, 'contact_type')) ||
+    safeRelatedText(relatedValue(item.related, 'contact_channel'))
+  if (!contact) return 'не вказано'
+  return contactType ? `${contact} (${contactTypeLabel(contactType)})` : contact
+}
+
+function publicRequestCategoryValue(item: AdminWorkQueueItem) {
+  const labels = relatedStringList(item.related, 'request_topic_labels')
+  if (labels.length) return labels.join(', ')
+  const topics = relatedStringList(item.related, 'request_topics')
+  return topics.length ? topics.join(', ') : 'не вказано'
+}
+
+function publicRequestFormatValue(item: AdminWorkQueueItem) {
+  const value =
+    safeRelatedText(relatedValue(item.related, 'format')) ||
+    safeRelatedText(relatedValue(item.related, 'session_format'))
+  const labels: Record<string, string> = {
+    online: 'Онлайн',
+    offline: 'Офлайн',
+  }
+  return labels[normalizeToken(value)] || value || 'не вказано'
+}
+
+function publicRequestMessageValue(item: AdminWorkQueueItem) {
+  return safeRelatedText(relatedValue(item.related, 'message_preview')) || 'немає тексту'
+}
+
+function publicRequestClientLabel(item: AdminWorkQueueItem) {
+  return `Клієнт: ${publicRequestClientValue(item)}`
+}
+
+function publicRequestContactLabel(item: AdminWorkQueueItem) {
+  return `Контакт: ${publicRequestContactValue(item)}`
+}
+
+function publicRequestCategoryLabel(item: AdminWorkQueueItem) {
+  return `Категорія: ${publicRequestCategoryValue(item)}`
+}
+
+function publicRequestFormatLabel(item: AdminWorkQueueItem) {
+  return `Формат: ${publicRequestFormatValue(item)}`
+}
+
+function publicRequestMessageLabel(item: AdminWorkQueueItem) {
+  return `Коротко: ${publicRequestMessageValue(item)}`
+}
+
+function relatedStringList(
+  related: AdminWorkQueueRelated | null | undefined,
+  key: string
+) {
+  const value = relatedValue(related, key)
+  if (!Array.isArray(value)) return []
+  return value.filter(
+    (item): item is string => typeof item === 'string' && Boolean(item.trim())
+  )
+}
+
+function contactTypeLabel(value: string) {
+  const labels: Record<string, string> = {
+    email: 'Email',
+    phone: 'Телефон',
+    telegram: 'Telegram',
+  }
+  return labels[normalizeToken(value)] || value
 }
 
 function safeRelatedText(value: unknown) {
@@ -1058,12 +1173,44 @@ onMounted(() => {
   color: color-mix(in srgb, var(--muted) 70%, transparent);
 }
 
+.queue-item__request-summary {
+  display: grid;
+  gap: 4px;
+  border-left: 2px solid color-mix(in srgb, var(--primary) 30%, var(--line));
+  padding-left: 10px;
+  color: var(--text);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
 .queue-item__detail {
   display: grid;
   gap: 10px;
   border-top: 1px solid var(--line);
   padding-top: 10px;
   font-size: 13px;
+}
+
+.queue-item__request-context dl {
+  display: grid;
+  gap: 6px;
+  margin: 8px 0 0;
+}
+
+.queue-item__request-context dl > div {
+  display: grid;
+  grid-template-columns: minmax(90px, 120px) minmax(0, 1fr);
+  gap: 8px;
+}
+
+.queue-item__request-context dt {
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.queue-item__request-context dd {
+  margin: 0;
+  overflow-wrap: anywhere;
 }
 
 .queue-item__detail p {
@@ -1148,6 +1295,11 @@ onMounted(() => {
   .admin-work-queue__hero-actions,
   .queue-item__actions {
     justify-content: flex-start;
+  }
+
+  .queue-item__request-context dl > div {
+    grid-template-columns: 1fr;
+    gap: 2px;
   }
 }
 </style>
