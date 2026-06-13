@@ -2,17 +2,19 @@ import { fireEvent, render, screen, waitFor, within } from '@testing-library/vue
 import { createMemoryHistory, createRouter } from 'vue-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import AdminWorkQueueView from './AdminWorkQueueView.vue'
-import { fetchAdminWorkQueue } from '../lib/api'
+import { fetchAdminWorkQueue, transitionAdminWorkQueueItem } from '../lib/api'
 
 vi.mock('../lib/api', async () => {
   const actual = await vi.importActual<typeof import('../lib/api')>('../lib/api')
   return {
     ...actual,
     fetchAdminWorkQueue: vi.fn(),
+    transitionAdminWorkQueueItem: vi.fn(),
   }
 })
 
 const mockedFetchAdminWorkQueue = vi.mocked(fetchAdminWorkQueue)
+const mockedTransitionAdminWorkQueueItem = vi.mocked(transitionAdminWorkQueueItem)
 
 const baseResponse = {
   summary: {
@@ -47,6 +49,7 @@ const baseResponse = {
     },
     {
       id: 'billing-1',
+      item_key: 'billing_access_request:21',
       type: 'billing_access_request',
       severity: 'normal',
       status: 'open',
@@ -54,6 +57,16 @@ const baseResponse = {
       description: 'Потрібно перейти до запиту на доступ.',
       created_at: '2026-06-05T09:00:00Z',
       target_url: '/admin/billing-access-requests/21',
+      related: {
+        object_type: 'billing_access_request',
+        object_id: 21,
+        domain_status: 'PENDING',
+      },
+      actions: [
+        { code: 'start', label: 'Mark in progress', kind: 'mutation' },
+        { code: 'resolve', label: 'Resolve', kind: 'mutation' },
+        { code: 'ignore', label: 'Ignore', kind: 'mutation' },
+      ],
     },
     {
       id: 'notification-1',
@@ -104,7 +117,9 @@ async function renderView() {
 describe('AdminWorkQueueView', () => {
   beforeEach(() => {
     mockedFetchAdminWorkQueue.mockReset()
+    mockedTransitionAdminWorkQueueItem.mockReset()
     mockedFetchAdminWorkQueue.mockResolvedValue(baseResponse)
+    mockedTransitionAdminWorkQueueItem.mockResolvedValue(baseResponse.items[1] as any)
   })
 
   it('loads and renders summary counters from summary', async () => {
@@ -113,6 +128,7 @@ describe('AdminWorkQueueView', () => {
     await waitFor(() => {
       expect(mockedFetchAdminWorkQueue).toHaveBeenCalledTimes(1)
     })
+    expect(mockedFetchAdminWorkQueue).toHaveBeenCalledWith('active')
 
     const counters = screen.getByLabelText('Лічильники черги роботи')
     expect(within(counters).getByText('Відкриті')).toBeInTheDocument()
@@ -261,7 +277,7 @@ describe('AdminWorkQueueView', () => {
 
     await fireEvent.click(screen.getByRole('button', { name: 'Billing' }))
 
-    expect(screen.getByText('Спеціаліст очікує beta-доступ')).toBeInTheDocument()
+    expect(screen.getByText('Запит на доступ очікує рішення')).toBeInTheDocument()
     expect(screen.queryByText('Новий публічний запит')).not.toBeInTheDocument()
     expect(screen.queryByText('Проблема повідомлень')).not.toBeInTheDocument()
 
@@ -269,7 +285,82 @@ describe('AdminWorkQueueView', () => {
 
     expect(screen.getByText('Новий публічний запит')).toBeInTheDocument()
     expect(screen.getAllByText('Проблема повідомлень').length).toBeGreaterThan(0)
-    expect(screen.queryByText('Спеціаліст очікує beta-доступ')).not.toBeInTheDocument()
+    expect(screen.queryByText('Запит на доступ очікує рішення')).not.toBeInTheDocument()
+  })
+
+  it('loads lifecycle filters from the backend and shows approved billing status', async () => {
+    mockedFetchAdminWorkQueue.mockReset()
+    mockedFetchAdminWorkQueue
+      .mockResolvedValueOnce(baseResponse)
+      .mockResolvedValueOnce({
+        summary: { ...baseResponse.summary, total_open: 0 },
+        items: [
+          {
+            id: 'billing_access_request:21',
+            item_key: 'billing_access_request:21',
+            type: 'billing_access_request',
+            severity: 'normal',
+            status: 'resolved',
+            title: 'Billing access request processed',
+            target_url: '/admin/billing-access-requests/21',
+            source_active: false,
+            related: {
+              object_type: 'billing_access_request',
+              object_id: 21,
+              domain_status: 'APPROVED',
+            },
+            actions: [],
+          },
+        ],
+      })
+
+    await renderView()
+    await fireEvent.click(screen.getByRole('button', { name: 'Вирішені' }))
+
+    await waitFor(() => {
+      expect(mockedFetchAdminWorkQueue).toHaveBeenLastCalledWith('resolved')
+    })
+    expect(await screen.findByText('Запит на доступ погоджено')).toBeInTheDocument()
+    expect(screen.getByText('Статус запиту: Погоджено')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Відкрити' })).toHaveAttribute(
+      'href',
+      '/admin/billing-access-requests/21'
+    )
+    expect(screen.queryByRole('button', { name: 'Повернути до відкритих' })).not.toBeInTheDocument()
+  })
+
+  it('opens inline detail and resolves an item with an optional note', async () => {
+    await renderView()
+
+    const billingTitle = await screen.findByText('Запит на доступ очікує рішення')
+    const billingCard = billingTitle.closest('article')
+    expect(billingCard).not.toBeNull()
+
+    await fireEvent.click(within(billingCard as HTMLElement).getByRole('button', { name: 'Деталі' }))
+    expect(
+      within(billingCard as HTMLElement).getByText(
+        'Відкрийте профільний billing-запит і погодьте або відхиліть його там. Дії черги не змінюють тариф.'
+      )
+    ).toBeInTheDocument()
+
+    const note = within(billingCard as HTMLElement).getByLabelText(
+      'Примітка або причина (необов’язково)'
+    )
+    await fireEvent.update(note, 'Перевірено операційно.')
+    await fireEvent.click(
+      within(billingCard as HTMLElement).getByRole('button', {
+        name: 'Позначити вирішеним',
+      })
+    )
+
+    await waitFor(() => {
+      expect(mockedTransitionAdminWorkQueueItem).toHaveBeenCalledWith(
+        'billing_access_request:21',
+        'resolve',
+        'Перевірено операційно.'
+      )
+    })
+    expect(mockedFetchAdminWorkQueue).toHaveBeenLastCalledWith('active')
   })
 
   it('uses type-aware target links and suppresses unsupported public request targets', async () => {

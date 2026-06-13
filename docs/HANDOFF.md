@@ -49,8 +49,11 @@ Frontend production-closure slice is now integrated:
     specialist name/email, client display name/email, request ids, invite ids
   - grouped notification issues render operational copy and next-step hints
   - no fake action button is shown for `null`, empty, or `/` `target_url`
-  - frontend does not add mutations; queue actions are deferred until backend
-    contracts exist
+  - current `dev` adds lifecycle filters (`Активні`, `Відкриті`, `В роботі`,
+    `Вирішені`, `Ігноровані`, `Усі`), inline detail, optional resolution note,
+    and start/resolve/ignore/reopen actions
+  - billing access items open `/admin/billing-access-requests/{id}` and show
+    their domain status without duplicating billing approve/reject controls
 - Admin specialist detail polish: production-deployed as part of the founder-beta readiness package; access modals now clarify test access vs service override and use Ukrainian/European date-time formatting
   - `РљРµСЂСѓРІР°С‚Рё С‚РµСЃС‚РѕРІРёРј РґРѕСЃС‚СѓРїРѕРј` means normal temporary
     beta/demo Pro access
@@ -139,8 +142,9 @@ Frontend production-closure slice is now integrated:
 - Admin Work Queue frontend contract:
   - route: `/admin/work-queue`
   - visible admin navigation label: `Р§РµСЂРіР° СЂРѕР±РѕС‚Рё`
-  - consumes backend read-only `GET /api/admin/work-queue/` with
-    `summary/items`
+  - consumes `GET /api/admin/work-queue/?status=...` with `summary/items`
+  - mutation endpoints are `/start/`, `/resolve/`, `/ignore/`, and `/reopen/`
+    under `/api/admin/work-queue/{item_key}/`
   - backend permission is `IsPlatformAdmin`; frontend route requires admin
     role
   - queue cards must prefer safe human-readable related metadata:
@@ -162,8 +166,8 @@ Frontend production-closure slice is now integrated:
     `content`, `internal_note`, `note_body`, `journal`, `token_hash`,
     private notebook body, session note body, public request message body,
     private client history, or consultation content
-  - Admin-2 mutation actions such as acknowledge/resolve/resend/grant/revoke
-    are deferred until explicit backend contracts exist
+  - lifecycle actions are operational tracking only; domain actions such as
+    billing approve/reject remain on their dedicated screens
 - Founder-beta notification smoke contract:
   - frontend does not send email directly; email delivery is backend-owned
   - slot-less public request smoke must verify the specialist bell item from
@@ -171,10 +175,11 @@ Frontend production-closure slice is now integrated:
   - client account invite UI is manual sharing only:
     - create/regenerate should surface `invite_url` when backend returns it
     - no automatic email should be promised in UI or docs
-  - Admin Work Queue should remain read-only:
+  - Admin Work Queue must remain privacy-safe:
     - grouped notification issues are displayed from backend payload
     - historical grouped notification issues may be downgraded by backend
     - no fake action button for `target_url=null`, empty string, or `/`
+    - lifecycle notes must not contain copied raw provider payloads/errors
   - production smoke should use one controlled founder-specialist and internal
     email recipients only
   - latest staging smoke for the critical request-first path passed; production

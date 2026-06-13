@@ -30,17 +30,37 @@
         </div>
       </div>
 
-      <div class="admin-work-queue__filters" aria-label="Фільтри черги роботи">
+      <div class="admin-work-queue__filter-group">
+        <div class="admin-work-queue__filter-label">Стан</div>
+        <div class="admin-work-queue__filters" aria-label="Фільтри стану черги роботи">
+          <button
+            v-for="filter in lifecycleFilterItems"
+            :key="filter.key"
+            class="filter-chip"
+            :class="{ 'is-active': activeLifecycleFilter === filter.key }"
+            type="button"
+            :disabled="loading"
+            @click="setLifecycleFilter(filter.key)"
+          >
+            {{ filter.label }}
+          </button>
+        </div>
+      </div>
+
+      <div class="admin-work-queue__filter-group">
+        <div class="admin-work-queue__filter-label">Тип</div>
+        <div class="admin-work-queue__filters" aria-label="Фільтри типу черги роботи">
         <button
-          v-for="filter in filterItems"
+          v-for="filter in categoryFilterItems"
           :key="filter.key"
           class="filter-chip"
-          :class="{ 'is-active': activeFilter === filter.key }"
+          :class="{ 'is-active': activeCategoryFilter === filter.key }"
           type="button"
-          @click="activeFilter = filter.key"
+          @click="activeCategoryFilter = filter.key"
         >
           {{ filter.label }}
         </button>
+        </div>
       </div>
     </section>
 
@@ -80,7 +100,10 @@
           v-for="item in filteredItems"
           :key="item.id"
           class="queue-item"
-          :class="`queue-item--${severityTone(item.severity)}`"
+          :class="[
+            `queue-item--${severityTone(item.severity)}`,
+            { 'queue-item--closed': isClosed(item) },
+          ]"
         >
           <div class="queue-item__main">
             <div class="queue-item__topline">
@@ -104,9 +127,42 @@
             <div class="queue-item__meta">
               <span v-for="meta in displayItemMeta(item)" :key="meta">{{ meta }}</span>
             </div>
+
+            <div v-if="expandedItemKey === itemKey(item)" class="queue-item__detail">
+              <div>
+                <strong>Чому це в черзі</strong>
+                <p>{{ detailWhy(item) }}</p>
+              </div>
+              <div>
+                <strong>Що зробити</strong>
+                <p>{{ detailNextStep(item) }}</p>
+              </div>
+              <div v-if="item.resolution_note">
+                <strong>Примітка до рішення</strong>
+                <p>{{ item.resolution_note }}</p>
+              </div>
+              <label
+                v-if="canCloseOperationally(item)"
+                class="queue-item__note-field"
+              >
+                <span>Примітка або причина (необов’язково)</span>
+                <textarea
+                  v-model="resolutionNotes[itemKey(item)]"
+                  rows="3"
+                  maxlength="2000"
+                />
+              </label>
+            </div>
           </div>
 
           <div class="queue-item__actions">
+            <button
+              class="btn btn--ghost btn--sm"
+              type="button"
+              @click="toggleDetails(item)"
+            >
+              {{ expandedItemKey === itemKey(item) ? 'Згорнути' : 'Деталі' }}
+            </button>
             <RouterLink
               v-if="internalTargetPath(workQueueTargetUrl(item))"
               class="btn btn--sm"
@@ -126,6 +182,16 @@
             <p v-else-if="unsupportedTargetMessage(item)" class="muted queue-item__action-note">
               {{ unsupportedTargetMessage(item) }}
             </p>
+            <button
+              v-for="action in lifecycleActions(item)"
+              :key="action.code"
+              class="btn btn--ghost btn--sm"
+              type="button"
+              :disabled="transitioningItemKey === itemKey(item)"
+              @click="runLifecycleAction(item, action.code)"
+            >
+              {{ lifecycleActionLabel(action.code) }}
+            </button>
           </div>
         </article>
       </div>
@@ -139,14 +205,17 @@ import EmptyState from '../components/EmptyState.vue'
 import {
   fetchAdminWorkQueue,
   getApiErrorMessage,
+  transitionAdminWorkQueueItem,
   type AdminWorkQueueItem,
   type AdminWorkQueueRelated,
   type AdminWorkQueueResponse,
+  type AdminWorkQueueStatusFilter,
   type AdminWorkQueueSummary,
 } from '../lib/api'
 import { formatUkDateTimeCompact } from '../lib/dateTime'
 
-type FilterKey = 'all' | 'requests' | 'specialists' | 'notifications' | 'invites' | 'billing' | 'problems'
+type CategoryFilterKey = 'all' | 'requests' | 'specialists' | 'notifications' | 'invites' | 'billing' | 'problems'
+type LifecycleActionCode = 'start' | 'resolve' | 'ignore' | 'reopen'
 type ItemCopy = { title: string; description: string; hint?: string; typeLabel?: string }
 
 const emptySummary: AdminWorkQueueSummary = {
@@ -166,7 +235,11 @@ const response = ref<AdminWorkQueueResponse>({
 const loading = ref(false)
 const loaded = ref(false)
 const error = ref('')
-const activeFilter = ref<FilterKey>('all')
+const activeLifecycleFilter = ref<AdminWorkQueueStatusFilter>('active')
+const activeCategoryFilter = ref<CategoryFilterKey>('all')
+const expandedItemKey = ref('')
+const transitioningItemKey = ref('')
+const resolutionNotes = ref<Record<string, string>>({})
 
 const notificationIssueTypes = new Set([
   'reminder_delivery_issue',
@@ -190,8 +263,17 @@ const specialistAccessReviewTypes = new Set([
   'specialist_profile_incomplete',
 ])
 
-const filterItems: Array<{ key: FilterKey; label: string }> = [
+const lifecycleFilterItems: Array<{ key: AdminWorkQueueStatusFilter; label: string }> = [
+  { key: 'active', label: 'Активні' },
+  { key: 'open', label: 'Відкриті' },
+  { key: 'in_progress', label: 'В роботі' },
+  { key: 'resolved', label: 'Вирішені' },
+  { key: 'ignored', label: 'Ігноровані' },
   { key: 'all', label: 'Усі' },
+]
+
+const categoryFilterItems: Array<{ key: CategoryFilterKey; label: string }> = [
+  { key: 'all', label: 'Усі типи' },
   { key: 'requests', label: 'Запити' },
   { key: 'specialists', label: 'Спеціалісти' },
   { key: 'notifications', label: 'Повідомлення' },
@@ -214,15 +296,15 @@ const counterItems = computed(() => {
 })
 
 const filteredItems = computed(() => {
-  if (activeFilter.value === 'all') return response.value.items
-  return response.value.items.filter((item) => itemMatchesFilter(item, activeFilter.value))
+  if (activeCategoryFilter.value === 'all') return response.value.items
+  return response.value.items.filter((item) => itemMatchesFilter(item, activeCategoryFilter.value))
 })
 
 function normalizeToken(value: string | null | undefined) {
   return String(value || '').trim().toLowerCase()
 }
 
-function itemMatchesFilter(item: AdminWorkQueueItem, filter: FilterKey) {
+function itemMatchesFilter(item: AdminWorkQueueItem, filter: CategoryFilterKey) {
   const type = normalizeToken(item.type)
   const severity = normalizeToken(item.severity)
   const status = normalizeToken(item.status)
@@ -254,6 +336,7 @@ function typeLabel(type: string) {
   const labels: Record<string, string> = {
     admin_inbox_item: 'Адмін-запит',
     billing_access_request: 'Доступ / тариф',
+    billing_access_request_pending: 'Доступ / тариф',
     billing_event_failed: 'Billing',
     public_guest_request_pending: 'Публічний запит',
     public_guest_request_stale: 'Запит очікує реакції',
@@ -276,6 +359,25 @@ function typeLabel(type: string) {
 
 function itemCopy(item: AdminWorkQueueItem): ItemCopy | null {
   if (isNotificationIssueItem(item)) return notificationIssueCopy(item)
+  if (isBillingAccessRequestItem(item)) {
+    const domainStatus = billingDomainStatus(item)
+    if (domainStatus === 'approved') {
+      return {
+        title: 'Запит на доступ погоджено',
+        description: 'Запит опрацьовано у billing-процесі. Доступ погоджено.',
+      }
+    }
+    if (domainStatus === 'rejected') {
+      return {
+        title: 'Запит на доступ відхилено',
+        description: 'Запит опрацьовано у billing-процесі. Доступ відхилено.',
+      }
+    }
+    return {
+      title: 'Запит на доступ очікує рішення',
+      description: 'Спеціаліст подав запит на зміну тарифу або доступу.',
+    }
+  }
   if (isSpecialistAccessReviewItem(item)) {
     return {
       title: 'Спеціаліст потребує перевірки доступу',
@@ -390,6 +492,7 @@ function statusLabel(status: string) {
   if (normalized === 'in_progress') return 'В роботі'
   if (normalized === 'problem') return 'Проблема'
   if (normalized === 'resolved') return 'Вирішено'
+  if (normalized === 'ignored') return 'Ігноровано'
   return 'Інший статус'
 }
 
@@ -405,6 +508,7 @@ function severityLabel(severity: string) {
 function statusClass(status: string) {
   const normalized = normalizeToken(status)
   if (normalized === 'resolved') return 'status-pill--ok'
+  if (normalized === 'ignored') return 'status-pill--muted'
   if (normalized === 'problem') return 'status-pill--danger'
   if (normalized === 'in_progress') return 'status-pill--warn'
   return 'status-pill--muted'
@@ -437,6 +541,8 @@ function displayItemMeta(item: AdminWorkQueueItem) {
   const parts: string[] = []
   if (formatDate(item.created_at)) parts.push(`Створено: ${formatDate(item.created_at)}`)
   if (formatDate(item.updated_at)) parts.push(`Оновлено: ${formatDate(item.updated_at)}`)
+  const domainStatus = billingDomainStatus(item)
+  if (domainStatus) parts.push(`Статус запиту: ${billingDomainStatusLabel(domainStatus)}`)
   parts.push(...relatedMetaParts(item))
   return parts
 }
@@ -516,6 +622,10 @@ function isPublicGuestRequestItem(item: AdminWorkQueueItem) {
   return type.includes('public_guest_request') || type.includes('public_request') || isPublicRequestObjectType(objectType)
 }
 
+function isBillingAccessRequestItem(item: AdminWorkQueueItem) {
+  return normalizeToken(item.type).startsWith('billing_access_request')
+}
+
 function isClientInviteObjectType(objectType: string) {
   return objectType === 'clientrecordinvite' || objectType === 'clientrecordaccountinvite'
 }
@@ -543,6 +653,117 @@ function relatedObjectTypeLabel(type: string) {
     client: 'Клієнт',
   }
   return labels[normalized] || 'Обʼєкт'
+}
+
+function itemKey(item: AdminWorkQueueItem) {
+  return String(item.item_key || item.id || '')
+}
+
+function isClosed(item: AdminWorkQueueItem) {
+  const status = normalizeToken(item.status)
+  return status === 'resolved' || status === 'ignored'
+}
+
+function billingDomainStatus(item: AdminWorkQueueItem) {
+  if (!isBillingAccessRequestItem(item)) return ''
+  return normalizeToken(
+    String(
+      relatedValue(item.related, 'domain_status') ||
+      relatedValue(item.related, 'request_status') ||
+      ''
+    )
+  )
+}
+
+function billingDomainStatusLabel(status: string) {
+  const labels: Record<string, string> = {
+    pending: 'Очікує',
+    approved: 'Погоджено',
+    rejected: 'Відхилено',
+    cancelled: 'Скасовано',
+  }
+  return labels[normalizeToken(status)] || status
+}
+
+function detailWhy(item: AdminWorkQueueItem) {
+  if (normalizeToken(item.type) === 'client_record_invite_pending') {
+    return 'Клієнт ще не використав запрошення до кабінету.'
+  }
+  if (isBillingAccessRequestItem(item)) {
+    return billingDomainStatus(item) === 'pending'
+      ? 'Спеціаліст подав запит на зміну тарифу або доступу.'
+      : 'Billing-запит уже опрацьовано у профільному процесі.'
+  }
+  if (isPublicGuestRequestItem(item)) {
+    return 'Публічний запит досі очікує на дію спеціаліста.'
+  }
+  return item.detail?.why || displayItemDescription(item) || 'Подія потребує операційної перевірки.'
+}
+
+function detailNextStep(item: AdminWorkQueueItem) {
+  if (normalizeToken(item.type) === 'client_record_invite_pending') {
+    return 'Перевірте контакт або зв’яжіться зі спеціалістом чи клієнтом. Після перевірки позначте елемент вирішеним або ігнорованим.'
+  }
+  if (isBillingAccessRequestItem(item)) {
+    return billingDomainStatus(item) === 'pending'
+      ? 'Відкрийте профільний billing-запит і погодьте або відхиліть його там. Дії черги не змінюють тариф.'
+      : 'Перегляньте рішення у профільному billing-запиті.'
+  }
+  if (isPublicGuestRequestItem(item)) {
+    return 'Перевірте контекст запиту та за потреби зв’яжіться зі спеціалістом.'
+  }
+  return item.detail?.next_step || 'Перевірте контекст і оновіть операційний статус елемента.'
+}
+
+function toggleDetails(item: AdminWorkQueueItem) {
+  const key = itemKey(item)
+  expandedItemKey.value = expandedItemKey.value === key ? '' : key
+}
+
+function lifecycleActions(item: AdminWorkQueueItem) {
+  if (!item.item_key) return []
+  const allowed = new Set<LifecycleActionCode>(['start', 'resolve', 'ignore', 'reopen'])
+  return (item.actions || []).filter(
+    (action): action is { code: LifecycleActionCode; label: string; kind?: string } =>
+      action.kind === 'mutation' && allowed.has(action.code as LifecycleActionCode)
+  )
+}
+
+function lifecycleActionLabel(action: LifecycleActionCode) {
+  const labels: Record<LifecycleActionCode, string> = {
+    start: 'Позначити в роботі',
+    resolve: 'Позначити вирішеним',
+    ignore: 'Ігнорувати',
+    reopen: 'Повернути до відкритих',
+  }
+  return labels[action]
+}
+
+function canCloseOperationally(item: AdminWorkQueueItem) {
+  return lifecycleActions(item).some(
+    (action) => action.code === 'resolve' || action.code === 'ignore'
+  )
+}
+
+async function runLifecycleAction(item: AdminWorkQueueItem, action: LifecycleActionCode) {
+  const key = itemKey(item)
+  if (!key) return
+  transitioningItemKey.value = key
+  error.value = ''
+  try {
+    await transitionAdminWorkQueueItem(
+      key,
+      action,
+      action === 'resolve' || action === 'ignore'
+        ? resolutionNotes.value[key] || ''
+        : ''
+    )
+    await loadWorkQueue()
+  } catch (err) {
+    error.value = getApiErrorMessage(err, 'Не вдалося оновити статус елемента.')
+  } finally {
+    transitioningItemKey.value = ''
+  }
 }
 
 function workQueueTargetUrl(item: AdminWorkQueueItem) {
@@ -591,7 +812,7 @@ async function loadWorkQueue() {
   loading.value = true
   error.value = ''
   try {
-    const payload = await fetchAdminWorkQueue()
+    const payload = await fetchAdminWorkQueue(activeLifecycleFilter.value)
     response.value = {
       summary: payload?.summary || emptySummary,
       items: Array.isArray(payload?.items) ? payload.items : [],
@@ -602,6 +823,13 @@ async function loadWorkQueue() {
   } finally {
     loading.value = false
   }
+}
+
+function setLifecycleFilter(filter: AdminWorkQueueStatusFilter) {
+  if (activeLifecycleFilter.value === filter) return
+  activeLifecycleFilter.value = filter
+  expandedItemKey.value = ''
+  void loadWorkQueue()
 }
 
 onMounted(() => {
@@ -676,6 +904,21 @@ onMounted(() => {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+}
+
+.admin-work-queue__filter-group {
+  display: grid;
+  gap: 6px;
+}
+
+.admin-work-queue__filter-group + .admin-work-queue__filter-group {
+  margin-top: 14px;
+}
+
+.admin-work-queue__filter-label {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 800;
 }
 
 .filter-chip {
@@ -757,6 +1000,11 @@ onMounted(() => {
   border-left-color: color-mix(in srgb, var(--text) 26%, var(--line));
 }
 
+.queue-item--closed {
+  background: color-mix(in srgb, var(--muted) 4%, #ffffff);
+  opacity: 0.86;
+}
+
 .queue-item__main {
   display: grid;
   gap: 8px;
@@ -810,10 +1058,43 @@ onMounted(() => {
   color: color-mix(in srgb, var(--muted) 70%, transparent);
 }
 
+.queue-item__detail {
+  display: grid;
+  gap: 10px;
+  border-top: 1px solid var(--line);
+  padding-top: 10px;
+  font-size: 13px;
+}
+
+.queue-item__detail p {
+  margin: 4px 0 0;
+  line-height: 1.45;
+}
+
+.queue-item__note-field {
+  display: grid;
+  gap: 6px;
+  font-weight: 700;
+}
+
+.queue-item__note-field textarea {
+  width: 100%;
+  resize: vertical;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  color: var(--text);
+  background: #fff;
+  font: inherit;
+  font-weight: 400;
+}
+
 .queue-item__actions {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
+  flex-wrap: wrap;
+  max-width: 420px;
 }
 
 .status-pill {

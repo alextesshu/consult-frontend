@@ -456,19 +456,40 @@ export interface AdminWorkQueueRelated {
   object_id?: number | string
   specialist_id?: number | null
   client_id?: number | null
+  request_status?: string | null
+  domain_status?: string | null
 }
+
+export type AdminWorkQueueStatus = 'open' | 'in_progress' | 'resolved' | 'ignored'
+export type AdminWorkQueueStatusFilter = 'active' | AdminWorkQueueStatus | 'all'
 
 export interface AdminWorkQueueItem {
   id: string
+  item_key?: string
+  item_type?: string
+  source_type?: string
+  source_id?: string
   type: string
   severity: 'info' | 'normal' | 'warning' | 'critical' | string
-  status: 'open' | 'new' | 'in_progress' | 'problem' | 'resolved' | string
+  status: AdminWorkQueueStatus | 'new' | 'problem' | string
   title: string
   description?: string
   created_at?: string
   updated_at?: string | null
+  status_changed_at?: string | null
+  status_changed_by?: { id: number; username: string } | null
+  resolution_note?: string
+  resolved_at?: string | null
+  resolved_by?: { id: number; username: string } | null
+  ignored_at?: string | null
+  ignored_by?: { id: number; username: string } | null
+  source_active?: boolean
   target_url?: string | null
   related?: AdminWorkQueueRelated | null
+  detail?: {
+    why?: string
+    next_step?: string
+  } | null
   actions?: Array<{
     code: string
     label: string
@@ -1451,8 +1472,24 @@ export async function dismissAdminInboxItem(itemId: number): Promise<AdminInboxI
   return resp.data
 }
 
-export async function fetchAdminWorkQueue(): Promise<AdminWorkQueueResponse> {
-  const resp = await http.get<AdminWorkQueueResponse>('/admin/work-queue/')
+export async function fetchAdminWorkQueue(
+  status: AdminWorkQueueStatusFilter = 'active'
+): Promise<AdminWorkQueueResponse> {
+  const resp = await http.get<AdminWorkQueueResponse>('/admin/work-queue/', {
+    params: { status },
+  })
+  return resp.data
+}
+
+export async function transitionAdminWorkQueueItem(
+  itemKey: string,
+  action: 'start' | 'resolve' | 'ignore' | 'reopen',
+  resolutionNote = ''
+): Promise<AdminWorkQueueItem> {
+  const resp = await http.post<AdminWorkQueueItem>(
+    `/admin/work-queue/${encodeURIComponent(itemKey)}/${action}/`,
+    resolutionNote ? { resolution_note: resolutionNote } : {}
+  )
   return resp.data
 }
 
