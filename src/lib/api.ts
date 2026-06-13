@@ -460,15 +460,11 @@ export interface AdminWorkQueueRelated {
   client_id?: number | null
   request_status?: string | null
   domain_status?: string | null
-  client_name?: string | null
-  client_contact?: string | null
-  contact_type?: string | null
-  contact_channel?: string | null
-  request_topics?: string[] | null
-  request_topic_labels?: string[] | null
-  format?: string | null
-  session_format?: string | null
-  message_preview?: string | null
+  has_client_name?: boolean
+  has_contact?: boolean
+  has_topics?: boolean
+  has_message?: boolean
+  has_requested_format?: boolean
 }
 
 export type AdminWorkQueueStatus = 'open' | 'in_progress' | 'resolved' | 'ignored'

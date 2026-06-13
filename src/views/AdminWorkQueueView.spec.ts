@@ -42,13 +42,11 @@ const baseResponse = {
         object_type: 'public_guest_request',
         object_id: 33,
         public_request_id: 33,
-        client_name: 'Оксана Мельник',
-        client_contact: 'oksana@example.com',
-        contact_type: 'email',
-        request_topics: ['stress'],
-        request_topic_labels: ['Стрес'],
-        format: 'online',
-        message_preview: 'Потрібна консультація щодо тривалого робочого стресу.',
+        has_client_name: true,
+        has_contact: true,
+        has_topics: true,
+        has_message: true,
+        has_requested_format: true,
         specialist_id: 12,
       },
       actions: [
@@ -156,21 +154,23 @@ describe('AdminWorkQueueView', () => {
   it('renders queue item title, description, status and severity from items', async () => {
     await renderView()
 
-    expect(await screen.findByText('Новий публічний запит')).toBeInTheDocument()
-    expect(screen.getByText('Клієнт залишив запит через публічний профіль спеціаліста.')).toBeInTheDocument()
+    expect(await screen.findByText('Запити очікують реакції спеціаліста')).toBeInTheDocument()
+    expect(screen.getByText('Операційний сигнал: запит має бути опрацьований спеціалістом у його кабінеті.')).toBeInTheDocument()
     expect(screen.queryByText('Backend public guest request pending title')).not.toBeInTheDocument()
     expect(screen.queryByText('Backend public guest request pending description')).not.toBeInTheDocument()
     expect(screen.getByText('Публічний запит')).toBeInTheDocument()
     expect(screen.getByText('Увага')).toBeInTheDocument()
     expect(screen.getAllByText('Відкрите').length).toBeGreaterThan(0)
     expect(screen.getByText(/Публічний запит #33/)).toBeInTheDocument()
-    expect(screen.getByText('Клієнт: Оксана Мельник')).toBeInTheDocument()
-    expect(screen.getByText('Контакт: oksana@example.com (Email)')).toBeInTheDocument()
-    expect(screen.getByText('Категорія: Стрес')).toBeInTheDocument()
-    expect(screen.getByText('Формат: Онлайн')).toBeInTheDocument()
-    expect(
-      screen.getByText('Коротко: Потрібна консультація щодо тривалого робочого стресу.')
-    ).toBeInTheDocument()
+    expect(screen.getByText('Дані запиту: приховано')).toBeInTheDocument()
+    expect(screen.getByText('Контакт клієнта: вказано')).toBeInTheDocument()
+    expect(screen.getByText('Повідомлення: вказано')).toBeInTheDocument()
+    expect(screen.getByText('Категорії: вказано')).toBeInTheDocument()
+    expect(screen.getByText('Формат: вказано')).toBeInTheDocument()
+    expect(document.body).not.toHaveTextContent('Оксана Мельник')
+    expect(document.body).not.toHaveTextContent('oksana@example.com')
+    expect(document.body).not.toHaveTextContent('Стрес')
+    expect(document.body).not.toHaveTextContent('Потрібна консультація')
     expect(screen.getByText(/Спеціаліст #12/)).toBeInTheDocument()
     expect(document.body).not.toHaveTextContent('public_guest_request #33')
   })
@@ -232,8 +232,8 @@ describe('AdminWorkQueueView', () => {
 
     await renderView()
 
-    expect((await screen.findAllByText('Запит очікує реакції')).length).toBeGreaterThan(0)
-    expect(screen.getByText('Публічний запит досі не опрацьований. Перевірте, чи спеціаліст відреагував.')).toBeInTheDocument()
+    expect((await screen.findAllByText('Запити очікують реакції спеціаліста')).length).toBeGreaterThan(0)
+    expect(screen.getByText('Операційний сигнал: процес обробки публічного запиту потребує перевірки.')).toBeInTheDocument()
     expect(screen.getByText('Повідомлення спеціалісту не підтверджено')).toBeInTheDocument()
     expect(screen.getByText('Для цього запиту немає позначки про відправлене email-повідомлення спеціалісту.')).toBeInTheDocument()
     expect(screen.getByText('Запрошення клієнта очікує')).toBeInTheDocument()
@@ -283,24 +283,24 @@ describe('AdminWorkQueueView', () => {
 
     await fireEvent.click(screen.getByRole('button', { name: 'Спробувати ще раз' }))
 
-    expect(await screen.findByText('Новий публічний запит')).toBeInTheDocument()
+    expect(await screen.findByText('Запити очікують реакції спеціаліста')).toBeInTheDocument()
     expect(mockedFetchAdminWorkQueue).toHaveBeenCalledTimes(2)
   })
 
   it('filters items by category', async () => {
     await renderView()
 
-    expect(await screen.findByText('Новий публічний запит')).toBeInTheDocument()
+    expect(await screen.findByText('Запити очікують реакції спеціаліста')).toBeInTheDocument()
 
     await fireEvent.click(screen.getByRole('button', { name: 'Billing' }))
 
     expect(screen.getByText('Запит на доступ очікує рішення')).toBeInTheDocument()
-    expect(screen.queryByText('Новий публічний запит')).not.toBeInTheDocument()
+    expect(screen.queryByText('Запити очікують реакції спеціаліста')).not.toBeInTheDocument()
     expect(screen.queryByText('Проблема повідомлень')).not.toBeInTheDocument()
 
     await fireEvent.click(screen.getByRole('button', { name: 'Проблеми' }))
 
-    expect(screen.getByText('Новий публічний запит')).toBeInTheDocument()
+    expect(screen.getByText('Запити очікують реакції спеціаліста')).toBeInTheDocument()
     expect(screen.getAllByText('Проблема повідомлень').length).toBeGreaterThan(0)
     expect(screen.queryByText('Запит на доступ очікує рішення')).not.toBeInTheDocument()
   })
@@ -387,7 +387,7 @@ describe('AdminWorkQueueView', () => {
     expect(links).toHaveLength(1)
     expect(links[0]).toHaveAttribute('href', '/admin/billing-access-requests/21')
     expect(
-      screen.getByText('Деталі запиту наведені в черзі. Окремої адмін-сторінки для цього типу запиту ще немає.')
+      screen.getByText('Обробка запиту виконується спеціалістом у його кабінеті. Адміністратор бачить лише операційний сигнал.')
     ).toBeInTheDocument()
   })
 
@@ -610,31 +610,34 @@ describe('AdminWorkQueueView', () => {
     expect(screen.queryByText('Спеціаліст #10')).not.toBeInTheDocument()
     expect(screen.queryByRole('link', { name: 'Відкрити' })).not.toBeInTheDocument()
     expect(
-      screen.getByText('Деталі запиту наведені в черзі. Окремої адмін-сторінки для цього типу запиту ще немає.')
+      screen.getByText('Обробка запиту виконується спеціалістом у його кабінеті. Адміністратор бачить лише операційний сигнал.')
     ).toBeInTheDocument()
   })
 
-  it('shows public request context in expanded detail and keeps lifecycle actions working', async () => {
+  it('hides public request context, shows indicators and keeps lifecycle actions working', async () => {
     await renderView()
 
-    const title = await screen.findByText('Новий публічний запит')
+    const title = await screen.findByText('Запити очікують реакції спеціаліста')
     const card = title.closest('article')
     expect(card).not.toBeNull()
 
     await fireEvent.click(within(card as HTMLElement).getByRole('button', { name: 'Деталі' }))
 
-    expect(within(card as HTMLElement).getByText('Що це за запит')).toBeInTheDocument()
-    expect(within(card as HTMLElement).getByText('Оксана Мельник')).toBeInTheDocument()
-    expect(
-      within(card as HTMLElement).getByText('oksana@example.com (Email)')
-    ).toBeInTheDocument()
-    expect(within(card as HTMLElement).getByText('Стрес')).toBeInTheDocument()
-    expect(within(card as HTMLElement).getByText('Онлайн')).toBeInTheDocument()
+    expect(within(card as HTMLElement).getByText('Конфіденційність запиту')).toBeInTheDocument()
     expect(
       within(card as HTMLElement).getByText(
-        'Потрібна консультація щодо тривалого робочого стресу.'
+        'Деталі клієнтського запиту приховані з міркувань конфіденційності. Зміст запиту доступний лише спеціалісту в його кабінеті.'
       )
     ).toBeInTheDocument()
+    const privacyDetail = within(card as HTMLElement)
+      .getByText('Конфіденційність запиту')
+      .closest('.queue-item__request-context')
+    expect(privacyDetail).not.toBeNull()
+    expect(within(privacyDetail as HTMLElement).getAllByText('вказано')).toHaveLength(5)
+    expect(document.body).not.toHaveTextContent('Оксана Мельник')
+    expect(document.body).not.toHaveTextContent('oksana@example.com')
+    expect(document.body).not.toHaveTextContent('Стрес')
+    expect(document.body).not.toHaveTextContent('Потрібна консультація')
 
     await fireEvent.click(
       within(card as HTMLElement).getByRole('button', { name: 'Позначити в роботі' })
@@ -649,7 +652,7 @@ describe('AdminWorkQueueView', () => {
     })
   })
 
-  it('renders explicit fallbacks for missing public request context', async () => {
+  it('renders safe negative indicators for missing public request context', async () => {
     mockedFetchAdminWorkQueue.mockResolvedValueOnce({
       summary: baseResponse.summary,
       items: [
@@ -664,13 +667,11 @@ describe('AdminWorkQueueView', () => {
             object_type: 'public_guest_request',
             object_id: 7,
             public_request_id: 7,
-            client_name: null,
-            client_contact: null,
-            contact_type: 'email',
-            request_topics: [],
-            request_topic_labels: [],
-            format: null,
-            message_preview: '',
+            has_client_name: false,
+            has_contact: false,
+            has_topics: false,
+            has_message: false,
+            has_requested_format: false,
           },
           actions: [],
         },
@@ -679,17 +680,16 @@ describe('AdminWorkQueueView', () => {
 
     await renderView()
 
-    expect(await screen.findByText('Клієнт: не вказано')).toBeInTheDocument()
-    expect(screen.getByText('Контакт: не вказано')).toBeInTheDocument()
-    expect(screen.getByText('Категорія: не вказано')).toBeInTheDocument()
+    expect(await screen.findByText('Дані запиту: приховано')).toBeInTheDocument()
+    expect(screen.getByText('Контакт клієнта: не вказано')).toBeInTheDocument()
+    expect(screen.getByText('Повідомлення: не вказано')).toBeInTheDocument()
+    expect(screen.getByText('Категорії: не вказано')).toBeInTheDocument()
     expect(screen.getByText('Формат: не вказано')).toBeInTheDocument()
-    expect(screen.getByText('Коротко: немає тексту')).toBeInTheDocument()
 
     await fireEvent.click(screen.getByRole('button', { name: 'Деталі' }))
-    const detail = screen.getByText('Що це за запит').closest('.queue-item__request-context')
+    const detail = screen.getByText('Конфіденційність запиту').closest('.queue-item__request-context')
     expect(detail).not.toBeNull()
-    expect(within(detail as HTMLElement).getAllByText('не вказано')).toHaveLength(4)
-    expect(within(detail as HTMLElement).getByText('немає тексту')).toBeInTheDocument()
+    expect(within(detail as HTMLElement).getAllByText('не вказано')).toHaveLength(5)
   })
 
   it('renders client invite context with client and specialist metadata', async () => {

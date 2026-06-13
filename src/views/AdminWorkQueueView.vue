@@ -131,11 +131,11 @@
               v-if="isPublicGuestRequestItem(item)"
               class="queue-item__request-summary"
             >
-              <span>{{ publicRequestClientLabel(item) }}</span>
-              <span>{{ publicRequestContactLabel(item) }}</span>
-              <span>{{ publicRequestCategoryLabel(item) }}</span>
-              <span>{{ publicRequestFormatLabel(item) }}</span>
-              <span>{{ publicRequestMessageLabel(item) }}</span>
+              <span>Дані запиту: приховано</span>
+              <span>Контакт клієнта: {{ publicRequestIndicator(item, 'has_contact') }}</span>
+              <span>Повідомлення: {{ publicRequestIndicator(item, 'has_message') }}</span>
+              <span>Категорії: {{ publicRequestIndicator(item, 'has_topics') }}</span>
+              <span>Формат: {{ publicRequestIndicator(item, 'has_requested_format') }}</span>
             </div>
 
             <div v-if="expandedItemKey === itemKey(item)" class="queue-item__detail">
@@ -143,27 +143,31 @@
                 v-if="isPublicGuestRequestItem(item)"
                 class="queue-item__request-context"
               >
-                <strong>Що це за запит</strong>
+                <strong>Конфіденційність запиту</strong>
+                <p>
+                  Деталі клієнтського запиту приховані з міркувань конфіденційності.
+                  Зміст запиту доступний лише спеціалісту в його кабінеті.
+                </p>
                 <dl>
                   <div>
-                    <dt>Клієнт</dt>
-                    <dd>{{ publicRequestClientValue(item) }}</dd>
+                    <dt>Ім’я клієнта</dt>
+                    <dd>{{ publicRequestIndicator(item, 'has_client_name') }}</dd>
                   </div>
                   <div>
-                    <dt>Контакт</dt>
-                    <dd>{{ publicRequestContactValue(item) }}</dd>
+                    <dt>Контакт клієнта</dt>
+                    <dd>{{ publicRequestIndicator(item, 'has_contact') }}</dd>
                   </div>
                   <div>
-                    <dt>Категорія</dt>
-                    <dd>{{ publicRequestCategoryValue(item) }}</dd>
+                    <dt>Категорії</dt>
+                    <dd>{{ publicRequestIndicator(item, 'has_topics') }}</dd>
                   </div>
                   <div>
                     <dt>Формат</dt>
-                    <dd>{{ publicRequestFormatValue(item) }}</dd>
+                    <dd>{{ publicRequestIndicator(item, 'has_requested_format') }}</dd>
                   </div>
                   <div>
                     <dt>Повідомлення</dt>
-                    <dd>{{ publicRequestMessageValue(item) }}</dd>
+                    <dd>{{ publicRequestIndicator(item, 'has_message') }}</dd>
                   </div>
                 </dl>
               </div>
@@ -426,12 +430,12 @@ function itemCopy(item: AdminWorkQueueItem): ItemCopy | null {
 
   const copy: Record<string, ItemCopy> = {
     public_guest_request_stale: {
-      title: 'Запит очікує реакції',
-      description: 'Публічний запит досі не опрацьований. Перевірте, чи спеціаліст відреагував.',
+      title: 'Запити очікують реакції спеціаліста',
+      description: 'Операційний сигнал: процес обробки публічного запиту потребує перевірки.',
     },
     public_guest_request_pending: {
-      title: 'Новий публічний запит',
-      description: 'Клієнт залишив запит через публічний профіль спеціаліста.',
+      title: 'Запити очікують реакції спеціаліста',
+      description: 'Операційний сигнал: запит має бути опрацьований спеціалістом у його кабінеті.',
     },
     public_guest_request_notification_missing: {
       title: 'Повідомлення спеціалісту не підтверджено',
@@ -642,79 +646,8 @@ function relatedMetaParts(item: AdminWorkQueueItem) {
   return uniqueMetaParts(parts)
 }
 
-function publicRequestClientValue(item: AdminWorkQueueItem) {
-  return safeRelatedText(relatedValue(item.related, 'client_name')) || 'не вказано'
-}
-
-function publicRequestContactValue(item: AdminWorkQueueItem) {
-  const contact = safeRelatedText(relatedValue(item.related, 'client_contact'))
-  const contactType =
-    safeRelatedText(relatedValue(item.related, 'contact_type')) ||
-    safeRelatedText(relatedValue(item.related, 'contact_channel'))
-  if (!contact) return 'не вказано'
-  return contactType ? `${contact} (${contactTypeLabel(contactType)})` : contact
-}
-
-function publicRequestCategoryValue(item: AdminWorkQueueItem) {
-  const labels = relatedStringList(item.related, 'request_topic_labels')
-  if (labels.length) return labels.join(', ')
-  const topics = relatedStringList(item.related, 'request_topics')
-  return topics.length ? topics.join(', ') : 'не вказано'
-}
-
-function publicRequestFormatValue(item: AdminWorkQueueItem) {
-  const value =
-    safeRelatedText(relatedValue(item.related, 'format')) ||
-    safeRelatedText(relatedValue(item.related, 'session_format'))
-  const labels: Record<string, string> = {
-    online: 'Онлайн',
-    offline: 'Офлайн',
-  }
-  return labels[normalizeToken(value)] || value || 'не вказано'
-}
-
-function publicRequestMessageValue(item: AdminWorkQueueItem) {
-  return safeRelatedText(relatedValue(item.related, 'message_preview')) || 'немає тексту'
-}
-
-function publicRequestClientLabel(item: AdminWorkQueueItem) {
-  return `Клієнт: ${publicRequestClientValue(item)}`
-}
-
-function publicRequestContactLabel(item: AdminWorkQueueItem) {
-  return `Контакт: ${publicRequestContactValue(item)}`
-}
-
-function publicRequestCategoryLabel(item: AdminWorkQueueItem) {
-  return `Категорія: ${publicRequestCategoryValue(item)}`
-}
-
-function publicRequestFormatLabel(item: AdminWorkQueueItem) {
-  return `Формат: ${publicRequestFormatValue(item)}`
-}
-
-function publicRequestMessageLabel(item: AdminWorkQueueItem) {
-  return `Коротко: ${publicRequestMessageValue(item)}`
-}
-
-function relatedStringList(
-  related: AdminWorkQueueRelated | null | undefined,
-  key: string
-) {
-  const value = relatedValue(related, key)
-  if (!Array.isArray(value)) return []
-  return value.filter(
-    (item): item is string => typeof item === 'string' && Boolean(item.trim())
-  )
-}
-
-function contactTypeLabel(value: string) {
-  const labels: Record<string, string> = {
-    email: 'Email',
-    phone: 'Телефон',
-    telegram: 'Telegram',
-  }
-  return labels[normalizeToken(value)] || value
+function publicRequestIndicator(item: AdminWorkQueueItem, key: string) {
+  return relatedValue(item.related, key) === true ? 'вказано' : 'не вказано'
 }
 
 function safeRelatedText(value: unknown) {
@@ -810,7 +743,7 @@ function detailWhy(item: AdminWorkQueueItem) {
       : 'Billing-запит уже опрацьовано у профільному процесі.'
   }
   if (isPublicGuestRequestItem(item)) {
-    return 'Публічний запит досі очікує на дію спеціаліста.'
+    return 'Процес обробки публічного запиту спеціалістом потребує операційної уваги.'
   }
   return item.detail?.why || displayItemDescription(item) || 'Подія потребує операційної перевірки.'
 }
@@ -825,7 +758,7 @@ function detailNextStep(item: AdminWorkQueueItem) {
       : 'Перегляньте рішення у профільному billing-запиті.'
   }
   if (isPublicGuestRequestItem(item)) {
-    return 'Перевірте контекст запиту та за потреби зв’яжіться зі спеціалістом.'
+    return 'Перевірте, чи процес обробки запитів працює. Деталі запиту доступні лише спеціалісту.'
   }
   return item.detail?.next_step || 'Перевірте контекст і оновіть операційний статус елемента.'
 }
@@ -889,7 +822,7 @@ function workQueueTargetUrl(item: AdminWorkQueueItem) {
 
 function unsupportedTargetMessage(item: AdminWorkQueueItem) {
   if (!isPublicGuestRequestItem(item) || workQueueTargetUrl(item)) return ''
-  return 'Деталі запиту наведені в черзі. Окремої адмін-сторінки для цього типу запиту ще немає.'
+  return 'Обробка запиту виконується спеціалістом у його кабінеті. Адміністратор бачить лише операційний сигнал.'
 }
 
 function isAdminInboxTarget(value: string | null | undefined) {
