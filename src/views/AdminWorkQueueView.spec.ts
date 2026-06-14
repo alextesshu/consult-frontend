@@ -88,7 +88,7 @@ const baseResponse = {
   ],
 }
 
-async function renderView() {
+async function renderView(initialPath = '/admin/work-queue') {
   const router = createRouter({
     history: createMemoryHistory(),
     routes: [
@@ -110,7 +110,7 @@ async function renderView() {
     ],
   })
 
-  await router.push('/admin/work-queue')
+  await router.push(initialPath)
   await router.isReady()
 
   render(AdminWorkQueueView, {
@@ -149,6 +149,28 @@ describe('AdminWorkQueueView', () => {
     for (const value of ['7', '2', '1', '4', '5', '3', '6']) {
       expect(within(counters).getByText(value)).toBeInTheDocument()
     }
+  })
+
+  it('supports item deep-link query filters', async () => {
+    await renderView(
+      '/admin/work-queue?status=all&item_key=billing_access_request%3A21'
+    )
+
+    await waitFor(() => {
+      expect(mockedFetchAdminWorkQueue).toHaveBeenCalledWith('all')
+    })
+    expect(screen.getByText('Запит на доступ очікує рішення')).toBeInTheDocument()
+    expect(screen.queryByText('Запити очікують реакції спеціаліста')).not.toBeInTheDocument()
+  })
+
+  it('supports specialist-scoped query filters', async () => {
+    await renderView('/admin/work-queue?status=active&specialist_id=12')
+
+    await waitFor(() => {
+      expect(mockedFetchAdminWorkQueue).toHaveBeenCalledWith('active')
+    })
+    expect(screen.getByText('Запити очікують реакції спеціаліста')).toBeInTheDocument()
+    expect(screen.queryByText('Запит на доступ очікує рішення')).not.toBeInTheDocument()
   })
 
   it('renders queue item title, description, status and severity from items', async () => {

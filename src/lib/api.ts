@@ -368,6 +368,31 @@ export type AdminInboxListFilters = {
 
 export type AdminBillingAccessRequestStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | string
 
+export type AdminOperationalWorkItem = {
+  item_key: string
+  item_type: string
+  status: AdminWorkQueueStatus | string
+  persisted_status?: AdminWorkQueueStatus | string | null
+  status_changed_at?: string | null
+  status_changed_by?: { id: number; username: string } | null
+  resolution_note?: string | null
+  source_type?: string | null
+  source_id?: string | null
+  target_url?: string | null
+}
+
+export type AdminOperationalSummary = {
+  open_count: number
+  in_progress_count: number
+  resolved_count: number
+  ignored_count: number
+  has_active_items: boolean
+  latest_item: AdminOperationalWorkItem | null
+  domain_status?: string | null
+  auto_closed?: boolean
+  conflict_code?: string | null
+}
+
 export type AdminBillingAccessRequestInboxItem = {
   id: number
   code?: string | null
@@ -427,6 +452,7 @@ export type AdminBillingAccessRequest = {
     requested_plan?: string | null
   } | null
   inbox_relation?: AdminBillingAccessRequestInboxRelation | null
+  work_queue_summary?: AdminOperationalSummary | null
   metadata?: Record<string, unknown> | null
 }
 
@@ -578,6 +604,7 @@ export type AdminSpecialistDetailResponse = {
   admin_context: {
     open_billing_admin_requests_count: number
     open_admin_inbox_items_count?: number
+    work_queue_summary: AdminOperationalSummary
     latest_related_request_summary: {
       id: number
       requested_plan: string | null

@@ -71,11 +71,23 @@
             <div><strong>Спеціаліст:</strong> {{ specialistSummary(request) }}</div>
             <div><strong>Поточний тариф:</strong> {{ planDisplay(request, 'current') }}</div>
             <div><strong>Запитаний тариф:</strong> {{ planDisplay(request, 'requested') }}</div>
+            <div>
+              <strong>Доменний статус:</strong>
+              {{ statusLabel(request.status) }}
+            </div>
+            <div>
+              <strong>Операційний статус:</strong>
+              {{ operationalStatusLabel(request) }}
+            </div>
           </div>
 
           <div class="request-card__summary">
             <div><strong>Коротко:</strong> {{ requestSummary(request) }}</div>
             <div><strong>Зв’язок з inbox:</strong> {{ inboxRelationSummary(request.inbox_relation) }}</div>
+          </div>
+
+          <div v-if="operationalConflictWarning(request)" class="request-card__warning">
+            {{ operationalConflictWarning(request) }}
           </div>
 
           <div class="request-card__actions">
@@ -88,6 +100,13 @@
             </RouterLink>
             <RouterLink class="btn btn--ghost btn--sm" :to="`/admin/billing-access-requests/${request.id}`">
               Відкрити деталі
+            </RouterLink>
+            <RouterLink
+              v-if="request.work_queue_summary?.latest_item"
+              class="btn btn--ghost btn--sm"
+              :to="workQueueItemRoute(request.work_queue_summary.latest_item.item_key)"
+            >
+              Відкрити в черзі
             </RouterLink>
           </div>
         </article>
@@ -197,6 +216,39 @@ function statusClass(status: string | null | undefined) {
   if (normalized === 'APPROVED') return 'status-pill--ok'
   if (normalized === 'REJECTED') return 'status-pill--danger'
   return 'status-pill--muted'
+}
+
+function operationalStatusValue(request: AdminBillingAccessRequest) {
+  const latest = request.work_queue_summary?.latest_item
+  return String(latest?.persisted_status || latest?.status || '').trim().toLowerCase()
+}
+
+function operationalStatusLabel(request: AdminBillingAccessRequest) {
+  const status = operationalStatusValue(request)
+  if (status === 'open') return 'Відкрите'
+  if (status === 'in_progress') return 'В роботі'
+  if (status === 'resolved') {
+    return request.work_queue_summary?.auto_closed
+      ? 'Вирішено автоматично'
+      : 'Вирішено'
+  }
+  if (status === 'ignored') return 'Ігноровано'
+  return 'Немає повʼязаного елемента'
+}
+
+function operationalConflictWarning(request: AdminBillingAccessRequest) {
+  const code = request.work_queue_summary?.conflict_code
+  if (code === 'DOMAIN_CLOSED_OPERATIONAL_ACTIVE') {
+    return `Увага: запит уже має доменний статус «${statusLabel(request.status)}», але повʼязаний елемент черги ще активний.`
+  }
+  if (code === 'DOMAIN_PENDING_OPERATIONAL_CLOSED') {
+    return 'Увага: елемент черги закрито, але запит на тариф ще очікує рішення.'
+  }
+  return ''
+}
+
+function workQueueItemRoute(itemKey: string) {
+  return `/admin/work-queue?status=all&item_key=${encodeURIComponent(itemKey)}`
 }
 
 function formatDate(value: string | null | undefined) {
@@ -418,6 +470,13 @@ watch([statusFilter, openInboxOnly], async () => {
   padding: 10px;
   display: grid;
   gap: 4px;
+}
+
+.request-card__warning {
+  border: 1px solid color-mix(in srgb, #9a6700 35%, var(--line));
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, #9a6700 10%, #fff);
+  padding: 10px;
 }
 
 .request-card__actions {

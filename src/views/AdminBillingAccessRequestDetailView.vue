@@ -73,6 +73,59 @@
       <section class="panel">
         <div class="panel__header">
           <div>
+            <div class="badge badge--soft">Операційний стан</div>
+            <h2 class="panel__title">Доменний статус і Work Queue</h2>
+          </div>
+          <RouterLink
+            v-if="request.work_queue_summary?.latest_item"
+            class="btn btn--ghost btn--sm"
+            :to="workQueueItemRoute(request.work_queue_summary.latest_item.item_key)"
+          >
+            Відкрити в черзі
+          </RouterLink>
+        </div>
+
+        <div class="operational-status-grid">
+          <div>
+            <div class="muted">Доменний статус</div>
+            <span class="status-pill" :class="statusClass(request.status)">
+              {{ statusLabel(request.status) }}
+            </span>
+          </div>
+          <div>
+            <div class="muted">Операційний статус</div>
+            <span
+              v-if="request.work_queue_summary?.latest_item"
+              class="status-pill"
+              :class="operationalStatusClass(operationalStatus(request))"
+            >
+              {{ operationalStatusLabel(operationalStatus(request), request.work_queue_summary.auto_closed) }}
+            </span>
+            <span v-else>Немає повʼязаного елемента</span>
+          </div>
+          <div>
+            <div class="muted">Хто змінив</div>
+            <div>{{ request.work_queue_summary?.latest_item?.status_changed_by?.username || 'SYSTEM' }}</div>
+          </div>
+          <div>
+            <div class="muted">Коли</div>
+            <div>{{ formatDate(request.work_queue_summary?.latest_item?.status_changed_at) }}</div>
+          </div>
+        </div>
+
+        <div class="operational-note">
+          <strong>Причина / примітка:</strong>
+          {{ request.work_queue_summary?.latest_item?.resolution_note || '—' }}
+        </div>
+
+        <div v-if="operationalConflictWarning(request)" class="operational-warning">
+          {{ operationalConflictWarning(request) }}
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel__header">
+          <div>
             <div class="badge badge--soft">Контекст</div>
             <h2 class="panel__title">Нотатки</h2>
           </div>
@@ -287,6 +340,41 @@ function statusClass(status: string | null | undefined) {
   return 'status-pill--muted'
 }
 
+function operationalStatus(requestValue: AdminBillingAccessRequest) {
+  const latest = requestValue.work_queue_summary?.latest_item
+  return String(latest?.persisted_status || latest?.status || '').trim().toLowerCase()
+}
+
+function operationalStatusLabel(status: string, autoClosed?: boolean) {
+  if (status === 'open') return 'Відкрите'
+  if (status === 'in_progress') return 'В роботі'
+  if (status === 'resolved') return autoClosed ? 'Вирішено автоматично' : 'Вирішено'
+  if (status === 'ignored') return 'Ігноровано'
+  return status || '—'
+}
+
+function operationalStatusClass(status: string) {
+  if (status === 'resolved') return 'status-pill--ok'
+  if (status === 'ignored') return 'status-pill--muted'
+  if (status === 'open' || status === 'in_progress') return 'status-pill--warn'
+  return 'status-pill--muted'
+}
+
+function operationalConflictWarning(requestValue: AdminBillingAccessRequest) {
+  const code = requestValue.work_queue_summary?.conflict_code
+  if (code === 'DOMAIN_CLOSED_OPERATIONAL_ACTIVE') {
+    return `Увага: запит уже має доменний статус «${statusLabel(requestValue.status)}», але повʼязаний елемент черги ще активний.`
+  }
+  if (code === 'DOMAIN_PENDING_OPERATIONAL_CLOSED') {
+    return 'Увага: елемент черги закрито, але запит на тариф ще очікує рішення.'
+  }
+  return ''
+}
+
+function workQueueItemRoute(itemKey: string) {
+  return `/admin/work-queue?status=all&item_key=${encodeURIComponent(itemKey)}`
+}
+
 function inboxItemStatusLabel(status: string | null | undefined) {
   const normalized = normalizeInboxStatus(status)
   if (normalized === 'OPEN' || normalized === 'IN_PROGRESS') return 'В роботі'
@@ -446,6 +534,28 @@ watch(
   display: grid;
   gap: 12px;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.operational-status-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+}
+
+.operational-note,
+.operational-warning {
+  margin-top: 12px;
+  border-radius: var(--radius-sm);
+  padding: 10px;
+}
+
+.operational-note {
+  border: 1px solid var(--line);
+}
+
+.operational-warning {
+  border: 1px solid color-mix(in srgb, #9a6700 35%, var(--line));
+  background: color-mix(in srgb, #9a6700 10%, #fff);
 }
 
 .inbox-relation-summary {

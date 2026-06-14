@@ -243,6 +243,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
+import { useRoute } from 'vue-router'
 import EmptyState from '../components/EmptyState.vue'
 import {
   fetchAdminWorkQueue,
@@ -259,6 +260,19 @@ import { formatUkDateTimeCompact } from '../lib/dateTime'
 type CategoryFilterKey = 'all' | 'requests' | 'specialists' | 'notifications' | 'invites' | 'billing' | 'problems'
 type LifecycleActionCode = 'start' | 'resolve' | 'ignore' | 'reopen'
 type ItemCopy = { title: string; description: string; hint?: string; typeLabel?: string }
+
+const route = useRoute()
+const lifecycleFilters = new Set<AdminWorkQueueStatusFilter>([
+  'active',
+  'open',
+  'in_progress',
+  'resolved',
+  'ignored',
+  'all',
+])
+const initialLifecycleFilter = normalizeLifecycleFilter(route.query.status)
+const queryItemKey = queryString(route.query.item_key)
+const querySpecialistId = queryString(route.query.specialist_id)
 
 const emptySummary: AdminWorkQueueSummary = {
   total_open: 0,
@@ -277,11 +291,21 @@ const response = ref<AdminWorkQueueResponse>({
 const loading = ref(false)
 const loaded = ref(false)
 const error = ref('')
-const activeLifecycleFilter = ref<AdminWorkQueueStatusFilter>('active')
+const activeLifecycleFilter = ref<AdminWorkQueueStatusFilter>(initialLifecycleFilter)
 const activeCategoryFilter = ref<CategoryFilterKey>('all')
 const expandedItemKey = ref('')
 const transitioningItemKey = ref('')
 const resolutionNotes = ref<Record<string, string>>({})
+
+function queryString(value: unknown) {
+  const candidate = Array.isArray(value) ? value[0] : value
+  return typeof candidate === 'string' ? candidate.trim() : ''
+}
+
+function normalizeLifecycleFilter(value: unknown): AdminWorkQueueStatusFilter {
+  const normalized = queryString(value).toLowerCase() as AdminWorkQueueStatusFilter
+  return lifecycleFilters.has(normalized) ? normalized : 'active'
+}
 
 const notificationIssueTypes = new Set([
   'reminder_delivery_issue',
@@ -338,8 +362,29 @@ const counterItems = computed(() => {
 })
 
 const filteredItems = computed(() => {
-  if (activeCategoryFilter.value === 'all') return response.value.items
-  return response.value.items.filter((item) => itemMatchesFilter(item, activeCategoryFilter.value))
+  let items = response.value.items
+  if (activeCategoryFilter.value !== 'all') {
+    items = items.filter((item) =>
+      itemMatchesFilter(item, activeCategoryFilter.value)
+    )
+  }
+  if (querySpecialistId) {
+    items = items.filter((item) => {
+      const relatedSpecialistId = relatedId(
+        relatedValue(item.related, 'specialist_id')
+      )
+      const sourceSpecialistId =
+        normalizeToken(item.source_type) === 'specialist'
+          ? relatedId(item.source_id)
+          : ''
+      return relatedSpecialistId === querySpecialistId
+        || sourceSpecialistId === querySpecialistId
+    })
+  }
+  if (queryItemKey) {
+    items = items.filter((item) => itemKey(item) === queryItemKey)
+  }
+  return items
 })
 
 function normalizeToken(value: string | null | undefined) {
@@ -864,6 +909,9 @@ async function loadWorkQueue() {
     response.value = {
       summary: payload?.summary || emptySummary,
       items: Array.isArray(payload?.items) ? payload.items : [],
+    }
+    if (queryItemKey && response.value.items.some((item) => itemKey(item) === queryItemKey)) {
+      expandedItemKey.value = queryItemKey
     }
     loaded.value = true
   } catch (err) {

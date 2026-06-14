@@ -177,6 +177,18 @@ Frontend production-closure slice is now integrated:
     allowed
   - lifecycle actions are operational tracking only; domain actions such as
     billing approve/reject remain on their dedicated screens
+  - admin specialist detail renders `admin_context.work_queue_summary` with
+    open/in-progress/resolved/ignored counts and the latest safe lifecycle
+    actor/time/note
+  - billing access list/detail render domain status separately from
+    `work_queue_summary.latest_item` operational status
+  - billing conflict warnings use `DOMAIN_CLOSED_OPERATIONAL_ACTIVE` and
+    `DOMAIN_PENDING_OPERATIONAL_CLOSED`
+  - Work Queue supports scoped links through `status`, `item_key`, and
+    `specialist_id` query parameters
+  - operational summaries must not render public request text, topics, client
+    contact values, private notes, session notes, notebook content, invite
+    secrets, or provider payloads/errors
 - Founder-beta notification smoke contract:
   - frontend does not send email directly; email delivery is backend-owned
   - slot-less public request smoke must verify the specialist bell item from

@@ -86,6 +86,24 @@ function buildDetail(overrides: Partial<AdminSpecialistDetailResponse> = {}): Ad
     admin_context: {
       open_billing_admin_requests_count: 0,
       open_admin_inbox_items_count: 0,
+      work_queue_summary: {
+        open_count: 0,
+        in_progress_count: 0,
+        resolved_count: 1,
+        ignored_count: 0,
+        has_active_items: false,
+        latest_item: {
+          item_key: 'billing_access_request:15',
+          item_type: 'billing_access_request',
+          status: 'resolved',
+          status_changed_at: '2026-06-06T10:00:00Z',
+          status_changed_by: { id: 1, username: 'superadmin' },
+          resolution_note: 'Billing access request approved in the billing workflow.',
+          source_type: 'billing_access_request',
+          source_id: '15',
+          target_url: '/admin/billing-access-requests/15',
+        },
+      },
       latest_related_request_summary: null,
       last_access_change_summary: null,
     },
@@ -107,6 +125,7 @@ async function renderView(detail = buildDetail()) {
       },
       { path: '/admin/inbox', component: { template: '<div>Inbox</div>' } },
       { path: '/admin/billing-access-requests', component: { template: '<div>Billing</div>' } },
+      { path: '/admin/work-queue', component: { template: '<div>Queue</div>' } },
       { path: '/admin/specialists', component: { template: '<div>Specialists</div>' } },
     ],
   })
@@ -178,6 +197,50 @@ describe('AdminSpecialistDetailView', () => {
     expect(screen.getByText(/Фактичний тариф:/)).toBeInTheDocument()
     expect(screen.getByText(/Службове перевизначення:/)).toBeInTheDocument()
     expect(screen.getByText(/Фактичний доступ зараз:/)).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Операційний стан' })).toBeInTheDocument()
+    expect(screen.getByText('Активних операційних проблем немає.')).toBeInTheDocument()
+    expect(screen.getByText('Вирішено')).toBeInTheDocument()
+    expect(screen.getByText('superadmin')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Відкрити в черзі' })).toHaveAttribute(
+      'href',
+      '/admin/work-queue?status=all&item_key=billing_access_request%3A15'
+    )
+  })
+
+  it('renders active operational counts and specialist-scoped queue link', async () => {
+    await renderView(buildDetail({
+      admin_context: {
+        ...buildDetail().admin_context,
+        work_queue_summary: {
+          open_count: 2,
+          in_progress_count: 1,
+          resolved_count: 3,
+          ignored_count: 1,
+          has_active_items: true,
+          latest_item: {
+            item_key: 'specialist_access_review:2',
+            item_type: 'specialist_beta_access_review',
+            status: 'in_progress',
+            status_changed_at: '2026-06-07T10:00:00Z',
+            status_changed_by: { id: 1, username: 'admin' },
+            resolution_note: '',
+            source_type: 'specialist',
+            source_id: '2',
+            target_url: '/admin/specialists/2',
+          },
+        },
+      },
+    }))
+
+    expect(screen.getByText('Відкриті:').parentElement).toHaveTextContent('2')
+    expect(screen.getByText('В роботі:').parentElement).toHaveTextContent('1')
+    expect(screen.getByText('Вирішені:').parentElement).toHaveTextContent('3')
+    expect(screen.getByText('Ігноровані:').parentElement).toHaveTextContent('1')
+    expect(screen.queryByText('Активних операційних проблем немає.')).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Відкрити активні елементи' })).toHaveAttribute(
+      'href',
+      '/admin/work-queue?status=active&specialist_id=2'
+    )
   })
 
   it('uses service override copy in the button and modal', async () => {

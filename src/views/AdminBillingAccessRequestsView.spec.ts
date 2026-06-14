@@ -34,6 +34,11 @@ async function renderView(initialPath = '/admin/billing-access-requests') {
         name: 'admin-inbox',
         component: AdminBillingAccessRequestsView,
       },
+      {
+        path: '/admin/work-queue',
+        name: 'admin-work-queue',
+        component: AdminBillingAccessRequestsView,
+      },
     ],
   })
 
@@ -89,6 +94,21 @@ describe('AdminBillingAccessRequestsView', () => {
               },
             ],
           },
+          work_queue_summary: {
+            open_count: 1,
+            in_progress_count: 0,
+            resolved_count: 0,
+            ignored_count: 0,
+            has_active_items: true,
+            domain_status: 'PENDING',
+            auto_closed: false,
+            conflict_code: null,
+            latest_item: {
+              item_key: 'billing_access_request:101',
+              item_type: 'billing_access_request_pending',
+              status: 'open',
+            },
+          },
         },
       ],
     } as any)
@@ -106,9 +126,52 @@ describe('AdminBillingAccessRequestsView', () => {
     expect(screen.getAllByText('Очікує рішення').length).toBeGreaterThan(0)
     expect(screen.getByText(/Тариф Start → Pro/)).toBeInTheDocument()
     expect(screen.getByText(/Повʼязано: 1. Відкриті: 1./)).toBeInTheDocument()
+    expect(screen.getByText(/Доменний статус:/).parentElement).toHaveTextContent('Очікує рішення')
+    expect(screen.getByText(/Операційний статус:/).parentElement).toHaveTextContent('Відкрите')
 
     const detailLink = screen.getByRole('link', { name: 'Відкрити деталі' })
     expect(detailLink).toHaveAttribute('href', '/admin/billing-access-requests/101')
+    expect(screen.getByRole('link', { name: 'Відкрити в черзі' })).toHaveAttribute(
+      'href',
+      '/admin/work-queue?status=all&item_key=billing_access_request%3A101'
+    )
+  })
+
+  it('shows conflict warning when billing and operational states disagree', async () => {
+    mockedFetchAdminBillingAccessRequests.mockResolvedValueOnce({
+      count: 1,
+      results: [
+        {
+          id: 202,
+          status: 'APPROVED',
+          current_plan_label: 'Start',
+          requested_plan_label: 'Pro',
+          work_queue_summary: {
+            open_count: 0,
+            in_progress_count: 0,
+            resolved_count: 1,
+            ignored_count: 0,
+            has_active_items: false,
+            conflict_code: 'DOMAIN_CLOSED_OPERATIONAL_ACTIVE',
+            latest_item: {
+              item_key: 'billing_access_request:202',
+              item_type: 'billing_access_request',
+              status: 'resolved',
+              persisted_status: 'in_progress',
+            },
+          },
+        },
+      ],
+    } as any)
+
+    await renderView()
+
+    expect(
+      await screen.findByText(
+        'Увага: запит уже має доменний статус «Погоджено», але повʼязаний елемент черги ще активний.'
+      )
+    ).toBeInTheDocument()
+    expect(screen.getByText(/Операційний статус:/).parentElement).toHaveTextContent('В роботі')
   })
 
   it('hydrates filters from route query and fetches backend-filtered set', async () => {

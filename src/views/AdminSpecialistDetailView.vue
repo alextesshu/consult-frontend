@@ -62,6 +62,74 @@
       <section class="panel">
         <div class="panel__header">
           <div>
+            <div class="badge badge--soft">ЧЕРГА РОБОТИ</div>
+            <h2 class="panel__title">Операційний стан</h2>
+          </div>
+          <RouterLink
+            v-if="detail.admin_context.work_queue_summary.has_active_items"
+            class="btn btn--ghost btn--sm"
+            :to="`/admin/work-queue?status=active&specialist_id=${detail.identity.id}`"
+          >
+            Відкрити активні елементи
+          </RouterLink>
+        </div>
+
+        <div class="operational-counts">
+          <div><span class="muted">Відкриті:</span> {{ detail.admin_context.work_queue_summary.open_count }}</div>
+          <div><span class="muted">В роботі:</span> {{ detail.admin_context.work_queue_summary.in_progress_count }}</div>
+          <div><span class="muted">Вирішені:</span> {{ detail.admin_context.work_queue_summary.resolved_count }}</div>
+          <div><span class="muted">Ігноровані:</span> {{ detail.admin_context.work_queue_summary.ignored_count }}</div>
+        </div>
+
+        <div
+          v-if="!detail.admin_context.work_queue_summary.has_active_items"
+          class="operational-clean"
+        >
+          Активних операційних проблем немає.
+        </div>
+
+        <div
+          v-if="detail.admin_context.work_queue_summary.latest_item"
+          class="operational-latest"
+        >
+          <strong>Останній повʼязаний елемент</strong>
+          <div>
+            <span class="muted">Тип:</span>
+            {{ operationalTypeLabel(detail.admin_context.work_queue_summary.latest_item.item_type) }}
+          </div>
+          <div>
+            <span class="muted">Статус:</span>
+            <span
+              class="status-pill"
+              :class="operationalStatusClass(detail.admin_context.work_queue_summary.latest_item.status)"
+            >
+              {{ operationalStatusLabel(detail.admin_context.work_queue_summary.latest_item.status) }}
+            </span>
+          </div>
+          <div>
+            <span class="muted">Оновлено:</span>
+            {{ formatDate(detail.admin_context.work_queue_summary.latest_item.status_changed_at) }}
+          </div>
+          <div>
+            <span class="muted">Хто змінив:</span>
+            {{ detail.admin_context.work_queue_summary.latest_item.status_changed_by?.username || 'SYSTEM' }}
+          </div>
+          <div>
+            <span class="muted">Причина / примітка:</span>
+            {{ detail.admin_context.work_queue_summary.latest_item.resolution_note || '—' }}
+          </div>
+          <RouterLink
+            class="btn btn--ghost btn--sm"
+            :to="workQueueItemRoute(detail.admin_context.work_queue_summary.latest_item.item_key)"
+          >
+            Відкрити в черзі
+          </RouterLink>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel__header">
+          <div>
             <div class="badge badge--soft">ПОТОЧНИЙ ДОСТУП</div>
             <h2 class="panel__title">Стан доступу</h2>
           </div>
@@ -550,6 +618,40 @@ function pillClass(active: boolean) {
   return active ? 'status-pill status-pill--ok' : 'status-pill status-pill--muted'
 }
 
+function operationalStatusLabel(status: string | null | undefined) {
+  const normalized = String(status || '').trim().toLowerCase()
+  if (normalized === 'open') return 'Відкрите'
+  if (normalized === 'in_progress') return 'В роботі'
+  if (normalized === 'resolved') return 'Вирішено'
+  if (normalized === 'ignored') return 'Ігноровано'
+  return status || '—'
+}
+
+function operationalStatusClass(status: string | null | undefined) {
+  const normalized = String(status || '').trim().toLowerCase()
+  if (normalized === 'resolved') return 'status-pill--ok'
+  if (normalized === 'ignored') return 'status-pill--muted'
+  if (normalized === 'in_progress') return 'status-pill--warn'
+  return 'status-pill--info'
+}
+
+function operationalTypeLabel(itemType: string) {
+  const labels: Record<string, string> = {
+    billing_access_request: 'Запит на тариф',
+    billing_access_request_pending: 'Запит на тариф',
+    specialist_beta_access_review: 'Перевірка доступу спеціаліста',
+    public_guest_request_pending: 'Моніторинг публічного запиту',
+    public_guest_request_stale: 'Прострочений сигнал публічного запиту',
+    public_guest_request_notification_missing: 'Проблема повідомлення спеціалісту',
+    client_record_invite_pending: 'Очікування запрошення клієнта',
+  }
+  return labels[itemType] || itemType
+}
+
+function workQueueItemRoute(itemKey: string) {
+  return `/admin/work-queue?status=all&item_key=${encodeURIComponent(itemKey)}`
+}
+
 function planLabel(value: string) {
   const code = String(value || '').trim().toUpperCase()
   if (!code) return '—'
@@ -921,6 +1023,29 @@ watch(
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
   padding: 10px;
+}
+
+.operational-counts {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+
+.operational-clean,
+.operational-latest {
+  margin-top: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  padding: 10px;
+}
+
+.operational-clean {
+  background: color-mix(in srgb, #1f8a4c 8%, #fff);
+}
+
+.operational-latest {
+  display: grid;
+  gap: 7px;
 }
 
 .access-warning {

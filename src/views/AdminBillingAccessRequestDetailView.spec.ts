@@ -57,6 +57,11 @@ async function renderView() {
         name: 'admin-inbox-item',
         component: AdminBillingAccessRequestDetailView,
       },
+      {
+        path: '/admin/work-queue',
+        name: 'admin-work-queue',
+        component: AdminBillingAccessRequestDetailView,
+      },
     ],
   })
 
@@ -115,6 +120,28 @@ describe('AdminBillingAccessRequestDetailView', () => {
           },
         ],
       },
+      work_queue_summary: {
+        open_count: 1,
+        in_progress_count: 0,
+        resolved_count: 0,
+        ignored_count: 0,
+        has_active_items: true,
+        domain_status: 'PENDING',
+        auto_closed: false,
+        conflict_code: null,
+        latest_item: {
+          item_key: 'billing_access_request:101',
+          item_type: 'billing_access_request_pending',
+          status: 'open',
+          persisted_status: null,
+          status_changed_at: '2026-04-21T10:01:00Z',
+          status_changed_by: null,
+          resolution_note: '',
+          source_type: 'billing_access_request',
+          source_id: '101',
+          target_url: '/admin/billing-access-requests/101',
+        },
+      },
     } as any)
 
     mockedApproveAdminBillingAccessRequest.mockReset()
@@ -150,6 +177,71 @@ describe('AdminBillingAccessRequestDetailView', () => {
     expect(screen.getByText(/Повʼязані:/)).toBeInTheDocument()
     expect(screen.getByText(/Відкриті:/)).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Відкрити елемент inbox' })).toHaveAttribute('href', '/admin/inbox/41')
+    expect(screen.getByText('Доменний статус')).toBeInTheDocument()
+    expect(screen.getByText('Операційний статус')).toBeInTheDocument()
+    expect(screen.getByText('Відкрите')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Відкрити в черзі' })).toHaveAttribute(
+      'href',
+      '/admin/work-queue?status=all&item_key=billing_access_request%3A101'
+    )
+  })
+
+  it('shows automatic operational resolution after billing approval', async () => {
+    mockedFetchAdminBillingAccessRequest.mockResolvedValueOnce({
+      id: 101,
+      status: 'APPROVED',
+      work_queue_summary: {
+        open_count: 0,
+        in_progress_count: 0,
+        resolved_count: 1,
+        ignored_count: 0,
+        has_active_items: false,
+        domain_status: 'APPROVED',
+        auto_closed: true,
+        conflict_code: null,
+        latest_item: {
+          item_key: 'billing_access_request:101',
+          item_type: 'billing_access_request',
+          status: 'resolved',
+          persisted_status: 'resolved',
+          status_changed_at: '2026-04-23T19:23:00Z',
+          status_changed_by: { id: 1, username: 'superadmin' },
+          resolution_note: 'Billing access request approved in the billing workflow.',
+        },
+      },
+    } as any)
+
+    await renderView()
+
+    expect(await screen.findByText('Вирішено автоматично')).toBeInTheDocument()
+    expect(screen.getByText('superadmin')).toBeInTheDocument()
+    expect(screen.getByText('Billing access request approved in the billing workflow.')).toBeInTheDocument()
+  })
+
+  it('shows warning when operational item is closed but billing remains pending', async () => {
+    mockedFetchAdminBillingAccessRequest.mockResolvedValueOnce({
+      id: 101,
+      status: 'PENDING',
+      work_queue_summary: {
+        open_count: 0,
+        in_progress_count: 0,
+        resolved_count: 1,
+        ignored_count: 0,
+        has_active_items: false,
+        conflict_code: 'DOMAIN_PENDING_OPERATIONAL_CLOSED',
+        latest_item: {
+          item_key: 'billing_access_request:101',
+          item_type: 'billing_access_request_pending',
+          status: 'resolved',
+          persisted_status: 'resolved',
+        },
+      },
+    } as any)
+
+    await renderView()
+    expect(
+      await screen.findByText('Увага: елемент черги закрито, але запит на тариф ще очікує рішення.')
+    ).toBeInTheDocument()
   })
 
   it('keeps detail screen stable when canonical labels are absent', async () => {
