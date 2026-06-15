@@ -2,6 +2,7 @@ import { render, screen, within } from '@testing-library/vue'
 import { describe, expect, it } from 'vitest'
 import PublicProfileAboutSection from './PublicProfileAboutSection.vue'
 
+const workStyleHeading = '\u0424\u043e\u0440\u043c\u0430\u0442 \u0440\u043e\u0431\u043e\u0442\u0438'
 const heading = '\u041e\u0441\u043d\u043e\u0432\u043d\u0456 \u0437\u0430\u043f\u0438\u0442\u0438'
 const boundariesHeading =
   '\u0417 \u0447\u0438\u043c \u044f \u043d\u0435 \u043f\u0440\u0430\u0446\u044e\u044e'
@@ -53,6 +54,23 @@ function renderBoundariesSection(whoIsNotSuitableText: string) {
   })
 }
 
+function renderWorkStyleSection(workStyleText: string) {
+  return render(PublicProfileAboutSection, {
+    props: {
+      workStyleText,
+      workWithText: '',
+      workWithChips: [],
+      whoIsNotSuitableText: '',
+    },
+  })
+}
+
+function getWorkStyleSection() {
+  const section = screen.getByRole('heading', { name: workStyleHeading }).closest('section')
+  expect(section).not.toBeNull()
+  return section as HTMLElement
+}
+
 function getMainRequestsSection() {
   const section = screen.getByRole('heading', { name: heading }).closest('section')
   expect(section).not.toBeNull()
@@ -66,6 +84,23 @@ function getBoundariesSection() {
 }
 
 describe('PublicProfileAboutSection', () => {
+  it('renders work style blank lines as separate paragraphs', () => {
+    renderWorkStyleSection(`${firstParagraph}\n\n${secondParagraph}`)
+    const section = getWorkStyleSection()
+    const paragraphs = Array.from(section.querySelectorAll('.scope-text')).map((item) => item.textContent)
+
+    expect(paragraphs).toEqual([firstParagraph, secondParagraph])
+  })
+
+  it('preserves single line breaks inside work style paragraph text', () => {
+    renderWorkStyleSection(`${paragraph}\n${secondLine}`)
+    const section = getWorkStyleSection()
+    const workStyleParagraph = section.querySelector('.scope-text')
+
+    expect(workStyleParagraph).not.toBeNull()
+    expect(workStyleParagraph?.textContent).toBe(`${paragraph}\n${secondLine}`)
+  })
+
   it('renders authored work boundaries as separate paragraphs without forcing a list', () => {
     renderBoundariesSection(aboutParagraphs.join('\n\n'))
     const section = getBoundariesSection()
@@ -108,8 +143,10 @@ describe('PublicProfileAboutSection', () => {
   it('preserves multiline paragraph text without removing first letters', () => {
     const { container } = renderSection(`${paragraph}\n${secondLine}`)
     const section = getMainRequestsSection()
+    const mainRequestParagraph = section.querySelector('.scope-text')
 
     expect(section.querySelector('.scope-list')).toBeNull()
+    expect(mainRequestParagraph?.textContent).toBe(`${paragraph}\n${secondLine}`)
     expect(container).toHaveTextContent(paragraph)
     expect(container).toHaveTextContent(secondLine)
   })

@@ -100,7 +100,7 @@ function parseAuthoredTextBlocks(rawValue: string): AuthoredTextBlock[] {
 
   function flushParagraph() {
     if (!paragraphLines.length) return
-    blocks.push({ kind: 'paragraph', text: paragraphLines.join(' ').trim() })
+    blocks.push({ kind: 'paragraph', text: paragraphLines.join('\n').trim() })
     paragraphLines = []
   }
 
@@ -224,6 +224,7 @@ const whoIsNotSuitableBlocks = computed(() => parseAuthoredTextBlocks(props.whoI
   color: color-mix(in srgb, var(--text) 90%, var(--muted));
   font-size: 14px;
   line-height: 1.55;
+  white-space: pre-line;
 }
 
 .scope-list--warning li::marker {

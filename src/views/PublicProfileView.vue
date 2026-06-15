@@ -2079,7 +2079,7 @@ const aboutNarrativeText = computed(() =>
 
 const workStyleText = computed(() => {
   const source = normalizeMultilineText(
-    firstFilledText(
+    firstFilledMultilineText(
       resolveSectionAboutField('bio_work'),
       resolveSectionAboutField('bio_approach'),
       sectionAboutBodyByKeywords(['підхід', 'approach', 'метод', 'стиль', 'працюю']),

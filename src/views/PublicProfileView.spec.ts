@@ -735,6 +735,36 @@ describe('PublicProfileView', () => {
     expect(screen.queryByText(publicBoundariesHelperText)).not.toBeInTheDocument()
   })
 
+  it('renders public work style blank lines as separate paragraph elements', async () => {
+    const workStyleParagraphs = [
+      'Під час консультацій ми досліджуємо ваш досвід і знаходимо внутрішню опору.',
+      'Мій формат роботи — онлайн, у комфортному для вас темпі.',
+    ]
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(
+      buildProfile({
+        bio_work: workStyleParagraphs.join('\n\n'),
+      })
+    )
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/slots/') return [buildTodayLocalSlot()]
+      if (url === '/public/specialists/olena/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    const heading = await screen.findByRole('heading', { name: 'Формат роботи' })
+    const section = heading.closest('section') as HTMLElement
+    const paragraphs = Array.from(section.querySelectorAll('.scope-text'))
+
+    expect(paragraphs).toHaveLength(2)
+    expect(paragraphs[0]).toHaveTextContent(workStyleParagraphs[0]!)
+    expect(paragraphs[1]).toHaveTextContent(workStyleParagraphs[1]!)
+  })
+
   it('preserves public about paragraph breaks from profile data', async () => {
     const aboutParagraphs = [
       '\u042f \u043f\u0441\u0438\u0445\u043e\u043b\u043e\u0433 \u0442\u0430 \u0433\u0435\u0448\u0442\u0430\u043b\u044c\u0442-\u0442\u0435\u0440\u0430\u043f\u0435\u0432\u0442.',
