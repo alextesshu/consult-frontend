@@ -47,7 +47,9 @@
         </RouterLink>
         <RouterLink v-if="!isAuthenticated" class="nav__desktop-only" to="/pricing">Тарифи</RouterLink>
         <RouterLink v-if="!isAuthenticated" to="/login">Вхід</RouterLink>
-        <RouterLink v-if="!isAuthenticated" class="nav__guest-cta" to="/signup">Спробувати безкоштовно</RouterLink>
+        <RouterLink v-if="!isAuthenticated" class="nav__guest-cta" to="/signup">
+          {{ isPublicProfilePage ? 'Для спеціалістів' : 'Спробувати безкоштовно' }}
+        </RouterLink>
         <RouterLink
           v-if="isAuthenticated && isChatCapable"
           class="icon-btn nav__desktop-only"

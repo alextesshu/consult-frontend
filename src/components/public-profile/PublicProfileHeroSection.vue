@@ -26,28 +26,41 @@
       </div>
 
       <div class="hero-main">
-        <h1 class="title public__title">{{ publicName || 'Профіль спеціаліста' }}</h1>
-        <p v-if="profile && heroRoleLine" class="hero-main__role">{{ heroRoleLine }}</p>
-        <p class="hero-main__lead hero-main__lead--teaser">{{ profile ? heroLeadText : 'Завантаження профілю' }}</p>
-        <section v-if="profile && displaySpecializationChips.length" class="hero-section" aria-label="Спеціалізації">
-          <h2 class="hero-section__title">Спеціалізації</h2>
-          <div class="hero-trust">
-            <span v-for="(chip, index) in displaySpecializationChips" :key="`${chip}-${index}`">{{ chip }}</span>
-          </div>
-        </section>
+        <div class="hero-main__intro">
+          <h1 class="title public__title">{{ publicName || 'Профіль спеціаліста' }}</h1>
+          <p v-if="profile && displayHeroRoleLine" class="hero-main__role">{{ displayHeroRoleLine }}</p>
+          <p class="hero-main__lead hero-main__lead--teaser">{{ profile ? heroLeadText : 'Завантаження профілю' }}</p>
+          <button
+            v-if="profile && showAboutDetails"
+            class="hero-main__about-action"
+            type="button"
+            @click="emit('about-action')"
+          >
+            Детальніше про мене
+          </button>
+        </div>
 
-        <section v-if="profile && generalInfoItems.length" class="hero-section hero-info" aria-label="Загальна інформація">
-          <h2 class="hero-section__title">Загальна інформація</h2>
-          <ul class="hero-info__list">
-            <li v-for="(item, index) in generalInfoItems" :key="`${item.label}-${index}`" class="hero-info__item">
-              <span class="hero-info__icon" aria-hidden="true">●</span>
-              <span class="hero-info__meta">
-                <span class="hero-info__label">{{ item.label }}</span>
-                <span class="hero-info__value">{{ item.value }}</span>
-              </span>
-            </li>
-          </ul>
-        </section>
+        <div v-if="profile && (displaySpecializationChips.length || generalInfoItems.length)" class="hero-main__details">
+          <section v-if="displaySpecializationChips.length" class="hero-section" aria-label="Спеціалізації">
+            <h2 class="hero-section__title">Спеціалізації</h2>
+            <div class="hero-trust">
+              <span v-for="(chip, index) in displaySpecializationChips" :key="`${chip}-${index}`">{{ chip }}</span>
+            </div>
+          </section>
+
+          <section v-if="generalInfoItems.length" class="hero-section hero-info" aria-label="Загальна інформація">
+            <h2 class="hero-section__title">Загальна інформація</h2>
+            <ul class="hero-info__list">
+              <li v-for="(item, index) in generalInfoItems" :key="`${item.label}-${index}`" class="hero-info__item">
+                <span class="hero-info__icon" aria-hidden="true">●</span>
+                <span class="hero-info__meta">
+                  <span class="hero-info__label">{{ item.label }}</span>
+                  <span class="hero-info__value">{{ item.value }}</span>
+                </span>
+              </li>
+            </ul>
+          </section>
+        </div>
 
         <p v-if="profile && heroSupportText" class="hero-main__support">{{ heroSupportText }}</p>
         <p v-if="profile && completedSessionsBadge" class="hero-main__sessions">
@@ -59,6 +72,8 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
+
 type HeroInfoItem = {
   label: string
   value: string
@@ -78,12 +93,51 @@ type Props = {
   completedSessionsBadge: string | null
   displaySpecializationChips: string[]
   generalInfoItems: HeroInfoItem[]
+  showAboutDetails: boolean
 }
 
-defineProps<Props>()
+const props = defineProps<Props>()
 const emit = defineEmits<{
   (event: 'video-action'): void
+  (event: 'about-action'): void
 }>()
+
+function normalizeHeroText(value: string): string {
+  return value.trim().toLocaleLowerCase('uk-UA').replace(/\s+/g, ' ')
+}
+
+const displayHeroRoleLine = computed(() => {
+  const candidate = props.heroRoleLine.trim()
+  if (!candidate) return ''
+
+  const knownGeneratedFragments = new Set(
+    [
+      ...props.displaySpecializationChips,
+      ...props.generalInfoItems
+        .filter((item) =>
+          ['локація', 'офлайн локація', 'location', 'offline location'].includes(
+            normalizeHeroText(item.label)
+          )
+        )
+        .map((item) => item.value),
+    ]
+      .map(normalizeHeroText)
+      .filter(Boolean)
+  )
+  const candidateFragments = candidate
+    .split('·')
+    .flatMap((part) => part.split(','))
+    .map(normalizeHeroText)
+    .filter(Boolean)
+
+  if (
+    candidateFragments.length > 0 &&
+    candidateFragments.every((fragment) => knownGeneratedFragments.has(fragment))
+  ) {
+    return ''
+  }
+  return candidate
+})
 </script>
 
 <style scoped>
@@ -214,15 +268,27 @@ const emit = defineEmits<{
 .hero-main {
   flex: 1 1 auto;
   display: grid;
-  gap: 10px;
+  gap: 18px;
   align-content: start;
   min-width: 0;
   max-width: 100%;
 }
 
+.hero-main__intro {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+}
+
+.hero-main__details {
+  display: grid;
+  gap: 15px;
+}
+
 .hero-main__role {
-  margin: -2px 0 0;
+  margin: 0;
   font-size: 14px;
+  line-height: 1.45;
   color: color-mix(in srgb, var(--pc-navy-900) 70%, var(--pc-text-muted));
   font-weight: 600;
 }
@@ -230,7 +296,7 @@ const emit = defineEmits<{
 .hero-main__lead {
   margin: 0;
   font-size: 16px;
-  line-height: 1.66;
+  line-height: 1.68;
   color: var(--pc-text-main);
   max-width: 70ch;
 }
@@ -241,6 +307,26 @@ const emit = defineEmits<{
   -webkit-line-clamp: 3;
   line-clamp: 3;
   overflow: hidden;
+}
+
+.hero-main__about-action {
+  width: fit-content;
+  border: 1px solid color-mix(in srgb, var(--pc-navy-900) 16%, var(--pc-border));
+  border-radius: 8px;
+  padding: 6px 9px;
+  background: color-mix(in srgb, var(--pc-bg-card) 84%, transparent);
+  color: var(--pc-navy-900);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.hero-main__about-action:hover,
+.hero-main__about-action:focus-visible {
+  border-color: color-mix(in srgb, var(--pc-teal-500) 42%, var(--pc-border));
+  background: var(--pc-bg-card);
+  color: var(--pc-teal-600);
 }
 
 .hero-main__support {
@@ -260,8 +346,7 @@ const emit = defineEmits<{
 
 .hero-section {
   display: grid;
-  gap: 6px;
-  padding-top: 2px;
+  gap: 8px;
 }
 
 .hero-section__title {
@@ -277,15 +362,16 @@ const emit = defineEmits<{
 .hero-trust {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 8px;
 }
 
 .hero-trust span {
-  padding: 5px 9px;
+  padding: 6px 10px;
   border-radius: 10px;
   background: color-mix(in srgb, var(--pc-bg-card) 88%, var(--pc-teal-100));
   border: 1px solid var(--pc-border);
-  font-size: 11px;
+  font-size: 12px;
+  line-height: 1.3;
   color: var(--pc-navy-900);
 }
 
@@ -299,18 +385,18 @@ const emit = defineEmits<{
   list-style: none;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 7px;
+  gap: 8px;
 }
 
 .hero-info__item {
   border: 1px solid var(--pc-border);
   border-radius: 10px;
   background: color-mix(in srgb, var(--pc-bg-card) 92%, var(--pc-bg-soft));
-  padding: 7px 8px;
+  padding: 9px 10px;
   display: grid;
   grid-template-columns: 20px minmax(0, 1fr);
   align-items: start;
-  gap: 6px;
+  gap: 8px;
   min-width: 0;
 }
 
@@ -328,7 +414,7 @@ const emit = defineEmits<{
 
 .hero-info__meta {
   display: grid;
-  gap: 1px;
+  gap: 2px;
 }
 
 .hero-info__label {
@@ -339,8 +425,8 @@ const emit = defineEmits<{
 }
 
 .hero-info__value {
-  font-size: 12px;
-  line-height: 1.28;
+  font-size: 13px;
+  line-height: 1.35;
   font-weight: 600;
   color: var(--pc-navy-950);
   overflow-wrap: anywhere;
@@ -375,6 +461,10 @@ const emit = defineEmits<{
 
   .hero-main {
     width: 100%;
+  }
+
+  .hero-main__details {
+    gap: 14px;
   }
 
   .hero-main__lead--teaser {
@@ -455,7 +545,15 @@ const emit = defineEmits<{
 
   .hero-main {
     width: 100%;
-    gap: 7px;
+    gap: 12px;
+  }
+
+  .hero-main__intro {
+    gap: 6px;
+  }
+
+  .hero-main__details {
+    gap: 10px;
   }
 
   .hero-main__role {

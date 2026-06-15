@@ -223,6 +223,18 @@ describe('App shell', () => {
     mockToast.info.mockReset()
   })
 
+  it('uses specialist-focused header CTA copy on public specialist profiles', async () => {
+    await renderWithProviders({ initialPath: '/s/olena' })
+
+    expect(screen.getByRole('link', { name: 'Для спеціалістів' })).toHaveAttribute(
+      'href',
+      '/signup'
+    )
+    expect(
+      screen.queryByRole('link', { name: 'Спробувати безкоштовно' })
+    ).not.toBeInTheDocument()
+  })
+
   it('renders product footer on public routes', async () => {
     await renderWithProviders()
 

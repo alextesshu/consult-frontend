@@ -2,8 +2,7 @@
   <div v-if="hasPublicJournalPosts" class="panel panel--journal" id="journal">
     <div class="panel__header">
       <div>
-        <div class="badge badge--soft">Власний блог</div>
-        <h2 class="panel__title">Статті та матеріали спеціаліста</h2>
+        <h2 class="panel__title">Блог спеціаліста</h2>
         <p class="panel__lead">Матеріали допоможуть краще відчути стиль роботи і теми спеціаліста.</p>
       </div>
       <div class="panel__header-actions">

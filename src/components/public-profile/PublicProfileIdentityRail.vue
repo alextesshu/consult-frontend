@@ -51,20 +51,30 @@
       </div>
 
       <section class="identity-rail__contacts" v-if="showContactActions">
-        <div class="identity-rail__contacts-title">Зв’язок зі спеціалістом</div>
+        <div class="identity-rail__contacts-title">Контакти спеціаліста</div>
         <div class="identity-rail__contact-list">
-          <a
+          <button
             v-for="item in contactActions"
             :key="item.id"
             class="identity-rail__contact"
-            :href="item.actionUrl"
-            target="_blank"
-            rel="noopener noreferrer"
-            @click.prevent="$emit('direct-contact-action', item)"
+            :class="{ 'identity-rail__contact--copied': copiedContactId === item.id }"
+            type="button"
+            :aria-label="`Скопіювати ${item.channelLabel}: ${item.valueText}`"
+            :title="copiedContactId === item.id ? 'Скопійовано' : `Скопіювати ${item.channelLabel}`"
+            @click="$emit('copy-contact-action', item)"
           >
-            <span class="identity-rail__contact-label">{{ item.channelLabel }}</span>
-            <span class="identity-rail__contact-value">{{ item.valueText }}</span>
-          </a>
+            <span class="identity-rail__contact-meta">
+              <span class="identity-rail__contact-label">{{ item.channelLabel }}</span>
+              <span class="identity-rail__contact-value">{{ item.valueText }}</span>
+            </span>
+            <span class="identity-rail__contact-status" aria-live="polite">
+              <span v-if="copiedContactId === item.id" class="identity-rail__contact-copied">Скопійовано</span>
+              <svg v-else class="identity-rail__contact-copy-icon" viewBox="0 0 20 20" aria-hidden="true">
+                <rect x="7" y="5" width="8" height="10" rx="2" />
+                <path d="M5 12H4.5A1.5 1.5 0 0 1 3 10.5v-6A1.5 1.5 0 0 1 4.5 3h6A1.5 1.5 0 0 1 12 4.5V5" />
+              </svg>
+            </span>
+          </button>
         </div>
       </section>
 
@@ -101,6 +111,7 @@ type Props = {
   standardSessionDurationLabel: string
   showContactActions: boolean
   contactActions: ContactAction[]
+  copiedContactId?: string
   showChatCta?: boolean
   chatCtaLabel?: string
   showRequestCta?: boolean
@@ -113,6 +124,7 @@ type Props = {
 
 withDefaults(defineProps<Props>(), {
   showChatCta: false,
+  copiedContactId: '',
   chatCtaLabel: 'Написати в чат',
   showRequestCta: false,
   requestCtaLabel: 'Залишити запит',
@@ -127,7 +139,7 @@ defineEmits<{
   (event: 'chat-action'): void
   (event: 'request-action'): void
   (event: 'inquiry-action'): void
-  (event: 'direct-contact-action', item: ContactAction): void
+  (event: 'copy-contact-action', item: ContactAction): void
 }>()
 </script>
 
@@ -253,18 +265,35 @@ defineEmits<{
 }
 
 .identity-rail__contact {
+  width: 100%;
   border: 1px solid var(--pc-border);
   border-radius: 12px;
   padding: 8px 9px;
-  display: grid;
-  gap: 2px;
-  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   color: inherit;
   background: var(--pc-bg-card);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 0.16s ease,
+    background-color 0.16s ease;
 }
 
-.identity-rail__contact:hover {
+.identity-rail__contact:hover,
+.identity-rail__contact:focus-visible,
+.identity-rail__contact--copied {
   border-color: color-mix(in srgb, var(--pc-teal-500) 44%, var(--pc-border));
+  background: color-mix(in srgb, var(--pc-bg-card) 88%, var(--pc-teal-100));
+}
+
+.identity-rail__contact-meta {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
 }
 
 .identity-rail__contact-label {
@@ -279,6 +308,29 @@ defineEmits<{
   font-weight: 600;
   overflow-wrap: anywhere;
   color: var(--pc-navy-950);
+}
+
+.identity-rail__contact-status {
+  flex: 0 0 auto;
+  min-width: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  color: var(--pc-teal-600);
+}
+
+.identity-rail__contact-copy-icon {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+}
+
+.identity-rail__contact-copied {
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
 @media (max-width: 1100px) {

@@ -23,13 +23,15 @@
         <PublicProfileHeroSection
           :profile="heroMediaProfile"
           :public-name="publicName"
-          :hero-role-line="heroRoleLine"
+          hero-role-line=""
           :hero-lead-text="heroLeadText"
           :hero-support-text="heroSupportText"
           :completed-sessions-badge="completedSessionsBadge"
           :display-specialization-chips="displaySpecializationChips"
           :general-info-items="trustItems"
+          :show-about-details="Boolean(aboutNarrativeText)"
           @video-action="openProfileVideoModal"
+          @about-action="openAboutModal"
         />
       </section>
 
@@ -47,6 +49,7 @@
           :standard-session-duration-label="standardSessionDurationLabel"
           :show-contact-actions="showDirectContactActions"
           :contact-actions="contactActions"
+          :copied-contact-id="copiedContactId"
           :show-chat-cta="canMessageSpecialist"
           chat-cta-label="Написати в чат"
           :show-request-cta="showRailRequestCta"
@@ -59,13 +62,12 @@
           @chat-action="openClientChat"
           @request-action="handlePublicRequestAction"
           @inquiry-action="scrollToInquiry"
-          @direct-contact-action="handleDirectContactAction"
+          @copy-contact-action="copyPublicContactValue"
         />
       </aside>
 
       <section class="public__grid">
         <PublicProfileAboutSection
-          :about-narrative-text="aboutNarrativeText"
           :work-style-text="workStyleText"
           :work-with-text="whoThisIsForText"
           :work-with-chips="mainRequestChips"
@@ -149,7 +151,7 @@
       <section v-if="!publicDirectBookingEnabled" class="panel panel--slots panel--request-only" id="slots">
         <div class="panel__header">
           <div>
-            <p class="panel__eyebrow">Запит до спеціаліста</p>
+            <p class="panel__eyebrow">Запит до мене</p>
             <h2 class="panel__title">Залишити запит</h2>
             <p class="panel__lead">{{ requestOnlyHelperText }}</p>
           </div>
@@ -310,13 +312,13 @@
         <div v-if="slotsLoading" class="muted">Завантажуємо вільні вікна</div>
         <div v-else-if="slotsError" class="form-error">{{ slotsError }}</div>
         <div v-else-if="!monthHasSlots" class="slot-empty slot-empty--request muted">
-          <span>Наразі немає доступного часу для запису. Залиште запит, і спеціаліст зможе узгодити час вручну.</span>
+          <span>Наразі немає доступного часу для запису. Залиште запит, і я зможу узгодити час вручну.</span>
           <button class="btn btn--ghost btn--sm" type="button" @click="handlePublicRequestAction">
             Залишити запит
           </button>
         </div>
         <div v-else-if="slots.length === 0" class="slot-empty slot-empty--request muted">
-          <span>На обрану дату немає вільного часу. Залиште запит, і спеціаліст зможе узгодити час вручну.</span>
+          <span>На обрану дату немає вільного часу. Залиште запит, і я зможу узгодити час вручну.</span>
           <button class="btn btn--ghost btn--sm" type="button" @click="handlePublicRequestAction">
             Залишити запит
           </button>
@@ -558,6 +560,21 @@
       </div>
     </div>
 
+    <div v-if="showAboutModal && aboutNarrativeText" class="setting-modal">
+      <div class="setting-modal__backdrop" @click="closeAboutModal"></div>
+      <div class="setting-modal__content about-modal">
+        <div class="setting-modal__header">
+          <h3>Про мене</h3>
+          <button class="btn btn--ghost btn--sm" type="button" @click="closeAboutModal">
+            Закрити
+          </button>
+        </div>
+        <div class="setting-modal__body">
+          <div class="about-modal__text">{{ aboutNarrativeText }}</div>
+        </div>
+      </div>
+    </div>
+
     <div v-if="showGuestBookingModal" class="setting-modal">
       <div class="setting-modal__backdrop" @click="closeGuestBookingModal"></div>
       <div class="setting-modal__content guest-booking-modal">
@@ -596,48 +613,6 @@
                 Формат: {{ sessionFormatLabelForBooking }}
               </div>
             </div>
-
-            <div class="booking-next">
-              <div class="booking-next__title">Перед надсиланням</div>
-              <div class="booking-next__item">• Це перший запит до спеціаліста, а не автоматичний запис на сесію.</div>
-              <div class="booking-next__item">• Спеціаліст перегляне запит і відповість вам у зручний спосіб.</div>
-              <div v-if="shouldShowGuestBookingRulesPrompt" class="booking-next__item">
-                • Підтвердьте правила перед надсиланням.
-              </div>
-            </div>
-
-            <article v-if="shouldShowGuestBookingRulesPrompt && activePlatformBookingRules.length" class="booking-rules-block">
-              <div class="booking-rules-block__title">Загальні правила платформи</div>
-              <p class="muted" style="margin: 6px 0 10px;">
-                Ці правила діють для надсилання запиту через Pro Consult.
-              </p>
-              <p
-                v-for="rule in activePlatformBookingRules"
-                :key="`guest-platform-${rule.version}`"
-                class="booking-rules-block__item"
-              >
-                {{ rule.text }}
-              </p>
-            </article>
-
-            <article v-if="shouldShowGuestBookingRulesPrompt && activeSpecialistBookingRules.length" class="booking-rules-block">
-              <div class="booking-rules-block__title">Умови спеціаліста</div>
-              <p class="muted" style="margin: 6px 0 10px;">
-                Ознайомтесь з умовами спеціаліста перед надсиланням запиту.
-              </p>
-              <p
-                v-for="rule in activeSpecialistBookingRules"
-                :key="`guest-specialist-${rule.version}-${rule.specialist_id || 'none'}`"
-                class="booking-rules-block__item"
-              >
-                {{ rule.text }}
-              </p>
-            </article>
-
-            <label v-if="shouldShowGuestBookingRulesPrompt" class="setting-check booking-gate__check">
-              <input type="checkbox" v-model="guestBookingRulesAccepted" :disabled="guestBookingSubmitting" />
-              <span>{{ guestBookingRulesCheckboxLabel }}</span>
-            </label>
 
             <label class="setting-label" for="guestBookingName">
               Ім’я
@@ -695,7 +670,7 @@
               </div>
               <div class="guest-request-topics__chips">
                 <button
-                  v-for="topic in REQUEST_TOPIC_OPTIONS"
+                  v-for="topic in requestTopicOptions"
                   :key="topic.value"
                   class="guest-request-topic-chip"
                   :class="{ 'guest-request-topic-chip--active': isGuestRequestTopicSelected(topic.value) }"
@@ -710,18 +685,68 @@
               <div v-if="guestRequestTopicLimitReached" class="guest-request-topics__limit">
                 Можна обрати до 3 тем.
               </div>
+              <div v-if="isOtherGuestRequestTopicSelected" class="guest-request-topics__limit">
+                Опишіть свій запит у полі нижче.
+              </div>
             </section>
 
             <label class="setting-label" for="guestBookingMessage">
-              Повідомлення (необов’язково)
+              Коротко опишіть, з чим хочете звернутися
               <textarea
                 id="guestBookingMessage"
                 v-model="guestBookingForm.message"
                 class="input guest-booking-form__message"
-                rows="2"
+                rows="4"
+                :maxlength="GUEST_REQUEST_MESSAGE_MAX_LENGTH"
+                aria-describedby="guestBookingMessageHelper guestBookingMessageCounter"
                 :disabled="guestBookingSubmitting"
-                placeholder="Коротко опишіть, що важливо уточнити перед першою сесією."
+                placeholder="Напишіть кілька речень про свій запит."
               ></textarea>
+              <span id="guestBookingMessageHelper" class="guest-booking-form__message-helper">
+                Можна обрати тему вище або коротко описати свій запит тут.
+              </span>
+              <span id="guestBookingMessageCounter" class="guest-booking-form__message-counter">
+                {{ guestBookingForm.message.length }} / {{ GUEST_REQUEST_MESSAGE_MAX_LENGTH }}
+              </span>
+            </label>
+
+            <section class="guest-request-consent" aria-labelledby="guestRequestConsentTitle">
+              <h4 id="guestRequestConsentTitle" class="guest-request-consent__title">Перед надсиланням</h4>
+              <p>
+                Ваш запит отримає спеціаліст. Він ознайомиться з ним і зможе відповісти,
+                запропонувати час консультації або уточнити деталі.
+              </p>
+              <p>
+                Надсилаючи запит, ви погоджуєтеся з умовами роботи спеціаліста та розумієте,
+                що цей запит не є екстреною допомогою.
+              </p>
+            </section>
+
+            <article v-if="shouldShowGuestBookingRulesPrompt && activePlatformBookingRules.length" class="booking-rules-block">
+              <div class="booking-rules-block__title">Правила Pro Consult</div>
+              <p
+                v-for="rule in activePlatformBookingRules"
+                :key="`guest-platform-${rule.version}`"
+                class="booking-rules-block__item"
+              >
+                {{ rule.text }}
+              </p>
+            </article>
+
+            <article v-if="shouldShowGuestBookingRulesPrompt && activeSpecialistBookingRules.length" class="booking-rules-block">
+              <div class="booking-rules-block__title">Умови роботи спеціаліста</div>
+              <p
+                v-for="rule in activeSpecialistBookingRules"
+                :key="`guest-specialist-${rule.version}-${rule.specialist_id || 'none'}`"
+                class="booking-rules-block__item"
+              >
+                {{ rule.text }}
+              </p>
+            </article>
+
+            <label v-if="shouldShowGuestBookingRulesPrompt" class="setting-check booking-gate__check">
+              <input type="checkbox" v-model="guestBookingRulesAccepted" :disabled="guestBookingSubmitting" />
+              <span>{{ guestBookingRulesCheckboxLabel }}</span>
             </label>
 
             <div v-if="guestBookingError" class="form-error">{{ guestBookingError }}</div>
@@ -934,6 +959,8 @@ type PublicGuestBookingRequestResponse = {
 }
 
 type GuestContactChannel = 'email' | 'phone' | 'telegram'
+type GuestRequestTopicOption = PublicGuestRequestTopic | 'other'
+const GUEST_REQUEST_MESSAGE_MAX_LENGTH = 1000
 const GUEST_BOOKING_SUCCESS_TEXT =
   'Запит надіслано'
 const GUEST_BOOKING_SUCCESS_NEXT_STEP_COPY =
@@ -1050,7 +1077,7 @@ const guestBookingForm = ref({
   contact_value: '',
   message: '',
 })
-const selectedGuestRequestTopics = ref<PublicGuestRequestTopic[]>([])
+const selectedGuestRequestTopics = ref<GuestRequestTopicOption[]>([])
 const bookingRulesAccepting = ref(false)
 const pendingClientBookingSlotId = ref<number | null>(null)
 const bookingRulesPromptRef = ref<HTMLElement | null>(null)
@@ -1058,7 +1085,10 @@ const guestBookingRulesAccepted = ref(false)
 const showContactChooserModal = ref(false)
 const contactActionFallback = ref<ContactActionFallbackViewModel | null>(null)
 const showProfileVideoModal = ref(false)
+const showAboutModal = ref(false)
+const copiedContactId = ref('')
 let contactActionFallbackTimer: number | null = null
+let copiedContactTimer: number | null = null
 const clientSessions = ref<ClientSession[]>([])
 const pastClientSessions = ref<ClientSession[]>([])
 const chatThreads = ref<ChatThread[]>([])
@@ -1132,9 +1162,9 @@ const bookingOfflineLocationHint = computed(() => {
 })
 const requestOnlyHelperText = computed(() => {
   if (publicBookingMode.value === 'direct_booking' && !showPublicAvailability.value) {
-    return 'Спеціаліст зараз не показує вільний час для прямого запису. Залиште запит, щоб узгодити час.'
+    return 'Зараз я не показую вільний час для прямого запису. Залиште запит, щоб узгодити час.'
   }
-  return 'Опишіть коротко ваш запит, і спеціаліст зв’яжеться з вами, щоб узгодити час.'
+  return 'Опишіть коротко ваш запит, і я зв’яжуся з вами, щоб узгодити час.'
 })
 
 function resolveBookingRuleScope(rule: PublicBookingRuleItem): 'PLATFORM' | 'SPECIALIST' {
@@ -1216,14 +1246,19 @@ const guestBookingSubmitDisabled = computed(
     (shouldShowGuestBookingRulesPrompt.value && !guestBookingRulesAccepted.value)
 )
 const guestRequestTopicLimitReached = computed(() => selectedGuestRequestTopics.value.length >= 3)
+const requestTopicOptions: Array<{ value: GuestRequestTopicOption; label: string }> = [
+  ...REQUEST_TOPIC_OPTIONS,
+  { value: 'other', label: 'Інше' },
+]
+const isOtherGuestRequestTopicSelected = computed(() =>
+  selectedGuestRequestTopics.value.includes('other')
+)
 const guestBookingModalTitle = computed(() =>
-  publicDirectBookingEnabled.value ? 'Запит на бронювання' : 'Запит до спеціаліста'
+  publicDirectBookingEnabled.value ? 'Запит на бронювання' : 'Запит до мене'
 )
 
-const guestBookingRulesCheckboxLabel = computed(() =>
-  publicDirectBookingEnabled.value
-    ? 'Підтверджую правила перед відправкою цього запиту'
-    : 'Підтверджую правила перед надсиланням цього запиту'
+const guestBookingRulesCheckboxLabel = computed(
+  () => 'Погоджуюся з правилами платформи та умовами роботи спеціаліста'
 )
 
 const isSlotBusy = (slotId: number) =>
@@ -1810,15 +1845,6 @@ const sectionWhoThisIsForText = computed(() => {
   )
 })
 
-const heroRoleLine = computed(() => {
-  if (!profile.value) return ''
-  const parts: string[] = []
-  const specializationLine = displaySpecializationChips.value.slice(0, 2).join(', ')
-  if (specializationLine) parts.push(specializationLine)
-  if (profileLocationDisplay.value) parts.push(profileLocationDisplay.value)
-  return parts.join(' · ')
-})
-
 const heroLeadText = computed(() => {
   const sectionSummary = toDisplayText(
     (sectionsAbout.value as (PublicProfileAboutSectionData & Record<string, unknown>) | null)?.public_profile_summary
@@ -1886,7 +1912,7 @@ const primaryActionNextStepCopy = computed(() => {
     return 'Після натискання відкриється форма запиту: залиште контакт і коротко опишіть запит.'
   }
   if (showDirectBookingRequestFallback.value) {
-    return 'Після натискання відкриється форма запиту: спеціаліст зможе узгодити з вами час вручну.'
+    return 'Після натискання відкриється форма запиту: я зможу узгодити з вами час вручну.'
   }
   if (!isAuthenticated.value) {
     return 'Після вибору часу відкриється короткий запит: залиште ім’я та контакт без реєстрації.'
@@ -2086,6 +2112,17 @@ function isGeneralInfoExcludedLabel(label: string): boolean {
   return GENERAL_INFO_EXCLUDED_LABELS.has(normalized)
 }
 
+const LOCATION_INFO_LABELS = new Set([
+  'локація',
+  'офлайн локація',
+  'location',
+  'offline location',
+])
+
+function isLocationInfoLabel(label: string): boolean {
+  return LOCATION_INFO_LABELS.has(label.trim().toLowerCase().replace(/\s+/g, ' '))
+}
+
 function buildFallbackTrustItems(): ProfileKeyValueItem[] {
   const items: ProfileKeyValueItem[] = []
   if (meetingFormatLabel.value) {
@@ -2096,11 +2133,6 @@ function buildFallbackTrustItems(): ProfileKeyValueItem[] {
   }
   if (languagesDisplay.value) {
     items.push({ label: 'Мови', value: languagesDisplay.value })
-  }
-  if (offlineMeetingLocation.value) {
-    items.push({ label: 'Офлайн локація', value: offlineMeetingLocation.value })
-  } else if (profileLocationDisplay.value) {
-    items.push({ label: 'Локація', value: profileLocationDisplay.value })
   }
   return items
 }
@@ -2118,8 +2150,15 @@ function appendTrustItemIfUnique(target: ProfileKeyValueItem[], item: ProfileKey
 
 const trustItems = computed<ProfileKeyValueItem[]>(() => {
   const items: ProfileKeyValueItem[] = []
-  sectionTrustItems.value.forEach((item) => appendTrustItemIfUnique(items, item))
+  const sectionLocation = sectionTrustItems.value.find((item) => isLocationInfoLabel(item.label))?.value || ''
+  sectionTrustItems.value
+    .filter((item) => !isLocationInfoLabel(item.label))
+    .forEach((item) => appendTrustItemIfUnique(items, item))
   buildFallbackTrustItems().forEach((item) => appendTrustItemIfUnique(items, item))
+  const location = profileLocationDisplay.value || offlineMeetingLocation.value || sectionLocation
+  if (location) {
+    appendTrustItemIfUnique(items, { label: 'Локація', value: location })
+  }
   return items.filter((item) => !isGeneralInfoExcludedLabel(item.label))
 })
 
@@ -2405,15 +2444,15 @@ const GUEST_CONTACT_CHANNEL_OPTIONS: Array<{ value: GuestContactChannel; label: 
   { value: 'telegram', label: 'Telegram' },
 ]
 
-function isGuestRequestTopicSelected(topic: PublicGuestRequestTopic) {
+function isGuestRequestTopicSelected(topic: GuestRequestTopicOption) {
   return selectedGuestRequestTopics.value.includes(topic)
 }
 
-function isGuestRequestTopicDisabled(topic: PublicGuestRequestTopic) {
+function isGuestRequestTopicDisabled(topic: GuestRequestTopicOption) {
   return guestBookingSubmitting.value || (guestRequestTopicLimitReached.value && !isGuestRequestTopicSelected(topic))
 }
 
-function toggleGuestRequestTopic(topic: PublicGuestRequestTopic) {
+function toggleGuestRequestTopic(topic: GuestRequestTopicOption) {
   if (guestBookingSubmitting.value) return
   if (isGuestRequestTopicSelected(topic)) {
     selectedGuestRequestTopics.value = selectedGuestRequestTopics.value.filter((item) => item !== topic)
@@ -2782,6 +2821,15 @@ function closeProfileVideoModal() {
   showProfileVideoModal.value = false
 }
 
+function openAboutModal() {
+  if (!aboutNarrativeText.value) return
+  showAboutModal.value = true
+}
+
+function closeAboutModal() {
+  showAboutModal.value = false
+}
+
 function openClientChat() {
   if (!profile.value?.therapist_id) return
   router.push({
@@ -2836,8 +2884,23 @@ function closeContactChooserModal() {
   showContactChooserModal.value = false
 }
 
-function handleDirectContactAction(item: PublicContactActionViewModel) {
-  openContactAction(item)
+async function copyPublicContactValue(item: PublicContactActionViewModel) {
+  const value = resolveContactFallbackValue(item)
+  if (!value) return
+  try {
+    await navigator.clipboard.writeText(value)
+    copiedContactId.value = item.id
+    if (copiedContactTimer !== null) {
+      window.clearTimeout(copiedContactTimer)
+    }
+    copiedContactTimer = window.setTimeout(() => {
+      copiedContactId.value = ''
+      copiedContactTimer = null
+    }, 1800)
+    toast.success('Контакт скопійовано.')
+  } catch {
+    toast.error('Не вдалося скопіювати контакт.')
+  }
 }
 
 function handleContactChooserAction(item: PublicContactActionViewModel) {
@@ -3492,6 +3555,10 @@ async function submitGuestBookingRequest() {
     guestBookingError.value = BOOKING_UI_MESSAGES.acceptSettingBeforeBooking
     return
   }
+  if (message.length > GUEST_REQUEST_MESSAGE_MAX_LENGTH) {
+    guestBookingError.value = `Опис запиту має містити не більше ${GUEST_REQUEST_MESSAGE_MAX_LENGTH} символів.`
+    return
+  }
 
   const sessionFormat = resolvedSessionFormat.value
   if (!sessionFormat) {
@@ -3510,7 +3577,9 @@ async function submitGuestBookingRequest() {
       guest_name: guestName,
       contact_channel: contactChannel,
       contact_value: contactValue,
-      request_topics: [...selectedGuestRequestTopics.value],
+      request_topics: selectedGuestRequestTopics.value.filter(
+        (topic): topic is PublicGuestRequestTopic => topic !== 'other'
+      ),
     }
     if (slot) {
       payload.slot_id = slot.id
@@ -3853,6 +3922,9 @@ watch(
 
 onBeforeUnmount(() => {
   clearContactActionFallbackTimer()
+  if (copiedContactTimer !== null) {
+    window.clearTimeout(copiedContactTimer)
+  }
 })
 
 onMounted(async () => {
@@ -5516,6 +5588,17 @@ onMounted(async () => {
     width: min(780px, 94vw);
   }
 
+  .about-modal {
+    width: min(680px, 92vw);
+  }
+
+  .about-modal__text {
+    color: var(--text);
+    font-size: 15px;
+    line-height: 1.65;
+    white-space: pre-line;
+  }
+
   .profile-video-modal__player {
     width: 100%;
     aspect-ratio: 16 / 9;
@@ -5687,8 +5770,55 @@ onMounted(async () => {
   }
 
   .guest-booking-form__message {
-    min-height: 58px;
+    min-height: 104px;
     resize: vertical;
+  }
+
+  .guest-booking-form__message-helper,
+  .guest-booking-form__message-counter {
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.35;
+  }
+
+  .guest-booking-form__message-counter {
+    justify-self: end;
+  }
+
+  .guest-request-consent {
+    display: grid;
+    gap: 6px;
+    padding: 11px 12px;
+    border: 1px solid color-mix(in srgb, var(--line) 88%, #d5ccb8);
+    border-radius: 12px;
+    background: color-mix(in srgb, #f6f1e7 56%, #ffffff);
+  }
+
+  .guest-request-consent__title {
+    margin: 0;
+    color: var(--deep);
+    font-size: 14px;
+  }
+
+  .guest-request-consent p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 13px;
+    line-height: 1.45;
+  }
+
+  .guest-booking-modal .booking-rules-block {
+    gap: 6px;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: #fff;
+  }
+
+  .guest-booking-modal .booking-rules-block__item {
+    padding: 0;
+    border: 0;
+    background: transparent;
   }
 
   .guest-booking-form__submit {

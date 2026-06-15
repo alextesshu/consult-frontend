@@ -3,7 +3,6 @@ import { describe, expect, it } from 'vitest'
 import PublicProfileAboutSection from './PublicProfileAboutSection.vue'
 
 const heading = '\u041e\u0441\u043d\u043e\u0432\u043d\u0456 \u0437\u0430\u043f\u0438\u0442\u0438'
-const aboutHeading = '\u041f\u0440\u043e \u043c\u0435\u043d\u0435'
 const boundariesHeading =
   '\u0417 \u0447\u0438\u043c \u044f \u043d\u0435 \u043f\u0440\u0430\u0446\u044e\u044e'
 const boundariesHelperText =
@@ -35,7 +34,6 @@ const aboutParagraphs = [
 function renderSection(workWithText: string, workWithChips: string[] = []) {
   return render(PublicProfileAboutSection, {
     props: {
-      aboutNarrativeText: '',
       workStyleText: '',
       workWithText,
       workWithChips,
@@ -44,34 +42,15 @@ function renderSection(workWithText: string, workWithChips: string[] = []) {
   })
 }
 
-function renderAboutSection(aboutNarrativeText: string) {
-  return render(PublicProfileAboutSection, {
-    props: {
-      aboutNarrativeText,
-      workStyleText: '',
-      workWithText: '',
-      workWithChips: [],
-      whoIsNotSuitableText: '',
-    },
-  })
-}
-
 function renderBoundariesSection(whoIsNotSuitableText: string) {
   return render(PublicProfileAboutSection, {
     props: {
-      aboutNarrativeText: '',
       workStyleText: '',
       workWithText: '',
       workWithChips: [],
       whoIsNotSuitableText,
     },
   })
-}
-
-function getAboutSection() {
-  const section = screen.getByRole('heading', { name: aboutHeading }).closest('section')
-  expect(section).not.toBeNull()
-  return section as HTMLElement
 }
 
 function getMainRequestsSection() {
@@ -87,24 +66,6 @@ function getBoundariesSection() {
 }
 
 describe('PublicProfileAboutSection', () => {
-  it('renders about text as separate paragraph blocks without changing Ukrainian text', () => {
-    renderAboutSection(aboutParagraphs.join('\n\n'))
-    const paragraphs = Array.from(getAboutSection().querySelectorAll('.narrative-text')).map(
-      (item) => item.textContent
-    )
-
-    expect(paragraphs).toEqual(aboutParagraphs)
-    expect(paragraphs).toHaveLength(3)
-  })
-
-  it('renders manual bullets in about text through the shared authored text parser', () => {
-    renderAboutSection(`${aboutParagraphs[0]}\n\n- ${anxiety}\n- ${stress}`)
-    const section = getAboutSection()
-
-    expect(section.querySelector('.narrative-text')).toHaveTextContent(aboutParagraphs[0]!)
-    expect(within(section).getAllByRole('listitem').map((item) => item.textContent)).toEqual([anxiety, stress])
-  })
-
   it('renders authored work boundaries as separate paragraphs without forcing a list', () => {
     renderBoundariesSection(aboutParagraphs.join('\n\n'))
     const section = getBoundariesSection()
