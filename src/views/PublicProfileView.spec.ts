@@ -423,7 +423,13 @@ describe('PublicProfileView', () => {
   })
 
   it('keeps documents before journal and moves contact block to sticky sidebar', async () => {
-    mockedFetchPublicSpecialistProfile.mockResolvedValue(buildProfile())
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(
+      buildProfile({
+        education_summary: 'Маю профільну психологічну освіту.',
+        education_items: ['Магістр психології'],
+        professional_development_items: ['Навчання з когнітивно-поведінкової терапії'],
+      })
+    )
     mockedFetchPublicAuthorJournalPosts.mockResolvedValue([
       {
         id: 1,
@@ -453,6 +459,19 @@ describe('PublicProfileView', () => {
     const contactBlockTitle = screen.getByText('Контакти спеціаліста')
     expect(contactBlockTitle.closest('.identity-rail__contacts')).toBeTruthy()
     const documentsHeading = screen.getByRole('heading', { name: 'Документи та сертифікати' })
+    expect(screen.getByText('Маю профільну психологічну освіту.')).toBeInTheDocument()
+    expect(screen.getByText('Магістр психології')).toBeInTheDocument()
+    expect(screen.getByText('Навчання з когнітивно-поведінкової терапії')).toBeInTheDocument()
+    expect(screen.getByText('Сертифікат CBT')).toBeInTheDocument()
+    expect(
+      screen.queryByText(
+        'Коротко про професійну підготовку спеціаліста та матеріали, які він додав для ознайомлення.'
+      )
+    ).not.toBeInTheDocument()
+    expect(screen.queryByText(/матеріали, які він додав/i)).not.toBeInTheDocument()
+    expect(
+      screen.queryByText(/Матеріали, завантажені спеціалістом для ознайомлення/i)
+    ).not.toBeInTheDocument()
     await screen.findByText('Профілактика вигорання')
     const journalHeading = screen.getByRole('heading', { name: 'Блог спеціаліста' })
     expect(screen.queryByText('Власний блог')).not.toBeInTheDocument()
@@ -1292,8 +1311,37 @@ describe('PublicProfileView', () => {
     expect(screen.queryByText('Telegram')).not.toBeInTheDocument()
   })
 
-  it('opens chooser and routes to selected action when multiple contact channels exist', async () => {
-    mockedFetchPublicSpecialistProfile.mockResolvedValue(buildProfile())
+  it('copies Email, Telegram, Viber, and Phone values from the contact chooser without opening apps', async () => {
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(
+      buildProfile({
+        contact_actions: [
+          {
+            channel: 'EMAIL',
+            label: 'Email',
+            value: 'hello@example.com',
+            action_url: 'mailto:hello@example.com',
+          },
+          {
+            channel: 'TELEGRAM',
+            label: 'Telegram',
+            value: '@olena_help',
+            action_url: 'https://t.me/olena_help',
+          },
+          {
+            channel: 'VIBER',
+            label: 'Viber',
+            value: '+380001112233',
+            action_url: 'viber://chat?number=%2B380001112233',
+          },
+          {
+            channel: 'PHONE',
+            label: 'Телефон',
+            value: '+380009998877',
+            action_url: 'tel:+380009998877',
+          },
+        ],
+      })
+    )
     mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
     mockedFetchPublicJournalCollections.mockResolvedValue([])
     mockedFetchChatThreads.mockResolvedValue([])
@@ -1316,18 +1364,34 @@ describe('PublicProfileView', () => {
     expect(chooser.getByText('Оберіть зручний канал: це не бронювання, а прямий контакт для першого діалогу.')).toBeInTheDocument()
     expect(chooser.getByText('Email')).toBeInTheDocument()
     expect(chooser.getByText('Telegram')).toBeInTheDocument()
+    expect(chooser.getByText('Viber')).toBeInTheDocument()
+    expect(chooser.getByText('Телефон')).toBeInTheDocument()
+    expect(chooser.getByText('hello@example.com')).toBeInTheDocument()
     expect(chooser.getByText('@olena_help')).toBeInTheDocument()
+    expect(chooser.getByText('+380001112233')).toBeInTheDocument()
+    expect(chooser.getByText('+380009998877')).toBeInTheDocument()
     expect(screen.queryByText('EMAIL')).not.toBeInTheDocument()
     expect(screen.queryByText('TELEGRAM')).not.toBeInTheDocument()
+    expect(chooser.queryByRole('button', { name: 'Відкрити' })).not.toBeInTheDocument()
 
-    const actionButtons = chooser.getAllByRole('button', { name: 'Відкрити' })
-    await fireEvent.click(actionButtons[1] as HTMLButtonElement)
+    const expectedContacts = [
+      ['Email', 'hello@example.com'],
+      ['Telegram', '@olena_help'],
+      ['Viber', '+380001112233'],
+      ['Телефон', '+380009998877'],
+    ] as const
 
-    expect(windowOpenSpy).toHaveBeenCalledWith(
-      'https://t.me/olena_help',
-      '_blank',
-      'noopener,noreferrer'
-    )
+    for (const [channel, value] of expectedContacts) {
+      const row = chooser.getByText(channel).closest('.contact-chooser-modal__item')
+      expect(row).not.toBeNull()
+      await fireEvent.click(within(row as HTMLElement).getByRole('button', { name: 'Скопіювати' }))
+      expect(clipboardWriteTextSpy).toHaveBeenLastCalledWith(value)
+      expect(within(row as HTMLElement).getByRole('button', { name: 'Скопійовано' })).toBeInTheDocument()
+    }
+
+    expect(windowOpenSpy).not.toHaveBeenCalled()
+    expect(chooserModal).toBeInTheDocument()
+    expect(screen.queryByText('Застосунок не відкрився?')).not.toBeInTheDocument()
   })
 
   it('copies direct external contact channels without opening an app', async () => {
@@ -1360,7 +1424,7 @@ describe('PublicProfileView', () => {
     expect(windowOpenSpy).not.toHaveBeenCalled()
     expect(screen.queryByText('Застосунок не відкрився?')).not.toBeInTheDocument()
   })
-  it('shows fallback modal for chooser-selected telegram action', async () => {
+  it('returns chooser copy feedback to the default label after a short delay', async () => {
     vi.useFakeTimers()
     mockedFetchPublicSpecialistProfile.mockResolvedValue(buildProfile())
     mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
@@ -1384,22 +1448,24 @@ describe('PublicProfileView', () => {
       const chooserModal = container.querySelector('.contact-chooser-modal')
       expect(chooserModal).not.toBeNull()
       const chooser = within(chooserModal as HTMLElement)
-      const actionButtons = chooser.getAllByRole('button')
-      await fireEvent.click(actionButtons[actionButtons.length - 1] as HTMLButtonElement)
-
-      expect(windowOpenSpy).toHaveBeenCalledWith(
-        'https://t.me/olena_help',
-        '_blank',
-        'noopener,noreferrer'
+      const telegramRow = chooser.getByText('Telegram').closest('.contact-chooser-modal__item')
+      expect(telegramRow).not.toBeNull()
+      await fireEvent.click(
+        within(telegramRow as HTMLElement).getByRole('button', { name: 'Скопіювати' })
       )
-      expect(container.querySelector('.contact-chooser-modal')).toBeNull()
 
-      await vi.advanceTimersByTimeAsync(950)
-      const fallbackModal = container.querySelector('.contact-fallback-modal')
-      expect(fallbackModal).not.toBeNull()
-      const fallback = within(fallbackModal as HTMLElement)
-      expect(fallback.getByText('Telegram')).toBeInTheDocument()
-      expect(fallback.getByText('@olena_help')).toBeInTheDocument()
+      expect(clipboardWriteTextSpy).toHaveBeenCalledWith('@olena_help')
+      expect(
+        within(telegramRow as HTMLElement).getByRole('button', { name: 'Скопійовано' })
+      ).toBeInTheDocument()
+      expect(windowOpenSpy).not.toHaveBeenCalled()
+      expect(container.querySelector('.contact-chooser-modal')).not.toBeNull()
+
+      await vi.advanceTimersByTimeAsync(1800)
+      expect(
+        within(telegramRow as HTMLElement).getByRole('button', { name: 'Скопіювати' })
+      ).toBeInTheDocument()
+      expect(container.querySelector('.contact-fallback-modal')).toBeNull()
     } finally {
       vi.useRealTimers()
     }
@@ -2515,7 +2581,7 @@ describe('PublicProfileView', () => {
     expect(formatErrors.length).toBeGreaterThan(0)
   })
 
-  it('hides booking calendar and shows request CTA in request-only mode', async () => {
+  it('hides the booking calendar and mid-page request section while keeping sidebar and final CTAs', async () => {
     mockedFetchPublicSpecialistProfile.mockResolvedValue(
       buildProfile({
         public_booking_mode: 'request_only',
@@ -2533,13 +2599,19 @@ describe('PublicProfileView', () => {
 
     renderView()
 
-    expect(await screen.findByRole('heading', { name: 'Залишити запит' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Готові зробити перший крок?' })).toBeInTheDocument()
     expect(screen.getByText('Залиште запит на консультацію')).toBeInTheDocument()
     expect(screen.queryByText('Запишіться на консультацію')).not.toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Оберіть дату і час' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Запит до мене' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Залишити запит' })).not.toBeInTheDocument()
     const requestButtons = screen.getAllByRole('button', { name: 'Залишити запит' })
-    expect(requestButtons.length).toBeGreaterThan(0)
-    expect(requestButtons[0]).toHaveClass('btn--primary')
+    expect(requestButtons).toHaveLength(2)
+    expect(requestButtons.some((button) => Boolean(button.closest('.identity-rail')))).toBe(true)
+    expect(requestButtons.some((button) => Boolean(button.closest('.closing-cta')))).toBe(true)
+    const sidebarRequestButton = requestButtons.find((button) => Boolean(button.closest('.identity-rail')))
+    expect(sidebarRequestButton).toBeDefined()
+    expect(sidebarRequestButton).toHaveClass('btn--primary')
     const requestHelper =
       'Запит — для першого звернення до спеціаліста. Після відповіді спеціаліст підкаже, як продовжити спілкування та узгодити консультацію.'
     const requestTooltip =
@@ -2552,14 +2624,14 @@ describe('PublicProfileView', () => {
         'Після натискання відкриється форма запиту: залиште контакт і коротко опишіть запит.'
       )
     ).not.toBeInTheDocument()
-    expect(requestButtons[0]).toHaveAttribute(
+    expect(sidebarRequestButton).toHaveAttribute(
       'aria-describedby',
       'public-profile-request-helper public-profile-request-tooltip'
     )
-    await fireEvent.focus(requestButtons[0]!)
+    await fireEvent.focus(sidebarRequestButton!)
     expect(screen.getByRole('tooltip')).toHaveTextContent(requestTooltip)
-    await fireEvent.blur(requestButtons[0]!)
-    await fireEvent.mouseEnter(requestButtons[0]!.parentElement as HTMLElement)
+    await fireEvent.blur(sidebarRequestButton!)
+    await fireEvent.mouseEnter(sidebarRequestButton!.parentElement as HTMLElement)
     expect(screen.getByRole('tooltip')).toHaveTextContent(requestTooltip)
     expect(screen.queryByRole('link', { name: 'Переглянути вільні вікна' })).not.toBeInTheDocument()
     const slotCalls = mockedApiGet.mock.calls.filter((call) => call[0] === '/booking/slots/')
@@ -2595,7 +2667,6 @@ describe('PublicProfileView', () => {
       })
     ).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Перед надсиланням' })).toBeInTheDocument()
-    expect(screen.getByText('Опишіть коротко ваш запит, і я зв’яжуся з вами, щоб узгодити час.')).toBeInTheDocument()
     expect(mockRouter.push).not.toHaveBeenCalled()
   })
 
@@ -2715,10 +2786,14 @@ describe('PublicProfileView', () => {
 
     renderView()
 
-    expect(await screen.findByRole('heading', { name: 'Залишити запит' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Готові зробити перший крок?' })).toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Оберіть дату і час' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Запит до мене' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Залишити запит' })).not.toBeInTheDocument()
     expect(screen.queryByRole('link', { name: 'Переглянути вільні вікна' })).not.toBeInTheDocument()
-    expect(screen.getByText('Зараз я не показую вільний час для прямого запису. Залиште запит, щоб узгодити час.')).toBeInTheDocument()
+    const requestButtons = screen.getAllByRole('button', { name: 'Залишити запит' })
+    expect(requestButtons.some((button) => Boolean(button.closest('.identity-rail')))).toBe(true)
+    expect(requestButtons.some((button) => Boolean(button.closest('.closing-cta')))).toBe(true)
   })
 
   it('submits request-only guest booking request without slot_id', async () => {

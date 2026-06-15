@@ -151,30 +151,7 @@
         </template>
       </section>
 
-      <section v-if="!publicDirectBookingEnabled" class="panel panel--slots panel--request-only" id="slots">
-        <div class="panel__header">
-          <div>
-            <p class="panel__eyebrow">Запит до мене</p>
-            <h2 class="panel__title">Залишити запит</h2>
-            <p class="panel__lead">{{ requestOnlyHelperText }}</p>
-          </div>
-        </div>
-        <div class="slot-request-only__actions">
-          <button v-if="canMessageSpecialist" class="btn btn--primary" type="button" @click="openClientChat">
-            Написати в чат
-          </button>
-          <button
-            class="btn"
-            :class="canMessageSpecialist ? 'btn--ghost' : 'btn--primary'"
-            type="button"
-            @click="handlePublicRequestAction"
-          >
-            Залишити запит
-          </button>
-        </div>
-      </section>
-
-      <div v-else class="panel panel--slots" id="slots">
+      <div v-if="publicDirectBookingEnabled" class="panel panel--slots" id="slots">
         <div class="panel__header">
           <div>
             <p class="panel__eyebrow">Доступні вільні вікна</p>
@@ -505,7 +482,11 @@
                 type="button"
                 @click="handleContactChooserAction(item)"
               >
-                {{ CONTACT_CHOOSER_COPY.channelActionButtonLabel }}
+                {{
+                  copiedContactId === item.id
+                    ? CONTACT_CHOOSER_COPY.channelActionCopiedLabel
+                    : CONTACT_CHOOSER_COPY.channelActionButtonLabel
+                }}
               </button>
             </article>
           </div>
@@ -1167,13 +1148,6 @@ const bookingOfflineLocationHint = computed(() => {
   if (resolvedSessionFormat.value !== 'offline') return ''
   return offlineMeetingLocation.value
 })
-const requestOnlyHelperText = computed(() => {
-  if (publicBookingMode.value === 'direct_booking' && !showPublicAvailability.value) {
-    return 'Зараз я не показую вільний час для прямого запису. Залиште запит, щоб узгодити час.'
-  }
-  return 'Опишіть коротко ваш запит, і я зв’яжуся з вами, щоб узгодити час.'
-})
-
 function resolveBookingRuleScope(rule: PublicBookingRuleItem): 'PLATFORM' | 'SPECIALIST' {
   return String(rule.scope || '').trim().toUpperCase() === 'PLATFORM' ? 'PLATFORM' : 'SPECIALIST'
 }
@@ -2238,7 +2212,8 @@ const CONTACT_CHOOSER_COPY = {
   ctaLabel: 'Зв’язатися зі спеціалістом',
   title: 'Оберіть канал зв’язку',
   helperText: 'Оберіть зручний канал: це не бронювання, а прямий контакт для першого діалогу.',
-  channelActionButtonLabel: 'Відкрити',
+  channelActionButtonLabel: 'Скопіювати',
+  channelActionCopiedLabel: 'Скопійовано',
   closeButtonLabel: 'Закрити',
   emptyStateText: 'Публічні канали зв’язку поки недоступні.',
 }
@@ -2913,9 +2888,8 @@ async function copyPublicContactValue(item: PublicContactActionViewModel) {
   }
 }
 
-function handleContactChooserAction(item: PublicContactActionViewModel) {
-  openContactAction(item)
-  closeContactChooserModal()
+async function handleContactChooserAction(item: PublicContactActionViewModel) {
+  await copyPublicContactValue(item)
 }
 
 function openPublicContactCta() {
@@ -4010,13 +3984,6 @@ onMounted(async () => {
   );
   border-color: color-mix(in srgb, var(--line) 88%, #d9d0bd);
   box-shadow: var(--pc-shadow-soft);
-}
-
-.slot-request-only__actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  justify-content: flex-start;
 }
 
 .slot-request-actions {

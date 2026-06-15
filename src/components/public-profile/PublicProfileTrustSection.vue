@@ -4,9 +4,6 @@
       <div>
         <p class="panel__eyebrow">Професійний профіль</p>
         <h2 class="panel__title">Освіта і професійний розвиток</h2>
-        <p class="panel__lead">
-          Коротко про професійну підготовку спеціаліста та матеріали, які він додав для ознайомлення.
-        </p>
       </div>
     </div>
 
@@ -47,8 +44,7 @@
       <div class="documents-block__header">
         <h3 class="documents-block__title">Документи та сертифікати</h3>
         <p class="documents-block__lead">
-          Матеріали, завантажені спеціалістом для ознайомлення. Pro Consult не здійснює автоматичної
-          верифікації їх змісту, якщо інше прямо не зазначено.
+          Pro Consult не здійснює автоматичної верифікації їх змісту, якщо інше прямо не зазначено.
         </p>
       </div>
 
@@ -167,14 +163,6 @@ const hasCompetenceContent = computed(
   letter-spacing: 0.08em;
   font-weight: 700;
   color: color-mix(in srgb, var(--pc-navy-900) 78%, var(--pc-text-muted));
-}
-
-.panel__lead {
-  margin: 0;
-  color: var(--muted);
-  font-size: 14px;
-  line-height: 1.55;
-  max-width: 78ch;
 }
 
 .competence-block {
