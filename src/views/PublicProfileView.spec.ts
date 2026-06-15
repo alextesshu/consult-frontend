@@ -1769,13 +1769,13 @@ describe('PublicProfileView', () => {
     })
     expect(screen.getByText('Оберіть до 3 тем.')).toBeInTheDocument()
     const messageField = screen.getByRole('textbox', { name: /Опишіть запит/i })
-    expect(messageField).toHaveAttribute('maxlength', '1000')
+    expect(messageField).toHaveAttribute('maxlength', '300')
     expect(messageField).toHaveAttribute(
       'placeholder',
       'Кілька речень про те, з чим хочете звернутися.'
     )
     expect(screen.queryByText('Можна обрати тему вище або коротко описати свій запит тут.')).not.toBeInTheDocument()
-    expect(screen.getByText('0 / 1000')).toBeInTheDocument()
+    expect(screen.getByText('0 / 300')).toBeInTheDocument()
 
     const anxiety = screen.getByRole('button', { name: 'Тривога' })
     const stress = screen.getByRole('button', { name: 'Стрес' })
@@ -1821,7 +1821,7 @@ describe('PublicProfileView', () => {
     expect(screen.queryByText('Можна обрати тему вище або коротко описати свій запит тут.')).not.toBeInTheDocument()
     const messageField = screen.getByRole('textbox', { name: /Опишіть запит/i })
     await fireEvent.update(messageField, 'Коротко')
-    expect(screen.getByText('7 / 1000')).toBeInTheDocument()
+    expect(screen.getByText('7 / 300')).toBeInTheDocument()
 
     await fireEvent.update(screen.getByLabelText('Ім’я'), 'Ірина')
     await fireEvent.update(screen.getByLabelText('Контакт'), 'iryna@example.com')

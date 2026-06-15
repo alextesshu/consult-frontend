@@ -961,7 +961,7 @@ type PublicGuestBookingRequestResponse = {
 
 type GuestContactChannel = 'email' | 'phone' | 'telegram'
 type GuestRequestTopicOption = PublicGuestRequestTopic | 'other'
-const GUEST_REQUEST_MESSAGE_MAX_LENGTH = 1000
+const GUEST_REQUEST_MESSAGE_MAX_LENGTH = 300
 const GUEST_BOOKING_SUCCESS_TEXT =
   'Запит надіслано'
 const GUEST_BOOKING_SUCCESS_NEXT_STEP_COPY =
