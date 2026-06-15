@@ -1786,8 +1786,14 @@ describe('PublicProfileView', () => {
       screen.getByText(/Ваш запит отримає спеціаліст\. Він ознайомиться з ним/i)
     ).toBeInTheDocument()
     expect(
-      screen.getByText(/цей запит не є екстреною допомогою/i)
+      screen.getByText(
+        'Перед надсиланням переконайтеся, що вам підходять формат, вартість і опис роботи спеціаліста в цьому профілі.'
+      )
     ).toBeInTheDocument()
+    expect(screen.getByText('Цей запит не є екстреною допомогою.')).toBeInTheDocument()
+    expect(
+      screen.queryByText(/Надсилаючи запит, ви погоджуєтеся з умовами роботи спеціаліста/i)
+    ).not.toBeInTheDocument()
     expect(screen.queryByText(/Ознайомтесь з умовами спеціаліста/i)).not.toBeInTheDocument()
   })
 
