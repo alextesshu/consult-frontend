@@ -22,13 +22,68 @@
           <RouterLink v-if="showClientSessionsCta" class="btn btn--ghost" to="/client">
             Мої сесії
           </RouterLink>
-          <button v-if="showRequestCta" class="btn btn--ghost" type="button" @click="$emit('request-action')">
-            {{ requestCtaLabel }}
-          </button>
+          <div v-if="showRequestCta" class="identity-rail__request-action">
+            <div
+              class="identity-rail__request-control"
+              @mouseenter="requestTooltipHovered = true"
+              @mouseleave="requestTooltipHovered = false"
+            >
+              <button
+                class="btn btn--ghost"
+                type="button"
+                aria-describedby="public-profile-request-helper public-profile-request-tooltip"
+                @focus="requestTooltipFocused = true"
+                @blur="requestTooltipFocused = false"
+                @click="$emit('request-action')"
+              >
+                {{ requestCtaLabel }}
+              </button>
+              <div
+                v-show="requestTooltipVisible"
+                id="public-profile-request-tooltip"
+                class="identity-rail__request-tooltip"
+                role="tooltip"
+              >
+                {{ requestTooltipText }}
+              </div>
+            </div>
+            <p id="public-profile-request-helper" class="identity-rail__request-helper">
+              {{ requestHelperText }}
+            </p>
+          </div>
           <RouterLink v-if="showFeedbackCta" class="btn btn--ghost" :to="feedbackLink">Відгуки</RouterLink>
         </template>
         <template v-else-if="showClientSessionsCta">
-          <button class="btn btn--primary" type="button" @click="$emit('primary-action')">
+          <div v-if="showRequestExplanation" class="identity-rail__request-action">
+            <div
+              class="identity-rail__request-control"
+              @mouseenter="requestTooltipHovered = true"
+              @mouseleave="requestTooltipHovered = false"
+            >
+              <button
+                class="btn btn--primary"
+                type="button"
+                aria-describedby="public-profile-request-helper public-profile-request-tooltip"
+                @focus="requestTooltipFocused = true"
+                @blur="requestTooltipFocused = false"
+                @click="$emit('primary-action')"
+              >
+                {{ heroPrimaryLabel }}
+              </button>
+              <div
+                v-show="requestTooltipVisible"
+                id="public-profile-request-tooltip"
+                class="identity-rail__request-tooltip"
+                role="tooltip"
+              >
+                {{ requestTooltipText }}
+              </div>
+            </div>
+            <p id="public-profile-request-helper" class="identity-rail__request-helper">
+              {{ requestHelperText }}
+            </p>
+          </div>
+          <button v-else class="btn btn--primary" type="button" @click="$emit('primary-action')">
             {{ heroPrimaryLabel }}
           </button>
           <button v-if="showInquiryCta" class="btn btn--ghost" type="button" @click="$emit('inquiry-action')">
@@ -40,7 +95,36 @@
           <RouterLink v-if="showFeedbackCta" class="btn btn--ghost" :to="feedbackLink">Відгуки</RouterLink>
         </template>
         <template v-else>
-          <button class="btn btn--primary" type="button" @click="$emit('primary-action')">
+          <div v-if="showRequestExplanation" class="identity-rail__request-action">
+            <div
+              class="identity-rail__request-control"
+              @mouseenter="requestTooltipHovered = true"
+              @mouseleave="requestTooltipHovered = false"
+            >
+              <button
+                class="btn btn--primary"
+                type="button"
+                aria-describedby="public-profile-request-helper public-profile-request-tooltip"
+                @focus="requestTooltipFocused = true"
+                @blur="requestTooltipFocused = false"
+                @click="$emit('primary-action')"
+              >
+                {{ heroPrimaryLabel }}
+              </button>
+              <div
+                v-show="requestTooltipVisible"
+                id="public-profile-request-tooltip"
+                class="identity-rail__request-tooltip"
+                role="tooltip"
+              >
+                {{ requestTooltipText }}
+              </div>
+            </div>
+            <p id="public-profile-request-helper" class="identity-rail__request-helper">
+              {{ requestHelperText }}
+            </p>
+          </div>
+          <button v-else class="btn btn--primary" type="button" @click="$emit('primary-action')">
             {{ heroPrimaryLabel }}
           </button>
           <button v-if="showInquiryCta" class="btn btn--ghost" type="button" @click="$emit('inquiry-action')">
@@ -78,12 +162,16 @@
         </div>
       </section>
 
-      <p class="identity-rail__next-step">{{ primaryActionNextStepCopy }}</p>
+      <p v-if="primaryActionNextStepCopy && !showRequestExplanation" class="identity-rail__next-step">
+        {{ primaryActionNextStepCopy }}
+      </p>
     </div>
   </aside>
 </template>
 
 <script setup lang="ts">
+import { computed, ref } from 'vue'
+
 type PublicProfileMedia = {
   photo_url?: string | null
   video_url?: string | null
@@ -116,6 +204,9 @@ type Props = {
   chatCtaLabel?: string
   showRequestCta?: boolean
   requestCtaLabel?: string
+  showRequestExplanation?: boolean
+  requestHelperText?: string
+  requestTooltipText?: string
   showSlotsCta?: boolean
   showInquiryCta?: boolean
   inquiryCtaLabel?: string
@@ -128,11 +219,20 @@ withDefaults(defineProps<Props>(), {
   chatCtaLabel: 'Написати в чат',
   showRequestCta: false,
   requestCtaLabel: 'Залишити запит',
+  showRequestExplanation: false,
+  requestHelperText: '',
+  requestTooltipText: '',
   showSlotsCta: false,
   showInquiryCta: false,
   inquiryCtaLabel: 'Поставити запитання',
   showFeedbackCta: false,
 })
+
+const requestTooltipHovered = ref(false)
+const requestTooltipFocused = ref(false)
+const requestTooltipVisible = computed(
+  () => requestTooltipHovered.value || requestTooltipFocused.value
+)
 
 defineEmits<{
   (event: 'primary-action'): void
@@ -210,6 +310,39 @@ defineEmits<{
 
 .identity-rail__actions .btn {
   width: 100%;
+}
+
+.identity-rail__request-action {
+  display: grid;
+  gap: 7px;
+}
+
+.identity-rail__request-control {
+  position: relative;
+}
+
+.identity-rail__request-helper {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.45;
+  color: var(--pc-text-muted);
+}
+
+.identity-rail__request-tooltip {
+  position: absolute;
+  z-index: 4;
+  right: 0;
+  bottom: calc(100% + 8px);
+  left: 0;
+  padding: 9px 10px;
+  border: 1px solid color-mix(in srgb, var(--pc-navy-900) 20%, var(--pc-border));
+  border-radius: 10px;
+  background: var(--pc-navy-950);
+  box-shadow: var(--pc-shadow-soft);
+  color: #fff;
+  font-size: 11px;
+  line-height: 1.45;
+  pointer-events: none;
 }
 
 .identity-rail__actions .btn--primary {

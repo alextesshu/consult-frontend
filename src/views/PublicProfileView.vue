@@ -54,6 +54,9 @@
           chat-cta-label="Написати в чат"
           :show-request-cta="showRailRequestCta"
           request-cta-label="Залишити запит"
+          :show-request-explanation="showRequestExplanation"
+          :request-helper-text="REQUEST_CTA_HELPER_TEXT"
+          :request-tooltip-text="REQUEST_CTA_TOOLTIP_TEXT"
           :show-slots-cta="showRailSlotsCta"
           :show-inquiry-cta="showRailInquiryCta"
           inquiry-cta-label="Поставити запитання"
@@ -965,6 +968,10 @@ const GUEST_BOOKING_SUCCESS_TEXT =
   'Запит надіслано'
 const GUEST_BOOKING_SUCCESS_NEXT_STEP_COPY =
   'Спеціаліст отримає ваш запит і зможе зв’язатися з вами для узгодження деталей.'
+const REQUEST_CTA_HELPER_TEXT =
+  'Запит — для першого звернення до спеціаліста. Після відповіді спеціаліст підкаже, як продовжити спілкування та узгодити консультацію.'
+const REQUEST_CTA_TOOLTIP_TEXT =
+  'Надішліть перший запит спеціалісту. Далі спеціаліст відповість і запропонує зручний спосіб продовжити спілкування.'
 
 type ClientSession = {
   id: number
@@ -1350,6 +1357,9 @@ const showRailRequestCta = computed(() => {
   if (!canMessageSpecialist.value) return false
   return !publicDirectBookingEnabled.value || showDirectBookingRequestFallback.value
 })
+const showRequestExplanation = computed(
+  () => !publicDirectBookingEnabled.value || showDirectBookingRequestFallback.value
+)
 const showRailSlotsCta = computed(() => false)
 const showClosingRequestCta = computed(() => showRailRequestCta.value)
 const calendarWeekdayHeaders = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд']
@@ -1909,10 +1919,10 @@ const primaryActionNextStepCopy = computed(() => {
     return 'Ви вже працюєте з цим спеціалістом. Можете продовжити спілкування або переглянути свої сесії.'
   }
   if (!publicDirectBookingEnabled.value) {
-    return 'Після натискання відкриється форма запиту: залиште контакт і коротко опишіть запит.'
+    return ''
   }
   if (showDirectBookingRequestFallback.value) {
-    return 'Після натискання відкриється форма запиту: я зможу узгодити з вами час вручну.'
+    return ''
   }
   if (!isAuthenticated.value) {
     return 'Після вибору часу відкриється короткий запит: залиште ім’я та контакт без реєстрації.'
@@ -5863,12 +5873,13 @@ onMounted(async () => {
   .guest-request-topics__chips {
     display: flex;
     flex-wrap: wrap;
-    gap: 6px;
+    gap: 5px;
   }
 
   .guest-request-topic-chip {
-    min-height: 30px;
-    padding: 5px 9px;
+    max-width: 100%;
+    min-height: 29px;
+    padding: 4px 8px;
     border: 1px solid var(--line);
     border-radius: 8px;
     background: #fff;
@@ -5876,6 +5887,9 @@ onMounted(async () => {
     font: inherit;
     font-size: 12px;
     font-weight: 600;
+    line-height: 1.25;
+    text-align: center;
+    white-space: normal;
     cursor: pointer;
     transition: border-color 0.16s ease, background 0.16s ease, color 0.16s ease;
   }

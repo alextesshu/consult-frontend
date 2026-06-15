@@ -953,6 +953,12 @@ export type PublicGuestRequestTopic =
   | 'discipline'
   | 'career'
   | 'life_changes'
+  | 'boundaries'
+  | 'loneliness'
+  | 'guilt'
+  | 'decisions'
+  | 'emotional_exhaustion'
+  | 'self_discovery'
   | 'not_sure'
 
 export const REQUEST_TOPIC_LABELS: Record<PublicGuestRequestTopic, string> = {
@@ -964,6 +970,12 @@ export const REQUEST_TOPIC_LABELS: Record<PublicGuestRequestTopic, string> = {
   discipline: 'Дисципліна',
   career: 'Кар’єра / робота',
   life_changes: 'Зміни в житті',
+  boundaries: 'Особисті межі',
+  loneliness: 'Самотність',
+  guilt: 'Почуття провини',
+  decisions: 'Складні рішення',
+  emotional_exhaustion: 'Емоційне виснаження',
+  self_discovery: 'Пошук себе',
   not_sure: 'Не знаю',
 }
 

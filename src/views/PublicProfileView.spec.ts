@@ -70,6 +70,12 @@ vi.mock('../lib/api', () => ({
     { value: 'discipline', label: 'Дисципліна' },
     { value: 'career', label: 'Кар’єра / робота' },
     { value: 'life_changes', label: 'Зміни в житті' },
+    { value: 'boundaries', label: 'Особисті межі' },
+    { value: 'loneliness', label: 'Самотність' },
+    { value: 'guilt', label: 'Почуття провини' },
+    { value: 'decisions', label: 'Складні рішення' },
+    { value: 'emotional_exhaustion', label: 'Емоційне виснаження' },
+    { value: 'self_discovery', label: 'Пошук себе' },
     { value: 'not_sure', label: 'Не знаю' },
   ],
   acceptBookingRules: vi.fn(),
@@ -1607,7 +1613,27 @@ describe('PublicProfileView', () => {
 
     await fireEvent.click(await screen.findByRole('button', { name: 'Записатися' }))
     expect(await screen.findByText('Що хочете обговорити?')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Інше' })).toBeInTheDocument()
+    const expectedTopicLabels = [
+      'Тривога',
+      'Стрес',
+      'Самооцінка',
+      'Стосунки',
+      'Вигорання',
+      'Дисципліна',
+      'Кар’єра / робота',
+      'Зміни в житті',
+      'Особисті межі',
+      'Самотність',
+      'Почуття провини',
+      'Складні рішення',
+      'Емоційне виснаження',
+      'Пошук себе',
+      'Не знаю',
+      'Інше',
+    ]
+    expectedTopicLabels.forEach((label) => {
+      expect(screen.getByRole('button', { name: label })).toBeInTheDocument()
+    })
     const messageField = screen.getByRole('textbox', {
       name: /Коротко опишіть, з чим хочете звернутися/i,
     })
@@ -1621,6 +1647,7 @@ describe('PublicProfileView', () => {
     const stress = screen.getByRole('button', { name: 'Стрес' })
     const relationships = screen.getByRole('button', { name: 'Стосунки' })
     const burnout = screen.getByRole('button', { name: 'Вигорання' })
+    const boundaries = screen.getByRole('button', { name: 'Особисті межі' })
 
     await fireEvent.click(anxiety)
     await fireEvent.click(stress)
@@ -1632,9 +1659,9 @@ describe('PublicProfileView', () => {
 
     await fireEvent.click(stress)
     expect(stress).toHaveAttribute('aria-pressed', 'false')
-    expect(burnout).not.toBeDisabled()
+    expect(boundaries).not.toBeDisabled()
 
-    await fireEvent.click(burnout)
+    await fireEvent.click(boundaries)
     await fireEvent.update(screen.getByLabelText('Ім’я'), 'Ірина')
     await fireEvent.update(screen.getByLabelText('Контакт'), 'iryna@example.com')
     await fireEvent.click(screen.getByRole('button', { name: 'Надіслати запит' }))
@@ -1642,7 +1669,7 @@ describe('PublicProfileView', () => {
     expect(mockedApiPost).toHaveBeenCalledWith(
       '/public/specialists/olena/guest-booking-requests/',
       expect.objectContaining({
-        request_topics: ['anxiety', 'relationships', 'burnout'],
+        request_topics: ['anxiety', 'relationships', 'boundaries'],
       })
     )
   })
@@ -1662,6 +1689,18 @@ describe('PublicProfileView', () => {
     })
     await fireEvent.update(messageField, 'Коротко')
     expect(screen.getByText('7 / 1000')).toBeInTheDocument()
+
+    await fireEvent.update(screen.getByLabelText('Ім’я'), 'Ірина')
+    await fireEvent.update(screen.getByLabelText('Контакт'), 'iryna@example.com')
+    await fireEvent.click(screen.getByRole('button', { name: 'Надіслати запит' }))
+
+    expect(mockedApiPost).toHaveBeenCalledWith(
+      '/public/specialists/olena/guest-booking-requests/',
+      expect.objectContaining({
+        request_topics: [],
+        message: 'Коротко',
+      })
+    )
   })
 
   it('renders one concise pre-submit consent block without repeated instructions', async () => {
@@ -2501,6 +2540,27 @@ describe('PublicProfileView', () => {
     const requestButtons = screen.getAllByRole('button', { name: 'Залишити запит' })
     expect(requestButtons.length).toBeGreaterThan(0)
     expect(requestButtons[0]).toHaveClass('btn--primary')
+    const requestHelper =
+      'Запит — для першого звернення до спеціаліста. Після відповіді спеціаліст підкаже, як продовжити спілкування та узгодити консультацію.'
+    const requestTooltip =
+      'Надішліть перший запит спеціалісту. Далі спеціаліст відповість і запропонує зручний спосіб продовжити спілкування.'
+    expect(screen.getByText(requestHelper)).toBeInTheDocument()
+    expect(requestHelper.toLowerCase()).not.toContain('кабінет')
+    expect(requestHelper.toLowerCase()).not.toContain('чат')
+    expect(
+      screen.queryByText(
+        'Після натискання відкриється форма запиту: залиште контакт і коротко опишіть запит.'
+      )
+    ).not.toBeInTheDocument()
+    expect(requestButtons[0]).toHaveAttribute(
+      'aria-describedby',
+      'public-profile-request-helper public-profile-request-tooltip'
+    )
+    await fireEvent.focus(requestButtons[0]!)
+    expect(screen.getByRole('tooltip')).toHaveTextContent(requestTooltip)
+    await fireEvent.blur(requestButtons[0]!)
+    await fireEvent.mouseEnter(requestButtons[0]!.parentElement as HTMLElement)
+    expect(screen.getByRole('tooltip')).toHaveTextContent(requestTooltip)
     expect(screen.queryByRole('link', { name: 'Переглянути вільні вікна' })).not.toBeInTheDocument()
     const slotCalls = mockedApiGet.mock.calls.filter((call) => call[0] === '/booking/slots/')
     expect(slotCalls).toHaveLength(0)
