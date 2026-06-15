@@ -23,7 +23,9 @@
         <div class="panel__header">
           <div>
             <div class="badge badge--soft">ПІДСУМОК</div>
-            <h2 class="panel__title">{{ detail.identity.display_name || detail.identity.username }}</h2>
+            <h2 class="panel__title">
+              {{ detail.identity.public_display_name || detail.identity.display_name || detail.identity.username }}
+            </h2>
           </div>
           <div class="summary-actions">
             <button class="btn btn--sm" type="button" @click="openPlanModal">Змінити базовий тариф</button>
@@ -48,6 +50,10 @@
 
         <div class="summary-grid">
           <div><span class="muted">ID:</span> {{ detail.identity.id }}</div>
+          <div>
+            <span class="muted">Публічне ім’я:</span>
+            {{ detail.identity.public_display_name || '—' }}
+          </div>
           <div><span class="muted">Логін:</span> @{{ detail.identity.username }}</div>
           <div><span class="muted">Email:</span> {{ detail.identity.email || '—' }}</div>
           <div><span class="muted">Слаг профілю:</span> {{ detail.identity.slug || '—' }}</div>

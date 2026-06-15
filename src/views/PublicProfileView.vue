@@ -588,7 +588,7 @@
             </div>
           </template>
 
-          <form v-else class="guest-booking-form" @submit.prevent="submitGuestBookingRequest">
+          <form v-else class="guest-booking-form" novalidate @submit.prevent="submitGuestBookingRequest">
             <div class="booking-slot" v-if="guestBookingSlot">
               <div class="muted">Обраний слот</div>
               <div class="booking-slot__time">{{ selectedGuestSlotSummary }}</div>
@@ -602,13 +602,26 @@
               Ім’я
               <input
                 id="guestBookingName"
+                ref="guestBookingNameInputRef"
                 v-model="guestBookingForm.guest_name"
                 class="input"
+                :class="{ 'guest-booking-form__input--invalid': guestBookingFieldErrors.guest_name }"
                 type="text"
                 autocomplete="name"
                 required
+                :aria-describedby="guestBookingFieldErrors.guest_name ? 'guestBookingNameError' : undefined"
+                :aria-invalid="guestBookingFieldErrors.guest_name ? 'true' : 'false'"
                 :disabled="guestBookingSubmitting"
+                @input="clearGuestBookingFieldError('guest_name')"
               />
+              <span
+                v-if="guestBookingFieldErrors.guest_name"
+                id="guestBookingNameError"
+                class="guest-booking-form__field-error"
+                role="alert"
+              >
+                {{ guestBookingFieldErrors.guest_name }}
+              </span>
             </label>
 
             <label class="setting-label" for="guestBookingContactChannel">
@@ -633,14 +646,27 @@
               Контакт
               <input
                 id="guestBookingContactValue"
+                ref="guestBookingContactValueInputRef"
                 v-model="guestBookingForm.contact_value"
                 class="input"
+                :class="{ 'guest-booking-form__input--invalid': guestBookingFieldErrors.contact_value }"
                 type="text"
                 :placeholder="guestContactValuePlaceholder"
                 autocomplete="off"
                 required
+                :aria-describedby="guestBookingFieldErrors.contact_value ? 'guestBookingContactValueError' : undefined"
+                :aria-invalid="guestBookingFieldErrors.contact_value ? 'true' : 'false'"
                 :disabled="guestBookingSubmitting"
+                @input="clearGuestBookingFieldError('contact_value')"
               />
+              <span
+                v-if="guestBookingFieldErrors.contact_value"
+                id="guestBookingContactValueError"
+                class="guest-booking-form__field-error"
+                role="alert"
+              >
+                {{ guestBookingFieldErrors.contact_value }}
+              </span>
             </label>
 
             <section class="guest-request-topics" aria-labelledby="guestRequestTopicsTitle">
@@ -649,7 +675,7 @@
                   Що хочете обговорити?
                 </div>
                 <p class="guest-request-topics__helper">
-                  Оберіть до 3 тем — це допоможе спеціалісту швидше зрозуміти запит.
+                  Оберіть до 3 тем.
                 </p>
               </div>
               <div class="guest-request-topics__chips">
@@ -669,26 +695,20 @@
               <div v-if="guestRequestTopicLimitReached" class="guest-request-topics__limit">
                 Можна обрати до 3 тем.
               </div>
-              <div v-if="isOtherGuestRequestTopicSelected" class="guest-request-topics__limit">
-                Опишіть свій запит у полі нижче.
-              </div>
             </section>
 
             <label class="setting-label" for="guestBookingMessage">
-              Коротко опишіть, з чим хочете звернутися
+              Опишіть запит
               <textarea
                 id="guestBookingMessage"
                 v-model="guestBookingForm.message"
                 class="input guest-booking-form__message"
                 rows="4"
                 :maxlength="GUEST_REQUEST_MESSAGE_MAX_LENGTH"
-                aria-describedby="guestBookingMessageHelper guestBookingMessageCounter"
+                aria-describedby="guestBookingMessageCounter"
                 :disabled="guestBookingSubmitting"
-                placeholder="Напишіть кілька речень про свій запит."
+                placeholder="Кілька речень про те, з чим хочете звернутися."
               ></textarea>
-              <span id="guestBookingMessageHelper" class="guest-booking-form__message-helper">
-                Можна обрати тему вище або коротко описати свій запит тут.
-              </span>
               <span id="guestBookingMessageCounter" class="guest-booking-form__message-counter">
                 {{ guestBookingForm.message.length }} / {{ GUEST_REQUEST_MESSAGE_MAX_LENGTH }}
               </span>
@@ -697,12 +717,8 @@
             <section class="guest-request-consent" aria-labelledby="guestRequestConsentTitle">
               <h4 id="guestRequestConsentTitle" class="guest-request-consent__title">Перед надсиланням</h4>
               <p>
-                Ваш запит отримає спеціаліст. Він ознайомиться з ним і зможе відповісти,
-                запропонувати час консультації або уточнити деталі.
-              </p>
-              <p>
-                Перед надсиланням переконайтеся, що вам підходять формат, вартість і опис роботи
-                спеціаліста в цьому профілі.
+                Ваш запит отримає спеціаліст. Він зможе відповісти, запропонувати час
+                консультації або уточнити деталі.
               </p>
               <p>Цей запит не є екстреною допомогою.</p>
             </section>
@@ -719,7 +735,7 @@
             </article>
 
             <article v-if="shouldShowGuestBookingRulesPrompt && activeSpecialistBookingRules.length" class="booking-rules-block">
-              <div class="booking-rules-block__title">Умови роботи спеціаліста</div>
+              <div class="booking-rules-block__title">Правила спеціаліста</div>
               <p
                 v-for="rule in activeSpecialistBookingRules"
                 :key="`guest-specialist-${rule.version}-${rule.specialist_id || 'none'}`"
@@ -1066,6 +1082,12 @@ const guestBookingForm = ref({
   contact_value: '',
   message: '',
 })
+const guestBookingFieldErrors = ref<Record<'guest_name' | 'contact_value', string>>({
+  guest_name: '',
+  contact_value: '',
+})
+const guestBookingNameInputRef = ref<HTMLInputElement | null>(null)
+const guestBookingContactValueInputRef = ref<HTMLInputElement | null>(null)
 const selectedGuestRequestTopics = ref<GuestRequestTopicOption[]>([])
 const bookingRulesAccepting = ref(false)
 const pendingClientBookingSlotId = ref<number | null>(null)
@@ -1232,16 +1254,22 @@ const requestTopicOptions: Array<{ value: GuestRequestTopicOption; label: string
   ...REQUEST_TOPIC_OPTIONS,
   { value: 'other', label: 'Інше' },
 ]
-const isOtherGuestRequestTopicSelected = computed(() =>
-  selectedGuestRequestTopics.value.includes('other')
-)
 const guestBookingModalTitle = computed(() =>
   publicDirectBookingEnabled.value ? 'Запит на бронювання' : 'Запит до мене'
 )
 
-const guestBookingRulesCheckboxLabel = computed(
-  () => 'Погоджуюся з правилами платформи та умовами роботи спеціаліста'
-)
+const guestBookingRulesCheckboxLabel = computed(() => {
+  const hasPlatformRules = activePlatformBookingRules.value.length > 0
+  const hasSpecialistRules = activeSpecialistBookingRules.value.length > 0
+
+  if (hasPlatformRules && hasSpecialistRules) {
+    return 'Погоджуюся з правилами платформи та правилами спеціаліста'
+  }
+  if (hasSpecialistRules) {
+    return 'Погоджуюся з правилами спеціаліста'
+  }
+  return 'Погоджуюся з правилами платформи'
+})
 
 const isSlotBusy = (slotId: number) =>
   bookingRulesAccepting.value ||
@@ -1441,7 +1469,9 @@ function normalizeCompetenceItemList(value: unknown): string[] {
     .filter(Boolean)
 }
 
-const publicName = computed(() => formatPublicName(profile.value?.display_name) || profile.value?.display_name || '')
+const publicName = computed(() =>
+  firstFilledText(profile.value?.public_display_name, profile.value?.display_name)
+)
 
 const heroMediaProfile = computed<{ photo_url?: string | null; video_url?: string | null } | null>(() => {
   if (!profile.value) return null
@@ -2662,17 +2692,6 @@ const standardSessionDurationLabel = computed(() => {
   return `${standardSessionDurationMinutes.value} хв`
 })
 
-function formatPublicName(value?: string) {
-  if (!value) return ''
-  const parts = value.trim().split(/\s+/).filter(Boolean)
-  if (parts.length === 1) return parts[0]
-  const first = parts[0]
-  const last = parts[parts.length - 1]
-  if (!last) return first
-  const initial = last.charAt(0).toUpperCase()
-  return `${first} ${initial}.`
-}
-
 function formatDate(value: string) {
   return formatUkDateTimeCompact(value, value)
 }
@@ -3353,6 +3372,32 @@ function resetGuestBookingForm() {
   selectedGuestRequestTopics.value = []
 }
 
+function resetGuestBookingFieldErrors() {
+  guestBookingFieldErrors.value = {
+    guest_name: '',
+    contact_value: '',
+  }
+}
+
+function clearGuestBookingFieldError(field: 'guest_name' | 'contact_value') {
+  if (!guestBookingFieldErrors.value[field]) return
+  guestBookingFieldErrors.value = {
+    ...guestBookingFieldErrors.value,
+    [field]: '',
+  }
+}
+
+function guestBookingRequiredFieldMessage(field: 'guest_name' | 'contact_value') {
+  switch (field) {
+    case 'guest_name':
+      return 'Вкажіть ім’я.'
+    case 'contact_value':
+      return 'Вкажіть контакт для відповіді.'
+    default:
+      return 'Заповніть це поле.'
+  }
+}
+
 function closeGuestBookingModal() {
   showGuestBookingModal.value = false
   guestBookingSlot.value = null
@@ -3361,6 +3406,7 @@ function closeGuestBookingModal() {
   guestBookingSubmitting.value = false
   guestBookingSubmitSlotId.value = null
   guestBookingRulesAccepted.value = false
+  resetGuestBookingFieldErrors()
   resetGuestBookingForm()
 }
 
@@ -3380,6 +3426,7 @@ function openGuestBookingModal(slotId?: number) {
   guestBookingSuccess.value = null
   guestBookingSubmitSlotId.value = selectedSlot?.id || null
   guestBookingRulesAccepted.value = false
+  resetGuestBookingFieldErrors()
   resetGuestBookingForm()
   showGuestBookingModal.value = true
 }
@@ -3527,9 +3574,24 @@ async function submitGuestBookingRequest() {
   const contactValue = guestBookingForm.value.contact_value.trim()
   const message = guestBookingForm.value.message.trim()
   const isSupportedContactChannel = ['email', 'phone', 'telegram'].includes(contactChannelRaw)
+  let firstInvalidField: HTMLInputElement | null = null
 
-  if (!guestName || !contactChannelRaw || !contactValue) {
-    guestBookingError.value = 'Заповніть, будь ласка, ім’я та контакт для відповіді.'
+  resetGuestBookingFieldErrors()
+
+  if (!guestName) {
+    guestBookingFieldErrors.value.guest_name = guestBookingRequiredFieldMessage('guest_name')
+    firstInvalidField = guestBookingNameInputRef.value
+  }
+  if (!contactValue) {
+    guestBookingFieldErrors.value.contact_value = guestBookingRequiredFieldMessage('contact_value')
+    if (!firstInvalidField) {
+      firstInvalidField = guestBookingContactValueInputRef.value
+    }
+  }
+  if (firstInvalidField) {
+    guestBookingError.value = ''
+    await nextTick()
+    firstInvalidField.focus()
     return
   }
   if (!isSupportedContactChannel) {
@@ -5752,11 +5814,20 @@ onMounted(async () => {
     resize: vertical;
   }
 
-  .guest-booking-form__message-helper,
+  .guest-booking-form__input--invalid {
+    border-color: #c84d44;
+    box-shadow: 0 0 0 1px rgba(200, 77, 68, 0.12);
+  }
+
+  .guest-booking-form__field-error,
   .guest-booking-form__message-counter {
     color: var(--muted);
     font-size: 12px;
     line-height: 1.35;
+  }
+
+  .guest-booking-form__field-error {
+    color: #b1453d;
   }
 
   .guest-booking-form__message-counter {
@@ -5775,13 +5846,15 @@ onMounted(async () => {
   .guest-request-consent__title {
     margin: 0;
     color: var(--deep);
-    font-size: 14px;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.35;
   }
 
   .guest-request-consent p {
     margin: 0;
     color: var(--muted);
-    font-size: 13px;
+    font-size: 12px;
     line-height: 1.45;
   }
 
@@ -5827,7 +5900,9 @@ onMounted(async () => {
 
   .guest-request-topics__title {
     color: var(--ink);
-    font-weight: 700;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.35;
   }
 
   .guest-request-topics__helper,
@@ -5853,9 +5928,9 @@ onMounted(async () => {
     background: #fff;
     color: var(--ink);
     font: inherit;
-    font-size: 12px;
+    font-size: 13px;
     font-weight: 600;
-    line-height: 1.25;
+    line-height: 1.3;
     text-align: center;
     white-space: normal;
     cursor: pointer;

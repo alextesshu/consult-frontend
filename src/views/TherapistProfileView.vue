@@ -139,7 +139,17 @@
           <div class="form-group">
             <label class="field">
               <span class="field-label">Публічне ім'я</span>
-              <input v-model="profile.display_name" class="input" type="text" placeholder="Напр. Олена Коваль" />
+              <input
+                v-model="profile.public_display_name"
+                class="input"
+                type="text"
+                maxlength="120"
+                aria-label="Публічне ім’я"
+                placeholder="Напр. Олена Коваль"
+              />
+              <div class="field-help">
+                Так ваше ім’я буде відображатися у публічному профілі. Можна вказати повне ім’я або скорочений варіант.
+              </div>
             </label>
             <label class="field">
               <span class="field-label">Професійний фокус</span>
@@ -1495,9 +1505,11 @@ function onIntroPriceInput(event: Event) {
 }
 
 function buildProfilePayload() {
+  const publicDisplayName = (profile.public_display_name || '').trim()
   return {
     public_profile_enabled: profile.public_profile_enabled,
-    display_name: profile.display_name,
+    public_display_name: publicDisplayName,
+    display_name: publicDisplayName,
     professional_focus: normalizeProfessionalFocus(profile.professional_focus),
     public_profile_summary: (profile.public_profile_summary || '').trim(),
     setting_text: (profile.setting_text || '').trim(),
@@ -1560,6 +1572,7 @@ const profile = reactive<SpecialistProfile>({
   offline_location: '',
   professional_focus: null,
   display_name: '',
+  public_display_name: '',
   public_profile_summary: '',
   setting_text: '',
   bio_about: '',
@@ -1739,7 +1752,7 @@ function setSuggestionCategory(section: SuggestionSectionKey, category: Suggesti
 }
 type ProfileFormSnapshot = {
   public_profile_enabled: boolean
-  display_name: string
+  public_display_name: string
   professional_focus: ProfessionalFocus | null
   public_profile_summary: string
   setting_text: string
@@ -1791,7 +1804,7 @@ type ProfileFormSnapshot = {
 function createProfileFormSnapshot(): ProfileFormSnapshot {
   return {
     public_profile_enabled: profile.public_profile_enabled,
-    display_name: profile.display_name || '',
+    public_display_name: profile.public_display_name || '',
     professional_focus: normalizeProfessionalFocus(profile.professional_focus),
     public_profile_summary: profile.public_profile_summary || '',
     setting_text: profile.setting_text || '',
@@ -2174,7 +2187,8 @@ function normalizeProfile(data: SpecialistProfile): SpecialistProfile {
     offers_offline: typeof data.offers_offline === 'boolean' ? data.offers_offline : false,
     offline_location: data.offline_location || '',
     professional_focus: normalizeProfessionalFocus(data.professional_focus),
-    display_name: data.display_name || '',
+    display_name: data.display_name || data.public_display_name || '',
+    public_display_name: data.public_display_name ?? data.display_name ?? '',
     public_profile_summary: data.public_profile_summary || '',
     setting_text: data.setting_text || '',
     bio_about: data.bio_about || '',

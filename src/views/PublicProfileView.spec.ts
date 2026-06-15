@@ -126,6 +126,7 @@ function buildProfile(
     show_public_availability: true,
     public_direct_booking_enabled: true,
     display_name: 'Олена',
+    public_display_name: 'Олена',
     offers_online: true,
     offers_offline: true,
     offline_location: 'Київ, кабінет 14',
@@ -400,6 +401,51 @@ describe('PublicProfileView', () => {
     expect(await screen.findByText('Що кажуть клієнти')).toBeInTheDocument()
     expect(screen.getByText('Правила потрібно підтвердити один раз для цього спеціаліста.')).toBeInTheDocument()
     expect(container).toHaveTextContent('Дуже уважний підхід.')
+  })
+
+  it('renders the exact public display name without automatic shortening', async () => {
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(
+      buildProfile({
+        public_display_name: 'Олена Коваль, психолог',
+        display_name: 'Олена Коваль, психолог',
+      })
+    )
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/slots/') return [buildTodayLocalSlot()]
+      if (url === '/public/specialists/olena/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    expect(
+      await screen.findByRole('heading', { name: 'Олена Коваль, психолог' })
+    ).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Олена П.' })).not.toBeInTheDocument()
+  })
+
+  it('falls back to the legacy display name when the alias is empty', async () => {
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(
+      buildProfile({
+        public_display_name: '',
+        display_name: 'Олена Коваль',
+      })
+    )
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/slots/') return [buildTodayLocalSlot()]
+      if (url === '/public/specialists/olena/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    expect(await screen.findByRole('heading', { name: 'Олена Коваль' })).toBeInTheDocument()
   })
 
   it('copies a visible specialist contact without opening an external app', async () => {
@@ -1663,7 +1709,28 @@ describe('PublicProfileView', () => {
     expect(screen.getByLabelText('Контакт')).toBeInTheDocument()
   })
 
-  it('allows selecting up to three optional request topics and sends stable values', async () => {
+  it('shows compact Ukrainian validation instead of native browser required tooltips', async () => {
+    mockCommonPublicData()
+    mockBookingPageDataWithSingleSlot()
+
+    renderView()
+
+    await fireEvent.click(await screen.findByRole('button', { name: 'Записатися' }))
+
+    const submitButton = screen.getByRole('button', { name: 'Надіслати запит' })
+    const form = submitButton.closest('form')
+    expect(form).toHaveAttribute('novalidate')
+
+    await fireEvent.click(submitButton)
+
+    expect(mockedApiPost).not.toHaveBeenCalled()
+    expect(screen.getByText('Вкажіть ім’я.')).toBeInTheDocument()
+    expect(screen.getByText('Вкажіть контакт для відповіді.')).toBeInTheDocument()
+    expect(screen.getByRole('textbox', { name: /Ім’я/i })).toHaveFocus()
+    expect(screen.queryByText('Please fill out this field.')).not.toBeInTheDocument()
+  })
+
+  it('renders simplified request topic and message copy while keeping topic selection stable', async () => {
     mockCommonPublicData()
     mockBookingPageDataWithSingleSlot()
     mockedApiPost.mockResolvedValue({
@@ -1700,13 +1767,14 @@ describe('PublicProfileView', () => {
     expectedTopicLabels.forEach((label) => {
       expect(screen.getByRole('button', { name: label })).toBeInTheDocument()
     })
-    const messageField = screen.getByRole('textbox', {
-      name: /Коротко опишіть, з чим хочете звернутися/i,
-    })
+    expect(screen.getByText('Оберіть до 3 тем.')).toBeInTheDocument()
+    const messageField = screen.getByRole('textbox', { name: /Опишіть запит/i })
     expect(messageField).toHaveAttribute('maxlength', '1000')
-    expect(
-      screen.getByText('Можна обрати тему вище або коротко описати свій запит тут.')
-    ).toBeInTheDocument()
+    expect(messageField).toHaveAttribute(
+      'placeholder',
+      'Кілька речень про те, з чим хочете звернутися.'
+    )
+    expect(screen.queryByText('Можна обрати тему вище або коротко описати свій запит тут.')).not.toBeInTheDocument()
     expect(screen.getByText('0 / 1000')).toBeInTheDocument()
 
     const anxiety = screen.getByRole('button', { name: 'Тривога' })
@@ -1740,7 +1808,7 @@ describe('PublicProfileView', () => {
     )
   })
 
-  it('clarifies custom request input when the Other topic is selected', async () => {
+  it('keeps the request input simple when the Other topic is selected', async () => {
     mockCommonPublicData()
     mockBookingPageDataWithSingleSlot()
 
@@ -1749,10 +1817,9 @@ describe('PublicProfileView', () => {
     await fireEvent.click(await screen.findByRole('button', { name: 'Записатися' }))
     await fireEvent.click(await screen.findByRole('button', { name: 'Інше' }))
 
-    expect(screen.getByText('Опишіть свій запит у полі нижче.')).toBeInTheDocument()
-    const messageField = screen.getByRole('textbox', {
-      name: /Коротко опишіть, з чим хочете звернутися/i,
-    })
+    expect(screen.queryByText('Опишіть свій запит у полі нижче.')).not.toBeInTheDocument()
+    expect(screen.queryByText('Можна обрати тему вище або коротко описати свій запит тут.')).not.toBeInTheDocument()
+    const messageField = screen.getByRole('textbox', { name: /Опишіть запит/i })
     await fireEvent.update(messageField, 'Коротко')
     expect(screen.getByText('7 / 1000')).toBeInTheDocument()
 
@@ -1783,18 +1850,21 @@ describe('PublicProfileView', () => {
 
     expect(screen.getAllByRole('heading', { name: 'Перед надсиланням' })).toHaveLength(1)
     expect(
-      screen.getByText(/Ваш запит отримає спеціаліст\. Він ознайомиться з ним/i)
-    ).toBeInTheDocument()
-    expect(
       screen.getByText(
-        'Перед надсиланням переконайтеся, що вам підходять формат, вартість і опис роботи спеціаліста в цьому профілі.'
+        'Ваш запит отримає спеціаліст. Він зможе відповісти, запропонувати час консультації або уточнити деталі.'
       )
     ).toBeInTheDocument()
+    expect(
+      screen.queryByText(
+        'Перед надсиланням переконайтеся, що вам підходять формат, вартість і опис роботи спеціаліста в цьому профілі.'
+      )
+    ).not.toBeInTheDocument()
     expect(screen.getByText('Цей запит не є екстреною допомогою.')).toBeInTheDocument()
     expect(
       screen.queryByText(/Надсилаючи запит, ви погоджуєтеся з умовами роботи спеціаліста/i)
     ).not.toBeInTheDocument()
     expect(screen.queryByText(/Ознайомтесь з умовами спеціаліста/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/умови роботи спеціаліста/i)).not.toBeInTheDocument()
   })
 
   it('submits a valid guest booking request and renders success state copy', async () => {
@@ -2374,7 +2444,7 @@ describe('PublicProfileView', () => {
 
     await fireEvent.click(await screen.findByRole('button', { name: 'Записатися' }))
     expect(await screen.findByText('Правила Pro Consult')).toBeInTheDocument()
-    expect(screen.getByText('Умови роботи спеціаліста')).toBeInTheDocument()
+    expect(screen.getByText('Правила спеціаліста')).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Перед надсиланням' })).toBeInTheDocument()
 
     await fireEvent.update(screen.getByLabelText('Ім’я'), 'Ірина')
@@ -2384,7 +2454,7 @@ describe('PublicProfileView', () => {
 
     await fireEvent.click(
       screen.getByRole('checkbox', {
-        name: 'Погоджуюся з правилами платформи та умовами роботи спеціаліста',
+        name: 'Погоджуюся з правилами платформи та правилами спеціаліста',
       })
     )
     expect(submitButton).not.toBeDisabled()
@@ -2415,7 +2485,7 @@ describe('PublicProfileView', () => {
     await fireEvent.click(await screen.findByRole('button', { name: 'Записатися' }))
     expect(
       screen.queryByRole('checkbox', {
-        name: 'Погоджуюся з правилами платформи та умовами роботи спеціаліста',
+        name: 'Погоджуюся з правилами платформи та правилами спеціаліста',
       })
     ).not.toBeInTheDocument()
   })
@@ -2669,7 +2739,7 @@ describe('PublicProfileView', () => {
     expect(screen.queryByRole('heading', { name: 'Запит на бронювання' })).not.toBeInTheDocument()
     expect(
       screen.getByRole('checkbox', {
-        name: 'Погоджуюся з правилами платформи та умовами роботи спеціаліста',
+        name: 'Погоджуюся з правилами платформи та правилами спеціаліста',
       })
     ).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Перед надсиланням' })).toBeInTheDocument()

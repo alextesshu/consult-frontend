@@ -78,6 +78,7 @@ function makeProfile(): SpecialistProfile {
     offline_location: 'Львів, офіс 12',
     professional_focus: 'psychological_practice',
     display_name: 'Анна',
+    public_display_name: 'Анна',
     public_profile_summary: 'Короткий опис для hero-блоку.',
     setting_text: 'Будь ласка, попереджайте про перенесення щонайменше за 24 години.',
     bio_about: 'Працюю дбайливо.',
@@ -193,6 +194,20 @@ describe('TherapistProfileView', () => {
 
     expect(await screen.findByText('Короткий опис для верхнього блоку профілю')).toBeInTheDocument()
     expect(screen.getByDisplayValue('Короткий опис для hero-блоку.')).toBeInTheDocument()
+  })
+
+  it('renders public display name guidance and max length', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValue(makeProfile())
+
+    renderView()
+
+    const input = await screen.findByLabelText('Публічне ім’я')
+    expect(input).toHaveAttribute('maxlength', '120')
+    expect(
+      screen.getByText(
+        'Так ваше ім’я буде відображатися у публічному профілі. Можна вказати повне ім’я або скорочений варіант.'
+      )
+    ).toBeInTheDocument()
   })
 
   it('keeps work boundaries helper text in profile management', async () => {
@@ -446,6 +461,8 @@ describe('TherapistProfileView', () => {
 
     const standardPriceInput = (await screen.findByDisplayValue('1500')) as HTMLInputElement
     await fireEvent.update(standardPriceInput, '1500 грн')
+    const publicNameInput = screen.getByLabelText('Публічне ім’я') as HTMLInputElement
+    await fireEvent.update(publicNameInput, '  Анна Профі  ')
 
     const introPriceInput = screen.getByDisplayValue('600') as HTMLInputElement
     await fireEvent.update(introPriceInput, '')
@@ -470,7 +487,8 @@ describe('TherapistProfileView', () => {
         offers_offline: true,
         offline_location: 'Львів, офіс 12',
         professional_focus: 'psychological_practice',
-        display_name: 'Анна',
+        public_display_name: 'Анна Профі',
+        display_name: 'Анна Профі',
         public_profile_summary: 'Оновлений короткий опис.',
         setting_text: 'Оновлені умови перед записом.',
         education_summary: 'Integrative psychotherapy background.',

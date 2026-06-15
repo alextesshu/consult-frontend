@@ -43,6 +43,7 @@ function buildDetail(overrides: Partial<AdminSpecialistDetailResponse> = {}): Ad
       username: 'olena',
       email: 'olena@example.com',
       display_name: 'Олена Савчук',
+      public_display_name: 'Олена К.',
       slug: 'olena',
       public_profile_enabled: true,
       created_at: '2026-06-01T08:00:00Z',
@@ -186,7 +187,10 @@ describe('AdminSpecialistDetailView', () => {
   it('explains the difference between test access and service override', async () => {
     await renderView()
 
-    expect(await screen.findByRole('heading', { name: 'Олена Савчук' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Олена К.' })).toBeInTheDocument()
+    expect(screen.getByText('Публічне ім’я:').parentElement).toHaveTextContent('Олена К.')
+    expect(screen.getByText('Логін:').parentElement).toHaveTextContent('@olena')
+    expect(screen.getByText('Email:').parentElement).toHaveTextContent('olena@example.com')
     expect(screen.getByRole('button', { name: 'Керувати тестовим доступом' })).toBeInTheDocument()
     expect(screen.getByText('Тестовий доступ — тимчасовий Pro-доступ для beta, демо або перевірки.')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Службове перевизначення' })).toBeInTheDocument()

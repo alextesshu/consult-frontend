@@ -159,6 +159,7 @@ export type TherapistProfile = {
   offline_location: string
   professional_focus?: ProfessionalFocus | null
   display_name: string
+  public_display_name?: string
   bio?: string
   public_profile_summary?: string
   bio_about: string
@@ -561,6 +562,7 @@ export type AdminSpecialistDetailResponse = {
     username: string
     email: string | null
     display_name: string
+    public_display_name?: string
     slug: string | null
     public_profile_enabled: boolean
     created_at: string | null
@@ -899,6 +901,7 @@ export type PublicTherapistProfile = {
   public_direct_booking_enabled?: boolean
   professional_focus?: ProfessionalFocus | null
   display_name: string
+  public_display_name?: string
   completed_sessions_count?: number
   offers_online?: boolean
   offers_offline?: boolean
