@@ -62,7 +62,7 @@ describe('HomeView', () => {
         name: 'Консультаційна практика — в одному спокійному просторі',
       })
     ).toBeInTheDocument()
-    expect(screen.getByText(/Pro Consult поєднує профіль, запити, сесії, блог і матеріали/)).toBeInTheDocument()
+    expect(screen.getByText(/Pro Consult допомагає спеціалісту презентувати себе клієнтам/)).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Подивитися тарифи' })).toHaveAttribute('href', '#pricing')
 
     expect(screen.getByText('Кабінет спеціаліста')).toBeInTheDocument()

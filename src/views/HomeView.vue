@@ -9,8 +9,8 @@
             Консультаційна практика — в одному спокійному просторі
           </h1>
           <p class="home-hero__subtitle">
-            Pro Consult поєднує профіль, запити, сесії, блог і матеріали — щоб робота з клієнтами
-            не губилася в месенджерах і таблицях.
+            Pro Consult допомагає спеціалісту презентувати себе клієнтам, приймати звернення й розвивати
+            практику у власному робочому кабінеті — без комісій з консультацій.
           </p>
           <div class="home-hero__actions">
             <button v-if="isAuthenticated" class="btn" type="button" @click="goToCabinet">
@@ -32,12 +32,12 @@
             <span class="product-story__accent product-story__accent--dots"></span>
             <div class="product-story__dashboard-card">
               <header class="product-story__dashboard-header">
-                <span class="product-story__dashboard-mark">
-                  <svg viewBox="0 0 24 24" focusable="false">
+                <span class="product-story__dashboard-title">
+                  <svg class="product-story__section-icon" viewBox="0 0 24 24" focusable="false">
                     <path d="M4 7.5A2.5 2.5 0 0 1 6.5 5H10l2 2h5.5A2.5 2.5 0 0 1 20 9.5v7A2.5 2.5 0 0 1 17.5 19h-11A2.5 2.5 0 0 1 4 16.5v-9Z" />
                   </svg>
+                  <strong>Кабінет спеціаліста</strong>
                 </span>
-                <strong>Кабінет спеціаліста</strong>
                 <span class="product-story__top-actions">
                   <span class="product-story__top-status product-story__top-status--live">Сьогодні</span>
                   <span class="product-story__top-status">2 нові запити</span>
@@ -881,11 +881,12 @@ onBeforeUnmount(() => {
   border-radius: var(--radius-pill);
   padding: 7px 10px;
   background: color-mix(in srgb, var(--pc-teal-100) 72%, #fff);
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-size: 14px;
+  line-height: 1.2;
+  letter-spacing: 0;
+  text-transform: none;
   color: color-mix(in srgb, var(--pc-navy-900) 82%, #008375);
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .product-story__profile {
@@ -1412,23 +1413,27 @@ onBeforeUnmount(() => {
 
 .product-story__dashboard-header {
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 12px;
   align-items: center;
   min-height: 34px;
   color: var(--pc-navy-950);
 }
 
-.product-story__dashboard-header strong {
-  font-size: 14px;
+.product-story__dashboard-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  justify-self: start;
+  flex: 0 0 auto;
+  min-width: 0;
 }
 
-.product-story__dashboard-mark {
-  width: 32px;
-  height: 32px;
-  grid-template-columns: repeat(2, 5px);
-  border-radius: 10px;
-  background: transparent;
+.product-story__dashboard-header strong {
+  font-size: 14px;
+  line-height: 1.2;
+  font-weight: 600;
 }
 
 .product-story__top-actions {
@@ -1729,7 +1734,7 @@ onBeforeUnmount(() => {
   padding: 7px 10px;
   background: color-mix(in srgb, var(--pc-teal-100) 76%, #fff);
   color: color-mix(in srgb, var(--pc-navy-900) 78%, #008375);
-  letter-spacing: 0.06em;
+  letter-spacing: 0;
 }
 
 .product-story__profile {
@@ -1958,6 +1963,7 @@ onBeforeUnmount(() => {
 
 .home-hero__content {
   gap: 0;
+  padding-block: clamp(10px, 1.4vw, 18px);
 }
 
 .home-hero__eyebrow {
@@ -1970,7 +1976,7 @@ onBeforeUnmount(() => {
   font-size: clamp(38px, 3.65vw, 48px);
   line-height: 1.06;
   letter-spacing: -0.026em;
-  margin-bottom: 17px;
+  margin-bottom: 24px;
 }
 
 .home-hero__subtitle {
@@ -1978,7 +1984,7 @@ onBeforeUnmount(() => {
   font-size: clamp(14px, 1vw, 16px);
   line-height: 1.54;
   color: color-mix(in srgb, var(--text) 78%, #526672);
-  margin-bottom: 17px;
+  margin-bottom: 24px;
 }
 
 .home-hero__support {
@@ -1992,8 +1998,8 @@ onBeforeUnmount(() => {
 
 .home-hero__actions {
   gap: 10px;
-  margin-top: 0;
-  margin-bottom: 13px;
+  margin-top: 2px;
+  margin-bottom: 18px;
 }
 
 .home-hero__actions .btn {
@@ -2023,13 +2029,14 @@ onBeforeUnmount(() => {
 .home-hero__visual {
   min-height: 0;
   height: clamp(500px, calc(100vh - 190px), 548px);
+  padding-left: clamp(10px, 1.2vw, 22px);
 }
 
 .product-story {
-  width: min(100%, 720px);
+  width: min(100%, 700px);
   min-height: 0;
   height: 100%;
-  margin-left: 0;
+  margin-left: auto;
 }
 
 .product-story__dashboard-card {
@@ -3068,6 +3075,7 @@ onBeforeUnmount(() => {
 
   .home-hero__visual {
     min-height: auto;
+    padding-left: 0;
   }
 
   .product-story {
