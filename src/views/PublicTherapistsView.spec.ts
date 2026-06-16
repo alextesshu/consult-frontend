@@ -9,10 +9,6 @@ vi.mock('../lib/api', () => ({
 
 const mockedFetchPublicSpecialists = vi.mocked(fetchPublicSpecialists)
 
-async function flushPromises() {
-  await new Promise((resolve) => setTimeout(resolve, 0))
-}
-
 function renderView() {
   return render(PublicTherapistsView, {
     global: {
@@ -31,199 +27,86 @@ describe('PublicTherapistsView', () => {
     mockedFetchPublicSpecialists.mockReset()
   })
 
-  it('renders the empty state action slot when the catalog is empty', async () => {
-    mockedFetchPublicSpecialists.mockResolvedValue({
-      results: [],
-      page: 1,
-      page_size: 12,
-      total: 0,
-      total_pages: 1,
-    })
-
+  it('does not fetch specialists on mount and shows initial search-first state', () => {
     renderView()
 
-    await flushPromises()
-    expect(screen.getByText('Нічого не знайдено')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Скинути фільтри' })).toBeInTheDocument()
-    expect(screen.queryByText(/Сторінка 1 з 1/i)).not.toBeInTheDocument()
+    expect(mockedFetchPublicSpecialists).not.toHaveBeenCalled()
+    expect(screen.getAllByText('Знайти профіль спеціаліста').length).toBeGreaterThan(0)
+    expect(screen.getByText('Введіть ім’я спеціаліста або частину посилання на профіль.')).toBeInTheDocument()
+    expect(screen.queryByText(/Всього/i)).not.toBeInTheDocument()
   })
 
-  it('renders an explicit error state and retries without falling back to empty copy', async () => {
-    mockedFetchPublicSpecialists
-      .mockRejectedValueOnce(new Error('catalog failed'))
-      .mockResolvedValueOnce({
-        results: [
-          {
-            therapist_id: 12,
-            public_slug: 'olena',
-            display_name: 'Olena Marchenko',
-            languages: ['Українська'],
-          } as any,
-        ],
-        page: 1,
-        page_size: 12,
-        total: 1,
-        total_pages: 1,
-      })
-
+  it('does not fetch for short queries and shows validation message', async () => {
     renderView()
 
-    expect(await screen.findByText('Не вдалося завантажити каталог')).toBeInTheDocument()
-    expect(screen.queryByText('Нічого не знайдено')).not.toBeInTheDocument()
+    await fireEvent.update(screen.getByPlaceholderText('Ім’я спеціаліста або частина посилання'), 'Ол')
+    await fireEvent.click(screen.getByRole('button', { name: 'Знайти профіль' }))
 
-    await fireEvent.click(screen.getByRole('button', { name: 'Спробувати ще раз' }))
-
-    expect(await screen.findByText('Olena M.')).toBeInTheDocument()
-    await waitFor(() => {
-      expect(screen.queryByText('Не вдалося завантажити каталог')).not.toBeInTheDocument()
-    })
+    expect(mockedFetchPublicSpecialists).not.toHaveBeenCalled()
+    expect(screen.getByText('Введіть щонайменше 3 символи для пошуку.')).toBeInTheDocument()
   })
 
-  it('shows completed sessions badge only for specialists with 50+ completed sessions', async () => {
+  it('searches by name with page_size=5 and renders a compact result card', async () => {
     mockedFetchPublicSpecialists.mockResolvedValue({
       results: [
         {
-          therapist_id: 1,
-          public_slug: 'below-threshold',
-          display_name: 'Ira Bondar',
-          completed_sessions_count: 34,
-        },
-        {
-          therapist_id: 2,
-          public_slug: 'first-bucket',
-          display_name: 'Marta Kovalenko',
-          completed_sessions_count: 50,
-        },
-        {
-          therapist_id: 3,
-          public_slug: 'top-bucket',
-          display_name: 'Dmytro Lysenko',
-          completed_sessions_count: 1200,
-        },
-      ],
-      page: 1,
-      page_size: 12,
-      total: 3,
-      total_pages: 1,
-    })
-
-    renderView()
-
-    expect(await screen.findByText('Marta K.')).toBeInTheDocument()
-    expect(screen.queryByText('34+ сесій')).not.toBeInTheDocument()
-    expect(screen.getByText('50+ сесій')).toBeInTheDocument()
-    expect(screen.getByText('1000+ сесій')).toBeInTheDocument()
-  })
-
-  it('sends offers_online=1 when online filter is enabled', async () => {
-    mockedFetchPublicSpecialists.mockResolvedValue({
-      results: [],
-      page: 1,
-      page_size: 12,
-      total: 0,
-      total_pages: 1,
-    })
-
-    renderView()
-    await flushPromises()
-
-    await fireEvent.click(screen.getByLabelText('Онлайн'))
-
-    await waitFor(() => {
-      expect(mockedFetchPublicSpecialists.mock.calls.length).toBeGreaterThan(1)
-    })
-    const lastParams = mockedFetchPublicSpecialists.mock.calls.at(-1)?.[0] as Record<string, unknown>
-    expect(lastParams.offers_online).toBe('1')
-    expect(lastParams.offers_offline).toBeUndefined()
-  })
-
-  it('sends offers_offline=1 when offline filter is enabled', async () => {
-    mockedFetchPublicSpecialists.mockResolvedValue({
-      results: [],
-      page: 1,
-      page_size: 12,
-      total: 0,
-      total_pages: 1,
-    })
-
-    renderView()
-    await flushPromises()
-
-    await fireEvent.click(screen.getByLabelText('Офлайн'))
-
-    await waitFor(() => {
-      expect(mockedFetchPublicSpecialists.mock.calls.length).toBeGreaterThan(1)
-    })
-    const lastParams = mockedFetchPublicSpecialists.mock.calls.at(-1)?.[0] as Record<string, unknown>
-    expect(lastParams.offers_online).toBeUndefined()
-    expect(lastParams.offers_offline).toBe('1')
-  })
-
-  it('sends both offers_online=1 and offers_offline=1 when both filters are enabled', async () => {
-    mockedFetchPublicSpecialists.mockResolvedValue({
-      results: [],
-      page: 1,
-      page_size: 12,
-      total: 0,
-      total_pages: 1,
-    })
-
-    renderView()
-    await flushPromises()
-
-    await fireEvent.click(screen.getByLabelText('Онлайн'))
-    await fireEvent.click(screen.getByLabelText('Офлайн'))
-
-    await waitFor(() => {
-      expect(mockedFetchPublicSpecialists.mock.calls.length).toBeGreaterThan(2)
-    })
-    const lastParams = mockedFetchPublicSpecialists.mock.calls.at(-1)?.[0] as Record<string, unknown>
-    expect(lastParams.offers_online).toBe('1')
-    expect(lastParams.offers_offline).toBe('1')
-  })
-
-  it('renders online and offline badges on specialist cards', async () => {
-    mockedFetchPublicSpecialists.mockResolvedValue({
-      results: [
-        {
-          therapist_id: 10,
-          public_slug: 'online-only',
-          display_name: 'Olena Petrenko',
-          offers_online: true,
-          offers_offline: false,
-        },
-        {
-          therapist_id: 11,
-          public_slug: 'offline-only',
-          display_name: 'Ira Bondar',
-          offers_online: false,
-          offers_offline: true,
-        },
-        {
-          therapist_id: 12,
-          public_slug: 'both',
-          display_name: 'Marta Lysenko',
+          slug: 'olena-koval',
+          public_slug: 'olena-koval',
+          display_name: 'Олена Коваль',
+          public_display_name: 'Олена Коваль',
+          public_profile_summary: 'Працюю з тривогою, вигоранням і складними життєвими змінами.',
+          specializations: ['Командний коучинг', 'Коучинг цілей'],
           offers_online: true,
           offers_offline: true,
-        },
+          location: 'Київ',
+        } as any,
       ],
       page: 1,
-      page_size: 12,
-      total: 3,
+      page_size: 5,
+      total: 1,
       total_pages: 1,
     })
 
     renderView()
 
-    const onlineOnlyCard = (await screen.findByText('Olena P.')).closest('.therapist-card')
-    const offlineOnlyCard = screen.getByText('Ira B.').closest('.therapist-card')
-    const bothCard = screen.getByText('Marta L.').closest('.therapist-card')
+    await fireEvent.update(screen.getByPlaceholderText('Ім’я спеціаліста або частина посилання'), 'Олена')
+    await fireEvent.click(screen.getByRole('button', { name: 'Знайти профіль' }))
 
-    expect(onlineOnlyCard).toHaveTextContent('Онлайн')
-    expect(onlineOnlyCard).not.toHaveTextContent('Офлайн')
-    expect(offlineOnlyCard).not.toHaveTextContent('Онлайн')
-    expect(offlineOnlyCard).toHaveTextContent('Офлайн')
-    expect(bothCard).toHaveTextContent('Онлайн')
-    expect(bothCard).toHaveTextContent('Офлайн')
+    await waitFor(() => {
+      expect(mockedFetchPublicSpecialists).toHaveBeenCalledWith({ name: 'Олена', page_size: 5 })
+    })
+
+    expect(await screen.findByText('Олена Коваль')).toBeInTheDocument()
+    expect(screen.getByText('Командний коучинг')).toBeInTheDocument()
+    expect(screen.getByText('Командний коучинг, Коучинг цілей')).toBeInTheDocument()
+    expect(screen.getByText('Онлайн · Офлайн')).toBeInTheDocument()
+    expect(screen.getByText('Київ')).toBeInTheDocument()
+
+    const link = screen.getByRole('link', { name: /Олена Коваль/ })
+    expect(link).toHaveAttribute('href', '/s/olena-koval')
+    expect(screen.getByText('Відкрити профіль')).toBeInTheDocument()
+    expect(screen.queryByText(/Всього/i)).not.toBeInTheDocument()
+  })
+
+  it('renders no-results state after successful search with empty response', async () => {
+    mockedFetchPublicSpecialists.mockResolvedValue({
+      results: [],
+      page: 1,
+      page_size: 5,
+      total: 0,
+      total_pages: 1,
+    })
+
+    renderView()
+
+    await fireEvent.update(screen.getByPlaceholderText('Ім’я спеціаліста або частина посилання'), 'Марія')
+    await fireEvent.click(screen.getByRole('button', { name: 'Знайти профіль' }))
+
+    expect(await screen.findByText('Профіль не знайдено')).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        'Перевірте написання імені або попросіть спеціаліста надіслати пряме посилання на профіль.'
+      )
+    ).toBeInTheDocument()
   })
 })

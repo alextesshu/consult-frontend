@@ -3,7 +3,7 @@
     <div class="card__title">Переходимо до запиту</div>
     <div v-if="loading" class="muted">Шукаємо профіль спеціаліста...</div>
     <div v-else-if="error" class="form-error">{{ error }}</div>
-    <RouterLink v-if="error" class="btn btn--ghost" to="/specialists">Перейти до каталогу</RouterLink>
+    <RouterLink v-if="error" class="btn btn--ghost" to="/specialists">Знайти профіль спеціаліста</RouterLink>
   </section>
 </template>
 

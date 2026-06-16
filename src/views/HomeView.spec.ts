@@ -9,6 +9,7 @@ async function renderHome(options?: { authenticated?: boolean; roles?: string[] 
   const routes = [
     { path: '/', component: HomeView },
     { path: '/signup', component: { template: '<div>Signup</div>' } },
+    { path: '/specialists', component: { template: '<div>Specialist Search</div>' } },
     { path: '/pricing', component: { template: '<div>Pricing</div>' } },
     { path: '/support-and-data-requests', component: { template: '<div>Support</div>' } },
     { path: '/cabinet', component: { template: '<div>Cabinet</div>' } },
@@ -84,7 +85,15 @@ describe('HomeView', () => {
     expect(screen.getByText('Консультація з клієнтом')).toBeInTheDocument()
     expect(screen.getByText('Підтверджено')).toBeInTheDocument()
 
-    expect(screen.getByText(/Якщо ви клієнт — перейдіть за посиланням/)).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        /Для клієнтів: якщо ви знаєте імʼя спеціаліста або маєте частину посилання, знайдіть його публічний профіль/
+      )
+    ).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Знайти профіль спеціаліста' })).toHaveAttribute(
+      'href',
+      '/specialists'
+    )
     expect(
       screen.getByRole('heading', {
         name: 'Профіль для презентації себе і робочий кабінет для розвитку практики',

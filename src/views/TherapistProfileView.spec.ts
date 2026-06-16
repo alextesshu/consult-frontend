@@ -68,6 +68,7 @@ function makeProfile(): SpecialistProfile {
   return {
     id: 5,
     public_profile_enabled: true,
+    is_search_visible: true,
     slug: 'specialist-anna',
     public_profile_path: '/s/specialist-anna',
     public_profile_url: `${window.location.origin}/s/specialist-anna`,
@@ -206,6 +207,21 @@ describe('TherapistProfileView', () => {
     expect(
       screen.getByText(
         'Так ваше ім’я буде відображатися у публічному профілі. Можна вказати повне ім’я або скорочений варіант.'
+      )
+    ).toBeInTheDocument()
+  })
+
+  it('renders search visibility control in profile settings', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValue(makeProfile())
+
+    renderView()
+
+    expect(
+      await screen.findByLabelText('Дозволити знаходити мій профіль через пошук')
+    ).toBeChecked()
+    expect(
+      screen.getByText(
+        'Якщо увімкнено, клієнти зможуть знайти ваш публічний профіль за іменем або частиною посилання. Без пошукового запиту профіль не показується.'
       )
     ).toBeInTheDocument()
   })

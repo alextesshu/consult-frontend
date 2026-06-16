@@ -31,7 +31,7 @@ async function renderView(initialPath = '/client/inquiries/12') {
       },
       {
         path: '/specialists',
-        component: { template: '<div>Catalog</div>' },
+        component: { template: '<div>Specialist Search</div>' },
       },
     ],
   })
@@ -87,6 +87,6 @@ describe('ClientInquiryRedirectView', () => {
     await renderView()
 
     expect(await screen.findByText('Не вдалося відкрити профіль спеціаліста для цього запиту.')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Перейти до каталогу' })).toHaveAttribute('href', '/specialists')
+    expect(screen.getByRole('link', { name: 'Знайти профіль спеціаліста' })).toHaveAttribute('href', '/specialists')
   })
 })

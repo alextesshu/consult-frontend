@@ -45,10 +45,18 @@
           </div>
         </div>
         <div class="form" style="margin-top: 12px;">
-          <label class="check" title="Якщо вимкнено — профіль не буде видно у каталозі.">
+          <label class="check" title="Якщо вимкнено — профіль не буде доступний за прямим посиланням.">
             <input v-model="profile.public_profile_enabled" type="checkbox" />
             Публічний профіль увімкнено
           </label>
+          <label class="check">
+            <input v-model="profile.is_search_visible" type="checkbox" />
+            Дозволити знаходити мій профіль через пошук
+          </label>
+          <div class="field-help">
+            Якщо увімкнено, клієнти зможуть знайти ваш публічний профіль за іменем або частиною посилання.
+            Без пошукового запиту профіль не показується.
+          </div>
           <div class="field">
             <div class="muted">Публічне посилання</div>
             <div class="slug-row">
@@ -132,7 +140,7 @@
         <div class="panel__header">
           <div>
             <h2 class="panel__title">Основні дані</h2>
-            <p class="panel__hint">Ці поля формують перше враження в каталозі та публічному профілі.</p>
+            <p class="panel__hint">Ці поля формують перше враження у пошуку профілю та публічному профілі.</p>
           </div>
         </div>
         <div class="form form--profile-basics" style="margin-top: 12px;">
@@ -1508,6 +1516,7 @@ function buildProfilePayload() {
   const publicDisplayName = (profile.public_display_name || '').trim()
   return {
     public_profile_enabled: profile.public_profile_enabled,
+    is_search_visible: profile.is_search_visible,
     public_display_name: publicDisplayName,
     display_name: publicDisplayName,
     professional_focus: normalizeProfessionalFocus(profile.professional_focus),
@@ -1562,6 +1571,7 @@ function buildProfilePayload() {
 const profile = reactive<SpecialistProfile>({
   id: 0,
   public_profile_enabled: false,
+  is_search_visible: false,
   slug: '',
   public_profile_path: '',
   public_profile_url: '',
@@ -1752,6 +1762,7 @@ function setSuggestionCategory(section: SuggestionSectionKey, category: Suggesti
 }
 type ProfileFormSnapshot = {
   public_profile_enabled: boolean
+  is_search_visible: boolean
   public_display_name: string
   professional_focus: ProfessionalFocus | null
   public_profile_summary: string
@@ -1804,6 +1815,7 @@ type ProfileFormSnapshot = {
 function createProfileFormSnapshot(): ProfileFormSnapshot {
   return {
     public_profile_enabled: profile.public_profile_enabled,
+    is_search_visible: profile.is_search_visible,
     public_display_name: profile.public_display_name || '',
     professional_focus: normalizeProfessionalFocus(profile.professional_focus),
     public_profile_summary: profile.public_profile_summary || '',

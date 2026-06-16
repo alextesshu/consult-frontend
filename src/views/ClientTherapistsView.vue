@@ -16,7 +16,7 @@
         v-else-if="error"
         title="Не вдалося завантажити список спеціалістів"
         :description="error"
-        action-text="Відкрити каталог"
+        action-text="Знайти профіль спеціаліста"
         action-to="/specialists"
       >
         <template #actions>
@@ -27,7 +27,7 @@
         v-else-if="therapists.length === 0"
         title="Ще немає активних спеціалістів"
         description="Коли у вас з'являться активні спеціалісти, вони відобразяться тут."
-        action-text="Відкрити каталог"
+        action-text="Знайти профіль спеціаліста"
         action-to="/specialists"
       />
       <div v-else class="therapist-grid">
@@ -111,7 +111,7 @@ async function loadTherapists() {
     therapists.value = resp.results || []
   } catch {
     therapists.value = []
-    error.value = 'Спробуйте ще раз або відкрийте загальний каталог спеціалістів.'
+    error.value = 'Спробуйте ще раз або відкрийте пошук профілю спеціаліста.'
   } finally {
     loading.value = false
   }

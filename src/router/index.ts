@@ -348,7 +348,6 @@ const routes = [
     path: '/specialists',
     name: 'public-specialists',
     component: PublicSpecialistsView,
-    meta: { requiresAuth: true, requiresRole: 'CLIENT' },
   },
   { path: '/therapists', redirect: { name: 'public-specialists' } },
   { path: '/public/therapists', redirect: { name: 'public-specialists' } },

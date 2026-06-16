@@ -3,6 +3,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import { createMemoryHistory, createRouter } from 'vue-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import App from '../App.vue'
+import appRouter from '../router'
 import ClientInquiryRedirectView from '../views/ClientInquiryRedirectView.vue'
 import {
   apiGet,
@@ -129,6 +130,7 @@ async function renderWithProviders(options?: {
     { path: '/cabinet/settings', component: { template: '<div>Cabinet Settings</div>' } },
     { path: '/cabinet/settings/notifications', component: { template: '<div>Cabinet Notifications</div>' } },
     { path: '/public', component: { template: '<div>Public Redirect</div>' } },
+    { path: '/specialists', component: { template: '<div>Public Specialists</div>' } },
     { path: '/client', component: { template: '<div>Client</div>' } },
     { path: '/client/materials', component: { template: '<div>Client Materials</div>' } },
     { path: '/client/chat', component: { template: '<div>Client Chat</div>' } },
@@ -235,6 +237,16 @@ describe('App shell', () => {
     ).not.toBeInTheDocument()
   })
 
+  it('allows guests to open /specialists without redirect to signup-client', async () => {
+    const pinia = createPinia()
+    setActivePinia(pinia)
+
+    await appRouter.push('/specialists')
+    await appRouter.isReady()
+
+    expect(appRouter.currentRoute.value.fullPath).toBe('/specialists')
+  })
+
   it('renders product footer on public routes', async () => {
     await renderWithProviders()
 
@@ -246,6 +258,10 @@ describe('App shell', () => {
     expect(within(footer as HTMLElement).getByRole('link', { name: 'Можливості' })).toHaveAttribute(
       'href',
       '/#features'
+    )
+    expect(within(footer as HTMLElement).getByRole('link', { name: 'Знайти профіль спеціаліста' })).toHaveAttribute(
+      'href',
+      '/specialists'
     )
     expect(within(footer as HTMLElement).getByRole('link', { name: 'Тарифи' })).toHaveAttribute('href', '/pricing')
     expect(within(footer as HTMLElement).getByRole('link', { name: 'Підтримка та запити щодо даних' })).toHaveAttribute(

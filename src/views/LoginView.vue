@@ -45,7 +45,7 @@
         </p>
         <p class="muted auth__helper">
           Шукаєте спеціаліста?
-          <RouterLink to="/specialists">Перейти до каталогу</RouterLink>
+          <RouterLink to="/specialists">Знайти профіль спеціаліста</RouterLink>
         </p>
       </form>
     </div>

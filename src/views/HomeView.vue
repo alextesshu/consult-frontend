@@ -191,8 +191,13 @@
       </section>
 
       <section class="client-note reveal" aria-label="Пояснення для клієнтів">
-        Якщо ви клієнт — перейдіть за посиланням на профіль свого спеціаліста. Там можна залишити запит,
-        переглянути формат роботи або знайти контакти.
+        <p class="client-note__text">
+          Для клієнтів: якщо ви знаєте імʼя спеціаліста або маєте частину посилання, знайдіть його
+          публічний профіль у Pro Consult і залиште запит без реєстрації.
+        </p>
+        <RouterLink class="btn btn--ghost btn--sm client-note__link" to="/specialists">
+          Знайти профіль спеціаліста
+        </RouterLink>
       </section>
 
       <section id="features" class="value-section reveal" aria-labelledby="value-title">
@@ -2413,6 +2418,18 @@ onBeforeUnmount(() => {
   padding: 16px 18px;
   color: color-mix(in srgb, var(--pc-navy-900) 84%, #3d5662);
   line-height: 1.55;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.client-note__text {
+  margin: 0;
+}
+
+.client-note__link {
+  flex: 0 0 auto;
 }
 
 .blog-section {
@@ -3112,6 +3129,11 @@ onBeforeUnmount(() => {
 
   .home-hero {
     padding: 20px 16px;
+  }
+
+  .client-note {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .home-hero__title {

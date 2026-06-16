@@ -31,7 +31,7 @@ describe('ClientTherapistsView', () => {
     mockedFetchPublicSpecialists.mockReset()
   })
 
-  it('renders an explicit empty state with a catalog entrypoint', async () => {
+  it('renders an explicit empty state with a search entrypoint', async () => {
     mockedFetchPublicSpecialists.mockResolvedValue({
       results: [],
       page: 1,
@@ -44,7 +44,7 @@ describe('ClientTherapistsView', () => {
 
     await flushPromises()
     expect(screen.getByText('Ще немає активних спеціалістів')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Відкрити каталог' })).toHaveAttribute('href', '/specialists')
+    expect(screen.getByRole('link', { name: 'Знайти профіль спеціаліста' })).toHaveAttribute('href', '/specialists')
   })
 
   it('renders an explicit error state and retries the specialist list', async () => {

@@ -20,7 +20,7 @@
         <button v-else class="btn btn--ghost btn--disabled" type="button" disabled>
           Найближча сесія
         </button>
-        <RouterLink class="btn" to="/specialists">Додати спеціаліста</RouterLink>
+        <RouterLink class="btn" to="/specialists">Знайти профіль спеціаліста</RouterLink>
         <RouterLink class="btn btn--ghost" to="/client/profile">Мій профіль</RouterLink>
       </div>
     </header>
@@ -28,7 +28,7 @@
     <div id="selected-specialists" class="card">
       <div class="card__title">Обрані спеціалісти</div>
       <div v-if="selectedSpecialistsWithSessions.length === 0" class="muted">
-        Ви ще не обрали спеціалістів. Натисніть "Обрати спеціаліста", щоб перейти в каталог.
+        Ви ще не додали спеціалістів. Натисніть "Знайти профіль спеціаліста", щоб відкрити пошук.
       </div>
       <div
         v-else
@@ -88,7 +88,7 @@
         </RouterLink>
       </div>
       <div v-if="selectedSpecialists.length > 0" class="selected-actions">
-        <RouterLink class="btn btn--ghost" to="/specialists">Додати спеціаліста</RouterLink>
+        <RouterLink class="btn btn--ghost" to="/specialists">Знайти профіль спеціаліста</RouterLink>
       </div>
     </div>
 
@@ -168,7 +168,7 @@
         v-else
         title="Майбутніх сесій поки немає"
         description="Коли у вас з'явиться нова сесія, вона відобразиться тут."
-        action-text="Обрати спеціаліста"
+        action-text="Знайти профіль спеціаліста"
         action-to="/specialists"
       />
     </div>
@@ -177,12 +177,12 @@
       <div class="card__title">Підказки</div>
       <ul class="tips-list">
         <li>
-          <RouterLink class="tips-link" to="/specialists">Обрати спеціаліста</RouterLink>
+          <RouterLink class="tips-link" to="/specialists">Знайти профіль спеціаліста</RouterLink>
           <span class="muted">Перегляньте профіль і доступні слоти.</span>
         </li>
         <li>
-          <RouterLink class="tips-link" to="/specialists">Каталог спеціалістів</RouterLink>
-          <span class="muted">Щоб знайти інших спеціалістів, відкрийте меню "Каталог".</span>
+          <RouterLink class="tips-link" to="/specialists">Пошук профілю спеціаліста</RouterLink>
+          <span class="muted">Щоб знайти іншого спеціаліста, скористайтеся пошуком профілю.</span>
         </li>
         <li>
           <span class="tips-link">Забронювати слот</span>
@@ -219,8 +219,8 @@
       <EmptyState
         v-else-if="inquiryEntries.length === 0"
         title="Запити до бронювання поки недоступні"
-        description="Оберіть спеціаліста, щоб поставити коротке уточнювальне запитання перед бронюванням."
-        action-text="Каталог спеціалістів"
+        description="Знайдіть профіль спеціаліста, щоб поставити коротке уточнювальне запитання перед бронюванням."
+        action-text="Пошук профілю спеціаліста"
         action-to="/specialists"
       />
       <ul v-else class="session-list">

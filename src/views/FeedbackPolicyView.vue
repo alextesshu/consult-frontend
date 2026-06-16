@@ -51,7 +51,7 @@
       </p>
 
       <div class="policy__cta">
-        <RouterLink class="btn" to="/specialists">Перейти до каталогу</RouterLink>
+        <RouterLink class="btn" to="/specialists">Знайти профіль спеціаліста</RouterLink>
       </div>
     </section>
   </section>

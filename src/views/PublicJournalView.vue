@@ -22,7 +22,7 @@
 
         <RouterLink class="btn btn--ghost" :to="profileLink">Профіль</RouterLink>
 
-        <RouterLink class="btn btn--ghost" to="/specialists">До списку</RouterLink>
+        <RouterLink class="btn btn--ghost" to="/specialists">Знайти профіль спеціаліста</RouterLink>
 
       </div>
 

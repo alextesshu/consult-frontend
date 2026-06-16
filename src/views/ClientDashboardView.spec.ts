@@ -926,7 +926,7 @@ describe('ClientDashboardView', () => {
     await flushPromises()
 
     const heroActions = view.container.querySelector('.client-hero-actions') as HTMLElement
-    expect(within(heroActions).getByRole('link', { name: 'Додати спеціаліста' })).toHaveAttribute(
+    expect(within(heroActions).getByRole('link', { name: 'Знайти профіль спеціаліста' })).toHaveAttribute(
       'href',
       '/specialists'
     )
@@ -937,16 +937,16 @@ describe('ClientDashboardView', () => {
     expect(within(heroActions).queryByRole('button', { name: 'Мої спеціалісти' })).not.toBeInTheDocument()
 
     const tipsCard = view.container.querySelector('.tips-card') as HTMLElement
-    expect(within(tipsCard).getByRole('link', { name: 'Обрати спеціаліста' })).toHaveAttribute(
+    expect(within(tipsCard).getByRole('link', { name: 'Знайти профіль спеціаліста' })).toHaveAttribute(
       'href',
       '/specialists'
     )
-    expect(within(tipsCard).getByRole('link', { name: 'Каталог спеціалістів' })).toHaveAttribute(
+    expect(within(tipsCard).getByRole('link', { name: 'Пошук профілю спеціаліста' })).toHaveAttribute(
       'href',
       '/specialists'
     )
     expect(
-      within(tipsCard).getByText('Щоб знайти інших спеціалістів, відкрийте меню "Каталог".')
+      within(tipsCard).getByText('Щоб знайти іншого спеціаліста, скористайтеся пошуком профілю.')
     ).toBeInTheDocument()
   })
 })

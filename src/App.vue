@@ -30,7 +30,7 @@
         <RouterLink v-if="isAuthenticated && isAdmin" class="nav__desktop-only" to="/admin/specialists">
           Спеціалісти
         </RouterLink>
-        <RouterLink v-if="showCatalogNav" class="nav__desktop-only" to="/specialists">Каталог</RouterLink>
+        <RouterLink v-if="showCatalogNav" class="nav__desktop-only" to="/specialists">Пошук профілю</RouterLink>
         <RouterLink v-if="isAuthenticated && isClient && !isSpecialist" class="nav__desktop-only" to="/signup">
           Стати спеціалістом
         </RouterLink>
@@ -380,6 +380,7 @@
           <section class="footer__column" aria-labelledby="footer-product-title">
             <h2 id="footer-product-title" class="footer__column-title">Продукт</h2>
             <RouterLink class="footer__link" to="/#features">Можливості</RouterLink>
+            <RouterLink class="footer__link" to="/specialists">Знайти профіль спеціаліста</RouterLink>
             <span class="footer__text">Публічний профіль</span>
             <span class="footer__text">Запити без реєстрації</span>
             <span class="footer__text">Сесії та календар</span>

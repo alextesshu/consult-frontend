@@ -1,565 +1,405 @@
 <template>
-  <section class="public-specialists">
-    <header class="public-specialists__hero card">
-      <div>
-        <div class="badge badge--soft">Каталог спеціалістів</div>
-        <h1 class="title">Знайдіть спеціаліста</h1>
-        <p class="muted">Обирайте спеціаліста і бронюйте першу сесію.</p>
+  <section class="profile-finder">
+    <header class="profile-finder__hero card">
+      <div class="profile-finder__hero-copy">
+        <h1 class="title">Знайти профіль спеціаліста</h1>
+        <p class="muted">
+          Якщо ви знаєте ім’я спеціаліста або маєте частину посилання, знайдіть його публічний профіль у
+          Pro Consult і залиште запит без реєстрації.
+        </p>
       </div>
       <RouterLink class="btn btn--ghost" to="/">На головну</RouterLink>
     </header>
 
     <section class="card">
-      <div class="card__title">Пошук та фільтри</div>
-      <div class="filters">
-        <div class="filters__row">
+      <form class="finder-form" @submit.prevent="submitSearch">
+        <label class="finder-form__field" for="specialist-search-input">
+          <span class="finder-form__label">Пошук профілю</span>
           <input
-            v-model="nameQuery"
+            id="specialist-search-input"
+            v-model="searchQuery"
             class="input"
             type="text"
-            placeholder="Ім'я або прізвище"
-            @input="scheduleSearch"
-            @keyup.enter="applyFilters"
+            placeholder="Ім’я спеціаліста або частина посилання"
+            autocomplete="off"
           />
-          <input
-            v-model="specialization"
-            class="input"
-            type="text"
-            placeholder="Спеціалізація"
-            list="catalogSpecializationOptions"
-            @input="scheduleSearch"
-            @keyup.enter="applyFilters"
-          />
-          <input
-            v-model="language"
-            class="input"
-            type="text"
-            placeholder="Мова"
-            list="catalogLanguageOptions"
-            @input="scheduleSearch"
-            @keyup.enter="applyFilters"
-          />
-          <input
-            v-model="location"
-            class="input"
-            type="text"
-            placeholder="Місто"
-            @input="scheduleSearch"
-            @keyup.enter="applyFilters"
-          />
-        </div>
-        <datalist id="catalogSpecializationOptions">
-          <option v-for="option in specializationOptions" :key="option" :value="option" />
-        </datalist>
-        <datalist id="catalogLanguageOptions">
-          <option v-for="option in languageOptions" :key="option" :value="option" />
-        </datalist>
-        <div class="filters__row">
-          <input v-model="priceMin" class="input" type="number" min="0" placeholder="Ціна від" @input="scheduleSearch" />
-          <input v-model="priceMax" class="input" type="number" min="0" placeholder="Ціна до" @input="scheduleSearch" />
-          <select v-model="priceCurrency" class="input input--select" @change="applyFilters">
-            <option value="">Валюта</option>
-            <option value="UAH">грн</option>
-            <option value="USD">$</option>
-            <option value="EUR">€</option>
-          </select>
-          <select v-model="sort" class="input input--select" @change="applyFilters">
-            <option value="">Сортування</option>
-            <option value="name_asc">Ім'я (А-Я)</option>
-            <option value="name_desc">Ім'я (Я-А)</option>
-            <option value="price_asc">Ціна (зростання)</option>
-            <option value="price_desc">Ціна (спадання)</option>
-            <option value="experience_desc">Досвід (спадання)</option>
-            <option value="experience_asc">Досвід (зростання)</option>
-            <option value="created_desc">Новіші спочатку</option>
-          </select>
-        </div>
-        <div class="filters__format">
-          <label class="filters__check">
-            <input v-model="offersOnline" type="checkbox" @change="applyFilters" />
-            Онлайн
-          </label>
-          <label class="filters__check">
-            <input v-model="offersOffline" type="checkbox" @change="applyFilters" />
-            Офлайн
-          </label>
-        </div>
-        <div class="filters__actions">
-          <button class="btn btn--ghost" type="button" @click="applyFilters">Застосувати</button>
-          <button class="btn btn--ghost" type="button" :disabled="!hasFilters" @click="resetFilters">Скинути</button>
-          <div class="filters__hint muted">
-            Почніть із пошуку по імені спеціаліста. Рекомендуємо не вводити одразу всі параметри — так
-            легше знайти потрібного спеціаліста.
-          </div>
-        </div>
-      </div>
+        </label>
+        <button class="btn" type="submit">Знайти профіль</button>
+      </form>
+      <p v-if="validationMessage" class="form-error">{{ validationMessage }}</p>
     </section>
 
     <section class="card">
-      <div class="card__title">Спеціалісти</div>
-      <LoadingSkeleton v-if="loading" variant="card" :count="6" height="140px" />
+      <div class="card__title">Результати пошуку</div>
+
+      <LoadingSkeleton v-if="loading" variant="card" :count="3" height="176px" />
+
       <EmptyState
         v-else-if="error"
-        title="Не вдалося завантажити каталог"
-        description="Спробуйте оновити список ще раз. Поточні фільтри залишилися без змін."
+        title="Не вдалося виконати пошук"
+        description="Спробуйте ще раз трохи пізніше."
       >
         <template #actions>
-          <button class="btn btn--ghost" type="button" @click="loadTherapists">Спробувати ще раз</button>
+          <button class="btn btn--ghost" type="button" @click="retrySearch">Спробувати ще раз</button>
         </template>
       </EmptyState>
+
       <EmptyState
-        v-else-if="therapists.length === 0"
-        title="Нічого не знайдено"
-        description="Спробуйте змінити фільтри або очистити пошук."
-      >
-        <template #actions>
-          <button class="btn btn--ghost" type="button" @click="resetFilters">Скинути фільтри</button>
-        </template>
-      </EmptyState>
-      <div v-else class="therapist-grid">
+        v-else-if="!hasSearched"
+        title="Знайти профіль спеціаліста"
+        description="Введіть ім’я спеціаліста або частину посилання на профіль."
+      />
+
+      <EmptyState
+        v-else-if="results.length === 0"
+        title="Профіль не знайдено"
+        description="Перевірте написання імені або попросіть спеціаліста надіслати пряме посилання на профіль."
+      />
+
+      <div v-else class="result-list">
         <RouterLink
-          v-for="therapist in therapists"
-          :key="therapist.public_slug"
-          class="therapist-card"
-          :to="`/s/${therapist.public_slug}`"
+          v-for="specialist in results"
+          :key="specialist.slug || specialist.public_slug"
+          class="result-card"
+          :to="profileRoute(specialist)"
         >
-          <div class="therapist-photo-link">
+          <div class="result-card__media">
             <img
-              v-if="therapist.photo_url"
-              :src="therapist.photo_url"
-              :alt="publicName(therapist)"
-              class="therapist-photo"
+              v-if="specialist.photo_url"
+              :src="specialist.photo_url"
+              :alt="publicName(specialist)"
+              class="result-card__photo"
             />
-            <div v-else class="therapist-photo therapist-photo--empty">Фото</div>
+            <div v-else class="result-card__photo result-card__photo--empty">Фото</div>
           </div>
-          <div class="therapist-info">
-            <div class="therapist-name">{{ publicName(therapist) }}</div>
-            <div v-if="completedSessionsLabel(therapist)" class="therapist-sessions-badge">{{ completedSessionsLabel(therapist) }}</div>
-            <div v-if="therapist.offers_online || therapist.offers_offline" class="therapist-format-row">
-              <span v-if="therapist.offers_online" class="therapist-format-badge">Онлайн</span>
-              <span v-if="therapist.offers_offline" class="therapist-format-badge">Офлайн</span>
+
+          <div class="result-card__body">
+            <div class="result-card__head">
+              <div class="result-card__name">{{ publicName(specialist) }}</div>
+              <p v-if="primarySpecialization(specialist)" class="result-card__headline">
+                {{ primarySpecialization(specialist) }}
+              </p>
             </div>
-            <div v-if="therapist.experience_years !== undefined && therapist.experience_years !== null" class="muted">
-              Досвід: {{ formatExperience(therapist.experience_years) }}
-            </div>
-            <div class="muted meta-line">
-              <span v-if="therapist.location">{{ therapist.location }}</span>
-              <span v-if="languageLabel(therapist.languages)">{{ languageLabel(therapist.languages) }}</span>
-            </div>
-            <div v-if="priceLabel(therapist)" class="therapist-price">{{ priceLabel(therapist) }}</div>
-            <div v-if="introPriceLabel(therapist)" class="therapist-price therapist-price--intro">
-              Ознайомча: {{ introPriceLabel(therapist) }}
+
+            <p v-if="specialist.public_profile_summary" class="result-card__summary">
+              {{ specialist.public_profile_summary }}
+            </p>
+
+            <dl class="result-card__details">
+              <div v-if="specializationText(specialist)" class="result-card__detail">
+                <dt>Теми</dt>
+                <dd>{{ specializationText(specialist) }}</dd>
+              </div>
+              <div v-if="formatText(specialist)" class="result-card__detail">
+                <dt>Формат</dt>
+                <dd>{{ formatText(specialist) }}</dd>
+              </div>
+              <div v-if="specialist.location" class="result-card__detail">
+                <dt>Локація</dt>
+                <dd>{{ specialist.location }}</dd>
+              </div>
+            </dl>
+
+            <div class="result-card__actions">
+              <span class="btn btn--ghost result-card__cta">Відкрити профіль</span>
             </div>
           </div>
         </RouterLink>
-      </div>
-      <div v-if="!error && therapists.length > 0" class="pagination">
-        <div class="muted">Сторінка {{ page }} з {{ totalPages }} · Всього {{ total }}</div>
-        <div class="pagination__controls">
-          <button class="btn btn--ghost btn--sm" type="button" :disabled="page <= 1" @click="goPage(page - 1)">Назад</button>
-          <button class="btn btn--ghost btn--sm" type="button" :disabled="page >= totalPages" @click="goPage(page + 1)">Далі</button>
-        </div>
       </div>
     </section>
   </section>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
+import { computed, ref } from 'vue'
 import { fetchPublicSpecialists, type PublicSpecialistProfile } from '../lib/api'
-import { getCompletedSessionsBadge } from '../lib/completedSessionsBadge'
-import LoadingSkeleton from '../components/LoadingSkeleton.vue'
 import EmptyState from '../components/EmptyState.vue'
+import LoadingSkeleton from '../components/LoadingSkeleton.vue'
 
-const therapists = ref<PublicSpecialistProfile[]>([])
+const searchQuery = ref('')
 const loading = ref(false)
 const error = ref(false)
-const total = ref(0)
-const totalPages = ref(1)
-const page = ref(1)
-const pageSize = ref(12)
-const sort = ref('')
-const nameQuery = ref('')
-const specialization = ref('')
-const language = ref('')
-const location = ref('')
-const priceMin = ref('')
-const priceMax = ref('')
-const priceCurrency = ref('')
-const offersOnline = ref(false)
-const offersOffline = ref(false)
-const appliedName = ref('')
-const appliedSpecialization = ref('')
-const appliedLanguage = ref('')
-const appliedLocation = ref('')
-const appliedPriceMin = ref('')
-const appliedPriceMax = ref('')
-const appliedPriceCurrency = ref('')
-const appliedOffersOnline = ref(false)
-const appliedOffersOffline = ref(false)
-let searchTimer: number | undefined
-const languageOptions = [
-  'Українська',
-  'Російська',
-  'English',
-  'Polski',
-  'Deutsch',
-  'Francais',
-  'Espanol',
-  'Italiano',
-  'Portugues',
-  'Cestina',
-  'Slovencina',
-]
+const hasSearched = ref(false)
+const validationMessage = ref('')
+const lastSubmittedQuery = ref('')
+const results = ref<PublicSpecialistProfile[]>([])
 
-const specializationOptions = [
-  'Сімейна терапія',
-  'Гештальт терапія',
-  'Клієнт-центрована терапія',
-  'Когнітивно-поведінкова терапія',
-  'Терапія прийняття і відповідальності (ACT)',
-  'Психоаналітична терапія',
-  'Психотерапія',
-  'Коучинг',
-  'Психіатрія',
-  'Арт-терапія',
-  'Екзистенційна терапія',
-  'Психодрама',
-  'Інше',
-]
-const hasFilters = computed(
-  () =>
-    Boolean(nameQuery.value) ||
-    Boolean(specialization.value) ||
-    Boolean(language.value) ||
-    Boolean(location.value) ||
-    Boolean(priceMin.value) ||
-    Boolean(priceMax.value) ||
-    Boolean(priceCurrency.value) ||
-    offersOnline.value ||
-    offersOffline.value ||
-    Boolean(sort.value)
-)
+const trimmedQuery = computed(() => searchQuery.value.trim())
 
-const languageLabel = (value?: string | string[]) => {
-  if (!value) return ''
-  if (Array.isArray(value)) return value.join(', ')
-  return value
+function publicName(specialist: PublicSpecialistProfile) {
+  return (specialist.public_display_name || specialist.display_name || '').trim()
 }
 
-const priceLabel = (therapist: PublicSpecialistProfile) => {
-  if (!therapist.price) return ''
-  if (therapist.price_currency === 'USD') return `$${therapist.price}`
-  if (therapist.price_currency === 'EUR') return `€${therapist.price}`
-  return `${therapist.price} грн`
+function specializations(specialist: PublicSpecialistProfile) {
+  const value = specialist.specializations
+  if (Array.isArray(value)) return value.map((item) => item.trim()).filter(Boolean)
+  if (typeof value === 'string' && value.trim()) return [value.trim()]
+  return []
 }
 
-const introPriceLabel = (therapist: PublicSpecialistProfile) => {
-  if (!therapist.intro_price) return ''
-  if (therapist.intro_price_currency === 'USD') return `$${therapist.intro_price}`
-  if (therapist.intro_price_currency === 'EUR') return `€${therapist.intro_price}`
-  return `${therapist.intro_price} грн`
+function primarySpecialization(specialist: PublicSpecialistProfile) {
+  return specializations(specialist)[0] || ''
 }
 
-const completedSessionsLabel = (therapist: PublicSpecialistProfile) => {
-  const bucket = getCompletedSessionsBadge(therapist.completed_sessions_count)
-  return bucket ? `${bucket} сесій` : ''
+function specializationText(specialist: PublicSpecialistProfile) {
+  return specializations(specialist).join(', ')
 }
 
-const publicName = (therapist: PublicSpecialistProfile) => {
-  const raw = therapist.display_name || ''
-  const parts = raw.trim().split(/\s+/).filter(Boolean)
-  if (!parts.length) return ''
-  if (parts.length === 1) return parts[0]
-  const first = parts[0]
-  const last = parts[parts.length - 1]
-  if (!last) return first
-  const initial = last.charAt(0).toUpperCase()
-  return `${first} ${initial}.`
+function formatText(specialist: PublicSpecialistProfile) {
+  const items = []
+  if (specialist.offers_online) items.push('Онлайн')
+  if (specialist.offers_offline) items.push('Офлайн')
+  return items.join(' · ')
 }
 
-const formatExperience = (value: number) => {
-  if (value === 0) return '0 років'
-  if (value === 1) return '1 рік'
-  if (value >= 2 && value <= 4) return `${value} роки`
-  return `${value} років`
+function profileRoute(specialist: PublicSpecialistProfile) {
+  const slug = (specialist.slug || specialist.public_slug || '').trim()
+  return slug ? `/s/${slug}` : '/specialists'
 }
 
-async function loadTherapists() {
+async function runSearch(query: string) {
   loading.value = true
   error.value = false
+  validationMessage.value = ''
   try {
-    const resp = await fetchPublicSpecialists({
-      page: page.value,
-      page_size: pageSize.value,
-      sort: sort.value || undefined,
-      name: appliedName.value || undefined,
-      specialization: appliedSpecialization.value || undefined,
-      language: appliedLanguage.value || undefined,
-      location: appliedLocation.value || undefined,
-      price_min: appliedPriceMin.value || undefined,
-      price_max: appliedPriceMax.value || undefined,
-      price_currency: appliedPriceCurrency.value || undefined,
-      offers_online: appliedOffersOnline.value ? '1' : undefined,
-      offers_offline: appliedOffersOffline.value ? '1' : undefined,
+    const response = await fetchPublicSpecialists({
+      name: query,
+      page_size: 5,
     })
-    therapists.value = resp.results || []
-    total.value = resp.total || 0
-    totalPages.value = resp.total_pages || 1
+    results.value = response.results || []
+    hasSearched.value = true
+    lastSubmittedQuery.value = query
   } catch {
-    therapists.value = []
-    total.value = 0
-    totalPages.value = 1
     error.value = true
+    results.value = []
   } finally {
     loading.value = false
   }
 }
 
-function applyFilters() {
-  appliedName.value = nameQuery.value
-  appliedSpecialization.value = specialization.value
-  appliedLanguage.value = language.value
-  appliedLocation.value = location.value
-  appliedPriceMin.value = priceMin.value
-  appliedPriceMax.value = priceMax.value
-  appliedPriceCurrency.value = priceCurrency.value
-  appliedOffersOnline.value = offersOnline.value
-  appliedOffersOffline.value = offersOffline.value
-  page.value = 1
-  loadTherapists()
-}
-
-function scheduleSearch() {
-  if (searchTimer) {
-    window.clearTimeout(searchTimer)
+async function submitSearch() {
+  const query = trimmedQuery.value
+  if (query.length < 3) {
+    validationMessage.value = 'Введіть щонайменше 3 символи для пошуку.'
+    hasSearched.value = false
+    results.value = []
+    error.value = false
+    return
   }
-  searchTimer = window.setTimeout(() => {
-    applyFilters()
-  }, 450)
+  await runSearch(query)
 }
 
-function resetFilters() {
-  nameQuery.value = ''
-  specialization.value = ''
-  language.value = ''
-  location.value = ''
-  priceMin.value = ''
-  priceMax.value = ''
-  priceCurrency.value = ''
-  offersOnline.value = false
-  offersOffline.value = false
-  sort.value = ''
-  appliedName.value = ''
-  appliedSpecialization.value = ''
-  appliedLanguage.value = ''
-  appliedLocation.value = ''
-  appliedPriceMin.value = ''
-  appliedPriceMax.value = ''
-  appliedPriceCurrency.value = ''
-  appliedOffersOnline.value = false
-  appliedOffersOffline.value = false
-  page.value = 1
-  loadTherapists()
+async function retrySearch() {
+  if (!lastSubmittedQuery.value) {
+    await submitSearch()
+    return
+  }
+  await runSearch(lastSubmittedQuery.value)
 }
-
-function goPage(next: number) {
-  page.value = next
-  loadTherapists()
-}
-
-onMounted(loadTherapists)
 </script>
 
 <style scoped>
-.public-specialists {
+.profile-finder {
   display: grid;
   gap: 20px;
 }
 
-.public-specialists__hero {
+.profile-finder__hero {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 18px;
-  background: linear-gradient(135deg, rgba(8, 113, 201, 0.16), rgba(7, 47, 71, 0.06));
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
   padding: 22px 24px;
-  box-shadow: var(--shadow);
 }
 
-.public-specialists__hero > div {
-  display: grid;
-  gap: 8px;
-  justify-items: start;
-}
-
-.public-specialists__hero .badge {
-  text-transform: uppercase;
-  letter-spacing: 0.18em;
-  font-size: 11px;
-}
-
-.public-specialists__hero .title {
-  font-size: 32px;
-}
-
-.public-specialists__hero .muted {
-  max-width: 520px;
-}
-
-.filters {
-  display: grid;
-  gap: 12px;
-}
-
-.filters__row {
+.profile-finder__hero-copy {
   display: grid;
   gap: 10px;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  max-width: 680px;
 }
 
-.filters__actions {
-  display: grid;
-  gap: 10px;
-}
-
-.filters__format {
+.finder-form {
   display: flex;
-  flex-wrap: wrap;
+  align-items: end;
   gap: 12px;
 }
 
-.filters__check {
-  display: inline-flex;
-  align-items: center;
+.finder-form__field {
+  flex: 1;
+  display: grid;
   gap: 6px;
-  font-size: 13px;
-  color: var(--text);
 }
 
-.filters__hint {
-  font-size: 13px;
+.finder-form__label {
+  font-size: 14px;
+  font-weight: 600;
 }
 
-.therapist-grid {
+.result-list {
   display: grid;
-  gap: 14px;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
 }
 
-.therapist-card {
+.result-card {
   display: grid;
-  gap: 12px;
-  padding: 14px;
-  border-radius: 16px;
+  grid-template-columns: 176px minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+  padding: 18px;
   border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
   background: #fff;
-  transition: box-shadow 0.2s ease, transform 0.2s ease;
-  text-decoration: none;
   color: inherit;
+  text-decoration: none;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
 
-.therapist-card:hover {
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.1);
-  transform: translateY(-2px);
+.result-card:hover {
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+  transform: translateY(-1px);
 }
 
-.therapist-card:focus-visible {
-  outline: 2px solid rgba(15, 118, 110, 0.6);
+.result-card:focus-visible {
+  outline: 2px solid rgba(15, 118, 110, 0.5);
   outline-offset: 2px;
 }
 
-.therapist-photo-link {
-  display: grid;
+.result-card__media {
+  min-width: 0;
 }
 
-.therapist-photo {
+.result-card__photo {
+  display: block;
   width: 100%;
-  height: 150px;
+  aspect-ratio: 1 / 1;
   object-fit: cover;
-  border-radius: 14px;
+  border-radius: var(--radius-md);
+  background: rgba(15, 23, 42, 0.04);
 }
 
-.therapist-photo--empty {
+.result-card__photo--empty {
   display: grid;
   place-items: center;
-  background: rgba(15, 23, 42, 0.06);
   color: var(--muted);
+  font-weight: 600;
 }
 
-.therapist-info {
+.result-card__body {
+  display: grid;
+  gap: 14px;
+  min-width: 0;
+}
+
+.result-card__head {
   display: grid;
   gap: 6px;
 }
 
-.therapist-name {
-  font-weight: 600;
+.result-card__name {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--text);
 }
 
-.therapist-sessions-badge {
-  width: fit-content;
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 600;
-  color: #2b6b60;
-  border: 1px solid color-mix(in srgb, #2b6b60 32%, var(--line));
-  background: color-mix(in srgb, #e8f1e8 68%, #ffffff);
-}
-
-.therapist-format-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.therapist-format-badge {
-  width: fit-content;
-  padding: 3px 9px;
-  border-radius: 999px;
-  font-size: 12px;
-  color: #5f5345;
-  border: 1px solid #e2d4bf;
-  background: #f4ede0;
-}
-
-.therapist-price {
-  font-weight: 600;
-}
-
-.therapist-price--intro {
+.result-card__headline {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.45;
   color: var(--muted);
 }
 
-.meta-line {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+.result-card__summary {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--text);
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
-.pagination {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+.result-card__details {
+  display: grid;
   gap: 10px;
-  margin-top: 12px;
+  margin: 0;
 }
 
-.pagination__controls {
+.result-card__detail {
+  display: grid;
+  gap: 4px;
+}
+
+.result-card__detail dt {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.result-card__detail dd {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--text);
+}
+
+.result-card__actions {
   display: flex;
-  gap: 8px;
+  justify-content: flex-start;
 }
 
-@media (max-width: 900px) {
-  .public-specialists__hero {
-    flex-direction: column;
-    align-items: flex-start;
+.result-card__cta {
+  width: fit-content;
+  pointer-events: none;
+}
+
+@media (max-width: 720px) {
+  .profile-finder {
+    gap: 14px;
   }
-  .pagination {
+
+  .profile-finder__hero,
+  .finder-form {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
+  }
+
+  .profile-finder__hero {
+    gap: 6px;
+    padding: 12px 14px;
+  }
+
+  .profile-finder__hero-copy {
+    gap: 2px;
+  }
+
+  .profile-finder__hero .title {
+    font-size: 24px;
+    line-height: 1.08;
+  }
+
+  .profile-finder__hero .muted {
+    font-size: 15px;
+    line-height: 1.45;
+  }
+
+  .profile-finder__hero .btn {
+    min-height: 40px;
+    padding: 9px 14px;
+  }
+
+  .result-card {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .result-card__photo {
+    aspect-ratio: 16 / 10;
+    max-height: 220px;
   }
 }
 </style>
