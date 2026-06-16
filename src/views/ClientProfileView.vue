@@ -58,15 +58,121 @@
         </div>
       </form>
     </section>
+
+    <section v-if="!loading" class="profile-card account-data-card">
+      <div class="account-data-card__header">
+        <div>
+          <h2 class="account-data-card__title">Акаунт і дані</h2>
+          <p class="muted account-data-card__copy">
+            Ви можете подати запит на видалення акаунта та пов’язаних персональних даних.
+            Підтримка опрацює звернення і повідомить про результат.
+          </p>
+        </div>
+        <span
+          v-if="dataDeletionRequest"
+          class="account-data-status"
+          :class="dataDeletionStatusClass(dataDeletionRequest.status)"
+        >
+          {{ dataDeletionStatusLabel(dataDeletionRequest.status) }}
+        </span>
+      </div>
+
+      <div v-if="dataDeletionLoading" class="muted">Завантаження...</div>
+      <div v-else class="account-data-card__body">
+        <div v-if="dataDeletionError" class="form-error">{{ dataDeletionError }}</div>
+
+        <div v-if="dataDeletionRequest" class="account-data-request">
+          <p class="account-data-request__meta">
+            Запит подано:
+            <strong>{{ formatDateTime(dataDeletionRequest.submitted_at) }}</strong>
+          </p>
+          <p v-if="dataDeletionRequest.reason" class="muted account-data-request__reason">
+            Коментар: {{ dataDeletionRequest.reason }}
+          </p>
+        </div>
+
+        <div class="account-data-actions">
+          <button
+            v-if="canSubmitDataDeletionRequest"
+            class="btn btn--danger"
+            type="button"
+            :disabled="dataDeletionSubmitting"
+            @click="openDataDeletionConfirm"
+          >
+            {{ dataDeletionSubmitting ? 'Надсилаємо...' : 'Подати запит на видалення' }}
+          </button>
+
+          <button
+            v-if="canCancelDataDeletionRequest"
+            class="btn btn--ghost"
+            type="button"
+            :disabled="dataDeletionCancelling"
+            @click="onCancelDataDeletionRequest"
+          >
+            {{ dataDeletionCancelling ? 'Скасовуємо...' : 'Скасувати запит' }}
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <ConfirmModal
+      :open="dataDeletionConfirmOpen"
+      title="Подати запит на видалення акаунта?"
+      message="Запит не виконується миттєво. Після перевірки підтримка зв’яжеться з вами за потреби та проведе процедуру без ризику для історії сервісу."
+      confirm-text="Подати запит"
+      cancel-text="Скасувати"
+      tone="danger"
+      @confirm="confirmCreateDataDeletionRequest"
+      @cancel="closeDataDeletionConfirm"
+    >
+      <template #body>
+        <label class="field account-data-modal__field">
+          <span>Коментар до запиту (необов’язково)</span>
+          <textarea
+            v-model.trim="dataDeletionReason"
+            class="input textarea"
+            rows="4"
+            placeholder="Можна коротко пояснити контекст для підтримки."
+          />
+        </label>
+      </template>
+    </ConfirmModal>
   </section>
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { fetchClientProfile, updateClientProfile, uploadClientPhoto, type ClientProfile } from '../lib/api'
+import ConfirmModal from '../components/ConfirmModal.vue'
+import {
+  cancelDataDeletionRequest,
+  createDataDeletionRequest,
+  fetchClientProfile,
+  fetchCurrentDataDeletionRequest,
+  updateClientProfile,
+  uploadClientPhoto,
+  type ClientProfile,
+  type DataDeletionRequest,
+} from '../lib/api'
 import { getApiErrorMessage } from '../lib/errors'
 import { useToast } from '../composables/useToast'
+
+type DataDeletionRequestStatus =
+  | 'SUBMITTED'
+  | 'IN_REVIEW'
+  | 'APPROVED'
+  | 'REJECTED'
+  | 'CANCELLED'
+  | 'EXECUTED'
+
+const DATA_DELETION_STATUS_LABELS: Record<DataDeletionRequestStatus, string> = {
+  SUBMITTED: 'Запит отримано',
+  IN_REVIEW: 'Запит на розгляді',
+  APPROVED: 'Запит підтверджено. Очікує виконання підтримкою.',
+  REJECTED: 'Запит відхилено',
+  CANCELLED: 'Запит скасовано',
+  EXECUTED: 'Запит виконано',
+}
 
 const profile = ref<ClientProfile>({
   id: 0,
@@ -83,12 +189,49 @@ const error = ref('')
 const photoUploading = ref(false)
 const photoPreview = ref('')
 const photoInput = ref<HTMLInputElement | null>(null)
+const dataDeletionLoading = ref(false)
+const dataDeletionSubmitting = ref(false)
+const dataDeletionCancelling = ref(false)
+const dataDeletionError = ref('')
+const dataDeletionRequest = ref<DataDeletionRequest | null>(null)
+const dataDeletionConfirmOpen = ref(false)
+const dataDeletionReason = ref('')
 const router = useRouter()
 const toast = useToast()
 const clientCodeLabel = '\u041a\u043e\u0434 \u043a\u043b\u0456\u0454\u043d\u0442\u0430'
+const canSubmitDataDeletionRequest = computed(() =>
+  !dataDeletionRequest.value ||
+  ['REJECTED', 'CANCELLED', 'EXECUTED'].includes(dataDeletionRequest.value.status)
+)
+const canCancelDataDeletionRequest = computed(() =>
+  Boolean(
+    dataDeletionRequest.value &&
+      ['SUBMITTED', 'IN_REVIEW'].includes(dataDeletionRequest.value.status)
+  )
+)
 
 function triggerPhotoSelect() {
   photoInput.value?.click()
+}
+
+function dataDeletionStatusLabel(status: string) {
+  return DATA_DELETION_STATUS_LABELS[status as DataDeletionRequestStatus] || status
+}
+
+function dataDeletionStatusClass(status: string) {
+  if (status === 'REJECTED') return 'account-data-status--rejected'
+  if (status === 'CANCELLED') return 'account-data-status--muted'
+  if (status === 'EXECUTED') return 'account-data-status--ok'
+  return 'account-data-status--pending'
+}
+
+function formatDateTime(value: string) {
+  const parsed = new Date(value)
+  if (Number.isNaN(parsed.getTime())) return value
+  return new Intl.DateTimeFormat('uk-UA', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(parsed)
 }
 
 function setPreview(file: File | null) {
@@ -135,6 +278,59 @@ async function loadProfile() {
   }
 }
 
+async function loadDataDeletionRequest() {
+  dataDeletionLoading.value = true
+  dataDeletionError.value = ''
+  try {
+    dataDeletionRequest.value = await fetchCurrentDataDeletionRequest()
+  } catch (err) {
+    dataDeletionError.value = getApiErrorMessage(
+      err,
+      'Не вдалося завантажити стан запиту на видалення.'
+    )
+  } finally {
+    dataDeletionLoading.value = false
+  }
+}
+
+function openDataDeletionConfirm() {
+  dataDeletionError.value = ''
+  dataDeletionConfirmOpen.value = true
+}
+
+function closeDataDeletionConfirm() {
+  dataDeletionConfirmOpen.value = false
+}
+
+async function confirmCreateDataDeletionRequest() {
+  dataDeletionConfirmOpen.value = false
+  dataDeletionSubmitting.value = true
+  dataDeletionError.value = ''
+  try {
+    dataDeletionRequest.value = await createDataDeletionRequest(dataDeletionReason.value)
+    dataDeletionReason.value = ''
+    toast.success('Запит на видалення передано підтримці.')
+  } catch (err) {
+    dataDeletionError.value = getApiErrorMessage(err, 'Не вдалося подати запит на видалення.')
+  } finally {
+    dataDeletionSubmitting.value = false
+  }
+}
+
+async function onCancelDataDeletionRequest() {
+  if (!dataDeletionRequest.value) return
+  dataDeletionCancelling.value = true
+  dataDeletionError.value = ''
+  try {
+    dataDeletionRequest.value = await cancelDataDeletionRequest(dataDeletionRequest.value.id)
+    toast.success('Запит скасовано.')
+  } catch (err) {
+    dataDeletionError.value = getApiErrorMessage(err, 'Не вдалося скасувати запит.')
+  } finally {
+    dataDeletionCancelling.value = false
+  }
+}
+
 async function onSave() {
   saving.value = true
   error.value = ''
@@ -149,7 +345,10 @@ async function onSave() {
   }
 }
 
-onMounted(loadProfile)
+onMounted(() => {
+  void loadProfile()
+  void loadDataDeletionRequest()
+})
 </script>
 
 <style scoped>
@@ -237,6 +436,88 @@ onMounted(loadProfile)
   margin-top: 8px;
 }
 
+.account-data-card {
+  gap: 14px;
+}
+
+.account-data-card__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.account-data-card__title {
+  margin: 0 0 6px;
+  font-size: 24px;
+}
+
+.account-data-card__copy {
+  margin: 0;
+  max-width: 720px;
+  line-height: 1.55;
+}
+
+.account-data-card__body {
+  display: grid;
+  gap: 12px;
+}
+
+.account-data-request {
+  display: grid;
+  gap: 6px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(8, 113, 201, 0.06);
+}
+
+.account-data-request__meta,
+.account-data-request__reason {
+  margin: 0;
+}
+
+.account-data-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.account-data-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.account-data-status--pending {
+  background: rgba(8, 113, 201, 0.1);
+  color: #0c4a6e;
+  border: 1px solid rgba(8, 113, 201, 0.16);
+}
+
+.account-data-status--ok {
+  background: rgba(30, 106, 59, 0.12);
+  color: #1e6a3b;
+  border: 1px solid rgba(30, 106, 59, 0.16);
+}
+
+.account-data-status--rejected,
+.account-data-status--muted {
+  background: #f3f4f6;
+  color: var(--muted);
+  border: 1px solid var(--line);
+}
+
+.account-data-modal__field {
+  margin-top: 8px;
+}
+
 .input--file.is-hidden {
   display: none;
 }
@@ -253,6 +534,10 @@ onMounted(loadProfile)
   .profile-hero {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .account-data-card__header {
+    flex-direction: column;
   }
 }
 </style>

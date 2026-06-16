@@ -28,6 +28,62 @@
       </RouterLink>
     </section>
 
+    <section v-if="activeTab === 'hub'" class="panel account-data-panel">
+      <div class="account-data-panel__header">
+        <div>
+          <h2 class="account-data-panel__title">Акаунт і дані</h2>
+          <p class="muted account-data-panel__copy">
+            Ви можете подати запит на видалення акаунта та пов’язаних персональних даних.
+            Підтримка опрацює звернення і повідомить про результат.
+          </p>
+        </div>
+        <span
+          v-if="dataDeletionRequest"
+          class="account-data-status"
+          :class="dataDeletionStatusClass(dataDeletionRequest.status)"
+        >
+          {{ dataDeletionStatusLabel(dataDeletionRequest.status) }}
+        </span>
+      </div>
+
+      <div v-if="dataDeletionLoading" class="muted">Завантаження...</div>
+      <div v-else class="account-data-panel__body">
+        <div v-if="dataDeletionError" class="form-error">{{ dataDeletionError }}</div>
+
+        <div v-if="dataDeletionRequest" class="account-data-request">
+          <p class="account-data-request__meta">
+            Запит подано:
+            <strong>{{ formatDateTime(dataDeletionRequest.submitted_at) }}</strong>
+          </p>
+          <p v-if="dataDeletionRequest.reason" class="muted account-data-request__reason">
+            Коментар: {{ dataDeletionRequest.reason }}
+          </p>
+        </div>
+
+        <div class="account-data-actions">
+          <button
+            v-if="canSubmitDataDeletionRequest"
+            class="btn btn--danger"
+            type="button"
+            :disabled="dataDeletionSubmitting"
+            @click="openDataDeletionConfirm"
+          >
+            {{ dataDeletionSubmitting ? 'Надсилаємо...' : 'Подати запит на видалення' }}
+          </button>
+
+          <button
+            v-if="canCancelDataDeletionRequest"
+            class="btn btn--ghost"
+            type="button"
+            :disabled="dataDeletionCancelling"
+            @click="onCancelDataDeletionRequest"
+          >
+            {{ dataDeletionCancelling ? 'Скасовуємо...' : 'Скасувати запит' }}
+          </button>
+        </div>
+      </div>
+    </section>
+
     <section v-else id="payment-details" class="panel payment-details-panel">
       <div class="payment-details-panel__header">
         <h2 class="payment-details-panel__title">Реквізити для оплати</h2>
@@ -253,17 +309,45 @@
         </div>
       </template>
     </section>
+
+    <ConfirmModal
+      :open="dataDeletionConfirmOpen"
+      title="Подати запит на видалення акаунта?"
+      message="Запит не виконується миттєво. Після перевірки підтримка зв’яжеться з вами за потреби та проведе процедуру без ризику для історії сервісу."
+      confirm-text="Подати запит"
+      cancel-text="Скасувати"
+      tone="danger"
+      @confirm="confirmCreateDataDeletionRequest"
+      @cancel="closeDataDeletionConfirm"
+    >
+      <template #body>
+        <label class="field account-data-modal__field">
+          <span>Коментар до запиту (необов’язково)</span>
+          <textarea
+            v-model.trim="dataDeletionReason"
+            class="input textarea"
+            rows="4"
+            placeholder="Можна коротко пояснити контекст для підтримки."
+          />
+        </label>
+      </template>
+    </ConfirmModal>
   </section>
 </template>
 
 <script setup lang="ts">
-import { computed, reactive, ref, watch } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useToast } from '../composables/useToast'
+import ConfirmModal from '../components/ConfirmModal.vue'
 import {
+  cancelDataDeletionRequest,
+  createDataDeletionRequest,
+  fetchCurrentDataDeletionRequest,
   fetchCabinetPaymentDetails,
   getApiErrorMessage,
   updateCabinetPaymentDetails,
+  type DataDeletionRequest,
   type SpecialistPaymentDetails,
   type SpecialistPaymentMethodDetails,
   type SpecialistPaymentMethodType,
@@ -271,9 +355,24 @@ import {
 import SettingsSubnav from '../components/SettingsSubnav.vue'
 
 type CanonicalMethodType = 'bank_account' | 'card'
+type DataDeletionRequestStatus =
+  | 'SUBMITTED'
+  | 'IN_REVIEW'
+  | 'APPROVED'
+  | 'REJECTED'
+  | 'CANCELLED'
+  | 'EXECUTED'
 
 const PAYMENT_DETAILS_TAB = 'payment-details'
 const METHOD_TYPES: CanonicalMethodType[] = ['bank_account', 'card']
+const DATA_DELETION_STATUS_LABELS: Record<DataDeletionRequestStatus, string> = {
+  SUBMITTED: 'Запит отримано',
+  IN_REVIEW: 'Запит на розгляді',
+  APPROVED: 'Запит підтверджено. Очікує виконання підтримкою.',
+  REJECTED: 'Запит відхилено',
+  CANCELLED: 'Запит скасовано',
+  EXECUTED: 'Запит виконано',
+}
 
 const route = useRoute()
 const router = useRouter()
@@ -286,6 +385,13 @@ const deletingMethodType = ref<CanonicalMethodType | null>(null)
 const defaultSaving = ref(false)
 const defaultError = ref('')
 const editingMethodType = ref<CanonicalMethodType | null>(null)
+const dataDeletionLoading = ref(false)
+const dataDeletionSubmitting = ref(false)
+const dataDeletionCancelling = ref(false)
+const dataDeletionError = ref('')
+const dataDeletionRequest = ref<DataDeletionRequest | null>(null)
+const dataDeletionConfirmOpen = ref(false)
+const dataDeletionReason = ref('')
 
 const details = ref<SpecialistPaymentDetails>(createEmptyDetails())
 const forms = reactive<Record<CanonicalMethodType, SpecialistPaymentMethodDetails>>({
@@ -305,6 +411,16 @@ const activeTab = computed<'hub' | 'payment-details'>(() =>
   route.query.tab === PAYMENT_DETAILS_TAB ? PAYMENT_DETAILS_TAB : 'hub'
 )
 const isPaymentDetailsTab = computed(() => activeTab.value === PAYMENT_DETAILS_TAB)
+const canSubmitDataDeletionRequest = computed(() =>
+  !dataDeletionRequest.value ||
+  ['REJECTED', 'CANCELLED', 'EXECUTED'].includes(dataDeletionRequest.value.status)
+)
+const canCancelDataDeletionRequest = computed(() =>
+  Boolean(
+    dataDeletionRequest.value &&
+      ['SUBMITTED', 'IN_REVIEW'].includes(dataDeletionRequest.value.status)
+  )
+)
 const configuredMethodTypes = computed<CanonicalMethodType[]>(() =>
   METHOD_TYPES.filter((methodType) => details.value.available_methods.includes(methodType))
 )
@@ -387,6 +503,26 @@ function normalizePaymentDetails(payload: unknown): SpecialistPaymentDetails {
 
 function methodTypeLabel(methodType: SpecialistPaymentMethodType | null) {
   return methodType === 'card' ? 'Картка' : 'Банківський рахунок (IBAN)'
+}
+
+function dataDeletionStatusLabel(status: string) {
+  return DATA_DELETION_STATUS_LABELS[status as DataDeletionRequestStatus] || status
+}
+
+function dataDeletionStatusClass(status: string) {
+  if (status === 'REJECTED') return 'account-data-status--rejected'
+  if (status === 'CANCELLED') return 'account-data-status--muted'
+  if (status === 'EXECUTED') return 'account-data-status--ok'
+  return 'account-data-status--pending'
+}
+
+function formatDateTime(value: string) {
+  const parsed = new Date(value)
+  if (Number.isNaN(parsed.getTime())) return value
+  return new Intl.DateTimeFormat('uk-UA', {
+    dateStyle: 'medium',
+    timeStyle: 'short',
+  }).format(parsed)
 }
 
 function getConfiguredMethod(methodType: CanonicalMethodType) {
@@ -476,6 +612,59 @@ async function loadPaymentDetails() {
   }
 }
 
+async function loadDataDeletionRequest() {
+  dataDeletionLoading.value = true
+  dataDeletionError.value = ''
+  try {
+    dataDeletionRequest.value = await fetchCurrentDataDeletionRequest()
+  } catch (err) {
+    dataDeletionError.value = getApiErrorMessage(
+      err,
+      'Не вдалося завантажити стан запиту на видалення.'
+    )
+  } finally {
+    dataDeletionLoading.value = false
+  }
+}
+
+function openDataDeletionConfirm() {
+  dataDeletionError.value = ''
+  dataDeletionConfirmOpen.value = true
+}
+
+function closeDataDeletionConfirm() {
+  dataDeletionConfirmOpen.value = false
+}
+
+async function confirmCreateDataDeletionRequest() {
+  dataDeletionConfirmOpen.value = false
+  dataDeletionSubmitting.value = true
+  dataDeletionError.value = ''
+  try {
+    dataDeletionRequest.value = await createDataDeletionRequest(dataDeletionReason.value)
+    dataDeletionReason.value = ''
+    toast.success('Запит на видалення передано підтримці.')
+  } catch (err) {
+    dataDeletionError.value = getApiErrorMessage(err, 'Не вдалося подати запит на видалення.')
+  } finally {
+    dataDeletionSubmitting.value = false
+  }
+}
+
+async function onCancelDataDeletionRequest() {
+  if (!dataDeletionRequest.value) return
+  dataDeletionCancelling.value = true
+  dataDeletionError.value = ''
+  try {
+    dataDeletionRequest.value = await cancelDataDeletionRequest(dataDeletionRequest.value.id)
+    toast.success('Запит скасовано.')
+  } catch (err) {
+    dataDeletionError.value = getApiErrorMessage(err, 'Не вдалося скасувати запит.')
+  } finally {
+    dataDeletionCancelling.value = false
+  }
+}
+
 async function saveMethod(methodType: CanonicalMethodType) {
   const validationError = validateMethodForm(methodType)
   formErrors[methodType] = validationError
@@ -557,6 +746,10 @@ watch(
   },
   { immediate: true }
 )
+
+onMounted(() => {
+  void loadDataDeletionRequest()
+})
 </script>
 
 <style scoped>
@@ -666,6 +859,90 @@ watch(
   margin: 0;
   font-family: var(--font-display);
   font-size: 22px;
+}
+
+.account-data-panel {
+  display: grid;
+  gap: 14px;
+}
+
+.account-data-panel__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.account-data-panel__title {
+  margin: 0 0 6px;
+  font-family: var(--font-display);
+  font-size: 22px;
+}
+
+.account-data-panel__copy {
+  margin: 0;
+  max-width: 720px;
+  line-height: 1.55;
+}
+
+.account-data-panel__body {
+  display: grid;
+  gap: 12px;
+}
+
+.account-data-request {
+  display: grid;
+  gap: 6px;
+  padding: 12px 14px;
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-control);
+  background: color-mix(in srgb, var(--pc-primary-soft) 42%, #ffffff);
+}
+
+.account-data-request__meta,
+.account-data-request__reason {
+  margin: 0;
+}
+
+.account-data-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.account-data-status {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 32px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.account-data-status--pending {
+  background: color-mix(in srgb, var(--pc-primary-soft) 82%, #ffffff);
+  color: var(--pc-navy-900);
+  border: 1px solid color-mix(in srgb, var(--pc-primary) 20%, var(--pc-border));
+}
+
+.account-data-status--ok {
+  background: color-mix(in srgb, #dff4e7 82%, #ffffff);
+  color: #1e6a3b;
+  border: 1px solid rgba(30, 106, 59, 0.16);
+}
+
+.account-data-status--rejected,
+.account-data-status--muted {
+  background: color-mix(in srgb, #f3f4f6 86%, #ffffff);
+  color: var(--pc-text-muted);
+  border: 1px solid var(--pc-border);
+}
+
+.account-data-modal__field {
+  margin-top: 8px;
 }
 
 .payment-details-panel {
@@ -782,6 +1059,10 @@ watch(
     -webkit-line-clamp: 1;
     -webkit-box-orient: vertical;
     overflow: hidden;
+  }
+
+  .account-data-panel__header {
+    flex-direction: column;
   }
 }
 </style>

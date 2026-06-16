@@ -24,8 +24,9 @@
           Закрити
         </button>
       </div>
-      <div v-if="message" class="confirm-modal__body">
+      <div v-if="message || $slots.body" class="confirm-modal__body">
         <p class="muted">{{ message }}</p>
+        <slot name="body" />
       </div>
       <div class="confirm-modal__footer">
         <button

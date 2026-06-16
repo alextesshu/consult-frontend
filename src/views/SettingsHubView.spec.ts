@@ -2,7 +2,14 @@ import { fireEvent, render, screen, waitFor, within } from '@testing-library/vue
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { reactive } from 'vue'
 import SettingsHubView from './SettingsHubView.vue'
-import { fetchCabinetPaymentDetails, updateCabinetPaymentDetails } from '../lib/api'
+import {
+  cancelDataDeletionRequest,
+  createDataDeletionRequest,
+  fetchCabinetPaymentDetails,
+  fetchCurrentDataDeletionRequest,
+  updateCabinetPaymentDetails,
+  type DataDeletionRequest,
+} from '../lib/api'
 
 const mockToast = {
   show: vi.fn(),
@@ -38,12 +45,18 @@ vi.mock('../composables/useToast', () => ({
 }))
 
 vi.mock('../lib/api', () => ({
+  cancelDataDeletionRequest: vi.fn(),
+  createDataDeletionRequest: vi.fn(),
   fetchCabinetPaymentDetails: vi.fn(),
+  fetchCurrentDataDeletionRequest: vi.fn(),
   updateCabinetPaymentDetails: vi.fn(),
   getApiErrorMessage: vi.fn((err: any, fallback: string) => err?.response?.data?.detail || fallback),
 }))
 
+const mockedCancelDataDeletionRequest = vi.mocked(cancelDataDeletionRequest)
+const mockedCreateDataDeletionRequest = vi.mocked(createDataDeletionRequest)
 const mockedFetchCabinetPaymentDetails = vi.mocked(fetchCabinetPaymentDetails)
+const mockedFetchCurrentDataDeletionRequest = vi.mocked(fetchCurrentDataDeletionRequest)
 const mockedUpdateCabinetPaymentDetails = vi.mocked(updateCabinetPaymentDetails)
 
 function paymentDetailsFixture(overrides: Record<string, unknown> = {}) {
@@ -52,6 +65,19 @@ function paymentDetailsFixture(overrides: Record<string, unknown> = {}) {
     available_methods: [],
     default_method_type: null,
     methods: {},
+    ...overrides,
+  }
+}
+
+function dataDeletionFixture(overrides: Partial<DataDeletionRequest> = {}): DataDeletionRequest {
+  return {
+    id: 41,
+    kind: 'ACCOUNT',
+    status: 'SUBMITTED',
+    reason: '',
+    submitted_at: '2026-06-16T12:00:00Z',
+    reviewed_at: null,
+    cancelled_at: null,
     ...overrides,
   }
 }
@@ -88,12 +114,16 @@ describe('SettingsHubView dual payment methods', () => {
     mockRouter.replace.mockClear()
 
     mockedFetchCabinetPaymentDetails.mockReset()
+    mockedFetchCurrentDataDeletionRequest.mockReset()
     mockedUpdateCabinetPaymentDetails.mockReset()
+    mockedCreateDataDeletionRequest.mockReset()
+    mockedCancelDataDeletionRequest.mockReset()
     mockToast.show.mockReset()
     mockToast.success.mockReset()
     mockToast.error.mockReset()
     mockToast.warning.mockReset()
     mockToast.info.mockReset()
+    mockedFetchCurrentDataDeletionRequest.mockResolvedValue(null)
   })
 
   it('shows dedicated Реквізити tab in settings navigation', async () => {
@@ -108,9 +138,97 @@ describe('SettingsHubView dual payment methods', () => {
   it('keeps hub as default and does not load payment details API until payment tab is open', async () => {
     renderView()
 
+    await waitFor(() => {
+      expect(mockedFetchCurrentDataDeletionRequest).toHaveBeenCalledTimes(1)
+    })
     expect(screen.getByRole('link', { name: 'Реквізити' })).toBeInTheDocument()
     expect(screen.queryByText('Реквізити для оплати')).not.toBeInTheDocument()
     expect(mockedFetchCabinetPaymentDetails).not.toHaveBeenCalled()
+  })
+
+  it('shows account and data block with submit action when there is no current request', async () => {
+    renderView()
+
+    expect(await screen.findByRole('heading', { name: 'Акаунт і дані' })).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: 'Подати запит на видалення' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Скасувати запит' })).not.toBeInTheDocument()
+  })
+
+  it('submits data deletion request from confirm modal with optional reason', async () => {
+    mockedCreateDataDeletionRequest.mockResolvedValue(
+      dataDeletionFixture({
+        reason: 'Будь ласка, завершити мій акаунт після перевірки.',
+      })
+    )
+
+    renderView()
+
+    await fireEvent.click(await screen.findByRole('button', { name: 'Подати запит на видалення' }))
+    const dialog = await screen.findByRole('dialog', {
+      name: 'Подати запит на видалення акаунта?',
+    })
+    await fireEvent.update(
+      within(dialog).getByLabelText('Коментар до запиту (необов’язково)'),
+      'Будь ласка, завершити мій акаунт після перевірки.'
+    )
+    await fireEvent.click(within(dialog).getByRole('button', { name: 'Подати запит' }))
+
+    await waitFor(() => {
+      expect(mockedCreateDataDeletionRequest).toHaveBeenCalledWith(
+        'Будь ласка, завершити мій акаунт після перевірки.'
+      )
+    })
+    expect(await screen.findByText('Запит отримано')).toBeInTheDocument()
+    expect(screen.getByText(/Коментар:/)).toHaveTextContent(
+      'Коментар: Будь ласка, завершити мій акаунт після перевірки.'
+    )
+    expect(mockToast.success).toHaveBeenCalledWith('Запит на видалення передано підтримці.')
+  })
+
+  it('shows current request and allows cancel while request is in review', async () => {
+    mockedFetchCurrentDataDeletionRequest.mockResolvedValue(
+      dataDeletionFixture({
+        status: 'IN_REVIEW',
+        reason: 'Пауза в користуванні сервісом.',
+      })
+    )
+    mockedCancelDataDeletionRequest.mockResolvedValue(
+      dataDeletionFixture({
+        status: 'CANCELLED',
+        reason: 'Пауза в користуванні сервісом.',
+        cancelled_at: '2026-06-17T10:00:00Z',
+      })
+    )
+
+    renderView()
+
+    expect(await screen.findByText('Запит на розгляді')).toBeInTheDocument()
+    expect(screen.getByText(/Коментар:/)).toHaveTextContent('Коментар: Пауза в користуванні сервісом.')
+    await fireEvent.click(screen.getByRole('button', { name: 'Скасувати запит' }))
+
+    await waitFor(() => {
+      expect(mockedCancelDataDeletionRequest).toHaveBeenCalledWith(41)
+    })
+    expect(await screen.findByText('Запит скасовано')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Подати запит на видалення' })).toBeInTheDocument()
+    expect(mockToast.success).toHaveBeenCalledWith('Запит скасовано.')
+  })
+
+  it('shows approved state without submit or cancel actions', async () => {
+    mockedFetchCurrentDataDeletionRequest.mockResolvedValue(
+      dataDeletionFixture({
+        status: 'APPROVED',
+        reviewed_at: '2026-06-17T09:00:00Z',
+      })
+    )
+
+    renderView()
+
+    expect(
+      await screen.findByText('Запит підтверджено. Очікує виконання підтримкою.')
+    ).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Подати запит на видалення' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Скасувати запит' })).not.toBeInTheDocument()
   })
 
   it('supports canonical payment tab and 0-method empty state', async () => {

@@ -1688,6 +1688,27 @@ export type ClientProfile = {
   updated_at: string
 }
 
+export type DataDeletionRequestKind = 'ACCOUNT' | 'PUBLIC_GUEST_REQUEST' | string
+
+export type DataDeletionRequestStatus =
+  | 'SUBMITTED'
+  | 'IN_REVIEW'
+  | 'APPROVED'
+  | 'REJECTED'
+  | 'EXECUTED'
+  | 'CANCELLED'
+  | string
+
+export type DataDeletionRequest = {
+  id: number
+  kind: DataDeletionRequestKind
+  status: DataDeletionRequestStatus
+  reason: string
+  submitted_at: string
+  reviewed_at: string | null
+  cancelled_at: string | null
+}
+
 export async function fetchClientProfile(): Promise<ClientProfile> {
   const resp = await http.get<ClientProfile>('/client/profile/')
   return resp.data
@@ -1706,6 +1727,28 @@ export async function uploadClientPhoto(file: File): Promise<ClientProfile> {
   const resp = await http.post<ClientProfile>('/client/profile/upload-photo/', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   })
+  return resp.data
+}
+
+export async function createDataDeletionRequest(reason = ''): Promise<DataDeletionRequest> {
+  const resp = await http.post<DataDeletionRequest>('/account/data-deletion-requests/', {
+    reason,
+  })
+  return resp.data
+}
+
+export async function fetchCurrentDataDeletionRequest(): Promise<DataDeletionRequest | null> {
+  const resp = await http.get<{ request: DataDeletionRequest | null }>(
+    '/account/data-deletion-requests/current/'
+  )
+  return resp.data.request
+}
+
+export async function cancelDataDeletionRequest(id: number): Promise<DataDeletionRequest> {
+  const resp = await http.post<DataDeletionRequest>(
+    `/account/data-deletion-requests/${id}/cancel/`,
+    {}
+  )
   return resp.data
 }
 
