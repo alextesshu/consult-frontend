@@ -5,25 +5,12 @@
         <span class="home-hero__wash home-hero__wash--teal" aria-hidden="true"></span>
         <span class="home-hero__wash home-hero__wash--peach" aria-hidden="true"></span>
         <div class="home-hero__content">
-          <p class="home-hero__eyebrow">
-            <span class="home-hero__eyebrow-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none">
-                <path d="M8 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"></path>
-                <path d="M16.5 11.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"></path>
-                <path d="M3.5 20a5 5 0 0 1 9 0"></path>
-                <path d="M13.5 20a4 4 0 0 1 7 0"></path>
-              </svg>
-            </span>
-            ДЛЯ СПЕЦІАЛІСТІВ ПРИВАТНОЇ ПРАКТИКИ
-          </p>
-          <h1 id="home-hero-title" class="home-hero__title">Простір для ведення консультацій</h1>
+          <h1 id="home-hero-title" class="home-hero__title">
+            Консультаційна практика — в одному спокійному просторі
+          </h1>
           <p class="home-hero__subtitle">
-            Публічний профіль, сесії, календар, власний блог та багато іншого — щоб впевнено презентувати себе,
-            приймати клієнтів і працювати системно.
-          </p>
-          <p class="home-hero__support">
-            <span aria-hidden="true"></span>
-            Без комісій з консультацій і без залежності від зовнішнього майданчика.
+            Pro Consult поєднує профіль, запити, сесії, блог і матеріали — щоб робота з клієнтами
+            не губилася в месенджерах і таблицях.
           </p>
           <div class="home-hero__actions">
             <button v-if="isAuthenticated" class="btn" type="button" @click="goToCabinet">
@@ -34,21 +21,8 @@
               Створити свій простір
               <span class="btn__arrow" aria-hidden="true">→</span>
             </RouterLink>
-            <a class="btn btn--ghost" href="#features">
-              <span class="btn__play" aria-hidden="true"></span>
-              Подивитися можливості
-            </a>
+            <a class="btn btn--ghost" href="#pricing">Подивитися тарифи</a>
           </div>
-          <ul class="hero-features" aria-label="Переваги платформи">
-            <li v-for="feature in heroFeatures" :key="feature.title" class="hero-feature-tile">
-              <span class="hero-feature-tile__icon" :class="`hero-feature-tile__icon--${feature.tone}`" aria-hidden="true">
-                <svg viewBox="0 0 24 24" fill="none">
-                  <path v-for="path in iconPaths[feature.icon]" :key="path" :d="path"></path>
-                </svg>
-              </span>
-              <span>{{ feature.title }}</span>
-            </li>
-          </ul>
         </div>
 
         <div class="home-hero__visual" aria-hidden="true">
@@ -59,21 +33,41 @@
             <div class="product-story__dashboard-card">
               <header class="product-story__dashboard-header">
                 <span class="product-story__dashboard-mark">
-                  <i></i><i></i><i></i><i></i>
+                  <svg viewBox="0 0 24 24" focusable="false">
+                    <path d="M4 7.5A2.5 2.5 0 0 1 6.5 5H10l2 2h5.5A2.5 2.5 0 0 1 20 9.5v7A2.5 2.5 0 0 1 17.5 19h-11A2.5 2.5 0 0 1 4 16.5v-9Z" />
+                  </svg>
                 </span>
                 <strong>Кабінет спеціаліста</strong>
                 <span class="product-story__top-actions">
-                  <i class="product-story__top-icon product-story__top-icon--search"></i>
-                  <i class="product-story__top-icon product-story__top-icon--notification"></i>
-                  <span class="product-story__top-icon product-story__top-icon--avatar"></span>
+                  <span class="product-story__top-status product-story__top-status--live">Сьогодні</span>
+                  <span class="product-story__top-status">2 нові запити</span>
                 </span>
               </header>
               <div class="product-story__dashboard-shell">
                 <aside class="product-story__rail">
-                  <span class="is-active"></span>
-                  <span></span>
-                  <span></span>
-                  <span></span>
+                  <span class="product-story__rail-icon product-story__rail-icon--profile is-active">
+                    <svg viewBox="0 0 24 24" focusable="false">
+                      <path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" />
+                      <path d="M5 20a7 7 0 0 1 14 0" />
+                    </svg>
+                  </span>
+                  <span class="product-story__rail-icon product-story__rail-icon--request">
+                    <svg viewBox="0 0 24 24" focusable="false">
+                      <path d="M5 7.5A3.5 3.5 0 0 1 8.5 4h7A3.5 3.5 0 0 1 19 7.5v4A3.5 3.5 0 0 1 15.5 15H11l-4 3v-3.2A3.5 3.5 0 0 1 5 11.5v-4Z" />
+                    </svg>
+                  </span>
+                  <span class="product-story__rail-icon product-story__rail-icon--calendar">
+                    <svg viewBox="0 0 24 24" focusable="false">
+                      <path d="M7 4v3M17 4v3M5 9h14" />
+                      <path d="M6.5 6h11A2.5 2.5 0 0 1 20 8.5v9A2.5 2.5 0 0 1 17.5 20h-11A2.5 2.5 0 0 1 4 17.5v-9A2.5 2.5 0 0 1 6.5 6Z" />
+                    </svg>
+                  </span>
+                  <span class="product-story__rail-icon product-story__rail-icon--document">
+                    <svg viewBox="0 0 24 24" focusable="false">
+                      <path d="M7 4h7l4 4v12H7V4Z" />
+                      <path d="M14 4v5h4M9.5 13h5M9.5 16h5" />
+                    </svg>
+                  </span>
                 </aside>
                 <div class="product-story__dashboard-main">
                   <div class="product-story__overview-label">Огляд</div>
@@ -85,11 +79,12 @@
                     </div>
                     <div class="product-story__stat product-story__stat--peach">
                       <span>Сесій цього тижня</span>
-                      <strong>5</strong>
+                      <strong>8</strong>
+                      <em>заплановано</em>
                     </div>
                     <div class="product-story__stat product-story__stat--lavender">
                       <span>Клієнтів</span>
-                      <strong>24</strong>
+                      <strong>12</strong>
                       <em>активних</em>
                     </div>
                   </div>
@@ -118,7 +113,13 @@
 
             <div class="product-story__public-card">
               <header class="product-story__header">
-                <span>Публічний профіль</span>
+                <span>
+                  <svg class="product-story__section-icon" viewBox="0 0 24 24" focusable="false">
+                    <path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" />
+                    <path d="M5 20a7 7 0 0 1 14 0" />
+                  </svg>
+                  Публічний профіль
+                </span>
               </header>
               <div class="product-story__profile">
                 <img
@@ -145,12 +146,22 @@
               </div>
               <div class="product-story__profile-actions">
                 <span class="product-story__profile-cta">Залишити запит</span>
-                <span class="product-story__profile-save"></span>
+                <span class="product-story__profile-save">
+                  <svg viewBox="0 0 24 24" focusable="false">
+                    <path d="M7 4h7l4 4v12H7V4Z" />
+                    <path d="M14 4v5h4M9.5 13h5M9.5 16h5" />
+                  </svg>
+                </span>
               </div>
             </div>
 
             <div class="product-story__request-card">
-              <span class="product-story__request-icon"><i></i></span>
+              <span class="product-story__request-icon">
+                <svg viewBox="0 0 24 24" focusable="false">
+                  <path d="M5 7.5A3.5 3.5 0 0 1 8.5 4h7A3.5 3.5 0 0 1 19 7.5v4A3.5 3.5 0 0 1 15.5 15H11l-4 3v-3.2A3.5 3.5 0 0 1 5 11.5v-4Z" />
+                  <path d="M9 9h6M9 12h4" />
+                </svg>
+              </span>
               <span class="product-story__request-badge">2</span>
               <span class="product-story__request-label">Новий запит</span>
               <p>Клієнт залишив контакт і повідомлення.</p>
@@ -158,7 +169,12 @@
             </div>
 
             <div class="product-story__calendar-card">
-              <span class="product-story__calendar-icon"></span>
+              <span class="product-story__calendar-icon">
+                <svg viewBox="0 0 24 24" focusable="false">
+                  <path d="M7 4v3M17 4v3M5 9h14" />
+                  <path d="M6.5 6h11A2.5 2.5 0 0 1 20 8.5v9A2.5 2.5 0 0 1 17.5 20h-11A2.5 2.5 0 0 1 4 17.5v-9A2.5 2.5 0 0 1 6.5 6Z" />
+                </svg>
+              </span>
               <span class="product-story__calendar-label">Сьогодні</span>
               <strong>15:00</strong>
               <p>Консультація з клієнтом</p>
@@ -174,12 +190,19 @@
         </div>
       </section>
 
+      <section class="client-note reveal" aria-label="Пояснення для клієнтів">
+        Якщо ви клієнт — перейдіть за посиланням на профіль свого спеціаліста. Там можна залишити запит,
+        переглянути формат роботи або знайти контакти.
+      </section>
+
       <section id="features" class="value-section reveal" aria-labelledby="value-title">
         <div class="section-head section-head--center">
-          <p class="section-head__eyebrow">Можливості простору</p>
-          <h2 id="value-title" class="section-head__title">Публічний профіль і робочий кабінет в одному просторі</h2>
+          <h2 id="value-title" class="section-head__title">
+            Профіль для презентації себе і робочий кабінет для розвитку практики
+          </h2>
           <p class="section-head__subtitle">
-            Pro Consult допомагає спеціалісту презентувати себе для клієнта й тримати ключові робочі процеси в одному місці.
+            Pro Consult допомагає спеціалісту зрозуміло представити свою роботу клієнтам і вести
+            консультаційну практику в одному місці.
           </p>
         </div>
         <div class="value-grid" role="list" aria-label="Ключові можливості Pro Consult">
@@ -195,162 +218,68 @@
         </div>
       </section>
 
-      <section class="how how--merged reveal" aria-labelledby="how-title">
-        <div class="section-head section-head--center">
-          <p class="section-head__eyebrow">Сценарій роботи</p>
-          <h2 id="how-title" class="section-head__title how__title">Від першого запиту до сесії в календарі</h2>
-        </div>
-        <div class="how__row" role="list" aria-label="Кроки використання платформи">
-          <article v-for="step in howSteps" :key="step.title" class="how-step" role="listitem">
-            <span class="icon-wrap" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none">
-                <path v-for="path in iconPaths[step.icon]" :key="path" :d="path"></path>
-              </svg>
-            </span>
-            <span class="how-step__connector" aria-hidden="true">→</span>
-            <h3>{{ step.title }}</h3>
-            <p>{{ step.copy }}</p>
-          </article>
-        </div>
-      </section>
-
-      <section class="differentiation reveal" aria-labelledby="differentiation-title">
+      <section class="blog-section reveal" aria-labelledby="blog-title">
         <div class="section-head">
-          <p class="section-head__eyebrow">Власна присутність</p>
-          <h2 id="differentiation-title" class="section-head__title">Не просто сайт-візитка</h2>
-          <p class="section-head__subtitle">
-            Pro Consult — це робочий інструмент для зростання власної практики: профіль, запити, сесії, календар,
-            матеріали й клієнтський контекст повʼязані між собою.
+          <h2 id="blog-title" class="section-head__title">Блог, який допомагає пояснити ваш підхід</h2>
+        </div>
+        <div class="blog-section__copy">
+          <p>
+            Не кожен клієнт готовий одразу написати спеціалісту. Часто спочатку хочеться зрозуміти,
+            як спеціаліст мислить, з якими темами працює і якою мовою говорить про складні речі.
           </p>
-        </div>
-        <div class="differentiation__grid" role="list" aria-label="Відмінності Pro Consult">
-          <article v-for="item in differentiationCards" :key="item.title" class="difference-card" role="listitem">
-            <span class="icon-wrap icon-wrap--soft" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none">
-                <path v-for="path in iconPaths[item.icon]" :key="path" :d="path"></path>
-              </svg>
-            </span>
-            <h3>{{ item.title }}</h3>
-            <p>{{ item.copy }}</p>
-          </article>
-        </div>
-      </section>
-
-      <section class="inside-section reveal" aria-labelledby="inside-title">
-        <div class="section-head section-head--center">
-          <p class="section-head__eyebrow">Що всередині</p>
-          <h2 id="inside-title" class="section-head__title">Інструменти, які підтримують консультаційну роботу</h2>
-        </div>
-        <div class="benefit-chips" role="list" aria-label="Складові Pro Consult">
-          <article v-for="item in compactValueStrip" :key="item.title" class="benefit-chip" role="listitem">
-            <span class="icon-wrap icon-wrap--soft benefit-chip__icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none">
-                <path v-for="path in iconPaths[item.icon]" :key="path" :d="path"></path>
-              </svg>
-            </span>
-            <span class="benefit-chip__label">{{ item.title }}</span>
-          </article>
+          <p>
+            У блозі можна публікувати короткі статті, відповіді на часті питання, пояснення свого підходу
+            або матеріали, які ви регулярно надсилаєте клієнтам.
+          </p>
         </div>
       </section>
 
       <section id="pricing" class="pricing reveal" aria-labelledby="pricing-title">
-        <div class="pricing-layout">
-          <div class="pricing-layout__left">
-            <div class="section-head pricing-head">
-              <p class="section-head__eyebrow">Тарифи</p>
-              <h2 id="pricing-title" class="section-head__title pricing-title">Прозорі рівні доступу без комісій з консультацій</h2>
-              <p class="section-head__subtitle">Ви платите за доступ до інструментів, а не віддаєте відсоток з кожної консультації.</p>
-            </div>
+        <div class="section-head section-head--center pricing-head">
+          <h2 id="pricing-title" class="section-head__title pricing-title">Тарифи</h2>
+          <p class="section-head__subtitle">
+            Без комісій з консультацій. Ви сплачуєте за користування сервісом,
+            а не відсоток із кожної роботи з клієнтом.
+          </p>
+        </div>
 
-            <div class="pricing-toggle" role="group" aria-label="Період оплати">
-              <button
-                class="pricing-toggle__btn"
-                :class="{ 'is-active': billingCycle === 'monthly' }"
-                type="button"
-                @click="billingCycle = 'monthly'"
-              >
-                Місяць
-              </button>
-              <button
-                class="pricing-toggle__btn"
-                :class="{ 'is-active': billingCycle === 'yearly' }"
-                type="button"
-                @click="billingCycle = 'yearly'"
-              >
-                Рік
-              </button>
-            </div>
+        <div class="pricing-toggle" role="group" aria-label="Період оплати">
+          <button
+            class="pricing-toggle__btn"
+            :class="{ 'is-active': billingCycle === 'monthly' }"
+            type="button"
+            @click="billingCycle = 'monthly'"
+          >
+            Місяць
+          </button>
+          <button
+            class="pricing-toggle__btn"
+            :class="{ 'is-active': billingCycle === 'yearly' }"
+            type="button"
+            @click="billingCycle = 'yearly'"
+          >
+            Рік
+          </button>
+        </div>
 
-            <div class="pricing__grid">
-              <article v-for="plan in pricingPlans" :key="plan.name" class="plan-card" :class="{ 'plan-card--pro': plan.name === 'Pro' }">
-                <p v-if="plan.name === 'Pro'" class="plan-card__badge">Для активної практики</p>
-                <h3>{{ plan.name }}</h3>
-                <p class="plan-card__price">{{ plan.price }}</p>
-                <p v-if="plan.helper" class="plan-card__helper">{{ plan.helper }}</p>
-                <ul>
-                  <li v-for="feature in plan.features" :key="feature">{{ feature }}</li>
-                </ul>
-                <RouterLink class="btn" :class="{ 'btn--ghost': plan.ghostCta }" :to="plan.ctaTo">{{ plan.ctaLabel }}</RouterLink>
-              </article>
-            </div>
-          </div>
-
-          <aside class="pricing-layout__right" aria-label="Переваги профілю і запитів">
-            <p class="section-head__eyebrow">Профіль і запити</p>
-            <h3 class="pricing-promo__title">Власний профіль без залежності від зовнішнього майданчика</h3>
-            <p class="pricing-promo__copy">
-              Клієнт відкриває ваш профіль, залишає запит, а далі ви керуєте сесіями, календарем і матеріалами у кабінеті.
-            </p>
-
-            <div class="pricing-promo__preview" aria-hidden="true">
-              <article class="booking-preview booking-preview--profile pricing-booking-preview--profile">
-                <header class="booking-preview__header">Публічний профіль</header>
-                <div class="booking-preview__body">
-                  <div class="profile-mini">
-                    <div class="profile-mini__avatar">ОК</div>
-                    <div>
-                      <p class="profile-mini__name">Олена Коваль</p>
-                      <p class="profile-mini__role">Психолог, гештальт-терапевт</p>
-                    </div>
-                  </div>
-                  <div class="profile-mini__chips">
-                    <span>Тривога</span>
-                    <span>Самооцінка</span>
-                    <span>Відносини</span>
-                  </div>
-                  <button class="profile-mini__cta" type="button">Залишити запит</button>
-                </div>
-              </article>
-
-              <article class="booking-preview booking-preview--calendar pricing-booking-preview--calendar">
-                <header class="booking-preview__header">Календар сесій</header>
-                <div class="booking-preview__body">
-                  <div class="calendar-mini__top">
-                    <span>Травень 2026</span>
-                    <span>15 травня</span>
-                  </div>
-                  <div class="calendar-mini__grid" aria-label="Календар доступних дат">
-                    <span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Нд</span>
-                    <span>12</span><span>13</span><span>14</span><span class="is-selected">15</span><span>16</span><span>17</span><span>18</span>
-                  </div>
-                  <div class="session-mini__item">
-                    <strong>15:00</strong>
-                    <span>Консультація зʼявилась у календарі</span>
-                  </div>
-                </div>
-              </article>
-            </div>
-          </aside>
+        <div class="pricing__grid">
+          <article v-for="plan in pricingPlans" :key="plan.name" class="plan-card" :class="{ 'plan-card--pro': plan.name === 'Pro' }">
+            <p v-if="plan.name === 'Pro'" class="plan-card__badge">Для активної практики</p>
+            <h3>{{ plan.name }}</h3>
+            <p class="plan-card__price">{{ plan.price }}</p>
+            <p v-if="plan.helper" class="plan-card__helper">{{ plan.helper }}</p>
+            <ul>
+              <li v-for="feature in plan.features" :key="feature">{{ feature }}</li>
+            </ul>
+            <RouterLink class="btn" :class="{ 'btn--ghost': plan.ghostCta }" :to="plan.ctaTo">{{ plan.ctaLabel }}</RouterLink>
+          </article>
         </div>
       </section>
 
       <section class="final-cta reveal">
-        <h2 class="final-cta__title">Створіть простір, у якому вашу роботу легко зрозуміти й зручно продовжити</h2>
-        <p>Оформіть публічний профіль, прийміть перший запит і перевірте, як Pro Consult допомагає вести консультації системно.</p>
         <div class="final-cta__actions">
           <RouterLink v-if="!isAuthenticated" class="btn" to="/signup">Створити свій простір</RouterLink>
-          <button v-else class="btn" type="button" @click="goToCabinet">Перейти в кабінет</button>
-          <RouterLink class="btn btn--ghost" to="/pricing">Переглянути тарифи</RouterLink>
+          <button v-else class="btn" type="button" @click="goToCabinet">Створити свій простір</button>
         </div>
       </section>
     </div>
@@ -394,96 +323,31 @@ const iconPaths: Record<IconKey, string[]> = {
   support: ['M12 18v2', 'M8.5 9.5a3.5 3.5 0 1 1 6.2 2.2c-.9.8-1.7 1.3-1.7 2.3v.5', 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18Z'],
 }
 
-const heroFeatures: Array<{ icon: IconKey; title: string; tone: 'teal' | 'blue' | 'peach' | 'violet' | 'green' }> = [
-  { icon: 'profile', title: 'Публічний профіль', tone: 'teal' },
-  { icon: 'booking', title: 'Запити без реєстрації', tone: 'blue' },
-  { icon: 'session', title: 'Сесії та календар', tone: 'peach' },
-  { icon: 'feedback', title: 'Власний блог', tone: 'violet' },
-  { icon: 'security', title: 'Без комісій', tone: 'green' },
-]
-
 const valueCards: Array<{ icon: IconKey; title: string; copy: string }> = [
   {
     icon: 'profile',
     title: 'Публічний профіль',
-    copy: 'Сторінка, яку можна впевнено надіслати клієнту: з описом, умовами, форматами роботи й кнопкою запиту.',
+    copy: 'Покажіть, хто ви, з чим працюєте, у якому форматі консультуєте і як до вас звернутися.',
   },
   {
     icon: 'booking',
-    title: 'Запити від клієнтів',
-    copy: 'Клієнт залишає контакт і короткий опис запиту без створення акаунта.',
+    title: 'Звернення від клієнтів',
+    copy: 'Клієнт залишає короткий запит без реєстрації. Ви бачите його в кабінеті й вирішуєте, що робити далі.',
   },
   {
     icon: 'session',
     title: 'Сесії та календар',
-    copy: 'Спеціаліст створює сесію, і вона зʼявляється в робочому календарі.',
+    copy: 'Плануйте консультації, погоджуйте час і тримайте робочий розклад в одному місці.',
+  },
+  {
+    icon: 'feedback',
+    title: 'Власний блог',
+    copy: 'Публікуйте тексти, які пояснюють ваш підхід, теми роботи й відповідають на часті питання клієнтів.',
   },
   {
     icon: 'materials',
     title: 'Матеріали й нотатки',
-    copy: 'Приватні нотатки, клієнтський контекст і матеріали для клієнта залишаються поруч із сесіями.',
-  },
-]
-
-const compactValueStrip: Array<{ icon: IconKey; title: string }> = [
-  { icon: 'profile', title: 'Публічний профіль' },
-  { icon: 'booking', title: 'Запити без реєстрації' },
-  { icon: 'session', title: 'Сесії та календар' },
-  { icon: 'clients', title: 'Клієнти й історія роботи' },
-  { icon: 'security', title: 'Приватні нотатки' },
-  { icon: 'materials', title: 'Матеріали для клієнта' },
-  { icon: 'feedback', title: 'Власний блог' },
-  { icon: 'payments', title: 'Тарифи без комісій' },
-]
-
-const howSteps: Array<{ icon: IconKey; title: string; copy: string }> = [
-  {
-    icon: 'profile',
-    title: 'Ви оформлюєте публічний профіль',
-    copy: 'Показуєте спеціалізацію, формат роботи, умови консультацій і контакти.',
-  },
-  {
-    icon: 'booking',
-    title: 'Клієнт залишає запит',
-    copy: 'Без реєстрації: імʼя, контакт і коротке повідомлення.',
-  },
-  {
-    icon: 'support',
-    title: 'Ви отримуєте сповіщення',
-    copy: 'Email, дзвіночок і підказка в кабінеті допомагають не загубити новий запит.',
-  },
-  {
-    icon: 'session',
-    title: 'Ви створюєте сесію',
-    copy: 'Узгоджуєте час із клієнтом і додаєте консультацію до календаря.',
-  },
-  {
-    icon: 'materials',
-    title: 'Ведете роботу системно',
-    copy: 'Сесії, клієнти, нотатки й матеріали залишаються у вашому кабінеті.',
-  },
-]
-
-const differentiationCards: Array<{ icon: IconKey; title: string; copy: string }> = [
-  {
-    icon: 'profile',
-    title: 'Більше, ніж сторінка з контактами',
-    copy: 'Профіль не лише презентує спеціаліста — через нього клієнт може залишити запит і почати шлях до консультації.',
-  },
-  {
-    icon: 'session',
-    title: 'Більше, ніж календар',
-    copy: 'Сесії повʼязані з клієнтами, запитами, нотатками й матеріалами.',
-  },
-  {
-    icon: 'payments',
-    title: 'Без комісій з консультацій',
-    copy: 'Ви платите за простір і можливості, а не віддаєте відсоток з кожної сесії.',
-  },
-  {
-    icon: 'security',
-    title: 'Власна присутність',
-    copy: 'Профіль працює на розвиток вашої практики, а не на стрічку зовнішнього майданчика.',
+    copy: 'Зберігайте приватні робочі записи й матеріали для клієнтів поруч із консультаціями.',
   },
 ]
 
@@ -651,12 +515,12 @@ onBeforeUnmount(() => {
   line-height: 1.08;
   letter-spacing: -0.025em;
   color: var(--pc-navy-950);
-  max-width: 16ch;
+  max-width: 680px;
 }
 
 .home-hero__subtitle {
   margin: 0;
-  max-width: 58ch;
+  max-width: 600px;
   line-height: 1.58;
   color: var(--muted);
 }
@@ -1335,16 +1199,16 @@ onBeforeUnmount(() => {
 }
 
 .home-hero__title {
-  max-width: 12.8ch;
-  font-size: clamp(46px, 5vw, 74px);
-  line-height: 1.03;
-  letter-spacing: -0.035em;
+  max-width: 660px;
+  font-size: clamp(42px, 4.35vw, 64px);
+  line-height: 1.06;
+  letter-spacing: -0.028em;
 }
 
 .home-hero__subtitle {
-  max-width: 54ch;
-  font-size: clamp(16px, 1.25vw, 19px);
-  line-height: 1.55;
+  max-width: 590px;
+  font-size: clamp(16px, 1.16vw, 18px);
+  line-height: 1.58;
   color: color-mix(in srgb, var(--text) 74%, #526672);
 }
 
@@ -1570,7 +1434,27 @@ onBeforeUnmount(() => {
 .product-story__top-actions {
   display: inline-flex;
   align-items: center;
-  gap: 9px;
+  justify-content: end;
+  gap: 8px;
+}
+
+.product-story__top-status {
+  min-height: 26px;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid rgba(18, 52, 90, 0.08);
+  border-radius: var(--radius-sm);
+  padding: 0 9px;
+  background: rgba(255, 255, 255, 0.72);
+  color: color-mix(in srgb, var(--pc-navy-900) 72%, #526a78);
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.product-story__top-status--live {
+  background: color-mix(in srgb, var(--pc-teal-100) 78%, #fff);
+  color: #14695f;
 }
 
 .product-story__top-icon {
@@ -1686,6 +1570,33 @@ onBeforeUnmount(() => {
   opacity: 1;
 }
 
+.product-story__rail .product-story__rail-icon {
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.72);
+  color: color-mix(in srgb, var(--pc-navy-900) 58%, #fff);
+}
+
+.product-story__rail .product-story__rail-icon.is-active {
+  background: color-mix(in srgb, var(--pc-teal-100) 78%, #fff);
+  color: var(--pc-navy-900);
+}
+
+.product-story__rail-icon svg,
+.product-story__section-icon,
+.product-story__dashboard-mark svg,
+.product-story__request-icon svg,
+.product-story__calendar-icon svg,
+.product-story__profile-save svg {
+  width: 17px;
+  height: 17px;
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 .product-story__dashboard-main {
   display: grid;
   gap: 12px;
@@ -1706,8 +1617,10 @@ onBeforeUnmount(() => {
 }
 
 .product-story__stat {
-  min-height: 94px;
-  align-content: center;
+  min-height: 106px;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  align-items: start;
   gap: 7px;
   border-radius: 16px;
   padding: 14px;
@@ -1734,6 +1647,7 @@ onBeforeUnmount(() => {
 }
 
 .product-story__stat strong {
+  align-self: center;
   font-size: 30px;
 }
 
@@ -1902,12 +1816,18 @@ onBeforeUnmount(() => {
 }
 
 .product-story__profile-save::before {
-  content: '';
+  content: none;
   position: absolute;
   inset: 10px 13px;
   border: 2px solid var(--pc-navy-900);
   border-top-width: 7px;
   border-radius: 3px 3px 6px 6px;
+}
+
+.product-story__profile-save {
+  display: grid;
+  place-items: center;
+  color: var(--pc-navy-900);
 }
 
 .product-story__request-card {
@@ -1934,11 +1854,17 @@ onBeforeUnmount(() => {
 
 .product-story__request-icon::before,
 .product-story__calendar-icon::before {
+  content: none;
   border-color: var(--pc-navy-900);
 }
 
 .product-story__request-icon::before {
   border-top-color: transparent;
+}
+
+.product-story__request-icon,
+.product-story__calendar-icon {
+  color: var(--pc-navy-900);
 }
 
 .product-story__request-badge {
@@ -2040,18 +1966,19 @@ onBeforeUnmount(() => {
 }
 
 .home-hero__title {
-  max-width: 12.5ch;
-  font-size: clamp(40px, 4.05vw, 54px);
-  line-height: 1;
-  margin-bottom: 13px;
+  max-width: 640px;
+  font-size: clamp(38px, 3.65vw, 48px);
+  line-height: 1.06;
+  letter-spacing: -0.026em;
+  margin-bottom: 17px;
 }
 
 .home-hero__subtitle {
-  max-width: 43ch;
-  font-size: clamp(14px, 1.02vw, 16px);
-  line-height: 1.46;
+  max-width: 560px;
+  font-size: clamp(14px, 1vw, 16px);
+  line-height: 1.54;
   color: color-mix(in srgb, var(--text) 78%, #526672);
-  margin-bottom: 13px;
+  margin-bottom: 17px;
 }
 
 .home-hero__support {
@@ -2430,6 +2357,7 @@ onBeforeUnmount(() => {
 
 .how,
 .value-section,
+.blog-section,
 .differentiation,
 .inside-section,
 .pricing,
@@ -2449,6 +2377,10 @@ onBeforeUnmount(() => {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
+.value-grid {
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+}
+
 .value-card,
 .difference-card {
   display: grid;
@@ -2460,6 +2392,38 @@ onBeforeUnmount(() => {
 
 .difference-card {
   background: linear-gradient(145deg, rgba(255, 255, 255, 0.94), rgba(245, 247, 242, 0.78));
+}
+
+.client-note,
+.blog-section {
+  border: 1px solid color-mix(in srgb, var(--pc-border) 86%, #fff);
+  border-radius: var(--radius-xl);
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: var(--pc-shadow-soft);
+}
+
+.client-note {
+  padding: 16px 18px;
+  color: color-mix(in srgb, var(--pc-navy-900) 84%, #3d5662);
+  line-height: 1.55;
+}
+
+.blog-section {
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  gap: clamp(18px, 3vw, 34px);
+  align-items: start;
+  padding: clamp(22px, 3vw, 34px);
+}
+
+.blog-section__copy {
+  display: grid;
+  gap: 14px;
+}
+
+.blog-section__copy p {
+  margin: 0;
+  color: color-mix(in srgb, var(--text) 80%, #445966);
+  line-height: 1.58;
 }
 
 .how__row {
@@ -2799,7 +2763,7 @@ onBeforeUnmount(() => {
 }
 
 .pricing-toggle {
-  justify-self: start;
+  justify-self: center;
   display: inline-flex;
   gap: 6px;
   padding: 4px;
@@ -2918,7 +2882,7 @@ onBeforeUnmount(() => {
   font-size: clamp(24px, 2vw, 30px);
   line-height: 1.2;
   letter-spacing: -0.02em;
-  max-width: 22ch;
+  max-width: none;
 }
 
 .pricing-layout__right {
@@ -2982,12 +2946,13 @@ onBeforeUnmount(() => {
 .final-cta {
   border: 1px solid var(--pc-border);
   border-radius: var(--radius-2xl);
-  padding: clamp(24px, 3.2vw, 40px);
+  padding: clamp(18px, 2.4vw, 28px);
   background:
     radial-gradient(440px 220px at 86% 16%, rgba(143, 203, 200, 0.2), transparent 72%),
     radial-gradient(460px 250px at 12% 90%, rgba(247, 183, 126, 0.18), transparent 72%),
     linear-gradient(135deg, rgba(255, 255, 255, 0.96), var(--pc-bg-main));
   box-shadow: var(--pc-shadow-card);
+  place-items: center;
 }
 
 .final-cta__title {
@@ -3021,6 +2986,10 @@ onBeforeUnmount(() => {
   }
 
   .pricing-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .blog-section {
     grid-template-columns: 1fr;
   }
 
@@ -3138,7 +3107,8 @@ onBeforeUnmount(() => {
   }
 
   .home-hero__title {
-    font-size: clamp(33px, 11vw, 42px);
+    font-size: clamp(32px, 9.8vw, 40px);
+    line-height: 1.07;
   }
 
   .home-hero__actions,
@@ -3266,7 +3236,7 @@ onBeforeUnmount(() => {
   }
 
   .home-hero__title {
-    font-size: clamp(38px, 4vw, 52px);
+    font-size: clamp(36px, 3.7vw, 48px);
   }
 
   .product-story {
@@ -3300,7 +3270,7 @@ onBeforeUnmount(() => {
   .home-hero__title,
   .home-hero__subtitle,
   .home-hero__support {
-    max-width: 720px;
+    max-width: 660px;
   }
 
   .hero-features {
@@ -3357,7 +3327,8 @@ onBeforeUnmount(() => {
   }
 
   .home-hero__title {
-    font-size: clamp(34px, 10.5vw, 44px);
+    font-size: clamp(32px, 9.8vw, 40px);
+    line-height: 1.07;
   }
 
   .home-hero__actions .btn {

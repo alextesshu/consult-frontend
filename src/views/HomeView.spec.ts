@@ -54,26 +54,28 @@ async function renderHome(options?: { authenticated?: boolean; roles?: string[] 
 }
 
 describe('HomeView', () => {
-  it('renders rebuilt hero with product collage and feature tiles', async () => {
-    await renderHome()
+  it('renders the polished homepage with the rich hero composition', async () => {
+    const { container } = await renderHome()
 
-    expect(screen.getByText('ДЛЯ СПЕЦІАЛІСТІВ ПРИВАТНОЇ ПРАКТИКИ')).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Простір для ведення консультацій' })).toBeInTheDocument()
     expect(
-      screen.getByText(/Публічний профіль, сесії, календар, власний блог та багато іншого/)
+      screen.getByRole('heading', {
+        name: 'Консультаційна практика — в одному спокійному просторі',
+      })
     ).toBeInTheDocument()
-    expect(screen.getByText(/приймати клієнтів і працювати системно/)).toBeInTheDocument()
-    expect(screen.getByText(/Без комісій з консультацій і без залежності/)).toBeInTheDocument()
-    const heroFeatures = screen.getByRole('list', { name: 'Переваги платформи' })
-    expect(within(heroFeatures).getByText('Публічний профіль')).toBeInTheDocument()
-    expect(within(heroFeatures).getByText('Запити без реєстрації')).toBeInTheDocument()
-    expect(within(heroFeatures).getByText('Сесії та календар')).toBeInTheDocument()
-    expect(within(heroFeatures).getByText('Власний блог')).toBeInTheDocument()
-    expect(within(heroFeatures).getByText('Без комісій')).toBeInTheDocument()
+    expect(screen.getByText(/Pro Consult поєднує профіль, запити, сесії, блог і матеріали/)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Подивитися тарифи' })).toHaveAttribute('href', '#pricing')
+
     expect(screen.getByText('Кабінет спеціаліста')).toBeInTheDocument()
     expect(screen.getByText('Нових запитів')).toBeInTheDocument()
     expect(screen.getByText('Сесій цього тижня')).toBeInTheDocument()
     expect(screen.getByText('Клієнтів')).toBeInTheDocument()
+    const heroStats = Array.from(container.querySelectorAll('.product-story__stat'))
+    const weekSessionsStat = heroStats.find((stat) => stat.textContent?.includes('Сесій цього тижня'))
+    const activeClientsStat = heroStats.find((stat) => stat.textContent?.includes('Клієнтів'))
+    expect(weekSessionsStat).toHaveTextContent('8')
+    expect(weekSessionsStat).toHaveTextContent('заплановано')
+    expect(activeClientsStat).toHaveTextContent('12')
+    expect(activeClientsStat).toHaveTextContent('активних')
     expect(screen.getByText('Останні запити')).toBeInTheDocument()
     expect(screen.getAllByText('Олена Коваль').length).toBeGreaterThan(0)
     expect(screen.getByText('12 років досвіду')).toBeInTheDocument()
@@ -81,7 +83,49 @@ describe('HomeView', () => {
     expect(screen.getAllByText('15:00').length).toBeGreaterThan(0)
     expect(screen.getByText('Консультація з клієнтом')).toBeInTheDocument()
     expect(screen.getByText('Підтверджено')).toBeInTheDocument()
+
+    expect(screen.getByText(/Якщо ви клієнт — перейдіть за посиланням/)).toBeInTheDocument()
+    expect(
+      screen.getByRole('heading', {
+        name: 'Профіль для презентації себе і робочий кабінет для розвитку практики',
+      })
+    ).toBeInTheDocument()
+    expect(screen.getByText('Звернення від клієнтів')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Блог, який допомагає пояснити ваш підхід' })).toBeInTheDocument()
+    expect(screen.getByText(/Не кожен клієнт готовий одразу написати спеціалісту/)).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Тарифи' })).toBeInTheDocument()
+    expect(screen.getByText(/Без комісій з консультацій. Ви сплачуєте за користування сервісом/)).toBeInTheDocument()
     expect(screen.getAllByRole('link', { name: 'Створити свій простір' }).length).toBeGreaterThan(0)
+  })
+
+  it('does not render removed duplicate homepage sections or forbidden wording', async () => {
+    const { container } = await renderHome()
+
+    expect(screen.queryByText('Можливості простору')).not.toBeInTheDocument()
+    expect(screen.queryByText('Сценарій роботи')).not.toBeInTheDocument()
+    expect(screen.queryByText('Власна присутність')).not.toBeInTheDocument()
+    expect(screen.queryByText('Що всередині')).not.toBeInTheDocument()
+    expect(screen.queryByText('Від першого запиту до сесії в календарі')).not.toBeInTheDocument()
+    expect(screen.queryByText('Не просто сайт-візитка')).not.toBeInTheDocument()
+    expect(screen.queryByText('Інструменти, які підтримують консультаційну роботу')).not.toBeInTheDocument()
+    expect(screen.queryByText('Власний профіль без залежності від зовнішнього майданчика')).not.toBeInTheDocument()
+    expect(screen.queryByText(/Оберіть формат доступу для своєї практики/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/Створіть простір, у якому вашу роботу легко зрозуміти/)).not.toBeInTheDocument()
+    expect(screen.queryByText('Знайти спеціаліста')).not.toBeInTheDocument()
+    expect(container).not.toHaveTextContent(/присутність/i)
+  })
+
+  it('keeps the final homepage cta to one primary action', async () => {
+    const { container } = await renderHome()
+    const finalCta = container.querySelector('.final-cta') as HTMLElement
+
+    expect(finalCta).toBeInTheDocument()
+    expect(within(finalCta).getByRole('link', { name: 'Створити свій простір' })).toHaveAttribute(
+      'href',
+      '/signup'
+    )
+    expect(within(finalCta).queryByRole('link', { name: 'Переглянути тарифи' })).not.toBeInTheDocument()
+    expect(within(finalCta).queryByRole('link', { name: 'Подивитися тарифи' })).not.toBeInTheDocument()
   })
 
   it('switches pricing values for yearly billing', async () => {
@@ -97,9 +141,10 @@ describe('HomeView', () => {
   })
 
   it('routes authenticated primary cta to cabinet', async () => {
-    const { router } = await renderHome({ authenticated: true, roles: ['SPECIALIST'] })
+    const { container, router } = await renderHome({ authenticated: true, roles: ['SPECIALIST'] })
+    const hero = container.querySelector('.home-hero') as HTMLElement
 
-    const heroButton = screen.getByRole('button', { name: /Створити свій простір/ })
+    const heroButton = within(hero).getByRole('button', { name: /Створити свій простір/ })
 
     await fireEvent.click(heroButton)
 

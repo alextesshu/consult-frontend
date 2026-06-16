@@ -1106,16 +1106,16 @@ watch(isChatCapable, (value) => {
 }
 
 .topbar__inner {
-  --marketing-shell-width: min(1480px, 100%);
-  width: 100%;
-  max-width: 100%;
+  --marketing-shell-width: min(1280px, calc(100% - 48px));
+  width: var(--marketing-shell-width);
+  max-width: var(--marketing-shell-width);
   margin: 0 auto;
   min-height: 66px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  padding: 13px 24px;
+  padding: 13px 0;
   min-width: 0;
 }
 
@@ -2145,6 +2145,10 @@ body.body--home .footer__bottom {
 }
 
 @media (max-width: 900px) {
+  .topbar__inner {
+    --marketing-shell-width: min(1280px, calc(100% - 32px));
+  }
+
   .shell--authenticated {
     gap: 12px;
   }
