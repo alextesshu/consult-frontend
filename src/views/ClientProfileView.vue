@@ -79,6 +79,9 @@
       <div v-if="dataDeletionLoading" class="muted">Завантаження...</div>
       <div v-else class="account-data-card__body">
         <div v-if="dataDeletionError" class="form-error">{{ dataDeletionError }}</div>
+        <ul v-if="dataDeletionBlockerLabels.length" class="account-data-blockers">
+          <li v-for="label in dataDeletionBlockerLabels" :key="label">{{ label }}</li>
+        </ul>
 
         <div v-if="dataDeletionRequest" class="account-data-request">
           <p class="account-data-request__meta">
@@ -129,6 +132,7 @@ import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import ConfirmModal from '../components/ConfirmModal.vue'
 import {
+  type AccountDeletionBlockedPayload,
   cancelDataDeletionRequest,
   createDataDeletionRequest,
   fetchClientProfile,
@@ -140,6 +144,7 @@ import {
 } from '../lib/api'
 import { getApiErrorMessage } from '../lib/errors'
 import { useToast } from '../composables/useToast'
+import { useAuthStore } from '../stores/auth'
 
 type DataDeletionRequestStatus =
   | 'SUBMITTED'
@@ -177,10 +182,12 @@ const dataDeletionLoading = ref(false)
 const dataDeletionSubmitting = ref(false)
 const dataDeletionCancelling = ref(false)
 const dataDeletionError = ref('')
+const dataDeletionBlockerLabels = ref<string[]>([])
 const dataDeletionRequest = ref<DataDeletionRequest | null>(null)
 const dataDeletionConfirmOpen = ref(false)
 const router = useRouter()
 const toast = useToast()
+const auth = useAuthStore()
 const clientCodeLabel = '\u041a\u043e\u0434 \u043a\u043b\u0456\u0454\u043d\u0442\u0430'
 const canSubmitDataDeletionRequest = computed(() =>
   !dataDeletionRequest.value ||
@@ -264,6 +271,7 @@ async function loadProfile() {
 async function loadDataDeletionRequest() {
   dataDeletionLoading.value = true
   dataDeletionError.value = ''
+  dataDeletionBlockerLabels.value = []
   try {
     dataDeletionRequest.value = await fetchCurrentDataDeletionRequest()
   } catch (err) {
@@ -278,6 +286,7 @@ async function loadDataDeletionRequest() {
 
 function openDataDeletionConfirm() {
   dataDeletionError.value = ''
+  dataDeletionBlockerLabels.value = []
   dataDeletionConfirmOpen.value = true
 }
 
@@ -289,11 +298,33 @@ async function confirmCreateDataDeletionRequest() {
   dataDeletionConfirmOpen.value = false
   dataDeletionSubmitting.value = true
   dataDeletionError.value = ''
+  dataDeletionBlockerLabels.value = []
   try {
-    dataDeletionRequest.value = await createDataDeletionRequest()
+    const request = await createDataDeletionRequest()
+    if (request.status === 'EXECUTED') {
+      toast.success('Акаунт видалено.')
+      auth.logout()
+      await router.push('/login')
+      return
+    }
+    dataDeletionRequest.value = request
     toast.success('Видалення акаунта розпочато.')
   } catch (err) {
-    dataDeletionError.value = getApiErrorMessage(err, 'Не вдалося розпочати видалення акаунта.')
+    const payload = (err as { response?: { data?: AccountDeletionBlockedPayload } })?.response?.data
+    if (payload?.code === 'ACCOUNT_DELETION_BLOCKED') {
+      dataDeletionError.value =
+        'Зараз видалення акаунта не завершено. Завершіть активні дії в акаунті та спробуйте ще раз.'
+      dataDeletionBlockerLabels.value = Array.isArray(payload.blockers?.items)
+        ? payload.blockers.items
+            .map((item) => item?.label || '')
+            .filter((label): label is string => Boolean(label))
+        : []
+    } else {
+      dataDeletionError.value = getApiErrorMessage(
+        err,
+        'Не вдалося розпочати видалення акаунта.'
+      )
+    }
   } finally {
     dataDeletionSubmitting.value = false
   }
@@ -303,6 +334,7 @@ async function onCancelDataDeletionRequest() {
   if (!dataDeletionRequest.value) return
   dataDeletionCancelling.value = true
   dataDeletionError.value = ''
+  dataDeletionBlockerLabels.value = []
   try {
     dataDeletionRequest.value = await cancelDataDeletionRequest(dataDeletionRequest.value.id)
     toast.success('Видалення акаунта скасовано.')
@@ -463,6 +495,14 @@ onMounted(() => {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
+}
+
+.account-data-blockers {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--muted);
+  display: grid;
+  gap: 6px;
 }
 
 .account-data-status {

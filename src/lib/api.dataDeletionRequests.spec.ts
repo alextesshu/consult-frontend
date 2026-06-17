@@ -29,7 +29,7 @@ describe('data deletion requests api', () => {
       data: {
         id: 17,
         kind: 'ACCOUNT',
-        status: 'SUBMITTED',
+        status: 'EXECUTED',
         reason: 'Потрібно завершити акаунт.',
         submitted_at: '2026-06-16T12:00:00Z',
         reviewed_at: null,
@@ -42,7 +42,7 @@ describe('data deletion requests api', () => {
     expect(mockedHttp.post).toHaveBeenCalledWith('/account/data-deletion-requests/', {
       reason: 'Потрібно завершити акаунт.',
     })
-    expect(result.status).toBe('SUBMITTED')
+    expect(result.status).toBe('EXECUTED')
   })
 
   it('unwraps current request payload and returns null when there is no open request', async () => {

@@ -24,6 +24,10 @@ const mockToast = {
   info: vi.fn(),
 }
 
+const mockAuthStore = {
+  logout: vi.fn(),
+}
+
 vi.mock('vue-router', async () => {
   const actual = await vi.importActual<typeof import('vue-router')>('vue-router')
   return {
@@ -34,6 +38,10 @@ vi.mock('vue-router', async () => {
 
 vi.mock('../composables/useToast', () => ({
   useToast: () => mockToast,
+}))
+
+vi.mock('../stores/auth', () => ({
+  useAuthStore: () => mockAuthStore,
 }))
 
 vi.mock('../lib/api', () => ({
@@ -95,6 +103,7 @@ function renderView() {
 describe('ClientProfileView', () => {
   beforeEach(() => {
     mockRouter.push.mockReset()
+    mockAuthStore.logout.mockReset()
     mockToast.show.mockReset()
     mockToast.success.mockReset()
     mockToast.error.mockReset()
@@ -122,8 +131,12 @@ describe('ClientProfileView', () => {
     expect(screen.queryByRole('button', { name: 'Скасувати видалення' })).not.toBeInTheDocument()
   })
 
-  it('submits account deletion from confirm modal without comment field', async () => {
-    mockedCreateDataDeletionRequest.mockResolvedValue(dataDeletionFixture())
+  it('executes account deletion from confirm modal, clears auth, and redirects', async () => {
+    mockedCreateDataDeletionRequest.mockResolvedValue(
+      dataDeletionFixture({
+        status: 'EXECUTED',
+      })
+    )
 
     renderView()
 
@@ -138,8 +151,52 @@ describe('ClientProfileView', () => {
     await waitFor(() => {
       expect(mockedCreateDataDeletionRequest).toHaveBeenCalledWith()
     })
-    expect(await screen.findByText('Видалення акаунта розпочато')).toBeInTheDocument()
-    expect(mockToast.success).toHaveBeenCalledWith('Видалення акаунта розпочато.')
+    expect(mockAuthStore.logout).toHaveBeenCalledTimes(1)
+    expect(mockRouter.push).toHaveBeenCalledWith('/login')
+    expect(mockToast.success).toHaveBeenCalledWith('Акаунт видалено.')
+  })
+
+  it('shows neutral blocked message with blocker labels', async () => {
+    mockedCreateDataDeletionRequest.mockRejectedValue({
+      response: {
+        data: {
+          code: 'ACCOUNT_DELETION_BLOCKED',
+          blockers: {
+            counts: {
+              future_sessions_count: 1,
+            },
+            items: [
+              {
+                code: 'future_sessions_count',
+                count: 1,
+                label: 'Є майбутні сесії. Завершіть або скасуйте їх перед видаленням акаунта.',
+              },
+            ],
+          },
+        },
+      },
+    })
+
+    renderView()
+
+    await screen.findByDisplayValue('Марія')
+    await fireEvent.click(screen.getByRole('button', { name: 'Видалити акаунт' }))
+    const dialog = await screen.findByRole('dialog', {
+      name: 'Видалити акаунт?',
+    })
+    await fireEvent.click(within(dialog).getByRole('button', { name: 'Видалити акаунт' }))
+
+    expect(
+      await screen.findByText(
+        'Зараз видалення акаунта не завершено. Завершіть активні дії в акаунті та спробуйте ще раз.'
+      )
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        'Є майбутні сесії. Завершіть або скасуйте їх перед видаленням акаунта.'
+      )
+    ).toBeInTheDocument()
+    expect(mockAuthStore.logout).not.toHaveBeenCalled()
   })
 
   it('shows in-review request and lets client cancel it', async () => {
@@ -181,5 +238,15 @@ describe('ClientProfileView', () => {
     expect(await screen.findByText('Видалення акаунта в обробці')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Видалити акаунт' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Скасувати видалення' })).not.toBeInTheDocument()
+  })
+
+  it('keeps banned phrases out of the deletion flow copy', async () => {
+    const { container } = renderView()
+
+    await screen.findByRole('heading', { name: 'Акаунт і дані' })
+
+    expect(container.textContent).not.toMatch(
+      /запит на видалення|підтримка|перевірка|процедура|ризик|історія сервісу|дані іншої сторони|зв’яжеться з вами/i
+    )
   })
 })

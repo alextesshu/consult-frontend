@@ -1709,6 +1709,22 @@ export type DataDeletionRequest = {
   cancelled_at: string | null
 }
 
+export type AccountDeletionBlockedItem = {
+  code: string
+  count: number
+  label: string
+}
+
+export type AccountDeletionBlockedPayload = {
+  detail: string
+  code: 'ACCOUNT_DELETION_BLOCKED' | string
+  blockers: {
+    kind?: DataDeletionRequestKind
+    counts: Record<string, number>
+    items: AccountDeletionBlockedItem[]
+  }
+}
+
 export async function fetchClientProfile(): Promise<ClientProfile> {
   const resp = await http.get<ClientProfile>('/client/profile/')
   return resp.data
