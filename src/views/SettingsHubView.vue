@@ -33,8 +33,7 @@
         <div>
           <h2 class="account-data-panel__title">Акаунт і дані</h2>
           <p class="muted account-data-panel__copy">
-            Ви можете подати запит на видалення акаунта та пов’язаних персональних даних.
-            Підтримка опрацює звернення і повідомить про результат.
+            Тут можна видалити акаунт і пов’язані персональні дані з Pro Consult.
           </p>
         </div>
         <span
@@ -52,11 +51,8 @@
 
         <div v-if="dataDeletionRequest" class="account-data-request">
           <p class="account-data-request__meta">
-            Запит подано:
+            Створено:
             <strong>{{ formatDateTime(dataDeletionRequest.submitted_at) }}</strong>
-          </p>
-          <p v-if="dataDeletionRequest.reason" class="muted account-data-request__reason">
-            Коментар: {{ dataDeletionRequest.reason }}
           </p>
         </div>
 
@@ -68,7 +64,7 @@
             :disabled="dataDeletionSubmitting"
             @click="openDataDeletionConfirm"
           >
-            {{ dataDeletionSubmitting ? 'Надсилаємо...' : 'Подати запит на видалення' }}
+            {{ dataDeletionSubmitting ? 'Видаляємо...' : 'Видалити акаунт' }}
           </button>
 
           <button
@@ -78,7 +74,7 @@
             :disabled="dataDeletionCancelling"
             @click="onCancelDataDeletionRequest"
           >
-            {{ dataDeletionCancelling ? 'Скасовуємо...' : 'Скасувати запит' }}
+            {{ dataDeletionCancelling ? 'Скасовуємо...' : 'Скасувати видалення' }}
           </button>
         </div>
       </div>
@@ -312,26 +308,14 @@
 
     <ConfirmModal
       :open="dataDeletionConfirmOpen"
-      title="Подати запит на видалення акаунта?"
-      message="Запит не виконується миттєво. Після перевірки підтримка зв’яжеться з вами за потреби та проведе процедуру без ризику для історії сервісу."
-      confirm-text="Подати запит"
-      cancel-text="Скасувати"
+      title="Видалити акаунт?"
+      message="Акаунт і пов’язані персональні дані буде видалено з Pro Consult. Після цього доступ до акаунта буде закрито."
+      confirm-text="Видалити акаунт"
+      cancel-text="Залишити акаунт"
       tone="danger"
       @confirm="confirmCreateDataDeletionRequest"
       @cancel="closeDataDeletionConfirm"
-    >
-      <template #body>
-        <label class="field account-data-modal__field">
-          <span>Коментар до запиту (необов’язково)</span>
-          <textarea
-            v-model.trim="dataDeletionReason"
-            class="input textarea"
-            rows="4"
-            placeholder="Можна коротко пояснити контекст для підтримки."
-          />
-        </label>
-      </template>
-    </ConfirmModal>
+    />
   </section>
 </template>
 
@@ -366,12 +350,12 @@ type DataDeletionRequestStatus =
 const PAYMENT_DETAILS_TAB = 'payment-details'
 const METHOD_TYPES: CanonicalMethodType[] = ['bank_account', 'card']
 const DATA_DELETION_STATUS_LABELS: Record<DataDeletionRequestStatus, string> = {
-  SUBMITTED: 'Запит отримано',
-  IN_REVIEW: 'Запит на розгляді',
-  APPROVED: 'Запит підтверджено. Очікує виконання підтримкою.',
-  REJECTED: 'Запит відхилено',
-  CANCELLED: 'Запит скасовано',
-  EXECUTED: 'Запит виконано',
+  SUBMITTED: 'Видалення акаунта розпочато',
+  IN_REVIEW: 'Видалення акаунта в обробці',
+  APPROVED: 'Видалення акаунта в обробці',
+  REJECTED: 'Не вдалося завершити видалення акаунта',
+  CANCELLED: 'Видалення акаунта скасовано',
+  EXECUTED: 'Акаунт видалено',
 }
 
 const route = useRoute()
@@ -391,7 +375,6 @@ const dataDeletionCancelling = ref(false)
 const dataDeletionError = ref('')
 const dataDeletionRequest = ref<DataDeletionRequest | null>(null)
 const dataDeletionConfirmOpen = ref(false)
-const dataDeletionReason = ref('')
 
 const details = ref<SpecialistPaymentDetails>(createEmptyDetails())
 const forms = reactive<Record<CanonicalMethodType, SpecialistPaymentMethodDetails>>({
@@ -620,7 +603,7 @@ async function loadDataDeletionRequest() {
   } catch (err) {
     dataDeletionError.value = getApiErrorMessage(
       err,
-      'Не вдалося завантажити стан запиту на видалення.'
+      'Не вдалося завантажити стан видалення акаунта.'
     )
   } finally {
     dataDeletionLoading.value = false
@@ -641,11 +624,10 @@ async function confirmCreateDataDeletionRequest() {
   dataDeletionSubmitting.value = true
   dataDeletionError.value = ''
   try {
-    dataDeletionRequest.value = await createDataDeletionRequest(dataDeletionReason.value)
-    dataDeletionReason.value = ''
-    toast.success('Запит на видалення передано підтримці.')
+    dataDeletionRequest.value = await createDataDeletionRequest()
+    toast.success('Видалення акаунта розпочато.')
   } catch (err) {
-    dataDeletionError.value = getApiErrorMessage(err, 'Не вдалося подати запит на видалення.')
+    dataDeletionError.value = getApiErrorMessage(err, 'Не вдалося розпочати видалення акаунта.')
   } finally {
     dataDeletionSubmitting.value = false
   }
@@ -657,9 +639,9 @@ async function onCancelDataDeletionRequest() {
   dataDeletionError.value = ''
   try {
     dataDeletionRequest.value = await cancelDataDeletionRequest(dataDeletionRequest.value.id)
-    toast.success('Запит скасовано.')
+    toast.success('Видалення акаунта скасовано.')
   } catch (err) {
-    dataDeletionError.value = getApiErrorMessage(err, 'Не вдалося скасувати запит.')
+    dataDeletionError.value = getApiErrorMessage(err, 'Не вдалося скасувати видалення акаунта.')
   } finally {
     dataDeletionCancelling.value = false
   }

@@ -150,68 +150,53 @@ describe('SettingsHubView dual payment methods', () => {
     renderView()
 
     expect(await screen.findByRole('heading', { name: 'Акаунт і дані' })).toBeInTheDocument()
-    expect(await screen.findByRole('button', { name: 'Подати запит на видалення' })).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Скасувати запит' })).not.toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: 'Видалити акаунт' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Скасувати видалення' })).not.toBeInTheDocument()
   })
 
-  it('submits data deletion request from confirm modal with optional reason', async () => {
-    mockedCreateDataDeletionRequest.mockResolvedValue(
-      dataDeletionFixture({
-        reason: 'Будь ласка, завершити мій акаунт після перевірки.',
-      })
-    )
+  it('submits account deletion from confirm modal without comment field', async () => {
+    mockedCreateDataDeletionRequest.mockResolvedValue(dataDeletionFixture())
 
     renderView()
 
-    await fireEvent.click(await screen.findByRole('button', { name: 'Подати запит на видалення' }))
+    await fireEvent.click(await screen.findByRole('button', { name: 'Видалити акаунт' }))
     const dialog = await screen.findByRole('dialog', {
-      name: 'Подати запит на видалення акаунта?',
+      name: 'Видалити акаунт?',
     })
-    await fireEvent.update(
-      within(dialog).getByLabelText('Коментар до запиту (необов’язково)'),
-      'Будь ласка, завершити мій акаунт після перевірки.'
-    )
-    await fireEvent.click(within(dialog).getByRole('button', { name: 'Подати запит' }))
+    expect(within(dialog).queryByRole('textbox')).not.toBeInTheDocument()
+    await fireEvent.click(within(dialog).getByRole('button', { name: 'Видалити акаунт' }))
 
     await waitFor(() => {
-      expect(mockedCreateDataDeletionRequest).toHaveBeenCalledWith(
-        'Будь ласка, завершити мій акаунт після перевірки.'
-      )
+      expect(mockedCreateDataDeletionRequest).toHaveBeenCalledWith()
     })
-    expect(await screen.findByText('Запит отримано')).toBeInTheDocument()
-    expect(screen.getByText(/Коментар:/)).toHaveTextContent(
-      'Коментар: Будь ласка, завершити мій акаунт після перевірки.'
-    )
-    expect(mockToast.success).toHaveBeenCalledWith('Запит на видалення передано підтримці.')
+    expect(await screen.findByText('Видалення акаунта розпочато')).toBeInTheDocument()
+    expect(mockToast.success).toHaveBeenCalledWith('Видалення акаунта розпочато.')
   })
 
   it('shows current request and allows cancel while request is in review', async () => {
     mockedFetchCurrentDataDeletionRequest.mockResolvedValue(
       dataDeletionFixture({
         status: 'IN_REVIEW',
-        reason: 'Пауза в користуванні сервісом.',
       })
     )
     mockedCancelDataDeletionRequest.mockResolvedValue(
       dataDeletionFixture({
         status: 'CANCELLED',
-        reason: 'Пауза в користуванні сервісом.',
         cancelled_at: '2026-06-17T10:00:00Z',
       })
     )
 
     renderView()
 
-    expect(await screen.findByText('Запит на розгляді')).toBeInTheDocument()
-    expect(screen.getByText(/Коментар:/)).toHaveTextContent('Коментар: Пауза в користуванні сервісом.')
-    await fireEvent.click(screen.getByRole('button', { name: 'Скасувати запит' }))
+    expect(await screen.findByText('Видалення акаунта в обробці')).toBeInTheDocument()
+    await fireEvent.click(screen.getByRole('button', { name: 'Скасувати видалення' }))
 
     await waitFor(() => {
       expect(mockedCancelDataDeletionRequest).toHaveBeenCalledWith(41)
     })
-    expect(await screen.findByText('Запит скасовано')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Подати запит на видалення' })).toBeInTheDocument()
-    expect(mockToast.success).toHaveBeenCalledWith('Запит скасовано.')
+    expect(await screen.findByText('Видалення акаунта скасовано')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Видалити акаунт' })).toBeInTheDocument()
+    expect(mockToast.success).toHaveBeenCalledWith('Видалення акаунта скасовано.')
   })
 
   it('shows approved state without submit or cancel actions', async () => {
@@ -224,11 +209,9 @@ describe('SettingsHubView dual payment methods', () => {
 
     renderView()
 
-    expect(
-      await screen.findByText('Запит підтверджено. Очікує виконання підтримкою.')
-    ).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Подати запит на видалення' })).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Скасувати запит' })).not.toBeInTheDocument()
+    expect(await screen.findByText('Видалення акаунта в обробці')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Видалити акаунт' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Скасувати видалення' })).not.toBeInTheDocument()
   })
 
   it('supports canonical payment tab and 0-method empty state', async () => {
