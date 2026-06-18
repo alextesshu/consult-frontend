@@ -2,10 +2,10 @@
   <section class="auth">
     <div class="auth__card">
       <div class="badge">Реєстрація</div>
-      <h1 class="title auth__title">Створіть кабінет спеціаліста</h1>
+      <h1 class="title auth__title">Створіть профіль спеціаліста в Pro Consult.</h1>
       <p class="muted auth__subtitle">
-        Під час beta вам одразу відкривається Pro-доступ. Додавайте слоти та починайте роботу.
-        Ви зможете перейти на Start у налаштуваннях тарифу, якщо захочете.
+        Після активації профілю можна використати промокод FOUNDER і отримати 1 місяць PRO-доступу без оплати.
+        Після пробного періоду можна залишитися на Start, розширити ліміт активних клієнтів або перейти на PRO.
       </p>
 
       <div v-if="isClientOnly" class="form">
@@ -55,6 +55,20 @@
             placeholder="********"
           />
         </label>
+        <label class="field">
+          <span>Промокод</span>
+          <input
+            v-model="promoCode"
+            class="input"
+            type="text"
+            name="promo"
+            autocomplete="off"
+            placeholder="FOUNDER"
+          />
+        </label>
+        <p class="muted auth__field-helper">
+          Промокод FOUNDER відкриває 1 місяць PRO-доступу без оплати після активації профілю.
+        </p>
         <p v-if="error" class="form-error">{{ error }}</p>
         <button class="btn" type="submit" :disabled="loading">
           {{ loading ? 'Створення акаунта...' : 'Створити акаунт' }}
@@ -104,7 +118,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useAuthStore } from '../stores/auth'
 import { enableSpecialist, getApiErrorMessage } from '../lib/api'
@@ -116,6 +130,9 @@ const error = ref('')
 const dualRoleError = ref('')
 const dualRoleLoading = ref(false)
 const router = useRouter()
+const route = useRoute()
+const routePromo = Array.isArray(route.query.promo) ? route.query.promo[0] : route.query.promo
+const promoCode = ref(typeof routePromo === 'string' ? routePromo.toUpperCase() : '')
 const auth = useAuthStore()
 const { loading } = storeToRefs(auth)
 const roles = computed(() => auth.me?.user.roles ?? auth.user?.roles ?? [])
@@ -190,6 +207,11 @@ async function onSubmit() {
 
 .auth__footer {
   margin-top: 12px;
+}
+
+.auth__field-helper {
+  margin-top: -8px;
+  font-size: 13px;
 }
 
 .auth__legal {

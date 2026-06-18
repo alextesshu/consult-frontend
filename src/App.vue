@@ -730,7 +730,10 @@ const supplementalNotifications = computed<BellNotification[]>(() => {
   const items: BellNotification[] = []
   const accessState = auth.me?.access_state
   const activeCount = auth.me?.counts?.active_clients ?? 0
-  const activeLimit = auth.me?.effective_entitlements?.active_client_limit
+  const activeClientEntitlement = auth.me?.effective_entitlements?.active_client_entitlement
+  const activeLimit =
+    activeClientEntitlement?.effective_limit ??
+    auth.me?.effective_entitlements?.active_client_limit
   if (accessState === 'GRACE') {
     items.push({
       id: 'hint-access-grace',
@@ -758,10 +761,11 @@ const supplementalNotifications = computed<BellNotification[]>(() => {
     })
   }
   if (typeof activeLimit === 'number' && activeCount > activeLimit) {
+    const activeLimitHint = activeClientLimitHint(activeClientEntitlement)
     items.push({
       id: 'hint-over-limit',
-      text: 'Перевищено ліміт активних клієнтів',
-      hint: 'Нові підтвердження тимчасово заблоковані.',
+      text: activeLimitHint.text,
+      hint: activeLimitHint.hint,
       to: '/cabinet/billing',
       join_url: null,
       tone: 'warn',
@@ -785,6 +789,43 @@ const supplementalNotifications = computed<BellNotification[]>(() => {
   }
   return items
 })
+
+function activeClientLimitHint(snapshot: Record<string, unknown> | null | undefined) {
+  if (snapshot?.can_buy_extra_slot === true) {
+    if (snapshot.upgrade_required_plan === 'LEADER') {
+      return {
+        text: 'Досягнуто ліміт активних клієнтів на PRO',
+        hint: 'Можна розширити ліміт: +1 активний клієнт — 200 грн/міс або перейти на Leader.',
+      }
+    }
+    if (snapshot.upgrade_required_plan === 'PRO') {
+      return {
+        text: 'Досягнуто ліміт активних клієнтів на Start',
+        hint: 'Можна розширити ліміт: +1 активний клієнт — 200 грн/міс або перейти на PRO.',
+      }
+    }
+    return {
+      text: 'Досягнуто ліміт активних клієнтів',
+      hint: 'Можна розширити ліміт: +1 активний клієнт — 200 грн/міс.',
+    }
+  }
+  if (snapshot?.upgrade_required_plan === 'PRO') {
+    return {
+      text: 'Досягнуто максимум Start',
+      hint: 'На Start можна мати до 6 активних клієнтів. Для більшої кількості перейдіть на PRO.',
+    }
+  }
+  if (snapshot?.upgrade_required_plan === 'LEADER') {
+    return {
+      text: 'Досягнуто максимум PRO',
+      hint: 'На PRO можна мати до 27 активних клієнтів. Для більшої кількості потрібні умови Leader.',
+    }
+  }
+  return {
+    text: 'Перевищено ліміт активних клієнтів',
+    hint: 'Нові підтвердження тимчасово заблоковані.',
+  }
+}
 
 const notifications = computed(() => [
   ...notifs.items.value.filter((item) => item.unread),

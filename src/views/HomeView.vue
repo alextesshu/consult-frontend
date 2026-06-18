@@ -279,6 +279,16 @@
             <RouterLink class="btn" :class="{ 'btn--ghost': plan.ghostCta }" :to="plan.ctaTo">{{ plan.ctaLabel }}</RouterLink>
           </article>
         </div>
+        <article class="pricing-founder">
+          <div>
+            <h3>Founder Access</h3>
+            <p>
+              Промокод FOUNDER відкриває 1 місяць PRO-доступу без оплати після активації профілю. Після пробного
+              періоду можна залишитися на Start, розширити ліміт активних клієнтів або перейти на PRO.
+            </p>
+          </div>
+          <RouterLink class="btn btn--ghost" to="/signup?promo=FOUNDER">Створити профіль з промокодом</RouterLink>
+        </article>
       </section>
 
       <section class="final-cta reveal">
@@ -367,9 +377,11 @@ const pricingPlans = computed(() => [
       'Сесії та календар',
       'Приватні нотатки й матеріали',
       'Без комісій з консультацій',
-      'До 3 постійних клієнтів',
+      '3 активні клієнти включено',
+      'Можна розширити ліміт до 6 клієнтів',
+      '+1 активний клієнт — 200 грн/міс',
     ],
-    ctaLabel: 'Почати безкоштовно',
+    ctaLabel: 'Почати',
     ctaTo: '/signup',
     ghostCta: false,
   },
@@ -379,12 +391,14 @@ const pricingPlans = computed(() => [
     helper: billingCycle.value === 'yearly' ? 'Оплата за рік' : 'Оплата щомісяця',
     features: [
       'Усе зі Start',
-      'До 20 постійних клієнтів',
+      '20 активних клієнтів включено',
+      'Можна розширити ліміт до 27 клієнтів',
+      '+1 активний клієнт — 200 грн/міс',
       'Власний блог у профілі',
       'Розширена аналітика',
       'Більше сесій без реєстрації',
     ],
-    ctaLabel: 'Спробувати 30 днів',
+    ctaLabel: 'Почати',
     ctaTo: '/signup',
     ghostCta: false,
   },
@@ -394,9 +408,9 @@ const pricingPlans = computed(() => [
     helper: billingCycle.value === 'yearly' ? 'Оплата за рік' : 'Оплата щомісяця',
     features: [
       'Усе з Pro',
-      'До 60 постійних клієнтів',
-      'Розширена підтримка',
-      'Індивідуальне налаштування',
+      'Для масштабної практики',
+      'Розширені можливості',
+      'Індивідуальні умови',
     ],
     ctaLabel: 'Подати запит',
     ctaTo: '/support-and-data-requests',
@@ -2818,6 +2832,31 @@ onBeforeUnmount(() => {
   gap: 12px;
 }
 
+.pricing-founder {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  justify-content: space-between;
+  margin: 18px auto 0;
+  max-width: 920px;
+  padding: 18px;
+  border: 1px solid color-mix(in srgb, var(--pc-teal-500) 22%, transparent);
+  border-radius: var(--radius-lg);
+  background:
+    linear-gradient(135deg, rgba(242, 248, 247, 0.96), rgba(255, 250, 239, 0.9)),
+    #fff;
+  color: var(--muted);
+}
+
+.pricing-founder h3 {
+  margin: 0 0 6px;
+  color: var(--pc-navy-950);
+}
+
+.pricing-founder p {
+  margin: 0;
+}
+
 .plan-card {
   display: flex;
   flex-direction: column;
@@ -3346,6 +3385,15 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 680px) {
+  .pricing-founder {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .pricing-founder .btn {
+    justify-content: center;
+  }
+
   .home-hero {
     padding: 22px 0 4px;
   }

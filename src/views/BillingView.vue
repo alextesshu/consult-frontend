@@ -37,6 +37,36 @@
           <div class="limit-card__value">{{ guestSessionsUsageLabel }}</div>
         </article>
       </div>
+      <section v-if="activeClientEntitlement" class="slot-panel" aria-labelledby="extra-slots-title">
+        <div>
+          <h3 id="extra-slots-title" class="slot-panel__title">Розширення ліміту активних клієнтів</h3>
+          <p class="muted slot-panel__text">
+            Start включає 3 активні клієнти, PRO — 20. Якщо потрібно більше, можна розширити ліміт: +1 активний клієнт — 200 грн/міс.
+          </p>
+        </div>
+        <dl class="slot-panel__stats">
+          <div>
+            <dt>Базовий ліміт</dt>
+            <dd>{{ formatLimit(activeClientEntitlement.base_limit) }}</dd>
+          </div>
+          <div>
+            <dt>Додаткові активні клієнти</dt>
+            <dd>{{ activeClientEntitlement.extra_slots ?? 0 }} / {{ activeClientEntitlement.extra_slots_limit ?? 0 }}</dd>
+          </div>
+          <div>
+            <dt>Доступний ліміт</dt>
+            <dd>{{ formatLimit(activeClientEntitlement.effective_limit) }}</dd>
+          </div>
+          <div>
+            <dt>Залишилось</dt>
+            <dd>{{ formatLimit(activeClientEntitlement.remaining) }}</dd>
+          </div>
+        </dl>
+        <div class="slot-panel__action">
+          <button class="btn btn--ghost" type="button" disabled>{{ extraSlotActionLabel }}</button>
+          <p class="muted">{{ extraSlotActionHelper }}</p>
+        </div>
+      </section>
       <div v-if="featureRows.length" class="feature-list">
         <div v-for="feature in featureRows" :key="feature.code" class="feature-row">
           <span>{{ featureLabel(feature.code) }}</span>
@@ -72,7 +102,7 @@
         Постійні клієнти — це клієнти у вашій базі, які займають ліміт тарифу. Сесії без реєстрації рахуються окремо.
       </p>
       <p v-if="showSwitchToStartAction" class="muted">
-        Після переходу вам залишаться базові можливості Start, і beta Pro-доступ більше не буде застосовуватись автоматично.
+        Після пробного PRO-періоду можна залишитися на Start, розширити ліміт активних клієнтів або перейти на PRO.
       </p>
     </section>
 
@@ -80,13 +110,6 @@
       У кожному плані — публічний профіль, яким можна ділитися, гнучкий функціонал запису та бронювання й
       робота без комісії за сесії.
     </p>
-    <section class="panel panel--beta">
-      <div class="badge badge--soft">Beta-режим</div>
-      <p>
-        Зараз Pro Consult працює в beta-режимі. Оплата не стягується. Перед запуском платних тарифів ми окремо повідомимо умови переходу.
-      </p>
-    </section>
-
     <section class="plan-grid">
       <article
         v-for="plan in plans"
@@ -140,6 +163,14 @@
       </article>
     </section>
 
+    <section class="panel panel--beta">
+      <div class="badge badge--soft">Founder Access</div>
+      <p>
+        Промокод FOUNDER відкриває 1 місяць PRO-доступу без оплати після активації профілю. Після пробного періоду
+        можна залишитися на Start, розширити ліміт активних клієнтів або перейти на PRO.
+      </p>
+    </section>
+
     <p v-if="hasDowngradePlans" class="muted billing__downgrade-note">
       Перехід на нижчий план зараз оформлюється через підтримку.
     </p>
@@ -155,6 +186,7 @@ import {
   createBillingAccessRequest,
   fetchBillingAccessRequestState,
   getApiErrorMessage,
+  type ActiveClientEntitlement,
   type BillingAccessRequest,
   type BillingAccessRequestState,
 } from '../lib/api'
@@ -203,6 +235,16 @@ type BillingAccessSummary = {
     active_clients?: {
       used?: number | null
       limit?: number | null
+      base_limit?: number | null
+      extra_slots?: number | null
+      extra_slots_limit?: number | null
+      effective_limit?: number | null
+      remaining?: number | null
+      extra_slot_price_uah?: number | null
+      can_buy_extra_slot?: boolean | null
+      requires_pro?: boolean | null
+      upgrade_required_plan?: 'PRO' | 'LEADER' | string | null
+      is_forced_limit?: boolean | null
     } | null
     guest_sessions?: {
       used?: number | null
@@ -221,32 +263,43 @@ const plans = [
   {
     code: 'START',
     title: 'Start',
-    subtitle: 'Безкоштовний базовий старт',
+    subtitle: 'Безкоштовний старт для невеликої практики',
     price: '0 грн',
     badge: 'Безкоштовний',
-    features: ['Базовий старт роботи', 'Публічний профіль', 'Гнучкий функціонал запису та бронювання', 'Нотатки, робочий зошит і матеріали','Робота без комісії за сесії'],
+    features: [
+      'Публічний профіль спеціаліста',
+      'Базовий прийом запитів',
+      '3 активні клієнти включено',
+      'Можна розширити ліміт до 6 клієнтів',
+      '+1 активний клієнт — 200 грн/міс',
+      'Робота без комісій за консультації',
+    ],
   },
   {
     code: 'PRO',
     title: 'Pro',
-    subtitle: 'Розширений доступ для регулярної роботи',
+    subtitle: 'Повний доступ для активнішої практики',
     price: '990 грн',
-    badge: 'Популярний',
+    badge: 'Для активної практики',
     features: [
       'Усе зі Start',
-      'Свій блог у профілі',
-      'Розширена аналітика',
-      'Приватні відгуки клієнтів',
-      'Більше сесій без реєстрації',
+      '20 активних клієнтів включено',
+      'Можна розширити ліміт до 27 клієнтів',
+      '+1 активний клієнт — 200 грн/міс',
+      'Повний робочий кабінет',
+      'Сесії та календар',
+      'Матеріали для клієнтів',
+      'Власний блог',
+      'Приватні робочі записи',
     ],
   },
   {
     code: 'LEADER',
     title: 'Leader',
-    subtitle: 'Максимальний доступ для масштабнішої роботи',
+    subtitle: 'Для масштабної практики',
     price: '2 490 грн',
     badge: 'Недоступно під час beta',
-    features: ['Усе з Pro', 'Розширена підтримка', 'Індивідуальне налаштування'],
+    features: ['Усе з Pro', 'Розширені можливості', 'Індивідуальні умови'],
   },
 ] as const
 
@@ -378,7 +431,7 @@ const showSwitchToStartAction = computed(
 
 const mainAccessDescription = computed(() => {
   if (isBetaDefaultProAccess.value) {
-    return 'Під час beta вам доступні можливості Pro без оплати. Ви можете перейти на Start у будь-який момент, якщо хочете залишити лише базові можливості.'
+    return 'Після пробного PRO-періоду можна залишитися на Start, розширити ліміт активних клієнтів або перейти на PRO.'
   }
   if (accessSource.value === 'trial') {
     return `Вам відкрито тестовий доступ до можливостей тарифу ${currentPlanLabel.value}.`
@@ -453,6 +506,7 @@ const accessPillClass = computed(() => {
 
 const activeLimitLabel = computed(() => {
   const limit =
+    accessSummary.value?.limits?.active_clients?.effective_limit ??
     accessSummary.value?.limits?.active_clients?.limit ??
     accessSummary.value?.active_client_limit ??
     me.value?.effective_entitlements?.active_client_limit
@@ -468,6 +522,43 @@ const activeClientsUsageLabel = computed(() => {
     0
   return `${used} / ${activeLimitLabel.value}`
 })
+
+const activeClientEntitlement = computed<ActiveClientEntitlement | null>(() => {
+  return (
+    accessSummary.value?.limits?.active_clients ||
+    me.value?.effective_entitlements?.active_client_entitlement ||
+    null
+  )
+})
+
+const extraSlotActionLabel = computed(() => {
+  const snapshot = activeClientEntitlement.value
+  if (!snapshot) return 'Розширити ліміт активних клієнтів'
+  if (snapshot.can_buy_extra_slot) return 'Розширити ліміт активних клієнтів'
+  if (snapshot.upgrade_required_plan === 'PRO') return 'Перейти на PRO'
+  if (snapshot.upgrade_required_plan === 'LEADER') return 'Перейти на Leader'
+  return 'Доступно в межах тарифу'
+})
+
+const extraSlotActionHelper = computed(() => {
+  const snapshot = activeClientEntitlement.value
+  if (!snapshot) return ''
+  if (snapshot.can_buy_extra_slot) {
+    return 'Розширення ліміту поки оформлюється через адміністратора.'
+  }
+  if (snapshot.upgrade_required_plan === 'PRO') {
+    return 'На Start можна мати до 6 активних клієнтів. Для більшої кількості перейдіть на PRO.'
+  }
+  if (snapshot.upgrade_required_plan === 'LEADER') {
+    return 'На PRO можна мати до 27 активних клієнтів. Для більшої кількості потрібні умови Leader.'
+  }
+  return 'Поточний тариф не потребує додаткової дії.'
+})
+
+function formatLimit(value: number | null | undefined) {
+  if (value === null || value === undefined) return 'Н/Д'
+  return Number.isFinite(value) ? String(value) : '∞'
+}
 
 const guestSessionsUsageLabel = computed(() => {
   const used =
@@ -514,28 +605,8 @@ function planSecondaryPriceHint(_code: string) {
   return ''
 }
 
-function planActiveClientLimit(code: PlanCode) {
-  if (currentPlan.value === code || basePlan.value === code) {
-    const currentLimit = accessSummary.value?.limits?.active_clients?.limit
-    if (typeof currentLimit === 'number') return currentLimit
-  }
-  if (code === 'START') return 3
-  if (code === 'PRO') return 20
-  if (code === 'LEADER') return 60
-  return null
-}
-
 function planFeatureList(code: PlanCode) {
-  const limit = planActiveClientLimit(code)
-  const features = [...(planByCode.get(code)?.features || [])]
-  if (typeof limit !== 'number') return features
-  const limitLine = `До ${limit} постійних клієнтів`
-  if (code === 'START') return [...features, limitLine]
-  if (code === 'PRO' || code === 'LEADER') {
-    if (!features.length) return [limitLine]
-    return [features[0], limitLine, ...features.slice(1)]
-  }
-  return [limitLine, ...features]
+  return [...(planByCode.get(code)?.features || [])]
 }
 
 function isCurrentPlan(code: string) {
@@ -979,6 +1050,58 @@ onMounted(() => {
 }
 
 .request-summary__note {
+  margin: 0;
+}
+
+.slot-panel {
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-card);
+  background: #fff;
+  padding: 16px;
+  display: grid;
+  gap: 14px;
+}
+
+.slot-panel__title {
+  margin: 0 0 4px;
+  font-size: 17px;
+}
+
+.slot-panel__text {
+  margin: 0;
+}
+
+.slot-panel__stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+
+.slot-panel__stats div {
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-control);
+  padding: 10px 12px;
+}
+
+.slot-panel__stats dt {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.slot-panel__stats dd {
+  margin: 4px 0 0;
+  font-weight: 700;
+}
+
+.slot-panel__action {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+}
+
+.slot-panel__action .muted {
   margin: 0;
 }
 

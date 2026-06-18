@@ -46,7 +46,19 @@ function buildAccessSummary(overrides: Record<string, unknown> = {}) {
     current_request: null,
     latest_request: null,
     limits: {
-      active_clients: { used: 0, limit: 3 },
+      active_clients: {
+        used: 0,
+        limit: 3,
+        base_limit: 3,
+        extra_slots: 0,
+        extra_slots_limit: 3,
+        effective_limit: 3,
+        remaining: 3,
+        extra_slot_price_uah: 200,
+        can_buy_extra_slot: true,
+        requires_pro: false,
+        upgrade_required_plan: null,
+      },
       guest_sessions: { used: 0, limit: 5 },
     },
     features: [
@@ -62,11 +74,26 @@ function buildAccessSummary(overrides: Record<string, unknown> = {}) {
 }
 
 function setCurrentPlan(plan: 'START' | 'PRO' | 'LEADER', summaryOverrides: Record<string, unknown> = {}) {
+  const baseLimit = plan === 'LEADER' ? 60 : plan === 'PRO' ? 20 : 3
+  const extraSlotsLimit = plan === 'PRO' ? 7 : plan === 'START' ? 3 : 0
   mockMe.value = {
     access_state: 'OK',
     effective_entitlements: {
       plan,
-      active_client_limit: plan === 'LEADER' ? 60 : plan === 'PRO' ? 20 : 3,
+      active_client_limit: baseLimit,
+      active_client_entitlement: {
+        used: 0,
+        limit: baseLimit,
+        base_limit: baseLimit,
+        extra_slots: 0,
+        extra_slots_limit: extraSlotsLimit,
+        effective_limit: baseLimit,
+        remaining: baseLimit,
+        extra_slot_price_uah: 200,
+        can_buy_extra_slot: plan !== 'LEADER',
+        requires_pro: false,
+        upgrade_required_plan: null,
+      },
       group_room_enabled: false,
     },
   }
@@ -76,7 +103,19 @@ function setCurrentPlan(plan: 'START' | 'PRO' | 'LEADER', summaryOverrides: Reco
       base_plan: plan,
       effective_plan: plan,
       limits: {
-        active_clients: { used: 0, limit: plan === 'LEADER' ? 60 : plan === 'PRO' ? 20 : 3 },
+        active_clients: {
+          used: 0,
+          limit: baseLimit,
+          base_limit: baseLimit,
+          extra_slots: 0,
+          extra_slots_limit: extraSlotsLimit,
+          effective_limit: baseLimit,
+          remaining: baseLimit,
+          extra_slot_price_uah: 200,
+          can_buy_extra_slot: plan !== 'LEADER',
+          requires_pro: false,
+          upgrade_required_plan: null,
+        },
         guest_sessions: { used: 0, limit: plan === 'LEADER' ? 60 : plan === 'PRO' ? 20 : 5 },
       },
       ...summaryOverrides,
@@ -151,6 +190,22 @@ describe('BillingView downgrade semantics', () => {
     expect(screen.queryByText('Нижчий план')).not.toBeInTheDocument()
     expect(screen.queryByText('Перехід на нижчий план зараз оформлюється через підтримку.')).not.toBeInTheDocument()
     expect(screen.getAllByRole('button', { name: 'Подати заявку на Pro' }).length).toBeGreaterThan(0)
+  })
+
+  it('shows active client slot model for Start and PRO', async () => {
+    setCurrentPlan('PRO')
+    renderView()
+
+    await waitFor(() => {
+      expect(mockedFetchBillingAccessRequestState).toHaveBeenCalled()
+    })
+
+    expect(screen.getByText('Розширення ліміту активних клієнтів')).toBeInTheDocument()
+    expect(screen.getByText(/Start включає 3 активні клієнти, PRO — 20/)).toBeInTheDocument()
+    expect(screen.getByText('20 активних клієнтів включено')).toBeInTheDocument()
+    expect(screen.getByText('Можна розширити ліміт до 27 клієнтів')).toBeInTheDocument()
+    expect(screen.getAllByText('+1 активний клієнт — 200 грн/міс').length).toBeGreaterThan(0)
+    expect(screen.getByText('Розширення ліміту поки оформлюється через адміністратора.')).toBeInTheDocument()
   })
 
   it('uses neutral active-access label for OK state', async () => {
@@ -279,7 +334,7 @@ describe('BillingView downgrade semantics', () => {
     expect(screen.getByText('Вам доступні можливості тарифу Start.')).toBeInTheDocument()
   })
 
-  it('shows Start as free with 3 regular clients and no outdated euro prices', async () => {
+  it('shows Start as free with 3 active clients and no outdated euro prices', async () => {
     setCurrentPlan('START')
     const view = renderView()
 
@@ -287,7 +342,9 @@ describe('BillingView downgrade semantics', () => {
       expect(screen.getAllByText('0 грн').length).toBeGreaterThan(0)
     })
 
-    expect(screen.getAllByText('До 3 постійних клієнтів').length).toBeGreaterThan(0)
+    expect(screen.getAllByText('3 активні клієнти включено').length).toBeGreaterThan(0)
+    expect(screen.getByText('Можна розширити ліміт до 6 клієнтів')).toBeInTheDocument()
+    expect(screen.getByText(/Промокод FOUNDER відкриває 1 місяць PRO-доступу без оплати/)).toBeInTheDocument()
     expect(screen.queryByText('До 5 постійних клієнтів')).not.toBeInTheDocument()
     expect(view.container).not.toHaveTextContent('€10')
     expect(view.container).not.toHaveTextContent('€24')
@@ -375,10 +432,10 @@ describe('BillingView downgrade semantics', () => {
     expect(screen.getByText('Ваш доступ зараз: Pro')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Перейти на Start' })).toBeInTheDocument()
     expect(
-      screen.getByText(
-        'Після переходу вам залишаться базові можливості Start, і beta Pro-доступ більше не буде застосовуватись автоматично.'
-      )
-    ).toBeInTheDocument()
+      screen.getAllByText(
+        'Після пробного PRO-періоду можна залишитися на Start, розширити ліміт активних клієнтів або перейти на PRO.'
+      ).length
+    ).toBeGreaterThan(0)
 
     await fireEvent.click(screen.getByRole('button', { name: 'Перейти на Start' }))
 

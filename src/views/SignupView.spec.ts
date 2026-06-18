@@ -10,6 +10,7 @@ const mockLoadMe = vi.fn()
 const loadingRef = ref(false)
 const mockMe = ref<any>(null)
 const mockUser = ref<any>(null)
+const mockRouteQuery = ref<Record<string, string>>({})
 
 vi.mock('pinia', () => ({
   storeToRefs: () => ({ loading: loadingRef }),
@@ -17,6 +18,7 @@ vi.mock('pinia', () => ({
 
 vi.mock('vue-router', () => ({
   useRouter: () => ({ push: mockPush }),
+  useRoute: () => ({ query: mockRouteQuery.value }),
 }))
 
 vi.mock('../stores/auth', () => ({
@@ -60,6 +62,7 @@ describe('SignupView dual-role enable flow', () => {
     loadingRef.value = false
     mockMe.value = null
     mockUser.value = null
+    mockRouteQuery.value = {}
   })
 
   it('uses enable-specialist flow for authenticated client-only user', async () => {
@@ -86,11 +89,33 @@ describe('SignupView dual-role enable flow', () => {
     })
   })
 
-  it('shows beta Pro signup copy without paid-subscription wording', () => {
+  it('shows Founder Access signup copy without automatic beta wording', () => {
     renderView()
 
-    expect(screen.getByText(/Під час beta вам одразу відкривається Pro-доступ\./)).toBeInTheDocument()
-    expect(screen.getByText(/Ви зможете перейти на Start у налаштуваннях тарифу/)).toBeInTheDocument()
+    expect(screen.getByText(/можна використати промокод FOUNDER/)).toBeInTheDocument()
+    expect(screen.getAllByText(/1 місяць PRO-доступу без оплати/).length).toBeGreaterThan(0)
+    expect(screen.getByText(/Після пробного періоду можна залишитися на Start/)).toBeInTheDocument()
+    expect(screen.getByText(/розширити ліміт активних клієнтів/)).toBeInTheDocument()
+    expect(screen.getByLabelText('Промокод')).toBeInTheDocument()
+    expect(screen.queryByText(new RegExp('Під час beta вам одразу відкривається ' + 'Pro-доступ'))).not.toBeInTheDocument()
     expect(screen.queryByText(/оплата активується|підписка Pro оплачена|платний тариф підключено/i)).not.toBeInTheDocument()
+  })
+
+  it('prefills Founder promo from query without changing signup payload', async () => {
+    mockRouteQuery.value = { promo: 'FOUNDER' }
+    mockSignup.mockResolvedValue(undefined)
+
+    renderView()
+
+    expect(screen.getByLabelText('Промокод')).toHaveValue('FOUNDER')
+
+    await fireEvent.update(screen.getByLabelText('Ел. пошта'), 'specialist@example.com')
+    await fireEvent.update(screen.getByLabelText('Пароль'), 'password123')
+    await fireEvent.update(screen.getByLabelText('Підтвердження пароля'), 'password123')
+    await fireEvent.click(screen.getByRole('button', { name: 'Створити акаунт' }))
+
+    await waitFor(() => {
+      expect(mockSignup).toHaveBeenCalledWith('specialist@example.com', 'password123', 'password123')
+    })
   })
 })

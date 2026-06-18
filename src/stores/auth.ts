@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia'
 import { fetchMe, loginWithIdentifier, logoutSession, refreshToken, signupClient, signupSpecialist } from '../lib/api'
+import type { ActiveClientEntitlement } from '../lib/api'
 
 type AuthUser = {
   id: number
@@ -12,6 +13,7 @@ type AuthUser = {
 type Entitlements = {
   plan: string
   active_client_limit: number | null
+  active_client_entitlement?: ActiveClientEntitlement | null
   pair_enabled: boolean
   group_room_enabled: boolean
   group_room_meeting_limit: number | null

@@ -104,6 +104,21 @@ describe('HomeView', () => {
     expect(screen.getByText(/Не кожен клієнт готовий одразу написати спеціалісту/)).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Тарифи' })).toBeInTheDocument()
     expect(screen.getByText(/Без комісій з консультацій. Ви сплачуєте за користування сервісом/)).toBeInTheDocument()
+    expect(screen.getByText('3 активні клієнти включено')).toBeInTheDocument()
+    expect(screen.getByText('Можна розширити ліміт до 6 клієнтів')).toBeInTheDocument()
+    expect(screen.getAllByText('+1 активний клієнт — 200 грн/міс').length).toBeGreaterThan(0)
+    expect(screen.getByText('20 активних клієнтів включено')).toBeInTheDocument()
+    expect(screen.getByText('Можна розширити ліміт до 27 клієнтів')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Founder Access' })).toBeInTheDocument()
+    expect(screen.getByText(/Промокод FOUNDER відкриває 1 місяць PRO-доступу без оплати/)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Створити профіль з промокодом' })).toHaveAttribute(
+      'href',
+      '/signup?promo=FOUNDER'
+    )
+    expect(screen.queryByText('До 3 ' + 'активних клієнтів')).not.toBeInTheDocument()
+    expect(screen.queryByText('Максимум 6 ' + 'активних клієнтів на Start')).not.toBeInTheDocument()
+    expect(screen.queryByText('До 20 ' + 'активних клієнтів')).not.toBeInTheDocument()
+    expect(screen.queryByText('Максимум 27 ' + 'активних клієнтів на PRO')).not.toBeInTheDocument()
     expect(screen.getAllByRole('link', { name: 'Створити свій простір' }).length).toBeGreaterThan(0)
   })
 

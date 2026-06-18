@@ -550,6 +550,47 @@ describe('App shell', () => {
     expect(document.body).not.toHaveTextContent('䳿')
   })
 
+  it('uses active-client slot payload for over-limit notification copy', async () => {
+    await renderWithProviders({
+      initialPath: '/cabinet',
+      roles: ['SPECIALIST'],
+      meOverrides: {
+        effective_entitlements: {
+          plan: 'PRO',
+          active_client_limit: 20,
+          active_client_entitlement: {
+            used: 20,
+            limit: 20,
+            base_limit: 20,
+            extra_slots: 0,
+            extra_slots_limit: 7,
+            effective_limit: 20,
+            remaining: 0,
+            extra_slot_price_uah: 200,
+            can_buy_extra_slot: true,
+            requires_pro: false,
+            upgrade_required_plan: null,
+          },
+          pair_enabled: true,
+          group_room_enabled: true,
+          group_room_meeting_limit: 12,
+          group_room_broadcast_enabled: false,
+          default_technical_cap: 100,
+        },
+        counts: {
+          active_clients: 21,
+          prospect_clients: 0,
+          upcoming_sessions_count: 0,
+        },
+      } as any,
+    })
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Сповіщення' }))
+
+    expect(await screen.findByText('Досягнуто ліміт активних клієнтів')).toBeInTheDocument()
+    expect(screen.getByText('Можна розширити ліміт: +1 активний клієнт — 200 грн/міс.')).toBeInTheDocument()
+  })
+
   it('shows only admin header navigation for pure ADMIN', async () => {
     await renderWithProviders({
       initialPath: '/admin/inbox',

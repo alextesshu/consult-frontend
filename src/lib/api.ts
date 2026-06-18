@@ -128,6 +128,21 @@ export async function fetchSpecialistOnboardingState(): Promise<SpecialistOnboar
   return resp.data
 }
 
+export interface ActiveClientEntitlement {
+  used?: number | null
+  limit?: number | null
+  base_limit?: number | null
+  extra_slots?: number | null
+  extra_slots_limit?: number | null
+  effective_limit?: number | null
+  remaining?: number | null
+  extra_slot_price_uah?: number | null
+  can_buy_extra_slot?: boolean | null
+  requires_pro?: boolean | null
+  upgrade_required_plan?: 'PRO' | 'LEADER' | string | null
+  is_forced_limit?: boolean | null
+}
+
 export async function refreshToken(): Promise<TokenResponse> {
   const resp = await http.post<TokenResponse>('/auth/token/refresh/', {})
   return resp.data
@@ -580,6 +595,7 @@ export type AdminSpecialistDetailResponse = {
     effective_entitlements: Record<string, unknown>
     current_limits: {
       active_client_limit: number | null
+      active_client_entitlement?: ActiveClientEntitlement | null
       group_room_meeting_limit: number | null
       guest_sessions_limit_per_period: number | null
     }
