@@ -11,6 +11,12 @@ import {
 
 const mockMe = ref<any>(null)
 const mockLoadMe = vi.fn()
+const mockToast = {
+  success: vi.fn(),
+  info: vi.fn(),
+  warning: vi.fn(),
+  error: vi.fn(),
+}
 
 vi.mock('pinia', () => ({
   storeToRefs: (store: any) => store,
@@ -29,6 +35,10 @@ vi.mock('../lib/api', () => ({
   fetchBillingAccessRequestState: vi.fn(),
   createBillingAccessRequest: vi.fn(),
   getApiErrorMessage: vi.fn(() => 'Request failed'),
+}))
+
+vi.mock('../composables/useToast', () => ({
+  useToast: () => mockToast,
 }))
 
 const mockedApiGet = vi.mocked(apiGet)
@@ -159,6 +169,10 @@ describe('BillingView downgrade semantics', () => {
 
     mockedCreateBillingAccessRequest.mockReset()
     mockedCreateActiveClientLimitIncreaseRequest.mockReset()
+    mockToast.success.mockReset()
+    mockToast.info.mockReset()
+    mockToast.warning.mockReset()
+    mockToast.error.mockReset()
   })
 
   it('shows explanatory downgrade copy and no broken downgrade CTA for LEADER', async () => {
@@ -264,7 +278,46 @@ describe('BillingView downgrade semantics', () => {
       })
     })
     expect(screen.getByText('Запит на +3 активні клієнти надіслано адміністратору.')).toBeInTheDocument()
+    expect(mockToast.success).toHaveBeenCalledWith('Запит на +3 активні клієнти надіслано адміністратору.')
     expect(screen.getByRole('button', { name: 'Запросити розширення ліміту' })).toBeDisabled()
+  })
+
+  it('shows pending toast when active client limit request already exists', async () => {
+    setCurrentPlan('PRO')
+    mockedCreateActiveClientLimitIncreaseRequest.mockRejectedValue({
+      response: {
+        data: {
+          code: 'PENDING_ACTIVE_CLIENT_LIMIT_REQUEST_EXISTS',
+          current_request: {
+            id: 55,
+            status: 'PENDING',
+            requested_extra_slots: 4,
+            plan_snapshot: 'PRO',
+            base_active_client_limit_snapshot: 20,
+            current_extra_active_client_slots_snapshot: 0,
+            max_extra_active_client_slots_snapshot: 6,
+            price_uah_per_month_snapshot: '800.00',
+            specialist_note: '',
+            created_at: '2026-06-19T10:00:00Z',
+            updated_at: '2026-06-19T10:00:00Z',
+            decided_at: null,
+          },
+        },
+      },
+    })
+    renderView()
+
+    await waitFor(() => {
+      expect(mockedFetchBillingAccessRequestState).toHaveBeenCalled()
+    })
+
+    await fireEvent.update(screen.getByLabelText('Кількість'), '4')
+    await fireEvent.click(screen.getByRole('button', { name: 'Запросити розширення ліміту' }))
+
+    await waitFor(() => {
+      expect(screen.getByText('Запит на +4 активні клієнти очікує розгляду.')).toBeInTheDocument()
+    })
+    expect(mockToast.info).toHaveBeenCalledWith('Запит на +4 активні клієнти очікує розгляду.')
   })
 
   it('shows total monthly price after approval for START active client increase', async () => {

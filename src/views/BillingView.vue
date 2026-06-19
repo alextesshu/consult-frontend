@@ -222,6 +222,7 @@ import {
   type BillingAccessRequestState,
 } from '../lib/api'
 import SettingsSubnav from '../components/SettingsSubnav.vue'
+import { useToast } from '../composables/useToast'
 
 type PlanCode = 'START' | 'PRO' | 'LEADER'
 type AccessSource = 'base_plan' | 'trial' | 'override' | 'billing' | 'beta_default_pro' | string
@@ -340,6 +341,7 @@ const specialistSelectablePlans = new Set<PlanCode>(['PRO'])
 const hiddenBetaFeatureCodes = new Set(['pair', 'group_room', 'group_room_broadcast', 'public_events'])
 const auth = useAuthStore()
 const { me } = storeToRefs(auth)
+const toast = useToast()
 
 const requestingPlan = ref<PlanCode | null>(null)
 const isRefreshing = ref(false)
@@ -850,6 +852,7 @@ async function requestExtraActiveClient() {
       },
     }
     extraSlotFeedback.value = `Запит на ${formatActiveClientIncrease(created.requested_extra_slots)} надіслано адміністратору.`
+    toast.success(extraSlotFeedback.value)
   } catch (err: any) {
     const code = err?.response?.data?.code
     const currentRequest = err?.response?.data?.current_request as ActiveClientLimitIncreaseRequest | undefined
@@ -864,16 +867,19 @@ async function requestExtraActiveClient() {
         },
       }
       extraSlotFeedback.value = `Запит на ${formatActiveClientIncrease(currentRequest.requested_extra_slots)} очікує розгляду.`
+      toast.info(extraSlotFeedback.value)
     } else if (
       code === 'ACTIVE_CLIENT_LIMIT_MAX_REACHED' ||
       code === 'ACTIVE_CLIENT_LIMIT_EXTRA_UNAVAILABLE'
     ) {
       extraSlotFeedback.value = 'Максимальний ліміт для вашого тарифу вже використано.'
+      toast.warning(extraSlotFeedback.value)
     } else {
       extraSlotFeedback.value = getApiErrorMessage(
         err,
         'Не вдалося надіслати запит на розширення ліміту. Спробуйте ще раз.'
       )
+      toast.error(extraSlotFeedback.value)
     }
   } finally {
     isRequestingExtraSlot.value = false

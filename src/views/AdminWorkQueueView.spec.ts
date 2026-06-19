@@ -3,6 +3,7 @@ import { createMemoryHistory, createRouter } from 'vue-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import AdminWorkQueueView from './AdminWorkQueueView.vue'
 import { fetchAdminWorkQueue, transitionAdminWorkQueueItem } from '../lib/api'
+import { apiOrigin } from '../lib/http'
 
 vi.mock('../lib/api', async () => {
   const actual = await vi.importActual<typeof import('../lib/api')>('../lib/api')
@@ -442,12 +443,56 @@ describe('AdminWorkQueueView', () => {
     expect(links.map((link) => link.getAttribute('href'))).toEqual(
       expect.arrayContaining([
         '/admin/billing-access-requests/21',
-        '/admin/booking/activeclientlimitincreaserequest/31/change/',
+        `${apiOrigin()}/admin/booking/activeclientlimitincreaserequest/31/change/`,
       ])
     )
     expect(
       screen.getByText('Обробка запиту виконується спеціалістом у його кабінеті. Адміністратор бачить лише операційний сигнал.')
     ).toBeInTheDocument()
+  })
+
+  it('keeps SPA admin work queue targets internal while opening Django admin targets on API origin', async () => {
+    mockedFetchAdminWorkQueue.mockResolvedValueOnce({
+      summary: baseResponse.summary,
+      items: [
+        {
+          id: 'spa-work-queue',
+          item_key: 'active_client_limit_increase_request:2',
+          type: 'billing_active_client_limit_increase_request_pending',
+          severity: 'normal',
+          status: 'open',
+          title: 'SPA work queue target',
+          target_url: '/admin/work-queue?status=active&item_key=active_client_limit_increase_request:2',
+          related: {
+            object_type: 'active_client_limit_increase_request',
+            object_id: 2,
+          },
+        },
+        {
+          id: 'django-admin-change',
+          item_key: 'active_client_limit_increase_request:3',
+          type: 'billing_active_client_limit_increase_request_pending',
+          severity: 'normal',
+          status: 'open',
+          title: 'Django admin target',
+          target_url: '/admin/booking/activeclientlimitincreaserequest/3/change/',
+          related: {
+            object_type: 'active_client_limit_increase_request',
+            object_id: 3,
+          },
+        },
+      ],
+    })
+
+    await renderView()
+
+    const links = await screen.findAllByRole('link', { name: 'Відкрити' })
+    expect(links.map((link) => link.getAttribute('href'))).toEqual(
+      expect.arrayContaining([
+        '/admin/work-queue?status=active&item_key=active_client_limit_increase_request:2',
+        `${apiOrigin()}/admin/booking/activeclientlimitincreaserequest/3/change/`,
+      ])
+    )
   })
 
   it('keeps admin inbox navigation for actual admin inbox items', async () => {

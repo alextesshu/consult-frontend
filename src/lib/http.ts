@@ -13,7 +13,15 @@ function resolveApiBaseUrl() {
   return value
 }
 
-const API_BASE_URL = resolveApiBaseUrl()
+export const API_BASE_URL = resolveApiBaseUrl()
+
+export function apiOrigin() {
+  try {
+    return new URL(API_BASE_URL).origin
+  } catch {
+    return ''
+  }
+}
 
 function isEnableSpecialistEndpoint(url: string) {
   return url.includes('/auth/enable-specialist/')
