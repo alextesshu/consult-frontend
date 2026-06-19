@@ -143,6 +143,30 @@ export interface ActiveClientEntitlement {
   is_forced_limit?: boolean | null
 }
 
+export type ActiveClientLimitIncreaseRequestStatus = 'PENDING' | 'EXECUTED' | 'REJECTED' | string
+
+export type ActiveClientLimitIncreaseRequest = {
+  id: number
+  therapist?: number
+  status: ActiveClientLimitIncreaseRequestStatus
+  requested_extra_slots: number
+  plan_snapshot: 'START' | 'PRO' | 'LEADER' | string
+  base_active_client_limit_snapshot: number
+  current_extra_active_client_slots_snapshot: number
+  max_extra_active_client_slots_snapshot: number
+  price_uah_per_month_snapshot: string
+  specialist_note?: string
+  created_at: string
+  updated_at: string
+  decided_at: string | null
+}
+
+export type ActiveClientLimitIncreaseRequestState = {
+  has_pending_request: boolean
+  current_request: ActiveClientLimitIncreaseRequest | null
+  latest_request: ActiveClientLimitIncreaseRequest | null
+}
+
 export async function refreshToken(): Promise<TokenResponse> {
   const resp = await http.post<TokenResponse>('/auth/token/refresh/', {})
   return resp.data
@@ -1682,6 +1706,17 @@ export async function createBillingAccessRequest(payload: {
     request: BillingAccessRequest
     has_pending_request: boolean
   }>('/billing/request-access/', payload)
+  return resp.data
+}
+
+export async function createActiveClientLimitIncreaseRequest(payload: {
+  requested_extra_slots?: number
+  specialist_note?: string
+} = {}): Promise<ActiveClientLimitIncreaseRequest> {
+  const resp = await http.post<ActiveClientLimitIncreaseRequest>(
+    '/cabinet/active-client-limit-increase-requests/',
+    payload
+  )
   return resp.data
 }
 

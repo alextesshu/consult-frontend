@@ -818,7 +818,7 @@ function activeClientLimitHint(snapshot: Record<string, unknown> | null | undefi
   if (snapshot?.upgrade_required_plan === 'LEADER') {
     return {
       text: 'Досягнуто максимум PRO',
-      hint: 'На PRO можна мати до 27 активних клієнтів. Для більшої кількості потрібні умови Leader.',
+      hint: 'На PRO можна мати до 26 активних клієнтів. Для більшої кількості потрібні умови Leader.',
     }
   }
   return {

@@ -63,8 +63,36 @@
           </div>
         </dl>
         <div class="slot-panel__action">
-          <button class="btn btn--ghost" type="button" disabled>{{ extraSlotActionLabel }}</button>
+          <label
+            v-if="availableExtraActiveClientQuantities.length"
+            class="slot-panel__quantity"
+          >
+            <span>Кількість</span>
+            <select
+              v-model.number="requestedExtraActiveClients"
+              :disabled="hasPendingActiveClientLimitIncreaseRequest || isRequestingExtraSlot"
+            >
+              <option
+                v-for="quantity in availableExtraActiveClientQuantities"
+                :key="quantity"
+                :value="quantity"
+              >
+                +{{ quantity }}
+              </option>
+            </select>
+          </label>
+          <button
+            class="btn btn--ghost"
+            type="button"
+            :disabled="!canRequestExtraActiveClient || isRequestingExtraSlot"
+            @click="requestExtraActiveClient"
+          >
+            {{ extraSlotActionLabel }}
+          </button>
           <p class="muted">{{ extraSlotActionHelper }}</p>
+          <p v-if="extraSlotTotalAfterApprovalHelper" class="muted">
+            {{ extraSlotTotalAfterApprovalHelper }}
+          </p>
         </div>
       </section>
       <div v-if="featureRows.length" class="feature-list">
@@ -183,9 +211,12 @@ import { storeToRefs } from 'pinia'
 import { useAuthStore } from '../stores/auth'
 import {
   apiGet,
+  createActiveClientLimitIncreaseRequest,
   createBillingAccessRequest,
   fetchBillingAccessRequestState,
   getApiErrorMessage,
+  type ActiveClientLimitIncreaseRequest,
+  type ActiveClientLimitIncreaseRequestState,
   type ActiveClientEntitlement,
   type BillingAccessRequest,
   type BillingAccessRequestState,
@@ -231,6 +262,7 @@ type BillingAccessSummary = {
   } | null
   current_request?: BillingSummaryRequest | null
   latest_request?: BillingSummaryRequest | null
+  active_client_limit_increase_request?: ActiveClientLimitIncreaseRequestState | null
   limits?: {
     active_clients?: {
       used?: number | null
@@ -284,7 +316,7 @@ const plans = [
     features: [
       'Усе зі Start',
       '20 активних клієнтів включено',
-      'Можна розширити ліміт до 27 клієнтів',
+      'Можна розширити ліміт до 26 клієнтів',
       '+1 активний клієнт — 200 грн/міс',
       'Повний робочий кабінет',
       'Сесії та календар',
@@ -311,10 +343,13 @@ const { me } = storeToRefs(auth)
 
 const requestingPlan = ref<PlanCode | null>(null)
 const isRefreshing = ref(false)
+const isRequestingExtraSlot = ref(false)
+const requestedExtraActiveClients = ref(1)
 const requestState = ref<BillingAccessRequestState | null>(null)
 const accessSummary = ref<BillingAccessSummary | null>(null)
 const requestFeedback = ref('')
 const requestFeedbackPlan = ref<PlanCode | null>(null)
+const extraSlotFeedback = ref('')
 
 function normalizePlan(raw: unknown): PlanCode | null {
   if (raw === 'START' || raw === 'PRO' || raw === 'LEADER') return raw
@@ -531,33 +566,117 @@ const activeClientEntitlement = computed<ActiveClientEntitlement | null>(() => {
   )
 })
 
-const extraSlotActionLabel = computed(() => {
+const activeClientLimitIncreaseRequestState = computed(() => {
+  return accessSummary.value?.active_client_limit_increase_request || null
+})
+
+const currentActiveClientLimitIncreaseRequest = computed<ActiveClientLimitIncreaseRequest | null>(() => {
+  const request = activeClientLimitIncreaseRequestState.value?.current_request
+  return request?.status === 'PENDING' ? request : null
+})
+
+const hasPendingActiveClientLimitIncreaseRequest = computed(() => {
+  return Boolean(currentActiveClientLimitIncreaseRequest.value)
+})
+
+const availableExtraActiveClientSlots = computed(() => {
   const snapshot = activeClientEntitlement.value
-  if (!snapshot) return 'Розширити ліміт активних клієнтів'
-  if (snapshot.can_buy_extra_slot) return 'Розширити ліміт активних клієнтів'
-  if (snapshot.upgrade_required_plan === 'PRO') return 'Перейти на PRO'
-  if (snapshot.upgrade_required_plan === 'LEADER') return 'Перейти на Leader'
-  return 'Доступно в межах тарифу'
+  if (!snapshot) return 0
+  const limit = Number(snapshot.extra_slots_limit ?? 0)
+  const current = Number(snapshot.extra_slots ?? 0)
+  return Math.max(limit - current, 0)
+})
+
+const availableExtraActiveClientQuantities = computed(() => {
+  return Array.from(
+    { length: availableExtraActiveClientSlots.value },
+    (_item, index) => index + 1
+  )
+})
+
+const selectedExtraActiveClientQuantity = computed(() => {
+  const available = availableExtraActiveClientSlots.value
+  if (available <= 0) return 1
+  return Math.min(Math.max(Number(requestedExtraActiveClients.value) || 1, 1), available)
+})
+
+const activeClientLimitMaxReached = computed(() => {
+  const snapshot = activeClientEntitlement.value
+  return Boolean(snapshot && !snapshot.can_buy_extra_slot)
+})
+
+const canRequestExtraActiveClient = computed(() => {
+  return Boolean(
+    activeClientEntitlement.value?.can_buy_extra_slot &&
+      !hasPendingActiveClientLimitIncreaseRequest.value
+  )
+})
+
+const extraSlotActionLabel = computed(() => {
+  if (isRequestingExtraSlot.value) return 'Надсилаємо запит…'
+  return 'Запросити розширення ліміту'
 })
 
 const extraSlotActionHelper = computed(() => {
   const snapshot = activeClientEntitlement.value
   if (!snapshot) return ''
+  if (extraSlotFeedback.value) return extraSlotFeedback.value
+  if (hasPendingActiveClientLimitIncreaseRequest.value) {
+    const quantity = currentActiveClientLimitIncreaseRequest.value?.requested_extra_slots || 1
+    return `Запит на ${formatActiveClientIncrease(quantity)} очікує розгляду.`
+  }
+  if (activeClientLimitMaxReached.value) {
+    return 'Максимальний ліміт для вашого тарифу вже використано.'
+  }
   if (snapshot.can_buy_extra_slot) {
-    return 'Розширення ліміту поки оформлюється через адміністратора.'
-  }
-  if (snapshot.upgrade_required_plan === 'PRO') {
-    return 'На Start можна мати до 6 активних клієнтів. Для більшої кількості перейдіть на PRO.'
-  }
-  if (snapshot.upgrade_required_plan === 'LEADER') {
-    return 'На PRO можна мати до 27 активних клієнтів. Для більшої кількості потрібні умови Leader.'
+    const quantity = selectedExtraActiveClientQuantity.value
+    return `${formatActiveClientIncrease(quantity)} — ${formatMoneyUah(selectedExtraActiveClientPrice.value)} грн/міс`
   }
   return 'Поточний тариф не потребує додаткової дії.'
 })
 
+const extraSlotPriceUah = computed(() => {
+  const price = Number(activeClientEntitlement.value?.extra_slot_price_uah ?? 200)
+  return Number.isFinite(price) && price > 0 ? price : 200
+})
+
+const selectedExtraActiveClientPrice = computed(() => {
+  return selectedExtraActiveClientQuantity.value * extraSlotPriceUah.value
+})
+
+const currentPlanBaseMonthlyPrice = computed(() => {
+  if (currentPlan.value === 'PRO') return 990
+  if (currentPlan.value === 'LEADER') return 2490
+  return 0
+})
+
+const extraSlotTotalAfterApprovalHelper = computed(() => {
+  const snapshot = activeClientEntitlement.value
+  if (!snapshot?.can_buy_extra_slot) return ''
+  if (extraSlotFeedback.value || hasPendingActiveClientLimitIncreaseRequest.value) return ''
+  if (activeClientLimitMaxReached.value) return ''
+  const total = currentPlanBaseMonthlyPrice.value + selectedExtraActiveClientPrice.value
+  return `Разом після схвалення: ${formatMoneyUah(total)} грн/міс`
+})
+
+function formatActiveClientIncrease(quantity: number) {
+  const safeQuantity = Math.max(Number(quantity) || 1, 1)
+  const mod10 = safeQuantity % 10
+  const mod100 = safeQuantity % 100
+  if (mod10 === 1 && mod100 !== 11) return `+${safeQuantity} активний клієнт`
+  if (mod10 >= 2 && mod10 <= 4 && !(mod100 >= 12 && mod100 <= 14)) {
+    return `+${safeQuantity} активні клієнти`
+  }
+  return `+${safeQuantity} активних клієнтів`
+}
+
 function formatLimit(value: number | null | undefined) {
   if (value === null || value === undefined) return 'Н/Д'
   return Number.isFinite(value) ? String(value) : '∞'
+}
+
+function formatMoneyUah(value: number) {
+  return Math.round(value).toLocaleString('uk-UA')
 }
 
 const guestSessionsUsageLabel = computed(() => {
@@ -710,6 +829,54 @@ async function loadAccessSummary() {
     accessSummary.value = await apiGet<BillingAccessSummary>('/cabinet/entitlements/')
   } catch {
     accessSummary.value = null
+  }
+}
+
+async function requestExtraActiveClient() {
+  if (!canRequestExtraActiveClient.value || isRequestingExtraSlot.value) return
+  isRequestingExtraSlot.value = true
+  extraSlotFeedback.value = ''
+  const requestedQuantity = selectedExtraActiveClientQuantity.value
+  try {
+    const created = await createActiveClientLimitIncreaseRequest({
+      requested_extra_slots: requestedQuantity,
+    })
+    accessSummary.value = {
+      ...(accessSummary.value || {}),
+      active_client_limit_increase_request: {
+        has_pending_request: true,
+        current_request: created,
+        latest_request: created,
+      },
+    }
+    extraSlotFeedback.value = `Запит на ${formatActiveClientIncrease(created.requested_extra_slots)} надіслано адміністратору.`
+  } catch (err: any) {
+    const code = err?.response?.data?.code
+    const currentRequest = err?.response?.data?.current_request as ActiveClientLimitIncreaseRequest | undefined
+    if (code === 'PENDING_ACTIVE_CLIENT_LIMIT_REQUEST_EXISTS' && currentRequest) {
+      accessSummary.value = {
+        ...(accessSummary.value || {}),
+        active_client_limit_increase_request: {
+          has_pending_request: true,
+          current_request: currentRequest,
+          latest_request:
+            activeClientLimitIncreaseRequestState.value?.latest_request || currentRequest,
+        },
+      }
+      extraSlotFeedback.value = `Запит на ${formatActiveClientIncrease(currentRequest.requested_extra_slots)} очікує розгляду.`
+    } else if (
+      code === 'ACTIVE_CLIENT_LIMIT_MAX_REACHED' ||
+      code === 'ACTIVE_CLIENT_LIMIT_EXTRA_UNAVAILABLE'
+    ) {
+      extraSlotFeedback.value = 'Максимальний ліміт для вашого тарифу вже використано.'
+    } else {
+      extraSlotFeedback.value = getApiErrorMessage(
+        err,
+        'Не вдалося надіслати запит на розширення ліміту. Спробуйте ще раз.'
+      )
+    }
+  } finally {
+    isRequestingExtraSlot.value = false
   }
 }
 
@@ -1099,6 +1266,25 @@ onMounted(() => {
   flex-wrap: wrap;
   align-items: center;
   gap: 10px 14px;
+}
+
+.slot-panel__quantity {
+  display: inline-grid;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.slot-panel__quantity select {
+  min-width: 84px;
+  min-height: 38px;
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-control);
+  background: #fff;
+  color: var(--pc-navy-900);
+  font: inherit;
+  font-size: 14px;
+  padding: 6px 10px;
 }
 
 .slot-panel__action .muted {

@@ -4,6 +4,7 @@ import { ref } from 'vue'
 import BillingView from './BillingView.vue'
 import {
   apiGet,
+  createActiveClientLimitIncreaseRequest,
   createBillingAccessRequest,
   fetchBillingAccessRequestState,
 } from '../lib/api'
@@ -24,12 +25,14 @@ vi.mock('../stores/auth', () => ({
 
 vi.mock('../lib/api', () => ({
   apiGet: vi.fn(),
+  createActiveClientLimitIncreaseRequest: vi.fn(),
   fetchBillingAccessRequestState: vi.fn(),
   createBillingAccessRequest: vi.fn(),
   getApiErrorMessage: vi.fn(() => 'Request failed'),
 }))
 
 const mockedApiGet = vi.mocked(apiGet)
+const mockedCreateActiveClientLimitIncreaseRequest = vi.mocked(createActiveClientLimitIncreaseRequest)
 const mockedFetchBillingAccessRequestState = vi.mocked(fetchBillingAccessRequestState)
 const mockedCreateBillingAccessRequest = vi.mocked(createBillingAccessRequest)
 
@@ -45,6 +48,11 @@ function buildAccessSummary(overrides: Record<string, unknown> = {}) {
     override: { active: false, plan: null, expires_at: null },
     current_request: null,
     latest_request: null,
+    active_client_limit_increase_request: {
+      has_pending_request: false,
+      current_request: null,
+      latest_request: null,
+    },
     limits: {
       active_clients: {
         used: 0,
@@ -75,7 +83,7 @@ function buildAccessSummary(overrides: Record<string, unknown> = {}) {
 
 function setCurrentPlan(plan: 'START' | 'PRO' | 'LEADER', summaryOverrides: Record<string, unknown> = {}) {
   const baseLimit = plan === 'LEADER' ? 60 : plan === 'PRO' ? 20 : 3
-  const extraSlotsLimit = plan === 'PRO' ? 7 : plan === 'START' ? 3 : 0
+  const extraSlotsLimit = plan === 'PRO' ? 6 : plan === 'START' ? 3 : 0
   mockMe.value = {
     access_state: 'OK',
     effective_entitlements: {
@@ -150,6 +158,7 @@ describe('BillingView downgrade semantics', () => {
     })
 
     mockedCreateBillingAccessRequest.mockReset()
+    mockedCreateActiveClientLimitIncreaseRequest.mockReset()
   })
 
   it('shows explanatory downgrade copy and no broken downgrade CTA for LEADER', async () => {
@@ -203,9 +212,142 @@ describe('BillingView downgrade semantics', () => {
     expect(screen.getByText('Розширення ліміту активних клієнтів')).toBeInTheDocument()
     expect(screen.getByText(/Start включає 3 активні клієнти, PRO — 20/)).toBeInTheDocument()
     expect(screen.getByText('20 активних клієнтів включено')).toBeInTheDocument()
-    expect(screen.getByText('Можна розширити ліміт до 27 клієнтів')).toBeInTheDocument()
+    expect(screen.getByText('Можна розширити ліміт до 26 клієнтів')).toBeInTheDocument()
     expect(screen.getAllByText('+1 активний клієнт — 200 грн/міс').length).toBeGreaterThan(0)
-    expect(screen.getByText('Розширення ліміту поки оформлюється через адміністратора.')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Запросити розширення ліміту' })).toBeEnabled()
+    expect(screen.getByLabelText('Кількість')).toBeInTheDocument()
+    expect(screen.getAllByRole('option').map((option) => option.textContent?.trim())).toEqual([
+      '+1',
+      '+2',
+      '+3',
+      '+4',
+      '+5',
+      '+6',
+    ])
+    expect(screen.getAllByText('+1 активний клієнт — 200 грн/міс').length).toBeGreaterThan(0)
+  })
+
+  it('creates active client limit increase request with selected quantity from billing panel', async () => {
+    setCurrentPlan('PRO')
+    mockedCreateActiveClientLimitIncreaseRequest.mockResolvedValue({
+      id: 44,
+      status: 'PENDING',
+      requested_extra_slots: 3,
+      plan_snapshot: 'PRO',
+      base_active_client_limit_snapshot: 20,
+      current_extra_active_client_slots_snapshot: 0,
+      max_extra_active_client_slots_snapshot: 6,
+      price_uah_per_month_snapshot: '600.00',
+      specialist_note: '',
+      created_at: '2026-06-19T10:00:00Z',
+      updated_at: '2026-06-19T10:00:00Z',
+      decided_at: null,
+    })
+    renderView()
+
+    await waitFor(() => {
+      expect(mockedFetchBillingAccessRequestState).toHaveBeenCalled()
+    })
+
+    await fireEvent.update(screen.getByLabelText('Кількість'), '3')
+
+    await waitFor(() => {
+      expect(screen.getByText('+3 активні клієнти — 600 грн/міс')).toBeInTheDocument()
+    })
+    expect(screen.getByText('Разом після схвалення: 1 590 грн/міс')).toBeInTheDocument()
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Запросити розширення ліміту' }))
+
+    await waitFor(() => {
+      expect(mockedCreateActiveClientLimitIncreaseRequest).toHaveBeenCalledWith({
+        requested_extra_slots: 3,
+      })
+    })
+    expect(screen.getByText('Запит на +3 активні клієнти надіслано адміністратору.')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Запросити розширення ліміту' })).toBeDisabled()
+  })
+
+  it('shows total monthly price after approval for START active client increase', async () => {
+    setCurrentPlan('START')
+    renderView()
+
+    await waitFor(() => {
+      expect(mockedFetchBillingAccessRequestState).toHaveBeenCalled()
+    })
+
+    await fireEvent.update(screen.getByLabelText('Кількість'), '3')
+
+    expect(screen.getByText('+3 активні клієнти — 600 грн/міс')).toBeInTheDocument()
+    expect(screen.getByText('Разом після схвалення: 600 грн/міс')).toBeInTheDocument()
+  })
+
+  it('shows total monthly price after approval for PRO active client increase', async () => {
+    setCurrentPlan('PRO')
+    renderView()
+
+    await waitFor(() => {
+      expect(mockedFetchBillingAccessRequestState).toHaveBeenCalled()
+    })
+
+    await fireEvent.update(screen.getByLabelText('Кількість'), '6')
+
+    expect(screen.getByText('+6 активних клієнтів — 1 200 грн/міс')).toBeInTheDocument()
+    expect(screen.getByText('Разом після схвалення: 2 190 грн/міс')).toBeInTheDocument()
+  })
+
+  it('shows pending state for active client limit request', async () => {
+    setCurrentPlan('START', {
+      active_client_limit_increase_request: {
+        has_pending_request: true,
+        current_request: {
+          id: 45,
+          status: 'PENDING',
+          requested_extra_slots: 3,
+          plan_snapshot: 'START',
+          base_active_client_limit_snapshot: 3,
+          current_extra_active_client_slots_snapshot: 0,
+          max_extra_active_client_slots_snapshot: 3,
+          price_uah_per_month_snapshot: '600.00',
+          created_at: '2026-06-19T10:00:00Z',
+          updated_at: '2026-06-19T10:00:00Z',
+          decided_at: null,
+        },
+        latest_request: null,
+      },
+    })
+    renderView()
+
+    await waitFor(() => {
+      expect(screen.getByText('Запит на +3 активні клієнти очікує розгляду.')).toBeInTheDocument()
+    })
+    expect(screen.getByRole('button', { name: 'Запросити розширення ліміту' })).toBeDisabled()
+  })
+
+  it('shows max reached state for active client limit request', async () => {
+    setCurrentPlan('START', {
+      limits: {
+        active_clients: {
+          used: 0,
+          limit: 6,
+          base_limit: 3,
+          extra_slots: 3,
+          extra_slots_limit: 3,
+          effective_limit: 6,
+          remaining: 6,
+          extra_slot_price_uah: 200,
+          can_buy_extra_slot: false,
+          requires_pro: true,
+          upgrade_required_plan: 'PRO',
+        },
+        guest_sessions: { used: 0, limit: 5 },
+      },
+    })
+    renderView()
+
+    await waitFor(() => {
+      expect(screen.getByText('Максимальний ліміт для вашого тарифу вже використано.')).toBeInTheDocument()
+    })
+    expect(screen.getByRole('button', { name: 'Запросити розширення ліміту' })).toBeDisabled()
   })
 
   it('uses neutral active-access label for OK state', async () => {

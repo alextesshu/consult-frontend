@@ -563,7 +563,7 @@ describe('App shell', () => {
             limit: 20,
             base_limit: 20,
             extra_slots: 0,
-            extra_slots_limit: 7,
+            extra_slots_limit: 6,
             effective_limit: 20,
             remaining: 0,
             extra_slot_price_uah: 200,
