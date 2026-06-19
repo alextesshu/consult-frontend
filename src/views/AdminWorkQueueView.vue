@@ -255,8 +255,8 @@ import {
   type AdminWorkQueueStatusFilter,
   type AdminWorkQueueSummary,
 } from '../lib/api'
-import { apiOrigin } from '../lib/http'
 import { formatUkDateTimeCompact } from '../lib/dateTime'
+import { isDjangoAdminModelTarget, resolveDjangoAdminUrl, spaRouteTargetPath } from '../lib/navigationTargets'
 
 type CategoryFilterKey = 'all' | 'requests' | 'specialists' | 'notifications' | 'invites' | 'billing' | 'problems'
 type LifecycleActionCode = 'start' | 'resolve' | 'ignore' | 'reopen'
@@ -896,33 +896,15 @@ function isAdminInboxTarget(value: string | null | undefined) {
 }
 
 function internalTargetPath(value: string | null | undefined) {
-  const target = String(value || '').trim()
-  if (!target || target === '/') return ''
-  if (isDjangoAdminModelPath(target)) return ''
-  if (target.startsWith('/') && !target.startsWith('//') && !target.startsWith('/api/')) return target
-  if (!/^https?:\/\//i.test(target) || typeof window === 'undefined') return ''
-  try {
-    const parsed = new URL(target)
-    if (parsed.origin !== window.location.origin) return ''
-    return `${parsed.pathname}${parsed.search}${parsed.hash}`
-  } catch {
-    return ''
-  }
+  return spaRouteTargetPath(value)
 }
 
 function externalTargetUrl(value: string | null | undefined) {
   const target = String(value || '').trim()
   if (!target || target === '/') return ''
-  if (isDjangoAdminModelPath(target)) {
-    const origin = apiOrigin()
-    return origin ? `${origin}${target}` : target
-  }
+  if (isDjangoAdminModelTarget(target)) return resolveDjangoAdminUrl(target)
   if (internalTargetPath(target)) return ''
   return target
-}
-
-function isDjangoAdminModelPath(value: string) {
-  return /^\/admin\/(?:auth|booking|core)\//.test(value)
 }
 
 async function loadWorkQueue() {

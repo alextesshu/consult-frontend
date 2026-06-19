@@ -810,6 +810,49 @@ describe('App shell', () => {
     })
   })
 
+  it('routes admin work queue notification targets through Vue Router without a hard link', async () => {
+    const { router } = await renderWithProviders({
+      initialPath: '/admin/work-queue',
+      roles: ['ADMIN'],
+      notifications: [
+        buildNotification({
+          id: 'admin_inbox_item:701',
+          kind: 'admin_inbox_item',
+          source_kind: 'admin_inbox_item',
+          source_id: 701,
+          code: 'ACTIVE_CLIENT_LIMIT_INCREASE_REQUEST_CREATED',
+          session_id: null,
+          title: 'Active client limit increase request',
+          body: 'Request requires admin review.',
+          target_url: '/admin/work-queue?status=active&item_key=active_client_limit_increase_request:1',
+          slot_start_at: null,
+          scheduled_for: null,
+        }),
+      ],
+    })
+
+    const notificationsButton = document.querySelector('.nav__notifications .icon-btn') as HTMLButtonElement | null
+    expect(notificationsButton).not.toBeNull()
+    await fireEvent.click(notificationsButton as HTMLButtonElement)
+
+    const notificationButton = await screen.findByRole('button', {
+      name: /Active client limit increase request/i,
+    })
+    expect(document.querySelector('a[href="/admin/work-queue?status=active&item_key=active_client_limit_increase_request:1"]')).toBeNull()
+
+    await fireEvent.click(notificationButton)
+
+    await waitFor(() => {
+      expect(mockedMarkNotificationRead).toHaveBeenCalledWith({
+        source_kind: 'admin_inbox_item',
+        source_id: 701,
+      })
+      expect(router.currentRoute.value.fullPath).toBe(
+        '/admin/work-queue?status=active&item_key=active_client_limit_increase_request:1'
+      )
+    })
+  })
+
   it('renders payment-proof request notification for client and routes to session detail after refresh', async () => {
     const { router } = await renderWithProviders({
       initialPath: '/client',

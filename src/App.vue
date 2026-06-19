@@ -137,10 +137,24 @@
                 :key="item.id"
                 class="notif-item-shell"
               >
-                <RouterLink
+                <button
+                  v-if="notificationButtonTarget(item)"
                   class="notif-item"
                   :class="{ 'notif-item--read': !item.unread }"
-                  :to="item.to"
+                  type="button"
+                  @click="onNotificationSpaClick(item)"
+                >
+                  <span class="notif-item__dot" :class="`notif-item__dot--${item.tone}`"></span>
+                  <div>
+                    <div class="notif-item__text">{{ item.text }}</div>
+                    <div class="muted notif-item__hint">{{ item.hint }}</div>
+                  </div>
+                </button>
+                <RouterLink
+                  v-else-if="notificationSpaTarget(item)"
+                  class="notif-item"
+                  :class="{ 'notif-item--read': !item.unread }"
+                  :to="notificationSpaTarget(item)"
                   @click="onMarkNotificationRead(item)"
                 >
                   <span class="notif-item__dot" :class="`notif-item__dot--${item.tone}`"></span>
@@ -149,6 +163,19 @@
                     <div class="muted notif-item__hint">{{ item.hint }}</div>
                   </div>
                 </RouterLink>
+                <a
+                  v-else
+                  class="notif-item"
+                  :class="{ 'notif-item--read': !item.unread }"
+                  :href="notificationExternalTarget(item)"
+                  @click="onMarkNotificationRead(item)"
+                >
+                  <span class="notif-item__dot" :class="`notif-item__dot--${item.tone}`"></span>
+                  <div>
+                    <div class="notif-item__text">{{ item.text }}</div>
+                    <div class="muted notif-item__hint">{{ item.hint }}</div>
+                  </div>
+                </a>
                 <div v-if="item.join_url" class="notif-item__actions">
                   <a
                     class="btn btn--ghost btn--sm"
@@ -438,6 +465,7 @@ import ScrollToTopButton from './components/ScrollToTopButton.vue'
 import { apiGet, fetchChatUnreadCount } from './lib/api'
 import { normalizeMeetingUrl, canJoinExternalMeeting } from './lib/sessionExecution'
 import { hasAdminRole, hasClientRole, hasSpecialistRole, normalizeUserRoles } from './lib/entitlementReconcile'
+import { resolveDjangoAdminUrl, spaRouteTargetPath } from './lib/navigationTargets'
 import { useToast } from './composables/useToast'
 import { useNotifications, type BellNotification } from './composables/useNotifications'
 import type { ToastAction } from './stores/toast'
@@ -883,6 +911,27 @@ function onLogoutFromMenu() {
 function onMarkNotificationRead(item: BellNotification) {
   showNotifications.value = false
   notifs.markRead(item)
+}
+
+function notificationSpaTarget(item: BellNotification) {
+  return spaRouteTargetPath(item.to)
+}
+
+function notificationButtonTarget(item: BellNotification) {
+  const target = notificationSpaTarget(item)
+  return /^\/admin\/work-queue(?:[?#]|$)/.test(target) ? target : ''
+}
+
+function notificationExternalTarget(item: BellNotification) {
+  return resolveDjangoAdminUrl(item.to) || item.to
+}
+
+function onNotificationSpaClick(item: BellNotification) {
+  const target = notificationButtonTarget(item)
+  if (!target) return
+  showNotifications.value = false
+  notifs.markRead(item)
+  void router.push(target)
 }
 
 async function onLogout() {
@@ -1739,11 +1788,16 @@ watch(isChatCapable, (value) => {
   display: grid;
   grid-template-columns: 10px 1fr;
   gap: 10px;
+  width: 100%;
+  border: 0;
   text-decoration: none;
+  text-align: left;
+  font: inherit;
   color: inherit;
   padding: 8px;
   border-radius: var(--radius-sm);
   background: color-mix(in srgb, var(--primary) 6%, transparent);
+  cursor: pointer;
 }
 
 .notif-item:hover {
