@@ -265,6 +265,7 @@ export type NotificationFeedItem = {
   | 'inquiry_message'
   | 'payment_proof_event'
   | 'public_guest_request'
+  | 'admin_inbox_item'
   source_kind:
   | 'session_event'
   | 'reminder_delivery'
@@ -272,6 +273,7 @@ export type NotificationFeedItem = {
   | 'inquiry_message'
   | 'payment_proof_event'
   | 'public_guest_request'
+  | 'admin_inbox_item'
   source_id: number
   code: string
   title?: string | null

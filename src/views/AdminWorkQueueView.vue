@@ -424,6 +424,8 @@ function typeLabel(type: string) {
     admin_inbox_item: 'Адмін-запит',
     billing_access_request: 'Доступ / тариф',
     billing_access_request_pending: 'Доступ / тариф',
+    billing_active_client_limit_increase_request: 'Активні клієнти',
+    billing_active_client_limit_increase_request_pending: 'Активні клієнти',
     billing_event_failed: 'Billing',
     public_guest_request_pending: 'Публічний запит',
     public_guest_request_stale: 'Запит очікує реакції',
@@ -656,8 +658,18 @@ function relatedMetaParts(item: AdminWorkQueueItem) {
     relatedValue(related, 'public_request_id') ||
     relatedValue(related, 'request_id')
   const inviteId = relatedValue(related, 'invite_id')
+  const activeClientLimitRequestId = (
+    objectType === 'activeclientlimitincreaserequest'
+      ? relatedId(requestId) || relatedId(objectId)
+      : ''
+  )
+  if (activeClientLimitRequestId) {
+    parts.push(`Запит на розширення #${activeClientLimitRequestId}`)
+  }
 
-  const requestLabelId = relatedId(requestId) || (isPublicRequestObjectType(objectType) ? relatedId(objectId) : '')
+  const requestLabelId = activeClientLimitRequestId
+    ? ''
+    : relatedId(requestId) || (isPublicRequestObjectType(objectType) ? relatedId(objectId) : '')
   if (requestLabelId) parts.push(`Публічний запит #${requestLabelId}`)
 
   const inviteLabelId = relatedId(inviteId) || (isClientInviteObjectType(objectType) ? relatedId(objectId) : '')
@@ -739,6 +751,7 @@ function relatedObjectTypeLabel(type: string) {
     adminguestrequest: 'Публічний запит',
     admininboxitem: 'Адмін-запит',
     billingaccessrequest: 'Запит на доступ',
+    activeclientlimitincreaserequest: 'Запит на активних клієнтів',
     billingevent: 'Billing-подія',
     clientrecordinvite: 'Запрошення клієнта',
     clientrecordaccountinvite: 'Запрошення клієнта',
@@ -884,6 +897,7 @@ function isAdminInboxTarget(value: string | null | undefined) {
 function internalTargetPath(value: string | null | undefined) {
   const target = String(value || '').trim()
   if (!target || target === '/') return ''
+  if (target.startsWith('/admin/booking/')) return ''
   if (target.startsWith('/') && !target.startsWith('//') && !target.startsWith('/api/')) return target
   if (!/^https?:\/\//i.test(target) || typeof window === 'undefined') return ''
   try {

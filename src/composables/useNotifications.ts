@@ -74,6 +74,10 @@ export function useNotifications({
     )
   }
 
+  function isAdminInboxItem(item: NotificationFeedItem) {
+    return item.source_kind === 'admin_inbox_item' || item.kind === 'admin_inbox_item'
+  }
+
   function notificationJoinUrl(item: NotificationFeedItem) {
     const url = normalizeMeetingUrl(item.meeting_url)
     if (!url) return null
@@ -98,6 +102,9 @@ export function useNotifications({
   function notificationText(item: NotificationFeedItem) {
     const clientLabel = notificationClientLabel(item)
     const counterpartyLabel = notificationCounterpartyLabel(item)
+    if (isAdminInboxItem(item)) {
+      return item.title?.trim() || 'Адміністративне сповіщення'
+    }
     if (isPublicGuestRequest(item)) {
       return item.title?.trim() || 'Новий запит без реєстрації'
     }
@@ -149,6 +156,9 @@ export function useNotifications({
   function notificationHint(item: NotificationFeedItem) {
     const email = item.client_email ? ` · ${item.client_email}` : ''
     const time = formatDateTime(item.slot_start_at || item.scheduled_for)
+    if (isAdminInboxItem(item)) {
+      return item.body?.trim() || 'Відкрийте чергу роботи, щоб переглянути деталі.'
+    }
     if (isPublicGuestRequest(item)) {
       return (
         item.body?.trim() ||
@@ -188,6 +198,9 @@ export function useNotifications({
   }
 
   function notificationTarget(item: NotificationFeedItem) {
+    if (isAdminInboxItem(item)) {
+      return item.target_url?.trim() || '/admin/work-queue'
+    }
     if (isPublicGuestRequest(item)) {
       return item.target_url?.trim() || '/cabinet/external-sessions'
     }

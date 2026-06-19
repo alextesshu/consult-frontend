@@ -77,6 +77,28 @@ const baseResponse = {
       ],
     },
     {
+      id: 'active-client-limit-1',
+      item_key: 'active_client_limit_increase_request:31',
+      type: 'billing_active_client_limit_increase_request_pending',
+      severity: 'normal',
+      status: 'open',
+      title: 'Backend active client limit request title',
+      description: 'Backend active client limit request description',
+      created_at: '2026-06-05T08:00:00Z',
+      target_url: '/admin/booking/activeclientlimitincreaserequest/31/change/',
+      related: {
+        object_type: 'active_client_limit_increase_request',
+        object_id: 31,
+        requested_extra_slots: 3,
+        domain_status: 'PENDING',
+      },
+      actions: [
+        { code: 'start', label: 'Mark in progress', kind: 'mutation' },
+        { code: 'resolve', label: 'Resolve', kind: 'mutation' },
+        { code: 'ignore', label: 'Ignore', kind: 'mutation' },
+      ],
+    },
+    {
       id: 'notification-1',
       type: 'reminder_delivery_failed',
       severity: 'critical',
@@ -317,6 +339,7 @@ describe('AdminWorkQueueView', () => {
     await fireEvent.click(screen.getByRole('button', { name: 'Billing' }))
 
     expect(screen.getByText('Запит на доступ очікує рішення')).toBeInTheDocument()
+    expect(screen.getByText('Backend active client limit request title')).toBeInTheDocument()
     expect(screen.queryByText('Запити очікують реакції спеціаліста')).not.toBeInTheDocument()
     expect(screen.queryByText('Проблема повідомлень')).not.toBeInTheDocument()
 
@@ -325,6 +348,15 @@ describe('AdminWorkQueueView', () => {
     expect(screen.getByText('Запити очікують реакції спеціаліста')).toBeInTheDocument()
     expect(screen.getAllByText('Проблема повідомлень').length).toBeGreaterThan(0)
     expect(screen.queryByText('Запит на доступ очікує рішення')).not.toBeInTheDocument()
+  })
+
+  it('labels active client limit request metadata as billing expansion request', async () => {
+    await renderView()
+
+    expect(await screen.findByText('Backend active client limit request title')).toBeInTheDocument()
+    expect(screen.getByText('Запит на розширення #31')).toBeInTheDocument()
+    expect(screen.queryByText('Публічний запит #31')).not.toBeInTheDocument()
+    expect(screen.getByText(/Публічний запит #33/)).toBeInTheDocument()
   })
 
   it('loads lifecycle filters from the backend and shows approved billing status', async () => {
@@ -406,8 +438,13 @@ describe('AdminWorkQueueView', () => {
     await renderView()
 
     const links = await screen.findAllByRole('link', { name: 'Відкрити' })
-    expect(links).toHaveLength(1)
-    expect(links[0]).toHaveAttribute('href', '/admin/billing-access-requests/21')
+    expect(links).toHaveLength(2)
+    expect(links.map((link) => link.getAttribute('href'))).toEqual(
+      expect.arrayContaining([
+        '/admin/billing-access-requests/21',
+        '/admin/booking/activeclientlimitincreaserequest/31/change/',
+      ])
+    )
     expect(
       screen.getByText('Обробка запиту виконується спеціалістом у його кабінеті. Адміністратор бачить лише операційний сигнал.')
     ).toBeInTheDocument()
