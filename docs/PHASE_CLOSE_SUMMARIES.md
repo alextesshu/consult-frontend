@@ -10,6 +10,76 @@ Usage:
 
 ---
 
+## 2026-06-20 - Active Client Limit Increase / Billing Add-on Production Close
+
+### Context
+- Frontend phase for active client limit increase requests is complete and
+  production-deployed.
+- Scope covered `/cabinet/billing` UI, success/pending toast feedback, admin
+  Work Queue target behavior, admin bell notification routing, and production
+  routing verification.
+- Backend and frontend production deploys completed from `main`; server
+  worktrees were returned to `dev` and clean.
+
+### Done
+- `/cabinet/billing` shows active client limit increase request UI.
+- Quantity selector supports `+1..+available`.
+- Request call:
+  `POST /api/cabinet/active-client-limit-increase-requests/`.
+- Payload includes `requested_extra_slots` and optional `specialist_note`.
+- `/api/cabinet/entitlements/` provides active client entitlement data and
+  `active_client_limit_increase_request`.
+- Plan limits in UI:
+  - Start: base `3`, max extra `3`, total max `6`;
+  - Pro: base `20`, max extra `6`, total max `26`;
+  - Leader does not show this specialist-facing expansion flow.
+- Price copy: `+1 активний клієнт — 200 грн/міс`.
+- Button text: `Запросити розширення ліміту`.
+- Helper examples:
+  - `+3 активні клієнти — 600 грн/міс`;
+  - `+6 активних клієнтів — 1 200 грн/міс`.
+- Total helper examples:
+  - Start `+3` -> `Разом після схвалення: 600 грн/міс`;
+  - Pro `+4` -> `Разом після схвалення: 1 790 грн/міс`;
+  - Pro `+6` -> `Разом після схвалення: 2 190 грн/міс`.
+- Success toast:
+  `Запит на +N активні клієнти надіслано адміністратору.`
+- Duplicate pending toast:
+  `Запит на +N активні клієнти очікує розгляду.`
+- Admin bell notification target:
+  `/admin/work-queue?status=active&item_key=active_client_limit_increase_request:<id>`.
+- Notification clicks for SPA admin Work Queue targets use Vue Router and do
+  not hard reload.
+- Work Queue `Відкрити` for Django admin model paths still opens the backend
+  Django admin URL.
+
+### Routing
+- Production Caddy routes custom Vue admin pages to frontend:
+  `/admin/work-queue`, `/admin/work-queue/*`, `/admin/inbox`,
+  `/admin/inbox/*`, `/admin/billing-access-requests`,
+  `/admin/billing-access-requests/*`, `/admin/specialists`,
+  `/admin/specialists/*`.
+- Django admin pages remain backend routes:
+  `/admin/booking/...`, `/admin/core/...`, `/admin/auth/...`,
+  `/admin/login/...`, `/admin/logout/...`.
+- Production checks passed:
+  - `/admin/work-queue?...` returns frontend SPA `200`;
+  - `/admin/booking/activeclientlimitincreaserequest/` routes to Django admin;
+  - after Django admin approve, returning to Work Queue no longer shows
+    server-side `Not Found`.
+
+### Validation
+- Frontend local validation previously passed:
+  - `npm run test:run -- src/views/AdminWorkQueueView.spec.ts src/views/BillingView.spec.ts src/__tests__/app.spec.ts`;
+  - `npm run typecheck`.
+- Known non-blocking test stderr:
+  `window.scrollTo is not implemented in jsdom`.
+
+### Next Recommended Phase
+- Privacy Policy / confidentiality / support contact flow polish.
+
+---
+
 ## 2026-06-06 - Founder Beta Email / Notification Readiness Production Close
 
 ### Context

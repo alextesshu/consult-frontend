@@ -56,7 +56,7 @@ npm run test:run
 - `/cabinet/sessions/:id` — Specialist session detail
 - `/cabinet/reviews` — Specialist reviews moderation
 - `/cabinet/clients` — Specialist CRM (clients + archive/restore)
-- `/cabinet/billing` — Plans & access (manual request)
+- `/cabinet/billing` — Plans & access, including active client limit increase requests
 - `/client` — Client dashboard (sessions + selected/viewed specialist)
 - `/client/inquiries/:specialistId` — Client inquiry redirect to the public specialist inquiry surface
 - `/client/sessions/:id` — Client session detail (cancel/reschedule request)
@@ -98,7 +98,7 @@ Session is silently restored on page reload via cookie-based refresh (`/api/auth
 - **TherapistSessionDetailView**: specialist session detail with status actions, recurring flow, request context, private note, and external meeting-link context
 - **TherapistReviewsView**: specialist review moderation (approve/hide/respond) + filters
 - **TherapistClientsView**: specialist CRM with archive/restore
-- **BillingView**: plans + access state + per-plan upgrade request (manual billing)
+- **BillingView**: plans + access state + per-plan upgrade request (manual billing) + active client limit increase request UI
 - **TherapistProfileView**: step-by-step profile editor, media upload preview, visibility toggles, public link
   - standard price + intro price (duration + currency)
   - visibility toggles: `show_price`, `show_intro_price`
@@ -148,6 +148,28 @@ Session is silently restored on page reload via cookie-based refresh (`/api/auth
 - Analytics contract for the cabinet view is centralized in `src/lib/analytics.ts`.
 - Backend interprets `date`, `date_from`, `date_to` filters as UTC day boundaries (send `YYYY-MM-DD` in UTC).
 - Billing upgrade requests call `POST /api/billing/request-access/` with `requested_plan`.
+- Active client limit increase requests call
+  `POST /api/cabinet/active-client-limit-increase-requests/` with
+  `requested_extra_slots` and optional `specialist_note`.
+  - `/api/cabinet/entitlements/` exposes active client entitlement data and
+    `active_client_limit_increase_request`.
+  - Start supports base `3`, max extra `3`, total max `6`.
+  - Pro supports base `20`, max extra `6`, total max `26`.
+  - Leader does not show the specialist-facing expansion flow.
+  - Price copy: `+1 активний клієнт — 200 грн/міс`.
+  - Quantity selector supports `+1..+available`.
+  - Button text: `Запросити розширення ліміту`.
+  - Helper examples:
+    `+3 активні клієнти — 600 грн/міс`,
+    `+6 активних клієнтів — 1 200 грн/міс`.
+  - Total helper examples:
+    `Разом після схвалення: 600 грн/міс` for Start `+3`,
+    `Разом після схвалення: 1 790 грн/міс` for Pro `+4`,
+    `Разом після схвалення: 2 190 грн/міс` for Pro `+6`.
+  - Success toast:
+    `Запит на +N активні клієнти надіслано адміністратору.`
+  - Duplicate pending toast:
+    `Запит на +N активні клієнти очікує розгляду.`
 - Client profile photos come from `/api/client/profile/` > `photo_url`.
   - If `photo_url` is present but image is missing, check GCS config on backend.
   - For signed URLs (`GCS_PUBLIC=false`), refresh the page to regenerate the URL.
@@ -166,8 +188,15 @@ docker build --build-arg VITE_API_BASE_URL=https://proconsult.space/api -t proco
 Served via `nginx` on port 80. All routes return `index.html` for Vue Router.
 Full stack: see `docker-compose.prod.yml` in backend repo.
 
+Production routing note: custom Vue admin SPA pages under `/admin/*` must be
+served by the frontend before generic Django admin routing. Current Vue admin
+paths are `/admin/work-queue`, `/admin/inbox`, `/admin/billing-access-requests`,
+and `/admin/specialists` with their subpaths. Django admin model paths such as
+`/admin/booking/...`, `/admin/core/...`, `/admin/auth/...`, `/admin/login/...`,
+and `/admin/logout/...` must remain backend routes.
+
 ## Next Focus
 
-1. Specialist CRM depth: bulk actions and richer client profile view
-2. Broader empty/loading/error normalization for remaining non-booking views
-3. TypeScript warnings cleanup (4 non-blocking warnings in useNotifications.ts and TherapistSessionsView.spec.ts)
+1. Privacy Policy / confidentiality / support contact flow polish
+2. Specialist CRM depth: bulk actions and richer client profile view
+3. Broader empty/loading/error normalization for remaining non-booking views

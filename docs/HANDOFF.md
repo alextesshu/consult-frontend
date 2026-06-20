@@ -1,6 +1,6 @@
 # Handoff
 
-Last updated: 2026-06-06
+Last updated: 2026-06-20
 Owner: agent-maintained  
 Canonical file: `docs/HANDOFF.md`  
 Governance: `docs/HANDOFF_RULES.md`  
@@ -10,6 +10,47 @@ Phase archive: `docs/PHASE_CLOSE_SUMMARIES.md`
 
 Frontend production-closure slice is now integrated:
 
+- Active Client Limit Increase / Billing add-on: production-closed
+  - `/cabinet/billing` includes the active client limit increase request UI
+  - quantity selector supports `+1..+available`
+  - request API:
+    `POST /api/cabinet/active-client-limit-increase-requests/`
+  - request payload sends `requested_extra_slots` and optional
+    `specialist_note`
+  - `GET /api/cabinet/entitlements/` exposes active client limit data and
+    `active_client_limit_increase_request`
+  - plan limits:
+    - Start: base `3`, max extra `3`, total max `6`
+    - Pro: base `20`, max extra `6`, total max `26`
+    - Leader does not show this specialist-facing expansion flow
+  - price copy: `+1 активний клієнт — 200 грн/міс`
+  - button text: `Запросити розширення ліміту`
+  - helper examples:
+    `+3 активні клієнти — 600 грн/міс`,
+    `+6 активних клієнтів — 1 200 грн/міс`
+  - total helper examples:
+    `Разом після схвалення: 600 грн/міс`,
+    `Разом після схвалення: 1 790 грн/міс`,
+    `Разом після схвалення: 2 190 грн/міс`
+  - success toast:
+    `Запит на +N активні клієнти надіслано адміністратору.`
+  - duplicate pending toast:
+    `Запит на +N активні клієнти очікує розгляду.`
+  - admin bell notification target:
+    `/admin/work-queue?status=active&item_key=active_client_limit_increase_request:<id>`
+  - frontend notification routing uses Vue Router for SPA admin deep links
+    instead of hard reloads
+  - production Caddy routes custom Vue admin pages to frontend before generic
+    Django admin routing:
+    `/admin/work-queue*`, `/admin/inbox*`,
+    `/admin/billing-access-requests*`, `/admin/specialists*`
+  - Django admin paths such as `/admin/booking/...`, `/admin/core/...`,
+    `/admin/auth/...`, `/admin/login/...`, and `/admin/logout/...` remain
+    backend routes
+  - production checks passed:
+    `/admin/work-queue?...` serves frontend SPA `200`; `/admin/booking/...`
+    still routes to Django admin; after approve, returning to Work Queue no
+    longer shows server-side `Not Found`
 - Founder Beta Email / Notification Readiness: production-closed
   - frontend did not change runtime code or backend/API contracts
   - current staging backend direct email smoke returned `sent: 1` from
@@ -129,6 +170,18 @@ Frontend production-closure slice is now integrated:
   - Leader = `2 490 грн / міс` or `24 900 грн / рік`
   - yearly price rule: monthly price x 10
   - old euro prices must not be shown in billing UI
+- Active client limit increase UI is current:
+  - canonical page is `/cabinet/billing`
+  - endpoint:
+    `POST /api/cabinet/active-client-limit-increase-requests/`
+  - payload: `requested_extra_slots`, optional `specialist_note`
+  - Start allows up to `3` extra active clients, total max `6`
+  - Pro allows up to `6` extra active clients, total max `26`
+  - Leader has no specialist-facing expansion flow
+  - add-on price is `200 грн/міс` per `+1 активний клієнт`
+  - duplicate pending request is shown as an already pending request, not a new
+    request
+  - pending state copy must use `активний клієнт`, not English wording
 - Specialist billing contract:
   - canonical endpoint is `GET /api/cabinet/entitlements/`
   - uses additive `base_plan`, `effective_plan`, `access_source`, `access_label`, `access_message`, `trial`, `override`, `current_request`, `latest_request`, `limits`, `features`
