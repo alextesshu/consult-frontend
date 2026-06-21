@@ -418,6 +418,7 @@
           <section class="footer__column" aria-labelledby="footer-specialists-title">
             <h2 id="footer-specialists-title" class="footer__column-title">Для спеціалістів</h2>
             <RouterLink class="footer__link" to="/pricing">Тарифи</RouterLink>
+            <RouterLink class="footer__link" to="/faq">Поширені питання</RouterLink>
             <RouterLink class="footer__link" to="/login">Увійти</RouterLink>
             <RouterLink class="footer__link" to="/signup">Створити простір</RouterLink>
           </section>

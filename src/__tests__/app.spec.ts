@@ -264,6 +264,7 @@ describe('App shell', () => {
       '/specialists'
     )
     expect(within(footer as HTMLElement).getByRole('link', { name: 'Тарифи' })).toHaveAttribute('href', '/pricing')
+    expect(within(footer as HTMLElement).getByRole('link', { name: 'Поширені питання' })).toHaveAttribute('href', '/faq')
     expect(within(footer as HTMLElement).getByRole('link', { name: 'Підтримка та запити щодо даних' })).toHaveAttribute(
       'href',
       '/support-and-data-requests'
