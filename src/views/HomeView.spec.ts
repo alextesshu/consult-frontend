@@ -109,12 +109,14 @@ describe('HomeView', () => {
     expect(screen.getAllByText('+1 активний клієнт — 200 грн/міс').length).toBeGreaterThan(0)
     expect(screen.getByText('20 активних клієнтів включено')).toBeInTheDocument()
     expect(screen.getByText('Можна розширити ліміт до 26 клієнтів')).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Founder Access' })).toBeInTheDocument()
-    expect(screen.getByText(/Промокод FOUNDER відкриває 1 місяць PRO-доступу без оплати/)).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Створити профіль з промокодом' })).toHaveAttribute(
+    expect(screen.getByRole('heading', { name: 'Відкритий ранній доступ' })).toBeInTheDocument()
+    expect(screen.getByText(/Ранній доступ активується автоматично після реєстрації/)).toBeInTheDocument()
+    expect(screen.getByText(/розширені можливості без промокоду/)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Створити профіль' })).toHaveAttribute(
       'href',
-      '/signup?promo=FOUNDER'
+      '/signup'
     )
+    expect(container).not.toHaveTextContent('FOUNDER')
     expect(screen.queryByText('До 3 ' + 'активних клієнтів')).not.toBeInTheDocument()
     expect(screen.queryByText('Максимум 6 ' + 'активних клієнтів на Start')).not.toBeInTheDocument()
     expect(screen.queryByText('До 20 ' + 'активних клієнтів')).not.toBeInTheDocument()

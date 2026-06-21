@@ -4,7 +4,7 @@
     title="Політика конфіденційності PRO CONSULT"
     subtitle="Тут простими словами пояснено, які дані потрібні для роботи сервісу, хто що бачить і як підтримка працює із запитами."
   >
-    <p><strong>Останнє оновлення:</strong> {{ privacyLastUpdated }}</p>
+    <p><strong>Останнє оновлення:</strong> 21.06.2026</p>
 
     <h2>1. Коротко про конфіденційність</h2>
     <p>
@@ -139,9 +139,4 @@
 import LegalDocumentLayout from '../components/LegalDocumentLayout.vue'
 
 const supportEmail = 'support@proconsult.space'
-const privacyLastUpdated = new Intl.DateTimeFormat('uk-UA', {
-  day: '2-digit',
-  month: '2-digit',
-  year: 'numeric',
-}).format(new Date())
 </script>

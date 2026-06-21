@@ -4,8 +4,9 @@
       <div class="badge">Реєстрація</div>
       <h1 class="title auth__title">Створіть профіль спеціаліста в Pro Consult.</h1>
       <p class="muted auth__subtitle">
-        Після активації профілю можна використати промокод FOUNDER і отримати 1 місяць PRO-доступу без оплати.
-        Після пробного періоду можна залишитися на Start, розширити ліміт активних клієнтів або перейти на PRO.
+        Ранній доступ активується автоматично після реєстрації. Під час раннього доступу ви можете спробувати
+        розширені можливості без промокоду, а далі залишитися на Start, розширити ліміт активних клієнтів або
+        перейти на PRO.
       </p>
 
       <div v-if="isClientOnly" class="form">
@@ -55,19 +56,8 @@
             placeholder="********"
           />
         </label>
-        <label class="field">
-          <span>Промокод</span>
-          <input
-            v-model="promoCode"
-            class="input"
-            type="text"
-            name="promo"
-            autocomplete="off"
-            placeholder="FOUNDER"
-          />
-        </label>
         <p class="muted auth__field-helper">
-          Промокод FOUNDER відкриває 1 місяць PRO-доступу без оплати після активації профілю.
+          Ранній доступ не потребує промокоду: доступні можливості визначаються поточними умовами сервісу.
         </p>
         <p v-if="error" class="form-error">{{ error }}</p>
         <button class="btn" type="submit" :disabled="loading">
@@ -94,9 +84,10 @@
       <div class="aside-card">
         <div class="aside-title">Що далі</div>
         <ul class="aside-list">
-          <li>Створіть перший слот</li>
-          <li>Заплануйте першу сесію</li>
-          <li>Додайте нотатку після завершення</li>
+          <li>Заповніть базовий профіль</li>
+          <li>Увімкніть публічний профіль за прямим посиланням</li>
+          <li>Отримуйте запити й створюйте сесії</li>
+          <li>За потреби додайте доступний час для прямого бронювання</li>
         </ul>
       </div>
       <div class="aside-card disclaimer">
@@ -118,7 +109,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 import { storeToRefs } from 'pinia'
 import { useAuthStore } from '../stores/auth'
 import { enableSpecialist, getApiErrorMessage } from '../lib/api'
@@ -130,9 +121,6 @@ const error = ref('')
 const dualRoleError = ref('')
 const dualRoleLoading = ref(false)
 const router = useRouter()
-const route = useRoute()
-const routePromo = Array.isArray(route.query.promo) ? route.query.promo[0] : route.query.promo
-const promoCode = ref(typeof routePromo === 'string' ? routePromo.toUpperCase() : '')
 const auth = useAuthStore()
 const { loading } = storeToRefs(auth)
 const roles = computed(() => auth.me?.user.roles ?? auth.user?.roles ?? [])

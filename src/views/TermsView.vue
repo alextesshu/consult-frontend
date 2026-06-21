@@ -4,7 +4,7 @@
     title="Умови користування PRO CONSULT"
     subtitle="Ці умови визначають правила використання PRO CONSULT як технічної інфраструктури для організації консультаційної взаємодії між спеціалістами та клієнтами."
   >
-    <p><strong>Останнє оновлення:</strong> {{ termsLastUpdated }}</p>
+    <p><strong>Останнє оновлення:</strong> 21.06.2026</p>
 
     <h2>1. Загальні положення</h2>
     <p>
@@ -144,9 +144,4 @@
 import LegalDocumentLayout from '../components/LegalDocumentLayout.vue'
 
 const supportEmail = 'support@proconsult.space'
-const termsLastUpdated = new Intl.DateTimeFormat('uk-UA', {
-  day: '2-digit',
-  month: '2-digit',
-  year: 'numeric',
-}).format(new Date())
 </script>

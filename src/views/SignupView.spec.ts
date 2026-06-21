@@ -10,7 +10,6 @@ const mockLoadMe = vi.fn()
 const loadingRef = ref(false)
 const mockMe = ref<any>(null)
 const mockUser = ref<any>(null)
-const mockRouteQuery = ref<Record<string, string>>({})
 
 vi.mock('pinia', () => ({
   storeToRefs: () => ({ loading: loadingRef }),
@@ -18,7 +17,6 @@ vi.mock('pinia', () => ({
 
 vi.mock('vue-router', () => ({
   useRouter: () => ({ push: mockPush }),
-  useRoute: () => ({ query: mockRouteQuery.value }),
 }))
 
 vi.mock('../stores/auth', () => ({
@@ -62,7 +60,6 @@ describe('SignupView dual-role enable flow', () => {
     loadingRef.value = false
     mockMe.value = null
     mockUser.value = null
-    mockRouteQuery.value = {}
   })
 
   it('uses enable-specialist flow for authenticated client-only user', async () => {
@@ -89,25 +86,25 @@ describe('SignupView dual-role enable flow', () => {
     })
   })
 
-  it('shows Founder Access signup copy without automatic beta wording', () => {
+  it('shows automatic early access copy without promo-code dependency', () => {
     renderView()
 
-    expect(screen.getByText(/можна використати промокод FOUNDER/)).toBeInTheDocument()
-    expect(screen.getAllByText(/1 місяць PRO-доступу без оплати/).length).toBeGreaterThan(0)
-    expect(screen.getByText(/Після пробного періоду можна залишитися на Start/)).toBeInTheDocument()
+    expect(screen.getByText(/Ранній доступ активується автоматично після реєстрації/)).toBeInTheDocument()
+    expect(screen.getAllByText(/без промокоду/).length).toBeGreaterThan(0)
+    expect(screen.getByText(/далі залишитися на Start/)).toBeInTheDocument()
     expect(screen.getByText(/розширити ліміт активних клієнтів/)).toBeInTheDocument()
-    expect(screen.getByLabelText('Промокод')).toBeInTheDocument()
+    expect(screen.queryByLabelText('Промокод')).not.toBeInTheDocument()
+    expect(screen.queryByText(/FOUNDER/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/Створіть перший слот/)).not.toBeInTheDocument()
+    expect(screen.getByText('Отримуйте запити й створюйте сесії')).toBeInTheDocument()
     expect(screen.queryByText(new RegExp('Під час beta вам одразу відкривається ' + 'Pro-доступ'))).not.toBeInTheDocument()
     expect(screen.queryByText(/оплата активується|підписка Pro оплачена|платний тариф підключено/i)).not.toBeInTheDocument()
   })
 
-  it('prefills Founder promo from query without changing signup payload', async () => {
-    mockRouteQuery.value = { promo: 'FOUNDER' }
+  it('submits signup without promo payload', async () => {
     mockSignup.mockResolvedValue(undefined)
 
     renderView()
-
-    expect(screen.getByLabelText('Промокод')).toHaveValue('FOUNDER')
 
     await fireEvent.update(screen.getByLabelText('Ел. пошта'), 'specialist@example.com')
     await fireEvent.update(screen.getByLabelText('Пароль'), 'password123')

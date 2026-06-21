@@ -16,11 +16,16 @@ describe('specialist onboarding mapping', () => {
     expect(MISSING_ITEM_COPY.MISSING_SESSION_FORMAT).toBeTruthy()
     expect(MISSING_ITEM_COPY.MISSING_FUTURE_SLOTS).toBeTruthy()
     expect(MISSING_ITEM_COPY.PUBLIC_PROFILE_DISABLED).toBeTruthy()
+    expect(MISSING_ITEM_COPY.MISSING_FUTURE_SLOTS).not.toContain('слоти')
+    expect(MISSING_ITEM_COPY.PUBLIC_PROFILE_DISABLED).toContain('прямим посиланням')
+    expect(MISSING_ITEM_COPY.PUBLIC_PROFILE_DISABLED).not.toContain('каталозі')
 
     expect(WARNING_CODE_COPY.PROFILE_CORE_INCOMPLETE).toBeTruthy()
     expect(WARNING_CODE_COPY.PUBLISHED_WITHOUT_BOOKABLE_TIME).toBeTruthy()
     expect(WARNING_CODE_COPY.NO_BOOKABLE_TIME).toBeTruthy()
     expect(WARNING_CODE_COPY.PUBLIC_PROFILE_OFF).toBeTruthy()
+    expect(WARNING_CODE_COPY.PUBLISHED_WITHOUT_BOOKABLE_TIME).toContain('Клієнти можуть залишати запити')
+    expect(WARNING_CODE_COPY.NO_BOOKABLE_TIME).toContain('лише для прямого бронювання')
 
     expect(PRIMARY_CTA_CODE_COPY.COMPLETE_PROFILE).toBeTruthy()
     expect(PRIMARY_CTA_CODE_COPY.ADD_AVAILABILITY).toBe('Додати вільний час')
@@ -58,7 +63,7 @@ describe('specialist onboarding mapping', () => {
     expect(viewModel.primaryCta?.code).toBe('ADD_AVAILABILITY')
     expect(viewModel.primaryCta?.label).toBe('Додати вільний час')
     expect(viewModel.primaryCta?.to).toBe('/cabinet/availability-rules')
-    expect(viewModel.warnings[0]).toContain('клієнти поки не можуть')
+    expect(viewModel.warnings[0]).toContain('Клієнти можуть залишати запити')
   })
 
   it('handles state: profile incomplete', () => {

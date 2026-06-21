@@ -4,7 +4,7 @@
     title="Підтримка PRO CONSULT"
     subtitle="Напишіть нам, якщо потрібна допомога з акаунтом, доступом, білінгом, конфіденційністю або запитом щодо даних."
   >
-    <p><strong>Останнє оновлення:</strong> {{ supportLastUpdated }}</p>
+    <p><strong>Останнє оновлення:</strong> 21.06.2026</p>
 
     <div class="support-contact-card">
       <div>
@@ -92,11 +92,6 @@
 import LegalDocumentLayout from '../components/LegalDocumentLayout.vue'
 
 const supportEmail = 'support@proconsult.space'
-const supportLastUpdated = new Intl.DateTimeFormat('uk-UA', {
-  day: '2-digit',
-  month: '2-digit',
-  year: 'numeric',
-}).format(new Date())
 </script>
 
 <style scoped>

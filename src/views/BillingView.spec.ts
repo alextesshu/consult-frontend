@@ -539,7 +539,9 @@ describe('BillingView downgrade semantics', () => {
 
     expect(screen.getAllByText('3 активні клієнти включено').length).toBeGreaterThan(0)
     expect(screen.getByText('Можна розширити ліміт до 6 клієнтів')).toBeInTheDocument()
-    expect(screen.getByText(/Промокод FOUNDER відкриває 1 місяць PRO-доступу без оплати/)).toBeInTheDocument()
+    expect(screen.getByText(/Ранній доступ активується автоматично після реєстрації/)).toBeInTheDocument()
+    expect(screen.getByText(/розширені можливості без промокоду/)).toBeInTheDocument()
+    expect(view.container).not.toHaveTextContent('FOUNDER')
     expect(screen.queryByText('До 5 постійних клієнтів')).not.toBeInTheDocument()
     expect(view.container).not.toHaveTextContent('€10')
     expect(view.container).not.toHaveTextContent('€24')

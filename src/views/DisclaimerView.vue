@@ -4,7 +4,7 @@
     title="Дисклеймер сервісу PRO CONSULT"
     subtitle="Цей дисклеймер визначає межі відповідальності PRO CONSULT та пояснює роль сервісу у взаємодії між спеціалістами та клієнтами."
   >
-    <p><strong>Останнє оновлення:</strong> {{ disclaimerLastUpdated }}</p>
+    <p><strong>Останнє оновлення:</strong> 21.06.2026</p>
 
     <h2>1. Призначення сервісу</h2>
     <p>
@@ -120,9 +120,4 @@
 <script setup lang="ts">
 import LegalDocumentLayout from '../components/LegalDocumentLayout.vue'
 
-const disclaimerLastUpdated = new Intl.DateTimeFormat('uk-UA', {
-  day: '2-digit',
-  month: '2-digit',
-  year: 'numeric',
-}).format(new Date())
 </script>
