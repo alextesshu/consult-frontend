@@ -292,13 +292,26 @@
             <p v-if="plan.name === 'Pro'" class="plan-card__badge">Для активної практики</p>
             <h3>{{ plan.name }}</h3>
             <p class="plan-card__price">{{ plan.price }}</p>
+            <p class="plan-card__scenario">{{ plan.scenario }}</p>
             <p v-if="plan.helper" class="plan-card__helper">{{ plan.helper }}</p>
             <ul>
               <li v-for="feature in plan.features" :key="feature">{{ feature }}</li>
             </ul>
+            <p v-if="plan.note" class="plan-card__note">{{ plan.note }}</p>
             <RouterLink class="btn" :class="{ 'btn--ghost': plan.ghostCta }" :to="plan.ctaTo">{{ plan.ctaLabel }}</RouterLink>
           </article>
         </div>
+        <article class="pricing-details" aria-labelledby="pricing-details-title">
+          <div>
+            <h3 id="pricing-details-title">Деталі лімітів</h3>
+            <p>
+              Активний клієнт — це клієнт, з яким ви ведете поточну роботу в кабінеті.
+            </p>
+          </div>
+          <ul>
+            <li v-for="detail in pricingLimitDetails" :key="detail">{{ detail }}</li>
+          </ul>
+        </article>
         <article class="pricing-founder">
           <div>
             <h3>Відкритий ранній доступ</h3>
@@ -418,17 +431,14 @@ const pricingPlans = computed(() => [
   {
     name: 'Start',
     price: '0 грн',
+    scenario: 'Для запуску профілю і перших клієнтів.',
     helper: '',
     features: [
-      'Публічний профіль',
-      'Запити без реєстрації',
-      'Сесії та календар',
-      'Приватні нотатки й матеріали',
-      'Без комісій з консультацій',
-      '3 активні клієнти включено',
-      'Можна розширити ліміт до 6 клієнтів',
-      '+1 активний клієнт — 200 грн/міс',
+      'Публічний профіль спеціаліста',
+      'Запити від клієнтів без реєстрації',
+      'Базовий кабінет для сесій і клієнтів',
     ],
+    note: 'Можна почати без картки.',
     ctaLabel: 'Почати',
     ctaTo: '/signup',
     ghostCta: false,
@@ -436,16 +446,14 @@ const pricingPlans = computed(() => [
   {
     name: 'Pro',
     price: billingCycle.value === 'monthly' ? '990 грн/міс' : '9 900 грн/рік',
+    scenario: 'Для регулярної приватної практики.',
     helper: billingCycle.value === 'yearly' ? 'Оплата за рік' : 'Оплата щомісяця',
     features: [
-      'Усе зі Start',
-      '20 активних клієнтів включено',
-      'Можна розширити ліміт до 26 клієнтів',
-      '+1 активний клієнт — 200 грн/міс',
-      'Власний блог у профілі',
-      'Розширена аналітика',
-      'Більше сесій без реєстрації',
+      'Більше активних клієнтів',
+      'Власний блог і матеріали',
+      'Розширені можливості кабінету',
     ],
+    note: 'Без комісій з консультацій.',
     ctaLabel: 'Почати',
     ctaTo: '/signup',
     ghostCta: false,
@@ -453,18 +461,26 @@ const pricingPlans = computed(() => [
   {
     name: 'Leader',
     price: billingCycle.value === 'monthly' ? '2 490 грн/міс' : '24 900 грн/рік',
+    scenario: 'Для великого навантаження або розширеної практики.',
     helper: billingCycle.value === 'yearly' ? 'Оплата за рік' : 'Оплата щомісяця',
     features: [
-      'Усе з Pro',
-      'Для масштабної практики',
-      'Розширені можливості',
-      'Індивідуальні умови',
+      'Більше простору для активної бази клієнтів',
+      'Розширені ліміти',
+      'Підходить для інтенсивної практики',
     ],
+    note: '',
     ctaLabel: 'Подати запит',
     ctaTo: '/support-and-data-requests',
     ghostCta: true,
   },
 ])
+
+const pricingLimitDetails = [
+  'На Start базовий ліміт: 3 активні клієнти; за потреби можна розширити до 6.',
+  'На Pro базовий ліміт: 20 активних клієнтів; за потреби можна розширити до 26.',
+  'Розширення ліміту: +1 активний клієнт — 200 грн/міс.',
+  'Усі плани працюють без комісій з консультацій.',
+]
 
 const resolveCabinetRoute = () => {
   if (roles.value.includes('SPECIALIST') || roles.value.includes('THERAPIST')) return '/cabinet'
@@ -2447,6 +2463,10 @@ onBeforeUnmount(() => {
   gap: 14px;
 }
 
+.pricing {
+  scroll-margin-top: 96px;
+}
+
 .value-grid,
 .workflow-grid,
 .differentiation__grid {
@@ -2964,6 +2984,35 @@ onBeforeUnmount(() => {
   color: var(--muted);
 }
 
+.pricing-details {
+  display: grid;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+  gap: 18px;
+  margin: 18px auto 0;
+  max-width: 920px;
+  padding: 18px;
+  border: 1px solid var(--pc-border);
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.86);
+  color: var(--muted);
+}
+
+.pricing-details h3 {
+  margin: 0 0 6px;
+  color: var(--pc-navy-950);
+}
+
+.pricing-details p,
+.pricing-details ul {
+  margin: 0;
+}
+
+.pricing-details ul {
+  display: grid;
+  gap: 8px;
+  padding-left: 18px;
+}
+
 .pricing-founder h3 {
   margin: 0 0 6px;
   color: var(--pc-navy-950);
@@ -3016,6 +3065,20 @@ onBeforeUnmount(() => {
   margin: 0;
   font-size: 12px;
   color: var(--pc-text-muted);
+}
+
+.plan-card__scenario,
+.plan-card__note {
+  margin: 0;
+  color: var(--pc-text-muted);
+}
+
+.plan-card__scenario {
+  line-height: 1.45;
+}
+
+.plan-card__note {
+  font-size: 13px;
 }
 
 .plan-card__badge {
@@ -3512,6 +3575,10 @@ onBeforeUnmount(() => {
   .pricing-founder {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .pricing-details {
+    grid-template-columns: 1fr;
   }
 
   .pricing-founder .btn {
