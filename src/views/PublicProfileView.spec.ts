@@ -2710,21 +2710,26 @@ describe('PublicProfileView', () => {
     expect(screen.queryByText('Запишіться на консультацію')).not.toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Оберіть дату і час' })).not.toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Запит до мене' })).not.toBeInTheDocument()
-    expect(screen.queryByRole('heading', { name: 'Залишити запит' })).not.toBeInTheDocument()
-    const requestButtons = screen.getAllByRole('button', { name: 'Залишити запит' })
+    expect(screen.queryByRole('heading', { name: 'Залишити запит на консультацію' })).not.toBeInTheDocument()
+    const requestButtons = screen.getAllByRole('button', { name: 'Залишити запит на консультацію' })
     expect(requestButtons).toHaveLength(2)
+    expect(screen.queryByRole('button', { name: 'Залишити запит' })).not.toBeInTheDocument()
     expect(requestButtons.some((button) => Boolean(button.closest('.identity-rail')))).toBe(true)
     expect(requestButtons.some((button) => Boolean(button.closest('.closing-cta')))).toBe(true)
     const sidebarRequestButton = requestButtons.find((button) => Boolean(button.closest('.identity-rail')))
     expect(sidebarRequestButton).toBeDefined()
     expect(sidebarRequestButton).toHaveClass('btn--primary')
     const requestHelper =
-      'Запит — для першого звернення до спеціаліста. Після відповіді спеціаліст підкаже, як продовжити спілкування та узгодити консультацію.'
+      'Опишіть коротко, з чим хочете звернутися. Спеціаліст відповість у кабінеті й допоможе узгодити формат та час.'
     const requestTooltip =
-      'Надішліть перший запит спеціалісту. Далі спеціаліст відповість і запропонує зручний спосіб продовжити спілкування.'
-    expect(screen.getByText(requestHelper)).toBeInTheDocument()
-    expect(requestHelper.toLowerCase()).not.toContain('кабінет')
-    expect(requestHelper.toLowerCase()).not.toContain('чат')
+      'Запит — якщо хочете консультацію. Питання — якщо потрібно щось уточнити перед записом.'
+    expect(screen.getAllByText(requestHelper).length).toBeGreaterThan(0)
+    expect(
+      screen.getAllByText('Запит — якщо хочете консультацію. Питання — якщо потрібно щось уточнити перед записом.')
+        .length
+    ).toBeGreaterThan(0)
+    expect(requestHelper.toLowerCase()).toContain('кабінет')
+    expect(requestHelper.toLowerCase()).toContain('узгодити формат та час')
     expect(
       screen.queryByText(
         'Після натискання відкриється форма запиту: залиште контакт і коротко опишіть запит.'
@@ -2763,7 +2768,7 @@ describe('PublicProfileView', () => {
 
     renderView()
 
-    await fireEvent.click((await screen.findAllByRole('button', { name: 'Залишити запит' }))[0]!)
+    await fireEvent.click((await screen.findAllByRole('button', { name: 'Залишити запит на консультацію' }))[0]!)
 
     expect(await screen.findByRole('heading', { name: 'Запит до мене' })).toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Запит на бронювання' })).not.toBeInTheDocument()
@@ -2805,7 +2810,7 @@ describe('PublicProfileView', () => {
     expect(screen.queryByRole('heading', { name: 'Оберіть дату і час' })).not.toBeInTheDocument()
     expect(screen.queryByRole('link', { name: 'Переглянути вільні вікна' })).not.toBeInTheDocument()
 
-    await fireEvent.click((await screen.findAllByRole('button', { name: 'Залишити запит' }))[0]!)
+    await fireEvent.click((await screen.findAllByRole('button', { name: 'Залишити запит на консультацію' }))[0]!)
 
     expect(await screen.findByRole('heading', { name: 'Запит до мене' })).toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Запит на бронювання' })).not.toBeInTheDocument()
@@ -2830,7 +2835,7 @@ describe('PublicProfileView', () => {
 
     const { container } = renderView()
 
-    await fireEvent.click((await screen.findAllByRole('button', { name: 'Залишити запит' }))[0]!)
+    await fireEvent.click((await screen.findAllByRole('button', { name: 'Залишити запит на консультацію' }))[0]!)
     await screen.findByRole('heading', { name: 'Запит до мене' })
 
     const modal = container.querySelector('.guest-booking-modal')
@@ -2850,7 +2855,7 @@ describe('PublicProfileView', () => {
     expect(await screen.findByRole('heading', { name: 'Оберіть дату і час' })).toBeInTheDocument()
     expect(screen.getAllByRole('button', { name: 'Записатися на сесію' }).length).toBeGreaterThan(0)
     expect(screen.queryByRole('link', { name: 'Переглянути вільні вікна' })).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Залишити запит' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Залишити запит на консультацію' })).not.toBeInTheDocument()
   })
 
   it('shows no-slots helper and request CTA when no public slots are available', async () => {
@@ -2869,9 +2874,9 @@ describe('PublicProfileView', () => {
       expect(screen.queryByText('Завантажуємо вільні вікна')).not.toBeInTheDocument()
     })
     expect(
-      screen.getByText(/Наразі немає доступного часу для запису/)
+      screen.getByText(/Немає зручного часу?/)
     ).toBeInTheDocument()
-    expect(screen.getAllByRole('button', { name: 'Залишити запит' }).length).toBeGreaterThan(0)
+    expect(screen.getAllByRole('button', { name: 'Залишити запит на консультацію' }).length).toBeGreaterThan(0)
   })
 
   it('hides booking calendar when public availability is hidden', async () => {
@@ -2895,9 +2900,9 @@ describe('PublicProfileView', () => {
     expect(await screen.findByRole('heading', { name: 'Готові зробити перший крок?' })).toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Оберіть дату і час' })).not.toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Запит до мене' })).not.toBeInTheDocument()
-    expect(screen.queryByRole('heading', { name: 'Залишити запит' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Залишити запит на консультацію' })).not.toBeInTheDocument()
     expect(screen.queryByRole('link', { name: 'Переглянути вільні вікна' })).not.toBeInTheDocument()
-    const requestButtons = screen.getAllByRole('button', { name: 'Залишити запит' })
+    const requestButtons = screen.getAllByRole('button', { name: 'Залишити запит на консультацію' })
     expect(requestButtons.some((button) => Boolean(button.closest('.identity-rail')))).toBe(true)
     expect(requestButtons.some((button) => Boolean(button.closest('.closing-cta')))).toBe(true)
   })
@@ -2928,7 +2933,7 @@ describe('PublicProfileView', () => {
 
     renderView()
 
-    await fireEvent.click((await screen.findAllByRole('button', { name: 'Залишити запит' }))[0]!)
+    await fireEvent.click((await screen.findAllByRole('button', { name: 'Залишити запит на консультацію' }))[0]!)
     await screen.findByRole('heading', { name: 'Запит до мене' })
     await fireEvent.update(screen.getByLabelText('Ім’я'), 'Guest Person')
     await fireEvent.update(screen.getByLabelText('Контакт'), 'guest@example.com')
@@ -2993,11 +2998,11 @@ describe('PublicProfileView', () => {
     expect(chatButtons.length).toBeGreaterThan(0)
     expect(chatButtons[0]).toHaveClass('btn--primary')
     expect(
-      screen.getAllByRole('button', { name: 'Залишити запит' }).some((button) =>
+      screen.getAllByRole('button', { name: 'Залишити запит на консультацію' }).some((button) =>
         button.classList.contains('btn--primary')
       )
     ).toBe(false)
-    await fireEvent.click((await screen.findAllByRole('button', { name: 'Залишити запит' }))[0]!)
+    await fireEvent.click((await screen.findAllByRole('button', { name: 'Залишити запит на консультацію' }))[0]!)
 
     expect(await screen.findByRole('heading', { name: 'Запит до мене' })).toBeInTheDocument()
     expect(mockRouter.push).not.toHaveBeenCalled()
@@ -3022,7 +3027,7 @@ describe('PublicProfileView', () => {
 
     renderView()
 
-    await fireEvent.click((await screen.findAllByRole('button', { name: 'Залишити запит' }))[0]!)
+    await fireEvent.click((await screen.findAllByRole('button', { name: 'Залишити запит на консультацію' }))[0]!)
 
     expect(await screen.findByRole('heading', { name: 'Запит до мене' })).toBeInTheDocument()
     expect(mockRouter.push).not.toHaveBeenCalled()
@@ -3128,7 +3133,7 @@ describe('PublicProfileView', () => {
 
     renderView()
 
-    await fireEvent.click((await screen.findAllByRole('button', { name: 'Залишити запит' }))[0]!)
+    await fireEvent.click((await screen.findAllByRole('button', { name: 'Залишити запит на консультацію' }))[0]!)
     await fireEvent.update(await screen.findByLabelText('Ім’я'), 'Client Person')
     await fireEvent.update(screen.getByLabelText('Контакт'), 'client@example.com')
     await fireEvent.click(screen.getByRole('button', { name: 'Надіслати запит' }))
@@ -3190,8 +3195,9 @@ describe('PublicProfileView', () => {
 
     renderView()
 
-    const fallbackButton = await screen.findByRole('button', { name: 'Залишити запит' })
-    await fireEvent.click(fallbackButton)
+    const fallbackButtons = await screen.findAllByRole('button', { name: 'Залишити запит на консультацію' })
+    expect(fallbackButtons[0]).toBeDefined()
+    await fireEvent.click(fallbackButtons[0]!)
 
     expect(await screen.findByRole('heading', { name: 'Запит на бронювання' })).toBeInTheDocument()
     expect(mockRouter.push).not.toHaveBeenCalled()
@@ -3319,7 +3325,7 @@ describe('PublicProfileView', () => {
     })
     await flushAsyncUpdates()
     expect(
-      screen.getByText(/Наразі немає доступного часу для запису/)
+      screen.getByText(/Немає зручного часу?/)
     ).toBeInTheDocument()
     const slotCalls = mockedApiGet.mock.calls.filter((call) => call[0] === '/booking/slots/')
     expect(slotCalls).toHaveLength(1)
@@ -3434,11 +3440,11 @@ describe('PublicProfileView', () => {
     expect(screen.queryByRole('button', { name: 'Написати спеціалісту' })).not.toBeInTheDocument()
     expect(screen.getAllByText('Мої сесії')).toHaveLength(2)
     expect(screen.queryByText('Відгуки')).not.toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Залишити запит' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Залишити запит на консультацію' })).not.toBeInTheDocument()
     expect(
       screen.getAllByText('Ви вже працюєте з цим спеціалістом. Можете продовжити спілкування або переглянути свої сесії.').length
     ).toBeGreaterThan(0)
-    expect(screen.queryByText('Поставити запитання')).not.toBeInTheDocument()
+    expect(screen.queryByText('Поставити питання перед записом')).not.toBeInTheDocument()
 
     await fireEvent.click(chatButtons[0] as HTMLButtonElement)
 
@@ -3517,8 +3523,9 @@ describe('PublicProfileView', () => {
 
     renderView()
 
-    const inquiryButtons = await screen.findAllByRole('button', { name: 'Поставити запитання' })
+    const inquiryButtons = await screen.findAllByRole('button', { name: 'Поставити питання перед записом' })
     expect(inquiryButtons).toHaveLength(1)
+    expect(screen.queryByRole('button', { name: 'Поставити запитання' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Написати повідомлення' })).not.toBeInTheDocument()
     expect(screen.queryByText('Написати спеціалісту')).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Написати в чат' })).not.toBeInTheDocument()
@@ -3538,11 +3545,39 @@ describe('PublicProfileView', () => {
 
     expect(await screen.findByText('Запишіться на консультацію')).toBeInTheDocument()
     expect(await screen.findByText('Коротке запитання до бронювання')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Поставити запитання' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Поставити питання перед записом' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Поставити запитання' })).not.toBeInTheDocument()
     expect(screen.getByText('Почніть без тиску')).toBeInTheDocument()
     expect(
-      screen.getByText('Короткий запит не фіксує слот і не потребує оплати. Можна спокійно уточнити деталі перед рішенням.')
+      screen.getByText('Коротке питання не фіксує слот і не потребує оплати. Можна спокійно уточнити деталі перед рішенням.')
     ).toBeInTheDocument()
+  })
+
+  it('does not introduce marketplace or guarantee wording on public profile CTAs', async () => {
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(
+      buildProfile({
+        public_booking_mode: 'request_only',
+        show_public_availability: false,
+        public_direct_booking_enabled: false,
+      })
+    )
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/public/specialists/olena/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    expect((await screen.findAllByRole('button', { name: 'Залишити запит на консультацію' })).length).toBeGreaterThan(0)
+    const text = document.body.textContent || ''
+    expect(text).not.toContain('маркетплейс')
+    expect(text).not.toContain('рейтинг')
+    expect(text).not.toContain('оберіть найкращого')
+    expect(text).not.toContain('гарантовані клієнти')
+    expect(text).not.toContain('миттєве бронювання')
   })
 
   it('creates the first inquiry from the public profile happy path', async () => {
@@ -3602,7 +3637,7 @@ describe('PublicProfileView', () => {
 
     const textarea = await screen.findByLabelText('Ваше повідомлення')
     await fireEvent.update(textarea, 'Чи можна коротко уточнити формат роботи?')
-    await fireEvent.click(screen.getByRole('button', { name: 'Надіслати запит' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Надіслати питання' }))
 
     expect(mockedCreateInquiryThread).toHaveBeenCalledWith({
       specialist_id: 12,

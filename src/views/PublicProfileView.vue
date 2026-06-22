@@ -53,13 +53,13 @@
           :show-chat-cta="canMessageSpecialist"
           chat-cta-label="Написати в чат"
           :show-request-cta="showRailRequestCta"
-          request-cta-label="Залишити запит"
+          :request-cta-label="REQUEST_CONSULTATION_CTA_LABEL"
           :show-request-explanation="showRequestExplanation"
           :request-helper-text="REQUEST_CTA_HELPER_TEXT"
           :request-tooltip-text="REQUEST_CTA_TOOLTIP_TEXT"
           :show-slots-cta="showRailSlotsCta"
           :show-inquiry-cta="showRailInquiryCta"
-          inquiry-cta-label="Поставити запитання"
+          :inquiry-cta-label="INQUIRY_BEFORE_BOOKING_CTA_LABEL"
           :show-feedback-cta="showFeedbackCta"
           @primary-action="handleHeroPrimaryAction"
           @chat-action="openClientChat"
@@ -137,7 +137,7 @@
               :disabled="inquirySubmitting"
             ></textarea>
             <div class="muted inquiry-composer__hint">
-              Короткий запит без вкладень і термінових звернень. Це не повноцінний чат.
+              Коротке питання без вкладень і термінових звернень. Це не повноцінний чат.
             </div>
             <div v-if="inquirySubmitError" class="form-error">{{ inquirySubmitError }}</div>
             <button
@@ -160,7 +160,7 @@
           </div>
           <div v-if="showSlotHeaderActions" class="slot-request-actions">
             <button v-if="showDirectBookingRequestFallback" class="btn btn--ghost btn--sm" type="button" @click="handlePublicRequestAction">
-              Залишити запит
+              {{ REQUEST_CONSULTATION_CTA_LABEL }}
             </button>
             <button v-if="canMessageSpecialist" class="btn btn--ghost btn--sm" type="button" @click="openClientChat">
               Написати в чат
@@ -292,15 +292,15 @@
         <div v-if="slotsLoading" class="muted">Завантажуємо вільні вікна</div>
         <div v-else-if="slotsError" class="form-error">{{ slotsError }}</div>
         <div v-else-if="!monthHasSlots" class="slot-empty slot-empty--request muted">
-          <span>Наразі немає доступного часу для запису. Залиште запит, і я зможу узгодити час вручну.</span>
+          <span>Немає зручного часу? Залиште запит на консультацію, і спеціаліст допоможе узгодити формат та час.</span>
           <button class="btn btn--ghost btn--sm" type="button" @click="handlePublicRequestAction">
-            Залишити запит
+            {{ REQUEST_CONSULTATION_CTA_LABEL }}
           </button>
         </div>
         <div v-else-if="slots.length === 0" class="slot-empty slot-empty--request muted">
-          <span>На обрану дату немає вільного часу. Залиште запит, і я зможу узгодити час вручну.</span>
+          <span>На обрану дату немає вільного часу. Залиште запит на консультацію, і спеціаліст допоможе узгодити формат та час.</span>
           <button class="btn btn--ghost btn--sm" type="button" @click="handlePublicRequestAction">
-            Залишити запит
+            {{ REQUEST_CONSULTATION_CTA_LABEL }}
           </button>
         </div>
         <div v-else class="slot-list">
@@ -445,7 +445,7 @@
         :show-chat-cta="canMessageSpecialist"
         chat-cta-label="Написати в чат"
         :show-request-cta="showClosingRequestCta"
-        request-cta-label="Залишити запит"
+        :request-cta-label="REQUEST_CONSULTATION_CTA_LABEL"
         :show-feedback-cta="showFeedbackCta"
         @primary-action="handleClosingPrimaryAction"
         @chat-action="openClientChat"
@@ -966,10 +966,12 @@ const GUEST_BOOKING_SUCCESS_TEXT =
   'Запит надіслано'
 const GUEST_BOOKING_SUCCESS_NEXT_STEP_COPY =
   'Спеціаліст отримає ваш запит і зможе зв’язатися з вами для узгодження деталей.'
+const REQUEST_CONSULTATION_CTA_LABEL = 'Залишити запит на консультацію'
+const INQUIRY_BEFORE_BOOKING_CTA_LABEL = 'Поставити питання перед записом'
 const REQUEST_CTA_HELPER_TEXT =
-  'Запит — для першого звернення до спеціаліста. Після відповіді спеціаліст підкаже, як продовжити спілкування та узгодити консультацію.'
+  'Опишіть коротко, з чим хочете звернутися. Спеціаліст відповість у кабінеті й допоможе узгодити формат та час.'
 const REQUEST_CTA_TOOLTIP_TEXT =
-  'Надішліть перший запит спеціалісту. Далі спеціаліст відповість і запропонує зручний спосіб продовжити спілкування.'
+  'Запит — якщо хочете консультацію. Питання — якщо потрібно щось уточнити перед записом.'
 
 type ClientSession = {
   id: number
@@ -1915,7 +1917,7 @@ const heroCtaTitle = computed(() => {
   return 'Запишіться на консультацію'
 })
 const heroPrimaryLabel = computed(() => {
-  if (!publicDirectBookingEnabled.value || showDirectBookingRequestFallback.value) return 'Залишити запит'
+  if (!publicDirectBookingEnabled.value || showDirectBookingRequestFallback.value) return REQUEST_CONSULTATION_CTA_LABEL
   return 'Записатися на сесію'
 })
 
@@ -1924,10 +1926,10 @@ const primaryActionNextStepCopy = computed(() => {
     return 'Ви вже працюєте з цим спеціалістом. Можете продовжити спілкування або переглянути свої сесії.'
   }
   if (!publicDirectBookingEnabled.value) {
-    return ''
+    return REQUEST_CTA_HELPER_TEXT
   }
   if (showDirectBookingRequestFallback.value) {
-    return ''
+    return REQUEST_CTA_HELPER_TEXT
   }
   if (!isAuthenticated.value) {
     return 'Після вибору часу відкриється короткий запит: залиште ім’я та контакт без реєстрації.'
@@ -1939,7 +1941,7 @@ const primaryActionNextStepCopy = computed(() => {
 })
 
 const closingPrimaryLabel = computed(() => {
-  if (!publicDirectBookingEnabled.value || showDirectBookingRequestFallback.value) return 'Залишити запит'
+  if (!publicDirectBookingEnabled.value || showDirectBookingRequestFallback.value) return REQUEST_CONSULTATION_CTA_LABEL
   return 'Записатися на сесію'
 })
 
@@ -2638,7 +2640,7 @@ const showInquiryComposer = computed(() => {
 })
 
 const inquirySubmitLabel = computed(() => {
-  if (inquiryState.value?.can_create_inquiry) return 'Надіслати запит'
+  if (inquiryState.value?.can_create_inquiry) return 'Надіслати питання'
   return 'Надіслати уточнення'
 })
 
@@ -2647,7 +2649,7 @@ const inquiryClarityCard = computed<{ title: string; body: string } | null>(() =
   if (inquiryState.value?.can_create_inquiry) {
     return {
       title: 'Почніть без тиску',
-      body: 'Короткий запит не фіксує слот і не потребує оплати. Можна спокійно уточнити деталі перед рішенням.',
+      body: 'Коротке питання не фіксує слот і не потребує оплати. Можна спокійно уточнити деталі перед рішенням.',
     }
   }
   return {

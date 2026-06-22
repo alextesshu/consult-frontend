@@ -72,7 +72,7 @@ withDefaults(defineProps<Props>(), {
   showChatCta: false,
   chatCtaLabel: 'Написати в чат',
   showRequestCta: false,
-  requestCtaLabel: 'Залишити запит',
+  requestCtaLabel: 'Залишити запит на консультацію',
   showFeedbackCta: false,
 })
 

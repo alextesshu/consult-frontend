@@ -218,13 +218,13 @@ withDefaults(defineProps<Props>(), {
   copiedContactId: '',
   chatCtaLabel: 'Написати в чат',
   showRequestCta: false,
-  requestCtaLabel: 'Залишити запит',
+  requestCtaLabel: 'Залишити запит на консультацію',
   showRequestExplanation: false,
   requestHelperText: '',
   requestTooltipText: '',
   showSlotsCta: false,
   showInquiryCta: false,
-  inquiryCtaLabel: 'Поставити запитання',
+  inquiryCtaLabel: 'Поставити питання перед записом',
   showFeedbackCta: false,
 })
 
