@@ -413,7 +413,7 @@
             <span class="footer__text">Сесії та календар</span>
             <span class="footer__text">Власний блог</span>
             <span class="footer__text">Задачі</span>
-            <RouterLink class="footer__link" to="/#pricing">Без комісій</RouterLink>
+            <RouterLink class="footer__link" to="/pricing">Без комісій</RouterLink>
           </section>
           <section class="footer__column" aria-labelledby="footer-specialists-title">
             <h2 id="footer-specialists-title" class="footer__column-title">Для спеціалістів</h2>

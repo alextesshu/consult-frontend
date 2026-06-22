@@ -255,14 +255,28 @@ describe('App shell', () => {
     expect(within(footer as HTMLElement).getByText('PRO CONSULT')).toBeInTheDocument()
     expect(within(footer as HTMLElement).getByText('Простір для ведення консультацій.')).toBeInTheDocument()
     expect(within(footer as HTMLElement).getByText(/Публічний профіль, запити, сесії, календар/i)).toBeInTheDocument()
-    expect(within(footer as HTMLElement).getByRole('link', { name: 'Можливості' })).toHaveAttribute(
-      'href',
-      '/#features'
-    )
-    expect(within(footer as HTMLElement).getByRole('link', { name: 'Знайти профіль спеціаліста' })).toHaveAttribute(
-      'href',
-      '/specialists'
-    )
+    const productColumn = within(footer as HTMLElement)
+      .getByRole('heading', { name: 'Продукт' })
+      .closest('section') as HTMLElement
+    const productFooterLinks = [
+      ['Можливості', '/#features'],
+      ['Знайти профіль спеціаліста', '/specialists'],
+      ['Без комісій', '/pricing'],
+    ] as const
+    for (const [label, href] of productFooterLinks) {
+      expect(within(productColumn).getByRole('link', { name: label })).toHaveAttribute('href', href)
+    }
+    const descriptiveProductItems = [
+      'Публічний профіль',
+      'Запити без реєстрації',
+      'Сесії та календар',
+      'Власний блог',
+      'Задачі',
+    ] as const
+    for (const label of descriptiveProductItems) {
+      expect(within(productColumn).getByText(label)).toBeInTheDocument()
+      expect(within(productColumn).queryByRole('link', { name: label })).not.toBeInTheDocument()
+    }
     expect(within(footer as HTMLElement).getByRole('link', { name: 'Тарифи' })).toHaveAttribute('href', '/pricing')
     expect(within(footer as HTMLElement).getByRole('link', { name: 'Поширені питання' })).toHaveAttribute('href', '/faq')
     expect(within(footer as HTMLElement).getByRole('link', { name: 'Підтримка та запити щодо даних' })).toHaveAttribute(
