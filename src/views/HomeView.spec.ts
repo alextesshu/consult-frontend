@@ -9,6 +9,7 @@ async function renderHome(options?: { authenticated?: boolean; roles?: string[] 
   const routes = [
     { path: '/', component: HomeView },
     { path: '/signup', component: { template: '<div>Signup</div>' } },
+    { path: '/s/:slug', component: { template: '<div>Public Profile</div>' } },
     { path: '/specialists', component: { template: '<div>Specialist Search</div>' } },
     { path: '/pricing', component: { template: '<div>Pricing</div>' } },
     { path: '/support-and-data-requests', component: { template: '<div>Support</div>' } },
@@ -60,11 +61,21 @@ describe('HomeView', () => {
 
     expect(
       screen.getByRole('heading', {
-        name: 'Консультаційна практика — в одному спокійному просторі',
+        name: 'Профіль, запити й календар для приватної консультаційної практики',
       })
     ).toBeInTheDocument()
-    expect(screen.getByText(/Pro Consult допомагає спеціалісту презентувати себе клієнтам/)).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Подивитися тарифи' })).toHaveAttribute('href', '#pricing')
+    expect(screen.getByText(/Створіть сторінку спеціаліста/)).toBeInTheDocument()
+    expect(screen.getByText(/звернення без реєстрації клієнта/)).toBeInTheDocument()
+    expect(screen.getByText(/ведіть сесії, календар, нотатки й матеріали/)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Створити безкоштовний профіль' })).toHaveAttribute(
+      'href',
+      '/signup'
+    )
+    expect(screen.getByRole('link', { name: 'Подивитися приклад профілю' })).toHaveAttribute(
+      'href',
+      '/s/proconsult'
+    )
+    expect(container.querySelector('.home-hero a[href="/tour"]')).not.toBeInTheDocument()
 
     expect(screen.getByText('Кабінет спеціаліста')).toBeInTheDocument()
     expect(screen.getByText('Нових запитів')).toBeInTheDocument()
@@ -102,6 +113,15 @@ describe('HomeView', () => {
     expect(screen.getByText('Звернення від клієнтів')).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Блог, який допомагає пояснити ваш підхід' })).toBeInTheDocument()
     expect(screen.getByText(/Не кожен клієнт готовий одразу написати спеціалісту/)).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Як це працює' })).toBeInTheDocument()
+    expect(screen.getByText('Створіть профіль')).toBeInTheDocument()
+    expect(screen.getByText('Отримуйте запити')).toBeInTheDocument()
+    expect(screen.getByText('Плануйте сесії')).toBeInTheDocument()
+    expect(screen.getByText('Розвивайте довіру')).toBeInTheDocument()
+    expect(screen.getByText(/Доступний час для прямого запису можна додати за потреби/)).toBeInTheDocument()
+    expect(screen.getAllByText('Без комісій з консультацій').length).toBeGreaterThan(0)
+    expect(screen.getByText('Профіль публікується тільки після вашого рішення')).toBeInTheDocument()
+    expect(screen.getByText('Клієнт може залишити запит без реєстрації')).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Тарифи' })).toBeInTheDocument()
     expect(screen.getByText(/Без комісій з консультацій. Ви сплачуєте за користування сервісом/)).toBeInTheDocument()
     expect(screen.getByText('3 активні клієнти включено')).toBeInTheDocument()
@@ -117,6 +137,7 @@ describe('HomeView', () => {
       '/signup'
     )
     expect(container).not.toHaveTextContent('FOUNDER')
+    expect(container).not.toHaveTextContent(/маркетплейс|рейтинг|гарантовано приведе клієнтів/i)
     expect(screen.queryByText('До 3 ' + 'активних клієнтів')).not.toBeInTheDocument()
     expect(screen.queryByText('Максимум 6 ' + 'активних клієнтів на Start')).not.toBeInTheDocument()
     expect(screen.queryByText('До 20 ' + 'активних клієнтів')).not.toBeInTheDocument()
@@ -138,6 +159,7 @@ describe('HomeView', () => {
     expect(screen.queryByText(/Оберіть формат доступу для своєї практики/)).not.toBeInTheDocument()
     expect(screen.queryByText(/Створіть простір, у якому вашу роботу легко зрозуміти/)).not.toBeInTheDocument()
     expect(screen.queryByText('Знайти спеціаліста')).not.toBeInTheDocument()
+    expect(container.querySelector('a[href="/tour"]')).not.toBeInTheDocument()
     expect(container).not.toHaveTextContent(/присутність/i)
   })
 
@@ -170,7 +192,7 @@ describe('HomeView', () => {
     const { container, router } = await renderHome({ authenticated: true, roles: ['SPECIALIST'] })
     const hero = container.querySelector('.home-hero') as HTMLElement
 
-    const heroButton = within(hero).getByRole('button', { name: /Створити свій простір/ })
+    const heroButton = within(hero).getByRole('button', { name: /Перейти в кабінет/ })
 
     await fireEvent.click(heroButton)
 

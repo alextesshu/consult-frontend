@@ -6,22 +6,22 @@
         <span class="home-hero__wash home-hero__wash--peach" aria-hidden="true"></span>
         <div class="home-hero__content">
           <h1 id="home-hero-title" class="home-hero__title">
-            Консультаційна практика — в одному спокійному просторі
+            Профіль, запити й календар для приватної консультаційної практики
           </h1>
           <p class="home-hero__subtitle">
-            Pro Consult допомагає спеціалісту презентувати себе клієнтам, приймати звернення й розвивати
-            практику у власному робочому кабінеті — без комісій з консультацій.
+            Створіть сторінку спеціаліста, приймайте звернення без реєстрації клієнта, ведіть сесії, календар,
+            нотатки й матеріали в одному кабінеті. Без комісій з консультацій.
           </p>
           <div class="home-hero__actions">
             <button v-if="isAuthenticated" class="btn" type="button" @click="goToCabinet">
-              Створити свій простір
+              Перейти в кабінет
               <span class="btn__arrow" aria-hidden="true">→</span>
             </button>
             <RouterLink v-else class="btn" to="/signup">
-              Створити свій простір
+              Створити безкоштовний профіль
               <span class="btn__arrow" aria-hidden="true">→</span>
             </RouterLink>
-            <a class="btn btn--ghost" href="#pricing">Подивитися тарифи</a>
+            <RouterLink class="btn btn--ghost" to="/s/proconsult">Подивитися приклад профілю</RouterLink>
           </div>
         </div>
 
@@ -188,6 +188,26 @@
             </div>
           </article>
         </div>
+      </section>
+
+      <section class="workflow-section reveal" aria-labelledby="workflow-title">
+        <div class="section-head section-head--center">
+          <h2 id="workflow-title" class="section-head__title">Як це працює</h2>
+          <p class="section-head__subtitle">
+            Спочатку ви створюєте профіль і приймаєте запити. Доступний час для прямого запису можна додати за потреби.
+          </p>
+        </div>
+        <div class="workflow-grid" role="list" aria-label="Як спеціаліст починає роботу в Pro Consult">
+          <article v-for="(step, index) in workflowSteps" :key="step.title" class="workflow-card" role="listitem">
+            <span class="workflow-card__number">{{ index + 1 }}</span>
+            <h3>{{ step.title }}</h3>
+            <p>{{ step.copy }}</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="trust-strip reveal" aria-label="Безпека старту в Pro Consult">
+        <span v-for="item in trustItems" :key="item">{{ item }}</span>
       </section>
 
       <section class="client-note reveal" aria-label="Пояснення для клієнтів">
@@ -365,6 +385,33 @@ const valueCards: Array<{ icon: IconKey; title: string; copy: string }> = [
     title: 'Матеріали й нотатки',
     copy: 'Зберігайте приватні робочі записи й матеріали для клієнтів поруч із консультаціями.',
   },
+]
+
+const workflowSteps = [
+  {
+    title: 'Створіть профіль',
+    copy: 'Додайте опис, теми роботи, формат консультацій і дані, які допомагають клієнту зрозуміти ваш підхід.',
+  },
+  {
+    title: 'Отримуйте запити',
+    copy: 'Клієнт може залишити коротке звернення без реєстрації. Ви бачите запит у кабінеті й вирішуєте, як продовжити.',
+  },
+  {
+    title: 'Плануйте сесії',
+    copy: 'Створюйте сесії, ведіть календар, зберігайте робочі нотатки й матеріали в одному місці.',
+  },
+  {
+    title: 'Розвивайте довіру',
+    copy: 'Публікуйте дописи, пояснюйте свій підхід і діліться корисними матеріалами для клієнтів.',
+  },
+]
+
+const trustItems = [
+  'Ранній доступ',
+  'Без комісій з консультацій',
+  'Профіль публікується тільки після вашого рішення',
+  'Клієнт може залишити запит без реєстрації',
+  'Можна почати зі Start — 0 грн',
 ]
 
 const pricingPlans = computed(() => [
@@ -2383,6 +2430,7 @@ onBeforeUnmount(() => {
 }
 
 .how,
+.workflow-section,
 .value-section,
 .blog-section,
 .differentiation,
@@ -2400,8 +2448,14 @@ onBeforeUnmount(() => {
 }
 
 .value-grid,
+.workflow-grid,
 .differentiation__grid {
   grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.workflow-grid {
+  display: grid;
+  gap: 12px;
 }
 
 .value-grid {
@@ -2415,6 +2469,67 @@ onBeforeUnmount(() => {
   gap: 12px;
   min-height: 100%;
   padding: 18px;
+}
+
+.workflow-card {
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  border: 1px solid rgba(18, 52, 90, 0.09);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: 0 18px 44px rgba(18, 35, 58, 0.07);
+}
+
+.workflow-card__number {
+  width: 26px;
+  height: 26px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--pc-teal-100) 78%, #fff);
+  color: #007c72;
+  font-weight: 800;
+}
+
+.workflow-card h3 {
+  margin: 0;
+  color: var(--pc-navy-950);
+  font-size: 16px;
+  line-height: 1.28;
+}
+
+.workflow-card p {
+  margin: 0;
+  color: var(--text-2);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.trust-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(18, 52, 90, 0.08);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  background: color-mix(in srgb, var(--pc-cream) 74%, #fff);
+}
+
+.trust-strip span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  border: 1px solid rgba(32, 139, 122, 0.14);
+  border-radius: var(--radius-xs);
+  padding: 5px 10px;
+  background: rgba(255, 255, 255, 0.72);
+  color: color-mix(in srgb, var(--pc-navy-900) 82%, #2e6b65);
+  font-size: 13px;
+  font-weight: 700;
 }
 
 .difference-card {
@@ -3330,6 +3445,10 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 920px) {
+  .workflow-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .home-hero {
     grid-template-columns: 1fr;
     min-height: auto;
@@ -3386,6 +3505,10 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 680px) {
+  .workflow-grid {
+    grid-template-columns: 1fr;
+  }
+
   .pricing-founder {
     align-items: stretch;
     flex-direction: column;

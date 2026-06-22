@@ -44,7 +44,8 @@ function renderView() {
     global: {
       stubs: {
         RouterLink: {
-          template: '<a><slot /></a>',
+          props: ['to'],
+          template: '<a :href="to"><slot /></a>',
         },
       },
     },
@@ -93,8 +94,19 @@ describe('SignupView dual-role enable flow', () => {
     expect(screen.getAllByText(/без промокоду/).length).toBeGreaterThan(0)
     expect(screen.getByText(/далі залишитися на Start/)).toBeInTheDocument()
     expect(screen.getByText(/розширити ліміт активних клієнтів/)).toBeInTheDocument()
+    expect(screen.getByText(/Без картки/)).toBeInTheDocument()
+    expect(screen.getByText(/Профіль не публікується автоматично/)).toBeInTheDocument()
+    expect(screen.getByText(/Start — 0 грн/)).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Увійти' })).toHaveAttribute('href', '/login')
+    expect(screen.getByRole('link', { name: 'Увійти' })).toHaveClass('auth__secondary-link')
+    expect(screen.getByRole('link', { name: 'Зареєструватися як клієнт' })).toHaveAttribute(
+      'href',
+      '/signup-client'
+    )
+    expect(screen.getByRole('link', { name: 'Зареєструватися як клієнт' })).toHaveClass('auth__secondary-link')
     expect(screen.queryByLabelText('Промокод')).not.toBeInTheDocument()
     expect(screen.queryByText(/FOUNDER/)).not.toBeInTheDocument()
+    expect(document.body).not.toHaveTextContent(/маркетплейс|рейтинг|гарантовано приведе клієнтів/i)
     expect(screen.queryByText(/Створіть перший слот/)).not.toBeInTheDocument()
     expect(screen.getByText('Отримуйте запити й створюйте сесії')).toBeInTheDocument()
     expect(screen.queryByText(new RegExp('Під час beta вам одразу відкривається ' + 'Pro-доступ'))).not.toBeInTheDocument()

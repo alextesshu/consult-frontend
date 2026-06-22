@@ -63,13 +63,16 @@
         <button class="btn" type="submit" :disabled="loading">
           {{ loading ? 'Створення акаунта...' : 'Створити акаунт' }}
         </button>
+        <p class="muted auth__reassurance">
+          Без картки. Профіль не публікується автоматично. Можна почати зі Start — 0 грн.
+        </p>
         <p class="muted auth__footer">
           Вже маєте акаунт?
-          <RouterLink to="/login">Увійти</RouterLink>
+          <RouterLink class="auth__secondary-link" to="/login">Увійти</RouterLink>
         </p>
         <p class="muted auth__footer">
           Потрібен акаунт клієнта?
-          <RouterLink to="/signup-client">Реєстрація клієнта</RouterLink>
+          <RouterLink class="auth__secondary-link" to="/signup-client">Зареєструватися як клієнт</RouterLink>
         </p>
         <p class="muted auth__legal">
           Продовжуючи, ви погоджуєтеся з
@@ -197,9 +200,36 @@ async function onSubmit() {
   margin-top: 12px;
 }
 
+.auth__secondary-link {
+  color: var(--pc-navy-900);
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--pc-navy-900) 42%, transparent);
+  text-decoration-thickness: 1.5px;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.auth__secondary-link:hover {
+  color: var(--pc-navy-950);
+  text-decoration-color: currentcolor;
+}
+
+.auth__secondary-link:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--pc-navy-900) 26%, transparent);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
 .auth__field-helper {
   margin-top: -8px;
   font-size: 13px;
+}
+
+.auth__reassurance {
+  margin: -2px 0 0;
+  font-size: 13px;
+  line-height: 1.45;
 }
 
 .auth__legal {
