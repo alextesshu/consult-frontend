@@ -23,6 +23,12 @@
             placeholder="Ім’я спеціаліста або частина посилання"
             autocomplete="off"
           />
+          <span class="finder-form__hint">
+            Введіть ім’я спеціаліста, частину адреси або посилання, яке вам надіслали.
+          </span>
+          <span class="finder-form__example">
+            Наприклад: Олена Коваль, kovalenko або proconsult.space/s/proconsult
+          </span>
         </label>
         <button class="btn" type="submit">Знайти профіль</button>
       </form>
@@ -30,7 +36,7 @@
     </section>
 
     <section class="card">
-      <div class="card__title">Результати пошуку</div>
+      <div class="card__title">{{ hasSearched ? 'Результати пошуку' : 'Пошук за іменем або посиланням' }}</div>
 
       <LoadingSkeleton v-if="loading" variant="card" :count="3" height="176px" />
 
@@ -46,14 +52,14 @@
 
       <EmptyState
         v-else-if="!hasSearched"
-        title="Знайти профіль спеціаліста"
-        description="Введіть ім’я спеціаліста або частину посилання на профіль."
+        title="Знайдіть профіль за посиланням або іменем"
+        description="Вставте ім’я спеціаліста або посилання, яке він надіслав. Профілі з’являються тут лише після пошуку."
       />
 
       <EmptyState
         v-else-if="results.length === 0"
         title="Профіль не знайдено"
-        description="Перевірте написання імені або попросіть спеціаліста надіслати пряме посилання на профіль."
+        description="Перевірте написання або попросіть спеціаліста надіслати пряме посилання на профіль. Деякі профілі доступні тільки за прямим посиланням або ще не увімкнені спеціалістом."
       />
 
       <div v-else class="result-list">
@@ -126,6 +132,39 @@ const results = ref<PublicSpecialistProfile[]>([])
 
 const trimmedQuery = computed(() => searchQuery.value.trim())
 
+function profileSlugFromPath(pathname: string) {
+  const match = pathname.match(/^\/s\/([^/?#]+)\/?$/)
+  if (!match?.[1]) return ''
+  return decodeURIComponent(match[1]).trim()
+}
+
+function normalizeSearchQuery(value: string) {
+  const query = value.trim()
+  if (!query) return ''
+
+  if (query.startsWith('/s/')) {
+    return profileSlugFromPath(query) || query
+  }
+
+  try {
+    const parsed = new URL(query)
+    return profileSlugFromPath(parsed.pathname) || query
+  } catch {
+    // Continue with a domain-prefixed parse below.
+  }
+
+  if (/^[\w.-]+\/s\/[^/?#\s]+\/?(?:[?#].*)?$/.test(query)) {
+    try {
+      const parsed = new URL(`https://${query}`)
+      return profileSlugFromPath(parsed.pathname) || query
+    } catch {
+      return query
+    }
+  }
+
+  return query
+}
+
 function publicName(specialist: PublicSpecialistProfile) {
   return (specialist.public_display_name || specialist.display_name || '').trim()
 }
@@ -178,7 +217,7 @@ async function runSearch(query: string) {
 }
 
 async function submitSearch() {
-  const query = trimmedQuery.value
+  const query = normalizeSearchQuery(trimmedQuery.value)
   if (query.length < 3) {
     validationMessage.value = 'Введіть щонайменше 3 символи для пошуку.'
     hasSearched.value = false
@@ -186,6 +225,7 @@ async function submitSearch() {
     error.value = false
     return
   }
+  searchQuery.value = query
   await runSearch(query)
 }
 
@@ -233,6 +273,17 @@ async function retrySearch() {
 .finder-form__label {
   font-size: 14px;
   font-weight: 600;
+}
+
+.finder-form__hint,
+.finder-form__example {
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.finder-form__example {
+  color: rgba(15, 23, 42, 0.72);
 }
 
 .result-list {

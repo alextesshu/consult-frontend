@@ -32,7 +32,18 @@ describe('PublicTherapistsView', () => {
 
     expect(mockedFetchPublicSpecialists).not.toHaveBeenCalled()
     expect(screen.getAllByText('Знайти профіль спеціаліста').length).toBeGreaterThan(0)
-    expect(screen.getByText('Введіть ім’я спеціаліста або частину посилання на профіль.')).toBeInTheDocument()
+    expect(
+      screen.getByText('Введіть ім’я спеціаліста, частину адреси або посилання, яке вам надіслали.')
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText('Наприклад: Олена Коваль, kovalenko або proconsult.space/s/proconsult')
+    ).toBeInTheDocument()
+    expect(screen.getByText('Знайдіть профіль за посиланням або іменем')).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        'Вставте ім’я спеціаліста або посилання, яке він надіслав. Профілі з’являються тут лише після пошуку.'
+      )
+    ).toBeInTheDocument()
     expect(screen.queryByText(/Всього/i)).not.toBeInTheDocument()
   })
 
@@ -88,6 +99,48 @@ describe('PublicTherapistsView', () => {
     expect(screen.queryByText(/Всього/i)).not.toBeInTheDocument()
   })
 
+  it('normalizes pasted full profile URL before searching', async () => {
+    mockedFetchPublicSpecialists.mockResolvedValue({
+      results: [],
+      page: 1,
+      page_size: 5,
+      total: 0,
+      total_pages: 1,
+    })
+
+    renderView()
+
+    const input = screen.getByPlaceholderText('Ім’я спеціаліста або частина посилання') as HTMLInputElement
+    await fireEvent.update(input, 'https://proconsult.space/s/proconsult')
+    await fireEvent.click(screen.getByRole('button', { name: 'Знайти профіль' }))
+
+    await waitFor(() => {
+      expect(mockedFetchPublicSpecialists).toHaveBeenCalledWith({ name: 'proconsult', page_size: 5 })
+    })
+    expect(input.value).toBe('proconsult')
+  })
+
+  it('normalizes pasted profile path before searching', async () => {
+    mockedFetchPublicSpecialists.mockResolvedValue({
+      results: [],
+      page: 1,
+      page_size: 5,
+      total: 0,
+      total_pages: 1,
+    })
+
+    renderView()
+
+    const input = screen.getByPlaceholderText('Ім’я спеціаліста або частина посилання') as HTMLInputElement
+    await fireEvent.update(input, '/s/proconsult/')
+    await fireEvent.click(screen.getByRole('button', { name: 'Знайти профіль' }))
+
+    await waitFor(() => {
+      expect(mockedFetchPublicSpecialists).toHaveBeenCalledWith({ name: 'proconsult', page_size: 5 })
+    })
+    expect(input.value).toBe('proconsult')
+  })
+
   it('renders no-results state after successful search with empty response', async () => {
     mockedFetchPublicSpecialists.mockResolvedValue({
       results: [],
@@ -105,8 +158,20 @@ describe('PublicTherapistsView', () => {
     expect(await screen.findByText('Профіль не знайдено')).toBeInTheDocument()
     expect(
       screen.getByText(
-        'Перевірте написання імені або попросіть спеціаліста надіслати пряме посилання на профіль.'
+        'Перевірте написання або попросіть спеціаліста надіслати пряме посилання на профіль. Деякі профілі доступні тільки за прямим посиланням або ще не увімкнені спеціалістом.'
       )
     ).toBeInTheDocument()
+  })
+
+  it('keeps cautious lookup wording without marketplace positioning', () => {
+    renderView()
+
+    const pageText = document.body.textContent || ''
+    expect(pageText).not.toContain('каталог спеціалістів')
+    expect(pageText).not.toContain('оберіть найкращого')
+    expect(pageText).not.toContain('рейтинг')
+    expect(pageText).not.toContain('порівняйте спеціалістів')
+    expect(pageText).not.toContain('знайдіть психолога для себе')
+    expect(pageText).not.toContain('/tour')
   })
 })
