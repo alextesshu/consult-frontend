@@ -1077,6 +1077,8 @@ describe('TherapistSessionsView', () => {
     await fireEvent.click(screen.getByTestId('session-completion-submit'))
 
     expect(await screen.findByDisplayValue('Initial note')).toBeInTheDocument()
+    expect(screen.getByText(/Цей простір призначений для робочих нотаток спеціаліста/)).toBeInTheDocument()
+    expect(screen.getAllByText(/офіційної медичної документації/).length).toBeGreaterThan(0)
     await fireEvent.update(screen.getByDisplayValue('Initial note'), 'Updated note')
     const saveSessionNoteButton = document.querySelector(
       '.note-panel .note-actions .btn--sm',

@@ -719,7 +719,10 @@
               rows="6"
               placeholder="Короткий коментар по сесії та важливі спостереження."
             ></textarea>
-            <span class="note-helper muted">Доступ до нотатки має лише спеціаліст.</span>
+            <span class="note-helper muted">
+              Доступ до нотатки має лише спеціаліст. Цей простір призначений для робочих нотаток спеціаліста. Не
+              використовуйте його для ведення офіційної медичної документації, діагнозів або історій хвороби.
+            </span>
           </label>
           <div class="note-actions">
             <button class="btn btn--sm" type="button" :disabled="noteSaving" @click="saveNote">

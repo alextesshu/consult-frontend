@@ -285,6 +285,8 @@ describe('TherapistSessionDetailView', () => {
     expect(screen.queryByDisplayValue('Progress note')).not.toBeInTheDocument()
     await fireEvent.click(await screen.findByRole('button', { name: 'Відкрити нотатку' }))
     expect(await screen.findByDisplayValue('Progress note')).toBeInTheDocument()
+    expect(screen.getByText(/Цей простір призначений для робочих нотаток спеціаліста/)).toBeInTheDocument()
+    expect(screen.getByText(/Не використовуйте його для ведення офіційної медичної документації/)).toBeInTheDocument()
 
     expect(mockedApiGet).toHaveBeenCalledWith('/booking/sessions/42/')
     expect(mockedApiGet).toHaveBeenCalledWith('/cabinet/slots/')

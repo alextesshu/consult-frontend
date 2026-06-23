@@ -98,6 +98,8 @@ describe('TherapistClientWorkbookView', () => {
     expect(screen.getByText('olena@example.com · +380501112233')).toBeInTheDocument()
     expect(screen.getByText('Конфіденційно')).toBeInTheDocument()
     expect(screen.getAllByText(/Клієнт не бачить ці записи/).length).toBeGreaterThan(0)
+    expect(screen.getByText(/Цей простір призначений для робочих нотаток спеціаліста/)).toBeInTheDocument()
+    expect(screen.getByText(/Не використовуйте його для ведення офіційної медичної документації/)).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Назад до клієнта' })).toHaveAttribute(
       'href',
       '/cabinet/clients?client=44&autoOpen=1'
