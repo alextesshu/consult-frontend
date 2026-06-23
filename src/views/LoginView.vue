@@ -24,14 +24,24 @@
         </label>
         <label class="field">
           <span>Пароль</span>
-          <input
-            v-model="password"
-            class="input"
-            type="password"
-            name="password"
-            autocomplete="current-password"
-            placeholder="********"
-          />
+          <div class="password-input-wrap">
+            <input
+              v-model="password"
+              class="input password-input"
+              :type="showPassword ? 'text' : 'password'"
+              name="password"
+              autocomplete="current-password"
+              placeholder="********"
+            />
+            <button
+              class="password-toggle"
+              type="button"
+              :aria-label="showPassword ? 'Сховати пароль' : 'Показати пароль'"
+              @click="showPassword = !showPassword"
+            >
+              {{ showPassword ? 'Сховати' : 'Показати' }}
+            </button>
+          </div>
         </label>
         <p v-if="error" class="form-error">{{ error }}</p>
         <button class="btn" type="submit" :disabled="loading">
@@ -109,6 +119,7 @@ import { hasAdminRole, hasClientRole, hasSpecialistRole, normalizeUserRoles } fr
 
 const identifier = ref('')
 const password = ref('')
+const showPassword = ref(false)
 const error = ref('')
 const router = useRouter()
 const route = useRoute()
@@ -118,6 +129,29 @@ const isClientInviteRedirect = computed(() => {
   const redirect = typeof route.query.redirect === 'string' ? route.query.redirect.trim() : ''
   return redirect.startsWith('/client/invite/')
 })
+
+const invalidCredentialsMessage = 'Не вдалося увійти з цими даними. Перевірте електронну пошту та пароль.'
+
+function isInvalidCredentialsError(message: string) {
+  const normalized = message.trim().toLowerCase().replace(/\s+/g, ' ')
+  return (
+    (normalized.includes('no active account') && normalized.includes('credentials')) ||
+    normalized.includes('invalid credentials') ||
+    normalized.includes('provided credentials') ||
+    normalized.includes('given credentials') ||
+    normalized.includes('невірні облікові дані') ||
+    (normalized.includes('невірн') && normalized.includes('облікові дані')) ||
+    (normalized.includes('неправильн') && normalized.includes('облікові дані'))
+  )
+}
+
+function loginErrorMessage(err: unknown) {
+  const message = err instanceof Error ? err.message.trim() : ''
+  if (message && isInvalidCredentialsError(message)) {
+    return invalidCredentialsMessage
+  }
+  return message || 'Не вдалося увійти. Спробуйте ще раз.'
+}
 
 function defaultPath() {
   const roles = normalizeUserRoles(auth.me?.user ?? auth.user)
@@ -153,7 +187,7 @@ async function onSubmit() {
     await auth.login(identifier.value.trim(), password.value)
     router.push(resolvePostLoginPath())
   } catch (err) {
-    error.value = err instanceof Error ? err.message : 'Не вдалося увійти'
+    error.value = loginErrorMessage(err)
   }
 }
 
@@ -325,6 +359,45 @@ onMounted(() => {
   color: var(--muted);
   opacity: 1;
   line-height: 1.5;
+}
+
+.password-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.password-input {
+  width: 100%;
+  min-width: 0;
+  padding-right: 92px;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  min-height: 30px;
+  padding: 4px 8px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-xs);
+  background: transparent;
+  color: var(--primary);
+  font: inherit;
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.password-toggle:hover {
+  background: color-mix(in srgb, var(--primary) 8%, #ffffff);
+}
+
+.password-toggle:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--primary) 55%, #ffffff);
+  outline-offset: 2px;
 }
 
 .form-error {
