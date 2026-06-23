@@ -3623,7 +3623,7 @@ onBeforeUnmount(() => {
 
   .product-story {
     display: grid;
-    gap: 12px;
+    gap: 0;
     min-height: auto;
     height: auto;
   }
@@ -3642,48 +3642,45 @@ onBeforeUnmount(() => {
   }
 
   .product-story__public-card {
-    order: 1;
-    padding: 14px;
+    display: none;
   }
 
   .product-story__dashboard-card {
-    order: 2;
+    order: 1;
     min-height: auto;
     padding: 14px;
   }
 
-  .product-story__request-card {
-    order: 3;
-  }
-
+  .product-story__request-card,
   .product-story__calendar-card {
-    order: 4;
+    display: none;
   }
 
   .product-story__dashboard-shell {
-    grid-template-columns: 38px minmax(0, 1fr);
+    grid-template-columns: 1fr;
   }
 
   .product-story__rail {
-    width: 38px;
-    min-height: 100%;
+    display: none;
   }
 
   .product-story__dashboard-body {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
   }
 
-  .product-story__requests p {
-    grid-template-columns: 1fr;
-  }
-
+  .product-story__overview-label,
   .product-story__requests {
-    margin-left: 0;
+    display: none;
   }
 
-  .product-story__requests p em {
-    grid-column: 1;
-    grid-row: auto;
+  .product-story__stat {
+    min-height: 86px;
+    padding: 10px 8px;
+  }
+
+  .product-story__stat strong {
+    font-size: 25px;
   }
 
   .product-story__profile {
