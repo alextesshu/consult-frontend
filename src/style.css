@@ -367,6 +367,45 @@ body.body--authenticated .card__title {
   background: #fff;
 }
 
+.password-input-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.password-input {
+  width: 100%;
+  min-width: 0;
+  padding-right: 92px;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  min-height: 30px;
+  padding: 4px 8px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-xs);
+  background: transparent;
+  color: var(--primary);
+  font: inherit;
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.password-toggle:hover {
+  background: color-mix(in srgb, var(--primary) 8%, #ffffff);
+}
+
+.password-toggle:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--primary) 55%, #ffffff);
+  outline-offset: 2px;
+}
+
 .input::placeholder,
 input::placeholder,
 textarea::placeholder {

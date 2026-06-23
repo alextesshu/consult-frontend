@@ -24,25 +24,49 @@
         </label>
         <label class="field">
           <span>Пароль</span>
-          <input
-            v-model="password"
-            class="input"
-            type="password"
-            name="password"
-            autocomplete="new-password"
-            placeholder="********"
-          />
+          <div class="password-input-wrap">
+            <input
+              v-model="password"
+              class="input password-input"
+              :type="showPassword ? 'text' : 'password'"
+              name="password"
+              autocomplete="new-password"
+              placeholder="********"
+            />
+            <button
+              class="password-toggle"
+              type="button"
+              :aria-label="showPassword ? 'Сховати пароль' : 'Показати пароль'"
+              @click="showPassword = !showPassword"
+            >
+              {{ showPassword ? 'Сховати' : 'Показати' }}
+            </button>
+          </div>
         </label>
         <label class="field">
           <span>Підтвердження пароля</span>
-          <input
-            v-model="passwordConfirm"
-            class="input"
-            type="password"
-            name="password_confirm"
-            autocomplete="new-password"
-            placeholder="********"
-          />
+          <div class="password-input-wrap">
+            <input
+              v-model="passwordConfirm"
+              class="input password-input"
+              :type="showPasswordConfirm ? 'text' : 'password'"
+              name="password_confirm"
+              autocomplete="new-password"
+              placeholder="********"
+            />
+            <button
+              class="password-toggle"
+              type="button"
+              :aria-label="
+                showPasswordConfirm
+                  ? 'Сховати підтвердження пароля'
+                  : 'Показати підтвердження пароля'
+              "
+              @click="showPasswordConfirm = !showPasswordConfirm"
+            >
+              {{ showPasswordConfirm ? 'Сховати' : 'Показати' }}
+            </button>
+          </div>
         </label>
         <p v-if="error" class="form-error">{{ error }}</p>
         <button class="btn" type="submit" :disabled="loading">
@@ -94,6 +118,8 @@ import { useAuthStore } from '../stores/auth'
 const email = ref('')
 const password = ref('')
 const passwordConfirm = ref('')
+const showPassword = ref(false)
+const showPasswordConfirm = ref(false)
 const error = ref('')
 const route = useRoute()
 const router = useRouter()

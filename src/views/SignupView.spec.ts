@@ -127,4 +127,31 @@ describe('SignupView dual-role enable flow', () => {
       expect(mockSignup).toHaveBeenCalledWith('specialist@example.com', 'password123', 'password123')
     })
   })
+
+  it('toggles password fields without submitting signup', async () => {
+    renderView()
+
+    const passwordInput = screen.getByLabelText('Пароль') as HTMLInputElement
+    const confirmInput = screen.getByLabelText('Підтвердження пароля') as HTMLInputElement
+
+    expect(passwordInput.type).toBe('password')
+    expect(confirmInput.type).toBe('password')
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Показати пароль' }))
+    expect(passwordInput.type).toBe('text')
+    expect(screen.getByRole('button', { name: 'Сховати пароль' })).toBeInTheDocument()
+    expect(mockSignup).not.toHaveBeenCalled()
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Показати підтвердження пароля' }))
+    expect(confirmInput.type).toBe('text')
+    expect(screen.getByRole('button', { name: 'Сховати підтвердження пароля' })).toBeInTheDocument()
+    expect(mockSignup).not.toHaveBeenCalled()
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Сховати пароль' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Сховати підтвердження пароля' }))
+
+    expect(passwordInput.type).toBe('password')
+    expect(confirmInput.type).toBe('password')
+    expect(mockSignup).not.toHaveBeenCalled()
+  })
 })
