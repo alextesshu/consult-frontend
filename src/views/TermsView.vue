@@ -141,6 +141,10 @@
       Формальні запити щодо даних також можна подати через сторінку
       <RouterLink to="/support-and-data-requests">Підтримка і запити щодо даних</RouterLink>.
     </p>
+    <p>
+      Короткі відповіді про сервіс і його межі доступні на сторінці
+      <RouterLink to="/faq">Питання та відповіді</RouterLink>.
+    </p>
   </LegalDocumentLayout>
 </template>
 

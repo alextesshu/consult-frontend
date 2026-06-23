@@ -278,7 +278,10 @@ describe('App shell', () => {
       expect(within(productColumn).queryByRole('link', { name: label })).not.toBeInTheDocument()
     }
     expect(within(footer as HTMLElement).getByRole('link', { name: 'Тарифи' })).toHaveAttribute('href', '/pricing')
-    expect(within(footer as HTMLElement).getByRole('link', { name: 'Поширені питання' })).toHaveAttribute('href', '/faq')
+    expect(within(footer as HTMLElement).getByRole('link', { name: 'Питання та відповіді' })).toHaveAttribute(
+      'href',
+      '/faq'
+    )
     expect(within(footer as HTMLElement).getByRole('link', { name: 'Підтримка та запити щодо даних' })).toHaveAttribute(
       'href',
       '/support-and-data-requests'
@@ -320,6 +323,10 @@ describe('App shell', () => {
     expect(within(footer as HTMLElement).getByRole('link', { name: 'Умови користування' })).toHaveAttribute(
       'href',
       '/terms'
+    )
+    expect(within(footer as HTMLElement).getByRole('link', { name: 'Питання та відповіді' })).toHaveAttribute(
+      'href',
+      '/faq'
     )
     expect(within(footer as HTMLElement).getByRole('link', { name: 'Підтримка' })).toHaveAttribute(
       'href',

@@ -31,6 +31,7 @@ describe('legal and support pages', () => {
     expect(text).toContain('Підтримка не читає приватні нотатки для звичайної роботи сервісу')
     expect(text).toContain('Pro Consult не є медичною інформаційною системою')
     expect(text).toContain('не призначений для ведення медичної документації, діагнозів')
+    expect(screen.getByRole('link', { name: 'Питання та відповіді' })).toHaveAttribute('href', '/faq')
     expect(text).not.toContain('абсолютної технічної недоторканності')
     expect(text).not.toContain('витік')
   })
@@ -48,6 +49,7 @@ describe('legal and support pages', () => {
     expect(screen.getByRole('heading', { name: '2. Запити щодо даних і конфіденційності' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: '3. Чи є Pro Consult медичною інформаційною системою?' })).toBeInTheDocument()
     expect(text).toContain('Сервіс не призначений для ведення медичної документації')
+    expect(screen.getByRole('link', { name: 'Питання та відповіді' })).toHaveAttribute('href', '/faq')
     expect(screen.getByText(/акаунта, доступу, білінгу, конфіденційності та даних/i)).toBeInTheDocument()
   })
 
@@ -61,6 +63,7 @@ describe('legal and support pages', () => {
     expect(text).toContain('Спеціаліст відповідає за зміст даних, які він вносить у сервіс')
     expect(text).toContain('не повинен використовувати Pro Consult для ведення офіційної медичної документації')
     expect(text).toContain('Технічна підтримка працює з даними в межах конкретного звернення')
+    expect(screen.getByRole('link', { name: 'Питання та відповіді' })).toHaveAttribute('href', '/faq')
     expect(text).not.toContain('абсолютної технічної недоторканності')
     expect(text).not.toContain('витік')
   })

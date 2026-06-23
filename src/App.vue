@@ -390,6 +390,7 @@
         <div class="footer__legal footer__legal--compact">
           <RouterLink class="footer__link" to="/terms">Умови користування</RouterLink>
           <RouterLink class="footer__link" to="/privacy">Політика конфіденційності</RouterLink>
+          <RouterLink class="footer__link" to="/faq">Питання та відповіді</RouterLink>
           <RouterLink class="footer__link" to="/support-and-data-requests">Підтримка</RouterLink>
         </div>
       </template>
@@ -418,7 +419,7 @@
           <section class="footer__column" aria-labelledby="footer-specialists-title">
             <h2 id="footer-specialists-title" class="footer__column-title">Для спеціалістів</h2>
             <RouterLink class="footer__link" to="/pricing">Тарифи</RouterLink>
-            <RouterLink class="footer__link" to="/faq">Поширені питання</RouterLink>
+            <RouterLink class="footer__link" to="/faq">Питання та відповіді</RouterLink>
             <RouterLink class="footer__link" to="/login">Увійти</RouterLink>
             <RouterLink class="footer__link" to="/signup">Створити простір</RouterLink>
           </section>
