@@ -17,7 +17,7 @@ export function useToast() {
       message: payload.message,
       title: payload.title,
       actions: payload.actions,
-      duration: payload.duration ?? (payload.type === 'error' ? 8000 : 5000),
+      duration: payload.duration ?? (payload.type === 'error' ? 9000 : 6500),
     })
   }
 

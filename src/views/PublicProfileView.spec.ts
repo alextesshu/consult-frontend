@@ -1736,7 +1736,7 @@ describe('PublicProfileView', () => {
     expect(await screen.findByRole('heading', { name: 'Запит на бронювання' })).toBeInTheDocument()
     expect(screen.getByLabelText('Ім’я')).toBeInTheDocument()
     expect(screen.getByLabelText('Канал зв’язку')).toBeInTheDocument()
-    expect(screen.getByLabelText('Контакт')).toBeInTheDocument()
+    expect(screen.getByLabelText('Як спеціаліст може з вами зв’язатися?')).toBeInTheDocument()
   })
 
   it('shows compact Ukrainian validation instead of native browser required tooltips', async () => {
@@ -1827,7 +1827,7 @@ describe('PublicProfileView', () => {
 
     await fireEvent.click(boundaries)
     await fireEvent.update(screen.getByLabelText('Ім’я'), 'Ірина')
-    await fireEvent.update(screen.getByLabelText('Контакт'), 'iryna@example.com')
+    await fireEvent.update(screen.getByLabelText('Як спеціаліст може з вами зв’язатися?'), 'iryna@example.com')
     await fireEvent.click(screen.getByRole('button', { name: 'Надіслати запит' }))
 
     expect(mockedApiPost).toHaveBeenCalledWith(
@@ -1854,7 +1854,7 @@ describe('PublicProfileView', () => {
     expect(screen.getByText('7 / 300')).toBeInTheDocument()
 
     await fireEvent.update(screen.getByLabelText('Ім’я'), 'Ірина')
-    await fireEvent.update(screen.getByLabelText('Контакт'), 'iryna@example.com')
+    await fireEvent.update(screen.getByLabelText('Як спеціаліст може з вами зв’язатися?'), 'iryna@example.com')
     await fireEvent.click(screen.getByRole('button', { name: 'Надіслати запит' }))
 
     expect(mockedApiPost).toHaveBeenCalledWith(
@@ -1913,7 +1913,7 @@ describe('PublicProfileView', () => {
 
     await fireEvent.click(await screen.findByRole('button', { name: 'Записатися' }))
     await fireEvent.update(screen.getByLabelText('Ім’я'), 'Ірина')
-    await fireEvent.update(screen.getByLabelText('Контакт'), 'iryna@example.com')
+    await fireEvent.update(screen.getByLabelText('Як спеціаліст може з вами зв’язатися?'), 'iryna@example.com')
     await fireEvent.click(screen.getByRole('button', { name: 'Надіслати запит' }))
 
     expect(mockedApiPost).toHaveBeenCalledWith(
@@ -1960,7 +1960,7 @@ describe('PublicProfileView', () => {
     await fireEvent.click(await screen.findByRole('button', { name: 'Записатися' }))
     await fireEvent.update(screen.getByLabelText('Ім’я'), 'Ірина')
     await fireEvent.update(screen.getByLabelText('Канал зв’язку'), 'telegram')
-    await fireEvent.update(screen.getByLabelText('Контакт'), '@iryna_help')
+    await fireEvent.update(screen.getByLabelText('Як спеціаліст може з вами зв’язатися?'), '@iryna_help')
     await fireEvent.click(screen.getByRole('button', { name: 'Надіслати запит' }))
 
     expect(mockedApiPost).toHaveBeenCalledWith(
@@ -1989,7 +1989,7 @@ describe('PublicProfileView', () => {
     await fireEvent.click(await screen.findByRole('button', { name: 'Записатися' }))
     await fireEvent.update(screen.getByLabelText('Ім’я'), 'Ірина')
     await fireEvent.update(screen.getByLabelText('Канал зв’язку'), 'phone')
-    await fireEvent.update(screen.getByLabelText('Контакт'), '+380501112233')
+    await fireEvent.update(screen.getByLabelText('Як спеціаліст може з вами зв’язатися?'), '+380501112233')
     await fireEvent.click(screen.getByRole('button', { name: 'Надіслати запит' }))
 
     expect(mockedApiPost).toHaveBeenCalledWith(
@@ -2017,7 +2017,7 @@ describe('PublicProfileView', () => {
 
     await fireEvent.click(await screen.findByRole('button', { name: 'Записатися' }))
     await fireEvent.update(screen.getByLabelText('Ім’я'), 'Ірина')
-    await fireEvent.update(screen.getByLabelText('Контакт'), 'iryna@example.com')
+    await fireEvent.update(screen.getByLabelText('Як спеціаліст може з вами зв’язатися?'), 'iryna@example.com')
     await fireEvent.click(screen.getByRole('button', { name: 'Надіслати запит' }))
 
     expect(
@@ -2040,7 +2040,7 @@ describe('PublicProfileView', () => {
 
     await fireEvent.click(await screen.findByRole('button', { name: 'Записатися' }))
     await fireEvent.update(screen.getByLabelText('Ім’я'), 'Ірина')
-    await fireEvent.update(screen.getByLabelText('Контакт'), 'iryna@example.com')
+    await fireEvent.update(screen.getByLabelText('Як спеціаліст може з вами зв’язатися?'), 'iryna@example.com')
     await fireEvent.click(screen.getByRole('button', { name: 'Надіслати запит' }))
 
     expect(
@@ -2063,7 +2063,7 @@ describe('PublicProfileView', () => {
 
     await fireEvent.click(await screen.findByRole('button', { name: 'Записатися' }))
     await fireEvent.update(screen.getByLabelText('Ім’я'), 'Ірина')
-    await fireEvent.update(screen.getByLabelText('Контакт'), 'iryna@example.com')
+    await fireEvent.update(screen.getByLabelText('Як спеціаліст може з вами зв’язатися?'), 'iryna@example.com')
     await fireEvent.click(screen.getByRole('button', { name: 'Надіслати запит' }))
 
     expect(
@@ -2478,7 +2478,7 @@ describe('PublicProfileView', () => {
     expect(screen.getByRole('heading', { name: 'Перед надсиланням' })).toBeInTheDocument()
 
     await fireEvent.update(screen.getByLabelText('Ім’я'), 'Ірина')
-    await fireEvent.update(screen.getByLabelText('Контакт'), 'iryna@example.com')
+    await fireEvent.update(screen.getByLabelText('Як спеціаліст може з вами зв’язатися?'), 'iryna@example.com')
     const submitButton = screen.getByRole('button', { name: 'Надіслати запит' })
     expect(submitButton).toBeDisabled()
 
@@ -2936,7 +2936,7 @@ describe('PublicProfileView', () => {
     await fireEvent.click((await screen.findAllByRole('button', { name: 'Залишити запит на консультацію' }))[0]!)
     await screen.findByRole('heading', { name: 'Запит до мене' })
     await fireEvent.update(screen.getByLabelText('Ім’я'), 'Guest Person')
-    await fireEvent.update(screen.getByLabelText('Контакт'), 'guest@example.com')
+    await fireEvent.update(screen.getByLabelText('Як спеціаліст може з вами зв’язатися?'), 'guest@example.com')
     await fireEvent.click(screen.getByRole('button', { name: 'Надіслати запит' }))
 
     expect(mockedApiPost).toHaveBeenCalledWith(
@@ -3135,7 +3135,7 @@ describe('PublicProfileView', () => {
 
     await fireEvent.click((await screen.findAllByRole('button', { name: 'Залишити запит на консультацію' }))[0]!)
     await fireEvent.update(await screen.findByLabelText('Ім’я'), 'Client Person')
-    await fireEvent.update(screen.getByLabelText('Контакт'), 'client@example.com')
+    await fireEvent.update(screen.getByLabelText('Як спеціаліст може з вами зв’язатися?'), 'client@example.com')
     await fireEvent.click(screen.getByRole('button', { name: 'Надіслати запит' }))
 
     expect(mockedApiPost).toHaveBeenCalledWith(

@@ -410,13 +410,16 @@ describe('App shell', () => {
     expect(within(sidebar).getByRole('link', { name: 'Профіль' })).toHaveAttribute('href', '/cabinet/profile')
     expect(within(sidebar).getByRole('link', { name: 'Розклад' })).toHaveAttribute('href', '/cabinet/slots')
     expect(within(sidebar).getByRole('link', { name: 'Сесії' })).toHaveAttribute('href', '/cabinet/sessions')
+    expect(within(sidebar).getByRole('link', { name: 'Запити' })).toHaveAttribute(
+      'href',
+      '/cabinet/external-sessions#guest-requests'
+    )
     expect(within(sidebar).getByRole('link', { name: 'Задачі' })).toHaveAttribute(
       'href',
       '/cabinet/practice-board'
     )
     expect(within(sidebar).getByRole('link', { name: 'Клієнти' })).toHaveAttribute('href', '/cabinet/clients')
     expect(within(sidebar).getByRole('link', { name: 'Відгуки' })).toHaveAttribute('href', '/cabinet/reviews')
-    expect(within(sidebar).queryByRole('link', { name: 'Сесії без реєстрації' })).not.toBeInTheDocument()
     expect(within(sidebar).getByRole('link', { name: 'Чати' })).toHaveAttribute('href', '/cabinet/chat')
     expect(within(sidebar).getByRole('link', { name: 'Власний блог' })).toHaveAttribute(
       'href',
@@ -431,7 +434,8 @@ describe('App shell', () => {
     const linkLabels = within(sidebar)
       .getAllByRole('link')
       .map((link) => (link.textContent || '').trim())
-    expect(linkLabels.indexOf('Задачі')).toBe(linkLabels.indexOf('Сесії') + 1)
+    expect(linkLabels.indexOf('Запити')).toBe(linkLabels.indexOf('Сесії') + 1)
+    expect(linkLabels.indexOf('Задачі')).toBe(linkLabels.indexOf('Запити') + 1)
     expect(linkLabels.indexOf('Клієнти')).toBe(linkLabels.indexOf('Задачі') + 1)
   })
 
@@ -510,13 +514,16 @@ describe('App shell', () => {
     expect(within(drawer).getByRole('link', { name: 'Профіль' })).toHaveAttribute('href', '/cabinet/profile')
     expect(within(drawer).getByRole('link', { name: 'Розклад' })).toHaveAttribute('href', '/cabinet/slots')
     expect(within(drawer).getByRole('link', { name: 'Сесії' })).toHaveAttribute('href', '/cabinet/sessions')
+    expect(within(drawer).getByRole('link', { name: 'Запити' })).toHaveAttribute(
+      'href',
+      '/cabinet/external-sessions#guest-requests'
+    )
     expect(within(drawer).getByRole('link', { name: 'Задачі' })).toHaveAttribute(
       'href',
       '/cabinet/practice-board'
     )
     expect(within(drawer).getByRole('link', { name: 'Клієнти' })).toHaveAttribute('href', '/cabinet/clients')
     expect(within(drawer).getByRole('link', { name: 'Відгуки' })).toHaveAttribute('href', '/cabinet/reviews')
-    expect(within(drawer).queryByRole('link', { name: 'Сесії без реєстрації' })).not.toBeInTheDocument()
     expect(within(drawer).getByRole('link', { name: 'Чати' })).toHaveAttribute('href', '/cabinet/chat')
     expect(within(drawer).getByRole('link', { name: 'Власний блог' })).toHaveAttribute(
       'href',
@@ -528,7 +535,8 @@ describe('App shell', () => {
     const drawerLinkLabels = within(drawer)
       .getAllByRole('link')
       .map((link) => (link.textContent || '').trim())
-    expect(drawerLinkLabels.indexOf('Задачі')).toBe(drawerLinkLabels.indexOf('Сесії') + 1)
+    expect(drawerLinkLabels.indexOf('Запити')).toBe(drawerLinkLabels.indexOf('Сесії') + 1)
+    expect(drawerLinkLabels.indexOf('Задачі')).toBe(drawerLinkLabels.indexOf('Запити') + 1)
     expect(drawerLinkLabels.indexOf('Клієнти')).toBe(drawerLinkLabels.indexOf('Задачі') + 1)
   })
 
@@ -809,6 +817,8 @@ describe('App shell', () => {
     await fireEvent.click(notificationsButton as HTMLButtonElement)
 
     expect(await screen.findByText('Новий запит без реєстрації')).toBeInTheDocument()
+    const sidebar = screen.getByRole('navigation', { name: 'Навігація кабінету спеціаліста' })
+    expect(within(sidebar).getByRole('link', { name: 'Запити' })).toHaveTextContent('1')
     expect(
       screen.getByText('Клієнт залишив запит без вибору часу. Узгодьте час і створіть сесію або закрийте запит.')
     ).toBeInTheDocument()

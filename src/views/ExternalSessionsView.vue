@@ -171,7 +171,7 @@
                   </div>
                   <div class="request-card__meta-grid">
                     <div class="muted">Клієнт: {{ requestClientName(request) }}</div>
-                    <div class="muted">Контакт: {{ requestCompactContact(request) }}</div>
+                    <div class="muted">Контакт клієнта для відповіді: {{ requestCompactContact(request) }}</div>
                     <div v-if="request.created_at" class="muted">Створено: {{ formatDateTime(request.created_at) }}</div>
                     <div class="request-card__status-row">
                       <span class="muted">Статус:</span>
@@ -211,7 +211,7 @@
                   Телефон: {{ requestClientPhone(request) }}
                 </div>
                 <div class="muted">
-                  Контакт: {{ contactChannelLabel(request.contact_channel) }} · {{ request.contact_value || '—' }}
+                  Контакт клієнта для відповіді: {{ contactChannelLabel(request.contact_channel) }} · {{ request.contact_value || '—' }}
                 </div>
                 <div v-if="!isSlotlessRequest(request)" class="muted">
                   Запитаний слот: {{ formatDateTime(request.requested_slot_start) }}

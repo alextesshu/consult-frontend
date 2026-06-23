@@ -116,12 +116,12 @@ onBeforeUnmount(() => {
 <style scoped>
 .toast-host {
   position: fixed;
-  bottom: 20px;
+  top: 82px;
   right: 20px;
   z-index: 2000;
   display: grid;
-  gap: 10px;
-  width: min(360px, 92vw);
+  gap: 12px;
+  width: min(420px, 92vw);
 }
 
 .toast {
@@ -129,22 +129,23 @@ onBeforeUnmount(() => {
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  padding: 12px 14px;
-  border-radius: 12px;
-  border: 1px solid var(--line);
+  padding: 14px 16px;
+  border-radius: var(--pc-radius-card);
+  border: 1px solid var(--pc-border);
   background: #ffffff;
-  color: #102536;
-  box-shadow: var(--shadow);
+  color: var(--pc-navy-900);
+  box-shadow: 0 18px 36px rgba(18, 35, 58, 0.18);
   animation: toast-in 0.2s ease-out;
 }
 
 .toast__title {
-  font-weight: 600;
+  font-weight: 700;
   margin-bottom: 2px;
 }
 
 .toast__message {
-  line-height: 1.4;
+  font-size: 15px;
+  line-height: 1.45;
 }
 
 .toast__actions {
@@ -174,25 +175,25 @@ onBeforeUnmount(() => {
 }
 
 .toast--success {
-  border-color: #b7e2c9;
+  border-color: color-mix(in srgb, #0f8b52 38%, #b7e2c9);
   background: #e9f7ef;
   color: #0f5a35;
 }
 
 .toast--error {
-  border-color: #f2b9b6;
+  border-color: color-mix(in srgb, #8f2d2d 36%, #f2b9b6);
   background: #fdeceb;
   color: #8f2d2d;
 }
 
 .toast--warning {
-  border-color: #f4d6a3;
+  border-color: color-mix(in srgb, #a46400 40%, #f4d6a3);
   background: #fff4df;
   color: #7a5200;
 }
 
 .toast--info {
-  border-color: #b8d6f0;
+  border-color: color-mix(in srgb, #124b77 34%, #b8d6f0);
   background: #e9f2fb;
   color: #124b77;
 }
@@ -210,8 +211,9 @@ onBeforeUnmount(() => {
 
 @media (max-width: 860px) {
   .toast-host {
-    bottom: 16px;
+    top: 72px;
     right: 12px;
+    width: min(420px, calc(100vw - 24px));
   }
 }
 </style>

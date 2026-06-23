@@ -298,7 +298,8 @@
               :class="{ 'is-active': isSpecialistSidebarItemActive(item) }"
               :to="item.to"
             >
-              {{ item.label }}
+              <span class="specialist-sidebar__link-label">{{ item.label }}</span>
+              <span v-if="item.badge" class="specialist-sidebar__badge" aria-hidden="true">{{ item.badge }}</span>
             </RouterLink>
           </nav>
         </aside>
@@ -356,7 +357,8 @@
                   :to="item.to"
                   @click="closeSpecialistSidebarDrawer"
                 >
-                  {{ item.label }}
+                  <span class="specialist-sidebar__link-label">{{ item.label }}</span>
+                  <span v-if="item.badge" class="specialist-sidebar__badge" aria-hidden="true">{{ item.badge }}</span>
                 </RouterLink>
               </nav>
             </div>
@@ -530,9 +532,10 @@ type SpecialistSidebarItem = {
   to: string
   match: string[]
   exact?: boolean
+  badge?: number
 }
 
-const specialistSidebarItems: SpecialistSidebarItem[] = [
+const specialistSidebarBaseItems: SpecialistSidebarItem[] = [
   { label: 'Головна', to: '/cabinet', match: ['/cabinet'], exact: true },
   { label: 'Профіль', to: '/cabinet/profile', match: ['/cabinet/profile'] },
   {
@@ -541,6 +544,7 @@ const specialistSidebarItems: SpecialistSidebarItem[] = [
     match: ['/cabinet/schedule', '/cabinet/slots', '/cabinet/availability-rules', '/cabinet/availability-exceptions'],
   },
   { label: 'Сесії', to: '/cabinet/sessions', match: ['/cabinet/sessions'] },
+  { label: 'Запити', to: '/cabinet/external-sessions#guest-requests', match: ['/cabinet/external-sessions', '/cabinet/inquiries'] },
   { label: 'Задачі', to: '/cabinet/practice-board', match: ['/cabinet/practice-board'] },
   { label: 'Клієнти', to: '/cabinet/clients', match: ['/cabinet/clients'] },
   { label: 'Відгуки', to: '/cabinet/reviews', match: ['/cabinet/reviews'] },
@@ -633,6 +637,20 @@ const notifs = useNotifications({ isClient, isSpecialist })
 const shownPreSessionToastKeys = ref<Set<string>>(loadShownPreSessionToastKeys())
 
 const upcomingCount = computed(() => auth.me?.counts?.upcoming_sessions_count ?? 0)
+const requestNotificationCount = computed(() =>
+  notifs.items.value.filter((item) => {
+    if (!item.unread) return false
+    if (item.source_kind === 'public_guest_request' || item.source_kind === 'inquiry_message') return true
+    return item.to.startsWith('/cabinet/external-sessions') || item.to.startsWith('/cabinet/inquiries')
+  }).length
+)
+const specialistSidebarItems = computed<SpecialistSidebarItem[]>(() =>
+  specialistSidebarBaseItems.map((item) =>
+    item.to.startsWith('/cabinet/external-sessions')
+      ? { ...item, badge: requestNotificationCount.value || undefined }
+      : item
+  )
+)
 
 function loadShownPreSessionToastKeys() {
   try {
@@ -1904,6 +1922,8 @@ watch(isChatCapable, (value) => {
 .specialist-sidebar__link {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   min-height: 38px;
   border: 1px solid var(--pc-border);
   border-radius: var(--pc-radius-card);
@@ -1913,6 +1933,24 @@ watch(isChatCapable, (value) => {
   line-height: 1.2;
   text-decoration: none;
   background: color-mix(in srgb, var(--pc-bg-card) 92%, #ffffff);
+}
+
+.specialist-sidebar__link-label {
+  min-width: 0;
+}
+
+.specialist-sidebar__badge {
+  flex: 0 0 auto;
+  min-width: 24px;
+  border: 1px solid color-mix(in srgb, var(--pc-warning) 44%, var(--pc-border));
+  border-radius: var(--pc-radius-control);
+  padding: 2px 6px;
+  background: color-mix(in srgb, var(--pc-yellow-soft) 82%, #ffffff);
+  color: var(--pc-navy-900);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.25;
+  text-align: center;
 }
 
 .specialist-sidebar__link:hover,

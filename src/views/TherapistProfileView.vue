@@ -261,7 +261,13 @@
               </div>
             </div>
             <label class="field">
-              <span class="field-label">Локація</span>
+              <div class="field-head">
+                <span class="field-label">Локація</span>
+                <label class="inline-check">
+                  <input v-model="profile.show_location" type="checkbox" />
+                  Показувати
+                </label>
+              </div>
               <input v-model="profile.location" class="input" type="text" placeholder="Місто / країна" />
             </label>
           </div>
@@ -305,7 +311,13 @@
           </div>
           <div class="form-group">
             <label class="field">
-              <span class="field-label">Ціна за одну стандартну консультацію</span>
+              <div class="field-head">
+                <span class="field-label">Ціна за одну стандартну консультацію</span>
+                <label class="inline-check">
+                  <input v-model="profile.show_price" type="checkbox" />
+                  Показувати
+                </label>
+              </div>
               <div class="field-row">
                 <input
                   v-model="profile.price"
@@ -348,7 +360,13 @@
               </select>
             </label>
             <label class="field">
-              <span class="field-label">Вартість ознайомчої сесії</span>
+              <div class="field-head">
+                <span class="field-label">Вартість ознайомчої сесії</span>
+                <label class="inline-check">
+                  <input v-model="profile.show_intro_price" type="checkbox" />
+                  Показувати
+                </label>
+              </div>
               <div class="field-row">
                 <input
                   v-model="profile.intro_price"
@@ -649,61 +667,32 @@
               <input v-model="profile.whatsapp" class="input" type="text" placeholder="номер телефону" />
             </label>
           </div>
-        </div>
-      </section>
-
-      <section class="panel">
-        <div class="panel__header">
-          <div>
-            <h2 class="panel__title">Видимість</h2>
-            <p class="panel__hint">Вмикайте тільки те, що має бути видно клієнтам у публічному профілі.</p>
+          <div class="profile-visibility-grid" aria-label="Видимість контактів у публічному профілі">
+            <label class="check">
+              <input v-model="profile.show_email" type="checkbox" />
+              Показувати email
+            </label>
+            <label class="check">
+              <input v-model="profile.show_phone" type="checkbox" />
+              Показувати телефон
+            </label>
+            <label class="check">
+              <input v-model="profile.show_messenger" type="checkbox" />
+              Показувати Messenger / Signal
+            </label>
+            <label class="check">
+              <input v-model="profile.show_telegram" type="checkbox" />
+              Показувати Telegram
+            </label>
+            <label class="check">
+              <input v-model="profile.show_viber" type="checkbox" />
+              Показувати Viber
+            </label>
+            <label class="check">
+              <input v-model="profile.show_whatsapp" type="checkbox" />
+              Показувати WhatsApp
+            </label>
           </div>
-        </div>
-        <div class="form" style="margin-top: 12px;">
-          <label class="check">
-            <input v-model="profile.show_email" type="checkbox" />
-            Показувати email
-          </label>
-          <label class="check">
-            <input v-model="profile.show_phone" type="checkbox" />
-            Показувати телефон
-          </label>
-          <label class="check">
-            <input v-model="profile.show_messenger" type="checkbox" />
-            Показувати Messenger / Signal
-          </label>
-          <label class="check">
-            <input v-model="profile.show_telegram" type="checkbox" />
-            Показувати Telegram
-          </label>
-          <label class="check">
-            <input v-model="profile.show_viber" type="checkbox" />
-            Показувати Viber
-          </label>
-          <label class="check">
-            <input v-model="profile.show_whatsapp" type="checkbox" />
-            Показувати WhatsApp
-          </label>
-          <label class="check">
-            <input v-model="profile.show_video" type="checkbox" />
-            Показувати відео
-          </label>
-          <label class="check">
-            <input v-model="profile.show_price" type="checkbox" />
-            Показувати ціну
-          </label>
-          <label class="check">
-            <input v-model="profile.show_intro_price" type="checkbox" />
-            Показувати ціну ознайомчої сесії
-          </label>
-          <label class="check">
-            <input v-model="profile.show_location" type="checkbox" />
-            Показувати локацію
-          </label>
-          <label class="check">
-            <input v-model="profile.show_photo" type="checkbox" />
-            Показувати фото
-          </label>
         </div>
       </section>
 
@@ -712,6 +701,16 @@
           <div>
             <h2 class="panel__title">Фото та відео</h2>
             <p class="panel__hint">Завантажте обкладинку профілю та (за потреби) відео-прев'ю.</p>
+          </div>
+          <div class="profile-section-toggles" aria-label="Видимість медіа у публічному профілі">
+            <label class="inline-check">
+              <input v-model="profile.show_photo" type="checkbox" />
+              Показувати фото
+            </label>
+            <label class="inline-check">
+              <input v-model="profile.show_video" type="checkbox" />
+              Показувати відео
+            </label>
           </div>
         </div>
         <div class="media-preview media-preview--side" style="margin-top: 12px;">
@@ -2610,6 +2609,27 @@ onMounted(() => {
   color: var(--muted);
 }
 
+.profile-section-toggles,
+.profile-visibility-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  min-width: 0;
+}
+
+.profile-section-toggles {
+  justify-content: flex-end;
+  max-width: 320px;
+}
+
+.profile-visibility-grid {
+  margin-top: 4px;
+  border: 1px dashed var(--pc-border);
+  border-radius: var(--pc-radius-card);
+  padding: 10px;
+  background: color-mix(in srgb, var(--pc-primary-soft) 32%, #ffffff);
+}
+
 .meta {
   display: flex;
   flex-wrap: wrap;
@@ -3240,6 +3260,15 @@ onMounted(() => {
 
   .field-row {
     grid-template-columns: 1fr;
+  }
+
+  .panel__header {
+    flex-direction: column;
+  }
+
+  .profile-section-toggles {
+    justify-content: flex-start;
+    max-width: 100%;
   }
 
   .documents-uploader__grid,

@@ -160,10 +160,15 @@
           <section class="today-side">
             <article
               v-if="visiblePendingGuestRequestsCount > 0"
-              class="today-card today-card--soft"
+              class="today-card today-card--soft today-card--guest-requests"
               data-kind="guest-requests"
             >
-              <h3 class="today-card__title">{{ pendingGuestRequestsTitle }}</h3>
+              <div class="today-card__title-row">
+                <h3 class="today-card__title">{{ pendingGuestRequestsTitle }}</h3>
+                <span class="today-card__count" aria-label="Нових запитів">
+                  {{ visiblePendingGuestRequestsCount }}
+                </span>
+              </div>
               <p class="muted today-card__copy">
                 {{ pendingGuestRequestsSummary }}
               </p>
@@ -1577,6 +1582,39 @@ onBeforeUnmount(() => {
 
 .today-card--soft {
   background: rgba(255, 255, 255, 0.86);
+}
+
+.today-card--guest-requests {
+  border-color: color-mix(in srgb, var(--pc-warning) 42%, var(--pc-border));
+  border-left-width: 4px;
+  background: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--pc-yellow-soft) 64%, #ffffff),
+    color-mix(in srgb, var(--pc-bg-card) 90%, var(--pc-blue-soft))
+  );
+  box-shadow: 0 12px 24px rgba(18, 52, 90, 0.08);
+}
+
+.today-card__title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+}
+
+.today-card__count {
+  flex: 0 0 auto;
+  min-width: 28px;
+  border: 1px solid color-mix(in srgb, var(--pc-warning) 45%, var(--pc-border));
+  border-radius: var(--pc-radius-control);
+  padding: 3px 8px;
+  background: #ffffff;
+  color: var(--pc-navy-900);
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.2;
+  text-align: center;
 }
 
 .today-card--compact {

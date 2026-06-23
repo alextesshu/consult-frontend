@@ -20,7 +20,7 @@ export type ToastItem = {
 }
 
 const MAX_TOASTS = 4
-const DEFAULT_DURATION = 5000
+const DEFAULT_DURATION = 6500
 
 export const useToastStore = defineStore('toast', {
   state: () => ({

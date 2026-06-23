@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/vue'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h } from 'vue'
 import TherapistProfileView from './TherapistProfileView.vue'
@@ -195,6 +195,21 @@ describe('TherapistProfileView', () => {
 
     expect(await screen.findByText('Короткий опис для верхнього блоку профілю')).toBeInTheDocument()
     expect(screen.getByDisplayValue('Короткий опис для hero-блоку.')).toBeInTheDocument()
+  })
+
+  it('keeps profile visibility controls near their related sections', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValue(makeProfile())
+
+    renderView()
+
+    const contactsPanel = (await screen.findByRole('heading', { name: 'Контакти' })).closest('section') as HTMLElement
+    expect(within(contactsPanel).getByLabelText('Показувати email')).toBeChecked()
+
+    const mediaPanel = screen.getByRole('heading', { name: 'Фото та відео' }).closest('section') as HTMLElement
+    expect(within(mediaPanel).getByLabelText('Показувати фото')).toBeChecked()
+    expect(within(mediaPanel).getByLabelText('Показувати відео')).toBeChecked()
+
+    expect(screen.queryByRole('heading', { name: 'Видимість' })).not.toBeInTheDocument()
   })
 
   it('renders public display name guidance and max length', async () => {

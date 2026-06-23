@@ -796,7 +796,7 @@ describe('ExternalSessionsView', () => {
 
     const card = getGuestRequestCardByText('Запит без обраного часу')
     expect(card).toHaveTextContent('Клієнт: Slotless Guest')
-    expect(card).toHaveTextContent('Контакт: Ел. пошта · slotless@example.com')
+    expect(card).toHaveTextContent('Контакт клієнта для відповіді: Ел. пошта · slotless@example.com')
     expect(card).toHaveTextContent(/Статус:\s*Очікує рішення/)
     expect(card).not.toHaveTextContent('Клієнт залишив запит без бронювання конкретного слота.')
     expect(card).not.toHaveTextContent('Телефон: +380501234567')

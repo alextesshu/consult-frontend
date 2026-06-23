@@ -643,7 +643,7 @@
             </label>
 
             <label class="setting-label" for="guestBookingContactValue">
-              Контакт
+              Як спеціаліст може з вами зв’язатися?
               <input
                 id="guestBookingContactValue"
                 ref="guestBookingContactValueInputRef"
