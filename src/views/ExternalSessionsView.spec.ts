@@ -933,6 +933,73 @@ describe('ExternalSessionsView', () => {
       await screen.findAllByText('Не вдалося створити сесію: цей час перетинається з іншою сесією або недоступністю.')
     ).toHaveLength(2)
   })
+
+  it('blocks slot-less create-session submit when selected time is in the past', async () => {
+    mockedFetchCabinetGuestBookingRequests.mockResolvedValue([
+      buildGuestRequest({
+        id: 65,
+        slot_id: null,
+        has_slot: false,
+        is_slotless_request: true,
+        requested_slot_start: null,
+        requested_slot_end: null,
+        client_name: 'Past Time Guest',
+      }),
+    ] as any)
+
+    renderView()
+    await screen.findByText('Запит без обраного часу')
+    await fireEvent.click(screen.getByRole('button', { name: 'Створити сесію' }))
+
+    const dialog = await screen.findByRole('dialog', { name: 'Створити сесію' })
+    const modal = within(dialog)
+    await fireEvent.update(modal.getByLabelText('Дата'), '01.01.2000')
+    await fireEvent.update(modal.getByLabelText('Час початку'), '10:00')
+    await fireEvent.click(modal.getByRole('button', { name: 'Створити сесію' }))
+
+    expect(
+      await screen.findByText('Неможливо створити сесію в минулому. Оберіть майбутню дату або час.')
+    ).toBeInTheDocument()
+    expect(mockedCreateSessionFromCabinetGuestBookingRequest).not.toHaveBeenCalled()
+    expect(screen.queryByText(/detail:/i)).not.toBeInTheDocument()
+  })
+
+  it('localizes backend past-time detail for slot-less create-session failure', async () => {
+    mockedFetchCabinetGuestBookingRequests.mockResolvedValue([
+      buildGuestRequest({
+        id: 66,
+        slot_id: null,
+        has_slot: false,
+        is_slotless_request: true,
+        requested_slot_start: null,
+        requested_slot_end: null,
+        client_name: 'Backend Past Time Guest',
+      }),
+    ] as any)
+    mockedCreateSessionFromCabinetGuestBookingRequest.mockRejectedValueOnce({
+      response: {
+        data: {
+          detail: 'Session time is in the past.',
+        },
+      },
+    })
+
+    renderView()
+    await screen.findByText('Запит без обраного часу')
+    await fireEvent.click(screen.getByRole('button', { name: 'Створити сесію' }))
+
+    const dialog = await screen.findByRole('dialog', { name: 'Створити сесію' })
+    const modal = within(dialog)
+    await fireEvent.update(modal.getByLabelText('Дата'), '20.06.2099')
+    await fireEvent.update(modal.getByLabelText('Час початку'), '10:00')
+    await fireEvent.click(modal.getByRole('button', { name: 'Створити сесію' }))
+
+    expect(
+      await screen.findAllByText('Неможливо створити сесію в минулому. Оберіть майбутню дату або час.')
+    ).toHaveLength(2)
+    expect(screen.queryByText(/Session time is in the past/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/detail:/i)).not.toBeInTheDocument()
+  })
 })
 
 describe('ExternalSessionsView guest request micro-polish', () => {

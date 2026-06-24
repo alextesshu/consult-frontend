@@ -1098,6 +1098,8 @@ type RegularClientOption = {
 type ScheduleTab = 'CALENDAR' | 'AVAILABILITY' | 'SETTINGS'
 type PublicBookingMode = 'request_only' | 'direct_booking'
 
+const PAST_SESSION_TIME_ERROR_MESSAGE = 'Неможливо створити сесію в минулому. Оберіть майбутню дату або час.'
+
 const slots = ref<Slot[]>([])
 const sessions = ref<ScheduleSession[]>([])
 const loading = ref(false)
@@ -1452,6 +1454,10 @@ function parseUkDateTime(dateStr: string, timeStr: string) {
     return null
   }
   return candidate
+}
+
+function isPastDateTime(value: Date) {
+  return value.getTime() <= Date.now()
 }
 
 function displayDateToIso(value: string) {
@@ -2250,7 +2256,32 @@ function oneOffSessionErrorCode(err: unknown): string {
   return candidates.map((item) => String(item || '').trim().toUpperCase()).find(Boolean) || ''
 }
 
+function oneOffSessionRawErrorText(err: unknown): string {
+  const data = (err as { response?: { data?: unknown } })?.response?.data
+  if (data && typeof data === 'object' && 'detail' in data) {
+    const detail = (data as { detail?: unknown }).detail
+    if (Array.isArray(detail)) return String(detail[0] || '').trim()
+    if (typeof detail === 'string') return detail.trim()
+  }
+  if (typeof data === 'string') return data.trim()
+  const message = (err as { message?: unknown })?.message
+  return typeof message === 'string' ? message.trim() : ''
+}
+
+function stripTechnicalErrorPrefix(message: string) {
+  return String(message || '').trim().replace(/^detail:\s*/i, '')
+}
+
+function isPastSessionTimeErrorText(message: string) {
+  const compact = stripTechnicalErrorPrefix(message).toLowerCase().replace(/\s+/g, ' ')
+  return compact === 'session time is in the past.' || compact === 'session time is in the past'
+}
+
 function oneOffSessionCreateErrorMessage(err: unknown): string {
+  const rawText = oneOffSessionRawErrorText(err)
+  if (isPastSessionTimeErrorText(rawText)) {
+    return PAST_SESSION_TIME_ERROR_MESSAGE
+  }
   const code = oneOffSessionErrorCode(err)
   const messages: Record<string, string> = {
     CLIENT_RECORD_ARCHIVED: 'Картку клієнта архівовано. Спершу відновіть її.',
@@ -2268,7 +2299,7 @@ function oneOffSessionCreateErrorMessage(err: unknown): string {
     'THIS FIELD MAY NOT BE BLANK.':
       'Не вдалося створити сесію: некоректний часовий пояс. Оновіть сторінку або перевірте налаштування профілю.',
   }
-  return messages[code] || getApiErrorMessage(err, 'Не вдалося створити сесію.')
+  return messages[code] || stripTechnicalErrorPrefix(getApiErrorMessage(err, 'Не вдалося створити сесію.'))
 }
 
 async function loadOneOffProfileDefaults() {
@@ -2408,6 +2439,10 @@ async function createOneOffSession() {
   }
   if (!startsAt) {
     showOneOffSessionError('Вкажіть дату та час початку у форматі ДД.ММ.РРРР і ГГ:ХХ.')
+    return
+  }
+  if (isPastDateTime(startsAt)) {
+    showOneOffSessionError(PAST_SESSION_TIME_ERROR_MESSAGE)
     return
   }
   if (!Number.isFinite(duration) || duration <= 0) {

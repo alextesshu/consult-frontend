@@ -610,6 +610,73 @@ describe('SlotsView', () => {
     expect(screen.getByRole('dialog', { name: 'Створити сесію' })).toBeInTheDocument()
   })
 
+  it('blocks one-off session create when selected time is in the past', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/cabinet/slots/') return [] as any
+      if (url === '/booking/sessions/') return [] as any
+      if (url === '/cabinet/client-records/') return [manualClientRecord({ id: 71, display_name: 'Manual Regular' })] as any
+      if (url === '/cabinet/clients/') return [] as any
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+    await flushAsyncUpdates()
+    await fireEvent.click(screen.getByRole('button', { name: 'Створити сесію' }))
+    await flushAsyncUpdates()
+
+    await fireEvent.update(await screen.findByLabelText('Клієнт'), '71')
+    await fireEvent.update(await screen.findByLabelText('Дата'), '01.01.2000')
+    await fireEvent.update(await screen.findByLabelText('Час початку'), '14:00')
+    await fireEvent.update(await screen.findByLabelText('Тривалість'), '50')
+    const submitButtons = screen.getAllByRole('button', { name: 'Створити сесію' })
+    await fireEvent.click(submitButtons[submitButtons.length - 1] as HTMLButtonElement)
+    await flushAsyncUpdates()
+
+    expect(
+      screen.getByText('Неможливо створити сесію в минулому. Оберіть майбутню дату або час.')
+    ).toBeInTheDocument()
+    expect(
+      mockedApiPost.mock.calls.some((call) => call[0] === '/cabinet/client-records/71/sessions/')
+    ).toBe(false)
+    expect(screen.queryByText(/detail:/i)).not.toBeInTheDocument()
+  })
+
+  it('localizes backend past-time detail for one-off session create', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/cabinet/slots/') return [] as any
+      if (url === '/booking/sessions/') return [] as any
+      if (url === '/cabinet/client-records/') return [manualClientRecord({ id: 71, display_name: 'Manual Regular' })] as any
+      if (url === '/cabinet/clients/') return [] as any
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedApiPost.mockRejectedValueOnce({
+      response: {
+        data: {
+          detail: 'Session time is in the past.',
+        },
+      },
+    })
+
+    renderView()
+    await flushAsyncUpdates()
+    await fireEvent.click(screen.getByRole('button', { name: 'Створити сесію' }))
+    await flushAsyncUpdates()
+
+    await fireEvent.update(await screen.findByLabelText('Клієнт'), '71')
+    await fireEvent.update(await screen.findByLabelText('Дата'), '13.03.2099')
+    await fireEvent.update(await screen.findByLabelText('Час початку'), '14:00')
+    await fireEvent.update(await screen.findByLabelText('Тривалість'), '50')
+    const submitButtons = screen.getAllByRole('button', { name: 'Створити сесію' })
+    await fireEvent.click(submitButtons[submitButtons.length - 1] as HTMLButtonElement)
+    await flushAsyncUpdates()
+
+    expect(
+      screen.getByText('Неможливо створити сесію в минулому. Оберіть майбутню дату або час.')
+    ).toBeInTheDocument()
+    expect(screen.queryByText(/Session time is in the past/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/detail:/i)).not.toBeInTheDocument()
+  })
+
   it('shows friendly timezone copy when backend returns Invalid timezone', async () => {
     mockedApiGet.mockImplementation(async (url) => {
       if (url === '/cabinet/slots/') return [] as any

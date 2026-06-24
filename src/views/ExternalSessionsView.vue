@@ -511,6 +511,8 @@ type GuestQuotaSnapshot = {
   } | null
 }
 
+const PAST_SESSION_TIME_ERROR_MESSAGE = 'Неможливо створити сесію в минулому. Оберіть майбутню дату або час.'
+
 const router = useRouter()
 const toast = useToast()
 
@@ -771,6 +773,32 @@ function getApiErrorCode(err: unknown) {
   return typeof code === 'string' ? code : ''
 }
 
+function apiErrorDetailText(err: unknown) {
+  const data = (err as { response?: { data?: unknown } })?.response?.data
+  if (data && typeof data === 'object' && 'detail' in data) {
+    const detail = (data as { detail?: unknown }).detail
+    if (Array.isArray(detail)) return String(detail[0] || '').trim()
+    if (typeof detail === 'string') return detail.trim()
+  }
+  if (typeof data === 'string') return data.trim()
+  const message = (err as { message?: unknown })?.message
+  return typeof message === 'string' ? message.trim() : ''
+}
+
+function stripTechnicalErrorPrefix(message: string) {
+  return String(message || '').trim().replace(/^detail:\s*/i, '')
+}
+
+function isPastSessionTimeErrorText(message: string) {
+  const compact = stripTechnicalErrorPrefix(message).toLowerCase().replace(/\s+/g, ' ')
+  return compact === 'session time is in the past.' || compact === 'session time is in the past'
+}
+
+function isPastIsoDateTime(value: string) {
+  const timestamp = new Date(value).getTime()
+  return Number.isFinite(timestamp) && timestamp <= Date.now()
+}
+
 function localizeGuestQuotaCreateError(err: unknown, fallback: string) {
   const code = getApiErrorCode(err)
   if (code === 'GUEST_SESSIONS_LIMIT_REACHED') {
@@ -788,10 +816,13 @@ function localizeGuestQuotaCreateError(err: unknown, fallback: string) {
 }
 
 function localizeGuestRequestActionError(message: string) {
-  const normalized = String(message || '').trim()
+  const normalized = stripTechnicalErrorPrefix(message)
   if (!normalized) return ''
 
   const compact = normalized.toLowerCase().replace(/\s+/g, ' ')
+  if (isPastSessionTimeErrorText(normalized)) {
+    return PAST_SESSION_TIME_ERROR_MESSAGE
+  }
   if (compact === 'requested slot is no longer available.' || compact === 'requested slot is no longer available') {
     return 'Цей слот більше недоступний.'
   }
@@ -801,6 +832,10 @@ function localizeGuestRequestActionError(message: string) {
 
 function localizeGuestRequestApiError(err: unknown, fallback: string) {
   const code = getApiErrorCode(err)
+  const detailText = apiErrorDetailText(err)
+  if (isPastSessionTimeErrorText(detailText)) {
+    return PAST_SESSION_TIME_ERROR_MESSAGE
+  }
   if (code === 'MANUAL_SESSION_TIME_CONFLICT' || code === 'SESSION_OVERLAP') {
     return 'Не вдалося створити сесію: цей час перетинається з іншою сесією або недоступністю.'
   }
@@ -1025,6 +1060,7 @@ function validateSlotlessSessionDraft() {
     slotlessSessionDraft.value.start_time
   )
   if (!startsAtIso) return 'Вкажіть коректний час початку.'
+  if (isPastIsoDateTime(startsAtIso)) return PAST_SESSION_TIME_ERROR_MESSAGE
   if (
     !Number.isFinite(slotlessSessionDraft.value.duration_minutes) ||
     slotlessSessionDraft.value.duration_minutes < 1
@@ -1081,6 +1117,7 @@ async function loadGuestQuota() {
 function validateCreateDraft() {
   const startsAtIso = combineDateTimeToIso(createDraft.value.start_date, createDraft.value.start_time)
   if (!startsAtIso) return 'Вкажіть коректний час початку.'
+  if (isPastIsoDateTime(startsAtIso)) return PAST_SESSION_TIME_ERROR_MESSAGE
   if (!Number.isFinite(createDraft.value.duration_minutes) || createDraft.value.duration_minutes < 1) {
     return 'Вкажіть коректну тривалість.'
   }
