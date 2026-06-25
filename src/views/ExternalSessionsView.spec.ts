@@ -839,23 +839,28 @@ describe('ExternalSessionsView', () => {
     const dialog = await screen.findByRole('dialog', { name: 'Створити сесію' })
     const modal = within(dialog)
     const dateInput = modal.getByLabelText('Дата')
-    const timeSelect = modal.getByLabelText('Час початку')
+    const timeInput = modal.getByLabelText('Час початку')
     expect(dateInput).toHaveAttribute('placeholder', 'дд.мм.рррр')
     expect((dateInput as HTMLInputElement).value).toMatch(/^\d{2}\.\d{2}\.\d{4}$/)
-    expect(timeSelect.tagName).toBe('SELECT')
-    expect(within(timeSelect).getAllByRole('option')).toHaveLength(65)
-    expect(within(timeSelect).getAllByRole('option')[0]).toHaveTextContent('07:00')
-    expect(within(timeSelect).getAllByRole('option')[1]).toHaveTextContent('07:15')
-    expect(within(timeSelect).getAllByRole('option')[64]).toHaveTextContent('23:00')
+    expect(timeInput.tagName).toBe('INPUT')
+    expect(timeInput).toHaveAttribute('list', 'slotless-session-time-options')
+    expect(timeInput).toHaveAttribute('placeholder', 'ГГ:ХХ')
+    const suggestedTimes = Array.from(document.querySelectorAll('datalist#slotless-session-time-options option')).map(
+      (item) => item.getAttribute('value')
+    )
+    expect(suggestedTimes).toHaveLength(65)
+    expect(suggestedTimes[0]).toBe('07:00')
+    expect(suggestedTimes[1]).toBe('07:15')
+    expect(suggestedTimes[64]).toBe('23:00')
 
     await fireEvent.update(dateInput, '20.06.2099')
-    await fireEvent.update(timeSelect, '10:00')
+    await fireEvent.update(timeInput, '09:10')
     await fireEvent.update(modal.getByLabelText('Тривалість'), '50')
     await fireEvent.update(modal.getByLabelText('Посилання на онлайн-зустріч'), 'https://meet.google.com/manual')
     await fireEvent.click(modal.getByRole('button', { name: 'Створити сесію' }))
 
-    const expectedStartsAt = new Date('2099-06-20T10:00').toISOString()
-    const expectedEndsAt = new Date(new Date('2099-06-20T10:00').getTime() + 50 * 60000).toISOString()
+    const expectedStartsAt = new Date('2099-06-20T09:10').toISOString()
+    const expectedEndsAt = new Date(new Date('2099-06-20T09:10').getTime() + 50 * 60000).toISOString()
 
     await waitFor(() => {
       expect(mockedCreateSessionFromCabinetGuestBookingRequest).toHaveBeenCalledWith(62, {
@@ -873,6 +878,33 @@ describe('ExternalSessionsView', () => {
     expect(toast.success).toHaveBeenCalledWith('Сесію створено. Запит закрито.')
     expect(mockedFetchCabinetGuestBookingRequests).toHaveBeenCalledTimes(2)
     expect(mockedFetchExternalSessions).toHaveBeenCalledTimes(2)
+  })
+
+  it('blocks slot-less create-session submit when start time format is invalid', async () => {
+    mockedFetchCabinetGuestBookingRequests.mockResolvedValue([
+      buildGuestRequest({
+        id: 67,
+        slot_id: null,
+        has_slot: false,
+        is_slotless_request: true,
+        requested_slot_start: null,
+        requested_slot_end: null,
+        client_name: 'Invalid Time Guest',
+      }),
+    ] as any)
+
+    renderView()
+    await screen.findByText('Запит без обраного часу')
+    await fireEvent.click(screen.getByRole('button', { name: 'Створити сесію' }))
+
+    const dialog = await screen.findByRole('dialog', { name: 'Створити сесію' })
+    const modal = within(dialog)
+    await fireEvent.update(modal.getByLabelText('Дата'), '20.06.2099')
+    await fireEvent.update(modal.getByLabelText('Час початку'), '9:7')
+    await fireEvent.click(modal.getByRole('button', { name: 'Створити сесію' }))
+
+    expect(await screen.findByText('Введіть час у форматі ГГ:ХХ, наприклад 09:30.')).toBeInTheDocument()
+    expect(mockedCreateSessionFromCabinetGuestBookingRequest).not.toHaveBeenCalled()
   })
 
   it('closes slot-less guest request through decline endpoint', async () => {

@@ -374,15 +374,17 @@
 
           <label class="field">
             <span>Час початку</span>
-            <select
+            <input
               v-model="slotlessSessionDraft.start_time"
-              class="input input--select"
+              class="input"
+              type="text"
+              inputmode="numeric"
+              maxlength="5"
+              placeholder="ГГ:ХХ"
+              list="slotless-session-time-options"
               :disabled="slotlessSessionSaving"
-            >
-              <option v-for="option in slotlessTimeOptions" :key="option" :value="option">
-                {{ option }}
-              </option>
-            </select>
+              @blur="normalizeSlotlessSessionStartTime"
+            />
           </label>
 
           <label class="field">
@@ -442,6 +444,9 @@
             {{ slotlessSessionSaving ? 'Створюємо…' : 'Створити сесію' }}
           </button>
         </div>
+        <datalist id="slotless-session-time-options">
+          <option v-for="option in slotlessTimeOptions" :key="option" :value="option" />
+        </datalist>
       </div>
     </div>
   </section>
@@ -512,6 +517,7 @@ type GuestQuotaSnapshot = {
 }
 
 const PAST_SESSION_TIME_ERROR_MESSAGE = 'Неможливо створити сесію в минулому. Оберіть майбутню дату або час.'
+const INVALID_SESSION_TIME_FORMAT_MESSAGE = 'Введіть час у форматі ГГ:ХХ, наприклад 09:30.'
 
 const router = useRouter()
 const toast = useToast()
@@ -927,6 +933,14 @@ function normalizeCreateStartTime() {
   createDraft.value.start_time = normalizeTimeValue(createDraft.value.start_time)
 }
 
+function isValidTimeValue(value: string) {
+  return /^([01]\d|2[0-3]):[0-5]\d$/.test(normalizeTimeValue(value))
+}
+
+function normalizeSlotlessSessionStartTime() {
+  slotlessSessionDraft.value.start_time = normalizeTimeValue(slotlessSessionDraft.value.start_time)
+}
+
 function localDateInputValue(value: Date) {
   const year = value.getFullYear()
   const month = String(value.getMonth() + 1).padStart(2, '0')
@@ -1055,6 +1069,9 @@ function closeSlotlessSessionModal() {
 }
 
 function validateSlotlessSessionDraft() {
+  if (!isValidTimeValue(slotlessSessionDraft.value.start_time)) {
+    return INVALID_SESSION_TIME_FORMAT_MESSAGE
+  }
   const startsAtIso = combineDateTimeToIso(
     slotlessSessionDraft.value.start_date,
     slotlessSessionDraft.value.start_time
