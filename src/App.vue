@@ -53,7 +53,11 @@
         <RouterLink v-if="!isAuthenticated" class="nav__desktop-only" to="/pricing">Тарифи</RouterLink>
         <RouterLink v-if="!isAuthenticated" to="/login">Вхід</RouterLink>
         <RouterLink v-if="!isAuthenticated" class="nav__guest-cta" to="/signup">
-          {{ isPublicProfilePage ? 'Для спеціалістів' : 'Спробувати безкоштовно' }}
+          <span v-if="isPublicProfilePage">Для спеціалістів</span>
+          <template v-else>
+            <span class="nav__guest-cta-full">Спробувати безкоштовно</span>
+            <span class="nav__guest-cta-short">Спробувати</span>
+          </template>
         </RouterLink>
         <RouterLink
           v-if="isAuthenticated && isChatCapable"
@@ -1413,6 +1417,10 @@ watch(isChatCapable, (value) => {
   font-weight: 600;
 }
 
+.nav__guest-cta-short {
+  display: none;
+}
+
 .nav__mobile-only {
   display: none;
 }
@@ -2602,6 +2610,14 @@ body.body--home .footer__bottom {
 
   .topbar--guest .nav a.nav__guest-cta {
     padding: 5px 12px;
+  }
+
+  .shell--home .topbar--guest .nav__guest-cta-full {
+    display: none;
+  }
+
+  .shell--home .topbar--guest .nav__guest-cta-short {
+    display: inline;
   }
 
   .shell--public-profile .topbar--guest .nav a.nav__guest-cta {
