@@ -13,8 +13,13 @@
     <header v-if="!useMinimalShell" :class="topbarClass">
       <div class="topbar__inner">
         <RouterLink class="brand" to="/">
-          <div class="brand__mark">PRO CONSULT</div>
-          <div class="brand__tagline">простір для ведення консультацій</div>
+          <span class="brand__logo-frame">
+            <img class="brand__logo brand__logo--full" src="/brand/proconsult-logo-dark.png" alt="Pro Consult" />
+            <img class="brand__logo brand__logo--mark" src="/brand/proconsult-mark.png" alt="Pro Consult" />
+            <span class="brand__mobile-name" aria-hidden="true">Pro Consult</span>
+            <span class="brand__text-fallback" aria-hidden="true">PRO CONSULT</span>
+          </span>
+          <span class="brand__tagline">простір для ведення консультацій</span>
         </RouterLink>
         <nav class="nav">
         <RouterLink
@@ -377,12 +382,16 @@
         {
           'footer--cabinet': isCabinetRoute,
           'footer--public': !isCabinetRoute,
+          'footer--home': isHome,
         },
       ]"
     >
       <template v-if="isCabinetRoute">
         <div class="footer__cabinet-brand">
-          <span class="footer__name">Pro Consult</span>
+          <span class="footer__brand-lockup">
+            <img class="footer__logo footer__logo--cabinet" src="/brand/proconsult-logo-dark.png" alt="Pro Consult" />
+            <span class="footer__name footer__text-fallback">Pro Consult</span>
+          </span>
           <span>Без комісій. Без посередників. З повагою до практики.</span>
         </div>
         <div v-if="showStagingDeployMarker" class="footer__deploy" aria-label="staging-deploy-marker">
@@ -399,7 +408,11 @@
       <template v-else>
         <div class="footer__intro">
           <div>
-            <div class="footer__eyebrow">PRO CONSULT</div>
+            <div class="footer__brand-lockup footer__brand-lockup--public">
+              <img class="footer__logo footer__logo--dark" src="/brand/proconsult-logo-dark.png" alt="Pro Consult" />
+              <img class="footer__logo footer__logo--light" src="/brand/proconsult-logo-light.png" alt="Pro Consult" />
+              <span class="footer__eyebrow footer__text-fallback">PRO CONSULT</span>
+            </div>
             <p class="footer__lead">Простір для ведення консультацій.</p>
           </div>
           <p class="footer__description">
@@ -1295,18 +1308,50 @@ watch(isChatCapable, (value) => {
 }
 
 .brand {
-  display: grid;
-  gap: 3px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
   color: inherit;
   min-width: 0;
 }
 
-.brand__mark {
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 23px;
-  letter-spacing: 0.35px;
-  line-height: 1;
+.brand__logo-frame {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  min-width: 0;
+}
+
+.brand__logo {
+  display: block;
+  width: auto;
+  object-fit: contain;
+}
+
+.brand__logo--full {
+  height: 44px;
+  max-width: 184px;
+}
+
+.brand__logo--mark {
+  display: none;
+  height: 34px;
+  width: 34px;
+}
+
+.brand__mobile-name {
+  display: none;
+}
+
+.brand__text-fallback,
+.footer__text-fallback {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
 }
 
 .brand__tagline {
@@ -1325,16 +1370,7 @@ watch(isChatCapable, (value) => {
 .topbar--client .brand {
   display: flex;
   align-items: center;
-  gap: 14px;
-}
-
-.topbar--guest .brand__mark,
-.topbar--specialist .brand__mark,
-.topbar--therapist .brand__mark,
-.topbar--admin .brand__mark,
-.topbar--client .brand__mark {
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
+  gap: 12px;
 }
 
 .topbar--guest .brand__tagline,
@@ -1342,18 +1378,18 @@ watch(isChatCapable, (value) => {
 .topbar--therapist .brand__tagline,
 .topbar--admin .brand__tagline,
 .topbar--client .brand__tagline {
-  font-size: 15px;
+  font-size: 13.5px;
   letter-spacing: 0;
-  font-weight: 500;
+  font-weight: 400;
   text-transform: none;
-  color: color-mix(in srgb, var(--pc-navy-900) 74%, var(--pc-text-muted));
-  padding-left: 14px;
-  border-left: 1px solid color-mix(in srgb, var(--pc-navy-900) 20%, var(--pc-border));
+  color: color-mix(in srgb, var(--pc-navy-900) 52%, var(--pc-text-muted));
+  padding-left: 12px;
+  border-left: 1px solid color-mix(in srgb, var(--pc-navy-900) 12%, var(--pc-border));
 }
 
 .topbar--guest .brand__tagline {
-  color: var(--pc-text-muted);
-  border-left-color: var(--pc-border-strong);
+  color: color-mix(in srgb, var(--pc-text-muted) 88%, var(--pc-navy-900));
+  border-left-color: var(--pc-border);
 }
 
 .nav {
@@ -2106,8 +2142,40 @@ watch(isChatCapable, (value) => {
 .footer__cabinet-brand {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   flex-wrap: wrap;
+}
+
+.footer__brand-lockup {
+  display: inline-flex;
+  align-items: center;
+  flex: 0 0 auto;
+  min-width: 0;
+}
+
+.footer__logo {
+  display: block;
+  width: auto;
+  object-fit: contain;
+}
+
+.footer__logo--cabinet {
+  height: 30px;
+  max-width: 124px;
+}
+
+.footer__brand-lockup--public {
+  min-height: 46px;
+}
+
+.footer__logo--dark,
+.footer__logo--light {
+  height: 46px;
+  max-width: 184px;
+}
+
+.footer__logo--light {
+  display: none;
 }
 
 .footer__name {
@@ -2236,6 +2304,14 @@ body.body--home .footer__eyebrow,
 body.body--home .footer__lead,
 body.body--home .footer__column-title {
   color: #ffffff;
+}
+
+.footer--home .footer__logo--dark {
+  display: none;
+}
+
+.footer--home .footer__logo--light {
+  display: block;
 }
 
 body.body--home .footer__link {
@@ -2454,13 +2530,31 @@ body.body--home .footer__bottom {
     display: inline-flex;
   }
 
-  .brand__mark {
-    font-size: 20px;
+  .brand__logo--full {
+    display: none;
   }
 
-  .brand__tagline {
-    font-size: 11px;
-    letter-spacing: 0.14em;
+  .brand__logo--mark {
+    display: block;
+  }
+
+  .topbar--guest .brand__logo-frame {
+    gap: 7px;
+  }
+
+  .topbar--guest .brand__logo--mark {
+    height: 32px;
+    width: 32px;
+  }
+
+  .topbar--guest .brand__mobile-name {
+    display: inline-block;
+    color: var(--pc-navy-900);
+    font-family: var(--font-display);
+    font-size: 14.5px;
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
   }
 
   .nav {

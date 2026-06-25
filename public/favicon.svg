@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Pro Consult mark">
+  <defs>
+    <linearGradient id="a" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6EE7F2"/><stop offset="1" stop-color="#00C2D1"/></linearGradient>
+    <linearGradient id="b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#00C2D1"/><stop offset="1" stop-color="#0D47A1"/></linearGradient>
+    <linearGradient id="c" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#0D47A1"/><stop offset="1" stop-color="#00C2D1"/></linearGradient>
+    <linearGradient id="d" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#00C2D1"/><stop offset="1" stop-color="#6EE7F2"/></linearGradient>
+    <mask id="cutout">
+      <rect width="512" height="512" fill="#fff"/>
+      <path fill="#000" d="M166 146h115l45 41-46 36H166z"/>
+    </mask>
+  </defs>
+  <g mask="url(#cutout)">
+    <path fill="url(#a)" d="M75 116 153 50h145l67 63-48 30H75z"/>
+    <path fill="url(#b)" d="M75 116v199l72 70V143z"/>
+    <path fill="url(#c)" d="M147 143h93v81l-93 57z"/>
+    <path fill="url(#c)" d="M240 143h74l52 44-52 47h-74z"/>
+    <path fill="url(#d)" d="M147 281 240 224l74 10-65 66H147z"/>
+    <path fill="url(#d)" d="M249 300 314 234l52-47v72l-41 41z"/>
+    <path fill="url(#a)" d="M153 50 240 143h-93z" opacity=".88"/>
+  </g>
+</svg>
