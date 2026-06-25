@@ -2604,6 +2604,10 @@ body.body--home .footer__bottom {
     padding: 5px 12px;
   }
 
+  .shell--public-profile .topbar--guest .nav a.nav__guest-cta {
+    display: none;
+  }
+
   .mobile-menu {
     display: grid;
     position: absolute;
