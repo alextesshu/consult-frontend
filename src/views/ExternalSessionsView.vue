@@ -357,74 +357,22 @@
         <div v-if="slotlessSessionError" class="form-error">{{ slotlessSessionError }}</div>
 
         <div class="form-grid request-session-form">
-          <label class="field">
-            <span>Дата</span>
-            <div class="date-picker-field">
-              <input
-                :value="slotlessSessionDateDisplay"
-                class="input"
-                type="text"
-                inputmode="numeric"
-                maxlength="10"
-                placeholder="ДД.ММ.РРРР"
-                :disabled="slotlessSessionSaving"
-                @click="openSlotlessDatePicker"
-                @focus="openSlotlessDatePicker"
-                @input="updateSlotlessSessionDate"
-                @blur="normalizeSlotlessSessionDate"
-              />
-              <button
-                class="date-picker-toggle"
-                type="button"
-                :disabled="slotlessSessionSaving"
-                aria-label="Відкрити календар"
-                @click="toggleSlotlessDatePicker"
-              >
-                ▾
-              </button>
-              <div v-if="slotlessDatePickerOpen" class="date-picker-popover">
-                <div class="date-picker-header">
-                  <button class="date-picker-nav" type="button" aria-label="Попередній місяць" @click="moveSlotlessDatePickerMonth(-1)">‹</button>
-                  <div class="date-picker-title">{{ slotlessDatePickerMonthLabel }}</div>
-                  <button class="date-picker-nav" type="button" aria-label="Наступний місяць" @click="moveSlotlessDatePickerMonth(1)">›</button>
-                </div>
-                <div class="date-picker-weekdays">
-                  <span v-for="weekday in datePickerWeekdays" :key="weekday" class="date-picker-weekday">{{ weekday }}</span>
-                </div>
-                <div class="date-picker-grid">
-                  <button
-                    v-for="day in slotlessDatePickerDays"
-                    :key="day.key"
-                    class="date-picker-day"
-                    :class="{
-                      'date-picker-day--muted': !day.inCurrentMonth,
-                      'date-picker-day--selected': day.isoDate === slotlessSessionDraft.start_date,
-                    }"
-                    type="button"
-                    :aria-label="day.displayDate"
-                    @click="selectSlotlessDate(day.isoDate)"
-                  >
-                    {{ day.day }}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </label>
+          <DatePickerField
+            ref="slotlessDatePickerRef"
+            :model-value="slotlessSessionDateDisplay"
+            label="Дата"
+            :disabled="slotlessSessionSaving"
+            @update:model-value="updateSlotlessSessionDateValue"
+            @select-iso="selectSlotlessDate"
+          />
 
-          <label class="field">
-            <span>Час початку</span>
-            <select
-              v-model="slotlessSessionDraft.start_time"
-              class="input input--select"
-              :disabled="slotlessSessionSaving"
-              @click="closeSlotlessDatePicker"
-              @focus="closeSlotlessDatePicker"
-            >
-              <option v-for="option in slotlessTimeOptions" :key="option" :value="option">
-                {{ option }}
-              </option>
-            </select>
-          </label>
+          <TimeSelectField
+            v-model="slotlessSessionDraft.start_time"
+            label="Час початку"
+            :disabled="slotlessSessionSaving"
+            @click="closeSlotlessDatePicker"
+            @focus="closeSlotlessDatePicker"
+          />
 
           <label class="field">
             <span>Тривалість</span>
@@ -496,6 +444,8 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import DatePickerField from '../components/DatePickerField.vue'
+import TimeSelectField from '../components/TimeSelectField.vue'
 import { useToast } from '../composables/useToast'
 import {
   apiGet,
@@ -515,6 +465,8 @@ import {
   type SpecialistProfile,
 } from '../lib/api'
 import { formatUkDateTimeCompact } from '../lib/dateTime'
+import { formatIsoDateForDisplay, parseDisplayDateToIso } from '../lib/dateFormat'
+import { buildTenMinuteTimeOptions } from '../lib/timeOptions'
 
 type CreateDraft = {
   start_date: string
@@ -583,8 +535,7 @@ const slotlessSessionRequest = ref<GuestBookingRequestRecord | null>(null)
 const slotlessSessionSaving = ref(false)
 const slotlessSessionError = ref('')
 const slotlessSessionDateDisplay = ref('')
-const slotlessDatePickerOpen = ref(false)
-const slotlessDatePickerMonth = ref(startOfLocalMonth(new Date()))
+const slotlessDatePickerRef = ref<InstanceType<typeof DatePickerField> | null>(null)
 const slotlessProfileLoaded = ref(false)
 const slotlessProfileTimezone = ref('')
 const slotlessSessionTimezone = ref(
@@ -677,67 +628,6 @@ const timeOptions = Array.from({ length: 24 * 4 }, (_, index) => {
   return `${hours}:${mins}`
 })
 const slotlessTimeOptions = buildTenMinuteTimeOptions()
-const datePickerWeekdays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд']
-const slotlessDatePickerMonthLabel = computed(() => formatDatePickerMonth(slotlessDatePickerMonth.value))
-const slotlessDatePickerDays = computed(() => buildDatePickerDays(slotlessDatePickerMonth.value))
-
-function buildTenMinuteTimeOptions() {
-  const options: string[] = []
-  for (let minutes = 7 * 60; minutes <= 23 * 60 + 50; minutes += 10) {
-    const hours = String(Math.floor(minutes / 60)).padStart(2, '0')
-    const mins = String(minutes % 60).padStart(2, '0')
-    options.push(`${hours}:${mins}`)
-  }
-  return options
-}
-
-function startOfLocalMonth(value: Date) {
-  return new Date(value.getFullYear(), value.getMonth(), 1)
-}
-
-function isoDateToLocalDate(value: string) {
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value || '').trim())
-  if (!match) return null
-  const year = Number(match[1])
-  const month = Number(match[2])
-  const day = Number(match[3])
-  const parsed = new Date(year, month - 1, day)
-  if (parsed.getFullYear() !== year || parsed.getMonth() !== month - 1 || parsed.getDate() !== day) {
-    return null
-  }
-  return parsed
-}
-
-function localDateToIsoDate(value: Date) {
-  const year = value.getFullYear()
-  const month = String(value.getMonth() + 1).padStart(2, '0')
-  const day = String(value.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
-}
-
-function formatDatePickerMonth(value: Date) {
-  return new Intl.DateTimeFormat('uk-UA', { month: 'long', year: 'numeric' }).format(value)
-}
-
-function buildDatePickerDays(monthValue: Date) {
-  const monthStart = startOfLocalMonth(monthValue)
-  const gridStart = new Date(monthStart)
-  const mondayOffset = (monthStart.getDay() + 6) % 7
-  gridStart.setDate(monthStart.getDate() - mondayOffset)
-
-  return Array.from({ length: 42 }, (_, index) => {
-    const date = new Date(gridStart)
-    date.setDate(gridStart.getDate() + index)
-    const isoDate = localDateToIsoDate(date)
-    return {
-      key: isoDate,
-      isoDate,
-      displayDate: formatIsoDateForDisplay(isoDate),
-      day: date.getDate(),
-      inCurrentMonth: date.getMonth() === monthStart.getMonth(),
-    }
-  })
-}
 
 function formatDateTime(value: string | null | undefined) {
   return formatUkDateTimeCompact(value)
@@ -1040,59 +930,8 @@ function localDateInputValue(value: Date) {
   return `${year}-${month}-${day}`
 }
 
-function formatIsoDateForDisplay(value: string) {
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value || '').trim())
-  if (!match) return ''
-  return `${match[3]}.${match[2]}.${match[1]}`
-}
-
-function parseDisplayDateToIso(value: string) {
-  const match = /^(\d{1,2})\.(\d{1,2})\.(\d{4})$/.exec(String(value || '').trim())
-  if (!match) return ''
-  const day = Number(match[1])
-  const month = Number(match[2])
-  const year = Number(match[3])
-  const parsed = new Date(Date.UTC(year, month - 1, day))
-  if (
-    parsed.getUTCFullYear() !== year ||
-    parsed.getUTCMonth() !== month - 1 ||
-    parsed.getUTCDate() !== day
-  ) {
-    return ''
-  }
-  return `${match[3]}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-}
-
-function updateSlotlessSessionDate(event: Event) {
-  const target = event.target as HTMLInputElement | null
-  slotlessSessionDateDisplay.value = target?.value || ''
-  slotlessSessionDraft.value.start_date = parseDisplayDateToIso(slotlessSessionDateDisplay.value)
-  if (slotlessSessionDraft.value.start_date) {
-    syncSlotlessDatePickerMonth(slotlessSessionDraft.value.start_date)
-  }
-}
-
-function normalizeSlotlessSessionDate() {
-  const isoDate = parseDisplayDateToIso(slotlessSessionDateDisplay.value)
-  if (!isoDate) return
-  slotlessSessionDraft.value.start_date = isoDate
-  slotlessSessionDateDisplay.value = formatIsoDateForDisplay(isoDate)
-  syncSlotlessDatePickerMonth(isoDate)
-}
-
-function syncSlotlessDatePickerMonth(isoDate?: string) {
-  const parsed = isoDateToLocalDate(isoDate || slotlessSessionDraft.value.start_date)
-  slotlessDatePickerMonth.value = startOfLocalMonth(parsed || new Date())
-}
-
-function openSlotlessDatePicker() {
-  if (slotlessSessionSaving.value) return
-  syncSlotlessDatePickerMonth()
-  slotlessDatePickerOpen.value = true
-}
-
 function closeSlotlessDatePicker() {
-  slotlessDatePickerOpen.value = false
+  slotlessDatePickerRef.value?.closeCalendar()
 }
 
 function handleSlotlessModalPointerDown(event: PointerEvent) {
@@ -1101,25 +940,14 @@ function handleSlotlessModalPointerDown(event: PointerEvent) {
   closeSlotlessDatePicker()
 }
 
-function toggleSlotlessDatePicker() {
-  if (slotlessSessionSaving.value) return
-  if (slotlessDatePickerOpen.value) {
-    slotlessDatePickerOpen.value = false
-    return
-  }
-  openSlotlessDatePicker()
-}
-
-function moveSlotlessDatePickerMonth(delta: number) {
-  const current = slotlessDatePickerMonth.value
-  slotlessDatePickerMonth.value = new Date(current.getFullYear(), current.getMonth() + delta, 1)
+function updateSlotlessSessionDateValue(value: string) {
+  slotlessSessionDateDisplay.value = value
+  slotlessSessionDraft.value.start_date = parseDisplayDateToIso(value) || ''
 }
 
 function selectSlotlessDate(isoDate: string) {
   slotlessSessionDraft.value.start_date = isoDate
   slotlessSessionDateDisplay.value = formatIsoDateForDisplay(isoDate)
-  syncSlotlessDatePickerMonth(isoDate)
-  slotlessDatePickerOpen.value = false
 }
 
 function combineDateTimeToIso(dateValue: string, timeValue: string) {
@@ -1185,7 +1013,6 @@ function resetSlotlessSessionForm(request: GuestBookingRequestRecord) {
     offline_location: request.offline_location_snapshot || '',
   }
   slotlessSessionDateDisplay.value = formatIsoDateForDisplay(startDate)
-  syncSlotlessDatePickerMonth(startDate)
   slotlessSessionTimezone.value = resolvedSlotlessSessionTimezone()
   slotlessSessionError.value = ''
 }
@@ -1205,7 +1032,7 @@ function closeSlotlessSessionModal() {
   slotlessSessionModalOpen.value = false
   slotlessSessionError.value = ''
   slotlessSessionRequest.value = null
-  slotlessDatePickerOpen.value = false
+  closeSlotlessDatePicker()
 }
 
 function validateSlotlessSessionDraft() {
@@ -1578,119 +1405,6 @@ onMounted(async () => {
 .request-meeting-field .input {
   border: 1px solid var(--pc-border);
   border-radius: var(--pc-radius-control);
-}
-
-.date-picker-field {
-  position: relative;
-  display: flex;
-  align-items: stretch;
-}
-
-.date-picker-field .input {
-  width: 100%;
-  padding-right: 44px;
-}
-
-.date-picker-toggle {
-  position: absolute;
-  top: 50%;
-  right: 6px;
-  display: inline-flex;
-  width: 32px;
-  height: 32px;
-  transform: translateY(-50%);
-  align-items: center;
-  justify-content: center;
-  border: 0;
-  border-radius: 8px;
-  background: transparent;
-  color: var(--pc-text-muted);
-  cursor: pointer;
-}
-
-.date-picker-toggle:hover,
-.date-picker-toggle:focus-visible {
-  background: color-mix(in srgb, var(--pc-blue-soft) 70%, #ffffff);
-  color: var(--pc-navy-900);
-  outline: none;
-}
-
-.date-picker-popover {
-  position: absolute;
-  z-index: 30;
-  top: calc(100% + 6px);
-  left: 0;
-  width: min(306px, calc(100vw - 32px));
-  border: 1px solid var(--pc-border);
-  border-radius: var(--pc-radius-card);
-  background: #fff;
-  box-shadow: var(--pc-shadow-soft);
-  padding: 10px;
-}
-
-.date-picker-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-
-.date-picker-title {
-  color: var(--pc-navy-900);
-  font-weight: 700;
-  text-transform: capitalize;
-}
-
-.date-picker-nav {
-  display: inline-flex;
-  width: 30px;
-  height: 30px;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid var(--pc-border);
-  border-radius: 8px;
-  background: #fff;
-  color: var(--pc-navy-900);
-  cursor: pointer;
-}
-
-.date-picker-weekdays,
-.date-picker-grid {
-  display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 4px;
-}
-
-.date-picker-weekday {
-  color: var(--pc-text-muted);
-  font-size: 12px;
-  text-align: center;
-}
-
-.date-picker-day {
-  min-width: 0;
-  height: 32px;
-  border: 0;
-  border-radius: 8px;
-  background: #fff;
-  color: var(--pc-navy-900);
-  cursor: pointer;
-}
-
-.date-picker-day:hover,
-.date-picker-day:focus-visible {
-  background: color-mix(in srgb, var(--pc-blue-soft) 70%, #ffffff);
-  outline: none;
-}
-
-.date-picker-day--muted {
-  color: color-mix(in srgb, var(--pc-text-muted) 62%, #ffffff);
-}
-
-.date-picker-day--selected {
-  background: var(--pc-navy-900);
-  color: #fff;
 }
 
 .actions-row .btn:not(.btn--ghost) {

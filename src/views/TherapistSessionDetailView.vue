@@ -102,72 +102,23 @@
           <div v-if="rescheduleFormError" class="form-error">{{ rescheduleFormError }}</div>
 
           <div class="reschedule-form-grid">
-            <label class="field">
-              <span class="muted">Нова дата</span>
-              <div class="date-picker-field">
-                <input
-                  v-model="rescheduleDateDraft"
-                  class="input"
-                  type="text"
-                  inputmode="numeric"
-                  maxlength="10"
-                  placeholder="ДД.ММ.РРРР"
-                  :disabled="actionLoading"
-                  @click="openRescheduleDatePicker"
-                  @focus="openRescheduleDatePicker"
-                  @blur="normalizeRescheduleDate"
-                />
-                <button
-                  class="date-picker-toggle"
-                  type="button"
-                  aria-label="Відкрити календар"
-                  :disabled="actionLoading"
-                  @click="toggleRescheduleDatePicker"
-                >
-                  ▾
-                </button>
-                <div v-if="rescheduleDatePickerOpen" class="date-picker-popover">
-                  <div class="date-picker-header">
-                    <button class="date-picker-nav" type="button" aria-label="Попередній місяць" @click="moveRescheduleDatePickerMonth(-1)">‹</button>
-                    <div class="date-picker-title">{{ rescheduleDatePickerMonthLabel }}</div>
-                    <button class="date-picker-nav" type="button" aria-label="Наступний місяць" @click="moveRescheduleDatePickerMonth(1)">›</button>
-                  </div>
-                  <div class="date-picker-weekdays">
-                    <span v-for="weekday in datePickerWeekdays" :key="weekday" class="date-picker-weekday">{{ weekday }}</span>
-                  </div>
-                  <div class="date-picker-grid">
-                    <button
-                      v-for="day in rescheduleDatePickerDays"
-                      :key="day.key"
-                      class="date-picker-day"
-                      :class="{
-                        'date-picker-day--muted': !day.inCurrentMonth,
-                        'date-picker-day--selected': day.displayDate === rescheduleDateDraft,
-                      }"
-                      type="button"
-                      :aria-label="day.displayDate"
-                      @click="selectRescheduleDate(day.isoDate)"
-                    >
-                      {{ day.day }}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </label>
-            <label class="field">
-              <span class="muted">Час початку</span>
-              <select
-                v-model="rescheduleTimeDraft"
-                class="input input--select"
-                :disabled="actionLoading"
-                @click="closeRescheduleDatePicker"
-                @focus="closeRescheduleDatePicker"
-              >
-                <option v-for="option in rescheduleTimeOptions" :key="option" :value="option">
-                  {{ option }}
-                </option>
-              </select>
-            </label>
+            <DatePickerField
+              ref="rescheduleDatePickerRef"
+              :model-value="rescheduleDateDraft"
+              label="Нова дата"
+              :disabled="actionLoading"
+              @update:model-value="updateRescheduleDateDraft"
+              @select-iso="selectRescheduleDate"
+            />
+            <TimeSelectField
+              v-model="rescheduleTimeDraft"
+              label="Час початку"
+              label-class="muted"
+              :options="rescheduleTimeOptions"
+              :disabled="actionLoading"
+              @click="closeRescheduleDatePicker"
+              @focus="closeRescheduleDatePicker"
+            />
             <div class="field">
               <span class="muted">Тривалість</span>
               <div class="input input--readonly">{{ currentSessionDurationLabel }}</div>
@@ -877,6 +828,8 @@
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import DatePickerField from '../components/DatePickerField.vue'
+import TimeSelectField from '../components/TimeSelectField.vue'
 import {
   apiGet,
   apiPatch,
@@ -948,6 +901,8 @@ import {
   noteContentStateLabel as getNoteContentStateLabel,
   workbookContentStateLabel as getWorkbookContentStateLabel,
 } from '../lib/noteWorkbookCopy'
+import { formatIsoDateForDisplay, parseDisplayDateToIso } from '../lib/dateFormat'
+import { buildTenMinuteTimeOptions } from '../lib/timeOptions'
 
 type SessionSlot = {
   start_at?: string | null
@@ -1158,8 +1113,7 @@ const rescheduleSuggestions = ref<SpecialistRescheduleSuggestion[]>([])
 const selectedSuggestionSlotId = ref<number | null>(null)
 const rescheduleDateDraft = ref('')
 const rescheduleTimeDraft = ref('')
-const rescheduleDatePickerOpen = ref(false)
-const rescheduleDatePickerMonth = ref(startOfLocalMonth(new Date()))
+const rescheduleDatePickerRef = ref<InstanceType<typeof DatePickerField> | null>(null)
 const rescheduleFormError = ref('')
 const reschedulePanelRef = ref<HTMLElement | null>(null)
 const requestsLoading = ref(false)
@@ -1271,9 +1225,6 @@ const sessionRequests = computed(() =>
 )
 
 const rescheduleTimeOptions = buildTenMinuteTimeOptions()
-const datePickerWeekdays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд']
-const rescheduleDatePickerMonthLabel = computed(() => formatDatePickerMonth(rescheduleDatePickerMonth.value))
-const rescheduleDatePickerDays = computed(() => buildDatePickerDays(rescheduleDatePickerMonth.value))
 
 const matchingRescheduleSlot = computed(() => {
   if (!rescheduleDateDraft.value || !rescheduleTimeDraft.value) return null
@@ -1579,107 +1530,8 @@ function localTimeInputValue(value?: string | null) {
   return `${hours}:${minutes}`
 }
 
-function parseDisplayDateToIso(value: string) {
-  const match = /^(\d{1,2})\.(\d{1,2})\.(\d{4})$/.exec(String(value || '').trim())
-  if (!match) return ''
-  const day = Number(match[1])
-  const month = Number(match[2])
-  const year = Number(match[3])
-  const parsed = new Date(Date.UTC(year, month - 1, day))
-  if (
-    parsed.getUTCFullYear() !== year ||
-    parsed.getUTCMonth() !== month - 1 ||
-    parsed.getUTCDate() !== day
-  ) {
-    return ''
-  }
-  return `${match[3]}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-}
-
-function formatIsoDateForDisplay(value: string) {
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value || '').trim())
-  if (!match) return ''
-  return `${match[3]}.${match[2]}.${match[1]}`
-}
-
-function buildTenMinuteTimeOptions() {
-  const options: string[] = []
-  for (let minutes = 7 * 60; minutes <= 23 * 60 + 50; minutes += 10) {
-    const hours = String(Math.floor(minutes / 60)).padStart(2, '0')
-    const mins = String(minutes % 60).padStart(2, '0')
-    options.push(`${hours}:${mins}`)
-  }
-  return options
-}
-
-function startOfLocalMonth(value: Date) {
-  return new Date(value.getFullYear(), value.getMonth(), 1)
-}
-
-function isoDateToLocalDate(value: string) {
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value || '').trim())
-  if (!match) return null
-  const year = Number(match[1])
-  const month = Number(match[2])
-  const day = Number(match[3])
-  const parsed = new Date(year, month - 1, day)
-  if (parsed.getFullYear() !== year || parsed.getMonth() !== month - 1 || parsed.getDate() !== day) {
-    return null
-  }
-  return parsed
-}
-
-function localDateToIsoDate(value: Date) {
-  const year = value.getFullYear()
-  const month = String(value.getMonth() + 1).padStart(2, '0')
-  const day = String(value.getDate()).padStart(2, '0')
-  return `${year}-${month}-${day}`
-}
-
-function formatDatePickerMonth(value: Date) {
-  return new Intl.DateTimeFormat('uk-UA', { month: 'long', year: 'numeric' }).format(value)
-}
-
-function buildDatePickerDays(monthValue: Date) {
-  const monthStart = startOfLocalMonth(monthValue)
-  const gridStart = new Date(monthStart)
-  const mondayOffset = (monthStart.getDay() + 6) % 7
-  gridStart.setDate(monthStart.getDate() - mondayOffset)
-
-  return Array.from({ length: 42 }, (_, index) => {
-    const date = new Date(gridStart)
-    date.setDate(gridStart.getDate() + index)
-    const isoDate = localDateToIsoDate(date)
-    return {
-      key: isoDate,
-      isoDate,
-      displayDate: formatIsoDateForDisplay(isoDate),
-      day: date.getDate(),
-      inCurrentMonth: date.getMonth() === monthStart.getMonth(),
-    }
-  })
-}
-
-function normalizeRescheduleDate() {
-  const isoDate = parseDisplayDateToIso(rescheduleDateDraft.value)
-  if (!isoDate) return
-  rescheduleDateDraft.value = formatIsoDateForDisplay(isoDate)
-  syncRescheduleDatePickerMonth(isoDate)
-}
-
-function syncRescheduleDatePickerMonth(isoDate?: string) {
-  const parsed = isoDateToLocalDate(isoDate || parseDisplayDateToIso(rescheduleDateDraft.value))
-  rescheduleDatePickerMonth.value = startOfLocalMonth(parsed || new Date())
-}
-
-function openRescheduleDatePicker() {
-  if (actionLoading.value) return
-  syncRescheduleDatePickerMonth()
-  rescheduleDatePickerOpen.value = true
-}
-
 function closeRescheduleDatePicker() {
-  rescheduleDatePickerOpen.value = false
+  rescheduleDatePickerRef.value?.closeCalendar()
 }
 
 function handleReschedulePanelPointerDown(event: PointerEvent) {
@@ -1688,24 +1540,12 @@ function handleReschedulePanelPointerDown(event: PointerEvent) {
   closeRescheduleDatePicker()
 }
 
-function toggleRescheduleDatePicker() {
-  if (actionLoading.value) return
-  if (rescheduleDatePickerOpen.value) {
-    rescheduleDatePickerOpen.value = false
-    return
-  }
-  openRescheduleDatePicker()
-}
-
-function moveRescheduleDatePickerMonth(delta: number) {
-  const current = rescheduleDatePickerMonth.value
-  rescheduleDatePickerMonth.value = new Date(current.getFullYear(), current.getMonth() + delta, 1)
+function updateRescheduleDateDraft(value: string) {
+  rescheduleDateDraft.value = value
 }
 
 function selectRescheduleDate(isoDate: string) {
   rescheduleDateDraft.value = formatIsoDateForDisplay(isoDate)
-  syncRescheduleDatePickerMonth(isoDate)
-  rescheduleDatePickerOpen.value = false
 }
 
 function normalizeClientDisplay(value?: string | null) {
@@ -2488,7 +2328,7 @@ function closeReschedulePanel() {
   showReschedulePanel.value = false
   selectedSuggestionSlotId.value = null
   rescheduleFormError.value = ''
-  rescheduleDatePickerOpen.value = false
+  closeRescheduleDatePicker()
 }
 
 function toggleRecurringPanel() {
@@ -2509,9 +2349,6 @@ function selectSuggestedSlot(slotId: number) {
 function setRescheduleDraftFromStart(value?: string | null) {
   rescheduleDateDraft.value = localDateInputValue(value)
   rescheduleTimeDraft.value = localTimeInputValue(value)
-  if (rescheduleDateDraft.value) {
-    syncRescheduleDatePickerMonth(parseDisplayDateToIso(rescheduleDateDraft.value))
-  }
 }
 
 function prefillRescheduleDraft() {
@@ -2867,119 +2704,6 @@ watch(
   display: grid;
   gap: 10px;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-}
-
-.date-picker-field {
-  position: relative;
-  display: flex;
-  align-items: stretch;
-}
-
-.date-picker-field .input {
-  width: 100%;
-  padding-right: 44px;
-}
-
-.date-picker-toggle {
-  position: absolute;
-  top: 50%;
-  right: 6px;
-  display: inline-flex;
-  width: 32px;
-  height: 32px;
-  transform: translateY(-50%);
-  align-items: center;
-  justify-content: center;
-  border: 0;
-  border-radius: 8px;
-  background: transparent;
-  color: var(--pc-text-muted);
-  cursor: pointer;
-}
-
-.date-picker-toggle:hover,
-.date-picker-toggle:focus-visible {
-  background: color-mix(in srgb, var(--pc-blue-soft) 70%, #ffffff);
-  color: var(--pc-navy-900);
-  outline: none;
-}
-
-.date-picker-popover {
-  position: absolute;
-  z-index: 30;
-  top: calc(100% + 6px);
-  left: 0;
-  width: min(306px, calc(100vw - 32px));
-  border: 1px solid var(--pc-border);
-  border-radius: var(--pc-radius-card);
-  background: #fff;
-  box-shadow: var(--pc-shadow-soft);
-  padding: 10px;
-}
-
-.date-picker-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 8px;
-}
-
-.date-picker-title {
-  color: var(--pc-navy-900);
-  font-weight: 700;
-  text-transform: capitalize;
-}
-
-.date-picker-nav {
-  display: inline-flex;
-  width: 30px;
-  height: 30px;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid var(--pc-border);
-  border-radius: 8px;
-  background: #fff;
-  color: var(--pc-navy-900);
-  cursor: pointer;
-}
-
-.date-picker-weekdays,
-.date-picker-grid {
-  display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 4px;
-}
-
-.date-picker-weekday {
-  color: var(--pc-text-muted);
-  font-size: 12px;
-  text-align: center;
-}
-
-.date-picker-day {
-  min-width: 0;
-  height: 32px;
-  border: 0;
-  border-radius: 8px;
-  background: #fff;
-  color: var(--pc-navy-900);
-  cursor: pointer;
-}
-
-.date-picker-day:hover,
-.date-picker-day:focus-visible {
-  background: color-mix(in srgb, var(--pc-blue-soft) 70%, #ffffff);
-  outline: none;
-}
-
-.date-picker-day--muted {
-  color: color-mix(in srgb, var(--pc-text-muted) 62%, #ffffff);
-}
-
-.date-picker-day--selected {
-  background: var(--pc-navy-900);
-  color: #fff;
 }
 
 .reschedule-actions {
