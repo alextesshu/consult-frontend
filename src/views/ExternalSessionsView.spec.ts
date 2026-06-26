@@ -839,22 +839,32 @@ describe('ExternalSessionsView', () => {
     const dialog = await screen.findByRole('dialog', { name: 'Створити сесію' })
     const modal = within(dialog)
     const dateInput = modal.getByLabelText('Дата')
-    const timeInput = modal.getByLabelText('Час початку')
-    expect(dateInput).toHaveAttribute('placeholder', 'дд.мм.рррр')
+    const timeSelect = modal.getByLabelText('Час початку')
+    expect(dateInput).toHaveAttribute('type', 'text')
+    expect(dateInput).toHaveAttribute('placeholder', 'ДД.ММ.РРРР')
+    expect(dialog.querySelector('input[type="date"]')).not.toBeInTheDocument()
+    expect(dialog.querySelector('input[type="time"]')).not.toBeInTheDocument()
     expect((dateInput as HTMLInputElement).value).toMatch(/^\d{2}\.\d{2}\.\d{4}$/)
-    expect(timeInput.tagName).toBe('INPUT')
-    expect(timeInput).toHaveAttribute('list', 'slotless-session-time-options')
-    expect(timeInput).toHaveAttribute('placeholder', 'ГГ:ХХ')
-    const suggestedTimes = Array.from(document.querySelectorAll('datalist#slotless-session-time-options option')).map(
-      (item) => item.getAttribute('value')
-    )
-    expect(suggestedTimes).toHaveLength(65)
-    expect(suggestedTimes[0]).toBe('07:00')
-    expect(suggestedTimes[1]).toBe('07:15')
-    expect(suggestedTimes[64]).toBe('23:00')
+    expect(timeSelect.tagName).toBe('SELECT')
+    expect(within(timeSelect as HTMLElement).getByRole('option', { name: '09:10' })).toBeInTheDocument()
+    expect(within(timeSelect as HTMLElement).queryByRole('option', { name: '09:25' })).not.toBeInTheDocument()
+    expect(dialog.textContent).not.toMatch(/\b(?:AM|PM)\b/)
+
+    await fireEvent.click(modal.getByRole('button', { name: 'Відкрити календар' }))
+    expect(modal.getByRole('button', { name: 'Попередній місяць' })).toBeInTheDocument()
+    await fireEvent.focus(timeSelect)
+    expect(modal.queryByRole('button', { name: 'Попередній місяць' })).not.toBeInTheDocument()
+    await fireEvent.click(modal.getByRole('button', { name: 'Відкрити календар' }))
+    const currentDisplayDate = (dateInput as HTMLInputElement).value
+    await fireEvent.click(modal.getByRole('button', { name: currentDisplayDate }))
+    expect((dateInput as HTMLInputElement).value).toBe(currentDisplayDate)
+
+    await fireEvent.update(dateInput, '5.6.2099')
+    await fireEvent.blur(dateInput)
+    expect((dateInput as HTMLInputElement).value).toBe('05.06.2099')
 
     await fireEvent.update(dateInput, '20.06.2099')
-    await fireEvent.update(timeInput, '09:10')
+    await fireEvent.update(timeSelect, '09:10')
     await fireEvent.update(modal.getByLabelText('Тривалість'), '50')
     await fireEvent.update(modal.getByLabelText('Посилання на онлайн-зустріч'), 'https://meet.google.com/manual')
     await fireEvent.click(modal.getByRole('button', { name: 'Створити сесію' }))
@@ -899,11 +909,46 @@ describe('ExternalSessionsView', () => {
 
     const dialog = await screen.findByRole('dialog', { name: 'Створити сесію' })
     const modal = within(dialog)
+    await waitFor(() => {
+      expect(mockedFetchSpecialistProfile).toHaveBeenCalled()
+      expect((modal.getByLabelText('Дата') as HTMLInputElement).value).toMatch(/^\d{2}\.\d{2}\.\d{4}$/)
+    })
     await fireEvent.update(modal.getByLabelText('Дата'), '20.06.2099')
-    await fireEvent.update(modal.getByLabelText('Час початку'), '9:7')
+    await fireEvent.update(modal.getByLabelText('Час початку'), '')
     await fireEvent.click(modal.getByRole('button', { name: 'Створити сесію' }))
 
-    expect(await screen.findByText('Введіть час у форматі ГГ:ХХ, наприклад 09:30.')).toBeInTheDocument()
+    expect(await screen.findByText('Оберіть час початку.')).toBeInTheDocument()
+    expect(mockedCreateSessionFromCabinetGuestBookingRequest).not.toHaveBeenCalled()
+  })
+
+  it('blocks slot-less create-session submit when start date format is invalid', async () => {
+    mockedFetchCabinetGuestBookingRequests.mockResolvedValue([
+      buildGuestRequest({
+        id: 68,
+        slot_id: null,
+        has_slot: false,
+        is_slotless_request: true,
+        requested_slot_start: null,
+        requested_slot_end: null,
+        client_name: 'Invalid Date Guest',
+      }),
+    ] as any)
+
+    renderView()
+    await screen.findByText('Запит без обраного часу')
+    await fireEvent.click(screen.getByRole('button', { name: 'Створити сесію' }))
+
+    const dialog = await screen.findByRole('dialog', { name: 'Створити сесію' })
+    const modal = within(dialog)
+    await waitFor(() => {
+      expect(mockedFetchSpecialistProfile).toHaveBeenCalled()
+      expect((modal.getByLabelText('Дата') as HTMLInputElement).value).toMatch(/^\d{2}\.\d{2}\.\d{4}$/)
+    })
+    await fireEvent.update(modal.getByLabelText('Дата'), '31.02.2099')
+    await fireEvent.update(modal.getByLabelText('Час початку'), '09:10')
+    await fireEvent.click(modal.getByRole('button', { name: 'Створити сесію' }))
+
+    expect(await screen.findByText('Введіть дату у форматі ДД.ММ.РРРР, наприклад 25.06.2026.')).toBeInTheDocument()
     expect(mockedCreateSessionFromCabinetGuestBookingRequest).not.toHaveBeenCalled()
   })
 

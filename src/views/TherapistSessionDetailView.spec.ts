@@ -1605,14 +1605,200 @@ describe('TherapistSessionDetailView', () => {
     expect(await screen.findByText('client@example.com')).toBeInTheDocument()
 
     await fireEvent.click(screen.getByRole('button', { name: 'Перенести' }))
-    expect(await screen.findByText('Новий слот для сесії')).toBeInTheDocument()
+    const reschedulePanel = await screen.findByTestId('reschedule-panel')
+    expect(within(reschedulePanel).getByRole('heading', { name: 'Перенести сесію' })).toBeInTheDocument()
+    expect(screen.getByText(/ID: #77/).closest('section')).toContainElement(reschedulePanel)
+    expect(within(reschedulePanel).getByText('Для переносу оберіть один із доступних слотів.')).toBeInTheDocument()
+    const dateInput = within(reschedulePanel).getByLabelText('Нова дата')
+    const timeSelect = within(reschedulePanel).getByLabelText('Час початку')
+    expect(dateInput).toHaveAttribute('type', 'text')
+    expect(dateInput).toHaveAttribute('placeholder', 'ДД.ММ.РРРР')
+    expect(reschedulePanel.querySelector('input[type="date"]')).not.toBeInTheDocument()
+    expect(reschedulePanel.querySelector('input[type="time"]')).not.toBeInTheDocument()
+    expect(timeSelect.tagName).toBe('SELECT')
+    expect(within(timeSelect as HTMLElement).getByRole('option', { name: '09:10' })).toBeInTheDocument()
+    expect(within(timeSelect as HTMLElement).queryByRole('option', { name: '09:25' })).not.toBeInTheDocument()
+    await waitFor(() => {
+      expect((dateInput as HTMLInputElement).value).toMatch(/^\d{2}\.\d{2}\.\d{4}$/)
+      expect((timeSelect as HTMLSelectElement).value).toMatch(/^\d{2}:\d{2}$/)
+    })
+    expect(reschedulePanel.textContent).not.toMatch(/\b(?:AM|PM)\b/)
+    await fireEvent.click(within(reschedulePanel).getByRole('button', { name: 'Відкрити календар' }))
+    expect(within(reschedulePanel).getByRole('button', { name: 'Попередній місяць' })).toBeInTheDocument()
+    await fireEvent.focus(timeSelect)
+    expect(within(reschedulePanel).queryByRole('button', { name: 'Попередній місяць' })).not.toBeInTheDocument()
+    await fireEvent.click(within(reschedulePanel).getByRole('button', { name: 'Відкрити календар' }))
+    const currentDisplayDate = (dateInput as HTMLInputElement).value
+    await fireEvent.click(within(reschedulePanel).getByRole('button', { name: currentDisplayDate }))
+    expect((dateInput as HTMLInputElement).value).toBe(currentDisplayDate)
     expect(screen.getByRole('button', { name: 'Сховати перенос' })).toBeInTheDocument()
 
-    await fireEvent.click(screen.getByRole('button', { name: 'Сховати перенос' }))
+    const cancelButton = within(reschedulePanel).getAllByRole('button', { name: 'Скасувати' })[0]
+    if (!cancelButton) {
+      throw new Error('Cancel reschedule button not found')
+    }
+    await fireEvent.click(cancelButton)
 
     await waitFor(() => {
-      expect(screen.queryByText('Новий слот для сесії')).not.toBeInTheDocument()
+      expect(screen.queryByTestId('reschedule-panel')).not.toBeInTheDocument()
     })
+  })
+
+  it('reschedules a confirmed session from visible date and time fields when they match an available slot', async () => {
+    const updatedSlot = buildSlot({
+      id: 71,
+      start_at: '2099-06-20T09:10:00',
+      end_at: '2099-06-20T10:10:00',
+    })
+    let sessionDetail = buildSession({ status: 'CONFIRMED' })
+
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === `/booking/sessions/${mockRoute.params.id}/`) {
+        return sessionDetail
+      }
+
+      if (url === '/cabinet/slots/') {
+        return [updatedSlot]
+      }
+
+      if (url === `/booking/sessions/${mockRoute.params.id}/reschedule-suggestions/`) {
+        return {
+          suggestions: [],
+        }
+      }
+
+      if (url === `/cabinet/sessions/${mockRoute.params.id}/note/`) {
+        return {
+          content: 'Progress note',
+        }
+      }
+
+      if (url === '/cabinet/sessions/reschedule-requests/') {
+        return []
+      }
+
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    mockedApiPatch.mockImplementation(async (url, payload) => {
+      if (url === '/booking/sessions/42/reschedule/') {
+        expect(payload).toEqual({ slot_id: 71 })
+        sessionDetail = {
+          ...sessionDetail,
+          slot_start_at: updatedSlot.start_at,
+          slot_end_at: updatedSlot.end_at,
+        }
+        return {}
+      }
+
+      throw new Error(`Unexpected apiPatch call: ${url}`)
+    })
+
+    renderView()
+
+    expect(await screen.findByText('client@example.com')).toBeInTheDocument()
+    await fireEvent.click(screen.getByRole('button', { name: 'Перенести' }))
+
+    const reschedulePanel = await screen.findByTestId('reschedule-panel')
+    const dateField = within(reschedulePanel).getByLabelText('Нова дата')
+    await fireEvent.update(dateField, '20.6.2099')
+    await fireEvent.blur(dateField)
+    expect((dateField as HTMLInputElement).value).toBe('20.06.2099')
+    await fireEvent.update(within(reschedulePanel).getByLabelText('Нова дата'), '20.06.2099')
+    await fireEvent.update(within(reschedulePanel).getByLabelText('Час початку'), '09:10')
+    await fireEvent.click(within(reschedulePanel).getByRole('button', { name: 'Перенести сесію' }))
+
+    await waitFor(() => {
+      expect(mockedApiPatch).toHaveBeenCalledWith('/booking/sessions/42/reschedule/', {
+        slot_id: 71,
+      })
+      expect(mockToast.success).toHaveBeenCalledWith(BOOKING_SUCCESS_MESSAGES.sessionRescheduled)
+    })
+  })
+
+  it('blocks reschedule date and time submit when no available slot matches', async () => {
+    const updatedSlot = buildSlot({
+      id: 72,
+      start_at: '2099-06-20T09:10:00',
+      end_at: '2099-06-20T10:10:00',
+    })
+    const sessionDetail = buildSession({ status: 'CONFIRMED' })
+    mockDetailContext(() => sessionDetail, {
+      slots: [updatedSlot],
+      suggestions: [],
+      requests: [],
+    })
+
+    renderView()
+
+    expect(await screen.findByText('client@example.com')).toBeInTheDocument()
+    await fireEvent.click(screen.getByRole('button', { name: 'Перенести' }))
+
+    const reschedulePanel = await screen.findByTestId('reschedule-panel')
+    await fireEvent.update(within(reschedulePanel).getByLabelText('Нова дата'), '20.06.2099')
+    await fireEvent.update(within(reschedulePanel).getByLabelText('Час початку'), '09:20')
+    await fireEvent.click(within(reschedulePanel).getByRole('button', { name: 'Перенести сесію' }))
+
+    expect(
+      await within(reschedulePanel).findByText('Для цього часу немає доступного слота. Оберіть час із запропонованих слотів.')
+    ).toBeInTheDocument()
+    expect(mockedApiPatch).not.toHaveBeenCalledWith('/booking/sessions/42/reschedule/', expect.anything())
+  })
+
+  it('blocks reschedule submit when visible date format is invalid', async () => {
+    const updatedSlot = buildSlot({
+      id: 73,
+      start_at: '2099-06-20T09:10:00',
+      end_at: '2099-06-20T10:10:00',
+    })
+    const sessionDetail = buildSession({ status: 'CONFIRMED' })
+    mockDetailContext(() => sessionDetail, {
+      slots: [updatedSlot],
+      suggestions: [],
+      requests: [],
+    })
+
+    renderView()
+
+    expect(await screen.findByText('client@example.com')).toBeInTheDocument()
+    await fireEvent.click(screen.getByRole('button', { name: 'Перенести' }))
+
+    const reschedulePanel = await screen.findByTestId('reschedule-panel')
+    await fireEvent.update(within(reschedulePanel).getByLabelText('Нова дата'), '31.02.2099')
+    await fireEvent.update(within(reschedulePanel).getByLabelText('Час початку'), '09:10')
+    await fireEvent.click(within(reschedulePanel).getByRole('button', { name: 'Перенести сесію' }))
+
+    expect(
+      await within(reschedulePanel).findByText('Введіть дату у форматі ДД.ММ.РРРР, наприклад 25.06.2026.')
+    ).toBeInTheDocument()
+    expect(mockedApiPatch).not.toHaveBeenCalledWith('/booking/sessions/42/reschedule/', expect.anything())
+  })
+
+  it('blocks reschedule submit when start time is missing', async () => {
+    const updatedSlot = buildSlot({
+      id: 74,
+      start_at: '2099-06-20T09:10:00',
+      end_at: '2099-06-20T10:10:00',
+    })
+    const sessionDetail = buildSession({ status: 'CONFIRMED' })
+    mockDetailContext(() => sessionDetail, {
+      slots: [updatedSlot],
+      suggestions: [],
+      requests: [],
+    })
+
+    renderView()
+
+    expect(await screen.findByText('client@example.com')).toBeInTheDocument()
+    await fireEvent.click(screen.getByRole('button', { name: 'Перенести' }))
+
+    const reschedulePanel = await screen.findByTestId('reschedule-panel')
+    await fireEvent.update(within(reschedulePanel).getByLabelText('Нова дата'), '20.06.2099')
+    await fireEvent.update(within(reschedulePanel).getByLabelText('Час початку'), '')
+    await fireEvent.click(within(reschedulePanel).getByRole('button', { name: 'Перенести сесію' }))
+
+    expect(await within(reschedulePanel).findByText('Оберіть час початку.')).toBeInTheDocument()
+    expect(mockedApiPatch).not.toHaveBeenCalledWith('/booking/sessions/42/reschedule/', expect.anything())
   })
 
   it('reschedules a confirmed session from detail suggestions and refreshes the session context', async () => {
@@ -1683,23 +1869,13 @@ describe('TherapistSessionDetailView', () => {
     }
 
     await fireEvent.click(rescheduleButton)
-    await waitFor(() => {
-      expect(document.querySelector('.slot-list')).not.toBeNull()
+    const reschedulePanel = await screen.findByTestId('reschedule-panel')
+    const suggestionButton = within(reschedulePanel).getByRole('button', {
+      name: `${formatSessionDateTime(updatedSuggestion.start_at)} · 1 год Найближче доступне вікно`,
     })
-    const reschedulePanel = document.querySelector('.slot-list')?.closest('section')
-    expect(reschedulePanel).not.toBeNull()
-
-    const panelButtons = within(reschedulePanel as HTMLElement).getAllByRole('button')
-    const suggestionButton = panelButtons[0]
-    if (!suggestionButton) {
-      throw new Error('Suggestion button not found')
-    }
     await fireEvent.click(suggestionButton)
 
-    const confirmRescheduleButton = within(reschedulePanel as HTMLElement).getAllByRole('button')[1]
-    if (!confirmRescheduleButton) {
-      throw new Error('Confirm reschedule button not found')
-    }
+    const confirmRescheduleButton = within(reschedulePanel).getByRole('button', { name: 'Підтвердити перенос' })
     await fireEvent.click(confirmRescheduleButton)
 
     await waitFor(() => {

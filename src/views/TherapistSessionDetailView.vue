@@ -75,6 +75,175 @@
           </div>
         </div>
 
+        <div
+          v-if="showReschedulePanel"
+          ref="reschedulePanelRef"
+          class="reschedule-panel"
+          data-testid="reschedule-panel"
+          @pointerdown="handleReschedulePanelPointerDown"
+        >
+          <div class="reschedule-panel__header">
+            <div>
+              <h3 class="reschedule-panel__title">Перенести сесію</h3>
+              <p class="muted reschedule-panel__hint">
+                Для переносу оберіть один із доступних слотів.
+              </p>
+            </div>
+            <button
+              class="btn btn--ghost btn--sm"
+              type="button"
+              :disabled="actionLoading"
+              @click="closeReschedulePanel"
+            >
+              Скасувати
+            </button>
+          </div>
+
+          <div v-if="rescheduleFormError" class="form-error">{{ rescheduleFormError }}</div>
+
+          <div class="reschedule-form-grid">
+            <label class="field">
+              <span class="muted">Нова дата</span>
+              <div class="date-picker-field">
+                <input
+                  v-model="rescheduleDateDraft"
+                  class="input"
+                  type="text"
+                  inputmode="numeric"
+                  maxlength="10"
+                  placeholder="ДД.ММ.РРРР"
+                  :disabled="actionLoading"
+                  @click="openRescheduleDatePicker"
+                  @focus="openRescheduleDatePicker"
+                  @blur="normalizeRescheduleDate"
+                />
+                <button
+                  class="date-picker-toggle"
+                  type="button"
+                  aria-label="Відкрити календар"
+                  :disabled="actionLoading"
+                  @click="toggleRescheduleDatePicker"
+                >
+                  ▾
+                </button>
+                <div v-if="rescheduleDatePickerOpen" class="date-picker-popover">
+                  <div class="date-picker-header">
+                    <button class="date-picker-nav" type="button" aria-label="Попередній місяць" @click="moveRescheduleDatePickerMonth(-1)">‹</button>
+                    <div class="date-picker-title">{{ rescheduleDatePickerMonthLabel }}</div>
+                    <button class="date-picker-nav" type="button" aria-label="Наступний місяць" @click="moveRescheduleDatePickerMonth(1)">›</button>
+                  </div>
+                  <div class="date-picker-weekdays">
+                    <span v-for="weekday in datePickerWeekdays" :key="weekday" class="date-picker-weekday">{{ weekday }}</span>
+                  </div>
+                  <div class="date-picker-grid">
+                    <button
+                      v-for="day in rescheduleDatePickerDays"
+                      :key="day.key"
+                      class="date-picker-day"
+                      :class="{
+                        'date-picker-day--muted': !day.inCurrentMonth,
+                        'date-picker-day--selected': day.displayDate === rescheduleDateDraft,
+                      }"
+                      type="button"
+                      :aria-label="day.displayDate"
+                      @click="selectRescheduleDate(day.isoDate)"
+                    >
+                      {{ day.day }}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </label>
+            <label class="field">
+              <span class="muted">Час початку</span>
+              <select
+                v-model="rescheduleTimeDraft"
+                class="input input--select"
+                :disabled="actionLoading"
+                @click="closeRescheduleDatePicker"
+                @focus="closeRescheduleDatePicker"
+              >
+                <option v-for="option in rescheduleTimeOptions" :key="option" :value="option">
+                  {{ option }}
+                </option>
+              </select>
+            </label>
+            <div class="field">
+              <span class="muted">Тривалість</span>
+              <div class="input input--readonly">{{ currentSessionDurationLabel }}</div>
+            </div>
+          </div>
+
+          <div class="reschedule-actions">
+            <button
+              class="btn btn--sm"
+              type="button"
+              :disabled="actionLoading"
+              @click="submitRescheduleDraft"
+            >
+              Перенести сесію
+            </button>
+            <button
+              class="btn btn--ghost btn--sm"
+              type="button"
+              :disabled="actionLoading"
+              @click="closeReschedulePanel"
+            >
+              Скасувати
+            </button>
+          </div>
+
+          <div class="suggestions-block">
+            <div class="muted suggestions-title">Рекомендовані варіанти</div>
+            <div v-if="suggestionsLoading" class="muted">Завантаження рекомендацій...</div>
+            <div v-else-if="rescheduleSuggestions.length === 0" class="muted">
+              Для цієї сесії зараз немає окремих рекомендацій.
+            </div>
+            <div v-else class="suggestions-list">
+              <button
+                v-for="item in rescheduleSuggestions.slice(0, 5)"
+                :key="item.slot_id"
+                class="btn btn--ghost btn--sm suggestion-btn"
+                :class="{ 'suggestion-btn--active': selectedSuggestionSlotId === item.slot_id }"
+                type="button"
+                :disabled="actionLoading"
+                @click="selectSuggestedSlot(item.slot_id)"
+              >
+                <span>{{ formatDateTime(item.start_at) }} · {{ formatDuration(item.start_at, item.end_at) }}</span>
+                <span class="muted suggestion-meta">{{ suggestionReasonLabel(item.reason_tag) }}</span>
+              </button>
+            </div>
+            <button
+              v-if="selectedSuggestionSlotId"
+              class="btn btn--sm"
+              type="button"
+              :disabled="actionLoading"
+              @click="submitSelectedSuggestion"
+            >
+              Підтвердити перенос
+            </button>
+          </div>
+
+          <div v-if="slotsLoading" class="muted">Завантаження слотів...</div>
+          <div v-else-if="availableSlots.length === 0" class="muted">Немає доступних слотів для переносу.</div>
+          <div v-else class="slot-list">
+            <article v-for="slot in availableSlots" :key="slot.id" class="slot-card">
+              <div>
+                <div class="slot-time">{{ formatDateTime(slot.start_at) }}</div>
+                <div class="muted">{{ formatDuration(slot.start_at, slot.end_at) }}</div>
+              </div>
+              <button
+                class="btn btn--ghost btn--sm"
+                type="button"
+                :disabled="actionLoading"
+                @click="submitReschedule(slot.id)"
+              >
+                Перенести сюди
+              </button>
+            </article>
+          </div>
+        </div>
+
         <div class="detail-grid">
           <div class="detail-card">
             <div class="detail-label">Початок</div>
@@ -569,66 +738,6 @@
         </div>
       </section>
 
-      <section v-if="showReschedulePanel" class="panel">
-        <div class="panel__header">
-          <div>
-            <h2 class="panel__title">Новий слот для сесії</h2>
-          </div>
-        </div>
-        <div class="muted">
-          Оберіть доступне вікно або скористайтеся рекомендованими варіантами переносу.
-        </div>
-        <div class="suggestions-block">
-          <div class="muted suggestions-title">Рекомендовані варіанти</div>
-          <div v-if="suggestionsLoading" class="muted">Завантаження рекомендацій...</div>
-          <div v-else-if="rescheduleSuggestions.length === 0" class="muted">
-            Для цієї сесії зараз немає окремих рекомендацій.
-          </div>
-          <div v-else class="suggestions-list">
-            <button
-              v-for="item in rescheduleSuggestions.slice(0, 5)"
-              :key="item.slot_id"
-              class="btn btn--ghost btn--sm suggestion-btn"
-              :class="{ 'suggestion-btn--active': selectedSuggestionSlotId === item.slot_id }"
-              type="button"
-              :disabled="actionLoading"
-              @click="selectSuggestedSlot(item.slot_id)"
-            >
-              <span>{{ formatDateTime(item.start_at) }} · {{ formatDuration(item.start_at, item.end_at) }}</span>
-              <span class="muted suggestion-meta">{{ suggestionReasonLabel(item.reason_tag) }}</span>
-            </button>
-          </div>
-          <button
-            v-if="selectedSuggestionSlotId"
-            class="btn btn--sm"
-            type="button"
-            :disabled="actionLoading"
-            @click="submitSelectedSuggestion"
-          >
-            Підтвердити перенос
-          </button>
-        </div>
-
-        <div v-if="slotsLoading" class="muted">Завантаження слотів...</div>
-        <div v-else-if="availableSlots.length === 0" class="muted">Немає доступних слотів для переносу.</div>
-        <div v-else class="slot-list">
-          <article v-for="slot in availableSlots" :key="slot.id" class="slot-card">
-            <div>
-              <div class="slot-time">{{ formatDateTime(slot.start_at) }}</div>
-              <div class="muted">{{ formatDuration(slot.start_at, slot.end_at) }}</div>
-            </div>
-            <button
-              class="btn btn--ghost btn--sm"
-              type="button"
-              :disabled="actionLoading"
-              @click="submitReschedule(slot.id)"
-            >
-              Перенести сюди
-            </button>
-          </article>
-        </div>
-      </section>
-
       <section v-if="showRecurringPanel" class="panel">
         <div class="panel__header">
           <div>
@@ -1047,6 +1156,12 @@ const availableSlots = ref<SpecialistSlot[]>([])
 const suggestionsLoading = ref(false)
 const rescheduleSuggestions = ref<SpecialistRescheduleSuggestion[]>([])
 const selectedSuggestionSlotId = ref<number | null>(null)
+const rescheduleDateDraft = ref('')
+const rescheduleTimeDraft = ref('')
+const rescheduleDatePickerOpen = ref(false)
+const rescheduleDatePickerMonth = ref(startOfLocalMonth(new Date()))
+const rescheduleFormError = ref('')
+const reschedulePanelRef = ref<HTMLElement | null>(null)
 const requestsLoading = ref(false)
 const rescheduleRequests = ref<SpecialistRescheduleRequest[]>([])
 const requestLoading = ref<Set<number>>(new Set())
@@ -1076,6 +1191,9 @@ const meetingLinkFocused = ref(false)
 const quickAddPending = ref(false)
 const quickAddModalOpen = ref(false)
 const quickAddModalError = ref('')
+
+const INVALID_RESCHEDULE_DATE_FORMAT_MESSAGE = 'Введіть дату у форматі ДД.ММ.РРРР, наприклад 25.06.2026.'
+const INVALID_RESCHEDULE_TIME_FORMAT_MESSAGE = 'Оберіть час початку.'
 
 function normalizeSessionFormat(detail: SessionDetail | null): SessionFormat {
   if (!detail) return 'online'
@@ -1151,6 +1269,28 @@ const postSessionClientLink = computed(() => {
 const sessionRequests = computed(() =>
   session.value ? rescheduleRequests.value.filter((item) => item.session_id === session.value?.id) : []
 )
+
+const rescheduleTimeOptions = buildTenMinuteTimeOptions()
+const datePickerWeekdays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд']
+const rescheduleDatePickerMonthLabel = computed(() => formatDatePickerMonth(rescheduleDatePickerMonth.value))
+const rescheduleDatePickerDays = computed(() => buildDatePickerDays(rescheduleDatePickerMonth.value))
+
+const matchingRescheduleSlot = computed(() => {
+  if (!rescheduleDateDraft.value || !rescheduleTimeDraft.value) return null
+  return (
+    availableSlots.value.find((slot) => {
+      return (
+        localDateInputValue(slot.start_at) === rescheduleDateDraft.value &&
+        localTimeInputValue(slot.start_at) === rescheduleTimeDraft.value
+      )
+    }) || null
+  )
+})
+
+const currentSessionDurationLabel = computed(() => {
+  if (!session.value) return 'Поточна тривалість'
+  return formatDuration(sessionStartAt(session.value), sessionEndAt(session.value))
+})
 
 const workspace = computed<SessionWorkspace | null>(() => session.value?.workspace || null)
 
@@ -1418,6 +1558,154 @@ function formatDateTime(value?: string | null) {
 
 function formatDuration(start?: string | null, end?: string | null) {
   return sharedFormatSessionDuration(start, end)
+}
+
+function localDateInputValue(value?: string | null) {
+  if (!value) return ''
+  const parsed = new Date(value)
+  if (Number.isNaN(parsed.getTime())) return ''
+  const day = String(parsed.getDate()).padStart(2, '0')
+  const month = String(parsed.getMonth() + 1).padStart(2, '0')
+  const year = parsed.getFullYear()
+  return `${day}.${month}.${year}`
+}
+
+function localTimeInputValue(value?: string | null) {
+  if (!value) return ''
+  const parsed = new Date(value)
+  if (Number.isNaN(parsed.getTime())) return ''
+  const hours = String(parsed.getHours()).padStart(2, '0')
+  const minutes = String(parsed.getMinutes()).padStart(2, '0')
+  return `${hours}:${minutes}`
+}
+
+function parseDisplayDateToIso(value: string) {
+  const match = /^(\d{1,2})\.(\d{1,2})\.(\d{4})$/.exec(String(value || '').trim())
+  if (!match) return ''
+  const day = Number(match[1])
+  const month = Number(match[2])
+  const year = Number(match[3])
+  const parsed = new Date(Date.UTC(year, month - 1, day))
+  if (
+    parsed.getUTCFullYear() !== year ||
+    parsed.getUTCMonth() !== month - 1 ||
+    parsed.getUTCDate() !== day
+  ) {
+    return ''
+  }
+  return `${match[3]}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+}
+
+function formatIsoDateForDisplay(value: string) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value || '').trim())
+  if (!match) return ''
+  return `${match[3]}.${match[2]}.${match[1]}`
+}
+
+function buildTenMinuteTimeOptions() {
+  const options: string[] = []
+  for (let minutes = 7 * 60; minutes <= 23 * 60 + 50; minutes += 10) {
+    const hours = String(Math.floor(minutes / 60)).padStart(2, '0')
+    const mins = String(minutes % 60).padStart(2, '0')
+    options.push(`${hours}:${mins}`)
+  }
+  return options
+}
+
+function startOfLocalMonth(value: Date) {
+  return new Date(value.getFullYear(), value.getMonth(), 1)
+}
+
+function isoDateToLocalDate(value: string) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value || '').trim())
+  if (!match) return null
+  const year = Number(match[1])
+  const month = Number(match[2])
+  const day = Number(match[3])
+  const parsed = new Date(year, month - 1, day)
+  if (parsed.getFullYear() !== year || parsed.getMonth() !== month - 1 || parsed.getDate() !== day) {
+    return null
+  }
+  return parsed
+}
+
+function localDateToIsoDate(value: Date) {
+  const year = value.getFullYear()
+  const month = String(value.getMonth() + 1).padStart(2, '0')
+  const day = String(value.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+function formatDatePickerMonth(value: Date) {
+  return new Intl.DateTimeFormat('uk-UA', { month: 'long', year: 'numeric' }).format(value)
+}
+
+function buildDatePickerDays(monthValue: Date) {
+  const monthStart = startOfLocalMonth(monthValue)
+  const gridStart = new Date(monthStart)
+  const mondayOffset = (monthStart.getDay() + 6) % 7
+  gridStart.setDate(monthStart.getDate() - mondayOffset)
+
+  return Array.from({ length: 42 }, (_, index) => {
+    const date = new Date(gridStart)
+    date.setDate(gridStart.getDate() + index)
+    const isoDate = localDateToIsoDate(date)
+    return {
+      key: isoDate,
+      isoDate,
+      displayDate: formatIsoDateForDisplay(isoDate),
+      day: date.getDate(),
+      inCurrentMonth: date.getMonth() === monthStart.getMonth(),
+    }
+  })
+}
+
+function normalizeRescheduleDate() {
+  const isoDate = parseDisplayDateToIso(rescheduleDateDraft.value)
+  if (!isoDate) return
+  rescheduleDateDraft.value = formatIsoDateForDisplay(isoDate)
+  syncRescheduleDatePickerMonth(isoDate)
+}
+
+function syncRescheduleDatePickerMonth(isoDate?: string) {
+  const parsed = isoDateToLocalDate(isoDate || parseDisplayDateToIso(rescheduleDateDraft.value))
+  rescheduleDatePickerMonth.value = startOfLocalMonth(parsed || new Date())
+}
+
+function openRescheduleDatePicker() {
+  if (actionLoading.value) return
+  syncRescheduleDatePickerMonth()
+  rescheduleDatePickerOpen.value = true
+}
+
+function closeRescheduleDatePicker() {
+  rescheduleDatePickerOpen.value = false
+}
+
+function handleReschedulePanelPointerDown(event: PointerEvent) {
+  const target = event.target as HTMLElement | null
+  if (!target || target.closest('.date-picker-field')) return
+  closeRescheduleDatePicker()
+}
+
+function toggleRescheduleDatePicker() {
+  if (actionLoading.value) return
+  if (rescheduleDatePickerOpen.value) {
+    rescheduleDatePickerOpen.value = false
+    return
+  }
+  openRescheduleDatePicker()
+}
+
+function moveRescheduleDatePickerMonth(delta: number) {
+  const current = rescheduleDatePickerMonth.value
+  rescheduleDatePickerMonth.value = new Date(current.getFullYear(), current.getMonth() + delta, 1)
+}
+
+function selectRescheduleDate(isoDate: string) {
+  rescheduleDateDraft.value = formatIsoDateForDisplay(isoDate)
+  syncRescheduleDatePickerMonth(isoDate)
+  rescheduleDatePickerOpen.value = false
 }
 
 function normalizeClientDisplay(value?: string | null) {
@@ -1995,6 +2283,9 @@ async function loadSlots() {
   slotsLoading.value = true
   try {
     availableSlots.value = await fetchSpecialistAvailableSlotsData()
+    if (showReschedulePanel.value) {
+      prefillRescheduleDraft()
+    }
   } catch {
     availableSlots.value = []
   } finally {
@@ -2007,6 +2298,9 @@ async function loadRescheduleSuggestions() {
   suggestionsLoading.value = true
   try {
     rescheduleSuggestions.value = await fetchSpecialistRescheduleSuggestionsData(sessionId.value)
+    if (showReschedulePanel.value) {
+      prefillRescheduleDraft()
+    }
   } catch {
     rescheduleSuggestions.value = []
   } finally {
@@ -2175,31 +2469,96 @@ async function cancelSession() {
   }
 }
 
-function toggleReschedulePanel() {
+async function toggleReschedulePanel() {
   showReschedulePanel.value = !showReschedulePanel.value
   if (showReschedulePanel.value) {
     showRecurringPanel.value = false
+    rescheduleFormError.value = ''
+    prefillRescheduleDraft()
+    await nextTick()
+    if (typeof reschedulePanelRef.value?.scrollIntoView === 'function') {
+      reschedulePanelRef.value.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+    }
+  } else {
+    closeReschedulePanel()
   }
+}
+
+function closeReschedulePanel() {
+  showReschedulePanel.value = false
+  selectedSuggestionSlotId.value = null
+  rescheduleFormError.value = ''
+  rescheduleDatePickerOpen.value = false
 }
 
 function toggleRecurringPanel() {
   showRecurringPanel.value = !showRecurringPanel.value
   if (showRecurringPanel.value) {
-    showReschedulePanel.value = false
+    closeReschedulePanel()
   }
 }
 
 function selectSuggestedSlot(slotId: number) {
   selectedSuggestionSlotId.value = slotId
+  const suggestion = rescheduleSuggestions.value.find((item) => item.slot_id === slotId)
+  const slot = availableSlots.value.find((item) => item.id === slotId)
+  setRescheduleDraftFromStart(suggestion?.start_at || slot?.start_at || '')
+  rescheduleFormError.value = ''
+}
+
+function setRescheduleDraftFromStart(value?: string | null) {
+  rescheduleDateDraft.value = localDateInputValue(value)
+  rescheduleTimeDraft.value = localTimeInputValue(value)
+  if (rescheduleDateDraft.value) {
+    syncRescheduleDatePickerMonth(parseDisplayDateToIso(rescheduleDateDraft.value))
+  }
+}
+
+function prefillRescheduleDraft() {
+  if (rescheduleDateDraft.value && rescheduleTimeDraft.value) return
+  const firstSuggestion = rescheduleSuggestions.value[0]
+  const firstSlot = availableSlots.value[0]
+  setRescheduleDraftFromStart(firstSuggestion?.start_at || firstSlot?.start_at || '')
+}
+
+async function submitRescheduleDraft() {
+  rescheduleFormError.value = ''
+  const isoDate = parseDisplayDateToIso(rescheduleDateDraft.value)
+  if (!isoDate) {
+    rescheduleFormError.value = INVALID_RESCHEDULE_DATE_FORMAT_MESSAGE
+    return
+  }
+  const normalizedTime = rescheduleTimeDraft.value
+  if (!rescheduleTimeOptions.includes(normalizedTime)) {
+    rescheduleFormError.value = INVALID_RESCHEDULE_TIME_FORMAT_MESSAGE
+    return
+  }
+  const selectedDateTime = new Date(`${isoDate}T${normalizedTime}`)
+  if (Number.isNaN(selectedDateTime.getTime())) {
+    rescheduleFormError.value = INVALID_RESCHEDULE_TIME_FORMAT_MESSAGE
+    return
+  }
+  if (selectedDateTime.getTime() <= Date.now()) {
+    rescheduleFormError.value = 'Неможливо перенести сесію в минуле. Оберіть майбутню дату або час.'
+    return
+  }
+  const slot = matchingRescheduleSlot.value
+  if (!slot) {
+    rescheduleFormError.value = 'Для цього часу немає доступного слота. Оберіть час із запропонованих слотів.'
+    return
+  }
+  await submitReschedule(slot.id)
 }
 
 async function submitReschedule(slotId: number) {
   if (!session.value) return
   actionLoading.value = true
   error.value = ''
+  rescheduleFormError.value = ''
   try {
     await rescheduleSpecialistSessionAction(session.value.id, slotId)
     selectedSuggestionSlotId.value = null
+    showReschedulePanel.value = false
     await refreshSessionContext()
     toast.success(BOOKING_SUCCESS_MESSAGES.sessionRescheduled)
   } catch (err: any) {
@@ -2475,6 +2834,165 @@ watch(
   flex-wrap: wrap;
   gap: 8px;
   justify-content: flex-end;
+}
+
+.reschedule-panel {
+  display: grid;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid color-mix(in srgb, var(--pc-navy-900) 24%, var(--pc-border));
+  border-radius: var(--pc-radius-md);
+  background: color-mix(in srgb, var(--pc-bg-card) 88%, var(--pc-blue-soft));
+}
+
+.reschedule-panel__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.reschedule-panel__title {
+  margin: 0;
+  color: var(--pc-navy-950);
+  font-family: var(--font-display);
+  font-size: 18px;
+}
+
+.reschedule-panel__hint {
+  margin: 4px 0 0;
+}
+
+.reschedule-form-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.date-picker-field {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+}
+
+.date-picker-field .input {
+  width: 100%;
+  padding-right: 44px;
+}
+
+.date-picker-toggle {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  display: inline-flex;
+  width: 32px;
+  height: 32px;
+  transform: translateY(-50%);
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--pc-text-muted);
+  cursor: pointer;
+}
+
+.date-picker-toggle:hover,
+.date-picker-toggle:focus-visible {
+  background: color-mix(in srgb, var(--pc-blue-soft) 70%, #ffffff);
+  color: var(--pc-navy-900);
+  outline: none;
+}
+
+.date-picker-popover {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 6px);
+  left: 0;
+  width: min(306px, calc(100vw - 32px));
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-card);
+  background: #fff;
+  box-shadow: var(--pc-shadow-soft);
+  padding: 10px;
+}
+
+.date-picker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.date-picker-title {
+  color: var(--pc-navy-900);
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.date-picker-nav {
+  display: inline-flex;
+  width: 30px;
+  height: 30px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--pc-border);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--pc-navy-900);
+  cursor: pointer;
+}
+
+.date-picker-weekdays,
+.date-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.date-picker-weekday {
+  color: var(--pc-text-muted);
+  font-size: 12px;
+  text-align: center;
+}
+
+.date-picker-day {
+  min-width: 0;
+  height: 32px;
+  border: 0;
+  border-radius: 8px;
+  background: #fff;
+  color: var(--pc-navy-900);
+  cursor: pointer;
+}
+
+.date-picker-day:hover,
+.date-picker-day:focus-visible {
+  background: color-mix(in srgb, var(--pc-blue-soft) 70%, #ffffff);
+  outline: none;
+}
+
+.date-picker-day--muted {
+  color: color-mix(in srgb, var(--pc-text-muted) 62%, #ffffff);
+}
+
+.date-picker-day--selected {
+  background: var(--pc-navy-900);
+  color: #fff;
+}
+
+.reschedule-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.input--readonly {
+  display: flex;
+  align-items: center;
+  min-height: 42px;
+  color: var(--pc-navy-900);
 }
 
 .next-step-rail {
@@ -3036,11 +3554,16 @@ watch(
   }
 
   .summary-actions .btn,
+  .reschedule-actions .btn,
   .meeting-card__actions .btn,
   .next-step-rail .btn,
   .note-actions .btn,
   .request-actions .btn {
     width: 100%;
+  }
+
+  .reschedule-panel__header {
+    flex-direction: column;
   }
 }
 </style>
