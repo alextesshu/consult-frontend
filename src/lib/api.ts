@@ -2364,6 +2364,38 @@ export async function signupClient(
   }
 }
 
+export type CabinetScheduleEventType = 'available_slot' | 'booked_slot' | 'session'
+
+export interface CabinetScheduleEvent {
+  type: CabinetScheduleEventType
+  id: string
+  slot_id: number | null
+  session_id: number | null
+  start_at: string
+  end_at: string
+  status: string
+  title: string
+  client_display_name: string | null
+  client_kind: 'registered' | 'guest' | 'unknown' | null
+}
+
+export interface CabinetScheduleResponse {
+  events: CabinetScheduleEvent[]
+}
+
+export async function getCabinetSchedule(
+  dateFrom: string,
+  dateTo: string
+): Promise<CabinetScheduleResponse> {
+  const resp = await http.get<CabinetScheduleResponse>('/cabinet/schedule/', {
+    params: {
+      date_from: dateFrom,
+      date_to: dateTo,
+    },
+  })
+  return resp.data
+}
+
 export async function apiGet<T>(url: string, config?: AxiosRequestConfig): Promise<T> {
   const resp = await http.get<T>(url, config)
   return resp.data

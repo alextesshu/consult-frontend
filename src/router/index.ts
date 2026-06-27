@@ -138,7 +138,7 @@ const routes = [
   {
     path: '/cabinet/schedule',
     name: 'cabinet-schedule',
-    redirect: { name: 'cabinet-availability-rules' },
+    component: SlotsView,
     meta: { requiresAuth: true, requiresRole: 'SPECIALIST' },
   },
   {

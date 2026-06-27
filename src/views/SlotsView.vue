@@ -12,26 +12,26 @@
 
     <div class="slots__subnav">
       <div class="schedule-tabs" role="tablist" aria-label="Режими розкладу">
-        <button
+        <RouterLink
           class="btn btn--ghost btn--sm schedule-tabs__item"
           :class="{ 'btn--active': scheduleTab === 'CALENDAR' }"
-          type="button"
           role="tab"
           :aria-selected="scheduleTab === 'CALENDAR'"
+          to="/cabinet/schedule"
           @click="setScheduleTab('CALENDAR')"
         >
           Календар
-        </button>
-        <button
+        </RouterLink>
+        <RouterLink
           class="btn btn--ghost btn--sm schedule-tabs__item"
           :class="{ 'btn--active': scheduleTab === 'AVAILABILITY' }"
-          type="button"
           role="tab"
           :aria-selected="scheduleTab === 'AVAILABILITY'"
+          to="/cabinet/slots?tab=availability"
           @click="setScheduleTab('AVAILABILITY')"
         >
           Вільний час для запису
-        </button>
+        </RouterLink>
         <button
           class="btn btn--ghost btn--sm schedule-tabs__item"
           :class="{ 'btn--active': scheduleTab === 'SETTINGS' }"
@@ -148,9 +148,46 @@
         </button>
       </div>
       <div v-else class="filters-toolbar__row filters-toolbar__row--controls">
-        <p class="muted action-group__hint">
-          Календар показує створені сесії. Вільні вікна не відображаються тут, щоб не перевантажувати розклад.
-        </p>
+        <span class="muted action-group__hint">Показати</span>
+        <div class="slot-filter" role="group" aria-label="Фільтр подій календаря">
+          <button
+            class="btn btn--ghost btn--sm"
+            type="button"
+            :class="{ 'btn--active': calendarEventFilter === 'ALL' }"
+            @click="calendarEventFilter = 'ALL'"
+          >
+            Усе
+          </button>
+          <button
+            class="btn btn--ghost btn--sm"
+            type="button"
+            :class="{ 'btn--active': calendarEventFilter === 'SESSIONS' }"
+            @click="calendarEventFilter = 'SESSIONS'"
+          >
+            Сесії
+          </button>
+          <button
+            class="btn btn--ghost btn--sm"
+            type="button"
+            :class="{ 'btn--active': calendarEventFilter === 'AVAILABLE' }"
+            @click="calendarEventFilter = 'AVAILABLE'"
+          >
+            Вільний час
+          </button>
+          <button
+            class="btn btn--ghost btn--sm"
+            type="button"
+            :class="{ 'btn--active': calendarEventFilter === 'BOOKED' }"
+            @click="calendarEventFilter = 'BOOKED'"
+          >
+            Заброньовано
+          </button>
+        </div>
+        <div class="calendar-legend" aria-label="Позначення подій календаря">
+          <span><i class="legend-dot legend-dot--session"></i>Сесія</span>
+          <span><i class="legend-dot legend-dot--available"></i>Вільний час</span>
+          <span><i class="legend-dot legend-dot--booked"></i>Заброньовано</span>
+        </div>
       </div>
     </section>
 
@@ -212,9 +249,9 @@
               <button
                 v-if="isCalendarTab"
                 v-for="layout in positionedCalendarSessionsForDay(day.key)"
-                :key="`session-${layout.session.id}`"
-                class="calendar-slot calendar-session"
-                :class="{ 'calendar-slot--selected': selectedScheduleSession?.id === layout.session.id }"
+                :key="layout.session.id"
+                class="calendar-slot schedule-event"
+                :class="[scheduleEventClass(layout.session), { 'calendar-slot--selected': selectedScheduleSession?.id === layout.session.id }]"
                 type="button"
                 :style="calendarSlotStyle(layout)"
                 :data-duration-minutes="layout.durationMinutes"
@@ -224,18 +261,16 @@
                 :title="sessionBlockLabel(layout.session)"
                 @click="selectSession(layout.session)"
               >
-                <span class="calendar-session__kind">Сесія</span>
+                <span class="calendar-session__kind">{{ scheduleEventTypeLabel(layout.session) }}</span>
                 <span class="calendar-slot__time">{{ formatSessionTimeRange(layout.session) }}</span>
-                <span class="calendar-session__client">{{ sessionClientLabel(layout.session) }}</span>
+                <span v-if="layout.session.type !== 'available_slot'" class="calendar-session__client">{{ sessionClientLabel(layout.session) }}</span>
               </button>
             </div>
           </div>
         </div>
 
         <div v-if="isCalendarTab && visibleWeekCalendarSessions.length === 0" class="calendar-empty muted">
-          На цьому тижні ще немає сесій.
-          <br />
-          <span>Створіть разову сесію або закріпіть регулярний час для клієнта.</span>
+          На цьому тижні ще немає подій у розкладі.
         </div>
         <div v-if="isAvailabilityTab && visibleWeekSlots.length === 0" class="calendar-empty muted">
           На цьому тижні ще немає вільного часу для прямого запису.
@@ -246,7 +281,7 @@
             {{ formatDateOnly(selectedDate) }}
             <span v-if="isSelectedToday" class="day-hint__today">· Сьогодні</span>
           </div>
-          <div v-if="isCalendarTab && filteredCalendarSessions.length === 0" class="muted">На цей день немає сесій.</div>
+          <div v-if="isCalendarTab && filteredCalendarSessions.length === 0" class="muted">На цей день немає подій у розкладі.</div>
           <div v-if="isAvailabilityTab && filteredSlots.length === 0" class="muted">На цей день немає вільного часу.</div>
           <button
             v-if="isAvailabilityTab"
@@ -264,32 +299,34 @@
           <button
             v-if="isCalendarTab"
             v-for="session in filteredCalendarSessions"
-            :key="`session-${session.id}`"
-            class="mobile-slot mobile-slot--session"
-            :class="{ 'calendar-slot--selected': selectedScheduleSession?.id === session.id }"
+            :key="session.id"
+            class="mobile-slot"
+            :class="[scheduleEventClass(session), { 'calendar-slot--selected': selectedScheduleSession?.id === session.id }]"
             type="button"
             :aria-label="sessionBlockLabel(session)"
             :title="sessionBlockLabel(session)"
             @click="selectSession(session)"
           >
             <span>{{ formatSessionTimeRange(session) }}</span>
-            <span>Сесія · {{ sessionClientLabel(session) }}</span>
+            <span>{{ scheduleEventTypeLabel(session) }}<template v-if="session.type !== 'available_slot'"> · {{ sessionClientLabel(session) }}</template></span>
           </button>
         </div>
       </section>
 
       <aside class="panel slot-detail-panel" aria-label="Деталі вибраного елемента розкладу">
         <template v-if="isCalendarTab && !selectedScheduleSession">
-          <h2 class="panel__title">Деталі сесії</h2>
-          <p class="muted">Оберіть сесію в календарі, щоб переглянути деталі.</p>
+          <h2 class="panel__title">Деталі події</h2>
+          <p class="muted">Оберіть подію в календарі, щоб переглянути деталі.</p>
         </template>
         <template v-else-if="isCalendarTab && selectedScheduleSession">
           <div class="slot-detail-panel__header">
             <div>
-              <h2 class="panel__title">Деталі сесії</h2>
+              <h2 class="panel__title">Деталі події</h2>
               <p class="muted">{{ formatDateOnly(toLocalDateKey(sessionStartAt(selectedScheduleSession) || '')) }}</p>
             </div>
-            <span class="slot-status slot-status--booked">Сесія</span>
+            <span class="slot-status" :class="scheduleEventStatusClass(selectedScheduleSession)">
+              {{ scheduleEventTypeLabel(selectedScheduleSession) }}
+            </span>
           </div>
 
           <dl class="slot-detail-list">
@@ -297,30 +334,22 @@
               <dt>Час</dt>
               <dd>{{ formatSessionTimeRange(selectedScheduleSession) }}</dd>
             </div>
-            <div>
+            <div v-if="selectedScheduleSession.type !== 'available_slot'">
               <dt>Клієнт</dt>
               <dd>{{ sessionClientLabel(selectedScheduleSession) }}</dd>
             </div>
-            <div>
+            <div v-if="selectedScheduleSession.type !== 'available_slot'">
               <dt>Статус</dt>
               <dd>{{ sessionStatusLabel(selectedScheduleSession.status) }}</dd>
             </div>
-            <div v-if="selectedScheduleSession.session_format">
-              <dt>Формат</dt>
-              <dd>{{ sessionFormatLabel(selectedScheduleSession.session_format) }}</dd>
-            </div>
-            <div v-if="selectedScheduleSession.meeting_url">
-              <dt>Онлайн-зустріч</dt>
-              <dd>{{ selectedScheduleSession.meeting_url }}</dd>
-            </div>
-            <div v-if="selectedScheduleSession.offline_location">
-              <dt>Місце зустрічі</dt>
-              <dd>{{ selectedScheduleSession.offline_location }}</dd>
+            <div v-if="selectedScheduleSession.type === 'available_slot'">
+              <dt>Керування</dt>
+              <dd>Керувати вільним часом можна у вкладці “Вільний час для запису”.</dd>
             </div>
           </dl>
 
-          <div class="slot-actions">
-            <RouterLink class="btn btn--sm" :to="`/cabinet/sessions/${selectedScheduleSession.id}`">
+          <div v-if="selectedScheduleSession.session_id" class="slot-actions">
+            <RouterLink class="btn btn--sm" :to="`/cabinet/sessions/${selectedScheduleSession.session_id}`">
               Відкрити сесію
             </RouterLink>
           </div>
@@ -990,7 +1019,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import {
   apiDelete,
@@ -1000,9 +1029,11 @@ import {
   createClientRegularTime,
   fetchSpecialistProfile,
   getApiErrorMessage,
+  getCabinetSchedule,
   updateSpecialistProfile,
 } from '../lib/api'
 import type {
+  CabinetScheduleEvent,
   ClientRegularTimeFrequency,
   ClientRegularTimePayload,
   SessionFormat,
@@ -1020,21 +1051,7 @@ type Slot = {
   is_booked: boolean
 }
 
-type ScheduleSession = {
-  id: number
-  slot: number | null
-  slot_start_at: string | null
-  slot_end_at: string | null
-  status: string
-  client_name?: string | null
-  client_display_name?: string | null
-  client_username?: string | null
-  client_email?: string | null
-  client_record_id?: number | null
-  session_format?: SessionFormat | string | null
-  meeting_url?: string | null
-  offline_location?: string | null
-}
+type ScheduleSession = CabinetScheduleEvent
 
 type SlotConflict = {
   slot_id?: number
@@ -1101,13 +1118,6 @@ type PublicBookingMode = 'request_only' | 'direct_booking'
 
 const PAST_SESSION_TIME_ERROR_MESSAGE = 'Неможливо створити сесію в минулому. Оберіть майбутню дату або час.'
 
-function scheduleTabFromRouteQuery(value: unknown): ScheduleTab {
-  const tab = Array.isArray(value) ? value[0] : value
-  if (tab === 'availability') return 'AVAILABILITY'
-  if (tab === 'calendar') return 'CALENDAR'
-  return 'CALENDAR'
-}
-
 const slots = ref<Slot[]>([])
 const sessions = ref<ScheduleSession[]>([])
 const loading = ref(false)
@@ -1117,6 +1127,18 @@ const editErrorRefs = ref<Record<number, HTMLElement | null>>({})
 const route = useRoute()
 const toast = useToast()
 const confirmModal = useConfirmModal()
+
+function scheduleTabFromRoute(): ScheduleTab {
+  const path = String(route.path || '')
+  if (path.startsWith('/cabinet/schedule')) return 'CALENDAR'
+
+  const tab = Array.isArray(route.query.tab) ? route.query.tab[0] : route.query.tab
+  if (tab === 'availability') return 'AVAILABILITY'
+  if (tab === 'calendar') return 'CALENDAR'
+  if (tab === 'settings') return 'SETTINGS'
+
+  return 'CALENDAR'
+}
 const createFormRef = ref<HTMLFormElement | null>(null)
 const createFormOpen = ref(false)
 const regularSessionsFormRef = ref<HTMLFormElement | null>(null)
@@ -1169,8 +1191,9 @@ const selectedDate = ref(todayKey)
 const showPastSlots = ref(false)
 const slotStatusFilter = ref<'ALL' | 'FREE' | 'BOOKED'>('ALL')
 const selectedSlotId = ref<number | null>(null)
-const selectedSessionId = ref<number | null>(null)
-const scheduleTab = ref<ScheduleTab>(scheduleTabFromRouteQuery(route.query.tab))
+const selectedSessionId = ref<string | null>(null)
+const scheduleTab = ref<ScheduleTab>(scheduleTabFromRoute())
+const calendarEventFilter = ref<'ALL' | 'SESSIONS' | 'AVAILABLE' | 'BOOKED'>('ALL')
 const settingsLoading = ref(false)
 const settingsSaving = ref(false)
 const settingsError = ref('')
@@ -1320,25 +1343,36 @@ function isFutureSlot(slot: Slot) {
 }
 
 function sessionStartAt(session: ScheduleSession) {
-  return session.slot_start_at || ''
+  return session.start_at || ''
 }
 
 function sessionEndAt(session: ScheduleSession) {
-  return session.slot_end_at || ''
+  return session.end_at || ''
 }
 
 function isActiveScheduleSession(session: ScheduleSession) {
-  return ACTIVE_SESSION_STATUSES.has(String(session.status || '').toUpperCase())
+  return (
+    session.type === 'available_slot' ||
+    session.type === 'booked_slot' ||
+    ACTIVE_SESSION_STATUSES.has(String(session.status || '').toUpperCase())
+  )
+}
+
+function scheduleEventTypeLabel(event: ScheduleSession) {
+  if (event.type === 'available_slot') return 'Вільний час'
+  if (event.type === 'booked_slot') return 'Заброньовано'
+  return 'Сесія'
+}
+
+function scheduleEventClientKindLabel(event: ScheduleSession) {
+  if (event.client_kind === 'guest') return 'Гостьовий клієнт'
+  if (event.client_kind === 'registered') return 'Клієнт'
+  return 'Клієнт'
 }
 
 function sessionClientLabel(session: ScheduleSession) {
-  return (
-    session.client_display_name ||
-    session.client_name ||
-    session.client_username ||
-    session.client_email ||
-    (session.client_record_id ? `Клієнт #${session.client_record_id}` : 'Клієнт')
-  )
+  if (session.type === 'available_slot') return 'Вільний час'
+  return session.client_display_name || scheduleEventClientKindLabel(session)
 }
 
 function sessionStatusLabel(status: string) {
@@ -1346,13 +1380,6 @@ function sessionStatusLabel(status: string) {
   if (normalized === 'CONFIRMED') return 'Підтверджено'
   if (normalized === 'SCHEDULED') return 'Заплановано'
   return status || 'Сесія'
-}
-
-function sessionFormatLabel(format: string | null | undefined) {
-  const normalized = String(format || '').toLowerCase()
-  if (normalized === 'offline') return 'Офлайн'
-  if (normalized === 'online') return 'Онлайн'
-  return '-'
 }
 
 function formatSessionTimeRange(session: ScheduleSession) {
@@ -1363,7 +1390,8 @@ function formatSessionTimeRange(session: ScheduleSession) {
 }
 
 function sessionBlockLabel(session: ScheduleSession) {
-  return `Сесія · ${sessionClientLabel(session)} · ${formatSessionTimeRange(session)}`
+  const clientPart = session.type === 'available_slot' ? '' : ` · ${sessionClientLabel(session)}`
+  return `${scheduleEventTypeLabel(session)}${clientPart} · ${formatSessionTimeRange(session)}`
 }
 
 function sessionDurationMinutes(session: ScheduleSession) {
@@ -1654,9 +1682,19 @@ function isSlotVisible(slot: Slot) {
   return matchesSlotStatusFilter(slot)
 }
 
+function matchesCalendarEventFilter(event: ScheduleSession) {
+  if (calendarEventFilter.value === 'SESSIONS') {
+    return event.type === 'session' || (event.type === 'booked_slot' && Boolean(event.session_id))
+  }
+  if (calendarEventFilter.value === 'AVAILABLE') return event.type === 'available_slot'
+  if (calendarEventFilter.value === 'BOOKED') return event.type === 'booked_slot'
+  return true
+}
+
 const visibleWeekCalendarSessions = computed(() =>
   sessions.value
     .filter(isActiveScheduleSession)
+    .filter(matchesCalendarEventFilter)
     .filter((session) => {
       const startAt = sessionStartAt(session)
       const endAt = sessionEndAt(session)
@@ -1678,12 +1716,10 @@ const calendarHours = computed(() => {
 })
 
 const calendarHourRange = computed(() => {
-  const ranges = (isCalendarTab.value ? visibleWeekCalendarSessions.value : visibleWeekSlots.value)
-    .map((item) => {
-      if ('start_at' in item) return slotMinuteRangeForDate(item, toLocalDateKey(item.start_at))
-      return sessionMinuteRangeForDate(item, toLocalDateKey(sessionStartAt(item)))
-    })
-    .filter((range): range is { startMinutes: number; endMinutes: number } => Boolean(range))
+  const rangeItems = isCalendarTab.value
+    ? visibleWeekCalendarSessions.value.map((item) => sessionMinuteRangeForDate(item, toLocalDateKey(sessionStartAt(item))))
+    : visibleWeekSlots.value.map((item) => slotMinuteRangeForDate(item, toLocalDateKey(item.start_at)))
+  const ranges = rangeItems.filter((range): range is { startMinutes: number; endMinutes: number } => Boolean(range))
 
   if (ranges.length === 0) {
     return {
@@ -1802,6 +1838,13 @@ function setScheduleTab(tab: ScheduleTab) {
   }
   selectedSessionId.value = null
 }
+
+watch(
+  () => [route.path, route.query.tab],
+  () => {
+    setScheduleTab(scheduleTabFromRoute())
+  }
+)
 
 function getDatePickerFieldValue(field: DatePickerField) {
   if (field === 'newStartDate') return newStartDate.value
@@ -2096,6 +2139,23 @@ function slotStatusClass(slot: Slot) {
     'slot-status--booked': slot.is_booked && isFutureSlot(slot),
     'slot-status--past': !isFutureSlot(slot),
     'slot-status--available': !slot.is_booked && isFutureSlot(slot),
+  }
+}
+
+function scheduleEventClass(event: ScheduleSession) {
+  return {
+    'schedule-event--available': event.type === 'available_slot',
+    'schedule-event--booked': event.type === 'booked_slot',
+    'calendar-session': event.type === 'session',
+    'mobile-slot--session': event.type === 'session',
+  }
+}
+
+function scheduleEventStatusClass(event: ScheduleSession) {
+  return {
+    'slot-status--available': event.type === 'available_slot',
+    'slot-status--booked': event.type === 'booked_slot',
+    'slot-status--session': event.type === 'session',
   }
 }
 
@@ -2581,14 +2641,8 @@ async function fetchWeekSessions() {
   const firstDay = weekDays.value[0]?.key
   const lastDay = weekDays.value[6]?.key
   if (!firstDay || !lastDay) return []
-  const resp = await apiGet<ScheduleSession[]>('/booking/sessions/', {
-    params: {
-      date_from: firstDay,
-      date_to: lastDay,
-      status: 'SCHEDULED,CONFIRMED',
-    },
-  })
-  return (resp || []).filter((session) => sessionStartAt(session) && sessionEndAt(session))
+  const resp = await getCabinetSchedule(firstDay, lastDay)
+  return (resp.events || []).filter((event) => sessionStartAt(event) && sessionEndAt(event))
 }
 
 async function loadWeekSessions() {
@@ -3240,6 +3294,18 @@ onBeforeUnmount(() => {
   border-color: rgba(138, 44, 44, 0.18);
 }
 
+.schedule-event--available {
+  background: color-mix(in srgb, var(--pc-primary-soft) 78%, #ffffff);
+  color: var(--pc-navy-900);
+  border-color: color-mix(in srgb, var(--pc-primary-soft) 72%, var(--pc-border));
+}
+
+.schedule-event--booked {
+  background: #f6e9e9;
+  color: #8a2c2c;
+  border-color: rgba(138, 44, 44, 0.18);
+}
+
 .slot-status--past,
 .calendar-slot.slot-status--past {
   background: #f2f4f6;
@@ -3249,6 +3315,12 @@ onBeforeUnmount(() => {
 
 .calendar-session,
 .mobile-slot--session {
+  background: #e7f2f1;
+  color: #1f5c57;
+  border-color: rgba(31, 92, 87, 0.24);
+}
+
+.slot-status--session {
   background: #e7f2f1;
   color: #1f5c57;
   border-color: rgba(31, 92, 87, 0.24);

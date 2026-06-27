@@ -5,11 +5,13 @@ import {
   apiPost,
   createClientRegularTime,
   fetchSpecialistProfile,
+  getCabinetSchedule,
   updateSpecialistProfile,
 } from '../lib/api'
 import SlotsView from './SlotsView.vue'
 
 const mockRoute = {
+  path: '/cabinet/slots',
   query: {} as Record<string, unknown>,
 }
 
@@ -40,6 +42,7 @@ vi.mock('../lib/api', () => ({
   apiDelete: vi.fn(),
   createClientRegularTime: vi.fn(),
   fetchSpecialistProfile: vi.fn(),
+  getCabinetSchedule: vi.fn(),
   updateSpecialistProfile: vi.fn(),
   getApiErrorMessage: vi.fn((err: any, fallback: string) => err?.message || fallback),
 }))
@@ -65,6 +68,7 @@ const mockedApiGet = vi.mocked(apiGet)
 const mockedApiPost = vi.mocked(apiPost)
 const mockedCreateClientRegularTime = vi.mocked(createClientRegularTime)
 const mockedFetchSpecialistProfile = vi.mocked(fetchSpecialistProfile)
+const mockedGetCabinetSchedule = vi.mocked(getCabinetSchedule)
 const mockedUpdateSpecialistProfile = vi.mocked(updateSpecialistProfile)
 
 async function flushAsyncUpdates() {
@@ -139,6 +143,36 @@ function scheduleSession(overrides: Record<string, unknown> = {}) {
   }
 }
 
+function scheduleEventFromSlot(slot: Record<string, any>) {
+  return {
+    type: slot.is_booked ? 'booked_slot' : 'available_slot',
+    id: `${slot.is_booked ? 'booked-slot' : 'available-slot'}-${slot.id}`,
+    slot_id: slot.id ?? null,
+    session_id: slot.session_id ?? null,
+    start_at: slot.start_at,
+    end_at: slot.end_at,
+    status: slot.is_booked ? 'booked' : 'available',
+    title: slot.is_booked ? 'Заброньовано' : 'Вільний час',
+    client_display_name: slot.client_display_name ?? null,
+    client_kind: slot.client_kind ?? null,
+  }
+}
+
+function scheduleEventFromSession(session: Record<string, any>) {
+  return {
+    type: 'session',
+    id: `session-${session.id}`,
+    slot_id: session.slot ?? null,
+    session_id: session.id,
+    start_at: session.start_at ?? session.slot_start_at,
+    end_at: session.end_at ?? session.slot_end_at,
+    status: session.status ?? 'SCHEDULED',
+    title: 'Сесія',
+    client_display_name: session.client_display_name ?? session.client_name ?? null,
+    client_kind: session.client_kind ?? 'registered',
+  }
+}
+
 function manualClientRecord(overrides: Record<string, unknown> = {}) {
   return {
     id: 71,
@@ -160,24 +194,42 @@ function registeredClient(overrides: Record<string, unknown> = {}) {
   }
 }
 
-function mockScheduleApi(slots: unknown[] = [], sessions: unknown[] = []) {
+function mockScheduleApi(slots: unknown[] = [], sessions: unknown[] = [], scheduleEvents?: unknown[]) {
   mockedApiGet.mockImplementation(async (url) => {
     if (url === '/cabinet/slots/') return slots as any
-    if (url === '/booking/sessions/') return sessions as any
     throw new Error(`Unexpected apiGet call: ${url}`)
   })
+  mockedGetCabinetSchedule.mockResolvedValue({
+    events: (scheduleEvents || [
+      ...(slots as Record<string, any>[]).map(scheduleEventFromSlot),
+      ...(sessions as Record<string, any>[]).map(scheduleEventFromSession),
+    ]) as any,
+  })
+}
+
+function openCalendarRoute() {
+  mockRoute.path = '/cabinet/schedule'
+  mockRoute.query = {}
+}
+
+function openAvailabilityRoute(query: Record<string, unknown> = { tab: 'availability' }) {
+  mockRoute.path = '/cabinet/slots'
+  mockRoute.query = query
 }
 
 describe('SlotsView', () => {
   beforeEach(() => {
     vi.useFakeTimers()
     vi.setSystemTime(new Date('2026-03-12T10:00:00+02:00'))
+    mockRoute.path = '/cabinet/slots'
     mockRoute.query = {}
     mockedApiGet.mockReset()
     mockedApiPost.mockReset()
     mockedCreateClientRegularTime.mockReset()
     mockedFetchSpecialistProfile.mockReset()
+    mockedGetCabinetSchedule.mockReset()
     mockedUpdateSpecialistProfile.mockReset()
+    mockedGetCabinetSchedule.mockResolvedValue({ events: [] })
     mockedCreateClientRegularTime.mockResolvedValue({} as any)
     mockedFetchSpecialistProfile.mockResolvedValue({
       standard_session_duration_minutes: 50,
@@ -207,15 +259,16 @@ describe('SlotsView', () => {
   })
 
   it('renders schedule as a practice calendar with free-time copy', async () => {
+    openCalendarRoute()
     mockScheduleApi()
 
     const { container } = renderView()
     await flushAsyncUpdates()
     expect(screen.getByRole('tab', { name: 'Календар' })).toHaveAttribute('aria-selected', 'true')
-    expect(screen.getByRole('heading', { name: 'Деталі сесії' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Деталі події' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Створити сесію' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Додати вільний час' })).not.toBeInTheDocument()
-    expect(screen.getByText('На цьому тижні ще немає сесій.')).toBeInTheDocument()
+    expect(screen.getByText('На цьому тижні ще немає подій у розкладі.')).toBeInTheDocument()
     expect(container.querySelector('.calendar-scroll')).toBeInTheDocument()
   })
 
@@ -231,7 +284,8 @@ describe('SlotsView', () => {
     expect(screen.queryByRole('button', { name: 'Створити сесію' })).not.toBeInTheDocument()
   })
 
-  it('keeps calendar tab as default when route query is missing or unknown', async () => {
+  it('opens calendar tab from schedule route and slots tab query', async () => {
+    openCalendarRoute()
     mockScheduleApi()
 
     const { unmount } = renderView()
@@ -239,10 +293,35 @@ describe('SlotsView', () => {
     expect(screen.getByRole('tab', { name: 'Календар' })).toHaveAttribute('aria-selected', 'true')
     unmount()
 
-    mockRoute.query = { tab: 'something-else' }
+    openAvailabilityRoute({ tab: 'calendar' })
     renderView()
     await flushAsyncUpdates()
     expect(screen.getByRole('tab', { name: 'Календар' })).toHaveAttribute('aria-selected', 'true')
+  })
+
+  it('keeps calendar tab as default when slots tab query is missing or unknown', async () => {
+    mockScheduleApi()
+
+    openAvailabilityRoute({})
+    const { unmount } = renderView()
+    await flushAsyncUpdates()
+    expect(screen.getByRole('tab', { name: 'Календар' })).toHaveAttribute('aria-selected', 'true')
+    unmount()
+
+    openAvailabilityRoute({ tab: 'something-else' })
+    renderView()
+    await flushAsyncUpdates()
+    expect(screen.getByRole('tab', { name: 'Календар' })).toHaveAttribute('aria-selected', 'true')
+  })
+
+  it('opens settings tab from route query', async () => {
+    openAvailabilityRoute({ tab: 'settings' })
+    mockScheduleApi()
+
+    renderView()
+    await flushAsyncUpdates()
+
+    expect(screen.getByRole('tab', { name: 'Налаштування' })).toHaveAttribute('aria-selected', 'true')
   })
 
   it('keeps existing internal tab switching behavior', async () => {
@@ -263,6 +342,7 @@ describe('SlotsView', () => {
   })
 
   it('renders grouped session and availability actions', async () => {
+    openCalendarRoute()
     mockScheduleApi()
 
     renderView()
@@ -392,6 +472,7 @@ describe('SlotsView', () => {
   })
 
   it('opens regular sessions modal and loads selectable clients with usable record ids', async () => {
+    openCalendarRoute()
     mockedApiGet.mockImplementation(async (url) => {
       if (url === '/cabinet/slots/') return []
       if (url === '/booking/sessions/') return []
@@ -429,6 +510,7 @@ describe('SlotsView', () => {
   })
 
   it('creates regular sessions through client regular time API and refreshes schedule', async () => {
+    openCalendarRoute()
     const sessionResponses = [
       [],
       [
@@ -443,9 +525,13 @@ describe('SlotsView', () => {
         }),
       ],
     ]
+    mockedGetCabinetSchedule
+      .mockResolvedValueOnce({ events: [] })
+      .mockResolvedValueOnce({
+        events: sessionResponses[1]!.map((session) => scheduleEventFromSession(session as any)) as any,
+      })
     mockedApiGet.mockImplementation(async (url) => {
       if (url === '/cabinet/slots/') return []
-      if (url === '/booking/sessions/') return (sessionResponses.shift() || sessionResponses[0] || []) as any
       if (url === '/cabinet/client-records/') return [manualClientRecord({ id: 71, display_name: 'Manual Regular' })] as any
       if (url === '/cabinet/clients/') return [registeredClient({ id: 81, client_record_id: 72, client_display_name: 'Registered Regular' })] as any
       throw new Error(`Unexpected apiGet call: ${url}`)
@@ -486,6 +572,7 @@ describe('SlotsView', () => {
   })
 
   it('shows regular time create errors without creating free Slot rows', async () => {
+    openCalendarRoute()
     mockedApiGet.mockImplementation(async (url) => {
       if (url === '/cabinet/slots/') return []
       if (url === '/booking/sessions/') return []
@@ -509,6 +596,7 @@ describe('SlotsView', () => {
   })
 
   it('opens one-off session modal and creates no-slot session via client-record endpoint', async () => {
+    openCalendarRoute()
     mockedApiGet.mockImplementation(async (url) => {
       if (url === '/cabinet/slots/') {
         return [
@@ -561,6 +649,7 @@ describe('SlotsView', () => {
   })
 
   it('keeps modal closed when schedule refresh fails after successful one-off create', async () => {
+    openCalendarRoute()
     let slotsCallCount = 0
     mockedApiGet.mockImplementation(async (url) => {
       if (url === '/cabinet/slots/') {
@@ -596,6 +685,7 @@ describe('SlotsView', () => {
   })
 
   it('normalizes Europe/Kiev timezone alias to Europe/Kyiv in one-off session payload', async () => {
+    openCalendarRoute()
     mockedFetchSpecialistProfile.mockResolvedValueOnce({
       standard_session_duration_minutes: 50,
       timezone: 'Europe/Kiev',
@@ -631,6 +721,7 @@ describe('SlotsView', () => {
   })
 
   it('shows friendly conflict copy for one-off no-slot session create', async () => {
+    openCalendarRoute()
     mockedApiGet.mockImplementation(async (url) => {
       if (url === '/cabinet/slots/') return [] as any
       if (url === '/booking/sessions/') return [] as any
@@ -668,6 +759,7 @@ describe('SlotsView', () => {
   })
 
   it('blocks one-off session create when selected time is in the past', async () => {
+    openCalendarRoute()
     mockedApiGet.mockImplementation(async (url) => {
       if (url === '/cabinet/slots/') return [] as any
       if (url === '/booking/sessions/') return [] as any
@@ -699,6 +791,7 @@ describe('SlotsView', () => {
   })
 
   it('localizes backend past-time detail for one-off session create', async () => {
+    openCalendarRoute()
     mockedApiGet.mockImplementation(async (url) => {
       if (url === '/cabinet/slots/') return [] as any
       if (url === '/booking/sessions/') return [] as any
@@ -735,6 +828,7 @@ describe('SlotsView', () => {
   })
 
   it('shows friendly timezone copy when backend returns Invalid timezone', async () => {
+    openCalendarRoute()
     mockedApiGet.mockImplementation(async (url) => {
       if (url === '/cabinet/slots/') return [] as any
       if (url === '/booking/sessions/') return [] as any
@@ -767,6 +861,7 @@ describe('SlotsView', () => {
   })
 
   it('shows session-only blocks when filter Сесії is selected', async () => {
+    openCalendarRoute()
     mockScheduleApi(
       [
         {
@@ -787,8 +882,91 @@ describe('SlotsView', () => {
 
     const { container } = renderView()
     await flushAsyncUpdates()
+    await fireEvent.click(screen.getByRole('button', { name: 'Сесії' }))
+    await flushAsyncUpdates()
     expect(container.querySelector('.week-calendar .calendar-session')).toBeInTheDocument()
     expect(container.querySelector('.week-calendar .calendar-slot:not(.calendar-session)')).not.toBeInTheDocument()
+  })
+
+  it('renders unified schedule event filters without private client contact data', async () => {
+    openCalendarRoute()
+    mockScheduleApi([], [], [
+      {
+        type: 'available_slot',
+        id: 'available-slot-91',
+        slot_id: 91,
+        session_id: null,
+        start_at: '2026-03-12T07:00:00Z',
+        end_at: '2026-03-12T07:50:00Z',
+        status: 'available',
+        title: 'Вільний час',
+        client_display_name: null,
+        client_kind: null,
+      },
+      {
+        type: 'booked_slot',
+        id: 'booked-slot-92',
+        slot_id: 92,
+        session_id: 502,
+        start_at: '2026-03-12T08:00:00Z',
+        end_at: '2026-03-12T08:50:00Z',
+        status: 'booked',
+        title: 'Заброньовано',
+        client_display_name: 'Гостьовий клієнт',
+        client_kind: 'guest',
+        client_email: 'guest@example.com',
+        client_phone: '+380991112233',
+      },
+      {
+        type: 'session',
+        id: 'session-503',
+        slot_id: null,
+        session_id: 503,
+        start_at: '2026-03-12T09:00:00Z',
+        end_at: '2026-03-12T09:50:00Z',
+        status: 'SCHEDULED',
+        title: 'Сесія',
+        client_display_name: 'Олена',
+        client_kind: 'registered',
+        client_email: 'olena@example.com',
+      },
+    ])
+
+    const { container } = renderView()
+    await flushAsyncUpdates()
+
+    expect(container.querySelectorAll('.week-calendar .schedule-event')).toHaveLength(3)
+    expect(screen.queryByText('guest@example.com')).not.toBeInTheDocument()
+    expect(screen.queryByText('+380991112233')).not.toBeInTheDocument()
+    expect(screen.queryByText('olena@example.com')).not.toBeInTheDocument()
+
+    await fireEvent.click(container.querySelector('.week-calendar .schedule-event--available') as HTMLButtonElement)
+    await flushAsyncUpdates()
+    expect(screen.queryByRole('link', { name: 'Відкрити сесію' })).not.toBeInTheDocument()
+
+    await fireEvent.click(container.querySelector('.week-calendar .schedule-event--booked') as HTMLButtonElement)
+    await flushAsyncUpdates()
+    expect(screen.getByRole('link', { name: 'Відкрити сесію' })).toHaveAttribute('href', '/cabinet/sessions/502')
+
+    await fireEvent.click(container.querySelector('.week-calendar .calendar-session') as HTMLButtonElement)
+    await flushAsyncUpdates()
+    expect(screen.getByRole('link', { name: 'Відкрити сесію' })).toHaveAttribute('href', '/cabinet/sessions/503')
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Вільний час' }))
+    await flushAsyncUpdates()
+    expect(container.querySelectorAll('.week-calendar .schedule-event')).toHaveLength(1)
+    expect(container.querySelector('.week-calendar .schedule-event--available')).toBeInTheDocument()
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Заброньовано' }))
+    await flushAsyncUpdates()
+    expect(container.querySelectorAll('.week-calendar .schedule-event')).toHaveLength(1)
+    expect(container.querySelector('.week-calendar .schedule-event--booked')).toBeInTheDocument()
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Сесії' }))
+    await flushAsyncUpdates()
+    expect(container.querySelectorAll('.week-calendar .schedule-event')).toHaveLength(2)
+    expect(container.querySelector('.week-calendar .schedule-event--booked')).toBeInTheDocument()
+    expect(container.querySelector('.week-calendar .calendar-session')).toBeInTheDocument()
   })
 
   it('renders slot/session summary with updated human copy', async () => {
@@ -900,6 +1078,7 @@ describe('SlotsView', () => {
   })
 
   it('renders no-slot session in the visible week without a matching Slot', async () => {
+    openCalendarRoute()
     mockScheduleApi([], [
       scheduleSession({
         id: 77,
@@ -919,6 +1098,7 @@ describe('SlotsView', () => {
   })
 
   it('opens no-slot session details with client name and session link', async () => {
+    openCalendarRoute()
     mockScheduleApi([], [
       scheduleSession({
         id: 78,
@@ -934,7 +1114,7 @@ describe('SlotsView', () => {
     expect(sessionBlock).toBeInstanceOf(HTMLButtonElement)
     await fireEvent.click(sessionBlock as HTMLButtonElement)
 
-    expect(screen.getByText('Деталі сесії')).toBeInTheDocument()
+    expect(screen.getByText('Деталі події')).toBeInTheDocument()
     expect(screen.getAllByText('Саша Мальована')).toHaveLength(2)
     expect(screen.getAllByText('09:00–09:50')).toHaveLength(3)
     expect(screen.getByText('Заплановано')).toBeInTheDocument()
@@ -942,6 +1122,7 @@ describe('SlotsView', () => {
   })
 
   it('does not render cancelled no-slot session as an active calendar block', async () => {
+    openCalendarRoute()
     mockScheduleApi([], [
       scheduleSession({
         id: 79,
@@ -955,10 +1136,16 @@ describe('SlotsView', () => {
     await flushAsyncUpdates()
 
     expect(container.querySelector('.week-calendar .calendar-session')).not.toBeInTheDocument()
-    expect(screen.getByText('На цьому тижні ще немає сесій.')).toBeInTheDocument()
+    expect(screen.getByText('На цьому тижні ще немає подій у розкладі.')).toBeInTheDocument()
   })
 
-  it('renders a no-slot session instead of a duplicate booked Slot when they overlap', async () => {
+  it('renders schedule API events without duplicating overlapping booked slots', async () => {
+    openCalendarRoute()
+    const overlappingSession = scheduleSession({
+      id: 80,
+      slot_start_at: '2026-03-12T07:00:00Z',
+      slot_end_at: '2026-03-12T07:50:00Z',
+    })
     mockScheduleApi([
       {
         id: 30,
@@ -966,13 +1153,7 @@ describe('SlotsView', () => {
         end_at: '2026-03-12T07:50:00Z',
         is_booked: true,
       },
-    ], [
-      scheduleSession({
-        id: 80,
-        slot_start_at: '2026-03-12T07:00:00Z',
-        slot_end_at: '2026-03-12T07:50:00Z',
-      }),
-    ])
+    ], [], [scheduleEventFromSession(overlappingSession as any)])
 
     const { container } = renderView()
     await flushAsyncUpdates()
@@ -981,30 +1162,19 @@ describe('SlotsView', () => {
     expect(container.querySelectorAll('.week-calendar .calendar-slot:not(.calendar-session)')).toHaveLength(0)
   })
 
-  it('refetches sessions for the newly visible week', async () => {
+  it('refetches unified schedule events for the newly visible week', async () => {
+    openCalendarRoute()
     mockScheduleApi()
 
     renderView()
     await flushAsyncUpdates()
 
-    expect(mockedApiGet).toHaveBeenCalledWith('/booking/sessions/', {
-      params: {
-        date_from: '2026-03-09',
-        date_to: '2026-03-15',
-        status: 'SCHEDULED,CONFIRMED',
-      },
-    })
+    expect(mockedGetCabinetSchedule).toHaveBeenCalledWith('2026-03-09', '2026-03-15')
 
     await fireEvent.click(screen.getByRole('button', { name: 'Наступний тиждень' }))
     await flushAsyncUpdates()
 
-    expect(mockedApiGet).toHaveBeenCalledWith('/booking/sessions/', {
-      params: {
-        date_from: '2026-03-16',
-        date_to: '2026-03-22',
-        status: 'SCHEDULED,CONFIRMED',
-      },
-    })
+    expect(mockedGetCabinetSchedule).toHaveBeenCalledWith('2026-03-16', '2026-03-22')
   })
 
   it('shows Ukrainian date format and an overlay calendar in the add form', async () => {
@@ -1340,7 +1510,8 @@ describe('SlotsView', () => {
     await fireEvent.click(submitButton)
     await flushAsyncUpdates()
 
-    expect(mockedApiGet).toHaveBeenCalledTimes(4)
+    expect(mockedApiGet).toHaveBeenCalledTimes(2)
+    expect(mockedGetCabinetSchedule).toHaveBeenCalledTimes(2)
     expect(screen.getAllByText('11:10–11:40').length).toBeGreaterThan(0)
     expect(mockToast.success).toHaveBeenCalledWith('Вільне вікно на 12.03.2026, 11:10 створено.')
   })
