@@ -2676,6 +2676,7 @@ async function fillWeek() {
     selectedSessionId.value = null
     showPastSlots.value = false
     await loadSlots()
+    slotStatusFilter.value = 'FREE'
     toast.success(
       weekPeriodIncludesPast(isoDate)
         ? `Тиждень від ${formatDateOnly(isoDate)} заповнено. Для сьогодні додано лише майбутні вікна.`

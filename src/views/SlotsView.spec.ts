@@ -1209,6 +1209,61 @@ describe('SlotsView', () => {
     })
   })
 
+  it('switches to available filter after filling week from booked filter', async () => {
+    const bookedSlot = {
+      id: 30,
+      start_at: '2026-03-12T09:00:00Z',
+      end_at: '2026-03-12T09:50:00Z',
+      is_booked: true,
+    }
+    const createdAvailableSlot = {
+      id: 31,
+      start_at: '2026-03-12T11:00:00Z',
+      end_at: '2026-03-12T11:50:00Z',
+      is_booked: false,
+    }
+    let slotsReloaded = false
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/cabinet/slots/') {
+        return slotsReloaded ? [bookedSlot, createdAvailableSlot] : [bookedSlot]
+      }
+      if (url === '/booking/sessions/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedApiPost.mockImplementation(async (url) => {
+      if (url === '/cabinet/slots/fill-week/') {
+        slotsReloaded = true
+        return { ok: true } as any
+      }
+      throw new Error(`Unexpected apiPost call: ${url}`)
+    })
+
+    const { container } = renderView()
+    await flushAsyncUpdates()
+
+    await fireEvent.click(screen.getByRole('tab', { name: 'Вільний час для запису' }))
+    await flushAsyncUpdates()
+    await fireEvent.click(screen.getByRole('button', { name: 'Заброньовані' }))
+    expect(screen.getByRole('button', { name: 'Заброньовані' })).toHaveClass('btn--active')
+    expect(container.querySelector('.week-calendar .calendar-slot[aria-label="Доступно 13:00–13:50"]')).not.toBeInTheDocument()
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Заповнити тиждень' }))
+    await flushAsyncUpdates()
+    const confirmOptions = mockConfirmModal.openConfirm.mock.calls.at(-1)?.[0]
+    await confirmOptions?.onConfirm?.()
+    await flushAsyncUpdates()
+
+    expect(mockedApiPost).toHaveBeenCalledWith('/cabinet/slots/fill-week/', {
+      date: '2026-03-09',
+    })
+    expect(screen.getByRole('tab', { name: 'Вільний час для запису' })).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByText('09.03.2026 - 15.03.2026')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Доступно' })).toHaveClass('btn--active')
+    expect(screen.getByRole('button', { name: 'Заброньовані' })).not.toHaveClass('btn--active')
+    expect(container.querySelector('.week-calendar .calendar-slot[aria-label="Доступно 13:00–13:50"]')).toBeInTheDocument()
+    expect(mockToast.success).toHaveBeenCalledWith(expect.stringContaining('Тиждень від 09.03.2026 заповнено.'))
+  })
+
   it('navigates calendar weeks and returns to today', async () => {
     mockScheduleApi()
 
