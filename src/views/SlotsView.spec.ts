@@ -265,6 +265,9 @@ describe('SlotsView', () => {
     const { container } = renderView()
     await flushAsyncUpdates()
     expect(screen.getByRole('tab', { name: 'Календар' })).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByRole('tab', { name: 'Календар' })).toHaveAttribute('href', '/cabinet/schedule')
+    expect(screen.getByText('09.03.2026 - 15.03.2026')).toBeInTheDocument()
+    expect(mockedGetCabinetSchedule).toHaveBeenCalledWith('2026-03-09', '2026-03-15')
     expect(screen.getByRole('heading', { name: 'Деталі події' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Створити сесію' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Додати вільний час' })).not.toBeInTheDocument()
@@ -322,6 +325,64 @@ describe('SlotsView', () => {
     await flushAsyncUpdates()
 
     expect(screen.getByRole('tab', { name: 'Налаштування' })).toHaveAttribute('aria-selected', 'true')
+  })
+
+  it('reloads schedule events when availability auto-jump changes the visible week', async () => {
+    openCalendarRoute()
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/cabinet/slots/') {
+        return [
+          {
+            id: 701,
+            start_at: '2026-03-16T08:00:00Z',
+            end_at: '2026-03-16T08:50:00Z',
+            is_booked: false,
+          },
+        ] as any
+      }
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedGetCabinetSchedule.mockImplementation(async (dateFrom, dateTo) => {
+      if (dateFrom === '2026-03-09' && dateTo === '2026-03-15') {
+        return {
+          events: [
+            scheduleEventFromSession(
+              scheduleSession({
+                id: 901,
+                slot_start_at: '2026-03-12T07:00:00Z',
+                slot_end_at: '2026-03-12T07:50:00Z',
+                client_display_name: 'Old Week Client',
+              }) as any
+            ),
+          ],
+        } as any
+      }
+      if (dateFrom === '2026-03-16' && dateTo === '2026-03-22') {
+        return {
+          events: [
+            scheduleEventFromSession(
+              scheduleSession({
+                id: 902,
+                slot_start_at: '2026-03-17T08:00:00Z',
+                slot_end_at: '2026-03-17T08:50:00Z',
+                client_display_name: 'Visible Week Client',
+              }) as any
+            ),
+          ],
+        } as any
+      }
+      return { events: [] } as any
+    })
+
+    renderView()
+    await flushAsyncUpdates()
+
+    expect(screen.getByText('16.03.2026 - 22.03.2026')).toBeInTheDocument()
+    expect(mockedGetCabinetSchedule).toHaveBeenCalledWith('2026-03-09', '2026-03-15')
+    expect(mockedGetCabinetSchedule).toHaveBeenCalledWith('2026-03-16', '2026-03-22')
+    await flushAsyncUpdates()
+    expect(screen.queryByText('Old Week Client')).not.toBeInTheDocument()
+    expect(screen.getAllByText('Visible Week Client').length).toBeGreaterThan(0)
   })
 
   it('keeps existing internal tab switching behavior', async () => {

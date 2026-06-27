@@ -1115,6 +1115,10 @@ type RegularClientOption = {
 
 type ScheduleTab = 'CALENDAR' | 'AVAILABILITY' | 'SETTINGS'
 type PublicBookingMode = 'request_only' | 'direct_booking'
+type WeekRange = {
+  dateFrom: string
+  dateTo: string
+}
 
 const PAST_SESSION_TIME_ERROR_MESSAGE = 'Неможливо створити сесію в минулому. Оберіть майбутню дату або час.'
 
@@ -1127,6 +1131,7 @@ const editErrorRefs = ref<Record<number, HTMLElement | null>>({})
 const route = useRoute()
 const toast = useToast()
 const confirmModal = useConfirmModal()
+let scheduleLoadRequestId = 0
 
 function scheduleTabFromRoute(): ScheduleTab {
   const path = String(route.path || '')
@@ -1651,6 +1656,20 @@ const weekRangeLabel = computed(() => {
   if (!first || !last) return ''
   return `${formatDateOnly(first.key)} - ${formatDateOnly(last.key)}`
 })
+
+function visibleWeekRange(): WeekRange | null {
+  const firstDay = weekDays.value[0]?.key
+  const lastDay = weekDays.value[6]?.key
+  if (!firstDay || !lastDay) return null
+  return {
+    dateFrom: firstDay,
+    dateTo: lastDay,
+  }
+}
+
+function isSameWeekRange(left: WeekRange | null, right: WeekRange | null) {
+  return Boolean(left && right && left.dateFrom === right.dateFrom && left.dateTo === right.dateTo)
+}
 
 const weekDateKeys = computed(() => new Set(weekDays.value.map((day) => day.key)))
 const isCalendarTab = computed(() => scheduleTab.value === 'CALENDAR')
@@ -2637,18 +2656,25 @@ async function createRegularSessions() {
   }
 }
 
-async function fetchWeekSessions() {
-  const firstDay = weekDays.value[0]?.key
-  const lastDay = weekDays.value[6]?.key
-  if (!firstDay || !lastDay) return []
-  const resp = await getCabinetSchedule(firstDay, lastDay)
+async function fetchWeekSessions(range: WeekRange) {
+  const resp = await getCabinetSchedule(range.dateFrom, range.dateTo)
   return (resp.events || []).filter((event) => sessionStartAt(event) && sessionEndAt(event))
 }
 
-async function loadWeekSessions() {
+async function loadWeekSessions(options: { clear?: boolean } = {}) {
+  const requestedRange = visibleWeekRange()
+  if (!requestedRange) return
+  const requestId = ++scheduleLoadRequestId
+  if (options.clear) {
+    sessions.value = []
+  }
   try {
-    sessions.value = await fetchWeekSessions()
+    const nextSessions = await fetchWeekSessions(requestedRange)
+    if (requestId !== scheduleLoadRequestId) return
+    if (!isSameWeekRange(requestedRange, visibleWeekRange())) return
+    sessions.value = nextSessions
   } catch (err: any) {
+    if (requestId !== scheduleLoadRequestId) return
     error.value = getBookingErrorMessage(err, 'Не вдалося завантажити сесії')
   }
 }
@@ -2657,13 +2683,24 @@ async function loadSlots() {
   loading.value = true
   error.value = ''
   try {
+    const requestedScheduleRange = visibleWeekRange()
     const [slotResp, sessionResp] = await Promise.all([
       apiGet<Slot[]>('/cabinet/slots/'),
-      fetchWeekSessions(),
+      requestedScheduleRange ? fetchWeekSessions(requestedScheduleRange) : Promise.resolve([]),
     ])
     slots.value = slotResp || []
-    sessions.value = sessionResp
     switchToNearestFutureDateIfNeeded()
+    if (isCalendarTab.value) {
+      const visibleRange = visibleWeekRange()
+      if (isSameWeekRange(requestedScheduleRange, visibleRange)) {
+        sessions.value = sessionResp
+      } else {
+        sessions.value = []
+        await loadWeekSessions()
+      }
+    } else {
+      sessions.value = sessionResp
+    }
     if (selectedDate.value && getHiddenPastSlotsCount(selectedDate.value) === 0) {
       showPastSlots.value = false
     }
