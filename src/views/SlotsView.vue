@@ -991,6 +991,7 @@
 
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
+import { useRoute } from 'vue-router'
 import {
   apiDelete,
   apiGet,
@@ -1100,12 +1101,20 @@ type PublicBookingMode = 'request_only' | 'direct_booking'
 
 const PAST_SESSION_TIME_ERROR_MESSAGE = 'Неможливо створити сесію в минулому. Оберіть майбутню дату або час.'
 
+function scheduleTabFromRouteQuery(value: unknown): ScheduleTab {
+  const tab = Array.isArray(value) ? value[0] : value
+  if (tab === 'availability') return 'AVAILABILITY'
+  if (tab === 'calendar') return 'CALENDAR'
+  return 'CALENDAR'
+}
+
 const slots = ref<Slot[]>([])
 const sessions = ref<ScheduleSession[]>([])
 const loading = ref(false)
 const error = ref('')
 const editErrors = ref<Record<number, string>>({})
 const editErrorRefs = ref<Record<number, HTMLElement | null>>({})
+const route = useRoute()
 const toast = useToast()
 const confirmModal = useConfirmModal()
 const createFormRef = ref<HTMLFormElement | null>(null)
@@ -1161,7 +1170,7 @@ const showPastSlots = ref(false)
 const slotStatusFilter = ref<'ALL' | 'FREE' | 'BOOKED'>('ALL')
 const selectedSlotId = ref<number | null>(null)
 const selectedSessionId = ref<number | null>(null)
-const scheduleTab = ref<ScheduleTab>('CALENDAR')
+const scheduleTab = ref<ScheduleTab>(scheduleTabFromRouteQuery(route.query.tab))
 const settingsLoading = ref(false)
 const settingsSaving = ref(false)
 const settingsError = ref('')

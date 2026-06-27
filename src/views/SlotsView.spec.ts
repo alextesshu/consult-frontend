@@ -9,6 +9,10 @@ import {
 } from '../lib/api'
 import SlotsView from './SlotsView.vue'
 
+const mockRoute = {
+  query: {} as Record<string, unknown>,
+}
+
 const mockToast = {
   success: vi.fn(),
   error: vi.fn(),
@@ -39,6 +43,15 @@ vi.mock('../lib/api', () => ({
   updateSpecialistProfile: vi.fn(),
   getApiErrorMessage: vi.fn((err: any, fallback: string) => err?.message || fallback),
 }))
+
+vi.mock('vue-router', async () => {
+  const actual = await vi.importActual<typeof import('vue-router')>('vue-router')
+
+  return {
+    ...actual,
+    useRoute: () => mockRoute,
+  }
+})
 
 vi.mock('../composables/useToast', () => ({
   useToast: () => mockToast,
@@ -159,6 +172,7 @@ describe('SlotsView', () => {
   beforeEach(() => {
     vi.useFakeTimers()
     vi.setSystemTime(new Date('2026-03-12T10:00:00+02:00'))
+    mockRoute.query = {}
     mockedApiGet.mockReset()
     mockedApiPost.mockReset()
     mockedCreateClientRegularTime.mockReset()
@@ -203,6 +217,49 @@ describe('SlotsView', () => {
     expect(screen.queryByRole('button', { name: 'Додати вільний час' })).not.toBeInTheDocument()
     expect(screen.getByText('На цьому тижні ще немає сесій.')).toBeInTheDocument()
     expect(container.querySelector('.calendar-scroll')).toBeInTheDocument()
+  })
+
+  it('opens availability tab from route query', async () => {
+    mockRoute.query = { tab: 'availability' }
+    mockScheduleApi()
+
+    renderView()
+    await flushAsyncUpdates()
+
+    expect(screen.getByRole('tab', { name: 'Вільний час для запису' })).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByRole('button', { name: 'Додати вільний час' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Створити сесію' })).not.toBeInTheDocument()
+  })
+
+  it('keeps calendar tab as default when route query is missing or unknown', async () => {
+    mockScheduleApi()
+
+    const { unmount } = renderView()
+    await flushAsyncUpdates()
+    expect(screen.getByRole('tab', { name: 'Календар' })).toHaveAttribute('aria-selected', 'true')
+    unmount()
+
+    mockRoute.query = { tab: 'something-else' }
+    renderView()
+    await flushAsyncUpdates()
+    expect(screen.getByRole('tab', { name: 'Календар' })).toHaveAttribute('aria-selected', 'true')
+  })
+
+  it('keeps existing internal tab switching behavior', async () => {
+    mockScheduleApi()
+
+    renderView()
+    await flushAsyncUpdates()
+
+    await fireEvent.click(screen.getByRole('tab', { name: 'Вільний час для запису' }))
+    await flushAsyncUpdates()
+    expect(screen.getByRole('tab', { name: 'Вільний час для запису' })).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByRole('button', { name: 'Додати вільний час' })).toBeInTheDocument()
+
+    await fireEvent.click(screen.getByRole('tab', { name: 'Календар' }))
+    await flushAsyncUpdates()
+    expect(screen.getByRole('tab', { name: 'Календар' })).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByRole('button', { name: 'Створити сесію' })).toBeInTheDocument()
   })
 
   it('renders grouped session and availability actions', async () => {

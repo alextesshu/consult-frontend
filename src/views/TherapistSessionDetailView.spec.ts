@@ -1742,7 +1742,36 @@ describe('TherapistSessionDetailView', () => {
     expect(
       await within(reschedulePanel).findByText('Для цього часу немає доступного слота. Оберіть час із запропонованих слотів.')
     ).toBeInTheDocument()
+    expect(
+      within(reschedulePanel).getByText('Якщо потрібного часу немає у списку, додайте його як вільний час у розкладі.')
+    ).toBeInTheDocument()
+    const availabilityLink = within(reschedulePanel).getByRole('link', { name: 'Перейти до вільного часу' })
+    expect(availabilityLink).toHaveAttribute('href', '/cabinet/slots?tab=availability')
     expect(mockedApiPatch).not.toHaveBeenCalledWith('/booking/sessions/42/reschedule/', expect.anything())
+  })
+
+  it('shows guidance when no available slots exist for reschedule', async () => {
+    const sessionDetail = buildSession({ status: 'CONFIRMED' })
+    mockDetailContext(() => sessionDetail, {
+      slots: [],
+      suggestions: [],
+      requests: [],
+    })
+
+    renderView()
+
+    expect(await screen.findByText('client@example.com')).toBeInTheDocument()
+    await fireEvent.click(screen.getByRole('button', { name: 'Перенести' }))
+
+    const reschedulePanel = await screen.findByTestId('reschedule-panel')
+    expect(within(reschedulePanel).getByText('Немає доступних слотів для переносу')).toBeInTheDocument()
+    expect(
+      within(reschedulePanel).getByText(
+        'Щоб перенести сесію, спочатку додайте вільний час для запису в розкладі. Після цього поверніться до цієї сесії та оберіть слот для переносу.'
+      )
+    ).toBeInTheDocument()
+    const availabilityLink = within(reschedulePanel).getByRole('link', { name: 'Перейти до вільного часу' })
+    expect(availabilityLink).toHaveAttribute('href', '/cabinet/slots?tab=availability')
   })
 
   it('blocks reschedule submit when visible date format is invalid', async () => {
@@ -1799,6 +1828,53 @@ describe('TherapistSessionDetailView', () => {
 
     expect(await within(reschedulePanel).findByText('Оберіть час початку.')).toBeInTheDocument()
     expect(mockedApiPatch).not.toHaveBeenCalledWith('/booking/sessions/42/reschedule/', expect.anything())
+  })
+
+  it('does not block a future slot only because it is earlier than the current session', async () => {
+    const earlierFutureSlot = buildSlot({
+      id: 75,
+      start_at: '2099-06-19T08:00:00',
+      end_at: '2099-06-19T09:00:00',
+    })
+    let sessionDetail = buildSession({
+      status: 'CONFIRMED',
+      slot_start_at: '2099-06-20T09:00:00',
+      slot_end_at: '2099-06-20T10:00:00',
+    })
+    mockDetailContext(() => sessionDetail, {
+      slots: [earlierFutureSlot],
+      suggestions: [],
+      requests: [],
+    })
+    mockedApiPatch.mockImplementation(async (url, payload) => {
+      if (url === '/booking/sessions/42/reschedule/') {
+        expect(payload).toEqual({ slot_id: earlierFutureSlot.id })
+        sessionDetail = {
+          ...sessionDetail,
+          slot_start_at: earlierFutureSlot.start_at,
+          slot_end_at: earlierFutureSlot.end_at,
+        }
+        return {}
+      }
+      throw new Error(`Unexpected apiPatch call: ${url}`)
+    })
+
+    renderView()
+
+    expect(await screen.findByText('client@example.com')).toBeInTheDocument()
+    await fireEvent.click(screen.getByRole('button', { name: 'Перенести' }))
+
+    const reschedulePanel = await screen.findByTestId('reschedule-panel')
+    await fireEvent.update(within(reschedulePanel).getByLabelText('Нова дата'), '19.06.2099')
+    await fireEvent.update(within(reschedulePanel).getByLabelText('Час початку'), '08:00')
+    await fireEvent.click(within(reschedulePanel).getByRole('button', { name: 'Перенести сесію' }))
+
+    await waitFor(() => {
+      expect(mockedApiPatch).toHaveBeenCalledWith('/booking/sessions/42/reschedule/', {
+        slot_id: earlierFutureSlot.id,
+      })
+    })
+    expect(within(reschedulePanel).queryByText('Неможливо перенести сесію на раніший час.')).not.toBeInTheDocument()
   })
 
   it('reschedules a confirmed session from detail suggestions and refreshes the session context', async () => {
@@ -1873,6 +1949,7 @@ describe('TherapistSessionDetailView', () => {
     const suggestionButton = within(reschedulePanel).getByRole('button', {
       name: `${formatSessionDateTime(updatedSuggestion.start_at)} · 1 год Найближче доступне вікно`,
     })
+    expect(within(reschedulePanel).queryByRole('button', { name: 'Перенести сюди' })).not.toBeInTheDocument()
     await fireEvent.click(suggestionButton)
 
     const confirmRescheduleButton = within(reschedulePanel).getByRole('button', { name: 'Підтвердити перенос' })
@@ -1891,6 +1968,157 @@ describe('TherapistSessionDetailView', () => {
     expect(endpointCalls('/booking/sessions/42/reschedule-suggestions/')).toBe(2)
     expect(endpointCalls('/cabinet/sessions/reschedule-requests/')).toBe(2)
     expect(endpointCalls('/cabinet/sessions/42/note/')).toBe(1)
+  })
+
+  it('renders recommended reschedule slots chronologically by start time', async () => {
+    const suggestions = [
+      buildSuggestion({
+        slot_id: 103,
+        start_at: '2099-06-18T10:00:00Z',
+        end_at: '2099-06-18T11:00:00Z',
+      }),
+      buildSuggestion({
+        slot_id: 101,
+        start_at: '2099-06-18T08:00:00Z',
+        end_at: '2099-06-18T09:00:00Z',
+      }),
+      buildSuggestion({
+        slot_id: 105,
+        start_at: '2099-06-18T13:00:00Z',
+        end_at: '2099-06-18T14:00:00Z',
+      }),
+      buildSuggestion({
+        slot_id: 102,
+        start_at: '2099-06-18T09:00:00Z',
+        end_at: '2099-06-18T10:00:00Z',
+      }),
+      buildSuggestion({
+        slot_id: 104,
+        start_at: '2099-06-18T12:00:00Z',
+        end_at: '2099-06-18T13:00:00Z',
+      }),
+    ]
+    const slots = suggestions.map((item) =>
+      buildSlot({
+        id: item.slot_id,
+        start_at: item.start_at,
+        end_at: item.end_at,
+      })
+    )
+    const sessionDetail = buildSession({ status: 'CONFIRMED' })
+    mockDetailContext(() => sessionDetail, {
+      slots,
+      suggestions,
+      requests: [],
+    })
+
+    renderView()
+
+    expect(await screen.findByText('client@example.com')).toBeInTheDocument()
+    await fireEvent.click(screen.getByRole('button', { name: 'Перенести' }))
+
+    const reschedulePanel = await screen.findByTestId('reschedule-panel')
+    const suggestionButtons = within(reschedulePanel)
+      .getAllByRole('button')
+      .filter((button) => button.classList.contains('suggestion-btn'))
+
+    expect(suggestionButtons.map((button) => button.querySelector('span')?.textContent?.trim())).toEqual([
+      `${formatSessionDateTime('2099-06-18T08:00:00Z')} · 1 год`,
+      `${formatSessionDateTime('2099-06-18T09:00:00Z')} · 1 год`,
+      `${formatSessionDateTime('2099-06-18T10:00:00Z')} · 1 год`,
+      `${formatSessionDateTime('2099-06-18T12:00:00Z')} · 1 год`,
+      `${formatSessionDateTime('2099-06-18T13:00:00Z')} · 1 год`,
+    ])
+  })
+
+  it('keeps non-recommended available slot actions working', async () => {
+    const recommendedSlot = buildSlot({
+      id: 91,
+      start_at: '2099-06-18T10:00:00Z',
+      end_at: '2099-06-18T11:00:00Z',
+    })
+    const normalSlot = buildSlot({
+      id: 92,
+      start_at: '2099-06-19T12:00:00Z',
+      end_at: '2099-06-19T13:00:00Z',
+    })
+    const recommendation = buildSuggestion({
+      slot_id: recommendedSlot.id,
+      start_at: recommendedSlot.start_at,
+      end_at: recommendedSlot.end_at,
+    })
+    let sessionDetail = buildSession({ status: 'CONFIRMED' })
+
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === `/booking/sessions/${mockRoute.params.id}/`) {
+        return sessionDetail
+      }
+
+      if (url === '/cabinet/slots/') {
+        return [recommendedSlot, normalSlot]
+      }
+
+      if (url === `/booking/sessions/${mockRoute.params.id}/reschedule-suggestions/`) {
+        return {
+          suggestions: [recommendation],
+        }
+      }
+
+      if (url === `/cabinet/sessions/${mockRoute.params.id}/note/`) {
+        return {
+          content: 'Progress note',
+        }
+      }
+
+      if (url === '/cabinet/sessions/reschedule-requests/') {
+        return []
+      }
+
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    mockedApiPatch.mockImplementation(async (url, payload) => {
+      if (url === '/booking/sessions/42/reschedule/') {
+        expect(payload).toEqual({ slot_id: normalSlot.id })
+        sessionDetail = {
+          ...sessionDetail,
+          slot_start_at: normalSlot.start_at,
+          slot_end_at: normalSlot.end_at,
+        }
+        return {}
+      }
+
+      throw new Error(`Unexpected apiPatch call: ${url}`)
+    })
+
+    renderView()
+
+    expect(await screen.findByText('client@example.com')).toBeInTheDocument()
+    await fireEvent.click(screen.getByRole('button', { name: 'Перенести' }))
+
+    const reschedulePanel = await screen.findByTestId('reschedule-panel')
+    expect(
+      within(reschedulePanel).getByRole('button', {
+        name: `${formatSessionDateTime(recommendation.start_at)} · 1 год Найближче доступне вікно`,
+      })
+    ).toBeInTheDocument()
+    const recommendedSlotOccurrences = Array.from(
+      reschedulePanel.querySelectorAll('.suggestion-btn span:first-child, .slot-time')
+    ).filter((element) => element.textContent?.startsWith(formatSessionDateTime(recommendedSlot.start_at)))
+    expect(recommendedSlotOccurrences).toHaveLength(1)
+
+    const normalSlotCard = within(reschedulePanel)
+      .getByText(formatSessionDateTime(normalSlot.start_at))
+      .closest('.slot-card')
+    expect(normalSlotCard).not.toBeNull()
+    await fireEvent.click(within(normalSlotCard as HTMLElement).getByRole('button', { name: 'Перенести сюди' }))
+
+    await waitFor(() => {
+      expect(mockedApiPatch).toHaveBeenCalledWith('/booking/sessions/42/reschedule/', {
+        slot_id: normalSlot.id,
+      })
+      expect(mockToast.success).toHaveBeenCalledWith(BOOKING_SUCCESS_MESSAGES.sessionRescheduled)
+    })
   })
 
   it('approves and declines reschedule requests from the detail view with the expected refresh behavior', async () => {

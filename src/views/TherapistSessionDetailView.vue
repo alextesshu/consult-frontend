@@ -100,6 +100,12 @@
           </div>
 
           <div v-if="rescheduleFormError" class="form-error">{{ rescheduleFormError }}</div>
+          <div v-if="showRescheduleSlotMismatchGuidance" class="reschedule-guidance">
+            <p class="muted reschedule-guidance__text">{{ RESCHEDULE_SLOT_GUIDANCE_MESSAGE }}</p>
+            <RouterLink class="btn btn--ghost btn--sm" :to="RESCHEDULE_AVAILABILITY_ROUTE">
+              Перейти до вільного часу
+            </RouterLink>
+          </div>
 
           <div class="reschedule-form-grid">
             <DatePickerField
@@ -147,12 +153,12 @@
           <div class="suggestions-block">
             <div class="muted suggestions-title">Рекомендовані варіанти</div>
             <div v-if="suggestionsLoading" class="muted">Завантаження рекомендацій...</div>
-            <div v-else-if="rescheduleSuggestions.length === 0" class="muted">
+            <div v-else-if="sortedRescheduleSuggestions.length === 0" class="muted">
               Для цієї сесії зараз немає окремих рекомендацій.
             </div>
             <div v-else class="suggestions-list">
               <button
-                v-for="item in rescheduleSuggestions.slice(0, 5)"
+                v-for="item in sortedRescheduleSuggestions.slice(0, 5)"
                 :key="item.slot_id"
                 class="btn btn--ghost btn--sm suggestion-btn"
                 :class="{ 'suggestion-btn--active': selectedSuggestionSlotId === item.slot_id }"
@@ -176,9 +182,17 @@
           </div>
 
           <div v-if="slotsLoading" class="muted">Завантаження слотів...</div>
-          <div v-else-if="availableSlots.length === 0" class="muted">Немає доступних слотів для переносу.</div>
-          <div v-else class="slot-list">
-            <article v-for="slot in availableSlots" :key="slot.id" class="slot-card">
+          <div v-else-if="availableSlots.length === 0" class="reschedule-empty-state">
+            <div class="reschedule-empty-state__title">Немає доступних слотів для переносу</div>
+            <p class="muted reschedule-empty-state__body">
+              Щоб перенести сесію, спочатку додайте вільний час для запису в розкладі. Після цього поверніться до цієї сесії та оберіть слот для переносу.
+            </p>
+            <RouterLink class="btn btn--ghost btn--sm" :to="RESCHEDULE_AVAILABILITY_ROUTE">
+              Перейти до вільного часу
+            </RouterLink>
+          </div>
+          <div v-else-if="nonRecommendedAvailableSlots.length > 0" class="slot-list">
+            <article v-for="slot in nonRecommendedAvailableSlots" :key="slot.id" class="slot-card">
               <div>
                 <div class="slot-time">{{ formatDateTime(slot.start_at) }}</div>
                 <div class="muted">{{ formatDuration(slot.start_at, slot.end_at) }}</div>
@@ -1148,6 +1162,9 @@ const quickAddModalError = ref('')
 
 const INVALID_RESCHEDULE_DATE_FORMAT_MESSAGE = 'Введіть дату у форматі ДД.ММ.РРРР, наприклад 25.06.2026.'
 const INVALID_RESCHEDULE_TIME_FORMAT_MESSAGE = 'Оберіть час початку.'
+const RESCHEDULE_SLOT_MISMATCH_MESSAGE = 'Для цього часу немає доступного слота. Оберіть час із запропонованих слотів.'
+const RESCHEDULE_SLOT_GUIDANCE_MESSAGE = 'Якщо потрібного часу немає у списку, додайте його як вільний час у розкладі.'
+const RESCHEDULE_AVAILABILITY_ROUTE = '/cabinet/slots?tab=availability'
 
 function normalizeSessionFormat(detail: SessionDetail | null): SessionFormat {
   if (!detail) return 'online'
@@ -1225,6 +1242,17 @@ const sessionRequests = computed(() =>
 )
 
 const rescheduleTimeOptions = buildTenMinuteTimeOptions()
+const sortedRescheduleSuggestions = computed(() =>
+  [...rescheduleSuggestions.value].sort((a, b) => {
+    const startDiff = new Date(a.start_at).getTime() - new Date(b.start_at).getTime()
+    if (startDiff !== 0) return startDiff
+    return a.slot_id - b.slot_id
+  })
+)
+const recommendedRescheduleSlotIds = computed(() => new Set(sortedRescheduleSuggestions.value.map((item) => item.slot_id)))
+const nonRecommendedAvailableSlots = computed(() =>
+  availableSlots.value.filter((slot) => !recommendedRescheduleSlotIds.value.has(slot.id))
+)
 
 const matchingRescheduleSlot = computed(() => {
   if (!rescheduleDateDraft.value || !rescheduleTimeDraft.value) return null
@@ -1237,6 +1265,8 @@ const matchingRescheduleSlot = computed(() => {
     }) || null
   )
 })
+
+const showRescheduleSlotMismatchGuidance = computed(() => rescheduleFormError.value === RESCHEDULE_SLOT_MISMATCH_MESSAGE)
 
 const currentSessionDurationLabel = computed(() => {
   if (!session.value) return 'Поточна тривалість'
@@ -2340,7 +2370,7 @@ function toggleRecurringPanel() {
 
 function selectSuggestedSlot(slotId: number) {
   selectedSuggestionSlotId.value = slotId
-  const suggestion = rescheduleSuggestions.value.find((item) => item.slot_id === slotId)
+  const suggestion = sortedRescheduleSuggestions.value.find((item) => item.slot_id === slotId)
   const slot = availableSlots.value.find((item) => item.id === slotId)
   setRescheduleDraftFromStart(suggestion?.start_at || slot?.start_at || '')
   rescheduleFormError.value = ''
@@ -2353,7 +2383,7 @@ function setRescheduleDraftFromStart(value?: string | null) {
 
 function prefillRescheduleDraft() {
   if (rescheduleDateDraft.value && rescheduleTimeDraft.value) return
-  const firstSuggestion = rescheduleSuggestions.value[0]
+  const firstSuggestion = sortedRescheduleSuggestions.value[0]
   const firstSlot = availableSlots.value[0]
   setRescheduleDraftFromStart(firstSuggestion?.start_at || firstSlot?.start_at || '')
 }
@@ -2381,7 +2411,7 @@ async function submitRescheduleDraft() {
   }
   const slot = matchingRescheduleSlot.value
   if (!slot) {
-    rescheduleFormError.value = 'Для цього часу немає доступного слота. Оберіть час із запропонованих слотів.'
+    rescheduleFormError.value = RESCHEDULE_SLOT_MISMATCH_MESSAGE
     return
   }
   await submitReschedule(slot.id)
@@ -2698,6 +2728,27 @@ watch(
 
 .reschedule-panel__hint {
   margin: 4px 0 0;
+}
+
+.reschedule-guidance,
+.reschedule-empty-state {
+  display: grid;
+  gap: 8px;
+  align-items: start;
+  padding: 12px;
+  border: 1px solid color-mix(in srgb, var(--pc-navy-900) 18%, var(--pc-border));
+  border-radius: var(--pc-radius-control);
+  background: color-mix(in srgb, var(--pc-bg-card) 82%, var(--pc-blue-soft));
+}
+
+.reschedule-guidance__text,
+.reschedule-empty-state__body {
+  margin: 0;
+}
+
+.reschedule-empty-state__title {
+  color: var(--pc-navy-950);
+  font-weight: 700;
 }
 
 .reschedule-form-grid {
