@@ -1770,8 +1770,15 @@ describe('TherapistSessionDetailView', () => {
         'Щоб перенести сесію, спочатку додайте вільний час для запису в розкладі. Після цього поверніться до цієї сесії та оберіть слот для переносу.'
       )
     ).toBeInTheDocument()
-    const availabilityLink = within(reschedulePanel).getByRole('link', { name: 'Перейти до вільного часу' })
+    const availabilityLink = within(reschedulePanel).getByRole('link', { name: 'Додати вільний час' })
     expect(availabilityLink).toHaveAttribute('href', '/cabinet/slots?tab=availability')
+    expect(availabilityLink).toHaveClass('btn')
+    expect(availabilityLink).not.toHaveClass('btn--ghost')
+    expect(within(reschedulePanel).getAllByRole('link', { name: 'Додати вільний час' })).toHaveLength(1)
+    expect(within(reschedulePanel).queryByRole('link', { name: 'Перейти до вільного часу' })).not.toBeInTheDocument()
+    expect(within(reschedulePanel).queryByLabelText('Нова дата')).not.toBeInTheDocument()
+    expect(within(reschedulePanel).queryByLabelText('Час початку')).not.toBeInTheDocument()
+    expect(within(reschedulePanel).queryByText('Рекомендовані варіанти')).not.toBeInTheDocument()
   })
 
   it('blocks reschedule submit when visible date format is invalid', async () => {

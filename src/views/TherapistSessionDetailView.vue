@@ -99,114 +99,113 @@
             </button>
           </div>
 
-          <div v-if="rescheduleFormError" class="form-error">{{ rescheduleFormError }}</div>
-          <div v-if="showRescheduleSlotMismatchGuidance" class="reschedule-guidance">
-            <p class="muted reschedule-guidance__text">{{ RESCHEDULE_SLOT_GUIDANCE_MESSAGE }}</p>
-            <RouterLink class="btn btn--ghost btn--sm" :to="RESCHEDULE_AVAILABILITY_ROUTE">
-              Перейти до вільного часу
-            </RouterLink>
-          </div>
-
-          <div class="reschedule-form-grid">
-            <DatePickerField
-              ref="rescheduleDatePickerRef"
-              :model-value="rescheduleDateDraft"
-              label="Нова дата"
-              :disabled="actionLoading"
-              @update:model-value="updateRescheduleDateDraft"
-              @select-iso="selectRescheduleDate"
-            />
-            <TimeSelectField
-              v-model="rescheduleTimeDraft"
-              label="Час початку"
-              label-class="muted"
-              :options="rescheduleTimeOptions"
-              :disabled="actionLoading"
-              @click="closeRescheduleDatePicker"
-              @focus="closeRescheduleDatePicker"
-            />
-            <div class="field">
-              <span class="muted">Тривалість</span>
-              <div class="input input--readonly">{{ currentSessionDurationLabel }}</div>
-            </div>
-          </div>
-
-          <div class="reschedule-actions">
-            <button
-              class="btn btn--sm"
-              type="button"
-              :disabled="actionLoading"
-              @click="submitRescheduleDraft"
-            >
-              Перенести сесію
-            </button>
-            <button
-              class="btn btn--ghost btn--sm"
-              type="button"
-              :disabled="actionLoading"
-              @click="closeReschedulePanel"
-            >
-              Скасувати
-            </button>
-          </div>
-
-          <div class="suggestions-block">
-            <div class="muted suggestions-title">Рекомендовані варіанти</div>
-            <div v-if="suggestionsLoading" class="muted">Завантаження рекомендацій...</div>
-            <div v-else-if="sortedRescheduleSuggestions.length === 0" class="muted">
-              Для цієї сесії зараз немає окремих рекомендацій.
-            </div>
-            <div v-else class="suggestions-list">
-              <button
-                v-for="item in sortedRescheduleSuggestions.slice(0, 5)"
-                :key="item.slot_id"
-                class="btn btn--ghost btn--sm suggestion-btn"
-                :class="{ 'suggestion-btn--active': selectedSuggestionSlotId === item.slot_id }"
-                type="button"
-                :disabled="actionLoading"
-                @click="selectSuggestedSlot(item.slot_id)"
-              >
-                <span>{{ formatDateTime(item.start_at) }} · {{ formatDuration(item.start_at, item.end_at) }}</span>
-                <span class="muted suggestion-meta">{{ suggestionReasonLabel(item.reason_tag) }}</span>
-              </button>
-            </div>
-            <button
-              v-if="selectedSuggestionSlotId"
-              class="btn btn--sm"
-              type="button"
-              :disabled="actionLoading"
-              @click="submitSelectedSuggestion"
-            >
-              Підтвердити перенос
-            </button>
-          </div>
-
           <div v-if="slotsLoading" class="muted">Завантаження слотів...</div>
-          <div v-else-if="availableSlots.length === 0" class="reschedule-empty-state">
+          <div v-else-if="showNoRescheduleSlotsEmptyState" class="reschedule-empty-state reschedule-empty-state--prominent">
             <div class="reschedule-empty-state__title">Немає доступних слотів для переносу</div>
             <p class="muted reschedule-empty-state__body">
               Щоб перенести сесію, спочатку додайте вільний час для запису в розкладі. Після цього поверніться до цієї сесії та оберіть слот для переносу.
             </p>
-            <RouterLink class="btn btn--ghost btn--sm" :to="RESCHEDULE_AVAILABILITY_ROUTE">
-              Перейти до вільного часу
+            <RouterLink class="btn btn--sm" :to="RESCHEDULE_AVAILABILITY_ROUTE">
+              Додати вільний час
             </RouterLink>
           </div>
-          <div v-else-if="nonRecommendedAvailableSlots.length > 0" class="slot-list">
-            <article v-for="slot in nonRecommendedAvailableSlots" :key="slot.id" class="slot-card">
-              <div>
-                <div class="slot-time">{{ formatDateTime(slot.start_at) }}</div>
-                <div class="muted">{{ formatDuration(slot.start_at, slot.end_at) }}</div>
+          <template v-else>
+            <div v-if="rescheduleFormError" class="form-error">{{ rescheduleFormError }}</div>
+            <div v-if="showRescheduleSlotMismatchGuidance" class="reschedule-guidance">
+              <p class="muted reschedule-guidance__text">{{ RESCHEDULE_SLOT_GUIDANCE_MESSAGE }}</p>
+              <RouterLink class="btn btn--ghost btn--sm" :to="RESCHEDULE_AVAILABILITY_ROUTE">
+                Перейти до вільного часу
+              </RouterLink>
+            </div>
+
+            <div class="reschedule-form-grid">
+              <DatePickerField
+                ref="rescheduleDatePickerRef"
+                :model-value="rescheduleDateDraft"
+                label="Нова дата"
+                :disabled="actionLoading"
+                @update:model-value="updateRescheduleDateDraft"
+                @select-iso="selectRescheduleDate"
+              />
+              <TimeSelectField
+                v-model="rescheduleTimeDraft"
+                label="Час початку"
+                label-class="muted"
+                :options="rescheduleTimeOptions"
+                :disabled="actionLoading"
+                @click="closeRescheduleDatePicker"
+                @focus="closeRescheduleDatePicker"
+              />
+              <div class="field">
+                <span class="muted">Тривалість</span>
+                <div class="input input--readonly">{{ currentSessionDurationLabel }}</div>
               </div>
+            </div>
+
+            <div class="reschedule-actions">
+              <button
+                class="btn btn--sm"
+                type="button"
+                :disabled="actionLoading"
+                @click="submitRescheduleDraft"
+              >
+                Перенести сесію
+              </button>
               <button
                 class="btn btn--ghost btn--sm"
                 type="button"
                 :disabled="actionLoading"
-                @click="submitReschedule(slot.id)"
+                @click="closeReschedulePanel"
               >
-                Перенести сюди
+                Скасувати
               </button>
-            </article>
-          </div>
+            </div>
+
+            <div v-if="suggestionsLoading || sortedRescheduleSuggestions.length > 0" class="suggestions-block">
+              <div class="muted suggestions-title">Рекомендовані варіанти</div>
+              <div v-if="suggestionsLoading" class="muted">Завантаження рекомендацій...</div>
+              <div v-else class="suggestions-list">
+                <button
+                  v-for="item in sortedRescheduleSuggestions.slice(0, 5)"
+                  :key="item.slot_id"
+                  class="btn btn--ghost btn--sm suggestion-btn"
+                  :class="{ 'suggestion-btn--active': selectedSuggestionSlotId === item.slot_id }"
+                  type="button"
+                  :disabled="actionLoading"
+                  @click="selectSuggestedSlot(item.slot_id)"
+                >
+                  <span>{{ formatDateTime(item.start_at) }} · {{ formatDuration(item.start_at, item.end_at) }}</span>
+                  <span class="muted suggestion-meta">{{ suggestionReasonLabel(item.reason_tag) }}</span>
+                </button>
+              </div>
+              <button
+                v-if="selectedSuggestionSlotId"
+                class="btn btn--sm"
+                type="button"
+                :disabled="actionLoading"
+                @click="submitSelectedSuggestion"
+              >
+                Підтвердити перенос
+              </button>
+            </div>
+
+            <div v-if="nonRecommendedAvailableSlots.length > 0" class="slot-list">
+              <article v-for="slot in nonRecommendedAvailableSlots" :key="slot.id" class="slot-card">
+                <div>
+                  <div class="slot-time">{{ formatDateTime(slot.start_at) }}</div>
+                  <div class="muted">{{ formatDuration(slot.start_at, slot.end_at) }}</div>
+                </div>
+                <button
+                  class="btn btn--ghost btn--sm"
+                  type="button"
+                  :disabled="actionLoading"
+                  @click="submitReschedule(slot.id)"
+                >
+                  Перенести сюди
+                </button>
+              </article>
+            </div>
+          </template>
         </div>
 
         <div class="detail-grid">
@@ -1253,6 +1252,7 @@ const recommendedRescheduleSlotIds = computed(() => new Set(sortedRescheduleSugg
 const nonRecommendedAvailableSlots = computed(() =>
   availableSlots.value.filter((slot) => !recommendedRescheduleSlotIds.value.has(slot.id))
 )
+const showNoRescheduleSlotsEmptyState = computed(() => !slotsLoading.value && availableSlots.value.length === 0)
 
 const matchingRescheduleSlot = computed(() => {
   if (!rescheduleDateDraft.value || !rescheduleTimeDraft.value) return null
@@ -2749,6 +2749,10 @@ watch(
 .reschedule-empty-state__title {
   color: var(--pc-navy-950);
   font-weight: 700;
+}
+
+.reschedule-empty-state--prominent .btn {
+  justify-self: start;
 }
 
 .reschedule-form-grid {
