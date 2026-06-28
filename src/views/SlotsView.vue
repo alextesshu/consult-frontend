@@ -277,43 +277,101 @@
         </div>
 
         <div class="mobile-day-schedule">
-          <div class="mobile-day-schedule__title">
-            {{ formatDateOnly(selectedDate) }}
-            <span v-if="isSelectedToday" class="day-hint__today">· Сьогодні</span>
-          </div>
-          <div v-if="isCalendarTab && filteredCalendarSessions.length === 0" class="muted">На цей день немає подій у розкладі.</div>
-          <div v-if="isAvailabilityTab && filteredSlots.length === 0" class="muted">На цей день немає вільного часу.</div>
-          <button
-            v-if="isAvailabilityTab"
-            v-for="slot in filteredSlots"
-            :key="slot.id"
-            class="mobile-slot"
-            :class="[slotStatusClass(slot), { 'calendar-slot--selected': selectedSlot?.id === slot.id }]"
-            type="button"
-            :aria-label="`${slotStatusLabel(slot)} ${formatSlotTimeRange(slot)}`"
-            :title="`${slotStatusLabel(slot)} · ${formatSlotTimeRange(slot)}`"
-            @click="selectSlot(slot)"
-          >
-            <span>{{ formatSlotTimeRange(slot) }}</span>
-          </button>
-          <button
-            v-if="isCalendarTab"
-            v-for="session in filteredCalendarSessions"
-            :key="session.id"
-            class="mobile-slot"
-            :class="[scheduleEventClass(session), { 'calendar-slot--selected': selectedScheduleSession?.id === session.id }]"
-            type="button"
-            :aria-label="sessionBlockLabel(session)"
-            :title="sessionBlockLabel(session)"
-            @click="selectSession(session)"
-          >
-            <span>{{ formatSessionTimeRange(session) }}</span>
-            <span>{{ scheduleEventTypeLabel(session) }}<template v-if="session.type !== 'available_slot'"> · {{ sessionClientLabel(session) }}</template></span>
-          </button>
+          <template v-if="isCalendarTab">
+            <div class="mobile-day-schedule__title">Події тижня</div>
+            <div v-if="mobileCalendarDayGroups.length === 0" class="muted">На цьому тижні ще немає подій у розкладі.</div>
+            <section
+              v-for="group in mobileCalendarDayGroups"
+              :key="group.key"
+              class="mobile-day-group"
+              :aria-label="`Події за ${formatDateOnly(group.key)}`"
+            >
+              <h3 class="mobile-day-group__title">
+                <span>{{ formatDateOnly(group.key) }}</span>
+                <small>{{ group.weekday }}</small>
+              </h3>
+              <div
+                v-for="session in group.events"
+                :key="session.id"
+                class="mobile-schedule-event"
+                :class="scheduleEventClass(session)"
+              >
+                <button
+                  class="mobile-slot mobile-slot--event"
+                  :class="{ 'calendar-slot--selected': selectedScheduleSession?.id === session.id }"
+                  type="button"
+                  :aria-label="sessionBlockLabel(session)"
+                  :title="sessionBlockLabel(session)"
+                  @click="selectSession(session)"
+                >
+                  <span class="mobile-slot__time">{{ formatSessionTimeRange(session) }}</span>
+                  <span class="mobile-slot__meta">
+                    {{ scheduleEventTypeLabel(session) }}<template v-if="session.type !== 'available_slot'"> · {{ sessionClientLabel(session) }}</template>
+                  </span>
+                </button>
+                <div
+                  v-if="selectedScheduleSession?.id === session.id"
+                  class="mobile-event-detail"
+                  :class="scheduleEventStatusClass(session)"
+                >
+                  <div class="mobile-event-detail__header">
+                    <strong>{{ scheduleEventTypeLabel(session) }}</strong>
+                    <span>{{ formatDateOnly(toLocalDateKey(sessionStartAt(session))) }}</span>
+                  </div>
+                  <dl class="mobile-event-detail__meta">
+                    <div>
+                      <dt>Час</dt>
+                      <dd>{{ formatSessionTimeRange(session) }}</dd>
+                    </div>
+                    <div v-if="session.type !== 'available_slot'">
+                      <dt>Клієнт</dt>
+                      <dd>{{ sessionClientLabel(session) }}</dd>
+                    </div>
+                    <div v-if="session.type === 'session'">
+                      <dt>Статус</dt>
+                      <dd>{{ sessionStatusLabel(session.status) }}</dd>
+                    </div>
+                    <div v-if="session.type === 'available_slot'">
+                      <dt>Керування</dt>
+                      <dd>Керувати вільним часом можна у вкладці “Вільний час для запису”.</dd>
+                    </div>
+                  </dl>
+                  <div v-if="session.session_id" class="mobile-event-detail__actions">
+                    <RouterLink class="btn btn--sm" :to="`/cabinet/sessions/${session.session_id}`">
+                      Відкрити сесію
+                    </RouterLink>
+                  </div>
+                </div>
+              </div>
+            </section>
+          </template>
+          <template v-else>
+            <div class="mobile-day-schedule__title">
+              {{ formatDateOnly(selectedDate) }}
+              <span v-if="isSelectedToday" class="day-hint__today">· Сьогодні</span>
+            </div>
+            <div v-if="filteredSlots.length === 0" class="muted">На цей день немає вільного часу.</div>
+            <button
+              v-for="slot in filteredSlots"
+              :key="slot.id"
+              class="mobile-slot"
+              :class="[slotStatusClass(slot), { 'calendar-slot--selected': selectedSlot?.id === slot.id }]"
+              type="button"
+              :aria-label="`${slotStatusLabel(slot)} ${formatSlotTimeRange(slot)}`"
+              :title="`${slotStatusLabel(slot)} · ${formatSlotTimeRange(slot)}`"
+              @click="selectSlot(slot)"
+            >
+              <span>{{ formatSlotTimeRange(slot) }}</span>
+            </button>
+          </template>
         </div>
       </section>
 
-      <aside class="panel slot-detail-panel" aria-label="Деталі вибраного елемента розкладу">
+      <aside
+        class="panel slot-detail-panel"
+        :class="{ 'slot-detail-panel--calendar': isCalendarTab }"
+        aria-label="Деталі вибраного елемента розкладу"
+      >
         <template v-if="isCalendarTab && !selectedScheduleSession">
           <h2 class="panel__title">Деталі події</h2>
           <p class="muted">Оберіть подію в календарі, щоб переглянути деталі.</p>
@@ -1784,9 +1842,13 @@ const filteredSlots = computed(() => {
   return slotsForSelectedDay.value
 })
 
-const filteredCalendarSessions = computed(() =>
-  visibleWeekCalendarSessions.value
-    .filter((session) => toLocalDateKey(sessionStartAt(session)) === selectedDate.value)
+const mobileCalendarDayGroups = computed(() =>
+  weekDays.value
+    .map((day) => ({
+      ...day,
+      events: visibleWeekCalendarSessions.value.filter((session) => toLocalDateKey(sessionStartAt(session)) === day.key),
+    }))
+    .filter((day) => day.events.length > 0)
 )
 
 const hiddenPastWeekSlotsCount = computed(() =>
@@ -3398,6 +3460,38 @@ onBeforeUnmount(() => {
   color: var(--pc-navy-900);
 }
 
+.mobile-day-group {
+  display: grid;
+  gap: 8px;
+}
+
+.mobile-day-group + .mobile-day-group {
+  padding-top: 10px;
+  border-top: 1px solid color-mix(in srgb, var(--pc-border) 78%, transparent);
+}
+
+.mobile-day-group__title {
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  color: var(--pc-navy-900);
+  font-size: 13px;
+  line-height: 1.25;
+}
+
+.mobile-day-group__title small {
+  color: var(--pc-text-muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.mobile-schedule-event {
+  display: grid;
+  gap: 6px;
+}
+
 .mobile-slot {
   width: 100%;
   border: 1px solid var(--pc-border);
@@ -3408,6 +3502,85 @@ onBeforeUnmount(() => {
   gap: 10px;
   text-align: left;
   background: #fff;
+}
+
+.mobile-slot--event {
+  align-items: flex-start;
+}
+
+.mobile-slot__time {
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.mobile-slot__meta {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: right;
+}
+
+.mobile-event-detail {
+  display: grid;
+  gap: 9px;
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-card);
+  background: #fff;
+  padding: 10px 11px;
+  box-shadow: none;
+}
+
+.mobile-event-detail__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: baseline;
+}
+
+.mobile-event-detail__header strong {
+  color: var(--pc-navy-900);
+  font-size: 13px;
+}
+
+.mobile-event-detail__header span {
+  color: var(--pc-text-muted);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.mobile-event-detail__meta {
+  margin: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.mobile-event-detail__meta div {
+  display: grid;
+  gap: 2px;
+}
+
+.mobile-event-detail__meta dt {
+  color: var(--pc-text-muted);
+  font-size: 11px;
+}
+
+.mobile-event-detail__meta dd {
+  margin: 0;
+  color: var(--pc-navy-900);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.mobile-event-detail__actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.mobile-event-detail__actions .btn {
+  height: 34px;
+  padding: 5px 10px;
 }
 
 .slot-detail-panel {
@@ -4193,6 +4366,11 @@ onBeforeUnmount(() => {
 
   .slot-detail-panel {
     position: static;
+    margin-top: -2px;
+  }
+
+  .slot-detail-panel--calendar {
+    display: none;
   }
 
   .filters-toolbar__row {

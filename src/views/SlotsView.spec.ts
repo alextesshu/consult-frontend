@@ -271,7 +271,7 @@ describe('SlotsView', () => {
     expect(screen.getByRole('heading', { name: 'Деталі події' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Створити сесію' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Додати вільний час' })).not.toBeInTheDocument()
-    expect(screen.getByText('На цьому тижні ще немає подій у розкладі.')).toBeInTheDocument()
+    expect(screen.getAllByText('На цьому тижні ще немає подій у розкладі.').length).toBeGreaterThan(0)
     expect(container.querySelector('.calendar-scroll')).toBeInTheDocument()
   })
 
@@ -1001,33 +1001,117 @@ describe('SlotsView', () => {
     expect(screen.queryByText('+380991112233')).not.toBeInTheDocument()
     expect(screen.queryByText('olena@example.com')).not.toBeInTheDocument()
 
+    const mobileSchedule = container.querySelector('.mobile-day-schedule') as HTMLElement | null
+    expect(mobileSchedule).toBeInstanceOf(HTMLElement)
+    expect(within(mobileSchedule as HTMLElement).getByText('Події тижня')).toBeInTheDocument()
+    expect((mobileSchedule as HTMLElement).querySelectorAll('.mobile-schedule-event')).toHaveLength(3)
+    expect(within(mobileSchedule as HTMLElement).getAllByText(/Вільний час/).length).toBeGreaterThan(0)
+    expect(within(mobileSchedule as HTMLElement).getAllByText(/Сесія/).length).toBeGreaterThan(0)
+    expect(within(mobileSchedule as HTMLElement).getAllByText(/Заброньовано/).length).toBeGreaterThan(0)
+    expect(within(mobileSchedule as HTMLElement).queryByRole('link', { name: 'Відкрити сесію' })).not.toBeInTheDocument()
+    const availableMobileEvent = (mobileSchedule as HTMLElement).querySelector(
+      '.mobile-schedule-event.schedule-event--available'
+    ) as HTMLElement | null
+    const bookedMobileEvent = (mobileSchedule as HTMLElement).querySelector(
+      '.mobile-schedule-event.schedule-event--booked'
+    ) as HTMLElement | null
+    const sessionMobileEvent = (mobileSchedule as HTMLElement).querySelector(
+      '.mobile-schedule-event.calendar-session'
+    ) as HTMLElement | null
+    expect(availableMobileEvent).toBeInstanceOf(HTMLElement)
+    expect(bookedMobileEvent).toBeInstanceOf(HTMLElement)
+    expect(sessionMobileEvent).toBeInstanceOf(HTMLElement)
+
+    await fireEvent.click(within(availableMobileEvent as HTMLElement).getByRole('button'))
+    await flushAsyncUpdates()
+    expect(within(availableMobileEvent as HTMLElement).getByText('Керування')).toBeInTheDocument()
+    expect(
+      within(availableMobileEvent as HTMLElement).getByText('Керувати вільним часом можна у вкладці “Вільний час для запису”.')
+    ).toBeInTheDocument()
+    expect(within(availableMobileEvent as HTMLElement).queryByRole('link', { name: 'Відкрити сесію' })).not.toBeInTheDocument()
+
+    await fireEvent.click(within(bookedMobileEvent as HTMLElement).getByRole('button'))
+    await flushAsyncUpdates()
+    expect(within(bookedMobileEvent as HTMLElement).getByText('Заброньовано')).toBeInTheDocument()
+    expect(within(bookedMobileEvent as HTMLElement).getByText('Гостьовий клієнт')).toBeInTheDocument()
+    expect(within(bookedMobileEvent as HTMLElement).getByRole('link', { name: 'Відкрити сесію' })).toHaveAttribute('href', '/cabinet/sessions/502')
+
+    await fireEvent.click(within(sessionMobileEvent as HTMLElement).getByRole('button'))
+    await flushAsyncUpdates()
+    expect(within(sessionMobileEvent as HTMLElement).getByText('Сесія')).toBeInTheDocument()
+    expect(within(sessionMobileEvent as HTMLElement).getByText('Олена')).toBeInTheDocument()
+    expect(within(sessionMobileEvent as HTMLElement).getByText('Заплановано')).toBeInTheDocument()
+    expect(within(sessionMobileEvent as HTMLElement).getByRole('link', { name: 'Відкрити сесію' })).toHaveAttribute('href', '/cabinet/sessions/503')
+
+    const detailPanel = container.querySelector('.slot-detail-panel') as HTMLElement
+
     await fireEvent.click(container.querySelector('.week-calendar .schedule-event--available') as HTMLButtonElement)
     await flushAsyncUpdates()
-    expect(screen.queryByRole('link', { name: 'Відкрити сесію' })).not.toBeInTheDocument()
+    expect(within(detailPanel).queryByRole('link', { name: 'Відкрити сесію' })).not.toBeInTheDocument()
 
     await fireEvent.click(container.querySelector('.week-calendar .schedule-event--booked') as HTMLButtonElement)
     await flushAsyncUpdates()
-    expect(screen.getByRole('link', { name: 'Відкрити сесію' })).toHaveAttribute('href', '/cabinet/sessions/502')
+    expect(within(detailPanel).getByRole('link', { name: 'Відкрити сесію' })).toHaveAttribute('href', '/cabinet/sessions/502')
 
     await fireEvent.click(container.querySelector('.week-calendar .calendar-session') as HTMLButtonElement)
     await flushAsyncUpdates()
-    expect(screen.getByRole('link', { name: 'Відкрити сесію' })).toHaveAttribute('href', '/cabinet/sessions/503')
+    expect(within(detailPanel).getByRole('link', { name: 'Відкрити сесію' })).toHaveAttribute('href', '/cabinet/sessions/503')
 
     await fireEvent.click(screen.getByRole('button', { name: 'Вільний час' }))
     await flushAsyncUpdates()
     expect(container.querySelectorAll('.week-calendar .schedule-event')).toHaveLength(1)
     expect(container.querySelector('.week-calendar .schedule-event--available')).toBeInTheDocument()
+    expect((mobileSchedule as HTMLElement).querySelectorAll('.mobile-schedule-event')).toHaveLength(1)
+    expect((mobileSchedule as HTMLElement).querySelector('.mobile-schedule-event.schedule-event--available')).toBeInTheDocument()
 
     await fireEvent.click(screen.getByRole('button', { name: 'Заброньовано' }))
     await flushAsyncUpdates()
     expect(container.querySelectorAll('.week-calendar .schedule-event')).toHaveLength(1)
     expect(container.querySelector('.week-calendar .schedule-event--booked')).toBeInTheDocument()
+    expect((mobileSchedule as HTMLElement).querySelectorAll('.mobile-schedule-event')).toHaveLength(1)
+    expect((mobileSchedule as HTMLElement).querySelector('.mobile-schedule-event.schedule-event--booked')).toBeInTheDocument()
 
     await fireEvent.click(screen.getByRole('button', { name: 'Сесії' }))
     await flushAsyncUpdates()
     expect(container.querySelectorAll('.week-calendar .schedule-event')).toHaveLength(2)
     expect(container.querySelector('.week-calendar .schedule-event--booked')).toBeInTheDocument()
     expect(container.querySelector('.week-calendar .calendar-session')).toBeInTheDocument()
+    expect((mobileSchedule as HTMLElement).querySelectorAll('.mobile-schedule-event')).toHaveLength(2)
+  })
+
+  it('does not show mobile inline session link when selected schedule event has no session id', async () => {
+    openCalendarRoute()
+    mockScheduleApi([], [], [
+      {
+        type: 'booked_slot',
+        id: 'booked-slot-no-session',
+        slot_id: 94,
+        session_id: null,
+        start_at: '2026-03-12T10:00:00Z',
+        end_at: '2026-03-12T10:50:00Z',
+        status: 'booked',
+        title: 'Заброньовано',
+        client_display_name: 'Гостьовий клієнт',
+        client_kind: 'guest',
+        contact: '+380991112233',
+        meeting_url: 'https://meet.example/private',
+        offline_location: 'Private room',
+      },
+    ])
+
+    const { container } = renderView()
+    await flushAsyncUpdates()
+
+    const mobileEvent = container.querySelector('.mobile-schedule-event') as HTMLElement | null
+    expect(mobileEvent).toBeInstanceOf(HTMLElement)
+    await fireEvent.click(within(mobileEvent as HTMLElement).getByRole('button'))
+    await flushAsyncUpdates()
+
+    expect(within(mobileEvent as HTMLElement).getByText('Заброньовано')).toBeInTheDocument()
+    expect(within(mobileEvent as HTMLElement).queryByRole('link', { name: 'Відкрити сесію' })).not.toBeInTheDocument()
+    expect(screen.queryByText('+380991112233')).not.toBeInTheDocument()
+    expect(screen.queryByText('https://meet.example/private')).not.toBeInTheDocument()
+    expect(screen.queryByText('Private room')).not.toBeInTheDocument()
   })
 
   it('renders slot/session summary with updated human copy', async () => {
@@ -1106,6 +1190,10 @@ describe('SlotsView', () => {
 
     const block = container.querySelector('.week-calendar .calendar-slot')
     expect(block).toBeInstanceOf(HTMLButtonElement)
+    const mobileSchedule = container.querySelector('.mobile-day-schedule') as HTMLElement | null
+    expect(mobileSchedule).toBeInstanceOf(HTMLElement)
+    expect((mobileSchedule as HTMLElement).querySelector('.mobile-day-group')).not.toBeInTheDocument()
+    expect((mobileSchedule as HTMLElement).querySelector('.mobile-slot')).toBeInTheDocument()
     await fireEvent.click(block as HTMLButtonElement)
 
     expect(screen.getByText('Деталі вільного часу')).toBeInTheDocument()
@@ -1175,11 +1263,14 @@ describe('SlotsView', () => {
     expect(sessionBlock).toBeInstanceOf(HTMLButtonElement)
     await fireEvent.click(sessionBlock as HTMLButtonElement)
 
-    expect(screen.getByText('Деталі події')).toBeInTheDocument()
-    expect(screen.getAllByText('Саша Мальована')).toHaveLength(2)
-    expect(screen.getAllByText('09:00–09:50')).toHaveLength(3)
-    expect(screen.getByText('Заплановано')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Відкрити сесію' })).toHaveAttribute('href', '/cabinet/sessions/78')
+    const detailPanel = container.querySelector('.slot-detail-panel') as HTMLElement
+    expect(within(detailPanel).getByText('Деталі події')).toBeInTheDocument()
+    expect(within(detailPanel).getByText('Саша Мальована')).toBeInTheDocument()
+    expect(within(detailPanel).getByText('09:00–09:50')).toBeInTheDocument()
+    expect(within(detailPanel).getByText('Заплановано')).toBeInTheDocument()
+    expect(
+      within(detailPanel).getByRole('link', { name: 'Відкрити сесію' })
+    ).toHaveAttribute('href', '/cabinet/sessions/78')
   })
 
   it('does not render cancelled no-slot session as an active calendar block', async () => {
@@ -1197,7 +1288,7 @@ describe('SlotsView', () => {
     await flushAsyncUpdates()
 
     expect(container.querySelector('.week-calendar .calendar-session')).not.toBeInTheDocument()
-    expect(screen.getByText('На цьому тижні ще немає подій у розкладі.')).toBeInTheDocument()
+    expect(screen.getAllByText('На цьому тижні ще немає подій у розкладі.').length).toBeGreaterThan(0)
   })
 
   it('renders schedule API events without duplicating overlapping booked slots', async () => {
