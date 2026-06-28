@@ -714,6 +714,178 @@ describe('SlotsView', () => {
     expect(screen.queryByRole('dialog', { name: 'Створити сесію' })).not.toBeInTheDocument()
   })
 
+  it('opens one-off session modal from empty calendar cell with clicked date and start time', async () => {
+    openCalendarRoute()
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/cabinet/slots/') return [] as any
+      if (url === '/cabinet/client-records/') return [manualClientRecord({ id: 71, display_name: 'Manual Regular' })] as any
+      if (url === '/cabinet/clients/') return [] as any
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedGetCabinetSchedule.mockResolvedValue({ events: [] })
+
+    const { container } = renderView()
+    await flushAsyncUpdates()
+
+    const hitAreas = container.querySelectorAll('.calendar-empty-hit-area')
+    const fridayHitArea = hitAreas[4] as HTMLElement
+    fridayHitArea.getBoundingClientRect = () => ({
+      x: 0,
+      y: 0,
+      top: 0,
+      left: 0,
+      right: 100,
+      bottom: 650,
+      width: 100,
+      height: 650,
+      toJSON: () => {},
+    })
+    await fireEvent.click(fridayHitArea, { clientY: 100 })
+    await flushAsyncUpdates()
+
+    expect(screen.getByRole('dialog', { name: 'Створити сесію' })).toBeInTheDocument()
+    expect((screen.getByLabelText('Дата') as HTMLInputElement).value).toBe('13.03.2026')
+    expect((screen.getByLabelText('Час початку') as HTMLInputElement).value).toBe('10:00')
+  })
+
+  it('does not open create modal when clicking existing calendar events', async () => {
+    openCalendarRoute()
+    mockScheduleApi([], [], [
+      scheduleEventFromSession(
+        scheduleSession({
+          id: 701,
+          slot_start_at: '2026-03-12T08:00:00Z',
+          slot_end_at: '2026-03-12T08:50:00Z',
+          client_display_name: 'Session Client',
+        })
+      ),
+      scheduleEventFromSlot({
+        id: 702,
+        start_at: '2026-03-12T09:00:00Z',
+        end_at: '2026-03-12T09:50:00Z',
+        is_booked: true,
+        session_id: 902,
+        client_display_name: 'Booked Client',
+      }),
+      scheduleEventFromSlot({
+        id: 703,
+        start_at: '2026-03-12T10:00:00Z',
+        end_at: '2026-03-12T10:50:00Z',
+        is_booked: false,
+      }),
+    ])
+
+    const { container } = renderView()
+    await flushAsyncUpdates()
+
+    const eventButtons = Array.from(container.querySelectorAll('.week-calendar .schedule-event')) as HTMLElement[]
+    expect(eventButtons).toHaveLength(3)
+    for (const eventButton of eventButtons) {
+      await fireEvent.click(eventButton)
+      await flushAsyncUpdates()
+      expect(screen.queryByRole('dialog', { name: 'Створити сесію' })).not.toBeInTheDocument()
+    }
+  })
+
+  it('reloads visible schedule after successful one-off session created from calendar click', async () => {
+    openCalendarRoute()
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/cabinet/slots/') return [] as any
+      if (url === '/cabinet/client-records/') return [manualClientRecord({ id: 71, display_name: 'Manual Regular' })] as any
+      if (url === '/cabinet/clients/') return [] as any
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedGetCabinetSchedule
+      .mockResolvedValueOnce({ events: [] })
+      .mockResolvedValueOnce({
+        events: [
+          scheduleEventFromSession(
+            scheduleSession({
+              id: 704,
+              slot_start_at: '2026-03-12T08:00:00Z',
+              slot_end_at: '2026-03-12T08:50:00Z',
+              client_display_name: 'Manual Regular',
+            })
+          ),
+        ] as any,
+      })
+    mockedApiPost.mockResolvedValue({ id: 704 } as any)
+
+    const { container } = renderView()
+    await flushAsyncUpdates()
+
+    const hitAreas = container.querySelectorAll('.calendar-empty-hit-area')
+    const fridayHitArea = hitAreas[4] as HTMLElement
+    fridayHitArea.getBoundingClientRect = () => ({
+      x: 0,
+      y: 0,
+      top: 0,
+      left: 0,
+      right: 100,
+      bottom: 650,
+      width: 100,
+      height: 650,
+      toJSON: () => {},
+    })
+    await fireEvent.click(fridayHitArea, { clientY: 0 })
+    await flushAsyncUpdates()
+    await fireEvent.update(await screen.findByLabelText('Клієнт'), '71')
+    const submitButtons = screen.getAllByRole('button', { name: 'Створити сесію' })
+    await fireEvent.click(submitButtons[submitButtons.length - 1] as HTMLButtonElement)
+    await flushAsyncUpdates()
+
+    expect(mockedGetCabinetSchedule).toHaveBeenCalledTimes(2)
+    expect(mockedGetCabinetSchedule).toHaveBeenLastCalledWith('2026-03-09', '2026-03-15')
+    expect(screen.queryByRole('dialog', { name: 'Створити сесію' })).not.toBeInTheDocument()
+    expect(container.querySelector('.week-calendar .calendar-session')).toBeInTheDocument()
+  })
+
+  it('keeps calendar state safe when one-off calendar-click create hits a conflict', async () => {
+    openCalendarRoute()
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/cabinet/slots/') return [] as any
+      if (url === '/cabinet/client-records/') return [manualClientRecord({ id: 71, display_name: 'Manual Regular' })] as any
+      if (url === '/cabinet/clients/') return [] as any
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedGetCabinetSchedule.mockResolvedValue({ events: [] })
+    mockedApiPost.mockRejectedValueOnce({
+      response: { data: { code: 'MANUAL_SESSION_TIME_CONFLICT' } },
+    })
+
+    const { container } = renderView()
+    await flushAsyncUpdates()
+
+    const hitAreas = container.querySelectorAll('.calendar-empty-hit-area')
+    const fridayHitArea = hitAreas[4] as HTMLElement
+    fridayHitArea.getBoundingClientRect = () => ({
+      x: 0,
+      y: 0,
+      top: 0,
+      left: 0,
+      right: 100,
+      bottom: 650,
+      width: 100,
+      height: 650,
+      toJSON: () => {},
+    })
+    await fireEvent.click(fridayHitArea, { clientY: 0 })
+    await flushAsyncUpdates()
+    await fireEvent.update(await screen.findByLabelText('Клієнт'), '71')
+    const submitButtons = screen.getAllByRole('button', { name: 'Створити сесію' })
+    await fireEvent.click(submitButtons[submitButtons.length - 1] as HTMLButtonElement)
+    await flushAsyncUpdates()
+
+    expect(
+      screen.getByText(
+        'Не вдалося створити сесію: цей час перетинається з іншою сесією або недоступністю.'
+      )
+    ).toBeInTheDocument()
+    expect(screen.getByRole('dialog', { name: 'Створити сесію' })).toBeInTheDocument()
+    expect(container.querySelector('.week-calendar .calendar-session')).not.toBeInTheDocument()
+    expect(mockedGetCabinetSchedule).toHaveBeenCalledTimes(1)
+  })
+
   it('keeps modal closed when schedule refresh fails after successful one-off create', async () => {
     openCalendarRoute()
     let slotsCallCount = 0

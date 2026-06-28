@@ -75,7 +75,7 @@
             <div class="action-group__title">Календар</div>
             <p class="muted action-group__hint">Створюйте разові або регулярні сесії для конкретних клієнтів.</p>
             <div class="action-group__buttons">
-              <button class="btn btn--ghost btn--sm" type="button" @click="openOneOffSessionModal">
+              <button class="btn btn--ghost btn--sm" type="button" @click="() => openOneOffSessionModal()">
                 Створити сесію
               </button>
               <button class="btn btn--sm" type="button" @click="openRegularSessionsModal">
@@ -262,6 +262,14 @@
               role="gridcell"
               :style="{ height: calendarBodyHeightStyle }"
             >
+              <button
+                v-if="isCalendarTab"
+                class="calendar-empty-hit-area"
+                type="button"
+                :aria-label="`Створити сесію ${formatDateOnly(day.key)}`"
+                :title="`Створити сесію ${formatDateOnly(day.key)}`"
+                @click="openOneOffSessionModalForCalendarClick($event, day.key)"
+              ></button>
               <div
                 v-for="(hour, hourIndex) in calendarHours"
                 :key="`${day.key}-${hour}`"
@@ -284,13 +292,13 @@
                 :data-top-minutes="layout.topMinutes"
                 :aria-label="`${slotStatusLabel(layout.slot)} ${formatSlotTimeRange(layout.slot)}`"
                 :title="`${slotStatusLabel(layout.slot)} · ${formatSlotTimeRange(layout.slot)}`"
-                @click="selectSlot(layout.slot)"
+                @click.stop="selectSlot(layout.slot)"
               >
                 <button
                   class="availability-slot__main"
                   type="button"
                   :aria-label="`${slotStatusLabel(layout.slot)} ${formatSlotTimeRange(layout.slot)}`"
-                  @click="selectSlot(layout.slot)"
+                  @click.stop="selectSlot(layout.slot)"
                 >
                   <span class="calendar-slot__time">{{ formatSlotTimeRange(layout.slot) }}</span>
                 </button>
@@ -319,7 +327,7 @@
                 :data-top-minutes="layout.topMinutes"
                 :aria-label="sessionBlockLabel(layout.session)"
                 :title="sessionBlockLabel(layout.session)"
-                @click="selectSession(layout.session)"
+                @click.stop="selectSession(layout.session)"
               >
                 <span class="calendar-session__kind">{{ scheduleEventTypeLabel(layout.session) }}</span>
                 <span class="calendar-slot__time">{{ formatSessionTimeRange(layout.session) }}</span>
@@ -1255,6 +1263,11 @@ type PublicBookingMode = 'request_only' | 'direct_booking'
 type WeekRange = {
   dateFrom: string
   dateTo: string
+}
+
+type OneOffSessionPrefill = {
+  dateKey?: string
+  startTime?: string
 }
 
 const PAST_SESSION_TIME_ERROR_MESSAGE = 'Неможливо створити сесію в минулому. Оберіть майбутню дату або час.'
@@ -2553,11 +2566,11 @@ function closeRegularSessionsModal() {
   regularSessionsError.value = ''
 }
 
-function resetOneOffSessionForm() {
+function resetOneOffSessionForm(prefill?: OneOffSessionPrefill) {
   const baseDate = selectedDate.value || todayKey
   oneOffClientRecordId.value = regularClientOptions.value[0]?.recordId ?? ''
-  oneOffDate.value = isoDateToDisplay(baseDate)
-  oneOffStartTime.value = '09:00'
+  oneOffDate.value = isoDateToDisplay(prefill?.dateKey || baseDate)
+  oneOffStartTime.value = prefill?.startTime || '09:00'
   oneOffDuration.value = oneOffDuration.value > 0 ? oneOffDuration.value : 50
   oneOffSessionFormat.value = 'online'
   oneOffMeetingUrl.value = ''
@@ -2715,7 +2728,18 @@ async function savePublicBookingSettings() {
   }
 }
 
-async function openOneOffSessionModal() {
+function calendarClickStartTime(event: MouseEvent) {
+  const target = event.currentTarget
+  if (!(target instanceof HTMLElement)) return '09:00'
+  const rect = target.getBoundingClientRect()
+  const offsetY = Math.min(Math.max(event.clientY - rect.top, 0), Math.max(0, rect.height - 1))
+  const hourOffset = Math.floor(offsetY / CALENDAR_HOUR_HEIGHT)
+  const rawHour = calendarHourRange.value.startHour + hourOffset
+  const hour = Math.min(Math.max(rawHour, calendarHourRange.value.startHour), calendarHourRange.value.endHour - 1)
+  return `${pad2(hour)}:00`
+}
+
+async function openOneOffSessionModal(prefill?: OneOffSessionPrefill) {
   oneOffSessionModalOpen.value = true
   regularSessionsModalOpen.value = false
   createFormOpen.value = false
@@ -2731,11 +2755,21 @@ async function openOneOffSessionModal() {
     }
     await loadOneOffProfileDefaults()
     oneOffTimezone.value = resolvedOneOffTimezone()
-    resetOneOffSessionForm()
+    resetOneOffSessionForm(prefill)
     await nextTick()
   } finally {
     oneOffSessionLoading.value = false
   }
+}
+
+function openOneOffSessionModalForCalendarClick(event: MouseEvent, dateKey: string) {
+  selectedDate.value = dateKey
+  selectedSlotId.value = null
+  selectedSessionId.value = null
+  void openOneOffSessionModal({
+    dateKey,
+    startTime: calendarClickStartTime(event),
+  })
 }
 
 function forceCloseOneOffSessionModal(options?: { reset?: boolean }) {
@@ -3615,6 +3649,26 @@ onBeforeUnmount(() => {
   position: relative;
   background: #fff;
   overflow: hidden;
+}
+
+.calendar-empty-hit-area {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: copy;
+}
+
+.calendar-empty-hit-area:hover,
+.calendar-empty-hit-area:focus-visible {
+  background: color-mix(in srgb, var(--pc-blue-soft) 18%, transparent);
+  outline: 2px solid color-mix(in srgb, var(--pc-navy-900) 20%, transparent);
+  outline-offset: -2px;
 }
 
 .calendar-cell--selected-day {
