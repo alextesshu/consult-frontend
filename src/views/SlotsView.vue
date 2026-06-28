@@ -331,7 +331,7 @@
               >
                 <span class="calendar-session__kind">{{ scheduleEventTypeLabel(layout.session) }}</span>
                 <span class="calendar-slot__time">{{ formatSessionTimeRange(layout.session) }}</span>
-                <span v-if="layout.session.type !== 'available_slot'" class="calendar-session__client">{{ sessionClientLabel(layout.session) }}</span>
+                <span v-if="shouldShowScheduleEventClient(layout.session)" class="calendar-session__client">{{ sessionClientLabel(layout.session) }}</span>
               </button>
             </div>
           </div>
@@ -374,7 +374,7 @@
                 >
                   <span class="mobile-slot__time">{{ formatSessionTimeRange(session) }}</span>
                   <span class="mobile-slot__meta">
-                    {{ scheduleEventTypeLabel(session) }}<template v-if="session.type !== 'available_slot'"> · {{ sessionClientLabel(session) }}</template>
+                    {{ scheduleEventTypeLabel(session) }}<template v-if="shouldShowScheduleEventClient(session)"> · {{ sessionClientLabel(session) }}</template>
                   </span>
                 </button>
                 <div
@@ -391,7 +391,7 @@
                       <dt>Час</dt>
                       <dd>{{ formatSessionTimeRange(session) }}</dd>
                     </div>
-                    <div v-if="session.type !== 'available_slot'">
+                    <div v-if="shouldShowScheduleEventClient(session)">
                       <dt>Клієнт</dt>
                       <dd>{{ sessionClientLabel(session) }}</dd>
                     </div>
@@ -404,9 +404,12 @@
                       <dd>Керувати вікнами можна у вкладці “Вікна для запису”.</dd>
                     </div>
                   </dl>
-                  <div v-if="session.session_id" class="mobile-event-detail__actions">
-                    <RouterLink class="btn btn--sm" :to="`/cabinet/sessions/${session.session_id}`">
+                  <div v-if="session.session_id || isPendingScheduleRequestEvent(session)" class="mobile-event-detail__actions">
+                    <RouterLink v-if="session.session_id" class="btn btn--sm" :to="`/cabinet/sessions/${session.session_id}`">
                       Відкрити сесію
+                    </RouterLink>
+                    <RouterLink v-else class="btn btn--sm" :to="PENDING_REQUESTS_ROUTE">
+                      Переглянути запити
                     </RouterLink>
                   </div>
                 </div>
@@ -479,7 +482,7 @@
               <dt>Час</dt>
               <dd>{{ formatSessionTimeRange(selectedScheduleSession) }}</dd>
             </div>
-            <div v-if="selectedScheduleSession.type !== 'available_slot'">
+            <div v-if="shouldShowScheduleEventClient(selectedScheduleSession)">
               <dt>Клієнт</dt>
               <dd>{{ sessionClientLabel(selectedScheduleSession) }}</dd>
             </div>
@@ -493,9 +496,12 @@
             </div>
           </dl>
 
-          <div v-if="selectedScheduleSession.session_id" class="slot-actions">
-            <RouterLink class="btn btn--sm" :to="`/cabinet/sessions/${selectedScheduleSession.session_id}`">
+          <div v-if="selectedScheduleSession.session_id || isPendingScheduleRequestEvent(selectedScheduleSession)" class="slot-actions">
+            <RouterLink v-if="selectedScheduleSession.session_id" class="btn btn--sm" :to="`/cabinet/sessions/${selectedScheduleSession.session_id}`">
               Відкрити сесію
+            </RouterLink>
+            <RouterLink v-else class="btn btn--sm" :to="PENDING_REQUESTS_ROUTE">
+              Переглянути запити
             </RouterLink>
           </div>
         </template>
@@ -1414,6 +1420,7 @@ type OneOffSessionPrefill = {
 }
 
 const PAST_SESSION_TIME_ERROR_MESSAGE = 'Неможливо створити сесію в минулому. Оберіть майбутню дату або час.'
+const PENDING_REQUESTS_ROUTE = '/cabinet/external-sessions#guest-requests'
 
 const slots = ref<Slot[]>([])
 const sessions = ref<ScheduleSession[]>([])
@@ -1692,16 +1699,30 @@ function isPendingScheduleRequestEvent(event: ScheduleSession) {
   return event.type === 'booked_slot' && !isSessionBackedBookedEvent(event)
 }
 
+function pendingScheduleRequestsCount(event: ScheduleSession) {
+  const count = Number(event.requests_count || 0)
+  return Number.isFinite(count) && count > 0 ? count : 1
+}
+
+function pendingScheduleRequestLabel(event: ScheduleSession) {
+  const count = pendingScheduleRequestsCount(event)
+  return count > 1 ? `Запити · ${count}` : 'Запит на сесію'
+}
+
+function shouldShowScheduleEventClient(event: ScheduleSession) {
+  return event.type !== 'available_slot' && !isPendingScheduleRequestEvent(event)
+}
+
 function scheduleEventTypeLabel(event: ScheduleSession) {
   if (event.type === 'available_slot') return 'Доступно'
   if (isSessionBackedBookedEvent(event)) return 'Сесія'
-  if (isPendingScheduleRequestEvent(event)) return 'Запит на сесію'
+  if (isPendingScheduleRequestEvent(event)) return pendingScheduleRequestLabel(event)
   return 'Сесія'
 }
 
 function scheduleEventDetailTitle(event: ScheduleSession) {
   if (event.type === 'available_slot') return 'Деталі доступного часу'
-  if (isPendingScheduleRequestEvent(event)) return 'Запит на сесію'
+  if (isPendingScheduleRequestEvent(event)) return pendingScheduleRequestLabel(event)
   return 'Деталі сесії'
 }
 
@@ -1716,7 +1737,7 @@ function sessionClientLabel(session: ScheduleSession) {
   return session.client_display_name || scheduleEventClientKindLabel(session)
 }
 
-function sessionStatusLabel(status: string) {
+function sessionStatusLabel(status?: string | null) {
   const normalized = String(status || '').toUpperCase()
   if (normalized === 'CONFIRMED') return 'Підтверджено'
   if (normalized === 'BOOKED' || normalized === 'PENDING' || normalized === 'REQUESTED') return 'Очікує підтвердження'
@@ -1726,6 +1747,7 @@ function sessionStatusLabel(status: string) {
 
 function scheduleEventLifecycleLabel(event: ScheduleSession) {
   if (isSessionBackedBookedEvent(event)) return 'Підтверджено'
+  if (isPendingScheduleRequestEvent(event)) return 'Очікує підтвердження'
   return sessionStatusLabel(event.status)
 }
 
@@ -1737,7 +1759,7 @@ function formatSessionTimeRange(session: ScheduleSession) {
 }
 
 function sessionBlockLabel(session: ScheduleSession) {
-  const clientPart = session.type === 'available_slot' ? '' : ` · ${sessionClientLabel(session)}`
+  const clientPart = shouldShowScheduleEventClient(session) ? ` · ${sessionClientLabel(session)}` : ''
   return `${scheduleEventTypeLabel(session)}${clientPart} · ${formatSessionTimeRange(session)}`
 }
 

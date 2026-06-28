@@ -1090,15 +1090,17 @@ describe('SlotsView', () => {
       },
       {
         type: 'booked_slot',
-        id: 'booked-slot-93',
+        id: 'pending-requests-slot-93',
         slot_id: 93,
         session_id: null,
         start_at: '2026-03-12T08:30:00Z',
         end_at: '2026-03-12T09:20:00Z',
-        status: 'booked',
-        title: 'Заброньовано',
-        client_display_name: 'Гостьовий клієнт',
-        client_kind: 'guest',
+        status: 'pending',
+        title: 'Запит на сесію',
+        client_display_name: null,
+        client_kind: null,
+        requests_count: 1,
+        request_ids: [301],
       },
       {
         type: 'session',
@@ -1167,10 +1169,14 @@ describe('SlotsView', () => {
 
     await fireEvent.click(within(bookedMobileEvent as HTMLElement).getByRole('button'))
     await flushAsyncUpdates()
-    expect(within(bookedMobileEvent as HTMLElement).getByText('Запит на сесію')).toBeInTheDocument()
+    expect(within(bookedMobileEvent as HTMLElement).getAllByText('Запит на сесію').length).toBeGreaterThan(0)
     expect(within(bookedMobileEvent as HTMLElement).getByText('Очікує підтвердження')).toBeInTheDocument()
-    expect(within(bookedMobileEvent as HTMLElement).getByText('Гостьовий клієнт')).toBeInTheDocument()
+    expect(within(bookedMobileEvent as HTMLElement).queryByText('Гостьовий клієнт')).not.toBeInTheDocument()
     expect(within(bookedMobileEvent as HTMLElement).queryByRole('link', { name: 'Відкрити сесію' })).not.toBeInTheDocument()
+    expect(within(bookedMobileEvent as HTMLElement).getByRole('link', { name: 'Переглянути запити' })).toHaveAttribute(
+      'href',
+      '/cabinet/external-sessions#guest-requests'
+    )
 
     await fireEvent.click(within(sessionMobileEvent as HTMLElement).getByRole('button'))
     await flushAsyncUpdates()
@@ -1196,7 +1202,12 @@ describe('SlotsView', () => {
     await flushAsyncUpdates()
     expect(within(detailPanel).getByRole('heading', { name: 'Запит на сесію' })).toBeInTheDocument()
     expect(within(detailPanel).getByText('Очікує підтвердження')).toBeInTheDocument()
+    expect(within(detailPanel).queryByText('Гостьовий клієнт')).not.toBeInTheDocument()
     expect(within(detailPanel).queryByRole('link', { name: 'Відкрити сесію' })).not.toBeInTheDocument()
+    expect(within(detailPanel).getByRole('link', { name: 'Переглянути запити' })).toHaveAttribute(
+      'href',
+      '/cabinet/external-sessions#guest-requests'
+    )
 
     await fireEvent.click(calendarSessionEvents[1] as HTMLButtonElement)
     await flushAsyncUpdates()
@@ -1229,15 +1240,17 @@ describe('SlotsView', () => {
     mockScheduleApi([], [], [
       {
         type: 'booked_slot',
-        id: 'booked-slot-no-session',
+        id: 'pending-requests-slot-no-session',
         slot_id: 94,
         session_id: null,
         start_at: '2026-03-12T10:00:00Z',
         end_at: '2026-03-12T10:50:00Z',
-        status: 'booked',
-        title: 'Заброньовано',
-        client_display_name: 'Гостьовий клієнт',
-        client_kind: 'guest',
+        status: 'pending',
+        title: 'Запити на сесію',
+        client_display_name: null,
+        client_kind: null,
+        requests_count: 2,
+        request_ids: [301, 302],
         contact: '+380991112233',
         meeting_url: 'https://meet.example/private',
         offline_location: 'Private room',
@@ -1252,9 +1265,14 @@ describe('SlotsView', () => {
     await fireEvent.click(within(mobileEvent as HTMLElement).getByRole('button'))
     await flushAsyncUpdates()
 
-    expect(within(mobileEvent as HTMLElement).getByText('Запит на сесію')).toBeInTheDocument()
+    expect(within(mobileEvent as HTMLElement).getAllByText('Запити · 2').length).toBeGreaterThan(0)
     expect(within(mobileEvent as HTMLElement).getByText('Очікує підтвердження')).toBeInTheDocument()
+    expect(within(mobileEvent as HTMLElement).queryByText('Заброньовано')).not.toBeInTheDocument()
     expect(within(mobileEvent as HTMLElement).queryByRole('link', { name: 'Відкрити сесію' })).not.toBeInTheDocument()
+    expect(within(mobileEvent as HTMLElement).getByRole('link', { name: 'Переглянути запити' })).toHaveAttribute(
+      'href',
+      '/cabinet/external-sessions#guest-requests'
+    )
     expect(screen.queryByText('+380991112233')).not.toBeInTheDocument()
     expect(screen.queryByText('https://meet.example/private')).not.toBeInTheDocument()
     expect(screen.queryByText('Private room')).not.toBeInTheDocument()

@@ -2373,10 +2373,12 @@ export interface CabinetScheduleEvent {
   session_id: number | null
   start_at: string
   end_at: string
-  status: string
+  status?: string
   title: string
   client_display_name: string | null
   client_kind: 'registered' | 'guest' | 'unknown' | null
+  requests_count?: number
+  request_ids?: number[]
 }
 
 export interface CabinetScheduleResponse {
