@@ -4,10 +4,10 @@
       <div>
         <h1 class="title slots__title">Розклад</h1>
         <p class="muted slots__subtitle">
-          Тут ви бачите календар практики. Вільний час потрібен лише тоді, коли ви хочете дозволити клієнтам самостійно обирати час у публічному профілі.
+          Календар практики, сесії та вільний час для запису.
         </p>
       </div>
-      <RouterLink class="btn btn--ghost" to="/cabinet">Назад до кабінету</RouterLink>
+      <RouterLink class="btn btn--ghost btn--sm" to="/cabinet">Назад до кабінету</RouterLink>
     </header>
 
     <div class="slots__subnav">
@@ -48,15 +48,23 @@
       </div>
     </div>
 
-    <section v-if="!isSettingsTab" class="panel schedule-toolbar">
+    <section
+      v-if="!isSettingsTab"
+      class="panel schedule-toolbar"
+      :class="{ 'schedule-toolbar--availability': isAvailabilityTab }"
+    >
       <div class="schedule-toolbar__main">
         <div class="week-nav" aria-label="Навігація тижнями">
-          <button class="btn btn--ghost btn--sm" type="button" @click="shiftWeek(-1)">
-            Попередній тиждень
+          <button class="btn btn--ghost btn--sm" type="button" aria-label="Попередній тиждень" @click="shiftWeek(-1)">
+            <span class="week-nav__label week-nav__label--desktop">Попередній тиждень</span>
+            <span class="week-nav__label week-nav__label--mobile" aria-hidden="true">Попередній</span>
+            <span class="week-nav__label week-nav__label--narrow" aria-hidden="true">Назад</span>
           </button>
           <div class="week-range" aria-live="polite">{{ weekRangeLabel }}</div>
-          <button class="btn btn--ghost btn--sm" type="button" @click="shiftWeek(1)">
-            Наступний тиждень
+          <button class="btn btn--ghost btn--sm" type="button" aria-label="Наступний тиждень" @click="shiftWeek(1)">
+            <span class="week-nav__label week-nav__label--desktop">Наступний тиждень</span>
+            <span class="week-nav__label week-nav__label--mobile" aria-hidden="true">Наступний</span>
+            <span class="week-nav__label week-nav__label--narrow" aria-hidden="true">Далі</span>
           </button>
           <button class="btn btn--ghost btn--sm" type="button" @click="goToToday">
             Сьогодні
@@ -76,8 +84,6 @@
             </div>
           </div>
           <div v-else class="action-group action-group--availability">
-            <div class="action-group__title">Вільний час для запису</div>
-            <p class="muted action-group__hint">{{ availabilityTabHelperText }}</p>
             <div class="action-group__buttons">
               <button class="btn btn--ghost btn--sm" type="button" @click="openCreateForm">
                 Додати вільний час
@@ -89,6 +95,7 @@
           </div>
         </div>
       </div>
+      <p v-if="isAvailabilityTab" class="muted schedule-toolbar__hint">{{ availabilityTabHelperText }}</p>
 
       <div class="day-list" aria-label="Дні тижня">
         <button
@@ -103,7 +110,10 @@
         </button>
       </div>
 
-      <div v-if="isAvailabilityTab" class="filters-toolbar__row filters-toolbar__row--controls">
+      <div
+        v-if="isAvailabilityTab"
+        class="filters-toolbar__row filters-toolbar__row--controls filters-toolbar__row--availability"
+      >
         <div class="slot-filter" role="group" aria-label="Фільтр за статусом вільного часу">
           <button
             class="btn btn--ghost btn--sm"
@@ -146,35 +156,35 @@
         >
           {{ showPastSlots ? 'Сховати минулий вільний час' : `Показати минулий вільний час (${hiddenPastWeekSlotsCount})` }}
         </button>
-      </div>
-      <div v-if="isAvailabilityTab" class="availability-bulk-toolbar" aria-label="Керування вибраним вільним часом">
-        <div v-if="selectedAvailabilitySlotCount > 0" class="availability-bulk-toolbar__selection">
-          <span class="availability-bulk-toolbar__count">Вибрано: {{ selectedAvailabilitySlotCount }}</span>
-          <button
-            class="btn btn--sm"
-            type="button"
-            :disabled="deleteActionLoading"
-            @click="requestDeleteSelectedAvailabilitySlots"
-          >
-            {{ bulkDeleteLoading ? 'Видалення...' : 'Видалити вибрані' }}
-          </button>
+        <div class="availability-bulk-toolbar" aria-label="Керування вибраним вільним часом">
+          <div v-if="selectedAvailabilitySlotCount > 0" class="availability-bulk-toolbar__selection">
+            <span class="availability-bulk-toolbar__count">Вибрано: {{ selectedAvailabilitySlotCount }}</span>
+            <button
+              class="btn btn--danger btn--sm"
+              type="button"
+              :disabled="deleteActionLoading"
+              @click="requestDeleteSelectedAvailabilitySlots"
+            >
+              {{ bulkDeleteLoading ? 'Видалення...' : 'Видалити вибрані' }}
+            </button>
+            <button
+              class="btn btn--ghost btn--sm"
+              type="button"
+              :disabled="deleteActionLoading"
+              @click="clearSelectedAvailabilitySlots"
+            >
+              Скасувати вибір
+            </button>
+          </div>
           <button
             class="btn btn--ghost btn--sm"
             type="button"
-            :disabled="deleteActionLoading"
-            @click="clearSelectedAvailabilitySlots"
+            :disabled="deleteActionLoading || unbookedVisibleWeekSlots.length === 0"
+            @click="requestClearVisibleWeekAvailabilitySlots"
           >
-            Скасувати вибір
+            {{ clearWeekLoading ? 'Очищення...' : 'Очистити тиждень' }}
           </button>
         </div>
-        <button
-          class="btn btn--ghost btn--sm"
-          type="button"
-          :disabled="deleteActionLoading || unbookedVisibleWeekSlots.length === 0"
-          @click="requestClearVisibleWeekAvailabilitySlots"
-        >
-          {{ clearWeekLoading ? 'Очищення...' : 'Очистити тиждень' }}
-        </button>
       </div>
       <div v-else class="filters-toolbar__row filters-toolbar__row--controls">
         <span class="muted action-group__hint">Показати</span>
@@ -1814,12 +1824,12 @@ const bookingModeHelperText = computed(() => (
 ))
 const availabilityTabHelperText = computed(() => {
   if (publicBookingMode.value === 'request_only') {
-    return 'Вільний час збережено, але клієнти не бачать його, доки прямий запис вимкнено.'
+    return 'Клієнти бачать ці вікна лише коли прямий запис увімкнено.'
   }
   if (showPublicAvailability.value) {
-    return 'Цей час бачать клієнти в публічному профілі та можуть обрати для запису.'
+    return 'Клієнти бачать ці вікна у публічному профілі.'
   }
-  return 'Прямий запис увімкнено, але показ вільного часу в публічному профілі вимкнено.'
+  return 'Показ вільного часу вимкнено у публічному профілі.'
 })
 
 function matchesSlotStatusFilter(slot: Slot) {
@@ -3268,20 +3278,20 @@ onBeforeUnmount(() => {
 .slots {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 10px;
 }
 
 .slots__header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 20px;
+  gap: 14px;
   position: relative;
   overflow: hidden;
   background: #fff;
   border: 1px solid var(--pc-border);
   border-radius: var(--pc-radius-panel);
-  padding: 24px;
+  padding: 12px 16px;
   box-shadow: var(--pc-shadow-soft);
 }
 
@@ -3295,10 +3305,11 @@ onBeforeUnmount(() => {
 }
 
 .slots__header .btn {
-  min-height: 38px;
-  padding: 6px 12px;
+  min-height: 32px;
+  padding: 4px 10px;
   border-radius: var(--pc-radius-control);
   font-weight: 700;
+  white-space: nowrap;
 }
 
 .slots__header .btn--ghost {
@@ -3308,26 +3319,28 @@ onBeforeUnmount(() => {
 }
 
 .slots__title {
-  margin: 8px 0 8px;
+  margin: 0 0 3px;
   color: var(--pc-navy-950);
-  font-size: 32px;
-  line-height: 1.15;
+  font-size: 28px;
+  line-height: 1.1;
 }
 
 .slots__subtitle {
-  max-width: 520px;
+  margin: 0;
+  max-width: 560px;
   color: var(--pc-text-muted);
-  line-height: 1.55;
+  font-size: 13px;
+  line-height: 1.35;
 }
 
 
 .slots__subnav {
-  margin-top: -2px;
+  margin-top: -4px;
 }
 
 .schedule-tabs {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   flex-wrap: wrap;
 }
 
@@ -3381,7 +3394,8 @@ onBeforeUnmount(() => {
 }
 
 .schedule-toolbar {
-  gap: 10px;
+  gap: 7px;
+  padding: 10px 12px;
 }
 
 .schedule-toolbar__main {
@@ -3396,13 +3410,13 @@ onBeforeUnmount(() => {
 .schedule-actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   flex-wrap: wrap;
 }
 
 .schedule-actions {
   align-items: stretch;
-  gap: 10px;
+  gap: 8px;
 }
 
 .action-group {
@@ -3416,7 +3430,12 @@ onBeforeUnmount(() => {
 }
 
 .action-group--availability {
-  background: #fff;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
 }
 
 .action-group__title {
@@ -3437,16 +3456,27 @@ onBeforeUnmount(() => {
   flex-wrap: wrap;
 }
 
+.schedule-toolbar--availability .schedule-actions {
+  margin-left: auto;
+}
+
+.schedule-toolbar--availability .action-group__buttons {
+  justify-content: flex-end;
+}
+
+.schedule-toolbar__hint {
+  margin: -1px 0 0;
+  font-size: 12px;
+  line-height: 1.3;
+}
+
 .availability-bulk-toolbar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
+  justify-content: flex-end;
+  gap: 8px;
   flex-wrap: wrap;
-  padding: 8px 10px;
-  border: 1px solid var(--pc-border);
-  border-radius: var(--pc-radius-card);
-  background: color-mix(in srgb, var(--pc-bg-soft) 64%, #ffffff);
+  margin-left: auto;
 }
 
 .availability-bulk-toolbar__selection {
@@ -3469,10 +3499,18 @@ onBeforeUnmount(() => {
   color: var(--pc-navy-900);
 }
 
+.week-nav__label--mobile {
+  display: none;
+}
+
+.week-nav__label--narrow {
+  display: none;
+}
+
 .schedule-workspace {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(280px, 320px);
-  gap: 12px;
+  gap: 10px;
   align-items: start;
 }
 
@@ -3516,6 +3554,7 @@ onBeforeUnmount(() => {
 
 .calendar-panel {
   overflow: hidden;
+  padding: 8px;
 }
 
 .calendar-scroll {
@@ -4194,6 +4233,7 @@ onBeforeUnmount(() => {
 
 .slot-summary {
   font-size: 12px;
+  white-space: nowrap;
 }
 
 .quick-actions-panel {
@@ -4416,7 +4456,11 @@ onBeforeUnmount(() => {
 
 .filters-toolbar__row--controls {
   justify-content: flex-start;
-  gap: 10px;
+  gap: 8px;
+}
+
+.filters-toolbar__row--availability {
+  align-items: center;
 }
 
 .filters-toolbar__row--meta {
@@ -4674,32 +4718,73 @@ onBeforeUnmount(() => {
 }
 
 @media (max-width: 860px) {
+  .slots {
+    gap: 6px;
+  }
+
   .slots__header {
-    flex-direction: column;
-    align-items: flex-start;
-    padding: 14px 16px;
-    gap: 10px;
+    align-items: center;
+    padding: 0 2px;
+    gap: 8px;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
   }
 
   .slots__header::after {
     display: none;
   }
 
+  .slots__header .btn {
+    min-height: 28px;
+    height: 28px;
+    padding: 3px 8px;
+    font-size: 12px;
+  }
+
   .slots__title {
-    font-size: 26px;
-    margin: 4px 0;
-    line-height: 1.16;
+    font-size: 23px;
+    margin: 0 0 1px;
+    line-height: 1.08;
   }
 
   .slots__subtitle {
     margin: 0;
-    font-size: 13px;
-    line-height: 1.32;
+    font-size: 11px;
+    line-height: 1.2;
     max-width: 100%;
     display: -webkit-box;
     -webkit-line-clamp: 1;
     -webkit-box-orient: vertical;
     overflow: hidden;
+  }
+
+  .slots__subnav {
+    margin-top: -2px;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    scrollbar-width: none;
+  }
+
+  .slots__subnav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .schedule-tabs {
+    flex-wrap: nowrap;
+    gap: 4px;
+    width: max-content;
+    min-width: 100%;
+  }
+
+  .schedule-tabs__item {
+    flex: 0 0 auto;
+    min-height: 30px;
+    height: 30px;
+    padding: 4px 9px;
+    font-size: 12px;
+    white-space: nowrap;
   }
 
   .panel--split {
@@ -4708,10 +4793,27 @@ onBeforeUnmount(() => {
 
   .schedule-workspace {
     grid-template-columns: 1fr;
+    gap: 6px;
+  }
+
+  .schedule-toolbar {
+    gap: 5px;
+    padding: 7px;
+    border-radius: var(--pc-radius-card);
   }
 
   .schedule-toolbar__main {
     align-items: flex-start;
+    gap: 6px;
+  }
+
+  .schedule-toolbar--availability .schedule-actions {
+    margin-left: 0;
+  }
+
+  .schedule-toolbar--availability .action-group__buttons {
+    justify-content: flex-start;
+    width: 100%;
   }
 
   .week-nav,
@@ -4719,18 +4821,85 @@ onBeforeUnmount(() => {
     width: 100%;
   }
 
+  .week-nav {
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 4px;
+  }
+
+  .week-nav .btn {
+    flex: 0 0 auto;
+    min-width: 0;
+    height: 31px;
+    min-height: 31px;
+    padding: 3px 7px;
+    font-size: 12px;
+  }
+
+  .week-nav__label--desktop {
+    display: none;
+  }
+
+  .week-nav__label--mobile {
+    display: inline;
+  }
+
   .action-group {
     min-width: 0;
     width: 100%;
+    gap: 4px;
+    padding: 0;
+    border: 0;
+    background: transparent;
   }
 
   .action-group__buttons .btn {
-    flex: 1 1 170px;
+    flex: 1 1 0;
+    min-width: 0;
+    min-height: 31px;
+    height: 31px;
+    padding: 3px 7px;
+    font-size: 12px;
+    line-height: 1.15;
   }
 
   .week-range {
+    flex: 1 1 auto;
     min-width: 0;
-    text-align: left;
+    text-align: center;
+    font-size: 13px;
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+
+  .action-group__title,
+  .action-group__hint,
+  .schedule-toolbar__hint,
+  .filters-toolbar__row > .action-group__hint,
+  .calendar-legend {
+    display: none;
+  }
+
+  .day-list {
+    flex-wrap: nowrap;
+    gap: 4px;
+    overflow-x: auto;
+    padding-bottom: 1px;
+    scrollbar-width: none;
+  }
+
+  .day-list::-webkit-scrollbar {
+    display: none;
+  }
+
+  .day-list .btn {
+    flex: 0 0 auto;
+    height: 31px;
+    min-height: 31px;
+    padding: 3px 8px;
+    font-size: 12px;
+    white-space: nowrap;
   }
 
   .calendar-scroll,
@@ -4740,7 +4909,7 @@ onBeforeUnmount(() => {
 
   .mobile-day-schedule {
     display: grid;
-    gap: 8px;
+    gap: 6px;
   }
 
   .slot-detail-panel {
@@ -4754,6 +4923,84 @@ onBeforeUnmount(() => {
 
   .filters-toolbar__row {
     align-items: flex-start;
+    gap: 5px;
+  }
+
+  .filters-toolbar__row--controls {
+    gap: 5px;
+  }
+
+  .filters-toolbar__row--availability {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 1px;
+    scrollbar-width: none;
+  }
+
+  .filters-toolbar__row--availability::-webkit-scrollbar {
+    display: none;
+  }
+
+  .slot-filter {
+    flex-wrap: nowrap;
+    gap: 4px;
+    max-width: 100%;
+    overflow-x: auto;
+    padding-bottom: 1px;
+    scrollbar-width: none;
+  }
+
+  .slot-filter::-webkit-scrollbar {
+    display: none;
+  }
+
+  .filters-toolbar__row--availability .slot-filter {
+    flex: 0 0 auto;
+    overflow: visible;
+  }
+
+  .slot-filter .btn,
+  .slot-toggle {
+    flex: 0 0 auto;
+    height: 31px;
+    min-height: 31px;
+    padding: 3px 8px;
+    font-size: 12px;
+    white-space: nowrap;
+  }
+
+  .availability-bulk-toolbar {
+    flex: 0 0 auto;
+    width: auto;
+    justify-content: flex-start;
+    margin-left: 0;
+    gap: 5px;
+  }
+
+  .availability-bulk-toolbar__selection {
+    width: auto;
+    gap: 5px;
+  }
+
+  .availability-bulk-toolbar .btn {
+    height: 31px;
+    min-height: 31px;
+    padding: 3px 8px;
+    font-size: 12px;
+  }
+
+  .availability-bulk-toolbar__count,
+  .slot-summary {
+    font-size: 11px;
+    line-height: 1.2;
+  }
+
+  .slot-summary {
+    white-space: normal;
+  }
+
+  .calendar-panel {
+    padding: 6px;
   }
 
   .day-picker--compact .input {
@@ -4771,6 +5018,227 @@ onBeforeUnmount(() => {
 
   .slot-form {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 520px) {
+  .slots__subtitle {
+    display: none;
+  }
+
+  .slots__header .btn {
+    border: 0;
+    background: transparent;
+    padding-right: 0;
+  }
+
+  .filters-toolbar__row--availability .slot-summary {
+    display: none;
+  }
+
+  .slots__subnav {
+    overflow: visible;
+    padding-bottom: 0;
+  }
+
+  .schedule-tabs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    min-width: 0;
+    gap: 3px;
+  }
+
+  .schedule-tabs__item {
+    justify-content: center;
+    width: 100%;
+    min-width: 0;
+    height: 28px;
+    min-height: 28px;
+    padding: 3px 5px;
+    font-size: 10px;
+    line-height: 1.1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .week-nav {
+    gap: 3px;
+  }
+
+  .week-nav .btn {
+    height: 28px;
+    min-height: 28px;
+    padding: 2px 5px;
+    font-size: 10px;
+  }
+
+  .week-range {
+    font-size: 11px;
+  }
+
+  .action-group__buttons {
+    gap: 4px;
+  }
+
+  .action-group__buttons .btn {
+    height: 29px;
+    min-height: 29px;
+    padding: 2px 6px;
+    font-size: 10px;
+  }
+
+  .day-list {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    overflow: visible;
+    gap: 3px;
+    padding-bottom: 0;
+  }
+
+  .day-list .btn {
+    width: 100%;
+    min-width: 0;
+    height: 28px;
+    min-height: 28px;
+    padding: 2px 1px;
+    font-size: 9px;
+    line-height: 1.05;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .filters-toolbar__row--availability {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    overflow: visible;
+    padding-bottom: 0;
+  }
+
+  .filters-toolbar__row--availability .slot-filter {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    min-width: 0;
+    overflow: visible;
+  }
+
+  .filters-toolbar__row--availability .slot-filter .btn {
+    width: 100%;
+    min-width: 0;
+    height: 28px;
+    min-height: 28px;
+    padding: 2px 3px;
+    font-size: 9px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .availability-bulk-toolbar .btn {
+    height: 28px;
+    min-height: 28px;
+    padding: 2px 6px;
+    font-size: 9px;
+  }
+}
+
+@media (max-width: 380px) {
+  .slots {
+    gap: 5px;
+  }
+
+  .slots__header {
+    gap: 6px;
+  }
+
+  .slots__title {
+    font-size: 21px;
+  }
+
+  .slots__header .btn {
+    font-size: 10px;
+  }
+
+  .schedule-tabs {
+    gap: 2px;
+  }
+
+  .schedule-tabs__item {
+    height: 26px;
+    min-height: 26px;
+    padding: 2px 4px;
+    font-size: 9px;
+  }
+
+  .schedule-toolbar {
+    gap: 4px;
+    padding: 6px;
+  }
+
+  .schedule-toolbar__main {
+    gap: 5px;
+  }
+
+  .week-nav {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: 3px;
+  }
+
+  .week-nav .btn {
+    height: 27px;
+    min-height: 27px;
+    padding: 2px 5px;
+    font-size: 9px;
+  }
+
+  .week-nav__label--mobile {
+    display: none;
+  }
+
+  .week-nav__label--narrow {
+    display: inline;
+  }
+
+  .week-range {
+    font-size: 10px;
+  }
+
+  .action-group__buttons .btn {
+    height: 28px;
+    min-height: 28px;
+    padding: 2px 5px;
+    font-size: 9px;
+  }
+
+  .day-list {
+    gap: 2px;
+  }
+
+  .day-list .btn {
+    height: 27px;
+    min-height: 27px;
+    font-size: 8px;
+  }
+
+  .filters-toolbar__row--availability {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+
+  .filters-toolbar__row--availability .slot-filter .btn {
+    height: 27px;
+    min-height: 27px;
+    font-size: 8px;
+  }
+
+  .availability-bulk-toolbar {
+    width: 100%;
+  }
+
+  .availability-bulk-toolbar > .btn {
+    width: 100%;
   }
 }
 

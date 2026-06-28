@@ -514,7 +514,7 @@ describe('SlotsView', () => {
     await fireEvent.click(screen.getByRole('tab', { name: 'Вільний час для запису' }))
     await flushAsyncUpdates()
     expect(
-      screen.getByText('Вільний час збережено, але клієнти не бачать його, доки прямий запис вимкнено.')
+      screen.getByText('Клієнти бачать ці вікна лише коли прямий запис увімкнено.')
     ).toBeInTheDocument()
 
     await fireEvent.click(screen.getByRole('tab', { name: 'Налаштування' }))
@@ -524,7 +524,7 @@ describe('SlotsView', () => {
     await fireEvent.click(screen.getByRole('tab', { name: 'Вільний час для запису' }))
     await flushAsyncUpdates()
     expect(
-      screen.getByText('Цей час бачать клієнти в публічному профілі та можуть обрати для запису.')
+      screen.getByText('Клієнти бачать ці вікна у публічному профілі.')
     ).toBeInTheDocument()
 
     await fireEvent.click(screen.getByRole('tab', { name: 'Налаштування' }))
@@ -533,7 +533,7 @@ describe('SlotsView', () => {
     await fireEvent.click(screen.getByRole('tab', { name: 'Вільний час для запису' }))
     await flushAsyncUpdates()
     expect(
-      screen.getByText('Прямий запис увімкнено, але показ вільного часу в публічному профілі вимкнено.')
+      screen.getByText('Показ вільного часу вимкнено у публічному профілі.')
     ).toBeInTheDocument()
   })
 
