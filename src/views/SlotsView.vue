@@ -1079,13 +1079,12 @@
 
             <label class="field">
               Час початку
-              <input
-                v-model.trim="oneOffStartTime"
-                class="input"
-                list="time-options"
-                placeholder="09:00"
-                required
-              />
+              <select v-model="oneOffStartTime" class="input input--select" required>
+                <option value="" disabled>Оберіть час</option>
+                <option v-for="option in timeOptions" :key="option" :value="option">
+                  {{ option }}
+                </option>
+              </select>
             </label>
 
             <label class="field">
@@ -1185,6 +1184,7 @@ import type {
   SpecialistProfile,
 } from '../lib/api'
 import { getBookingErrorCode, getBookingErrorMessage } from '../lib/bookingCopy'
+import { buildTenMinuteTimeOptions } from '../lib/timeOptions'
 import { useToast } from '../composables/useToast'
 import ConfirmModal from '../components/ConfirmModal.vue'
 import { useConfirmModal } from '../composables/useConfirmModal'
@@ -1333,12 +1333,7 @@ const oneOffTimezone = ref(Intl.DateTimeFormat().resolvedOptions().timeZone || '
 const oneOffSessionFormat = ref<SessionFormat>('online')
 const oneOffMeetingUrl = ref('')
 const oneOffOfflineLocation = ref('')
-const timeOptions = Array.from({ length: 24 * 4 }, (_, index) => {
-  const minutes = index * 15
-  const hours = String(Math.floor(minutes / 60)).padStart(2, '0')
-  const mins = String(minutes % 60).padStart(2, '0')
-  return `${hours}:${mins}`
-})
+const timeOptions = buildTenMinuteTimeOptions('00:00', '23:50')
 const todayKey = toDateInputValue(new Date())
 const selectedWeekStart = ref(toDateInputValue(startOfWeek(new Date())))
 const datePickerMonth = ref(toDateInputValue(new Date()))
@@ -1651,6 +1646,17 @@ function parseUkDateTime(dateStr: string, timeStr: string) {
     return null
   }
   return candidate
+}
+
+function normalizeOneOffStartTimeOption(value: string) {
+  const trimmed = String(value || '').trim()
+  if (timeOptions.includes(trimmed)) return trimmed
+  const match = /^([01]?\d|2[0-3]):([0-5]\d)$/.exec(trimmed)
+  if (!match) return ''
+  const totalMinutes = Number(match[1]) * 60 + Number(match[2])
+  const roundedMinutes = Math.min(23 * 60 + 50, Math.max(0, Math.round(totalMinutes / 10) * 10))
+  const candidate = `${pad2(Math.floor(roundedMinutes / 60))}:${pad2(roundedMinutes % 60)}`
+  return timeOptions.includes(candidate) ? candidate : ''
 }
 
 function isPastDateTime(value: Date) {
@@ -2570,7 +2576,7 @@ function resetOneOffSessionForm(prefill?: OneOffSessionPrefill) {
   const baseDate = selectedDate.value || todayKey
   oneOffClientRecordId.value = regularClientOptions.value[0]?.recordId ?? ''
   oneOffDate.value = isoDateToDisplay(prefill?.dateKey || baseDate)
-  oneOffStartTime.value = prefill?.startTime || '09:00'
+  oneOffStartTime.value = normalizeOneOffStartTimeOption(prefill?.startTime || '09:00') || '09:00'
   oneOffDuration.value = oneOffDuration.value > 0 ? oneOffDuration.value : 50
   oneOffSessionFormat.value = 'online'
   oneOffMeetingUrl.value = ''
@@ -2787,6 +2793,10 @@ function closeOneOffSessionModal() {
 
 async function createOneOffSession() {
   const recordId = Number(oneOffClientRecordId.value || 0)
+  if (!timeOptions.includes(oneOffStartTime.value)) {
+    showOneOffSessionError('Оберіть час початку.')
+    return
+  }
   const startsAt = parseUkDateTime(oneOffDate.value, oneOffStartTime.value)
   const duration = Number(oneOffDuration.value)
   if (recordId <= 0) {

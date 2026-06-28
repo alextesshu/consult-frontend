@@ -690,8 +690,14 @@ describe('SlotsView', () => {
     const clientSelect = await screen.findByLabelText('Клієнт')
     await fireEvent.update(clientSelect, '71')
     expect(screen.queryByLabelText('Вільний час')).not.toBeInTheDocument()
+    const timeSelect = await screen.findByLabelText('Час початку') as HTMLSelectElement
+    expect(timeSelect.tagName).toBe('SELECT')
+    const timeOptionValues = Array.from(timeSelect.options).map((option) => option.value)
+    expect(timeOptionValues).toContain('09:00')
+    expect(timeOptionValues).toContain('09:10')
+    expect(timeOptionValues).toContain('09:20')
     await fireEvent.update(await screen.findByLabelText('Дата'), '13.03.2026')
-    await fireEvent.update(await screen.findByLabelText('Час початку'), '14:00')
+    await fireEvent.update(timeSelect, '14:20')
     await fireEvent.update(await screen.findByLabelText('Тривалість'), '50')
     await fireEvent.update(await screen.findByLabelText('Формат зустрічі'), 'offline')
     const submitButtons = screen.getAllByRole('button', { name: 'Створити сесію' })
@@ -709,6 +715,7 @@ describe('SlotsView', () => {
     expect(payload.offline_location).toBe('')
     expect(typeof payload.starts_at).toBe('string')
     expect(typeof payload.ends_at).toBe('string')
+    expect(String(payload.starts_at)).toContain(':20:00.000Z')
     expect(payload).not.toHaveProperty('slot_id')
     expect(mockToast.success).toHaveBeenCalledWith('Сесію створено.')
     expect(screen.queryByRole('dialog', { name: 'Створити сесію' })).not.toBeInTheDocument()
@@ -745,7 +752,9 @@ describe('SlotsView', () => {
 
     expect(screen.getByRole('dialog', { name: 'Створити сесію' })).toBeInTheDocument()
     expect((screen.getByLabelText('Дата') as HTMLInputElement).value).toBe('13.03.2026')
-    expect((screen.getByLabelText('Час початку') as HTMLInputElement).value).toBe('10:00')
+    const timeSelect = screen.getByLabelText('Час початку') as HTMLSelectElement
+    expect(timeSelect.tagName).toBe('SELECT')
+    expect(timeSelect.value).toBe('10:00')
   })
 
   it('does not open create modal when clicking existing calendar events', async () => {
