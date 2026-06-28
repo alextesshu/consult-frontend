@@ -82,7 +82,7 @@
               <button class="btn btn--ghost btn--sm" type="button" @click="openCreateForm">
                 Додати вільний час
               </button>
-              <button class="btn btn--ghost btn--sm" type="button" :disabled="loading" @click="requestFillWeek">
+              <button class="btn btn--ghost btn--sm" type="button" :disabled="loading || deleteActionLoading" @click="requestFillWeek">
                 Заповнити тиждень
               </button>
             </div>
@@ -147,6 +147,35 @@
           {{ showPastSlots ? 'Сховати минулий вільний час' : `Показати минулий вільний час (${hiddenPastWeekSlotsCount})` }}
         </button>
       </div>
+      <div v-if="isAvailabilityTab" class="availability-bulk-toolbar" aria-label="Керування вибраним вільним часом">
+        <div v-if="selectedAvailabilitySlotCount > 0" class="availability-bulk-toolbar__selection">
+          <span class="availability-bulk-toolbar__count">Вибрано: {{ selectedAvailabilitySlotCount }}</span>
+          <button
+            class="btn btn--sm"
+            type="button"
+            :disabled="deleteActionLoading"
+            @click="requestDeleteSelectedAvailabilitySlots"
+          >
+            {{ bulkDeleteLoading ? 'Видалення...' : 'Видалити вибрані' }}
+          </button>
+          <button
+            class="btn btn--ghost btn--sm"
+            type="button"
+            :disabled="deleteActionLoading"
+            @click="clearSelectedAvailabilitySlots"
+          >
+            Скасувати вибір
+          </button>
+        </div>
+        <button
+          class="btn btn--ghost btn--sm"
+          type="button"
+          :disabled="deleteActionLoading || unbookedVisibleWeekSlots.length === 0"
+          @click="requestClearVisibleWeekAvailabilitySlots"
+        >
+          {{ clearWeekLoading ? 'Очищення...' : 'Очистити тиждень' }}
+        </button>
+      </div>
       <div v-else class="filters-toolbar__row filters-toolbar__row--controls">
         <span class="muted action-group__hint">Показати</span>
         <div class="slot-filter" role="group" aria-label="Фільтр подій календаря">
@@ -192,6 +221,7 @@
     </section>
 
     <div v-if="loading" class="muted" style="margin-top: 8px;">Завантаження...</div>
+    <div v-if="error && !createFormOpen" class="form-error form-error--inline">{{ error }}</div>
 
     <div v-if="!isSettingsTab" class="schedule-workspace">
       <section class="panel calendar-panel" aria-label="Календар">
@@ -229,13 +259,15 @@
                 :style="{ top: `${hourIndex * CALENDAR_HOUR_HEIGHT}px` }"
                 aria-hidden="true"
               ></div>
-              <button
+              <div
                 v-if="isAvailabilityTab"
                 v-for="layout in positionedSlotsForDay(day.key)"
                 :key="layout.slot.id"
-                class="calendar-slot"
-                :class="[slotStatusClass(layout.slot), { 'calendar-slot--selected': selectedSlot?.id === layout.slot.id }]"
-                type="button"
+                class="calendar-slot availability-slot"
+                :class="[slotStatusClass(layout.slot), {
+                  'calendar-slot--selected': selectedSlot?.id === layout.slot.id,
+                  'availability-slot--bulk-selected': isAvailabilitySlotSelected(layout.slot.id),
+                }]"
                 :style="calendarSlotStyle(layout)"
                 :data-duration-minutes="layout.durationMinutes"
                 :data-clipped-duration-minutes="layout.clippedDurationMinutes"
@@ -244,8 +276,26 @@
                 :title="`${slotStatusLabel(layout.slot)} · ${formatSlotTimeRange(layout.slot)}`"
                 @click="selectSlot(layout.slot)"
               >
-                <span class="calendar-slot__time">{{ formatSlotTimeRange(layout.slot) }}</span>
-              </button>
+                <button
+                  class="availability-slot__main"
+                  type="button"
+                  :aria-label="`${slotStatusLabel(layout.slot)} ${formatSlotTimeRange(layout.slot)}`"
+                  @click="selectSlot(layout.slot)"
+                >
+                  <span class="calendar-slot__time">{{ formatSlotTimeRange(layout.slot) }}</span>
+                </button>
+                <button
+                  v-if="canDeleteAvailabilitySlot(layout.slot)"
+                  class="availability-slot__select"
+                  type="button"
+                  :disabled="deleteActionLoading"
+                  :aria-pressed="isAvailabilitySlotSelected(layout.slot.id)"
+                  :aria-label="availabilitySlotSelectionLabel(layout.slot)"
+                  @click.stop="toggleAvailabilitySlotSelection(layout.slot)"
+                >
+                  <span aria-hidden="true">{{ isAvailabilitySlotSelected(layout.slot.id) ? '✓' : '+' }}</span>
+                </button>
+              </div>
               <button
                 v-if="isCalendarTab"
                 v-for="layout in positionedCalendarSessionsForDay(day.key)"
@@ -351,18 +401,37 @@
               <span v-if="isSelectedToday" class="day-hint__today">· Сьогодні</span>
             </div>
             <div v-if="filteredSlots.length === 0" class="muted">На цей день немає вільного часу.</div>
-            <button
+            <div
               v-for="slot in filteredSlots"
               :key="slot.id"
-              class="mobile-slot"
-              :class="[slotStatusClass(slot), { 'calendar-slot--selected': selectedSlot?.id === slot.id }]"
-              type="button"
+              class="mobile-slot mobile-slot--availability"
+              :class="[slotStatusClass(slot), {
+                'calendar-slot--selected': selectedSlot?.id === slot.id,
+                'availability-slot--bulk-selected': isAvailabilitySlotSelected(slot.id),
+              }]"
               :aria-label="`${slotStatusLabel(slot)} ${formatSlotTimeRange(slot)}`"
               :title="`${slotStatusLabel(slot)} · ${formatSlotTimeRange(slot)}`"
-              @click="selectSlot(slot)"
             >
-              <span>{{ formatSlotTimeRange(slot) }}</span>
-            </button>
+              <button
+                class="mobile-slot__main"
+                type="button"
+                :aria-label="`${slotStatusLabel(slot)} ${formatSlotTimeRange(slot)}`"
+                @click="selectSlot(slot)"
+              >
+                <span>{{ formatSlotTimeRange(slot) }}</span>
+              </button>
+              <button
+                v-if="canDeleteAvailabilitySlot(slot)"
+                class="mobile-slot__select"
+                type="button"
+                :disabled="deleteActionLoading"
+                :aria-pressed="isAvailabilitySlotSelected(slot.id)"
+                :aria-label="availabilitySlotSelectionLabel(slot)"
+                @click.stop="toggleAvailabilitySlotSelection(slot)"
+              >
+                {{ isAvailabilitySlotSelected(slot.id) ? 'Вибрано' : 'Вибрати' }}
+              </button>
+            </div>
           </template>
         </div>
       </section>
@@ -537,10 +606,10 @@
             <button
               class="btn btn--ghost btn--sm"
               type="button"
-              :disabled="selectedSlot.is_booked || loading"
+              :disabled="selectedSlot.is_booked || loading || deleteActionLoading"
               @click="requestDeleteSlot(selectedSlot.id)"
             >
-              Видалити вільний час
+              {{ isSlotDeleting(selectedSlot.id) ? 'Видалення...' : 'Видалити вільний час' }}
             </button>
           </div>
           <div
@@ -1254,6 +1323,7 @@ const selectedDate = ref(todayKey)
 const showPastSlots = ref(false)
 const slotStatusFilter = ref<'ALL' | 'FREE' | 'BOOKED'>('ALL')
 const selectedSlotId = ref<number | null>(null)
+const selectedAvailabilitySlotIds = ref<number[]>([])
 const selectedSessionId = ref<string | null>(null)
 const scheduleTab = ref<ScheduleTab>(scheduleTabFromRoute())
 const calendarEventFilter = ref<'ALL' | 'SESSIONS' | 'AVAILABLE' | 'BOOKED'>('ALL')
@@ -1272,6 +1342,10 @@ const editingId = ref<number | null>(null)
 const editStartDate = ref('')
 const editStartTime = ref('')
 const editDuration = ref(50)
+const deletingSlotIds = ref<number[]>([])
+const bulkDeleteLoading = ref(false)
+const clearWeekLoading = ref(false)
+const deleteSlotsErrorMessage = 'Не вдалося видалити вільний час. Оновіть сторінку і спробуйте ще раз.'
 const WEEKDAY_SHORT_UK = ['нд', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб']
 const WEEKDAY_LONG_UK = ['Неділя', 'Понеділок', 'Вівторок', 'Середа', 'Четвер', 'Пʼятниця', 'Субота']
 const DATE_PICKER_WEEKDAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд']
@@ -1787,6 +1861,19 @@ const visibleWeekSlots = computed(() =>
     .sort((a, b) => String(a.start_at).localeCompare(String(b.start_at)))
 )
 
+const unbookedVisibleWeekSlots = computed(() =>
+  slots.value
+    .filter((slot) => weekDateKeys.value.has(toLocalDateKey(slot.start_at)))
+    .filter(canDeleteAvailabilitySlot)
+    .sort((a, b) => String(a.start_at).localeCompare(String(b.start_at)))
+)
+
+const selectedAvailabilitySlotCount = computed(() => selectedAvailabilitySlotIds.value.length)
+
+const deleteActionLoading = computed(() =>
+  deletingSlotIds.value.length > 0 || bulkDeleteLoading.value || clearWeekLoading.value
+)
+
 const calendarHours = computed(() => {
   const { startHour, endHour } = calendarHourRange.value
   return Array.from({ length: endHour - startHour }, (_, index) => startHour + index)
@@ -1823,10 +1910,13 @@ const calendarBodyHeight = computed(() => (
 const calendarBodyHeightStyle = computed(() => `${calendarBodyHeight.value}px`)
 
 const weekStatusSummary = computed(() => {
-  const free = visibleWeekSlots.value.filter((slot) => !slot.is_booked).length
+  const weekSlots = slots.value
+    .filter((slot) => weekDateKeys.value.has(toLocalDateKey(slot.start_at)))
+    .filter((slot) => showPastSlots.value || isFutureSlot(slot))
+  const free = weekSlots.filter((slot) => !slot.is_booked).length
   return {
     free,
-    booked: visibleWeekSlots.value.length - free,
+    booked: weekSlots.length - free,
   }
 })
 
@@ -1909,12 +1999,14 @@ function setScheduleTab(tab: ScheduleTab) {
   if (tab === 'CALENDAR') {
     createFormOpen.value = false
     selectedSlotId.value = null
+    clearSelectedAvailabilitySlots()
     return
   }
   if (tab === 'SETTINGS') {
     createFormOpen.value = false
     selectedSlotId.value = null
     selectedSessionId.value = null
+    clearSelectedAvailabilitySlots()
     return
   }
   selectedSessionId.value = null
@@ -1926,6 +2018,10 @@ watch(
     setScheduleTab(scheduleTabFromRoute())
   }
 )
+
+watch([slots, selectedWeekStart], () => {
+  pruneSelectedAvailabilitySlots()
+})
 
 function getDatePickerFieldValue(field: DatePickerField) {
   if (field === 'newStartDate') return newStartDate.value
@@ -2002,6 +2098,7 @@ function shiftWeek(direction: number) {
   selectedSlotId.value = null
   selectedSessionId.value = null
   showPastSlots.value = false
+  pruneSelectedAvailabilitySlots()
   void loadWeekSessions()
 }
 
@@ -2011,6 +2108,7 @@ function goToToday() {
   selectedSlotId.value = null
   selectedSessionId.value = null
   showPastSlots.value = false
+  pruneSelectedAvailabilitySlots()
   void loadWeekSessions()
 }
 
@@ -2244,6 +2342,70 @@ function selectSlot(slot: Slot) {
   selectedSlotId.value = slot.id
   selectedSessionId.value = null
   selectedDate.value = toLocalDateKey(slot.start_at)
+}
+
+function canDeleteAvailabilitySlot(slot: Slot) {
+  return !slot.is_booked
+}
+
+function isAvailabilitySlotSelected(slotId: number) {
+  return selectedAvailabilitySlotIds.value.includes(slotId)
+}
+
+function isSlotDeleting(slotId: number) {
+  return deletingSlotIds.value.includes(slotId)
+}
+
+function availabilitySlotSelectionLabel(slot: Slot) {
+  const action = isAvailabilitySlotSelected(slot.id) ? 'Прибрати з вибраних' : 'Вибрати слот'
+  return `${action} ${formatSlotTimeRange(slot)}`
+}
+
+function toggleAvailabilitySlotSelection(slot: Slot) {
+  if (!canDeleteAvailabilitySlot(slot) || deleteActionLoading.value) return
+  selectSlot(slot)
+  if (isAvailabilitySlotSelected(slot.id)) {
+    selectedAvailabilitySlotIds.value = selectedAvailabilitySlotIds.value.filter((id) => id !== slot.id)
+    return
+  }
+  selectedAvailabilitySlotIds.value = [...selectedAvailabilitySlotIds.value, slot.id]
+}
+
+function clearSelectedAvailabilitySlots() {
+  selectedAvailabilitySlotIds.value = []
+}
+
+function pruneSelectedAvailabilitySlots() {
+  if (selectedAvailabilitySlotIds.value.length === 0) return
+  const allowedIds = new Set(unbookedVisibleWeekSlots.value.map((slot) => slot.id))
+  selectedAvailabilitySlotIds.value = selectedAvailabilitySlotIds.value.filter((id) => allowedIds.has(id))
+}
+
+function removeSlotsFromState(slotIds: number[]) {
+  const removedIds = new Set(slotIds)
+  slots.value = slots.value.filter((slot) => !removedIds.has(slot.id))
+  selectedAvailabilitySlotIds.value = selectedAvailabilitySlotIds.value.filter((id) => !removedIds.has(id))
+  if (selectedSlotId.value !== null && removedIds.has(selectedSlotId.value)) selectedSlotId.value = null
+}
+
+function addDeletingSlotId(slotId: number) {
+  if (deletingSlotIds.value.includes(slotId)) return
+  deletingSlotIds.value = [...deletingSlotIds.value, slotId]
+}
+
+function removeDeletingSlotId(slotId: number) {
+  deletingSlotIds.value = deletingSlotIds.value.filter((id) => id !== slotId)
+}
+
+function selectedAvailabilityDeleteTargets() {
+  const requestedIds = new Set(selectedAvailabilitySlotIds.value)
+  return unbookedVisibleWeekSlots.value.filter((slot) => requestedIds.has(slot.id))
+}
+
+async function deleteAvailabilitySlotsById(slotIds: number[]) {
+  for (const slotId of slotIds) {
+    await apiDelete(`/cabinet/slots/${slotId}/`)
+  }
 }
 
 function selectSession(session: ScheduleSession) {
@@ -2751,6 +2913,7 @@ async function loadSlots() {
       requestedScheduleRange ? fetchWeekSessions(requestedScheduleRange) : Promise.resolve([]),
     ])
     slots.value = slotResp || []
+    pruneSelectedAvailabilitySlots()
     switchToNearestFutureDateIfNeeded()
     if (isCalendarTab.value) {
       const visibleRange = visibleWeekRange()
@@ -2829,7 +2992,6 @@ async function fillWeek() {
     selectedSessionId.value = null
     showPastSlots.value = false
     await loadSlots()
-    slotStatusFilter.value = 'FREE'
     toast.success(
       weekPeriodIncludesPast(isoDate)
         ? `Тиждень від ${formatDateOnly(isoDate)} заповнено. Для сьогодні додано лише майбутні вікна.`
@@ -2971,27 +3133,121 @@ async function saveEdit(slotId: number) {
 }
 
 async function deleteSlot(slotId: number) {
-  loading.value = true
+  if (deleteActionLoading.value) return
+  const targetSlot = slots.value.find((slot) => slot.id === slotId)
+  if (!targetSlot || !canDeleteAvailabilitySlot(targetSlot)) {
+    pruneSelectedAvailabilitySlots()
+    return
+  }
+  addDeletingSlotId(slotId)
   error.value = ''
   try {
     await apiDelete(`/cabinet/slots/${slotId}/`)
-    slots.value = slots.value.filter((slot) => slot.id !== slotId)
-    if (selectedSlotId.value === slotId) selectedSlotId.value = null
+    removeSlotsFromState([slotId])
+    toast.success('Вільний час видалено.')
   } catch (err: any) {
-    error.value = getBookingErrorMessage(err, '\u041d\u0435 \u0432\u0434\u0430\u043b\u043e\u0441\u044f \u0432\u0438\u0434\u0430\u043b\u0438\u0442\u0438 \u0432\u0456\u043b\u044c\u043d\u0435 \u0432\u0456\u043a\u043d\u043e')
+    await loadSlots()
+    error.value = deleteSlotsErrorMessage
+    toast.error(deleteSlotsErrorMessage)
   } finally {
-    loading.value = false
+    removeDeletingSlotId(slotId)
   }
 }
 
 function requestDeleteSlot(slotId: number) {
+  if (deleteActionLoading.value) return
+  const targetSlot = slots.value.find((slot) => slot.id === slotId)
+  if (!targetSlot || !canDeleteAvailabilitySlot(targetSlot)) return
   confirmModal.openConfirm({
-    title: 'Видалити вільне вікно?',
-    message: 'Воно зникне з публічного профілю.',
+    title: 'Видалити вільний час?',
+    message: 'Буде видалено 1 вільний слот. Заброньовані сесії не буде змінено.',
     confirmText: 'Видалити',
     cancelText: 'Скасувати',
     tone: 'danger',
     onConfirm: () => deleteSlot(slotId),
+  })
+}
+
+async function deleteSelectedAvailabilitySlots() {
+  if (deleteActionLoading.value) return
+  const targets = selectedAvailabilityDeleteTargets()
+  if (targets.length === 0) {
+    pruneSelectedAvailabilitySlots()
+    return
+  }
+
+  bulkDeleteLoading.value = true
+  error.value = ''
+  const targetIds = targets.map((slot) => slot.id)
+  try {
+    await deleteAvailabilitySlotsById(targetIds)
+    clearSelectedAvailabilitySlots()
+    await loadSlots()
+    toast.success('Вільний час видалено.')
+  } catch (err: any) {
+    clearSelectedAvailabilitySlots()
+    await loadSlots()
+    error.value = deleteSlotsErrorMessage
+    toast.error(deleteSlotsErrorMessage)
+  } finally {
+    bulkDeleteLoading.value = false
+  }
+}
+
+function requestDeleteSelectedAvailabilitySlots() {
+  if (deleteActionLoading.value) return
+  const targets = selectedAvailabilityDeleteTargets()
+  if (targets.length === 0) {
+    pruneSelectedAvailabilitySlots()
+    return
+  }
+
+  confirmModal.openConfirm({
+    title: 'Видалити вільний час?',
+    message: `Буде видалено ${targets.length} вільних слотів. Заброньовані сесії не буде змінено.`,
+    confirmText: 'Видалити вибрані',
+    cancelText: 'Скасувати',
+    tone: 'danger',
+    onConfirm: deleteSelectedAvailabilitySlots,
+  })
+}
+
+async function clearVisibleWeekAvailabilitySlots() {
+  if (deleteActionLoading.value) return
+  const targets = unbookedVisibleWeekSlots.value
+  if (targets.length === 0) {
+    pruneSelectedAvailabilitySlots()
+    return
+  }
+
+  clearWeekLoading.value = true
+  error.value = ''
+  const targetIds = targets.map((slot) => slot.id)
+  try {
+    await deleteAvailabilitySlotsById(targetIds)
+    removeSlotsFromState(targetIds)
+    clearSelectedAvailabilitySlots()
+    toast.success('Вільний час видалено.')
+  } catch (err: any) {
+    clearSelectedAvailabilitySlots()
+    await loadSlots()
+    error.value = deleteSlotsErrorMessage
+    toast.error(deleteSlotsErrorMessage)
+  } finally {
+    clearWeekLoading.value = false
+  }
+}
+
+function requestClearVisibleWeekAvailabilitySlots() {
+  if (deleteActionLoading.value || unbookedVisibleWeekSlots.value.length === 0) return
+
+  confirmModal.openConfirm({
+    title: 'Видалити вільний час?',
+    message: 'Буде видалено всі вільні незаброньовані слоти цього тижня. Заброньовані сесії не буде змінено.',
+    confirmText: 'Очистити тиждень',
+    cancelText: 'Скасувати',
+    tone: 'danger',
+    onConfirm: clearVisibleWeekAvailabilitySlots,
   })
 }
 
@@ -3181,6 +3437,31 @@ onBeforeUnmount(() => {
   flex-wrap: wrap;
 }
 
+.availability-bulk-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 8px 10px;
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-card);
+  background: color-mix(in srgb, var(--pc-bg-soft) 64%, #ffffff);
+}
+
+.availability-bulk-toolbar__selection {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.availability-bulk-toolbar__count {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--pc-navy-900);
+}
+
 .week-range {
   min-width: 190px;
   text-align: center;
@@ -3343,6 +3624,64 @@ onBeforeUnmount(() => {
   white-space: nowrap;
 }
 
+.availability-slot {
+  padding: 0;
+}
+
+.availability-slot__main {
+  width: 100%;
+  height: 100%;
+  min-height: 24px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  display: block;
+  text-align: left;
+  padding: 4px 30px 4px 5px;
+  cursor: pointer;
+}
+
+.availability-slot__main:hover,
+.availability-slot__main:focus-visible {
+  outline: none;
+}
+
+.availability-slot__select {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 24px;
+  height: 24px;
+  border: 1px solid color-mix(in srgb, var(--pc-navy-900) 18%, var(--pc-border));
+  border-radius: 999px;
+  background: #fff;
+  color: var(--pc-navy-900);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.availability-slot__select:hover,
+.availability-slot__select:focus-visible {
+  border-color: color-mix(in srgb, var(--pc-navy-900) 38%, var(--pc-border));
+  background: color-mix(in srgb, var(--pc-blue-soft) 72%, #ffffff);
+}
+
+.availability-slot--bulk-selected {
+  outline: 2px solid color-mix(in srgb, var(--pc-primary) 48%, transparent);
+  outline-offset: 1px;
+}
+
+.availability-slot--bulk-selected .availability-slot__select {
+  background: var(--pc-navy-900);
+  color: #fff;
+  border-color: var(--pc-navy-900);
+}
+
 .calendar-legend {
   display: flex;
   align-items: center;
@@ -3502,6 +3841,46 @@ onBeforeUnmount(() => {
   gap: 10px;
   text-align: left;
   background: #fff;
+}
+
+.mobile-slot--availability {
+  align-items: center;
+  padding: 0;
+  overflow: hidden;
+}
+
+.mobile-slot__main {
+  min-width: 0;
+  flex: 1 1 auto;
+  min-height: 42px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  display: flex;
+  align-items: center;
+  text-align: left;
+  padding: 9px 10px;
+  font-weight: 800;
+}
+
+.mobile-slot__select {
+  flex: 0 0 auto;
+  min-height: 38px;
+  min-width: 88px;
+  margin-right: 4px;
+  border: 1px solid color-mix(in srgb, var(--pc-navy-900) 18%, var(--pc-border));
+  border-radius: var(--pc-radius-control);
+  background: #fff;
+  color: var(--pc-navy-900);
+  font-size: 12px;
+  font-weight: 800;
+  padding: 6px 9px;
+}
+
+.mobile-slot__select[aria-pressed="true"] {
+  background: var(--pc-navy-900);
+  color: #fff;
+  border-color: var(--pc-navy-900);
 }
 
 .mobile-slot--event {
