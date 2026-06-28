@@ -14,8 +14,24 @@
       <RouterLink class="btn btn--ghost" to="/cabinet">Назад до кабінету</RouterLink>
     </header>
 
-    <div class="availability-rules__subnav">
-      <ScheduleSubnav :active="isVacationView ? 'vacation' : 'rules'" />
+    <div class="availability-rules__main-tabs">
+      <div class="schedule-tabs" role="tablist" aria-label="Режими розкладу">
+        <RouterLink class="btn btn--ghost btn--sm schedule-tabs__item" role="tab" aria-selected="false" to="/cabinet/schedule">
+          Календар
+        </RouterLink>
+        <RouterLink class="btn btn--ghost btn--sm schedule-tabs__item" role="tab" aria-selected="false" to="/cabinet/slots?tab=availability">
+          Вікна для запису
+        </RouterLink>
+        <RouterLink
+          class="btn btn--ghost btn--sm schedule-tabs__item"
+          :class="{ 'btn--active': isVacationView }"
+          role="tab"
+          :aria-selected="isVacationView ? 'true' : 'false'"
+          to="/cabinet/availability-exceptions"
+        >
+          Відпустка
+        </RouterLink>
+      </div>
     </div>
 
     <section v-if="!isVacationView" class="panel panel--control">
@@ -92,7 +108,7 @@
       <div v-if="error" class="form-error">{{ error }}</div>
     </section>
 
-    <section v-if="!isVacationView" class="panel">
+    <section v-if="false" class="panel">
       <div class="panel__header">
         <div>
           <h2 class="panel__title">Налаштовані робочі години</h2>
@@ -481,7 +497,6 @@ import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { apiDelete, apiGet, apiPatch, apiPost, fetchSpecialistProfile } from '../lib/api'
 import ConfirmModal from '../components/ConfirmModal.vue'
-import ScheduleSubnav from '../components/ScheduleSubnav.vue'
 import { useConfirmModal } from '../composables/useConfirmModal'
 import { getApiErrorMessage } from '../lib/errors'
 
@@ -1119,29 +1134,19 @@ onMounted(loadScheduleContext)
   line-height: 1.55;
 }
 
-.availability-rules__subnav {
+.availability-rules__main-tabs {
   margin-top: -2px;
 }
 
-.availability-rules__subnav :deep(.schedule-subnav__link) {
-  border: 1px solid var(--pc-border);
-  border-radius: var(--pc-radius-control);
-  background: #ffffff;
-  color: var(--pc-text-muted);
-  font-weight: 700;
+.schedule-tabs {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
 }
 
-.availability-rules__subnav :deep(.schedule-subnav__link:hover),
-.availability-rules__subnav :deep(.schedule-subnav__link:focus-visible) {
-  border-color: color-mix(in srgb, var(--pc-navy-900) 28%, var(--pc-border));
-  background: color-mix(in srgb, var(--pc-blue-soft) 76%, #ffffff);
-  color: var(--pc-navy-900);
-}
-
-.availability-rules__subnav :deep(.schedule-subnav__link.is-active) {
-  border-color: color-mix(in srgb, var(--pc-navy-900) 36%, var(--pc-border));
-  background: color-mix(in srgb, var(--pc-primary-soft) 80%, #ffffff);
-  color: var(--pc-navy-900);
+.schedule-tabs__item {
+  flex: 0 0 auto;
+  text-decoration: none;
 }
 
 .panel {

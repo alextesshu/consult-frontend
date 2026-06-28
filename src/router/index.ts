@@ -150,7 +150,7 @@ const routes = [
   {
     path: '/cabinet/availability-rules',
     name: 'cabinet-availability-rules',
-    component: AvailabilityRulesView,
+    redirect: { path: '/cabinet/slots', query: { tab: 'availability' } },
     meta: { requiresAuth: true, requiresRole: 'SPECIALIST' },
   },
   {

@@ -32,17 +32,12 @@
         >
           Вікна для запису
         </RouterLink>
-        <button
+        <RouterLink
           class="btn btn--ghost btn--sm schedule-tabs__item"
-          :class="{ 'btn--active': scheduleTab === 'SETTINGS' }"
-          type="button"
           role="tab"
-          :aria-selected="scheduleTab === 'SETTINGS'"
-          @click="setScheduleTab('SETTINGS')"
+          aria-selected="false"
+          to="/cabinet/availability-exceptions"
         >
-          Налаштування
-        </button>
-        <RouterLink class="btn btn--ghost btn--sm schedule-tabs__item" to="/cabinet/availability-exceptions">
           Відпустка
         </RouterLink>
       </div>
@@ -346,7 +341,7 @@
           На цьому тижні ще немає подій у розкладі.
         </div>
         <div v-if="isAvailabilityTab && visibleWeekSlots.length === 0" class="calendar-empty muted">
-          На цьому тижні ще немає вільного часу для прямого запису.
+          На цьому тижні ще немає вікон для запису.
         </div>
 
         <div class="mobile-day-schedule">
@@ -423,7 +418,7 @@
               {{ formatDateOnly(selectedDate) }}
               <span v-if="isSelectedToday" class="day-hint__today">· Сьогодні</span>
             </div>
-            <div v-if="filteredSlots.length === 0" class="muted">На цей день немає вільного часу.</div>
+            <div v-if="filteredSlots.length === 0" class="muted">На цей день немає вікон для запису.</div>
             <div
               v-for="slot in filteredSlots"
               :key="slot.id"
@@ -527,7 +522,7 @@
                 type="text"
                 inputmode="numeric"
                 placeholder="дд.мм.рррр"
-                aria-label="Дата початку редагованого вільного часу"
+                aria-label="Дата початку редагованого вікна"
                 @focus="openDatePickerFor('editStartDate')"
               />
               <button
@@ -571,7 +566,7 @@
               inputmode="numeric"
               placeholder="09:00"
               list="time-options"
-              aria-label="Час початку редагованого вільного часу"
+              aria-label="Час початку редагованого вікна"
             />
             <input
               v-model.number="editDuration"
@@ -606,7 +601,7 @@
               :disabled="selectedSlot.is_booked || loading"
               @click="startEdit(selectedSlot)"
             >
-              Редагувати вільний час
+              Редагувати вікно
             </button>
             <button
               v-else
@@ -632,7 +627,7 @@
               :disabled="selectedSlot.is_booked || loading || deleteActionLoading"
               @click="requestDeleteSlot(selectedSlot.id)"
             >
-              {{ isSlotDeleting(selectedSlot.id) ? 'Видалення...' : 'Видалити вільний час' }}
+              {{ isSlotDeleting(selectedSlot.id) ? 'Видалення...' : 'Видалити вікно' }}
             </button>
           </div>
           <div
@@ -848,7 +843,7 @@
 
     <div
       v-if="fillAvailabilityModalOpen"
-      class="regular-sessions-modal"
+      class="regular-sessions-modal regular-sessions-modal--smart-fill"
       role="dialog"
       aria-modal="true"
       aria-labelledby="fill-availability-modal-title"
@@ -859,7 +854,7 @@
         aria-label="Закрити"
         @click="closeFillAvailabilityModal"
       ></button>
-      <div ref="fillAvailabilityModalContentRef" class="regular-sessions-modal__content">
+      <div ref="fillAvailabilityModalContentRef" class="regular-sessions-modal__content smart-fill-modal">
         <div class="regular-sessions-modal__header">
           <div>
             <h2 id="fill-availability-modal-title" class="panel__title">Створити вікна для запису</h2>
@@ -867,14 +862,14 @@
               Оберіть дні, робочий час, тривалість вікон і перерви між ними.
             </p>
             <div
-              v-if="fillAvailabilityError"
               ref="fillAvailabilityAlertRef"
-              class="form-error form-error--inline"
-              role="alert"
+              class="form-error form-error--inline fill-availability-form__error"
+              :class="{ 'fill-availability-form__error--empty': !fillAvailabilityError }"
+              :role="fillAvailabilityError ? 'alert' : undefined"
               aria-live="polite"
-              tabindex="-1"
+              :tabindex="fillAvailabilityError ? -1 : undefined"
             >
-              {{ fillAvailabilityError }}
+              {{ fillAvailabilityError || ' ' }}
             </div>
           </div>
           <button class="icon-btn" type="button" aria-label="Закрити" @click="closeFillAvailabilityModal">×</button>
@@ -1170,7 +1165,7 @@
           <div>
             <h2 id="one-off-session-modal-title" class="panel__title">Створити сесію</h2>
             <p class="muted">
-              Створіть разову сесію для клієнта без відкриття публічного вільного часу.
+              Створіть разову сесію для клієнта без відкриття публічних вікон для запису.
             </p>
             <div
               v-if="oneOffSessionError"
@@ -1438,7 +1433,7 @@ function scheduleTabFromRoute(): ScheduleTab {
   const tab = Array.isArray(route.query.tab) ? route.query.tab[0] : route.query.tab
   if (tab === 'availability') return 'AVAILABILITY'
   if (tab === 'calendar') return 'CALENDAR'
-  if (tab === 'settings') return 'SETTINGS'
+  if (tab === 'settings') return 'AVAILABILITY'
 
   return 'CALENDAR'
 }
@@ -1522,7 +1517,7 @@ const fillAvailabilityEndTime = ref('18:00')
 const fillAvailabilityDuration = ref(50)
 const fillAvailabilityBreak = ref(10)
 const fillAvailabilityWeeks = ref(1)
-const deleteSlotsErrorMessage = 'Не вдалося видалити вільний час. Оновіть сторінку і спробуйте ще раз.'
+const deleteSlotsErrorMessage = 'Не вдалося видалити вікна для запису. Оновіть сторінку і спробуйте ще раз.'
 const WEEKDAY_SHORT_UK = ['нд', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб']
 const WEEKDAY_LONG_UK = ['Неділя', 'Понеділок', 'Вівторок', 'Середа', 'Четвер', 'Пʼятниця', 'Субота']
 const DATE_PICKER_WEEKDAYS = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд']
@@ -3266,7 +3261,7 @@ async function createSlot() {
     newStartTime.value = '09:00'
     newDuration.value = 50
     createFormOpen.value = false
-    toast.success(`Вільне вікно на ${formatDateTime(startAt)} створено.`)
+    toast.success(`Вікно для запису на ${formatDateTime(startAt)} створено.`)
   } catch (err: any) {
     error.value = getSlotErrorMessage(err, '\u041d\u0435 \u0432\u0434\u0430\u043b\u043e\u0441\u044f \u0441\u0442\u0432\u043e\u0440\u0438\u0442\u0438 \u0432\u0456\u043b\u044c\u043d\u0435 \u0432\u0456\u043a\u043d\u043e')
     newStartTime.value = ''
@@ -3496,7 +3491,7 @@ async function deleteSlot(slotId: number) {
   try {
     await apiDelete(`/cabinet/slots/${slotId}/`)
     removeSlotsFromState([slotId])
-    toast.success('Вільний час видалено.')
+    toast.success('Вікно для запису видалено.')
   } catch (err: any) {
     await loadSlots()
     error.value = deleteSlotsErrorMessage
@@ -3511,8 +3506,8 @@ function requestDeleteSlot(slotId: number) {
   const targetSlot = slots.value.find((slot) => slot.id === slotId)
   if (!targetSlot || !canDeleteAvailabilitySlot(targetSlot)) return
   confirmModal.openConfirm({
-    title: 'Видалити вільний час?',
-    message: 'Буде видалено 1 вільний слот. Заброньовані сесії не буде змінено.',
+    title: 'Видалити вікно для запису?',
+    message: 'Буде видалено 1 вікно для запису. Заброньовані сесії не буде змінено.',
     confirmText: 'Видалити',
     cancelText: 'Скасувати',
     tone: 'danger',
@@ -3535,7 +3530,7 @@ async function deleteSelectedAvailabilitySlots() {
     await deleteAvailabilitySlotsById(targetIds)
     clearSelectedAvailabilitySlots()
     await loadSlots()
-    toast.success('Вільний час видалено.')
+    toast.success('Вікна для запису видалено.')
   } catch (err: any) {
     clearSelectedAvailabilitySlots()
     await loadSlots()
@@ -3555,8 +3550,8 @@ function requestDeleteSelectedAvailabilitySlots() {
   }
 
   confirmModal.openConfirm({
-    title: 'Видалити вільний час?',
-    message: `Буде видалено ${targets.length} вільних слотів. Заброньовані сесії не буде змінено.`,
+    title: 'Видалити вікна для запису?',
+    message: `Буде видалено ${targets.length} вікон для запису. Заброньовані сесії не буде змінено.`,
     confirmText: 'Видалити вибрані',
     cancelText: 'Скасувати',
     tone: 'danger',
@@ -3579,7 +3574,7 @@ async function clearVisibleWeekAvailabilitySlots() {
     await deleteAvailabilitySlotsById(targetIds)
     removeSlotsFromState(targetIds)
     clearSelectedAvailabilitySlots()
-    toast.success('Вільний час видалено.')
+    toast.success('Вікна для запису видалено.')
   } catch (err: any) {
     clearSelectedAvailabilitySlots()
     await loadSlots()
@@ -3594,8 +3589,8 @@ function requestClearVisibleWeekAvailabilitySlots() {
   if (deleteActionLoading.value || unbookedVisibleWeekSlots.value.length === 0) return
 
   confirmModal.openConfirm({
-    title: 'Видалити вільний час?',
-    message: 'Буде видалено всі вільні незаброньовані слоти цього тижня. Заброньовані сесії не буде змінено.',
+    title: 'Очистити тиждень від вікон для запису?',
+    message: 'Буде видалено всі доступні незаброньовані вікна для запису цього тижня. Заброньовані сесії не буде змінено.',
     confirmText: 'Очистити тиждень',
     cancelText: 'Скасувати',
     tone: 'danger',
@@ -4738,6 +4733,19 @@ onBeforeUnmount(() => {
   box-shadow: var(--pc-shadow-strong);
 }
 
+.smart-fill-modal {
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 0;
+  max-height: min(760px, calc(100dvh - 36px));
+  overflow: hidden;
+  padding: 0;
+}
+
+.smart-fill-modal .regular-sessions-modal__header {
+  padding: 18px 18px 12px;
+  border-bottom: 1px solid color-mix(in srgb, var(--pc-border) 72%, transparent);
+}
+
 .regular-sessions-modal__header {
   display: flex;
   justify-content: space-between;
@@ -4777,6 +4785,46 @@ onBeforeUnmount(() => {
 .regular-sessions-form .slot-form__actions .btn {
   min-width: 112px;
   white-space: nowrap;
+}
+
+.smart-fill-modal .fill-availability-form {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  align-content: start;
+  padding: 14px 18px 0;
+  scrollbar-gutter: stable;
+}
+
+.fill-availability-form__error {
+  min-height: 38px;
+  margin-top: 10px;
+}
+
+.fill-availability-form__error--empty {
+  visibility: hidden;
+}
+
+.smart-fill-modal .fill-availability-form__hint {
+  min-height: 34px;
+  margin: 0;
+}
+
+.smart-fill-modal .fill-availability-form__preview {
+  min-height: 92px;
+  align-content: start;
+}
+
+.smart-fill-modal .slot-form__actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  min-height: 72px;
+  margin: 0 -18px;
+  padding: 12px 18px 18px;
+  border-top: 1px solid color-mix(in srgb, var(--pc-border) 72%, transparent);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), #fff 32%);
+  box-shadow: 0 -10px 18px rgba(15, 23, 42, 0.05);
 }
 
 .fill-availability-days {
