@@ -4,7 +4,7 @@
       <div>
         <h1 class="title slots__title">Розклад</h1>
         <p class="muted slots__subtitle">
-          Календар практики, сесії та вільний час для запису.
+          Календар практики, сесії та вікна для запису.
         </p>
       </div>
       <RouterLink class="btn btn--ghost btn--sm" to="/cabinet">Назад до кабінету</RouterLink>
@@ -30,7 +30,7 @@
           to="/cabinet/slots?tab=availability"
           @click="setScheduleTab('AVAILABILITY')"
         >
-          Вільний час для запису
+          Вікна для запису
         </RouterLink>
         <button
           class="btn btn--ghost btn--sm schedule-tabs__item"
@@ -86,10 +86,15 @@
           <div v-else class="action-group action-group--availability">
             <div class="action-group__buttons">
               <button class="btn btn--ghost btn--sm" type="button" @click="openCreateForm">
-                Додати вільний час
+                Додати вікно
               </button>
-              <button class="btn btn--ghost btn--sm" type="button" :disabled="loading || deleteActionLoading" @click="requestFillWeek">
-                Заповнити тиждень
+              <button
+                class="btn btn--sm smart-fill-cta"
+                type="button"
+                :disabled="loading || deleteActionLoading"
+                @click="requestFillWeek"
+              >
+                Створити вікна для запису
               </button>
             </div>
           </div>
@@ -97,7 +102,7 @@
       </div>
       <p v-if="isAvailabilityTab" class="muted schedule-toolbar__hint">{{ availabilityTabHelperText }}</p>
 
-      <div class="day-list" aria-label="Дні тижня">
+      <div class="day-list day-list--mobile" aria-label="Дні тижня">
         <button
           v-for="day in weekDays"
           :key="day.key"
@@ -114,7 +119,7 @@
         v-if="isAvailabilityTab"
         class="filters-toolbar__row filters-toolbar__row--controls filters-toolbar__row--availability"
       >
-        <div class="slot-filter" role="group" aria-label="Фільтр за статусом вільного часу">
+        <div class="slot-filter" role="group" aria-label="Фільтр за статусом вікон для запису">
           <button
             class="btn btn--ghost btn--sm"
             type="button"
@@ -137,13 +142,13 @@
             :class="{ 'btn--active': slotStatusFilter === 'BOOKED' }"
             @click="slotStatusFilter = 'BOOKED'"
           >
-            Заброньовані
+            Заброньовано
           </button>
         </div>
         <div class="muted slot-summary">
-          {{ weekStatusSummary.free }} вільних вікон · {{ weekStatusSummary.booked }} заброньованих
+          {{ weekStatusSummary.free }} доступно · {{ weekStatusSummary.booked }} заброньовано
         </div>
-        <div class="calendar-legend" aria-label="Позначення вільного часу">
+        <div class="calendar-legend" aria-label="Позначення вікон для запису">
           <span><i class="legend-dot legend-dot--available"></i>Доступно</span>
           <span><i class="legend-dot legend-dot--booked"></i>Заброньовано</span>
           <span><i class="legend-dot legend-dot--past"></i>Минуло</span>
@@ -154,9 +159,9 @@
           type="button"
           @click="showPastSlots = !showPastSlots"
         >
-          {{ showPastSlots ? 'Сховати минулий вільний час' : `Показати минулий вільний час (${hiddenPastWeekSlotsCount})` }}
+          {{ showPastSlots ? 'Сховати минулі вікна' : `Показати минулі вікна (${hiddenPastWeekSlotsCount})` }}
         </button>
-        <div class="availability-bulk-toolbar" aria-label="Керування вибраним вільним часом">
+        <div class="availability-bulk-toolbar" aria-label="Керування вибраними вікнами для запису">
           <div v-if="selectedAvailabilitySlotCount > 0" class="availability-bulk-toolbar__selection">
             <span class="availability-bulk-toolbar__count">Вибрано: {{ selectedAvailabilitySlotCount }}</span>
             <button
@@ -211,7 +216,7 @@
             :class="{ 'btn--active': calendarEventFilter === 'AVAILABLE' }"
             @click="calendarEventFilter = 'AVAILABLE'"
           >
-            Вільний час
+            Доступно
           </button>
           <button
             class="btn btn--ghost btn--sm"
@@ -219,13 +224,13 @@
             :class="{ 'btn--active': calendarEventFilter === 'BOOKED' }"
             @click="calendarEventFilter = 'BOOKED'"
           >
-            Заброньовано
+            Запити
           </button>
         </div>
         <div class="calendar-legend" aria-label="Позначення подій календаря">
           <span><i class="legend-dot legend-dot--session"></i>Сесія</span>
-          <span><i class="legend-dot legend-dot--available"></i>Вільний час</span>
-          <span><i class="legend-dot legend-dot--booked"></i>Заброньовано</span>
+          <span><i class="legend-dot legend-dot--available"></i>Доступно</span>
+          <span><i class="legend-dot legend-dot--booked"></i>Запит</span>
         </div>
       </div>
     </section>
@@ -395,13 +400,13 @@
                       <dt>Клієнт</dt>
                       <dd>{{ sessionClientLabel(session) }}</dd>
                     </div>
-                    <div v-if="session.type === 'session'">
+                    <div v-if="session.type !== 'available_slot'">
                       <dt>Статус</dt>
-                      <dd>{{ sessionStatusLabel(session.status) }}</dd>
+                      <dd>{{ scheduleEventLifecycleLabel(session) }}</dd>
                     </div>
                     <div v-if="session.type === 'available_slot'">
                       <dt>Керування</dt>
-                      <dd>Керувати вільним часом можна у вкладці “Вільний час для запису”.</dd>
+                      <dd>Керувати вікнами можна у вкладці “Вікна для запису”.</dd>
                     </div>
                   </dl>
                   <div v-if="session.session_id" class="mobile-event-detail__actions">
@@ -466,7 +471,7 @@
         <template v-else-if="isCalendarTab && selectedScheduleSession">
           <div class="slot-detail-panel__header">
             <div>
-              <h2 class="panel__title">Деталі події</h2>
+              <h2 class="panel__title">{{ scheduleEventDetailTitle(selectedScheduleSession) }}</h2>
               <p class="muted">{{ formatDateOnly(toLocalDateKey(sessionStartAt(selectedScheduleSession) || '')) }}</p>
             </div>
             <span class="slot-status" :class="scheduleEventStatusClass(selectedScheduleSession)">
@@ -485,11 +490,11 @@
             </div>
             <div v-if="selectedScheduleSession.type !== 'available_slot'">
               <dt>Статус</dt>
-              <dd>{{ sessionStatusLabel(selectedScheduleSession.status) }}</dd>
+              <dd>{{ scheduleEventLifecycleLabel(selectedScheduleSession) }}</dd>
             </div>
             <div v-if="selectedScheduleSession.type === 'available_slot'">
               <dt>Керування</dt>
-              <dd>Керувати вільним часом можна у вкладці “Вільний час для запису”.</dd>
+              <dd>Керувати вікнами можна у вкладці “Вікна для запису”.</dd>
             </div>
           </dl>
 
@@ -500,13 +505,13 @@
           </div>
         </template>
         <template v-else-if="isAvailabilityTab && !selectedSlot">
-          <h2 class="panel__title">Деталі вільного часу</h2>
-          <p class="muted">Оберіть вільний час у календарі, щоб переглянути деталі або змінити його.</p>
+          <h2 class="panel__title">Деталі вікна для запису</h2>
+          <p class="muted">Оберіть вікно в календарі, щоб переглянути деталі або змінити його.</p>
         </template>
         <template v-else-if="isAvailabilityTab && selectedSlot">
           <div class="slot-detail-panel__header">
             <div>
-              <h2 class="panel__title">Деталі вільного часу</h2>
+              <h2 class="panel__title">Деталі вікна для запису</h2>
               <p class="muted">{{ formatDateOnly(toLocalDateKey(selectedSlot.start_at)) }}</p>
             </div>
             <span class="slot-status" :class="slotStatusClass(selectedSlot)">
@@ -589,7 +594,7 @@
             </div>
             <div v-if="selectedSlot.is_booked">
               <dt>Сесія</dt>
-              <dd>Цей вільний час уже заброньовано. Даних для переходу до сесії в поточному payload немає.</dd>
+              <dd>Це вікно вже заброньовано. Даних для переходу до сесії в поточному payload немає.</dd>
             </div>
           </dl>
 
@@ -638,7 +643,7 @@
             {{ editErrors[selectedSlot.id] }}
           </div>
           <div v-if="selectedSlot.is_booked" class="muted slot-hint">
-            Цей вільний час уже заброньовано - редагування та видалення недоступні.
+            Це вікно вже заброньовано - редагування та видалення недоступні.
           </div>
         </template>
       </aside>
@@ -740,7 +745,7 @@
 
     <section v-if="isAvailabilityTab && createFormOpen" class="panel create-slot-panel">
       <div class="create-slot-panel__intro">
-        <h2 class="panel__title">Додати вільний час</h2>
+        <h2 class="panel__title">Додати вікно для запису</h2>
         <p class="muted" style="margin: 6px 0 0;">
           Цей проміжок клієнти зможуть обрати для прямого запису у вашому публічному профілі.
         </p>
@@ -840,6 +845,140 @@
         <div v-if="error" class="form-error form-error--inline">{{ error }}</div>
       </form>
     </section>
+
+    <div
+      v-if="fillAvailabilityModalOpen"
+      class="regular-sessions-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="fill-availability-modal-title"
+    >
+      <button
+        class="regular-sessions-modal__backdrop"
+        type="button"
+        aria-label="Закрити"
+        @click="closeFillAvailabilityModal"
+      ></button>
+      <div ref="fillAvailabilityModalContentRef" class="regular-sessions-modal__content">
+        <div class="regular-sessions-modal__header">
+          <div>
+            <h2 id="fill-availability-modal-title" class="panel__title">Створити вікна для запису</h2>
+            <p class="muted">
+              Оберіть дні, робочий час, тривалість вікон і перерви між ними.
+            </p>
+            <div
+              v-if="fillAvailabilityError"
+              ref="fillAvailabilityAlertRef"
+              class="form-error form-error--inline"
+              role="alert"
+              aria-live="polite"
+              tabindex="-1"
+            >
+              {{ fillAvailabilityError }}
+            </div>
+          </div>
+          <button class="icon-btn" type="button" aria-label="Закрити" @click="closeFillAvailabilityModal">×</button>
+        </div>
+
+        <form class="slot-form regular-sessions-form fill-availability-form" @submit.prevent="submitFillAvailability">
+          <fieldset class="fill-availability-days">
+            <legend>Дні тижня</legend>
+            <div class="fill-availability-days__options" role="group" aria-label="Дні тижня для заповнення">
+              <button
+                v-for="option in fillAvailabilityWeekdayOptions"
+                :key="option.value"
+                class="fill-availability-day"
+                type="button"
+                :class="{ 'fill-availability-day--selected': isFillAvailabilityWeekdaySelected(option.value) }"
+                :aria-pressed="isFillAvailabilityWeekdaySelected(option.value)"
+                :data-selected="isFillAvailabilityWeekdaySelected(option.value) ? 'true' : 'false'"
+                :data-testid="`fill-weekday-${option.value}`"
+                @click="toggleFillAvailabilityWeekday(option.value)"
+              >
+                <span class="fill-availability-day__check" aria-hidden="true">✓</span>
+                {{ option.label }}
+              </button>
+            </div>
+          </fieldset>
+
+          <label class="field">
+            Початок робочого дня
+            <select v-model="fillAvailabilityStartTime" class="input input--select" required>
+              <option v-for="option in timeOptions" :key="option" :value="option">
+                {{ option }}
+              </option>
+            </select>
+          </label>
+
+          <label class="field">
+            Кінець робочого дня
+            <select v-model="fillAvailabilityEndTime" class="input input--select" required>
+              <option v-for="option in timeOptions" :key="option" :value="option">
+                {{ option }}
+              </option>
+            </select>
+          </label>
+
+          <label class="field">
+            Тривалість вікна
+            <select v-model.number="fillAvailabilityDuration" class="input input--select" required>
+              <option v-for="option in fillAvailabilityDurationOptions" :key="option" :value="option">
+                {{ option }} хв
+              </option>
+            </select>
+          </label>
+
+          <label class="field">
+            Перерва між вікнами
+            <select v-model.number="fillAvailabilityBreak" class="input input--select" required>
+              <option v-for="option in fillAvailabilityBreakOptions" :key="option" :value="option">
+                {{ option === 0 ? 'Без перерви' : `${option} хв` }}
+              </option>
+            </select>
+          </label>
+
+          <label class="field">
+            Кількість тижнів
+            <input
+              v-model.number="fillAvailabilityWeeks"
+              class="input"
+              type="number"
+              min="1"
+              max="12"
+              step="1"
+              required
+            />
+          </label>
+
+          <p class="muted fill-availability-form__hint">
+            Існуючі сесії та заброньовані вікна не буде змінено. Перетини буде пропущено.
+          </p>
+          <div class="slot-form__preview fill-availability-form__preview" data-testid="fill-availability-preview">
+            <strong v-if="fillAvailabilitySelectedDaysCount > 0">
+              Обрано {{ fillAvailabilitySelectedDaysCount }}
+              {{ pluralizeUk(fillAvailabilitySelectedDaysCount, 'день', 'дні', 'днів') }}
+              · до {{ fillAvailabilitySlotsPerDay }}
+              {{ pluralizeUk(fillAvailabilitySlotsPerDay, 'вікно', 'вікна', 'вікон') }} на день
+              · {{ fillAvailabilityWeeksCount }}
+              {{ pluralizeUk(fillAvailabilityWeeksCount, 'тиждень', 'тижні', 'тижнів') }}.
+              Буде створено до {{ fillAvailabilityRequestedCount }}
+              {{ pluralizeUk(fillAvailabilityRequestedCount, 'вікна для запису', 'вікон для запису', 'вікон для запису') }}.
+            </strong>
+            <strong v-else>Оберіть дні тижня, щоб розрахувати кількість вікон.</strong>
+            <span>Це орієнтовний максимум. Перетини буде пропущено, точну кількість покаже результат після створення.</span>
+          </div>
+
+          <div class="slot-form__actions">
+            <button class="btn btn--ghost" type="button" :disabled="fillAvailabilitySaving" @click="closeFillAvailabilityModal">
+              Скасувати
+            </button>
+            <button class="btn" type="submit" :disabled="fillAvailabilitySaving">
+              {{ fillAvailabilitySaving ? 'Створюємо...' : 'Створити вікна для запису' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
 
     <div
       v-if="regularSessionsModalOpen"
@@ -1209,6 +1348,15 @@ type OneOffSessionCreateResponse = {
   session_id?: number
 }
 
+type FillAvailabilityResponse = {
+  created_count?: number
+  skipped_count?: number
+  date_from?: string
+  date_to?: string
+  weeks?: number
+  break_minutes?: number
+}
+
 type CalendarSlotLayout = {
   slot: Slot
   top: number
@@ -1363,6 +1511,17 @@ const editDuration = ref(50)
 const deletingSlotIds = ref<number[]>([])
 const bulkDeleteLoading = ref(false)
 const clearWeekLoading = ref(false)
+const fillAvailabilityModalOpen = ref(false)
+const fillAvailabilitySaving = ref(false)
+const fillAvailabilityError = ref('')
+const fillAvailabilityAlertRef = ref<HTMLElement | null>(null)
+const fillAvailabilityModalContentRef = ref<HTMLElement | null>(null)
+const fillAvailabilityWeekdays = ref<number[]>([0, 1, 2, 3, 4])
+const fillAvailabilityStartTime = ref('09:00')
+const fillAvailabilityEndTime = ref('18:00')
+const fillAvailabilityDuration = ref(50)
+const fillAvailabilityBreak = ref(10)
+const fillAvailabilityWeeks = ref(1)
 const deleteSlotsErrorMessage = 'Не вдалося видалити вільний час. Оновіть сторінку і спробуйте ще раз.'
 const WEEKDAY_SHORT_UK = ['нд', 'пн', 'вт', 'ср', 'чт', 'пт', 'сб']
 const WEEKDAY_LONG_UK = ['Неділя', 'Понеділок', 'Вівторок', 'Середа', 'Четвер', 'Пʼятниця', 'Субота']
@@ -1409,6 +1568,17 @@ const regularFormatOptions: Array<{ value: SessionFormat; label: string }> = [
   { value: 'online', label: 'Онлайн' },
   { value: 'offline', label: 'Офлайн' },
 ]
+const fillAvailabilityWeekdayOptions = [
+  { value: 0, label: 'Пн' },
+  { value: 1, label: 'Вт' },
+  { value: 2, label: 'Ср' },
+  { value: 3, label: 'Чт' },
+  { value: 4, label: 'Пт' },
+  { value: 5, label: 'Сб' },
+  { value: 6, label: 'Нд' },
+]
+const fillAvailabilityDurationOptions = [10, 20, 30, 40, 50, 60, 90, 120]
+const fillAvailabilityBreakOptions = [0, 5, 10, 15, 20, 30, 45, 60]
 
 function startOfWeek(value: Date) {
   const date = new Date(value)
@@ -1452,6 +1622,12 @@ function formatDateParts(date: Date) {
 
 function formatTimeParts(date: Date) {
   return `${pad2(date.getHours())}:${pad2(date.getMinutes())}`
+}
+
+function timeOptionToMinutes(value: string) {
+  const match = /^([01]\d|2[0-3]):([0-5]\d)$/.exec(String(value || '').trim())
+  if (!match) return null
+  return Number(match[1]) * 60 + Number(match[2])
 }
 
 function formatDayOptionLabel(date: Date) {
@@ -1513,10 +1689,25 @@ function isActiveScheduleSession(session: ScheduleSession) {
   )
 }
 
+function isSessionBackedBookedEvent(event: ScheduleSession) {
+  return event.type === 'booked_slot' && Boolean(event.session_id)
+}
+
+function isPendingScheduleRequestEvent(event: ScheduleSession) {
+  return event.type === 'booked_slot' && !isSessionBackedBookedEvent(event)
+}
+
 function scheduleEventTypeLabel(event: ScheduleSession) {
-  if (event.type === 'available_slot') return 'Вільний час'
-  if (event.type === 'booked_slot') return 'Заброньовано'
+  if (event.type === 'available_slot') return 'Доступно'
+  if (isSessionBackedBookedEvent(event)) return 'Сесія'
+  if (isPendingScheduleRequestEvent(event)) return 'Запит на сесію'
   return 'Сесія'
+}
+
+function scheduleEventDetailTitle(event: ScheduleSession) {
+  if (event.type === 'available_slot') return 'Деталі доступного часу'
+  if (isPendingScheduleRequestEvent(event)) return 'Запит на сесію'
+  return 'Деталі сесії'
 }
 
 function scheduleEventClientKindLabel(event: ScheduleSession) {
@@ -1526,15 +1717,21 @@ function scheduleEventClientKindLabel(event: ScheduleSession) {
 }
 
 function sessionClientLabel(session: ScheduleSession) {
-  if (session.type === 'available_slot') return 'Вільний час'
+  if (session.type === 'available_slot') return 'Доступно'
   return session.client_display_name || scheduleEventClientKindLabel(session)
 }
 
 function sessionStatusLabel(status: string) {
   const normalized = String(status || '').toUpperCase()
   if (normalized === 'CONFIRMED') return 'Підтверджено'
+  if (normalized === 'BOOKED' || normalized === 'PENDING' || normalized === 'REQUESTED') return 'Очікує підтвердження'
   if (normalized === 'SCHEDULED') return 'Заплановано'
   return status || 'Сесія'
+}
+
+function scheduleEventLifecycleLabel(event: ScheduleSession) {
+  if (isSessionBackedBookedEvent(event)) return 'Підтверджено'
+  return sessionStatusLabel(event.status)
 }
 
 function formatSessionTimeRange(session: ScheduleSession) {
@@ -1818,6 +2015,57 @@ const weekRangeLabel = computed(() => {
   return `${formatDateOnly(first.key)} - ${formatDateOnly(last.key)}`
 })
 
+const fillAvailabilityWorkdayMinutes = computed(() => {
+  const start = timeOptionToMinutes(fillAvailabilityStartTime.value)
+  const end = timeOptionToMinutes(fillAvailabilityEndTime.value)
+  if (start === null || end === null || end <= start) return 0
+  return end - start
+})
+
+const fillAvailabilitySelectedDaysCount = computed(() => fillAvailabilityWeekdays.value.length)
+
+const fillAvailabilityWeeksCount = computed(() => {
+  const weeks = Number(fillAvailabilityWeeks.value)
+  if (!Number.isFinite(weeks) || weeks < 1) return 0
+  return Math.floor(weeks)
+})
+
+const fillAvailabilitySlotsPerDay = computed(() => {
+  const duration = Number(fillAvailabilityDuration.value)
+  const breakMinutes = Number(fillAvailabilityBreak.value)
+  if (!fillAvailabilityDurationOptions.includes(duration)) return 0
+  if (!fillAvailabilityBreakOptions.includes(breakMinutes)) return 0
+  const workdayMinutes = fillAvailabilityWorkdayMinutes.value
+  if (workdayMinutes < duration) return 0
+  return Math.floor((workdayMinutes - duration) / (duration + breakMinutes)) + 1
+})
+
+const fillAvailabilityRequestedCount = computed(() => {
+  const duration = Number(fillAvailabilityDuration.value)
+  const breakMinutes = Number(fillAvailabilityBreak.value)
+  if (
+    fillAvailabilityWeeksCount.value < 1 ||
+    fillAvailabilityWeeksCount.value > 12 ||
+    !fillAvailabilityDurationOptions.includes(duration) ||
+    !fillAvailabilityBreakOptions.includes(breakMinutes)
+  ) {
+    return 0
+  }
+  const perDay = fillAvailabilitySlotsPerDay.value
+  if (perDay <= 0) return 0
+  return fillAvailabilitySelectedDaysCount.value * fillAvailabilityWeeksCount.value * perDay
+})
+
+function pluralizeUk(value: number, one: string, few: string, many: string) {
+  const absolute = Math.abs(value)
+  const lastTwo = absolute % 100
+  const last = absolute % 10
+  if (lastTwo >= 11 && lastTwo <= 14) return many
+  if (last === 1) return one
+  if (last >= 2 && last <= 4) return few
+  return many
+}
+
 function visibleWeekRange(): WeekRange | null {
   const firstDay = weekDays.value[0]?.key
   const lastDay = weekDays.value[6]?.key
@@ -1848,7 +2096,7 @@ const availabilityTabHelperText = computed(() => {
   if (showPublicAvailability.value) {
     return 'Клієнти бачать ці вікна у публічному профілі.'
   }
-  return 'Показ вільного часу вимкнено у публічному профілі.'
+  return 'Показ вікон для запису вимкнено у публічному профілі.'
 })
 
 function matchesSlotStatusFilter(slot: Slot) {
@@ -1863,11 +2111,9 @@ function isSlotVisible(slot: Slot) {
 }
 
 function matchesCalendarEventFilter(event: ScheduleSession) {
-  if (calendarEventFilter.value === 'SESSIONS') {
-    return event.type === 'session' || (event.type === 'booked_slot' && Boolean(event.session_id))
-  }
+  if (calendarEventFilter.value === 'SESSIONS') return event.type === 'session' || isSessionBackedBookedEvent(event)
   if (calendarEventFilter.value === 'AVAILABLE') return event.type === 'available_slot'
-  if (calendarEventFilter.value === 'BOOKED') return event.type === 'booked_slot'
+  if (calendarEventFilter.value === 'BOOKED') return event.type === 'booked_slot' && !isSessionBackedBookedEvent(event)
   return true
 }
 
@@ -2353,17 +2599,17 @@ function slotStatusClass(slot: Slot) {
 function scheduleEventClass(event: ScheduleSession) {
   return {
     'schedule-event--available': event.type === 'available_slot',
-    'schedule-event--booked': event.type === 'booked_slot',
-    'calendar-session': event.type === 'session',
-    'mobile-slot--session': event.type === 'session',
+    'schedule-event--booked': event.type === 'booked_slot' && !isSessionBackedBookedEvent(event),
+    'calendar-session': event.type === 'session' || isSessionBackedBookedEvent(event),
+    'mobile-slot--session': event.type === 'session' || isSessionBackedBookedEvent(event),
   }
 }
 
 function scheduleEventStatusClass(event: ScheduleSession) {
   return {
     'slot-status--available': event.type === 'available_slot',
-    'slot-status--booked': event.type === 'booked_slot',
-    'slot-status--session': event.type === 'session',
+    'slot-status--booked': event.type === 'booked_slot' && !isSessionBackedBookedEvent(event),
+    'slot-status--session': event.type === 'session' || isSessionBackedBookedEvent(event),
   }
 }
 
@@ -3029,48 +3275,22 @@ async function createSlot() {
   }
 }
 
-async function fillWeek() {
-  const isoDate = selectedWeekStart.value
-  if (!isoDate) {
-    error.value = 'Не вдалося визначити вибраний тиждень.'
-    return
-  }
-  loading.value = true
-  error.value = ''
-  try {
-    await apiPost('/cabinet/slots/fill-week/', {
-      date: isoDate,
-    })
-    selectedDate.value = isoDate
-    moveWeekToDate(isoDate)
-    selectedSessionId.value = null
-    showPastSlots.value = false
-    await loadSlots()
-    toast.success(
-      weekPeriodIncludesPast(isoDate)
-        ? `Тиждень від ${formatDateOnly(isoDate)} заповнено. Для сьогодні додано лише майбутні вікна.`
-        : `Тиждень від ${formatDateOnly(isoDate)} заповнено.`,
-    )
-  } catch (err: any) {
-    error.value = getBookingErrorMessage(err, '\u041d\u0435 \u0432\u0434\u0430\u043b\u043e\u0441\u044f \u0437\u0430\u043f\u043e\u0432\u043d\u0438\u0442\u0438 \u0442\u0438\u0436\u0434\u0435\u043d\u044c \u0432\u0456\u043b\u044c\u043d\u0438\u043c\u0438 \u0432\u0456\u043a\u043d\u0430\u043c\u0438')
-  } finally {
-    loading.value = false
-  }
+function resetFillAvailabilityForm() {
+  fillAvailabilityWeekdays.value = [0, 1, 2, 3, 4]
+  fillAvailabilityStartTime.value = '09:00'
+  fillAvailabilityEndTime.value = '18:00'
+  fillAvailabilityDuration.value = 50
+  fillAvailabilityBreak.value = 10
+  fillAvailabilityWeeks.value = 1
+  fillAvailabilityError.value = ''
 }
 
-function getWeekPeriodLabel(isoDate: string) {
-  const parsed = parseDateLike(isoDate)
-  if (!parsed) return weekRangeLabel.value
-  const start = startOfWeek(parsed)
-  const end = new Date(start)
-  end.setDate(start.getDate() + 6)
-  return `${formatDateParts(start)}–${formatDateParts(end)}`
-}
-
-function weekPeriodIncludesPast(isoDate: string) {
-  const parsed = parseDateLike(isoDate)
-  if (!parsed) return false
-  return startOfWeek(parsed).getTime() < new Date(todayKey).getTime()
+function showFillAvailabilityError(message: string) {
+  fillAvailabilityError.value = message
+  void nextTick(() => {
+    fillAvailabilityModalContentRef.value?.scrollTo?.({ top: 0, behavior: 'smooth' })
+    fillAvailabilityAlertRef.value?.focus()
+  })
 }
 
 function requestFillWeek() {
@@ -3079,24 +3299,102 @@ function requestFillWeek() {
     error.value = 'Не вдалося визначити вибраний тиждень.'
     return
   }
+  resetFillAvailabilityForm()
+  fillAvailabilityModalOpen.value = true
+  createFormOpen.value = false
+  closeDatePicker()
+}
 
-  const messageLines = [
-    'Система створить вільний час для прямого запису на основі ваших робочих годин. Клієнти зможуть обрати ці проміжки у публічному профілі.',
-    `Період: ${getWeekPeriodLabel(isoDate)}`,
-    'Існуючі сесії та записи не буде змінено.',
-  ]
-  if (weekPeriodIncludesPast(isoDate)) {
-    messageLines.push('Минулі години не додаються.')
+function closeFillAvailabilityModal() {
+  if (fillAvailabilitySaving.value) return
+  fillAvailabilityModalOpen.value = false
+  fillAvailabilityError.value = ''
+}
+
+function toggleFillAvailabilityWeekday(weekday: number) {
+  const current = new Set(fillAvailabilityWeekdays.value)
+  if (current.has(weekday)) {
+    current.delete(weekday)
+  } else {
+    current.add(weekday)
+  }
+  fillAvailabilityWeekdays.value = Array.from(current).sort((a, b) => a - b)
+  fillAvailabilityError.value = ''
+}
+
+function isFillAvailabilityWeekdaySelected(weekday: number) {
+  return fillAvailabilityWeekdays.value.includes(weekday)
+}
+
+function validateFillAvailabilityForm() {
+  if (fillAvailabilityWeekdays.value.length === 0) {
+    return 'Оберіть хоча б один день тижня.'
+  }
+  const weeks = Number(fillAvailabilityWeeks.value)
+  if (!Number.isInteger(weeks) || weeks < 1 || weeks > 12) {
+    return 'Кількість тижнів має бути від 1 до 12.'
+  }
+  const start = timeOptionToMinutes(fillAvailabilityStartTime.value)
+  const end = timeOptionToMinutes(fillAvailabilityEndTime.value)
+  if (start === null || end === null || start >= end) {
+    return 'Кінець робочого дня має бути пізніше за початок.'
+  }
+  const duration = Number(fillAvailabilityDuration.value)
+  if (!fillAvailabilityDurationOptions.includes(duration)) {
+    return 'Оберіть коректну тривалість вікна.'
+  }
+  const breakMinutes = Number(fillAvailabilityBreak.value)
+  if (!fillAvailabilityBreakOptions.includes(breakMinutes)) {
+    return 'Оберіть коректну перерву між вікнами.'
+  }
+  if (end - start < duration) {
+    return 'Діапазон робочого дня має вміщувати хоча б одне вікно.'
+  }
+  return ''
+}
+
+async function submitFillAvailability() {
+  const isoDate = selectedWeekStart.value
+  if (!isoDate) {
+    showFillAvailabilityError('Не вдалося визначити вибраний тиждень.')
+    return
+  }
+  const validationError = validateFillAvailabilityForm()
+  if (validationError) {
+    showFillAvailabilityError(validationError)
+    return
   }
 
-  confirmModal.openConfirm({
-    title: 'Заповнити тиждень вільним часом?',
-    message: messageLines.join('\n\n'),
-    confirmText: 'Заповнити тиждень',
-    cancelText: 'Скасувати',
-    tone: 'neutral',
-    onConfirm: fillWeek,
-  })
+  fillAvailabilitySaving.value = true
+  fillAvailabilityError.value = ''
+  try {
+    const result = await apiPost<FillAvailabilityResponse>('/cabinet/slots/fill/', {
+      date_from: isoDate,
+      weeks: Number(fillAvailabilityWeeks.value),
+      weekdays: [...fillAvailabilityWeekdays.value],
+      start_time: fillAvailabilityStartTime.value,
+      end_time: fillAvailabilityEndTime.value,
+      slot_duration_minutes: Number(fillAvailabilityDuration.value),
+      break_minutes: Number(fillAvailabilityBreak.value),
+    })
+    selectedDate.value = isoDate
+    moveWeekToDate(isoDate)
+    selectedSessionId.value = null
+    showPastSlots.value = false
+    await loadSlots()
+    fillAvailabilityModalOpen.value = false
+    const createdCount = Number(result?.created_count || 0)
+    const skippedCount = Number(result?.skipped_count || 0)
+    if (createdCount === 0 && skippedCount > 0) {
+      toast.info('Нові вікна для запису не створено. Існуючі або зайняті періоди було пропущено.')
+    } else {
+      toast.success(`Створено ${createdCount} вікон для запису. Пропущено ${skippedCount}.`)
+    }
+  } catch {
+    showFillAvailabilityError('Не вдалося створити вікна для запису. Перевірте параметри і спробуйте ще раз.')
+  } finally {
+    fillAvailabilitySaving.value = false
+  }
 }
 
 function startEdit(slot: Slot) {
@@ -3506,6 +3804,20 @@ onBeforeUnmount(() => {
 
 .schedule-toolbar--availability .action-group__buttons {
   justify-content: flex-end;
+}
+
+.smart-fill-cta {
+  background: linear-gradient(135deg, var(--pc-navy-950) 0%, var(--pc-navy-900) 100%);
+  border-color: var(--pc-navy-900);
+  color: #fff;
+  box-shadow: 0 8px 20px rgba(14, 43, 73, 0.16);
+}
+
+.smart-fill-cta:hover:not(:disabled),
+.smart-fill-cta:focus-visible {
+  background: var(--pc-navy-900);
+  border-color: var(--pc-navy-900);
+  color: #fff;
 }
 
 .schedule-toolbar__hint {
@@ -4467,6 +4779,82 @@ onBeforeUnmount(() => {
   white-space: nowrap;
 }
 
+.fill-availability-days {
+  display: grid;
+  gap: 8px;
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+
+.fill-availability-days legend {
+  padding: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--pc-text-muted);
+}
+
+.fill-availability-days__options {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(38px, 1fr));
+  gap: 6px;
+  max-width: 420px;
+}
+
+.fill-availability-day {
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 6px 8px;
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-control);
+  background: #fff;
+  color: var(--pc-text-muted);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    border-color 0.16s ease,
+    background 0.16s ease,
+    color 0.16s ease,
+    box-shadow 0.16s ease;
+}
+
+.fill-availability-day:hover,
+.fill-availability-day:focus-visible {
+  border-color: rgba(21, 68, 115, 0.45);
+  color: var(--pc-navy);
+  box-shadow: 0 0 0 2px rgba(21, 68, 115, 0.1);
+}
+
+.fill-availability-day--selected {
+  border-color: var(--pc-navy);
+  background: rgba(21, 68, 115, 0.1);
+  color: var(--pc-navy);
+  box-shadow: inset 0 0 0 1px rgba(21, 68, 115, 0.15);
+}
+
+.fill-availability-day__check {
+  display: inline-flex;
+  width: 12px;
+  justify-content: center;
+  color: transparent;
+  font-size: 12px;
+}
+
+.fill-availability-day--selected .fill-availability-day__check {
+  color: currentColor;
+}
+
+.fill-availability-form__hint,
+.fill-availability-form__preview {
+  grid-column: 1 / -1;
+}
+
 .day-nav-actions {
   display: flex;
   gap: 6px;
@@ -4475,7 +4863,7 @@ onBeforeUnmount(() => {
 }
 
 .day-list {
-  display: flex;
+  display: none;
   gap: 6px;
   flex-wrap: wrap;
 }
@@ -4946,6 +5334,7 @@ onBeforeUnmount(() => {
   }
 
   .day-list {
+    display: flex;
     flex-wrap: nowrap;
     gap: 4px;
     overflow-x: auto;
@@ -5277,6 +5666,7 @@ onBeforeUnmount(() => {
   }
 
   .day-list {
+    display: flex;
     gap: 2px;
   }
 
