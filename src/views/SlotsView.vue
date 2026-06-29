@@ -83,6 +83,13 @@
               <button class="btn btn--ghost btn--sm" type="button" @click="openCreateForm">
                 Додати вікно
               </button>
+              <RouterLink
+                class="btn btn--ghost btn--sm booking-settings-cta"
+                to="/cabinet/slots?tab=settings"
+                @click="setScheduleTab('SETTINGS')"
+              >
+                Запис і запити
+              </RouterLink>
               <button
                 class="btn btn--sm smart-fill-cta"
                 type="button"
@@ -95,7 +102,9 @@
           </div>
         </div>
       </div>
-      <p v-if="isAvailabilityTab" class="muted schedule-toolbar__hint">{{ availabilityTabHelperText }}</p>
+      <p v-if="isAvailabilityTab" class="muted schedule-toolbar__hint">
+        {{ availabilityTabHelperText }}
+      </p>
 
       <div class="day-list day-list--mobile" aria-label="Дні тижня">
         <button
@@ -652,9 +661,9 @@
 
     <section v-else class="panel settings-panel">
       <div class="settings-panel__intro">
-        <h2 class="panel__title">Публічний запис</h2>
+        <h2 class="panel__title">Запис і запити</h2>
         <p class="muted">
-          Оберіть, як нові клієнти можуть звертатися до вас через публічний профіль.
+          Налаштуйте, як клієнти можуть звертатися до вас із публічного профілю.
         </p>
       </div>
 
@@ -662,8 +671,8 @@
       <form v-else class="settings-form" @submit.prevent="savePublicBookingSettings">
         <div v-if="settingsError" class="form-error" role="alert">{{ settingsError }}</div>
         <label class="field">
-          Режим запису
-          <select v-model="publicBookingMode" class="input" aria-label="Режим запису">
+          Спосіб запису
+          <select v-model="publicBookingMode" class="input" aria-label="Спосіб запису">
             <option
               v-for="option in publicBookingModeOptions"
               :key="option.value"
@@ -676,15 +685,15 @@
         </label>
 
         <label class="field settings-form__checkbox-row">
-          <span class="settings-form__checkbox-label">Показувати вільний час у публічному профілі</span>
+          <span class="settings-form__checkbox-label">Показувати доступні вікна у публічному профілі</span>
           <input
             v-model="showPublicAvailability"
             type="checkbox"
             :disabled="publicBookingMode !== 'direct_booking'"
-            aria-label="Показувати вільний час у публічному профілі"
+            aria-label="Показувати доступні вікна у публічному профілі"
           />
           <span class="muted settings-form__hint">
-            Коли опція вимкнена, клієнти не бачать календар вільного часу.
+            Коли опція вимкнена, клієнти не бачать календар доступних вікон.
           </span>
         </label>
 
@@ -705,18 +714,18 @@
         </label>
 
         <label class="field">
-          Показувати вільний час наперед
+          Показувати доступні вікна наперед
           <select
             v-model.number="publicBookingHorizonDays"
             class="input"
-            aria-label="Показувати вільний час наперед"
+            aria-label="Показувати доступні вікна наперед"
           >
             <option v-for="days in publicBookingHorizonOptions" :key="days" :value="days">
               {{ days }} днів
             </option>
           </select>
           <span class="muted settings-form__hint">
-            Це обмежує, наскільки далеко вперед клієнти бачать доступний час.
+            Це обмежує, наскільки далеко вперед клієнти бачать доступні вікна.
           </span>
         </label>
 
@@ -1440,7 +1449,7 @@ function scheduleTabFromRoute(): ScheduleTab {
   const tab = Array.isArray(route.query.tab) ? route.query.tab[0] : route.query.tab
   if (tab === 'availability') return 'AVAILABILITY'
   if (tab === 'calendar') return 'CALENDAR'
-  if (tab === 'settings') return 'AVAILABILITY'
+  if (tab === 'settings') return 'SETTINGS'
 
   return 'CALENDAR'
 }
@@ -1561,8 +1570,8 @@ const regularFrequencyOptions: Array<{ value: ClientRegularTimeFrequency; label:
   { value: 'every_two_weeks', label: 'Раз на два тижні' },
 ]
 const publicBookingModeOptions: Array<{ value: PublicBookingMode; label: string }> = [
-  { value: 'request_only', label: 'Тільки запити' },
-  { value: 'direct_booking', label: 'Пряме бронювання вільного часу' },
+  { value: 'request_only', label: 'Клієнти надсилають запит' },
+  { value: 'direct_booking', label: 'Клієнти можуть записатися на доступне вікно' },
 ]
 const publicBookingLeadTimeOptions = [12, 24, 48, 72]
 const publicBookingHorizonOptions = [7, 14, 30]
@@ -2103,7 +2112,7 @@ const isAvailabilityTab = computed(() => scheduleTab.value === 'AVAILABILITY')
 const isSettingsTab = computed(() => scheduleTab.value === 'SETTINGS')
 const bookingModeHelperText = computed(() => (
   publicBookingMode.value === 'direct_booking'
-    ? 'Клієнти можуть обрати доступний час у вашому публічному профілі.'
+    ? 'Клієнти бачать доступні вікна у вашому публічному профілі та можуть записатися на них.'
     : 'Клієнти залишають запит, а ви самі домовляєтесь про час.'
 ))
 const availabilityTabHelperText = computed(() => {
@@ -2113,7 +2122,7 @@ const availabilityTabHelperText = computed(() => {
   if (showPublicAvailability.value) {
     return 'Клієнти бачать ці вікна у публічному профілі.'
   }
-  return 'Показ вікон для запису вимкнено у публічному профілі.'
+  return 'Показ доступних вікон вимкнено у публічному профілі.'
 })
 
 function matchesSlotStatusFilter(slot: Slot) {
@@ -3841,6 +3850,13 @@ onBeforeUnmount(() => {
   margin: -1px 0 0;
   font-size: 12px;
   line-height: 1.3;
+}
+
+.booking-settings-cta {
+  border-color: color-mix(in srgb, var(--pc-navy-900) 34%, var(--pc-border));
+  background: color-mix(in srgb, var(--pc-primary-soft) 72%, #ffffff);
+  color: var(--pc-navy-900);
+  font-weight: 700;
 }
 
 .availability-bulk-toolbar {

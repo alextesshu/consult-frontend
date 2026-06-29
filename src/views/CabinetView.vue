@@ -611,7 +611,7 @@ const onboardingPublicProfilePath = computed(() => {
 
 function onboardingStepTo(step: OnboardingStep) {
   if (step.key === 'profile_core') return '/cabinet/profile'
-  if (step.key === 'availability') return '/cabinet/availability-rules'
+  if (step.key === 'availability') return '/cabinet/slots?tab=availability'
   if (step.key === 'public_profile') return onboardingPublicProfilePath.value
   if (step.key === 'inbound_readiness') return '/cabinet/inquiries'
   return step.to
@@ -619,7 +619,7 @@ function onboardingStepTo(step: OnboardingStep) {
 
 function onboardingStepActionLabel(step: OnboardingStep) {
   if (step.key === 'profile_core') return 'Керувати профілем'
-  if (step.key === 'availability') return 'Налаштувати вільний час'
+  if (step.key === 'availability') return 'Налаштувати вікна для запису'
   if (step.key === 'public_profile') return 'Відкрити публічний профіль'
   if (step.key === 'inbound_readiness') return 'Перейти до звернень'
   return 'Відкрити'
@@ -954,7 +954,7 @@ const profileReadinessSummary = computed(() => {
   const viewModel = onboardingViewModel.value
   if (!viewModel) return ''
   if (viewModel.readiness) return 'Профіль готовий до звернень.'
-  if (viewModel.primaryCta?.code === 'ADD_AVAILABILITY') return 'Потрібна дія: додайте вільний час для запису.'
+  if (viewModel.primaryCta?.code === 'ADD_AVAILABILITY') return 'Потрібна дія: створіть вікна, у які клієнти можуть надсилати запити.'
   if (viewModel.primaryCta?.code === 'COMPLETE_PROFILE') return 'Потрібна дія: заповніть базовий профіль.'
   if (viewModel.primaryCta?.code === 'OPEN_PUBLIC_PROFILE') return 'Потрібна дія: налаштуйте публічний профіль.'
   return viewModel.warnings[0] || viewModel.missingItems[0] || 'Потрібна дія: перевірте налаштування профілю.'
@@ -993,7 +993,7 @@ const attentionItems = computed<AttentionItem[]>(() => {
   if (viewModel && !viewModel.readiness) {
     items.push({
       key: 'readiness',
-      title: viewModel.primaryCta?.code === 'ADD_AVAILABILITY' ? 'Потрібно додати вільний час' : 'Готовність профілю',
+      title: viewModel.primaryCta?.code === 'ADD_AVAILABILITY' ? 'Потрібно створити вікна для запису' : 'Готовність профілю',
       body: profileReadinessSummary.value,
       label: viewModel.primaryCta?.label || 'Показати деталі',
       to: viewModel.primaryCta?.to || '/cabinet/profile',

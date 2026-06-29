@@ -1,7 +1,7 @@
 <template>
   <nav class="schedule-subnav" aria-label="Розділи розкладу">
-    <RouterLink class="schedule-subnav__link" :class="{ 'is-active': active === 'rules' }" to="/cabinet/availability-rules">
-      Налаштування
+    <RouterLink class="schedule-subnav__link" :class="{ 'is-active': active === 'rules' }" to="/cabinet/slots?tab=availability">
+      Вікна для запису
     </RouterLink>
     <RouterLink class="schedule-subnav__link" :class="{ 'is-active': active === 'slots' }" to="/cabinet/slots">
       Вільні вікна

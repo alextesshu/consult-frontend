@@ -153,6 +153,12 @@ describe('SettingsHubView dual payment methods', () => {
       expect(mockedFetchCurrentDataDeletionRequest).toHaveBeenCalledTimes(1)
     })
     expect(screen.getByRole('link', { name: 'Реквізити' })).toBeInTheDocument()
+    const bookingSettingsLink = screen.getByRole('heading', { name: 'Запис і запити' }).closest('a')
+    expect(bookingSettingsLink).toHaveAttribute('href', '/cabinet/slots?tab=settings')
+    expect(
+      screen.getByText('Оберіть, як клієнти можуть звертатися до вас із публічного профілю: через запит або запис на доступне вікно.')
+    ).toBeInTheDocument()
+    expect(screen.getByText('Налаштувати запис')).toBeInTheDocument()
     expect(screen.queryByText('Реквізити для оплати')).not.toBeInTheDocument()
     expect(mockedFetchCabinetPaymentDetails).not.toHaveBeenCalled()
   })

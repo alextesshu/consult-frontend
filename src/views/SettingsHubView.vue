@@ -17,6 +17,12 @@
         <p class="muted">Дані публічного профілю, контакти та видимість.</p>
       </RouterLink>
 
+      <RouterLink class="panel settings-card settings-card--highlight" to="/cabinet/slots?tab=settings">
+        <h2 class="settings-card__title">Запис і запити</h2>
+        <p class="muted">Оберіть, як клієнти можуть звертатися до вас із публічного профілю: через запит або запис на доступне вікно.</p>
+        <span class="settings-card__cta">Налаштувати запис</span>
+      </RouterLink>
+
       <RouterLink class="panel settings-card" to="/cabinet/settings/notifications">
         <h2 class="settings-card__title">Сповіщення</h2>
         <p class="muted">Керуйте in-app подіями для нагадувань і бронювань.</p>
@@ -869,10 +875,21 @@ onMounted(() => {
   box-shadow: 0 12px 24px rgba(18, 52, 90, 0.1);
 }
 
+.settings-card--highlight {
+  border-color: color-mix(in srgb, var(--pc-navy-900) 30%, var(--pc-border));
+  background: color-mix(in srgb, var(--pc-primary-soft) 58%, #ffffff);
+}
+
 .settings-card__title {
   margin: 0;
   font-family: var(--font-display);
   font-size: 22px;
+}
+
+.settings-card__cta {
+  color: var(--pc-navy-900);
+  font-size: 13px;
+  font-weight: 800;
 }
 
 .account-data-panel {

@@ -335,17 +335,17 @@ describe('SlotsView', () => {
     expect(screen.queryByRole('button', { name: 'Налаштування' })).not.toBeInTheDocument()
   })
 
-  it('falls back from old settings tab query to booking windows', async () => {
+  it('opens booking settings from settings tab query without restoring legacy settings tab', async () => {
     openAvailabilityRoute({ tab: 'settings' })
     mockScheduleApi()
 
     renderView()
     await flushAsyncUpdates()
 
-    expect(screen.getByRole('tab', { name: 'Вікна для запису' })).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByRole('tab', { name: 'Вікна для запису' })).toHaveAttribute('aria-selected', 'false')
     expect(screen.queryByRole('tab', { name: 'Налаштування' })).not.toBeInTheDocument()
-    expect(screen.queryByRole('heading', { name: 'Публічний запис' })).not.toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'Створити вікна для запису' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Запис і запити' })).toBeInTheDocument()
+    expect(screen.getByText('Налаштуйте, як клієнти можуть звертатися до вас із публічного профілю.')).toBeInTheDocument()
   })
 
   it('reloads schedule events when availability auto-jump changes the visible week', async () => {
@@ -439,7 +439,7 @@ describe('SlotsView', () => {
     expect(screen.queryByRole('button', { name: 'Створити сесію' })).not.toBeInTheDocument()
   })
 
-  it('shows availability helper copy without exposing public booking settings UI', async () => {
+  it('shows availability helper copy with a booking settings entry point', async () => {
     mockedFetchSpecialistProfile.mockResolvedValueOnce({
       standard_session_duration_minutes: 50,
       timezone: 'Europe/Kyiv',
@@ -458,7 +458,15 @@ describe('SlotsView', () => {
     expect(
       screen.getByText('Клієнти бачать ці вікна лише коли прямий запис увімкнено.')
     ).toBeInTheDocument()
-    expect(screen.queryByRole('heading', { name: 'Публічний запис' })).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Запис і запити' })).toHaveAttribute('href', '/cabinet/slots?tab=settings')
+    expect(screen.queryByRole('link', { name: 'Налаштувати запис і запити' })).not.toBeInTheDocument()
+
+    await fireEvent.click(screen.getByRole('link', { name: 'Запис і запити' }))
+    await flushAsyncUpdates()
+    expect(screen.getByRole('heading', { name: 'Запис і запити' })).toBeInTheDocument()
+    expect(screen.getByLabelText('Спосіб запису')).toBeInTheDocument()
+    expect(screen.getByText('Клієнти надсилають запит')).toBeInTheDocument()
+    expect(screen.getByText('Клієнти можуть записатися на доступне вікно')).toBeInTheDocument()
   })
 
   it('opens regular sessions modal and loads selectable clients with usable record ids', async () => {

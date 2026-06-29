@@ -1261,16 +1261,16 @@ describe('CabinetView', () => {
 
     const stepLinks = Array.from(view.container.querySelectorAll('a.onboarding-step--link'))
     const profileCoreLink = stepLinks.find((el) => el.getAttribute('href') === '/cabinet/profile')
-    const availabilityLink = stepLinks.find((el) => el.getAttribute('href') === '/cabinet/availability-rules')
+    const availabilityLink = stepLinks.find((el) => el.getAttribute('href') === '/cabinet/slots?tab=availability')
     const publicProfileLink = stepLinks.find((el) => el.getAttribute('href') === '/public')
     const inboundReadinessLink = stepLinks.find((el) => el.getAttribute('href') === '/cabinet/inquiries')
 
     expect(profileCoreLink?.getAttribute('href')).toBe('/cabinet/profile')
-    expect(availabilityLink?.getAttribute('href')).toBe('/cabinet/availability-rules')
+    expect(availabilityLink?.getAttribute('href')).toBe('/cabinet/slots?tab=availability')
     expect(publicProfileLink?.getAttribute('href')).toBe('/public')
     expect(inboundReadinessLink?.getAttribute('href')).toBe('/cabinet/inquiries')
     expect((profileCoreLink?.textContent || '').trim().length).toBeGreaterThan(0)
-    expect(availabilityLink).toHaveTextContent('Налаштувати вільний час')
+    expect(availabilityLink).toHaveTextContent('Налаштувати вікна для запису')
     expect((publicProfileLink?.textContent || '').trim().length).toBeGreaterThan(0)
     expect((inboundReadinessLink?.textContent || '').trim().length).toBeGreaterThan(0)
   })
@@ -1380,8 +1380,10 @@ describe('CabinetView', () => {
 
     const view = renderView()
     await waitFor(() => {
-      expect(view.container).toHaveTextContent('Потрібна дія: додайте вільний час для запису.')
-      expect(view.container.querySelector('a[href="/cabinet/availability-rules"]')).toHaveTextContent('Додати вільний час')
+      expect(view.container).not.toHaveTextContent('Потрібно додати вільний час')
+      expect(view.container).toHaveTextContent('Потрібно створити вікна для запису')
+      expect(view.container).toHaveTextContent('Потрібна дія: створіть вікна, у які клієнти можуть надсилати запити.')
+      expect(view.container.querySelector('a[href="/cabinet/slots?tab=availability"]')).toHaveTextContent('Створити вікна')
     })
   })
 

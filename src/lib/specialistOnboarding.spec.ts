@@ -28,12 +28,12 @@ describe('specialist onboarding mapping', () => {
     expect(WARNING_CODE_COPY.NO_BOOKABLE_TIME).toContain('лише для прямого бронювання')
 
     expect(PRIMARY_CTA_CODE_COPY.COMPLETE_PROFILE).toBeTruthy()
-    expect(PRIMARY_CTA_CODE_COPY.ADD_AVAILABILITY).toBe('Додати вільний час')
+    expect(PRIMARY_CTA_CODE_COPY.ADD_AVAILABILITY).toBe('Створити вікна')
     expect(PRIMARY_CTA_CODE_COPY.OPEN_PUBLIC_PROFILE).toBeTruthy()
     expect(PRIMARY_CTA_CODE_COPY.VIEW_PUBLIC_PROFILE).toBeTruthy()
 
     expect(CTA_TARGET_ROUTE_KEYS.CABINET_PROFILE).toBe('/cabinet/profile')
-    expect(CTA_TARGET_ROUTE_KEYS.CABINET_AVAILABILITY).toBe('/cabinet/availability-rules')
+    expect(CTA_TARGET_ROUTE_KEYS.CABINET_AVAILABILITY).toBe('/cabinet/slots?tab=availability')
     expect(CTA_TARGET_ROUTE_KEYS.CABINET_PUBLIC_PROFILE).toBe('/public')
     expect(CTA_TARGET_ROUTE_KEYS.PUBLIC_PROFILE_VIEW).toBe('/public')
   })
@@ -61,8 +61,8 @@ describe('specialist onboarding mapping', () => {
     const viewModel = buildSpecialistOnboardingViewModel(normalized!)
     expect(viewModel.readiness).toBe(false)
     expect(viewModel.primaryCta?.code).toBe('ADD_AVAILABILITY')
-    expect(viewModel.primaryCta?.label).toBe('Додати вільний час')
-    expect(viewModel.primaryCta?.to).toBe('/cabinet/availability-rules')
+    expect(viewModel.primaryCta?.label).toBe('Створити вікна')
+    expect(viewModel.primaryCta?.to).toBe('/cabinet/slots?tab=availability')
     expect(viewModel.warnings[0]).toContain('Клієнти можуть залишати запити')
   })
 
@@ -118,7 +118,7 @@ describe('specialist onboarding mapping', () => {
     expect(vm.steps.find((s) => s.key === 'availability')?.done).toBe(false)
     expect(vm.steps.find((s) => s.key === 'public_profile')?.done).toBe(true)
     expect(vm.steps.find((s) => s.key === 'inbound_readiness')?.done).toBe(false)
-    expect(vm.primaryCta?.to).toBe('/cabinet/availability-rules')
+    expect(vm.primaryCta?.to).toBe('/cabinet/slots?tab=availability')
   })
 
   it('handles state: slots ready but public profile disabled', () => {

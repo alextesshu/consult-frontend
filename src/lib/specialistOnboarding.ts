@@ -76,14 +76,14 @@ export const WARNING_CODE_COPY: Record<string, string> = {
 
 export const PRIMARY_CTA_CODE_COPY: Record<string, string> = {
   COMPLETE_PROFILE: 'Заповнити профіль',
-  ADD_AVAILABILITY: 'Додати вільний час',
+  ADD_AVAILABILITY: 'Створити вікна',
   OPEN_PUBLIC_PROFILE: 'Налаштувати публічний профіль',
   VIEW_PUBLIC_PROFILE: 'Переглянути публічний профіль',
 }
 
 export const CTA_TARGET_ROUTE_KEYS: Record<string, string> = {
   CABINET_PROFILE: '/cabinet/profile',
-  CABINET_AVAILABILITY: '/cabinet/availability-rules',
+  CABINET_AVAILABILITY: '/cabinet/slots?tab=availability',
   CABINET_PUBLIC_PROFILE: '/public',
   PUBLIC_PROFILE_VIEW: '/public',
 }
@@ -120,7 +120,7 @@ const STEP_META: Array<{ key: OnboardingStepKey; title: string; hint: string }> 
 
 const STEP_ROUTE_BY_KEY: Record<OnboardingStepKey, string> = {
   profile_core: '/cabinet/profile',
-  availability: '/cabinet/availability-rules',
+  availability: '/cabinet/slots?tab=availability',
   public_profile: '/public',
   inbound_readiness: '/cabinet/inquiries',
 }

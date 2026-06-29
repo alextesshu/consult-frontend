@@ -103,10 +103,10 @@
           <div v-else-if="showNoRescheduleSlotsEmptyState" class="reschedule-empty-state reschedule-empty-state--prominent">
             <div class="reschedule-empty-state__title">Немає доступних слотів для переносу</div>
             <p class="muted reschedule-empty-state__body">
-              Щоб перенести сесію, спочатку додайте вільний час для запису в розкладі. Після цього поверніться до цієї сесії та оберіть слот для переносу.
+              Щоб перенести сесію, спочатку створіть вікна для запису в розкладі. Після цього поверніться до цієї сесії та оберіть слот для переносу.
             </p>
             <RouterLink class="btn btn--sm" :to="RESCHEDULE_AVAILABILITY_ROUTE">
-              Додати вільний час
+              Створити вікна
             </RouterLink>
           </div>
           <template v-else>
@@ -114,7 +114,7 @@
             <div v-if="showRescheduleSlotMismatchGuidance" class="reschedule-guidance">
               <p class="muted reschedule-guidance__text">{{ RESCHEDULE_SLOT_GUIDANCE_MESSAGE }}</p>
               <RouterLink class="btn btn--ghost btn--sm" :to="RESCHEDULE_AVAILABILITY_ROUTE">
-                Перейти до вільного часу
+                Перейти до вікон для запису
               </RouterLink>
             </div>
 
@@ -1162,7 +1162,7 @@ const quickAddModalError = ref('')
 const INVALID_RESCHEDULE_DATE_FORMAT_MESSAGE = 'Введіть дату у форматі ДД.ММ.РРРР, наприклад 25.06.2026.'
 const INVALID_RESCHEDULE_TIME_FORMAT_MESSAGE = 'Оберіть час початку.'
 const RESCHEDULE_SLOT_MISMATCH_MESSAGE = 'Для цього часу немає доступного слота. Оберіть час із запропонованих слотів.'
-const RESCHEDULE_SLOT_GUIDANCE_MESSAGE = 'Якщо потрібного часу немає у списку, додайте його як вільний час у розкладі.'
+const RESCHEDULE_SLOT_GUIDANCE_MESSAGE = 'Якщо потрібного часу немає у списку, створіть вікна для запису в розкладі.'
 const RESCHEDULE_AVAILABILITY_ROUTE = '/cabinet/slots?tab=availability'
 
 function normalizeSessionFormat(detail: SessionDetail | null): SessionFormat {

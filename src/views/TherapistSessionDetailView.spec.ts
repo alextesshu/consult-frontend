@@ -1743,9 +1743,9 @@ describe('TherapistSessionDetailView', () => {
       await within(reschedulePanel).findByText('Для цього часу немає доступного слота. Оберіть час із запропонованих слотів.')
     ).toBeInTheDocument()
     expect(
-      within(reschedulePanel).getByText('Якщо потрібного часу немає у списку, додайте його як вільний час у розкладі.')
+      within(reschedulePanel).getByText('Якщо потрібного часу немає у списку, створіть вікна для запису в розкладі.')
     ).toBeInTheDocument()
-    const availabilityLink = within(reschedulePanel).getByRole('link', { name: 'Перейти до вільного часу' })
+    const availabilityLink = within(reschedulePanel).getByRole('link', { name: 'Перейти до вікон для запису' })
     expect(availabilityLink).toHaveAttribute('href', '/cabinet/slots?tab=availability')
     expect(mockedApiPatch).not.toHaveBeenCalledWith('/booking/sessions/42/reschedule/', expect.anything())
   })
@@ -1767,15 +1767,15 @@ describe('TherapistSessionDetailView', () => {
     expect(within(reschedulePanel).getByText('Немає доступних слотів для переносу')).toBeInTheDocument()
     expect(
       within(reschedulePanel).getByText(
-        'Щоб перенести сесію, спочатку додайте вільний час для запису в розкладі. Після цього поверніться до цієї сесії та оберіть слот для переносу.'
+        'Щоб перенести сесію, спочатку створіть вікна для запису в розкладі. Після цього поверніться до цієї сесії та оберіть слот для переносу.'
       )
     ).toBeInTheDocument()
-    const availabilityLink = within(reschedulePanel).getByRole('link', { name: 'Додати вільний час' })
+    const availabilityLink = within(reschedulePanel).getByRole('link', { name: 'Створити вікна' })
     expect(availabilityLink).toHaveAttribute('href', '/cabinet/slots?tab=availability')
     expect(availabilityLink).toHaveClass('btn')
     expect(availabilityLink).not.toHaveClass('btn--ghost')
-    expect(within(reschedulePanel).getAllByRole('link', { name: 'Додати вільний час' })).toHaveLength(1)
-    expect(within(reschedulePanel).queryByRole('link', { name: 'Перейти до вільного часу' })).not.toBeInTheDocument()
+    expect(within(reschedulePanel).getAllByRole('link', { name: 'Створити вікна' })).toHaveLength(1)
+    expect(within(reschedulePanel).queryByRole('link', { name: 'Перейти до вікон для запису' })).not.toBeInTheDocument()
     expect(within(reschedulePanel).queryByLabelText('Нова дата')).not.toBeInTheDocument()
     expect(within(reschedulePanel).queryByLabelText('Час початку')).not.toBeInTheDocument()
     expect(within(reschedulePanel).queryByText('Рекомендовані варіанти')).not.toBeInTheDocument()
