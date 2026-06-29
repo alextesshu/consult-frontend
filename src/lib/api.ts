@@ -2685,6 +2685,11 @@ export type GuestBookingRequestRecord = {
   decline_reason: string | null
   external_session_id: number | null
   session_id?: number | null
+  needs_alternative_time?: boolean | null
+  conflicting_session_id?: number | null
+  requested_slot_is_occupied?: boolean | null
+  same_slot_pending_count?: number | null
+  same_slot_approved_count?: number | null
   created_at: string | null
   updated_at: string | null
 }
@@ -2715,6 +2720,11 @@ export type GuestBookingRequestCreateSessionPayload = {
 }
 
 export type GuestBookingRequestCreateSessionResponse = {
+  request: GuestBookingRequestRecord
+  session: Session | null
+}
+
+export type GuestBookingRequestConfirmSessionResponse = {
   request: GuestBookingRequestRecord
   session: Session | null
 }
@@ -3308,6 +3318,17 @@ export async function approveCabinetGuestBookingRequest(
 ): Promise<GuestBookingRequestApproveResponse> {
   const resp = await http.post<GuestBookingRequestApproveResponse>(
     `/cabinet/guest-booking-requests/${requestId}/approve/`,
+    payload ?? {}
+  )
+  return resp.data
+}
+
+export async function confirmCabinetGuestBookingRequestSession(
+  requestId: number,
+  payload?: { meeting_url?: string | null; offline_location_snapshot?: string | null }
+): Promise<GuestBookingRequestConfirmSessionResponse> {
+  const resp = await http.post<GuestBookingRequestConfirmSessionResponse>(
+    `/cabinet/guest-booking-requests/${requestId}/confirm-session/`,
     payload ?? {}
   )
   return resp.data

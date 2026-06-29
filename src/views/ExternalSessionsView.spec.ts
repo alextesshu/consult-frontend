@@ -4,6 +4,7 @@ import ExternalSessionsView from './ExternalSessionsView.vue'
 import {
   apiGet,
   approveCabinetGuestBookingRequest,
+  confirmCabinetGuestBookingRequestSession,
   createExternalSession,
   createExternalSessionInvite,
   createSessionFromCabinetGuestBookingRequest,
@@ -49,6 +50,7 @@ vi.mock('../lib/api', async () => {
     ...actual,
     apiGet: vi.fn(),
     approveCabinetGuestBookingRequest: vi.fn(),
+    confirmCabinetGuestBookingRequestSession: vi.fn(),
     fetchExternalSessions: vi.fn(),
     createExternalSessionInvite: vi.fn(),
     fetchCabinetGuestBookingRequests: vi.fn(),
@@ -61,6 +63,7 @@ vi.mock('../lib/api', async () => {
 })
 
 const mockedApproveCabinetGuestBookingRequest = vi.mocked(approveCabinetGuestBookingRequest)
+const mockedConfirmCabinetGuestBookingRequestSession = vi.mocked(confirmCabinetGuestBookingRequestSession)
 const mockedApiGet = vi.mocked(apiGet)
 const mockedFetchExternalSessions = vi.mocked(fetchExternalSessions)
 const mockedFetchCabinetGuestBookingRequests = vi.mocked(fetchCabinetGuestBookingRequests)
@@ -196,6 +199,18 @@ describe('ExternalSessionsView', () => {
       },
       external_session: null,
       invite: null,
+    } as any)
+    mockedConfirmCabinetGuestBookingRequestSession.mockResolvedValue({
+      request: buildGuestRequest({
+        id: 51,
+        status: 'approved',
+        session_id: 701,
+        external_session_id: null,
+        approved_at: '2099-06-16T11:00:00Z',
+      }),
+      session: {
+        id: 701,
+      },
     } as any)
     mockedFetchExternalSessions.mockResolvedValue([
       {
@@ -662,13 +677,14 @@ describe('ExternalSessionsView', () => {
           declined_at: null,
           cancelled_at: null,
           decline_reason: '',
-          external_session_id: 99,
+          external_session_id: null,
+          session_id: 701,
           created_at: '2099-06-16T10:00:00Z',
           updated_at: '2099-06-16T11:00:00Z',
         },
       ] as any)
 
-    mockedApproveCabinetGuestBookingRequest.mockResolvedValue({
+    mockedConfirmCabinetGuestBookingRequestSession.mockResolvedValue({
       request: {
         id: 51,
         status: 'approved',
@@ -690,20 +706,12 @@ describe('ExternalSessionsView', () => {
         declined_at: null,
         cancelled_at: null,
         decline_reason: '',
-        external_session_id: 99,
+        external_session_id: null,
+        session_id: 701,
         created_at: '2099-06-16T10:00:00Z',
         updated_at: '2099-06-16T11:00:00Z',
       },
-      external_session: null,
-      invite: {
-        status: 'active',
-        expires_at: '2099-06-18T13:50:00Z',
-        created_at: '2099-06-16T11:00:00Z',
-        revoked_at: null,
-        last_opened_at: null,
-        joined_at: null,
-        invite_url: 'https://proconsult.space/guest/external-session/token',
-      },
+      session: { id: 701 },
     } as any)
 
     renderView()
@@ -716,22 +724,17 @@ describe('ExternalSessionsView', () => {
     await fireEvent.click(screen.getByRole('button', { name: 'Погодити' }))
 
     await waitFor(() => {
-      expect(mockedApproveCabinetGuestBookingRequest).toHaveBeenCalledWith(51, {
+      expect(mockedConfirmCabinetGuestBookingRequestSession).toHaveBeenCalledWith(51, {
         meeting_url: 'https://meet.google.com/new-guest-link',
       })
     })
+    expect(mockedApproveCabinetGuestBookingRequest).not.toHaveBeenCalled()
 
-    const sessionLink = await screen.findByRole('link', { name: 'Відкрити сесію без реєстрації' })
-    expect(sessionLink).toHaveAttribute('href', '/cabinet/external-sessions/99')
-    expect(await screen.findByText('На основі цього запиту створено сесію без реєстрації.')).toBeInTheDocument()
-    expect(screen.queryByText('Посилання без реєстрації')).not.toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Відкрити сторінку сесії' })).toHaveAttribute(
-      'href',
-      'https://proconsult.space/guest/external-session/token'
-    )
-    expect(
-      screen.getByText('Надішліть це посилання клієнту, щоб він міг приєднатися без створення акаунта.')
-    ).toBeInTheDocument()
+    const sessionLink = await screen.findByRole('link', { name: 'Відкрити сесію' })
+    expect(sessionLink).toHaveAttribute('href', '/cabinet/sessions/701')
+    expect(await screen.findByText('На основі цього запиту створено сесію.')).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Відкрити сесію без реєстрації' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Відкрити сторінку сесії' })).not.toBeInTheDocument()
   })
 
   it('declines pending guest request and refreshes request status', async () => {
@@ -866,6 +869,33 @@ describe('ExternalSessionsView', () => {
     expect(card).toHaveTextContent('Телефон: +380501234567')
     expect(card).toHaveTextContent('Коментар: Можу після обіду')
     expect(within(card as HTMLElement).getByRole('button', { name: 'Сховати деталі' })).toBeInTheDocument()
+  })
+
+  it('renders alternative-time state for occupied slot request without approve action', async () => {
+    mockedFetchCabinetGuestBookingRequests.mockResolvedValue([
+      buildGuestRequest({
+        id: 64,
+        guest_name: 'Sibling Guest',
+        contact_channel: 'email',
+        contact_value: 'sibling@example.com',
+        needs_alternative_time: true,
+        requested_slot_is_occupied: true,
+        conflicting_session_id: 701,
+        same_slot_pending_count: 1,
+        same_slot_approved_count: 1,
+      }),
+    ] as any)
+
+    renderView()
+    await screen.findByText('Sibling Guest')
+
+    const card = getGuestRequestCardByText('Sibling Guest')
+    expect(card).toHaveTextContent('Потрібно запропонувати інший час')
+    expect(within(card as HTMLElement).getByRole('button', { name: 'Запропонувати інший час' })).toBeDisabled()
+    expect(within(card as HTMLElement).getByRole('button', { name: 'Скасувати запит' })).toBeInTheDocument()
+    expect(within(card as HTMLElement).queryByRole('button', { name: 'Погодити' })).not.toBeInTheDocument()
+    expect(card.querySelector('input[type="url"]')).not.toBeInTheDocument()
+    expect(mockedConfirmCabinetGuestBookingRequestSession).not.toHaveBeenCalled()
   })
 
   it('creates manual session from slot-less guest request and refreshes data', async () => {
@@ -1166,6 +1196,18 @@ describe('ExternalSessionsView guest request micro-polish', () => {
       external_session: null,
       invite: null,
     } as any)
+    mockedConfirmCabinetGuestBookingRequestSession.mockResolvedValue({
+      request: buildGuestRequest({
+        id: 51,
+        status: 'approved',
+        session_id: 701,
+        external_session_id: null,
+        approved_at: '2099-06-16T11:00:00Z',
+      }),
+      session: {
+        id: 701,
+      },
+    } as any)
     mockedDeclineCabinetGuestBookingRequest.mockResolvedValue({
       id: 51,
       status: 'declined',
@@ -1189,7 +1231,7 @@ describe('ExternalSessionsView guest request micro-polish', () => {
         offline_location_snapshot: 'Kyiv',
       }),
     ] as any)
-    mockedApproveCabinetGuestBookingRequest.mockRejectedValueOnce(new Error('approve failed'))
+    mockedConfirmCabinetGuestBookingRequestSession.mockRejectedValueOnce(new Error('approve failed'))
 
     renderView()
     await screen.findByText('Guest One')
@@ -1220,7 +1262,7 @@ describe('ExternalSessionsView guest request micro-polish', () => {
         contact_channel: 'email',
       }),
     ] as any)
-    mockedApproveCabinetGuestBookingRequest.mockRejectedValueOnce(new Error('slot unavailable'))
+    mockedConfirmCabinetGuestBookingRequestSession.mockRejectedValueOnce(new Error('slot unavailable'))
     mockedGetApiErrorMessage.mockReturnValueOnce('Requested slot is no longer available.')
 
     renderView()
@@ -1300,7 +1342,7 @@ describe('ExternalSessionsView guest request micro-polish', () => {
     ] as any)
 
     const pendingApprove = createDeferred<any>()
-    mockedApproveCabinetGuestBookingRequest.mockImplementationOnce(() => pendingApprove.promise)
+    mockedConfirmCabinetGuestBookingRequestSession.mockImplementationOnce(() => pendingApprove.promise)
 
     renderView()
     await screen.findByText('Guest One')
@@ -1315,10 +1357,11 @@ describe('ExternalSessionsView guest request micro-polish', () => {
     await fireEvent.click(firstCard.approveButton)
 
     await waitFor(() => {
-      expect(mockedApproveCabinetGuestBookingRequest).toHaveBeenCalledWith(51, {
+      expect(mockedConfirmCabinetGuestBookingRequestSession).toHaveBeenCalledWith(51, {
         meeting_url: 'https://meet.google.com/pending-approve',
       })
     })
+    expect(mockedApproveCabinetGuestBookingRequest).not.toHaveBeenCalled()
 
     expect(firstCard.approveButton).toBeDisabled()
     expect(firstCard.declineButton).not.toBeDisabled()
@@ -1327,8 +1370,7 @@ describe('ExternalSessionsView guest request micro-polish', () => {
 
     pendingApprove.resolve({
       request: buildGuestRequest({ id: 51, status: 'approved' }),
-      external_session: null,
-      invite: null,
+      session: { id: 701 },
     } as any)
 
     await waitFor(() => {

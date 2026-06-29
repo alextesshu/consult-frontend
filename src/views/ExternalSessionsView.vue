@@ -299,7 +299,19 @@
                 </button>
               </template>
               <template v-else>
-                <label v-if="request.session_format === 'online'" class="field request-meeting-field">
+                <div v-if="needsAlternativeTime(request)" class="request-card__helper request-card__helper--warning">
+                  Потрібно запропонувати інший час
+                </div>
+                <button
+                  v-if="needsAlternativeTime(request)"
+                  class="btn btn--ghost btn--sm"
+                  type="button"
+                  disabled
+                  title="Вибір альтернативного часу буде додано наступним кроком."
+                >
+                  Запропонувати інший час
+                </button>
+                <label v-if="!needsAlternativeTime(request) && request.session_format === 'online'" class="field request-meeting-field">
                   <span>Посилання на онлайн-зустріч</span>
                   <input
                     v-model="approveMeetingUrls[request.id]"
@@ -313,6 +325,7 @@
                   Щоб погодити онлайн-запит, додайте посилання на зустріч.
                 </div>
                 <button
+                  v-if="!needsAlternativeTime(request)"
                   class="btn btn--ghost btn--sm"
                   type="button"
                   :disabled="isApproveRequestDisabled(request)"
@@ -477,7 +490,7 @@ import TimeSelectField from '../components/TimeSelectField.vue'
 import { useToast } from '../composables/useToast'
 import {
   apiGet,
-  approveCabinetGuestBookingRequest,
+  confirmCabinetGuestBookingRequestSession,
   createExternalSession,
   createExternalSessionInvite,
   createSessionFromCabinetGuestBookingRequest,
@@ -753,6 +766,10 @@ function isSlotlessRequest(request: GuestBookingRequestRecord) {
   return request.slot_id == null && !request.slot && !request.requested_slot_start && !request.requested_slot_end
 }
 
+function needsAlternativeTime(request: GuestBookingRequestRecord) {
+  return isPendingRequest(request.status) && !isSlotlessRequest(request) && request.needs_alternative_time === true
+}
+
 function requestClientName(request: GuestBookingRequestRecord) {
   return request.client_name || request.guest_name || 'Клієнт'
 }
@@ -964,7 +981,12 @@ function localizeGuestRequestApiError(err: unknown, fallback: string) {
 function syncApproveMeetingDrafts(payload: GuestBookingRequestRecord[]) {
   const next: Record<number, string> = {}
   payload.forEach((request) => {
-    if (isPendingRequest(request.status) && !isSlotlessRequest(request) && request.session_format === 'online') {
+    if (
+      isPendingRequest(request.status) &&
+      !isSlotlessRequest(request) &&
+      !needsAlternativeTime(request) &&
+      request.session_format === 'online'
+    ) {
       next[request.id] = approveMeetingUrls.value[request.id] || ''
     }
   })
@@ -1003,6 +1025,7 @@ function syncRequestActionMeta(payload: GuestBookingRequestRecord[]) {
 
 function isApproveRequestDisabled(request: GuestBookingRequestRecord) {
   if (isSlotlessRequest(request)) return true
+  if (needsAlternativeTime(request)) return true
   if (isRequestActionLoading(request.id, 'approve')) return true
   if (request.session_format !== 'online') return false
   return !String(approveMeetingUrls.value[request.id] || '').trim()
@@ -1011,6 +1034,7 @@ function isApproveRequestDisabled(request: GuestBookingRequestRecord) {
 function shouldShowApproveMeetingHint(request: GuestBookingRequestRecord) {
   if (!isPendingRequest(request.status)) return false
   if (isSlotlessRequest(request)) return false
+  if (needsAlternativeTime(request)) return false
   if (request.session_format !== 'online') return false
   return !String(approveMeetingUrls.value[request.id] || '').trim()
 }
@@ -1306,6 +1330,10 @@ async function approveRequest(request: GuestBookingRequestRecord) {
     )
     return
   }
+  if (needsAlternativeTime(request)) {
+    setRequestActionError(request.id, 'Цей час уже зайнятий. Запропонуйте клієнту інший час.')
+    return
+  }
   setRequestActionError(request.id, '')
   const meetingUrl = String(approveMeetingUrls.value[request.id] || '').trim()
   if (request.session_format === 'online' && !meetingUrl) {
@@ -1315,15 +1343,11 @@ async function approveRequest(request: GuestBookingRequestRecord) {
 
   setRequestActionLoading(request.id, 'approve', true)
   try {
-    const response = await approveCabinetGuestBookingRequest(
+    await confirmCabinetGuestBookingRequestSession(
       request.id,
       request.session_format === 'online' ? { meeting_url: meetingUrl } : {}
     )
-    latestInviteUrlByRequestId.value = {
-      ...latestInviteUrlByRequestId.value,
-      [request.id]: response.invite?.invite_url || '',
-    }
-    toast.success('Запит без реєстрації погоджено.')
+    toast.success('Сесію створено. Запит погоджено.')
     await Promise.all([loadGuestRequests(), loadSessions()])
   } catch (err) {
     setRequestActionError(request.id, localizeGuestRequestApiError(err, 'Не вдалося погодити запит без реєстрації.'))
@@ -1720,6 +1744,11 @@ onMounted(async () => {
   max-width: 620px;
   color: var(--pc-text-muted);
   line-height: 1.45;
+}
+
+.request-card__helper--warning {
+  color: #8a4b00;
+  font-weight: 700;
 }
 
 .request-topic-row {
