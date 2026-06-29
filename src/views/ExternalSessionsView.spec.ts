@@ -737,6 +737,59 @@ describe('ExternalSessionsView', () => {
     expect(screen.queryByRole('link', { name: 'Відкрити сторінку сесії' })).not.toBeInTheDocument()
   })
 
+  it('confirms offline slot-based request without requiring meeting URL', async () => {
+    mockedFetchCabinetGuestBookingRequests
+      .mockResolvedValueOnce([
+        buildGuestRequest({
+          id: 55,
+          guest_name: 'Offline Guest',
+          contact_channel: 'phone',
+          contact_value: '+380501112233',
+          session_format: 'offline',
+          offline_location_snapshot: 'Kyiv, Podil Office',
+        }),
+      ] as any)
+      .mockResolvedValueOnce([
+        buildGuestRequest({
+          id: 55,
+          status: 'approved',
+          guest_name: 'Offline Guest',
+          contact_channel: 'phone',
+          contact_value: '+380501112233',
+          session_format: 'offline',
+          offline_location_snapshot: 'Kyiv, Podil Office',
+          approved_at: '2099-06-16T11:00:00Z',
+          session_id: 755,
+        }),
+      ] as any)
+    mockedConfirmCabinetGuestBookingRequestSession.mockResolvedValue({
+      request: buildGuestRequest({
+        id: 55,
+        status: 'approved',
+        session_format: 'offline',
+        offline_location_snapshot: 'Kyiv, Podil Office',
+        session_id: 755,
+      }),
+      session: { id: 755 },
+    } as any)
+
+    renderView()
+    await screen.findByText('Offline Guest')
+
+    const card = getGuestRequestCardByName('Offline Guest')
+    expect(card.meetingInput).toBeNull()
+    await fireEvent.click(card.approveButton)
+
+    await waitFor(() => {
+      expect(mockedConfirmCabinetGuestBookingRequestSession).toHaveBeenCalledWith(55, {})
+    })
+    expect(mockedApproveCabinetGuestBookingRequest).not.toHaveBeenCalled()
+    expect(await screen.findByRole('link', { name: 'Відкрити сесію' })).toHaveAttribute(
+      'href',
+      '/cabinet/sessions/755'
+    )
+  })
+
   it('declines pending guest request and refreshes request status', async () => {
     mockedFetchCabinetGuestBookingRequests
       .mockResolvedValueOnce([

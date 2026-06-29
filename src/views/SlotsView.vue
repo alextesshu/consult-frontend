@@ -697,6 +697,13 @@
           </span>
         </label>
 
+        <div v-if="directBookingVisibilityWarning" class="settings-warning" role="status">
+          <strong>Запис на вікна вимкнений у публічному профілі</strong>
+          <span>
+            Ви обрали запис на доступні вікна, але не показуєте ці вікна клієнтам. Увімкніть показ вікон або перейдіть на запити без вибору часу.
+          </span>
+        </div>
+
         <label class="field">
           Мінімальний час до бронювання
           <select
@@ -2122,6 +2129,9 @@ const bookingModeHelperText = computed(() => (
   publicBookingMode.value === 'direct_booking'
     ? 'Клієнти бачать доступні вікна у вашому публічному профілі та можуть записатися на них.'
     : 'Клієнти залишають запит, а ви самі домовляєтесь про час.'
+))
+const directBookingVisibilityWarning = computed(() => (
+  publicBookingMode.value === 'direct_booking' && !showPublicAvailability.value
 ))
 const availabilityTabHelperText = computed(() => {
   if (publicBookingMode.value === 'request_only') {
@@ -3931,6 +3941,17 @@ onBeforeUnmount(() => {
   margin-top: 6px;
   font-size: 12px;
   line-height: 1.35;
+}
+
+.settings-warning {
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  border: 1px solid #d69032;
+  border-radius: var(--pc-radius-card);
+  background: #fff8ed;
+  color: #744000;
+  line-height: 1.45;
 }
 
 .settings-form__checkbox-row {

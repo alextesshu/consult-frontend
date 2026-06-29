@@ -348,6 +348,35 @@ describe('SlotsView', () => {
     expect(screen.getByText('Налаштуйте, як клієнти можуть звертатися до вас із публічного профілю.')).toBeInTheDocument()
   })
 
+  it('warns when direct booking is selected but public availability is hidden', async () => {
+    openAvailabilityRoute({ tab: 'settings' })
+    mockedFetchSpecialistProfile.mockResolvedValueOnce({
+      standard_session_duration_minutes: 50,
+      timezone: 'Europe/Kyiv',
+      public_booking_mode: 'direct_booking',
+      show_public_availability: false,
+      public_booking_min_lead_time_hours: 24,
+      public_booking_horizon_days: 14,
+      public_booking_requires_confirmation: true,
+    } as any)
+    mockScheduleApi()
+
+    renderView()
+    await flushAsyncUpdates()
+
+    expect(screen.getByText('Запис на вікна вимкнений у публічному профілі')).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        'Ви обрали запис на доступні вікна, але не показуєте ці вікна клієнтам. Увімкніть показ вікон або перейдіть на запити без вибору часу.'
+      )
+    ).toBeInTheDocument()
+    expect(screen.getByLabelText('Показувати доступні вікна у публічному профілі')).not.toBeChecked()
+
+    await fireEvent.update(screen.getByLabelText('Спосіб запису'), 'request_only')
+    await flushAsyncUpdates()
+    expect(screen.queryByText('Запис на вікна вимкнений у публічному профілі')).not.toBeInTheDocument()
+  })
+
   it('reloads schedule events when availability auto-jump changes the visible week', async () => {
     openCalendarRoute()
     mockedApiGet.mockImplementation(async (url) => {
