@@ -2690,8 +2690,102 @@ export type GuestBookingRequestRecord = {
   requested_slot_is_occupied?: boolean | null
   same_slot_pending_count?: number | null
   same_slot_approved_count?: number | null
+  active_time_proposal_id?: number | null
+  active_time_proposal_status?: string | null
+  active_time_proposal_expires_at?: string | null
+  active_time_proposal_options_count?: number | null
   created_at: string | null
   updated_at: string | null
+}
+
+export interface GuestBookingTimeProposalOption {
+  id: number
+  slot_id: number
+  start_at: string
+  end_at: string
+  timezone: string
+  status: string
+  sort_order: number
+}
+
+export interface GuestBookingTimeProposal {
+  id: number
+  request_id: number
+  status: string
+  original_slot_id?: number | null
+  original_requested_slot_start?: string | null
+  original_requested_slot_end?: string | null
+  original_duration_minutes?: number | null
+  original_slot_timezone?: string
+  expires_at: string
+  message: string
+  meeting_url: string
+  offline_location_snapshot: string
+  accepted_at: string | null
+  cancelled_at: string | null
+  options_count: number
+  options: GuestBookingTimeProposalOption[]
+  created_at: string
+  updated_at: string
+}
+
+export interface CreateGuestBookingTimeProposalPayload {
+  slot_ids: number[]
+  message?: string
+  meeting_url?: string
+  offline_location_snapshot?: string
+  expires_at?: string
+}
+
+export interface CreateGuestBookingTimeProposalResponse {
+  proposal: GuestBookingTimeProposal & {
+    proposal_url: string
+  }
+}
+
+export interface PublicGuestBookingTimeProposalOption {
+  id: number
+  start_at: string
+  end_at: string
+  timezone: string
+  status: string
+}
+
+export interface PublicGuestBookingTimeProposal {
+  public_status: string
+  can_accept: boolean
+  specialist_name: string
+  specialist_profile_path: string
+  specialist_profile_url: string
+  session_format: string
+  message: string
+  expires_at: string
+  options: PublicGuestBookingTimeProposalOption[]
+}
+
+export interface PublicGuestBookingTimeProposalDetailResponse {
+  proposal: PublicGuestBookingTimeProposal
+}
+
+export interface AcceptPublicGuestBookingTimeProposalResponse {
+  proposal: PublicGuestBookingTimeProposal
+  selected_option: {
+    id: number
+    status: string
+  }
+  request: {
+    status: string
+    session_id: number | null
+  }
+  session: {
+    id: number
+    starts_at: string
+    ends_at: string
+    timezone: string
+    session_format: string
+    meeting_url: string
+    offline_location_snapshot: string
+  }
 }
 
 export type GuestBookingRequestInviteSnapshot = {
@@ -3356,6 +3450,37 @@ export async function createSessionFromCabinetGuestBookingRequest(
   return resp.data
 }
 
+export async function listCabinetGuestBookingTimeProposals(
+  requestId: number
+): Promise<GuestBookingTimeProposal[]> {
+  const resp = await http.get<GuestBookingTimeProposal[]>(
+    `/cabinet/guest-booking-requests/${requestId}/time-proposals/`
+  )
+  return resp.data || []
+}
+
+export async function createCabinetGuestBookingTimeProposal(
+  requestId: number,
+  payload: CreateGuestBookingTimeProposalPayload
+): Promise<CreateGuestBookingTimeProposalResponse> {
+  const resp = await http.post<CreateGuestBookingTimeProposalResponse>(
+    `/cabinet/guest-booking-requests/${requestId}/time-proposals/`,
+    payload
+  )
+  return resp.data
+}
+
+export async function cancelCabinetGuestBookingTimeProposal(
+  requestId: number,
+  proposalId: number
+): Promise<GuestBookingTimeProposal> {
+  const resp = await http.post<GuestBookingTimeProposal>(
+    `/cabinet/guest-booking-requests/${requestId}/time-proposals/${proposalId}/cancel/`,
+    {}
+  )
+  return resp.data
+}
+
 export async function fetchExternalSessionDetail(sessionId: number): Promise<ExternalSessionRecord> {
   const resp = await http.get<ExternalSessionRecord>(`/cabinet/external-sessions/${sessionId}/`)
   return resp.data
@@ -3500,4 +3625,24 @@ export async function joinPublicExternalSessionInvite(
     meeting_url: source?.meeting_url || null,
     offline_location_snapshot: source?.offline_location_snapshot || null,
   }
+}
+
+export async function getPublicGuestBookingTimeProposal(
+  token: string
+): Promise<PublicGuestBookingTimeProposalDetailResponse> {
+  const resp = await http.get<PublicGuestBookingTimeProposalDetailResponse>(
+    `/public/guest-booking-time-proposals/${token}/`
+  )
+  return resp.data
+}
+
+export async function acceptPublicGuestBookingTimeProposal(
+  token: string,
+  optionId: number
+): Promise<AcceptPublicGuestBookingTimeProposalResponse> {
+  const resp = await http.post<AcceptPublicGuestBookingTimeProposalResponse>(
+    `/public/guest-booking-time-proposals/${token}/accept/`,
+    { option_id: optionId }
+  )
+  return resp.data
 }

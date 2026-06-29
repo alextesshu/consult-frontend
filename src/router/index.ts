@@ -44,6 +44,7 @@ import ClientInquiryRedirectView from '../views/ClientInquiryRedirectView.vue'
 import ExternalSessionsView from '../views/ExternalSessionsView.vue'
 import ExternalSessionDetailView from '../views/ExternalSessionDetailView.vue'
 import ExternalGuestSessionInviteView from '../views/ExternalGuestSessionInviteView.vue'
+import PublicGuestBookingTimeProposalView from '../views/PublicGuestBookingTimeProposalView.vue'
 import SpecialistPracticeBoardView from '../views/SpecialistPracticeBoardView.vue'
 import AdminWorkQueueView from '../views/AdminWorkQueueView.vue'
 import AdminInboxView from '../views/AdminInboxView.vue'
@@ -79,6 +80,12 @@ const routes = [
     path: '/guest/external-session/:token',
     name: 'guest-external-session',
     component: ExternalGuestSessionInviteView,
+    meta: { minimalShell: true },
+  },
+  {
+    path: '/guest/booking-time-proposal/:token',
+    name: 'guest-booking-time-proposal',
+    component: PublicGuestBookingTimeProposalView,
     meta: { minimalShell: true },
   },
   {

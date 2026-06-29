@@ -5,6 +5,7 @@ import {
   apiGet,
   approveCabinetGuestBookingRequest,
   confirmCabinetGuestBookingRequestSession,
+  createCabinetGuestBookingTimeProposal,
   createExternalSession,
   createExternalSessionInvite,
   createSessionFromCabinetGuestBookingRequest,
@@ -51,6 +52,7 @@ vi.mock('../lib/api', async () => {
     apiGet: vi.fn(),
     approveCabinetGuestBookingRequest: vi.fn(),
     confirmCabinetGuestBookingRequestSession: vi.fn(),
+    createCabinetGuestBookingTimeProposal: vi.fn(),
     fetchExternalSessions: vi.fn(),
     createExternalSessionInvite: vi.fn(),
     fetchCabinetGuestBookingRequests: vi.fn(),
@@ -64,6 +66,7 @@ vi.mock('../lib/api', async () => {
 
 const mockedApproveCabinetGuestBookingRequest = vi.mocked(approveCabinetGuestBookingRequest)
 const mockedConfirmCabinetGuestBookingRequestSession = vi.mocked(confirmCabinetGuestBookingRequestSession)
+const mockedCreateCabinetGuestBookingTimeProposal = vi.mocked(createCabinetGuestBookingTimeProposal)
 const mockedApiGet = vi.mocked(apiGet)
 const mockedFetchExternalSessions = vi.mocked(fetchExternalSessions)
 const mockedFetchCabinetGuestBookingRequests = vi.mocked(fetchCabinetGuestBookingRequests)
@@ -229,22 +232,81 @@ describe('ExternalSessionsView', () => {
         updated_at: '2099-06-01T00:00:00Z',
       },
     ] as any)
-    mockedApiGet.mockResolvedValue({
-      guest_sessions_enabled: true,
-      guest_sessions_used_in_period: 1,
-      guest_sessions_limit_per_period: 5,
-      guest_sessions_period_days: 30,
-      guest_sessions_remaining: 4,
-      guest_sessions_next_available_at: '2099-06-20',
-      guest_sessions_quota: {
-        used: 1,
-        limit: 5,
-        remaining: 4,
-        window_days: 30,
-        next_available_at: '2099-06-20',
+    mockedApiGet.mockImplementation(async (path: string) => {
+      if (path === '/cabinet/slots/') {
+        return [
+          {
+            id: 901,
+            start_at: '2099-06-18T09:00:00Z',
+            end_at: '2099-06-18T09:50:00Z',
+            is_booked: false,
+          },
+          {
+            id: 902,
+            start_at: '2099-06-19T10:00:00Z',
+            end_at: '2099-06-19T10:50:00Z',
+            is_booked: false,
+          },
+          {
+            id: 903,
+            start_at: '2099-06-20T11:00:00Z',
+            end_at: '2099-06-20T11:50:00Z',
+            is_booked: false,
+            status: 'unavailable',
+          },
+          {
+            id: 301,
+            start_at: '2099-06-17T13:00:00Z',
+            end_at: '2099-06-17T13:50:00Z',
+            is_booked: true,
+          },
+        ] as any
+      }
+      return {
+        guest_sessions_enabled: true,
+        guest_sessions_used_in_period: 1,
+        guest_sessions_limit_per_period: 5,
+        guest_sessions_period_days: 30,
+        guest_sessions_remaining: 4,
+        guest_sessions_next_available_at: '2099-06-20',
+        guest_sessions_quota: {
+          used: 1,
+          limit: 5,
+          remaining: 4,
+          window_days: 30,
+          next_available_at: '2099-06-20',
+        },
+      } as any
+    })
+    mockedFetchCabinetGuestBookingRequests.mockResolvedValue([])
+    mockedCreateCabinetGuestBookingTimeProposal.mockResolvedValue({
+      proposal: {
+        id: 77,
+        request_id: 51,
+        status: 'sent',
+        expires_at: '2099-06-25T10:00:00Z',
+        message: '',
+        meeting_url: 'https://meet.example.com/proposal',
+        offline_location_snapshot: '',
+        accepted_at: null,
+        cancelled_at: null,
+        options_count: 1,
+        options: [
+          {
+            id: 501,
+            slot_id: 901,
+            start_at: '2099-06-18T09:00:00Z',
+            end_at: '2099-06-18T09:50:00Z',
+            timezone: 'Europe/Kyiv',
+            status: 'offered',
+            sort_order: 0,
+          },
+        ],
+        created_at: '2099-06-16T10:00:00Z',
+        updated_at: '2099-06-16T10:00:00Z',
+        proposal_url: 'https://proconsult.test/guest/booking-time-proposal/proposal-token',
       },
     } as any)
-    mockedFetchCabinetGuestBookingRequests.mockResolvedValue([])
     mockedCreateExternalSession.mockReset()
     mockedCreateExternalSessionInvite.mockResolvedValue({
       invite: {
@@ -944,11 +1006,109 @@ describe('ExternalSessionsView', () => {
 
     const card = getGuestRequestCardByText('Sibling Guest')
     expect(card).toHaveTextContent('Потрібно запропонувати інший час')
-    expect(within(card as HTMLElement).getByRole('button', { name: 'Запропонувати інший час' })).toBeDisabled()
+    expect(within(card as HTMLElement).getByRole('button', { name: 'Запропонувати інший час' })).not.toBeDisabled()
     expect(within(card as HTMLElement).getByRole('button', { name: 'Скасувати запит' })).toBeInTheDocument()
     expect(within(card as HTMLElement).queryByRole('button', { name: 'Погодити' })).not.toBeInTheDocument()
     expect(card.querySelector('input[type="url"]')).not.toBeInTheDocument()
     expect(mockedConfirmCabinetGuestBookingRequestSession).not.toHaveBeenCalled()
+  })
+
+  it('opens alternative-time proposal modal and requires slot plus meeting URL', async () => {
+    mockedFetchCabinetGuestBookingRequests.mockResolvedValue([
+      buildGuestRequest({
+        id: 64,
+        guest_name: 'Sibling Guest',
+        needs_alternative_time: true,
+        requested_slot_is_occupied: true,
+      }),
+    ] as any)
+
+    renderView()
+    await screen.findByText('Sibling Guest')
+    await fireEvent.click(screen.getByRole('button', { name: 'Запропонувати інший час' }))
+
+    const dialog = await screen.findByRole('dialog', { name: 'Запропонувати інший час' })
+    const modal = within(dialog)
+    expect(dialog).toHaveTextContent('Запитаний час')
+    expect(dialog).toHaveTextContent('Обрано: 0 з 3')
+    expect(dialog).not.toHaveTextContent('20.06.2099')
+    expect(modal.getByRole('button', { name: 'Надіслати пропозицію' })).toBeDisabled()
+
+    await fireEvent.click(modal.getByLabelText(/18\.06\.2099/))
+    expect(dialog).toHaveTextContent('Обрано: 1 з 3')
+    expect(modal.getByRole('button', { name: 'Надіслати пропозицію' })).toBeDisabled()
+
+    await fireEvent.update(modal.getByLabelText('Посилання на онлайн-зустріч'), 'https://meet.example.com/alternative')
+    expect(modal.getByRole('button', { name: 'Надіслати пропозицію' })).not.toBeDisabled()
+  })
+
+  it('creates alternative-time proposal and shows share link', async () => {
+    Object.assign(navigator, {
+      clipboard: {
+        writeText: vi.fn().mockResolvedValue(undefined),
+      },
+    })
+    mockedFetchCabinetGuestBookingRequests.mockResolvedValue([
+      buildGuestRequest({
+        id: 64,
+        guest_name: 'Sibling Guest',
+        needs_alternative_time: true,
+        requested_slot_is_occupied: true,
+      }),
+    ] as any)
+
+    renderView()
+    await screen.findByText('Sibling Guest')
+    await fireEvent.click(screen.getByRole('button', { name: 'Запропонувати інший час' }))
+
+    const dialog = await screen.findByRole('dialog', { name: 'Запропонувати інший час' })
+    const modal = within(dialog)
+    await fireEvent.click(modal.getByLabelText(/18\.06\.2099/))
+    await fireEvent.update(modal.getByLabelText('Посилання на онлайн-зустріч'), 'https://meet.example.com/alternative')
+    await fireEvent.update(
+      modal.getByLabelText('Повідомлення для клієнта'),
+      'Оберіть один із запропонованих варіантів.'
+    )
+    await fireEvent.click(modal.getByRole('button', { name: 'Надіслати пропозицію' }))
+
+    await waitFor(() => {
+      expect(mockedCreateCabinetGuestBookingTimeProposal).toHaveBeenCalledWith(64, {
+        slot_ids: [901],
+        meeting_url: 'https://meet.example.com/alternative',
+        offline_location_snapshot: '',
+        message: 'Оберіть один із запропонованих варіантів.',
+      })
+    })
+    expect(await screen.findByText('Пропозицію створено')).toBeInTheDocument()
+    expect(screen.getByDisplayValue('https://proconsult.test/guest/booking-time-proposal/proposal-token')).toBeInTheDocument()
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Скопіювати посилання' }))
+    expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
+      'https://proconsult.test/guest/booking-time-proposal/proposal-token'
+    )
+  })
+
+  it('renders active time proposal summary on request card', async () => {
+    mockedFetchCabinetGuestBookingRequests.mockResolvedValue([
+      buildGuestRequest({
+        id: 64,
+        guest_name: 'Sibling Guest',
+        needs_alternative_time: true,
+        requested_slot_is_occupied: true,
+        active_time_proposal_id: 77,
+        active_time_proposal_status: 'sent',
+        active_time_proposal_options_count: 2,
+        active_time_proposal_expires_at: '2099-06-25T10:00:00Z',
+      }),
+    ] as any)
+
+    renderView()
+    await screen.findByText('Sibling Guest')
+
+    const card = getGuestRequestCardByText('Sibling Guest')
+    expect(card).toHaveTextContent('Пропозицію часу надіслано')
+    expect(card).toHaveTextContent('Варіантів: 2')
+    expect(within(card as HTMLElement).getByRole('button', { name: 'Створити нову пропозицію' })).toBeInTheDocument()
   })
 
   it('creates manual session from slot-less guest request and refreshes data', async () => {

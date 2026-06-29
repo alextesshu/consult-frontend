@@ -302,14 +302,17 @@
                 <div v-if="needsAlternativeTime(request)" class="request-card__helper request-card__helper--warning">
                   Потрібно запропонувати інший час
                 </div>
+                <div v-if="needsAlternativeTime(request) && hasActiveTimeProposal(request)" class="request-card__helper">
+                  {{ activeTimeProposalSummary(request) }}
+                </div>
                 <button
                   v-if="needsAlternativeTime(request)"
                   class="btn btn--ghost btn--sm"
                   type="button"
-                  disabled
-                  title="Вибір альтернативного часу буде додано наступним кроком."
+                  :disabled="isRequestActionLoading(request.id, 'proposal')"
+                  @click="openTimeProposalModal(request)"
                 >
-                  Запропонувати інший час
+                  {{ hasActiveTimeProposal(request) ? 'Створити нову пропозицію' : 'Запропонувати інший час' }}
                 </button>
                 <label v-if="!needsAlternativeTime(request) && request.session_format === 'online'" class="field request-meeting-field">
                   <span>Посилання на онлайн-зустріч</span>
@@ -361,6 +364,134 @@
       @confirm="confirmDeclineRequest"
       @cancel="closeDeclineRequestConfirmation"
     />
+
+    <div
+      v-if="proposalModalOpen"
+      class="request-session-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="time-proposal-modal-title"
+    >
+      <button
+        class="request-session-modal__backdrop"
+        type="button"
+        aria-label="Закрити"
+        @click="closeTimeProposalModal"
+      ></button>
+      <div class="request-session-modal__content time-proposal-modal">
+        <div class="request-session-modal__header">
+          <div>
+            <h2 id="time-proposal-modal-title" class="panel__title">Запропонувати інший час</h2>
+            <p v-if="proposalRequest" class="muted">{{ requestClientName(proposalRequest) }}</p>
+          </div>
+          <button
+            class="btn btn--ghost btn--sm"
+            type="button"
+            :disabled="proposalSaving"
+            @click="closeTimeProposalModal"
+          >
+            Закрити
+          </button>
+        </div>
+
+        <template v-if="proposalSuccessUrl">
+          <div class="time-proposal-success" role="status">
+            <h3>Пропозицію створено</h3>
+            <label class="field">
+              <span>Посилання для клієнта</span>
+              <input class="input" type="text" :value="proposalSuccessUrl" readonly />
+            </label>
+            <div class="actions-row">
+              <button class="btn" type="button" @click="copyProposalUrl">Скопіювати посилання</button>
+            </div>
+            <p class="muted">Надішліть це посилання клієнту у зручному для вас каналі.</p>
+            <p v-if="proposalCopyStatus" class="muted">{{ proposalCopyStatus }}</p>
+          </div>
+        </template>
+
+        <template v-else>
+          <div v-if="proposalRequest" class="time-proposal-context">
+            <div class="detail-label">Запитаний час</div>
+            <strong>{{ formatRequestedSlotRange(proposalRequest) }}</strong>
+          </div>
+          <p class="muted">
+            Оберіть від 1 до 3 доступних вікон. Клієнт отримає посилання й зможе обрати один із запропонованих варіантів.
+          </p>
+
+          <div v-if="proposalError" class="form-error">{{ proposalError }}</div>
+          <div v-if="proposalSlotsError" class="form-error">{{ proposalSlotsError }}</div>
+
+          <div v-if="proposalSlotsLoading" class="muted">Завантажуємо доступні вікна…</div>
+          <div v-else-if="availableProposalSlots.length === 0" class="time-proposal-empty">
+            <p class="muted">Немає доступних вікон для пропозиції. Спершу створіть вікна для запису.</p>
+            <RouterLink class="btn btn--ghost btn--sm" to="/cabinet/slots?tab=availability">
+              Створити вікна для запису
+            </RouterLink>
+          </div>
+          <div v-else class="time-proposal-options">
+            <div class="muted">{{ selectedProposalCountLabel }}</div>
+            <label
+              v-for="slot in availableProposalSlots"
+              :key="slot.id"
+              class="time-proposal-option"
+              :class="{ 'time-proposal-option--selected': isProposalSlotSelected(slot.id) }"
+            >
+              <input
+                type="checkbox"
+                :checked="isProposalSlotSelected(slot.id)"
+                :disabled="proposalSaving || !canSelectProposalSlot(slot.id)"
+                @change="toggleProposalSlot(slot.id)"
+              />
+              <span>{{ proposalSlotRange(slot) }}</span>
+            </label>
+          </div>
+
+          <div class="form-grid request-session-form">
+            <label v-if="isProposalOnline" class="field">
+              <span>Посилання на онлайн-зустріч</span>
+              <input
+                v-model="proposalDraft.meeting_url"
+                class="input"
+                type="url"
+                placeholder="https://meet.google.com/..."
+                :disabled="proposalSaving"
+              />
+            </label>
+            <label v-else class="field">
+              <span>Адреса / місце зустрічі</span>
+              <input
+                v-model="proposalDraft.offline_location_snapshot"
+                class="input"
+                type="text"
+                placeholder="Київ, вул. ..."
+                :disabled="proposalSaving"
+              />
+            </label>
+            <label class="field request-session-form__wide">
+              <span>Повідомлення для клієнта</span>
+              <textarea
+                v-model="proposalDraft.message"
+                class="input"
+                rows="3"
+                placeholder="Наприклад: цей час уже зайнятий, оберіть один із варіантів нижче."
+                :disabled="proposalSaving"
+              ></textarea>
+            </label>
+          </div>
+
+          <div class="actions-row">
+            <button
+              class="btn"
+              type="button"
+              :disabled="proposalSubmitDisabled"
+              @click="submitTimeProposal"
+            >
+              {{ proposalSaving ? 'Надсилаємо…' : 'Надіслати пропозицію' }}
+            </button>
+          </div>
+        </template>
+      </div>
+    </div>
 
     <div
       v-if="slotlessSessionModalOpen"
@@ -491,6 +622,7 @@ import { useToast } from '../composables/useToast'
 import {
   apiGet,
   confirmCabinetGuestBookingRequestSession,
+  createCabinetGuestBookingTimeProposal,
   createExternalSession,
   createExternalSessionInvite,
   createSessionFromCabinetGuestBookingRequest,
@@ -528,11 +660,24 @@ type SlotlessSessionDraft = {
   meeting_url: string
   offline_location: string
 }
-type RequestActionType = 'approve' | 'decline' | 'create-session'
+type ProposalSlot = {
+  id: number
+  start_at: string
+  end_at: string
+  is_booked?: boolean | null
+  status?: string | null
+}
+type ProposalDraft = {
+  meeting_url: string
+  offline_location_snapshot: string
+  message: string
+}
+type RequestActionType = 'approve' | 'decline' | 'create-session' | 'proposal'
 type RequestActionLoadingState = {
   approve?: boolean
   decline?: boolean
   'create-session'?: boolean
+  proposal?: boolean
 }
 type DeclineConfirmation = {
   requestId: number
@@ -589,6 +734,21 @@ const slotlessProfileTimezone = ref('')
 const slotlessSessionTimezone = ref(
   Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/Kyiv'
 )
+const proposalModalOpen = ref(false)
+const proposalRequest = ref<GuestBookingRequestRecord | null>(null)
+const proposalSlots = ref<ProposalSlot[]>([])
+const proposalSlotsLoading = ref(false)
+const proposalSlotsError = ref('')
+const selectedProposalSlotIds = ref<number[]>([])
+const proposalSaving = ref(false)
+const proposalError = ref('')
+const proposalSuccessUrl = ref('')
+const proposalCopyStatus = ref('')
+const proposalDraft = ref<ProposalDraft>({
+  meeting_url: '',
+  offline_location_snapshot: '',
+  message: '',
+})
 
 const createDraft = ref<CreateDraft>({
   start_date: '',
@@ -613,6 +773,7 @@ const slotlessSessionDraft = ref<SlotlessSessionDraft>({
 
 const isCreateOnline = computed(() => createDraft.value.session_format === 'online')
 const isSlotlessSessionOnline = computed(() => slotlessSessionDraft.value.session_format === 'online')
+const isProposalOnline = computed(() => proposalRequest.value?.session_format !== 'offline')
 const isGuestQuotaBlocked = computed(() => {
   const quota = guestQuota.value
   if (!quota) return false
@@ -646,6 +807,35 @@ const calendarHighlightedRequestKey = computed(() =>
   calendarHighlightedGuestRequests.value.map((request) => request.id).join(',')
 )
 const declineConfirmationOpen = computed(() => declineConfirmation.value !== null)
+const proposalOriginalSlotId = computed(() => {
+  const request = proposalRequest.value
+  if (!request) return null
+  const snapshotId = request.slot?.id
+  return typeof snapshotId === 'number' ? snapshotId : request.slot_id
+})
+const availableProposalSlots = computed(() => {
+  const originalSlotId = proposalOriginalSlotId.value
+  const unavailableStatuses = new Set(['booked', 'busy', 'occupied', 'cancelled', 'unavailable'])
+  return proposalSlots.value
+    .filter((slot) => {
+      if (!slot || typeof slot.id !== 'number') return false
+      if (originalSlotId !== null && slot.id === originalSlotId) return false
+      if (slot.is_booked === true) return false
+      const status = String(slot.status || '').trim().toLowerCase()
+      if (unavailableStatuses.has(status)) return false
+      const end = new Date(slot.end_at).getTime()
+      return Number.isFinite(end) && end > Date.now()
+    })
+    .sort((a, b) => new Date(a.start_at).getTime() - new Date(b.start_at).getTime())
+    .slice(0, 12)
+})
+const selectedProposalCountLabel = computed(() => `Обрано: ${selectedProposalSlotIds.value.length} з 3`)
+const proposalSubmitDisabled = computed(() => {
+  if (proposalSaving.value) return true
+  if (selectedProposalSlotIds.value.length < 1) return true
+  if (isProposalOnline.value) return !proposalDraft.value.meeting_url.trim()
+  return !proposalDraft.value.offline_location_snapshot.trim()
+})
 
 function formatQuotaDate(value: string | null | undefined) {
   const raw = String(value || '').trim()
@@ -770,6 +960,25 @@ function needsAlternativeTime(request: GuestBookingRequestRecord) {
   return isPendingRequest(request.status) && !isSlotlessRequest(request) && request.needs_alternative_time === true
 }
 
+function hasActiveTimeProposal(request: GuestBookingRequestRecord) {
+  return Boolean(request.active_time_proposal_id && String(request.active_time_proposal_status || '').toLowerCase() === 'sent')
+}
+
+function activeTimeProposalExpiresLabel(request: GuestBookingRequestRecord) {
+  const raw = String(request.active_time_proposal_expires_at || '').trim()
+  if (!raw) return ''
+  return formatDateTime(raw)
+}
+
+function activeTimeProposalSummary(request: GuestBookingRequestRecord) {
+  const parts = ['Пропозицію часу надіслано']
+  const count = Number(request.active_time_proposal_options_count || 0)
+  if (Number.isFinite(count) && count > 0) parts.push(`Варіантів: ${count}`)
+  const expires = activeTimeProposalExpiresLabel(request)
+  if (expires) parts.push(`Дійсна до ${expires}`)
+  return parts.join(' · ')
+}
+
 function requestClientName(request: GuestBookingRequestRecord) {
   return request.client_name || request.guest_name || 'Клієнт'
 }
@@ -873,7 +1082,7 @@ function setRequestActionLoading(id: number, action: RequestActionType, value: b
   const next = { ...requestActionLoading.value }
   const current = { ...next[id] }
   current[action] = value
-  if (!current.approve && !current.decline && !current['create-session']) {
+  if (!current.approve && !current.decline && !current['create-session'] && !current.proposal) {
     delete next[id]
   } else {
     next[id] = current
@@ -1015,8 +1224,9 @@ function syncRequestActionMeta(payload: GuestBookingRequestRecord[]) {
       approve: Boolean(value?.approve),
       decline: Boolean(value?.decline),
       'create-session': Boolean(value?.['create-session']),
+      proposal: Boolean(value?.proposal),
     }
-    if (state.approve || state.decline || state['create-session']) {
+    if (state.approve || state.decline || state['create-session'] || state.proposal) {
       nextLoading[id] = state
     }
   })
@@ -1201,6 +1411,136 @@ function validateSlotlessSessionDraft() {
     return 'Вкажіть коректну тривалість.'
   }
   return ''
+}
+
+function proposalSlotRange(slot: ProposalSlot) {
+  const endTime = formatUkTime(slot.end_at, '')
+  return endTime ? `${formatDateTime(slot.start_at)}–${endTime}` : formatDateTime(slot.start_at)
+}
+
+function isProposalSlotSelected(slotId: number) {
+  return selectedProposalSlotIds.value.includes(slotId)
+}
+
+function canSelectProposalSlot(slotId: number) {
+  return isProposalSlotSelected(slotId) || selectedProposalSlotIds.value.length < 3
+}
+
+function toggleProposalSlot(slotId: number) {
+  if (proposalSaving.value) return
+  if (isProposalSlotSelected(slotId)) {
+    selectedProposalSlotIds.value = selectedProposalSlotIds.value.filter((id) => id !== slotId)
+    return
+  }
+  if (selectedProposalSlotIds.value.length >= 3) return
+  selectedProposalSlotIds.value = [...selectedProposalSlotIds.value, slotId]
+}
+
+function resetProposalModal(request: GuestBookingRequestRecord) {
+  proposalRequest.value = request
+  selectedProposalSlotIds.value = []
+  proposalError.value = ''
+  proposalSuccessUrl.value = ''
+  proposalCopyStatus.value = ''
+  proposalDraft.value = {
+    meeting_url: '',
+    offline_location_snapshot: request.offline_location_snapshot || '',
+    message: '',
+  }
+}
+
+async function loadProposalSlots() {
+  proposalSlotsLoading.value = true
+  proposalSlotsError.value = ''
+  try {
+    const payload = await apiGet<ProposalSlot[]>('/cabinet/slots/')
+    proposalSlots.value = Array.isArray(payload) ? payload : []
+  } catch (err) {
+    proposalSlots.value = []
+    proposalSlotsError.value = getApiErrorMessage(err, 'Не вдалося завантажити вікна для пропозиції.')
+  } finally {
+    proposalSlotsLoading.value = false
+  }
+}
+
+async function openTimeProposalModal(request: GuestBookingRequestRecord) {
+  resetProposalModal(request)
+  proposalModalOpen.value = true
+  setRequestActionError(request.id, '')
+  await loadProposalSlots()
+}
+
+function closeTimeProposalModal() {
+  if (proposalSaving.value) return
+  proposalModalOpen.value = false
+  proposalRequest.value = null
+  selectedProposalSlotIds.value = []
+  proposalError.value = ''
+  proposalSuccessUrl.value = ''
+  proposalCopyStatus.value = ''
+}
+
+function localizeTimeProposalError(err: unknown) {
+  const code = getApiErrorCode(err)
+  if (code === 'PROPOSED_SLOT_UNAVAILABLE') {
+    return 'Одне з обраних вікон уже недоступне. Оновіть список і оберіть інший час.'
+  }
+  if (code === 'MEETING_URL_REQUIRED') return 'Додайте посилання на онлайн-зустріч.'
+  if (code === 'OFFLINE_LOCATION_REQUIRED') return 'Додайте місце зустрічі.'
+  if (code === 'PUBLIC_GUEST_REQUEST_NOT_PENDING') return 'Цей запит уже закрито або вирішено.'
+  return localizeGuestRequestActionError(getApiErrorMessage(err, 'Не вдалося створити пропозицію часу.')) || 'Не вдалося створити пропозицію часу.'
+}
+
+async function submitTimeProposal() {
+  const request = proposalRequest.value
+  if (!request) return
+  proposalError.value = ''
+  if (selectedProposalSlotIds.value.length < 1) {
+    proposalError.value = 'Оберіть хоча б одне доступне вікно.'
+    return
+  }
+  if (isProposalOnline.value && !proposalDraft.value.meeting_url.trim()) {
+    proposalError.value = 'Додайте посилання на онлайн-зустріч.'
+    return
+  }
+  if (!isProposalOnline.value && !proposalDraft.value.offline_location_snapshot.trim()) {
+    proposalError.value = 'Додайте місце зустрічі.'
+    return
+  }
+
+  proposalSaving.value = true
+  setRequestActionLoading(request.id, 'proposal', true)
+  setRequestActionError(request.id, '')
+  try {
+    const response = await createCabinetGuestBookingTimeProposal(request.id, {
+      slot_ids: selectedProposalSlotIds.value,
+      message: proposalDraft.value.message.trim(),
+      meeting_url: isProposalOnline.value ? proposalDraft.value.meeting_url.trim() : '',
+      offline_location_snapshot: isProposalOnline.value ? '' : proposalDraft.value.offline_location_snapshot.trim(),
+    })
+    proposalSuccessUrl.value = response.proposal.proposal_url
+    proposalCopyStatus.value = ''
+    toast.success('Пропозицію часу створено.')
+    await loadGuestRequests()
+  } catch (err) {
+    const message = localizeTimeProposalError(err)
+    proposalError.value = message
+    setRequestActionError(request.id, message)
+  } finally {
+    proposalSaving.value = false
+    setRequestActionLoading(request.id, 'proposal', false)
+  }
+}
+
+async function copyProposalUrl() {
+  const url = proposalSuccessUrl.value
+  if (!url) return
+  try {
+    await navigator.clipboard.writeText(url)
+    proposalCopyStatus.value = 'Посилання скопійовано.'
+  } catch {
+    proposalCopyStatus.value = 'Не вдалося скопіювати посилання.'
+  }
 }
 
 async function loadSessions() {
@@ -1893,6 +2233,62 @@ onMounted(async () => {
 
 .request-session-form {
   grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.request-session-form__wide {
+  grid-column: 1 / -1;
+}
+
+.time-proposal-modal {
+  overflow: auto;
+}
+
+.time-proposal-context {
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-control);
+  background: color-mix(in srgb, var(--pc-blue-soft) 56%, #ffffff);
+}
+
+.time-proposal-options {
+  display: grid;
+  gap: 8px;
+}
+
+.time-proposal-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-control);
+  background: #fff;
+  color: var(--pc-navy-900);
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.time-proposal-option--selected {
+  border-color: color-mix(in srgb, var(--pc-navy-900) 30%, var(--pc-border));
+  background: color-mix(in srgb, var(--pc-blue-soft) 70%, #ffffff);
+}
+
+.time-proposal-option input {
+  width: 16px;
+  height: 16px;
+}
+
+.time-proposal-empty,
+.time-proposal-success {
+  display: grid;
+  gap: 10px;
+}
+
+.time-proposal-success h3 {
+  margin: 0;
+  color: var(--pc-navy-950);
 }
 
 @media (max-width: 1100px) {

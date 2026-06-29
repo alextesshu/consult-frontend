@@ -210,6 +210,13 @@ describe('router specialist session routes', () => {
     expect(router.currentRoute.value.params).toEqual({ token: 'test-token' })
   })
 
+  it('allows unauthenticated access to public guest booking time proposal route', async () => {
+    await router.push('/guest/booking-time-proposal/proposal-token')
+
+    expect(router.currentRoute.value.name).toBe('guest-booking-time-proposal')
+    expect(router.currentRoute.value.params).toEqual({ token: 'proposal-token' })
+  })
+
   it('does not force redirect to login on transient me bootstrap failure when token exists', async () => {
     const auth = useAuthStore()
     auth.setToken('test-token')
