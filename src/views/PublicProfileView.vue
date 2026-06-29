@@ -1257,7 +1257,7 @@ const requestTopicOptions: Array<{ value: GuestRequestTopicOption; label: string
   { value: 'other', label: 'Інше' },
 ]
 const guestBookingModalTitle = computed(() =>
-  publicDirectBookingEnabled.value ? 'Запит на бронювання' : 'Запит до мене'
+  publicDirectBookingEnabled.value ? 'Запит на сесію' : 'Запит до мене'
 )
 
 const guestBookingRulesCheckboxLabel = computed(() => {

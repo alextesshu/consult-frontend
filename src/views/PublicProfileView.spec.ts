@@ -1733,7 +1733,8 @@ describe('PublicProfileView', () => {
     const slotButton = await screen.findByRole('button', { name: 'Записатися' })
     await fireEvent.click(slotButton)
 
-    expect(await screen.findByRole('heading', { name: 'Запит на бронювання' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Запит на сесію' })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Запит на бронювання' })).not.toBeInTheDocument()
     expect(screen.getByLabelText('Ім’я')).toBeInTheDocument()
     expect(screen.getByLabelText('Канал зв’язку')).toBeInTheDocument()
     expect(screen.getByLabelText('Як спеціаліст може з вами зв’язатися?')).toBeInTheDocument()
@@ -2104,7 +2105,7 @@ describe('PublicProfileView', () => {
         setting_accepted: true,
       })
     )
-    expect(screen.queryByRole('heading', { name: 'Запит на бронювання' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Запит на сесію' })).not.toBeInTheDocument()
   })
 
   it('blocks double-submit while client booking confirmation is in progress', async () => {
@@ -2771,7 +2772,7 @@ describe('PublicProfileView', () => {
     await fireEvent.click((await screen.findAllByRole('button', { name: 'Залишити запит на консультацію' }))[0]!)
 
     expect(await screen.findByRole('heading', { name: 'Запит до мене' })).toBeInTheDocument()
-    expect(screen.queryByRole('heading', { name: 'Запит на бронювання' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Запит на сесію' })).not.toBeInTheDocument()
     expect(
       screen.getByRole('checkbox', {
         name: 'Погоджуюся з правилами платформи та правилами спеціаліста',
@@ -2813,7 +2814,7 @@ describe('PublicProfileView', () => {
     await fireEvent.click((await screen.findAllByRole('button', { name: 'Залишити запит на консультацію' }))[0]!)
 
     expect(await screen.findByRole('heading', { name: 'Запит до мене' })).toBeInTheDocument()
-    expect(screen.queryByRole('heading', { name: 'Запит на бронювання' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Запит на сесію' })).not.toBeInTheDocument()
   })
 
   it('keeps the request modal submit action inside the modal scroll body', async () => {
@@ -3199,7 +3200,8 @@ describe('PublicProfileView', () => {
     expect(fallbackButtons[0]).toBeDefined()
     await fireEvent.click(fallbackButtons[0]!)
 
-    expect(await screen.findByRole('heading', { name: 'Запит на бронювання' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Запит на сесію' })).toBeInTheDocument()
+    expect(screen.queryByRole('heading', { name: 'Запит на бронювання' })).not.toBeInTheDocument()
     expect(mockRouter.push).not.toHaveBeenCalled()
   })
 

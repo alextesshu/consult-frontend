@@ -15,11 +15,16 @@ import {
 } from '../lib/api'
 
 const pushMock = vi.fn()
+const mockRoute = {
+  query: {} as Record<string, unknown>,
+  hash: '',
+}
 
 vi.mock('vue-router', async () => {
   const actual = await vi.importActual<typeof import('vue-router')>('vue-router')
   return {
     ...actual,
+    useRoute: () => mockRoute,
     useRouter: () => ({
       push: pushMock,
     }),
@@ -85,7 +90,7 @@ function getGuestRequestCardByName(guestName: string) {
 
   const scoped = within(card as HTMLElement)
   const approveButton = scoped.queryByRole('button', { name: 'Погодити' }) as HTMLButtonElement | null
-  const declineButton = scoped.queryByRole('button', { name: 'Відхилити' }) as HTMLButtonElement | null
+  const declineButton = scoped.queryByRole('button', { name: 'Скасувати запит' }) as HTMLButtonElement | null
   if (!approveButton || !declineButton) {
     throw new Error(`Expected approve/decline buttons for ${guestName}`)
   }
@@ -160,6 +165,9 @@ function renderView() {
 describe('ExternalSessionsView', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    mockRoute.query = {}
+    mockRoute.hash = ''
+    Element.prototype.scrollIntoView = vi.fn()
     mockedApproveCabinetGuestBookingRequest.mockResolvedValue({
       request: {
         id: 51,
@@ -329,7 +337,7 @@ describe('ExternalSessionsView', () => {
       'href',
       '/cabinet/slots?request_id=61&client_name=Slotless+Guest&contact=guest%40example.com&format=online&source=public_guest_request'
     )
-    expect(within(guestRequestsPanel as HTMLElement).getByRole('button', { name: 'Закрити запит' })).toBeInTheDocument()
+    expect(within(guestRequestsPanel as HTMLElement).getByRole('button', { name: 'Скасувати запит' })).toBeInTheDocument()
   })
 
   it('shows guest quota summary when entitlements are available', async () => {
@@ -565,6 +573,9 @@ describe('ExternalSessionsView', () => {
 
     expect(await screen.findByText('Запити без реєстрації')).toBeInTheDocument()
     expect(await screen.findByText('Очікує рішення')).toBeInTheDocument()
+    const requestCard = getGuestRequestCardByName('Guest One').card
+    expect(requestCard).toHaveTextContent(/Запитаний час\s*\d{2}\.\d{2}\.2099, \d{2}:00–\d{2}:50/)
+    expect(requestCard).toHaveTextContent(/Створено:\s*\d{2}\.\d{2}\.2099, \d{2}:00/)
     const meetingInput = await screen.findByLabelText('Посилання на онлайн-зустріч')
     const approveButton = screen.getByRole('button', { name: 'Погодити' })
     expect(approveButton).toBeDisabled()
@@ -576,6 +587,28 @@ describe('ExternalSessionsView', () => {
       expect(approveButton).not.toBeDisabled()
     })
     expect(screen.queryByText('Щоб погодити онлайн-запит, додайте посилання на зустріч.')).not.toBeInTheDocument()
+  })
+
+  it('highlights and scrolls guest requests from calendar deep link', async () => {
+    mockRoute.query = { request_ids: '51,999' }
+    mockRoute.hash = '#guest-requests'
+    mockedFetchCabinetGuestBookingRequests.mockResolvedValue([
+      buildGuestRequest({ id: 51, guest_name: 'Calendar Guest' }),
+      buildGuestRequest({ id: 52, slot_id: 302, guest_name: 'Other Guest' }),
+    ] as any)
+
+    renderView()
+
+    expect(await screen.findByRole('status')).toHaveTextContent('Показано запити з календаря')
+    const highlightedCard = getGuestRequestCardByName('Calendar Guest').card
+    const unrelatedCard = getGuestRequestCardByName('Other Guest').card
+
+    expect(highlightedCard).toHaveClass('request-card--highlighted')
+    expect(unrelatedCard).not.toHaveClass('request-card--highlighted')
+    expect(highlightedCard).toHaveTextContent(/Запитаний час\s*\d{2}\.\d{2}\.2099, \d{2}:00–\d{2}:50/)
+    await waitFor(() => {
+      expect(Element.prototype.scrollIntoView).toHaveBeenCalled()
+    })
   })
 
   it('approves pending online guest request and renders link to resulting external session', async () => {
@@ -691,10 +724,14 @@ describe('ExternalSessionsView', () => {
     const sessionLink = await screen.findByRole('link', { name: 'Відкрити сесію без реєстрації' })
     expect(sessionLink).toHaveAttribute('href', '/cabinet/external-sessions/99')
     expect(await screen.findByText('На основі цього запиту створено сесію без реєстрації.')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Посилання без реєстрації' })).toHaveAttribute(
+    expect(screen.queryByText('Посилання без реєстрації')).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Відкрити сторінку сесії' })).toHaveAttribute(
       'href',
       'https://proconsult.space/guest/external-session/token'
     )
+    expect(
+      screen.getByText('Надішліть це посилання клієнту, щоб він міг приєднатися без створення акаунта.')
+    ).toBeInTheDocument()
   })
 
   it('declines pending guest request and refreshes request status', async () => {
@@ -762,7 +799,22 @@ describe('ExternalSessionsView', () => {
     renderView()
     expect(await screen.findByText('Очікує рішення')).toBeInTheDocument()
 
-    await fireEvent.click(screen.getByRole('button', { name: 'Відхилити' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Скасувати запит' }))
+    const cancelDialog = await screen.findByRole('dialog', { name: 'Скасувати запит?' })
+    expect(cancelDialog).toHaveTextContent(
+      'Запит буде закрито. Клієнт не побачить автоматичної відповіді, якщо ви не зв’яжетеся з ним окремо.'
+    )
+    expect(mockedDeclineCabinetGuestBookingRequest).not.toHaveBeenCalled()
+
+    await fireEvent.click(within(cancelDialog).getByRole('button', { name: 'Залишити запит' }))
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog', { name: 'Скасувати запит?' })).not.toBeInTheDocument()
+    })
+    expect(mockedDeclineCabinetGuestBookingRequest).not.toHaveBeenCalled()
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Скасувати запит' }))
+    const confirmedDialog = await screen.findByRole('dialog', { name: 'Скасувати запит?' })
+    await fireEvent.click(within(confirmedDialog).getByRole('button', { name: 'Скасувати запит' }))
 
     await waitFor(() => {
       expect(mockedDeclineCabinetGuestBookingRequest).toHaveBeenCalledWith(52)
@@ -803,13 +855,13 @@ describe('ExternalSessionsView', () => {
     expect(card).not.toHaveTextContent('Коментар: Можу після обіду')
     expect(card.querySelector('.request-topic-row')).toBeNull()
     expect(within(card as HTMLElement).getByRole('button', { name: 'Створити сесію' })).toBeInTheDocument()
-    expect(within(card as HTMLElement).getByRole('button', { name: 'Закрити запит' })).toBeInTheDocument()
+    expect(within(card as HTMLElement).getByRole('button', { name: 'Скасувати запит' })).toBeInTheDocument()
     expect(within(card as HTMLElement).queryByRole('button', { name: 'Погодити' })).not.toBeInTheDocument()
-    expect(card).not.toHaveTextContent('Запитаний слот:')
+    expect(card).not.toHaveTextContent('Запитаний час:')
 
     await fireEvent.click(within(card as HTMLElement).getByRole('button', { name: 'Показати деталі' }))
 
-    expect(card).toHaveTextContent('Клієнт залишив запит без бронювання конкретного слота. Узгодьте час і створіть сесію вручну.')
+    expect(card).toHaveTextContent('Клієнт залишив запит без конкретного часу. Узгодьте час і створіть сесію вручну.')
     expect(card).toHaveTextContent('Ел. пошта: slotless@example.com')
     expect(card).toHaveTextContent('Телефон: +380501234567')
     expect(card).toHaveTextContent('Коментар: Можу після обіду')
@@ -968,7 +1020,11 @@ describe('ExternalSessionsView', () => {
     renderView()
     await screen.findByText('Запит без обраного часу')
 
-    await fireEvent.click(screen.getByRole('button', { name: 'Закрити запит' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Скасувати запит' }))
+    const cancelDialog = await screen.findByRole('dialog', { name: 'Скасувати запит?' })
+    expect(mockedDeclineCabinetGuestBookingRequest).not.toHaveBeenCalled()
+
+    await fireEvent.click(within(cancelDialog).getByRole('button', { name: 'Скасувати запит' }))
 
     await waitFor(() => {
       expect(mockedDeclineCabinetGuestBookingRequest).toHaveBeenCalledWith(63)
@@ -1214,6 +1270,9 @@ describe('ExternalSessionsView guest request micro-polish', () => {
     const secondCard = getGuestRequestCardByName('Guest Two')
 
     await fireEvent.click(firstCard.declineButton)
+    const cancelDialog = await screen.findByRole('dialog', { name: 'Скасувати запит?' })
+    expect(mockedDeclineCabinetGuestBookingRequest).not.toHaveBeenCalled()
+    await fireEvent.click(within(cancelDialog).getByRole('button', { name: 'Скасувати запит' }))
 
     await waitFor(() => {
       expect(firstCard.card.querySelector('.request-card__error')).not.toBeNull()
@@ -1307,6 +1366,9 @@ describe('ExternalSessionsView guest request micro-polish', () => {
     const secondCard = getGuestRequestCardByName('Guest Two')
 
     await fireEvent.click(firstCard.declineButton)
+    const cancelDialog = await screen.findByRole('dialog', { name: 'Скасувати запит?' })
+    expect(mockedDeclineCabinetGuestBookingRequest).not.toHaveBeenCalled()
+    await fireEvent.click(within(cancelDialog).getByRole('button', { name: 'Скасувати запит' }))
 
     await waitFor(() => {
       expect(mockedDeclineCabinetGuestBookingRequest).toHaveBeenCalledWith(51)

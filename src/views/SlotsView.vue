@@ -417,7 +417,7 @@
                     <RouterLink v-if="session.session_id" class="btn btn--sm" :to="`/cabinet/sessions/${session.session_id}`">
                       Відкрити сесію
                     </RouterLink>
-                    <RouterLink v-else class="btn btn--sm" :to="PENDING_REQUESTS_ROUTE">
+                    <RouterLink v-else class="btn btn--sm" :to="pendingRequestsRoute(session)">
                       Переглянути запити
                     </RouterLink>
                   </div>
@@ -509,7 +509,7 @@
             <RouterLink v-if="selectedScheduleSession.session_id" class="btn btn--sm" :to="`/cabinet/sessions/${selectedScheduleSession.session_id}`">
               Відкрити сесію
             </RouterLink>
-            <RouterLink v-else class="btn btn--sm" :to="PENDING_REQUESTS_ROUTE">
+            <RouterLink v-else class="btn btn--sm" :to="pendingRequestsRoute(selectedScheduleSession)">
               Переглянути запити
             </RouterLink>
           </div>
@@ -1452,6 +1452,14 @@ function scheduleTabFromRoute(): ScheduleTab {
   if (tab === 'settings') return 'SETTINGS'
 
   return 'CALENDAR'
+}
+
+function pendingRequestsRoute(event: ScheduleSession | null | undefined) {
+  const requestIds = (event?.request_ids || [])
+    .map((id) => Number(id))
+    .filter((id) => Number.isFinite(id))
+  if (!requestIds.length) return PENDING_REQUESTS_ROUTE
+  return `/cabinet/external-sessions?request_ids=${requestIds.join(',')}#guest-requests`
 }
 const createFormRef = ref<HTMLFormElement | null>(null)
 const createFormOpen = ref(false)

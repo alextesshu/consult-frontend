@@ -1183,7 +1183,7 @@ describe('SlotsView', () => {
     expect(within(bookedMobileEvent as HTMLElement).queryByRole('link', { name: 'Відкрити сесію' })).not.toBeInTheDocument()
     expect(within(bookedMobileEvent as HTMLElement).getByRole('link', { name: 'Переглянути запити' })).toHaveAttribute(
       'href',
-      '/cabinet/external-sessions#guest-requests'
+      '/cabinet/external-sessions?request_ids=301#guest-requests'
     )
 
     await fireEvent.click(within(sessionMobileEvent as HTMLElement).getByRole('button'))
@@ -1214,7 +1214,7 @@ describe('SlotsView', () => {
     expect(within(detailPanel).queryByRole('link', { name: 'Відкрити сесію' })).not.toBeInTheDocument()
     expect(within(detailPanel).getByRole('link', { name: 'Переглянути запити' })).toHaveAttribute(
       'href',
-      '/cabinet/external-sessions#guest-requests'
+      '/cabinet/external-sessions?request_ids=301#guest-requests'
     )
 
     await fireEvent.click(calendarSessionEvents[1] as HTMLButtonElement)
@@ -1279,7 +1279,7 @@ describe('SlotsView', () => {
     expect(within(mobileEvent as HTMLElement).queryByRole('link', { name: 'Відкрити сесію' })).not.toBeInTheDocument()
     expect(within(mobileEvent as HTMLElement).getByRole('link', { name: 'Переглянути запити' })).toHaveAttribute(
       'href',
-      '/cabinet/external-sessions#guest-requests'
+      '/cabinet/external-sessions?request_ids=301,302#guest-requests'
     )
     expect(screen.queryByText('+380991112233')).not.toBeInTheDocument()
     expect(screen.queryByText('https://meet.example/private')).not.toBeInTheDocument()

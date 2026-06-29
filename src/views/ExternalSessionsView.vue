@@ -157,17 +157,29 @@
         <div v-else-if="guestRequests.length === 0" class="muted">Запитів без реєстрації поки немає.</div>
 
         <div v-else class="list-grid">
+          <div v-if="calendarRequestNotice" class="calendar-request-notice" role="status">
+            {{ calendarRequestNotice }}
+          </div>
           <article
             v-for="request in guestRequests"
             :key="request.id"
+            :id="`guest-request-${request.id}`"
+            :ref="setGuestRequestCardRef(request.id)"
             class="request-card"
-            :class="{ 'request-card--expanded': isRequestDetailsOpen(request.id) }"
+            :class="{
+              'request-card--expanded': isRequestDetailsOpen(request.id),
+              'request-card--highlighted': isCalendarHighlightedRequest(request.id),
+            }"
           >
             <div class="request-card__main">
               <div class="request-card__summary">
                 <div class="request-card__summary-main">
                   <div class="request-card__title">
                     {{ isSlotlessRequest(request) ? 'Запит без обраного часу' : requestClientName(request) }}
+                  </div>
+                  <div v-if="!isSlotlessRequest(request)" class="request-card__requested-time">
+                    <span>Запитаний час</span>
+                    <strong>{{ formatRequestedSlotRange(request) }}</strong>
                   </div>
                   <div class="request-card__meta-grid">
                     <div class="muted">Клієнт: {{ requestClientName(request) }}</div>
@@ -202,7 +214,7 @@
 
               <div v-if="isRequestDetailsOpen(request.id)" class="request-card__details">
                 <div v-if="isSlotlessRequest(request)" class="request-card__helper">
-                  Клієнт залишив запит без бронювання конкретного слота. Узгодьте час і створіть сесію вручну.
+                  Клієнт залишив запит без конкретного часу. Узгодьте час і створіть сесію вручну.
                 </div>
                 <div v-if="requestClientEmail(request)" class="muted">
                   Ел. пошта: {{ requestClientEmail(request) }}
@@ -214,7 +226,7 @@
                   Контакт клієнта для відповіді: {{ contactChannelLabel(request.contact_channel) }} · {{ request.contact_value || '—' }}
                 </div>
                 <div v-if="!isSlotlessRequest(request)" class="muted">
-                  Запитаний слот: {{ formatDateTime(request.requested_slot_start) }}
+                  Запитаний час: {{ formatRequestedSlotRange(request) }}
                   <span v-if="request.duration_minutes"> · {{ request.duration_minutes }} хв</span>
                 </div>
                 <div class="muted">
@@ -253,8 +265,11 @@
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  Посилання без реєстрації
+                  Відкрити сторінку сесії
                 </a>
+                <div v-if="latestInviteUrlByRequestId[request.id]" class="muted request-invite-helper">
+                  Надішліть це посилання клієнту, щоб він міг приєднатися без створення акаунта.
+                </div>
               </div>
             </div>
 
@@ -278,9 +293,9 @@
                   class="btn btn--ghost btn--sm"
                   type="button"
                   :disabled="isRequestActionLoading(request.id, 'decline')"
-                  @click="declineRequest(request.id, { successMessage: 'Запит закрито.' })"
+                  @click="openDeclineRequestConfirmation(request.id, { successMessage: 'Запит закрито.' })"
                 >
-                  {{ isRequestActionLoading(request.id, 'decline') ? 'Закриваємо…' : 'Закрити запит' }}
+                  {{ isRequestActionLoading(request.id, 'decline') ? 'Скасовуємо…' : 'Скасувати запит' }}
                 </button>
               </template>
               <template v-else>
@@ -309,9 +324,9 @@
                   class="btn btn--ghost btn--sm"
                   type="button"
                   :disabled="isRequestActionLoading(request.id, 'decline')"
-                  @click="declineRequest(request.id)"
+                  @click="openDeclineRequestConfirmation(request.id)"
                 >
-                  {{ isRequestActionLoading(request.id, 'decline') ? 'Відхиляємо…' : 'Відхилити' }}
+                  {{ isRequestActionLoading(request.id, 'decline') ? 'Скасовуємо…' : 'Скасувати запит' }}
                 </button>
               </template>
               <div v-if="requestActionError(request.id)" class="form-error request-card__error">
@@ -322,6 +337,17 @@
         </div>
       </section>
     </div>
+
+    <ConfirmModal
+      :open="declineConfirmationOpen"
+      title="Скасувати запит?"
+      message="Запит буде закрито. Клієнт не побачить автоматичної відповіді, якщо ви не зв’яжетеся з ним окремо."
+      confirm-text="Скасувати запит"
+      cancel-text="Залишити запит"
+      tone="danger"
+      @confirm="confirmDeclineRequest"
+      @cancel="closeDeclineRequestConfirmation"
+    />
 
     <div
       v-if="slotlessSessionModalOpen"
@@ -442,8 +468,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import type { ComponentPublicInstance } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import ConfirmModal from '../components/ConfirmModal.vue'
 import DatePickerField from '../components/DatePickerField.vue'
 import TimeSelectField from '../components/TimeSelectField.vue'
 import { useToast } from '../composables/useToast'
@@ -464,7 +492,7 @@ import {
   type SessionFormat,
   type SpecialistProfile,
 } from '../lib/api'
-import { formatUkDateTimeCompact } from '../lib/dateTime'
+import { formatUkDateTimeCompact, formatUkTime } from '../lib/dateTime'
 import { formatIsoDateForDisplay, parseDisplayDateToIso } from '../lib/dateFormat'
 import { buildTenMinuteTimeOptions } from '../lib/timeOptions'
 
@@ -493,6 +521,10 @@ type RequestActionLoadingState = {
   decline?: boolean
   'create-session'?: boolean
 }
+type DeclineConfirmation = {
+  requestId: number
+  successMessage?: string
+} | null
 type GuestQuotaSnapshot = {
   guest_sessions_enabled?: boolean | null
   guest_sessions_used_in_period?: number | null
@@ -513,6 +545,7 @@ const PAST_SESSION_TIME_ERROR_MESSAGE = 'Неможливо створити с�
 const INVALID_SESSION_DATE_FORMAT_MESSAGE = 'Введіть дату у форматі ДД.ММ.РРРР, наприклад 25.06.2026.'
 const INVALID_SESSION_TIME_FORMAT_MESSAGE = 'Оберіть час початку.'
 
+const route = useRoute()
 const router = useRouter()
 const toast = useToast()
 
@@ -530,6 +563,8 @@ const requestActionErrors = ref<Record<number, string>>({})
 const expandedRequestDetails = ref<Record<number, boolean>>({})
 const approveMeetingUrls = ref<Record<number, string>>({})
 const latestInviteUrlByRequestId = ref<Record<number, string>>({})
+const guestRequestCardRefs = ref<Record<number, HTMLElement | null>>({})
+const declineConfirmation = ref<DeclineConfirmation>(null)
 const slotlessSessionModalOpen = ref(false)
 const slotlessSessionRequest = ref<GuestBookingRequestRecord | null>(null)
 const slotlessSessionSaving = ref(false)
@@ -586,6 +621,18 @@ const guestQuotaSummary = computed(() => {
   const periodLabel = typeof period === 'number' && Number.isFinite(period) ? period : 30
   return `Сесії без реєстрації: ${used} з ${limit} за останні ${periodLabel} днів`
 })
+const calendarRequestIds = computed(() => parseCalendarRequestIds(route.query.request_ids))
+const calendarRequestIdSet = computed(() => new Set(calendarRequestIds.value))
+const calendarHighlightedGuestRequests = computed(() =>
+  guestRequests.value.filter((request) => calendarRequestIdSet.value.has(request.id))
+)
+const calendarRequestNotice = computed(() =>
+  calendarHighlightedGuestRequests.value.length > 0 ? 'Показано запити з календаря' : ''
+)
+const calendarHighlightedRequestKey = computed(() =>
+  calendarHighlightedGuestRequests.value.map((request) => request.id).join(',')
+)
+const declineConfirmationOpen = computed(() => declineConfirmation.value !== null)
 
 function formatQuotaDate(value: string | null | undefined) {
   const raw = String(value || '').trim()
@@ -631,6 +678,20 @@ const slotlessTimeOptions = buildTenMinuteTimeOptions()
 
 function formatDateTime(value: string | null | undefined) {
   return formatUkDateTimeCompact(value)
+}
+
+function formatRequestedSlotRange(request: GuestBookingRequestRecord) {
+  if (!request.requested_slot_start) return '—'
+  const endTime = formatUkTime(request.requested_slot_end, '')
+  return endTime ? `${formatDateTime(request.requested_slot_start)}–${endTime}` : formatDateTime(request.requested_slot_start)
+}
+
+function parseCalendarRequestIds(value: unknown) {
+  const rawValues = Array.isArray(value) ? value : [value]
+  return rawValues
+    .flatMap((item) => String(item || '').split(','))
+    .map((item) => Number(item.trim()))
+    .filter((id) => Number.isInteger(id) && id > 0)
 }
 
 function isPendingRequest(status: string | null | undefined) {
@@ -725,12 +786,71 @@ function isRequestDetailsOpen(id: number) {
   return expandedRequestDetails.value[id] === true
 }
 
+function isCalendarHighlightedRequest(id: number) {
+  return calendarRequestIdSet.value.has(id)
+}
+
+function setGuestRequestCardRef(id: number) {
+  return (element: Element | ComponentPublicInstance | null) => {
+    if (element instanceof HTMLElement) {
+      guestRequestCardRefs.value[id] = element
+      return
+    }
+    delete guestRequestCardRefs.value[id]
+  }
+}
+
 function toggleRequestDetails(id: number) {
   expandedRequestDetails.value = {
     ...expandedRequestDetails.value,
     [id]: !expandedRequestDetails.value[id],
   }
 }
+
+function openDeclineRequestConfirmation(requestId: number, options?: { successMessage?: string }) {
+  declineConfirmation.value = {
+    requestId,
+    successMessage: options?.successMessage,
+  }
+}
+
+function closeDeclineRequestConfirmation() {
+  declineConfirmation.value = null
+}
+
+async function confirmDeclineRequest() {
+  const confirmation = declineConfirmation.value
+  if (!confirmation) return
+  closeDeclineRequestConfirmation()
+  await declineRequest(confirmation.requestId, { successMessage: confirmation.successMessage })
+}
+
+let lastScrolledCalendarRequestKey = ''
+
+async function scrollToCalendarRequestIfReady() {
+  if (requestsLoading.value) return
+  const firstRequest = calendarHighlightedGuestRequests.value[0]
+  if (!firstRequest) return
+  const requestKey = calendarHighlightedRequestKey.value
+  if (!requestKey || requestKey === lastScrolledCalendarRequestKey) return
+
+  expandedRequestDetails.value = {
+    ...expandedRequestDetails.value,
+    [firstRequest.id]: true,
+  }
+  await nextTick()
+  guestRequestCardRefs.value[firstRequest.id]?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  lastScrolledCalendarRequestKey = requestKey
+}
+
+watch(
+  () => [calendarRequestIds.value.join(','), calendarHighlightedRequestKey.value, requestsLoading.value] as const,
+  () => {
+    if (!calendarRequestIds.value.length) lastScrolledCalendarRequestKey = ''
+    void scrollToCalendarRequestIfReady()
+  },
+  { immediate: true }
+)
 
 function setRequestActionLoading(id: number, action: RequestActionType, value: boolean) {
   const next = { ...requestActionLoading.value }
@@ -1460,6 +1580,17 @@ onMounted(async () => {
   gap: 12px;
 }
 
+.calendar-request-notice {
+  width: fit-content;
+  border: 1px solid color-mix(in srgb, var(--pc-navy-900) 18%, var(--pc-border));
+  border-radius: var(--pc-radius-control);
+  background: color-mix(in srgb, var(--pc-blue-soft) 66%, #ffffff);
+  color: var(--pc-navy-900);
+  padding: 8px 10px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
 .session-card {
   border: 1px solid var(--pc-border);
   border-radius: var(--pc-radius-card);
@@ -1507,6 +1638,11 @@ onMounted(async () => {
   gap: 10px;
 }
 
+.request-card--highlighted {
+  border-color: color-mix(in srgb, var(--pc-navy-900) 30%, var(--pc-border));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--pc-blue-soft) 72%, transparent);
+}
+
 .request-card__main {
   display: grid;
   gap: 10px;
@@ -1530,6 +1666,19 @@ onMounted(async () => {
   display: grid;
   gap: 8px;
   min-width: 0;
+}
+
+.request-card__requested-time {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
+  color: var(--pc-text-muted);
+}
+
+.request-card__requested-time strong {
+  color: var(--pc-navy-900);
+  font-weight: 700;
 }
 
 .request-card__meta-grid {
@@ -1591,6 +1740,7 @@ onMounted(async () => {
 }
 
 .request-actions {
+  flex: 0 0 240px;
   min-width: 240px;
   display: grid;
   gap: 8px;
@@ -1609,6 +1759,11 @@ onMounted(async () => {
   align-items: center;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+.request-invite-helper {
+  flex-basis: 100%;
+  line-height: 1.4;
 }
 
 .request-card__error {
