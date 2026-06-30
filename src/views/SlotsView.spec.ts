@@ -5,6 +5,7 @@ import {
   apiGet,
   apiPost,
   createClientRegularTime,
+  createSessionFromCabinetGuestBookingRequest,
   fetchSpecialistProfile,
   getCabinetSchedule,
   updateSpecialistProfile,
@@ -42,6 +43,7 @@ vi.mock('../lib/api', () => ({
   apiPatch: vi.fn(),
   apiDelete: vi.fn(),
   createClientRegularTime: vi.fn(),
+  createSessionFromCabinetGuestBookingRequest: vi.fn(),
   fetchSpecialistProfile: vi.fn(),
   getCabinetSchedule: vi.fn(),
   updateSpecialistProfile: vi.fn(),
@@ -69,6 +71,7 @@ const mockedApiGet = vi.mocked(apiGet)
 const mockedApiDelete = vi.mocked(apiDelete)
 const mockedApiPost = vi.mocked(apiPost)
 const mockedCreateClientRegularTime = vi.mocked(createClientRegularTime)
+const mockedCreateSessionFromGuestRequest = vi.mocked(createSessionFromCabinetGuestBookingRequest)
 const mockedFetchSpecialistProfile = vi.mocked(fetchSpecialistProfile)
 const mockedGetCabinetSchedule = vi.mocked(getCabinetSchedule)
 const mockedUpdateSpecialistProfile = vi.mocked(updateSpecialistProfile)
@@ -214,6 +217,11 @@ function openCalendarRoute() {
   mockRoute.query = {}
 }
 
+function openSlotsCalendarRoute(query: Record<string, unknown> = {}) {
+  mockRoute.path = '/cabinet/slots'
+  mockRoute.query = query
+}
+
 function openAvailabilityRoute(query: Record<string, unknown> = { tab: 'availability' }) {
   mockRoute.path = '/cabinet/slots'
   mockRoute.query = query
@@ -229,11 +237,13 @@ describe('SlotsView', () => {
     mockedApiDelete.mockReset()
     mockedApiPost.mockReset()
     mockedCreateClientRegularTime.mockReset()
+    mockedCreateSessionFromGuestRequest.mockReset()
     mockedFetchSpecialistProfile.mockReset()
     mockedGetCabinetSchedule.mockReset()
     mockedUpdateSpecialistProfile.mockReset()
     mockedGetCabinetSchedule.mockResolvedValue({ events: [] })
     mockedCreateClientRegularTime.mockResolvedValue({} as any)
+    mockedCreateSessionFromGuestRequest.mockResolvedValue({} as any)
     mockedFetchSpecialistProfile.mockResolvedValue({
       standard_session_duration_minutes: 50,
       timezone: 'Europe/Kyiv',
@@ -755,6 +765,185 @@ describe('SlotsView', () => {
       await flushAsyncUpdates()
       expect(screen.queryByRole('dialog', { name: 'Створити сесію' })).not.toBeInTheDocument()
     }
+  })
+
+  it('shows public guest request context and create-session CTA for a selected available slot', async () => {
+    openSlotsCalendarRoute({
+      request_id: '9',
+      client_name: 'Олександр Ко',
+      contact: 'alx@example.com',
+      format: 'online',
+      source: 'public_guest_request',
+    })
+    mockScheduleApi([], [], [
+      scheduleEventFromSlot({
+        id: 901,
+        start_at: '2026-03-13T09:00:00+02:00',
+        end_at: '2026-03-13T09:50:00+02:00',
+        is_booked: false,
+      }),
+    ])
+
+    const { container } = renderView()
+    await flushAsyncUpdates()
+
+    await fireEvent.click(container.querySelector('.week-calendar .schedule-event--available') as HTMLButtonElement)
+    await flushAsyncUpdates()
+
+    const detailPanel = container.querySelector('.slot-detail-panel') as HTMLElement
+    expect(within(detailPanel).getByText('Запит для цього часу')).toBeInTheDocument()
+    expect(within(detailPanel).getByText('Олександр Ко')).toBeInTheDocument()
+    expect(within(detailPanel).getByText('alx@example.com')).toBeInTheDocument()
+    expect(within(detailPanel).getByText('онлайн')).toBeInTheDocument()
+    expect(within(detailPanel).getByRole('button', { name: 'Створити сесію на цей час' })).toBeInTheDocument()
+    expect(within(detailPanel).getByRole('link', { name: 'Повернутися до запиту' })).toHaveAttribute(
+      'href',
+      '/cabinet/external-sessions#guest-requests'
+    )
+  })
+
+  it('keeps available-slot details unchanged when there is no public guest request context', async () => {
+    openSlotsCalendarRoute()
+    mockScheduleApi([], [], [
+      scheduleEventFromSlot({
+        id: 902,
+        start_at: '2026-03-13T09:00:00+02:00',
+        end_at: '2026-03-13T09:50:00+02:00',
+        is_booked: false,
+      }),
+    ])
+
+    const { container } = renderView()
+    await flushAsyncUpdates()
+
+    await fireEvent.click(container.querySelector('.week-calendar .schedule-event--available') as HTMLButtonElement)
+    await flushAsyncUpdates()
+
+    const detailPanel = container.querySelector('.slot-detail-panel') as HTMLElement
+    expect(within(detailPanel).getByText('Керування')).toBeInTheDocument()
+    expect(
+      within(detailPanel).getByText('Керувати вікнами можна у вкладці “Вікна для запису”.')
+    ).toBeInTheDocument()
+    expect(within(detailPanel).queryByRole('button', { name: 'Створити сесію на цей час' })).not.toBeInTheDocument()
+  })
+
+  it('opens a confirmation modal for creating a session from the selected request slot', async () => {
+    openSlotsCalendarRoute({
+      request_id: '9',
+      client_name: 'Олександр Ко',
+      contact: 'alx@example.com',
+      format: 'online',
+      source: 'public_guest_request',
+    })
+    mockScheduleApi([], [], [
+      scheduleEventFromSlot({
+        id: 903,
+        start_at: '2026-03-13T09:00:00+02:00',
+        end_at: '2026-03-13T09:50:00+02:00',
+        is_booked: false,
+      }),
+    ])
+
+    const { container } = renderView()
+    await flushAsyncUpdates()
+
+    await fireEvent.click(container.querySelector('.week-calendar .schedule-event--available') as HTMLButtonElement)
+    await flushAsyncUpdates()
+    const detailPanel = container.querySelector('.slot-detail-panel') as HTMLElement
+    await fireEvent.click(within(detailPanel).getByRole('button', { name: 'Створити сесію на цей час' }))
+    await flushAsyncUpdates()
+
+    const dialog = screen.getByRole('dialog', { name: 'Створити сесію з цього запиту' })
+    expect(within(dialog).getByText('Олександр Ко')).toBeInTheDocument()
+    expect(within(dialog).getByText('alx@example.com')).toBeInTheDocument()
+    expect(within(dialog).getByText('13.03.2026')).toBeInTheDocument()
+    expect(within(dialog).getByText('09:00–09:50')).toBeInTheDocument()
+    expect(within(dialog).getByText('онлайн')).toBeInTheDocument()
+    expect(mockedCreateSessionFromGuestRequest).not.toHaveBeenCalled()
+  })
+
+  it('submits selected available-slot time through existing guest request create-session API', async () => {
+    openSlotsCalendarRoute({
+      request_id: '9',
+      client_name: 'Олександр Ко',
+      contact: 'alx@example.com',
+      format: 'online',
+      source: 'public_guest_request',
+    })
+    mockScheduleApi([], [], [
+      scheduleEventFromSlot({
+        id: 904,
+        start_at: '2026-03-13T09:00:00+02:00',
+        end_at: '2026-03-13T09:50:00+02:00',
+        is_booked: false,
+      }),
+    ])
+
+    const { container } = renderView()
+    await flushAsyncUpdates()
+
+    await fireEvent.click(container.querySelector('.week-calendar .schedule-event--available') as HTMLButtonElement)
+    await flushAsyncUpdates()
+    const detailPanel = container.querySelector('.slot-detail-panel') as HTMLElement
+    await fireEvent.click(within(detailPanel).getByRole('button', { name: 'Створити сесію на цей час' }))
+    await flushAsyncUpdates()
+
+    const dialog = screen.getByRole('dialog', { name: 'Створити сесію з цього запиту' })
+    await fireEvent.click(within(dialog).getByRole('button', { name: 'Створити сесію' }))
+    await flushAsyncUpdates()
+
+    expect(mockedCreateSessionFromGuestRequest).toHaveBeenCalledWith(9, {
+      starts_at: '2026-03-13T09:00:00+02:00',
+      ends_at: '2026-03-13T09:50:00+02:00',
+      timezone: 'Europe/Kyiv',
+      session_format: 'online',
+    })
+    expect(mockedApiPost).not.toHaveBeenCalledWith(
+      expect.stringContaining('/cabinet/client-records/'),
+      expect.anything()
+    )
+    expect(mockToast.success).toHaveBeenCalledWith('Сесію створено.')
+    expect(screen.queryByRole('dialog', { name: 'Створити сесію з цього запиту' })).not.toBeInTheDocument()
+  })
+
+  it('does not show guest request CTA when request_id is invalid or missing', async () => {
+    openSlotsCalendarRoute({
+      request_id: 'not-a-number',
+      client_name: 'Олександр Ко',
+      contact: 'alx@example.com',
+      format: 'online',
+      source: 'public_guest_request',
+    })
+    mockScheduleApi([], [], [
+      scheduleEventFromSlot({
+        id: 905,
+        start_at: '2026-03-13T09:00:00+02:00',
+        end_at: '2026-03-13T09:50:00+02:00',
+        is_booked: false,
+      }),
+    ])
+
+    const { container, unmount } = renderView()
+    await flushAsyncUpdates()
+    await fireEvent.click(container.querySelector('.week-calendar .schedule-event--available') as HTMLButtonElement)
+    await flushAsyncUpdates()
+    expect(screen.queryByRole('button', { name: 'Створити сесію на цей час' })).not.toBeInTheDocument()
+    unmount()
+
+    openSlotsCalendarRoute({ source: 'public_guest_request' })
+    mockScheduleApi([], [], [
+      scheduleEventFromSlot({
+        id: 906,
+        start_at: '2026-03-13T09:00:00+02:00',
+        end_at: '2026-03-13T09:50:00+02:00',
+        is_booked: false,
+      }),
+    ])
+    const rendered = renderView()
+    await flushAsyncUpdates()
+    await fireEvent.click(rendered.container.querySelector('.week-calendar .schedule-event--available') as HTMLButtonElement)
+    await flushAsyncUpdates()
+    expect(screen.queryByRole('button', { name: 'Створити сесію на цей час' })).not.toBeInTheDocument()
   })
 
   it('reloads visible schedule after successful one-off session created from calendar click', async () => {

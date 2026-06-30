@@ -413,6 +413,34 @@
                       <dd>Керувати вікнами можна у вкладці “Вікна для запису”.</dd>
                     </div>
                   </dl>
+                  <div v-if="canCreateSessionFromGuestRequest(session)" class="request-slot-context request-slot-context--mobile">
+                    <h4 class="request-slot-context__title">Запит для цього часу</h4>
+                    <dl class="request-slot-context__list">
+                      <div>
+                        <dt>Запит від</dt>
+                        <dd>{{ guestRequestClientName }}</dd>
+                      </div>
+                      <div>
+                        <dt>Контакт</dt>
+                        <dd>{{ guestRequestContact }}</dd>
+                      </div>
+                      <div>
+                        <dt>Формат</dt>
+                        <dd>{{ guestRequestFormatLabel }}</dd>
+                      </div>
+                    </dl>
+                    <p class="muted request-slot-context__hint">
+                      Сесія буде створена після підтвердження. Клієнту потрібно буде надіслати посилання або деталі зустрічі.
+                    </p>
+                    <div class="slot-actions">
+                      <button class="btn btn--sm" type="button" @click="openGuestRequestSessionModal(session)">
+                        Створити сесію на цей час
+                      </button>
+                      <RouterLink class="btn btn--ghost btn--sm" :to="PENDING_REQUESTS_ROUTE">
+                        Повернутися до запиту
+                      </RouterLink>
+                    </div>
+                  </div>
                   <div v-if="session.session_id || isPendingScheduleRequestEvent(session)" class="mobile-event-detail__actions">
                     <RouterLink v-if="session.session_id" class="btn btn--sm" :to="`/cabinet/sessions/${session.session_id}`">
                       Відкрити сесію
@@ -504,6 +532,35 @@
               <dd>Керувати вікнами можна у вкладці “Вікна для запису”.</dd>
             </div>
           </dl>
+
+          <div v-if="canCreateSessionFromGuestRequest(selectedScheduleSession)" class="request-slot-context">
+            <h3 class="request-slot-context__title">Запит для цього часу</h3>
+            <dl class="request-slot-context__list">
+              <div>
+                <dt>Запит від</dt>
+                <dd>{{ guestRequestClientName }}</dd>
+              </div>
+              <div>
+                <dt>Контакт</dt>
+                <dd>{{ guestRequestContact }}</dd>
+              </div>
+              <div>
+                <dt>Формат</dt>
+                <dd>{{ guestRequestFormatLabel }}</dd>
+              </div>
+            </dl>
+            <p class="muted request-slot-context__hint">
+              Сесія буде створена після підтвердження. Клієнту потрібно буде надіслати посилання або деталі зустрічі.
+            </p>
+            <div class="slot-actions">
+              <button class="btn btn--sm" type="button" @click="openGuestRequestSessionModal(selectedScheduleSession)">
+                Створити сесію на цей час
+              </button>
+              <RouterLink class="btn btn--ghost btn--sm" :to="PENDING_REQUESTS_ROUTE">
+                Повернутися до запиту
+              </RouterLink>
+            </div>
+          </div>
 
           <div v-if="selectedScheduleSession.session_id || isPendingScheduleRequestEvent(selectedScheduleSession)" class="slot-actions">
             <RouterLink v-if="selectedScheduleSession.session_id" class="btn btn--sm" :to="`/cabinet/sessions/${selectedScheduleSession.session_id}`">
@@ -1305,6 +1362,79 @@
       </div>
     </div>
 
+    <div
+      v-if="guestRequestSessionModalOpen"
+      class="regular-sessions-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="guest-request-session-modal-title"
+    >
+      <button
+        class="regular-sessions-modal__backdrop"
+        type="button"
+        aria-label="Закрити"
+        @click="closeGuestRequestSessionModal"
+      ></button>
+      <div class="regular-sessions-modal__content">
+        <div class="regular-sessions-modal__header">
+          <div>
+            <h2 id="guest-request-session-modal-title" class="panel__title">Створити сесію з цього запиту</h2>
+            <p class="muted">
+              Підтвердьте створення сесії на час вибраного доступного вікна.
+            </p>
+            <div
+              v-if="guestRequestSessionError"
+              class="form-error form-error--inline"
+              role="alert"
+              aria-live="polite"
+            >
+              {{ guestRequestSessionError }}
+            </div>
+          </div>
+          <button class="icon-btn" type="button" aria-label="Закрити" @click="closeGuestRequestSessionModal">×</button>
+        </div>
+
+        <form class="slot-form regular-sessions-form request-session-form" @submit.prevent="submitGuestRequestSession">
+          <dl class="request-session-summary">
+            <div>
+              <dt>Клієнт</dt>
+              <dd>{{ guestRequestClientName }}</dd>
+            </div>
+            <div>
+              <dt>Контакт</dt>
+              <dd>{{ guestRequestContact }}</dd>
+            </div>
+            <div>
+              <dt>Дата</dt>
+              <dd>{{ guestRequestSessionDateLabel }}</dd>
+            </div>
+            <div>
+              <dt>Час</dt>
+              <dd>{{ guestRequestSessionTimeLabel }}</dd>
+            </div>
+            <div>
+              <dt>Формат</dt>
+              <dd>{{ guestRequestFormatLabel }}</dd>
+            </div>
+          </dl>
+          <p class="muted request-session-form__hint">
+            Сесію буде створено через запит клієнта. Автоматичного резервування самого вікна не виконується.
+          </p>
+          <div class="slot-form__actions">
+            <RouterLink class="btn btn--ghost" :to="PENDING_REQUESTS_ROUTE">
+              Повернутися до запиту
+            </RouterLink>
+            <button class="btn btn--ghost" type="button" @click="closeGuestRequestSessionModal">
+              Скасувати
+            </button>
+            <button class="btn" type="submit" :disabled="guestRequestSessionSaving">
+              {{ guestRequestSessionSaving ? 'Створюємо сесію...' : 'Створити сесію' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
     <ConfirmModal
       :open="confirmModal.open"
       :title="confirmModal.title"
@@ -1327,6 +1457,7 @@ import {
   apiPatch,
   apiPost,
   createClientRegularTime,
+  createSessionFromCabinetGuestBookingRequest,
   fetchSpecialistProfile,
   getApiErrorMessage,
   getCabinetSchedule,
@@ -1435,6 +1566,14 @@ type OneOffSessionPrefill = {
   startTime?: string
 }
 
+type PublicGuestRequestContext = {
+  requestId: number
+  clientName: string
+  contact: string
+  sessionFormat: SessionFormat
+  source: 'public_guest_request'
+}
+
 const PAST_SESSION_TIME_ERROR_MESSAGE = 'Неможливо створити сесію в минулому. Оберіть майбутню дату або час.'
 const PENDING_REQUESTS_ROUTE = '/cabinet/external-sessions#guest-requests'
 
@@ -1468,6 +1607,17 @@ function pendingRequestsRoute(event: ScheduleSession | null | undefined) {
   if (!requestIds.length) return PENDING_REQUESTS_ROUTE
   return `/cabinet/external-sessions?request_ids=${requestIds.join(',')}#guest-requests`
 }
+
+function routeQueryString(value: unknown) {
+  const raw = Array.isArray(value) ? value[0] : value
+  if (typeof raw !== 'string') return ''
+  return raw.trim()
+}
+
+function normalizeRequestSessionFormat(value: unknown): SessionFormat {
+  const raw = routeQueryString(value).toLowerCase()
+  return raw === 'offline' ? 'offline' : 'online'
+}
 const createFormRef = ref<HTMLFormElement | null>(null)
 const createFormOpen = ref(false)
 const regularSessionsFormRef = ref<HTMLFormElement | null>(null)
@@ -1480,6 +1630,10 @@ const oneOffProfileLoaded = ref(false)
 const oneOffProfileTimezone = ref('')
 const oneOffSessionAlertRef = ref<HTMLElement | null>(null)
 const oneOffSessionModalContentRef = ref<HTMLElement | null>(null)
+const guestRequestSessionModalOpen = ref(false)
+const guestRequestSessionSaving = ref(false)
+const guestRequestSessionError = ref('')
+const guestRequestSessionEvent = ref<ScheduleSession | null>(null)
 const regularClientsLoading = ref(false)
 const regularSessionsSaving = ref(false)
 const regularSessionsError = ref('')
@@ -1735,6 +1889,10 @@ function pendingScheduleRequestLabel(event: ScheduleSession) {
 
 function shouldShowScheduleEventClient(event: ScheduleSession) {
   return event.type !== 'available_slot' && !isPendingScheduleRequestEvent(event)
+}
+
+function canCreateSessionFromGuestRequest(event: ScheduleSession | null | undefined) {
+  return Boolean(publicGuestRequestContext.value && event?.type === 'available_slot')
 }
 
 function scheduleEventTypeLabel(event: ScheduleSession) {
@@ -2271,6 +2429,37 @@ const selectedSlot = computed(() => slots.value.find((slot) => slot.id === selec
 const selectedScheduleSession = computed(() =>
   sessions.value.find((session) => session.id === selectedSessionId.value) || null
 )
+const publicGuestRequestContext = computed<PublicGuestRequestContext | null>(() => {
+  if (routeQueryString(route.query.source) !== 'public_guest_request') return null
+
+  const requestId = Number(routeQueryString(route.query.request_id))
+  if (!Number.isInteger(requestId) || requestId <= 0) return null
+
+  return {
+    requestId,
+    clientName: routeQueryString(route.query.client_name),
+    contact: routeQueryString(route.query.contact),
+    sessionFormat: normalizeRequestSessionFormat(route.query.format),
+    source: 'public_guest_request',
+  }
+})
+const guestRequestClientName = computed(() => publicGuestRequestContext.value?.clientName || 'Клієнт без імені')
+const guestRequestContact = computed(() => publicGuestRequestContext.value?.contact || 'Контакт передано в запиті')
+const guestRequestFormatLabel = computed(() => {
+  const format = publicGuestRequestContext.value?.sessionFormat || 'online'
+  if (format === 'offline') return 'офлайн'
+  return 'онлайн'
+})
+const guestRequestSessionDateLabel = computed(() => {
+  const event = guestRequestSessionEvent.value
+  if (!event) return ''
+  return formatDateOnly(toLocalDateKey(sessionStartAt(event)))
+})
+const guestRequestSessionTimeLabel = computed(() => {
+  const event = guestRequestSessionEvent.value
+  if (!event) return ''
+  return formatSessionTimeRange(event)
+})
 const newSlotPreview = computed(() => {
   const startAt = parseUkDateTime(newStartDate.value, newStartTime.value)
   const durationMinutes = Number(newDuration.value)
@@ -3079,6 +3268,63 @@ function forceCloseOneOffSessionModal(options?: { reset?: boolean }) {
 function closeOneOffSessionModal() {
   if (oneOffSessionSaving.value) return
   forceCloseOneOffSessionModal()
+}
+
+function openGuestRequestSessionModal(event: ScheduleSession) {
+  if (!canCreateSessionFromGuestRequest(event)) return
+  guestRequestSessionEvent.value = event
+  guestRequestSessionError.value = ''
+  guestRequestSessionModalOpen.value = true
+}
+
+function forceCloseGuestRequestSessionModal() {
+  guestRequestSessionModalOpen.value = false
+  guestRequestSessionError.value = ''
+  guestRequestSessionEvent.value = null
+}
+
+function closeGuestRequestSessionModal() {
+  if (guestRequestSessionSaving.value) return
+  forceCloseGuestRequestSessionModal()
+}
+
+async function submitGuestRequestSession() {
+  const context = publicGuestRequestContext.value
+  const event = guestRequestSessionEvent.value
+  if (!context || !canCreateSessionFromGuestRequest(event)) {
+    guestRequestSessionError.value = 'Не вдалося знайти запит для створення сесії.'
+    return
+  }
+
+  const startsAt = sessionStartAt(event as ScheduleSession)
+  const endsAt = sessionEndAt(event as ScheduleSession)
+  if (!startsAt || !endsAt) {
+    guestRequestSessionError.value = 'Не вдалося визначити час сесії.'
+    return
+  }
+
+  guestRequestSessionSaving.value = true
+  guestRequestSessionError.value = ''
+  try {
+    await loadOneOffProfileDefaults()
+    await createSessionFromCabinetGuestBookingRequest(context.requestId, {
+      starts_at: startsAt,
+      ends_at: endsAt,
+      timezone: resolvedOneOffTimezone(),
+      session_format: context.sessionFormat,
+    })
+    forceCloseGuestRequestSessionModal()
+    toast.success('Сесію створено.')
+    try {
+      await loadSlots()
+    } catch {
+      // Best-effort refresh: keep successful creation state and closed modal.
+    }
+  } catch (err) {
+    guestRequestSessionError.value = oneOffSessionCreateErrorMessage(err)
+  } finally {
+    guestRequestSessionSaving.value = false
+  }
 }
 
 async function createOneOffSession() {
@@ -4473,6 +4719,56 @@ onBeforeUnmount(() => {
   margin: 0;
   color: var(--pc-navy-900);
   font-weight: 600;
+}
+
+.request-slot-context {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid color-mix(in srgb, var(--pc-border) 78%, transparent);
+  border-radius: var(--pc-radius-card);
+  background: color-mix(in srgb, var(--pc-blue-soft) 54%, #ffffff);
+}
+
+.request-slot-context--mobile {
+  margin-top: 10px;
+}
+
+.request-slot-context__title {
+  margin: 0;
+  color: var(--pc-navy-900);
+  font-size: 14px;
+}
+
+.request-slot-context__list,
+.request-session-summary {
+  margin: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.request-slot-context__list div,
+.request-session-summary div {
+  display: grid;
+  gap: 3px;
+}
+
+.request-slot-context__list dt,
+.request-session-summary dt {
+  color: var(--pc-text-muted);
+  font-size: 12px;
+}
+
+.request-slot-context__list dd,
+.request-session-summary dd {
+  margin: 0;
+  color: var(--pc-navy-900);
+  font-weight: 700;
+}
+
+.request-slot-context__hint,
+.request-session-form__hint {
+  margin: 0;
 }
 
 .slot-form {
