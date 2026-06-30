@@ -23,6 +23,9 @@
         <button v-if="showChatCta && showRequestCta" class="btn btn--ghost" type="button" @click="$emit('request-action')">
           {{ requestCtaLabel }}
         </button>
+        <button v-if="!showChatCta && showRequestCta" class="btn btn--ghost" type="button" @click="$emit('request-action')">
+          {{ requestCtaLabel }}
+        </button>
         <RouterLink
           v-if="!showChatCta && showFeedbackCta && closingSecondaryKind === 'reviews'"
           class="btn btn--ghost"
@@ -72,7 +75,7 @@ withDefaults(defineProps<Props>(), {
   showChatCta: false,
   chatCtaLabel: 'Написати в чат',
   showRequestCta: false,
-  requestCtaLabel: 'Залишити запит на консультацію',
+  requestCtaLabel: 'Залишити запит',
   showFeedbackCta: false,
 })
 

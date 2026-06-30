@@ -1,6 +1,6 @@
 <template>
   <aside v-if="profile" class="identity-rail">
-    <div class="identity-rail__card">
+    <div class="identity-rail__card" data-testid="public-profile-booking-card">
       <h2 class="identity-rail__title">{{ heroCtaTitle }}</h2>
 
       <div class="identity-rail__services" v-if="introPriceDisplay || priceDisplay" aria-label="Послуги та вартість">
@@ -86,6 +86,9 @@
           <button v-else class="btn btn--primary" type="button" @click="$emit('primary-action')">
             {{ heroPrimaryLabel }}
           </button>
+          <button v-if="showRequestCta" class="btn btn--ghost" type="button" @click="$emit('request-action')">
+            {{ requestCtaLabel }}
+          </button>
           <button v-if="showInquiryCta" class="btn btn--ghost" type="button" @click="$emit('inquiry-action')">
             {{ inquiryCtaLabel }}
           </button>
@@ -126,6 +129,9 @@
           </div>
           <button v-else class="btn btn--primary" type="button" @click="$emit('primary-action')">
             {{ heroPrimaryLabel }}
+          </button>
+          <button v-if="showRequestCta" class="btn btn--ghost" type="button" @click="$emit('request-action')">
+            {{ requestCtaLabel }}
           </button>
           <button v-if="showInquiryCta" class="btn btn--ghost" type="button" @click="$emit('inquiry-action')">
             {{ inquiryCtaLabel }}
@@ -218,7 +224,7 @@ withDefaults(defineProps<Props>(), {
   copiedContactId: '',
   chatCtaLabel: 'Написати в чат',
   showRequestCta: false,
-  requestCtaLabel: 'Залишити запит на консультацію',
+  requestCtaLabel: 'Залишити запит',
   showRequestExplanation: false,
   requestHelperText: '',
   requestTooltipText: '',

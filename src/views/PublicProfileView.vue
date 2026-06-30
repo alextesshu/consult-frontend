@@ -53,9 +53,9 @@
           :show-chat-cta="canMessageSpecialist"
           chat-cta-label="Написати в чат"
           :show-request-cta="showRailRequestCta"
-          :request-cta-label="REQUEST_CONSULTATION_CTA_LABEL"
+          :request-cta-label="railRequestCtaLabel"
           :show-request-explanation="showRequestExplanation"
-          :request-helper-text="REQUEST_CTA_HELPER_TEXT"
+          :request-helper-text="railRequestHelperText"
           :request-tooltip-text="REQUEST_CTA_TOOLTIP_TEXT"
           :show-slots-cta="showRailSlotsCta"
           :show-inquiry-cta="showRailInquiryCta"
@@ -156,11 +156,11 @@
           <div>
             <p class="panel__eyebrow">Доступні вільні вікна</p>
             <h2 class="panel__title">Оберіть дату і час</h2>
-            <p class="panel__lead">Оберіть доступний час для запису.</p>
+            <p class="panel__lead">Оберіть доступне вікно у профілі. Запит потрапить спеціалісту на підтвердження.</p>
           </div>
           <div v-if="showSlotHeaderActions" class="slot-request-actions">
             <button v-if="showDirectBookingRequestFallback" class="btn btn--ghost btn--sm" type="button" @click="handlePublicRequestAction">
-              {{ REQUEST_CONSULTATION_CTA_LABEL }}
+              {{ REQUEST_GENERIC_CTA_LABEL }}
             </button>
             <button v-if="canMessageSpecialist" class="btn btn--ghost btn--sm" type="button" @click="openClientChat">
               Написати в чат
@@ -292,15 +292,15 @@
         <div v-if="slotsLoading" class="muted">Завантажуємо вільні вікна</div>
         <div v-else-if="slotsError" class="form-error">{{ slotsError }}</div>
         <div v-else-if="!monthHasSlots" class="slot-empty slot-empty--request muted">
-          <span>Немає зручного часу? Залиште запит на консультацію, і спеціаліст допоможе узгодити формат та час.</span>
+          <span>У цьому місяці немає доступних вікон.</span>
           <button class="btn btn--ghost btn--sm" type="button" @click="handlePublicRequestAction">
-            {{ REQUEST_CONSULTATION_CTA_LABEL }}
+            {{ REQUEST_GENERIC_CTA_LABEL }}
           </button>
         </div>
         <div v-else-if="slots.length === 0" class="slot-empty slot-empty--request muted">
-          <span>На обрану дату немає вільного часу. Залиште запит на консультацію, і спеціаліст допоможе узгодити формат та час.</span>
+          <span>На обрану дату немає вільного часу. Залиште запит, і спеціаліст допоможе узгодити формат та час.</span>
           <button class="btn btn--ghost btn--sm" type="button" @click="handlePublicRequestAction">
-            {{ REQUEST_CONSULTATION_CTA_LABEL }}
+            {{ REQUEST_GENERIC_CTA_LABEL }}
           </button>
         </div>
         <div v-else class="slot-list">
@@ -445,7 +445,7 @@
         :show-chat-cta="canMessageSpecialist"
         chat-cta-label="Написати в чат"
         :show-request-cta="showClosingRequestCta"
-        :request-cta-label="REQUEST_CONSULTATION_CTA_LABEL"
+        :request-cta-label="closingRequestCtaLabel"
         :show-feedback-cta="showFeedbackCta"
         @primary-action="handleClosingPrimaryAction"
         @chat-action="openClientChat"
@@ -571,8 +571,8 @@
         <div class="setting-modal__body">
           <template v-if="guestBookingSuccess">
             <div class="success guest-booking-success" role="status">
-              <strong>Запит надіслано</strong>
-              <span>Спеціаліст отримає ваш запит і зможе зв’язатися з вами для узгодження деталей.</span>
+              <strong>{{ guestBookingSuccessTitle }}</strong>
+              <span>{{ guestBookingSuccessText }}</span>
             </div>
             <div class="booking-slot" v-if="guestBookingSlot">
               <div class="muted">Обраний слот</div>
@@ -582,8 +582,7 @@
             <div class="booking-next">
               <div class="booking-next__title">Що далі</div>
               <div class="booking-next__item">• Реєстрація не потрібна для цього кроку.</div>
-              <div class="booking-next__item">• Це запит, а не миттєво підтверджена сесія.</div>
-              <div class="booking-next__item">• Натискання кнопки не означає автоматичне списання оплати.</div>
+              <div class="booking-next__item">• Це ще не підтверджена сесія.</div>
               <div v-if="guestBookingRequestSummaryCopy" class="booking-next__item">• {{ guestBookingRequestSummaryCopy }}</div>
             </div>
           </template>
@@ -962,14 +961,26 @@ type PublicGuestBookingRequestResponse = {
 type GuestContactChannel = 'email' | 'phone' | 'telegram'
 type GuestRequestTopicOption = PublicGuestRequestTopic | 'other'
 const GUEST_REQUEST_MESSAGE_MAX_LENGTH = 300
-const GUEST_BOOKING_SUCCESS_TEXT =
-  'Запит надіслано'
-const GUEST_BOOKING_SUCCESS_NEXT_STEP_COPY =
-  'Спеціаліст отримає ваш запит і зможе зв’язатися з вами для узгодження деталей.'
-const REQUEST_CONSULTATION_CTA_LABEL = 'Залишити запит на консультацію'
+const GUEST_BOOKING_GENERIC_SUCCESS_TITLE = 'Запит надіслано'
+const GUEST_BOOKING_SLOT_SUCCESS_TITLE = 'Запит на обраний час надіслано'
+const GUEST_BOOKING_GENERIC_SUCCESS_TEXT =
+  'Спеціаліст отримає ваш запит і зможе зв’язатися з вами для узгодження часу та деталей.'
+const GUEST_BOOKING_SLOT_SUCCESS_TEXT =
+  'Спеціаліст підтвердить сесію або запропонує інший час.'
+const GUEST_BOOKING_GENERIC_NEXT_STEP_COPY =
+  'Спеціаліст відповість у зручному для вас каналі, якщо ви залишили контакт.'
+const GUEST_BOOKING_SLOT_NEXT_STEP_COPY =
+  'Спеціаліст побачить обраний вами час у кабінеті.'
+const REQUEST_GENERIC_CTA_LABEL = 'Залишити запит'
+const REQUEST_WITHOUT_SLOT_CTA_LABEL = 'Залишити запит без вибору часу'
+const CHOOSE_TIME_CTA_LABEL = 'Обрати час'
 const INQUIRY_BEFORE_BOOKING_CTA_LABEL = 'Поставити питання перед записом'
 const REQUEST_CTA_HELPER_TEXT =
   'Опишіть коротко, з чим хочете звернутися. Спеціаліст відповість у кабінеті й допоможе узгодити формат та час.'
+const DIRECT_BOOKING_CTA_HELPER_TEXT =
+  'Оберіть доступне вікно у профілі. Запит потрапить спеціалісту на підтвердження.'
+const NO_SLOTS_REQUEST_HELPER_TEXT =
+  'Наразі немає доступних вікон. Ви можете залишити запит, і спеціаліст узгодить час окремо.'
 const REQUEST_CTA_TOOLTIP_TEXT =
   'Запит — якщо хочете консультацію. Питання — якщо потрібно щось уточнити перед записом.'
 
@@ -1059,9 +1070,12 @@ const toast = useToast()
 const profile = ref<PublicSpecialistProfile | null>(null)
 const slots = ref<PublicSlot[]>([])
 const monthSlots = ref<PublicSlot[]>([])
+const horizonSlots = ref<PublicSlot[]>([])
 const loading = ref(false)
 const slotsLoading = ref(false)
 const slotsLoaded = ref(false)
+const horizonSlotsLoading = ref(false)
+const horizonSlotsLoaded = ref(false)
 const error = ref('')
 const ownerUnpublishedProfile = ref(false)
 const slotsError = ref('')
@@ -1134,6 +1148,7 @@ const showAllSlots = ref(false)
 const slotsPreviewLimit = 96
 const bookingSessionFormat = ref<SessionFormat>('online')
 const monthSlotsCache = new Map<string, PublicSlot[]>()
+const didAutoShiftToFirstAvailableMonth = ref(false)
 
 const slug = computed(() => String(route.params.slug || '').trim())
 const roles = computed(() => auth.me?.user.roles ?? auth.user?.roles ?? [])
@@ -1144,7 +1159,7 @@ const isUnsupportedBookingRole = computed(() => isAuthenticated.value && !isClie
 const canBook = computed(() => isAuthenticated.value && isClient.value)
 const publicBookingMode = computed(() => String(profile.value?.public_booking_mode || 'request_only').trim())
 const showPublicAvailability = computed(() => Boolean(profile.value?.show_public_availability))
-const publicDirectBookingEnabled = computed(() => {
+const isPublicSlotBookingMode = computed(() => {
   if (publicBookingMode.value !== 'direct_booking' || !showPublicAvailability.value) {
     return false
   }
@@ -1153,6 +1168,7 @@ const publicDirectBookingEnabled = computed(() => {
   }
   return true
 })
+const publicDirectBookingEnabled = computed(() => isPublicSlotBookingMode.value)
 const hasOnlineBooking = computed(() => Boolean(profile.value?.offers_online))
 const hasOfflineBooking = computed(() => Boolean(profile.value?.offers_offline))
 const needsSessionFormatChoice = computed(
@@ -1359,6 +1375,7 @@ const showInquiryPanel = computed(() => {
 })
 const showRailInquiryCta = computed(() => Boolean(showInquiryEntry.value && publicDirectBookingEnabled.value))
 const showRailRequestCta = computed(() => {
+  if (publicDirectBookingEnabled.value && !showDirectBookingRequestFallback.value) return true
   if (!canMessageSpecialist.value) return false
   return !publicDirectBookingEnabled.value || showDirectBookingRequestFallback.value
 })
@@ -1375,15 +1392,28 @@ const calendarLeadingBlanks = computed(() => {
 })
 const slotsByLocalDate = computed(() => groupSlotsByLocalDate(monthSlots.value))
 const monthHasSlots = computed(() => monthSlots.value.length > 0)
+const hasSlotsInBookingHorizon = computed(() => horizonSlots.value.length > 0)
 const showDirectBookingRequestFallback = computed(
   () =>
     publicDirectBookingEnabled.value &&
-    slotsLoaded.value &&
-    !slotsLoading.value &&
-    !slotsError.value &&
-    !monthHasSlots.value
+    horizonSlotsLoaded.value &&
+    !horizonSlotsLoading.value &&
+    !hasSlotsInBookingHorizon.value
 )
 const showSlotHeaderActions = computed(() => showDirectBookingRequestFallback.value || canMessageSpecialist.value)
+const railRequestCtaLabel = computed(() =>
+  publicDirectBookingEnabled.value && !showDirectBookingRequestFallback.value
+    ? REQUEST_WITHOUT_SLOT_CTA_LABEL
+    : REQUEST_GENERIC_CTA_LABEL
+)
+const railRequestHelperText = computed(() =>
+  showDirectBookingRequestFallback.value ? NO_SLOTS_REQUEST_HELPER_TEXT : REQUEST_CTA_HELPER_TEXT
+)
+const closingRequestCtaLabel = computed(() =>
+  publicDirectBookingEnabled.value && !showDirectBookingRequestFallback.value
+    ? REQUEST_WITHOUT_SLOT_CTA_LABEL
+    : REQUEST_GENERIC_CTA_LABEL
+)
 const selectedDateDisplayLabel = computed(() => {
   if (!selectedDate.value) return 'обрану дату'
   return formatCalendarDateLabel(selectedDate.value)
@@ -1912,13 +1942,13 @@ const feedbackLink = computed(() => ({
 }))
 const heroCtaTitle = computed(() => {
   if (canMessageSpecialist.value) return 'Продовжити спілкування'
-  if (showDirectBookingRequestFallback.value) return 'Залиште запит на консультацію'
-  if (!publicDirectBookingEnabled.value) return 'Залиште запит на консультацію'
-  return 'Запишіться на консультацію'
+  if (showDirectBookingRequestFallback.value) return 'Немає доступних вікон'
+  if (!publicDirectBookingEnabled.value) return 'Залиште запит'
+  return 'Оберіть час'
 })
 const heroPrimaryLabel = computed(() => {
-  if (!publicDirectBookingEnabled.value || showDirectBookingRequestFallback.value) return REQUEST_CONSULTATION_CTA_LABEL
-  return 'Записатися на сесію'
+  if (!publicDirectBookingEnabled.value || showDirectBookingRequestFallback.value) return REQUEST_GENERIC_CTA_LABEL
+  return CHOOSE_TIME_CTA_LABEL
 })
 
 const primaryActionNextStepCopy = computed(() => {
@@ -1929,20 +1959,17 @@ const primaryActionNextStepCopy = computed(() => {
     return REQUEST_CTA_HELPER_TEXT
   }
   if (showDirectBookingRequestFallback.value) {
-    return REQUEST_CTA_HELPER_TEXT
+    return NO_SLOTS_REQUEST_HELPER_TEXT
   }
-  if (!isAuthenticated.value) {
-    return 'Після вибору часу відкриється короткий запит: залиште ім’я та контакт без реєстрації.'
+  if (isUnsupportedBookingRole.value) {
+    return 'Запис доступний у ролі клієнта. Натисніть кнопку, щоб переглянути доступні вікна.'
   }
-  if (!isClient.value) {
-    return 'Бронювання доступне в ролі клієнта. Натисніть кнопку, щоб переглянути вільні слоти.'
-  }
-  return 'Після вибору часу створюється запит на сесію: спеціаліст підтвердить його окремо.'
+  return DIRECT_BOOKING_CTA_HELPER_TEXT
 })
 
 const closingPrimaryLabel = computed(() => {
-  if (!publicDirectBookingEnabled.value || showDirectBookingRequestFallback.value) return REQUEST_CONSULTATION_CTA_LABEL
-  return 'Записатися на сесію'
+  if (!publicDirectBookingEnabled.value || showDirectBookingRequestFallback.value) return REQUEST_GENERIC_CTA_LABEL
+  return CHOOSE_TIME_CTA_LABEL
 })
 
 const closingCtaSupportLine = computed(() => {
@@ -1965,7 +1992,7 @@ const closingSecondaryKind = computed<'sessions' | 'reviews' | 'slots' | 'contac
   if (showClientSessionsCta.value) return 'sessions'
   if (showFeedbackCta.value) return 'reviews'
   if (hasPublicContactCta.value) return 'contact'
-  if (publicDirectBookingEnabled.value && !showDirectBookingRequestFallback.value) return 'slots'
+  if (publicDirectBookingEnabled.value && !showDirectBookingRequestFallback.value) return 'none'
   return 'none'
 })
 
@@ -2579,9 +2606,16 @@ const clientBookingConfirmSubmitLabel = computed(() => {
   return 'Підтвердити запис'
 })
 
+const isGuestBookingSlotRequest = computed(() => Boolean(guestBookingSuccess.value && guestBookingSlot.value))
+const guestBookingSuccessTitle = computed(() =>
+  isGuestBookingSlotRequest.value ? GUEST_BOOKING_SLOT_SUCCESS_TITLE : GUEST_BOOKING_GENERIC_SUCCESS_TITLE
+)
+const guestBookingSuccessText = computed(() =>
+  isGuestBookingSlotRequest.value ? GUEST_BOOKING_SLOT_SUCCESS_TEXT : GUEST_BOOKING_GENERIC_SUCCESS_TEXT
+)
 const guestBookingRequestSummaryCopy = computed(() => {
   if (!guestBookingSuccess.value) return ''
-  return GUEST_BOOKING_SUCCESS_NEXT_STEP_COPY
+  return isGuestBookingSlotRequest.value ? GUEST_BOOKING_SLOT_NEXT_STEP_COPY : GUEST_BOOKING_GENERIC_NEXT_STEP_COPY
 })
 
 function shouldShowContactActionFallback(action: PublicContactActionViewModel): boolean {
@@ -2743,6 +2777,20 @@ function toApiMonthRange(monthStart: string) {
   return {
     date_from: toLocalDate(firstDay),
     date_to: toLocalDate(lastDay),
+  }
+}
+
+function addDays(date: Date, amount: number) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate() + amount)
+}
+
+function toApiBookingHorizonRange() {
+  const today = new Date()
+  const rawHorizonDays = Number(profile.value?.public_booking_horizon_days)
+  const horizonDays = Number.isFinite(rawHorizonDays) && rawHorizonDays > 0 ? rawHorizonDays : 14
+  return {
+    date_from: toLocalDate(today),
+    date_to: toLocalDate(addDays(today, horizonDays)),
   }
 }
 
@@ -3057,6 +3105,43 @@ async function loadSlots(options: { preferFirstAvailable?: boolean; forceRefresh
   } finally {
     slotsLoading.value = false
     slotsLoaded.value = true
+  }
+}
+
+async function loadHorizonSlots() {
+  if (!profile.value?.therapist_id || !publicDirectBookingEnabled.value) {
+    horizonSlots.value = []
+    horizonSlotsLoading.value = false
+    horizonSlotsLoaded.value = true
+    return
+  }
+
+  horizonSlotsLoading.value = true
+  horizonSlotsLoaded.value = false
+  try {
+    const horizonRange = toApiBookingHorizonRange()
+    const resp = await apiGet<PublicSlot[]>('/booking/slots/', {
+      params: {
+        therapist_id: profile.value.therapist_id,
+        date_from: horizonRange.date_from,
+        date_to: horizonRange.date_to,
+      },
+    })
+    horizonSlots.value = Array.isArray(resp) ? resp : []
+    if (!didAutoShiftToFirstAvailableMonth.value && horizonSlots.value.length > 0) {
+      didAutoShiftToFirstAvailableMonth.value = true
+      const firstMonth = toLocalMonthStart(new Date(horizonSlots.value[0]!.start_at))
+      if (firstMonth !== visibleMonthStart.value) {
+        visibleMonthStart.value = firstMonth
+        selectedDate.value = toLocalDate(new Date(horizonSlots.value[0]!.start_at))
+        showAllSlots.value = false
+      }
+    }
+  } catch {
+    horizonSlots.value = []
+  } finally {
+    horizonSlotsLoading.value = false
+    horizonSlotsLoaded.value = true
   }
 }
 
@@ -3639,7 +3724,7 @@ async function submitGuestBookingRequest() {
     }
     const response = await createPublicGuestBookingRequest(profileSlug, payload)
     guestBookingSuccess.value = response.request
-    toast.success(GUEST_BOOKING_SUCCESS_TEXT)
+    toast.success(isGuestBookingSlotRequest.value ? GUEST_BOOKING_SLOT_SUCCESS_TITLE : GUEST_BOOKING_GENERIC_SUCCESS_TITLE)
   } catch (err: any) {
     guestBookingError.value = getGuestBookingErrorMessage(err)
     toast.error(guestBookingError.value)
@@ -3885,7 +3970,11 @@ watch(slug, () => {
   profile.value = null
   slots.value = []
   monthSlots.value = []
+  horizonSlots.value = []
   slotsLoaded.value = false
+  horizonSlotsLoaded.value = false
+  horizonSlotsLoading.value = false
+  didAutoShiftToFirstAvailableMonth.value = false
   monthSlotsCache.clear()
   showGuestBookingModal.value = false
   guestBookingSlot.value = null
@@ -3911,7 +4000,8 @@ watch(slug, () => {
   journalEmptyStateCode.value = null
   reviews.value = []
   loadProfile().then(async () => {
-    await loadSlots()
+    await loadHorizonSlots()
+    await loadSlots({ preferFirstAvailable: true })
     await loadInquiryState()
     await loadJournal()
     await loadReviews()
@@ -3982,7 +4072,8 @@ onMounted(async () => {
     selectedDate.value = toLocalDate(new Date())
   }
   await loadProfile()
-  await loadSlots()
+  await loadHorizonSlots()
+  await loadSlots({ preferFirstAvailable: true })
   await loadClientSessions()
   await loadChatThreads()
   await loadInquiryState()
