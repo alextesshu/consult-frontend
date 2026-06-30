@@ -203,11 +203,11 @@
     </div>
 
     <div class="card inquiry-card">
-      <div class="card__title">Запити до бронювання</div>
+      <div class="card__title">Запити перед сесією</div>
       <LoadingSkeleton v-if="inquiryLoading" variant="list" :count="2" />
       <EmptyState
         v-else-if="inquiryError"
-        title="Не вдалося завантажити запити до бронювання"
+        title="Не вдалося завантажити запити перед сесією"
         :description="inquiryError"
       >
         <template #actions>
@@ -218,8 +218,8 @@
       </EmptyState>
       <EmptyState
         v-else-if="inquiryEntries.length === 0"
-        title="Запити до бронювання поки недоступні"
-        description="Знайдіть профіль спеціаліста, щоб поставити коротке уточнювальне запитання перед бронюванням."
+        title="Запити перед сесією поки недоступні"
+        description="Знайдіть профіль спеціаліста, щоб поставити коротке уточнювальне питання перед надсиланням запиту."
         action-text="Пошук профілю спеціаліста"
         action-to="/specialists"
       />
@@ -973,11 +973,11 @@ async function loadInquiryDiscoverability() {
 
     inquiryEntries.value = loaded
     if (failed > 0 && loaded.length === 0) {
-      inquiryError.value = 'Не вдалося завантажити стан запитів до бронювання.'
+      inquiryError.value = 'Не вдалося завантажити стан запитів перед сесією.'
     }
   } catch {
     inquiryEntries.value = []
-    inquiryError.value = 'Не вдалося завантажити стан запитів до бронювання.'
+    inquiryError.value = 'Не вдалося завантажити стан запитів перед сесією.'
   } finally {
     inquiryLoading.value = false
   }

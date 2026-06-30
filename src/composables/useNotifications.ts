@@ -109,10 +109,10 @@ export function useNotifications({
       return item.title?.trim() || 'Новий запит без реєстрації'
     }
     if (item.source_kind === 'inquiry_message') {
-      if (item.code === 'INQUIRY_CREATED') return `Запит до бронювання від ${counterpartyLabel}`
+      if (item.code === 'INQUIRY_CREATED') return `Запит перед сесією від ${counterpartyLabel}`
       if (item.code === 'INQUIRY_REPLIED') return `Відповідь на запит від ${counterpartyLabel}`
       if (item.code === 'INQUIRY_FOLLOWED_UP') return `Уточнення до запиту від ${counterpartyLabel}`
-      return `Оновлення запиту до бронювання від ${counterpartyLabel}`
+      return `Оновлення запиту перед сесією від ${counterpartyLabel}`
     }
     if (item.source_kind === 'reschedule_request' || item.code === 'RESCHEDULE_REQUESTED') {
       return `Перенесення: ${clientLabel} просить змінити час сесії`

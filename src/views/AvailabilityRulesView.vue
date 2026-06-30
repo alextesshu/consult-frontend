@@ -471,7 +471,7 @@
 
           <ul v-if="previewResult.booked_conflict_examples?.length" class="generation__examples">
             <li v-for="example in previewResult.booked_conflict_examples.slice(0, 10)" :key="`conflict-${example.start_at}`">
-              Конфлікт бронювання: {{ formatSlotExample(example.start_at, example.end_at) }}
+              Конфлікт часу: {{ formatSlotExample(example.start_at, example.end_at) }}
             </li>
           </ul>
         </details>

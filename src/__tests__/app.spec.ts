@@ -1265,10 +1265,10 @@ describe('App shell', () => {
 
     await fireEvent.click(screen.getByRole('button', { name: /Сповіщення/i }))
 
-    expect(await screen.findByText('Запит до бронювання від Ірина')).toBeInTheDocument()
+    expect(await screen.findByText('Запит перед сесією від Ірина')).toBeInTheDocument()
     expect(screen.getByText('Чи можна уточнити формат першої розмови?')).toBeInTheDocument()
 
-    const notificationLink = screen.getByText('Запит до бронювання від Ірина').closest('a')
+    const notificationLink = screen.getByText('Запит перед сесією від Ірина').closest('a')
     expect(notificationLink).not.toBeNull()
     expect(notificationLink).toHaveAttribute('href', '/cabinet/inquiries?thread_id=91')
 
@@ -1304,7 +1304,7 @@ describe('App shell', () => {
           specialist_name: 'Олена',
           thread_id: 91,
           message_id: 302,
-          preview: 'Так, можна коротко уточнити запит перед бронюванням.',
+          preview: 'Так, можна коротко уточнити запит перед надсиланням.',
           slot_start_at: null,
         }),
       ],
@@ -1326,7 +1326,7 @@ describe('App shell', () => {
     await fireEvent.click(screen.getByRole('button', { name: /Сповіщення/i }))
 
     expect(await screen.findByText('Відповідь на запит від Олена')).toBeInTheDocument()
-    expect(screen.getByText('Так, можна коротко уточнити запит перед бронюванням.')).toBeInTheDocument()
+    expect(screen.getByText('Так, можна коротко уточнити запит перед надсиланням.')).toBeInTheDocument()
 
     const notificationLink = screen.getByText('Відповідь на запит від Олена').closest('a')
     expect(notificationLink).not.toBeNull()
@@ -1438,7 +1438,7 @@ describe('App shell', () => {
     })
 
     await fireEvent.click(screen.getByRole('button', { name: /Сповіщення/i }))
-    const inquiryLink = await screen.findByText('Запит до бронювання від Ірина')
+    const inquiryLink = await screen.findByText('Запит перед сесією від Ірина')
 
     await fireEvent.click(inquiryLink.closest('a') as HTMLAnchorElement)
 

@@ -67,7 +67,7 @@ describe('booking copy helpers', () => {
         },
         'fallback'
       )
-    ).toBe('Оберіть формат сесії перед бронюванням.')
+    ).toBe('Оберіть формат сесії перед надсиланням запиту.')
 
     expect(
       getBookingErrorMessage(

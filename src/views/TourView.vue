@@ -29,7 +29,7 @@
             <article class="hero-shot hero-shot--slots">
               <div class="hero-shot__top"><span></span><span></span><span></span></div>
               <div class="hero-shot__viewport">
-                <img src="/images/tour/slots-1.jpg" alt="Доступні вікна для бронювання" loading="lazy" decoding="async" />
+                <img src="/images/tour/slots-1.jpg" alt="Доступний час для запитів" loading="lazy" decoding="async" />
               </div>
             </article>
             <article class="hero-shot hero-shot--payments">
@@ -245,7 +245,7 @@ const featureSections = [
     id: 'hours',
     title: 'Плануйте робочі години без хаосу',
     body: 'Керуйте сесіями, доступністю і ритмом практики без ручного перенесення між інструментами.',
-    points: ['Контроль робочих вікон', 'Гнучкі правила доступності', 'Опційний доступний час для прямого бронювання'],
+    points: ['Контроль робочих вікон', 'Гнучкі правила доступності', 'Опційний доступний час для запитів'],
     tariffNote: 'Start / Pro / Leader',
     screenLabel: 'Schedule Rules',
     screenSrc: '/images/tour/schedule-rules.jpg',
@@ -255,11 +255,11 @@ const featureSections = [
     id: 'booking',
     title: 'Приймайте запити без хаосу',
     body: 'Клієнт може залишити запит із публічного профілю, а ви узгоджуєте деталі та створюєте сесію в кабінеті.',
-    points: ['Запит без реєстрації', 'Опційне пряме бронювання через доступний час', 'Менше ручного хаосу в листуваннях'],
+    points: ['Запит без реєстрації', 'Опційний вибір доступного часу під час запиту', 'Менше ручного хаосу в листуваннях'],
     tariffNote: 'Start / Pro / Leader',
     screenLabel: 'Slots',
     screenSrc: '/images/tour/slots-1.jpg',
-    screenAlt: 'Доступні дати та вільні вікна для бронювання',
+    screenAlt: 'Доступні дати та вільні вікна для запитів',
   },
   {
     id: 'sessions-overview',

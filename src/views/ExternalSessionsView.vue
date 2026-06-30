@@ -298,9 +298,9 @@
                   class="btn btn--ghost btn--sm"
                   type="button"
                   :disabled="isRequestActionLoading(request.id, 'decline')"
-                  @click="openDeclineRequestConfirmation(request.id, { successMessage: 'Запит закрито.' })"
+                  @click="openDeclineRequestConfirmation(request.id, { successMessage: 'Запит відхилено.' })"
                 >
-                  {{ isRequestActionLoading(request.id, 'decline') ? 'Скасовуємо…' : 'Скасувати запит' }}
+                  {{ isRequestActionLoading(request.id, 'decline') ? 'Відхиляємо…' : 'Відхилити запит' }}
                 </button>
               </template>
               <template v-else>
@@ -347,7 +347,7 @@
                   :disabled="isRequestActionLoading(request.id, 'decline')"
                   @click="openDeclineRequestConfirmation(request.id)"
                 >
-                  {{ isRequestActionLoading(request.id, 'decline') ? 'Скасовуємо…' : 'Скасувати запит' }}
+                  {{ isRequestActionLoading(request.id, 'decline') ? 'Відхиляємо…' : 'Відхилити запит' }}
                 </button>
               </template>
               <div v-if="requestActionError(request.id)" class="form-error request-card__error">
@@ -361,9 +361,9 @@
 
     <ConfirmModal
       :open="declineConfirmationOpen"
-      title="Скасувати запит?"
-      message="Запит буде закрито. Клієнт не побачить автоматичної відповіді, якщо ви не зв’яжетеся з ним окремо."
-      confirm-text="Скасувати запит"
+      title="Відхилити запит?"
+      message="Запит буде відхилено. Клієнт не побачить автоматичної відповіді, якщо ви не зв’яжетеся з ним окремо."
+      confirm-text="Відхилити запит"
       cancel-text="Залишити запит"
       tone="danger"
       @confirm="confirmDeclineRequest"

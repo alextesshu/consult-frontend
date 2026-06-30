@@ -236,7 +236,7 @@ describe('TherapistSessionsView', () => {
     expect(await screen.findByText('Керуйте сесіями')).toBeInTheDocument()
     expect(screen.getByText('Сесії без реєстрації')).toBeInTheDocument()
     expect(
-      screen.getByText('Створюйте та ведіть сесії для клієнтів, які записуються без створення акаунта.')
+      screen.getByText('Створюйте та ведіть сесії для клієнтів, які залишають запит без створення акаунта.')
     ).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Відкрити сесії без реєстрації' })).toHaveAttribute(
       'href',

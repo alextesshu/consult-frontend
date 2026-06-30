@@ -1787,7 +1787,7 @@
             </div>
 
             <p class="client-regular-times__copy">
-              Це внутрішня домовленість із клієнтом, а не публічний час для бронювання.
+              Це внутрішня домовленість із клієнтом, а не публічний доступний час для запитів.
             </p>
 
             <div v-if="!clientRegularTimesScopeKey(clientManagementClient)" class="client-regular-times__activation">

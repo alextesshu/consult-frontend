@@ -13,7 +13,7 @@
         <label class="pref-item">
           <input v-model="form.notify_session_booked_in_app" type="checkbox" />
           <span>
-            <strong>Нові бронювання</strong>
+            <strong>Нові запити</strong>
             <small>Показувати в застосунку нові запити на сесії</small>
           </span>
         </label>

@@ -34,8 +34,8 @@ export const BOOKING_ERROR_FALLBACKS = {
 } as const
 
 export const BOOKING_UI_MESSAGES = {
-  onlyClientsCanBook: 'Бронювання доступне лише для клієнтів.',
-  acceptSettingBeforeBooking: 'Підтвердьте правила перед бронюванням.',
+  onlyClientsCanBook: 'Надсилання запиту доступне лише для клієнтів.',
+  acceptSettingBeforeBooking: 'Підтвердьте правила перед надсиланням запиту.',
   invalidDuration: 'Некоректна тривалість. Вкажіть 1–480 хв.',
 } as const
 
@@ -80,7 +80,7 @@ const BOOKING_ERROR_CODE_MESSAGES: Record<string, string> = {
     '\u0414\u043e\u0441\u044f\u0433\u043d\u0443\u0442\u043e \u043b\u0456\u043c\u0456\u0442 \u0430\u043a\u0442\u0438\u0432\u043d\u0438\u0445 \u043a\u043b\u0456\u0454\u043d\u0442\u0456\u0432.',
   INVALID_DURATION: '\u041d\u0435\u043a\u043e\u0440\u0435\u043a\u0442\u043d\u0430 \u0442\u0440\u0438\u0432\u0430\u043b\u0456\u0441\u0442\u044c. \u0412\u043a\u0430\u0436\u0456\u0442\u044c 1\u2013480 \u0445\u0432.',
   SESSION_FORMAT_REQUIRED:
-    '\u041e\u0431\u0435\u0440\u0456\u0442\u044c \u0444\u043e\u0440\u043c\u0430\u0442 \u0441\u0435\u0441\u0456\u0457 \u043f\u0435\u0440\u0435\u0434 \u0431\u0440\u043e\u043d\u044e\u0432\u0430\u043d\u043d\u044f\u043c.',
+    '\u041e\u0431\u0435\u0440\u0456\u0442\u044c \u0444\u043e\u0440\u043c\u0430\u0442 \u0441\u0435\u0441\u0456\u0457 \u043f\u0435\u0440\u0435\u0434 \u043d\u0430\u0434\u0441\u0438\u043b\u0430\u043d\u043d\u044f\u043c \u0437\u0430\u043f\u0438\u0442\u0443.',
   SESSION_FORMAT_INVALID:
     '\u041e\u0431\u0440\u0430\u043d\u0438\u0439 \u0444\u043e\u0440\u043c\u0430\u0442 \u0441\u0435\u0441\u0456\u0457 \u043d\u0435\u0434\u043e\u0441\u0442\u0443\u043f\u043d\u0438\u0439 \u0434\u043b\u044f \u0446\u044c\u043e\u0433\u043e \u0441\u043f\u0435\u0446\u0456\u0430\u043b\u0456\u0441\u0442\u0430.',
   SPECIALIST_PROFILE_INVALID:

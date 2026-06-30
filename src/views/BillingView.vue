@@ -29,7 +29,7 @@
       </div>
       <div class="limits-grid">
         <article class="limit-card">
-          <div class="limit-card__label">Постійні клієнти</div>
+          <div class="limit-card__label">Активні клієнти</div>
           <div class="limit-card__value">{{ activeClientsUsageLabel }}</div>
         </article>
         <article class="limit-card">
@@ -127,7 +127,7 @@
         <div v-if="primaryStatus" class="muted">{{ primaryStatus }}</div>
       </div>
       <p class="muted billing__limits-helper">
-        Постійні клієнти — це клієнти у вашій базі, які займають ліміт тарифу. Сесії без реєстрації рахуються окремо.
+        Активні клієнти — це клієнти, які враховуються в ліміті вашого тарифу. Сесії без реєстрації рахуються окремо.
       </p>
       <p v-if="showSwitchToStartAction" class="muted">
         Після пробного PRO-періоду можна залишитися на Start, розширити ліміт активних клієнтів або перейти на PRO.
@@ -135,7 +135,7 @@
     </section>
 
     <p class="muted billing__shared-value">
-      У кожному плані — публічний профіль, яким можна ділитися, гнучкий функціонал запису та бронювання й
+      У кожному плані — публічний профіль, яким можна ділитися, гнучкий функціонал запитів, сесій і
       робота без комісії за сесії.
     </p>
     <section class="plan-grid">

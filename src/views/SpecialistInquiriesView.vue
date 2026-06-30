@@ -2,10 +2,10 @@
   <section class="inquiries">
     <header class="inquiries__hero card">
       <div>
-        <div class="eyebrow">До бронювання</div>
+        <div class="eyebrow">Перед сесією</div>
         <h1 class="title">Запити клієнтів</h1>
         <p class="muted">
-          Тут видно короткі запити до бронювання. Це окремий обмежений канал, не повний чат.
+          Тут видно короткі запити перед сесією. Це окремий обмежений канал, не повний чат.
         </p>
       </div>
       <RouterLink class="btn btn--ghost" to="/cabinet">Назад до кабінету</RouterLink>
@@ -16,7 +16,7 @@
         <div class="card__title">Вхідні запити</div>
         <div v-if="threadsLoading" class="muted">Завантаження...</div>
         <div v-else-if="threads.length === 0" class="muted">
-          Поки що немає активних запитів до бронювання.
+          Поки що немає активних запитів перед сесією.
         </div>
         <button
           v-for="thread in threads"
@@ -90,7 +90,7 @@
               v-model="draft"
               class="input inquiry-composer__textarea"
               rows="4"
-              placeholder="Коротко відповідайте в межах запиту до бронювання."
+              placeholder="Коротко відповідайте в межах запиту перед сесією."
               :disabled="sending"
             ></textarea>
             <div v-if="sendError" class="form-error">{{ sendError }}</div>
@@ -230,7 +230,7 @@ async function loadThreads() {
     detailError.value = getInquiryActionErrorMessage(
       err,
       'specialist',
-      'Не вдалося завантажити запити до бронювання.'
+      'Не вдалося завантажити запити перед сесією.'
     )
   } finally {
     threadsLoading.value = false
@@ -460,4 +460,3 @@ watch(
   }
 }
 </style>
-

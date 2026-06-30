@@ -778,11 +778,11 @@
         </div>
 
         <label class="field">
-          Мінімальний час до бронювання
+          Мінімальний час до запиту
           <select
             v-model.number="publicBookingMinLeadTimeHours"
             class="input"
-            aria-label="Мінімальний час до бронювання"
+            aria-label="Мінімальний час до запиту"
           >
             <option v-for="hours in publicBookingLeadTimeOptions" :key="hours" :value="hours">
               {{ hours }} год

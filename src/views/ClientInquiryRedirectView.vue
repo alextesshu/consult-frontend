@@ -66,7 +66,7 @@ onMounted(async () => {
       hash: '#inquiry',
     })
   } catch {
-    error.value = 'Не вдалося відкрити запит до бронювання.'
+    error.value = 'Не вдалося відкрити запит перед сесією.'
   } finally {
     loading.value = false
   }

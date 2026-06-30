@@ -1450,7 +1450,7 @@ describe('PublicProfileView', () => {
     const chooserModal = chooserTitle.closest('.contact-chooser-modal')
     expect(chooserModal).not.toBeNull()
     const chooser = within(chooserModal as HTMLElement)
-    expect(chooser.getByText('Оберіть зручний канал: це не бронювання, а прямий контакт для першого діалогу.')).toBeInTheDocument()
+    expect(chooser.getByText('Оберіть зручний канал: це не підтверджена сесія, а прямий контакт для першого діалогу.')).toBeInTheDocument()
     expect(chooser.getByText('Email')).toBeInTheDocument()
     expect(chooser.getByText('Telegram')).toBeInTheDocument()
     expect(chooser.getByText('Viber')).toBeInTheDocument()
@@ -2699,7 +2699,7 @@ describe('PublicProfileView', () => {
     await fireEvent.click(await screen.findByRole('button', { name: 'Надіслати запит на цей час' }))
     await clickClientBookingConfirmButton()
 
-    const formatErrors = await screen.findAllByText('Оберіть формат сесії перед бронюванням.')
+    const formatErrors = await screen.findAllByText('Оберіть формат сесії перед надсиланням запиту.')
     expect(formatErrors.length).toBeGreaterThan(0)
   })
 
@@ -3685,7 +3685,7 @@ describe('PublicProfileView', () => {
 
     const bookingCard = within(await screen.findByTestId('public-profile-booking-card'))
     expect(bookingCard.getByRole('heading', { name: 'Оберіть час' })).toBeInTheDocument()
-    expect(await screen.findByText('Коротке запитання до бронювання')).toBeInTheDocument()
+    expect(await screen.findByText('Коротке питання перед запитом')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Поставити питання перед запитом' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Поставити запитання' })).not.toBeInTheDocument()
     expect(screen.getByText('Почніть без тиску')).toBeInTheDocument()
@@ -3858,7 +3858,7 @@ describe('PublicProfileView', () => {
 
     expect(await screen.findByText('Запит недоступний')).toBeInTheDocument()
     expect(
-      screen.getByText('Для заблокованої взаємодії короткий запит до бронювання недоступний.')
+      screen.getByText('Для заблокованої взаємодії короткий запит перед сесією недоступний.')
     ).toBeInTheDocument()
   })
 })

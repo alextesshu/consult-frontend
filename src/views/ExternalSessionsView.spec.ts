@@ -96,7 +96,7 @@ function getGuestRequestCardByName(guestName: string) {
 
   const scoped = within(card as HTMLElement)
   const approveButton = scoped.queryByRole('button', { name: 'Погодити' }) as HTMLButtonElement | null
-  const declineButton = scoped.queryByRole('button', { name: 'Скасувати запит' }) as HTMLButtonElement | null
+  const declineButton = scoped.queryByRole('button', { name: 'Відхилити запит' }) as HTMLButtonElement | null
   if (!approveButton || !declineButton) {
     throw new Error(`Expected approve/decline buttons for ${guestName}`)
   }
@@ -406,7 +406,7 @@ describe('ExternalSessionsView', () => {
     expect(guestRequestsPanel).toHaveClass('external-sessions__guest-requests-panel')
     expect(createPanel).toHaveClass('external-sessions__create-panel')
     expect(guestRequestsPanel).toHaveTextContent('Запит без обраного часу')
-    expect(guestRequestsPanel).not.toHaveTextContent('Клієнт залишив запит без бронювання конкретного слота.')
+    expect(guestRequestsPanel).not.toHaveTextContent('Клієнт залишив запит без підтвердженого часу.')
     expect(guestRequestsPanel).toHaveTextContent('Тривога')
     expect(guestRequestsPanel).toHaveTextContent('Стосунки')
     expect(within(guestRequestsPanel as HTMLElement).getByRole('button', { name: 'Показати деталі' })).toBeInTheDocument()
@@ -415,7 +415,7 @@ describe('ExternalSessionsView', () => {
       'href',
       '/cabinet/slots?request_id=61&client_name=Slotless+Guest&contact=guest%40example.com&format=online&source=public_guest_request'
     )
-    expect(within(guestRequestsPanel as HTMLElement).getByRole('button', { name: 'Скасувати запит' })).toBeInTheDocument()
+    expect(within(guestRequestsPanel as HTMLElement).getByRole('button', { name: 'Відхилити запит' })).toBeInTheDocument()
   })
 
   it('shows guest quota summary when entitlements are available', async () => {
@@ -919,22 +919,22 @@ describe('ExternalSessionsView', () => {
     renderView()
     expect(await screen.findByText('Очікує рішення')).toBeInTheDocument()
 
-    await fireEvent.click(screen.getByRole('button', { name: 'Скасувати запит' }))
-    const cancelDialog = await screen.findByRole('dialog', { name: 'Скасувати запит?' })
+    await fireEvent.click(screen.getByRole('button', { name: 'Відхилити запит' }))
+    const cancelDialog = await screen.findByRole('dialog', { name: 'Відхилити запит?' })
     expect(cancelDialog).toHaveTextContent(
-      'Запит буде закрито. Клієнт не побачить автоматичної відповіді, якщо ви не зв’яжетеся з ним окремо.'
+      'Запит буде відхилено. Клієнт не побачить автоматичної відповіді, якщо ви не зв’яжетеся з ним окремо.'
     )
     expect(mockedDeclineCabinetGuestBookingRequest).not.toHaveBeenCalled()
 
     await fireEvent.click(within(cancelDialog).getByRole('button', { name: 'Залишити запит' }))
     await waitFor(() => {
-      expect(screen.queryByRole('dialog', { name: 'Скасувати запит?' })).not.toBeInTheDocument()
+      expect(screen.queryByRole('dialog', { name: 'Відхилити запит?' })).not.toBeInTheDocument()
     })
     expect(mockedDeclineCabinetGuestBookingRequest).not.toHaveBeenCalled()
 
-    await fireEvent.click(screen.getByRole('button', { name: 'Скасувати запит' }))
-    const confirmedDialog = await screen.findByRole('dialog', { name: 'Скасувати запит?' })
-    await fireEvent.click(within(confirmedDialog).getByRole('button', { name: 'Скасувати запит' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Відхилити запит' }))
+    const confirmedDialog = await screen.findByRole('dialog', { name: 'Відхилити запит?' })
+    await fireEvent.click(within(confirmedDialog).getByRole('button', { name: 'Відхилити запит' }))
 
     await waitFor(() => {
       expect(mockedDeclineCabinetGuestBookingRequest).toHaveBeenCalledWith(52)
@@ -970,12 +970,12 @@ describe('ExternalSessionsView', () => {
     expect(card).toHaveTextContent('Клієнт: Slotless Guest')
     expect(card).toHaveTextContent('Контакт клієнта для відповіді: Ел. пошта · slotless@example.com')
     expect(card).toHaveTextContent(/Статус:\s*Очікує рішення/)
-    expect(card).not.toHaveTextContent('Клієнт залишив запит без бронювання конкретного слота.')
+    expect(card).not.toHaveTextContent('Клієнт залишив запит без підтвердженого часу.')
     expect(card).not.toHaveTextContent('Телефон: +380501234567')
     expect(card).not.toHaveTextContent('Коментар: Можу після обіду')
     expect(card.querySelector('.request-topic-row')).toBeNull()
     expect(within(card as HTMLElement).getByRole('button', { name: 'Створити сесію' })).toBeInTheDocument()
-    expect(within(card as HTMLElement).getByRole('button', { name: 'Скасувати запит' })).toBeInTheDocument()
+    expect(within(card as HTMLElement).getByRole('button', { name: 'Відхилити запит' })).toBeInTheDocument()
     expect(within(card as HTMLElement).queryByRole('button', { name: 'Погодити' })).not.toBeInTheDocument()
     expect(card).not.toHaveTextContent('Запитаний час:')
 
@@ -1009,7 +1009,7 @@ describe('ExternalSessionsView', () => {
     const card = getGuestRequestCardByText('Sibling Guest')
     expect(card).toHaveTextContent('Потрібно запропонувати інший час')
     expect(within(card as HTMLElement).getByRole('button', { name: 'Запропонувати інший час' })).not.toBeDisabled()
-    expect(within(card as HTMLElement).getByRole('button', { name: 'Скасувати запит' })).toBeInTheDocument()
+    expect(within(card as HTMLElement).getByRole('button', { name: 'Відхилити запит' })).toBeInTheDocument()
     expect(within(card as HTMLElement).queryByRole('button', { name: 'Погодити' })).not.toBeInTheDocument()
     expect(card.querySelector('input[type="url"]')).not.toBeInTheDocument()
     expect(mockedConfirmCabinetGuestBookingRequestSession).not.toHaveBeenCalled()
@@ -1387,16 +1387,16 @@ describe('ExternalSessionsView', () => {
     renderView()
     await screen.findByText('Запит без обраного часу')
 
-    await fireEvent.click(screen.getByRole('button', { name: 'Скасувати запит' }))
-    const cancelDialog = await screen.findByRole('dialog', { name: 'Скасувати запит?' })
+    await fireEvent.click(screen.getByRole('button', { name: 'Відхилити запит' }))
+    const cancelDialog = await screen.findByRole('dialog', { name: 'Відхилити запит?' })
     expect(mockedDeclineCabinetGuestBookingRequest).not.toHaveBeenCalled()
 
-    await fireEvent.click(within(cancelDialog).getByRole('button', { name: 'Скасувати запит' }))
+    await fireEvent.click(within(cancelDialog).getByRole('button', { name: 'Відхилити запит' }))
 
     await waitFor(() => {
       expect(mockedDeclineCabinetGuestBookingRequest).toHaveBeenCalledWith(63)
     })
-    expect(toast.success).toHaveBeenCalledWith('Запит закрито.')
+    expect(toast.success).toHaveBeenCalledWith('Запит відхилено.')
   })
 
   it('shows Ukrainian conflict error for slot-less create-session failure', async () => {
@@ -1649,9 +1649,9 @@ describe('ExternalSessionsView guest request micro-polish', () => {
     const secondCard = getGuestRequestCardByName('Guest Two')
 
     await fireEvent.click(firstCard.declineButton)
-    const cancelDialog = await screen.findByRole('dialog', { name: 'Скасувати запит?' })
+    const cancelDialog = await screen.findByRole('dialog', { name: 'Відхилити запит?' })
     expect(mockedDeclineCabinetGuestBookingRequest).not.toHaveBeenCalled()
-    await fireEvent.click(within(cancelDialog).getByRole('button', { name: 'Скасувати запит' }))
+    await fireEvent.click(within(cancelDialog).getByRole('button', { name: 'Відхилити запит' }))
 
     await waitFor(() => {
       expect(firstCard.card.querySelector('.request-card__error')).not.toBeNull()
@@ -1745,9 +1745,9 @@ describe('ExternalSessionsView guest request micro-polish', () => {
     const secondCard = getGuestRequestCardByName('Guest Two')
 
     await fireEvent.click(firstCard.declineButton)
-    const cancelDialog = await screen.findByRole('dialog', { name: 'Скасувати запит?' })
+    const cancelDialog = await screen.findByRole('dialog', { name: 'Відхилити запит?' })
     expect(mockedDeclineCabinetGuestBookingRequest).not.toHaveBeenCalled()
-    await fireEvent.click(within(cancelDialog).getByRole('button', { name: 'Скасувати запит' }))
+    await fireEvent.click(within(cancelDialog).getByRole('button', { name: 'Відхилити запит' }))
 
     await waitFor(() => {
       expect(mockedDeclineCabinetGuestBookingRequest).toHaveBeenCalledWith(51)

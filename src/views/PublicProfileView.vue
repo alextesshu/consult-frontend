@@ -2271,7 +2271,7 @@ const CONTACT_CHANNEL_LABELS: Record<string, string> = {
 const CONTACT_CHOOSER_COPY = {
   ctaLabel: 'Зв’язатися зі спеціалістом',
   title: 'Оберіть канал зв’язку',
-  helperText: 'Оберіть зручний канал: це не бронювання, а прямий контакт для першого діалогу.',
+  helperText: 'Оберіть зручний канал: це не підтверджена сесія, а прямий контакт для першого діалогу.',
   channelActionButtonLabel: 'Скопіювати',
   channelActionCopiedLabel: 'Скопійовано',
   closeButtonLabel: 'Закрити',
@@ -3411,7 +3411,7 @@ async function loadInquiryState() {
   } catch (err: any) {
     inquiryState.value = null
     inquiryMessages.value = []
-    inquiryError.value = getInquiryActionErrorMessage(err, 'client', 'Не вдалося завантажити запит до бронювання.')
+    inquiryError.value = getInquiryActionErrorMessage(err, 'client', 'Не вдалося завантажити запит перед сесією.')
   } finally {
     inquiryLoading.value = false
   }
@@ -3443,7 +3443,7 @@ async function submitInquiryMessage() {
     inquirySubmitError.value = getInquiryActionErrorMessage(
       err,
       'client',
-      'Не вдалося надіслати запит до бронювання.'
+      'Не вдалося надіслати запит перед сесією.'
     )
   } finally {
     inquirySubmitting.value = false

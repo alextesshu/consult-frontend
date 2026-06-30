@@ -77,7 +77,7 @@
           <article class="onboarding-item">
             <h2 class="onboarding-item__title">Я клієнт</h2>
             <p class="onboarding-item__copy">
-              Створіть акаунт для запису, оплат і доступу до сесій.
+              Створіть акаунт для запитів, оплат і доступу до сесій.
             </p>
             <RouterLink class="btn btn--ghost onboarding-item__cta" to="/signup-client">Створити кабінет клієнта</RouterLink>
           </article>

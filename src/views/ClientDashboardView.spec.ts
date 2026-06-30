@@ -617,7 +617,7 @@ describe('ClientDashboardView', () => {
     await flushPromises()
     await flushPromises()
 
-    const inquiryCardTitle = await screen.findByText('Запити до бронювання')
+    const inquiryCardTitle = await screen.findByText('Запити перед сесією')
     const inquiryCard = inquiryCardTitle.closest('.card') as HTMLElement
     expect(inquiryCard).toBeInTheDocument()
 
@@ -672,7 +672,7 @@ describe('ClientDashboardView', () => {
     await flushPromises()
     await flushPromises()
 
-    const inquiryCardTitle = await screen.findByText('Запити до бронювання')
+    const inquiryCardTitle = await screen.findByText('Запити перед сесією')
     const inquiryCard = inquiryCardTitle.closest('.card') as HTMLElement
 
     expect(within(inquiryCard).getByRole('link', { name: 'Відкрити повний чат' })).toHaveAttribute(

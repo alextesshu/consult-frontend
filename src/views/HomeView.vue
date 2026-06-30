@@ -194,7 +194,7 @@
         <div class="section-head section-head--center">
           <h2 id="workflow-title" class="section-head__title">Як це працює</h2>
           <p class="section-head__subtitle">
-            Спочатку ви створюєте профіль і приймаєте запити. Доступний час для прямого запису можна додати за потреби.
+            Спочатку ви створюєте профіль і приймаєте запити. Доступний час, який клієнти можуть обрати під час запиту, можна додати за потреби.
           </p>
         </div>
         <div class="workflow-grid" role="list" aria-label="Як спеціаліст починає роботу в Pro Consult">

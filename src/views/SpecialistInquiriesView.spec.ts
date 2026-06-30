@@ -271,7 +271,7 @@ describe('SpecialistInquiriesView', () => {
     expect(await screen.findByText('Запит завершено')).toBeInTheDocument()
     expect(
       screen.getByText(
-        'Цей запит до бронювання вже завершено. Якщо співпраця почнеться, подальше спілкування продовжиться у звичайному чаті.'
+        'Цей запит перед сесією вже завершено. Якщо співпраця почнеться, подальше спілкування продовжиться у звичайному чаті.'
       )
     ).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Надіслати відповідь' })).not.toBeInTheDocument()

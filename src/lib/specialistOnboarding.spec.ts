@@ -25,7 +25,7 @@ describe('specialist onboarding mapping', () => {
     expect(WARNING_CODE_COPY.NO_BOOKABLE_TIME).toBeTruthy()
     expect(WARNING_CODE_COPY.PUBLIC_PROFILE_OFF).toBeTruthy()
     expect(WARNING_CODE_COPY.PUBLISHED_WITHOUT_BOOKABLE_TIME).toContain('Клієнти можуть залишати запити')
-    expect(WARNING_CODE_COPY.NO_BOOKABLE_TIME).toContain('лише для прямого бронювання')
+    expect(WARNING_CODE_COPY.NO_BOOKABLE_TIME).toContain('лише для запитів із вибором часу')
 
     expect(PRIMARY_CTA_CODE_COPY.COMPLETE_PROFILE).toBeTruthy()
     expect(PRIMARY_CTA_CODE_COPY.ADD_AVAILABILITY).toBe('Створити вікна')
