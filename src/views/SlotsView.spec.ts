@@ -878,6 +878,10 @@ describe('SlotsView', () => {
         is_booked: false,
       }),
     ])
+    mockedCreateSessionFromGuestRequest.mockResolvedValue({
+      request: {} as any,
+      session: { id: 777 } as any,
+    })
 
     const { container } = renderView()
     await flushAsyncUpdates()
@@ -902,7 +906,14 @@ describe('SlotsView', () => {
       expect.stringContaining('/cabinet/client-records/'),
       expect.anything()
     )
-    expect(mockToast.success).toHaveBeenCalledWith('Сесію створено.')
+    expect(mockToast.success).toHaveBeenCalledWith('Запит погоджено. Сесію створено.')
+    expect(
+      screen.getAllByText('Наступний крок: перевірте деталі сесії та підтвердьте її готовність. Оплата має окремий статус.').length
+    ).toBeGreaterThan(0)
+    expect(screen.getAllByRole('link', { name: 'Перевірити деталі сесії' })[0]).toHaveAttribute(
+      'href',
+      '/cabinet/sessions/777'
+    )
     expect(screen.queryByRole('dialog', { name: 'Створити сесію з цього запиту' })).not.toBeInTheDocument()
   })
 

@@ -245,7 +245,8 @@
               </div>
 
               <div v-if="request.session_id" class="request-next-step">
-                <div class="muted">На основі цього запиту створено сесію.</div>
+                <div class="muted">Запит погоджено. На основі цього запиту створено сесію.</div>
+                <div class="muted">Підтвердження сесії та оплата мають окремі статуси.</div>
                 <RouterLink
                   class="btn btn--ghost btn--sm"
                   :to="`/cabinet/sessions/${request.session_id}`"
@@ -254,7 +255,8 @@
                 </RouterLink>
               </div>
               <div v-if="request.external_session_id" class="request-next-step">
-                <div class="muted">На основі цього запиту створено сесію без реєстрації.</div>
+                <div class="muted">Запит погоджено. На основі цього запиту створено сесію без реєстрації.</div>
+                <div class="muted">Підтвердження сесії та оплата мають окремі статуси.</div>
                 <RouterLink
                   class="btn btn--ghost btn--sm"
                   :to="`/cabinet/external-sessions/${request.external_session_id}`"
@@ -1723,7 +1725,7 @@ async function approveRequest(request: GuestBookingRequestRecord) {
       request.id,
       request.session_format === 'online' ? { meeting_url: meetingUrl } : {}
     )
-    toast.success('Сесію створено. Запит погоджено.')
+    toast.success('Запит погоджено. Сесію створено.')
     await Promise.all([loadGuestRequests(), loadSessions()])
   } catch (err) {
     setRequestActionError(request.id, localizeGuestRequestApiError(err, 'Не вдалося погодити запит без реєстрації.'))
@@ -1778,7 +1780,7 @@ async function submitSlotlessSession() {
     })
     slotlessSessionSaving.value = false
     closeSlotlessSessionModal()
-    toast.success('Сесію створено. Запит закрито.')
+    toast.success('Запит погоджено. Сесію створено.')
     await Promise.all([loadGuestRequests(), loadSessions()])
   } catch (err) {
     const message = localizeGuestRequestApiError(err, 'Не вдалося створити сесію.')

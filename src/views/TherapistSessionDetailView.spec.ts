@@ -1282,6 +1282,9 @@ describe('TherapistSessionDetailView', () => {
     renderView()
 
     expect(await screen.findByText('client@example.com')).toBeInTheDocument()
+    expect(
+      screen.getByText('Підтвердження сесії означає, що час і деталі зустрічі готові. Це не підтверджує оплату.')
+    ).toBeInTheDocument()
 
     await fireEvent.click(screen.getByRole('button', { name: 'Підтвердити' }))
 

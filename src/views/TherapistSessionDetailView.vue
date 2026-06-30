@@ -19,6 +19,9 @@
         <div class="panel__header">
           <div>
             <h2 class="panel__title">{{ statusLabel(session) }}</h2>
+            <p v-if="session.status === 'SCHEDULED'" class="muted">
+              Підтвердження сесії означає, що час і деталі зустрічі готові. Це не підтверджує оплату.
+            </p>
           </div>
           <div class="summary-actions">
             <button
@@ -327,7 +330,7 @@
         <div v-else-if="isOfflineSession" class="meeting-card">
           <div>
             <div class="detail-label">Офлайн-сесія</div>
-            <div class="detail-value">{{ offlineLocation || 'Локацію узгоджено зі спеціалістом.' }}</div>
+            <div class="detail-value">{{ offlineLocation || 'Додайте місце зустрічі в деталях сесії.' }}</div>
             <div class="muted detail-meta">Для офлайн-формату посилання для приєднання не використовується.</div>
           </div>
         </div>

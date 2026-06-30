@@ -254,7 +254,10 @@ describe('TherapistSessionsView', () => {
     expect(mockedFetchSpecialistRescheduleRequests).toHaveBeenCalled()
     expect(mockedFetchSpecialistProfile).toHaveBeenCalled()
 
-    expect(await screen.findByText('Очікують підтвердження')).toBeInTheDocument()
+    expect(await screen.findByText('Потрібно завершити підготовку')).toBeInTheDocument()
+    expect(
+      screen.getByText('Перевірте час, формат і деталі зустрічі. Підтвердження сесії не означає підтвердження оплати.')
+    ).toBeInTheDocument()
     expect(await screen.findByText('Є запит на перенос')).toBeInTheDocument()
     expect(await screen.findByText(/maria-request@example\.com/)).toBeInTheDocument()
     expect(screen.getByText(/history@example\.com/)).toBeInTheDocument()
@@ -766,7 +769,7 @@ describe('TherapistSessionsView', () => {
     expect(screen.getByText('Немає майбутніх сесій.')).toBeInTheDocument()
     expect(screen.getByText('Немає нових запитів')).toBeInTheDocument()
     expect(screen.getByText('Історія порожня')).toBeInTheDocument()
-    expect(screen.queryByText(/Нові бронювання:/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/Потрібно завершити підготовку:/)).not.toBeInTheDocument()
   })
 
   it('confirms and cancels sessions with a list reload after each mutation', async () => {

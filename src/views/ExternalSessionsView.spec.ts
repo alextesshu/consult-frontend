@@ -795,7 +795,8 @@ describe('ExternalSessionsView', () => {
 
     const sessionLink = await screen.findByRole('link', { name: 'Відкрити сесію' })
     expect(sessionLink).toHaveAttribute('href', '/cabinet/sessions/701')
-    expect(await screen.findByText('На основі цього запиту створено сесію.')).toBeInTheDocument()
+    expect(await screen.findByText('Запит погоджено. На основі цього запиту створено сесію.')).toBeInTheDocument()
+    expect(screen.getByText('Підтвердження сесії та оплата мають окремі статуси.')).toBeInTheDocument()
     expect(screen.queryByRole('link', { name: 'Відкрити сесію без реєстрації' })).not.toBeInTheDocument()
     expect(screen.queryByRole('link', { name: 'Відкрити сторінку сесії' })).not.toBeInTheDocument()
   })
@@ -1303,7 +1304,7 @@ describe('ExternalSessionsView', () => {
     await waitFor(() => {
       expect(screen.queryByRole('dialog', { name: 'Створити сесію' })).not.toBeInTheDocument()
     })
-    expect(toast.success).toHaveBeenCalledWith('Сесію створено. Запит закрито.')
+    expect(toast.success).toHaveBeenCalledWith('Запит погоджено. Сесію створено.')
     expect(mockedFetchCabinetGuestBookingRequests).toHaveBeenCalledTimes(2)
     expect(mockedFetchExternalSessions).toHaveBeenCalledTimes(2)
   })

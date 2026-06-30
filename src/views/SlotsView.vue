@@ -430,9 +430,17 @@
                       </div>
                     </dl>
                     <p class="muted request-slot-context__hint">
-                      Сесія буде створена після підтвердження. Клієнту потрібно буде надіслати посилання або деталі зустрічі.
+                      Сесія буде створена після натискання «Створити сесію». Клієнту потрібно буде надіслати посилання або деталі зустрічі.
                     </p>
-                    <div class="slot-actions">
+                    <div v-if="guestRequestSessionCreated" class="request-slot-context__next-step" role="status">
+                      <p class="muted">
+                        Наступний крок: перевірте деталі сесії та підтвердьте її готовність. Оплата має окремий статус.
+                      </p>
+                      <RouterLink class="btn btn--sm" :to="guestRequestCreatedSessionRoute">
+                        {{ guestRequestCreatedSessionLinkLabel }}
+                      </RouterLink>
+                    </div>
+                    <div v-else class="slot-actions">
                       <button class="btn btn--sm" type="button" @click="openGuestRequestSessionModal(session)">
                         Створити сесію на цей час
                       </button>
@@ -550,9 +558,17 @@
               </div>
             </dl>
             <p class="muted request-slot-context__hint">
-              Сесія буде створена після підтвердження. Клієнту потрібно буде надіслати посилання або деталі зустрічі.
+              Сесія буде створена після натискання «Створити сесію». Клієнту потрібно буде надіслати посилання або деталі зустрічі.
             </p>
-            <div class="slot-actions">
+            <div v-if="guestRequestSessionCreated" class="request-slot-context__next-step" role="status">
+              <p class="muted">
+                Наступний крок: перевірте деталі сесії та підтвердьте її готовність. Оплата має окремий статус.
+              </p>
+              <RouterLink class="btn btn--sm" :to="guestRequestCreatedSessionRoute">
+                {{ guestRequestCreatedSessionLinkLabel }}
+              </RouterLink>
+            </div>
+            <div v-else class="slot-actions">
               <button class="btn btn--sm" type="button" @click="openGuestRequestSessionModal(selectedScheduleSession)">
                 Створити сесію на цей час
               </button>
@@ -1634,6 +1650,8 @@ const guestRequestSessionModalOpen = ref(false)
 const guestRequestSessionSaving = ref(false)
 const guestRequestSessionError = ref('')
 const guestRequestSessionEvent = ref<ScheduleSession | null>(null)
+const guestRequestSessionCreated = ref(false)
+const guestRequestCreatedSessionId = ref<string | null>(null)
 const regularClientsLoading = ref(false)
 const regularSessionsSaving = ref(false)
 const regularSessionsError = ref('')
@@ -2460,6 +2478,12 @@ const guestRequestSessionTimeLabel = computed(() => {
   if (!event) return ''
   return formatSessionTimeRange(event)
 })
+const guestRequestCreatedSessionRoute = computed(() =>
+  guestRequestCreatedSessionId.value ? `/cabinet/sessions/${guestRequestCreatedSessionId.value}` : '/cabinet/sessions'
+)
+const guestRequestCreatedSessionLinkLabel = computed(() =>
+  guestRequestCreatedSessionId.value ? 'Перевірити деталі сесії' : 'Перейти до сесій'
+)
 const newSlotPreview = computed(() => {
   const startAt = parseUkDateTime(newStartDate.value, newStartTime.value)
   const durationMinutes = Number(newDuration.value)
@@ -3274,6 +3298,8 @@ function openGuestRequestSessionModal(event: ScheduleSession) {
   if (!canCreateSessionFromGuestRequest(event)) return
   guestRequestSessionEvent.value = event
   guestRequestSessionError.value = ''
+  guestRequestSessionCreated.value = false
+  guestRequestCreatedSessionId.value = null
   guestRequestSessionModalOpen.value = true
 }
 
@@ -3307,14 +3333,16 @@ async function submitGuestRequestSession() {
   guestRequestSessionError.value = ''
   try {
     await loadOneOffProfileDefaults()
-    await createSessionFromCabinetGuestBookingRequest(context.requestId, {
+    const response = await createSessionFromCabinetGuestBookingRequest(context.requestId, {
       starts_at: startsAt,
       ends_at: endsAt,
       timezone: resolvedOneOffTimezone(),
       session_format: context.sessionFormat,
     })
+    guestRequestSessionCreated.value = true
+    guestRequestCreatedSessionId.value = response.session?.id ? String(response.session.id) : null
     forceCloseGuestRequestSessionModal()
-    toast.success('Сесію створено.')
+    toast.success('Запит погоджено. Сесію створено.')
     try {
       await loadSlots()
     } catch {

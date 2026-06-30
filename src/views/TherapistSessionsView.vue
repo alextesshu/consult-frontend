@@ -50,11 +50,11 @@
       </div>
       <div class="priority-grid">
         <div class="priority-card">
-          <div class="priority-title">Очікують підтвердження</div>
+          <div class="priority-title">Потрібно завершити підготовку</div>
           <div class="priority-value">
             {{ needsConfirmation.length }}
           </div>
-          <div class="muted">Підтвердьте найближчі сесії, щоб уникнути “Не відбулося”.</div>
+          <div class="muted">Перевірте час, формат і деталі зустрічі. Підтвердження сесії не означає підтвердження оплати.</div>
           <div v-if="needsConfirmation.length" class="priority-list">
             <div
               v-for="session in needsConfirmation.slice(0, 3)"
@@ -217,7 +217,7 @@
       </div>
       <div v-if="needsConfirmation.length" class="new-bookings-banner">
         <div>
-          Нові бронювання: <strong>{{ needsConfirmation.length }}</strong>
+          Потрібно завершити підготовку: <strong>{{ needsConfirmation.length }}</strong>
         </div>
         <button class="btn btn--ghost btn--sm" type="button" @click="needsConfirmation[0] && focusSession(needsConfirmation[0].id)">
           Перейти до першого
