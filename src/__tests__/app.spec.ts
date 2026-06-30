@@ -95,6 +95,7 @@ async function renderWithProviders(options?: {
   notifications?: NotificationFeedItem[]
   notificationsState?: { current: NotificationFeedItem[] }
   upcomingSessions?: any[]
+  workQueue?: Record<string, unknown>
 }) {
   const routes = [
     { path: '/', component: { template: '<div>Home</div>' } },
@@ -189,6 +190,12 @@ async function renderWithProviders(options?: {
   mockedApiGet.mockImplementation(async (url, config) => {
     if (url === '/booking/sessions/' && (config as { params?: { upcoming?: boolean } } | undefined)?.params?.upcoming) {
       return options?.upcomingSessions ?? []
+    }
+    if (url === '/cabinet/work-queue/') {
+      return options?.workQueue ?? {
+        pending_guest_requests_count: 0,
+        pending_slotless_guest_requests_count: 0,
+      }
     }
     return []
   })
@@ -437,6 +444,42 @@ describe('App shell', () => {
     expect(linkLabels.indexOf('Запити')).toBe(linkLabels.indexOf('Сесії') + 1)
     expect(linkLabels.indexOf('Задачі')).toBe(linkLabels.indexOf('Запити') + 1)
     expect(linkLabels.indexOf('Клієнти')).toBe(linkLabels.indexOf('Задачі') + 1)
+  })
+
+  it('uses all pending guest requests count for the specialist requests sidebar badge', async () => {
+    await renderWithProviders({
+      initialPath: '/cabinet/external-sessions',
+      roles: ['SPECIALIST'],
+      notifications: [
+        buildNotification({
+          id: 'public_guest_request:501',
+          kind: 'public_guest_request',
+          source_kind: 'public_guest_request',
+          source_id: 501,
+          code: 'PUBLIC_GUEST_REQUEST_SLOTLESS_CREATED',
+          session_id: null,
+          title: 'Unread guest request',
+          body: 'Unread notification subset.',
+          target_url: '/cabinet/external-sessions#guest-requests',
+          slot_start_at: null,
+          scheduled_for: null,
+        }),
+      ],
+      workQueue: {
+        pending_guest_requests_count: 4,
+        pending_slotless_guest_requests_count: 2,
+      },
+    })
+
+    await waitFor(() => {
+      expect(mockedApiGet).toHaveBeenCalledWith('/cabinet/work-queue/')
+    })
+
+    const sidebar = screen.getByRole('navigation', { name: 'Навігація кабінету спеціаліста' })
+    const requestsLink = within(sidebar).getByRole('link', { name: 'Запити' })
+    expect(requestsLink).toHaveTextContent('4')
+    expect(requestsLink).not.toHaveTextContent('2')
+    expect(requestsLink).not.toHaveTextContent('1')
   })
 
   it('highlights active specialist sidebar item for nested cabinet routes', async () => {
@@ -805,11 +848,15 @@ describe('App shell', () => {
           session_id: null,
           title: 'Новий запит без реєстрації',
           body: 'Клієнт залишив запит без вибору часу. Узгодьте час і створіть сесію або закрийте запит.',
-          target_url: '/cabinet/external-sessions',
+          target_url: '/cabinet/external-sessions#guest-requests',
           slot_start_at: null,
           scheduled_for: null,
         }),
       ],
+      workQueue: {
+        pending_guest_requests_count: 1,
+        pending_slotless_guest_requests_count: 1,
+      },
     })
 
     const notificationsButton = document.querySelector('.nav__notifications .icon-btn') as HTMLButtonElement | null
@@ -829,7 +876,7 @@ describe('App shell', () => {
 
     const notificationLink = screen.getByText('Новий запит без реєстрації').closest('a')
     expect(notificationLink).not.toBeNull()
-    expect(notificationLink).toHaveAttribute('href', '/cabinet/external-sessions')
+    expect(notificationLink).toHaveAttribute('href', '/cabinet/external-sessions#guest-requests')
 
     await fireEvent.click(notificationLink as HTMLAnchorElement)
 
@@ -838,7 +885,7 @@ describe('App shell', () => {
         source_kind: 'public_guest_request',
         source_id: 501,
       })
-      expect(router.currentRoute.value.fullPath).toBe('/cabinet/external-sessions')
+      expect(router.currentRoute.value.fullPath).toBe('/cabinet/external-sessions#guest-requests')
     })
   })
 

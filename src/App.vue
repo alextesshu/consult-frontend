@@ -649,22 +649,16 @@ const refreshIntervalId = ref<number | null>(null)
 const chatIntervalId = ref<number | null>(null)
 const preSessionToastIntervalId = ref<number | null>(null)
 const chatUnreadCount = ref(0)
+const pendingGuestRequestsCount = ref(0)
 const toast = useToast()
 const notifs = useNotifications({ isClient, isSpecialist })
 const shownPreSessionToastKeys = ref<Set<string>>(loadShownPreSessionToastKeys())
 
 const upcomingCount = computed(() => auth.me?.counts?.upcoming_sessions_count ?? 0)
-const requestNotificationCount = computed(() =>
-  notifs.items.value.filter((item) => {
-    if (!item.unread) return false
-    if (item.source_kind === 'public_guest_request' || item.source_kind === 'inquiry_message') return true
-    return item.to.startsWith('/cabinet/external-sessions') || item.to.startsWith('/cabinet/inquiries')
-  }).length
-)
 const specialistSidebarItems = computed<SpecialistSidebarItem[]>(() =>
   specialistSidebarBaseItems.map((item) =>
     item.to.startsWith('/cabinet/external-sessions')
-      ? { ...item, badge: requestNotificationCount.value || undefined }
+      ? { ...item, badge: pendingGuestRequestsCount.value || undefined }
       : item
   )
 )
@@ -1002,6 +996,20 @@ async function refreshMe() {
   }
 }
 
+async function refreshSpecialistRequestCount() {
+  if (!isAuthenticated.value || !isSpecialist.value) {
+    pendingGuestRequestsCount.value = 0
+    return
+  }
+  try {
+    const payload = await apiGet<{ pending_guest_requests_count?: number | null }>('/cabinet/work-queue/')
+    const count = Number(payload?.pending_guest_requests_count)
+    pendingGuestRequestsCount.value = Number.isFinite(count) && count > 0 ? Math.floor(count) : 0
+  } catch {
+    pendingGuestRequestsCount.value = 0
+  }
+}
+
 async function refreshChatUnread() {
   if (!isAuthenticated.value || !isChatCapable.value) {
     chatUnreadCount.value = 0
@@ -1018,8 +1026,10 @@ async function refreshChatUnread() {
 function startMePolling() {
   if (refreshIntervalId.value !== null) return
   refreshMe()
+  refreshSpecialistRequestCount()
   refreshIntervalId.value = window.setInterval(() => {
     refreshMe()
+    refreshSpecialistRequestCount()
   }, 60000)
 }
 
@@ -1064,6 +1074,7 @@ function stopPreSessionToastPolling() {
 function handleVisibilityChange() {
   if (document.visibilityState === 'visible') {
     refreshMe()
+    refreshSpecialistRequestCount()
     notifs.refresh()
     checkUpcomingSessionReminders()
   }
@@ -1135,8 +1146,17 @@ watch(isAuthenticated, (value) => {
     notifs.stopPolling()
     stopChatPolling()
     stopPreSessionToastPolling()
+    pendingGuestRequestsCount.value = 0
     notifs.reset()
   }
+})
+
+watch(isSpecialist, (value) => {
+  if (value && isAuthenticated.value) {
+    refreshSpecialistRequestCount()
+    return
+  }
+  pendingGuestRequestsCount.value = 0
 })
 
 watch(isChatCapable, (value) => {
