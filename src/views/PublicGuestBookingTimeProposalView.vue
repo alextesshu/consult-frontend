@@ -4,20 +4,29 @@
       <h1 class="title">Завантажуємо пропозицію часу…</h1>
     </div>
 
-    <div v-else-if="successSession" class="panel guest-time-proposal__panel">
+    <div v-else-if="confirmedSession" class="panel guest-time-proposal__panel">
       <h1 class="title">Час підтверджено</h1>
-      <p class="muted">Сесію створено. За потреби спеціаліст зв’яжеться з вами додатково.</p>
+      <p class="muted">
+        Сесію створено. Збережіть це посилання або скопіюйте деталі, щоб не загубити інформацію про зустріч.
+      </p>
       <div class="guest-time-proposal__details">
-        <div><strong>Час:</strong> {{ formatRange(successSession.starts_at, successSession.ends_at) }}</div>
-        <div><strong>Формат:</strong> {{ formatSessionFormat(successSession.session_format) }}</div>
-        <div v-if="successSession.session_format === 'online' && successSession.meeting_url">
+        <div><strong>Час:</strong> {{ formatRange(confirmedSession.starts_at, confirmedSession.ends_at) }}</div>
+        <div><strong>Формат:</strong> {{ formatSessionFormat(confirmedSession.session_format) }}</div>
+        <div v-if="confirmedSession.session_format === 'online' && confirmedSession.meeting_url" class="guest-time-proposal__meeting">
           <strong>Посилання на зустріч:</strong>
-          <a :href="successSession.meeting_url" target="_blank" rel="noopener noreferrer">
-            {{ successSession.meeting_url }}
-          </a>
+          <div class="guest-time-proposal__meeting-actions">
+            <a class="btn" :href="confirmedSession.meeting_url" target="_blank" rel="noopener noreferrer">
+              Відкрити зустріч
+            </a>
+            <button class="btn btn--ghost" type="button" @click="copyMeetingUrl">
+              Скопіювати посилання
+            </button>
+          </div>
+          <p class="muted guest-time-proposal__meeting-url">{{ confirmedSession.meeting_url }}</p>
+          <p v-if="meetingCopyStatus" class="muted">{{ meetingCopyStatus }}</p>
         </div>
-        <div v-if="successSession.session_format === 'offline' && successSession.offline_location_snapshot">
-          <strong>Місце зустрічі:</strong> {{ successSession.offline_location_snapshot }}
+        <div v-if="confirmedSession.session_format === 'offline' && confirmedSession.offline_location_snapshot">
+          <strong>Місце зустрічі:</strong> {{ confirmedSession.offline_location_snapshot }}
         </div>
       </div>
     </div>
@@ -74,6 +83,7 @@ import {
   getApiErrorMessage,
   getPublicGuestBookingTimeProposal,
   type AcceptPublicGuestBookingTimeProposalResponse,
+  type PublicGuestBookingAcceptedSession,
   type PublicGuestBookingTimeProposal,
 } from '../lib/api'
 import { formatUkDateTimeCompact, formatUkTime } from '../lib/dateTime'
@@ -89,6 +99,11 @@ const acceptError = ref('')
 const accepting = ref(false)
 const acceptingOptionId = ref<number | null>(null)
 const successSession = ref<AcceptPublicGuestBookingTimeProposalResponse['session'] | null>(null)
+const meetingCopyStatus = ref('')
+
+const confirmedSession = computed<PublicGuestBookingAcceptedSession | null>(
+  () => successSession.value || proposal.value?.accepted_session || null
+)
 
 const stateTitle = computed(() => {
   if (state.value === 'accepted') return 'Час уже підтверджено'
@@ -142,6 +157,7 @@ async function loadProposal() {
   }
   loading.value = true
   acceptError.value = ''
+  meetingCopyStatus.value = ''
   successSession.value = null
   try {
     const payload = await getPublicGuestBookingTimeProposal(token.value)
@@ -185,6 +201,7 @@ async function acceptOption(optionId: number) {
     const payload = await acceptPublicGuestBookingTimeProposal(token.value, optionId)
     proposal.value = payload.proposal
     successSession.value = payload.session
+    meetingCopyStatus.value = ''
     state.value = null
   } catch (err) {
     const message = acceptErrorMessage(err)
@@ -196,6 +213,17 @@ async function acceptOption(optionId: number) {
   } finally {
     accepting.value = false
     acceptingOptionId.value = null
+  }
+}
+
+async function copyMeetingUrl() {
+  const url = confirmedSession.value?.meeting_url || ''
+  if (!url) return
+  try {
+    await navigator.clipboard.writeText(url)
+    meetingCopyStatus.value = 'Посилання скопійовано.'
+  } catch {
+    meetingCopyStatus.value = 'Не вдалося скопіювати посилання. Виділіть і скопіюйте його вручну.'
   }
 }
 
@@ -229,6 +257,21 @@ watch(token, () => void loadProposal(), { immediate: true })
   margin: 0;
   color: var(--pc-navy-900);
   line-height: 1.55;
+}
+
+.guest-time-proposal__meeting {
+  display: grid;
+  gap: 8px;
+}
+
+.guest-time-proposal__meeting-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.guest-time-proposal__meeting-url {
+  overflow-wrap: anywhere;
 }
 
 .guest-time-proposal__options {

@@ -42,6 +42,7 @@ function activeProposal(overrides: Record<string, unknown> = {}) {
       session_format: 'online',
       message: 'Оберіть один із варіантів.',
       expires_at: '2099-06-25T10:00:00Z',
+      accepted_session: null,
       options: [
         {
           id: 501,
@@ -101,7 +102,25 @@ describe('PublicGuestBookingTimeProposalView', () => {
     expect(mockedGetPublicGuestBookingTimeProposal).toHaveBeenCalledWith('proposal-token')
   })
 
+  it('does not show meeting details before accept', async () => {
+    mockedGetPublicGuestBookingTimeProposal.mockResolvedValue(
+      activeProposal({ meeting_url: 'https://meet.example.com/hidden-before-accept' }) as any
+    )
+
+    renderView()
+
+    expect(await screen.findByText('Оберіть зручний час')).toBeInTheDocument()
+    expect(screen.queryByText('https://meet.example.com/hidden-before-accept')).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Відкрити зустріч' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Обрати цей час' })).toBeInTheDocument()
+  })
+
   it('accepts selected option and shows success state', async () => {
+    Object.assign(navigator, {
+      clipboard: {
+        writeText: vi.fn().mockResolvedValue(undefined),
+      },
+    })
     renderView()
 
     await fireEvent.click(await screen.findByRole('button', { name: 'Обрати цей час' }))
@@ -110,7 +129,14 @@ describe('PublicGuestBookingTimeProposalView', () => {
       expect(mockedAcceptPublicGuestBookingTimeProposal).toHaveBeenCalledWith('proposal-token', 501)
     })
     expect(await screen.findByText('Час підтверджено')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Відкрити зустріч' })).toHaveAttribute(
+      'href',
+      'https://meet.example.com/accepted'
+    )
+    expect(screen.getByRole('button', { name: 'Скопіювати посилання' })).toBeInTheDocument()
     expect(screen.getByText('https://meet.example.com/accepted')).toBeInTheDocument()
+    await fireEvent.click(screen.getByRole('button', { name: 'Скопіювати посилання' }))
+    expect(navigator.clipboard.writeText).toHaveBeenCalledWith('https://meet.example.com/accepted')
   })
 
   it('renders expired state', async () => {
@@ -125,12 +151,64 @@ describe('PublicGuestBookingTimeProposalView', () => {
 
   it('renders accepted state without accept action', async () => {
     mockedGetPublicGuestBookingTimeProposal.mockResolvedValue(
-      activeProposal({ public_status: 'accepted', can_accept: false }) as any
+      activeProposal({ public_status: 'accepted', can_accept: false, accepted_session: null }) as any
     )
 
     renderView()
 
     expect(await screen.findByText('Час уже підтверджено')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Обрати цей час' })).not.toBeInTheDocument()
+  })
+
+  it('renders accepted online proposal details from repeated public GET', async () => {
+    mockedGetPublicGuestBookingTimeProposal.mockResolvedValue(
+      activeProposal({
+        public_status: 'accepted',
+        can_accept: false,
+        accepted_session: {
+          id: 701,
+          starts_at: '2099-06-18T09:00:00Z',
+          ends_at: '2099-06-18T09:50:00Z',
+          timezone: 'Europe/Kyiv',
+          session_format: 'online',
+          meeting_url: 'https://meet.example.com/reopen',
+        },
+      }) as any
+    )
+
+    renderView()
+
+    expect(await screen.findByText('Час підтверджено')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Відкрити зустріч' })).toHaveAttribute(
+      'href',
+      'https://meet.example.com/reopen'
+    )
+    expect(screen.getByRole('button', { name: 'Скопіювати посилання' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Обрати цей час' })).not.toBeInTheDocument()
+  })
+
+  it('renders accepted offline proposal location from repeated public GET', async () => {
+    mockedGetPublicGuestBookingTimeProposal.mockResolvedValue(
+      activeProposal({
+        public_status: 'accepted',
+        can_accept: false,
+        session_format: 'offline',
+        accepted_session: {
+          id: 702,
+          starts_at: '2099-06-19T10:00:00Z',
+          ends_at: '2099-06-19T10:50:00Z',
+          timezone: 'Europe/Kyiv',
+          session_format: 'offline',
+          offline_location_snapshot: 'Київ, вул. Прикладна, 1',
+        },
+      }) as any
+    )
+
+    renderView()
+
+    expect(await screen.findByText('Час підтверджено')).toBeInTheDocument()
+    expect(screen.getByText(/Київ, вул\. Прикладна, 1/)).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Відкрити зустріч' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Обрати цей час' })).not.toBeInTheDocument()
   })
 

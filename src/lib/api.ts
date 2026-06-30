@@ -2719,6 +2719,7 @@ export interface GuestBookingTimeProposal {
   original_slot_timezone?: string
   expires_at: string
   message: string
+  session_format: string
   meeting_url: string
   offline_location_snapshot: string
   accepted_at: string | null
@@ -2731,6 +2732,7 @@ export interface GuestBookingTimeProposal {
 
 export interface CreateGuestBookingTimeProposalPayload {
   slot_ids: number[]
+  session_format?: 'online' | 'offline' | string
   message?: string
   meeting_url?: string
   offline_location_snapshot?: string
@@ -2751,6 +2753,16 @@ export interface PublicGuestBookingTimeProposalOption {
   status: string
 }
 
+export interface PublicGuestBookingAcceptedSession {
+  id: number
+  starts_at: string
+  ends_at: string
+  timezone: string
+  session_format: string
+  meeting_url?: string
+  offline_location_snapshot?: string
+}
+
 export interface PublicGuestBookingTimeProposal {
   public_status: string
   can_accept: boolean
@@ -2761,6 +2773,7 @@ export interface PublicGuestBookingTimeProposal {
   message: string
   expires_at: string
   options: PublicGuestBookingTimeProposalOption[]
+  accepted_session: PublicGuestBookingAcceptedSession | null
 }
 
 export interface PublicGuestBookingTimeProposalDetailResponse {
@@ -2777,15 +2790,7 @@ export interface AcceptPublicGuestBookingTimeProposalResponse {
     status: string
     session_id: number | null
   }
-  session: {
-    id: number
-    starts_at: string
-    ends_at: string
-    timezone: string
-    session_format: string
-    meeting_url: string
-    offline_location_snapshot: string
-  }
+  session: PublicGuestBookingAcceptedSession
 }
 
 export type GuestBookingRequestInviteSnapshot = {

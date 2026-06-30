@@ -286,6 +286,7 @@ describe('ExternalSessionsView', () => {
         status: 'sent',
         expires_at: '2099-06-25T10:00:00Z',
         message: '',
+        session_format: 'online',
         meeting_url: 'https://meet.example.com/proposal',
         offline_location_snapshot: '',
         accepted_at: null,
@@ -1032,6 +1033,8 @@ describe('ExternalSessionsView', () => {
     expect(dialog).toHaveTextContent('Запитаний час')
     expect(dialog).toHaveTextContent('Обрано: 0 з 3')
     expect(dialog).not.toHaveTextContent('20.06.2099')
+    expect(modal.getByText('Формат запропонованої сесії')).toBeInTheDocument()
+    expect(modal.getByLabelText('Онлайн')).toBeChecked()
     expect(modal.getByRole('button', { name: 'Надіслати пропозицію' })).toBeDisabled()
 
     await fireEvent.click(modal.getByLabelText(/18\.06\.2099/))
@@ -1074,6 +1077,7 @@ describe('ExternalSessionsView', () => {
     await waitFor(() => {
       expect(mockedCreateCabinetGuestBookingTimeProposal).toHaveBeenCalledWith(64, {
         slot_ids: [901],
+        session_format: 'online',
         meeting_url: 'https://meet.example.com/alternative',
         offline_location_snapshot: '',
         message: 'Оберіть один із запропонованих варіантів.',
@@ -1086,6 +1090,125 @@ describe('ExternalSessionsView', () => {
     expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
       'https://proconsult.test/guest/booking-time-proposal/proposal-token'
     )
+  })
+
+  it('defaults offline proposal format from offline request and requires location', async () => {
+    mockedFetchCabinetGuestBookingRequests.mockResolvedValue([
+      buildGuestRequest({
+        id: 65,
+        guest_name: 'Offline Sibling',
+        session_format: 'offline',
+        offline_location_snapshot: '',
+        needs_alternative_time: true,
+        requested_slot_is_occupied: true,
+      }),
+    ] as any)
+
+    renderView()
+    await screen.findByText('Offline Sibling')
+    await fireEvent.click(screen.getByRole('button', { name: 'Запропонувати інший час' }))
+
+    const dialog = await screen.findByRole('dialog', { name: 'Запропонувати інший час' })
+    const modal = within(dialog)
+    expect(modal.getByLabelText('Офлайн')).toBeChecked()
+    expect(modal.queryByLabelText('Посилання на онлайн-зустріч')).not.toBeInTheDocument()
+    await fireEvent.click(modal.getByLabelText(/18\.06\.2099/))
+    expect(modal.getByRole('button', { name: 'Надіслати пропозицію' })).toBeDisabled()
+    await fireEvent.update(modal.getByLabelText('Адреса / місце зустрічі'), 'Київ, вул. Прикладна, 1')
+    expect(modal.getByRole('button', { name: 'Надіслати пропозицію' })).not.toBeDisabled()
+  })
+
+  it('creates offline proposal when online request is switched to offline', async () => {
+    mockedFetchCabinetGuestBookingRequests.mockResolvedValue([
+      buildGuestRequest({
+        id: 66,
+        guest_name: 'Switch Offline Guest',
+        needs_alternative_time: true,
+        requested_slot_is_occupied: true,
+      }),
+    ] as any)
+
+    renderView()
+    await screen.findByText('Switch Offline Guest')
+    await fireEvent.click(screen.getByRole('button', { name: 'Запропонувати інший час' }))
+
+    const dialog = await screen.findByRole('dialog', { name: 'Запропонувати інший час' })
+    const modal = within(dialog)
+    await fireEvent.click(modal.getByLabelText('Офлайн'))
+    await fireEvent.click(modal.getByLabelText(/18\.06\.2099/))
+    await fireEvent.update(modal.getByLabelText('Адреса / місце зустрічі'), 'Львів, вул. Зустрічна, 2')
+    await fireEvent.click(modal.getByRole('button', { name: 'Надіслати пропозицію' }))
+
+    await waitFor(() => {
+      expect(mockedCreateCabinetGuestBookingTimeProposal).toHaveBeenCalledWith(66, {
+        slot_ids: [901],
+        session_format: 'offline',
+        meeting_url: '',
+        offline_location_snapshot: 'Львів, вул. Зустрічна, 2',
+        message: '',
+      })
+    })
+  })
+
+  it('creates online proposal when offline request is switched to online', async () => {
+    mockedFetchCabinetGuestBookingRequests.mockResolvedValue([
+      buildGuestRequest({
+        id: 67,
+        guest_name: 'Switch Online Guest',
+        session_format: 'offline',
+        offline_location_snapshot: 'Київ, офіс',
+        needs_alternative_time: true,
+        requested_slot_is_occupied: true,
+      }),
+    ] as any)
+
+    renderView()
+    await screen.findByText('Switch Online Guest')
+    await fireEvent.click(screen.getByRole('button', { name: 'Запропонувати інший час' }))
+
+    const dialog = await screen.findByRole('dialog', { name: 'Запропонувати інший час' })
+    const modal = within(dialog)
+    expect(modal.getByLabelText('Офлайн')).toBeChecked()
+    await fireEvent.click(modal.getByLabelText('Онлайн'))
+    await fireEvent.click(modal.getByLabelText(/18\.06\.2099/))
+    await fireEvent.update(modal.getByLabelText('Посилання на онлайн-зустріч'), 'https://meet.example.com/switched-online')
+    await fireEvent.click(modal.getByRole('button', { name: 'Надіслати пропозицію' }))
+
+    await waitFor(() => {
+      expect(mockedCreateCabinetGuestBookingTimeProposal).toHaveBeenCalledWith(67, {
+        slot_ids: [901],
+        session_format: 'online',
+        meeting_url: 'https://meet.example.com/switched-online',
+        offline_location_snapshot: '',
+        message: '',
+      })
+    })
+  })
+
+  it('localizes invalid proposal session format error', async () => {
+    mockedCreateCabinetGuestBookingTimeProposal.mockRejectedValueOnce({
+      response: { data: { code: 'INVALID_SESSION_FORMAT' } },
+    })
+    mockedFetchCabinetGuestBookingRequests.mockResolvedValue([
+      buildGuestRequest({
+        id: 68,
+        guest_name: 'Invalid Format Guest',
+        needs_alternative_time: true,
+        requested_slot_is_occupied: true,
+      }),
+    ] as any)
+
+    renderView()
+    await screen.findByText('Invalid Format Guest')
+    await fireEvent.click(screen.getByRole('button', { name: 'Запропонувати інший час' }))
+
+    const dialog = await screen.findByRole('dialog', { name: 'Запропонувати інший час' })
+    const modal = within(dialog)
+    await fireEvent.click(modal.getByLabelText(/18\.06\.2099/))
+    await fireEvent.update(modal.getByLabelText('Посилання на онлайн-зустріч'), 'https://meet.example.com/invalid-format')
+    await fireEvent.click(modal.getByRole('button', { name: 'Надіслати пропозицію' }))
+
+    expect(await modal.findByText('Оберіть формат сесії.')).toBeInTheDocument()
   })
 
   it('renders active time proposal summary on request card', async () => {

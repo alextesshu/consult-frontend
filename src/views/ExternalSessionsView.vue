@@ -447,6 +447,32 @@
           </div>
 
           <div class="form-grid request-session-form">
+            <fieldset class="field request-session-form__wide time-proposal-format">
+              <legend>Формат запропонованої сесії</legend>
+              <div class="segmented-control">
+                <label>
+                  <input
+                    v-model="proposalDraft.session_format"
+                    type="radio"
+                    value="online"
+                    :disabled="proposalSaving"
+                  />
+                  <span>Онлайн</span>
+                </label>
+                <label>
+                  <input
+                    v-model="proposalDraft.session_format"
+                    type="radio"
+                    value="offline"
+                    :disabled="proposalSaving"
+                  />
+                  <span>Офлайн</span>
+                </label>
+              </div>
+              <p class="muted">
+                Можна запропонувати інший формат, якщо ви домовляєтеся провести цю сесію онлайн або офлайн.
+              </p>
+            </fieldset>
             <label v-if="isProposalOnline" class="field">
               <span>Посилання на онлайн-зустріч</span>
               <input
@@ -667,7 +693,9 @@ type ProposalSlot = {
   is_booked?: boolean | null
   status?: string | null
 }
+type ProposalSessionFormat = 'online' | 'offline'
 type ProposalDraft = {
+  session_format: ProposalSessionFormat
   meeting_url: string
   offline_location_snapshot: string
   message: string
@@ -745,6 +773,7 @@ const proposalError = ref('')
 const proposalSuccessUrl = ref('')
 const proposalCopyStatus = ref('')
 const proposalDraft = ref<ProposalDraft>({
+  session_format: 'online',
   meeting_url: '',
   offline_location_snapshot: '',
   message: '',
@@ -773,7 +802,7 @@ const slotlessSessionDraft = ref<SlotlessSessionDraft>({
 
 const isCreateOnline = computed(() => createDraft.value.session_format === 'online')
 const isSlotlessSessionOnline = computed(() => slotlessSessionDraft.value.session_format === 'online')
-const isProposalOnline = computed(() => proposalRequest.value?.session_format !== 'offline')
+const isProposalOnline = computed(() => proposalDraft.value.session_format === 'online')
 const isGuestQuotaBlocked = computed(() => {
   const quota = guestQuota.value
   if (!quota) return false
@@ -1437,12 +1466,14 @@ function toggleProposalSlot(slotId: number) {
 }
 
 function resetProposalModal(request: GuestBookingRequestRecord) {
+  const requestFormat = String(request.session_format || '').toLowerCase() === 'offline' ? 'offline' : 'online'
   proposalRequest.value = request
   selectedProposalSlotIds.value = []
   proposalError.value = ''
   proposalSuccessUrl.value = ''
   proposalCopyStatus.value = ''
   proposalDraft.value = {
+    session_format: requestFormat,
     meeting_url: '',
     offline_location_snapshot: request.offline_location_snapshot || '',
     message: '',
@@ -1487,6 +1518,7 @@ function localizeTimeProposalError(err: unknown) {
   }
   if (code === 'MEETING_URL_REQUIRED') return 'Додайте посилання на онлайн-зустріч.'
   if (code === 'OFFLINE_LOCATION_REQUIRED') return 'Додайте місце зустрічі.'
+  if (code === 'INVALID_SESSION_FORMAT') return 'Оберіть формат сесії.'
   if (code === 'PUBLIC_GUEST_REQUEST_NOT_PENDING') return 'Цей запит уже закрито або вирішено.'
   return localizeGuestRequestActionError(getApiErrorMessage(err, 'Не вдалося створити пропозицію часу.')) || 'Не вдалося створити пропозицію часу.'
 }
@@ -1514,6 +1546,7 @@ async function submitTimeProposal() {
   try {
     const response = await createCabinetGuestBookingTimeProposal(request.id, {
       slot_ids: selectedProposalSlotIds.value,
+      session_format: proposalDraft.value.session_format,
       message: proposalDraft.value.message.trim(),
       meeting_url: isProposalOnline.value ? proposalDraft.value.meeting_url.trim() : '',
       offline_location_snapshot: isProposalOnline.value ? '' : proposalDraft.value.offline_location_snapshot.trim(),
@@ -2255,6 +2288,52 @@ onMounted(async () => {
 .time-proposal-options {
   display: grid;
   gap: 8px;
+}
+
+.time-proposal-format {
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+
+.time-proposal-format legend {
+  margin: 0 0 8px;
+  color: var(--pc-navy-900);
+  font-weight: 700;
+}
+
+.segmented-control {
+  display: inline-flex;
+  width: fit-content;
+  overflow: hidden;
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-control);
+  background: #fff;
+}
+
+.segmented-control label {
+  display: inline-flex;
+  align-items: center;
+  min-height: 38px;
+  padding: 0 14px;
+  cursor: pointer;
+  color: var(--pc-muted);
+  font-weight: 700;
+}
+
+.segmented-control label + label {
+  border-left: 1px solid var(--pc-border);
+}
+
+.segmented-control input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.segmented-control label:has(input:checked) {
+  background: color-mix(in srgb, var(--pc-blue-soft) 70%, #ffffff);
+  color: var(--pc-navy-950);
 }
 
 .time-proposal-option {
