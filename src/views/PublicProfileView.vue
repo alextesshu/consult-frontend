@@ -91,7 +91,7 @@
       <section v-if="showInquiryPanel" class="panel panel--inquiry" id="inquiry">
         <div class="panel__header">
           <div>
-            <p class="panel__eyebrow">До бронювання</p>
+            <p class="panel__eyebrow">До запиту</p>
             <h2 class="panel__title">{{ inquiryLeadCopy.title }}</h2>
           </div>
         </div>
@@ -133,7 +133,7 @@
               v-model="inquiryDraft"
               class="input inquiry-composer__textarea"
               rows="4"
-              placeholder="Коротко опишіть, що хочете уточнити перед бронюванням."
+              placeholder="Коротко опишіть, що хочете уточнити перед запитом."
               :disabled="inquirySubmitting"
             ></textarea>
             <div class="muted inquiry-composer__hint">
@@ -155,8 +155,8 @@
         <div class="panel__header">
           <div>
             <p class="panel__eyebrow">Доступні вільні вікна</p>
-            <h2 class="panel__title">Оберіть дату і час</h2>
-            <p class="panel__lead">Оберіть доступне вікно у профілі. Запит потрапить спеціалісту на підтвердження.</p>
+            <h2 class="panel__title">Оберіть час для запиту</h2>
+            <p class="panel__lead">Оберіть доступне вікно у профілі. Спеціаліст має підтвердити цей час.</p>
           </div>
           <div v-if="showSlotHeaderActions" class="slot-request-actions">
             <button v-if="showDirectBookingRequestFallback" class="btn btn--ghost btn--sm" type="button" @click="handlePublicRequestAction">
@@ -262,15 +262,15 @@
             </div>
           </div>
 
-          <aside class="slot-info" aria-label="Умови бронювання">
-            <div class="slot-info__title">Перед записом</div>
+          <aside class="slot-info" aria-label="Умови запиту на час">
+            <div class="slot-info__title">Перед запитом на час</div>
             <div class="slot-info__subtitle">Умови спеціаліста</div>
             <p class="slot-info__summary">{{ specialistTermsReminderSummary }}</p>
             <ul class="slot-info__list">
               <li>Правила потрібно підтвердити один раз для цього спеціаліста.</li>
               <li>Якщо умови оновляться, система попросить підтвердити їх повторно.</li>
               <li>Оплата не списується автоматично.</li>
-              <li>Нагадування надходять після підтвердження.</li>
+              <li>Запит ще не є підтвердженою сесією. Нагадування надходять після підтвердження.</li>
             </ul>
           </aside>
         </div>
@@ -330,9 +330,9 @@
           v-if="shouldShowClientBookingRulesPrompt"
           ref="bookingRulesPromptRef"
           class="booking-gate booking-gate--pending"
-          aria-label="Правила перед записом"
+          aria-label="Правила перед запитом на час"
         >
-          <div class="booking-gate__title">Підтвердіть правила перед записом</div>
+          <div class="booking-gate__title">Підтвердіть правила перед запитом на час</div>
           <p class="booking-gate__text">{{ clientBookingRulesPromptText }}</p>
 
           <article v-if="pendingPlatformBookingRules.length" class="booking-rules-block">
@@ -387,11 +387,11 @@
             </ul>
           </article>
           <article class="flow-card">
-            <div class="flow-card__title">Що буде після запису</div>
+            <div class="flow-card__title">Що буде після запиту</div>
             <ul class="flow-card__list">
-              <li>Сесія з'явиться у вашому кабінеті клієнта.</li>
+              <li>Запит з'явиться у вашому кабінеті клієнта.</li>
               <li>Після підтвердження спеціаліста ви отримаєте нагадування.</li>
-              <li>За потреби зможете перенести або скасувати запис у кабінеті.</li>
+              <li>За потреби зможете перенести або скасувати запит у кабінеті.</li>
             </ul>
           </article>
         </div>
@@ -765,7 +765,7 @@
       <div class="setting-modal__backdrop" @click="closeClientBookingConfirmModal"></div>
       <div class="setting-modal__content booking-confirm-modal">
         <div class="setting-modal__header">
-          <h3>Підтвердження запису</h3>
+          <h3>Запит на час</h3>
           <button
             class="btn btn--ghost btn--sm"
             type="button"
@@ -822,14 +822,14 @@
       <div class="setting-modal__backdrop" @click="closeBookingModal"></div>
       <div class="setting-modal__content">
         <div class="setting-modal__header">
-          <h3>Ви успішно записалися</h3>
+          <h3>Запит на час надіслано</h3>
           <button class="btn btn--ghost btn--sm" type="button" @click="closeBookingModal">
             Закрити
           </button>
         </div>
         <div class="setting-modal__body">
           <div class="booking-confirm">
-            Слот заброньовано. Спеціаліст має підтвердити сесію, після цього статус оновиться у вашому кабінеті.
+            Спеціаліст має підтвердити цей час. Це ще не підтверджена сесія, після рішення статус оновиться у вашому кабінеті.
           </div>
           <div v-if="lastBookedSlot" class="booking-slot">
             <div class="muted">Дата і час сесії</div>
@@ -841,7 +841,7 @@
             <div class="booking-next__item">• Натискання на вільне вікно не списує оплату автоматично.</div>
             <div class="booking-next__item">• Перевіряйте статус і деталі у кабінеті клієнта.</div>
             <div class="booking-next__item">• Після підтвердження сесії сервіс нагадає про зустріч.</div>
-            <div class="booking-next__item">• Якщо плани зміняться, ви можете перенести або скасувати запис у деталях сесії.</div>
+            <div class="booking-next__item">• Якщо плани зміняться, ви можете перенести або скасувати запит у деталях сесії.</div>
           </div>
         </div>
         <div class="setting-modal__footer">
@@ -974,15 +974,15 @@ const GUEST_BOOKING_SLOT_NEXT_STEP_COPY =
 const REQUEST_GENERIC_CTA_LABEL = 'Залишити запит'
 const REQUEST_WITHOUT_SLOT_CTA_LABEL = 'Залишити запит без вибору часу'
 const CHOOSE_TIME_CTA_LABEL = 'Обрати час'
-const INQUIRY_BEFORE_BOOKING_CTA_LABEL = 'Поставити питання перед записом'
+const INQUIRY_BEFORE_BOOKING_CTA_LABEL = 'Поставити питання перед запитом'
 const REQUEST_CTA_HELPER_TEXT =
   'Опишіть коротко, з чим хочете звернутися. Спеціаліст відповість у кабінеті й допоможе узгодити формат та час.'
 const DIRECT_BOOKING_CTA_HELPER_TEXT =
-  'Оберіть доступне вікно у профілі. Запит потрапить спеціалісту на підтвердження.'
+  'Оберіть доступне вікно у профілі. Спеціаліст має підтвердити цей час.'
 const NO_SLOTS_REQUEST_HELPER_TEXT =
   'Наразі немає доступних вікон. Ви можете залишити запит, і спеціаліст узгодить час окремо.'
 const REQUEST_CTA_TOOLTIP_TEXT =
-  'Запит — якщо хочете консультацію. Питання — якщо потрібно щось уточнити перед записом.'
+  'Запит — якщо хочете консультацію. Питання — якщо потрібно щось уточнити перед запитом.'
 
 type ClientSession = {
   id: number
@@ -1247,19 +1247,19 @@ const requiresSpecialistRulesPrompt = computed(
 
 const clientBookingRulesPromptText = computed(() => {
   if (requiresPlatformRulesPrompt.value && requiresSpecialistRulesPrompt.value) {
-    return 'Щоб продовжити запис до цього спеціаліста, підтвердіть актуальні правила платформи та умови спеціаліста. Повторне підтвердження знадобиться лише тоді, якщо правила платформи або умови спеціаліста оновляться.'
+    return 'Щоб надіслати запит на час до цього спеціаліста, підтвердіть актуальні правила платформи та умови спеціаліста. Повторне підтвердження знадобиться лише тоді, якщо правила платформи або умови спеціаліста оновляться.'
   }
   if (requiresPlatformRulesPrompt.value) {
-    return 'Щоб продовжити запис до цього спеціаліста, підтвердіть актуальні правила платформи. Повторне підтвердження знадобиться лише тоді, якщо правила платформи оновляться.'
+    return 'Щоб надіслати запит на час до цього спеціаліста, підтвердіть актуальні правила платформи. Повторне підтвердження знадобиться лише тоді, якщо правила платформи оновляться.'
   }
   if (requiresSpecialistRulesPrompt.value) {
-    return 'Щоб продовжити запис до цього спеціаліста, підтвердіть актуальні умови спеціаліста. Повторне підтвердження знадобиться лише тоді, якщо умови спеціаліста оновляться.'
+    return 'Щоб надіслати запит на час до цього спеціаліста, підтвердіть актуальні умови спеціаліста. Повторне підтвердження знадобиться лише тоді, якщо умови спеціаліста оновляться.'
   }
-  return 'Щоб продовжити запис до цього спеціаліста, підтвердіть актуальні правила.'
+  return 'Щоб надіслати запит на час до цього спеціаліста, підтвердіть актуальні правила.'
 })
 
 const bookingRulesConfirmLabel = computed(() =>
-  bookingRulesAccepting.value ? 'Підтверджуємо правила...' : 'Підтвердити правила перед записом'
+  bookingRulesAccepting.value ? 'Підтверджуємо правила...' : 'Підтвердити правила перед запитом'
 )
 
 const guestBookingSubmitDisabled = computed(
@@ -1962,7 +1962,7 @@ const primaryActionNextStepCopy = computed(() => {
     return NO_SLOTS_REQUEST_HELPER_TEXT
   }
   if (isUnsupportedBookingRole.value) {
-    return 'Запис доступний у ролі клієнта. Натисніть кнопку, щоб переглянути доступні вікна.'
+    return 'Запит на час доступний у ролі клієнта. Натисніть кнопку, щоб переглянути доступні вікна.'
   }
   return DIRECT_BOOKING_CTA_HELPER_TEXT
 })
@@ -2601,9 +2601,9 @@ const clientBookingConfirmSubmitDisabled = computed(() => {
 
 const clientBookingConfirmSubmitLabel = computed(() => {
   const slot = clientBookingConfirmSlot.value
-  if (slot && bookingSlotId.value === slot.id) return 'Бронюємо...'
+  if (slot && bookingSlotId.value === slot.id) return 'Надсилаємо запит...'
   if (bookingRulesAccepting.value) return 'Підтверджуємо правила...'
-  return 'Підтвердити запис'
+  return 'Надіслати запит на цей час'
 })
 
 const isGuestBookingSlotRequest = computed(() => Boolean(guestBookingSuccess.value && guestBookingSlot.value))
@@ -2688,7 +2688,7 @@ const inquiryClarityCard = computed<{ title: string; body: string } | null>(() =
   }
   return {
     title: 'Уточнення перед рішенням',
-    body: 'Додавайте короткі уточнення по черзі. Після відповіді спеціаліста оберете, чи переходити до запису.',
+    body: 'Додавайте короткі уточнення по черзі. Після відповіді спеціаліста оберете, чи надсилати запит на час.',
   }
 })
 
@@ -3739,9 +3739,9 @@ async function submitGuestBookingRequest() {
 
 function slotActionLabel(slotId: number) {
   if (bookingRulesAccepting.value) return 'Підтверджуємо правила...'
-  if (bookingSlotId.value === slotId) return 'Бронюємо...'
+  if (bookingSlotId.value === slotId) return 'Надсилаємо запит...'
   if (guestBookingSubmitting.value && guestBookingSubmitSlotId.value === slotId) return 'Надсилаємо...'
-  return 'Записатися'
+  return 'Надіслати запит на цей час'
 }
 
 function focusBookingRulesPrompt() {
@@ -3771,7 +3771,7 @@ async function confirmClientBookingRules() {
       await bookSlot(slotIdToBook)
     }
   } catch (err: any) {
-    bookingError.value = getApiErrorMessage(err, 'Не вдалося підтвердити правила перед записом.')
+    bookingError.value = getApiErrorMessage(err, 'Не вдалося підтвердити правила перед запитом.')
     toast.error(bookingError.value)
   } finally {
     bookingRulesAccepting.value = false

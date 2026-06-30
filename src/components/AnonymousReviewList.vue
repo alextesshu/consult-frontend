@@ -1,12 +1,12 @@
 ﻿<template>
   <div>
-    <div v-if="loading" class="muted" style="margin-top: 12px;">Р—Р°РІР°РЅС‚Р°Р¶РµРЅРЅСЏ...</div>
+    <div v-if="loading" class="muted" style="margin-top: 12px;">Завантаження...</div>
     <div v-else-if="error" class="form-error" style="margin-top: 12px;">{{ error }}</div>
 
     <section v-else class="review-list">
       <div v-if="showCount && reviews.length > 0" class="review-stats">
         <div class="stat-chip">
-          РЈСЃСЊРѕРіРѕ: <strong>{{ reviews.length }}</strong>
+          Усього: <strong>{{ reviews.length }}</strong>
         </div>
       </div>
       <EmptyState
@@ -57,9 +57,9 @@ const props = withDefaults(defineProps<Props>(), {
   loading: false,
   error: '',
   showCount: true,
-  emptyTitle: 'РџРѕРєРё РЅРµРјР°С” РІС–РґРіСѓРєС–РІ',
-  emptyDescription: 'РљРѕР»Рё РєР»С–С”РЅС‚Рё Р·Р°Р»РёС€Р°С‚СЊ РІС–РґРіСѓРє РїС–СЃР»СЏ СЃРїС–РІРїСЂР°С†С–, РІС–РЅ Р·вЂ™СЏРІРёС‚СЊСЃСЏ С‚СѓС‚.',
-  emptyActionText: 'Р’С–РґРєСЂРёС‚Рё РїСЂРѕС„С–Р»СЊ',
+  emptyTitle: 'Поки немає відгуків',
+  emptyDescription: 'Коли клієнти залишать відгук після співпраці, він зʼявиться тут.',
+  emptyActionText: 'Відкрити профіль',
   emptyActionTo: '/cabinet/profile',
 })
 
@@ -114,4 +114,3 @@ function formatDate(value: string) {
   }
 }
 </style>
-

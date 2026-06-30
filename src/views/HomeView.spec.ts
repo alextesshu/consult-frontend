@@ -1,4 +1,4 @@
-﻿import { fireEvent, render, screen, waitFor, within } from '@testing-library/vue'
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/vue'
 import { createPinia, setActivePinia } from 'pinia'
 import { createMemoryHistory, createRouter } from 'vue-router'
 import { describe, expect, it } from 'vitest'
@@ -66,7 +66,7 @@ describe('HomeView', () => {
     ).toBeInTheDocument()
     expect(screen.getByText(/Створіть сторінку спеціаліста/)).toBeInTheDocument()
     expect(screen.getByText(/звернення без реєстрації клієнта/)).toBeInTheDocument()
-    expect(screen.getByText(/ведіть сесії, календар, нотатки й матеріали/)).toBeInTheDocument()
+    expect(screen.getByText(/ведіть сесії, календар, приватні нотатки й клієнтські матеріали/)).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Створити безкоштовний профіль' })).toHaveAttribute(
       'href',
       '/signup'

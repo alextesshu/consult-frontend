@@ -373,7 +373,7 @@ describe('ExternalSessionsView', () => {
     expect(options[0]).toBe('00:00')
     expect(options[1]).toBe('00:15')
     expect(options[95]).toBe('23:45')
-    expect(screen.getAllByText('Сесії без реєстрації').length).toBeGreaterThan(0)
+    expect(screen.getByRole('heading', { name: 'Запити та сесії без реєстрації' })).toBeInTheDocument()
     expect(detailLink).toHaveAttribute('href', '/cabinet/external-sessions/8')
     expect(container.querySelector('.external-sessions')).not.toHaveClass('external-sessions--requests-first')
     expect(container.querySelector('#guest-requests')).toBeInTheDocument()

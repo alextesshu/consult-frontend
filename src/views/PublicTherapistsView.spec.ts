@@ -167,9 +167,14 @@ describe('PublicTherapistsView', () => {
     renderView()
 
     const pageText = document.body.textContent || ''
+    expect(
+      screen.getByText(
+        'Тут показані лише профілі, які спеціалісти відкрили для публічного пошуку. Порядок результатів не є рейтингом.'
+      )
+    ).toBeInTheDocument()
     expect(pageText).not.toContain('каталог спеціалістів')
     expect(pageText).not.toContain('оберіть найкращого')
-    expect(pageText).not.toContain('рейтинг')
+    expect(pageText).not.toContain('рейтинг спеціалістів')
     expect(pageText).not.toContain('порівняйте спеціалістів')
     expect(pageText).not.toContain('знайдіть психолога для себе')
     expect(pageText).not.toContain('/tour')

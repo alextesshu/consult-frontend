@@ -12,6 +12,9 @@
     </header>
 
     <section class="card">
+      <p class="muted">
+        Тут показані лише профілі, які спеціалісти відкрили для публічного пошуку. Порядок результатів не є рейтингом.
+      </p>
       <form class="finder-form" @submit.prevent="submitSearch">
         <label class="finder-form__field" for="specialist-search-input">
           <span class="finder-form__label">Пошук профілю</span>

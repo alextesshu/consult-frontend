@@ -306,6 +306,7 @@
               class="specialist-sidebar__link"
               :class="{ 'is-active': isSpecialistSidebarItemActive(item) }"
               :to="item.to"
+              :title="item.title || item.label"
             >
               <span class="specialist-sidebar__link-label">{{ item.label }}</span>
               <span v-if="item.badge" class="specialist-sidebar__badge" aria-hidden="true">{{ item.badge }}</span>
@@ -364,6 +365,7 @@
                   class="specialist-sidebar__link"
                   :class="{ 'is-active': isSpecialistSidebarItemActive(item) }"
                   :to="item.to"
+                  :title="item.title || item.label"
                   @click="closeSpecialistSidebarDrawer"
                 >
                   <span class="specialist-sidebar__link-label">{{ item.label }}</span>
@@ -546,6 +548,7 @@ const hasSupportedCabinetRole = computed(() => isSpecialist.value || isClient.va
 const isChatCapable = computed(() => isSpecialist.value || isClient.value)
 type SpecialistSidebarItem = {
   label: string
+  title?: string
   to: string
   match: string[]
   exact?: boolean
@@ -561,7 +564,12 @@ const specialistSidebarBaseItems: SpecialistSidebarItem[] = [
     match: ['/cabinet/schedule', '/cabinet/slots', '/cabinet/availability-rules', '/cabinet/availability-exceptions'],
   },
   { label: 'Сесії', to: '/cabinet/sessions', match: ['/cabinet/sessions'] },
-  { label: 'Запити', to: '/cabinet/external-sessions#guest-requests', match: ['/cabinet/external-sessions', '/cabinet/inquiries'] },
+  {
+    label: 'Запити',
+    title: 'Запити, що очікують рішення',
+    to: '/cabinet/external-sessions#guest-requests',
+    match: ['/cabinet/external-sessions', '/cabinet/inquiries'],
+  },
   { label: 'Задачі', to: '/cabinet/practice-board', match: ['/cabinet/practice-board'] },
   { label: 'Клієнти', to: '/cabinet/clients', match: ['/cabinet/clients'] },
   { label: 'Відгуки', to: '/cabinet/reviews', match: ['/cabinet/reviews'] },

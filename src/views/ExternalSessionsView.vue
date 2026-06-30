@@ -2,9 +2,9 @@
   <section class="external-sessions" :class="{ 'external-sessions--requests-first': hasPendingGuestRequests }">
     <header class="external-sessions__hero">
       <div>
-        <h1 class="title external-sessions__title">Сесії без реєстрації</h1>
+        <h1 class="title external-sessions__title">Запити та сесії без реєстрації</h1>
         <p class="muted external-sessions__subtitle">
-          Окремий сценарій для сесій із клієнтами, які записуються без створення акаунта.
+          Окремий сценарій для запитів і сесій із клієнтами, які звертаються без створення акаунта.
         </p>
       </div>
       <RouterLink class="btn btn--ghost" to="/cabinet/sessions">Назад до сесій</RouterLink>
@@ -149,6 +149,9 @@
         <div class="panel__header">
           <div>
             <h2 class="panel__title">Запити без реєстрації</h2>
+            <p class="muted">
+              Нові запити очікують вашого рішення: підтвердьте час, запропонуйте інший варіант або закрийте запит.
+            </p>
           </div>
         </div>
 
