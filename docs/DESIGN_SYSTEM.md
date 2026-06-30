@@ -33,7 +33,29 @@ PRO CONSULT is a professional workspace for independent specialists who run a pr
 
 Main product idea:
 
-> Простір для спеціалістів приватної практики: профіль, онлайн-запис, сесії, клієнти, оплати й робочі матеріали в одній системі — без комісій з оплат.
+> Простір для спеціалістів приватної практики: публічний профіль, клієнтські запити, сесії, клієнтські записи, робочі матеріали й процеси в одній системі — без комісій з консультацій.
+
+U2.5 product frame:
+
+PRO CONSULT combines specialist public presence, ethical opt-in discovery,
+no-registration client requests, slot-based and slotless request flows,
+scheduling and sessions, client records, private specialist workspace,
+explicitly published client materials, blog/publications, tasks, and practice
+workflow.
+
+Public specialist profile is a landing/presence surface controlled by the
+specialist. `/specialists` is opt-in discovery/profile search, not an
+aggressive marketplace. Product and design copy must not imply ratings, "top
+specialists", paid ranking, commission from consultations, guaranteed clients,
+or platform verification of specialist quality.
+
+Request-first UX is the default public-profile posture. Selecting an available
+window or leaving a request without selected time creates a request for the
+specialist to review; it is not an automatically confirmed session.
+
+Private notes, private notebook/workbook, internal client records, and practice
+board content remain specialist-only. Client-visible materials are explicit
+published artifacts and must not be described as shared private notes.
 
 ### Target users
 
@@ -849,7 +871,7 @@ This table defines the safe direction for visual migration.
 | Page                             |         Current status | Priority | Risk level | Migration approach                                        | Notes                                                                                                |
 | -------------------------------- | ---------------------: | -------: | ---------: | --------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
 | Home                             |            Implemented |     High |     Medium | Align with new public-page visual system                  | Preserve current CTA logic, pricing copy, route links                                                |
-| Pricing / Billing public section | Implemented / evolving |     High |       High | Polish visuals only after confirming current tariff truth | Actual tariffs: Start free, Pro 990 грн/month, Leader 2490 грн/month unless product decision changes |
+| Pricing / Billing public section | Implemented / evolving |     High |       High | Polish visuals only after confirming current tariff truth | Follow current beta/access and tariff docs; do not invent speculative prices |
 | Public specialist profile        |            Implemented |     High |       High | Improve layout, trust markers, CTA clarity                | Do not break booking flow, slug route, visibility rules                                              |
 | Specialist cabinet / dashboard   |            Implemented |     High |       High | Gradually improve dashboard cards and work queue          | Preserve onboarding, entitlements, role logic                                                        |
 | Sessions list                    |            Implemented |     High |       High | Improve visual grouping and status badges                 | Do not break filters, status logic, payment badges                                                   |

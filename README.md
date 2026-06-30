@@ -4,6 +4,19 @@ Vue 3 + Vite + TypeScript + Pinia + Vue Router.
 
 ![Frontend CI](https://github.com/alextesshu/consult-frontend/actions/workflows/ci.yml/badge.svg?branch=dev)
 
+## Product Frame
+
+Pro Consult is a practice platform for specialists: professional public
+presence, ethical opt-in discovery, no-registration requests, scheduling,
+sessions, client records, private specialist workspace, explicitly published
+client materials, blog/publications, tasks, and practice workflow.
+
+Public discovery is not a marketplace ranking surface. The frontend must not
+introduce ratings, "top specialists", paid ranking, commission, or
+guaranteed-client language. Specialists control public profile visibility.
+Private notes, private notebook/workbook, and internal client records remain
+specialist-only; client-visible materials are explicit published artifacts.
+
 ## Requirements
 
 - Node.js 20.9+ (Vite 5)
@@ -51,11 +64,11 @@ npm run test:run
 - `/cabinet/profile` — Specialist profile management
 - `/cabinet/analytics` — Specialist analytics overview (Leader-gated insights)
 - `/cabinet/group-events` — Group events (full lifecycle + participants + invites)
-- `/cabinet/slots` — Slots (create/edit/delete)
+- `/cabinet/slots` — Schedule and public availability windows
 - `/cabinet/sessions` — Specialist sessions (actions + notes + reschedule requests)
 - `/cabinet/sessions/:id` — Specialist session detail
 - `/cabinet/reviews` — Specialist reviews moderation
-- `/cabinet/clients` — Specialist CRM (clients + archive/restore)
+- `/cabinet/clients` — Specialist client records (clients + archive/restore)
 - `/cabinet/billing` — Plans & access, including active client limit increase requests
 - `/client` — Client dashboard (sessions + selected/viewed specialist)
 - `/client/inquiries/:specialistId` — Client inquiry redirect to the public specialist inquiry surface
@@ -64,9 +77,10 @@ npm run test:run
 - `/client/therapists` — Legacy alias for specialists list
 - `/client/group-events/:id` — Client group event detail
 - `/invite/:token` — Group invite join (client acceptance flow)
-- `/public` — Redirect to `/t/:slug` (auto via profile)
-- `/t/:slug` — Public specialist profile + booking
-- `/specialists` — Public specialists catalog
+- `/public` — Redirect to the current user's canonical public profile when available
+- `/s/:slug` — Canonical public specialist profile / specialist landing page
+- `/t/:slug` — Legacy public profile alias, compatibility-only
+- `/specialists` — Ethical opt-in specialist discovery/profile search
 - `/therapists` — Legacy alias for specialists catalog
 
 ## Auth
@@ -90,22 +104,24 @@ Session is silently restored on page reload via cookie-based refresh (`/api/auth
 - **ClientDashboardView**: client sessions list + selected/viewed specialists + explicit loading/error/empty prep for priority, upcoming/past sessions, and group events
 - **ClientDashboardView**: upcoming online sessions now surface external meeting badges and `Приєднатися` CTA when backend payload includes `meeting_url`
 - **ClientSessionDetailView**: client cancel + reschedule request + reviews + external join CTA/copy link + follow-up booking CTA after completed/cancelled sessions
-- **ClientTherapistsView**: specialist list + open profile + intro price in cards + explicit empty/error states
+- **ClientTherapistsView**: specialist list + open profile + intro price in cards + explicit empty/error states (legacy file name)
 - **ClientGroupEventView**: client-facing group event detail
-- **SlotsView**: create/edit/delete slots + fill day/week + date navigation
+- **SlotsView**: schedule surface plus public availability window management
 - **GroupEventsView**: full group lifecycle (create/schedule/start/complete/cancel), participants (roles/status), invites
 - **TherapistSessionsView**: specialist actions + notes + reschedule requests + status/date filters
 - **TherapistSessionDetailView**: specialist session detail with status actions, recurring flow, request context, private note, and external meeting-link context
 - **TherapistReviewsView**: specialist review moderation (approve/hide/respond) + filters
-- **TherapistClientsView**: specialist CRM with archive/restore
+- **TherapistClientsView**: specialist client records with archive/restore
 - **BillingView**: plans + access state + per-plan upgrade request (manual billing) + active client limit increase request UI
 - **TherapistProfileView**: step-by-step profile editor, media upload preview, visibility toggles, public link
   - standard price + intro price (duration + currency)
   - visibility toggles: `show_price`, `show_intro_price`
 - **PublicProfileView**: landing-style public profile + booking + trust/about/contact blocks + journal preview
   - setting acceptance is surfaced as an explicit booking gate directly above slot actions
+- **Public request UX**: request-first public profile flow; `Обрати час` submits a request for a selected public availability window, while `Залишити запит без вибору часу` creates a request without selected time. A request is not an automatically confirmed session.
 - **Booking/session error contract**: prepared frontend booking/session surfaces now consume backend `code` / `reason_code` first and keep `detail` only as a fallback
-- **PublicTherapistsView**: public specialists catalog with server-side filters + intro price in cards + explicit in-view load/error/empty branches
+- **PublicTherapistsView**: opt-in public specialist discovery/profile search with server-side filters + intro price in cards + explicit in-view load/error/empty branches (legacy file name)
+- **ExternalSessionsView**: includes `/cabinet/external-sessions#guest-requests`, the specialist request queue for no-registration/public guest requests.
 - **LoginView / SignupView**: redesigned auth pages
 - **System**: global toast/notification layer, notification bell with unread state, explicit reschedule notification copy, canonical inquiry notification copy, reminder-driven external join CTA when payload includes `meeting_url`, role-aware session/inquiry routing, 404/403 pages, empty states, loading skeletons
 - **Invites**: group invite join page with consent + status messaging
@@ -120,7 +136,7 @@ Session is silently restored on page reload via cookie-based refresh (`/api/auth
 
 - Participant list filtering (role/status), invite link copy, and inline moderation cues
 
-### Specialist CRM
+### Specialist client records
 
 - Bulk actions and richer client profile view
 
@@ -142,12 +158,25 @@ Session is silently restored on page reload via cookie-based refresh (`/api/auth
 
 - Non-home pages are constrained to 80% width.
 - Parallax layers live in `src/assets/parallax/`.
-- Public profile data is fetched from `/api/public/specialists/{slug}/` (legacy alias: `/api/public/therapists/{slug}/`).
+- Public profile data is fetched from canonical `GET /api/s/{slug}/`.
+  Legacy aliases `/api/public/specialists/{slug}/` and
+  `/api/public/therapists/{slug}/` are compatibility-only.
+- `/specialists` is opt-in discovery/profile search, not marketplace ranking.
+  Do not add ratings, "top specialists", paid placement, or guaranteed-client
+  language.
+- `/cabinet/external-sessions#guest-requests` is the request queue for
+  no-registration/public guest requests.
+- Specialist sidebar `Запити` badge shows all pending guest requests awaiting
+  specialist decision. It should use `pending_guest_requests_count`, not unread
+  notification count and not slotless-only count.
 - Public-facing specialist name uses `First L.` format.
 - Keep files saved in UTF-8 to avoid broken Ukrainian text.
 - Analytics contract for the cabinet view is centralized in `src/lib/analytics.ts`.
 - Backend interprets `date`, `date_from`, `date_to` filters as UTC day boundaries (send `YYYY-MM-DD` in UTC).
 - Billing upgrade requests call `POST /api/billing/request-access/` with `requested_plan`.
+- Public pricing/landing copy must follow the currently implemented tariff and
+  beta-access contracts; do not introduce speculative future prices or payment
+  promises in frontend docs or copy.
 - Active client limit increase requests call
   `POST /api/cabinet/active-client-limit-increase-requests/` with
   `requested_extra_slots` and optional `specialist_note`.
@@ -198,5 +227,5 @@ and `/admin/logout/...` must remain backend routes.
 ## Next Focus
 
 1. Privacy Policy / confidentiality / support contact flow polish
-2. Specialist CRM depth: bulk actions and richer client profile view
+2. Specialist client records depth: bulk actions and richer client profile view
 3. Broader empty/loading/error normalization for remaining non-booking views

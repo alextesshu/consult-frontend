@@ -123,9 +123,44 @@ When mockups conflict with implemented product logic, the implemented product lo
 
 ---
 
-## 5. Current Tariff Truth
+## 5. U2.5 Product Frame and Guardrails
 
-As of the current product decision:
+Visual migration must preserve the current Pro Consult product frame:
+
+* specialist public presence through a public profile / landing surface
+* ethical opt-in discovery through `/specialists`
+* no-registration client requests
+* slot-based and slotless request flows
+* scheduling and sessions
+* client records
+* private specialist workspace
+* client materials explicitly published by the specialist
+* blog/publications
+* tasks and practice workflow
+
+Do not turn discovery or public profile polish into marketplace UX. Avoid:
+
+* ratings
+* "top specialists"
+* paid ranking
+* quality ranking
+* commission language
+* guaranteed-client or guaranteed-demand language
+* wording that implies Pro Consult verifies specialist quality
+
+Request-first UX must remain clear: selecting a public availability window or
+leaving a request without selected time creates a request for specialist review,
+not an automatically confirmed session.
+
+Private notes, private notebook/workbook, internal client records, and practice
+tasks remain specialist-only. Client-visible materials are explicit published
+artifacts and must not be described as shared private notes.
+
+### 5.1 Current Tariff Truth
+
+As of the current product decision. Validate this section against implemented
+frontend/backend billing contracts before changing pricing UI; do not treat
+mockups or old notes as pricing truth:
 
 ### Start
 
@@ -135,12 +170,12 @@ As of the current product decision:
 ### Pro
 
 * 990 грн / month
-* 9,900 грн / year
+* 9 900 грн / year
 
 ### Leader
 
-* 2,490 грн / month
-* 24,900 грн / year
+* 2 490 грн / month
+* 24 900 грн / year
 * self-service may be disabled during beta depending on backend rules
 
 Do not use old generated prices such as:
