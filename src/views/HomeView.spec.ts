@@ -118,7 +118,9 @@ describe('HomeView', () => {
     expect(screen.getByText('Отримуйте запити')).toBeInTheDocument()
     expect(screen.getByText('Плануйте сесії')).toBeInTheDocument()
     expect(screen.getByText('Розвивайте довіру')).toBeInTheDocument()
-    expect(screen.getByText(/Доступний час для прямого запису можна додати за потреби/)).toBeInTheDocument()
+    expect(
+      screen.getByText(/Доступний час, який клієнти можуть обрати під час запиту, можна додати за потреби/)
+    ).toBeInTheDocument()
     expect(screen.getAllByText('Без комісій з консультацій').length).toBeGreaterThan(0)
     expect(screen.getByText('Профіль публікується тільки після вашого рішення')).toBeInTheDocument()
     expect(screen.getByText('Клієнт може залишити запит без реєстрації')).toBeInTheDocument()

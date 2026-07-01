@@ -42,6 +42,18 @@ const mockedMovePracticeBoardItem = vi.mocked(movePracticeBoardItem)
 const mockedUpdatePracticeBoardItem = vi.mocked(updatePracticeBoardItem)
 const mockedArchivePracticeBoardItem = vi.mocked(archivePracticeBoardItem)
 
+function renderPracticeBoard() {
+  return render(SpecialistPracticeBoardView, {
+    global: {
+      stubs: {
+        RouterLink: {
+          template: '<a><slot /></a>',
+        },
+      },
+    },
+  })
+}
+
 function buildBoards() {
   return [
     { id: 1, title: 'Основна дошка', is_default: true },
@@ -83,7 +95,7 @@ describe('SpecialistPracticeBoardView', () => {
     mockedFetchPracticeBoards.mockResolvedValue(buildBoards() as any)
     mockedFetchPracticeBoardItems.mockResolvedValue(buildColumns())
 
-    const { container } = render(SpecialistPracticeBoardView)
+    const { container } = renderPracticeBoard()
 
     expect(await screen.findByRole('heading', { level: 1, name: 'Задачі' })).toBeInTheDocument()
     expect(screen.getByText('ЗАДАЧІ')).toBeInTheDocument()
@@ -105,7 +117,7 @@ describe('SpecialistPracticeBoardView', () => {
     ] as any)
     mockedFetchPracticeBoardItems.mockResolvedValue(buildColumns())
 
-    render(SpecialistPracticeBoardView)
+    renderPracticeBoard()
     await screen.findByText('Todo task')
 
     expect(mockedFetchPracticeBoardItems).toHaveBeenCalledWith('11')
@@ -115,7 +127,7 @@ describe('SpecialistPracticeBoardView', () => {
     mockedFetchPracticeBoards.mockResolvedValue([])
     mockedFetchPracticeBoardItems.mockResolvedValue(buildColumns())
 
-    render(SpecialistPracticeBoardView)
+    renderPracticeBoard()
 
     expect(await screen.findByText('Поки що немає списків')).toBeInTheDocument()
     expect(mockedFetchPracticeBoardItems).not.toHaveBeenCalled()
@@ -139,7 +151,7 @@ describe('SpecialistPracticeBoardView', () => {
         done: [],
       } as any)
 
-    render(SpecialistPracticeBoardView)
+    renderPracticeBoard()
     expect(await screen.findByText('Todo task')).toBeInTheDocument()
 
     await fireEvent.click(screen.getByRole('button', { name: 'Дошка follow-up' }))
@@ -152,7 +164,7 @@ describe('SpecialistPracticeBoardView', () => {
     mockedFetchPracticeBoardItems.mockResolvedValue(buildColumns())
     mockedCreatePracticeBoardItem.mockResolvedValue({ id: 5 } as any)
 
-    render(SpecialistPracticeBoardView)
+    renderPracticeBoard()
     expect(await screen.findByText('Todo task')).toBeInTheDocument()
 
     await fireEvent.click(screen.getByRole('button', { name: 'Створити задачу' }))
@@ -179,7 +191,7 @@ describe('SpecialistPracticeBoardView', () => {
     mockedFetchPracticeBoardItems.mockResolvedValue(buildColumns())
     mockedCreatePracticeBoard.mockResolvedValue({ id: 8, title: 'Тиждень', is_default: false } as any)
 
-    render(SpecialistPracticeBoardView)
+    renderPracticeBoard()
     await screen.findByText('Todo task')
 
     await fireEvent.click(screen.getByRole('button', { name: 'Створити список' }))
@@ -197,7 +209,7 @@ describe('SpecialistPracticeBoardView', () => {
     mockedFetchPracticeBoardItems.mockResolvedValue(buildColumns())
     mockedUpdatePracticeBoard.mockResolvedValue({ id: 1, title: 'Оновлена', is_default: true } as any)
 
-    render(SpecialistPracticeBoardView)
+    renderPracticeBoard()
     await screen.findByText('Todo task')
 
     await fireEvent.click(screen.getByRole('button', { name: 'Редагувати назву' }))
@@ -214,7 +226,7 @@ describe('SpecialistPracticeBoardView', () => {
       response: { status: 409, data: { code: 'BOARD_LIMIT_REACHED' } },
     })
 
-    render(SpecialistPracticeBoardView)
+    renderPracticeBoard()
     await screen.findByText('Todo task')
 
     await fireEvent.click(screen.getByRole('button', { name: 'Створити список' }))
@@ -228,7 +240,7 @@ describe('SpecialistPracticeBoardView', () => {
     mockedFetchPracticeBoards.mockResolvedValue([{ id: 1, title: 'Єдина дошка', is_default: true }] as any)
     mockedFetchPracticeBoardItems.mockResolvedValue(buildColumns())
 
-    const { container } = render(SpecialistPracticeBoardView)
+    const { container } = renderPracticeBoard()
     await screen.findByText('Todo task')
 
     expect(container.querySelectorAll('.practice-board__board-chip').length).toBe(0)
@@ -239,7 +251,7 @@ describe('SpecialistPracticeBoardView', () => {
     mockedFetchPracticeBoards.mockResolvedValue([{ id: 1, title: 'Board', is_default: true }] as any)
     mockedFetchPracticeBoardItems.mockResolvedValue(buildColumns())
 
-    const { container } = render(SpecialistPracticeBoardView)
+    const { container } = renderPracticeBoard()
     await screen.findByText('Todo task')
 
     expect(container.querySelector('.practice-board__boards .panel__title')?.textContent).toContain('Основний список')
@@ -250,7 +262,7 @@ describe('SpecialistPracticeBoardView', () => {
     mockedFetchPracticeBoards.mockResolvedValue(buildBoards() as any)
     mockedFetchPracticeBoardItems.mockResolvedValue(buildColumns())
 
-    render(SpecialistPracticeBoardView)
+    renderPracticeBoard()
     await screen.findByText('Todo task')
 
     await fireEvent.click(screen.getByRole('button', { name: 'Створити список' }))
@@ -284,7 +296,7 @@ describe('SpecialistPracticeBoardView', () => {
       done: [],
     } as any)
 
-    render(SpecialistPracticeBoardView)
+    renderPracticeBoard()
     await screen.findByText('Session fallback task')
 
     expect(screen.getByText('Задача з сесії')).toBeInTheDocument()
@@ -300,7 +312,7 @@ describe('SpecialistPracticeBoardView', () => {
     mockedUpdatePracticeBoardItem.mockResolvedValue({} as any)
     mockedArchivePracticeBoardItem.mockResolvedValue({} as any)
 
-    const { container } = render(SpecialistPracticeBoardView)
+    const { container } = renderPracticeBoard()
     await screen.findByText('Todo task')
 
     await fireEvent.click(screen.getByRole('button', { name: 'Взяти в роботу' }))
