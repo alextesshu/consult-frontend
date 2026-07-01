@@ -431,7 +431,7 @@ describe('PublicProfileView', () => {
     expect(screen.queryByText('Профіль спеціаліста')).not.toBeInTheDocument()
     expect(screen.queryByText('Швидкий огляд')).not.toBeInTheDocument()
     const bookingCard = within(screen.getByTestId('public-profile-booking-card'))
-    expect(bookingCard.getByRole('heading', { name: 'Оберіть час' })).toBeInTheDocument()
+    expect(bookingCard.getByRole('heading', { name: 'Оберіть формат' })).toBeInTheDocument()
     expect(screen.getByText('Документи та сертифікати')).toBeInTheDocument()
     expect(screen.getByText('Сертифікат CBT')).toBeInTheDocument()
     expect(screen.getByText('Контакти спеціаліста')).toBeInTheDocument()
@@ -3210,7 +3210,7 @@ describe('PublicProfileView', () => {
 
     expect(await screen.findByRole('heading', { name: 'Оберіть час для запиту' })).toBeInTheDocument()
     const bookingCard = within(screen.getByTestId('public-profile-booking-card'))
-    expect(bookingCard.getByRole('heading', { name: 'Оберіть час' })).toBeInTheDocument()
+    expect(bookingCard.getByRole('heading', { name: 'Оберіть формат' })).toBeInTheDocument()
     expect(bookingCard.getByRole('button', { name: 'Обрати час' })).toBeInTheDocument()
     expect(bookingCard.getByRole('button', { name: 'Залишити запит без вибору часу' })).toBeInTheDocument()
     expect(bookingCard.queryByRole('button', { name: 'Залишити запит' })).not.toBeInTheDocument()
@@ -3233,7 +3233,7 @@ describe('PublicProfileView', () => {
     renderView()
 
     const bookingCard = within(await screen.findByTestId('public-profile-booking-card'))
-    expect(bookingCard.getByRole('heading', { name: 'Оберіть час' })).toBeInTheDocument()
+    expect(bookingCard.getByRole('heading', { name: 'Оберіть формат' })).toBeInTheDocument()
     expect(bookingCard.getByRole('button', { name: 'Обрати час' })).toBeInTheDocument()
     expect(bookingCard.queryByRole('button', { name: 'Залишити запит' })).not.toBeInTheDocument()
     expect(
@@ -3271,7 +3271,7 @@ describe('PublicProfileView', () => {
       renderView()
 
       const bookingCard = within(await screen.findByTestId('public-profile-booking-card'))
-      expect(bookingCard.getByRole('heading', { name: 'Оберіть час' })).toBeInTheDocument()
+      expect(bookingCard.getByRole('heading', { name: 'Оберіть формат' })).toBeInTheDocument()
       expect(bookingCard.getByRole('button', { name: 'Обрати час' })).toBeInTheDocument()
       expect(bookingCard.queryByRole('heading', { name: 'Немає доступних вікон' })).not.toBeInTheDocument()
       expect(bookingCard.queryByRole('button', { name: 'Залишити запит' })).not.toBeInTheDocument()
@@ -4022,7 +4022,7 @@ describe('PublicProfileView', () => {
     renderView()
 
     const bookingCard = within(await screen.findByTestId('public-profile-booking-card'))
-    expect(bookingCard.getByRole('heading', { name: 'Оберіть час' })).toBeInTheDocument()
+    expect(bookingCard.getByRole('heading', { name: 'Оберіть формат' })).toBeInTheDocument()
     expect(await screen.findByText('Коротке питання перед запитом')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Поставити питання перед запитом' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Поставити запитання' })).not.toBeInTheDocument()

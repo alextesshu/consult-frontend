@@ -2005,7 +2005,7 @@ const heroCtaTitle = computed(() => {
   if (canMessageSpecialist.value) return 'Продовжити спілкування'
   if (showDirectBookingRequestFallback.value) return 'Немає доступних вікон'
   if (!publicDirectBookingEnabled.value) return 'Залиште запит'
-  return 'Оберіть час'
+  return 'Оберіть формат'
 })
 const heroPrimaryLabel = computed(() => {
   if (!publicDirectBookingEnabled.value || showDirectBookingRequestFallback.value) return REQUEST_GENERIC_CTA_LABEL
