@@ -116,27 +116,29 @@ They are not truth for:
 * user roles
 * business rules
 * payment flow
-* booking flow
+* request-to-session flow
 * notification rules
 
 When mockups conflict with implemented product logic, the implemented product logic wins.
 
 ---
 
-## 5. U2.5 Product Frame and Guardrails
+## 5. U2.7C Product Frame and Guardrails
 
 Visual migration must preserve the current Pro Consult product frame:
 
 * specialist public presence through a public profile / landing surface
 * ethical opt-in discovery through `/specialists`
 * no-registration client requests
-* slot-based and slotless request flows
-* scheduling and sessions
+* request-to-session workflow for slot-based and slotless requests
+* calendar and available time for requests
+* session management
 * client records
 * private specialist workspace
 * client materials explicitly published by the specialist
 * blog/publications
 * tasks and practice workflow
+* payment-status boundaries
 
 Do not turn discovery or public profile polish into marketplace UX. Avoid:
 
@@ -151,6 +153,8 @@ Do not turn discovery or public profile polish into marketplace UX. Avoid:
 Request-first UX must remain clear: selecting a public availability window or
 leaving a request without selected time creates a request for specialist review,
 not an automatically confirmed session.
+Session readiness confirmation and payment proof/status are separate lifecycle
+states.
 
 Private notes, private notebook/workbook, internal client records, and practice
 tasks remain specialist-only. Client-visible materials are explicit published
@@ -194,7 +198,7 @@ unless the product decision is explicitly changed.
 | ------------------------- | ---------------------------------------------------- | ---------------------: | -------: | -----: | ---------------------------------------------------------------------- |
 | Home                      | `/`                                                  |            Implemented |     High | Medium | Align with new public landing style, preserve CTA and navigation logic |
 | Pricing / tariffs         | public pricing area + `/cabinet/billing` related CTA | Implemented / evolving |     High |   High | Polish visuals only after confirming tariff truth                      |
-| Public specialist profile | `/s/:slug`                                           |            Implemented |     High |   High | Improve trust, profile layout, booking clarity                         |
+| Public specialist profile | `/s/:slug`                                           |            Implemented |     High |   High | Improve trust, profile layout, request clarity                         |
 | Specialist dashboard      | `/cabinet`                                           |            Implemented |     High |   High | Improve cockpit layout, cards, work queue, quick actions               |
 | Sessions list             | `/cabinet/sessions`                                  |            Implemented |     High |   High | Improve status readability and grouping                                |
 | Session detail            | session detail route                                 |            Implemented |     High |   High | Polish panels/actions, preserve lifecycle logic                        |
@@ -311,7 +315,7 @@ Public pages affect:
 * conversion
 * product perception
 * onboarding of new specialists
-* client confidence before booking
+* client confidence before sending a request
 
 ### Safety rules
 
@@ -320,7 +324,7 @@ Preserve:
 * links
 * CTA targets
 * public profile slug logic
-* booking flow
+* request/session flow
 * tariff truth
 * auth redirects
 * responsive header behavior
@@ -393,7 +397,7 @@ These pages directly affect daily product usefulness.
 ### Must preserve
 
 * session lifecycle
-* booking statuses
+* request/session statuses
 * payment statuses
 * note/workbook flow
 * returnTo navigation flow
@@ -556,7 +560,7 @@ Polish Public Specialist Profile.
 
 Reason:
 
-* directly affects client trust and booking conversion
+* directly affects client trust and request conversion
 
 ### Step 6
 

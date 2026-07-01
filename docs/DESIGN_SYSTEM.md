@@ -35,13 +35,14 @@ Main product idea:
 
 > Простір для спеціалістів приватної практики: публічний профіль, клієнтські запити, сесії, клієнтські записи, робочі матеріали й процеси в одній системі — без комісій з консультацій.
 
-U2.5 product frame:
+U2.7C product frame:
 
 PRO CONSULT combines specialist public presence, ethical opt-in discovery,
-no-registration client requests, slot-based and slotless request flows,
-scheduling and sessions, client records, private specialist workspace,
-explicitly published client materials, blog/publications, tasks, and practice
-workflow.
+no-registration client requests, request-to-session workflow for slot-based and
+slotless requests, calendar and available time for requests, session
+management, client records, private specialist workspace, explicitly published
+client materials, blog/publications, tasks, practice workflow, and
+payment-status boundaries.
 
 Public specialist profile is a landing/presence surface controlled by the
 specialist. `/specialists` is opt-in discovery/profile search, not an
@@ -52,6 +53,7 @@ or platform verification of specialist quality.
 Request-first UX is the default public-profile posture. Selecting an available
 window or leaving a request without selected time creates a request for the
 specialist to review; it is not an automatically confirmed session.
+Session readiness confirmation and payment proof/status are separate states.
 
 Private notes, private notebook/workbook, internal client records, and practice
 board content remain specialist-only. Client-visible materials are explicit
@@ -70,7 +72,7 @@ Primary users:
 
 Secondary users:
 
-- clients booking sessions
+- clients submitting requests and attending sessions
 - guests using external session links
 - admins managing platform access and billing
 
@@ -172,7 +174,7 @@ Do not casually change:
 - user roles
 - session lifecycle logic
 - payment logic
-- booking logic
+- request/session logic
 - notification logic
 - validation rules
 - business copy with legal meaning
@@ -837,7 +839,7 @@ Applicable pages:
 - Sessions
 - Clients
 - Client detail
-- Calendar / booking slots
+- Calendar / availability windows
 - Messages
 - Materials
 - Payments / billing
@@ -872,7 +874,7 @@ This table defines the safe direction for visual migration.
 | -------------------------------- | ---------------------: | -------: | ---------: | --------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
 | Home                             |            Implemented |     High |     Medium | Align with new public-page visual system                  | Preserve current CTA logic, pricing copy, route links                                                |
 | Pricing / Billing public section | Implemented / evolving |     High |       High | Polish visuals only after confirming current tariff truth | Follow current beta/access and tariff docs; do not invent speculative prices |
-| Public specialist profile        |            Implemented |     High |       High | Improve layout, trust markers, CTA clarity                | Do not break booking flow, slug route, visibility rules                                              |
+| Public specialist profile        |            Implemented |     High |       High | Improve layout, trust markers, CTA clarity                | Do not break request-to-session flow, slug route, visibility rules                                   |
 | Specialist cabinet / dashboard   |            Implemented |     High |       High | Gradually improve dashboard cards and work queue          | Preserve onboarding, entitlements, role logic                                                        |
 | Sessions list                    |            Implemented |     High |       High | Improve visual grouping and status badges                 | Do not break filters, status logic, payment badges                                                   |
 | Session detail                   |            Implemented |     High |       High | Polish panels and primary actions                         | Preserve complete/cancel/reschedule/payment/note/workbook logic                                      |
@@ -950,7 +952,7 @@ Recommended order:
 Safety:
 
 - preserve route links
-- preserve public booking flow
+- preserve public request and session flow
 - preserve public profile visibility logic
 - preserve Ukrainian copy already approved
 
@@ -1007,7 +1009,7 @@ Goal:
 - clear CTAs
 - readable cards
 - safe sidebar/header behavior
-- usable booking flow
+- usable request/session flow
 - usable dashboard cards
 
 Every migrated page must be checked on mobile.
@@ -1094,7 +1096,7 @@ Visual mockups are not authoritative for:
 - API fields
 - business rules
 - role permissions
-- booking rules
+- request/session rules
 - payment rules
 - notification rules
 - exact production copy

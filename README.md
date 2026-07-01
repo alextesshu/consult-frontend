@@ -8,12 +8,14 @@ Vue 3 + Vite + TypeScript + Pinia + Vue Router.
 
 Pro Consult is a practice platform for specialists: professional public
 presence, ethical opt-in discovery, no-registration requests, scheduling,
-sessions, client records, private specialist workspace, explicitly published
-client materials, blog/publications, tasks, and practice workflow.
+request-to-session workflow, sessions, client records, private specialist
+workspace, explicitly published client materials, blog/publications, tasks,
+practice workflow, and payment-status boundaries.
 
 Public discovery is not a marketplace ranking surface. The frontend must not
 introduce ratings, "top specialists", paid ranking, commission, or
-guaranteed-client language. Specialists control public profile visibility.
+guaranteed-client language. Specialists control public profile visibility and
+search visibility.
 Private notes, private notebook/workbook, and internal client records remain
 specialist-only; client-visible materials are explicit published artifacts.
 
@@ -81,7 +83,7 @@ npm run test:run
 - `/s/:slug` — Canonical public specialist profile / specialist landing page
 - `/t/:slug` — Legacy public profile alias, compatibility-only
 - `/specialists` — Ethical opt-in specialist discovery/profile search
-- `/therapists` — Legacy alias for specialists catalog
+- `/therapists` — Legacy alias for specialist discovery/profile search
 
 ## Auth
 
@@ -103,7 +105,7 @@ Session is silently restored on page reload via cookie-based refresh (`/api/auth
 - **ClientDashboardView**: client sessions list + selected/viewed specialists + intro price in cards
 - **ClientDashboardView**: client sessions list + selected/viewed specialists + explicit loading/error/empty prep for priority, upcoming/past sessions, and group events
 - **ClientDashboardView**: upcoming online sessions now surface external meeting badges and `Приєднатися` CTA when backend payload includes `meeting_url`
-- **ClientSessionDetailView**: client cancel + reschedule request + reviews + external join CTA/copy link + follow-up booking CTA after completed/cancelled sessions
+- **ClientSessionDetailView**: client cancel + reschedule request + reviews + external join CTA/copy link + follow-up request/session CTA after completed/cancelled sessions
 - **ClientTherapistsView**: specialist list + open profile + intro price in cards + explicit empty/error states (legacy file name)
 - **ClientGroupEventView**: client-facing group event detail
 - **SlotsView**: schedule surface plus public availability window management
@@ -116,8 +118,8 @@ Session is silently restored on page reload via cookie-based refresh (`/api/auth
 - **TherapistProfileView**: step-by-step profile editor, media upload preview, visibility toggles, public link
   - standard price + intro price (duration + currency)
   - visibility toggles: `show_price`, `show_intro_price`
-- **PublicProfileView**: landing-style public profile + booking + trust/about/contact blocks + journal preview
-  - setting acceptance is surfaced as an explicit booking gate directly above slot actions
+- **PublicProfileView**: landing-style public profile + request-first availability + trust/about/contact blocks + journal preview
+  - setting acceptance is surfaced as an explicit request gate directly above available-time actions
 - **Public request UX**: request-first public profile flow; `Обрати час` submits a request for a selected public availability window, while `Залишити запит без вибору часу` creates a request without selected time. A request is not an automatically confirmed session.
 - **Booking/session error contract**: prepared frontend booking/session surfaces now consume backend `code` / `reason_code` first and keep `detail` only as a fallback
 - **PublicTherapistsView**: opt-in public specialist discovery/profile search with server-side filters + intro price in cards + explicit in-view load/error/empty branches (legacy file name)
@@ -164,6 +166,11 @@ Session is silently restored on page reload via cookie-based refresh (`/api/auth
 - `/specialists` is opt-in discovery/profile search, not marketplace ranking.
   Do not add ratings, "top specialists", paid placement, or guaranteed-client
   language.
+- Specialists appear in discovery only when the backend exposes them as both
+  public-profile enabled and search-visible.
+- `/s/:slug` is a specialist-owned public landing page. Selecting available
+  time creates a request for specialist review, not an automatically confirmed
+  session and not payment confirmation.
 - `/cabinet/external-sessions#guest-requests` is the request queue for
   no-registration/public guest requests.
 - Specialist sidebar `Запити` badge shows all pending guest requests awaiting
