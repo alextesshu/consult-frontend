@@ -609,19 +609,25 @@
               </div>
               <div class="guest-offer-selector__options">
                 <button
-                  v-for="offer in availableGuestRequestOffers"
+                  v-for="offer in guestRequestOfferOptions"
                   :key="offer.type"
                   class="guest-offer-option"
                   :class="{ 'guest-offer-option--active': guestBookingForm.offer_type === offer.type }"
                   type="button"
                   :aria-pressed="guestBookingForm.offer_type === offer.type"
-                  :disabled="guestBookingSubmitting"
+                  :disabled="guestBookingSubmitting || offer.disabled"
                   @click="selectGuestBookingOffer(offer.type)"
                 >
                   <span class="guest-offer-option__label">{{ offer.label }}</span>
                   <span class="guest-offer-option__meta">{{ offer.meta }}</span>
+                  <span v-if="offer.helperText" class="guest-offer-option__helper">
+                    {{ offer.helperText }}
+                  </span>
                 </button>
               </div>
+              <p v-if="guestOfferCompatibilityMessage" class="guest-offer-selector__hint">
+                {{ guestOfferCompatibilityMessage }}
+              </p>
             </section>
 
             <label class="setting-label" for="guestBookingName">
@@ -992,9 +998,14 @@ type GuestRequestTopicOption = PublicGuestRequestTopic | 'other'
 type PublicConsultationOfferView = {
   type: ConsultationOfferType
   label: string
+  durationMinutes: number
   priceDisplay: string
   durationLabel: string
   meta: string
+}
+type PublicConsultationOfferOption = PublicConsultationOfferView & {
+  disabled: boolean
+  helperText: string
 }
 const GUEST_REQUEST_MESSAGE_MAX_LENGTH = 300
 const GUEST_BOOKING_GENERIC_SUCCESS_TITLE = 'Запит надіслано'
@@ -1024,6 +1035,8 @@ const CONSULTATION_OFFER_LABELS: Record<ConsultationOfferType, string> = {
   intro: 'Ознайомча сесія',
   couple: 'Парна консультація',
 }
+const GUEST_OFFER_DURATION_MISMATCH_MESSAGE =
+  'Обраний тип консультації не відповідає тривалості вибраного часу. Оберіть інший час або залиште запит без вибору часу.'
 
 type ClientSession = {
   id: number
@@ -2080,16 +2093,22 @@ const introPriceDisplay = computed(() => {
   return formatPriceDisplay(profile.value?.intro_price, profile.value?.intro_price_currency)
 })
 
-const introDurationLabel = computed(() => {
-  const sectionLabel = toDisplayText(sectionsFormats.value?.intro_duration_label)
-  if (sectionLabel) return sectionLabel
+const introDurationMinutes = computed(() => {
   const sectionMinutes = sectionsFormats.value?.intro_duration_minutes
   const minutes =
     typeof sectionMinutes === 'number' && Number.isFinite(sectionMinutes)
       ? sectionMinutes
       : profile.value?.intro_duration_minutes
-  if (!minutes) return ''
-  return `${minutes} хв`
+  return typeof minutes === 'number' && Number.isFinite(minutes) && minutes > 0
+    ? Math.round(minutes)
+    : 0
+})
+
+const introDurationLabel = computed(() => {
+  const sectionLabel = toDisplayText(sectionsFormats.value?.intro_duration_label)
+  if (sectionLabel) return sectionLabel
+  if (!introDurationMinutes.value) return ''
+  return `${introDurationMinutes.value} хв`
 })
 
 const coupleOfferEnabled = computed(() => {
@@ -2131,11 +2150,24 @@ function buildOfferMeta(durationLabel: string, priceLabel: string) {
   return [durationLabel, priceLabel].filter(Boolean).join(' · ')
 }
 
+const standardOfferDurationMinutes = computed(() => {
+  const sectionMinutes = sectionsFormats.value?.standard_session_duration_minutes
+  const profileMinutes = profile.value?.standard_session_duration_minutes
+  const minutes =
+    typeof sectionMinutes === 'number' && Number.isFinite(sectionMinutes)
+      ? sectionMinutes
+      : profileMinutes
+  return typeof minutes === 'number' && Number.isFinite(minutes) && minutes > 0
+    ? Math.round(minutes)
+    : standardSessionDurationMinutes.value
+})
+
 const availableGuestRequestOffers = computed<PublicConsultationOfferView[]>(() => {
   const offers: PublicConsultationOfferView[] = [
     {
       type: 'standard',
       label: CONSULTATION_OFFER_LABELS.standard,
+      durationMinutes: standardOfferDurationMinutes.value,
       priceDisplay: priceDisplay.value,
       durationLabel: standardSessionDurationLabel.value,
       meta: buildOfferMeta(standardSessionDurationLabel.value, priceDisplay.value),
@@ -2145,6 +2177,7 @@ const availableGuestRequestOffers = computed<PublicConsultationOfferView[]>(() =
     offers.push({
       type: 'intro',
       label: CONSULTATION_OFFER_LABELS.intro,
+      durationMinutes: introDurationMinutes.value,
       priceDisplay: introPriceDisplay.value,
       durationLabel: introDurationLabel.value,
       meta: buildOfferMeta(introDurationLabel.value, introPriceDisplay.value),
@@ -2154,6 +2187,7 @@ const availableGuestRequestOffers = computed<PublicConsultationOfferView[]>(() =
     offers.push({
       type: 'couple',
       label: CONSULTATION_OFFER_LABELS.couple,
+      durationMinutes: coupleDurationMinutes.value,
       priceDisplay: couplePriceDisplay.value,
       durationLabel: coupleDurationLabel.value,
       meta: buildOfferMeta(coupleDurationLabel.value, couplePriceDisplay.value),
@@ -2162,10 +2196,47 @@ const availableGuestRequestOffers = computed<PublicConsultationOfferView[]>(() =
   return offers
 })
 
+function slotDurationMinutes(slot: PublicSlot | null) {
+  if (!slot) return 0
+  const start = new Date(slot.start_at).getTime()
+  const end = new Date(slot.end_at).getTime()
+  if (!Number.isFinite(start) || !Number.isFinite(end) || end <= start) return 0
+  return Math.round((end - start) / 60000)
+}
+
+const selectedGuestSlotDurationMinutes = computed(() => slotDurationMinutes(guestBookingSlot.value))
+
+function isOfferCompatibleWithSelectedSlot(offer: PublicConsultationOfferView) {
+  if (!guestBookingSlot.value) return true
+  const slotMinutes = selectedGuestSlotDurationMinutes.value
+  if (!slotMinutes) return false
+  return offer.durationMinutes === slotMinutes
+}
+
+const guestRequestOfferOptions = computed<PublicConsultationOfferOption[]>(() => {
+  return availableGuestRequestOffers.value.map((offer) => {
+    const compatible = isOfferCompatibleWithSelectedSlot(offer)
+    return {
+      ...offer,
+      disabled: !compatible,
+      helperText: compatible ? '' : `Потрібне вікно на ${offer.durationMinutes} хв`,
+    }
+  })
+})
+
+const compatibleGuestRequestOffers = computed(() =>
+  availableGuestRequestOffers.value.filter((offer) => isOfferCompatibleWithSelectedSlot(offer))
+)
+
 const showGuestOfferSelector = computed(() => availableGuestRequestOffers.value.length > 1)
 
 const defaultGuestBookingOfferType = computed<ConsultationOfferType>(() => {
-  return availableGuestRequestOffers.value[0]?.type || 'standard'
+  return compatibleGuestRequestOffers.value[0]?.type || availableGuestRequestOffers.value[0]?.type || 'standard'
+})
+
+const guestOfferCompatibilityMessage = computed(() => {
+  if (!guestBookingSlot.value || compatibleGuestRequestOffers.value.length > 0) return ''
+  return GUEST_OFFER_DURATION_MISMATCH_MESSAGE
 })
 
 const specializationChips = computed(() => {
@@ -3577,16 +3648,26 @@ function resetGuestBookingForm() {
 }
 
 function selectGuestBookingOffer(offerType: ConsultationOfferType) {
-  if (!availableGuestRequestOffers.value.some((offer) => offer.type === offerType)) return
+  const offer = availableGuestRequestOffers.value.find((item) => item.type === offerType)
+  if (!offer || !isOfferCompatibleWithSelectedSlot(offer)) return
   guestBookingForm.value.offer_type = offerType
 }
 
 function resolveGuestBookingOfferType() {
   const selectedOfferType = guestBookingForm.value.offer_type
-  if (availableGuestRequestOffers.value.some((offer) => offer.type === selectedOfferType)) {
+  const selectedOffer = availableGuestRequestOffers.value.find((offer) => offer.type === selectedOfferType)
+  if (selectedOffer && isOfferCompatibleWithSelectedSlot(selectedOffer)) {
     return selectedOfferType
   }
   return defaultGuestBookingOfferType.value
+}
+
+function ensureGuestBookingOfferCompatibility() {
+  const selectedOffer = availableGuestRequestOffers.value.find(
+    (offer) => offer.type === guestBookingForm.value.offer_type
+  )
+  if (selectedOffer && isOfferCompatibleWithSelectedSlot(selectedOffer)) return
+  guestBookingForm.value.offer_type = defaultGuestBookingOfferType.value
 }
 
 function resetGuestBookingFieldErrors() {
@@ -3727,6 +3808,13 @@ function getGuestBookingErrorMessage(err: unknown): string {
   const reasonCode = getGuestBookingReasonCode(err)
 
   if (
+    code === 'PUBLIC_GUEST_REQUEST_OFFER_DURATION_MISMATCH' ||
+    reasonCode === 'PUBLIC_GUEST_REQUEST_OFFER_DURATION_MISMATCH'
+  ) {
+    return GUEST_OFFER_DURATION_MISMATCH_MESSAGE
+  }
+
+  if (
     GUEST_BOOKING_UNAVAILABLE_CODES.has(code) ||
     GUEST_BOOKING_UNAVAILABLE_CODES.has(reasonCode)
   ) {
@@ -3829,6 +3917,16 @@ async function submitGuestBookingRequest() {
     guestBookingError.value = 'Не вдалося визначити формат сесії. Оновіть сторінку та спробуйте ще раз.'
     return
   }
+  if (guestBookingSlot.value && compatibleGuestRequestOffers.value.length === 0) {
+    guestBookingError.value = GUEST_OFFER_DURATION_MISMATCH_MESSAGE
+    return
+  }
+  const offerType = resolveGuestBookingOfferType()
+  const selectedOffer = availableGuestRequestOffers.value.find((offer) => offer.type === offerType)
+  if (guestBookingSlot.value && (!selectedOffer || !isOfferCompatibleWithSelectedSlot(selectedOffer))) {
+    guestBookingError.value = GUEST_OFFER_DURATION_MISMATCH_MESSAGE
+    return
+  }
   const contactChannel = contactChannelRaw as GuestContactChannel
 
   guestBookingSubmitting.value = true
@@ -3851,7 +3949,6 @@ async function submitGuestBookingRequest() {
     if (message) {
       payload.message = message
     }
-    const offerType = resolveGuestBookingOfferType()
     if (showGuestOfferSelector.value || offerType !== 'standard') {
       payload.offer_type = offerType
     }
@@ -4097,6 +4194,15 @@ watch(
     }
   },
   { immediate: true }
+)
+
+watch(
+  [guestBookingSlot, availableGuestRequestOffers],
+  () => {
+    if (!showGuestBookingModal.value || guestBookingSuccess.value) return
+    ensureGuestBookingOfferCompatibility()
+  },
+  { deep: false }
 )
 
 watch(slug, () => {
@@ -6124,6 +6230,17 @@ onMounted(async () => {
     color: var(--muted);
     font-size: 12px;
     line-height: 1.3;
+  }
+
+  .guest-offer-option__helper,
+  .guest-offer-selector__hint {
+    color: #9b4a3f;
+    font-size: 12px;
+    line-height: 1.35;
+  }
+
+  .guest-offer-selector__hint {
+    margin: 0;
   }
 
   .guest-request-consent {

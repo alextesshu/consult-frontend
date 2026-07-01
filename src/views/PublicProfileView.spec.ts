@@ -1827,7 +1827,9 @@ describe('PublicProfileView', () => {
 
     await fireEvent.click(await screen.findByRole('button', { name: 'Надіслати запит на цей час' }))
     expect(await screen.findByText('Тип консультації')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /Консультація/i })).toHaveAttribute('aria-pressed', 'true')
+    const standardOffer = screen.getByRole('button', { name: /^Консультація/i })
+    expect(standardOffer).toHaveAttribute('aria-pressed', 'true')
+    expect(standardOffer).not.toBeDisabled()
     expect(screen.getByRole('button', { name: /Ознайомча сесія/i })).toBeInTheDocument()
 
     await fireEvent.update(screen.getByLabelText('Ім’я'), 'Ірина')
@@ -1856,7 +1858,7 @@ describe('PublicProfileView', () => {
 
     renderView()
 
-    await fireEvent.click(await screen.findByRole('button', { name: 'Надіслати запит на цей час' }))
+    await fireEvent.click((await screen.findAllByRole('button', { name: 'Залишити запит' }))[0]!)
     await fireEvent.click(await screen.findByRole('button', { name: /Ознайомча сесія/i }))
     await fireEvent.update(screen.getByLabelText('Ім’я'), 'Ірина')
     await fireEvent.update(screen.getByLabelText('Як спеціаліст може з вами зв’язатися?'), 'iryna@example.com')
@@ -1876,7 +1878,7 @@ describe('PublicProfileView', () => {
         couple_session_enabled: true,
         couple_session_price: '2200',
         couple_session_price_currency: 'UAH',
-        couple_session_duration_minutes: 75,
+        couple_session_duration_minutes: 90,
       })
     )
     mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
@@ -1893,7 +1895,7 @@ describe('PublicProfileView', () => {
 
     renderView()
 
-    await fireEvent.click(await screen.findByRole('button', { name: 'Надіслати запит на цей час' }))
+    await fireEvent.click((await screen.findAllByRole('button', { name: 'Залишити запит' }))[0]!)
     await fireEvent.click(await screen.findByRole('button', { name: /Парна консультація/i }))
     await fireEvent.update(screen.getByLabelText('Ім’я'), 'Ірина')
     await fireEvent.update(screen.getByLabelText('Як спеціаліст може з вами зв’язатися?'), 'iryna@example.com')
@@ -1917,6 +1919,135 @@ describe('PublicProfileView', () => {
 
     expect(await screen.findByText('Тип консультації')).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /Парна консультація/i })).not.toBeInTheDocument()
+  })
+
+  it('disables intro and couple offers when selected slot duration differs', async () => {
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(
+      buildProfile({
+        couple_session_enabled: true,
+        couple_session_price: '2200',
+        couple_session_price_currency: 'UAH',
+        couple_session_duration_minutes: 90,
+      })
+    )
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockBookingPageDataWithSingleSlot()
+
+    renderView()
+
+    await fireEvent.click(await screen.findByRole('button', { name: 'Надіслати запит на цей час' }))
+
+    expect(await screen.findByText('Тип консультації')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^Консультація/i })).not.toBeDisabled()
+    expect(screen.getByRole('button', { name: /^Ознайомча сесія/i })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /^Парна консультація/i })).toBeDisabled()
+    expect(screen.getByText('Потрібне вікно на 30 хв')).toBeInTheDocument()
+    expect(screen.getByText('Потрібне вікно на 90 хв')).toBeInTheDocument()
+  })
+
+  it('blocks selected-slot submit when no offer matches slot duration', async () => {
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(
+      buildProfile({
+        standard_session_duration_minutes: 60,
+        couple_session_enabled: true,
+        couple_session_price: '2200',
+        couple_session_price_currency: 'UAH',
+        couple_session_duration_minutes: 90,
+      })
+    )
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockBookingPageDataWithSingleSlot()
+
+    renderView()
+
+    await fireEvent.click(await screen.findByRole('button', { name: 'Надіслати запит на цей час' }))
+    expect(await screen.findByText('Тип консультації')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /^Консультація/i })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /^Ознайомча сесія/i })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /^Парна консультація/i })).toBeDisabled()
+    expect(
+      screen.getByText(
+        'Обраний тип консультації не відповідає тривалості вибраного часу. Оберіть інший час або залиште запит без вибору часу.'
+      )
+    ).toBeInTheDocument()
+
+    await fireEvent.update(screen.getByLabelText('Ім’я'), 'Ірина')
+    await fireEvent.update(screen.getByLabelText('Як спеціаліст може з вами зв’язатися?'), 'iryna@example.com')
+    await fireEvent.click(screen.getByRole('button', { name: 'Надіслати запит' }))
+
+    expect(mockedApiPost).not.toHaveBeenCalled()
+  })
+
+  it('keeps incompatible selected-slot offer from being submitted', async () => {
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(
+      buildProfile({
+        couple_session_enabled: true,
+        couple_session_price: '2200',
+        couple_session_price_currency: 'UAH',
+        couple_session_duration_minutes: 90,
+      })
+    )
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockBookingPageDataWithSingleSlot()
+    mockedApiPost.mockResolvedValue({
+      request: {
+        id: 507,
+        status: 'PENDING',
+        created_at: '2026-04-07T10:00:00Z',
+        next_step: null,
+      },
+    })
+
+    renderView()
+
+    await fireEvent.click(await screen.findByRole('button', { name: 'Надіслати запит на цей час' }))
+    await fireEvent.click(await screen.findByRole('button', { name: /^Парна консультація/i }))
+    await fireEvent.update(screen.getByLabelText('Ім’я'), 'Ірина')
+    await fireEvent.update(screen.getByLabelText('Як спеціаліст може з вами зв’язатися?'), 'iryna@example.com')
+    await fireEvent.click(screen.getByRole('button', { name: 'Надіслати запит' }))
+
+    expect(mockedApiPost).toHaveBeenCalledWith(
+      '/public/specialists/olena/guest-booking-requests/',
+      expect.objectContaining({
+        offer_type: 'standard',
+      })
+    )
+    expect(mockedApiPost).not.toHaveBeenCalledWith(
+      '/public/specialists/olena/guest-booking-requests/',
+      expect.objectContaining({
+        offer_type: 'couple',
+      })
+    )
+  })
+
+  it('shows calm Ukrainian copy for backend offer duration mismatch', async () => {
+    mockCommonPublicData()
+    mockBookingPageDataWithSingleSlot()
+    mockedApiPost.mockRejectedValueOnce({
+      response: {
+        status: 400,
+        data: {
+          code: 'PUBLIC_GUEST_REQUEST_OFFER_DURATION_MISMATCH',
+          detail: 'Selected consultation type does not match the selected time window duration.',
+        },
+      },
+    })
+
+    renderView()
+
+    await fireEvent.click(await screen.findByRole('button', { name: 'Надіслати запит на цей час' }))
+    await fireEvent.update(screen.getByLabelText('Ім’я'), 'Ірина')
+    await fireEvent.update(screen.getByLabelText('Як спеціаліст може з вами зв’язатися?'), 'iryna@example.com')
+    await fireEvent.click(screen.getByRole('button', { name: 'Надіслати запит' }))
+
+    expect(
+      await screen.findByText(
+        'Обраний тип консультації не відповідає тривалості вибраного часу. Оберіть інший час або залиште запит без вибору часу.'
+      )
+    ).toBeInTheDocument()
   })
 
   it('shows compact Ukrainian validation instead of native browser required tooltips', async () => {
