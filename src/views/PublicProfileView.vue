@@ -47,6 +47,8 @@
           :intro-duration-label="introDurationLabel"
           :price-display="priceDisplay"
           :standard-session-duration-label="standardSessionDurationLabel"
+          :couple-price-display="couplePriceDisplay"
+          :couple-duration-label="coupleDurationLabel"
           :show-contact-actions="showDirectContactActions"
           :contact-actions="contactActions"
           :copied-contact-id="copiedContactId"
@@ -597,6 +599,31 @@
               </div>
             </div>
 
+            <section
+              v-if="showGuestOfferSelector"
+              class="guest-offer-selector"
+              aria-labelledby="guestOfferSelectorTitle"
+            >
+              <div id="guestOfferSelectorTitle" class="guest-offer-selector__title">
+                Тип консультації
+              </div>
+              <div class="guest-offer-selector__options">
+                <button
+                  v-for="offer in availableGuestRequestOffers"
+                  :key="offer.type"
+                  class="guest-offer-option"
+                  :class="{ 'guest-offer-option--active': guestBookingForm.offer_type === offer.type }"
+                  type="button"
+                  :aria-pressed="guestBookingForm.offer_type === offer.type"
+                  :disabled="guestBookingSubmitting"
+                  @click="selectGuestBookingOffer(offer.type)"
+                >
+                  <span class="guest-offer-option__label">{{ offer.label }}</span>
+                  <span class="guest-offer-option__meta">{{ offer.meta }}</span>
+                </button>
+              </div>
+            </section>
+
             <label class="setting-label" for="guestBookingName">
               Ім’я
               <input
@@ -887,6 +914,7 @@ import {
   apiGet,
   apiPost,
   type BookingSessionCreatePayload,
+  type ConsultationOfferType,
   type SessionFormat,
   createInquiryThread,
   fetchChatThreads,
@@ -942,6 +970,7 @@ type PublicSlot = {
 type PublicGuestBookingRequestPayload = {
   slot_id?: number
   session_format: SessionFormat
+  offer_type?: ConsultationOfferType
   guest_name: string
   contact_channel: GuestContactChannel
   contact_value: string
@@ -960,6 +989,13 @@ type PublicGuestBookingRequestResponse = {
 
 type GuestContactChannel = 'email' | 'phone' | 'telegram'
 type GuestRequestTopicOption = PublicGuestRequestTopic | 'other'
+type PublicConsultationOfferView = {
+  type: ConsultationOfferType
+  label: string
+  priceDisplay: string
+  durationLabel: string
+  meta: string
+}
 const GUEST_REQUEST_MESSAGE_MAX_LENGTH = 300
 const GUEST_BOOKING_GENERIC_SUCCESS_TITLE = 'Запит надіслано'
 const GUEST_BOOKING_SLOT_SUCCESS_TITLE = 'Запит на обраний час надіслано'
@@ -983,6 +1019,11 @@ const NO_SLOTS_REQUEST_HELPER_TEXT =
   'Наразі немає доступних вікон. Ви можете залишити запит, і спеціаліст узгодить час окремо.'
 const REQUEST_CTA_TOOLTIP_TEXT =
   'Запит — якщо хочете консультацію. Питання — якщо потрібно щось уточнити перед запитом.'
+const CONSULTATION_OFFER_LABELS: Record<ConsultationOfferType, string> = {
+  standard: 'Консультація',
+  intro: 'Ознайомча сесія',
+  couple: 'Парна консультація',
+}
 
 type ClientSession = {
   id: number
@@ -1096,6 +1137,7 @@ const guestBookingForm = ref({
   guest_name: '',
   contact_channel: 'email' as GuestContactChannel,
   contact_value: '',
+  offer_type: 'standard' as ConsultationOfferType,
   message: '',
 })
 const guestBookingFieldErrors = ref<Record<'guest_name' | 'contact_value', string>>({
@@ -1979,9 +2021,6 @@ const closingCtaSupportLine = computed(() => {
   if (introPriceDisplay.value) {
     return `Ознайомча сесія: ${introPriceDisplay.value}`
   }
-  if (introDurationLabel.value) {
-    return `Ознайомча сесія: ${introDurationLabel.value}`
-  }
   if (priceDisplay.value) {
     return `Консультація: ${priceDisplay.value} · ${standardSessionDurationLabel.value}`
   }
@@ -2051,6 +2090,82 @@ const introDurationLabel = computed(() => {
       : profile.value?.intro_duration_minutes
   if (!minutes) return ''
   return `${minutes} хв`
+})
+
+const coupleOfferEnabled = computed(() => {
+  const sectionEnabled = sectionsFormats.value?.couple_session_enabled
+  if (typeof sectionEnabled === 'boolean') return sectionEnabled
+  return profile.value?.couple_session_enabled === true
+})
+
+const coupleDurationMinutes = computed(() => {
+  const sectionMinutes = sectionsFormats.value?.couple_session_duration_minutes
+  const minutes =
+    typeof sectionMinutes === 'number' && Number.isFinite(sectionMinutes)
+      ? sectionMinutes
+      : profile.value?.couple_session_duration_minutes
+  return typeof minutes === 'number' && Number.isFinite(minutes) && minutes > 0
+    ? Math.round(minutes)
+    : 0
+})
+
+const coupleDurationLabel = computed(() => {
+  if (!coupleOfferEnabled.value || !coupleDurationMinutes.value) return ''
+  return `${coupleDurationMinutes.value} хв`
+})
+
+const couplePriceDisplay = computed(() => {
+  if (!coupleOfferEnabled.value || !coupleDurationMinutes.value) return ''
+  const sectionPrice = sectionsFormats.value?.couple_session_price
+  const price =
+    sectionPrice !== null && sectionPrice !== undefined
+      ? sectionPrice
+      : profile.value?.couple_session_price
+  return formatPriceDisplay(
+    price,
+    sectionsFormats.value?.couple_session_price_currency || profile.value?.couple_session_price_currency
+  )
+})
+
+function buildOfferMeta(durationLabel: string, priceLabel: string) {
+  return [durationLabel, priceLabel].filter(Boolean).join(' · ')
+}
+
+const availableGuestRequestOffers = computed<PublicConsultationOfferView[]>(() => {
+  const offers: PublicConsultationOfferView[] = [
+    {
+      type: 'standard',
+      label: CONSULTATION_OFFER_LABELS.standard,
+      priceDisplay: priceDisplay.value,
+      durationLabel: standardSessionDurationLabel.value,
+      meta: buildOfferMeta(standardSessionDurationLabel.value, priceDisplay.value),
+    },
+  ]
+  if (introPriceDisplay.value) {
+    offers.push({
+      type: 'intro',
+      label: CONSULTATION_OFFER_LABELS.intro,
+      priceDisplay: introPriceDisplay.value,
+      durationLabel: introDurationLabel.value,
+      meta: buildOfferMeta(introDurationLabel.value, introPriceDisplay.value),
+    })
+  }
+  if (couplePriceDisplay.value && coupleDurationLabel.value) {
+    offers.push({
+      type: 'couple',
+      label: CONSULTATION_OFFER_LABELS.couple,
+      priceDisplay: couplePriceDisplay.value,
+      durationLabel: coupleDurationLabel.value,
+      meta: buildOfferMeta(coupleDurationLabel.value, couplePriceDisplay.value),
+    })
+  }
+  return offers
+})
+
+const showGuestOfferSelector = computed(() => availableGuestRequestOffers.value.length > 1)
+
+const defaultGuestBookingOfferType = computed<ConsultationOfferType>(() => {
+  return availableGuestRequestOffers.value[0]?.type || 'standard'
 })
 
 const specializationChips = computed(() => {
@@ -3455,9 +3570,23 @@ function resetGuestBookingForm() {
     guest_name: '',
     contact_channel: 'email',
     contact_value: '',
+    offer_type: defaultGuestBookingOfferType.value,
     message: '',
   }
   selectedGuestRequestTopics.value = []
+}
+
+function selectGuestBookingOffer(offerType: ConsultationOfferType) {
+  if (!availableGuestRequestOffers.value.some((offer) => offer.type === offerType)) return
+  guestBookingForm.value.offer_type = offerType
+}
+
+function resolveGuestBookingOfferType() {
+  const selectedOfferType = guestBookingForm.value.offer_type
+  if (availableGuestRequestOffers.value.some((offer) => offer.type === selectedOfferType)) {
+    return selectedOfferType
+  }
+  return defaultGuestBookingOfferType.value
 }
 
 function resetGuestBookingFieldErrors() {
@@ -3721,6 +3850,10 @@ async function submitGuestBookingRequest() {
     }
     if (message) {
       payload.message = message
+    }
+    const offerType = resolveGuestBookingOfferType()
+    if (showGuestOfferSelector.value || offerType !== 'standard') {
+      payload.offer_type = offerType
     }
     const response = await createPublicGuestBookingRequest(profileSlug, payload)
     guestBookingSuccess.value = response.request
@@ -5926,6 +6059,71 @@ onMounted(async () => {
 
   .guest-booking-form__message-counter {
     justify-self: end;
+  }
+
+  .guest-offer-selector {
+    display: grid;
+    gap: 7px;
+  }
+
+  .guest-offer-selector__title {
+    color: var(--ink);
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.35;
+  }
+
+  .guest-offer-selector__options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 7px;
+  }
+
+  .guest-offer-option {
+    min-height: 56px;
+    display: grid;
+    align-content: center;
+    gap: 3px;
+    padding: 9px 10px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: #fff;
+    color: var(--ink);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: border-color 0.16s ease, background 0.16s ease, box-shadow 0.16s ease;
+  }
+
+  .guest-offer-option:hover,
+  .guest-offer-option:focus-visible {
+    border-color: color-mix(in srgb, var(--deep) 28%, var(--line));
+    outline: none;
+  }
+
+  .guest-offer-option--active {
+    border-color: color-mix(in srgb, var(--deep) 48%, var(--line));
+    background: color-mix(in srgb, var(--accent) 16%, #ffffff);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--deep) 16%, transparent);
+  }
+
+  .guest-offer-option:disabled {
+    cursor: not-allowed;
+    opacity: 0.65;
+  }
+
+  .guest-offer-option__label {
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1.3;
+    color: var(--deep);
+  }
+
+  .guest-offer-option__meta {
+    min-height: 16px;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.3;
   }
 
   .guest-request-consent {

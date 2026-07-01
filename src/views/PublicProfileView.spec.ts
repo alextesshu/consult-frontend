@@ -143,6 +143,10 @@ function buildProfile(
     intro_duration_minutes: 30,
     intro_price: '600',
     intro_price_currency: 'UAH',
+    couple_session_enabled: false,
+    couple_session_price: null,
+    couple_session_price_currency: null,
+    couple_session_duration_minutes: null,
     contact_actions: [
       {
         channel: 'EMAIL',
@@ -553,6 +557,57 @@ describe('PublicProfileView', () => {
     expect(within(generalInfo).queryByText('Ознайомча сесія')).not.toBeInTheDocument()
     expect(within(generalInfo).queryByText('Стандартна сесія')).not.toBeInTheDocument()
     expect(screen.getAllByText(/Ознайомча сесія:/i).length).toBeGreaterThan(0)
+  })
+
+  it('renders couple consultation offer only when it is enabled and configured', async () => {
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(
+      buildProfile({
+        couple_session_enabled: true,
+        couple_session_price: '2200',
+        couple_session_price_currency: 'UAH',
+        couple_session_duration_minutes: 75,
+      })
+    )
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/slots/') return [buildTodayLocalSlot()]
+      if (url === '/public/specialists/olena/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    expect(await screen.findByText('Парна консультація: 2200 грн')).toBeInTheDocument()
+    expect(screen.getByText('75 хв')).toBeInTheDocument()
+  })
+
+  it('hides incomplete couple offer and intro offer without public price', async () => {
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(
+      buildProfile({
+        intro_price: null,
+        intro_price_currency: null,
+        couple_session_enabled: true,
+        couple_session_price: null,
+        couple_session_price_currency: null,
+        couple_session_duration_minutes: 75,
+      })
+    )
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockedFetchChatThreads.mockResolvedValue([])
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/booking/slots/') return [buildTodayLocalSlot()]
+      if (url === '/public/specialists/olena/reviews/') return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    expect(await screen.findByText('Консультація: 1500 грн')).toBeInTheDocument()
+    expect(screen.queryByText(/Ознайомча сесія:/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/Парна консультація:/i)).not.toBeInTheDocument()
   })
 
   it('replaces the hero video player with a video business card button that opens a modal', async () => {
@@ -1756,6 +1811,114 @@ describe('PublicProfileView', () => {
     expect(screen.getByLabelText('Як спеціаліст може з вами зв’язатися?')).toBeInTheDocument()
   })
 
+  it('shows consultation offer selector and submits standard offer_type by default', async () => {
+    mockCommonPublicData()
+    mockBookingPageDataWithSingleSlot()
+    mockedApiPost.mockResolvedValue({
+      request: {
+        id: 504,
+        status: 'PENDING',
+        created_at: '2026-04-07T10:00:00Z',
+        next_step: null,
+      },
+    })
+
+    renderView()
+
+    await fireEvent.click(await screen.findByRole('button', { name: 'Надіслати запит на цей час' }))
+    expect(await screen.findByText('Тип консультації')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /Консультація/i })).toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getByRole('button', { name: /Ознайомча сесія/i })).toBeInTheDocument()
+
+    await fireEvent.update(screen.getByLabelText('Ім’я'), 'Ірина')
+    await fireEvent.update(screen.getByLabelText('Як спеціаліст може з вами зв’язатися?'), 'iryna@example.com')
+    await fireEvent.click(screen.getByRole('button', { name: 'Надіслати запит' }))
+
+    expect(mockedApiPost).toHaveBeenCalledWith(
+      '/public/specialists/olena/guest-booking-requests/',
+      expect.objectContaining({
+        offer_type: 'standard',
+      })
+    )
+  })
+
+  it('submits intro offer_type when intro offer is selected', async () => {
+    mockCommonPublicData()
+    mockBookingPageDataWithSingleSlot()
+    mockedApiPost.mockResolvedValue({
+      request: {
+        id: 505,
+        status: 'PENDING',
+        created_at: '2026-04-07T10:00:00Z',
+        next_step: null,
+      },
+    })
+
+    renderView()
+
+    await fireEvent.click(await screen.findByRole('button', { name: 'Надіслати запит на цей час' }))
+    await fireEvent.click(await screen.findByRole('button', { name: /Ознайомча сесія/i }))
+    await fireEvent.update(screen.getByLabelText('Ім’я'), 'Ірина')
+    await fireEvent.update(screen.getByLabelText('Як спеціаліст може з вами зв’язатися?'), 'iryna@example.com')
+    await fireEvent.click(screen.getByRole('button', { name: 'Надіслати запит' }))
+
+    expect(mockedApiPost).toHaveBeenCalledWith(
+      '/public/specialists/olena/guest-booking-requests/',
+      expect.objectContaining({
+        offer_type: 'intro',
+      })
+    )
+  })
+
+  it('submits couple offer_type only when couple offer is public', async () => {
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(
+      buildProfile({
+        couple_session_enabled: true,
+        couple_session_price: '2200',
+        couple_session_price_currency: 'UAH',
+        couple_session_duration_minutes: 75,
+      })
+    )
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockBookingPageDataWithSingleSlot()
+    mockedApiPost.mockResolvedValue({
+      request: {
+        id: 506,
+        status: 'PENDING',
+        created_at: '2026-04-07T10:00:00Z',
+        next_step: null,
+      },
+    })
+
+    renderView()
+
+    await fireEvent.click(await screen.findByRole('button', { name: 'Надіслати запит на цей час' }))
+    await fireEvent.click(await screen.findByRole('button', { name: /Парна консультація/i }))
+    await fireEvent.update(screen.getByLabelText('Ім’я'), 'Ірина')
+    await fireEvent.update(screen.getByLabelText('Як спеціаліст може з вами зв’язатися?'), 'iryna@example.com')
+    await fireEvent.click(screen.getByRole('button', { name: 'Надіслати запит' }))
+
+    expect(mockedApiPost).toHaveBeenCalledWith(
+      '/public/specialists/olena/guest-booking-requests/',
+      expect.objectContaining({
+        offer_type: 'couple',
+      })
+    )
+  })
+
+  it('does not offer couple selection when couple offer is not public', async () => {
+    mockCommonPublicData()
+    mockBookingPageDataWithSingleSlot()
+
+    renderView()
+
+    await fireEvent.click(await screen.findByRole('button', { name: 'Надіслати запит на цей час' }))
+
+    expect(await screen.findByText('Тип консультації')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /Парна консультація/i })).not.toBeInTheDocument()
+  })
+
   it('shows compact Ukrainian validation instead of native browser required tooltips', async () => {
     mockCommonPublicData()
     mockBookingPageDataWithSingleSlot()
@@ -1938,6 +2101,7 @@ describe('PublicProfileView', () => {
       {
         slot_id: 100,
         session_format: 'online',
+        offer_type: 'standard',
         guest_name: 'Ірина',
         contact_channel: 'email',
         contact_value: 'iryna@example.com',

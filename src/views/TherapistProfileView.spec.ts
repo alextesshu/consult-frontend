@@ -105,6 +105,10 @@ function makeProfile(): SpecialistProfile {
     intro_duration_minutes: 30,
     intro_price: '600',
     intro_price_currency: 'UAH',
+    couple_session_enabled: false,
+    couple_session_price: '',
+    couple_session_price_currency: 'UAH',
+    couple_session_duration_minutes: 50,
     contact_email: 'anna@example.com',
     contact_phone: '+380001112233',
     messenger: '@anna-signal',
@@ -544,6 +548,74 @@ describe('TherapistProfileView', () => {
     expect(await screen.findByText('Збережено.')).toBeInTheDocument()
     await waitFor(() => {
       expect(screen.queryByTestId('profile-sticky-save-bar')).not.toBeInTheDocument()
+    })
+  })
+
+  it('renders couple consultation settings and saves configured couple offer fields', async () => {
+    const profile = makeProfile()
+    mockedFetchSpecialistProfile.mockResolvedValue(profile)
+    mockedUpdateSpecialistProfile.mockResolvedValue({
+      ...profile,
+      couple_session_enabled: true,
+      couple_session_price: '1800',
+      couple_session_duration_minutes: 75,
+    })
+
+    renderView()
+
+    expect(await screen.findByText('Парна консультація')).toBeInTheDocument()
+    const coupleToggle = screen.getByLabelText('Показувати парну консультацію') as HTMLInputElement
+    await fireEvent.click(coupleToggle)
+    await fireEvent.update(screen.getByPlaceholderText('1800'), '1800 грн')
+    const coupleSection = screen.getByText('Парна консультація').closest('.field') as HTMLElement
+    const durationSelect = within(coupleSection).getByLabelText('Тривалість') as HTMLSelectElement
+    await fireEvent.update(durationSelect, '75')
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Зберегти' }))
+
+    await waitFor(() => {
+      expect(mockedUpdateSpecialistProfile).toHaveBeenCalledWith(
+        expect.objectContaining({
+          couple_session_enabled: true,
+          couple_session_price: '1800',
+          couple_session_price_currency: 'UAH',
+          couple_session_duration_minutes: 75,
+        })
+      )
+    })
+  })
+
+  it('requires a positive couple consultation price only when couple offer is enabled', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValue(makeProfile())
+
+    renderView()
+
+    const coupleToggle = (await screen.findByLabelText('Показувати парну консультацію')) as HTMLInputElement
+    await fireEvent.click(coupleToggle)
+    await fireEvent.click(screen.getByRole('button', { name: 'Зберегти' }))
+
+    expect(mockedUpdateSpecialistProfile).not.toHaveBeenCalled()
+    expect(await screen.findByText('Вкажіть додатну вартість парної консультації.')).toBeInTheDocument()
+  })
+
+  it('allows saving disabled couple offer without price', async () => {
+    const profile = makeProfile()
+    mockedFetchSpecialistProfile.mockResolvedValue(profile)
+    mockedUpdateSpecialistProfile.mockResolvedValue(profile)
+
+    renderView()
+
+    const publicNameInput = (await screen.findByLabelText('Публічне ім’я')) as HTMLInputElement
+    await fireEvent.update(publicNameInput, 'Анна без парної консультації')
+    await fireEvent.click(screen.getByRole('button', { name: 'Зберегти' }))
+
+    await waitFor(() => {
+      expect(mockedUpdateSpecialistProfile).toHaveBeenCalledWith(
+        expect.objectContaining({
+          couple_session_enabled: false,
+          couple_session_price: null,
+        })
+      )
     })
   })
 

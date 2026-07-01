@@ -512,8 +512,8 @@ type SelectedSpecialist = {
   languages?: string | string[]
   price?: string
   price_currency?: string
-  intro_price?: string
-  intro_price_currency?: string
+  intro_price?: string | number | null
+  intro_price_currency?: string | null
   photo_url?: string
 }
 

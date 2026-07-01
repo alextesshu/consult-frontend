@@ -384,6 +384,52 @@
                 </select>
               </div>
             </label>
+            <div class="field offer-settings">
+              <div class="field-head">
+                <span class="field-label">Парна консультація</span>
+                <label class="inline-check">
+                  <input v-model="profile.couple_session_enabled" type="checkbox" />
+                  Показувати парну консультацію
+                </label>
+              </div>
+              <div class="field-help">
+                Покажіть окрему пропозицію для парної консультації на публічному профілі.
+              </div>
+              <div class="field-row">
+                <label class="field field--compact" for="coupleSessionPrice">
+                  <span class="field-label">Вартість</span>
+                  <input
+                    id="coupleSessionPrice"
+                    v-model="profile.couple_session_price"
+                    class="input"
+                    type="text"
+                    inputmode="decimal"
+                    pattern="^[0-9]*([.,][0-9]{0,2})?$"
+                    placeholder="1800"
+                    @input="onCouplePriceInput"
+                  />
+                </label>
+                <label class="field field--compact" for="coupleSessionCurrency">
+                  <span class="field-label">Валюта</span>
+                  <select id="coupleSessionCurrency" v-model="profile.couple_session_price_currency" class="input input--select">
+                    <option value="UAH">грн</option>
+                    <option value="USD">$</option>
+                    <option value="EUR">€</option>
+                  </select>
+                </label>
+                <label class="field field--compact" for="coupleSessionDuration">
+                  <span class="field-label">Тривалість</span>
+                  <select id="coupleSessionDuration" v-model.number="profile.couple_session_duration_minutes" class="input input--select">
+                    <option v-for="option in standardDurationOptions" :key="option" :value="option">
+                      {{ option }} хв
+                    </option>
+                  </select>
+                </label>
+              </div>
+              <div class="field-help">
+                Парна консультація з’явиться на публічному профілі після вказання ціни та тривалості.
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -1514,6 +1560,22 @@ function onIntroPriceInput(event: Event) {
   }
 }
 
+function onCouplePriceInput(event: Event) {
+  const target = event.target as HTMLInputElement
+  const next = sanitizeNumericInput(target.value)
+  profile.couple_session_price = next
+  if (target.value !== next) {
+    target.value = next
+  }
+}
+
+function isPositiveDecimalValue(value: string | number | null | undefined): boolean {
+  const normalized = normalizeDecimal(value)
+  if (!normalized) return false
+  const numeric = Number(normalized)
+  return Number.isFinite(numeric) && numeric > 0
+}
+
 function buildProfilePayload() {
   const publicDisplayName = (profile.public_display_name || '').trim()
   return {
@@ -1550,6 +1612,10 @@ function buildProfilePayload() {
     intro_duration_minutes: profile.intro_duration_minutes,
     intro_price: normalizeDecimal(profile.intro_price),
     intro_price_currency: profile.intro_price_currency || 'UAH',
+    couple_session_enabled: profile.couple_session_enabled,
+    couple_session_price: normalizeDecimal(profile.couple_session_price),
+    couple_session_price_currency: profile.couple_session_price_currency || 'UAH',
+    couple_session_duration_minutes: profile.couple_session_duration_minutes || 50,
     contact_email: profile.contact_email,
     contact_phone: profile.contact_phone,
     messenger: profile.messenger,
@@ -1610,6 +1676,10 @@ const profile = reactive<SpecialistProfile>({
   intro_duration_minutes: 30,
   intro_price: '',
   intro_price_currency: 'UAH',
+  couple_session_enabled: false,
+  couple_session_price: '',
+  couple_session_price_currency: 'UAH',
+  couple_session_duration_minutes: 50,
   contact_email: '',
   contact_phone: '',
   messenger: '',
@@ -1795,6 +1865,10 @@ type ProfileFormSnapshot = {
   intro_duration_minutes: number
   intro_price: string
   intro_price_currency: string
+  couple_session_enabled: boolean
+  couple_session_price: string
+  couple_session_price_currency: string
+  couple_session_duration_minutes: number
   contact_email: string
   contact_phone: string
   messenger: string
@@ -1848,6 +1922,13 @@ function createProfileFormSnapshot(): ProfileFormSnapshot {
     intro_duration_minutes: profile.intro_duration_minutes,
     intro_price: profile.intro_price || '',
     intro_price_currency: profile.intro_price_currency || 'UAH',
+    couple_session_enabled: profile.couple_session_enabled,
+    couple_session_price:
+      profile.couple_session_price === null || profile.couple_session_price === undefined
+        ? ''
+        : String(profile.couple_session_price),
+    couple_session_price_currency: profile.couple_session_price_currency || 'UAH',
+    couple_session_duration_minutes: profile.couple_session_duration_minutes || 50,
     contact_email: profile.contact_email || '',
     contact_phone: profile.contact_phone || '',
     messenger: profile.messenger || '',
@@ -1965,6 +2046,16 @@ async function onSave() {
   error.value = ''
   if (!profile.offers_online && !profile.offers_offline) {
     error.value = 'Оберіть щонайменше один формат консультацій: онлайн або офлайн.'
+    saving.value = false
+    return
+  }
+  if (profile.couple_session_enabled && !isPositiveDecimalValue(profile.couple_session_price)) {
+    error.value = 'Вкажіть додатну вартість парної консультації.'
+    saving.value = false
+    return
+  }
+  if (profile.couple_session_enabled && !profile.couple_session_duration_minutes) {
+    error.value = 'Оберіть тривалість парної консультації.'
     saving.value = false
     return
   }
@@ -2231,6 +2322,13 @@ function normalizeProfile(data: SpecialistProfile): SpecialistProfile {
     intro_duration_minutes: typeof data.intro_duration_minutes === 'number' ? data.intro_duration_minutes : 30,
     intro_price: data.intro_price || '',
     intro_price_currency: data.intro_price_currency || 'UAH',
+    couple_session_enabled: data.couple_session_enabled ?? false,
+    couple_session_price: data.couple_session_price || '',
+    couple_session_price_currency: data.couple_session_price_currency || 'UAH',
+    couple_session_duration_minutes:
+      typeof data.couple_session_duration_minutes === 'number'
+        ? data.couple_session_duration_minutes
+        : 50,
     contact_email: data.contact_email || '',
     contact_phone: data.contact_phone || '',
     messenger: data.messenger || '',
@@ -3013,6 +3111,15 @@ onMounted(() => {
   gap: 12px;
 }
 
+.offer-settings .field-row {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.field--compact {
+  min-width: 0;
+  margin: 0;
+}
+
 .field--format {
   gap: 7px;
 }
@@ -3259,6 +3366,10 @@ onMounted(() => {
   }
 
   .field-row {
+    grid-template-columns: 1fr;
+  }
+
+  .offer-settings .field-row {
     grid-template-columns: 1fr;
   }
 

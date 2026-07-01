@@ -418,6 +418,25 @@ describe('ExternalSessionsView', () => {
     expect(within(guestRequestsPanel as HTMLElement).getByRole('button', { name: 'Відхилити запит' })).toBeInTheDocument()
   })
 
+  it('shows consultation offer type in guest request details when API provides it', async () => {
+    mockedFetchCabinetGuestBookingRequests.mockResolvedValue([
+      buildGuestRequest({
+        id: 62,
+        guest_name: 'Couple Guest',
+        offer_type: 'couple',
+      }),
+    ] as any)
+
+    renderView()
+
+    const card = await screen.findByText('Couple Guest').then((node) => node.closest('.request-card') as HTMLElement)
+    expect(card).toHaveTextContent('Тип консультації: Парна консультація')
+
+    await fireEvent.click(within(card).getByRole('button', { name: 'Показати деталі' }))
+
+    expect(card).toHaveTextContent('Тип консультації: Парна консультація')
+  })
+
   it('shows guest quota summary when entitlements are available', async () => {
     renderView()
 

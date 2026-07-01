@@ -187,6 +187,9 @@
                   <div class="request-card__meta-grid">
                     <div class="muted">Клієнт: {{ requestClientName(request) }}</div>
                     <div class="muted">Контакт клієнта для відповіді: {{ requestCompactContact(request) }}</div>
+                    <div v-if="requestOfferTypeLabel(request)" class="muted">
+                      Тип консультації: {{ requestOfferTypeLabel(request) }}
+                    </div>
                     <div v-if="request.created_at" class="muted">Створено: {{ formatDateTime(request.created_at) }}</div>
                     <div class="request-card__status-row">
                       <span class="muted">Статус:</span>
@@ -237,6 +240,9 @@
                   <span v-if="request.session_format === 'offline' && request.offline_location_snapshot">
                     · {{ request.offline_location_snapshot }}
                   </span>
+                </div>
+                <div v-if="requestOfferTypeLabel(request)" class="muted">
+                  Тип консультації: {{ requestOfferTypeLabel(request) }}
                 </div>
                 <div v-if="request.message" class="muted">Коментар: {{ request.message }}</div>
                 <div v-if="requestDecisionAt(request)" class="muted">
@@ -952,6 +958,19 @@ function requestStatusClass(status: string | null | undefined) {
   if (normalized === 'approved') return 'status-pill--ok'
   if (normalized === 'declined' || normalized === 'cancelled') return 'status-pill--danger'
   return 'status-pill--muted'
+}
+
+function requestOfferTypeLabel(request: GuestBookingRequestRecord) {
+  switch (String(request.offer_type || '').toLowerCase()) {
+    case 'standard':
+      return 'Консультація'
+    case 'intro':
+      return 'Ознайомча сесія'
+    case 'couple':
+      return 'Парна консультація'
+    default:
+      return ''
+  }
 }
 
 function contactChannelLabel(channel: string | null | undefined) {

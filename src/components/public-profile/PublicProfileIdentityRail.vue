@@ -3,14 +3,22 @@
     <div class="identity-rail__card" data-testid="public-profile-booking-card">
       <h2 class="identity-rail__title">{{ heroCtaTitle }}</h2>
 
-      <div class="identity-rail__services" v-if="introPriceDisplay || priceDisplay" aria-label="Послуги та вартість">
+      <div
+        class="identity-rail__services"
+        v-if="priceDisplay || introPriceDisplay || couplePriceDisplay"
+        aria-label="Послуги та вартість"
+      >
+        <article v-if="priceDisplay" class="identity-rail__service">
+          <div class="identity-rail__service-title">Консультація: {{ priceDisplay }}</div>
+          <div class="identity-rail__service-meta">{{ standardSessionDurationLabel }}</div>
+        </article>
         <article v-if="introPriceDisplay" class="identity-rail__service identity-rail__service--intro">
           <div class="identity-rail__service-title">Ознайомча сесія: {{ introPriceDisplay }}</div>
           <div v-if="introDurationLabel" class="identity-rail__service-meta">{{ introDurationLabel }}</div>
         </article>
-        <article v-if="priceDisplay" class="identity-rail__service">
-          <div class="identity-rail__service-title">Консультація: {{ priceDisplay }}</div>
-          <div class="identity-rail__service-meta">{{ standardSessionDurationLabel }}</div>
+        <article v-if="couplePriceDisplay" class="identity-rail__service identity-rail__service--couple">
+          <div class="identity-rail__service-title">Парна консультація: {{ couplePriceDisplay }}</div>
+          <div v-if="coupleDurationLabel" class="identity-rail__service-meta">{{ coupleDurationLabel }}</div>
         </article>
       </div>
 
@@ -203,6 +211,8 @@ type Props = {
   introDurationLabel: string
   priceDisplay: string
   standardSessionDurationLabel: string
+  couplePriceDisplay: string
+  coupleDurationLabel: string
   showContactActions: boolean
   contactActions: ContactAction[]
   copiedContactId?: string
@@ -307,6 +317,11 @@ defineEmits<{
 .identity-rail__service--intro {
   border-color: color-mix(in srgb, var(--pc-teal-500) 38%, var(--pc-border));
   background: color-mix(in srgb, var(--pc-bg-card) 82%, var(--pc-teal-100));
+}
+
+.identity-rail__service--couple {
+  border-color: color-mix(in srgb, var(--pc-peach-500) 44%, var(--pc-border));
+  background: color-mix(in srgb, var(--pc-bg-card) 84%, var(--pc-peach-100));
 }
 
 .identity-rail__actions {

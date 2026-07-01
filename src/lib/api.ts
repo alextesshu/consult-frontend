@@ -226,6 +226,10 @@ export type TherapistProfile = {
   intro_duration_minutes: number
   intro_price: string | null
   intro_price_currency: string
+  couple_session_enabled: boolean
+  couple_session_price: string | number | null
+  couple_session_price_currency: string | null
+  couple_session_duration_minutes: number | null
   contact_email: string
   contact_phone: string
   messenger: string
@@ -842,6 +846,10 @@ export type PublicProfileFormatsSection = {
   intro_price_display?: string | null
   intro_price?: string | number | null
   intro_price_currency?: string | null
+  couple_session_enabled?: boolean | null
+  couple_session_price?: string | number | null
+  couple_session_price_currency?: string | null
+  couple_session_duration_minutes?: number | null
   price_display?: string | null
   price?: string | number | null
   price_currency?: string | null
@@ -969,8 +977,12 @@ export type PublicTherapistProfile = {
   price_currency?: string
   standard_session_duration_minutes?: number
   intro_duration_minutes?: number
-  intro_price?: string
-  intro_price_currency?: string
+  intro_price?: string | number | null
+  intro_price_currency?: string | null
+  couple_session_enabled?: boolean
+  couple_session_price?: string | number | null
+  couple_session_price_currency?: string | null
+  couple_session_duration_minutes?: number | null
   contact_email?: string
   contact_phone?: string
   messenger?: string
@@ -991,6 +1003,7 @@ export type PublicTherapistProfile = {
 export type PublicSpecialistProfile = PublicTherapistProfile
 
 export type SessionFormat = 'online' | 'offline'
+export type ConsultationOfferType = 'standard' | 'intro' | 'couple'
 
 export type PublicGuestRequestTopic =
   | 'anxiety'
@@ -2666,6 +2679,7 @@ export type GuestBookingRequestRecord = {
   requested_slot_start: string | null
   requested_slot_end: string | null
   duration_minutes: number | null
+  offer_type?: ConsultationOfferType | string | null
   session_format: SessionFormat | null
   offline_location_snapshot: string | null
   client_name?: string | null
