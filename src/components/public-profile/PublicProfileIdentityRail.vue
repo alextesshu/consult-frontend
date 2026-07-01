@@ -8,18 +8,39 @@
         v-if="priceDisplay || introPriceDisplay || couplePriceDisplay"
         aria-label="Послуги та вартість"
       >
-        <article v-if="priceDisplay" class="identity-rail__service">
+        <button
+          v-if="priceDisplay"
+          class="identity-rail__service"
+          :class="{ 'identity-rail__service--active': selectedOfferType === 'standard' }"
+          type="button"
+          :aria-pressed="selectedOfferType === 'standard'"
+          @click="$emit('select-offer', 'standard')"
+        >
           <div class="identity-rail__service-title">Консультація: {{ priceDisplay }}</div>
           <div class="identity-rail__service-meta">{{ standardSessionDurationLabel }}</div>
-        </article>
-        <article v-if="introPriceDisplay" class="identity-rail__service identity-rail__service--intro">
+        </button>
+        <button
+          v-if="introPriceDisplay"
+          class="identity-rail__service identity-rail__service--intro"
+          :class="{ 'identity-rail__service--active': selectedOfferType === 'intro' }"
+          type="button"
+          :aria-pressed="selectedOfferType === 'intro'"
+          @click="$emit('select-offer', 'intro')"
+        >
           <div class="identity-rail__service-title">Ознайомча сесія: {{ introPriceDisplay }}</div>
           <div v-if="introDurationLabel" class="identity-rail__service-meta">{{ introDurationLabel }}</div>
-        </article>
-        <article v-if="couplePriceDisplay" class="identity-rail__service identity-rail__service--couple">
+        </button>
+        <button
+          v-if="couplePriceDisplay"
+          class="identity-rail__service identity-rail__service--couple"
+          :class="{ 'identity-rail__service--active': selectedOfferType === 'couple' }"
+          type="button"
+          :aria-pressed="selectedOfferType === 'couple'"
+          @click="$emit('select-offer', 'couple')"
+        >
           <div class="identity-rail__service-title">Парна консультація: {{ couplePriceDisplay }}</div>
           <div v-if="coupleDurationLabel" class="identity-rail__service-meta">{{ coupleDurationLabel }}</div>
-        </article>
+        </button>
       </div>
 
       <div class="identity-rail__actions">
@@ -213,6 +234,7 @@ type Props = {
   standardSessionDurationLabel: string
   couplePriceDisplay: string
   coupleDurationLabel: string
+  selectedOfferType?: 'standard' | 'intro' | 'couple' | null
   showContactActions: boolean
   contactActions: ContactAction[]
   copiedContactId?: string
@@ -242,6 +264,7 @@ withDefaults(defineProps<Props>(), {
   showInquiryCta: false,
   inquiryCtaLabel: 'Поставити питання перед записом',
   showFeedbackCta: false,
+  selectedOfferType: null,
 })
 
 const requestTooltipHovered = ref(false)
@@ -256,6 +279,7 @@ defineEmits<{
   (event: 'request-action'): void
   (event: 'inquiry-action'): void
   (event: 'copy-contact-action', item: ContactAction): void
+  (event: 'select-offer', offerType: 'standard' | 'intro' | 'couple'): void
 }>()
 </script>
 
@@ -294,12 +318,31 @@ defineEmits<{
 }
 
 .identity-rail__service {
+  width: 100%;
+  text-align: left;
   padding: 10px 11px;
   border-radius: 12px;
   border: 1px solid var(--pc-border);
   background: var(--pc-bg-card);
   display: grid;
   gap: 3px;
+  cursor: pointer;
+  font: inherit;
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.18s ease;
+}
+
+.identity-rail__service:hover,
+.identity-rail__service:focus-visible {
+  border-color: color-mix(in srgb, var(--pc-navy-700) 42%, var(--pc-border));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--pc-teal-200) 44%, transparent);
+}
+
+.identity-rail__service--active {
+  border-color: var(--pc-navy-800);
+  box-shadow: inset 3px 0 0 var(--pc-navy-800);
 }
 
 .identity-rail__service-title {

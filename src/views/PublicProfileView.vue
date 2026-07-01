@@ -49,6 +49,7 @@
           :standard-session-duration-label="standardSessionDurationLabel"
           :couple-price-display="couplePriceDisplay"
           :couple-duration-label="coupleDurationLabel"
+          :selected-offer-type="selectedPublicOfferType || defaultGuestBookingOfferType"
           :show-contact-actions="showDirectContactActions"
           :contact-actions="contactActions"
           :copied-contact-id="copiedContactId"
@@ -68,6 +69,7 @@
           @request-action="handlePublicRequestAction"
           @inquiry-action="scrollToInquiry"
           @copy-contact-action="copyPublicContactValue"
+          @select-offer="selectPublicOffer"
         />
       </aside>
 
@@ -615,14 +617,11 @@
                   :class="{ 'guest-offer-option--active': guestBookingForm.offer_type === offer.type }"
                   type="button"
                   :aria-pressed="guestBookingForm.offer_type === offer.type"
-                  :disabled="guestBookingSubmitting || offer.disabled"
+                  :disabled="guestBookingSubmitting"
                   @click="selectGuestBookingOffer(offer.type)"
                 >
                   <span class="guest-offer-option__label">{{ offer.label }}</span>
                   <span class="guest-offer-option__meta">{{ offer.meta }}</span>
-                  <span v-if="offer.helperText" class="guest-offer-option__helper">
-                    {{ offer.helperText }}
-                  </span>
                 </button>
               </div>
               <p v-if="guestOfferCompatibilityMessage" class="guest-offer-selector__hint">
@@ -1204,6 +1203,7 @@ const slotsPreviewLimit = 96
 const bookingSessionFormat = ref<SessionFormat>('online')
 const monthSlotsCache = new Map<string, PublicSlot[]>()
 const didAutoShiftToFirstAvailableMonth = ref(false)
+const selectedPublicOfferType = ref<ConsultationOfferType | null>(null)
 
 const slug = computed(() => String(route.params.slug || '').trim())
 const roles = computed(() => auth.me?.user.roles ?? auth.user?.roles ?? [])
@@ -1445,9 +1445,15 @@ const calendarLeadingBlanks = computed(() => {
   const firstDay = parseLocalDateValue(visibleMonthStart.value)
   return (firstDay.getDay() + 6) % 7
 })
-const slotsByLocalDate = computed(() => groupSlotsByLocalDate(monthSlots.value))
-const monthHasSlots = computed(() => monthSlots.value.length > 0)
-const hasSlotsInBookingHorizon = computed(() => horizonSlots.value.length > 0)
+const offerFilteredMonthSlots = computed(() =>
+  monthSlots.value.filter((slot) => isSlotCompatibleWithSelectedPublicOffer(slot))
+)
+const offerFilteredHorizonSlots = computed(() =>
+  horizonSlots.value.filter((slot) => isSlotCompatibleWithSelectedPublicOffer(slot))
+)
+const slotsByLocalDate = computed(() => groupSlotsByLocalDate(offerFilteredMonthSlots.value))
+const monthHasSlots = computed(() => offerFilteredMonthSlots.value.length > 0)
+const hasSlotsInBookingHorizon = computed(() => offerFilteredHorizonSlots.value.length > 0)
 const showDirectBookingRequestFallback = computed(
   () =>
     publicDirectBookingEnabled.value &&
@@ -2204,33 +2210,54 @@ function slotDurationMinutes(slot: PublicSlot | null) {
   return Math.round((end - start) / 60000)
 }
 
+const selectedPublicOffer = computed(() => {
+  const selected = availableGuestRequestOffers.value.find(
+    (offer) => offer.type === selectedPublicOfferType.value
+  )
+  return selected || availableGuestRequestOffers.value[0] || null
+})
+
+function isSlotCompatibleWithOffer(slot: PublicSlot | null, offer: PublicConsultationOfferView | null) {
+  if (!slot || !offer) return true
+  const slotMinutes = slotDurationMinutes(slot)
+  if (!slotMinutes) return false
+  return slotMinutes >= offer.durationMinutes
+}
+
+function isSlotCompatibleWithSelectedPublicOffer(slot: PublicSlot | null) {
+  return isSlotCompatibleWithOffer(slot, selectedPublicOffer.value)
+}
+
 const selectedGuestSlotDurationMinutes = computed(() => slotDurationMinutes(guestBookingSlot.value))
 
 function isOfferCompatibleWithSelectedSlot(offer: PublicConsultationOfferView) {
   if (!guestBookingSlot.value) return true
   const slotMinutes = selectedGuestSlotDurationMinutes.value
   if (!slotMinutes) return false
-  return offer.durationMinutes === slotMinutes
+  return offer.durationMinutes <= slotMinutes
 }
 
 const guestRequestOfferOptions = computed<PublicConsultationOfferOption[]>(() => {
-  return availableGuestRequestOffers.value.map((offer) => {
-    const compatible = isOfferCompatibleWithSelectedSlot(offer)
-    return {
-      ...offer,
-      disabled: !compatible,
-      helperText: compatible ? '' : `Потрібне вікно на ${offer.durationMinutes} хв`,
-    }
-  })
+  return compatibleGuestRequestOffers.value.map((offer) => ({
+    ...offer,
+    disabled: false,
+    helperText: '',
+  }))
 })
 
 const compatibleGuestRequestOffers = computed(() =>
   availableGuestRequestOffers.value.filter((offer) => isOfferCompatibleWithSelectedSlot(offer))
 )
 
-const showGuestOfferSelector = computed(() => availableGuestRequestOffers.value.length > 1)
+const showGuestOfferSelector = computed(
+  () => availableGuestRequestOffers.value.length > 1 && !selectedPublicOfferType.value
+)
 
 const defaultGuestBookingOfferType = computed<ConsultationOfferType>(() => {
+  const selected = availableGuestRequestOffers.value.find(
+    (offer) => offer.type === selectedPublicOfferType.value
+  )
+  if (selected && isOfferCompatibleWithSelectedSlot(selected)) return selected.type
   return compatibleGuestRequestOffers.value[0]?.type || availableGuestRequestOffers.value[0]?.type || 'standard'
 })
 
@@ -3023,6 +3050,19 @@ function syncSelectedDateSlots() {
   slots.value = [...(slotsByLocalDate.value.get(selectedDate.value) || [])]
 }
 
+function syncSelectedDateForCurrentOffer(options: { preferFirstAvailable?: boolean } = {}) {
+  const groupedSlots = slotsByLocalDate.value
+  const firstAvailableDate = Array.from(groupedSlots.keys()).sort()[0] || ''
+  if (
+    !isDateInVisibleMonth(selectedDate.value) ||
+    !groupedSlots.has(selectedDate.value) ||
+    (options.preferFirstAvailable && firstAvailableDate)
+  ) {
+    selectedDate.value = firstAvailableDate || selectedDate.value
+  }
+  syncSelectedDateSlots()
+}
+
 function selectCalendarDay(date: string) {
   if (!slotsByLocalDate.value.has(date)) return
   selectedDate.value = date
@@ -3278,12 +3318,7 @@ async function loadSlots(options: { preferFirstAvailable?: boolean; forceRefresh
     })()
 
     monthSlots.value = nextMonthSlots
-    const groupedSlots = groupSlotsByLocalDate(nextMonthSlots)
-    const firstAvailableDate = Array.from(groupedSlots.keys()).sort()[0] || currentMonth
-    if (!isDateInVisibleMonth(selectedDate.value) || (options.preferFirstAvailable && firstAvailableDate)) {
-      selectedDate.value = firstAvailableDate
-    }
-    slots.value = [...(groupedSlots.get(selectedDate.value) || [])]
+    syncSelectedDateForCurrentOffer({ preferFirstAvailable: options.preferFirstAvailable })
   } catch {
     monthSlots.value = []
     slots.value = []
@@ -3647,9 +3682,19 @@ function resetGuestBookingForm() {
   selectedGuestRequestTopics.value = []
 }
 
+function selectPublicOffer(offerType: ConsultationOfferType) {
+  const offer = availableGuestRequestOffers.value.find((item) => item.type === offerType)
+  if (!offer) return
+  selectedPublicOfferType.value = offerType
+  showAllSlots.value = false
+  syncSelectedDateForCurrentOffer({ preferFirstAvailable: true })
+  ensureGuestBookingOfferCompatibility()
+}
+
 function selectGuestBookingOffer(offerType: ConsultationOfferType) {
   const offer = availableGuestRequestOffers.value.find((item) => item.type === offerType)
   if (!offer || !isOfferCompatibleWithSelectedSlot(offer)) return
+  selectedPublicOfferType.value = offerType
   guestBookingForm.value.offer_type = offerType
 }
 
@@ -3949,7 +3994,7 @@ async function submitGuestBookingRequest() {
     if (message) {
       payload.message = message
     }
-    if (showGuestOfferSelector.value || offerType !== 'standard') {
+    if (showGuestOfferSelector.value || selectedPublicOfferType.value || offerType !== 'standard') {
       payload.offer_type = offerType
     }
     const response = await createPublicGuestBookingRequest(profileSlug, payload)
@@ -4197,12 +4242,20 @@ watch(
 )
 
 watch(
-  [guestBookingSlot, availableGuestRequestOffers],
+  [guestBookingSlot, availableGuestRequestOffers, selectedPublicOfferType],
   () => {
     if (!showGuestBookingModal.value || guestBookingSuccess.value) return
     ensureGuestBookingOfferCompatibility()
   },
   { deep: false }
+)
+
+watch(
+  selectedPublicOfferType,
+  () => {
+    showAllSlots.value = false
+    syncSelectedDateForCurrentOffer({ preferFirstAvailable: true })
+  }
 )
 
 watch(slug, () => {
@@ -4215,6 +4268,7 @@ watch(slug, () => {
   horizonSlotsLoading.value = false
   didAutoShiftToFirstAvailableMonth.value = false
   monthSlotsCache.clear()
+  selectedPublicOfferType.value = null
   showGuestBookingModal.value = false
   guestBookingSlot.value = null
   guestBookingError.value = ''

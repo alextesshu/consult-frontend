@@ -429,6 +429,9 @@
               <div class="field-help">
                 Парна консультація з’явиться на публічному профілі після вказання ціни та тривалості.
               </div>
+              <div v-if="showCoupleAvailabilityHelper" class="field-help">
+                Щоб клієнти могли обрати час для парної консультації, додайте вікна відповідного часу для запису в розкладі.
+              </div>
             </div>
           </div>
         </div>
@@ -1645,6 +1648,8 @@ const profile = reactive<SpecialistProfile>({
   public_profile_url: '',
   public_slug: '',
   last_slug_rotated_at: null,
+  public_booking_mode: 'request_only',
+  show_public_availability: false,
   offers_online: true,
   offers_offline: false,
   offline_location: '',
@@ -1700,6 +1705,13 @@ const profile = reactive<SpecialistProfile>({
   show_location: false,
   show_photo: false,
 })
+
+const showCoupleAvailabilityHelper = computed(
+  () =>
+    profile.couple_session_enabled &&
+    profile.public_booking_mode === 'direct_booking' &&
+    profile.show_public_availability === true
+)
 
 function normalizePublicProfilePath(value: string | null | undefined): string {
   const raw = String(value || '').trim()
@@ -2288,6 +2300,8 @@ function normalizeProfile(data: SpecialistProfile): SpecialistProfile {
     public_slug: String(data.public_slug || canonicalSlug).trim(),
     public_profile_path: canonicalPath,
     public_profile_url: canonicalUrl,
+    public_booking_mode: data.public_booking_mode || 'request_only',
+    show_public_availability: data.show_public_availability ?? false,
     offers_online: typeof data.offers_online === 'boolean' ? data.offers_online : true,
     offers_offline: typeof data.offers_offline === 'boolean' ? data.offers_offline : false,
     offline_location: data.offline_location || '',

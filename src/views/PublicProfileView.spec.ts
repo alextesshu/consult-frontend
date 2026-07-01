@@ -140,6 +140,7 @@ function buildProfile(
     experience_years: 5,
     price: '1500',
     price_currency: 'UAH',
+    standard_session_duration_minutes: 50,
     intro_duration_minutes: 30,
     intro_price: '600',
     intro_price_currency: 'UAH',
@@ -219,6 +220,18 @@ function buildTodayLocalSlot(overrides: Record<string, unknown> = {}) {
   }
 }
 
+function buildTodayLocalSlotWithDuration(id: number, hour: number, durationMinutes: number) {
+  const start = new Date()
+  start.setHours(hour, 0, 0, 0)
+  const end = new Date(start)
+  end.setMinutes(end.getMinutes() + durationMinutes)
+  return buildTodayLocalSlot({
+    id,
+    start_at: start.toISOString(),
+    end_at: end.toISOString(),
+  })
+}
+
 function buildPendingBookingRules(overrides: Record<string, unknown> = {}) {
   return {
     show_prompt: true,
@@ -268,6 +281,22 @@ function mockBookingPageDataWithSingleSlot() {
   mockedApiGet.mockImplementation(async (url, config) => {
     if (url === '/booking/slots/') {
       return [buildTodayLocalSlot()]
+    }
+    if (url === '/booking/sessions/') {
+      if ((config as { params?: { upcoming?: boolean } } | undefined)?.params?.upcoming === true) {
+        return []
+      }
+      return []
+    }
+    if (url === '/public/specialists/olena/reviews/') return []
+    throw new Error(`Unexpected apiGet call: ${url}`)
+  })
+}
+
+function mockBookingPageDataWithSlots(publicSlots: Array<Record<string, unknown>>) {
+  mockedApiGet.mockImplementation(async (url, config) => {
+    if (url === '/booking/slots/') {
+      return publicSlots
     }
     if (url === '/booking/sessions/') {
       if ((config as { params?: { upcoming?: boolean } } | undefined)?.params?.upcoming === true) {
@@ -1823,14 +1852,15 @@ describe('PublicProfileView', () => {
       },
     })
 
-    renderView()
+    const { container } = renderView()
 
     await fireEvent.click(await screen.findByRole('button', { name: 'Надіслати запит на цей час' }))
     expect(await screen.findByText('Тип консультації')).toBeInTheDocument()
-    const standardOffer = screen.getByRole('button', { name: /^Консультація/i })
+    const modal = container.querySelector('.guest-booking-modal') as HTMLElement
+    const standardOffer = within(modal).getByRole('button', { name: /^Консультація/i })
     expect(standardOffer).toHaveAttribute('aria-pressed', 'true')
     expect(standardOffer).not.toBeDisabled()
-    expect(screen.getByRole('button', { name: /Ознайомча сесія/i })).toBeInTheDocument()
+    expect(within(modal).getByRole('button', { name: /Ознайомча сесія/i })).toBeInTheDocument()
 
     await fireEvent.update(screen.getByLabelText('Ім’я'), 'Ірина')
     await fireEvent.update(screen.getByLabelText('Як спеціаліст може з вами зв’язатися?'), 'iryna@example.com')
@@ -1856,10 +1886,11 @@ describe('PublicProfileView', () => {
       },
     })
 
-    renderView()
+    const { container } = renderView()
 
     await fireEvent.click((await screen.findAllByRole('button', { name: 'Залишити запит' }))[0]!)
-    await fireEvent.click(await screen.findByRole('button', { name: /Ознайомча сесія/i }))
+    const modal = container.querySelector('.guest-booking-modal') as HTMLElement
+    await fireEvent.click(await within(modal).findByRole('button', { name: /Ознайомча сесія/i }))
     await fireEvent.update(screen.getByLabelText('Ім’я'), 'Ірина')
     await fireEvent.update(screen.getByLabelText('Як спеціаліст може з вами зв’язатися?'), 'iryna@example.com')
     await fireEvent.click(screen.getByRole('button', { name: 'Надіслати запит' }))
@@ -1893,10 +1924,11 @@ describe('PublicProfileView', () => {
       },
     })
 
-    renderView()
+    const { container } = renderView()
 
     await fireEvent.click((await screen.findAllByRole('button', { name: 'Залишити запит' }))[0]!)
-    await fireEvent.click(await screen.findByRole('button', { name: /Парна консультація/i }))
+    const modal = container.querySelector('.guest-booking-modal') as HTMLElement
+    await fireEvent.click(await within(modal).findByRole('button', { name: /Парна консультація/i }))
     await fireEvent.update(screen.getByLabelText('Ім’я'), 'Ірина')
     await fireEvent.update(screen.getByLabelText('Як спеціаліст може з вами зв’язатися?'), 'iryna@example.com')
     await fireEvent.click(screen.getByRole('button', { name: 'Надіслати запит' }))
@@ -1921,66 +1953,7 @@ describe('PublicProfileView', () => {
     expect(screen.queryByRole('button', { name: /Парна консультація/i })).not.toBeInTheDocument()
   })
 
-  it('disables intro and couple offers when selected slot duration differs', async () => {
-    mockedFetchPublicSpecialistProfile.mockResolvedValue(
-      buildProfile({
-        couple_session_enabled: true,
-        couple_session_price: '2200',
-        couple_session_price_currency: 'UAH',
-        couple_session_duration_minutes: 90,
-      })
-    )
-    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
-    mockedFetchPublicJournalCollections.mockResolvedValue([])
-    mockBookingPageDataWithSingleSlot()
-
-    renderView()
-
-    await fireEvent.click(await screen.findByRole('button', { name: 'Надіслати запит на цей час' }))
-
-    expect(await screen.findByText('Тип консультації')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /^Консультація/i })).not.toBeDisabled()
-    expect(screen.getByRole('button', { name: /^Ознайомча сесія/i })).toBeDisabled()
-    expect(screen.getByRole('button', { name: /^Парна консультація/i })).toBeDisabled()
-    expect(screen.getByText('Потрібне вікно на 30 хв')).toBeInTheDocument()
-    expect(screen.getByText('Потрібне вікно на 90 хв')).toBeInTheDocument()
-  })
-
-  it('blocks selected-slot submit when no offer matches slot duration', async () => {
-    mockedFetchPublicSpecialistProfile.mockResolvedValue(
-      buildProfile({
-        standard_session_duration_minutes: 60,
-        couple_session_enabled: true,
-        couple_session_price: '2200',
-        couple_session_price_currency: 'UAH',
-        couple_session_duration_minutes: 90,
-      })
-    )
-    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
-    mockedFetchPublicJournalCollections.mockResolvedValue([])
-    mockBookingPageDataWithSingleSlot()
-
-    renderView()
-
-    await fireEvent.click(await screen.findByRole('button', { name: 'Надіслати запит на цей час' }))
-    expect(await screen.findByText('Тип консультації')).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: /^Консультація/i })).toBeDisabled()
-    expect(screen.getByRole('button', { name: /^Ознайомча сесія/i })).toBeDisabled()
-    expect(screen.getByRole('button', { name: /^Парна консультація/i })).toBeDisabled()
-    expect(
-      screen.getByText(
-        'Обраний тип консультації не відповідає тривалості вибраного часу. Оберіть інший час або залиште запит без вибору часу.'
-      )
-    ).toBeInTheDocument()
-
-    await fireEvent.update(screen.getByLabelText('Ім’я'), 'Ірина')
-    await fireEvent.update(screen.getByLabelText('Як спеціаліст може з вами зв’язатися?'), 'iryna@example.com')
-    await fireEvent.click(screen.getByRole('button', { name: 'Надіслати запит' }))
-
-    expect(mockedApiPost).not.toHaveBeenCalled()
-  })
-
-  it('keeps incompatible selected-slot offer from being submitted', async () => {
+  it('allows shorter intro offer for a selected 50-minute slot and hides longer couple offer in modal', async () => {
     mockedFetchPublicSpecialistProfile.mockResolvedValue(
       buildProfile({
         couple_session_enabled: true,
@@ -1994,17 +1967,25 @@ describe('PublicProfileView', () => {
     mockBookingPageDataWithSingleSlot()
     mockedApiPost.mockResolvedValue({
       request: {
-        id: 507,
+        id: 508,
         status: 'PENDING',
         created_at: '2026-04-07T10:00:00Z',
         next_step: null,
       },
     })
 
-    renderView()
+    const { container } = renderView()
 
     await fireEvent.click(await screen.findByRole('button', { name: 'Надіслати запит на цей час' }))
-    await fireEvent.click(await screen.findByRole('button', { name: /^Парна консультація/i }))
+
+    const modal = container.querySelector('.guest-booking-modal') as HTMLElement
+    expect(await within(modal).findByText('Тип консультації')).toBeInTheDocument()
+    expect(within(modal).getByRole('button', { name: /^Консультація/i })).not.toBeDisabled()
+    expect(within(modal).getByRole('button', { name: /^Ознайомча сесія/i })).not.toBeDisabled()
+    expect(within(modal).queryByRole('button', { name: /^Парна консультація/i })).not.toBeInTheDocument()
+    expect(screen.queryByText(/Потрібне вікно/)).not.toBeInTheDocument()
+
+    await fireEvent.click(within(modal).getByRole('button', { name: /^Ознайомча сесія/i }))
     await fireEvent.update(screen.getByLabelText('Ім’я'), 'Ірина')
     await fireEvent.update(screen.getByLabelText('Як спеціаліст може з вами зв’язатися?'), 'iryna@example.com')
     await fireEvent.click(screen.getByRole('button', { name: 'Надіслати запит' }))
@@ -2012,15 +1993,77 @@ describe('PublicProfileView', () => {
     expect(mockedApiPost).toHaveBeenCalledWith(
       '/public/specialists/olena/guest-booking-requests/',
       expect.objectContaining({
-        offer_type: 'standard',
+        slot_id: 100,
+        offer_type: 'intro',
       })
     )
-    expect(mockedApiPost).not.toHaveBeenCalledWith(
-      '/public/specialists/olena/guest-booking-requests/',
-      expect.objectContaining({
-        offer_type: 'couple',
+  })
+
+  it('filters available times by selected offer duration', async () => {
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(
+      buildProfile({
+        couple_session_enabled: true,
+        couple_session_price: '2200',
+        couple_session_price_currency: 'UAH',
+        couple_session_duration_minutes: 90,
       })
     )
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockBookingPageDataWithSlots([
+      buildTodayLocalSlotWithDuration(101, 9, 30),
+      buildTodayLocalSlotWithDuration(102, 10, 40),
+      buildTodayLocalSlotWithDuration(103, 11, 50),
+      buildTodayLocalSlotWithDuration(104, 12, 90),
+    ])
+
+    renderView()
+
+    expect(await screen.findByRole('button', { name: /^Консультація/i })).toHaveAttribute('aria-pressed', 'true')
+    await waitFor(() => {
+      expect(screen.getAllByRole('button', { name: 'Надіслати запит на цей час' })).toHaveLength(2)
+    })
+
+    await fireEvent.click(screen.getByRole('button', { name: /^Ознайомча сесія/i }))
+    expect(screen.getByRole('button', { name: /^Ознайомча сесія/i })).toHaveAttribute('aria-pressed', 'true')
+    await waitFor(() => {
+      expect(screen.getAllByRole('button', { name: 'Надіслати запит на цей час' })).toHaveLength(4)
+    })
+
+    await fireEvent.click(screen.getByRole('button', { name: /^Парна консультація/i }))
+    expect(screen.getByRole('button', { name: /^Парна консультація/i })).toHaveAttribute('aria-pressed', 'true')
+    await waitFor(() => {
+      expect(screen.getAllByRole('button', { name: 'Надіслати запит на цей час' })).toHaveLength(1)
+    })
+
+    await fireEvent.click(screen.getByRole('button', { name: /^Консультація/i }))
+    await waitFor(() => {
+      expect(screen.getAllByRole('button', { name: 'Надіслати запит на цей час' })).toHaveLength(2)
+    })
+  })
+
+  it('does not show 50-minute slots after selecting 90-minute couple offer', async () => {
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(
+      buildProfile({
+        couple_session_enabled: true,
+        couple_session_price: '2200',
+        couple_session_price_currency: 'UAH',
+        couple_session_duration_minutes: 90,
+      })
+    )
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    mockedFetchPublicJournalCollections.mockResolvedValue([])
+    mockBookingPageDataWithSingleSlot()
+
+    renderView()
+
+    expect(await screen.findByRole('button', { name: 'Надіслати запит на цей час' })).toBeInTheDocument()
+    await fireEvent.click(screen.getByRole('button', { name: /^Парна консультація/i }))
+
+    await waitFor(() => {
+      expect(screen.queryByRole('button', { name: 'Надіслати запит на цей час' })).not.toBeInTheDocument()
+    })
+    expect(mockedApiPost).not.toHaveBeenCalled()
   })
 
   it('shows calm Ukrainian copy for backend offer duration mismatch', async () => {

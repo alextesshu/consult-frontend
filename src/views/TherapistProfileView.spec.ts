@@ -598,6 +598,45 @@ describe('TherapistProfileView', () => {
     expect(await screen.findByText('Вкажіть додатну вартість парної консультації.')).toBeInTheDocument()
   })
 
+  it('shows couple availability helper when public time selection is enabled', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValue({
+      ...makeProfile(),
+      public_booking_mode: 'direct_booking',
+      show_public_availability: true,
+      couple_session_enabled: true,
+      couple_session_price: '1800',
+      couple_session_duration_minutes: 75,
+    })
+
+    renderView()
+
+    expect(
+      await screen.findByText(
+        'Щоб клієнти могли обрати час для парної консультації, додайте вікна відповідного часу для запису в розкладі.'
+      )
+    ).toBeInTheDocument()
+  })
+
+  it('hides couple availability helper when public time selection is disabled', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValue({
+      ...makeProfile(),
+      public_booking_mode: 'request_only',
+      show_public_availability: false,
+      couple_session_enabled: true,
+      couple_session_price: '1800',
+      couple_session_duration_minutes: 75,
+    })
+
+    renderView()
+
+    await screen.findByText('Парна консультація')
+    expect(
+      screen.queryByText(
+        'Щоб клієнти могли обрати час для парної консультації, додайте вікна відповідного часу для запису в розкладі.'
+      )
+    ).not.toBeInTheDocument()
+  })
+
   it('allows saving disabled couple offer without price', async () => {
     const profile = makeProfile()
     mockedFetchSpecialistProfile.mockResolvedValue(profile)
