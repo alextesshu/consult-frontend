@@ -28,6 +28,18 @@
             </h2>
           </div>
           <div class="summary-actions">
+            <a
+              v-if="publicProfileUrl"
+              class="btn btn--ghost btn--sm"
+              :href="publicProfileUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Відкрити публічний профіль
+            </a>
+            <span v-else class="public-profile-action__status">
+              {{ publicProfileUnavailableText }}
+            </span>
             <button class="btn btn--sm" type="button" @click="openPlanModal">Змінити базовий тариф</button>
             <div class="access-action access-action--primary">
               <button class="btn btn--ghost btn--sm" type="button" @click="openTrialModal">
@@ -568,6 +580,16 @@ const overrideForm = ref<{
 })
 
 const specialistId = computed(() => Number(route.params.id))
+const publicProfileSlug = computed(() => String(detail.value?.identity.slug || '').trim())
+const publicProfileUrl = computed(() => {
+  if (!detail.value?.identity.public_profile_enabled || !publicProfileSlug.value) return ''
+  return `/s/${encodeURIComponent(publicProfileSlug.value)}`
+})
+const publicProfileUnavailableText = computed(() => {
+  if (!detail.value?.identity.public_profile_enabled) return 'Публічний профіль вимкнено'
+  if (!publicProfileSlug.value) return 'Слаг профілю не налаштовано'
+  return ''
+})
 
 function formatDate(value: string | null | undefined) {
   return formatUkDateTimeCompact(value)
@@ -1013,6 +1035,16 @@ watch(
   margin: 0;
   font-size: 12px;
   line-height: 1.35;
+}
+
+.public-profile-action__status {
+  align-self: flex-start;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.2;
+  padding: 8px 10px;
 }
 
 .summary-grid,

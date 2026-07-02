@@ -184,6 +184,57 @@ describe('AdminSpecialistDetailView', () => {
     mockedApplyAdminSpecialistTrialAction.mockResolvedValue({} as any)
   })
 
+  it('renders a safe new-tab link to the public profile when enabled and slug exists', async () => {
+    await renderView()
+
+    const link = await screen.findByRole('link', { name: 'Відкрити публічний профіль' })
+    expect(link).toHaveAttribute('href', '/s/olena')
+    expect(link).toHaveAttribute('target', '_blank')
+    expect(link).toHaveAttribute('rel', 'noopener noreferrer')
+  })
+
+  it('does not render an active public profile link when the public profile is disabled', async () => {
+    await renderView(buildDetail({
+      identity: {
+        ...buildDetail().identity,
+        public_profile_enabled: false,
+        slug: 'olena',
+      },
+    }))
+
+    expect(screen.queryByRole('link', { name: 'Відкрити публічний профіль' })).not.toBeInTheDocument()
+    expect(await screen.findByText('Публічний профіль вимкнено')).toBeInTheDocument()
+  })
+
+  it('does not render an active public profile link when slug is missing', async () => {
+    await renderView(buildDetail({
+      identity: {
+        ...buildDetail().identity,
+        public_profile_enabled: true,
+        slug: '',
+      },
+    }))
+
+    expect(screen.queryByRole('link', { name: 'Відкрити публічний профіль' })).not.toBeInTheDocument()
+    expect(await screen.findByText('Слаг профілю не налаштовано')).toBeInTheDocument()
+  })
+
+  it('does not require search visibility for the public profile link', async () => {
+    await renderView(buildDetail({
+      identity: {
+        ...buildDetail().identity,
+        public_profile_enabled: true,
+        slug: 'olena-hidden-search',
+        is_search_visible: false,
+      } as any,
+    }))
+
+    expect(await screen.findByRole('link', { name: 'Відкрити публічний профіль' })).toHaveAttribute(
+      'href',
+      '/s/olena-hidden-search'
+    )
+  })
+
   it('explains the difference between test access and service override', async () => {
     await renderView()
 
