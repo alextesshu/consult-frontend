@@ -610,8 +610,22 @@ export type AdminSpecialistDetailResponse = {
     display_name: string
     public_display_name?: string
     slug: string | null
+    public_slug?: string | null
     public_profile_enabled: boolean
     created_at: string | null
+  }
+  profile_readiness?: {
+    public_profile_enabled: boolean
+    public_display_name_exists: boolean
+    profile_slug_exists: boolean
+    basic_description_exists: boolean
+    standard_price_configured: boolean
+    client_entry_path_exists: boolean
+    public_profile_link_available: boolean
+    public_booking_mode?: string
+    show_public_availability?: boolean
+    has_future_availability_windows?: boolean
+    missing_items: string[]
   }
   role_state: {
     role: string

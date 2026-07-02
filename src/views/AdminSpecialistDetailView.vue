@@ -80,6 +80,38 @@
       <section class="panel">
         <div class="panel__header">
           <div>
+            <div class="badge badge--soft">ПРОФІЛЬ</div>
+            <h2 class="panel__title">Готовність профілю</h2>
+            <p class="muted readiness-panel__helper">
+              Швидка перевірка, чи спеціаліст готовий приймати перші запити.
+            </p>
+          </div>
+          <span class="status-pill" :class="readinessOverallClass">
+            {{ readinessOverallStatus }}
+          </span>
+        </div>
+
+        <div class="readiness-list">
+          <div
+            v-for="check in readinessChecks"
+            :key="check.key"
+            class="readiness-row"
+          >
+            <span class="readiness-row__label">{{ check.label }}</span>
+            <span class="status-pill" :class="check.pass ? 'status-pill--ok' : 'status-pill--muted'">
+              {{ check.pass ? 'Так' : 'Ні' }}
+            </span>
+          </div>
+        </div>
+
+        <p v-if="readinessMissingSummary" class="muted readiness-panel__missing">
+          Що варто доповнити: {{ readinessMissingSummary }}.
+        </p>
+      </section>
+
+      <section class="panel">
+        <div class="panel__header">
+          <div>
             <div class="badge badge--soft">ЧЕРГА РОБОТИ</div>
             <h2 class="panel__title">Операційний стан</h2>
           </div>
@@ -580,7 +612,9 @@ const overrideForm = ref<{
 })
 
 const specialistId = computed(() => Number(route.params.id))
-const publicProfileSlug = computed(() => String(detail.value?.identity.slug || '').trim())
+const publicProfileSlug = computed(() =>
+  String(detail.value?.identity.slug || detail.value?.identity.public_slug || '').trim()
+)
 const publicProfileUrl = computed(() => {
   if (!detail.value?.identity.public_profile_enabled || !publicProfileSlug.value) return ''
   return `/s/${encodeURIComponent(publicProfileSlug.value)}`
@@ -589,6 +623,88 @@ const publicProfileUnavailableText = computed(() => {
   if (!detail.value?.identity.public_profile_enabled) return 'Публічний профіль вимкнено'
   if (!publicProfileSlug.value) return 'Слаг профілю не налаштовано'
   return ''
+})
+const profileReadiness = computed(() => {
+  const readiness = detail.value?.profile_readiness
+  if (readiness) return readiness
+  const publicProfileEnabled = Boolean(detail.value?.identity.public_profile_enabled)
+  const publicDisplayNameExists = Boolean(
+    String(
+      detail.value?.identity.public_display_name ||
+        detail.value?.identity.display_name ||
+        detail.value?.identity.username ||
+        ''
+    ).trim()
+  )
+  const profileSlugExists = Boolean(publicProfileSlug.value)
+  return {
+    public_profile_enabled: publicProfileEnabled,
+    public_display_name_exists: publicDisplayNameExists,
+    profile_slug_exists: profileSlugExists,
+    basic_description_exists: false,
+    standard_price_configured: false,
+    client_entry_path_exists: publicProfileEnabled,
+    public_profile_link_available: publicProfileEnabled && profileSlugExists,
+    missing_items: [],
+  }
+})
+const readinessChecks = computed(() => [
+  {
+    key: 'public_profile_enabled',
+    label: 'Публічний профіль увімкнено',
+    missingLabel: 'публічний профіль',
+    pass: Boolean(profileReadiness.value.public_profile_enabled),
+  },
+  {
+    key: 'public_display_name_exists',
+    label: 'Публічне ім’я заповнене',
+    missingLabel: 'публічне ім’я',
+    pass: Boolean(profileReadiness.value.public_display_name_exists),
+  },
+  {
+    key: 'profile_slug_exists',
+    label: 'Слаг профілю налаштовано',
+    missingLabel: 'слаг профілю',
+    pass: Boolean(profileReadiness.value.profile_slug_exists),
+  },
+  {
+    key: 'basic_description_exists',
+    label: 'Опис профілю заповнений',
+    missingLabel: 'опис профілю',
+    pass: Boolean(profileReadiness.value.basic_description_exists),
+  },
+  {
+    key: 'standard_price_configured',
+    label: 'Базова ціна налаштована',
+    missingLabel: 'базову ціну',
+    pass: Boolean(profileReadiness.value.standard_price_configured),
+  },
+  {
+    key: 'client_entry_path_exists',
+    label: 'Є шлях для першого звернення',
+    missingLabel: 'доступність для звернень',
+    pass: Boolean(profileReadiness.value.client_entry_path_exists),
+  },
+  {
+    key: 'public_profile_link_available',
+    label: 'Публічне посилання доступне',
+    missingLabel: 'публічне посилання',
+    pass: Boolean(profileReadiness.value.public_profile_link_available),
+  },
+])
+const readinessFailedChecks = computed(() => readinessChecks.value.filter((check) => !check.pass))
+const readinessMissingSummary = computed(() =>
+  readinessFailedChecks.value.map((check) => check.missingLabel).join(', ')
+)
+const readinessOverallStatus = computed(() => {
+  if (!profileReadiness.value.public_profile_enabled) return 'Профіль ще не відкритий'
+  if (readinessFailedChecks.value.length === 0) return 'Готовий до перших запитів'
+  return 'Профіль відкритий, але потребує доповнення'
+})
+const readinessOverallClass = computed(() => {
+  if (!profileReadiness.value.public_profile_enabled) return 'status-pill--muted'
+  if (readinessFailedChecks.value.length === 0) return 'status-pill--ok'
+  return 'status-pill--warn'
 })
 
 function formatDate(value: string | null | undefined) {
@@ -1102,6 +1218,30 @@ watch(
   background: color-mix(in srgb, var(--primary) 5%, #fff);
 }
 
+.readiness-panel__helper,
+.readiness-panel__missing {
+  margin: 6px 0 0;
+}
+
+.readiness-list {
+  display: grid;
+  gap: 8px;
+}
+
+.readiness-row {
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  padding: 9px 10px;
+}
+
+.readiness-row__label {
+  font-weight: 700;
+}
+
 .history-list {
   display: grid;
   gap: 10px;
@@ -1138,6 +1278,11 @@ watch(
 .status-pill--muted {
   background: rgba(109, 117, 139, 0.14);
   color: #4b5563;
+}
+
+.status-pill--warn {
+  background: rgba(139, 95, 0, 0.16);
+  color: #8b5f00;
 }
 
 .setting-modal {
