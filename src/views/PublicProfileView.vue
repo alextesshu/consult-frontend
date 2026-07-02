@@ -92,6 +92,21 @@
           :format-date="formatDate"
         />
 
+        <section class="panel panel--profile-principles" aria-labelledby="profilePrinciplesTitle">
+          <div class="panel__header">
+            <div>
+              <p class="panel__eyebrow">Простір практики</p>
+              <h2 id="profilePrinciplesTitle" class="panel__title">Принципи профілю</h2>
+              <p class="panel__lead">
+                Профіль не є рейтингом або рекомендацією платформи. Спеціаліст самостійно визначає,
+                яку інформацію опублікувати, які формати консультацій пропонувати, які межі роботи
+                зазначити та коли приймати запити. Приватні нотатки й робочі матеріали не
+                використовуються для публічного профілю або пошуку.
+              </p>
+            </div>
+          </div>
+        </section>
+
       <section v-if="showInquiryPanel" class="panel panel--inquiry" id="inquiry">
         <div class="panel__header">
           <div>
@@ -4453,6 +4468,7 @@ onMounted(async () => {
 
 .panel--inquiry,
 .panel--trust,
+.panel--profile-principles,
 .panel--documents,
 .panel--work-format,
 .panel--about,
@@ -4466,6 +4482,16 @@ onMounted(async () => {
 .panel--contacts {
   padding: 15px 16px 16px;
   background: color-mix(in srgb, #f7f4ec 34%, #ffffff);
+}
+
+.panel--profile-principles {
+  padding: 14px 16px;
+  background: color-mix(in srgb, #f8f3e8 32%, #ffffff);
+  border-color: color-mix(in srgb, var(--line) 86%, #d8cfbf);
+}
+
+.panel--profile-principles .panel__header {
+  margin-bottom: 0;
 }
 
 .panel {

@@ -27,7 +27,13 @@ describe('PublicProfileTrustSection', () => {
   it('renders dedicated competence content and supporting documents', () => {
     render(PublicProfileTrustSection, { props: buildProps() })
 
-    expect(screen.getByRole('heading', { name: 'Освіта і професійний розвиток' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Професійний профіль' })).toBeInTheDocument()
+    expect(
+      screen.getByText(/Цей розділ містить інформацію, яку спеціаліст вирішив опублікувати/i)
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText(/не позначає їх як перевірені платформою/i)
+    ).toBeInTheDocument()
     expect(screen.getByText('Focused on evidence-based practice.')).toBeInTheDocument()
     expect(screen.getByText('Master in psychology')).toBeInTheDocument()
     expect(screen.getByText('Schema intensive')).toBeInTheDocument()
@@ -42,10 +48,13 @@ describe('PublicProfileTrustSection', () => {
       screen.queryByText(/Матеріали, завантажені спеціалістом для ознайомлення/i)
     ).not.toBeInTheDocument()
     expect(
-      screen.getByText(
-        'Pro Consult не здійснює автоматичної верифікації їх змісту, якщо інше прямо не зазначено.'
-      )
+      screen.getByText(/Документи додані спеціалістом/i)
     ).toBeInTheDocument()
+    const text = document.body.textContent || ''
+    expect(text).not.toContain('перевірено платформою')
+    expect(text).not.toContain('топ спеціалістів')
+    expect(text).not.toContain('найкращі спеціалісти')
+    expect(text).not.toContain('рекомендовано платформою')
   })
 
   it('hides section when competence and documents are empty', () => {

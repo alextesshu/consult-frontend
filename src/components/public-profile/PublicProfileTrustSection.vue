@@ -2,8 +2,13 @@
   <section class="panel panel--trust" v-if="hasCompetenceContent || publicDocuments.length">
     <div class="panel__header">
       <div>
-        <p class="panel__eyebrow">Професійний профіль</p>
-        <h2 class="panel__title">Освіта і професійний розвиток</h2>
+        <p class="panel__eyebrow">Публічна інформація</p>
+        <h2 class="panel__title">Професійний профіль</h2>
+        <p class="panel__lead">
+          Цей розділ містить інформацію, яку спеціаліст вирішив опублікувати:
+          освіту, професійний розвиток і документи. Pro Consult показує ці дані
+          як частину профілю, але не позначає їх як перевірені платформою.
+        </p>
       </div>
     </div>
 
@@ -44,7 +49,7 @@
       <div class="documents-block__header">
         <h3 class="documents-block__title">Документи та сертифікати</h3>
         <p class="documents-block__lead">
-          Pro Consult не здійснює автоматичної верифікації їх змісту, якщо інше прямо не зазначено.
+          Документи додані спеціалістом. Pro Consult показує їх для ознайомлення і не підтверджує їхній зміст.
         </p>
       </div>
 
@@ -153,6 +158,14 @@ const hasCompetenceContent = computed(
   margin: 0;
   font-family: var(--font-display);
   font-size: 22px;
+}
+
+.panel__lead {
+  margin: 0;
+  max-width: 76ch;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
 }
 
 .panel__eyebrow {
