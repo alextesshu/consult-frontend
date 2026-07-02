@@ -1144,6 +1144,8 @@ describe('ExternalSessionsView', () => {
     })
     expect(await screen.findByText('Пропозицію створено')).toBeInTheDocument()
     expect(screen.getByDisplayValue('https://proconsult.test/guest/booking-time-proposal/proposal-token')).toBeInTheDocument()
+    expect(dialog).toHaveTextContent('Скопіюйте посилання й надішліть клієнту через обраний канал.')
+    expect(dialog).not.toHaveTextContent('Надішліть це посилання клієнту у зручному для вас каналі.')
 
     const card = getGuestRequestCardByText('Sibling Guest')
     expect(card).toHaveTextContent(/Статус:\s*Потрібно надіслати посилання/)
@@ -1180,6 +1182,9 @@ describe('ExternalSessionsView', () => {
     await fireEvent.click(modal.getByLabelText(/18\.06\.2099/))
     await fireEvent.update(modal.getByLabelText('Посилання на онлайн-зустріч'), 'https://meet.example.com/email-sent')
     await fireEvent.click(modal.getByRole('button', { name: 'Надіслати пропозицію' }))
+
+    expect(await modal.findByText('Лист із посиланням надіслано на email клієнта. Посилання нижче можна скопіювати за потреби.')).toBeInTheDocument()
+    expect(dialog).not.toHaveTextContent('Надішліть це посилання клієнту у зручному для вас каналі.')
 
     const card = await waitFor(() => {
       const resolvedCard = getGuestRequestCardByText('Email Guest') as HTMLElement
@@ -1218,6 +1223,9 @@ describe('ExternalSessionsView', () => {
     await fireEvent.click(modal.getByLabelText(/18\.06\.2099/))
     await fireEvent.update(modal.getByLabelText('Посилання на онлайн-зустріч'), 'https://meet.example.com/email-failed')
     await fireEvent.click(modal.getByRole('button', { name: 'Надіслати пропозицію' }))
+
+    expect(await modal.findByText('Email не вдалося надіслати. Скопіюйте посилання й надішліть клієнту вручну.')).toBeInTheDocument()
+    expect(dialog).not.toHaveTextContent('Надішліть це посилання клієнту у зручному для вас каналі.')
 
     const card = await waitFor(() => {
       const resolvedCard = getGuestRequestCardByText('Email Failed Guest') as HTMLElement

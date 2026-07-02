@@ -432,7 +432,7 @@
             <div class="actions-row">
               <button class="btn" type="button" @click="copyProposalUrl">Скопіювати посилання</button>
             </div>
-            <p class="muted">Надішліть це посилання клієнту у зручному для вас каналі.</p>
+            <p class="muted">{{ proposalSuccessHelper }}</p>
             <p v-if="proposalCopyStatus" class="muted">{{ proposalCopyStatus }}</p>
           </div>
         </template>
@@ -803,6 +803,7 @@ const proposalSaving = ref(false)
 const proposalError = ref('')
 const proposalSuccessUrl = ref('')
 const proposalCopyStatus = ref('')
+const proposalNotificationStatus = ref('')
 const proposalDraft = ref<ProposalDraft>({
   session_format: 'online',
   meeting_url: '',
@@ -895,6 +896,16 @@ const proposalSubmitDisabled = computed(() => {
   if (selectedProposalSlotIds.value.length < 1) return true
   if (isProposalOnline.value) return !proposalDraft.value.meeting_url.trim()
   return !proposalDraft.value.offline_location_snapshot.trim()
+})
+const proposalSuccessHelper = computed(() => {
+  const status = String(proposalNotificationStatus.value || '').toLowerCase()
+  if (status === 'sent') {
+    return 'Лист із посиланням надіслано на email клієнта. Посилання нижче можна скопіювати за потреби.'
+  }
+  if (status === 'failed') {
+    return 'Email не вдалося надіслати. Скопіюйте посилання й надішліть клієнту вручну.'
+  }
+  return 'Скопіюйте посилання й надішліть клієнту через обраний канал.'
 })
 
 function formatQuotaDate(value: string | null | undefined) {
@@ -1572,6 +1583,7 @@ function resetProposalModal(request: GuestBookingRequestRecord) {
   proposalError.value = ''
   proposalSuccessUrl.value = ''
   proposalCopyStatus.value = ''
+  proposalNotificationStatus.value = ''
   proposalDraft.value = {
     session_format: requestFormat,
     meeting_url: '',
@@ -1609,6 +1621,7 @@ function closeTimeProposalModal() {
   proposalError.value = ''
   proposalSuccessUrl.value = ''
   proposalCopyStatus.value = ''
+  proposalNotificationStatus.value = ''
 }
 
 function localizeTimeProposalError(err: unknown) {
@@ -1674,6 +1687,7 @@ async function submitTimeProposal() {
       offline_location_snapshot: isProposalOnline.value ? '' : proposalDraft.value.offline_location_snapshot.trim(),
     })
     proposalSuccessUrl.value = response.proposal.proposal_url
+    proposalNotificationStatus.value = String(response.proposal.client_notification_status || '')
     latestProposalUrlByRequestId.value[request.id] = response.proposal.proposal_url
     latestProposalNotificationStatusByRequestId.value[request.id] = String(response.proposal.client_notification_status || '')
     proposalCopyStatus.value = ''
