@@ -1977,6 +1977,61 @@ describe('SlotsView', () => {
     ).toHaveAttribute('href', '/cabinet/sessions/78')
   })
 
+  it('renders completed past session as muted archive event with read-only details', async () => {
+    openCalendarRoute()
+    mockScheduleApi([], [
+      scheduleSession({
+        id: 178,
+        status: 'COMPLETED',
+        slot_start_at: '2026-03-10T07:00:00Z',
+        slot_end_at: '2026-03-10T07:50:00Z',
+      }),
+    ])
+
+    const { container } = renderView()
+    await flushAsyncUpdates()
+
+    const sessionBlock = container.querySelector('.week-calendar .calendar-session') as HTMLButtonElement | null
+    expect(sessionBlock).toBeInstanceOf(HTMLButtonElement)
+    expect(sessionBlock).toHaveClass('schedule-event--archived')
+    expect(sessionBlock).toHaveAttribute('aria-label', 'Завершена сесія · Саша Мальована · 09:00–09:50')
+    expect(within(sessionBlock as HTMLElement).getByText('Завершена сесія')).toBeInTheDocument()
+
+    const mobileEvent = container.querySelector('.mobile-schedule-event.schedule-event--archived') as HTMLElement | null
+    expect(mobileEvent).toBeInstanceOf(HTMLElement)
+    expect(within(mobileEvent as HTMLElement).getByText(/Завершена сесія/)).toBeInTheDocument()
+
+    await fireEvent.click(sessionBlock as HTMLButtonElement)
+
+    const detailPanel = container.querySelector('.slot-detail-panel') as HTMLElement
+    expect(within(detailPanel).getByText('Деталі сесії')).toBeInTheDocument()
+    expect(within(detailPanel).getByText('Завершена сесія')).toBeInTheDocument()
+    expect(within(detailPanel).getByText('Завершено')).toBeInTheDocument()
+    expect(within(detailPanel).getByRole('link', { name: 'Відкрити сесію' })).toHaveAttribute('href', '/cabinet/sessions/178')
+    expect(within(detailPanel).queryByRole('button', { name: 'Створити сесію на цей час' })).not.toBeInTheDocument()
+    expect(within(detailPanel).queryByRole('button', { name: /Перенести|Скасувати/ })).not.toBeInTheDocument()
+  })
+
+  it('renders future session normally without archive styling', async () => {
+    openCalendarRoute()
+    mockScheduleApi([], [
+      scheduleSession({
+        id: 179,
+        status: 'CONFIRMED',
+        slot_start_at: '2026-03-12T07:00:00Z',
+        slot_end_at: '2026-03-12T07:50:00Z',
+      }),
+    ])
+
+    const { container } = renderView()
+    await flushAsyncUpdates()
+
+    const sessionBlock = container.querySelector('.week-calendar .calendar-session') as HTMLButtonElement | null
+    expect(sessionBlock).toBeInstanceOf(HTMLButtonElement)
+    expect(sessionBlock).not.toHaveClass('schedule-event--archived')
+    expect(within(sessionBlock as HTMLElement).getByText('Сесія')).toBeInTheDocument()
+  })
+
   it('does not render cancelled no-slot session as an active calendar block', async () => {
     openCalendarRoute()
     mockScheduleApi([], [
@@ -1993,6 +2048,24 @@ describe('SlotsView', () => {
 
     expect(container.querySelector('.week-calendar .calendar-session')).not.toBeInTheDocument()
     expect(screen.getAllByText('На цьому тижні ще немає подій у розкладі.').length).toBeGreaterThan(0)
+  })
+
+  it('does not render past availability windows by default', async () => {
+    openAvailabilityRoute()
+    mockScheduleApi([
+      {
+        id: 188,
+        start_at: '2026-03-10T07:00:00Z',
+        end_at: '2026-03-10T07:50:00Z',
+        is_booked: false,
+      },
+    ])
+
+    const { container } = renderView()
+    await flushAsyncUpdates()
+
+    expect(container.querySelector('.week-calendar .calendar-slot[aria-label="Доступно 09:00–09:50"]')).not.toBeInTheDocument()
+    expect(screen.getAllByText('На цьому тижні ще немає вікон для запису.').length).toBeGreaterThan(0)
   })
 
   it('renders schedule API events without duplicating overlapping booked slots', async () => {

@@ -1743,6 +1743,7 @@ const DEFAULT_CALENDAR_END_HOUR = 21
 const CALENDAR_HOUR_HEIGHT = 50
 const MIN_CALENDAR_SLOT_HEIGHT = 24
 const ACTIVE_SESSION_STATUSES = new Set(['SCHEDULED', 'CONFIRMED'])
+const ARCHIVE_SESSION_STATUSES = new Set(['COMPLETED'])
 const regularWeekdayOptions = [
   { value: 0, label: 'Понеділок' },
   { value: 1, label: 'Вівторок' },
@@ -1880,15 +1881,21 @@ function sessionEndAt(session: ScheduleSession) {
 }
 
 function isActiveScheduleSession(session: ScheduleSession) {
+  const status = String(session.status || '').toUpperCase()
   return (
     session.type === 'available_slot' ||
     session.type === 'booked_slot' ||
-    ACTIVE_SESSION_STATUSES.has(String(session.status || '').toUpperCase())
+    ACTIVE_SESSION_STATUSES.has(status) ||
+    ARCHIVE_SESSION_STATUSES.has(status)
   )
 }
 
 function isSessionBackedBookedEvent(event: ScheduleSession) {
   return event.type === 'booked_slot' && Boolean(event.session_id)
+}
+
+function isArchivedScheduleSession(event: ScheduleSession) {
+  return ARCHIVE_SESSION_STATUSES.has(String(event.status || '').toUpperCase())
 }
 
 function isPendingScheduleRequestEvent(event: ScheduleSession) {
@@ -1915,6 +1922,7 @@ function canCreateSessionFromGuestRequest(event: ScheduleSession | null | undefi
 
 function scheduleEventTypeLabel(event: ScheduleSession) {
   if (event.type === 'available_slot') return 'Доступно'
+  if (isArchivedScheduleSession(event)) return 'Завершена сесія'
   if (isSessionBackedBookedEvent(event)) return 'Сесія'
   if (isPendingScheduleRequestEvent(event)) return pendingScheduleRequestLabel(event)
   return 'Сесія'
@@ -1940,12 +1948,14 @@ function sessionClientLabel(session: ScheduleSession) {
 function sessionStatusLabel(status?: string | null) {
   const normalized = String(status || '').toUpperCase()
   if (normalized === 'CONFIRMED') return 'Підтверджено'
+  if (normalized === 'COMPLETED') return 'Завершено'
   if (normalized === 'BOOKED' || normalized === 'PENDING' || normalized === 'REQUESTED') return 'Очікує підтвердження'
   if (normalized === 'SCHEDULED') return 'Заплановано'
   return status || 'Сесія'
 }
 
 function scheduleEventLifecycleLabel(event: ScheduleSession) {
+  if (isArchivedScheduleSession(event)) return 'Завершено'
   if (isSessionBackedBookedEvent(event)) return 'Підтверджено'
   if (isPendingScheduleRequestEvent(event)) return 'Очікує підтвердження'
   return sessionStatusLabel(event.status)
@@ -2859,6 +2869,7 @@ function scheduleEventClass(event: ScheduleSession) {
     'schedule-event--booked': event.type === 'booked_slot' && !isSessionBackedBookedEvent(event),
     'calendar-session': event.type === 'session' || isSessionBackedBookedEvent(event),
     'mobile-slot--session': event.type === 'session' || isSessionBackedBookedEvent(event),
+    'schedule-event--archived': isArchivedScheduleSession(event),
   }
 }
 
@@ -2866,7 +2877,8 @@ function scheduleEventStatusClass(event: ScheduleSession) {
   return {
     'slot-status--available': event.type === 'available_slot',
     'slot-status--booked': event.type === 'booked_slot' && !isSessionBackedBookedEvent(event),
-    'slot-status--session': event.type === 'session' || isSessionBackedBookedEvent(event),
+    'slot-status--session': (event.type === 'session' || isSessionBackedBookedEvent(event)) && !isArchivedScheduleSession(event),
+    'slot-status--past': isArchivedScheduleSession(event),
   }
 }
 
@@ -4507,6 +4519,13 @@ onBeforeUnmount(() => {
   background: #e7f2f1;
   color: #1f5c57;
   border-color: rgba(31, 92, 87, 0.24);
+}
+
+.calendar-session.schedule-event--archived,
+.mobile-slot--session.schedule-event--archived .mobile-slot {
+  background: #f2f4f6;
+  color: #5f6c75;
+  border-color: rgba(90, 103, 114, 0.18);
 }
 
 .slot-status--session {
