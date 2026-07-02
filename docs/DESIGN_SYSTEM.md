@@ -55,9 +55,34 @@ window or leaving a request without selected time creates a request for the
 specialist to review; it is not an automatically confirmed session.
 Session readiness confirmation and payment proof/status are separate states.
 
+Public profile booking is offer-first when offers are configured. Public offer
+cards may represent `Консультація`, `Ознайомча сесія`, and `Парна консультація`.
+The public UI must only show offers exposed by the backend: hidden intro
+offers stay hidden, and couple consultation appears only when configured. The
+available-time list is filtered by whether one selected public availability
+window can fit the selected offer duration; do not imply multi-slot
+reservation.
+
+Guest request proposal states must stay calm and channel-aware:
+
+- no active proposal: `Потребує рішення`;
+- active email proposal with confirmed send: `Очікує відповідь клієнта`;
+- active phone/Telegram/manual proposal: `Потрібно надіслати посилання`;
+- email send failure: manual secure-link sharing fallback.
+
+The raw proposal token is not persisted, so after reload the copy-link action
+may be unavailable. UI copy must explain that a new proposal is needed if the
+specialist did not copy a manual link immediately after creation.
+
+Completed sessions may appear in schedule/calendar as muted archive items.
+Calendar cards use compact `Завершено` copy and completed details are
+read-only from the calendar surface. Past availability windows remain hidden.
+
 Private notes, private notebook/workbook, internal client records, and practice
 board content remain specialist-only. Client-visible materials are explicit
 published artifacts and must not be described as shared private notes.
+Specialist-uploaded public documents must be described as specialist-provided
+materials, not platform-verified documents.
 
 ### Target users
 

@@ -79,6 +79,7 @@ npm run test:run
 - `/client/therapists` — Legacy alias for specialists list
 - `/client/group-events/:id` — Client group event detail
 - `/invite/:token` — Group invite join (client acceptance flow)
+- `/guest/booking-time-proposal/:token` — No-login public guest proposal acceptance
 - `/public` — Redirect to the current user's canonical public profile when available
 - `/s/:slug` — Canonical public specialist profile / specialist landing page
 - `/t/:slug` — Legacy public profile alias, compatibility-only
@@ -109,6 +110,8 @@ Session is silently restored on page reload via cookie-based refresh (`/api/auth
 - **ClientTherapistsView**: specialist list + open profile + intro price in cards + explicit empty/error states (legacy file name)
 - **ClientGroupEventView**: client-facing group event detail
 - **SlotsView**: schedule surface plus public availability window management
+  - completed sessions render as muted archive/read-only calendar items with compact `Завершено` card label
+  - past availability windows are not rendered as active calendar availability
 - **GroupEventsView**: full group lifecycle (create/schedule/start/complete/cancel), participants (roles/status), invites
 - **TherapistSessionsView**: specialist actions + notes + reschedule requests + status/date filters
 - **TherapistSessionDetailView**: specialist session detail with status actions, recurring flow, request context, private note, and external meeting-link context
@@ -118,12 +121,23 @@ Session is silently restored on page reload via cookie-based refresh (`/api/auth
 - **TherapistProfileView**: step-by-step profile editor, media upload preview, visibility toggles, public link
   - standard price + intro price (duration + currency)
   - visibility toggles: `show_price`, `show_intro_price`
+  - couple consultation settings when enabled/configured
 - **PublicProfileView**: landing-style public profile + request-first availability + trust/about/contact blocks + journal preview
+  - offer-first selection for `Консультація`, `Ознайомча сесія`, and `Парна консультація` when exposed by backend
+  - intro offer is hidden when backend hides intro price/offer visibility
+  - couple offer is shown only when enabled and configured
+  - selected offer filters available public times by duration fit; multi-slot reservation is not implemented
   - setting acceptance is surfaced as an explicit request gate directly above available-time actions
 - **Public request UX**: request-first public profile flow; `Обрати час` submits a request for a selected public availability window, while `Залишити запит без вибору часу` creates a request without selected time. A request is not an automatically confirmed session.
 - **Booking/session error contract**: prepared frontend booking/session surfaces now consume backend `code` / `reason_code` first and keep `detail` only as a fallback
 - **PublicTherapistsView**: opt-in public specialist discovery/profile search with server-side filters + intro price in cards + explicit in-view load/error/empty branches (legacy file name)
 - **ExternalSessionsView**: includes `/cabinet/external-sessions#guest-requests`, the specialist request queue for no-registration/public guest requests.
+  - pending request without active proposal: `Потребує рішення`
+  - active email proposal sent: `Очікує відповідь клієнта`
+  - active manual/non-email proposal: `Потрібно надіслати посилання`
+  - email send failure falls back to manual secure-link sharing
+  - after reload, `proposal_url` may be unavailable because raw proposal token is not stored; specialist should create a new proposal if a manual link was not copied immediately
+- **PublicGuestBookingTimeProposalView**: no-login client page for choosing one proposed time; accepting a proposal creates the session through backend flow.
 - **LoginView / SignupView**: redesigned auth pages
 - **System**: global toast/notification layer, notification bell with unread state, explicit reschedule notification copy, canonical inquiry notification copy, reminder-driven external join CTA when payload includes `meeting_url`, role-aware session/inquiry routing, 404/403 pages, empty states, loading skeletons
 - **Invites**: group invite join page with consent + status messaging
@@ -168,9 +182,14 @@ Session is silently restored on page reload via cookie-based refresh (`/api/auth
   language.
 - Specialists appear in discovery only when the backend exposes them as both
   public-profile enabled and search-visible.
+- Specialist-uploaded profile documents are shown as specialist-provided
+  materials, not as platform-verified credentials.
 - `/s/:slug` is a specialist-owned public landing page. Selecting available
   time creates a request for specialist review, not an automatically confirmed
   session and not payment confirmation.
+- Public profile available-time selection is offer-first. Slots are shown for
+  the chosen offer only when one selected slot can fit that offer duration;
+  the frontend must not imply multi-slot reservation.
 - `/cabinet/external-sessions#guest-requests` is the request queue for
   no-registration/public guest requests.
 - Specialist sidebar `Запити` badge shows all pending guest requests awaiting
