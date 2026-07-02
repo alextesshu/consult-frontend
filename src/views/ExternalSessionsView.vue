@@ -316,6 +316,23 @@
                 <div v-if="needsAlternativeTime(request) && hasActiveTimeProposal(request)" class="request-card__helper">
                   {{ activeTimeProposalSummary(request) }}
                 </div>
+                <div
+                  v-if="needsAlternativeTime(request) && hasActiveTimeProposal(request) && activeTimeProposalHelper(request)"
+                  class="request-card__helper"
+                >
+                  {{ activeTimeProposalHelper(request) }}
+                </div>
+                <button
+                  v-if="needsAlternativeTime(request) && hasActiveTimeProposal(request) && shouldShowActiveTimeProposalCopyButton(request)"
+                  class="btn btn--ghost btn--sm"
+                  type="button"
+                  @click="copyActiveTimeProposalUrl(request)"
+                >
+                  Скопіювати посилання
+                </button>
+                <div v-if="activeProposalCopyRequestId === request.id" class="muted request-card__helper">
+                  Посилання скопійовано.
+                </div>
                 <button
                   v-if="needsAlternativeTime(request)"
                   class="btn btn--ghost btn--sm"
@@ -760,6 +777,9 @@ const requestActionErrors = ref<Record<number, string>>({})
 const expandedRequestDetails = ref<Record<number, boolean>>({})
 const approveMeetingUrls = ref<Record<number, string>>({})
 const latestInviteUrlByRequestId = ref<Record<number, string>>({})
+const latestProposalUrlByRequestId = ref<Record<number, string>>({})
+const latestProposalNotificationStatusByRequestId = ref<Record<number, string>>({})
+const activeProposalCopyRequestId = ref<number | null>(null)
 const guestRequestCardRefs = ref<Record<number, HTMLElement | null>>({})
 const declineConfirmation = ref<DeclineConfirmation>(null)
 const slotlessSessionModalOpen = ref(false)
@@ -946,7 +966,11 @@ const hasPendingGuestRequests = computed(() => guestRequests.value.some((request
 function requestStatusLabel(request: GuestBookingRequestRecord) {
   const normalized = String(request.status || '').toLowerCase()
   if (normalized === 'pending') {
-    return hasActiveTimeProposal(request) ? 'Очікує відповідь клієнта' : 'Потребує рішення'
+    if (!hasActiveTimeProposal(request)) return 'Потребує рішення'
+    const notificationStatus = activeTimeProposalNotificationStatus(request)
+    if (notificationStatus === 'sent') return 'Очікує відповідь клієнта'
+    if (notificationStatus === 'failed' || notificationStatus === 'manual_required') return 'Потрібно надіслати посилання'
+    return isEmailContactRequest(request) ? 'Пропозицію створено' : 'Потрібно надіслати посилання'
   }
   if (normalized === 'approved') return 'Погоджено'
   if (normalized === 'declined') return 'Відхилено'
@@ -993,6 +1017,10 @@ function requestCompactContact(request: GuestBookingRequestRecord) {
   return value ? `${channelLabel} · ${value}` : channelLabel
 }
 
+function isEmailContactRequest(request: GuestBookingRequestRecord) {
+  return String(request.contact_channel || '').toLowerCase() === 'email'
+}
+
 function requestDecisionAt(request: GuestBookingRequestRecord) {
   return request.approved_at || request.declined_at || request.cancelled_at
 }
@@ -1026,12 +1054,58 @@ function activeTimeProposalExpiresLabel(request: GuestBookingRequestRecord) {
 }
 
 function activeTimeProposalSummary(request: GuestBookingRequestRecord) {
-  const parts = ['Пропозицію часу надіслано']
+  const notificationStatus = activeTimeProposalNotificationStatus(request)
+  let summary = 'Пропозицію часу створено'
+  if (notificationStatus === 'sent') {
+    summary = 'Пропозицію часу надіслано на email клієнта.'
+  } else if (notificationStatus === 'failed') {
+    summary = 'Пропозицію часу створено, але email не вдалося надіслати.'
+  } else if (isEmailContactRequest(request) && !notificationStatus) {
+    summary = 'Пропозицію часу створено для email-контакту.'
+  }
+  const parts = [summary]
   const count = Number(request.active_time_proposal_options_count || 0)
   if (Number.isFinite(count) && count > 0) parts.push(`Варіантів: ${count}`)
   const expires = activeTimeProposalExpiresLabel(request)
   if (expires) parts.push(`Дійсна до ${expires}`)
   return parts.join(' · ')
+}
+
+function activeTimeProposalUrl(request: GuestBookingRequestRecord) {
+  return latestProposalUrlByRequestId.value[request.id] || ''
+}
+
+function activeTimeProposalNotificationStatus(request: GuestBookingRequestRecord) {
+  return String(latestProposalNotificationStatusByRequestId.value[request.id] || '').toLowerCase()
+}
+
+function requiresManualTimeProposalDelivery(request: GuestBookingRequestRecord) {
+  const notificationStatus = activeTimeProposalNotificationStatus(request)
+  if (notificationStatus === 'failed' || notificationStatus === 'manual_required') return true
+  return !isEmailContactRequest(request) && notificationStatus !== 'sent'
+}
+
+function activeTimeProposalHelper(request: GuestBookingRequestRecord) {
+  const notificationStatus = activeTimeProposalNotificationStatus(request)
+  if (notificationStatus === 'failed') return 'Скопіюйте посилання й надішліть клієнту вручну.'
+  if (isEmailContactRequest(request) && !notificationStatus) {
+    return 'Якщо клієнт не отримав лист, створіть нову пропозицію й надішліть посилання вручну одразу після створення.'
+  }
+  if (!requiresManualTimeProposalDelivery(request)) return ''
+  return activeTimeProposalUrl(request)
+    ? 'Скопіюйте посилання й надішліть клієнту через обраний канал.'
+    : 'Посилання доступне одразу після створення пропозиції. Якщо ви не встигли його надіслати, створіть нову пропозицію.'
+}
+
+function shouldShowActiveTimeProposalCopyButton(request: GuestBookingRequestRecord) {
+  return requiresManualTimeProposalDelivery(request) && Boolean(activeTimeProposalUrl(request))
+}
+
+async function copyActiveTimeProposalUrl(request: GuestBookingRequestRecord) {
+  const url = activeTimeProposalUrl(request)
+  if (!url) return
+  await navigator.clipboard.writeText(url)
+  activeProposalCopyRequestId.value = request.id
 }
 
 function requestClientName(request: GuestBookingRequestRecord) {
@@ -1549,6 +1623,28 @@ function localizeTimeProposalError(err: unknown) {
   return localizeGuestRequestActionError(getApiErrorMessage(err, 'Не вдалося створити пропозицію часу.')) || 'Не вдалося створити пропозицію часу.'
 }
 
+function markRequestTimeProposalCreated(
+  requestId: number,
+  proposal: {
+    id?: number
+    status?: string
+    options_count?: number
+    expires_at?: string | null
+  }
+) {
+  guestRequests.value = guestRequests.value.map((request) =>
+    request.id === requestId
+      ? {
+          ...request,
+          active_time_proposal_id: proposal.id ?? request.active_time_proposal_id,
+          active_time_proposal_status: proposal.status ?? 'sent',
+          active_time_proposal_options_count: proposal.options_count ?? request.active_time_proposal_options_count,
+          active_time_proposal_expires_at: proposal.expires_at ?? request.active_time_proposal_expires_at,
+        }
+      : request
+  )
+}
+
 async function submitTimeProposal() {
   const request = proposalRequest.value
   if (!request) return
@@ -1578,9 +1674,12 @@ async function submitTimeProposal() {
       offline_location_snapshot: isProposalOnline.value ? '' : proposalDraft.value.offline_location_snapshot.trim(),
     })
     proposalSuccessUrl.value = response.proposal.proposal_url
+    latestProposalUrlByRequestId.value[request.id] = response.proposal.proposal_url
+    latestProposalNotificationStatusByRequestId.value[request.id] = String(response.proposal.client_notification_status || '')
     proposalCopyStatus.value = ''
     toast.success('Пропозицію часу створено.')
     await loadGuestRequests()
+    markRequestTimeProposalCreated(request.id, response.proposal)
   } catch (err) {
     const message = localizeTimeProposalError(err)
     proposalError.value = message

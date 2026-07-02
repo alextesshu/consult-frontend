@@ -2756,6 +2756,7 @@ export interface CreateGuestBookingTimeProposalPayload {
 export interface CreateGuestBookingTimeProposalResponse {
   proposal: GuestBookingTimeProposal & {
     proposal_url: string
+    client_notification_status?: 'sent' | 'failed' | 'manual_required' | string | null
   }
 }
 
