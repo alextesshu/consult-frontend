@@ -650,7 +650,7 @@
               <label class="field">
                 <span class="note-title">Нотатка після сесії</span>
                 <span class="note-badge">Сесія</span>
-                <span class="note-state muted">Стан: {{ noteContentStateLabel() }}</span>
+                <span class="note-state muted">{{ noteContentStateLabel() }}</span>
                 <textarea
                   ref="noteTextareaRef"
                   v-model="noteDraft"
@@ -679,7 +679,7 @@
               <label class="field">
                 <span class="note-title">Приватний зошит</span>
                 <span class="note-badge">Внутрішній</span>
-                <span class="note-state muted">Стан: {{ workbookContentStateLabel() }}</span>
+                <span class="note-state muted">{{ workbookContentStateLabel() }}</span>
                 <textarea
                   ref="journalTextareaRef"
                   v-model="journalDraft"

@@ -1994,12 +1994,14 @@ describe('SlotsView', () => {
     const sessionBlock = container.querySelector('.week-calendar .calendar-session') as HTMLButtonElement | null
     expect(sessionBlock).toBeInstanceOf(HTMLButtonElement)
     expect(sessionBlock).toHaveClass('schedule-event--archived')
-    expect(sessionBlock).toHaveAttribute('aria-label', 'Завершена сесія · Саша Мальована · 09:00–09:50')
-    expect(within(sessionBlock as HTMLElement).getByText('Завершена сесія')).toBeInTheDocument()
+    expect(sessionBlock).toHaveAttribute('aria-label', 'Завершено · Саша Мальована · 09:00–09:50')
+    expect(within(sessionBlock as HTMLElement).getByText('Завершено')).toBeInTheDocument()
+    expect(within(sessionBlock as HTMLElement).queryByText('Завершена сесія')).not.toBeInTheDocument()
 
     const mobileEvent = container.querySelector('.mobile-schedule-event.schedule-event--archived') as HTMLElement | null
     expect(mobileEvent).toBeInstanceOf(HTMLElement)
-    expect(within(mobileEvent as HTMLElement).getByText(/Завершена сесія/)).toBeInTheDocument()
+    expect(within(mobileEvent as HTMLElement).getByText(/Завершено/)).toBeInTheDocument()
+    expect(within(mobileEvent as HTMLElement).queryByText(/Завершена сесія/)).not.toBeInTheDocument()
 
     await fireEvent.click(sessionBlock as HTMLButtonElement)
 

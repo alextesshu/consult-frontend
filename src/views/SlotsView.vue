@@ -338,7 +338,7 @@
                 :title="sessionBlockLabel(layout.session)"
                 @click.stop="selectSession(layout.session)"
               >
-                <span class="calendar-session__kind">{{ scheduleEventTypeLabel(layout.session) }}</span>
+                <span class="calendar-session__kind">{{ scheduleEventCardLabel(layout.session) }}</span>
                 <span class="calendar-slot__time">{{ formatSessionTimeRange(layout.session) }}</span>
                 <span v-if="shouldShowScheduleEventClient(layout.session)" class="calendar-session__client">{{ sessionClientLabel(layout.session) }}</span>
               </button>
@@ -383,7 +383,7 @@
                 >
                   <span class="mobile-slot__time">{{ formatSessionTimeRange(session) }}</span>
                   <span class="mobile-slot__meta">
-                    {{ scheduleEventTypeLabel(session) }}<template v-if="shouldShowScheduleEventClient(session)"> · {{ sessionClientLabel(session) }}</template>
+                    {{ scheduleEventCardLabel(session) }}<template v-if="shouldShowScheduleEventClient(session)"> · {{ sessionClientLabel(session) }}</template>
                   </span>
                 </button>
                 <div
@@ -1928,6 +1928,11 @@ function scheduleEventTypeLabel(event: ScheduleSession) {
   return 'Сесія'
 }
 
+function scheduleEventCardLabel(event: ScheduleSession) {
+  if (isArchivedScheduleSession(event)) return 'Завершено'
+  return scheduleEventTypeLabel(event)
+}
+
 function scheduleEventDetailTitle(event: ScheduleSession) {
   if (event.type === 'available_slot') return 'Деталі доступного часу'
   if (isPendingScheduleRequestEvent(event)) return pendingScheduleRequestLabel(event)
@@ -1970,7 +1975,7 @@ function formatSessionTimeRange(session: ScheduleSession) {
 
 function sessionBlockLabel(session: ScheduleSession) {
   const clientPart = shouldShowScheduleEventClient(session) ? ` · ${sessionClientLabel(session)}` : ''
-  return `${scheduleEventTypeLabel(session)}${clientPart} · ${formatSessionTimeRange(session)}`
+  return `${scheduleEventCardLabel(session)}${clientPart} · ${formatSessionTimeRange(session)}`
 }
 
 function sessionDurationMinutes(session: ScheduleSession) {

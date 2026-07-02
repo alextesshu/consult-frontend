@@ -1179,6 +1179,10 @@ describe('TherapistSessionsView', () => {
     renderView()
 
     await screen.findByText('Клієнт:')
+    expect(screen.getByText('Нотатку ще не збережено')).toBeInTheDocument()
+    expect(screen.getByText('Запис ще не створено')).toBeInTheDocument()
+    expect(screen.queryByText('Стан: Відсутня')).not.toBeInTheDocument()
+    expect(screen.queryByText('Стан: Відсутній')).not.toBeInTheDocument()
     await fireEvent.click(screen.getByRole('button', { name: 'Завершити після сесії' }))
 
     await waitFor(() => {
