@@ -441,6 +441,7 @@ function typeLabel(type: string) {
     specialist_access_review: 'Beta / Pro доступ',
     specialist_access_needs_review: 'Beta / Pro доступ',
     specialist_pending_review: 'Beta / Pro доступ',
+    specialist_onboarding: 'Спеціаліст',
     specialist_profile_incomplete: 'Профіль спеціаліста',
     specialist_has_unanswered_requests: 'Запити спеціаліста',
   }
