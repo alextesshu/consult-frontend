@@ -194,7 +194,7 @@
                     <div class="request-card__status-row">
                       <span class="muted">Статус:</span>
                       <span class="status-pill" :class="requestStatusClass(request.status)">
-                        {{ requestStatusLabel(request.status) }}
+                        {{ requestStatusLabel(request) }}
                       </span>
                     </div>
                   </div>
@@ -310,7 +310,7 @@
                 </button>
               </template>
               <template v-else>
-                <div v-if="needsAlternativeTime(request)" class="request-card__helper request-card__helper--warning">
+                <div v-if="needsAlternativeTime(request) && !hasActiveTimeProposal(request)" class="request-card__helper request-card__helper--warning">
                   Потрібно запропонувати інший час
                 </div>
                 <div v-if="needsAlternativeTime(request) && hasActiveTimeProposal(request)" class="request-card__helper">
@@ -943,13 +943,15 @@ function isPendingRequest(status: string | null | undefined) {
 
 const hasPendingGuestRequests = computed(() => guestRequests.value.some((request) => isPendingRequest(request.status)))
 
-function requestStatusLabel(status: string | null | undefined) {
-  const normalized = String(status || '').toLowerCase()
-  if (normalized === 'pending') return 'Очікує рішення'
+function requestStatusLabel(request: GuestBookingRequestRecord) {
+  const normalized = String(request.status || '').toLowerCase()
+  if (normalized === 'pending') {
+    return hasActiveTimeProposal(request) ? 'Очікує відповідь клієнта' : 'Потребує рішення'
+  }
   if (normalized === 'approved') return 'Погоджено'
   if (normalized === 'declined') return 'Відхилено'
   if (normalized === 'cancelled') return 'Скасовано'
-  return status || '—'
+  return request.status || '—'
 }
 
 function requestStatusClass(status: string | null | undefined) {

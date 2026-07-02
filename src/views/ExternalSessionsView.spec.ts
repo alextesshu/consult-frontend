@@ -669,7 +669,7 @@ describe('ExternalSessionsView', () => {
     renderView()
 
     expect(await screen.findByText('Запити без реєстрації')).toBeInTheDocument()
-    expect(await screen.findByText('Очікує рішення')).toBeInTheDocument()
+    expect(await screen.findByText('Потребує рішення')).toBeInTheDocument()
     const requestCard = getGuestRequestCardByName('Guest One').card
     expect(requestCard).toHaveTextContent(/Запитаний час\s*\d{2}\.\d{2}\.2099, \d{2}:00–\d{2}:50/)
     expect(requestCard).toHaveTextContent(/Створено:\s*\d{2}\.\d{2}\.2099, \d{2}:00/)
@@ -797,7 +797,7 @@ describe('ExternalSessionsView', () => {
     } as any)
 
     renderView()
-    expect(await screen.findByText('Очікує рішення')).toBeInTheDocument()
+    expect(await screen.findByText('Потребує рішення')).toBeInTheDocument()
 
     await fireEvent.update(
       screen.getByLabelText('Посилання на онлайн-зустріч'),
@@ -936,7 +936,7 @@ describe('ExternalSessionsView', () => {
     } as any)
 
     renderView()
-    expect(await screen.findByText('Очікує рішення')).toBeInTheDocument()
+    expect(await screen.findByText('Потребує рішення')).toBeInTheDocument()
 
     await fireEvent.click(screen.getByRole('button', { name: 'Відхилити запит' }))
     const cancelDialog = await screen.findByRole('dialog', { name: 'Відхилити запит?' })
@@ -988,7 +988,7 @@ describe('ExternalSessionsView', () => {
     const card = getGuestRequestCardByText('Запит без обраного часу')
     expect(card).toHaveTextContent('Клієнт: Slotless Guest')
     expect(card).toHaveTextContent('Контакт клієнта для відповіді: Ел. пошта · slotless@example.com')
-    expect(card).toHaveTextContent(/Статус:\s*Очікує рішення/)
+    expect(card).toHaveTextContent(/Статус:\s*Потребує рішення/)
     expect(card).not.toHaveTextContent('Клієнт залишив запит без підтвердженого часу.')
     expect(card).not.toHaveTextContent('Телефон: +380501234567')
     expect(card).not.toHaveTextContent('Коментар: Можу після обіду')
@@ -1249,6 +1249,9 @@ describe('ExternalSessionsView', () => {
     await screen.findByText('Sibling Guest')
 
     const card = getGuestRequestCardByText('Sibling Guest')
+    expect(card).toHaveTextContent(/Статус:\s*Очікує відповідь клієнта/)
+    expect(card).not.toHaveTextContent('Потрібно запропонувати інший час')
+    expect(card).not.toHaveTextContent('очікує рішення')
     expect(card).toHaveTextContent('Пропозицію часу надіслано')
     expect(card).toHaveTextContent('Варіантів: 2')
     expect(within(card as HTMLElement).getByRole('button', { name: 'Створити нову пропозицію' })).toBeInTheDocument()
