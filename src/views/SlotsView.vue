@@ -1296,14 +1296,51 @@
 
             <label class="field">
               Дата
-              <input
-                v-model.trim="oneOffDate"
-                class="input"
-                type="text"
-                inputmode="numeric"
-                placeholder="ДД.ММ.РРРР"
-                required
-              />
+              <div class="date-input-shell">
+                <input
+                  v-model.trim="oneOffDate"
+                  class="input"
+                  type="text"
+                  inputmode="numeric"
+                  placeholder="ДД.ММ.РРРР"
+                  aria-label="Дата"
+                  required
+                  @focus="openDatePickerFor('oneOffDate')"
+                />
+                <button
+                  class="date-picker-trigger"
+                  type="button"
+                  aria-label="Вибрати дату"
+                  @click="openDatePickerFor('oneOffDate')"
+                >
+                  <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+                    <path d="M7 2v3M17 2v3M4 9h16M6 4h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z" />
+                  </svg>
+                </button>
+                <div v-if="activeDatePicker === 'oneOffDate'" class="date-picker-popover" role="dialog" aria-label="Календар вибору дати">
+                  <div class="date-picker-popover__header">
+                    <button class="btn btn--ghost btn--sm" type="button" aria-label="Попередній місяць" @click="shiftDatePickerMonth(-1)">&lt;</button>
+                    <strong>{{ datePickerMonthLabel }}</strong>
+                    <button class="btn btn--ghost btn--sm" type="button" aria-label="Наступний місяць" @click="shiftDatePickerMonth(1)">&gt;</button>
+                  </div>
+                  <div class="date-picker-grid" aria-hidden="true">
+                    <span v-for="weekday in DATE_PICKER_WEEKDAYS" :key="weekday">{{ weekday }}</span>
+                  </div>
+                  <div class="date-picker-grid">
+                    <button
+                      v-for="day in datePickerDays"
+                      :key="day.iso"
+                      class="date-picker-day"
+                      type="button"
+                      :class="{ 'date-picker-day--muted': !day.inMonth, 'date-picker-day--selected': isDatePickerDaySelected(day.iso), 'date-picker-day--today': day.isToday }"
+                      :aria-label="formatDateOnly(day.iso)"
+                      @click="selectDateFromPicker(day.iso)"
+                    >
+                      {{ day.label }}
+                    </button>
+                  </div>
+                </div>
+              </div>
             </label>
 
             <label class="field">
@@ -1543,7 +1580,7 @@ type CalendarSessionLayout = {
   topMinutes: number
 }
 
-type DatePickerField = 'newStartDate' | 'editStartDate' | 'regularStartsOn'
+type DatePickerField = 'newStartDate' | 'editStartDate' | 'regularStartsOn' | 'oneOffDate'
 
 type ManualClientRecord = {
   id: number
@@ -2667,6 +2704,7 @@ watch([slots, selectedWeekStart], () => {
 function getDatePickerFieldValue(field: DatePickerField) {
   if (field === 'newStartDate') return newStartDate.value
   if (field === 'regularStartsOn') return regularStartsOn.value
+  if (field === 'oneOffDate') return oneOffDate.value
   return editStartDate.value
 }
 
@@ -2683,6 +2721,9 @@ function setDatePickerFieldValue(field: DatePickerField, value: string) {
     const isoDate = displayDateToIso(value)
     const weekday = isoDate ? regularTimeWeekdayFromIso(isoDate) : null
     if (weekday !== null) regularWeekday.value = weekday
+  }
+  if (field === 'oneOffDate') {
+    oneOffDate.value = value
   }
 }
 

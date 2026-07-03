@@ -748,6 +748,35 @@ describe('SlotsView', () => {
     expect(optionValues).toContain('10:10')
   })
 
+  it('lets one-off session date be selected from the date picker', async () => {
+    openCalendarRoute()
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/cabinet/slots/') return [] as any
+      if (url === '/cabinet/client-records/') return [manualClientRecord({ id: 71, display_name: 'Manual Regular' })] as any
+      if (url === '/cabinet/clients/') return [] as any
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+    await flushAsyncUpdates()
+    await fireEvent.click(screen.getByRole('button', { name: 'Створити сесію' }))
+    await flushAsyncUpdates()
+
+    const dialog = await screen.findByRole('dialog', { name: 'Створити сесію' })
+    const dateInput = within(dialog).getByLabelText('Дата') as HTMLInputElement
+    expect(dateInput).toHaveAttribute('placeholder', 'ДД.ММ.РРРР')
+    await fireEvent.click(within(dialog).getByRole('button', { name: 'Вибрати дату' }))
+
+    const calendar = screen.getByRole('dialog', { name: 'Календар вибору дати' })
+    await fireEvent.click(within(calendar).getByRole('button', { name: '13.03.2026' }))
+    await flushAsyncUpdates()
+
+    expect(dateInput.value).toBe('13.03.2026')
+    const timeSelect = within(dialog).getByLabelText('Час початку') as HTMLSelectElement
+    const optionValues = Array.from(timeSelect.options).map((option) => option.value)
+    expect(optionValues).toContain('09:00')
+  })
+
   it('normalizes one-off session time when selected date changes back to today', async () => {
     openCalendarRoute()
     mockedApiGet.mockImplementation(async (url) => {
