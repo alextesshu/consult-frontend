@@ -94,7 +94,7 @@ function renderView() {
       stubs: {
         RouterLink: {
           props: ['to'],
-          template: '<a :href="typeof to === \'string\' ? to : \'\'"><slot /></a>',
+          template: '<a :href="typeof to === \'string\' ? to : to?.path + (to?.query?.action ? `?action=${to.query.action}` : \'\')"><slot /></a>',
         },
       },
     },
@@ -177,6 +177,19 @@ describe('CabinetView', () => {
       expect(view.container.querySelector('.panel--attention')).toHaveTextContent('Профіль ще не готовий до перших запитів')
       expect(view.container.querySelector('.panel--onboarding')).toHaveTextContent('Готовність профілю')
       expect(view.container.querySelector('.panel--today [data-kind="readiness-summary"]')).not.toBeInTheDocument()
+    })
+  })
+
+  it('shows create session CTA on dashboard', async () => {
+    mockedApiGet.mockResolvedValue([])
+
+    const view = renderView()
+
+    await waitFor(() => {
+      expect(view.getByRole('link', { name: 'Створити сесію' })).toHaveAttribute(
+        'href',
+        '/cabinet/slots?action=create-session'
+      )
     })
   })
 

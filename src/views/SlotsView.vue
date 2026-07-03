@@ -1310,7 +1310,7 @@
               Час початку
               <select v-model="oneOffStartTime" class="input input--select" required>
                 <option value="" disabled>Оберіть час</option>
-                <option v-for="option in timeOptions" :key="option" :value="option">
+                <option v-for="option in oneOffTimeOptions" :key="option" :value="option">
                   {{ option }}
                 </option>
               </select>
@@ -1466,7 +1466,7 @@
 
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import {
   apiDelete,
   apiGet,
@@ -1600,6 +1600,7 @@ const error = ref('')
 const editErrors = ref<Record<number, string>>({})
 const editErrorRefs = ref<Record<number, HTMLElement | null>>({})
 const route = useRoute()
+const router = useRouter()
 const toast = useToast()
 const confirmModal = useConfirmModal()
 let scheduleLoadRequestId = 0
@@ -1628,6 +1629,24 @@ function routeQueryString(value: unknown) {
   const raw = Array.isArray(value) ? value[0] : value
   if (typeof raw !== 'string') return ''
   return raw.trim()
+}
+
+function shouldOpenOneOffSessionFromRoute() {
+  return routeQueryString(route.query.action) === 'create-session'
+}
+
+function clearCreateSessionRouteAction() {
+  const nextQuery = { ...route.query }
+  delete nextQuery.action
+  delete nextQuery.tab
+  void router.replace({ path: route.path, query: nextQuery })
+}
+
+function openOneOffSessionFromRouteAction() {
+  if (!shouldOpenOneOffSessionFromRoute()) return
+  setScheduleTab('CALENDAR')
+  clearCreateSessionRouteAction()
+  void openOneOffSessionModal()
 }
 
 function normalizeRequestSessionFormat(value: unknown): SessionFormat {
@@ -1680,6 +1699,17 @@ const oneOffSessionFormat = ref<SessionFormat>('online')
 const oneOffMeetingUrl = ref('')
 const oneOffOfflineLocation = ref('')
 const timeOptions = buildTenMinuteTimeOptions('00:00', '23:50')
+const oneOffTimeOptions = computed(() => {
+  const isoDate = displayDateToIso(oneOffDate.value)
+  if (!isoDate) return timeOptions
+  const today = toDateInputValue(new Date())
+  if (isoDate > today) return timeOptions
+  if (isoDate < today) return []
+  return timeOptions.filter((option) => {
+    const candidate = parseUkDateTime(oneOffDate.value, option)
+    return Boolean(candidate && !isPastDateTime(candidate))
+  })
+})
 const todayKey = toDateInputValue(new Date())
 const selectedWeekStart = ref(toDateInputValue(startOfWeek(new Date())))
 const datePickerMonth = ref(toDateInputValue(new Date()))
@@ -1691,6 +1721,7 @@ const selectedAvailabilitySlotIds = ref<number[]>([])
 const selectedSessionId = ref<string | null>(null)
 const scheduleTab = ref<ScheduleTab>(scheduleTabFromRoute())
 const calendarEventFilter = ref<'ALL' | 'SESSIONS' | 'AVAILABLE' | 'BOOKED'>('ALL')
+const nearestFutureDateToastKey = ref('')
 const settingsLoading = ref(false)
 const settingsSaving = ref(false)
 const settingsError = ref('')
@@ -2003,11 +2034,15 @@ function switchToNearestFutureDateIfNeeded() {
   const nearestDateKey = getNearestFutureDateKey(selectedDate.value)
   if (!nearestDateKey || nearestDateKey === selectedDate.value) return
   const previousDateKey = selectedDate.value
+  const toastKey = `${previousDateKey}->${nearestDateKey}`
   selectedDate.value = nearestDateKey
   moveWeekToDate(nearestDateKey)
-  toast.info(
-    `За ${formatDateOnly(previousDateKey)} немає майбутніх вікон. Показано найближчу дату: ${formatDateOnly(nearestDateKey)}.`
-  )
+  if (nearestFutureDateToastKey.value !== toastKey) {
+    nearestFutureDateToastKey.value = toastKey
+    toast.info(
+      `За ${formatDateOnly(previousDateKey)} немає майбутніх вікон. Показано найближчу дату: ${formatDateOnly(nearestDateKey)}.`
+    )
+  }
 }
 
 function getHiddenPastSlotsCount(dateKey: string, excludedSlotId?: number) {
@@ -2090,6 +2125,48 @@ function normalizeOneOffStartTimeOption(value: string) {
 
 function isPastDateTime(value: Date) {
   return value.getTime() <= Date.now()
+}
+
+function nearestFutureOneOffDateTime(now = new Date()) {
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0)
+  const minutesToday = now.getHours() * 60 + now.getMinutes()
+  const needsNextIncrement = now.getSeconds() > 0 || now.getMilliseconds() > 0
+  let roundedMinutes = Math.ceil(minutesToday / 10) * 10
+  if ((needsNextIncrement || minutesToday % 10 === 0) && roundedMinutes === minutesToday) {
+    roundedMinutes += 10
+  }
+  if (roundedMinutes > 23 * 60 + 50) {
+    const tomorrow = new Date(startOfToday)
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    return {
+      dateKey: toDateInputValue(tomorrow),
+      startTime: '00:00',
+    }
+  }
+  return {
+    dateKey: toDateInputValue(now),
+    startTime: `${pad2(Math.floor(roundedMinutes / 60))}:${pad2(roundedMinutes % 60)}`,
+  }
+}
+
+function isFutureOneOffDateTime(dateValue: string, timeValue: string) {
+  const candidate = parseUkDateTime(dateValue, timeValue)
+  return Boolean(candidate && !isPastDateTime(candidate))
+}
+
+function normalizeOneOffDateTimeToFuture() {
+  const isoDate = displayDateToIso(oneOffDate.value)
+  const nearest = nearestFutureOneOffDateTime()
+  const today = toDateInputValue(new Date())
+  if (!isoDate || isoDate < today || (isoDate === today && oneOffTimeOptions.value.length === 0)) {
+    oneOffDate.value = isoDateToDisplay(nearest.dateKey)
+    oneOffStartTime.value = nearest.startTime
+    return
+  }
+  if (!oneOffTimeOptions.value.includes(oneOffStartTime.value)) {
+    oneOffStartTime.value =
+      isoDate === nearest.dateKey ? nearest.startTime : oneOffTimeOptions.value[0] || ''
+  }
 }
 
 function displayDateToIso(value: string) {
@@ -2536,6 +2613,7 @@ const datePickerDays = computed(() => {
 })
 
 function selectDay(key: string) {
+  nearestFutureDateToastKey.value = ''
   selectedDate.value = key
   showPastSlots.value = false
 }
@@ -2563,6 +2641,22 @@ watch(
   () => [route.path, route.query.tab],
   () => {
     setScheduleTab(scheduleTabFromRoute())
+  }
+)
+
+watch(
+  () => [route.path, route.query.action],
+  () => {
+    openOneOffSessionFromRouteAction()
+  }
+)
+
+watch(
+  () => oneOffDate.value,
+  () => {
+    if (oneOffSessionModalOpen.value) {
+      normalizeOneOffDateTimeToFuture()
+    }
   }
 )
 
@@ -2638,6 +2732,7 @@ function moveWeekToDate(value: string | Date) {
 }
 
 function shiftWeek(direction: number) {
+  nearestFutureDateToastKey.value = ''
   const next = new Date(weekStartDate.value)
   next.setDate(next.getDate() + direction * 7)
   selectedWeekStart.value = toDateInputValue(next)
@@ -2650,6 +2745,7 @@ function shiftWeek(direction: number) {
 }
 
 function goToToday() {
+  nearestFutureDateToastKey.value = ''
   moveWeekToDate(new Date())
   selectedDate.value = todayKey
   selectedSlotId.value = null
@@ -3093,15 +3189,24 @@ function closeRegularSessionsModal() {
 }
 
 function resetOneOffSessionForm(prefill?: OneOffSessionPrefill) {
-  const baseDate = selectedDate.value || todayKey
+  const nearest = nearestFutureOneOffDateTime()
+  const baseDate = selectedDate.value || nearest.dateKey
+  const requestedDate = isoDateToDisplay(prefill?.dateKey || baseDate)
+  const requestedTime = normalizeOneOffStartTimeOption(prefill?.startTime || '')
   oneOffClientRecordId.value = regularClientOptions.value[0]?.recordId ?? ''
-  oneOffDate.value = isoDateToDisplay(prefill?.dateKey || baseDate)
-  oneOffStartTime.value = normalizeOneOffStartTimeOption(prefill?.startTime || '09:00') || '09:00'
+  if (prefill && requestedTime && isFutureOneOffDateTime(requestedDate, requestedTime)) {
+    oneOffDate.value = requestedDate
+    oneOffStartTime.value = requestedTime
+  } else {
+    oneOffDate.value = isoDateToDisplay(nearest.dateKey)
+    oneOffStartTime.value = nearest.startTime
+  }
   oneOffDuration.value = oneOffDuration.value > 0 ? oneOffDuration.value : 50
   oneOffSessionFormat.value = 'online'
   oneOffMeetingUrl.value = ''
   oneOffOfflineLocation.value = ''
   oneOffSessionError.value = ''
+  normalizeOneOffDateTimeToFuture()
 }
 
 function oneOffSessionErrorCode(err: unknown): string {
@@ -3943,6 +4048,7 @@ onMounted(() => {
   document.addEventListener('keydown', handleDocumentKeydown)
   void loadSlots()
   void loadPublicBookingSettings()
+  openOneOffSessionFromRouteAction()
 })
 
 onBeforeUnmount(() => {

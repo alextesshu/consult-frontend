@@ -17,6 +17,10 @@ const mockRoute = {
   query: {} as Record<string, unknown>,
 }
 
+const mockRouter = {
+  replace: vi.fn(),
+}
+
 const mockToast = {
   success: vi.fn(),
   error: vi.fn(),
@@ -56,6 +60,7 @@ vi.mock('vue-router', async () => {
   return {
     ...actual,
     useRoute: () => mockRoute,
+    useRouter: () => mockRouter,
   }
 })
 
@@ -267,6 +272,7 @@ describe('SlotsView', () => {
     mockToast.info.mockReset()
     mockToast.warning.mockReset()
     mockConfirmModal.openConfirm.mockReset()
+    mockRouter.replace.mockReset()
   })
 
   afterEach(() => {
@@ -300,6 +306,33 @@ describe('SlotsView', () => {
     expect(screen.getByRole('tab', { name: 'Вікна для запису' })).toHaveAttribute('aria-selected', 'true')
     expect(screen.getByRole('button', { name: 'Додати вікно' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Створити сесію' })).not.toBeInTheDocument()
+  })
+
+  it('shows nearest future date fallback toast only once', async () => {
+    openAvailabilityRoute()
+    mockScheduleApi([
+      {
+        id: 701,
+        start_at: '2026-03-12T06:00:00Z',
+        end_at: '2026-03-12T06:50:00Z',
+        is_booked: false,
+      },
+      {
+        id: 702,
+        start_at: '2026-03-13T08:00:00Z',
+        end_at: '2026-03-13T08:50:00Z',
+        is_booked: false,
+      },
+    ])
+
+    renderView()
+    await flushAsyncUpdates()
+    await flushAsyncUpdates()
+
+    expect(mockToast.info).toHaveBeenCalledTimes(1)
+    expect(mockToast.info).toHaveBeenCalledWith(
+      'За 12.03.2026 немає майбутніх вікон. Показано найближчу дату: 13.03.2026.'
+    )
   })
 
   it('opens calendar tab from schedule route and slots tab query', async () => {
@@ -663,11 +696,11 @@ describe('SlotsView', () => {
     expect(screen.queryByLabelText('Вільний час')).not.toBeInTheDocument()
     const timeSelect = await screen.findByLabelText('Час початку') as HTMLSelectElement
     expect(timeSelect.tagName).toBe('SELECT')
+    await fireEvent.update(await screen.findByLabelText('Дата'), '13.03.2026')
     const timeOptionValues = Array.from(timeSelect.options).map((option) => option.value)
     expect(timeOptionValues).toContain('09:00')
     expect(timeOptionValues).toContain('09:10')
     expect(timeOptionValues).toContain('09:20')
-    await fireEvent.update(await screen.findByLabelText('Дата'), '13.03.2026')
     await fireEvent.update(timeSelect, '14:20')
     await fireEvent.update(await screen.findByLabelText('Тривалість'), '50')
     await fireEvent.update(await screen.findByLabelText('Формат зустрічі'), 'offline')
@@ -690,6 +723,57 @@ describe('SlotsView', () => {
     expect(payload).not.toHaveProperty('slot_id')
     expect(mockToast.success).toHaveBeenCalledWith('Сесію створено.')
     expect(screen.queryByRole('dialog', { name: 'Створити сесію' })).not.toBeInTheDocument()
+  })
+
+  it('opens one-off session modal from route CTA with nearest future time', async () => {
+    openSlotsCalendarRoute({ action: 'create-session' })
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/cabinet/slots/') return [] as any
+      if (url === '/cabinet/client-records/') return [manualClientRecord({ id: 71, display_name: 'Manual Regular' })] as any
+      if (url === '/cabinet/clients/') return [] as any
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+    await flushAsyncUpdates()
+
+    expect(screen.getByRole('dialog', { name: 'Створити сесію' })).toBeInTheDocument()
+    expect(mockRouter.replace).toHaveBeenCalledWith({ path: '/cabinet/slots', query: {} })
+    expect((await screen.findByLabelText('Дата') as HTMLInputElement).value).toBe('12.03.2026')
+    const timeSelect = await screen.findByLabelText('Час початку') as HTMLSelectElement
+    expect(timeSelect.value).toBe('10:10')
+    const optionValues = Array.from(timeSelect.options).map((option) => option.value)
+    expect(optionValues).not.toContain('09:50')
+    expect(optionValues).not.toContain('10:00')
+    expect(optionValues).toContain('10:10')
+  })
+
+  it('normalizes one-off session time when selected date changes back to today', async () => {
+    openCalendarRoute()
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === '/cabinet/slots/') return [] as any
+      if (url === '/cabinet/client-records/') return [manualClientRecord({ id: 71, display_name: 'Manual Regular' })] as any
+      if (url === '/cabinet/clients/') return [] as any
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+    await flushAsyncUpdates()
+    await fireEvent.click(screen.getByRole('button', { name: 'Створити сесію' }))
+    await flushAsyncUpdates()
+
+    const dateInput = await screen.findByLabelText('Дата') as HTMLInputElement
+    const timeSelect = await screen.findByLabelText('Час початку') as HTMLSelectElement
+    await fireEvent.update(dateInput, '13.03.2026')
+    await fireEvent.update(timeSelect, '09:00')
+    expect(timeSelect.value).toBe('09:00')
+
+    await fireEvent.update(dateInput, '12.03.2026')
+    await flushAsyncUpdates()
+
+    expect(timeSelect.value).toBe('10:10')
+    const optionValues = Array.from(timeSelect.options).map((option) => option.value)
+    expect(optionValues).not.toContain('09:00')
   })
 
   it('opens one-off session modal from empty calendar cell with clicked date and start time', async () => {
@@ -722,8 +806,8 @@ describe('SlotsView', () => {
     await flushAsyncUpdates()
 
     expect(screen.getByRole('dialog', { name: 'Створити сесію' })).toBeInTheDocument()
-    expect((screen.getByLabelText('Дата') as HTMLInputElement).value).toBe('13.03.2026')
-    const timeSelect = screen.getByLabelText('Час початку') as HTMLSelectElement
+    expect((await screen.findByLabelText('Дата') as HTMLInputElement).value).toBe('13.03.2026')
+    const timeSelect = await screen.findByLabelText('Час початку') as HTMLSelectElement
     expect(timeSelect.tagName).toBe('SELECT')
     expect(timeSelect.value).toBe('10:00')
   })
@@ -1166,7 +1250,7 @@ describe('SlotsView', () => {
     expect(screen.getByRole('dialog', { name: 'Створити сесію' })).toBeInTheDocument()
   })
 
-  it('blocks one-off session create when selected time is in the past', async () => {
+  it('normalizes past one-off session date before submit', async () => {
     openCalendarRoute()
     mockedApiGet.mockImplementation(async (url) => {
       if (url === '/cabinet/slots/') return [] as any
@@ -1182,19 +1266,23 @@ describe('SlotsView', () => {
     await flushAsyncUpdates()
 
     await fireEvent.update(await screen.findByLabelText('Клієнт'), '71')
-    await fireEvent.update(await screen.findByLabelText('Дата'), '01.01.2000')
-    await fireEvent.update(await screen.findByLabelText('Час початку'), '14:00')
+    const dateInput = await screen.findByLabelText('Дата') as HTMLInputElement
+    const timeSelect = await screen.findByLabelText('Час початку') as HTMLSelectElement
+    await fireEvent.update(dateInput, '01.01.2000')
+    await flushAsyncUpdates()
+    expect(dateInput.value).toBe('12.03.2026')
+    expect(timeSelect.value).toBe('10:10')
     await fireEvent.update(await screen.findByLabelText('Тривалість'), '50')
     const submitButtons = screen.getAllByRole('button', { name: 'Створити сесію' })
     await fireEvent.click(submitButtons[submitButtons.length - 1] as HTMLButtonElement)
     await flushAsyncUpdates()
 
-    expect(
-      screen.getByText('Неможливо створити сесію в минулому. Оберіть майбутню дату або час.')
-    ).toBeInTheDocument()
-    expect(
-      mockedApiPost.mock.calls.some((call) => call[0] === '/cabinet/client-records/71/sessions/')
-    ).toBe(false)
+    const createCall = mockedApiPost.mock.calls.find(
+      (call) => call[0] === '/cabinet/client-records/71/sessions/'
+    )
+    expect(createCall).toBeTruthy()
+    expect(String((createCall?.[1] as Record<string, unknown>).starts_at)).toContain('08:10:00.000Z')
+    expect(screen.queryByText('Неможливо створити сесію в минулому. Оберіть майбутню дату або час.')).not.toBeInTheDocument()
     expect(screen.queryByText(/detail:/i)).not.toBeInTheDocument()
   })
 

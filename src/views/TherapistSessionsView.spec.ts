@@ -135,7 +135,7 @@ function renderView() {
       stubs: {
         RouterLink: {
           props: ['to'],
-          template: '<a :href="typeof to === \'string\' ? to : \'\'"><slot /></a>',
+          template: '<a :href="typeof to === \'string\' ? to : to?.path + (to?.query?.action ? `?action=${to.query.action}` : \'\')"><slot /></a>',
         },
       },
     },
@@ -770,6 +770,17 @@ describe('TherapistSessionsView', () => {
     expect(screen.getByText('Немає нових запитів')).toBeInTheDocument()
     expect(screen.getByText('Історія порожня')).toBeInTheDocument()
     expect(screen.queryByText(/Потрібно завершити підготовку:/)).not.toBeInTheDocument()
+  })
+
+  it('shows create session CTA in header and empty state', async () => {
+    mockedApiGet.mockResolvedValue([])
+
+    const view = renderView()
+    await flushPromises()
+
+    const links = view.getAllByRole('link', { name: 'Створити сесію' })
+    expect(links.length).toBeGreaterThanOrEqual(2)
+    expect(links.every((link) => link.getAttribute('href') === '/cabinet/slots?action=create-session')).toBe(true)
   })
 
   it('confirms and cancels sessions with a list reload after each mutation', async () => {

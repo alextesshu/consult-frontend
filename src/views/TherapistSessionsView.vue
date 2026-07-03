@@ -7,7 +7,12 @@
           Список запланованих і минулих сесій. Дії доступні одразу.
         </p>
       </div>
-      <RouterLink class="btn btn--ghost hero-back-link" to="/cabinet">Назад до кабінету</RouterLink>
+      <div class="sessions__hero-actions">
+        <RouterLink class="btn" :to="{ path: '/cabinet/slots', query: { action: 'create-session' } }">
+          Створити сесію
+        </RouterLink>
+        <RouterLink class="btn btn--ghost hero-back-link" to="/cabinet">Назад до кабінету</RouterLink>
+      </div>
     </header>
 
     <div v-if="error" class="form-error">{{ error }}</div>
@@ -227,8 +232,8 @@
         v-if="!loading && filteredUpcomingSessions.length === 0"
         title="Немає запланованих сесій"
         description="Створіть доступний час або поділіться профілем, щоб клієнти могли залишити запит або обрати зручне вікно."
-        action-text="Створити віконце"
-        action-to="/cabinet/slots"
+        action-text="Створити сесію"
+        action-to="/cabinet/slots?action=create-session"
         secondary-text="Керування профілем"
         secondary-to="/cabinet/profile"
       />
@@ -2078,6 +2083,14 @@ onBeforeUnmount(() => {
   border-radius: 999px;
   background: rgba(247, 183, 126, 0.18);
   pointer-events: none;
+}
+
+.sessions__hero-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .sessions__title {

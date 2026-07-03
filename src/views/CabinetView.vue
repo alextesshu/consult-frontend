@@ -16,6 +16,9 @@
           Повторити
         </button>
       </div>
+      <RouterLink class="btn cabinet__hero-cta" :to="{ path: '/cabinet/slots', query: { action: 'create-session' } }">
+        Створити сесію
+      </RouterLink>
     </header>
 
     <div v-if="me && hasCabinetDataSnapshot" class="cabinet__grid">
@@ -1290,6 +1293,13 @@ onBeforeUnmount(() => {
   min-width: 0;
   position: relative;
   z-index: 1;
+}
+
+.cabinet__hero-cta {
+  position: relative;
+  z-index: 1;
+  flex: 0 0 auto;
+  white-space: nowrap;
 }
 
 .cabinet__hero::after {
