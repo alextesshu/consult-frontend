@@ -178,11 +178,7 @@
       <ul class="tips-list">
         <li>
           <RouterLink class="tips-link" to="/specialists">Знайти профіль спеціаліста</RouterLink>
-          <span class="muted">Перегляньте профіль і доступні слоти.</span>
-        </li>
-        <li>
-          <RouterLink class="tips-link" to="/specialists">Пошук профілю спеціаліста</RouterLink>
-          <span class="muted">Щоб знайти іншого спеціаліста, скористайтеся пошуком профілю.</span>
+          <span class="muted">Перегляньте профілі та доступні слоти.</span>
         </li>
         <li>
           <span class="tips-link">Забронювати слот</span>
@@ -220,7 +216,7 @@
         v-else-if="inquiryEntries.length === 0"
         title="Запити перед сесією поки недоступні"
         description="Знайдіть профіль спеціаліста, щоб поставити коротке уточнювальне питання перед надсиланням запиту."
-        action-text="Пошук профілю спеціаліста"
+        action-text="Переглянути профілі"
         action-to="/specialists"
       />
       <ul v-else class="session-list">

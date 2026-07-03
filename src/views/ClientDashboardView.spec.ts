@@ -937,16 +937,15 @@ describe('ClientDashboardView', () => {
     expect(within(heroActions).queryByRole('button', { name: 'Мої спеціалісти' })).not.toBeInTheDocument()
 
     const tipsCard = view.container.querySelector('.tips-card') as HTMLElement
-    expect(within(tipsCard).getByRole('link', { name: 'Знайти профіль спеціаліста' })).toHaveAttribute(
+    const specialistSearchLinks = within(tipsCard).getAllByRole('link', { name: 'Знайти профіль спеціаліста' })
+    expect(specialistSearchLinks).toHaveLength(1)
+    expect(specialistSearchLinks[0]).toHaveAttribute(
       'href',
       '/specialists'
     )
-    expect(within(tipsCard).getByRole('link', { name: 'Пошук профілю спеціаліста' })).toHaveAttribute(
-      'href',
-      '/specialists'
-    )
-    expect(
-      within(tipsCard).getByText('Щоб знайти іншого спеціаліста, скористайтеся пошуком профілю.')
-    ).toBeInTheDocument()
+    expect(within(tipsCard).getByText('Перегляньте профілі та доступні слоти.')).toBeInTheDocument()
+    expect(within(tipsCard).queryByRole('link', { name: 'Пошук профілю спеціаліста' })).not.toBeInTheDocument()
+    expect(tipsCard.querySelectorAll('a[href="/specialists"]')).toHaveLength(1)
+    expect(view.container).not.toHaveTextContent('Пошук профілю спеціаліста')
   })
 })
