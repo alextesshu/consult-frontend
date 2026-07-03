@@ -63,6 +63,11 @@ function createWorkQueuePayload(overrides?: Record<string, unknown>) {
   } as any
 }
 
+function sessionIsoForDay(dayOffset: number, hour = 10, minute = 0) {
+  const now = new Date()
+  return new Date(now.getFullYear(), now.getMonth(), now.getDate() + dayOffset, hour, minute).toISOString()
+}
+
 const mockMe = ref(createMePayload())
 const mockLoadMe = vi.fn()
 
@@ -147,7 +152,7 @@ describe('CabinetView', () => {
     await waitFor(() => {
       expect(mockedApiGet).toHaveBeenCalledWith('/cabinet/entitlements/')
       expect(view.container).toHaveTextContent('Сесії без реєстрації:')
-      expect(view.container).toHaveTextContent('2 / 5')
+      expect(view.container).toHaveTextContent('2 використано з 5 за поточний період')
     })
   })
 
@@ -190,6 +195,7 @@ describe('CabinetView', () => {
         'href',
         '/cabinet/slots?action=create-session'
       )
+      expect(view.getAllByRole('link', { name: 'Створити сесію' })).toHaveLength(1)
     })
   })
 
@@ -244,7 +250,7 @@ describe('CabinetView', () => {
     expect(view.container).not.toHaveTextContent('Групові онлайн-події')
     expect(view.container).not.toHaveTextContent('Технічна місткість')
     expect(view.container).not.toHaveTextContent('Ліміт подій')
-    expect(view.container).toHaveTextContent('Доступ до практики без комісій за сесію')
+    expect(view.container).not.toHaveTextContent('Доступ до практики без комісій за сесію')
   })
 
   it('renders guest quota zero state without breaking plan metrics', async () => {
@@ -265,7 +271,7 @@ describe('CabinetView', () => {
 
     await waitFor(() => {
       expect(view.container).toHaveTextContent('Сесії без реєстрації:')
-      expect(view.container).toHaveTextContent('0 / 5')
+      expect(view.container).toHaveTextContent('0 використано з 5 за поточний період')
     })
   })
 
@@ -441,8 +447,8 @@ describe('CabinetView', () => {
             client_display_name: 'Canonical Session Name',
             status: 'SCHEDULED',
             session_format: 'online',
-            slot_start_at: '2099-06-10T09:00:00Z',
-            slot_end_at: '2099-06-10T09:50:00Z',
+            slot_start_at: sessionIsoForDay(0, 9, 0),
+            slot_end_at: sessionIsoForDay(0, 9, 50),
           },
           {
             id: 802,
@@ -451,8 +457,8 @@ describe('CabinetView', () => {
             client_username: 'login.user',
             status: 'CONFIRMED',
             session_format: 'online',
-            slot_start_at: '2099-06-10T10:00:00Z',
-            slot_end_at: '2099-06-10T10:50:00Z',
+            slot_start_at: sessionIsoForDay(0, 10, 0),
+            slot_end_at: sessionIsoForDay(0, 10, 50),
           },
         ] as any
       }
@@ -500,7 +506,10 @@ describe('CabinetView', () => {
 
     await waitFor(() => {
       expect(view.container.querySelector('.panel--today')).toBeInTheDocument()
+      expect(view.container.querySelector('.panel--tomorrow')).toBeInTheDocument()
       expect(view.container).toHaveTextContent('Сьогодні сесій немає')
+      expect(view.container).toHaveTextContent('Завтра')
+      expect(view.container).toHaveTextContent('На завтра сесій немає.')
       expect(view.container).toHaveTextContent('Можна перевірити запити або налаштувати розклад.')
     })
 
@@ -513,6 +522,46 @@ describe('CabinetView', () => {
     expect(view.container).not.toHaveTextContent('Нотатки не потребують уваги.')
     expect(view.container).not.toHaveTextContent('Додати клієнта')
     expect(view.container.querySelector('.work-queue-list__empty')).not.toBeInTheDocument()
+  })
+
+  it('renders tomorrow sessions from upcoming sessions data', async () => {
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/cabinet/work-queue/') {
+        return createWorkQueuePayload({
+          today_sessions_count: 0,
+          pending_guest_requests_count: 0,
+          pending_slotless_guest_requests_count: 0,
+          guest_requests_preview: [],
+        })
+      }
+      if (url === '/cabinet/entitlements/') return {}
+      if (config?.params?.upcoming === true) {
+        return [
+          {
+            id: 811,
+            client: 211,
+            client_display_name: 'Tomorrow Session Client',
+            status: 'CONFIRMED',
+            session_format: 'online',
+            slot_start_at: sessionIsoForDay(1, 12, 0),
+            slot_end_at: sessionIsoForDay(1, 12, 50),
+          },
+        ] as any
+      }
+      if (config?.params?.upcoming === false) return []
+      return []
+    })
+
+    const view = renderView()
+
+    await waitFor(() => {
+      expect(view.container.querySelector('.panel--tomorrow')).toBeInTheDocument()
+      expect(view.container).toHaveTextContent('Завтра')
+      expect(view.container).toHaveTextContent('Tomorrow Session Client')
+      expect(view.container.querySelector('a[href="/cabinet/sessions/811"]')).toBeInTheDocument()
+    })
+
+    expect(view.container).not.toHaveTextContent('На завтра сесій немає.')
   })
 
   it('shows local today panel error state and retries successfully', async () => {
@@ -1035,8 +1084,8 @@ describe('CabinetView', () => {
             session_format: 'online',
             meeting_url: 'https://meet.google.com/nearest-room',
             join_available: true,
-            slot_start_at: '2099-06-01T10:00:00Z',
-            slot_end_at: '2099-06-01T10:50:00Z',
+            slot_start_at: sessionIsoForDay(0, 10, 0),
+            slot_end_at: sessionIsoForDay(0, 10, 50),
           },
         ] as any
       }
@@ -1048,7 +1097,7 @@ describe('CabinetView', () => {
     const view = renderView()
 
     await waitFor(() => {
-      expect(view.container).toHaveTextContent('Найближча сесія')
+      expect(view.container).toHaveTextContent('Найближча сесія сьогодні')
       expect(view.container).toHaveTextContent('Nearest Client')
       expect(view.container).toHaveTextContent('Онлайн')
       expect(view.container).toHaveTextContent('Підтверджено')
@@ -1070,8 +1119,8 @@ describe('CabinetView', () => {
             session_format: 'online',
             meeting_url: 'https://meet.google.com/nearest-room',
             join_available: true,
-            slot_start_at: '2099-06-01T10:00:00Z',
-            slot_end_at: '2099-06-01T10:50:00Z',
+            slot_start_at: sessionIsoForDay(0, 10, 0),
+            slot_end_at: sessionIsoForDay(0, 10, 50),
           },
         ] as any
       }
@@ -1116,8 +1165,8 @@ describe('CabinetView', () => {
             offline_location: 'Київ, офіс 4',
             meeting_url: 'https://meet.google.com/ignore-offline',
             join_available: true,
-            slot_start_at: '2099-06-02T11:00:00Z',
-            slot_end_at: '2099-06-02T11:50:00Z',
+            slot_start_at: sessionIsoForDay(0, 11, 0),
+            slot_end_at: sessionIsoForDay(0, 11, 50),
           },
         ] as any
       }
@@ -1129,7 +1178,7 @@ describe('CabinetView', () => {
     const view = renderView()
 
     await waitFor(() => {
-      expect(view.container).toHaveTextContent('Найближча сесія')
+      expect(view.container).toHaveTextContent('Найближча сесія сьогодні')
       expect(view.container).toHaveTextContent('Offline Client')
       expect(view.container).toHaveTextContent('Локація: Київ, офіс 4')
     })
@@ -1149,8 +1198,8 @@ describe('CabinetView', () => {
             session_format: 'online',
             meeting_url: 'https://meet.google.com/hub-room',
             join_available: true,
-            slot_start_at: '2099-06-04T08:00:00Z',
-            slot_end_at: '2099-06-04T08:50:00Z',
+            slot_start_at: sessionIsoForDay(0, 8, 0),
+            slot_end_at: sessionIsoForDay(0, 8, 50),
           },
         ] as any
       }
@@ -1175,7 +1224,7 @@ describe('CabinetView', () => {
     expect(view.container).not.toHaveTextContent('Перейти до клієнтів')
   })
 
-  it('renders compact billing summary without duplicating detailed tariff logic', async () => {
+  it('renders compact usage strip without duplicating detailed tariff logic', async () => {
     mockedApiGet.mockImplementation(async (url, config) => {
       if (url === '/cabinet/entitlements/') {
         return {
@@ -1193,14 +1242,14 @@ describe('CabinetView', () => {
     const view = renderView()
 
     await waitFor(() => {
-      expect(view.container).toHaveTextContent('Тариф і ліміти')
+      expect(view.container.querySelector('.usage-strip')).toBeInTheDocument()
     })
-    expect(view.container.querySelector('.panel--plan a[href="/cabinet/billing"]')).toHaveTextContent(
-      'Відкрити тарифи і доступ'
-    )
-    expect(view.container).toHaveTextContent('Активні клієнти:')
+    expect(view.container.querySelector('.usage-strip a[href="/cabinet/billing"]')).toHaveTextContent('Тарифи і доступ')
+    expect(view.container).toHaveTextContent('Активні клієнти: 1 використано з 3')
+    expect(view.container).not.toHaveTextContent('Тариф і ліміти')
     expect(view.container).not.toHaveTextContent('Тестовий доступ')
     expect(view.container).not.toHaveTextContent('Ручне перевизначення доступу')
+    expect(view.container).not.toHaveTextContent('Доступ до практики без комісій за сесію')
   })
 
   it('does not render obsolete technical labels on cabinet dashboard', async () => {

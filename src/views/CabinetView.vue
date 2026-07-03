@@ -64,31 +64,19 @@
         </div>
       </section>
 
-      <section class="panel panel--wide panel--today">
-        <div class="panel__header">
-          <div>
-            <h2 class="panel__title">Сьогодні</h2>
+      <div class="cabinet__work-grid">
+        <section class="panel panel--today">
+          <div class="panel__header">
+            <div>
+              <h2 class="panel__title">Сьогодні</h2>
+            </div>
           </div>
-        </div>
 
-        <div v-if="workQueueLoading && !workQueueLoaded" class="today-panel__state today-panel__state--loading">
-          Завантаження орієнтирів на сьогодні...
-        </div>
+          <div v-if="workQueueLoading && !workQueueLoaded" class="today-panel__state today-panel__state--loading">
+            Завантаження орієнтирів на сьогодні...
+          </div>
 
-        <div v-else-if="workQueueError && !workQueueLoaded" class="today-panel__state today-panel__state--error">
-          <span>{{ workQueueError }}</span>
-          <button
-            class="btn btn--ghost btn--sm today-panel__retry"
-            type="button"
-            :disabled="workQueueLoading"
-            @click="retryWorkQueueLoad"
-          >
-            Повторити
-          </button>
-        </div>
-
-        <div v-else class="today-panel">
-          <div v-if="workQueueError" class="today-panel__inline-error">
+          <div v-else-if="workQueueError && !workQueueLoaded" class="today-panel__state today-panel__state--error">
             <span>{{ workQueueError }}</span>
             <button
               class="btn btn--ghost btn--sm today-panel__retry"
@@ -100,67 +88,79 @@
             </button>
           </div>
 
-          <section
-            class="today-card today-card--primary"
-            :class="{ 'today-card--compact': !nearestUpcomingSession }"
-          >
-            <div class="today-card__header">
-              <div>
-                <h3 class="today-card__title">Найближча сесія</h3>
-              </div>
-              <div v-if="nearestUpcomingSession" class="nearest-session__status" :class="nearestSessionStatusClass">
-                {{ nearestSessionStatusLabel }}
-              </div>
+          <div v-else class="today-panel">
+            <div v-if="workQueueError" class="today-panel__inline-error">
+              <span>{{ workQueueError }}</span>
+              <button
+                class="btn btn--ghost btn--sm today-panel__retry"
+                type="button"
+                :disabled="workQueueLoading"
+                @click="retryWorkQueueLoad"
+              >
+                Повторити
+              </button>
             </div>
-            <template v-if="nearestUpcomingSession">
-              <div class="nearest-session__summary">
-                {{ nearestSessionSummary }}
-              </div>
-              <div v-if="nearestSessionSecondaryLine" class="muted nearest-session__hint">
-                {{ nearestSessionSecondaryLine }}
-              </div>
-              <div v-else-if="!isNearestSessionOffline" class="muted nearest-session__hint">
-                {{ nearestSessionOnlineHint }}
-              </div>
-              <div class="nearest-session__actions">
-                <RouterLink class="btn btn--sm" :to="`/cabinet/sessions/${nearestUpcomingSession.id}`">
-                  Відкрити сесію
-                </RouterLink>
-                <a
-                  v-if="canJoinNearestSession"
-                  class="btn btn--ghost btn--sm"
-                  :href="nearestSessionMeetingUrl"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Приєднатися
-                </a>
-                <RouterLink
-                  v-else-if="shouldShowAddMeetingLinkAction"
-                  class="btn btn--ghost btn--sm"
-                  :to="`/cabinet/sessions/${nearestUpcomingSession.id}?focus=meeting_link`"
-                >
-                  Додати посилання
-                </RouterLink>
-              </div>
-            </template>
-            <template v-else>
-              <h3 class="today-card__title">Сьогодні сесій немає</h3>
-              <p class="muted today-card__empty">
-                Можна перевірити запити або налаштувати розклад.
-              </p>
-              <div class="nearest-session__actions">
-                <RouterLink class="btn btn--ghost btn--sm" to="/cabinet/external-sessions#guest-requests">
-                  Перейти до запитів
-                </RouterLink>
-                <RouterLink class="btn btn--sm" to="/cabinet/slots">
-                  Налаштувати розклад
-                </RouterLink>
-              </div>
-            </template>
-          </section>
 
-          <section class="today-side">
+            <section
+              class="today-card today-card--primary"
+              :class="{ 'today-card--compact': !nearestUpcomingSession }"
+            >
+              <div class="today-card__header">
+                <div>
+                  <h3 class="today-card__title">Найближча сесія сьогодні</h3>
+                </div>
+                <div v-if="nearestUpcomingSession" class="nearest-session__status" :class="nearestSessionStatusClass">
+                  {{ nearestSessionStatusLabel }}
+                </div>
+              </div>
+              <template v-if="nearestUpcomingSession">
+                <div class="nearest-session__summary">
+                  {{ nearestSessionSummary }}
+                </div>
+                <div v-if="nearestSessionSecondaryLine" class="muted nearest-session__hint">
+                  {{ nearestSessionSecondaryLine }}
+                </div>
+                <div v-else-if="!isNearestSessionOffline" class="muted nearest-session__hint">
+                  {{ nearestSessionOnlineHint }}
+                </div>
+                <div class="nearest-session__actions">
+                  <RouterLink class="btn btn--sm" :to="`/cabinet/sessions/${nearestUpcomingSession.id}`">
+                    Відкрити сесію
+                  </RouterLink>
+                  <a
+                    v-if="canJoinNearestSession"
+                    class="btn btn--ghost btn--sm"
+                    :href="nearestSessionMeetingUrl"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    Приєднатися
+                  </a>
+                  <RouterLink
+                    v-else-if="shouldShowAddMeetingLinkAction"
+                    class="btn btn--ghost btn--sm"
+                    :to="`/cabinet/sessions/${nearestUpcomingSession.id}?focus=meeting_link`"
+                  >
+                    Додати посилання
+                  </RouterLink>
+                </div>
+              </template>
+              <template v-else>
+                <h3 class="today-card__title">Сьогодні сесій немає</h3>
+                <p class="muted today-card__empty">
+                  Можна перевірити запити або налаштувати розклад.
+                </p>
+                <div class="nearest-session__actions">
+                  <RouterLink class="btn btn--ghost btn--sm" to="/cabinet/external-sessions#guest-requests">
+                    Перейти до запитів
+                  </RouterLink>
+                  <RouterLink class="btn btn--sm" to="/cabinet/slots">
+                    Налаштувати розклад
+                  </RouterLink>
+                </div>
+              </template>
+            </section>
+
             <article
               v-if="visiblePendingGuestRequestsCount > 0"
               class="today-card today-card--soft today-card--guest-requests"
@@ -185,9 +185,38 @@
                 {{ pendingGuestRequestsCta }}
               </RouterLink>
             </article>
-          </section>
-        </div>
-      </section>
+          </div>
+        </section>
+
+        <section class="panel panel--tomorrow">
+          <div class="panel__header">
+            <div>
+              <h2 class="panel__title">Завтра</h2>
+            </div>
+          </div>
+
+          <div v-if="heroSessionsLoading" class="today-panel__state today-panel__state--loading">
+            Завантаження сесій на завтра...
+          </div>
+          <div v-else-if="heroSessionsError" class="today-panel__state today-panel__state--error">
+            {{ heroSessionsError }}
+          </div>
+          <div v-else-if="tomorrowSessions.length" class="tomorrow-list">
+            <RouterLink
+              v-for="session in tomorrowSessions"
+              :key="session.id"
+              class="tomorrow-session"
+              :to="`/cabinet/sessions/${session.id}`"
+            >
+              <div class="tomorrow-session__summary">{{ sessionSummary(session) }}</div>
+              <div v-if="sessionSecondaryLine(session)" class="muted tomorrow-session__hint">
+                {{ sessionSecondaryLine(session) }}
+              </div>
+            </RouterLink>
+          </div>
+          <p v-else class="muted tomorrow-empty">На завтра сесій немає.</p>
+        </section>
+      </div>
       <section v-if="shouldShowOnboardingBlock" class="panel panel--wide panel--onboarding">
         <div class="panel__header">
           <div>
@@ -277,35 +306,19 @@
           </button>
         </div>
       </section>
-      <section class="panel panel--wide panel--plan">
-        <div class="panel__header">
-          <div>
-            <h2 class="panel__title panel__title--compact">Тариф і ліміти</h2>
-          </div>
-          <RouterLink
-            class="btn btn--ghost btn--sm"
-            to="/cabinet/billing"
-          >
-            Відкрити тарифи і доступ
-          </RouterLink>
+      <section class="usage-strip" aria-label="Використання лімітів">
+        <div class="usage-strip__item">
+          Активні клієнти:
+          <strong>{{ activeClientsCount }} використано з {{ activeClientLimitLabel }}</strong>
         </div>
-        <div class="plan-row">
-          <div class="plan-badges">
-            <span class="badge badge--outline">{{ planCodeLabel }}</span>
-            <span v-if="planCodeLabel === 'PRO'" class="badge badge--soft">Рекомендовано</span>
-          </div>
-          <div class="muted plan-hint">Доступ до практики без комісій за сесію</div>
+        <div v-if="guestSessionsUsage" class="usage-strip__item">
+          Сесії без реєстрації:
+          <strong>{{ guestSessionsUsage.used }} використано з {{ guestSessionsUsage.limit }} за поточний період</strong>
         </div>
-        <div class="plan-metrics">
-          <div class="plan-metrics__line">
-            Активні клієнти: <strong>{{ activeClientsCount }}</strong> з
-            <strong>{{ activeClientLimitLabel }}</strong>
-          </div>
-          <div v-if="guestSessionsUsage" class="plan-metrics__line">
-            Сесії без реєстрації: <strong>{{ guestSessionsUsage.used }} / {{ guestSessionsUsage.limit }}</strong>
-          </div>
-          <div v-if="isNearLimit" class="plan-warning">Ви наближаєтесь до ліміту плану</div>
-        </div>
+        <div v-if="isNearLimit" class="usage-strip__warning">Ви наближаєтесь до ліміту плану</div>
+        <RouterLink class="btn btn--ghost btn--sm usage-strip__link" to="/cabinet/billing">
+          Тарифи і доступ
+        </RouterLink>
       </section>
     </div>
 
@@ -629,12 +642,6 @@ function onboardingStepActionLabel(step: OnboardingStep) {
 
 void onboardingStepActionLabel
 
-const planCodeLabel = computed(() => {
-  const raw = me.value?.effective_entitlements?.plan
-  if (raw === 'START' || raw === 'PRO' || raw === 'LEADER') return raw
-  return 'START'
-})
-
 const activeClientsCount = computed(() => {
   const used =
     entitlementsSnapshot.value?.limits?.active_clients?.used ??
@@ -783,6 +790,18 @@ function getSessionEndMs(session: CabinetSession) {
   return Number.isNaN(value) ? null : value
 }
 
+function startOfLocalDayMs(timestamp: number) {
+  const date = new Date(timestamp)
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime()
+}
+
+function isSessionOnDay(session: CabinetSession, dayOffset: number) {
+  const start = getSessionStartMs(session)
+  if (start === null) return false
+  const targetStart = startOfLocalDayMs(nowTs.value) + dayOffset * 24 * 60 * 60 * 1000
+  return start >= targetStart && start < targetStart + 24 * 60 * 60 * 1000
+}
+
 function isInsideSessionWindow(session: CabinetSession) {
   const start = getSessionStartMs(session)
   const end = getSessionEndMs(session)
@@ -914,7 +933,9 @@ const upcomingSorted = computed(() => {
     .sort(sortBySessionStart)
 })
 
-const nearestUpcomingSession = computed(() => upcomingSorted.value[0] || null)
+const todaySessions = computed(() => upcomingSorted.value.filter((session) => isSessionOnDay(session, 0)))
+const tomorrowSessions = computed(() => upcomingSorted.value.filter((session) => isSessionOnDay(session, 1)))
+const nearestUpcomingSession = computed(() => todaySessions.value[0] || null)
 
 const pendingGuestRequestsCount = computed(() => workQueue.value.pendingGuestRequestsCount)
 const pendingSlotlessGuestRequestsCount = computed(() => workQueue.value.pendingSlotlessGuestRequestsCount)
@@ -1025,11 +1046,6 @@ const isNearestSessionOffline = computed(() => {
   return isOfflineSession(nearestUpcomingSession.value)
 })
 
-const nearestSessionOfflineLocation = computed(() => {
-  if (!isNearestSessionOffline.value || !nearestUpcomingSession.value) return ''
-  return (nearestUpcomingSession.value.offline_location || '').trim()
-})
-
 const canJoinNearestSession = computed(() => {
   if (!nearestUpcomingSession.value || isNearestSessionOffline.value) return false
   if (!nearestUpcomingSession.value.join_available || !nearestSessionMeetingUrl.value) return false
@@ -1041,16 +1057,9 @@ const canJoinNearestSession = computed(() => {
   })
 })
 
-const nearestSessionFormatLabel = computed(() => {
-  if (!nearestUpcomingSession.value) return '—'
-  return isOfflineSession(nearestUpcomingSession.value) ? 'Офлайн' : 'Онлайн'
-})
-
 const nearestSessionStatusLabel = computed(() => {
   if (!nearestUpcomingSession.value) return ''
-  if (nearestUpcomingSession.value.status === 'SCHEDULED') return 'Потрібне підтвердження'
-  if (nearestUpcomingSession.value.status === 'CONFIRMED') return 'Підтверджено'
-  return nearestUpcomingSession.value.status
+  return sessionStatusLabel(nearestUpcomingSession.value)
 })
 
 const nearestSessionStatusClass = computed(() => {
@@ -1078,26 +1087,41 @@ const shouldShowAddMeetingLinkAction = computed(() => {
 const nearestSessionSummary = computed(() => {
   const session = nearestUpcomingSession.value
   if (!session) return ''
-  return [
-    formatDateTime(sessionJoinStartAt(session)),
-    sessionClientLabel(session),
-    nearestSessionFormatLabel.value,
-    nearestSessionStatusLabel.value,
-  ].filter(Boolean).join(' · ')
+  return sessionSummary(session)
 })
 
 const nearestSessionSecondaryLine = computed(() => {
   if (!nearestUpcomingSession.value) return ''
-  if (isNearestSessionOffline.value) {
-    return nearestSessionOfflineLocation.value
-      ? `Локація: ${nearestSessionOfflineLocation.value}`
-      : 'Офлайн-сесія. Локацію уточнено у деталях.'
-  }
-  return ''
+  return sessionSecondaryLine(nearestUpcomingSession.value)
 })
 
 function formatDateTime(value?: string | null) {
   return formatUkDateTimeCompact(value)
+}
+
+function sessionFormatLabel(session: CabinetSession) {
+  return isOfflineSession(session) ? 'Офлайн' : 'Онлайн'
+}
+
+function sessionStatusLabel(session: CabinetSession) {
+  if (session.status === 'SCHEDULED') return 'Потрібне підтвердження'
+  if (session.status === 'CONFIRMED') return 'Підтверджено'
+  return session.status
+}
+
+function sessionSummary(session: CabinetSession) {
+  return [
+    formatDateTime(sessionJoinStartAt(session)),
+    sessionClientLabel(session),
+    sessionFormatLabel(session),
+    sessionStatusLabel(session),
+  ].filter(Boolean).join(' · ')
+}
+
+function sessionSecondaryLine(session: CabinetSession) {
+  if (!isOfflineSession(session)) return ''
+  const location = (session.offline_location || '').trim()
+  return location ? `Локація: ${location}` : 'Офлайн-сесія. Локацію уточнено у деталях.'
 }
 
 async function loadChatClientNames() {
@@ -1419,6 +1443,14 @@ onBeforeUnmount(() => {
   max-width: 100%;
 }
 
+.cabinet__work-grid {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  min-width: 0;
+}
+
 .panel {
   border: 1px solid var(--line);
   border-radius: var(--pc-radius-panel);
@@ -1463,12 +1495,15 @@ onBeforeUnmount(() => {
 .panel--today {
   gap: 12px;
   border-color: var(--pc-border);
-  background: linear-gradient(
-    165deg,
-    color-mix(in srgb, var(--pc-bg-card) 96%, var(--pc-teal-100)),
-    color-mix(in srgb, var(--pc-bg-card) 94%, var(--pc-blue-soft))
-  );
-  box-shadow: var(--pc-shadow-soft);
+  background: #fff;
+  box-shadow: none;
+}
+
+.panel--tomorrow {
+  gap: 12px;
+  border-color: var(--pc-border);
+  background: #fff;
+  box-shadow: none;
 }
 
 .panel--attention {
@@ -1561,16 +1596,9 @@ onBeforeUnmount(() => {
 
 .today-panel {
   display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.8fr);
+  grid-template-columns: 1fr;
   gap: 14px;
   align-items: stretch;
-  min-width: 0;
-}
-
-.today-side {
-  display: grid;
-  gap: 12px;
-  align-content: start;
   min-width: 0;
 }
 
@@ -1585,7 +1613,7 @@ onBeforeUnmount(() => {
 }
 
 .today-card--primary {
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.94), rgba(8, 113, 201, 0.06));
+  background: color-mix(in srgb, var(--pc-bg-card) 94%, var(--pc-blue-soft));
 }
 
 .today-card--soft {
@@ -1781,9 +1809,73 @@ onBeforeUnmount(() => {
   color: #1f7a4c;
 }
 
-.panel--plan {
+.tomorrow-list {
   display: grid;
+  gap: 10px;
+}
+
+.tomorrow-session {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-control);
+  padding: 10px 12px;
+  background: color-mix(in srgb, var(--pc-bg-card) 96%, var(--pc-blue-soft));
+  color: var(--pc-navy-900);
+  text-decoration: none;
+}
+
+.tomorrow-session:hover,
+.tomorrow-session:focus-visible {
+  border-color: color-mix(in srgb, var(--pc-navy-900) 28%, var(--pc-border));
+  background: #fff;
+  outline: none;
+}
+
+.tomorrow-session__summary {
+  font-weight: 600;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.tomorrow-session__hint,
+.tomorrow-empty {
+  margin: 0;
+  line-height: 1.45;
+}
+
+.usage-strip {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
   gap: 12px;
+  flex-wrap: wrap;
+  min-width: 0;
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-panel);
+  padding: 12px 14px;
+  background: #fff;
+}
+
+.usage-strip__item {
+  color: var(--pc-text-muted);
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.usage-strip__item strong {
+  color: var(--pc-navy-900);
+  font-weight: 700;
+}
+
+.usage-strip__warning {
+  color: #8a6b2f;
+  font-size: 14px;
+}
+
+.usage-strip__link {
+  margin-left: auto;
 }
 
 .panel--onboarding {
@@ -1977,62 +2069,6 @@ onBeforeUnmount(() => {
   color: #7d1f1f;
 }
 
-.plan-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.plan-badges {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.badge--outline {
-  border: 1px solid rgba(31, 74, 96, 0.25);
-  background: transparent;
-  color: var(--ink);
-}
-
-.plan-hint {
-  font-size: 14px;
-}
-
-.plan-metrics {
-  display: grid;
-  gap: 10px;
-}
-
-.plan-metrics__line {
-  font-size: 15px;
-}
-
-.progress {
-  width: 100%;
-  height: 8px;
-  border-radius: var(--radius-pill);
-  background: color-mix(in srgb, var(--primary) 15%, #ffffff);
-  overflow: hidden;
-}
-
-.progress__bar {
-  height: 100%;
-  border-radius: inherit;
-  background: color-mix(in srgb, var(--primary) 75%, #ffffff);
-}
-
-.plan-warning {
-  color: #8a6b2f;
-  font-size: 14px;
-}
-
-.plan-nudge {
-  font-size: 14px;
-  color: var(--muted);
-}
-
 .btn--sm {
   padding: 6px 10px;
   font-size: 12px;
@@ -2078,10 +2114,6 @@ onBeforeUnmount(() => {
 .panel__meta {
   font-size: 14px;
   color: var(--muted);
-}
-
-.badge--soft {
-  background: rgba(8, 113, 201, 0.12);
 }
 
 .status-dot {
@@ -2202,6 +2234,10 @@ onBeforeUnmount(() => {
     align-items: flex-start;
   }
 
+  .cabinet__work-grid {
+    grid-template-columns: 1fr;
+  }
+
   .today-panel {
     grid-template-columns: 1fr;
   }
@@ -2233,6 +2269,15 @@ onBeforeUnmount(() => {
   .onboarding-summary {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .usage-strip {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .usage-strip__link {
+    margin-left: 0;
   }
 
 }

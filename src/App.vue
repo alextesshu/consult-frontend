@@ -556,7 +556,7 @@ type SpecialistSidebarItem = {
 }
 
 const specialistSidebarBaseItems: SpecialistSidebarItem[] = [
-  { label: 'Головна', to: '/cabinet', match: ['/cabinet'], exact: true },
+  { label: 'Кабінет', to: '/cabinet', match: ['/cabinet'], exact: true },
   { label: 'Профіль', to: '/cabinet/profile', match: ['/cabinet/profile'] },
   {
     label: 'Розклад',

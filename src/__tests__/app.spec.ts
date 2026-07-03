@@ -413,7 +413,7 @@ describe('App shell', () => {
 
     const sidebar = screen.getByRole('navigation', { name: 'Навігація кабінету спеціаліста' })
     expect(sidebar).toBeInTheDocument()
-    expect(within(sidebar).getByRole('link', { name: 'Головна' })).toHaveAttribute('href', '/cabinet')
+    expect(within(sidebar).getByRole('link', { name: 'Кабінет' })).toHaveAttribute('href', '/cabinet')
     expect(within(sidebar).getByRole('link', { name: 'Профіль' })).toHaveAttribute('href', '/cabinet/profile')
     expect(within(sidebar).getByRole('link', { name: 'Розклад' })).toHaveAttribute('href', '/cabinet/slots')
     expect(within(sidebar).getByRole('link', { name: 'Сесії' })).toHaveAttribute('href', '/cabinet/sessions')
@@ -490,7 +490,7 @@ describe('App shell', () => {
 
     const sidebar = screen.getByRole('navigation', { name: 'Навігація кабінету спеціаліста' })
     expect(within(sidebar).getByRole('link', { name: 'Сесії' })).toHaveClass('is-active')
-    expect(within(sidebar).getByRole('link', { name: 'Головна' })).not.toHaveClass('is-active')
+    expect(within(sidebar).getByRole('link', { name: 'Кабінет' })).not.toHaveClass('is-active')
   })
 
   it('highlights the specialist chat sidebar item on chat route', async () => {
@@ -553,7 +553,7 @@ describe('App shell', () => {
     await fireEvent.click(screen.getByRole('button', { name: 'Розділи кабінету' }))
 
     const drawer = await screen.findByRole('dialog', { name: 'Розділи кабінету спеціаліста' })
-    expect(within(drawer).getByRole('link', { name: 'Головна' })).toHaveAttribute('href', '/cabinet')
+    expect(within(drawer).getByRole('link', { name: 'Кабінет' })).toHaveAttribute('href', '/cabinet')
     expect(within(drawer).getByRole('link', { name: 'Профіль' })).toHaveAttribute('href', '/cabinet/profile')
     expect(within(drawer).getByRole('link', { name: 'Розклад' })).toHaveAttribute('href', '/cabinet/slots')
     expect(within(drawer).getByRole('link', { name: 'Сесії' })).toHaveAttribute('href', '/cabinet/sessions')
