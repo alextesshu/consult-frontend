@@ -308,7 +308,7 @@ describe('SlotsView', () => {
     expect(screen.queryByRole('button', { name: 'Створити сесію' })).not.toBeInTheDocument()
   })
 
-  it('shows nearest future date fallback toast only once', async () => {
+  it('falls back to the nearest future date without showing a noisy toast', async () => {
     openAvailabilityRoute()
     mockScheduleApi([
       {
@@ -329,10 +329,9 @@ describe('SlotsView', () => {
     await flushAsyncUpdates()
     await flushAsyncUpdates()
 
-    expect(mockToast.info).toHaveBeenCalledTimes(1)
-    expect(mockToast.info).toHaveBeenCalledWith(
-      'За 12.03.2026 немає майбутніх вікон. Показано найближчу дату: 13.03.2026.'
-    )
+    expect(screen.getByText('09.03.2026 - 15.03.2026')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'пт, 13.03' })).toHaveClass('btn--active')
+    expect(mockToast.info).not.toHaveBeenCalled()
   })
 
   it('opens calendar tab from schedule route and slots tab query', async () => {

@@ -1758,7 +1758,6 @@ const selectedAvailabilitySlotIds = ref<number[]>([])
 const selectedSessionId = ref<string | null>(null)
 const scheduleTab = ref<ScheduleTab>(scheduleTabFromRoute())
 const calendarEventFilter = ref<'ALL' | 'SESSIONS' | 'AVAILABLE' | 'BOOKED'>('ALL')
-const nearestFutureDateToastKey = ref('')
 const settingsLoading = ref(false)
 const settingsSaving = ref(false)
 const settingsError = ref('')
@@ -2070,16 +2069,8 @@ function switchToNearestFutureDateIfNeeded() {
   if (!selectedDate.value || showPastSlots.value || filteredSlots.value.length > 0) return
   const nearestDateKey = getNearestFutureDateKey(selectedDate.value)
   if (!nearestDateKey || nearestDateKey === selectedDate.value) return
-  const previousDateKey = selectedDate.value
-  const toastKey = `${previousDateKey}->${nearestDateKey}`
   selectedDate.value = nearestDateKey
   moveWeekToDate(nearestDateKey)
-  if (nearestFutureDateToastKey.value !== toastKey) {
-    nearestFutureDateToastKey.value = toastKey
-    toast.info(
-      `За ${formatDateOnly(previousDateKey)} немає майбутніх вікон. Показано найближчу дату: ${formatDateOnly(nearestDateKey)}.`
-    )
-  }
 }
 
 function getHiddenPastSlotsCount(dateKey: string, excludedSlotId?: number) {
@@ -2650,7 +2641,6 @@ const datePickerDays = computed(() => {
 })
 
 function selectDay(key: string) {
-  nearestFutureDateToastKey.value = ''
   selectedDate.value = key
   showPastSlots.value = false
 }
@@ -2773,7 +2763,6 @@ function moveWeekToDate(value: string | Date) {
 }
 
 function shiftWeek(direction: number) {
-  nearestFutureDateToastKey.value = ''
   const next = new Date(weekStartDate.value)
   next.setDate(next.getDate() + direction * 7)
   selectedWeekStart.value = toDateInputValue(next)
@@ -2786,7 +2775,6 @@ function shiftWeek(direction: number) {
 }
 
 function goToToday() {
-  nearestFutureDateToastKey.value = ''
   moveWeekToDate(new Date())
   selectedDate.value = todayKey
   selectedSlotId.value = null
