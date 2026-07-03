@@ -151,6 +151,35 @@ describe('CabinetView', () => {
     })
   })
 
+  it('keeps compact dashboard header copy and readiness hierarchy', async () => {
+    mockedApiGet.mockResolvedValue([])
+    mockedFetchSpecialistOnboardingState.mockResolvedValue({
+      readiness: {
+        public_display_name_exists: false,
+        basic_description_exists: false,
+        standard_price_configured: false,
+        client_entry_path_exists: false,
+        public_profile_enabled: false,
+        public_profile_link_available: false,
+        ready_for_inbound_intent: false,
+      },
+      missing_items: ['MISSING_DISPLAY_NAME', 'MISSING_DESCRIPTION', 'MISSING_BASE_PRICE'],
+      warnings: [{ code: 'PROFILE_CORE_INCOMPLETE' }],
+      next_actions: [{ code: 'COMPLETE_PROFILE', target: 'CABINET_PROFILE', priority: 1 }],
+      primary_cta_code: 'COMPLETE_PROFILE',
+    } as any)
+
+    const view = renderView()
+
+    await waitFor(() => {
+      expect(view.getByRole('heading', { name: 'Робоча панель' })).toBeInTheDocument()
+      expect(view.container).toHaveTextContent('Тут видно найближчі сесії, нові запити та підказки для роботи з практикою.')
+      expect(view.container.querySelector('.panel--attention')).toHaveTextContent('Профіль ще не готовий до перших запитів')
+      expect(view.container.querySelector('.panel--onboarding')).toHaveTextContent('Готовність профілю')
+      expect(view.container.querySelector('.panel--today [data-kind="readiness-summary"]')).not.toBeInTheDocument()
+    })
+  })
+
   it('routes plan upgrade CTA to cabinet billing page', async () => {
     mockedApiGet.mockImplementation(async (url, config) => {
       if (url === '/cabinet/entitlements/') return {}

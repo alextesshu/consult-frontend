@@ -1258,7 +1258,7 @@ onBeforeUnmount(() => {
 <style scoped>
 .cabinet {
   display: grid;
-  gap: 24px;
+  gap: 14px;
   background:
     radial-gradient(880px 420px at 8% -4%, color-mix(in srgb, var(--pc-teal-100) 76%, transparent), transparent 68%),
     radial-gradient(720px 380px at 92% 2%, color-mix(in srgb, var(--pc-peach-100) 78%, transparent), transparent 70%),
@@ -1274,16 +1274,14 @@ onBeforeUnmount(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 18px;
+  gap: 12px;
   position: relative;
   overflow: hidden;
-  background:
-    radial-gradient(circle at 92% 70%, color-mix(in srgb, var(--pc-peach-100) 70%, transparent) 0 120px, transparent 121px),
-    linear-gradient(135deg, #ffffff 0%, color-mix(in srgb, var(--pc-primary-soft) 70%, #ffffff) 54%, color-mix(in srgb, var(--pc-yellow-soft) 45%, #ffffff) 100%);
+  background: #fff;
   border: 1px solid var(--pc-border);
   border-radius: var(--pc-radius-panel);
-  padding: clamp(18px, 2.2vw, 28px);
-  box-shadow: var(--pc-shadow-soft);
+  padding: 14px 18px;
+  box-shadow: 0 8px 20px rgba(16, 33, 50, 0.06);
   min-width: 0;
   max-width: 100%;
 }
@@ -1295,29 +1293,22 @@ onBeforeUnmount(() => {
 }
 
 .cabinet__hero::after {
-  content: "";
-  position: absolute;
-  right: -44px;
-  bottom: -58px;
-  width: 180px;
-  height: 180px;
-  border-radius: 999px;
-  background: rgba(247, 183, 126, 0.18);
-  pointer-events: none;
+  display: none;
 }
 
 .cabinet__title {
-  margin: 8px 0 8px;
-  font-size: 32px;
+  margin: 0 0 4px;
+  font-size: clamp(26px, 2vw, 32px);
   line-height: 1.15;
   color: var(--pc-navy-950);
   letter-spacing: 0;
 }
 
 .cabinet__subtitle {
-  max-width: 520px;
-  font-size: 16px;
-  line-height: 1.55;
+  max-width: 680px;
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.4;
   color: var(--pc-text-muted);
 }
 
@@ -2238,13 +2229,13 @@ onBeforeUnmount(() => {
 
 @media (max-width: 900px) {
   .cabinet {
-    gap: 16px;
+    gap: 12px;
     padding: 12px;
   }
 
   .cabinet__hero {
-    padding: 14px 16px;
-    gap: 10px;
+    padding: 12px 14px;
+    gap: 8px;
     border-radius: var(--pc-radius-panel);
   }
 
@@ -2253,9 +2244,9 @@ onBeforeUnmount(() => {
   }
 
   .cabinet__title {
-    font-size: 28px;
+    font-size: 26px;
     line-height: 1.14;
-    margin: 2px 0;
+    margin: 0 0 3px;
   }
 
   .cabinet__subtitle {
@@ -2280,20 +2271,20 @@ onBeforeUnmount(() => {
 
 @media (max-width: 520px) {
   .cabinet {
-    gap: 14px;
+    gap: 10px;
     padding: 10px;
   }
 
   .cabinet__hero {
-    padding: 12px;
-    gap: 10px;
+    padding: 10px 12px;
+    gap: 8px;
     border-radius: var(--pc-radius-panel);
   }
 
   .cabinet__title {
-    font-size: 24px;
+    font-size: 23px;
     line-height: 1.16;
-    margin: 4px 0;
+    margin: 0 0 3px;
   }
 
   .cabinet__subtitle {
@@ -2302,7 +2293,7 @@ onBeforeUnmount(() => {
     max-width: 100%;
     margin: 0;
     display: -webkit-box;
-    -webkit-line-clamp: 2;
+    -webkit-line-clamp: 1;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
