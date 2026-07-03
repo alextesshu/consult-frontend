@@ -146,45 +146,17 @@
                 </div>
               </template>
               <template v-else>
-                <h3 class="today-card__title">Сьогодні сесій немає</h3>
+                <h3 class="today-card__title">Сесій сьогодні немає.</h3>
                 <p class="muted today-card__empty">
-                  Можна перевірити запити або налаштувати розклад.
+                  Можна перейти до розкладу або створити сесію з верхньої дії.
                 </p>
                 <div class="nearest-session__actions">
-                  <RouterLink class="btn btn--ghost btn--sm" to="/cabinet/external-sessions#guest-requests">
-                    Перейти до запитів
-                  </RouterLink>
-                  <RouterLink class="btn btn--sm" to="/cabinet/slots">
-                    Налаштувати розклад
+                  <RouterLink class="btn btn--ghost btn--sm" to="/cabinet/slots">
+                    Перейти до розкладу
                   </RouterLink>
                 </div>
               </template>
             </section>
-
-            <article
-              v-if="visiblePendingGuestRequestsCount > 0"
-              class="today-card today-card--soft today-card--guest-requests"
-              data-kind="guest-requests"
-            >
-              <div class="today-card__title-row">
-                <h3 class="today-card__title">{{ pendingGuestRequestsTitle }}</h3>
-                <span class="today-card__count" aria-label="Нових запитів">
-                  {{ visiblePendingGuestRequestsCount }}
-                </span>
-              </div>
-              <p class="muted today-card__copy">
-                {{ pendingGuestRequestsSummary }}
-              </p>
-              <div v-if="firstGuestRequestTopicLabels.length" class="today-topic-row" aria-label="Теми запиту">
-                <span v-for="topic in firstGuestRequestTopicLabels" :key="topic" class="today-topic-chip">{{ topic }}</span>
-              </div>
-              <RouterLink
-                class="btn btn--sm"
-                to="/cabinet/external-sessions#guest-requests"
-              >
-                {{ pendingGuestRequestsCta }}
-              </RouterLink>
-            </article>
           </div>
         </section>
 
@@ -221,7 +193,7 @@
         <div class="panel__header">
           <div>
             <h2 class="panel__title panel__title--compact">Готовність профілю</h2>
-            <div class="panel__meta">{{ onboardingViewModel?.helper }}</div>
+            <div class="panel__meta">{{ readinessCompactStatusLine }}</div>
           </div>
           <div
             class="onboarding-status"
@@ -236,39 +208,9 @@
         </div>
 
         <div v-else-if="onboardingViewModel" class="onboarding-layout">
-          <div class="onboarding-summary">
-            <div class="onboarding-summary__text">{{ profileReadinessSummary }}</div>
-          </div>
           <p v-if="onboardingViewModel.missingSummary" class="onboarding-missing-summary">
             {{ onboardingViewModel.missingSummary }}
           </p>
-
-          <div class="onboarding-actions onboarding-actions--summary">
-            <RouterLink
-              v-if="onboardingViewModel.primaryCta"
-              class="btn"
-              :to="onboardingViewModel.primaryCta.to"
-            >
-              {{ onboardingViewModel.primaryCta.label }}
-            </RouterLink>
-            <RouterLink
-              v-for="action in onboardingViewModel.nextActions"
-              :key="`${action.code}-${action.to}`"
-              class="btn btn--ghost btn--sm"
-              :to="action.to"
-            >
-              {{ action.label }}
-            </RouterLink>
-            <a
-              v-if="onboardingViewModel.publicProfileLinkAvailable"
-              class="btn btn--ghost btn--sm"
-              :href="onboardingPublicProfilePath"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Переглянути публічний профіль
-            </a>
-          </div>
 
           <div class="onboarding-details">
             <ol class="onboarding-steps">
@@ -278,14 +220,12 @@
                 class="onboarding-step-item"
               >
                 <RouterLink
-                  class="onboarding-step onboarding-step--link"
+                  class="onboarding-check-item"
                   :class="step.done ? 'onboarding-step--done' : 'onboarding-step--pending'"
                   :to="onboardingStepTo(step)"
                 >
-                  <div class="onboarding-step__title">{{ step.title }}</div>
-                  <div class="onboarding-step__hint">{{ step.hint }}</div>
-                  <div class="onboarding-step__state">{{ step.done ? 'Готово' : 'Потрібно доповнити' }}</div>
-                  <div class="onboarding-step__action">{{ step.actionLabel }}</div>
+                  <span class="onboarding-check-item__label">{{ compactOnboardingStepTitle(step) }}</span>
+                  <span class="onboarding-step__state">{{ step.done ? 'Готово' : 'Потрібно доповнити' }}</span>
                 </RouterLink>
               </li>
             </ol>
@@ -296,6 +236,25 @@
                 <li v-for="item in onboardingViewModel.warnings" :key="item">{{ item }}</li>
               </ul>
             </div>
+          </div>
+
+          <div class="onboarding-actions onboarding-actions--summary">
+            <RouterLink
+              v-if="onboardingViewModel.primaryCta"
+              class="btn"
+              :to="onboardingViewModel.primaryCta.to"
+            >
+              {{ compactPrimaryCtaLabel }}
+            </RouterLink>
+            <a
+              v-if="onboardingViewModel.publicProfileLinkAvailable"
+              class="btn btn--ghost btn--sm"
+              :href="onboardingPublicProfilePath"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Переглянути публічний профіль
+            </a>
           </div>
         </div>
 
@@ -953,12 +912,12 @@ function guestRequestTopicLabels(request: WorkQueueGuestRequestPreviewItem | nul
 const firstGuestRequestTopicLabels = computed(() => guestRequestTopicLabels(firstGuestRequestPreview.value))
 
 const pendingGuestRequestsCta = computed(() => {
-  return visiblePendingGuestRequestsCount.value === 1 ? 'Опрацювати запит' : 'Опрацювати запити'
+  return 'Опрацювати запити'
 })
 
 const pendingGuestRequestsTitle = computed(() => {
-  if (hasPendingSlotlessGuestRequests.value && visiblePendingGuestRequestsCount.value === 1) {
-    return 'Запит без обраного часу'
+  if (hasPendingSlotlessGuestRequests.value) {
+    return 'Запити без обраного часу'
   }
   return 'Запити без реєстрації'
 })
@@ -966,30 +925,37 @@ const pendingGuestRequestsTitle = computed(() => {
 const pendingGuestRequestsSummary = computed(() => {
   const count = visiblePendingGuestRequestsCount.value
   if (count <= 0) return ''
-  if (count === 1) return '1 новий запит очікує рішення.'
+  if (count === 1) return '1 запит очікує рішення'
   const lastDigit = count % 10
   const lastTwoDigits = count % 100
-  const noun = lastDigit >= 2 && lastDigit <= 4 && (lastTwoDigits < 12 || lastTwoDigits > 14) ? 'нові запити' : 'нових запитів'
-  return `${count} ${noun} очікують рішення.`
+  const noun = lastDigit >= 2 && lastDigit <= 4 && (lastTwoDigits < 12 || lastTwoDigits > 14) ? 'запити' : 'запитів'
+  return `${count} ${noun} очікують рішення`
 })
 
-const profileReadinessSummary = computed(() => {
+const readinessCompactStatusLine = computed(() => {
   const viewModel = onboardingViewModel.value
   if (!viewModel) return ''
-  if (viewModel.readiness) return 'Профіль готовий до звернень.'
-  if (viewModel.primaryCta?.code === 'ADD_AVAILABILITY') return 'Потрібна дія: створіть вікна, у які клієнти можуть надсилати запити.'
-  if (viewModel.primaryCta?.code === 'COMPLETE_PROFILE') return 'Потрібна дія: доповніть основні дані профілю.'
-  if (viewModel.primaryCta?.code === 'OPEN_PUBLIC_PROFILE') return 'Потрібна дія: налаштуйте публічний профіль.'
-  return viewModel.warnings[0] || viewModel.missingItems[0] || 'Потрібна дія: перевірте налаштування профілю.'
+  if (viewModel.status === 'needs_completion') return 'Профіль відкритий, але його варто доповнити.'
+  if (viewModel.status === 'closed') return 'Ще кілька пунктів - і клієнтам буде зрозуміліше, як до вас звернутися.'
+  return viewModel.statusLabel
 })
 
-const readinessAttentionBody = computed(() => {
-  const viewModel = onboardingViewModel.value
-  if (!viewModel || viewModel.readiness) return ''
-  const items = viewModel.missingItems.slice(0, 3)
-  if (!items.length) return 'Потрібна дія: доповніть основні дані профілю.'
-  return `Потрібна дія: додайте ${items.join(', ')}.`
+const compactPrimaryCtaLabel = computed(() => {
+  const cta = onboardingViewModel.value?.primaryCta
+  if (!cta) return ''
+  if (cta.code === 'COMPLETE_PROFILE') return 'Доповнити профіль'
+  return cta.label
 })
+
+function compactOnboardingStepTitle(step: OnboardingStep) {
+  if (step.key === 'display_name') return 'Публічне імʼя'
+  if (step.key === 'description') return 'Короткий опис'
+  if (step.key === 'base_price') return 'Базова ціна'
+  if (step.key === 'client_entry_path') return 'Спосіб першого звернення'
+  if (step.key === 'public_profile') return 'Публікація профілю'
+  if (step.key === 'public_link') return 'Публічне посилання'
+  return step.title
+}
 
 const attentionItems = computed<AttentionItem[]>(() => {
   const items: AttentionItem[] = []
@@ -1017,19 +983,6 @@ const attentionItems = computed<AttentionItem[]>(() => {
       to: '/cabinet/external-sessions#guest-requests',
       tone: 'warning',
       topics: firstGuestRequestTopicLabels.value,
-    })
-  }
-
-  const viewModel = onboardingViewModel.value
-  if (viewModel && !viewModel.readiness) {
-    items.push({
-      key: 'readiness',
-      title: 'Профіль ще не готовий до перших запитів',
-      body: readinessAttentionBody.value,
-      label: viewModel.primaryCta?.label || 'Заповнити профіль',
-      to: viewModel.primaryCta?.to || '/cabinet/profile',
-      tone: 'warning',
-      topics: [],
     })
   }
 
@@ -1447,6 +1400,7 @@ onBeforeUnmount(() => {
   grid-column: 1 / -1;
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
   gap: 18px;
   min-width: 0;
 }
@@ -1493,6 +1447,7 @@ onBeforeUnmount(() => {
 }
 
 .panel--today {
+  align-content: start;
   gap: 12px;
   border-color: var(--pc-border);
   background: #fff;
@@ -1500,6 +1455,7 @@ onBeforeUnmount(() => {
 }
 
 .panel--tomorrow {
+  align-content: start;
   gap: 12px;
   border-color: var(--pc-border);
   background: #fff;
@@ -1620,17 +1576,6 @@ onBeforeUnmount(() => {
   background: rgba(255, 255, 255, 0.86);
 }
 
-.today-card--guest-requests {
-  border-color: color-mix(in srgb, var(--pc-warning) 42%, var(--pc-border));
-  border-left-width: 4px;
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--pc-yellow-soft) 64%, #ffffff),
-    color-mix(in srgb, var(--pc-bg-card) 90%, var(--pc-blue-soft))
-  );
-  box-shadow: 0 12px 24px rgba(18, 52, 90, 0.08);
-}
-
 .today-card__title-row {
   display: flex;
   align-items: flex-start;
@@ -1655,67 +1600,6 @@ onBeforeUnmount(() => {
 
 .today-card--compact {
   align-content: center;
-}
-
-.guest-request-attention-card {
-  grid-column: 1 / -1;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  min-width: 0;
-  padding: 16px;
-  border: 1px solid rgba(217, 126, 28, 0.48);
-  border-radius: var(--pc-radius-panel);
-  background:
-    linear-gradient(135deg, rgba(255, 248, 232, 0.98), rgba(255, 237, 212, 0.92)),
-    #fff7ed;
-  color: #3f2a13;
-  text-decoration: none;
-  box-shadow: 0 14px 30px rgba(139, 86, 23, 0.12);
-}
-
-.guest-request-attention-card:hover {
-  border-color: rgba(195, 91, 16, 0.62);
-  color: #2c1d0e;
-  transform: translateY(-1px);
-}
-
-.guest-request-attention-card__content {
-  display: grid;
-  gap: 5px;
-  min-width: 0;
-}
-
-.guest-request-attention-card__eyebrow,
-.guest-request-attention-card__title,
-.guest-request-attention-card__copy {
-  margin: 0;
-}
-
-.guest-request-attention-card__eyebrow {
-  color: #8a4a0b;
-  font-size: 13px;
-  font-weight: 700;
-  text-transform: uppercase;
-}
-
-.guest-request-attention-card__title {
-  font-size: 20px;
-  line-height: 1.25;
-}
-
-.guest-request-attention-card__copy {
-  max-width: 780px;
-  color: #5b3b18;
-  line-height: 1.5;
-}
-
-.guest-request-attention-card__cta {
-  flex: 0 0 auto;
-  background: #8a4a0b;
-  border-color: #8a4a0b;
-  color: #fff;
 }
 
 .today-card__header {
@@ -1880,7 +1764,8 @@ onBeforeUnmount(() => {
 
 .panel--onboarding {
   display: grid;
-  gap: 12px;
+  gap: 10px;
+  padding: 14px;
 }
 
 .onboarding-status {
@@ -1912,19 +1797,7 @@ onBeforeUnmount(() => {
 
 .onboarding-layout {
   display: grid;
-  gap: 12px;
-}
-
-.onboarding-summary {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.onboarding-summary__text {
-  color: var(--pc-text-muted);
-  line-height: 1.45;
+  gap: 10px;
 }
 
 .onboarding-missing-summary {
@@ -1936,53 +1809,45 @@ onBeforeUnmount(() => {
 
 .onboarding-details {
   display: grid;
-  gap: 12px;
-  padding-top: 12px;
-  border-top: 1px solid var(--pc-border);
+  gap: 10px;
 }
 
 .onboarding-steps {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
 .onboarding-step-item {
-  min-height: 100%;
+  min-width: 0;
 }
 
-.onboarding-step {
-  border: 1px solid var(--line);
-  border-radius: var(--pc-radius-panel);
-  padding: 12px 14px;
-  display: grid;
+.onboarding-check-item {
+  display: inline-flex;
+  align-items: center;
   gap: 8px;
-}
-
-.onboarding-step--link {
-  text-decoration: none;
+  min-height: 34px;
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-control);
+  padding: 6px 9px;
+  background: #fff;
   color: inherit;
-  min-height: 100%;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+  text-decoration: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.onboarding-step--link:hover {
-  border-color: rgba(31, 74, 96, 0.35);
-  box-shadow: 0 10px 18px rgba(16, 33, 50, 0.1);
-  transform: translateY(-1px);
+.onboarding-check-item:hover,
+.onboarding-check-item:focus-visible {
+  border-color: rgba(31, 74, 96, 0.32);
+  box-shadow: 0 8px 16px rgba(16, 33, 50, 0.08);
 }
 
-.onboarding-step--link:active {
-  transform: translateY(0);
-  box-shadow: 0 4px 10px rgba(16, 33, 50, 0.12);
-}
-
-.onboarding-step--link:focus-visible {
-  outline: 2px solid rgba(31, 74, 96, 0.35);
-  outline-offset: 1px;
+.onboarding-check-item__label {
+  font-size: 13px;
+  font-weight: 700;
 }
 
 .onboarding-step--done {
@@ -1995,23 +1860,13 @@ onBeforeUnmount(() => {
   background: rgba(217, 164, 65, 0.09);
 }
 
-.onboarding-step__title {
-  font-size: 15px;
-  font-weight: 600;
-}
-
-.onboarding-step__hint {
-  font-size: 13px;
-  color: var(--muted);
-}
-
 .onboarding-step__state {
   width: fit-content;
-  padding: 3px 7px;
+  padding: 2px 6px;
   border-radius: var(--pc-radius-control);
   background: rgba(7, 47, 71, 0.08);
   color: var(--pc-navy-900);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
 }
 
@@ -2023,13 +1878,6 @@ onBeforeUnmount(() => {
 .onboarding-step--pending .onboarding-step__state {
   background: rgba(217, 164, 65, 0.18);
   color: #8a5c0a;
-}
-
-.onboarding-step__action {
-  margin-top: 2px;
-  font-size: 13px;
-  font-weight: 600;
-  color: #1f4a60;
 }
 
 .onboarding-list-wrap {
@@ -2253,20 +2101,6 @@ onBeforeUnmount(() => {
   }
 
   .today-panel__inline-error {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .guest-request-attention-card {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .guest-request-attention-card__cta {
-    width: 100%;
-  }
-
-  .onboarding-summary {
     flex-direction: column;
     align-items: flex-start;
   }

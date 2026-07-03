@@ -110,7 +110,7 @@ async function openOnboardingDetails(container: Element) {
   const panel = container.querySelector('.panel--onboarding') as HTMLElement | null
   if (!panel) throw new Error('Onboarding panel not found')
   await waitFor(() => {
-    expect(panel.querySelector('.onboarding-step')).toBeInTheDocument()
+    expect(panel.querySelector('.onboarding-check-item')).toBeInTheDocument()
   })
 }
 
@@ -179,7 +179,7 @@ describe('CabinetView', () => {
     await waitFor(() => {
       expect(view.getByRole('heading', { name: 'Робоча панель' })).toBeInTheDocument()
       expect(view.container).toHaveTextContent('Тут видно найближчі сесії, нові запити та підказки для роботи з практикою.')
-      expect(view.container.querySelector('.panel--attention')).toHaveTextContent('Профіль ще не готовий до перших запитів')
+      expect(view.container.querySelector('.panel--attention')).not.toBeInTheDocument()
       expect(view.container.querySelector('.panel--onboarding')).toHaveTextContent('Готовність профілю')
       expect(view.container.querySelector('.panel--today [data-kind="readiness-summary"]')).not.toBeInTheDocument()
     })
@@ -335,11 +335,14 @@ describe('CabinetView', () => {
       expect(view.container.querySelector('.panel--attention')).toBeInTheDocument()
       expect(view.container).toHaveTextContent('Сьогодні')
       expect(view.container).toHaveTextContent('Запити без реєстрації')
-      expect(view.container).toHaveTextContent('1 новий запит очікує рішення.')
+      expect(view.container).toHaveTextContent('1 запит очікує рішення')
     })
 
-    expect(view.container.querySelector('a[href="/cabinet/external-sessions#guest-requests"]')).toHaveTextContent('Опрацювати запит')
-    expect(view.container.querySelectorAll('a[href="/cabinet/external-sessions#guest-requests"]').length).toBeGreaterThanOrEqual(1)
+    const todayPanel = view.container.querySelector('.panel--today')
+    expect(todayPanel).not.toHaveTextContent('Запити без реєстрації')
+    expect(todayPanel).not.toHaveTextContent('1 запит очікує рішення')
+    expect(view.container.querySelector('a[href="/cabinet/external-sessions#guest-requests"]')).toHaveTextContent('Опрацювати запити')
+    expect(view.container.querySelectorAll('a[href="/cabinet/external-sessions#guest-requests"]')).toHaveLength(1)
     expect(view.container.querySelector('.guest-request-attention-card')).not.toBeInTheDocument()
     expect(view.container.querySelector('[data-kind="next-action"]')).not.toBeInTheDocument()
     expect(view.container.querySelector('.work-queue-summary-card')).not.toBeInTheDocument()
@@ -370,11 +373,11 @@ describe('CabinetView', () => {
     })
 
     const attentionRow = view.container.querySelector('.attention-row[href="/cabinet/external-sessions#guest-requests"]')
-    expect(attentionRow).toHaveTextContent('Запит без обраного часу')
-    expect(attentionRow).toHaveTextContent('1 новий запит очікує рішення.')
-    expect(attentionRow).toHaveTextContent('Опрацювати запит')
+    expect(attentionRow).toHaveTextContent('Запити без обраного часу')
+    expect(attentionRow).toHaveTextContent('1 запит очікує рішення')
+    expect(attentionRow).toHaveTextContent('Опрацювати запити')
     expect(view.container.querySelector('.guest-request-attention-card')).not.toBeInTheDocument()
-    expect(view.container.querySelector('[data-kind="guest-requests"]')).toBeInTheDocument()
+    expect(view.container.querySelector('[data-kind="guest-requests"]')).not.toBeInTheDocument()
   })
 
   it('shows count and plural copy for multiple pending slot-less guest requests', async () => {
@@ -398,8 +401,8 @@ describe('CabinetView', () => {
     })
 
     const attentionRow = view.container.querySelector('.attention-row[href="/cabinet/external-sessions#guest-requests"]')
-    expect(attentionRow).toHaveTextContent('Запити без реєстрації')
-    expect(attentionRow).toHaveTextContent('3 нові запити очікують рішення.')
+    expect(attentionRow).toHaveTextContent('Запити без обраного часу')
+    expect(attentionRow).toHaveTextContent('3 запити очікують рішення')
     expect(attentionRow).toHaveTextContent('Опрацювати запити')
   })
 
@@ -507,15 +510,15 @@ describe('CabinetView', () => {
     await waitFor(() => {
       expect(view.container.querySelector('.panel--today')).toBeInTheDocument()
       expect(view.container.querySelector('.panel--tomorrow')).toBeInTheDocument()
-      expect(view.container).toHaveTextContent('Сьогодні сесій немає')
+      expect(view.container).toHaveTextContent('Сесій сьогодні немає.')
       expect(view.container).toHaveTextContent('Завтра')
       expect(view.container).toHaveTextContent('На завтра сесій немає.')
-      expect(view.container).toHaveTextContent('Можна перевірити запити або налаштувати розклад.')
+      expect(view.container).toHaveTextContent('Можна перейти до розкладу або створити сесію з верхньої дії.')
     })
 
-    expect(view.container.querySelector('a[href="/cabinet/slots"]')).toHaveTextContent('Налаштувати розклад')
+    expect(view.container.querySelector('a[href="/cabinet/slots"]')).toHaveTextContent('Перейти до розкладу')
     expect(view.container.querySelectorAll('a[href="/cabinet/slots"]')).toHaveLength(1)
-    expect(view.container.querySelector('a[href="/cabinet/external-sessions#guest-requests"]')).toHaveTextContent('Перейти до запитів')
+    expect(view.container.querySelector('a[href="/cabinet/external-sessions#guest-requests"]')).not.toBeInTheDocument()
     expect(view.container.querySelector('[data-kind="next-action"]')).not.toBeInTheDocument()
     expect(view.container.querySelector('[data-kind="guest-requests"]')).not.toBeInTheDocument()
     expect(view.container.querySelector('.guest-request-attention-card')).not.toBeInTheDocument()
@@ -589,7 +592,7 @@ describe('CabinetView', () => {
     await fireEvent.click(retryButton as HTMLButtonElement)
 
     await waitFor(() => {
-      expect(view.container).toHaveTextContent('1 новий запит очікує рішення.')
+      expect(view.container).toHaveTextContent('1 запит очікує рішення')
     })
     expect(view.container.querySelector('.today-panel__state--error')).not.toBeInTheDocument()
     expect(mockedApiGet.mock.calls.filter((args) => args[0] === '/cabinet/work-queue/').length).toBeGreaterThanOrEqual(2)
@@ -1284,12 +1287,12 @@ describe('CabinetView', () => {
     await waitFor(() => {
       expect(view.container.querySelector('.panel--today')).toBeInTheDocument()
       expect(view.container.querySelector('.today-card--compact')).toBeInTheDocument()
-      expect(view.container).toHaveTextContent('Сьогодні сесій немає')
+      expect(view.container).toHaveTextContent('Сесій сьогодні немає.')
     })
 
-    expect(view.container.querySelector('.today-card--compact a[href="/cabinet/slots"]')).toHaveTextContent('Налаштувати розклад')
+    expect(view.container.querySelector('.today-card--compact a[href="/cabinet/slots"]')).toHaveTextContent('Перейти до розкладу')
     expect(view.container.querySelectorAll('a[href="/cabinet/slots"]')).toHaveLength(1)
-    expect(view.container.querySelector('.today-card--compact a[href="/cabinet/external-sessions#guest-requests"]')).toHaveTextContent('Перейти до запитів')
+    expect(view.container.querySelector('.today-card--compact a[href="/cabinet/external-sessions#guest-requests"]')).not.toBeInTheDocument()
     expect(view.container.querySelector('[data-kind="next-action"]')).not.toBeInTheDocument()
   })
 
@@ -1323,25 +1326,24 @@ describe('CabinetView', () => {
     await waitFor(() => {
       expect(view.container.querySelector('.panel--onboarding')).toBeInTheDocument()
       expect(view.container).toHaveTextContent('Готовність профілю')
-      expect(view.container).toHaveTextContent('Профіль ще не готовий до перших запитів')
+      expect(view.container).toHaveTextContent('Ще кілька пунктів - і клієнтам буде зрозуміліше, як до вас звернутися.')
       expect(view.container).toHaveTextContent('Профіль ще не відкритий')
-      expect(view.container).toHaveTextContent('Додайте публічне імʼя')
-      expect(view.container).toHaveTextContent('Заповніть короткий опис')
-      expect(view.container).toHaveTextContent('Налаштуйте базову ціну')
-      expect(view.container).toHaveTextContent('Оберіть спосіб першого звернення')
-      expect(view.container).toHaveTextContent('Опублікуйте профіль')
+      expect(view.container).toHaveTextContent('Публічне імʼя')
+      expect(view.container).toHaveTextContent('Короткий опис')
+      expect(view.container).toHaveTextContent('Базова ціна')
+      expect(view.container).toHaveTextContent('Спосіб першого звернення')
+      expect(view.container).toHaveTextContent('Публікація профілю')
       expect(view.container).toHaveTextContent('Що залишилось: публічне імʼя, опис, базова ціна')
       expect(view.container.querySelector('a[href="/cabinet/profile"]')).toBeInTheDocument()
-      expect(view.container.querySelector('.onboarding-step--pending')).toBeInTheDocument()
+      expect(view.container.querySelector('.onboarding-check-item.onboarding-step--pending')).toBeInTheDocument()
+      expect(view.container.querySelector('.onboarding-step')).not.toBeInTheDocument()
     })
     const attentionPanel = view.container.querySelector('.panel--attention')
-    expect(attentionPanel).toBeInTheDocument()
-    expect(attentionPanel?.querySelectorAll('.attention-row')).toHaveLength(1)
-    expect(attentionPanel).toHaveTextContent('Профіль ще не готовий до перших запитів')
-    expect(attentionPanel).toHaveTextContent('Потрібна дія: додайте публічне імʼя, опис, базова ціна.')
-    expect(attentionPanel).toHaveTextContent('Заповнити профіль')
+    expect(attentionPanel).not.toBeInTheDocument()
     expect(view.container.querySelector('[data-kind="readiness-summary"]')).not.toBeInTheDocument()
     expect(view.container.querySelector('.panel--today [data-kind="readiness-summary"]')).not.toBeInTheDocument()
+    expect(view.getByRole('link', { name: 'Доповнити профіль' })).toHaveAttribute('href', '/cabinet/profile')
+    expect(view.container).not.toHaveTextContent('Профіль ще не готовий до перших запитів')
     expect(view.container).not.toHaveTextContent('Потрібна дія: заповніть базовий профіль.')
   })
 
@@ -1367,7 +1369,7 @@ describe('CabinetView', () => {
 
     await waitFor(() => {
       expect(view.container.querySelector('.panel--onboarding')).toBeInTheDocument()
-      expect(view.container).toHaveTextContent('Додайте публічне імʼя')
+      expect(view.container).toHaveTextContent('Публічне імʼя')
       expect(view.container).toHaveTextContent('Що залишилось: публічне імʼя.')
     })
   })
@@ -1396,8 +1398,11 @@ describe('CabinetView', () => {
     const view = renderView()
 
     await waitFor(() => {
-      expect(view.container).toHaveTextContent('Оберіть спосіб першого звернення')
-      expect(view.container.querySelector('a[href="/cabinet/slots?tab=availability"]')).toHaveTextContent('Налаштувати час')
+      expect(view.container).toHaveTextContent('Спосіб першого звернення')
+      expect(view.getByRole('link', { name: 'Налаштувати час' })).toHaveAttribute(
+        'href',
+        '/cabinet/slots?tab=availability'
+      )
     })
   })
 
@@ -1427,8 +1432,9 @@ describe('CabinetView', () => {
     const view = renderView()
 
     await waitFor(() => {
-      const publicLink = view.container.querySelector('a[href="/s/olena-koval"]')
+      const publicLink = view.getByRole('link', { name: 'Переглянути публічний профіль' })
       expect(publicLink).toBeInTheDocument()
+      expect(publicLink).toHaveAttribute('href', '/s/olena-koval')
       expect(publicLink).toHaveAttribute('target', '_blank')
       expect(publicLink).toHaveAttribute('rel', 'noopener noreferrer')
     })
