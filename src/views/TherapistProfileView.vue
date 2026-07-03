@@ -329,25 +329,28 @@
               <div class="field-help">
                 Коли клієнти можуть обирати час, ці налаштування керують тим, як публічний профіль показує вільні вікна.
               </div>
-              <div class="slot-policy-options" role="radiogroup" aria-label="Політика запитів на один час">
-                <label class="slot-policy-option">
-                  <input v-model="profile.public_booking_slot_policy" type="radio" value="single_hold" />
-                  <span>
-                    <strong>Один запит на один час</strong>
-                    <small>
-                      Коли клієнт залишає запит на конкретний час, цей час тимчасово прибирається з публічного профілю, доки ви не підтвердите або не відхилите запит.
-                    </small>
-                  </span>
-                </label>
-                <label class="slot-policy-option">
-                  <input v-model="profile.public_booking_slot_policy" type="radio" value="parallel_requests" />
-                  <span>
-                    <strong>Дозволити кілька запитів на один час</strong>
-                    <small>
-                      Один і той самий час може бути доступний кільком клієнтам. Ви самі оберете, який запит підтвердити.
-                    </small>
-                  </span>
-                </label>
+              <div v-if="profile.public_booking_mode === 'direct_booking'" class="slot-policy-block">
+                <div class="slot-policy-heading">Коли кілька клієнтів обирають той самий час</div>
+                <div class="slot-policy-options" role="radiogroup" aria-label="Політика запитів на один час">
+                  <label class="slot-policy-option">
+                    <input v-model="profile.public_booking_slot_policy" type="radio" value="single_hold" />
+                    <span>
+                      <strong>Один запит на один час</strong>
+                      <small>
+                        Коли клієнт залишає запит на конкретний час, цей час тимчасово прибирається з публічного профілю, доки ви не підтвердите або не відхилите запит.
+                      </small>
+                    </span>
+                  </label>
+                  <label class="slot-policy-option">
+                    <input v-model="profile.public_booking_slot_policy" type="radio" value="parallel_requests" />
+                    <span>
+                      <strong>Дозволити кілька запитів на один час</strong>
+                      <small>
+                        Один і той самий час може бути доступний кільком клієнтам. Ви самі оберете, який запит підтвердити.
+                      </small>
+                    </span>
+                  </label>
+                </div>
               </div>
             </div>
           </div>
@@ -3128,6 +3131,18 @@ onMounted(() => {
 .check input[type="radio"] {
   margin: 0;
   accent-color: var(--pc-navy-900);
+}
+
+.slot-policy-block {
+  display: grid;
+  gap: 8px;
+}
+
+.slot-policy-heading {
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--pc-navy-900);
 }
 
 .slot-policy-options {

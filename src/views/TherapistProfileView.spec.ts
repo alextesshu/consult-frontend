@@ -601,6 +601,13 @@ describe('TherapistProfileView', () => {
     renderView()
 
     expect(await screen.findByText('Публічний запис')).toBeInTheDocument()
+    expect(screen.queryByText('Коли кілька клієнтів обирають той самий час')).not.toBeInTheDocument()
+    expect(screen.queryByRole('radio', { name: /Один запит на один час/ })).not.toBeInTheDocument()
+    expect(screen.queryByText('Дозволити кілька запитів на один час')).not.toBeInTheDocument()
+
+    await fireEvent.click(screen.getByLabelText('Дозволити клієнтам обирати час'))
+
+    expect(screen.getByText('Коли кілька клієнтів обирають той самий час')).toBeInTheDocument()
     expect(screen.getByRole('radio', { name: /Один запит на один час/ })).toBeChecked()
     expect(screen.getByText('Дозволити кілька запитів на один час')).toBeInTheDocument()
     expect(
@@ -608,6 +615,10 @@ describe('TherapistProfileView', () => {
         'Один і той самий час може бути доступний кільком клієнтам. Ви самі оберете, який запит підтвердити.'
       )
     ).toBeInTheDocument()
+
+    await fireEvent.click(screen.getByLabelText('Лише запити без вибору часу'))
+    expect(screen.queryByText('Коли кілька клієнтів обирають той самий час')).not.toBeInTheDocument()
+    expect(screen.queryByRole('radio', { name: /Один запит на один час/ })).not.toBeInTheDocument()
 
     await fireEvent.click(screen.getByLabelText('Дозволити клієнтам обирати час'))
     await fireEvent.click(screen.getByLabelText('Показувати вільні вікна на публічному профілі'))
