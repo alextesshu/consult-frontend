@@ -198,6 +198,7 @@ export type TherapistProfile = {
   public_booking_min_lead_time_hours?: number
   public_booking_horizon_days?: number
   public_booking_requires_confirmation?: boolean
+  public_booking_slot_policy?: 'single_hold' | 'parallel_requests'
   slug?: string
   public_profile_path?: string
   public_profile_url?: string
@@ -974,6 +975,7 @@ export type PublicTherapistProfile = {
   public_booking_min_lead_time_hours?: number
   public_booking_horizon_days?: number
   public_booking_requires_confirmation?: boolean
+  public_booking_slot_policy?: 'single_hold' | 'parallel_requests'
   public_direct_booking_enabled?: boolean
   professional_focus?: ProfessionalFocus | null
   display_name: string

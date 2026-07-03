@@ -2414,6 +2414,32 @@ describe('PublicProfileView', () => {
     ).toBeInTheDocument()
   })
 
+  it('shows friendly held slot error for guest booking request', async () => {
+    mockCommonPublicData()
+    mockBookingPageDataWithSingleSlot()
+    mockedApiPost.mockRejectedValue({
+      response: {
+        data: {
+          code: 'PUBLIC_GUEST_REQUEST_SLOT_HELD',
+        },
+      },
+    })
+
+    renderView()
+
+    await fireEvent.click(await screen.findByRole('button', { name: 'Надіслати запит на цей час' }))
+    const fields = screen.getAllByRole('textbox')
+    const nameField = fields[0] as HTMLInputElement
+    const contactField = fields[1] as HTMLInputElement
+    await fireEvent.update(nameField, 'Ірина')
+    await fireEvent.update(contactField, 'iryna@example.com')
+    await fireEvent.click(screen.getByRole('button', { name: 'Надіслати запит' }))
+
+    expect(
+      await screen.findByText('Обраний слот уже недоступний. Будь ласка, виберіть інший час.')
+    ).toBeInTheDocument()
+  })
+
   it('shows friendly guest-flow restriction error for entitlement limits', async () => {
     mockCommonPublicData()
     mockBookingPageDataWithSingleSlot()

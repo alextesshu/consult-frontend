@@ -74,6 +74,9 @@ function makeProfile(): SpecialistProfile {
     public_profile_url: `${window.location.origin}/s/specialist-anna`,
     public_slug: 'specialist-anna',
     last_slug_rotated_at: '2026-03-10T09:00:00Z',
+    public_booking_mode: 'request_only',
+    show_public_availability: false,
+    public_booking_slot_policy: 'single_hold',
     offers_online: true,
     offers_offline: true,
     offline_location: 'Львів, офіс 12',
@@ -583,6 +586,45 @@ describe('TherapistProfileView', () => {
         })
       )
     })
+  })
+
+  it('renders and saves public booking slot policy settings', async () => {
+    const profile = makeProfile()
+    mockedFetchSpecialistProfile.mockResolvedValue(profile)
+    mockedUpdateSpecialistProfile.mockResolvedValue({
+      ...profile,
+      public_booking_mode: 'direct_booking',
+      show_public_availability: true,
+      public_booking_slot_policy: 'parallel_requests',
+    })
+
+    renderView()
+
+    expect(await screen.findByText('Публічний запис')).toBeInTheDocument()
+    expect(screen.getByRole('radio', { name: /Один запит на один час/ })).toBeChecked()
+    expect(screen.getByText('Дозволити кілька запитів на один час')).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        'Один і той самий час може бути доступний кільком клієнтам. Ви самі оберете, який запит підтвердити.'
+      )
+    ).toBeInTheDocument()
+
+    await fireEvent.click(screen.getByLabelText('Дозволити клієнтам обирати час'))
+    await fireEvent.click(screen.getByLabelText('Показувати вільні вікна на публічному профілі'))
+    await fireEvent.click(screen.getByRole('radio', { name: /Дозволити кілька запитів на один час/ }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Зберегти' }))
+
+    await waitFor(() => {
+      expect(mockedUpdateSpecialistProfile).toHaveBeenCalledWith(
+        expect.objectContaining({
+          public_booking_mode: 'direct_booking',
+          show_public_availability: true,
+          public_booking_slot_policy: 'parallel_requests',
+        })
+      )
+    })
+    expect(screen.queryByText(/рейтинг/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/маркетплейс/i)).not.toBeInTheDocument()
   })
 
   it('requires a positive couple consultation price only when couple offer is enabled', async () => {

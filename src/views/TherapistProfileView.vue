@@ -310,6 +310,48 @@
             </label>
           </div>
           <div class="form-group">
+            <div class="field offer-settings">
+              <span class="field-label field-label--section">Публічний запис</span>
+              <div class="meeting-format-controls">
+                <label class="check">
+                  <input v-model="profile.public_booking_mode" type="radio" value="request_only" />
+                  Лише запити без вибору часу
+                </label>
+                <label class="check">
+                  <input v-model="profile.public_booking_mode" type="radio" value="direct_booking" />
+                  Дозволити клієнтам обирати час
+                </label>
+              </div>
+              <label class="check">
+                <input v-model="profile.show_public_availability" type="checkbox" />
+                Показувати вільні вікна на публічному профілі
+              </label>
+              <div class="field-help">
+                Коли клієнти можуть обирати час, ці налаштування керують тим, як публічний профіль показує вільні вікна.
+              </div>
+              <div class="slot-policy-options" role="radiogroup" aria-label="Політика запитів на один час">
+                <label class="slot-policy-option">
+                  <input v-model="profile.public_booking_slot_policy" type="radio" value="single_hold" />
+                  <span>
+                    <strong>Один запит на один час</strong>
+                    <small>
+                      Коли клієнт залишає запит на конкретний час, цей час тимчасово прибирається з публічного профілю, доки ви не підтвердите або не відхилите запит.
+                    </small>
+                  </span>
+                </label>
+                <label class="slot-policy-option">
+                  <input v-model="profile.public_booking_slot_policy" type="radio" value="parallel_requests" />
+                  <span>
+                    <strong>Дозволити кілька запитів на один час</strong>
+                    <small>
+                      Один і той самий час може бути доступний кільком клієнтам. Ви самі оберете, який запит підтвердити.
+                    </small>
+                  </span>
+                </label>
+              </div>
+            </div>
+          </div>
+          <div class="form-group">
             <label class="field">
               <div class="field-head">
                 <span class="field-label">Ціна за одну стандартну консультацію</span>
@@ -1602,6 +1644,9 @@ function buildProfilePayload() {
     show_bio_approach: profile.show_bio_approach,
     show_bio_for_whom: profile.show_bio_for_whom,
     show_bio_other: profile.show_bio_other,
+    public_booking_mode: profile.public_booking_mode || 'request_only',
+    show_public_availability: profile.show_public_availability,
+    public_booking_slot_policy: profile.public_booking_slot_policy || 'single_hold',
     offers_online: profile.offers_online,
     offers_offline: profile.offers_offline,
     offline_location: profile.offers_offline ? profile.offline_location.trim() : '',
@@ -1650,6 +1695,7 @@ const profile = reactive<SpecialistProfile>({
   last_slug_rotated_at: null,
   public_booking_mode: 'request_only',
   show_public_availability: false,
+  public_booking_slot_policy: 'single_hold',
   offers_online: true,
   offers_offline: false,
   offline_location: '',
@@ -1864,6 +1910,9 @@ type ProfileFormSnapshot = {
   show_bio_approach: boolean
   show_bio_for_whom: boolean
   show_bio_other: boolean
+  public_booking_mode: 'request_only' | 'direct_booking'
+  show_public_availability: boolean
+  public_booking_slot_policy: 'single_hold' | 'parallel_requests'
   offers_online: boolean
   offers_offline: boolean
   offline_location: string
@@ -1921,6 +1970,9 @@ function createProfileFormSnapshot(): ProfileFormSnapshot {
     show_bio_approach: profile.show_bio_approach,
     show_bio_for_whom: profile.show_bio_for_whom,
     show_bio_other: profile.show_bio_other,
+    public_booking_mode: profile.public_booking_mode || 'request_only',
+    show_public_availability: profile.show_public_availability ?? false,
+    public_booking_slot_policy: profile.public_booking_slot_policy || 'single_hold',
     offers_online: profile.offers_online,
     offers_offline: profile.offers_offline,
     offline_location: profile.offline_location || '',
@@ -2302,6 +2354,7 @@ function normalizeProfile(data: SpecialistProfile): SpecialistProfile {
     public_profile_url: canonicalUrl,
     public_booking_mode: data.public_booking_mode || 'request_only',
     show_public_availability: data.show_public_availability ?? false,
+    public_booking_slot_policy: data.public_booking_slot_policy || 'single_hold',
     offers_online: typeof data.offers_online === 'boolean' ? data.offers_online : true,
     offers_offline: typeof data.offers_offline === 'boolean' ? data.offers_offline : false,
     offline_location: data.offline_location || '',
@@ -3071,9 +3124,50 @@ onMounted(() => {
   color: color-mix(in srgb, var(--text-2) 82%, #ffffff);
 }
 
-.check input[type="checkbox"] {
+.check input[type="checkbox"],
+.check input[type="radio"] {
   margin: 0;
   accent-color: var(--pc-navy-900);
+}
+
+.slot-policy-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 8px;
+}
+
+.slot-policy-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-control);
+  background: #ffffff;
+  padding: 10px;
+  color: color-mix(in srgb, var(--text-2) 88%, #ffffff);
+}
+
+.slot-policy-option input {
+  margin-top: 2px;
+  accent-color: var(--pc-navy-900);
+}
+
+.slot-policy-option strong,
+.slot-policy-option small {
+  display: block;
+}
+
+.slot-policy-option strong {
+  font-size: 13px;
+  line-height: 1.25;
+  color: var(--pc-navy-900);
+}
+
+.slot-policy-option small {
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 1.4;
+  color: color-mix(in srgb, var(--muted) 88%, #667580);
 }
 
 .profile-grid .input,
