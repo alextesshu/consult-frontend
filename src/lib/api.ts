@@ -106,8 +106,16 @@ export type OnboardingNextAction = {
 
 export type SpecialistOnboardingReadiness = {
   profile_core_ready?: boolean | null
+  public_display_name_exists?: boolean | null
+  basic_description_exists?: boolean | null
+  standard_price_configured?: boolean | null
+  client_entry_path_exists?: boolean | null
   has_future_slots?: boolean | null
   public_profile_enabled?: boolean | null
+  profile_slug_exists?: boolean | null
+  public_profile_link_available?: boolean | null
+  public_booking_mode?: string | null
+  show_public_availability?: boolean | null
   ready_for_inbound_intent?: boolean | null
 }
 
@@ -121,6 +129,7 @@ export type SpecialistOnboardingState = {
   next_actions?: OnboardingNextAction[] | null
   primary_cta_code?: string | null
   cta_target?: string | null
+  public_profile_path?: string | null
 }
 
 export async function fetchSpecialistOnboardingState(): Promise<SpecialistOnboardingState> {

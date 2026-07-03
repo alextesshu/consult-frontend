@@ -183,8 +183,8 @@
               </RouterLink>
             </article>
 
-            <article v-if="onboardingViewModel" class="today-card today-card--soft" data-kind="readiness-summary">
-              <h3 class="today-card__title">Готовність профілю</h3>
+            <article v-if="shouldShowOnboardingBlock" class="today-card today-card--soft" data-kind="readiness-summary">
+              <h3 class="today-card__title">Підготуйте профіль</h3>
               <p class="muted today-card__copy">{{ profileReadinessSummary }}</p>
               <RouterLink v-if="readinessPrimaryAction" class="btn btn--ghost btn--sm" :to="readinessPrimaryAction.to">
                 {{ readinessPrimaryAction.label }}
@@ -193,14 +193,17 @@
           </section>
         </div>
       </section>
-      <section class="panel panel--wide panel--onboarding">
+      <section v-if="shouldShowOnboardingBlock" class="panel panel--wide panel--onboarding">
         <div class="panel__header">
           <div>
-            <h2 class="panel__title panel__title--compact">Готовність профілю</h2>
-            <div class="panel__meta">Публічний профіль, розклад і готовність до запитів.</div>
+            <h2 class="panel__title panel__title--compact">Підготуйте профіль до перших запитів</h2>
+            <div class="panel__meta">{{ onboardingViewModel?.helper }}</div>
           </div>
-          <div class="onboarding-status" :class="onboardingReady ? 'onboarding-status--ready' : 'onboarding-status--pending'">
-            {{ onboardingReady ? 'Готово' : 'Потрібні дії' }}
+          <div
+            class="onboarding-status"
+            :class="onboardingViewModel?.status === 'closed' ? 'onboarding-status--pending' : 'onboarding-status--warn'"
+          >
+            {{ onboardingViewModel?.statusLabel }}
           </div>
         </div>
 
@@ -211,10 +214,10 @@
         <div v-else-if="onboardingViewModel" class="onboarding-layout">
           <div class="onboarding-summary">
             <div class="onboarding-summary__text">{{ profileReadinessSummary }}</div>
-            <button class="btn btn--ghost btn--sm" type="button" @click="readinessDetailsOpen = !readinessDetailsOpen">
-              {{ readinessDetailsOpen ? 'Сховати деталі' : 'Показати деталі' }}
-            </button>
           </div>
+          <p v-if="onboardingViewModel.missingSummary" class="onboarding-missing-summary">
+            {{ onboardingViewModel.missingSummary }}
+          </p>
 
           <div class="onboarding-actions onboarding-actions--summary">
             <RouterLink
@@ -232,9 +235,18 @@
             >
               {{ action.label }}
             </RouterLink>
+            <a
+              v-if="onboardingViewModel.publicProfileLinkAvailable"
+              class="btn btn--ghost btn--sm"
+              :href="onboardingPublicProfilePath"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Переглянути публічний профіль
+            </a>
           </div>
 
-          <div v-if="readinessDetailsOpen" class="onboarding-details">
+          <div class="onboarding-details">
             <ol class="onboarding-steps">
               <li
                 v-for="step in onboardingViewModel.steps"
@@ -248,17 +260,11 @@
                 >
                   <div class="onboarding-step__title">{{ step.title }}</div>
                   <div class="onboarding-step__hint">{{ step.hint }}</div>
-                  <div class="onboarding-step__action">{{ onboardingStepActionLabel(step) }}</div>
+                  <div class="onboarding-step__state">{{ step.done ? 'Готово' : 'Потрібно доповнити' }}</div>
+                  <div class="onboarding-step__action">{{ step.actionLabel }}</div>
                 </RouterLink>
               </li>
             </ol>
-
-            <div v-if="onboardingViewModel.missingItems.length > 0" class="onboarding-list-wrap">
-              <h3 class="onboarding-list-title">Що потрібно заповнити</h3>
-              <ul class="onboarding-list">
-                <li v-for="item in onboardingViewModel.missingItems" :key="item">{{ item }}</li>
-              </ul>
-            </div>
 
             <div v-if="onboardingViewModel.warnings.length > 0" class="onboarding-list-wrap onboarding-list-wrap--warning">
               <h3 class="onboarding-list-title">Попередження</h3>
@@ -530,7 +536,6 @@ const profileError = ref('')
 const cabinetDataLoading = ref(false)
 const cabinetDataError = ref('')
 const nowTs = ref(Date.now())
-const readinessDetailsOpen = ref(false)
 const LIVE_STATUS_REFRESH_MS = 30 * 1000
 const HERO_SIGNAL_SOON_WINDOW_MS = 60 * 60 * 1000
 const HERO_SIGNAL_CONFIRMED_SOON_WINDOW_MS = 30 * 60 * 1000
@@ -580,7 +585,10 @@ const onboardingViewModel = computed<SpecialistOnboardingViewModel | null>(() =>
   return buildSpecialistOnboardingViewModel(onboardingRenderableState.value)
 })
 
-const onboardingReady = computed(() => onboardingViewModel.value?.readiness ?? false)
+const shouldShowOnboardingBlock = computed(() => {
+  const viewModel = onboardingViewModel.value
+  return Boolean(viewModel && !viewModel.readiness)
+})
 type OnboardingStep = SpecialistOnboardingViewModel['steps'][number]
 
 function normalizePublicProfilePath(raw: string | null | undefined) {
@@ -610,10 +618,9 @@ const onboardingPublicProfilePath = computed(() => {
 })
 
 function onboardingStepTo(step: OnboardingStep) {
-  if (step.key === 'profile_core') return '/cabinet/profile'
-  if (step.key === 'availability') return '/cabinet/slots?tab=availability'
-  if (step.key === 'public_profile') return onboardingPublicProfilePath.value
-  if (step.key === 'inbound_readiness') return '/cabinet/inquiries'
+  if (step.key === 'public_link' && onboardingPublicProfilePath.value) {
+    return onboardingPublicProfilePath.value
+  }
   return step.to
 }
 
@@ -624,6 +631,8 @@ function onboardingStepActionLabel(step: OnboardingStep) {
   if (step.key === 'inbound_readiness') return 'Перейти до звернень'
   return 'Відкрити'
 }
+
+void onboardingStepActionLabel
 
 const planCodeLabel = computed(() => {
   const raw = me.value?.effective_entitlements?.plan
@@ -1800,6 +1809,11 @@ onBeforeUnmount(() => {
   color: #9b6c0b;
 }
 
+.onboarding-status--warn {
+  background: rgba(8, 113, 201, 0.11);
+  color: #1f4a60;
+}
+
 .onboarding-loading {
   font-size: 14px;
   color: var(--muted);
@@ -1819,6 +1833,13 @@ onBeforeUnmount(() => {
 
 .onboarding-summary__text {
   color: var(--pc-text-muted);
+  line-height: 1.45;
+}
+
+.onboarding-missing-summary {
+  margin: 0;
+  color: var(--pc-text-muted);
+  font-size: 14px;
   line-height: 1.45;
 }
 
@@ -1891,6 +1912,26 @@ onBeforeUnmount(() => {
 .onboarding-step__hint {
   font-size: 13px;
   color: var(--muted);
+}
+
+.onboarding-step__state {
+  width: fit-content;
+  padding: 3px 7px;
+  border-radius: var(--pc-radius-control);
+  background: rgba(7, 47, 71, 0.08);
+  color: var(--pc-navy-900);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.onboarding-step--done .onboarding-step__state {
+  background: rgba(31, 122, 76, 0.14);
+  color: #1f7a4c;
+}
+
+.onboarding-step--pending .onboarding-step__state {
+  background: rgba(217, 164, 65, 0.18);
+  color: #8a5c0a;
 }
 
 .onboarding-step__action {

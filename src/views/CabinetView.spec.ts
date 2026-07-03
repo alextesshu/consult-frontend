@@ -104,14 +104,9 @@ function renderView() {
 async function openOnboardingDetails(container: Element) {
   const panel = container.querySelector('.panel--onboarding') as HTMLElement | null
   if (!panel) throw new Error('Onboarding panel not found')
-  const button = await waitFor(() => {
-    const detailsButton = Array.from(panel.querySelectorAll('button')).find((item) =>
-      (item.textContent || '').includes('Показати деталі')
-    )
-    if (!detailsButton) throw new Error('Onboarding details button not found')
-    return detailsButton
+  await waitFor(() => {
+    expect(panel.querySelector('.onboarding-step')).toBeInTheDocument()
   })
-  await fireEvent.click(button)
 }
 
 describe('CabinetView', () => {
@@ -1207,16 +1202,26 @@ describe('CabinetView', () => {
     expect(view.container.querySelector('[data-kind="next-action"]')).not.toBeInTheDocument()
   })
 
-  it('renders onboarding readiness with pending steps and primary cta from backend enums', async () => {
+  it('renders specialist readiness block for incomplete profile', async () => {
     mockedApiGet.mockResolvedValue([])
     mockedFetchSpecialistOnboardingState.mockResolvedValue({
       readiness: {
-        profile_core_ready: false,
-        has_future_slots: false,
+        public_display_name_exists: false,
+        basic_description_exists: false,
+        standard_price_configured: false,
+        client_entry_path_exists: false,
         public_profile_enabled: false,
+        public_profile_link_available: false,
         ready_for_inbound_intent: false,
       },
-      missing_items: ['MISSING_DISPLAY_NAME', 'MISSING_FUTURE_SLOTS', 'PUBLIC_PROFILE_DISABLED'],
+      missing_items: [
+        'MISSING_DISPLAY_NAME',
+        'MISSING_DESCRIPTION',
+        'MISSING_BASE_PRICE',
+        'MISSING_CLIENT_ENTRY_PATH',
+        'PUBLIC_PROFILE_DISABLED',
+        'MISSING_PUBLIC_PROFILE_LINK',
+      ],
       warnings: [{ code: 'PROFILE_CORE_INCOMPLETE' }],
       next_actions: [{ code: 'COMPLETE_PROFILE', target: 'CABINET_PROFILE', priority: 1 }],
       primary_cta_code: 'COMPLETE_PROFILE',
@@ -1226,56 +1231,76 @@ describe('CabinetView', () => {
 
     await waitFor(() => {
       expect(view.container.querySelector('.panel--onboarding')).toBeInTheDocument()
-      expect(view.container).toHaveTextContent('Готовність профілю')
+      expect(view.container).toHaveTextContent('Підготуйте профіль до перших запитів')
+      expect(view.container).toHaveTextContent('Профіль ще не відкритий')
+      expect(view.container).toHaveTextContent('Додайте публічне імʼя')
+      expect(view.container).toHaveTextContent('Заповніть короткий опис')
+      expect(view.container).toHaveTextContent('Налаштуйте базову ціну')
+      expect(view.container).toHaveTextContent('Оберіть спосіб першого звернення')
+      expect(view.container).toHaveTextContent('Опублікуйте профіль')
+      expect(view.container).toHaveTextContent('Що залишилось: публічне імʼя, опис, базова ціна')
       expect(view.container.querySelector('a[href="/cabinet/profile"]')).toBeInTheDocument()
-      expect(view.container.querySelector('.onboarding-step--pending')).not.toBeInTheDocument()
+      expect(view.container.querySelector('.onboarding-step--pending')).toBeInTheDocument()
     })
-    await openOnboardingDetails(view.container)
-    expect(view.container.querySelector('.onboarding-step--pending')).toBeInTheDocument()
-    expect((view.container.querySelector('a[href="/cabinet/profile"]')?.textContent || '').trim().length).toBeGreaterThan(0)
   })
 
-  it('renders onboarding steps as full clickable links to operational destinations', async () => {
+  it('shows missing public display name even when username exists', async () => {
     mockedApiGet.mockResolvedValue([])
     mockedFetchSpecialistOnboardingState.mockResolvedValue({
       readiness: {
-        profile_core_ready: false,
-        has_future_slots: false,
-        public_profile_enabled: false,
+        public_display_name_exists: false,
+        basic_description_exists: true,
+        standard_price_configured: true,
+        client_entry_path_exists: true,
+        public_profile_enabled: true,
+        public_profile_link_available: true,
         ready_for_inbound_intent: false,
       },
-      missing_items: ['MISSING_DISPLAY_NAME', 'MISSING_FUTURE_SLOTS', 'PUBLIC_PROFILE_DISABLED'],
+      missing_items: ['MISSING_DISPLAY_NAME'],
       warnings: [],
-      next_actions: [],
-      primary_cta_code: null,
-      cta_target: null,
+      next_actions: [{ code: 'COMPLETE_PROFILE', target: 'CABINET_PROFILE', priority: 1 }],
+      primary_cta_code: 'COMPLETE_PROFILE',
     } as any)
 
     const view = renderView()
 
     await waitFor(() => {
       expect(view.container.querySelector('.panel--onboarding')).toBeInTheDocument()
+      expect(view.container).toHaveTextContent('Додайте публічне імʼя')
+      expect(view.container).toHaveTextContent('Що залишилось: публічне імʼя.')
     })
-    await openOnboardingDetails(view.container)
-    expect(view.container.querySelectorAll('a.onboarding-step--link').length).toBeGreaterThanOrEqual(4)
-
-    const stepLinks = Array.from(view.container.querySelectorAll('a.onboarding-step--link'))
-    const profileCoreLink = stepLinks.find((el) => el.getAttribute('href') === '/cabinet/profile')
-    const availabilityLink = stepLinks.find((el) => el.getAttribute('href') === '/cabinet/slots?tab=availability')
-    const publicProfileLink = stepLinks.find((el) => el.getAttribute('href') === '/public')
-    const inboundReadinessLink = stepLinks.find((el) => el.getAttribute('href') === '/cabinet/inquiries')
-
-    expect(profileCoreLink?.getAttribute('href')).toBe('/cabinet/profile')
-    expect(availabilityLink?.getAttribute('href')).toBe('/cabinet/slots?tab=availability')
-    expect(publicProfileLink?.getAttribute('href')).toBe('/public')
-    expect(inboundReadinessLink?.getAttribute('href')).toBe('/cabinet/inquiries')
-    expect((profileCoreLink?.textContent || '').trim().length).toBeGreaterThan(0)
-    expect(availabilityLink).toHaveTextContent('Налаштувати вікна для запису')
-    expect((publicProfileLink?.textContent || '').trim().length).toBeGreaterThan(0)
-    expect((inboundReadinessLink?.textContent || '').trim().length).toBeGreaterThan(0)
   })
 
-  it('uses canonical public profile path from me payload for public-profile onboarding step', async () => {
+  it('routes missing direct-booking availability to slots', async () => {
+    mockedApiGet.mockResolvedValue([])
+    mockedFetchSpecialistOnboardingState.mockResolvedValue({
+      readiness: {
+        public_display_name_exists: true,
+        basic_description_exists: true,
+        standard_price_configured: true,
+        client_entry_path_exists: false,
+        has_future_slots: false,
+        public_profile_enabled: true,
+        public_profile_link_available: true,
+        public_booking_mode: 'direct_booking',
+        show_public_availability: true,
+        ready_for_inbound_intent: false,
+      },
+      missing_items: ['MISSING_CLIENT_ENTRY_PATH'],
+      warnings: [{ code: 'CLIENT_ENTRY_PATH_MISSING' }],
+      next_actions: [{ code: 'ADD_AVAILABILITY', target: 'CABINET_AVAILABILITY', priority: 2 }],
+      primary_cta_code: 'ADD_AVAILABILITY',
+    } as any)
+
+    const view = renderView()
+
+    await waitFor(() => {
+      expect(view.container).toHaveTextContent('Оберіть спосіб першого звернення')
+      expect(view.container.querySelector('a[href="/cabinet/slots?tab=availability"]')).toHaveTextContent('Налаштувати час')
+    })
+  })
+
+  it('shows public profile link only when enabled and slug is available', async () => {
     mockMe.value = {
       ...createMePayload(),
       public_profile_path: '/s/olena-koval',
@@ -1283,30 +1308,29 @@ describe('CabinetView', () => {
     mockedApiGet.mockResolvedValue([])
     mockedFetchSpecialistOnboardingState.mockResolvedValue({
       readiness: {
-        profile_core_ready: true,
-        has_future_slots: true,
+        public_display_name_exists: true,
+        basic_description_exists: false,
+        standard_price_configured: true,
+        client_entry_path_exists: true,
         public_profile_enabled: true,
-        ready_for_inbound_intent: true,
+        public_profile_link_available: true,
+        ready_for_inbound_intent: false,
       },
-      missing_items: [],
+      public_profile_path: '/s/olena-koval',
+      missing_items: ['MISSING_DESCRIPTION'],
       warnings: [],
-      next_actions: [],
-      primary_cta_code: null,
-      cta_target: null,
+      next_actions: [{ code: 'COMPLETE_PROFILE', target: 'CABINET_PROFILE', priority: 1 }],
+      primary_cta_code: 'COMPLETE_PROFILE',
     } as any)
 
     const view = renderView()
 
     await waitFor(() => {
-      expect(view.container.querySelector('.panel--onboarding')).toBeInTheDocument()
+      const publicLink = view.container.querySelector('a[href="/s/olena-koval"]')
+      expect(publicLink).toBeInTheDocument()
+      expect(publicLink).toHaveAttribute('target', '_blank')
+      expect(publicLink).toHaveAttribute('rel', 'noopener noreferrer')
     })
-    await openOnboardingDetails(view.container)
-    expect(view.container.querySelectorAll('a.onboarding-step--link').length).toBeGreaterThanOrEqual(4)
-
-    const stepLinks = Array.from(view.container.querySelectorAll('a.onboarding-step--link'))
-    const publicProfileLink = stepLinks[2]
-
-    expect(publicProfileLink?.getAttribute('href')).toBe('/s/olena-koval')
   })
 
   it('uses onboarding_summary only as initial shell before canonical onboarding-state arrives', async () => {
@@ -1333,67 +1357,47 @@ describe('CabinetView', () => {
       const status = view.container.querySelector('.onboarding-status')
       expect(status).toBeInTheDocument()
       shellStatus = (status?.textContent || '').trim()
-      expect(shellStatus).toBe('Потрібні дії')
+      expect(shellStatus).toBe('Профіль відкритий, але його варто доповнити')
     })
 
     resolveCanonical({
       readiness: {
-        profile_core_ready: true,
-        has_future_slots: true,
+        public_display_name_exists: true,
+        basic_description_exists: true,
+        standard_price_configured: true,
+        client_entry_path_exists: false,
         public_profile_enabled: false,
+        public_profile_link_available: false,
         ready_for_inbound_intent: false,
       },
-      missing_items: ['PUBLIC_PROFILE_DISABLED'],
+      missing_items: ['MISSING_CLIENT_ENTRY_PATH', 'PUBLIC_PROFILE_DISABLED', 'MISSING_PUBLIC_PROFILE_LINK'],
       warnings: [{ code: 'PUBLIC_PROFILE_OFF' }],
       next_actions: [{ code: 'OPEN_PUBLIC_PROFILE', target: 'CABINET_PUBLIC_PROFILE', priority: 3 }],
       primary_cta_code: 'OPEN_PUBLIC_PROFILE',
     })
 
     await waitFor(() => {
-      expect(view.container).toHaveTextContent('Потрібна дія: налаштуйте публічний профіль.')
+      expect(view.container).toHaveTextContent('Профіль ще не відкритий')
     })
     await openOnboardingDetails(view.container)
 
     await waitFor(() => {
-      const list = view.container.querySelector('.onboarding-list')
-      expect(list).toBeInTheDocument()
-      expect((list?.textContent || '').length).toBeGreaterThan(0)
-      expect(view.container.querySelector('a[href="/public"]')).toBeInTheDocument()
-      expect((view.container.querySelector('.onboarding-status')?.textContent || '').trim()).toBe(shellStatus)
+      expect(view.container).toHaveTextContent('Що залишилось:')
+      expect(view.container.querySelector('a[href="/cabinet/profile"]')).toBeInTheDocument()
+      expect((view.container.querySelector('.onboarding-status')?.textContent || '').trim()).toBe('Профіль ще не відкритий')
     })
   })
 
-  it('renders CTA for add availability via route-key mapping', async () => {
+  it('hides large readiness block when all critical checks pass', async () => {
     mockedApiGet.mockResolvedValue([])
     mockedFetchSpecialistOnboardingState.mockResolvedValue({
       readiness: {
-        profile_core_ready: true,
-        has_future_slots: false,
+        public_display_name_exists: true,
+        basic_description_exists: true,
+        standard_price_configured: true,
+        client_entry_path_exists: true,
         public_profile_enabled: true,
-        ready_for_inbound_intent: false,
-      },
-      missing_items: ['MISSING_FUTURE_SLOTS'],
-      warnings: [{ code: 'PUBLISHED_WITHOUT_BOOKABLE_TIME' }],
-      next_actions: [{ code: 'ADD_AVAILABILITY', target: 'CABINET_AVAILABILITY', priority: 2 }],
-      primary_cta_code: 'ADD_AVAILABILITY',
-    } as any)
-
-    const view = renderView()
-    await waitFor(() => {
-      expect(view.container).not.toHaveTextContent('Потрібно додати вільний час')
-      expect(view.container).toHaveTextContent('Потрібно створити вікна для запису')
-      expect(view.container).toHaveTextContent('Потрібна дія: створіть вікна, у які клієнти можуть надсилати запити.')
-      expect(view.container.querySelector('a[href="/cabinet/slots?tab=availability"]')).toHaveTextContent('Створити вікна')
-    })
-  })
-
-  it('renders CTA for view public profile via route-key mapping', async () => {
-    mockedApiGet.mockResolvedValue([])
-    mockedFetchSpecialistOnboardingState.mockResolvedValue({
-      readiness: {
-        profile_core_ready: true,
-        has_future_slots: true,
-        public_profile_enabled: true,
+        public_profile_link_available: true,
         ready_for_inbound_intent: true,
       },
       missing_items: [],
@@ -1404,7 +1408,34 @@ describe('CabinetView', () => {
 
     const view = renderView()
     await waitFor(() => {
-      expect(view.container.querySelector('a[href="/public"]')).toBeInTheDocument()
+      expect(view.container.querySelector('.panel--today')).toBeInTheDocument()
+      expect(view.container.querySelector('.panel--onboarding')).not.toBeInTheDocument()
+      expect(view.container.querySelector('[data-kind="readiness-summary"]')).not.toBeInTheDocument()
+    })
+  })
+
+  it('does not use marketplace, rating, recommendation, or platform verification wording in readiness block', async () => {
+    mockedApiGet.mockResolvedValue([])
+    mockedFetchSpecialistOnboardingState.mockResolvedValue({
+      readiness: {
+        public_display_name_exists: false,
+        basic_description_exists: false,
+        standard_price_configured: false,
+        client_entry_path_exists: false,
+        public_profile_enabled: false,
+        public_profile_link_available: false,
+        ready_for_inbound_intent: false,
+      },
+      missing_items: ['MISSING_DISPLAY_NAME', 'MISSING_DESCRIPTION', 'MISSING_BASE_PRICE', 'PUBLIC_PROFILE_DISABLED'],
+      warnings: [],
+      next_actions: [{ code: 'COMPLETE_PROFILE', target: 'CABINET_PROFILE', priority: 1 }],
+      primary_cta_code: 'COMPLETE_PROFILE',
+    } as any)
+
+    const view = renderView()
+    await waitFor(() => {
+      const panelText = view.container.querySelector('.panel--onboarding')?.textContent || ''
+      expect(panelText).not.toMatch(/маркетплейс|рейтинг|топ|рекомендован|верифікован/i)
     })
   })
 })

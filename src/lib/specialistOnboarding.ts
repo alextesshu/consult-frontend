@@ -1,6 +1,15 @@
 import type { SpecialistOnboardingState } from './api'
 
-type OnboardingStepKey = 'profile_core' | 'availability' | 'public_profile' | 'inbound_readiness'
+type OnboardingStepKey =
+  | 'display_name'
+  | 'description'
+  | 'base_price'
+  | 'client_entry_path'
+  | 'public_profile'
+  | 'public_link'
+  | 'profile_core'
+  | 'availability'
+  | 'inbound_readiness'
 
 type NormalizedCodeItem = {
   code: string
@@ -16,8 +25,16 @@ type NormalizedAction = {
 
 type NormalizedReadiness = {
   profileCoreReady: boolean | null
+  publicDisplayNameExists: boolean | null
+  basicDescriptionExists: boolean | null
+  standardPriceConfigured: boolean | null
+  clientEntryPathExists: boolean | null
   hasFutureSlots: boolean | null
   publicProfileEnabled: boolean | null
+  profileSlugExists: boolean | null
+  publicProfileLinkAvailable: boolean | null
+  publicBookingMode: string
+  showPublicAvailability: boolean | null
   readyForInboundIntent: boolean | null
 }
 
@@ -29,6 +46,7 @@ export type NormalizedOnboardingState = {
   nextActions: NormalizedAction[]
   primaryCtaCode: string
   primaryCtaTarget: string
+  publicProfilePath: string
 }
 
 export type OnboardingViewStep = {
@@ -37,6 +55,7 @@ export type OnboardingViewStep = {
   done: boolean
   hint: string
   to: string
+  actionLabel: string
 }
 
 export type OnboardingCta = {
@@ -47,83 +66,103 @@ export type OnboardingCta = {
 
 export type SpecialistOnboardingViewModel = {
   readiness: boolean
+  status: 'ready' | 'closed' | 'needs_completion'
+  statusLabel: string
+  helper: string
   steps: OnboardingViewStep[]
   missingItems: string[]
+  missingSummary: string
   warnings: string[]
   nextActions: OnboardingCta[]
   primaryCta: OnboardingCta | null
+  publicProfilePath: string
+  publicProfileLinkAvailable: boolean
 }
 
-const UNKNOWN_MISSING_ITEM_COPY = 'Завершіть цей пункт профілю.'
-const UNKNOWN_WARNING_COPY = 'Перевірте цей пункт профілю.'
+const UNKNOWN_MISSING_ITEM_COPY = 'Перевірте цей пункт профілю.'
+const UNKNOWN_WARNING_COPY = 'Перевірте налаштування профілю.'
 const UNKNOWN_CTA_COPY = 'Продовжити налаштування'
 
 export const MISSING_ITEM_COPY: Record<string, string> = {
-  MISSING_DISPLAY_NAME: 'Додайте публічне імʼя спеціаліста.',
-  MISSING_SPECIALIZATION: 'Додайте щонайменше одну спеціалізацію.',
-  MISSING_CONTACT_CHANNEL: 'Додайте щонайменше один видимий канал звʼязку.',
-  MISSING_SESSION_FORMAT: 'Увімкніть хоча б один формат сесій (онлайн або офлайн).',
-  MISSING_FUTURE_SLOTS: 'За потреби додайте доступний час, який клієнти можуть обрати під час запиту.',
-  PUBLIC_PROFILE_DISABLED: 'Увімкніть публічний профіль, щоб сторінка була доступна за прямим посиланням.',
+  MISSING_DISPLAY_NAME: 'публічне імʼя',
+  MISSING_DESCRIPTION: 'опис',
+  MISSING_BASE_PRICE: 'базова ціна',
+  MISSING_CLIENT_ENTRY_PATH: 'спосіб першого звернення',
+  PUBLIC_PROFILE_DISABLED: 'публікація профілю',
+  MISSING_PUBLIC_PROFILE_LINK: 'публічне посилання',
 }
 
 export const WARNING_CODE_COPY: Record<string, string> = {
-  PROFILE_CORE_INCOMPLETE: 'Заповніть базові дані профілю, щоб отримувати вхідні звернення.',
-  PUBLISHED_WITHOUT_BOOKABLE_TIME: 'Профіль опубліковано. Клієнти можуть залишати запити; доступний час для запитів можна додати окремо.',
-  NO_BOOKABLE_TIME: 'Доступний час потрібен лише для запитів із вибором часу. Запити з публічного профілю можуть працювати без нього.',
-  PUBLIC_PROFILE_OFF: 'Увімкніть публічний профіль, щоб почати отримувати вхідні звернення.',
+  PROFILE_CORE_INCOMPLETE: 'Заповніть кілька основних пунктів, щоб клієнту було зрозуміло, як до вас звернутися.',
+  CLIENT_ENTRY_PATH_MISSING: 'Оберіть спосіб першого звернення або додайте вікна для запису.',
+  PUBLIC_PROFILE_OFF: 'Опублікуйте профіль, коли основні дані будуть готові.',
+  PUBLIC_PROFILE_LINK_MISSING: 'Публічне посилання стане доступним після публікації профілю та наявності слага.',
 }
 
 export const PRIMARY_CTA_CODE_COPY: Record<string, string> = {
   COMPLETE_PROFILE: 'Заповнити профіль',
-  ADD_AVAILABILITY: 'Створити вікна',
-  OPEN_PUBLIC_PROFILE: 'Налаштувати публічний профіль',
+  ADD_AVAILABILITY: 'Налаштувати час',
+  OPEN_PUBLIC_PROFILE: 'Опублікувати',
   VIEW_PUBLIC_PROFILE: 'Переглянути публічний профіль',
 }
 
 export const CTA_TARGET_ROUTE_KEYS: Record<string, string> = {
   CABINET_PROFILE: '/cabinet/profile',
   CABINET_AVAILABILITY: '/cabinet/slots?tab=availability',
-  CABINET_PUBLIC_PROFILE: '/public',
+  CABINET_PUBLIC_PROFILE: '/cabinet/profile',
   PUBLIC_PROFILE_VIEW: '/public',
 }
 
-const PROFILE_CORE_MISSING_CODES = [
-  'MISSING_DISPLAY_NAME',
-  'MISSING_SPECIALIZATION',
-  'MISSING_CONTACT_CHANNEL',
-  'MISSING_SESSION_FORMAT',
-]
-
-const STEP_META: Array<{ key: OnboardingStepKey; title: string; hint: string }> = [
+const STEP_META: Array<{
+  key: OnboardingStepKey
+  title: string
+  hint: string
+  actionLabel: string
+  fallbackRoute: string
+}> = [
   {
-    key: 'profile_core',
-    title: 'Базовий профіль',
-    hint: 'Імʼя, спеціалізація, канали звʼязку та формат сесій.',
+    key: 'display_name',
+    title: 'Додайте публічне імʼя',
+    hint: 'Це імʼя клієнт бачить на публічній сторінці.',
+    actionLabel: 'Заповнити профіль',
+    fallbackRoute: '/cabinet/profile',
   },
   {
-    key: 'availability',
-    title: 'Доступність',
-    hint: 'Опційний доступний час для запитів.',
+    key: 'description',
+    title: 'Заповніть короткий опис',
+    hint: 'Коротко поясніть, з чим до вас можна звертатися.',
+    actionLabel: 'Додати опис',
+    fallbackRoute: '/cabinet/profile',
+  },
+  {
+    key: 'base_price',
+    title: 'Налаштуйте базову ціну',
+    hint: 'Вкажіть вартість стандартної консультації.',
+    actionLabel: 'Налаштувати ціну',
+    fallbackRoute: '/cabinet/profile',
+  },
+  {
+    key: 'client_entry_path',
+    title: 'Оберіть спосіб першого звернення',
+    hint: 'Клієнт має розуміти, як залишити запит або обрати час.',
+    actionLabel: 'Налаштувати звернення',
+    fallbackRoute: '/cabinet/profile',
   },
   {
     key: 'public_profile',
-    title: 'Публічний профіль',
-    hint: 'Сторінка за прямим посиланням. Видимість у пошуку керується окремо.',
+    title: 'Опублікуйте профіль',
+    hint: 'Публікація відкриває сторінку для клієнтів за прямим посиланням.',
+    actionLabel: 'Опублікувати',
+    fallbackRoute: '/cabinet/profile',
   },
   {
-    key: 'inbound_readiness',
-    title: 'Готовність до звернень',
-    hint: 'Готовність профілю до першого контакту з клієнтом.',
+    key: 'public_link',
+    title: 'Публічне посилання доступне',
+    hint: 'Після публікації профіль можна переглянути за окремим посиланням.',
+    actionLabel: 'Переглянути профіль',
+    fallbackRoute: '/public',
   },
 ]
-
-const STEP_ROUTE_BY_KEY: Record<OnboardingStepKey, string> = {
-  profile_core: '/cabinet/profile',
-  availability: '/cabinet/slots?tab=availability',
-  public_profile: '/public',
-  inbound_readiness: '/cabinet/inquiries',
-}
 
 function normalizeCodeItem(value: unknown): NormalizedCodeItem | null {
   if (typeof value === 'string' && value.trim()) {
@@ -155,28 +194,30 @@ function normalizeAction(value: unknown): NormalizedAction | null {
   }
 }
 
+function readBool(source: Record<string, unknown>, key: string): boolean | null {
+  return typeof source[key] === 'boolean' ? source[key] : null
+}
+
 function normalizeReadiness(source: Record<string, unknown>): NormalizedReadiness {
-  if (typeof source.readiness === 'object' && source.readiness) {
-    const readiness = source.readiness as Record<string, unknown>
-    return {
-      profileCoreReady:
-        typeof readiness.profile_core_ready === 'boolean' ? readiness.profile_core_ready : null,
-      hasFutureSlots: typeof readiness.has_future_slots === 'boolean' ? readiness.has_future_slots : null,
-      publicProfileEnabled:
-        typeof readiness.public_profile_enabled === 'boolean' ? readiness.public_profile_enabled : null,
-      readyForInboundIntent:
-        typeof readiness.ready_for_inbound_intent === 'boolean'
-          ? readiness.ready_for_inbound_intent
-          : null,
-    }
-  }
+  const readiness =
+    typeof source.readiness === 'object' && source.readiness
+      ? (source.readiness as Record<string, unknown>)
+      : source
 
   return {
-    profileCoreReady: null,
-    hasFutureSlots: null,
-    publicProfileEnabled: null,
+    profileCoreReady: readBool(readiness, 'profile_core_ready'),
+    publicDisplayNameExists: readBool(readiness, 'public_display_name_exists'),
+    basicDescriptionExists: readBool(readiness, 'basic_description_exists'),
+    standardPriceConfigured: readBool(readiness, 'standard_price_configured'),
+    clientEntryPathExists: readBool(readiness, 'client_entry_path_exists'),
+    hasFutureSlots: readBool(readiness, 'has_future_slots'),
+    publicProfileEnabled: readBool(readiness, 'public_profile_enabled'),
+    profileSlugExists: readBool(readiness, 'profile_slug_exists'),
+    publicProfileLinkAvailable: readBool(readiness, 'public_profile_link_available'),
+    publicBookingMode: typeof readiness.public_booking_mode === 'string' ? readiness.public_booking_mode : '',
+    showPublicAvailability: readBool(readiness, 'show_public_availability'),
     readyForInboundIntent:
-      typeof source.ready_for_inbound_intent === 'boolean' ? source.ready_for_inbound_intent : null,
+      readBool(readiness, 'ready_for_inbound_intent') ?? readBool(source, 'ready_for_inbound_intent'),
   }
 }
 
@@ -203,6 +244,7 @@ export function normalizeOnboardingState(raw: unknown): NormalizedOnboardingStat
     (action) => action.ctaCode && action.ctaCode === primaryCtaCode
   )?.ctaTarget
   const primaryTargetRaw = source.cta_target ?? primaryTargetFromAction ?? nextActions[0]?.ctaTarget
+  const publicProfilePathRaw = source.public_profile_path
 
   const readinessRaw =
     readinessDetails.readyForInboundIntent ??
@@ -218,15 +260,16 @@ export function normalizeOnboardingState(raw: unknown): NormalizedOnboardingStat
     nextActions,
     primaryCtaCode,
     primaryCtaTarget: typeof primaryTargetRaw === 'string' ? primaryTargetRaw.trim() : '',
+    publicProfilePath: typeof publicProfilePathRaw === 'string' ? publicProfilePathRaw.trim() : '',
   }
 }
 
 function toMissingCopy(item: NormalizedCodeItem): string {
-  return MISSING_ITEM_COPY[item.code] || UNKNOWN_MISSING_ITEM_COPY
+  return MISSING_ITEM_COPY[item.code] || item.defaultMessage || UNKNOWN_MISSING_ITEM_COPY
 }
 
 function toWarningCopy(item: NormalizedCodeItem): string {
-  return WARNING_CODE_COPY[item.code] || UNKNOWN_WARNING_COPY
+  return WARNING_CODE_COPY[item.code] || item.defaultMessage || UNKNOWN_WARNING_COPY
 }
 
 function toCtaLabel(code: string) {
@@ -237,35 +280,86 @@ function toRoutePath(routeKey: string) {
   return CTA_TARGET_ROUTE_KEYS[routeKey] || ''
 }
 
+function doneFromReadiness(
+  value: boolean | null,
+  missingCodes: Set<string>,
+  missingCode: string
+) {
+  return value ?? !missingCodes.has(missingCode)
+}
+
+function sentenceFromItems(items: string[]) {
+  if (!items.length) return ''
+  return `Що залишилось: ${items.join(', ')}.`
+}
+
 export function buildSpecialistOnboardingViewModel(
   normalized: NormalizedOnboardingState
 ): SpecialistOnboardingViewModel {
   const missingCodes = new Set(normalized.missingItems.map((item) => item.code))
+  const details = normalized.readinessDetails
+  const publicProfilePath = normalized.publicProfilePath
 
-  const isProfileCoreDone =
-    normalized.readinessDetails.profileCoreReady ??
-    !PROFILE_CORE_MISSING_CODES.some((code) => missingCodes.has(code))
-  const isAvailabilityDone =
-    normalized.readinessDetails.hasFutureSlots ?? !missingCodes.has('MISSING_FUTURE_SLOTS')
-  const isPublicProfileDone =
-    normalized.readinessDetails.publicProfileEnabled ?? !missingCodes.has('PUBLIC_PROFILE_DISABLED')
-  const isInboundDone =
-    normalized.readinessDetails.readyForInboundIntent ??
-    (isProfileCoreDone && isAvailabilityDone && isPublicProfileDone)
+  const doneByKey: Record<OnboardingStepKey, boolean> = {
+    display_name: doneFromReadiness(
+      details.publicDisplayNameExists,
+      missingCodes,
+      'MISSING_DISPLAY_NAME'
+    ),
+    description: doneFromReadiness(
+      details.basicDescriptionExists,
+      missingCodes,
+      'MISSING_DESCRIPTION'
+    ),
+    base_price: doneFromReadiness(
+      details.standardPriceConfigured,
+      missingCodes,
+      'MISSING_BASE_PRICE'
+    ),
+    client_entry_path: doneFromReadiness(
+      details.clientEntryPathExists,
+      missingCodes,
+      'MISSING_CLIENT_ENTRY_PATH'
+    ),
+    public_profile: doneFromReadiness(
+      details.publicProfileEnabled,
+      missingCodes,
+      'PUBLIC_PROFILE_DISABLED'
+    ),
+    public_link: doneFromReadiness(
+      details.publicProfileLinkAvailable,
+      missingCodes,
+      'MISSING_PUBLIC_PROFILE_LINK'
+    ),
+    profile_core: normalized.readiness,
+    availability: details.hasFutureSlots ?? false,
+    inbound_readiness: normalized.readiness,
+  }
 
-  const stepDoneByKey: Record<OnboardingStepKey, boolean> = {
-    profile_core: isProfileCoreDone,
-    availability: isAvailabilityDone,
-    public_profile: isPublicProfileDone,
-    inbound_readiness: isInboundDone,
+  const routeByStep: Record<OnboardingStepKey, string> = {
+    display_name: '/cabinet/profile',
+    description: '/cabinet/profile',
+    base_price: '/cabinet/profile',
+    client_entry_path:
+      details.publicBookingMode === 'direct_booking' &&
+      details.showPublicAvailability === true &&
+      details.hasFutureSlots === false
+        ? '/cabinet/slots?tab=availability'
+        : '/cabinet/profile',
+    public_profile: '/cabinet/profile',
+    public_link: publicProfilePath || '/public',
+    profile_core: '/cabinet/profile',
+    availability: '/cabinet/slots?tab=availability',
+    inbound_readiness: '/cabinet/inquiries',
   }
 
   const steps: OnboardingViewStep[] = STEP_META.map((step) => ({
     key: step.key,
     title: step.title,
     hint: step.hint,
-    done: stepDoneByKey[step.key],
-    to: STEP_ROUTE_BY_KEY[step.key],
+    done: doneByKey[step.key],
+    to: routeByStep[step.key] || step.fallbackRoute,
+    actionLabel: step.actionLabel,
   }))
 
   const nextActions: OnboardingCta[] = normalized.nextActions
@@ -299,12 +393,32 @@ export function buildSpecialistOnboardingViewModel(
     return !(action.code === primaryCta.code && action.to === primaryCta.to)
   })
 
+  const missingItems = normalized.missingItems.map(toMissingCopy)
+  const publicProfileEnabled = doneByKey.public_profile
+  const status: SpecialistOnboardingViewModel['status'] = normalized.readiness
+    ? 'ready'
+    : publicProfileEnabled
+      ? 'needs_completion'
+      : 'closed'
+
   return {
     readiness: normalized.readiness,
+    status,
+    statusLabel:
+      status === 'ready'
+        ? 'Профіль готовий до перших запитів'
+        : status === 'closed'
+          ? 'Профіль ще не відкритий'
+          : 'Профіль відкритий, але його варто доповнити',
+    helper:
+      'Заповніть кілька основних пунктів, щоб клієнту було зрозуміло, як до вас звернутися.',
     steps,
-    missingItems: normalized.missingItems.map(toMissingCopy),
+    missingItems,
+    missingSummary: sentenceFromItems(missingItems),
     warnings: normalized.warnings.map(toWarningCopy),
     nextActions: secondaryActions,
     primaryCta,
+    publicProfilePath,
+    publicProfileLinkAvailable: doneByKey.public_link && Boolean(publicProfilePath),
   }
 }
