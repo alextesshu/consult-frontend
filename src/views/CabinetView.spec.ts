@@ -1231,7 +1231,8 @@ describe('CabinetView', () => {
 
     await waitFor(() => {
       expect(view.container.querySelector('.panel--onboarding')).toBeInTheDocument()
-      expect(view.container).toHaveTextContent('Підготуйте профіль до перших запитів')
+      expect(view.container).toHaveTextContent('Готовність профілю')
+      expect(view.container).toHaveTextContent('Профіль ще не готовий до перших запитів')
       expect(view.container).toHaveTextContent('Профіль ще не відкритий')
       expect(view.container).toHaveTextContent('Додайте публічне імʼя')
       expect(view.container).toHaveTextContent('Заповніть короткий опис')
@@ -1242,6 +1243,15 @@ describe('CabinetView', () => {
       expect(view.container.querySelector('a[href="/cabinet/profile"]')).toBeInTheDocument()
       expect(view.container.querySelector('.onboarding-step--pending')).toBeInTheDocument()
     })
+    const attentionPanel = view.container.querySelector('.panel--attention')
+    expect(attentionPanel).toBeInTheDocument()
+    expect(attentionPanel?.querySelectorAll('.attention-row')).toHaveLength(1)
+    expect(attentionPanel).toHaveTextContent('Профіль ще не готовий до перших запитів')
+    expect(attentionPanel).toHaveTextContent('Потрібна дія: додайте публічне імʼя, опис, базова ціна.')
+    expect(attentionPanel).toHaveTextContent('Заповнити профіль')
+    expect(view.container.querySelector('[data-kind="readiness-summary"]')).not.toBeInTheDocument()
+    expect(view.container.querySelector('.panel--today [data-kind="readiness-summary"]')).not.toBeInTheDocument()
+    expect(view.container).not.toHaveTextContent('Потрібна дія: заповніть базовий профіль.')
   })
 
   it('shows missing public display name even when username exists', async () => {
@@ -1411,6 +1421,7 @@ describe('CabinetView', () => {
       expect(view.container.querySelector('.panel--today')).toBeInTheDocument()
       expect(view.container.querySelector('.panel--onboarding')).not.toBeInTheDocument()
       expect(view.container.querySelector('[data-kind="readiness-summary"]')).not.toBeInTheDocument()
+      expect(view.container).not.toHaveTextContent('Профіль ще не готовий до перших запитів')
     })
   })
 

@@ -182,21 +182,13 @@
                 {{ pendingGuestRequestsCta }}
               </RouterLink>
             </article>
-
-            <article v-if="shouldShowOnboardingBlock" class="today-card today-card--soft" data-kind="readiness-summary">
-              <h3 class="today-card__title">Підготуйте профіль</h3>
-              <p class="muted today-card__copy">{{ profileReadinessSummary }}</p>
-              <RouterLink v-if="readinessPrimaryAction" class="btn btn--ghost btn--sm" :to="readinessPrimaryAction.to">
-                {{ readinessPrimaryAction.label }}
-              </RouterLink>
-            </article>
           </section>
         </div>
       </section>
       <section v-if="shouldShowOnboardingBlock" class="panel panel--wide panel--onboarding">
         <div class="panel__header">
           <div>
-            <h2 class="panel__title panel__title--compact">Підготуйте профіль до перших запитів</h2>
+            <h2 class="panel__title panel__title--compact">Готовність профілю</h2>
             <div class="panel__meta">{{ onboardingViewModel?.helper }}</div>
           </div>
           <div
@@ -957,16 +949,22 @@ const pendingGuestRequestsSummary = computed(() => {
   return `${count} ${noun} очікують рішення.`
 })
 
-const readinessPrimaryAction = computed(() => onboardingViewModel.value?.primaryCta || null)
-
 const profileReadinessSummary = computed(() => {
   const viewModel = onboardingViewModel.value
   if (!viewModel) return ''
   if (viewModel.readiness) return 'Профіль готовий до звернень.'
   if (viewModel.primaryCta?.code === 'ADD_AVAILABILITY') return 'Потрібна дія: створіть вікна, у які клієнти можуть надсилати запити.'
-  if (viewModel.primaryCta?.code === 'COMPLETE_PROFILE') return 'Потрібна дія: заповніть базовий профіль.'
+  if (viewModel.primaryCta?.code === 'COMPLETE_PROFILE') return 'Потрібна дія: доповніть основні дані профілю.'
   if (viewModel.primaryCta?.code === 'OPEN_PUBLIC_PROFILE') return 'Потрібна дія: налаштуйте публічний профіль.'
   return viewModel.warnings[0] || viewModel.missingItems[0] || 'Потрібна дія: перевірте налаштування профілю.'
+})
+
+const readinessAttentionBody = computed(() => {
+  const viewModel = onboardingViewModel.value
+  if (!viewModel || viewModel.readiness) return ''
+  const items = viewModel.missingItems.slice(0, 3)
+  if (!items.length) return 'Потрібна дія: доповніть основні дані профілю.'
+  return `Потрібна дія: додайте ${items.join(', ')}.`
 })
 
 const attentionItems = computed<AttentionItem[]>(() => {
@@ -1002,9 +1000,9 @@ const attentionItems = computed<AttentionItem[]>(() => {
   if (viewModel && !viewModel.readiness) {
     items.push({
       key: 'readiness',
-      title: viewModel.primaryCta?.code === 'ADD_AVAILABILITY' ? 'Потрібно створити вікна для запису' : 'Готовність профілю',
-      body: profileReadinessSummary.value,
-      label: viewModel.primaryCta?.label || 'Показати деталі',
+      title: 'Профіль ще не готовий до перших запитів',
+      body: readinessAttentionBody.value,
+      label: viewModel.primaryCta?.label || 'Заповнити профіль',
       to: viewModel.primaryCta?.to || '/cabinet/profile',
       tone: 'warning',
       topics: [],
