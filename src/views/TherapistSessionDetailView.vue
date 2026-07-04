@@ -2,11 +2,8 @@
   <section class="session-detail">
     <header class="detail-hero">
       <div>
-        <div class="badge">Сесія спеціаліста</div>
         <h1 class="title detail-title">Деталі сесії</h1>
-        <p class="muted detail-subtitle">
-          Уся інформація по сесії, дії зі статусом, перенос і приватні нотатки в одному місці.
-        </p>
+        <p class="muted detail-subtitle">{{ detailHeaderSummary }}</p>
       </div>
       <RouterLink class="btn btn--ghost" to="/cabinet/sessions">Назад до списку</RouterLink>
     </header>
@@ -20,7 +17,7 @@
           <div>
             <h2 class="panel__title">{{ statusLabel(session) }}</h2>
             <p v-if="session.status === 'SCHEDULED'" class="muted">
-              Підтвердження сесії означає, що час і деталі зустрічі готові. Це не підтверджує оплату.
+              Очікує підтвердження спеціаліста. Потрібно завершити підготовку: перевірте формат, посилання на зустріч і робочі нотатки. Підтвердження не означає підтвердження оплати.
             </p>
           </div>
           <div class="summary-actions">
@@ -368,8 +365,8 @@
       <section v-if="workspacePanelVisible" class="panel panel--workspace" data-testid="session-workspace">
         <div class="panel__header">
           <div>
-            <h2 class="panel__title">Стан після сесії</h2>
-            <p class="muted workspace-panel__hint">Стани нижче показують саме наявність вмісту.</p>
+            <h2 class="panel__title">{{ workspacePanelTitle }}</h2>
+            <p class="muted workspace-panel__hint">{{ workspacePanelHint }}</p>
           </div>
         </div>
 
@@ -452,31 +449,37 @@
 
         <div v-else class="muted" data-testid="workspace-no-pending">Немає дій у цьому блоці.</div>
 
-        <div class="next-step-rail" data-testid="workspace-navigation-rail">
+        <div class="next-step-rail workspace-navigation-rail" data-testid="workspace-navigation-rail">
           <button
             v-if="canUseClientAccountFeatures"
-            class="btn btn--ghost btn--sm"
+            class="btn btn--ghost btn--sm workspace-navigation-link"
             type="button"
             @click="openPostSessionWorkbook"
           >
             До приватного зошита
           </button>
-          <button class="btn btn--ghost btn--sm" type="button" @click="focusSessionNote">
+          <button class="btn btn--ghost btn--sm workspace-navigation-link" type="button" @click="focusSessionNote">
             До нотатки
           </button>
-          <button class="btn btn--ghost btn--sm" type="button" @click="focusPaymentBlock">
+          <button class="btn btn--ghost btn--sm workspace-navigation-link" type="button" @click="focusPaymentBlock">
             До блоку оплати
           </button>
-          <RouterLink v-if="canUseClientAccountFeatures" class="btn btn--ghost btn--sm" :to="postSessionClientLink">
+          <RouterLink
+            v-if="canUseClientAccountFeatures"
+            class="btn btn--ghost btn--sm workspace-navigation-link"
+            :to="postSessionClientLink"
+          >
             До картки клієнта
-          </RouterLink>
-          <RouterLink class="btn btn--ghost btn--sm" to="/cabinet/sessions">
-            До списку сесій
           </RouterLink>
         </div>
       </section>
 
-      <section v-if="!isManualClientSession" ref="paymentPanelRef" class="panel">
+      <section v-if="!isManualClientSession" ref="paymentPanelRef" class="panel panel--payment">
+        <div class="panel__header">
+          <div>
+            <h2 class="panel__title">Оплата</h2>
+          </div>
+        </div>
         <SessionPaymentProofBlock
           :session-id="session.id"
           role="specialist"
@@ -495,7 +498,7 @@
       <section v-else ref="paymentPanelRef" class="panel">
         <div class="panel__header">
           <div>
-            <h2 class="panel__title">Оплата сесії</h2>
+            <h2 class="panel__title">Оплата</h2>
           </div>
           <span class="status-pill" :class="manualPaymentStatusClass">
             {{ manualPaymentStatusLabel }}
@@ -1179,6 +1182,13 @@ function normalizeSessionFormat(detail: SessionDetail | null): SessionFormat {
 const sessionFormat = computed<SessionFormat>(() => normalizeSessionFormat(session.value))
 const isOfflineSession = computed(() => sessionFormat.value === 'offline')
 const sessionFormatLabel = computed(() => (isOfflineSession.value ? 'Офлайн' : 'Онлайн'))
+const detailHeaderSummary = computed(() => {
+  const detail = session.value
+  if (!detail) return 'Завантаження деталей сесії...'
+
+  const startLabel = formatDateTime(sessionStartAt(detail)) || 'Час уточнюється'
+  return `${startLabel} · ${clientLabel(detail)} · ${statusLabel(detail)}`
+})
 const offlineLocation = computed(() => {
   if (!isOfflineSession.value) return ''
   return (session.value?.offline_location || '').trim()
@@ -1391,6 +1401,18 @@ const manualPriceSubmitDisabled = computed(() => {
 
 const workspacePanelVisible = computed(() => Boolean(workspace.value))
 
+const workspacePanelTitle = computed(() => {
+  return session.value?.status === 'COMPLETED' ? 'Після сесії' : 'Підготовка до сесії'
+})
+
+const workspacePanelHint = computed(() => {
+  if (session.value?.status === 'COMPLETED') {
+    return 'Перевірте приватні нотатки та робочі матеріали після завершення сесії.'
+  }
+
+  return 'Перевірте час, формат, посилання на зустріч, оплату та робочі нотатки перед підтвердженням.'
+})
+
 const workspacePaymentState = computed<WorkspacePaymentState | null>(() => workspace.value?.payment_state || null)
 const workspaceNoteState = computed<WorkspaceNoteState | null>(() => workspace.value?.note_state || null)
 const workspaceWorkbookState = computed<WorkspaceWorkbookState | null>(() => workspace.value?.workbook_state || null)
@@ -1399,19 +1421,8 @@ const workspaceSummaryItems = computed<WorkspaceSummaryItem[]>(() => {
   if (!workspace.value) return []
 
   const items: WorkspaceSummaryItem[] = []
-  const paymentState = workspacePaymentState.value
   const noteState = workspaceNoteState.value
   const workbookState = workspaceWorkbookState.value
-
-  if (!isManualClientSession.value && paymentState && paymentState !== 'not_applicable') {
-    items.push({
-      key: 'payment',
-      title: 'Оплата',
-      statusLabel: paymentStateLabel(paymentState),
-      pillClass: paymentStateClass(paymentState),
-      updatedAtLabel: formatWorkspaceUpdatedAt(workspace.value.payment_updated_at),
-    })
-  }
 
   if (noteState) {
     items.push({
@@ -1616,21 +1627,6 @@ function statusClass(detail: SessionDetail) {
 function formatWorkspaceUpdatedAt(value?: string | null) {
   if (!value) return ''
   return sharedFormatSessionDateTime(value)
-}
-
-function paymentStateLabel(state: WorkspacePaymentState) {
-  if (state === 'paid') return 'Оплачено'
-  if (state === 'awaiting_confirmation') return 'Очікує підтвердження'
-  if (state === 'unpaid') return 'Не оплачено'
-  if (state === 'not_applicable') return 'Не застосовується'
-  return state
-}
-
-function paymentStateClass(state: WorkspacePaymentState) {
-  if (state === 'paid') return 'status-pill--ok'
-  if (state === 'awaiting_confirmation') return 'status-pill--warn'
-  if (state === 'unpaid') return 'status-pill--muted'
-  return 'status-pill--muted'
 }
 
 function noteStateLabel(state: WorkspaceNoteState | WorkspaceWorkbookState) {
@@ -2602,39 +2598,34 @@ watch(
 <style scoped>
 .session-detail {
   display: grid;
-  gap: 20px;
+  gap: 16px;
   padding: 4px 0 8px;
-  background:
-    radial-gradient(760px 360px at 8% -4%, color-mix(in srgb, var(--pc-blue-soft) 66%, transparent), transparent 70%),
-    radial-gradient(700px 380px at 92% 2%, color-mix(in srgb, var(--pc-peach-100) 72%, transparent), transparent 72%);
 }
 
 .detail-hero {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 22px;
-  background:
-    linear-gradient(
-      135deg,
-      color-mix(in srgb, var(--pc-bg-card) 90%, var(--pc-blue-soft)),
-      color-mix(in srgb, var(--pc-bg-card) 84%, var(--pc-peach-100))
-    );
+  gap: 14px;
+  background: color-mix(in srgb, var(--pc-bg-card) 96%, #ffffff);
   border: 1px solid var(--pc-border);
-  border-radius: var(--pc-radius-lg);
-  padding: 24px;
-  box-shadow: var(--pc-shadow-card);
+  border-radius: var(--pc-radius-md);
+  padding: 12px 14px;
+  box-shadow: var(--pc-shadow-soft);
 }
 
 .detail-title {
-  margin: 4px 0 0;
-  font-size: 32px;
+  margin: 0;
+  font-size: 24px;
+  line-height: 1.18;
   color: var(--pc-navy-950);
 }
 
 .detail-subtitle {
-  margin: 10px 0 0;
-  max-width: 620px;
+  margin: 4px 0 0;
+  max-width: 720px;
+  font-size: 14px;
+  line-height: 1.35;
   color: color-mix(in srgb, var(--pc-navy-900) 72%, var(--muted));
 }
 
@@ -2781,6 +2772,14 @@ watch(
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+.workspace-navigation-rail {
+  gap: 6px;
+}
+
+.workspace-navigation-link {
+  padding-inline: 10px;
 }
 
 .note-header-actions {
@@ -3306,18 +3305,18 @@ watch(
   }
 
   .detail-hero {
-    padding: 12px 14px;
-    gap: 10px;
+    padding: 10px 12px;
+    gap: 8px;
   }
 
   .detail-title {
-    font-size: 24px;
-    margin: 2px 0 0;
+    font-size: 22px;
+    margin: 0;
     line-height: 1.16;
   }
 
   .detail-subtitle {
-    margin-top: 6px;
+    margin-top: 4px;
     font-size: 13px;
     line-height: 1.35;
     max-width: 100%;

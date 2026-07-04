@@ -279,6 +279,12 @@ describe('TherapistSessionDetailView', () => {
     })
 
     expect(await screen.findByText('client@example.com')).toBeInTheDocument()
+    expect(screen.queryByText('Сесія спеціаліста')).not.toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Деталі сесії' })).toBeInTheDocument()
+    expect(
+      screen.getByText(`${formatSessionDateTime(sessionDetail.slot_start_at as string)} · Test Client · Підтверджено`)
+    ).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Назад до списку' })).toHaveAttribute('href', '/cabinet/sessions')
     expect(screen.getByText(/ID: #77/)).toBeInTheDocument()
     expect(await screen.findByText('request@example.com')).toBeInTheDocument()
     expect(screen.getByText('Приватна нотатка прихована. Доступ має лише спеціаліст.')).toBeInTheDocument()
@@ -374,7 +380,7 @@ describe('TherapistSessionDetailView', () => {
     expect(screen.queryByRole('button', { name: 'До приватного зошита' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /Відкрити.*приват/ })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Запросити підтвердження оплати' })).not.toBeInTheDocument()
-    expect(screen.getByText('Оплата сесії')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Оплата' })).toBeInTheDocument()
     expect(screen.getByText('Не оплачено')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Позначити оплаченою' })).toBeInTheDocument()
     expect(screen.queryByText('Приватний зошит')).not.toBeInTheDocument()
@@ -621,7 +627,7 @@ describe('TherapistSessionDetailView', () => {
     renderView()
 
     expect(await screen.findByTestId('session-workspace')).toBeInTheDocument()
-    expect(screen.getByTestId('workspace-summary-payment')).toHaveTextContent('Не оплачено')
+    expect(screen.queryByTestId('workspace-summary-payment')).not.toBeInTheDocument()
     expect(screen.getByTestId('workspace-summary-note')).toHaveTextContent('Нотатку ще не збережено')
     expect(screen.getByTestId('workspace-summary-workbook')).toHaveTextContent('Запис ще не створено')
     expect(screen.getByTestId('workspace-actions')).toBeInTheDocument()
@@ -630,6 +636,51 @@ describe('TherapistSessionDetailView', () => {
     expect(screen.getByTestId('workspace-zone-capability')).toBeInTheDocument()
     expect(screen.getByTestId('workspace-action-open_note')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Відкрити приватний зошит' })).toBeInTheDocument()
+  })
+
+  it('uses preparation wording for scheduled workspace and keeps core pending-session actions', async () => {
+    const sessionDetail = buildSession({
+      status: 'SCHEDULED',
+      session_format: 'online',
+      meeting_mode: 'ONLINE',
+      meeting_url: null,
+      meeting_provider: null,
+      join_available: false,
+      workspace: buildWorkspace({
+        payment_state: 'unpaid',
+        note_state: 'missing',
+        workbook_state: 'missing',
+      }),
+    })
+    mockDetailContext(() => sessionDetail, { requests: [] })
+
+    renderView()
+
+    const workspace = await screen.findByTestId('session-workspace')
+    expect(screen.queryByText('Сесія спеціаліста')).not.toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Деталі сесії' })).toBeInTheDocument()
+    expect(
+      screen.getByText(`${formatSessionDateTime(sessionDetail.slot_start_at as string)} · Test Client · Заплановано`)
+    ).toBeInTheDocument()
+    expect(within(workspace).getByRole('heading', { name: 'Підготовка до сесії' })).toBeInTheDocument()
+    expect(within(workspace).queryByRole('heading', { name: 'Стан після сесії' })).not.toBeInTheDocument()
+    expect(within(workspace).getByText('Перевірте час, формат, посилання на зустріч, оплату та робочі нотатки перед підтвердженням.')).toBeInTheDocument()
+    expect(screen.getAllByRole('heading', { name: 'Оплата' })).toHaveLength(1)
+    expect(screen.queryByTestId('workspace-summary-payment')).not.toBeInTheDocument()
+
+    const meetingCard = screen.getByText('Онлайн-зустріч').closest('.meeting-card')
+    expect(meetingCard).toBeInTheDocument()
+    expect(within(meetingCard as HTMLElement).getByText('Потрібно додати посилання')).toBeInTheDocument()
+    expect(within(meetingCard as HTMLElement).getByRole('button', { name: 'Додати посилання' })).toBeInTheDocument()
+
+    expect(screen.getByRole('button', { name: 'Підтвердити' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: 'Скасувати' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: 'Перенести' })).toBeEnabled()
+    expect(screen.getByRole('button', { name: 'Повторювати щотижня' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Додати на дошку' })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Приватна нотатка по сесії' })).toBeInTheDocument()
+    expect(await screen.findByText('Приватна нотатка прихована. Доступ має лише спеціаліст.')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Назад до списку' })).toHaveAttribute('href', '/cabinet/sessions')
   })
 
   it('keeps next-step continuity inside workspace rail when actionable workspace zones are present', async () => {
@@ -655,6 +706,8 @@ describe('TherapistSessionDetailView', () => {
       'href',
       '/cabinet/clients?client=77&autoOpen=1'
     )
+    expect(screen.queryByRole('link', { name: 'До списку сесій' })).not.toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Назад до списку' })).toHaveAttribute('href', '/cabinet/sessions')
   })
 
   it('groups pending actions by classification and does not infer required from priority', async () => {
@@ -728,7 +781,8 @@ describe('TherapistSessionDetailView', () => {
     renderView()
 
     expect(await screen.findByTestId('session-workspace')).toBeInTheDocument()
-    expect(screen.getByTestId('workspace-summary-payment')).toHaveTextContent('Оплачено')
+    expect(screen.getByRole('heading', { name: 'Після сесії' })).toBeInTheDocument()
+    expect(screen.queryByTestId('workspace-summary-payment')).not.toBeInTheDocument()
     expect(screen.getByTestId('workspace-summary-note')).toHaveTextContent('Заповнена')
     expect(screen.getByTestId('workspace-summary-workbook')).toHaveTextContent('Заповнений')
     expect(screen.queryByTestId('workspace-actions')).not.toBeInTheDocument()
@@ -753,7 +807,7 @@ describe('TherapistSessionDetailView', () => {
     renderView()
 
     expect(await screen.findByTestId('session-workspace')).toBeInTheDocument()
-    expect(screen.getByTestId('workspace-summary-payment')).toHaveTextContent('Очікує підтвердження')
+    expect(screen.queryByTestId('workspace-summary-payment')).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Перевірити оплату' })).toBeInTheDocument()
     expect(within(screen.getByTestId('session-workspace')).queryByRole('button', { name: 'Відкрити нотатку' })).not.toBeInTheDocument()
   })
@@ -1283,7 +1337,7 @@ describe('TherapistSessionDetailView', () => {
 
     expect(await screen.findByText('client@example.com')).toBeInTheDocument()
     expect(
-      screen.getByText('Підтвердження сесії означає, що час і деталі зустрічі готові. Це не підтверджує оплату.')
+      screen.getByText('Очікує підтвердження спеціаліста. Потрібно завершити підготовку: перевірте формат, посилання на зустріч і робочі нотатки. Підтвердження не означає підтвердження оплати.')
     ).toBeInTheDocument()
 
     await fireEvent.click(screen.getByRole('button', { name: 'Підтвердити' }))
