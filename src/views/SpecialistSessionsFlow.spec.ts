@@ -375,7 +375,7 @@ describe('specialist sessions flow', () => {
     const scheduledCard = screen.getByText(/flow@example\.com/).closest('article')
     expect(scheduledCard).not.toBeNull()
 
-    await fireEvent.click(within(scheduledCard as HTMLElement).getByRole('button', { name: 'Підтвердити сесію' }))
+    await fireEvent.click(within(scheduledCard as HTMLElement).getByRole('button', { name: 'Підтвердити' }))
 
     await waitFor(() => {
       expect(mockedApiPatch).toHaveBeenCalledWith('/booking/sessions/42/confirm/')
@@ -384,7 +384,7 @@ describe('specialist sessions flow', () => {
 
     const confirmedCard = screen.getByText(/flow@example\.com/).closest('article')
     expect(confirmedCard).not.toBeNull()
-    expect(within(confirmedCard as HTMLElement).queryByRole('button', { name: 'Підтвердити сесію' })).toBeNull()
+    expect(within(confirmedCard as HTMLElement).queryByRole('button', { name: 'Підтвердити' })).toBeNull()
     expect(within(confirmedCard as HTMLElement).getByRole('button', { name: 'Скасувати' })).not.toBeDisabled()
 
     await openSessionFromCard(confirmedCard as HTMLElement, 42)
@@ -452,7 +452,7 @@ describe('specialist sessions flow', () => {
 
     const listCard = screen.getByText(/flow@example\.com/).closest('article')
     expect(listCard).not.toBeNull()
-    expect(within(listCard as HTMLElement).getByRole('button', { name: 'Підтвердити сесію' })).not.toBeDisabled()
+    expect(within(listCard as HTMLElement).getByRole('button', { name: 'Підтвердити' })).not.toBeDisabled()
 
     await openSessionFromCard(listCard as HTMLElement, 42)
 
@@ -485,8 +485,11 @@ describe('specialist sessions flow', () => {
 
     const reloadedListCard = screen.getByText(/flow@example\.com/).closest('article')
     expect(reloadedListCard).not.toBeNull()
-    expect(within(reloadedListCard as HTMLElement).getByRole('button', { name: 'Підтвердити сесію' })).not.toBeDisabled()
-    expect(within(reloadedListCard as HTMLElement).getByRole('button', { name: 'Скасувати' })).not.toBeDisabled()
+    expect(within(reloadedListCard as HTMLElement).getByRole('button', { name: 'Підтвердити' })).not.toBeDisabled()
+    expect(within(reloadedListCard as HTMLElement).getByRole('link', { name: 'Деталі сесії' })).toHaveAttribute(
+      'href',
+      '/cabinet/sessions/42'
+    )
   })
 
   it('keeps list and detail aligned after rescheduling from detail suggestions', async () => {
@@ -753,7 +756,7 @@ describe('specialist sessions flow', () => {
 
     const refreshedStatusPanel = screen.getByText(/ID: #77/).closest('section')
     expect(refreshedStatusPanel).not.toBeNull()
-    expect((refreshedStatusPanel as HTMLElement).querySelector('.status-pill--muted')).not.toBeNull()
+    expect(refreshedStatusPanel as HTMLElement).toHaveTextContent('Завершено')
     const statusActionButtons = within(refreshedStatusPanel as HTMLElement).queryAllByRole('button')
     expect(statusActionButtons).toHaveLength(4)
     expect(statusActionButtons.map((button) => button.textContent?.trim())).toEqual(
@@ -772,7 +775,7 @@ describe('specialist sessions flow', () => {
 
     const historyCard = screen.getByText(/flow@example\.com/).closest('article')
     expect(historyCard).not.toBeNull()
-    expect((historyCard as HTMLElement).querySelector('.status-pill--muted')).not.toBeNull()
+    expect(historyCard as HTMLElement).toHaveTextContent('Завершено')
     expect(within(historyCard as HTMLElement).queryAllByRole('button')).toHaveLength(0)
     expect(within(historyCard as HTMLElement).getByRole('link')).toHaveAttribute('href', '/cabinet/sessions/42')
   })

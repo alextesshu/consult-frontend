@@ -233,7 +233,14 @@ describe('TherapistSessionsView', () => {
 
     renderView()
 
-    expect(await screen.findByText('Керуйте сесіями')).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Сесії' })).toBeInTheDocument()
+    expect(screen.queryByText(/Дії доступні одразу/)).not.toBeInTheDocument()
+    expect(screen.getByText('Плануйте, підтверджуйте та переглядайте історію зустрічей.')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Створити сесію' })).toHaveAttribute(
+      'href',
+      '/cabinet/slots?action=create-session'
+    )
+    expect(screen.getByRole('link', { name: 'Назад до кабінету' })).toHaveAttribute('href', '/cabinet')
     expect(screen.getByText('Сесії без реєстрації')).toBeInTheDocument()
     expect(
       screen.getByText('Запити з публічного профілю залишаються в роботі, доки ви їх не підтвердите або не відхилите.')
@@ -644,7 +651,7 @@ describe('TherapistSessionsView', () => {
 
     try {
       renderView()
-      await screen.findByText('Керуйте сесіями')
+      await screen.findByRole('heading', { name: 'Сесії' })
 
       const dateField = screen.getByText('Дата').closest('label')
       expect(dateField).not.toBeNull()
@@ -690,7 +697,7 @@ describe('TherapistSessionsView', () => {
     })
 
     const view = renderView()
-    await screen.findByText('Керуйте сесіями')
+    await screen.findByRole('heading', { name: 'Сесії' })
 
     await waitFor(() => {
       const priorityMain = view.container.querySelector('.priority-next__main') as HTMLAnchorElement | null
@@ -733,7 +740,7 @@ describe('TherapistSessionsView', () => {
     })
 
     renderView()
-    await screen.findByText('Керуйте сесіями')
+    await screen.findByRole('heading', { name: 'Сесії' })
 
     expect(await screen.findAllByText('Формат: Офлайн')).not.toHaveLength(0)
     expect(screen.queryByRole('link', { name: 'Приєднатися' })).not.toBeInTheDocument()
@@ -768,7 +775,7 @@ describe('TherapistSessionsView', () => {
     })
 
     const view = renderView()
-    await screen.findByText('Керуйте сесіями')
+    await screen.findByRole('heading', { name: 'Сесії' })
 
     await waitFor(() => {
       const priorityMain = view.container.querySelector('.priority-next__main') as HTMLAnchorElement | null

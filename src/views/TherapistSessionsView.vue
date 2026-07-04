@@ -2,9 +2,9 @@
   <section class="sessions">
     <header class="sessions__hero">
       <div>
-        <h1 class="title sessions__title">Керуйте сесіями</h1>
+        <h1 class="title sessions__title">Сесії</h1>
         <p class="muted sessions__subtitle">
-          Список запланованих і минулих сесій. Дії доступні одразу.
+          Плануйте, підтверджуйте та переглядайте історію зустрічей.
         </p>
       </div>
       <div class="sessions__hero-actions">
@@ -2058,7 +2058,7 @@ onBeforeUnmount(() => {
 <style scoped>
 .sessions {
   display: grid;
-  gap: 20px;
+  gap: 16px;
   min-width: 0;
   color: var(--pc-text-main);
 }
@@ -2067,33 +2067,12 @@ onBeforeUnmount(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 20px;
-  overflow: hidden;
-  position: relative;
-  background:
-    radial-gradient(circle at 92% 18%, rgba(143, 203, 200, 0.28), transparent 28%),
-    linear-gradient(135deg, var(--pc-bg-card), var(--pc-bg-soft));
+  gap: 14px;
+  background: color-mix(in srgb, var(--pc-bg-card) 96%, #ffffff);
   border: 1px solid var(--pc-border);
-  border-radius: var(--pc-radius-panel);
-  padding: 24px;
+  border-radius: var(--pc-radius-card);
+  padding: 12px 14px;
   box-shadow: var(--pc-shadow-soft);
-}
-
-.sessions__hero > * {
-  position: relative;
-  z-index: 1;
-}
-
-.sessions__hero::after {
-  content: "";
-  position: absolute;
-  right: -44px;
-  bottom: -58px;
-  width: 180px;
-  height: 180px;
-  border-radius: 999px;
-  background: rgba(247, 183, 126, 0.18);
-  pointer-events: none;
 }
 
 .sessions__hero-actions {
@@ -2105,16 +2084,18 @@ onBeforeUnmount(() => {
 }
 
 .sessions__title {
-  margin: 8px 0 8px;
+  margin: 0;
   color: var(--pc-navy-950);
-  font-size: 32px;
-  line-height: 1.15;
+  font-size: 24px;
+  line-height: 1.18;
 }
 
 .sessions__subtitle {
-  max-width: 520px;
+  margin: 4px 0 0;
+  max-width: 620px;
   color: var(--pc-text-muted);
-  line-height: 1.55;
+  font-size: 14px;
+  line-height: 1.35;
 }
 
 .panel {
@@ -3004,13 +2985,13 @@ onBeforeUnmount(() => {
   .sessions__hero {
     flex-direction: column;
     align-items: flex-start;
-    padding: 14px 16px;
-    gap: 10px;
+    padding: 10px 12px;
+    gap: 8px;
   }
 
   .sessions__title {
-    font-size: 26px;
-    margin: 4px 0;
+    font-size: 22px;
+    margin: 0;
     line-height: 1.16;
   }
 
@@ -3023,18 +3004,6 @@ onBeforeUnmount(() => {
     -webkit-line-clamp: 1;
     -webkit-box-orient: vertical;
     overflow: hidden;
-  }
-
-  .sessions__hero::after {
-    width: 116px;
-    height: 116px;
-    right: -22px;
-    bottom: -30px;
-    opacity: 0.55;
-  }
-
-  .hero-back-link {
-    display: none;
   }
 
   .session-card--with-photo {
@@ -3072,12 +3041,8 @@ onBeforeUnmount(() => {
   }
 
   .sessions__hero {
-    padding: 12px 14px;
-    gap: 10px;
-  }
-
-  .sessions__hero::after {
-    display: none;
+    padding: 10px 12px;
+    gap: 8px;
   }
 
   .panel {
@@ -3090,8 +3055,8 @@ onBeforeUnmount(() => {
   }
 
   .sessions__title {
-    font-size: 24px;
-    margin: 4px 0;
+    font-size: 22px;
+    margin: 0;
     line-height: 1.16;
   }
 
@@ -3104,10 +3069,6 @@ onBeforeUnmount(() => {
     -webkit-line-clamp: 1;
     -webkit-box-orient: vertical;
     overflow: hidden;
-  }
-
-  .hero-back-link {
-    display: none;
   }
 
   .session-filters {
