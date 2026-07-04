@@ -65,7 +65,11 @@ function createWorkQueuePayload(overrides?: Record<string, unknown>) {
 
 function sessionIsoForDay(dayOffset: number, hour = 10, minute = 0) {
   const now = new Date()
-  return new Date(now.getFullYear(), now.getMonth(), now.getDate() + dayOffset, hour, minute).toISOString()
+  const target = new Date(now.getFullYear(), now.getMonth(), now.getDate() + dayOffset, hour, minute)
+  if (dayOffset === 0 && target.getTime() <= now.getTime()) {
+    return new Date(now.getTime() + 30 * 60 * 1000).toISOString()
+  }
+  return target.toISOString()
 }
 
 const mockMe = ref(createMePayload())
