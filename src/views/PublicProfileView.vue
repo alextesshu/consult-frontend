@@ -26,7 +26,6 @@
           hero-role-line=""
           :hero-lead-text="heroLeadText"
           :hero-support-text="heroSupportText"
-          :completed-sessions-badge="completedSessionsBadge"
           :display-specialization-chips="displaySpecializationChips"
           :general-info-items="trustItems"
           :show-about-details="Boolean(aboutNarrativeText)"
@@ -1978,10 +1977,6 @@ const heroLeadText = computed(() => {
 })
 
 const heroSupportText = computed(() => '')
-
-const completedSessionsBadge = computed(() => {
-  return getCompletedSessionsBadge(profile.value?.completed_sessions_count)
-})
 
 const meetingFormatLabel = computed(() => {
   const sectionLabel = toDisplayText(sectionsFormats.value?.meeting_format_label)

@@ -1719,8 +1719,17 @@ describe('PublicProfileView', () => {
     expect(screen.queryByText('Profile not found.')).not.toBeInTheDocument()
   })
 
-  it('shows completed sessions line in the public hero only from 50+ bucket', async () => {
-    mockedFetchPublicSpecialistProfile.mockResolvedValue(buildProfile({ completed_sessions_count: 120 }))
+  it('shows completed sessions once in general information from 50+ bucket', async () => {
+    mockedFetchPublicSpecialistProfile.mockResolvedValue(
+      buildProfile({
+        completed_sessions_count: 50,
+        sections: {
+          trust: {
+            completed_sessions_count: 50,
+          },
+        },
+      })
+    )
     mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
     mockedFetchPublicJournalCollections.mockResolvedValue([])
     mockedFetchChatThreads.mockResolvedValue([])
@@ -1732,7 +1741,11 @@ describe('PublicProfileView', () => {
 
     renderView()
 
-    expect(await screen.findByText('Проведено сесій: 100+')).toBeInTheDocument()
+    const generalInfo = await screen.findByLabelText('Загальна інформація')
+    expect(within(generalInfo).getByText('Проведені сесії')).toBeInTheDocument()
+    expect(within(generalInfo).getByText('50+')).toBeInTheDocument()
+    expect(screen.queryByText(/Проведено сесій:/i)).not.toBeInTheDocument()
+    expect(screen.getAllByText('50+')).toHaveLength(1)
   })
 
   it('does not show completed sessions line when count is below threshold', async () => {

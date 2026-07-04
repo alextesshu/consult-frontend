@@ -63,9 +63,6 @@
         </div>
 
         <p v-if="profile && heroSupportText" class="hero-main__support">{{ heroSupportText }}</p>
-        <p v-if="profile && completedSessionsBadge" class="hero-main__sessions">
-          Проведено сесій: {{ completedSessionsBadge }}
-        </p>
       </div>
     </div>
   </header>
@@ -90,7 +87,6 @@ type Props = {
   heroRoleLine: string
   heroLeadText: string
   heroSupportText: string
-  completedSessionsBadge: string | null
   displaySpecializationChips: string[]
   generalInfoItems: HeroInfoItem[]
   showAboutDetails: boolean
@@ -334,14 +330,6 @@ const displayHeroRoleLine = computed(() => {
   font-size: 14px;
   line-height: 1.6;
   color: var(--pc-text-muted);
-}
-
-.hero-main__sessions {
-  margin: -2px 0 0;
-  font-size: 14px;
-  line-height: 1.5;
-  font-weight: 600;
-  color: color-mix(in srgb, var(--pc-navy-950) 84%, var(--pc-text-muted));
 }
 
 .hero-section {
