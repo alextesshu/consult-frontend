@@ -482,6 +482,83 @@ describe('App shell', () => {
     expect(requestsLink).not.toHaveTextContent('1')
   })
 
+  it('shows pending scheduled sessions count on the specialist sessions sidebar badge', async () => {
+    await renderWithProviders({
+      initialPath: '/cabinet',
+      roles: ['SPECIALIST'],
+      upcomingSessions: [
+        { id: 101, status: 'SCHEDULED', slot_start_at: '2099-03-12T10:00:00Z' },
+        { id: 102, status: 'SCHEDULED', slot_start_at: '2099-03-12T11:00:00Z' },
+        { id: 103, status: 'CONFIRMED', slot_start_at: '2099-03-12T12:00:00Z' },
+        { id: 104, status: 'COMPLETED', slot_start_at: '2099-03-12T13:00:00Z' },
+        { id: 105, status: 'CANCELLED', slot_start_at: '2099-03-12T14:00:00Z' },
+      ],
+      workQueue: {
+        pending_guest_requests_count: 3,
+        pending_slotless_guest_requests_count: 1,
+      },
+    })
+
+    await waitFor(() => {
+      expect(mockedApiGet).toHaveBeenCalledWith('/booking/sessions/', { params: { upcoming: true } })
+    })
+
+    const sidebar = screen.getByRole('navigation', { name: 'Навігація кабінету спеціаліста' })
+    const sessionsLink = within(sidebar).getByRole('link', { name: 'Сесії' })
+    expect(sessionsLink).toHaveAttribute('href', '/cabinet/sessions')
+    expect(sessionsLink).toHaveTextContent('2')
+    expect(within(sidebar).getByRole('link', { name: 'Запити' })).toHaveTextContent('3')
+  })
+
+  it('hides the specialist sessions sidebar badge when there are no scheduled sessions', async () => {
+    await renderWithProviders({
+      initialPath: '/cabinet',
+      roles: ['SPECIALIST'],
+      upcomingSessions: [
+        { id: 201, status: 'CONFIRMED', slot_start_at: '2099-03-12T12:00:00Z' },
+        { id: 202, status: 'COMPLETED', slot_start_at: '2099-03-12T13:00:00Z' },
+        { id: 203, status: 'CANCELLED', slot_start_at: '2099-03-12T14:00:00Z' },
+      ],
+    })
+
+    await waitFor(() => {
+      expect(mockedApiGet).toHaveBeenCalledWith('/booking/sessions/', { params: { upcoming: true } })
+    })
+
+    const sidebar = screen.getByRole('navigation', { name: 'Навігація кабінету спеціаліста' })
+    const sessionsLink = within(sidebar).getByRole('link', { name: 'Сесії' })
+    expect((sessionsLink.textContent || '').trim()).toBe('Сесії')
+  })
+
+  it('does not use unread session notifications for the specialist sessions sidebar badge', async () => {
+    await renderWithProviders({
+      initialPath: '/cabinet',
+      roles: ['SPECIALIST'],
+      notifications: [
+        buildNotification({
+          id: 'session_event:301',
+          source_id: 301,
+          code: 'SESSION_CREATED',
+          session_id: 301,
+          title: 'Бронювання: нова сесія',
+          body: 'Unread notification should not drive the sidebar badge.',
+          target_url: '/cabinet/sessions/301',
+        }),
+      ],
+      upcomingSessions: [],
+    })
+
+    const notificationsButton = document.querySelector('.nav__notifications .icon-btn') as HTMLButtonElement | null
+    expect(notificationsButton).not.toBeNull()
+    await waitFor(() => {
+      expect(notificationsButton).toHaveTextContent('1')
+    })
+
+    const sidebar = screen.getByRole('navigation', { name: 'Навігація кабінету спеціаліста' })
+    const sessionsLink = within(sidebar).getByRole('link', { name: 'Сесії' })
+    expect((sessionsLink.textContent || '').trim()).toBe('Сесії')
+  })
+
   it('highlights active specialist sidebar item for nested cabinet routes', async () => {
     await renderWithProviders({
       initialPath: '/cabinet/sessions/42',

@@ -563,7 +563,12 @@ const specialistSidebarBaseItems: SpecialistSidebarItem[] = [
     to: '/cabinet/slots',
     match: ['/cabinet/schedule', '/cabinet/slots', '/cabinet/availability-rules', '/cabinet/availability-exceptions'],
   },
-  { label: 'Сесії', to: '/cabinet/sessions', match: ['/cabinet/sessions'] },
+  {
+    label: 'Сесії',
+    title: 'Сесії, що очікують підтвердження',
+    to: '/cabinet/sessions',
+    match: ['/cabinet/sessions'],
+  },
   {
     label: 'Запити',
     title: 'Запити, що очікують рішення',
@@ -658,17 +663,22 @@ const chatIntervalId = ref<number | null>(null)
 const preSessionToastIntervalId = ref<number | null>(null)
 const chatUnreadCount = ref(0)
 const pendingGuestRequestsCount = ref(0)
+const pendingSessionsCount = ref(0)
 const toast = useToast()
 const notifs = useNotifications({ isClient, isSpecialist })
 const shownPreSessionToastKeys = ref<Set<string>>(loadShownPreSessionToastKeys())
 
 const upcomingCount = computed(() => auth.me?.counts?.upcoming_sessions_count ?? 0)
 const specialistSidebarItems = computed<SpecialistSidebarItem[]>(() =>
-  specialistSidebarBaseItems.map((item) =>
-    item.to.startsWith('/cabinet/external-sessions')
-      ? { ...item, badge: pendingGuestRequestsCount.value || undefined }
-      : item
-  )
+  specialistSidebarBaseItems.map((item) => {
+    if (item.to === '/cabinet/sessions') {
+      return { ...item, badge: pendingSessionsCount.value || undefined }
+    }
+    if (item.to.startsWith('/cabinet/external-sessions')) {
+      return { ...item, badge: pendingGuestRequestsCount.value || undefined }
+    }
+    return item
+  })
 )
 
 function loadShownPreSessionToastKeys() {
@@ -1018,6 +1028,23 @@ async function refreshSpecialistRequestCount() {
   }
 }
 
+async function refreshSpecialistPendingSessionsCount() {
+  if (!isAuthenticated.value || !isSpecialist.value) {
+    pendingSessionsCount.value = 0
+    return
+  }
+  try {
+    const sessions = await apiGet<UpcomingSessionReminder[]>('/booking/sessions/', {
+      params: { upcoming: true },
+    })
+    pendingSessionsCount.value = Array.isArray(sessions)
+      ? sessions.filter((session) => session.status === 'SCHEDULED').length
+      : 0
+  } catch {
+    pendingSessionsCount.value = 0
+  }
+}
+
 async function refreshChatUnread() {
   if (!isAuthenticated.value || !isChatCapable.value) {
     chatUnreadCount.value = 0
@@ -1035,9 +1062,11 @@ function startMePolling() {
   if (refreshIntervalId.value !== null) return
   refreshMe()
   refreshSpecialistRequestCount()
+  refreshSpecialistPendingSessionsCount()
   refreshIntervalId.value = window.setInterval(() => {
     refreshMe()
     refreshSpecialistRequestCount()
+    refreshSpecialistPendingSessionsCount()
   }, 60000)
 }
 
@@ -1083,6 +1112,7 @@ function handleVisibilityChange() {
   if (document.visibilityState === 'visible') {
     refreshMe()
     refreshSpecialistRequestCount()
+    refreshSpecialistPendingSessionsCount()
     notifs.refresh()
     checkUpcomingSessionReminders()
   }
@@ -1155,6 +1185,7 @@ watch(isAuthenticated, (value) => {
     stopChatPolling()
     stopPreSessionToastPolling()
     pendingGuestRequestsCount.value = 0
+    pendingSessionsCount.value = 0
     notifs.reset()
   }
 })
@@ -1162,9 +1193,11 @@ watch(isAuthenticated, (value) => {
 watch(isSpecialist, (value) => {
   if (value && isAuthenticated.value) {
     refreshSpecialistRequestCount()
+    refreshSpecialistPendingSessionsCount()
     return
   }
   pendingGuestRequestsCount.value = 0
+  pendingSessionsCount.value = 0
 })
 
 watch(isChatCapable, (value) => {
