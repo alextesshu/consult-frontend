@@ -50,43 +50,77 @@
     <section class="panel panel--priority">
       <div class="panel__header">
         <div>
-          <h2 class="panel__title">Майбутні сесії</h2>
+          <h2 class="panel__title">Потребують дії</h2>
         </div>
       </div>
       <div class="priority-grid">
         <div class="priority-card">
-          <div class="priority-title">Потрібно завершити підготовку</div>
-          <div class="priority-value">
-            {{ needsConfirmation.length }}
+          <div class="priority-card__heading">
+            <div class="priority-title">Сесії для перевірки</div>
+            <div class="priority-value">
+              {{ needsConfirmation.length }}
+            </div>
           </div>
-          <div class="muted">Перевірте час, формат і деталі зустрічі. Підтвердження сесії не означає підтвердження оплати.</div>
+          <div class="muted priority-card__hint">Перевірте час, формат і деталі зустрічі. Підтвердження сесії не означає підтвердження оплати.</div>
           <div v-if="needsConfirmation.length" class="priority-list">
-            <div
+            <article
               v-for="session in needsConfirmation.slice(0, 3)"
               :key="session.id"
+              :id="`session-${session.id}`"
               class="priority-item"
             >
               <div class="priority-item__main">
-                <div class="priority-time">{{ formatDateTime(session.slot_start_at) }}</div>
-                <div class="muted">{{ sessionClientLabel(session) }}</div>
-                <div class="muted">{{ sessionFormatBadge(session) }}</div>
+                <div class="priority-item__line">
+                  <span class="priority-time">{{ formatDateTime(session.slot_start_at) }}</span>
+                  <span>{{ sessionClientLabel(session) }}</span>
+                  <span>{{ sessionFormatBadge(session) }}</span>
+                  <span v-if="session.client_email">Пошта: {{ session.client_email }}</span>
+                </div>
+                <div v-if="isManualClientSession(session)" class="manual-client-badges">
+                  <span class="status-pill status-pill--manual">Без реєстрації</span>
+                  <span class="muted manual-client-label">Клієнт без реєстрації</span>
+                </div>
+                <div class="priority-item__badges">
+                  <span class="status-pill status-pill--danger">Потрібне підтвердження</span>
+                  <span
+                    v-if="missingMeetingLink(session)"
+                    class="status-pill status-pill--warn"
+                  >
+                    Немає посилання
+                  </span>
+                  <span
+                    v-if="hasPaymentBadge(session)"
+                    class="status-pill status-pill--payment"
+                    :class="paymentBadgeClass(session)"
+                  >
+                    {{ paymentBadgeLabel(session) }}
+                  </span>
+                  <span
+                    v-if="hasPendingReschedule(session.id)"
+                    class="status-pill status-pill--warn"
+                  >
+                    Є запит на перенос
+                  </span>
+                </div>
                 <div class="muted priority-item__context">{{ sessionContextHint(session) }}</div>
               </div>
-              <button
-                class="btn btn--sm"
-                type="button"
-                :disabled="isActionLoading(session.id)"
-                @click="confirmSession(session.id)"
-              >
-                Підтвердити сесію
-              </button>
-              <RouterLink class="btn btn--ghost btn--sm" :to="`/cabinet/sessions/${session.id}`">
-                Відкрити сесію
-              </RouterLink>
-            </div>
+              <div class="priority-item__actions">
+                <RouterLink class="btn btn--sm" :to="`/cabinet/sessions/${session.id}`">
+                  Деталі сесії
+                </RouterLink>
+                <button
+                  class="btn btn--ghost btn--sm"
+                  type="button"
+                  :disabled="isActionLoading(session.id)"
+                  @click="confirmSession(session.id)"
+                >
+                  Підтвердити
+                </button>
+              </div>
+            </article>
           </div>
         </div>
-        <div class="priority-card">
+        <div v-if="prioritySession || !needsConfirmation.length" class="priority-card">
           <div class="priority-title">{{ isPriorityLive ? 'Сесія триває' : 'Найближча сесія' }}</div>
           <div v-if="prioritySession" class="priority-next">
             <RouterLink class="priority-next__main" :to="`/cabinet/sessions/${prioritySession.id}`">
@@ -124,14 +158,14 @@
                 Приєднатися
               </a>
               <RouterLink v-else class="btn btn--sm" :to="`/cabinet/sessions/${prioritySession.id}`">
-                Відкрити сесію
+                Деталі сесії
               </RouterLink>
               <RouterLink
                 v-if="priorityPrimaryAction !== 'details'"
                 class="btn btn--ghost btn--sm"
                 :to="`/cabinet/sessions/${prioritySession.id}`"
               >
-                Відкрити сесію
+                Деталі сесії
               </RouterLink>
             </div>
           </div>
@@ -142,25 +176,22 @@
 
     <section class="panel panel--no-registration">
       <div class="no-registration-entry">
-        <div>
+        <div class="no-registration-entry__main">
           <h2 class="panel__title">Сесії без реєстрації</h2>
           <p class="muted no-registration-entry__copy">
-            Створюйте та ведіть сесії для клієнтів, які залишають запит без створення акаунта.
-          </p>
-          <p class="muted no-registration-entry__helper">
             Запити з публічного профілю залишаються в роботі, доки ви їх не підтвердите або не відхилите.
           </p>
-          <RouterLink class="btn no-registration-entry__cta" to="/cabinet/external-sessions">
-            Відкрити сесії без реєстрації
-          </RouterLink>
         </div>
+        <RouterLink class="btn btn--sm no-registration-entry__cta" to="/cabinet/external-sessions">
+          Відкрити
+        </RouterLink>
       </div>
     </section>
 
-    <section class="panel">
+    <section class="panel panel--filters">
       <div class="panel__header">
         <div>
-          <h2 class="panel__title">Пошук потрібних сесій</h2>
+          <h2 class="panel__title">Фільтри</h2>
         </div>
         <button
           v-if="hasActiveSessionFilters"
@@ -208,7 +239,7 @@
         </div>
         <div class="session-filter-summary__links" aria-label="Перейти до результатів фільтру">
           <a class="session-filter-summary__link" href="#sessions-upcoming">
-            Заплановані: {{ filteredUpcomingSessions.length }}
+            Заплановані: {{ filteredPlannedSessions.length }}
           </a>
           <a class="session-filter-summary__link" href="#sessions-history">
             Історія: {{ historyResultCount }}
@@ -223,26 +254,12 @@
           <h2 class="panel__title">Заплановані сесії</h2>
         </div>
       </div>
-      <div v-if="needsConfirmation.length" class="new-bookings-banner">
-        <div>
-          Потрібно завершити підготовку: <strong>{{ needsConfirmation.length }}</strong>
-        </div>
-        <button class="btn btn--ghost btn--sm" type="button" @click="needsConfirmation[0] && focusSession(needsConfirmation[0].id)">
-          Перейти до першого
-        </button>
+      <div v-if="!loading && filteredPlannedSessions.length === 0" class="compact-empty">
+        Немає підтверджених майбутніх сесій.
       </div>
-      <EmptyState
-        v-if="!loading && filteredUpcomingSessions.length === 0"
-        title="Немає запланованих сесій"
-        description="Створіть доступний час або поділіться профілем, щоб клієнти могли залишити запит або обрати зручне вікно."
-        action-text="Створити сесію"
-        action-to="/cabinet/slots?action=create-session"
-        secondary-text="Керування профілем"
-        secondary-to="/cabinet/profile"
-      />
       <div v-else class="session-list">
         <article
-          v-for="session in filteredUpcomingSessions"
+          v-for="session in filteredPlannedSessions"
           :key="session.id"
           :id="`session-${session.id}`"
           class="session-card session-card--with-photo"
@@ -312,14 +329,14 @@
                 Приєднатися
               </a>
               <RouterLink v-else class="btn btn--sm" :to="`/cabinet/sessions/${session.id}`">
-                Відкрити сесію
+                Деталі сесії
               </RouterLink>
               <RouterLink
                 v-if="!isPrimaryAction(session, 'details')"
                 class="btn btn--ghost btn--sm"
                 :to="`/cabinet/sessions/${session.id}`"
               >
-                Відкрити сесію
+                Деталі сесії
               </RouterLink>
               <button
                 v-if="session.status === 'CONFIRMED'"
@@ -484,18 +501,13 @@
       </div>
     </section>
 
-    <section class="panel">
+    <section v-if="requestsLoading || rescheduleRequests.length > 0" class="panel panel--reschedule-requests">
       <div class="panel__header">
         <div>
           <h2 class="panel__title">Перенесення сесій</h2>
         </div>
       </div>
       <div v-if="requestsLoading" class="muted">Завантаження запитів...</div>
-      <EmptyState
-        v-else-if="rescheduleRequests.length === 0"
-        title="Немає нових запитів"
-        description="Коли клієнти попросять перенести сесію — тут з'явиться запит."
-      />
       <div v-else class="request-list">
         <article v-for="req in rescheduleRequests" :key="req.id" class="request-card">
           <div class="request-info">
@@ -553,55 +565,48 @@
         title="Історія порожня"
         description="Після завершених або відмінених сесій тут з'явиться історія."
       />
-      <div v-else class="history-grid">
+      <div v-else class="history-list">
         <article
           v-for="session in filteredHistorySessions"
           :key="session.id"
           :id="`session-${session.id}`"
-          class="session-card history-tile"
+          class="history-row"
           :class="{ 'session-card--highlight': highlightedSessionId === session.id }"
           @mouseenter="clearHighlight(session.id)"
         >
-          <div class="history-tile__body">
-            <div class="session-info">
-              <div class="session-time">{{ formatDateTime(session.slot_start_at) }}</div>
-              <div class="muted">{{ formatDuration(session.slot_start_at, session.slot_end_at) }}</div>
-              <div class="muted">
-                Клієнт: {{ sessionClientLabel(session) }}
-              </div>
-              <div v-if="isManualClientSession(session)" class="manual-client-badges">
+          <div class="history-row__main">
+            <div class="history-row__line">
+              <span class="session-time">{{ formatDateTime(session.slot_start_at) }}</span>
+              <span>{{ sessionClientLabel(session) }}</span>
+              <span>{{ statusLabel(session) }}</span>
+              <span v-if="hasPaymentBadge(session)">{{ paymentBadgeLabel(session) }}</span>
+            </div>
+            <div class="history-row__meta muted">
+              <span>{{ formatDuration(session.slot_start_at, session.slot_end_at) }}</span>
+              <span>{{ sessionFormatBadge(session) }}</span>
+              <span v-if="session.client_email">Пошта: {{ session.client_email }}</span>
+              <span>{{ sessionNoteSummary(session) }}</span>
+            </div>
+            <div v-if="isManualClientSession(session)" class="history-row__badges">
+              <span class="manual-client-badges">
                 <span class="status-pill status-pill--manual">Без реєстрації</span>
                 <span class="muted manual-client-label">Клієнт без реєстрації</span>
-              </div>
-              <div class="muted">{{ sessionFormatBadge(session) }}</div>
-              <div class="muted session-context">{{ sessionContextHint(session) }}</div>
-              <div v-if="session.client_email" class="muted">Пошта: {{ session.client_email }}</div>
-              <div class="status-pill" :class="statusClass(session)">
-                {{ statusLabel(session) }}
-              </div>
-              <div
-                v-if="hasPaymentBadge(session)"
-                class="status-pill status-pill--payment"
-                :class="paymentBadgeClass(session)"
-              >
-                {{ paymentBadgeLabel(session) }}
-              </div>
-              <div class="muted">{{ sessionNoteSummary(session) }}</div>
+              </span>
             </div>
-            <div class="session-actions history-tile__actions">
-              <button
-                v-if="session.status === 'CONFIRMED'"
-                class="btn btn--ghost btn--sm"
-                type="button"
-                :disabled="isActionLoading(session.id)"
-                @click="openCompletionModal(session.id)"
-              >
-                Завершити
-              </button>
-              <RouterLink class="btn btn--ghost btn--sm" :to="`/cabinet/sessions/${session.id}`">
-                Деталі
-              </RouterLink>
-            </div>
+          </div>
+          <div class="session-actions history-row__actions">
+            <button
+              v-if="session.status === 'CONFIRMED'"
+              class="btn btn--ghost btn--sm"
+              type="button"
+              :disabled="isActionLoading(session.id)"
+              @click="openCompletionModal(session.id)"
+            >
+              Завершити
+            </button>
+            <RouterLink class="btn btn--ghost btn--sm" :to="`/cabinet/sessions/${session.id}`">
+              Деталі
+            </RouterLink>
           </div>
         </article>
       </div>
@@ -1080,8 +1085,20 @@ function matchesSessionFilters(session: Session) {
   return true
 }
 
-const filteredUpcomingSessions = computed(() =>
-  upcomingSorted.value.filter((session) => matchesSessionFilters(session))
+function needsSpecialistAction(session: Session) {
+  return session.status === 'SCHEDULED'
+}
+
+const needsConfirmation = computed(() =>
+  upcomingSorted.value.filter((session) => needsSpecialistAction(session))
+)
+
+const plannedSessions = computed(() =>
+  upcomingSorted.value.filter((session) => !needsSpecialistAction(session))
+)
+
+const filteredPlannedSessions = computed(() =>
+  plannedSessions.value.filter((session) => matchesSessionFilters(session))
 )
 
 const filteredHistorySessions = computed(() =>
@@ -1097,7 +1114,7 @@ const historyHasMore = computed(() =>
 )
 
 const filteredSessionResultCount = computed(
-  () => filteredUpcomingSessions.value.length + historyResultCount.value
+  () => filteredPlannedSessions.value.length + historyResultCount.value
 )
 
 const activeNoteSession = computed(() => {
@@ -1105,12 +1122,8 @@ const activeNoteSession = computed(() => {
   return findSessionById(noteSessionId.value)
 })
 
-const needsConfirmation = computed(() =>
-  upcomingSorted.value.filter((session) => session.status === 'SCHEDULED')
-)
-
 const nextUpcoming = computed(() => {
-  const items = upcomingSorted.value
+  const items = plannedSessions.value
     .filter((session) => session.slot_start_at)
     .slice()
     .sort(
@@ -1337,6 +1350,10 @@ function meetingUrl(session: Session) {
   return normalizeMeetingUrl(session.meeting_url)
 }
 
+function missingMeetingLink(session: Session) {
+  return !isOfflineSession(session) && !meetingUrl(session)
+}
+
 function resolveSessionFormat(session: Session): SessionFormat {
   if (session.session_format === 'offline') return 'offline'
   if (session.session_format === 'online') return 'online'
@@ -1434,15 +1451,6 @@ async function scrollToHighlightedSession() {
 function clearHighlight(id: number) {
   if (highlightedSessionId.value === id) {
     highlightedSessionId.value = null
-  }
-}
-
-async function focusSession(id: number) {
-  highlightedSessionId.value = id
-  await nextTick()
-  const el = document.getElementById(`session-${id}`)
-  if (el) {
-    el.scrollIntoView({ behavior: 'smooth', block: 'center' })
   }
 }
 
@@ -2161,28 +2169,26 @@ onBeforeUnmount(() => {
   }
 
   .panel--no-registration {
-    background: linear-gradient(135deg, var(--pc-bg-card), var(--pc-bg-soft));
+    padding: 12px 14px;
+    box-shadow: none;
   }
 
   .no-registration-entry {
-    display: grid;
-    gap: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
   }
 
-  .no-registration-entry__copy,
-  .no-registration-entry__helper {
-    margin: 8px 0 0;
+  .no-registration-entry__copy {
+    margin: 2px 0 0;
     max-width: 680px;
-    line-height: 1.5;
-  }
-
-  .no-registration-entry__helper {
+    line-height: 1.35;
     font-size: 14px;
   }
 
   .no-registration-entry__cta {
-    justify-self: start;
-    margin-top: 6px;
+    flex: 0 0 auto;
   }
 
   .priority-grid {
@@ -2194,11 +2200,23 @@ onBeforeUnmount(() => {
   .priority-card {
     border: 1px solid var(--pc-border);
     border-radius: var(--pc-radius-panel);
-    padding: 16px;
+    padding: 12px;
     background: rgba(255, 255, 255, 0.88);
     display: grid;
-    gap: 10px;
+    gap: 8px;
     box-shadow: 0 10px 28px rgba(18, 35, 58, 0.05);
+  }
+
+  .priority-card__heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .priority-card__hint {
+    font-size: 13px;
+    line-height: 1.35;
   }
 
   .priority-title {
@@ -2207,7 +2225,7 @@ onBeforeUnmount(() => {
   }
 
   .priority-value {
-    font-size: 28px;
+    font-size: 20px;
     font-family: var(--font-display);
     color: var(--pc-navy-950);
     font-weight: 700;
@@ -2219,11 +2237,12 @@ onBeforeUnmount(() => {
   }
 
   .priority-item {
-    display: flex;
-    align-items: center;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
     justify-content: space-between;
-    gap: 10px;
-    padding: 12px;
+    gap: 8px 12px;
+    padding: 10px;
     border-radius: var(--pc-radius-card);
     border: 1px solid var(--pc-border);
     background: var(--pc-bg-main);
@@ -2231,18 +2250,57 @@ onBeforeUnmount(() => {
 
   .priority-item__main {
     display: grid;
-    gap: 2px;
+    gap: 5px;
+    min-width: 0;
+  }
+
+  .priority-item__line,
+  .priority-item__badges,
+  .priority-item__actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .priority-item__line {
+    color: var(--pc-text-muted);
+    font-size: 13px;
+  }
+
+  .priority-item__line > span {
+    display: inline-flex;
+    align-items: center;
+    min-width: 0;
+  }
+
+  .priority-item__line > span + span::before,
+  .history-row__line > span + span::before,
+  .history-row__meta > span + span::before {
+    content: '·';
+    margin-right: 6px;
+    color: var(--pc-text-muted);
   }
 
   .priority-item__context {
-    max-width: 420px;
-    line-height: 1.35;
+    line-height: 1.3;
+    font-size: 12px;
   }
 
   .priority-time {
     color: var(--pc-navy-950);
     font-weight: 700;
   }
+
+.panel--filters {
+  padding: 12px 14px;
+  gap: 8px;
+  box-shadow: none;
+}
+
+.panel--filters .panel__title {
+  font-size: 18px;
+}
 
 .priority-next {
   display: grid;
@@ -2280,7 +2338,7 @@ onBeforeUnmount(() => {
 .session-filters {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 14px;
+  gap: 10px;
   align-items: end;
 }
 
@@ -2313,10 +2371,10 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 14px;
+  gap: 10px;
   border: 1px solid var(--pc-border);
-  border-radius: var(--pc-radius-panel);
-  padding: 12px 14px;
+  border-radius: var(--pc-radius-card);
+  padding: 8px 10px;
   background: var(--pc-bg-main);
   color: var(--pc-text-muted);
 }
@@ -2347,10 +2405,10 @@ onBeforeUnmount(() => {
 .session-filter-summary__link {
   display: inline-flex;
   align-items: center;
-  min-height: 34px;
+  min-height: 30px;
   border: 1px solid var(--pc-border);
   border-radius: var(--pc-radius-control);
-  padding: 6px 10px;
+  padding: 5px 9px;
   background: #fff;
   color: var(--pc-navy-900);
   font-size: 13px;
@@ -2384,6 +2442,15 @@ onBeforeUnmount(() => {
   display: grid;
   gap: 14px;
   margin-top: 10px;
+}
+
+.compact-empty {
+  border: 1px dashed var(--pc-border);
+  border-radius: var(--pc-radius-card);
+  padding: 10px 12px;
+  background: var(--pc-bg-main);
+  color: var(--pc-text-muted);
+  font-size: 14px;
 }
 
 .session-card {
@@ -2505,19 +2572,6 @@ onBeforeUnmount(() => {
   color: var(--pc-navy-800);
 }
 
-.new-bookings-banner {
-  margin-top: 6px;
-  padding: 12px 14px;
-  border: 1px solid color-mix(in srgb, var(--pc-teal-500) 45%, var(--pc-border));
-  border-radius: var(--pc-radius-card);
-  background: var(--pc-teal-100);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  color: var(--pc-navy-900);
-}
-
 .session-actions {
   display: flex;
   gap: 8px;
@@ -2552,26 +2606,51 @@ onBeforeUnmount(() => {
   background: var(--pc-teal-100);
 }
 
-.history-grid {
+.history-list {
   display: grid;
-  gap: 12px;
+  gap: 8px;
   margin-top: 10px;
-  grid-template-columns: 1fr;
 }
 
-.history-tile {
-  padding: 12px;
-  gap: 0;
-}
-
-.history-tile__body {
+.history-row {
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-card);
+  padding: 10px 12px;
+  background: var(--pc-bg-card);
   display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
   gap: 10px;
-  min-height: 100%;
 }
 
-.history-tile__actions {
-  margin-top: auto;
+.history-row__main {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.history-row__line,
+.history-row__meta,
+.history-row__badges {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.history-row__line {
+  color: var(--pc-navy-950);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.history-row__meta {
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.history-row__actions {
+  justify-content: flex-end;
 }
 
 .history-load-more {
@@ -2888,8 +2967,7 @@ onBeforeUnmount(() => {
 .session-actions .btn,
 .reschedule-actions .btn,
 .recurring-actions .btn,
-.request-actions .btn,
-.new-bookings-banner .btn {
+.request-actions .btn {
   border-radius: var(--pc-radius-control);
   font-weight: 700;
 }
@@ -2901,8 +2979,7 @@ onBeforeUnmount(() => {
 .session-actions .btn--ghost,
 .reschedule-actions .btn--ghost,
 .recurring-actions .btn--ghost,
-.request-actions .btn--ghost,
-.new-bookings-banner .btn--ghost {
+.request-actions .btn--ghost {
   border-color: var(--pc-border);
   background: #fff;
   color: var(--pc-navy-900);
@@ -2917,24 +2994,6 @@ onBeforeUnmount(() => {
   border-color: var(--pc-navy-900);
   background: var(--pc-navy-900);
   color: #fff;
-}
-
-@media (min-width: 760px) {
-  .history-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (min-width: 1040px) {
-  .history-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
-@media (min-width: 1440px) {
-  .history-grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
 }
 
 @media (max-width: 860px) {
@@ -2978,13 +3037,23 @@ onBeforeUnmount(() => {
     display: none;
   }
 
-  .new-bookings-banner {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
   .session-card--with-photo {
     grid-template-columns: 1fr;
+  }
+
+  .priority-item,
+  .history-row {
+    grid-template-columns: 1fr;
+  }
+
+  .priority-item__actions,
+  .history-row__actions {
+    justify-content: flex-start;
+  }
+
+  .no-registration-entry {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .session-photo-wrap {

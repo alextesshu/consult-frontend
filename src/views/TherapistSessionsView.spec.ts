@@ -236,12 +236,14 @@ describe('TherapistSessionsView', () => {
     expect(await screen.findByText('Керуйте сесіями')).toBeInTheDocument()
     expect(screen.getByText('Сесії без реєстрації')).toBeInTheDocument()
     expect(
-      screen.getByText('Створюйте та ведіть сесії для клієнтів, які залишають запит без створення акаунта.')
+      screen.getByText('Запити з публічного профілю залишаються в роботі, доки ви їх не підтвердите або не відхилите.')
     ).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Відкрити сесії без реєстрації' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Відкрити' })).toHaveAttribute(
       'href',
       '/cabinet/external-sessions'
     )
+    expect(screen.getByText('Фільтри')).toBeInTheDocument()
+    expect(screen.queryByText('Пошук потрібних сесій')).not.toBeInTheDocument()
 
     await waitFor(() => {
       expect(mockedApiGet).toHaveBeenCalledWith('/booking/sessions/', { params: { upcoming: true } })
@@ -254,7 +256,7 @@ describe('TherapistSessionsView', () => {
     expect(mockedFetchSpecialistRescheduleRequests).toHaveBeenCalled()
     expect(mockedFetchSpecialistProfile).toHaveBeenCalled()
 
-    expect(await screen.findByText('Потрібно завершити підготовку')).toBeInTheDocument()
+    expect(await screen.findByText('Потребують дії')).toBeInTheDocument()
     expect(
       screen.getByText('Перевірте час, формат і деталі зустрічі. Підтвердження сесії не означає підтвердження оплати.')
     ).toBeInTheDocument()
@@ -262,7 +264,7 @@ describe('TherapistSessionsView', () => {
     expect(await screen.findByText(/maria-request@example\.com/)).toBeInTheDocument()
     expect(screen.getByText(/history@example\.com/)).toBeInTheDocument()
     const photos = screen.getAllByRole('img', { name: 'Фото спеціаліста' })
-    expect(photos).toHaveLength(2)
+    expect(photos).toHaveLength(1)
     expect(photos[0]).toHaveAttribute('src', 'https://example.com/photo.jpg')
 
     const mariaCard = screen.getByText(/maria@example\.com/).closest('article')
@@ -271,8 +273,10 @@ describe('TherapistSessionsView', () => {
 
     await fireEvent.update(screen.getByLabelText('Статус'), 'CONFIRMED')
 
+    const plannedSection = document.getElementById('sessions-upcoming') as HTMLElement
+    expect(plannedSection).not.toBeNull()
     await waitFor(() => {
-      expect(screen.queryByText(/anna@example\.com/)).not.toBeInTheDocument()
+      expect(within(plannedSection).queryByText(/anna@example\.com/)).not.toBeInTheDocument()
     })
     expect(screen.getByText(/maria@example\.com/)).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Скинути фільтри' })).toBeInTheDocument()
@@ -327,14 +331,32 @@ describe('TherapistSessionsView', () => {
     const pendingPriorityCard = priorityCards[0] as HTMLElement
     expect(pendingPriorityCard).not.toBeNull()
 
-    const detailLinks = within(pendingPriorityCard).getAllByRole('link', { name: 'Відкрити сесію' })
+    expect(within(pendingPriorityCard).getByText('Сесії для перевірки')).toBeInTheDocument()
+    const detailLinks = within(pendingPriorityCard).getAllByRole('link', { name: 'Деталі сесії' })
     expect(detailLinks.map((link) => link.getAttribute('href'))).toEqual([
       '/cabinet/sessions/71',
       '/cabinet/sessions/72',
     ])
+    expect(within(pendingPriorityCard).queryByRole('link', { name: 'Відкрити сесію' })).not.toBeInTheDocument()
     expect(within(pendingPriorityCard).queryByText(/confirmed@example\.com/)).not.toBeInTheDocument()
 
-    const confirmButtons = within(pendingPriorityCard).getAllByRole('button', { name: 'Підтвердити сесію' })
+    const plannedSection = document.getElementById('sessions-upcoming') as HTMLElement
+    expect(plannedSection).not.toBeNull()
+    expect(within(plannedSection).queryByText(/oksana@example\.com/)).not.toBeInTheDocument()
+    expect(within(plannedSection).queryByText(/petro@example\.com/)).not.toBeInTheDocument()
+    expect(within(plannedSection).getByText(/confirmed@example\.com/)).toBeInTheDocument()
+
+    const nextSessionCard = priorityCards[1] as HTMLElement
+    expect(within(nextSessionCard).queryByText(/oksana@example\.com/)).not.toBeInTheDocument()
+    expect(within(nextSessionCard).queryByText(/petro@example\.com/)).not.toBeInTheDocument()
+    expect(within(nextSessionCard).getByText(/Клієнт: Марія/)).toBeInTheDocument()
+
+    await fireEvent.click(detailLinks[0] as HTMLElement)
+    expect(detailLinks[0]).toHaveAttribute('href', '/cabinet/sessions/71')
+
+    expect(within(pendingPriorityCard).getAllByText('Потрібне підтвердження')).toHaveLength(2)
+    expect(within(pendingPriorityCard).getAllByText('Немає посилання')).toHaveLength(2)
+    const confirmButtons = within(pendingPriorityCard).getAllByRole('button', { name: 'Підтвердити' })
     expect(confirmButtons).toHaveLength(2)
     await fireEvent.click(confirmButtons[1] as HTMLElement)
 
@@ -516,29 +538,13 @@ describe('TherapistSessionsView', () => {
 
     renderView()
 
-    expect(
-      await screen.findByText((_, element) =>
-        Boolean(
-          element?.classList.contains('muted') &&
-            element.textContent?.trim().endsWith('paid-upcoming@example.com') &&
-            !element.textContent.includes('unpaid-upcoming@example.com')
-        )
-      )
-    ).toBeInTheDocument()
+    expect(await screen.findByText('Пошта: paid-upcoming@example.com')).toBeInTheDocument()
     expect(await screen.findByText(/paid-history@example\.com/)).toBeInTheDocument()
 
-    const paidUpcomingCard = screen
-      .getByText((_, element) =>
-        Boolean(
-          element?.classList.contains('muted') &&
-            element.textContent?.trim().endsWith('paid-upcoming@example.com') &&
-            !element.textContent.includes('unpaid-upcoming@example.com')
-        )
-      )
-      .closest('article')
+    const paidUpcomingCard = screen.getByText('Пошта: paid-upcoming@example.com').closest('article')
     expect(paidUpcomingCard).not.toBeNull()
     expect(within(paidUpcomingCard as HTMLElement).getByText('Оплачено')).toBeInTheDocument()
-    expect(within(paidUpcomingCard as HTMLElement).getByText('Заплановано')).toBeInTheDocument()
+    expect(within(paidUpcomingCard as HTMLElement).getByText('Потрібне підтвердження')).toBeInTheDocument()
     expect(within(paidUpcomingCard as HTMLElement).getByText('Оплачено')).toHaveClass('status-pill--payment-paid')
 
     const awaitingUpcomingCard = screen.getByText(/awaiting-upcoming@example\.com/).closest('article')
@@ -566,7 +572,6 @@ describe('TherapistSessionsView', () => {
     const paidHistoryCard = screen.getByText(/paid-history@example\.com/).closest('article')
     expect(paidHistoryCard).not.toBeNull()
     expect(within(paidHistoryCard as HTMLElement).getByText('Оплачено')).toBeInTheDocument()
-    expect(within(paidHistoryCard as HTMLElement).getByText('Оплачено')).toHaveClass('status-pill--payment-paid')
     expect(within(paidHistoryCard as HTMLElement).getByText('Завершено')).toBeInTheDocument()
   })
 
@@ -734,7 +739,7 @@ describe('TherapistSessionsView', () => {
     expect(screen.queryByRole('link', { name: 'Приєднатися' })).not.toBeInTheDocument()
   })
 
-  it('shows scheduled status before start even if join window is already open', async () => {
+  it('keeps the nearest card on the closest non-action session when a scheduled session needs action', async () => {
     mockedApiGet.mockImplementation(async (url, config) => {
       if (url === '/booking/sessions/' && (config as { params?: { upcoming?: boolean } } | undefined)?.params?.upcoming) {
         return [
@@ -768,13 +773,13 @@ describe('TherapistSessionsView', () => {
     await waitFor(() => {
       const priorityMain = view.container.querySelector('.priority-next__main') as HTMLAnchorElement | null
       expect(priorityMain).not.toBeNull()
-      expect(priorityMain?.getAttribute('href')).toBe('/cabinet/sessions/34')
+      expect(priorityMain?.getAttribute('href')).toBe('/cabinet/sessions/33')
     })
 
     const priorityCards = view.container.querySelectorAll('.priority-card')
     const nextSessionCard = priorityCards[1] as HTMLElement
     expect(within(nextSessionCard).queryByText('Сесія триває')).not.toBeInTheDocument()
-    expect(within(nextSessionCard).getByText('Заплановано')).toBeInTheDocument()
+    expect(within(nextSessionCard).getByText('Підтверджено')).toBeInTheDocument()
   })
 
   it('shows past confirmed session in history with complete action', async () => {
@@ -803,8 +808,6 @@ describe('TherapistSessionsView', () => {
     renderView()
 
     expect(await screen.findByText(/past-confirmed@example\.com/)).toBeInTheDocument()
-    expect(document.querySelector('.history-grid')).not.toBeNull()
-    expect(document.querySelector('.history-grid .history-tile')).not.toBeNull()
     expect(screen.getByRole('button', { name: 'Завершити' })).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Деталі' })).toHaveAttribute('href', '/cabinet/sessions/41')
   })
@@ -828,9 +831,10 @@ describe('TherapistSessionsView', () => {
     await flushPromises()
 
     expect(screen.getByText('Немає майбутніх сесій.')).toBeInTheDocument()
-    expect(screen.getByText('Немає нових запитів')).toBeInTheDocument()
+    expect(screen.queryByText('Немає нових запитів')).not.toBeInTheDocument()
+    expect(screen.queryByText('Перенесення сесій')).not.toBeInTheDocument()
     expect(screen.getByText('Історія порожня')).toBeInTheDocument()
-    expect(screen.queryByText(/Потрібно завершити підготовку:/)).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Перейти до першого' })).not.toBeInTheDocument()
   })
 
   it('shows create session CTA in header and empty state', async () => {
@@ -840,7 +844,7 @@ describe('TherapistSessionsView', () => {
     await flushPromises()
 
     const links = view.getAllByRole('link', { name: 'Створити сесію' })
-    expect(links.length).toBeGreaterThanOrEqual(2)
+    expect(links.length).toBeGreaterThanOrEqual(1)
     expect(links.every((link) => link.getAttribute('href') === '/cabinet/slots?action=create-session')).toBe(true)
   })
 
@@ -891,7 +895,7 @@ describe('TherapistSessionsView', () => {
 
     const scheduledCard = screen.getByText(/anna@example\.com/).closest('article')
     expect(scheduledCard).not.toBeNull()
-    await fireEvent.click(within(scheduledCard as HTMLElement).getByRole('button', { name: 'Підтвердити сесію' }))
+    await fireEvent.click(within(scheduledCard as HTMLElement).getByRole('button', { name: 'Підтвердити' }))
 
     await waitFor(() => {
       expect(mockedConfirmSpecialistSession).toHaveBeenCalledWith(11)
@@ -900,8 +904,8 @@ describe('TherapistSessionsView', () => {
 
     const updatedScheduledCard = screen.getByText(/anna@example\.com/).closest('article')
     expect(updatedScheduledCard).not.toBeNull()
-    expect(within(updatedScheduledCard as HTMLElement).queryByRole('button', { name: 'Підтвердити сесію' })).not.toBeInTheDocument()
-    expect(within(updatedScheduledCard as HTMLElement).getByRole('link', { name: 'Відкрити сесію' })).toBeInTheDocument()
+    expect(within(updatedScheduledCard as HTMLElement).queryByRole('button', { name: 'Підтвердити' })).not.toBeInTheDocument()
+    expect(within(updatedScheduledCard as HTMLElement).getByRole('link', { name: 'Деталі сесії' })).toBeInTheDocument()
 
     const confirmedCard = screen.getByText(/maria@example\.com/).closest('article')
     expect(confirmedCard).not.toBeNull()
