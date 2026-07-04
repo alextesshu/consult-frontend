@@ -1191,18 +1191,20 @@ describe('CabinetView', () => {
 
   it('keeps nearest session and contextual action inside the today panel', async () => {
     mockedApiGet.mockImplementation(async (_url, config) => {
+      const start = new Date(Date.now() + 30 * 60 * 1000).toISOString()
+      const end = new Date(Date.now() + 80 * 60 * 1000).toISOString()
       if (config?.params?.upcoming === true) {
         return [
           {
             id: 94,
             status: 'CONFIRMED',
             client: 49,
-            client_name: 'Hub Client',
+            client_display_name: 'Hub Client',
             session_format: 'online',
             meeting_url: 'https://meet.google.com/hub-room',
             join_available: true,
-            slot_start_at: sessionIsoForDay(0, 8, 0),
-            slot_end_at: sessionIsoForDay(0, 8, 50),
+            slot_start_at: start,
+            slot_end_at: end,
           },
         ] as any
       }

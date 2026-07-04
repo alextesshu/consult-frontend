@@ -687,7 +687,6 @@ function preferredSessionClientName(session: CabinetSession) {
     fullName(session.client_first_name, session.client_last_name),
     fullName(session.first_name, session.last_name),
     session.client_name,
-    session.client_username,
   ]
   for (const candidate of candidates) {
     const normalized = normalizeClientName(candidate)
