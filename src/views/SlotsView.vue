@@ -70,7 +70,7 @@
             <div class="action-group__title">Календар</div>
             <p class="muted action-group__hint">Створюйте разові або регулярні сесії для конкретних клієнтів.</p>
             <div class="action-group__buttons">
-              <button class="btn btn--ghost btn--sm" type="button" @click="() => openOneOffSessionModal()">
+              <button class="btn btn--ghost btn--sm" type="button" @click="openCalendarSessionCreateAction">
                 Створити сесію
               </button>
               <button class="btn btn--sm" type="button" @click="openRegularSessionsModal">
@@ -105,6 +105,21 @@
       <p v-if="isAvailabilityTab" class="muted schedule-toolbar__hint">
         {{ availabilityTabHelperText }}
       </p>
+
+      <div v-if="isCalendarTab && publicGuestRequestContext" class="request-scheduling-banner">
+        <div class="request-scheduling-banner__content">
+          <strong>Обираємо час для запиту: {{ guestRequestClientName }}</strong>
+          <span class="muted">
+            Контакт: {{ guestRequestContact }} · Формат: {{ guestRequestFormatLabel }}
+          </span>
+          <span class="muted">
+            Оберіть час у календарі — сесія буде створена саме для цього запиту.
+          </span>
+        </div>
+        <button class="btn btn--ghost btn--sm" type="button" @click="cancelGuestRequestScheduling">
+          Скасувати вибір запиту
+        </button>
+      </div>
 
       <div class="day-list day-list--mobile" aria-label="Дні тижня">
         <button
@@ -1433,7 +1448,7 @@
           <div>
             <h2 id="guest-request-session-modal-title" class="panel__title">Створити сесію з цього запиту</h2>
             <p class="muted">
-              Підтвердьте створення сесії на час вибраного доступного вікна.
+              Підтвердьте створення сесії для запиту на вибраний час.
             </p>
             <div
               v-if="guestRequestSessionError"
@@ -1624,11 +1639,11 @@ type PublicGuestRequestContext = {
   clientName: string
   contact: string
   sessionFormat: SessionFormat
-  source: 'public_guest_request'
 }
 
 const PAST_SESSION_TIME_ERROR_MESSAGE = 'Неможливо створити сесію в минулому. Оберіть майбутню дату або час.'
 const PENDING_REQUESTS_ROUTE = '/cabinet/external-sessions#guest-requests'
+const REQUEST_SCHEDULING_QUERY_KEYS = ['request_id', 'public_request_id', 'client_name', 'contact', 'format', 'source']
 
 const slots = ref<Slot[]>([])
 const sessions = ref<ScheduleSession[]>([])
@@ -1683,7 +1698,7 @@ function openOneOffSessionFromRouteAction() {
   if (!shouldOpenOneOffSessionFromRoute()) return
   setScheduleTab('CALENDAR')
   clearCreateSessionRouteAction()
-  void openOneOffSessionModal()
+  void openCalendarSessionCreateAction()
 }
 
 function normalizeRequestSessionFormat(value: unknown): SessionFormat {
@@ -2568,8 +2583,6 @@ const selectedScheduleSession = computed(() =>
   sessions.value.find((session) => session.id === selectedSessionId.value) || null
 )
 const publicGuestRequestContext = computed<PublicGuestRequestContext | null>(() => {
-  if (routeQueryString(route.query.source) !== 'public_guest_request') return null
-
   const requestId = Number(routeQueryString(route.query.request_id))
   if (!Number.isInteger(requestId) || requestId <= 0) return null
 
@@ -2578,7 +2591,6 @@ const publicGuestRequestContext = computed<PublicGuestRequestContext | null>(() 
     clientName: routeQueryString(route.query.client_name),
     contact: routeQueryString(route.query.contact),
     sessionFormat: normalizeRequestSessionFormat(route.query.format),
-    source: 'public_guest_request',
   }
 })
 const guestRequestClientName = computed(() => publicGuestRequestContext.value?.clientName || 'Клієнт без імені')
@@ -3399,6 +3411,79 @@ function calendarClickStartTime(event: MouseEvent) {
   return `${pad2(hour)}:00`
 }
 
+function futureRequestSessionPrefill(dateKey?: string, startTime?: string) {
+  const nearest = nearestFutureOneOffDateTime()
+  const normalizedDateKey = dateKey && displayDateToIso(isoDateToDisplay(dateKey)) === dateKey ? dateKey : nearest.dateKey
+  const normalizedStartTime = normalizeOneOffStartTimeOption(startTime || '') || nearest.startTime
+  const displayDate = isoDateToDisplay(normalizedDateKey)
+  if (displayDate && isFutureOneOffDateTime(displayDate, normalizedStartTime)) {
+    return {
+      dateKey: normalizedDateKey,
+      startTime: normalizedStartTime,
+    }
+  }
+  return nearest
+}
+
+function requestSessionEventFromDateTime(dateKey: string, startTime: string): ScheduleSession | null {
+  const context = publicGuestRequestContext.value
+  if (!context) return null
+  const displayDate = isoDateToDisplay(dateKey)
+  const startAt = parseUkDateTime(displayDate, startTime)
+  if (!startAt) return null
+  const durationMinutes = Number(oneOffDuration.value)
+  const safeDurationMinutes = Number.isFinite(durationMinutes) && durationMinutes > 0 ? Math.round(durationMinutes) : 50
+  const endAt = new Date(startAt.getTime() + safeDurationMinutes * 60000)
+  return {
+    type: 'available_slot',
+    id: `request-context-${context.requestId}-${dateKey}-${startTime}`,
+    slot_id: null,
+    session_id: null,
+    start_at: startAt.toISOString(),
+    end_at: endAt.toISOString(),
+    status: 'available',
+    title: 'Вибраний час',
+    client_display_name: guestRequestClientName.value,
+    client_kind: 'guest',
+    requests_count: 1,
+    request_ids: [context.requestId],
+  }
+}
+
+async function openGuestRequestSessionModalForDateTime(dateKey?: string, startTime?: string) {
+  if (!publicGuestRequestContext.value) {
+    await openOneOffSessionModal({ dateKey, startTime })
+    return
+  }
+
+  regularSessionsModalOpen.value = false
+  oneOffSessionModalOpen.value = false
+  createFormOpen.value = false
+  closeDatePicker()
+  selectedSlotId.value = null
+  selectedSessionId.value = null
+  guestRequestSessionError.value = ''
+  await loadOneOffProfileDefaults()
+  oneOffTimezone.value = resolvedOneOffTimezone()
+  const prefill = futureRequestSessionPrefill(dateKey, startTime)
+  selectedDate.value = prefill.dateKey
+  const event = requestSessionEventFromDateTime(prefill.dateKey, prefill.startTime)
+  if (!event) {
+    guestRequestSessionError.value = 'Не вдалося визначити час сесії.'
+    return
+  }
+  openGuestRequestSessionModal(event)
+}
+
+async function openCalendarSessionCreateAction() {
+  if (!publicGuestRequestContext.value) {
+    await openOneOffSessionModal()
+    return
+  }
+  const prefill = futureRequestSessionPrefill(selectedDate.value)
+  await openGuestRequestSessionModalForDateTime(prefill.dateKey, prefill.startTime)
+}
+
 async function openOneOffSessionModal(prefill?: OneOffSessionPrefill) {
   oneOffSessionModalOpen.value = true
   regularSessionsModalOpen.value = false
@@ -3426,10 +3511,23 @@ function openOneOffSessionModalForCalendarClick(event: MouseEvent, dateKey: stri
   selectedDate.value = dateKey
   selectedSlotId.value = null
   selectedSessionId.value = null
+  if (publicGuestRequestContext.value) {
+    void openGuestRequestSessionModalForDateTime(dateKey, calendarClickStartTime(event))
+    return
+  }
   void openOneOffSessionModal({
     dateKey,
     startTime: calendarClickStartTime(event),
   })
+}
+
+function cancelGuestRequestScheduling() {
+  forceCloseGuestRequestSessionModal()
+  const nextQuery = { ...route.query }
+  REQUEST_SCHEDULING_QUERY_KEYS.forEach((key) => {
+    delete nextQuery[key]
+  })
+  void router.replace({ path: route.path, query: nextQuery })
 }
 
 function forceCloseOneOffSessionModal(options?: { reset?: boolean }) {
@@ -4294,6 +4392,26 @@ onBeforeUnmount(() => {
   margin: -1px 0 0;
   font-size: 12px;
   line-height: 1.3;
+}
+
+.request-scheduling-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 10px;
+  border: 1px solid color-mix(in srgb, var(--pc-primary) 28%, var(--pc-border));
+  border-radius: var(--pc-radius-card);
+  background: color-mix(in srgb, var(--pc-primary-soft) 72%, #ffffff);
+}
+
+.request-scheduling-banner__content {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  font-size: 13px;
+  line-height: 1.35;
 }
 
 .booking-settings-cta {

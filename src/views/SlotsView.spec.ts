@@ -747,6 +747,35 @@ describe('SlotsView', () => {
     expect(optionValues).toContain('10:10')
   })
 
+  it('opens request scheduling modal from route CTA without loading the generic client selector', async () => {
+    openSlotsCalendarRoute({
+      action: 'create-session',
+      request_id: '29',
+      client_name: 'Олександр Константінов',
+      contact: 'alx@example.com',
+      format: 'online',
+    })
+    mockScheduleApi()
+
+    renderView()
+    await flushAsyncUpdates()
+
+    expect(screen.getByRole('dialog', { name: 'Створити сесію з цього запиту' })).toBeInTheDocument()
+    expect(screen.queryByRole('dialog', { name: 'Створити сесію' })).not.toBeInTheDocument()
+    expect(screen.getByText('Олександр Константінов')).toBeInTheDocument()
+    expect(mockRouter.replace).toHaveBeenCalledWith({
+      path: '/cabinet/slots',
+      query: {
+        request_id: '29',
+        client_name: 'Олександр Константінов',
+        contact: 'alx@example.com',
+        format: 'online',
+      },
+    })
+    expect(mockedApiGet).not.toHaveBeenCalledWith('/cabinet/client-records/')
+    expect(mockedApiGet).not.toHaveBeenCalledWith('/cabinet/clients/')
+  })
+
   it('lets one-off session date be selected from the date picker', async () => {
     openCalendarRoute()
     mockedApiGet.mockImplementation(async (url) => {
@@ -838,6 +867,95 @@ describe('SlotsView', () => {
     const timeSelect = await screen.findByLabelText('Час початку') as HTMLSelectElement
     expect(timeSelect.tagName).toBe('SELECT')
     expect(timeSelect.value).toBe('10:00')
+  })
+
+  it('shows request scheduling banner and clears request query params when cancelled', async () => {
+    openSlotsCalendarRoute({
+      tab: 'calendar',
+      request_id: '29',
+      client_name: 'Олександр Константінов',
+      contact: 'alx@example.com',
+      format: 'offline',
+      source: 'public_guest_request',
+      kept: '1',
+    })
+    mockScheduleApi()
+
+    renderView()
+    await flushAsyncUpdates()
+
+    expect(screen.getByText('Обираємо час для запиту: Олександр Константінов')).toBeInTheDocument()
+    expect(screen.getByText(/Контакт: alx@example.com · Формат: офлайн/)).toBeInTheDocument()
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Скасувати вибір запиту' }))
+    await flushAsyncUpdates()
+
+    expect(mockRouter.replace).toHaveBeenCalledWith({
+      path: '/cabinet/slots',
+      query: {
+        tab: 'calendar',
+        kept: '1',
+      },
+    })
+  })
+
+  it('opens and submits request scheduling from an empty calendar cell without selecting the first client', async () => {
+    openSlotsCalendarRoute({
+      request_id: '29',
+      client_name: 'Олександр Константінов',
+      contact: 'alx@example.com',
+      format: 'offline',
+    })
+    mockScheduleApi()
+    mockedCreateSessionFromGuestRequest.mockResolvedValue({
+      request: {} as any,
+      session: { id: 888 } as any,
+    })
+
+    const { container } = renderView()
+    await flushAsyncUpdates()
+
+    const hitAreas = container.querySelectorAll('.calendar-empty-hit-area')
+    const fridayHitArea = hitAreas[4] as HTMLElement
+    fridayHitArea.getBoundingClientRect = () => ({
+      x: 0,
+      y: 0,
+      top: 0,
+      left: 0,
+      right: 100,
+      bottom: 650,
+      width: 100,
+      height: 650,
+      toJSON: () => {},
+    })
+    await fireEvent.click(fridayHitArea, { clientY: 100 })
+    await flushAsyncUpdates()
+
+    const dialog = screen.getByRole('dialog', { name: 'Створити сесію з цього запиту' })
+    expect(screen.queryByRole('dialog', { name: 'Створити сесію' })).not.toBeInTheDocument()
+    expect(within(dialog).getByText('Олександр Константінов')).toBeInTheDocument()
+    expect(within(dialog).getByText('alx@example.com')).toBeInTheDocument()
+    expect(within(dialog).getByText('13.03.2026')).toBeInTheDocument()
+    expect(within(dialog).getByText('10:00–10:50')).toBeInTheDocument()
+    expect(within(dialog).getByText('офлайн')).toBeInTheDocument()
+    expect(mockedApiGet).not.toHaveBeenCalledWith('/cabinet/client-records/')
+    expect(mockedApiGet).not.toHaveBeenCalledWith('/cabinet/clients/')
+
+    await fireEvent.click(within(dialog).getByRole('button', { name: 'Створити сесію' }))
+    await flushAsyncUpdates()
+
+    expect(mockedCreateSessionFromGuestRequest).toHaveBeenCalledWith(29, {
+      starts_at: expect.any(String),
+      ends_at: expect.any(String),
+      timezone: 'Europe/Kyiv',
+      session_format: 'offline',
+    })
+    expect(mockedApiPost).not.toHaveBeenCalledWith(
+      expect.stringContaining('/cabinet/client-records/'),
+      expect.anything()
+    )
+    expect(mockToast.success).toHaveBeenCalledWith('Запит погоджено. Сесію створено.')
+    expect(screen.queryByRole('dialog', { name: 'Створити сесію з цього запиту' })).not.toBeInTheDocument()
   })
 
   it('does not open create modal when clicking existing calendar events', async () => {
