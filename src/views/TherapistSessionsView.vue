@@ -80,6 +80,9 @@
               >
                 Підтвердити сесію
               </button>
+              <RouterLink class="btn btn--ghost btn--sm" :to="`/cabinet/sessions/${session.id}`">
+                Відкрити сесію
+              </RouterLink>
             </div>
           </div>
         </div>

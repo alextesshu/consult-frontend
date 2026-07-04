@@ -282,6 +282,67 @@ describe('TherapistSessionsView', () => {
     expect(await screen.findByText(/anna@example\.com/)).toBeInTheDocument()
   })
 
+  it('opens each pending preparation session card by its own detail route while keeping confirm action', async () => {
+    const firstPending = buildSession({
+      id: 71,
+      client_name: 'Оксана',
+      client_email: 'oksana@example.com',
+      slot_start_at: '2099-06-15T10:00:00Z',
+      slot_end_at: '2099-06-15T10:50:00Z',
+    })
+    const secondPending = buildSession({
+      id: 72,
+      client_name: 'Петро',
+      client_email: 'petro@example.com',
+      slot_start_at: '2099-06-16T11:00:00Z',
+      slot_end_at: '2099-06-16T11:50:00Z',
+    })
+    const confirmedSession = buildSession({
+      id: 73,
+      status: 'CONFIRMED',
+      client_name: 'Марія',
+      client_email: 'confirmed@example.com',
+      slot_start_at: '2099-06-17T12:00:00Z',
+      slot_end_at: '2099-06-17T12:50:00Z',
+    })
+
+    mockedApiGet.mockImplementation(async (url, config) => {
+      if (url === '/booking/sessions/' && (config as { params?: { upcoming?: boolean } } | undefined)?.params?.upcoming) {
+        return [firstPending, secondPending, confirmedSession]
+      }
+
+      if (url === '/booking/sessions/' && (config as { params?: { upcoming?: boolean } } | undefined)?.params?.upcoming === false) {
+        return []
+      }
+
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    renderView()
+
+    expect(await screen.findByText(/oksana@example\.com/)).toBeInTheDocument()
+    expect(await screen.findByText(/petro@example\.com/)).toBeInTheDocument()
+
+    const priorityCards = document.querySelectorAll('.priority-card')
+    const pendingPriorityCard = priorityCards[0] as HTMLElement
+    expect(pendingPriorityCard).not.toBeNull()
+
+    const detailLinks = within(pendingPriorityCard).getAllByRole('link', { name: 'Відкрити сесію' })
+    expect(detailLinks.map((link) => link.getAttribute('href'))).toEqual([
+      '/cabinet/sessions/71',
+      '/cabinet/sessions/72',
+    ])
+    expect(within(pendingPriorityCard).queryByText(/confirmed@example\.com/)).not.toBeInTheDocument()
+
+    const confirmButtons = within(pendingPriorityCard).getAllByRole('button', { name: 'Підтвердити сесію' })
+    expect(confirmButtons).toHaveLength(2)
+    await fireEvent.click(confirmButtons[1] as HTMLElement)
+
+    await waitFor(() => {
+      expect(mockedConfirmSpecialistSession).toHaveBeenCalledWith(72)
+    })
+  })
+
   it('loads paginated history and appends the next page from show-more', async () => {
     const firstHistory = buildSession({
       id: 71,
