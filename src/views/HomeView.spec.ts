@@ -125,37 +125,60 @@ describe('HomeView', () => {
     expect(screen.getByText('Профіль публікується тільки після вашого рішення')).toBeInTheDocument()
     expect(screen.getByText('Клієнт може залишити запит без реєстрації')).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Тарифи' })).toBeInTheDocument()
-    expect(screen.getByText(/Без комісій з консультацій. Ви сплачуєте за користування сервісом/)).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        /Start підходить для початку вашої практики.*Pro — для регулярної роботи з більшою кількістю клієнтів/
+      )
+    ).toBeInTheDocument()
     const pricing = container.querySelector('#pricing') as HTMLElement
+    expect(pricing.querySelectorAll('.pricing__grid .plan-card')).toHaveLength(2)
     expect(within(pricing).getByText('0 грн')).toBeInTheDocument()
     expect(within(pricing).getByText('990 грн/міс')).toBeInTheDocument()
-    expect(within(pricing).getByText('2 490 грн/міс')).toBeInTheDocument()
-    expect(screen.getByText('Для запуску профілю і перших клієнтів.')).toBeInTheDocument()
-    expect(screen.getByText('Публічний профіль спеціаліста')).toBeInTheDocument()
-    expect(screen.getByText('Запити від клієнтів без реєстрації')).toBeInTheDocument()
-    expect(screen.getByText('Можна почати без картки.')).toBeInTheDocument()
+    expect(within(pricing).queryByText('2 490 грн/міс')).not.toBeInTheDocument()
+    expect(screen.getByText('Для невеликої приватної практики на старті.')).toBeInTheDocument()
+    expect(within(pricing).getByText('Публічний профіль спеціаліста')).toBeInTheDocument()
+    expect(within(pricing).getByText('Запити від клієнтів без обов’язкової реєстрації на сайті')).toBeInTheDocument()
+    expect(within(pricing).getByText('Простір для ведення сесій, календаря і ваших перших клієнтів')).toBeInTheDocument()
+    expect(within(pricing).getByText('3 активні клієнти включено')).toBeInTheDocument()
+    expect(within(pricing).getByText('Можна розширити ліміт до 6 клієнтів')).toBeInTheDocument()
+    expect(screen.queryByText(/Можна почати без картки/)).not.toBeInTheDocument()
     expect(screen.getByText('Для регулярної приватної практики.')).toBeInTheDocument()
-    expect(screen.getByText('Більше активних клієнтів')).toBeInTheDocument()
-    expect(screen.getByText('Власний блог і матеріали')).toBeInTheDocument()
-    expect(screen.getByText('Для великого навантаження або розширеної практики.')).toBeInTheDocument()
-    expect(screen.getByText('Підходить для інтенсивної практики')).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Деталі лімітів' })).toBeInTheDocument()
+    expect(within(pricing).getByText('Усе зі Start')).toBeInTheDocument()
+    expect(within(pricing).getByText('20 активних клієнтів включено')).toBeInTheDocument()
+    expect(within(pricing).getByText('Можна розширити ліміт до 26 клієнтів')).toBeInTheDocument()
+    expect(within(pricing).getByText('Власний блог')).toBeInTheDocument()
+    expect(within(pricing).getByText('Матеріали й рекомендації для клієнтів')).toBeInTheDocument()
+    expect(within(pricing).getByText('Розширена аналітика практики')).toBeInTheDocument()
+    expect(within(pricing).getByText('Робоча дошка для кращої організації практики')).toBeInTheDocument()
+    expect(within(pricing).getByText('Приватні відгуки з можливістю поділитися ними')).toBeInTheDocument()
+    expect(within(pricing).getByText(/Робоча дошка/)).toBeInTheDocument()
+    expect(within(pricing).getByText(/Приватні відгуки/)).toBeInTheDocument()
+    expect(within(pricing).getByText(/можливістю поділитися ними/)).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Потрібно більше простору для практики?' })).toBeInTheDocument()
+    expect(screen.getByText(/до 60 активних клієнтів/)).toBeInTheDocument()
+    expect(screen.getByText(/до 3 дошок задач/)).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Як рахуються ліміти' })).toBeInTheDocument()
     expect(screen.getByText(/Активний клієнт — це клієнт/)).toBeInTheDocument()
-    expect(screen.getByText('На Start базовий ліміт: 3 активні клієнти; за потреби можна розширити до 6.')).toBeInTheDocument()
-    expect(screen.getByText('На Pro базовий ліміт: 20 активних клієнтів; за потреби можна розширити до 26.')).toBeInTheDocument()
-    expect(screen.getByText('Розширення ліміту: +1 активний клієнт — 200 грн/міс.')).toBeInTheDocument()
-    expect(screen.getAllByText(/Без комісій з консультацій/).length).toBeGreaterThan(0)
+    expect(screen.getByText('Для Start і Pro доступне розширення ліміту активних клієнтів.')).toBeInTheDocument()
+    expect(screen.queryByText(/200 грн\/міс/)).not.toBeInTheDocument()
+    expect(screen.getByText('Pro Consult не бере відсоток із консультацій на жодному тарифі.')).toBeInTheDocument()
+    expect(pricing).not.toHaveTextContent(/базов/i)
     expect(screen.getByRole('heading', { name: 'Відкритий ранній доступ' })).toBeInTheDocument()
     expect(screen.getByText(/Ранній доступ активується автоматично після реєстрації/)).toBeInTheDocument()
     expect(screen.getByText(/розширені можливості без промокоду/)).toBeInTheDocument()
-    expect(within(pricing).getAllByRole('link', { name: 'Почати' })).toHaveLength(2)
-    for (const cta of within(pricing).getAllByRole('link', { name: 'Почати' })) {
-      expect(cta).toHaveAttribute('href', '/signup')
-    }
-    expect(within(pricing).getByRole('link', { name: 'Подати запит' })).toHaveAttribute(
+    expect(within(pricing).getByRole('link', { name: 'Отримати безкоштовно' })).toHaveAttribute(
+      'href',
+      '/signup'
+    )
+    expect(within(pricing).getByRole('link', { name: 'Обрати Pro' })).toHaveAttribute(
+      'href',
+      '/signup'
+    )
+    expect(within(pricing).getByRole('link', { name: 'Обговорити формат' })).toHaveAttribute(
       'href',
       '/support-and-data-requests'
     )
+    expect(within(pricing).queryByRole('link', { name: 'Подати запит' })).not.toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Створити профіль' })).toHaveAttribute(
       'href',
       '/signup'
@@ -163,6 +186,7 @@ describe('HomeView', () => {
     expect(container).not.toHaveTextContent('FOUNDER')
     expect(container).not.toHaveTextContent(/маркетплейс|рейтинг|гарантовано приведе клієнтів/i)
     expect(container).not.toHaveTextContent(/ми приведемо клієнтів|гарантовані клієнти|оберіть найкращого спеціаліста/i)
+    expect(container).not.toHaveTextContent(/професійної присутності|без хаосу|Більше запитів від клієнтів/i)
     expect(screen.queryByText('До 3 ' + 'активних клієнтів')).not.toBeInTheDocument()
     expect(screen.queryByText('Максимум 6 ' + 'активних клієнтів на Start')).not.toBeInTheDocument()
     expect(screen.queryByText('До 20 ' + 'активних клієнтів')).not.toBeInTheDocument()
@@ -205,12 +229,12 @@ describe('HomeView', () => {
     await renderHome()
 
     expect(screen.getByText('990 грн/міс')).toBeInTheDocument()
-    expect(screen.getByText('2 490 грн/міс')).toBeInTheDocument()
+    expect(screen.queryByText('2 490 грн/міс')).not.toBeInTheDocument()
 
     await fireEvent.click(screen.getByRole('button', { name: 'Рік' }))
 
     expect(screen.getByText('9 900 грн/рік')).toBeInTheDocument()
-    expect(screen.getByText('24 900 грн/рік')).toBeInTheDocument()
+    expect(screen.queryByText('24 900 грн/рік')).not.toBeInTheDocument()
   })
 
   it('routes authenticated primary cta to cabinet', async () => {

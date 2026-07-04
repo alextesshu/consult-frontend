@@ -263,8 +263,8 @@
         <div class="section-head section-head--center pricing-head">
           <h2 id="pricing-title" class="section-head__title pricing-title">Тарифи</h2>
           <p class="section-head__subtitle">
-            Без комісій з консультацій. Ви сплачуєте за користування сервісом,
-            а не відсоток із кожної роботи з клієнтом.
+            Start підходить для початку вашої практики. Pro — для регулярної
+            роботи з більшою кількістю клієнтів та інструментами розвитку.
           </p>
         </div>
 
@@ -289,7 +289,7 @@
 
         <div class="pricing__grid">
           <article v-for="plan in pricingPlans" :key="plan.name" class="plan-card" :class="{ 'plan-card--pro': plan.name === 'Pro' }">
-            <p v-if="plan.name === 'Pro'" class="plan-card__badge">Для активної практики</p>
+            <p v-if="plan.badge" class="plan-card__badge">{{ plan.badge }}</p>
             <h3>{{ plan.name }}</h3>
             <p class="plan-card__price">{{ plan.price }}</p>
             <p class="plan-card__scenario">{{ plan.scenario }}</p>
@@ -301,9 +301,20 @@
             <RouterLink class="btn" :class="{ 'btn--ghost': plan.ghostCta }" :to="plan.ctaTo">{{ plan.ctaLabel }}</RouterLink>
           </article>
         </div>
+        <article class="pricing-custom" aria-labelledby="leader-custom-title">
+          <div>
+            <h3 id="leader-custom-title">Потрібно більше простору для практики?</h3>
+            <p>
+              Для спеціалістів із більшим навантаженням можемо підібрати індивідуальний
+              формат: до 60 активних клієнтів, розширена аналітика, до 3 дошок задач і
+              пріоритетна підтримка.
+            </p>
+          </div>
+          <RouterLink class="btn btn--ghost" to="/support-and-data-requests">Обговорити формат</RouterLink>
+        </article>
         <article class="pricing-details" aria-labelledby="pricing-details-title">
           <div>
-            <h3 id="pricing-details-title">Деталі лімітів</h3>
+            <h3 id="pricing-details-title">Як рахуються ліміти</h3>
             <p>
               Активний клієнт — це клієнт, з яким ви ведете поточну роботу в кабінеті.
             </p>
@@ -431,15 +442,18 @@ const pricingPlans = computed(() => [
   {
     name: 'Start',
     price: '0 грн',
-    scenario: 'Для запуску профілю і перших клієнтів.',
+    scenario: 'Для невеликої приватної практики на старті.',
     helper: '',
+    badge: '',
     features: [
       'Публічний профіль спеціаліста',
-      'Запити від клієнтів без реєстрації',
-      'Базовий кабінет для сесій і клієнтів',
+      'Запити від клієнтів без обов’язкової реєстрації на сайті',
+      'Простір для ведення сесій, календаря і ваших перших клієнтів',
+      '3 активні клієнти включено',
+      'Можна розширити ліміт до 6 клієнтів',
     ],
-    note: 'Можна почати без картки.',
-    ctaLabel: 'Почати',
+    note: '',
+    ctaLabel: 'Отримати безкоштовно',
     ctaTo: '/signup',
     ghostCta: false,
   },
@@ -448,38 +462,27 @@ const pricingPlans = computed(() => [
     price: billingCycle.value === 'monthly' ? '990 грн/міс' : '9 900 грн/рік',
     scenario: 'Для регулярної приватної практики.',
     helper: billingCycle.value === 'yearly' ? 'Оплата за рік' : 'Оплата щомісяця',
+    badge: 'Для активної практики',
     features: [
-      'Більше активних клієнтів',
-      'Власний блог і матеріали',
-      'Розширені можливості кабінету',
-    ],
-    note: 'Без комісій з консультацій.',
-    ctaLabel: 'Почати',
-    ctaTo: '/signup',
-    ghostCta: false,
-  },
-  {
-    name: 'Leader',
-    price: billingCycle.value === 'monthly' ? '2 490 грн/міс' : '24 900 грн/рік',
-    scenario: 'Для великого навантаження або розширеної практики.',
-    helper: billingCycle.value === 'yearly' ? 'Оплата за рік' : 'Оплата щомісяця',
-    features: [
-      'Більше простору для активної бази клієнтів',
-      'Розширені ліміти',
-      'Підходить для інтенсивної практики',
+      'Усе зі Start',
+      '20 активних клієнтів включено',
+      'Можна розширити ліміт до 26 клієнтів',
+      'Власний блог',
+      'Матеріали й рекомендації для клієнтів',
+      'Розширена аналітика практики',
+      'Робоча дошка для кращої організації практики',
+      'Приватні відгуки з можливістю поділитися ними',
     ],
     note: '',
-    ctaLabel: 'Подати запит',
-    ctaTo: '/support-and-data-requests',
-    ghostCta: true,
+    ctaLabel: 'Обрати Pro',
+    ctaTo: '/signup',
+    ghostCta: false,
   },
 ])
 
 const pricingLimitDetails = [
-  'На Start базовий ліміт: 3 активні клієнти; за потреби можна розширити до 6.',
-  'На Pro базовий ліміт: 20 активних клієнтів; за потреби можна розширити до 26.',
-  'Розширення ліміту: +1 активний клієнт — 200 грн/міс.',
-  'Усі плани працюють без комісій з консультацій.',
+  'Для Start і Pro доступне розширення ліміту активних клієнтів.',
+  'Pro Consult не бере відсоток із консультацій на жодному тарифі.',
 ]
 
 const resolveCabinetRoute = () => {
@@ -648,6 +651,11 @@ onBeforeUnmount(() => {
   border-color: var(--pc-border-strong);
   color: var(--pc-navy-900);
   box-shadow: none;
+}
+
+.plan-card .btn {
+  min-height: 40px;
+  font-size: 16px;
 }
 
 .hero-trust {
@@ -2964,11 +2972,16 @@ onBeforeUnmount(() => {
 }
 
 .pricing__grid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: 16px;
+  max-width: 940px;
+  width: 100%;
+  margin-inline: auto;
 }
 
-.pricing-founder {
+.pricing-founder,
+.pricing-custom {
   display: flex;
   gap: 18px;
   align-items: center;
@@ -2982,6 +2995,13 @@ onBeforeUnmount(() => {
     linear-gradient(135deg, rgba(242, 248, 247, 0.96), rgba(255, 250, 239, 0.9)),
     #fff;
   color: var(--muted);
+}
+
+.pricing-custom {
+  margin-top: 12px;
+  background:
+    radial-gradient(320px 150px at 100% 0%, rgba(143, 203, 200, 0.18), transparent 70%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(242, 248, 247, 0.9));
 }
 
 .pricing-details {
@@ -3013,21 +3033,31 @@ onBeforeUnmount(() => {
   padding-left: 18px;
 }
 
-.pricing-founder h3 {
+.pricing-founder h3,
+.pricing-custom h3 {
   margin: 0 0 6px;
   color: var(--pc-navy-950);
 }
 
-.pricing-founder p {
+.pricing-founder p,
+.pricing-custom p {
   margin: 0;
+  line-height: 1.5;
 }
 
 .plan-card {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 18px;
-  min-height: 100%;
+  align-self: start;
+  gap: 10px;
+  padding: 22px;
+  min-height: 0;
+  border-color: color-mix(in srgb, var(--pc-border) 88%, #d8e0e6);
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(252, 253, 252, 0.94)),
+    #fff;
+  box-shadow: 0 22px 58px rgba(18, 35, 58, 0.09);
 }
 
 .plan-card ul {
@@ -3035,35 +3065,37 @@ onBeforeUnmount(() => {
   padding: 0;
   list-style: none;
   display: grid;
-  gap: 6px;
+  gap: 8px;
   color: color-mix(in srgb, var(--text) 76%, #415763);
+  font-size: 15px;
+  line-height: 1.42;
 }
 
 .plan-card li {
   position: relative;
-  padding-left: 20px;
+  padding-left: 22px;
 }
 
 .plan-card li::before {
   content: '✓';
   position: absolute;
   left: 0;
-  top: 0;
+  top: 0.04em;
   color: #2c7f7b;
   font-weight: 700;
 }
 
 .plan-card__price {
   margin: 0;
-  font-size: 32px;
-  line-height: 1.08;
+  font-size: 31px;
+  line-height: 1.12;
   font-weight: 800;
   color: var(--pc-navy-950);
 }
 
 .plan-card__helper {
-  margin: 0;
-  font-size: 12px;
+  margin: -2px 0 2px;
+  font-size: 13px;
   color: var(--pc-text-muted);
 }
 
@@ -3071,6 +3103,7 @@ onBeforeUnmount(() => {
 .plan-card__note {
   margin: 0;
   color: var(--pc-text-muted);
+  font-size: 15px;
 }
 
 .plan-card__scenario {
@@ -3078,20 +3111,20 @@ onBeforeUnmount(() => {
 }
 
 .plan-card__note {
-  font-size: 13px;
+  line-height: 1.45;
 }
 
 .plan-card__badge {
-  margin: -18px -18px 4px;
-  min-height: 30px;
+  margin: -22px -22px 8px;
+  min-height: 36px;
   display: grid;
   place-items: center;
-  border-top-left-radius: var(--radius-lg);
-  border-top-right-radius: var(--radius-lg);
-  background: var(--pc-navy-900);
+  border-top-left-radius: 18px;
+  border-top-right-radius: 18px;
+  background: linear-gradient(90deg, var(--pc-navy-900), #173f68);
   color: #fff;
-  font-size: 11px;
-  letter-spacing: 0.08em;
+  font-size: 13px;
+  letter-spacing: 0.03em;
   text-transform: uppercase;
   font-weight: 700;
 }
@@ -3099,9 +3132,11 @@ onBeforeUnmount(() => {
 .plan-card--pro {
   border-color: rgba(18, 52, 90, 0.32);
   background:
-    radial-gradient(220px 120px at 90% 10%, rgba(143, 203, 200, 0.2), transparent 70%),
+    radial-gradient(260px 150px at 92% 10%, rgba(143, 203, 200, 0.24), transparent 72%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.99), rgba(246, 252, 251, 0.94)),
     #fff;
-  box-shadow: 0 16px 34px rgba(15, 45, 80, 0.16);
+  box-shadow: 0 24px 62px rgba(15, 45, 80, 0.15);
+  transform: translateY(-4px);
 }
 
 .pricing-layout {
@@ -3572,7 +3607,8 @@ onBeforeUnmount(() => {
     grid-template-columns: 1fr;
   }
 
-  .pricing-founder {
+  .pricing-founder,
+  .pricing-custom {
     align-items: stretch;
     flex-direction: column;
   }
@@ -3581,7 +3617,8 @@ onBeforeUnmount(() => {
     grid-template-columns: 1fr;
   }
 
-  .pricing-founder .btn {
+  .pricing-founder .btn,
+  .pricing-custom .btn {
     justify-content: center;
   }
 
