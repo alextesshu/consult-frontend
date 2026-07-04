@@ -1054,7 +1054,9 @@ describe('TherapistClientsView', () => {
     const filterButtons = clientsPanel.querySelectorAll('.filters button')
 
     await waitFor(() => {
-      expect(clientsPanel.querySelectorAll('.client-row')).toHaveLength(3)
+      expect(filterButtons[1]).toHaveClass('is-active')
+      expect(filterButtons[0]).not.toHaveClass('is-active')
+      expect(clientsPanel.querySelectorAll('.client-row')).toHaveLength(1)
       expect(clientsPanel.querySelectorAll('.client-card')).toHaveLength(1)
     })
 
@@ -1127,7 +1129,7 @@ describe('TherapistClientsView', () => {
     const { clientsPanel } = getPanels(container)
 
     await waitFor(() => {
-      expect(clientsPanel.querySelectorAll('.client-row')).toHaveLength(6)
+      expect(clientsPanel.querySelectorAll('.client-row')).toHaveLength(3)
       expect(clientsPanel.querySelector('.client-counts')).toBeInTheDocument()
       expect(clientsPanel.querySelectorAll('.client-counts__item')).toHaveLength(6)
       expectSummaryCount(clientsPanel, 'Усього', 6)
@@ -1136,6 +1138,16 @@ describe('TherapistClientsView', () => {
       expectSummaryCount(clientsPanel, 'З кабінетом', 4)
       expectSummaryCount(clientsPanel, 'Без реєстрації', 2)
       expectSummaryCount(clientsPanel, 'Архів', 2)
+    })
+    expect(clientsPanel).not.toHaveTextContent('Archived Registered')
+    expect(clientsPanel).not.toHaveTextContent('Manual Archived')
+
+    const filterButtons = clientsPanel.querySelectorAll('.filters button')
+    await fireEvent.click(filterButtons[0] as HTMLButtonElement)
+    await waitFor(() => {
+      expect(clientsPanel.querySelectorAll('.client-row')).toHaveLength(6)
+      expect(clientsPanel).toHaveTextContent('Archived Registered')
+      expect(clientsPanel).toHaveTextContent('Manual Archived')
     })
 
     const searchInput = clientsPanel.querySelector('#clients-search-input') as HTMLInputElement
@@ -1188,6 +1200,8 @@ describe('TherapistClientsView', () => {
 
     const { container } = renderView()
     const { clientsPanel } = getPanels(container)
+    const filterButtons = clientsPanel.querySelectorAll('.filters button')
+    await fireEvent.click(filterButtons[0] as HTMLButtonElement)
 
     await waitFor(() => {
       expect(within(clientsPanel).getAllByText('Active Client').length).toBeGreaterThan(0)
@@ -2681,7 +2695,7 @@ describe('TherapistClientsView', () => {
 
     await waitFor(() => {
       expect(clientsPanel).toHaveTextContent('Клієнтів не знайдено')
-      expect(clientsPanel).toHaveTextContent('Клієнти з’являться після перших консультацій')
+      expect(clientsPanel).toHaveTextContent('Активні клієнти з’являться тут')
       expect(within(clientsPanel).getByRole('button', { name: 'Додати клієнта' })).toBeInTheDocument()
       expect(container).toHaveTextContent('Швидкий список клієнтів. Натисніть на рядок, щоб відкрити повну картку клієнта.')
     })
@@ -2695,6 +2709,11 @@ describe('TherapistClientsView', () => {
 
     await fireEvent.update(searchInput, '')
     const filterButtons = clientsPanel.querySelectorAll('.filters button')
+    await fireEvent.click(filterButtons[0] as HTMLButtonElement)
+    await waitFor(() => {
+      expect(clientsPanel).toHaveTextContent('Клієнтів не знайдено')
+      expect(clientsPanel).toHaveTextContent('Клієнти з’являться після перших консультацій')
+    })
     await fireEvent.click(filterButtons[1] as HTMLButtonElement)
     await waitFor(() => {
       expect(clientsPanel).toHaveTextContent('Клієнтів не знайдено')
@@ -3423,17 +3442,31 @@ describe('TherapistClientsView', () => {
 
     await waitFor(() => {
       expect(mockedApiPost).toHaveBeenCalledWith('/cabinet/client-records/203/archive/', {})
-      expect(within(manualCard).getByText('Архів')).toBeInTheDocument()
-      expect(within(manualCard).getByRole('button', { name: 'Повернути в роботу' })).toBeInTheDocument()
     })
 
-    await fireEvent.click(within(manualCard).getByRole('button', { name: 'Повернути в роботу' }))
+    const filterButtons = clientsPanel.querySelectorAll('.filters button')
+    await fireEvent.click(filterButtons[3] as HTMLButtonElement)
+    const archivedCard = await waitFor(() => {
+      const card = clientsPanel.querySelector('#manual-client-record-203')
+      expect(card).toBeInstanceOf(HTMLElement)
+      return card as HTMLElement
+    })
+    expect(within(archivedCard).getByText('Архів')).toBeInTheDocument()
+    expect(within(archivedCard).getByRole('button', { name: 'Повернути в роботу' })).toBeInTheDocument()
+
+    await fireEvent.click(within(archivedCard).getByRole('button', { name: 'Повернути в роботу' }))
 
     await waitFor(() => {
       expect(mockedApiPost).toHaveBeenCalledWith('/cabinet/client-records/203/restore/', {})
-      expect(within(manualCard).getByText('Активний')).toBeInTheDocument()
-      expect(within(manualCard).getByRole('button', { name: 'Завершити роботу' })).toBeInTheDocument()
     })
+    await fireEvent.click(filterButtons[1] as HTMLButtonElement)
+    const restoredCard = await waitFor(() => {
+      const card = clientsPanel.querySelector('#manual-client-record-203')
+      expect(card).toBeInstanceOf(HTMLElement)
+      return card as HTMLElement
+    })
+    expect(within(restoredCard).getByText('Активний')).toBeInTheDocument()
+    expect(within(restoredCard).getByRole('button', { name: 'Завершити роботу' })).toBeInTheDocument()
   })
 
   it('keeps registered clients visible when manual records endpoint fails', async () => {
@@ -3479,8 +3512,14 @@ describe('TherapistClientsView', () => {
     const { clientsPanel } = getPanels(container)
     const filterButtons = await waitFor(() => {
       expect(getClientRows(clientsPanel).map((row) => row.textContent || '').join(' ')).toContain('Manual Active Filter')
-      expect(getClientRows(clientsPanel).map((row) => row.textContent || '').join(' ')).toContain('Manual Archived Filter')
+      expect(getClientRows(clientsPanel).map((row) => row.textContent || '').join(' ')).not.toContain('Manual Archived Filter')
       return clientsPanel.querySelectorAll('.filters button')
+    })
+
+    await fireEvent.click(filterButtons[0] as HTMLButtonElement)
+    await waitFor(() => {
+      expect(getClientRows(clientsPanel).map((row) => row.textContent || '').join(' ')).toContain('Manual Active Filter')
+      expect(getClientRows(clientsPanel).map((row) => row.textContent || '').join(' ')).toContain('Manual Archived Filter')
     })
 
     await fireEvent.click(filterButtons[1] as HTMLButtonElement)
@@ -4639,6 +4678,7 @@ describe('TherapistClientsView', () => {
     })
 
     const { container } = renderView()
+    await fireEvent.click(screen.getByRole('button', { name: 'Неактивні' }))
     const registeredCard = await waitFor(() => {
       const card = container.querySelector('#client-card-44')
       expect(card).toBeInstanceOf(HTMLElement)
@@ -4679,6 +4719,7 @@ describe('TherapistClientsView', () => {
     })
 
     const { container } = renderView()
+    await fireEvent.click(screen.getByRole('button', { name: 'Неактивні' }))
     const registeredCard = await waitFor(() => {
       const card = container.querySelector('#client-card-44')
       expect(card).toBeInstanceOf(HTMLElement)
@@ -4728,6 +4769,7 @@ describe('TherapistClientsView', () => {
     })
 
     const { container } = renderView()
+    await fireEvent.click(screen.getByRole('button', { name: 'Усі' }))
     const registeredCard = await waitFor(() => {
       const card = container.querySelector('#client-card-44')
       expect(card).toBeInstanceOf(HTMLElement)
@@ -4807,6 +4849,7 @@ describe('TherapistClientsView', () => {
     })
 
     const { container } = renderView()
+    await fireEvent.click(screen.getByRole('button', { name: 'Усі' }))
     const registeredCard = await waitFor(() => {
       const card = container.querySelector('#client-card-44')
       expect(card).toBeInstanceOf(HTMLElement)
@@ -4839,6 +4882,7 @@ describe('TherapistClientsView', () => {
     })
 
     const { container } = renderView()
+    await fireEvent.click(screen.getByRole('button', { name: 'Усі' }))
     const registeredCard = await waitFor(() => {
       const card = container.querySelector('#client-card-44')
       expect(card).toBeInstanceOf(HTMLElement)
@@ -4870,6 +4914,7 @@ describe('TherapistClientsView', () => {
     })
 
     const { container } = renderView()
+    await fireEvent.click(screen.getByRole('button', { name: 'Усі' }))
     const registeredCard = await waitFor(() => {
       const card = container.querySelector('#client-card-0')
       expect(card).toBeInstanceOf(HTMLElement)
