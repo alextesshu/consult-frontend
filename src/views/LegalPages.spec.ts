@@ -41,10 +41,15 @@ describe('legal and support pages', () => {
     const text = container.textContent || ''
 
     expect(text).toContain('Останнє оновлення: 21.06.2026')
-    expect(screen.getByRole('link', { name: 'Написати в підтримку' })).toHaveAttribute(
+    expect(screen.getByText('Основний контакт підтримки')).toBeInTheDocument()
+    expect(screen.getByText('Напишіть нам на email:')).toBeInTheDocument()
+    expect(screen.getAllByText('support@proconsult.space').length).toBeGreaterThan(0)
+    expect(screen.getByRole('button', { name: 'Копіювати email' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Відкрити поштовий клієнт' })).toHaveAttribute(
       'href',
       'mailto:support@proconsult.space'
     )
+    expect(screen.queryByRole('link', { name: 'Написати в підтримку' })).not.toBeInTheDocument()
     expect(screen.getByRole('heading', { name: '1. Звичайні питання підтримки' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: '2. Запити щодо даних і конфіденційності' })).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: '3. Чи є Pro Consult медичною інформаційною системою?' })).toBeInTheDocument()

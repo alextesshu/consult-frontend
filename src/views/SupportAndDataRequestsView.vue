@@ -10,11 +10,19 @@
       <div>
         <strong>Основний контакт підтримки</strong>
         <p>
-          Для звичайних питань і запитів щодо даних використовуйте одну адресу:
-          <a :href="`mailto:${supportEmail}`">{{ supportEmail }}</a>.
+          Напишіть нам на email:
+        </p>
+        <button class="support-contact-card__email" type="button" @click="copySupportEmail">
+          {{ supportEmail }}
+        </button>
+        <p v-if="isSupportEmailCopied" class="support-contact-card__status" role="status">
+          Email скопійовано
         </p>
       </div>
-      <a class="btn" :href="`mailto:${supportEmail}`">Написати в підтримку</a>
+      <div class="support-contact-card__actions">
+        <button class="btn" type="button" @click="copySupportEmail">Копіювати email</button>
+        <a class="btn btn--ghost" :href="`mailto:${supportEmail}`">Відкрити поштовий клієнт</a>
+      </div>
     </div>
 
     <h2>1. Звичайні питання підтримки</h2>
@@ -100,9 +108,26 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
 import LegalDocumentLayout from '../components/LegalDocumentLayout.vue'
 
 const supportEmail = 'support@proconsult.space'
+const isSupportEmailCopied = ref(false)
+
+async function copySupportEmail() {
+  const clipboard = typeof navigator === 'undefined' ? undefined : navigator.clipboard
+
+  if (!clipboard?.writeText) {
+    return
+  }
+
+  try {
+    await clipboard.writeText(supportEmail)
+    isSupportEmailCopied.value = true
+  } catch {
+    isSupportEmailCopied.value = false
+  }
+}
 </script>
 
 <style scoped>
@@ -121,10 +146,40 @@ const supportEmail = 'support@proconsult.space'
   margin: 4px 0 0;
 }
 
+.support-contact-card__email {
+  display: inline-flex;
+  margin-top: 8px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--primary);
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.support-contact-card__status {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.support-contact-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
 @media (max-width: 720px) {
   .support-contact-card {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .support-contact-card__actions {
+    justify-content: flex-start;
+    width: 100%;
   }
 }
 </style>
