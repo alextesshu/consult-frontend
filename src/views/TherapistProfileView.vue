@@ -1,24 +1,23 @@
 <template>
   <section class="profile">
     <header class="profile__hero">
-      <div>
+      <div class="profile__hero-main">
         <h1 class="title profile__title">Керування публічним профілем</h1>
         <p class="muted profile__subtitle">
-          Збирайте свою публічну сторінку як міні-сайт: умови роботи, довіра, контент, контакти й медіа.
+          Налаштуйте сторінку, яку бачить клієнт: опис, формати роботи, посилання, блог і відгуки.
         </p>
       </div>
-      <div class="profile__actions">
-        <div class="toggle-chip" :class="profile.public_profile_enabled ? 'toggle-chip--on' : 'toggle-chip--off'">
-          {{ profile.public_profile_enabled ? 'Публічний профіль увімкнено' : 'Публічний профіль вимкнено' }}
-        </div>
-        <button class="btn" type="button" :disabled="shareLoading" @click="onShareProfile">
-          {{ shareLoading ? 'Підготовка...' : 'Поділитись профілем' }}
-        </button>
-        <RouterLink class="btn btn--ghost" to="/cabinet">Назад до кабінету</RouterLink>
-        <div v-if="shareStatus" class="muted" style="margin-top: 6px;">{{ shareStatus }}</div>
-      </div>
+      <button
+        class="profile-status-chip"
+        :class="profile.public_profile_enabled ? 'profile-status-chip--on' : 'profile-status-chip--off'"
+        type="button"
+        :aria-label="profileStatusActionLabel"
+        :title="profileStatusActionLabel"
+        @click="togglePublicProfileEnabled"
+      >
+        {{ profileStatusText }}
+      </button>
     </header>
-    <SettingsSubnav active="profile" />
 
     <div v-if="showPublicProfileNotPublishedHint" class="profile-notice" role="status">
       <p class="profile-notice__text">
@@ -37,34 +36,33 @@
       <section class="panel panel--highlight">
         <div class="panel__header">
           <div>
-            <h2 class="panel__title">Публічний профіль</h2>
+            <h2 class="panel__title">Для клієнтів та соціальних мереж</h2>
             <p class="panel__hint">
-              Якщо ви вже знайшли клієнта і хочете почати співпрацю — поділіться з ним посиланням
-              на ваш профіль. Для цього натисніть “Поділитись профілем” або скопіюйте посилання нижче.
+              Скопіюйте посилання, щоб надіслати його клієнтам або додати в соціальні мережі.
+              На сторінці можна переглянути інформацію про вас і залишити запит.
             </p>
           </div>
         </div>
         <div class="form" style="margin-top: 12px;">
-          <label class="check" title="Якщо вимкнено — профіль не буде доступний за прямим посиланням.">
-            <input v-model="profile.public_profile_enabled" type="checkbox" />
-            Публічний профіль увімкнено
-          </label>
-          <label class="check">
-            <input v-model="profile.is_search_visible" type="checkbox" />
-            Дозволити знаходити мій профіль через пошук
-          </label>
-          <div class="field-help">
-            Публічна сторінка доступна за прямим посиланням після увімкнення профілю.
-            Видимість у пошуку спеціалістів керується окремо цим перемикачем.
-          </div>
-          <div class="field">
-            <div class="muted">Публічне посилання</div>
+          <section class="profile-search-visibility" aria-labelledby="profile-search-visibility-title">
+            <h3 id="profile-search-visibility-title">Додаткова видимість</h3>
+            <label class="check">
+              <input v-model="profile.is_search_visible" type="checkbox" />
+              Показувати мій профіль у пошуку на Pro Consult
+            </label>
+            <div class="field-help">
+              Якщо вимкнути, профіль залишиться доступним за прямим посиланням, але не з’являтиметься
+              у пошуку на сайті.
+            </div>
+          </section>
+          <section class="profile-link-callout" aria-label="Ваше посилання">
+            <div class="profile-link-callout__label">Ваше посилання</div>
+            <code class="slug profile-link-callout__url" title="Повне посилання, яким можна ділитися з клієнтами.">
+              {{ publicUrl || 'Посилання буде доступне після збереження slug.' }}
+            </code>
             <div class="slug-row">
-              <code class="slug" title="Повне посилання, яким можна ділитися з клієнтами.">
-                {{ publicUrl || 'Посилання буде доступне після збереження slug.' }}
-              </code>
               <button
-                class="btn btn--ghost"
+                class="btn"
                 type="button"
                 title="Скопіювати посилання в буфер обміну."
                 @click="onCopyLink"
@@ -79,7 +77,7 @@
                 rel="noreferrer"
                 title="Відкрити публічний профіль у новій вкладці."
               >
-                Відкрити профіль
+                Подивитись профіль
               </a>
               <RouterLink v-else class="btn btn--ghost" to="/cabinet/profile">
                 Увімкнути публічний профіль
@@ -129,10 +127,14 @@
             <div v-if="!profile.public_profile_enabled" class="muted" style="font-size: 12px;">
               Публічний профіль ще не опубліковано.
             </div>
-            <div v-if="copyStatus" class="muted" style="font-size: 12px;">
+            <div
+              v-if="copyStatus"
+              class="profile-link-callout__status"
+              :class="{ 'profile-link-callout__status--success': copyStatus === 'Посилання скопійовано' }"
+            >
               {{ copyStatus }}
             </div>
-          </div>
+          </section>
         </div>
       </section>
 
@@ -1141,7 +1143,6 @@ import {
   type SpecialistProfileDocument,
   type SpecialistProfile,
 } from '../lib/api'
-import SettingsSubnav from '../components/SettingsSubnav.vue'
 import StickySaveBar from '../components/StickySaveBar.vue'
 import { useDirtySnapshot } from '../composables/useDirtySnapshot'
 import {
@@ -1165,8 +1166,6 @@ const saving = ref(false)
 const error = ref('')
 const success = ref('')
 const copyStatus = ref('')
-const shareStatus = ref('')
-const shareLoading = ref(false)
 const slugEditOpen = ref(false)
 const slugDraft = ref('')
 const slugSaving = ref(false)
@@ -1819,6 +1818,14 @@ const slugPreviewPath = computed(() => {
 })
 
 const isPublicProfilePublished = computed(() => Boolean(profile.public_profile_enabled && publicUrl.value))
+const profileStatusText = computed(() =>
+  profile.public_profile_enabled ? 'Профіль публічний' : 'Профіль приховано'
+)
+const profileStatusActionLabel = computed(() =>
+  profile.public_profile_enabled
+    ? 'Натисніть, щоб приховати профіль'
+    : 'Натисніть, щоб зробити профіль публічним'
+)
 const showPublicProfileNotPublishedHint = computed(
   () => route.query.public_profile === 'unpublished' && !profile.public_profile_enabled
 )
@@ -1893,6 +1900,11 @@ function setSuggestionCategory(section: SuggestionSectionKey, category: Suggesti
   }
   selectedWorkBoundariesSuggestionCategory.value = category
 }
+
+function togglePublicProfileEnabled() {
+  profile.public_profile_enabled = !profile.public_profile_enabled
+}
+
 type ProfileFormSnapshot = {
   public_profile_enabled: boolean
   is_search_visible: boolean
@@ -2193,7 +2205,6 @@ async function saveSlug() {
   error.value = ''
   success.value = ''
   copyStatus.value = ''
-  shareStatus.value = ''
   try {
     const data = await updateSpecialistProfile({ slug: nextSlug })
     Object.assign(profile, normalizeProfile(data))
@@ -2219,35 +2230,9 @@ async function onCopyLink() {
   }
   try {
     await navigator.clipboard.writeText(publicUrl.value)
-    copyStatus.value = 'Скопійовано.'
+    copyStatus.value = 'Посилання скопійовано'
   } catch {
     copyStatus.value = 'Не вдалося скопіювати.'
-  }
-}
-
-async function onShareProfile() {
-  shareStatus.value = ''
-  if (!profile.public_profile_enabled) {
-    shareStatus.value = 'Публічний профіль ще не опубліковано. Увімкніть його в налаштуваннях.'
-    return
-  }
-  if (!publicUrl.value) {
-    shareStatus.value = 'Публічного посилання ще немає.'
-    return
-  }
-  shareLoading.value = true
-  try {
-    if (navigator.share) {
-      await navigator.share({ title: 'Профіль спеціаліста', url: publicUrl.value })
-      shareStatus.value = 'Посилання на профіль надіслано.'
-      return
-    }
-    await navigator.clipboard.writeText(publicUrl.value)
-    shareStatus.value = 'Посилання скопійовано.'
-  } catch {
-    shareStatus.value = 'Не вдалося поділитись посиланням.'
-  } finally {
-    shareLoading.value = false
   }
 }
 
@@ -2582,104 +2567,70 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 20px;
-  position: relative;
-  overflow: hidden;
-  background:
-    radial-gradient(circle at 92% 70%, color-mix(in srgb, var(--pc-peach-100) 70%, transparent) 0 120px, transparent 121px),
-    linear-gradient(135deg, #ffffff 0%, color-mix(in srgb, var(--pc-primary-soft) 70%, #ffffff) 54%, color-mix(in srgb, var(--pc-yellow-soft) 45%, #ffffff) 100%);
+  gap: 22px;
+  background: #fff;
   border: 1px solid var(--pc-border);
-  border-radius: var(--pc-radius-panel);
-  padding: 24px;
-  box-shadow: var(--pc-shadow-soft);
+  border-radius: var(--radius-md);
+  padding: 18px 20px;
 }
 
-.profile__hero > * {
-  position: relative;
-  z-index: 1;
-}
-
-.profile__hero::after {
-  content: "";
-  position: absolute;
-  right: -44px;
-  bottom: -58px;
-  width: 180px;
-  height: 180px;
-  border-radius: 999px;
-  background: rgba(247, 183, 126, 0.18);
-  pointer-events: none;
+.profile__hero-main {
+  display: grid;
+  gap: 8px;
+  max-width: 760px;
 }
 
 .profile__title {
-  margin: 8px 0 8px;
+  margin: 0;
   color: var(--pc-navy-950);
-  font-size: 32px;
-  line-height: 1.15;
+  font-size: 28px;
+  line-height: 1.2;
 }
 
 .profile__subtitle {
-  max-width: 520px;
+  margin: 0;
+  max-width: 680px;
   color: var(--pc-text-muted);
-  line-height: 1.55;
+  line-height: 1.45;
 }
 
-.profile__actions {
-  display: flex;
-  gap: 12px;
+.profile-status-chip {
+  flex: 0 0 auto;
+  display: inline-flex;
   align-items: center;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-}
-
-.profile__actions .btn {
-  border-radius: var(--pc-radius-control);
-  font-weight: 700;
-}
-
-.profile__actions .btn--ghost {
-  border-color: var(--pc-border);
+  justify-content: center;
+  min-width: 190px;
+  min-height: 52px;
+  padding: 13px 20px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
   background: #fff;
-  color: var(--pc-navy-900);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 14px 30px rgba(18, 52, 90, 0.1);
+  text-align: center;
+  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
 }
 
-.profile :deep(.settings-subnav__link) {
-  border: 1px solid var(--pc-border);
-  border-radius: var(--pc-radius-control);
-  background: #fff;
-  color: var(--pc-text-muted);
+.profile-status-chip--on {
+  border-color: color-mix(in srgb, #2f8f63 46%, var(--pc-border));
+  background: color-mix(in srgb, #2f8f63 15%, #ffffff);
+  color: #1f6446;
 }
 
-.profile :deep(.settings-subnav__link:hover),
-.profile :deep(.settings-subnav__link:focus-visible) {
+.profile-status-chip--off {
+  border-color: color-mix(in srgb, #c56b5d 46%, var(--pc-border));
+  background: color-mix(in srgb, #c56b5d 15%, #ffffff);
+  color: #91463d;
+}
+
+.profile-status-chip:hover,
+.profile-status-chip:focus-visible {
   border-color: color-mix(in srgb, var(--pc-navy-900) 28%, var(--pc-border));
-  background: color-mix(in srgb, var(--pc-blue-soft) 76%, #ffffff);
-  color: var(--pc-navy-900);
-}
-
-.profile :deep(.settings-subnav__link.is-active) {
-  border-color: color-mix(in srgb, var(--pc-navy-900) 36%, var(--pc-border));
-  background: color-mix(in srgb, var(--pc-primary-soft) 80%, #ffffff);
-  color: var(--pc-navy-900);
-}
-
-.toggle-chip {
-  padding: 6px 12px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.toggle-chip--on {
-  background: color-mix(in srgb, var(--pc-navy-900) 10%, #ffffff);
-  color: var(--pc-navy-900);
-}
-
-.toggle-chip--off {
-  background: rgba(194, 75, 75, 0.2);
-  color: #a03838;
+  outline: none;
+  transform: translateY(-1px);
 }
 
 .profile-grid {
@@ -3407,6 +3358,55 @@ onMounted(() => {
   flex: 1;
 }
 
+.profile-search-visibility {
+  display: grid;
+  gap: 8px;
+}
+
+.profile-search-visibility h3 {
+  margin: 0;
+  color: var(--pc-navy-950);
+  font-size: 15px;
+  line-height: 1.25;
+}
+
+.profile-link-callout {
+  display: grid;
+  gap: 12px;
+  border: 1px solid color-mix(in srgb, var(--pc-navy-900) 18%, var(--pc-border));
+  border-radius: var(--radius-md);
+  padding: 14px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(247, 250, 250, 0.94)),
+    #fff;
+}
+
+.profile-link-callout__label {
+  color: var(--pc-navy-950);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.profile-link-callout__url {
+  width: 100%;
+}
+
+.profile-link-callout__status {
+  display: inline-flex;
+  justify-self: start;
+  padding: 6px 10px;
+  border-radius: var(--radius-xs);
+  color: var(--pc-text-muted);
+  background: color-mix(in srgb, var(--pc-surface) 92%, #ffffff);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.profile-link-callout__status--success {
+  color: #226a4a;
+  background: color-mix(in srgb, #2f8f63 10%, #ffffff);
+}
+
 .slug-row {
   display: flex;
   align-items: center;
@@ -3421,6 +3421,7 @@ onMounted(() => {
   background: color-mix(in srgb, var(--pc-surface) 94%, #ffffff);
   border: 1px dashed var(--pc-border);
   font-size: 13px;
+  overflow-wrap: anywhere;
 }
 
 .slug-edit {
@@ -3517,18 +3518,14 @@ onMounted(() => {
     gap: 10px;
   }
 
-  .profile__hero::after {
-    display: none;
-  }
-
-  .profile__hero > div:first-child {
+  .profile__hero-main {
     width: 100%;
     min-width: 0;
   }
 
   .profile__title {
     font-size: 26px;
-    margin: 4px 0;
+    margin: 0;
     line-height: 1.16;
   }
 
@@ -3542,37 +3539,18 @@ onMounted(() => {
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
-
-  .profile__actions {
-    width: 100%;
-    justify-content: flex-start;
-    align-items: flex-start;
-    min-width: 0;
-  }
-
-  .profile__actions .btn,
-  .profile__actions .btn.btn--ghost {
-    max-width: 100%;
-  }
-
-  .toggle-chip {
-    max-width: 100%;
-    white-space: normal;
-    overflow-wrap: anywhere;
-  }
-
 }
 
 @media (max-width: 640px) {
   .profile__hero {
-    border-radius: var(--pc-radius-panel);
+    border-radius: var(--radius-md);
     padding: 12px 14px;
     gap: 10px;
   }
 
   .profile__title {
     font-size: 24px;
-    margin: 4px 0;
+    margin: 0;
     line-height: 1.16;
   }
 
@@ -3592,16 +3570,10 @@ onMounted(() => {
     line-height: 1.15;
   }
 
-  .profile__actions {
-    display: grid;
-    width: 100%;
-    gap: 10px;
-  }
-
-  .profile__actions .btn,
-  .profile__actions .btn.btn--ghost,
-  .profile__actions .toggle-chip {
-    width: 100%;
+  .profile-status-chip {
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
   }
 }
 </style>
