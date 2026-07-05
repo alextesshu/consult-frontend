@@ -1460,11 +1460,16 @@ describe('TherapistClientsView', () => {
 
     const dialog = await screen.findByRole('dialog', { name: 'Картка клієнта' })
     expect(within(dialog).getByText('Manual Second')).toBeInTheDocument()
+    expect(within(dialog).queryByText('Клієнт')).not.toBeInTheDocument()
     expect(clientsPanel.querySelector('.client-row--selected')).toHaveTextContent('Manual Second')
     expect(within(dialog).getByRole('tab', { name: 'Огляд' })).toBeInTheDocument()
     expect(within(dialog).getByRole('tab', { name: 'Контакти' })).toBeInTheDocument()
     expect(within(dialog).getByText('Без реєстрації')).toBeInTheDocument()
     expect(within(dialog).getByText('manual@example.com')).toBeInTheDocument()
+    const headerActions = dialog.querySelector('.client-management-modal__header-actions') as HTMLElement
+    const overviewActions = dialog.querySelector('.client-management-overview__actions') as HTMLElement
+    expect(within(headerActions).queryByRole('button', { name: 'Редагувати дані' })).not.toBeInTheDocument()
+    expect(within(overviewActions).getByRole('button', { name: 'Редагувати дані' })).toBeInTheDocument()
 
     await fireEvent.click(within(dialog).getByRole('tab', { name: 'Контакти' }))
     expect(within(dialog).getByText('Email')).toBeInTheDocument()
@@ -1479,6 +1484,58 @@ describe('TherapistClientsView', () => {
     expect(within(dialog).getByText('Створено вручну')).toBeInTheDocument()
     expect(dialog).not.toHaveTextContent('Тип картки')
     expect(dialog).not.toHaveTextContent('internal_note')
+  })
+
+  it('opens edit form from active manual client management modal', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL)
+        return [
+          manualClientRecord({
+            id: 635,
+            display_name: 'Manual Editable',
+            email: 'editable@example.com',
+          }),
+        ]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    const { clientsPanel } = getPanels(renderView().container)
+    await selectClientRowByName(clientsPanel, 'Manual Editable')
+
+    const dialog = await screen.findByRole('dialog', { name: 'Картка клієнта' })
+    await fireEvent.click(within(dialog).getByRole('button', { name: 'Редагувати дані' }))
+
+    expect(screen.queryByRole('dialog', { name: 'Картка клієнта' })).not.toBeInTheDocument()
+    const editDialog = await screen.findByRole('dialog', { name: 'Редагування клієнта' })
+    expect(within(editDialog).getByLabelText('Імʼя клієнта')).toHaveValue('Manual Editable')
+    expect(within(editDialog).getByLabelText('Email')).toHaveValue('editable@example.com')
+  })
+
+  it('does not show edit action in archived manual client management modal', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL)
+        return [
+          manualClientRecord({
+            id: 636,
+            display_name: 'Manual Archived Modal',
+            status: 'archived',
+            archived_at: '2099-06-15T11:00:00Z',
+          }),
+        ]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    const { clientsPanel } = getPanels(renderView().container)
+    await fireEvent.click(screen.getByRole('button', { name: 'Архів' }))
+    await selectClientRowByName(clientsPanel, 'Manual Archived Modal')
+
+    const dialog = await screen.findByRole('dialog', { name: 'Картка клієнта' })
+    expect(within(dialog).queryByRole('button', { name: 'Редагувати дані' })).not.toBeInTheDocument()
+    expect(within(dialog).getByText('Цю клієнтську картку не можна редагувати в архіві.')).toBeInTheDocument()
   })
 
   it('shows registered client access state in management modal without invite controls', async () => {
@@ -1509,9 +1566,9 @@ describe('TherapistClientsView', () => {
 
     expect(within(dialog).getByRole('heading', { name: 'Доступ клієнта' })).toBeInTheDocument()
     expect(
-      within(dialog).getByText('Тут видно, чи має клієнт кабінет у Pro Consult, і можна керувати запрошенням.')
+      within(dialog).getByText('Керуйте доступом клієнта до кабінету та робочим статусом картки.')
     ).toBeInTheDocument()
-    expect(within(dialog).getByRole('heading', { name: 'Кабінет клієнта' })).toBeInTheDocument()
+    expect(within(dialog).getByRole('heading', { name: 'Кабінет у Pro Consult' })).toBeInTheDocument()
     expect(within(dialog).getByRole('heading', { name: 'Статус роботи' })).toBeInTheDocument()
     expect(dialog).not.toHaveTextContent('Розділ буде перенесено')
     expect(within(dialog).getByText('З кабінетом')).toBeInTheDocument()
@@ -1551,16 +1608,22 @@ describe('TherapistClientsView', () => {
     await fireEvent.click(within(dialog).getByRole('tab', { name: 'Доступ' }))
 
     expect(within(dialog).getByRole('heading', { name: 'Доступ клієнта' })).toBeInTheDocument()
-    expect(within(dialog).getByRole('heading', { name: 'Кабінет клієнта' })).toBeInTheDocument()
+    expect(within(dialog).getByRole('heading', { name: 'Кабінет у Pro Consult' })).toBeInTheDocument()
     expect(within(dialog).getByRole('heading', { name: 'Статус роботи' })).toBeInTheDocument()
     expect(within(dialog).getByText('Без реєстрації')).toBeInTheDocument()
     expect(within(dialog).getByText('manual-access@example.com')).toBeInTheDocument()
     expect(within(dialog).getByText('+380501234567')).toBeInTheDocument()
     expect(
-      within(dialog).getAllByText(
+      within(dialog).getByText(
+        'Клієнт поки без кабінету. Надішліть запрошення, щоб він міг створити кабінет і бачити доступні йому матеріали, сесії та нагадування.'
+      )
+    ).toBeInTheDocument()
+    expect(within(dialog).getByText('Запросити клієнта до кабінету')).toBeInTheDocument()
+    expect(
+      within(dialog).queryByText(
         'Це внутрішня картка клієнта. Клієнт не має власного кабінету, доки ви не надішлете запрошення.'
-      ).length
-    ).toBeGreaterThan(0)
+      )
+    ).not.toBeInTheDocument()
     expect(within(dialog).getByRole('button', { name: 'Запросити до кабінету' })).toBeInTheDocument()
   })
 
@@ -1588,10 +1651,15 @@ describe('TherapistClientsView', () => {
     const dialog = await screen.findByRole('dialog', { name: 'Картка клієнта' })
     await fireEvent.click(within(dialog).getByRole('tab', { name: 'Доступ' }))
 
+    expect(within(dialog).queryByRole('button', { name: 'Редагувати дані' })).not.toBeInTheDocument()
+    expect(
+      within(dialog).getByText('Картка повʼязана з кабінетом клієнта, тому контактні дані не редагуються тут.')
+    ).toBeInTheDocument()
     expect(within(dialog).getByText('З кабінетом')).toBeInTheDocument()
     expect(within(dialog).getByText('account631@example.com')).toBeInTheDocument()
     expect(within(dialog).getByText('contact631@example.com')).toBeInTheDocument()
-    expect(within(dialog).getByText('Картка вже повʼязана з кабінетом клієнта.')).toBeInTheDocument()
+    expect(within(dialog).getByText('Кабінет підключено')).toBeInTheDocument()
+    expect(within(dialog).getByText('Картка повʼязана з кабінетом клієнта.')).toBeInTheDocument()
     expect(within(dialog).queryByRole('button', { name: 'Запросити до кабінету' })).not.toBeInTheDocument()
   })
 
@@ -1786,7 +1854,11 @@ describe('TherapistClientsView', () => {
     await fireEvent.click(within(dialog).getByRole('tab', { name: 'Приватний зошит' }))
 
     expect(within(dialog).getByText('Недоступний')).toBeInTheDocument()
-    expect(within(dialog).getByText('Для цієї картки приватний зошит поки недоступний.')).toBeInTheDocument()
+    expect(
+      within(dialog).getByText(
+        'Приватний зошит доступний тільки для клієнтів із кабінетом. У цієї картки статус “Без реєстрації”, тому зошит не відкривається.'
+      )
+    ).toBeInTheDocument()
     expect(within(dialog).queryByRole('link', { name: 'Відкрити приватний зошит' })).not.toBeInTheDocument()
     expect(mockedApiGet.mock.calls.some(([url]) => url === '/cabinet/clients/621/journal/')).toBe(false)
     expect(mockedApiGet.mock.calls.some(([url]) => url === '/cabinet/clients/0/journal/')).toBe(false)
@@ -2820,9 +2892,9 @@ describe('TherapistClientsView', () => {
     expect(within(manualCard).queryByRole('button', { name: 'Редагувати' })).not.toBeInTheDocument()
 
     await openAccordionSection(manualCard, 'Керування клієнтом')
-    await fireEvent.click(within(manualCard).getByRole('button', { name: 'Редагувати дані клієнта' }))
+    await fireEvent.click(within(manualCard).getByRole('button', { name: 'Редагувати дані' }))
 
-    const dialog = await screen.findByRole('dialog', { name: 'Редагувати клієнта' })
+    const dialog = await screen.findByRole('dialog', { name: 'Редагування клієнта' })
 
     expect(within(dialog).getByLabelText('Імʼя клієнта')).toHaveValue('Manual Before')
     expect(within(dialog).getByLabelText('Email')).toHaveValue('before@example.com')
@@ -2836,7 +2908,7 @@ describe('TherapistClientsView', () => {
     await fireEvent.update(within(dialog).getByLabelText('Telegram'), '@after')
     await fireEvent.update(within(dialog).getByLabelText('Короткий опис клієнта'), 'After note')
 
-    await fireEvent.click(within(dialog).getByRole('button', { name: 'Зберегти зміни' }))
+    await fireEvent.click(within(dialog).getByRole('button', { name: 'Зберегти' }))
 
     await waitFor(() => {
       expect(mockedApiPatch).toHaveBeenCalledWith('/cabinet/client-records/206/', {
@@ -2851,7 +2923,8 @@ describe('TherapistClientsView', () => {
       expect(mockedApiPatch.mock.calls[0]?.[1]).not.toHaveProperty('full_name')
       expect(within(clientsPanel).getAllByText('Manual After').length).toBeGreaterThan(0)
       expect(within(clientsPanel).getAllByText('after@example.com').length).toBeGreaterThan(0)
-      expect(screen.queryByRole('dialog', { name: 'Редагувати клієнта' })).not.toBeInTheDocument()
+      expect(screen.queryByRole('dialog', { name: 'Редагування клієнта' })).not.toBeInTheDocument()
+      expect(mockToast.success).toHaveBeenCalledWith('Дані клієнта оновлено')
     })
   })
 
@@ -2887,7 +2960,10 @@ describe('TherapistClientsView', () => {
     expect(within(manualCard).queryByRole('button', { name: 'Редагувати' })).not.toBeInTheDocument()
     expect(within(manualCard).getByText('Дані, доступ, архів')).toBeInTheDocument()
     await openAccordionSection(manualCard, 'Керування клієнтом')
-    expect(within(manualCard).getByRole('button', { name: 'Редагувати дані клієнта' })).toBeInTheDocument()
+    expect(within(manualCard).queryByRole('button', { name: 'Редагувати дані' })).not.toBeInTheDocument()
+    expect(
+      within(manualCard).getByText('Картка повʼязана з кабінетом клієнта, тому контактні дані не редагуються тут.')
+    ).toBeInTheDocument()
     expect(within(manualCard).getByRole('button', { name: 'Завершити роботу' })).toBeInTheDocument()
     expect(within(manualCard).queryByRole('button', { name: 'Відкрити приватний зошит' })).not.toBeInTheDocument()
   })
@@ -3452,6 +3528,8 @@ describe('TherapistClientsView', () => {
       return card as HTMLElement
     })
     expect(within(archivedCard).getByText('Архів')).toBeInTheDocument()
+    expect(within(archivedCard).queryByRole('button', { name: 'Редагувати дані' })).not.toBeInTheDocument()
+    expect(within(archivedCard).getByText('Цю клієнтську картку не можна редагувати в архіві.')).toBeInTheDocument()
     expect(within(archivedCard).getByRole('button', { name: 'Повернути в роботу' })).toBeInTheDocument()
 
     await fireEvent.click(within(archivedCard).getByRole('button', { name: 'Повернути в роботу' }))

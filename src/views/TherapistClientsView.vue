@@ -305,6 +305,16 @@
               </button>
 
               <button
+                v-if="canEditManualClientRecord(client)"
+                class="btn btn--ghost btn--sm"
+                type="button"
+                :disabled="isManualActionLoading(client.id)"
+                @click.stop="openManualClientEditModal(client)"
+              >
+                Редагувати дані
+              </button>
+
+              <button
                 v-if="client.status !== 'archived'"
                 class="btn btn--ghost btn--sm"
                 type="button"
@@ -857,15 +867,11 @@
               <div v-else class="client-management__access-status">
                 <div class="manual-account-invite__title">Доступ до кабінету</div>
                 <p class="muted">Клієнт має доступ до кабінету.</p>
+                <p class="muted">Картка повʼязана з кабінетом клієнта, тому контактні дані не редагуються тут.</p>
               </div>
-              <button
-                class="btn btn--ghost btn--sm"
-                type="button"
-                :disabled="isManualActionLoading(client.id)"
-                @click="openManualClientEditModal(client)"
-              >
-                Редагувати дані клієнта
-              </button>
+              <p v-if="client.status === 'archived'" class="muted client-management__archive-note">
+                Цю клієнтську картку не можна редагувати в архіві.
+              </p>
               <button
                 v-if="client.status !== 'archived'"
                 class="btn btn--ghost btn--sm"
@@ -1541,13 +1547,17 @@
       <div class="manual-client-modal__content client-management-modal__content">
         <div class="manual-client-modal__header client-management-modal__header">
           <div>
-            <div class="badge badge--soft">Клієнт</div>
             <h2 id="client-management-title" class="manual-client-modal__title">Картка клієнта</h2>
-            <p class="muted">{{ displayClientName(clientManagementClient) }}</p>
+            <p class="client-management-modal__client-name">{{ displayClientName(clientManagementClient) }}</p>
+            <p v-if="clientManagementEditUnavailableMessage(clientManagementClient)" class="muted client-management-modal__edit-note">
+              {{ clientManagementEditUnavailableMessage(clientManagementClient) }}
+            </p>
           </div>
-          <button class="btn btn--ghost btn--sm" type="button" @click="closeClientManagementModal">
-            Закрити
-          </button>
+          <div class="client-management-modal__header-actions">
+            <button class="btn btn--ghost btn--sm" type="button" @click="closeClientManagementModal">
+              Закрити
+            </button>
+          </div>
         </div>
 
         <div class="client-management-modal__tabs" role="tablist" aria-label="Розділи картки клієнта">
@@ -1575,10 +1585,19 @@
               </div>
             </div>
             <div class="client-management-overview__actions">
+              <button
+                v-if="canEditManualClientRecord(clientManagementClient)"
+                class="btn btn--sm client-management-overview__edit-action"
+                type="button"
+                :disabled="isManualActionLoading(clientManagementClient.id)"
+                @click="openClientManagementEditModal(clientManagementClient)"
+              >
+                Редагувати дані
+              </button>
               <button class="btn btn--ghost btn--sm" type="button" @click="setClientManagementSection('contacts')">
                 Перейти до контактів
               </button>
-              <button class="btn btn--sm" type="button" @click="setClientManagementSection('materials')">
+              <button class="btn btn--ghost btn--sm" type="button" @click="setClientManagementSection('materials')">
                 Перейти до матеріалів
               </button>
             </div>
@@ -2097,7 +2116,7 @@
                 Відкрити приватний зошит
               </RouterLink>
               <p v-else class="client-management-workbook__unavailable">
-                Для цієї картки приватний зошит поки недоступний.
+                {{ workbookUnavailableMessage(clientManagementClient) }}
               </p>
             </article>
           </section>
@@ -2182,16 +2201,16 @@
               <div>
                 <h3>Доступ клієнта</h3>
                 <p class="muted">
-                  Тут видно, чи має клієнт кабінет у Pro Consult, і можна керувати запрошенням.
+                  Керуйте доступом клієнта до кабінету та робочим статусом картки.
                 </p>
               </div>
             </div>
 
             <article class="client-management-access__card">
-              <h4>Кабінет клієнта</h4>
+              <h4>Кабінет у Pro Consult</h4>
               <div class="client-management-access__top">
                 <div>
-                  <div class="client-management-access__label">Кабінет</div>
+                  <div class="client-management-access__label">Стан</div>
                   <div class="client-management-access__value">{{ accountBadgeLabel(clientManagementClient) }}</div>
                 </div>
               </div>
@@ -2209,10 +2228,7 @@
             <div v-if="isManualClientRecord(clientManagementClient) && !hasLinkedAccount(clientManagementClient)" class="manual-account-invite client-management-access__invite">
               <div class="manual-account-invite__header">
                 <div>
-                  <div class="manual-account-invite__title">Запрошення до кабінету</div>
-                  <p class="manual-account-invite__copy">
-                    Це внутрішня картка клієнта. Клієнт не має власного кабінету, доки ви не надішлете запрошення.
-                  </p>
+                  <div class="manual-account-invite__title">Запросити клієнта до кабінету</div>
                 </div>
                 <span v-if="accountInviteState(clientManagementClient.id).loading" class="manual-account-invite__status">
                   Перевіряємо...
@@ -2276,7 +2292,7 @@
             </div>
 
             <div v-else-if="isManualClientRecord(clientManagementClient)" class="client-management-access__linked">
-              <div class="manual-account-invite__title">Картка вже повʼязана з кабінетом клієнта.</div>
+              <div class="manual-account-invite__title">Кабінет підключено</div>
               <p class="muted">Клієнт уже має кабінет.</p>
             </div>
 
@@ -3215,7 +3231,7 @@ const clientIndex = computed(() => {
 const isManualClientEditMode = computed(() => manualClientEditingId.value !== null)
 
 const manualClientModalTitle = computed(() =>
-  isManualClientEditMode.value ? 'Редагувати клієнта' : 'Додати клієнта'
+  isManualClientEditMode.value ? 'Редагування клієнта' : 'Додати клієнта'
 )
 
 const manualClientSubmitLabel = computed(() => {
@@ -3223,7 +3239,7 @@ const manualClientSubmitLabel = computed(() => {
     return isManualClientEditMode.value ? 'Зберігаємо...' : 'Додаємо...'
   }
 
-  return isManualClientEditMode.value ? 'Зберегти зміни' : 'Додати клієнта'
+  return isManualClientEditMode.value ? 'Зберегти' : 'Додати клієнта'
 })
 
 const manualSessionModalTitle = computed(() => {
@@ -3384,6 +3400,19 @@ function markManualClientRecord(record: ManualClientRecord): ManualClientRecord 
 function hasLinkedAccount(client: ClientListItem): boolean {
   if (!isManualClientRecord(client)) return true
   return Boolean(client.has_account || client.user_id)
+}
+
+function canEditManualClientRecord(client: ClientListItem): client is ManualClientRecord {
+  return isManualClientRecord(client) && client.status !== 'archived' && !hasLinkedAccount(client)
+}
+
+function clientManagementEditUnavailableMessage(client: ClientListItem): string {
+  if (!isManualClientRecord(client)) return ''
+  if (client.status === 'archived') return 'Цю клієнтську картку не можна редагувати в архіві.'
+  if (hasLinkedAccount(client)) {
+    return 'Картка повʼязана з кабінетом клієнта, тому контактні дані не редагуються тут.'
+  }
+  return ''
 }
 
 function manualContactEmail(client: ManualClientRecord): string {
@@ -4941,6 +4970,12 @@ function closeClientManagementModal() {
   }
 }
 
+function openClientManagementEditModal(client: ClientListItem) {
+  if (!canEditManualClientRecord(client)) return
+  closeClientManagementModal()
+  openManualClientEditModal(client)
+}
+
 function setClientManagementSection(section: ClientManagementSection) {
   const client = clientManagementModal.value.client
   if (!client) return
@@ -5832,8 +5867,8 @@ function clientAccessRows(client: ClientListItem) {
 
 function clientAccessDescription(client: ClientListItem) {
   if (isManualClientRecord(client)) {
-    if (hasLinkedAccount(client)) return 'Ця картка вже повʼязана з кабінетом клієнта.'
-    return 'Це внутрішня картка клієнта. Клієнт не має власного кабінету, доки ви не надішлете запрошення.'
+    if (hasLinkedAccount(client)) return 'Картка повʼязана з кабінетом клієнта.'
+    return 'Клієнт поки без кабінету. Надішліть запрошення, щоб він міг створити кабінет і бачити доступні йому матеріали, сесії та нагадування.'
   }
   return 'Клієнт уже має кабінет і може бачити свої сесії, матеріали та нагадування.'
 }
@@ -6229,6 +6264,16 @@ function workbookSummary(client: ClientListItem) {
   return updatedAt ? `Заповнений, оновлено ${updatedAt}` : 'Заповнений'
 }
 
+function workbookUnavailableMessage(client: ClientListItem) {
+  if (isManualClientRecord(client) && !hasLinkedAccount(client)) {
+    return 'Приватний зошит доступний тільки для клієнтів із кабінетом. У цієї картки статус “Без реєстрації”, тому зошит не відкривається.'
+  }
+  if (isManualClientRecord(client)) {
+    return 'Ця картка повʼязана з кабінетом клієнта, але приватний зошит для неї поки не відкривається.'
+  }
+  return 'Для цієї картки приватний зошит поки недоступний.'
+}
+
 function latestNoteSummary(client: ClientListItem) {
   if (isManualClientRecord(client)) return 'Нотаток ще немає'
   if (!client.latest_session_note_at) return '\u041d\u043e\u0442\u0430\u0442\u043e\u043a \u0449\u0435 \u043d\u0435\u043c\u0430\u0454'
@@ -6604,6 +6649,9 @@ async function submitManualClient() {
     manualClientModalOpen.value = false
     manualClientEditingId.value = null
     resetManualClientForm()
+    if (editingId) {
+      toast.success('Дані клієнта оновлено')
+    }
   } catch (err: any) {
     manualClientFormError.value = manualClientErrorMessage(
       err,
@@ -7302,9 +7350,9 @@ onBeforeUnmount(() => {
 
 .client-row__name {
   color: var(--pc-navy-950);
-  font-size: 15px;
-  font-weight: 800;
-  line-height: 1.25;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.32;
   overflow-wrap: anywhere;
 }
 
@@ -7401,9 +7449,9 @@ onBeforeUnmount(() => {
 
 .client-name {
   color: var(--pc-navy-950);
-  font-size: 19px;
+  font-size: 17px;
   font-weight: 700;
-  line-height: 1.18;
+  line-height: 1.32;
   overflow-wrap: anywhere;
 }
 
@@ -7552,6 +7600,11 @@ onBeforeUnmount(() => {
 .client-management__access-status {
   display: grid;
   gap: 4px;
+}
+
+.client-management__archive-note {
+  flex: 1 1 100%;
+  margin: 0;
 }
 
 .client-summary-card {
@@ -8507,6 +8560,29 @@ onBeforeUnmount(() => {
   padding: 18px 20px 14px;
 }
 
+.client-management-modal__client-name {
+  margin: 6px 0 0;
+  color: var(--pc-navy-900);
+  font-size: 15px;
+  font-weight: 650;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.client-management-modal__edit-note {
+  max-width: 560px;
+  margin: 8px 0 0;
+}
+
+.client-management-modal__header-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .client-management-modal__tabs {
   flex: 0 0 auto;
   display: flex;
@@ -8588,6 +8664,21 @@ onBeforeUnmount(() => {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+.client-management-overview__edit-action {
+  min-width: 180px;
+  border-color: var(--pc-navy-900);
+  background: var(--pc-navy-900);
+  color: #fff;
+  box-shadow: 0 12px 26px rgba(18, 52, 90, 0.18);
+}
+
+.client-management-overview__edit-action:hover,
+.client-management-overview__edit-action:focus-visible {
+  border-color: var(--pc-navy-950);
+  background: var(--pc-navy-950);
+  color: #fff;
 }
 
 .client-management-contacts__list {
