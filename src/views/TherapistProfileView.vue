@@ -18,8 +18,8 @@
         >
           {{ profileStatusText }}
         </button>
-        <p v-if="profile.public_profile_enabled" class="profile-status-control__hint">
-          Клієнти можуть переглядати вашу сторінку та залишати запити.
+        <p class="profile-status-control__hint">
+          {{ profileStatusHint }}
         </p>
       </div>
     </header>
@@ -1824,7 +1824,12 @@ const slugPreviewPath = computed(() => {
 
 const isPublicProfilePublished = computed(() => Boolean(profile.public_profile_enabled && publicUrl.value))
 const profileStatusText = computed(() =>
-  profile.public_profile_enabled ? 'Профіль активний' : 'Профіль не активний'
+  profile.public_profile_enabled ? 'Профіль активний' : 'Активувати профіль'
+)
+const profileStatusHint = computed(() =>
+  profile.public_profile_enabled
+    ? 'Клієнти можуть переглядати вашу сторінку та залишати запити.'
+    : 'Після активації клієнти зможуть переглядати вашу сторінку та залишати запити.'
 )
 const profileStatusActionLabel = computed(() =>
   profile.public_profile_enabled

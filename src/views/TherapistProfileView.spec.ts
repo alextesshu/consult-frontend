@@ -265,9 +265,12 @@ describe('TherapistProfileView', () => {
 
     await fireEvent.click(statusChip)
     expect(screen.getByRole('button', { name: 'Натисніть, щоб зробити профіль публічним' })).toHaveTextContent(
-      'Профіль не активний'
+      'Активувати профіль'
     )
     expect(screen.queryByText('Клієнти можуть переглядати вашу сторінку та залишати запити.')).not.toBeInTheDocument()
+    expect(
+      screen.getByText('Після активації клієнти зможуть переглядати вашу сторінку та залишати запити.')
+    ).toBeInTheDocument()
     expect(await screen.findByTestId('profile-sticky-save-bar')).toBeInTheDocument()
 
     await fireEvent.click(screen.getByRole('button', { name: 'Зберегти' }))
