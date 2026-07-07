@@ -644,9 +644,36 @@ describe('AdminWorkQueueView', () => {
     expect(screen.getByText('Спеціаліст потребує перевірки доступу')).toBeInTheDocument()
     expect(screen.getByText('Спеціаліст активний, але не має явно наданого Beta / Pro доступу. Перевірте, чи потрібно надати доступ.')).toBeInTheDocument()
     expect(screen.getByText('Спеціаліст #61')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'До спеціаліста' })).toHaveAttribute('href', '/admin/specialists/61')
     expect(document.body).not.toHaveTextContent(rawSpecialistTitle)
     expect(document.body).not.toHaveTextContent(rawSpecialistDescription)
     expect(document.body).not.toHaveTextContent('Спеціаліст #61 · Спеціаліст #61')
+  })
+
+  it('does not show specialist detail link when specialist id is absent', async () => {
+    mockedFetchAdminWorkQueue.mockResolvedValueOnce({
+      summary: baseResponse.summary,
+      items: [
+        {
+          id: 'specialist-access-no-id',
+          type: 'specialist_beta_access_review',
+          severity: 'normal',
+          status: 'open',
+          title: 'Raw specialist title',
+          description: 'Raw specialist description',
+          related: {
+            object_type: 'specialist',
+            specialist_email: 'no-id@example.com',
+          } as any,
+        },
+      ],
+    })
+
+    await renderView()
+
+    expect(await screen.findByText('Спеціаліст потребує перевірки доступу')).toBeInTheDocument()
+    expect(screen.getByText('Email: no-id@example.com')).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'До спеціаліста' })).not.toBeInTheDocument()
   })
 
   it('prefers specialist display metadata over specialist id fallback', async () => {
@@ -679,6 +706,7 @@ describe('AdminWorkQueueView', () => {
     expect(screen.getByText('Email: iryna@example.com')).toBeInTheDocument()
     expect(screen.queryByText('Спеціаліст #61')).not.toBeInTheDocument()
     expect(document.body).not.toHaveTextContent('Спеціаліст #61 · Спеціаліст #61')
+    expect(screen.getByRole('link', { name: 'До спеціаліста' })).toHaveAttribute('href', '/admin/specialists/61')
     expect(screen.getByRole('link', { name: 'Відкрити' })).toHaveAttribute('href', '/admin/specialists/61')
   })
 

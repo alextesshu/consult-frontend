@@ -206,6 +206,13 @@
               {{ expandedItemKey === itemKey(item) ? 'Згорнути' : 'Деталі' }}
             </button>
             <RouterLink
+              v-if="specialistDetailPath(item)"
+              class="btn btn--ghost btn--sm"
+              :to="specialistDetailPath(item)"
+            >
+              До спеціаліста
+            </RouterLink>
+            <RouterLink
               v-if="internalTargetPath(workQueueTargetUrl(item))"
               class="btn btn--sm"
               :to="internalTargetPath(workQueueTargetUrl(item))"
@@ -717,6 +724,41 @@ function relatedId(value: unknown) {
   if (typeof value === 'number' && Number.isFinite(value)) return String(value)
   if (typeof value === 'string' && value.trim()) return value.trim()
   return ''
+}
+
+function safeNumericId(value: unknown) {
+  const raw = relatedId(value)
+  if (!/^\d+$/.test(raw)) return ''
+  const id = Number(raw)
+  return Number.isSafeInteger(id) && id > 0 ? String(id) : ''
+}
+
+function specialistIdFromTargetUrl(value: string | null | undefined) {
+  const target = String(value || '').trim()
+  if (!target || target === '/') return ''
+  try {
+    const path = /^https?:\/\//i.test(target)
+      ? new URL(target).pathname
+      : target.split(/[?#]/)[0]
+    const match = path.match(/^\/admin\/specialists\/(\d+)\/?$/)
+    return match?.[1] || ''
+  } catch {
+    return ''
+  }
+}
+
+function specialistDetailPath(item: AdminWorkQueueItem) {
+  const related = item.related
+  const objectType = normalizeToken(String(relatedValue(related, 'object_type') || '')).replace(/[^a-z0-9]/g, '')
+  const relatedSpecialistId =
+    safeNumericId(relatedValue(related, 'specialist_id')) ||
+    (objectType === 'specialist' ? safeNumericId(relatedValue(related, 'object_id')) : '')
+  const sourceSpecialistId = normalizeToken(item.source_type) === 'specialist'
+    ? safeNumericId(item.source_id)
+    : ''
+  const targetSpecialistId = specialistIdFromTargetUrl(item.target_url)
+  const specialistId = relatedSpecialistId || sourceSpecialistId || targetSpecialistId
+  return specialistId ? `/admin/specialists/${specialistId}` : ''
 }
 
 function isPublicRequestObjectType(objectType: string) {
