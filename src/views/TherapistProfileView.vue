@@ -7,16 +7,21 @@
           Налаштуйте сторінку, яку бачить клієнт: опис, формати роботи, посилання, блог і відгуки.
         </p>
       </div>
-      <button
-        class="profile-status-chip"
-        :class="profile.public_profile_enabled ? 'profile-status-chip--on' : 'profile-status-chip--off'"
-        type="button"
-        :aria-label="profileStatusActionLabel"
-        :title="profileStatusActionLabel"
-        @click="togglePublicProfileEnabled"
-      >
-        {{ profileStatusText }}
-      </button>
+      <div class="profile-status-control">
+        <button
+          class="profile-status-chip"
+          :class="profile.public_profile_enabled ? 'profile-status-chip--on' : 'profile-status-chip--off'"
+          type="button"
+          :aria-label="profileStatusActionLabel"
+          :title="profileStatusActionLabel"
+          @click="togglePublicProfileEnabled"
+        >
+          {{ profileStatusText }}
+        </button>
+        <p v-if="profile.public_profile_enabled" class="profile-status-control__hint">
+          Клієнти можуть переглядати вашу сторінку та залишати запити.
+        </p>
+      </div>
     </header>
 
     <div v-if="showPublicProfileNotPublishedHint" class="profile-notice" role="status">
@@ -1819,7 +1824,7 @@ const slugPreviewPath = computed(() => {
 
 const isPublicProfilePublished = computed(() => Boolean(profile.public_profile_enabled && publicUrl.value))
 const profileStatusText = computed(() =>
-  profile.public_profile_enabled ? 'Профіль публічний' : 'Профіль приховано'
+  profile.public_profile_enabled ? 'Профіль активний' : 'Профіль не активний'
 )
 const profileStatusActionLabel = computed(() =>
   profile.public_profile_enabled
@@ -2592,6 +2597,22 @@ onMounted(() => {
   max-width: 680px;
   color: var(--pc-text-muted);
   line-height: 1.45;
+}
+
+.profile-status-control {
+  flex: 0 1 280px;
+  display: grid;
+  justify-items: end;
+  gap: 6px;
+}
+
+.profile-status-control__hint {
+  max-width: 280px;
+  margin: 0;
+  color: var(--pc-text-muted);
+  font-size: 13px;
+  line-height: 1.35;
+  text-align: right;
 }
 
 .profile-status-chip {
@@ -3538,6 +3559,14 @@ onMounted(() => {
     -webkit-line-clamp: 1;
     -webkit-box-orient: vertical;
     overflow: hidden;
+  }
+
+  .profile-status-control {
+    justify-items: start;
+  }
+
+  .profile-status-control__hint {
+    text-align: left;
   }
 }
 

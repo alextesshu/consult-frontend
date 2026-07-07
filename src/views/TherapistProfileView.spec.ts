@@ -226,8 +226,9 @@ describe('TherapistProfileView', () => {
     const statusChip = screen.getByRole('button', {
       name: 'Натисніть, щоб приховати профіль',
     })
-    expect(statusChip).toHaveTextContent('Профіль публічний')
+    expect(statusChip).toHaveTextContent('Профіль активний')
     expect(statusChip).toHaveAttribute('title', 'Натисніть, щоб приховати профіль')
+    expect(screen.getByText('Клієнти можуть переглядати вашу сторінку та залишати запити.')).toBeInTheDocument()
 
     expect(screen.queryByLabelText('Публічний профіль увімкнено')).not.toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Публічний профіль' })).not.toBeInTheDocument()
@@ -264,8 +265,9 @@ describe('TherapistProfileView', () => {
 
     await fireEvent.click(statusChip)
     expect(screen.getByRole('button', { name: 'Натисніть, щоб зробити профіль публічним' })).toHaveTextContent(
-      'Профіль приховано'
+      'Профіль не активний'
     )
+    expect(screen.queryByText('Клієнти можуть переглядати вашу сторінку та залишати запити.')).not.toBeInTheDocument()
     expect(await screen.findByTestId('profile-sticky-save-bar')).toBeInTheDocument()
 
     await fireEvent.click(screen.getByRole('button', { name: 'Зберегти' }))
