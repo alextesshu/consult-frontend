@@ -267,7 +267,6 @@ describe('App shell', () => {
       .closest('section') as HTMLElement
     const productFooterLinks = [
       ['Можливості', '/#features'],
-      ['Знайти профіль спеціаліста', '/specialists'],
       ['Без комісій', '/pricing'],
     ] as const
     for (const [label, href] of productFooterLinks) {
@@ -284,6 +283,8 @@ describe('App shell', () => {
       expect(within(productColumn).getByText(label)).toBeInTheDocument()
       expect(within(productColumn).queryByRole('link', { name: label })).not.toBeInTheDocument()
     }
+    expect(within(productColumn).queryByRole('link', { name: 'Знайти профіль спеціаліста' })).not.toBeInTheDocument()
+    expect(within(productColumn).queryByText('Знайти профіль спеціаліста')).not.toBeInTheDocument()
     expect(within(footer as HTMLElement).getByRole('link', { name: 'Тарифи' })).toHaveAttribute('href', '/pricing')
     expect(within(footer as HTMLElement).getByRole('link', { name: 'Питання та відповіді' })).toHaveAttribute(
       'href',

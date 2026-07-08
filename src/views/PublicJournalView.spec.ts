@@ -134,4 +134,18 @@ describe('PublicJournalView', () => {
     })
     expect(screen.getByRole('link', { name: 'Профіль' })).toHaveAttribute('href', '/s/olena')
   })
+
+  it('shows a localized not found state without specialist journal hero', async () => {
+    mockedFetchPublicSpecialistProfile.mockRejectedValueOnce(new Error('Profile not found.'))
+    mockedFetchPublicAuthorJournalPosts.mockResolvedValue([])
+    const { container } = await renderView('/s/missing/journal')
+
+    expect(await screen.findByText('Профіль не знайдено')).toBeInTheDocument()
+    expect(screen.getByText('Можливо, сторінку вимкнено або посилання змінено.')).toBeInTheDocument()
+    expect(screen.queryByText('Блог спеціаліста')).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Профіль' })).not.toBeInTheDocument()
+    expect(screen.queryByText('Знайти профіль спеціаліста')).not.toBeInTheDocument()
+    expect(container.querySelector('a[href="/specialists"]')).not.toBeInTheDocument()
+    expect(mockedFetchPublicAuthorJournalPosts).not.toHaveBeenCalled()
+  })
 })

@@ -2,7 +2,7 @@
 
   <section class="public-journal">
 
-    <header class="journal-hero">
+    <header v-if="!profileNotFound" class="journal-hero">
 
       <div>
 
@@ -26,6 +26,12 @@
 
     </header>
 
+    <div v-if="profileNotFound" class="empty" role="status">
+      <div class="empty-title">Профіль не знайдено</div>
+      <div class="muted">Можливо, сторінку вимкнено або посилання змінено.</div>
+    </div>
+
+    <template v-else>
     <section v-if="displayedCollections.length" class="journal-collections">
       <div class="journal-collections__head">
         <h2 class="journal-collections__title">Добірки</h2>
@@ -276,6 +282,8 @@
 
     </div>
 
+    </template>
+
 </section>
 
 </template>
@@ -322,6 +330,7 @@ const collections = ref<PublicJournalCollectionListItem[]>([])
 const journalLoading = ref(false)
 
 const journalError = ref('')
+const profileNotFound = ref(false)
 
 
 
@@ -571,19 +580,24 @@ async function loadJournal() {
 
 
 
-async function loadProfileTitle() {
+async function loadProfileTitle(): Promise<boolean> {
 
-  if (!slug.value) return
+  if (!slug.value) return false
+
+  profileNotFound.value = false
 
   try {
 
     const profile = await fetchPublicSpecialistProfile(slug.value)
 
     publicName.value = profile.display_name || profile.public_slug || profile.slug || ''
+    return true
 
   } catch {
 
     publicName.value = ''
+    profileNotFound.value = true
+    return false
 
   }
 
@@ -593,7 +607,9 @@ async function loadProfileTitle() {
 
 onMounted(async () => {
 
-  await loadProfileTitle()
+  const profileLoaded = await loadProfileTitle()
+
+  if (!profileLoaded) return
 
   await loadJournal()
 
