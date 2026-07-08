@@ -213,7 +213,7 @@ describe('AdminSpecialistDetailView', () => {
     expect(within(panel).getByText('Публічний профіль увімкнено').parentElement).toHaveTextContent('Так')
     expect(within(panel).getByText('Публічне ім’я заповнене').parentElement).toHaveTextContent('Так')
     expect(within(panel).getByText('Слаг профілю налаштовано').parentElement).toHaveTextContent('Так')
-    expect(within(panel).queryByText(/Що варто доповнити:/)).not.toBeInTheDocument()
+    expect(within(panel).queryByText(/Що варто доповнити перед публікацією:/)).not.toBeInTheDocument()
   })
 
   it('shows that the profile is not open when the public profile is disabled', async () => {
@@ -233,7 +233,9 @@ describe('AdminSpecialistDetailView', () => {
     const panel = screen.getByRole('heading', { name: 'Готовність профілю' }).closest('section') as HTMLElement
     expect(within(panel).getByText('Профіль ще не відкритий')).toBeInTheDocument()
     expect(within(panel).getByText('Публічний профіль увімкнено').parentElement).toHaveTextContent('Ні')
-    expect(within(panel).getByText(/Що варто доповнити:/)).toHaveTextContent('публічний профіль')
+    const missingSummary = within(panel).getByText(/Що варто доповнити перед публікацією:/)
+    expect(missingSummary).toHaveTextContent('публічне посилання')
+    expect(missingSummary).not.toHaveTextContent('публічний профіль')
   })
 
   it('shows that an open profile needs completion when readiness fields are missing', async () => {
@@ -256,7 +258,7 @@ describe('AdminSpecialistDetailView', () => {
     expect(within(panel).getByText('Опис профілю заповнений').parentElement).toHaveTextContent('Ні')
     expect(within(panel).getByText('Базова ціна налаштована').parentElement).toHaveTextContent('Ні')
     expect(within(panel).getByText('Є шлях для першого звернення').parentElement).toHaveTextContent('Ні')
-    expect(within(panel).getByText(/Що варто доповнити:/)).toHaveTextContent(
+    expect(within(panel).getByText(/Що варто доповнити перед публікацією:/)).toHaveTextContent(
       'опис профілю, базову ціну, доступність для звернень'
     )
   })
@@ -265,7 +267,7 @@ describe('AdminSpecialistDetailView', () => {
     await renderView(buildDetail({
       profile_readiness: {
         ...buildDetail().profile_readiness!,
-        public_profile_enabled: true,
+        public_profile_enabled: false,
         minimum_public_profile_ready: false,
         minimum_public_profile_readiness: {
           is_ready: false,
@@ -283,9 +285,12 @@ describe('AdminSpecialistDetailView', () => {
     }))
 
     const panel = screen.getByRole('heading', { name: 'Готовність профілю' }).closest('section') as HTMLElement
+    expect(within(panel).getByText('Публічний профіль увімкнено').parentElement).toHaveTextContent('Ні')
     expect(within(panel).getByText('Фото')).toBeInTheDocument()
     expect(within(panel).getByText('Запити')).toBeInTheDocument()
-    expect(within(panel).getByText(/Що варто доповнити:/)).toHaveTextContent('Фото, Запити')
+    const missingSummary = within(panel).getByText(/Що варто доповнити перед публікацією:/)
+    expect(missingSummary).toHaveTextContent('Фото, Запити')
+    expect(missingSummary).not.toHaveTextContent('Публічний профіль')
   })
 
   it('does not fail public link readiness when search visibility is false', async () => {

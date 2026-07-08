@@ -159,7 +159,7 @@
         </div>
 
         <p v-if="readinessMissingSummary" class="muted readiness-panel__missing">
-          Що варто доповнити: {{ readinessMissingSummary }}.
+          Що варто доповнити перед публікацією: {{ readinessMissingSummary }}.
         </p>
       </section>
 
@@ -769,8 +769,11 @@ const readinessChecks = computed(() => {
   ]
 })
 const readinessFailedChecks = computed(() => readinessChecks.value.filter((check) => !check.pass))
+const readinessContentFailedChecks = computed(() =>
+  readinessFailedChecks.value.filter((check) => check.key !== 'public_profile_enabled')
+)
 const readinessMissingSummary = computed(() =>
-  readinessFailedChecks.value.map((check) => check.missingLabel).join(', ')
+  readinessContentFailedChecks.value.map((check) => check.missingLabel).join(', ')
 )
 const readinessOverallStatus = computed(() => {
   if (!profileReadiness.value.public_profile_enabled) return 'Профіль ще не відкритий'
