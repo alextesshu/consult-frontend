@@ -119,6 +119,11 @@ function buildDetail(overrides: Partial<AdminSpecialistDetailResponse> = {}): Ad
           target_url: '/admin/billing-access-requests/15',
         },
       },
+      signup_template_a_email: {
+        sent: false,
+        sent_at: null,
+        item_key: 'specialist_signup_template_a_email:2',
+      },
       latest_related_request_summary: null,
       last_access_change_summary: null,
     },
@@ -273,6 +278,36 @@ describe('AdminSpecialistDetailView', () => {
 
     const panel = screen.getByRole('heading', { name: 'Готовність профілю' }).closest('section') as HTMLElement
     expect(panel.textContent || '').not.toMatch(/рейтинг|топ|рекомендац|верифікац/i)
+  })
+
+  it('shows an empty state when the automatic first email is not recorded', async () => {
+    await renderView()
+
+    const panel = screen.getByRole('heading', { name: 'Перший лист спеціалісту' }).closest('section') as HTMLElement
+    expect(panel).toBeTruthy()
+    expect(within(panel).getByText('Автоматичний лист після реєстрації. Цей блок не надсилає листи.')).toBeInTheDocument()
+    expect(within(panel).getByText('Не зафіксовано')).toBeInTheDocument()
+    expect(within(panel).getByText('Автоматичний лист ще не зафіксовано.')).toBeInTheDocument()
+    expect(within(panel).getByText(/За потреби перевірити спеціаліста вручну/)).toBeInTheDocument()
+  })
+
+  it('shows the automatic first email sent state and timestamp', async () => {
+    await renderView(buildDetail({
+      admin_context: {
+        ...buildDetail().admin_context,
+        signup_template_a_email: {
+          sent: true,
+          sent_at: '2026-06-02T09:30:00Z',
+          item_key: 'specialist_signup_template_a_email:2',
+        },
+      },
+    }))
+
+    const panel = screen.getByRole('heading', { name: 'Перший лист спеціалісту' }).closest('section') as HTMLElement
+    expect(within(panel).getByText('Надіслано автоматично')).toBeInTheDocument()
+    expect(within(panel).getByText('Template A надіслано після реєстрації.')).toBeInTheDocument()
+    expect(within(panel).getByText('Надіслано:').parentElement).toHaveTextContent('2026')
+    expect(within(panel).getByText(/Дочекатися заповнення профілю/)).toBeInTheDocument()
   })
 
   it('renders a safe new-tab link to the public profile when enabled and slug exists', async () => {

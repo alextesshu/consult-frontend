@@ -80,6 +80,54 @@
       <section class="panel">
         <div class="panel__header">
           <div>
+            <div class="badge badge--soft">ОНБОРДИНГ</div>
+            <h2 class="panel__title">Перший лист спеціалісту</h2>
+            <p class="muted readiness-panel__helper">
+              Автоматичний лист після реєстрації. Цей блок не надсилає листи.
+            </p>
+          </div>
+          <span
+            class="status-pill"
+            :class="detail.admin_context.signup_template_a_email?.sent ? 'status-pill--ok' : 'status-pill--muted'"
+          >
+            {{
+              detail.admin_context.signup_template_a_email?.sent
+                ? 'Надіслано автоматично'
+                : 'Не зафіксовано'
+            }}
+          </span>
+        </div>
+
+        <div class="summary-list">
+          <div>
+            <strong>Статус:</strong>
+            <template v-if="detail.admin_context.signup_template_a_email?.sent">
+              Template A надіслано після реєстрації.
+            </template>
+            <template v-else>Автоматичний лист ще не зафіксовано.</template>
+          </div>
+          <div>
+            <strong>Надіслано:</strong>
+            <template v-if="detail.admin_context.signup_template_a_email?.sent_at">
+              {{ formatDate(detail.admin_context.signup_template_a_email.sent_at) }}
+            </template>
+            <template v-else>—</template>
+          </div>
+          <div>
+            <strong>Наступна дія:</strong>
+            <template v-if="detail.admin_context.signup_template_a_email?.sent">
+              Дочекатися заповнення профілю, потім переглянути готовність.
+            </template>
+            <template v-else>
+              За потреби перевірити спеціаліста вручну.
+            </template>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel__header">
+          <div>
             <div class="badge badge--soft">ПРОФІЛЬ</div>
             <h2 class="panel__title">Готовність профілю</h2>
             <p class="muted readiness-panel__helper">

@@ -678,6 +678,11 @@ export type AdminSpecialistDetailResponse = {
     open_billing_admin_requests_count: number
     open_admin_inbox_items_count?: number
     work_queue_summary: AdminOperationalSummary
+    signup_template_a_email?: {
+      sent: boolean
+      sent_at: string | null
+      item_key: string
+    }
     latest_related_request_summary: {
       id: number
       requested_plan: string | null
