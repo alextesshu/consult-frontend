@@ -22,8 +22,6 @@
 
         <RouterLink class="btn btn--ghost" :to="profileLink">Профіль</RouterLink>
 
-        <RouterLink class="btn btn--ghost" to="/specialists">Знайти профіль спеціаліста</RouterLink>
-
       </div>
 
     </header>
@@ -82,17 +80,15 @@
 
     <div v-else-if="journalError" class="form-error">{{ journalError }}</div>
 
-    <div v-else-if="filteredJournalPosts.length === 0" class="empty">
+    <div v-else-if="journalPosts.length === 0" class="empty">
 
-      <div class="empty-title">Немає статей у цій категорії</div>
+      <div class="empty-title">У цьому блозі поки немає опублікованих статей.</div>
 
-      <div class="muted">Спробуйте інший фільтр або поверніться до всіх статей.</div>
+      <RouterLink class="btn btn--ghost btn--sm" :to="profileLink">
 
-      <button class="btn btn--ghost btn--sm" type="button" @click="activeCategory = 'ALL'">
+        До профілю спеціаліста
 
-        Повернути всі статті
-
-      </button>
+      </RouterLink>
 
     </div>
 
@@ -124,11 +120,25 @@
 
       </div>
 
+      <div v-if="filteredJournalPosts.length === 0" class="empty">
+
+        <div class="empty-title">Немає статей у цій категорії</div>
+
+        <div class="muted">Спробуйте інший фільтр або поверніться до всіх статей спеціаліста.</div>
+
+        <button class="btn btn--ghost btn--sm" type="button" @click="activeCategory = 'ALL'">
+
+          Показати всі статті
+
+        </button>
+
+      </div>
+
 
 
       <article
 
-        v-if="featuredPost"
+        v-else-if="featuredPost"
 
         :class="[
 
@@ -194,7 +204,7 @@
 
 
 
-      <div class="journal-grid">
+      <div v-if="filteredJournalPosts.length > 0" class="journal-grid">
 
         <article
 
@@ -341,7 +351,7 @@ const publicName = ref('')
 
 
 
-const profileLink = computed(() => (slug.value ? `/t/${slug.value}` : '/specialists'))
+const profileLink = computed(() => (slug.value ? `/s/${slug.value}` : '/'))
 
 
 
