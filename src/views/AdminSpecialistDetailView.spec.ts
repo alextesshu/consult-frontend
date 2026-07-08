@@ -261,6 +261,33 @@ describe('AdminSpecialistDetailView', () => {
     )
   })
 
+  it('renders minimum public profile readiness items when backend provides them', async () => {
+    await renderView(buildDetail({
+      profile_readiness: {
+        ...buildDetail().profile_readiness!,
+        public_profile_enabled: true,
+        minimum_public_profile_ready: false,
+        minimum_public_profile_readiness: {
+          is_ready: false,
+          completed_count: 5,
+          total_count: 7,
+          missing_items: ['photo', 'topics'],
+          items: [
+            { key: 'display_name', label: 'Публічне ім’я', complete: true },
+            { key: 'photo', label: 'Фото', complete: false },
+            { key: 'about', label: 'Опис', complete: true },
+            { key: 'topics', label: 'Запити', complete: false },
+          ],
+        },
+      },
+    }))
+
+    const panel = screen.getByRole('heading', { name: 'Готовність профілю' }).closest('section') as HTMLElement
+    expect(within(panel).getByText('Фото')).toBeInTheDocument()
+    expect(within(panel).getByText('Запити')).toBeInTheDocument()
+    expect(within(panel).getByText(/Що варто доповнити:/)).toHaveTextContent('Фото, Запити')
+  })
+
   it('does not fail public link readiness when search visibility is false', async () => {
     await renderView(buildDetail({
       profile_readiness: {

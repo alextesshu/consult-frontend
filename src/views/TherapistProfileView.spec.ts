@@ -69,6 +69,22 @@ function makeProfile(): SpecialistProfile {
     id: 5,
     public_profile_enabled: true,
     is_search_visible: true,
+    public_profile_readiness: {
+      is_ready: true,
+      completed_count: 7,
+      total_count: 7,
+      missing_items: [],
+      items: [
+        { key: 'display_name', label: 'Публічне ім’я', complete: true },
+        { key: 'photo', label: 'Фото', complete: true },
+        { key: 'about', label: 'Опис', complete: true },
+        { key: 'topics', label: 'Запити', complete: true },
+        { key: 'work_format', label: 'Формат роботи', complete: true },
+        { key: 'first_contact', label: 'Перший контакт', complete: true },
+        { key: 'price_decision', label: 'Вартість консультації', complete: true },
+      ],
+    },
+    profile_notice: null,
     slug: 'specialist-anna',
     public_profile_path: '/s/specialist-anna',
     public_profile_url: `${window.location.origin}/s/specialist-anna`,
@@ -131,6 +147,29 @@ function makeProfile(): SpecialistProfile {
     show_intro_price: true,
     show_location: true,
     show_photo: true,
+  }
+}
+
+function makeIncompleteProfile(): SpecialistProfile {
+  return {
+    ...makeProfile(),
+    public_profile_enabled: false,
+    is_search_visible: false,
+    public_profile_readiness: {
+      is_ready: false,
+      completed_count: 4,
+      total_count: 7,
+      missing_items: ['photo', 'topics', 'price_decision'],
+      items: [
+        { key: 'display_name', label: 'Публічне ім’я', complete: true },
+        { key: 'photo', label: 'Фото', complete: false },
+        { key: 'about', label: 'Опис', complete: true },
+        { key: 'topics', label: 'Запити', complete: false },
+        { key: 'work_format', label: 'Формат роботи', complete: true },
+        { key: 'first_contact', label: 'Перший контакт', complete: true },
+        { key: 'price_decision', label: 'Вартість консультації', complete: false },
+      ],
+    },
   }
 }
 
@@ -265,12 +304,12 @@ describe('TherapistProfileView', () => {
 
     await fireEvent.click(statusChip)
     expect(screen.getByRole('button', { name: 'Натисніть, щоб зробити профіль публічним' })).toHaveTextContent(
-      'Активувати профіль'
+      'Профіль готовий'
     )
     expect(screen.queryByText('Клієнти можуть переглядати вашу сторінку та залишати запити.')).not.toBeInTheDocument()
     expect(
-      screen.getByText('Після активації клієнти зможуть переглядати вашу сторінку та залишати запити.')
-    ).toBeInTheDocument()
+      screen.getAllByText('Профіль готовий до публікації.').length
+    ).toBeGreaterThan(0)
     expect(await screen.findByTestId('profile-sticky-save-bar')).toBeInTheDocument()
 
     await fireEvent.click(screen.getByRole('button', { name: 'Зберегти' }))
@@ -284,6 +323,39 @@ describe('TherapistProfileView', () => {
     })
   })
 
+  it('shows compact readiness card and guards incomplete profile activation', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValue(makeIncompleteProfile())
+
+    const { container } = renderView()
+
+    expect(await screen.findByRole('heading', { name: 'Готовність профілю' })).toBeInTheDocument()
+    const readinessCard = container.querySelector('.profile-readiness-card') as HTMLElement
+    expect(readinessCard).not.toBeNull()
+    expect(within(readinessCard).getByText('Готово: 4 з 7')).toBeInTheDocument()
+    expect(within(readinessCard).getByText('Щоб опублікувати сторінку, доповніть мінімально необхідні розділи.')).toBeInTheDocument()
+    expect(within(readinessCard).getByText('Не вистачає:')).toBeInTheDocument()
+    expect(within(readinessCard).getByText('Фото')).toBeInTheDocument()
+    expect(within(readinessCard).getByText('Запити')).toBeInTheDocument()
+    expect(within(readinessCard).getByText('Вартість консультації')).toBeInTheDocument()
+
+    const statusChip = screen.getByRole('button', {
+      name: 'Заповніть мінімально необхідну інформацію для публікації профілю',
+    })
+    expect(statusChip).toHaveTextContent('Профіль поки не готовий')
+    expect(screen.getByText('Заповніть мінімально необхідну інформацію для публікації.')).toBeInTheDocument()
+
+    const searchCheckbox = screen.getByLabelText('Показувати мій профіль у пошуку на Pro Consult')
+    expect(searchCheckbox).toBeDisabled()
+    expect(screen.getByText('Пошук можна увімкнути після публікації готового профілю.')).toBeInTheDocument()
+
+    await fireEvent.click(statusChip)
+
+    expect(
+      await screen.findByText(/Профіль поки не готовий для клієнтів/)
+    ).toBeInTheDocument()
+    expect(mockedUpdateSpecialistProfile).not.toHaveBeenCalled()
+  })
+
   it('renders public_profile_summary field in profile settings', async () => {
     mockedFetchSpecialistProfile.mockResolvedValue(makeProfile())
 
@@ -291,6 +363,80 @@ describe('TherapistProfileView', () => {
 
     expect(await screen.findByText('Короткий опис для верхнього блоку профілю')).toBeInTheDocument()
     expect(screen.getByDisplayValue('Короткий опис для hero-блоку.')).toBeInTheDocument()
+  })
+
+  it('lets a ready inactive profile be activated from the status control', async () => {
+    const readyInactive = {
+      ...makeProfile(),
+      public_profile_enabled: false,
+      is_search_visible: false,
+    }
+    mockedFetchSpecialistProfile.mockResolvedValue(readyInactive)
+    mockedUpdateSpecialistProfile.mockResolvedValue({
+      ...readyInactive,
+      public_profile_enabled: true,
+    })
+
+    renderView()
+
+    const statusChip = await screen.findByRole('button', {
+      name: 'Натисніть, щоб зробити профіль публічним',
+    })
+    expect(statusChip).toHaveTextContent('Профіль готовий')
+
+    await fireEvent.click(statusChip)
+    expect(screen.getByRole('button', { name: 'Натисніть, щоб приховати профіль' })).toHaveTextContent(
+      'Профіль активний'
+    )
+    await fireEvent.click(screen.getByRole('button', { name: 'Зберегти' }))
+
+    await waitFor(() => {
+      expect(mockedUpdateSpecialistProfile).toHaveBeenCalledWith(
+        expect.objectContaining({
+          public_profile_enabled: true,
+        })
+      )
+    })
+  })
+
+  it('shows missing readiness items when backend rejects activation', async () => {
+    const readyInactive = {
+      ...makeProfile(),
+      public_profile_enabled: false,
+      is_search_visible: false,
+    }
+    mockedFetchSpecialistProfile.mockResolvedValue(readyInactive)
+    mockedUpdateSpecialistProfile.mockRejectedValue({
+      response: {
+        status: 409,
+        data: {
+          code: 'PROFILE_NOT_READY',
+          missing_items: ['photo'],
+          readiness: {
+            is_ready: false,
+            completed_count: 6,
+            total_count: 7,
+            missing_items: ['photo'],
+            items: [
+              { key: 'photo', label: 'Фото', complete: false },
+            ],
+          },
+        },
+      },
+    })
+
+    renderView()
+
+    const statusChip = await screen.findByRole('button', {
+      name: 'Натисніть, щоб зробити профіль публічним',
+    })
+    await fireEvent.click(statusChip)
+    await fireEvent.click(screen.getByRole('button', { name: 'Зберегти' }))
+
+    expect(
+      await screen.findByText(/Профіль поки не готовий для клієнтів/)
+    ).toBeInTheDocument()
+    expect(screen.getByText(/Не вистачає: Фото/)).toBeInTheDocument()
   })
 
   it('keeps profile visibility controls near their related sections', async () => {

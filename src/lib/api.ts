@@ -189,10 +189,32 @@ export async function enableSpecialist(): Promise<void> {
   await http.post('/auth/enable-specialist/', {})
 }
 
+export type PublicProfileReadinessItem = {
+  key: string
+  label: string
+  complete: boolean
+}
+
+export type PublicProfileReadiness = {
+  is_ready: boolean
+  completed_count: number
+  total_count: number
+  missing_items: string[]
+  items: PublicProfileReadinessItem[]
+}
+
+export type ProfileNotice = {
+  code: string
+  detail: string
+  missing_items?: string[]
+}
+
 export type TherapistProfile = {
   id: number
   public_profile_enabled: boolean
   is_search_visible: boolean
+  public_profile_readiness?: PublicProfileReadiness | null
+  profile_notice?: ProfileNotice | null
   public_booking_mode?: 'request_only' | 'direct_booking'
   show_public_availability?: boolean
   public_booking_min_lead_time_hours?: number
@@ -632,6 +654,8 @@ export type AdminSpecialistDetailResponse = {
     standard_price_configured: boolean
     client_entry_path_exists: boolean
     public_profile_link_available: boolean
+    minimum_public_profile_ready?: boolean
+    minimum_public_profile_readiness?: PublicProfileReadiness | null
     public_booking_mode?: string
     show_public_availability?: boolean
     has_future_availability_windows?: boolean

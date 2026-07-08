@@ -702,50 +702,72 @@ const profileReadiness = computed(() => {
     missing_items: [],
   }
 })
-const readinessChecks = computed(() => [
-  {
-    key: 'public_profile_enabled',
-    label: 'Публічний профіль увімкнено',
-    missingLabel: 'публічний профіль',
-    pass: Boolean(profileReadiness.value.public_profile_enabled),
-  },
-  {
-    key: 'public_display_name_exists',
-    label: 'Публічне ім’я заповнене',
-    missingLabel: 'публічне ім’я',
-    pass: Boolean(profileReadiness.value.public_display_name_exists),
-  },
-  {
-    key: 'profile_slug_exists',
-    label: 'Слаг профілю налаштовано',
-    missingLabel: 'слаг профілю',
-    pass: Boolean(profileReadiness.value.profile_slug_exists),
-  },
-  {
-    key: 'basic_description_exists',
-    label: 'Опис профілю заповнений',
-    missingLabel: 'опис профілю',
-    pass: Boolean(profileReadiness.value.basic_description_exists),
-  },
-  {
-    key: 'standard_price_configured',
-    label: 'Базова ціна налаштована',
-    missingLabel: 'базову ціну',
-    pass: Boolean(profileReadiness.value.standard_price_configured),
-  },
-  {
-    key: 'client_entry_path_exists',
-    label: 'Є шлях для першого звернення',
-    missingLabel: 'доступність для звернень',
-    pass: Boolean(profileReadiness.value.client_entry_path_exists),
-  },
-  {
-    key: 'public_profile_link_available',
-    label: 'Публічне посилання доступне',
-    missingLabel: 'публічне посилання',
-    pass: Boolean(profileReadiness.value.public_profile_link_available),
-  },
-])
+const minimumPublicProfileReadiness = computed(
+  () => profileReadiness.value.minimum_public_profile_readiness || null
+)
+const readinessChecks = computed(() => {
+  const minimumReadiness = minimumPublicProfileReadiness.value
+  if (minimumReadiness?.items?.length) {
+    return [
+      {
+        key: 'public_profile_enabled',
+        label: 'Публічний профіль увімкнено',
+        missingLabel: 'публічний профіль',
+        pass: Boolean(profileReadiness.value.public_profile_enabled),
+      },
+      ...minimumReadiness.items.map((item) => ({
+        key: item.key,
+        label: item.label,
+        missingLabel: item.label,
+        pass: Boolean(item.complete),
+      })),
+    ]
+  }
+  return [
+    {
+      key: 'public_profile_enabled',
+      label: 'Публічний профіль увімкнено',
+      missingLabel: 'публічний профіль',
+      pass: Boolean(profileReadiness.value.public_profile_enabled),
+    },
+    {
+      key: 'public_display_name_exists',
+      label: 'Публічне ім’я заповнене',
+      missingLabel: 'публічне ім’я',
+      pass: Boolean(profileReadiness.value.public_display_name_exists),
+    },
+    {
+      key: 'profile_slug_exists',
+      label: 'Слаг профілю налаштовано',
+      missingLabel: 'слаг профілю',
+      pass: Boolean(profileReadiness.value.profile_slug_exists),
+    },
+    {
+      key: 'basic_description_exists',
+      label: 'Опис профілю заповнений',
+      missingLabel: 'опис профілю',
+      pass: Boolean(profileReadiness.value.basic_description_exists),
+    },
+    {
+      key: 'standard_price_configured',
+      label: 'Базова ціна налаштована',
+      missingLabel: 'базову ціну',
+      pass: Boolean(profileReadiness.value.standard_price_configured),
+    },
+    {
+      key: 'client_entry_path_exists',
+      label: 'Є шлях для першого звернення',
+      missingLabel: 'доступність для звернень',
+      pass: Boolean(profileReadiness.value.client_entry_path_exists),
+    },
+    {
+      key: 'public_profile_link_available',
+      label: 'Публічне посилання доступне',
+      missingLabel: 'публічне посилання',
+      pass: Boolean(profileReadiness.value.public_profile_link_available),
+    },
+  ]
+})
 const readinessFailedChecks = computed(() => readinessChecks.value.filter((check) => !check.pass))
 const readinessMissingSummary = computed(() =>
   readinessFailedChecks.value.map((check) => check.missingLabel).join(', ')

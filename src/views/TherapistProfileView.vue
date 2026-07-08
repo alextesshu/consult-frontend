@@ -10,7 +10,7 @@
       <div class="profile-status-control">
         <button
           class="profile-status-chip"
-          :class="profile.public_profile_enabled ? 'profile-status-chip--on' : 'profile-status-chip--off'"
+          :class="profileStatusClass"
           type="button"
           :aria-label="profileStatusActionLabel"
           :title="profileStatusActionLabel"
@@ -38,6 +38,26 @@
 
             <form v-else class="profile-grid" @submit.prevent="onSave">
       <div v-if="error && !isDirty" class="form-error">{{ error }}</div>
+      <section class="profile-readiness-card" aria-labelledby="profile-readiness-title">
+        <div class="profile-readiness-card__header">
+          <h2 id="profile-readiness-title" class="profile-readiness-card__title">Готовність профілю</h2>
+          <span class="profile-readiness-card__count">
+            Готово: {{ publicProfileReadiness.completed_count }} з {{ publicProfileReadiness.total_count }}
+          </span>
+        </div>
+        <p class="profile-readiness-card__hint">{{ publicProfileReadinessHelper }}</p>
+        <div v-if="missingProfileReadinessLabels.length" class="profile-readiness-card__missing">
+          <span class="profile-readiness-card__missing-label">Не вистачає:</span>
+          <span
+            v-for="label in missingProfileReadinessLabels"
+            :key="label"
+            class="profile-readiness-card__chip"
+          >
+            {{ label }}
+          </span>
+        </div>
+        <p v-else class="profile-readiness-card__ready">Профіль готовий до публікації.</p>
+      </section>
       <section class="panel panel--highlight">
         <div class="panel__header">
           <div>
@@ -52,12 +72,19 @@
           <section class="profile-search-visibility" aria-labelledby="profile-search-visibility-title">
             <h3 id="profile-search-visibility-title">Додаткова видимість</h3>
             <label class="check">
-              <input v-model="profile.is_search_visible" type="checkbox" />
+              <input
+                v-model="profile.is_search_visible"
+                type="checkbox"
+                :disabled="!canEnableSearchVisibility"
+              />
               Показувати мій профіль у пошуку на Pro Consult
             </label>
-            <div class="field-help">
+            <div v-if="canEnableSearchVisibility" class="field-help">
               Якщо вимкнути, профіль залишиться доступним за прямим посиланням, але не з’являтиметься
               у пошуку на сайті.
+            </div>
+            <div v-else class="field-help">
+              Пошук можна увімкнути після публікації готового профілю.
             </div>
           </section>
           <section class="profile-link-callout" aria-label="Ваше посилання">
@@ -1145,6 +1172,7 @@ import {
   updateSpecialistProfile,
   uploadProfilePhoto,
   uploadProfileVideo,
+  type PublicProfileReadiness,
   type SpecialistProfileDocument,
   type SpecialistProfile,
 } from '../lib/api'
@@ -1632,7 +1660,7 @@ function buildProfilePayload() {
   const publicDisplayName = (profile.public_display_name || '').trim()
   return {
     public_profile_enabled: profile.public_profile_enabled,
-    is_search_visible: profile.is_search_visible,
+    is_search_visible: canEnableSearchVisibility.value ? profile.is_search_visible : false,
     public_display_name: publicDisplayName,
     display_name: publicDisplayName,
     professional_focus: normalizeProfessionalFocus(profile.professional_focus),
@@ -1695,6 +1723,8 @@ const profile = reactive<SpecialistProfile>({
   id: 0,
   public_profile_enabled: false,
   is_search_visible: false,
+  public_profile_readiness: null,
+  profile_notice: null,
   slug: '',
   public_profile_path: '',
   public_profile_url: '',
@@ -1816,6 +1846,57 @@ const publicUrl = computed(() => {
   return `${window.location.origin}${publicPath.value}`
 })
 
+const fallbackPublicProfileReadiness: PublicProfileReadiness = {
+  is_ready: false,
+  completed_count: 0,
+  total_count: 7,
+  missing_items: [],
+  items: [],
+}
+
+const readinessLabelByKey: Record<string, string> = {
+  display_name: 'Публічне ім’я',
+  photo: 'Фото',
+  about: 'Опис',
+  topics: 'Запити',
+  work_format: 'Формат роботи',
+  first_contact: 'Перший контакт',
+  price_decision: 'Вартість консультації',
+}
+
+const publicProfileReadiness = computed<PublicProfileReadiness>(() => {
+  return profile.public_profile_readiness || fallbackPublicProfileReadiness
+})
+
+const missingProfileReadinessLabels = computed(() => {
+  const fromItems = publicProfileReadiness.value.items
+    .filter((item) => !item.complete)
+    .map((item) => item.label || readinessLabelByKey[item.key] || item.key)
+  if (fromItems.length) return fromItems
+  return publicProfileReadiness.value.missing_items.map(
+    (key) => readinessLabelByKey[key] || key
+  )
+})
+
+const publicProfileReadinessHelper = computed(() =>
+  publicProfileReadiness.value.is_ready
+    ? 'Профіль готовий до публікації.'
+    : 'Щоб опублікувати сторінку, доповніть мінімально необхідні розділи.'
+)
+
+const canEnableSearchVisibility = computed(() =>
+  Boolean(profile.public_profile_enabled && publicProfileReadiness.value.is_ready)
+)
+
+function buildProfileNotReadyMessage(missingItems = missingProfileReadinessLabels.value): string {
+  const missing = missingItems.length ? ` Не вистачає: ${missingItems.join(', ')}.` : ''
+  return `Профіль поки не готовий для клієнтів. Заповніть мінімально необхідну інформацію для публікації.${missing}`
+}
+
+function readinessLabelsForKeys(keys: string[] | undefined): string[] {
+  return (keys || []).map((key) => readinessLabelByKey[key] || key)
+}
+
 const slugPreviewPath = computed(() => {
   const nextSlug = slugDraft.value.trim() || resolvedSlug.value
   if (!nextSlug) return ''
@@ -1824,17 +1905,32 @@ const slugPreviewPath = computed(() => {
 
 const isPublicProfilePublished = computed(() => Boolean(profile.public_profile_enabled && publicUrl.value))
 const profileStatusText = computed(() =>
-  profile.public_profile_enabled ? 'Профіль активний' : 'Активувати профіль'
+  profile.public_profile_enabled
+    ? 'Профіль активний'
+    : publicProfileReadiness.value.is_ready
+      ? 'Профіль готовий'
+      : 'Профіль поки не готовий'
 )
 const profileStatusHint = computed(() =>
   profile.public_profile_enabled
     ? 'Клієнти можуть переглядати вашу сторінку та залишати запити.'
-    : 'Після активації клієнти зможуть переглядати вашу сторінку та залишати запити.'
+    : publicProfileReadiness.value.is_ready
+      ? 'Профіль готовий до публікації.'
+      : 'Заповніть мінімально необхідну інформацію для публікації.'
 )
 const profileStatusActionLabel = computed(() =>
   profile.public_profile_enabled
     ? 'Натисніть, щоб приховати профіль'
-    : 'Натисніть, щоб зробити профіль публічним'
+    : publicProfileReadiness.value.is_ready
+      ? 'Натисніть, щоб зробити профіль публічним'
+      : 'Заповніть мінімально необхідну інформацію для публікації профілю'
+)
+const profileStatusClass = computed(() =>
+  profile.public_profile_enabled
+    ? 'profile-status-chip--on'
+    : publicProfileReadiness.value.is_ready
+      ? 'profile-status-chip--ready'
+      : 'profile-status-chip--off'
 )
 const showPublicProfileNotPublishedHint = computed(
   () => route.query.public_profile === 'unpublished' && !profile.public_profile_enabled
@@ -1912,7 +2008,16 @@ function setSuggestionCategory(section: SuggestionSectionKey, category: Suggesti
 }
 
 function togglePublicProfileEnabled() {
+  if (!profile.public_profile_enabled && !publicProfileReadiness.value.is_ready) {
+    profile.is_search_visible = false
+    success.value = ''
+    error.value = buildProfileNotReadyMessage()
+    return
+  }
   profile.public_profile_enabled = !profile.public_profile_enabled
+  if (!profile.public_profile_enabled) {
+    profile.is_search_visible = false
+  }
 }
 
 type ProfileFormSnapshot = {
@@ -2166,9 +2271,19 @@ async function onSave() {
     languageInput.value = ''
     slugDraft.value = resolvedSlug.value
     dirtySnapshot.markSaved()
-    success.value = 'Збережено.'
+    success.value = data.profile_notice?.detail || 'Збережено.'
   } catch (err) {
-    error.value = getApiErrorMessage(err, 'Не вдалося зберегти')
+    const payload = (err as { response?: { data?: any } })?.response?.data
+    if (payload?.code === 'PROFILE_NOT_READY') {
+      if (payload.readiness) {
+        profile.public_profile_readiness = payload.readiness
+      }
+      profile.public_profile_enabled = false
+      profile.is_search_visible = false
+      error.value = buildProfileNotReadyMessage(readinessLabelsForKeys(payload.missing_items))
+    } else {
+      error.value = getApiErrorMessage(err, 'Не вдалося зберегти')
+    }
   } finally {
     saving.value = false
   }
@@ -2350,6 +2465,8 @@ function normalizeProfile(data: SpecialistProfile): SpecialistProfile {
     public_slug: String(data.public_slug || canonicalSlug).trim(),
     public_profile_path: canonicalPath,
     public_profile_url: canonicalUrl,
+    public_profile_readiness: data.public_profile_readiness || null,
+    profile_notice: data.profile_notice || null,
     public_booking_mode: data.public_booking_mode || 'request_only',
     show_public_availability: data.show_public_availability ?? false,
     public_booking_slot_policy: data.public_booking_slot_policy || 'single_hold',
@@ -2652,6 +2769,12 @@ onMounted(() => {
   color: #91463d;
 }
 
+.profile-status-chip--ready {
+  border-color: color-mix(in srgb, var(--pc-navy-900) 34%, var(--pc-border));
+  background: color-mix(in srgb, var(--pc-primary-soft) 66%, #ffffff);
+  color: var(--pc-navy-900);
+}
+
 .profile-status-chip:hover,
 .profile-status-chip:focus-visible {
   border-color: color-mix(in srgb, var(--pc-navy-900) 28%, var(--pc-border));
@@ -2662,6 +2785,77 @@ onMounted(() => {
 .profile-grid {
   display: grid;
   gap: 16px;
+}
+
+.profile-readiness-card {
+  display: grid;
+  gap: 10px;
+  padding: 14px 16px;
+  border: 1px solid color-mix(in srgb, var(--pc-navy-900) 14%, var(--pc-border));
+  border-radius: var(--pc-radius-card);
+  background: #ffffff;
+  box-shadow: 0 12px 26px rgba(18, 52, 90, 0.06);
+}
+
+.profile-readiness-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.profile-readiness-card__title {
+  margin: 0;
+  color: var(--pc-navy-950);
+  font-size: 17px;
+  font-weight: 800;
+}
+
+.profile-readiness-card__count {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--pc-primary-soft) 70%, #ffffff);
+  color: var(--pc-navy-900);
+  font-size: 13px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.profile-readiness-card__hint,
+.profile-readiness-card__ready {
+  margin: 0;
+  color: var(--pc-text-muted);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.profile-readiness-card__missing {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+}
+
+.profile-readiness-card__missing-label {
+  color: var(--pc-text-muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.profile-readiness-card__chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  padding: 3px 9px;
+  border: 1px solid color-mix(in srgb, #c56b5d 24%, var(--pc-border));
+  border-radius: 999px;
+  background: color-mix(in srgb, #c56b5d 8%, #ffffff);
+  color: #91463d;
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .panel {
