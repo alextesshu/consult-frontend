@@ -98,29 +98,35 @@
           </span>
         </div>
 
-        <div class="summary-list">
+        <div class="summary-list summary-list--onboarding">
           <div>
             <strong>Статус:</strong>
-            <template v-if="detail.admin_context.signup_template_a_email?.sent">
-              Template A надіслано після реєстрації.
-            </template>
-            <template v-else>Автоматичний лист ще не зафіксовано.</template>
+            <span class="summary-list__value">
+              <template v-if="detail.admin_context.signup_template_a_email?.sent">
+                Template A надіслано після реєстрації.
+              </template>
+              <template v-else>Автоматичний лист ще не зафіксовано.</template>
+            </span>
           </div>
           <div>
             <strong>Надіслано:</strong>
-            <template v-if="detail.admin_context.signup_template_a_email?.sent_at">
-              {{ formatDate(detail.admin_context.signup_template_a_email.sent_at) }}
-            </template>
-            <template v-else>—</template>
+            <span class="summary-list__value">
+              <template v-if="detail.admin_context.signup_template_a_email?.sent_at">
+                {{ formatDate(detail.admin_context.signup_template_a_email.sent_at) }}
+              </template>
+              <template v-else>—</template>
+            </span>
           </div>
           <div>
             <strong>Наступна дія:</strong>
-            <template v-if="detail.admin_context.signup_template_a_email?.sent">
-              Дочекатися заповнення профілю, потім переглянути готовність.
-            </template>
-            <template v-else>
-              За потреби перевірити спеціаліста вручну.
-            </template>
+            <span class="summary-list__value">
+              <template v-if="detail.admin_context.signup_template_a_email?.sent">
+                Дочекатися заповнення профілю, потім переглянути готовність.
+              </template>
+              <template v-else>
+                За потреби перевірити спеціаліста вручну.
+              </template>
+            </span>
           </div>
         </div>
       </section>
@@ -1225,6 +1231,10 @@ watch(
   border: 1px solid var(--line);
   border-radius: var(--radius-sm);
   padding: 10px;
+}
+
+.summary-list--onboarding .summary-list__value {
+  margin-left: 4px;
 }
 
 .operational-counts {
