@@ -108,7 +108,6 @@ const mockedSkipSpecialistSessionNote = vi.mocked(skipSpecialistSessionNote)
 const CLIENTS_URL = '/cabinet/clients/'
 const CLIENT_RECORDS_URL = '/cabinet/client-records/'
 const REMINDERS_URL = '/cabinet/notes/reminders/'
-const SLOTS_URL = '/cabinet/slots/'
 const SESSIONS_URL = '/booking/sessions/'
 const clientHistoryUrl = (clientId: number) => `/cabinet/clients/${clientId}/notes/history/`
 const noteReminderHref = (sessionId: number) => `/cabinet/sessions?returnTo=%2Fcabinet%2Fclients#note-${sessionId}`
@@ -1585,6 +1584,77 @@ describe('TherapistClientsView', () => {
     expect(dialog).not.toHaveTextContent('private internal note must stay hidden')
   })
 
+  it('opens registered client conditions modal and saves only individual price fields', async () => {
+    const registeredClient = {
+      id: 1,
+      client_id: 44,
+      client_record_id: 640,
+      client_email: 'registered44@example.com',
+      state: 'ACTIVE',
+      last_session_at: null,
+      upcoming_count: 0,
+      client_display_name: 'Registered Conditions',
+    }
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return [registeredClient]
+      if (url === CLIENT_RECORDS_URL) return []
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedApiPatch.mockResolvedValue({
+      id: 640,
+      custom_price_amount: '1800.00',
+      custom_price_currency: 'UAH',
+    } as any)
+
+    const { clientsPanel } = getPanels(renderView().container)
+    await selectClientRowByName(clientsPanel, 'Registered Conditions')
+
+    const cardDialog = await screen.findByRole('dialog', { name: 'Картка клієнта' })
+    const conditionsActions = within(cardDialog).getAllByRole('button', { name: 'Налаштувати умови' })
+    expect(conditionsActions.length).toBeGreaterThan(0)
+    expect(within(cardDialog).queryByRole('button', { name: 'Редагувати дані' })).not.toBeInTheDocument()
+
+    await fireEvent.click(conditionsActions[0])
+
+    const conditionsDialog = await screen.findByRole('dialog', { name: 'Налаштування клієнта' })
+    expect(within(conditionsDialog).getByText('З кабінетом')).toBeInTheDocument()
+    expect(within(conditionsDialog).getByText('Registered Conditions')).toBeInTheDocument()
+    expect(within(conditionsDialog).getByText('registered44@example.com')).toBeInTheDocument()
+    expect(within(conditionsDialog).queryByLabelText('Email')).not.toBeInTheDocument()
+    expect(within(conditionsDialog).queryByLabelText('Імʼя клієнта')).not.toBeInTheDocument()
+    expect(
+      within(conditionsDialog).getByText(
+        'Залиште порожнім, щоб для цього клієнта використовувалась ваша стандартна ціна консультації з профілю.'
+      )
+    ).toBeInTheDocument()
+
+    await fireEvent.update(within(conditionsDialog).getByLabelText('Індивідуальна ціна сесії, грн'), '1800')
+    const conditionsForm = conditionsDialog.querySelector('form')
+    expect(conditionsForm).toBeInstanceOf(HTMLFormElement)
+    const saveConditionsButton = within(conditionsDialog).getByRole('button', { name: 'Зберегти' })
+    expect(saveConditionsButton).not.toBeDisabled()
+    await fireEvent.click(saveConditionsButton)
+
+    await waitFor(() => {
+      expect(mockedApiPatch).toHaveBeenCalledWith('/cabinet/client-records/640/conditions/', {
+        custom_price_amount: '1800',
+        custom_price_currency: 'UAH',
+      })
+      const payload = mockedApiPatch.mock.calls.find(([url]) => url === '/cabinet/client-records/640/conditions/')?.[1] as
+        | Record<string, unknown>
+        | undefined
+      expect(payload).toBeTruthy()
+      expect(Object.keys(payload || {}).sort()).toEqual(['custom_price_amount', 'custom_price_currency'])
+      expect(payload).not.toHaveProperty('display_name')
+      expect(payload).not.toHaveProperty('email')
+      expect(payload).not.toHaveProperty('phone')
+      expect(payload).not.toHaveProperty('telegram')
+      expect(mockToast.success).toHaveBeenCalledWith('Умови клієнта оновлено')
+      expect(screen.queryByRole('dialog', { name: 'Налаштування клієнта' })).not.toBeInTheDocument()
+    })
+  })
+
   it('shows manual access invite CTA in management modal for records without account', async () => {
     mockedApiGet.mockImplementation(async (url) => {
       if (url === CLIENTS_URL) return []
@@ -2888,7 +2958,7 @@ describe('TherapistClientsView', () => {
       expect(card).toBeInstanceOf(HTMLElement)
       return card as HTMLElement
     })
-    expect(within(manualCard).getByRole('button', { name: 'Створити сесію' })).toBeInTheDocument()
+    expect(within(manualCard).getByRole('button', { name: 'Додати сесію' })).toBeInTheDocument()
     expect(within(manualCard).queryByRole('button', { name: 'Редагувати' })).not.toBeInTheDocument()
 
     await openAccordionSection(manualCard, 'Керування клієнтом')
@@ -2956,7 +3026,7 @@ describe('TherapistClientsView', () => {
 
     expect(manualCard).toHaveClass('client-card--manual')
     expect(within(manualCard).getByText('З кабінетом')).toBeInTheDocument()
-    expect(within(manualCard).getByRole('button', { name: 'Створити сесію' })).toBeInTheDocument()
+    expect(within(manualCard).getByRole('button', { name: 'Додати сесію' })).toBeInTheDocument()
     expect(within(manualCard).queryByRole('button', { name: 'Редагувати' })).not.toBeInTheDocument()
     expect(within(manualCard).getByText('Дані, доступ, архів')).toBeInTheDocument()
     await openAccordionSection(manualCard, 'Керування клієнтом')
@@ -3429,15 +3499,7 @@ describe('TherapistClientsView', () => {
           }),
         ]
       if (url === REMINDERS_URL) return []
-      if (url === SLOTS_URL)
-        return [
-          {
-            id: 901,
-            start_at: '2099-06-20T10:00:00Z',
-            end_at: '2099-06-20T10:50:00Z',
-            is_booked: false,
-          },
-        ]
+      if (url === SESSIONS_URL) return []
       throw new Error(`Unexpected apiGet call: ${url}`)
     })
     mockedApiPost.mockResolvedValue({ id: 710 } as any)
@@ -3451,18 +3513,144 @@ describe('TherapistClientsView', () => {
       return card as HTMLElement
     })
 
-    await fireEvent.click(within(manualCard).getByRole('button', { name: 'Створити сесію' }))
-    const dialog = await screen.findByRole('dialog', { name: /Створити сесію для Linked Session Client/ })
-    await fireEvent.click(within(dialog).getByRole('button', { name: 'Створити сесію' }))
+    await fireEvent.click(within(manualCard).getByRole('button', { name: 'Додати сесію' }))
+    const dialog = await screen.findByRole('dialog', { name: /Нова сесія з Linked Session Client/ })
+    const expectedDate = new Date()
+    expectedDate.setDate(expectedDate.getDate() + 1)
+    const expectedDateLabel = `${String(expectedDate.getDate()).padStart(2, '0')}.${String(
+      expectedDate.getMonth() + 1
+    ).padStart(2, '0')}.${expectedDate.getFullYear()}`
+    const dateInput = within(dialog).getByLabelText('Дата')
+    expect(dateInput).toHaveAttribute('type', 'text')
+    expect(dateInput).toHaveAttribute('placeholder', 'ДД.ММ.РРРР')
+    expect(dialog.querySelector('.date-picker-field-wrapper')).toBeInTheDocument()
+    expect(
+      within(dialog).getByText(/Ціна сесії буде взята з індивідуальної ціни клієнта/)
+    ).toBeInTheDocument()
+    expect(within(dialog).getByText(/Індивідуальну ціну можна змінити в картці клієнта/)).toBeInTheDocument()
+    expect(dialog).not.toHaveTextContent('відкрийте «Редагувати дані»')
+    await fireEvent.click(dateInput)
+    await fireEvent.click(within(dialog).getByRole('button', { name: expectedDateLabel }))
+    await fireEvent.update(within(dialog).getByLabelText('Час початку'), '10:00')
+    expect(within(dialog).queryByText(/вільн(?:ий|ого|і)\s+слот/i)).not.toBeInTheDocument()
+    expect(within(dialog).queryByLabelText(/слот/i)).not.toBeInTheDocument()
+    expect(within(dialog).queryByLabelText('Клієнт')).not.toBeInTheDocument()
+    await fireEvent.click(within(dialog).getByRole('button', { name: 'Додати сесію' }))
 
     await waitFor(() => {
-      expect(mockedApiPost).toHaveBeenCalledWith('/cabinet/client-records/208/sessions/', {
-        slot_id: 901,
-        session_format: 'online',
-      })
-      expect(mockedApiPost.mock.calls[0]?.[1]).not.toHaveProperty('client_id')
-      expect(mockedApiPost.mock.calls[0]?.[1]).not.toHaveProperty('client')
+      expect(mockedApiPost).toHaveBeenCalledWith(
+        '/cabinet/client-records/208/sessions/',
+        expect.objectContaining({
+          starts_at: expect.any(String),
+          ends_at: expect.any(String),
+          timezone: expect.any(String),
+          session_format: 'online',
+          meeting_url: '',
+          offline_location: '',
+        })
+      )
+      const payload = mockedApiPost.mock.calls[0]?.[1] as Record<string, unknown>
+      expect(payload).not.toHaveProperty('slot_id')
+      expect(payload).not.toHaveProperty('client_id')
+      expect(payload).not.toHaveProperty('client_record_id')
+      expect(payload).not.toHaveProperty('price_amount')
+      expect(payload).not.toHaveProperty('price_currency')
+      expect(payload).not.toHaveProperty('client')
+      const startsAt = new Date(String(payload.starts_at))
+      const endsAt = new Date(String(payload.ends_at))
+      expect(startsAt.getFullYear()).toBe(expectedDate.getFullYear())
+      expect(startsAt.getMonth()).toBe(expectedDate.getMonth())
+      expect(startsAt.getDate()).toBe(expectedDate.getDate())
+      expect(startsAt.getHours()).toBe(10)
+      expect(startsAt.getMinutes()).toBe(0)
+      expect(endsAt.getTime() - startsAt.getTime()).toBe(50 * 60 * 1000)
+      expect(mockToast.success).toHaveBeenCalledWith('Сесію додано.')
     })
+  })
+
+  it('creates a session from registered client card using client_record_id without client selector', async () => {
+    const registeredClient = {
+      id: 7,
+      client_id: 44,
+      client_record_id: 622,
+      state: 'ACTIVE',
+      last_session_at: null,
+      upcoming_count: 0,
+      client_display_name: 'Registered Session Client',
+      client_email: 'registered-session@example.com',
+    }
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return [registeredClient]
+      if (url === CLIENT_RECORDS_URL) return []
+      if (url === REMINDERS_URL) return []
+      if (url === SESSIONS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedApiPost.mockResolvedValue({ id: 720 } as any)
+
+    const { container } = renderView()
+    await selectClientRowByName(container, 'Registered Session Client')
+
+    const cardDialog = await screen.findByRole('dialog', { name: /Картка клієнта/ })
+    const addSessionActions = within(cardDialog).getAllByRole('button', { name: 'Додати сесію' })
+    expect(addSessionActions.length).toBeGreaterThan(0)
+    await fireEvent.click(addSessionActions[0])
+
+    const sessionDialog = await screen.findByRole('dialog', { name: /Нова сесія з Registered Session Client/ })
+    expect(within(sessionDialog).queryByLabelText('Клієнт')).not.toBeInTheDocument()
+    expect(within(sessionDialog).getByText(/Індивідуальну ціну можна змінити в картці клієнта/)).toBeInTheDocument()
+    expect(sessionDialog).not.toHaveTextContent('відкрийте «Редагувати дані»')
+    expect(within(sessionDialog).queryByText(/вільн(?:ий|ого|і)\s+слот/i)).not.toBeInTheDocument()
+    expect(within(sessionDialog).queryByLabelText(/слот/i)).not.toBeInTheDocument()
+    await fireEvent.click(within(sessionDialog).getByRole('button', { name: 'Додати сесію' }))
+
+    await waitFor(() => {
+      expect(mockedApiPost).toHaveBeenCalledWith(
+        '/cabinet/client-records/622/sessions/',
+        expect.objectContaining({
+          starts_at: expect.any(String),
+          ends_at: expect.any(String),
+          timezone: expect.any(String),
+          session_format: 'online',
+        })
+      )
+      const payload = mockedApiPost.mock.calls[0]?.[1] as Record<string, unknown>
+      expect(payload).not.toHaveProperty('client_id')
+      expect(payload).not.toHaveProperty('client')
+      expect(payload).not.toHaveProperty('client_record_id')
+      expect(payload).not.toHaveProperty('slot_id')
+      expect(payload).not.toHaveProperty('price_amount')
+      expect(payload).not.toHaveProperty('price_currency')
+      expect(mockToast.success).toHaveBeenCalledWith('Сесію додано.')
+    })
+    expect(mockedApiPost).not.toHaveBeenCalledWith(expect.stringContaining('/client-records/7/'), expect.anything())
+    expect(mockedApiPost).not.toHaveBeenCalledWith(expect.stringContaining('/client-records/44/'), expect.anything())
+  })
+
+  it('does not show add-session action for registered client without client_record_id', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL)
+        return [
+          {
+            id: 45,
+            client: 45,
+            client_record_id: null,
+            state: 'ACTIVE',
+            last_session_at: null,
+            upcoming_count: 0,
+            client_display_name: 'No Record Client',
+          },
+        ]
+      if (url === CLIENT_RECORDS_URL) return []
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    const { container } = renderView()
+    await selectClientRowByName(container, 'No Record Client')
+
+    const cardDialog = await screen.findByRole('dialog', { name: /Картка клієнта/ })
+    expect(within(cardDialog).queryByRole('button', { name: 'Додати сесію' })).not.toBeInTheDocument()
   })
 
   it('archives and restores manual client records without registered client actions', async () => {

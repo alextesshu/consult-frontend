@@ -315,13 +315,23 @@
               </button>
 
               <button
-                v-if="client.status !== 'archived'"
+                v-if="canCreateSessionForClient(client)"
                 class="btn btn--ghost btn--sm"
                 type="button"
-                :disabled="isManualActionLoading(client.id)"
+                :disabled="isClientSessionActionLoading(client)"
                 @click.stop="openManualClientSessionModal(client)"
               >
-                Створити сесію
+                Додати сесію
+              </button>
+
+              <button
+                v-if="canManageClientConditions(client)"
+                class="btn btn--ghost btn--sm"
+                type="button"
+                :disabled="clientConditionsSaving"
+                @click.stop="openClientConditionsModal(client)"
+              >
+                Налаштувати умови
               </button>
 
               <RouterLink
@@ -898,6 +908,24 @@
             <div class="client-actions__primary">
               <button class="btn btn--sm" type="button" @click.stop="openClientManagementModal(client)">
                 Керувати клієнтом
+              </button>
+              <button
+                v-if="canCreateSessionForClient(client)"
+                class="btn btn--ghost btn--sm"
+                type="button"
+                :disabled="isClientSessionActionLoading(client)"
+                @click.stop="openManualClientSessionModal(client)"
+              >
+                Додати сесію
+              </button>
+              <button
+                v-if="canManageClientConditions(client)"
+                class="btn btn--ghost btn--sm"
+                type="button"
+                :disabled="clientConditionsSaving"
+                @click.stop="openClientConditionsModal(client)"
+              >
+                Налаштувати умови
               </button>
             </div>
             <div class="client-accordion">
@@ -1554,6 +1582,24 @@
             </p>
           </div>
           <div class="client-management-modal__header-actions">
+            <button
+              v-if="canCreateSessionForClient(clientManagementClient)"
+              class="btn btn--sm"
+              type="button"
+              :disabled="isClientSessionActionLoading(clientManagementClient)"
+              @click="openManualClientSessionModal(clientManagementClient)"
+            >
+              Додати сесію
+            </button>
+            <button
+              v-if="canManageClientConditions(clientManagementClient)"
+              class="btn btn--ghost btn--sm"
+              type="button"
+              :disabled="clientConditionsSaving"
+              @click="openClientConditionsModal(clientManagementClient)"
+            >
+              Налаштувати умови
+            </button>
             <button class="btn btn--ghost btn--sm" type="button" @click="closeClientManagementModal">
               Закрити
             </button>
@@ -1586,6 +1632,15 @@
             </div>
             <div class="client-management-overview__actions">
               <button
+                v-if="canCreateSessionForClient(clientManagementClient)"
+                class="btn btn--sm"
+                type="button"
+                :disabled="isClientSessionActionLoading(clientManagementClient)"
+                @click="openManualClientSessionModal(clientManagementClient)"
+              >
+                Додати сесію
+              </button>
+              <button
                 v-if="canEditManualClientRecord(clientManagementClient)"
                 class="btn btn--sm client-management-overview__edit-action"
                 type="button"
@@ -1593,6 +1648,15 @@
                 @click="openClientManagementEditModal(clientManagementClient)"
               >
                 Редагувати дані
+              </button>
+              <button
+                v-if="canManageClientConditions(clientManagementClient)"
+                class="btn btn--sm client-management-overview__edit-action"
+                type="button"
+                :disabled="clientConditionsSaving"
+                @click="openClientConditionsModal(clientManagementClient)"
+              >
+                Налаштувати умови
               </button>
               <button class="btn btn--ghost btn--sm" type="button" @click="setClientManagementSection('contacts')">
                 Перейти до контактів
@@ -2611,7 +2675,7 @@
       <form class="manual-client-modal__content" @submit.prevent="submitManualClientSession">
         <div class="manual-client-modal__header">
           <div>
-            <div class="badge badge--soft">Без реєстрації</div>
+            <div class="badge badge--soft">{{ manualSessionClientBadge }}</div>
             <h2 id="manual-session-title" class="manual-client-modal__title">{{ manualSessionModalTitle }}</h2>
           </div>
           <button class="btn btn--ghost btn--sm" type="button" @click="closeManualClientSessionModal">
@@ -2622,25 +2686,38 @@
         <div v-if="manualSessionError" class="form-error">{{ manualSessionError }}</div>
 
         <p class="muted">
-          Сесія буде створена для клієнта без реєстрації на основі одного з ваших вільних слотів.
+          Клієнт уже вибраний. Додайте дату, час і формат сесії.
         </p>
 
-        <div v-if="manualSessionSlotsLoading" class="muted">Завантаження вільних слотів…</div>
+        <div class="manual-client-form">
+          <DatePickerField
+            v-model="manualSessionDraft.date"
+            class="manual-client-form__note"
+            label="Дата"
+            placeholder="ДД.ММ.РРРР"
+            required
+          />
 
-        <div v-else-if="manualSessionSlots.length === 0" class="form-warning">
-          Немає майбутніх вільних слотів. Спочатку створіть слот у розкладі.
-          <RouterLink to="/cabinet/slots">Перейти до розкладу</RouterLink>
-        </div>
-
-        <div v-else class="manual-client-form">
-          <label class="field manual-client-form__note">
-            Вільний слот
-            <select v-model.number="manualSessionDraft.slot_id" class="input input--select" required>
-              <option :value="0" disabled>Оберіть слот</option>
-              <option v-for="slot in manualSessionSlots" :key="slot.id" :value="slot.id">
-                {{ formatManualSessionSlot(slot) }}
+          <label class="field">
+            Час початку
+            <select v-model="manualSessionDraft.start_time" class="input input--select" required>
+              <option v-for="option in manualSessionTimeOptions" :key="option" :value="option">
+                {{ option }}
               </option>
             </select>
+          </label>
+
+          <label class="field">
+            Тривалість, хв
+            <input
+              v-model.number="manualSessionDraft.duration_minutes"
+              class="input"
+              type="number"
+              min="15"
+              max="480"
+              step="5"
+              required
+            />
           </label>
 
           <label class="field">
@@ -2650,13 +2727,103 @@
               <option value="offline">Офлайн</option>
             </select>
           </label>
+
+          <label class="field">
+            Посилання на онлайн-зустріч
+            <input
+              v-model.trim="manualSessionDraft.meeting_url"
+              class="input"
+              type="url"
+              placeholder="https://"
+            />
+          </label>
+
+          <label class="field">
+            Місце зустрічі
+            <input
+              v-model.trim="manualSessionDraft.offline_location"
+              class="input"
+              type="text"
+            />
+          </label>
         </div>
+
+        <p class="muted manual-session-price-helper">
+          Ціна сесії буде взята з індивідуальної ціни клієнта. Якщо її не задано — з вашої стандартної ціни консультації з профілю.
+          Індивідуальну ціну можна змінити в картці клієнта.
+        </p>
 
         <div class="manual-client-modal__actions">
           <button class="btn btn--sm" type="submit" :disabled="manualSessionSubmitDisabled">
-            {{ manualSessionSaving ? 'Створюємо…' : 'Створити сесію' }}
+            {{ manualSessionSaving ? 'Додаємо…' : 'Додати сесію' }}
           </button>
           <button class="btn btn--ghost btn--sm" type="button" @click="closeManualClientSessionModal">
+            Скасувати
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <div
+      v-if="clientConditionsModalOpen && clientConditionsClient"
+      class="manual-client-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="client-conditions-title"
+    >
+      <button
+        class="manual-client-modal__backdrop"
+        type="button"
+        aria-label="Закрити налаштування клієнта"
+        @click="closeClientConditionsModal"
+      ></button>
+
+      <form class="manual-client-modal__content" @submit.prevent="submitClientConditions">
+        <div class="manual-client-modal__header">
+          <div>
+            <div class="badge badge--soft">З кабінетом</div>
+            <h2 id="client-conditions-title" class="manual-client-modal__title">Налаштування клієнта</h2>
+          </div>
+          <button class="btn btn--ghost btn--sm" type="button" @click="closeClientConditionsModal">
+            Закрити
+          </button>
+        </div>
+
+        <div v-if="clientConditionsError" class="form-error">{{ clientConditionsError }}</div>
+
+        <dl class="client-management-contacts__list">
+          <div class="client-management-contacts__item">
+            <dt>Клієнт</dt>
+            <dd>{{ displayClientName(clientConditionsClient) }}</dd>
+          </div>
+          <div v-if="clientConditionsEmail(clientConditionsClient)" class="client-management-contacts__item">
+            <dt>Email</dt>
+            <dd>{{ clientConditionsEmail(clientConditionsClient) }}</dd>
+          </div>
+        </dl>
+
+        <div class="manual-client-form">
+          <label class="field">
+            Індивідуальна ціна сесії, грн
+            <input
+              v-model.trim="clientConditionsForm.custom_price_amount"
+              class="input"
+              type="number"
+              min="0"
+              step="1"
+              inputmode="decimal"
+            />
+          </label>
+          <p class="muted manual-client-form__note">
+            Залиште порожнім, щоб для цього клієнта використовувалась ваша стандартна ціна консультації з профілю.
+          </p>
+        </div>
+
+        <div class="manual-client-modal__actions">
+          <button class="btn btn--sm" type="button" :disabled="clientConditionsSaving" @click="submitClientConditions">
+            {{ clientConditionsSaving ? 'Зберігаємо…' : 'Зберегти' }}
+          </button>
+          <button class="btn btn--ghost btn--sm" type="button" @click="closeClientConditionsModal">
             Скасувати
           </button>
         </div>
@@ -2782,6 +2949,7 @@ import {
 import EmptyState from '../components/EmptyState.vue'
 import LoadingSkeleton from '../components/LoadingSkeleton.vue'
 import PracticeBoardQuickAddModal from '../components/PracticeBoardQuickAddModal.vue'
+import DatePickerField from '../components/DatePickerField.vue'
 import { formatUkDateCompact, formatUkDateTimeCompact } from '../lib/dateTime'
 import { getApiErrorMessage } from '../lib/errors'
 import { openClientWorkbookWindow } from '../lib/workbookWindow'
@@ -2792,11 +2960,9 @@ import {
   resolveDefaultPracticeBoardId,
 } from '../lib/specialistPracticeBoard'
 import {
-  fetchSpecialistAvailableSlots,
   fetchSpecialistClientWorkbookSnapshot as fetchSpecialistClientWorkbookSnapshotData,
   saveSpecialistClientJournal as saveSpecialistClientJournalAction,
   skipSpecialistSessionNote as skipSpecialistSessionNoteAction,
-  type SpecialistSlot,
 } from '../lib/specialistSessions'
 
 type ClientState = {
@@ -2806,6 +2972,8 @@ type ClientState = {
   client_id?: number
   client_record_id?: number | null
   client_email?: string | null
+  custom_price_amount?: string | null
+  custom_price_currency?: string | null
   state: 'CREATED' | 'ACTIVE' | 'INACTIVE' | 'ARCHIVED'
   last_session_at: string | null
   upcoming_count: number
@@ -2857,13 +3025,27 @@ type ManualClientFormState = {
 }
 
 type ManualClientSessionFormState = {
-  slot_id: number
+  date: string
+  start_time: string
+  duration_minutes: number
   session_format: SessionFormat
+  meeting_url: string
+  offline_location: string
 }
 
 type ManualClientSessionCreateResponse = {
   id?: number
   session_id?: number
+}
+
+type ClientRecordConditionsResponse = {
+  id: number
+  custom_price_amount: string | null
+  custom_price_currency: string | null
+}
+
+type ClientConditionsFormState = {
+  custom_price_amount: string
 }
 
 type ArchiveClientConfirmState = {
@@ -3118,14 +3300,23 @@ const manualClientForm = ref<ManualClientFormState>({
 })
 
 const manualSessionModalOpen = ref(false)
-const manualSessionClient = ref<ManualClientRecord | null>(null)
-const manualSessionSlots = ref<SpecialistSlot[]>([])
-const manualSessionSlotsLoading = ref(false)
+const manualSessionClient = ref<ClientListItem | null>(null)
 const manualSessionSaving = ref(false)
 const manualSessionError = ref('')
 const manualSessionDraft = ref<ManualClientSessionFormState>({
-  slot_id: 0,
+  date: '',
+  start_time: '09:00',
+  duration_minutes: 50,
   session_format: 'online',
+  meeting_url: '',
+  offline_location: '',
+})
+const clientConditionsModalOpen = ref(false)
+const clientConditionsClient = ref<ClientListItem | null>(null)
+const clientConditionsSaving = ref(false)
+const clientConditionsError = ref('')
+const clientConditionsForm = ref<ClientConditionsFormState>({
+  custom_price_amount: '',
 })
 const archiveClientConfirm = ref<ArchiveClientConfirmState | null>(null)
 const regularTimeUpdateConfirm = ref<RegularTimeUpdateConfirmState | null>(null)
@@ -3244,8 +3435,14 @@ const manualClientSubmitLabel = computed(() => {
 
 const manualSessionModalTitle = computed(() => {
   const client = manualSessionClient.value
-  if (!client) return 'Створити сесію'
-  return `Створити сесію для ${displayClientName(client)}`
+  if (!client) return 'Нова сесія'
+  return `Нова сесія з ${displayClientName(client)}`
+})
+
+const manualSessionClientBadge = computed(() => {
+  const client = manualSessionClient.value
+  if (!client) return 'Клієнт'
+  return isManualClientRecord(client) && !hasLinkedAccount(client) ? 'Без реєстрації' : 'З кабінетом'
 })
 
 const clientManagementClient = computed(() => clientManagementModal.value.client)
@@ -3262,7 +3459,7 @@ const clientManagementTabs: Array<{ key: ClientManagementSection; label: string 
 ]
 
 const manualSessionSubmitDisabled = computed(() => {
-  return manualSessionSaving.value || manualSessionSlotsLoading.value || !manualSessionDraft.value.slot_id
+  return manualSessionSaving.value
 })
 
 const materialEditorTitle = computed(() =>
@@ -3711,6 +3908,7 @@ const regularTimeTimeOptions = Array.from({ length: 24 * 4 }, (_, index) => {
   const mins = String(minutes % 60).padStart(2, '0')
   return `${hours}:${mins}`
 })
+const manualSessionTimeOptions = regularTimeTimeOptions
 
 const regularTimeDatePickerWeekdays = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Нд']
 const regularTimeDatePickerMonths = [
@@ -5418,6 +5616,24 @@ function relationClientId(client: Pick<ClientState, 'client' | 'client_id'> | Cl
   return Number(relation.client ?? relation.client_id ?? 0)
 }
 
+function clientSessionRecordId(client: ClientListItem | null | undefined) {
+  if (!client) return 0
+  if (isManualClientRecord(client)) return Number(client.id || 0)
+  return Number(client.client_record_id || 0)
+}
+
+function canCreateSessionForClient(client: ClientListItem) {
+  return clientListState(client) === 'ACTIVE' && clientSessionRecordId(client) > 0
+}
+
+function canManageClientConditions(client: ClientListItem) {
+  return clientListState(client) === 'ACTIVE' && hasLinkedAccount(client) && clientSessionRecordId(client) > 0
+}
+
+function isClientSessionActionLoading(client: ClientListItem) {
+  return manualSessionSaving.value && clientSessionRecordId(manualSessionClient.value) === clientSessionRecordId(client)
+}
+
 function relationSessionClientId(session: Pick<SessionItem, 'client' | 'client_id'>) {
   return Number(session.client ?? session.client_id ?? 0)
 }
@@ -6481,42 +6697,36 @@ function closeManualClientModal() {
 }
 
 function resetManualSessionForm() {
+  const tomorrow = new Date()
+  tomorrow.setDate(tomorrow.getDate() + 1)
   manualSessionDraft.value = {
-    slot_id: 0,
+    date: regularTimeIsoDateToDisplay(regularTimeToIsoDate(tomorrow)),
+    start_time: '09:00',
+    duration_minutes: standardSessionDurationMinutes.value,
     session_format: 'online',
+    meeting_url: '',
+    offline_location: '',
   }
   manualSessionError.value = ''
-  manualSessionSlots.value = []
 }
 
-function formatManualSessionSlot(slot: SpecialistSlot) {
-  const start = formatDateTime(slot.start_at)
-  const end = formatDateTime(slot.end_at)
-  if (!start || start === '—') return `Слот #${slot.id}`
-  if (!end || end === '—') return start
-  return `${start} — ${end}`
+function parseManualSessionStartAt() {
+  const date = parseRegularTimeDate(manualSessionDraft.value.date)
+  const time = normalizeRegularTimeValue(manualSessionDraft.value.start_time)
+  if (!date || !time) return null
+  const [year, month, day] = date.split('-').map((value) => Number(value))
+  const [hours, minutes] = time.split(':').map((value) => Number(value))
+  const parsed = new Date(year, month - 1, day, hours, minutes, 0, 0)
+  if (!Number.isFinite(parsed.getTime())) return null
+  return parsed
 }
 
-async function openManualClientSessionModal(client: ManualClientRecord) {
-  if (client.status === 'archived') return
-
+async function openManualClientSessionModal(client: ClientListItem) {
+  if (!canCreateSessionForClient(client)) return
   manualSessionClient.value = client
   resetManualSessionForm()
+  clientManagementModal.value.open = false
   manualSessionModalOpen.value = true
-  manualSessionSlotsLoading.value = true
-
-  try {
-    const slots = await fetchSpecialistAvailableSlots()
-    manualSessionSlots.value = slots
-    manualSessionDraft.value = {
-      ...manualSessionDraft.value,
-      slot_id: slots[0]?.id || 0,
-    }
-  } catch (err: any) {
-    manualSessionError.value = getApiErrorMessage(err, 'Не вдалося завантажити вільні слоти.')
-  } finally {
-    manualSessionSlotsLoading.value = false
-  }
 }
 
 function closeManualClientSessionModal() {
@@ -6526,12 +6736,112 @@ function closeManualClientSessionModal() {
   resetManualSessionForm()
 }
 
+function clientConditionsEmail(client: ClientListItem) {
+  if (isManualClientRecord(client)) {
+    return manualAccountEmail(client) || manualContactEmail(client)
+  }
+  return String(client.client_email || '').trim()
+}
+
+function resetClientConditionsForm() {
+  clientConditionsForm.value = {
+    custom_price_amount: '',
+  }
+  clientConditionsError.value = ''
+}
+
+function openClientConditionsModal(client: ClientListItem) {
+  if (!canManageClientConditions(client)) return
+  clientConditionsClient.value = client
+  clientConditionsForm.value = {
+    custom_price_amount: String(client.custom_price_amount || ''),
+  }
+  clientConditionsError.value = ''
+  clientManagementModal.value.open = false
+  clientConditionsModalOpen.value = true
+}
+
+function closeClientConditionsModal() {
+  if (clientConditionsSaving.value) return
+  clientConditionsModalOpen.value = false
+  clientConditionsClient.value = null
+  resetClientConditionsForm()
+}
+
+function clientConditionsPayload() {
+  const amount = String(clientConditionsForm.value.custom_price_amount ?? '').trim()
+  return {
+    custom_price_amount: amount || null,
+    custom_price_currency: 'UAH',
+  }
+}
+
+async function submitClientConditions() {
+  const client = clientConditionsClient.value
+  if (!client) return
+
+  const recordId = clientSessionRecordId(client)
+  if (clientListState(client) !== 'ACTIVE' || recordId <= 0) return
+  clientConditionsSaving.value = true
+  clientConditionsError.value = ''
+  error.value = ''
+
+  try {
+    const saved = await apiPatch<ClientRecordConditionsResponse>(
+      `/cabinet/client-records/${recordId}/conditions/`,
+      clientConditionsPayload()
+    )
+
+    manualClientRecords.value = manualClientRecords.value.map((item) =>
+      item.id === saved.id
+        ? {
+            ...item,
+            custom_price_amount: saved.custom_price_amount,
+            custom_price_currency: saved.custom_price_currency,
+          }
+        : item
+    )
+    clients.value = clients.value.map((item) =>
+      Number(item.client_record_id || 0) === saved.id
+        ? {
+            ...item,
+            custom_price_amount: saved.custom_price_amount,
+            custom_price_currency: saved.custom_price_currency,
+          }
+        : item
+    )
+
+    clientConditionsModalOpen.value = false
+    clientConditionsClient.value = null
+    resetClientConditionsForm()
+    toast.success('Умови клієнта оновлено')
+
+    await Promise.all([loadClients(), loadManualClientRecords()])
+  } catch (err: any) {
+    clientConditionsError.value = getApiErrorMessage(err, 'Не вдалося зберегти умови клієнта.')
+  } finally {
+    clientConditionsSaving.value = false
+  }
+}
+
 async function submitManualClientSession() {
   const client = manualSessionClient.value
-  if (!client || client.status === 'archived') return
+  if (!client || !canCreateSessionForClient(client)) return
 
-  if (!manualSessionDraft.value.slot_id) {
-    manualSessionError.value = 'Оберіть вільний слот.'
+  const recordId = clientSessionRecordId(client)
+  const startsAt = parseManualSessionStartAt()
+  const duration = Number(manualSessionDraft.value.duration_minutes)
+  if (!startsAt) {
+    manualSessionError.value = 'Вкажіть дату та час початку у форматі ДД.ММ.РРРР і ГГ:ХХ.'
+    return
+  }
+  if (!Number.isFinite(duration) || duration <= 0) {
+    manualSessionError.value = 'Вкажіть тривалість у хвилинах.'
+    return
+  }
+  const endsAt = new Date(startsAt.getTime() + duration * 60000)
+  if (endsAt <= new Date()) {
+    manualSessionError.value = 'Неможливо створити сесію в минулому. Оберіть майбутню дату або час.'
     return
   }
 
@@ -6541,10 +6851,14 @@ async function submitManualClientSession() {
 
   try {
     const created = await apiPost<ManualClientSessionCreateResponse>(
-      `/cabinet/client-records/${client.id}/sessions/`,
+      `/cabinet/client-records/${recordId}/sessions/`,
       {
-        slot_id: manualSessionDraft.value.slot_id,
+        starts_at: startsAt.toISOString(),
+        ends_at: endsAt.toISOString(),
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/Kyiv',
         session_format: manualSessionDraft.value.session_format,
+        meeting_url: manualSessionDraft.value.meeting_url.trim(),
+        offline_location: manualSessionDraft.value.offline_location.trim(),
       }
     )
 
@@ -6554,7 +6868,14 @@ async function submitManualClientSession() {
     manualSessionClient.value = null
     resetManualSessionForm()
 
-    toast.success('Сесію для клієнта створено.')
+    toast.success('Сесію додано.')
+
+    try {
+      sessionsCache.value = null
+      await Promise.all([loadSessionsIfNeeded(), loadClients(), loadManualClientRecords()])
+    } catch {
+      // Navigation below remains the primary success path.
+    }
 
     if (sessionId) {
       await router.push(`/cabinet/sessions/${sessionId}`)
@@ -6571,13 +6892,14 @@ async function submitManualClientSession() {
 
 function manualClientPayload() {
   const form = manualClientForm.value
+  const customPriceAmount = String(form.custom_price_amount ?? '').trim()
   return {
     display_name: form.display_name.trim(),
     email: form.email.trim() || null,
     phone: form.phone.trim() || null,
     telegram: form.telegram.trim() || null,
     internal_note: form.internal_note.trim() || null,
-    custom_price_amount: form.custom_price_amount.trim() || null,
+    custom_price_amount: customPriceAmount || null,
     custom_price_currency: 'UAH',
   }
 }
