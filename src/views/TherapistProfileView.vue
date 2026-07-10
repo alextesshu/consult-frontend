@@ -2754,6 +2754,8 @@ onBeforeUnmount(() => {
   max-width: 680px;
   color: var(--pc-text-muted);
   line-height: 1.45;
+  white-space: normal;
+  overflow-wrap: break-word;
 }
 
 .profile-status-control {
@@ -3805,10 +3807,6 @@ onBeforeUnmount(() => {
     margin: 0;
     font-size: 13px;
     line-height: 1.32;
-    display: -webkit-box;
-    -webkit-line-clamp: 1;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
   }
 
   .profile-status-control {
@@ -3838,10 +3836,6 @@ onBeforeUnmount(() => {
     font-size: 13px;
     line-height: 1.35;
     max-width: 100%;
-    display: -webkit-box;
-    -webkit-line-clamp: 1;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
   }
 
   .profile__title {

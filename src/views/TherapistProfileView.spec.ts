@@ -1,4 +1,5 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/vue'
+import { readFileSync } from 'node:fs'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { defineComponent, h } from 'vue'
 import TherapistProfileView from './TherapistProfileView.vue'
@@ -21,6 +22,11 @@ const routerMocks = vi.hoisted(() => ({
 const mockRoute = {
   query: {} as Record<string, string>,
 }
+
+const PROFILE_SUBTITLE_COPY =
+  'Заповніть інформацію, яка допоможе клієнту зрозуміти ваш підхід, формат роботи й спосіб зв’язку.'
+const LEGACY_PROFILE_SUBTITLE_COPY =
+  'Налаштуйте сторінку, яку бачить клієнт: опис, формати роботи, посилання, блог і відгуки.'
 
 vi.mock('vue-router', async () => {
   const actual = await vi.importActual<typeof import('vue-router')>('vue-router')
@@ -263,12 +269,14 @@ describe('TherapistProfileView', () => {
 
     expect(await screen.findByDisplayValue('Анна')).toBeInTheDocument()
     expect(await screen.findByRole('heading', { name: 'Керування публічним профілем' })).toBeInTheDocument()
-    expect(
-      screen.getByText('Заповніть інформацію, яка допоможе клієнту зрозуміти ваш підхід, формат роботи й спосіб зв’язку.')
-    ).toBeInTheDocument()
-    expect(
-      screen.queryByText('Налаштуйте сторінку, яку бачить клієнт: опис, формати роботи, посилання, блог і відгуки.')
-    ).not.toBeInTheDocument()
+    const subtitle = screen.getByText(PROFILE_SUBTITLE_COPY)
+    expect(subtitle).toBeInTheDocument()
+    expect(subtitle).toHaveClass('profile__subtitle')
+    expect([...subtitle.classList].join(' ')).not.toMatch(/truncate|ellipsis|line-clamp|nowrap/i)
+    expect(subtitle.getAttribute('style') || '').not.toMatch(
+      /white-space\s*:\s*nowrap|text-overflow\s*:\s*ellipsis|-webkit-line-clamp/i
+    )
+    expect(screen.queryByText(LEGACY_PROFILE_SUBTITLE_COPY)).not.toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Для клієнтів та соціальних мереж' })).toBeInTheDocument()
     expect(screen.getByText(/Скопіюйте посилання, щоб надіслати його клієнтам/)).toBeInTheDocument()
 
@@ -480,6 +488,18 @@ describe('TherapistProfileView', () => {
     expect(
       Boolean(mediaHeadings[0].compareDocumentPosition(profileSectionsHeading) & Node.DOCUMENT_POSITION_FOLLOWING)
     ).toBe(true)
+  })
+
+  it('does not apply truncation styles to the profile subtitle', () => {
+    const source = readFileSync('src/views/TherapistProfileView.vue', 'utf-8')
+    const subtitleBlocks = [...source.matchAll(/\.profile__subtitle\s*\{([^}]*)\}/g)].map((match) => match[1])
+
+    expect(subtitleBlocks.length).toBeGreaterThan(0)
+    subtitleBlocks.forEach((block) => {
+      expect(block).not.toMatch(
+        /white-space\s*:\s*nowrap|text-overflow\s*:\s*ellipsis|-webkit-line-clamp|line-clamp|display\s*:\s*-webkit-box|overflow\s*:\s*hidden/i
+      )
+    })
   })
 
   it('renders public display name guidance and max length', async () => {
