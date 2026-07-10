@@ -264,8 +264,11 @@ describe('TherapistProfileView', () => {
     expect(await screen.findByDisplayValue('Анна')).toBeInTheDocument()
     expect(await screen.findByRole('heading', { name: 'Керування публічним профілем' })).toBeInTheDocument()
     expect(
-      screen.getByText('Налаштуйте сторінку, яку бачить клієнт: опис, формати роботи, посилання, блог і відгуки.')
+      screen.getByText('Заповніть інформацію, яка допоможе клієнту зрозуміти ваш підхід, формат роботи й спосіб зв’язку.')
     ).toBeInTheDocument()
+    expect(
+      screen.queryByText('Налаштуйте сторінку, яку бачить клієнт: опис, формати роботи, посилання, блог і відгуки.')
+    ).not.toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Для клієнтів та соціальних мереж' })).toBeInTheDocument()
     expect(screen.getByText(/Скопіюйте посилання, щоб надіслати його клієнтам/)).toBeInTheDocument()
 
@@ -459,6 +462,24 @@ describe('TherapistProfileView', () => {
     expect(within(mediaPanel).getByLabelText('Показувати відео')).toBeChecked()
 
     expect(screen.queryByRole('heading', { name: 'Видимість' })).not.toBeInTheDocument()
+  })
+
+  it('keeps photo and video as one section directly after basic identity data', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValue(makeProfile())
+
+    renderView()
+
+    const basicsHeading = await screen.findByRole('heading', { name: 'Основні дані' })
+    const mediaHeadings = screen.getAllByRole('heading', { name: 'Фото та відео' })
+    const profileSectionsHeading = screen.getByRole('heading', { name: 'Секції публічного профілю' })
+
+    expect(mediaHeadings).toHaveLength(1)
+    expect(
+      Boolean(basicsHeading.compareDocumentPosition(mediaHeadings[0]) & Node.DOCUMENT_POSITION_FOLLOWING)
+    ).toBe(true)
+    expect(
+      Boolean(mediaHeadings[0].compareDocumentPosition(profileSectionsHeading) & Node.DOCUMENT_POSITION_FOLLOWING)
+    ).toBe(true)
   })
 
   it('renders public display name guidance and max length', async () => {

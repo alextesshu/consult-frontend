@@ -4,7 +4,7 @@
       <div class="profile__hero-main">
         <h1 class="title profile__title">Керування публічним профілем</h1>
         <p class="muted profile__subtitle">
-          Налаштуйте сторінку, яку бачить клієнт: опис, формати роботи, посилання, блог і відгуки.
+          Заповніть інформацію, яка допоможе клієнту зрозуміти ваш підхід, формат роботи й спосіб зв’язку.
         </p>
       </div>
       <div class="profile-status-control">
@@ -519,6 +519,138 @@
       <section class="panel">
         <div class="panel__header">
           <div>
+            <h2 class="panel__title">Фото та відео</h2>
+            <p class="panel__hint">Завантажте обкладинку профілю та (за потреби) відео-прев'ю.</p>
+          </div>
+          <div class="profile-section-toggles" aria-label="Видимість медіа у публічному профілі">
+            <label class="inline-check">
+              <input v-model="profile.show_photo" type="checkbox" />
+              Показувати фото
+            </label>
+            <label class="inline-check">
+              <input v-model="profile.show_video" type="checkbox" />
+              Показувати відео
+            </label>
+          </div>
+        </div>
+        <div class="media-preview media-preview--side" style="margin-top: 12px;">
+          <div
+            class="media-card"
+            data-testid="media-card-photo"
+            role="button"
+            tabindex="0"
+            @click="triggerPhotoSelect"
+            @keydown.enter.prevent="triggerPhotoSelect"
+            @keydown.space.prevent="triggerPhotoSelect"
+          >
+            <div class="media-title">Фото прев'ю</div>
+            <div class="media-hint">JPG, PNG, WEBP • до 5 МБ</div>
+            <div class="media-frame">
+              <button
+                v-if="photoPreviewUrl || profile.photo_url"
+                class="media-remove-btn"
+                :class="{ 'is-visible': photoDeleteHoverVisible }"
+                data-testid="remove-photo-button"
+                type="button"
+                :disabled="photoDeleting || photoUploading"
+                aria-label="Видалити фото профілю"
+                @click.stop="onDeletePhoto"
+              >
+                ×
+              </button>
+              <img
+                v-if="photoPreviewUrl || profile.photo_url"
+                :src="photoPreviewUrl || profile.photo_url"
+                alt="Фото профілю"
+                @mouseenter="photoDeleteHoverVisible = true"
+                @mouseleave="photoDeleteHoverVisible = false"
+                @focus="photoDeleteHoverVisible = true"
+                @blur="photoDeleteHoverVisible = false"
+              />
+              <div v-else class="media-empty">Фото ще не завантажено</div>
+            </div>
+            <div class="media-status" v-if="photoUploading">Завантаження фото...</div>
+            <div class="media-status" v-if="photoDeleting">Видалення фото...</div>
+            <div class="media-status media-status--error" v-if="photoMediaError">{{ photoMediaError }}</div>
+            <button
+              class="btn btn--ghost btn--sm"
+              type="button"
+              @click.stop="triggerPhotoSelect"
+            >
+              Змінити фото
+            </button>
+            <input
+              ref="photoInput"
+              class="input input--file is-hidden"
+              type="file"
+              accept="image/*"
+              @change="onPhotoSelected"
+            />
+          </div>
+          <div
+            class="media-card"
+            data-testid="media-card-video"
+            role="button"
+            tabindex="0"
+            @click="triggerVideoSelect"
+            @keydown.enter.prevent="triggerVideoSelect"
+            @keydown.space.prevent="triggerVideoSelect"
+          >
+            <div class="media-title">Відео прев'ю</div>
+            <div class="media-hint">MP4, MOV, WEBM • до 1 хв • до 100 МБ</div>
+            <div class="media-hint media-hint--note">
+              Рекомендовано: знімати у 720p або 1080p, з хорошим освітленням і чітким звуком.
+            </div>
+            <div class="media-frame">
+              <button
+                v-if="videoPreviewUrl || profile.video_url"
+                class="media-remove-btn"
+                :class="{ 'is-visible': videoDeleteHoverVisible }"
+                data-testid="remove-video-button"
+                type="button"
+                :disabled="videoDeleting || videoUploading"
+                aria-label="Видалити відео профілю"
+                @click.stop="onDeleteVideo"
+              >
+                ×
+              </button>
+              <video
+                v-if="videoPreviewUrl || profile.video_url"
+                :src="videoPreviewUrl || profile.video_url"
+                preload="metadata"
+                controls
+                @click.stop
+                @mouseenter="videoDeleteHoverVisible = true"
+                @mouseleave="videoDeleteHoverVisible = false"
+                @focus="videoDeleteHoverVisible = true"
+                @blur="videoDeleteHoverVisible = false"
+              ></video>
+              <div v-else class="media-empty">Відео ще не завантажено</div>
+            </div>
+            <div class="media-status" v-if="videoUploading">Завантаження відео...</div>
+            <div class="media-status" v-if="videoDeleting">Видалення відео...</div>
+            <div class="media-status media-status--error" v-if="videoMediaError">{{ videoMediaError }}</div>
+            <button
+              class="btn btn--ghost btn--sm"
+              type="button"
+              @click.stop="triggerVideoSelect"
+            >
+              Змінити відео
+            </button>
+            <input
+              ref="videoInput"
+              class="input input--file is-hidden"
+              type="file"
+              accept="video/*"
+              @change="onVideoSelected"
+            />
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel__header">
+          <div>
             <h2 class="panel__title">Секції публічного профілю</h2>
             <p class="panel__hint">
               Назви йдуть у тому самому формулюванні, яке бачать клієнти в публічному профілі.
@@ -820,138 +952,6 @@
               <input v-model="profile.show_whatsapp" type="checkbox" />
               Показувати WhatsApp
             </label>
-          </div>
-        </div>
-      </section>
-
-      <section class="panel">
-        <div class="panel__header">
-          <div>
-            <h2 class="panel__title">Фото та відео</h2>
-            <p class="panel__hint">Завантажте обкладинку профілю та (за потреби) відео-прев'ю.</p>
-          </div>
-          <div class="profile-section-toggles" aria-label="Видимість медіа у публічному профілі">
-            <label class="inline-check">
-              <input v-model="profile.show_photo" type="checkbox" />
-              Показувати фото
-            </label>
-            <label class="inline-check">
-              <input v-model="profile.show_video" type="checkbox" />
-              Показувати відео
-            </label>
-          </div>
-        </div>
-        <div class="media-preview media-preview--side" style="margin-top: 12px;">
-          <div
-            class="media-card"
-            data-testid="media-card-photo"
-            role="button"
-            tabindex="0"
-            @click="triggerPhotoSelect"
-            @keydown.enter.prevent="triggerPhotoSelect"
-            @keydown.space.prevent="triggerPhotoSelect"
-          >
-            <div class="media-title">Фото прев'ю</div>
-            <div class="media-hint">JPG, PNG, WEBP • до 5 МБ</div>
-            <div class="media-frame">
-              <button
-                v-if="photoPreviewUrl || profile.photo_url"
-                class="media-remove-btn"
-                :class="{ 'is-visible': photoDeleteHoverVisible }"
-                data-testid="remove-photo-button"
-                type="button"
-                :disabled="photoDeleting || photoUploading"
-                aria-label="Видалити фото профілю"
-                @click.stop="onDeletePhoto"
-              >
-                ×
-              </button>
-              <img
-                v-if="photoPreviewUrl || profile.photo_url"
-                :src="photoPreviewUrl || profile.photo_url"
-                alt="Фото профілю"
-                @mouseenter="photoDeleteHoverVisible = true"
-                @mouseleave="photoDeleteHoverVisible = false"
-                @focus="photoDeleteHoverVisible = true"
-                @blur="photoDeleteHoverVisible = false"
-              />
-              <div v-else class="media-empty">Фото ще не завантажено</div>
-            </div>
-            <div class="media-status" v-if="photoUploading">Завантаження фото...</div>
-            <div class="media-status" v-if="photoDeleting">Видалення фото...</div>
-            <div class="media-status media-status--error" v-if="photoMediaError">{{ photoMediaError }}</div>
-            <button
-              class="btn btn--ghost btn--sm"
-              type="button"
-              @click.stop="triggerPhotoSelect"
-            >
-              Змінити фото
-            </button>
-            <input
-              ref="photoInput"
-              class="input input--file is-hidden"
-              type="file"
-              accept="image/*"
-              @change="onPhotoSelected"
-            />
-          </div>
-          <div
-            class="media-card"
-            data-testid="media-card-video"
-            role="button"
-            tabindex="0"
-            @click="triggerVideoSelect"
-            @keydown.enter.prevent="triggerVideoSelect"
-            @keydown.space.prevent="triggerVideoSelect"
-          >
-            <div class="media-title">Відео прев'ю</div>
-            <div class="media-hint">MP4, MOV, WEBM • до 1 хв • до 100 МБ</div>
-            <div class="media-hint media-hint--note">
-              Рекомендовано: знімати у 720p або 1080p, з хорошим освітленням і чітким звуком.
-            </div>
-            <div class="media-frame">
-              <button
-                v-if="videoPreviewUrl || profile.video_url"
-                class="media-remove-btn"
-                :class="{ 'is-visible': videoDeleteHoverVisible }"
-                data-testid="remove-video-button"
-                type="button"
-                :disabled="videoDeleting || videoUploading"
-                aria-label="Видалити відео профілю"
-                @click.stop="onDeleteVideo"
-              >
-                ×
-              </button>
-              <video
-                v-if="videoPreviewUrl || profile.video_url"
-                :src="videoPreviewUrl || profile.video_url"
-                preload="metadata"
-                controls
-                @click.stop
-                @mouseenter="videoDeleteHoverVisible = true"
-                @mouseleave="videoDeleteHoverVisible = false"
-                @focus="videoDeleteHoverVisible = true"
-                @blur="videoDeleteHoverVisible = false"
-              ></video>
-              <div v-else class="media-empty">Відео ще не завантажено</div>
-            </div>
-            <div class="media-status" v-if="videoUploading">Завантаження відео...</div>
-            <div class="media-status" v-if="videoDeleting">Видалення відео...</div>
-            <div class="media-status media-status--error" v-if="videoMediaError">{{ videoMediaError }}</div>
-            <button
-              class="btn btn--ghost btn--sm"
-              type="button"
-              @click.stop="triggerVideoSelect"
-            >
-              Змінити відео
-            </button>
-            <input
-              ref="videoInput"
-              class="input input--file is-hidden"
-              type="file"
-              accept="video/*"
-              @change="onVideoSelected"
-            />
           </div>
         </div>
       </section>
