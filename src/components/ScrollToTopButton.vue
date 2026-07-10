@@ -92,5 +92,18 @@ watch(
     font-size: 12px;
     z-index: 14;
   }
+
+}
+</style>
+
+<style>
+body.has-bottom-action-bar .scroll-top-btn {
+  bottom: 104px;
+}
+
+@media (max-width: 640px) {
+  body.has-bottom-action-bar .scroll-top-btn {
+    bottom: max(142px, env(safe-area-inset-bottom) + 142px);
+  }
 }
 </style>

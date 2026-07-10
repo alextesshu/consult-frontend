@@ -14,6 +14,10 @@ import {
   uploadProfileVideo,
 } from '../lib/api'
 
+const routerMocks = vi.hoisted(() => ({
+  onBeforeRouteLeave: vi.fn(),
+}))
+
 const mockRoute = {
   query: {} as Record<string, string>,
 }
@@ -23,6 +27,7 @@ vi.mock('vue-router', async () => {
   return {
     ...actual,
     useRoute: () => mockRoute,
+    onBeforeRouteLeave: routerMocks.onBeforeRouteLeave,
   }
 })
 
@@ -204,6 +209,8 @@ describe('TherapistProfileView', () => {
   beforeEach(() => {
     mockRoute.query = {}
     setClipboard()
+    vi.restoreAllMocks()
+    routerMocks.onBeforeRouteLeave.mockReset()
     mockedCreateProfileDocument.mockReset()
     mockedDeleteProfileDocument.mockReset()
     mockedFetchSpecialistProfile.mockReset()
@@ -312,7 +319,7 @@ describe('TherapistProfileView', () => {
     ).toBeGreaterThan(0)
     expect(await screen.findByTestId('profile-sticky-save-bar')).toBeInTheDocument()
 
-    await fireEvent.click(screen.getByRole('button', { name: 'Зберегти' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Зберегти зміни' }))
 
     await waitFor(() => {
       expect(mockedUpdateSpecialistProfile).toHaveBeenCalledWith(
@@ -388,7 +395,7 @@ describe('TherapistProfileView', () => {
     expect(screen.getByRole('button', { name: 'Натисніть, щоб приховати профіль' })).toHaveTextContent(
       'Профіль активний'
     )
-    await fireEvent.click(screen.getByRole('button', { name: 'Зберегти' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Зберегти зміни' }))
 
     await waitFor(() => {
       expect(mockedUpdateSpecialistProfile).toHaveBeenCalledWith(
@@ -431,7 +438,7 @@ describe('TherapistProfileView', () => {
       name: 'Натисніть, щоб зробити профіль публічним',
     })
     await fireEvent.click(statusChip)
-    await fireEvent.click(screen.getByRole('button', { name: 'Зберегти' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Зберегти зміни' }))
 
     expect(
       await screen.findByText(/Профіль поки не готовий для клієнтів/)
@@ -728,6 +735,7 @@ describe('TherapistProfileView', () => {
 
     expect(await screen.findByTestId('profile-sticky-save-bar')).toBeInTheDocument()
     expect(screen.getByText('Є незбережені зміни')).toBeInTheDocument()
+    expect(document.body).toHaveClass('has-bottom-action-bar')
   })
 
   it('saves a normalized payload via sticky save action and hides sticky bar after success', async () => {
@@ -752,7 +760,7 @@ describe('TherapistProfileView', () => {
     await fireEvent.update(rulesInput, 'Оновлені умови перед записом.   ')
 
     expect(await screen.findByTestId('profile-sticky-save-bar')).toBeInTheDocument()
-    await fireEvent.click(screen.getByRole('button', { name: 'Зберегти' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Зберегти зміни' }))
 
     await waitFor(() => {
       expect(mockedUpdateSpecialistProfile).toHaveBeenCalledTimes(1)
@@ -785,10 +793,68 @@ describe('TherapistProfileView', () => {
         show_photo: true,
       })
     )
-    expect(await screen.findByText('Збережено.')).toBeInTheDocument()
+    expect(await screen.findByText('Зміни збережено')).toBeInTheDocument()
     await waitFor(() => {
       expect(screen.queryByTestId('profile-sticky-save-bar')).not.toBeInTheDocument()
     })
+    expect(document.body).not.toHaveClass('has-bottom-action-bar')
+  })
+
+  it('shows a clear profile save error when saving fails', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValue(makeProfile())
+    mockedUpdateSpecialistProfile.mockRejectedValue({})
+
+    renderView()
+
+    const publicNameInput = (await screen.findByLabelText('Публічне ім’я')) as HTMLInputElement
+    await fireEvent.update(publicNameInput, 'Анна Нова')
+    await fireEvent.click(screen.getByRole('button', { name: 'Зберегти зміни' }))
+
+    expect(
+      await screen.findByText('Не вдалося зберегти зміни. Спробуйте ще раз.')
+    ).toBeInTheDocument()
+  })
+
+  it('warns before leaving with unsaved profile changes and stops warning after save', async () => {
+    const profile = makeProfile()
+    mockedFetchSpecialistProfile.mockResolvedValue(profile)
+    mockedUpdateSpecialistProfile.mockResolvedValue(profile)
+    const confirmSpy = vi.spyOn(window, 'confirm')
+
+    renderView()
+
+    const routeGuard = routerMocks.onBeforeRouteLeave.mock.calls[0]?.[0]
+    expect(routeGuard).toBeTypeOf('function')
+    const cleanNext = vi.fn()
+    routeGuard?.({} as never, {} as never, cleanNext)
+    expect(confirmSpy).not.toHaveBeenCalled()
+    expect(cleanNext).toHaveBeenCalledWith()
+
+    const publicNameInput = (await screen.findByLabelText('Публічне ім’я')) as HTMLInputElement
+    await fireEvent.update(publicNameInput, 'Анна Нова')
+
+    confirmSpy.mockReturnValueOnce(false)
+    const blockedNext = vi.fn()
+    routeGuard?.({} as never, {} as never, blockedNext)
+    expect(confirmSpy).toHaveBeenCalledWith('У вас є незбережені зміни. Вийти без збереження?')
+    expect(blockedNext).toHaveBeenCalledWith(false)
+
+    const unloadEvent = new Event('beforeunload', { cancelable: true })
+    window.dispatchEvent(unloadEvent)
+    expect(unloadEvent.defaultPrevented).toBe(true)
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Зберегти зміни' }))
+    expect(await screen.findByText('Зміни збережено')).toBeInTheDocument()
+
+    confirmSpy.mockClear()
+    const savedNext = vi.fn()
+    routeGuard?.({} as never, {} as never, savedNext)
+    expect(confirmSpy).not.toHaveBeenCalled()
+    expect(savedNext).toHaveBeenCalledWith()
+
+    const cleanUnloadEvent = new Event('beforeunload', { cancelable: true })
+    window.dispatchEvent(cleanUnloadEvent)
+    expect(cleanUnloadEvent.defaultPrevented).toBe(false)
   })
 
   it('renders couple consultation settings and saves configured couple offer fields', async () => {
@@ -811,7 +877,7 @@ describe('TherapistProfileView', () => {
     const durationSelect = within(coupleSection).getByLabelText('Тривалість') as HTMLSelectElement
     await fireEvent.update(durationSelect, '75')
 
-    await fireEvent.click(screen.getByRole('button', { name: 'Зберегти' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Зберегти зміни' }))
 
     await waitFor(() => {
       expect(mockedUpdateSpecialistProfile).toHaveBeenCalledWith(
@@ -860,7 +926,7 @@ describe('TherapistProfileView', () => {
     await fireEvent.click(screen.getByLabelText('Дозволити клієнтам обирати час'))
     await fireEvent.click(screen.getByLabelText('Показувати вільні вікна на публічному профілі'))
     await fireEvent.click(screen.getByRole('radio', { name: /Дозволити кілька запитів на один час/ }))
-    await fireEvent.click(screen.getByRole('button', { name: 'Зберегти' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Зберегти зміни' }))
 
     await waitFor(() => {
       expect(mockedUpdateSpecialistProfile).toHaveBeenCalledWith(
@@ -882,7 +948,7 @@ describe('TherapistProfileView', () => {
 
     const coupleToggle = (await screen.findByLabelText('Показувати парну консультацію')) as HTMLInputElement
     await fireEvent.click(coupleToggle)
-    await fireEvent.click(screen.getByRole('button', { name: 'Зберегти' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Зберегти зміни' }))
 
     expect(mockedUpdateSpecialistProfile).not.toHaveBeenCalled()
     expect(await screen.findByText('Вкажіть додатну вартість парної консультації.')).toBeInTheDocument()
@@ -936,7 +1002,7 @@ describe('TherapistProfileView', () => {
 
     const publicNameInput = (await screen.findByLabelText('Публічне ім’я')) as HTMLInputElement
     await fireEvent.update(publicNameInput, 'Анна без парної консультації')
-    await fireEvent.click(screen.getByRole('button', { name: 'Зберегти' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Зберегти зміни' }))
 
     await waitFor(() => {
       expect(mockedUpdateSpecialistProfile).toHaveBeenCalledWith(
@@ -963,7 +1029,7 @@ describe('TherapistProfileView', () => {
     await fireEvent.update(focusSelect, placeholderValue)
 
     expect(await screen.findByTestId('profile-sticky-save-bar')).toBeInTheDocument()
-    await fireEvent.click(screen.getByRole('button', { name: 'Зберегти' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Зберегти зміни' }))
 
     await waitFor(() => {
       expect(mockedUpdateSpecialistProfile).toHaveBeenCalledWith(
@@ -1003,7 +1069,7 @@ describe('TherapistProfileView', () => {
 
     const stickyBar = await screen.findByTestId('profile-sticky-save-bar')
     expect(stickyBar).toBeInTheDocument()
-    await fireEvent.click(screen.getByRole('button', { name: 'Зберегти' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Зберегти зміни' }))
 
     expect(mockedUpdateSpecialistProfile).not.toHaveBeenCalled()
     const validationError = await screen.findByText('Оберіть щонайменше один формат консультацій: онлайн або офлайн.')

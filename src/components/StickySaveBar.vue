@@ -15,6 +15,8 @@
 </template>
 
 <script setup lang="ts">
+import { onBeforeUnmount, onMounted } from 'vue'
+
 withDefaults(
   defineProps<{
     message: string
@@ -37,6 +39,28 @@ defineEmits<{
   save: []
   cancel: []
 }>()
+
+const bottomActionBarClass = 'has-bottom-action-bar'
+const bottomActionBarCountKey = 'bottomActionBarCount'
+
+onMounted(() => {
+  const currentCount = Number(document.body.dataset[bottomActionBarCountKey] || 0)
+  document.body.dataset[bottomActionBarCountKey] = String(currentCount + 1)
+  document.body.classList.add(bottomActionBarClass)
+})
+
+onBeforeUnmount(() => {
+  const currentCount = Number(document.body.dataset[bottomActionBarCountKey] || 0)
+  const nextCount = Math.max(currentCount - 1, 0)
+
+  if (nextCount > 0) {
+    document.body.dataset[bottomActionBarCountKey] = String(nextCount)
+    return
+  }
+
+  delete document.body.dataset[bottomActionBarCountKey]
+  document.body.classList.remove(bottomActionBarClass)
+})
 </script>
 
 <style scoped>
@@ -77,6 +101,11 @@ defineEmits<{
   flex-wrap: wrap;
 }
 
+.sticky-save-bar__actions .btn {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
 @media (max-width: 980px) {
   .sticky-save-bar {
     bottom: 10px;
@@ -87,6 +116,10 @@ defineEmits<{
   .sticky-save-bar__actions {
     width: 100%;
     justify-content: flex-end;
+  }
+
+  .sticky-save-bar__actions .btn {
+    flex: 1 1 auto;
   }
 }
 </style>

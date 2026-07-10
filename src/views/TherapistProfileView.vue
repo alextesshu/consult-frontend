@@ -1115,6 +1115,7 @@
         :message="stickySaveMessage"
         :error="Boolean(error)"
         :saving="saving"
+        primary-label="Зберегти зміни"
         @cancel="onCancelChanges"
         @save="onSave"
       />
@@ -1160,8 +1161,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, reactive, ref } from 'vue'
-import { useRoute } from 'vue-router'
+import { computed, onBeforeUnmount, onMounted, reactive, ref } from 'vue'
+import { onBeforeRouteLeave, useRoute } from 'vue-router'
 import { Cropper } from 'vue-advanced-cropper'
 import {
   createProfileDocument,
@@ -1232,6 +1233,9 @@ const newDocumentTitle = ref('')
 const newDocumentKind = ref('CERTIFICATE')
 const newDocumentIsPublic = ref(true)
 const newDocumentFile = ref<File | null>(null)
+const PROFILE_SAVE_SUCCESS_MESSAGE = 'Зміни збережено'
+const PROFILE_SAVE_ERROR_MESSAGE = 'Не вдалося зберегти зміни. Спробуйте ще раз.'
+const PROFILE_UNSAVED_CHANGES_MESSAGE = 'У вас є незбережені зміни. Вийти без збереження?'
 const MAX_PHOTO_BYTES = 5 * 1024 * 1024
 const MAX_VIDEO_BYTES = 100 * 1024 * 1024
 const ALLOWED_PHOTO_MIME = new Set(['image/jpeg', 'image/png', 'image/webp'])
@@ -2172,6 +2176,30 @@ const isDirty = computed(() => dirtySnapshot.hasSavedSnapshot.value && dirtySnap
 
 const stickySaveMessage = computed(() => error.value || 'Є незбережені зміни')
 
+function shouldWarnAboutUnsavedChanges(): boolean {
+  return Boolean(isDirty.value)
+}
+
+function confirmDiscardUnsavedChanges(): boolean {
+  if (!shouldWarnAboutUnsavedChanges()) return true
+  return window.confirm(PROFILE_UNSAVED_CHANGES_MESSAGE)
+}
+
+function handleBeforeUnload(event: BeforeUnloadEvent) {
+  if (!shouldWarnAboutUnsavedChanges()) return
+  event.preventDefault()
+  event.returnValue = PROFILE_UNSAVED_CHANGES_MESSAGE
+  return PROFILE_UNSAVED_CHANGES_MESSAGE
+}
+
+onBeforeRouteLeave((_to, _from, next) => {
+  if (confirmDiscardUnsavedChanges()) {
+    next()
+    return
+  }
+  next(false)
+})
+
 function onCancelChanges() {
   if (saving.value) return
   const savedSnapshot = dirtySnapshot.getSavedSnapshot()
@@ -2271,7 +2299,7 @@ async function onSave() {
     languageInput.value = ''
     slugDraft.value = resolvedSlug.value
     dirtySnapshot.markSaved()
-    success.value = data.profile_notice?.detail || 'Збережено.'
+    success.value = data.profile_notice?.detail || PROFILE_SAVE_SUCCESS_MESSAGE
   } catch (err) {
     const payload = (err as { response?: { data?: any } })?.response?.data
     if (payload?.code === 'PROFILE_NOT_READY') {
@@ -2282,7 +2310,7 @@ async function onSave() {
       profile.is_search_visible = false
       error.value = buildProfileNotReadyMessage(readinessLabelsForKeys(payload.missing_items))
     } else {
-      error.value = getApiErrorMessage(err, 'Не вдалося зберегти')
+      error.value = getApiErrorMessage(err, PROFILE_SAVE_ERROR_MESSAGE)
     }
   } finally {
     saving.value = false
@@ -2666,7 +2694,12 @@ function sanitizeLanguages(list: string[]): string[] {
 }
 
 onMounted(() => {
+  window.addEventListener('beforeunload', handleBeforeUnload)
   loadProfile()
+})
+
+onBeforeUnmount(() => {
+  window.removeEventListener('beforeunload', handleBeforeUnload)
 })
 </script>
 
