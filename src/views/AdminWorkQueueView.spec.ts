@@ -650,6 +650,65 @@ describe('AdminWorkQueueView', () => {
     expect(document.body).not.toHaveTextContent('Спеціаліст #61 · Спеціаліст #61')
   })
 
+  it('shows public profile action for active specialist public profile', async () => {
+    mockedFetchAdminWorkQueue.mockResolvedValueOnce({
+      summary: baseResponse.summary,
+      items: [
+        {
+          id: 'specialist-access-public',
+          type: 'specialist_beta_access_review',
+          severity: 'normal',
+          status: 'open',
+          title: 'Specialist access',
+          related: {
+            object_type: 'specialist',
+            object_id: 61,
+            specialist_id: 61,
+            public_profile_enabled: true,
+            public_profile_slug: 'iryna-bondar',
+            public_profile_path: '/s/iryna-bondar',
+          },
+        },
+      ],
+    })
+
+    await renderView()
+
+    const publicProfileLink = await screen.findByRole('link', { name: 'До профілю' })
+    expect(publicProfileLink).toHaveAttribute('href', '/s/iryna-bondar')
+    expect(publicProfileLink).toHaveAttribute('target', '_blank')
+    expect(screen.getByRole('link', { name: 'До спеціаліста' })).toHaveAttribute('href', '/admin/specialists/61')
+  })
+
+  it('does not show public profile action for inactive specialist profile', async () => {
+    mockedFetchAdminWorkQueue.mockResolvedValueOnce({
+      summary: baseResponse.summary,
+      items: [
+        {
+          id: 'specialist-access-private',
+          type: 'specialist_beta_access_review',
+          severity: 'normal',
+          status: 'open',
+          title: 'Specialist access',
+          related: {
+            object_type: 'specialist',
+            object_id: 61,
+            specialist_id: 61,
+            specialist_slug: 'iryna-bondar',
+            public_profile_enabled: false,
+            public_profile_slug: '',
+            public_profile_path: '',
+          },
+        },
+      ],
+    })
+
+    await renderView()
+
+    expect(await screen.findByRole('link', { name: 'До спеціаліста' })).toHaveAttribute('href', '/admin/specialists/61')
+    expect(screen.queryByRole('link', { name: 'До профілю' })).not.toBeInTheDocument()
+  })
+
   it('does not show specialist detail link when specialist id is absent', async () => {
     mockedFetchAdminWorkQueue.mockResolvedValueOnce({
       summary: baseResponse.summary,

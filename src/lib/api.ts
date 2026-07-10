@@ -565,6 +565,10 @@ export interface AdminWorkQueueRelated {
   client_id?: number | null
   request_status?: string | null
   domain_status?: string | null
+  public_profile_enabled?: boolean | null
+  public_profile_slug?: string | null
+  public_profile_path?: string | null
+  public_profile_url?: string | null
   has_client_name?: boolean
   has_contact?: boolean
   has_topics?: boolean

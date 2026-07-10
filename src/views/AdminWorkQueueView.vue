@@ -212,6 +212,15 @@
             >
               До спеціаліста
             </RouterLink>
+            <a
+              v-if="publicProfilePath(item)"
+              class="btn btn--ghost btn--sm"
+              :href="publicProfilePath(item)"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              До профілю
+            </a>
             <RouterLink
               v-if="internalTargetPath(workQueueTargetUrl(item))"
               class="btn btn--sm"
@@ -759,6 +768,50 @@ function specialistDetailPath(item: AdminWorkQueueItem) {
   const targetSpecialistId = specialistIdFromTargetUrl(item.target_url)
   const specialistId = relatedSpecialistId || sourceSpecialistId || targetSpecialistId
   return specialistId ? `/admin/specialists/${specialistId}` : ''
+}
+
+function publicProfilePath(item: AdminWorkQueueItem) {
+  const related = item.related
+  const publicProfileEnabled =
+    relatedValue(related, 'public_profile_enabled') === true ||
+    normalizeToken(String(relatedValue(related, 'public_profile_enabled') || '')) === 'true'
+  if (!publicProfileEnabled) return ''
+
+  const explicitPath =
+    publicProfilePathFromValue(relatedValue(related, 'public_profile_path')) ||
+    publicProfilePathFromValue(relatedValue(related, 'public_profile_url'))
+  if (explicitPath) return explicitPath
+
+  const slug = publicProfileSlugFromValue(
+    relatedValue(related, 'public_profile_slug') ||
+    relatedValue(related, 'specialist_slug')
+  )
+  return slug ? `/s/${slug}` : ''
+}
+
+function publicProfilePathFromValue(value: unknown) {
+  const raw = String(value || '').trim()
+  if (!raw) return ''
+  let path = raw
+  if (/^https?:\/\//i.test(raw)) {
+    try {
+      path = new URL(raw).pathname
+    } catch {
+      return ''
+    }
+  }
+  path = path.split(/[?#]/)[0].replace(/\/+$/, '')
+  return /^\/s\/[^/]+$/.test(path) ? path : ''
+}
+
+function publicProfileSlugFromValue(value: unknown) {
+  const raw = String(value || '').trim()
+  if (!raw) return ''
+  const slug = raw
+    .replace(/^\/s\//, '')
+    .split(/[/?#]/)[0]
+    .trim()
+  return slug && !slug.includes('/') ? encodeURIComponent(slug) : ''
 }
 
 function isPublicRequestObjectType(objectType: string) {
