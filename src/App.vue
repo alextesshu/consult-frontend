@@ -557,6 +557,7 @@ type SpecialistSidebarItem = {
 const specialistSidebarBaseItems: SpecialistSidebarItem[] = [
   { label: 'Кабінет', to: '/cabinet', match: ['/cabinet'], exact: true },
   { label: 'Профіль', to: '/cabinet/profile', match: ['/cabinet/profile'] },
+  { label: 'Клієнти', to: '/cabinet/clients', match: ['/cabinet/clients'] },
   {
     label: 'Розклад',
     to: '/cabinet/slots',
@@ -575,7 +576,6 @@ const specialistSidebarBaseItems: SpecialistSidebarItem[] = [
     match: ['/cabinet/external-sessions', '/cabinet/inquiries'],
   },
   { label: 'Задачі', to: '/cabinet/practice-board', match: ['/cabinet/practice-board'] },
-  { label: 'Клієнти', to: '/cabinet/clients', match: ['/cabinet/clients'] },
   { label: 'Відгуки', to: '/cabinet/reviews', match: ['/cabinet/reviews'] },
   { label: 'Чати', to: '/cabinet/chat', match: ['/cabinet/chat'] },
   { label: 'Власний блог', to: '/cabinet/journal', match: ['/cabinet/journal'] },

@@ -442,9 +442,10 @@ describe('App shell', () => {
     const linkLabels = within(sidebar)
       .getAllByRole('link')
       .map((link) => (link.textContent || '').trim())
+    expect(linkLabels.indexOf('Клієнти')).toBe(linkLabels.indexOf('Профіль') + 1)
+    expect(linkLabels.indexOf('Розклад')).toBe(linkLabels.indexOf('Клієнти') + 1)
     expect(linkLabels.indexOf('Запити')).toBe(linkLabels.indexOf('Сесії') + 1)
     expect(linkLabels.indexOf('Задачі')).toBe(linkLabels.indexOf('Запити') + 1)
-    expect(linkLabels.indexOf('Клієнти')).toBe(linkLabels.indexOf('Задачі') + 1)
   })
 
   it('uses all pending guest requests count for the specialist requests sidebar badge', async () => {
@@ -656,9 +657,10 @@ describe('App shell', () => {
     const drawerLinkLabels = within(drawer)
       .getAllByRole('link')
       .map((link) => (link.textContent || '').trim())
+    expect(drawerLinkLabels.indexOf('Клієнти')).toBe(drawerLinkLabels.indexOf('Профіль') + 1)
+    expect(drawerLinkLabels.indexOf('Розклад')).toBe(drawerLinkLabels.indexOf('Клієнти') + 1)
     expect(drawerLinkLabels.indexOf('Запити')).toBe(drawerLinkLabels.indexOf('Сесії') + 1)
     expect(drawerLinkLabels.indexOf('Задачі')).toBe(drawerLinkLabels.indexOf('Запити') + 1)
-    expect(drawerLinkLabels.indexOf('Клієнти')).toBe(drawerLinkLabels.indexOf('Задачі') + 1)
   })
 
   it('keeps existing cabinet routes rendering inside the specialist shell', async () => {
