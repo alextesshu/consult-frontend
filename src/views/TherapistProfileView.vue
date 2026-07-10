@@ -1124,7 +1124,9 @@
         <button v-if="!isDirty" class="btn btn--primary" type="submit" :disabled="saving">
           {{ saving ? 'Збереження...' : 'Зберегти зміни' }}
         </button>
-        <div v-if="success" class="muted">{{ success }}</div>
+        <div v-if="success" class="profile-save-feedback profile-save-feedback--success" role="status">
+          {{ success }}
+        </div>
       </div>
 
     </form>
@@ -3726,11 +3728,27 @@ onBeforeUnmount(() => {
 }
 
 .form-error {
-  color: #b3261e;
-  background: #fdecea;
-  border: 1px solid #f5c2c0;
+  color: var(--pc-danger-text);
+  background: var(--pc-danger-soft);
+  border: 1px solid var(--pc-danger-border);
   border-radius: 10px;
   padding: 8px 10px;
+  font-weight: 700;
+}
+
+.profile-save-feedback {
+  border-radius: var(--pc-radius-control);
+  padding: 9px 11px;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.profile-save-feedback--success {
+  color: var(--pc-success-text);
+  background: var(--pc-success-soft);
+  border: 1px solid var(--pc-success-border);
+  box-shadow: 0 8px 18px rgba(15, 81, 50, 0.1);
 }
 
 @media (max-width: 980px) {

@@ -111,11 +111,22 @@
   --pc-primary-soft: color-mix(in srgb, var(--pc-navy-900) 8%, #ffffff);
   --pc-accent: var(--pc-navy-900);
   --pc-accent-soft: color-mix(in srgb, var(--pc-navy-900) 8%, #ffffff);
-  --pc-success: var(--pc-navy-900);
-  --pc-success-soft: color-mix(in srgb, var(--pc-navy-900) 8%, #ffffff);
-  --pc-warning: #d98a2b;
-  --pc-danger: #c94444;
+  --pc-success: #167247;
+  --pc-success-soft: #e8f6ed;
+  --pc-success-border: #72b88b;
+  --pc-success-text: #0f5132;
+  --pc-warning: #c97918;
+  --pc-warning-soft: #fff3d8;
+  --pc-warning-border: #e4a542;
+  --pc-warning-text: #704200;
+  --pc-danger: #b83232;
+  --pc-danger-soft: #fde8e8;
+  --pc-danger-border: #dc7b76;
+  --pc-danger-text: #842020;
   --pc-info: #2f6fa8;
+  --pc-info-soft: #e9f2fb;
+  --pc-info-border: #8bb8dd;
+  --pc-info-text: #124b77;
 
   --pc-container: 1180px;
   --pc-container-wide: 1320px;

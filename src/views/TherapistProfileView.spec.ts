@@ -733,7 +733,9 @@ describe('TherapistProfileView', () => {
     const nameInput = (await screen.findByDisplayValue('Анна')) as HTMLInputElement
     await fireEvent.update(nameInput, 'Анна Нова')
 
-    expect(await screen.findByTestId('profile-sticky-save-bar')).toBeInTheDocument()
+    const stickyBar = await screen.findByTestId('profile-sticky-save-bar')
+    expect(stickyBar).toBeInTheDocument()
+    expect(stickyBar).toHaveAttribute('role', 'status')
     expect(screen.getByText('Є незбережені зміни')).toBeInTheDocument()
     expect(document.body).toHaveClass('has-bottom-action-bar')
   })
@@ -793,7 +795,9 @@ describe('TherapistProfileView', () => {
         show_photo: true,
       })
     )
-    expect(await screen.findByText('Зміни збережено')).toBeInTheDocument()
+    const successMessage = await screen.findByText('Зміни збережено')
+    expect(successMessage).toBeInTheDocument()
+    expect(successMessage).toHaveClass('profile-save-feedback--success')
     await waitFor(() => {
       expect(screen.queryByTestId('profile-sticky-save-bar')).not.toBeInTheDocument()
     })
@@ -813,6 +817,9 @@ describe('TherapistProfileView', () => {
     expect(
       await screen.findByText('Не вдалося зберегти зміни. Спробуйте ще раз.')
     ).toBeInTheDocument()
+    const stickyBar = screen.getByTestId('profile-sticky-save-bar')
+    expect(stickyBar).toHaveAttribute('role', 'alert')
+    expect(stickyBar).toHaveClass('sticky-save-bar--error')
   })
 
   it('warns before leaving with unsaved profile changes and stops warning after save', async () => {

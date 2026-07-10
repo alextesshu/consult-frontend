@@ -175,27 +175,27 @@ onBeforeUnmount(() => {
 }
 
 .toast--success {
-  border-color: color-mix(in srgb, #0f8b52 38%, #b7e2c9);
-  background: #e9f7ef;
-  color: #0f5a35;
+  border-color: var(--pc-success-border);
+  background: var(--pc-success-soft);
+  color: var(--pc-success-text);
 }
 
 .toast--error {
-  border-color: color-mix(in srgb, #8f2d2d 36%, #f2b9b6);
-  background: #fdeceb;
-  color: #8f2d2d;
+  border-color: var(--pc-danger-border);
+  background: var(--pc-danger-soft);
+  color: var(--pc-danger-text);
 }
 
 .toast--warning {
-  border-color: color-mix(in srgb, #a46400 40%, #f4d6a3);
-  background: #fff4df;
-  color: #7a5200;
+  border-color: var(--pc-warning-border);
+  background: var(--pc-warning-soft);
+  color: var(--pc-warning-text);
 }
 
 .toast--info {
-  border-color: color-mix(in srgb, #124b77 34%, #b8d6f0);
-  background: #e9f2fb;
-  color: #124b77;
+  border-color: var(--pc-info-border);
+  background: var(--pc-info-soft);
+  color: var(--pc-info-text);
 }
 
 @keyframes toast-in {
