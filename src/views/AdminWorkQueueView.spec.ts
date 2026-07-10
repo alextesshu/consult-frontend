@@ -660,6 +660,7 @@ describe('AdminWorkQueueView', () => {
           severity: 'normal',
           status: 'open',
           title: 'Specialist access',
+          target_url: '/admin/specialists/61',
           related: {
             object_type: 'specialist',
             object_id: 61,
@@ -677,7 +678,10 @@ describe('AdminWorkQueueView', () => {
     const publicProfileLink = await screen.findByRole('link', { name: 'До профілю' })
     expect(publicProfileLink).toHaveAttribute('href', '/s/iryna-bondar')
     expect(publicProfileLink).toHaveAttribute('target', '_blank')
+    expect(publicProfileLink).toHaveClass('btn')
+    expect(publicProfileLink).not.toHaveClass('btn--ghost')
     expect(screen.getByRole('link', { name: 'До спеціаліста' })).toHaveAttribute('href', '/admin/specialists/61')
+    expect(screen.getByRole('link', { name: 'Відкрити' })).toHaveClass('btn--ghost')
   })
 
   it('does not show public profile action for inactive specialist profile', async () => {

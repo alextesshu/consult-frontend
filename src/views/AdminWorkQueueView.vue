@@ -214,7 +214,7 @@
             </RouterLink>
             <a
               v-if="publicProfilePath(item)"
-              class="btn btn--ghost btn--sm"
+              class="btn btn--sm"
               :href="publicProfilePath(item)"
               target="_blank"
               rel="noopener noreferrer"
@@ -223,14 +223,14 @@
             </a>
             <RouterLink
               v-if="internalTargetPath(workQueueTargetUrl(item))"
-              class="btn btn--sm"
+              :class="targetActionClass(item)"
               :to="internalTargetPath(workQueueTargetUrl(item))"
             >
               Відкрити
             </RouterLink>
             <a
               v-else-if="externalTargetUrl(workQueueTargetUrl(item))"
-              class="btn btn--sm"
+              :class="targetActionClass(item)"
               :href="externalTargetUrl(workQueueTargetUrl(item))"
               target="_blank"
               rel="noopener noreferrer"
@@ -787,6 +787,10 @@ function publicProfilePath(item: AdminWorkQueueItem) {
     relatedValue(related, 'specialist_slug')
   )
   return slug ? `/s/${slug}` : ''
+}
+
+function targetActionClass(item: AdminWorkQueueItem) {
+  return publicProfilePath(item) ? 'btn btn--ghost btn--sm' : 'btn btn--sm'
 }
 
 function publicProfilePathFromValue(value: unknown) {
