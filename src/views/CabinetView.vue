@@ -192,7 +192,7 @@
       <section v-if="shouldShowOnboardingBlock" class="panel panel--wide panel--onboarding">
         <div class="panel__header">
           <div>
-            <h2 class="panel__title panel__title--compact">Готовність профілю</h2>
+            <h2 class="panel__title panel__title--compact">Готовність до звернень</h2>
             <div class="panel__meta">{{ readinessCompactStatusLine }}</div>
           </div>
           <div
@@ -950,7 +950,9 @@ function compactOnboardingStepTitle(step: OnboardingStep) {
   if (step.key === 'display_name') return 'Публічне імʼя'
   if (step.key === 'description') return 'Короткий опис'
   if (step.key === 'base_price') return 'Базова ціна'
-  if (step.key === 'client_entry_path') return 'Спосіб першого звернення'
+  if (step.key === 'client_entry_path') {
+    return step.to.includes('tab=availability') ? 'Вільний час для запису' : 'Спосіб першого звернення'
+  }
   if (step.key === 'public_profile') return 'Публікація профілю'
   if (step.key === 'public_link') return 'Публічне посилання'
   return step.title

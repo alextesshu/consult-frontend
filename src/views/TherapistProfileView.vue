@@ -70,6 +70,17 @@
           >
             {{ profilePrimaryActionLabel }}
           </a>
+          <p v-if="profilePrimaryActionKind === 'open'" class="profile-summary-card__action-helper">
+            Відкриється сторінка, яку бачать клієнти.
+          </p>
+          <button
+            v-if="profilePrimaryActionKind === 'open'"
+            class="btn btn--ghost profile-summary-card__secondary-action"
+            type="button"
+            @click="showDisablePublicProfileConfirm = true"
+          >
+            Вимкнути публічний профіль
+          </button>
         </div>
       </section>
 
@@ -1134,6 +1145,17 @@
 
     </form>
 
+    <ConfirmModal
+      :open="showDisablePublicProfileConfirm"
+      title="Вимкнути публічний профіль?"
+      message="Сторінка стане недоступною за прямим посиланням і зникне з пошуку. Заповнені дані профілю збережуться."
+      confirm-text="Вимкнути профіль"
+      cancel-text="Скасувати"
+      tone="danger"
+      @confirm="confirmDisablePublicProfile"
+      @cancel="showDisablePublicProfileConfirm = false"
+    />
+
     <div v-if="cropperOpen" class="cropper-overlay">
       <div class="cropper-modal">
         <div class="cropper-header">
@@ -1182,6 +1204,7 @@ import {
   type SpecialistProfileDocument,
   type SpecialistProfile,
 } from '../lib/api'
+import ConfirmModal from '../components/ConfirmModal.vue'
 import StickySaveBar from '../components/StickySaveBar.vue'
 import { useDirtySnapshot } from '../composables/useDirtySnapshot'
 import {
@@ -1205,6 +1228,7 @@ const saving = ref(false)
 const error = ref('')
 const success = ref('')
 const copyStatus = ref('')
+const showDisablePublicProfileConfirm = ref(false)
 const slugEditOpen = ref(false)
 const slugDraft = ref('')
 const slugSaving = ref(false)
@@ -1927,7 +1951,7 @@ const publicationStatusText = computed(() =>
 )
 const publicationStatusHint = computed(() =>
   profile.public_profile_enabled
-    ? 'Клієнти можуть переглядати вашу сторінку та залишати запити.'
+    ? 'Сторінка доступна клієнтам за публічним посиланням.'
     : publicProfileReadiness.value.is_ready
       ? 'Увімкніть публічний профіль, коли будете готові показати сторінку клієнтам.'
       : 'Публікація стане доступною після заповнення обов’язкових даних.'
@@ -1945,7 +1969,7 @@ const profilePrimaryActionLabel = computed(() =>
     ? 'Завершити профіль'
     : profilePrimaryActionKind.value === 'publish'
       ? 'Увімкнути публічний профіль'
-      : 'Відкрити як клієнт'
+      : 'Переглянути профіль'
 )
 const showPublicProfileNotPublishedHint = computed(
   () => route.query.public_profile === 'unpublished' && !profile.public_profile_enabled
@@ -2033,6 +2057,12 @@ function togglePublicProfileEnabled() {
   if (!profile.public_profile_enabled) {
     profile.is_search_visible = false
   }
+}
+
+function confirmDisablePublicProfile() {
+  profile.public_profile_enabled = false
+  profile.is_search_visible = false
+  showDisablePublicProfileConfirm.value = false
 }
 
 function scrollToFirstMissingProfileSection() {
@@ -2927,14 +2957,32 @@ onBeforeUnmount(() => {
 
 .profile-summary-card__actions {
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: flex-end;
+  justify-self: end;
+  gap: 8px;
   min-width: 0;
 }
 
 .profile-summary-card__primary-action {
   min-width: 180px;
   white-space: normal;
+  text-align: center;
+}
+
+.profile-summary-card__secondary-action {
+  min-width: 180px;
+  white-space: normal;
+  text-align: center;
+}
+
+.profile-summary-card__action-helper {
+  max-width: 220px;
+  margin: 0;
+  color: var(--pc-text-muted);
+  font-size: 12px;
+  line-height: 1.35;
   text-align: center;
 }
 
@@ -3875,11 +3923,18 @@ onBeforeUnmount(() => {
 
   .profile-summary-card__actions {
     grid-column: 1 / -1;
+    justify-self: start;
     justify-content: flex-start;
   }
 
-  .profile-summary-card__primary-action {
+  .profile-summary-card__primary-action,
+  .profile-summary-card__secondary-action {
     min-width: min(240px, 100%);
+  }
+
+  .profile-summary-card__action-helper {
+    max-width: min(320px, 100%);
+    text-align: left;
   }
 }
 
@@ -3921,12 +3976,20 @@ onBeforeUnmount(() => {
   }
 
   .profile-summary-card__actions {
+    justify-self: stretch;
     justify-content: stretch;
+    align-items: stretch;
   }
 
-  .profile-summary-card__primary-action {
+  .profile-summary-card__primary-action,
+  .profile-summary-card__secondary-action {
     width: 100%;
     min-width: 0;
+  }
+
+  .profile-summary-card__action-helper {
+    max-width: none;
+    text-align: left;
   }
 }
 </style>

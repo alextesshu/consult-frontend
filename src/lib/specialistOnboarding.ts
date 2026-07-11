@@ -146,7 +146,7 @@ const STEP_META: Array<{
     title: 'Оберіть спосіб першого звернення',
     hint: 'Клієнт має розуміти, як залишити запит або обрати час.',
     actionLabel: 'Налаштувати звернення',
-    fallbackRoute: '/cabinet/profile',
+    fallbackRoute: '/cabinet/slots?tab=settings',
   },
   {
     key: 'public_profile',
@@ -345,7 +345,7 @@ export function buildSpecialistOnboardingViewModel(
       details.showPublicAvailability === true &&
       details.hasFutureSlots === false
         ? '/cabinet/slots?tab=availability'
-        : '/cabinet/profile',
+        : '/cabinet/slots?tab=settings',
     public_profile: '/cabinet/profile',
     public_link: publicProfilePath || '/public',
     profile_core: '/cabinet/profile',

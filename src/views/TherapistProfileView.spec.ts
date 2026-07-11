@@ -290,14 +290,18 @@ describe('TherapistProfileView', () => {
     expect(summary).not.toBeNull()
     expect(within(summary).getByText('Публічність')).toBeInTheDocument()
     expect(within(summary).getByText('Публічний профіль увімкнено')).toBeInTheDocument()
-    expect(within(summary).getByText('Клієнти можуть переглядати вашу сторінку та залишати запити.')).toBeInTheDocument()
+    expect(within(summary).getByText('Сторінка доступна клієнтам за публічним посиланням.')).toBeInTheDocument()
+    expect(within(summary).queryByText('Клієнти можуть переглядати вашу сторінку та залишати запити.')).not.toBeInTheDocument()
     expect(within(summary).getByRole('heading', { name: 'Готовність профілю' })).toBeInTheDocument()
     expect(screen.getAllByRole('heading', { name: 'Готовність профілю' })).toHaveLength(1)
     expect(within(summary).getByText('7 з 7')).toBeInTheDocument()
     expect(within(summary).getByText('Усі обов’язкові дані заповнені.')).toBeInTheDocument()
-    const publicProfileCta = within(summary).getByRole('link', { name: 'Відкрити як клієнт' })
+    const publicProfileCta = within(summary).getByRole('link', { name: 'Переглянути профіль' })
     expect(publicProfileCta).toHaveAttribute('href', `${window.location.origin}/s/specialist-anna`)
     expect(publicProfileCta).toHaveAttribute('target', '_blank')
+    expect(within(summary).getByText('Відкриється сторінка, яку бачать клієнти.')).toBeInTheDocument()
+    expect(within(summary).getByRole('button', { name: 'Вимкнути публічний профіль' })).toBeInTheDocument()
+    expect(screen.queryByText('Відкрити як клієнт')).not.toBeInTheDocument()
     expect(screen.queryByText('Профіль готовий до публікації.')).not.toBeInTheDocument()
     expect(screen.queryByText('Профіль активний')).not.toBeInTheDocument()
 
@@ -321,6 +325,8 @@ describe('TherapistProfileView', () => {
     expect(copyLinkButton).toBeEnabled()
     expect(within(linkCallout).queryByRole('link', { name: 'Подивитись профіль' })).not.toBeInTheDocument()
     expect(within(linkCallout).queryByRole('link', { name: 'Відкрити як клієнт' })).not.toBeInTheDocument()
+    expect(within(linkCallout).queryByRole('link', { name: 'Переглянути профіль' })).not.toBeInTheDocument()
+    expect(within(linkCallout).queryByRole('button', { name: 'Вимкнути публічний профіль' })).not.toBeInTheDocument()
     expect(within(linkCallout).getByRole('button', { name: 'Змінити адресу' })).toBeInTheDocument()
     expect(screen.queryByText('Публічне посилання на профіль')).not.toBeInTheDocument()
     expect(screen.queryByText(/Надішліть це посилання клієнту/)).not.toBeInTheDocument()
@@ -335,7 +341,49 @@ describe('TherapistProfileView', () => {
     await fireEvent.click(copyLinkButton)
     expect(writeText).toHaveBeenCalledWith(`${window.location.origin}/s/specialist-anna`)
     expect(await within(linkCallout).findByText('Посилання скопійовано')).toBeInTheDocument()
-    expect(screen.getAllByText('Відкрити як клієнт')).toHaveLength(1)
+    expect(screen.getAllByText('Переглянути профіль')).toHaveLength(1)
+  })
+
+  it('confirms disabling an active public profile and keeps the change in the save flow', async () => {
+    const profile = makeProfile()
+    mockedFetchSpecialistProfile.mockResolvedValue(profile)
+    mockedUpdateSpecialistProfile.mockResolvedValue({
+      ...profile,
+      public_profile_enabled: false,
+      is_search_visible: false,
+    })
+
+    renderView()
+
+    expect(await screen.findByText('Публічний профіль увімкнено')).toBeInTheDocument()
+    await fireEvent.click(screen.getByRole('button', { name: 'Вимкнути публічний профіль' }))
+
+    const cancelDialog = await screen.findByRole('dialog', { name: 'Вимкнути публічний профіль?' })
+    expect(within(cancelDialog).getByText('Сторінка стане недоступною за прямим посиланням і зникне з пошуку. Заповнені дані профілю збережуться.')).toBeInTheDocument()
+    await fireEvent.click(within(cancelDialog).getByRole('button', { name: 'Скасувати' }))
+
+    expect(screen.getByText('Публічний профіль увімкнено')).toBeInTheDocument()
+    expect(screen.queryByTestId('profile-sticky-save-bar')).not.toBeInTheDocument()
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Вимкнути публічний профіль' }))
+    const confirmDialog = await screen.findByRole('dialog', { name: 'Вимкнути публічний профіль?' })
+    await fireEvent.click(within(confirmDialog).getByRole('button', { name: 'Вимкнути профіль' }))
+
+    expect(screen.getByText('Профіль не опублікований')).toBeInTheDocument()
+    expect(screen.getByLabelText('Показувати мій профіль у пошуку на Pro Consult')).not.toBeChecked()
+    expect(await screen.findByTestId('profile-sticky-save-bar')).toBeInTheDocument()
+    expect(screen.getByText('Є незбережені зміни')).toBeInTheDocument()
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Зберегти зміни' }))
+
+    await waitFor(() => {
+      expect(mockedUpdateSpecialistProfile).toHaveBeenCalledWith(
+        expect.objectContaining({
+          public_profile_enabled: false,
+          is_search_visible: false,
+        })
+      )
+    })
   })
 
   it('shows compact readiness card and guards incomplete profile activation', async () => {
@@ -412,11 +460,12 @@ describe('TherapistProfileView', () => {
 
     await fireEvent.click(publishButton)
     expect(screen.getByText('Публічний профіль увімкнено')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Відкрити як клієнт' })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Переглянути профіль' })).toHaveAttribute(
       'href',
       `${window.location.origin}/s/specialist-anna`
     )
-    expect(screen.getAllByText('Відкрити як клієнт')).toHaveLength(1)
+    expect(screen.getAllByText('Переглянути профіль')).toHaveLength(1)
+    expect(screen.queryByText('Відкрити як клієнт')).not.toBeInTheDocument()
     expect(within(linkCallout).getByRole('button', { name: 'Копіювати посилання' })).toBeEnabled()
     await fireEvent.click(screen.getByRole('button', { name: 'Зберегти зміни' }))
 

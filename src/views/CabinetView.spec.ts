@@ -184,7 +184,7 @@ describe('CabinetView', () => {
       expect(view.getByRole('heading', { name: 'Робоча панель' })).toBeInTheDocument()
       expect(view.container).toHaveTextContent('Тут видно найближчі сесії, нові запити та підказки для роботи з практикою.')
       expect(view.container.querySelector('.panel--attention')).not.toBeInTheDocument()
-      expect(view.container.querySelector('.panel--onboarding')).toHaveTextContent('Готовність профілю')
+      expect(view.container.querySelector('.panel--onboarding')).toHaveTextContent('Готовність до звернень')
       expect(view.container.querySelector('.panel--today [data-kind="readiness-summary"]')).not.toBeInTheDocument()
     })
   })
@@ -1331,13 +1331,17 @@ describe('CabinetView', () => {
 
     await waitFor(() => {
       expect(view.container.querySelector('.panel--onboarding')).toBeInTheDocument()
-      expect(view.container).toHaveTextContent('Готовність профілю')
+      expect(view.container).toHaveTextContent('Готовність до звернень')
       expect(view.container).toHaveTextContent('Ще кілька пунктів - і клієнтам буде зрозуміліше, як до вас звернутися.')
       expect(view.container).toHaveTextContent('Профіль ще не відкритий')
       expect(view.container).toHaveTextContent('Публічне імʼя')
       expect(view.container).toHaveTextContent('Короткий опис')
       expect(view.container).toHaveTextContent('Базова ціна')
       expect(view.container).toHaveTextContent('Спосіб першого звернення')
+      expect(view.getByRole('link', { name: /Спосіб першого звернення/ })).toHaveAttribute(
+        'href',
+        '/cabinet/slots?tab=settings'
+      )
       expect(view.container).toHaveTextContent('Публікація профілю')
       expect(view.container).toHaveTextContent('Що залишилось: публічне імʼя, опис, базова ціна')
       expect(view.container.querySelector('a[href="/cabinet/profile"]')).toBeInTheDocument()
@@ -1404,7 +1408,12 @@ describe('CabinetView', () => {
     const view = renderView()
 
     await waitFor(() => {
-      expect(view.container).toHaveTextContent('Спосіб першого звернення')
+      expect(view.container).toHaveTextContent('Вільний час для запису')
+      expect(view.container).not.toHaveTextContent('Спосіб першого звернення')
+      expect(view.getByRole('link', { name: /Вільний час для запису/ })).toHaveAttribute(
+        'href',
+        '/cabinet/slots?tab=availability'
+      )
       expect(view.getByRole('link', { name: 'Налаштувати час' })).toHaveAttribute(
         'href',
         '/cabinet/slots?tab=availability'

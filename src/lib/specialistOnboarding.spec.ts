@@ -103,6 +103,33 @@ describe('specialist onboarding mapping', () => {
     )
   })
 
+  it('routes missing first contact setup to schedule settings', () => {
+    const vm = buildSpecialistOnboardingViewModel(
+      normalizeOnboardingState({
+        readiness: {
+          public_display_name_exists: true,
+          basic_description_exists: true,
+          standard_price_configured: true,
+          client_entry_path_exists: false,
+          has_future_slots: false,
+          public_profile_enabled: true,
+          public_profile_link_available: true,
+          public_booking_mode: '',
+          show_public_availability: false,
+          ready_for_inbound_intent: false,
+        },
+        missing_items: ['MISSING_CLIENT_ENTRY_PATH'],
+        warnings: [{ code: 'CLIENT_ENTRY_PATH_MISSING' }],
+        next_actions: [{ code: 'COMPLETE_PROFILE', target: 'CABINET_PROFILE', priority: 1 }],
+        primary_cta_code: 'COMPLETE_PROFILE',
+      })!
+    )
+
+    expect(vm.steps.find((step) => step.key === 'client_entry_path')?.to).toBe(
+      '/cabinet/slots?tab=settings'
+    )
+  })
+
   it('handles ready state with public profile link', () => {
     const vm = buildSpecialistOnboardingViewModel(
       normalizeOnboardingState({
