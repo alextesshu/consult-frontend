@@ -2584,6 +2584,56 @@ export async function fetchSessionPaymentProof(sessionId: number): Promise<Sessi
   return resp.data
 }
 
+export type ClientRecordPaymentState =
+  | 'NOT_CONFIRMED'
+  | 'AWAITING_CLIENT'
+  | 'AWAITING_REVIEW'
+  | 'NEEDS_CLARIFICATION'
+  | 'PAID'
+  | 'NO_PRICE'
+  | 'CANCELLED'
+  | 'PAYMENT_DECISION_REQUIRED'
+  | 'RESOLVED_CANCELLED'
+
+export type ClientRecordPaymentSummary = {
+  not_confirmed_count: number
+  awaiting_client_count: number
+  awaiting_review_count: number
+  needs_attention_count: number
+  paid_count: number
+}
+
+export type ClientRecordPaymentRow = {
+  session_id: number
+  session_status: string
+  starts_at: string | null
+  ends_at: string | null
+  session_format: string
+  price_amount: string | null
+  price_currency: string
+  payment_state: ClientRecordPaymentState | string
+  payment_proof_status: SessionPaymentProofStatus | null
+  cancellation_resolution: string | null
+  last_payment_action_at: string | null
+}
+
+export type ClientRecordPaymentOverview = {
+  client_record: {
+    id: number
+    display_name: string
+    source: string
+    status: string
+    user_id: number | null
+  }
+  summary: ClientRecordPaymentSummary
+  rows: ClientRecordPaymentRow[]
+}
+
+export async function fetchClientRecordPayments(recordId: number): Promise<ClientRecordPaymentOverview> {
+  const resp = await http.get<ClientRecordPaymentOverview>(`/cabinet/client-records/${recordId}/payments/`)
+  return resp.data
+}
+
 export async function requestSessionPaymentProof(
   sessionId: number,
   payload?: { specialist_note?: string }

@@ -12,6 +12,7 @@ import {
   fetchSpecialistClientMaterials,
   fetchChatThreads,
   fetchClientRecordAccountInvite,
+  fetchClientRecordPayments,
   fetchSpecialistProfile,
   listClientMaterialAttachments,
   materializeClientRegularTimeSessions,
@@ -48,6 +49,7 @@ vi.mock('../lib/api', () => ({
   fetchSpecialistClientMaterials: vi.fn(),
   fetchChatThreads: vi.fn(),
   fetchClientRecordAccountInvite: vi.fn(),
+  fetchClientRecordPayments: vi.fn(),
   fetchSpecialistProfile: vi.fn(),
   listClientMaterialAttachments: vi.fn(),
   pauseClientRegularTime: vi.fn(),
@@ -90,6 +92,7 @@ const mockedFetchClientRegularTimes = vi.mocked(fetchClientRegularTimes)
 const mockedFetchSpecialistClientMaterials = vi.mocked(fetchSpecialistClientMaterials)
 const mockedFetchChatThreads = vi.mocked(fetchChatThreads)
 const mockedFetchClientRecordAccountInvite = vi.mocked(fetchClientRecordAccountInvite)
+const mockedFetchClientRecordPayments = vi.mocked(fetchClientRecordPayments)
 const mockedFetchSpecialistProfile = vi.mocked(fetchSpecialistProfile)
 const mockedListClientMaterialAttachments = vi.mocked(listClientMaterialAttachments)
 const mockedPauseClientRegularTime = vi.mocked(pauseClientRegularTime)
@@ -345,6 +348,24 @@ describe('TherapistClientsView', () => {
     mockedFetchChatThreads.mockResolvedValue([])
     mockedFetchClientRecordAccountInvite.mockReset()
     mockedFetchClientRecordAccountInvite.mockResolvedValue(null)
+    mockedFetchClientRecordPayments.mockReset()
+    mockedFetchClientRecordPayments.mockResolvedValue({
+      client_record: {
+        id: 201,
+        display_name: 'Payment Client',
+        source: 'manual',
+        status: 'active',
+        user_id: null,
+      },
+      summary: {
+        not_confirmed_count: 0,
+        awaiting_client_count: 0,
+        awaiting_review_count: 0,
+        needs_attention_count: 0,
+        paid_count: 0,
+      },
+      rows: [],
+    } as any)
     mockedFetchSpecialistProfile.mockReset()
     mockedFetchSpecialistProfile.mockResolvedValue({ standard_session_duration_minutes: 50 } as any)
     mockedFetchClientRegularTimes.mockReset()
@@ -1367,6 +1388,7 @@ describe('TherapistClientsView', () => {
       'Огляд',
       'Контакти',
       'Сесії',
+      'Оплати',
       'Матеріали',
       'Регулярний час',
       'Приватний зошит',
@@ -1376,6 +1398,7 @@ describe('TherapistClientsView', () => {
     expect(within(dialog).getByRole('tab', { name: 'Огляд' })).toHaveAttribute('aria-selected', 'true')
     expect(within(dialog).getByRole('tab', { name: 'Контакти' })).toBeInTheDocument()
     expect(within(dialog).getByRole('tab', { name: 'Сесії' })).toBeInTheDocument()
+    expect(within(dialog).getByRole('tab', { name: 'Оплати' })).toBeInTheDocument()
     expect(within(dialog).getByRole('tab', { name: 'Матеріали' })).toBeInTheDocument()
     expect(within(dialog).getByRole('tab', { name: 'Регулярний час' })).toBeInTheDocument()
     expect(within(dialog).getByRole('tab', { name: 'Приватний зошит' })).toBeInTheDocument()
@@ -2132,6 +2155,166 @@ describe('TherapistClientsView', () => {
     )
     expect(dialog).not.toHaveTextContent('internal_note')
     expect(dialog).not.toHaveTextContent('session note body')
+  })
+
+  it('shows payments tab after sessions and keeps existing client card tabs', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL) return [manualClientRecord({ id: 624, display_name: 'Payments Tab Client' })]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    const { container } = renderView()
+    const { clientsPanel } = getPanels(container)
+
+    await selectClientRowByName(clientsPanel, 'Payments Tab Client')
+    const dialog = await screen.findByRole('dialog', { name: 'Картка клієнта' })
+    const tabs = within(dialog).getAllByRole('tab').map((tab) => tab.textContent?.trim())
+
+    expect(tabs).toEqual([
+      'Огляд',
+      'Контакти',
+      'Сесії',
+      'Оплати',
+      'Матеріали',
+      'Регулярний час',
+      'Приватний зошит',
+      'Нотатки',
+      'Доступ',
+    ])
+
+    await fireEvent.click(within(dialog).getByRole('tab', { name: 'Матеріали' }))
+    expect(await within(dialog).findByRole('heading', { name: 'Матеріали' })).toBeInTheDocument()
+  })
+
+  it('loads payments tab for manual client using client id as record id and shows no-account note', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL) return [manualClientRecord({ id: 625, display_name: 'Manual Payments' })]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedFetchClientRecordPayments.mockResolvedValue({
+      client_record: { id: 625, display_name: 'Manual Payments', source: 'manual', status: 'active', user_id: null },
+      summary: {
+        not_confirmed_count: 1,
+        awaiting_client_count: 0,
+        awaiting_review_count: 0,
+        needs_attention_count: 0,
+        paid_count: 0,
+      },
+      rows: [],
+    } as any)
+
+    const { container } = renderView()
+    const { clientsPanel } = getPanels(container)
+
+    await selectClientRowByName(clientsPanel, 'Manual Payments')
+    const dialog = await screen.findByRole('dialog', { name: 'Картка клієнта' })
+    await fireEvent.click(within(dialog).getByRole('tab', { name: 'Оплати' }))
+
+    await waitFor(() => expect(mockedFetchClientRecordPayments).toHaveBeenCalledWith(625))
+    expect(within(dialog).getByText(/Клієнт не має кабінету/)).toBeInTheDocument()
+    expect(within(dialog).getByText('Не підтверджено')).toBeInTheDocument()
+  })
+
+  it('keeps loaded payments mounted when switching client card tabs', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL) return []
+      if (url === CLIENT_RECORDS_URL) return [manualClientRecord({ id: 627, display_name: 'Cached Payments' })]
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+    mockedFetchClientRecordPayments.mockResolvedValue({
+      client_record: { id: 627, display_name: 'Cached Payments', source: 'manual', status: 'active', user_id: null },
+      summary: {
+        not_confirmed_count: 0,
+        awaiting_client_count: 0,
+        awaiting_review_count: 0,
+        needs_attention_count: 0,
+        paid_count: 0,
+      },
+      rows: [],
+    } as any)
+
+    const { container } = renderView()
+    const { clientsPanel } = getPanels(container)
+
+    await selectClientRowByName(clientsPanel, 'Cached Payments')
+    const dialog = await screen.findByRole('dialog', { name: 'Картка клієнта' })
+    await fireEvent.click(within(dialog).getByRole('tab', { name: 'Оплати' }))
+
+    await waitFor(() => expect(mockedFetchClientRecordPayments).toHaveBeenCalledWith(627))
+    expect(mockedFetchClientRecordPayments).toHaveBeenCalledTimes(1)
+
+    await fireEvent.click(within(dialog).getByRole('tab', { name: 'Матеріали' }))
+    expect(await within(dialog).findByRole('heading', { name: 'Матеріали' })).toBeInTheDocument()
+
+    await fireEvent.click(within(dialog).getByRole('tab', { name: 'Оплати' }))
+    await waitFor(() => expect(mockedFetchClientRecordPayments).toHaveBeenCalledTimes(1))
+  })
+
+  it('loads payments tab for registered client using client_record_id', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL)
+        return [
+          {
+            id: 7,
+            client_id: 44,
+            client_record_id: 626,
+            state: 'ACTIVE',
+            last_session_at: null,
+            upcoming_count: 0,
+            client_display_name: 'Registered Payments',
+            client_email: 'registered-payments@example.com',
+          },
+        ]
+      if (url === CLIENT_RECORDS_URL) return []
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    const { container } = renderView()
+    await selectClientRowByName(container, 'Registered Payments')
+
+    const dialog = await screen.findByRole('dialog', { name: 'Картка клієнта' })
+    await fireEvent.click(within(dialog).getByRole('tab', { name: 'Оплати' }))
+
+    await waitFor(() => expect(mockedFetchClientRecordPayments).toHaveBeenCalledWith(626))
+    expect(mockedFetchClientRecordPayments).not.toHaveBeenCalledWith(7)
+    expect(mockedFetchClientRecordPayments).not.toHaveBeenCalledWith(44)
+    expect(within(dialog).queryByText(/Клієнт не має кабінету/)).not.toBeInTheDocument()
+  })
+
+  it('shows payments working-card state for registered client without client_record_id', async () => {
+    mockedApiGet.mockImplementation(async (url) => {
+      if (url === CLIENTS_URL)
+        return [
+          {
+            id: 45,
+            client_id: 45,
+            client_record_id: null,
+            state: 'ACTIVE',
+            last_session_at: null,
+            upcoming_count: 0,
+            client_display_name: 'No Payment Record',
+            client_email: 'no-payment-record@example.com',
+          },
+        ]
+      if (url === CLIENT_RECORDS_URL) return []
+      if (url === REMINDERS_URL) return []
+      throw new Error(`Unexpected apiGet call: ${url}`)
+    })
+
+    const { container } = renderView()
+    await selectClientRowByName(container, 'No Payment Record')
+
+    const dialog = await screen.findByRole('dialog', { name: 'Картка клієнта' })
+    await fireEvent.click(within(dialog).getByRole('tab', { name: 'Оплати' }))
+
+    expect(within(dialog).getByText('Робоча картка клієнта ще не створена')).toBeInTheDocument()
+    expect(mockedFetchClientRecordPayments).not.toHaveBeenCalled()
   })
 
   it('lets recent sessions use the main area when upcoming sessions are empty', async () => {

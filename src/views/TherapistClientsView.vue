@@ -2426,12 +2426,19 @@
             </article>
           </section>
 
-          <section v-else class="client-management-modal__placeholder">
+          <section v-else-if="clientManagementModal.section !== 'payments'" class="client-management-modal__placeholder">
             <h3>{{ clientManagementTabs.find((tab) => tab.key === clientManagementModal.section)?.label }}</h3>
             <p class="muted">
               Розділ буде перенесено в картку клієнта наступним кроком. Наявні робочі дані збережені без зміни API.
             </p>
           </section>
+
+          <ClientPaymentsOverview
+            v-show="clientManagementModal.section === 'payments'"
+            :record-id="clientSessionRecordId(clientManagementClient) || null"
+            :active="clientManagementModal.section === 'payments'"
+            :show-no-account-note="isManualClientRecord(clientManagementClient) && !hasLinkedAccount(clientManagementClient)"
+          />
         </div>
       </div>
     </div>
@@ -2950,6 +2957,7 @@ import EmptyState from '../components/EmptyState.vue'
 import LoadingSkeleton from '../components/LoadingSkeleton.vue'
 import PracticeBoardQuickAddModal from '../components/PracticeBoardQuickAddModal.vue'
 import DatePickerField from '../components/DatePickerField.vue'
+import ClientPaymentsOverview from '../components/ClientPaymentsOverview.vue'
 import { formatUkDateCompact, formatUkDateTimeCompact } from '../lib/dateTime'
 import { getApiErrorMessage } from '../lib/errors'
 import { openClientWorkbookWindow } from '../lib/workbookWindow'
@@ -3236,6 +3244,7 @@ type ClientManagementSection =
   | 'overview'
   | 'contacts'
   | 'sessions'
+  | 'payments'
   | 'materials'
   | 'regularTime'
   | 'workbook'
@@ -3451,6 +3460,7 @@ const clientManagementTabs: Array<{ key: ClientManagementSection; label: string 
   { key: 'overview', label: 'Огляд' },
   { key: 'contacts', label: 'Контакти' },
   { key: 'sessions', label: 'Сесії' },
+  { key: 'payments', label: 'Оплати' },
   { key: 'materials', label: 'Матеріали' },
   { key: 'regularTime', label: 'Регулярний час' },
   { key: 'workbook', label: 'Приватний зошит' },
