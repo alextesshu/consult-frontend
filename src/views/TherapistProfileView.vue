@@ -7,21 +7,6 @@
           Заповніть інформацію, яка допоможе клієнту зрозуміти ваш підхід, формат роботи й спосіб зв’язку.
         </p>
       </div>
-      <div class="profile-status-control">
-        <button
-          class="profile-status-chip"
-          :class="profileStatusClass"
-          type="button"
-          :aria-label="profileStatusActionLabel"
-          :title="profileStatusActionLabel"
-          @click="togglePublicProfileEnabled"
-        >
-          {{ profileStatusText }}
-        </button>
-        <p class="profile-status-control__hint">
-          {{ profileStatusHint }}
-        </p>
-      </div>
     </header>
 
     <div v-if="showPublicProfileNotPublishedHint" class="profile-notice" role="status">
@@ -38,26 +23,56 @@
 
             <form v-else class="profile-grid" @submit.prevent="onSave">
       <div v-if="error && !isDirty" class="form-error">{{ error }}</div>
-      <section class="profile-readiness-card" aria-labelledby="profile-readiness-title">
-        <div class="profile-readiness-card__header">
-          <h2 id="profile-readiness-title" class="profile-readiness-card__title">Готовність профілю</h2>
-          <span class="profile-readiness-card__count">
-            Готово: {{ publicProfileReadiness.completed_count }} з {{ publicProfileReadiness.total_count }}
-          </span>
+      <section class="profile-summary-card" aria-label="Стан публічного профілю">
+        <div class="profile-summary-card__group profile-summary-card__group--publication">
+          <div class="profile-summary-card__eyebrow">Публічність</div>
+          <div class="profile-summary-card__status">
+            <span class="profile-summary-card__dot" :class="publicationStatusDotClass" aria-hidden="true"></span>
+            <span>{{ publicationStatusText }}</span>
+          </div>
+          <p class="profile-summary-card__text">{{ publicationStatusHint }}</p>
         </div>
-        <p class="profile-readiness-card__hint">{{ publicProfileReadinessHelper }}</p>
-        <div v-if="missingProfileReadinessLabels.length" class="profile-readiness-card__missing">
-          <span class="profile-readiness-card__missing-label">Не вистачає:</span>
-          <span
-            v-for="label in missingProfileReadinessLabels"
-            :key="label"
-            class="profile-readiness-card__chip"
+
+        <div class="profile-summary-card__group profile-summary-card__group--readiness">
+          <div class="profile-summary-card__header">
+            <h2 class="profile-summary-card__title">Готовність профілю</h2>
+            <span class="profile-summary-card__count">{{ publicProfileReadinessCountText }}</span>
+          </div>
+          <p class="profile-summary-card__text">{{ publicProfileReadinessHelper }}</p>
+          <div v-if="missingProfileReadinessLabels.length" class="profile-summary-card__missing">
+            <span class="profile-summary-card__missing-label">Не вистачає:</span>
+            <span
+              v-for="label in missingProfileReadinessLabels"
+              :key="label"
+              class="profile-summary-card__chip"
+            >
+              {{ label }}
+            </span>
+          </div>
+        </div>
+
+        <div class="profile-summary-card__actions">
+          <button
+            v-if="profilePrimaryActionKind !== 'open'"
+            class="btn profile-summary-card__primary-action"
+            type="button"
+            :aria-label="profilePrimaryActionLabel"
+            @click="onProfilePrimaryAction"
           >
-            {{ label }}
-          </span>
+            {{ profilePrimaryActionLabel }}
+          </button>
+          <a
+            v-else
+            class="btn profile-summary-card__primary-action"
+            :href="publicUrl"
+            target="_blank"
+            rel="noreferrer"
+          >
+            {{ profilePrimaryActionLabel }}
+          </a>
         </div>
-        <p v-else class="profile-readiness-card__ready">Профіль готовий до публікації.</p>
       </section>
+
       <section class="panel panel--highlight">
         <div class="panel__header">
           <div>
@@ -94,26 +109,14 @@
             </code>
             <div class="slug-row">
               <button
-                class="btn"
+                class="btn btn--ghost"
                 type="button"
+                :disabled="!isPublicProfilePublished || !publicUrl"
                 title="Скопіювати посилання в буфер обміну."
                 @click="onCopyLink"
               >
                 Копіювати посилання
               </button>
-              <a
-                v-if="isPublicProfilePublished"
-                class="btn btn--ghost"
-                :href="publicUrl"
-                target="_blank"
-                rel="noreferrer"
-                title="Відкрити публічний профіль у новій вкладці."
-              >
-                Подивитись профіль
-              </a>
-              <RouterLink v-else class="btn btn--ghost" to="/cabinet/profile">
-                Увімкнути публічний профіль
-              </RouterLink>
               <button
                 class="btn btn--ghost"
                 type="button"
@@ -122,6 +125,9 @@
               >
                 Змінити адресу
               </button>
+            </div>
+            <div v-if="!isPublicProfilePublished" class="field-help">
+              Посилання стане доступним для клієнтів після публікації профілю.
             </div>
             <div v-if="slugEditOpen" class="slug-edit">
               <div class="slug-edit__preview">
@@ -182,7 +188,7 @@
         </div>
         <div class="form form--profile-basics" style="margin-top: 12px;">
           <div class="form-group">
-            <label class="field">
+            <label class="field" data-readiness-key="display_name">
               <span class="field-label">Публічне ім'я</span>
               <input
                 v-model="profile.public_display_name"
@@ -306,7 +312,7 @@
             </label>
           </div>
           <div class="form-group">
-            <div class="field field--format">
+            <div class="field field--format" data-readiness-key="work_format">
               <span class="field-label field-label--section">Формат консультацій</span>
               <div class="meeting-format-controls">
                 <label class="check">
@@ -389,7 +395,7 @@
             </div>
           </div>
           <div class="form-group">
-            <label class="field">
+            <label class="field" data-readiness-key="price_decision">
               <div class="field-head">
                 <span class="field-label">Ціна за одну стандартну консультацію</span>
                 <label class="inline-check">
@@ -516,7 +522,7 @@
         </div>
       </section>
 
-      <section class="panel">
+      <section class="panel" data-readiness-key="photo">
         <div class="panel__header">
           <div>
             <h2 class="panel__title">Фото та відео</h2>
@@ -673,7 +679,7 @@
           </div>
         </div>
         <div class="details-stack">
-          <details class="details" open>
+          <details class="details" open data-readiness-key="about">
             <summary>Про мене</summary>
             <label class="field">
               <span class="field-label">Короткий опис для верхнього блоку профілю</span>
@@ -743,7 +749,7 @@
               </div>
             </label>
           </details>
-          <details class="details">
+          <details class="details" data-readiness-key="topics">
             <summary>Основні запити</summary>
             <label class="field">
               <div class="field-head">
@@ -891,7 +897,7 @@
         </div>
       </section>
 
-      <section class="panel">
+      <section class="panel" data-readiness-key="first_contact">
         <div class="panel__header">
           <div>
             <h2 class="panel__title">Контакти</h2>
@@ -1097,9 +1103,6 @@
           >
             Відкрити публічний профіль
           </a>
-          <RouterLink v-else class="btn btn--ghost" to="/cabinet/profile">
-            Увімкнути публічний профіль
-          </RouterLink>
         </div>
         <div v-if="isPublicProfilePublished" class="muted final-check-note">
           Профіль відкриється у новій вкладці.
@@ -1874,6 +1877,11 @@ const publicProfileReadiness = computed<PublicProfileReadiness>(() => {
   return profile.public_profile_readiness || fallbackPublicProfileReadiness
 })
 
+const firstMissingProfileReadinessKey = computed(() => {
+  const fromItems = publicProfileReadiness.value.items.find((item) => !item.complete)?.key
+  return fromItems || publicProfileReadiness.value.missing_items[0] || ''
+})
+
 const missingProfileReadinessLabels = computed(() => {
   const fromItems = publicProfileReadiness.value.items
     .filter((item) => !item.complete)
@@ -1884,10 +1892,14 @@ const missingProfileReadinessLabels = computed(() => {
   )
 })
 
+const publicProfileReadinessCountText = computed(
+  () => `${publicProfileReadiness.value.completed_count} з ${publicProfileReadiness.value.total_count}`
+)
+
 const publicProfileReadinessHelper = computed(() =>
   publicProfileReadiness.value.is_ready
-    ? 'Профіль готовий до публікації.'
-    : 'Щоб опублікувати сторінку, доповніть мінімально необхідні розділи.'
+    ? 'Усі обов’язкові дані заповнені.'
+    : 'Заповніть обов’язкові дані, щоб опублікувати профіль.'
 )
 
 const canEnableSearchVisibility = computed(() =>
@@ -1910,33 +1922,30 @@ const slugPreviewPath = computed(() => {
 })
 
 const isPublicProfilePublished = computed(() => Boolean(profile.public_profile_enabled && publicUrl.value))
-const profileStatusText = computed(() =>
-  profile.public_profile_enabled
-    ? 'Профіль активний'
-    : publicProfileReadiness.value.is_ready
-      ? 'Профіль готовий'
-      : 'Профіль поки не готовий'
+const publicationStatusText = computed(() =>
+  profile.public_profile_enabled ? 'Публічний профіль увімкнено' : 'Профіль не опублікований'
 )
-const profileStatusHint = computed(() =>
+const publicationStatusHint = computed(() =>
   profile.public_profile_enabled
     ? 'Клієнти можуть переглядати вашу сторінку та залишати запити.'
     : publicProfileReadiness.value.is_ready
-      ? 'Профіль готовий до публікації.'
-      : 'Заповніть мінімально необхідну інформацію для публікації.'
+      ? 'Увімкніть публічний профіль, коли будете готові показати сторінку клієнтам.'
+      : 'Публікація стане доступною після заповнення обов’язкових даних.'
 )
-const profileStatusActionLabel = computed(() =>
-  profile.public_profile_enabled
-    ? 'Натисніть, щоб приховати профіль'
-    : publicProfileReadiness.value.is_ready
-      ? 'Натисніть, щоб зробити профіль публічним'
-      : 'Заповніть мінімально необхідну інформацію для публікації профілю'
+const publicationStatusDotClass = computed(() =>
+  profile.public_profile_enabled ? 'profile-summary-card__dot--on' : 'profile-summary-card__dot--off'
 )
-const profileStatusClass = computed(() =>
-  profile.public_profile_enabled
-    ? 'profile-status-chip--on'
-    : publicProfileReadiness.value.is_ready
-      ? 'profile-status-chip--ready'
-      : 'profile-status-chip--off'
+const profilePrimaryActionKind = computed<'complete' | 'publish' | 'open'>(() => {
+  if (!publicProfileReadiness.value.is_ready) return 'complete'
+  if (!profile.public_profile_enabled) return 'publish'
+  return publicUrl.value ? 'open' : 'publish'
+})
+const profilePrimaryActionLabel = computed(() =>
+  profilePrimaryActionKind.value === 'complete'
+    ? 'Завершити профіль'
+    : profilePrimaryActionKind.value === 'publish'
+      ? 'Увімкнути публічний профіль'
+      : 'Відкрити як клієнт'
 )
 const showPublicProfileNotPublishedHint = computed(
   () => route.query.public_profile === 'unpublished' && !profile.public_profile_enabled
@@ -2023,6 +2032,32 @@ function togglePublicProfileEnabled() {
   profile.public_profile_enabled = !profile.public_profile_enabled
   if (!profile.public_profile_enabled) {
     profile.is_search_visible = false
+  }
+}
+
+function scrollToFirstMissingProfileSection() {
+  const key = firstMissingProfileReadinessKey.value
+  const target = key
+    ? document.querySelector<HTMLElement>(`[data-readiness-key="${key}"]`)
+    : document.querySelector<HTMLElement>('.form--profile-basics')
+  const fallbackTarget = document.querySelector<HTMLElement>('.form--profile-basics')
+  const element = target || fallbackTarget
+  if (!element) return
+
+  element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  const focusTarget = element.matches('input, textarea, select, button')
+    ? element
+    : element.querySelector<HTMLElement>('input, textarea, select, button, [tabindex]:not([tabindex="-1"])')
+  focusTarget?.focus({ preventScroll: true })
+}
+
+function onProfilePrimaryAction() {
+  if (profilePrimaryActionKind.value === 'complete') {
+    scrollToFirstMissingProfileSection()
+    return
+  }
+  if (profilePrimaryActionKind.value === 'publish') {
+    togglePublicProfileEnabled()
   }
 }
 
@@ -2709,6 +2744,7 @@ onBeforeUnmount(() => {
 .profile {
   display: grid;
   gap: 18px;
+  min-width: 0;
 }
 
 .profile-notice {
@@ -2730,6 +2766,7 @@ onBeforeUnmount(() => {
   justify-content: space-between;
   align-items: center;
   gap: 22px;
+  min-width: 0;
   background: #fff;
   border: 1px solid var(--pc-border);
   border-radius: var(--radius-md);
@@ -2739,6 +2776,7 @@ onBeforeUnmount(() => {
 .profile__hero-main {
   display: grid;
   gap: 8px;
+  min-width: 0;
   max-width: 760px;
 }
 
@@ -2758,101 +2796,93 @@ onBeforeUnmount(() => {
   overflow-wrap: break-word;
 }
 
-.profile-status-control {
-  flex: 0 1 280px;
-  display: grid;
-  justify-items: end;
-  gap: 6px;
-}
-
-.profile-status-control__hint {
-  max-width: 280px;
-  margin: 0;
-  color: var(--pc-text-muted);
-  font-size: 13px;
-  line-height: 1.35;
-  text-align: right;
-}
-
-.profile-status-chip {
-  flex: 0 0 auto;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 190px;
-  min-height: 52px;
-  padding: 13px 20px;
-  border: 1px solid transparent;
-  border-radius: var(--radius-sm);
-  background: #fff;
-  font: inherit;
-  font-size: 15px;
-  font-weight: 800;
-  cursor: pointer;
-  box-shadow: 0 14px 30px rgba(18, 52, 90, 0.1);
-  text-align: center;
-  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
-}
-
-.profile-status-chip--on {
-  border-color: color-mix(in srgb, #2f8f63 46%, var(--pc-border));
-  background: color-mix(in srgb, #2f8f63 15%, #ffffff);
-  color: #1f6446;
-}
-
-.profile-status-chip--off {
-  border-color: color-mix(in srgb, #c56b5d 46%, var(--pc-border));
-  background: color-mix(in srgb, #c56b5d 15%, #ffffff);
-  color: #91463d;
-}
-
-.profile-status-chip--ready {
-  border-color: color-mix(in srgb, var(--pc-navy-900) 34%, var(--pc-border));
-  background: color-mix(in srgb, var(--pc-primary-soft) 66%, #ffffff);
-  color: var(--pc-navy-900);
-}
-
-.profile-status-chip:hover,
-.profile-status-chip:focus-visible {
-  border-color: color-mix(in srgb, var(--pc-navy-900) 28%, var(--pc-border));
-  outline: none;
-  transform: translateY(-1px);
-}
-
 .profile-grid {
   display: grid;
   gap: 16px;
+  min-width: 0;
 }
 
-.profile-readiness-card {
+.profile-grid > * {
+  min-width: 0;
+}
+
+.profile-summary-card {
   display: grid;
-  gap: 10px;
-  padding: 14px 16px;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1.2fr) auto;
+  align-items: stretch;
+  gap: 12px;
+  padding: 14px;
   border: 1px solid color-mix(in srgb, var(--pc-navy-900) 14%, var(--pc-border));
   border-radius: var(--pc-radius-card);
   background: #ffffff;
   box-shadow: 0 12px 26px rgba(18, 52, 90, 0.06);
 }
 
-.profile-readiness-card__header {
+.profile-summary-card__group {
+  min-width: 0;
+  display: grid;
+  align-content: start;
+  gap: 6px;
+}
+
+.profile-summary-card__eyebrow {
+  color: var(--pc-text-muted);
+  font-size: 12px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.profile-summary-card__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  color: var(--pc-navy-950);
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.profile-summary-card__dot {
+  flex: 0 0 auto;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #c56b5d;
+  box-shadow: 0 0 0 4px color-mix(in srgb, #c56b5d 14%, transparent);
+}
+
+.profile-summary-card__dot--on {
+  background: #2f8f63;
+  box-shadow: 0 0 0 4px color-mix(in srgb, #2f8f63 14%, transparent);
+}
+
+.profile-summary-card__dot--off {
+  background: #c56b5d;
+  box-shadow: 0 0 0 4px color-mix(in srgb, #c56b5d 14%, transparent);
+}
+
+.profile-summary-card__header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 10px;
+  min-width: 0;
 }
 
-.profile-readiness-card__title {
+.profile-summary-card__title {
   margin: 0;
   color: var(--pc-navy-950);
-  font-size: 17px;
+  font-size: 15px;
   font-weight: 800;
 }
 
-.profile-readiness-card__count {
+.profile-summary-card__count {
+  flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
-  min-height: 28px;
-  padding: 4px 10px;
+  min-height: 26px;
+  padding: 3px 9px;
   border-radius: var(--radius-sm);
   background: color-mix(in srgb, var(--pc-primary-soft) 70%, #ffffff);
   color: var(--pc-navy-900);
@@ -2861,28 +2891,28 @@ onBeforeUnmount(() => {
   white-space: nowrap;
 }
 
-.profile-readiness-card__hint,
-.profile-readiness-card__ready {
+.profile-summary-card__text {
   margin: 0;
   color: var(--pc-text-muted);
   font-size: 13px;
   line-height: 1.4;
+  overflow-wrap: anywhere;
 }
 
-.profile-readiness-card__missing {
+.profile-summary-card__missing {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 7px;
 }
 
-.profile-readiness-card__missing-label {
+.profile-summary-card__missing-label {
   color: var(--pc-text-muted);
   font-size: 13px;
   font-weight: 700;
 }
 
-.profile-readiness-card__chip {
+.profile-summary-card__chip {
   display: inline-flex;
   align-items: center;
   min-height: 26px;
@@ -2895,6 +2925,19 @@ onBeforeUnmount(() => {
   font-weight: 700;
 }
 
+.profile-summary-card__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+.profile-summary-card__primary-action {
+  min-width: 180px;
+  white-space: normal;
+  text-align: center;
+}
+
 .panel {
   border: 1px solid var(--pc-border);
   border-radius: var(--pc-radius-panel);
@@ -2905,11 +2948,19 @@ onBeforeUnmount(() => {
   gap: 14px;
 }
 
+.panel > * {
+  min-width: 0;
+}
+
 .panel__header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
+}
+
+.panel__header > * {
+  min-width: 0;
 }
 
 .panel__title {
@@ -3396,6 +3447,9 @@ onBeforeUnmount(() => {
 .profile-grid .input,
 .profile-grid select,
 .profile-grid textarea {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
   border: 1px solid var(--pc-border);
   border-radius: var(--pc-radius-control);
   background: #ffffff;
@@ -3477,6 +3531,7 @@ onBeforeUnmount(() => {
 .documents-uploader {
   display: grid;
   gap: 10px;
+  min-width: 0;
   border: 1px dashed var(--pc-border);
   border-radius: var(--pc-radius-card);
   padding: 12px;
@@ -3489,6 +3544,10 @@ onBeforeUnmount(() => {
   gap: 12px;
 }
 
+.documents-uploader__grid > * {
+  min-width: 0;
+}
+
 .documents-uploader__actions {
   display: flex;
   align-items: center;
@@ -3497,6 +3556,7 @@ onBeforeUnmount(() => {
 }
 
 .documents-empty {
+  min-width: 0;
   border: 1px dashed var(--pc-border);
   border-radius: var(--pc-radius-card);
   padding: 12px;
@@ -3809,12 +3869,17 @@ onBeforeUnmount(() => {
     line-height: 1.32;
   }
 
-  .profile-status-control {
-    justify-items: start;
+  .profile-summary-card {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .profile-status-control__hint {
-    text-align: left;
+  .profile-summary-card__actions {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+  }
+
+  .profile-summary-card__primary-action {
+    min-width: min(240px, 100%);
   }
 }
 
@@ -3843,10 +3908,25 @@ onBeforeUnmount(() => {
     line-height: 1.15;
   }
 
-  .profile-status-chip {
-    max-width: 100%;
-    white-space: normal;
-    overflow-wrap: anywhere;
+  .profile-summary-card {
+    grid-template-columns: 1fr;
+    padding: 12px;
+    gap: 12px;
+  }
+
+  .profile-summary-card__header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .profile-summary-card__actions {
+    justify-content: stretch;
+  }
+
+  .profile-summary-card__primary-action {
+    width: 100%;
+    min-width: 0;
   }
 }
 </style>

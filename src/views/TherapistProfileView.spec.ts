@@ -27,6 +27,7 @@ const PROFILE_SUBTITLE_COPY =
   'Заповніть інформацію, яка допоможе клієнту зрозуміти ваш підхід, формат роботи й спосіб зв’язку.'
 const LEGACY_PROFILE_SUBTITLE_COPY =
   'Налаштуйте сторінку, яку бачить клієнт: опис, формати роботи, посилання, блог і відгуки.'
+const scrollIntoViewSpy = vi.fn()
 
 vi.mock('vue-router', async () => {
   const actual = await vi.importActual<typeof import('vue-router')>('vue-router')
@@ -216,6 +217,11 @@ describe('TherapistProfileView', () => {
     mockRoute.query = {}
     setClipboard()
     vi.restoreAllMocks()
+    scrollIntoViewSpy.mockReset()
+    Object.defineProperty(HTMLElement.prototype, 'scrollIntoView', {
+      configurable: true,
+      value: scrollIntoViewSpy,
+    })
     routerMocks.onBeforeRouteLeave.mockReset()
     mockedCreateProfileDocument.mockReset()
     mockedDeleteProfileDocument.mockReset()
@@ -255,7 +261,7 @@ describe('TherapistProfileView', () => {
     expect(finalOpenLink).toHaveAttribute('rel', 'noopener noreferrer')
   })
 
-  it('renders a compact public profile header with status chip instead of legacy actions', async () => {
+  it('renders a compact public profile summary with the active public CTA', async () => {
     const profile = makeProfile()
     const writeText = vi.fn().mockResolvedValue(undefined)
     setClipboard(writeText)
@@ -280,12 +286,20 @@ describe('TherapistProfileView', () => {
     expect(screen.getByRole('heading', { name: 'Для клієнтів та соціальних мереж' })).toBeInTheDocument()
     expect(screen.getByText(/Скопіюйте посилання, щоб надіслати його клієнтам/)).toBeInTheDocument()
 
-    const statusChip = screen.getByRole('button', {
-      name: 'Натисніть, щоб приховати профіль',
-    })
-    expect(statusChip).toHaveTextContent('Профіль активний')
-    expect(statusChip).toHaveAttribute('title', 'Натисніть, щоб приховати профіль')
-    expect(screen.getByText('Клієнти можуть переглядати вашу сторінку та залишати запити.')).toBeInTheDocument()
+    const summary = container.querySelector('.profile-summary-card') as HTMLElement
+    expect(summary).not.toBeNull()
+    expect(within(summary).getByText('Публічність')).toBeInTheDocument()
+    expect(within(summary).getByText('Публічний профіль увімкнено')).toBeInTheDocument()
+    expect(within(summary).getByText('Клієнти можуть переглядати вашу сторінку та залишати запити.')).toBeInTheDocument()
+    expect(within(summary).getByRole('heading', { name: 'Готовність профілю' })).toBeInTheDocument()
+    expect(screen.getAllByRole('heading', { name: 'Готовність профілю' })).toHaveLength(1)
+    expect(within(summary).getByText('7 з 7')).toBeInTheDocument()
+    expect(within(summary).getByText('Усі обов’язкові дані заповнені.')).toBeInTheDocument()
+    const publicProfileCta = within(summary).getByRole('link', { name: 'Відкрити як клієнт' })
+    expect(publicProfileCta).toHaveAttribute('href', `${window.location.origin}/s/specialist-anna`)
+    expect(publicProfileCta).toHaveAttribute('target', '_blank')
+    expect(screen.queryByText('Профіль готовий до публікації.')).not.toBeInTheDocument()
+    expect(screen.queryByText('Профіль активний')).not.toBeInTheDocument()
 
     expect(screen.queryByLabelText('Публічний профіль увімкнено')).not.toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Публічний профіль' })).not.toBeInTheDocument()
@@ -303,8 +317,10 @@ describe('TherapistProfileView', () => {
     expect(within(linkCallout).getByText(`${window.location.origin}/s/specialist-anna`)).toBeInTheDocument()
     const copyLinkButton = within(linkCallout).getByRole('button', { name: 'Копіювати посилання' })
     expect(copyLinkButton).toHaveClass('btn')
-    expect(copyLinkButton).not.toHaveClass('btn--ghost')
-    expect(within(linkCallout).getByRole('link', { name: 'Подивитись профіль' })).toBeInTheDocument()
+    expect(copyLinkButton).toHaveClass('btn--ghost')
+    expect(copyLinkButton).toBeEnabled()
+    expect(within(linkCallout).queryByRole('link', { name: 'Подивитись профіль' })).not.toBeInTheDocument()
+    expect(within(linkCallout).queryByRole('link', { name: 'Відкрити як клієнт' })).not.toBeInTheDocument()
     expect(within(linkCallout).getByRole('button', { name: 'Змінити адресу' })).toBeInTheDocument()
     expect(screen.queryByText('Публічне посилання на профіль')).not.toBeInTheDocument()
     expect(screen.queryByText(/Надішліть це посилання клієнту/)).not.toBeInTheDocument()
@@ -319,26 +335,7 @@ describe('TherapistProfileView', () => {
     await fireEvent.click(copyLinkButton)
     expect(writeText).toHaveBeenCalledWith(`${window.location.origin}/s/specialist-anna`)
     expect(await within(linkCallout).findByText('Посилання скопійовано')).toBeInTheDocument()
-
-    await fireEvent.click(statusChip)
-    expect(screen.getByRole('button', { name: 'Натисніть, щоб зробити профіль публічним' })).toHaveTextContent(
-      'Профіль готовий'
-    )
-    expect(screen.queryByText('Клієнти можуть переглядати вашу сторінку та залишати запити.')).not.toBeInTheDocument()
-    expect(
-      screen.getAllByText('Профіль готовий до публікації.').length
-    ).toBeGreaterThan(0)
-    expect(await screen.findByTestId('profile-sticky-save-bar')).toBeInTheDocument()
-
-    await fireEvent.click(screen.getByRole('button', { name: 'Зберегти зміни' }))
-
-    await waitFor(() => {
-      expect(mockedUpdateSpecialistProfile).toHaveBeenCalledWith(
-        expect.objectContaining({
-          public_profile_enabled: false,
-        })
-      )
-    })
+    expect(screen.getAllByText('Відкрити як клієнт')).toHaveLength(1)
   })
 
   it('shows compact readiness card and guards incomplete profile activation', async () => {
@@ -347,30 +344,32 @@ describe('TherapistProfileView', () => {
     const { container } = renderView()
 
     expect(await screen.findByRole('heading', { name: 'Готовність профілю' })).toBeInTheDocument()
-    const readinessCard = container.querySelector('.profile-readiness-card') as HTMLElement
-    expect(readinessCard).not.toBeNull()
-    expect(within(readinessCard).getByText('Готово: 4 з 7')).toBeInTheDocument()
-    expect(within(readinessCard).getByText('Щоб опублікувати сторінку, доповніть мінімально необхідні розділи.')).toBeInTheDocument()
-    expect(within(readinessCard).getByText('Не вистачає:')).toBeInTheDocument()
-    expect(within(readinessCard).getByText('Фото')).toBeInTheDocument()
-    expect(within(readinessCard).getByText('Запити')).toBeInTheDocument()
-    expect(within(readinessCard).getByText('Вартість консультації')).toBeInTheDocument()
+    const summary = container.querySelector('.profile-summary-card') as HTMLElement
+    expect(summary).not.toBeNull()
+    expect(within(summary).getByText('Профіль не опублікований')).toBeInTheDocument()
+    expect(within(summary).getByText('Публікація стане доступною після заповнення обов’язкових даних.')).toBeInTheDocument()
+    expect(within(summary).getByText('4 з 7')).toBeInTheDocument()
+    expect(within(summary).getByText('Заповніть обов’язкові дані, щоб опублікувати профіль.')).toBeInTheDocument()
+    expect(within(summary).getByText('Не вистачає:')).toBeInTheDocument()
+    expect(within(summary).getByText('Фото')).toBeInTheDocument()
+    expect(within(summary).getByText('Запити')).toBeInTheDocument()
+    expect(within(summary).getByText('Вартість консультації')).toBeInTheDocument()
 
-    const statusChip = screen.getByRole('button', {
-      name: 'Заповніть мінімально необхідну інформацію для публікації профілю',
-    })
-    expect(statusChip).toHaveTextContent('Профіль поки не готовий')
-    expect(screen.getByText('Заповніть мінімально необхідну інформацію для публікації.')).toBeInTheDocument()
+    const finishProfileButton = within(summary).getByRole('button', { name: 'Завершити профіль' })
+    expect(screen.getAllByText('Завершити профіль')).toHaveLength(1)
+    const linkCallout = container.querySelector('.profile-link-callout') as HTMLElement
+    expect(within(linkCallout).getByRole('button', { name: 'Копіювати посилання' })).toBeDisabled()
+    expect(
+      within(linkCallout).getByText('Посилання стане доступним для клієнтів після публікації профілю.')
+    ).toBeInTheDocument()
 
     const searchCheckbox = screen.getByLabelText('Показувати мій профіль у пошуку на Pro Consult')
     expect(searchCheckbox).toBeDisabled()
     expect(screen.getByText('Пошук можна увімкнути після публікації готового профілю.')).toBeInTheDocument()
 
-    await fireEvent.click(statusChip)
+    await fireEvent.click(finishProfileButton)
 
-    expect(
-      await screen.findByText(/Профіль поки не готовий для клієнтів/)
-    ).toBeInTheDocument()
+    expect(scrollIntoViewSpy).toHaveBeenCalled()
     expect(mockedUpdateSpecialistProfile).not.toHaveBeenCalled()
   })
 
@@ -397,15 +396,28 @@ describe('TherapistProfileView', () => {
 
     renderView()
 
-    const statusChip = await screen.findByRole('button', {
-      name: 'Натисніть, щоб зробити профіль публічним',
+    const publishButton = await screen.findByRole('button', {
+      name: 'Увімкнути публічний профіль',
     })
-    expect(statusChip).toHaveTextContent('Профіль готовий')
+    expect(screen.getAllByText('Увімкнути публічний профіль')).toHaveLength(1)
+    expect(screen.getByText('Профіль не опублікований')).toBeInTheDocument()
+    expect(screen.getByText('7 з 7')).toBeInTheDocument()
+    expect(screen.getByText('Усі обов’язкові дані заповнені.')).toBeInTheDocument()
+    const linkCallout = document.querySelector('.profile-link-callout') as HTMLElement
+    expect(within(linkCallout).getByRole('button', { name: 'Копіювати посилання' })).toBeDisabled()
+    expect(within(linkCallout).queryByRole('link', { name: 'Увімкнути публічний профіль' })).not.toBeInTheDocument()
+    expect(
+      within(linkCallout).getByText('Посилання стане доступним для клієнтів після публікації профілю.')
+    ).toBeInTheDocument()
 
-    await fireEvent.click(statusChip)
-    expect(screen.getByRole('button', { name: 'Натисніть, щоб приховати профіль' })).toHaveTextContent(
-      'Профіль активний'
+    await fireEvent.click(publishButton)
+    expect(screen.getByText('Публічний профіль увімкнено')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Відкрити як клієнт' })).toHaveAttribute(
+      'href',
+      `${window.location.origin}/s/specialist-anna`
     )
+    expect(screen.getAllByText('Відкрити як клієнт')).toHaveLength(1)
+    expect(within(linkCallout).getByRole('button', { name: 'Копіювати посилання' })).toBeEnabled()
     await fireEvent.click(screen.getByRole('button', { name: 'Зберегти зміни' }))
 
     await waitFor(() => {
@@ -445,10 +457,10 @@ describe('TherapistProfileView', () => {
 
     renderView()
 
-    const statusChip = await screen.findByRole('button', {
-      name: 'Натисніть, щоб зробити профіль публічним',
+    const publishButton = await screen.findByRole('button', {
+      name: 'Увімкнути публічний профіль',
     })
-    await fireEvent.click(statusChip)
+    await fireEvent.click(publishButton)
     await fireEvent.click(screen.getByRole('button', { name: 'Зберегти зміни' }))
 
     expect(
