@@ -419,6 +419,48 @@ describe('SlotsView', () => {
     expect(screen.queryByText('Запис на вікна вимкнений у публічному профілі')).not.toBeInTheDocument()
   })
 
+  it('keeps public availability control connected to its label and saves the setting', async () => {
+    openAvailabilityRoute({ tab: 'settings' })
+    mockedFetchSpecialistProfile.mockResolvedValueOnce({
+      standard_session_duration_minutes: 50,
+      timezone: 'Europe/Kyiv',
+      public_booking_mode: 'direct_booking',
+      show_public_availability: false,
+      public_booking_min_lead_time_hours: 24,
+      public_booking_horizon_days: 14,
+      public_booking_requires_confirmation: true,
+    } as any)
+    mockedUpdateSpecialistProfile.mockResolvedValueOnce({
+      standard_session_duration_minutes: 50,
+      timezone: 'Europe/Kyiv',
+      public_booking_mode: 'direct_booking',
+      show_public_availability: true,
+      public_booking_min_lead_time_hours: 24,
+      public_booking_horizon_days: 14,
+      public_booking_requires_confirmation: true,
+    } as any)
+    mockScheduleApi()
+
+    renderView()
+    await flushAsyncUpdates()
+
+    const availabilityControl = screen.getByLabelText('Показувати доступні вікна у публічному профілі')
+    expect(availabilityControl).not.toBeChecked()
+    expect(screen.getByText('Якщо вимкнути, клієнти не бачать календар доступних вікон.')).toBeInTheDocument()
+
+    await fireEvent.click(screen.getByText('Показувати доступні вікна у публічному профілі'))
+    expect(availabilityControl).toBeChecked()
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Зберегти налаштування' }))
+
+    expect(mockedUpdateSpecialistProfile).toHaveBeenCalledWith(
+      expect.objectContaining({
+        public_booking_mode: 'direct_booking',
+        show_public_availability: true,
+      })
+    )
+  })
+
   it('reloads schedule events when availability auto-jump changes the visible week', async () => {
     openCalendarRoute()
     mockedApiGet.mockImplementation(async (url) => {

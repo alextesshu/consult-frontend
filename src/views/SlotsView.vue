@@ -772,16 +772,22 @@
           <span class="muted settings-form__hint">{{ bookingModeHelperText }}</span>
         </label>
 
-        <label class="field settings-form__checkbox-row">
-          <span class="settings-form__checkbox-label">Показувати доступні вікна у публічному профілі</span>
-          <input
-            v-model="showPublicAvailability"
-            type="checkbox"
-            :disabled="publicBookingMode !== 'direct_booking'"
-            aria-label="Показувати доступні вікна у публічному профілі"
-          />
-          <span class="muted settings-form__hint">
-            Коли опція вимкнена, клієнти не бачать календар доступних вікон.
+        <label class="settings-form__switch-row">
+          <span class="settings-form__switch-copy">
+            <span id="public-availability-label" class="settings-form__checkbox-label">Показувати доступні вікна у публічному профілі</span>
+            <span id="public-availability-helper" class="muted settings-form__hint">
+              Якщо вимкнути, клієнти не бачать календар доступних вікон.
+            </span>
+          </span>
+          <span class="settings-form__switch-control">
+            <input
+              v-model="showPublicAvailability"
+              type="checkbox"
+              :disabled="publicBookingMode !== 'direct_booking'"
+              aria-labelledby="public-availability-label"
+              aria-describedby="public-availability-helper"
+            />
+            <span class="settings-form__switch-track"></span>
           </span>
         </label>
 
@@ -4498,14 +4504,89 @@ onBeforeUnmount(() => {
   line-height: 1.45;
 }
 
-.settings-form__checkbox-row {
-  display: grid;
-  gap: 6px;
-}
-
 .settings-form__checkbox-label {
   font-weight: 600;
   color: var(--pc-navy-900);
+}
+
+.settings-form__switch-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 16px;
+  border: 1px solid var(--pc-border);
+  border-radius: var(--pc-radius-card);
+  background: #fff;
+  cursor: pointer;
+}
+
+.settings-form__switch-row:has(input:focus-visible) {
+  outline: 3px solid color-mix(in srgb, var(--pc-accent) 22%, transparent);
+  outline-offset: 2px;
+}
+
+.settings-form__switch-row:has(input:disabled) {
+  cursor: not-allowed;
+  opacity: 0.72;
+}
+
+.settings-form__switch-copy {
+  min-width: 0;
+}
+
+.settings-form__switch-control {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  width: 46px;
+  height: 28px;
+  flex: 0 0 auto;
+}
+
+.settings-form__switch-control input {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  opacity: 0;
+  cursor: inherit;
+}
+
+.settings-form__switch-track {
+  position: relative;
+  width: 46px;
+  height: 26px;
+  border-radius: 999px;
+  background: #dbe3ed;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--pc-border) 82%, #6f7f91);
+  transition:
+    background-color 0.16s ease,
+    box-shadow 0.16s ease;
+}
+
+.settings-form__switch-track::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 7px rgba(15, 35, 55, 0.22);
+  transition: transform 0.16s ease;
+}
+
+.settings-form__switch-control input:checked + .settings-form__switch-track {
+  background: var(--pc-teal-500);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--pc-teal-500) 72%, #0b3b46);
+}
+
+.settings-form__switch-control input:checked + .settings-form__switch-track::after {
+  transform: translateX(20px);
 }
 
 .settings-form__actions {
