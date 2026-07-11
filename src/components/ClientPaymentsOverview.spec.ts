@@ -64,6 +64,14 @@ function paymentRow(overrides: Record<string, unknown> = {}) {
   }
 }
 
+const FIRST_PAYMENT_GUIDANCE_TITLE = 'Як зафіксувати оплату'
+const PAYMENT_HEADER_DESCRIPTION =
+  'Клієнт оплачує сесію безпосередньо вам. Pro Consult не приймає і не переказує кошти — тут ви лише відстежуєте статус оплати та підтвердження. Змінити статус оплати можна в картці конкретної сесії.'
+const REGISTERED_GUIDANCE_COPY =
+  'Відкрийте потрібну сесію, щоб керувати статусом оплати. Ця вкладка показує лише загальний стан оплат цього клієнта. У картці сесії можна позначити оплату, запросити підтвердження або перевірити надіслане підтвердження.'
+const NO_ACCOUNT_GUIDANCE_COPY =
+  'Відкрийте потрібну сесію, щоб зафіксувати оплату вручну. Ця вкладка показує лише загальний стан оплат цього клієнта.'
+
 function deferred<T>() {
   let resolve!: (value: T) => void
   let reject!: (reason?: unknown) => void
@@ -90,9 +98,23 @@ describe('ClientPaymentsOverview', () => {
 
     renderComponent({ recordId: 201, active: true })
 
+    expect(screen.getByText(PAYMENT_HEADER_DESCRIPTION)).toBeInTheDocument()
     await waitFor(() => {
       expect(mockedFetchClientRecordPayments).toHaveBeenCalledWith(201)
     })
+  })
+
+  it('keeps direct-payment explanation visible when first-payment guidance is shown', async () => {
+    mockedFetchClientRecordPayments.mockResolvedValue(
+      overview({
+        rows: [paymentRow({ payment_state: 'NOT_CONFIRMED' })],
+      }) as any
+    )
+
+    renderComponent({ recordId: 201, active: true })
+
+    expect(screen.getByText(PAYMENT_HEADER_DESCRIPTION)).toBeInTheDocument()
+    expect(await screen.findByLabelText(FIRST_PAYMENT_GUIDANCE_TITLE)).toBeInTheDocument()
   })
 
   it('does not refetch the same loaded record on active toggles', async () => {
@@ -205,6 +227,20 @@ describe('ClientPaymentsOverview', () => {
     expect(mockedFetchClientRecordPayments).toHaveBeenCalledTimes(2)
   })
 
+  it('shows the new no-session workflow description', async () => {
+    mockedFetchClientRecordPayments.mockResolvedValue(overview() as any)
+
+    renderComponent({ recordId: 201, active: true })
+
+    expect(await screen.findByText('Ще немає сесій для відображення оплат')).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        'Оплати зʼявляться тут після створення першої сесії. Створіть сесію в картці клієнта, а статус оплати змінюйте в картці конкретної сесії.'
+      )
+    ).toBeInTheDocument()
+    expect(screen.queryByLabelText(FIRST_PAYMENT_GUIDANCE_TITLE)).not.toBeInTheDocument()
+  })
+
   it('renders all summary counters including zeros', async () => {
     mockedFetchClientRecordPayments.mockResolvedValue(
       overview({
@@ -254,6 +290,81 @@ describe('ClientPaymentsOverview', () => {
       'href',
       '/cabinet/sessions/7010'
     )
+  })
+
+  it.each([
+    'NOT_CONFIRMED',
+    'AWAITING_CLIENT',
+    'AWAITING_REVIEW',
+    'NEEDS_CLARIFICATION',
+    'PAYMENT_DECISION_REQUIRED',
+  ])('shows first payment guidance for %s when there is no paid history', async (paymentState) => {
+    mockedFetchClientRecordPayments.mockResolvedValue(
+      overview({
+        rows: [paymentRow({ payment_state: paymentState })],
+      }) as any
+    )
+
+    renderComponent({ recordId: 201, active: true })
+
+    const guidance = await screen.findByLabelText(FIRST_PAYMENT_GUIDANCE_TITLE)
+    expect(within(guidance).getByText(FIRST_PAYMENT_GUIDANCE_TITLE)).toBeInTheDocument()
+    expect(within(guidance).getByText(REGISTERED_GUIDANCE_COPY)).toBeInTheDocument()
+  })
+
+  it('does not show first payment guidance when there is paid history', async () => {
+    mockedFetchClientRecordPayments.mockResolvedValue(
+      overview({
+        summary: {
+          not_confirmed_count: 1,
+          awaiting_client_count: 0,
+          awaiting_review_count: 0,
+          needs_attention_count: 0,
+          paid_count: 1,
+        },
+        rows: [paymentRow({ payment_state: 'NOT_CONFIRMED' })],
+      }) as any
+    )
+
+    renderComponent({ recordId: 201, active: true })
+
+    await screen.findByRole('link', { name: 'Відкрити сесію' })
+    expect(screen.queryByLabelText(FIRST_PAYMENT_GUIDANCE_TITLE)).not.toBeInTheDocument()
+  })
+
+  it.each(['PAID', 'NO_PRICE', 'CANCELLED', 'RESOLVED_CANCELLED'])(
+    'does not show first payment guidance for terminal state %s',
+    async (paymentState) => {
+      mockedFetchClientRecordPayments.mockResolvedValue(
+        overview({
+          rows: [paymentRow({ payment_state: paymentState })],
+        }) as any
+      )
+
+      renderComponent({ recordId: 201, active: true })
+
+      await screen.findByRole('link', { name: 'Відкрити сесію' })
+      expect(screen.queryByLabelText(FIRST_PAYMENT_GUIDANCE_TITLE)).not.toBeInTheDocument()
+    }
+  )
+
+  it('uses manual no-account guidance without confirmation request copy', async () => {
+    mockedFetchClientRecordPayments.mockResolvedValue(
+      overview({
+        rows: [paymentRow({ payment_state: 'NOT_CONFIRMED' })],
+      }) as any
+    )
+
+    renderComponent({ recordId: 201, active: true, showNoAccountNote: true })
+
+    expect(await screen.findByText(NO_ACCOUNT_GUIDANCE_COPY)).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        'Клієнт не має кабінету, тому не може завантажити підтвердження оплати. Для таких клієнтів ви фіксуєте оплату в картці сесії.'
+      )
+    ).toBeInTheDocument()
+    expect(screen.queryByText(/запросити підтвердження/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/надіслане підтвердження/i)).not.toBeInTheDocument()
   })
 
   it('renders labels for every normalized payment state', async () => {
@@ -334,7 +445,11 @@ describe('ClientPaymentsOverview', () => {
 
     expect(screen.queryByText(/Клієнт не має кабінету/)).not.toBeInTheDocument()
     return rerender({ recordId: null, active: true, showNoAccountNote: true }).then(() => {
-      expect(screen.getByText(/Клієнт не має кабінету/)).toBeInTheDocument()
+      expect(
+        screen.getByText(
+          'Клієнт не має кабінету, тому не може завантажити підтвердження оплати. Для таких клієнтів ви фіксуєте оплату в картці сесії.'
+        )
+      ).toBeInTheDocument()
     })
   })
 })

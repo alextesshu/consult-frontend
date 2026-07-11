@@ -4,13 +4,13 @@
       <div>
         <h3>Історія оплат</h3>
         <p class="muted">
-          Оплати та підтвердження за сесіями цієї картки. Змінити статус оплати можна в картці конкретної сесії.
+          Клієнт оплачує сесію безпосередньо вам. Pro Consult не приймає і не переказує кошти — тут ви лише відстежуєте статус оплати та підтвердження. Змінити статус оплати можна в картці конкретної сесії.
         </p>
       </div>
     </div>
 
     <p v-if="showNoAccountNote" class="client-payments-overview__note">
-      Клієнт не має кабінету, тому не може завантажити підтвердження оплати. Ви можете вести оплату в картці сесії.
+      Клієнт не має кабінету, тому не може завантажити підтвердження оплати. Для таких клієнтів ви фіксуєте оплату в картці сесії.
     </p>
 
     <EmptyState
@@ -48,10 +48,19 @@
         <EmptyState
           v-if="!overview.rows.length"
           title="Ще немає сесій для відображення оплат"
-          description="Після створення сесій тут зʼявиться історія їхніх оплат."
+          description="Оплати зʼявляться тут після створення першої сесії. Створіть сесію в картці клієнта, а статус оплати змінюйте в картці конкретної сесії."
         />
 
-        <div v-else class="client-payments-overview__rows">
+        <section
+          v-if="showFirstPaymentGuidance"
+          class="client-payments-overview__guidance"
+          aria-label="Як зафіксувати оплату"
+        >
+          <h4>Як зафіксувати оплату</h4>
+          <p>{{ firstPaymentGuidanceDescription }}</p>
+        </section>
+
+        <div v-if="overview.rows.length" class="client-payments-overview__rows">
           <article
             v-for="row in overview.rows"
             :key="row.session_id"
@@ -135,6 +144,28 @@ const summaryItems = computed(() => [
     tone: 'success',
   },
 ])
+
+const FIRST_PAYMENT_GUIDANCE_STATES = new Set<string>([
+  'NOT_CONFIRMED',
+  'AWAITING_CLIENT',
+  'AWAITING_REVIEW',
+  'NEEDS_CLARIFICATION',
+  'PAYMENT_DECISION_REQUIRED',
+])
+
+const showFirstPaymentGuidance = computed(() => {
+  const currentOverview = overview.value
+  if (!currentOverview?.rows.length) return false
+  if (currentOverview.summary.paid_count > 0) return false
+  return currentOverview.rows.some((row) => FIRST_PAYMENT_GUIDANCE_STATES.has(row.payment_state))
+})
+
+const firstPaymentGuidanceDescription = computed(() => {
+  if (props.showNoAccountNote) {
+    return 'Відкрийте потрібну сесію, щоб зафіксувати оплату вручну. Ця вкладка показує лише загальний стан оплат цього клієнта.'
+  }
+  return 'Відкрийте потрібну сесію, щоб керувати статусом оплати. Ця вкладка показує лише загальний стан оплат цього клієнта. У картці сесії можна позначити оплату, запросити підтвердження або перевірити надіслане підтвердження.'
+})
 
 watch(
   () => [props.active, props.recordId] as const,
@@ -292,6 +323,32 @@ function sessionRoute(sessionId: number) {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
   gap: 8px;
+}
+
+.client-payments-overview__guidance {
+  display: grid;
+  gap: 6px;
+  border: 1px solid color-mix(in srgb, var(--pc-info-border) 58%, var(--pc-border));
+  border-radius: var(--radius-sm, 10px);
+  background: color-mix(in srgb, var(--pc-info-soft) 72%, #ffffff);
+  color: var(--pc-info-text);
+  padding: 10px 12px;
+}
+
+.client-payments-overview__guidance h4,
+.client-payments-overview__guidance p {
+  margin: 0;
+}
+
+.client-payments-overview__guidance h4 {
+  color: var(--pc-navy-900);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.client-payments-overview__guidance p {
+  font-size: 13px;
+  line-height: 1.45;
 }
 
 .client-payments-overview__counter {
