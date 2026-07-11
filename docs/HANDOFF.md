@@ -311,6 +311,21 @@ Frontend production-closure slice is now integrated:
   - `Контакти` shows safe contact/account metadata; registered client phone is `Не вказано` when backend payload does not include it
   - `Сесії` is read-only and uses existing session cache/API data; it renders safe metadata only and links `Відкрити сесію` only when a real session id exists
   - `Перейти до списку сесій` links to generic `/cabinet/sessions`; there is no client-specific deep filter yet
+  - `Оплати` is a read-only client payment overview tab backed by
+    `GET /api/cabinet/client-records/{record_id}/payments/`
+  - `Оплати` shows five status counters, session-level rows, date/time,
+    duration, session status, session format, price, normalized payment state,
+    and `Відкрити сесію` links to the relevant session detail page
+  - `Оплати` does not include payment mutation controls; payment state changes
+    remain in `/cabinet/sessions/{session_id}`
+  - `Оплати` uses canonical ClientRecord identity: manual client -> `client.id`,
+    registered client -> `client.client_record_id`; registered clients without
+    `client_record_id` stay in neutral unavailable state and no invalid
+    payments API request is made
+  - payment explanation states that the client pays the specialist directly and
+    Pro Consult does not accept, hold, process, or transfer consultation money
+  - first-use payment guidance is state-based only; no localStorage flag,
+    backend onboarding flag, or guided tour is used
   - `Матеріали` manages explicit `ClientMaterial` records only
   - ClientMaterial attachments are integrated: specialist can select multiple local files, frontend uploads them through repeated single-file attachment uploads, and refreshes attachment lists after upload/delete
   - client material download uses backend JSON `{ "download_url": "<signed-url>" }`; raw signed URLs/blob paths are not rendered in the DOM
@@ -417,7 +432,15 @@ Frontend production-closure slice is now integrated:
   - specialist can edit per-session price
   - price edit affects only this session, not the client's custom price
   - specialist can manually mark session paid
-  - manual payment is specialist-side only
+  - manual-client payment status management is specialist-side only
+  - client pays the specialist directly; Pro Consult does not accept, hold,
+    process, or transfer consultation money
+  - for a client without a cabinet, the client cannot send payment
+    confirmation through Pro Consult; after checking actual receipt of funds,
+    the specialist marks the session as paid
+  - current copy:
+    `Клієнт оплачує сесію безпосередньо вам. Оскільки в нього немає кабінету, він не може надіслати підтвердження через Pro Consult. Після перевірки надходження коштів позначте сесію оплаченою.`
+  - do not use ambiguous copy such as `оплата ведеться вручну`
 - Cancelled paid payment resolution UI is active:
   - `/cabinet/sessions` cards prioritize settlement status over basic payment status
   - cancelled paid unresolved sessions show a settlement badge, not only `Оплачено`

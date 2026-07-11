@@ -307,6 +307,12 @@ Current FE behavior:
   * future sessions count
   * last session
   * short client description
+* client card modal includes read-only tab `Оплати`
+* `Оплати` shows summary counters, session-level payment rows, date/time,
+  duration, session status, session format, price, normalized payment state,
+  and link `Відкрити сесію` to the relevant session detail page
+* `Оплати` does not contain payment mutation controls; payment state changes
+  remain in `/cabinet/sessions/{session_id}`
 * `Заплановано` was clarified to `Майбутніх сесій`
 * canonical manual-client payment summary labels are `Оплата найближчої` and `Оплата останньої`
 * canonical payment states are:
@@ -381,7 +387,48 @@ Current behavior:
 * specialist can edit per-session price
 * price edit affects only this session, not client custom price
 * specialist can manually mark session paid
-* manual payment is specialist-side only
+* manual-client payment status management is specialist-side only
+* client pays the specialist directly; Pro Consult does not accept, hold,
+  process, or transfer consultation money
+* for a client without a cabinet, the client cannot send payment confirmation
+  through Pro Consult; after checking actual receipt of funds, the specialist
+  marks the session as paid
+
+Current manual-client copy:
+
+```text
+Клієнт оплачує сесію безпосередньо вам. Оскільки в нього немає кабінету, він не може надіслати підтвердження через Pro Consult. Після перевірки надходження коштів позначте сесію оплаченою.
+```
+
+Do not use the ambiguous phrase `оплата ведеться вручну`.
+
+Registered-client payment flow:
+
+* payment is still made directly to the specialist
+* specialist can request payment confirmation where supported
+* client can send confirmation through the client cabinet
+* specialist reviews and manages payment state in the session detail page
+* client payment tab remains an overview, not the editing surface
+
+Client payment overview summary counters:
+
+* `Не підтверджено`
+* `Очікуємо від клієнта`
+* `На перевірці`
+* `Потребує уваги`
+* `Оплачено`
+
+Contextual guidance:
+
+* no localStorage onboarding flag
+* no backend first-use flag
+* no guided tour
+* no-session empty state explains that payment history appears after the first
+  session
+* unresolved first-payment guidance is state-based and appears only when
+  `overview.summary.paid_count === 0` and at least one relevant unresolved
+  payment state exists
+* manual-client guidance does not promise client proof upload
 
 ## 8.2.2 Cancelled paid payment resolution UI
 

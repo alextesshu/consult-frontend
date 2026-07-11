@@ -10,6 +10,35 @@ Usage:
 
 ---
 
+## 2026-07-12 - Client Payment Overview Production Close
+
+### Context
+- Client payment overview phase KAN-30 / KAN-31 / KAN-32 / KAN-33 / KAN-34 is
+  complete, production-deployed, and manually verified.
+- Backend production baseline:
+  `26e5f51 Add client payment overview API`.
+- Frontend production baseline:
+  `0fbc32a Clarify manual client payment flow`.
+
+### Done
+- Client card modal includes read-only tab `Оплати`.
+- `Оплати` shows summary counters, session-level payment rows, date/time,
+  duration, session status, session format, price, normalized payment state,
+  and `Відкрити сесію` links.
+- Payment state changes remain in `/cabinet/sessions/{session_id}`.
+- Direct-payment copy is visible: clients pay specialists directly, and
+  Pro Consult does not accept, hold, process, or transfer consultation money.
+- Manual-client session detail explains that a client without a cabinet cannot
+  send payment confirmation through Pro Consult and that the specialist marks
+  the session as paid after checking actual receipt of funds.
+- Contextual first-use guidance is state-based only; no localStorage flag,
+  backend first-use flag, or guided tour was added.
+
+### Validation
+- Production verification covered client payment overview, manual-client
+  payment flow, direct-payment explanation, production HTTP smoke checks,
+  health checks, and readiness checks.
+
 ## 2026-06-20 - Active Client Limit Increase / Billing Add-on Production Close
 
 ### Context
