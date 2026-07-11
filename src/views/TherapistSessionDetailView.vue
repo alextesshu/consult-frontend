@@ -513,7 +513,7 @@
           <div>
             <div class="detail-label">Клієнт без реєстрації</div>
             <p class="muted manual-payment-card__text">
-              Для клієнта без реєстрації оплата ведеться вручну. Після перевірки надходження можна позначити сесію оплаченою.
+              Клієнт оплачує сесію безпосередньо вам. Оскільки в нього немає кабінету, він не може надіслати підтвердження через Pro Consult. Після перевірки надходження коштів позначте сесію оплаченою.
             </p>
             <p v-if="manualPaymentAmountLabel" class="manual-payment-card__amount">
               {{ manualPaymentAmountLabel }}

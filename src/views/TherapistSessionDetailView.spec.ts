@@ -341,6 +341,8 @@ describe('TherapistSessionDetailView', () => {
       client_has_account: false,
       client_source: 'manual',
       client_identity_type: 'manual',
+      price_amount: '1200.00',
+      price_currency: 'UAH',
       task_context: {
         source_type: 'session',
         source_id: 42,
@@ -371,6 +373,12 @@ describe('TherapistSessionDetailView', () => {
     expect(await screen.findByText('Manual Detail Client')).toBeInTheDocument()
     expect(screen.getByText('Без реєстрації')).toBeInTheDocument()
     expect(screen.getByText('Цю сесію створено для клієнта без реєстрації. Підключення кабінету дасть клієнту доступ до власних сесій, нагадувань, оплати та комунікації зі спеціалістом.')).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        'Клієнт оплачує сесію безпосередньо вам. Оскільки в нього немає кабінету, він не може надіслати підтвердження через Pro Consult. Після перевірки надходження коштів позначте сесію оплаченою.'
+      )
+    ).toBeInTheDocument()
+    expect(screen.queryByText(/оплата ведеться вручну/i)).not.toBeInTheDocument()
     expect(container).not.toHaveTextContent('undefined')
     expect(container).not.toHaveTextContent('null')
     expect(container).not.toHaveTextContent('ID: #null')
@@ -382,6 +390,8 @@ describe('TherapistSessionDetailView', () => {
     expect(screen.queryByRole('button', { name: 'Запросити підтвердження оплати' })).not.toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Оплата' })).toBeInTheDocument()
     expect(screen.getByText('Не оплачено')).toBeInTheDocument()
+    expect(container).toHaveTextContent(/1\s*200 грн/)
+    expect(screen.getByRole('button', { name: 'Редагувати ціну' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Позначити оплаченою' })).toBeInTheDocument()
     expect(screen.queryByText('Приватний зошит')).not.toBeInTheDocument()
     expect(screen.queryByDisplayValue('Progress note')).not.toBeInTheDocument()
