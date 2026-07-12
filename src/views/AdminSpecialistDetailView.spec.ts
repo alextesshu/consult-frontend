@@ -355,10 +355,11 @@ describe('AdminSpecialistDetailView', () => {
     expect(panel).toBeTruthy()
     expect(within(panel).getByText('Статус відображає зафіксоване надсилання Template B. Цей блок не надсилає листи.')).toBeInTheDocument()
     expect(within(panel).getByText('Не зафіксовано')).toBeInTheDocument()
-    expect(within(panel).getByText('Другий автоматичний лист ще не зафіксовано.')).toBeInTheDocument()
+    expect(within(panel).getByText('Надсилання другого листа ще не зафіксовано.')).toBeInTheDocument()
+    expect(within(panel).queryByText('Другий автоматичний лист ще не зафіксовано.')).not.toBeInTheDocument()
     expect(within(panel).getByText('Надіслано:').parentElement).toHaveTextContent('—')
     expect(within(panel).getByText('Варіант:').parentElement).toHaveTextContent('—')
-    expect(panel.textContent || '').not.toMatch(/48|заплановано|worker|буде автоматично/i)
+    expect(panel.textContent || '').not.toMatch(/48|заплановано|worker|буде автоматично|автоматичне надсилання/i)
   })
 
   it('shows Template B sent state, timestamp, and variant', async () => {
@@ -394,7 +395,8 @@ describe('AdminSpecialistDetailView', () => {
     const firstEmailPanel = screen.getByRole('heading', { name: 'Перший лист спеціалісту' }).closest('section') as HTMLElement
     expect(within(firstEmailPanel).getByText('Автоматичний лист ще не зафіксовано.')).toBeInTheDocument()
     const secondEmailPanel = screen.getByRole('heading', { name: 'Другий лист спеціалісту' }).closest('section') as HTMLElement
-    expect(within(secondEmailPanel).getByText('Другий автоматичний лист ще не зафіксовано.')).toBeInTheDocument()
+    expect(within(secondEmailPanel).getByText('Надсилання другого листа ще не зафіксовано.')).toBeInTheDocument()
+    expect(within(secondEmailPanel).queryByText('Другий автоматичний лист ще не зафіксовано.')).not.toBeInTheDocument()
   })
 
   it('renders a safe new-tab link to the public profile when enabled and slug exists', async () => {

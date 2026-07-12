@@ -159,7 +159,7 @@
               <template v-if="detail.admin_context.signup_template_b_email?.sent">
                 Template B надіслано.
               </template>
-              <template v-else>Другий автоматичний лист ще не зафіксовано.</template>
+              <template v-else>Надсилання другого листа ще не зафіксовано.</template>
             </span>
           </div>
           <div>
