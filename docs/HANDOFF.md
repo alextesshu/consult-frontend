@@ -8,8 +8,8 @@ Phase archive: `docs/PHASE_CLOSE_SUMMARIES.md`
 
 ## Current Phase
 
-KAN-1 email trigger/copy discovery is complete. Runtime implementation has not
-started, and the implementation scope remains pending approval.
+KAN-1 email trigger/copy implementation is complete locally and awaiting
+review/staging decision. It is not production-deployed.
 
 KAN-29 public profile visibility/readiness and availability creation guidance
 is production-deployed, production smoke passed, manual production verification
@@ -25,11 +25,10 @@ contract docs, not duplicate the full contract here.
 
 KAN-1 frontend discovery summary:
 - backend admin detail returns Template B email status;
-- frontend API type and `AdminSpecialistDetailView` currently expose only
-  Template A status;
-- Template B frontend admin status is an implementation candidate;
+- frontend API type and `AdminSpecialistDetailView` now expose Template A and
+  Template B status;
 - Template C runtime integration does not exist;
-- no frontend implementation has started.
+- no Template C frontend block was added.
 
 Frontend production-closure slice is now integrated:
 
@@ -534,8 +533,8 @@ Frontend production-closure slice is now integrated:
 
 ## Active Work
 
-- KAN-1 email trigger/copy discovery is complete; runtime implementation is
-  pending approval and has not started.
+- KAN-1 email trigger/copy implementation is complete locally and awaiting
+  review/staging decision.
 - KAN-29 is production-closed and Done.
 - Manual Client Records Phase 1 and manual-client session creation are closed on frontend.
 - Keep canonical slug/public-link behavior stable while extending profile-related UX.
@@ -545,8 +544,8 @@ Frontend production-closure slice is now integrated:
 
 ## Immediate Next Step
 
-For KAN-1, approve the implementation scope before runtime changes. Frontend
-candidate scope is exposing backend-provided Template B status in API typing and
+For KAN-1, review the local implementation and decide staging. Frontend now
+shows backend-provided Template B status in API typing and
 `AdminSpecialistDetailView`; Template C should remain absent until a runtime
 trigger and integration contract are approved.
 

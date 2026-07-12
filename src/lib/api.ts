@@ -711,6 +711,12 @@ export type AdminSpecialistDetailResponse = {
       sent_at: string | null
       item_key: string
     }
+    signup_template_b_email?: {
+      sent: boolean
+      sent_at: string | null
+      item_key: string
+      variant: string
+    }
     latest_related_request_summary: {
       id: number
       requested_plan: string | null

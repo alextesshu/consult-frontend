@@ -134,6 +134,55 @@
       <section class="panel">
         <div class="panel__header">
           <div>
+            <div class="badge badge--soft">ОНБОРДИНГ</div>
+            <h2 class="panel__title">Другий лист спеціалісту</h2>
+            <p class="muted readiness-panel__helper">
+              Статус відображає зафіксоване надсилання Template B. Цей блок не надсилає листи.
+            </p>
+          </div>
+          <span
+            class="status-pill"
+            :class="detail.admin_context.signup_template_b_email?.sent ? 'status-pill--ok' : 'status-pill--muted'"
+          >
+            {{
+              detail.admin_context.signup_template_b_email?.sent
+                ? 'Надіслано'
+                : 'Не зафіксовано'
+            }}
+          </span>
+        </div>
+
+        <div class="summary-list summary-list--onboarding">
+          <div>
+            <strong>Статус:</strong>
+            <span class="summary-list__value">
+              <template v-if="detail.admin_context.signup_template_b_email?.sent">
+                Template B надіслано.
+              </template>
+              <template v-else>Другий автоматичний лист ще не зафіксовано.</template>
+            </span>
+          </div>
+          <div>
+            <strong>Надіслано:</strong>
+            <span class="summary-list__value">
+              <template v-if="detail.admin_context.signup_template_b_email?.sent_at">
+                {{ formatDate(detail.admin_context.signup_template_b_email.sent_at) }}
+              </template>
+              <template v-else>—</template>
+            </span>
+          </div>
+          <div>
+            <strong>Варіант:</strong>
+            <span class="summary-list__value">
+              {{ detail.admin_context.signup_template_b_email?.variant || '—' }}
+            </span>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel__header">
+          <div>
             <div class="badge badge--soft">ПРОФІЛЬ</div>
             <h2 class="panel__title">Готовність профілю</h2>
             <p class="muted readiness-panel__helper">

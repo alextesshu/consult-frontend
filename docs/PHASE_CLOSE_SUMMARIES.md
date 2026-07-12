@@ -51,15 +51,14 @@ Usage:
   - manual production smoke passed.
 
 ### Next Recommended Phase
-- KAN-1 email trigger/copy discovery is complete; runtime implementation has
-  not started and scope remains pending approval.
+- KAN-1 email trigger/copy implementation is complete locally and awaiting
+  review/staging decision. It is not production-deployed.
 - Frontend discovery summary:
   - backend admin detail returns Template B email status;
-  - frontend API type and `AdminSpecialistDetailView` currently expose only
-    Template A status;
-  - Template B frontend admin status is an implementation candidate;
+  - frontend API type and `AdminSpecialistDetailView` now expose Template A and
+    Template B status;
   - Template C runtime integration does not exist;
-  - no frontend implementation has started.
+  - no Template C frontend block was added.
 
 ---
 

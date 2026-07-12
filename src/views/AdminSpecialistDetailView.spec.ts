@@ -124,6 +124,12 @@ function buildDetail(overrides: Partial<AdminSpecialistDetailResponse> = {}): Ad
         sent_at: null,
         item_key: 'specialist_signup_template_a_email:2',
       },
+      signup_template_b_email: {
+        sent: false,
+        sent_at: null,
+        item_key: 'specialist_signup_template_b_email:2',
+        variant: '',
+      },
       latest_related_request_summary: null,
       last_access_change_summary: null,
     },
@@ -340,6 +346,55 @@ describe('AdminSpecialistDetailView', () => {
     expect(within(panel).getByText('Template A надіслано після реєстрації.')).toBeInTheDocument()
     expect(within(panel).getByText('Надіслано:').parentElement).toHaveTextContent('2026')
     expect(within(panel).getByText(/Дочекатися заповнення профілю/)).toBeInTheDocument()
+  })
+
+  it('shows an empty state when Template B is not recorded', async () => {
+    await renderView()
+
+    const panel = screen.getByRole('heading', { name: 'Другий лист спеціалісту' }).closest('section') as HTMLElement
+    expect(panel).toBeTruthy()
+    expect(within(panel).getByText('Статус відображає зафіксоване надсилання Template B. Цей блок не надсилає листи.')).toBeInTheDocument()
+    expect(within(panel).getByText('Не зафіксовано')).toBeInTheDocument()
+    expect(within(panel).getByText('Другий автоматичний лист ще не зафіксовано.')).toBeInTheDocument()
+    expect(within(panel).getByText('Надіслано:').parentElement).toHaveTextContent('—')
+    expect(within(panel).getByText('Варіант:').parentElement).toHaveTextContent('—')
+    expect(panel.textContent || '').not.toMatch(/48|заплановано|worker|буде автоматично/i)
+  })
+
+  it('shows Template B sent state, timestamp, and variant', async () => {
+    await renderView(buildDetail({
+      admin_context: {
+        ...buildDetail().admin_context,
+        signup_template_b_email: {
+          sent: true,
+          sent_at: '2026-06-04T10:45:00Z',
+          item_key: 'specialist_signup_template_b_email:2',
+          variant: 'B6_SEARCH_VISIBLE_FEEDBACK',
+        },
+      },
+    }))
+
+    const panel = screen.getByRole('heading', { name: 'Другий лист спеціалісту' }).closest('section') as HTMLElement
+    expect(within(panel).getByText('Надіслано')).toBeInTheDocument()
+    expect(within(panel).getByText('Template B надіслано.')).toBeInTheDocument()
+    expect(within(panel).getByText('Надіслано:').parentElement).toHaveTextContent('2026')
+    expect(within(panel).getByText('Варіант:').parentElement).toHaveTextContent('B6_SEARCH_VISIBLE_FEEDBACK')
+  })
+
+  it('does not crash when Template B status is absent from a compatibility payload', async () => {
+    const detail = buildDetail({
+      admin_context: {
+        ...buildDetail().admin_context,
+      },
+    })
+    delete detail.admin_context.signup_template_b_email
+
+    await renderView(detail)
+
+    const firstEmailPanel = screen.getByRole('heading', { name: 'Перший лист спеціалісту' }).closest('section') as HTMLElement
+    expect(within(firstEmailPanel).getByText('Автоматичний лист ще не зафіксовано.')).toBeInTheDocument()
+    const secondEmailPanel = screen.getByRole('heading', { name: 'Другий лист спеціалісту' }).closest('section') as HTMLElement
+    expect(within(secondEmailPanel).getByText('Другий автоматичний лист ще не зафіксовано.')).toBeInTheDocument()
   })
 
   it('renders a safe new-tab link to the public profile when enabled and slug exists', async () => {
