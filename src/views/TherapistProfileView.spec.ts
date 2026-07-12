@@ -83,12 +83,11 @@ function makeProfile(): SpecialistProfile {
     is_search_visible: true,
     public_profile_readiness: {
       is_ready: true,
-      completed_count: 7,
-      total_count: 7,
+      completed_count: 6,
+      total_count: 6,
       missing_items: [],
       items: [
         { key: 'display_name', label: 'Публічне ім’я', complete: true },
-        { key: 'photo', label: 'Фото', complete: true },
         { key: 'about', label: 'Опис', complete: true },
         { key: 'topics', label: 'Запити', complete: true },
         { key: 'work_format', label: 'Формат роботи', complete: true },
@@ -170,11 +169,10 @@ function makeIncompleteProfile(): SpecialistProfile {
     public_profile_readiness: {
       is_ready: false,
       completed_count: 4,
-      total_count: 7,
-      missing_items: ['photo', 'topics', 'price_decision'],
+      total_count: 6,
+      missing_items: ['topics', 'price_decision'],
       items: [
         { key: 'display_name', label: 'Публічне ім’я', complete: true },
-        { key: 'photo', label: 'Фото', complete: false },
         { key: 'about', label: 'Опис', complete: true },
         { key: 'topics', label: 'Запити', complete: false },
         { key: 'work_format', label: 'Формат роботи', complete: true },
@@ -285,38 +283,52 @@ describe('TherapistProfileView', () => {
     expect(screen.queryByText(LEGACY_PROFILE_SUBTITLE_COPY)).not.toBeInTheDocument()
     expect(screen.getByRole('heading', { name: 'Для клієнтів та соціальних мереж' })).toBeInTheDocument()
     expect(screen.getByText(/Скопіюйте посилання, щоб надіслати його клієнтам/)).toBeInTheDocument()
+    expect(
+      screen.getByText(/На сторінці клієнти побачать інформацію про вас і зможуть скористатися/)
+    ).toBeInTheDocument()
+    expect(
+      screen.queryByText('На сторінці можна переглянути інформацію про вас і залишити запит.')
+    ).not.toBeInTheDocument()
 
     const summary = container.querySelector('.profile-summary-card') as HTMLElement
     expect(summary).not.toBeNull()
-    expect(within(summary).getByText('Публічність')).toBeInTheDocument()
-    expect(within(summary).getByText('Публічний профіль увімкнено')).toBeInTheDocument()
-    expect(within(summary).getByText('Сторінка доступна клієнтам за публічним посиланням.')).toBeInTheDocument()
+    expect(within(summary).getByText('Публічна сторінка')).toBeInTheDocument()
+    expect(within(summary).getByText('Сторінка доступна за посиланням')).toBeInTheDocument()
+    expect(within(summary).getByText('Клієнти можуть переглядати сторінку за прямим посиланням.')).toBeInTheDocument()
     expect(within(summary).queryByText('Клієнти можуть переглядати вашу сторінку та залишати запити.')).not.toBeInTheDocument()
     expect(within(summary).getByRole('heading', { name: 'Готовність профілю' })).toBeInTheDocument()
     expect(screen.getAllByRole('heading', { name: 'Готовність профілю' })).toHaveLength(1)
-    expect(within(summary).getByText('7 з 7')).toBeInTheDocument()
+    expect(within(summary).getByText('6 з 6')).toBeInTheDocument()
     expect(within(summary).getByText('Усі обов’язкові дані заповнені.')).toBeInTheDocument()
-    const publicProfileCta = within(summary).getByRole('link', { name: 'Переглянути профіль' })
+    const publicProfileCta = within(summary).getByRole('link', { name: 'Переглянути сторінку' })
     expect(publicProfileCta).toHaveAttribute('href', `${window.location.origin}/s/specialist-anna`)
     expect(publicProfileCta).toHaveAttribute('target', '_blank')
     expect(within(summary).getByText('Відкриється сторінка, яку бачать клієнти.')).toBeInTheDocument()
-    expect(within(summary).getByRole('button', { name: 'Вимкнути публічний профіль' })).toBeInTheDocument()
+    expect(within(summary).getByRole('button', { name: 'Зняти з публікації' })).toBeInTheDocument()
     expect(screen.queryByText('Відкрити як клієнт')).not.toBeInTheDocument()
+    expect(screen.queryByText('Публічний профіль увімкнено')).not.toBeInTheDocument()
+    expect(screen.queryByText('Увімкнути публічний профіль')).not.toBeInTheDocument()
+    expect(screen.queryByText('Вимкнути публічний профіль')).not.toBeInTheDocument()
     expect(screen.queryByText('Профіль готовий до публікації.')).not.toBeInTheDocument()
     expect(screen.queryByText('Профіль активний')).not.toBeInTheDocument()
 
     expect(screen.queryByLabelText('Публічний профіль увімкнено')).not.toBeInTheDocument()
     expect(screen.queryByRole('heading', { name: 'Публічний профіль' })).not.toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Додаткова видимість' })).toBeInTheDocument()
-    expect(screen.getByLabelText('Показувати мій профіль у пошуку на Pro Consult')).toBeChecked()
-    expect(screen.getByText(/Якщо вимкнути, профіль залишиться доступним за прямим посиланням/)).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Пошук Pro Consult' })).toBeInTheDocument()
+    expect(screen.getByLabelText('Показувати сторінку в пошуку Pro Consult')).toBeChecked()
+    expect(screen.getByText('Клієнти можуть знайти сторінку через пошук спеціалістів.')).toBeInTheDocument()
     expect(screen.queryByLabelText('Дозволити знаходити мій профіль через пошук спеціалістів')).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Поділитись профілем' })).not.toBeInTheDocument()
     expect(screen.queryByRole('link', { name: 'Назад до кабінету' })).not.toBeInTheDocument()
     const hero = container.querySelector('.profile__hero') as HTMLElement
     expect(within(hero).queryByRole('button', { name: 'Копіювати посилання' })).not.toBeInTheDocument()
     const linkCallout = container.querySelector('.profile-link-callout') as HTMLElement
+    const searchVisibility = container.querySelector('.profile-search-visibility') as HTMLElement
     expect(linkCallout).not.toBeNull()
+    expect(searchVisibility).not.toBeNull()
+    expect(
+      Boolean(linkCallout.compareDocumentPosition(searchVisibility) & Node.DOCUMENT_POSITION_FOLLOWING)
+    ).toBe(true)
     expect(within(linkCallout).getByText('Ваше посилання')).toBeInTheDocument()
     expect(within(linkCallout).getByText(`${window.location.origin}/s/specialist-anna`)).toBeInTheDocument()
     const copyLinkButton = within(linkCallout).getByRole('button', { name: 'Копіювати посилання' })
@@ -325,11 +337,15 @@ describe('TherapistProfileView', () => {
     expect(copyLinkButton).toBeEnabled()
     expect(within(linkCallout).queryByRole('link', { name: 'Подивитись профіль' })).not.toBeInTheDocument()
     expect(within(linkCallout).queryByRole('link', { name: 'Відкрити як клієнт' })).not.toBeInTheDocument()
-    expect(within(linkCallout).queryByRole('link', { name: 'Переглянути профіль' })).not.toBeInTheDocument()
-    expect(within(linkCallout).queryByRole('button', { name: 'Вимкнути публічний профіль' })).not.toBeInTheDocument()
+    expect(within(linkCallout).getByRole('link', { name: 'Переглянути сторінку' })).toHaveAttribute(
+      'href',
+      `${window.location.origin}/s/specialist-anna`
+    )
+    expect(within(linkCallout).queryByRole('button', { name: 'Зняти з публікації' })).not.toBeInTheDocument()
     expect(within(linkCallout).getByRole('button', { name: 'Змінити адресу' })).toBeInTheDocument()
     expect(screen.queryByText('Публічне посилання на профіль')).not.toBeInTheDocument()
     expect(screen.queryByText(/Надішліть це посилання клієнту/)).not.toBeInTheDocument()
+    expect(screen.queryByText('Сторінку ще не опубліковано.')).not.toBeInTheDocument()
     expect(screen.queryByRole('link', { name: 'Відкрити профіль' })).not.toBeInTheDocument()
     expect(screen.queryByRole('link', { name: 'Усі налаштування' })).not.toBeInTheDocument()
     expect(screen.queryByRole('link', { name: 'Реквізити' })).not.toBeInTheDocument()
@@ -341,7 +357,7 @@ describe('TherapistProfileView', () => {
     await fireEvent.click(copyLinkButton)
     expect(writeText).toHaveBeenCalledWith(`${window.location.origin}/s/specialist-anna`)
     expect(await within(linkCallout).findByText('Посилання скопійовано')).toBeInTheDocument()
-    expect(screen.getAllByText('Переглянути профіль')).toHaveLength(1)
+    expect(screen.getAllByText('Переглянути сторінку')).toHaveLength(2)
   })
 
   it('confirms disabling an active public profile and keeps the change in the save flow', async () => {
@@ -355,24 +371,34 @@ describe('TherapistProfileView', () => {
 
     renderView()
 
-    expect(await screen.findByText('Публічний профіль увімкнено')).toBeInTheDocument()
-    await fireEvent.click(screen.getByRole('button', { name: 'Вимкнути публічний профіль' }))
+    expect(await screen.findByText('Сторінка доступна за посиланням')).toBeInTheDocument()
+    await fireEvent.click(screen.getByRole('button', { name: 'Зняти з публікації' }))
 
-    const cancelDialog = await screen.findByRole('dialog', { name: 'Вимкнути публічний профіль?' })
-    expect(within(cancelDialog).getByText('Сторінка стане недоступною за прямим посиланням і зникне з пошуку. Заповнені дані профілю збережуться.')).toBeInTheDocument()
+    const cancelDialog = await screen.findByRole('dialog', { name: 'Зняти сторінку з публікації?' })
+    expect(
+      within(cancelDialog).getByText(
+        'Сторінка перестане відкриватися за прямим посиланням і більше не відображатиметься в пошуку Pro Consult.'
+      )
+    ).toBeInTheDocument()
     await fireEvent.click(within(cancelDialog).getByRole('button', { name: 'Скасувати' }))
 
-    expect(screen.getByText('Публічний профіль увімкнено')).toBeInTheDocument()
+    expect(screen.getByText('Сторінка доступна за посиланням')).toBeInTheDocument()
     expect(screen.queryByTestId('profile-sticky-save-bar')).not.toBeInTheDocument()
 
-    await fireEvent.click(screen.getByRole('button', { name: 'Вимкнути публічний профіль' }))
-    const confirmDialog = await screen.findByRole('dialog', { name: 'Вимкнути публічний профіль?' })
-    await fireEvent.click(within(confirmDialog).getByRole('button', { name: 'Вимкнути профіль' }))
+    await fireEvent.click(screen.getByRole('button', { name: 'Зняти з публікації' }))
+    const confirmDialog = await screen.findByRole('dialog', { name: 'Зняти сторінку з публікації?' })
+    await fireEvent.click(within(confirmDialog).getByRole('button', { name: 'Зняти з публікації' }))
 
-    expect(screen.getByText('Профіль не опублікований')).toBeInTheDocument()
-    expect(screen.getByLabelText('Показувати мій профіль у пошуку на Pro Consult')).not.toBeChecked()
+    expect(screen.getByText('Сторінку буде знято з публікації після збереження')).toBeInTheDocument()
+    expect(screen.getByText('До збереження сторінка ще доступна за прямим посиланням.')).toBeInTheDocument()
+    expect(screen.getByLabelText('Показувати сторінку в пошуку Pro Consult')).not.toBeChecked()
+    expect(screen.getByText('Показ у пошуку буде вимкнено після збереження.')).toBeInTheDocument()
+    expect(
+      screen.queryByText('Спочатку опублікуйте сторінку. Після цього можна окремо ввімкнути її показ у пошуку.')
+    ).not.toBeInTheDocument()
     expect(await screen.findByTestId('profile-sticky-save-bar')).toBeInTheDocument()
     expect(screen.getByText('Є незбережені зміни')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Копіювати посилання' })).toBeEnabled()
 
     await fireEvent.click(screen.getByRole('button', { name: 'Зберегти зміни' }))
 
@@ -384,6 +410,12 @@ describe('TherapistProfileView', () => {
         })
       )
     })
+    expect(screen.getByText('Сторінка не опублікована')).toBeInTheDocument()
+    expect(
+      screen.getByText('Спочатку опублікуйте сторінку. Після цього можна окремо ввімкнути її показ у пошуку.')
+    ).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Копіювати посилання' })).toBeDisabled()
+    expect(screen.queryByRole('link', { name: 'Переглянути сторінку' })).not.toBeInTheDocument()
   })
 
   it('shows compact readiness card and guards incomplete profile activation', async () => {
@@ -394,12 +426,14 @@ describe('TherapistProfileView', () => {
     expect(await screen.findByRole('heading', { name: 'Готовність профілю' })).toBeInTheDocument()
     const summary = container.querySelector('.profile-summary-card') as HTMLElement
     expect(summary).not.toBeNull()
-    expect(within(summary).getByText('Профіль не опублікований')).toBeInTheDocument()
-    expect(within(summary).getByText('Публікація стане доступною після заповнення обов’язкових даних.')).toBeInTheDocument()
-    expect(within(summary).getByText('4 з 7')).toBeInTheDocument()
+    expect(within(summary).getByText('Сторінка не опублікована')).toBeInTheDocument()
+    expect(
+      within(summary).getByText('Сторінку ще не можна опублікувати. Заповніть мінімально необхідну інформацію.')
+    ).toBeInTheDocument()
+    expect(within(summary).getByText('4 з 6')).toBeInTheDocument()
     expect(within(summary).getByText('Заповніть обов’язкові дані, щоб опублікувати профіль.')).toBeInTheDocument()
     expect(within(summary).getByText('Не вистачає:')).toBeInTheDocument()
-    expect(within(summary).getByText('Фото')).toBeInTheDocument()
+    expect(within(summary).queryByText('Фото')).not.toBeInTheDocument()
     expect(within(summary).getByText('Запити')).toBeInTheDocument()
     expect(within(summary).getByText('Вартість консультації')).toBeInTheDocument()
 
@@ -408,12 +442,16 @@ describe('TherapistProfileView', () => {
     const linkCallout = container.querySelector('.profile-link-callout') as HTMLElement
     expect(within(linkCallout).getByRole('button', { name: 'Копіювати посилання' })).toBeDisabled()
     expect(
-      within(linkCallout).getByText('Посилання стане доступним для клієнтів після публікації профілю.')
+      within(linkCallout).getByText('Посилання стане доступним клієнтам після публікації сторінки.')
     ).toBeInTheDocument()
 
-    const searchCheckbox = screen.getByLabelText('Показувати мій профіль у пошуку на Pro Consult')
+    const searchCheckbox = screen.getByLabelText('Показувати сторінку в пошуку Pro Consult')
     expect(searchCheckbox).toBeDisabled()
-    expect(screen.getByText('Пошук можна увімкнути після публікації готового профілю.')).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        'Пошук стане доступним після заповнення мінімально необхідної інформації та публікації сторінки.'
+      )
+    ).toBeInTheDocument()
 
     await fireEvent.click(finishProfileButton)
 
@@ -445,37 +483,79 @@ describe('TherapistProfileView', () => {
     renderView()
 
     const publishButton = await screen.findByRole('button', {
-      name: 'Увімкнути публічний профіль',
+      name: 'Опублікувати сторінку',
     })
-    expect(screen.getAllByText('Увімкнути публічний профіль')).toHaveLength(1)
-    expect(screen.getByText('Профіль не опублікований')).toBeInTheDocument()
-    expect(screen.getByText('7 з 7')).toBeInTheDocument()
+    expect(screen.getAllByText('Опублікувати сторінку')).toHaveLength(1)
+    expect(screen.getByText('Сторінка не опублікована')).toBeInTheDocument()
+    expect(screen.getByText('6 з 6')).toBeInTheDocument()
     expect(screen.getByText('Усі обов’язкові дані заповнені.')).toBeInTheDocument()
     const linkCallout = document.querySelector('.profile-link-callout') as HTMLElement
     expect(within(linkCallout).getByRole('button', { name: 'Копіювати посилання' })).toBeDisabled()
-    expect(within(linkCallout).queryByRole('link', { name: 'Увімкнути публічний профіль' })).not.toBeInTheDocument()
+    expect(within(linkCallout).queryByRole('link', { name: 'Опублікувати сторінку' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Переглянути сторінку' })).not.toBeInTheDocument()
     expect(
-      within(linkCallout).getByText('Посилання стане доступним для клієнтів після публікації профілю.')
+      within(linkCallout).getByText('Посилання стане доступним клієнтам після публікації сторінки.')
     ).toBeInTheDocument()
 
     await fireEvent.click(publishButton)
-    expect(screen.getByText('Публічний профіль увімкнено')).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Переглянути профіль' })).toHaveAttribute(
-      'href',
-      `${window.location.origin}/s/specialist-anna`
-    )
-    expect(screen.getAllByText('Переглянути профіль')).toHaveLength(1)
+    expect(screen.getByText('Сторінку буде опубліковано після збереження')).toBeInTheDocument()
+    expect(
+      screen.getByText('Збережіть зміни, щоб сторінка стала доступною клієнтам за прямим посиланням.')
+    ).toBeInTheDocument()
+    expect(await screen.findByTestId('profile-sticky-save-bar')).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Переглянути сторінку' })).not.toBeInTheDocument()
     expect(screen.queryByText('Відкрити як клієнт')).not.toBeInTheDocument()
-    expect(within(linkCallout).getByRole('button', { name: 'Копіювати посилання' })).toBeEnabled()
+    expect(within(linkCallout).getByRole('button', { name: 'Копіювати посилання' })).toBeDisabled()
+    expect(screen.getByLabelText('Показувати сторінку в пошуку Pro Consult')).not.toBeChecked()
+    expect(mockedUpdateSpecialistProfile).not.toHaveBeenCalled()
     await fireEvent.click(screen.getByRole('button', { name: 'Зберегти зміни' }))
 
     await waitFor(() => {
       expect(mockedUpdateSpecialistProfile).toHaveBeenCalledWith(
         expect.objectContaining({
           public_profile_enabled: true,
+          is_search_visible: false,
         })
       )
     })
+    expect(screen.getByText('Сторінка доступна за посиланням')).toBeInTheDocument()
+    expect(screen.getAllByRole('link', { name: 'Переглянути сторінку' })[0]).toHaveAttribute(
+      'href',
+      `${window.location.origin}/s/specialist-anna`
+    )
+    expect(screen.getAllByText('Переглянути сторінку')).toHaveLength(2)
+    expect(within(linkCallout).getByRole('button', { name: 'Копіювати посилання' })).toBeEnabled()
+  })
+
+  it('keeps pending publication state when saving publication fails', async () => {
+    const readyInactive = {
+      ...makeProfile(),
+      public_profile_enabled: false,
+      is_search_visible: false,
+    }
+    mockedFetchSpecialistProfile.mockResolvedValue(readyInactive)
+    mockedUpdateSpecialistProfile.mockRejectedValue({
+      response: {
+        status: 500,
+        data: { detail: 'Не вдалося зберегти зміни. Спробуйте ще раз.' },
+      },
+    })
+
+    renderView()
+
+    await fireEvent.click(await screen.findByRole('button', { name: 'Опублікувати сторінку' }))
+
+    expect(screen.getByText('Сторінку буде опубліковано після збереження')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Копіювати посилання' })).toBeDisabled()
+    expect(screen.queryByRole('link', { name: 'Переглянути сторінку' })).not.toBeInTheDocument()
+
+    await fireEvent.click(screen.getByRole('button', { name: 'Зберегти зміни' }))
+
+    expect(await screen.findByText('Не вдалося зберегти зміни. Спробуйте ще раз.')).toBeInTheDocument()
+    expect(screen.getByText('Сторінку буде опубліковано після збереження')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Копіювати посилання' })).toBeDisabled()
+    expect(screen.queryByRole('link', { name: 'Переглянути сторінку' })).not.toBeInTheDocument()
+    expect(screen.getByTestId('profile-sticky-save-bar')).toBeInTheDocument()
   })
 
   it('shows missing readiness items when backend rejects activation', async () => {
@@ -490,14 +570,14 @@ describe('TherapistProfileView', () => {
         status: 409,
         data: {
           code: 'PROFILE_NOT_READY',
-          missing_items: ['photo'],
+          missing_items: ['topics'],
           readiness: {
             is_ready: false,
-            completed_count: 6,
-            total_count: 7,
-            missing_items: ['photo'],
+            completed_count: 5,
+            total_count: 6,
+            missing_items: ['topics'],
             items: [
-              { key: 'photo', label: 'Фото', complete: false },
+              { key: 'topics', label: 'Запити', complete: false },
             ],
           },
         },
@@ -507,7 +587,7 @@ describe('TherapistProfileView', () => {
     renderView()
 
     const publishButton = await screen.findByRole('button', {
-      name: 'Увімкнути публічний профіль',
+      name: 'Опублікувати сторінку',
     })
     await fireEvent.click(publishButton)
     await fireEvent.click(screen.getByRole('button', { name: 'Зберегти зміни' }))
@@ -515,7 +595,7 @@ describe('TherapistProfileView', () => {
     expect(
       await screen.findByText(/Профіль поки не готовий для клієнтів/)
     ).toBeInTheDocument()
-    expect(screen.getByText(/Не вистачає: Фото/)).toBeInTheDocument()
+    expect(screen.getByText(/Не вистачає: Запити/)).toBeInTheDocument()
   })
 
   it('keeps profile visibility controls near their related sections', async () => {
@@ -543,11 +623,12 @@ describe('TherapistProfileView', () => {
     const profileSectionsHeading = screen.getByRole('heading', { name: 'Секції публічного профілю' })
 
     expect(mediaHeadings).toHaveLength(1)
+    const mediaHeading = mediaHeadings[0] as HTMLElement
     expect(
-      Boolean(basicsHeading.compareDocumentPosition(mediaHeadings[0]) & Node.DOCUMENT_POSITION_FOLLOWING)
+      Boolean(basicsHeading.compareDocumentPosition(mediaHeading) & Node.DOCUMENT_POSITION_FOLLOWING)
     ).toBe(true)
     expect(
-      Boolean(mediaHeadings[0].compareDocumentPosition(profileSectionsHeading) & Node.DOCUMENT_POSITION_FOLLOWING)
+      Boolean(mediaHeading.compareDocumentPosition(profileSectionsHeading) & Node.DOCUMENT_POSITION_FOLLOWING)
     ).toBe(true)
   })
 
@@ -582,19 +663,50 @@ describe('TherapistProfileView', () => {
 
     renderView()
 
-    expect(await screen.findByRole('heading', { name: 'Додаткова видимість' })).toBeInTheDocument()
+    expect(await screen.findByRole('heading', { name: 'Пошук Pro Consult' })).toBeInTheDocument()
     expect(
-      screen.getByLabelText('Показувати мій профіль у пошуку на Pro Consult')
+      screen.getByLabelText('Показувати сторінку в пошуку Pro Consult')
     ).toBeChecked()
     expect(
       screen.getByText(
-        'Якщо вимкнути, профіль залишиться доступним за прямим посиланням, але не з’являтиметься у пошуку на сайті.'
+        'Клієнти можуть знайти сторінку через пошук спеціалістів.'
       )
     ).toBeInTheDocument()
     expect(screen.queryByLabelText('Дозволити знаходити мій профіль через пошук спеціалістів')).not.toBeInTheDocument()
     expect(
       screen.getByText(/У пошуку спеціалістів вони зʼявляються лише якщо окремо увімкнено видимість у пошуку/)
     ).toBeInTheDocument()
+  })
+
+  it('shows pending search visibility helpers before save', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValue(makeProfile())
+
+    const { unmount } = renderView()
+
+    const disableSearchCheckbox = await screen.findByLabelText('Показувати сторінку в пошуку Pro Consult')
+    await fireEvent.click(disableSearchCheckbox)
+
+    expect(screen.getByText('Показ у пошуку буде вимкнено після збереження.')).toBeInTheDocument()
+    expect(screen.queryByText('Сторінка залишається доступною за прямим посиланням, але не відображається в пошуку.')).not.toBeInTheDocument()
+    expect(mockedUpdateSpecialistProfile).not.toHaveBeenCalled()
+
+    unmount()
+    mockedFetchSpecialistProfile.mockResolvedValue({
+      ...makeProfile(),
+      is_search_visible: false,
+    })
+
+    renderView()
+
+    const enableSearchCheckbox = await screen.findByLabelText('Показувати сторінку в пошуку Pro Consult')
+    expect(
+      screen.getByText('Сторінка залишається доступною за прямим посиланням, але не відображається в пошуку.')
+    ).toBeInTheDocument()
+    await fireEvent.click(enableSearchCheckbox)
+
+    expect(screen.getByText('Показ у пошуку буде ввімкнено після збереження.')).toBeInTheDocument()
+    expect(screen.queryByText('Клієнти можуть знайти сторінку через пошук спеціалістів.')).not.toBeInTheDocument()
+    expect(mockedUpdateSpecialistProfile).not.toHaveBeenCalled()
   })
 
   it('keeps work boundaries helper text in profile management', async () => {

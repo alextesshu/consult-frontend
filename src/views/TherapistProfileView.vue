@@ -23,9 +23,9 @@
 
             <form v-else class="profile-grid" @submit.prevent="onSave">
       <div v-if="error && !isDirty" class="form-error">{{ error }}</div>
-      <section class="profile-summary-card" aria-label="Стан публічного профілю">
+      <section class="profile-summary-card" aria-label="Стан публічної сторінки">
         <div class="profile-summary-card__group profile-summary-card__group--publication">
-          <div class="profile-summary-card__eyebrow">Публічність</div>
+          <div class="profile-summary-card__eyebrow">Публічна сторінка</div>
           <div class="profile-summary-card__status">
             <span class="profile-summary-card__dot" :class="publicationStatusDotClass" aria-hidden="true"></span>
             <span>{{ publicationStatusText }}</span>
@@ -53,7 +53,7 @@
 
         <div class="profile-summary-card__actions">
           <button
-            v-if="profilePrimaryActionKind !== 'open'"
+            v-if="profilePrimaryActionKind !== 'open' && profilePrimaryActionKind !== 'pending'"
             class="btn profile-summary-card__primary-action"
             type="button"
             :aria-label="profilePrimaryActionLabel"
@@ -62,7 +62,7 @@
             {{ profilePrimaryActionLabel }}
           </button>
           <a
-            v-else
+            v-else-if="profilePrimaryActionKind === 'open'"
             class="btn profile-summary-card__primary-action"
             :href="publicUrl"
             target="_blank"
@@ -79,7 +79,7 @@
             type="button"
             @click="showDisablePublicProfileConfirm = true"
           >
-            Вимкнути публічний профіль
+            Зняти з публікації
           </button>
         </div>
       </section>
@@ -90,29 +90,12 @@
             <h2 class="panel__title">Для клієнтів та соціальних мереж</h2>
             <p class="panel__hint">
               Скопіюйте посилання, щоб надіслати його клієнтам або додати в соціальні мережі.
-              На сторінці можна переглянути інформацію про вас і залишити запит.
+              На сторінці клієнти побачать інформацію про вас і зможуть скористатися
+              налаштованим способом запису або звернення.
             </p>
           </div>
         </div>
         <div class="form" style="margin-top: 12px;">
-          <section class="profile-search-visibility" aria-labelledby="profile-search-visibility-title">
-            <h3 id="profile-search-visibility-title">Додаткова видимість</h3>
-            <label class="check">
-              <input
-                v-model="profile.is_search_visible"
-                type="checkbox"
-                :disabled="!canEnableSearchVisibility"
-              />
-              Показувати мій профіль у пошуку на Pro Consult
-            </label>
-            <div v-if="canEnableSearchVisibility" class="field-help">
-              Якщо вимкнути, профіль залишиться доступним за прямим посиланням, але не з’являтиметься
-              у пошуку на сайті.
-            </div>
-            <div v-else class="field-help">
-              Пошук можна увімкнути після публікації готового профілю.
-            </div>
-          </section>
           <section class="profile-link-callout" aria-label="Ваше посилання">
             <div class="profile-link-callout__label">Ваше посилання</div>
             <code class="slug profile-link-callout__url" title="Повне посилання, яким можна ділитися з клієнтами.">
@@ -128,6 +111,15 @@
               >
                 Копіювати посилання
               </button>
+              <a
+                v-if="isPublicProfilePublished && publicUrl"
+                class="btn btn--ghost"
+                :href="publicUrl"
+                target="_blank"
+                rel="noreferrer"
+              >
+                Переглянути сторінку
+              </a>
               <button
                 class="btn btn--ghost"
                 type="button"
@@ -138,7 +130,7 @@
               </button>
             </div>
             <div v-if="!isPublicProfilePublished" class="field-help">
-              Посилання стане доступним для клієнтів після публікації профілю.
+              Посилання стане доступним клієнтам після публікації сторінки.
             </div>
             <div v-if="slugEditOpen" class="slug-edit">
               <div class="slug-edit__preview">
@@ -173,9 +165,6 @@
               </div>
               <div v-if="slugError" class="form-error">{{ slugError }}</div>
             </div>
-            <div v-if="!profile.public_profile_enabled" class="muted" style="font-size: 12px;">
-              Публічний профіль ще не опубліковано.
-            </div>
             <div
               v-if="copyStatus"
               class="profile-link-callout__status"
@@ -183,6 +172,18 @@
             >
               {{ copyStatus }}
             </div>
+          </section>
+          <section class="profile-search-visibility" aria-labelledby="profile-search-visibility-title">
+            <h3 id="profile-search-visibility-title">Пошук Pro Consult</h3>
+            <label class="check">
+              <input
+                v-model="profile.is_search_visible"
+                type="checkbox"
+                :disabled="!canEnableSearchVisibility"
+              />
+              Показувати сторінку в пошуку Pro Consult
+            </label>
+            <div class="field-help">{{ searchVisibilityHelper }}</div>
           </section>
         </div>
       </section>
@@ -1147,9 +1148,9 @@
 
     <ConfirmModal
       :open="showDisablePublicProfileConfirm"
-      title="Вимкнути публічний профіль?"
-      message="Сторінка стане недоступною за прямим посиланням і зникне з пошуку. Заповнені дані профілю збережуться."
-      confirm-text="Вимкнути профіль"
+      title="Зняти сторінку з публікації?"
+      message="Сторінка перестане відкриватися за прямим посиланням і більше не відображатиметься в пошуку Pro Consult."
+      confirm-text="Зняти з публікації"
       cancel-text="Скасувати"
       tone="danger"
       @confirm="confirmDisablePublicProfile"
@@ -1882,14 +1883,13 @@ const publicUrl = computed(() => {
 const fallbackPublicProfileReadiness: PublicProfileReadiness = {
   is_ready: false,
   completed_count: 0,
-  total_count: 7,
+  total_count: 6,
   missing_items: [],
   items: [],
 }
 
 const readinessLabelByKey: Record<string, string> = {
   display_name: 'Публічне ім’я',
-  photo: 'Фото',
   about: 'Опис',
   topics: 'Запити',
   work_format: 'Формат роботи',
@@ -1930,6 +1930,49 @@ const canEnableSearchVisibility = computed(() =>
   Boolean(profile.public_profile_enabled && publicProfileReadiness.value.is_ready)
 )
 
+const persistedPublicProfileEnabled = ref(false)
+const persistedSearchVisible = ref(false)
+
+function syncPersistedVisibilityStateFromSavedSnapshot() {
+  const savedSnapshot = dirtySnapshot.getSavedSnapshot()
+  persistedPublicProfileEnabled.value = Boolean(savedSnapshot?.public_profile_enabled)
+  persistedSearchVisible.value = Boolean(savedSnapshot?.is_search_visible)
+}
+
+const isPendingPublication = computed(
+  () => Boolean(profile.public_profile_enabled && !persistedPublicProfileEnabled.value)
+)
+const isPendingUnpublication = computed(
+  () => Boolean(!profile.public_profile_enabled && persistedPublicProfileEnabled.value)
+)
+const isPendingSearchEnable = computed(
+  () => Boolean(profile.is_search_visible && !persistedSearchVisible.value)
+)
+const isPendingSearchDisable = computed(
+  () => Boolean(!profile.is_search_visible && persistedSearchVisible.value)
+)
+
+const searchVisibilityHelper = computed(() => {
+  if (!publicProfileReadiness.value.is_ready) {
+    return 'Пошук стане доступним після заповнення мінімально необхідної інформації та публікації сторінки.'
+  }
+  if (isPendingSearchEnable.value) {
+    return 'Показ у пошуку буде ввімкнено після збереження.'
+  }
+  if (isPendingSearchDisable.value) {
+    return 'Показ у пошуку буде вимкнено після збереження.'
+  }
+  if (!profile.public_profile_enabled) {
+    return 'Спочатку опублікуйте сторінку. Після цього можна окремо ввімкнути її показ у пошуку.'
+  }
+  if (!persistedPublicProfileEnabled.value) {
+    return 'Спочатку опублікуйте сторінку. Після цього можна окремо ввімкнути її показ у пошуку.'
+  }
+  return persistedSearchVisible.value
+    ? 'Клієнти можуть знайти сторінку через пошук спеціалістів.'
+    : 'Сторінка залишається доступною за прямим посиланням, але не відображається в пошуку.'
+})
+
 function buildProfileNotReadyMessage(missingItems = missingProfileReadinessLabels.value): string {
   const missing = missingItems.length ? ` Не вистачає: ${missingItems.join(', ')}.` : ''
   return `Профіль поки не готовий для клієнтів. Заповніть мінімально необхідну інформацію для публікації.${missing}`
@@ -1945,22 +1988,35 @@ const slugPreviewPath = computed(() => {
   return `/s/${nextSlug}`
 })
 
-const isPublicProfilePublished = computed(() => Boolean(profile.public_profile_enabled && publicUrl.value))
-const publicationStatusText = computed(() =>
-  profile.public_profile_enabled ? 'Публічний профіль увімкнено' : 'Профіль не опублікований'
-)
-const publicationStatusHint = computed(() =>
-  profile.public_profile_enabled
-    ? 'Сторінка доступна клієнтам за публічним посиланням.'
+const isPublicProfilePublished = computed(() => Boolean(persistedPublicProfileEnabled.value && publicUrl.value))
+const publicationStatusText = computed(() => {
+  if (isPendingPublication.value) {
+    return 'Сторінку буде опубліковано після збереження'
+  }
+  if (isPendingUnpublication.value) {
+    return 'Сторінку буде знято з публікації після збереження'
+  }
+  return persistedPublicProfileEnabled.value ? 'Сторінка доступна за посиланням' : 'Сторінка не опублікована'
+})
+const publicationStatusHint = computed(() => {
+  if (isPendingPublication.value) {
+    return 'Збережіть зміни, щоб сторінка стала доступною клієнтам за прямим посиланням.'
+  }
+  if (isPendingUnpublication.value) {
+    return 'До збереження сторінка ще доступна за прямим посиланням.'
+  }
+  return persistedPublicProfileEnabled.value
+    ? 'Клієнти можуть переглядати сторінку за прямим посиланням.'
     : publicProfileReadiness.value.is_ready
-      ? 'Увімкніть публічний профіль, коли будете готові показати сторінку клієнтам.'
-      : 'Публікація стане доступною після заповнення обов’язкових даних.'
-)
+      ? 'Після публікації клієнти зможуть відкрити сторінку за прямим посиланням.'
+      : 'Сторінку ще не можна опублікувати. Заповніть мінімально необхідну інформацію.'
+})
 const publicationStatusDotClass = computed(() =>
-  profile.public_profile_enabled ? 'profile-summary-card__dot--on' : 'profile-summary-card__dot--off'
+  persistedPublicProfileEnabled.value ? 'profile-summary-card__dot--on' : 'profile-summary-card__dot--off'
 )
-const profilePrimaryActionKind = computed<'complete' | 'publish' | 'open'>(() => {
+const profilePrimaryActionKind = computed<'complete' | 'publish' | 'open' | 'pending'>(() => {
   if (!publicProfileReadiness.value.is_ready) return 'complete'
+  if (isPendingPublication.value || isPendingUnpublication.value) return 'pending'
   if (!profile.public_profile_enabled) return 'publish'
   return publicUrl.value ? 'open' : 'publish'
 })
@@ -1968,8 +2024,8 @@ const profilePrimaryActionLabel = computed(() =>
   profilePrimaryActionKind.value === 'complete'
     ? 'Завершити профіль'
     : profilePrimaryActionKind.value === 'publish'
-      ? 'Увімкнути публічний профіль'
-      : 'Переглянути профіль'
+      ? 'Опублікувати сторінку'
+      : 'Переглянути сторінку'
 )
 const showPublicProfileNotPublishedHint = computed(
   () => route.query.public_profile === 'unpublished' && !profile.public_profile_enabled
@@ -2053,10 +2109,7 @@ function togglePublicProfileEnabled() {
     error.value = buildProfileNotReadyMessage()
     return
   }
-  profile.public_profile_enabled = !profile.public_profile_enabled
-  if (!profile.public_profile_enabled) {
-    profile.is_search_visible = false
-  }
+  profile.public_profile_enabled = true
 }
 
 function confirmDisablePublicProfile() {
@@ -2302,6 +2355,7 @@ async function loadProfile() {
     selectedMainRequestsSuggestionCategory.value = null
     selectedWorkBoundariesSuggestionCategory.value = null
     dirtySnapshot.markSaved()
+    syncPersistedVisibilityStateFromSavedSnapshot()
     setPreviewUrl(photoPreviewUrl, null)
     setPreviewUrl(videoPreviewUrl, null)
     resetDocumentForm()
@@ -2366,6 +2420,7 @@ async function onSave() {
     languageInput.value = ''
     slugDraft.value = resolvedSlug.value
     dirtySnapshot.markSaved()
+    syncPersistedVisibilityStateFromSavedSnapshot()
     success.value = data.profile_notice?.detail || PROFILE_SAVE_SUCCESS_MESSAGE
   } catch (err) {
     const payload = (err as { response?: { data?: any } })?.response?.data
@@ -2440,8 +2495,8 @@ async function saveSlug() {
 
 async function onCopyLink() {
   copyStatus.value = ''
-  if (!profile.public_profile_enabled) {
-    copyStatus.value = 'Публічний профіль ще не опубліковано. Увімкніть його в налаштуваннях.'
+  if (!isPublicProfilePublished.value) {
+    copyStatus.value = 'Посилання стане доступним клієнтам після публікації сторінки.'
     return
   }
   if (!publicUrl.value) {
