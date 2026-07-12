@@ -18,6 +18,10 @@ KAN-1 staging QA hotfix is complete locally and not deployed:
 - publication, direct-link availability, and search visibility are shown as
   separate publication state, not hard readiness requirements;
 - `Фото та відео` copy now uses `Фото профілю` and `Відеовізитка`;
+- follow-up frontend UX hotfix renamed the dashboard first-contact item to
+  `Запис або запит`, routes that item to booking/request settings instead of
+  availability creation, and adds state-dependent availability guidance;
+- request-only remains a valid ready state without availability windows;
 - frontend-only change; backend unchanged; no migrations, dependency changes,
   or deployment script changes.
 

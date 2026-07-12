@@ -1338,7 +1338,7 @@ describe('CabinetView', () => {
       expect(view.container).toHaveTextContent('Короткий опис')
       expect(view.container).toHaveTextContent('Теми й запити')
       expect(view.container).toHaveTextContent('Формат роботи')
-      expect(view.container).toHaveTextContent('Спосіб першого звернення')
+      expect(view.container).toHaveTextContent('Запис або запит')
       expect(view.container).toHaveTextContent('Базова ціна')
       expect(view.getByRole('link', { name: /Теми й запити/ })).toHaveTextContent('Потрібно доповнити')
       expect(view.container).toHaveTextContent('Що залишилось: теми й запити.')
@@ -1393,7 +1393,7 @@ describe('CabinetView', () => {
     })
   })
 
-  it('routes missing direct-booking first-contact setup to slots', async () => {
+  it('routes missing direct-booking first-contact setup to booking settings', async () => {
     mockedApiGet.mockResolvedValue([])
     mockedFetchSpecialistOnboardingState.mockResolvedValue({
       readiness: {
@@ -1417,11 +1417,13 @@ describe('CabinetView', () => {
     const view = renderView()
 
     await waitFor(() => {
-      expect(view.container).toHaveTextContent('Спосіб першого звернення')
+      expect(view.container).toHaveTextContent('Запис або запит')
       expect(view.container).not.toHaveTextContent('Вікна для запису')
-      expect(view.getByRole('link', { name: /Спосіб першого звернення/ })).toHaveAttribute(
+      const firstContactLink = view.getByRole('link', { name: /Запис або запит/ })
+      expect(firstContactLink).toHaveTextContent('Потрібно налаштувати')
+      expect(firstContactLink).toHaveAttribute(
         'href',
-        '/cabinet/slots?tab=availability&focus=create-availability'
+        '/cabinet/slots?tab=settings'
       )
       expect(view.getByRole('link', { name: 'Налаштувати час' })).toHaveAttribute(
         'href',
@@ -1460,6 +1462,7 @@ describe('CabinetView', () => {
     await waitFor(() => {
       expect(view.container.querySelector('.panel--onboarding')).toBeInTheDocument()
       expect(view.container.querySelectorAll('.onboarding-check-item.onboarding-step--done')).toHaveLength(6)
+      expect(view.getByRole('link', { name: /Запис або запит/ })).toHaveTextContent('Налаштовано')
       expect(view.container).not.toHaveTextContent('Публікація профілю')
       expect(view.container).not.toHaveTextContent('Публічне посилання')
       expect(view.container).toHaveTextContent(

@@ -52,23 +52,42 @@
     >
       <div class="availability-action-panel__content">
         <div>
-          <h2 id="availability-action-title" class="availability-action-panel__title">Додайте вікна для запису</h2>
+          <h2 id="availability-action-title" class="availability-action-panel__title">Як клієнти можуть звертатися</h2>
+          <div v-if="availabilityGuidanceStatus" class="availability-action-panel__status">
+            {{ availabilityGuidanceStatus }}
+          </div>
           <p class="availability-action-panel__helper">
-            Створіть доступний час одразу на кілька днів або тижнів.
+            {{ availabilityGuidanceText }}
           </p>
         </div>
         <div class="availability-action-panel__actions">
+          <RouterLink
+            v-if="availabilityGuidanceSettingsCta"
+            class="btn availability-action-panel__settings"
+            :class="{ 'btn--ghost': !availabilityGuidanceSettingsPrimary }"
+            :to="BOOKING_SETTINGS_ROUTE"
+            @click="setScheduleTab('SETTINGS')"
+          >
+            {{ availabilityGuidanceSettingsCta }}
+          </RouterLink>
           <button
+            v-if="availabilityGuidanceShowFillWeek"
             ref="availabilityPrimaryActionRef"
             class="btn availability-action-panel__primary"
+            :class="{ 'btn--ghost': !availabilityGuidanceFillWeekPrimary }"
             type="button"
             :disabled="loading || deleteActionLoading"
             @click="requestFillWeek"
           >
-            Створити вікна для запису
+            {{ availabilityGuidanceFillWeekLabel }}
           </button>
-          <button class="btn btn--ghost availability-action-panel__secondary" type="button" @click="openCreateForm">
-            Додати одне вікно
+          <button
+            v-if="availabilityGuidanceShowAddOne"
+            class="btn btn--ghost availability-action-panel__secondary"
+            type="button"
+            @click="openCreateForm"
+          >
+            {{ availabilityGuidanceAddOneLabel }}
           </button>
         </div>
       </div>
@@ -107,17 +126,6 @@
               <button class="btn btn--sm" type="button" @click="openRegularSessionsModal">
                 Закріпити регулярний час
               </button>
-            </div>
-          </div>
-          <div v-else class="action-group action-group--availability">
-            <div class="action-group__buttons">
-              <RouterLink
-                class="btn btn--ghost btn--sm booking-settings-cta"
-                to="/cabinet/slots?tab=settings"
-                @click="setScheduleTab('SETTINGS')"
-              >
-                Запис і запити
-              </RouterLink>
             </div>
           </div>
         </div>
@@ -1689,6 +1697,7 @@ type PublicGuestRequestContext = {
 
 const PAST_SESSION_TIME_ERROR_MESSAGE = 'Неможливо створити сесію в минулому. Оберіть майбутню дату або час.'
 const PENDING_REQUESTS_ROUTE = '/cabinet/external-sessions#guest-requests'
+const BOOKING_SETTINGS_ROUTE = '/cabinet/slots?tab=settings'
 const REQUEST_SCHEDULING_QUERY_KEYS = ['request_id', 'public_request_id', 'client_name', 'contact', 'format', 'source']
 
 const slots = ref<Slot[]>([])
@@ -1873,6 +1882,8 @@ const settingsError = ref('')
 const settingsLoaded = ref(false)
 const publicBookingMode = ref<PublicBookingMode>('request_only')
 const showPublicAvailability = ref(false)
+const persistedPublicBookingMode = ref<PublicBookingMode | null>(null)
+const persistedShowPublicAvailability = ref(false)
 const publicBookingMinLeadTimeHours = ref(24)
 const publicBookingHorizonDays = ref(14)
 const publicBookingRequiresConfirmation = ref(true)
@@ -2538,11 +2549,66 @@ const bookingModeHelperText = computed(() => (
 const directBookingVisibilityWarning = computed(() => (
   publicBookingMode.value === 'direct_booking' && !showPublicAvailability.value
 ))
+const hasFutureAvailabilityWindows = computed(() => slots.value.some((slot) => isFutureSlot(slot) && !slot.is_booked))
+const persistedDirectBookingEnabled = computed(() => (
+  persistedPublicBookingMode.value === 'direct_booking' && persistedShowPublicAvailability.value
+))
+const availabilityGuidanceNeedsSetup = computed(() => persistedPublicBookingMode.value === null)
+const availabilityGuidanceIsRequestOnly = computed(() => persistedPublicBookingMode.value === 'request_only')
+const availabilityGuidanceDirectWithoutWindows = computed(() => (
+  persistedDirectBookingEnabled.value && !hasFutureAvailabilityWindows.value
+))
+const availabilityGuidanceStatus = computed(() => {
+  if (availabilityGuidanceNeedsSetup.value) return ''
+  if (availabilityGuidanceIsRequestOnly.value) return 'Зараз: запит без вибору часу'
+  if (availabilityGuidanceDirectWithoutWindows.value) return 'Запис за вільним часом увімкнено'
+  if (persistedDirectBookingEnabled.value) {
+    return 'Зараз доступні: запис у вільне вікно та запит без вибору часу'
+  }
+  return 'Зараз: запис за вільним часом налаштовано, але показ вікон вимкнено'
+})
+const availabilityGuidanceText = computed(() => {
+  if (availabilityGuidanceNeedsSetup.value) {
+    return 'Спочатку оберіть, як клієнт починатиме взаємодію: залишатиме запит, обиратиме вільний час або використовуватиме обидва варіанти.'
+  }
+  if (availabilityGuidanceIsRequestOnly.value) {
+    return 'Клієнти можуть залишати запити без вибору конкретного часу. Вікна для запису необов’язкові.'
+  }
+  if (availabilityGuidanceDirectWithoutWindows.value) {
+    return 'Щоб клієнти могли обирати час, створіть доступні вікна.'
+  }
+  if (persistedDirectBookingEnabled.value) {
+    return 'Клієнти можуть обирати доступні вікна у публічному профілі або залишати запит без вибору часу.'
+  }
+  return 'Увімкніть показ доступних вікон або перейдіть на запити без вибору часу.'
+})
+const availabilityGuidanceSettingsCta = computed(() => {
+  if (availabilityGuidanceNeedsSetup.value) return 'Налаштувати запис і запити'
+  if (availabilityGuidanceDirectWithoutWindows.value) return 'Змінити налаштування запису і запитів'
+  return 'Змінити налаштування'
+})
+const availabilityGuidanceSettingsPrimary = computed(() => (
+  availabilityGuidanceNeedsSetup.value || !persistedDirectBookingEnabled.value
+))
+const availabilityGuidanceShowFillWeek = computed(() => (
+  availabilityGuidanceIsRequestOnly.value || persistedDirectBookingEnabled.value
+))
+const availabilityGuidanceFillWeekPrimary = computed(() => availabilityGuidanceDirectWithoutWindows.value)
+const availabilityGuidanceFillWeekLabel = computed(() => (
+  availabilityGuidanceDirectWithoutWindows.value ? 'Створити вікна для запису' : 'Додати вікна для запису'
+))
+const availabilityGuidanceShowAddOne = computed(() => (
+  availabilityGuidanceIsRequestOnly.value || persistedDirectBookingEnabled.value
+))
+const availabilityGuidanceAddOneLabel = computed(() => 'Додати одне вікно')
 const availabilityTabHelperText = computed(() => {
-  if (publicBookingMode.value === 'request_only') {
+  if (availabilityGuidanceNeedsSetup.value) {
+    return 'Спочатку налаштуйте, чи клієнти залишають запит, обирають час або використовують обидва варіанти.'
+  }
+  if (persistedPublicBookingMode.value === 'request_only') {
     return 'Клієнти бачать ці вікна лише коли прямий запис увімкнено.'
   }
-  if (showPublicAvailability.value) {
+  if (persistedShowPublicAvailability.value) {
     return 'Клієнти бачать ці вікна у публічному профілі.'
   }
   return 'Показ доступних вікон вимкнено у публічному профілі.'
@@ -3466,8 +3532,14 @@ function normalizePublicBookingHorizon(value: unknown): number {
 }
 
 function applyPublicBookingSettings(profile: Partial<SpecialistProfile>) {
-  publicBookingMode.value = normalizePublicBookingMode(profile.public_booking_mode)
+  const normalizedMode = normalizePublicBookingMode(profile.public_booking_mode)
+  publicBookingMode.value = normalizedMode
   showPublicAvailability.value = Boolean(profile.show_public_availability)
+  persistedPublicBookingMode.value =
+    profile.public_booking_mode === 'direct_booking' || profile.public_booking_mode === 'request_only'
+      ? normalizedMode
+      : null
+  persistedShowPublicAvailability.value = Boolean(profile.show_public_availability)
   publicBookingMinLeadTimeHours.value = normalizePublicBookingLeadTime(
     profile.public_booking_min_lead_time_hours
   )
@@ -4460,6 +4532,18 @@ onBeforeUnmount(() => {
   line-height: 1.45;
 }
 
+.availability-action-panel__status {
+  width: fit-content;
+  margin-top: 8px;
+  padding: 4px 8px;
+  border: 1px solid color-mix(in srgb, var(--pc-primary) 22%, var(--pc-border));
+  border-radius: var(--pc-radius-control);
+  background: color-mix(in srgb, var(--pc-blue-soft) 62%, #ffffff);
+  color: var(--pc-navy-900);
+  font-size: 12px;
+  font-weight: 800;
+}
+
 .availability-action-panel__actions,
 .availability-empty-state__actions {
   display: flex;
@@ -4474,6 +4558,10 @@ onBeforeUnmount(() => {
 }
 
 .availability-action-panel__secondary {
+  min-height: 38px;
+}
+
+.availability-action-panel__settings {
   min-height: 38px;
 }
 

@@ -107,7 +107,7 @@ describe('specialist onboarding mapping', () => {
     expect(vm.publicationSummary).not.toMatch(/тільки|лише/)
   })
 
-  it('routes direct booking without future windows to availability while keeping first-contact as the hard requirement', () => {
+  it('routes missing first-contact setup to booking settings instead of availability creation', () => {
     const vm = buildSpecialistOnboardingViewModel(
       normalizeOnboardingState({
         readiness: {
@@ -132,7 +132,7 @@ describe('specialist onboarding mapping', () => {
     expect(vm.status).toBe('needs_completion')
     expect(vm.primaryCta?.to).toBe('/cabinet/slots?tab=availability&focus=create-availability')
     expect(vm.steps.find((step) => step.key === 'client_entry_path')?.to).toBe(
-      '/cabinet/slots?tab=availability&focus=create-availability'
+      '/cabinet/slots?tab=settings'
     )
     expect(vm.steps.find((step) => step.key === 'client_entry_path')?.title).toContain('спосіб першого звернення')
   })

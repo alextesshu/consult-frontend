@@ -189,8 +189,8 @@ const STEP_META: Array<{
   {
     key: 'client_entry_path',
     title: 'Оберіть спосіб першого звернення',
-    compactTitle: 'Спосіб першого звернення',
-    missingCopy: 'спосіб першого звернення',
+    compactTitle: 'Запис або запит',
+    missingCopy: 'запис або запит',
     hint: 'Клієнт має розуміти, як залишити запит або обрати час.',
     actionLabel: 'Налаштувати звернення',
     fallbackRoute: '/cabinet/slots?tab=settings',
@@ -529,12 +529,7 @@ export function buildSpecialistOnboardingViewModel(
     topics: '/cabinet/profile',
     work_format: '/cabinet/profile',
     base_price: '/cabinet/profile',
-    client_entry_path:
-      details.publicBookingMode === 'direct_booking' &&
-      details.showPublicAvailability === true &&
-      details.hasFutureSlots === false
-        ? '/cabinet/slots?tab=availability&focus=create-availability'
-        : '/cabinet/slots?tab=settings',
+    client_entry_path: '/cabinet/slots?tab=settings',
   }
 
   const steps: OnboardingViewStep[] = STEP_META.map((step) => ({

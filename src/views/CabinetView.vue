@@ -229,7 +229,7 @@
                   :to="onboardingStepTo(step)"
                 >
                   <span class="onboarding-check-item__label">{{ compactOnboardingStepTitle(step) }}</span>
-                  <span class="onboarding-step__state">{{ step.done ? 'Готово' : 'Потрібно доповнити' }}</span>
+                  <span class="onboarding-step__state">{{ compactOnboardingStepState(step) }}</span>
                 </RouterLink>
               </li>
             </ol>
@@ -946,8 +946,13 @@ function compactOnboardingStepTitle(step: OnboardingStep) {
   if (step.key === 'topics') return 'Теми й запити'
   if (step.key === 'work_format') return 'Формат роботи'
   if (step.key === 'base_price') return 'Базова ціна'
-  if (step.key === 'client_entry_path') return 'Спосіб першого звернення'
+  if (step.key === 'client_entry_path') return 'Запис або запит'
   return step.title
+}
+
+function compactOnboardingStepState(step: OnboardingStep) {
+  if (step.key === 'client_entry_path') return step.done ? 'Налаштовано' : 'Потрібно налаштувати'
+  return step.done ? 'Готово' : 'Потрібно доповнити'
 }
 
 const attentionItems = computed<AttentionItem[]>(() => {

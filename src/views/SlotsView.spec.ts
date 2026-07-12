@@ -151,12 +151,14 @@ async function openCreateForm(container: Element) {
 }
 
 function getAvailabilityActionPanel() {
-  const panel = screen.getByRole('region', { name: 'Додайте вікна для запису' })
+  const panel = screen.getByRole('region', { name: 'Як клієнти можуть звертатися' })
   return within(panel)
 }
 
 function getAvailabilityPrimaryAction() {
-  return getAvailabilityActionPanel().getByRole('button', { name: 'Створити вікна для запису' })
+  return getAvailabilityActionPanel().getByRole('button', {
+    name: /Створити вікна для запису|Додати вікна для запису/,
+  })
 }
 
 function getAvailabilitySecondaryAction() {
@@ -336,12 +338,14 @@ describe('SlotsView', () => {
 
     expect(screen.getByRole('tab', { name: 'Вікна для запису' })).toHaveAttribute('aria-selected', 'true')
     expect(getAvailabilitySecondaryAction()).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: 'Додайте вікна для запису' })).toBeInTheDocument()
-    expect(screen.getByText('Створіть доступний час одразу на кілька днів або тижнів.')).toBeInTheDocument()
-    const actionPanel = screen.getByRole('region', { name: 'Додайте вікна для запису' })
+    expect(screen.getByRole('heading', { name: 'Як клієнти можуть звертатися' })).toBeInTheDocument()
+    expect(screen.getByText('Зараз: запит без вибору часу')).toBeInTheDocument()
+    expect(screen.getByText('Клієнти можуть залишати запити без вибору конкретного часу. Вікна для запису необов’язкові.')).toBeInTheDocument()
+    const actionPanel = screen.getByRole('region', { name: 'Як клієнти можуть звертатися' })
     const toolbar = container.querySelector('.schedule-toolbar')
     expect(toolbar).toBeInstanceOf(HTMLElement)
     expect(actionPanel.compareDocumentPosition(toolbar as Element) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(within(toolbar as HTMLElement).queryByRole('link', { name: 'Запис і запити' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Створити сесію' })).not.toBeInTheDocument()
     expect(scrollIntoViewMock).not.toHaveBeenCalled()
     expect(mockRouter.replace).not.toHaveBeenCalled()
@@ -366,7 +370,7 @@ describe('SlotsView', () => {
     expect(scrollIntoViewMock).not.toHaveBeenCalled()
     expect(document.activeElement).not.toBe(primaryAction)
     expect(mockRouter.replace).not.toHaveBeenCalled()
-    expect(screen.getByRole('region', { name: 'Додайте вікна для запису' })).not.toHaveClass(
+    expect(screen.getByRole('region', { name: 'Як клієнти можуть звертатися' })).not.toHaveClass(
       'availability-action-panel--attention'
     )
 
@@ -379,7 +383,7 @@ describe('SlotsView', () => {
       expect(document.activeElement).toBe(primaryAction)
     })
     expect(screen.queryByRole('dialog', { name: 'Створити вікна для запису' })).not.toBeInTheDocument()
-    expect(screen.getByRole('region', { name: 'Додайте вікна для запису' })).toHaveClass(
+    expect(screen.getByRole('region', { name: 'Як клієнти можуть звертатися' })).toHaveClass(
       'availability-action-panel--attention'
     )
     expect(mockRouter.replace).toHaveBeenCalledWith({
@@ -389,7 +393,7 @@ describe('SlotsView', () => {
 
     vi.advanceTimersByTime(2200)
     await flushAsyncUpdates()
-    expect(screen.getByRole('region', { name: 'Додайте вікна для запису' })).not.toHaveClass(
+    expect(screen.getByRole('region', { name: 'Як клієнти можуть звертатися' })).not.toHaveClass(
       'availability-action-panel--attention'
     )
   })
@@ -434,7 +438,7 @@ describe('SlotsView', () => {
     await flushAsyncUpdates()
 
     expect(screen.queryByRole('region', { name: 'На цьому тижні ще немає вікон для запису' })).not.toBeInTheDocument()
-    expect(screen.getAllByRole('button', { name: 'Створити вікна для запису' })).toHaveLength(1)
+    expect(getAvailabilityActionPanel().getByRole('button', { name: 'Додати вікна для запису' })).toHaveClass('btn--ghost')
   })
 
   it('does not show onboarding empty state when status filters hide existing week slots', async () => {
@@ -484,7 +488,7 @@ describe('SlotsView', () => {
     const { unmount } = renderView()
     await flushAsyncUpdates()
 
-    expect(screen.queryByRole('region', { name: 'Додайте вікна для запису' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('region', { name: 'Як клієнти можуть звертатися' })).not.toBeInTheDocument()
     expect(screen.queryByRole('region', { name: 'На цьому тижні ще немає вікон для запису' })).not.toBeInTheDocument()
     unmount()
 
@@ -492,7 +496,7 @@ describe('SlotsView', () => {
     renderView()
     await flushAsyncUpdates()
 
-    expect(screen.queryByRole('region', { name: 'Додайте вікна для запису' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('region', { name: 'Як клієнти можуть звертатися' })).not.toBeInTheDocument()
     expect(screen.queryByRole('region', { name: 'На цьому тижні ще немає вікон для запису' })).not.toBeInTheDocument()
   })
 
@@ -740,10 +744,11 @@ describe('SlotsView', () => {
     const toolbar = document.querySelector('.schedule-toolbar')
     expect(toolbar).toBeInTheDocument()
     expect(within(toolbar as HTMLElement).queryByRole('button', { name: 'Додати одне вікно' })).not.toBeInTheDocument()
+    expect(within(toolbar as HTMLElement).queryByRole('link', { name: 'Запис і запити' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Створити сесію' })).not.toBeInTheDocument()
   })
 
-  it('shows availability helper copy with a booking settings entry point', async () => {
+  it('shows request-only guidance with a contextual booking settings entry point', async () => {
     mockedFetchSpecialistProfile.mockResolvedValueOnce({
       standard_session_duration_minutes: 50,
       timezone: 'Europe/Kyiv',
@@ -762,15 +767,100 @@ describe('SlotsView', () => {
     expect(
       screen.getByText('Клієнти бачать ці вікна лише коли прямий запис увімкнено.')
     ).toBeInTheDocument()
-    expect(screen.getByRole('link', { name: 'Запис і запити' })).toHaveAttribute('href', '/cabinet/slots?tab=settings')
+    expect(
+      screen.getByText('Клієнти можуть залишати запити без вибору конкретного часу. Вікна для запису необов’язкові.')
+    ).toBeInTheDocument()
+    expect(getAvailabilityActionPanel().queryByRole('button', { name: 'Створити вікна для запису' })).not.toBeInTheDocument()
+    expect(getAvailabilityActionPanel().getByRole('button', { name: 'Додати вікна для запису' })).toHaveClass('btn--ghost')
+    expect(screen.getByRole('link', { name: 'Змінити налаштування' })).toHaveAttribute('href', '/cabinet/slots?tab=settings')
     expect(screen.queryByRole('link', { name: 'Налаштувати запис і запити' })).not.toBeInTheDocument()
 
-    await fireEvent.click(screen.getByRole('link', { name: 'Запис і запити' }))
+    await fireEvent.click(screen.getByRole('link', { name: 'Змінити налаштування' }))
     await flushAsyncUpdates()
     expect(screen.getByRole('heading', { name: 'Запис і запити' })).toBeInTheDocument()
     expect(screen.getByLabelText('Спосіб запису')).toBeInTheDocument()
     expect(screen.getByText('Клієнти надсилають запит')).toBeInTheDocument()
     expect(screen.getByText('Клієнти можуть записатися на доступне вікно')).toBeInTheDocument()
+  })
+
+  it('shows first-contact setup guidance without presenting availability creation as the only first step', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValueOnce({
+      standard_session_duration_minutes: 50,
+      timezone: 'Europe/Kyiv',
+      public_booking_mode: null,
+      show_public_availability: false,
+      public_booking_min_lead_time_hours: 24,
+      public_booking_horizon_days: 14,
+      public_booking_requires_confirmation: true,
+    } as any)
+    mockScheduleApi()
+
+    renderView()
+    await flushAsyncUpdates()
+    await fireEvent.click(screen.getByRole('tab', { name: 'Вікна для запису' }))
+    await flushAsyncUpdates()
+
+    expect(screen.getByText('Спочатку оберіть, як клієнт починатиме взаємодію: залишатиме запит, обиратиме вільний час або використовуватиме обидва варіанти.')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Налаштувати запис і запити' })).toHaveAttribute('href', '/cabinet/slots?tab=settings')
+    expect(getAvailabilityActionPanel().queryByRole('button', { name: /Створити вікна для запису|Додати вікна для запису/ })).not.toBeInTheDocument()
+  })
+
+  it('makes availability creation primary only when persisted direct booking has no future windows', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValueOnce({
+      standard_session_duration_minutes: 50,
+      timezone: 'Europe/Kyiv',
+      public_booking_mode: 'direct_booking',
+      show_public_availability: true,
+      public_booking_min_lead_time_hours: 24,
+      public_booking_horizon_days: 14,
+      public_booking_requires_confirmation: true,
+    } as any)
+    mockScheduleApi()
+
+    renderView()
+    await flushAsyncUpdates()
+    await fireEvent.click(screen.getByRole('tab', { name: 'Вікна для запису' }))
+    await flushAsyncUpdates()
+
+    expect(screen.getByText('Запис за вільним часом увімкнено')).toBeInTheDocument()
+    expect(screen.getByText('Щоб клієнти могли обирати час, створіть доступні вікна.')).toBeInTheDocument()
+    expect(getAvailabilityActionPanel().getByRole('button', { name: 'Створити вікна для запису' })).not.toHaveClass('btn--ghost')
+    expect(getAvailabilityActionPanel().getByRole('button', { name: 'Додати одне вікно' })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Змінити налаштування запису і запитів' })).toHaveAttribute(
+      'href',
+      '/cabinet/slots?tab=settings'
+    )
+  })
+
+  it('shows compact current mode when direct booking has future windows', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValueOnce({
+      standard_session_duration_minutes: 50,
+      timezone: 'Europe/Kyiv',
+      public_booking_mode: 'direct_booking',
+      show_public_availability: true,
+      public_booking_min_lead_time_hours: 24,
+      public_booking_horizon_days: 14,
+      public_booking_requires_confirmation: true,
+    } as any)
+    mockScheduleApi([
+      {
+        id: 903,
+        start_at: '2026-03-13T09:00:00Z',
+        end_at: '2026-03-13T09:50:00Z',
+        is_booked: false,
+      },
+    ])
+
+    renderView()
+    await flushAsyncUpdates()
+    await fireEvent.click(screen.getByRole('tab', { name: 'Вікна для запису' }))
+    await flushAsyncUpdates()
+
+    expect(screen.getByText('Зараз доступні: запис у вільне вікно та запит без вибору часу')).toBeInTheDocument()
+    expect(screen.getByText('Клієнти можуть обирати доступні вікна у публічному профілі або залишати запит без вибору часу.')).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Створити вікна для запису' })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Додати вікна для запису' })).toHaveClass('btn--ghost')
+    expect(screen.getByRole('link', { name: 'Змінити налаштування' })).toBeInTheDocument()
   })
 
   it('opens regular sessions modal and loads selectable clients with usable record ids', async () => {
