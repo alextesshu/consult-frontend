@@ -8,6 +8,24 @@ Phase archive: `docs/PHASE_CLOSE_SUMMARIES.md`
 
 ## Current Phase
 
+KAN-29 public profile visibility/readiness and availability creation guidance
+is staged and manually verified, but not production-deployed yet.
+
+Backend staging baseline:
+- `75872ab Make profile photo optional for publication`
+
+Frontend staging baselines:
+- `2251469 Simplify public profile visibility controls`
+- `7217b27 Improve availability creation guidance`
+
+Status:
+- KAN-29 is Ready for Production, not Done.
+- Production deploy is pending explicit confirmation.
+- KAN-1 email trigger/copy audit should follow the finalized KAN-29 state
+  mapping.
+- Do not add this phase to `docs/PHASE_CLOSE_SUMMARIES.md` until production is
+  explicitly deployed and smoke-checked.
+
 Frontend production-closure slice is now integrated:
 
 - Active Client Limit Increase / Billing add-on: production-closed
@@ -188,6 +206,31 @@ Frontend production-closure slice is now integrated:
   - `current_request` is pending-only
   - `APPROVED`/`REJECTED` appear as `latest_request`
   - approved requests apply access; use `latest_request.applied` and `latest_request.applied_plan` to avoid contradictory UI
+- Public profile visibility contract:
+  - `public_profile_enabled` controls direct `/s/:slug` availability
+  - `is_search_visible` controls only opt-in discovery/search
+  - valid persisted states are unpublished `false/false`, direct-link public
+    `true/false`, and direct-link plus search `true/true`
+  - `false/true` is invalid and backend normalizes/prevents it
+  - search visibility never publishes a profile by itself
+  - unpublishing disables search visibility
+  - public copy/open actions follow persisted live state, not unsaved local
+    toggle state
+  - hard publication readiness has six requirements: display name,
+    about/description, topics/requests, work format, first-contact/client-entry
+    path, and base price decision
+  - profile photo is recommended, but not a hard publication requirement
+- Availability creation guidance:
+  - dashboard readiness label is `Вікна для запису`
+  - target is `/cabinet/slots?tab=availability&focus=create-availability`
+  - action panel copy is `Додайте вікна для запису`,
+    `Створіть доступний час одразу на кілька днів або тижнів.`,
+    `Створити вікна для запису`, and `Додати одне вікно`
+  - deep link waits for loading, scrolls/focuses the primary CTA, highlights
+    briefly, removes only `focus`, does not open a modal, and respects reduced
+    motion
+  - empty states distinguish true empty week, status-filtered empty result, and
+    weeks with only hidden past windows
 - Leader beta freeze:
   - Leader is visible as unavailable/future on `/cabinet/billing`
   - no specialist-facing Leader request/checkout CTA during beta

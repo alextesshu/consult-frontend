@@ -112,6 +112,9 @@ Session is silently restored on page reload via cookie-based refresh (`/api/auth
 - **SlotsView**: schedule surface plus public availability window management
   - completed sessions render as muted archive/read-only calendar items with compact `Завершено` card label
   - past availability windows are not rendered as active calendar availability
+  - dashboard readiness routes missing availability to `/cabinet/slots?tab=availability&focus=create-availability`
+  - availability creation CTA copy is `Додайте вікна для запису` / `Створити вікна для запису`
+  - empty calendar copy distinguishes a truly empty week, a status-filtered empty result, and weeks with only hidden past windows
 - **GroupEventsView**: full group lifecycle (create/schedule/start/complete/cancel), participants (roles/status), invites
 - **TherapistSessionsView**: specialist actions + notes + reschedule requests + status/date filters
 - **TherapistSessionDetailView**: specialist session detail with status actions, recurring flow, request context, private note, and external meeting-link context
@@ -122,6 +125,12 @@ Session is silently restored on page reload via cookie-based refresh (`/api/auth
   - standard price + intro price (duration + currency)
   - visibility toggles: `show_price`, `show_intro_price`
   - couple consultation settings when enabled/configured
+  - publication and search visibility are separate saved controls:
+    `public_profile_enabled` controls the direct public page, while
+    `is_search_visible` controls opt-in discovery/search only
+  - valid persisted visibility states are unpublished, published by direct
+    link, and published plus search-visible
+  - profile photo is recommended, but not required for publication
 - **PublicProfileView**: landing-style public profile + request-first availability + trust/about/contact blocks + journal preview
   - offer-first selection for `Консультація`, `Ознайомча сесія`, and `Парна консультація` when exposed by backend
   - intro offer is hidden when backend hides intro price/offer visibility
@@ -182,6 +191,11 @@ Session is silently restored on page reload via cookie-based refresh (`/api/auth
   language.
 - Specialists appear in discovery only when the backend exposes them as both
   public-profile enabled and search-visible.
+- `public_profile_enabled=false` means the canonical `/s/:slug` page is not
+  available to clients. `is_search_visible=true` never publishes a profile by
+  itself; search listing requires both flags to be true.
+- Frontend publication controls must distinguish saved live state from local
+  pending publish/unpublish changes until the explicit profile save succeeds.
 - Specialist-uploaded profile documents are shown as specialist-provided
   materials, not as platform-verified credentials.
 - `/s/:slug` is a specialist-owned public landing page. Selecting available
