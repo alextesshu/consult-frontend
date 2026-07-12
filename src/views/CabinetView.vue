@@ -197,7 +197,11 @@
           </div>
           <div
             class="onboarding-status"
-            :class="onboardingViewModel?.status === 'closed' ? 'onboarding-status--pending' : 'onboarding-status--warn'"
+            :class="{
+              'onboarding-status--ready': onboardingViewModel?.status === 'ready',
+              'onboarding-status--pending': onboardingViewModel?.status === 'closed',
+              'onboarding-status--warn': onboardingViewModel?.status === 'needs_completion',
+            }"
           >
             {{ onboardingViewModel?.statusLabel }}
           </div>
@@ -229,6 +233,10 @@
                 </RouterLink>
               </li>
             </ol>
+
+            <p class="onboarding-publication-summary">
+              {{ onboardingViewModel.publicationSummary }}
+            </p>
 
             <div v-if="onboardingViewModel.warnings.length > 0" class="onboarding-list-wrap onboarding-list-wrap--warning">
               <h3 class="onboarding-list-title">Попередження</h3>
@@ -554,7 +562,7 @@ const onboardingViewModel = computed<SpecialistOnboardingViewModel | null>(() =>
 
 const shouldShowOnboardingBlock = computed(() => {
   const viewModel = onboardingViewModel.value
-  return Boolean(viewModel && !viewModel.readiness)
+  return Boolean(viewModel)
 })
 type OnboardingStep = SpecialistOnboardingViewModel['steps'][number]
 
@@ -585,21 +593,8 @@ const onboardingPublicProfilePath = computed(() => {
 })
 
 function onboardingStepTo(step: OnboardingStep) {
-  if (step.key === 'public_link' && onboardingPublicProfilePath.value) {
-    return onboardingPublicProfilePath.value
-  }
   return step.to
 }
-
-function onboardingStepActionLabel(step: OnboardingStep) {
-  if (step.key === 'profile_core') return 'Керувати профілем'
-  if (step.key === 'availability') return 'Налаштувати вікна для запису'
-  if (step.key === 'public_profile') return 'Відкрити публічний профіль'
-  if (step.key === 'inbound_readiness') return 'Перейти до звернень'
-  return 'Відкрити'
-}
-
-void onboardingStepActionLabel
 
 const activeClientsCount = computed(() => {
   const used =
@@ -934,9 +929,8 @@ const pendingGuestRequestsSummary = computed(() => {
 const readinessCompactStatusLine = computed(() => {
   const viewModel = onboardingViewModel.value
   if (!viewModel) return ''
-  if (viewModel.status === 'needs_completion') return 'Профіль відкритий, але його варто доповнити.'
-  if (viewModel.status === 'closed') return 'Ще кілька пунктів - і клієнтам буде зрозуміліше, як до вас звернутися.'
-  return viewModel.statusLabel
+  if (!viewModel.readiness) return viewModel.helper
+  return viewModel.publicationSummary
 })
 
 const compactPrimaryCtaLabel = computed(() => {
@@ -947,14 +941,12 @@ const compactPrimaryCtaLabel = computed(() => {
 })
 
 function compactOnboardingStepTitle(step: OnboardingStep) {
-  if (step.key === 'display_name') return 'Публічне імʼя'
+  if (step.key === 'display_name') return 'Публічне ім’я'
   if (step.key === 'description') return 'Короткий опис'
+  if (step.key === 'topics') return 'Теми й запити'
+  if (step.key === 'work_format') return 'Формат роботи'
   if (step.key === 'base_price') return 'Базова ціна'
-  if (step.key === 'client_entry_path') {
-    return step.to.includes('tab=availability') ? 'Вікна для запису' : 'Спосіб першого звернення'
-  }
-  if (step.key === 'public_profile') return 'Публікація профілю'
-  if (step.key === 'public_link') return 'Публічне посилання'
+  if (step.key === 'client_entry_path') return 'Спосіб першого звернення'
   return step.title
 }
 
@@ -1802,6 +1794,13 @@ onBeforeUnmount(() => {
 }
 
 .onboarding-missing-summary {
+  margin: 0;
+  color: var(--pc-text-muted);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.onboarding-publication-summary {
   margin: 0;
   color: var(--pc-text-muted);
   font-size: 14px;

@@ -1302,26 +1302,26 @@ describe('CabinetView', () => {
     expect(view.container.querySelector('[data-kind="next-action"]')).not.toBeInTheDocument()
   })
 
-  it('renders specialist readiness block for incomplete profile', async () => {
+  it('renders canonical hard readiness and missing topics without publication as a hard chip', async () => {
     mockedApiGet.mockResolvedValue([])
     mockedFetchSpecialistOnboardingState.mockResolvedValue({
-      readiness: {
-        public_display_name_exists: false,
-        basic_description_exists: false,
-        standard_price_configured: false,
-        client_entry_path_exists: false,
-        public_profile_enabled: false,
-        public_profile_link_available: false,
-        ready_for_inbound_intent: false,
+      public_profile_enabled: false,
+      is_search_visible: false,
+      minimum_public_profile_readiness: {
+        is_ready: false,
+        completed_count: 5,
+        total_count: 6,
+        missing_items: ['topics'],
+        items: [
+          { key: 'public_display_name', label: 'Публічне ім’я', complete: true },
+          { key: 'description', label: 'Короткий опис', complete: true },
+          { key: 'topics', label: 'Теми й запити', complete: false },
+          { key: 'work_format', label: 'Формат роботи', complete: true },
+          { key: 'price_decision', label: 'Базова ціна', complete: true },
+          { key: 'first_contact', label: 'Спосіб першого звернення', complete: true },
+        ],
       },
-      missing_items: [
-        'MISSING_DISPLAY_NAME',
-        'MISSING_DESCRIPTION',
-        'MISSING_BASE_PRICE',
-        'MISSING_CLIENT_ENTRY_PATH',
-        'PUBLIC_PROFILE_DISABLED',
-        'MISSING_PUBLIC_PROFILE_LINK',
-      ],
+      missing_items: ['topics', 'PUBLIC_PROFILE_DISABLED', 'MISSING_PUBLIC_PROFILE_LINK'],
       warnings: [{ code: 'PROFILE_CORE_INCOMPLETE' }],
       next_actions: [{ code: 'COMPLETE_PROFILE', target: 'CABINET_PROFILE', priority: 1 }],
       primary_cta_code: 'COMPLETE_PROFILE',
@@ -1332,18 +1332,20 @@ describe('CabinetView', () => {
     await waitFor(() => {
       expect(view.container.querySelector('.panel--onboarding')).toBeInTheDocument()
       expect(view.container).toHaveTextContent('Готовність до звернень')
-      expect(view.container).toHaveTextContent('Ще кілька пунктів - і клієнтам буде зрозуміліше, як до вас звернутися.')
-      expect(view.container).toHaveTextContent('Профіль ще не відкритий')
-      expect(view.container).toHaveTextContent('Публічне імʼя')
+      expect(view.container).toHaveTextContent('Заповніть шість основних пунктів')
+      expect(view.container).toHaveTextContent('Профіль ще не готовий')
+      expect(view.container).toHaveTextContent('Публічне ім’я')
       expect(view.container).toHaveTextContent('Короткий опис')
-      expect(view.container).toHaveTextContent('Базова ціна')
+      expect(view.container).toHaveTextContent('Теми й запити')
+      expect(view.container).toHaveTextContent('Формат роботи')
       expect(view.container).toHaveTextContent('Спосіб першого звернення')
-      expect(view.getByRole('link', { name: /Спосіб першого звернення/ })).toHaveAttribute(
-        'href',
-        '/cabinet/slots?tab=settings'
-      )
-      expect(view.container).toHaveTextContent('Публікація профілю')
-      expect(view.container).toHaveTextContent('Що залишилось: публічне імʼя, опис, базова ціна')
+      expect(view.container).toHaveTextContent('Базова ціна')
+      expect(view.getByRole('link', { name: /Теми й запити/ })).toHaveTextContent('Потрібно доповнити')
+      expect(view.container).toHaveTextContent('Що залишилось: теми й запити.')
+      expect(view.container).toHaveTextContent('Публікація стане доступною після заповнення основних даних.')
+      expect(view.container).not.toHaveTextContent('Публікація профілю')
+      expect(view.container).not.toHaveTextContent('Публічне посилання')
+      expect(view.container).not.toHaveTextContent('лише публікація')
       expect(view.container.querySelector('a[href="/cabinet/profile"]')).toBeInTheDocument()
       expect(view.container.querySelector('.onboarding-check-item.onboarding-step--pending')).toBeInTheDocument()
       expect(view.container.querySelector('.onboarding-step')).not.toBeInTheDocument()
@@ -1357,19 +1359,26 @@ describe('CabinetView', () => {
     expect(view.container).not.toHaveTextContent('Потрібна дія: заповніть базовий профіль.')
   })
 
-  it('shows missing public display name even when username exists', async () => {
+  it('shows missing work format as a hard readiness item', async () => {
     mockedApiGet.mockResolvedValue([])
     mockedFetchSpecialistOnboardingState.mockResolvedValue({
-      readiness: {
-        public_display_name_exists: false,
-        basic_description_exists: true,
-        standard_price_configured: true,
-        client_entry_path_exists: true,
-        public_profile_enabled: true,
-        public_profile_link_available: true,
-        ready_for_inbound_intent: false,
+      public_profile_enabled: false,
+      is_search_visible: false,
+      minimum_public_profile_readiness: {
+        is_ready: false,
+        completed_count: 5,
+        total_count: 6,
+        missing_items: ['work_format'],
+        items: [
+          { key: 'public_display_name', label: 'Публічне ім’я', complete: true },
+          { key: 'description', label: 'Короткий опис', complete: true },
+          { key: 'topics', label: 'Теми й запити', complete: true },
+          { key: 'work_format', label: 'Формат роботи', complete: false },
+          { key: 'price_decision', label: 'Базова ціна', complete: true },
+          { key: 'first_contact', label: 'Спосіб першого звернення', complete: true },
+        ],
       },
-      missing_items: ['MISSING_DISPLAY_NAME'],
+      missing_items: ['work_format'],
       warnings: [],
       next_actions: [{ code: 'COMPLETE_PROFILE', target: 'CABINET_PROFILE', priority: 1 }],
       primary_cta_code: 'COMPLETE_PROFILE',
@@ -1379,12 +1388,12 @@ describe('CabinetView', () => {
 
     await waitFor(() => {
       expect(view.container.querySelector('.panel--onboarding')).toBeInTheDocument()
-      expect(view.container).toHaveTextContent('Публічне імʼя')
-      expect(view.container).toHaveTextContent('Що залишилось: публічне імʼя.')
+      expect(view.getByRole('link', { name: /Формат роботи/ })).toHaveTextContent('Потрібно доповнити')
+      expect(view.container).toHaveTextContent('Що залишилось: формат роботи.')
     })
   })
 
-  it('routes missing direct-booking availability to slots', async () => {
+  it('routes missing direct-booking first-contact setup to slots', async () => {
     mockedApiGet.mockResolvedValue([])
     mockedFetchSpecialistOnboardingState.mockResolvedValue({
       readiness: {
@@ -1408,9 +1417,9 @@ describe('CabinetView', () => {
     const view = renderView()
 
     await waitFor(() => {
-      expect(view.container).toHaveTextContent('Вікна для запису')
-      expect(view.container).not.toHaveTextContent('Спосіб першого звернення')
-      expect(view.getByRole('link', { name: /Вікна для запису/ })).toHaveAttribute(
+      expect(view.container).toHaveTextContent('Спосіб першого звернення')
+      expect(view.container).not.toHaveTextContent('Вікна для запису')
+      expect(view.getByRole('link', { name: /Спосіб першого звернення/ })).toHaveAttribute(
         'href',
         '/cabinet/slots?tab=availability&focus=create-availability'
       )
@@ -1421,37 +1430,111 @@ describe('CabinetView', () => {
     })
   })
 
-  it('shows public profile link only when enabled and slug is available', async () => {
+  it('shows all six hard requirements as ready and proposes publication separately when unpublished', async () => {
+    mockedApiGet.mockResolvedValue([])
+    mockedFetchSpecialistOnboardingState.mockResolvedValue({
+      public_profile_enabled: false,
+      is_search_visible: false,
+      minimum_public_profile_readiness: {
+        is_ready: true,
+        completed_count: 6,
+        total_count: 6,
+        missing_items: [],
+        items: [
+          { key: 'public_display_name', label: 'Публічне ім’я', complete: true },
+          { key: 'description', label: 'Короткий опис', complete: true },
+          { key: 'topics', label: 'Теми й запити', complete: true },
+          { key: 'work_format', label: 'Формат роботи', complete: true },
+          { key: 'price_decision', label: 'Базова ціна', complete: true },
+          { key: 'first_contact', label: 'Спосіб першого звернення', complete: true },
+        ],
+      },
+      missing_items: ['PUBLIC_PROFILE_DISABLED'],
+      warnings: [{ code: 'PUBLIC_PROFILE_OFF' }],
+      next_actions: [{ code: 'OPEN_PUBLIC_PROFILE', target: 'CABINET_PUBLIC_PROFILE', priority: 1 }],
+      primary_cta_code: 'OPEN_PUBLIC_PROFILE',
+    } as any)
+
+    const view = renderView()
+
+    await waitFor(() => {
+      expect(view.container.querySelector('.panel--onboarding')).toBeInTheDocument()
+      expect(view.container.querySelectorAll('.onboarding-check-item.onboarding-step--done')).toHaveLength(6)
+      expect(view.container).not.toHaveTextContent('Публікація профілю')
+      expect(view.container).not.toHaveTextContent('Публічне посилання')
+      expect(view.container).toHaveTextContent(
+        'Основні дані готові. Опублікуйте профіль, щоб відкрити сторінку за прямим посиланням.'
+      )
+      expect(view.getByRole('link', { name: 'Опублікувати' })).toHaveAttribute('href', '/cabinet/profile')
+    })
+  })
+
+  it('shows direct-link-only publication without saying the profile is in search', async () => {
     mockMe.value = {
       ...createMePayload(),
       public_profile_path: '/s/olena-koval',
     } as any
     mockedApiGet.mockResolvedValue([])
     mockedFetchSpecialistOnboardingState.mockResolvedValue({
-      readiness: {
-        public_display_name_exists: true,
-        basic_description_exists: false,
-        standard_price_configured: true,
-        client_entry_path_exists: true,
-        public_profile_enabled: true,
-        public_profile_link_available: true,
-        ready_for_inbound_intent: false,
+      public_profile_enabled: true,
+      is_search_visible: false,
+      minimum_public_profile_readiness: {
+        is_ready: true,
+        completed_count: 6,
+        total_count: 6,
+        missing_items: [],
+        items: [],
       },
       public_profile_path: '/s/olena-koval',
-      missing_items: ['MISSING_DESCRIPTION'],
+      missing_items: [],
       warnings: [],
-      next_actions: [{ code: 'COMPLETE_PROFILE', target: 'CABINET_PROFILE', priority: 1 }],
-      primary_cta_code: 'COMPLETE_PROFILE',
+      next_actions: [{ code: 'VIEW_PUBLIC_PROFILE', target: 'PUBLIC_PROFILE_VIEW', priority: 1 }],
+      primary_cta_code: 'VIEW_PUBLIC_PROFILE',
     } as any)
 
     const view = renderView()
 
     await waitFor(() => {
-      const publicLink = view.getByRole('link', { name: 'Переглянути публічний профіль' })
+      expect(view.container).toHaveTextContent('Профіль опублікований і доступний за прямим посиланням.')
+      expect(view.container).toHaveTextContent('У пошуку він не показується.')
+      expect(view.container).not.toHaveTextContent('видимий у пошуку')
+      const publicLink = view
+        .getAllByRole('link', { name: 'Переглянути публічний профіль' })
+        .find((link) => link.getAttribute('href') === '/s/olena-koval')
       expect(publicLink).toBeInTheDocument()
       expect(publicLink).toHaveAttribute('href', '/s/olena-koval')
       expect(publicLink).toHaveAttribute('target', '_blank')
       expect(publicLink).toHaveAttribute('rel', 'noopener noreferrer')
+    })
+  })
+
+  it('shows search-visible publication state', async () => {
+    mockMe.value = {
+      ...createMePayload(),
+      public_profile_path: '/s/olena-koval',
+    } as any
+    mockedApiGet.mockResolvedValue([])
+    mockedFetchSpecialistOnboardingState.mockResolvedValue({
+      public_profile_enabled: true,
+      is_search_visible: true,
+      minimum_public_profile_readiness: {
+        is_ready: true,
+        completed_count: 6,
+        total_count: 6,
+        missing_items: [],
+        items: [],
+      },
+      public_profile_path: '/s/olena-koval',
+      missing_items: [],
+      warnings: [],
+      next_actions: [{ code: 'VIEW_PUBLIC_PROFILE', target: 'PUBLIC_PROFILE_VIEW', priority: 1 }],
+      primary_cta_code: 'VIEW_PUBLIC_PROFILE',
+    } as any)
+
+    const view = renderView()
+
+    await waitFor(() => {
+      expect(view.container).toHaveTextContent('Профіль опублікований і видимий у пошуку.')
     })
   })
 
@@ -1479,7 +1562,7 @@ describe('CabinetView', () => {
       const status = view.container.querySelector('.onboarding-status')
       expect(status).toBeInTheDocument()
       shellStatus = (status?.textContent || '').trim()
-      expect(shellStatus).toBe('Профіль відкритий, але його варто доповнити')
+      expect(shellStatus).toBe('Профіль ще не готовий')
     })
 
     resolveCanonical({
@@ -1499,41 +1582,14 @@ describe('CabinetView', () => {
     })
 
     await waitFor(() => {
-      expect(view.container).toHaveTextContent('Профіль ще не відкритий')
+      expect(view.container).toHaveTextContent('Профіль ще не готовий')
     })
     await openOnboardingDetails(view.container)
 
     await waitFor(() => {
       expect(view.container).toHaveTextContent('Що залишилось:')
       expect(view.container.querySelector('a[href="/cabinet/profile"]')).toBeInTheDocument()
-      expect((view.container.querySelector('.onboarding-status')?.textContent || '').trim()).toBe('Профіль ще не відкритий')
-    })
-  })
-
-  it('hides large readiness block when all critical checks pass', async () => {
-    mockedApiGet.mockResolvedValue([])
-    mockedFetchSpecialistOnboardingState.mockResolvedValue({
-      readiness: {
-        public_display_name_exists: true,
-        basic_description_exists: true,
-        standard_price_configured: true,
-        client_entry_path_exists: true,
-        public_profile_enabled: true,
-        public_profile_link_available: true,
-        ready_for_inbound_intent: true,
-      },
-      missing_items: [],
-      warnings: [],
-      next_actions: [{ code: 'VIEW_PUBLIC_PROFILE', target: 'PUBLIC_PROFILE_VIEW', priority: 1 }],
-      primary_cta_code: 'VIEW_PUBLIC_PROFILE',
-    } as any)
-
-    const view = renderView()
-    await waitFor(() => {
-      expect(view.container.querySelector('.panel--today')).toBeInTheDocument()
-      expect(view.container.querySelector('.panel--onboarding')).not.toBeInTheDocument()
-      expect(view.container.querySelector('[data-kind="readiness-summary"]')).not.toBeInTheDocument()
-      expect(view.container).not.toHaveTextContent('Профіль ще не готовий до перших запитів')
+      expect((view.container.querySelector('.onboarding-status')?.textContent || '').trim()).toBe('Профіль ще не готовий')
     })
   })
 

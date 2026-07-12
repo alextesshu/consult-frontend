@@ -538,7 +538,7 @@
         <div class="panel__header">
           <div>
             <h2 class="panel__title">Фото та відео</h2>
-            <p class="panel__hint">Завантажте обкладинку профілю та (за потреби) відео-прев'ю.</p>
+            <p class="panel__hint">Додайте фото профілю та, за бажанням, коротку відеовізитку.</p>
           </div>
           <div class="profile-section-toggles" aria-label="Видимість медіа у публічному профілі">
             <label class="inline-check">
@@ -561,7 +561,7 @@
             @keydown.enter.prevent="triggerPhotoSelect"
             @keydown.space.prevent="triggerPhotoSelect"
           >
-            <div class="media-title">Фото прев'ю</div>
+            <div class="media-title">Фото профілю</div>
             <div class="media-hint">JPG, PNG, WEBP • до 5 МБ</div>
             <div class="media-frame">
               <button
@@ -614,7 +614,7 @@
             @keydown.enter.prevent="triggerVideoSelect"
             @keydown.space.prevent="triggerVideoSelect"
           >
-            <div class="media-title">Відео прев'ю</div>
+            <div class="media-title">Відеовізитка</div>
             <div class="media-hint">MP4, MOV, WEBM • до 1 хв • до 100 МБ</div>
             <div class="media-hint media-hint--note">
               Рекомендовано: знімати у 720p або 1080p, з хорошим освітленням і чітким звуком.
@@ -643,7 +643,7 @@
                 @focus="videoDeleteHoverVisible = true"
                 @blur="videoDeleteHoverVisible = false"
               ></video>
-              <div v-else class="media-empty">Відео ще не завантажено</div>
+              <div v-else class="media-empty">Відеовізитку ще не завантажено</div>
             </div>
             <div class="media-status" v-if="videoUploading">Завантаження відео...</div>
             <div class="media-status" v-if="videoDeleting">Видалення відео...</div>
@@ -653,7 +653,7 @@
               type="button"
               @click.stop="triggerVideoSelect"
             >
-              Змінити відео
+              {{ videoPreviewUrl || profile.video_url ? 'Змінити відеовізитку' : 'Додати відеовізитку' }}
             </button>
             <input
               ref="videoInput"

@@ -1,6 +1,6 @@
 # Handoff
 
-Last updated: 2026-07-12
+Last updated: 2026-07-13
 Owner: agent-maintained  
 Canonical file: `docs/HANDOFF.md`  
 Governance: `docs/HANDOFF_RULES.md`  
@@ -10,6 +10,16 @@ Phase archive: `docs/PHASE_CLOSE_SUMMARIES.md`
 
 KAN-1 email trigger/copy implementation is complete locally and awaiting
 review/staging decision. It is not production-deployed.
+
+KAN-1 staging QA hotfix is complete locally and not deployed:
+- dashboard readiness now renders the canonical six hard profile requirements:
+  public display name, short description, topics/requests, work format, base
+  price decision, and first-contact path;
+- publication, direct-link availability, and search visibility are shown as
+  separate publication state, not hard readiness requirements;
+- `Фото та відео` copy now uses `Фото профілю` and `Відеовізитка`;
+- frontend-only change; backend unchanged; no migrations, dependency changes,
+  or deployment script changes.
 
 KAN-29 public profile visibility/readiness and availability creation guidance
 is production-deployed, production smoke passed, manual production verification

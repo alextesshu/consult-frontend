@@ -632,6 +632,32 @@ describe('TherapistProfileView', () => {
     ).toBe(true)
   })
 
+  it('uses profile photo and video business card copy in the media section', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValue({
+      ...makeProfile(),
+      video_url: '',
+    })
+
+    renderView()
+
+    const mediaPanel = (await screen.findByRole('heading', { name: 'Фото та відео' })).closest('section') as HTMLElement
+    expect(within(mediaPanel).getByText('Додайте фото профілю та, за бажанням, коротку відеовізитку.')).toBeInTheDocument()
+    expect(within(mediaPanel).getByText('Фото профілю')).toBeInTheDocument()
+    expect(within(mediaPanel).getByText('Відеовізитка')).toBeInTheDocument()
+    expect(within(mediaPanel).getByText('Відеовізитку ще не завантажено')).toBeInTheDocument()
+    expect(within(mediaPanel).getByRole('button', { name: 'Додати відеовізитку' })).toBeInTheDocument()
+    expect(within(mediaPanel).queryByText("Відео прев'ю")).not.toBeInTheDocument()
+  })
+
+  it('uses change video business card copy when a video exists', async () => {
+    mockedFetchSpecialistProfile.mockResolvedValue(makeProfile())
+
+    renderView()
+
+    const mediaPanel = (await screen.findByRole('heading', { name: 'Фото та відео' })).closest('section') as HTMLElement
+    expect(within(mediaPanel).getByRole('button', { name: 'Змінити відеовізитку' })).toBeInTheDocument()
+  })
+
   it('does not apply truncation styles to the profile subtitle', () => {
     const source = readFileSync('src/views/TherapistProfileView.vue', 'utf-8')
     const subtitleBlocks = [...source.matchAll(/\.profile__subtitle\s*\{([^}]*)\}/g)].map((match) => match[1])

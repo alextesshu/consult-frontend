@@ -10,8 +10,10 @@ import {
 
 describe('specialist onboarding mapping', () => {
   it('keeps contract-aligned copy and route mappings', () => {
-    expect(MISSING_ITEM_COPY.MISSING_DISPLAY_NAME).toBe('публічне імʼя')
-    expect(MISSING_ITEM_COPY.MISSING_DESCRIPTION).toBe('опис')
+    expect(MISSING_ITEM_COPY.MISSING_DISPLAY_NAME).toBe('публічне ім’я')
+    expect(MISSING_ITEM_COPY.MISSING_DESCRIPTION).toBe('короткий опис')
+    expect(MISSING_ITEM_COPY.MISSING_TOPICS).toBe('теми й запити')
+    expect(MISSING_ITEM_COPY.MISSING_WORK_FORMAT).toBe('формат роботи')
     expect(MISSING_ITEM_COPY.MISSING_BASE_PRICE).toBe('базова ціна')
     expect(MISSING_ITEM_COPY.MISSING_CLIENT_ENTRY_PATH).toBe('спосіб першого звернення')
     expect(MISSING_ITEM_COPY.PUBLIC_PROFILE_DISABLED).toBe('публікація профілю')
@@ -33,48 +35,79 @@ describe('specialist onboarding mapping', () => {
     expect(CTA_TARGET_ROUTE_KEYS.PUBLIC_PROFILE_VIEW).toBe('/public')
   })
 
-  it('renders incomplete profile checklist from canonical readiness fields', () => {
+  it('renders the canonical six hard requirements and excludes publication checks from hard readiness', () => {
     const normalized = normalizeOnboardingState({
       version: 2,
-      readiness: {
-        public_display_name_exists: false,
-        basic_description_exists: false,
-        standard_price_configured: false,
-        client_entry_path_exists: false,
-        public_profile_enabled: false,
-        public_profile_link_available: false,
-        ready_for_inbound_intent: false,
+      public_profile_enabled: false,
+      is_search_visible: false,
+      minimum_public_profile_readiness: {
+        is_ready: false,
+        completed_count: 4,
+        total_count: 6,
+        missing_items: ['topics', 'work_format'],
+        items: [
+          { key: 'public_display_name', label: 'Публічне ім’я', complete: true },
+          { key: 'description', label: 'Короткий опис', complete: true },
+          { key: 'topics', label: 'Теми й запити', complete: false },
+          { key: 'work_format', label: 'Формат роботи', complete: false },
+          { key: 'price_decision', label: 'Базова ціна', complete: true },
+          { key: 'first_contact', label: 'Спосіб першого звернення', complete: true },
+        ],
       },
-      missing_items: [
-        'MISSING_DISPLAY_NAME',
-        'MISSING_DESCRIPTION',
-        'MISSING_BASE_PRICE',
-        'MISSING_CLIENT_ENTRY_PATH',
-        'PUBLIC_PROFILE_DISABLED',
-        'MISSING_PUBLIC_PROFILE_LINK',
-      ],
+      missing_items: ['topics', 'work_format', 'PUBLIC_PROFILE_DISABLED', 'MISSING_PUBLIC_PROFILE_LINK'],
       warnings: [{ code: 'PROFILE_CORE_INCOMPLETE' }],
-      next_actions: [{ code: 'COMPLETE_PROFILE', target: 'CABINET_PROFILE', priority: 1 }],
-      primary_cta_code: 'COMPLETE_PROFILE',
+      next_actions: [{ code: 'OPEN_PUBLIC_PROFILE', target: 'CABINET_PUBLIC_PROFILE', priority: 1 }],
+      primary_cta_code: 'OPEN_PUBLIC_PROFILE',
     })
 
     expect(normalized).not.toBeNull()
     const viewModel = buildSpecialistOnboardingViewModel(normalized!)
     expect(viewModel.readiness).toBe(false)
     expect(viewModel.status).toBe('closed')
-    expect(viewModel.statusLabel).toBe('Профіль ще не відкритий')
-    expect(viewModel.primaryCta?.to).toBe('/cabinet/profile')
-    expect(viewModel.steps).toHaveLength(6)
-    expect(viewModel.steps.find((step) => step.key === 'display_name')?.done).toBe(false)
-    expect(viewModel.steps.find((step) => step.key === 'description')?.done).toBe(false)
-    expect(viewModel.steps.find((step) => step.key === 'base_price')?.done).toBe(false)
-    expect(viewModel.steps.find((step) => step.key === 'client_entry_path')?.done).toBe(false)
-    expect(viewModel.missingSummary).toBe(
-      'Що залишилось: публічне імʼя, опис, базова ціна, спосіб першого звернення, публікація профілю, публічне посилання.'
-    )
+    expect(viewModel.primaryCta).toMatchObject({ code: 'COMPLETE_PROFILE', to: '/cabinet/profile' })
+    expect(viewModel.steps.map((step) => step.key)).toEqual([
+      'display_name',
+      'description',
+      'topics',
+      'work_format',
+      'base_price',
+      'client_entry_path',
+    ])
+    expect(viewModel.steps.find((step) => step.key === 'topics')?.done).toBe(false)
+    expect(viewModel.steps.find((step) => step.key === 'work_format')?.done).toBe(false)
+    expect(viewModel.missingSummary).toBe('Що залишилось: теми й запити, формат роботи.')
+    expect(viewModel.missingItems).not.toContain('публікація профілю')
+    expect(viewModel.missingItems).not.toContain('публічне посилання')
+    expect(viewModel.publicationSummary).toBe('Публікація стане доступною після заповнення основних даних.')
   })
 
-  it('routes direct booking without future windows to availability', () => {
+  it('uses top-level canonical missing items when readiness items are not present', () => {
+    const vm = buildSpecialistOnboardingViewModel(
+      normalizeOnboardingState({
+        readiness: {
+          public_display_name_exists: true,
+          basic_description_exists: true,
+          standard_price_configured: true,
+          client_entry_path_exists: true,
+          public_profile_enabled: false,
+          public_profile_link_available: false,
+          ready_for_inbound_intent: false,
+        },
+        missing_items: ['topics'],
+        warnings: [],
+        next_actions: [{ code: 'COMPLETE_PROFILE', target: 'CABINET_PROFILE', priority: 1 }],
+        primary_cta_code: 'COMPLETE_PROFILE',
+      })!
+    )
+
+    expect(vm.readiness).toBe(false)
+    expect(vm.steps.find((step) => step.key === 'topics')?.done).toBe(false)
+    expect(vm.steps.find((step) => step.key === 'work_format')?.done).toBe(true)
+    expect(vm.missingSummary).toBe('Що залишилось: теми й запити.')
+    expect(vm.publicationSummary).not.toMatch(/тільки|лише/)
+  })
+
+  it('routes direct booking without future windows to availability while keeping first-contact as the hard requirement', () => {
     const vm = buildSpecialistOnboardingViewModel(
       normalizeOnboardingState({
         readiness: {
@@ -101,49 +134,68 @@ describe('specialist onboarding mapping', () => {
     expect(vm.steps.find((step) => step.key === 'client_entry_path')?.to).toBe(
       '/cabinet/slots?tab=availability&focus=create-availability'
     )
+    expect(vm.steps.find((step) => step.key === 'client_entry_path')?.title).toContain('спосіб першого звернення')
   })
 
-  it('routes missing first contact setup to schedule settings', () => {
+  it('summarizes all six ready but unpublished as publication-ready', () => {
     const vm = buildSpecialistOnboardingViewModel(
       normalizeOnboardingState({
-        readiness: {
-          public_display_name_exists: true,
-          basic_description_exists: true,
-          standard_price_configured: true,
-          client_entry_path_exists: false,
-          has_future_slots: false,
-          public_profile_enabled: true,
-          public_profile_link_available: true,
-          public_booking_mode: '',
-          show_public_availability: false,
-          ready_for_inbound_intent: false,
+        public_profile_enabled: false,
+        is_search_visible: false,
+        minimum_public_profile_readiness: {
+          is_ready: true,
+          completed_count: 6,
+          total_count: 6,
+          missing_items: [],
+          items: [],
         },
-        missing_items: ['MISSING_CLIENT_ENTRY_PATH'],
-        warnings: [{ code: 'CLIENT_ENTRY_PATH_MISSING' }],
-        next_actions: [{ code: 'COMPLETE_PROFILE', target: 'CABINET_PROFILE', priority: 1 }],
-        primary_cta_code: 'COMPLETE_PROFILE',
+        missing_items: ['PUBLIC_PROFILE_DISABLED'],
+        warnings: [{ code: 'PUBLIC_PROFILE_OFF' }],
+        next_actions: [{ code: 'OPEN_PUBLIC_PROFILE', target: 'CABINET_PUBLIC_PROFILE', priority: 1 }],
+        primary_cta_code: 'OPEN_PUBLIC_PROFILE',
       })!
     )
 
-    expect(vm.steps.find((step) => step.key === 'client_entry_path')?.to).toBe(
-      '/cabinet/slots?tab=settings'
+    expect(vm.readiness).toBe(true)
+    expect(vm.steps).toHaveLength(6)
+    expect(vm.steps.every((step) => step.done)).toBe(true)
+    expect(vm.missingSummary).toBe('')
+    expect(vm.publicationSummary).toBe(
+      'Основні дані готові. Опублікуйте профіль, щоб відкрити сторінку за прямим посиланням.'
     )
   })
 
-  it('handles ready state with public profile link', () => {
-    const vm = buildSpecialistOnboardingViewModel(
+  it('distinguishes direct-link-only publication from search-visible publication', () => {
+    const directOnly = buildSpecialistOnboardingViewModel(
       normalizeOnboardingState({
-        readiness: {
-          public_display_name_exists: true,
-          basic_description_exists: true,
-          standard_price_configured: true,
-          client_entry_path_exists: true,
-          public_profile_enabled: true,
-          profile_slug_exists: true,
-          public_profile_link_available: true,
-          ready_for_inbound_intent: true,
-        },
+        public_profile_enabled: true,
+        is_search_visible: false,
         public_profile_path: '/s/spec-a',
+        minimum_public_profile_readiness: {
+          is_ready: true,
+          completed_count: 6,
+          total_count: 6,
+          missing_items: [],
+          items: [],
+        },
+        missing_items: [],
+        warnings: [],
+        next_actions: [{ code: 'VIEW_PUBLIC_PROFILE', target: 'PUBLIC_PROFILE_VIEW', priority: 1 }],
+        primary_cta_code: 'VIEW_PUBLIC_PROFILE',
+      })!
+    )
+    const searchVisible = buildSpecialistOnboardingViewModel(
+      normalizeOnboardingState({
+        public_profile_enabled: true,
+        is_search_visible: true,
+        public_profile_path: '/s/spec-a',
+        minimum_public_profile_readiness: {
+          is_ready: true,
+          completed_count: 6,
+          total_count: 6,
+          missing_items: [],
+          items: [],
+        },
         missing_items: [],
         warnings: [],
         next_actions: [{ code: 'VIEW_PUBLIC_PROFILE', target: 'PUBLIC_PROFILE_VIEW', priority: 1 }],
@@ -151,11 +203,9 @@ describe('specialist onboarding mapping', () => {
       })!
     )
 
-    expect(vm.readiness).toBe(true)
-    expect(vm.status).toBe('ready')
-    expect(vm.steps.every((step) => step.done)).toBe(true)
-    expect(vm.publicProfileLinkAvailable).toBe(true)
-    expect(vm.publicProfilePath).toBe('/s/spec-a')
+    expect(directOnly.publicationSummary).toContain('доступний за прямим посиланням')
+    expect(directOnly.publicationSummary).toContain('У пошуку він не показується')
+    expect(searchVisible.publicationSummary).toContain('видимий у пошуку')
   })
 
   it('normalizes onboarding_summary shell without false-ready fallback', () => {
