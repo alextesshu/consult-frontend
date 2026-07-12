@@ -3,7 +3,8 @@
 Last updated: 2026-07-12
 Status:
 - Canonical short URL contract: production
-- KAN-29 visibility model: staging validated, production pending
+- KAN-29 visibility model: production deployed, production smoke passed,
+  manual production verification passed, Done
 
 ## Canonical Route Policy
 

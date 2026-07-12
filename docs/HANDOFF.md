@@ -1,6 +1,6 @@
 # Handoff
 
-Last updated: 2026-06-20
+Last updated: 2026-07-12
 Owner: agent-maintained  
 Canonical file: `docs/HANDOFF.md`  
 Governance: `docs/HANDOFF_RULES.md`  
@@ -8,23 +8,28 @@ Phase archive: `docs/PHASE_CLOSE_SUMMARIES.md`
 
 ## Current Phase
 
+KAN-1 email trigger/copy discovery is complete. Runtime implementation has not
+started, and the implementation scope remains pending approval.
+
 KAN-29 public profile visibility/readiness and availability creation guidance
-is staged and manually verified, but not production-deployed yet.
+is production-deployed, production smoke passed, manual production verification
+passed, and Done.
 
-Backend staging baseline:
-- `75872ab Make profile photo optional for publication`
+Production baselines:
+- Backend production/main HEAD: `88ce3d6`
+- Frontend production/main HEAD: `344addc`
 
-Frontend staging baselines:
-- `2251469 Simplify public profile visibility controls`
-- `7217b27 Improve availability creation guidance`
+KAN-1 implementation planning should use the finalized KAN-29
+visibility/readiness mapping from `docs/PROFILE_PUBLIC_URLS.md` and the backend
+contract docs, not duplicate the full contract here.
 
-Status:
-- KAN-29 is Ready for Production, not Done.
-- Production deploy is pending explicit confirmation.
-- KAN-1 email trigger/copy audit should follow the finalized KAN-29 state
-  mapping.
-- Do not add this phase to `docs/PHASE_CLOSE_SUMMARIES.md` until production is
-  explicitly deployed and smoke-checked.
+KAN-1 frontend discovery summary:
+- backend admin detail returns Template B email status;
+- frontend API type and `AdminSpecialistDetailView` currently expose only
+  Template A status;
+- Template B frontend admin status is an implementation candidate;
+- Template C runtime integration does not exist;
+- no frontend implementation has started.
 
 Frontend production-closure slice is now integrated:
 
@@ -207,18 +212,10 @@ Frontend production-closure slice is now integrated:
   - `APPROVED`/`REJECTED` appear as `latest_request`
   - approved requests apply access; use `latest_request.applied` and `latest_request.applied_plan` to avoid contradictory UI
 - Public profile visibility contract:
-  - `public_profile_enabled` controls direct `/s/:slug` availability
-  - `is_search_visible` controls only opt-in discovery/search
-  - valid persisted states are unpublished `false/false`, direct-link public
-    `true/false`, and direct-link plus search `true/true`
-  - `false/true` is invalid and backend normalizes/prevents it
-  - search visibility never publishes a profile by itself
-  - unpublishing disables search visibility
-  - public copy/open actions follow persisted live state, not unsaved local
-    toggle state
-  - hard publication readiness has six requirements: display name,
-    about/description, topics/requests, work format, first-contact/client-entry
-    path, and base price decision
+  - KAN-29 is production-closed and Done
+  - canonical route/readiness/visibility details live in
+    `docs/PROFILE_PUBLIC_URLS.md` and backend contract docs
+  - handoff files should not duplicate the full state table
   - profile photo is recommended, but not a hard publication requirement
 - Availability creation guidance:
   - dashboard readiness label is `Вікна для запису`
@@ -537,6 +534,9 @@ Frontend production-closure slice is now integrated:
 
 ## Active Work
 
+- KAN-1 email trigger/copy discovery is complete; runtime implementation is
+  pending approval and has not started.
+- KAN-29 is production-closed and Done.
 - Manual Client Records Phase 1 and manual-client session creation are closed on frontend.
 - Keep canonical slug/public-link behavior stable while extending profile-related UX.
 - Keep queued follow-ups:
@@ -544,6 +544,11 @@ Frontend production-closure slice is now integrated:
   - `professional_focus` + copy-personalization foundation
 
 ## Immediate Next Step
+
+For KAN-1, approve the implementation scope before runtime changes. Frontend
+candidate scope is exposing backend-provided Template B status in API typing and
+`AdminSpecialistDetailView`; Template C should remain absent until a runtime
+trigger and integration contract are approved.
 
 Keep manual-client, registered-client, and guest/external flows separate while extending account linking or client-cabinet access.
 

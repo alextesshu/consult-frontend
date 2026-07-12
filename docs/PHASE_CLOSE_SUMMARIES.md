@@ -10,6 +10,59 @@ Usage:
 
 ---
 
+## 2026-07-12 - KAN-29 Public Profile Visibility Production Close
+
+### Context
+- KAN-29 public profile visibility/readiness and availability creation
+  guidance is complete, production-deployed, production smoke passed, manual
+  production verification passed, and Done.
+- Backend production/main HEAD:
+  `88ce3d6`.
+- Frontend production/main HEAD:
+  `344addc`.
+- No database migrations were required.
+- Backend and frontend server repositories were returned to `dev` after the
+  production deploy.
+
+### Done
+- Frontend visibility controls use explicit save and distinguish persisted live
+  state from unsaved local toggle state.
+- Public copy/open actions follow persisted publication state.
+- Profile photo is recommended but not a publication or search blocker.
+- Availability creation guidance is production-verified with the contextual
+  `/cabinet/slots?tab=availability&focus=create-availability` route.
+- The canonical visibility/readiness contract remains in
+  `docs/PROFILE_PUBLIC_URLS.md`; this archive does not duplicate the full
+  state table.
+
+### Validation
+- Backend production validation completed:
+  - backend and reminder-worker rebuilt and restarted;
+  - Django system check passed with 0 issues;
+  - `GET https://proconsult.space/healthz` returned `200`;
+  - `GET https://proconsult.space/readyz` returned `200`.
+- Frontend production validation completed:
+  - production Vite build passed;
+  - frontend container restarted;
+  - `GET /login` returned `200`;
+  - `GET /cabinet` returned `200`;
+  - `GET /cabinet/profile` returned `200`;
+  - `GET /cabinet/slots?tab=availability` returned `200`;
+  - manual production smoke passed.
+
+### Next Recommended Phase
+- KAN-1 email trigger/copy discovery is complete; runtime implementation has
+  not started and scope remains pending approval.
+- Frontend discovery summary:
+  - backend admin detail returns Template B email status;
+  - frontend API type and `AdminSpecialistDetailView` currently expose only
+    Template A status;
+  - Template B frontend admin status is an implementation candidate;
+  - Template C runtime integration does not exist;
+  - no frontend implementation has started.
+
+---
+
 ## 2026-07-12 - Client Payment Overview Production Close
 
 ### Context

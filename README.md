@@ -266,6 +266,6 @@ and `/admin/logout/...` must remain backend routes.
 
 ## Next Focus
 
-1. Privacy Policy / confidentiality / support contact flow polish
+1. KAN-1 onboarding email state/copy implementation after approved discovery
 2. Specialist client records depth: bulk actions and richer client profile view
 3. Broader empty/loading/error normalization for remaining non-booking views
